@@ -68,6 +68,12 @@ export const MAX_PHOTO_AGE_YEARS = 8;
 const OFFICIAL: ReadonlySet<RightsBasis> = new Set(['official', 'permission', 'press-kit', 'promo-editorial']);
 const DEFAULT_FOCAL = [50, 40] as const;
 
+/**
+ * An AI illustration is what the image is, not a rights question: BAYLINK may own it (`rights.basis: 'owner'`) or
+ * record it as official, and it is still never the cover of a factual item. 3D-world scenes are the one exception.
+ */
+export const isAiIllustration = (image: CoverAsset) => image.kind === 'illustration' && !image.scene3d;
+
 /** The rights basis: the structured record when present, else what today's registry fields state. */
 export function rightsBasisOf(image: CoverAsset): RightsBasis {
   const recorded = typeof image.rights === 'object' && image.rights ? image.rights.basis : undefined;
@@ -115,7 +121,8 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
     year: captureYear(image),
   } });
   if (tier === 'scene3d') return item.kind === 'place' ? make('scene3d', { ...image, scene3d: true }) : { rejected: 'not-allowed-for-kind' };
-  if (basis === 'ai') return { rejected: 'ai-illustration' };
+  // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover.
+  if (isAiIllustration(image) || basis === 'ai') return { rejected: 'ai-illustration' };
   const use = item.kind === 'event' ? (ctx.contextPhotos ?? EVENT_CONTEXT_PHOTOS)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
   if (use && !use.eventIds.includes(item.id)) return { rejected: 'unapproved-reuse' };

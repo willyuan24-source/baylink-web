@@ -51,6 +51,15 @@ test('AI illustrations and theme photos never cover a factual item', () => {
     assert.equal(cover.tier, 'type', kind);
     assert.equal(cover.tier === 'type' && cover.reason, 'ai-illustration');
   }
+  // A structured rights record (WEB-IMAGES) can say BAYLINK owns the art or the organiser approved it; it is still AI.
+  for (const basis of ['owner', 'official', 'permission', 'press-kit'] as const) {
+    const recorded = { ...images.ai, src: `/guides/test/ai-${basis}.webp`, rights: { basis } };
+    for (const kind of ['event', 'offer', 'opening'] as const) {
+      const cover = getCover({ kind, id: 'x', imageKey: 'recorded' }, { ...ctx, images: { recorded } });
+      assert.equal(cover.tier, 'type', `${basis} on ${kind}`);
+      assert.equal(cover.tier === 'type' && cover.reason, 'ai-illustration', `${basis} on ${kind}`);
+    }
+  }
   const theme = getCover(event('e-theme', 'theme'), ctx);
   assert.equal(theme.tier === 'type' && theme.reason, 'theme-photo');
   const reuse = getCover(event('someone-else', 'venue'), ctx);
