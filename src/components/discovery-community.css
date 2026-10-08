@@ -81,7 +81,7 @@
 .discovery-plan { list-style:none; padding:0; margin:10px 0 25px; }
 .discovery-plan li { display:flex; align-items:flex-start; gap:18px; padding:17px 0; border-bottom:1px solid #e0e6d9; }
 .discovery-plan li>span { color:#76906b; font-size:23px; font-weight:550; }.discovery-plan p { margin:0; font-size:15px; line-height:1.95; color:#52674f; }
-.discovery-detail-links { margin:27px 0 17px; }.discovery-source { display:flex; align-items:center; flex-wrap:wrap; gap:5px; font-size:11px!important; }.discovery-source a { text-decoration:underline; text-underline-offset:3px; }
+.discovery-detail-links { margin:27px 0 17px; }
 .discovery-related { display:inline-flex; align-items:center; gap:10px; color:#26634a; font-size:13px; margin-top:13px; }
 .discovery-return { border-top:1px solid #d7e0ce; padding:32px; background:#f0f3e7; border-radius:18px; }.discovery-return h2 { font-size:26px; font-weight:700; margin:12px 0; }.discovery-return p { font-size:14px; line-height:1.9; color:#67785e; }.discovery-return>div { display:flex; flex-wrap:wrap; gap:15px 25px; margin-top:22px; }.discovery-return a { display:inline-flex; align-items:center; gap:7px; color:#245c41; font-size:13px; font-weight:650; }
 .discovery-modal button:disabled,.event-participation button:disabled { opacity:.55; cursor:wait; }

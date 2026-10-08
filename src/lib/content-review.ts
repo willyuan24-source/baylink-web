@@ -70,6 +70,95 @@ export function parseContentReviewManifest(value: unknown, today: string): Conte
   return contentReviewQueue(records, today);
 }
 
+/**
+ * One row of `GET /api/sources/freshness`. `changedAt`, `material`, `changeFields`
+ * and `reviewedBy` arrive with source triage; until then they are absent.
+ */
+export type FreshnessSourceRow = {
+  sourceId: string; status: string; needsReview: boolean; contentIds?: string[];
+  lastFetchedAt: number | null; lastReviewedAt: number | null;
+  changedAt?: number | null; material?: boolean | null; changeFields?: string[]; reviewedBy?: string;
+};
+export type ReaderFreshnessItem = { kind: ContentReviewRecord['kind']; verifiedAt?: string; endDate?: string; nextDate?: string | null };
+/**
+ * What a reader sees (D11): `ok` is the trust row only, `soft` one line under the facts,
+ * `hard` a box for a likely cancellation or date change, `archived` the existing archive
+ * banner, and `guide` never a banner.
+ */
+export type ReaderFreshness = {
+  state: 'ok' | 'soft' | 'hard' | 'archived' | 'guide';
+  reason?: 'source-changed' | 'date-near-unconfirmed';
+  /** A person checked the facts on this date. Never derived from the monitor. */
+  verifiedAt?: string;
+  /** Every active source was read and matched the last reviewed text (earliest read, ms). */
+  comparedAt?: number;
+  /** Earliest pending change, when the API reports one (ms). */
+  changedAt?: number;
+};
+
+const SOFT_AFTER_MS = 48 * 3_600_000;
+const NEAR_DAYS = 3, STALE_CHECK_DAYS = 14;
+const FUTURE_TOLERANCE_MS = 5 * 60_000;
+/** Triage field for cancel, postpone, sold-out and reschedule wording. */
+const HARD_FIELDS = new Set(['cancel']);
+const UNREAD = new Set(['manual-required', 'error', 'not-checked']);
+const finiteTime = (value: unknown): value is number => typeof value === 'number' && Number.isFinite(value) && value > 0;
+const addDays = (date: string, days: number) => new Date(Date.parse(`${date}T12:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+
+/** Accepts only the documented public shape; anything else counts as "no answer". */
+export function parseFreshnessRows(value: unknown): FreshnessSourceRow[] | null {
+  const list = value && typeof value === 'object' && Array.isArray((value as { sources?: unknown }).sources) ? (value as { sources: unknown[] }).sources : null;
+  if (!list) return null;
+  return list.slice(0, 500).flatMap((raw): FreshnessSourceRow[] => {
+    const row = raw && typeof raw === 'object' ? raw as Record<string, unknown> : null;
+    if (!row || typeof row.sourceId !== 'string' || typeof row.status !== 'string') return [];
+    const time = (key: string) => finiteTime(row[key]) ? row[key] as number : null;
+    return [{
+      sourceId: row.sourceId, status: row.status, needsReview: row.needsReview === true,
+      contentIds: Array.isArray(row.contentIds) ? row.contentIds.filter((id): id is string => typeof id === 'string') : undefined,
+      lastFetchedAt: time('lastFetchedAt'), lastReviewedAt: time('lastReviewedAt'), changedAt: time('changedAt'),
+      material: typeof row.material === 'boolean' ? row.material : null,
+      changeFields: Array.isArray(row.changeFields) ? row.changeFields.filter((field): field is string => typeof field === 'string') : undefined,
+      reviewedBy: typeof row.reviewedBy === 'string' ? row.reviewedBy : undefined,
+    }];
+  });
+}
+
+/** The automatic comparison date is only claimed when every active source matched. */
+export function sourceComparedAt(rows: readonly FreshnessSourceRow[] | null, now: number): number | undefined {
+  const active = (rows || []).filter(row => row.status !== 'expired');
+  if (!active.length || !active.every(row => row.status === 'unchanged' && !row.needsReview && finiteTime(row.lastFetchedAt) && row.lastFetchedAt <= now + FUTURE_TOLERANCE_MS)) return undefined;
+  return Math.min(...active.map(row => row.lastFetchedAt!));
+}
+
+/**
+ * Reader freshness follows source state, not the calendar (D11). `sources === null`
+ * means the API has not answered or is unreachable, which reads as OK. A source the
+ * monitor cannot read is an editor task, shown to readers only when the date is near
+ * and the last human check is old.
+ */
+export function getReaderFreshness(item: ReaderFreshnessItem, sources: readonly FreshnessSourceRow[] | null, { today, now }: { today: string; now: number }): ReaderFreshness {
+  const verifiedAt = validDate(item.verifiedAt) && item.verifiedAt <= today ? item.verifiedAt : undefined;
+  const comparedAt = sourceComparedAt(sources, now);
+  const base = { ...(verifiedAt ? { verifiedAt } : {}), ...(comparedAt ? { comparedAt } : {}) };
+  if (item.kind === 'guide') return { state: 'guide', ...base };
+  if (validDate(item.endDate) && item.endDate < today) return { state: 'archived', ...base };
+  if (!sources) return { state: 'ok', ...base };
+  const active = sources.filter(row => row.status !== 'expired');
+  // Triage marks cosmetic edits `material: false`; without triage a pending change may matter.
+  const pending = active.filter(row => row.needsReview && row.material !== false);
+  const earliest = (rows: FreshnessSourceRow[]) => { const times = rows.map(row => row.changedAt).filter(finiteTime); return times.length ? { changedAt: Math.min(...times) } : {}; };
+  const hard = pending.filter(row => row.changeFields?.some(field => HARD_FIELDS.has(field)));
+  if (hard.length) return { state: 'hard', ...base, ...earliest(hard) };
+  // Editors get 48 hours to review a dated change; an undated change has no known grace period.
+  const due = pending.filter(row => !finiteTime(row.changedAt) || now - row.changedAt >= SOFT_AFTER_MS);
+  if (due.length) return { state: 'soft', reason: 'source-changed', ...base, ...earliest(due) };
+  const near = validDate(item.nextDate ?? undefined) && item.nextDate! >= today && item.nextDate! <= addDays(today, NEAR_DAYS);
+  const unread = active.length > 0 && active.every(row => UNREAD.has(row.status));
+  if (near && unread && (!verifiedAt || verifiedAt < addDays(today, -STALE_CHECK_DAYS))) return { state: 'soft', reason: 'date-near-unconfirmed', ...base };
+  return { state: 'ok', ...base };
+}
+
 /** A review schedule is not a new factual verification. Original checked dates are copied unchanged. */
 export function contentReviewQueue(records: ContentReviewRecord[], today: string): ContentReviewRow[] {
   if (!validDate(today)) throw new Error('A valid local editorial date is required');

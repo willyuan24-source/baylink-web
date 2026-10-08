@@ -6,6 +6,7 @@ import { selectAiLocalEvents, type AiLocalGoal } from '../lib/ai-local';
 import { aiWeekGuideSlug } from '../data/guides-ai-week';
 import { translateText, useLocale } from '../i18n/locale';
 import { getBayAreaToday, getEventStatus } from '../lib/monthly';
+import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { setPageMetadata } from '../lib/seo';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
@@ -101,7 +102,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
             <details><summary>{t('报名与行前提示')}</summary><ul>{event.plan.map(tip => <li key={tip}>{t(tip)}</li>)}</ul></details>
             <div className="bl-ai-card-actions"><Link to={`/events/${event.id}`}>{t('查看场次与安排')} <ArrowRight size={15} aria-hidden="true" /></Link><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noopener noreferrer">{t('主办方报名页')} <ArrowUpRight size={15} aria-hidden="true" /></a></div>
             <p className="bl-ai-source">{t('核对日期')} {event.verifiedAt} · {t(event.sourceLabel)}</p>
-            <SourceFreshness contentId={event.id} />
+            {status !== 'ended' && <SourceFreshness contentId={event.id} item={{ kind: 'event', verifiedAt: event.verifiedAt, endDate: event.endDate, nextDate: nextConfirmedEventDate(event, today) }} today={suppliedToday} />}
           </article>;
         })}</div>}
     </section>
