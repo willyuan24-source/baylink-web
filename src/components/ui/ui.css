@@ -141,7 +141,8 @@
   .ui-type-cover__brand { font-size:calc(.9375rem * var(--reading-scale)); }
 }
 
-/* Feed grid: CSS grid in DOM order; 2 / 3 / 4 columns; one column at 大/特大 text on phones or below 340px. */
+/* Feed grid: CSS grid in DOM order; 2 / 3 / 4 columns; one column at 大/特大 text or in 简洁显示 on phones (≤767px, the
+   same breakpoint as tokens.css --feed-cols, WEB-TOKENS-A) or below 340px; 2 / 3 columns at 大/特大 on tablets / desktops. */
 .ui-feed { container-type:inline-size; container-name:ui-feed; }
 .ui-feed-grid { --ui-feed-cols:2; display:grid; grid-template-columns:repeat(var(--ui-feed-cols), minmax(0, 1fr)); gap:16px 12px; margin:0; padding:0; list-style:none; }
 .ui-feed-grid>li { min-width:0; }
@@ -151,7 +152,8 @@
 @media (min-width:1024px) { .ui-feed-grid { --ui-feed-cols:4; gap:24px; } }
 .ui-feed-grid[data-single] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; }
 @container ui-feed (max-width:339px) { .ui-feed-grid:not([data-layout=grid]) { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; } }
-@media (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; } }
+@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; } }
+@media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:2; } }
 @media (min-width:1024px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:3; } }
 .ui-feed-grid[data-layout=list] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; }
 .ui-feed-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
@@ -176,9 +178,9 @@
 @container ui-feed (max-width:339px) {
   .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
 }
-@media (max-width:1023px) {
-  :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-  :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:calc(.9375rem * var(--reading-scale)); white-space:normal; }
+@media (max-width:767px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:calc(.9375rem * var(--reading-scale)); white-space:normal; }
 }
 
 /* Row card: lists, calendar, search, saved items. One trailing action only. */

@@ -8,7 +8,7 @@ import type { FeedLayout } from './feed-layout';
 export type FeedGridProps = {
   /** Accessible name of the list ("本周末活动"). */
   label: string;
-  /** From `useFeedLayout()`; `auto` switches to one column at 大/特大 text on phones and below 340px. */
+  /** From `useFeedLayout()`; `auto` switches to one column at 大/特大 text or in 简洁显示 on phones (≤767px) and below 340px. */
   layout?: FeedLayout;
   /** Always one column (search results, guides lists). */
   single?: boolean;
@@ -20,7 +20,8 @@ export type FeedGridProps = {
 
 /**
  * Browse feed (D9): CSS grid in DOM order, 2 columns of 173px on a 390 phone (16 + 12 + 16), 3 at ≥768, 4 at
- * ≥1024; one column with 3:2 covers at large text or in a narrow container. Children are <FeedItem>s.
+ * ≥1024; one column with 3:2 covers at 大/特大 text or in 简洁显示 on a phone (≤767px, the tokens.css `--feed-cols`
+ * breakpoint) or in a narrow container; 2 / 3 columns at 大/特大 on tablets / desktops. Children are <FeedItem>s.
  */
 export function FeedGrid({ label, layout = 'auto', single, ratio, children, className }: FeedGridProps) {
   return <div className={cx('ui-feed', className)} data-ratio={ratio}>
@@ -33,11 +34,14 @@ export function FeedItem({ wide, children }: { wide?: boolean; children: ReactNo
   return <li className={wide ? 'ui-feed-grid__wide' : undefined}>{children}</li>;
 }
 
-/** Two 44px buttons that override the automatic column choice; the choice is remembered (baylink.feed-layout.v1). */
+/**
+ * Two 44px buttons that override the automatic column choice; the choice is remembered (baylink.feed-layout.v1).
+ * Pressing the layout the automatic switch would pick clears the saved choice (`useFeedLayout().setLayout`).
+ */
 export function FeedLayoutToggle({ effective, onChange }: { effective: Exclude<FeedLayout, 'auto'>; onChange: (layout: FeedLayout) => void }) {
   const { t } = useUiCopy();
   return <div className="ui-layout-toggle" role="group" aria-label={t('排列方式', 'Layout')}>
-    <IconButton label={t('两列', 'Two columns')} aria-pressed={effective === 'grid'} onClick={() => onChange('grid')}><LayoutGrid aria-hidden="true" strokeWidth={1.75} /></IconButton>
+    <IconButton label={t('多列', 'Grid')} aria-pressed={effective === 'grid'} onClick={() => onChange('grid')}><LayoutGrid aria-hidden="true" strokeWidth={1.75} /></IconButton>
     <IconButton label={t('单列', 'One column')} aria-pressed={effective === 'list'} onClick={() => onChange('list')}><List aria-hidden="true" strokeWidth={1.75} /></IconButton>
   </div>;
 }

@@ -15,7 +15,7 @@ export { FeedCard, RowCard, type FeedCardProps, type RowCardProps } from './Card
 export { HeroCard, PageHeader, PageContainer, type HeroCardProps, type PageHeaderProps } from './HeroCard';
 export { Carousel, type CarouselProps } from './Carousel';
 export { FeedGrid, FeedItem, FeedLayoutToggle, type FeedGridProps } from './FeedGrid';
-export { useFeedLayout, readFeedLayout, writeFeedLayout, automaticLayout, FEED_LAYOUT_KEY, type FeedLayout } from './feed-layout';
+export { useFeedLayout, readFeedLayout, writeFeedLayout, automaticLayout, FEED_LAYOUT_KEY, PHONE_QUERY, type FeedLayout } from './feed-layout';
 export { Sheet, type SheetProps } from './Sheet';
 export { SegmentedTabs, SegmentedControl, type SegmentItem, type SegmentedTabsProps, type SegmentedControlProps } from './Segmented';
 export { SkeletonCard, SkeletonRow, SkeletonFeed } from './SkeletonCard';

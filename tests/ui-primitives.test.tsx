@@ -130,29 +130,58 @@ test('segmented tabs: route links carry aria-current; in-page tabs and the day t
   assert.equal(view.getByRole('radiogroup', { name: '哪一天' }).querySelectorAll('[tabindex="0"]').length, 1, 'one tab stop');
 });
 
-test('feed grid: a labelled list in DOM order; the layout choice is remembered and survives broken storage', async () => {
-  function Feed() {
-    const { layout, effective, setLayout } = ui.useFeedLayout();
-    return <><ui.FeedLayoutToggle effective={effective} onChange={setLayout} />
-      <ui.FeedGrid label="本周末活动" layout={layout}><ui.FeedItem>a</ui.FeedItem><ui.FeedItem wide>b</ui.FeedItem></ui.FeedGrid></>;
-  }
+function Feed() {
+  const { layout, effective, setLayout } = ui.useFeedLayout();
+  return <><ui.FeedLayoutToggle effective={effective} onChange={setLayout} />
+    <ui.FeedGrid label="本周末活动" layout={layout}><ui.FeedItem>a</ui.FeedItem><ui.FeedItem wide>b</ui.FeedItem></ui.FeedGrid></>;
+}
+
+test('feed grid: a labelled list in DOM order; the layout choice is remembered, and choosing the automatic layout clears it', async () => {
   const view = wrap(<Feed />);
   const list = view.getByRole('list', { name: '本周末活动' });
   assert.equal(list.getAttribute('data-layout'), 'auto');
   assert.ok(list.querySelector('li.ui-feed-grid__wide'));
-  assert.equal(view.getByRole('button', { name: '两列' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(view.getByRole('button', { name: '多列' }).getAttribute('aria-pressed'), 'true');
   await act(async () => { document.documentElement.dataset.reading = 'extra-large'; await Promise.resolve(); });
   assert.equal(view.getByRole('button', { name: '单列' }).getAttribute('aria-pressed'), 'true', 'auto follows 特大 text on a phone');
-  fireEvent.click(view.getByRole('button', { name: '两列' }));
+  fireEvent.click(view.getByRole('button', { name: '多列' }));
   assert.equal(list.getAttribute('data-layout'), 'grid');
   assert.equal(localStorage.getItem(ui.FEED_LAYOUT_KEY), 'grid');
-  delete document.documentElement.dataset.reading;
+  fireEvent.click(view.getByRole('button', { name: '单列' }));
+  assert.equal(list.getAttribute('data-layout'), 'auto', 'one column is what auto picks at 特大, so the saved choice is cleared');
+  assert.equal(localStorage.getItem(ui.FEED_LAYOUT_KEY), null);
+  await act(async () => { delete document.documentElement.dataset.reading; await Promise.resolve(); });
+  assert.equal(view.getByRole('button', { name: '多列' }).getAttribute('aria-pressed'), 'true', 'back on the automatic switch');
+  await act(async () => { document.documentElement.setAttribute('data-simple', ''); await Promise.resolve(); });
+  assert.equal(view.getByRole('button', { name: '单列' }).getAttribute('aria-pressed'), 'true', '简洁显示 goes to one column on a phone too');
+  document.documentElement.removeAttribute('data-simple');
+  assert.equal(ui.readFeedLayout({ getItem: () => 'masonry' }), 'auto');
+  assert.equal(ui.automaticLayout('large', true), 'list');
+  assert.equal(ui.automaticLayout('large', false), 'grid', 'tablets and desktops keep a grid at large text');
+  assert.equal(ui.automaticLayout(undefined, true, true), 'list');
+  assert.equal(ui.automaticLayout(undefined, false, true), 'grid');
+  assert.equal(ui.PHONE_QUERY, '(max-width: 767px)', 'the tokens.css --feed-cols breakpoint');
+});
+
+test('feed layout survives blocked site data, where the localStorage getter itself throws', async () => {
   const broken = { getItem: () => { throw new Error('blocked'); }, setItem: () => { throw new Error('blocked'); }, removeItem: () => { throw new Error('blocked'); } };
   assert.equal(ui.readFeedLayout(broken), 'auto');
   assert.doesNotThrow(() => ui.writeFeedLayout('list', broken));
-  assert.equal(ui.readFeedLayout({ getItem: () => 'masonry' }), 'auto');
-  assert.equal(ui.automaticLayout('large', true), 'list');
-  assert.equal(ui.automaticLayout('large', false), 'grid');
+  const original = Object.getOwnPropertyDescriptor(globalThis, 'localStorage')!;
+  Object.defineProperty(globalThis, 'localStorage', { configurable: true, get() { throw new dom.window.DOMException('The operation is insecure.', 'SecurityError'); } });
+  try {
+    assert.throws(() => globalThis.localStorage, /insecure/, 'the getter throws, as in a browser with site data blocked');
+    assert.equal(ui.readFeedLayout(), 'auto');
+    assert.doesNotThrow(() => ui.writeFeedLayout('list'));
+    assert.doesNotThrow(() => ui.writeFeedLayout('auto'));
+    const view = wrap(<Feed />);
+    await act(async () => { await Promise.resolve(); });
+    const list = view.getByRole('list', { name: '本周末活动' });
+    fireEvent.click(view.getByRole('button', { name: '单列' }));
+    assert.equal(list.getAttribute('data-layout'), 'list', 'the choice still applies for this visit');
+  } finally {
+    Object.defineProperty(globalThis, 'localStorage', original);
+  }
 });
 
 test('loading, empty and error states: fixed skeletons, one next step, retry', () => {
@@ -198,7 +227,7 @@ test('English pages get English control names without a dictionary entry', async
   assert.ok(view.getByRole('button', { name: 'Save: Fleet Week' }));
   assert.ok(view.getByRole('button', { name: 'Try again' }));
   assert.ok(view.getByRole('link', { name: 'Back to home' }));
-  assert.ok(view.getByRole('button', { name: 'Two columns' }));
+  assert.ok(view.getByRole('button', { name: 'Grid' }));
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/);
 });
 
