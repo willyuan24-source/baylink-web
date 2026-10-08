@@ -32,7 +32,9 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
     .sort((a, b) => a.date.localeCompare(b.date));
   // On Sunday the range still starts on Saturday, so the weekend's editor list applies.
   const list = editorialPicks[range.start] || [];
-  const snapshot = catalog === MONTHLY_EVENTS && !options.picks && !options.hasPhoto ? (HOME_WEEKENDS as Record<string, { ids: string[]; total: number }>)[today] : undefined;
+  // The published snapshot answers only the default call; any option asks for a fresh selection.
+  const custom = Object.values(options).some(value => value !== undefined);
+  const snapshot = catalog === MONTHLY_EVENTS && !custom ? (HOME_WEEKENDS as Record<string, { ids: string[]; total: number }>)[today] : undefined;
   if (snapshot) {
     const picks = snapshot.ids.flatMap(id => events.filter(entry => entry.event.id === id).map((entry): HomeWeekendPick => ({ ...entry, editorial: editorialFor(list, id) })));
     return { ...range, events, picks, total: snapshot.total };

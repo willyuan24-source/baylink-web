@@ -10,7 +10,7 @@ import { getBuildWeekend } from '../src/lib/home-weekend-build';
 
 type CardPick = { id: string; date: string; verifiedAt: string; editorial?: { rank: number; reason: { zh: string; en: string } } };
 const snapshots = HOME_WEEKENDS as Record<string, { ids: string[] }>;
-const stale = new Set<string>();
+const stale = new Map<string, string[]>();
 const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_EVENTS, day?: string) => {
   const card = JSON.parse(await readFile(`public/weekly/${name}.json`, 'utf8'));
   assert.match(card.generatedAt, /^\d{4}-\d{2}-\d{2}$/);
@@ -25,7 +25,7 @@ const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_E
   for (const pick of picks) {
     if (pick.editorial) assert.ok(pick.editorial.reason.zh.trim() && pick.editorial.reason.en.trim(), `${name}: ${pick.id} has a reason`);
     // The card prints 核对 dates; content review marks an entry due after 7 days.
-    if (region === 'all' && pick.verifiedAt <= addCalendarDays(card.day, -7)) stale.add(`${pick.id} (核对 ${pick.verifiedAt})`);
+    if (region === 'all' && pick.verifiedAt <= addCalendarDays(card.day, -7)) stale.set(name, [...stale.get(name) || [], `${pick.id} (核对 ${pick.verifiedAt})`]);
   }
   const png = PNG.sync.read(await readFile(`public/weekly/${name}.png`));
   assert.equal(png.width, 1080); assert.equal(png.height, 1440);
@@ -61,5 +61,6 @@ for (const region of regions) {
     occurrences++;
   }
 }
-if (stale.size) console.warn(`Weekly cards print 核对 dates older than 7 days: ${[...stale].join(', ')}. Re-verify these events before sharing.`);
+// A warning, not a failure: re-verifying an event is content work, not a build fault.
+if (stale.size) console.warn(`Weekly cards print 核对 dates older than 7 days. Re-verify these events before sharing:\n${[...stale].map(([name, picks]) => `  ${name}.png: ${picks.join(', ')}`).join('\n')}`);
 console.log(`Verified six 1080×1440 cards and ${days.length} dated Bay Area cards matching the home page, all stable QR links, and ${occurrences} actual calendar occurrences.`);

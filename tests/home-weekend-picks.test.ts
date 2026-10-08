@@ -5,7 +5,7 @@ import type { MonthlyEvent } from '../src/data/monthly-types';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
 import { MONTHLY_EDITION } from '../src/data/monthly-settings';
 import { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS, type WeekendPickEntry } from '../src/data/weekend-picks';
-import { HOME_WEEKENDS } from '../src/lib/home-catalog';
+import { HOME_WEEKENDS, MONTHLY_EVENTS as COMPACT_EVENTS } from '../src/lib/home-catalog';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../src/lib/home-weekend';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { isAdultOnly, rankWeekendFallback, selectWeekendFallback } from '../src/lib/weekend-ranking';
@@ -126,6 +126,10 @@ test('adult-only events wait until nothing else is left, and regions vary', () =
 test('every home snapshot equals the build selection, so the home page and the share card agree', () => {
   const snapshots = HOME_WEEKENDS as Record<string, { ids: string[]; total: number }>;
   for (const day of Object.keys(snapshots)) assert.deepEqual(snapshots[day].ids, ids(getBuildWeekend(day, COMPLETE_EVENTS).picks), day);
+  // Any option skips the snapshot instead of being silently ignored.
+  const day = Object.keys(snapshots).find(item => snapshots[item].ids.length >= 2)!;
+  assert.deepEqual(ids(getHomeWeekend(day).picks), snapshots[day].ids);
+  assert.equal(getHomeWeekend(day, COMPACT_EVENTS, { limit: 1 }).picks.length, 1);
 });
 
 test('the dated share card is linked only on days it is generated for', () => {

@@ -5,6 +5,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getHomeWeekend, getWeeklyCardHref } from '../src/lib/home-weekend';
 import { MONTHLY_EVENTS, HOME_WEEKENDS } from '../src/lib/home-catalog';
+import { WEEKEND_PICKS, type WeekendPickEntry } from '../src/data/weekend-picks';
 import { eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
 import { guides as COMPLETE_GUIDES } from '../src/data/guides';
@@ -38,12 +39,9 @@ test('server home exposes three real weekend dates, costs, sources and actionabl
   assert.ok(doc.querySelector('.home-guide-selection .home-section-heading a')!.textContent!.includes(String(COMPLETE_GUIDES.length)), 'home reports the entire guide library rather than its lightweight selection');
 });
 
-test('editor picks show their reason in each edition and the share link matches the day', async t => {
-  // Follow the published snapshots instead of a fixed date, so advancing the
-  // edition's review date cannot strand this check on a day without picks.
-  const today = Object.keys(HOME_WEEKENDS).sort().find(day => getHomeWeekend(day).picks.some(pick => pick.editorial));
-  if (!today) return t.skip('no editor-picked weekend inside the published snapshots');
+const assertEditorialRender = async (today: string) => {
   const picks = getHomeWeekend(today).picks;
+  assert.ok(picks.some(pick => pick.editorial), `${today} has an editor pick`);
   const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
   const cards = [...doc.querySelectorAll('.home-weekend-card')];
   assert.deepEqual(cards.map(card => card.querySelector('h3 a')!.getAttribute('href')), picks.map(pick => `/events/${pick.event.id}`));
@@ -51,7 +49,8 @@ test('editor picks show their reason in each edition and the share link matches 
     const line = cards[index].querySelector('.home-weekend-pick');
     if (!editorial) return assert.equal(line, null, 'automatic picks carry no editor label');
     assert.equal(line!.querySelector('span')!.textContent, '编辑精选');
-    assert.ok(line!.textContent!.endsWith(editorial.reason.zh));
+    // A hidden separator keeps label and reason apart for screen readers and copy.
+    assert.equal(line!.textContent, `编辑精选：${editorial.reason.zh}`);
   });
   assert.equal(doc.querySelector('.home-weekly-share a[download]')!.getAttribute('href'), getWeeklyCardHref(today));
   const { setLocale } = await import('../src/i18n/locale');
@@ -62,11 +61,34 @@ test('editor picks show their reason in each edition and the share link matches 
       const lines = [...view.container.querySelectorAll('.home-weekend-pick')];
       assert.equal(lines.length, picks.filter(pick => pick.editorial).length, locale);
       for (const line of lines) assert.equal(line.querySelector('span')!.textContent, label);
-      if (locale === 'en') assert.ok(lines[0].textContent!.endsWith(picks.find(pick => pick.editorial)!.editorial!.reason.en));
+      if (locale === 'en') assert.equal(lines[0].textContent, `Editor's pick: ${picks.find(pick => pick.editorial)!.editorial!.reason.en}`);
       view.unmount();
     }
   } finally {
     await setLocale('zh-Hans', false);
+  }
+};
+
+test('editor picks show their reason in each edition and the share link matches the day', async () => {
+  // Render the published picks while a snapshot day has them. Follow the
+  // snapshots instead of a fixed date, so advancing the edition's review date
+  // cannot strand this check on a day without picks.
+  const days = Object.keys(HOME_WEEKENDS).sort();
+  const published = days.find(day => getHomeWeekend(day).picks.some(pick => pick.editorial));
+  if (published) await assertEditorialRender(published);
+  // Always render an injected pick as well, so the label path keeps running
+  // after the current weekend is deleted from src/data/weekend-picks.ts.
+  const snapshots = HOME_WEEKENDS as Record<string, { ids: string[] }>;
+  const day = days.filter(item => snapshots[item].ids.length >= 2).at(-1)!;
+  const saturday = getHomeWeekend(day).start;
+  const editorPicks = WEEKEND_PICKS as Record<string, readonly WeekendPickEntry[]>;
+  const original = editorPicks[saturday];
+  editorPicks[saturday] = [{ id: snapshots[day].ids[1], reason: { zh: '测试理由', en: 'Test reason' } }];
+  try {
+    await assertEditorialRender(day);
+  } finally {
+    if (original) editorPicks[saturday] = original;
+    else delete editorPicks[saturday];
   }
 });
 
