@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  brandCase, displayUnits, eventDateChip, eventPlace, eventPriceChip, eventShortTitle, eventTimeLabel, eventTone, formatDateChip,
+  brandCase, discountOff, displayUnits, eventDateChip, eventPlace, eventPriceChip, eventShortTitle, eventTimeLabel, eventTone, formatDateChip,
   isPublicBenefit, offerDeadline, offerValue, openingChip, upcomingWeekend,
 } from '../src/lib/event-facts';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -67,6 +67,8 @@ test('short titles, places, tones and session times come from structured fields 
   assert.equal(eventShortTitle({ title: 'Fleet Week 蓝天使航展：海军舰艇开放与飞行表演' }), 'Fleet Week 蓝天使航展');
   assert.equal(eventShortTitle({ title: '秋：赏枫' }), '秋：赏枫', 'a head shorter than 4 units is not a name');
   assert.equal(eventShortTitle({ title: 'Anything', shortTitle: ' 山景城啤酒节 ' }), '山景城啤酒节');
+  assert.equal(eventShortTitle({ title: 'Movie Night at 7:30' }), 'Movie Night at 7:30', 'a clock time is not a separator');
+  assert.equal(eventShortTitle({ title: 'Fleet Week 2026: Blue Angels' }), 'Fleet Week 2026', 'a colon after a year still separates');
   assert.equal(displayUnits('Fleet Week 蓝天使'), 8.5);
   assert.equal(eventPlace({ city: 'Berkeley' }), 'Berkeley');
   assert.equal(eventPlace({ city: 'San Jose', venueShort: '圣荷西 San Jose' }), '圣荷西 San Jose');
@@ -84,6 +86,48 @@ test('offer facts: value, deadline, normal-case brand and public benefit', () =>
   assert.deepEqual(offerValue({ title: '会员商品 7 折' }), { zh: '7 折', en: '30% off' });
   assert.deepEqual(offerValue({ title: '咖啡买一送一' }), { zh: '买一送一', en: 'BOGO' });
   assert.equal(offerValue({ title: '生日礼物' }), null);
+  assert.equal(offerValue({ title: '全场打折' }), null, 'no stated value, no headline');
+  assert.equal(offerValue({ title: '满 $100 享 $20 折扣' }), null, 'a dollar amount before 折扣 is not a discount rate');
+  assert.equal(offerValue({ title: '10 折' }), null, '10 折 is the full price');
+  assert.equal(offerValue({ title: '指定衣物六折、美妆七折' }), null, 'two different discounts have no single headline');
+});
+
+test('discount headlines read the written rate: one digit is tenths, two digits are hundredths', () => {
+  const cases: [string, string, string][] = [
+    ['会员商品 7 折', '7 折', '30% off'], ['新会员首单 85 折，7 天内使用', '85 折', '15% off'], ['周四饮品85折', '85 折', '15% off'],
+    ['全场 95折', '95 折', '5% off'], ['指定商品 8.5 折', '8.5 折', '15% off'], ['会员肉桂卷八折', '八折', '20% off'],
+    ['首单八五折', '八五折', '15% off'], ['日间导览七五折', '七五折', '25% off'], ['单程交通费五折', '五折', '50% off'], ['Save 15% off', '15% 折扣', '15% off'],
+  ];
+  for (const [title, zh, en] of cases) assert.deepEqual(offerValue({ title }), { zh, en }, title);
+  assert.equal(discountOff('85'), 15);
+  assert.equal(discountOff('8.5'), 15);
+  assert.equal(discountOff('0'), null);
+});
+
+test('free is a headline only when it is free without buying anything', () => {
+  assert.deepEqual(offerValue({ title: '全家免费入园', kind: 'no-purchase' }), { zh: '免费', en: 'Free' });
+  assert.deepEqual(offerValue({ title: '免费入园，需预约', kind: 'reservation' }), { zh: '免费', en: 'Free' });
+  assert.deepEqual(offerValue({ title: '会员线上买早餐，普通咖啡随单免费', kind: 'purchase' }), { zh: '随单免费', en: 'Free with purchase' });
+  assert.deepEqual(offerValue({ title: '周三买完整成人套餐，12 岁及以下儿童餐免费', kind: 'purchase' }), { zh: '随单免费', en: 'Free with purchase' });
+});
+
+test('no live offer headline disagrees with a rate in its id or title', () => {
+  let rated = 0;
+  for (const offer of currentFreebies) {
+    const value = offerValue(offer);
+    if (!value) continue;
+    const off = /^(\d+)% off$/.exec(value.en)?.[1];
+    if (off) {
+      rated += 1;
+      const idRate = /(\d+)-percent/.exec(offer.id)?.[1];
+      if (idRate) assert.equal(off, idRate, `${offer.id}: ${value.en}`);
+      const percent = /(?<![\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i.exec(offer.title)?.[1];
+      if (percent) assert.equal(off, percent, `${offer.id}: ${value.en}`);
+      assert.ok(offer.title.replace(/\s+/g, '').includes(value.zh.replace(/\s+|%折扣/g, '')), `${offer.id}: ${value.zh} is written in the title`);
+    }
+    if (value.zh === '免费') assert.notEqual(offer.kind, 'purchase', `${offer.id}: a purchase offer is never a bare 免费`);
+  }
+  assert.ok(rated > 0, 'the catalog has rated offers to check');
   assert.deepEqual(offerDeadline({ endDate: TODAY, availability: 'dated' }, TODAY)?.tone, 'danger');
   assert.deepEqual(offerDeadline({ endDate: '2026-10-09', availability: 'dated' }, TODAY)?.text, { zh: '明天截止', en: 'Ends tomorrow' });
   assert.deepEqual(offerDeadline({ endDate: '2026-10-11', availability: 'dated' }, TODAY)?.text, { zh: '还剩 3 天', en: '3 days left' });

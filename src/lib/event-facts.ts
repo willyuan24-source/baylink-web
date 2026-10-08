@@ -150,7 +150,8 @@ export const displayUnits = (text: string) => [...text].reduce((sum, char) => su
 export function eventShortTitle(event: Pick<EventFactsInput, 'title' | 'shortTitle'>): string {
   if (event.shortTitle?.trim()) return event.shortTitle.trim();
   const title = event.title.trim();
-  const head = title.split(/[：:｜|]| — | – /)[0].trim();
+  // A colon between two digits is a clock time ("7:30"), not a separator.
+  const head = title.split(/[：:](?!\d)|(?<!\d)[：:]|[｜|]| — | – /)[0].trim();
   return head !== title && displayUnits(head) >= 4 ? head : title;
 }
 
@@ -178,21 +179,52 @@ export const toneLabel = (tone: CoverTone): Copy => TONE_LABELS[tone];
 
 // Offers (TypeCover family B) -------------------------------------------------------------------
 
-export type OfferFactsInput = Pick<FreebieOffer, 'brand' | 'title' | 'endDate' | 'availability'> & { valueText?: string; publicBenefit?: boolean };
+export type OfferFactsInput = Pick<FreebieOffer, 'brand' | 'title' | 'endDate' | 'availability'> & Partial<Pick<FreebieOffer, 'kind'>>
+  & { valueText?: string; publicBenefit?: boolean };
 
-const VALUE_PATTERNS: [RegExp, (match: RegExpMatchArray) => Copy][] = [
+/**
+ * Chinese discounts name the share you pay: "7 折" / "8.5 折" (one digit, tenths) and "85 折" / "95折" (two digits,
+ * hundredths) are 30% / 15% / 15% / 5% off. Returns null for anything that is not a rate people write ("10 折",
+ * "0 折", "85.5 折"), so the cover leads with the title instead of a guess.
+ */
+export function discountOff(written: string): number | null {
+  const paid = Number(written);
+  if (!Number.isFinite(paid)) return null;
+  const share = paid < 10 ? paid * 10 : Number.isInteger(paid) && paid % 10 !== 0 ? paid : NaN;
+  const off = Math.round(100 - share);
+  return off > 0 && off < 100 ? off : null;
+}
+type ValuePattern = [RegExp, (match: RegExpMatchArray, offer: Pick<OfferFactsInput, 'kind'>) => Copy | null];
+const VALUE_PATTERNS: ValuePattern[] = [
   [/买一送一|buy one,? get one/i, () => ({ zh: '买一送一', en: 'BOGO' })],
   [/半价|half[- ]price/i, () => ({ zh: '半价', en: 'Half price' })],
-  [/(\d(?:\.\d)?)\s*折/, match => ({ zh: `${match[1]} 折`, en: `${Math.round(100 - Number(match[1]) * 10)}% off` })],
-  [/(\d{1,2})\s*%\s*(?:off|折扣)/i, match => ({ zh: `${match[1]}% 折扣`, en: `${match[1]}% off` })],
-  [/免费|free/i, () => ({ zh: '免费', en: 'Free' })],
+  // The lookbehind keeps "85 折" from reading as "5 折" and "$20 折扣" (a dollar amount) out entirely.
+  [/(?<![\d.$])(\d{1,2}(?:\.\d)?)\s*折(?!扣)/, match => {
+    const off = discountOff(match[1]);
+    return off === null ? null : { zh: `${match[1]} 折`, en: `${off}% off` };
+  }],
+  // The same in Chinese numerals: 八折, 八五折, 七五折.
+  [/(?<![一二三四五六七八九十])([一二三四五六七八九]{1,2})折(?!扣)/, match => {
+    const off = discountOff([...match[1]].map(digit => '一二三四五六七八九'.indexOf(digit) + 1).join(''));
+    return off === null ? null : { zh: match[0], en: `${off}% off` };
+  }],
+  [/(?<![\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i, match => ({ zh: `${match[1]}% 折扣`, en: `${match[1]}% off` })],
+  // A purchase offer is free only with the order, so the headline carries the condition.
+  [/免费|free/i, (_, offer) => offer.kind === 'purchase' ? { zh: '随单免费', en: 'Free with purchase' } : { zh: '免费', en: 'Free' }],
 ];
-/** The benefit value shown large: overlay `valueText`, else a value the title states plainly, else none. */
-export function offerValue(offer: Pick<OfferFactsInput, 'title' | 'valueText'>): Copy | null {
+/** Two discounts in one title ("衣物六折、美妆七折") have no single value to headline. */
+const STATED_DISCOUNT = /[\d一二三四五六七八九]\s*折(?!扣)/g;
+/**
+ * The benefit value shown large: overlay `valueText`, else the one value the title states plainly, else none
+ * (the cover then leads with the title).
+ */
+export function offerValue(offer: Pick<OfferFactsInput, 'title' | 'valueText' | 'kind'>): Copy | null {
   if (offer.valueText?.trim()) return { zh: offer.valueText.trim(), en: offer.valueText.trim() };
+  if ((offer.title.match(STATED_DISCOUNT)?.length ?? 0) > 1) return null;
   for (const [pattern, copy] of VALUE_PATTERNS) {
     const match = offer.title.match(pattern);
-    if (match) return copy(match);
+    const value = match ? copy(match, offer) : null;
+    if (value) return value;
   }
   return null;
 }
