@@ -55,7 +55,8 @@ test('reading choices persist, initialize from a shared link, and close with res
 test('简洁显示 is a 48px switch that persists, follows a family link, and can be switched off by one', () => {
   const view = render(<ReadingPreferencesButton />);
   fireEvent.click(view.getByRole('button', { name: '调整阅读字号' }));
-  const toggle = view.getByRole('switch', { name: /简洁显示（适合长辈）/ });
+  // The name is the short label alone; the longer explanation is the description.
+  const toggle = view.getByRole('switch', { name: '简洁显示（适合长辈）', description: /全站文字至少 16 像素/ });
   assert.equal(toggle.getAttribute('aria-checked'), 'false');
   fireEvent.click(toggle);
   assert.equal(toggle.getAttribute('aria-checked'), 'true');
@@ -77,6 +78,31 @@ test('简洁显示 is a 48px switch that persists, follows a family link, and ca
   act(() => initializeReadingSize());
   assert.equal(getSimpleDisplay(), false); assert.equal(document.documentElement.hasAttribute('data-simple'), false);
   dom.window.history.replaceState({}, '', '/');
+});
+
+test('the 简洁显示 switch is visible in both states: track and thumb reach 3:1 against the card (WCAG 1.4.11)', () => {
+  const tokens = postcss.parse(readFileSync(new URL('../src/tokens.css', import.meta.url), 'utf8'));
+  const palette = new Map<string, string>();
+  const rules = new Map<string, Map<string, string>>();
+  tokens.walkRules(rule => {
+    if (rule.parent?.type !== 'root') return;
+    for (const node of rule.nodes) if (node.type === 'decl') {
+      if (rule.selector === ':root' && node.prop.startsWith('--color-')) palette.set(node.prop, node.value);
+      for (const selector of rule.selectors) rules.set(selector, new Map([...(rules.get(selector) || []), [node.prop, node.value]]));
+    }
+  });
+  const hex = (value: string) => /^var\((--color-[a-z0-9-]+)\)$/.exec(value) ? palette.get(/^var\((--color-[a-z0-9-]+)\)$/.exec(value)![1])! : value;
+  const luminance = (color: string) => [1, 3, 5].map(offset => Number.parseInt(hex(color).slice(offset, offset + 2), 16) / 255)
+    .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
+  const contrast = (a: string, b: string) => { const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x); return (high + .05) / (low + .05); };
+  const off = rules.get('.reading-simple-track')!, offThumb = rules.get('.reading-simple-track>span')!;
+  const on = rules.get('.reading-simple-switch[aria-checked=true] .reading-simple-track')!, onThumb = rules.get('.reading-simple-switch[aria-checked=true] .reading-simple-track>span')!;
+  const card = 'var(--color-surface)', checkedCard = rules.get('.reading-simple-switch[aria-checked=true]')!.get('background')!;
+  const offBorder = off.get('border')!.split(' ').pop()!;
+  assert.ok(contrast(offBorder, card) >= 3, `off track outline ${contrast(offBorder, card).toFixed(2)}:1`);
+  assert.ok(contrast(offThumb.get('background')!, off.get('background')!) >= 3, 'off thumb on its track');
+  assert.ok(contrast(on.get('background')!, checkedCard) >= 3, 'on track on the checked card');
+  assert.ok(contrast(onThumb.get('background')!, on.get('background')!) >= 3, 'on thumb on its track');
 });
 
 test('a family link carries 特大 and 简洁显示 and keeps the page’s own parameters and anchor', () => {

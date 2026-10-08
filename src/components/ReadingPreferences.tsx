@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Check, Type, X } from 'lucide-react';
 import { ModalShell } from './ui/Modal';
 import { initializeReadingSize, setReadingSize, setSimpleDisplay, useReadingSize, useSimpleDisplay, type ReadingSize } from '../lib/reading-preferences';
@@ -7,6 +7,8 @@ import { translateText, useLocale } from '../i18n/locale';
 export function ReadingPreferencesCard() {
   const size = useReadingSize();
   const simple = useSimpleDisplay();
+  // The card can be on /me and in the Aa sheet at once, so the switch's label and hint ids must be unique.
+  const switchId = useId();
   const locale = useLocale();
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
@@ -19,8 +21,8 @@ export function ReadingPreferencesCard() {
     <h2>{english ? 'Make yourself comfortable' : '选一个看得舒服的字号'}</h2>
     <p>{t('全站文字一起变大，也可以继续使用浏览器缩放。', 'Text grows across the whole site. Your browser zoom remains available.')}</p>
     <div role="group" aria-label={english ? 'Text size' : '文字大小'}>{options.map(option => <button type="button" key={option.id} aria-pressed={size === option.id} onClick={() => setReadingSize(option.id)}><span>{option.label}</span><small>{option.percentage}</small>{size === option.id && <Check size={20} aria-hidden="true" />}</button>)}</div>
-    <button type="button" role="switch" aria-checked={simple} className="reading-simple-switch" onClick={() => setSimpleDisplay(!simple)}>
-      <span><strong>{t('简洁显示（适合长辈）', 'Simple display (easier reading)')}</strong><small>{t('全站文字至少 16 像素，按钮和底部导航更大，更容易点。', 'Every line of text at least 16 px, with larger buttons and tabs.')}</small></span>
+    <button type="button" role="switch" aria-checked={simple} aria-labelledby={`${switchId}label`} aria-describedby={`${switchId}hint`} className="reading-simple-switch" onClick={() => setSimpleDisplay(!simple)}>
+      <span><strong id={`${switchId}label`}>{t('简洁显示（适合长辈）', 'Simple display (easier reading)')}</strong><small id={`${switchId}hint`}>{t('全站文字至少 16 像素，按钮和底部导航更大，更容易点。', 'Every line of text at least 16 px, with larger buttons and tabs.')}</small></span>
       <span className="reading-simple-track" aria-hidden="true"><span /></span>
     </button>
     <p className="reading-preview">{english ? 'A small plan can make a good weekend.' : '一场活动，一份指南，把湾区生活慢慢安排好。'}</p>

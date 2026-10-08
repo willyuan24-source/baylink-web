@@ -66,11 +66,13 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .reading-preferences .reading-simple-switch>span:first-child { display:grid; gap:4px; min-width:0; }
 .reading-preferences .reading-simple-switch strong { font-size:var(--text-body); font-weight:600; }
 .reading-preferences .reading-simple-switch small { flex-basis:auto; color:var(--color-ink-2); line-height:1.5; }
-.reading-simple-track { position:relative; flex:none; width:2.75rem; height:1.625rem; border-radius:999px; background:var(--color-line-strong); transition:background .2s; }
-.reading-simple-track>span { position:absolute; top:.1875rem; left:.1875rem; width:1.25rem; height:1.25rem; border-radius:50%; background:var(--color-surface); box-shadow:0 1px 6px #163b3026; transition:transform .2s; }
+/* Off: an ink-3 outline and thumb on the white card (6.2:1, WCAG 1.4.11 asks 3:1). On: a brand track with a larger white thumb. */
+.reading-simple-track { position:relative; flex:none; width:2.75rem; height:1.625rem; border:.125rem solid var(--color-ink-3); border-radius:999px; background:var(--color-surface); transition:background .2s,border-color .2s; }
+.reading-simple-track>span { position:absolute; top:.1875rem; left:.1875rem; width:1rem; height:1rem; border-radius:50%; background:var(--color-ink-3); transition:transform .2s,background .2s; }
 .reading-simple-switch[aria-checked=true] { border-color:var(--color-brand); background:var(--color-brand-tint); }
-.reading-simple-switch[aria-checked=true] .reading-simple-track { background:var(--color-brand); }
-.reading-simple-switch[aria-checked=true] .reading-simple-track>span { transform:translateX(1.125rem); }
+.reading-simple-switch[aria-checked=true] .reading-simple-track { border-color:var(--color-brand); background:var(--color-brand); }
+.reading-simple-switch[aria-checked=true] .reading-simple-track>span { background:var(--color-surface); transform:translateX(1.125rem) scale(1.25); }
+@media(forced-colors:active) { .reading-simple-track>span { background:CanvasText; } }
 
 /* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. */
 :is(.bl-guides-page,.bl-guide-reader,.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation,.member-baybay-panel) :is(p,small,label,time,summary) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
@@ -182,7 +184,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
   .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
   .bl-guides-page--compact .bl-guide-grid { grid-template-columns:1fr; }
 }
-@media(prefers-reduced-motion:reduce) { .reading-dialog,.home-discovery--focused * { transition:none!important; } }
+@media(prefers-reduced-motion:reduce) { .reading-dialog,.home-discovery--focused *,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .discovery-detail-main-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
 .local-discovery-detail .discovery-detail-header h1 { font-size:2rem; line-height:1.4; letter-spacing:0; }
 .local-discovery-detail .discovery-detail-summary,.local-discovery-detail .discovery-detail-body>p,.local-discovery-detail .discovery-plan p { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
