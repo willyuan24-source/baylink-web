@@ -20,6 +20,6 @@ export function CategorySafetyNotice({ category, onNavigate }: { category?: stri
           : t('先核实对方和交易条件；不要发送密码或验证码，付款前独立核验。', 'Verify the person and terms. Never send passwords or verification codes; check independently before paying.');
   const links = kind ? [resources[kind]] : [resources.rent, resources.used, resources.service];
   return <aside aria-label={t('联系前安全提醒', 'Safety before contact')} className="shrink-0 border-b border-baylink-border/40 bg-baylink-section/40 px-4 py-3 text-base leading-relaxed text-baylink-text-secondary">
-    <p>{tip}</p><nav className="flex flex-wrap gap-x-4" aria-label={t('交易安全指南', 'Trading safety guides')}>{links.map(resource => <Link key={resource.slug} to={`/guides/${resource.slug}`} onClick={onNavigate} className="inline-flex min-h-11 items-center font-semibold text-baylink-green underline underline-offset-4">{t(resource.zh, resource.en)} </Link>)}</nav>
+    <p>{tip}</p><nav className="flex flex-wrap gap-x-4" aria-label={t('交易安全指南', 'Trading safety guides')}>{links.map(resource => <Link key={resource.slug} to={`/guides/${resource.slug}`} onClick={onNavigate} className="inline-flex min-h-11 items-center font-semibold text-baylink-green underline underline-offset-4">{t(resource.zh, resource.en)}</Link>)}</nav>
   </aside>;
 }

@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { mapWeight, rewriteCss, rewriteTsx, siteFiles } from '../scripts/codemods/weights.mjs';
 import { rewrite as rewriteArrows } from '../scripts/codemods/internal-arrows.mjs';
-import { isAllCapsPhrase, rewrite as rewriteEyebrows } from '../scripts/codemods/eyebrows.mjs';
+import { DESIGNED_OBJECTS, isAllCapsPhrase, rewrite as rewriteEyebrows } from '../scripts/codemods/eyebrows.mjs';
 
 const dictionary = { '我的这周 ↗': 'My Week ↗', '我的这周': 'My Week', '整月日历 ↗': 'Full month calendar ↗' };
 
@@ -47,6 +47,8 @@ test('arrows codemod: internal links and buttons lose ↗, links that leave the 
   assert.equal(result.manual.length, 1);
   assert.match(result.text, /外部 ↗/);
   assert.equal(rewriteArrows(result.text, 'src/components/A.tsx', dictionary).replacedIcons, 0, 'idempotent');
+  const labels = rewriteArrows('const L = () => <>\n  <Link to="/x">{label} ↗</Link>\n  <Link to="/y">{a} ↗ {b}</Link>\n  <Link to="/z">\n    更多 ↗\n  </Link>\n</>;', 'src/L.tsx', {});
+  assert.equal(labels.text, 'const L = () => <>\n  <Link to="/x">{label}</Link>\n  <Link to="/y">{a} {b}</Link>\n  <Link to="/z">\n    更多\n  </Link>\n</>;', 'no trailing space is left inside a link label; a space between two children and a multi-line layout survive');
   const onlyInternal = rewriteArrows("import {\n  ArrowRight,\n  ArrowUpRight,\n  ChevronRight,\n} from 'lucide-react';\nconst B = () => <Link to=\"/\">x<ArrowUpRight /></Link>;", 'src/B.tsx', {});
   const sortedInsert = rewriteArrows("import {\n  ArrowRight,\n  Check,\n  Clock3,\n  ShieldCheck,\n} from 'lucide-react';\nconst E = () => <><Link to=\"/\">x<ArrowUpRight /></Link><a href=\"https://x.org\" target=\"_blank\"><ArrowUpRight /></a></>;", 'src/E.tsx', {});
   assert.match(sortedInsert.text, /^import \{\n {2}ArrowRight,\n {2}Check,\n {2}ChevronRight,\n {2}Clock3,\n {2}ShieldCheck,\n\} from 'lucide-react';/, 'a new name goes on its own line in order, not at the end where other lanes append');
@@ -79,6 +81,6 @@ test('the site stays codemod-clean: weights 400/600/700, no ↗ on internal link
     const arrows = rewriteArrows(source, path, english);
     assert.equal(arrows.text, source, `${path}: run node scripts/codemods/internal-arrows.mjs`);
     assert.deepEqual(arrows.manual, [], path);
-    if (!/(OutingCover|ProfileIdentity|DiningCalculator)\.tsx$/.test(path)) assert.deepEqual(rewriteEyebrows(source, path).found, [], `${path}: run node scripts/codemods/eyebrows.mjs`);
+    if (!DESIGNED_OBJECTS.includes(path)) assert.deepEqual(rewriteEyebrows(source, path).found, [], `${path}: run node scripts/codemods/eyebrows.mjs`);
   }
 });

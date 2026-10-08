@@ -38,7 +38,7 @@ function MyWeekBookingsSession({ user, onLoginNeeded, plans, plansReady }: Props
       {loading && <p role="status">{t('正在核对预约与安排…', 'Checking appointments and plans…')}</p>}
       {error && <p className="week-bookings-warning" role="alert">{error}</p>}
       {selection && <>
-        {!selection.visible.length && <div className="week-bookings-empty"><Wrench size={25} aria-hidden="true" /><p>{t('这周暂无服务预约，也没有待确认申请。', 'No service appointments this week or pending requests.')}</p><Link to="/category/service">{t('看看社区服务', 'Explore local services')} </Link></div>}
+        {!selection.visible.length && <div className="week-bookings-empty"><Wrench size={25} aria-hidden="true" /><p>{t('这周暂无服务预约，也没有待确认申请。', 'No service appointments this week or pending requests.')}</p><Link to="/category/service">{t('看看社区服务', 'Explore local services')}</Link></div>}
         <div className="week-bookings-grid">{selection.visible.map(booking => {
           const provider = booking.providerId === user.id, reply = myBookingNeedsReply(booking, user.id, now);
           const conflicts = bookingConflicts(booking, selection.all, plansReady ? plans : [], groups, user.id);

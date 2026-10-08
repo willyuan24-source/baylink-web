@@ -67,7 +67,7 @@ export default function MyWeekPage() {
       <p>{t('登录后可查看服务预约、待办与已参加的小队；本机计划和收藏无需登录也能使用。', 'Sign in to see your service bookings, tasks and groups. Browser plans and saved items work without signing in.')}</p>
       <button type="button" className="planner-primary" onClick={() => app?.setShowLogin(true)}>{t('登录查看预约与小队', 'Sign in for bookings and groups')}</button>
     </details>}
-    <nav className="week-secondary-links" aria-label={t('更多活动灵感', 'More event ideas')}><Link to="/ai-in-the-bay">{t('看看湾区 AI 活动', 'Explore Bay Area AI events')} </Link></nav>
+    <nav className="week-secondary-links" aria-label={t('更多活动灵感', 'More event ideas')}><Link to="/ai-in-the-bay">{t('看看湾区 AI 活动', 'Explore Bay Area AI events')}</Link></nav>
     {status && <p className="planner-note" role="status">{status}</p>}
   </div>;
 }

@@ -99,7 +99,15 @@ export function rewrite(source, fileName, dictionary) {
       const where = classify(node);
       const next = stripArrow(node.text);
       if (where.kind !== 'internal') kept.push(`${fileName}:${line(node)} "↗" text ${where.kind}${where.why ? ` (${where.why})` : ''}`);
-      else if (translatable(node.text, next)) { textArrows++; edits.push({ start: node.getStart(file), end: node.getEnd(), text: next.trim() ? next : '' }); }
+      else if (translatable(node.text, next)) {
+        // Replace the whole JsxText from its full start: getStart() skips leading whitespace, which would leave
+        // `{label} </Link>` behind. A remainder that is only whitespace is dropped at the start or end of the element
+        // (it would render as a space inside the link) and kept between two children, where it separates them.
+        const siblings = ts.isJsxElement(node.parent) ? node.parent.children : [];
+        const edge = siblings[0] === node || siblings[siblings.length - 1] === node;
+        textArrows++;
+        edits.push({ start: node.pos, end: node.getEnd(), text: next.trim() || !edge ? next : '' });
+      }
       else manual.push(`${fileName}:${line(node)} "${normalize(node.text)}" (no English entry for the arrow-free text)`);
     }
     if ((ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) && node.text.includes('↗') && !ts.isImportDeclaration(node.parent)) {

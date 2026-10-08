@@ -19,7 +19,7 @@ const root = fileURLToPath(new URL('../..', import.meta.url));
 // Designed objects, not eyebrows: the outing cover art, the profile identity stamp and the dining receipt
 // print their wordmark as part of the graphic (tests/outings-ui.test.tsx checks the cover's). Their own lanes
 // redesign them.
-const DESIGNED_OBJECTS = ['src/features/outings/OutingCover.tsx', 'src/features/profile/ProfileIdentity.tsx', 'src/components/tools/DiningCalculator.tsx'];
+export const DESIGNED_OBJECTS = ['src/features/outings/OutingCover.tsx', 'src/features/profile/ProfileIdentity.tsx', 'src/components/tools/DiningCalculator.tsx'];
 const excluded = path => path.split(sep).join('/').startsWith('src/opus-bay/') || /little-?bay/i.test(path) || path.endsWith('EnglishOnly.tsx')
   || DESIGNED_OBJECTS.includes(path.split(sep).join('/'));
 const TAGS = new Set(['span', 'p', 'div', 'small', 'strong', 'b', 'em', 'i']);
