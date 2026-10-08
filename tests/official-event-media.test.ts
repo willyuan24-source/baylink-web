@@ -39,15 +39,17 @@ const event = (record: OfficialRecord) => MONTHLY_EVENTS.find(item => item.id ==
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.equal(officialEventMedia.length, 43, 'the 2026-10-08 batch ships 43 of the 54 approved items (10 refused downloads, 1 kept a newer photo)');
+  assert.deepEqual([officialEventMedia.filter(record => record.kind === 'photo').length, officialEventMedia.filter(record => record.kind === 'poster').length], [21, 22], '21 photos, 22 posters / key art / collages / graphics');
   assert.equal(new Set(officialEventMedia.map(record => record.key)).size, officialEventMedia.length);
   assert.equal(new Set(officialEventMedia.map(record => record.eventId)).size, officialEventMedia.length, 'one image per event');
   assert.equal(new Set(officialEventMedia.map(record => record.src)).size, officialEventMedia.length);
   assert.equal(new Set(officialEventMedia.map(record => record.sha256)).size, officialEventMedia.length, 'no file was downloaded twice');
   for (const record of officialEventMedia) {
     assert.equal(record.key, `official-${record.eventId}`);
-    assert.equal(record.kind, 'photo', `${record.key}: never an AI illustration kind`);
     assert.doesNotMatch(record.credit, /\bAI\b|原创插图/, `${record.key}: the credit names the organiser, not BAYLINK's own AI art`);
     assert.ok(ARTWORK.has(record.artwork), record.key);
+    // Never an AI illustration kind. Artwork is 'poster' so outing covers and pickers never call it a photo.
+    assert.equal(record.kind, record.artwork === 'photo' ? 'photo' : 'poster', `${record.key}: ${record.artwork} is kind ${record.kind}`);
     // Posters, key art, collages and graphics are never cropped (D25); photos carry a crop focus.
     if (record.artwork === 'photo') {
       assert.equal(record.fullFrame, undefined, record.key);
@@ -85,7 +87,7 @@ test('every event in the set resolves to its official image, labelled 官方图,
     assert.equal(PLANNER_EVENTS.find(item => item.id === record.eventId)?.imageKey, record.key, `${record.eventId}: planner and Little Bay read the same image`);
     const image = getListingImage(record.key);
     assert.ok(image, `${record.key}: cards and the detail page resolve it`);
-    assert.equal(image.kind, 'photo');
+    assert.equal(image.kind, record.kind, `${record.key}: pages read the registry kind`);
     assert.equal(getImageProvenance(image), '官方图');
     assert.equal(getImageProvenance(image, true), 'Official image');
     for (const field of ['src', 'srcSet', 'width', 'height', 'alt', 'caption', 'credit', 'creditUrl', 'fullFrame', 'focal', 'rights'] as const) {

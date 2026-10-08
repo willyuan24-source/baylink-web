@@ -95,10 +95,11 @@ for (const { key, ...asset } of [...octnovMedia, ...octnovExtraMedia, ...octnovE
 // U.S. government photographs that DVIDS marks public domain; each record keeps its source page and VIRIN.
 for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
 // Organisers' own event images (owner decision 2026-10-08), labelled 官方图 through their credit.
+// Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The download record (event, source URL, retrieval time, hash) stays in the JSON; pages get what they
 // render plus the crop focus and rights basis the cover resolver reads.
-const officialEventImage = ({ src, srcSet, width, height, alt, caption, credit, creditUrl, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
-  src, srcSet, width, height, alt, caption, credit, creditUrl, kind: 'photo' as const, ...(fullFrame ? { fullFrame } : { focal }), rights,
+const officialEventImage = ({ src, srcSet, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
+  src, srcSet, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const, ...(fullFrame ? { fullFrame } : { focal }), rights,
 });
 for (const record of officialEventMedia) GUIDE_IMAGES[record.key] = officialEventImage(record);
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
