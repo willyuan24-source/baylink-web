@@ -1,4 +1,4 @@
-import { matchRoute } from './app/route-table';
+import { matchRoute, routePathname } from './app/route-table';
 
 /** Category URL slugs (English) ↔ display names (Chinese). */
 export const SLUG_TO_CATEGORY: Record<string, string> = {
@@ -39,9 +39,8 @@ export const getSlugFromCategory = (category: string): string | null => {
 
 /** A path the app renders (route table), with category slugs checked against the known list. */
 export const isKnownAppPath = (pathname: string): boolean => {
-  const path = pathname === '/' ? '/' : pathname.replace(/\/$/, '');
-  if (!matchRoute(path)) return false;
-  const category = path.match(/^\/category\/([^/]+)$/)?.[1];
+  if (!matchRoute(pathname)) return false;
+  const category = routePathname(pathname).match(/^\/category\/([^/]+)$/)?.[1];
   return !category || Object.hasOwn(SLUG_TO_CATEGORY, category);
 };
 

@@ -162,7 +162,11 @@ test('all recipient paths are known app routes and select the guide navigation w
     }
     assert.equal(isKnownAppPath(path + '/nested'), false, 'detail routes accept exactly one ID segment');
   }
-  for (const root of ['/events', '/offers', '/openings']) {
+  // /events is the 活动 column (WEB-ROUTES); offers and openings have no root listing page yet
+  assert.equal(isKnownAppPath('/events'), true);
+  assert.equal(isKnownAppPath('/events/'), true);
+  assert.equal(isKnownAppPath('/events//'), false);
+  for (const root of ['/offers', '/openings']) {
     assert.equal(isKnownAppPath(root), false, root + ' has no root listing page');
     assert.equal(isKnownAppPath(root + '/'), false);
     assert.equal(isKnownAppPath(root + '//'), false);

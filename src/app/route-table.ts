@@ -121,8 +121,8 @@ export const CARD_REGIONS = ['all', 'sf', 'east-bay', 'peninsula', 'south-bay', 
 export const LANG_REDIRECT_EXCLUDED = ['/opus-bay', '/play'] as const;
 
 const compiled = ROUTES.map(route => ({ route, pattern: new RegExp(`^${route.path === '/' ? '/' : route.path.replace(/:[A-Za-z]+/g, '[^/]+')}$`) }));
-/** Pathname without its /en or /zh-Hant prefix, query, hash or trailing slash. */
-export const routePathname = (value: string) => (value.split(/[?#]/)[0].replace(/^\/(?:en|zh-Hant)(?=\/|$)/, '').replace(/\/+$/, '') || '/');
+/** Pathname without its /en or /zh-Hant prefix, query, hash or one trailing slash (`/events//` stays unknown). */
+export const routePathname = (value: string) => (value.split(/[?#]/)[0].replace(/^\/(?:en|zh-Hant)(?=\/|$)/, '').replace(/\/$/, '') || '/');
 /** The table entry for a URL path (language prefix allowed), or undefined (a 404 or not an app page). */
 export const matchRoute = (pathname: string): AppRoute | undefined => {
   const path = routePathname(pathname);
@@ -130,5 +130,3 @@ export const matchRoute = (pathname: string): AppRoute | undefined => {
 };
 /** Analytics route template, e.g. '/events/:id'; 'other' when the path is not an app route. Never the raw URL. */
 export const routeTemplate = (pathname: string) => matchRoute(pathname)?.path ?? 'other';
-/** Prerendered static pages served from `/<path>.html` (the vercel.json static group, sitemap and prerender). */
-export const staticPagePaths = () => ROUTES.filter(route => route.hosting === 'page').map(route => route.path);

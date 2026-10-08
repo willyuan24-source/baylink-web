@@ -8,4 +8,4 @@
 .events-segments a:hover { border-color:var(--color-brand); color:var(--color-brand); }
 .events-segments a[aria-current=page] { border-color:var(--color-brand); background:var(--color-selected); color:var(--color-brand); }
 .events-segments a:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
-@media (max-width:639px) { .events-masthead { margin-bottom:1.25rem; } .events-masthead h1 { font-size:calc(1.5rem * var(--reading-scale)); } }
+@media (max-width:639px) { .events-masthead { margin-bottom:1.25rem; } .events-masthead h1 { font-size:calc(1.5rem * var(--reading-scale)); } .events-segments { gap:.375rem; } .events-segments a { padding:0 .75rem; } }
