@@ -28,7 +28,7 @@ const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { getListingImage } = await import('../src/lib/offer-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
 const { api } = await import('../src/lib/api');
-const { setLocale } = await import('../src/i18n/locale');
+const { setLocale, translateText } = await import('../src/i18n/locale');
 const { isKnownAppPath, tabFromPathname } = await import('../src/routing');
 
 const folders = { event: 'events', offer: 'offers', opening: 'openings' } as const;
@@ -306,6 +306,26 @@ test('missing, unknown and inherited image keys leave event, offer and opening d
       assert.ok(page.window.document.querySelector('.discovery-detail-links a'));
       page.window.close();
     }
+  }
+});
+
+test('detail H1 wraps between whole words and reads exactly like the translated page title', async () => {
+  const marinwood = find('event', item => item.event.id === 'marinwood-halloween-harvest-2026');
+  const heading = render(detail(marinwood)).getByRole('heading', { level: 1 });
+  assert.equal(heading.textContent, discoveryShare(marinwood).title);
+  assert.ok([...heading.querySelectorAll('span.title-keep')].some(span => span.textContent === '万圣节'), 'text-wrap:balance cannot split 万|圣节');
+  cleanup();
+  await setLocale('zh-Hant', false);
+  configureMetadataLanguage('zh_TW', translateText, data => data);
+  // Converting each word on its own differs from the whole title here (了解 → 瞭解, 游戲 → 遊戲); the H1 must not.
+  for (const id of ['union-city-cert-shakealert-october-2026', 'san-leandro-family-not-spooky-2026']) {
+    const share = discoveryShare(find('event', item => item.event.id === id));
+    const view = render(<MemoryRouter initialEntries={['/zh-Hant' + share.path]}><Routes><Route path="/zh-Hant/events/:id" element={<LocalDiscoveryPage kind="event" />} /></Routes></MemoryRouter>);
+    const title = view.getByRole('heading', { level: 1 });
+    assert.ok(title.querySelector('span.title-keep'), id);
+    assert.equal(title.textContent, translateText(share.title, 'zh-Hant'));
+    assert.equal(document.title, title.textContent + '｜BAYLINK');
+    view.unmount();
   }
 });
 

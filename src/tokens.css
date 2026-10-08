@@ -42,6 +42,8 @@ html[data-reading=extra-large] { --reading-scale:1.25; --control-height:3rem; }
 /* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. */
 :is(.bl-guides-page,.bl-guide-reader,.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation,.member-baybay-panel) :is(p,small,label,time,summary) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(button,a,select,input,textarea) { min-height:var(--control-height); font-size:var(--text-fact); }
+/* A title link is the heading, not a control: it keeps the heading's size (SYS-03, EVT-03). (0,1,2) outranks the (0,1,1) rule above. */
+:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(h1,h2,h3,h4,h5,h6) a { font-size:inherit; min-height:0; }
 .ec-event-meta,.ec-event-cost,.ec-schedule-note,.planner-meta,.bl-monthly-event-meta,.bl-monthly-event-date,.bl-monthly-event-cost { color:var(--color-ink-2)!important; font-size:var(--text-fact)!important; line-height:1.8!important; }
 .ec-event-actions a,.ec-event-actions button,.planner-place-actions a,.planner-place-actions button { min-height:var(--control-height); font-size:var(--text-fact); padding:8px 6px; }
 .ec-day:focus-visible,.ec-toolbar button:focus-visible,.ec-city-filter button:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
