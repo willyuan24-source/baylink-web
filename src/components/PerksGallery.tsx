@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { translateText, useLocale } from '../i18n/locale';
 import { copyText } from '../utils/postShare';
 import { PERKS_POSTER_CHECKED, perksPosters, perksPosterCaption, type PerksPoster } from '../data/perks-posters';
+import { EnglishOnly } from './EnglishOnly';
 
 export function PerksGallery({ compact = false, topic }: { compact?: boolean; topic?: PerksPoster['topic'] }) {
   const locale = useLocale();
@@ -23,7 +24,7 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
   return <section className={`perks-gallery${compact ? ' perks-gallery--compact' : ''}`} aria-labelledby={headingId}>
     <Link className="perks-gallery-guide" to="/guides/bay-area-retail-freebies-family-deals">按品牌查门店赠品与优惠<ChevronRight size={15} aria-hidden="true" /></Link>
     <div className="perks-gallery-heading">
-      <div><span className="perks-gallery-eyebrow"><Images size={15} aria-hidden="true" />BAYLINK · SAVE & SHARE</span><h2 id={headingId}>把有用的福利，存成一张图</h2><p>原创中文图文 · 1080 × 1350 · 可查看大图、下载和复制贴文</p></div>
+      <div><EnglishOnly><span className="perks-gallery-eyebrow"><Images size={15} aria-hidden="true" />BAYLINK · SAVE & SHARE</span></EnglishOnly><h2 id={headingId}>把有用的福利，存成一张图</h2><p>原创中文图文 · 1080 × 1350 · 可查看大图、下载和复制贴文</p></div>
       <span className="perks-gallery-date">{t('静态快照')}<time dateTime={PERKS_POSTER_CHECKED}>{PERKS_POSTER_CHECKED}</time></span>
     </div>
     <div className="perks-gallery-grid">

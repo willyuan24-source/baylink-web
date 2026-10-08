@@ -24,6 +24,7 @@ import {
   compressImageFile, fileToDataUrl, isLikelyImageFile,
   MAX_IMAGE_UPLOAD_BYTES, UnsupportedImageError,
 } from '../../utils/imageCompression';
+import { EnglishOnly } from '../../components/EnglishOnly';
 
 const DefaultCoverPicker = ({
   type,
@@ -412,7 +413,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
       <div className="member-compose-dialog">
         <div className="member-compose-header">
           <div>
-            <span className="member-compose-eyebrow">SHARE WITH YOUR NEIGHBORHOOD</span>
+            <EnglishOnly><span className="member-compose-eyebrow">SHARE WITH YOUR NEIGHBORHOOD</span></EnglishOnly>
             <h2>{isEdit ? '编辑信息' : '让你的信息，遇见需要的人。'}</h2>
             <p>{isEdit ? '更新内容，让邻居看到准确的信息。' : '发布需求或分享资源，与湾区邻里建立联系。'}</p>
           </div>

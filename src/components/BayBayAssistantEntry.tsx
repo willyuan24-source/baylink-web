@@ -20,6 +20,7 @@ import {
 } from '../lib/baybay-conversation';
 import { translateText, useLocale } from '../i18n/locale';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
+import { EnglishOnly } from './EnglishOnly';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
 /** An explicit guest sign-in carries only this tab's in-memory draft, never account history. */
@@ -259,7 +260,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
       <div className="member-baybay-dialog baybay-conversation" onClick={(event) => event.stopPropagation()}>
         <div className="member-baybay-header">
           <div className="flex min-w-0 gap-3"><img src={BRAND.baybayAvatar} alt="" className="member-baybay-avatar" width={48} height={48} />
-            <div className="min-w-0"><span className="member-compose-eyebrow">YOUR BAY AREA, A LITTLE EASIER</span>
+            <div className="min-w-0"><EnglishOnly><span className="member-compose-eyebrow">YOUR BAY AREA, A LITTLE EASIER</span></EnglishOnly>
               <h2 id="baybay-panel-title"><Sparkles size={15} /><span>BayBay AI 湾区生活助手</span></h2></div></div>
           <button type="button" onClick={close} className="member-compose-close" aria-label="关闭"><X size={20} /></button>
           <p>BAYLINK 的 AI 助手，陪你安排湾区生活。</p>

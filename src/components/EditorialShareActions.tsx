@@ -4,6 +4,7 @@ import { ModalShell } from './ui/Modal';
 import { copyText } from '../utils/postShare';
 import { editorialShareText, editorialShareUrl, shareCardPath, type EditorialShare } from '../lib/editorial-share';
 import { translateText, useLocale } from '../i18n/locale';
+import { EnglishOnly } from './EnglishOnly';
 
 export function EditorialShareActions({ item }: { item: EditorialShare }) {
   useLocale();
@@ -63,7 +64,7 @@ function EditorialShareSheet({ item, onClose }: { item: EditorialShare; onClose:
   return <ModalShell onClose={onClose} label="BAYLINK 分享卡片" className="discovery-modal-backdrop">
     <div className="discovery-modal editorial-share-sheet" onClick={event => event.stopPropagation()}>
       <button type="button" onClick={onClose} className="discovery-modal-close" aria-label="关闭分享卡片"><X size={20} /></button>
-      <span className="discovery-eyebrow">BAYLINK · PASS IT ON</span><h2>把有用的湾区，分享出去。</h2>
+      <EnglishOnly><span className="discovery-eyebrow">BAYLINK · PASS IT ON</span></EnglishOnly><h2>把有用的湾区，分享出去。</h2>
       <p>卡片带有 BAYLINK 标识和二维码，朋友扫码就能回到这条详情。</p>
       {!imageError ? <img className="editorial-share-preview" src={imagePath} width={1200} height={630} alt={`BAYLINK ${translateText('分享卡片')}：${translateText(item.title)}`} onError={() => setImageError(true)} /> : <div className="discovery-inline-note">卡片暂时无法加载，仍可分享下方链接。</div>}
       <div className="discovery-modal-actions">

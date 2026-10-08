@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, Mail, MapPin, MessageCircle, Sparkles, Wrench, ChevronRight } from 'lucide-react';
 import { BRAND } from '../brandAssets';
+import { EnglishOnly } from './EnglishOnly';
 
 const discoveries = [
   { icon: CalendarDays, number: '01', title: '找活动和优惠', text: '看看本月活动、免费福利和周末好去处。', href: '/this-month', action: '去看活动' },
@@ -15,15 +16,15 @@ const sourceTextStyle = { fontSize: 'var(--text-body, 1rem)', lineHeight: 1.8, c
 export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
   return <article className="about-baylink">
     <header className="about-hero">
-      <div className="about-hero-copy"><span className="about-eyebrow">BAY AREA LIFE</span>
+      <div className="about-hero-copy"><EnglishOnly><span className="about-eyebrow">BAY AREA LIFE</span></EnglishOnly>
         <p className="about-page-label">关于 BAYLINK</p>
         <h1>湾区生活，<br /><em>从这里开始。</em></h1>
         <p className="about-lead">BAYLINK 是一个湾区生活网站。这里有活动优惠、生活攻略、实用工具，也有房源、闲置和本地服务信息。</p>
         <Link to="/this-month" className="about-primary">去看活动<ArrowRight size={17} /></Link>
       </div>
-      <div className="about-hero-art"><span className="about-art-location"><MapPin size={14} />SAN FRANCISCO BAY AREA</span>
+      <div className="about-hero-art"><EnglishOnly><span className="about-art-location"><MapPin size={14} />SAN FRANCISCO BAY AREA</span></EnglishOnly>
         <img src={BRAND.baybayAvatar} alt="BayBay" width={280} height={280} />
-        <div><span>GOOD TO BE HERE</span><p>你的湾区生活助手</p></div>
+        <div><EnglishOnly><span>GOOD TO BE HERE</span></EnglishOnly><p>你的湾区生活助手</p></div>
       </div>
     </header>
 

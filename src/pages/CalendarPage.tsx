@@ -12,6 +12,7 @@ import { recordProductEvent } from '../lib/product-events';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
 import { useApp } from '../app/context';
+import { EnglishOnly } from '../components/EnglishOnly';
 
 const EventMap = lazy(() => import('../components/CalendarEventMap').then(module => ({ default: module.CalendarEventMap })));
 const categories = [{ id: 'culture', label: '艺术文化' }, { id: 'family', label: '亲子活动' }, { id: 'outdoors', label: '户外探索' }, { id: 'food', label: '美食市集' }];
@@ -77,7 +78,7 @@ export default function CalendarPage({ today: suppliedToday }: { today?: string 
     app?.openBayBay(question, { mode: 'draft' });
   };
   return <div className="event-calendar-page">
-    <header className="ec-hero"><div><p className="ec-eyebrow"><CalendarDays size={15} /> BAY AREA / DAY BY DAY</p><h1>{t('翻开日历，看看哪天出门。')}</h1><p>{t('从一个日期开始，发现当天的湾区活动与地点。')}</p></div><button type="button" onClick={askAboutDay} className="ec-plan-link">{t('让 BayBay 帮我安排')} <ArrowRight size={17} /></button></header>
+    <header className="ec-hero"><div><EnglishOnly><p className="ec-eyebrow"><CalendarDays size={15} /> BAY AREA / DAY BY DAY</p></EnglishOnly><h1>{t('翻开日历，看看哪天出门。')}</h1><p>{t('从一个日期开始，发现当天的湾区活动与地点。')}</p></div><button type="button" onClick={askAboutDay} className="ec-plan-link">{t('让 BayBay 帮我安排')} <ArrowRight size={17} /></button></header>
     <div className="ec-toolbar"><div className="ec-view-switch" aria-label={t('日历视图')}><button type="button" aria-pressed={view === 'month'} onClick={() => update({ view: 'month' })}>{t('月历')}</button><button type="button" aria-pressed={view === 'week'} onClick={() => update({ view: 'week' })}>{t('周历')}</button></div><button type="button" className="ec-today" onClick={() => update({ date: today })}>{t('回到今天')}</button><label>{t('地区')}<select value={region} onChange={event => update({ region: event.target.value })}>{ATTRACTION_REGIONS.map(item => <option key={item.id} value={item.id}>{t(item.label)}</option>)}</select></label><label className="ec-date-jump">{t('跳到日期')}<input type="date" min="1900-01-01" max="2100-12-31" value={date} onChange={event => { if (validCalendarDay(event.target.value)) update({ date: event.target.value }); }} /></label></div>
     <div className="ec-layout">
       <section className="ec-day-panel" aria-labelledby="ec-selected-day">

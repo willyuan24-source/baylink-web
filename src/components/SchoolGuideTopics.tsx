@@ -4,12 +4,13 @@ import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
 import { handleGuideLinkClick } from './GuideCard';
 import { SCHOOL_REGIONS } from '../data/school-regions';
+import { EnglishOnly } from './EnglishOnly';
 
 
 
 export function SchoolGuideTopics({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
   return <section className="school-guide-topics" aria-labelledby="school-guide-title">
-    <div className="school-guide-heading"><div><span className="bl-guide-eyebrow"><GraduationCap size={17} aria-hidden="true" /> SCHOOLS & CAMPUS LIFE</span><h2 id="school-guide-title">学校与学区，从所在地区开始。</h2><p>K–12 入学、学区核验、转学步骤，以及大学和社区学院入口。</p></div><Link to="/guides?category=education">学校专题 <ArrowRight size={15} aria-hidden="true" /></Link></div>
+    <div className="school-guide-heading"><div><EnglishOnly><span className="bl-guide-eyebrow"><GraduationCap size={17} aria-hidden="true" /> SCHOOLS & CAMPUS LIFE</span></EnglishOnly><h2 id="school-guide-title">学校与学区，从所在地区开始。</h2><p>K–12 入学、学区核验、转学步骤，以及大学和社区学院入口。</p></div><Link to="/guides?category=education">学校专题 <ArrowRight size={15} aria-hidden="true" /></Link></div>
     <div className="school-guide-grid">{SCHOOL_REGIONS.map(region => {
       const guide = getGuideBySlug(region.slug);
       if (!guide) return null;

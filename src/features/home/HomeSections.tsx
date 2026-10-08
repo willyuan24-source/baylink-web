@@ -9,6 +9,7 @@ import { formatChineseDate } from '../../lib/format';
 import type { PostData, PostType, UserData } from '../../lib/types';
 import { PostCard } from '../posts/PostCard';
 import { FeedSkeleton, HotRecommendSkeleton } from '../../components/ui/Skeleton';
+import { EnglishOnly } from '../../components/EnglishOnly';
 
 export const FilterTag = ({ label, active, onClick }: { label: string, active: boolean, onClick: () => void }) => (
   <button type="button" onClick={onClick} aria-pressed={active} className={`chip ${active ? 'chip-active' : 'chip-inactive'}`}>{label}</button>
@@ -51,7 +52,7 @@ const HotRecommendCover = ({ coverType, isDemo }: { coverType: 'rent' | 'used' |
 export const BayHero = ({ onPublishNeed, onBrowseResources }: { onPublishNeed: () => void; onBrowseResources: () => void }) => (
   <section className="bay-hero" aria-label="连接湾区生活">
     <div className="bay-hero-copy">
-      <span className="bay-hero-eyebrow"><span /> LOCAL LIFE, BETTER CONNECTED</span>
+      <EnglishOnly><span className="bay-hero-eyebrow"><span /> LOCAL LIFE, BETTER CONNECTED</span></EnglishOnly>
       <h1>在湾区，<br />找到生活的<span>更多可能。</span></h1>
       <p>一个家，一份好物，一位靠谱的邻居。<br className="hidden sm:block" />你需要的生活连接，都从这里开始。</p>
       <div className="bay-hero-actions"><button type="button" onClick={onBrowseResources} className="bay-button-dark">探索身边的好信息<ArrowDown size={16} /></button><button type="button" onClick={onPublishNeed} className="bay-button-text">发布我的需求<ChevronRight size={17} /></button></div>

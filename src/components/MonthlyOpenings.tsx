@@ -13,6 +13,7 @@ import { openingStatusLabel } from '../lib/opening-status';
 import { getImageProvenance } from '../lib/image-provenance';
 import { openingFreshnessLabel } from '../lib/opening-freshness';
 import reviewEnglish from '../i18n/opening-review-en.json';
+import { EnglishOnly } from './EnglishOnly';
 
 export const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
 const regionLabels = { sf: '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', peninsula: '半岛', 'north-bay': '北湾' };
@@ -58,7 +59,7 @@ export function MonthlyOpenings({ today }: { today: string }) {
   const filtered = currentOpenings.filter(shop => (status === 'all' || shop.status === status) && (region === 'all' || shop.region === region));
   const visible = expanded ? filtered : filtered.slice(0, 6);
   return <section id="monthly-openings" className="bl-monthly-openings" aria-labelledby="monthly-openings-heading">
-    <div className="bl-monthly-section-heading"><div><span className="bl-monthly-eyebrow">NEW AROUND THE CORNER</span><h2 id="monthly-openings-heading">{locale === 'en' ? reviewEnglish['湾区开业消息与店铺记录'] : '湾区开业消息与店铺记录'}</h2></div><p>咖啡、晚餐与街区新面孔。先确认开门，再安排这一趟。</p></div>
+    <div className="bl-monthly-section-heading"><div><EnglishOnly><span className="bl-monthly-eyebrow">NEW AROUND THE CORNER</span></EnglishOnly><h2 id="monthly-openings-heading">{locale === 'en' ? reviewEnglish['湾区开业消息与店铺记录'] : '湾区开业消息与店铺记录'}</h2></div><p>咖啡、晚餐与街区新面孔。先确认开门，再安排这一趟。</p></div>
     <div className="bl-openings-note"><Store size={20} aria-hidden="true" /><p>已开业、开业庆典与预告分别标示。庆典日期不等于首日营业；推荐基于公开资料整理，尚未实地探店。</p></div>
     <div className="bl-openings-controls">
       <div className="bl-openings-filters" role="group" aria-label="按开业状态筛选">{([

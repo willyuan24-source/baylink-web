@@ -2,6 +2,7 @@ import { ArrowRight, ChevronRight, BookOpen, Compass } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getFeaturedGuides, getGuideBySlug } from "../data/guides";
 import { GuideCardMini, handleGuideLinkClick } from "./GuideCard";
+import { EnglishOnly } from "./EnglishOnly";
 
 type GuideSectionProps = {
   onOpenGuide: (slug: string) => void;
@@ -20,7 +21,7 @@ export const GuideSection = ({ onOpenGuide, onViewAll }: GuideSectionProps) => {
     <section className="bl-home-guides" aria-labelledby="home-guides-title">
       <div className="bl-home-guides-heading">
         <div>
-          <span className="bl-guide-eyebrow">THE BAYLINK JOURNAL</span>
+          <EnglishOnly><span className="bl-guide-eyebrow">THE BAYLINK JOURNAL</span></EnglishOnly>
           <h2 id="home-guides-title">
             <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />{" "}
             湾区生活指南

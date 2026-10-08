@@ -36,6 +36,7 @@ import { CityExplorationDirectory } from './CityExplorationDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 import { guideContentReviewRecord } from '../lib/content-review';
 import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
+import { EnglishOnly } from './EnglishOnly';
 
 type GuideDetailProps = {
   slug: string;
@@ -183,7 +184,7 @@ const GuideDetailSession = ({
           <ArrowLeft size={17} aria-hidden="true" />
           <span>湾区指南</span>
         </button>
-        <span className="bl-guide-reader-label">THE BAYLINK JOURNAL</span>
+        <EnglishOnly><span className="bl-guide-reader-label">THE BAYLINK JOURNAL</span></EnglishOnly>
         <span
           className="bl-guide-reader-progress"
           aria-label={`阅读进度 ${progress}%`}
@@ -303,7 +304,7 @@ const GuideDetailSession = ({
           <section className="bl-guide-related">
             <div className="bl-guide-related-heading">
               <div>
-                <span className="bl-guide-eyebrow">KEEP EXPLORING</span>
+                <EnglishOnly><span className="bl-guide-eyebrow">KEEP EXPLORING</span></EnglishOnly>
                 <h2>接下来，你可能想看</h2>
               </div>
               <Link to="/guides">
@@ -458,7 +459,7 @@ const BlockRenderer = ({
     case "cta":
       return (
         <section className="bl-guide-cta">
-          <span className="bl-guide-eyebrow">YOUR NEXT STEP</span>
+          <EnglishOnly><span className="bl-guide-eyebrow">YOUR NEXT STEP</span></EnglishOnly>
           <h3>{block.title}</h3>
           <p>{block.text}</p>
           {block.primaryAction === "post" ? (

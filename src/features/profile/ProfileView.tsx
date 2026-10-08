@@ -24,6 +24,7 @@ import { AdminSourceMonitor } from '../source-monitor/AdminSourceMonitor';
 import { ProfileActivityLinks, ProfilePersonalSpace } from './ProfilePersonalSpace';
 import { PrivacySecurity } from './PrivacySecurity';
 import { translateText, useLocale } from '../../i18n/locale';
+import { EnglishOnly } from '../../components/EnglishOnly';
 
 const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
 
@@ -49,7 +50,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
 
   if (!user) return (
     <div className="member-profile-guest">
-      <div className="member-page-heading"><div><span className="member-eyebrow">MAKE YOURSELF AT HOME</span><h1>我的 BAYLINK</h1></div></div>
+      <div className="member-page-heading"><div><EnglishOnly><span className="member-eyebrow">MAKE YOURSELF AT HOME</span></EnglishOnly><h1>我的 BAYLINK</h1></div></div>
       <SavedPostsPanel />
       <Link to="/my-week" className="member-guide-link"><span>我的这周</span><ChevronRight size={18} /></Link>
       <section className="member-welcome-card">
@@ -62,7 +63,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
         <div className="member-welcome-art" aria-hidden="true">
           <div className="member-welcome-orbit" />
           <img src={BRAND.baybayAvatar} alt="" width={160} height={160} />
-          <span className="member-welcome-sticker"><MapPin size={14} /> BAY AREA, CA</span>
+          <EnglishOnly><span className="member-welcome-sticker"><MapPin size={14} /> BAY AREA, CA</span></EnglishOnly>
         </div>
       </section>
       <div className="member-welcome-benefits">
@@ -79,7 +80,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
     <div className="member-profile-shell">
       {subView === 'menu' && (
         <div className="member-profile-content">
-          <div className="member-page-heading"><div><span className="member-eyebrow">YOUR NEIGHBORHOOD PROFILE</span><h1>我的名片</h1><p>认识彼此，从一张真实的生活名片开始。</p></div><button onClick={onLogout} aria-label="退出登录" className="member-logout"><LogOut size={18} /><span>退出</span></button></div>
+          <div className="member-page-heading"><div><EnglishOnly><span className="member-eyebrow">YOUR NEIGHBORHOOD PROFILE</span></EnglishOnly><h1>我的名片</h1><p>认识彼此，从一张真实的生活名片开始。</p></div><button onClick={onLogout} aria-label="退出登录" className="member-logout"><LogOut size={18} /><span>退出</span></button></div>
 
           {user.accountStatus === 'limited' && (
             <div className="member-profile-wide rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">

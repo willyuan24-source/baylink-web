@@ -6,6 +6,7 @@ import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
 import { handleGuideLinkClick } from './GuideCard';
 import { getImageProvenance } from '../lib/image-provenance';
 import { useLocale } from '../i18n/locale';
+import { EnglishOnly } from './EnglishOnly';
 
 const IDEAS = [
   { label: '去海边', slug: 'half-moon-bay-coastal-half-day-guide', place: 'HALF MOON BAY', note: '风有点大，日程可以慢一点。', detail: '海岸短走 / 看海休息 / 随时折返' },
@@ -24,7 +25,7 @@ export function GuideExplorer({ onOpenGuide }: { onOpenGuide: (slug: string) => 
   if (!guide) return null;
   const { cover } = getGuideMedia(guide);
   return <section className="bl-guide-explorer" aria-labelledby="guide-explorer-title">
-    <div className="bl-guide-explorer-heading"><div><span className="bl-guide-eyebrow">MAKE A LITTLE ROOM FOR LIFE</span><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
+    <div className="bl-guide-explorer-heading"><div><EnglishOnly><span className="bl-guide-eyebrow">MAKE A LITTLE ROOM FOR LIFE</span></EnglishOnly><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
     <div className="bl-guide-mood-picker" role="group" aria-label="选择周末灵感">{IDEAS.map((item, index) => <button type="button" key={item.slug} aria-pressed={selected === index} onClick={() => setSelected(index)}>{item.label}</button>)}</div>
     <div className="bl-guide-explorer-feature" aria-live="polite">
       <Link className="bl-guide-explorer-image" to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))} aria-label={`阅读${guide.title}`}><img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), 650px" width={cover.width} height={cover.height} alt={cover.alt} loading="lazy" decoding="async" /><span>{cover.kind === 'photo' ? getImageProvenance(cover, locale === 'en') : cover.kind === 'poster' ? '官方宣传图' : 'AI 原创插图'} <ChevronRight size={16} /></span></Link>

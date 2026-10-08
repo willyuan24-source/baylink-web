@@ -2,6 +2,7 @@ import { ChevronRight } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { READER_PATHS } from '../data/reader-paths';
 import { handleGuideLinkClick } from './GuideCard';
+import { EnglishOnly } from './EnglishOnly';
 
 export function ReaderPaths({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
   const [params, setParams] = useSearchParams();
@@ -9,7 +10,7 @@ export function ReaderPaths({ onOpenGuide }: { onOpenGuide: (slug: string) => vo
     || READER_PATHS[params.get('category') === 'newcomer' ? 1 : 0];
   return <section id="reader-paths" className="daily-guide-topics reader-paths" aria-labelledby="reader-paths-title">
     <div className="daily-guide-heading"><div>
-      <span className="bl-guide-eyebrow">YOUR NEXT STEP IN THE BAY</span>
+      <EnglishOnly><span className="bl-guide-eyebrow">YOUR NEXT STEP IN THE BAY</span></EnglishOnly>
       <h2 id="reader-paths-title">按你的生活阶段，找到下一步</h2>
       <p>来玩几天，刚搬过来，或已经住了很久，都从眼前要做的事开始。</p>
     </div></div>

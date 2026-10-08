@@ -5,6 +5,7 @@ import { api } from '../lib/api';
 import { useApp } from '../app/context';
 import { ContactRequestInboxPanel } from '../components/ContactRequestInboxPanel';
 import { MessagesList } from '../features/messages/MessagesList';
+import { EnglishOnly } from '../components/EnglishOnly';
 
 export default function MessagesPage() {
   const { threadId } = useParams();
@@ -41,7 +42,7 @@ export default function MessagesPage() {
   return (
     <div className="member-messages-page">
       <div className="member-page-heading">
-        <div><span className="member-eyebrow">STAY CONNECTED</span><h1>消息</h1><p>每一段湾区生活，从一句你好开始。</p></div>
+        <div><EnglishOnly><span className="member-eyebrow">STAY CONNECTED</span></EnglishOnly><h1>消息</h1><p>每一段湾区生活，从一句你好开始。</p></div>
         <span className="member-heading-icon"><MessageCircle size={24} aria-hidden="true" /></span>
       </div>
       {user && (

@@ -9,6 +9,7 @@ import { formatChineseDate, friendlyErrorMessage } from '../../lib/format';
 import { readMessageDraft, readMessagePins, saveMessagePins } from './messageState';
 import { simplifySearch, translateText, useLocale } from '../../i18n/locale';
 import type { Conversation, UserData } from '../../lib/types';
+import { EnglishOnly } from '../../components/EnglishOnly';
 
 type MessagesListProps = {
   currentUser: UserData | null;
@@ -86,7 +87,7 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
     setPins(next); setPinNotice('');
   };
 
-  if (!currentUser) return <div className="member-messages-guest"><div className="member-empty-card"><div className="member-message-art" aria-hidden="true"><span><MessagesSquare size={38} strokeWidth={1.5} /></span><i /><b /></div><span className="member-eyebrow">YOUR NEIGHBORHOOD INBOX</span><h2>身边的联系，都在这里。</h2><p>登录后查看私信和联系方式请求，<br className="hidden sm:block" />与感兴趣的房源、好物和服务发布者直接沟通。</p><button type="button" onClick={onLoginNeeded} className="member-primary mt-6">登录 / 注册<ChevronRight size={17} aria-hidden="true" /></button><Link to="/" className="member-text-action mt-4">先逛逛社区 <ChevronRight size={14} aria-hidden="true" /></Link></div></div>;
+  if (!currentUser) return <div className="member-messages-guest"><div className="member-empty-card"><div className="member-message-art" aria-hidden="true"><span><MessagesSquare size={38} strokeWidth={1.5} /></span><i /><b /></div><EnglishOnly><span className="member-eyebrow">YOUR NEIGHBORHOOD INBOX</span></EnglishOnly><h2>身边的联系，都在这里。</h2><p>登录后查看私信和联系方式请求，<br className="hidden sm:block" />与感兴趣的房源、好物和服务发布者直接沟通。</p><button type="button" onClick={onLoginNeeded} className="member-primary mt-6">登录 / 注册<ChevronRight size={17} aria-hidden="true" /></button><Link to="/" className="member-text-action mt-4">先逛逛社区 <ChevronRight size={14} aria-hidden="true" /></Link></div></div>;
 
   const terms = simplifySearch(query.trim()).toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const unreadConversations = convs.filter(conversation => (conversation.unreadCount || 0) > 0).length;
@@ -96,7 +97,7 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
     return terms.every(term => haystack.includes(term));
   }).sort((a, b) => Number(pins.includes(b.id)) - Number(pins.includes(a.id)) || b.updatedAt - a.updatedAt);
   return <div className={`member-conversations modern-inbox ${convs.length ? 'has-conversations' : ''}`}>
-    <div className="modern-inbox-intro"><div><span className="member-eyebrow">A LITTLE CLOSER</span><h2>把联系，留在身边。</h2><p>从一次问候，到一个聊得来的邻居。</p></div><div className="modern-inbox-art" aria-hidden="true"><MessageCircle size={31} /><span>👋</span></div></div>
+    <div className="modern-inbox-intro"><div><EnglishOnly><span className="member-eyebrow">A LITTLE CLOSER</span></EnglishOnly><h2>把联系，留在身边。</h2><p>从一次问候，到一个聊得来的邻居。</p></div><div className="modern-inbox-art" aria-hidden="true"><MessageCircle size={31} /><span>👋</span></div></div>
     <div className="modern-inbox-controls"><label className="modern-inbox-search"><Search size={17} aria-hidden="true" /><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索联系人、最近消息或帖子" aria-label="搜索对话" />{query && <button type="button" aria-label="清除搜索" onClick={() => setQuery('')}><X size={16} /></button>}</label><div className="modern-inbox-filters" role="group" aria-label="筛选对话"><button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>全部<span translate="no">{convs.length}</span></button><button type="button" aria-pressed={filter === 'unread'} onClick={() => setFilter('unread')}>未读<span translate="no">{unreadConversations}</span></button></div></div>
     <div className="modern-inbox-list-label"><span>最近对话</span><span><Pin size={12} aria-hidden="true" />置顶仅保存在此浏览器</span></div>
     {pinNotice && <p className="modern-inbox-notice" role="status">{pinNotice}</p>}
