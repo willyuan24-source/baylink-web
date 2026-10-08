@@ -73,7 +73,7 @@ test('unknown cost shows no price; an unknown date says so instead of printing d
   assert.equal(thumb.textContent, '10/10–11周六–周日', 'a row thumbnail keeps only palette and date');
 });
 
-test('offer and opening TypeCovers: value, normal-case brand, deadline; honest opening chip', () => {
+test('offer and opening TypeCovers: value, normal-case brand, deadline; honest opening chip', async () => {
   const offer = wrap(<OfferTypeCover offer={{ brand: 'SAN FRANCISCO PUBLIC LIBRARY', title: '借书证免费参观博物馆', endDate: '2026-10-09', availability: 'dated' }} today={today} />);
   const root = offer.container.querySelector('[data-cover="type"]')!;
   assert.equal(root.getAttribute('data-family'), 'offer');
@@ -87,6 +87,15 @@ test('offer and opening TypeCovers: value, normal-case brand, deadline; honest o
   const retail = wrap(<OfferTypeCover offer={{ brand: 'YOGURTLAND', title: '会员生日礼', availability: 'ongoing' }} today={today} />);
   assert.equal(retail.container.querySelector('.ui-type-cover__label')?.textContent, '商家活动');
   assert.equal(retail.container.querySelector('.ui-type-cover__title')?.textContent, '会员生日礼', 'without a value the title is shown');
+  const withOrder = { brand: 'SMASHBURGER', title: '周三买完整成人套餐，12 岁及以下儿童餐免费', availability: 'ongoing', kind: 'purchase' } as const;
+  const zhOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
+  assert.equal(zhOrder.container.querySelector('.ui-type-cover__value')?.textContent, '随单免费');
+  assert.equal(zhOrder.container.querySelector('.ui-type-cover__value-small'), null);
+  await act(async () => { await setLocale('en', false); });
+  const enOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
+  assert.equal(enOrder.container.querySelector('.ui-type-cover__value')?.textContent, 'Freewith purchase');
+  assert.equal(enOrder.container.querySelector('.ui-type-cover__value-small')?.textContent, 'with purchase', 'the condition stays on the cover, set small');
+  await act(async () => { await setLocale('zh-Hans', false); });
   const opening = wrap(<OpeningTypeCover opening={{ name: 'Sergeant Ma', city: 'San Francisco', status: 'announced', openingType: 'new-restaurant' }} today={today} />);
   assert.equal(opening.container.querySelector('.ui-sticker')?.textContent, '即将开业');
   assert.equal(opening.container.querySelector('[data-cover="type"]')?.getAttribute('data-tone'), 'food');

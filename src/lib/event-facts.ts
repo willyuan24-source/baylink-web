@@ -194,7 +194,9 @@ export function discountOff(written: string): number | null {
   const off = Math.round(100 - share);
   return off > 0 && off < 100 ? off : null;
 }
-type ValuePattern = [RegExp, (match: RegExpMatchArray, offer: Pick<OfferFactsInput, 'kind'>) => Copy | null];
+/** The headline value; `condition` is set small beside it where the language needs it ("Free" + "with purchase"). */
+export type OfferValue = Copy & { condition?: Copy };
+type ValuePattern = [RegExp, (match: RegExpMatchArray, offer: Pick<OfferFactsInput, 'kind'>) => OfferValue | null];
 const VALUE_PATTERNS: ValuePattern[] = [
   [/买一送一|buy one,? get one/i, () => ({ zh: '买一送一', en: 'BOGO' })],
   [/半价|half[- ]price/i, () => ({ zh: '半价', en: 'Half price' })],
@@ -209,8 +211,8 @@ const VALUE_PATTERNS: ValuePattern[] = [
     return off === null ? null : { zh: match[0], en: `${off}% off` };
   }],
   [/(?<![\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i, match => ({ zh: `${match[1]}% 折扣`, en: `${match[1]}% off` })],
-  // A purchase offer is free only with the order, so the headline carries the condition.
-  [/免费|free/i, (_, offer) => offer.kind === 'purchase' ? { zh: '随单免费', en: 'Free with purchase' } : { zh: '免费', en: 'Free' }],
+  // A purchase offer is free only with the order, so the headline carries the condition: 随单免费 / Free + "with purchase".
+  [/免费|free/i, (_, offer) => offer.kind === 'purchase' ? { zh: '随单免费', en: 'Free', condition: { zh: '', en: 'with purchase' } } : { zh: '免费', en: 'Free' }],
 ];
 /** Two discounts in one title ("衣物六折、美妆七折") have no single value to headline. */
 const STATED_DISCOUNT = /[\d一二三四五六七八九]\s*折(?!扣)/g;
@@ -218,7 +220,7 @@ const STATED_DISCOUNT = /[\d一二三四五六七八九]\s*折(?!扣)/g;
  * The benefit value shown large: overlay `valueText`, else the one value the title states plainly, else none
  * (the cover then leads with the title).
  */
-export function offerValue(offer: Pick<OfferFactsInput, 'title' | 'valueText' | 'kind'>): Copy | null {
+export function offerValue(offer: Pick<OfferFactsInput, 'title' | 'valueText' | 'kind'>): OfferValue | null {
   if (offer.valueText?.trim()) return { zh: offer.valueText.trim(), en: offer.valueText.trim() };
   if ((offer.title.match(STATED_DISCOUNT)?.length ?? 0) > 1) return null;
   for (const [pattern, copy] of VALUE_PATTERNS) {

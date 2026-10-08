@@ -29,6 +29,8 @@ export type TypeCoverProps = {
   title?: string;
   /** Offer value ("免费", "7 折"), brand and condition line. */
   value?: string;
+  /** A short condition set small after the value ("with purchase"), so a long English value stays one big word. */
+  valueSmall?: string;
   brand?: string;
   note?: string;
   place?: string;
@@ -48,7 +50,7 @@ export type TypeCoverProps = {
  * Real DOM text on a ≥4.5:1 pastel pair, so it translates, scales with Aa and never pretends to be a picture.
  * The root carries `data-cover="type"`, which the image-area probe counts as cover area, not photo area (RC-31).
  */
-export function TypeCover({ tone, family = 'event', label, date, title, value, brand, note, place, sticker, icon, ratio, ratioLock, size, ariaHidden, className }: TypeCoverProps) {
+export function TypeCover({ tone, family = 'event', label, date, title, value, valueSmall, brand, note, place, sticker, icon, ratio, ratioLock, size, ariaHidden, className }: TypeCoverProps) {
   const { english } = useUiCopy();
   const dateParts = date?.big ? <p className="ui-type-cover__date">
     {date.smallFirst && <span className="ui-type-cover__date-small">{date.small}</span>}
@@ -66,7 +68,7 @@ export function TypeCover({ tone, family = 'event', label, date, title, value, b
     <div className="ui-type-cover__body">
       <p className="ui-type-cover__label">{label}</p>
       {dateParts}
-      {value && <p className="ui-type-cover__value">{value}</p>}
+      {value && <p className="ui-type-cover__value"><span>{value}</span>{valueSmall && <span className="ui-type-cover__value-small">{valueSmall}</span>}</p>}
       {brand && <p className="ui-type-cover__brand" lang={HAN.test(brand) ? undefined : 'en'} translate="no">{brand}</p>}
       {title && <p className="ui-type-cover__title" lang={HAN.test(title) ? undefined : 'en'}><SegmentedTitle text={title} /></p>}
       {note && <p className="ui-type-cover__note">{note}</p>}
@@ -108,7 +110,7 @@ export function OfferTypeCover({ offer, today, tone, ...layout }: CoverLayout & 
   const deadline = offerDeadline(offer, today);
   const title = english ? translateText(offer.title, 'en') : offer.title;
   return <TypeCover {...layout} family="offer" tone={tone ?? offerTone(offer)} label={pick(offerKindLabel(offer))}
-    value={value ? pick(value) : undefined} brand={brandCase(offer.brand)} title={value ? undefined : title} note={value ? title : undefined}
+    value={value ? pick(value) : undefined} valueSmall={value?.condition ? pick(value.condition) || undefined : undefined} brand={brandCase(offer.brand)} title={value ? undefined : title} note={value ? title : undefined}
     sticker={deadline ? { tone: deadline.tone, text: pick(deadline.text) } : undefined} icon={offerTone(offer) === 'free' ? 'free' : 'store'} ratio={layout.ratio ?? '1:1'} />;
 }
 

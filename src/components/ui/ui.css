@@ -117,7 +117,8 @@
 .ui-type-cover__label+* { margin-top:auto; }
 .ui-type-cover__place { min-width:0; overflow:hidden; color:var(--tc-fg); font-size:clamp(calc(.8125rem * var(--reading-scale)), min(7.5cqw, 7cqh), 1.125rem); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
 .ui-type-cover__footer .ui-sticker { flex:none; margin-left:auto; }
-.ui-type-cover__value { color:var(--tc-fg); font-size:clamp(calc(1.375rem * var(--reading-scale)), min(16cqw, 18cqh), 2.125rem); line-height:1.1; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.ui-type-cover__value { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.25em; color:var(--tc-fg); font-size:clamp(calc(1.375rem * var(--reading-scale)), min(16cqw, 18cqh), 2.125rem); line-height:1.1; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.ui-type-cover__value-small { font-size:.47em; line-height:1.2; font-weight:600; }
 .ui-type-cover__brand { color:var(--tc-fg); font-size:clamp(calc(.9375rem * var(--reading-scale)), min(8.5cqw, 8cqh), 1.125rem); line-height:1.4; font-weight:600; overflow-wrap:break-word; }
 .ui-type-cover__note { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:var(--tc-fg); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
 /* Square and landscape covers (offers, 16:9 heroes, the 3:2 single-column feed): shorter text block. */

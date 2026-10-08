@@ -107,8 +107,9 @@ test('discount headlines read the written rate: one digit is tenths, two digits 
 test('free is a headline only when it is free without buying anything', () => {
   assert.deepEqual(offerValue({ title: '全家免费入园', kind: 'no-purchase' }), { zh: '免费', en: 'Free' });
   assert.deepEqual(offerValue({ title: '免费入园，需预约', kind: 'reservation' }), { zh: '免费', en: 'Free' });
-  assert.deepEqual(offerValue({ title: '会员线上买早餐，普通咖啡随单免费', kind: 'purchase' }), { zh: '随单免费', en: 'Free with purchase' });
-  assert.deepEqual(offerValue({ title: '周三买完整成人套餐，12 岁及以下儿童餐免费', kind: 'purchase' }), { zh: '随单免费', en: 'Free with purchase' });
+  const withPurchase = { zh: '随单免费', en: 'Free', condition: { zh: '', en: 'with purchase' } };
+  assert.deepEqual(offerValue({ title: '会员线上买早餐，普通咖啡随单免费', kind: 'purchase' }), withPurchase);
+  assert.deepEqual(offerValue({ title: '周三买完整成人套餐，12 岁及以下儿童餐免费', kind: 'purchase' }), withPurchase);
 });
 
 test('no live offer headline disagrees with a rate in its id or title', () => {
@@ -126,6 +127,7 @@ test('no live offer headline disagrees with a rate in its id or title', () => {
       assert.ok(offer.title.replace(/\s+/g, '').includes(value.zh.replace(/\s+|%折扣/g, '')), `${offer.id}: ${value.zh} is written in the title`);
     }
     if (value.zh === '免费') assert.notEqual(offer.kind, 'purchase', `${offer.id}: a purchase offer is never a bare 免费`);
+    if (value.en === 'Free' && offer.kind === 'purchase') assert.equal(value.condition?.en, 'with purchase', `${offer.id}: never a bare Free`);
   }
   assert.ok(rated > 0, 'the catalog has rated offers to check');
   assert.deepEqual(offerDeadline({ endDate: TODAY, availability: 'dated' }, TODAY)?.tone, 'danger');
