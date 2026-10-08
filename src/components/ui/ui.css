@@ -206,7 +206,11 @@
 .ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:600; }
 .ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:2px; background:var(--color-brand); }
 .ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:999px; background:var(--color-surface-2); }
-.ui-segmented__item { flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:999px; background:transparent; color:var(--color-ink-2); font-size:calc(.9375rem * var(--reading-scale)); line-height:1.25; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer; }
+/* The thumb is drawn 4px inside the track; ::before gives each radio the track's full height (44px, 48 in simple mode)
+   and half of each 4px gap, so no tap on the control lands between radios. No overflow on the item: it would clip it. */
+.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:999px; background:transparent; color:var(--color-ink-2); font-size:calc(.9375rem * var(--reading-scale)); line-height:1.25; font-weight:400; cursor:pointer; }
+.ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
+.ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .ui-segmented__item[aria-checked=true] { border-color:var(--color-line-strong); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
 
 /* Sheet: bottom sheet on phones, right drawer on desktop; focus and Esc come from ModalShell. */
@@ -293,7 +297,11 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-hero-card__scrim { position:absolute; inset:0; z-index:1; background:var(--ui-scrim-photo); pointer-events:none; }
 .ui-hero-card[data-overlay] .ui-stickers { display:none; }
 .ui-hero-card__text { display:flex; flex-direction:column; gap:8px; padding-top:8px; }
-.ui-hero-card[data-overlay] .ui-hero-card__text { position:absolute; left:18px; right:18px; bottom:18px; z-index:1; padding:0; }
+/* On a photo the text sits on the cover in the same grid cell instead of being absolutely positioned, so the media box
+   (not the text box) is the containing block of the stretched link: a tap anywhere on the photo opens the story. */
+.ui-hero-card[data-overlay] .ui-hero-card__media { display:grid; grid-template-columns:minmax(0, 1fr); }
+.ui-hero-card[data-overlay] .ui-hero-card__media>* { grid-area:1 / 1; }
+.ui-hero-card[data-overlay] .ui-hero-card__text { align-self:end; z-index:1; margin:18px; padding:0; }
 .ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:calc(1.5rem * var(--reading-scale)); line-height:1.333; font-weight:600; }
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }

@@ -64,7 +64,7 @@ export type SegmentedControlProps = {
   className?: string;
 };
 
-/** DayToggle (周六 10/10 | 周日 10/11 | 整个周末): a radio group with a white thumb, 44px tall, arrow keys select. */
+/** DayToggle (周六 10/10 | 周日 10/11 | 整个周末): a radio group with a white thumb; each radio's hit area is the full 44px track height (48 in simple mode); arrow keys select. */
 export function SegmentedControl({ label, items, value, onChange, className }: SegmentedControlProps) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   return <div role="radiogroup" aria-label={label} className={cx('ui-segmented', className)}>
@@ -78,7 +78,7 @@ export function SegmentedControl({ label, items, value, onChange, className }: S
           event.preventDefault();
           refs.current[next]?.focus();
           onChange(items[next].id);
-        }}>{item.label}</button>;
+        }}><span className="ui-segmented__label">{item.label}</span></button>;
     })}
   </div>;
 }

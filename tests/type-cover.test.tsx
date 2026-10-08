@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import postcss from 'postcss';
@@ -150,4 +150,51 @@ test('a neighbour palette changes only the colour: the label stays the item’s 
   const bare = wrap(<TypeCover tone="culture" label="文化活动" title="社区讲座" ratio="16:9" />);
   assert.equal(bare.container.querySelector('[data-cover="type"]')?.getAttribute('data-ratio'), '16:9');
   assert.equal(bare.container.querySelector('.ui-type-cover__footer'), null, 'no empty footer');
+});
+
+test('the ui.css token block cannot shadow a global token: none of its names is defined in another stylesheet', () => {
+  // ui.css loads lazily after tokens.css at the same specificity. Moving a name into tokens.css (TOKENS-B) must delete
+  // it here in the same commit, or the later, lazy copy would override the global value once a primitive mounts.
+  const blockNames = new Set<string>();
+  postcss.parse(css).walkRules(':root', rule => rule.walkDecls(declaration => { if (declaration.prop.startsWith('--')) blockNames.add(declaration.prop); }));
+  assert.ok(blockNames.has('--tc-family-bg') && blockNames.has('--color-success'), 'the block is parsed');
+  const sheets = (readdirSync('src', { recursive: true }) as string[]).map(path => path.replaceAll(String.fromCharCode(92), '/'))
+    .filter(path => path.endsWith('.css') && path !== 'components/ui/ui.css');
+  assert.ok(sheets.includes('tokens.css'));
+  for (const sheet of sheets) {
+    postcss.parse(readFileSync(`src/${sheet}`, 'utf8')).walkDecls(declaration => {
+      assert.ok(!blockNames.has(declaration.prop), `${declaration.prop} is defined in src/${sheet} and in the ui.css token block: move it and delete it from ui.css in one commit`);
+    });
+  }
+});
+
+const declarations = (selector: string) => {
+  const found = new Map<string, string>();
+  postcss.parse(css).walkRules(rule => { if (rule.selector === selector) rule.walkDecls(declaration => { found.set(declaration.prop, declaration.value); }); });
+  return found;
+};
+const px = (value: string | undefined) => Number(/^(-?[\d.]+)px/.exec(value ?? '')?.[1] ?? Number.NaN);
+
+test('hit areas: each day-toggle radio covers the full 44px track, and nothing clips its extension', () => {
+  const track = declarations('.ui-segmented'), item = declarations('.ui-segmented__item'), extension = declarations('.ui-segmented__item::before');
+  assert.equal(track.get('min-height'), 'var(--control-height)');
+  const padding = px(track.get('padding'));
+  assert.equal(item.get('min-height'), `calc(var(--control-height) - ${padding * 2}px)`, 'the thumb sits inside the track padding');
+  assert.equal(item.get('position'), 'relative');
+  assert.equal(item.get('overflow'), undefined, 'overflow on the radio would clip its ::before hit area');
+  const border = px(item.get('border'));
+  const [vertical, horizontal = vertical] = (extension.get('inset') ?? '').split(/\s+/).map(value => -px(value));
+  const control = 44;
+  // Border-box item (control − 2 × padding) → padding box (− 2 × border) → hit area (+ 2 × vertical extension).
+  assert.ok(control - padding * 2 - border * 2 + vertical * 2 >= control, `radio hit height ${control - padding * 2 - border * 2 + vertical * 2}px`);
+  const gap = px(track.get('gap'));
+  assert.ok(horizontal >= border && horizontal - border <= gap / 2, `the side extension (${horizontal - border}px past the border) stays inside half of the ${gap}px gap`);
+  assert.match(declarations('.ui-segmented__label').get('overflow') ?? '', /hidden/, 'the ellipsis lives on the label instead');
+});
+
+test('a photo hero card is one link from edge to edge: its text box never becomes the link’s containing block', () => {
+  const text = declarations('.ui-hero-card[data-overlay] .ui-hero-card__text');
+  for (const prop of ['position', 'transform', 'filter', 'contain', 'will-change', 'container-type']) assert.equal(text.get(prop), undefined, prop);
+  assert.equal(declarations('.ui-hero-card__media').get('position'), 'relative', 'the media box holds the stretched link');
+  assert.equal(declarations('.ui-hero-card[data-overlay] .ui-hero-card__media').get('display'), 'grid');
 });
