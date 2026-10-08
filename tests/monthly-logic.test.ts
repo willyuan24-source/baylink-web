@@ -390,7 +390,7 @@ test('new community listings retain complete English text and clearly identify a
 
 test('event photos keep their actual place and outdoor movies never borrow an indoor cinema image', () => {
   const realPlaces: [string, string, RegExp][] = [
-    ['san-francisco-fleet-week-2026', 'verified-fishermans-wharf', /Fisherman|渔人码头/],
+    ['sf-fishermans-wharf-chowder-fest-2026', 'verified-fishermans-wharf', /Fisherman|渔人码头/],
     ['oakland-autumn-lights-festival-2026', 'region-lake-merritt', /Lake Merritt/],
     ['half-moon-bay-pumpkin-festival-2026', 'fresh-pumpkin-parade', /Half Moon Bay|半月湾/],
   ];

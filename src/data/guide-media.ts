@@ -2,6 +2,7 @@ import officialOfferMedia from './official-offer-media-2026-10.json';
 import octnovMedia from './octnov-2026-media.json';
 import octnovExtraMedia from './octnov-2026-extra-media.json';
 import octnovEventMedia from './octnov-2026-event-media.json';
+import federalPublicDomainMedia from './federal-pd-media.json';
 import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
 import { getLocale } from '../i18n/locale';
@@ -90,6 +91,8 @@ for (const { key, ...asset } of [...officialOfferMedia, ...guidePhotos, ...event
 }
 for (const { key, ...asset } of publicServiceMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'illustration' };
 for (const { key, ...asset } of [...octnovMedia, ...octnovExtraMedia, ...octnovEventMedia]) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
+// U.S. government photographs that DVIDS marks public domain; each record keeps its source page and VIRIN.
+for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
 for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 

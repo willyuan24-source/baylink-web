@@ -58,8 +58,8 @@ const venuePhotos = [
   },
   {
     key: 'verified-fishermans-wharf', sourceKey: 'sf-wharf',
-    caption: 'Fisherman’s Wharf 街区招牌，2016 年资料照片；展示活动所在街区，不是 2026 年 Chowder Fest、Fleet Week 现场或 Little Embarcadero 集合点；店招与价格不代表现行信息。',
-    eventIds: ['sf-fishermans-wharf-chowder-fest-2026', 'san-francisco-fleet-week-2026'],
+    caption: 'Fisherman’s Wharf 街区招牌，2016 年资料照片；展示活动所在街区，不是 2026 年 Chowder Fest 现场或 Little Embarcadero 集合点；店招与价格不代表现行信息。',
+    eventIds: ['sf-fishermans-wharf-chowder-fest-2026'],
   },
 ] as const;
 
@@ -74,6 +74,11 @@ export const VERIFIED_EVENT_PLACE_MEDIA_UPDATES = Object.fromEntries(
 // Beresford Park is not B Street. Keep the recycling event factual and text-only
 // until a photograph of its actual location or official event poster is available.
 VERIFIED_EVENT_PLACE_MEDIA_UPDATES['san-mateo-shred-ewaste-october-2026'] = { imageKey: '' };
+
+// A U.S. Navy public-domain photograph of the Blue Angels at the 2024 Fleet Week,
+// reviewed 2026-10-07. It shows a past edition of this event, not a venue alias,
+// so it is not a contextual photo approval; its caption dates it to 2024.
+VERIFIED_EVENT_PLACE_MEDIA_UPDATES['san-francisco-fleet-week-2026'] = { imageKey: 'dvids-blue-angels-sffw-2024' };
 
 export const VERIFIED_EVENT_CONTEXT_PHOTOS = Object.fromEntries(
   venuePhotos.map(({ key, eventIds }) => [key, { purpose: 'venue' as const, eventIds }]),
