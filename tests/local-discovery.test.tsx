@@ -452,7 +452,9 @@ test('opening recipients can distinguish an operating shop from an unconfirmed a
     assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
     assert.equal(Boolean(view.container.querySelector('.event-participation')), false);
     assert.equal(view.getByRole('link', { name: '发现更多湾区好去处' }).getAttribute('href'), '/this-month#monthly-openings');
-    assert.equal(view.container.querySelector('.discovery-source time')?.getAttribute('datetime'), item.shop.verifiedAt);
+    const trust = view.getByRole('note', { name: '来源与核对' });
+    assert.equal(trust.querySelector('time')?.getAttribute('datetime'), item.shop.verifiedAt);
+    assert.match(trust.textContent || '', item.shop.sourceUrl === item.shop.officialUrl ? /^官方来源/ : /^来源 /, 'a press report is not presented as the official source');
     view.unmount();
   }
 });
@@ -494,4 +496,22 @@ test('client recipient navigation replaces category content and metadata, and wr
   assert.equal(meta(document, 'og:image'), DEFAULT_SOCIAL_IMAGE, '404 must not advertise the previously viewed shop');
   assert.equal(document.querySelectorAll('script[data-baylink-structured-data]').length, 0);
   assert.equal(Boolean(view.container.querySelector('.local-discovery-detail')), false);
+});
+
+test('detail pages keep their facts and trust row and raise no source prompt when the freshness API is unreachable', async t => {
+  const { act } = await import('@testing-library/react');
+  const { resetSourceFreshnessCache } = await import('../src/features/source-monitor/content-review-runtime');
+  t.mock.method(api, 'request', async () => { throw { error: '网络连接异常，请稍后再试。' }; });
+  resetSourceFreshnessCache();
+  for (const item of [eventItem, offerItem, openShop]) {
+    let view!: ReturnType<typeof render>;
+    await act(async () => { view = render(detail(item, '2026-10-08')); });
+    await act(async () => {});
+    assert.ok(view.getByRole('heading', { level: 1 }), discoveryShare(item).id);
+    assert.ok(view.getByRole('note', { name: '来源与核对' }), discoveryShare(item).id);
+    assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null, discoveryShare(item).id);
+    assert.doesNotMatch(view.container.textContent || '', /内容待复核|来源需人工确认|日期待确认|抓取|多来源取最早/u, discoveryShare(item).id);
+    view.unmount();
+  }
+  resetSourceFreshnessCache();
 });

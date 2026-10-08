@@ -1,5 +1,5 @@
 import { recordProductEvent } from '../lib/product-events';
-import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, Check, MapPin, Ticket } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, MapPin, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
@@ -12,6 +12,7 @@ import { EditorialShareActions } from './EditorialShareActions';
 import { translateText, useLocale } from '../i18n/locale';
 import { GuideFigure } from './GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
+import { TrustRow } from '../features/source-monitor/TrustRow';
 import { SaveToWeek } from './SaveToWeek';
 import { OutingInspirationLink } from './OutingInspirationLink';
 import { SegmentedTitle } from './SegmentedTitle';
@@ -59,6 +60,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
   const sourceLabel = item.kind === 'event' ? item.event.sourceLabel : item.kind === 'offer' ? item.offer.sourceLabel : item.shop.sourceLabel;
   const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
   const image = getListingImage(imageKey);
+  const review = discoveryContentReviewRecord(item);
   // Catalog regions organize discovery; they do not establish a participating
   // address for a national offer. Keep that distinction visible to the reader.
   const offerLocation = item.kind === 'offer' && (item.offer.storeUrl
@@ -70,7 +72,7 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
       <div className="discovery-detail-brand"><span>BAYLINK</span><span translate="no">{copy('湾区生活手记', '灣區生活手記', 'Notes on life in the Bay')}</span></div>
       <span className="discovery-eyebrow">{share.label}{item.kind === 'offer' && <> · {item.offer.brand}</>}</span><h1><SegmentedTitle text={item.kind === 'offer' ? item.offer.title : share.title} /></h1>{item.kind !== 'offer' && <p className="discovery-detail-summary">{share.summary}</p>}
       <div className="discovery-detail-facts"><span><CalendarDays size={17} aria-hidden="true" />{share.date}</span><span><MapPin size={17} aria-hidden="true" />{item.kind === 'offer' ? <span translate="no">{offerLocation}</span> : share.area}</span>{item.kind === 'event' && <span><Ticket size={17} aria-hidden="true" />{item.event.costLabel}</span>}</div>
-      <ContentReviewNotice record={discoveryContentReviewRecord(item)} today={today} />
+      <ContentReviewNotice record={review} today={today} />
       {ended && <p className="discovery-inline-note">{unconfirmed ? '暂无已确认场次，请查看主办方最新安排。' : '这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。'}</p>}
       {unconfirmedOffer && <p className="discovery-inline-note">当前优惠待确认；请先联系官方，确认后再安排行程。</p>}
       {item.kind === 'opening' && <p className="discovery-inline-note">{openingStatusNote(item.shop.status)}</p>}
@@ -96,8 +98,8 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
     {image && <div className={`discovery-detail-media${image.kind === 'poster' || image.fullFrame ? ' discovery-detail-media--full' : ''}`}><GuideFigure image={image} variant="cover" /></div>}
     <div className="discovery-detail-body">
       {item.kind === 'event' ? <><h2>出发前，做好这些安排</h2><ol className="discovery-plan">{item.event.plan.map((tip, i) => <li key={tip}><span>0{i + 1}</span><p>{tip}</p></li>)}</ol><p><strong>具体地点</strong> · {item.event.venue}</p><p><strong>适合</strong> · {item.event.audience.map(value => translateText(value)).join(' / ')}</p></> : item.kind === 'offer' ? <><h2>这份福利怎么用</h2><p>{item.offer.description}</p><p className="discovery-small">免费或优惠资格、名额与参与门店，以官方入口的最新说明为准。</p></> : <><h2>这一趟怎么安排</h2><p>{item.shop.editorTip}</p><h2>地点与开业状态</h2><p>{item.shop.city} · {item.shop.address}</p><p>{item.shop.dateLabel}</p></>}
-      <p className="discovery-source"><Check size={14} />{share.checkedAt && <time dateTime={share.checkedAt}>核对 {share.checkedAt} · </time>}<a href={sourceUrl} target="_blank" rel="noopener noreferrer">{sourceLabel}</a></p>
-      <SourceFreshness contentId={item.kind === 'event' ? item.event.id : item.kind === 'offer' ? item.offer.id : item.shop.id} />
+      <SourceFreshness contentId={review.id} item={{ ...review, nextDate: planDate }} officialUrl={officialUrl} include={['soft']} today={today} />
+      <TrustRow contentId={review.id} item={review} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
       {item.kind === 'event' && item.event.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${item.event.relatedGuideSlug}`}>搭配一篇本地攻略<ArrowRight size={17} /></Link>}
       {item.kind === 'event' && <section className="discovery-next-events" aria-labelledby="discovery-next-events-title"><h2 id="discovery-next-events-title">{english ? 'More upcoming events nearby' : '附近同类活动的下一场'}</h2><p>{english ? 'Confirmed sessions in the same city first, then the same region. Check the organizer before going.' : '先看同城，再看同区域的已确认场次；出发前请核对主办方安排。'}</p>{relatedEvents.length > 0 ? <div className="discovery-next-event-grid">{relatedEvents.map(({ event, date }) => <article key={event.id} className="discovery-next-event"><h3><Link to={`/events/${event.id}`}>{event.title}<ArrowRight size={16} aria-hidden="true" /></Link></h3><p>{english ? 'Next session: ' : '下一场：'}<time dateTime={date}>{date}</time></p><p>{event.city} · {event.venue}</p><p>{english ? 'Cost: ' : '费用：'}{event.costLabel}</p><a href={event.officialUrl} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')}>{english ? 'Source: ' : '来源：'}{event.sourceLabel}<ArrowUpRight size={15} aria-hidden="true" /></a><small>{english ? 'Checked ' : '核对 '}<time dateTime={event.verifiedAt}>{event.verifiedAt}</time></small></article>)}</div> : <p className="discovery-inline-note">{english ? 'No further confirmed sessions in this city or region yet. Check this week’s events for other options.' : '同城或同区域暂未收录下一场已确认的同类活动，可以到本周活动看看其他选择。'}</p>}</section>}
     </div>
