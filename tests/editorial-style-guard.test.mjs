@@ -51,3 +51,11 @@ test('palette contrast checks catch a muted source color that is too faint even 
 test('the reviewed site styles meet their scoped reading and shared palette guard', () => {
   assert.deepEqual(inspectEditorialStyles(), []);
 });
+
+test('TypeCover and sticker pairs are contrast-checked wherever a guarded file defines them', () => {
+  const palette = ':root{--color-bg:#ffffff;--color-surface:#ffffff;--color-ink:#16352b;--color-ink-2:#3f5247;--color-ink-3:#54645e;--color-brand:#096b54;--color-on-brand-muted:#b6cbb9;--color-brand-deep:#123c31}';
+  const primitives = ':root{--tc-family-bg:#FBF1E6;--tc-family-fg:#E0A080;--tc-free-bg:#E6F2EA;--tc-free-fg:#1E6B43;--color-success:#276B44;--color-success-tint:#E8F3EC}';
+  const issues = checkEditorialStyles([{ file: 'ui.css', text: primitives }], palette, { contrast: true });
+  assert.equal(issues.length, 1);
+  assert.match(issues[0].message, /^--tc-family-fg on --tc-family-bg is \d/);
+});

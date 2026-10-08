@@ -152,8 +152,7 @@
 .ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:calc(.9375rem * var(--reading-scale)); line-height:1.467; font-weight:600; overflow-wrap:break-word; }
 .ui-card-link { color:inherit; text-decoration:none; }
 .ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:16px; }
-.ui-card-link:focus-visible { outline:none; }
-.ui-card-link:focus-visible::after { outline:2px solid var(--color-brand); outline-offset:3px; }
+.ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .ui-feed-card__meta,.ui-feed-card__trust { margin:0; overflow:hidden; font-size:var(--text-caption); line-height:1.385; white-space:nowrap; text-overflow:ellipsis; }
 .ui-feed-card__meta { color:var(--color-ink-2); }
 .ui-feed-card__meta strong { color:var(--color-brand); font-weight:600; }

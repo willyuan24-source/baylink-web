@@ -15,6 +15,8 @@ export const editorialStyleScopes = [
   { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
   { file: 'src/pages/profile-page.css' },
   { file: 'src/pages/events-page.css' },
+  // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
+  { file: 'src/components/ui/ui.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
@@ -47,6 +49,14 @@ function paletteIssues(values) {
   const pairs = ['--color-ink', '--color-ink-2', '--color-ink-3', '--color-brand'].flatMap(text => ['--color-bg', '--color-surface'].map(background => [text, background, 4.5]));
   pairs.push(['--color-on-brand-muted', '--color-brand-deep', 4.5]);
   if (values.has('--color-editorial')) pairs.push(['--color-editorial', '--color-bg', 4.5]);
+  // TypeCover pairs (--tc-<tone>-fg on --tc-<tone>-bg) and sticker/status pairs, wherever a guarded file defines them.
+  for (const name of values.keys()) {
+    const tone = /^--tc-([a-z]+)-fg$/.exec(name)?.[1];
+    if (tone && values.has(`--tc-${tone}-bg`)) pairs.push([name, `--tc-${tone}-bg`, 4.5]);
+  }
+  for (const [foreground, background] of [['--color-success', '--color-success-tint'], ['--color-warning', '--color-warning-tint'], ['--color-danger', '--color-danger-tint'], ['--color-info', '--color-info-tint'], ['--color-brand-deep', '--color-highlight']]) {
+    if (values.has(foreground) && values.has(background)) pairs.push([foreground, background, 4.5]);
+  }
   return pairs.flatMap(([foreground, background, minimum]) => {
     const fg = resolveColor(foreground), bg = resolveColor(background);
     if (!fg || !bg) return [{ file: 'shared palette', line: 1, rule: 'contrast', message: `Unable to resolve ${foreground} on ${background} as opaque sRGB tokens.` }];
@@ -63,7 +73,7 @@ export function checkEditorialStyles(sources, sharedTokens, { contrast = false }
   for (const text of [sharedTokens, ...sources.map(source => source.text)]) {
     postcss.parse(text).walkDecls(declaration => {
       if (declaration.prop.startsWith('--')) knownTokens.add(declaration.prop);
-      if (declaration.prop.startsWith('--color-') && declaration.parent.selector === ':root') palette.set(declaration.prop, declaration.value);
+      if (/^--(?:color|tc)-/.test(declaration.prop) && declaration.parent.selector === ':root') palette.set(declaration.prop, declaration.value);
     });
   }
   for (const source of sources) {

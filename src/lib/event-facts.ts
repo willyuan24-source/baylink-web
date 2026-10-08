@@ -47,13 +47,14 @@ export type DateChip =
   | { kind: 'day'; date: string; ended: boolean }
   | { kind: 'from'; date: string }
   | { kind: 'until'; date: string }
+  | { kind: 'range'; start: string; end: string }
   | { kind: 'unknown' };
 
 /**
  * The one date a card can state honestly.
  * - `days` (the days a feed shows, e.g. the weekend) picks the first of them the event occurs on.
  * - Otherwise the next confirmed occurrence, or a single-day event's date.
- * - A continuous run reads "10/10 起" before it opens and "至 11/15" while it runs.
+ * - A run of up to a week reads "10/10–11"; a longer run "10/10 起" before it opens and "至 11/15" while it runs.
  * Malformed dates and runs with no confirmed day are `unknown` ("日期见详情").
  * Callers pass `occurrenceDates` with any date overrides already applied.
  */
@@ -70,15 +71,25 @@ export function eventDateChip(event: Pick<MonthlyEvent, 'startDate' | 'endDate' 
     return next ? { kind: 'day', date: next, ended: false } : { kind: 'day', date: sorted[sorted.length - 1], ended: true };
   }
   if (event.startDate === event.endDate) return { kind: 'day', date: event.startDate, ended: event.startDate < today };
+  if (today <= event.endDate && daysBetween(event.startDate, event.endDate) <= SHORT_RUN_DAYS) return { kind: 'range', start: event.startDate, end: event.endDate };
   if (today < event.startDate) return { kind: 'from', date: event.startDate };
   if (today <= event.endDate) return { kind: 'until', date: event.endDate };
   return { kind: 'day', date: event.endDate, ended: true };
 }
 
+/** Runs up to this many days after the first one print both ends ("10/10–11"). */
+const SHORT_RUN_DAYS = 6;
+
 export type DateChipText = { big: string; small: string; smallFirst: boolean; label: string };
 /** Display parts: the big numeral, its qualifier (weekday / 起 / 截止), and the one-line sticker text. */
 export function formatDateChip(chip: DateChip, english: boolean): DateChipText {
   if (chip.kind === 'unknown') return { big: '', small: '', smallFirst: false, label: english ? 'See details for dates' : '日期见详情' };
+  if (chip.kind === 'range') {
+    const sameMonth = chip.start.slice(0, 7) === chip.end.slice(0, 7);
+    const big = `${monthDay(chip.start)}–${sameMonth ? Number(chip.end.slice(8, 10)) : monthDay(chip.end)}`;
+    const names = english ? WEEKDAYS_EN : WEEKDAYS_ZH;
+    return { big, small: `${names[weekdayOf(chip.start)]}–${names[weekdayOf(chip.end)]}`, smallFirst: false, label: big };
+  }
   const big = monthDay(chip.date);
   if (chip.kind === 'day') {
     const small = (english ? WEEKDAYS_EN : WEEKDAYS_ZH)[weekdayOf(chip.date)];
@@ -201,6 +212,7 @@ export function offerDeadline(offer: Pick<OfferFactsInput, 'endDate' | 'availabi
 }
 
 const ACRONYMS = new Set(['SF', 'SJ', 'UC', 'US', 'USA', 'BART', 'IKEA', 'OMCA', 'BAMPFA', 'SFMOMA', 'SFMTA', 'SFPL', 'SJMA', 'YMCA', 'AAPI', 'USCIS', 'CVS', 'AMC', 'REI', 'KQED', 'PBS', 'NASA', 'CHM', 'AT&T', 'H&M']);
+const CASED_WORDS: Record<string, string> = { LINKEDIN: 'LinkedIn', YOUTUBE: 'YouTube', IPHONE: 'iPhone', EBAY: 'eBay', 'MCDONALD’S': 'McDonald’s' };
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'at', 'for', 'in', 'on', 'de', 'la', 'a', 'to']);
 /** Normal case for the all-caps brand names (EVT-09: 160 of 183); known acronyms stay as written. */
 export function brandCase(brand: string): string {
@@ -211,6 +223,7 @@ export function brandCase(brand: string): string {
     const isFirst = first;
     first = false;
     if (ACRONYMS.has(part)) return part;
+    if (Object.hasOwn(CASED_WORDS, part)) return CASED_WORDS[part];
     const lower = part.toLocaleLowerCase('en-US');
     if (!isFirst && SMALL_WORDS.has(lower)) return lower;
     return lower.replace(/(^|[-.])(\p{L})/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase('en-US'));

@@ -12,7 +12,7 @@ export type FilterChipProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'chi
 /** A toggle filter: 40px tall (44px hit), white when off, ink when on, `aria-pressed` carries the state. */
 export function FilterChip({ selected, count, icon, children, className, type = 'button', ...rest }: FilterChipProps) {
   return <button type={type} aria-pressed={selected} className={cx('ui-chip', className)} {...rest}>
-    {icon}{children}{count !== undefined && <span className="ui-chip__count">{count}</span>}
+    {icon}{children}{count !== undefined && <> <span className="ui-chip__count">{count}</span></>}
   </button>;
 }
 
