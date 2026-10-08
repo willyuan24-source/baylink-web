@@ -13,6 +13,8 @@ const discoveries = [
 
 const sourceTextStyle = { fontSize: 'var(--text-body, 1rem)', lineHeight: 1.8, color: 'var(--color-ink, #16352b)', marginTop: 16 };
 const CONTACT_EMAIL = 'Baylink.us@gmail.com';
+// Body text links are otherwise drawn like plain text here; underline so the address reads as a link (WCAG 1.4.1).
+const inlineLinkStyle = { textDecoration: 'underline', textUnderlineOffset: '0.2em' };
 
 /** Public introduction shared by the interactive route and static HTML. */
 export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
@@ -46,7 +48,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
       <p style={sourceTextStyle}>阅读时留意「待复核」「需人工确认」和「往期内容」提示。来源读取失败或尚未读取时仍需确认；往期记录不表示现在仍可参加、领取或办理。</p>
       <p style={sourceTextStyle}>行动前，请向对应机构核实个人资格、可用语言、价格与名额；有误的信息可通过下方邮箱告诉我们。</p>
       <p style={sourceTextStyle}>AI 回答与草稿需要核对，生成结果不代表人工审稿。封面注明「AI 原创」或「AI 辅助原创」的，是主题插画，不是机构实景或服务、资格证明。</p>
-      <p style={sourceTextStyle} data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no">{CONTACT_EMAIL}</a>{t('，我们会在两个工作日内处理。', '. We will act on it within two business days.')}</p>
+      <p style={sourceTextStyle} data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={inlineLinkStyle}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
     </section>
 
     <section className="about-baybay" aria-labelledby="about-baybay-title"><div className="about-baybay-mark"><Sparkles size={27} /></div><div>

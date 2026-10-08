@@ -6,13 +6,13 @@ Result: **43 images ship**, 1 approved image was downloaded but not used, and 10
 
 ## How it is wired
 
-- `src/data/official-event-media.json` holds one record per image: `key` (`official-<event id>`), `eventId`, `src`/`srcSet`/`width`/`height`, `kind: "photo"`, `artwork` (photo, poster, key-art, collage or graphic), `fullFrame: true` for everything that is not a photo (never cropped, D25) or a `focal` point `[x%, y%]` for photos, zh `alt`/`caption`/`credit`, `creditUrl` (the official event page), `rights` `{basis, evidenceUrl, scope: "same-event coverage only"}`, `originalUrl`, `retrievedAt` and the `sha256` of the downloaded original.
+- `src/data/official-event-media.json` holds one record per image: `key` (`official-<event id>`), `eventId`, `src`/`srcSet`/`width`/`height`, `kind` (`"photo"` for photos, `"poster"` for posters, key art, collages and graphics, so no surface calls artwork a photo), `artwork` (photo, poster, key-art, collage or graphic), `fullFrame: true` for everything that is not a photo (never cropped, D25) or a `focal` point `[x%, y%]` for photos, zh `alt`/`caption`/`credit`, `creditUrl` (the official event page), `rights` `{basis, evidenceUrl, scope: "same-event coverage only"}`, `originalUrl`, `retrievedAt` and the `sha256` of the downloaded original.
 - `src/data/guide-media.ts` registers the records into `GUIDE_IMAGES` after the federal public-domain photo. Pages receive only what they render plus `focal` and `rights`; the download fields stay in the JSON.
 - `src/data/verified-place-media-updates.ts` exports `OFFICIAL_EVENT_IMAGE_UPDATES` (event id → image key, built from the JSON) and merges it into `VERIFIED_EVENT_PLACE_MEDIA_UPDATES`. `monthly-edition.ts` applies `OCTNOV_EVENT_MEDIA_UPDATES` and `octnov-2026-extra-image-updates.json` after that map, so the affected events were removed from them; `tests/official-event-media.test.ts` fails if one comes back.
 - The events were also removed from the venue-photo approvals they used before (Main Library, Ferry Building, Yerba Buena Gardens, OMCA, Presidio, Filoli, Petaluma River, Mountain View CPA). Captions that named those events were shortened in zh and en. The B Street alias had no other event and was removed.
 - `src/data/official-event-media-en.json` (registered in `scripts/english-sources.json`) has the English alt, caption and credit; Traditional Chinese uses the runtime OpenCC conversion.
 - Labels: every credit says 官方 (en: official), so `getImageProvenance` returns 官方图 / Official image / 官方圖.
-- Takedown: About → 来源与核验方法 now says 图片权利人如需更正或下架，请发邮件至 Baylink.us@gmail.com，我们会在两个工作日内处理。 (en: "Image rights holders who want a picture corrected or removed can email Baylink.us@gmail.com. We will act on it within two business days.")
+- Takedown: About → 来源与核验方法 now says 图片权利人如需更正或下架，请发邮件至 Baylink.us@gmail.com，我们会尽快处理。 (en: "Image rights holders who want a picture corrected or removed can email Baylink.us@gmail.com. We will respond as soon as we can.") No response deadline is promised; the owner has not approved one.
 
 ## Rights
 
