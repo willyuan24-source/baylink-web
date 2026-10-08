@@ -30,9 +30,66 @@
         "X-Content-Type-Options": "nosniff",
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' blob: https://baylink-api.onrender.com wss://baylink-api.onrender.com https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests"
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' blob: https://baylink-api.onrender.com wss://baylink-api.onrender.com https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()"
       },
       "continue": true
+    },
+    {
+      "src": "^/$",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang",
+          "value": "en"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "/en"
+      }
+    },
+    {
+      "src": "^/(category/[^/]+|posts/[^/]+|users/[^/]+|reset-password|guides|guides/[^/]+|events|this-month|this-week|calendar|events/[^/]+|offers/[^/]+|openings/[^/]+|ai-in-the-bay|plan|together|recommend|tools|explore|archive|me|me/bookings|my-week|messages|messages/[^/]+|about|privacy|terms|sms-consent|n/(?:all|sf|east-bay|peninsula|south-bay|north-bay))/?$",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang",
+          "value": "en"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "/en/$1"
+      }
+    },
+    {
+      "src": "^/$",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang",
+          "value": "zh-Hant"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "/zh-Hant"
+      }
+    },
+    {
+      "src": "^/(category/[^/]+|posts/[^/]+|users/[^/]+|reset-password|guides|guides/[^/]+|events|this-month|this-week|calendar|events/[^/]+|offers/[^/]+|openings/[^/]+|ai-in-the-bay|plan|together|recommend|tools|explore|archive|me|me/bookings|my-week|messages|messages/[^/]+|about|privacy|terms|sms-consent|n/(?:all|sf|east-bay|peninsula|south-bay|north-bay))/?$",
+      "has": [
+        {
+          "type": "query",
+          "key": "lang",
+          "value": "zh-Hant"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "/zh-Hant/$1"
+      }
     },
     {
       "src": "^/(?:(?:en|zh-Hant)/)?(?:verify-email|notifications/unsubscribe)/?$",
@@ -96,7 +153,7 @@
       "continue": true
     },
     {
-      "src": "^/(?:(?:en|zh-Hant)/)?(?:me(?:/bookings)?|my-week|together|messages(?:/.*)?|reset-password|users/.*)/?$",
+      "src": "^/(?:(?:en|zh-Hant)/)?(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
       "headers": {
         "X-Robots-Tag": "noindex, follow",
         "Cache-Control": "no-store"
@@ -178,7 +235,7 @@
       "dest": "/plan.html"
     },
     {
-      "src": "^/(guides|archive|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/(guides|events|this-month|calendar|ai-in-the-bay|plan|tools|explore|archive|about|privacy|terms|sms-consent|opus-bay|play)/?$",
       "dest": "/$1.html"
     },
     {
@@ -273,11 +330,11 @@
       "dest": "/en/plan.html"
     },
     {
-      "src": "^/en/(guides|archive|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/en/(guides|events|this-month|calendar|ai-in-the-bay|plan|tools|explore|archive|about|privacy|terms|sms-consent|opus-bay|play)/?$",
       "dest": "/en/$1.html"
     },
     {
-      "src": "^/en/(?:me(?:/bookings)?|my-week|together|messages(?:/[^/]+)?|reset-password|users/[^/]+)/?$",
+      "src": "^/en/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
       "dest": "/en/index.html"
     },
     {
@@ -363,11 +420,11 @@
       "dest": "/zh-Hant/plan.html"
     },
     {
-      "src": "^/zh-Hant/(guides|archive|explore|plan|play|opus-bay|calendar|ai-in-the-bay|this-month|tools|recommend|about|privacy|terms|sms-consent)/?$",
+      "src": "^/zh-Hant/(guides|events|this-month|calendar|ai-in-the-bay|plan|tools|explore|archive|about|privacy|terms|sms-consent|opus-bay|play)/?$",
       "dest": "/zh-Hant/$1.html"
     },
     {
-      "src": "^/zh-Hant/(?:me(?:/bookings)?|my-week|together|messages(?:/[^/]+)?|reset-password|users/[^/]+)/?$",
+      "src": "^/zh-Hant/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
       "dest": "/zh-Hant/index.html"
     },
     {
@@ -375,10 +432,46 @@
       "dest": "/api/post-page?postId=$2&siteLanguage=$1"
     },
     {
+      "src": "^/this-week/?$",
+      "status": 301,
+      "headers": {
+        "Location": "/events"
+      }
+    },
+    {
+      "src": "^/(en|zh-Hant)/this-week/?$",
+      "status": 301,
+      "headers": {
+        "Location": "/$1/events"
+      }
+    },
+    {
+      "src": "^/recommend/?$",
+      "status": 301,
+      "headers": {
+        "Location": "/events"
+      }
+    },
+    {
+      "src": "^/(en|zh-Hant)/recommend/?$",
+      "status": 301,
+      "headers": {
+        "Location": "/$1/events"
+      }
+    },
+    {
       "src": "^/n/(all|sf|east-bay|peninsula|south-bay|north-bay)/?$",
       "status": 302,
       "headers": {
-        "Location": "/this-week?region=$1&from=card-$1",
+        "Location": "/events?region=$1&from=card-$1",
+        "Cache-Control": "no-store"
+      }
+    },
+    {
+      "src": "^/(en|zh-Hant)/n/(all|sf|east-bay|peninsula|south-bay|north-bay)/?$",
+      "status": 302,
+      "headers": {
+        "Location": "/$1/events?region=$2&from=card-$2",
         "Cache-Control": "no-store"
       }
     },
@@ -391,14 +484,6 @@
       "dest": "/zh-Hant/index.html"
     },
     {
-      "src": "^/this-week/?$",
-      "dest": "/this-week.html"
-    },
-    {
-      "src": "^/(en|zh-Hant)/this-week/?$",
-      "dest": "/$1/this-week.html"
-    },
-    {
       "src": "^/(en|zh-Hant)/(?:.*)$",
       "dest": "/$1/404.html",
       "status": 404
@@ -407,7 +492,7 @@
       "handle": "filesystem"
     },
     {
-      "src": "^/(?:me(?:/bookings)?|my-week|together|messages(?:/[^/]+)?|reset-password|users/[^/]+)/?$",
+      "src": "^/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
       "dest": "/index.html"
     },
     {
