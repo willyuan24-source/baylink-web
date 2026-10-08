@@ -1,7 +1,7 @@
 /**
  * The one route table (plan D2, docs/routes.md). Everything that needs to know about a URL reads it here:
  * App.tsx <Route>s (tests/route-table.test.ts keeps them equal), the boot preloader (route-loaders.ts), the
- * known-path check (routing.ts), nav highlight (lib/ui-navigation.ts), English scopes (lib/english-loading.ts),
+ * known-path check (routing.ts), nav highlight (lib/ui-navigation.ts), English scopes (lib/english-loading.ts, compared by test),
  * BayBay page context (lib/baybay-context.ts), prerender modules (scripts/prerender.tsx), the sitemap
  * (scripts/generate-sitemap.ts), vercel.json hosting routes (scripts/sync-public-routes.ts), the release page
  * list (scripts/verify-release.mjs) and analytics route templates (routeTemplate).
@@ -63,7 +63,8 @@ export type AppRoute = {
   redirect?: { to: string; status: 301 | 302 };
   /** listed in the sitemap (every language) */
   sitemap?: boolean;
-  /** English dictionary scopes the page displays ('ui' is always loaded); /guides/:slug adds its own */
+  /** English dictionary scopes the page displays ('ui' is always loaded; /guides/:slug adds its own). lib/english-loading.ts
+   * keeps its own copy (the 3D game's title chunk loads it and must not pull in this table); the route-table test compares them. */
   english?: readonly string[];
   /** public route parameters may become BayBay search context */
   baybay?: boolean;
@@ -95,7 +96,7 @@ export const ROUTES: readonly AppRoute[] = [
   { path: '/ai-in-the-bay', page: 'ai', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY },
   { path: '/plan', page: 'plan', section: 'events', hosting: 'page', sitemap: true, english: PLANNING, baybay: true, release: true },
   { path: '/together', page: 'together', section: 'events', hosting: 'spa', english: PLANNING, baybay: true },
-  { path: '/recommend', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: DISCOVERY },
+  { path: '/recommend', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 } },
   { path: '/tools', page: 'tools', section: 'guides', hosting: 'page', sitemap: true },
   { path: '/explore', page: 'explore', section: 'guides', hosting: 'page', sitemap: true, english: ['explore', 'guide-index'] },
   { path: '/archive', page: 'archive', section: 'guides', hosting: 'page', sitemap: true, english: DISCOVERY, release: true },

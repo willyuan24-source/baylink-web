@@ -73,6 +73,8 @@ test('known paths, analytics templates, English scopes and BayBay context come f
   assert.equal(routeTemplate('/en/guides/medicare'), '/guides/:slug');
   assert.equal(routeTemplate('/zh-Hant/events/'), '/events');
   assert.equal(routeTemplate('/wp-admin'), 'other');
+  // lib/english-loading.ts cannot import the table (the 3D title chunk loads it): its answers must equal the table's
+  for (const route of ROUTES.filter(entry => entry.path !== '/guides/:slug')) assert.deepEqual(englishScopesForPath(`/en${sample(route.path)}`), ['ui', ...(route.english || [])], route.path);
   assert.deepEqual(englishScopesForPath('/en/events?when=today'), ['ui', 'discovery', 'guide-index']);
   assert.deepEqual(englishScopesForPath('/en/this-week'), ['ui', 'discovery', 'guide-index']);
   assert.deepEqual(englishScopesForPath('/en/me/bookings'), ['ui']);
