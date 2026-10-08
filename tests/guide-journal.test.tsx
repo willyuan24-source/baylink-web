@@ -10,6 +10,7 @@ import { guideBlockText } from '../src/lib/guide-content';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { searchGuides } from '../src/lib/guide-search';
 import { SITE_URL } from '../src/lib/seo';
+import { getImageProvenance } from '../src/lib/image-provenance';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost' });
 Object.assign(globalThis, {
@@ -100,7 +101,7 @@ test('six weekend moods show the intended headline, published guide links and ho
     assert.equal(image.getAttribute('srcset'), cover.srcSet);
     assert.equal(image.getAttribute('width'), String(cover.width));
     assert.equal(image.getAttribute('height'), String(cover.height));
-    assert.ok(view.getByText(mood.kind === 'photo' ? '实景照片' : 'AI 原创插图'));
+    assert.ok(view.getByText(mood.kind === 'photo' ? getImageProvenance(cover) : 'AI 原创插图'));
     fireEvent.click(readingLink);
     assert.equal(opened.at(-1), mood.slug);
   }
