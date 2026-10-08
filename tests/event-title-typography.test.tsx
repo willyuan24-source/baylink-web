@@ -52,6 +52,13 @@ test('title links in event and calendar cards take the heading size while card a
   }
 });
 
+test('the category heading suffix stays on the line of the category name, so a phone line never starts with its comma', () => {
+  const suffixRules: Rule[] = [];
+  postcss.parse(readFileSync(new URL('../src/design.css', import.meta.url), 'utf8')).walkRules(rule => { if (rule.selectors.includes('.bay-category-header h1>span')) suffixRules.push(rule); });
+  assert.ok(suffixRules.length >= 2, 'the shared rule and the phone rule');
+  for (const rule of suffixRules) assert.ok(!declarations(rule).has('display') && !declarations(rule).has('margin-top'), `${rule.selector} keeps ，就在你身边。 inline`);
+});
+
 test('detail title units stay whole from 360px and may wrap on narrower phones', () => {
   const sheet = postcss.parse(readFileSync(new URL('../src/components/local-discovery-detail.css', import.meta.url), 'utf8'));
   const keep = (inMedia: string | undefined) => {
