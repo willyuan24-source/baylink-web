@@ -63,7 +63,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
         </button>
         <AuthBrandHeader compact />
         <h2 className="mb-1 text-center text-base font-semibold text-baylink-text">重设密码</h2>
-        <p className="mb-5 text-center text-[11px] text-baylink-muted">设置您的新登录密码</p>
+        <p className="mb-5 text-center text-[0.6875rem] text-baylink-muted">设置您的新登录密码</p>
 
         {error && (
           <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600">

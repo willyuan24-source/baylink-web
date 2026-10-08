@@ -33,9 +33,9 @@ export default class ErrorBoundary extends Component<Props, State> {
         textAlign: 'center',
         fontFamily: "'Plus Jakarta Sans', 'Noto Sans SC', sans-serif",
       }}>
-        <div style={{ fontSize: '40px' }}>🦦</div>
-        <h1 style={{ fontSize: '18px', fontWeight: 700, margin: 0 }}>页面出了点小问题</h1>
-        <p style={{ fontSize: '14px', color: '#6B7280', margin: 0, maxWidth: '320px', lineHeight: 1.6 }}>
+        <div style={{ fontSize: '2.5rem' }}>🦦</div>
+        <h1 style={{ fontSize: '1.125rem', fontWeight: 700, margin: 0 }}>页面出了点小问题</h1>
+        <p style={{ fontSize: '0.875rem', color: '#6B7280', margin: 0, maxWidth: '320px', lineHeight: 1.6 }}>
           刷新一下通常就能恢复。如果反复出现，欢迎联系我们反馈。
         </p>
         <button
@@ -47,7 +47,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             border: 'none',
             backgroundColor: '#16A66A',
             color: '#fff',
-            fontSize: '14px',
+            fontSize: '0.875rem',
             fontWeight: 700,
             cursor: 'pointer',
           }}

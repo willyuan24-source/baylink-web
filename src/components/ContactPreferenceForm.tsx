@@ -59,7 +59,7 @@ export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceForm
     <div className="rounded-2xl border border-baylink-border/60 bg-white p-3.5 space-y-3">
       <div>
         <h4 className="text-sm font-semibold text-baylink-text">联系方式设置</h4>
-        <p className="mt-1 text-[11px] leading-relaxed text-baylink-muted">
+        <p className="mt-1 text-[0.6875rem] leading-relaxed text-baylink-muted">
           推荐优先使用 BAYLINK 私信。需要提供微信、电话或邮箱时，可以让对方登录后请求，减少骚扰和诈骗。
         </p>
       </div>
@@ -81,7 +81,7 @@ export const ContactPreferenceForm = ({ value, onChange }: ContactPreferenceForm
             const m = methods.find((x) => x.type === row.type)!;
             return (
               <div key={row.type}>
-                <label htmlFor={`${fieldPrefix}-${row.type}`} className="mb-1 block text-[11px] font-normal text-baylink-text-secondary">{row.label}</label>
+                <label htmlFor={`${fieldPrefix}-${row.type}`} className="mb-1 block text-[0.6875rem] font-normal text-baylink-text-secondary">{row.label}</label>
                 <input
                   id={`${fieldPrefix}-${row.type}`}
                   type={row.type === 'phone' ? 'tel' : row.type === 'email' ? 'email' : 'text'}

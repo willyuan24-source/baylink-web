@@ -57,7 +57,7 @@ const ProfileTagField = ({
   return (
     <div className="profile-tag-field">
       <label htmlFor={inputId} className="mb-1 block text-xs font-bold text-gray-500 ml-1">{label}</label>
-      <p className="mb-2 text-[11px] text-baylink-muted ml-1">{hint}</p>
+      <p className="mb-2 text-[0.6875rem] text-baylink-muted ml-1">{hint}</p>
       <div className="flex flex-wrap gap-1.5 mb-2">
         {presets.map((p) => (
           <button
@@ -65,7 +65,7 @@ const ProfileTagField = ({
             type="button"
             aria-pressed={tags.includes(p)}
             onClick={() => toggle(p)}
-            className={`rounded-full px-2.5 py-1 text-[11px] font-normal transition ${
+            className={`rounded-full px-2.5 py-1 text-[0.6875rem] font-normal transition ${
               tags.includes(p)
                 ? 'bg-baylink-green text-white'
                 : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
@@ -83,7 +83,7 @@ const ProfileTagField = ({
               type="button"
               translate="no"
               onClick={() => onChange(tags.filter((x) => x !== t))}
-              className="rounded-full bg-baylink-green/15 px-2 py-0.5 text-[11px] text-baylink-green"
+              className="rounded-full bg-baylink-green/15 px-2 py-0.5 text-[0.6875rem] text-baylink-green"
             >
               {t} ×
             </button>
@@ -100,7 +100,7 @@ const ProfileTagField = ({
           onChange={(e) => setCustom(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter' && !e.nativeEvent.isComposing && e.nativeEvent.keyCode !== 229) { e.preventDefault(); addCustom(); } }}
         />
-        <button type="button" onClick={addCustom} className="shrink-0 rounded-xl bg-baylink-section px-3 py-2 text-[11px] font-semibold text-baylink-text">添加</button>
+        <button type="button" onClick={addCustom} className="shrink-0 rounded-xl bg-baylink-section px-3 py-2 text-[0.6875rem] font-semibold text-baylink-text">添加</button>
       </div>
     </div>
   );
@@ -164,25 +164,25 @@ const PhoneVerificationSession = ({ user, onClose, onVerified, showToast }: Phon
                 <button type="button" aria-label="关闭手机号验证" onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-900"><X size={20}/></button>
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-4 mx-auto"><ShieldCheck size={24}/></div>
                 <h3 className="text-xl font-bold text-center mb-1">手机号验证</h3>
-                <p className="mb-4 text-center text-[11px] leading-relaxed text-gray-500">手机号只用于账号安全和提升社区信任，不会公开显示。</p>
+                <p className="mb-4 text-center text-[0.6875rem] leading-relaxed text-gray-500">手机号只用于账号安全和提升社区信任，不会公开显示。</p>
                 {step === 1 ? (
                     <div className="space-y-4">
-                        <input type="tel" inputMode="tel" autoComplete="tel-national" aria-label="美国手机号" disabled={loading} className="w-full p-3.5 bg-gray-50 rounded-xl text-sm font-normal text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition placeholder:text-[11px] placeholder:font-normal" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
+                        <input type="tel" inputMode="tel" autoComplete="tel-national" aria-label="美国手机号" disabled={loading} className="w-full p-3.5 bg-gray-50 rounded-xl text-sm font-normal text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition placeholder:text-[0.6875rem] placeholder:font-normal" placeholder="例如：4156012119 或 +14156012119" value={phone} onChange={e => setPhone(e.target.value)} />
                         <button onClick={sendCode} disabled={loading} className="w-full py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 active:scale-95 transition">{loading ? '发送中...' : '发送验证码'}</button>
-                        <p className="text-[11px] leading-relaxed text-gray-500">
+                        <p className="text-[0.6875rem] leading-relaxed text-gray-500">
                           By clicking &ldquo;发送验证码 / Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
                           <a href="/privacy" className="font-semibold text-baylink-green hover:underline">Privacy Policy</a>
                           {' '}and{' '}
                           <a href="/terms" className="font-semibold text-baylink-green hover:underline">Terms of Service</a>.
                         </p>
-                        <p className="text-center text-[11px] text-baylink-muted">
+                        <p className="text-center text-[0.6875rem] text-baylink-muted">
                           <a href="/sms-consent" className="text-baylink-green hover:underline">SMS Verification Consent</a>
                         </p>
                     </div>
                 ) : (
                     <div className="space-y-4">
                         {import.meta.env?.DEV && devCode && (
-                          <p className="text-center text-[11px] text-amber-700">开发测试码：{devCode}</p>
+                          <p className="text-center text-[0.6875rem] text-amber-700">开发测试码：{devCode}</p>
                         )}
                         <input inputMode="numeric" autoComplete="one-time-code" aria-label="6位验证码" disabled={loading} className="w-full p-4 bg-gray-50 rounded-xl font-bold text-center outline-none border border-transparent focus:border-blue-500 focus:bg-white transition tracking-widest text-lg" placeholder="6位验证码" maxLength={6} value={code} onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} />
                         <button onClick={verifyCode} disabled={loading} className="w-full py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 active:scale-95 transition">{loading ? '验证中...' : '完成验证'}</button>

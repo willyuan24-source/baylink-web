@@ -250,11 +250,11 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     {variant !== 'headless' && (variant === 'sidebar' ? <div className="member-baybay-entry member-baybay-entry--sidebar">
       <div className="flex gap-2.5"><img src={BRAND.baybayAvatar} alt="BayBay" className="h-12 w-12 shrink-0 rounded-xl object-cover" width={48} height={48} />
         <div className="min-w-0 flex-1"><h3 className="sidebar-section-title leading-tight">BayBay AI 生活助手</h3>
-          <p className="mt-1 text-[11px] leading-snug text-baylink-muted">周末去哪、怎么省钱、刚来湾区怎么安排，一起从攻略找到下一步。</p>
+          <p className="mt-1 text-[0.6875rem] leading-snug text-baylink-muted">周末去哪、怎么省钱、刚来湾区怎么安排，一起从攻略找到下一步。</p>
           <button type="button" onClick={() => setOpen(true)} className="member-primary mt-3 w-full">问问 BayBay</button></div></div>
     </div> : <button type="button" onClick={() => setOpen(true)} className="member-baybay-entry member-baybay-entry--inline">
       <img src={BRAND.baybayAvatar} alt="BayBay" className="h-9 w-9 shrink-0 rounded-lg object-cover" width={36} height={36} />
-      <span className="min-w-0 flex-1"><span className="block text-[12px] font-normal text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[11px] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
+      <span className="min-w-0 flex-1"><span className="block text-[0.75rem] font-normal text-baylink-text">问问 BayBay · AI 湾区生活助手</span><span className="block text-[0.6875rem] text-baylink-muted">周末灵感、亲子省钱、生活下一步</span></span><ChevronRight size={16} />
     </button>)}
     {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay" initialFocusRef={pendingQuestionMode === 'draft' ? inputRef : undefined} restoreFocusRef={restoreFocusRef}>
       <div className="member-baybay-dialog baybay-conversation" onClick={(event) => event.stopPropagation()}>
@@ -318,7 +318,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
                 <BayBayFeedback turnId={turn.id} />
                 <BayBayReferences response={turn.response} currentPath={turn.currentPath} onNavigate={navigate} />
                 {!!turn.response.suggestedActions?.length && <div className="mt-2.5 flex flex-wrap gap-1.5">{turn.response.suggestedActions.map((action, index) => <button type="button" key={`${action.label}-${index}`} onClick={() => handleAction(action, turn.question)} className="member-baybay-action border border-baylink-border/50 bg-white text-baylink-text">{action.label}</button>)}</div>}
-                {turn.response.safetyNote && <p className="mt-2.5 text-[11px] leading-relaxed text-baylink-muted">{turn.response.safetyNote}</p>}
+                {turn.response.safetyNote && <p className="mt-2.5 text-[0.6875rem] leading-relaxed text-baylink-muted">{turn.response.safetyNote}</p>}
               </div>}
             </section>)}
           </div>
@@ -350,11 +350,11 @@ function BayBayReferences({ response, currentPath, onNavigate }: { response: Gui
   const references = bayBayReferenceGuides(response);
   const items = reading ? [reading, ...references.filter(guide => guide.slug !== reading.slug)] : references;
   if (!items.length) return null;
-  return <div className="baybay-references"><p>原文与核验来源</p><small className="block text-[11px] leading-relaxed text-baylink-muted">以下是站内指南列出的参考资料，不表示已实时核验。</small>{items.map(guide => <div key={guide.slug} className="mt-2">
+  return <div className="baybay-references"><p>原文与核验来源</p><small className="block text-[0.6875rem] leading-relaxed text-baylink-muted">以下是站内指南列出的参考资料，不表示已实时核验。</small>{items.map(guide => <div key={guide.slug} className="mt-2">
     <div className="baybay-reference-image"><GuideFigure image={getGuideMedia(guide).cover} variant="preview" /></div>
-    {guide.slug === reading?.slug && <small className="text-[11px] text-baylink-muted">提问时阅读的指南</small>}
+    {guide.slug === reading?.slug && <small className="text-[0.6875rem] text-baylink-muted">提问时阅读的指南</small>}
     <button type="button" onClick={() => onNavigate(`/guides/${guide.slug}`)}><BookOpen size={13} /><span>{guide.title}</span><ChevronRight size={13} /></button>
-    {bayBayGuideSources(guide).length > 0 && <details><summary className="cursor-pointer text-[11px] text-baylink-muted">查看原文来源</summary><ul className="mt-2 space-y-2 pl-4 text-[11px] leading-relaxed">{bayBayGuideSources(guide).map(source => <li key={source.url}><a className="break-words underline underline-offset-2" href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}
+    {bayBayGuideSources(guide).length > 0 && <details><summary className="cursor-pointer text-[0.6875rem] text-baylink-muted">查看原文来源</summary><ul className="mt-2 space-y-2 pl-4 text-[0.6875rem] leading-relaxed">{bayBayGuideSources(guide).map(source => <li key={source.url}><a className="break-words underline underline-offset-2" href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}
   </div>)}</div>;
 }
 

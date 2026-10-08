@@ -52,7 +52,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose, onSubmit }: ForgotPasswor
         </button>
         <AuthBrandHeader compact />
         <h2 className="mb-1 text-center text-base font-semibold text-baylink-text">忘记密码</h2>
-        <p className="mb-5 text-center text-[11px] text-baylink-muted">输入注册邮箱，我们会发送重设链接</p>
+        <p className="mb-5 text-center text-[0.6875rem] text-baylink-muted">输入注册邮箱，我们会发送重设链接</p>
 
         {error && (
           <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600">
@@ -66,7 +66,7 @@ export const ForgotPasswordModal = ({ isOpen, onClose, onSubmit }: ForgotPasswor
             <p className="rounded-2xl border border-baylink-green/15 bg-baylink-green-light/60 p-4 text-sm leading-relaxed text-baylink-text">{successMessage}</p>
             {devResetLink && (
               <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3">
-                <p className="mb-2 text-[11px] font-semibold text-amber-700">开发模式测试链接</p>
+                <p className="mb-2 text-[0.6875rem] font-semibold text-amber-700">开发模式测试链接</p>
                 <a href={devResetLink} className="break-all text-xs font-normal text-amber-900 underline">
                   {devResetLink}
                 </a>

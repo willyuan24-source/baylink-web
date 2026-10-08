@@ -47,7 +47,7 @@
 .site-topbar .site-language:hover { background:var(--color-surface-2); }
 .bay-home { padding-top:28px; padding-bottom:40px; }
 .bl-guides-page--compact .bl-guides-intro { padding-top:10px; padding-bottom:22px; border-bottom:1px solid var(--color-line); margin-bottom:24px; }
-.bl-guides-page--compact .bl-guides-intro h1 { font-size:calc(2.5rem * var(--reading-scale)); font-weight:600; letter-spacing:-.025em; }
+.bl-guides-page--compact .bl-guides-intro h1 { font-size:2.5rem; font-weight:600; letter-spacing:-.025em; }
 .bl-guides-page--compact .bl-guides-count { padding:8px 12px; border:1px solid var(--color-line); border-radius:8px; color:var(--color-editorial); font-size:var(--text-caption); background:var(--color-surface); }
 .bl-guides-page--compact .bl-guide-tabs { gap:6px; }
 .bl-guides-page--compact .bl-guide-tabs button { border-color:transparent; border-radius:8px; }
@@ -117,7 +117,7 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-topbar .site-language>svg { display:none; }
   .site-topbar .site-language select { width:94px; min-width:94px; max-width:none; padding-inline:3px; }
   .bay-home { padding:21px 20px 32px; }
-  .bl-guides-page--compact .bl-guides-intro h1 { font-size:calc(2rem * var(--reading-scale)); }
+  .bl-guides-page--compact .bl-guides-intro h1 { font-size:2rem; }
   .bl-guides-page--compact .bl-guide-card-compact { grid-template-columns:82px minmax(0,1fr); gap:14px; padding-block:20px; }
   .bl-guides-page--compact .bl-guide-card-compact .bl-guide-card-art { aspect-ratio:3/4; }
 }

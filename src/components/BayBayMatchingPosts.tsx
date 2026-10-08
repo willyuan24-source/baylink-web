@@ -33,7 +33,7 @@ export const BayBayMatchingPosts = ({ posts, note, onNavigate }: {
             {typeof post.budget === 'string' && post.budget && <span>{post.budget}</span>}
           </div>
           <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">{availability.label} · 查看实际帖子</p>
-          <p className="mt-1 text-[11px] leading-relaxed text-baylink-text-secondary">{availability.detail}</p>
+          <p className="mt-1 text-[0.6875rem] leading-relaxed text-baylink-text-secondary">{availability.detail}</p>
         </a>;
       })}
     </div>

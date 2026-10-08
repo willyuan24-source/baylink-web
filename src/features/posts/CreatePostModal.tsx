@@ -54,13 +54,13 @@ const DefaultCoverPicker = ({
 
   return (
     <div className="member-compose-covers">
-      <p className="text-[11px] font-semibold text-baylink-text">没有照片？选择默认封面</p>
-      <p className="mt-0.5 text-[11px] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
+      <p className="text-[0.6875rem] font-semibold text-baylink-text">没有照片？选择默认封面</p>
+      <p className="mt-0.5 text-[0.6875rem] leading-relaxed text-baylink-muted">适合求租、找室友、接送、清洁、二手等信息，一键配图更容易被看到。</p>
       {selected && (
         <div className="mt-2 flex items-center gap-2 rounded-lg bg-baylink-green-light/30 p-2">
           <img src={selected.url} alt={selected.title} className="h-12 w-12 shrink-0 rounded-lg object-contain bg-baylink-section/50" />
-          <span className="min-w-0 flex-1 text-[11px] font-semibold text-baylink-text">已选：{selected.title}</span>
-          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[11px] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
+          <span className="min-w-0 flex-1 text-[0.6875rem] font-semibold text-baylink-text">已选：{selected.title}</span>
+          <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[0.6875rem] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
         </div>
       )}
       <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-xs font-semibold text-baylink-text transition hover:border-baylink-green/40">
@@ -68,7 +68,7 @@ const DefaultCoverPicker = ({
       </button>
       {open && (
         <div className="mt-3">
-          <p className="mb-2 text-[11px] font-semibold text-baylink-muted">推荐封面</p>
+          <p className="mb-2 text-[0.6875rem] font-semibold text-baylink-muted">推荐封面</p>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {displayCovers.map((cover) => {
               const isSelected = selected?.id === cover.id;
@@ -80,21 +80,21 @@ const DefaultCoverPicker = ({
                   className={`relative overflow-hidden rounded-xl border-2 bg-white p-1 shadow-sm transition ${isSelected ? 'border-baylink-green ring-1 ring-baylink-green/30' : 'border-baylink-border/50 hover:border-baylink-green/35'}`}
                 >
                   <img src={cover.url} alt={cover.title} loading="lazy" decoding="async" className="aspect-[4/3] w-full rounded-lg object-contain bg-baylink-section/40" />
-                  <p className="mt-1 truncate px-0.5 text-center text-[11px] font-normal text-baylink-text-secondary">{cover.title}</p>
+                  <p className="mt-1 truncate px-0.5 text-center text-[0.6875rem] font-normal text-baylink-text-secondary">{cover.title}</p>
                   {isSelected && (
-                    <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[8px] font-bold text-white">已选择</span>
+                    <span className="absolute right-1 top-1 rounded-md bg-baylink-green px-1 py-px text-[0.5rem] font-bold text-white">已选择</span>
                   )}
                 </button>
               );
             })}
           </div>
           {!expanded && others.length > 0 && (
-            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[11px] font-semibold text-baylink-green">
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[0.6875rem] font-semibold text-baylink-green">
               查看更多封面（共 {DEFAULT_COVERS.length} 张）
             </button>
           )}
           {expanded && (
-            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[11px] font-semibold text-baylink-muted">
+            <button type="button" onClick={onToggleExpanded} className="mt-2 w-full text-center text-[0.6875rem] font-semibold text-baylink-muted">
               收起全部封面
             </button>
           )}
@@ -493,8 +493,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             </div>
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
-                <label htmlFor="post-title" className="text-[11px] font-semibold text-baylink-text">帖子标题</label>
-                <span className="text-[11px] text-baylink-muted">一句话说清楚需求或服务</span>
+                <label htmlFor="post-title" className="text-[0.6875rem] font-semibold text-baylink-text">帖子标题</label>
+                <span className="text-[0.6875rem] text-baylink-muted">一句话说清楚需求或服务</span>
               </div>
               <input
                 className="member-compose-input"
@@ -508,18 +508,18 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             {hints.quickTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {hints.quickTags.map((tag) => (
-                  <button key={tag} type="button" aria-label={`确认并添加标签 ${tag}`} onClick={() => addTagToDesc(tag)} className="text-[11px] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
+                  <button key={tag} type="button" aria-label={`确认并添加标签 ${tag}`} onClick={() => addTagToDesc(tag)} className="text-[0.6875rem] bg-white text-baylink-text-secondary px-2 py-1 rounded-md border border-baylink-border hover:border-baylink-green/40 hover:bg-baylink-green-light/50 active:scale-95 transition">#{tag}</button>
                 ))}
               </div>
             )}
-            {hints.quickTags.length > 0 && <p className="px-0.5 text-[11px] text-baylink-muted">确认实际条件后再加标签，例如包水电、可养宠物；标签会公开显示。</p>}
+            {hints.quickTags.length > 0 && <p className="px-0.5 text-[0.6875rem] text-baylink-muted">确认实际条件后再加标签，例如包水电、可养宠物；标签会公开显示。</p>}
             {hints.checklist.length > 0 && (
-              <p className="text-[11px] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.map((item, index) => <React.Fragment key={item}>{index > 0 && ' · '}<span>{item}</span></React.Fragment>)}</p>
+              <p className="text-[0.6875rem] text-baylink-muted leading-relaxed px-0.5">建议包含：{hints.checklist.map((item, index) => <React.Fragment key={item}>{index > 0 && ' · '}<span>{item}</span></React.Fragment>)}</p>
             )}
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
-                <label htmlFor="post-description" className="text-[11px] font-semibold text-baylink-text">详细内容</label>
-                <span className="text-[11px] text-baylink-muted">补充位置、价格、时间和具体要求</span>
+                <label htmlFor="post-description" className="text-[0.6875rem] font-semibold text-baylink-text">详细内容</label>
+                <span className="text-[0.6875rem] text-baylink-muted">补充位置、价格、时间和具体要求</span>
               </div>
               <textarea
                 className="member-compose-input member-compose-description"
@@ -531,16 +531,16 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
               />
             </div>
             {form.type === 'provider' && form.category === '租屋' && (
-              <div className={`rounded-xl border p-3 text-[11px] leading-relaxed ${needsFairHousingReview(`${form.title}\n${form.description}`) ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-baylink-border bg-baylink-section text-baylink-text-secondary'}`}>
+              <div className={`rounded-xl border p-3 text-[0.6875rem] leading-relaxed ${needsFairHousingReview(`${form.title}\n${form.description}`) ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-baylink-border bg-baylink-section text-baylink-text-secondary'}`}>
                 <p>租房描述建议写房屋条件、租金、入住人数和生活习惯。涉及族裔、国籍、家庭或其他受保护身份的筛选条件，请先核对公平住房规则；共用生活空间等例外需结合实际情况确认。</p>
                 {needsFairHousingReview(`${form.title}\n${form.description}`) && <p className="mt-1 font-semibold">这段文字可能包含身份筛选条件，请在发布前检查上下文和适用规则。</p>}
                 <a href={FAIR_HOUSING_SOURCE} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block font-semibold underline">查看 California CRD 公平住房说明</a>
               </div>
             )}
-            <p className="px-0.5 text-[11px] leading-relaxed text-baylink-muted">{PUBLIC_CONTACT_NOTICE}</p>
+            <p className="px-0.5 text-[0.6875rem] leading-relaxed text-baylink-muted">{PUBLIC_CONTACT_NOTICE}</p>
             {showContactWarning && (
               <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-                <p className="text-[11px] leading-relaxed text-amber-900">
+                <p className="text-[0.6875rem] leading-relaxed text-amber-900">
                   检测到可能的联系方式。{PUBLIC_CONTACT_NOTICE}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-2">
@@ -581,11 +581,11 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                         showToast('已填入联系方式设置，请继续检查标题和正文中的联系方式。', 'info');
                       }
                     }}
-                    className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white"
+                    className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[0.6875rem] font-semibold text-white"
                   >
                     移到私密联系方式
                   </button>
-                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-normal text-amber-900">
+                  <button type="button" onClick={() => setContactWarningDismissed(true)} className="rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[0.6875rem] font-normal text-amber-900">
                     我确认保留公开显示
                   </button>
                 </div>
@@ -593,7 +593,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             )}
             <div className="member-compose-upload-heading">
               <span><ImagePlus size={17} aria-hidden="true" />上传照片</span>
-              <span className="text-[11px] text-baylink-muted">
+              <span className="text-[0.6875rem] text-baylink-muted">
                 {uploadedImages.length > 0
                   ? `已上传 ${uploadedImages.length}/${MAX_POST_IMAGES} 张 · 最多上传 5 张照片`
                   : '最多上传 5 张照片'}
@@ -623,21 +623,21 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                   />
                   <span className="pointer-events-none flex flex-col items-center justify-center">
                     {imageCompressing ? <Loader2 size={18} className="animate-spin text-baylink-green" /> : <Plus size={18} />}
-                    <span className="mt-0.5 text-[11px]">{imageCompressing ? '处理中' : '添加图片'}</span>
+                    <span className="mt-0.5 text-[0.6875rem]">{imageCompressing ? '处理中' : '添加图片'}</span>
                   </span>
                 </label>
               )}
             </div>
             {imageCompressing && (
-              <p className="flex items-center gap-1 text-[11px] text-baylink-muted px-0.5">
+              <p className="flex items-center gap-1 text-[0.6875rem] text-baylink-muted px-0.5">
                 <Loader2 size={11} className="animate-spin" /> 图片处理中...
               </p>
             )}
             {!imageCompressing && imageCompressHint && (
-              <p className="text-[11px] text-baylink-green px-0.5">{imageCompressHint}</p>
+              <p className="text-[0.6875rem] text-baylink-green px-0.5">{imageCompressHint}</p>
             )}
             {uploadedImages.length > 0 && (
-              <p className="text-[11px] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
+              <p className="text-[0.6875rem] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
             )}
             <DefaultCoverPicker
               type={form.type}

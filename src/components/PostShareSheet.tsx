@@ -28,28 +28,28 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
 
   return (
     <div className="w-full rounded-2xl border border-black/[0.08] bg-baylink-bg-alt/60 p-4 shadow-[0_4px_20px_rgba(23,32,42,0.08)]">
-      <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[11px] font-semibold text-baylink-green">
+      <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[0.6875rem] font-semibold text-baylink-green">
         {category}
       </span>
-      <h4 translate="no" className="mt-2.5 line-clamp-2 text-left text-[15px] font-semibold leading-snug text-baylink-text">
+      <h4 translate="no" className="mt-2.5 line-clamp-2 text-left text-[0.9375rem] font-semibold leading-snug text-baylink-text">
         {post.title?.trim() || translateText('本地信息')}
       </h4>
       <div className="mt-2.5 space-y-1 text-left">
-        <p className="text-[12px] text-baylink-text-secondary">
+        <p className="text-[0.75rem] text-baylink-text-secondary">
           <span className="text-baylink-muted">地区</span> · <span translate="no">{post.city?.trim() || translateText(area)}</span>
         </p>
         {budget && (
-          <p className="text-[12px] font-normal text-baylink-green">
+          <p className="text-[0.75rem] font-normal text-baylink-green">
             <span className="font-normal text-baylink-muted">预算/价格</span> · <span translate="no">{budget}</span>
           </p>
         )}
         {timeInfo && (
-          <p className="text-[12px] text-baylink-text-secondary">
+          <p className="text-[0.75rem] text-baylink-text-secondary">
             <span className="text-baylink-muted">时间</span> · <span translate="no">{timeInfo}</span>
           </p>
         )}
       </div>
-      <p className="mt-3 border-t border-black/[0.04] pt-2.5 text-center text-[11px] text-baylink-muted">
+      <p className="mt-3 border-t border-black/[0.04] pt-2.5 text-center text-[0.6875rem] text-baylink-muted">
         来自 BAYLINK｜湾区生活信息站
       </p>
     </div>
@@ -138,7 +138,7 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
               <span className="text-sm font-bold tracking-tight text-baylink-text">BAYLINK</span>
             </div>
             <h3 className="text-base font-semibold text-baylink-text">分享这条帖子</h3>
-            <p className="mt-1.5 text-[11px] leading-relaxed text-baylink-muted">
+            <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-baylink-muted">
               可以发给微信好友、微信群、短信或其他 App。
             </p>
           </div>

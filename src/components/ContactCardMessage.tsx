@@ -43,9 +43,9 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
           <div key={`${m.type}-${i}`} className="rounded-xl border border-black/[0.04] bg-white/80 px-3 py-2">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <div className="text-[11px] font-normal text-baylink-muted">{typeLabel(m.type, m.label)}</div>
+                <div className="text-[0.6875rem] font-normal text-baylink-muted">{typeLabel(m.type, m.label)}</div>
                 <div className="mt-0.5 break-all text-sm font-semibold text-baylink-text">{m.value}</div>
-                {m.note && <div className="mt-0.5 text-[11px] text-baylink-muted">{m.note}</div>}
+                {m.note && <div className="mt-0.5 text-[0.6875rem] text-baylink-muted">{m.note}</div>}
               </div>
               <button
                 type="button"
@@ -60,7 +60,7 @@ export const ContactCardMessage = ({ methods, isMine, onCopied }: ContactCardMes
           </div>
         ))}
       </div>
-      <p className="mt-2.5 text-[11px] leading-relaxed text-baylink-muted">
+      <p className="mt-2.5 text-[0.6875rem] leading-relaxed text-baylink-muted">
         建议先确认身份、价格、时间和交易方式。涉及押金、预付款或上门服务时请谨慎。
       </p>
     </div>
