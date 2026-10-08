@@ -202,17 +202,40 @@ test('English pages get English control names without a dictionary entry', async
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/);
 });
 
-test('carousel: labelled slides, a polite counter, arrow keys and edge-aware previous/next; no autoplay', () => {
+/**
+ * jsdom has no layout: give the carousel track and slides a geometry and record scrollTo targets.
+ * `overflow` sets the track's scrollWidth/clientWidth; without it the track has no measurable overflow.
+ */
+function carouselGeometry({ slideLeft, trackLeft = 0, overflow }: { slideLeft: (position: number) => number; trackLeft?: number; overflow?: { scrollWidth: number; clientWidth: number } }) {
+  const proto = dom.window.HTMLElement.prototype;
   const calls: number[] = [];
-  const original = dom.window.HTMLElement.prototype.scrollTo;
-  dom.window.HTMLElement.prototype.scrollTo = function (options?: ScrollToOptions | number) { calls.push(typeof options === 'object' ? options.left ?? -1 : -1); } as typeof original;
-  // Phone geometry: the positioned track sits at -16px (bleed margin) with 16px padding; slides are 300px + 12px gap.
-  const offsetLeft = Object.getOwnPropertyDescriptor(dom.window.HTMLElement.prototype, 'offsetLeft')!;
-  Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetLeft', { configurable: true, get(this: HTMLElement) {
-    if (this.classList.contains('ui-carousel__track')) return -16;
-    if (this.classList.contains('ui-carousel__slide')) return 16 + Array.from(this.parentElement!.children).indexOf(this) * 312;
+  const scrollTo = proto.scrollTo;
+  const offsetLeft = Object.getOwnPropertyDescriptor(proto, 'offsetLeft')!;
+  const widths = { scrollWidth: Object.getOwnPropertyDescriptor(proto, 'scrollWidth'), clientWidth: Object.getOwnPropertyDescriptor(proto, 'clientWidth') };
+  proto.scrollTo = function (options?: ScrollToOptions | number) { calls.push(typeof options === 'object' ? options.left ?? -1 : -1); } as typeof scrollTo;
+  Object.defineProperty(proto, 'offsetLeft', { configurable: true, get(this: HTMLElement) {
+    if (this.classList.contains('ui-carousel__track')) return trackLeft;
+    if (this.classList.contains('ui-carousel__slide')) return slideLeft(Array.from(this.parentElement!.children).indexOf(this));
     return 0;
   } });
+  for (const key of ['scrollWidth', 'clientWidth'] as const) Object.defineProperty(proto, key, { configurable: true, get(this: HTMLElement) {
+    return overflow && this.classList.contains('ui-carousel__track') ? overflow[key] : 0;
+  } });
+  return { calls, restore() {
+    proto.scrollTo = scrollTo;
+    Object.defineProperty(proto, 'offsetLeft', offsetLeft);
+    for (const key of ['scrollWidth', 'clientWidth'] as const) {
+      const own = widths[key];
+      if (own) Object.defineProperty(proto, key, own);
+      else delete (proto as unknown as Record<string, unknown>)[key];
+    }
+  } };
+}
+
+test('carousel: labelled slides, a polite counter, arrow keys and edge-aware previous/next; no autoplay', () => {
+  // Phone geometry: the positioned track sits at -16px (bleed margin) with 16px padding; slides are 300px + 12px gap.
+  const geometry = carouselGeometry({ trackLeft: -16, slideLeft: position => 16 + position * 312 });
+  const { calls } = geometry;
   try {
     const view = wrap(<ui.Carousel label="长者服务图解"><div>一</div><div>二</div><div>三</div></ui.Carousel>);
     const region = view.getByRole('region', { name: '长者服务图解' });
@@ -236,8 +259,36 @@ test('carousel: labelled slides, a polite counter, arrow keys and edge-aware pre
     fireEvent.scroll(track);
     assert.equal(counter.textContent, '2/3', 'a swipe that lands near slide 2 updates the counter');
   } finally {
-    dom.window.HTMLElement.prototype.scrollTo = original;
-    Object.defineProperty(dom.window.HTMLElement.prototype, 'offsetLeft', offsetLeft);
+    geometry.restore();
+  }
+});
+
+test('carousel: on a 3-up desktop rail the end of the track counts as the last slide, and Previous steps back from it', () => {
+  // 1440 rail: five 365px slides + 12px gaps in a 1131px track; it can scroll 755px, so slides 4 and 5 never reach the start edge.
+  const geometry = carouselGeometry({ slideLeft: position => position * 377, overflow: { scrollWidth: 1886, clientWidth: 1131 } });
+  const { calls } = geometry;
+  try {
+    const view = wrap(<ui.Carousel label="编辑精选" variant="rail">{['一', '二', '三', '四', '五'].map(text => <div key={text}>{text}</div>)}</ui.Carousel>);
+    const region = view.getByRole('region', { name: '编辑精选' });
+    const counter = region.querySelector('[aria-live="polite"]')!;
+    const track = region.querySelector('.ui-carousel__track')!;
+    const next = view.getByRole('button', { name: '下一张' });
+    fireEvent.click(next);
+    assert.equal(counter.textContent, '2/5');
+    fireEvent.click(next);
+    assert.equal(counter.textContent, '5/5', 'the last stop shows slides 3–5, so the counter reads the last slide');
+    assert.equal(next.hasAttribute('disabled'), true, 'Next is disabled at the end of the track');
+    fireEvent.click(view.getByRole('button', { name: '上一张' }));
+    assert.equal(counter.textContent, '2/5', 'Previous skips the slides that share the end position');
+    assert.deepEqual(calls, [377, 754, 377]);
+    Object.defineProperty(track, 'scrollLeft', { configurable: true, value: 755 });
+    fireEvent.scroll(track);
+    assert.equal(counter.textContent, '5/5', 'a swipe to the end reads the last slide');
+    Object.defineProperty(track, 'scrollLeft', { configurable: true, value: 380 });
+    fireEvent.scroll(track);
+    assert.equal(counter.textContent, '2/5');
+  } finally {
+    geometry.restore();
   }
 });
 

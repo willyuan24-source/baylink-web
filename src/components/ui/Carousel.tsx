@@ -16,12 +16,34 @@ export type CarouselProps = {
 
 const reducedMotion = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+/** Rounding slack (px) when comparing scroll positions: snapping and sub-pixel layout. */
+const SLACK = 2;
+
 /**
- * Snap position of a slide = its distance from the first slide. The track is positioned (it is the slides'
- * offsetParent) and on phones has a 16px padding with a matching scroll-padding, so measuring from the first
- * slide stays right at every breakpoint.
+ * Where each slide sits when snapped: its distance from the first slide (the track is positioned, so it is the
+ * slides' offsetParent, and on phones it has a 16px padding with a matching scroll-padding), clamped to the
+ * furthest the track can scroll. On a 3-up desktop rail the last slides cannot reach the start edge, so they share
+ * the end position. `end` is null when the track has no measurable overflow; positions are then not clamped.
  */
-const slideScrollLeft = (track: HTMLElement, slide: HTMLElement) => slide.offsetLeft - ((track.children[0] as HTMLElement | undefined)?.offsetLeft ?? 0);
+const snapStops = (track: HTMLElement) => {
+  const first = (track.children[0] as HTMLElement | undefined)?.offsetLeft ?? 0;
+  const max = track.scrollWidth - track.clientWidth;
+  const end = max > 0 ? max : null;
+  const stops = Array.from(track.children, slide => {
+    const left = (slide as HTMLElement).offsetLeft - first;
+    return end === null ? left : Math.min(left, end);
+  });
+  return { stops, end };
+};
+
+/** The slide a scroll position shows: the nearest stop, or the last slide once the track is at its end. */
+const indexAt = (track: HTMLElement, left: number) => {
+  const { stops, end } = snapStops(track);
+  if (end !== null && left >= end - SLACK) return stops.length - 1;
+  let nearest = 0;
+  stops.forEach((stop, position) => { if (Math.abs(stop - left) < Math.abs(stops[nearest] - left)) nearest = position; });
+  return nearest;
+};
 
 /**
  * Scroll-snap carousel (design.md §4.5): slides are `role="group"` with "2 / 9" labels, a polite "1/9" counter,
@@ -37,33 +59,30 @@ export function Carousel({ label, children, variant = 'slides', className }: Car
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
-    const onScroll = () => {
-      const start = track.scrollLeft;
-      let nearest = 0;
-      let distance = Number.POSITIVE_INFINITY;
-      Array.from(track.children).forEach((slide, position) => {
-        const gap = Math.abs(slideScrollLeft(track, slide as HTMLElement) - start);
-        if (gap < distance) { distance = gap; nearest = position; }
-      });
-      setIndex(nearest);
-    };
+    const onScroll = () => setIndex(indexAt(track, track.scrollLeft));
     track.addEventListener('scroll', onScroll, { passive: true });
     return () => track.removeEventListener('scroll', onScroll);
   }, []);
 
-  const go = useCallback((next: number) => {
-    const target = Math.max(0, Math.min(count - 1, next));
-    if (target === index) return;
+  /** One step to the next distinct scroll position; at the end the counter reads "n/n" and Next is disabled. */
+  const step = useCallback((direction: 1 | -1) => {
     const track = trackRef.current;
-    const slide = track?.children[target] as HTMLElement | undefined;
-    if (track && slide && typeof track.scrollTo === 'function') track.scrollTo({ left: slideScrollLeft(track, slide), behavior: reducedMotion() ? 'auto' : 'smooth' });
-    setIndex(target);
+    const { stops, end } = track ? snapStops(track) : { stops: [] as number[], end: null };
+    const current = stops[index] ?? 0;
+    let target = index;
+    for (let position = index + direction; position >= 0 && position < count; position += direction) {
+      if (end === null || Math.abs((stops[position] ?? 0) - current) > SLACK) { target = position; break; }
+    }
+    if (target === index) return;
+    const left = stops[target];
+    if (track && left !== undefined && typeof track.scrollTo === 'function') track.scrollTo({ left, behavior: reducedMotion() ? 'auto' : 'smooth' });
+    setIndex(end !== null && left !== undefined && left >= end - SLACK ? count - 1 : target);
   }, [count, index]);
 
   const onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
     event.preventDefault();
-    go(index + (event.key === 'ArrowRight' ? 1 : -1));
+    step(event.key === 'ArrowRight' ? 1 : -1);
   };
 
   // Arrow keys work from the track or from any card inside it (the keydown bubbles to the region).
@@ -72,10 +91,10 @@ export function Carousel({ label, children, variant = 'slides', className }: Car
       {slides.map((slide, position) => <div key={position} className="ui-carousel__slide" role="group" aria-roledescription={t('幻灯片', 'slide')} aria-label={`${position + 1} / ${count}`}>{slide}</div>)}
     </div>
     {count > 1 && <div className="ui-carousel__controls">
-      <IconButton className="ui-carousel__prev" label={t('上一张', 'Previous')} disabled={index === 0} onClick={() => go(index - 1)}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
+      <IconButton className="ui-carousel__prev" label={t('上一张', 'Previous')} disabled={index === 0} onClick={() => step(-1)}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
       <span className="ui-carousel__dots" aria-hidden="true">{slides.map((_, position) => <span key={position} data-active={position === index ? '' : undefined} />)}</span>
       <span className="ui-carousel__counter" aria-live="polite">{index + 1}/{count}</span>
-      <IconButton className="ui-carousel__next" label={t('下一张', 'Next')} disabled={index === count - 1} onClick={() => go(index + 1)}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
+      <IconButton className="ui-carousel__next" label={t('下一张', 'Next')} disabled={index === count - 1} onClick={() => step(1)}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
     </div>}
   </section>;
 }
