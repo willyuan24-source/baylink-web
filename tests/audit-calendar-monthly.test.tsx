@@ -32,6 +32,17 @@ test('the /events SSR (活动, 本周末) starts with the real Bay Area weekend 
   }
 });
 
+test('the /events 本周末 pill is marked current only while the list shows the weekend', () => {
+  const weekendPill = (location: string) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location={location}><EventsView today={today} /></StaticRouter>)).querySelector('.events-segments a[href="/events"]');
+  for (const location of ['/events', '/events?when=weekend', '/events?region=sf&from=card-sf', '/events?cost=free']) {
+    assert.equal(weekendPill(location)?.getAttribute('aria-current'), 'page', location);
+  }
+  // An unknown `when` resolves to all dates in the list, so the pill follows it.
+  for (const location of ['/events?when=today', '/events?when=next7', '/events?when=all', '/events?when=october', '/events?when=unknown-value']) {
+    assert.equal(weekendPill(location)?.hasAttribute('aria-current'), false, location);
+  }
+});
+
 test('monthly SSR defaults to all dates, allows explicit initial filters, and places life bulletins after activities', () => {
   const monthly = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/this-month"><MonthlyEdition today={today} defaultDateFilter="all" /></StaticRouter>));
   assert.equal(dateButton(monthly), '全部日期');
