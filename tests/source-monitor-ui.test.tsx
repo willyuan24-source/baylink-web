@@ -48,10 +48,10 @@ test('a pending source change becomes one plain line under the facts, without pi
   api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true }] });
   const view = await mount(reader());
   const line = view.getByRole('note', { name: '官方页面提示' });
-  assert.equal(line.textContent, '主办方页面近期有更新，出发前看一眼官方 ›');
+  assert.equal(line.textContent, '主办方页面有更新，出发前看一眼官方 ›', 'an undated change does not claim it was recent');
   assert.equal(view.getByRole('link', { name: '出发前看一眼官方 ›' }).getAttribute('href'), official);
   const trust = view.getByRole('note', { name: '来源与核对' });
-  assert.equal(trust.textContent, '官方来源 organizer.example· 编辑核对 9/29', 'no "no change" claim while a change is pending');
+  assert.equal(trust.textContent, '官方来源 organizer.example\u00a0· 编辑核对 9/29', 'no "no change" claim while a change is pending');
   assert.doesNotMatch(view.container.textContent || '', JARGON);
   assert.doesNotMatch(view.container.textContent || '', /已核实/);
 });
@@ -62,12 +62,18 @@ test('an unchanged source shows the trust row only, with separate editor and aut
   let view = await mount(reader());
   assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null);
   const trust = view.getByRole('note', { name: '来源与核对' });
-  assert.equal(trust.textContent, '官方来源 organizer.example· 编辑核对 9/29· 自动比对 10/7 无变化');
+  assert.equal(trust.textContent, '官方来源 organizer.example\u00a0· 编辑核对 9/29\u00a0· 自动比对 10/7 无变化');
   assert.deepEqual([...trust.querySelectorAll('time')].map(time => time.getAttribute('datetime')), ['2026-09-29', '2026-10-07T18:00:00.000Z']);
+  // The row wraps as text: the check mark shares an unbreakable item with its label, each
+  // "label date" pair is one item, and every separator ends a line rather than starting one.
+  const items = [...trust.querySelectorAll('.trust-row-item')];
+  assert.deepEqual(items.map(node => node.textContent), ['官方来源', '编辑核对 9/29', '自动比对 10/7 无变化']);
+  assert.ok(items[0].querySelector('svg'), 'the check mark is never alone on a line');
+  for (const node of items.slice(1)) assert.match(node.previousSibling?.textContent || '', /\u00a0· $/);
   view.unmount(); resetSourceFreshnessCache();
   await setLocale('en', false);
   view = await mount(reader('english-event'));
-  assert.equal(view.getByRole('note', { name: 'Source and checks' }).textContent, 'Official source organizer.example· Editor checked Sep 29· Auto-compared Oct 7, no change');
+  assert.equal(view.getByRole('note', { name: 'Source and checks' }).textContent, 'Official source organizer.example\u00a0· Editor checked Sep 29\u00a0· Auto-compared Oct 7, no change');
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/u);
 });
 
@@ -83,7 +89,7 @@ test('manual-required, error and unreachable sources stay off the reader page', 
     api.request = answer;
     const view = await mount(reader(`quiet-${index}`));
     assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null, String(index));
-    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example· 编辑核对 9/29', String(index));
+    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example\u00a0· 编辑核对 9/29', String(index));
     view.unmount();
   }
 });
@@ -126,4 +132,21 @@ test('readers on one page share a single bounded request and each reads only its
   assert.equal(view.getAllByRole('note', { name: '官方页面提示' }).length, 1, 'only the event whose own source changed shows a prompt');
   await mount(reader('first-event'));
   assert.equal(requests.length, 1, 'a recent answer is reused');
+});
+
+test('AI event cards pass their dates, so an ended card never asks the reader to check before going', async () => {
+  const { MemoryRouter } = await import('react-router');
+  const { default: AiLocalPage } = await import('../src/pages/AiLocalPage');
+  api.request = async endpoint => {
+    const ids = new URL(endpoint, 'https://x.example').searchParams.get('ids')?.split(',') ?? [];
+    return { sources: ids.map(id => ({ ...unchanged, sourceId: `source-${id}`, contentIds: [id], status: 'changed', needsReview: true })) };
+  };
+  const view = await mount(<MemoryRouter><AiLocalPage today="2026-10-05" /></MemoryRouter>);
+  await act(async () => { fireEvent.click(view.getByRole('checkbox', { name: '显示已结束场次' })); });
+  await act(async () => {});
+  const cards = [...view.container.querySelectorAll('article.bl-ai-event')];
+  const ended = cards.filter(card => card.classList.contains('bl-ai-event--ended'));
+  assert.ok(ended.length > 0 && ended.length < cards.length, 'the page mixes ended and upcoming cards');
+  for (const card of ended) assert.equal(card.querySelector('.reader-freshness-line'), null, card.querySelector('h3')?.textContent ?? '');
+  for (const card of cards.filter(card => !ended.includes(card))) assert.ok(card.querySelector('.reader-freshness-line'), card.querySelector('h3')?.textContent ?? '');
 });

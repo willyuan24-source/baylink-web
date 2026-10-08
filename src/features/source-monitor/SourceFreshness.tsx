@@ -19,7 +19,7 @@ export function SourceFreshness({ contentId, item = { kind: 'event' }, officialU
   const changed = freshness.changedAt ? readerDate(freshness.changedAt, locale, day) : null;
   const text = freshness.state === 'hard' ? t(`${pageZh}显示可能改期或取消，`, `${pageEn} suggests a date change or cancellation. `)
     : freshness.reason === 'date-near-unconfirmed' ? t('日期就在这几天，', 'This is coming up soon. ')
-    : changed ? t(`${pageZh} ${changed} 有更新，`, `${pageEn} was updated on ${changed}. `) : t(`${pageZh}近期有更新，`, `${pageEn} was updated recently. `);
+    : changed ? t(`${pageZh} ${changed} 有更新，`, `${pageEn} was updated on ${changed}. `) : t(`${pageZh}有更新，`, `${pageEn} has been updated. `);
   const action = freshness.state === 'hard' ? t('出发前务必确认', 'Confirm before you go')
     : item.kind === 'offer' ? t('领取前看一眼官方', 'Check it before you claim') : t('出发前看一眼官方', 'Take a quick look before you go');
   return <div className={`reader-freshness-line${freshness.state === 'hard' ? ' is-hard' : ''}`} role="note" aria-label={t('官方页面提示', 'Official page note')} translate="no">
