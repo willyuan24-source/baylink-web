@@ -1,7 +1,7 @@
 .life-tools { max-width:1180px; margin:0 auto; padding:35px 34px 64px; }
 .tools-hero { display:flex; align-items:center; justify-content:space-between; gap:32px; padding:36px 40px; border:1px solid #e5e9dd; border-radius:24px; background:linear-gradient(115deg,#eef2e5 0%,#f7f7ef 75%); overflow:hidden; }
 .tools-eyebrow { font-size:10px; font-weight:700; letter-spacing:2px; color:#5d705e; }
-.tools-hero h1 { font-size:42px; line-height:1.3; letter-spacing:-1.5px; font-weight:750; color:#153f33; margin:18px 0; }
+.tools-hero h1 { font-size:42px; line-height:1.3; letter-spacing:-1.5px; font-weight:700; color:#153f33; margin:18px 0; }
 .tools-hero h1 em { font-style:normal; position:relative; background:linear-gradient(transparent 70%,#d4e4b5 70%); }
 .tools-hero p { font-size:14px; line-height:1.9; color:#697466; }
 .tools-hero-art { position:relative; width:250px; height:190px; flex-shrink:0; }
@@ -78,7 +78,7 @@
 .tool-split-result>div { border-top:1px solid #dce4d0; margin-top:8px; padding-top:14px; font-weight:700; }
 .tool-empty-result { font-size:13px; color:#7c8772; border:1px dashed #dce3d1; border-radius:12px; padding:22px; text-align:center; }
 .tool-checklist { display:flex; flex-direction:column; gap:23px; }
-.tool-checklist-group h3 { font-size:14px; font-weight:650; color:#3c5b3a; margin-bottom:11px; }
+.tool-checklist-group h3 { font-size:14px; font-weight:600; color:#3c5b3a; margin-bottom:11px; }
 .tool-checklist-item { display:flex; align-items:flex-start; gap:10px; padding:11px 0; border-bottom:1px solid #edf0e7; font-size:13px; line-height:1.8; color:#56654d; }
 .tool-checklist-item label { display:flex; align-items:flex-start; gap:11px; flex:1; min-width:0; cursor:pointer; }
 .tool-checklist-item input[type=checkbox] { width:18px; height:18px; min-height:18px; flex-shrink:0; margin-top:3px; accent-color:#527443; }

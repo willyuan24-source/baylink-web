@@ -16,7 +16,7 @@ export function ServiceAvailabilityDraft({ onApply, disabled = false }: { onAppl
     past: t('这段安排已没有今天或未来的日期，请选择新的月份。', 'There are no dates left today or in the future. Choose a later month.'),
   };
   return <details className="booking-quick-draft" style={{ padding: '14px 0', borderTop: '1px solid #e6e9e5', borderBottom: '1px solid #e6e9e5' }}>
-    <summary style={{ cursor: 'pointer', fontWeight: 650 }}><WandSparkles size={16} style={{ display: 'inline', marginRight: 8 }} />{t('快速生成排期草稿', 'Quick schedule draft')}</summary>
+    <summary style={{ cursor: 'pointer', fontWeight: 600 }}><WandSparkles size={16} style={{ display: 'inline', marginRight: 8 }} />{t('快速生成排期草稿', 'Quick schedule draft')}</summary>
     <p style={{ fontSize: 13, margin: '10px 0' }}>{t('按固定格式整理日期，先预览，再加入待发布时段。所有时间按湾区时间。', 'Generate dates from a supported format, review them, then add them to your draft. All times are Bay Area time.')}</p>
     <label style={{ display: 'grid', gap: 6 }}>{t('输入排期', 'Schedule input')}<input disabled={disabled} value={input} maxLength={160} onChange={event => { setInput(event.target.value); setDraft(null); }} placeholder={t('本月每周六 09:00-12:00', '2026-10-17 09:00-12:00')} /></label>
     <p style={{ fontSize: 12, margin: '8px 0' }}>{t('支持：本月每周六 09:00-12:00；10月17日周六 09:00-12:00；2026-10-17 09:00-12:00。未写年份时使用当前年份。', 'Supported: YYYY-MM-DD 09:00-12:00. Chinese weekly patterns are also supported. Dates without a year use the current year.')}</p>

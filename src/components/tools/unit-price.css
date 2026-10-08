@@ -10,7 +10,7 @@
 .unit-price-product{position:relative;min-width:0;display:flex;flex-direction:column;gap:15px;padding:17px;border:1px solid #dfe5d9;border-radius:16px;background:#fcfdf9}
 .unit-price-product legend{padding:0 7px;margin-left:5px;font-size:13px;font-weight:700;color:var(--unit-price-ink)}
 .unit-price-product-top{display:flex;justify-content:space-between;align-items:center;min-height:36px}
-.unit-price-product-number{font-size:23px;color:#93a77e;font-weight:650;letter-spacing:-1px}
+.unit-price-product-number{font-size:23px;color:#93a77e;font-weight:600;letter-spacing:-1px}
 .unit-price-remove{display:grid;place-items:center;width:44px;height:44px;margin:-5px -7px -5px 0;border-radius:9px;color:#7b856f}
 .unit-price-remove:hover:not(:disabled){background:#f6ebe2;color:#996343}
 .unit-price-remove:disabled{opacity:.3;cursor:not-allowed}
@@ -23,7 +23,7 @@
 .unit-price-results-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px;background:#f1f5e8}
 .unit-price-eyebrow{font-size:10px;letter-spacing:.9px;color:#76876c}
 .unit-price-results-heading h3{margin:4px 0 0;color:var(--unit-price-ink);font-size:22px;font-weight:700}
-.unit-price-results-heading h3 span{font-size:12px;font-weight:500}
+.unit-price-results-heading h3 span{font-size:12px;font-weight:400}
 .unit-price-result-count{max-width:45%;font-size:11px;line-height:1.6;color:#617554;text-align:right}
 .unit-price-results ol{margin:0;padding:0;list-style:none}
 .unit-price-results li{display:flex;justify-content:space-between;align-items:center;gap:18px;padding:19px 20px;border-top:1px solid #e8eddf}
@@ -32,7 +32,7 @@
 .unit-price-rank{display:grid;place-items:center;flex-shrink:0;width:25px;height:25px;border-radius:50%;background:#f0f2e9;color:#7b896e;font-size:11px}
 .is-lowest .unit-price-rank{background:#365b3d;color:white}
 .unit-price-result-product>div{min-width:0}
-.unit-price-result-product strong{display:block;overflow-wrap:anywhere;color:var(--unit-price-ink);font-size:14px;font-weight:650}
+.unit-price-result-product strong{display:block;overflow-wrap:anywhere;color:var(--unit-price-ink);font-size:14px;font-weight:600}
 .unit-price-result-product small{display:block;margin-top:5px;color:#849077;font-size:10px}
 .unit-price-result-value{flex-shrink:0;text-align:right;max-width:55%}
 .unit-price-result-value>strong{display:block;font-size:24px;line-height:1.4;letter-spacing:-.5px;color:#335a3b;font-weight:700;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}

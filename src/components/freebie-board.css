@@ -1,6 +1,6 @@
 .bl-freebie-board { margin:32px 0; min-width:0; color:#463c30; }
 [id^="freebie-board-"] { scroll-margin-top:130px; }
-.bl-freebie-jump { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; margin-top:15px; padding:11px 16px; border:1px solid #e4c79d; border-radius:9px; background:#fff2d9; color:#8b5b32; font-size:12px; font-weight:650; line-height:1.5; text-decoration:none; }
+.bl-freebie-jump { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; margin-top:15px; padding:11px 16px; border:1px solid #e4c79d; border-radius:9px; background:#fff2d9; color:#8b5b32; font-size:12px; font-weight:600; line-height:1.5; text-decoration:none; }
 .bl-freebie-jump:hover { border-color:#bd915d; background:#fce9c8; }
 .bl-freebie-jump>svg { flex-shrink:0; }
 .bl-freebie-jump:focus-visible { outline:3px solid #a16d3d; outline-offset:4px; }
@@ -9,7 +9,7 @@
 .bl-freebie-board-heading>p { margin:0; color:#86745f; font-size:13px; line-height:1.85; }
 .bl-freebie-board-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; margin:21px 0 8px; overflow:hidden; border:1px solid #ead9c2; border-radius:12px; background:#ead9c2; }
 .bl-freebie-board-stats>span { display:flex; align-items:center; justify-content:center; gap:9px; min-width:0; padding:15px 9px; color:#8c6c48; font-size:11px; background:#fff9ee; }
-.bl-freebie-board-stats strong { font-family:Georgia,serif; font-size:28px; font-weight:500; color:#9e6439; line-height:1; }
+.bl-freebie-board-stats strong { font-family:Georgia,serif; font-size:28px; font-weight:400; color:#9e6439; line-height:1; }
 .bl-freebie-board-count-note { margin:0 0 20px; color:#938575; font-size:10px; line-height:1.8; }
 .bl-freebie-filters { display:flex; flex-wrap:wrap; gap:8px; }
 .bl-freebie-filters button { min-height:40px; padding:9px 17px; border:1px solid #dedccb; border-radius:999px; color:#746a54; background:#fffdf7; font-size:12px; line-height:1.4; }
@@ -19,7 +19,7 @@
 @media(max-width:479px) { .bl-freebie-grid { grid-template-columns:minmax(0,1fr); } }
 .bl-freebie-card { min-width:0; border:1px solid #e2d8c8; border-radius:15px; overflow:hidden; background:#fffefa; box-shadow:0 4px 14px #553b2310; }
 .bl-freebie-card-brand { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 15px 12px; border-bottom:1px solid #eee4d5; background:#fcf3e2; color:#67492f; }
-.bl-freebie-card-brand strong { min-width:0; font-size:17px; line-height:1.35; font-weight:750; overflow-wrap:anywhere; }
+.bl-freebie-card-brand strong { min-width:0; font-size:17px; line-height:1.35; font-weight:700; overflow-wrap:anywhere; }
 .bl-freebie-card-brand>svg { flex-shrink:0; color:#ae8150; }
 .bl-freebie-picture { margin:0; }
 .bl-freebie-picture-open { display:block; position:relative; width:100%; padding:0; border:0; aspect-ratio:1.35; overflow:hidden; background:#efe8dc; cursor:zoom-in; }
@@ -30,7 +30,7 @@
 .bl-freebie-picture-zoom { position:absolute; right:8px; bottom:7px; display:grid; place-items:center; width:24px; height:24px; border:1px solid #ffffffa0; border-radius:50%; color:#6f5438; background:#fffaf0ef; }
 .bl-freebie-picture figcaption { padding:7px 13px 0; color:#998770; font-size:9px; line-height:1.65; }
 .bl-freebie-card-body { padding:13px 15px 14px; }
-.bl-freebie-card-date { display:flex; align-items:flex-start; gap:7px; padding-bottom:11px; color:#a45f31; font-size:15px; font-weight:750; line-height:1.6; }
+.bl-freebie-card-date { display:flex; align-items:flex-start; gap:7px; padding-bottom:11px; color:#a45f31; font-size:15px; font-weight:700; line-height:1.6; }
 .bl-freebie-card-date>svg { flex-shrink:0; margin-top:5px; }
 .bl-freebie-card-tags { display:flex; flex-wrap:wrap; align-items:flex-start; gap:6px; }
 .bl-freebie-kind,.bl-freebie-status { padding:4px 6px; border-radius:5px; font-size:10px; line-height:1.5; }
@@ -44,7 +44,7 @@
 .bl-freebie-status--ended { color:#82796d; background:#eeece7; }
 .bl-freebie-card h3 { margin:13px 0 11px; color:#51402f; font-size:19px; font-weight:700; line-height:1.6; letter-spacing:-.02em; overflow-wrap:anywhere; }
 .bl-freebie-requirement { margin:0; padding:11px 12px; border-left:3px solid #d1aa74; background:#fbf5e9; color:#786447; font-size:12px; line-height:1.9; overflow-wrap:anywhere; }
-.bl-freebie-requirement>strong { display:block; margin-bottom:4px; color:#956d41; font-size:10px; font-weight:650; }
+.bl-freebie-requirement>strong { display:block; margin-bottom:4px; color:#956d41; font-size:10px; font-weight:600; }
 .bl-freebie-description { margin:12px 0 0; color:#82755f; font-size:12px; line-height:1.9; overflow-wrap:anywhere; }
 .bl-freebie-card-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 13px; margin-top:14px; }
 .bl-freebie-card-actions a { display:inline-flex; align-items:center; gap:5px; min-height:36px; color:#8a633d; font-size:11px; font-weight:600; }

@@ -4,14 +4,14 @@
 .baybay-action-grid>button:focus-visible,.baybay-action-example button:focus-visible { outline:2px solid #527445; outline-offset:3px; }
 .baybay-action-icon { display:grid; place-items:center; flex:0 0 36px; height:38px; border-radius:11px; background:#eef2e4; color:#5d7c4b; }
 .baybay-action-grid>button>span:nth-child(2) { flex:1; min-width:0; }
-.baybay-action-grid strong { display:block; font-size:14px; line-height:1.5; font-weight:650; }
+.baybay-action-grid strong { display:block; font-size:14px; line-height:1.5; font-weight:600; }
 .baybay-action-grid small { display:block; margin-top:4px; color:#66745e; font-size:11px; line-height:1.65; }
 .baybay-action-grid>button>svg { flex-shrink:0; opacity:.55; }
 .baybay-action-example { display:flex; align-items:flex-start; gap:10px; margin-top:17px; color:#66745e; font-size:11px; line-height:1.75; }
 .baybay-action-example>span { flex-shrink:0; padding-top:5px; }
 .baybay-action-example button { text-align:left; padding:5px 8px; border-radius:7px; color:#527145; background:#eef2e7; }
 .planner-refinements { margin-top:18px; border-top:1px solid #edf0e7; padding-top:15px; }
-.planner-refinements summary { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; color:#59734c; font-weight:650; list-style:none; }
+.planner-refinements summary { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:12px; color:#59734c; font-weight:600; list-style:none; }
 .planner-refinements summary::-webkit-details-marker { display:none; }
 .planner-refinements summary svg { transition:transform .15s; }
 .planner-refinements[open] summary svg { transform:rotate(90deg); }
@@ -19,7 +19,7 @@
 .planner-handoff-note svg { flex-shrink:0; margin-top:2px; }
 .planner-applied-filters { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:0 0 15px; font-size:11px; }
 .planner-applied-filters>span { color:#66745e; margin-right:2px; }
-.planner-applied-filters>strong { font-weight:500; border:1px solid #dae3d1; padding:5px 9px; border-radius:16px; color:#536a47; background:#f2f5eb; }
+.planner-applied-filters>strong { font-weight:400; border:1px solid #dae3d1; padding:5px 9px; border-radius:16px; color:#536a47; background:#f2f5eb; }
 .planner-stop-request { padding:9px 12px; border:1px solid #d6dfcf; border-radius:8px; font-size:12px; color:#59714e; }
 .planner-result-notes { margin-bottom:18px; border:1px solid #dce5d6; border-radius:12px; padding:0 14px; background:#f2f5ec; }
 .planner-result-notes summary { min-height:44px; align-content:center; cursor:pointer; color:#4e6946; font-size:12px; font-weight:600; }

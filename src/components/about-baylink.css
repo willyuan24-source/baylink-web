@@ -1,5 +1,5 @@
 .about-baylink{max-width:1160px;margin:0 auto;padding:38px 38px 80px;color:#25463b;overflow-wrap:anywhere}
-.about-eyebrow{display:block;font-size:10px;font-weight:650;letter-spacing:.15em;line-height:1.7;color:#70816b}
+.about-eyebrow{display:block;font-size:10px;font-weight:600;letter-spacing:.15em;line-height:1.7;color:#70816b}
 .about-hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.85fr);gap:52px;align-items:center;padding:30px 0 58px}
 .about-page-label{font-size:12px;margin:18px 0 15px;color:#63775f}
 .about-hero h1{font-size:clamp(31px,3.2vw,47px);letter-spacing:-.045em;line-height:1.42;font-weight:700;margin:0}
@@ -8,15 +8,15 @@
 .about-primary{display:inline-flex;gap:18px;align-items:center;justify-content:center;margin-top:28px;padding:13px 19px;border-radius:12px;background:#284e3d;color:#fff;font-size:13px;font-weight:600;min-height:46px}
 .about-primary:hover{background:#35634d}
 .about-hero-art{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:100px 100px 24px 24px;padding:32px 20px 28px;min-height:390px;background:linear-gradient(150deg,#f2e6cd,#eef1df);border:1px solid #e9e1c9;text-align:center;overflow:hidden}
-.about-art-location{display:flex;gap:6px;align-items:center;font-size:8px;font-weight:650;letter-spacing:.1em;color:#777c60}
+.about-art-location{display:flex;gap:6px;align-items:center;font-size:8px;font-weight:600;letter-spacing:.1em;color:#777c60}
 .about-hero-art img{width:min(100%,250px);height:auto;aspect-ratio:1;object-fit:contain;margin:21px 0 13px;mix-blend-mode:multiply}
 .about-hero-art>div>span{font-size:9px;letter-spacing:.18em;color:#8b8d70}.about-hero-art p{font-size:15px;font-weight:600;margin-top:7px;color:#5f714c}
-.about-section-heading{margin-bottom:25px}.about-section-heading h2,.about-baybay h2,.about-contact h2{font-size:clamp(23px,2.2vw,29px);line-height:1.5;font-weight:650;letter-spacing:-.035em;margin-top:9px}
+.about-section-heading{margin-bottom:25px}.about-section-heading h2,.about-baybay h2,.about-contact h2{font-size:clamp(23px,2.2vw,29px);line-height:1.5;font-weight:600;letter-spacing:-.035em;margin-top:9px}
 .about-discover{padding:39px 0 43px;border-top:1px solid #dfe5d7}
 .about-discover-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 44px}
 .about-discover-item{padding:22px 0 26px;border-bottom:1px solid #e2e7dc;display:flex;flex-direction:column;align-items:flex-start}
 .about-discover-index{display:flex;justify-content:space-between;align-items:center;width:100%;color:#6e8459;margin-bottom:18px}.about-discover-index>span{font-size:11px;color:#95a18c;letter-spacing:.1em}
-.about-discover-item h3{font-size:18px;font-weight:650;line-height:1.55}.about-discover-item>p{font-size:13px;line-height:1.9;margin:12px 0 21px;color:#697761;flex:1}
+.about-discover-item h3{font-size:18px;font-weight:600;line-height:1.55}.about-discover-item>p{font-size:13px;line-height:1.9;margin:12px 0 21px;color:#697761;flex:1}
 .about-discover-item>a,.about-basics>a{display:inline-flex;align-items:center;gap:9px;font-size:12px;font-weight:600;color:#456a42;min-height:32px}
 .about-baybay{display:flex;align-items:flex-start;gap:26px;padding:31px 34px;border-radius:22px;background:#eaf0df;border:1px solid #dce5d0}
 .about-baybay-mark{display:grid;place-items:center;flex-shrink:0;width:56px;height:56px;border-radius:19px;background:#fff8;color:#66804c}
