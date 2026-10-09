@@ -150,17 +150,18 @@ export function isLocaleReadyForPath(locale: Locale, paths: string | readonly st
 /** Browser routes wait for their complete displayed content (and the search dictionaries where the page searches);
  * full loadLocale remains available to exports and SSR. */
 export async function loadLocaleForPath(locale: Locale, paths: string | readonly string[]): Promise<void> {
-  const search = locale !== 'zh-Hant' && pathsSearch(paths) ? loadSearchConversion() : undefined;
+  // The page still works without them (exact-character search); the gate stops waiting after a failure. Handled from
+  // the start, so a failure is never unhandled when the language's own load fails first.
+  const search = locale !== 'zh-Hant' && pathsSearch(paths) ? loadSearchConversion().catch(() => undefined) : undefined;
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(scopesForPaths(paths)); } }
   else if (locale === 'zh-Hant') await loadChinese();
-  // The page still works without them (exact-character search); the gate stops waiting after a failure
-  await search?.catch(() => undefined);
+  await search;
 }
 export async function loadLocaleForFeature(locale: Locale, feature: 'search'): Promise<void> {
-  const search = locale !== 'zh-Hant' ? loadSearchConversion() : undefined;
+  const search = locale !== 'zh-Hant' ? loadSearchConversion().catch(() => undefined) : undefined;
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
   else if (locale === 'zh-Hant') await loadChinese();
-  await search?.catch(() => undefined);
+  await search;
 }
 
 /** Preference changes never remount the app, rewrite form values, or touch account data. */
