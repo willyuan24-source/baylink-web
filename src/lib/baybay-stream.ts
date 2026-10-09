@@ -1,7 +1,18 @@
 export type BayBayProgress = { phase: 'site' | 'research' | 'sources' | 'routes' | 'answer'; status: 'running' | 'completed' };
 const phases = new Set(['site', 'research', 'sources', 'routes', 'answer']);
 export type BayBayQuickCard = { kind: 'guide' | 'event' | 'offer' | 'opening'; id: string; title: string; url: string; summary: string; date?: string; temporalStatus?: string };
-export type BayBayStreamHandlers = { onCards?: (cards: BayBayQuickCard[]) => void; onText?: (text: string) => void };
+/** One SSE `draft` frame: unvalidated model text, appended in `seq` order. The `result` frame replaces it. */
+export type BayBayDraftEvent = { seq: number; field: 'lead' | 'point'; index?: number; text: string };
+/** The draft assembled so far. Points are indexed like the answer's `points[]`; a point not yet streamed is ''. */
+export type BayBayDraft = { lead: string; points: string[] };
+export type BayBayStreamHandlers = { onCards?: (cards: BayBayQuickCard[]) => void; onText?: (text: string) => void; onDraft?: (draft: BayBayDraft) => void };
+/** SSE dialect this reader understands, sent with each request so the server streams `draft` only to capable tabs (RC-21). */
+export const BAYBAY_STREAM_VERSION = 3;
+export const BAYBAY_STREAM_MAX_BYTES = 2_000_000;
+/** Only `progress` and `quick_card` frames count. Drafts, deltas, heartbeats and unknown frames are bounded by bytes. */
+export const BAYBAY_STREAM_MAX_STAGE_EVENTS = 200;
+export const BAYBAY_DRAFT_MAX_CHARS = 4_000;
+export const BAYBAY_DRAFT_MAX_POINTS = 3;
 const validCardDate = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
 const temporalStatuses = new Set(['past', 'inactive', 'upcoming', 'current', 'unknown', 'ended']);
 export function parseBayBayQuickCards(value: unknown): BayBayQuickCard[] {
@@ -14,13 +25,41 @@ export function parseBayBayQuickCards(value: unknown): BayBayQuickCard[] {
   }).map(card => ({ kind: card.kind, id: card.id, title: card.title, url: card.url, summary: card.summary, ...(validCardDate(card.date) ? { date: card.date } : {}), ...(typeof card.temporalStatus === 'string' && temporalStatuses.has(card.temporalStatus) ? { temporalStatus: card.temporalStatus } : {}) }));
 }
 
+/** A well-formed draft frame, or null. Malformed drafts are dropped, never raised as stream errors. */
+export function parseBayBayDraftEvent(value: unknown): BayBayDraftEvent | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const { seq, field, index, text } = value as Record<string, unknown>;
+  if (typeof seq !== 'number' || !Number.isSafeInteger(seq) || seq < 0 || typeof text !== 'string' || !text) return null;
+  if (field === 'lead') return { seq, field, text };
+  if (field === 'point' && typeof index === 'number' && Number.isSafeInteger(index) && index >= 0 && index < BAYBAY_DRAFT_MAX_POINTS) return { seq, field, index, text };
+  return null;
+}
+
+/** Appends drafts in strictly increasing `seq` order within the character budget. The first draft over budget closes the draft, so what was shown stays a clean prefix. */
+function createDraftAssembler(onDraft?: (draft: BayBayDraft) => void) {
+  let lead = '', points: string[] = [], chars = 0, lastSeq = -1, closed = false;
+  return (data: string) => {
+    if (closed || !onDraft) return;
+    let value: unknown;
+    try { value = JSON.parse(data); } catch { return; }
+    const draft = parseBayBayDraftEvent(value);
+    if (!draft || draft.seq <= lastSeq) return;
+    if (chars + draft.text.length > BAYBAY_DRAFT_MAX_CHARS) { closed = true; return; }
+    lastSeq = draft.seq; chars += draft.text.length;
+    if (draft.index === undefined) lead += draft.text;
+    else { const index = draft.index; points = Array.from({ length: Math.max(points.length, index + 1) }, (_, i) => (points[i] || '') + (i === index ? draft.text : '')); }
+    onDraft({ lead, points: [...points] });
+  };
+}
+
 /** A bounded SSE transport for real server stages; never infer progress from elapsed time. */
 export async function readBayBayStream(response: Response, onProgress?: (progress: BayBayProgress) => void, signal?: AbortSignal, handlers?: BayBayStreamHandlers): Promise<unknown> {
   if (!response.body) throw new Error('答复连接中断，请重试。');
   const reader = response.body.getReader(), decoder = new TextDecoder();
   const abort = () => { void reader.cancel().catch(() => {}); };
   signal?.addEventListener('abort', abort, { once: true });
-  let buffer = '', bytes = 0, events = 0;
+  const appendDraft = createDraftAssembler(handlers?.onDraft);
+  let buffer = '', bytes = 0, stageEvents = 0;
   try {
     while (true) {
       if (signal?.aborted) throw new DOMException('已停止生成', 'AbortError');
@@ -28,17 +67,18 @@ export async function readBayBayStream(response: Response, onProgress?: (progres
       if (signal?.aborted) throw new DOMException('已停止生成', 'AbortError');
       if (next.done) break;
       bytes += next.value.byteLength;
-      if (bytes > 2_000_000) throw new Error('答复过长，请缩小问题范围后重试。');
+      if (bytes > BAYBAY_STREAM_MAX_BYTES) throw new Error('答复过长，请缩小问题范围后重试。');
       buffer += decoder.decode(next.value, { stream: true });
       let separator: RegExpExecArray | null;
       while ((separator = /\r?\n\r?\n/.exec(buffer))) {
         const frame = buffer.slice(0, separator.index); buffer = buffer.slice(separator.index + separator[0].length);
-        if (++events > 200) throw new Error('答复连接异常，请重试。');
         let event = 'message'; const lines: string[] = [];
         for (const line of frame.split(/\r?\n/)) {
           if (line.startsWith('event:')) event = line.slice(6).trim();
           else if (line.startsWith('data:')) lines.push(line.slice(5).replace(/^ /, ''));
         }
+        if ((event === 'progress' || event === 'quick_card') && ++stageEvents > BAYBAY_STREAM_MAX_STAGE_EVENTS) throw new Error('答复连接异常，请重试。');
+        if (event === 'draft') { if (lines.length) appendDraft(lines.join('\n')); continue; }
         if (!['progress', 'result', 'error', 'quick_card', 'delta'].includes(event) || !lines.length) continue;
         let data: unknown;
         try { data = JSON.parse(lines.join('\n')); } catch { throw new Error('答复格式异常，请重试。'); }
