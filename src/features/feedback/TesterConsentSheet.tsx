@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { ModalShell } from '../../components/ui/Modal';
 import { useLocale } from '../../i18n/locale';
-import { say, type Copy } from './feedback-copy';
+import { say, type Copy } from './say';
 import './feedback.css';
 
 const COPY = {

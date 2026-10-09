@@ -8,7 +8,7 @@ type State = { hasError: boolean };
 
 const copy = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh);
 // Inline on purpose: the page must look right even when a stylesheet chunk is what failed. Tokens only (src/tokens.css).
-const page: CSSProperties = { minHeight: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem 1.5rem', background: 'var(--color-bg)', color: 'var(--color-ink)', textAlign: 'center', fontFamily: 'var(--font-sans)' };
+const page: CSSProperties = { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem 1.5rem', background: 'var(--color-bg)', color: 'var(--color-ink)', textAlign: 'center', fontFamily: 'var(--font-sans)' };
 const button: CSSProperties = { minHeight: '3rem', padding: '.625rem 1.75rem', borderRadius: '.875rem', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' };
 
 /**

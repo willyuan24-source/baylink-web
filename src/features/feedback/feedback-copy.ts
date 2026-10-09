@@ -1,10 +1,10 @@
-import { translateText, type Locale } from '../../i18n/locale';
 import type { FeedbackFailure } from './feedback-api';
 import type { FeedbackKind } from './open-feedback';
 
-/** Co-located UI copy (plan §3.0 rule 4): Simplified Chinese with its English; Traditional comes from OpenCC at runtime. */
-export type Copy = { zh: string; en: string };
-export const say = (copy: Copy, locale: Locale) => locale === 'en' ? copy.en : translateText(copy.zh, locale);
+import type { Copy } from './say';
+export { say, type Copy } from './say';
+
+/** The sheet's copy: Simplified Chinese with its English (Traditional from OpenCC). Loaded with the sheet, not the entry links. */
 
 export const REASON_LABELS: Record<string, Copy> = {
   'find-events': { zh: '找活动', en: 'Finding events' },

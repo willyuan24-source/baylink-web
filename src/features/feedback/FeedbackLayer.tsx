@@ -2,7 +2,7 @@ import { MessageSquareText } from 'lucide-react';
 import { useLocale } from '../../i18n/locale';
 import FeedbackSheet from './FeedbackSheet';
 import TesterConsentSheet from './TesterConsentSheet';
-import { say } from './feedback-copy';
+import { say } from './say';
 import { openFeedback, type FeedbackRequest } from './open-feedback';
 import type { TesterRecord } from './tester-mode';
 

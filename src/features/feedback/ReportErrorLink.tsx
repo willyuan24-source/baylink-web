@@ -1,6 +1,6 @@
 import { Flag, MessageSquareText } from 'lucide-react';
 import { useLocale } from '../../i18n/locale';
-import { say } from './feedback-copy';
+import { say } from './say';
 import { FEEDBACK_EMAIL, openFeedback, type FeedbackEntity } from './open-feedback';
 import { useFeedbackEntryStyles } from './entry-styles';
 
