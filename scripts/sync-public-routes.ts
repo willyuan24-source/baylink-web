@@ -60,6 +60,10 @@ export function syncPublicRoutes(routes: HostingRoute[], catalog: PublicCatalog,
 
 /** Sent with every response (route 0): the site uses none of these features. */
 export const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(), payment=()';
+/** public/reading-init.js runs before the first paint on every page and is not content-hashed (index.html names it): a short
+ * browser cache that then revalidates, so a fix to the size or language redirect reaches readers within minutes. */
+export const READING_INIT_SRC = String.raw`^/reading-init\.js$`;
+export const READING_INIT_CACHE_CONTROL = 'public, max-age=600, must-revalidate';
 const LOCALE_PREFIX = '(en|zh-Hant)';
 /** Route-table pattern → hosting regex body: `/messages/:threadId` → `messages/[^/]+`. */
 const routeSource = (path: string) => path.slice(1).replace(/:[A-Za-z]+/g, '[^/]+');
@@ -134,6 +138,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   config.routes.splice(1, 0,
     { src: '^/(?:(?:en|zh-Hant)/)?(?:verify-email|notifications/unsubscribe)/?$', headers: { 'X-Robots-Tag': 'noindex, nofollow', 'Cache-Control': 'no-store', 'Referrer-Policy': 'no-referrer' }, continue: true },
     { src: '^/(verify-email|notifications/unsubscribe)/?$', dest: '/$1.html' });
+  config.routes = config.routes.filter(route => route.src !== READING_INIT_SRC);
+  config.routes.splice(1, 0, { src: READING_INIT_SRC, headers: { 'Cache-Control': READING_INIT_CACHE_CONTROL }, continue: true });
   // The ?lang= redirects precede every page route: the first terminal match wins.
   config.routes.splice(1, 0, ...table.langRedirects);
   const localize = config.routes.filter(route => typeof route.dest === 'string' && route.dest.endsWith('.html') && route.src?.startsWith('^/') && route.status !== 404);
