@@ -12,9 +12,12 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // plus opencc for zh-Hant and the route's English scopes for en. Ceilings are the
 // 10/08 measurements + 2% and only ratchet down (plan §3.0 rule 8): lower a
 // ceiling when a PR makes a route smaller; raising one needs the owner's approval.
-// Home zh-Hans keeps the 220 KiB gate below. /events took over /this-week's row (same ceilings).
+// Home zh-Hans keeps the 200 KiB gate below. /events took over /this-week's row (same ceilings).
+// WEB-HOMEPREP (10/09) moved the community board, the search dictionaries and the schedule notes off the homepage
+// (zh 218.4 → 167.9, English with dictionaries 357.8 → 307.4 KiB) and lowered the homepage gates to the plan's targets,
+// 220 → 200 and 360 → 340, with the '/' row 20 KiB lower in every language: the rest is headroom for WEB-HOME (RC-17).
 const ROUTE_JS_BUDGETS = [
-  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 220.0, 'zh-Hant': 731.6, en: 365.3 } },
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 993.9, 'zh-Hant': 1504.5, en: 1635.1 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1036.4, 'zh-Hant': 1547.0, en: 2207.3 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1573.9, en: 1361.3 } },
@@ -27,15 +30,23 @@ function visit(key) { const item=manifest[key]; if(!item) throw new Error(`Missi
 visit('index.html');
 const initialFiles=[...files];
 visit('src/pages/HomePage.tsx');
+const homeFiles=[...files];
 const bytes=await Promise.all([...files].map(async file=>({file,gzip:gzipSync(await readFile(`dist/${file}`)).length})));
 const total=bytes.reduce((sum,item)=>sum+item.gzip,0);
 const shell=bytes.filter(item=>initialFiles.includes(item.file)).reduce((sum,item)=>sum+item.gzip,0);
 // A route graph budget includes the real homepage, not just a tiny loader that imports a large bundle.
-if(total>220*1024) throw new Error(`Homepage JS exceeds 220 KiB gzip: ${(total/1024).toFixed(1)} KiB`);
+if(total>200*1024) throw new Error(`Homepage JS exceeds 200 KiB gzip: ${(total/1024).toFixed(1)} KiB`);
 for(const scope of ['ui','home']) visit(`src/data/generated/english-scopes/${scope}.json`);
 const englishTotal=(await Promise.all([...files].map(async file=>gzipSync(await readFile(`dist/${file}`)).length))).reduce((sum,value)=>sum+value,0);
-if(englishTotal>360*1024) throw new Error(`English homepage including dictionaries exceeds 360 KiB gzip: ${(englishTotal/1024).toFixed(1)} KiB`);
+if(englishTotal>340*1024) throw new Error(`English homepage including dictionaries exceeds 340 KiB gzip: ${(englishTotal/1024).toFixed(1)} KiB`);
 if(initialFiles.some(file=>file === manifest['src/data/generated/english.json']?.file)) throw new Error('Full English editorial dictionary entered the initial shell');
+// WEB-HOMEPREP: the board, the search dictionaries and the schedule notes load when needed, never with the homepage.
+for(const [key,what] of [['src/pages/CommunityBoard.tsx','The community board'],['src/i18n/search-dictionaries.ts','The search dictionaries']]) {
+  if(!manifest[key]?.isDynamicEntry) throw new Error(`${what} (${key}) is no longer a chunk of its own`);
+  if(homeFiles.includes(manifest[key].file)) throw new Error(`${what} (${key}) entered the homepage's static graph`);
+}
+const scheduleNotes=Object.values(JSON.parse(await readFile('src/data/generated/event-schedule-notes.json','utf8'))).filter(note=>note.length>=12).slice(0,5);
+for(const file of homeFiles) { const source=await readFile(`dist/${file}`,'utf8'); if(scheduleNotes.some(note=>source.includes(note))) throw new Error(`The calendar's schedule notes entered the homepage's static graph: ${file}`); }
 const routeBudgets=await measureRouteBudgets(ROUTE_JS_BUDGETS,{manifest});
 console.log(`Per-route JS (gzip):
 ${formatRouteBudgets(routeBudgets)}`);
