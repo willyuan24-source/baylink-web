@@ -6,6 +6,8 @@
   line-height:1.6; white-space:nowrap; text-decoration:none; vertical-align:baseline;
 }
 .phone-chip::after { content:""; position:absolute; left:-.25rem; right:-.25rem; top:50%; height:3rem; transform:translateY(-50%); }
+/* That box reaches ~9px past the prose line; a source-link title right above a chip keeps its own tap area. */
+.bl-guide-source-link:has(.phone-chip) > a { position:relative; z-index:1; }
 .phone-chip svg { flex:none; width:1em; height:1em; }
 .phone-chip-keep { white-space:nowrap; }
 .phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; }
