@@ -1,19 +1,17 @@
 import { useId, useState } from 'react';
-import { ArrowUpRight, ChevronDown, Phone } from 'lucide-react';
+import { ArrowUpRight, ChevronDown } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { BROADBAND_MAP_URL, type UtilityCity, type UtilityContact } from '../data/utility-types';
 import { utilityCityMatches } from '../lib/utility-directory';
+import { linkifyPhones } from '../lib/phone-links';
 
 function Contact({ contact }: { contact: UtilityContact }) {
   const locale = useLocale();
   const t = (value: string) => translateText(value, locale);
-  // A phone may include an extension or a second number in the research data.
-  // Keep those readable; only unambiguous US numbers become tap-to-call links.
-  const digits = contact.phone?.replace(/\D/g, '') || '';
-  const callable = /^\d{10}$/.test(digits) || /^1\d{10}$/.test(digits);
+  // A phone field may hold an extension or a second number; each US number in it becomes a tap-to-call chip.
   return <div className="utility-contact">
     <a href={contact.url} target="_blank" rel="noopener noreferrer">{t(contact.name)} <ArrowUpRight size={14} aria-hidden="true" /><span className="sr-only">{t('（在新标签页打开）')}</span></a>
-    {contact.phone && (callable ? <a className="utility-phone" href={`tel:+${digits.length === 10 ? '1' : ''}${digits}`}><Phone size={13} aria-hidden="true" />{contact.phone}</a> : <span className="utility-phone">{contact.phone}</span>)}
+    {contact.phone && <span className="utility-phone">{linkifyPhones(contact.phone, { name: t(contact.name), variant: 'row' })}</span>}
     {contact.email && <a className="utility-email" href={`mailto:${contact.email}`}>{contact.email}</a>}
     {contact.note && <p>{t(contact.note)}</p>}
     {(contact.availabilityUrl || contact.movingUrl) && <div className="utility-contact-actions">

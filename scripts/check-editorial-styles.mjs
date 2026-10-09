@@ -20,6 +20,7 @@ export const editorialStyleScopes = [
   { file: 'src/features/feedback/feedback.css' },
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },
+  { file: 'src/components/phone-links.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

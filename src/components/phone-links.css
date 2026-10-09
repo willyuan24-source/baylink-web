@@ -1,0 +1,25 @@
+/* Tap-to-call (G14, src/lib/phone-links.tsx; @imported by guides-ui.css). A number inside prose stays on its line at the reader's text size and
+   gets a 48px hit area; a directory cell is a full-width 48px button. Text sizes follow Aa through rem tokens. */
+.phone-chip {
+  position:relative; display:inline-flex; align-items:center; gap:.25em; padding:0 .5em; border-radius:999px;
+  background:var(--color-brand-tint); color:var(--color-brand); font-weight:600; font-variant-numeric:tabular-nums;
+  line-height:1.6; white-space:nowrap; text-decoration:none; vertical-align:baseline;
+}
+.phone-chip::after { content:""; position:absolute; left:-.25rem; right:-.25rem; top:50%; height:3rem; transform:translateY(-50%); }
+.phone-chip svg { flex:none; width:1em; height:1em; }
+.phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; }
+.phone-chip:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+.phone-chip--row { min-height:var(--control-height); padding:0 .75rem; font-size:var(--text-fact); }
+.phone-chip--block {
+  display:flex; justify-content:center; min-height:3rem; padding:0 .75rem; border-radius:10px; font-size:var(--text-body);
+}
+.phone-chip--row::after, .phone-chip--block::after { display:none; }
+.phone-directory {
+  display:grid; grid-template-columns:repeat(var(--feed-cols,2),minmax(0,1fr)); gap:.75rem; margin:1rem 0 1.25rem; padding:0; list-style:none;
+}
+.phone-directory li { display:grid; align-content:start; gap:.5rem; min-width:0; margin:0; padding:.75rem; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); }
+.phone-directory li::before { content:none; }
+.phone-directory-label { font-size:var(--text-fact); line-height:1.5; color:var(--color-ink-2); overflow-wrap:anywhere; }
+@media (min-width:768px) {
+  .phone-directory { grid-template-columns:repeat(3,minmax(0,1fr)); }
+}
