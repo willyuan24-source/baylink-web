@@ -27,7 +27,8 @@ export const loadGuestLibrary = (): Library => {
   } catch { return structuredClone(EMPTY_LIBRARY); }
 };
 export const samePlan = (a: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>, b: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>) => a.title === b.title && a.date === b.date && JSON.stringify(a.stops) === JSON.stringify(b.stops) && JSON.stringify(a.details) === JSON.stringify(b.details);
-const announceChange = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event(PLANNER_CHANGED_EVENT)); };
+/** Tell open plan lists to read again. A failed notice never undoes a completed save. */
+const announceChange = () => { try { if (typeof window !== 'undefined') window.dispatchEvent(new window.Event(PLANNER_CHANGED_EVENT)); } catch { /* lists refresh on their next read */ } };
 
 /**
  * Plans, preferences and the ♡ list of one owner. Plans and preferences belong to this hook; favorites are the one
@@ -149,8 +150,8 @@ type AppendError = { error: string; code: 'date' | 'stop' | 'full' | 'session' }
  * "加入这天计划" (plan D19): add one stop to the owner's plan for that date, or create that plan, and save it right
  * away. A plan that already has six stops gets a second plan for the day. Open plan lists read again afterwards.
  */
-export async function appendToDay(userId: string | undefined, date: string, stop: Stop, title: string): Promise<AppendToDayResult> {
-  if (!validDay(date) || date < todayInBay()) throw { error: '请选择今天或之后的日期。', code: 'date' } satisfies AppendError;
+export async function appendToDay(userId: string | undefined, date: string, stop: Stop, title: string, today = todayInBay()): Promise<AppendToDayResult> {
+  if (!validDay(date) || date < today) throw { error: '请选择今天或之后的日期。', code: 'date' } satisfies AppendError;
   const [clean] = cleanStops([stop]);
   if (!clean || !validStop(clean)) throw { error: '这一站暂时不能加入计划。', code: 'stop' } satisfies AppendError;
   const key = favoriteKey(clean);

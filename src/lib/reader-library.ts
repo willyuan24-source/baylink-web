@@ -43,12 +43,8 @@ function write(library: ReaderLibrary): boolean {
   return persisted;
 }
 
-export function toggleSavedGuide(slug: string) {
-  const library = parseReaderLibrary(snapshot());
-  const saved = !library.saved.includes(slug);
-  library.saved = saved ? safeSlugs([slug, ...library.saved], 80) : library.saved.filter(item => item !== slug);
-  return { saved, persisted: write(library) };
-}
+// Saving a guide is the one save model now (src/lib/saves.ts), which read `saved` once on first use. This store keeps
+// only the reading history; `saved` is still parsed and written back unchanged so an older build finds its list.
 
 export function rememberGuide(slug: string) {
   const library = parseReaderLibrary(snapshot());

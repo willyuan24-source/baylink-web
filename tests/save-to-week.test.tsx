@@ -1,38 +1,43 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { afterEach, beforeEach } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url:'https://www.baylink.us/' });
 Object.assign(globalThis, { window:dom.window,document:dom.window.document,localStorage:dom.window.localStorage,HTMLElement:dom.window.HTMLElement,Node:dom.window.Node,IS_REACT_ACT_ENVIRONMENT:true });
 Object.defineProperty(globalThis,'navigator',{ configurable:true,value:dom.window.navigator });
-const { render,fireEvent,cleanup,act } = await import('@testing-library/react');
+const { render,fireEvent,cleanup,act,within } = await import('@testing-library/react');
 const { MemoryRouter,Routes,Route,Outlet } = await import('react-router-dom');
 const { SaveToWeek } = await import('../src/components/SaveToWeek');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
+const { resetSaveStore, savesKey } = await import('../src/lib/saves');
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
-const favorite = { kind:'event' as const,id:MONTHLY_EVENTS[0].id };
+const { currentFreebies } = await import('../src/data/october-offers');
+type Favorite = import('../src/lib/planner').Favorite;
+const event: Favorite = { kind:'event',id:MONTHLY_EVENTS[0].id };
+const offer: Favorite = { kind:'offer',id:currentFreebies[0].id };
 const account = { id:'reader-fixture',token:'reader-fixture-token' };
-const page = () => <MemoryRouter><Routes><Route element={<Outlet context={{ user:account }}/>}><Route path="/" element={<SaveToWeek favorite={favorite}/>}/></Route></Routes></MemoryRouter>;
-afterEach(() => { cleanup();localStorage.clear(); });
+const page = (favorite: Favorite, user: typeof account | null = account, compact = false) => <MemoryRouter><Routes><Route element={<Outlet context={{ user }}/>}><Route path="/" element={<SaveToWeek favorite={favorite} compact={compact} title={compact ? 'Fixture offer' : undefined}/>}/></Route></Routes></MemoryRouter>;
+// Product counters must never leave a test.
+beforeEach(t => { t.mock.method(globalThis,'fetch',async () => Response.json({})); });
+afterEach(() => { cleanup();localStorage.clear();resetSaveStore(); });
 
 test('initial read failure disables unknown favorite state and offers a real reload before any write', async t => {
   localStorage.setItem('currentUser',JSON.stringify(account));
   let reads = 0,writes = 0;
-  t.mock.method(globalThis,'fetch',async () => Response.json({}));
   t.mock.method(api,'request',async (_path:string,options?:RequestInit) => {
     if (options?.method) { writes++;return { favorites:[] }; }
     if (++reads === 1) throw new Error('isolated initial read failure');
-    return { ...structuredClone(EMPTY_LIBRARY),favorites:[favorite] };
+    return { ...structuredClone(EMPTY_LIBRARY),favorites:[event] };
   });
-  const view = render(page());await act(async () => {});
+  const view = render(page(event));await act(async () => {});
   const retry = await view.findByRole('button',{ name:'重新读取收藏' });
-  const save = view.getByRole('button',{ name:'收藏到我的这周' }) as HTMLButtonElement;
+  const save = view.getByRole('button',{ name:'收藏' }) as HTMLButtonElement;
   assert.equal(save.disabled,true); assert.equal(save.hasAttribute('aria-pressed'),false,'an unread account must not be called unsaved');
   fireEvent.click(save);assert.equal(writes,0);
-  fireEvent.click(retry);
-  const saved = await view.findByRole('button',{ name:'已加入我的这周' }) as HTMLButtonElement;
+  await act(async () => { fireEvent.click(retry); });
+  const saved = await view.findByRole('button',{ name:'已收藏' }) as HTMLButtonElement;
   assert.equal(reads,2);assert.equal(saved.disabled,false);assert.equal(saved.getAttribute('aria-pressed'),'true');
   assert.equal(view.queryByRole('alert'),null);assert.equal(writes,0,'reload never mutates the confirmed saved item');
 });
@@ -40,19 +45,56 @@ test('initial read failure disables unknown favorite state and offers a real rel
 test('write failure keeps the known state and permits retrying the same favorite without another read', async t => {
   localStorage.setItem('currentUser',JSON.stringify(account));
   let reads = 0,writes = 0;
-  t.mock.method(globalThis,'fetch',async () => Response.json({}));
-  t.mock.method(api,'request',async (_path:string,options?:RequestInit) => {
+  t.mock.method(api,'request',async (path:string,options?:RequestInit) => {
     if (!options?.method) { reads++;return structuredClone(EMPTY_LIBRARY); }
-    assert.equal(options.method,'PUT');
-    if (++writes === 1) throw new Error('isolated write failure');
-    return { favorites:[favorite] };
+    assert.equal(options.method,'PUT');assert.equal(path,`/planner/favorites/event/${encodeURIComponent(event.id)}`);
+    if (++writes === 1) throw { status:503,error:'isolated write failure' };
+    return { favorites:[event] };
   });
-  const view = render(page());await act(async () => {});
-  fireEvent.click(view.getByRole('button',{ name:'收藏到我的这周' }));
+  const view = render(page(event));await act(async () => {});
+  await act(async () => { fireEvent.click(view.getByRole('button',{ name:'收藏' })); });
   await view.findByRole('alert');
-  const save = view.getByRole('button',{ name:'收藏到我的这周' }) as HTMLButtonElement;
-  assert.equal(save.disabled,false);assert.equal(save.getAttribute('aria-pressed'),'false');
+  const save = view.getByRole('button',{ name:'收藏' }) as HTMLButtonElement;
+  assert.equal(save.disabled,false);assert.equal(save.getAttribute('aria-pressed'),'false','a failed save restores the confirmed state');
   assert.equal(view.queryByRole('button',{ name:'重新读取收藏' }),null,'a write error does not discard a completed read');
-  fireEvent.click(save);await view.findByRole('button',{ name:'已加入我的这周' });
+  await act(async () => { fireEvent.click(save); });
+  await view.findByRole('button',{ name:'已收藏' });
   assert.equal(reads,1);assert.equal(writes,2);assert.equal(view.queryByRole('alert'),null);
+  assert.match(view.getByTestId('save-toast').textContent!,/已收藏/);
+  assert.equal(within(view.getByTestId('save-toast')).getByRole('link',{ name:'查看' }).getAttribute('href'),'/my-week#saved');
+});
+
+test('an offer the account catalog does not know yet stays saved on this device and is never shown as an error (RC-15)', async t => {
+  localStorage.setItem('currentUser',JSON.stringify(account));
+  const writes: string[] = [];
+  t.mock.method(api,'request',async (path:string,options?:RequestInit) => {
+    if (!options?.method) return structuredClone(EMPTY_LIBRARY);
+    writes.push(`${options.method} ${path}`);
+    throw { status:404,code:'ITEM_NOT_IN_CATALOG',error:'这个项目尚未发布或已下架。' };
+  });
+  const view = render(page(offer,account,true));await act(async () => {});
+  await act(async () => { fireEvent.click(view.getByRole('button',{ name:'收藏：Fixture offer' })); });
+  const saved = view.getByRole('button',{ name:'取消收藏：Fixture offer' });
+  assert.equal(saved.getAttribute('aria-pressed'),'true');
+  assert.equal(view.queryByRole('alert'),null);
+  assert.match(view.getByTestId('save-toast').textContent!,/本机/);
+  assert.deepEqual(writes,[`PUT /planner/favorites/offer/${encodeURIComponent(offer.id)}`]);
+  const pending = JSON.parse(localStorage.getItem(savesKey(account.id))!).items;
+  assert.deepEqual(pending.map((item: Favorite) => `${item.kind}:${item.id}`),[`offer:${offer.id}`]);
+  // Removing a device-only save needs no account call.
+  await act(async () => { fireEvent.click(saved); });
+  assert.equal(view.getByRole('button',{ name:'收藏：Fixture offer' }).getAttribute('aria-pressed'),'false');
+  assert.equal(writes.length,1);
+});
+
+test('guests save offers in this browser without any account request; guide mounts defer to the reader actions', async t => {
+  t.mock.method(api,'request',async () => { throw new Error('Guests must not call an account API'); });
+  const view = render(page(offer,null));
+  await act(async () => { fireEvent.click(view.getByRole('button',{ name:'收藏' })); });
+  assert.equal(view.getByRole('button',{ name:'已收藏' }).getAttribute('aria-pressed'),'true');
+  assert.equal(view.getByRole('link',{ name:'我的这周' }).getAttribute('href'),'/my-week#saved');
+  assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items.map((item: Favorite) => item.id),[offer.id]);
+  cleanup();
+  const guide = render(page({ kind:'guide',id:'bay-area-roommate-guide' },null));
+  assert.equal(guide.container.textContent,'','the guide page already shows its ♡ in the reader actions');
 });

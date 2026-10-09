@@ -224,9 +224,17 @@ function subscribe(listener: () => void) {
   return () => { listeners.delete(listener); };
 }
 
+/** Server rendering never reads a browser list: a guest list is empty and an account list unknown. */
+const serverSlots = new Map<string, Slot>();
+function serverSlot(userId?: string): Slot {
+  const owner = ownerOf(userId);
+  if (!serverSlots.has(owner)) serverSlots.set(owner, { ...EMPTY_SLOT, owner, userId, status: userId ? 'idle' : 'ready' });
+  return serverSlots.get(owner)!;
+}
+
 function useSlot(userId?: string): Slot {
   const owner = ownerOf(userId);
-  const slot = useSyncExternalStore(subscribe, () => slotFor(userId), () => slotFor(userId));
+  const slot = useSyncExternalStore(subscribe, () => slotFor(userId), () => serverSlot(userId));
   useEffect(() => {
     if (userId && slots.get(owner)?.status === 'idle') void loadPlannerAccount(userId).catch(() => {});
   }, [owner, userId]);

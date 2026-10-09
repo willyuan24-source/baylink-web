@@ -15,7 +15,7 @@ const shortDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.sl
  * "加入这天计划": saves the stop into that day's plan right away (a new plan when there is none yet) and confirms with
  * "已加入 10/10 计划 · 查看". Guests keep the plan in this browser; signed-in plans go to the account. Plan D19.
  */
-export function AddToDayPlan({ stop, date, title, compact, className }: { stop: Stop; date: string; title?: string; compact?: boolean; className?: string }) {
+export function AddToDayPlan({ stop, date, title, compact, className, today }: { stop: Stop; date: string; title?: string; compact?: boolean; className?: string; /** The page's Pacific day, when it has one (calendar). */ today?: string }) {
   const app = useApp();
   const locale = useLocale();
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
@@ -24,7 +24,7 @@ export function AddToDayPlan({ stop, date, title, compact, className }: { stop: 
   const add = async () => {
     setState({ status: 'busy' });
     try {
-      const result = await appendToDay(app?.user?.id, date, stop, t(`${day} 计划`, `Plan for ${day}`));
+      const result = await appendToDay(app?.user?.id, date, stop, t(`${day} 计划`, `Plan for ${day}`), today);
       setState({ status: 'done', toast: result.alreadyThere ? t(`已在 ${day} 计划里`, `Already in your ${day} plan`) : t(`已加入 ${day} 计划`, `Added to your ${day} plan`) });
     } catch (error) {
       setState({ status: 'error', message: locale === 'en' ? 'This stop could not be added. Try again.' : translateText(errorText(error), locale) });

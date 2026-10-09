@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { afterEach, test } from 'node:test';
+import { afterEach, beforeEach, test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React, { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -13,10 +13,14 @@ const { StaticRouter } = await import('react-router');
 const { GuideReaderActions, ReadingShelf } = await import('../src/components/ReaderLibrary');
 const { getGuideBySlug } = await import('../src/data/guides');
 const { discoverRelatedGuides } = await import('../src/lib/guide-discovery');
-const { parseReaderLibrary, READER_LIBRARY_KEY, rememberGuide, toggleSavedGuide, clearReadingHistory } = await import('../src/lib/reader-library');
+const { parseReaderLibrary, READER_LIBRARY_KEY, rememberGuide, clearReadingHistory } = await import('../src/lib/reader-library');
+const { resetSaveStore, savesKey } = await import('../src/lib/saves');
+const savedSlugs = () => JSON.parse(dom.window.localStorage.getItem(savesKey()) || '{"items":[]}').items.map((item: { id: string }) => item.id);
 const guide = getGuideBySlug('bay-area-freebies-deals-2026-09')!;
 const second = getGuideBySlug('bay-area-roommate-guide')!;
-afterEach(() => { cleanup(); dom.window.localStorage.clear(); dom.window.dispatchEvent(new dom.window.StorageEvent('storage', { key: null })); });
+// Product counters must never leave a test.
+beforeEach(t => { t.mock.method(globalThis, 'fetch', async () => Response.json({})); });
+afterEach(() => { cleanup(); dom.window.localStorage.clear(); resetSaveStore(); dom.window.dispatchEvent(new dom.window.StorageEvent('storage', { key: null })); });
 
 test('reader data tolerates broken storage and bounds/deduplicates safe slugs', () => {
   assert.deepEqual(parseReaderLibrary('{broken'), { saved: [], recent: [] });
@@ -27,9 +31,11 @@ test('reader data tolerates broken storage and bounds/deduplicates safe slugs', 
   assert.equal(parsed.recent.length, 12);
 });
 
-test('save survives remount, recent is unique, clearing recent retains saved articles', () => {
+test('the guide ♡ is the one save list: it survives remount, recent is unique, clearing recent retains saved articles', async () => {
   const view = render(<MemoryRouter><GuideReaderActions guide={guide} /><ReadingShelf /></MemoryRouter>);
-  fireEvent.click(view.getByRole('button', { name: '收藏 · 稍后读' }));
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '收藏' })); });
+  assert.deepEqual(savedSlugs(), [guide.slug]);
+  assert.match(view.getByRole('status').textContent!, /我的这周/);
   assert.equal(view.getByRole('button', { name: '已收藏' }).getAttribute('aria-pressed'), 'true');
   assert.ok(view.getByRole('link', { name: name => name.includes(guide.title) }));
   act(() => { rememberGuide(second.slug); rememberGuide(guide.slug); });
@@ -39,18 +45,25 @@ test('save survives remount, recent is unique, clearing recent retains saved art
   assert.equal(again.getByRole('button', { name: '已收藏' }).getAttribute('aria-pressed'), 'true');
   fireEvent.click(again.getByRole('button', { name: '最近读过' }));
   fireEvent.click(again.getByRole('button', { name: '清除阅读记录' }));
-  const stored = parseReaderLibrary(dom.window.localStorage.getItem(READER_LIBRARY_KEY));
-  assert.deepEqual(stored.saved, [guide.slug]);
-  assert.deepEqual(stored.recent, []);
+  assert.deepEqual(parseReaderLibrary(dom.window.localStorage.getItem(READER_LIBRARY_KEY)).recent, []);
+  assert.deepEqual(savedSlugs(), [guide.slug], 'clearing the history keeps the saved guide');
 });
 
-test('empty saved shelf can be opened directly and storage events update mounted views', () => {
+test('empty saved shelf can be opened directly and a save in another tab updates mounted views', async () => {
   const view = render(<MemoryRouter initialEntries={['/guides?view=saved']}><ReadingShelf /></MemoryRouter>);
   assert.match(view.container.textContent!, /遇到喜欢的攻略/);
-  act(() => { dom.window.localStorage.setItem(READER_LIBRARY_KEY, JSON.stringify({ saved: [second.slug], recent: [] })); dom.window.dispatchEvent(new dom.window.StorageEvent('storage', { key: READER_LIBRARY_KEY })); });
+  act(() => { dom.window.localStorage.setItem(savesKey(), JSON.stringify({ v: 1, items: [{ kind: 'guide', id: second.slug, savedAt: 1 }] })); dom.window.dispatchEvent(new dom.window.StorageEvent('storage', { key: savesKey() })); });
   assert.ok(view.getByRole('link', { name: new RegExp(second.title) }));
-  fireEvent.click(view.getByRole('button', { name: `取消收藏：${second.title}` }));
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: `取消收藏：${second.title}` })); });
   assert.match(view.container.textContent!, /遇到喜欢的攻略/);
+  assert.deepEqual(savedSlugs(), []);
+});
+
+test('saved guides from before the one save model appear once in the shelf', () => {
+  dom.window.localStorage.setItem(READER_LIBRARY_KEY, JSON.stringify({ saved: [second.slug], recent: [] }));
+  const view = render(<MemoryRouter initialEntries={['/guides?view=saved']}><ReadingShelf /></MemoryRouter>);
+  assert.equal(view.getAllByRole('link', { name: new RegExp(second.title) }).length, 1);
+  assert.deepEqual(savedSlugs(), [second.slug]);
 });
 
 test('article AI carries its title and sharing copies branded text with a direct article link', async () => {
@@ -67,19 +80,20 @@ test('article AI carries its title and sharing copies branded text with a direct
   assert.match(view.getByRole('status').textContent!, /分享文案已复制/);
 });
 
-test('failed storage stays usable in this session and explains the persistence limit', () => {
+test('failed storage stays usable in this session and explains the persistence limit', async () => {
+  const view = render(<MemoryRouter><GuideReaderActions guide={guide} /></MemoryRouter>);
   const original = dom.window.Storage.prototype.setItem;
   dom.window.Storage.prototype.setItem = () => { throw new Error('Quota exceeded'); };
   try {
-    const view = render(<MemoryRouter><GuideReaderActions guide={guide} /></MemoryRouter>);
-    fireEvent.click(view.getByRole('button', { name: '收藏 · 稍后读' }));
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: '收藏' })); });
     assert.equal(view.getByRole('button', { name: '已收藏' }).getAttribute('aria-pressed'), 'true');
     assert.match(view.getByRole('status').textContent!, /刷新后可能丢失/);
   } finally { dom.window.Storage.prototype.setItem = original; }
 });
 
 test('SSR never serializes the browser reading library', () => {
-  toggleSavedGuide(guide.slug); rememberGuide(guide.slug); clearReadingHistory();
+  dom.window.localStorage.setItem(savesKey(), JSON.stringify({ v: 1, items: [{ kind: 'guide', id: guide.slug, savedAt: 1 }] }));
+  rememberGuide(guide.slug); clearReadingHistory();
   const html = renderToStaticMarkup(createElement(StaticRouter, { location: '/guides' }, createElement(ReadingShelf)));
   assert.equal(html, '');
 });

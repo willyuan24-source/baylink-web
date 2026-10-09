@@ -13,7 +13,7 @@ const { MemoryRouter, useLocation, useNavigate, Routes, Route, Outlet } = await 
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { eventsOnCalendarDay } = await import('../src/lib/event-calendar');
 const { setLocale, translateText } = await import('../src/i18n/locale');
-afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
+afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 
 function History() { const location = useLocation(); const navigate = useNavigate(); return <><output data-testid="query">{location.search}</output><button onClick={() => navigate(-1)}>Test back</button></>; }
 async function open(query = '', openBayBay: AppContextValue['openBayBay'] = () => {}) {
@@ -23,7 +23,9 @@ async function open(query = '', openBayBay: AppContextValue['openBayBay'] = () =
 }
 const visibleTitles = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll('.ec-event-card h3')].map(element => element.textContent);
 
-test('month date markers, city choices and plan links all use the selected day', async () => {
+test('month date markers, city choices and add-to-day buttons all use the selected day', async t => {
+  const posts: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (url: string) => { posts.push(String(url)); return new Response('{}'); });
   const view = await open('?date=2026-10-04');
   const calendar = within(view.getByRole('region', { name: '活动日期日历' }));
   assert.equal(view.container.querySelectorAll('.ec-days .ec-day').length % 7, 0);
@@ -31,7 +33,15 @@ test('month date markers, city choices and plan links all use the selected day',
   await act(async () => { fireEvent.click(calendar.getByRole('button', { name: /^2026年10月5日/ })); });
   const expected = eventsOnCalendarDay(PLANNER_EVENTS, '2026-10-05');
   assert.deepEqual(visibleTitles(view), expected.map(event => event.title));
-  for (const link of view.getAllByRole('link', { name: '加入这天计划' })) assert.match(link.getAttribute('href')!, /date=2026-10-05&stops=event:/);
+  // 加入这天计划 saves into that day's plan at once (WEB-SAVES), one button per listed event.
+  const adds = view.getAllByRole('button', { name: /^加入这天计划：/ });
+  assert.equal(adds.length, expected.length);
+  await act(async () => { fireEvent.click(adds[0]); });
+  const plan = JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0];
+  assert.equal(plan.date, '2026-10-05');
+  assert.deepEqual(plan.stops, [{ kind: 'event', id: expected[0].id }]);
+  assert.match(view.getByTestId('save-toast').textContent!, /已加入 10\/5 计划/);
+  assert.equal(within(view.getByTestId('save-toast')).getByRole('link', { name: '查看' }).getAttribute('href'), '/my-week#plan-2026-10-05');
   const cities = within(view.getByLabelText('当天的城市与区域'));
   await act(async () => { fireEvent.click(cities.getByRole('button', { name: /^San Francisco/ })); });
   assert.deepEqual(visibleTitles(view), expected.filter(event => event.city === 'San Francisco').map(event => event.title));

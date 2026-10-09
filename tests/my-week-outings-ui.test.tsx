@@ -185,11 +185,13 @@ test('My Week event card downloads only its displayed confirmed day rather than 
   t.mock.method(api, 'request', async () => { throw new Error('Guest page does not use private API'); });
   const view = render(<MemoryRouter><MyWeekPage/></MemoryRouter>);
   await view.findByRole('link', { name: event.title });
-  const card = view.getByRole('link', { name: event.title }).closest('article')!;
-  assert.equal(card.querySelector('.week-event-date time')?.getAttribute('datetime'), '2026-10-17');
-  assert.match(card.querySelector('.week-event-date')!.textContent!, /本次日期.*2026-10-17/);
-  assert.match(card.querySelector('.week-event-range')!.textContent!, /活动完整日期/);
-  assert.match(card.querySelector('a[href^="/plan?"]')!.getAttribute('href')!, /date=2026-10-17/);
+  const card = view.getByRole('link', { name: event.title }).closest('li')!;
+  assert.equal(card.querySelector('time')?.getAttribute('datetime'), '2026-10-17');
+  assert.match(card.querySelector('.ui-row-card__date')!.textContent!, /本次.*10\/17/);
+  assert.match(card.querySelector('.ui-row-card__meta')!.textContent!, /活动期间/);
+  t.mock.method(globalThis, 'fetch', async () => Response.json({}));
+  await act(async () => { fireEvent.click(within(card).getByRole('button', { name: `加入这天计划：${event.title}` })); });
+  assert.equal(JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0].date, '2026-10-17');
   fireEvent.click(within(card).getByRole('button', { name: '提醒这一天' })); assert.equal(blobs.length, 1);
   const file = (await blobs[0].text()).replace(/\r\n /g, '');
   assert.equal((file.match(/BEGIN:VEVENT/g) || []).length, 1); assert.match(file, /DTSTART;VALUE=DATE:20261017/);

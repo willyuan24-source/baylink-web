@@ -244,7 +244,8 @@ test('a shared query preserves more than three public stops and a guest can save
   await act(async () => { fireEvent.click(view.getByRole('link', { name: '我的这周' })); });
   const card = view.getByRole('heading', { name: '我的 AI 与海滨一天' }).closest('article')!;
   assert.equal(within(card).getAllByRole('listitem').length, 4);
-  assert.equal(card.querySelector('time')?.getAttribute('datetime'), requestedDate);
+  // The plan timeline names the day once, above that day's plans.
+  assert.equal(card.closest('li')!.querySelector('time')?.getAttribute('datetime'), requestedDate);
   assert.ok(within(card).getByRole('link', { name: '继续编辑' }));
 });
 
