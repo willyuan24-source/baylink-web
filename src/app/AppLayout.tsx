@@ -2,9 +2,7 @@
 // 页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过 background-location 模式覆盖在来源页之上
 import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, useNavigate, type Location } from 'react-router-dom';
-import {
-  Plus, Search, UserRound, Loader2,
-} from 'lucide-react';
+import { Search, UserRound, Loader2 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import { api, SOCKET_URL } from '../lib/api';
 import { getStoredUser, removeStoredUser, SESSION_KEY } from '../lib/session';
@@ -30,13 +28,15 @@ import { useContactIntent } from './useContactIntent';
 import { useConversationOpener } from './useConversationOpener';
 import { withConversationContext } from '../lib/conversation-context';
 import { useUnreadMessages } from './useUnreadMessages';
+import { useCloseOverlay } from './overlay-close';
+import { getLocale, useLocale } from '../i18n/locale';
 import { usePendingContacts } from './usePendingContacts';
 import { clearMessageDrafts } from '../features/messages/messageState';
 
 import Avatar from '../components/Avatar';
 import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
 import { ModalShell } from '../components/ui/Modal';
-import { Toast } from '../components/Toast';
+import { Toast, type ToastAction } from '../components/Toast';
 import { ImageViewer } from '../components/ImageViewer';
 import { PostNotFoundView } from '../components/PostNotFoundView';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
@@ -89,6 +89,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const location = realLocation;
   usePageScroll(location);
   const navigate = useNavigate();
+  const navigateRef = useRef(navigate);
+  useEffect(() => { navigateRef.current = navigate; });
+  const english = useLocale() === 'en';
   const tab = tabFromPathname(location.pathname);
   const playingLittleBay = /^\/play\/?$/.test(location.pathname);
   const tabRef = useRef(tab);
@@ -172,6 +175,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [feedError, setFeedError] = useState(false);
   const fetchSeqRef = useRef(0);
   const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
+  const selectedPostRef = useRef(selectedPost);
+  useEffect(() => { selectedPostRef.current = selectedPost; });
   const [postDetailRefreshing, setPostDetailRefreshing] = useState(false);
   const sessionExpiredHandledRef = useRef(false);
   const [postRouteMissing, setPostRouteMissing] = useState(false);
@@ -193,7 +198,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [sharingPost, setSharingPost] = useState<PostData | null>(null);
 
   // ✨ Toast & Socket State
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; id: number } | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; action?: ToastAction; id: number } | null>(null);
   const [socket, setSocket] = useState<Socket | null>(null);
   const unreadMessageCount = useUnreadMessages(user, socket);
   const [contactRequestRefreshKey, setContactRequestRefreshKey] = useState(0);
@@ -204,8 +209,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
   const [adsRefreshKey, setAdsRefreshKey] = useState(0);
   const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
-  // id 让相同内容的 toast 也能通过 key 强制重挂载，从而每次调用都重置 3 秒计时
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => setToast({ message, type, id: Date.now() }), []);
+  // id 让相同内容的 toast 也能通过 key 强制重挂载，从而每次调用都重置计时
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info', action?: ToastAction) => setToast({ message, type, action, id: Date.now() }), []);
+  // E2E-08: a failure toast (e.g. a photo that could not be processed) must not outlive the save that then succeeded.
+  const dismissErrorToast = useCallback(() => setToast(current => current?.type === 'error' ? null : current), []);
 
   const postIdParam = location.pathname.match(/^\/posts\/([^/]+)\/?$/)?.[1];
   const userIdParam = location.pathname.match(/^\/users\/([^/]+)\/?$/)?.[1];
@@ -214,10 +221,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const chatPostId = typeof location.state?.postId === 'string' ? location.state.postId : undefined;
   const guideSlugParam = location.pathname.match(/^\/guides\/([^/]+)\/?$/)?.[1];
 
-  const navigateBack = () => {
-    if (window.history.length > 1) navigate(-1);
-    else navigate('/');
-  };
+  // G4 / N3: Back only within this document; after a reload or from another site, the background page or `fallback`.
+  const closeOverlay = useCloseOverlay(location, navigate);
+  const postFallback = (post?: PostData | null) => `/category/${(post?.category && getSlugFromCategory(post.category)) || 'rent'}`;
 
   // 帖子 / 用户覆盖层带上 backgroundLocation：来源页保持挂载在覆盖层之下（滚动位置、feed 状态都不丢）。
   // 已在覆盖层中再跳覆盖层时沿用同一个背景，避免背景层层嵌套。
@@ -283,10 +289,12 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         // 鉴权失败时不影响页面渲染
       });
 
-      newSocket.on('new_message', () => {
+      newSocket.on('new_message', (message?: { conversationId?: unknown }) => {
         window.dispatchEvent(new Event('baylink:messages-changed'));
         if (tabRef.current !== 'messages') {
-          showToast('收到新私信', 'info');
+          // G1: one tap from the toast to the thread (the payload carries its conversationId).
+          const threadId = typeof message?.conversationId === 'string' && /^[A-Za-z0-9_-]{1,200}$/.test(message.conversationId) ? message.conversationId : null;
+          showToast('收到新私信', 'info', { label: getLocale() === 'en' ? 'View' : '查看', onClick: () => navigateRef.current(threadId ? `/messages/${threadId}` : '/messages') });
         }
       });
 
@@ -313,7 +321,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (path === '/verify-email' || path === '/notifications/unsubscribe') return;
     if (/^\/(events|plan|play|calendar|my-week|ai-in-the-bay|together|archive)\/?$/.test(path)) return; // These pages own their metadata.
     if (/^\/(events|offers|openings)\//.test(path)) return; // Each discovery page owns its metadata, including unknown-item 404s.
-    if (path === '/this-month' || path === '/this-month/' || path === '/this-week' || path === '/this-week/') return; // MonthlyPage owns its dated edition metadata.
+    if (path === '/this-month' || path === '/this-month/') return; // MonthlyPage owns its dated edition metadata.
     if (path === '/guides' || path === '/guides/') { setPageMetadata(GUIDES_METADATA); return; }
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path === '/explore' || path === '/explore/') { setPageMetadata(EXPLORE_METADATA); return; }
@@ -324,8 +332,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     } else if (path.startsWith('/guides')) {
       // /guides/:slug 的具体标题由 GuideDetailPage 设置（guides 语料已懒加载，布局层不再 import）
       if (!guideSlugParam) document.title = '湾区生活指南｜BAYLINK';
-    } else if (path.startsWith('/recommend')) {
-      document.title = '推荐｜BAYLINK';
     } else if (path.startsWith('/messages')) {
       document.title = '消息｜BAYLINK';
     } else if (/^\/me\/bookings\/?$/.test(path)) {
@@ -372,11 +378,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       return;
     }
     const found = posts.find((p) => p.id === postIdParam);
-    if (found) {
-      setSelectedPost(found);
+    // A post already on screen stays there while it refreshes: the feed arriving after a shared link must not swap the open
+    // detail (and its menu or comment draft) for the loading shell and back.
+    const shown = found || (selectedPostRef.current?.id === postIdParam ? selectedPostRef.current : null);
+    if (shown) {
+      setSelectedPost(shown);
       setPostRouteMissing(false);
       setPostRouteLoading(false);
-      setPageMetadata({ title: `${found.title}｜BAYLINK`, description: found.description.slice(0, 160), path: `/posts/${postIdParam}`, image: found.imageUrls?.[0], type: 'article', noindex: found.status === 'closed', preserveText: true });
+      if (found) setPageMetadata({ title: `${found.title}｜BAYLINK`, description: found.description.slice(0, 160), path: `/posts/${postIdParam}`, image: found.imageUrls?.[0], type: 'article', noindex: found.status === 'closed', preserveText: true });
     } else {
       setSelectedPost(null);
       setPostRouteLoading(true);
@@ -385,7 +394,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     }
     let cancelled = false;
     (async () => {
-      if (found) setPostDetailRefreshing(true);
+      if (shown) setPostDetailRefreshing(true);
       try {
         const p = await api.request(`/posts/${postIdParam}`);
         if (!cancelled) {
@@ -400,7 +409,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             setSelectedPost(null);
             setPostRouteMissing(true);
             setPageMetadata({ title: '内容不可访问｜BAYLINK', description: '内容不存在、已移除或不可访问。', path: `/posts/${postIdParam}`, noindex: true });
-          } else if (!found) {
+          } else if (!shown) {
             setPostRouteError(friendlyErrorMessage(error, '暂时无法加载，请重试。'));
             setPageMetadata({ title: '暂时无法加载｜BAYLINK', description: '服务暂时不可用，请稍后重试。', path: `/posts/${postIdParam}`, noindex: true });
           } else {
@@ -722,7 +731,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         return next;
       });
       showToast(res?.message || '已屏蔽该用户。', 'success');
-      if (userIdParam === blockedId) navigateBack();
+      if (userIdParam === blockedId) closeOverlay('/');
       if (chatConv?.otherUser.id === blockedId) { setChatConv(null); navigate('/messages'); }
     } catch (e) {
       showToast(friendlyErrorMessage(e, '屏蔽失败'), 'error');
@@ -809,7 +818,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
 
   const handleChannelClick = (ch: typeof HOME_CHANNELS[number]) => {
     if (ch.id === 'featured') {
-      navigate('/recommend');
+      navigate('/events');
       return;
     }
     const slug = ch.category ? getSlugFromCategory(ch.category) : undefined;
@@ -817,7 +826,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   };
 
   const ctx: AppContextValue = {
-    user, setUser, showToast, setShowLogin, handleLogout, clearAccountSession,
+    user, setUser, showToast, setShowLogin, handleLogout, clearAccountSession, messagesBadgeCount,
     chatRouteStatus, chatRouteError, retryChatRoute,
     posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
     regionFilter, setRegionFilter, categoryFilter,
@@ -838,7 +847,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     <div className="site-app font-sans">
       {/* locationKey 必须用真实位置：导航（含浏览器后退）时取消挂起的确认框，避免过期闭包执行 */}
       <ConfirmHost locationKey={location.key} />
-      {toast && <Toast key={toast.id} message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && <Toast key={toast.id} message={toast.message} type={toast.type} action={toast.action} onClose={() => setToast(null)} />}
       {detailAd && (
         <AdDetailModal
           ad={detailAd}
@@ -852,10 +861,11 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       <div className="site-workspace">
         <header className="site-topbar">
           <div className="site-topbar-inner">
-            <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate()} onAsk={() => openBayBay()} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
+            <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} pathname={location.pathname} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate()} onAsk={() => openBayBay()} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
             <div className="site-header-utilities">
               <button type="button" className="site-command-trigger" onClick={() => openSearch()} aria-label="打开快速搜索" aria-keyshortcuts="Control+k Meta+k" title="Ctrl / ⌘ K"><Search size={21} aria-hidden="true" /></button>
-              <div className="site-topbar-actions"><button type="button" className="site-topbar-publish" onClick={() => openCreate()} aria-label="发布信息"><Plus size={17} aria-hidden="true" /><span>发布信息</span></button><button type="button" className="site-topbar-account" aria-label={user ? '查看我的资料' : '登录账号'} onClick={() => user ? navigate('/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={8} /> : <><UserRound size={20} aria-hidden="true" /><span className="site-account-desktop-label">登录</span></>}{showMessagesBadge && <b className="site-header-notification" aria-label="有未读通知">{messagesBadgeCount || '•'}</b>}</button></div>
+              {/* G16: 发布 lives inside 邻里 only. G1: with unread messages the avatar opens the inbox. */}
+              <div className="site-topbar-actions"><button type="button" className="site-topbar-account" aria-label={!user ? '登录账号' : showMessagesBadge ? (english ? `Messages, ${messagesBadgeCount} unread` : `消息，${messagesBadgeCount} 条未读`) : '查看我的资料'} onClick={() => user ? navigate(showMessagesBadge ? '/messages' : '/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={8} /> : <><UserRound size={20} aria-hidden="true" /><span className="site-account-desktop-label">登录</span></>}{showMessagesBadge && <b className="site-header-notification" aria-label="有未读通知">{messagesBadgeCount || '•'}</b>}</button></div>
               <ReadingPreferencesButton />
               <LanguageSwitcher realLocation={realLocation} />
             </div>
@@ -940,18 +950,18 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             defaultCategory={createDefaultCategory}
             initialIntent={editingPost ? undefined : createInitialIntent}
             onClose={() => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); setCreateInitialIntent(''); }}
-            onCreated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
-            onUpdated={() => { fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
+            onCreated={() => { dismissErrorToast(); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
+            onUpdated={() => { dismissErrorToast(); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onManageAvailability={openPostById}
             showToast={showToast}
           />
           </Suspense>
         )}
         {postIdParam && postRouteLoading && selectedPost?.id !== postIdParam && (
-          <ModalShell onClose={navigateBack} label="正在加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={navigateBack}>返回</button></ModalShell>
+          <ModalShell onClose={() => closeOverlay(postFallback())} label="正在加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={() => closeOverlay(postFallback())}>返回</button></ModalShell>
         )}
-        {postIdParam && postRouteMissing && <PostNotFoundView onBack={navigateBack} />}
-        {postIdParam && postRouteError && !postRouteLoading && <ModalShell onClose={navigateBack} label="暂时无法加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{postRouteError}</p><button type="button" className="btn-primary px-6 py-3" onClick={() => setPostRetry((value) => value + 1)}>重试加载</button><button type="button" onClick={navigateBack}>返回</button></ModalShell>}
+        {postIdParam && postRouteMissing && <PostNotFoundView onBack={() => closeOverlay(postFallback())} />}
+        {postIdParam && postRouteError && !postRouteLoading && <ModalShell onClose={() => closeOverlay(postFallback())} label="暂时无法加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{postRouteError}</p><button type="button" className="btn-primary px-6 py-3" onClick={() => setPostRetry((value) => value + 1)}>重试加载</button><button type="button" onClick={() => closeOverlay(postFallback())}>返回</button></ModalShell>}
         {postIdParam && selectedPost?.id === postIdParam && !postRouteMissing && (
           <Suspense fallback={overlayChunkFallback}>
           <PostDetailModal
@@ -959,12 +969,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
             post={selectedPost}
             detailRefreshing={postDetailRefreshing}
             currentUser={user}
-            onClose={navigateBack}
+            onClose={() => closeOverlay(postFallback(selectedPost))}
             onLoginNeeded={() => setShowLogin(true)}
             onContactLoginNeeded={() => requestPostContact(selectedPost)}
             onOpenChat={(id, nickname, title) => openChat(id, nickname, title, selectedPost.id)}
             onOpenUserProfile={openUserProfile}
-            onEdit={(p: PostData) => { navigateBack(); openEditPost(p); }}
+            // The editor mounts in this layout, so it survives the overlay closing; open it first (G4).
+            onEdit={(p: PostData) => { openEditPost(p); closeOverlay(postFallback(p)); }}
             onToggleFeature={handleToggleFeature}
             onDeleted={() => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
             onImageClick={(src: string) => setViewingImage(src)}
@@ -1001,7 +1012,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
           <Suspense fallback={overlayChunkFallback}>
           <UserProfileModal
             userId={userIdParam}
-            onClose={navigateBack}
+            onClose={() => closeOverlay('/')}
             currentUser={user}
             onChat={openChat}
             onOpenRecentPost={openRecentPostFromProfile}
