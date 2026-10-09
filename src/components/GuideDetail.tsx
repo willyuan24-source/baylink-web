@@ -26,7 +26,7 @@ import { GuideCardMini } from "./GuideCard";
 import { getGuideMedia, type GuideImage } from '../data/guide-media';
 import { OutingInspirationLink } from './OutingInspirationLink';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
-import { GuideEditionNotice } from './MonthlyDealsSpotlight';
+import { GuideEditionNotice } from './GuideEditionNotice';
 import { FreebieBoard } from './FreebieBoard';
 import { GuideReaderActions } from './ReaderLibrary';
 import { discoverRelatedGuides } from '../lib/guide-discovery';
