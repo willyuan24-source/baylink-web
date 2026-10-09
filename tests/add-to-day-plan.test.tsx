@@ -6,7 +6,7 @@ import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/calendar' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, renderHook, fireEvent, cleanup, act, within } = await import('@testing-library/react');
+const { render, renderHook, fireEvent, cleanup, act, within, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { AddToDayPlan } = await import('../src/components/AddToDayPlan');
 const { appendToDay, loadGuestLibrary, usePlannerLibrary } = await import('../src/lib/planner-library');
@@ -71,7 +71,11 @@ test('the button saves at once, confirms with “已加入 12/12 计划 · 查�
   await act(async () => {});
   assert.equal(result.current.data.plans.length, 0);
   const view = render(<MemoryRouter><Routes><Route element={<Outlet context={{ user: null }} />}><Route path="/" element={<AddToDayPlan stop={event} date={DAY} title={MONTHLY_EVENTS[0].title} today={TODAY} compact />} /></Route></Routes></MemoryRouter>);
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: `加入这天计划：${MONTHLY_EVENTS[0].title}` })); });
+  // The control loads on its own; until then a disabled copy of the button holds its place (and is what prerendered pages show).
+  const button = () => view.getByRole('button', { name: `加入这天计划：${MONTHLY_EVENTS[0].title}` });
+  assert.equal(button().hasAttribute('disabled'), true);
+  await waitFor(() => assert.equal(button().hasAttribute('disabled'), false));
+  await act(async () => { fireEvent.click(button()); });
   const toast = view.getByTestId('save-toast');
   assert.equal(toast.getAttribute('role'), 'status');
   assert.match(toast.textContent!, /已加入 12\/12 计划/);
@@ -86,6 +90,7 @@ test('the button saves at once, confirms with “已加入 12/12 计划 · 查�
 test('English copy for the button and the confirmation', async () => {
   await setLocale('en', false);
   const view = render(<MemoryRouter><AddToDayPlan stop={event} date={DAY} today={TODAY} /></MemoryRouter>);
+  await waitFor(() => assert.equal(view.getByRole('button', { name: /Add to this day’s plan/ }).hasAttribute('disabled'), false));
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /Add to this day’s plan/ })); });
   assert.match(view.getByTestId('save-toast').textContent!, /Added to your 12\/12 plan/);
   assert.ok(within(view.getByTestId('save-toast')).getByRole('link', { name: 'View' }));

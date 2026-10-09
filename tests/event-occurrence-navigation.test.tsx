@@ -14,7 +14,7 @@ const globals = {
 };
 const previous = new Map(Object.keys(globals).map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
 for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
-const { render, cleanup, act } = await import('@testing-library/react');
+const { render, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
@@ -85,7 +85,10 @@ test('My Week excludes gaps covering the entire week and plans only a confirmed 
   assert.deepEqual(rows.map(row => row.querySelector('h3')?.textContent), ['continuous-program', 'this-week-sessions']);
   assert.deepEqual(rows.map(row => row.querySelector('time')?.getAttribute('datetime')), ['2026-09-27', '2026-09-29']);
   // 加入这天计划 saves that confirmed day, never the start of the wider range.
-  await act(async () => { (rows[1].querySelector('button[aria-label^="加入这天计划"]') as HTMLButtonElement).click(); });
+  // The button loads on its own; a disabled copy holds its place until then.
+  const add = () => rows[1].querySelector('button[aria-label^="加入这天计划"]') as HTMLButtonElement;
+  await waitFor(() => assert.equal(add().disabled, false));
+  await act(async () => { add().click(); });
   const plan = JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0];
   assert.equal(plan.date, '2026-09-29');
   assert.deepEqual(plan.stops, [{ kind: 'event', id: 'this-week-sessions' }]);

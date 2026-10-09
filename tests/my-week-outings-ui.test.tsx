@@ -8,7 +8,7 @@ import type { UserData } from '../src/lib/types';
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/my-week' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, act, within, waitFor } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { MyWeekOutings } = await import('../src/features/outings/MyWeekOutings');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
@@ -190,6 +190,7 @@ test('My Week event card downloads only its displayed confirmed day rather than 
   assert.match(card.querySelector('.ui-row-card__date')!.textContent!, /本次.*10\/17/);
   assert.match(card.querySelector('.ui-row-card__meta')!.textContent!, /活动期间/);
   t.mock.method(globalThis, 'fetch', async () => Response.json({}));
+  await waitFor(() => assert.equal(within(card).getByRole('button', { name: `加入这天计划：${event.title}` }).hasAttribute('disabled'), false));
   await act(async () => { fireEvent.click(within(card).getByRole('button', { name: `加入这天计划：${event.title}` })); });
   assert.equal(JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0].date, '2026-10-17');
   fireEvent.click(within(card).getByRole('button', { name: '提醒这一天' })); assert.equal(blobs.length, 1);

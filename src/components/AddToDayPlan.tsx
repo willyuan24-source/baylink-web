@@ -1,41 +1,38 @@
-import { useState } from 'react';
-import { CalendarPlus, Check } from 'lucide-react';
-import { useApp } from '../app/context';
+import { lazy, Suspense } from 'react';
+import { CalendarPlus } from 'lucide-react';
 import type { Stop } from '../lib/planner';
 import { translateText, useLocale } from '../i18n/locale';
-import { SaveToast } from '../features/saves/SaveToast';
+import { addToDayName } from '../features/saves/add-to-day-name';
 
-/** "10/10" for the toast and a new plan's title. */
-const shortDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
+export type AddToDayPlanProps = {
+  stop: Stop;
+  date: string;
+  /** The item's title (catalog source text), read with the button: "加入这天计划：…". */
+  title?: string;
+  compact?: boolean;
+  className?: string;
+  /** The page's Pacific day, when it has one (calendar). */
+  today?: string;
+};
+
+// The control, its confirmation and the planner behind it load on their own (route JS budgets, plan §3.0 rule 8):
+// the calendar shows this button on every card and does not carry them in its route bundle.
+const AddToDayControl = lazy(() => import('../features/saves/AddToDayControl'));
 
 /**
- * "加入这天计划": saves the stop into that day's plan right away (a new plan when there is none yet) and confirms with
- * "已加入 10/10 计划 · 查看". Guests keep the plan in this browser; signed-in plans go to the account. Plan D19.
+ * "加入这天计划": saves the stop into that day's plan right away and confirms with "已加入 10/10 计划 · 查看" (plan D19).
+ * The implementation is `features/saves/AddToDayControl`.
  */
-export function AddToDayPlan({ stop, date, title, compact, className, today }: { stop: Stop; date: string; title?: string; compact?: boolean; className?: string; /** The page's Pacific day, when it has one (calendar). */ today?: string }) {
-  const app = useApp();
+export function AddToDayPlan(props: AddToDayPlanProps) {
+  return <Suspense fallback={<AddToDayPlaceholder {...props} />}><AddToDayControl {...props} /></Suspense>;
+}
+
+/** The same box as the control while it loads (and in prerendered HTML): a disabled button, so nothing moves when it arrives. */
+function AddToDayPlaceholder({ title, compact, className }: AddToDayPlanProps) {
   const locale = useLocale();
-  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
-  const [state, setState] = useState<{ status: 'idle' | 'busy' | 'done' | 'error'; message?: string; toast?: string }>({ status: 'idle' });
-  const day = shortDay(date);
-  const add = async () => {
-    setState({ status: 'busy' });
-    try {
-      // The planner and its catalog load on the first add, not with the page (route JS budgets, plan §3.0 rule 8).
-      const { appendToDay } = await import('../lib/planner-library');
-      const result = await appendToDay(app?.user?.id, date, stop, t(`${day} 计划`, `Plan for ${day}`), today);
-      setState({ status: 'done', toast: result.alreadyThere ? t(`已在 ${day} 计划里`, `Already in your ${day} plan`) : t(`已加入 ${day} 计划`, `Added to your ${day} plan`) });
-    } catch (error) {
-      setState({ status: 'error', message: locale === 'en' ? 'This stop could not be added. Try again.' : translateText((error as { error?: string })?.error || '暂时没能加入计划，请重试。', locale) });
-    }
-  };
-  const name = title ? `${t('加入这天计划', 'Add to this day’s plan')}${locale === 'en' ? ': ' : '：'}${translateText(title, locale)}` : undefined;
   return <span className={['saves-day', className].filter(Boolean).join(' ')}>
-    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={name} disabled={state.status === 'busy'} onClick={() => void add()}>
-      {state.status === 'done' ? <Check aria-hidden="true" strokeWidth={2} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />}
-      {state.status === 'done' ? t(`已加入 ${day}`, `In your ${day} plan`) : t('加入这天计划', 'Add to this day’s plan')}
+    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale)} disabled>
+      <CalendarPlus aria-hidden="true" strokeWidth={1.75} />{locale === 'en' ? 'Add to this day’s plan' : translateText('加入这天计划', locale)}
     </button>
-    {state.status === 'error' && <span className="saves-day__error" role="alert">{state.message}</span>}
-    {state.toast && <SaveToast message={state.toast} actionLabel={t('查看', 'View')} to={`/my-week#plan-${date}`} closeLabel={t('关闭提示', 'Dismiss')} onClose={() => setState(current => ({ ...current, toast: undefined }))} />}
   </span>;
 }

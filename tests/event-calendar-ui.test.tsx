@@ -8,7 +8,7 @@ import type { AppContextValue } from '../src/app/context';
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/calendar' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, cleanup, fireEvent, act, within } = await import('@testing-library/react');
+const { render, cleanup, fireEvent, act, within, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, useLocation, useNavigate, Routes, Route, Outlet } = await import('react-router-dom');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { eventsOnCalendarDay } = await import('../src/lib/event-calendar');
@@ -34,6 +34,8 @@ test('month date markers, city choices and add-to-day buttons all use the select
   const expected = eventsOnCalendarDay(PLANNER_EVENTS, '2026-10-05');
   assert.deepEqual(visibleTitles(view), expected.map(event => event.title));
   // 加入这天计划 saves into that day's plan at once (WEB-SAVES), one button per listed event.
+  // The button loads on its own; a disabled copy holds its place until then.
+  await waitFor(() => assert.ok(view.getAllByRole('button', { name: /^加入这天计划：/ }).every(button => !button.hasAttribute('disabled'))));
   const adds = view.getAllByRole('button', { name: /^加入这天计划：/ });
   assert.equal(adds.length, expected.length);
   await act(async () => { fireEvent.click(adds[0]); });
