@@ -1,7 +1,6 @@
 import { useSyncExternalStore } from 'react';
-import { ConverterFactory } from 'opencc-js/core';
-import searchCharacters from 'opencc-js/dict/TSCharacters';
-import searchPhrases from 'opencc-js/dict/TSPhrases';
+import type { DictLike } from 'opencc-js/core';
+import { searchFreePath } from './search-paths';
 import patterns from './en-patterns.json';
 import { pathLanguage, languagePath } from '../lib/language-path';
 import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath } from '../lib/english-loading';
@@ -39,7 +38,49 @@ export const useLocale = () => { useSyncExternalStore(subscribeLocale, readingSn
 
 const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
   traditional = taiwanConverter(module);
+  // 繁體 readers' search: the full opencc build already holds the search dictionaries (Locale.to.cn is TSPhrases then
+  // TSCharacters, the pair and order below), so it needs no second download
+  if (!buildSearch) { buildSearch = () => module.ConverterFactory(module.Locale.to.cn); searchUnavailable = false; notifyLocale(); }
 }).catch((error) => { chineseLoad = undefined; throw error; });
+
+/**
+ * Search folds 繁體 into 简体 with opencc's traditional → simplified dictionaries (TSPhrases, TSCharacters). They are not
+ * in the shell or the homepage's graph (WEB-HOMEPREP, RC-8 iii): the browser loads them with the first page that
+ * searches — every route except the homepage and what opens over it waits for them in its language gate
+ * (isLocaleReadyForPath), as do the search dialog and BayBay — or on the first Chinese text simplifySearch sees. Until
+ * then simplifySearch returns its input, and it stays synchronous throughout. Node (tests, prerender, generators) loads
+ * them synchronously at import, so scripts and cold tests keep exactly the search keys they had; BAYLINK_LAZY_SEARCH=1
+ * makes Node take the browser's path (tests/search-cold.test.ts).
+ */
+let buildSearch: (() => (text: string) => string) | undefined;
+let searchLoad: Promise<void> | undefined;
+/** After a failed load the language gates stop waiting (search matches exact characters) until a later load succeeds. */
+let searchUnavailable = false;
+/** The trie is built on first Chinese use. */
+const searchConversion = () => simplified ||= buildSearch?.();
+type NodeProcess = { env?: Record<string, string | undefined>; getBuiltinModule?: (id: string) => unknown };
+const nodeProcess = (globalThis as { process?: NodeProcess }).process;
+if (nodeProcess?.getBuiltinModule && nodeProcess.env?.BAYLINK_LAZY_SEARCH !== '1') {
+  const { createRequire } = nodeProcess.getBuiltinModule('node:module') as { createRequire: (from: string) => (id: string) => unknown };
+  const require = createRequire(import.meta.url);
+  const { ConverterFactory } = require('opencc-js/core') as typeof import('opencc-js/core');
+  const [phrases, characters] = ['opencc-js/dict/TSPhrases', 'opencc-js/dict/TSCharacters'].map(id => (require(id) as { default: DictLike }).default);
+  buildSearch = () => ConverterFactory([phrases, characters]);
+}
+/** Loads the search dictionaries once; resolves at once when they are in, and after a failure the next call retries. */
+export function loadSearchConversion(): Promise<void> {
+  if (buildSearch) return Promise.resolve();
+  return searchLoad ||= import('./search-dictionaries')
+    .then(({ ConverterFactory, searchPhrases, searchCharacters }) => {
+      searchUnavailable = false;
+      if (buildSearch) return;
+      buildSearch = () => ConverterFactory([searchPhrases, searchCharacters]);
+      notifyLocale();
+    })
+    .catch(error => { searchLoad = undefined; searchUnavailable = true; throw error; });
+}
+export const isSearchConversionReady = (): boolean => !!buildSearch;
+const pathsSearch = (paths: string | readonly string[]) => (typeof paths === 'string' ? [paths] : paths).some(path => !searchFreePath(path));
 
 /**
  * The game's 繁體 (wave 9, lane L): mainland words with a different everyday Taiwan word, and the 里 that mean "in" where
@@ -95,23 +136,32 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
   };
 }
 
+/** Everything a language needs, search included (exports, SSR and scripts; zh-Hant's opencc build carries search). */
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') await (englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }));
+  if (locale === 'en') await Promise.all([englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadSearchConversion().catch(() => undefined)]);
   else if (locale === 'zh-Hant') await loadChinese();
+  else await loadSearchConversion().catch(() => undefined);
 }
 
 const scopesForPaths = (paths: string | readonly string[]) => [...new Set((typeof paths === 'string' ? [paths] : paths).flatMap(path => englishScopesForPath(path, englishScopes!.has)))];
 export function isLocaleReadyForPath(locale: Locale, paths: string | readonly string[]): boolean {
-  return locale === 'en' ? englishFullyLoaded || !!englishScopes && englishScopes.isReady(scopesForPaths(paths)) : locale === 'zh-Hant' ? !!traditional : true;
+  const content = locale === 'en' ? englishFullyLoaded || !!englishScopes && englishScopes.isReady(scopesForPaths(paths)) : locale === 'zh-Hant' ? !!traditional : true;
+  return content && (!!buildSearch || searchUnavailable || !pathsSearch(paths));
 }
-/** Browser routes wait for their complete displayed content; full loadLocale remains available to exports and SSR. */
+/** Browser routes wait for their complete displayed content (and the search dictionaries where the page searches);
+ * full loadLocale remains available to exports and SSR. */
 export async function loadLocaleForPath(locale: Locale, paths: string | readonly string[]): Promise<void> {
+  const search = locale !== 'zh-Hant' && pathsSearch(paths) ? loadSearchConversion() : undefined;
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(scopesForPaths(paths)); } }
-  else await loadLocale(locale);
+  else if (locale === 'zh-Hant') await loadChinese();
+  // The page still works without them (exact-character search); the gate stops waiting after a failure
+  await search?.catch(() => undefined);
 }
 export async function loadLocaleForFeature(locale: Locale, feature: 'search'): Promise<void> {
+  const search = locale !== 'zh-Hant' ? loadSearchConversion() : undefined;
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
-  else await loadLocale(locale);
+  else if (locale === 'zh-Hant') await loadChinese();
+  await search?.catch(() => undefined);
 }
 
 /** Preference changes never remount the app, rewrite form values, or touch account data. */
@@ -182,14 +232,15 @@ export function translateText(text: string, locale: Locale = current, depth = 0)
   return text.split(/(\n| · | \/ |｜)/).map((part) => part !== text && depth < 3 ? translateText(part, locale, depth + 1) : english[normalizeText(part)] || part).join('');
 }
 
-/** Search works on the first keystroke, independently of the display language.
- * Only the compact traditional-to-simplified dictionaries load synchronously;
- * phrase exceptions take precedence and the trie is built on first Chinese use.
- */
+/** Search matches 繁體 and 简体 alike, independently of the display language, and stays synchronous: phrase exceptions
+ * take precedence and the trie is built on first Chinese use. Before the dictionaries are in (see loadSearchConversion)
+ * it returns its input and starts loading them. */
 export const simplifySearch = (text: string): string => {
   if (!/\p{Script=Han}/u.test(text)) return text;
-  simplified ||= ConverterFactory([searchPhrases, searchCharacters]);
-  return simplified(text);
+  const convert = searchConversion();
+  if (convert) return convert(text);
+  loadSearchConversion().catch(() => { /* Search keeps working on exact characters; the next search retries. */ });
+  return text;
 };
 export function localizedUrl(value: string, locale: Locale = current): string {
   const url = new URL(value, 'https://www.baylink.us');

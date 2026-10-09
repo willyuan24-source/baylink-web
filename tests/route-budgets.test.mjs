@@ -1,25 +1,38 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { englishScopeModules, formatRouteBudgets, moduleGraph, routeModules } from '../scripts/route-budgets.mjs';
+import { englishScopeModules, formatRouteBudgets, moduleGraph, routeModules, SEARCH_DICTIONARIES } from '../scripts/route-budgets.mjs';
+import { searchFreePath } from '../src/i18n/search-paths.ts';
 
 const manifest = {
   'index.html': { file: 'assets/index.js', imports: ['_react.js'] },
   '_react.js': { file: 'assets/react.js' },
   'src/pages/GuidesPage.tsx': { file: 'assets/guides-page.js', imports: ['_react.js', '_guides.js'] },
   '_guides.js': { file: 'assets/guides.js' },
+  'node_modules/opencc-js/dist/esm-lib/core.js': { file: 'assets/opencc-core.js' },
   'node_modules/opencc-js/dist/esm/full.js': { file: 'assets/full.js', isDynamicEntry: true },
+  [SEARCH_DICTIONARIES]: { file: 'assets/search-dictionaries.js', isDynamicEntry: true, imports: ['node_modules/opencc-js/dist/esm-lib/core.js'] },
+  'src/pages/HomePage.tsx': { file: 'assets/home-page.js', imports: ['_react.js'] },
   'src/data/generated/english-scope-loaders.ts': { file: 'assets/loaders.js' },
   'src/data/generated/english-scopes/ui.json': { file: 'assets/ui.js' },
   'src/data/generated/english-scopes/guide-index.json': { file: 'assets/guide-index.js' },
 };
 const scopeModules = englishScopeModules('export const englishScopeLoaders = {\n  "ui": () => import("./english-scopes/ui.json"),\n  "guide-index": () => import("./english-scopes/guide-index.json"),\n};\n');
 const budget = { route: '/guides', module: 'src/pages/GuidesPage.tsx' };
-const graph = locale => [...moduleGraph(manifest, routeModules(manifest, budget, locale, { englishScopesForPath: () => ['ui', 'guide-index'], scopeModules }))].sort();
+const graph = (locale, page = budget) => [...moduleGraph(manifest, routeModules(manifest, page, locale, { englishScopesForPath: () => ['ui', 'guide-index'], scopeModules, searchFreePath }))].sort();
 
 test('each locale budget counts the shared shell once, plus the converter or dictionaries that locale loads', () => {
-  assert.deepEqual(graph('zh-Hans'), ['assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/react.js']);
+  assert.deepEqual(graph('zh-Hans'), ['assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/opencc-core.js', 'assets/react.js', 'assets/search-dictionaries.js']);
   assert.deepEqual(graph('zh-Hant'), ['assets/full.js', 'assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/react.js']);
-  assert.deepEqual(graph('en'), ['assets/guide-index.js', 'assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/loaders.js', 'assets/react.js', 'assets/ui.js']);
+  assert.deepEqual(graph('en'), ['assets/guide-index.js', 'assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/loaders.js', 'assets/opencc-core.js', 'assets/react.js', 'assets/search-dictionaries.js', 'assets/ui.js']);
+});
+
+test('the homepage does not count the search dictionaries (it loads them on the first search); 繁體 takes the full converter, never a search chunk', () => {
+  const home = { route: '/', module: 'src/pages/HomePage.tsx' };
+  assert.deepEqual(graph('zh-Hans', home), ['assets/home-page.js', 'assets/index.js', 'assets/react.js']);
+  assert.deepEqual(graph('zh-Hant', home), ['assets/full.js', 'assets/home-page.js', 'assets/index.js', 'assets/react.js']);
+  assert.ok(!graph('en', home).includes('assets/search-dictionaries.js'));
+  const { [SEARCH_DICTIONARIES]: _dictionaries, ...withoutSearch } = manifest;
+  assert.throws(() => routeModules(withoutSearch, budget, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath }), /search dictionaries/);
 });
 
 test('a missing page module or English scope fails loudly instead of measuring less', () => {
