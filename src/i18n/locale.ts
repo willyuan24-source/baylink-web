@@ -1,9 +1,8 @@
 import { useSyncExternalStore } from 'react';
 import type { DictLike } from 'opencc-js/core';
-import { searchFreePath } from './search-paths';
 import patterns from './en-patterns.json';
 import { pathLanguage, languagePath } from '../lib/language-path';
-import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath } from '../lib/english-loading';
+import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath, searchFreePath } from '../lib/english-loading';
 
 export type Locale = 'zh-Hans' | 'zh-Hant' | 'en';
 export const LOCALE_KEY = 'baylink.reading-language.v1';

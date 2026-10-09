@@ -57,19 +57,13 @@ export function routeModules(manifest, { route, module }, locale, { englishScope
 /** Measure every budgeted route × locale in gzip bytes and compare with its KiB ceiling. */
 export async function measureRouteBudgets(budgets, { dist = 'dist', root = '.', manifest } = {}) {
   manifest ||= JSON.parse(await readFile(join(dist, '.vite/manifest.json'), 'utf8'));
-  let englishScopesForPath;
+  let englishScopesForPath, searchFreePath;
   try {
-    ({ englishScopesForPath } = await import(pathToFileURL(join(root, 'src/lib/english-loading.ts')).href));
+    ({ englishScopesForPath, searchFreePath } = await import(pathToFileURL(join(root, 'src/lib/english-loading.ts')).href));
   } catch (error) {
     throw new Error(`Route budgets read English scopes from src/lib/english-loading.ts with Node's type stripping; keep that file free of imports and non-erasable syntax (${error.message})`);
   }
   const scopeModules = englishScopeModules(await readFile(join(root, 'src/data/generated/english-scope-loaders.ts'), 'utf8'));
-  let searchFreePath;
-  try {
-    ({ searchFreePath } = await import(pathToFileURL(join(root, 'src/i18n/search-paths.ts')).href));
-  } catch (error) {
-    throw new Error(`Route budgets read the pages that search from src/i18n/search-paths.ts with Node's type stripping; keep that file free of imports and non-erasable syntax (${error.message})`);
-  }
   const sizes = new Map();
   const gzip = async file => {
     if (!sizes.has(file)) sizes.set(file, gzipSync(await readFile(join(dist, file))).length);

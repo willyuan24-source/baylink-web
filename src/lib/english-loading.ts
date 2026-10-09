@@ -33,6 +33,16 @@ export function englishScopesForFeature(feature: 'search'): string[] {
   return feature === 'search' ? ['ui', 'guide-index', 'guide-search', 'discovery', 'explore'] : [];
 }
 
+/**
+ * Pages that never search: the homepage, what opens over it (posts, profiles, the password reset) and the community
+ * board. Every other page waits for the search dictionaries in its language gate (i18n/locale.ts, WEB-HOMEPREP) and its
+ * JS budget counts them (scripts/route-budgets.mjs). It sits with the English scopes, the other "what a path loads"
+ * rule, in this import-free file that the budget script reads with Node's type stripping.
+ */
+export function searchFreePath(value: string): boolean {
+  return /^\/(?:(?:posts|users|category)\/.*|reset-password)?$/u.test(routePath(value));
+}
+
 /** Successful scopes are cached; rejected loads retry and do not mark a route ready. */
 export function createEnglishScopeLoader(loaders: EnglishScopeLoaders, merge: (dictionary: EnglishDictionary) => void) {
   const loaded = new Set<string>();

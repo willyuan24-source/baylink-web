@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { englishScopeModules, formatRouteBudgets, moduleGraph, routeModules, SEARCH_DICTIONARIES } from '../scripts/route-budgets.mjs';
-import { searchFreePath } from '../src/i18n/search-paths.ts';
+import { searchFreePath } from '../src/lib/english-loading.ts';
 
 const manifest = {
   'index.html': { file: 'assets/index.js', imports: ['_react.js'] },
