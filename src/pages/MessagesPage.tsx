@@ -14,17 +14,18 @@ import { SkeletonFeed } from '../components/ui/SkeletonCard';
 import { useUiCopy } from '../components/ui/ui-copy';
 import { MessagesList } from '../features/messages/MessagesList';
 import { useAnyReminderOn } from '../features/profile/notification-settings';
+import { readerError } from '../features/messages/reader-error';
 import '../features/messages/messages-hub.css';
 
 function ThreadRouteState() {
-  const { t } = useUiCopy();
+  const { t, locale } = useUiCopy();
   const { user, setShowLogin, chatRouteStatus, chatRouteError, retryChatRoute } = useApp();
   const back = <Button variant="text" to="/messages">{t('返回消息列表', 'Back to messages')}</Button>;
   return <div className="msg-state">
     {!user ? <EmptyState title={t('登录后查看这段对话', 'Sign in to view this conversation')} body={t('登录你的 BAYLINK 账号后继续。', 'Log in to your BAYLINK account to continue.')}
       actions={<><Button variant="primary" onClick={() => setShowLogin(true)}>{t('登录 / 注册', 'Log in / Sign up')}</Button>{back}</>} />
       : chatRouteStatus === 'not-found' ? <EmptyState title={t('无法打开这段对话', 'Unable to open this conversation')} body={t('对话不存在，或当前账号无法访问。', "This conversation doesn't exist, or your current account can't access it.")} actions={back} />
-        : chatRouteStatus === 'error' ? <ErrorState title={t('对话加载失败', 'Conversation failed to load')} body={chatRouteError || t('请检查网络后重试。', 'Check your connection and try again.')} onRetry={retryChatRoute} homeTo="/messages" />
+        : chatRouteStatus === 'error' ? <ErrorState title={t('对话加载失败', 'Conversation failed to load')} body={readerError(chatRouteError || '', locale, '') || t('请检查网络后重试。', 'Check your connection and try again.')} onRetry={retryChatRoute} homeTo="/messages" />
           : <div><p className="msg-note" role="status">{t('正在安全读取你的会话…', 'Opening your conversation…')}</p><SkeletonFeed rows count={3} /></div>}
   </div>;
 }
@@ -51,7 +52,7 @@ export default function MessagesPage() {
     <div className="msg-hub">
       <PageHeader title={t('消息', 'Messages')} lede={user ? t('私信、联系方式请求，以及小队和预约的通知。', 'Private messages, contact requests, and group and booking updates.') : undefined} />
       {user && <ul className="msg-rounds" aria-label={t('消息分类', 'Message types')}>
-        <li><button type="button" className="msg-round" aria-expanded={requestsOpen} aria-controls="contact-requests" onClick={openRequests}>
+        <li><button type="button" className="msg-round" aria-expanded={requestsOpen} aria-controls={requestsOpen || pending ? 'contact-requests' : undefined} onClick={openRequests}>
           <span className="msg-round__icon" aria-hidden="true"><UserPlus strokeWidth={1.75} /></span>
           <span className="msg-round__label">{t('联系请求', 'Contact requests')}</span>
           {!!pending && <b className="msg-round__count" aria-label={t(`${pending} 个待处理`, `${pending} waiting`)}>{pending > 99 ? '99+' : pending}</b>}

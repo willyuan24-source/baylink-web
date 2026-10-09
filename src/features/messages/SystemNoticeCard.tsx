@@ -1,17 +1,18 @@
 import { Link } from 'react-router-dom';
 import { CalendarCheck, Info, Users } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { noticeEnglish, noticeKindLabel, noticeLine, parseSystemNotice } from './system-notice';
+import { isNoticeWording, noticeKindLabel, noticeLine, noticeStatus, parseSystemNotice } from './system-notice';
 import './messages-hub.css';
 
 /**
  * A booking or group update inside a conversation (E2E-14): a card with the kind, the status, the item and its time,
- * and one in-app link. The server text's URL and record id never reach the reader.
+ * and one in-app link. The server text's URL and record id never reach the reader. The server's fixed wording is shown
+ * in the reader's language (繁體 by conversion); only a member's own words (the item title) keep translate="no".
  */
 export function SystemNoticeCard({ content, messageId, createdAt, dateLocale, onNavigate }: {
   content: string; messageId: string; createdAt: number; dateLocale: string; onNavigate?: () => void;
 }) {
-  const { t, english } = useUiCopy();
+  const { t, locale } = useUiCopy();
   const notice = parseSystemNotice(content, messageId);
   const Icon = notice.kind === 'booking' ? CalendarCheck : notice.kind === 'outing' ? Users : Info;
   const date = new Date(createdAt);
@@ -19,11 +20,11 @@ export function SystemNoticeCard({ content, messageId, createdAt, dateLocale, on
   return <article className="msg-notice" data-message-id={messageId} data-kind={notice.kind} aria-label={t('系统通知', 'System notification')}>
     <header className="msg-notice__head">
       <span className="msg-notice__icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
-      <span className="msg-notice__kind">{noticeKindLabel(notice.kind, english)}</span>
+      <span className="msg-notice__kind">{noticeKindLabel(notice.kind, locale)}</span>
       <time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time>
     </header>
-    {notice.status && <p className="msg-notice__status" translate="no">{english ? noticeEnglish(notice.status) : notice.status}</p>}
-    {notice.lines.map((text, index) => <p key={index} className="msg-notice__line" translate="no">{noticeLine(text, english)}</p>)}
+    {notice.status && <p className="msg-notice__status" translate={isNoticeWording(notice.status) ? undefined : 'no'}>{noticeStatus(notice.status, locale)}</p>}
+    {notice.lines.map((text, index) => <p key={index} className="msg-notice__line" translate={isNoticeWording(text) ? undefined : 'no'}>{noticeLine(text, locale)}</p>)}
     {notice.to && <Link className="msg-notice__link" to={notice.to} onClick={onNavigate}>{linkLabel}</Link>}
   </article>;
 }

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import Avatar from './Avatar';
 import { friendlyErrorMessage } from '../lib/format';
+import { readerError } from '../features/messages/reader-error';
 import { useUiCopy } from './ui/ui-copy';
 import '../features/messages/messages-hub.css';
 
@@ -45,7 +46,7 @@ export const ContactRequestInboxPanel = ({
   showEmpty = false,
   id,
 }: ContactRequestInboxPanelProps) => {
-  const { t } = useUiCopy();
+  const { t, locale } = useUiCopy();
   const [requests, setRequests] = useState<ContactRequestInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [ownExpanded, setOwnExpanded] = useState(false);
@@ -102,7 +103,7 @@ export const ContactRequestInboxPanel = ({
       callbacks.current.onCountChange?.(next.length);
       showToast(approve ? t('已发送联系方式', 'Contact details sent') : t('已拒绝请求', 'Request declined'), approve ? 'success' : 'info');
     } catch (err) {
-      if (active.current) showToast(friendlyErrorMessage(err, t('操作失败，请重试。', 'Action failed. Please try again.')), 'error');
+      if (active.current) { const fallback = t('操作失败，请重试。', 'Action failed. Please try again.'); showToast(readerError(friendlyErrorMessage(err, fallback), locale, fallback), 'error'); }
     } finally {
       if (active.current) { actionPending.current = false; setActingId(null); }
     }
@@ -118,12 +119,12 @@ export const ContactRequestInboxPanel = ({
           <h2 id="msg-requests-title" className="msg-requests__title">{count ? t(`${count} 个联系方式请求待处理`, `Contact requests to answer: ${count}`) : t('联系方式请求', 'Contact requests')}</h2>
           <p className="msg-requests__hint">{t('同意后将通过私信发送联系方式卡片，不会公开在帖子详情。', "Once approved, a contact card will be sent by private message. It won't appear publicly in the post.")}</p>
         </div>
-        {count > 0 && <button type="button" className="msg-requests__toggle" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls="msg-requests-list">
+        {count > 0 && <button type="button" className="msg-requests__toggle" onClick={() => setExpanded(!expanded)} aria-expanded={expanded} aria-controls={expanded ? 'msg-requests-list' : undefined}>
           {expanded ? t('收起', 'Collapse') : t('查看请求', 'View requests')}
           {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
         </button>}
       </div>
-      {error && <p role="alert" className="msg-requests__error">{error}<button type="button" onClick={() => void load()}>{t('重新加载', 'Reload')}</button></p>}
+      {error && <p role="alert" className="msg-requests__error">{readerError(error, locale, t('联系方式请求加载失败。', 'Unable to load contact requests.'))}<button type="button" onClick={() => void load()}>{t('重新加载', 'Reload')}</button></p>}
       {!error && !count && (loading
         ? <p role="status" className="msg-requests__empty">{t('正在加载联系方式请求…', 'Loading contact requests…')}</p>
         : <p className="msg-requests__empty">{t('暂时没有待处理的联系请求。', 'No contact requests to answer right now.')}</p>)}

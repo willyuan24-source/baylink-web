@@ -139,7 +139,7 @@ const ConversationList = ({ currentUser, onLoginNeeded }: MessagesListProps) => 
         const draft = readMessageDraft(currentUser.id, conversation.id);
         const pinned = pins.includes(conversation.id);
         const unread = Math.max(0, Number(conversation.unreadCount) || 0);
-        const preview = conversation.lastMessage ? previewText(conversation.lastMessage, english) : t('点击开始聊天', 'Tap to start chatting');
+        const preview = conversation.lastMessage ? previewText(conversation.lastMessage, locale) : t('点击开始聊天', 'Tap to start chatting');
         // translate="no": the name and message are the members' own words; every UI string here is already localised.
         return <li key={conversation.id} translate="no" data-profile-theme={other.profileTheme || 'bay'}>
           <RowCard rawTitle className={unread ? 'msg-thread msg-thread--unread' : 'msg-thread'} title={other.nickname} to={`/messages/${encodeURIComponent(conversation.id)}`}
