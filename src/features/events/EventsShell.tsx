@@ -1,7 +1,8 @@
-import './events.css';
 import { Suspense, useEffect, useState, type ReactNode } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { PageContainer, PageHeader, SegmentedTabs, SkeletonFeed } from '../../components/ui';
+// After the primitives, so the column's few overrides of ui.css come later in the cascade.
+import './events.css';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { getMonthlyDateRange, isFreeToAttend } from '../../lib/monthly';
