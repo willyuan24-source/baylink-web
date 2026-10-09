@@ -103,7 +103,28 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon::after { content:''; position:absolute; bottom:-3px; left:50%; width:4px; height:4px; border-radius:50%; background:var(--color-brand); transform:translateX(-50%); }
   .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand); }
   .site-mobile-nav .site-mobile-ask>svg { width:34px; height:34px; padding:6px; box-sizing:border-box; border-radius:10px; color:var(--color-surface); background:var(--color-brand); }
-  .site-mobile-nav .site-mobile-ask>span { min-height:1.25em; max-width:100%; overflow-wrap:normal; line-height:1.25; }
+  .site-mobile-nav .site-mobile-ask>span { min-height:1.25em; max-width:100%; overflow-wrap:normal; white-space:nowrap; line-height:1.25; }
+  /* 问 BayBay / Ask BayBay never wraps: the bar is a size container in the label's own em (--text-caption), so the swap to
+     问问 / Ask below follows 大, 特大 and 简洁显示 as well as the screen width. */
+  .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; font-size:var(--text-caption); }
+}
+/* Five equal tabs share the bar's content box less 4 x 3px gaps, so a tab is (width - 12px) / 5. The full label shows only
+   while a tab is wider than it with room for wider phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for
+   Ask BayBay; SF Pro runs about 5% wider): 4.9em and 5.5em per tab, i.e. 5 x tab + 12px (at most .92em). */
+@container site-mobile-bar (max-width:25.4em) {
+  .site-mobile-ask-label { display:none; }
+  .site-mobile-ask-short { display:inline; }
+}
+@container site-mobile-bar (max-width:28.4em) {
+  html:lang(en) .site-mobile-ask-label { display:none; }
+  html:lang(en) .site-mobile-ask-short { display:inline; }
+}
+/* Safari 15 / Firefox < 110 have no container queries: the short label on every phone. */
+@supports not (container-type:inline-size) {
+  @media(max-width:599px) {
+    .site-mobile-ask-label { display:none; }
+    .site-mobile-ask-short { display:inline; }
+  }
 }
 @media(max-width:767px) {
   .site-topbar { min-height:68px; }
