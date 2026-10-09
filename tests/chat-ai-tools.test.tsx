@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { after, afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
+import { registerHooks } from 'node:module';
+// ChatView imports its own stylesheets (system notices); node only needs them to resolve.
+const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 import React from 'react';
 import type { Conversation, Message, ReportTarget, UserData } from '../src/lib/types';
 
@@ -52,7 +55,9 @@ test('booking system notices are labeled separately without quote, reaction, or 
   await act(async () => {});
   const notice = view.getByRole('article', { name: 'System notification' });
   assert.equal(notice.dataset.messageId, 'booking_notice');
-  assert.ok(notice.textContent?.includes(systemContent));
+  assert.match(notice.textContent || '', /Service booking/);
+  assert.match(notice.textContent || '', /待确认/);
+  assert.match(notice.textContent || '', /这是时间安排记录，不含支付。/);
   assert.ok(notice.querySelector('time[datetime]'));
   assert.equal(notice.querySelectorAll('button, img').length, 0);
   assert.equal(view.getByRole('link', { name: 'View booking' }).getAttribute('href'), '/me/bookings');
@@ -271,3 +276,5 @@ test('chat safety links use the associated post category, and a failed lookup re
   assert.ok(view.getByRole('link', { name: '二手交易安全指南' }));
   assert.ok(view.getByRole('link', { name: '本地服务安全指南' }));
 });
+
+after(() => styles.deregister());

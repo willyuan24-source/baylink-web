@@ -15,6 +15,7 @@ import type { Socket } from 'socket.io-client';
 import { mergeMessages, messageText, readServerMessage, readMessageDraft, saveMessageDraft, readPendingMessages, savePendingMessage, removePendingMessage, messageReadBatches, isReplyable, isNearMessageBottom, MESSAGE_REACTIONS, type MessageReaction, type DisplayMessage } from './messageState';
 import { ChatAiComposer, ChatAiTranslation } from './ChatAiTools';
 import { CategorySafetyNotice } from '../../components/CategorySafetyNotice';
+import { SystemNoticeCard } from './SystemNoticeCard';
 
 type ChatViewProps = {
   currentUser: UserData;
@@ -27,13 +28,15 @@ type ChatViewProps = {
   showToast?: (message: string, type?: 'success' | 'error' | 'info') => void;
   onReportMessage?: (target: ReportTarget) => void;
 };
+/** A history load failure without a server message; worded at render time so it follows the language. */
+const LOAD_FAILED = 'load-failed';
 const COMPOSER_EMOJI = ['👋', '😊', '👍', '❤️', '🙏', '🎉', '😂', '👀', '☕', '🌉', '🌿', '✨'];
 
 export const ChatView = (props: ChatViewProps) => <ChatSession key={JSON.stringify([props.currentUser.id, props.currentUser.token, props.conversation.id])} {...props} />;
 
 const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile, onToggleBlockUser, blockedUserIds, showToast, onReportMessage }: ChatViewProps) => {
   const locale = useLocale();
-  const tr = (text: string) => translateText(text, locale);
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState(() => readMessageDraft(currentUser.id, conversation.id));
   const [draftStored, setDraftStored] = useState(true);
@@ -66,7 +69,6 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const other = conversation.otherUser;
   const blocked = !!blockedUserIds?.includes(other.id);
   const dateLocale = locale === 'en' ? 'en-US' : locale === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
-  const systemLabel = locale === 'en' ? 'System notification' : tr('系统通知');
 
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   useEffect(() => {
@@ -121,7 +123,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
       if (initial) { setLoading(true); setLoadError(null); }
       try {
         const data = await api.request(`/conversations/${conversation.id}/messages`, { signal: controller.signal });
-        if (!Array.isArray(data)) throw new Error('消息响应格式异常');
+        if (!Array.isArray(data)) throw new Error('Unexpected message response');
         const history = data.map(readServerMessage).filter((message): message is Message => !!message && (!message.conversationId || message.conversationId === conversation.id));
         if (cancelled) return;
         const unseen = history.filter(message => !knownIds.current.has(message.id) && message.senderId !== currentUser.id);
@@ -133,7 +135,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         setMessages(previous => mergeMessages(previous, history));
         setLoadError(null);
       } catch (error) {
-        if (!cancelled && initial) setLoadError(friendlyErrorMessage(error, '消息加载失败，请重试。'));
+        if (!cancelled && initial) setLoadError(friendlyErrorMessage(error, '') || LOAD_FAILED);
       } finally { inFlight = false; if (!cancelled && initial) setLoading(false); }
     };
     void load(true);
@@ -211,7 +213,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         setMessages(previous => mergeMessages(previous, [saved], optimistic.id));
       } else {
         const history = await api.request(`/conversations/${conversation.id}/messages`);
-        if (!Array.isArray(history)) throw new Error('暂时无法确认发送结果，请刷新消息。');
+        if (!Array.isArray(history)) throw new Error(t('暂时无法确认发送结果，请刷新消息。', "We couldn't confirm whether your message was sent. Refresh your messages."));
         if (active.current) {
           setMessages(previous => mergeMessages(previous, history.map(readServerMessage).filter((message): message is Message => !!message && (!message.conversationId || message.conversationId === conversation.id)), optimistic.id));
           setPendingDrafts(readPendingMessages(currentUser.id, conversation.id));
@@ -222,7 +224,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
       if (!active.current) return;
       setMessages(previous => previous.map(message => message.id === optimistic.id ? { ...message, delivery: 'failed' } : message));
       if (type === 'text' && draftRevision.current === revision) { writeDraft(content); setReplyTo(quoted); }
-      showToast?.(friendlyErrorMessage(error, '发送未确认，请刷新消息后再试。'), 'error');
+      showToast?.(friendlyErrorMessage(error, t('发送未确认，请刷新消息后再试。', "Sending hasn't been confirmed. Refresh your messages and try again.")), 'error');
     } finally { if (active.current) { sendingRef.current = false; setSending(false); } }
   };
 
@@ -234,9 +236,9 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
       const response = await api.request(`/conversations/${conversation.id}/messages/${encodeURIComponent(message.id)}/reaction`, { method: 'PUT', body: JSON.stringify({ emoji: selected ? null : emoji }) });
       if (!active.current) return;
       const saved = readServerMessage(response);
-      if (!saved || saved.id !== message.id || (saved.conversationId && saved.conversationId !== conversation.id)) throw new Error('回应暂时未保存，请重试。');
+      if (!saved || saved.id !== message.id || (saved.conversationId && saved.conversationId !== conversation.id)) throw new Error(t('回应暂时未保存，请重试。', 'Your reaction could not be saved. Please try again.'));
       setMessages(previous => mergeMessages(previous, [saved]));
-    } catch (error) { if (active.current) showToast?.(friendlyErrorMessage(error, '回应暂时未保存，请重试。'), 'error'); }
+    } catch (error) { if (active.current) showToast?.(friendlyErrorMessage(error, t('回应暂时未保存，请重试。', 'Your reaction could not be saved. Please try again.')), 'error'); }
     finally { if (active.current) { reactionBusy.current = false; setReactionPending(null); } }
   };
   const insertEmoji = (emoji: string) => {
@@ -252,25 +254,25 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
     <ModalShell onClose={onClose} closeOnBackdrop={false} labelledBy="modern-chat-title" className="modern-chat-overlay">
       <section className="modern-chat" data-profile-theme={other.profileTheme || 'bay'}>
         <header className="modern-chat-header">
-          <button type="button" onClick={onClose} className="modern-chat-icon" aria-label="返回"><ChevronLeft size={21} /></button>
-          <button type="button" onClick={() => onViewProfile?.(other.id)} disabled={!onViewProfile} className="modern-chat-person" translate="no" aria-label={`${tr('查看资料')} · ${other.nickname}`}>
+          <button type="button" onClick={onClose} className="modern-chat-icon" aria-label={t('返回', 'Back')}><ChevronLeft size={21} /></button>
+          <button type="button" onClick={() => onViewProfile?.(other.id)} disabled={!onViewProfile} className="modern-chat-person" translate="no" aria-label={`${t('查看资料', 'View profile')} · ${other.nickname}`}>
             <Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={11} />
-            <span className="modern-chat-person-copy"><span className="modern-chat-name"><strong id="modern-chat-title" translate="no">{other.nickname}</strong><TrustBadge user={other} size={12} adminCompact /></span><span className="modern-chat-status" translate="no">{other.statusText || other.city || tr('在湾区，认识一个新邻居。')}</span></span>
+            <span className="modern-chat-person-copy"><span className="modern-chat-name"><strong id="modern-chat-title" translate="no">{other.nickname}</strong><TrustBadge user={other} size={12} adminCompact /></span><span className="modern-chat-status" translate="no">{other.statusText || other.city || t('在湾区，认识一个新邻居。', 'Meet a new neighbor in the Bay Area.')}</span></span>
           </button>
-          {onToggleBlockUser && <button type="button" onClick={() => onToggleBlockUser(other.id)} className="modern-chat-icon" title={blocked ? '取消屏蔽' : '屏蔽用户'} aria-label={blocked ? '取消屏蔽' : '屏蔽用户'}><UserX size={17} /></button>}
+          {onToggleBlockUser && <button type="button" onClick={() => onToggleBlockUser(other.id)} className="modern-chat-icon" title={blocked ? t('取消屏蔽', 'Unblock') : t('屏蔽用户', 'Block user')} aria-label={blocked ? t('取消屏蔽', 'Unblock') : t('屏蔽用户', 'Block user')}><UserX size={17} /></button>}
         </header>
-        {isPlatformAdmin(other) && <p className="modern-chat-admin">BAYLINK 管理员不会主动索要密码、验证码或付款信息。</p>}
-        {(conversation.lastPostId || conversation.lastPostTitle) && <div className="modern-chat-context"><FileText size={17} aria-hidden="true" /><span>正在沟通</span>{conversation.lastPostId ? <Link to={`/posts/${encodeURIComponent(conversation.lastPostId)}`} onClick={onClose}><span translate="no">{conversation.lastPostTitle || tr('查看关联帖子')}</span></Link> : <strong translate="no">{conversation.lastPostTitle}</strong>}</div>}
+        {isPlatformAdmin(other) && <p className="modern-chat-admin">{t('BAYLINK 管理员不会主动索要密码、验证码或付款信息。', 'BAYLINK admins will never contact you to ask for passwords, verification codes, or payment details.')}</p>}
+        {(conversation.lastPostId || conversation.lastPostTitle) && <div className="modern-chat-context"><FileText size={17} aria-hidden="true" /><span>{t('正在沟通', 'In conversation')}</span>{conversation.lastPostId ? <Link to={`/posts/${encodeURIComponent(conversation.lastPostId)}`} onClick={onClose}><span translate="no">{conversation.lastPostTitle || t('查看关联帖子', 'View related post')}</span></Link> : <strong translate="no">{conversation.lastPostTitle}</strong>}</div>}
         <CategorySafetyNotice category={contextCategory} onNavigate={onClose} />
-        <div className="modern-chat-history" ref={scrollRef} onScroll={handleScroll} role="region" aria-label="聊天记录" tabIndex={0}>
-          {loading && <p role="status" className="modern-chat-notice">正在加载消息…</p>}
-          {loadError && <div role="alert" className="modern-chat-notice"><p>{loadError}</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>重新加载</button></div>}
+        <div className="modern-chat-history" ref={scrollRef} onScroll={handleScroll} role="region" aria-label={t('聊天记录', 'Conversation history')} tabIndex={0}>
+          {loading && <p role="status" className="modern-chat-notice">{t('正在加载消息…', 'Loading messages…')}</p>}
+          {loadError && <div role="alert" className="modern-chat-notice"><p>{loadError === LOAD_FAILED ? t('消息加载失败，请重试。', "Couldn't load messages. Please try again.") : loadError}</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>{t('重新加载', 'Reload')}</button></div>}
           {pendingDrafts.filter(draft => !messages.some(message => message.id === draft.id)).map(draft => <div className="modern-chat-pending" key={draft.id}>
-            <p>还有一条发送结果未确认的消息。先刷新核实，避免重复发送。</p>
-            <details><summary>未确认消息原文</summary><p translate="no">{draft.content}</p></details>
-            <div><button type="button" onClick={() => setRetryKey(key => key + 1)}>刷新消息</button><button type="button" disabled={!!input} title={input ? '请先保存或发送当前草稿，再恢复这条消息。' : undefined} onClick={() => { if (!input) { draftRevision.current += 1; writeDraft(draft.content); inputRef.current?.focus(); } }}>恢复未确认消息</button><button type="button" onClick={() => { removePendingMessage(currentUser.id, conversation.id, draft.id); }}>删除本机副本</button></div>
+            <p>{t('还有一条发送结果未确认的消息。先刷新核实，避免重复发送。', 'A previous message has unconfirmed delivery. Refresh to check before sending it again.')}</p>
+            <details><summary>{t('未确认消息原文', 'Unconfirmed message text')}</summary><p translate="no">{draft.content}</p></details>
+            <div><button type="button" onClick={() => setRetryKey(key => key + 1)}>{t('刷新消息', 'Refresh messages')}</button><button type="button" disabled={!!input} title={input ? t('请先保存或发送当前草稿，再恢复这条消息。', 'Save or send your current draft before restoring this message.') : undefined} onClick={() => { if (!input) { draftRevision.current += 1; writeDraft(draft.content); inputRef.current?.focus(); } }}>{t('恢复未确认消息', 'Restore unconfirmed message')}</button><button type="button" onClick={() => { removePendingMessage(currentUser.id, conversation.id, draft.id); }}>{t('删除本机副本', 'Discard local copy')}</button></div>
           </div>)}
-          {!loading && !loadError && messages.length === 0 && <div className="modern-chat-welcome"><Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={18} /><h2>一句你好，开启新的联系。</h2><p>聊聊你感兴趣的好物，或一个想请教的小问题。</p><button type="button" disabled={blocked} onClick={() => { draftRevision.current += 1; writeDraft(tr('你好！很高兴认识你 👋')); inputRef.current?.focus(); }}><MessageCircle size={16} />写一句招呼</button></div>}
+          {!loading && !loadError && messages.length === 0 && <div className="modern-chat-welcome"><Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={18} /><h2>{t('一句你好，开启新的联系。', 'A little hello goes a long way.')}</h2><p>{t('聊聊你感兴趣的事，或一个想请教的小问题。', 'Ask about what caught your eye, or a small question.')}</p><button type="button" disabled={blocked} onClick={() => { draftRevision.current += 1; writeDraft(t('你好！很高兴认识你 👋', 'Hi! Nice to meet you 👋')); inputRef.current?.focus(); }}><MessageCircle size={16} />{t('写一句招呼', 'Start with hello')}</button></div>}
           {messages.map((message, index) => {
             const mine = message.senderId === currentUser.id;
             const isContactCard = message.messageType === 'contact_card' || message.type === 'contact_card';
@@ -279,42 +281,37 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
             const showAvatar = !mine && (index === 0 || messages[index - 1].senderId !== message.senderId || newDay);
             return <div className="modern-chat-message-group" key={message.id}>
               {newDay && <div className="modern-chat-day"><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { month: 'short', day: 'numeric', weekday: 'short', ...(date.getFullYear() !== new Date().getFullYear() ? { year: 'numeric' } : {}) }).format(date)}</time></div>}
-              {message.messageType === 'system' ? <article className="mx-auto my-4 max-w-lg rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm text-stone-700" data-message-id={message.id} aria-label={systemLabel}>
-                <div className="mb-2 flex items-center justify-between gap-4 text-xs text-stone-500"><strong>{systemLabel}</strong><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time></div>
-                <p className="whitespace-pre-wrap break-words leading-relaxed" translate="no">{messageText(message)}</p>
-                {message.id.startsWith('booking_') && <Link to="/me/bookings" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4">{locale === 'en' ? 'View booking' : tr('查看预约')}</Link>}
-                {message.id.startsWith('outing_') && <Link to="/together?view=mine" onClick={onClose} className="mt-3 inline-flex min-h-11 items-center font-semibold text-emerald-800 underline underline-offset-4">{locale === 'en' ? 'View my groups' : locale === 'zh-Hant' ? '查看我的小隊' : '查看我的小队'}</Link>}
-              </article> : <article className={`modern-chat-message ${mine ? 'is-mine' : ''}`} data-message-id={message.id} aria-label={new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}>
+              {message.messageType === 'system' ? <SystemNoticeCard content={message.content} messageId={message.id} createdAt={message.createdAt} dateLocale={dateLocale} onNavigate={onClose} /> : <article className={`modern-chat-message ${mine ? 'is-mine' : ''}`} data-message-id={message.id} aria-label={new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}>
                 {!mine && <div className="modern-chat-avatar">{showAvatar && <Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={8} />}</div>}
                 <div className="modern-chat-message-content">
                   {isContactCard && message.contactCard?.methods?.length ? <ContactCardMessage methods={message.contactCard.methods} isMine={mine} onCopied={(text, type) => showToast?.(text, type)} /> : <div className="modern-chat-bubble">
                     {message.replyTo && <blockquote className="modern-chat-quote" translate="no"><strong>{senderName(message.replyTo.senderId)}</strong><span>{message.replyTo.content}</span></blockquote>}
                     {isReplyable(message) && !!message.content && !blocked ? <ChatAiTranslation conversationId={conversation.id} message={message} /> : <p translate={message.content ? 'no' : undefined}>{messageText(message)}</p>}
-                    {message.delivery === 'sending' && <p className="modern-chat-delivery">发送中…</p>}
-                    {message.delivery === 'failed' && <div className="modern-chat-delivery is-failed"><p>发送未确认，请刷新后确认是否送达。</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>刷新消息</button>{message.type === 'text' && !input && <button type="button" onClick={() => { draftRevision.current += 1; writeDraft(message.content); }}>放回输入框</button>}</div>}
+                    {message.delivery === 'sending' && <p className="modern-chat-delivery">{t('发送中…', 'Sending…')}</p>}
+                    {message.delivery === 'failed' && <div className="modern-chat-delivery is-failed"><p>{t('发送未确认，请刷新后确认是否送达。', 'Delivery is unconfirmed. Refresh to check before sending again.')}</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>{t('刷新消息', 'Refresh messages')}</button>{message.type === 'text' && !input && <button type="button" onClick={() => { draftRevision.current += 1; writeDraft(message.content); }}>{t('放回输入框', 'Restore to composer')}</button>}</div>}
                   </div>}
-                  <div className="modern-chat-message-footer"><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time>{isReplyable(message) && !blocked && <div className="modern-chat-message-actions"><button type="button" aria-label="引用回复" title="引用回复" onClick={() => { draftRevision.current += 1; setReplyTo(message); setReactionFor(null); inputRef.current?.focus(); }}><Reply size={14} /></button><button type="button" aria-label="添加回应" title="添加回应" aria-expanded={reactionFor === message.id} disabled={!!reactionPending} onClick={() => setReactionFor(reactionFor === message.id ? null : message.id)}>{reactionPending === message.id ? <Loader2 size={14} className="animate-spin" /> : <SmilePlus size={14} />}</button></div>}</div>
-                  {!mine && message.senderId === other.id && !message.id.startsWith('local:') && !message.delivery && onReportMessage && <button type="button" className="inline-flex min-h-11 items-center gap-1 text-sm font-normal text-baylink-muted underline underline-offset-4" aria-label={tr('举报这条私信')} onClick={() => onReportMessage({ targetType: 'message', targetId: message.id, conversationId: conversation.id, authorId: message.senderId })}><Flag size={14}/>{tr('举报私信')}</button>}
-                  {message.reactions?.some(reaction => reaction.userIds.length) && <div className="modern-chat-reactions" aria-label="消息回应">{message.reactions.filter(reaction => reaction.userIds.length).map(reaction => <button type="button" key={reaction.emoji} translate="no" aria-label={`${reaction.emoji} · ${reaction.userIds.length}`} aria-pressed={reaction.userIds.includes(currentUser.id)} disabled={!!reactionPending || blocked || !isReplyable(message)} onClick={() => void reactTo(message, reaction.emoji as MessageReaction)}><span>{reaction.emoji}</span><span>{reaction.userIds.length}</span></button>)}</div>}
-                  {reactionFor === message.id && <div className="modern-chat-reaction-picker" role="group" aria-label="选择回应表情">{MESSAGE_REACTIONS.map(emoji => <button type="button" key={emoji} translate="no" aria-label={emoji} onClick={() => void reactTo(message, emoji)}>{emoji}</button>)}<button type="button" aria-label="关闭回应选择" onClick={() => setReactionFor(null)}><X size={14} /></button></div>}
+                  <div className="modern-chat-message-footer"><time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time>{isReplyable(message) && !blocked && <div className="modern-chat-message-actions"><button type="button" aria-label={t('引用回复', 'Reply to message')} title={t('引用回复', 'Reply to message')} onClick={() => { draftRevision.current += 1; setReplyTo(message); setReactionFor(null); inputRef.current?.focus(); }}><Reply size={14} /></button><button type="button" aria-label={t('添加回应', 'Add a reaction')} title={t('添加回应', 'Add a reaction')} aria-expanded={reactionFor === message.id} disabled={!!reactionPending} onClick={() => setReactionFor(reactionFor === message.id ? null : message.id)}>{reactionPending === message.id ? <Loader2 size={14} className="animate-spin" /> : <SmilePlus size={14} />}</button></div>}</div>
+                  {!mine && message.senderId === other.id && !message.id.startsWith('local:') && !message.delivery && onReportMessage && <button type="button" className="inline-flex min-h-11 items-center gap-1 text-sm font-normal text-baylink-muted underline underline-offset-4" aria-label={t('举报这条私信', 'Report this message')} onClick={() => onReportMessage({ targetType: 'message', targetId: message.id, conversationId: conversation.id, authorId: message.senderId })}><Flag size={14}/>{t('举报私信', 'Report message')}</button>}
+                  {message.reactions?.some(reaction => reaction.userIds.length) && <div className="modern-chat-reactions" aria-label={t('消息回应', 'Message reactions')}>{message.reactions.filter(reaction => reaction.userIds.length).map(reaction => <button type="button" key={reaction.emoji} translate="no" aria-label={`${reaction.emoji} · ${reaction.userIds.length}`} aria-pressed={reaction.userIds.includes(currentUser.id)} disabled={!!reactionPending || blocked || !isReplyable(message)} onClick={() => void reactTo(message, reaction.emoji as MessageReaction)}><span>{reaction.emoji}</span><span>{reaction.userIds.length}</span></button>)}</div>}
+                  {reactionFor === message.id && <div className="modern-chat-reaction-picker" role="group" aria-label={t('选择回应表情', 'Choose a reaction')}>{MESSAGE_REACTIONS.map(emoji => <button type="button" key={emoji} translate="no" aria-label={emoji} onClick={() => void reactTo(message, emoji)}>{emoji}</button>)}<button type="button" aria-label={t('关闭回应选择', 'Close reactions')} onClick={() => setReactionFor(null)}><X size={14} /></button></div>}
                 </div>
               </article>}
             </div>;
           })}
         </div>
-        {(!atBottom || newMessages > 0) && <button type="button" className="modern-chat-jump" onClick={jumpToLatest}><ArrowDown size={15} />{newMessages ? <><span>新消息</span><span translate="no">{newMessages}</span></> : <span>回到最新消息</span>}</button>}
+        {(!atBottom || newMessages > 0) && <button type="button" className="modern-chat-jump" onClick={jumpToLatest}><ArrowDown size={15} />{newMessages ? <><span>{t('新消息', 'New messages')}</span><span translate="no">{newMessages}</span></> : <span>{t('回到最新消息', 'Jump to latest')}</span>}</button>}
         <div className="modern-chat-composer">
-          {blocked && <p className="modern-chat-blocked">已屏蔽此用户。取消屏蔽后可继续发送。</p>}
+          {blocked && <p className="modern-chat-blocked">{t('已屏蔽此用户。取消屏蔽后可继续发送。', 'This person is blocked. Unblock them to send a message.')}</p>}
           {aiOpen && !blocked && !loading && !loadError && !sending && <ChatAiComposer conversationId={conversation.id} selectedMessage={replyTo} composerValue={input} onClose={() => { setAiOpen(false); aiToggleRef.current?.focus(); }} onApply={text => { draftRevision.current += 1; writeDraft(text); setAiOpen(false); inputRef.current?.focus(); }} />}
-          {replyTo && <div className="modern-chat-reply-preview"><Reply size={17} /><div><span>回复给</span> <strong translate="no">{senderName(replyTo.senderId)}</strong><p translate="no">{replyTo.content}</p></div><button type="button" aria-label="取消引用回复" onClick={() => setReplyTo(null)}><X size={18} /></button></div>}
-          {emojiOpen && <div className="modern-chat-emoji-picker" role="group" aria-label="选择消息表情">{COMPOSER_EMOJI.map(emoji => <button type="button" key={emoji} aria-label={emoji} translate="no" onClick={() => insertEmoji(emoji)}>{emoji}</button>)}</div>}
+          {replyTo && <div className="modern-chat-reply-preview"><Reply size={17} /><div><span>{t('回复给', 'Replying to')}</span> <strong translate="no">{senderName(replyTo.senderId)}</strong><p translate="no">{replyTo.content}</p></div><button type="button" aria-label={t('取消引用回复', 'Cancel reply')} onClick={() => setReplyTo(null)}><X size={18} /></button></div>}
+          {emojiOpen && <div className="modern-chat-emoji-picker" role="group" aria-label={t('选择消息表情', 'Choose an emoji')}>{COMPOSER_EMOJI.map(emoji => <button type="button" key={emoji} aria-label={emoji} translate="no" onClick={() => insertEmoji(emoji)}>{emoji}</button>)}</div>}
           <div className="modern-chat-compose-row">
-            <button type="button" className="modern-chat-icon" disabled={blocked} aria-label="插入表情" aria-expanded={emojiOpen} onClick={() => setEmojiOpen(!emojiOpen)}><SmilePlus size={21} /></button>
-            <textarea ref={inputRef} rows={1} className="modern-chat-input" placeholder={tr('写点什么，聊聊吧…')} aria-label={tr('消息内容')} translate="no" maxLength={2000} value={input} disabled={blocked} onChange={event => { draftRevision.current += 1; writeDraft(event.target.value); }} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); void send('text', input); } }} />
-            <button type="button" className="modern-chat-send" disabled={!input.trim() || sending || loading || !!loadError || blocked} aria-label="发送消息" onClick={() => void send('text', input)}>{sending ? <Loader2 size={19} className="animate-spin" /> : <Send size={19} />}</button>
+            <button type="button" className="modern-chat-icon" disabled={blocked} aria-label={t('插入表情', 'Insert emoji')} aria-expanded={emojiOpen} onClick={() => setEmojiOpen(!emojiOpen)}><SmilePlus size={21} /></button>
+            <textarea ref={inputRef} rows={1} className="modern-chat-input" placeholder={t('写点什么，聊聊吧…', 'Write a little hello…')} aria-label={t('消息内容', 'Message')} translate="no" maxLength={2000} value={input} disabled={blocked} onChange={event => { draftRevision.current += 1; writeDraft(event.target.value); }} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }} onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); void send('text', input); } }} />
+            <button type="button" className="modern-chat-send" disabled={!input.trim() || sending || loading || !!loadError || blocked} aria-label={t('发送消息', 'Send message')} onClick={() => void send('text', input)}>{sending ? <Loader2 size={19} className="animate-spin" /> : <Send size={19} />}</button>
           </div>
-          <div className="modern-chat-compose-meta"><button ref={aiToggleRef} type="button" className="chat-ai-toggle" aria-expanded={aiOpen && !blocked && !loading && !loadError && !sending} aria-controls="chat-ai-composer" disabled={sending || loading || !!loadError || blocked} onClick={() => { setAiOpen(value => !value); setEmojiOpen(false); }}><Sparkles size={14} />{tr('AI 帮我回复')}</button><button type="button" onClick={async () => { if (await confirmDialog({ title: '分享联系方式', message: '确定向对方分享你的联系方式？', confirmText: '分享' })) void send('contact-share', ''); }} disabled={sending || loading || !!loadError || blocked}><Phone size={13} />分享联系方式</button><span className="modern-chat-key-hint"><CornerDownLeft size={12} />Enter 发送 · Shift + Enter 换行</span><span translate="no">{input.length}/2000</span></div>
-          <p className={`modern-chat-draft-note ${draftStored ? '' : 'is-error'}`} role="status">{draftStored ? '草稿仅保存在当前浏览器会话。' : '浏览器未能保存草稿，关闭前请先复制。'}</p>
+          <div className="modern-chat-compose-meta"><button ref={aiToggleRef} type="button" className="chat-ai-toggle" aria-expanded={aiOpen && !blocked && !loading && !loadError && !sending} aria-controls="chat-ai-composer" disabled={sending || loading || !!loadError || blocked} onClick={() => { setAiOpen(value => !value); setEmojiOpen(false); }}><Sparkles size={14} />{t('AI 帮我回复', 'AI reply')}</button><button type="button" onClick={async () => { if (await confirmDialog({ title: t('分享联系方式', 'Share contact details'), message: t('确定向对方分享你的联系方式？', 'Share your contact details with this person?'), confirmText: t('分享', 'Share') })) void send('contact-share', ''); }} disabled={sending || loading || !!loadError || blocked}><Phone size={13} />{t('分享联系方式', 'Share contact details')}</button><span className="modern-chat-key-hint"><CornerDownLeft size={12} />{t('Enter 发送 · Shift + Enter 换行', 'Enter to send · Shift + Enter for a new line')}</span><span translate="no">{input.length}/2000</span></div>
+          <p className={`modern-chat-draft-note ${draftStored ? '' : 'is-error'}`} role="status">{draftStored ? t('草稿仅保存在当前浏览器会话。', 'Drafts stay in this browser session only.') : t('浏览器未能保存草稿，关闭前请先复制。', 'Your browser could not save this draft. Copy it before closing.')}</p>
         </div>
       </section>
     </ModalShell>

@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { after, afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
+import { registerHooks } from 'node:module';
+// The list and chat import their own stylesheets; node only needs them to resolve.
+const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 import React from 'react';
 import type { Conversation, Message, UserData } from '../src/lib/types';
 import type { Socket } from 'socket.io-client';
@@ -171,24 +174,25 @@ test('emoji insertion uses the selection and storage failure is visible without 
 
 test('inbox searches recent messages and statuses, filters unread, and persists account-local pins', async () => {
   api.request = async () => [{ ...conversation('alpha', 2), lastMessage: '周末爬山吧' }, { ...conversation('beta', 0), lastMessage: '二手咖啡机', updatedAt: Date.UTC(2026, 8, 9, 15) }];
-  const view = render(<MemoryRouter><MessagesList currentUser={user()} onOpenChat={() => {}} /></MemoryRouter>);
+  const view = render(<MemoryRouter><MessagesList currentUser={user()} /></MemoryRouter>);
   await waitFor(() => assert.ok(view.getByText('二手咖啡机')));
-  fireEvent.click(view.getByRole('button', { name: /未读0|未读1/ })); assert.equal(view.queryByText('二手咖啡机'), null);
-  fireEvent.click(view.getByRole('button', { name: /全部2/ }));
+  fireEvent.click(view.getByRole('button', { name: /^未读 1$/ })); assert.equal(view.queryByText('二手咖啡机'), null);
+  fireEvent.click(view.getByRole('button', { name: /^全部 2$/ }));
   fireEvent.change(view.getByRole('searchbox', { name: '搜索对话' }), { target: { value: '爬山' } }); assert.equal(view.queryByText('二手咖啡机'), null);
   fireEvent.click(view.getByRole('button', { name: '清除搜索' })); fireEvent.click(view.getByRole('button', { name: '置顶对话 · 邻居 alpha' }));
   assert.deepEqual(JSON.parse(localStorage.getItem(messagePinsKey('me'))!), ['alpha']); assert.deepEqual(readMessagePins('other'), []);
-  assert.equal(view.container.querySelector('.modern-inbox-row')?.textContent?.includes('邻居 alpha'), true);
+  assert.equal(view.container.querySelector('.msg-thread')?.textContent?.includes('邻居 alpha'), true);
+  assert.equal(view.getByRole('link', { name: '邻居 alpha' }).getAttribute('href'), '/messages/alpha');
 });
 
 test('inbox discards late responses after switching accounts', async () => {
   const old = defer<unknown>(); let calls = 0;
   api.request = async () => ++calls === 1 ? old.promise : [conversation('new-account')];
-  const view = render(<MemoryRouter><MessagesList currentUser={user()} onOpenChat={() => {}} /></MemoryRouter>);
-  view.rerender(<MemoryRouter><MessagesList currentUser={user('second')} onOpenChat={() => {}} /></MemoryRouter>);
-  await waitFor(() => assert.ok(view.getByText('邻居 new-account')));
+  const view = render(<MemoryRouter><MessagesList currentUser={user()} /></MemoryRouter>);
+  view.rerender(<MemoryRouter><MessagesList currentUser={user('second')} /></MemoryRouter>);
+  await waitFor(() => assert.ok(view.getByRole('link', { name: '邻居 new-account' })));
   await act(async () => { old.resolve([conversation('old-account')]); });
-  assert.equal(view.queryByText('邻居 old-account'), null);
+  assert.equal(view.queryByRole('link', { name: '邻居 old-account' }), null);
 });
 
 test('rotating a session token discards old chat history even when the account and conversation stay the same', async () => {
@@ -205,12 +209,12 @@ test('rotating a session token discards old chat history even when the account a
 test('rotating a session token reloads the inbox and ignores old responses', async () => {
   const old = defer<unknown>(); let loads = 0;
   api.request = async () => ++loads === 1 ? old.promise : [conversation('new-session')];
-  const view = render(<MemoryRouter><MessagesList currentUser={{ ...user(), token: 'first-token' }} onOpenChat={() => {}} /></MemoryRouter>);
-  view.rerender(<MemoryRouter><MessagesList currentUser={{ ...user(), token: 'rotated-token' }} onOpenChat={() => {}} /></MemoryRouter>);
+  const view = render(<MemoryRouter><MessagesList currentUser={{ ...user(), token: 'first-token' }} /></MemoryRouter>);
+  view.rerender(<MemoryRouter><MessagesList currentUser={{ ...user(), token: 'rotated-token' }} /></MemoryRouter>);
   await act(async () => { old.resolve([conversation('stale-session')]); });
   assert.equal(loads, 2);
-  assert.ok(view.getByText('邻居 new-session'));
-  assert.ok(!view.queryByText('邻居 stale-session'));
+  assert.ok(view.getByRole('link', { name: '邻居 new-session' }));
+  assert.ok(!view.queryByRole('link', { name: '邻居 stale-session' }));
 });
 
 
@@ -286,3 +290,5 @@ test('storage denial does not block sending; memory backup survives closing unti
     assert.deepEqual(readPendingMessages('me', 'thread'), []); assert.ok(!view.queryByRole('button', { name: '恢复未确认消息' }));
   } finally { Object.defineProperty(dom.window.Storage.prototype, 'setItem', descriptor); }
 });
+
+after(() => styles.deregister());

@@ -42,7 +42,7 @@ test('account deletion requires the explicit phrase and calls local session clea
 });
 
 test('the deletion phrase follows the reader’s language and accepts the forms the API accepts', async () => {
-  const { confirmsDeletion, DELETE_PHRASES } = await import('../src/features/profile/PrivacySecurity');
+  const { confirmsDeletion, DELETE_PHRASES } = await import('../src/features/profile/account-deletion');
   for (const value of ['注销我的账号', '註銷我的帳號', '注销我的帐号', '註銷我的賬號', 'DELETE MY ACCOUNT', 'delete my account', ' 注销 我的 账号 ']) assert.equal(confirmsDeletion(value), true, value);
   for (const value of ['', '注销账号', 'DELETE', '删除我的账号']) assert.equal(confirmsDeletion(value), false, value);
   assert.deepEqual(DELETE_PHRASES, { 'zh-Hans': '注销我的账号', 'zh-Hant': '註銷我的帳號', en: 'DELETE MY ACCOUNT' });

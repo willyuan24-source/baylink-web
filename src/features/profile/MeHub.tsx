@@ -10,30 +10,12 @@ import { ReadingPreferencesCard } from '../../components/ReadingPreferences';
 import { navigateSiteLanguage } from '../../components/LanguageRouter';
 import { localizedUrl, setLocale, type Locale } from '../../i18n/locale';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
-import { useReaderLibrary } from '../../lib/reader-library';
-import { useSavedPosts } from '../../lib/savedPosts';
-import type { Library } from '../../lib/planner';
 import './me-hub.css';
 
 /** The site's positioning sentence (index.html title, manifest, About), shown under the name on /me (PROD-10). */
 export function MePositioning() {
   const { t } = useUiCopy();
   return <p className="me-hub__positioning">{t('湾区去哪、怎么办——有来源的中文答案', 'Bay Area plans and practical answers, with sources')}</p>;
-}
-
-/**
- * The My Week count: the same set the My Week shelf lists (planner favorites, saved guides and saved listings).
- * null while the account library is still loading, so the tile never shows a wrong 0.
- * TODO(WEB-SAVES): replace with useSavedCount() from src/lib/saves.ts once it is on main.
- */
-export function useMyWeekSavedCount(userId: string | undefined, library: { ready: boolean; data: Library }): number | null {
-  const reader = useReaderLibrary();
-  const posts = useSavedPosts(userId);
-  if (!library.ready) return null;
-  const keys = new Set(library.data.favorites.map(favorite => `${favorite.kind}:${favorite.id}`));
-  for (const slug of reader.saved) keys.add(`guide:${slug}`);
-  for (const post of posts) keys.add(`post:${post.id}`);
-  return keys.size;
 }
 
 type TileProps = { icon: LucideIcon; title: string; detail?: string; primary?: boolean; badge?: { count: number; label: string } };
@@ -66,9 +48,9 @@ export function MeTiles({ signedIn, messagesCount, savedCount, onMyPosts, onLogi
     <li><Link to="/messages" className="me-tile" data-primary="" aria-label={unread ? t(`消息，${unread} 条未读`, `Messages, ${unread} unread`) : undefined}>
       <TileBody icon={MessageCircle} title={t('消息', 'Messages')} detail={messageDetail} badge={signedIn ? { count: unread, label: t(`${unread} 条未读`, `${unread} unread`) } : undefined} />
     </Link></li>
-    <li><Link to="/my-week" className="me-tile"><TileBody icon={CalendarDays} title={t('我的这周', 'My week')} detail={weekDetail} /></Link></li>
+    <li><Link to="/my-week" className="me-tile"><TileBody icon={CalendarDays} title={t('我的这周', 'My Week')} detail={weekDetail} /></Link></li>
     <li>{signedIn
-      ? <button type="button" className="me-tile" onClick={onMyPosts}><TileBody icon={FileText} title={t('我的发布', 'My posts')} detail={t('管理帖子与发布状态', 'Manage your posts')} /></button>
+      ? <button type="button" className="me-tile" onClick={onMyPosts}><TileBody icon={FileText} title={t('我的发布', 'My posts')} detail={t('管理帖子与发布状态', 'Manage posts and publishing status')} /></button>
       : <button type="button" className="me-tile" onClick={onLogin}><TileBody icon={FileText} title={t('我的发布', 'My posts')} detail={t('登录后管理', 'Sign in to manage')} /></button>}</li>
     <li><div className="me-tile">
       <span className="me-tile__icon" aria-hidden="true"><Users strokeWidth={1.75} /></span>
@@ -158,8 +140,8 @@ export function MeAboutRow() {
 export function MeLegal() {
   const { t } = useUiCopy();
   return <nav className="me-legal" aria-label={t('条款与隐私', 'Terms and privacy')}>
-    <a href="/terms">{t('服务条款', 'Terms of service')}</a>
-    <a href="/privacy">{t('隐私政策', 'Privacy policy')}</a>
+    <a href="/terms">{t('服务条款', 'Terms of Service')}</a>
+    <a href="/privacy">{t('隐私政策', 'Privacy Policy')}</a>
     <a href="/sms-consent">{t('短信条款', 'SMS terms')}</a>
   </nav>;
 }
@@ -174,6 +156,6 @@ export function MeGuestCard({ onLogin }: { onLogin: () => void }) {
       <li>{t('收藏和计划跟着账号走，换手机也在', 'Saved items and plans follow your account')}</li>
       <li>{t('参加小队、预约本地服务', 'Join groups and book local services')}</li>
     </ul>
-    <Button variant="primary" onClick={onLogin}>{t('登录 / 注册', 'Sign in / Register')}</Button>
+    <Button variant="primary" onClick={onLogin}>{t('登录 / 注册', 'Log in / Sign up')}</Button>
   </section>;
 }

@@ -46,7 +46,7 @@ function PersonalSpace({ user, onEdit, library }: PersonalSpaceProps & { library
     [field]: preferences[field].includes(id) ? preferences[field].filter(value => value !== id) : [...preferences[field], id],
   });
 
-  return <div className="profile-personal-space member-profile-wide">
+  return <div className="profile-personal-space">
     <section className="profile-exploration" aria-labelledby="profile-exploration-title">
       <header><div><span className="profile-private-label"><LockKeyhole size={13} aria-hidden="true" />{t('仅自己可见')}</span><h2 id="profile-exploration-title">{t('我的探索路线')}</h2><p>{t('一点点认识湾区，按自己的节奏来。')}</p></div><span className="profile-exploration-mark" aria-hidden="true"><Compass size={34} /></span></header>
       <div className="profile-exploration-progress"><span>{t('已准备')}</span><strong>{library.ready ? `${complete} / 4` : '— / 4'}</strong><div className="profile-exploration-track" aria-hidden="true"><span style={{ width: library.ready ? `${complete * 25}%` : '0%' }} /></div></div>

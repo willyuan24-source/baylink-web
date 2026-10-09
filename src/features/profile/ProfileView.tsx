@@ -23,7 +23,8 @@ import { ProfilePersonalSpace } from './ProfilePersonalSpace';
 import { PrivacySecurity } from './PrivacySecurity';
 import { NotificationPreferencesCard } from './NotificationPreferencesCard';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { MeAboutRow, MeAccountRows, MeDisplaySettings, MeGuestCard, MeLegal, MeList, MePositioning, MeRow, MeTiles, useMyWeekSavedCount } from './MeHub';
+import { MeAboutRow, MeAccountRows, MeDisplaySettings, MeGuestCard, MeLegal, MeList, MePositioning, MeRow, MeTiles } from './MeHub';
+import { useMyWeekSavedCount } from './me-saved-count';
 import './me-hub.css';
 
 type ProfileViewProps = {
@@ -121,11 +122,11 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
       </header>
       <div className="me-hub__actions">
         <button type="button" onClick={() => open('edit')}><Edit size={16} aria-hidden="true" />{t('编辑资料', 'Edit profile')}</button>
-        <Link to={`/users/${encodeURIComponent(user.id)}`}><Eye size={16} aria-hidden="true" />{t('查看公开名片', 'View public card')}</Link>
+        <Link to={`/users/${encodeURIComponent(user.id)}`}><Eye size={16} aria-hidden="true" />{t('查看公开名片', 'View public profile')}</Link>
         <ProfileShareButton userId={user.id} nickname={user.nickname} />
       </div>
-      {user.accountStatus === 'limited' && <p className="me-hub__notice" role="status">{t('你的账号部分功能受到限制，暂时无法发布内容或发送私信。', 'Some features of your account are limited: you cannot post or send messages for now.')}</p>}
-      {user.accountStatus === 'suspended' && <p className="me-hub__notice" data-tone="danger" role="status">{t('你的账号当前受到限制，部分功能暂时不可用。', 'Your account is restricted and some features are unavailable for now.')}</p>}
+      {user.accountStatus === 'limited' && <p className="me-hub__notice" role="status">{t('你的账号部分功能受到限制，暂时无法发布内容或发送私信。', "Some features of your account are restricted. You can't post or send private messages right now.")}</p>}
+      {user.accountStatus === 'suspended' && <p className="me-hub__notice" data-tone="danger" role="status">{t('你的账号当前受到限制，部分功能暂时不可用。', 'Your account is currently restricted. Some features are temporarily unavailable.')}</p>}
 
       <MeTiles signedIn messagesCount={messagesCount} savedCount={savedCount} onMyPosts={() => open('my_posts')} />
 
@@ -134,9 +135,9 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
         <MeList label={t('设置', 'Settings')}>
           <MeDisplaySettings />
           <MeAccountRows onView={open} />
-          <li><MeRow icon={UserX} label={t('已屏蔽用户', 'Blocked users')} value={t('管理私信屏蔽名单', 'Manage who cannot message you')} onClick={onOpenBlockedUsers} /></li>
+          <li><MeRow icon={UserX} label={t('已屏蔽用户', 'Blocked users')} value={t('管理私信屏蔽名单', 'Manage blocked message contacts')} onClick={onOpenBlockedUsers} /></li>
           <MeAboutRow />
-          <li><MeRow icon={LogOut} label={t('退出登录', 'Sign out')} tone="danger" onClick={onLogout} /></li>
+          <li><MeRow icon={LogOut} label={t('退出登录', 'Log out')} tone="danger" onClick={onLogout} /></li>
         </MeList>
       </section>
 
@@ -148,7 +149,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
       <section className="me-section" aria-labelledby="me-trust-title">
         <h2 id="me-trust-title" className="me-section__title">{t('资料与认证', 'Profile and verification')}</h2>
         <div className="me-panel">
-          <h3 className="me-panel__title"><ShieldCheck aria-hidden="true" strokeWidth={1.75} />{t('信任信息', 'Trust details')}</h3>
+          <h3 className="me-panel__title"><ShieldCheck aria-hidden="true" strokeWidth={1.75} />{t('信任信息', 'Trust information')}</h3>
           {joinDays != null && <p>{t(`已加入 BAYLINK ${joinDays} 天`, `Joined BAYLINK ${joinDays} days ago`)}</p>}
           <p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p>
           <p>{getMyOfficialTrustLabel(user)}</p>
@@ -157,7 +158,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
         <div className="me-panel">
           <div className="me-panel__row">
             <h3 className="me-panel__title"><BadgeCheck aria-hidden="true" strokeWidth={1.75} />{t('资料审核', 'Profile review')}{officialApproved && <TrustBadge user={user} size={12} />}</h3>
-            {officialStatus === 'pending' ? <span className="me-panel__status">{t('审核中', 'In review')}</span>
+            {officialStatus === 'pending' ? <span className="me-panel__status">{t('审核中', 'Under review')}</span>
               : officialApproved ? <span className="me-panel__status">{t('已通过', 'Approved')}</span>
                 : <button type="button" onClick={() => setShowOfficialModal(true)}>{officialStatus === 'rejected' ? t('重新申请', 'Apply again') : t('申请认证', 'Apply for verification')}</button>}
           </div>
@@ -170,8 +171,8 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
         <h2 id="me-admin-title" className="me-section__title">{t('管理', 'Admin')}</h2>
         <MeList label={t('管理', 'Admin')}>
           <li><MeRow icon={Radar} label={t('来源变更监测', 'Source change monitor')} onClick={() => open('admin_sources')} /></li>
-          <li><MeRow icon={BadgeCheck} label={t('资料审核管理', 'Profile review queue')} value={t('查看并处理资料审核申请', 'Review verification requests')} onClick={() => open('admin_official')} /></li>
-          <li><MeRow icon={Flag} label={t('举报管理', 'Reports')} value={t('查看并处理用户举报', 'Review user reports')} onClick={() => open('admin_reports')} /></li>
+          <li><MeRow icon={BadgeCheck} label={t('资料审核管理', 'Profile review management')} value={t('查看并处理资料审核申请', 'View and process profile review applications')} onClick={() => open('admin_official')} /></li>
+          <li><MeRow icon={Flag} label={t('举报管理', 'Manage reports')} value={t('查看并处理用户举报', 'Review and handle user reports')} onClick={() => open('admin_reports')} /></li>
         </MeList>
       </section>}
 
