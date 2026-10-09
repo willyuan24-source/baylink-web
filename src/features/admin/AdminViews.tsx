@@ -158,19 +158,19 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                     <div className="mt-1 text-xs text-baylink-text-secondary">
                       申请类型：{getOfficialTypeLabel(r.officialVerification?.type) || '—'}
                     </div>
-                    <div className="mt-0.5 text-[11px] text-baylink-muted">
+                    <div className="mt-0.5 text-[0.6875rem] text-baylink-muted">
                       {getPhoneVerificationTrustLabel(phoneVerified)}
                       {phoneVerified && r.phoneVerifiedAt ? (
                         <span className="ml-1">· {new Date(r.phoneVerifiedAt).toLocaleDateString()}</span>
                       ) : null}
                     </div>
                     {r.officialVerification?.submittedAt && (
-                      <div className="text-[11px] text-baylink-muted">申请时间：{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
+                      <div className="text-[0.6875rem] text-baylink-muted">申请时间：{new Date(r.officialVerification.submittedAt).toLocaleString()}</div>
                     )}
                   </div>
                 </div>
                 {!phoneVerified && (
-                  <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-800">
+                  <div className="mt-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[0.6875rem] leading-relaxed text-amber-800">
                     <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-600" />
                     <span>该用户尚未完成手机验证，建议谨慎审核；你仍然可以通过或拒绝该资料审核申请。</span>
                   </div>
@@ -178,7 +178,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
                 {r.officialVerification?.description && (
                   <p className="mt-3 text-xs leading-relaxed text-baylink-text-secondary">{r.officialVerification.description}</p>
                 )}
-                <div className="mt-2 space-y-1 text-[11px] text-baylink-muted">
+                <div className="mt-2 space-y-1 text-[0.6875rem] text-baylink-muted">
                   {r.officialVerification?.website && <p>网站：{r.officialVerification.website}</p>}
                   {r.officialVerification?.license && <p>资质：{r.officialVerification.license}</p>}
                   {r.officialVerification?.socialLink && <p>社交：{r.officialVerification.socialLink}</p>}
@@ -354,26 +354,26 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
         <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
         <h2 className="flex-1 text-lg font-bold text-baylink-text">举报管理</h2>
-        <button type="button" onClick={openLogsModal} className="rounded-lg border border-baylink-border/50 px-3 py-1.5 text-[11px] font-semibold text-baylink-text-secondary hover:bg-baylink-section">
+        <button type="button" onClick={openLogsModal} className="rounded-lg border border-baylink-border/50 px-3 py-1.5 text-[0.6875rem] font-semibold text-baylink-text-secondary hover:bg-baylink-section">
           管理员操作日志
         </button>
       </div>
       <div className="border-b border-baylink-border/40 bg-white px-4 py-3 space-y-2">
         <div className="flex flex-wrap gap-2">
           {(['open', 'reviewed', 'dismissed', 'all'] as const).map((s) => (
-            <button key={s} type="button" onClick={() => setStatusFilter(s)} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${statusFilter === s ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
+            <button key={s} type="button" onClick={() => setStatusFilter(s)} className={`rounded-full px-3 py-1 text-[0.6875rem] font-semibold ${statusFilter === s ? 'bg-baylink-green text-white' : 'bg-baylink-section text-baylink-muted'}`}>
               {s === 'all' ? '全部状态' : statusLabel(s)}
             </button>
           ))}
         </div>
         <div className="flex flex-wrap gap-2">
           {(['all', 'post', 'user', 'message'] as const).map((t) => (
-            <button key={t} type="button" onClick={() => setTypeFilter(t)} className={`rounded-full px-3 py-1 text-[11px] font-semibold ${typeFilter === t ? 'bg-gray-900 text-white' : 'bg-baylink-section text-baylink-muted'}`}>
+            <button key={t} type="button" onClick={() => setTypeFilter(t)} className={`rounded-full px-3 py-1 text-[0.6875rem] font-semibold ${typeFilter === t ? 'bg-gray-900 text-white' : 'bg-baylink-section text-baylink-muted'}`}>
               {t === 'all' ? '全部类型' : t === 'post' ? '帖子' : t === 'message' ? '私信' : '用户'}
             </button>
           ))}
         </div>
-        <p className="text-[11px] text-amber-700">隐藏帖子只会从公开列表移除，不会删除数据。</p>
+        <p className="text-[0.6875rem] text-amber-700">隐藏帖子只会从公开列表移除，不会删除数据。</p>
       </div>
       <div className="flex-1 overflow-y-auto p-4 pb-24">
         {loading ? (
@@ -398,14 +398,14 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                     </div>
                     {r.detail && <p className="mt-1 text-xs text-baylink-text-secondary line-clamp-4">{r.detail}</p>}
                     {r.reporter && (
-                      <p className="mt-2 text-[11px] text-baylink-muted">
+                      <p className="mt-2 text-[0.6875rem] text-baylink-muted">
                         举报人：{r.reporter.nickname}
                         {r.reporter.isPhoneVerified ? ' · 手机已验证' : ' · 手机未验证'}
                         {r.reporter.accountStatus && r.reporter.accountStatus !== 'active' ? ` · 账号${ACCOUNT_STATUS_LABELS[r.reporter.accountStatus] || r.reporter.accountStatus}` : ''}
                       </p>
                     )}
                     {r.targetUser && (
-                      <div className="mt-2 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2 text-[11px]">
+                      <div className="mt-2 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2 text-[0.6875rem]">
                         <p className="font-semibold text-baylink-text">{r.targetType === 'user' ? '被举报用户' : r.targetType === 'outing' ? '小队队长' : r.targetType === 'outing_message' || r.targetType === 'message' ? '消息发送者' : '帖子作者'}：{r.targetUser.nickname}</p>
                         <p className="mt-0.5 text-baylink-muted">账号状态：{ACCOUNT_STATUS_LABELS[r.targetUser.accountStatus || 'active'] || r.targetUser.accountStatus}</p>
                         {r.targetUser.accountStatusReason && (
@@ -414,20 +414,20 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                       </div>
                     )}
                     {r.targetType === 'post' && r.targetPost && (
-                      <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-[11px] text-baylink-text-secondary">
+                      <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-[0.6875rem] text-baylink-text-secondary">
                         <p className="font-semibold text-baylink-text line-clamp-2">{r.targetPost.title}</p>
                         <p className="mt-0.5">{r.targetPost.category}{r.targetPost.area ? ` · ${r.targetPost.area}` : ''}</p>
                         {postHidden && <p className="mt-1 text-amber-700 font-semibold">已从公开列表隐藏</p>}
                       </div>
                     )}
                     {r.targetType === 'post' && !r.targetPost && (
-                      <p className="mt-1 text-[11px] text-baylink-muted">关联帖子已不存在</p>
+                      <p className="mt-1 text-[0.6875rem] text-baylink-muted">关联帖子已不存在</p>
                     )}
                     {r.targetType === 'message' && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-sm"><strong>选中私信的审核内容</strong>{r.evidence?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2" translate="no">{r.evidence.text}</blockquote>}{r.evidence?.attachmentOmitted && <p className="mt-2">联系方式与附件已省略；未上传整段会话。</p>}<p className="mt-2 text-baylink-muted">仅包含服务器核验的选中消息。</p></div>}
                     {r.outingId && <div className="mt-2 rounded-xl bg-baylink-section/40 px-3 py-2 text-xs"><a href={outingUrl(r.outingId)} target="_blank" rel="noopener noreferrer" className="font-semibold underline">{r.evidence?.title || '查看关联小队'} ↗</a><p>{r.evidence?.date} {r.evidence?.startTime}–{r.evidence?.endTime} · {r.evidence?.city} · {r.evidence?.venue}</p>{r.evidence?.description && <p className="mt-1 whitespace-pre-wrap break-words">{r.evidence.description}</p>}{r.evidence?.message?.text && <blockquote className="mt-2 whitespace-pre-wrap break-words border-l-2 pl-2">{r.evidence.message.text}</blockquote>}<p className="mt-2 text-baylink-muted">举报提交时的内容快照</p></div>}
-                    {r.adminNote && <p className="mt-1 text-[11px] text-baylink-muted">管理员备注：{r.adminNote}</p>}
+                    {r.adminNote && <p className="mt-1 text-[0.6875rem] text-baylink-muted">管理员备注：{r.adminNote}</p>}
                   </div>
-                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-bold text-amber-700">{statusLabel(r.status)}</span>
+                  <span className="shrink-0 rounded-md bg-amber-50 px-2 py-0.5 text-[0.6875rem] font-bold text-amber-700">{statusLabel(r.status)}</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {r.status === 'open' && (
@@ -508,17 +508,17 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
                           <p className="text-xs font-semibold text-baylink-text">
                             {MODERATION_ACTION_LABELS[log.action] || log.action}
                           </p>
-                          <span className="shrink-0 text-[11px] text-baylink-muted">
+                          <span className="shrink-0 text-[0.6875rem] text-baylink-muted">
                             {new Date(log.createdAt).toLocaleString()}
                           </span>
                         </div>
-                        <p className="mt-1 text-[11px] text-baylink-text-secondary">
+                        <p className="mt-1 text-[0.6875rem] text-baylink-text-secondary">
                           管理员：{log.admin?.nickname || 'Admin'}
                           {' · '}
                           目标：{MODERATION_TARGET_TYPE_LABELS[log.targetType] || log.targetType}
                         </p>
                         {noteOrReason && (
-                          <p className="mt-1 text-[11px] text-baylink-muted line-clamp-3">
+                          <p className="mt-1 text-[0.6875rem] text-baylink-muted line-clamp-3">
                             {log.reason?.trim() ? `原因：${log.reason}` : `备注：${log.note}`}
                           </p>
                         )}

@@ -68,15 +68,15 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
           {imageUrl ? <AdDetailImage src={imageUrl} /> : null}
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-2 py-0.5 text-[11px] font-semibold text-baylink-green">
+            <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-2 py-0.5 text-[0.6875rem] font-semibold text-baylink-green">
               <Megaphone size={10} /> 推广信息
             </span>
-            {ad.isDemo && <span className="rounded-md bg-baylink-section px-2 py-0.5 text-[11px] text-baylink-muted">示例推广</span>}
+            {ad.isDemo && <span className="rounded-md bg-baylink-section px-2 py-0.5 text-[0.6875rem] text-baylink-muted">示例推广</span>}
           </div>
           <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</h4>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary">{content}</p>
           {adRelationshipDisclosure(ad.id) && <p className="mt-3 text-xs font-semibold text-baylink-text">{adRelationshipDisclosure(ad.id)}</p>}
-          <p className="mt-3 text-[11px] leading-relaxed text-baylink-muted">此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
+          <p className="mt-3 text-[0.6875rem] leading-relaxed text-baylink-muted">此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
           {links.length > 0 && (
             <div className="mt-4 space-y-2">
               {links.map((link) => (
@@ -150,12 +150,12 @@ const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
         </div>
       )}
       <div className="flex min-w-0 flex-1 flex-col justify-center py-0.5">
-        <span className="mb-1 inline-flex w-fit items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[11px] font-semibold text-baylink-green">
+        <span className="mb-1 inline-flex w-fit items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[0.6875rem] font-semibold text-baylink-green">
           <Megaphone size={8} /> 推广信息
         </span>
-        <div className="line-clamp-2 text-[14px] font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</div>
-        <div className="mt-1 line-clamp-2 text-[11px] leading-relaxed text-baylink-muted">{getAdContent(ad)}</div>
-        {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[11px] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
+        <div className="line-clamp-2 text-[0.875rem] font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</div>
+        <div className="mt-1 line-clamp-2 text-[0.6875rem] leading-relaxed text-baylink-muted">{getAdContent(ad)}</div>
+        {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[0.6875rem] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
       </div>
       {isAdmin && (
         <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(ad.id); }} className="absolute right-2.5 top-2.5 rounded-full bg-white p-1.5 text-red-500 shadow-sm">
@@ -223,7 +223,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-baylink-green-light"><Megaphone size={16} className="text-baylink-green" /></span>
         <p className="text-xs font-semibold text-baylink-text">本地推广信息</p>
       </div>
-      <p className="mt-2 text-[11px] leading-relaxed text-baylink-muted">平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
+      <p className="mt-2 text-[0.6875rem] leading-relaxed text-baylink-muted">平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
     </div>
   );
   const loadingState = (
@@ -243,7 +243,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
           <span className="sr-only">推广信息列表</span>
         )}
         {isAdmin && (
-          <button type="button" onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="flex items-center gap-1 rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white transition hover:bg-baylink-green-hover sm:text-xs">
+          <button type="button" onClick={() => { setEditingAd({ title: '', content: '', imageUrl: '' }); setIsFormOpen(true); }} className="flex items-center gap-1 rounded-lg bg-baylink-green px-2.5 py-1.5 text-[0.6875rem] font-semibold text-white transition hover:bg-baylink-green-hover sm:text-xs">
             <Plus size={12} /> 添加
           </button>
         )}
@@ -270,14 +270,14 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
                 {getAdImageUrl(ad) && <AdThumb src={getAdImageUrl(ad)} contain className="z-10 h-14 w-14 shrink-0 rounded-xl" />}
                 <div className="z-10 flex min-w-0 flex-1 flex-col justify-center">
                   <div className="mb-1 flex items-center gap-1">
-                    <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[11px] font-semibold text-baylink-green"><Megaphone size={8} /> 推广信息</span>
+                    <span className="inline-flex items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[0.6875rem] font-semibold text-baylink-green"><Megaphone size={8} /> 推广信息</span>
                     {isAdmin && !isDisplayableAd(ad) && (
-                      <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-semibold text-amber-700">未配图 · 仅管理员可见</span>
+                      <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.6875rem] font-semibold text-amber-700">未配图 · 仅管理员可见</span>
                     )}
                   </div>
                   <div className="mb-0.5 line-clamp-1 text-sm font-semibold text-baylink-text">{getAdTitle(ad)}</div>
-                  <div className="line-clamp-1 text-[11px] text-baylink-muted">{getAdContent(ad)}</div>
-                  {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[11px] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
+                  <div className="line-clamp-1 text-[0.6875rem] text-baylink-muted">{getAdContent(ad)}</div>
+                  {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[0.6875rem] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
                 </div>
                 {isAdmin && <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteAd(ad.id); }} className="absolute right-2 top-2 z-20 rounded-full bg-white p-1 text-red-500 shadow-sm"><Trash2 size={12} /></button>}
               </div>

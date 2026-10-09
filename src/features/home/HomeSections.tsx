@@ -98,14 +98,14 @@ export const HotRecommendCard = ({ tag, title, desc, price, location, imageUrl, 
     </div>
     <div className="hot-recommend-body">
       <div className="mb-1 flex items-center justify-between gap-1">
-        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[11px] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : isFeatured ? 'bg-amber-50 text-amber-700' : 'bg-baylink-green-light text-baylink-green'}`}>
+        <span className={`inline-flex items-center gap-0.5 rounded-md px-1.5 py-px text-[0.6875rem] font-semibold ${isDemo ? 'bg-baylink-section text-baylink-muted' : isFeatured ? 'bg-amber-50 text-amber-700' : 'bg-baylink-green-light text-baylink-green'}`}>
           {isDemo ? tag : isFeatured ? <><Sparkles size={8} /> 精选</> : <><Shield size={8} /> {tag || '官方'}</>}
         </span>
       </div>
-      <h4 className="line-clamp-2 text-[13px] font-bold leading-snug text-baylink-text lg:line-clamp-1">{title}</h4>
-      <p className="mt-0.5 line-clamp-2 text-[11px] leading-relaxed text-baylink-muted">{desc}</p>
-      {price && <p className="mt-1 text-[13px] font-bold text-baylink-green lg:mt-1.5">{price}</p>}
-      {location && <p className="mt-0.5 flex items-center gap-0.5 text-[11px] text-baylink-muted"><Clock size={9} />{location}</p>}
+      <h4 className="line-clamp-2 text-[0.8125rem] font-bold leading-snug text-baylink-text lg:line-clamp-1">{title}</h4>
+      <p className="mt-0.5 line-clamp-2 text-[0.6875rem] leading-relaxed text-baylink-muted">{desc}</p>
+      {price && <p className="mt-1 text-[0.8125rem] font-bold text-baylink-green lg:mt-1.5">{price}</p>}
+      {location && <p className="mt-0.5 flex items-center gap-0.5 text-[0.6875rem] text-baylink-muted"><Clock size={9} />{location}</p>}
     </div>
   </article>
   );
@@ -142,13 +142,13 @@ export const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, on
     <section className="mb-1.5 sm:mb-3">
       <div className="mb-1 flex items-start justify-between gap-2 px-0.5 sm:mb-2">
         <div className="min-w-0">
-          <h3 className="flex items-center gap-1 text-[13px] font-semibold text-baylink-text sm:text-sm">
+          <h3 className="flex items-center gap-1 text-[0.8125rem] font-semibold text-baylink-text sm:text-sm">
             <Sparkles size={14} className="text-baylink-green sm:w-[15px] sm:h-[15px]" /> 编辑精选
           </h3>
-          <p className="mt-0.5 hidden text-[11px] text-baylink-muted sm:block">编辑选取的信息，请联系发布者确认现状</p>
+          <p className="mt-0.5 hidden text-[0.6875rem] text-baylink-muted sm:block">编辑选取的信息，请联系发布者确认现状</p>
         </div>
         {onViewMore && (
-          <button type="button" onClick={onViewMore} className="shrink-0 rounded-lg px-2 py-1 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green-light active:scale-95 sm:text-xs">
+          <button type="button" onClick={onViewMore} className="shrink-0 rounded-lg px-2 py-1 text-[0.6875rem] font-semibold text-baylink-green transition hover:bg-baylink-green-light active:scale-95 sm:text-xs">
             更多
           </button>
         )}
@@ -179,19 +179,19 @@ export const HotRecommend = ({ onOpenPost, refreshKey, onViewMore, onPublish, on
           <div className="mx-auto mb-2.5 flex h-10 w-10 items-center justify-center rounded-2xl bg-baylink-green-light ring-1 ring-baylink-green/15">
             <Sparkles size={18} className="text-baylink-green" />
           </div>
-          <p className="text-[13px] font-semibold text-baylink-text">暂时还没有编辑精选</p>
-          <p className="mx-auto mt-1 max-w-[260px] text-[11px] leading-relaxed text-baylink-muted">
+          <p className="text-[0.8125rem] font-semibold text-baylink-text">暂时还没有编辑精选</p>
+          <p className="mx-auto mt-1 max-w-[260px] text-[0.6875rem] leading-relaxed text-baylink-muted">
             你可以先浏览最新发布，或者让 BayBay 帮你找合适的信息。
           </p>
           {(onAskBayBay || onPublish) && (
             <div className="mt-3 flex justify-center gap-2">
               {onAskBayBay && (
-                <button type="button" onClick={onAskBayBay} className="rounded-xl border border-baylink-green/20 bg-baylink-green-light px-3.5 py-2 text-[11px] font-semibold text-baylink-green transition hover:bg-baylink-green/[0.12] active:scale-95">
+                <button type="button" onClick={onAskBayBay} className="rounded-xl border border-baylink-green/20 bg-baylink-green-light px-3.5 py-2 text-[0.6875rem] font-semibold text-baylink-green transition hover:bg-baylink-green/[0.12] active:scale-95">
                   问问 BayBay
                 </button>
               )}
               {onPublish && (
-                <button type="button" onClick={onPublish} className="rounded-xl border border-black/[0.06] bg-white/90 px-3.5 py-2 text-[11px] font-semibold text-baylink-text transition hover:bg-baylink-section/40 active:scale-95">
+                <button type="button" onClick={onPublish} className="rounded-xl border border-black/[0.06] bg-white/90 px-3.5 py-2 text-[0.6875rem] font-semibold text-baylink-text transition hover:bg-baylink-section/40 active:scale-95">
                   发布需求
                 </button>
               )}
@@ -236,7 +236,7 @@ export const FeaturedPostsSection = ({ onOpenPost, refreshKey, compact, currentU
       <div className="mb-6 rounded-2xl border border-dashed border-baylink-border bg-white p-6 text-center">
         <Sparkles size={22} className="mx-auto mb-2 text-baylink-muted opacity-50" />
         <p className="text-sm font-semibold text-baylink-text-secondary">暂无编辑精选</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-baylink-muted">编辑选取的帖子会显示在这里，入选不代表平台担保</p>
+        <p className="mt-1 text-[0.6875rem] leading-relaxed text-baylink-muted">编辑选取的帖子会显示在这里，入选不代表平台担保</p>
       </div>
     );
   }
@@ -283,7 +283,7 @@ export const EmptyFeed = ({ feedType, onPublishService, onPublishInfo, keyword, 
     );
   }
   const secondaryActions = (onOpenGuides || onAskBayBay) && (
-    <div className="mt-2.5 flex justify-center gap-2 text-[11px]">
+    <div className="mt-2.5 flex justify-center gap-2 text-[0.6875rem]">
       {onOpenGuides && (
         <button onClick={onOpenGuides} className="inline-flex items-center gap-1 rounded-lg border border-baylink-border/60 bg-white px-3 py-1.5 font-normal text-baylink-text-secondary transition hover:border-baylink-green/30 hover:text-baylink-green">
           <BookOpen size={12} /> 先看湾区指南

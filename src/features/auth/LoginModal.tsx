@@ -127,7 +127,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
                   </select>
                   <label htmlFor="auth-contact-value" className="mb-2 block text-xs font-normal">{form.contactType === 'wechat' ? '微信号' : form.contactType === 'phone' ? '电话号码' : '联系邮箱'}</label>
                   <input id="auth-contact-value" required type={form.contactType === 'phone' ? 'tel' : form.contactType === 'email' ? 'email' : 'text'} className={inputClass} value={form.contactValue} onChange={e => setForm({ ...form, contactValue: e.target.value })} placeholder={form.contactType === 'wechat' ? '微信号' : form.contactType === 'phone' ? '可包含国家代码，例如 +1 415 555 0123' : '联系邮箱'} />
-                  <p className="mt-1 px-1.5 text-[11px] leading-relaxed text-baylink-muted">
+                  <p className="mt-1 px-1.5 text-[0.6875rem] leading-relaxed text-baylink-muted">
                     仅用于账号信任与联系方式请求功能，不会公开显示。
                   </p>
                 </div>
@@ -145,7 +145,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
               </div>
             )}
             {mode === 'register' && (
-              <p className="px-1 text-center text-[11px] leading-relaxed text-baylink-muted">
+              <p className="px-1 text-center text-[0.6875rem] leading-relaxed text-baylink-muted">
                 注册即代表你同意
                 <a href="/terms" className="mx-0.5 font-semibold text-baylink-green hover:underline">《服务条款》</a>
                 和

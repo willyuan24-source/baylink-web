@@ -17,11 +17,11 @@ export function ServiceAvailabilityDraft({ onApply, disabled = false }: { onAppl
   };
   return <details className="booking-quick-draft" style={{ padding: '14px 0', borderTop: '1px solid #e6e9e5', borderBottom: '1px solid #e6e9e5' }}>
     <summary style={{ cursor: 'pointer', fontWeight: 600 }}><WandSparkles size={16} style={{ display: 'inline', marginRight: 8 }} />{t('快速生成排期草稿', 'Quick schedule draft')}</summary>
-    <p style={{ fontSize: 13, margin: '10px 0' }}>{t('按固定格式整理日期，先预览，再加入待发布时段。所有时间按湾区时间。', 'Generate dates from a supported format, review them, then add them to your draft. All times are Bay Area time.')}</p>
+    <p style={{ fontSize: '0.8125rem', margin: '10px 0' }}>{t('按固定格式整理日期，先预览，再加入待发布时段。所有时间按湾区时间。', 'Generate dates from a supported format, review them, then add them to your draft. All times are Bay Area time.')}</p>
     <label style={{ display: 'grid', gap: 6 }}>{t('输入排期', 'Schedule input')}<input disabled={disabled} value={input} maxLength={160} onChange={event => { setInput(event.target.value); setDraft(null); }} placeholder={t('本月每周六 09:00-12:00', '2026-10-17 09:00-12:00')} /></label>
-    <p style={{ fontSize: 12, margin: '8px 0' }}>{t('支持：本月每周六 09:00-12:00；10月17日周六 09:00-12:00；2026-10-17 09:00-12:00。未写年份时使用当前年份。', 'Supported: YYYY-MM-DD 09:00-12:00. Chinese weekly patterns are also supported. Dates without a year use the current year.')}</p>
+    <p style={{ fontSize: '0.75rem', margin: '8px 0' }}>{t('支持：本月每周六 09:00-12:00；10月17日周六 09:00-12:00；2026-10-17 09:00-12:00。未写年份时使用当前年份。', 'Supported: YYYY-MM-DD 09:00-12:00. Chinese weekly patterns are also supported. Dates without a year use the current year.')}</p>
     <button type="button" disabled={disabled || !input.trim()} onClick={() => setDraft(draftServiceAvailability(input))}>{t('预览具体日期', 'Preview dates')}</button>
     {draft?.error && <p role="alert">{errors[draft.error]}</p>}
-    {draft && !draft.error && <div role="status"><ul>{draft.slots.map(slot => <li key={slot.date}>{slot.date} · {slot.startTime}–{slot.endTime}</li>)}</ul><p style={{ fontSize: 12 }}>{t('每个日期是一整段预约，不会自动拆分；发布前仍会检查冲突和提前时间。', 'Each date is one whole appointment, not separate hourly slots. Availability and notice rules are checked when publishing.')}</p><button type="button" disabled={disabled} onClick={() => { onApply(draft.slots); setDraft(null); }}>{t('加入待发布时段', 'Add to draft slots')}</button></div>}
+    {draft && !draft.error && <div role="status"><ul>{draft.slots.map(slot => <li key={slot.date}>{slot.date} · {slot.startTime}–{slot.endTime}</li>)}</ul><p style={{ fontSize: '0.75rem' }}>{t('每个日期是一整段预约，不会自动拆分；发布前仍会检查冲突和提前时间。', 'Each date is one whole appointment, not separate hourly slots. Availability and notice rules are checked when publishing.')}</p><button type="button" disabled={disabled} onClick={() => { onApply(draft.slots); setDraft(null); }}>{t('加入待发布时段', 'Add to draft slots')}</button></div>}
   </details>;
 }

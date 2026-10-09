@@ -32,7 +32,7 @@ const ActionButtons = ({
         key={action.id}
         type="button"
         onClick={() => onAction(action.runKey)}
-        className="flex w-full items-center gap-2 rounded-xl border border-black/[0.04] bg-white px-3 py-2.5 text-left text-[13px] font-normal text-baylink-text transition hover:border-baylink-green/20 hover:bg-baylink-green/[0.04] active:scale-[0.99]"
+        className="flex w-full items-center gap-2 rounded-xl border border-black/[0.04] bg-white px-3 py-2.5 text-left text-[0.8125rem] font-normal text-baylink-text transition hover:border-baylink-green/20 hover:bg-baylink-green/[0.04] active:scale-[0.99]"
       >
         <span className="shrink-0 text-base leading-none" aria-hidden>{action.emoji}</span>
         <span>{action.label}</span>
@@ -68,7 +68,7 @@ const BayBayOrbButton = ({
         width={isSm ? 36 : 44}
         height={isSm ? 36 : 44}
       />
-      <span className="text-left leading-tight"><span className="block text-[12px] font-semibold text-baylink-text">BayBay</span><span className="mt-0.5 block text-[10px] text-baylink-muted">AI 助手</span></span>
+      <span className="text-left leading-tight"><span className="block text-[0.75rem] font-semibold text-baylink-text">BayBay</span><span className="mt-0.5 block text-[0.625rem] text-baylink-muted">AI 助手</span></span>
     </button>
   );
 };
@@ -143,8 +143,8 @@ export const BayBayFloatingLauncher = ({
             role="dialog"
             aria-label="BayBay 快捷操作"
           >
-            <p className="text-[15px] font-semibold leading-snug text-baylink-text">嗨，我是 BayBay</p>
-            <p className="mt-1 text-[12px] leading-relaxed text-baylink-muted">BAYLINK 的 AI 湾区生活助手</p>
+            <p className="text-[0.9375rem] font-semibold leading-snug text-baylink-text">嗨，我是 BayBay</p>
+            <p className="mt-1 text-[0.75rem] leading-relaxed text-baylink-muted">BAYLINK 的 AI 湾区生活助手</p>
             <div className="mt-3">
               <ActionButtons onAction={runDesktopAction} />
             </div>
@@ -180,8 +180,8 @@ export const BayBayFloatingLauncher = ({
             >
               <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-baylink-border/80" aria-hidden />
               <div className="flex items-start justify-between gap-3">
-                <div><p className="text-[15px] font-semibold leading-snug text-baylink-text">嗨，我是 BayBay</p>
-                  <p className="mt-1 text-[12px] leading-relaxed text-baylink-muted">BAYLINK 的 AI 湾区生活助手</p></div>
+                <div><p className="text-[0.9375rem] font-semibold leading-snug text-baylink-text">嗨，我是 BayBay</p>
+                  <p className="mt-1 text-[0.75rem] leading-relaxed text-baylink-muted">BAYLINK 的 AI 湾区生活助手</p></div>
                 <button type="button" aria-label="关闭" onClick={() => setMobileSheetOpen(false)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-baylink-muted hover:bg-baylink-green/[0.04]"><X size={20} aria-hidden="true" /></button>
               </div>
               <div className="mt-3 mb-1">

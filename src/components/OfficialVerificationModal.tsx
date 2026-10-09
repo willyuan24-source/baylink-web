@@ -110,7 +110,7 @@ const OfficialVerificationForm = ({
             <BadgeCheck size={24} />
           </div>
           <h3 className="text-xl font-bold text-baylink-text">申请官方认证</h3>
-          <p className="mt-2 text-[12px] leading-relaxed text-baylink-muted">
+          <p className="mt-2 text-[0.75rem] leading-relaxed text-baylink-muted">
             官方认证适合房产经纪、本地服务商、商家、社区组织或 BAYLINK 认可的可信账号。提交后需要人工审核。
           </p>
         </div>

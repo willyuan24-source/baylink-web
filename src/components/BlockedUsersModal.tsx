@@ -85,19 +85,19 @@ export const BlockedUsersModal = ({
                   <Avatar src={b.avatar} name={b.nickname} size={10} className="shrink-0" />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-baylink-text" translate="no">{b.nickname}</div>
-                    <p className="mt-0.5 text-[11px] text-baylink-muted">
+                    <p className="mt-0.5 text-[0.6875rem] text-baylink-muted">
                       {b.isPhoneVerified ? '手机验证：已完成' : '手机验证：未完成'}
                       {b.isOfficialVerified ? ' · 官方认证' : ''}
                     </p>
                     {b.blockedAt ? (
-                      <p className="text-[11px] text-baylink-muted">屏蔽于 {new Date(b.blockedAt).toLocaleDateString()}</p>
+                      <p className="text-[0.6875rem] text-baylink-muted">屏蔽于 {new Date(b.blockedAt).toLocaleDateString()}</p>
                     ) : null}
                   </div>
                   <button
                     type="button"
                     disabled={updatingId === b.id}
                     onClick={() => handleUnblock(b.id)}
-                    className="shrink-0 rounded-lg border border-baylink-border/60 px-2.5 py-1.5 text-[11px] font-semibold text-baylink-text-secondary hover:bg-white disabled:opacity-50"
+                    className="shrink-0 rounded-lg border border-baylink-border/60 px-2.5 py-1.5 text-[0.6875rem] font-semibold text-baylink-text-secondary hover:bg-white disabled:opacity-50"
                   >
                     取消屏蔽
                   </button>

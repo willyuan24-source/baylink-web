@@ -6,7 +6,7 @@ import postcss from 'postcss';
 // This guard covers the styles revised in the editorial pass, not the legacy
 // site or the 3D canvas. Partial files have explicit, reviewable boundaries.
 export const editorialStyleScopes = [
-  { file: 'src/components/home-discovery.css', exceptions: [{ selector: '.home-event-details>summary::after', property: 'font-size', value: '1rem', reason: 'Decorative plus/minus disclosure glyph; the adjacent summary label uses the reading scale.' }] },
+  { file: 'src/components/home-discovery.css' },
   { file: 'src/components/ai-local.css' },
   { file: 'src/components/local-discovery-detail.css' },
   { file: 'src/editorial-refinement.css' },
@@ -18,7 +18,18 @@ export const editorialStyleScopes = [
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
-const readingSize = /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|calc\([^;]*var\(--reading-scale\)[^;]*\)|inherit|[\d.]+em)$/;
+// Aa scales the root font size (src/tokens.css), so a text size follows it when it is in rem, em, % or a --text-* token.
+// px never grows; --reading-scale is pinned at 1 (multiplying a rem by it again would double-scale); a vw term grows only
+// when it is multiplied by --fluid-scale.
+const readingSizeIssue = value => {
+  if (/\d(?:\.\d+)?px\b/.test(value)) return `Text size ${value} is in px, which the root reading scale cannot grow.`;
+  if (value.includes('--reading-scale')) return `Text size ${value} multiplies by --reading-scale; the root already scales rem (125% x 1.25 = 156%).`;
+  if (/\d(?:vw|vh|vmin|vmax|svw|svh|dvw|dvh|cqw|cqi)\b/.test(value) && !value.includes('--fluid-scale')) return `Text size ${value} has a viewport term without var(--fluid-scale), so it does not grow with Aa.`;
+  // The reviewed scopes keep their smallest text at --text-caption (.8125rem = 13px at the standard size).
+  const small = [...value.matchAll(/(?<![\w.-])(\d*\.?\d+)rem\b/g)].find(match => Number(match[1]) < .8125);
+  if (small) return `Text size ${value} is below 13px (${small[0]}); use var(--text-caption) or larger.`;
+  return null;
+};
 const tokenNames = value => [...value.matchAll(/var\((--[a-zA-Z0-9-]+)/g)].map(match => match[1]);
 const isReadingToken = token => /^(?:--text-|--color-|--reading-scale$|--control-height$)/.test(token);
 
@@ -72,8 +83,8 @@ export function checkEditorialStyles(sources, sharedTokens, { contrast = false }
           if (isReadingToken(token) && !knownTokens.has(token)) report('token', `Undefined shared token ${token}.`);
         }
         if (source.exceptions?.some(exception => exception.selector === rule.selector && exception.property === prop && exception.value === value && exception.reason?.trim())) return;
-        if (prop === 'font-size' && !readingSize.test(value)) report('reading-scale', `Text size ${value} bypasses the reading scale.`);
-        if (prop === 'font' && /\d+(?:px|rem)/.test(value) && !value.includes('--reading-scale')) report('reading-scale', 'Font shorthand bypasses the reading scale.');
+        const sizeIssue = prop === 'font-size' || prop === 'font' ? readingSizeIssue(value) : null;
+        if (sizeIssue) report('reading-scale', sizeIssue);
         // Palette definitions, photo overlays and borders can have literal
         // colors. Visible text and keyboard focus use the shared palette.
         if (prop === 'color' && /#[\da-f]+|(?:rgb|hsl)a?\(/i.test(value)) report('text-color', 'Visible text color must use a shared palette token.');

@@ -102,7 +102,7 @@ export const ContactRequestInboxPanel = ({
             <p className="text-sm font-semibold text-amber-950">
               {requests.length ? `你有 ${requests.length} 个联系方式请求待处理` : '联系方式请求'}
             </p>
-            <p className="mt-0.5 text-[11px] leading-relaxed text-amber-900/80">
+            <p className="mt-0.5 text-[0.6875rem] leading-relaxed text-amber-900/80">
               同意后将通过私信发送联系方式卡片，不会公开在帖子详情。
             </p>
           </div>
@@ -110,7 +110,7 @@ export const ContactRequestInboxPanel = ({
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            className="shrink-0 inline-flex items-center gap-0.5 rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-amber-900"
+            className="shrink-0 inline-flex items-center gap-0.5 rounded-lg border border-amber-200 bg-white px-2.5 py-1.5 text-[0.6875rem] font-semibold text-amber-900"
           >
             {expanded ? '收起' : '查看请求'}
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
@@ -134,24 +134,24 @@ export const ContactRequestInboxPanel = ({
                         <button
                           type="button"
                           onClick={() => onOpenPost?.(r.postId)}
-                          className="mt-0.5 truncate text-left text-[11px] text-baylink-green hover:underline"
+                          className="mt-0.5 truncate text-left text-[0.6875rem] text-baylink-green hover:underline"
                         >
                           帖子：<span translate="no">{r.postTitle}</span>
                         </button>
                       ) : (
-                        <p className="mt-0.5 truncate text-[11px] text-baylink-muted">帖子 ID：{r.postId}</p>
+                        <p className="mt-0.5 truncate text-[0.6875rem] text-baylink-muted">帖子 ID：{r.postId}</p>
                       )}
                     </div>
                   </div>
                   {r.requestMessage && (
-                    <p className="mt-2 text-[11px] leading-relaxed text-baylink-text-secondary" translate="no">{r.requestMessage}</p>
+                    <p className="mt-2 text-[0.6875rem] leading-relaxed text-baylink-text-secondary" translate="no">{r.requestMessage}</p>
                   )}
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button
                       type="button"
                       disabled={actingId !== null}
                       onClick={() => void handleAction(r.id, true)}
-                      className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[11px] font-semibold text-white disabled:opacity-60"
+                      className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[0.6875rem] font-semibold text-white disabled:opacity-60"
                     >
                       {actingId === r.id ? '处理中...' : '同意并发送'}
                     </button>
@@ -159,7 +159,7 @@ export const ContactRequestInboxPanel = ({
                       type="button"
                       disabled={actingId !== null}
                       onClick={() => void handleAction(r.id, false)}
-                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary disabled:opacity-60"
+                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[0.6875rem] font-normal text-baylink-text-secondary disabled:opacity-60"
                     >
                       暂不发送
                     </button>
@@ -167,7 +167,7 @@ export const ContactRequestInboxPanel = ({
                       type="button"
                       disabled={!r.requester?.id}
                       onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, r.postTitle || '帖子')}
-                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[11px] font-normal text-baylink-text-secondary"
+                      className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[0.6875rem] font-normal text-baylink-text-secondary"
                     >
                       先私信聊聊
                     </button>

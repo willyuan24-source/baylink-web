@@ -14,9 +14,22 @@ test('style counts cover CSS declarations, Tailwind classes, inline styles and t
     { file: 'src/B.tsx', text: "import { ArrowUpRight } from 'lucide-react';\nexport const B = () => <a className=\"text-[11px] text-[0.8125rem] rounded-2xl shadow-lg font-medium text-baylink-muted hover:bg-baylink-green/10\" style={{ fontSize: 10, fontWeight: 500, color: '#abc' }}><ArrowUpRight /></a>;" },
   ]);
   assert.deepEqual(counts, {
-    hexOccurrences: 4, hexDistinct: 4, fontSizePx: 4, fontSizePxUnder13: 2, radiusKinds: 2, shadowKinds: 2,
+    hexOccurrences: 4, hexDistinct: 4, fontSizePx: 4, fontSizePxUnder13: 2, fontSizeUnder13: 2, radiusKinds: 2, shadowKinds: 2,
     fontWeightOutsideSet: 3, textArbitraryUnder13: 1, baylinkClasses: 2, arrowUpRight: 1,
   });
+});
+
+test('rem and em font sizes below 13px are counted once the site is in rem', () => {
+  const { counts } = measureStyle([
+    { file: 'src/a.css', text: '.a{font-size:.6875rem}.b{font-size:.8125rem}.c{font:600 .75em/1.4 serif}.d{font-size:clamp(.75rem,2vw,1rem)}.e{font-size:var(--text-caption)}' },
+    { file: 'src/B.tsx', text: "export const B = () => <span style={{ fontSize: '0.7rem' }} />;" },
+  ]);
+  assert.equal(counts.fontSizePx, 0);
+  assert.equal(counts.fontSizePxUnder13, 0);
+  assert.equal(counts.fontSizeUnder13, 4, '.6875rem, .75em, clamp(.75rem…) and inline 0.7rem; .8125rem is 13px');
+  const baseline = baselineFrom(measured([{ file: 'src/a.css', text: '.a{font-size:var(--text-caption)}' }]));
+  const problems = compareWithBaseline(measured([{ file: 'src/a.css', text: '.a{font-size:.6875rem}' }]), baseline);
+  assert.match(problems.join('\n'), /fontSizeUnder13 rose from 0 to 1[^]*src\/a\.css: 0 → 1/);
 });
 
 test('a deliberately added hex colour fails the ratchet and names its location', () => {

@@ -317,11 +317,11 @@ html, body, #root {
 }
 
 .channel-card-title {
-  @apply text-[13px] font-bold leading-tight text-baylink-text;
+  @apply text-[0.8125rem] font-bold leading-tight text-baylink-text;
 }
 
 .channel-card-sub {
-  @apply mt-0.5 text-[9px] leading-tight text-baylink-muted line-clamp-1;
+  @apply mt-0.5 text-[0.5625rem] leading-tight text-baylink-muted line-clamp-1;
 }
 
 .channel-card--rent { border-color: rgba(22, 166, 106, 0.12); background: linear-gradient(180deg, #fff 0%, #f4faf7 100%); }
@@ -347,10 +347,10 @@ html, body, #root {
     @apply w-10 h-10 rounded-xl text-xl mb-2;
   }
   .channel-card-title {
-    @apply text-[14px];
+    @apply text-[0.875rem];
   }
   .channel-card-sub {
-    @apply text-[10px] leading-snug mt-1;
+    @apply text-[0.625rem] leading-snug mt-1;
   }
 }
 
@@ -383,7 +383,7 @@ html, body, #root {
 }
 
 .hot-cover-badge {
-  @apply absolute right-1 top-1 z-20 rounded px-1 py-px text-[7px] font-normal text-baylink-muted;
+  @apply absolute right-1 top-1 z-20 rounded px-1 py-px text-[0.4375rem] font-normal text-baylink-muted;
   background: rgba(255, 255, 255, 0.92);
 }
 
@@ -531,7 +531,7 @@ html, body, #root {
 
 @layer components {
   .chip {
-    @apply px-3 py-1 rounded-full text-[11px] font-normal transition-all duration-200 active:scale-95 whitespace-nowrap;
+    @apply px-3 py-1 rounded-full text-[0.6875rem] font-normal transition-all duration-200 active:scale-95 whitespace-nowrap;
   }
   .chip-active {
     @apply bg-baylink-green-light text-baylink-green border border-baylink-green/20;
@@ -573,7 +573,7 @@ html, body, #root {
     @apply w-full bg-white rounded-2xl pl-10 pr-3 py-3 text-sm font-normal shadow-search outline-none transition placeholder:text-baylink-muted/90 border border-baylink-border/50 focus:border-baylink-green focus:ring-2 focus:ring-baylink-green/15;
   }
   .trust-badge-pill {
-    @apply text-[10px] font-normal px-1.5 py-0.5 rounded-full bg-white/90 text-baylink-green border border-baylink-green/15 whitespace-nowrap;
+    @apply text-[0.625rem] font-normal px-1.5 py-0.5 rounded-full bg-white/90 text-baylink-green border border-baylink-green/15 whitespace-nowrap;
   }
   .hero-welcome {
     background: linear-gradient(135deg, #0c3524 0%, #12603c 45%, #168A58 100%);
@@ -602,7 +602,7 @@ html, body, #root {
     @apply bg-white/70 backdrop-blur-sm rounded-2xl p-3 border border-black/[0.04] text-baylink-muted;
   }
   .sidebar-section-title {
-    @apply text-[13px] font-semibold text-baylink-text;
+    @apply text-[0.8125rem] font-semibold text-baylink-text;
   }
   .hot-recommend-empty {
     @apply surface-card px-4 py-4 text-center sm:py-5;
@@ -617,16 +617,16 @@ html, body, #root {
     @apply bg-white/70 border border-black/[0.04] rounded-2xl;
   }
   .type-page-title {
-    @apply text-[22px] font-semibold tracking-tight text-baylink-text;
+    @apply text-[1.375rem] font-semibold tracking-tight text-baylink-text;
   }
   .type-section-title {
-    @apply text-[17px] font-semibold tracking-tight text-baylink-text;
+    @apply text-[1.0625rem] font-semibold tracking-tight text-baylink-text;
   }
   .type-footnote {
-    @apply text-[12px] text-baylink-muted;
+    @apply text-[0.75rem] text-baylink-muted;
   }
   .type-caption {
-    @apply text-[11px] font-normal;
+    @apply text-[0.6875rem] font-normal;
   }
 }
 
@@ -636,7 +636,7 @@ html, body, #root {
   input:not([type='checkbox']):not([type='radio']),
   textarea:not([hidden]),
   select:not([hidden]) {
-    font-size: 16px;
+    font-size: 1rem;
   }
 }
 

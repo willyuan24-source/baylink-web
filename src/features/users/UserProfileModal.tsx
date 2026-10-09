@@ -106,7 +106,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
               {isPlatformAdmin(profile) && <p className="profile-admin-note">该账号为 BAYLINK 平台管理员，用于发布平台公告、湾区指南、推荐内容和安全提醒。</p>}
               {commonInterests.length > 0 && <section className="profile-common-interests" aria-label="你们的共同兴趣"><h3><Sparkles size={15} />你们的共同兴趣</h3><p>从共同喜欢的事，开始一段对话。</p><div>{commonInterests.map(interest => <span key={interest} translate="no">{interest}</span>)}</div></section>}
 
-              <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[11px] text-baylink-text-secondary">
+              <div className="mt-3 rounded-xl border border-baylink-border/40 bg-white p-3 text-[0.6875rem] text-baylink-text-secondary">
                 <p className="font-semibold text-baylink-text mb-2 text-xs">信任信息</p>
                 <div className="space-y-1.5">
                   {joinDays != null && <p>{translateText('已加入 BAYLINK {days} 天', locale).replace('{days}', String(joinDays))}</p>}
@@ -127,7 +127,7 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                 <h5 className="text-xs font-bold text-baylink-text">最近发布</h5>
                 {profile.recentPosts.length > 0 ? (
                   <>
-                  <p className="mb-2 text-[11px] text-baylink-muted">查看 TA 最近的本地信息</p>
+                  <p className="mb-2 text-[0.6875rem] text-baylink-muted">查看 TA 最近的本地信息</p>
                   <div className="space-y-2">
                     {profile.recentPosts.map((rp) => {
                       const postId = rp.id || rp._id;
@@ -148,11 +148,11 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                         {normalizePostImages(rp)[0] ? (
                           <img src={normalizePostImages(rp)[0]} alt="" loading="lazy" decoding="async" className="h-12 w-12 shrink-0 rounded-lg object-cover" />
                         ) : (
-                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[11px] text-baylink-muted">无图</div>
+                          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-baylink-section text-[0.6875rem] text-baylink-muted">无图</div>
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="line-clamp-1 text-sm font-semibold text-baylink-text" translate="no">{rp.title}</div>
-                          <div className="text-[11px] text-baylink-muted">{rp.city} · #{rp.category}</div>
+                          <div className="text-[0.6875rem] text-baylink-muted">{rp.city} · #{rp.category}</div>
                         </div>
                         <ChevronRight size={16} className="shrink-0 self-center text-gray-300" />
                       </button>
@@ -160,11 +160,11 @@ const UserProfileSession = ({ userId, onClose, currentUser, onChat, onOpenRecent
                   </div>
                   </>
                 ) : (
-                  <p className="mt-2 text-[11px] text-baylink-muted">TA 还没有发布过内容</p>
+                  <p className="mt-2 text-[0.6875rem] text-baylink-muted">TA 还没有发布过内容</p>
                 )}
               </div>
 
-              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[11px] leading-relaxed text-baylink-muted">
+              <p className="mt-4 flex items-start gap-1.5 rounded-xl bg-baylink-section/40 px-3 py-2.5 text-[0.6875rem] leading-relaxed text-baylink-muted">
                 <Shield size={12} className="mt-px shrink-0 text-baylink-green/60" />
                 交易前请核实对方信息，不要提前转账。遇到可疑行为可以举报或屏蔽。
               </p>

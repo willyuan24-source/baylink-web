@@ -128,13 +128,13 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
                 </div>
                 <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">{getOfficialVerificationStatusLabel(user)}</p>
                 {officialStatus === 'rejected' && user.officialVerification?.rejectionReason && (
-                  <p className="mt-1 text-[11px] text-red-500 line-clamp-2" translate="no">{user.officialVerification.rejectionReason}</p>
+                  <p className="mt-1 text-[0.6875rem] text-red-500 line-clamp-2" translate="no">{user.officialVerification.rejectionReason}</p>
                 )}
               </div>
               {officialStatus === 'pending' ? (
-                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">审核中</span>
+                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[0.6875rem] font-bold text-amber-700">审核中</span>
               ) : (officialStatus === 'approved' || user.isOfficialVerified) ? (
-                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[11px] font-bold text-amber-700">已通过</span>
+                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[0.6875rem] font-bold text-amber-700">已通过</span>
               ) : (
                 <button type="button" onClick={() => setShowOfficialModal(true)} className="member-verification-action">
                   {officialStatus === 'rejected' ? '重新申请' : '申请认证'}
@@ -151,7 +151,7 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
           <button onClick={onOpenBlockedUsers} className="member-menu-row">
             <div className="flex items-center gap-4">
               <div className="member-menu-icon"><UserX size={20} /></div>
-              <div><div className="font-bold text-gray-900">已屏蔽用户</div><div className="text-[11px] text-baylink-muted">管理私信屏蔽名单</div></div>
+              <div><div className="font-bold text-gray-900">已屏蔽用户</div><div className="text-[0.6875rem] text-baylink-muted">管理私信屏蔽名单</div></div>
             </div>
             <ChevronRight size={18} className="text-gray-300" />
           </button>
@@ -167,14 +167,14 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
               <button onClick={() => setSubView('admin_official')} className="member-menu-row">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition"><BadgeCheck size={20} /></div>
-                  <div><div className="font-bold text-gray-900">资料审核管理</div><div className="text-[11px] text-baylink-muted">查看并处理资料审核申请</div></div>
+                  <div><div className="font-bold text-gray-900">资料审核管理</div><div className="text-[0.6875rem] text-baylink-muted">查看并处理资料审核申请</div></div>
                 </div>
                 <ChevronRight size={18} className="text-gray-300" />
               </button>
               <button onClick={() => setSubView('admin_reports')} className="member-menu-row">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 group-hover:scale-110 transition"><Flag size={20} /></div>
-                  <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[11px] text-baylink-muted">查看并处理用户举报</div></div>
+                  <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[0.6875rem] text-baylink-muted">查看并处理用户举报</div></div>
                 </div>
                 <ChevronRight size={18} className="text-gray-300" />
               </button>

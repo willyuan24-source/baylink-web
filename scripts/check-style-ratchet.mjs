@@ -22,6 +22,7 @@ export const STYLE_METRICS = {
   hexDistinct: 'distinct hex colours outside src/tokens.css',
   fontSizePx: 'px font sizes (CSS font-size/font, inline fontSize)',
   fontSizePxUnder13: 'px font sizes below 13px',
+  fontSizeUnder13: 'font sizes below 13px in any unit (CSS font-size/font, inline fontSize; rem/em at 16px)',
   radiusKinds: 'distinct border-radius values and Tailwind rounded-* sizes',
   shadowKinds: 'distinct box-shadow values and Tailwind shadow-* sizes',
   fontWeightOutsideSet: 'font weights outside 400/600/700',
@@ -38,6 +39,8 @@ export const OTHER_METRICS = {
 const toPosix = path => path.split('\\').join('/');
 const normalizeValue = value => value.toLowerCase().replace(/\s*!important\s*$/, '').replace(/\s+/g, ' ').replace(/\s*,\s*/g, ',').trim();
 const pxNumbers = value => [...value.matchAll(/(-?\d*\.?\d+)px\b/g)].map(match => Number(match[1]));
+/** Every px, rem or em length in a font size, in px at the standard reading size (1rem = 1em = 16px). */
+const sizeNumbers = value => [...value.matchAll(/(\d*\.?\d+)(px|rem|em)\b/g)].map(match => Number(match[1]) * (match[2] === 'px' ? 1 : 16));
 const HEX = /#(?:[\da-f]{8}|[\da-f]{6}|[\da-f]{3,4})(?![\w-])/gi;
 const allowedWeights = new Set(['400', '600', '700', 'normal', 'bold', 'inherit', 'initial', 'unset', 'revert']);
 const prefix = '(?<![\\w-])(?:[a-z0-9-]+:)*!?';
@@ -79,10 +82,15 @@ export function measureStyle(sources) {
     (files[file] ||= {})[metric] = (files[file][metric] || 0) + amount;
   };
   const kind = (map, value, where) => { if (!map.has(value)) map.set(value, where); };
-  const fontSize = (file, values) => {
-    if (!values.length) return;
-    add(file, 'fontSizePx');
-    if (Math.min(...values) < 13) add(file, 'fontSizePxUnder13');
+  // Site text is rem since the px→rem codemod (WEB-TOKENS-A), so the 13px floor is also counted in rem/em.
+  const fontSize = (file, value) => {
+    const px = pxNumbers(value);
+    if (px.length) {
+      add(file, 'fontSizePx');
+      if (Math.min(...px) < 13) add(file, 'fontSizePxUnder13');
+    }
+    const sizes = sizeNumbers(value);
+    if (sizes.length && Math.min(...sizes) < 13) add(file, 'fontSizeUnder13');
   };
   const weight = (file, value) => { if (!allowedWeights.has(value) && !value.startsWith('var(')) add(file, 'fontWeightOutsideSet'); };
   const strings = (file, text, line) => {
@@ -104,10 +112,10 @@ export function measureStyle(sources) {
         const value = declaration.value;
         const line = declaration.source?.start?.line ?? 1;
         if (file !== 'src/tokens.css') for (const match of value.matchAll(HEX)) { add(file, 'hexOccurrences'); kind(kinds.hex, match[0].toLowerCase(), at(file, line)); }
-        if (prop === 'font-size') fontSize(file, pxNumbers(value));
+        if (prop === 'font-size') fontSize(file, value);
         if (prop === 'font') {
-          const size = /(?:^|\s)(\d*\.?\d+)px\b/.exec(value);
-          if (size) fontSize(file, [Number(size[1])]);
+          const size = /(?:^|\s)(\d*\.?\d+(?:px|rem|em))\b/.exec(value);
+          if (size) fontSize(file, size[1]);
           for (const token of value.split(/\s+/)) if (/^(?:[1-9]00|bolder|lighter)$/.test(token)) weight(file, token);
         }
         if (prop === 'font-weight') weight(file, normalizeValue(value));
@@ -123,7 +131,8 @@ export function measureStyle(sources) {
       if (ts.isPropertyAssignment(node)) {
         const name = propertyName(node.name);
         const init = node.initializer;
-        if (name === 'fontSize' && (ts.isNumericLiteral(init) || (ts.isStringLiteralLike(init) && /^\d*\.?\d+px$/.test(init.text)))) fontSize(file, [Number.parseFloat(init.text)]);
+        if (name === 'fontSize' && ts.isNumericLiteral(init)) fontSize(file, `${init.text}px`);
+        if (name === 'fontSize' && ts.isStringLiteralLike(init) && /^\d*\.?\d+(?:px|rem|em)$/.test(init.text)) fontSize(file, init.text);
         if (name === 'fontWeight' && (ts.isNumericLiteral(init) || ts.isStringLiteralLike(init))) weight(file, normalizeValue(init.text));
       }
       if (ts.isIdentifier(node) && node.text === 'ArrowUpRight' && !ts.isImportSpecifier(node.parent) && !ts.isJsxClosingElement(node.parent)) add(file, 'arrowUpRight');

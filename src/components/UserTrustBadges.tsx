@@ -23,7 +23,7 @@ export const AdminBadge = ({ size = 12, showText = true, compact = false }: Admi
   >
     <Shield size={size} className="shrink-0" />
     {showText && (
-      <span className="text-[11px] leading-none">{compact ? '管理员' : 'BAYLINK 管理员'}</span>
+      <span className="text-[0.6875rem] leading-none">{compact ? '管理员' : 'BAYLINK 管理员'}</span>
     )}
   </span>
 );
@@ -55,7 +55,7 @@ export const UserTrustBadges = ({
             aria-label="手机号已验证，非身份或资质认证"
           >
             <ShieldCheck size={size} fill="#3B82F6" className="text-white" />
-            {showText && <span className="text-[11px] font-bold">手机号已验证</span>}
+            {showText && <span className="text-[0.6875rem] font-bold">手机号已验证</span>}
           </span>
         )}
       </span>
@@ -75,7 +75,7 @@ export const UserTrustBadges = ({
           aria-label="手机号已验证，非身份或资质认证"
         >
           <ShieldCheck size={size} fill="#3B82F6" className="text-white" />
-          {showText && <span className="text-[11px] font-bold">手机号已验证</span>}
+          {showText && <span className="text-[0.6875rem] font-bold">手机号已验证</span>}
         </span>
       )}
       {officialVerified && (
@@ -85,7 +85,7 @@ export const UserTrustBadges = ({
           aria-label="BAYLINK 资料审核通过，不构成政府认证或交易担保"
         >
           <BadgeCheck size={size} fill="#FBBF24" className="text-white" />
-          {showText && <span className="text-[11px] font-bold">资料审核通过</span>}
+          {showText && <span className="text-[0.6875rem] font-bold">资料审核通过</span>}
         </span>
       )}
     </span>
