@@ -6,7 +6,8 @@
 .me-hub__avatar { display:grid; place-items:center; width:4.5rem; height:4.5rem; border-radius:50%; overflow:hidden; background:var(--color-brand-tint); color:var(--color-brand); }
 .me-hub__avatar>* { width:100% !important; height:100% !important; }
 .me-hub__heading { display:flex; flex-direction:column; gap:4px; min-width:0; }
-.me-hub__name { display:flex; align-items:center; gap:6px; margin:0; color:var(--color-ink); font-size:1.25rem; line-height:1.4; font-weight:600; overflow-wrap:anywhere; }
+/* The page H1 uses the site's one title spec (26/34 phone, 32/42 desktop · 600), like PageHeader. */
+.me-hub__name { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; color:var(--color-ink); font-size:1.625rem; line-height:1.308; font-weight:600; letter-spacing:0; overflow-wrap:anywhere; text-wrap:balance; }
 .me-hub__positioning { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-hub__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
 .me-hub__actions :is(a,button) { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.3; font-weight:600; text-decoration:none; }
@@ -106,6 +107,6 @@ html[data-simple] :is(.me-row,.me-language button) { min-height:3.75rem; }
   .me-subview { padding:24px 24px 56px; }
   .me-guest-card { padding:32px; }
 }
-@media (min-width:1024px) { .me-hub,.me-subview { padding-inline:32px; } .me-subview__title { font-size:2rem; line-height:1.3125; } }
+@media (min-width:1024px) { .me-hub,.me-subview { padding-inline:32px; } :is(.me-subview__title,.me-hub__name) { font-size:2rem; line-height:1.3125; } }
 /* Large Aa on a phone: one tile per row, so the labels never squeeze (D9). */
 @media (max-width:767px) { html:is([data-reading=extra-large],[data-simple]) .me-tiles { grid-template-columns:minmax(0, 1fr); } }
