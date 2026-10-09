@@ -54,7 +54,7 @@ export function SiteNavigation({ user, notification, notificationCount, onCreate
   const unread = notification && <b className="site-unread" aria-label={english ? 'Unread messages' : '未读消息'}>{notificationCount || '•'}</b>;
   const links = [
     { href: '/', label: english ? 'Home' : '首页' },
-    { href: '/calendar', label: english ? 'Events' : '活动' },
+    { href: '/events', label: english ? 'Events' : '活动' },
     { href: '/guides', label: english ? 'Guides' : '指南' },
   ];
 

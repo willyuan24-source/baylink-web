@@ -14,6 +14,7 @@ export const editorialStyleScopes = [
   { file: 'src/features/posts/posts-ui.css', selectors: /^\.post-translation(?:\s|$)/ },
   { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
   { file: 'src/pages/profile-page.css' },
+  { file: 'src/pages/events-page.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

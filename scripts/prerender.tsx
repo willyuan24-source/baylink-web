@@ -8,7 +8,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React, { type ReactNode } from 'react';
 import { guides, getGuidesForCategorySlug } from '../src/data/guides';
-import { EditorialCollections } from '../src/components/EditorialCollections';
 import { GuideDetail } from '../src/components/GuideDetail';
 import { GuidesHome } from '../src/components/GuidesHome';
 import { TermsView } from '../src/components/TermsView';
@@ -27,8 +26,9 @@ import { GUIDES_METADATA } from '../src/lib/guides-metadata';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
-import { MonthlySpotlight } from '../src/components/MonthlySpotlight';
-import { MONTHLY_METADATA, WEEKLY_METADATA } from '../src/lib/monthly-metadata';
+import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { EventsView } from '../src/components/EventsView';
+import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
 import { HomeDiscovery } from '../src/components/HomeDiscovery';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
@@ -50,12 +50,23 @@ const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
 const noop = () => {};
 const manifest = JSON.parse(await readFile(join(outputDir, '.vite/manifest.json'), 'utf8'));
-const routeModule = (path: string) => path.startsWith('/guides/') ? 'GuideDetailPage' : /^\/(events|offers|openings)\//.test(path) ? 'LocalDiscoveryPage' : ({ '/': 'HomePage', '/guides': 'GuidesPage', '/archive': 'ArchivePage', '/calendar': 'CalendarPage', '/plan': 'PlannerPage', '/this-month': 'MonthlyPage', '/this-week': 'MonthlyPage', '/explore': 'ExplorePage', '/tools': 'ToolsPage', '/about': 'AboutPage', '/ai-in-the-bay': 'AiLocalPage', '/recommend': 'RecommendPage' } as Record<string,string>)[path] || 'HomePage';
-const modulePreloads = (path: string) => {
-  const entry = manifest[`src/pages/${routeModule(path)}.tsx`]; const files = new Set<string>();
-  const visit = (item: { file: string; imports?: string[] }) => { if (files.has(item.file)) return; files.add(item.file); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
-  if (entry) visit(entry);
-  return [...files].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
+// The page module comes from the route table (src/app/route-table.ts), as at boot (route-loaders.ts): /404 → NotFoundPage.
+const routeModule = (path: string) => PAGE_MODULES[matchRoute(path)?.page || 'notFound'];
+type ManifestChunk = { file: string; imports?: string[]; css?: string[] };
+/** The page's static module graph: its JS files and every stylesheet the graph imports. */
+const routeGraph = (path: string) => {
+  const files = new Set<string>(); const styles = new Set<string>();
+  const visit = (item: ManifestChunk) => { if (files.has(item.file)) return; files.add(item.file); for (const css of item.css || []) styles.add(css); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
+  if (manifest[routeModule(path)]) visit(manifest[routeModule(path)]);
+  return { files: [...files], styles: [...styles] };
+};
+const modulePreloads = (path: string) => routeGraph(path).files.map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
+/** RC-6: CSS that Vite splits out of the global bundle arrives with the page chunk, after first paint. Link it in the
+ * prerendered head after the global stylesheet: the same cascade order as when the chunk appends it in the app. */
+const withRouteStylesheets = (html: string, path: string) => {
+  const links = routeGraph(path).styles.filter(file => !template.includes(`href="/${file}"`)).map(file => `<link rel="stylesheet" crossorigin href="/${file}">`).join('\n');
+  const end = html.lastIndexOf('</head>');
+  return links && end >= 0 ? `${html.slice(0, end)}${links}\n${html.slice(end)}` : html;
 };
 
 const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?: string) => {
@@ -67,7 +78,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
     await mkdir(dirname(destination), { recursive: true });
-    const html = renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path) + '\n<!--baylink-meta-end-->');
+    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path) + '\n<!--baylink-meta-end-->'), metadata.path);
     await writeFile(destination, html);
   }
   await setLocale('zh-Hans', false);
@@ -82,7 +93,8 @@ await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的�
 
 await renderPage(GUIDES_METADATA, <GuidesHome onOpenGuide={noop} />);
 await renderPage(MONTHLY_METADATA, <MonthlyEdition defaultDateFilter="all" />);
-await renderPage(WEEKLY_METADATA, <MonthlyEdition defaultDateFilter="weekend" />);
+// 活动 (/events, 本周末 first). /this-week is a 301 to it on the host and in the app, so it has no page of its own.
+await renderPage(EVENTS_METADATA, <EventsView />);
 await renderPage(CALENDAR_METADATA, <CalendarPage />);
 await renderPage(EXPLORE_METADATA, <AttractionExplorer />);
 await renderPage(PLAN_METADATA, <PlannerPage />);
@@ -120,7 +132,6 @@ for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
     <section className="px-5 py-8"><h1 className="text-2xl font-bold">湾区{category}信息</h1><p className="mt-3">浏览本地资源和邻里需求，联系前请确认地点、价格和时间。</p><h2 className="mt-6 font-bold">行动前，先读一份实用指南</h2><ul className="mt-3 space-y-3">{getGuidesForCategorySlug(slug).map((guide) => <li key={guide.slug}><a href={`/guides/${guide.slug}`} className="text-baylink-green underline">{guide.title}</a><p className="mt-1 text-sm">{guide.summary}</p></li>)}</ul><a className="mt-5 inline-block text-baylink-green underline" href="/guides">全部生活指南</a><p className="mt-3 text-sm text-baylink-muted">最新帖子和地区筛选会在页面加载后显示。</p></section>
   ));
 }
-await renderPage({ title: '编辑推荐｜BAYLINK', description: '按生活场景阅读 BAYLINK 编辑专题、实用指南和本地信息。推荐不构成资质或交易担保。', path: '/recommend' }, <section className="px-5 py-8"><h1 className="text-2xl font-bold">编辑推荐</h1><p className="mt-3">从抵达湾区、寻找帮助到周末探索，按主题找到下一步。</p><EditorialCollections /><MonthlySpotlight /><a href="/" className="mt-5 inline-block text-baylink-green underline">浏览全部本地信息</a></section>);
 await renderPage({ title: '服务条款｜BAYLINK', description: '了解 BAYLINK 的账号、信息发布、用户交易、AI 功能和短信验证使用条款。', path: '/terms' }, <TermsView />);
 await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK 账号资料、公开内容、验证手机号、联系方式分享与隐私申请说明。', path: '/privacy' }, <PrivacyPolicyView />);
 await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);

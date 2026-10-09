@@ -15,19 +15,26 @@ const { ReadingPreferencesButton } = await import('../src/components/ReadingPref
 const { getReadingSize, setReadingSize, initializeReadingSize, READING_SIZE_KEY } = await import('../src/lib/reading-preferences');
 afterEach(() => { cleanup(); setReadingSize('standard'); dom.window.localStorage.clear(); });
 
-test('calendar and personal routes have one correct tab, while BayBay opens in one action', () => {
+test('events and personal routes have one correct tab, while BayBay opens in one action', () => {
   let asked = 0;
   const view = render(<MemoryRouter><SiteMobileNavigation pathname="/events/festival" notificationCount={3} onAsk={() => asked++} /></MemoryRouter>);
   assert.equal(view.container.querySelectorAll('a').length, 4);
-  assert.equal(view.container.querySelector('[aria-current=page]')?.getAttribute('href'), '/calendar');
+  assert.equal(view.container.querySelector('[aria-current=page]')?.getAttribute('href'), '/events');
   fireEvent.click(view.getByRole('button', { name: '问 BayBay' })); assert.equal(asked, 1);
   assert.ok(view.getByLabelText('3 条未读消息'));
   view.rerender(<MemoryRouter><SiteMobileNavigation pathname="/messages/neighbor" notificationCount={0} onAsk={() => asked++} /></MemoryRouter>);
   assert.equal(view.container.querySelectorAll('[aria-current=page]').length, 1);
   assert.equal(view.container.querySelector('[aria-current=page]')?.getAttribute('href'), '/me');
-  view.rerender(<MemoryRouter><SiteMobileNavigation pathname="/this-week" notificationCount={0} onAsk={() => asked++} /></MemoryRouter>);
-  assert.equal(view.container.querySelectorAll('[aria-current=page]').length, 1);
-  assert.equal(view.container.querySelector('[aria-current=page]')?.getAttribute('href'), '/calendar');
+  for (const pathname of ['/this-week', '/calendar', '/events', '/plan']) {
+    view.rerender(<MemoryRouter><SiteMobileNavigation pathname={pathname} notificationCount={0} onAsk={() => asked++} /></MemoryRouter>);
+    assert.equal(view.container.querySelectorAll('[aria-current=page]').length, 1, pathname);
+    assert.equal(view.container.querySelector('[aria-current=page]')?.getAttribute('href'), '/events', pathname);
+  }
+  // 邻里 (category boards, posts) belongs to 更多: no primary tab, never 首页
+  for (const pathname of ['/category/rent', '/posts/neighbor-post']) {
+    view.rerender(<MemoryRouter><SiteMobileNavigation pathname={pathname} notificationCount={0} onAsk={() => asked++} /></MemoryRouter>);
+    assert.equal(view.container.querySelectorAll('[aria-current=page]').length, 0, pathname);
+  }
 });
 
 test('reading choices persist, initialize from a shared link, and close with restored focus', () => {

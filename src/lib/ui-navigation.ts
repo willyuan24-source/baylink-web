@@ -1,11 +1,13 @@
-export type PrimaryNavigationPath = '/' | '/calendar' | '/guides' | '/me';
+import { matchRoute } from '../app/route-table';
 
-/** A route belongs to one user task, independently of the legacy layout tabs. */
+export type PrimaryNavigationPath = '/' | '/events' | '/guides' | '/me';
+const PRIMARY = { home: '/', events: '/events', guides: '/guides', me: '/me' } as const;
+
+/**
+ * The bottom-bar / header tab a route belongs to (route-table `section`). Each URL has one owner; 邻里 (/category,
+ * /posts, /users), 3D, about and legal pages live in 更多 and highlight no primary tab.
+ */
 export function primaryNavigationPath(pathname: string): PrimaryNavigationPath | null {
-  const path = pathname.replace(/\/$/, '') || '/';
-  if (path === '/' || path.startsWith('/category/') || path.startsWith('/posts/')) return '/';
-  if (/^\/(calendar|events|offers|openings|this-month|this-week|ai-in-the-bay|plan|together)(\/|$)/.test(path)) return '/calendar';
-  if (/^\/(guides|explore|tools|recommend|archive)(\/|$)/.test(path)) return '/guides';
-  if (/^\/(me|my-week|messages|users)(\/|$)/.test(path)) return '/me';
-  return null;
+  const section = matchRoute(pathname)?.section;
+  return section && section in PRIMARY ? PRIMARY[section as keyof typeof PRIMARY] : null;
 }

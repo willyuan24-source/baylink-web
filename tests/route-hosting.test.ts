@@ -64,7 +64,7 @@ function appPaths(): string[] {
 
 // Pages the prerender writes: the sitemap plus the noindex and alias pages (scripts/prerender.tsx).
 const pages = new Set(generateSitemap().paths.map(path => path.replace(/\/$/, '') || '/'));
-for (const locale of ['', '/en', '/zh-Hant']) for (const path of ['/this-week', '/play', '/verify-email', '/notifications/unsubscribe', '/404']) pages.add(`${locale}${path}`);
+for (const locale of ['', '/en', '/zh-Hant']) for (const path of ['/play', '/verify-email', '/notifications/unsubscribe', '/404']) pages.add(`${locale}${path}`);
 const pageFor = (html: string) => html.replace(/\.html$/, '').replace(/(^|\/)index$/, '$1').replace(/\/$/, '') || '/';
 
 test('every App route loads directly on the host in all three languages', () => {
@@ -94,6 +94,6 @@ test('the simulator keeps unknown URLs as 404s and follows query-gated and redir
   for (const url of ['/not-a-route', '/en/not-a-route', '/zh-Hant/guides/not-a-guide', '/events/not-an-event']) assert.equal(resolveHosting(url).kind, 'missing', url);
   assert.deepEqual(resolveHosting('/play', { stops: 'a' }), { kind: 'page', path: '/plan.html' });
   assert.deepEqual(resolveHosting('/together', { outing: 'abc' }), { kind: 'function', file: 'api/outing-page.ts', query: '' });
-  assert.deepEqual(resolveHosting('/n/sf'), { kind: 'redirect', location: '/this-week?region=sf&from=card-sf' });
+  assert.deepEqual(resolveHosting('/n/sf'), { kind: 'redirect', location: '/events?region=sf&from=card-sf' });
   assert.deepEqual(resolveHosting('/me'), { kind: 'page', path: '/index.html' });
 });

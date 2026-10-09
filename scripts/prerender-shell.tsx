@@ -14,7 +14,7 @@ const LABELS: Record<SiteLanguage, string[]> = {
  */
 export const Shell = ({ children, locale }: { children: ReactNode; locale: SiteLanguage }) => {
   const labels = LABELS[locale];
-  const nav: Array<[string, string]> = [['/', labels[1]], ['/calendar', labels[2]], ['/guides', labels[3]], ['/me', labels[4]]];
+  const nav: Array<[string, string]> = [['/', labels[1]], ['/events', labels[2]], ['/guides', labels[3]], ['/me', labels[4]]];
   const footer: Array<[string, string]> = [['/about', labels[5]], ['/terms', labels[6]], ['/privacy', labels[7]], ['/sms-consent', labels[8]], ['/archive', labels[9]]];
   return (
   <div className="min-h-screen bg-baylink-bg text-baylink-text">
