@@ -22,7 +22,7 @@ test('free admission results include Newark Days and Petaluma while retaining pa
   assert.match(petaluma.costLabel, /基础入场及停车免费/);
   assert.match(petaluma.costLabel, /日间大迷宫6岁以上\$9、5岁及以下免费/);
   assert.match(petaluma.costLabel, /周五周六夜迷宫\$13/);
-  assert.match(petaluma.plan.join(' '), /其他项目、南瓜和餐饮另付/);
+  assert.match(petaluma.costLabel, /其他项目、南瓜和餐饮另付/, 'paid extras stay in the cost line; the plan no longer repeats it');
 });
 
 test('free admission does not include conditional-age or resident exemptions and still respects expiry', () => {
