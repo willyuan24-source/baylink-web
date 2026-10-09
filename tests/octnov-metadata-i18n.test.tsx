@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import React from 'react';
@@ -11,9 +12,7 @@ import { setLocale, translateText, normalizeText, type Locale } from '../src/i18
 import { languagePath, languagePrefix } from '../src/lib/language-path';
 import { renderHtmlDocument } from '../src/lib/seo';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
-import { EventsView } from '../src/components/EventsView';
 import { MONTHLY_EDITION } from '../src/data/monthly-settings';
-import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import PlannerPage from '../src/pages/PlannerPage';
 import { PLAN_METADATA } from '../src/lib/planner';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
@@ -30,6 +29,12 @@ import { getSlugFromCategory } from '../src/routing';
 import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
 import { GuidesHome } from '../src/components/GuidesHome';
+
+// The events column imports its stylesheet (and the UI primitives theirs); here they load as empty modules, so the column
+// is imported after the hook (static imports load first).
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
+const { EventsView } = await import('../src/components/EventsView');
+const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const routes = [
