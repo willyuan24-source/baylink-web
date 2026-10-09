@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { registerHooks } from 'node:module';
 import '../src/i18n/router';
 import '../src/i18n/metadata';
 import { setLocale, translateText } from '../src/i18n/locale';
@@ -24,10 +25,8 @@ import { renderHtmlDocument, SITE_STRUCTURED_DATA, type PageMetadata } from '../
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
-import { MonthlyEdition } from '../src/components/MonthlyEdition';
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
-import { EventsView } from '../src/components/EventsView';
 import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
 import { HomeDiscovery } from '../src/components/HomeDiscovery';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
@@ -37,13 +36,20 @@ import { generateSitemap } from './generate-sitemap';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 
-import CalendarPage from '../src/pages/CalendarPage';
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
 import PlannerPage from '../src/pages/PlannerPage';
 import AiLocalPage from '../src/pages/AiLocalPage';
 import { PLAN_METADATA } from '../src/lib/planner';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { opusBayHeadExtras, opusBayInHalloween, opusBayMetadata } from '../src/lib/opus-bay-metadata';
+
+// Component stylesheets (the WEB-UI primitives' ui.css, the events column's events.css) are bundled by Vite and linked per
+// route below (RC-6); here they load as empty modules. Static imports load before this line runs, so a page that imports
+// CSS is imported after the hook, dynamically.
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
+const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
+const { EventsView } = await import('../src/components/EventsView');
+const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
