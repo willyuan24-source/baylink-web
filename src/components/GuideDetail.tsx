@@ -37,6 +37,7 @@ import { CityExplorationDirectory } from './CityExplorationDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 import { guideContentReviewRecord } from '../lib/content-review';
 import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
+import { PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
 
 type GuideDetailProps = {
   slug: string;
@@ -426,14 +427,14 @@ const BlockRenderer = ({
     case "heading":
       return <h2 id={id}>{block.text}</h2>;
     case "paragraph":
-      return <p>{block.text}</p>;
+      return <p><PhoneText text={block.text} /></p>;
     case "list":
       return (
-        <ul className="bl-guide-bullet-list">
+        <PhoneDirectoryOr items={block.items}><ul className="bl-guide-bullet-list">
           {block.items.map((item, i) => (
-            <li key={i}>{item}</li>
+            <li key={i}><PhoneText text={item} /></li>
           ))}
-        </ul>
+        </ul></PhoneDirectoryOr>
       );
     case "checklist":
       return <Checklist items={block.items} />;
@@ -444,7 +445,7 @@ const BlockRenderer = ({
     case "link": {
       const internalPath = block.url.startsWith('https://www.baylink.us/') ? block.url.slice('https://www.baylink.us'.length) : block.url;
       const internal = /^\/(?![/\\])/.test(internalPath) && !internalPath.includes('\\') ? internalPath : null;
-      return <div className="bl-guide-source-link">{internal ? <Link to={internal}>{block.title}<ArrowRight size={16} aria-hidden="true" /></Link> : /^https?:\/\//i.test(block.url) ? <a href={block.url} target="_blank" rel="noopener noreferrer">{block.title}<ArrowUpRight size={16} aria-hidden="true" /><span className="sr-only">（在新标签页打开）</span></a> : <strong>{block.title}</strong>}<p>{block.text}</p></div>;
+      return <div className="bl-guide-source-link">{internal ? <Link to={internal}>{block.title}<ArrowRight size={16} aria-hidden="true" /></Link> : /^https?:\/\//i.test(block.url) ? <a href={block.url} target="_blank" rel="noopener noreferrer">{block.title}<ArrowUpRight size={16} aria-hidden="true" /><span className="sr-only">（在新标签页打开）</span></a> : <strong>{block.title}</strong>}<p><PhoneText text={block.text} /></p></div>;
     }
     case "tip":
       return (
@@ -453,7 +454,7 @@ const BlockRenderer = ({
             <Lightbulb size={17} aria-hidden="true" />
             {block.title || "提示"}
           </span>
-          <p>{block.text}</p>
+          <p><PhoneText text={block.text} /></p>
         </aside>
       );
     case "cta":
