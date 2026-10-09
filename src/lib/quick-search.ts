@@ -46,9 +46,11 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
   const { tokens, intent, dateRange } = queryInfo;
   const active = !!query.trim() && !queryInfo.invalidDate && !queryInfo.unsupported.some(value => value === 'negative-preference' || value === 'multiple-dates');
   const normalize = (value: string) => normalizeGuideQuery(normalizeDiscoveryTopic(value));
+  // Synonyms (search-synonyms.ts) may turn one typed word into two (中文医生 → 中文 + 医生); every part must match.
+  const terms = tokens.flatMap(token => normalize(token).split(/\s+/)).filter(Boolean);
   const matches = (values: string[]) => {
     const text = normalize(values.flatMap(value => [value, translateText(value, locale)]).join(' '));
-    return active && (tokens.length > 0 || queryInfo.structured) && tokens.every(token => text.includes(normalize(token)));
+    return active && (tokens.length > 0 || queryInfo.structured) && terms.every(term => text.includes(term));
   };
   const locationMatches = (region?: string, city?: string) =>
     (!queryInfo.regions.length || !!region && queryInfo.regions.includes(region as typeof queryInfo.regions[number])) &&
