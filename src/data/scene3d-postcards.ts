@@ -8,8 +8,10 @@ import { ladderSrcSet, readExtraLadder } from './image-ladder';
  * `npm run images:variants`, which adds the 480/800 rungs there. public/opus-bay/** is never written.
  *
  * Not part of GUIDE_IMAGES, so no page ships them until a W2 surface asks: getCover() reads them through a lookup such
- * as `key => GUIDE_IMAGES[key] ?? SCENE3D_POSTCARD_IMAGES[key]` with `postcardKey`, and only for SF places. The label is
- * always 3D 场景插图 (getImageProvenance, `scene3d`); captions also say plainly that the picture is AI-generated art.
+ * as `key => GUIDE_IMAGES[key] ?? SCENE3D_POSTCARD_IMAGES[key]` with `postcardKey`, and only for SF places. Passed as an
+ * `imageKey` they resolve to a TypeCover on every kind (`rights.basis: 'ai'`), so that lookup is safe for events, offers
+ * and openings too. The label is always 3D 场景插图 (getImageProvenance, `scene3d`); captions also say plainly that the
+ * picture is AI-generated art.
  */
 export type Scene3dPostcard = GuideImage & {
   key: string;
@@ -41,7 +43,10 @@ const postcard = (id: string, subject: Scene3dPostcard['subject'], places: reado
   caption: caption(subject.zh),
   credit,
   coverOk: true,
-  rights: { basis: 'owner', scope: 'BAYLINK-generated art; covers for San Francisco places only', promoAllowed: true },
+  // `ai`, not `owner`: BAYLINK owns the art, but what decides a cover is that it is AI-generated. getCover() then refuses it
+  // as an `imageKey` on every listing (an event, offer or opening must never get AI art); places reach it only through
+  // `postcardKey`, which resolves the scene3d tier before any rights check.
+  rights: { basis: 'ai', scope: 'BAYLINK-generated AI art; covers for San Francisco places only, through postcardKey', promoAllowed: true },
   subject,
   places,
   en: { alt: altEn, caption: captionEn(subject.en), credit: creditEn },
