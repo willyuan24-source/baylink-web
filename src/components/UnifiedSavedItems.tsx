@@ -14,6 +14,7 @@ import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { EventTypeCover, OfferTypeCover, OpeningTypeCover, TypeCover } from './ui/TypeCover';
 import { SaveHeart } from '../features/saves/SaveHeart';
+import { usePostAvailability } from '../features/saves/post-availability';
 import type { CoverTone } from '../lib/event-facts';
 
 const KIND_ORDER: SavedEntry['kind'][] = ['event', 'offer', 'opening', 'place', 'guide', 'post'];
@@ -31,6 +32,8 @@ function Thumb({ view, cover, today, label, ended }: { view: SavedItemView; cove
 /**
  * My Week's 收藏 block: every saved item of the one save model (src/lib/saves.ts) as a row with its cover, the same
  * list (and count) the /me tile names. Retired items stay listed with a remove button, so the count never drifts.
+ * Saved neighbourhood listings on screen are checked against the live board: one its author deleted or hid says so
+ * (and offers its ♡ to remove it) instead of linking to a dead page.
  */
 export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: string; signedIn: boolean; coverPage?: CoverPage }) {
   const locale = useLocale();
@@ -45,6 +48,7 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
   const shown = views.map((view, index) => ({ view, cover: covers[index] })).filter(({ view }) => active === 'all' || view.entry.kind === active);
   const pick = (copy: { zh: string; en: string }) => t(copy.zh, copy.en);
   const unknown = list.count === null;
+  const posts = usePostAvailability(shown.flatMap(({ view }) => view.entry.kind === 'post' ? [view.entry.id] : []));
   return <section id="saved" className="my-week__section" aria-labelledby="my-week-saved-title" data-testid="my-week-saved">
     <div className="my-week__head">
       <h2 id="my-week-saved-title"><Heart aria-hidden="true" strokeWidth={1.75} />{t('收藏', 'Saved')}{list.count !== 0 && <span className="my-week__count" data-testid="my-week-saved-count" aria-label={unknown ? t('账号收藏暂时未知', 'Account saved items unavailable') : undefined}>{unknown ? '—' : list.count}</span>}</h2>
@@ -64,14 +68,17 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
     {shown.length > 0 && <ul className="my-week__list">{shown.map(({ view, cover }) => {
       const title = view.userText ? view.title : translateText(view.title, locale);
       const kind = pick(view.kindLabel);
+      const availability = view.entry.kind === 'post' ? posts.get(view.entry.id) : undefined;
       // Each piece is translated on its own (the dictionaries hold the pieces, not the joined line).
-      const meta = [kind, ...view.meta.map(part => view.userText ? part : translateText(part, locale)), view.entry.source === 'pending' ? t('本机，稍后同步到账号', 'on this device, syncing to your account') : ''].filter(Boolean).join(' · ');
+      const meta = [kind, ...view.meta.map(part => view.userText ? part : translateText(part, locale)), view.entry.source === 'pending' ? t('本机，稍后同步到账号', 'on this device, syncing to your account') : '',
+        availability === 'unknown' ? t('暂时无法检查是否仍在', 'could not check whether it is still listed') : ''].filter(Boolean).join(' · ');
       const chip = view.event ? eventDateChip(view.event, today) : undefined;
       const ended = chip?.kind === 'day' && chip.ended;
       const date = chip ? `${ended ? `${t('已结束', 'Ended')} · ` : ''}${formatDateChip(chip, english).label}` : view.offer ? (() => { const deadline = offerDeadline(view.offer!, today); return deadline ? pick(deadline.text) : undefined; })() : undefined;
       const heart = <SaveHeart kind={view.entry.kind} id={view.entry.id} title={title} post={view.entry.post} />;
       return <li key={view.entry.key} data-kind={view.entry.kind} data-ended={ended ? '' : undefined} translate={view.userText ? 'no' : undefined}>
-        {view.path ? <RowCard title={title} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} ended={ended} />} date={date} meta={meta} trailing={heart} />
+        {availability === 'gone' ? <div className="my-week__retired" data-testid="saved-post-gone"><p><strong>{title}</strong> · {t('这条信息目前不可访问，可以移除收藏。', 'This listing is no longer available. You can remove it.')}</p>{heart}</div>
+          : view.path ? <RowCard title={title} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} ended={ended} />} date={date} meta={meta} trailing={heart} />
           : <div className="my-week__retired"><p><strong>{kind}</strong> · {t('这条内容已下架或暂时找不到。', 'This item is no longer listed.')}</p>{heart}</div>}
       </li>;
     })}</ul>}

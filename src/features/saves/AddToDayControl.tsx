@@ -27,11 +27,13 @@ export default function AddToDayControl({ stop, date, title, compact, className,
       const result = await appendToDay(app?.user?.id, date, stop, t(`${day} 计划`, `Plan for ${day}`), today);
       setState({ status: 'done', toast: result.alreadyThere ? t(`已在 ${day} 计划里`, `Already in your ${day} plan`) : t(`已加入 ${day} 计划`, `Added to your ${day} plan`) });
     } catch (error) {
-      setState({ status: 'error', message: locale === 'en' ? 'This stop could not be added. Try again.' : translateText((error as { error?: string })?.error || '暂时没能加入计划，请重试。', locale) });
+      // The planner's own messages are Chinese source text (translated for zh-Hant); English gets one plain sentence.
+      const reason = (error as { error?: string })?.error;
+      setState({ status: 'error', message: reason && locale !== 'en' ? translateText(reason, locale) : t('暂时没能加入计划，请重试。', 'This stop could not be added. Try again.') });
     }
   };
   return <span className={['saves-day', className].filter(Boolean).join(' ')}>
-    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale)} disabled={state.status === 'busy'} onClick={() => void add()}>
+    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale, state.status === 'done' ? day : undefined)} disabled={state.status === 'busy'} onClick={() => void add()}>
       {state.status === 'done' ? <Check aria-hidden="true" strokeWidth={2} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />}
       {state.status === 'done' ? t(`已加入 ${day}`, `In your ${day} plan`) : t('加入这天计划', 'Add to this day’s plan')}
     </button>

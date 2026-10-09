@@ -9,13 +9,20 @@ import { Check, X } from 'lucide-react';
  * A short confirmation with one way onward: "已收藏 · 查看" / "已加入 10/10 计划 · 查看". Saves and plans confirm here
  * until the app toast takes an action (WEB-SHELL1); then this can hand the same two strings to it.
  * Polite live region, 44px targets, closes itself after 6 s, nothing animates under reduced motion.
+ * One at a time: every control renders its own toast in the same spot, so a new one closes the one shown before.
  */
+let closeShown: (() => void) | null = null;
+
 export function SaveToast({ message, actionLabel, to, closeLabel, onClose }: { message: string; actionLabel: string; to: string; closeLabel: string; onClose: () => void }) {
   const close = useRef(onClose);
   useEffect(() => { close.current = onClose; });
   useEffect(() => {
-    const timer = window.setTimeout(() => close.current(), 6000);
-    return () => window.clearTimeout(timer);
+    const mine = () => close.current();
+    const previous = closeShown;
+    closeShown = mine;
+    previous?.();
+    const timer = window.setTimeout(mine, 6000);
+    return () => { window.clearTimeout(timer); if (closeShown === mine) closeShown = null; };
   }, [message]);
   if (typeof document === 'undefined') return null;
   return createPortal(<div className="saves-toast" role="status" aria-live="polite" data-testid="save-toast">

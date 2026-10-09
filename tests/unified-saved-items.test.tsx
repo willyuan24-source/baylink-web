@@ -114,3 +114,29 @@ test('an unavailable account keeps device items readable while the account count
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '2');
   assert.match(view.getByTestId('saved-count-link').textContent!, /我的收藏\s*2/);
 });
+
+test('saved listings on screen are checked: a deleted or hidden one says so and offers its ♡, a live one keeps its link', async t => {
+  const gone = { ...post, id: 'deleted-one', title: 'Deleted by its author' };
+  const unsure = { ...post, id: 'unsure-one', title: 'Check failed' };
+  localStorage.setItem(savedPostsKey(), JSON.stringify([post, gone, unsure]));
+  const checked: string[] = [];
+  t.mock.method(api, 'request', async (path: string) => {
+    checked.push(path);
+    if (path === `/posts/${post.id}`) return { ...post };
+    if (path === `/posts/${gone.id}`) throw { status: 404, error: 'not found' };
+    throw { status: 503 };
+  });
+  const view = render(page());
+  const section = within(view.getByTestId('my-week-saved'));
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  assert.deepEqual(checked.sort(), [`/posts/${gone.id}`, `/posts/${post.id}`, `/posts/${unsure.id}`]);
+  assert.ok(section.getByRole('link', { name: post.title }), 'a live listing keeps its link');
+  const goneRow = view.getByTestId('saved-post-gone');
+  assert.match(goneRow.textContent!, /Deleted by its author · 这条信息目前不可访问，可以移除收藏。/);
+  assert.equal(section.queryByRole('link', { name: gone.title }), null, 'no link to a dead page');
+  assert.match(section.getByRole('link', { name: unsure.title }).closest('li')!.textContent!, /暂时无法检查是否仍在/);
+  assert.equal(view.getByTestId('my-week-saved-count').textContent, '3', 'the count still names every saved item');
+  await act(async () => { fireEvent.click(within(goneRow).getByRole('button', { name: `取消收藏：${gone.title}` })); });
+  assert.equal(view.getByTestId('my-week-saved-count').textContent, '2');
+  assert.equal(checked.length, 3, 'each listing is checked once per visit');
+});

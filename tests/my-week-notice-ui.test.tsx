@@ -191,3 +191,58 @@ test('signed-in My Week puts plans and saved items first, then bookings, groups,
   assert.equal(view.queryByText('账号功能：预约与小队'), null);
   assert.ok(paths.includes('/outings/me')); assert.ok(paths.includes('/service-bookings/me'));
 });
+
+test('signed in: 加入这天计划 on My Week keeps the rows, the preferences and the confirmation while the account is read again', async t => {
+  const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
+  const { nextConfirmedEventDate } = await import('../src/lib/event-occurrences');
+  const { ATTRACTION_REGIONS } = await import('../src/data/attractions');
+  // The same "这周可以去" list the page builds; pick an area whose list has an event the unfiltered list does not
+  // show, so a re-read that dropped the preferences would also drop the tapped row.
+  const today = '2026-10-16', weekEnd = '2026-10-22';
+  const week = (region?: string) => MONTHLY_EVENTS.filter(event => !region || event.region === region)
+    .flatMap(event => { const date = nextConfirmedEventDate(event, today); return date && date <= weekEnd ? [{ event, date }] : []; })
+    .sort((a, b) => a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id)).slice(0, 6);
+  const unfiltered = new Set(week().map(item => item.event.id));
+  const regions = ATTRACTION_REGIONS.filter(region => region.id !== 'all').map(region => region.id as string);
+  const region = regions.find(id => week(id).some(item => !unfiltered.has(item.event.id))) ?? regions.find(id => week(id).length)!;
+  const target = week(region).find(item => !unfiltered.has(item.event.id)) ?? week(region)[0];
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  const preferences = { regions: [region], interests: [], travelMode: 'any' };
+  let posted: Record<string, unknown> | null = null, hold = false, release = () => {};
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
+    if (path === '/planner/imported-events') return { events: [], revision: 0 };
+    if (path === '/planner/me') {
+      if (hold) await new Promise<void>(resolve => { release = resolve; });
+      return { ...structuredClone(EMPTY_LIBRARY), preferences, plans: posted ? [posted] : [] };
+    }
+    if (path === '/planner/plans' && options?.method === 'POST') {
+      posted = { id: 'added', ...JSON.parse(String(options.body)), version: 1, createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString() };
+      hold = true;
+      return { plan: posted };
+    }
+    throw new Error(`Unexpected request: ${options?.method ?? 'GET'} ${path}`);
+  });
+  const view = render(page());
+  const name = `加入这天计划：${target.event.title}`;
+  const button = await view.findByRole('button', { name });
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  const ready = () => assert.equal((view.getByRole('button', { name }) as HTMLButtonElement).disabled, false);
+  for (let tries = 0; tries < 50; tries++) { try { ready(); break; } catch { await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); }); } }
+  ready();
+  await act(async () => { fireEvent.click(view.getByRole('button', { name })); });
+  for (let tries = 0; tries < 50 && !view.queryByTestId('save-toast'); tries++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+  // The re-read after the add is still running: nothing on screen may fall back to an empty library meanwhile.
+  assert.equal(hold, true);
+  const day = `${Number(target.date.slice(5, 7))}/${Number(target.date.slice(8, 10))}`;
+  assert.equal(view.getByTestId('save-toast').textContent!.includes(`已加入 ${day} 计划`), true);
+  const added = within(view.getByTestId('my-week-events')).getByRole('button', { name: `已加入 ${day} 计划：${target.event.title}` });
+  assert.ok(added.isConnected && button.isConnected, 'the tapped row stays mounted');
+  const label = ATTRACTION_REGIONS.find(item => item.id === region)!.label;
+  assert.equal(within(view.getByRole('group', { name: '常去的地区' })).getByRole('button', { name: label }).getAttribute('aria-pressed'), 'true', 'preferences stay applied');
+  assert.equal(view.getByTestId('my-week-plans').querySelector('[aria-busy=true]'), null, 'the plans do not flash to a skeleton');
+  await act(async () => { release(); await new Promise(resolve => setTimeout(resolve, 0)); });
+  await view.findByRole('heading', { name: String(posted!.title) });
+  assert.ok(view.getByTestId('save-toast'), 'the confirmation outlives the re-read');
+});

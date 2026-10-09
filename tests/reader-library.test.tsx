@@ -111,3 +111,12 @@ test('reading suggestions fill three slots, preserve curated topics, and exclude
   const later = discoverRelatedGuides(second, 80, '2026-10-01');
   assert.equal(later.some(item => item.editionMonth === '2026-09'), false);
 });
+
+test('the reader library hook returns the reading history only: saved counts come from the one save model', async () => {
+  const { renderHook } = await import('@testing-library/react');
+  const { useReaderLibrary } = await import('../src/lib/reader-library');
+  dom.window.localStorage.setItem(READER_LIBRARY_KEY, JSON.stringify({ saved: [guide.slug], recent: [second.slug] }));
+  const { result } = renderHook(() => useReaderLibrary());
+  assert.deepEqual(Object.keys(result.current), ['recent']);
+  assert.deepEqual(result.current.recent, [second.slug]);
+});

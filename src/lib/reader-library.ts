@@ -58,7 +58,12 @@ export function clearReadingHistory() {
   return write({ ...library, recent: [] });
 }
 
-export function useReaderLibrary() {
+/**
+ * The reading history only. The older `saved` list stays in storage for a rollback but is not returned: every count
+ * of saved items comes from the one save model (`useSavedCount` / `useSavedEntries` in src/lib/saves.ts), so a guide
+ * removed there can never be counted again from here.
+ */
+export function useReaderLibrary(): Pick<ReaderLibrary, 'recent'> {
   const raw = useSyncExternalStore(subscribe, snapshot, () => EMPTY);
-  return useMemo(() => parseReaderLibrary(raw), [raw]);
+  return useMemo(() => ({ recent: parseReaderLibrary(raw).recent }), [raw]);
 }

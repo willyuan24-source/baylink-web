@@ -122,8 +122,9 @@ export default function MyWeekPage() {
   const toggle = (field: 'regions' | 'interests', id: string) => void library.savePreferences({ ...preferences, [field]: preferences[field].includes(id) ? preferences[field].filter(value => value !== id) : [...preferences[field], id] });
   const interests = [{ id: 'family', zh: '亲子', en: 'Family' }, { id: 'culture', zh: '文化', en: 'Culture' }, { id: 'outdoors', zh: '户外', en: 'Outdoors' }, { id: 'food', zh: '美食', en: 'Food' }];
   return <PageContainer size="content" className="my-week">
-    <PageHeader title={t('我的这周', 'My Week')} lede={`${dayLabel(today, english)} – ${dayLabel(weekEnd, english)} · ${t('收藏和行程，都在这里', 'Your saved items and plans in one place')}`}
-      actions={<Button variant="primary" to="/events">{t('看本周末活动', 'See this weekend’s events')}</Button>} />
+    {/* No header action: 这周可以去 below lists this week's events, and an empty saved list carries the page's one primary
+        button (看本周末活动). That keeps the template inside the SYS bar of five button styles. */}
+    <PageHeader title={t('我的这周', 'My Week')} lede={`${dayLabel(today, english)} – ${dayLabel(weekEnd, english)} · ${t('收藏和行程，都在这里', 'Your saved items and plans in one place')}`} />
     {!online && <p className="my-week__offline" role="status"><WifiOff aria-hidden="true" strokeWidth={1.75} />{t('你现在离线：下面是这台设备上已有的内容，联网后会自动更新。', 'You are offline. What this device already has is shown; it updates when you reconnect.')}</p>}
     <div className="planner-page my-week__legacy"><PlannerAccountNotice variant="week" library={library} signedIn={signedIn} login={() => app?.setShowLogin(true)} /></div>
 

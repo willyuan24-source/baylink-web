@@ -100,3 +100,42 @@ test('guests save offers in this browser without any account request; guide moun
   const guide = render(page({ kind:'guide',id:'bay-area-roommate-guide' },null));
   assert.equal(guide.container.textContent,'','the guide page already shows its ♡ in the reader actions');
 });
+
+test('a failed account read stays silent on list cards; only the card the reader taps re-reads and says it failed', async t => {
+  localStorage.setItem('currentUser',JSON.stringify(account));
+  let reads = 0,fail = true;
+  t.mock.method(api,'request',async (_path:string,options?:RequestInit) => {
+    if (options?.method) throw new Error('no write expected');
+    reads++;
+    if (fail) throw { status:503,error:'isolated read failure' };
+    return { ...structuredClone(EMPTY_LIBRARY),favorites:[{ kind:'offer',id:currentFreebies[1].id }] };
+  });
+  const offers = currentFreebies.slice(0,3);
+  const view = render(<MemoryRouter><Routes><Route element={<Outlet context={{ user:account }}/>}><Route path="/" element={<>{offers.map(item => <SaveToWeek key={item.id} favorite={{ kind:'offer',id:item.id }} compact title={item.title}/>)}</>}/></Route></Routes></MemoryRouter>);
+  const heart = (index: number) => view.getByRole('button',{ name:`收藏：${offers[index].title}` }) as HTMLButtonElement;
+  await waitFor(() => assert.equal(heart(0).disabled,false));
+  assert.equal(reads,1);
+  assert.equal(view.queryAllByRole('alert').length,0,'one failed read must not put an alert under every card');
+  assert.equal(view.queryByRole('button',{ name:'重新读取收藏' }),null);
+  assert.equal(heart(0).hasAttribute('aria-pressed'),false,'an unread account is never called unsaved');
+  await act(async () => { fireEvent.click(heart(0)); });
+  assert.equal(reads,2,'tapping a card reads the list again');
+  await waitFor(() => assert.equal(view.getAllByRole('alert').length,1));
+  assert.ok(heart(0).closest('.saves-control')!.querySelector('[role=alert]'),'the alert sits on the tapped card');
+  fail = false;
+  await act(async () => { fireEvent.click(heart(2)); });
+  assert.equal(reads,3);
+  await waitFor(() => assert.equal(view.queryAllByRole('alert').length,0));
+  assert.equal(view.getByRole('button',{ name:`取消收藏：${offers[1].title}` }).getAttribute('aria-pressed'),'true');
+  assert.equal(heart(2).getAttribute('aria-pressed'),'false','the re-read itself never saves the tapped item');
+});
+
+test('two saves in a row show one confirmation, not two stacked toasts', async () => {
+  const offers = currentFreebies.slice(0,2);
+  const view = render(<MemoryRouter><Routes><Route element={<Outlet context={{ user:null }}/>}><Route path="/" element={<>{offers.map(item => <SaveToWeek key={item.id} favorite={{ kind:'offer',id:item.id }} compact title={item.title}/>)}</>}/></Route></Routes></MemoryRouter>);
+  const heart = (index: number) => view.getByRole('button',{ name:`收藏：${offers[index].title}` }) as HTMLButtonElement;
+  await waitFor(() => assert.equal(heart(1).disabled,false));
+  await act(async () => { fireEvent.click(heart(0)); });
+  await act(async () => { fireEvent.click(heart(1)); });
+  assert.equal(view.getAllByTestId('save-toast').length,1);
+});

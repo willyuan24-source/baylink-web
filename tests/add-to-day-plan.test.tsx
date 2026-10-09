@@ -80,7 +80,9 @@ test('the button saves at once, confirms with “已加入 12/12 计划 · 查�
   assert.equal(toast.getAttribute('role'), 'status');
   assert.match(toast.textContent!, /已加入 12\/12 计划/);
   assert.equal(within(toast).getByRole('link', { name: '查看' }).getAttribute('href'), `/my-week#plan-${DAY}`);
-  assert.ok(view.getByRole('button', { name: `加入这天计划：${MONTHLY_EVENTS[0].title}` }).textContent!.includes('已加入 12/12'));
+  // Once the stop is in, the accessible name starts with the visible text again (WCAG 2.5.3).
+  assert.equal(view.queryByRole('button', { name: `加入这天计划：${MONTHLY_EVENTS[0].title}` }), null);
+  assert.ok(view.getByRole('button', { name: `已加入 12/12 计划：${MONTHLY_EVENTS[0].title}` }).textContent!.includes('已加入 12/12'));
   await act(async () => {});
   assert.deepEqual(result.current.data.plans.map(plan => plan.stops), [[event]], 'the mounted planner library reread after the change');
   await act(async () => { fireEvent.click(within(toast).getByRole('button', { name: '关闭提示' })); });
@@ -89,9 +91,20 @@ test('the button saves at once, confirms with “已加入 12/12 计划 · 查�
 
 test('English copy for the button and the confirmation', async () => {
   await setLocale('en', false);
-  const view = render(<MemoryRouter><AddToDayPlan stop={event} date={DAY} today={TODAY} /></MemoryRouter>);
-  await waitFor(() => assert.equal(view.getByRole('button', { name: /Add to this day’s plan/ }).hasAttribute('disabled'), false));
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: /Add to this day’s plan/ })); });
+  const view = render(<MemoryRouter><AddToDayPlan stop={event} date={DAY} today={TODAY} title={MONTHLY_EVENTS[0].title} /></MemoryRouter>);
+  await waitFor(() => assert.equal(view.getByRole('button', { name: /^Add to this day’s plan: / }).hasAttribute('disabled'), false));
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: /^Add to this day’s plan: / })); });
   assert.match(view.getByTestId('save-toast').textContent!, /Added to your 12\/12 plan/);
   assert.ok(within(view.getByTestId('save-toast')).getByRole('link', { name: 'View' }));
+  assert.match(view.getByRole('button', { name: /^In your 12\/12 plan: / }).textContent!, /In your 12\/12 plan/);
+});
+
+test('a stop already in an older plan for the same day is not added again', async () => {
+  const older: SavedPlan = { id: 'older', title: '上午', date: DAY, stops: [event], version: 1, createdAt: '2026-10-01T00:00:00Z', updatedAt: '2026-10-01T00:00:00Z' };
+  const newer: SavedPlan = { id: 'newer', title: '下午', date: DAY, stops: [places[0]], version: 1, createdAt: '2026-10-02T00:00:00Z', updatedAt: '2026-10-02T00:00:00Z' };
+  localStorage.setItem('baylink.planner.guest.v1', JSON.stringify({ ...structuredClone(EMPTY_LIBRARY), plans: [newer, older] }));
+  const result = await appendToDay(undefined, DAY, event, 'ignored', TODAY);
+  assert.equal(result.alreadyThere, true);
+  assert.equal(result.plan.id, 'older');
+  assert.deepEqual(loadGuestLibrary().plans.find(plan => plan.id === 'newer')!.stops, [places[0]], 'the newest plan is left as it was');
 });

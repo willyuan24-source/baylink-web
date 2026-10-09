@@ -70,11 +70,27 @@ export function usePlannerLibrary(userId?: string) {
   }, [userId]);
   const invalidate = useCallback(() => { revision.current++; }, []);
   useEffect(() => { void refresh(); return invalidate; }, [refresh, invalidate]);
+  /** Counts the library's own writes, so a re-read that started before one never overwrites its result. */
+  const writes = useRef(0);
+  /**
+   * A plan changed outside this library ("加入这天计划"): read again, but keep what is on screen until the new read
+   * lands. Clearing first (as `refresh` does) would drop the preferences and plans for the length of the read, so
+   * rows filtered by them, and the confirmation of the button just tapped, would unmount. A failed re-read keeps
+   * what is shown.
+   */
+  const reread = useCallback(async () => {
+    if (!loaded.current) { void refresh(); return; }
+    const sequence = revision.current, before = writes.current;
+    try {
+      const next = userId ? await loadPlannerAccount(userId) as Library : loadGuestLibrary();
+      if (isCurrent(userId, sequence) && writes.current === before && !mutation.current) { dataRef.current = next; setState({ owner: userId, data: next }); }
+    } catch { /* keep what is shown; the next full read reports a lasting failure */ }
+  }, [userId, refresh]);
   useEffect(() => {
-    const reread = () => { if (!mutation.current) void refresh(); };
-    window.addEventListener(PLANNER_CHANGED_EVENT, reread);
-    return () => window.removeEventListener(PLANNER_CHANGED_EVENT, reread);
-  }, [refresh]);
+    const changed = () => { if (!mutation.current) void reread(); };
+    window.addEventListener(PLANNER_CHANGED_EVENT, changed);
+    return () => window.removeEventListener(PLANNER_CHANGED_EVENT, changed);
+  }, [reread]);
   const commitGuest = (next: Library) => {
     // A failed write is an error, never a successful save banner.
     localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify(next));
@@ -84,7 +100,7 @@ export function usePlannerLibrary(userId?: string) {
   const run = async <T,>(task: (sequence: number) => Promise<T>): Promise<T | undefined> => {
     const sequence = revision.current;
     if (mutation.current || loading || !loaded.current || state.owner !== userId || !isCurrent(userId, sequence)) return;
-    const operation = Symbol(); mutation.current = operation;
+    const operation = Symbol(); mutation.current = operation; writes.current++;
     setBusy(true); setError('');
     try { return await task(sequence); }
     catch (e) { if (isCurrent(userId, sequence)) setError(errorText(e)); return undefined; }
@@ -155,7 +171,9 @@ export async function appendToDay(userId: string | undefined, date: string, stop
   const [clean] = cleanStops([stop]);
   if (!clean || !validStop(clean)) throw { error: '这一站暂时不能加入计划。', code: 'stop' } satisfies AppendError;
   const key = favoriteKey(clean);
-  const sameDay = (plans: SavedPlan[]) => plans.filter(plan => plan.date === date).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  // Every plan of that day, newest first: a stop already in any of them is not added again; new stops go to the newest.
+  const sameDay = (plans: SavedPlan[]) => plans.filter(plan => plan.date === date).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  const holding = (plans: SavedPlan[]) => plans.find(plan => plan.stops.some(item => favoriteKey(item) === key));
   const withStop = (plan: SavedPlan) => {
     const stops = [...plan.stops, clean];
     return { title: plan.title, date, stops, ...(plan.details ? { details: normalizePlanDetails(plan.details, stops) } : {}) };
@@ -163,8 +181,9 @@ export async function appendToDay(userId: string | undefined, date: string, stop
   const done = (result: AppendToDayResult) => { if (!result.alreadyThere) { recordProductEvent('plan_saved'); announceChange(); } return result; };
   if (!userId) {
     const library = loadGuestLibrary();
-    const existing = sameDay(library.plans);
-    if (existing?.stops.some(item => favoriteKey(item) === key)) return { plan: existing, created: false, alreadyThere: true };
+    const dayPlans = sameDay(library.plans), existing = dayPlans[0];
+    const already = holding(dayPlans);
+    if (already) return { plan: already, created: false, alreadyThere: true };
     const reuse = existing && existing.stops.length < MAX_PLAN_STOPS ? existing : undefined;
     if (!reuse && library.plans.length >= 30) throw { error: '最多保存 30 份计划，请先移除不再需要的计划。', code: 'full' } satisfies AppendError;
     const now = new Date().toISOString();
@@ -180,8 +199,9 @@ export async function appendToDay(userId: string | undefined, date: string, stop
   for (let attempt = 0; ; attempt++) {
     if (getStoredUser()?.id !== userId) throw { error: SAVE_ERROR_COPY.session.zh, code: 'session' } satisfies AppendError;
     const library = await loadPlannerAccount(userId) as Partial<Library>;
-    const existing = sameDay(Array.isArray(library?.plans) ? library.plans : []);
-    if (existing?.stops.some(item => favoriteKey(item) === key)) return { plan: existing, created: false, alreadyThere: true };
+    const dayPlans = sameDay(Array.isArray(library?.plans) ? library.plans : []), existing = dayPlans[0];
+    const already = holding(dayPlans);
+    if (already) return { plan: already, created: false, alreadyThere: true };
     const reuse = existing && existing.stops.length < MAX_PLAN_STOPS ? existing : undefined;
     try {
       const { plan } = reuse
