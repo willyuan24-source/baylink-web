@@ -8,7 +8,7 @@ import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { EVENT_OVERLAY, OFFER_OVERLAY, OPENING_OVERLAY, PRE_OVERLAY } from '../src/data/editorial-overlay/apply';
-import { BASIS_FIELDS, lintEditorial, overlayCoverage, readEnglishSources, type Basis } from '../src/data/editorial-overlay/lint';
+import { basisFor, lintEditorial, overlayCoverage, readEnglishSources, type Basis } from '../src/data/editorial-overlay/lint';
 
 // Usage: tsx scripts/audit-editorial-content.ts [YYYY-MM-DD] [--strict] [--write-basis]
 //   --strict       exit 1 when an item with an overlay entry has an editorial lint error (content.md §4.4)
@@ -17,9 +17,8 @@ const args = process.argv.slice(2);
 const today = args.find(arg => /^\d{4}-\d{2}-\d{2}$/.test(arg)) || getBayAreaToday();
 const BASIS_FILE = 'src/data/editorial-overlay/basis.json';
 if (args.includes('--write-basis')) {
-  const basis: Basis = {};
-  for (const [key, record] of [...PRE_OVERLAY].sort(([a], [b]) => a.localeCompare(b))) basis[key] = Object.fromEntries(BASIS_FIELDS[key.split(':')[0] as keyof typeof BASIS_FIELDS].filter(field => record[field] !== undefined).map(field => [field, record[field]]));
-  writeFileSync(BASIS_FILE, `${JSON.stringify(basis, null, 1)}\n`);
+  const rows = Object.entries(basisFor(PRE_OVERLAY)).map(([key, fields]) => `${JSON.stringify(key)}: ${JSON.stringify(fields)}`);
+  writeFileSync(BASIS_FILE, `{\n${rows.join(',\n')}\n}\n`);
 }
 
 const canonical = (value: string) => { const url = new URL(value); return `${url.hostname.replace(/^www\./, '')}${url.pathname.replace(/\/+$/, '')}${url.search}`; };

@@ -2,7 +2,7 @@ import type { MonthlyEvent } from '../monthly-types';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { SeptemberOpening } from '../september-openings';
 import { displayUnits } from '../../lib/event-facts';
-import { COST_LINE_PREFIX, DATE_LINE_PREFIX, FILLER_SENTENCES, type EventOverlayEntry, type OfferEditorial, type OfferOverlayEntry, type OpeningEditorial, type OpeningOverlayEntry } from './apply';
+import { cleanPlan, COST_LINE_PREFIX, DATE_LINE_PREFIX, FILLER_SENTENCES, type EventOverlayEntry, type OfferEditorial, type OfferOverlayEntry, type OpeningEditorial, type OpeningOverlayEntry } from './apply';
 
 /**
  * Editorial lints (content.md §4.4; plan CNT-EVENTS; RC-29). Run by `scripts/audit-editorial-content.ts` and the
@@ -13,8 +13,8 @@ export type LintLevel = 'error' | 'warn';
 export type LintKind = 'event' | 'offer' | 'opening';
 export type LintIssue = { level: LintLevel; kind: LintKind; id: string; rule: string; detail: string };
 export type Overlay = { events: Record<string, EventOverlayEntry>; offers: Record<string, OfferOverlayEntry>; openings: Record<string, OpeningOverlayEntry> };
-/** Source values the overlay was written against, from `basis.json`. */
-export type Basis = Record<string, Record<string, unknown>>;
+/** `kind:id` → field → `fieldHash` of the source value the entry was written against (`basis.json`). */
+export type Basis = Record<string, Record<string, string>>;
 export type LintInput = {
   events: MonthlyEvent[];
   offers: (FreebieOffer & OfferEditorial)[];
@@ -35,6 +35,19 @@ export const BASIS_FIELDS = {
   offer: ['title', 'startDate', 'endDate', 'dateLabel', 'requirement', 'description'],
   opening: ['name', 'status', 'openedOn', 'dateLabel', 'summary', 'editorTip'],
 } as const;
+
+/** FNV-1a over the JSON of a field value: 8 hex characters, enough to notice that a source field changed. */
+export function fieldHash(value: unknown): string {
+  let hash = 0x811c9dc5;
+  for (const char of JSON.stringify(value ?? null)) hash = Math.imul(hash ^ char.charCodeAt(0), 0x01000193) >>> 0;
+  return hash.toString(16).padStart(8, '0');
+}
+
+/** basis.json content for the given pre-overlay records (`PRE_OVERLAY`), sorted for stable diffs. */
+export function basisFor(sources: Map<string, Record<string, unknown>>): Basis {
+  return Object.fromEntries([...sources].sort(([a], [b]) => a.localeCompare(b)).map(([key, record]) => [key,
+    Object.fromEntries(BASIS_FIELDS[key.split(':')[0] as keyof typeof BASIS_FIELDS].filter(field => record[field] !== undefined).map(field => [field, fieldHash(record[field])]))]));
+}
 
 /** The merged English dictionary, read from its sources (the same order as the generated english.json). */
 export function readEnglishSources(read: (path: string) => string): Record<string, string> {
@@ -81,11 +94,11 @@ export function lintEditorial(input: LintInput): LintIssue[] {
   const drift = (kind: LintKind, id: string) => {
     const recorded = input.basis?.[`${kind}:${id}`], source = input.sources?.get(`${kind}:${id}`);
     if (!recorded || !source) return;
-    for (const [field, value] of Object.entries(recorded)) if (JSON.stringify(source[field]) !== JSON.stringify(value)) add(false, kind, id, 'source-changed', `${field} changed since the overlay entry was written; re-check it`);
+    for (const [field, hash] of Object.entries(recorded)) if (fieldHash(source[field]) !== hash) add(false, kind, id, 'source-changed', `${field} changed since the overlay entry was written; re-check it`);
   };
 
   const eventIds = new Set(input.events.map(event => event.id));
-  for (const id of Object.keys(input.overlay.events)) if (!eventIds.has(id)) add(true, 'event', id, 'unknown-id', 'overlay entry has no catalog event');
+  for (const id of Object.keys(input.overlay.events)) if (!eventIds.has(id)) add(false, 'event', id, 'unknown-id', 'overlay entry has no catalog event (removed upstream?)');
   for (const event of input.events) {
     if (event.endDate < input.from) continue;
     const covered = Object.hasOwn(input.overlay.events, event.id);
@@ -106,6 +119,11 @@ export function lintEditorial(input: LintInput): LintIssue[] {
     short(true, 'event', event.id, entry, event);
     fixKeys('event', event.id, entry.fix);
     drift('event', event.id);
+    const source = input.sources?.get(`event:${event.id}`) as MonthlyEvent | undefined;
+    if (entry.plan && source) {
+      const cleaned = cleanPlan(source.plan, source.dateLabel, source.costLabel);
+      for (const line of entry.plan) if (typeof line === 'number' && !(Number.isInteger(line) && line >= 0 && line < cleaned.length)) add(true, 'event', event.id, 'plan-index', `line ${line} of ${cleaned.length} cleaned lines`);
+    }
     for (const session of event.sessions ?? []) {
       const confirmed = event.occurrenceDates;
       if (!DATE_LINE.test(session.date) || session.date < event.startDate || session.date > event.endDate || (confirmed && !confirmed.includes(session.date))) add(true, 'event', event.id, 'sessions', `${session.date} is not a confirmed day`);
@@ -123,7 +141,7 @@ export function lintEditorial(input: LintInput): LintIssue[] {
   }
 
   const offerIds = new Set(input.offers.map(offer => offer.id));
-  for (const id of Object.keys(input.overlay.offers)) if (!offerIds.has(id)) add(true, 'offer', id, 'unknown-id', 'overlay entry has no catalog offer');
+  for (const id of Object.keys(input.overlay.offers)) if (!offerIds.has(id)) add(false, 'offer', id, 'unknown-id', 'overlay entry has no catalog offer (removed upstream?)');
   for (const offer of input.offers) {
     if (offer.endDate && offer.endDate < input.from) continue;
     const covered = Object.hasOwn(input.overlay.offers, offer.id);
@@ -137,7 +155,7 @@ export function lintEditorial(input: LintInput): LintIssue[] {
   }
 
   const openingIds = new Set(input.openings.map(shop => shop.id));
-  for (const id of Object.keys(input.overlay.openings)) if (!openingIds.has(id)) add(true, 'opening', id, 'unknown-id', 'overlay entry has no catalog opening');
+  for (const id of Object.keys(input.overlay.openings)) if (!openingIds.has(id)) add(false, 'opening', id, 'unknown-id', 'overlay entry has no catalog opening (removed upstream?)');
   for (const shop of input.openings) {
     const covered = Object.hasOwn(input.overlay.openings, shop.id);
     const entry: OpeningOverlayEntry = covered ? input.overlay.openings[shop.id] : {};
