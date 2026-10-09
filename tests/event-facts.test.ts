@@ -122,7 +122,7 @@ test('no live offer headline disagrees with a rate in its id or title', () => {
       rated += 1;
       const idRate = /(\d+)-percent/.exec(offer.id)?.[1];
       if (idRate) assert.equal(off, idRate, `${offer.id}: ${value.en}`);
-      const percent = /(?<![\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i.exec(offer.title)?.[1];
+      const percent = /(?:^|[^\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i.exec(offer.title)?.[1];
       if (percent) assert.equal(off, percent, `${offer.id}: ${value.en}`);
       assert.ok(offer.title.replace(/\s+/g, '').includes(value.zh.replace(/\s+|%折扣/g, '')), `${offer.id}: ${value.zh} is written in the title`);
     }

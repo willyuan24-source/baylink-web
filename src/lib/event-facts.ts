@@ -150,9 +150,22 @@ export const displayUnits = (text: string) => [...text].reduce((sum, char) => su
 export function eventShortTitle(event: Pick<EventFactsInput, 'title' | 'shortTitle'>): string {
   if (event.shortTitle?.trim()) return event.shortTitle.trim();
   const title = event.title.trim();
-  // A colon between two digits is a clock time ("7:30"), not a separator.
-  const head = title.split(/[：:](?!\d)|(?<!\d)[：:]|[｜|]| — | – /)[0].trim();
+  const head = titleHead(title).trim();
   return head !== title && displayUnits(head) >= 4 ? head : title;
+}
+const TITLE_SEPARATOR = /[：:｜|]| — | – /g;
+const DIGIT = /\d/;
+/**
+ * The title up to its first separator. A colon between two digits is a clock time ("7:30"), not a separator; the
+ * character before it is checked in code because Safari < 16.4 cannot parse a regex look-behind (W9-E guard).
+ */
+function titleHead(title: string): string {
+  for (const match of title.matchAll(TITLE_SEPARATOR)) {
+    const at = match.index ?? 0;
+    const clock = /[：:]/.test(match[0]) && DIGIT.test(title.charAt(at - 1)) && DIGIT.test(title.charAt(at + 1));
+    if (!clock) return title.slice(0, at);
+  }
+  return title;
 }
 
 /** Short place for a meta line: overlay `venueShort`, else the city. */
@@ -200,17 +213,18 @@ type ValuePattern = [RegExp, (match: RegExpMatchArray, offer: Pick<OfferFactsInp
 const VALUE_PATTERNS: ValuePattern[] = [
   [/买一送一|buy one,? get one/i, () => ({ zh: '买一送一', en: 'BOGO' })],
   [/半价|half[- ]price/i, () => ({ zh: '半价', en: 'Half price' })],
-  // The lookbehind keeps "85 折" from reading as "5 折" and "$20 折扣" (a dollar amount) out entirely.
-  [/(?<![\d.$])(\d{1,2}(?:\.\d)?)\s*折(?!扣)/, match => {
-    const off = discountOff(match[1]);
-    return off === null ? null : { zh: `${match[1]} 折`, en: `${off}% off` };
+  // Group 1 is the character before the rate (or the start), so "85 折" never reads as "5 折" and "$20 折扣" (a
+  // dollar amount) stays out; a consumed group instead of a look-behind, which Safari < 16.4 cannot parse.
+  [/(^|[^\d.$])(\d{1,2}(?:\.\d)?)\s*折(?!扣)/, match => {
+    const off = discountOff(match[2]);
+    return off === null ? null : { zh: `${match[2]} 折`, en: `${off}% off` };
   }],
   // The same in Chinese numerals: 八折, 八五折, 七五折.
-  [/(?<![一二三四五六七八九十])([一二三四五六七八九]{1,2})折(?!扣)/, match => {
-    const off = discountOff([...match[1]].map(digit => '一二三四五六七八九'.indexOf(digit) + 1).join(''));
-    return off === null ? null : { zh: match[0], en: `${off}% off` };
+  [/(^|[^一二三四五六七八九十])([一二三四五六七八九]{1,2})折(?!扣)/, match => {
+    const off = discountOff([...match[2]].map(digit => '一二三四五六七八九'.indexOf(digit) + 1).join(''));
+    return off === null ? null : { zh: `${match[2]}折`, en: `${off}% off` };
   }],
-  [/(?<![\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i, match => ({ zh: `${match[1]}% 折扣`, en: `${match[1]}% off` })],
+  [/(^|[^\d.$])(\d{1,2})\s*%\s*(?:off|折扣)/i, match => ({ zh: `${match[2]}% 折扣`, en: `${match[2]}% off` })],
   // A purchase offer is free only with the order, so the headline carries the condition: 随单免费 / Free + "with purchase".
   [/免费|free/i, (_, offer) => offer.kind === 'purchase' ? { zh: '随单免费', en: 'Free', condition: { zh: '', en: 'with purchase' } } : { zh: '免费', en: 'Free' }],
 ];
