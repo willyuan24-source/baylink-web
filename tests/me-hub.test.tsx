@@ -17,7 +17,9 @@ await import('../src/i18n/router');
 const { default: ProfilePage } = await import('../src/pages/ProfilePage');
 const { default: MessagesPage } = await import('../src/pages/MessagesPage');
 const { NotificationPreferencesCard } = await import('../src/features/profile/NotificationPreferencesCard');
-const { parseSystemNotice, previewText, noticeLine } = await import('../src/features/messages/system-notice');
+const { parseSystemNotice, previewText, noticeLine, noticeStatus, isNoticeWording } = await import('../src/features/messages/system-notice');
+const { SystemNoticeCard } = await import('../src/features/messages/SystemNoticeCard');
+const { readerError } = await import('../src/features/messages/reader-error');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { setLocale } = await import('../src/i18n/locale');
@@ -161,8 +163,11 @@ test('/messages: three round entries, the reminders prompt and the contact reque
   assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications');
   await waitFor(() => assert.equal(pending, 1));
   assert.equal(rounds.getByLabelText('1 个待处理').textContent, '1');
-  fireEvent.click(rounds.getByRole('button', { name: /联系请求/ }));
+  const requestsButton = rounds.getByRole('button', { name: /联系请求/ });
+  assert.ok(document.getElementById(requestsButton.getAttribute('aria-controls') || '-'), 'aria-controls names the rendered panel');
+  fireEvent.click(requestsButton);
   assert.ok(view.getByRole('button', { name: '同意并发送' }));
+  assert.equal(view.getByRole('button', { name: '收起' }).getAttribute('aria-controls'), 'msg-requests-list');
   assert.ok(await view.findByRole('heading', { name: '还没有消息' }));
 });
 
@@ -174,7 +179,18 @@ test('no reminders prompt when a reminder is on or the setting cannot be read', 
     await view.findByRole('heading', { name: '还没有消息' });
     await act(async () => {});
     assert.equal(view.queryByRole('note'), null);
+    // Nothing pending and the panel closed: no section is rendered, so the round entry names no controlled element.
+    assert.equal(view.getByRole('button', { name: /联系请求/ }).getAttribute('aria-controls'), null);
     cleanup();
+  }
+});
+
+test('lane controls size from --control-height, so 简洁显示 gives every target 48px', async () => {
+  const { readFileSync } = await import('node:fs');
+  for (const file of ['features/messages/messages-hub.css', 'features/profile/me-hub.css', 'features/profile/profile-personal-space.css', 'features/bookings/bookings.css']) {
+    // .booking-icon is a decorative badge, not a control.
+    const css = readFileSync(new URL(`../src/${file}`, import.meta.url), 'utf8').replace(/\.booking-icon\{[^}]*\}/, '');
+    assert.doesNotMatch(css, /(?:^|[{;\s])(?:min-)?(?:height|width)\s*:\s*(?:2\.75rem|44px)\s*[;}]/, file);
   }
 });
 
@@ -191,10 +207,39 @@ test('system notices lose their URL and record id but keep one in-app link', () 
   assert.ok(!outing.lines.join('').includes('http'));
   assert.equal(parseSystemNotice('提醒：https://www.baylink.us/me/bookings', 'system_other').to, undefined);
   assert.equal(previewText(booking), '服务预约 · 已确认');
-  assert.equal(previewText(booking, true), 'Service booking · Confirmed');
+  assert.equal(previewText(booking, 'en'), 'Service booking · Confirmed');
   assert.equal(previewText('看这里 https://example.test/x 谢谢'), '看这里 谢谢');
-  assert.equal(noticeLine(notice.lines[1], false), '10月17日周六 10:00–11:00（洛杉矶时间）');
-  assert.equal(noticeLine(notice.lines[1], true), 'Sat, Oct 17 · 10:00–11:00 (Pacific time)');
-  assert.equal(noticeLine('提议时间：2026-10-18 09:00–10:00', false), '提议时间：10月18日周日 09:00–10:00');
-  assert.equal(noticeLine('周末上门理发', true), '周末上门理发');
+  assert.equal(noticeLine(notice.lines[1], 'zh-Hans'), '10月17日周六 10:00–11:00（洛杉矶时间）');
+  assert.equal(noticeLine(notice.lines[1], 'en'), 'Sat, Oct 17 · 10:00–11:00 (Pacific time)');
+  assert.equal(noticeLine('提议时间：2026-10-18 09:00–10:00', 'zh-Hans'), '提议时间：10月18日周日 09:00–10:00');
+  assert.equal(noticeLine('周末上门理发', 'en'), '周末上门理发');
+  assert.equal(isNoticeWording('周末上门理发'), false);
+  assert.ok(isNoticeWording('已确认') && isNoticeWording(notice.lines[1]) && isNoticeWording(notice.lines[2]));
+});
+
+test('a system notice reads in 繁體: the server wording converts, the item title stays as the member wrote it', async () => {
+  await setLocale('zh-Hant', false);
+  try {
+    const booking = ['BAYLINK 服务预约 · 已确认', '周末上门理发', '2026-10-17 10:00–11:00（洛杉矶时间）', '预约编号：6f1c2b7e-1a2b-4c3d-8e9f-0123456789ab', '这是时间安排记录，不含支付；价格、地点和服务范围请双方另行确认。'].join('\n');
+    assert.equal(previewText(booking, 'zh-Hant'), '服務預約 · 已確認');
+    assert.equal(noticeStatus('已确认', 'zh-Hant'), '已確認');
+    assert.equal(noticeLine('2026-10-17 10:00–11:00（洛杉矶时间）', 'zh-Hant'), '10月17日週六 10:00–11:00（洛杉磯時間）');
+    assert.equal(noticeLine('提议时间：2026-10-18 09:00–10:00', 'zh-Hant'), '提議時間：10月18日週日 09:00–10:00');
+    const view = render(<MemoryRouter><SystemNoticeCard content={booking} messageId="booking_abc" createdAt={Date.UTC(2026, 9, 9, 17)} dateLocale="zh-TW" /></MemoryRouter>);
+    const card = view.getByRole('article', { name: '系統通知' });
+    const text = card.textContent || '';
+    for (const simplified of ['服务预约', '已确认', '洛杉矶时间', '这是时间安排记录']) assert.ok(!text.includes(simplified), `${simplified} in ${text}`);
+    assert.ok(text.includes('服務預約') && text.includes('已確認') && text.includes('這是時間安排記錄'), text);
+    const title = within(card).getByText('周末上门理发');
+    assert.equal(title.getAttribute('translate'), 'no');
+    assert.equal(within(card).getByText('已確認').getAttribute('translate'), null);
+    assert.ok(within(card).getByRole('link', { name: '查看預約' }));
+    // Shared error wording (friendlyErrorMessage answers in Simplified Chinese) follows the reader too.
+    assert.doesNotMatch(readerError('网络连接异常，请稍后再试。', 'zh-Hant', 'x'), /网络|异常|请/);
+    assert.equal(readerError('网络连接异常，请稍后再试。', 'en', 'Unable to load contact requests.'), 'Unable to load contact requests.');
+    assert.equal(readerError('Rate limited', 'en', 'x'), 'Rate limited');
+  } finally {
+    cleanup();
+    await setLocale('zh-Hans', false);
+  }
 });
