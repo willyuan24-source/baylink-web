@@ -17,7 +17,7 @@ await import('../src/i18n/router');
 const { default: ProfilePage } = await import('../src/pages/ProfilePage');
 const { default: MessagesPage } = await import('../src/pages/MessagesPage');
 const { NotificationPreferencesCard } = await import('../src/features/profile/NotificationPreferencesCard');
-const { parseSystemNotice, previewText } = await import('../src/features/messages/system-notice');
+const { parseSystemNotice, previewText, noticeLine } = await import('../src/features/messages/system-notice');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { setLocale } = await import('../src/i18n/locale');
@@ -193,4 +193,8 @@ test('system notices lose their URL and record id but keep one in-app link', () 
   assert.equal(previewText(booking), '服务预约 · 已确认');
   assert.equal(previewText(booking, true), 'Service booking · Confirmed');
   assert.equal(previewText('看这里 https://example.test/x 谢谢'), '看这里 谢谢');
+  assert.equal(noticeLine(notice.lines[1], false), '10 月 17 日（周六）10:00–11:00（洛杉矶时间）');
+  assert.equal(noticeLine(notice.lines[1], true), 'Sat, Oct 17 · 10:00–11:00 (Pacific time)');
+  assert.equal(noticeLine('提议时间：2026-10-18 09:00–10:00', false), '提议时间：10 月 18 日（周日）09:00–10:00');
+  assert.equal(noticeLine('周末上门理发', true), '周末上门理发');
 });

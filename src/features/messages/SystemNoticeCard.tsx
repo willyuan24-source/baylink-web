@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { CalendarCheck, Info, Users } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { noticeEnglish, noticeKindLabel, parseSystemNotice } from './system-notice';
+import { noticeEnglish, noticeKindLabel, noticeLine, parseSystemNotice } from './system-notice';
 import './messages-hub.css';
 
 /**
@@ -15,7 +15,6 @@ export function SystemNoticeCard({ content, messageId, createdAt, dateLocale, on
   const notice = parseSystemNotice(content, messageId);
   const Icon = notice.kind === 'booking' ? CalendarCheck : notice.kind === 'outing' ? Users : Info;
   const date = new Date(createdAt);
-  const line = (text: string) => english ? noticeEnglish(text) : text;
   const linkLabel = notice.kind === 'booking' ? t('查看预约', 'View booking') : notice.kind === 'outing' ? t('查看小队', 'View group') : t('查看详情', 'View details');
   return <article className="msg-notice" data-message-id={messageId} data-kind={notice.kind} aria-label={t('系统通知', 'System notification')}>
     <header className="msg-notice__head">
@@ -23,8 +22,8 @@ export function SystemNoticeCard({ content, messageId, createdAt, dateLocale, on
       <span className="msg-notice__kind">{noticeKindLabel(notice.kind, english)}</span>
       <time dateTime={date.toISOString()}>{new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)}</time>
     </header>
-    {notice.status && <p className="msg-notice__status" translate="no">{line(notice.status)}</p>}
-    {notice.lines.map((text, index) => <p key={index} className="msg-notice__line" translate="no">{line(text)}</p>)}
+    {notice.status && <p className="msg-notice__status" translate="no">{english ? noticeEnglish(notice.status) : notice.status}</p>}
+    {notice.lines.map((text, index) => <p key={index} className="msg-notice__line" translate="no">{noticeLine(text, english)}</p>)}
     {notice.to && <Link className="msg-notice__link" to={notice.to} onClick={onNavigate}>{linkLabel}</Link>}
   </article>;
 }
