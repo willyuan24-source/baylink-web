@@ -10,7 +10,8 @@ import type { MonthlyEvent, MonthlyPlace, MonthlyRegion } from '../data/monthly-
 import { GUIDE_IMAGES, getGuideMedia } from '../data/guide-media';
 import { downloadEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../lib/monthly';
 import type { MonthlyDateFilter } from '../lib/monthly';
-import { normalizeGuideQuery } from '../lib/guide-search';
+// The keyword filter needs only the shared synonyms, not the guide search index code (keeps /events small).
+import { normalizeSearchText } from '../lib/search-synonyms';
 import { GuideImageCredits } from './GuideExplorer';
 import { GuideImageCaption, GuideImageLightbox } from './GuideVisuals';
 import { MonthlyDealsSpotlight } from './MonthlyDealsSpotlight';
@@ -129,12 +130,12 @@ function monthlyCandidates(params: URLSearchParams, defaultDate: MonthlyDateFilt
   const selectedRegion = params.get('region') || 'all';
   const region = REGIONS.some(item => item.value === selectedRegion) ? selectedRegion : 'all';
   const category = Object.hasOwn(CATEGORIES, params.get('category') || '') ? params.get('category')! : 'all';
-  const query = normalizeGuideQuery((params.get('q') || '').slice(0, 200));
+  const query = normalizeSearchText((params.get('q') || '').slice(0, 200));
   return filterMonthlyEvents(MONTHLY_EVENTS, {
     region, cost: params.get('cost') === 'free' ? 'free' : 'all',
     date: resolveMonthlyDateFilter(params.get('when') || defaultDate), includeEnded: params.get('includeEnded') === '1',
   }, today).filter(event => (category === 'all' || eventCategory(event) === category)
-    && (!query || normalizeGuideQuery([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(query)))
+    && (!query || normalizeSearchText([event.title, event.city, event.venue, event.summary, ...event.audience].flatMap(text => [text, translateText(text, locale)]).join(' ')).includes(query)))
     .sort((a, b) => a.startDate.localeCompare(b.startDate) || a.endDate.localeCompare(b.endDate));
 }
 
