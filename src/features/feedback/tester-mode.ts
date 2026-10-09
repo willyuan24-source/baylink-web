@@ -46,11 +46,11 @@ export function endTesterMode(): void {
  */
 export function bootTesterMode(bare: boolean): void {
   if (typeof window === 'undefined' || bare) return;
-  const url = new URL(location.href);
+  const url = new URL(window.location.href);
   const requested = url.searchParams.has('tester') ? testerCode(url.searchParams.get('tester')) : null;
   if (url.searchParams.has('tester')) {
     url.searchParams.delete('tester');
-    try { history.replaceState(history.state, '', url.pathname + url.search + url.hash); } catch { /* Keep the URL. */ }
+    try { window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* Keep the URL. */ }
   }
   const remembered = activeTester();
   if (!requested && !remembered) return;

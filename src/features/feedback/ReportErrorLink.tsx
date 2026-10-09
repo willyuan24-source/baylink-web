@@ -2,7 +2,7 @@ import { Flag, MessageSquareText } from 'lucide-react';
 import { useLocale } from '../../i18n/locale';
 import { say } from './feedback-copy';
 import { FEEDBACK_EMAIL, openFeedback, type FeedbackEntity } from './open-feedback';
-import './feedback-entry.css';
+import { useFeedbackEntryStyles } from './entry-styles';
 
 const mailFallback = (subject: string) => { window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}`; };
 
@@ -13,6 +13,7 @@ const mailFallback = (subject: string) => { window.location.href = `mailto:${FEE
  */
 export function ReportErrorLink({ entity, title, className = '' }: { entity: FeedbackEntity; title?: string; className?: string }) {
   const locale = useLocale();
+  useFeedbackEntryStyles();
   return <p className={`feedback-report-row ${className}`.trim()}>
     <button type="button" className="feedback-report-link" onClick={() => void openFeedback({ kind: 'content', entity, title }).then(opened => { if (!opened) mailFallback(`BAYLINK ${entity.kind} ${entity.id}`); })}>
       <Flag size={18} aria-hidden="true" />
@@ -24,6 +25,7 @@ export function ReportErrorLink({ entity, title, className = '' }: { entity: Fee
 /** The site-wide 反馈与报错 entry for footers and help pages (WEB-SHELL2 mounts it in the global footer). */
 export function FeedbackLink({ className = '' }: { className?: string }) {
   const locale = useLocale();
+  useFeedbackEntryStyles();
   return <button type="button" className={`feedback-footer-link ${className}`.trim()} onClick={() => void openFeedback({ kind: 'page' }).then(opened => { if (!opened) mailFallback('BAYLINK feedback'); })}>
     <MessageSquareText size={18} aria-hidden="true" />
     <span>{say({ zh: '反馈与报错', en: 'Feedback and error reports' }, locale)}</span>

@@ -5,7 +5,7 @@ import { currentRouteTemplate } from '../../lib/route-template';
 import { buildFeedbackPayload, submitFeedback } from './feedback-api';
 import { REASON_LABELS, say } from './feedback-copy';
 import { openFeedback } from './open-feedback';
-import './feedback-entry.css';
+import { useFeedbackEntryStyles } from './entry-styles';
 
 const QUICK = ['wrong-answer', 'too-slow', 'not-answered'] as const;
 
@@ -15,6 +15,7 @@ const QUICK = ['wrong-answer', 'too-slow', 'not-answered'] as const;
  */
 export function BayBayDownvoteReasons({ send = submitFeedback }: { send?: typeof submitFeedback }) {
   const locale = useLocale();
+  useFeedbackEntryStyles();
   const [state, setState] = useState<'choosing' | 'sending' | 'sent' | 'failed'>('choosing');
   const quick = async (reason: string) => {
     setState('sending');

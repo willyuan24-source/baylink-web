@@ -10,7 +10,7 @@ const isCalendarLink = (link: Element) => /\.ics$/i.test(link.getAttribute('down
 /** Coarse action counters only: no query text, destination URL, identifier or visitor fingerprint. */
 export function installProductObserver() {
   if (typeof document === 'undefined') return;
-  const from = new URLSearchParams(location.search).get('from') || '';
+  const from = new URLSearchParams(window.location.search).get('from') || '';
   if (/^card-[a-z0-9-]{1,40}$/.test(from)) recordProductEvent('site_arrival_from_card');
   else if (/^(opus|opus-bay|opus-return|opus-place|opus-postcard)$/.test(from)) recordProductEvent('site_arrival_from_opus');
   document.addEventListener('click', event => {
@@ -26,5 +26,5 @@ export function installProductObserver() {
   window.addEventListener('error', event => reportClientError('error', event.error ?? event.message));
   window.addEventListener('unhandledrejection', event => reportClientError('rejection', event.reason));
   window.addEventListener('vite:preloadError', event => reportClientError('chunk', (event as Event & { payload?: unknown }).payload ?? 'preload'));
-  bootTesterMode(!!matchRoute(location.pathname)?.bare);
+  bootTesterMode(!!matchRoute(window.location.pathname)?.bare);
 }

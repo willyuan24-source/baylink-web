@@ -34,15 +34,26 @@ const METRICS = [...REQUIRED_METRICS,
   ['opus_visit_new', '游戏记录的新访客'], ['opus_tour_done', '完成游戏导览'],
   ['opus_share_photo', '分享游戏照片'], ['opus_share_card', '分享游戏卡'],
 ] as const;
-type MetricKey = typeof METRICS[number][0];
-type MetricsSummary = { days: number; from: string; through: string; counts: Partial<Record<MetricKey, number>> };
+/** WEB-FEEDBACK counters: BayBay answer time buckets and the feedback funnel (labels carry their English). */
+const FEEDBACK_METRICS = [
+  { key: 'baybay_latency_lt3', zh: 'BayBay 3 秒内答完', en: 'BayBay answered within 3 s' },
+  { key: 'baybay_latency_3to8', zh: 'BayBay 3–8 秒答完', en: 'BayBay answered in 3–8 s' },
+  { key: 'baybay_latency_8to15', zh: 'BayBay 8–15 秒答完', en: 'BayBay answered in 8–15 s' },
+  { key: 'baybay_latency_gt15', zh: 'BayBay 超过 15 秒', en: 'BayBay took over 15 s' },
+  { key: 'feedback_open', zh: '打开反馈表', en: 'Feedback form opened' },
+  { key: 'feedback_sent', zh: '发送反馈', en: 'Feedback sent' },
+] as const;
+type MetricKey = typeof METRICS[number][0] | typeof FEEDBACK_METRICS[number]['key'];
+type RouteRow = { event: string; route: string; count: number };
+type MetricsSummary = { days: number; from: string; through: string; counts: Partial<Record<MetricKey, number>>; routes?: RouteRow[] | null; routesTruncated?: boolean };
 const isSummary = (value: unknown): value is MetricsSummary => {
   if (!value || typeof value !== 'object') return false;
   const result = value as Partial<MetricsSummary>;
   return result.days === 30 && typeof result.from === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(result.from)
     && typeof result.through === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(result.through) && !!result.counts
     && REQUIRED_METRICS.every(([key]) => Number.isSafeInteger(result.counts?.[key]) && result.counts![key]! >= 0)
-    && METRICS.every(([key]) => result.counts?.[key] === undefined || (Number.isSafeInteger(result.counts[key]) && result.counts[key]! >= 0));
+    && METRICS.every(([key]) => result.counts?.[key] === undefined || (Number.isSafeInteger(result.counts[key]) && result.counts[key]! >= 0))
+    && (result.routes == null || (Array.isArray(result.routes) && result.routes.every(row => !!row && typeof row.event === 'string' && typeof row.route === 'string' && Number.isSafeInteger(row.count))));
 };
 
 /** Embedded only in the admin workspace; authorization is also enforced by the API. */
@@ -69,7 +80,21 @@ export function ProductMetrics() {
     <p className="product-metrics-note">{t('新增的访问、来源与回复指标自此次上线开始记录；此前未记录的数据不会补造。')}</p>
     {loading ? <p role="status" className="product-metrics-note">{t('正在读取使用统计…')}</p> : error ? <div className="product-metrics-error"><p role="alert">{t('暂时无法读取使用统计，未将缺失数据记为零。')}</p><button type="button" onClick={() => void load()}>{t('重试统计')}</button></div> : summary && <>
       <p className="product-metrics-note">{summary.from} — {summary.through} · {t('湾区日期，包含今天')}</p>
-      <dl className="product-metrics-grid">{METRICS.map(([key, label]) => <div key={key}><dt>{t(label)}</dt><dd>{summary.counts[key]?.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN') ?? '—'}</dd></div>)}</dl>
+      <dl className="product-metrics-grid">{METRICS.map(([key, label]) => <div key={key}><dt>{t(label)}</dt><dd>{summary.counts[key]?.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN') ?? '—'}</dd></div>)}
+        {FEEDBACK_METRICS.map(metric => <div key={metric.key}><dt>{locale === 'en' ? metric.en : t(metric.zh)}</dt><dd>{summary.counts[metric.key]?.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN') ?? '—'}</dd></div>)}</dl>
+      <PageViewsByRoute rows={summary.routes} truncated={!!summary.routesTruncated} />
     </>}
   </section>;
+}
+
+/** Page views per route template (G10). Absent until the API reports routes; never a per-URL list. */
+function PageViewsByRoute({ rows, truncated }: { rows?: RouteRow[] | null; truncated: boolean }) {
+  const locale = useLocale();
+  const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  if (!rows) return null;
+  const views = rows.filter(row => row.event === 'page_view').sort((a, b) => b.count - a.count).slice(0, 30);
+  return <table className="feedback-admin-table product-metrics-routes"><caption>{copy('按页面类型的浏览次数（前 30）', 'Page views by page type (top 30)')}{truncated ? ` · ${copy('按日明细已截断', 'daily detail truncated')}` : ''}</caption>
+    <thead><tr><th scope="col">{copy('页面类型', 'Page type')}</th><th scope="col">{copy('浏览次数', 'Views')}</th></tr></thead>
+    <tbody>{views.length ? views.map(row => <tr key={row.route}><td><code>{row.route}</code></td><td>{row.count.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN')}</td></tr>) : <tr><td colSpan={2}>{copy('还没有按页面记录的浏览。', 'No page views by page type yet.')}</td></tr>}</tbody>
+  </table>;
 }

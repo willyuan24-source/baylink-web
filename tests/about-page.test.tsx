@@ -54,7 +54,9 @@ test('About keeps its assistant action and navigation usable when switching Engl
   fireEvent.click(view.getByRole('button', { name: '和 BayBay 聊聊' }));
   await act(async () => { await setLocale('en', false); });
   assert.doesNotMatch(view.container.textContent!, /[\u3400-\u9fff]/, 'all public introduction text should be translated');
-  const assistantButton = view.getByRole('button');
+  // About also has the 反馈与报错 button (WEB-FEEDBACK), so the assistant is found by name.
+  const assistantButton = view.getByRole('button', { name: /BayBay/ });
+  assert.ok(view.getByRole('button', { name: 'Feedback and error reports' }));
   assert.doesNotMatch(assistantButton.textContent!, /[\u3400-\u9fff]/);
   fireEvent.click(assistantButton);
   assert.equal(opened, 2);
