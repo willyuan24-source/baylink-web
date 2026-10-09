@@ -186,7 +186,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         </>} />}
     </section>
 
-    {alerts.length > 0 && <details className="ev-alerts">
+    {alerts.length > 0 && <details className="ev-alerts" id="monthly-news">
       <summary>{t(`出行提醒 ${alerts.length} 条`, `Travel alerts · ${alerts.length}`)}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
       <ul>{alerts.map(item => <li key={item.id}>
         <strong>{item.title}</strong>

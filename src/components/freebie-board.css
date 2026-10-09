@@ -58,7 +58,6 @@
 .bl-freebie-card--ended { background:#faf9f5; box-shadow:none; }
 .bl-freebie-card--ended .bl-freebie-card-brand { background:#eeece4; }
 .bl-freebie-card--ended .bl-freebie-card-date { color:#8a8175; }
-.bl-freebie-picture-missing { display:grid; place-content:center; justify-items:center; gap:9px; aspect-ratio:1.35; color:#a3937c; background:#f2eee5; font-size:.6875rem; }
 .bl-freebie-empty { display:grid; justify-items:center; gap:11px; padding:32px 20px; border:1px dashed #d9cab5; border-radius:12px; color:#8b775b; text-align:center; }
 .bl-freebie-empty p { margin:0; font-size:.75rem; line-height:1.8; }
 .bl-freebie-empty button { min-height:38px; padding:8px 15px; border:1px solid #d8b98f; border-radius:6px; color:#91633b; font-size:.75rem; background:#fff6e7; }
