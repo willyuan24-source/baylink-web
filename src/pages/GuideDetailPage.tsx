@@ -8,7 +8,7 @@ import { getCategoryFromSlug } from '../routing';
 import NotFoundPage from './NotFoundPage';
 import { setPageMetadata } from '../lib/seo';
 import { getGuideMetadata } from '../lib/guide-metadata';
-import { ReportErrorLink } from '../features/feedback/ReportErrorLink';
+import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 
 export default function GuideDetailPage() {
   const navigate = useNavigate();
@@ -52,6 +52,6 @@ export default function GuideDetailPage() {
         openCreate(type, category === '全部' ? undefined : category);
       }}
     />
-    <ReportErrorLink key={`report-guide-${slug}`} className="feedback-report-row--guide" entity={{ kind: 'guide', id: slug }} title={guide.title} />
+    <LazyReportErrorLink key={`report-guide-${slug}`} className="feedback-report-row--guide" entity={{ kind: 'guide', id: slug }} title={guide.title} />
   </>);
 }

@@ -36,10 +36,4 @@ export const recordIcsDownload = () => recordProductEvent('ics_download');
 /** An event, offer or opening detail page opened; its kind and id are never sent. */
 export const recordDetailOpen = () => recordProductEvent('event_detail_open');
 
-export const bayBayLatencyEvent = (milliseconds: number): BayBayLatencyEvent => milliseconds < 3_000 ? 'baybay_latency_lt3'
-  : milliseconds < 8_000 ? 'baybay_latency_3to8' : milliseconds < 15_000 ? 'baybay_latency_8to15' : 'baybay_latency_gt15';
-/** One completed BayBay answer: its latency bucket, plus the older fast/slow pair (15 s) that existing reports read. */
-export function recordBayBayLatency(milliseconds: number): void {
-  recordProductEvent(milliseconds < 15_000 ? 'baybay_fast' : 'baybay_slow');
-  recordProductEvent(bayBayLatencyEvent(milliseconds));
-}
+/** BayBay latency buckets: src/lib/baybay-latency.ts (in BayBay's own chunk, not the boot graph). */

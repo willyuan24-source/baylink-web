@@ -7,8 +7,10 @@ import { apiAcceptsClientError } from './api-func-contract';
 const dom = new JSDOM('<!doctype html><body><div id="root"></div></body>', { url: 'https://www.baylink.us/guides/bay-area-medicare-hicap-medi-cal-guide?q=private' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Element: dom.window.Element, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, cleanup, act } = await import('@testing-library/react');
-const { reportClientError, errorFingerprint, fingerprintText, classifyClientError, resetClientErrorBeacons } = await import('../src/lib/client-errors');
+const { render, cleanup, act, waitFor } = await import('@testing-library/react');
+const { sendClientError: reportClientError, errorFingerprint, fingerprintText, classifyClientError, resetClientErrorBeacons } = await import('../src/lib/client-errors');
+const beacon = await import('../src/lib/error-beacon');
+const { readFileSync } = await import('node:fs');
 const { default: ErrorBoundary } = await import('../src/components/ErrorBoundary');
 const { setLocale } = await import('../src/i18n/locale');
 
@@ -72,6 +74,7 @@ test('the error page reports a render beacon and speaks the reader\'s language a
   context.mock.method(console, 'error', () => {});
   const view = render(<ErrorBoundary><Broken /></ErrorBoundary>);
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, '页面出了点小问题');
+  await waitFor(() => assert.equal(beacons(fetch).length, 1));
   const [{ body }] = beacons(fetch);
   assert.equal(body.kind, 'render');
   assert.doesNotMatch(JSON.stringify(body), /fleet/);
@@ -91,3 +94,28 @@ test('the error page reports a render beacon and speaks the reader\'s language a
 });
 
 const button = (view: ReturnType<typeof render>, name: string) => view.getByRole('button', { name }) as HTMLButtonElement;
+
+test('the boot-time half records the page template when the error happens and sends after the beacon module loads', async context => {
+  const fetch = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  beacon.reportClientError('rejection', new Error('boot failure 42'));
+  dom.reconfigure({ url: 'https://www.baylink.us/events' });
+  await waitFor(() => assert.equal(beacons(fetch).length, 1));
+  const [{ body }] = beacons(fetch);
+  assert.deepEqual({ kind: body.kind, route: body.route }, { kind: 'rejection', route: '/guides/:slug' }, 'the page the error happened on, not the next one');
+  Object.defineProperty(navigator, 'doNotTrack', { configurable: true, value: '1' });
+  beacon.reportClientError('error', new Error('not sent'));
+  beacon.preloadErrorBeacon();
+  await new Promise(resolve => setTimeout(resolve, 30));
+  assert.equal(beacons(fetch).length, 1, 'Do Not Track: nothing queued');
+  dom.reconfigure({ url: 'https://www.baylink.us/guides/bay-area-medicare-hicap-medi-cal-guide?q=private' });
+});
+
+test('the boot graph holds only the small halves: fingerprinting, tester mode and the sheet load later', () => {
+  const source = (path: string) => readFileSync(new URL(path, import.meta.url), 'utf8');
+  const staticImports = (path: string) => [...source(path).matchAll(/^import\s+(?!type\s)[^;]*?from\s+'([^']+)'/gm)].map(match => match[1]);
+  for (const path of ['../src/lib/product-observer.ts', '../src/components/ErrorBoundary.tsx', '../src/lib/error-beacon.ts', '../src/features/feedback/tester-boot.ts']) {
+    for (const lazyOnly of ['client-errors', 'tester-mode', 'open-feedback', 'feedback-host']) {
+      assert.ok(!staticImports(path).some(specifier => specifier.endsWith(`/${lazyOnly}`)), `${path} must not statically import ${lazyOnly}`);
+    }
+  }
+});

@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react
 import { EnglishOnly } from './EnglishOnly';
 import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
 import { BayBayEntityCards } from './BayBayEntityCards';
-import { recordBayBayLatency, recordProductEvent } from '../lib/product-events';
+import { recordProductEvent } from '../lib/product-events';
+import { recordBayBayLatency } from '../lib/baybay-latency';
 import { BayBayDownvoteReasons } from '../features/feedback/BayBayDownvoteReasons';
 import { API_BASE_URL, authHeaders } from '../lib/api';
 import { BRAND } from '../brandAssets';

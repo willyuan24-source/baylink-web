@@ -11,7 +11,8 @@ Object.assign(globalThis, {
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 registerHooks({ load(url, context, nextLoad) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context); } });
 const { fireEvent, act, within, waitFor } = await import('@testing-library/react');
-const { activeTester, bootTesterMode, endTesterMode, startTesterMode, testerCode, TESTER_STORAGE_KEY, TESTER_TTL_MS } = await import('../src/features/feedback/tester-mode');
+const { activeTester, endTesterMode, startTesterMode, testerCode, TESTER_STORAGE_KEY, TESTER_TTL_MS } = await import('../src/features/feedback/tester-mode');
+const { bootTesterMode } = await import('../src/features/feedback/tester-boot');
 
 afterEach(() => { endTesterMode(); });
 const settle = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 80)); });

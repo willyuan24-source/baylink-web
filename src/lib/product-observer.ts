@@ -1,7 +1,7 @@
 import { recordIcsDownload, recordProductEvent } from './product-events';
-import { reportClientError } from './client-errors';
+import { preloadErrorBeacon, reportClientError } from './error-beacon';
 import { matchRoute } from '../app/route-table';
-import { bootTesterMode } from '../features/feedback/tester-mode';
+import { bootTesterMode } from '../features/feedback/tester-boot';
 
 /** A calendar file or subscription link: `download="….ics"` (the generated files), an .ics URL or webcal:. */
 const isCalendarLink = (link: Element) => /\.ics$/i.test(link.getAttribute('download') || '')
@@ -22,9 +22,12 @@ export function installProductObserver() {
     // Every calendar download goes through an <a download="….ics">, including the ones the page creates and clicks.
     if (target.tagName === 'A' && isCalendarLink(target)) recordIcsDownload();
   });
-  // Error beacons (client-errors.ts): a fingerprint of the error, never its text. Render errors come from ErrorBoundary.
+  // Error beacons (error-beacon.ts → client-errors.ts): a fingerprint of the error, never its text. Render errors come
+  // from ErrorBoundary. The beacon module itself loads once the browser is idle, outside the boot graph.
   window.addEventListener('error', event => reportClientError('error', event.error ?? event.message));
   window.addEventListener('unhandledrejection', event => reportClientError('rejection', event.reason));
   window.addEventListener('vite:preloadError', event => reportClientError('chunk', (event as Event & { payload?: unknown }).payload ?? 'preload'));
+  if ('requestIdleCallback' in window) window.requestIdleCallback(preloadErrorBeacon, { timeout: 8_000 });
+  else setTimeout(preloadErrorBeacon, 4_000);
   bootTesterMode(!!matchRoute(window.location.pathname)?.bare);
 }

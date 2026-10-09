@@ -5,7 +5,9 @@
  * page counters and error beacons never carry it. Storage may be blocked; every access is guarded and tester mode then
  * simply lasts for the page.
  */
-export const TESTER_STORAGE_KEY = 'baylink.tester.v1';
+import { TESTER_STORAGE_KEY } from './tester-boot';
+
+export { TESTER_STORAGE_KEY };
 export const TESTER_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const TESTER_CODE = /^T\d{2,3}$/;
 
@@ -41,20 +43,14 @@ export function endTesterMode(): void {
 }
 
 /**
- * Boot step (product-observer): take ?tester= out of the address bar before the router reads it, so a shared link never
- * carries the code, then load the consent sheet; a remembered tester gets the floating button. The 3D world is skipped.
+ * Loaded by tester-boot.ts only for a tester link (?tester=, already removed from the address bar) or a remembered
+ * tester: a new valid code asks for consent; a remembered tester gets the floating 反馈 button.
  */
-export function bootTesterMode(bare: boolean): void {
-  if (typeof window === 'undefined' || bare) return;
-  const url = new URL(window.location.href);
-  const requested = url.searchParams.has('tester') ? testerCode(url.searchParams.get('tester')) : null;
-  if (url.searchParams.has('tester')) {
-    url.searchParams.delete('tester');
-    try { window.history.replaceState(window.history.state, '', url.pathname + url.search + url.hash); } catch { /* Keep the URL. */ }
-  }
+export function showTesterUi(requestedValue: string | null): Promise<void> {
+  const requested = testerCode(requestedValue);
   const remembered = activeTester();
-  if (!requested && !remembered) return;
-  void import('./feedback-host').then(host => {
+  if (!requested && !remembered) return Promise.resolve();
+  return import('./feedback-host').then(host => {
     if (requested && requested !== remembered?.id) host.showTesterConsent(requested);
     else host.showTesterButton();
   }).catch(() => { /* Tester extras are optional; the site works without them. */ });

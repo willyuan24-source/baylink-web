@@ -1,7 +1,7 @@
 import { Component, type CSSProperties, type ErrorInfo, type ReactNode } from 'react';
 import { getLocale, translateText } from '../i18n/locale';
-import { reportClientError } from '../lib/client-errors';
-import { FEEDBACK_EMAIL, openFeedback } from '../features/feedback/open-feedback';
+import { reportClientError } from '../lib/error-beacon';
+import { FEEDBACK_EMAIL } from '../features/feedback/contact';
 
 type Props = { children: ReactNode };
 type State = { hasError: boolean };
@@ -9,6 +9,10 @@ type State = { hasError: boolean };
 const copy = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh);
 // Inline on purpose: the page must look right even when a stylesheet chunk is what failed. Tokens only (src/tokens.css).
 const page: CSSProperties = { minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem 1.5rem', background: 'var(--color-bg)', color: 'var(--color-ink)', textAlign: 'center', fontFamily: 'var(--font-sans)' };
+// The sheet loads on demand like everywhere else; if it cannot (offline, a stranded deploy), the reader gets the email.
+const tellUs = () => void import('../features/feedback/open-feedback')
+  .then(feedback => feedback.openFeedback({ kind: 'page', reason: 'other' }), () => false)
+  .then(opened => { if (!opened) window.location.href = `mailto:${FEEDBACK_EMAIL}`; });
 const button: CSSProperties = { minHeight: '3rem', padding: '.625rem 1.75rem', borderRadius: '.875rem', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' };
 
 /**
@@ -40,7 +44,7 @@ export default class ErrorBoundary extends Component<Props, State> {
           <button type="button" onClick={() => window.location.reload()} style={{ ...button, border: '1px solid var(--color-brand)', background: 'var(--color-brand)', color: 'var(--color-surface)' }}>
             {copy('刷新页面', 'Reload the page')}
           </button>
-          <button type="button" onClick={() => void openFeedback({ kind: 'page', reason: 'other' }).then(opened => { if (!opened) window.location.href = `mailto:${FEEDBACK_EMAIL}`; })}
+          <button type="button" onClick={tellUs}
             style={{ ...button, border: '1px solid var(--color-line-strong)', background: 'var(--color-surface)', color: 'var(--color-ink)' }}>
             {copy('告诉我们', 'Tell us')}
           </button>

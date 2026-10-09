@@ -29,4 +29,4 @@ export function openFeedback(request: FeedbackRequest): Promise<boolean> {
     .catch(() => false);
 }
 
-export const FEEDBACK_EMAIL = 'Baylink.us@gmail.com';
+export { FEEDBACK_EMAIL } from './contact';

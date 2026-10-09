@@ -27,7 +27,7 @@ test('an event detail counts one event_detail_open per item and offers "这条�
     <Routes><Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} /><Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} /></Routes>
   </MemoryRouter>);
   const article = view.container.querySelector('article.local-discovery-detail')!;
-  const report = view.getByRole('button', { name: '这条信息有误？告诉我们' });
+  const report = await view.findByRole('button', { name: '这条信息有误？告诉我们' });
   assert.ok(article.compareDocumentPosition(report) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING, 'after the article, outside the detail component');
   assert.deepEqual(events(fetch).filter(body => body.event === 'event_detail_open').map(body => body.route), ['/events/:id']);
   dom.reconfigure({ url: 'https://www.baylink.us/offers/sephora-birthday' });
@@ -35,12 +35,12 @@ test('an event detail counts one event_detail_open per item and offers "这条�
   assert.equal(events(fetch).filter(body => body.event === 'event_detail_open').length, 2);
   assert.doesNotMatch(JSON.stringify(events(fetch)), /sephora|avenida/, 'ids never leave the browser');
   await act(async () => { await setLocale('en', false); });
-  assert.ok(view.getByRole('button', { name: 'Something wrong here? Tell us' }));
+  assert.ok(await view.findByRole('button', { name: 'Something wrong here? Tell us' }));
 });
 
-test('the 404 page offers feedback', () => {
+test('the 404 page offers feedback', async () => {
   const view = render(<MemoryRouter initialEntries={['/missing']}><NotFoundPage /></MemoryRouter>);
-  assert.ok(view.getByRole('button', { name: '反馈与报错' }));
+  assert.ok(await view.findByRole('button', { name: '反馈与报错' }));
 });
 
 test('opening the sign-in sheet counts one signup_gate', context => {

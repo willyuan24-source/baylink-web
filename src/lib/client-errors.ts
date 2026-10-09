@@ -7,6 +7,7 @@ import { releaseLabel } from './release';
  * Error beacon (RUM-lite): anonymous daily counts per kind, page template, build and fingerprint, so a broken page or a
  * bad deploy shows up in admin. The message, stack, URL and anything the reader typed never leave the browser: only a
  * short hash of the error name and the first 60 characters of its message, with URLs and digits removed, is sent.
+ * Pages report through error-beacon.ts, which loads this module after boot (it is not part of any page's boot graph).
  */
 export type ClientErrorKind = 'render' | 'error' | 'rejection' | 'chunk';
 
@@ -48,8 +49,8 @@ export const classifyClientError = (kind: ClientErrorKind, error: unknown): Clie
   return name === 'ChunkLoadError' || CHUNK_FAILURE.test(message) ? 'chunk' : kind;
 };
 
-/** Report one caught error; never throws and never waits. */
-export function reportClientError(kind: ClientErrorKind, error: unknown, route = currentRouteTemplate()): void {
+/** Send one caught error's beacon; never throws and never waits. `route` is the template when the error happened. */
+export function sendClientError(kind: ClientErrorKind, error: unknown, route = currentRouteTemplate()): void {
   try {
     if (!trackingAllowed()) return;
     const resolved = classifyClientError(kind, error);

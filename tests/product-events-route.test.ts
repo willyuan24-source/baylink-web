@@ -7,7 +7,8 @@ import { API_CLIENT_EVENTS, apiAcceptsProductEvent, apiRouteTemplate } from './a
 const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://www.baylink.us/en/events/san-francisco-fleet-week-2026?date=2026-10-10&from=card-sf#map' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, Element: dom.window.Element, HTMLElement: dom.window.HTMLElement, localStorage: dom.window.localStorage });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { recordProductEvent, recordBayBayLatency, bayBayLatencyEvent, recordIcsDownload, recordDetailOpen } = await import('../src/lib/product-events');
+const { recordProductEvent, recordIcsDownload, recordDetailOpen } = await import('../src/lib/product-events');
+const { recordBayBayLatency, bayBayLatencyEvent } = await import('../src/lib/baybay-latency');
 const { currentRouteTemplate } = await import('../src/lib/route-template');
 const { installProductObserver } = await import('../src/lib/product-observer');
 
