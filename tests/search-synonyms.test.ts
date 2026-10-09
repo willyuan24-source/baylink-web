@@ -102,3 +102,21 @@ test('home: a Traditional question goes to BayBay like a Simplified one; keyword
   for (const question of ['长者怎么申请免费 Muni', '長者怎麼申請免費 Muni', '養老金什麼時候領', '哪裡有中文醫生', '幫我查藍天使時間', '請問白卡怎麼申請']) assert.equal(isHomeQuestion(question), true, question);
   for (const keyword of ['蓝天使', '藍天使', '長者 Muni', '养老金', 'Fleet Week']) assert.equal(isHomeQuestion(keyword), false, keyword);
 });
+
+test('quick search lists the senior pages first for 长者: a synonym or a venue name only fills the rest', async () => {
+  const seniorEvents = ['el-cerrito-senior-resource-fair-2026', 'san-leandro-senior-halloween-bingo-2026'];
+  for (const [locale, query] of [['zh-Hans', '长者'], ['zh-Hant', '長者'], ['zh-Hans', '老人'], ['en', 'senior']] as const) {
+    await setLocale(locale, false);
+    const found = searchQuickDestinations(query, locale, today);
+    const label = `${locale}: ${query} → ${JSON.stringify({ events: found.events.map(item => item.id), offers: found.offers.map(item => item.id) })}`;
+    for (const id of seniorEvents) assert.ok(found.events.some(event => event.id === id), label);
+    // The Napa garden talk only matches because it is held at a "Senior Center".
+    assert.ok(!found.events.some(event => event.id === 'napa-water-wise-workshops-oct2026'), label);
+    assert.ok(found.offers.some(offer => offer.id === seniorMuni), label);
+  }
+  await setLocale('zh-Hans', false);
+  // A Latin word starts a word: "muni" is not inside "Community Center".
+  const muni = searchQuickDestinations('长者 Muni', 'zh-Hans', today);
+  assert.deepEqual(muni.events.map(event => event.id), []);
+  assert.deepEqual(muni.offers.map(offer => offer.id), [seniorMuni]);
+});
