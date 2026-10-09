@@ -64,14 +64,39 @@ const TITLE_SEPARATOR = /[：:｜|]| — | – /u;
 /** A title that already reads as a card title (≤16 units, no separator) is its own short title. */
 export const ownShortTitle = (title: string) => displayUnits(title) <= 16 && !TITLE_SEPARATOR.test(title) ? title : undefined;
 
+const STREET_ADDRESS = /^\d+[A-Za-z]?[\s–-]|\bCA\b|\d{5}/u;
+/**
+ * "Baldwin Park · 2790A Parkside Circle, Concord, CA" → place "Baldwin Park", address "2790A Parkside Circle, Concord, CA";
+ * "Fairfax Library, 2097 Sir Francis Drake Boulevard" splits at the comma before the street number. An entry's own
+ * `venueShort` / `address` wins; an empty `address` means the venue has no single street address.
+ */
+export function venueParts(venue: string): { venueShort: string; address?: string } {
+  const parts = venue.split(' · ');
+  let place = parts[0], address: string | undefined;
+  if (parts.length > 1 && STREET_ADDRESS.test(parts[parts.length - 1])) address = parts[parts.length - 1];
+  else if (parts.length === 1) {
+    const match = /^(.*?),\s*(\d+.*)$/u.exec(venue);
+    if (match) [place, address] = [match[1], match[2]];
+  }
+  return { venueShort: place.replace(/[，,;；].*$/u, '').trim(), ...(address ? { address: address.replace(/[；;].*$/u, '').trim() } : {}) };
+}
+
 export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: Record<string, EventOverlayEntry> = EVENT_OVERLAY): T[] {
   return events.map(event => {
     if (!Object.hasOwn(entries, event.id)) return event;
     PRE_OVERLAY.set(`event:${event.id}`, event);
-    const { fix, plan, ...editorial } = entries[event.id];
+    const { fix, plan, venueShort, address, ...editorial } = entries[event.id];
     const corrected = { ...event, ...fix };
     const cleaned = cleanPlan(event.plan, event.dateLabel, event.costLabel);
-    return { ...corrected, ...editorial, plan: plan ? plan.flatMap(line => typeof line === 'number' ? cleaned[line] ?? [] : [line]) : cleaned, shortTitle: editorial.shortTitle ?? ownShortTitle(corrected.title) };
+    const place = venueParts(corrected.venue);
+    const street = address ?? place.address;
+    return {
+      ...corrected, ...editorial,
+      plan: plan ? plan.flatMap(line => typeof line === 'number' ? cleaned[line] ?? [] : [line]) : cleaned,
+      shortTitle: editorial.shortTitle ?? ownShortTitle(corrected.title),
+      venueShort: venueShort ?? place.venueShort,
+      ...(street ? { address: street } : {}),
+    };
   });
 }
 
