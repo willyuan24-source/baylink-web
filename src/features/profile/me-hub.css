@@ -31,7 +31,6 @@ a.me-tile:hover,button.me-tile:hover { border-color:var(--color-line-strong); ba
 .me-tile__badge { position:absolute; top:12px; right:12px; display:grid; place-items:center; min-width:1.5rem; height:1.5rem; padding:0 6px; border-radius:999px; background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
 .me-tile__links { display:flex; flex-direction:column; align-self:stretch; margin-top:2px; }
 .me-tile__links a { display:flex; align-items:center; justify-content:space-between; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.3; font-weight:600; text-decoration:none; }
-.me-tile__links a+a { border-top:1px solid var(--color-line); }
 
 /* Sections: 设置, 我的探索, 资料与认证, 账号 */
 .me-section { margin-top:40px; }
@@ -39,7 +38,7 @@ a.me-tile:hover,button.me-tile:hover { border-color:var(--color-line-strong); ba
 .me-section__lede { margin:-4px 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-list { margin:0; padding:0; list-style:none; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); overflow:hidden; }
 .me-list>li+li { border-top:1px solid var(--color-line); }
-.me-row { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; align-items:center; gap:12px; width:100%; min-height:3.5rem; padding:8px 16px; background:var(--color-surface); color:var(--color-ink); text-align:left; text-decoration:none; }
+.me-row { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; align-items:center; gap:12px; width:100%; min-height:3.75rem; padding:8px 16px; background:var(--color-surface); color:var(--color-ink); text-align:left; text-decoration:none; }
 a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-row>svg:first-child { width:1.25rem; height:1.25rem; color:var(--color-brand); }
 .me-row>svg:last-child { width:1rem; height:1rem; color:var(--color-ink-3); }
@@ -56,7 +55,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-panel p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-panel__row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
 .me-panel__status { display:inline-flex; align-items:center; min-height:2rem; padding:0 10px; border-radius:6px; background:var(--color-surface-2); color:var(--color-ink); font-size:var(--text-caption); font-weight:600; }
-.me-panel button { display:inline-flex; align-items:center; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+.me-panel button { display:inline-flex; align-items:center; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 
 /* Signed out: one invitation card, then the tiles that still work locally. */
 .me-guest-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:24px; padding:24px 16px; border-radius:16px; background:var(--color-brand-tint); }
@@ -97,7 +96,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 @media (min-width:768px) { .me-notify { padding:24px; } .me-notify__channels { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
 
 .me-hub :is(a,button,input):focus-visible,.me-subview :is(a,button,input):focus-visible,.me-language button:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
-html[data-simple] :is(.me-row,.me-language button) { min-height:3.75rem; }
+html[data-simple] .me-language button { min-height:3.75rem; }
 
 @media (min-width:768px) {
   .me-hub { padding:32px 24px 56px; }

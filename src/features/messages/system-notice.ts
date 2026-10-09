@@ -103,19 +103,17 @@ export function noticeEnglish(text: string): string {
 }
 
 const WHEN = /^(提议时间[:：]\s*)?(\d{4})-(\d{2})-(\d{2}) (\d{1,2}:\d{2})\s*[–-]\s*(\d{1,2}:\d{2})(（洛杉矶时间）)?$/;
-const WEEKDAY_ZH = '日一二三四五六';
 /**
- * "2026-10-17 10:00–11:00（洛杉矶时间）" as a reader date: "10 月 17 日（周六）10:00–11:00" or "Sat, Oct 17 · 10:00–11:00
- * (Pacific time)". Other lines are returned unchanged (English via noticeEnglish).
+ * "2026-10-17 10:00–11:00（洛杉矶时间）" as a reader date: "10月17日周六 10:00–11:00（洛杉矶时间）" or "Sat, Oct 17 ·
+ * 10:00–11:00 (Pacific time)". Other lines are returned unchanged (English via noticeEnglish).
  */
 export function noticeLine(text: string, english: boolean): string {
   const match = WHEN.exec(text);
   if (!match) return english ? noticeEnglish(text) : text;
   const [, proposed, year, month, day, start, end, pacific] = match;
   const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
-  if (english) {
-    const label = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(date);
-    return `${proposed ? PROPOSED.en : ''}${label} · ${start}–${end}${pacific ? PACIFIC.en : ''}`;
-  }
-  return `${proposed ?? ''}${Number(month)} 月 ${Number(day)} 日（周${WEEKDAY_ZH[date.getUTCDay()]}）${start}–${end}${pacific ?? ''}`;
+  const label = new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { weekday: 'short', month: english ? 'short' : 'long', day: 'numeric', timeZone: 'UTC' }).format(date);
+  return english
+    ? `${proposed ? PROPOSED.en : ''}${label} · ${start}–${end}${pacific ? PACIFIC.en : ''}`
+    : `${proposed ?? ''}${label} ${start}–${end}${pacific ?? ''}`;
 }
