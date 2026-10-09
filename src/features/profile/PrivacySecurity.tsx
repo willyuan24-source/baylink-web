@@ -5,6 +5,16 @@ import { translateText, useLocale } from '../../i18n/locale';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
 
 type SecurityStatus = { totpEnabled: boolean; setupAvailable: boolean; recoveryCodesRemaining: number };
+
+/**
+ * The deletion phrase in the reader's language (G2). The API (lib/accountPrivacy.js since API-ACCOUNT) accepts any of
+ * the three after NFKC, variant characters (账/帐/賬/帳, 注/註, 销/銷, 号/號), spaces and letter case; this mirrors it.
+ */
+export const DELETE_PHRASES = { 'zh-Hans': '注销我的账号', 'zh-Hant': '註銷我的帳號', en: 'DELETE MY ACCOUNT' } as const;
+const VARIANTS: Record<string, string> = { 註: '注', 銷: '销', 帳: '账', 賬: '账', 帐: '账', 號: '号' };
+const deletionKey = (value: string) => value.normalize('NFKC').replace(/[註銷帳賬帐號]/g, char => VARIANTS[char]).replace(/\s+/g, '').toUpperCase();
+const ACCEPTED_PHRASES = new Set(Object.values(DELETE_PHRASES).map(deletionKey));
+export const confirmsDeletion = (value: string) => ACCEPTED_PHRASES.has(deletionKey(value));
 type Setup = { secret: string; recoveryCodes: string[]; expiresAt: number };
 
 export function downloadPrivateFile(filename: string, contents: string) {
@@ -46,6 +56,9 @@ export function PrivacySecurity({ user, onBack, onUpdateUser, onSessionEnded }: 
       case 'ADMIN_HANDOVER_REQUIRED': return t('管理员需要先安全移交权限，再以普通账号注销。', 'Administrators must safely hand over their role before deleting a regular account.');
       case 'ACCOUNT_OPERATIONS_PENDING': return t('其他账号操作尚未结束。请关闭其他正在提交的操作，稍后重试。', 'Other account operations are still running. Finish pending submissions and try again shortly.');
       case 'ACCOUNT_CHANGED': return t('账号状态已变化，请重新登录后确认。', 'Your account state changed. Sign in again before confirming.');
+      // The API words these in the reader's language (the request carries `locale`).
+      case 'DELETE_CONFIRMATION_REQUIRED': case 'ACCOUNT_DELETE_FAILED': case 'ACCOUNT_DELETE_INTERRUPTED':
+        return typeof (failure as { error?: unknown })?.error === 'string' ? String((failure as { error: string }).error) : t('账号删除没有完成，请稍后重试。', 'Account deletion did not finish. Please try again later.');
       default: return value?.status === 429 ? t('验证次数过多，请稍后重试。', 'Too many attempts. Try again later.') : t('操作没有确认成功。请重新登录检查账号状态后再试。', 'The operation was not confirmed. Sign in again, check your account, and retry.');
     }
   };
@@ -83,7 +96,7 @@ export function PrivacySecurity({ user, onBack, onUpdateUser, onSessionEnded }: 
   const showCodes = (values: string[]) => { setCodes(values); setSavedCodes(false); };
 
   return <section className="account-privacy" translate="no" aria-labelledby="account-privacy-title">
-    <button type="button" onClick={onBack} disabled={busy}>{t('返回我的名片', 'Back to my profile')}</button>
+    <button type="button" onClick={onBack} disabled={busy}>{t('返回我的', 'Back to Me')}</button>
     <h1 id="account-privacy-title">{t('账号隐私与安全', 'Account privacy and security')}</h1>
     <p>{t('敏感操作每次都需要当前密码。启用两步验证后，还需要最新代码或未使用的恢复码。', 'Each sensitive operation requires your current password. When two-step verification is enabled, also enter a fresh authenticator code or unused recovery code.')}</p>
     {notice && <p role={failed ? 'alert' : 'status'} className={failed ? 'account-privacy-error' : 'account-privacy-status'}>{notice}</p>}
@@ -141,9 +154,10 @@ export function PrivacySecurity({ user, onBack, onUpdateUser, onSessionEnded }: 
       {user.role === 'admin' ? <p>{t('管理员请先安全移交管理权限，之后以普通账号注销。此处不会删除管理员。', 'Administrators must safely hand over their role before deleting a regular account. This control cannot delete an administrator.')}</p> : <>
         <button type="button" disabled={busy || !status} onClick={() => setDeleteOpen(!deleteOpen)}>{deleteOpen ? t('取消注销', 'Cancel account deletion') : t('查看注销确认', 'Review account deletion')}</button>
         {deleteOpen && <>
-          <label htmlFor="privacy-delete-confirm">{t('输入 DELETE MY ACCOUNT 确认不可恢复的注销', 'Type DELETE MY ACCOUNT to confirm irreversible deletion')}</label>
-          <input id="privacy-delete-confirm" autoComplete="off" value={confirmation} onChange={event => setConfirmation(event.target.value)} />
-          <button type="button" className="account-privacy-delete" disabled={busy || confirmation !== 'DELETE MY ACCOUNT'} onClick={() => void run('/users/me/privacy/account', 'DELETE', { confirmation }, onSessionEnded)}>{t('确认密码并永久注销', 'Confirm password and permanently delete account')}</button>
+          <label htmlFor="privacy-delete-confirm">{locale === 'en' ? `Type ${DELETE_PHRASES.en} to confirm irreversible deletion` : locale === 'zh-Hant' ? `輸入「${DELETE_PHRASES['zh-Hant']}」確認不可恢復的註銷` : `输入「${DELETE_PHRASES['zh-Hans']}」确认不可恢复的注销`}</label>
+          <input id="privacy-delete-confirm" autoComplete="off" aria-describedby="privacy-delete-hint" value={confirmation} onChange={event => setConfirmation(event.target.value)} />
+          <p id="privacy-delete-hint" className="account-privacy-hint">{locale === 'en' ? 'Spaces and letter case do not matter.' : t(`也可以输入 ${DELETE_PHRASES.en}。`, 'Spaces and letter case do not matter.')}</p>
+          <button type="button" className="account-privacy-delete" disabled={busy || !confirmsDeletion(confirmation)} onClick={() => void run('/users/me/privacy/account', 'DELETE', { confirmation, locale }, onSessionEnded)}>{t('确认密码并永久注销', 'Confirm password and permanently delete account')}</button>
         </>}
       </>}
     </section>

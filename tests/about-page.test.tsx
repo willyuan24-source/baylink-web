@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { after, afterEach } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { registerHooks } from 'node:module';
+// ProfileView imports its own stylesheets (me-hub.css, ui.css); node only needs them to resolve.
+const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -95,10 +98,12 @@ test('guest and signed-in About entries open the same public page without reques
       <Route path="/me" element={<ProfileView user={currentUser} onLogout={() => {}} onLogin={() => {}} onOpenPost={() => {}} onUpdateUser={() => {}} showToast={() => {}} onOpenBlockedUsers={() => {}} />} />
       <Route path="/about" element={<AboutContent />} />
     </Routes></MemoryRouter>);
-    fireEvent.click(view.getByRole('link', { name: currentUser ? '关于我们' : '认识 BAYLINK' }));
+    fireEvent.click(view.getByRole('link', { name: '关于与核验方法' }));
     assert.ok(await view.findByRole('heading', { name: /湾区生活/ }));
     view.unmount();
   }
   assert.deepEqual(requests, []);
   assert.equal(plannerReads, 1, 'only the signed-in profile reads its private planner library');
 });
+
+after(() => styles.deregister());

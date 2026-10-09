@@ -1,32 +1,30 @@
-// 「我的」页：个人名片 / 信任信息 / 资料审核 / 子视图入口（含管理员入口）
+// 我的 /me: profile header, the 2×2 tiles (消息 first, G1), settings, my exploration, profile checks and admin tools.
+// Sub-views live in ?view= so 通知 and 隐私与账号 can be linked to directly (from /messages, emails, support).
 import { useState } from 'react';
-import { EnglishOnly } from '../../components/EnglishOnly';
-import {
-  LogOut, Edit, BadgeCheck, Phone, UserX, Eye, MapPin,
-  ChevronRight, Info, Flag, House, MessageCircle, Sparkles,
-} from 'lucide-react';
-import { BRAND } from '../../brandAssets';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { LogOut, Edit, BadgeCheck, Eye, UserX, ChevronLeft, ShieldCheck, Flag, Radar } from 'lucide-react';
+import Avatar from '../../components/Avatar';
 import { api } from '../../lib/api';
 import { TrustBadge } from '../../components/TrustBadge';
-import { SavedPostsPanel } from '../../components/SavedPostsPanel';
 import { OfficialVerificationModal } from '../../components/OfficialVerificationModal';
 import {
   getJoinDays, getMyOfficialTrustLabel,
   getOfficialTypeLabel, getPhoneVerificationTrustLabel,
 } from '../../lib/format';
+import { usePlannerLibrary } from '../../lib/planner-library';
 import type { UserData, PostData } from '../../lib/types';
 import { AdminOfficialVerificationsView, AdminReportsView } from '../admin/AdminViews';
 import { EditProfileModal } from './EditProfileModal';
 import { InfoPage, MyPostsView } from './ProfileSubViews';
-import { ProfileIdentity, ProfileShareButton } from './ProfileIdentity';
-import { Link } from 'react-router-dom';
+import { ProfileShareButton } from './ProfileIdentity';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
 import { AdminSourceMonitor } from '../source-monitor/AdminSourceMonitor';
-import { ProfileActivityLinks, ProfilePersonalSpace } from './ProfilePersonalSpace';
+import { ProfilePersonalSpace } from './ProfilePersonalSpace';
 import { PrivacySecurity } from './PrivacySecurity';
-import { translateText, useLocale } from '../../i18n/locale';
-
-const getOfficialVerificationStatusLabel = (user: UserData) => getMyOfficialTrustLabel(user);
+import { NotificationPreferencesCard } from './NotificationPreferencesCard';
+import { useUiCopy } from '../../components/ui/ui-copy';
+import { MeAboutRow, MeAccountRows, MeDisplaySettings, MeGuestCard, MeLegal, MeList, MePositioning, MeRow, MeTiles, useMyWeekSavedCount } from './MeHub';
+import './me-hub.css';
 
 type ProfileViewProps = {
   user: UserData | null;
@@ -37,151 +35,147 @@ type ProfileViewProps = {
   onUpdateUser: (user: UserData) => void;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   onOpenBlockedUsers: () => void;
+  /** Unread messages + pending contact requests (app context messagesBadgeCount). */
+  messagesCount?: number;
 };
-export const ProfileView = (props: ProfileViewProps) => <ProfileSession key={JSON.stringify([props.user?.id, props.user?.token])} {...props} />;
-const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers }: ProfileViewProps) => {
-  const locale = useLocale();
+
+const VIEWS = ['notifications', 'privacy', 'support', 'my_posts', 'edit', 'admin_reports', 'admin_official', 'admin_sources'] as const;
+type MeView = typeof VIEWS[number];
+const isView = (value: string | null): value is MeView => !!value && (VIEWS as readonly string[]).includes(value);
+
+/** ?view= sub-views: opening one adds a history entry, so the phone back button returns to the hub. */
+function useMeView() {
+  const [params] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const requested = params.get('view');
+  const view: MeView | 'menu' = isView(requested) ? requested : 'menu';
+  const open = (next: MeView) => navigate({ pathname: location.pathname, search: `?view=${next}` }, { state: { meView: true } });
+  const back = () => {
+    if ((location.state as { meView?: boolean } | null)?.meView) navigate(-1);
+    else navigate({ pathname: location.pathname, search: '' }, { replace: true });
+  };
+  return { view, open, back };
+}
+
+export const ProfileView = (props: ProfileViewProps) => props.user
+  ? <ProfileSession key={JSON.stringify([props.user.id, props.user.token])} {...props} user={props.user} />
+  : <GuestHub onLogin={props.onLogin} />;
+
+function GuestHub({ onLogin }: { onLogin: () => void }) {
+  const { t } = useUiCopy();
+  const library = usePlannerLibrary(undefined);
+  const savedCount = useMyWeekSavedCount(undefined, library);
+  return <div className="me-hub" data-signed-out="">
+    <header className="me-hub__header" data-guest="">
+      <div className="me-hub__heading"><h1 className="me-hub__name">{t('我的 BAYLINK', 'My BAYLINK')}</h1><MePositioning /></div>
+    </header>
+    <MeGuestCard onLogin={onLogin} />
+    <MeTiles signedIn={false} messagesCount={0} savedCount={savedCount} onLogin={onLogin} />
+    <section className="me-section" aria-labelledby="me-settings-title">
+      <h2 id="me-settings-title" className="me-section__title">{t('设置', 'Settings')}</h2>
+      <MeList label={t('设置', 'Settings')}>
+        <MeDisplaySettings />
+        <MeAboutRow />
+      </MeList>
+    </section>
+    <MeLegal />
+  </div>;
+}
+
+const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUser, showToast, onOpenBlockedUsers, messagesCount = 0 }: ProfileViewProps & { user: UserData }) => {
+  const { t } = useUiCopy();
   const isCurrentSession = useProfileSessionGuard(user);
-  const [subView, setSubView] = useState<'menu' | 'my_posts' | 'support' | 'edit_profile' | 'admin_reports' | 'admin_official' | 'admin_sources' | 'privacy'>('menu');
+  const { view, open, back } = useMeView();
+  const library = usePlannerLibrary(user.id);
+  const savedCount = useMyWeekSavedCount(user.id, library);
   const [showOfficialModal, setShowOfficialModal] = useState(false);
-  const officialStatus = user?.officialVerification?.status || (user?.isOfficialVerified ? 'approved' : 'none');
-  const joinDays = user ? getJoinDays(user) : null;
+  const officialStatus = user.officialVerification?.status || (user.isOfficialVerified ? 'approved' : 'none');
+  const officialApproved = officialStatus === 'approved' || !!user.isOfficialVerified;
+  const joinDays = getJoinDays(user);
+  const admin = user.role === 'admin';
 
-
-  if (!user) return (
-    <div className="member-profile-guest">
-      <div className="member-page-heading"><div><EnglishOnly><span className="member-eyebrow">MAKE YOURSELF AT HOME</span></EnglishOnly><h1>我的 BAYLINK</h1></div></div>
-      <SavedPostsPanel />
-      <Link to="/my-week" className="member-guide-link"><span>我的这周</span><ChevronRight size={18} /></Link>
-      <section className="member-welcome-card">
-        <div className="member-welcome-copy">
-          <span className="member-welcome-label"><span /> 你好，新邻居</span>
-          <h2>让湾区，<br />多一点熟悉。</h2>
-          <p>找到需要的，分享拥有的。<br />从这一刻开始，连接属于你的湾区生活。</p>
-          <button onClick={onLogin} className="member-primary member-primary--lime">立即登录 / 注册<ChevronRight size={18} aria-hidden="true" /></button>
-        </div>
-        <div className="member-welcome-art" aria-hidden="true">
-          <div className="member-welcome-orbit" />
-          <img src={BRAND.baybayAvatar} alt="" width={160} height={160} />
-          <EnglishOnly><span className="member-welcome-sticker"><MapPin size={14} /> BAY AREA, CA</span></EnglishOnly>
-        </div>
-      </section>
-      <div className="member-welcome-benefits">
-        <div><span><House size={22} aria-hidden="true" /></span><h3>发现身边资源</h3><p>房源、二手好物与本地服务</p></div>
-        <div><span><MessageCircle size={22} aria-hidden="true" /></span><h3>与邻里聊一聊</h3><p>私信沟通，按需请求联系方式</p></div>
-        <div><span><Sparkles size={22} aria-hidden="true" /></span><h3>分享你的生活</h3><p>发布资源，让需要的人发现你</p></div>
-      </div>
-      <a href="/guides" className="member-guide-link"><span>刚来湾区？先看看 <strong>湾区生活指南</strong></span><ChevronRight size={18} aria-hidden="true" /></a>
-      <Link to="/about" className="member-guide-link"><span>认识 BAYLINK</span><ChevronRight size={18} aria-hidden="true" /></Link>
-    </div>
-  );
+  if (view === 'notifications') return <section className="me-subview" aria-labelledby="me-notifications-title">
+    <button type="button" className="me-back" onClick={back}><ChevronLeft size={18} aria-hidden="true" />{t('返回我的', 'Back to Me')}</button>
+    <h1 id="me-notifications-title" className="me-subview__title">{t('通知', 'Notifications')}</h1>
+    <NotificationPreferencesCard key={`${user.id}:${user.token || ''}`} userId={user.id} />
+  </section>;
+  if (view === 'privacy') return <div className="me-subview">
+    <PrivacySecurity user={user} onBack={back} onUpdateUser={onUpdateUser} onSessionEnded={onSessionEnded || onLogout} />
+  </div>;
+  if (view === 'support') return <InfoPage title={t('反馈与客服', 'Feedback and help')} storageKey="baylink_support" user={user} onBack={back} showToast={showToast} />;
+  if (view === 'my_posts') return <MyPostsView user={user} onBack={back} onOpenPost={onOpenPost} />;
+  if (view === 'edit') return <EditProfileModal user={user} onClose={back} onUpdate={onUpdateUser} showToast={showToast} />;
+  if (view === 'admin_official' && admin) return <AdminOfficialVerificationsView onBack={back} showToast={showToast} />;
+  if (view === 'admin_reports' && admin) return <AdminReportsView onBack={back} showToast={showToast} />;
+  if (view === 'admin_sources' && admin) return <AdminSourceMonitor onBack={back} />;
 
   return (
-    <div className="member-profile-shell">
-      {subView === 'menu' && (
-        <div className="member-profile-content">
-          <div className="member-page-heading"><div><EnglishOnly><span className="member-eyebrow">YOUR NEIGHBORHOOD PROFILE</span></EnglishOnly><h1>我的名片</h1><p>认识彼此，从一张真实的生活名片开始。</p></div><button onClick={onLogout} aria-label="退出登录" className="member-logout"><LogOut size={18} /><span>退出</span></button></div>
-
-          {user.accountStatus === 'limited' && (
-            <div className="member-profile-wide rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              你的账号部分功能受到限制，暂时无法发布内容或发送私信。
-            </div>
-          )}
-          {user.accountStatus === 'suspended' && (
-            <div className="member-profile-wide rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              你的账号当前受到限制，部分功能暂时不可用。
-            </div>
-          )}
-
-
-          <div className="member-profile-personality">
-            <ProfileIdentity profile={user}>
-              <button type="button" onClick={() => setSubView('edit_profile')}><Edit size={15} />编辑资料</button>
-              <Link to={`/users/${encodeURIComponent(user.id)}`}><Eye size={15} />查看公开名片</Link>
-              <ProfileShareButton userId={user.id} nickname={user.nickname} />
-            </ProfileIdentity>
-          </div>
-
-          <ProfileActivityLinks />
-          <ProfilePersonalSpace user={user} onEdit={() => setSubView('edit_profile')} />
-          <SavedPostsPanel key={user.id} userId={user.id} />
-
-          <div className="member-profile-panel">
-            <h2 className="member-panel-title">信任信息</h2>
-            <div className="space-y-2 text-xs leading-relaxed text-baylink-text-secondary">
-              {joinDays != null && <p>已加入 BAYLINK <span className="font-normal text-gray-900">{joinDays}</span> 天</p>}
-              <p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p>
-              <p>{getMyOfficialTrustLabel(user)}</p>
-              {(officialStatus === 'approved' || user.isOfficialVerified) && user.officialVerification?.type && (
-                <p>认证类型：{getOfficialTypeLabel(user.officialVerification.type)}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="member-profile-panel member-verification-panel">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <BadgeCheck size={18} className="shrink-0 text-baylink-green" />
-                  <h2 className="font-semibold text-baylink-text">资料审核</h2>
-                  {(officialStatus === 'approved' || user.isOfficialVerified) && <TrustBadge user={user} size={12} />}
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">{getOfficialVerificationStatusLabel(user)}</p>
-                {officialStatus === 'rejected' && user.officialVerification?.rejectionReason && (
-                  <p className="mt-1 text-[0.6875rem] text-red-500 line-clamp-2" translate="no">{user.officialVerification.rejectionReason}</p>
-                )}
-              </div>
-              {officialStatus === 'pending' ? (
-                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[0.6875rem] font-bold text-amber-700">审核中</span>
-              ) : (officialStatus === 'approved' || user.isOfficialVerified) ? (
-                <span className="shrink-0 rounded-lg bg-amber-50 px-3 py-1.5 text-[0.6875rem] font-bold text-amber-700">已通过</span>
-              ) : (
-                <button type="button" onClick={() => setShowOfficialModal(true)} className="member-verification-action">
-                  {officialStatus === 'rejected' ? '重新申请' : '申请认证'}
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="member-profile-actions">
-            <button onClick={() => setSubView('privacy')} className="member-action-tile" translate="no"><span className="member-action-icon"><UserX size={22} /></span><ChevronRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>{locale === 'en' ? 'Privacy and security' : translateText('隐私与安全', locale)}</strong><span>{locale === 'en' ? 'Export data, manage sign-in and delete account' : translateText('导出资料、管理登录与注销账号', locale)}</span></button>
-            <button onClick={() => setSubView('my_posts')} className="member-action-tile"><span className="member-action-icon"><Edit size={22} /></span><ChevronRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>我的发布</strong><span>管理帖子与发布状态</span></button>
-            <button onClick={() => setSubView('support')} className="member-action-tile"><span className="member-action-icon member-action-icon--warm"><Phone size={22} /></span><ChevronRight size={18} className="member-action-arrow" aria-hidden="true" /><strong>联系客服</strong><span>获取帮助与支持</span></button>
-          </div>
-          <button onClick={onOpenBlockedUsers} className="member-menu-row">
-            <div className="flex items-center gap-4">
-              <div className="member-menu-icon"><UserX size={20} /></div>
-              <div><div className="font-bold text-gray-900">已屏蔽用户</div><div className="text-[0.6875rem] text-baylink-muted">管理私信屏蔽名单</div></div>
-            </div>
-            <ChevronRight size={18} className="text-gray-300" />
-          </button>
-          <Link to="/about" className="member-menu-row"><div className="flex items-center gap-4"><div className="member-menu-icon"><Info size={20} /></div><div className="font-semibold text-baylink-text">关于我们</div></div><ChevronRight size={18} className="text-baylink-muted" /></Link>
-          <div className="member-profile-legal">
-            <a href="/terms" className="hover:text-baylink-green transition">服务条款</a>
-            <a href="/privacy" className="hover:text-baylink-green transition">隐私政策</a>
-            <a href="/sms-consent" className="hover:text-baylink-green transition">短信条款</a>
-          </div>
-          {user.role === 'admin' && (
-            <>
-              <button onClick={() => setSubView('admin_sources')} className="member-menu-row"><strong>来源变更监测</strong><ChevronRight size={18} /></button>
-              <button onClick={() => setSubView('admin_official')} className="member-menu-row">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-amber-50 rounded-full flex items-center justify-center text-amber-600 group-hover:scale-110 transition"><BadgeCheck size={20} /></div>
-                  <div><div className="font-bold text-gray-900">资料审核管理</div><div className="text-[0.6875rem] text-baylink-muted">查看并处理资料审核申请</div></div>
-                </div>
-                <ChevronRight size={18} className="text-gray-300" />
-              </button>
-              <button onClick={() => setSubView('admin_reports')} className="member-menu-row">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-500 group-hover:scale-110 transition"><Flag size={20} /></div>
-                  <div><div className="font-bold text-gray-900">举报管理</div><div className="text-[0.6875rem] text-baylink-muted">查看并处理用户举报</div></div>
-                </div>
-                <ChevronRight size={18} className="text-gray-300" />
-              </button>
-            </>
-          )}
+    <div className="me-hub">
+      <header className="me-hub__header">
+        <div className="me-hub__avatar"><Avatar src={user.avatar} name={user.nickname} theme={user.profileTheme} size={18} /></div>
+        <div className="me-hub__heading">
+          <h1 className="me-hub__name"><span translate="no">{user.nickname || 'BAYLINK'}</span><TrustBadge user={user} size={15} /></h1>
+          <MePositioning />
         </div>
-      )}
+      </header>
+      <div className="me-hub__actions">
+        <button type="button" onClick={() => open('edit')}><Edit size={16} aria-hidden="true" />{t('编辑资料', 'Edit profile')}</button>
+        <Link to={`/users/${encodeURIComponent(user.id)}`}><Eye size={16} aria-hidden="true" />{t('查看公开名片', 'View public card')}</Link>
+        <ProfileShareButton userId={user.id} nickname={user.nickname} />
+      </div>
+      {user.accountStatus === 'limited' && <p className="me-hub__notice" role="status">{t('你的账号部分功能受到限制，暂时无法发布内容或发送私信。', 'Some features of your account are limited: you cannot post or send messages for now.')}</p>}
+      {user.accountStatus === 'suspended' && <p className="me-hub__notice" data-tone="danger" role="status">{t('你的账号当前受到限制，部分功能暂时不可用。', 'Your account is restricted and some features are unavailable for now.')}</p>}
+
+      <MeTiles signedIn messagesCount={messagesCount} savedCount={savedCount} onMyPosts={() => open('my_posts')} />
+
+      <section className="me-section" aria-labelledby="me-settings-title">
+        <h2 id="me-settings-title" className="me-section__title">{t('设置', 'Settings')}</h2>
+        <MeList label={t('设置', 'Settings')}>
+          <MeDisplaySettings />
+          <MeAccountRows onView={open} />
+          <li><MeRow icon={UserX} label={t('已屏蔽用户', 'Blocked users')} value={t('管理私信屏蔽名单', 'Manage who cannot message you')} onClick={onOpenBlockedUsers} /></li>
+          <MeAboutRow />
+          <li><MeRow icon={LogOut} label={t('退出登录', 'Sign out')} tone="danger" onClick={onLogout} /></li>
+        </MeList>
+      </section>
+
+      <section className="me-section" aria-labelledby="me-explore-title">
+        <h2 id="me-explore-title" className="me-section__title">{t('我的探索', 'My exploration')}</h2>
+        <ProfilePersonalSpace user={user} onEdit={() => open('edit')} library={library} />
+      </section>
+
+      <section className="me-section" aria-labelledby="me-trust-title">
+        <h2 id="me-trust-title" className="me-section__title">{t('资料与认证', 'Profile and verification')}</h2>
+        <div className="me-panel">
+          <h3 className="me-panel__title"><ShieldCheck aria-hidden="true" strokeWidth={1.75} />{t('信任信息', 'Trust details')}</h3>
+          {joinDays != null && <p>{t(`已加入 BAYLINK ${joinDays} 天`, `Joined BAYLINK ${joinDays} days ago`)}</p>}
+          <p>{getPhoneVerificationTrustLabel(user.isPhoneVerified)}</p>
+          <p>{getMyOfficialTrustLabel(user)}</p>
+          {officialApproved && user.officialVerification?.type && <p>{t('认证类型：', 'Verification type: ')}{getOfficialTypeLabel(user.officialVerification.type)}</p>}
+        </div>
+        <div className="me-panel">
+          <div className="me-panel__row">
+            <h3 className="me-panel__title"><BadgeCheck aria-hidden="true" strokeWidth={1.75} />{t('资料审核', 'Profile review')}{officialApproved && <TrustBadge user={user} size={12} />}</h3>
+            {officialStatus === 'pending' ? <span className="me-panel__status">{t('审核中', 'In review')}</span>
+              : officialApproved ? <span className="me-panel__status">{t('已通过', 'Approved')}</span>
+                : <button type="button" onClick={() => setShowOfficialModal(true)}>{officialStatus === 'rejected' ? t('重新申请', 'Apply again') : t('申请认证', 'Apply for verification')}</button>}
+          </div>
+          <p>{getMyOfficialTrustLabel(user)}</p>
+          {officialStatus === 'rejected' && user.officialVerification?.rejectionReason && <p translate="no">{user.officialVerification.rejectionReason}</p>}
+        </div>
+      </section>
+
+      {admin && <section className="me-section" aria-labelledby="me-admin-title">
+        <h2 id="me-admin-title" className="me-section__title">{t('管理', 'Admin')}</h2>
+        <MeList label={t('管理', 'Admin')}>
+          <li><MeRow icon={Radar} label={t('来源变更监测', 'Source change monitor')} onClick={() => open('admin_sources')} /></li>
+          <li><MeRow icon={BadgeCheck} label={t('资料审核管理', 'Profile review queue')} value={t('查看并处理资料审核申请', 'Review verification requests')} onClick={() => open('admin_official')} /></li>
+          <li><MeRow icon={Flag} label={t('举报管理', 'Reports')} value={t('查看并处理用户举报', 'Review user reports')} onClick={() => open('admin_reports')} /></li>
+        </MeList>
+      </section>}
+
+      <MeLegal />
       {showOfficialModal && (
         <OfficialVerificationModal
           isOpen={showOfficialModal}
@@ -196,13 +190,6 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onLogin, onOpenPost, o
           showToast={(message, type) => { if (isCurrentSession()) showToast(message, type); }}
         />
       )}
-      {subView === 'admin_official' && <AdminOfficialVerificationsView onBack={() => setSubView('menu')} showToast={showToast} />}
-      {subView === 'admin_reports' && <AdminReportsView onBack={() => setSubView('menu')} showToast={showToast} />}
-      {subView === 'admin_sources' && user.role === 'admin' && <AdminSourceMonitor onBack={() => setSubView('menu')} />}
-      {subView === 'privacy' && <PrivacySecurity user={user} onBack={() => setSubView('menu')} onUpdateUser={onUpdateUser} onSessionEnded={onSessionEnded || onLogout} />}
-      {subView === 'edit_profile' && <EditProfileModal user={user} onClose={() => setSubView('menu')} onUpdate={onUpdateUser} showToast={showToast} />}
-      {subView === 'my_posts' && <MyPostsView user={user} onBack={() => setSubView('menu')} onOpenPost={onOpenPost} />}
-      {subView === 'support' && <InfoPage title="联系客服" storageKey="baylink_support" user={user} onBack={() => setSubView('menu')} showToast={showToast} />}
     </div>
   );
 };

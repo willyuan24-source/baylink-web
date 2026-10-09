@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Bookmark, CalendarDays, Check, Compass, Heart, LockKeyhole, MapPin, SlidersHorizontal, Users } from 'lucide-react';
+import { ChevronRight, Bookmark, CalendarDays, Check, Compass, Heart, LockKeyhole, MapPin, SlidersHorizontal } from 'lucide-react';
 import { usePlannerLibrary } from '../../lib/planner-library';
 import type { Preferences } from '../../lib/planner';
 import type { UserData } from '../../lib/types';
@@ -16,18 +16,20 @@ const STEPS = {
   plan: { title: '把期待排成一天', description: '从一站开始，保存一份自己的出游计划。', action: '开始安排', icon: CalendarDays },
 };
 
-export function ProfileActivityLinks() {
-  return <section className="profile-life-links member-profile-wide" aria-label="我的生活安排">
-    <Link to="/my-week"><CalendarDays size={21} aria-hidden="true" /><strong>我的这周</strong><span>收藏与计划，放在一起</span><ChevronRight size={17} aria-hidden="true" /></Link>
-    <Link to="/together?view=mine"><Users size={21} aria-hidden="true" /><strong>我的小队</strong><span>申请、已确认与我发起的</span><ChevronRight size={17} aria-hidden="true" /></Link>
-    <Link to="/me/bookings"><Compass size={21} aria-hidden="true" /><strong>服务预约</strong><span>我预约的与我收到的</span><ChevronRight size={17} aria-hidden="true" /></Link>
-  </section>;
+type PlannerLibraryState = ReturnType<typeof usePlannerLibrary>;
+type PersonalSpaceProps = { user: UserData; onEdit: () => void };
+
+/** /me passes the library it already reads for the My Week count, so the account is read once per visit. */
+export function ProfilePersonalSpace({ library, ...props }: PersonalSpaceProps & { library?: PlannerLibraryState }) {
+  return library ? <PersonalSpace {...props} library={library} /> : <OwnLibraryPersonalSpace {...props} />;
+}
+function OwnLibraryPersonalSpace(props: PersonalSpaceProps) {
+  return <PersonalSpace {...props} library={usePlannerLibrary(props.user.id)} />;
 }
 
-export function ProfilePersonalSpace({ user, onEdit }: { user: UserData; onEdit: () => void }) {
+function PersonalSpace({ user, onEdit, library }: PersonalSpaceProps & { library: PlannerLibraryState }) {
   const locale = useLocale();
   const t = (text: string) => translateText(text, locale);
-  const library = usePlannerLibrary(user.id);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');

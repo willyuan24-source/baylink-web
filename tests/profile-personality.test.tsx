@@ -1,8 +1,11 @@
 /** @jsxRuntime automatic */
 /** @jsxImportSource @baylink/locale */
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { after, afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
+import { registerHooks } from 'node:module';
+// ProfileView imports its own stylesheets (me-hub.css, ui.css); node only needs them to resolve.
+const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 import type { UserData, PublicUserProfile } from '../src/lib/types';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
@@ -345,3 +348,5 @@ test('successful phone verification updates the active profile even when storage
   assert.equal(updated?.isPhoneVerified, true);
   assert.equal(closes, 1); assert.ok(notices.includes('手机号验证已完成'));
 });
+
+after(() => styles.deregister());
