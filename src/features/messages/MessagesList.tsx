@@ -1,31 +1,36 @@
 import { useState, useEffect } from 'react';
-import { EnglishOnly } from '../../components/EnglishOnly';
-import { MessageCircle, ChevronRight, MessagesSquare, Search, Pin, PinOff, X, Inbox } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { MessagesSquare, Search, Pin, PinOff, X, Inbox } from 'lucide-react';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
-import { TrustBadge } from '../../components/TrustBadge';
-import { ConversationListSkeleton } from '../../components/ui/Skeleton';
-import { formatChineseDate, friendlyErrorMessage } from '../../lib/format';
+import { RowCard } from '../../components/ui/Card';
+import { Button } from '../../components/ui/Button';
+import { ChipRow, FilterChip } from '../../components/ui/Chip';
+import { EmptyState, ErrorState } from '../../components/ui/States';
+import { SkeletonFeed } from '../../components/ui/SkeletonCard';
+import { useUiCopy } from '../../components/ui/ui-copy';
+import { friendlyErrorMessage } from '../../lib/format';
 import { readMessageDraft, readMessagePins, saveMessagePins } from './messageState';
-import { simplifySearch, translateText, useLocale } from '../../i18n/locale';
+import { previewText } from './system-notice';
+import { simplifySearch } from '../../i18n/locale';
 import type { Conversation, UserData } from '../../lib/types';
+import './messages-hub.css';
 
 type MessagesListProps = {
   currentUser: UserData | null;
-  onOpenChat: (conv: Conversation) => void;
-  onOpenProfile?: (userId: string) => void;
   onLoginNeeded?: () => void;
 };
 
+const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
+
 export const MessagesList = (props: MessagesListProps) => <ConversationList key={JSON.stringify([props.currentUser?.id, props.currentUser?.token])} {...props} />;
 
-const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeeded }: MessagesListProps) => {
-  const locale = useLocale();
-  const tr = (text: string) => translateText(text, locale);
+/** Conversation threads as RowCards (WEB-UI): avatar, name, last message without links or ids, time and unread count. */
+const ConversationList = ({ currentUser, onLoginNeeded }: MessagesListProps) => {
+  const { t, english, locale } = useUiCopy();
   const [convs, setConvs] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [offline, setOffline] = useState(isOffline);
   const [retryKey, setRetryKey] = useState(0);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
@@ -45,14 +50,15 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
       inFlight = true;
       try {
         const response = await api.request('/conversations', { signal: controller.signal });
-        if (!Array.isArray(response)) throw new Error('会话列表响应格式异常');
+        if (!Array.isArray(response)) throw new Error('Unexpected conversation list response');
         if (!cancelled) {
           const list = response.filter((conversation: Conversation) => conversation?.id && conversation.otherUser?.id);
           setConvs([...new Map(list.map((conversation: Conversation) => [conversation.id, conversation])).values()]);
-          setError(null);
+          setError(null); setOffline(false);
         }
-      } catch (err) { if (!cancelled) setError(friendlyErrorMessage(err, '会话列表加载失败，请重试。')); }
-      finally {
+      } catch (err) {
+        if (!cancelled) { setOffline(isOffline()); setError(friendlyErrorMessage(err, '') || 'error'); }
+      } finally {
         inFlight = false;
         if (!cancelled) {
           setLoading(false);
@@ -63,9 +69,11 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
     void load();
     const interval = window.setInterval(() => { void load(); }, 15000);
     const resume = () => { void load(); };
+    const wentOffline = () => { setOffline(true); };
     const syncPins = () => { setPins(readMessagePins(userId)); };
     document.addEventListener('visibilitychange', resume);
     window.addEventListener('online', resume);
+    window.addEventListener('offline', wentOffline);
     window.addEventListener('baylink:messages-read', resume);
     window.addEventListener('baylink:messages-changed', resume);
     window.addEventListener('storage', syncPins);
@@ -73,6 +81,7 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
       cancelled = true; controller.abort(); window.clearInterval(interval);
       document.removeEventListener('visibilitychange', resume);
       window.removeEventListener('online', resume);
+      window.removeEventListener('offline', wentOffline);
       window.removeEventListener('baylink:messages-read', resume);
       window.removeEventListener('baylink:messages-changed', resume);
       window.removeEventListener('storage', syncPins);
@@ -81,13 +90,15 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
 
   const togglePin = (id: string) => {
     if (!userId) return;
-    if (!pins.includes(id) && pins.length >= 20) { setPinNotice(tr('最多置顶 20 个对话，请先取消一个置顶。')); return; }
+    if (!pins.includes(id) && pins.length >= 20) { setPinNotice(t('最多置顶 20 个对话，请先取消一个置顶。', 'You can pin up to 20 conversations. Unpin one to add another.')); return; }
     const next = pins.includes(id) ? pins.filter(pin => pin !== id) : [id, ...pins];
-    if (!saveMessagePins(userId, next)) { setPinNotice(tr('浏览器未能保存置顶设置，请稍后重试。')); return; }
+    if (!saveMessagePins(userId, next)) { setPinNotice(t('浏览器未能保存置顶设置，请稍后重试。', 'Your browser could not save this pin. Please try again.')); return; }
     setPins(next); setPinNotice('');
   };
 
-  if (!currentUser) return <div className="member-messages-guest"><div className="member-empty-card"><div className="member-message-art" aria-hidden="true"><span><MessagesSquare size={38} strokeWidth={1.5} /></span><i /><b /></div><EnglishOnly><span className="member-eyebrow">YOUR NEIGHBORHOOD INBOX</span></EnglishOnly><h2>身边的联系，都在这里。</h2><p>登录后查看私信和联系方式请求，<br className="hidden sm:block" />与感兴趣的房源、好物和服务发布者直接沟通。</p><button type="button" onClick={onLoginNeeded} className="member-primary mt-6">登录 / 注册<ChevronRight size={17} aria-hidden="true" /></button><Link to="/" className="member-text-action mt-4">先逛逛社区 <ChevronRight size={14} aria-hidden="true" /></Link></div></div>;
+  if (!currentUser) return <EmptyState icon={MessagesSquare} title={t('登录后查看消息', 'Sign in to see your messages')}
+    body={t('私信、联系方式请求，以及小队和预约的通知，都会出现在这里。', 'Private messages, contact requests and group or booking updates arrive here.')}
+    actions={<><Button variant="primary" onClick={onLoginNeeded}>{t('登录 / 注册', 'Log in / Sign up')}</Button><Button variant="text" to="/events">{t('先看看本周末去哪', 'See this weekend first')}</Button></>} />;
 
   const terms = simplifySearch(query.trim()).toLocaleLowerCase().split(/\s+/).filter(Boolean);
   const unreadConversations = convs.filter(conversation => (conversation.unreadCount || 0) > 0).length;
@@ -96,22 +107,54 @@ const ConversationList = ({ currentUser, onOpenChat, onOpenProfile, onLoginNeede
     const haystack = simplifySearch([conversation.otherUser.nickname, conversation.otherUser.city, conversation.otherUser.statusText, conversation.lastMessage, conversation.lastPostTitle].filter(Boolean).join(' ')).toLocaleLowerCase();
     return terms.every(term => haystack.includes(term));
   }).sort((a, b) => Number(pins.includes(b.id)) - Number(pins.includes(a.id)) || b.updatedAt - a.updatedAt);
-  return <div className={`member-conversations modern-inbox ${convs.length ? 'has-conversations' : ''}`}>
-    <div className="modern-inbox-intro"><div><EnglishOnly><span className="member-eyebrow">A LITTLE CLOSER</span></EnglishOnly><h2>把联系，留在身边。</h2><p>从一次问候，到一个聊得来的邻居。</p></div><div className="modern-inbox-art" aria-hidden="true"><MessageCircle size={31} /><span>👋</span></div></div>
-    <div className="modern-inbox-controls"><label className="modern-inbox-search"><Search size={17} aria-hidden="true" /><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="搜索联系人、最近消息或帖子" aria-label="搜索对话" />{query && <button type="button" aria-label="清除搜索" onClick={() => setQuery('')}><X size={16} /></button>}</label><div className="modern-inbox-filters" role="group" aria-label="筛选对话"><button type="button" aria-pressed={filter === 'all'} onClick={() => setFilter('all')}>全部<span translate="no">{convs.length}</span></button><button type="button" aria-pressed={filter === 'unread'} onClick={() => setFilter('unread')}>未读<span translate="no">{unreadConversations}</span></button></div></div>
-    <div className="modern-inbox-list-label"><span>最近对话</span><span><Pin size={12} aria-hidden="true" />置顶仅保存在此浏览器</span></div>
-    {pinNotice && <p className="modern-inbox-notice" role="status">{pinNotice}</p>}
-    {error && <div role="alert" className="member-message-error"><p>{error}</p><button type="button" onClick={() => setRetryKey(key => key + 1)} className="member-text-action mt-2">重新加载</button></div>}
-    {loading && convs.length === 0 ? <ConversationListSkeleton /> : visible.length > 0 ? <div className="modern-inbox-list">{visible.map(conversation => {
-      const other = conversation.otherUser;
-      const draft = readMessageDraft(currentUser.id, conversation.id);
-      const pinned = pins.includes(conversation.id);
-      const unread = Math.max(0, Number(conversation.unreadCount) || 0);
-      return <div key={conversation.id} className={`modern-inbox-row ${unread ? 'has-unread' : ''} ${pinned ? 'is-pinned' : ''}`} data-profile-theme={other.profileTheme || 'bay'}>
-        <button type="button" onClick={() => onOpenProfile?.(other.id)} disabled={!onOpenProfile} translate="no" aria-label={`${tr('查看资料')} · ${other.nickname}`} className="modern-inbox-avatar"><Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={13} /></button>
-        <button type="button" onClick={() => onOpenChat(conversation)} className="modern-inbox-conversation"><span className="modern-inbox-row-heading"><span className="modern-inbox-name"><strong translate="no">{other.nickname}</strong><TrustBadge user={other} size={12} />{pinned && <Pin size={12} aria-label={tr('已置顶')} />}</span><time dateTime={new Date(conversation.updatedAt).toISOString()}>{formatChineseDate(conversation.updatedAt)}</time></span>{other.statusText && <span className="modern-inbox-person-status" translate="no">{other.statusText}</span>}<span className="modern-inbox-preview"><span className="modern-inbox-preview-text">{draft ? <><em>草稿</em><span translate="no">{draft}</span></> : conversation.lastMessage ? <span translate="no">{conversation.lastMessage}</span> : <span>点击开始聊天</span>}</span>{unread > 0 && <span className="modern-inbox-unread" aria-label={`${tr('未读消息')} · ${unread}`} translate="no">{unread > 99 ? '99+' : unread}</span>}</span></button>
-        <button type="button" className="modern-inbox-pin" translate="no" aria-label={`${tr(pinned ? '取消置顶' : '置顶对话')} · ${other.nickname}`} aria-pressed={pinned} onClick={() => togglePin(conversation.id)}>{pinned ? <PinOff size={15} /> : <Pin size={15} />}</button>
-      </div>;
-    })}</div> : !error && <div className="member-empty-card member-empty-card--compact"><span className="member-empty-icon"><Inbox size={28} aria-hidden="true" /></span><h2>{convs.length ? filter === 'unread' && !query ? '消息都看完了。' : '没有找到这个对话' : '还没有消息'}</h2><p>{convs.length ? '试试切换筛选，或搜索昵称和最近聊过的内容。' : '看到合适的房源、二手或服务，可以点「私信」开始沟通。'}</p>{convs.length ? <button type="button" className="member-secondary mt-5" onClick={() => { setQuery(''); setFilter('all'); }}>查看全部对话</button> : <Link to="/" className="member-secondary mt-5">发现身边好物与服务<ChevronRight size={16} aria-hidden="true" /></Link>}</div>}
-  </div>;
+  const dateLocale = english ? 'en-US' : locale === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
+  const when = (time: number) => {
+    const date = new Date(time);
+    const today = new Date();
+    return date.toDateString() === today.toDateString()
+      ? new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)
+      : new Intl.DateTimeFormat(dateLocale, { month: 'numeric', day: 'numeric', ...(date.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) }).format(date);
+  };
+  const failure = error && (offline
+    ? <ErrorState title={t('网络已断开', 'You are offline')} body={t('连上网络后会自动刷新对话。', 'Conversations refresh by themselves when you are back online.')} onRetry={() => setRetryKey(key => key + 1)} homeTo={null} headingLevel="h3" />
+    : <ErrorState title={t('对话暂时没能加载', 'Conversations did not load')} onRetry={() => setRetryKey(key => key + 1)} homeTo={null} headingLevel="h3" />);
+
+  return <section className="msg-list" aria-labelledby="msg-list-title" aria-busy={loading && convs.length === 0}>
+    <h2 id="msg-list-title" className="msg-list__title">{t('最近对话', 'Recent conversations')}</h2>
+    {convs.length > 0 && <>
+      <div className="msg-controls">
+        <label className="msg-search"><Search size={18} aria-hidden="true" /><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder={t('搜索联系人、最近消息或帖子', 'Search people, recent messages or posts')} aria-label={t('搜索对话', 'Search conversations')} />{query && <button type="button" aria-label={t('清除搜索', 'Clear search')} onClick={() => setQuery('')}><X size={18} aria-hidden="true" /></button>}</label>
+        <ChipRow label={t('筛选对话', 'Filter conversations')}>
+          <FilterChip selected={filter === 'all'} count={convs.length} onClick={() => setFilter('all')}>{t('全部', 'All')}</FilterChip>
+          <FilterChip selected={filter === 'unread'} count={unreadConversations} onClick={() => setFilter('unread')}>{t('未读', 'Unread')}</FilterChip>
+        </ChipRow>
+      </div>
+      <p className="msg-note">{t('置顶只保存在这个浏览器。', 'Pins are saved in this browser only.')}</p>
+    </>}
+    {pinNotice && <p className="msg-pin-note" role="status">{pinNotice}</p>}
+    {failure}
+    {loading && convs.length === 0 ? <SkeletonFeed rows count={4} />
+      : visible.length > 0 ? <ul className="msg-threads">{visible.map(conversation => {
+        const other = conversation.otherUser;
+        const draft = readMessageDraft(currentUser.id, conversation.id);
+        const pinned = pins.includes(conversation.id);
+        const unread = Math.max(0, Number(conversation.unreadCount) || 0);
+        const preview = conversation.lastMessage ? previewText(conversation.lastMessage, locale) : t('点击开始聊天', 'Tap to start chatting');
+        // translate="no": the name and message are the members' own words; every UI string here is already localised.
+        return <li key={conversation.id} translate="no" data-profile-theme={other.profileTheme || 'bay'}>
+          <RowCard rawTitle className={unread ? 'msg-thread msg-thread--unread' : 'msg-thread'} title={other.nickname} to={`/messages/${encodeURIComponent(conversation.id)}`}
+            thumb={<Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={14} />}
+            date={<>{pinned && <>{t('已置顶', 'Pinned')} · </>}<time dateTime={new Date(conversation.updatedAt).toISOString()}>{when(conversation.updatedAt)}</time>{unread > 0 && <b className="msg-thread__unread" aria-label={t(`${unread} 条未读`, `${unread} unread`)}>{unread > 99 ? '99+' : unread}</b>}</>}
+            meta={draft ? <><em className="msg-thread__draft">{t('草稿', 'Draft')}</em> {draft}</> : preview}
+            trailing={<button type="button" className="msg-pin" aria-label={`${pinned ? t('取消置顶', 'Unpin conversation') : t('置顶对话', 'Pin conversation')} · ${other.nickname}`} aria-pressed={pinned} onClick={() => togglePin(conversation.id)}>{pinned ? <PinOff size={18} aria-hidden="true" /> : <Pin size={18} aria-hidden="true" />}</button>} />
+        </li>;
+      })}</ul>
+        : !error && (convs.length
+          ? <EmptyState icon={Inbox} headingLevel="h3" title={filter === 'unread' && !query ? t('消息都看完了。', "You're all caught up.") : t('没有找到这个对话', 'No matching conversations')}
+            body={t('试试切换筛选，或搜索昵称和最近聊过的内容。', 'Try another filter, a name, or something you recently discussed.')}
+            actions={<Button variant="secondary" onClick={() => { setQuery(''); setFilter('all'); }}>{t('查看全部对话', 'View all conversations')}</Button>} />
+          : <EmptyState icon={Inbox} headingLevel="h3" title={t('还没有消息', 'No messages yet')}
+            body={t('有人回复你的私信、请求联系方式，或小队和预约有变化时，会出现在这里。', 'Replies, contact requests and group or booking updates will appear here.')}
+            actions={<Button variant="text" to="/events">{t('看看本周末去哪', 'See where to go this weekend')}</Button>} />)}
+  </section>;
 };

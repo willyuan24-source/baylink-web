@@ -9,7 +9,7 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, l
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { render, fireEvent, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
-const { ProfilePersonalSpace, ProfileActivityLinks } = await import('../src/features/profile/ProfilePersonalSpace');
+const { ProfilePersonalSpace } = await import('../src/features/profile/ProfilePersonalSpace');
 const { profileExplorationSteps } = await import('../src/features/profile/profile-exploration');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
@@ -110,7 +110,3 @@ test('private controls translate into English and Traditional Chinese', async t 
   assert.ok(view.getByRole('button', { name: '收起設定' }));
 });
 
-test('activity links lead directly to saved plans, owned groups and both booking roles', () => {
-  const view = render(<MemoryRouter><ProfileActivityLinks /></MemoryRouter>);
-  assert.deepEqual([...view.container.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/my-week', '/together?view=mine', '/me/bookings']);
-});

@@ -231,6 +231,15 @@ test('English pages get English control names without a dictionary entry', async
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/);
 });
 
+test('a raw card title is a member’s own words: never converted to 繁體', async () => {
+  await act(async () => { await setLocale('zh-Hant', false); });
+  const view = wrap(<><ui.RowCard rawTitle title="测试小波" to="/messages/a" thumb={<span />} /><ui.RowCard title="测试小波" to="/messages/b" thumb={<span />} /></>);
+  const [raw, converted] = view.getAllByRole('link');
+  assert.equal(raw.textContent, '测试小波');
+  assert.equal(raw.querySelector('[translate=no]')?.textContent, '测试小波');
+  assert.equal(converted.textContent, '測試小波');
+});
+
 test('zh-Hant names the layout buttons by columns as Taiwan reads them: 多欄 / 單欄, not 列 (a row there)', async () => {
   await act(async () => { await setLocale('zh-Hant', false); });
   const view = wrap(<ui.FeedLayoutToggle effective="list" onChange={() => {}} />);

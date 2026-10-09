@@ -17,7 +17,10 @@ function DashboardSession({ user, onLoginNeeded, showToast }: ServiceBookingsDas
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const [initialTab, setInitialTab] = useState<'customer' | 'provider' | null>(null);
-  const tab = params.get('view') === 'received' ? 'provider' : params.has('view') ? 'customer' : initialTab || 'customer';
+  // A notice link (#booking-<id>, no ?view=) opens the tab that holds that booking, so the scroll below finds it.
+  const linkedId = location.hash.startsWith('#booking-') ? location.hash.slice('#booking-'.length) : '';
+  const linkedTab = data && linkedId ? data.asCustomer.some(item => item.id === linkedId) ? 'customer' : data.asProvider.some(item => item.id === linkedId) ? 'provider' : null : null;
+  const tab = params.get('view') === 'received' ? 'provider' : params.has('view') ? 'customer' : linkedTab || initialTab || 'customer';
   const setTab = (next: 'customer' | 'provider') => setParams(current => { const updated = new URLSearchParams(current); updated.set('view', next === 'provider' ? 'received' : 'mine'); return updated; }, { replace: true });
   const [busy, setBusy] = useState('');
   const [confirmation, setConfirmation] = useState<{ id: string; action: 'cancel' | 'decline' } | null>(null);

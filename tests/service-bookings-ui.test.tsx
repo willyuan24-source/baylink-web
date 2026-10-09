@@ -275,6 +275,23 @@ test('a provider-only notification visit opens received bookings once and explic
   assert.equal(revisited.getByRole('button', { name: /我预约的/ }).getAttribute('aria-pressed'), 'true');
 });
 
+test('a booking notice link (#booking-<id>, no view) opens the tab that holds that booking for a member with both roles', async t => {
+  signIn(provider);
+  const mine = { ...booking, id: 'booking-mine', providerId: 'someone-else', customerId: provider.id, postTitle: '周末上门理发' };
+  t.mock.method(api, 'request', async () => ({ asCustomer: [mine], asProvider: [booking], sms: { enabled: false, eligible: true, configured: false } }));
+  const received = render(<MemoryRouter initialEntries={['/me/bookings#booking-booking-1']}><ServiceBookingsDashboard user={provider} onLoginNeeded={noop} showToast={noop} /></MemoryRouter>);
+  await received.findByRole('article', { name: '家庭清洁' });
+  assert.equal(received.getByRole('button', { name: /我收到的/ }).getAttribute('aria-pressed'), 'true');
+  received.unmount();
+  const own = render(<MemoryRouter initialEntries={['/me/bookings#booking-booking-mine']}><ServiceBookingsDashboard user={provider} onLoginNeeded={noop} showToast={noop} /></MemoryRouter>);
+  await own.findByRole('article', { name: '周末上门理发' });
+  assert.equal(own.getByRole('button', { name: /我预约的/ }).getAttribute('aria-pressed'), 'true');
+  own.unmount();
+  const chosen = render(<MemoryRouter initialEntries={['/me/bookings?view=mine#booking-booking-1']}><ServiceBookingsDashboard user={provider} onLoginNeeded={noop} showToast={noop} /></MemoryRouter>);
+  await chosen.findByRole('article', { name: '周末上门理发' });
+  assert.equal(chosen.getByRole('button', { name: /我预约的/ }).getAttribute('aria-pressed'), 'true');
+});
+
 test('SMS activation is unavailable when configuration or verified eligibility is missing, without false success', async t => {
   signIn(provider); let mutations = 0;
   t.mock.method(api, 'request', async (_path: string, options: RequestInit = {}) => { if (options.method) mutations++; return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } }; });

@@ -30,12 +30,28 @@ test('account deletion requires the explicit phrase and calls local session clea
   fireEvent.click(view.getByRole('button', { name: '查看注销确认' }));
   const submit = view.getByRole('button', { name: '确认密码并永久注销' });
   assert.equal((submit as HTMLButtonElement).disabled, true);
-  fireEvent.change(view.getByLabelText('输入 DELETE MY ACCOUNT 确认不可恢复的注销'), { target: { value: 'DELETE MY ACCOUNT' } });
+  const phrase = view.getByLabelText('输入「注销我的账号」确认不可恢复的注销');
+  fireEvent.change(phrase, { target: { value: '注销我的帐号X' } });
+  assert.equal((submit as HTMLButtonElement).disabled, true);
+  fireEvent.change(phrase, { target: { value: '注销 我的账号' } });
   fireEvent.click(submit);
   await waitFor(() => assert.equal(cleared, 1));
   assert.equal(calls.filter(call => call.endpoint.includes('/privacy/account')).length, 1);
-  assert.deepEqual(calls.at(-1)?.body, { password: 'current-password', totpCode: '', confirmation: 'DELETE MY ACCOUNT' });
+  assert.deepEqual(calls.at(-1)?.body, { password: 'current-password', totpCode: '', confirmation: '注销 我的账号', locale: 'zh-Hans' });
   assert.ok(!calls.some(call => call.endpoint === '/auth/logout'));
+});
+
+test('the deletion phrase follows the reader’s language and accepts the forms the API accepts', async () => {
+  const { confirmsDeletion, DELETE_PHRASES } = await import('../src/features/profile/account-deletion');
+  for (const value of ['注销我的账号', '註銷我的帳號', '注销我的帐号', '註銷我的賬號', 'DELETE MY ACCOUNT', 'delete my account', ' 注销 我的 账号 ']) assert.equal(confirmsDeletion(value), true, value);
+  for (const value of ['', '注销账号', 'DELETE', '删除我的账号']) assert.equal(confirmsDeletion(value), false, value);
+  assert.deepEqual(DELETE_PHRASES, { 'zh-Hans': '注销我的账号', 'zh-Hant': '註銷我的帳號', en: 'DELETE MY ACCOUNT' });
+  signedIn(); await setLocale('zh-Hant', false);
+  api.request = async () => ({ totpEnabled: false, setupAvailable: false, recoveryCodesRemaining: 0 });
+  const view = render(<PrivacySecurity user={user} onBack={() => {}} onUpdateUser={() => {}} onSessionEnded={() => {}} />);
+  await waitFor(() => assert.equal((view.getByRole('button', { name: /註銷確認/ }) as HTMLButtonElement).disabled, false));
+  fireEvent.click(view.getByRole('button', { name: /註銷確認/ }));
+  assert.ok(view.getByLabelText('輸入「註銷我的帳號」確認不可恢復的註銷'));
 });
 
 test('privacy controls are complete English and disable unavailable admin MFA setup honestly', async () => {
@@ -54,7 +70,7 @@ test('late deletion completion after leaving the profile cannot clear a newer se
   const view = render(<PrivacySecurity user={user} onBack={() => {}} onUpdateUser={() => {}} onSessionEnded={() => { cleared++; }} />);
   await waitFor(() => assert.equal((view.getByRole('button', { name: '查看注销确认' }) as HTMLButtonElement).disabled, false));
   fireEvent.change(view.getByLabelText('当前密码'), { target: { value: 'current-password' } }); fireEvent.click(view.getByRole('button', { name: '查看注销确认' }));
-  fireEvent.change(view.getByLabelText('输入 DELETE MY ACCOUNT 确认不可恢复的注销'), { target: { value: 'DELETE MY ACCOUNT' } }); fireEvent.click(view.getByRole('button', { name: '确认密码并永久注销' }));
+  fireEvent.change(view.getByLabelText('输入「注销我的账号」确认不可恢复的注销'), { target: { value: 'DELETE MY ACCOUNT' } }); fireEvent.click(view.getByRole('button', { name: '确认密码并永久注销' }));
   await waitFor(() => assert.ok(resolveDelete)); view.unmount(); localStorage.setItem('currentUser', JSON.stringify({ ...user, id: 'another', token: 'another-token' }));
   await act(async () => resolveDelete({ success: true })); assert.equal(cleared, 0);
 });

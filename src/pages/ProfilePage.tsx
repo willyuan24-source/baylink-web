@@ -1,18 +1,10 @@
-// 「我的」页路由包装
+// 「我的」页路由包装: the hub reads the header's unread count, so 消息 shows the same number as the badge (G1).
 import { useApp } from '../app/context';
-import { ReadingPreferencesCard } from '../components/ReadingPreferences';
 import { ProfileView } from '../features/profile/ProfileView';
-import { NotificationPreferencesCard } from '../features/profile/NotificationPreferencesCard';
-import './profile-page.css';
 
 export default function ProfilePage() {
-  const { user, setUser, setShowLogin, handleLogout, clearAccountSession, navigateToPost, showToast, openBlockedUsersModal } = useApp();
+  const { user, setUser, setShowLogin, handleLogout, clearAccountSession, navigateToPost, showToast, openBlockedUsersModal, messagesBadgeCount } = useApp();
   return (
-    <>
-    <div className="member-profile-settings">
-      <ReadingPreferencesCard />
-      {user && <NotificationPreferencesCard key={`${user.id}:${user.token || ''}`} userId={user.id} />}
-    </div>
     <ProfileView
       user={user}
       onLogin={() => setShowLogin(true)}
@@ -22,7 +14,7 @@ export default function ProfilePage() {
       onUpdateUser={setUser}
       showToast={showToast}
       onOpenBlockedUsers={openBlockedUsersModal}
+      messagesCount={messagesBadgeCount}
     />
-    </>
   );
 }

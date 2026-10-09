@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Bookmark, CalendarDays, Check, Compass, Heart, LockKeyhole, MapPin, SlidersHorizontal, Users } from 'lucide-react';
+import { ChevronRight, Bookmark, CalendarDays, Check, Compass, Heart, LockKeyhole, MapPin, SlidersHorizontal } from 'lucide-react';
 import { usePlannerLibrary } from '../../lib/planner-library';
 import type { Preferences } from '../../lib/planner';
 import type { UserData } from '../../lib/types';
@@ -16,18 +16,20 @@ const STEPS = {
   plan: { title: '把期待排成一天', description: '从一站开始，保存一份自己的出游计划。', action: '开始安排', icon: CalendarDays },
 };
 
-export function ProfileActivityLinks() {
-  return <section className="profile-life-links member-profile-wide" aria-label="我的生活安排">
-    <Link to="/my-week"><CalendarDays size={21} aria-hidden="true" /><strong>我的这周</strong><span>收藏与计划，放在一起</span><ChevronRight size={17} aria-hidden="true" /></Link>
-    <Link to="/together?view=mine"><Users size={21} aria-hidden="true" /><strong>我的小队</strong><span>申请、已确认与我发起的</span><ChevronRight size={17} aria-hidden="true" /></Link>
-    <Link to="/me/bookings"><Compass size={21} aria-hidden="true" /><strong>服务预约</strong><span>我预约的与我收到的</span><ChevronRight size={17} aria-hidden="true" /></Link>
-  </section>;
+type PlannerLibraryState = ReturnType<typeof usePlannerLibrary>;
+type PersonalSpaceProps = { user: UserData; onEdit: () => void };
+
+/** /me passes the library it already reads for the My Week count, so the account is read once per visit. */
+export function ProfilePersonalSpace({ library, ...props }: PersonalSpaceProps & { library?: PlannerLibraryState }) {
+  return library ? <PersonalSpace {...props} library={library} /> : <OwnLibraryPersonalSpace {...props} />;
+}
+function OwnLibraryPersonalSpace(props: PersonalSpaceProps) {
+  return <PersonalSpace {...props} library={usePlannerLibrary(props.user.id)} />;
 }
 
-export function ProfilePersonalSpace({ user, onEdit }: { user: UserData; onEdit: () => void }) {
+function PersonalSpace({ user, onEdit, library }: PersonalSpaceProps & { library: PlannerLibraryState }) {
   const locale = useLocale();
   const t = (text: string) => translateText(text, locale);
-  const library = usePlannerLibrary(user.id);
   const [preferencesOpen, setPreferencesOpen] = useState(false);
   const [journeyOpen, setJourneyOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState('');
@@ -44,7 +46,7 @@ export function ProfilePersonalSpace({ user, onEdit }: { user: UserData; onEdit:
     [field]: preferences[field].includes(id) ? preferences[field].filter(value => value !== id) : [...preferences[field], id],
   });
 
-  return <div className="profile-personal-space member-profile-wide">
+  return <div className="profile-personal-space">
     <section className="profile-exploration" aria-labelledby="profile-exploration-title">
       <header><div><span className="profile-private-label"><LockKeyhole size={13} aria-hidden="true" />{t('仅自己可见')}</span><h2 id="profile-exploration-title">{t('我的探索路线')}</h2><p>{t('一点点认识湾区，按自己的节奏来。')}</p></div><span className="profile-exploration-mark" aria-hidden="true"><Compass size={34} /></span></header>
       <div className="profile-exploration-progress"><span>{t('已准备')}</span><strong>{library.ready ? `${complete} / 4` : '— / 4'}</strong><div className="profile-exploration-track" aria-hidden="true"><span style={{ width: library.ready ? `${complete * 25}%` : '0%' }} /></div></div>

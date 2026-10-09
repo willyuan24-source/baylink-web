@@ -1,45 +1,4 @@
-/* Conversation spaces: a quiet personal inbox and focused, comfortable reading. */
-.modern-inbox{max-width:920px;margin:0 auto;padding:0 0 32px}
-.modern-inbox-intro{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:26px 28px 28px;background:linear-gradient(120deg,#edf2e6,#f9f7ee);border:1px solid #e3e8db;border-radius:24px;margin-bottom:22px}
-.modern-inbox-intro h2{font-size:clamp(1.375rem,calc(2vw * var(--fluid-scale)),1.875rem);font-weight:700;letter-spacing:-.04em;line-height:1.4;color:#193e36;margin:7px 0}
-.modern-inbox-intro p{font-size:.8125rem;color:#67776a;line-height:1.8}
-.modern-inbox-art{position:relative;flex-shrink:0;display:grid;place-items:center;width:70px;height:70px;color:#315d49;background:#dce7cf;border-radius:25px;transform:rotate(-8deg)}
-.modern-inbox-art span{position:absolute;right:-10px;bottom:-8px;font-size:1.5625rem;transform:rotate(14deg)}
-.modern-inbox-controls{display:flex;gap:14px;align-items:center;margin-bottom:20px}
-.modern-inbox-search{display:flex;gap:10px;align-items:center;flex:1;min-width:0;border:1px solid #dfe5db;border-radius:14px;background:#fff;padding:0 13px;color:#718172;min-height:48px}
-.modern-inbox-search:focus-within{border-color:#527553;box-shadow:0 0 0 3px #e6eddc}
-.modern-inbox-search input{width:100%;min-width:0;outline:none;background:transparent;font-size:.8125rem;color:#254b3f}
-.modern-inbox-search input::-webkit-search-cancel-button{display:none}
-.modern-inbox-search button{display:grid;place-items:center;flex-shrink:0;min-width:32px;min-height:40px}
-.modern-inbox-filters{display:flex;gap:3px;padding:4px;background:#edf0e9;border-radius:13px;flex-shrink:0}
-.modern-inbox-filters button{display:flex;align-items:center;gap:7px;min-height:40px;padding:0 13px;font-size:.75rem;color:#6b7769;border-radius:10px;font-weight:600}
-.modern-inbox-filters button[aria-pressed=true]{background:#fff;box-shadow:0 1px 5px #193e360c;color:#285b41}
-.modern-inbox-filters button span{font-size:.625rem;min-width:19px;text-align:center;background:#e8edde;padding:1px 4px;border-radius:7px}
-.modern-inbox-list-label{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px 10px;color:#667563;font-size:.75rem;font-weight:600}
-.modern-inbox-list-label>span:last-child{display:flex;align-items:center;gap:5px;font-weight:400;font-size:.625rem;color:#7b8478}
-.modern-inbox-list{border:1px solid #e2e7dd;border-radius:20px;overflow:hidden;background:#fff}
-.modern-inbox-row{display:flex;gap:14px;align-items:center;padding:18px 20px;transition:background .18s ease;position:relative;min-width:0}
-.modern-inbox-row+.modern-inbox-row{border-top:1px solid #edf0e9}
-.modern-inbox-row:hover,.modern-inbox-row:focus-within{background:#f7f9f2}
-.modern-inbox-row.has-unread{background:#f9fbf5}
-.modern-inbox-row.has-unread::before{position:absolute;left:0;top:28%;bottom:28%;width:3px;background:#6c8a50;content:'';border-radius:0 3px 3px 0}
-.modern-inbox-avatar{flex-shrink:0;border-radius:50%}
-.modern-inbox-conversation{min-width:0;flex:1;text-align:left}
-.modern-inbox-row-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
-.modern-inbox-name{display:flex;align-items:center;gap:5px;min-width:0;color:#294b3c}
-.modern-inbox-name strong{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;font-size:.9375rem;font-weight:600}
-.modern-inbox-name svg{flex-shrink:0}
-.modern-inbox-row-heading time{font-size:.625rem;color:#899180;flex-shrink:0}
-.modern-inbox-person-status{display:block;font-size:.6875rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#788571;margin:1px 0 5px}
-.modern-inbox-preview{display:flex;gap:8px;justify-content:space-between;align-items:center;min-height:22px}
-.modern-inbox-preview-text{min-width:0;display:flex;gap:6px;align-items:baseline;font-size:.8125rem;color:#7a8478}
-.modern-inbox-preview-text>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;min-width:0}
-.modern-inbox-preview-text em{font-size:.6875rem;color:#a4663e;font-style:normal;flex-shrink:0}
-.has-unread .modern-inbox-preview-text{color:#31513d;font-weight:600}
-.modern-inbox-unread{display:grid;place-items:center;min-width:21px;height:21px;padding:0 5px;border-radius:8px;background:#476d3e;color:#fff;font-size:.625rem;flex-shrink:0}
-.modern-inbox-pin{min-height:38px;min-width:32px;display:grid;place-items:center;color:#a0aa99;border-radius:10px;flex-shrink:0}
-.modern-inbox-pin:hover,.modern-inbox-pin[aria-pressed=true]{color:#516e42;background:#eaf0e1}
-.modern-inbox-notice{padding:10px 14px;border-radius:10px;background:#fff4de;color:#90673b;font-size:.75rem;margin:10px 0}
+/* The conversation overlay (ChatView). The /messages list moved to features/messages/messages-hub.css (WEB-ACCOUNT). */
 .modern-chat-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#152e29a8;backdrop-filter:blur(12px);padding:24px;outline:none}
 .modern-chat{--chat-accent:#416344;--chat-wash:#f3f6ed;position:relative;display:flex;flex-direction:column;width:min(100%,850px);height:min(900px,calc(100dvh - 48px));background:#f8f9f5;border:1px solid #ffffff5e;border-radius:26px;box-shadow:0 24px 100px #102a294a;overflow:hidden}
 .modern-chat[data-profile-theme=ocean]{--chat-accent:#2c6576;--chat-wash:#eef7f8}
@@ -125,14 +84,8 @@
 .modern-chat-welcome h2{font-size:1.25rem;font-weight:600;color:#36573c;letter-spacing:-.03em;margin:22px 0 10px}
 .modern-chat-welcome p{font-size:.75rem;line-height:1.8}
 .modern-chat-welcome button{display:flex;align-items:center;gap:7px;min-height:40px;padding:0 16px;margin-top:21px;border:1px solid #d3dfc8;border-radius:12px;font-size:.75rem;color:#5b784b;background:#edf3e5}
-.modern-chat button:focus-visible,.modern-inbox button:focus-visible{outline:2px solid #78945f;outline-offset:3px}
-@media(min-width:900px){.modern-inbox-pin{opacity:.3}.modern-inbox-row:hover .modern-inbox-pin,.modern-inbox-row:focus-within .modern-inbox-pin,.modern-inbox-pin[aria-pressed=true]{opacity:1}}
+.modern-chat button:focus-visible{outline:2px solid #78945f;outline-offset:3px}
 @media(max-width:640px){
-.modern-inbox-intro{padding:22px 20px;border-radius:20px;margin-bottom:17px;gap:14px}
-.modern-inbox-art{width:54px;height:54px;border-radius:18px}.modern-inbox-art span{font-size:1.375rem}
-.modern-inbox-controls{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:16px}.modern-inbox-filters{align-self:flex-start}
-.modern-inbox-row{padding:16px 12px;gap:10px}.modern-inbox-name strong{font-size:.875rem}.modern-inbox-list-label{font-size:.6875rem}.modern-inbox-list-label>span:last-child{font-size:.5625rem}
-.modern-inbox-pin{min-width:28px}.modern-inbox-row-heading{gap:5px}.modern-inbox-row-heading time{font-size:.5625rem}
 .modern-chat-overlay{padding:0;background:#f8f9f5;backdrop-filter:none}
 .modern-chat{width:100%;height:100dvh;max-height:100dvh;border:0;border-radius:0;box-shadow:none}
 .modern-chat-header{gap:8px;padding:calc(11px + env(safe-area-inset-top)) 12px 11px}
@@ -144,14 +97,8 @@
 .modern-chat-composer{padding:11px 12px calc(7px + env(safe-area-inset-bottom))}.modern-chat-compose-row{border-radius:17px;padding:4px;gap:2px}.modern-chat-key-hint{display:none}.modern-chat-compose-meta{font-size:.5625rem}.modern-chat-input{font-size:1rem;padding:9px 5px}.modern-chat-draft-note{font-size:.5625rem}
 .modern-chat-jump{right:20px;bottom:155px}.modern-chat-emoji-picker{left:12px}.modern-chat-welcome{margin:32px auto}.modern-chat-welcome h2{font-size:1.1875rem}
 }
-@media(prefers-reduced-motion:reduce){.modern-chat *,.modern-inbox *{scroll-behavior:auto!important;transition:none!important}}
-/* Existing members get directly to their messages; the larger welcome is for an empty inbox. */
-.modern-inbox.has-conversations .modern-inbox-intro{padding:13px 20px;margin-bottom:17px;min-height:72px;border-radius:17px}
-.modern-inbox.has-conversations .modern-inbox-intro .member-eyebrow,.modern-inbox.has-conversations .modern-inbox-intro p{display:none}
-.modern-inbox.has-conversations .modern-inbox-intro h2{font-size:1.1875rem;margin:0}
-.modern-inbox.has-conversations .modern-inbox-art{height:42px;width:42px;border-radius:15px}
-.modern-inbox.has-conversations .modern-inbox-art svg{width:24px;height:24px}
-.modern-inbox.has-conversations .modern-inbox-art span{font-size:1.125rem;right:-7px;bottom:-4px}
+@media(prefers-reduced-motion:reduce){.modern-chat *{scroll-behavior:auto!important;transition:none!important}}
+/* Unconfirmed sends inside a conversation. */
 .modern-chat-pending{padding:13px 15px;margin:12px 0 20px;border:1px solid #eadbc0;background:#fdf8ed;border-radius:14px;color:#8d744c;font-size:.6875rem;line-height:1.7}
 .modern-chat-pending details{margin:7px 0}.modern-chat-pending summary{cursor:pointer}.modern-chat-pending details p{padding:8px;background:#fff9;border-radius:8px;white-space:pre-wrap;overflow-wrap:anywhere;color:#755d3b}
 .modern-chat-pending>div{display:flex;flex-wrap:wrap;gap:12px}.modern-chat-pending button{text-decoration:underline;text-underline-offset:3px;min-height:34px}.modern-chat-pending button:disabled{opacity:.4;cursor:default}
