@@ -59,6 +59,8 @@ const SEARCH_PHRASES: readonly (readonly [string, string])[] = [
 // U+2063 INVISIBLE SEPARATOR: not whitespace to /\s/ or to the discovery tokenizer, so a key stays one token.
 const SEPARATOR = '⁣';
 const latin = /[a-z0-9]/;
+// A web address is not prose: "mydigitalworld.fb.com/ssa/lesson" must not read as SSA (养老金).
+const webAddress = /(?:https?:\/\/|www\.)[!-~]+/g;
 let matcher: { pattern: RegExp; replacements: Map<string, string> } | undefined;
 
 function buildMatcher() {
@@ -75,12 +77,15 @@ function buildMatcher() {
 /**
  * Lower-case, Simplified, width-folded text with every synonym rewritten to its group key. A Latin name only counts
  * as a whole word at its start ("pension" is not inside "suspension"), and a short one (≤4 letters, e.g. "ssa") at
- * both ends; the neighbouring characters are checked in code, as a regex look-behind would stop Safari < 16.4.
+ * both ends; the neighbouring characters are checked in code, as a regex look-behind would stop Safari < 16.4. Nothing
+ * inside a web address (http://, https:// or www.) is rewritten.
  */
 export function normalizeSearchText(text: string): string {
   const value = simplifySearch(text).normalize('NFKC').toLowerCase();
   const { pattern, replacements } = matcher ||= buildMatcher();
+  const addresses = value.includes('http') || value.includes('www.') ? [...value.matchAll(webAddress)].map(found => [found.index!, found.index! + found[0].length]) : [];
   return value.replace(pattern, (match: string, offset: number) => {
+    if (addresses.some(([start, end]) => offset >= start && offset < end)) return match;
     const before = value[offset - 1] || '', after = value[offset + match.length] || '';
     if (latin.test(match[0]) && latin.test(before)) return match;
     if (match.length <= 4 && latin.test(match[match.length - 1]) && latin.test(after)) return match;

@@ -48,6 +48,7 @@ test('the guide library search (/guides?q=) finds the same answers', () => {
   const slugs = (query: string, locale: 'zh-Hans' | 'zh-Hant' = 'zh-Hans') => searchGuides(guides, { query, locale }).map(result => result.guide.slug);
   assert.equal(slugs('养老金')[0], pension);
   assert.equal(slugs('退休金')[0], pension);
+  assert.ok(!slugs('养老金').includes('bay-area-useful-apps-platforms-guide'), 'an "/ssa/" path in a link is not a pension match');
   assert.ok(slugs('中文医生').includes('bay-area-first-doctor-insurance-network-guide'));
   assert.ok(slugs('长者 Muni').includes('bay-area-october-muni-clipper-payment-update-2026'));
   assert.ok(slugs('老人服务').includes('bay-area-chinese-senior-services-referral-guide'));
@@ -71,6 +72,12 @@ test('a synonym never makes a word out of part of another word', () => {
   assert.ok(!normalizeSearchText('Social Security number').includes(pensionKey));
   assert.ok(!normalizeSearchText('scampi').includes(normalizeSearchText('scam')));
   assert.ok(normalizeSearchText('scams').includes(normalizeSearchText('诈骗')));
+  // Web addresses are not prose: a path segment is not SSA, a host name is not Fleet Week; the sentence around them still is.
+  for (const text of ['https://mydigitalworld.fb.com/ssa/lesson/strategies-for-avoiding-scams/', 'www.ssa.gov/myaccount', 'http://example.org/fleet-week'])
+    assert.equal(normalizeSearchText(text), text, text);
+  assert.ok(normalizeSearchText('登录 https://www.ssa.gov/ 前先准备 SSA 信件').includes(pensionKey));
+  assert.ok(!normalizeSearchText('登录 https://www.ssa.gov/ 前先准备').includes(pensionKey));
+  assert.ok(!normalizeSearchText('Mobile 指南：https://mydigitalworld.fb.com/ssa/lesson').includes(pensionKey));
   // Partial words still find their literal spelling inside the shared key.
   assert.ok(normalizeSearchText('San Francisco Fleet Week').includes('angels'));
   assert.ok(normalizeSearchText('舰队周').includes('天使'));
