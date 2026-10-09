@@ -139,10 +139,19 @@ test('every TypeCover and status pair is at least 4.5:1', () => {
   for (const [fg, bg] of pairs) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}: ${contrast(fg, bg).toFixed(2)}:1`);
 });
 
-test('TypeCover text scales with Aa: every size is a text token, an em, or has a --reading-scale term (a cover floor)', () => {
+test('TypeCover text scales with Aa once: every size is a text token, a rem, a clamp() between rem bounds, or a share of its parent never below the caption size', () => {
   postcss.parse(css).walkDecls('font-size', declaration => {
-    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|(?:calc|clamp)\(.*var\(--reading-scale\).*\)|[\d.]+em)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`);
-    if (declaration.value.startsWith('clamp(')) assert.match(declaration.value, /^clamp\(calc\([\d.]+rem \* var\(--reading-scale\)\),/, 'the floor is the part that follows Aa');
+    const where = `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`;
+    // Root Aa (html[data-reading], WEB-TOKENS-A) scales every rem: a second --reading-scale would double-scale, px never grows.
+    assert.doesNotMatch(declaration.value, /--reading-scale|\d(?:\.\d+)?px\b/, where);
+    // A bare .47em under a 22px value floor was 10.3px; the small date/value part now keeps the caption size as its floor.
+    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
+    if (declaration.value.startsWith('clamp(')) {
+      const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)), (.*), [\d.]+rem\)$/.exec(declaration.value);
+      assert.ok(clamp, `${where}: clamp(rem floor, …, rem cap)`);
+      assert.ok(!clamp[1] || Number(clamp[1]) >= 1, `${where}: a floor under 1rem keeps the 简洁显示 text floor, max(floor, var(--text-floor))`);
+      assert.doesNotMatch(clamp[2].replace(/calc\([\d.]+(?:cqw|cqi|vw) \* var\(--fluid-scale\)\)/g, ''), /\d(?:cqw|cqi|vw)\b/, `${where}: a width term grows with Aa through --fluid-scale`);
+    }
     const rem = [...declaration.value.matchAll(/([\d.]+)rem/g)].map(match => Number(match[1]));
     if (rem.length) assert.ok(Math.min(...rem) >= .8125, `${(declaration.parent as postcss.Rule).selector}: never below 13px`);
   });

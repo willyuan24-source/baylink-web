@@ -1,7 +1,8 @@
 /*
  * BAYLINK UI primitives (plan WEB-UI; design.md §4.5–4.8). Imported only by src/components/ui/*.tsx, never
- * globally (D6). Every class is `ui-` prefixed; text sizes use the shared text tokens or a calc() with
- * --reading-scale so they follow Aa before and after root-rem scaling; colours come from tokens.
+ * globally (D6). Every class is `ui-` prefixed; text sizes are rem or the shared text tokens (a small date/value part
+ * is a share of its parent, never below --text-caption), so the root Aa scale (html[data-reading], WEB-TOKENS-A) grows
+ * them once, never with a second --reading-scale multiplier; colours come from tokens.
  *
  * The token block below holds the values design.md §4.2 adds to tokens.css (TypeCover pairs, status colours,
  * badge and highlight). It lives here until the tokens owner moves it (WEB-TOKENS-B / WEB-CSS-PRUNE). This file
@@ -97,7 +98,10 @@
 .ui-cover[data-ended] .ui-cover__img { filter:saturate(.7); }
 
 /* TypeCover (1007 §5.3 A2/B): real DOM text on a pastel pair, sized by its own box. The cover is a size container;
-   its text sits in __body, so every cq unit below measures the cover itself (not the feed around it). */
+   its text sits in __body, so every cq unit below measures the cover itself (not the feed around it). Each size is
+   clamp(rem floor, min(width term, height term), rem cap): root Aa grows the floor and the cap, the width term carries
+   --fluid-scale like the site's fluid headings, and the unscaled height term keeps the text inside the box, so the 3:2
+   single-column cover at 大/特大 is not scaled twice. Floors under 1rem also take the 简洁显示 --text-floor. */
 .ui-type-cover { container-type:size; container-name:ui-type-cover; background:var(--tc-bg, var(--tc-outdoors-bg)); color:var(--tc-fg, var(--tc-outdoors-fg)); text-align:start; }
 .ui-type-cover[data-tone=family] { --tc-bg:var(--tc-family-bg); --tc-fg:var(--tc-family-fg); }
 .ui-type-cover[data-tone=culture] { --tc-bg:var(--tc-culture-bg); --tc-fg:var(--tc-culture-fg); }
@@ -109,19 +113,19 @@
 .ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + 1.75rem); }
 .ui-type-cover__body>* { flex:none; margin:0; }
 .ui-type-cover__body>.ui-type-cover__title,.ui-type-cover__body>.ui-type-cover__note { flex:0 1 auto; min-height:0; }
-.ui-type-cover__label { color:var(--tc-fg); font-size:clamp(.8125rem, min(7.5cqw, 7cqh), 1.125rem); line-height:1.385; font-weight:600; }
-.ui-type-cover__date { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.2em; color:var(--tc-fg); font-size:clamp(1.75rem, min(17cqw, 20cqh), 3.75rem); line-height:1.05; font-weight:700; font-variant-numeric:tabular-nums; }
-.ui-type-cover__date-small { font-size:.47em; line-height:1.2; font-weight:600; }
-.ui-type-cover__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; color:var(--tc-fg); font-size:clamp(.9375rem, min(10.5cqw, 10cqh), 1.625rem); line-height:1.36; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
-.ui-type-cover__title:lang(en) { font-size:clamp(.875rem, min(9.5cqw, 9cqh), 1.5rem); hyphens:auto; }
+.ui-type-cover__label { color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; }
+.ui-type-cover__date { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.2em; color:var(--tc-fg); font-size:clamp(1.75rem, min(calc(17cqw * var(--fluid-scale)), 20cqh), 3.75rem); line-height:1.05; font-weight:700; font-variant-numeric:tabular-nums; }
+.ui-type-cover__date-small { font-size:max(var(--text-caption), 47%); line-height:1.2; font-weight:600; }
+.ui-type-cover__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(10.5cqw * var(--fluid-scale)), 10cqh), 1.625rem); line-height:1.36; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
+.ui-type-cover__title:lang(en) { font-size:clamp(max(.875rem, var(--text-floor)), min(calc(9.5cqw * var(--fluid-scale)), 9cqh), 1.5rem); hyphens:auto; }
 .ui-type-cover__footer { display:flex; align-items:flex-end; justify-content:space-between; gap:6px; margin-top:min(2cqw, 2cqh); min-height:1.75rem; }
 /* The label stays under the badge; the facts sit at the bottom, leaving the texture icon room in between. */
 .ui-type-cover__label+* { margin-top:auto; }
-.ui-type-cover__place { min-width:0; overflow:hidden; color:var(--tc-fg); font-size:clamp(.8125rem, min(7.5cqw, 7cqh), 1.125rem); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
+.ui-type-cover__place { min-width:0; overflow:hidden; color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
 .ui-type-cover__footer .ui-sticker { flex:none; margin-left:auto; }
-.ui-type-cover__value { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.25em; color:var(--tc-fg); font-size:clamp(1.375rem, min(16cqw, 18cqh), 2.125rem); line-height:1.1; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.ui-type-cover__value-small { font-size:.47em; line-height:1.2; font-weight:600; }
-.ui-type-cover__brand { color:var(--tc-fg); font-size:clamp(.9375rem, min(8.5cqw, 8cqh), 1.125rem); line-height:1.4; font-weight:600; overflow-wrap:break-word; }
+.ui-type-cover__value { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.25em; color:var(--tc-fg); font-size:clamp(1.375rem, min(calc(16cqw * var(--fluid-scale)), 18cqh), 2.125rem); line-height:1.1; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.ui-type-cover__value-small { font-size:max(var(--text-caption), 47%); line-height:1.2; font-weight:600; }
+.ui-type-cover__brand { color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(8.5cqw * var(--fluid-scale)), 8cqh), 1.125rem); line-height:1.4; font-weight:600; overflow-wrap:break-word; }
 .ui-type-cover__note { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:var(--tc-fg); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
 /* Square and landscape covers (offers, 16:9 heroes, the 3:2 single-column feed): shorter text block. */
 @container ui-type-cover (min-aspect-ratio:1/1) {
@@ -260,8 +264,9 @@
 /* On photos the light ring inside the brand outline keeps focus visible on dark pixels. */
 .ui-save:focus-visible { box-shadow:0 0 0 3px var(--color-brand-tint); }
 
-/* Simple mode (html[data-simple], WEB-TOKENS-A): text ≥16px, targets 48px. */
-html[data-simple] :is(.ui-provenance,.ui-sticker,.ui-status,.ui-chip,.ui-chip__count,.ui-feed-card__meta,.ui-feed-card__trust,.ui-type-cover__note) { font-size:var(--text-body); }
+/* Simple mode (html[data-simple], WEB-TOKENS-A): text ≥16px comes from the tokens (--text-caption and --text-fact are
+   1rem there, the build floors every smaller rem/em size at var(--text-floor), and the TypeCover clamp floors above
+   carry it explicitly); targets 48px. */
 html[data-simple] :is(.ui-chip,.ui-segmented,.ui-tabs__item,.ui-button) { min-height:3rem; }
 html[data-simple] .ui-icon-button::before { inset:-4px; }
 html[data-simple] .ui-save::before { inset:-8px; }
