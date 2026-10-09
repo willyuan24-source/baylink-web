@@ -65,6 +65,12 @@ test('linkifyPhones keeps every character of the text and adds an aria-label tha
   assert.deepEqual(links.map(link => link.getAttribute('href')), ['tel:+18005102020', 'tel:911']);
   assert.equal(links[0].getAttribute('aria-label'), '拨打 加州老龄事务局 800-510-2020');
   assert.ok(links.every(link => link.className.split(' ').includes('phone-chip')));
+  // Closing punctuation stays on the chip's line instead of starting the next one.
+  assert.deepEqual([...p.querySelectorAll('.phone-chip-keep')].map(keep => keep.textContent), ['800-510-2020。', '911。']);
+  const english = new JSDOM(renderToStaticMarkup(<p>{linkifyPhones('The line is 800-510-2020. Or call (415) 677-7556 / 800-434-0222')}</p>)).window.document;
+  assert.deepEqual([...english.querySelectorAll('.phone-chip-keep')].map(keep => keep.textContent), ['800-510-2020.']);
+  assert.equal(english.querySelectorAll('a[href^="tel:"]').length, 3);
+  assert.equal(english.querySelector('p')!.textContent, 'The line is 800-510-2020. Or call (415) 677-7556 / 800-434-0222');
   assert.deepEqual(linkifyPhones('没有电话号码的段落。'), ['没有电话号码的段落。']);
   assert.deepEqual(linkifyPhones(''), ['']);
 });

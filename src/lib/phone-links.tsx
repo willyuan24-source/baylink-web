@@ -26,14 +26,21 @@ export function PhoneChip({ number, tel, name, variant = 'inline' }: { number: s
   </a>;
 }
 
+// Closing punctuation right after a number. A chip is an atomic inline box, so the line could break before "。" and start
+// the next line with it; the chip and its punctuation are kept together instead.
+const closingPunctuation = /^[。，、；：！？）」』”’.,;:!?)\]]+/;
+
 /** Already-translated text with each phone number replaced by a chip; the text between numbers stays as it was. */
 export function linkifyPhones(text: string, options: { name?: string; variant?: PhoneChipVariant } = {}): ReactNode[] {
   const parts: ReactNode[] = [];
   let at = 0;
   for (const match of findPhoneNumbers(text)) {
     if (match.start > at) parts.push(text.slice(at, match.start));
-    parts.push(<PhoneChip key={`${match.start}-${match.tel}`} number={match.text} tel={match.tel} name={options.name} variant={options.variant} />);
-    at = match.end;
+    const key = `${match.start}-${match.tel}`;
+    const chip = <PhoneChip key={key} number={match.text} tel={match.tel} name={options.name} variant={options.variant} />;
+    const closing = closingPunctuation.exec(text.slice(match.end))?.[0] || '';
+    parts.push(closing ? <span key={key} className="phone-chip-keep">{chip}{closing}</span> : chip);
+    at = match.end + closing.length;
   }
   if (at < text.length || !parts.length) parts.push(text.slice(at));
   return parts;

@@ -7,6 +7,7 @@
 }
 .phone-chip::after { content:""; position:absolute; left:-.25rem; right:-.25rem; top:50%; height:3rem; transform:translateY(-50%); }
 .phone-chip svg { flex:none; width:1em; height:1em; }
+.phone-chip-keep { white-space:nowrap; }
 .phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; }
 .phone-chip:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .phone-chip--row { min-height:var(--control-height); padding:0 .75rem; font-size:var(--text-fact); }
