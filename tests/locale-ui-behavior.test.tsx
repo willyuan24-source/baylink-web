@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -10,35 +11,44 @@ Object.assign(globalThis, {
   Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
+// The events column imports its stylesheet; here CSS loads as an empty module.
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
+const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 const { LoanCalculatorTool } = await import('../src/components/tools/LoanCalculatorTool');
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 
-test('monthly search matches translated English and Traditional text while preserving the region filter', async () => {
+const titles = (root: ParentNode) => [...root.querySelectorAll('.ui-feed-card h3')].map(heading => heading.textContent);
+const search = async (view: ReturnType<typeof render>, filters: RegExp, keyword: RegExp, value: string) => {
+  fireEvent.click(view.getByRole('button', { name: filters }));
+  const sheet = await view.findByRole('dialog');
+  fireEvent.change(within(sheet).getByRole('searchbox', { name: keyword }), { target: { value } });
+  fireEvent.keyDown(sheet, { key: 'Escape' });
+};
+
+test('the events column’s keyword search matches translated English and Traditional text while keeping the region', async () => {
   await setLocale('en', false);
-  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-23" /></MemoryRouter>);
-  fireEvent.change(view.getByRole('searchbox', { name: "Search this month's events" }), { target: { value: 'bluegrass' } });
-  assert.equal(view.getByRole('status').textContent, 'Found 1 event');
-  assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
-  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /Hardly Strictly Bluegrass/);
-  assert.equal(view.getByRole('button', { name: 'San Francisco', exact: true }).getAttribute('aria-pressed'), 'true');
+  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-10-09" /></MemoryRouter>);
+  await search(view, /Filters/, /Keyword/, 'fleet week');
+  assert.equal(view.getByRole('status').textContent, '1 event');
+  assert.match(titles(view.container).join(), /San Francisco Fleet Week/);
+  assert.match(view.container.querySelector('.ev-range')!.textContent!, /San Francisco$/, 'the region filter is kept');
   await act(async () => { await setLocale('zh-Hant', false); });
-  fireEvent.change(view.getByRole('searchbox', { name: '搜尋當月活動' }), { target: { value: '免費音樂節' } });
-  assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
-  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /免費音樂節/);
+  await search(view, /篩選/, /關鍵詞/, '海灣與城市');
+  assert.deepEqual(titles(view.container).length, 1);
+  assert.match(titles(view.container)[0]!, /海灣與城市/);
 });
 
-test('monthly search accepts Traditional queries while reading Simplified Chinese', async () => {
+test('the events column’s keyword search accepts Traditional queries while reading Simplified Chinese', async () => {
   await setLocale('zh-Hant', false);
   await setLocale('zh-Hans', false);
-  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-09-23" /></MemoryRouter>);
-  fireEvent.change(view.getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: '免費音樂節' } });
-  assert.equal(view.container.querySelectorAll('.bl-monthly-event').length, 1);
-  assert.match(view.container.querySelector('.bl-monthly-event h3')!.textContent!, /免费音乐节/);
-  assert.equal(view.getByRole('button', { name: '旧金山', exact: true }).getAttribute('aria-pressed'), 'true');
+  const view = render(<MemoryRouter initialEntries={['/this-month?region=sf']}><MonthlyEdition today="2026-10-09" /></MemoryRouter>);
+  await search(view, /筛选/, /关键词/, '海灣與城市');
+  assert.equal(titles(view.container).length, 1);
+  assert.match(titles(view.container)[0]!, /海湾与城市/);
+  assert.match(view.container.querySelector('.ev-range')!.textContent!, /旧金山$/);
 });
 
 test('switching a calculated loan to Traditional preserves inputs and the repayment amount', async () => {

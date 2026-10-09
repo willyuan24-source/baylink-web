@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test, { afterEach } from 'node:test';
-import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import type { GuideImage } from '../src/data/guide-media';
@@ -17,12 +17,15 @@ Object.defineProperty(dom.window.HTMLElement.prototype, 'getClientRects', {
   configurable: true,
   value: function (this: HTMLElement) { return this.isConnected && !this.closest('[hidden]') ? [this.getBoundingClientRect()] : []; },
 });
-const style = document.createElement('style');
-style.textContent = readFileSync(new URL('../src/components/monthly-edition.css', import.meta.url), 'utf8');
-document.head.append(style);
+// The cover primitives import ui.css; here CSS loads as an empty module.
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
 
-const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
-const { EditionPicture } = await import('../src/components/MonthlyEdition');
+const { render, cleanup } = await import('@testing-library/react');
+const { MemoryRouter } = await import('react-router-dom');
+const { EventFeedCard } = await import('../src/features/events/EventCards');
+const { ImageCredits } = await import('../src/features/events/ImageCredits');
+const { getCover } = await import('../src/lib/cover');
+const { INDEX_EVENTS } = await import('../src/features/events/events-model');
 const { GuideImageCredits } = await import('../src/components/GuideExplorer');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
@@ -40,60 +43,42 @@ const photo: GuideImage = {
 const install = () => { GUIDE_IMAGES['ui-test-poster'] = poster; GUIDE_IMAGES['ui-test-photo'] = photo; };
 afterEach(() => { cleanup(); delete GUIDE_IMAGES['ui-test-poster']; delete GUIDE_IMAGES['ui-test-photo']; document.body.style.overflow = ''; });
 
-test('official posters retain their complete layout, responsive sources and source credit', () => {
+// The events column (WEB-EVENTS) shows listing images as card covers through the one resolver (getCover); the old
+// zoomable edition picture is gone, so these checks follow the cover and the page's credit list.
+const today = '2026-10-09';
+const event = { ...INDEX_EVENTS.find(item => item.id === 'fremont-ardenwood-harvest-2026')!, id: 'ui-test-event' };
+const card = (imageKey: string) => {
+  const item = { ...event, imageKey };
+  const cover = getCover({ kind: 'event', id: item.id, imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: {} });
+  return { cover, view: render(<MemoryRouter><EventFeedCard event={item} cover={cover} today={today} /><ImageCredits covers={[cover]} /></MemoryRouter>) };
+};
+
+test('official posters are letterboxed whole with their responsive sources; photos crop by focus; credits never invent a licence', () => {
   install();
-  const view = render(<EditionPicture imageKey="ui-test-poster" />);
-  const img = view.getByRole('img', { name: poster.alt });
-  assert.equal(getComputedStyle(img).objectFit, 'contain', 'official artwork must not crop away dates or event names');
+  const { view } = card('ui-test-poster');
+  const cover = view.container.querySelector('[data-cover="image"]')!;
+  assert.equal(cover.getAttribute('data-fit'), 'contain', 'official artwork must not crop away dates or event names');
+  const img = cover.querySelector('.ui-cover__img')!;
   assert.equal(img.getAttribute('srcset'), poster.srcSet);
   assert.equal(img.getAttribute('height'), '1700');
-  assert.ok(view.getByText('官方图'));
-  assert.ok(view.getByText(poster.caption));
+  assert.equal(cover.querySelector('.ui-provenance')?.textContent, '官方图');
   assert.equal(view.getByRole('link', { name: /音乐会主办方/ }).getAttribute('href'), poster.creditUrl);
-  assert.equal(view.queryByRole('link', { name: /图片授权/ }), null, 'a source link must not invent a reuse license');
-  view.rerender(<EditionPicture imageKey="ui-test-photo" />);
-  assert.equal(getComputedStyle(view.getByRole('img')).objectFit, 'cover');
-  assert.ok(view.getByText('资料图'));
-  assert.equal(view.getByRole('link', { name: /图片授权/ }).getAttribute('href'), photo.licenseUrl);
+  assert.equal(view.queryByRole('link', { name: '许可' }), null, 'a source link must not invent a reuse license');
+  cleanup();
+  // A third-party photo on an event needs a capture year within 8 years (cover ladder tier 2).
+  GUIDE_IMAGES['ui-test-photo-dated'] = { ...photo, caption: '市集环境资料照片，2024 年摄。' };
+  const { view: second } = card('ui-test-photo-dated');
+  delete GUIDE_IMAGES['ui-test-photo-dated'];
+  assert.equal(second.container.querySelector('[data-cover="image"]')?.getAttribute('data-fit'), 'cover');
+  assert.equal(second.getByRole('link', { name: '许可' }).getAttribute('href'), photo.licenseUrl);
 });
 
-test('monthly picture zoom uses the full asset, traps focus and restores the opener after Escape or close', () => {
-  install();
-  const view = render(<EditionPicture imageKey="ui-test-poster" />);
-  const opener = view.getByRole('button', { name: `放大图片：${poster.alt}` });
-  opener.focus();
-  fireEvent.click(opener);
-  const dialog = within(view.getByRole('dialog', { name: `图片放大：${poster.alt}` }));
-  const close = dialog.getByRole('button', { name: '关闭放大图片' });
-  assert.equal(document.activeElement, close);
-  assert.equal(document.body.style.overflow, 'hidden');
-  assert.equal(dialog.getByRole('img').getAttribute('src'), poster.src);
-  assert.equal(dialog.getByRole('img').getAttribute('srcset'), null, 'enlarged view must not select a small thumbnail');
-  const source = dialog.getByRole('link', { name: /音乐会主办方/ });
-  fireEvent.keyDown(close, { key: 'Tab', shiftKey: true });
-  assert.equal(document.activeElement, source);
-  fireEvent.keyDown(source, { key: 'Tab' });
-  assert.equal(document.activeElement, close);
-  fireEvent.keyDown(close, { key: 'Escape' });
-  assert.equal(view.queryByRole('dialog'), null);
-  assert.equal(document.body.style.overflow, '');
-  assert.equal(document.activeElement, opener);
-  fireEvent.click(opener);
-  fireEvent.click(within(view.getByRole('dialog')).getByRole('button', { name: '关闭放大图片' }));
-  assert.equal(view.queryByRole('dialog'), null);
-});
-
-test('changing the monthly picture closes its old lightbox and unknown media does not show an unrelated illustration', () => {
-  install();
-  const view = render(<EditionPicture imageKey="ui-test-poster" />);
-  fireEvent.click(view.getByRole('button', { name: /^放大图片/ }));
-  assert.ok(view.getByRole('dialog'));
-  view.rerender(<EditionPicture imageKey="ui-test-photo" />);
-  assert.equal(view.queryByRole('dialog'), null);
-  assert.equal(document.body.style.overflow, '');
-  assert.equal(view.getByRole('img').getAttribute('src'), photo.src);
-  view.rerender(<EditionPicture imageKey="ui-test-nonexistent" />);
-  assert.equal(view.queryByRole('img'), null);
+test('unknown media becomes the information card, never an unrelated illustration', () => {
+  const { cover, view } = card('ui-test-nonexistent');
+  assert.equal(cover.tier, 'type');
+  assert.equal(view.container.querySelector('img'), null);
+  assert.ok(view.container.querySelector('[data-cover="type"]'));
+  assert.equal(view.container.querySelector('.ev-credits'), null, 'no credit list without a photo');
 });
 
 test('image credits scope includes each used poster and photo once without leaking unrelated credits', () => {

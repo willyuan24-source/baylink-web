@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -16,12 +17,14 @@ Object.assign(globalThis, {
   cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window), IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup } = await import('@testing-library/react');
+// The events column imports its stylesheet; here CSS loads as an empty module.
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
+const { render, cleanup } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
-const { MonthlyDealsSpotlight, GuideEditionNotice } = await import('../src/components/MonthlyDealsSpotlight');
+const { GuideEditionNotice } = await import('../src/components/GuideEditionNotice');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
-const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
+const { default: PerksView } = await import('../src/features/events/PerksView');
 
 const slug = 'bay-area-freebies-deals-2026-11';
 const fixture: Guide = {
@@ -50,24 +53,10 @@ afterEach(() => {
 });
 const actions = { onBack: () => {}, onOpenGuide: () => {}, onNavigate: () => {}, onOpenPost: () => {} };
 
-test('deals spotlight reads the published guide and becomes an archive after its edition month', () => {
-  installFixture();
-  const opened: string[] = [];
-  const view = render(<MemoryRouter><MonthlyDealsSpotlight today="2026-09-30" onOpenGuide={value => opened.push(value)} /></MemoryRouter>);
-  const link = view.getByRole('link', { name: `阅读${fixture.title}` });
-  assert.equal(link.getAttribute('href'), `/guides/${slug}`);
-  assert.ok(view.getByRole('heading', { name: fixture.title }));
-  assert.ok(view.getByText('2026 年 9 月 · 优惠领取指南'));
-  assert.ok(view.getByText('从十月零售活动到十一月免费日、亲子手作与长期福利，按日期、地区和条件挑。'));
-  assert.equal(view.container.querySelector('img')?.getAttribute('src'), getGuideMedia(fixture).cover.src);
-  assert.equal(view.container.querySelector('time')?.dateTime, fixture.updatedAt);
-  fireEvent.click(link);
-  assert.deepEqual(opened, [slug]);
-  view.rerender(<MemoryRouter><MonthlyDealsSpotlight today="2026-10-01" /></MemoryRouter>);
-  assert.ok(view.getByText('2026 年 9 月 · 往期优惠攻略'));
-  assert.ok(view.getByText(/不能当作实时优惠/));
-  assert.ok(view.getByText('查看往期'));
-  assert.doesNotMatch(view.container.textContent || '', /本月|看看怎么领/);
+test('the 免费与优惠 board sends readers to the current deals guide, which the guide library still lists', () => {
+  const view = render(<MemoryRouter><PerksView today="2026-10-09" region="all" /></MemoryRouter>);
+  assert.equal(view.getByRole('link', { name: '这一期的优惠怎么领' }).getAttribute('href'), `/guides/${slug}`);
+  assert.ok(guides.some(guide => guide.slug === slug && guide.editionMonth), 'the linked deals guide is published as a monthly edition');
 });
 
 test('edition notice changes at Los Angeles midnight and preserves the explicit checked date', () => {
@@ -104,16 +93,11 @@ test('monthly guide includes its edition notice and safe inline official links i
   assert.equal(view.queryByRole('complementary', { name: '攻略期次与核对日期' }), null, 'evergreen guides must not receive a monthly-offer notice');
 });
 
-test('the compact guide library retains the published deal guide while its promotional card remains in the monthly edition', () => {
+test('the compact guide library retains the published deal guide and shows no promotional card', () => {
   installFixture();
   const library = new JSDOM(renderToStaticMarkup(<StaticRouter location={`/guides?q=${encodeURIComponent(fixture.title)}`}><GuidesHome onOpenGuide={() => {}} /></StaticRouter>)).window.document;
   assert.equal(library.querySelector('.bl-monthly-deals'), null);
   assert.ok(library.querySelector(`a[href="/guides/${slug}"]`)?.textContent?.includes(fixture.title));
-  const monthly = new JSDOM(renderToStaticMarkup(<StaticRouter location="/this-month"><MonthlyEdition today="2026-10-01" /></StaticRouter>)).window.document;
-  const card = monthly.querySelector('.bl-monthly-deals')!;
-  assert.equal(card.getAttribute('href'), `/guides/${slug}`);
-  assert.ok(card.textContent?.includes(fixture.title));
-  assert.equal(card.querySelector('time')?.getAttribute('datetime'), fixture.updatedAt);
 });
 
 test('the actual October deals guide uses official photography and preserves local discovery entries and safe sources', () => {
