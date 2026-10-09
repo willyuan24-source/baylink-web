@@ -151,11 +151,16 @@ test('the 3D postcards are byte-for-byte copies in /guides/3d, labelled 3D åœºæ™
   assert.deepEqual(opusPostcards.filter(name => /-(small|800)\.webp$/.test(name)), []);
 });
 
-test('the slim home catalog carries the same ladder srcset and placeholder for its images', () => {
-  const home = JSON.parse(readFileSync(new URL('../src/data/generated/home-catalog.json', import.meta.url), 'utf8')) as { images: Record<string, { src: string; srcSet: string; lqip?: string }> };
+test('the slim home catalog carries the same ladder srcset for its images, without the unused placeholder colour', () => {
+  type HomeImage = { src: string; srcSet: string; lqip?: string };
+  const home = JSON.parse(readFileSync(new URL('../src/data/generated/home-catalog.json', import.meta.url), 'utf8')) as { images: Record<string, HomeImage>; guides: { slug: string; media: { cover: HomeImage } }[] };
   for (const [key, image] of Object.entries(home.images)) {
     assert.equal(image.srcSet, GUIDE_IMAGES[key].srcSet, key);
-    assert.equal(image.lqip, GUIDE_IMAGES[key].lqip, key);
+    assert.equal(Object.hasOwn(image, 'lqip'), false, `${key}: the home draws no placeholder yet, so it ships none`);
+  }
+  for (const guide of home.guides) {
+    assert.equal(guide.media.cover.srcSet, manifest.images[guide.media.cover.src]?.srcset.join(', ') ?? guide.media.cover.srcSet, guide.slug);
+    assert.equal(Object.hasOwn(guide.media.cover, 'lqip'), false, guide.slug);
   }
 });
 
