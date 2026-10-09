@@ -3,6 +3,7 @@ import { EnglishOnly } from './EnglishOnly';
 import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, ChevronRight, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
 import { BRAND } from '../brandAssets';
 import { translateText, useLocale } from '../i18n/locale';
+import { FeedbackLink } from '../features/feedback/ReportErrorLink';
 
 const discoveries = [
   { icon: CalendarDays, number: '01', title: '找活动和优惠', text: '看看本月活动、免费福利和周末好去处。', href: '/this-month', action: '去看活动' },
@@ -63,7 +64,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
       <Link to="/guides/baylink-safety-guide">阅读社区安全指南<ChevronRight size={15} /></Link>
     </section>
 
-    <footer className="about-contact"><div><h2>联系我们</h2><p>有问题、建议，或发现信息有误，欢迎发邮件告诉我们。</p></div>
+    <footer className="about-contact"><div><h2>联系我们</h2><p>{t('有问题、建议，或发现信息有误，可以直接在网站上反馈，也可以发邮件告诉我们。', 'Questions, ideas or something wrong? Send feedback right here on the site, or email us.')}</p><FeedbackLink /></div>
       <a href={`mailto:${CONTACT_EMAIL}`}><Mail size={18} /><span translate="no">{CONTACT_EMAIL}</span><ArrowUpRight size={16} /></a>
       <nav aria-label="网站说明"><Link to="/terms">服务条款</Link><Link to="/privacy">隐私政策</Link><Link to="/">回到首页<ArrowRight size={14} /></Link></nav>
     </footer>

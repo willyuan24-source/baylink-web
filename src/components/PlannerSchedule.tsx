@@ -32,7 +32,9 @@ export function PlannerSchedule({ stops, date, title, details, admissionOverride
   const exportCalendar = () => {
     try {
       const url = URL.createObjectURL(new Blob([itineraryIcs(title, date, stops, details)], { type: 'text/calendar;charset=utf-8' }));
-      const link = document.createElement('a'); link.href = url; link.download = `baylink-plan-${date}.ics`; link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      const link = document.createElement('a'); link.href = url; link.download = `baylink-plan-${date}.ics`;
+      // In the document, like the other calendar downloads: Firefox needs it, and the ics_download counter sees the click.
+      document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       onStatus(text('已导出时间草稿与提醒；出发前仍需确认营业、场次与预约。', 'Your draft schedule and reminders were exported. Recheck hours, sessions and reservations before leaving.'));
     } catch (error) { onStatus(error instanceof Error ? error.message : text('日历导出失败。', 'Calendar export failed.')); }
   };

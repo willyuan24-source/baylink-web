@@ -8,6 +8,7 @@ import { getCategoryFromSlug } from '../routing';
 import NotFoundPage from './NotFoundPage';
 import { setPageMetadata } from '../lib/seo';
 import { getGuideMetadata } from '../lib/guide-metadata';
+import { ReportErrorLink } from '../features/feedback/ReportErrorLink';
 
 export default function GuideDetailPage() {
   const navigate = useNavigate();
@@ -34,8 +35,10 @@ export default function GuideDetailPage() {
     navigate(returnTo);
   };
 
-  if (!slug || !getGuideBySlug(slug)) return <NotFoundPage />;
-  return (
+  const guide = slug ? getGuideBySlug(slug) : undefined;
+  if (!slug || !guide) return <NotFoundPage />;
+  // "这条信息有误？" sits after the article until WEB-GUIDES moves it next to the sources (GuideDetail is its file).
+  return (<>
     <GuideDetail
       slug={slug}
       returnTo={returnTo}
@@ -49,5 +52,6 @@ export default function GuideDetailPage() {
         openCreate(type, category === '全部' ? undefined : category);
       }}
     />
-  );
+    <ReportErrorLink key={`report-guide-${slug}`} className="feedback-report-row--guide" entity={{ kind: 'guide', id: slug }} title={guide.title} />
+  </>);
 }

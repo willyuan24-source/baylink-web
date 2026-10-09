@@ -1,10 +1,17 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { readFileSync } from 'node:fs'
 import { fileURLToPath, URL } from 'node:url'
+
+// The commit this bundle is built from (prebuild writes public/release.json), for error beacons and feedback (src/lib/release.ts)
+const releaseCommit = (() => {
+  try { return String(JSON.parse(readFileSync(new URL('./public/release.json', import.meta.url), 'utf8')).commit || 'dev') } catch { return 'dev' }
+})()
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  define: { __BAYLINK_RELEASE__: JSON.stringify(releaseCommit) },
   esbuild: { jsxImportSource: '@baylink/locale' },
   resolve: { alias: { '@baylink/locale': fileURLToPath(new URL('./src/i18n', import.meta.url)) } },
   optimizeDeps: { exclude: ['@baylink/locale/jsx-runtime', '@baylink/locale/jsx-dev-runtime'] },

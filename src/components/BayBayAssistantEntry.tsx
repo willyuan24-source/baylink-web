@@ -2,7 +2,8 @@ import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react
 import { EnglishOnly } from './EnglishOnly';
 import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, MapPin, MessageCircle, GraduationCap, Users } from 'lucide-react';
 import { BayBayEntityCards } from './BayBayEntityCards';
-import { recordProductEvent } from '../lib/product-events';
+import { recordBayBayLatency, recordProductEvent } from '../lib/product-events';
+import { BayBayDownvoteReasons } from '../features/feedback/BayBayDownvoteReasons';
 import { API_BASE_URL, authHeaders } from '../lib/api';
 import { BRAND } from '../brandAssets';
 import { getCategoryFromSlug } from '../routing';
@@ -169,7 +170,7 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     })
       .then((response) => {
         if (activeRequest.current?.id !== id) return;
-        recordProductEvent(performance.now() - startedAt < 15_000 ? 'baybay_fast' : 'baybay_slow');
+        recordBayBayLatency(performance.now() - startedAt);
         if (response.degraded) recordProductEvent('baybay_degraded');
         activeRequest.current = null;
         setUsageRevision(previous=>previous+1);
@@ -363,5 +364,5 @@ function BayBayReferences({ response, currentPath, onNavigate }: { response: Gui
 function BayBayFeedback({ turnId }: { turnId: number }) {
   const [vote,setVote] = useState<'helpful' | 'unhelpful' | null>(null);
   const english = useLocale() === 'en';
-  return <div className="baybay-feedback" aria-label={english ? 'Was this useful?' : '这次回答有帮助吗？'} data-feedback-turn={turnId}><span>{vote ? english ? 'Thanks for your feedback' : '已记录，谢谢反馈' : english ? 'Was this useful?' : '有帮助吗？'}</span><button type="button" aria-pressed={vote==='helpful'} disabled={!!vote} onClick={()=>{setVote('helpful');recordProductEvent('baybay_helpful');}}><ThumbsUp size={18} />{english?'Useful':'有帮助'}</button><button type="button" aria-pressed={vote==='unhelpful'} disabled={!!vote} onClick={()=>{setVote('unhelpful');recordProductEvent('baybay_unhelpful');}}><ThumbsDown size={18} />{english?'Not yet':'没解决'}</button></div>;
+  return <div className="baybay-feedback" aria-label={english ? 'Was this useful?' : '这次回答有帮助吗？'} data-feedback-turn={turnId}><span>{vote ? english ? 'Thanks for your feedback' : '已记录，谢谢反馈' : english ? 'Was this useful?' : '有帮助吗？'}</span><button type="button" aria-pressed={vote==='helpful'} disabled={!!vote} onClick={()=>{setVote('helpful');recordProductEvent('baybay_helpful');}}><ThumbsUp size={18} />{english?'Useful':'有帮助'}</button><button type="button" aria-pressed={vote==='unhelpful'} disabled={!!vote} onClick={()=>{setVote('unhelpful');recordProductEvent('baybay_unhelpful');}}><ThumbsDown size={18} />{english?'Not yet':'没解决'}</button>{vote==='unhelpful'&&<BayBayDownvoteReasons />}</div>;
 }

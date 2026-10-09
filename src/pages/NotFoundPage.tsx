@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { setPageMetadata } from '../lib/seo';
+import { FeedbackLink } from '../features/feedback/ReportErrorLink';
 
 export default function NotFoundPage() {
   const { pathname } = useLocation();
@@ -23,6 +24,8 @@ export default function NotFoundPage() {
         <Link to="/" className="btn-primary px-5 py-2.5 text-sm">返回首页</Link>
         <Link to="/guides" className="rounded-xl border border-baylink-border bg-white px-5 py-2.5 text-sm font-semibold text-baylink-text">查看生活指南</Link>
       </div>
+      {/* A broken link someone followed is exactly what we want to hear about. */}
+      <FeedbackLink className="mt-4" />
     </section>
   );
 }

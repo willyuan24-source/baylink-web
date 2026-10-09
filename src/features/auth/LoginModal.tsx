@@ -8,6 +8,7 @@ import type { UserData } from '../../lib/types';
 import { AuthBrandHeader } from '../../components/AuthBrandHeader';
 import { MfaLoginChallenge } from './MfaLoginChallenge';
 import { useLocale, translateText } from '../../i18n/locale';
+import { recordProductEvent } from '../../lib/product-events';
 
 export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose: () => void; onLogin: (user: UserData) => void; showToast: (message: string, type?: 'success' | 'error' | 'info') => void; onForgotPassword: () => void }) => {
   const [mode, setMode] = useState<'login'|'register'>('login');
@@ -20,6 +21,8 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const activeRequest = useRef<AbortController | null>(null);
   const mounted = useRef(true);
 
+  // One signup_gate per time the sign-in / register sheet is shown (G10: the gate was never counted).
+  useEffect(() => { recordProductEvent('signup_gate'); }, []);
   useEffect(() => {
     mounted.current = true;
     return () => {
