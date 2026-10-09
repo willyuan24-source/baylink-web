@@ -272,7 +272,8 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-11-30', `${item.id} overlaps the fall edition or its November previews`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
-    assert.ok(item.plan.length >= 3 && item.plan.length <= 4, `${item.id} keeps a concise three- or four-step preparation list`);
+    // The editorial overlay drops filler and label repeats, so a covered plan may be one to four steps (CNT-EVENTS).
+    assert.ok(item.plan.length >= 1 && item.plan.length <= 4, `${item.id} keeps a concise one- to four-step preparation list`);
     assert.equal(new Set(item.plan).size, item.plan.length, `${item.id} does not repeat a preparation step`);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }

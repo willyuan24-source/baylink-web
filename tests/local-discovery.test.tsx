@@ -366,7 +366,8 @@ test('event recipients see all planning, cost, venue and audience details and re
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, eventItem.event.title);
   assert.ok(view.getByRole('heading', { name: '出发前，做好这些安排' }));
   const steps = within(view.getByRole('list')).getAllByRole('listitem');
-  assert.equal(steps.length, 3);
+  assert.ok(steps.length >= 1);
+  assert.equal(steps.length, eventItem.event.plan.length, 'every preparation step renders (the overlay drops filler and label repeats)');
   eventItem.event.plan.forEach((step, index) => assert.ok(steps[index].textContent!.includes(step)));
   assert.ok(view.getByText(eventItem.event.costLabel, { exact: true }));
   assert.ok(view.container.textContent!.includes(eventItem.event.venue));
