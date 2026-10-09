@@ -8,15 +8,22 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, H
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 afterEach(cleanup);
 
-test('an actionable error remains until the reader explicitly dismisses it', context => {
+// Deliberate change (WEB-SHELL1, E2E-08): an error used to stay until dismissed, so a failed photo upload kept its red toast
+// after the post then went through. Errors now stay 8 s (2 s longer than notices), and a pointer or focus on them holds them.
+test('an error is announced assertively, stays 8 seconds unless dismissed, and can be dismissed at once', context => {
   context.mock.timers.enable({ apis: ['setTimeout'] });
   let closed = 0;
   const view = render(<Toast type="error" message="保存失败，请重试" onClose={() => closed++} />);
-  act(() => context.mock.timers.tick(60000));
+  act(() => context.mock.timers.tick(7999));
   assert.equal(closed, 0);
   assert.equal(view.getByRole('alert').getAttribute('aria-live'), 'assertive');
   fireEvent.click(view.getByRole('button', { name: '关闭提示' }));
   assert.equal(closed, 1);
+  view.unmount();
+  const focused = render(<Toast type="error" message="上传失败" onClose={() => closed++} />);
+  act(() => focused.getByRole('button', { name: '关闭提示' }).focus());
+  act(() => context.mock.timers.tick(60000));
+  assert.equal(closed, 1, 'focus inside holds the timer');
 });
 
 test('a non-error notice closes after six seconds using the latest callback without extending its timer', context => {

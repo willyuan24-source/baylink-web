@@ -18,7 +18,10 @@
 .site-navigation-more>summary { position:relative; display:flex; align-items:center; justify-content:center; gap:6px; min-height:44px; min-width:44px; padding:10px 9px; border-radius:8px; list-style:none; cursor:pointer; font-size:var(--text-body); font-weight:400; color:var(--color-ink-2); }
 .site-navigation-more>summary::-webkit-details-marker { display:none; }
 .site-navigation-more>summary:hover,.site-navigation-more[open]>summary { background:var(--color-surface-2); color:var(--color-ink); }
+.site-navigation-more>summary.is-active { color:var(--color-brand); font-weight:600; }
+.site-navigation-more>summary.is-active::after { content:''; position:absolute; height:2px; left:9px; right:9px; bottom:1px; background:var(--color-brand); border-radius:2px; }
 .site-more-icon { display:none; }
+.site-mobile-ask-short { display:none; }
 .site-more-notification { position:absolute; top:7px; right:5px; width:6px; height:6px; background:var(--color-brand); border-radius:50%; }
 .site-navigation-panel { position:absolute; top:calc(100% + 14px); right:0; width:310px; max-width:calc(100vw - 32px); max-height:calc(100vh - 104px); max-height:calc(100dvh - 104px); overflow:auto; overscroll-behavior:contain; border:1px solid var(--color-line); border-radius:16px; padding:10px; background:var(--color-surface); box-shadow:0 14px 48px #162e2924; }
 .site-navigation-panel .site-secondary-nav { display:flex; flex-direction:column; gap:2px; padding:0; margin:0; border:0; }
@@ -35,10 +38,11 @@
 .site-topbar .site-command-trigger { display:flex; align-items:center; justify-content:center; flex:none; width:44px; min-width:44px; min-height:44px; height:44px; margin:0; padding:0; border:0; border-radius:50%; color:var(--color-ink-2); background:transparent; box-shadow:none; }
 .site-topbar .site-command-trigger:hover { color:var(--color-brand); background:var(--color-surface-2); }
 .site-topbar .site-topbar-actions { display:flex; flex:none; gap:7px; }
-.site-topbar .site-topbar-publish { display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:10px 13px; border-radius:8px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.site-topbar .site-topbar-publish:hover { background:var(--color-selected); color:var(--color-brand-deep); }
 .site-topbar .site-topbar-account { position:relative; display:flex; justify-content:center; align-items:center; gap:6px; min-width:44px; min-height:44px; width:auto; padding:0 10px; border:0; border-radius:8px; color:var(--color-ink-2); font-size:var(--text-fact); }
 .site-topbar .site-topbar-account:hover { background:var(--color-surface-2); }
+.site-toast-action { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); padding:0 14px; border-radius:8px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); font-weight:600; white-space:nowrap; }
+.site-toast-action:hover { background:var(--color-brand-deep); }
+.site-toast-action:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .site-header-notification { position:absolute; right:0; top:0; min-width:16px; padding:0 4px; border-radius:20px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-caption); line-height:1.3; }
 .site-topbar .site-reading-button { width:44px; min-height:44px; background:transparent; border-color:transparent; border-radius:8px; }
 .site-topbar .site-reading-button:hover { background:var(--color-surface-2); }
@@ -82,8 +86,7 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-header-brand img { width:126px; }
   .site-header-primary .site-nav-link { padding-inline:9px; }
   .site-navigation-more { margin-left:-10px; }
-  .site-topbar .site-topbar-publish>span,.site-topbar .site-account-desktop-label { display:none; }
-  .site-topbar .site-topbar-publish { padding:10px; }
+  .site-topbar .site-account-desktop-label { display:none; }
   .site-topbar .site-language>svg { display:none; }
 }
 @media(max-width:1023px) {
@@ -91,7 +94,6 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-header-primary.site-nav { display:none; }
   .site-navigation-more { margin-left:auto; }
   .site-navigation-panel { max-height:calc(100vh - var(--site-mobile-nav-height) - 104px); max-height:calc(100dvh - var(--site-mobile-nav-height) - 104px); }
-  .site-topbar .site-topbar-publish { display:none; }
   .site-mobile-nav { height:auto; min-height:calc(4.5rem + env(safe-area-inset-bottom,0px)); background:var(--color-surface); border-color:var(--color-line); box-shadow:0 -3px 18px #162e2905; }
   .site-mobile-nav .site-mobile-nav-items { min-height:calc(4.5rem - 1px); padding:4px 6px; align-items:stretch; }
   .site-mobile-nav .site-mobile-item { display:grid; grid-template-rows:34px auto; align-content:center; justify-items:center; gap:5px; min-height:var(--control-height); padding:0; border-radius:9px; font-size:var(--text-caption); line-height:1.25; }
@@ -101,6 +103,28 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon::after { content:''; position:absolute; bottom:-3px; left:50%; width:4px; height:4px; border-radius:50%; background:var(--color-brand); transform:translateX(-50%); }
   .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand); }
   .site-mobile-nav .site-mobile-ask>svg { width:34px; height:34px; padding:6px; box-sizing:border-box; border-radius:10px; color:var(--color-surface); background:var(--color-brand); }
+  .site-mobile-nav .site-mobile-ask>span { min-height:1.25em; max-width:100%; overflow-wrap:normal; white-space:nowrap; line-height:1.25; }
+  /* 问 BayBay / Ask BayBay never wraps: the bar is a size container in the label's own em (--text-caption), so the swap to
+     问问 / Ask below follows 大, 特大 and 简洁显示 as well as the screen width. */
+  .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; font-size:var(--text-caption); }
+}
+/* Five equal tabs share the bar's content box less 4 x 3px gaps, so a tab is (width - 12px) / 5. The full label shows only
+   while a tab is wider than it with room for wider phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for
+   Ask BayBay; SF Pro runs about 5% wider): 4.9em and 5.5em per tab, i.e. 5 x tab + 12px (at most .92em). */
+@container site-mobile-bar (max-width:25.4em) {
+  .site-mobile-ask-label { display:none; }
+  .site-mobile-ask-short { display:inline; }
+}
+@container site-mobile-bar (max-width:28.4em) {
+  html:lang(en) .site-mobile-ask-label { display:none; }
+  html:lang(en) .site-mobile-ask-short { display:inline; }
+}
+/* Safari 15 / Firefox < 110 have no container queries: the short label on every phone. */
+@supports not (container-type:inline-size) {
+  @media(max-width:599px) {
+    .site-mobile-ask-label { display:none; }
+    .site-mobile-ask-short { display:inline; }
+  }
 }
 @media(max-width:767px) {
   .site-topbar { min-height:68px; }
@@ -110,6 +134,8 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-navigation-more>summary { width:44px; padding:10px; }
   .site-navigation-more>summary>span,.site-more-chevron { display:none; }
   .site-more-icon { display:block; }
+  .site-navigation-more>summary.is-active { background:var(--color-brand-tint); }
+  .site-navigation-more>summary.is-active::after { display:none; }
   .site-navigation-panel { position:fixed; left:12px; right:12px; top:72px; width:auto; max-width:none; max-height:calc(100vh - var(--site-mobile-nav-height) - 84px); max-height:calc(100dvh - var(--site-mobile-nav-height) - 84px); }
   .site-header-utilities { gap:2px; }
   .site-topbar .site-topbar-actions { display:none; }
@@ -120,6 +146,10 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .bl-guides-page--compact .bl-guides-intro h1 { font-size:2rem; }
   .bl-guides-page--compact .bl-guide-card-compact { grid-template-columns:82px minmax(0,1fr); gap:14px; padding-block:20px; }
   .bl-guides-page--compact .bl-guide-card-compact .bl-guide-card-art { aspect-ratio:3/4; }
+}
+@media(max-width:374px) {
+  .site-mobile-ask-label { display:none; }
+  .site-mobile-ask-short { display:inline; }
 }
 @media(max-width:359px) {
   .site-header-brand img { width:60px; }

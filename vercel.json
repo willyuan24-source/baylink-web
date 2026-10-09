@@ -92,6 +92,13 @@
       }
     },
     {
+      "src": "^/reading-init\\.js$",
+      "headers": {
+        "Cache-Control": "public, max-age=600, must-revalidate"
+      },
+      "continue": true
+    },
+    {
       "src": "^/(?:(?:en|zh-Hant)/)?(?:verify-email|notifications/unsubscribe)/?$",
       "headers": {
         "X-Robots-Tag": "noindex, nofollow",

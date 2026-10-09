@@ -132,9 +132,13 @@ export async function setLocale(locale: Locale, persist = true, pathname?: strin
 export async function initializeLocale(): Promise<void> {
   if (typeof window === 'undefined') return;
   const query = new URLSearchParams(window.location.search).get('lang');
-  // Stable Chinese-first content for every ordinary link and crawler. Explicit URLs choose translations.
+  // Stable Chinese-first content for every ordinary link and crawler. Explicit URLs choose translations. A saved 繁體 /
+  // English choice is honoured on neutral URLs before the first paint by public/reading-init.js (D17), not here.
   const prefixed = /^\/(?:en|zh-Hant)(?:\/|$)/u.test(window.location.pathname);
-  await setLocale(prefixed ? pathLanguage(window.location.pathname) : isLocale(query) ? query : 'zh-Hans', isLocale(query) && !prefixed, window.location.pathname);
+  const target = prefixed ? pathLanguage(window.location.pathname) : isLocale(query) ? query : 'zh-Hans';
+  // A ?lang= link is a choice to remember. The edge 301s ?lang=en|zh-Hant to the language's own URL with the query kept,
+  // so it arrives as /en/…?lang=en: remember it when the two agree; a prefixed URL with another ?lang= stays a one-off.
+  await setLocale(target, isLocale(query) && query === target, window.location.pathname);
 }
 
 /** Keep complete editorial translations when a brand or label is appended.

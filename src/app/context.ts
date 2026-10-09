@@ -2,11 +2,13 @@
 import { useOutletContext } from 'react-router-dom';
 import type { HOME_CHANNELS } from '../lib/constants';
 import type { ContactPost } from './useContactIntent';
+import type { ToastAction } from '../components/Toast';
 import type {
   AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData,
 } from '../lib/types';
 
-export type ShowToast = (message: string, type?: 'success' | 'error' | 'info') => void;
+/** `action` makes the toast open the thing it is about (e.g. 查看 → /messages/:id). */
+export type ShowToast = (message: string, type?: 'success' | 'error' | 'info', action?: ToastAction) => void;
 
 export type AppContextValue = {
   user: UserData | null;
@@ -15,6 +17,8 @@ export type AppContextValue = {
   setShowLogin: (v: boolean) => void;
   handleLogout: () => void;
   clearAccountSession?: () => void;
+  /** Unread messages plus pending contact requests (capped at 99): the 我的 / 消息 badges (G1). */
+  messagesBadgeCount: number;
   chatRouteStatus: 'idle' | 'loading' | 'ready' | 'not-found' | 'error';
   chatRouteError: string | null;
   retryChatRoute: () => void;

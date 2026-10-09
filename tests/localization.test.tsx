@@ -224,7 +224,10 @@ test('neutral URLs have a stable Chinese default without saving or rewriting bro
   }
 });
 
-test('explicit language URLs win while saved choices do not change the language of neutral shared URLs', async () => {
+// D17 (WEB-SHELL1): a saved 繁體 / English choice now does apply to neutral URLs, but before the first paint in
+// public/reading-init.js (tests/language-memory.test.ts), which replaces the URL with the prefixed one. initializeLocale itself
+// still reads a neutral URL as 简体, which is what a reader sees when that redirect could not run (storage blocked).
+test('explicit language URLs win; initializeLocale reads a neutral URL as 简体 (the saved choice redirects earlier, in reading-init)', async () => {
   const originalLanguages = Object.getOwnPropertyDescriptor(window.navigator, 'languages');
   try {
     Object.defineProperty(window.navigator, 'languages', { configurable: true, value: ['en-US'] });
