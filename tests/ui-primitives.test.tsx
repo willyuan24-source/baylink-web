@@ -231,6 +231,15 @@ test('English pages get English control names without a dictionary entry', async
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/);
 });
 
+test('zh-Hant names the layout buttons by columns as Taiwan reads them: 多欄 / 單欄, not 列 (a row there)', async () => {
+  await act(async () => { await setLocale('zh-Hant', false); });
+  const view = wrap(<ui.FeedLayoutToggle effective="list" onChange={() => {}} />);
+  const group = view.getByRole('group', { name: '排列方式' });
+  assert.equal(within(group).getByRole('button', { name: '多欄' }).getAttribute('aria-pressed'), 'false');
+  assert.equal(within(group).getByRole('button', { name: '單欄' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(within(group).queryByRole('button', { name: /列/ }), null);
+});
+
 /**
  * jsdom has no layout: give the carousel track and slides a geometry and record scrollTo targets.
  * `overflow` sets the track's scrollWidth/clientWidth; without it the track has no measurable overflow.

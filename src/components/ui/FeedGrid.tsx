@@ -41,7 +41,7 @@ export function FeedItem({ wide, children }: { wide?: boolean; children: ReactNo
 export function FeedLayoutToggle({ effective, onChange }: { effective: Exclude<FeedLayout, 'auto'>; onChange: (layout: FeedLayout) => void }) {
   const { t } = useUiCopy();
   return <div className="ui-layout-toggle" role="group" aria-label={t('排列方式', 'Layout')}>
-    <IconButton label={t('多列', 'Grid')} aria-pressed={effective === 'grid'} onClick={() => onChange('grid')}><LayoutGrid aria-hidden="true" strokeWidth={1.75} /></IconButton>
-    <IconButton label={t('单列', 'One column')} aria-pressed={effective === 'list'} onClick={() => onChange('list')}><List aria-hidden="true" strokeWidth={1.75} /></IconButton>
+    <IconButton label={t('多列', 'Grid', '多欄')} aria-pressed={effective === 'grid'} onClick={() => onChange('grid')}><LayoutGrid aria-hidden="true" strokeWidth={1.75} /></IconButton>
+    <IconButton label={t('单列', 'One column', '單欄')} aria-pressed={effective === 'list'} onClick={() => onChange('list')}><List aria-hidden="true" strokeWidth={1.75} /></IconButton>
   </div>;
 }
