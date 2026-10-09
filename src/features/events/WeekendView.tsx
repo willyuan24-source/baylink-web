@@ -154,7 +154,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         items={[
           ...(days[0] >= today ? [{ id: 'sat', label: dayLabel(days[0]) }] : []),
           { id: 'sun', label: dayLabel(days[1]) },
-          { id: 'open', label: t('整个周末都开放', 'All weekend') },
+          { id: 'open', label: t('两天都开放', 'Both days') },
         ]} />}
       <div className="ev-filter-row">
         <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>

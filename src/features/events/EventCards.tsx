@@ -39,9 +39,10 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
   const price = eventPriceChip(facts(event));
   const photo = cover.tier !== 'type';
   const region = pick(regionLabel(event.region));
+  const city = translateText(eventPlace(event), locale);
   return <HeroCard title={translateText(event.title, locale)} to={`/events/${event.id}`} heading="h3" overlay={photo}
     cover={<EventCover event={facts(event)} cover={cover} today={today} days={[date]} ratio="4:5" ratioLock priority={priority} sizes={COVER_SIZES.hero} decorative />}
-    kicker={`${translateText(eventPlace(event), locale)} · ${region}`}
+    kicker={city === region || (event.city === 'San Francisco' && event.region === 'sf') ? region : `${city} · ${region}`}
     facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [pick(price.text)] : [])]}
     reason={reason ? { label: t('编辑推荐', 'Editor’s pick'), text: pick(reason) } : undefined}
     trust={<TrustLine day={event.verifiedAt} />} />;
