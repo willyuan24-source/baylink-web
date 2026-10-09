@@ -5,7 +5,7 @@ import { currentFreebies } from '../data/october-offers';
 import { currentOpenings } from '../data/local-discoveries';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import { normalizeGuideQuery } from './guide-search';
-import { getBayAreaToday, getEventStatus } from './monthly';
+import { getBayAreaToday, getEventStatus, isFreeToAttend } from './monthly';
 import { validCalendarDay } from './event-calendar';
 import { offerMatchesDateRange } from './offer-calendar';
 import { translateText, type Locale } from '../i18n/locale';
@@ -46,9 +46,46 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
   const { tokens, intent, dateRange } = queryInfo;
   const active = !!query.trim() && !queryInfo.invalidDate && !queryInfo.unsupported.some(value => value === 'negative-preference' || value === 'multiple-dates');
   const normalize = (value: string) => normalizeGuideQuery(normalizeDiscoveryTopic(value));
+  const literal = (value: string) => normalizeDiscoveryTopic(value).normalize('NFKC');
+  // Synonyms (search-synonyms.ts) may turn one typed word into two (中文医生 → 中文 + 医生); every part must match.
+  const typed = tokens.map(token => ({ parts: normalize(token).split(/\s+/).filter(Boolean), literal: literal(token).trim() })).filter(token => token.parts.length);
+  // A Latin word matches from the start of a word: "muni" is not inside "community".
+  const hasTerm = (text: string, term: string) => {
+    if (!/^[a-z]/.test(term)) return text.includes(term);
+    for (let at = text.indexOf(term); at >= 0; at = text.indexOf(term, at + 1)) if (!/[a-z]/.test(text[at - 1] || '')) return true;
+    return false;
+  };
+  const bilingual = (values: string[]) => values.flatMap(value => [value, translateText(value, locale)]).join(' ');
   const matches = (values: string[]) => {
-    const text = normalize(values.flatMap(value => [value, translateText(value, locale)]).join(' '));
-    return active && (tokens.length > 0 || queryInfo.structured) && tokens.every(token => text.includes(normalize(token)));
+    const text = normalize(bilingual(values));
+    return active && (tokens.length > 0 || queryInfo.structured) && typed.every(token => token.parts.every(part => hasTerm(text, part)));
+  };
+  /**
+   * The first three of a kind, best matches first: a typed word found in the first field group (title, audience) beats
+   * one found only further down (summary, then venue), and the word as typed beats a synonym of it. Ties keep catalog /
+   * date order. "长者" thus lists the senior events before a talk held at a "Senior Center". Ranking stops once three
+   * items match every word as typed in their first group, as nothing later can beat them.
+   */
+  const firstThree = <T>(items: T[], fieldGroups: (item: T) => string[][]): T[] => {
+    if (!typed.length || items.length <= 3) return items.slice(0, 3);
+    const rank = (item: T) => {
+      const groups = fieldGroups(item).map(values => { const text = bilingual(values); return { synonyms: normalize(text), literal: literal(text) }; });
+      return typed.reduce((sum, token) => {
+        const best = groups.findIndex(group => hasTerm(group.literal, token.literal) || token.parts.every(part => hasTerm(group.synonyms, part)));
+        if (best < 0) return sum + groups.length * 2;
+        return sum + best * 2 + (hasTerm(groups[best].literal, token.literal) ? 0 : 1);
+      }, 0);
+    };
+    const top: { item: T; rank: number }[] = [];
+    for (const item of items) {
+      const value = rank(item);
+      if (top.length === 3 && value >= top[2].rank) continue;
+      const at = top.findIndex(entry => entry.rank > value);
+      top.splice(at < 0 ? top.length : at, 0, { item, rank: value });
+      if (top.length > 3) top.pop();
+      if (top.length === 3 && top[2].rank === 0) break;
+    }
+    return top.map(entry => entry.item);
   };
   const locationMatches = (region?: string, city?: string) =>
     (!queryInfo.regions.length || !!region && queryInfo.regions.includes(region as typeof queryInfo.regions[number])) &&
@@ -68,7 +105,7 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
     return (!namedEvent.eventIds.length || namedEvent.eventIds.includes(event.id)) && getEventStatus(event, today) !== 'ended' && locationMatches(event.region, event.city) &&
       (!dateRange || rangeStart! <= dateRange.end && event.startDate <= dateRange.end && event.endDate >= rangeStart! &&
         (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= rangeStart! && day <= dateRange.end && day >= event.startDate && day <= event.endDate))) &&
-      (!queryInfo.eventKind || event.kind === queryInfo.eventKind) && budgetMatches(event.cost, facts?.admissionUsd) &&
+      (!queryInfo.eventKind || event.kind === queryInfo.eventKind) && budgetMatches(isFreeToAttend(event) ? 'free' : event.cost, facts?.admissionUsd) &&
       (!queryInfo.setting || facts?.setting === queryInfo.setting) && eveningMatches(event.dateLabel) &&
       (!queryInfo.family || (facts?.minAge ?? 0) < 18 && (event.category === 'family' || /亲子|儿童|孩子|家庭|小朋友|\bfamil(?:y|ies)\b|\bkids\b/.test(event.audience.join(' ')))) &&
       queryInfo.childAges.every(age => (facts?.minAge == null || age >= facts.minAge) && (facts?.maxAge == null || age <= facts.maxAge)) &&
@@ -105,18 +142,22 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
     const nextDay = (event: typeof MONTHLY_EVENTS[number]) => event.occurrenceDates?.filter(day => day >= today && (!dateRange || day >= dateRange.start && day <= dateRange.end)).sort()[0] || (event.startDate > today ? event.startDate : today);
     return nextDay(a).localeCompare(nextDay(b));
   });
+  const offerFields = (offer: FreebieOffer) => [[offer.brand, offer.title], [offer.requirement], [offer.description]];
+  const openingFields = (shop: typeof currentOpenings[number]) => [[shop.name, shop.category], [shop.summary]];
+  const attractionFields = (place: typeof ATTRACTIONS[number]) => [[place.title, ...place.themes.map(theme => ATTRACTION_THEMES.find(item => item.id === theme)!.label)], [place.note, place.mapQuery]];
   return {
     queryInfo,
-    tools: !queryInfo.structured ? LIFE_TOOLS.filter(tool => matches([tool.title, tool.short, tool.description, toolAliases[tool.id] || ''])).slice(0, 3) : [],
-    events: events.slice(0, 3),
-    offers: offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!dateRange || offer.availability === 'dated')).slice(0, 3),
-    openings: !dateRange && !queryInfo.evening ? openings.slice(0, 3) : [],
-    attractions: !dateRange && !queryInfo.evening ? attractions.slice(0, 3) : [],
+    tools: !queryInfo.structured ? firstThree(LIFE_TOOLS.filter(tool => matches([tool.title, tool.short, tool.description, toolAliases[tool.id] || ''])),
+      tool => [[tool.title, tool.short], [tool.description, toolAliases[tool.id] || '']]) : [],
+    events: firstThree(events, event => [[event.title, ...event.audience], [event.summary], [event.venue]]),
+    offers: firstThree(offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!dateRange || offer.availability === 'dated')), offerFields),
+    openings: !dateRange && !queryInfo.evening ? firstThree(openings, openingFields) : [],
+    attractions: !dateRange && !queryInfo.evening ? firstThree(attractions, attractionFields) : [],
     // A permanent place or ongoing policy is not evidence of availability on a requested day.
     unverified: {
-      offers: offers.filter(offer => offer.verificationStatus === 'needs-confirmation' || dateRange && offer.availability !== 'dated').slice(0, 3),
-      openings: dateRange || queryInfo.evening ? openings.slice(0, 3) : [],
-      attractions: dateRange || queryInfo.evening ? attractions.slice(0, 3) : [],
+      offers: firstThree(offers.filter(offer => offer.verificationStatus === 'needs-confirmation' || dateRange && offer.availability !== 'dated'), offerFields),
+      openings: dateRange || queryInfo.evening ? firstThree(openings, openingFields) : [],
+      attractions: dateRange || queryInfo.evening ? firstThree(attractions, attractionFields) : [],
     },
   };
 }

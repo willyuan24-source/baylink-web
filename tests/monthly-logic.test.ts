@@ -133,12 +133,14 @@ test('region and free admission filters combine while retaining separately paid 
     { ...base, id: 'north-paid', region: 'north-bay', cost: 'paid', startDate: '2026-09-19', endDate: '2026-09-20' },
     { ...base, id: 'sf-free', region: 'sf', cost: 'free', startDate: '2026-09-26', endDate: '2026-09-26' },
     { ...base, id: 'sf-mixed', region: 'sf', cost: 'mixed', startDate: '2026-09-12', endDate: '2026-09-13' },
+    { ...base, id: 'sf-mixed-ticketed', region: 'sf', cost: 'mixed', costLabel: '12岁及以下免费；成人 $15，餐饮另付', startDate: '2026-09-12', endDate: '2026-09-13' },
   ];
   assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'south-bay', cost: 'free' }, '2026-09-08')), ['south-free-later', 'south-free-weekend']);
   assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'east-bay', cost: 'free' }, '2026-09-08')), ['east-free']);
   assert.deepEqual(filterMonthlyEvents(selected, { region: 'north-bay', cost: 'free' }, '2026-09-08'), []);
-  assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'sf', cost: 'free' }, '2026-09-09')), ['sf-free']);
-  assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'sf', cost: 'mixed' }, '2026-09-09')), ['sf-mixed']);
+  // Free entry with food sold separately ("免费入场；餐饮另付") is free to attend (G17); a child-only exemption is not.
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'sf', cost: 'free' }, '2026-09-09')), ['sf-free', 'sf-mixed']);
+  assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'sf', cost: 'mixed' }, '2026-09-09')), ['sf-mixed', 'sf-mixed-ticketed']);
   assert.deepEqual(ids(filterMonthlyEvents(selected, { region: 'south-bay', cost: 'free' }, '2026-09-14')), ['south-free-later']);
   assert.match(event('mountain-view-art-wine-2026').costLabel, /另付/);
   assert.match(event('lafayette-art-wine-2026').costLabel, /另付/);

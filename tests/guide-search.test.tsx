@@ -34,6 +34,13 @@ test('aliases, multi-term queries and category restrictions cooperate without br
   assert.deepEqual(slugs('公证 交付'), ['bay-area-translation-service-guide']);
   assert.deepEqual(searchGuides(guides, { query: '公证', category: 'rent' }), []);
   assert.equal(searchGuides(guides).length, guides.length);
+  // G17 (src/lib/search-synonyms.ts): what readers say reaches the guide written with the formal name.
+  assert.equal(slugs('养老金')[0], 'bay-area-social-security-retirement-preparation-guide');
+  assert.deepEqual(slugs('长辈'), slugs('長者'));
+  assert.deepEqual(slugs('诈骗'), slugs('防骗'));
+  assert.ok(slugs('中文医生').includes('bay-area-first-doctor-insurance-network-guide'));
+  // The normalized passages are kept per guide; a repeated search gives the same answer.
+  assert.deepEqual(slugs('养老金'), slugs('养老金'));
 });
 
 test('related reading prioritizes existing editorial topics over incidental category overlap', () => {

@@ -47,7 +47,9 @@ test('free street entry, paid tasting, member prices and unknown admission keep 
   const freeIds = new Set(filterMonthlyEvents([toast, nexus, flea], { cost: 'free' }, '2026-09-29').map(event => event.id));
   assert.ok(!freeIds.has(nexus.id));
   assert.ok(!freeIds.has(flea.id));
-  assert.ok(!freeIds.has(toast.id));
+  // The street fair itself is free to walk into (G17: 免费 means free to attend); the tasting wristband stays on the price line.
+  assert.ok(freeIds.has(toast.id));
+  assert.match(toast.costLabel, /品饮手环 \$40/);
 });
 
 test('Fall Show respects shorter Sunday hours and excludes the separate gala', () => {

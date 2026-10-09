@@ -1,30 +1,10 @@
 import type { Guide, GuideCategory } from '../data/guides';
 import { guideBlockText } from './guide-content';
-import { getLocale, simplifySearch, translateEditorial, type Locale } from '../i18n/locale';
+import { getLocale, translateEditorial, type Locale } from '../i18n/locale';
+import { normalizeSearchText } from './search-synonyms';
 
-const synonyms = [
-  ['学区', 'school districts', 'school district', 'districts', 'district'], ['学校', 'schools', 'school'],
-  ['校区', '校园', 'campuses', 'campus'], ['入学', 'enrollment', 'enrolment'],
-  ['租房', '租屋', '租賃', '租赁'], ['二手', '闲置', '閒置'],
-  ['驾照', '考驾照', '考駕照', '驾驶证', '駕照', 'driver license', "driver's license"], ['宽带', '寬帶', '网络', '網路'],
-  ['打印', '列印'], ['公证', '公證'], ['维修', '維修', '修理'],
-  ['图书馆', '圖書館'], ['兼职', '兼職'], ['机场', '機場'],
-  ['旧金山', '舊金山', 'san francisco'], ['圣何塞', '聖荷西', '圣荷西', 'san jose'],
-  ['净滩', '淨灘', '海岸清理', 'coastal cleanup'],
-  ['就医', '看病', '看醫生', '看医生', 'medical care'],
-  ['Medicare', 'medicare', '联邦医保', '聯邦醫保'],
-  ['Medi-Cal', 'medi-cal', '白卡'],
-  ['报税', '報稅', 'tax filing', 'tax return'],
-  ['押金', 'security deposit'],
-];
-
-export const normalizeGuideQuery = (text: string): string => {
-  let value = simplifySearch(text).normalize('NFKC').toLowerCase();
-  for (const [canonical, ...aliases] of synonyms) {
-    for (const alias of [...aliases].sort((a, b) => b.length - a.length)) value = value.replaceAll(alias.toLowerCase(), canonical.toLowerCase());
-  }
-  return value.trim();
-};
+/** Synonyms live in search-synonyms.ts (G17); this name stays for the callers that import it. */
+export const normalizeGuideQuery = (text: string): string => normalizeSearchText(text);
 
 /**
  * The text cut after each 。！？； or line break, the mark kept at the end of its piece; a mark at the very end makes no
@@ -60,6 +40,20 @@ const passagesFor = (guide: Guide): Passage[] => {
   return passages;
 };
 
+type Indexed = { passages: Passage[]; keys: string[]; full: string };
+const index = (passages: Passage[]): Indexed => {
+  const keys = passages.map((passage) => normalizeGuideQuery(passage.text));
+  return { passages, keys, full: keys.join(' ') };
+};
+// The published (zh-Hans) passages never change at runtime, so their normalized text is kept per guide. Translations
+// are rebuilt per search: an English dictionary scope may arrive after the first search.
+const publishedIndex = new WeakMap<Guide, Indexed>();
+const indexed = (guide: Guide): Indexed => {
+  let value = publishedIndex.get(guide);
+  if (!value) publishedIndex.set(guide, value = index(passagesFor(guide)));
+  return value;
+};
+
 /** Search every published passage locally; query tokens use AND, aliases share a canonical form. */
 export const searchGuides = (
   guides: Guide[],
@@ -67,12 +61,15 @@ export const searchGuides = (
 ): GuideSearchResult[] => {
   const tokens = [...new Set(normalizeGuideQuery(query).split(/\s+/).filter(Boolean))];
   const scored = guides.filter((guide) => category === 'all' || guide.category === category).flatMap((guide) => {
-    const passages = locale === 'zh-Hans' ? passagesFor(guide) : [...passagesFor(translateEditorial(guide, locale)), ...passagesFor(guide)];
-    const fullText = normalizeGuideQuery(passages.map((passage) => passage.text).join(' '));
+    const published = indexed(guide);
+    const translated = locale === 'zh-Hans' ? undefined : index(passagesFor(translateEditorial(guide, locale)));
+    const fullText = translated ? `${translated.full} ${published.full}` : published.full;
     if (!tokens.every((token) => fullText.includes(token))) return [];
-    const matches = passages.map((passage) => ({
+    const passages = translated ? [...translated.passages, ...published.passages] : published.passages;
+    const keys = translated ? [...translated.keys, ...published.keys] : published.keys;
+    const matches = passages.map((passage, at) => ({
       ...passage,
-      score: tokens.filter((token) => normalizeGuideQuery(passage.text).includes(token)).length * passage.weight,
+      score: tokens.filter((token) => keys[at].includes(token)).length * passage.weight,
     })).filter((passage) => passage.score > 0).sort((a, b) => b.score - a.score);
     const best = matches.find((passage) => passage.section && passage.weight === 2) || matches[0];
     const sentence = best && splitAfterSentenceEnds(best.text).find((part) => tokens.some((token) => normalizeGuideQuery(part).includes(token))) || best?.text;
