@@ -135,7 +135,7 @@ const contrast = (fg: string, bg: string) => { const [a, b] = [luminance(resolve
 
 test('every TypeCover and status pair is at least 4.5:1', () => {
   const pairs: [string, string][] = ['family', 'culture', 'outdoors', 'food', 'seniors', 'free'].map(tone => [`--tc-${tone}-fg`, `--tc-${tone}-bg`]);
-  pairs.push(['--color-success', '--color-success-tint'], ['--color-warning', '--color-warning-tint'], ['--color-danger', '--color-danger-tint'], ['--color-info', '--color-info-tint'], ['--color-brand-deep', '--color-highlight']);
+  pairs.push(['--ui-success', '--ui-success-tint'], ['--ui-warning', '--ui-warning-tint'], ['--color-danger', '--ui-danger-tint'], ['--ui-info', '--ui-info-tint'], ['--color-brand-deep', '--ui-highlight']);
   for (const [fg, bg] of pairs) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}: ${contrast(fg, bg).toFixed(2)}:1`);
 });
 
@@ -161,12 +161,17 @@ test('a neighbour palette changes only the colour: the label stays the item’s 
   assert.equal(bare.container.querySelector('.ui-type-cover__footer'), null, 'no empty footer');
 });
 
-test('the ui.css token block cannot shadow a global token: none of its names is defined in another stylesheet', () => {
-  // ui.css loads lazily after tokens.css at the same specificity. Moving a name into tokens.css (TOKENS-B) must delete
-  // it here in the same commit, or the later, lazy copy would override the global value once a primitive mounts.
+test('the ui.css token block cannot shadow a global token: namespaced names only, none defined in another stylesheet', () => {
+  // ui.css loads lazily after tokens.css at the same specificity, so a global name defined here would override the
+  // site-wide value once a primitive mounts. The block therefore holds only --tc-* and --ui-* names.
   const blockNames = new Set<string>();
   postcss.parse(css).walkRules(':root', rule => rule.walkDecls(declaration => { if (declaration.prop.startsWith('--')) blockNames.add(declaration.prop); }));
-  assert.ok(blockNames.has('--tc-family-bg') && blockNames.has('--color-success'), 'the block is parsed');
+  assert.ok(blockNames.has('--tc-family-bg') && blockNames.has('--ui-success') && blockNames.has('--ui-highlight'), 'the block is parsed');
+  postcss.parse(css).walkDecls(declaration => {
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:tc|ui)-/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector}): ui.css defines only --tc-* / --ui-* names`);
+  });
+  // Moving a name into tokens.css (TOKENS-B) must delete it here in the same commit: the same name in both files, or a
+  // global --color-<name> beside the --ui-<name> stand-in, fails until the block is gone and the reads use the global.
   const sheets = (readdirSync('src', { recursive: true }) as string[]).map(path => path.replaceAll(String.fromCharCode(92), '/'))
     .filter(path => path.endsWith('.css') && path !== 'components/ui/ui.css');
   assert.ok(sheets.includes('tokens.css'));
@@ -174,6 +179,12 @@ test('the ui.css token block cannot shadow a global token: none of its names is 
     postcss.parse(readFileSync(`src/${sheet}`, 'utf8')).walkDecls(declaration => {
       assert.ok(!blockNames.has(declaration.prop), `${declaration.prop} is defined in src/${sheet} and in the ui.css token block: move it and delete it from ui.css in one commit`);
     });
+  }
+  const globalNames = new Set<string>();
+  postcss.parse(readFileSync('src/tokens.css', 'utf8')).walkDecls(declaration => { globalNames.add(declaration.prop); });
+  for (const name of blockNames) {
+    const global = name.replace(/^--ui-/, '--color-');
+    assert.ok(name === global || !globalNames.has(global), `tokens.css now defines ${global}: read var(${global}) in ui.css and delete ${name} in the same commit`);
   }
 });
 

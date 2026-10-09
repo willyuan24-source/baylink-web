@@ -56,7 +56,9 @@ function paletteIssues(values) {
     const tone = /^--tc-([a-z]+)-fg$/.exec(name)?.[1];
     if (tone && values.has(`--tc-${tone}-bg`)) pairs.push([name, `--tc-${tone}-bg`, 4.5]);
   }
-  for (const [foreground, background] of [['--color-success', '--color-success-tint'], ['--color-warning', '--color-warning-tint'], ['--color-danger', '--color-danger-tint'], ['--color-info', '--color-info-tint'], ['--color-brand-deep', '--color-highlight']]) {
+  // Status pairs under their global names (tokens.css) or the --ui-* names the lazily loaded ui.css block uses until then.
+  const statusPairs = ['color', 'ui'].flatMap(space => [[`--${space}-success`, `--${space}-success-tint`], [`--${space}-warning`, `--${space}-warning-tint`], ['--color-danger', `--${space}-danger-tint`], [`--${space}-info`, `--${space}-info-tint`], ['--color-brand-deep', `--${space}-highlight`]]);
+  for (const [foreground, background] of statusPairs) {
     if (values.has(foreground) && values.has(background)) pairs.push([foreground, background, 4.5]);
   }
   return pairs.flatMap(([foreground, background, minimum]) => {
@@ -75,7 +77,7 @@ export function checkEditorialStyles(sources, sharedTokens, { contrast = false }
   for (const text of [sharedTokens, ...sources.map(source => source.text)]) {
     postcss.parse(text).walkDecls(declaration => {
       if (declaration.prop.startsWith('--')) knownTokens.add(declaration.prop);
-      if (/^--(?:color|tc)-/.test(declaration.prop) && declaration.parent.selector === ':root') palette.set(declaration.prop, declaration.value);
+      if (/^--(?:color|tc|ui)-/.test(declaration.prop) && declaration.parent.selector === ':root') palette.set(declaration.prop, declaration.value);
     });
   }
   for (const source of sources) {

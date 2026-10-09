@@ -4,9 +4,11 @@
  * --reading-scale so they follow Aa before and after root-rem scaling; colours come from tokens.
  *
  * The token block below holds the values design.md §4.2 adds to tokens.css (TypeCover pairs, status colours,
- * badge and highlight). It lives here until the tokens owner moves it (WEB-TOKENS-B / WEB-CSS-PRUNE); the
- * names are already the final ones, so the move is a deletion. Every fg/bg pair is checked ≥4.5:1 by
- * scripts/check-editorial-styles.mjs.
+ * badge and highlight). It lives here until the tokens owner moves it (WEB-TOKENS-B / WEB-CSS-PRUNE). This file
+ * loads lazily, after tokens.css and at the same specificity, so the block defines only namespaced names (--tc-*,
+ * --ui-*) and can never shadow a global token. The move deletes the block and, for the status colours, points the
+ * var() reads here at the global --color-* names in the same commit; tests/type-cover.test.tsx fails until both
+ * halves land. Every fg/bg pair is checked ≥4.5:1 by scripts/check-editorial-styles.mjs.
  */
 :root {
   --tc-family-bg:#FBF1E6; --tc-family-fg:#A0562E;
@@ -15,27 +17,27 @@
   --tc-food-bg:#FFF4DC; --tc-food-fg:#8A5A00;
   --tc-seniors-bg:#EDE4F3; --tc-seniors-fg:#5B3A7A;
   --tc-free-bg:#E6F2EA; --tc-free-fg:#1E6B43;
-  --color-success:#276B44; --color-success-tint:#E8F3EC;
-  --color-warning:var(--tc-food-fg); --color-warning-tint:var(--tc-food-bg);
-  --color-danger-tint:#FDECEA;
-  --color-info:var(--tc-culture-fg); --color-info-tint:var(--tc-culture-bg);
-  --color-highlight:#DFF3A6;
-  --color-badge-bg:rgb(18 60 49 / .78);
+  --ui-success:#276B44; --ui-success-tint:#E8F3EC;
+  --ui-warning:var(--tc-food-fg); --ui-warning-tint:var(--tc-food-bg);
+  --ui-danger-tint:#FDECEA;
+  --ui-info:var(--tc-culture-fg); --ui-info-tint:var(--tc-culture-bg);
+  --ui-highlight:#DFF3A6;
+  --ui-badge-bg:rgb(18 60 49 / .78);
   --ui-scrim:rgb(22 46 41 / .48);
   /* Text on photos only below 62% of the height: white ≥5.52:1, highlight ≥4.6:1 (design.md §4.2). */
   --ui-scrim-photo:linear-gradient(180deg, rgb(8 24 18 / 0) 40%, rgb(8 24 18 / .64) 62%, rgb(8 24 18 / .82) 100%);
 }
 
 /* Provenance badge: top-left on every cover, text only from getImageProvenance(). */
-.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:6px; background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
+.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:6px; background:var(--ui-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
 
 /* Stickers sit on images: date bottom-left, price bottom-right. */
 .ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:4px 8px; border-radius:6px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.ui-sticker[data-tone=free] { background:var(--color-highlight); color:var(--color-brand-deep); }
+.ui-sticker[data-tone=free] { background:var(--ui-highlight); color:var(--color-brand-deep); }
 .ui-sticker[data-tone=mixed] { background:var(--tc-free-bg); color:var(--tc-free-fg); }
-.ui-sticker[data-tone=danger] { background:var(--color-danger-tint); color:var(--color-danger); }
-.ui-sticker[data-tone=warning] { background:var(--color-warning-tint); color:var(--color-warning); }
-.ui-sticker[data-tone=success] { background:var(--color-success-tint); color:var(--color-success); }
+.ui-sticker[data-tone=danger] { background:var(--ui-danger-tint); color:var(--color-danger); }
+.ui-sticker[data-tone=warning] { background:var(--ui-warning-tint); color:var(--ui-warning); }
+.ui-sticker[data-tone=success] { background:var(--ui-success-tint); color:var(--ui-success); }
 .ui-stickers { position:absolute; left:8px; right:8px; bottom:8px; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; pointer-events:none; }
 .ui-stickers>:only-child[data-slot=end] { margin-left:auto; }
 
@@ -68,10 +70,10 @@
 
 /* Status chip: a fact about the item, not a control. */
 .ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:6px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; }
-.ui-status[data-tone=success] { background:var(--color-success-tint); color:var(--color-success); }
-.ui-status[data-tone=info] { background:var(--color-info-tint); color:var(--color-info); }
-.ui-status[data-tone=warning] { background:var(--color-warning-tint); color:var(--color-warning); }
-.ui-status[data-tone=danger] { background:var(--color-danger-tint); color:var(--color-danger); }
+.ui-status[data-tone=success] { background:var(--ui-success-tint); color:var(--ui-success); }
+.ui-status[data-tone=info] { background:var(--ui-info-tint); color:var(--ui-info); }
+.ui-status[data-tone=warning] { background:var(--ui-warning-tint); color:var(--ui-warning); }
+.ui-status[data-tone=danger] { background:var(--ui-danger-tint); color:var(--color-danger); }
 .ui-status[data-tone=ended] { background:var(--color-surface-2); color:var(--color-ink-3); }
 
 /* ♡ save: a separate button stacked above the card link, never nested inside it. */
@@ -248,7 +250,7 @@
 .ui-state { display:flex; flex-direction:column; align-items:center; gap:8px; padding:24px; text-align:center; }
 .ui-state__icon { display:grid; place-items:center; width:4.5rem; height:4.5rem; margin-bottom:8px; border-radius:50%; background:var(--color-brand-tint); color:var(--color-brand); }
 .ui-state__icon>svg { width:2rem; height:2rem; }
-.ui-state[data-kind=error] .ui-state__icon { background:var(--color-danger-tint); color:var(--color-danger); }
+.ui-state[data-kind=error] .ui-state__icon { background:var(--ui-danger-tint); color:var(--color-danger); }
 .ui-state__title { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
 .ui-state__body { max-width:28em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
 .ui-state__actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
@@ -303,7 +305,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-hero-card[data-overlay] .ui-hero-card__media { display:grid; grid-template-columns:minmax(0, 1fr); }
 .ui-hero-card[data-overlay] .ui-hero-card__media>* { grid-area:1 / 1; }
 .ui-hero-card[data-overlay] .ui-hero-card__text { align-self:end; z-index:1; margin:18px; padding:0; }
-.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.ui-hero-card__kicker { margin:0; color:var(--ui-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:calc(1.5rem * var(--reading-scale)); line-height:1.333; font-weight:600; }
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
 .ui-hero-card .ui-card-link::after { border-radius:24px; }
