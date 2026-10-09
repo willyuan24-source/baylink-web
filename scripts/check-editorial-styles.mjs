@@ -22,6 +22,9 @@ export const editorialStyleScopes = [
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },
   { file: 'src/components/phone-links.css' },
+  // WEB-SAVES: the one save model's controls and My Week.
+  { file: 'src/features/saves/saves.css' },
+  { file: 'src/features/saves/my-week.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

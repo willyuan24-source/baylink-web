@@ -1,12 +1,15 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
 import { getStoredUser } from './session';
-import { favoriteKey, cleanStops, EMPTY_LIBRARY, errorText, eventFor, placeFor, validDay, type Favorite, type Library, type Preferences, type SavedPlan } from './planner';
+import { favoriteKey, cleanStops, EMPTY_LIBRARY, errorText, eventFor, MAX_PLAN_STOPS, placeFor, todayInBay, validDay, validStop, type Favorite, type Library, type Preferences, type SavedPlan, type Stop } from './planner';
 import { guides } from '../data/guides';
 import { recordProductEvent } from './product-events';
 import { normalizePlanDetails } from './planner-itinerary';
+import { guestServerSaves, importGuestSaves, loadPlannerAccount, SAVE_ERROR_COPY, toggleSave, useSavedEntries } from './saves';
 
 export const GUEST_PLANNER_KEY = 'baylink.planner.guest.v1';
+/** Fired after a plan changes outside a mounted library ("加入这天计划"), so open plan lists read it again. */
+export const PLANNER_CHANGED_EVENT = 'baylink-planner-changed';
 export const loadGuestLibrary = (): Library => {
   try {
     const data = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY) || 'null');
@@ -15,6 +18,7 @@ export const loadGuestLibrary = (): Library => {
     const regions = Array.isArray(prefs?.regions) ? [...new Set<string>(prefs.regions.filter((r: string) => ['sf', 'east-bay', 'south-bay', 'peninsula', 'north-bay'].includes(r)))] : [];
     const interests = Array.isArray(prefs?.interests) ? [...new Set<string>(prefs.interests.filter((i: unknown) => typeof i === 'string' && i.length <= 40))].slice(0, 12) : [];
     const travelMode = ['any', 'drive', 'transit', 'walk'].includes(prefs?.travelMode) ? prefs.travelMode : 'any';
+    // The ♡ list lives in src/lib/saves.ts now; this older field is kept as stored so a previous build still finds it.
     const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && guides.some(guide => guide.slug === f.id)).filter((f, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(f)) === i).slice(0, 150);
     const plans = data.plans.filter((p: SavedPlan) => typeof p?.id === 'string' && typeof p.title === 'string' && typeof p.date === 'string' && validDay(p.date) && cleanStops(p.stops).length).slice(0, 30).map((p: SavedPlan) => ({ ...p, title: p.title.slice(0, 80), stops: cleanStops(p.stops), ...(p.details ? { details: normalizePlanDetails(p.details, cleanStops(p.stops)) } : {}) }));
     const admissionBudgetUsd = prefs?.admissionBudgetUsd === null || (typeof prefs?.admissionBudgetUsd === 'number' && Number.isFinite(prefs.admissionBudgetUsd) && prefs.admissionBudgetUsd >= 0 && prefs.admissionBudgetUsd <= 10000) ? prefs.admissionBudgetUsd : undefined;
@@ -23,22 +27,30 @@ export const loadGuestLibrary = (): Library => {
   } catch { return structuredClone(EMPTY_LIBRARY); }
 };
 export const samePlan = (a: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>, b: Pick<SavedPlan, 'title' | 'date' | 'stops' | 'details'>) => a.title === b.title && a.date === b.date && JSON.stringify(a.stops) === JSON.stringify(b.stops) && JSON.stringify(a.details) === JSON.stringify(b.details);
+const announceChange = () => { if (typeof window !== 'undefined') window.dispatchEvent(new Event(PLANNER_CHANGED_EVENT)); };
 
-/** No signed-in data is written to browser storage. Account changes invalidate pending work. */
+/**
+ * Plans, preferences and the ♡ list of one owner. Plans and preferences belong to this hook; favorites are the one
+ * save model (src/lib/saves.ts), so the planner, My Week and every ♡ button show one list. No signed-in data is
+ * written to browser storage by this hook. Account changes invalidate pending work.
+ */
 export function usePlannerLibrary(userId?: string) {
   const [state, setState] = useState<{ owner?: string; data: Library }>({ owner: userId, data: EMPTY_LIBRARY });
   const [loading, setLoading] = useState(true);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [guestCount, setGuestCount] = useState(0);
+  const [guestPlans, setGuestPlans] = useState(0);
+  const saves = useSavedEntries(userId ?? null);
   const owner = useRef(userId);
   useEffect(() => { owner.current = userId; }, [userId]);
   const revision = useRef(0);
   const loaded = useRef(false);
   const mutation = useRef<symbol | null>(null);
-  const data = state.owner === userId ? state.data : EMPTY_LIBRARY;
-  const dataRef = useRef(data);
+  const own = state.owner === userId ? state.data : EMPTY_LIBRARY;
+  const favorites = useMemo(() => saves.entries.flatMap((entry): Favorite[] => entry.kind === 'post' ? [] : [{ kind: entry.kind, id: entry.id }]), [saves.entries]);
+  const data = useMemo<Library>(() => ({ ...own, favorites }), [own, favorites]);
+  const dataRef = useRef(own);
   const isCurrent = (id: string | undefined, sequence: number) => owner.current === id && revision.current === sequence && (!id || getStoredUser()?.id === id);
   const refresh = useCallback(async () => {
     const sequence = ++revision.current;
@@ -47,15 +59,21 @@ export function usePlannerLibrary(userId?: string) {
     setLoading(true); setError(''); setBusy(false);
     setState({ owner: userId, data: EMPTY_LIBRARY });
     dataRef.current = EMPTY_LIBRARY;
-    const guest = loadGuestLibrary(); setGuestCount(guest.plans.length + guest.favorites.length);
+    const guest = loadGuestLibrary(); setGuestPlans(guest.plans.length);
     try {
-      const next: Library = userId ? await api.request('/planner/me') : guest;
+      // The ♡ store shares this read (one /planner/me request per account at a time).
+      const next = userId ? await loadPlannerAccount(userId) as Library : guest;
       if (isCurrent(userId, sequence)) { loaded.current = true; setReady(true); dataRef.current = next; setState({ owner: userId, data: next }); }
     } catch (e) { if (isCurrent(userId, sequence)) setError(errorText(e)); }
     finally { if (isCurrent(userId, sequence)) setLoading(false); }
   }, [userId]);
   const invalidate = useCallback(() => { revision.current++; }, []);
   useEffect(() => { void refresh(); return invalidate; }, [refresh, invalidate]);
+  useEffect(() => {
+    const reread = () => { if (!mutation.current) void refresh(); };
+    window.addEventListener(PLANNER_CHANGED_EVENT, reread);
+    return () => window.removeEventListener(PLANNER_CHANGED_EVENT, reread);
+  }, [refresh]);
   const commitGuest = (next: Library) => {
     // A failed write is an error, never a successful save banner.
     localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify(next));
@@ -90,15 +108,11 @@ export function usePlannerLibrary(userId?: string) {
     if (userId) { dataRef.current = next; setState({ owner: userId, data: next }); } else commitGuest(next);
     return true;
   });
+  /** The same ♡ as every other save button (src/lib/saves.ts). */
   const toggleFavorite = (favorite: Favorite) => run(async sequence => {
-    const found = dataRef.current.favorites.some(f => favoriteKey(f) === favoriteKey(favorite));
-    let favorites = found ? dataRef.current.favorites.filter(f => favoriteKey(f) !== favoriteKey(favorite)) : [...dataRef.current.favorites, favorite];
-    if (userId) ({ favorites } = await api.request(`/planner/favorites/${favorite.kind}/${encodeURIComponent(favorite.id)}`, { method: found ? 'DELETE' : 'PUT' }));
-    if (!isCurrent(userId, sequence)) return;
-    const next = { ...dataRef.current, favorites };
-    if (userId) { dataRef.current = next; setState({ owner: userId, data: next }); } else commitGuest(next);
-    if (!found) recordProductEvent('favorite_saved');
-    return true;
+    const result = await toggleSave(userId, favorite);
+    if ('error' in result) throw { error: SAVE_ERROR_COPY[result.error].zh };
+    return isCurrent(userId, sequence) ? true : undefined;
   });
   const savePreferences = (preferences: Preferences) => run(async sequence => {
     if (userId) ({ preferences } = await api.request('/planner/preferences', { method: 'PATCH', body: JSON.stringify(preferences) }));
@@ -118,13 +132,65 @@ export function usePlannerLibrary(userId?: string) {
         current.plans.push(result.plan);
       }
     }
-    for (const favorite of guest.favorites) {
-      if (!isCurrent(userId, sequence)) return;
-      const result = await api.request(`/planner/favorites/${favorite.kind}/${encodeURIComponent(favorite.id)}`, { method: 'PUT' }); current.favorites = result.favorites;
-    }
     if (!isCurrent(userId, sequence)) return;
-    localStorage.removeItem(GUEST_PLANNER_KEY); setGuestCount(0); dataRef.current = current; setState({ owner: userId, data: current });
+    await importGuestSaves(userId);
+    if (!isCurrent(userId, sequence)) return;
+    localStorage.removeItem(GUEST_PLANNER_KEY); setGuestPlans(0); dataRef.current = current; setState({ owner: userId, data: current });
     return true;
   });
+  const guestCount = userId ? guestPlans + guestServerSaves().length : 0;
   return { data, loading, ready: !loading && state.owner === userId && ready, busy, error, guestCount, refresh, savePlan, deletePlan, toggleFavorite, savePreferences, importGuest };
+}
+
+export type AppendToDayResult = { plan: SavedPlan; created: boolean; alreadyThere: boolean };
+type AppendError = { error: string; code: 'date' | 'stop' | 'full' | 'session' };
+
+/**
+ * "加入这天计划" (plan D19): add one stop to the owner's plan for that date, or create that plan, and save it right
+ * away. A plan that already has six stops gets a second plan for the day. Open plan lists read again afterwards.
+ */
+export async function appendToDay(userId: string | undefined, date: string, stop: Stop, title: string): Promise<AppendToDayResult> {
+  if (!validDay(date) || date < todayInBay()) throw { error: '请选择今天或之后的日期。', code: 'date' } satisfies AppendError;
+  const [clean] = cleanStops([stop]);
+  if (!clean || !validStop(clean)) throw { error: '这一站暂时不能加入计划。', code: 'stop' } satisfies AppendError;
+  const key = favoriteKey(clean);
+  const sameDay = (plans: SavedPlan[]) => plans.filter(plan => plan.date === date).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))[0];
+  const withStop = (plan: SavedPlan) => {
+    const stops = [...plan.stops, clean];
+    return { title: plan.title, date, stops, ...(plan.details ? { details: normalizePlanDetails(plan.details, stops) } : {}) };
+  };
+  const done = (result: AppendToDayResult) => { if (!result.alreadyThere) { recordProductEvent('plan_saved'); announceChange(); } return result; };
+  if (!userId) {
+    const library = loadGuestLibrary();
+    const existing = sameDay(library.plans);
+    if (existing?.stops.some(item => favoriteKey(item) === key)) return { plan: existing, created: false, alreadyThere: true };
+    const reuse = existing && existing.stops.length < MAX_PLAN_STOPS ? existing : undefined;
+    if (!reuse && library.plans.length >= 30) throw { error: '最多保存 30 份计划，请先移除不再需要的计划。', code: 'full' } satisfies AppendError;
+    const now = new Date().toISOString();
+    const plan: SavedPlan = reuse
+      ? { ...reuse, ...withStop(reuse), updatedAt: now, version: reuse.version + 1 }
+      : { id: crypto.randomUUID(), title, date, stops: [clean], createdAt: now, updatedAt: now, version: 1 };
+    // Only plans change here; the stored older ♡ field is written back as it was.
+    let stored: { favorites?: unknown } | null;
+    try { stored = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY) || 'null'); } catch { stored = null; }
+    localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ ...library, favorites: Array.isArray(stored?.favorites) ? stored.favorites : [], plans: [plan, ...library.plans.filter(item => item.id !== plan.id)] }));
+    return done({ plan, created: !reuse, alreadyThere: false });
+  }
+  for (let attempt = 0; ; attempt++) {
+    if (getStoredUser()?.id !== userId) throw { error: SAVE_ERROR_COPY.session.zh, code: 'session' } satisfies AppendError;
+    const library = await loadPlannerAccount(userId) as Partial<Library>;
+    const existing = sameDay(Array.isArray(library?.plans) ? library.plans : []);
+    if (existing?.stops.some(item => favoriteKey(item) === key)) return { plan: existing, created: false, alreadyThere: true };
+    const reuse = existing && existing.stops.length < MAX_PLAN_STOPS ? existing : undefined;
+    try {
+      const { plan } = reuse
+        ? await api.request(`/planner/plans/${encodeURIComponent(reuse.id)}`, { method: 'PUT', body: JSON.stringify({ ...withStop(reuse), version: reuse.version }) })
+        : await api.request('/planner/plans', { method: 'POST', body: JSON.stringify({ title, date, stops: [clean] }) });
+      return done({ plan, created: !reuse, alreadyThere: false });
+    } catch (error) {
+      // Another device changed that plan meanwhile: read it again once and retry on the newer version.
+      if (attempt === 0 && (error as { status?: number })?.status === 409) continue;
+      throw error;
+    }
+  }
 }

@@ -14,6 +14,7 @@ import { openingStatusLabel } from '../lib/opening-status';
 import { getImageProvenance } from '../lib/image-provenance';
 import { openingFreshnessLabel } from '../lib/opening-freshness';
 import reviewEnglish from '../i18n/opening-review-en.json';
+import { SaveToWeek } from './SaveToWeek';
 
 export const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
 const regionLabels = { sf: '旧金山', 'east-bay': '东湾', 'south-bay': '南湾', peninsula: '半岛', 'north-bay': '北湾' };
@@ -42,6 +43,7 @@ function OpeningCard({ shop, today }: { shop: SeptemberOpening; today: string })
       <div className="bl-opening-tip"><strong>怎么安排</strong><p>{shop.editorTip}</p></div>
       <EditorialShareActions item={openingShare(shop)} />
       <div className="bl-opening-links"><a onClick={() => recordProductEvent('official_source_click')} href={shop.officialUrl} target="_blank" rel="noopener noreferrer">商家入口 <ArrowUpRight size={14} aria-hidden="true" /></a><a href={openingMap(shop)} target="_blank" rel="noopener noreferrer">查看位置 <MapPin size={14} aria-hidden="true" /></a></div>
+      <SaveToWeek favorite={{ kind: 'opening', id: shop.id }} compact title={shop.name} />
       <details className="bl-opening-source"><summary>开业消息与图片来源</summary><a href={shop.sourceUrl} target="_blank" rel="noopener noreferrer">{shop.sourceLabel} <ArrowUpRight size={12} aria-hidden="true" /></a><p>核对 {shop.verifiedAt}</p>{image && <><p>{image.caption}</p>{image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <p>{image.credit}</p>}</>}</details>
     </div>
     {zoomed && image && <GuideImageLightbox image={image} onClose={() => setZoomed(false)} />}

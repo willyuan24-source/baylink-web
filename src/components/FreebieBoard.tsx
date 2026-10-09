@@ -7,6 +7,7 @@ import { GuideImageLightbox } from './GuideVisuals';
 import { getImageProvenance } from '../lib/image-provenance';
 import { EditorialShareActions } from './EditorialShareActions';
 import { offerShare } from '../lib/editorial-share';
+import { SaveToWeek } from './SaveToWeek';
 import type { MonthlyRegion } from '../data/monthly-types';
 import { simplifySearch, translateText, useLocale } from '../i18n/locale';
 
@@ -117,6 +118,7 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
         {safeUrl(offer.sourceUrl) && <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${translateText(offer.sourceLabel, locale)}`}>官方入口<ArrowUpRight size={15} aria-hidden="true" /></a>}
         {safeUrl(offer.storeUrl) && <a href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}><MapPin size={13} aria-hidden="true" />本地门店</a>}
       </div>
+      <SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />
       {image && <details className="bl-freebie-image-source"><summary>图片说明与来源<ChevronDown size={12} aria-hidden="true" /></summary><p>{image.caption}</p>{safeUrl(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}{safeUrl(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权</a>}</details>}
     </div>
     {zoomed && image && <GuideImageLightbox image={image} onClose={() => setZoomed(false)} />}
