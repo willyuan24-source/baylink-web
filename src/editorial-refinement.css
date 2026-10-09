@@ -103,7 +103,7 @@ html:lang(en) .bl-guides-page--compact .bl-guides-intro h1 { font-family:var(--f
   .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon::after { content:''; position:absolute; bottom:-3px; left:50%; width:4px; height:4px; border-radius:50%; background:var(--color-brand); transform:translateX(-50%); }
   .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand); }
   .site-mobile-nav .site-mobile-ask>svg { width:34px; height:34px; padding:6px; box-sizing:border-box; border-radius:10px; color:var(--color-surface); background:var(--color-brand); }
-  .site-mobile-ask-label { overflow-wrap:normal; }
+  .site-mobile-nav .site-mobile-ask>span { min-height:1.25em; max-width:100%; overflow-wrap:normal; line-height:1.25; }
 }
 @media(max-width:767px) {
   .site-topbar { min-height:68px; }

@@ -122,3 +122,20 @@ test('keyboard selection of a current or new destination restores visible focus 
   }
   assert.deepEqual(menuOpenWhenFocusReturns, [true, true]);
 });
+
+test('the bottom bar names the assistant 问 BayBay, 问问 below 375 px; both labels sit directly in the button (13 px label rule)', async () => {
+  const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
+  const { readFileSync } = await import('node:fs');
+  const view = render(<MemoryRouter><SiteMobileNavigation pathname="/" notificationCount={0} onAsk={() => {}} /></MemoryRouter>);
+  const ask = view.getByRole('button', { name: '问 BayBay' });
+  const label = ask.querySelector('.site-mobile-ask-label')!;
+  const short = ask.querySelector('.site-mobile-ask-short')!;
+  assert.equal(label.textContent, '问 BayBay');
+  assert.equal(short.textContent, '问问');
+  assert.equal(short.getAttribute('aria-hidden'), 'true', 'the button keeps one accessible name');
+  // `html[lang=en] .site-mobile-nav span` sets 10 px; only the bar's direct-child rule lifts labels back to 13 px.
+  assert.equal(label.parentElement, ask);
+  assert.equal(short.parentElement, ask);
+  const css = readFileSync('src/editorial-refinement.css', 'utf8').replace(/\s+/g, ' ');
+  assert.match(css, /@media\(max-width:374px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
+});
