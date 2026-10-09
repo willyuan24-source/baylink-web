@@ -5,7 +5,7 @@ import ts from 'typescript';
 import { guides, GUIDE_CATEGORY_TABS } from '../src/data/guides';
 import { getGuideMedia, GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES } from '../src/data/monthly-edition';
-import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-schedule-notes';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';

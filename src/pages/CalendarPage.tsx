@@ -4,7 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, MapPin, Ticket, X } from 'lucide-react';
 import { PLANNER_EVENTS } from '../data/planner-catalog';
 import { ATTRACTION_REGIONS } from '../data/attractions';
-import { EVENT_SCHEDULE_NOTES } from '../data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../data/event-schedule-notes';
 import { useLocale, translateText } from '../i18n/locale';
 import { getBayAreaToday } from '../lib/monthly';
 import { CALENDAR_METADATA, addCalendarDays, calendarCells, calendarPeriod, eventOccursOn, eventsOnCalendarDay, groupCalendarMapEvents, shiftCalendarPeriod, validCalendarDay, type CalendarView } from '../lib/event-calendar';

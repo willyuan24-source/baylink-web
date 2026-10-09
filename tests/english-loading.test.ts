@@ -8,7 +8,7 @@ import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import { englishDictionaryForUiScope, englishDictionaryForUiValues, englishDictionaryForValues } from '../scripts/generate-english-scopes';
 import { ATTRACTION_REGION_INTROS } from '../src/data/attraction-region-intros';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
-import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-schedule-notes';
 
 test('editorial prose in historical UI files stays in its content scope while shared UI and dynamic labels remain ready', () => {
   const full = { '攻略正文': 'Reviewed article body', '共用说明': 'Shared guidance', '新店 · 已开业': 'New opening · Open now' };

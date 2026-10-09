@@ -1,7 +1,7 @@
 import { useId, useMemo, useState } from 'react';
 import { ArrowRight, ArrowUpRight, CalendarDays, Compass, MapPin, Navigation, Sparkles, Users, X } from 'lucide-react';
 import { PLANNER_EVENTS } from '../../data/planner-catalog';
-import { EVENT_SCHEDULE_NOTES } from '../../data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../../data/event-schedule-notes';
 import { translateText, type Locale } from '../../i18n/locale';
 import { cityEventMapUrl, cityEventUrl, cityGuideAiPrompt, cityGuideMonths, cityGuidePlaces, eventsForBayCity } from './bay-city-guide';
 import type { BayCity } from './bay-cities';

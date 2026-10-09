@@ -27,7 +27,7 @@ import openings from '../src/data/octnov-2026-openings.json';
 import { CategoryChip } from '../src/features/home/HomeSections';
 import { CATEGORIES, CATEGORY_EMOJI } from '../src/lib/constants';
 import { getSlugFromCategory } from '../src/routing';
-import { EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-schedule-notes';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
 import { GuidesHome } from '../src/components/GuidesHome';
 
