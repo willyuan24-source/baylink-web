@@ -22,15 +22,26 @@ if (typeof window !== 'undefined' && (boardIsPage(window.location) || window.loc
   if (failure !== undefined && boardIsPage(window.location)) throw failure;
 }
 
+/** 重新加载 on the board's "could not load" state. A page keeps a chunk request that failed: asking for the same chunk
+ * again gets the same failure without a new request (Chrome 154 does, see the lane's retry-probe), so online it reloads
+ * the page at the neighborhood anchor, where the board loads before the first render and the page opens on it (as the
+ * app's chunk recovery reloads a page). Offline a reload would show the browser's offline page: it tries in place. */
+function reloadBoard(retryInPlace: () => void) {
+  if (!navigator.onLine) { retryInPlace(); return; }
+  const { pathname, search } = window.location;
+  window.history.replaceState(window.history.state, '', `${pathname}${search}#home-feed-section`);
+  window.location.reload();
+}
+
 /** The board once its chunk is in (suspends until then). After a failed load: the error boundary where the board is the
  * page (as for a failed route chunk); on the discovery view, nothing until the reader asks for the board, then the
- * board's own "could not load" state, whose 重新加载 (like 浏览邻里信息) tries the chunk again. */
+ * board's own "could not load" state, with 重新加载. */
 function CommunityBoardSlot({ required, asked, ...props }: CommunityBoardProps & { required: boolean; asked: boolean }) {
   if (LoadedCommunityBoard) return <LoadedCommunityBoard {...props} />;
   const failure = communityBoardFailure();
   if (failure === undefined) throw loadCommunityBoard();
   if (required) throw failure;
-  return asked ? <div className="bay-feed-empty" id="home-feed-section" role="status"><Compass size={34} /><h3>连接暂时慢了一点</h3><p>信息未能加载，请稍后重试。</p><button type="button" onClick={props.onScrollToFeed} className="bay-button-dark">重新加载<RotateCw size={16} /></button></div> : null;
+  return asked ? <div className="bay-feed-empty" id="home-feed-section" role="status"><Compass size={34} /><h3>连接暂时慢了一点</h3><p>信息未能加载，请稍后重试。</p><button type="button" onClick={() => reloadBoard(props.onScrollToFeed)} className="bay-button-dark">重新加载<RotateCw size={16} /></button></div> : null;
 }
 
 export default function HomePage() {
@@ -41,7 +52,8 @@ export default function HomePage() {
   const [feedScrollRequest, setFeedScrollRequest] = useState(0);
   const { posts, keyword, feedError, isInitialLoading, hasMore, openCreate, openBayBay, openSearch } = useApp();
   const scrollToFeed = () => {
-    // After the board's chunk failed to load, asking for the board loads it again (the slot suspends on the new load).
+    // After the board's chunk failed to load, asking for the board asks for it again (the slot suspends on that load and
+    // shows the board, or its "could not load" state)
     if (communityBoardFailure() !== undefined) void loadCommunityBoard();
     setCommunityExpanded(true);
     setFeedScrollRequest(request => request + 1);

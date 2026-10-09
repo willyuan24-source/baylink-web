@@ -12,7 +12,8 @@ let boardLoad: Promise<void> | undefined;
 let boardError: unknown;
 
 /** Loads the board's chunk once for every caller (one retry after 1 s, as the app's other lazy chunks). Never rejects:
- * a failure is reported by communityBoardFailure() and the next call tries again. */
+ * a failure is reported by communityBoardFailure() and the next call asks again. A browser may answer a chunk request
+ * that failed earlier in the page with the same failure (Chrome does), so HomePage's 重新加载 reloads the page. */
 export const loadCommunityBoard = (): Promise<void> => boardLoad ||= import('./CommunityBoard')
   .catch(() => new Promise<void>(resolve => setTimeout(resolve, 1000)).then(() => import('./CommunityBoard')))
   .then(module => { LoadedCommunityBoard = module.default; boardError = undefined; })
