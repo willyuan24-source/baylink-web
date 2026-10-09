@@ -20,12 +20,12 @@ const KIND_ORDER: SavedEntry['kind'][] = ['event', 'offer', 'opening', 'place', 
 const KIND_TONES: Record<'place' | 'guide' | 'post', CoverTone> = { place: 'outdoors', guide: 'culture', post: 'family' };
 
 /** The 88px thumbnail: the item's own photo when the honesty ladder allows one, else its TypeCover. */
-function Thumb({ view, cover, today, label }: { view: SavedItemView; cover: ResolvedCover; today: string; label: string }) {
+function Thumb({ view, cover, today, label, ended }: { view: SavedItemView; cover: ResolvedCover; today: string; label: string; ended?: boolean }) {
   const fallback = view.event ? <EventTypeCover event={view.event} today={today} size="mini" ariaHidden />
     : view.offer ? <OfferTypeCover offer={view.offer} today={today} size="mini" ariaHidden />
       : view.opening ? <OpeningTypeCover opening={view.opening} today={today} size="mini" ariaHidden />
         : <TypeCover tone={KIND_TONES[view.entry.kind as keyof typeof KIND_TONES] ?? 'family'} label={label} size="mini" ariaHidden />;
-  return <Cover cover={cover} fallback={fallback} sizes={COVER_SIZES.thumb} decorative />;
+  return <Cover cover={cover} fallback={fallback} sizes={COVER_SIZES.thumb} decorative ended={ended} />;
 }
 
 /**
@@ -64,11 +64,14 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
     {shown.length > 0 && <ul className="my-week__list">{shown.map(({ view, cover }) => {
       const title = view.userText ? view.title : translateText(view.title, locale);
       const kind = pick(view.kindLabel);
-      const meta = [kind, view.meta ? (view.userText ? view.meta : translateText(view.meta, locale)) : '', view.entry.source === 'pending' ? t('本机，稍后同步到账号', 'on this device, syncing to your account') : ''].filter(Boolean).join(' · ');
-      const date = view.event ? formatDateChip(eventDateChip(view.event, today), english).label : view.offer ? (() => { const deadline = offerDeadline(view.offer!, today); return deadline ? pick(deadline.text) : undefined; })() : undefined;
+      // Each piece is translated on its own (the dictionaries hold the pieces, not the joined line).
+      const meta = [kind, ...view.meta.map(part => view.userText ? part : translateText(part, locale)), view.entry.source === 'pending' ? t('本机，稍后同步到账号', 'on this device, syncing to your account') : ''].filter(Boolean).join(' · ');
+      const chip = view.event ? eventDateChip(view.event, today) : undefined;
+      const ended = chip?.kind === 'day' && chip.ended;
+      const date = chip ? `${ended ? `${t('已结束', 'Ended')} · ` : ''}${formatDateChip(chip, english).label}` : view.offer ? (() => { const deadline = offerDeadline(view.offer!, today); return deadline ? pick(deadline.text) : undefined; })() : undefined;
       const heart = <SaveHeart kind={view.entry.kind} id={view.entry.id} title={title} post={view.entry.post} />;
-      return <li key={view.entry.key} data-kind={view.entry.kind} translate={view.userText ? 'no' : undefined}>
-        {view.path ? <RowCard title={title} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} />} date={date} meta={meta} trailing={heart} />
+      return <li key={view.entry.key} data-kind={view.entry.kind} data-ended={ended ? '' : undefined} translate={view.userText ? 'no' : undefined}>
+        {view.path ? <RowCard title={title} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} ended={ended} />} date={date} meta={meta} trailing={heart} />
           : <div className="my-week__retired"><p><strong>{kind}</strong> · {t('这条内容已下架或暂时找不到。', 'This item is no longer listed.')}</p>{heart}</div>}
       </li>;
     })}</ul>}

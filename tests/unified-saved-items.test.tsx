@@ -19,6 +19,8 @@ const { currentFreebies } = await import('../src/data/october-offers');
 const { currentOpenings } = await import('../src/data/local-discoveries');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
+const { brandCase } = await import('../src/lib/event-facts');
+const { setLocale } = await import('../src/i18n/locale');
 
 const TODAY = '2026-10-09';
 const guide = getGuideBySlug('bay-area-roommate-guide')!;
@@ -43,7 +45,8 @@ test('one saved list: every kind as a row with a cover, and the /me count equals
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '5');
   assert.match(view.getByTestId('saved-count-link').textContent!, /我的收藏\s*5/, '/me names the same number');
   assert.equal(view.getByTestId('saved-count-link').getAttribute('href'), '/my-week#saved');
-  assert.ok(section.getByRole('link', { name: `${offer.brand} · ${offer.title}` }));
+  assert.ok(section.getByRole('link', { name: offer.title }));
+  assert.match(section.getByRole('link', { name: offer.title }).closest('li')!.textContent!, new RegExp(`优惠 · ${brandCase(offer.brand)} · `), 'the brand leads the meta line in its display casing');
   assert.ok(section.getByRole('link', { name: opening.name }));
   assert.ok(section.getByRole('link', { name: guide.title }));
   assert.equal(section.getByRole('link', { name: post.title }).closest('li')!.getAttribute('translate'), 'no', 'user text is never translated');
@@ -59,10 +62,29 @@ test('filters by kind, removes with the ♡, and keeps a retired item listed (wi
   assert.match(view.getByTestId('my-week-saved').textContent!, /已下架/);
   fireEvent.click(section.getByRole('button', { name: /^优惠/ }));
   assert.equal(view.getByTestId('my-week-saved').querySelectorAll('ul > li').length, 2);
-  await act(async () => { fireEvent.click(section.getByRole('button', { name: `取消收藏：${offer.brand} · ${offer.title}` })); });
+  await act(async () => { fireEvent.click(section.getByRole('button', { name: `取消收藏：${offer.title}` })); });
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '2');
   assert.match(view.getByTestId('saved-count-link').textContent!, /我的收藏\s*2/);
   assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items.map((item: { id: string }) => item.id), ['retired-offer-id', event.id]);
+});
+
+test('an ended event says so, and on /en every piece of the meta line is translated', async () => {
+  const ended = MONTHLY_EVENTS.find(item => item.endDate < TODAY)!;
+  const shop = currentOpenings.find(item => / · /.test(item.dateLabel))!;
+  guestList([{ kind: 'event', id: ended.id }, { kind: 'opening', id: shop.id }, { kind: 'offer', id: offer.id }]);
+  const view = render(page());
+  const endedRow = within(view.getByTestId('my-week-saved')).getByRole('link', { name: ended.title }).closest('li')!;
+  assert.equal(endedRow.getAttribute('data-ended'), '');
+  assert.match(endedRow.querySelector('.ui-row-card__date')!.textContent!, /^已结束 · /);
+  cleanup();
+  await act(async () => { await setLocale('en', false); });
+  try {
+    const english = render(page());
+    const rows = [...english.getByTestId('my-week-saved').querySelectorAll('ul > li')];
+    assert.equal(rows.length, 3);
+    for (const row of rows) assert.doesNotMatch(row.textContent!, /[㐀-鿿]/, `no Chinese left in an /en row: ${row.textContent}`);
+    assert.match(rows[0].querySelector('.ui-row-card__date')!.textContent!, /^Ended · /);
+  } finally { await act(async () => { await setLocale('zh-Hans', false); }); }
 });
 
 test('the older reader list shows once, and an empty list explains how to save', () => {
