@@ -1,6 +1,6 @@
 import { API_BASE_URL, authHeaders } from './api';
 import { getLocale, simplifySearch, translateText } from '../i18n/locale';
-import { readBayBayStream, parseBayBayQuickCards, type BayBayQuickCard, type BayBayStreamHandlers, type BayBayProgress } from './baybay-stream';
+import { readBayBayStream, parseBayBayQuickCards, BAYBAY_STREAM_VERSION, type BayBayQuickCard, type BayBayStreamHandlers, type BayBayProgress } from './baybay-stream';
 import { guides, type Guide } from '../data/guides';
 import { LIFE_TOOLS } from '../data/tool-catalog';
 import { SLUG_TO_CATEGORY } from '../routing';
@@ -126,7 +126,7 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   progress?: BayBayProgress;
-  quickCards?: BayBayQuickCard[]; partialAnswer?: string;
+  quickCards?: BayBayQuickCard[]; partialAnswer?: string; draftLead?: string;
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
   response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; restartAssistant?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
 };
@@ -319,9 +319,10 @@ export async function fetchBayBayReply(
       interrupted,
       (async () => {
         if (signal.aborted) throw new DOMException('已停止生成', 'AbortError');
+        // assistantVersion stays 2: the API routes to the assistant only on `=== 2`. The SSE dialect is a separate capability (RC-21).
         const response = await fetch(`${API_BASE_URL}/ai/guide-chat`, {
           method: 'POST', headers: authHeaders(), signal: controller.signal,
-          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, assistantVersion: 2, stream: true, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
+          body: JSON.stringify({ message, context: requestContext, history, locale: getLocale(), searchMode, assistantVersion: 2, stream: true, streamVersion: BAYBAY_STREAM_VERSION, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(searchContext ? { searchContext } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }),
         });
         const data = (response.headers?.get('content-type')?.includes('text/event-stream') ? await readBayBayStream(response, onProgress, controller.signal, streamHandlers) : await response.json()) as GuideChatResponse;
         if (!data || typeof data !== 'object' || Array.isArray(data)) throw new BayBayServiceError('BayBay 答复格式异常，请重试。');
