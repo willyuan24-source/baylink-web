@@ -45,3 +45,5 @@ const english = Object.assign({}, ...await Promise.all(dictionarySources.map(asy
 await writeFile('src/data/generated/english.json', JSON.stringify(english));
 const { generateEnglishScopes } = await import('./generate-english-scopes');
 await generateEnglishScopes(english, dictionarySources);
+// The events column's slim index (RC-33) is generated with the home catalog: same inputs, same prebuild/pretest step.
+await import('./generate-events-index');

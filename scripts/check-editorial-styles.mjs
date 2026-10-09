@@ -15,7 +15,7 @@ export const editorialStyleScopes = [
   { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
   { file: 'src/features/profile/me-hub.css' },
   { file: 'src/features/messages/messages-hub.css' },
-  { file: 'src/pages/events-page.css' },
+  { file: 'src/features/events/events.css' },
   // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
   { file: 'src/components/ui/ui.css' },
   { file: 'src/features/feedback/feedback.css' },

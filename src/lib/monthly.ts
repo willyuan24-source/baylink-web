@@ -1,6 +1,6 @@
 import type { MonthlyEvent } from '../data/monthly-types';
 import { MONTHLY_EDITION } from '../data/monthly-settings';
-import { addCalendarDays } from './event-calendar';
+import { addCalendarDays } from './calendar-days';
 // The .ics builder lives in event-ics.ts (only pages with a calendar download load it); re-exported for existing callers.
 export { buildEventCalendar, downloadEventCalendar } from './event-ics';
 
@@ -57,3 +57,66 @@ export const filterMonthlyEvents = (events: MonthlyEvent[], filters: { region?: 
     && (!range || (event.startDate <= range.end && event.endDate >= range.start
       && (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= range.start && day <= range.end && day >= event.startDate && day <= event.endDate && (filters.includeEnded || day >= today))))));
 };
+
+// Views of the events column (plan WEB-EVENTS; design.md §4.11) ----------------------------------------------------
+
+type DatedEvent = Pick<MonthlyEvent, 'id' | 'startDate' | 'endDate' | 'occurrenceDates'>;
+const dayGap = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
+/** Confirmed days win: `occurrenceDates` (with any reviewed overrides already applied) or every day of the run. */
+const occursOn = (event: DatedEvent, day: string) => day >= event.startDate && day <= event.endDate && (event.occurrenceDates === undefined || event.occurrenceDates.includes(day));
+
+/** A run of a week or more (an exhibition, a pumpkin patch, a weekly market series), not a one-off outing. */
+export const LONG_RUN_DAYS = 7;
+export const isLongRunning = (event: DatedEvent): boolean => dayGap(event.startDate, event.endDate) >= LONG_RUN_DAYS;
+
+export type WeekendDayTab = 'sat' | 'sun' | 'open';
+/**
+ * The 周六 / 周日 / 整个周末都开放 tabs an event belongs to. A long-running series that is on both days (an exhibition,
+ * a festival season) goes to 整个周末都开放 instead of filling both day tabs; a one-off or a single-day series sits under
+ * its day(s). Days already past (`today` is Sunday) are left out.
+ */
+export function weekendDayTabs(event: DatedEvent, [saturday, sunday]: readonly [string, string], today: string): WeekendDayTab[] {
+  const sat = saturday >= today && occursOn(event, saturday);
+  const sun = sunday >= today && occursOn(event, sunday);
+  if (sat && sun && isLongRunning(event)) return ['open'];
+  return [...(sat ? ['sat' as const] : []), ...(sun ? ['sun' as const] : [])];
+}
+
+/** The next day (on or after `from`) the event is on, or undefined once it is over. */
+export function nextOccurrence(event: DatedEvent, from: string): string | undefined {
+  if (event.occurrenceDates !== undefined) return [...event.occurrenceDates].filter(day => day >= from && day >= event.startDate && day <= event.endDate).sort()[0];
+  if (event.endDate < from) return undefined;
+  return event.startDate > from ? event.startDate : from;
+}
+
+/**
+ * Date order for the event lists (今天 / 未来 7 天 / 十月 / 全部): by the next day each event is on (a series that began in
+ * September sorts by its next date, not its first), one-offs before long-running series on the same day, then a real photo
+ * first within ties (the cover ladder's answer, passed in), then the start date and the id.
+ */
+export function orderByNextDay<T extends DatedEvent>(events: readonly T[], from: string, hasRealPhoto: (event: T) => boolean): T[] {
+  const keyed = events.map(event => ({ event, next: nextOccurrence(event, from) ?? event.endDate, series: isLongRunning(event), photo: hasRealPhoto(event) }));
+  return keyed.sort((a, b) => a.next.localeCompare(b.next) || Number(a.series) - Number(b.series) || Number(b.photo) - Number(a.photo)
+    || a.event.startDate.localeCompare(b.event.startDate) || a.event.id.localeCompare(b.event.id)).map(item => item.event);
+}
+
+/**
+ * 图文 rhythm for a ranked two-column feed: the best-ranked items with a real photo take the first screen's diagonal
+ * slots (1, 4, 5, 8 — a checkerboard against the information cards), everything else keeps its rank order. Only an order
+ * change inside the ranked list: nothing is added, dropped or relabelled (plan WEB-EVENTS: ≥4 real photos in the first 8
+ * cards where the cover ladder allows).
+ */
+export function featurePhotos<T>(ranked: readonly T[], hasPhoto: (item: T) => boolean, slots: readonly number[] = [0, 3, 4, 7]): T[] {
+  const photos = ranked.filter(hasPhoto);
+  const result: (T | undefined)[] = [];
+  const placed = new Set<T>();
+  for (const slot of slots) {
+    const photo = photos.find(item => !placed.has(item));
+    if (photo === undefined || slot > ranked.length - 1) break;
+    result[slot] = photo;
+    placed.add(photo);
+  }
+  const rest = ranked.filter(item => !placed.has(item));
+  for (let index = 0; index < ranked.length; index++) if (result[index] === undefined) result[index] = rest.shift();
+  return result as T[];
+}
