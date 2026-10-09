@@ -6,7 +6,7 @@ import { JSDOM } from 'jsdom';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url:'https://www.baylink.us/' });
 Object.assign(globalThis, { window:dom.window,document:dom.window.document,localStorage:dom.window.localStorage,HTMLElement:dom.window.HTMLElement,Node:dom.window.Node,IS_REACT_ACT_ENVIRONMENT:true });
 Object.defineProperty(globalThis,'navigator',{ configurable:true,value:dom.window.navigator });
-const { render,fireEvent,cleanup,act,within } = await import('@testing-library/react');
+const { render,fireEvent,cleanup,act,within,waitFor } = await import('@testing-library/react');
 const { MemoryRouter,Routes,Route,Outlet } = await import('react-router-dom');
 const { SaveToWeek } = await import('../src/components/SaveToWeek');
 const { api } = await import('../src/lib/api');
@@ -90,6 +90,8 @@ test('an offer the account catalog does not know yet stays saved on this device 
 test('guests save offers in this browser without any account request; guide mounts defer to the reader actions', async t => {
   t.mock.method(api,'request',async () => { throw new Error('Guests must not call an account API'); });
   const view = render(page(offer,null));
+  // The control loads on its own; until then a disabled copy of the button holds its place.
+  await waitFor(() => assert.equal(view.getByRole('button',{ name:'收藏' }).hasAttribute('disabled'),false));
   await act(async () => { fireEvent.click(view.getByRole('button',{ name:'收藏' })); });
   assert.equal(view.getByRole('button',{ name:'已收藏' }).getAttribute('aria-pressed'),'true');
   assert.equal(view.getByRole('link',{ name:'我的这周' }).getAttribute('href'),'/my-week#saved');

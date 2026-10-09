@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { CalendarPlus, Check } from 'lucide-react';
 import { useApp } from '../app/context';
-import { appendToDay } from '../lib/planner-library';
-import { errorText, type Stop } from '../lib/planner';
+import type { Stop } from '../lib/planner';
 import { translateText, useLocale } from '../i18n/locale';
 import { SaveToast } from '../features/saves/SaveToast';
 
@@ -22,10 +21,12 @@ export function AddToDayPlan({ stop, date, title, compact, className, today }: {
   const add = async () => {
     setState({ status: 'busy' });
     try {
+      // The planner and its catalog load on the first add, not with the page (route JS budgets, plan §3.0 rule 8).
+      const { appendToDay } = await import('../lib/planner-library');
       const result = await appendToDay(app?.user?.id, date, stop, t(`${day} 计划`, `Plan for ${day}`), today);
       setState({ status: 'done', toast: result.alreadyThere ? t(`已在 ${day} 计划里`, `Already in your ${day} plan`) : t(`已加入 ${day} 计划`, `Added to your ${day} plan`) });
     } catch (error) {
-      setState({ status: 'error', message: locale === 'en' ? 'This stop could not be added. Try again.' : translateText(errorText(error), locale) });
+      setState({ status: 'error', message: locale === 'en' ? 'This stop could not be added. Try again.' : translateText((error as { error?: string })?.error || '暂时没能加入计划，请重试。', locale) });
     }
   };
   const name = title ? `${t('加入这天计划', 'Add to this day’s plan')}${locale === 'en' ? ': ' : '：'}${translateText(title, locale)}` : undefined;

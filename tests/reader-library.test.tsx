@@ -7,7 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/guides' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { StaticRouter } = await import('react-router');
 const { GuideReaderActions, ReadingShelf } = await import('../src/components/ReaderLibrary');
@@ -33,6 +33,9 @@ test('reader data tolerates broken storage and bounds/deduplicates safe slugs', 
 
 test('the guide ♡ is the one save list: it survives remount, recent is unique, clearing recent retains saved articles', async () => {
   const view = render(<MemoryRouter><GuideReaderActions guide={guide} /><ReadingShelf /></MemoryRouter>);
+  // The save button loads on its own; until then a disabled copy holds its place.
+  assert.equal(view.getByRole('button', { name: '收藏' }).hasAttribute('disabled'), true);
+  await waitFor(() => assert.equal(view.getByRole('button', { name: '收藏' }).hasAttribute('disabled'), false));
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '收藏' })); });
   assert.deepEqual(savedSlugs(), [guide.slug]);
   assert.match(view.getByRole('status').textContent!, /我的这周/);
