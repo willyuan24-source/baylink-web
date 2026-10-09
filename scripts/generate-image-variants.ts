@@ -15,17 +15,21 @@ import { IMAGE_BUDGETS, LOCALIZED_SERVICE_SUFFIXES, MANIFEST_PATH, LADDER_PATH, 
 /**
  * D8 image ladder (npm run images:variants). For every registered image (GUIDE_IMAGES), the localized public-service
  * illustrations and the 3D postcards:
- *   - a dominant colour (`sharp.stats().dominant`, quantised to `#rgb`) for the placeholder;
+ *   - a placeholder colour: the image's mean colour over every pixel (transparency flattened onto white, as pages show
+ *     it), quantised to `#rgb`. Not `stats().dominant`, which picks the deepest-shadow bin (#000) for many mid-tone
+ *     photos, and not a 1×1 resize, whose shrink-on-load lets transparent pixels' black bleed in;
  *   - 480 w: the existing `-small.webp` (made only when missing).
  * For images a page shows today (scripts/audit-media-coverage.ts `publishedImageSources`) and the postcards, also:
  *   - 1200 w: `-1200.webp` when the original is over the 1200 budget (150 KB): 1200 wide, or the original width when
  *     narrower; the original then leaves the srcset (it stays the `src`, for share cards and old links);
  *   - 800 w: `-800.webp` when the original is over the 800 budget (90 KB) and wider than 800, unless the 1200 rung
- *     already fits the 800 budget.
+ *     already fits the 800 budget or is at most 900 wide (an 800 beside an 819 px 1200 rung is a near-duplicate file).
  * Resize and re-encode only: never upscaled, never cropped, no colour or content edits, no AI. Each rung takes the first
  * quality step that fits its budget; one that cannot fit at the lowest step keeps that encode and must be listed in
- * scripts/data/image-budget-exceptions.json. Unchanged originals are skipped (sha1 + settings in the manifest), so the
- * script is cheap to re-run after a rebase. `--dry-run` encodes in memory and prints what it would add.
+ * scripts/data/image-budget-exceptions.json. A rung whose original and encode settings are unchanged (sha1 + settings in
+ * the manifest) is reused, never re-encoded, so the script is cheap to re-run after a rebase; rungs the manifest listed
+ * that the policy no longer produces (an image no page shows, a source that left the registry) are deleted.
+ * `--dry-run` encodes in memory and prints what it would add.
  */
 
 const DRY_RUN = process.argv.includes('--dry-run');
@@ -45,12 +49,29 @@ type ManifestImage = {
   variants: Variant[];
   srcset: string[];
 };
-type Manifest = { version: number; settings: string; registryHash: string; registryCount: number; images: Record<string, ManifestImage> };
+type Manifest = { version: number; settings: string; placeholder?: string; registryHash: string; registryCount: number; images: Record<string, ManifestImage> };
 
 const publicPath = (src: string) => `public${src}`;
 const exists = (file: string) => existsSync(publicPath(file));
 const sha1 = (bytes: Buffer) => createHash('sha1').update(bytes).digest('hex').slice(0, 16);
 const quantise = (channel: number) => Math.round(channel / 17).toString(16);
+/** Originals up to this width get no 800 rung beside their 1200 rung: the two files would be nearly the same. */
+const NEAR_DUPLICATE_WIDTH = 900;
+
+/** How placeholder colours are computed; a manifest made another way recomputes them (without re-encoding any rung). */
+const PLACEHOLDER_METHOD = 'mean-rgb-flatten-white';
+
+/** Mean colour of every pixel as `#rgb`. */
+async function placeholderColour(original: Buffer, label: string): Promise<string> {
+  const { data, info } = await sharp(original).flatten({ background: '#ffffff' }).raw().toBuffer({ resolveWithObject: true });
+  if (info.channels < 3) throw new Error(`${label}: expected an RGB image for the placeholder colour`);
+  const sums = [0, 0, 0];
+  for (let index = 0; index < data.length; index += info.channels) {
+    sums[0] += data[index]; sums[1] += data[index + 1]; sums[2] += data[index + 2];
+  }
+  const pixels = data.length / info.channels;
+  return `#${sums.map(sum => quantise(sum / pixels)).join('')}`;
+}
 
 async function readManifest(): Promise<Manifest | undefined> {
   try { return JSON.parse(await readFile(MANIFEST_PATH, 'utf8')) as Manifest; } catch { return undefined; }
@@ -77,12 +98,13 @@ const added = { bytes: 0, files: [] as string[] };
 
 const posterSources = new Set(Object.values(GUIDE_IMAGES).filter(image => image.kind === 'poster').map(image => image.src));
 
-async function processImage(src: string, scope: ManifestImage['scope'], published: boolean, previous: ManifestImage | undefined): Promise<ManifestImage> {
+async function processImage(src: string, scope: ManifestImage['scope'], published: boolean, previous: ManifestImage | undefined, placeholderCached: boolean): Promise<ManifestImage> {
   if (!src.endsWith('.webp')) throw new Error(`${src}: the ladder covers WebP originals only`);
   const original = await readFile(publicPath(src));
   const digest = sha1(original);
   const artwork = posterSources.has(src) ? 'poster' : 'photo';
-  if (previous && previous.sha1 === digest && previous.published === published && previous.artwork === artwork && previous.variants.every(variant => exists(variant.file))) return { ...previous, scope };
+  // Same original, same artwork class, same settings (the caller drops an old manifest): its rungs can be reused as they are.
+  const reusable = previous && previous.sha1 === digest && previous.artwork === artwork ? previous : undefined;
 
   const { width, height } = webpSize(original, src);
   const variants: Variant[] = [];
@@ -98,6 +120,11 @@ async function processImage(src: string, scope: ManifestImage['scope'], publishe
   }
   const rung = async (target: 800 | 1200, budget: number) => {
     const file = variantPath(src, target);
+    const cached = reusable?.variants.find(variant => variant.rung === target && variant.file === file);
+    if (cached && exists(file)) {
+      variants.push(cached);
+      return cached;
+    }
     const encoded = await encodeWithin(original, Math.min(target, width), budget, artwork);
     await write(file, encoded.data);
     added.bytes += encoded.data.length; added.files.push(file);
@@ -106,13 +133,15 @@ async function processImage(src: string, scope: ManifestImage['scope'], publishe
   };
   if (published) {
     const large = original.length > IMAGE_BUDGETS.large ? await rung(LARGE_WIDTH, IMAGE_BUDGETS.large) : undefined;
-    // A 1200 that already fits the 800 budget serves the 800 slot too; a second file would only grow the repository.
-    if (width > MEDIUM_WIDTH && original.length > IMAGE_BUDGETS.medium && !(large && large.bytes <= IMAGE_BUDGETS.medium)) await rung(MEDIUM_WIDTH, IMAGE_BUDGETS.medium);
+    // A 1200 that already fits the 800 budget, or is barely wider than 800, serves the 800 slot too; a second file would
+    // only grow the repository.
+    if (width > MEDIUM_WIDTH && original.length > IMAGE_BUDGETS.medium && !(large && (large.bytes <= IMAGE_BUDGETS.medium || width <= NEAR_DUPLICATE_WIDTH))) {
+      await rung(MEDIUM_WIDTH, IMAGE_BUDGETS.medium);
+    }
     variants.sort((a, b) => a.rung - b.rung);
   }
 
-  const { dominant } = await sharp(original).stats();
-  const lqip = `#${quantise(dominant.r)}${quantise(dominant.g)}${quantise(dominant.b)}`;
+  const lqip = placeholderCached && previous?.sha1 === digest ? previous.lqip : await placeholderColour(original, src);
   const entry: LadderEntry = { lqip, medium: variants.some(variant => variant.rung === 800), large: variants.some(variant => variant.rung === 1200) };
   return { width, height, bytes: original.length, sha1: digest, lqip, scope, published, artwork, variants, srcset: ladderSrcSet(src, width, entry).split(', ') };
 }
@@ -143,6 +172,7 @@ const extra = [...localized, ...postcards].sort((a, b) => (a.src < b.src ? -1 : 
 
 const stored = await readManifest();
 const previous = stored?.settings === settingsKey ? stored.images : {};
+const placeholderCached = stored?.placeholder === PLACEHOLDER_METHOD;
 const images: Record<string, ManifestImage> = {};
 const queue = [
   ...registry.map(src => ({ src, scope: 'registry' as const, published: published.has(src) })),
@@ -152,24 +182,27 @@ let next = 0;
 await Promise.all(Array.from({ length: 4 }, async () => {
   while (next < queue.length) {
     const { src, scope, published: shown } = queue[next++];
-    images[src] = await processImage(src, scope, shown, previous[src]);
+    images[src] = await processImage(src, scope, shown, previous[src], placeholderCached);
   }
 }));
 
-// A rung the policy no longer produces (a smaller original, an image no page shows any more) is removed, never left stale.
+// A rung the policy no longer produces (a smaller original, an image no page shows any more, a source that left the
+// registry) is removed, never left stale. Only files this pipeline made are candidates: the rung names of today's sources
+// and the variants the previous manifest recorded. scripts/verify-images.mjs fails on any other stray -800/-1200 file.
 const removed: string[] = [];
-for (const [src, image] of Object.entries(images)) {
-  for (const target of [MEDIUM_WIDTH, LARGE_WIDTH] as const) {
-    const file = variantPath(src, target);
-    if (exists(file) && !image.variants.some(variant => variant.file === file)) {
-      removed.push(file);
-      if (!DRY_RUN) await unlink(publicPath(file));
-    }
-  }
+const kept = new Set(Object.values(images).flatMap(image => image.variants.map(variant => variant.file)));
+const candidates = new Set([
+  ...Object.keys(images).flatMap(src => [variantPath(src, MEDIUM_WIDTH), variantPath(src, LARGE_WIDTH)]),
+  ...Object.values(stored?.images ?? {}).flatMap(image => image.variants.filter(variant => variant.rung !== 480).map(variant => variant.file)),
+]);
+for (const file of [...candidates].sort()) {
+  if (kept.has(file) || images[file] || !exists(file)) continue;
+  removed.push(file);
+  if (!DRY_RUN) await unlink(publicPath(file));
 }
 
 const sorted = Object.fromEntries(Object.keys(images).sort().map(src => [src, images[src]]));
-const manifest: Manifest = { version: 1, settings: settingsKey, registryHash: registryHash(registry), registryCount: registry.length, images: sorted };
+const manifest: Manifest = { version: 1, settings: settingsKey, placeholder: PLACEHOLDER_METHOD, registryHash: registryHash(registry), registryCount: registry.length, images: sorted };
 const ladder = {
   hash: registryHash(registry),
   count: registry.length,

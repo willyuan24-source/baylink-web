@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
+import sharp from 'sharp';
 import { GUIDE_IMAGES, getGuideMedia } from '../src/data/guide-media';
 import { guides } from '../src/data/guides';
 import {
@@ -9,7 +10,7 @@ import {
 import { SCENE3D_POSTCARDS, SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { ATTRACTIONS } from '../src/data/attractions';
 import { MONTHLY_PLACES } from '../src/data/monthly-edition';
-import { getCover } from '../src/lib/cover';
+import { getCover, rightsBasisOf, type CoverKind } from '../src/lib/cover';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { setLocale } from '../src/i18n/locale';
 import { publishedImageSources } from '../scripts/audit-media-coverage';
@@ -61,10 +62,14 @@ test('every rung exists, is a resize of its original (never upscaled or reframed
   assert.ok(exceptions.length <= 25, 'budget exceptions stay a short, reviewed list');
 });
 
-test('rungs follow the bytes: pages that show an image get 800/1200 files only where the original is over budget', () => {
+test('rungs follow the bytes: pages that show an image get 800/1200 files only where the original is over budget', t => {
+  // A page that starts or stops showing an existing image only changes where bytes could be saved: its srcset still names
+  // files that exist (the plain -small + original pair until the next run). So a stale flag is a note, not a failure;
+  // verify:images warns about it too.
   const published = publishedImageSources();
+  const stale = Object.entries(manifest.images).filter(([src, image]) => image.scope === 'registry' && image.published !== published.has(src)).map(([src]) => src);
+  if (stale.length) t.diagnostic(`${stale.length} images changed pages since the last npm run images:variants (e.g. ${stale.slice(0, 5).join(', ')}); run it to refresh their 800/1200 rungs`);
   for (const [src, image] of Object.entries(manifest.images)) {
-    if (image.scope === 'registry') assert.equal(image.published, published.has(src), `${src}: published flag`);
     const medium = rung(image, 800);
     const large = rung(image, 1200);
     if (!image.published) {
@@ -73,13 +78,42 @@ test('rungs follow the bytes: pages that show an image get 800/1200 files only w
     }
     assert.equal(!!large, image.bytes > IMAGE_BUDGETS.large, `${src}: a 1200 rung exactly when the original is over 150 KB`);
     if (large) assert.equal(large.width, Math.min(1200, image.width), src);
-    const needsMedium = image.width > 800 && image.bytes > IMAGE_BUDGETS.medium && !(large && large.bytes <= IMAGE_BUDGETS.medium);
+    // No 800 beside a 1200 rung that fits 90 KB or is at most 900 wide (the two files would be near-duplicates).
+    const needsMedium = image.width > 800 && image.bytes > IMAGE_BUDGETS.medium && !(large && (large.bytes <= IMAGE_BUDGETS.medium || image.width <= 900));
     assert.equal(!!medium, needsMedium, `${src}: an 800 rung exactly when the 800 slot would otherwise exceed 90 KB`);
     if (medium) assert.equal(medium.width, 800, src);
     // The largest candidate a page can request is the 1200 rung, or the original while it is within budget.
     const top = image.srcset.at(-1)!.split(' ')[0];
     assert.equal(top, large ? large.file : src, src);
   }
+});
+
+test('placeholder colours are each image’s mean colour, never the deepest-shadow bin', async () => {
+  // sharp's stats().dominant picked #000 for 66 mid-tone photos (Japantown, Angel Island, Fort Point): a black box would
+  // flash behind one card in six. Checked here another way than the generator computes it: opaque images by a 1×1
+  // box-filtered resize (half a 12-bit step for the quantising, plus up to ~5 for the filter); transparent ones
+  // composited onto white pixel by pixel, the way a page shows them.
+  const far: string[] = [];
+  await Promise.all(Object.entries(manifest.images).map(async ([src, image]) => {
+    const data = file(src);
+    let average: number[];
+    let tolerance = 14;
+    if ((await sharp(data).metadata()).hasAlpha) {
+      const { data: pixels } = await sharp(data).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      const sums = [0, 0, 0];
+      for (let index = 0; index < pixels.length; index += 4) {
+        const alpha = pixels[index + 3] / 255;
+        for (const channel of [0, 1, 2]) sums[channel] += pixels[index + channel] * alpha + 255 * (1 - alpha);
+      }
+      average = sums.map(sum => sum / (pixels.length / 4));
+      tolerance = 9;
+    } else {
+      average = [...await sharp(data).resize(1, 1, { fit: 'fill' }).raw().toBuffer()].slice(0, 3);
+    }
+    const lqip = [1, 2, 3].map(index => Number.parseInt(image.lqip[index], 16) * 17);
+    if (lqip.some((value, index) => Math.abs(value - average[index]) > tolerance)) far.push(`${src}: ${image.lqip} vs rgb(${average.map(Math.round).join(', ')})`);
+  }));
+  assert.deepEqual(far, []);
 });
 
 test('the srcset builder never names a rung that is not there and falls back as a whole when the table is stale', () => {
@@ -146,6 +180,16 @@ test('the 3D postcards are byte-for-byte copies in /guides/3d, labelled 3D 场�
   const placeCover = getCover({ kind: 'place', id: 'palace', postcardKey: SCENE3D_POSTCARD_FOR.palace }, { images, today: '2026-10-09' });
   assert.equal(placeCover.tier, 'scene3d');
   assert.equal(getCover({ kind: 'event', id: 'e', postcardKey: SCENE3D_POSTCARD_FOR.palace }, { images, today: '2026-10-09' }).tier, 'type', 'never on an event');
+  // Rule 6: AI art is never the cover of an event, offer or opening, even when a surface passes a postcard as the imageKey
+  // through the lookup above. Only `postcardKey` on a place reaches the scene3d tier.
+  for (const postcard of SCENE3D_POSTCARDS) {
+    assert.equal(rightsBasisOf(postcard), 'ai', `${postcard.key}: AI-generated art is recorded as such`);
+    for (const kind of ['event', 'offer', 'opening', 'bulletin', 'guide', 'place'] as const satisfies readonly CoverKind[]) {
+      const cover = getCover({ kind, id: 'x', imageKey: postcard.key }, { images, today: '2026-10-09' });
+      assert.deepEqual([cover.tier, cover.tier === 'type' && cover.reason], ['type', 'ai-illustration'], `${postcard.key} as the imageKey of a ${kind}`);
+    }
+    assert.equal(getCover({ kind: 'place', id: 'x', postcardKey: postcard.key }, { images, today: '2026-10-09' }).tier, 'scene3d', postcard.key);
+  }
   // public/opus-bay/** stays reference-only: no ladder files are written next to the originals.
   const opusPostcards = readdirSync(new URL('../public/opus-bay/postcards/', import.meta.url));
   assert.deepEqual(opusPostcards.filter(name => /-(small|800)\.webp$/.test(name)), []);

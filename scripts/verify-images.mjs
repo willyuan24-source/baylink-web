@@ -4,14 +4,19 @@
 //   2. Byte budgets: 800w ≤ 90 KB and 1200w ≤ 150 KB, except files listed in scripts/data/image-budget-exceptions.json
 //      (a listed file that now fits, or no longer exists, must leave the list).
 //   3. The runtime table (image-ladder.json) encodes exactly what the manifest records.
-//   4. With dist/: every image a built page references (src or srcset) exists, and the images the homepage requests
-//      without scrolling at 390 px / DPR 3 (non-lazy <img>) stay within 450 KB.
+//   4. No stray rung: every public/guides/**/*-800.webp and *-1200.webp is a manifest variant (or itself a registered
+//      source), so rungs of removed images cannot pile up in the repository.
+//   5. With dist/: every image a built page references (src or srcset) exists, and the images the homepage requests
+//      without scrolling at 390 px / DPR 3 (non-lazy <img>) stay within 450 KB. A page that shows an image the manifest
+//      did not mark as shown is a warning only (its srcset is the plain -small + original pair until the next
+//      `npm run images:variants`), never a failure.
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { EXCEPTIONS_PATH, HOME_FIRST_VIEW_BUDGET, IMAGE_BUDGETS, LADDER_PATH, MANIFEST_PATH, webpSize } from './image-budgets.mjs';
 
 const problems = [];
+const warnings = [];
 const publicFile = src => join('public', src);
 const readPublic = src => (existsSync(publicFile(src)) ? readFileSync(publicFile(src)) : undefined);
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, 'utf8'));
@@ -57,10 +62,23 @@ if (ladder.hash !== manifest.registryHash || ladder.count !== registry.length ||
 else if (ladder.codes !== registry.map(src => code(manifest.images[src])).join('')) problems.push('image-ladder.json codes differ from the manifest; run npm run images:variants');
 for (const [src, image] of Object.entries(manifest.images)) if (image.scope === 'extra' && ladder.extra[src] !== code(image)) problems.push(`${src}: image-ladder.json extra entry differs from the manifest`);
 
+// Stray rungs: a -800/-1200 file that no manifest variant names (the generator deletes the ones it made; this catches the rest).
+const ladderFiles = new Set(Object.entries(manifest.images).flatMap(([src, image]) => [src, ...image.variants.map(variant => variant.file)]));
+const strays = [];
+const findStrays = (directory, url) => {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (entry.isDirectory()) { findStrays(join(directory, entry.name), `${url}/${entry.name}`); continue; }
+    if (/-(800|1200)\.webp$/.test(entry.name) && !ladderFiles.has(`${url}/${entry.name}`)) strays.push(`${url}/${entry.name}`);
+  }
+};
+findStrays(publicFile('guides'), '/guides');
+for (const src of strays.sort()) problems.push(`${src}: a -800/-1200 file that is not a ladder variant; delete it (npm run images:variants removes the rungs it made), or rename an original that only looks like a rung`);
+
 // Built pages: referenced files exist; the homepage's eager images fit the first-view budget at DPR 3.
 let pages = 0;
 let references = 0;
 let homeFirstView;
+const unmarked = new Set();
 if (existsSync('dist/index.html')) {
   const seen = new Set();
   const candidatesOf = tag => {
@@ -83,6 +101,8 @@ if (existsSync('dist/index.html')) {
           seen.add(url);
           references += 1;
           if (!existsSync(publicFile(url))) problems.push(`${path}: references missing ${url}`);
+          const image = manifest.images[url];
+          if (image?.scope === 'registry' && !image.published && image.bytes > IMAGE_BUDGETS.medium && image.width > 480) unmarked.add(url);
         }
       }
     }
@@ -119,6 +139,12 @@ if (existsSync('dist/index.html')) {
   }
   if (homeFirstView.bytes > HOME_FIRST_VIEW_BUDGET) problems.push(`homepage eager images at DPR ${DPR}: ${homeFirstView.bytes} B > ${HOME_FIRST_VIEW_BUDGET} B (${homeFirstView.images.join(', ')})`);
 }
+
+if (unmarked.size) {
+  const sample = [...unmarked].sort().slice(0, 6).join(', ');
+  warnings.push(`${unmarked.size} images shown on built pages have no 800/1200 rungs yet because the manifest predates that use (${sample}${unmarked.size > 6 ? ', …' : ''}); they render with the plain -small + original srcset. Run npm run images:variants to save those bytes.`);
+}
+for (const warning of warnings) console.warn(`Image check warning: ${warning}`);
 
 if (problems.length) {
   console.error(`Image check failed:\n  ${problems.join('\n  ')}`);
