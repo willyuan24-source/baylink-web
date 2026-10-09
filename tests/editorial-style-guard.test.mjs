@@ -51,3 +51,19 @@ test('palette contrast checks catch a muted source color that is too faint even 
 test('the reviewed site styles meet their scoped reading and shared palette guard', () => {
   assert.deepEqual(inspectEditorialStyles(), []);
 });
+
+test('TypeCover and sticker pairs are contrast-checked wherever a guarded file defines them', () => {
+  const palette = ':root{--color-bg:#ffffff;--color-surface:#ffffff;--color-ink:#16352b;--color-ink-2:#3f5247;--color-ink-3:#54645e;--color-brand:#096b54;--color-on-brand-muted:#b6cbb9;--color-brand-deep:#123c31}';
+  const primitives = ':root{--tc-family-bg:#FBF1E6;--tc-family-fg:#E0A080;--tc-free-bg:#E6F2EA;--tc-free-fg:#1E6B43;--ui-success:#276B44;--ui-success-tint:#E8F3EC;--ui-info:#8FB0CF;--ui-info-tint:#EAF1F8}';
+  const issues = checkEditorialStyles([{ file: 'ui.css', text: primitives }], palette, { contrast: true });
+  assert.deepEqual(issues.map(issue => issue.message.split(' is ')[0]), ['--tc-family-fg on --tc-family-bg', '--ui-info on --ui-info-tint'], 'the ui-namespaced status pairs are checked too');
+  const global = ':root{--color-success:#8FC0A0;--color-success-tint:#E8F3EC}';
+  assert.equal(checkEditorialStyles([{ file: 'tokens.css', text: global }], palette, { contrast: true })[0].message.split(' is ')[0], '--color-success on --color-success-tint', 'and the global names they move to');
+});
+
+test('a cover clamp() passes only when its floor, cap and container term all follow Aa', () => {
+  const sizes = value => checkEditorialStyles([{ file: 'cover.css', text: `.c{font-size:${value}}` }], tokens).map(issue => issue.rule);
+  assert.deepEqual(sizes('clamp(.8125rem, min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem)'), []);
+  // a second --reading-scale on the floor double-scales, a px floor never grows, a bare cqw term ignores Aa, .75rem is 12px
+  for (const value of ['clamp(calc(.8125rem * var(--reading-scale)), 7cqw, 1.125rem)', 'clamp(13px, calc(7cqw * var(--fluid-scale)), 1.125rem)', 'clamp(.8125rem, 7cqw, 1.125rem)', 'clamp(.75rem, calc(7cqw * var(--fluid-scale)), 1.125rem)']) assert.deepEqual(sizes(value), ['reading-scale'], value);
+});

@@ -15,12 +15,16 @@ export const editorialStyleScopes = [
   { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
   { file: 'src/pages/profile-page.css' },
   { file: 'src/pages/events-page.css' },
+  // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
+  { file: 'src/components/ui/ui.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
 // Aa scales the root font size (src/tokens.css), so a text size follows it when it is in rem, em, % or a --text-* token.
 // px never grows; --reading-scale is pinned at 1 (multiplying a rem by it again would double-scale); a vw term grows only
 // when it is multiplied by --fluid-scale.
+// clamp()/min()/max() pass when every term does, e.g. a TypeCover's rem floor and cap around its container term:
+// clamp(.8125rem, min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem).
 const readingSizeIssue = value => {
   if (/\d(?:\.\d+)?px\b/.test(value)) return `Text size ${value} is in px, which the root reading scale cannot grow.`;
   if (value.includes('--reading-scale')) return `Text size ${value} multiplies by --reading-scale; the root already scales rem (125% x 1.25 = 156%).`;
@@ -47,6 +51,16 @@ function paletteIssues(values) {
   const pairs = ['--color-ink', '--color-ink-2', '--color-ink-3', '--color-brand'].flatMap(text => ['--color-bg', '--color-surface'].map(background => [text, background, 4.5]));
   pairs.push(['--color-on-brand-muted', '--color-brand-deep', 4.5]);
   if (values.has('--color-editorial')) pairs.push(['--color-editorial', '--color-bg', 4.5]);
+  // TypeCover pairs (--tc-<tone>-fg on --tc-<tone>-bg) and sticker/status pairs, wherever a guarded file defines them.
+  for (const name of values.keys()) {
+    const tone = /^--tc-([a-z]+)-fg$/.exec(name)?.[1];
+    if (tone && values.has(`--tc-${tone}-bg`)) pairs.push([name, `--tc-${tone}-bg`, 4.5]);
+  }
+  // Status pairs under their global names (tokens.css) or the --ui-* names the lazily loaded ui.css block uses until then.
+  const statusPairs = ['color', 'ui'].flatMap(space => [[`--${space}-success`, `--${space}-success-tint`], [`--${space}-warning`, `--${space}-warning-tint`], ['--color-danger', `--${space}-danger-tint`], [`--${space}-info`, `--${space}-info-tint`], ['--color-brand-deep', `--${space}-highlight`]]);
+  for (const [foreground, background] of statusPairs) {
+    if (values.has(foreground) && values.has(background)) pairs.push([foreground, background, 4.5]);
+  }
   return pairs.flatMap(([foreground, background, minimum]) => {
     const fg = resolveColor(foreground), bg = resolveColor(background);
     if (!fg || !bg) return [{ file: 'shared palette', line: 1, rule: 'contrast', message: `Unable to resolve ${foreground} on ${background} as opaque sRGB tokens.` }];
@@ -63,7 +77,7 @@ export function checkEditorialStyles(sources, sharedTokens, { contrast = false }
   for (const text of [sharedTokens, ...sources.map(source => source.text)]) {
     postcss.parse(text).walkDecls(declaration => {
       if (declaration.prop.startsWith('--')) knownTokens.add(declaration.prop);
-      if (declaration.prop.startsWith('--color-') && declaration.parent.selector === ':root') palette.set(declaration.prop, declaration.value);
+      if (/^--(?:color|tc|ui)-/.test(declaration.prop) && declaration.parent.selector === ':root') palette.set(declaration.prop, declaration.value);
     });
   }
   for (const source of sources) {
