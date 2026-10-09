@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readBayBayStream, BAYBAY_DRAFT_MAX_CHARS, type BayBayDraft, type BayBayProgress } from '../src/lib/baybay-stream';
+import { readBayBayStream, bayBayDraftDisplayText, BAYBAY_DRAFT_MAX_CHARS, type BayBayDraft, type BayBayProgress } from '../src/lib/baybay-stream';
 
 function stream(chunks: string[]) { const encoder = new TextEncoder(); return new Response(new ReadableStream({ start(controller) { for (const chunk of chunks) controller.enqueue(encoder.encode(chunk)); controller.close(); } }), { headers: { 'Content-Type': 'text/event-stream' } }); }
 /** Raw strings are sent verbatim so malformed JSON can be exercised. */
@@ -106,12 +106,25 @@ test('oversize drafts are dropped without an error and close the draft, so the p
 
 test('malformed, duplicate and out-of-order drafts are dropped without an error', async () => {
   const malformed = ['{broken', 'null', '[]', '"text"', { field: 'lead', text: 'no seq' }, { seq: -1, field: 'lead', text: 'negative' }, { seq: 11.5, field: 'lead', text: 'fraction' }, { seq: '11', field: 'lead', text: 'string seq' },
-    { seq: 11, field: 'title', text: 'unknown field' }, { seq: 11, field: 'point', text: 'no index' }, { seq: 11, field: 'point', index: 3, text: 'fourth point' }, { seq: 11, field: 'point', index: -1, text: 'negative index' },
-    { seq: 11, field: 'lead', text: '' }, { seq: 11, field: 'lead', text: 42 }];
+    { seq: 11, field: 'title', text: 'unknown field' }, { seq: 11, field: 'point', text: 'no index' }, { seq: 11, field: 'point', index: 5, text: 'sixth point' }, { seq: 11, field: 'point', index: -1, text: 'negative index' },
+    { seq: 11, field: 'point', index: 1e9, text: 'huge index' }, { seq: 11, field: 'lead', text: '' }, { seq: 11, field: 'lead', text: 42 }];
   const payload = frame('draft', { seq: 10, field: 'lead', text: '第一句' }) + malformed.map(data => frame('draft', data)).join('')
     + frame('draft', { seq: 10, field: 'lead', text: '重复' }) + frame('draft', { seq: 9, field: 'lead', text: '倒序' })
-    + frame('draft', { seq: 12, field: 'point', index: 2, text: '第三点' }) + frame('result', result);
+    + frame('draft', { seq: 12, field: 'point', index: 2, text: '第三点' }) + frame('draft', { seq: 13, field: 'point', index: 4, text: '第五点' }) + frame('result', result);
   const drafts: BayBayDraft[] = [];
   assert.deepEqual(await readBayBayStream(stream([payload]), undefined, undefined, { onDraft: draft => drafts.push(draft) }), result);
-  assert.deepEqual(drafts, [{ lead: '第一句', points: [] }, { lead: '第一句', points: ['', '', '第三点'] }]);
+  // A day plan may stream up to five points (indexes 0–4).
+  assert.deepEqual(drafts, [{ lead: '第一句', points: [] }, { lead: '第一句', points: ['', '', '第三点'] }, { lead: '第一句', points: ['', '', '第三点', '', '第五点'] }]);
+});
+
+test('source markers, citation numbers and links never reach the draft, even while one is still streaming', async () => {
+  const draft = (seq: number, field: 'lead' | 'point', text: string) => frame('draft', { seq, field, ...(field === 'point' ? { index: 0 } : {}), text });
+  const payload = draft(1, 'lead', '周六去金门公园 [[ev') + draft(2, 'lead', 'ent-fleet-week]]，官网 https://www.sfgov') + draft(3, 'lead', '.org/events，有时间表[1]。')
+    + draft(4, 'point', '下午人少 [[page]]，可看 [官网](https://example.org/hours)') + frame('result', result);
+  const drafts: BayBayDraft[] = [];
+  assert.deepEqual(await readBayBayStream(stream([payload]), undefined, undefined, { onDraft: value => drafts.push(value) }), result);
+  assert.deepEqual(drafts.map(value => value.lead), ['周六去金门公园', '周六去金门公园，官网', '周六去金门公园，官网，有时间表。', '周六去金门公园，官网，有时间表。']);
+  assert.deepEqual(drafts.at(-1)?.points, ['下午人少，可看 官网']);
+  assert.equal(bayBayDraftDisplayText('Golden Gate Park [[g:abc]] is quiet (https://example.org/x).'), 'Golden Gate Park is quiet.');
+  assert.equal(bayBayDraftDisplayText('See https://example.org/path?x=1, then www.sfmoma.org [2'), 'See, then www.sfmoma.org', 'ordinary text and plain host names stay');
 });

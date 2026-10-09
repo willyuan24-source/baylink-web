@@ -164,8 +164,8 @@ const BayBayAssistantSession = ({ variant, onNavigate, onCreatePostClick, catego
     }, {
       onCards: cards => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, quickCards: cards } : turn)); },
       onText: text => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, partialAnswer: (turn.partialAnswer || '') + text } : turn)); },
-      // Only the streamed lead is previewed; the final result replaces it.
-      onDraft: draft => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id && turn.state === 'pending' ? { ...turn, draftLead: draft.lead } : turn)); },
+      // Only the streamed lead is previewed (a points-only draft does not re-render); the final result replaces it.
+      onDraft: draft => { if (activeRequest.current?.id === id && turnsRef.current.some(turn => turn.id === id && turn.state === 'pending' && (turn.draftLead || '') !== draft.lead)) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, draftLead: draft.lead } : turn)); },
     })
       .then((response) => {
         if (activeRequest.current?.id !== id) return;

@@ -1,5 +1,5 @@
 import { mockBayBayFetch } from './baybay-test-transport';
-import test, { afterEach } from 'node:test';
+import test, { afterEach, type TestContext } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -12,11 +12,24 @@ dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isC
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { fetchBayBayReply } = await import('../src/lib/baybay-conversation');
-const { setLocale } = await import('../src/i18n/locale');
+const { setLocale, translateText } = await import('../src/i18n/locale');
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 const noop = () => {};
 const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
 const frame = (event: string, data: unknown) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+
+/** Asks one question against a server stream the test writes to frame by frame. */
+async function askWithStream(t: TestContext, textbox: string, question: string) {
+  let channel!: ReadableStreamDefaultController<Uint8Array>;
+  const encoder = new TextEncoder();
+  const send = (text: string) => act(async () => { channel.enqueue(encoder.encode(text)); });
+  mockBayBayFetch(t, async () => new Response(new ReadableStream<Uint8Array>({ start(controller) { channel = controller; } }), { headers: { 'Content-Type': 'text/event-stream' } }));
+  const view = render(<BayBayAssistantEntry {...props} />);
+  const input = view.getByRole('textbox', { name: textbox });
+  fireEvent.change(input, { target: { value: question } });
+  await act(async () => { fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' }); });
+  return { view, send };
+}
 
 test('requests advertise the draft-capable stream dialect and keep the assistant route version', async t => {
   let body: Record<string, unknown> = {};
@@ -29,14 +42,7 @@ test('requests advertise the draft-capable stream dialect and keep the assistant
 });
 
 test('a streamed lead previews in the pending bubble outside live regions; validated text and the result replace it', async t => {
-  let channel!: ReadableStreamDefaultController<Uint8Array>;
-  const encoder = new TextEncoder();
-  const send = (text: string) => act(async () => { channel.enqueue(encoder.encode(text)); });
-  mockBayBayFetch(t, async () => new Response(new ReadableStream<Uint8Array>({ start(controller) { channel = controller; } }), { headers: { 'Content-Type': 'text/event-stream' } }));
-  const view = render(<BayBayAssistantEntry {...props} />);
-  const input = view.getByRole('textbox', { name: '向 BayBay 提问' });
-  fireEvent.change(input, { target: { value: '这周末带孩子去哪里？' } });
-  await act(async () => { fireEvent.keyDown(input, { key: 'Enter', code: 'Enter' }); });
+  const { view, send } = await askWithStream(t, '向 BayBay 提问', '这周末带孩子去哪里？');
   await send(frame('draft', { seq: 1, field: 'lead', text: '这个周末' }) + frame('draft', { seq: 2, field: 'point', index: 0, text: '要点草稿' }));
   await send(frame('draft', { seq: 3, field: 'lead', text: '去金门公园。' }));
   const preview = view.getByText('这个周末去金门公园。');
@@ -50,4 +56,24 @@ test('a streamed lead previews in the pending bubble outside live regions; valid
   await send(frame('result', { ok: true, answer: '完整回答：金门公园。' }));
   assert.ok(view.getByText(/完整回答：金门公园。/));
   assert.equal(view.queryByText('已核实的答复。'), null, 'the result replaces the streamed text');
+});
+
+test('on /en the preview is the English lead without source markers or links, and the pending turn has no Chinese', async t => {
+  await setLocale('en', false);
+  const { view, send } = await askWithStream(t, translateText('向 BayBay 提问', 'en'), 'Where can we go with kids this weekend?');
+  await send(frame('draft', { seq: 1, field: 'lead', text: 'This weekend, Golden Gate Park [[ev' }));
+  assert.ok(view.getByText('This weekend, Golden Gate Park'), 'a marker that is still streaming is not shown');
+  await send(frame('draft', { seq: 2, field: 'lead', text: 'ent-fleet-week]] suits a family outing (https://example.org).' }));
+  const preview = view.getByText('This weekend, Golden Gate Park suits a family outing.');
+  assert.equal(preview.closest('[aria-live]'), null);
+  assert.doesNotMatch(preview.closest('[data-turn-id]')?.textContent || '', /\p{Script=Han}/u);
+});
+
+test('on zh-Hant a Simplified draft previews in Traditional Chinese, like the final answer', async t => {
+  await setLocale('zh-Hant', false);
+  const { view, send } = await askWithStream(t, translateText('向 BayBay 提问', 'zh-Hant'), '這個週末帶孩子去哪裡？');
+  await send(frame('draft', { seq: 1, field: 'lead', text: '这个周末去金门公园 [[page]]' }) + frame('draft', { seq: 2, field: 'lead', text: '，下午人少一些。' }));
+  const expected = translateText('这个周末去金门公园，下午人少一些。', 'zh-Hant');
+  assert.notEqual(expected, '这个周末去金门公园，下午人少一些。');
+  assert.ok(view.getByText(expected));
 });

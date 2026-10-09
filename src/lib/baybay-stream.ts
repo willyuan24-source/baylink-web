@@ -3,7 +3,7 @@ const phases = new Set(['site', 'research', 'sources', 'routes', 'answer']);
 export type BayBayQuickCard = { kind: 'guide' | 'event' | 'offer' | 'opening'; id: string; title: string; url: string; summary: string; date?: string; temporalStatus?: string };
 /** One SSE `draft` frame: unvalidated model text, appended in `seq` order. The `result` frame replaces it. */
 export type BayBayDraftEvent = { seq: number; field: 'lead' | 'point'; index?: number; text: string };
-/** The draft assembled so far. Points are indexed like the answer's `points[]`; a point not yet streamed is ''. */
+/** The draft assembled so far, as display text (`bayBayDraftDisplayText`). Points are indexed like the answer's `points[]`; a point not yet streamed is ''. */
 export type BayBayDraft = { lead: string; points: string[] };
 export type BayBayStreamHandlers = { onCards?: (cards: BayBayQuickCard[]) => void; onText?: (text: string) => void; onDraft?: (draft: BayBayDraft) => void };
 /** SSE dialect this reader understands, sent with each request so the server streams `draft` only to capable tabs (RC-21). */
@@ -12,7 +12,8 @@ export const BAYBAY_STREAM_MAX_BYTES = 2_000_000;
 /** Only `progress` and `quick_card` frames count. Drafts, deltas, heartbeats and unknown frames are bounded by bytes. */
 export const BAYBAY_STREAM_MAX_STAGE_EVENTS = 200;
 export const BAYBAY_DRAFT_MAX_CHARS = 4_000;
-export const BAYBAY_DRAFT_MAX_POINTS = 3;
+/** The fast-path answer allows up to five points (a day plan or a multi-part request). */
+export const BAYBAY_DRAFT_MAX_POINTS = 5;
 const validCardDate = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00Z`)) && new Date(`${value}T00:00:00Z`).toISOString().slice(0, 10) === value;
 const temporalStatuses = new Set(['past', 'inactive', 'upcoming', 'current', 'unknown', 'ended']);
 export function parseBayBayQuickCards(value: unknown): BayBayQuickCard[] {
@@ -35,6 +36,21 @@ export function parseBayBayDraftEvent(value: unknown): BayBayDraftEvent | null {
   return null;
 }
 
+/** Drafts are unvalidated model text. Source markers (`[[ref]]`), citation numbers and links are resolved only by the
+ * validated result, so a preview never shows them, including a marker or link that is still streaming at the end. */
+export function bayBayDraftDisplayText(text: string): string {
+  return text
+    .replace(/\[\[[^\]\r\n]*(?:\]\]?|$)/g, '')
+    .replace(/!?\[([^[\]\r\n]*)\]\([^)\s]*\)?/g, '$1')
+    .replace(/\bhttps?:\/\/[^\s<>"'`[\]()（）\p{Script=Han}，。；：！？、【】《》「」『』]*/giu, url => /[.,;:!?]+$/.exec(url)?.[0] ?? '')
+    .replace(/\[\d{1,3}\]|\[\d{0,3}$/g, '')
+    // Whitespace runs collapse first so the steps below stay linear on any input.
+    .replace(/[ \t]+/g, ' ')
+    .replace(/ ?[(（] ?[)）]/g, '')
+    .replace(/ (?=[,.;:!?，。；：！？、）)]|$)/gm, '')
+    .trim();
+}
+
 /** Appends drafts in strictly increasing `seq` order within the character budget. The first draft over budget closes the draft, so what was shown stays a clean prefix. */
 function createDraftAssembler(onDraft?: (draft: BayBayDraft) => void) {
   let lead = '', points: string[] = [], chars = 0, lastSeq = -1, closed = false;
@@ -48,7 +64,7 @@ function createDraftAssembler(onDraft?: (draft: BayBayDraft) => void) {
     lastSeq = draft.seq; chars += draft.text.length;
     if (draft.index === undefined) lead += draft.text;
     else { const index = draft.index; points = Array.from({ length: Math.max(points.length, index + 1) }, (_, i) => (points[i] || '') + (i === index ? draft.text : '')); }
-    onDraft({ lead, points: [...points] });
+    onDraft({ lead: bayBayDraftDisplayText(lead), points: points.map(bayBayDraftDisplayText) });
   };
 }
 
