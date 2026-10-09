@@ -3,8 +3,7 @@ import { useLocale } from '../i18n/locale';
 import { editionCoverageLabel } from '../lib/edition-label';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 
-// Its own module: GuideDetail imports it from here, so guide pages do not download the /events deals spotlight
-// (MonthlyDealsSpotlight.tsx, which re-exports it for existing callers).
+// Its own module: GuideDetail imports it from here, so guide pages do not download the events column.
 export function GuideEditionNotice({ editionMonth, startDate, throughDate, checkedAt, today: suppliedToday, offers = true }: { editionMonth: string; startDate?: string; throughDate?: string; checkedAt: string; today?: string; offers?: boolean }) {
   const today = useBayAreaToday(suppliedToday);
   const locale = useLocale();
