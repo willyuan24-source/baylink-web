@@ -16,11 +16,13 @@ type CardLink = {
   heading?: Heading;
   /** `lang="en"` for an English title inside a zh page. */
   titleLang?: string;
+  /** A member's own words (a nickname): shown exactly as written, never converted to 繁體 or looked up in a dictionary. */
+  rawTitle?: boolean;
 };
 
-function CardTitleLink({ title, to, href, onOpen, titleLang }: CardLink) {
+function CardTitleLink({ title, to, href, onOpen, titleLang, rawTitle }: CardLink) {
   const external = href && /^https?:/.test(href);
-  const text = <SegmentedTitle text={title} />;
+  const text = rawTitle ? <span translate="no">{title}</span> : <SegmentedTitle text={title} />;
   if (to) return <Link className="ui-card-link" to={to} onClick={onOpen} lang={titleLang}>{text}</Link>;
   return <a className="ui-card-link" href={href} onClick={onOpen} lang={titleLang} {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}>{text}</a>;
 }

@@ -142,7 +142,7 @@ const ConversationList = ({ currentUser, onLoginNeeded }: MessagesListProps) => 
         const preview = conversation.lastMessage ? previewText(conversation.lastMessage, english) : t('点击开始聊天', 'Tap to start chatting');
         // translate="no": the name and message are the members' own words; every UI string here is already localised.
         return <li key={conversation.id} translate="no" data-profile-theme={other.profileTheme || 'bay'}>
-          <RowCard className={unread ? 'msg-thread msg-thread--unread' : 'msg-thread'} title={other.nickname} to={`/messages/${encodeURIComponent(conversation.id)}`}
+          <RowCard rawTitle className={unread ? 'msg-thread msg-thread--unread' : 'msg-thread'} title={other.nickname} to={`/messages/${encodeURIComponent(conversation.id)}`}
             thumb={<Avatar src={other.avatar} name={other.nickname} theme={other.profileTheme} size={14} />}
             date={<>{pinned && <>{t('已置顶', 'Pinned')} · </>}<time dateTime={new Date(conversation.updatedAt).toISOString()}>{when(conversation.updatedAt)}</time>{unread > 0 && <b className="msg-thread__unread" aria-label={t(`${unread} 条未读`, `${unread} unread`)}>{unread > 99 ? '99+' : unread}</b>}</>}
             meta={draft ? <><em className="msg-thread__draft">{t('草稿', 'Draft')}</em> {draft}</> : preview}
