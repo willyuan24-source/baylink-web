@@ -4,9 +4,7 @@ import { useApp } from '../app/context';
 import { appendToDay } from '../lib/planner-library';
 import { errorText, type Stop } from '../lib/planner';
 import { translateText, useLocale } from '../i18n/locale';
-import { Button } from './ui/Button';
 import { SaveToast } from '../features/saves/SaveToast';
-import '../features/saves/saves.css';
 
 /** "10/10" for the toast and a new plan's title. */
 const shortDay = (date: string) => `${Number(date.slice(5, 7))}/${Number(date.slice(8, 10))}`;
@@ -31,12 +29,12 @@ export function AddToDayPlan({ stop, date, title, compact, className, today }: {
     }
   };
   const name = title ? `${t('加入这天计划', 'Add to this day’s plan')}${locale === 'en' ? ': ' : '：'}${translateText(title, locale)}` : undefined;
-  return <>
-    <Button variant="tonal" className={['saves-add-day', className].filter(Boolean).join(' ')} data-compact={compact ? '' : undefined} aria-label={name}
-      disabled={state.status === 'busy'} onClick={() => void add()} icon={state.status === 'done' ? <Check aria-hidden="true" strokeWidth={2} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />}>
+  return <span className={['saves-day', className].filter(Boolean).join(' ')}>
+    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={name} disabled={state.status === 'busy'} onClick={() => void add()}>
+      {state.status === 'done' ? <Check aria-hidden="true" strokeWidth={2} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />}
       {state.status === 'done' ? t(`已加入 ${day}`, `In your ${day} plan`) : t('加入这天计划', 'Add to this day’s plan')}
-    </Button>
-    {state.status === 'error' && <p className="saves-add-day__error" role="alert">{state.message}</p>}
+    </button>
+    {state.status === 'error' && <span className="saves-day__error" role="alert">{state.message}</span>}
     {state.toast && <SaveToast message={state.toast} actionLabel={t('查看', 'View')} to={`/my-week#plan-${date}`} closeLabel={t('关闭提示', 'Dismiss')} onClose={() => setState(current => ({ ...current, toast: undefined }))} />}
-  </>;
+  </span>;
 }

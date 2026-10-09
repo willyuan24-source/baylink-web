@@ -171,6 +171,12 @@ export function loadPlannerAccount(userId: string): Promise<AccountLibrary> {
   const request = (async () => {
     try {
       const library: AccountLibrary = await api.request('/planner/me');
+      if (!sessionMatches(userId)) {
+        // The account changed while reading: keep nothing, and let the next mount for this account read again.
+        const current = slotFor(userId);
+        if (current.status !== 'ready') put({ ...current, status: 'idle' });
+        return library;
+      }
       adoptAccountFavorites(userId, library?.favorites);
       void retryPending(userId);
       return library;

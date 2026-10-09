@@ -4,9 +4,7 @@ import { Link } from 'react-router-dom';
 import type { Favorite } from '../lib/planner';
 import { SAVE_ERROR_COPY, useSave } from '../lib/saves';
 import { translateText, useLocale } from '../i18n/locale';
-import { Button } from './ui/Button';
 import { SaveToast } from '../features/saves/SaveToast';
-import '../features/saves/saves.css';
 
 type Props = {
   favorite: Favorite;
@@ -44,8 +42,8 @@ function SaveControl({ favorite, compact, title }: Props) {
       : result.pending ? t('已收藏在本机，账号稍后同步', 'Saved on this device; your account will catch up') : t('已收藏', 'Saved'));
   };
   return <div className="saves-control" data-compact={compact ? '' : undefined}>
-    <Button variant="tonal" className="saves-toggle" data-compact={compact ? '' : undefined} aria-pressed={unknown ? undefined : !!save.saved} aria-label={name}
-      disabled={unknown || save.busy} onClick={() => void toggle()} icon={<Heart aria-hidden="true" strokeWidth={1.75} />}>{label}</Button>
+    <button type="button" className="saves-toggle" data-compact={compact ? '' : undefined} aria-pressed={unknown ? undefined : !!save.saved} aria-label={name}
+      disabled={unknown || save.busy} onClick={() => void toggle()}><Heart aria-hidden="true" strokeWidth={1.75} />{label}</button>
     {!compact && <Link className="saves-control__link" to="/my-week#saved">{t('我的这周', 'My Week')}</Link>}
     {!compact && save.saved && save.pending && <p className="saves-control__note">{t('已收藏在本机，账号稍后同步。', 'Saved on this device; your account will catch up shortly.')}</p>}
     {error && <p className="saves-control__error" role="alert">{t(SAVE_ERROR_COPY[error].zh, SAVE_ERROR_COPY[error].en)}

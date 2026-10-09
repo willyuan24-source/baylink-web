@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Check, X } from 'lucide-react';
-import './saves.css';
+
+// Styles: src/components/reader-library.css (global; this appears on prerendered pages).
 
 /**
  * A short confirmation with one way onward: "已收藏 · 查看" / "已加入 10/10 计划 · 查看". Saves and plans confirm here
