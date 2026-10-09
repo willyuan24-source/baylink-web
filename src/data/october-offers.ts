@@ -18,6 +18,7 @@ import { communityDiscoveryOffers } from './community-discovery-offers';
 import { lateSeptemberLocalOffers } from './late-september-local';
 import { lateSeptemberNorthOffers } from './late-september-north';
 import { octoberRefreshOffers } from './october-refresh-offers';
+import { applyOfferOverlay } from './editorial-overlay/apply';
 
 // Official sources checked 2026-09-15. Monthly-rule dates are identified in the text.
 export const newOctoberOffers: FreebieOffer[] = [
@@ -144,7 +145,8 @@ const mergedOffers = new Map<string, FreebieOffer>();
 for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[]), ...verifiedOffers20261005, ...(octnovOffers as FreebieOffer[])]) {
   mergedOffers.set(offer.id, { ...mergedOffers.get(offer.id), ...offer });
 }
-export const currentFreebies: FreebieOffer[] = [...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id], ...CONTENT_AUDIT_OFFER_UPDATES[offer.id], ...VERIFIED_OFFER_PLACE_MEDIA_UPDATES[offer.id], ...officialOfferMediaUpdates[offer.id], ...offerReviews20261007[offer.id], ...reviewedOctnovOffers[offer.id] }));
+// The editorial overlay goes last (src/data/editorial-overlay).
+export const currentFreebies = applyOfferOverlay([...mergedOffers.values()].map(offer => ({ ...offer, ...currentOfferUpdates[offer.id], ...CONTENT_AUDIT_OFFER_UPDATES[offer.id], ...VERIFIED_OFFER_PLACE_MEDIA_UPDATES[offer.id], ...officialOfferMediaUpdates[offer.id], ...offerReviews20261007[offer.id], ...reviewedOctnovOffers[offer.id] })));
 
 export const octoberOfferSources: GuideSource[] = [...new Map([
   ...currentFreebies.map(offer => ({ title: `${offer.brand}：${offer.sourceLabel}`, url: offer.sourceUrl, description: offer.requirement })),
