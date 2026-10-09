@@ -60,4 +60,3 @@ test('RC-11(i): on /en the linkified paragraphs are the English translation, not
   }
   for (const p of document.querySelectorAll('p')) if (p.querySelector('a.phone-chip')) assert.doesNotMatch(p.textContent!, chinese, p.textContent!.slice(0, 60));
 });
-

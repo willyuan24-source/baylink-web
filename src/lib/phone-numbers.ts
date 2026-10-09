@@ -11,6 +11,9 @@ const FORMATTED = /(?:\+?1[ .-]?)?(?:[(（]([2-9]\d\d)[)）] ?|([2-9]\d\d)[ .-])
 // Three-digit service lines count only right after a word that says to call them: 请拨 911, call 311, 拨打 988
 // (zh-Hant text is linkified after conversion, so 撥打 / 請撥 / 致電 too).
 const SERVICE = /(?:[拨撥]打|[请請][拨撥]|[拨撥]|致[电電]|打|call|dial)[ :：]?(211|311|511|711|811|911|988)/gi;
+// …unless the same clause says not to: "其他城市不要默认能拨 311", "do not call 911 for …" ("别忘了拨 211" still calls).
+const NEGATED = /(?:不要|不能|不可|不必|不用|[别別]|[无無]法|勿)(?!忘)|\b(?:don['’]t|do not|never|cannot|can['’]t)\b(?! forget)/i;
+const clauseBefore = (text: string, at: number) => text.slice(Math.max(0, at - 12), at).split(/[，。；！？,;!?\n]/).pop()!;
 const wordCharacter = /[0-9A-Za-z_]/;
 const joinedBefore = /[-./$#@=&?%+_]/;
 
@@ -38,7 +41,7 @@ export function findPhoneNumbers(text: string): PhoneMatch[] {
   for (const match of text.matchAll(SERVICE)) {
     const number = match[1], end = match.index! + match[0].length, start = end - number.length;
     const before = text[match.index! - 1] || '', after = text[end] || '';
-    if (/[a-z]/i.test(match[0][0]) && wordCharacter.test(before)) continue;
+    if (/[a-z]/i.test(match[0][0]) && wordCharacter.test(before) || NEGATED.test(clauseBefore(text, match.index!))) continue;
     if (wordCharacter.test(after) || /[-./:]/.test(after) && /\d/.test(text[end + 1] || '')) continue;
     if (!found.some(item => start < item.end && end > item.start)) found.push({ start, end, text: number, tel: number });
   }

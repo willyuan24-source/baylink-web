@@ -41,6 +41,12 @@ test('US numbers in the formats the guides and listings use become tel:+1 links'
     ['非紧急问题拨 311，市府会转给对应部门。', ['311']],
     ['If someone is in danger, call 911. Call 311 within San Francisco.', ['911', '311']],
     ['撥打 988 心理危機熱線', ['988']],
+    // A negation in the same clause keeps a service number plain; a double negative or an earlier clause does not.
+    ['其他城市不要默认能拨 311；从市府官网找 Report a problem。', []],
+    ['非紧急情况不要拨打 911，可拨 311。', ['311']],
+    ['Do not call 911 for a parking question.', []],
+    ['不要等工单，立即拨 911。', ['911']],
+    ['别忘了拨 211 问中文服务。', ['211']],
   ] as const) assert.deepEqual(tels(text), want, text);
 });
 
