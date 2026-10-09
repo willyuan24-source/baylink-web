@@ -62,7 +62,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-guest-card { display:flex; flex-direction:column; align-items:flex-start; gap:8px; margin-top:24px; padding:24px 16px; border-radius:16px; background:var(--color-brand-tint); }
 .me-guest-card h2 { margin:0; color:var(--color-ink); font-size:1.375rem; line-height:1.364; font-weight:600; }
 .me-guest-card p { margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
-.me-guest-card ul { margin:4px 0 8px; padding:0 0 0 1.25rem; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
+.me-guest-card ul { margin:4px 0 8px; padding:0 0 0 1.25rem; list-style:disc; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
 
 /* Sub-views (通知, 隐私与账号): a back row above the panel. */
 .me-subview { box-sizing:content-box; max-width:720px; margin:0 auto; padding:16px 16px calc(env(safe-area-inset-bottom, 0px) + 40px); }

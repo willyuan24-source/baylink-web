@@ -49,7 +49,7 @@ export default function MessagesPage() {
   };
   return (
     <div className="msg-hub">
-      <PageHeader title={t('消息', 'Messages')} lede={t('私信、联系方式请求，以及小队和预约的通知。', 'Private messages, contact requests, and group and booking updates.')} />
+      <PageHeader title={t('消息', 'Messages')} lede={user ? t('私信、联系方式请求，以及小队和预约的通知。', 'Private messages, contact requests, and group and booking updates.') : undefined} />
       {user && <ul className="msg-rounds" aria-label={t('消息分类', 'Message types')}>
         <li><button type="button" className="msg-round" aria-expanded={requestsOpen} aria-controls="contact-requests" onClick={openRequests}>
           <span className="msg-round__icon" aria-hidden="true"><UserPlus strokeWidth={1.75} /></span>
