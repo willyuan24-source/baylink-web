@@ -95,6 +95,7 @@ test('the older reader list shows once, and an empty list explains how to save',
   cleanup(); localStorage.clear(); resetSaveStore();
   const empty = render(page());
   assert.ok(within(empty.getByTestId('my-week-saved')).getByRole('heading', { name: '还没有收藏' }));
+  assert.equal(empty.queryByTestId('my-week-saved-count'), null, 'an empty list prints no “0” beside its heading; the empty state says it');
   assert.equal(within(empty.getByTestId('my-week-saved')).getByRole('link', { name: '看本周末活动' }).getAttribute('href'), '/events');
 });
 

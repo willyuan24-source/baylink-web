@@ -47,7 +47,7 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
   const unknown = list.count === null;
   return <section id="saved" className="my-week__section" aria-labelledby="my-week-saved-title" data-testid="my-week-saved">
     <div className="my-week__head">
-      <h2 id="my-week-saved-title"><Heart aria-hidden="true" strokeWidth={1.75} />{t('收藏', 'Saved')}<span className="my-week__count" data-testid="my-week-saved-count" aria-label={unknown ? t('账号收藏暂时未知', 'Account saved items unavailable') : undefined}>{unknown ? '—' : list.count}</span></h2>
+      <h2 id="my-week-saved-title"><Heart aria-hidden="true" strokeWidth={1.75} />{t('收藏', 'Saved')}{list.count !== 0 && <span className="my-week__count" data-testid="my-week-saved-count" aria-label={unknown ? t('账号收藏暂时未知', 'Account saved items unavailable') : undefined}>{unknown ? '—' : list.count}</span>}</h2>
     </div>
     <p className="my-week__note">{signedIn ? t('跟着账号走，换手机也能看到；邻里信息的收藏只留在这台设备。', 'Kept with your account on every device; saved neighborhood listings stay on this device.')
       : t('保存在这个浏览器，不用登录；登录后可以选择导入账号。', 'Kept in this browser without an account; sign in to choose whether to import them.')}</p>
