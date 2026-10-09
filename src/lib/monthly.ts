@@ -41,10 +41,25 @@ export const getMonthlyDateRange = (filter: MonthlyDateFilter, today = getBayAre
   return { start, end: addCalendarDays(start, 1) };
 };
 
+// A mixed-price event is free to attend when its published price line opens by saying general admission, watching or
+// the activity itself is free ("舰船参观与普通航空展观赏免费 · VIP 体验另售"); paid extras may follow. Not free: an
+// opening clause that names who is exempt (ages, members, residents, eligibility), a reference-only price ("参考："),
+// or a line that still needs a ticket or has unchecked parts (须购票, 待确认, 未核).
+const FREE_OPENING = /^[^；;·，,。]{0,16}?(?:入场|观赏|观看|参观|活动|节庆|街区节|庆典|演出|讲座|讲解|导览|巡游|试吃)[^；;·，,。]{0,6}?免费|^免费(?:入场|观看|参观|社区活动)/;
+const CONDITIONAL_OPENING = /符合|岁|会员|居民|学生|长者|登记|参考/;
+const NOT_YET_FREE = /[须需]购票|待确认|待核|未核/;
+export const isFreeToAttend = (event: Pick<MonthlyEvent, 'cost' | 'costLabel'>): boolean => {
+  if (event.cost === 'free') return true;
+  if (event.cost !== 'mixed') return false;
+  const label = event.costLabel.trim();
+  const opening = label.split(/[；;·]/)[0];
+  return FREE_OPENING.test(label) && !CONDITIONAL_OPENING.test(opening) && !NOT_YET_FREE.test(label);
+};
+
 export const filterMonthlyEvents = (events: MonthlyEvent[], filters: { region?: string; cost?: string; includeEnded?: boolean; date?: MonthlyDateFilter }, today = getBayAreaToday()): MonthlyEvent[] => {
   const range = getMonthlyDateRange(filters.date || 'all', today);
   return events.filter(event => (!filters.region || filters.region === 'all' || event.region === filters.region)
-    && (!filters.cost || filters.cost === 'all' || event.cost === filters.cost)
+    && (!filters.cost || filters.cost === 'all' || (filters.cost === 'free' ? isFreeToAttend(event) : event.cost === filters.cost))
     && (filters.includeEnded || getEventStatus(event, today) !== 'ended')
     && (!range || (event.startDate <= range.end && event.endDate >= range.start
       && (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= range.start && day <= range.end && day >= event.startDate && day <= event.endDate && (filters.includeEnded || day >= today))))));

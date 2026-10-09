@@ -5,7 +5,7 @@ import { currentFreebies } from '../data/october-offers';
 import { currentOpenings } from '../data/local-discoveries';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import { normalizeGuideQuery } from './guide-search';
-import { getBayAreaToday, getEventStatus } from './monthly';
+import { getBayAreaToday, getEventStatus, isFreeToAttend } from './monthly';
 import { validCalendarDay } from './event-calendar';
 import { offerMatchesDateRange } from './offer-calendar';
 import { translateText, type Locale } from '../i18n/locale';
@@ -70,7 +70,7 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
     return (!namedEvent.eventIds.length || namedEvent.eventIds.includes(event.id)) && getEventStatus(event, today) !== 'ended' && locationMatches(event.region, event.city) &&
       (!dateRange || rangeStart! <= dateRange.end && event.startDate <= dateRange.end && event.endDate >= rangeStart! &&
         (event.occurrenceDates === undefined || event.occurrenceDates.some(day => day >= rangeStart! && day <= dateRange.end && day >= event.startDate && day <= event.endDate))) &&
-      (!queryInfo.eventKind || event.kind === queryInfo.eventKind) && budgetMatches(event.cost, facts?.admissionUsd) &&
+      (!queryInfo.eventKind || event.kind === queryInfo.eventKind) && budgetMatches(isFreeToAttend(event) ? 'free' : event.cost, facts?.admissionUsd) &&
       (!queryInfo.setting || facts?.setting === queryInfo.setting) && eveningMatches(event.dateLabel) &&
       (!queryInfo.family || (facts?.minAge ?? 0) < 18 && (event.category === 'family' || /亲子|儿童|孩子|家庭|小朋友|\bfamil(?:y|ies)\b|\bkids\b/.test(event.audience.join(' ')))) &&
       queryInfo.childAges.every(age => (facts?.minAge == null || age >= facts.minAge) && (facts?.maxAge == null || age <= facts.maxAge)) &&
