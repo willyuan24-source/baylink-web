@@ -43,7 +43,7 @@ export function readEnglishSources(read: (path: string) => string): Record<strin
 }
 
 /** Pipeline vocabulary and editor's-log self-reference that must never reach a reader (CNT-09: 本次/本条/本卡…). */
-export const INTERNAL_NOTE = /本包|本轮|本次|本卡|本条|本记录|录入|(?<!\d)403(?!\d)|读取|抓取|不再声明|returned|缓存|web open|封面|核实时/iu;
+export const INTERNAL_NOTE = /本包|本轮|本次|本卡|本条|本记录|录入|(?<!\d)403(?!\d)|读取|抓取|不再声明|returned|缓存|web open|封面|核实时已/iu;
 /** Self-defensive phrasing (content.md §2.5); a warning, rewritten item by item. */
 export const SELF_DEFENSIVE = /不把|不当作|不代表|不保证|不等于|非亲测|不直接|不沿用|不能据/u;
 const HEDGES = /待核实|待确认|未核实|未确认|以[^，。；]{1,12}为准|出发前|复核|再查|另查|核对|可能/gu;
