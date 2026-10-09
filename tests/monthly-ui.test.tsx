@@ -316,10 +316,12 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   assert.equal(filters(revisited).getByRole('button', { name: '这个周末', exact: true }).getAttribute('aria-pressed'), 'true');
   assertResultTitles(revisited, ['sunnyvale-diwali-2026']);
   fireEvent.change(filters(revisited).getByRole('searchbox', { name: '搜索当月活动' }), { target: { value: 'San Jose' } });
-  assertResultTitles(revisited, []);
+  // Santana Row's glass pumpkin patch is free to walk into (免费入场; the glass art is for sale), so it is the one
+  // San Jose activity that is free to attend on October 3–4 (G17).
+  assertResultTitles(revisited, ['santana-row-glass-pumpkin-2026']);
   fireEvent.click(filters(revisited).getByRole('button', { name: '全部日期', exact: true }));
   assert.equal(queryParams(revisited).has('when'), false);
-  assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-hellflowers-free-concert-oct2-2026', 'san-jose-sjma-dia-muertos-community-2026', 'san-jose-365-night-market-october-2026']);
+  assertResultTitles(revisited, ['san-jose-avenida-altares-2026', 'san-jose-first-friday-ballet-2026', 'san-jose-hellflowers-free-concert-oct2-2026', 'san-jose-sjma-dia-muertos-community-2026', 'san-jose-365-night-market-october-2026', 'santana-row-glass-pumpkin-2026']);
   const addedConcert = item('san-jose-hellflowers-free-concert-oct2-2026');
   assert.equal(addedConcert.city, 'San Jose');
   assert.equal(addedConcert.cost, 'free');
