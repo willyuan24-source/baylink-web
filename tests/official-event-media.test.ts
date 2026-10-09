@@ -36,6 +36,7 @@ const webpSize = (src: string) => {
 };
 
 const event = (record: OfficialRecord) => MONTHLY_EVENTS.find(item => item.id === record.eventId);
+const imageManifest = JSON.parse(readFileSync(new URL('../src/data/generated/image-manifest.json', import.meta.url), 'utf8')) as { images: Record<string, { srcset: string[] }> };
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.equal(officialEventMedia.length, 43, 'the 2026-10-08 batch ships 43 of the 54 approved items (10 refused downloads, 1 kept a newer photo)');
@@ -90,9 +91,12 @@ test('every event in the set resolves to its official image, labelled 官方图,
     assert.equal(image.kind, record.kind, `${record.key}: pages read the registry kind`);
     assert.equal(getImageProvenance(image), '官方图');
     assert.equal(getImageProvenance(image, true), 'Official image');
-    for (const field of ['src', 'srcSet', 'width', 'height', 'alt', 'caption', 'credit', 'creditUrl', 'fullFrame', 'focal', 'rights'] as const) {
+    for (const field of ['src', 'width', 'height', 'alt', 'caption', 'credit', 'creditUrl', 'fullFrame', 'focal', 'rights'] as const) {
       assert.deepEqual((image as Record<string, unknown>)[field], (record as Record<string, unknown>)[field], `${record.key}: ${field}`);
     }
+    // Pages get the D8 ladder for the same file; the record keeps the 480w + original pair it was downloaded with.
+    assert.equal(image.srcSet, imageManifest.images[record.src].srcset.join(', '), `${record.key}: srcSet from the image manifest`);
+    assert.ok(image.srcSet!.startsWith(`${record.srcSet.split(',')[0]},`), `${record.key}: the 480w rung is the recorded small file`);
     for (const field of DOWNLOAD_ONLY) assert.equal(Object.hasOwn(image, field), false, `${record.key}: ${field} stays in the source record`);
   }
 });
