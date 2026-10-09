@@ -1,4 +1,4 @@
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Link, useParams, useLocation } from 'react-router-dom';
 import { ChevronRight, Compass, Plus, RotateCw } from 'lucide-react';
 import { useApp } from '../app/context';
@@ -33,6 +33,18 @@ function reloadBoard(retryInPlace: () => void) {
   window.location.reload();
 }
 
+/** The board's own "could not load" state, in its place; like the board, it scrolls into view when the reader asks for
+ * the board (查看邻里信息 sits far above it). */
+function BoardUnavailable({ onScrollToFeed, scrollRequest }: CommunityBoardProps) {
+  const notice = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!scrollRequest) return;
+    const frame = requestAnimationFrame(() => notice.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [scrollRequest]);
+  return <div ref={notice} className="bay-feed-empty" id="home-feed-section" role="status"><Compass size={34} /><h3>连接暂时慢了一点</h3><p>信息未能加载，请稍后重试。</p><button type="button" onClick={() => reloadBoard(onScrollToFeed)} className="bay-button-dark">重新加载<RotateCw size={16} /></button></div>;
+}
+
 /** The board once its chunk is in (suspends until then). After a failed load: the error boundary where the board is the
  * page (as for a failed route chunk); on the discovery view, nothing until the reader asks for the board, then the
  * board's own "could not load" state, with 重新加载. */
@@ -41,7 +53,7 @@ function CommunityBoardSlot({ required, asked, ...props }: CommunityBoardProps &
   const failure = communityBoardFailure();
   if (failure === undefined) throw loadCommunityBoard();
   if (required) throw failure;
-  return asked ? <div className="bay-feed-empty" id="home-feed-section" role="status"><Compass size={34} /><h3>连接暂时慢了一点</h3><p>信息未能加载，请稍后重试。</p><button type="button" onClick={() => reloadBoard(props.onScrollToFeed)} className="bay-button-dark">重新加载<RotateCw size={16} /></button></div> : null;
+  return asked ? <BoardUnavailable {...props} /> : null;
 }
 
 export default function HomePage() {

@@ -110,6 +110,8 @@ test('浏览邻里信息 after a failed load asks for the board again, then show
   const order = [...view.container.querySelectorAll('.bay-community-intro, .bay-feed-empty, .bay-home-footer')].map(element => element.className);
   assert.deepEqual(order, ['bay-community-intro', 'bay-feed-empty', 'bay-home-footer']);
   assert.equal(view.container.querySelector('.bay-feed-empty')?.id, 'home-feed-section', 'the neighborhood anchor still lands');
+  await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']), undefined);
+  assert.ok(view.container.querySelector('.bay-feed-empty')?.contains(screen.getByRole('button', { name: '重新加载' })), 'it scrolled to the notice (查看邻里信息 sits far above it)');
 
   // a browser answers a repeated request for a chunk that failed in this page from its module map (Chrome does), so
   // online the reliable retry is a new page, opened at the board, which loads it before its first render
@@ -138,10 +140,12 @@ test("offline, 重新加载 tries in place (a reload would show the browser's of
     assert.deepEqual(navigations, [], 'no reload offline');
 
     boardBlocked = false;
+    scrolled.length = 0;
     fireEvent.click(screen.getByRole('button', { name: '重新加载' }));
     await waitFor(() => assert.ok(screen.getByRole('heading', { name: '发现身边的好信息' })), { timeout: 5000 });
     assert.equal(screen.queryByText('连接暂时慢了一点'), null);
-    await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']));
+    await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']), undefined);
+    assert.ok(document.getElementById('home-feed-section')?.classList.contains('bay-feed-heading'), 'the board, scrolled to its heading');
   } finally {
     Reflect.deleteProperty(dom.window.navigator, 'onLine');
   }
