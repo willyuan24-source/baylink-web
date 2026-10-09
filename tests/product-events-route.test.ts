@@ -25,7 +25,8 @@ test('events carry the route template of the current page, never its path, id, q
   assert.doesNotMatch(JSON.stringify(body), /fleet|2026|card|map|\/en/);
   dom.reconfigure({ url: 'https://www.baylink.us/some/unknown/page?q=private' });
   recordProductEvent('nav_click');
-  assert.equal(bodies(fetch)[1].route, 'other');
+  assert.equal(bodies(fetch)[1].route, '/not-found', 'the 404 page is told apart from other routes');
+  assert.equal(apiRouteTemplate('/not-found'), '/not-found');
   recordProductEvent('page_view', { route: '/guides/:slug' });
   assert.equal(bodies(fetch)[2].route, '/guides/:slug', 'an explicit template wins (the router path, not window.location)');
 });

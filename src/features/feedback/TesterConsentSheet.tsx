@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useLayoutEffect, useRef } from 'react';
 import { ModalShell } from '../../components/ui/Modal';
 import { useLocale } from '../../i18n/locale';
 import { say, type Copy } from './say';
@@ -21,9 +21,13 @@ export default function TesterConsentSheet({ code, onAgree, onDecline }: { code:
   const locale = useLocale();
   const t = (copy: Copy) => say(copy, locale);
   const id = useId();
+  // Start at the heading, not the first link: the reader hears the title and the list before 同意 or 隐私说明. A layout effect runs
+  // before ModalShell's focus effect, which keeps focus already inside the dialog (the shell only accepts tabbable targets).
+  const heading = useRef<HTMLHeadingElement>(null);
+  useLayoutEffect(() => { heading.current?.focus({ preventScroll: true }); }, []);
   return <ModalShell onClose={onDecline} closeOnBackdrop={false} className="feedback-overlay" labelledBy={`${id}title`}>
     <div className="feedback-sheet feedback-consent">
-      <header className="feedback-sheet-header"><h2 id={`${id}title`}>{t(COPY.title)}</h2></header>
+      <header className="feedback-sheet-header"><h2 ref={heading} id={`${id}title`} tabIndex={-1}>{t(COPY.title)}</h2></header>
       <p className="feedback-consent-code">{t(COPY.code)}<strong translate="no">{code}</strong></p>
       <ul>
         <li>{t(COPY.what)}</li>

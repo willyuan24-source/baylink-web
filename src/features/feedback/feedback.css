@@ -31,7 +31,7 @@
 .feedback-failure a{color:var(--color-brand);text-decoration:underline}
 .feedback-honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
 .feedback-attached{margin:0 0 1rem;font-size:var(--text-caption);line-height:1.6;color:var(--color-ink-3)}
-.feedback-attached a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:underline;text-underline-offset:.1875rem}
+.feedback-attached a{display:flex;align-items:center;width:fit-content;min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:underline;text-underline-offset:.1875rem}
 .feedback-actions{display:flex;flex-wrap:wrap;gap:.75rem}
 .feedback-primary,.feedback-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:var(--control-height);padding:.5rem 1.25rem;border-radius:12px;font-size:var(--text-body);font-weight:600}
 .feedback-primary{flex:1 1 10rem;border:1px solid var(--color-brand);background:var(--color-brand);color:var(--color-surface)}
@@ -45,6 +45,7 @@
 .feedback-sheet-done>svg{color:var(--color-brand)}
 .feedback-sheet-done p{margin:0;color:var(--color-ink-2)}
 .feedback-consent ul{display:grid;gap:.625rem;margin:0 0 1rem;padding-left:1.25rem;list-style:disc;color:var(--color-ink-2)}
+.feedback-consent h2[tabindex="-1"]:focus{outline:none} /* a starting point for screen readers, not a control */
 .feedback-consent-code{margin:.75rem 0;font-size:var(--text-body);color:var(--color-ink)}
 .feedback-consent-code strong{font-weight:700;letter-spacing:.04em}
 /* Tester mode only: one 48px button above the phone tab bar (quality.md §6: bottom 80px; the tab bar shows below 1024px), bottom-right on desktop. */

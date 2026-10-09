@@ -29,7 +29,7 @@ const METRICS = [...REQUIRED_METRICS,
   ['signup_completed', '成功创建账号'],
   ['contact_click', '点击联系'], ['message_first_sent', '首次发送消息'],
   ['message_request_started', '新增真实联系对话'], ['owner_reply_24h', '发布者在 24 小时内回复'],
-  ['client_error', '客户端错误'], ['newsletter_signup', '提交邮件订阅意向'],
+  ['newsletter_signup', '提交邮件订阅意向'],
   ['opus_title', '打开游戏标题页'], ['opus_first_card', '取得首张游戏卡'],
   ['opus_visit_new', '游戏记录的新访客'], ['opus_tour_done', '完成游戏导览'],
   ['opus_share_photo', '分享游戏照片'], ['opus_share_card', '分享游戏卡'],
@@ -43,7 +43,15 @@ const FEEDBACK_METRICS = [
   { key: 'feedback_open', zh: '打开反馈表', en: 'Feedback form opened' },
   { key: 'feedback_sent', zh: '发送反馈', en: 'Feedback sent' },
 ] as const;
-type MetricKey = typeof METRICS[number][0] | typeof FEEDBACK_METRICS[number]['key'];
+/**
+ * Retired: page errors were counted here until the error beacon took over (the 前端报错 panel below). The tile stays only while
+ * the 30-day window still holds old counts, so it can never read as "no errors" next to the panel.
+ */
+const RETIRED_METRICS = [
+  { key: 'client_error', zh: '客户端错误（旧计数，已停用；现见下方「前端报错」）', en: 'Client errors (old counter, retired; see Browser errors below)' },
+] as const;
+type MetricKey = typeof METRICS[number][0] | typeof FEEDBACK_METRICS[number]['key'] | typeof RETIRED_METRICS[number]['key'];
+const isCount = (value: unknown) => value === undefined || (Number.isSafeInteger(value) && (value as number) >= 0);
 type RouteRow = { event: string; route: string; count: number };
 type MetricsSummary = { days: number; from: string; through: string; counts: Partial<Record<MetricKey, number>>; routes?: RouteRow[] | null; routesTruncated?: boolean };
 const isSummary = (value: unknown): value is MetricsSummary => {
@@ -52,7 +60,7 @@ const isSummary = (value: unknown): value is MetricsSummary => {
   return result.days === 30 && typeof result.from === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(result.from)
     && typeof result.through === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(result.through) && !!result.counts
     && REQUIRED_METRICS.every(([key]) => Number.isSafeInteger(result.counts?.[key]) && result.counts![key]! >= 0)
-    && METRICS.every(([key]) => result.counts?.[key] === undefined || (Number.isSafeInteger(result.counts[key]) && result.counts[key]! >= 0))
+    && [...METRICS.map(([key]) => key), ...FEEDBACK_METRICS.map(metric => metric.key), ...RETIRED_METRICS.map(metric => metric.key)].every(key => isCount(result.counts?.[key]))
     && (result.routes == null || (Array.isArray(result.routes) && result.routes.every(row => !!row && typeof row.event === 'string' && typeof row.route === 'string' && Number.isSafeInteger(row.count))));
 };
 
@@ -81,7 +89,7 @@ export function ProductMetrics() {
     {loading ? <p role="status" className="product-metrics-note">{t('正在读取使用统计…')}</p> : error ? <div className="product-metrics-error"><p role="alert">{t('暂时无法读取使用统计，未将缺失数据记为零。')}</p><button type="button" onClick={() => void load()}>{t('重试统计')}</button></div> : summary && <>
       <p className="product-metrics-note">{summary.from} — {summary.through} · {t('湾区日期，包含今天')}</p>
       <dl className="product-metrics-grid">{METRICS.map(([key, label]) => <div key={key}><dt>{t(label)}</dt><dd>{summary.counts[key]?.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN') ?? '—'}</dd></div>)}
-        {FEEDBACK_METRICS.map(metric => <div key={metric.key}><dt>{locale === 'en' ? metric.en : t(metric.zh)}</dt><dd>{summary.counts[metric.key]?.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN') ?? '—'}</dd></div>)}</dl>
+        {[...FEEDBACK_METRICS, ...RETIRED_METRICS.filter(metric => (summary.counts[metric.key] ?? 0) > 0)].map(metric => <div key={metric.key}><dt>{locale === 'en' ? metric.en : t(metric.zh)}</dt><dd>{summary.counts[metric.key]?.toLocaleString(locale === 'en' ? 'en-US' : 'zh-CN') ?? '—'}</dd></div>)}</dl>
       <PageViewsByRoute rows={summary.routes} truncated={!!summary.routesTruncated} />
     </>}
   </section>;

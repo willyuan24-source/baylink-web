@@ -39,3 +39,12 @@ test('real SPA path changes count once, query/filter changes do not and all requ
   assert.deepEqual(bodies.map(body => body.route), ['/', '/', '/guides', '/']);
   assert.equal(JSON.stringify(bodies).includes('private'), false);
 });
+
+test('a path outside the route table (the 404 page) counts as /not-found, never as its path', context => {
+  const fetch = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  render(<MemoryRouter initialEntries={['/en/some/private-page?x=1']}><PageVisitObserver /></MemoryRouter>);
+  const bodies = fetch.mock.calls.map(call => JSON.parse(String(call.arguments[1]?.body)));
+  assert.deepEqual(bodies.map(body => body.event), ['page_view', 'site_source_direct']);
+  assert.deepEqual(bodies.map(body => body.route), ['/not-found', '/not-found']);
+  assert.equal(JSON.stringify(bodies).includes('private'), false);
+});

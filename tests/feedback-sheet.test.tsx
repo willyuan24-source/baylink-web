@@ -35,6 +35,8 @@ test('the page sheet asks what the reader was doing and sends only the contract 
   const view = render(<FeedbackSheet request={request} onClose={() => { closed++; }} send={async payload => { sent.push(payload); return { ok: true }; }} />);
   const dialog = view.getByRole('dialog', { name: '反馈与报错' });
   const chips = within(dialog).getAllByRole('radio');
+  assert.match(dialog.querySelector('.feedback-attached')!.textContent!, /^会一起发送：页面类型、语言、字号和网站版本。不含网址/, 'no item id on a page report');
+  assert.equal(dialog.querySelector('.feedback-attached a')!.getAttribute('href'), '/privacy');
   assert.deepEqual(chips.map(chip => chip.closest('label')!.textContent), ['找活动', '办事', '问 BayBay', '计划行程', '其他']);
   fireEvent.click(within(dialog).getByRole('button', { name: '发送反馈' }));
   assert.equal(within(dialog).getByRole('alert').textContent, '请先选一项', 'a reason is required before anything is sent');
@@ -94,6 +96,7 @@ test('"这条信息有误？" opens the content sheet with the item and its page
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '这条信息有误？告诉我们' })); await new Promise(resolve => setTimeout(resolve, 50)); });
   const dialog = await waitFor(() => within(document.body).getByRole('dialog', { name: '这条信息有误？' }));
   assert.match(dialog.textContent!, /关于：旧金山舰队周/);
+  assert.match(dialog.querySelector('.feedback-attached')!.textContent!, /^会一起发送：页面类型、这条信息的编号、语言、字号和网站版本。/, 'a content report names the item id it sends');
   assert.deepEqual(within(dialog).getAllByRole('radio').map(chip => (chip as HTMLInputElement).value), ['outdated', 'wrong-time', 'wrong-place', 'wrong-price', 'broken-link', 'closed', 'other']);
   fireEvent.click(within(dialog).getByRole('radio', { name: '时间不对' }));
   await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: '发送反馈' })); await new Promise(resolve => setTimeout(resolve, 0)); });
@@ -104,6 +107,11 @@ test('"这条信息有误？" opens the content sheet with the item and its page
   await act(async () => { fireEvent.click(within(document.body).getByRole('button', { name: '关闭' })); });
   await act(async () => { await setLocale('en', false); });
   assert.ok(view.getByRole('button', { name: 'Something wrong here? Tell us' }));
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Something wrong here? Tell us' })); await new Promise(resolve => setTimeout(resolve, 50)); });
+  const english = await waitFor(() => within(document.body).getByRole('dialog', { name: 'Something wrong here?' }));
+  assert.match(english.querySelector('.feedback-attached')!.textContent!, /^Sent along: the page type, this item’s id, the language/);
+  await act(async () => { fireEvent.click(within(english).getByRole('button', { name: 'Cancel' })); });
+  assert.equal(within(document.body).queryByRole('dialog'), null);
 });
 
 test('the site-wide link opens the page sheet and every label is English under /en', async () => {

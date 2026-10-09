@@ -53,6 +53,8 @@ export const COMMON_COPY = {
   contactLabel: { zh: '联系方式（选填）', en: 'Contact (optional)' },
   contactHint: { zh: '想收到回复，可以留邮箱或微信号。', en: 'Leave an email or WeChat ID if you would like a reply.' },
   attached: { zh: '会一起发送：页面类型、语言、字号和网站版本。不含网址、账号或其他内容。反馈保存 90 天。', en: 'Sent along: the page type, language, text size and site version. No address, account or anything else. Kept for 90 days.' },
+  /** A report about one item also sends that item's id (the payload's entity), so its disclosure names it. */
+  attachedItem: { zh: '会一起发送：页面类型、这条信息的编号、语言、字号和网站版本。不含网址、账号或其他内容。反馈保存 90 天。', en: 'Sent along: the page type, this item’s id, the language, text size and site version. No address, account or anything else. Kept for 90 days.' },
   privacy: { zh: '隐私说明', en: 'Privacy' },
   send: { zh: '发送反馈', en: 'Send feedback' },
   sending: { zh: '正在发送…', en: 'Sending…' },

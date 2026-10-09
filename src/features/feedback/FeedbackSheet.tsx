@@ -92,7 +92,7 @@ export default function FeedbackSheet({ request, tester, onClose, onLeaveTester,
         </div>
         {/* Honeypot (API contract): hidden from people and assistive technology, so only a form-filling bot types here. */}
         <div className="feedback-honeypot" aria-hidden="true"><label>Website<input type="text" name="website" tabIndex={-1} autoComplete="off" value={website} onChange={event => setWebsite(event.target.value)} /></label></div>
-        <p className="feedback-attached">{t(COMMON_COPY.attached)} <a href="/privacy" target="_blank" rel="noopener">{t(COMMON_COPY.privacy)}</a></p>
+        <p className="feedback-attached">{t(request.entity ? COMMON_COPY.attachedItem : COMMON_COPY.attached)} <a href="/privacy" target="_blank" rel="noopener">{t(COMMON_COPY.privacy)}</a></p>
         {failure && <p className="feedback-failure" role="alert">{t(FAILURE_COPY[failure])}{(failure === 'daily' || failure === 'global') && <> <a href={`mailto:${FEEDBACK_EMAIL}`} translate="no">{FEEDBACK_EMAIL}</a></>}</p>}
         <div className="feedback-actions">
           <button type="submit" className="feedback-primary" disabled={state === 'sending'} aria-busy={state === 'sending'}>{state === 'sending' ? t(COMMON_COPY.sending) : t(COMMON_COPY.send)}</button>

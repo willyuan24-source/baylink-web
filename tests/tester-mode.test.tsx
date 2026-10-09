@@ -30,6 +30,7 @@ test('a tester link asks for consent first, keeps nothing before "agree", and le
   await settle();
   const consent = await waitFor(() => within(document.body).getByRole('dialog', { name: '参加 BAYLINK 内测' }));
   assert.match(consent.textContent!, /你的测试编号：T07/);
+  assert.equal(document.activeElement, within(consent).getByRole('heading', { name: '参加 BAYLINK 内测' }), 'focus starts at the heading, not the privacy link');
   assert.equal(within(document.body).queryByRole('button', { name: '反馈' }), null, 'no tester button before consent');
   await act(async () => { fireEvent.click(within(consent).getByRole('button', { name: '同意，开始内测' })); });
   const stored = JSON.parse(localStorage.getItem(TESTER_STORAGE_KEY)!);

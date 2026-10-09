@@ -7,5 +7,14 @@ import { routeTemplate } from '../app/route-table';
  */
 export { routeTemplate };
 
+/**
+ * The template of a page the app renders. App.tsx answers every path outside the route table with NotFoundPage
+ * (<Route path="*">; the route-table test keeps the two equal), so those count as '/not-found', which the API allowlists.
+ */
+export const pageTemplate = (pathname: string): string => {
+  const template = routeTemplate(pathname);
+  return template === 'other' ? '/not-found' : template;
+};
+
 /** The current page's template; 'other' outside a browser. */
-export const currentRouteTemplate = (): string => typeof window === 'undefined' ? 'other' : routeTemplate(window.location.pathname);
+export const currentRouteTemplate = (): string => typeof window === 'undefined' ? 'other' : pageTemplate(window.location.pathname);

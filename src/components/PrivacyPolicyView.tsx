@@ -19,7 +19,7 @@ export const PrivacyPolicyView = () => {
         '手机验证与预约短信同意分开。服务提供者可单独开启预约业务短信；当前不向顾客发送预约短信。短信开关不影响站内预约记录与通知。',
         '你可选择优先私信、对方请求后自动发送联系方式，或经你确认后发送。接收人可以保存已收到的联系方式，请在发送前确认内容与对象。',
         '使用 BayBay AI 时，你输入的文字可能被处理以生成建议和草稿。不要输入证件号码、账号密码或其他高度敏感信息。',
-        t('站内反馈只发送你在反馈表里选择和填写的内容，以及页面类型、语言、字号和网站版本，保存 90 天；不附带网址、账号或 BayBay 对话。内测模式须你点同意后才开启。', 'Site feedback sends only what you choose and type in the form, plus the page type, language, text size and site version, and is kept for 90 days. It never includes the address, your account or a BayBay conversation. Tester mode starts only after you agree.'),
+        t('站内反馈只发送你在反馈表里选择和填写的内容，以及页面类型、语言、字号和网站版本；报告某条信息有误时，还会附上该条目的编号。反馈保存 90 天，不附带网址、账号或 BayBay 对话。内测模式须你点同意后才开启。', 'Site feedback sends only what you choose and type in the form, plus the page type, language, text size and site version, and the item’s id when you report an item. It is kept for 90 days and never includes the address, your account or a BayBay conversation. Tester mode starts only after you agree.'),
         t('登录后，可在「我的 → 隐私与安全」下载本人资料、退出所有登录或确认永久注销。每次敏感操作都须确认当前凭证。资料较多、账号无法登录或需人工核验时，可向页末邮箱提出隐私申请；不承诺固定处理时限或外部缓存即时清除。', 'After signing in, open My profile → Privacy and security to download your data, sign out all sessions, or confirm permanent account deletion. Each sensitive operation requires current credentials. For larger exports, inaccessible accounts or requests requiring manual verification, contact the email below. We do not promise a fixed processing deadline or immediate erasure of external caches.'),
       ]} />
     </LegalSection>
