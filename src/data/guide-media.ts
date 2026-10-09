@@ -128,13 +128,12 @@ for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { 
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The download record (event, source URL, retrieval time, hash) stays in the JSON; pages get what they
 // render plus the crop focus and rights basis the cover resolver reads.
-const officialEventImage = ({ src, srcSet, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
-  src, srcSet, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const,
+const officialEventImage = ({ src, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
+  src, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const,
   ...(fullFrame ? { fullFrame } : { focal }), rights: rights as MediaRights,
 });
 for (const record of officialEventMedia) GUIDE_IMAGES[record.key] = officialEventImage(record);
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
-for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 // Reuse verified regional photographs with their original attribution intact.
 for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, ...dailyLifeMedia]) {
@@ -270,14 +269,18 @@ for (const { key, ...asset } of schoolCampusMedia) {
 }
 
 // D8 image ladder: every registered image's srcset (480/800/1200) and placeholder colour come from the generated
-// table (`npm run images:variants`). A table generated for a different image list is ignored as a whole, so a stale
-// table falls back to the `-small` + original srcset above instead of naming files that may not exist.
+// table (`npm run images:variants`); the media records no longer carry srcset strings of their own
+// (scripts/codemods/registry-srcset.mjs), which kept about 2–4 KB gzip off every page that loads this registry.
+// A table generated for a different image list is ignored as a whole, so a stale table falls back to the plain
+// `-small` 480w + original pair (the original alone up to 480 wide) instead of naming rungs that may not exist.
 const ladder = readLadder(registrySources(Object.values(GUIDE_IMAGES)));
+const NO_RUNGS = { medium: false, large: false };
 for (const image of Object.values(GUIDE_IMAGES)) {
   const entry = ladder.get(image.src);
-  if (!entry) continue;
-  image.srcSet = ladderSrcSet(image.src, image.width, entry);
-  image.lqip = entry.lqip;
+  if (entry) {
+    image.srcSet = ladderSrcSet(image.src, image.width, entry);
+    image.lqip = entry.lqip;
+  } else image.srcSet ??= ladderSrcSet(image.src, image.width, NO_RUNGS);
 }
 
 type MediaRightsOverlayEntry = Pick<GuideImage, 'coverOk' | 'focal' | 'ownShot' | 'shotAt'> & { rights?: MediaRights };

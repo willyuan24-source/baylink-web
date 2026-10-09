@@ -9,7 +9,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 933,
-    "srcSet": "/guides/coverage-2026/coverage-yerba-buena-small.webp 480w, /guides/coverage-2026/coverage-yerba-buena.webp 1400w",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
   },
   {
@@ -21,8 +20,7 @@
     "creditUrl": "https://commons.wikimedia.org/wiki/File:Redwood_City_port_aerial_view.jpg",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/coverage-2026/coverage-redwood-port-small.webp 480w, /guides/coverage-2026/coverage-redwood-port.webp 1400w"
+    "height": 933
   },
   {
     "key": "coverage-rio-vista",
@@ -34,7 +32,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 1050,
-    "srcSet": "/guides/coverage-2026/coverage-rio-vista-small.webp 480w, /guides/coverage-2026/coverage-rio-vista.webp 1400w",
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0"
   },
   {
@@ -46,8 +43,7 @@
     "creditUrl": "https://commons.wikimedia.org/wiki/File:Petaluma_CA_Wooden_Bridge_over_Petaluma_River.jpg",
     "kind": "photo",
     "width": 1400,
-    "height": 1050,
-    "srcSet": "/guides/coverage-2026/coverage-petaluma-river-small.webp 480w, /guides/coverage-2026/coverage-petaluma-river.webp 1400w"
+    "height": 1050
   },
   {
     "key": "coverage-laptop",
@@ -59,7 +55,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 928,
-    "srcSet": "/guides/coverage-2026/coverage-laptop-small.webp 480w, /guides/coverage-2026/coverage-laptop.webp 1400w",
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en"
   },
   {
@@ -72,7 +67,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 952,
-    "srcSet": "/guides/coverage-2026/coverage-wine-small.webp 480w, /guides/coverage-2026/coverage-wine.webp 1400w",
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0"
   },
   {
@@ -85,7 +79,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 1050,
-    "srcSet": "/guides/coverage-2026/coverage-stage-small.webp 480w, /guides/coverage-2026/coverage-stage.webp 1400w",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
   },
   {
@@ -98,7 +91,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 1040,
-    "srcSet": "/guides/coverage-2026/coverage-classic-car-small.webp 480w, /guides/coverage-2026/coverage-classic-car.webp 1400w",
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0"
   }
 ]

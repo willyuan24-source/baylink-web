@@ -42,8 +42,8 @@ test('region photographs have distinct bytes, accurate WebP dimensions and usabl
     assert.match(photo.licenseUrl, /^https:\/\/creativecommons\.org\/(licenses|publicdomain)\//);
     assert.ok(photo.credit && photo.alt && photo.caption && photo.provenance.author);
     assert.match(photo.caption, /20\d\d 年/);
-    const candidates = photo.srcSet.split(',').map(candidate => candidate.trim().split(' '));
-    assert.equal(candidates.length, 2);
+    // The record carries no srcset (the D8 image ladder builds it from src and width): the 480 w small file and the original.
+    const candidates = [[photo.src.replace(/\.webp$/, '-small.webp'), '480'], [photo.src, String(photo.width)]];
     for (const [src, width] of candidates) {
       assert.match(src, /^\/guides\/attractions\/region-[a-z-]+(?:-small)?\.webp$/);
       const data = readFileSync(new URL(`../public${src}`, import.meta.url));

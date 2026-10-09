@@ -7,8 +7,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/culture-visit-small.webp 480w, /guides/community-2026/culture-visit.webp 1536w"
+    "height": 1024
   },
   {
     "key": "autumn-neighbors",
@@ -18,8 +17,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/autumn-neighbors-small.webp 480w, /guides/community-2026/autumn-neighbors.webp 1536w"
+    "height": 1024
   },
   {
     "key": "cinema-night",
@@ -29,8 +27,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/cinema-night-small.webp 480w, /guides/community-2026/cinema-night.webp 1536w"
+    "height": 1024
   },
   {
     "key": "garden-walk",
@@ -40,8 +37,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/garden-walk-small.webp 480w, /guides/community-2026/garden-walk.webp 1536w"
+    "height": 1024
   },
   {
     "key": "family-workshop",
@@ -51,8 +47,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/family-workshop-small.webp 480w, /guides/community-2026/family-workshop.webp 1536w"
+    "height": 1024
   },
   {
     "key": "neighborhood-table",
@@ -62,8 +57,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/neighborhood-table-small.webp 480w, /guides/community-2026/neighborhood-table.webp 1536w"
+    "height": 1024
   },
   {
     "key": "outdoor-cinema",
@@ -73,8 +67,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/outdoor-cinema-small.webp 480w, /guides/community-2026/outdoor-cinema.webp 1536w"
+    "height": 1024
   },
   {
     "key": "community-accessible-transit",
@@ -84,8 +77,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/community-accessible-transit-small.webp 480w, /guides/community-2026/community-accessible-transit.webp 1536w"
+    "height": 1024
   },
   {
     "key": "community-library-card",
@@ -95,7 +87,6 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/community-2026/community-library-card-small.webp 480w, /guides/community-2026/community-library-card.webp 1536w"
+    "height": 1024
   }
 ]

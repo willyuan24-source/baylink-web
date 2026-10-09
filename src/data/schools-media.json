@@ -7,8 +7,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/schools/sf-small.webp 480w, /guides/schools/sf.webp 1536w"
+    "height": 1024
   },
   {
     "key": "school-east",
@@ -18,8 +17,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/schools/east-small.webp 480w, /guides/schools/east.webp 1536w"
+    "height": 1024
   },
   {
     "key": "school-peninsula",
@@ -29,8 +27,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/schools/peninsula-small.webp 480w, /guides/schools/peninsula.webp 1536w"
+    "height": 1024
   },
   {
     "key": "school-south",
@@ -40,8 +37,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/schools/south-small.webp 480w, /guides/schools/south.webp 1536w"
+    "height": 1024
   },
   {
     "key": "school-north",
@@ -51,7 +47,6 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/schools/north-small.webp 480w, /guides/schools/north.webp 1536w"
+    "height": 1024
   }
 ]

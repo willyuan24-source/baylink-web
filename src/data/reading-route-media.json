@@ -9,8 +9,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 937,
-    "srcSet": "/guides/distinct/ggp-conservatory-small.webp 480w, /guides/distinct/ggp-conservatory.webp 1400w"
+    "height": 937
   },
   {
     "key": "baylands-marsh",
@@ -22,8 +21,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 840,
-    "srcSet": "/guides/distinct/baylands-marsh-small.webp 480w, /guides/distinct/baylands-marsh.webp 1400w"
+    "height": 840
   },
   {
     "key": "baylands-gull",
@@ -35,8 +33,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/distinct/baylands-gull-small.webp 480w, /guides/distinct/baylands-gull.webp 1400w"
+    "height": 933
   },
   {
     "key": "jfk-promenade",
@@ -48,7 +45,6 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 1300,
-    "height": 800,
-    "srcSet": "/guides/distinct/jfk-promenade-small.webp 480w, /guides/distinct/jfk-promenade.webp 1300w"
+    "height": 800
   }
 ]

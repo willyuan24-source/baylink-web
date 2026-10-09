@@ -69,11 +69,12 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.match(new URL(record.originalUrl).protocol, /^https?:$/);
     assert.match(record.retrievedAt, /^2026-10-08T\d{2}:\d{2}:\d{2}-07:00$/);
     assert.match(record.sha256, /^[0-9a-f]{64}$/);
-    // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide.
+    // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide. The record names
+    // no srcset: pages get the D8 image ladder built from src and width (scripts/codemods/registry-srcset.mjs).
     assert.ok(record.width <= 1280 && record.width > 480, record.key);
     assert.deepEqual(webpSize(record.src), { width: record.width, height: record.height }, record.key);
+    assert.equal(Object.hasOwn(record, 'srcSet'), false, `${record.key}: no hand-written srcset`);
     const small = record.src.replace(/\.webp$/, '-small.webp');
-    assert.equal(record.srcSet, `${small} 480w, ${record.src} ${record.width}w`);
     const smallSize = webpSize(small);
     assert.equal(smallSize.width, 480);
     assert.ok(Math.abs(smallSize.height - record.height * 480 / record.width) <= 1, small);
@@ -94,9 +95,9 @@ test('every event in the set resolves to its official image, labelled 官方图,
     for (const field of ['src', 'width', 'height', 'alt', 'caption', 'credit', 'creditUrl', 'fullFrame', 'focal', 'rights'] as const) {
       assert.deepEqual((image as Record<string, unknown>)[field], (record as Record<string, unknown>)[field], `${record.key}: ${field}`);
     }
-    // Pages get the D8 ladder for the same file; the record keeps the 480w + original pair it was downloaded with.
+    // Pages get the D8 ladder for the same file, starting at the 480 w small file downloaded with it.
     assert.equal(image.srcSet, imageManifest.images[record.src].srcset.join(', '), `${record.key}: srcSet from the image manifest`);
-    assert.ok(image.srcSet!.startsWith(`${record.srcSet.split(',')[0]},`), `${record.key}: the 480w rung is the recorded small file`);
+    assert.ok(image.srcSet!.startsWith(`${record.src.replace(/\.webp$/, '-small.webp')} 480w,`), `${record.key}: the 480w rung is the downloaded small file`);
     for (const field of DOWNLOAD_ONLY) assert.equal(Object.hasOwn(image, field), false, `${record.key}: ${field} stays in the source record`);
   }
 });

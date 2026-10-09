@@ -9,8 +9,7 @@
     "creditUrl": "https://www.lowes.com/events/register/haunted-house",
     "src": "/guides/distinct/freebie-lowes-haunted-house.webp",
     "width": 1440,
-    "height": 929,
-    "srcSet": "/guides/distinct/freebie-lowes-haunted-house-small.webp 480w, /guides/distinct/freebie-lowes-haunted-house.webp 1440w"
+    "height": 929
   },
   {
     "key": "freebie-lowes-kids-lollipop",
@@ -22,8 +21,7 @@
     "creditUrl": "https://www.lowes.com/diy-projects-and-ideas/workshops",
     "src": "/guides/distinct/freebie-lowes-kids-lollipop.webp",
     "width": 800,
-    "height": 720,
-    "srcSet": "/guides/distinct/freebie-lowes-kids-lollipop-small.webp 480w, /guides/distinct/freebie-lowes-kids-lollipop.webp 800w"
+    "height": 720
   },
   {
     "key": "freebie-homedepot-witch-candy-box",
@@ -35,7 +33,6 @@
     "creditUrl": "https://www.homedepot.com/c/kids-workshop",
     "src": "/guides/distinct/freebie-homedepot-witch-candy-box.webp",
     "width": 702,
-    "height": 395,
-    "srcSet": "/guides/distinct/freebie-homedepot-witch-candy-box-small.webp 480w, /guides/distinct/freebie-homedepot-witch-candy-box.webp 702w"
+    "height": 395
   }
 ]

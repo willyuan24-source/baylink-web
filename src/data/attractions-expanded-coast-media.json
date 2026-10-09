@@ -2,7 +2,6 @@
   {
     "key": "expanded-lands-end",
     "src": "/guides/sf-map/lands-end.webp",
-    "srcSet": "/guides/sf-map/lands-end-small.webp 480w, /guides/sf-map/lands-end.webp 1280w",
     "width": 1280,
     "height": 960,
     "credit": "Another Believer · CC BY-SA 4.0 · 已缩放压缩",
@@ -26,7 +25,6 @@
   {
     "key": "expanded-sutro",
     "src": "/guides/sf-map/sutro.webp",
-    "srcSet": "/guides/sf-map/sutro-small.webp 480w, /guides/sf-map/sutro.webp 1280w",
     "width": 1280,
     "height": 853,
     "credit": "Dietmar Rabich · CC BY-SA 4.0 · 已缩放压缩",
@@ -50,7 +48,6 @@
   {
     "key": "expanded-point-reyes",
     "src": "/guides/attractions/expanded-point-reyes.webp",
-    "srcSet": "/guides/attractions/expanded-point-reyes-small.webp 480w, /guides/attractions/expanded-point-reyes.webp 1400w",
     "width": 1400,
     "height": 1867,
     "kind": "photo",
@@ -74,7 +71,6 @@
   {
     "key": "expanded-angel-island",
     "src": "/guides/attractions/expanded-angel-island.webp",
-    "srcSet": "/guides/attractions/expanded-angel-island-small.webp 480w, /guides/attractions/expanded-angel-island.webp 1400w",
     "width": 1400,
     "height": 820,
     "kind": "photo",
@@ -97,7 +93,6 @@
   {
     "key": "expanded-dolores-park",
     "src": "/guides/attractions/expanded-dolores-park.webp",
-    "srcSet": "/guides/attractions/expanded-dolores-park-small.webp 480w, /guides/attractions/expanded-dolores-park.webp 1400w",
     "width": 1400,
     "height": 1050,
     "kind": "photo",

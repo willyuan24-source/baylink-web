@@ -2,7 +2,6 @@
   {
     "key": "daily-bridge",
     "src": "/guides/daily-life/daily-bridge.webp",
-    "srcSet": "/guides/daily-life/daily-bridge-small.webp 480w, /guides/daily-life/daily-bridge.webp 1400w",
     "width": 1400,
     "height": 788,
     "kind": "photo",
@@ -18,7 +17,6 @@
   {
     "key": "daily-recycling",
     "src": "/guides/daily-life/daily-recycling.webp",
-    "srcSet": "/guides/daily-life/daily-recycling-small.webp 480w, /guides/daily-life/daily-recycling.webp 1400w",
     "width": 1400,
     "height": 934,
     "kind": "photo",
@@ -34,7 +32,6 @@
   {
     "key": "daily-alerts",
     "src": "/guides/daily-life/daily-alerts.webp",
-    "srcSet": "/guides/daily-life/daily-alerts-small.webp 480w, /guides/daily-life/daily-alerts.webp 1400w",
     "width": 1400,
     "height": 933,
     "kind": "photo",
@@ -50,7 +47,6 @@
   {
     "key": "daily-learning",
     "src": "/guides/daily-life/daily-learning.webp",
-    "srcSet": "/guides/daily-life/daily-learning-small.webp 480w, /guides/daily-life/daily-learning.webp 1400w",
     "width": 1400,
     "height": 1054,
     "kind": "photo",
@@ -66,7 +62,6 @@
   {
     "key": "daily-city-hall",
     "src": "/guides/sf-map/city-hall.webp",
-    "srcSet": "/guides/sf-map/city-hall-small.webp 480w, /guides/sf-map/city-hall.webp 1280w",
     "width": 1280,
     "height": 773,
     "credit": "Bernard Spragg. NZ from Christchurch, New Zealand · CC0 · 已缩放压缩",

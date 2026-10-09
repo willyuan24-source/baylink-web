@@ -98,6 +98,17 @@ test('the srcset builder never names a rung that is not there and falls back as 
   assert.equal(readLadder(['/guides/a/x.webp', '/guides/b/renamed.webp'], table).size, 0, 'a renamed image invalidates it too');
 });
 
+test('media records name no srcset of their own: the ladder, or its stale-table fallback, builds every one', () => {
+  // Hand-written srcsets were ignored once the ladder existed and cost every page that loads the registry 2–4 KB gzip.
+  const registry = readFileSync(new URL('../src/data/guide-media.ts', import.meta.url), 'utf8');
+  const files = [...registry.matchAll(/from '\.\/([\w-]+\.json)'/g)].map(match => match[1]);
+  assert.ok(files.length >= 30, 'the registry still imports its media JSON files');
+  for (const name of files) {
+    assert.doesNotMatch(readFileSync(new URL(`../src/data/${name}`, import.meta.url), 'utf8'), /"srcSet"\s*:/, `${name}: run node scripts/codemods/registry-srcset.mjs`);
+  }
+  for (const [key, image] of Object.entries(GUIDE_IMAGES)) assert.ok(image.srcSet, `${key}: every registered image has a srcset`);
+});
+
 test('localized public-service illustrations keep their own files in every locale', async () => {
   const guide = guides.find(item => getGuideMedia(item).cover.src.startsWith('/guides/public-services/'))!;
   assert.ok(guide, 'a guide uses a public-service illustration');

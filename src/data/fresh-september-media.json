@@ -9,8 +9,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 805,
-    "srcSet": "/guides/attractions/fresh-ocean-beach-small.webp 480w, /guides/attractions/fresh-ocean-beach.webp 1400w"
+    "height": 805
   },
   {
     "key": "fresh-treasure-island",
@@ -22,8 +21,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 935,
-    "srcSet": "/guides/attractions/fresh-treasure-island-small.webp 480w, /guides/attractions/fresh-treasure-island.webp 1400w"
+    "height": 935
   },
   {
     "key": "fresh-pumpkin-parade",
@@ -35,8 +33,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/fresh-pumpkin-parade-small.webp 480w, /guides/attractions/fresh-pumpkin-parade.webp 1400w"
+    "height": 933
   },
   {
     "key": "fresh-hmb-pumpkins",
@@ -48,7 +45,6 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "kind": "photo",
     "width": 1280,
-    "height": 851,
-    "srcSet": "/guides/attractions/fresh-hmb-pumpkins-small.webp 480w, /guides/attractions/fresh-hmb-pumpkins.webp 1280w"
+    "height": 851
   }
 ]

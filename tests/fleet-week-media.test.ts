@@ -52,9 +52,11 @@ test('the Fleet Week photo carries honest DVIDS attribution, a 2024 archive labe
 test('the DVIDS record keeps its image id, VIRIN, capture date and rendition consistent', () => {
   const source = record();
   assert.ok(source, 'the photo has its original attribution record');
-  for (const field of ['src', 'srcSet', 'alt', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'width', 'height'] as const) {
+  for (const field of ['src', 'alt', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'width', 'height'] as const) {
     assert.equal(GUIDE_IMAGES[PHOTO][field], source[field], field);
   }
+  // The srcset comes from the D8 image ladder: a 58 KB original needs no 800/1200 rung, so it stays 480 w small + original.
+  assert.equal(GUIDE_IMAGES[PHOTO].srcSet, `${source.src.replace(/\.webp$/, '-small.webp')} 480w, ${source.src} ${source.width}w`);
   assert.equal(/^https:\/\/www\.dvidshub\.net\/image\/(\d+)\//.exec(source.creditUrl)?.[1], source.dvidsImageId);
   const original = new URL(source.originalUrl);
   assert.equal(original.protocol, 'https:');

@@ -7,8 +7,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/distinct/october-family-nature-small.webp 480w, /guides/distinct/october-family-nature.webp 1536w"
+    "height": 1024
   },
   {
     "key": "october-north-bay-culture",
@@ -18,8 +17,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/distinct/october-north-bay-culture-small.webp 480w, /guides/distinct/october-north-bay-culture.webp 1536w"
+    "height": 1024
   },
   {
     "key": "october-library-culture",
@@ -29,7 +27,6 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1536,
-    "height": 1024,
-    "srcSet": "/guides/distinct/october-library-culture-small.webp 480w, /guides/distinct/october-library-culture.webp 1536w"
+    "height": 1024
   }
 ]
