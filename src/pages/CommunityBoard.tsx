@@ -100,7 +100,7 @@ export default function CommunityBoard({ onScrollToFeed, scrollRequest }: Commun
                   {!isInitialLoading && hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-load-more">{isLoadingMore ? <><Loader2 size={17} className="animate-spin" />加载中…</> : <>继续发现更多<ArrowRight size={17} /></>}</button>}
                   {!hasMore && <div className="bay-feed-end"><span /><p>当前信息已全部展示<br /><Link to="/guides">去生活指南里逛逛 <ChevronRight size={13} /></Link></p><span /></div>}
                 </>}
-          {!keyword && !categorySlug && <div className="bay-featured-wrap"><HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/recommend')} /></div>}
+          {!keyword && !categorySlug && <div className="bay-featured-wrap"><HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/events')} /></div>}
         </section>
         <aside className="bay-home-rail" aria-label="湾区探索与生活帮助">
           <div className="bay-desktop-explorer"><RegionExplorer selected={regionFilter} onSelect={selectRegion} /></div>

@@ -1,6 +1,7 @@
 // WEB-HOMEPREP: the community board is its own chunk. The homepage renders without it and shows it when it is asked
-// for; a category page or a search waits for it at the page level (never a page without its board). This file runs in
-// its own process, so the board starts out not loaded.
+// for; a category page or a search waits for it at the page level (never a page without its board); the board's
+// 编辑精选「更多」 opens /events directly (no hop through the retired /recommend). This file runs in its own process, so
+// the board starts out not loaded.
 import assert from 'node:assert/strict';
 import test, { after, afterEach } from 'node:test';
 import { registerHooks } from 'node:module';
@@ -89,4 +90,10 @@ test('a search keeps its heading and the feed, and the rail shows the newcomer h
   assert.ok(screen.getByRole('heading', { level: 1, name: /找到你需要的/ }));
   assert.ok(screen.getByRole('heading', { name: '搜索本地信息' }));
   assert.ok(view.container.querySelector('.bay-assistant-card'));
+});
+
+test('编辑精选「更多」 opens /events, not the retired /recommend', async () => {
+  render(app('/', { feedError: true }));
+  fireEvent.click(await screen.findByRole('button', { name: '更多' }));
+  await waitFor(() => assert.equal(screen.getByTestId('where').textContent, '/events'));
 });
