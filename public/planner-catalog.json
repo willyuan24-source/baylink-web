@@ -659,7 +659,7 @@
       "officialUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/",
       "sourceLabel": "foodwise.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "verified-ferry-building",
+      "imageKey": "official-ferry-plaza-farmers-market-2026-autumn",
       "aliases": [
         "Ferry Plaza 农夫市集：海边逛一圈",
         "Ferry Plaza Farmers Market: A Waterfront Stroll",
@@ -1353,7 +1353,7 @@
       "officialUrl": "https://danville.ca.gov/851/Scarecrow-Stroll",
       "sourceLabel": "danville.ca.gov",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-danville-scarecrow-stroll-2026",
       "aliases": [
         "Danville 稻草人商圈漫步",
         "Danville Scarecrow Stroll"
@@ -3312,7 +3312,7 @@
       "officialUrl": "https://bayareadiscoverymuseum.org/events/goblin-jamboree/",
       "sourceLabel": "Bay Area Discovery Museum",
       "verifiedAt": "2026-10-02",
-      "imageKey": "family-workshop",
+      "imageKey": "official-sausalito-goblin-jamboree-2026",
       "aliases": [
         "Sausalito Goblin Jamboree：儿童博物馆的万圣节探索",
         "Sausalito Goblin Jamboree: Halloween Play at the Discovery Museum",
@@ -6543,7 +6543,7 @@
       "officialUrl": "https://www.333arts.org/gem",
       "sourceLabel": "333arts.org",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-livermore-great-elephant-migration-2026",
       "aliases": [
         "Livermore 大象迁徙公共艺术展",
         "Livermore Great Elephant Migration Public Art Exhibition",
@@ -8800,7 +8800,7 @@
       "venue": "Festival Pavilion, Fort Mason Center · 2 Marina Boulevard",
       "category": "culture",
       "cost": "paid",
-      "imageKey": "culture-visit",
+      "imageKey": "official-sf-fall-show-oct15-18-2026",
       "officialUrl": "https://sffallshow.org/about/",
       "sourceLabel": "The San Francisco Fall Show",
       "title": "San Francisco Fall Show：艺术、古董与设计展",
@@ -9466,7 +9466,7 @@
       "officialUrl": "https://www.borp.org/expo/",
       "sourceLabel": "BORP Adaptive Sports and Recreation",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-berkeley-borp-adaptive-sports-expo-oct17-2026",
       "aliases": [
         "BORP 无障碍体育体验日与社区庆祝",
         "BORP Adaptive Sports Expo and Community Celebration",
@@ -9618,7 +9618,7 @@
       "venue": "Mission Street × John Daly Boulevard",
       "category": "culture",
       "cost": "free",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-daly-city-top-of-the-hill-festival-2026",
       "title": "Daly City Top of the Hill：免费街区音乐与文化节",
       "dateLabel": "10 月 17 日 · 12:00–18:00",
       "costLabel": "全年龄免费入场 · 餐饮与购物另付",
@@ -9901,7 +9901,7 @@
       "officialUrl": "https://marincountrymart.com/events/read-it-amp-eat-it-food-sense-with-dr-christopher-gardner",
       "sourceLabel": "marincountrymart.com",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-mcm-food-sense-20261017",
       "aliases": [
         "Copperfield’s Food Sense 免费作者读书会",
         "Copperfield's Food Sense: Free Author Reading",
@@ -10256,7 +10256,7 @@
       "officialUrl": "https://www.vintagefashionfaire.com/",
       "sourceLabel": "vintagefashionfaire.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-oakland-vintage-fashion-faire-2026",
       "aliases": [
         "Vintage Fashion Faire：Bridge Yard 复古服饰市集",
         "Vintage Fashion Faire: vintage clothing market at the Bridge Yard",
@@ -10572,7 +10572,7 @@
       "officialUrl": "https://www.thesocomarket.com/events-2/the-soco-market-bhn72-zkhxy-ps7pr-345ml-r8333-xtzck",
       "sourceLabel": "thesocomarket.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-r2-santarosa-soco-halloween-2026",
       "aliases": [
         "Santa Rosa SoCo 万圣节创意市集",
         "Santa Rosa SoCo Halloween Makers Market",
@@ -10715,7 +10715,7 @@
       "officialUrl": "https://sanbruno.ca.gov/Calendar.aspx?EID=5584&calType=0&day=17&month=10&year=2026",
       "sourceLabel": "City of San Bruno",
       "verifiedAt": "2026-10-02",
-      "imageKey": "everyday",
+      "imageKey": "official-san-bruno-dia-de-los-muertos-2026",
       "aliases": [
         "免费 Día de los Muertos 家庭庆典",
         "Free family Día de los Muertos celebration",
@@ -10885,7 +10885,7 @@
       "officialUrl": "https://bayareasciencefestival.org/",
       "sourceLabel": "bayareasciencefestival.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "family-workshop",
+      "imageKey": "official-sf-bay-area-science-festival-2026",
       "aliases": [
         "湾区科学节：到 UCSF 动手做实验",
         "Bay Area Science Festival: hands-on science at UCSF",
@@ -10958,7 +10958,7 @@
       "officialUrl": "https://sfpl.org/events/2026/10/17/celebration-filipino-american-international-book-festival",
       "sourceLabel": "sfpl.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "verified-sf-main-library",
+      "imageKey": "official-sf-filbookfest-2026",
       "aliases": [
         "旧金山菲律宾裔国际书展：阅读、讲座与签书",
         "Filipino American International Book Festival in San Francisco",
@@ -10997,7 +10997,7 @@
       "officialUrl": "https://sfpl.org/events/2026/10/17/activity-halloween-broadside-printing-event",
       "sourceLabel": "San Francisco Public Library",
       "verifiedAt": "2026-09-29",
-      "imageKey": "verified-sf-main-library",
+      "imageKey": "official-sf-halloween-broadside-printing-oct17-2026",
       "aliases": [
         "万圣节活版印刷：体验 1909 年手压印刷机",
         "Halloween Broadside Printing on a 1909 Handpress",
@@ -11155,7 +11155,7 @@
       "officialUrl": "https://thehubinsf.org/event/sunnydale-pumpkin-fest-2/",
       "sourceLabel": "thehubinsf.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-sf-sunnydale-pumpkin-fest-2026",
       "aliases": [
         "Sunnydale 免费南瓜节：The Hub 两周年社区聚会",
         "Sunnydale Pumpkin Fest at The Hub",
@@ -11377,7 +11377,7 @@
       "officialUrl": "https://www.athertonca.gov/Calendar.aspx?EID=4034&calType=0&day=30&month=9&year=2026",
       "sourceLabel": "Town of Atherton",
       "verifiedAt": "2026-10-02",
-      "imageKey": "everyday",
+      "imageKey": "official-atherton-train-station-museum-opening-2026",
       "aliases": [
         "旧火车站博物馆 10 月 18 日揭幕",
         "Historic train station museum opens October 18",
@@ -11417,7 +11417,7 @@
       "officialUrl": "https://berkeleybirdfestival.org/",
       "sourceLabel": "berkeleybirdfestival.org",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-berkeley-bird-festival-2026",
       "aliases": [
         "Berkeley Bird Festival：鸟类与自然社区日",
         "Berkeley Bird Festival: a community day for birds and nature",
@@ -11456,7 +11456,7 @@
       "officialUrl": "https://www.hardingpta.org/carnival/",
       "sourceLabel": "hardingpta.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-el-cerrito-harding-carnival-2026",
       "aliases": [
         "El Cerrito Harding 社区嘉年华",
         "El Cerrito Harding community carnival",
@@ -11496,7 +11496,7 @@
       "officialUrl": "https://lafayettechamber.org/resrun/",
       "sourceLabel": "lafayettechamber.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-lafayette-res-run-2026",
       "aliases": [
         "Lafayette Res Run 秋季社区跑",
         "Lafayette Res Run Fall Community Run",
@@ -11596,7 +11596,7 @@
       "venue": "Mission Street · Geneva Avenue to Theresa Street",
       "category": "outdoors",
       "cost": "free",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-sf-sunday-streets-excelsior-oct18-2026",
       "officialUrl": "https://sundaystreetssf.com/sunday-streets-excelsior-2026/",
       "sourceLabel": "Livable City / Sunday Streets SF",
       "title": "Sunday Streets Excelsior：把一段 Mission Street 交给行人",
@@ -12998,7 +12998,7 @@
       "venue": "Washington High School · 38442 Fremont Boulevard",
       "category": "culture",
       "cost": "paid",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-fremont-fog-diwali-mela-2026",
       "title": "Fremont FOG Diwali Mela：排灯节表演与市集",
       "dateLabel": "10 月 24 日 · 10:00–19:00",
       "costLabel": "付费入场 · 核查时早鸟 $4 + $0.22 手续费，票务正文列 $5；以购买时票档为准",
@@ -13195,7 +13195,7 @@
       ],
       "officialUrl": "https://donapa.com/event/heritage-halloween-tulocay-cemetery-tour/",
       "sourceLabel": "Downtown Napa · Napa County Historical Society",
-      "imageKey": "culture-visit",
+      "imageKey": "official-napa-tulocay-heritage-halloween-tour-2026",
       "verifiedAt": "2026-09-30",
       "aliases": [
         "Napa Tulocay：万圣节历史步行导览",
@@ -13284,7 +13284,7 @@
       "officialUrl": "https://www.thefloathousepetaluma.org/events/witches-wizards-on-the-water-2026",
       "sourceLabel": "thefloathousepetaluma.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "coverage-petaluma-river",
+      "imageKey": "official-petaluma-witches-wizards-water-2026",
       "aliases": [
         "Petaluma 水上巫师与女巫派对",
         "Petaluma Witches & Wizards on the Water",
@@ -13356,7 +13356,7 @@
       "officialUrl": "https://www.bigwest.biz/cider-circus-petaluma",
       "sourceLabel": "bigwest.biz",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-r2-petaluma-cider-circus-2026",
       "aliases": [
         "Petaluma Cider Circus 苹果酒与河畔游园",
         "Petaluma Cider Circus: Cider and Riverside Festivities",
@@ -13393,7 +13393,7 @@
       "officialUrl": "https://lumafest.santarosa.edu/",
       "sourceLabel": "lumafest.santarosa.edu",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-r2-petaluma-lumafest-20261024",
       "aliases": [
         "Petaluma LumaFest 校园开放与亡灵节庆典",
         "Petaluma LumaFest: Campus Open House and Dia de los Muertos Celebration",
@@ -13565,7 +13565,7 @@
       "officialUrl": "https://www.cityofsanmateo.org/4740/Boos-and-Brews-on-B-Street",
       "sourceLabel": "cityofsanmateo.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "verified-san-mateo-b-street",
+      "imageKey": "official-san-mateo-boos-brews-2026",
       "aliases": [
         "San Mateo B Street 万圣节：要糖、手作与音乐",
         "Boos and Brews on B Street in San Mateo",
@@ -13640,7 +13640,7 @@
       "officialUrl": "https://illuminate.org/event/bay-beats-at-the-bandshell-october-24/",
       "sourceLabel": "Illuminate",
       "verifiedAt": "2026-09-29",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-sf-bay-beats-bandshell-oct24-2026",
       "aliases": [
         "Bay Beats 金门公园免费音乐会",
         "Bay Beats Free Concert at the Golden Gate Bandshell",
@@ -13857,7 +13857,7 @@
       "officialUrl": "https://www.chasecenter.com/events/thrill-o-ween-20261024/",
       "sourceLabel": "chasecenter.com",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-sf-thrive-thrill-o-ween-2026",
       "aliases": [
         "Thrive City 免费万圣节亲子庆典",
         "Thrive City's free family Halloween celebration",
@@ -13880,7 +13880,7 @@
       "region": "sf",
       "city": "San Francisco",
       "sourceLabel": "San Francisco Public Library",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-sfpl-western-addition-open-house-oct24-2026",
       "title": "Western Addition 图书馆社区开放日",
       "venue": "Western Addition Library · Back Courtyard and branch activity spaces",
       "category": "family",
@@ -13952,7 +13952,7 @@
       "officialUrl": "https://www.symphonysanjose.org/attend/2026-2027-season/concerts/symphonic-spooktacular/",
       "sourceLabel": "symphonysanjose.org",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-sj-symphonic-spooktacular-2026",
       "aliases": [
         "Symphony San Jose 万圣节交响音乐会",
         "Symphony San Jose Halloween Concert",
@@ -13988,7 +13988,7 @@
       "officialUrl": "https://www.townofwindsor.com/trickortreat",
       "sourceLabel": "townofwindsor.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "garden-walk",
+      "imageKey": "official-windsor-trick-or-treat-trail-2026",
       "aliases": [
         "Windsor 免费预约讨糖步道",
         "Windsor Trick-or-Treat Trail",
@@ -14011,7 +14011,7 @@
       "venue": "The Ameswell Hotel · 800 Moffett Boulevard",
       "category": "family",
       "cost": "free",
-      "imageKey": "refresh-pets",
+      "imageKey": "official-ameswell-barks-boos-2026",
       "officialUrl": "https://www.theameswellhotel.com/experiences/happenings/barks-boos/",
       "sourceLabel": "The Ameswell Hotel",
       "verifiedAt": "2026-09-29",
@@ -14084,7 +14084,7 @@
       "officialUrl": "https://www.burlingamedowntown.org/events/fall-fest-1",
       "sourceLabel": "burlingamedowntown.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-burlingame-downtown-fall-fest-2026",
       "aliases": [
         "Burlingame Downtown秋日节与装扮活动",
         "Burlingame Downtown Fall Festival and Costume Activities",
@@ -14120,7 +14120,7 @@
       "officialUrl": "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/",
       "sourceLabel": "museumca.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "region-omca",
+      "imageKey": "official-oakland-omca-dia-muertos-2026",
       "aliases": [
         "OMCA 亡灵节社区庆典：祭坛、音乐与创作",
         "OMCA Día de los Muertos: ofrendas, music and creativity",
@@ -14183,7 +14183,7 @@
       "officialUrl": "https://www.bishopranch.com/br-event/howl-o-ween/",
       "sourceLabel": "bishopranch.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-san-ramon-howl-o-ween-2026",
       "aliases": [
         "City Center Howl-O-Ween 宠物巡游",
         "City Center Howl-O-Ween Pet Parade",
@@ -14255,7 +14255,7 @@
       "officialUrl": "https://www.eventbrite.com/e/world-of-dumplings-2026-tickets-1997773482264",
       "sourceLabel": "eventbrite.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "verified-ferry-building",
+      "imageKey": "official-sf-world-of-dumplings-2026",
       "aliases": [
         "旧金山世界饺子节：在 Ferry Building 尝不同文化",
         "World of Dumplings at San Francisco’s Ferry Building",
@@ -15659,7 +15659,7 @@
       "officialUrl": "https://marincountrymart.com/events/0zog7elnls9d0aljsi62915xu1zww4",
       "sourceLabel": "marincountrymart.com",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-mcm-halloween-spectacular-20261031",
       "aliases": [
         "Marin Country Mart 万圣节装扮与讨糖",
         "Marin Country Mart Halloween Costumes and Trick-or-Treating",
@@ -15831,7 +15831,7 @@
       "officialUrl": "https://mhplaza.org/allevents/avenida26",
       "sourceLabel": "mhplaza.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "autumn-neighbors",
+      "imageKey": "official-san-jose-avenida-altares-2026",
       "aliases": [
         "San José Avenida de Altares 亡灵节文化夜",
         "San José Avenida de Altares Día de los Muertos",
@@ -15867,7 +15867,7 @@
       "officialUrl": "https://ybgfestival.org/event/halloween-hoopla-2026/",
       "sourceLabel": "ybgfestival.org",
       "verifiedAt": "2026-09-29",
-      "imageKey": "verified-yerba-buena-gardens",
+      "imageKey": "official-sf-halloween-hoopla-2026",
       "aliases": [
         "旧金山 Halloween Hoopla：儿童装扮大游行",
         "San Francisco Halloween Hoopla",
@@ -16382,7 +16382,7 @@
       ],
       "officialUrl": "https://presidio.gov/explore/events/free-yoga-in-the-park/2026-11-22/",
       "sourceLabel": "Presidio Trust / Sutter Health",
-      "imageKey": "octnov-presidio-context",
+      "imageKey": "official-nov2026-presidio-free-yoga",
       "startDate": "2026-11-01",
       "endDate": "2026-11-22",
       "aliases": [
@@ -16940,7 +16940,7 @@
       "officialUrl": "https://presidio.gov/explore/events/dia-de-los-muertos-and-diwali-festival",
       "sourceLabel": "Presidio Trust",
       "verifiedAt": "2026-10-05",
-      "imageKey": "presidio",
+      "imageKey": "official-nov2026-presidio-dia-muertos-diwali",
       "aliases": [
         "Presidio：亡灵节与排灯节文化庆典",
         "Día de los Muertos and Diwali at the Presidio",
@@ -18009,7 +18009,7 @@
       "endDate": "2027-01-10",
       "category": "family",
       "cost": "paid",
-      "imageKey": "region-filoli-house",
+      "imageKey": "official-filoli-holidays-from-nov14-2026",
       "officialUrl": "https://filoli.org/holidays",
       "sourceLabel": "Filoli Historic House & Garden",
       "verifiedAt": "2026-10-05",
@@ -18267,7 +18267,7 @@
         "2026-11-22"
       ],
       "verifiedAt": "2026-10-07",
-      "imageKey": "octnov-mv-performing-arts-context",
+      "imageKey": "official-octnov-pyt-wizard-oz-2026",
       "title": "Mountain View 亲子音乐剧：绿野仙踪",
       "dateLabel": "11/14、15、21、22 · 周末公众场",
       "region": "south-bay",
