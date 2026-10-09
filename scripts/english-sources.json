@@ -131,5 +131,6 @@
   "src/i18n/opening-review-en.json",
   "src/data/octnov-2026-extra-media-en.json",
   "src/data/octnov-2026-event-media-en.json",
-  "src/data/federal-pd-media-en.json"
+  "src/data/federal-pd-media-en.json",
+  "src/data/official-event-media-en.json"
 ]

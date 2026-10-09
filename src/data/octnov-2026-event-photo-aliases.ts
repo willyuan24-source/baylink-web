@@ -16,9 +16,8 @@ const reusedPhotos = [
   {
     "key": "octnov-presidio-context",
     "sourceKey": "presidio",
-    "caption": "Presidio Tunnel Tops，2023 年资料照片；展示活动所在园区，不是 2026 年瑜伽、历史导览或营火讲解现场，也不代表各活动的具体集合点。",
+    "caption": "Presidio Tunnel Tops，2023 年资料照片；展示活动所在园区，不是 2026 年历史导览或营火讲解现场，也不代表各活动的具体集合点。",
     "eventIds": [
-      "nov2026-presidio-free-yoga",
       "nov2026-presidio-250-years-walk",
       "nov2026-presidio-campfire-history-talks"
     ]
@@ -151,12 +150,6 @@ const newVenuePhotos = [
     "key": "octnov-sj-performing-arts-context",
     "eventIds": [
       "octnov-san-jose-tommy-2026"
-    ]
-  },
-  {
-    "key": "octnov-mv-performing-arts-context",
-    "eventIds": [
-      "octnov-pyt-wizard-oz-2026"
     ]
   },
   {

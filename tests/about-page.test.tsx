@@ -61,7 +61,23 @@ test('About keeps its assistant action and navigation usable when switching Engl
   assert.equal(view.getByRole('link', { name: 'Browse neighborhood listings' }).getAttribute('href'), '/#home-feed-section');
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.match(view.getByRole('heading', { level: 1 }).textContent!, /灣區生活/);
-  assert.equal(view.getByRole('link', { name: /Baylink.us@gmail.com/ }).getAttribute('href'), 'mailto:Baylink.us@gmail.com');
+  const emailLinks = view.getAllByRole('link', { name: /Baylink.us@gmail.com/ });
+  assert.equal(emailLinks.length, 2, 'the image takedown line and the contact footer both link the same address');
+  for (const link of emailLinks) assert.equal(link.getAttribute('href'), 'mailto:Baylink.us@gmail.com');
+});
+
+test('About tells image rights holders how to ask for a correction or takedown, in every language', async () => {
+  const view = render(<MemoryRouter initialEntries={['/about']}><AboutContent /></MemoryRouter>);
+  const line = () => view.getByTestId('about-image-takedown');
+  assert.equal(line().textContent, '图片权利人如需更正或下架，请发邮件至 Baylink.us@gmail.com，我们会尽快处理。');
+  assert.equal(line().querySelector('a')?.getAttribute('href'), 'mailto:Baylink.us@gmail.com');
+  assert.equal(line().querySelector('a')?.getAttribute('translate'), 'no');
+  assert.equal(line().querySelector('a')?.style.textDecoration, 'underline', 'the address is visibly a link, not only by colour');
+  assert.doesNotMatch(line().textContent!, /工作日|business day/, 'no response deadline the owner has not approved');
+  await act(async () => { await setLocale('en', false); });
+  assert.equal(line().textContent, 'Image rights holders who want a picture corrected or removed can email Baylink.us@gmail.com. We will respond as soon as we can.');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.match(line().textContent!, /^圖片權利人如需更正或下架，請發郵件至 Baylink\.us@gmail\.com，我們會[儘盡]快處理。$/);
 });
 
 test('guest and signed-in About entries open the same public page without requesting the old editable content', async t => {

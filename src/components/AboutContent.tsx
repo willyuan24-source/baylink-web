@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { EnglishOnly } from './EnglishOnly';
 import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, ChevronRight, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
 import { BRAND } from '../brandAssets';
+import { translateText, useLocale } from '../i18n/locale';
 
 const discoveries = [
   { icon: CalendarDays, number: '01', title: '找活动和优惠', text: '看看本月活动、免费福利和周末好去处。', href: '/this-month', action: '去看活动' },
@@ -11,9 +12,14 @@ const discoveries = [
 ];
 
 const sourceTextStyle = { fontSize: 'var(--text-body, 1rem)', lineHeight: 1.8, color: 'var(--color-ink, #16352b)', marginTop: 16 };
+const CONTACT_EMAIL = 'Baylink.us@gmail.com';
+// Body text links are otherwise drawn like plain text here; underline so the address reads as a link (WCAG 1.4.1).
+const inlineLinkStyle = { textDecoration: 'underline', textUnderlineOffset: '0.2em' };
 
 /** Public introduction shared by the interactive route and static HTML. */
 export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
+  const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   return <article className="about-baylink">
     <header className="about-hero">
       <div className="about-hero-copy"><EnglishOnly><span className="about-eyebrow">BAY AREA LIFE</span></EnglishOnly>
@@ -42,6 +48,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
       <p style={sourceTextStyle}>阅读时留意「待复核」「需人工确认」和「往期内容」提示。来源读取失败或尚未读取时仍需确认；往期记录不表示现在仍可参加、领取或办理。</p>
       <p style={sourceTextStyle}>行动前，请向对应机构核实个人资格、可用语言、价格与名额；有误的信息可通过下方邮箱告诉我们。</p>
       <p style={sourceTextStyle}>AI 回答与草稿需要核对，生成结果不代表人工审稿。封面注明「AI 原创」或「AI 辅助原创」的，是主题插画，不是机构实景或服务、资格证明。</p>
+      <p style={sourceTextStyle} data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={inlineLinkStyle}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
     </section>
 
     <section className="about-baybay" aria-labelledby="about-baybay-title"><div className="about-baybay-mark"><Sparkles size={27} /></div><div>
@@ -57,7 +64,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
     </section>
 
     <footer className="about-contact"><div><h2>联系我们</h2><p>有问题、建议，或发现信息有误，欢迎发邮件告诉我们。</p></div>
-      <a href="mailto:Baylink.us@gmail.com"><Mail size={18} /><span translate="no">Baylink.us@gmail.com</span><ArrowUpRight size={16} /></a>
+      <a href={`mailto:${CONTACT_EMAIL}`}><Mail size={18} /><span translate="no">{CONTACT_EMAIL}</span><ArrowUpRight size={16} /></a>
       <nav aria-label="网站说明"><Link to="/terms">服务条款</Link><Link to="/privacy">隐私政策</Link><Link to="/">回到首页<ArrowRight size={14} /></Link></nav>
     </footer>
   </article>;
