@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { recordProductEvent, type VisitEvent } from '../lib/product-events';
+import { pageTemplate } from '../lib/route-template';
 
 /** Classify attribution locally; raw query values and referrers never leave the browser. */
 export function visitSource(search: string, referrer = ''): VisitEvent {
@@ -24,6 +25,7 @@ export function visitSource(search: string, referrer = ''): VisitEvent {
   return 'site_source_other';
 }
 
+/** One page_view per real path change, counted under the page's route template ('/events/:id', a 404 as '/not-found'), never the path. */
 export function PageVisitObserver() {
   const { pathname, search } = useLocation();
   const lastPath = useRef<string | null>(null);
@@ -31,10 +33,11 @@ export function PageVisitObserver() {
   useEffect(() => {
     if (lastPath.current === pathname) return;
     lastPath.current = pathname;
-    recordProductEvent('page_view');
+    const route = pageTemplate(pathname);
+    recordProductEvent('page_view', { route });
     if (!attributed.current) {
       attributed.current = true;
-      recordProductEvent(visitSource(search, document.referrer));
+      recordProductEvent(visitSource(search, document.referrer), { route });
     }
   }, [pathname, search]);
   return null;

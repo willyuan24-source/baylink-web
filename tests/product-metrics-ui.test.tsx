@@ -50,3 +50,26 @@ test('failed and malformed metric responses remain errors until a successful ret
   assert.equal(view.queryByRole('alert') === null, true);
   assert.ok(view.container.querySelectorAll('dd').length > 9);
 });
+
+test('the retired client_error counter shows only while the window still holds old counts, labelled as retired', async () => {
+  api.request = async () => ({ ...summary, counts: { ...summary.counts, client_error: 6, feedback_sent: 2 } });
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(<ProductMetrics />); });
+  const retired = [...view.container.querySelectorAll('dt')].find(term => /客户端错误/.test(term.textContent || ''));
+  assert.equal(retired?.textContent, '客户端错误（旧计数，已停用；现见下方「前端报错」）');
+  assert.equal(retired?.nextElementSibling?.textContent, '6');
+  cleanup();
+  await setLocale('en', false);
+  await act(async () => { view = render(<ProductMetrics />); });
+  assert.match(view.container.textContent || '', /Client errors \(old counter, retired; see Browser errors below\)6/);
+  cleanup();
+  for (const counts of [summary.counts, { ...summary.counts, client_error: 0 }]) {
+    api.request = async () => ({ ...summary, counts });
+    await act(async () => { view = render(<ProductMetrics />); });
+    assert.doesNotMatch(view.container.textContent || '', /Client errors/, 'no tile once the old counts have rolled out');
+    cleanup();
+  }
+  api.request = async () => ({ ...summary, counts: { ...summary.counts, client_error: -1 } });
+  await act(async () => { view = render(<ProductMetrics />); });
+  assert.ok(view.getByRole('alert'), 'a malformed retired count is still an error');
+});

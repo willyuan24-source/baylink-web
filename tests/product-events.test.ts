@@ -18,7 +18,8 @@ test('aggregate requests contain no identity, content or referrer, even with an 
   assert.equal(fetch.mock.calls.length, 1);
   const [url, options] = fetch.mock.calls[0].arguments;
   assert.ok(String(url).endsWith('/api/product-events'));
-  assert.deepEqual(JSON.parse(options!.body as string), { event: 'plan_saved', locale: 'zh-Hans' });
+  // The page's route-table template, never the path or its query (?q=private-question).
+  assert.deepEqual(JSON.parse(options!.body as string), { event: 'plan_saved', locale: 'zh-Hans', route: '/plan' });
   assert.deepEqual(options!.headers, { 'Content-Type': 'application/json' });
   assert.equal(options!.credentials, 'omit');
   assert.equal(options!.referrerPolicy, 'no-referrer');

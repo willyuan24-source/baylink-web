@@ -230,7 +230,7 @@ test('success is counted anonymously and a response without safe sources is not 
   assert.equal(metrics.mock.callCount(), 1);
   const metricOptions = metrics.mock.calls[0].arguments[1] as RequestInit;
   assert.equal(metricOptions.credentials, 'omit');
-  assert.deepEqual(Object.keys(JSON.parse(String(metricOptions.body))).sort(), ['event', 'locale']);
+  assert.deepEqual(Object.keys(JSON.parse(String(metricOptions.body))).sort(), ['event', 'locale', 'route']);
   assert.equal(JSON.parse(String(metricOptions.body)).event, 'planner_web_search');
   mockSearch(async () => ({ ...response('Unsourced claim'), sources: [{ title: 'Private', url: 'https://localhost/' }] }));
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Search the web' })); });

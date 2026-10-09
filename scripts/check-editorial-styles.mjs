@@ -17,6 +17,9 @@ export const editorialStyleScopes = [
   { file: 'src/pages/events-page.css' },
   // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
   { file: 'src/components/ui/ui.css' },
+  { file: 'src/features/feedback/feedback.css' },
+  { file: 'src/features/feedback/feedback-entry.css' },
+  { file: 'src/features/feedback/feedback-admin.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

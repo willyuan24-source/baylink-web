@@ -1,0 +1,15 @@
+/* WEB-FEEDBACK entry points: "这条信息有误？" (detail pages), the 反馈与报错 link (footers, About, 404) and the BayBay 👎
+   reasons. Small on purpose; the sheet's own styles (feedback.css) load with the sheet. */
+.feedback-report-row{width:min(100%,1040px);margin:0 auto;padding:0 2.5rem 3rem}
+.feedback-report-link,.feedback-footer-link{display:inline-flex;align-items:center;gap:.5rem;min-height:var(--control-height);padding:.25rem 0;border:0;background:none;color:var(--color-ink-2);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25rem;cursor:pointer}
+.feedback-report-link svg,.feedback-footer-link svg{flex:none;color:var(--color-brand)}
+.feedback-report-link:hover,.feedback-footer-link:hover{color:var(--color-brand);text-decoration-color:currentColor}
+.feedback-report-link:focus-visible,.feedback-footer-link:focus-visible,.baybay-downvote button:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
+@media(max-width:767px){.feedback-report-row{padding:0 1.125rem 2rem}}
+.baybay-downvote{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.5rem;font-size:var(--text-fact);color:var(--color-ink-2)}
+.baybay-downvote>span{flex-basis:100%;font-weight:600;color:var(--color-ink)}
+.baybay-downvote button{min-height:var(--control-height);padding:.375rem .875rem;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
+.baybay-downvote button[disabled]{opacity:.6}
+.baybay-downvote-failed{flex-basis:100%;margin:0;font-size:var(--text-fact);color:var(--color-danger)}
+.baybay-downvote-done{margin:.5rem 0 0;font-size:var(--text-fact);color:var(--color-ink-2)}
+.baybay-feedback>:is(.baybay-downvote,.baybay-downvote-done){flex-basis:100%}

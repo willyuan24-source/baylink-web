@@ -34,6 +34,17 @@ test('real SPA path changes count once, query/filter changes do not and all requ
   fireEvent.click(view.getByRole('button', { name: 'home' }));
   const bodies = fetch.mock.calls.map(call => JSON.parse(String(call.arguments[1]?.body)));
   assert.deepEqual(bodies.map(body => body.event), ['page_view', 'site_source_wechat', 'page_view', 'page_view']);
-  assert.ok(bodies.every(body => Object.keys(body).sort().join(',') === 'event,locale'));
+  assert.ok(bodies.every(body => Object.keys(body).sort().join(',') === 'event,locale,route'));
+  // Each page_view carries the route template of the path it counts, never the path or query.
+  assert.deepEqual(bodies.map(body => body.route), ['/', '/', '/guides', '/']);
+  assert.equal(JSON.stringify(bodies).includes('private'), false);
+});
+
+test('a path outside the route table (the 404 page) counts as /not-found, never as its path', context => {
+  const fetch = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  render(<MemoryRouter initialEntries={['/en/some/private-page?x=1']}><PageVisitObserver /></MemoryRouter>);
+  const bodies = fetch.mock.calls.map(call => JSON.parse(String(call.arguments[1]?.body)));
+  assert.deepEqual(bodies.map(body => body.event), ['page_view', 'site_source_direct']);
+  assert.deepEqual(bodies.map(body => body.route), ['/not-found', '/not-found']);
   assert.equal(JSON.stringify(bodies).includes('private'), false);
 });

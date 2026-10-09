@@ -1,8 +1,16 @@
-import { recordProductEvent } from './product-events';
+import { recordIcsDownload, recordProductEvent } from './product-events';
+import { preloadErrorBeacon, reportClientError } from './error-beacon';
+import { matchRoute } from '../app/route-table';
+import { bootTesterMode } from '../features/feedback/tester-boot';
+
+/** A calendar file or subscription link: `download="….ics"` (the generated files), an .ics URL or webcal:. */
+const isCalendarLink = (link: Element) => /\.ics$/i.test(link.getAttribute('download') || '')
+  || /^webcal:|\.ics(?:$|[?#])/i.test(link.getAttribute('href') || '');
+
 /** Coarse action counters only: no query text, destination URL, identifier or visitor fingerprint. */
 export function installProductObserver() {
   if (typeof document === 'undefined') return;
-  const from = new URLSearchParams(location.search).get('from') || '';
+  const from = new URLSearchParams(window.location.search).get('from') || '';
   if (/^card-[a-z0-9-]{1,40}$/.test(from)) recordProductEvent('site_arrival_from_card');
   else if (/^(opus|opus-bay|opus-return|opus-place|opus-postcard)$/.test(from)) recordProductEvent('site_arrival_from_opus');
   document.addEventListener('click', event => {
@@ -11,7 +19,15 @@ export function installProductObserver() {
     if (target.closest('.site-nav,.site-mobile-nav,.site-secondary-nav')) recordProductEvent('nav_click');
     if (target.closest('.home-discovery') && !target.closest('form')) recordProductEvent('home_module_click');
     if (target.closest('[data-contact-action],.post-detail__quick-contact,.post-card__contact')) recordProductEvent('contact_click');
+    // Every calendar download goes through an <a download="….ics">, including the ones the page creates and clicks.
+    if (target.tagName === 'A' && isCalendarLink(target)) recordIcsDownload();
   });
-  // Aggregate failures; error objects can contain personal data and never leave this browser.
-  window.addEventListener('error', () => recordProductEvent('client_error'));
+  // Error beacons (error-beacon.ts → client-errors.ts): a fingerprint of the error, never its text. Render errors come
+  // from ErrorBoundary. The beacon module itself loads once the browser is idle, outside the boot graph.
+  window.addEventListener('error', event => reportClientError('error', event.error ?? event.message));
+  window.addEventListener('unhandledrejection', event => reportClientError('rejection', event.reason));
+  window.addEventListener('vite:preloadError', event => reportClientError('chunk', (event as Event & { payload?: unknown }).payload ?? 'preload'));
+  if ('requestIdleCallback' in window) window.requestIdleCallback(preloadErrorBeacon, { timeout: 8_000 });
+  else setTimeout(preloadErrorBeacon, 4_000);
+  bootTesterMode(!!matchRoute(window.location.pathname)?.bare);
 }

@@ -1,0 +1,56 @@
+/* WEB-FEEDBACK: the feedback sheet, the tester consent sheet and the tester button. Loaded with the sheet on first use.
+   Phone: a bottom sheet; from 768px a centred dialog. Tokens and rem only; every control is at least --control-height. */
+.feedback-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:rgb(22 46 41 / 45%)}
+.feedback-sheet{width:100%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.25rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;background:var(--color-bg);color:var(--color-ink);font-size:var(--text-body);line-height:1.6}
+@media(min-width:768px){
+  .feedback-overlay{align-items:center;padding:1.5rem}
+  .feedback-sheet{max-width:35rem;max-height:calc(100dvh - 3rem);padding:1.5rem 1.75rem;border-radius:20px}
+}
+.feedback-sheet-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem}
+.feedback-sheet-header h2{margin:.375rem 0 0;font-size:1.25rem;line-height:1.4;font-weight:600;color:var(--color-ink)}
+.feedback-sheet-close{display:grid;flex:none;place-items:center;width:var(--control-height);height:var(--control-height);border:1px solid var(--color-line-strong);border-radius:.625rem;background:var(--color-surface);color:var(--color-ink)}
+.feedback-sheet-lede{margin:.5rem 0 1rem;font-size:var(--text-body);color:var(--color-ink-2)}
+.feedback-sheet-subject{margin:-.5rem 0 1rem;font-size:var(--text-fact);color:var(--color-ink-2);overflow-wrap:anywhere}
+.feedback-sheet-subject span{font-weight:600;color:var(--color-ink)}
+.feedback-reasons{margin:0 0 1rem;padding:0;border:0;min-width:0}
+.feedback-reasons legend{margin-bottom:.5rem;padding:0;font-size:var(--text-body);font-weight:600;color:var(--color-ink)}
+.feedback-chip-row{display:flex;flex-wrap:wrap;gap:.5rem}
+.feedback-chip{position:relative;display:inline-flex;align-items:center;min-height:var(--control-height);padding:.375rem 1rem;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact);cursor:pointer}
+.feedback-chip input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.feedback-chip.is-selected{border-color:var(--color-brand);background:var(--color-brand-tint);color:var(--color-brand-deep);font-weight:600}
+.feedback-chip:focus-within{outline:2px solid var(--color-brand);outline-offset:2px}
+.feedback-field{display:grid;gap:.375rem;margin:0 0 1rem}
+.feedback-field label{font-size:var(--text-body);font-weight:600;color:var(--color-ink)}
+.feedback-field textarea,.feedback-field input{width:100%;min-height:var(--control-height);padding:.625rem .75rem;border:1px solid var(--color-line-strong);border-radius:.625rem;background:var(--color-surface);color:var(--color-ink);font:inherit;font-size:var(--text-body);line-height:1.6}
+.feedback-field textarea{min-height:6.5rem;resize:vertical}
+.feedback-field textarea:focus-visible,.feedback-field input:focus-visible{outline:2px solid var(--color-brand);outline-offset:1px}
+.feedback-field-meta{display:flex;justify-content:space-between;gap:1rem;font-size:var(--text-caption);line-height:1.5;color:var(--color-ink-3)}
+.feedback-field-meta>span:last-child{flex:none}
+.feedback-field-error,.feedback-failure{margin:.5rem 0 0;font-size:var(--text-fact);font-weight:600;color:var(--color-danger)}
+.feedback-failure{margin:0 0 1rem;padding:.75rem;border:1px solid var(--color-danger);border-radius:.625rem;background:var(--color-surface);overflow-wrap:anywhere}
+.feedback-failure a{color:var(--color-brand);text-decoration:underline}
+.feedback-honeypot{position:absolute;left:-10000px;width:1px;height:1px;overflow:hidden}
+.feedback-attached{margin:0 0 1rem;font-size:var(--text-caption);line-height:1.6;color:var(--color-ink-3)}
+.feedback-attached a{display:flex;align-items:center;width:fit-content;min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:underline;text-underline-offset:.1875rem}
+.feedback-actions{display:flex;flex-wrap:wrap;gap:.75rem}
+.feedback-primary,.feedback-secondary{display:inline-flex;align-items:center;justify-content:center;min-height:var(--control-height);padding:.5rem 1.25rem;border-radius:12px;font-size:var(--text-body);font-weight:600}
+.feedback-primary{flex:1 1 10rem;border:1px solid var(--color-brand);background:var(--color-brand);color:var(--color-surface)}
+.feedback-primary:hover{background:var(--color-brand-hover)}
+.feedback-primary[disabled]{opacity:.7;cursor:progress}
+.feedback-secondary{border:1px solid var(--color-line-strong);background:var(--color-surface);color:var(--color-ink)}
+.feedback-sheet :is(button,a):focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
+.feedback-tester{margin:1rem 0 0;font-size:var(--text-caption);color:var(--color-ink-3)}
+.feedback-tester button{min-height:var(--control-height);padding:0 .25rem;border:0;background:none;color:var(--color-brand);font-size:var(--text-caption);font-weight:600;text-decoration:underline}
+.feedback-sheet-done{display:grid;justify-items:start;gap:.75rem;padding:.5rem 0 .25rem}
+.feedback-sheet-done>svg{color:var(--color-brand)}
+.feedback-sheet-done p{margin:0;color:var(--color-ink-2)}
+.feedback-consent ul{display:grid;gap:.625rem;margin:0 0 1rem;padding-left:1.25rem;list-style:disc;color:var(--color-ink-2)}
+.feedback-consent h2[tabindex="-1"]:focus{outline:none} /* a starting point for screen readers, not a control */
+.feedback-consent-code{margin:.75rem 0;font-size:var(--text-body);color:var(--color-ink)}
+.feedback-consent-code strong{font-weight:700;letter-spacing:.04em}
+/* Tester mode only: one 48px button above the phone tab bar (quality.md §6: bottom 80px; the tab bar shows below 1024px), bottom-right on desktop. */
+.feedback-tester-button{position:fixed;right:1rem;bottom:calc(var(--site-mobile-nav-height) + .75rem);z-index:45;display:inline-flex;align-items:center;gap:.375rem;min-height:3rem;padding:0 1rem;border:1px solid var(--color-brand-deep);border-radius:999px;background:var(--color-brand-deep);color:var(--color-surface);font-size:var(--text-fact);font-weight:600;box-shadow:0 2px 5px rgba(0,0,0,0.08)}
+.feedback-tester-button:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
+@media(min-width:1024px){.feedback-tester-button{right:1.5rem;bottom:1.5rem}}
+@media(prefers-reduced-motion:no-preference){.feedback-sheet{animation:feedback-rise .18s ease-out}}
+@keyframes feedback-rise{from{transform:translateY(1rem);opacity:.6}to{transform:none;opacity:1}}
