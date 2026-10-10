@@ -12,14 +12,16 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // plus opencc for zh-Hant and the route's English scopes for en. Ceilings are the
 // 10/08 measurements + 2% and only ratchet down (plan §3.0 rule 8): lower a
 // ceiling when a PR makes a route smaller; raising one needs the owner's approval.
-// Home zh-Hans keeps the 220 KiB gate below. /events took over /this-week's row (same ceilings).
+// Home zh-Hans keeps the 220 KiB gate below. /events and /calendar read the slim events index (WEB-EVENTS, RC-33):
+// measured 306.3 / 309.1 KiB zh-Hans on 10/09; their ceilings keep 400 KB (390 KiB) zh-Hans and the same ~80 KiB
+// allowance in zh-Hant / en for the CNT-EVENTS overlay fields (shortTitle, dek, sessions, price) that merge first.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 220.0, 'zh-Hant': 731.6, en: 365.3 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 993.9, 'zh-Hant': 1504.5, en: 1635.1 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 390.0, 'zh-Hant': 890.0, en: 1030.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1036.4, 'zh-Hant': 1547.0, en: 2207.3 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1573.9, en: 1361.3 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 1023.3, 'zh-Hant': 1533.8, en: 1664.4 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 993.8, 'zh-Hant': 1504.3, en: 1634.9 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 390.0, 'zh-Hant': 890.0, en: 1030.0 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
