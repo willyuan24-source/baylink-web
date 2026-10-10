@@ -412,3 +412,18 @@ human re-read if the item falls within the next 3 days.
 | offer | `world-market-zombie-reward-oct31-2026` | https://www.worldmarket.com/customer-service/world-market-rewards-rules.html | 200 | unchanged | reviewed: cancel/sold-out wording refers to other listings or general policy; no change | Expiration: All original and reissued Zombie Rewards expire at 11:59 p.m. local time on October 31, 2026. Any unused or un-reissued Zombie Rewards after this date are permanently f |
 | offer | `ybca-free-wednesdays` | https://ybca.org/visit/ | 200 | changed | match |  |
 | offer | `yogurtland-anniversary-oct20` | https://www.yogurtland.com/news_posts/view/86/celebrating-20-years-of-yogurtland-anniversary-promo-how-you-can-join-the-fun | 200 | unchanged | date not located in page text (recurring listing or script-rendered dates); no change detected |  |
+
+### CNT-EVENTS · age rules in the same 2026-10-09 reads (added after review, 10/09 evening)
+
+The read above compared dates, times, prices and venues, not age rules. A second look at the age text of the pages already
+fetched on 10/09 (no new requests) changed only overlay age chips; no source package was edited and `verifiedAt` is unchanged.
+
+| Id | Page says (10/09) | Record says | Overlay now |
+|---|---|---|---|
+| `uptown-jackson-dean-2026` | "All Ages" and, below it, "12+ (UNDER 16 W/ ADULT)" | 12岁以上; 16岁以下需成人陪同 | no age chip and no age tip until a human re-reads the page |
+| `uptown-be-like-blippi-tour-2026` | "All Ages" and, below it, "Ages 2+. No babes in arms" | 2岁以上 | no age chip until a human re-reads the page |
+| `san-ramon-nature-halloween-storytime-2026` | "All ages welcome, but activities were created with ages 2 – 6 in mind" | 以 2–5 岁为主要设计年龄 | no age chip; the record's 2–5 needs a human re-read |
+| `palo-alto-addams-family-opening-2026` | "Ages 8+ (no child under age 3 admitted)" | 推荐 8 岁以上，3 岁以下不能入场 | chip "建议 8 岁以上" (was "3 岁以上") |
+
+The same evening `sf-open-together-ai-2026` was re-checked against its 10/09 text ("Welcome! To join the event, please register
+below." and "free for everyone"; no waitlist and no approval step shown): its cost line now reads "免费；需在 Luma 报名".

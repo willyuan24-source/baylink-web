@@ -16,6 +16,7 @@ import lateSfEastEnglish from '../src/data/late-september-sf-east-en.json';
 import latePeninsulaSouthEnglish from '../src/data/late-september-peninsula-south-en.json';
 import lateNorthEnglish from '../src/data/late-september-north-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
+import { EVENT_OVERLAY } from '../src/data/editorial-overlay/apply';
 import { buildEventCalendar, featurePhotos, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, isLongRunning, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs } from '../src/lib/monthly';
 
 test('unknown admission remains searchable but never qualifies as a free event', () => {
@@ -272,8 +273,10 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-11-30', `${item.id} overlaps the fall edition or its November previews`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
-    // The editorial overlay drops filler and label repeats, so a covered plan may be one to four steps (CNT-EVENTS).
-    assert.ok(item.plan.length >= 1 && item.plan.length <= 4, `${item.id} keeps a concise one- to four-step preparation list`);
+    // The editorial overlay drops filler and label repeats, so a covered plan may be one to four steps (CNT-EVENTS);
+    // items without an entry keep the three- or four-step guard.
+    const minSteps = Object.hasOwn(EVENT_OVERLAY, item.id) ? 1 : 3;
+    assert.ok(item.plan.length >= minSteps && item.plan.length <= 4, `${item.id} keeps a concise ${minSteps === 1 ? 'one' : 'three'}- to four-step preparation list`);
     assert.equal(new Set(item.plan).size, item.plan.length, `${item.id} does not repeat a preparation step`);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }

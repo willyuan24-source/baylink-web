@@ -31,6 +31,12 @@ export type EditorialSession = { date: string; start?: string; end?: string };
 /** Structured admission: `free` only when entry is free, `min`/`max` in USD, `note` for a short condition. */
 export type EditorialPrice = { free?: boolean; min?: number; max?: number; note?: string };
 /**
+ * A dated source read's state of the item, for schema, share cards and badges (the labels say it in words too):
+ * `postponed` — no confirmed day yet (`occurrenceDates: []`, the original date in `dateNote`), which is not "ended";
+ * `cancelled` — will not take place; `sold_out` — takes place, but nothing is on sale now.
+ */
+export type EditorialStatus = 'postponed' | 'cancelled' | 'sold_out';
+/**
  * Reader-facing short forms and structured facts from the editorial overlay (`src/data/editorial-overlay`).
  * Every field is optional; cards and detail pages fall back to the full fields (`src/lib/event-facts.ts`).
  */
@@ -48,10 +54,12 @@ export type EventEditorial = {
   address?: string;
   /** Age chip ("21+", "0–6 岁"), only from a stated age rule. */
   ageChip?: string;
-  /** Up to three tips of ≤40 display units, each adding information the other fields do not carry. */
+  /** Up to three tips of ≤40 display units, each adding information no other shown field carries (plan, labels, summary). */
   tips?: string[];
   /** Exceptions to the regular schedule, shown on the detail page only. */
   dateNote?: string;
+  /** Set only from a dated source read (`docs/source-reads-2026-10.md`). */
+  status?: EditorialStatus;
   /** Optional TypeCover texture icon (`src/components/ui/TypeCover.tsx`). */
   iconKey?: string;
 };
