@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus, CalendarDays, ImagePlus, Sun, FileText, Mail, HeartHandshake } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, ChevronRight, X, Sparkles, Loader2, BookOpen, ArrowUp, Square, RotateCcw, Plus } from 'lucide-react';
 import { recordProductEvent } from '../lib/product-events';
 import { recordBayBayLatency } from '../lib/baybay-latency';
 import { BayBayDownvoteReasons } from '../features/feedback/BayBayDownvoteReasons';
@@ -15,15 +15,16 @@ import { BayBayAnswer, BayBayCoverageSummary, BayBayDiscoveryResults, BayBayRetr
 import {
   bayBayFollowups, bayBayErrorMessage, bayBayPlanPath, isBayBayPlanRequest, isBayBaySocialRequest, isBayBaySearchContextExpired, isBayBayAssistantContextExpired, conversationHistory, currentBayBayGuide, fetchBayBayReply, safeBayBayPath, bayBayTaskBrief,
   bayBayPageQuestions, bayBayReferenceGuides, bayBayGuideSources, isBayBaySchoolGuide, isBayBaySchoolRequest, BAYBAY_SCHOOL_NOTE, BAYBAY_SCHOOL_STARTER,
-  BAYBAY_STARTERS, BAYBAY_ENTITY_QUESTIONS, bayBayPageRef,
-  type BayBayTurn, type GuideChatAction, type GuideChatResponse, type BayBaySearchMode, type BayBayStarter,
+  type BayBayTurn, type GuideChatAction, type GuideChatResponse, type BayBaySearchMode,
 } from '../lib/baybay-conversation';
+import { BAYBAY_STARTERS, BAYBAY_ENTITY_QUESTIONS, bayBayPageRef, type BayBayStarter } from '../features/baybay/panel-chips';
 import { bayBayAssistantResult } from '../lib/baybay-assistant';
-import { parseBayBayCapabilities, type BayBayCapabilities } from '../lib/baybay-answer';
+import { parseBayBayAnswerFields, parseBayBayCapabilities, type BayBayCapabilities } from '../lib/baybay-answer';
 import { getBayAreaToday } from '../lib/monthly';
 import { BayBayAnswerBody, BayBayCardRail, BayBayCallActions, BayBayDraftPreview, BayBayEmergencyCard, BayBayNoticeBanner, BayBayResourceCard } from '../features/baybay/BayBayAnswer';
 import { BayBaySaveScope } from '../features/baybay/BayBaySaveScope';
-import { bayBayPageTitle } from '../features/baybay/answer-cards';
+import { bayBayPageTitle } from '../features/baybay/page-title';
+import { loadBayBayCards } from '../features/baybay/cards-loader';
 import { translateText, useLocale } from '../i18n/locale';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
 
@@ -59,8 +60,6 @@ const resolveCategoryLabel = (category?: string) => {
 
 const hasUnconfirmedFoodEvidence = (response?: GuideChatResponse) => response?.research?.warnings?.includes('food_evidence_unconfirmed') === true;
 
-const STARTER_ICONS: Record<string, typeof Sun> = { weekend: Sun, paperwork: FileText, letter: Mail, seniors: HeartHandshake, screenshot: ImagePlus, plan: CalendarDays };
-
 export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBayAssistantSession key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props} />;
 
 const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
@@ -94,6 +93,8 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
       .catch(() => { if (!controller.signal.aborted) setCapabilities({ pause: null, reduced: null }); });
     return () => controller.abort();
   }, [open, ownerId, usageRevision]);
+  // The image-card chunk starts loading with the panel, so it is ready when the first answer arrives.
+  useEffect(() => { if (open) void loadBayBayCards().catch(() => {}); }, [open]);
   // "正在看：xx ✕": the page the reader is on goes with each question until they dismiss it on this page.
   const [pageOffPath, setPageOffPath] = useState<string | null>(null);
   const pageRef = bayBayPageRef(currentPath);
@@ -192,8 +193,10 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
       // The lead and each point preview as they stream (unvalidated, outside live regions); the result replaces them.
       onDraft: draft => { if (activeRequest.current?.id === id && turnsRef.current.some(turn => turn.id === id && turn.state === 'pending' && ((turn.draftLead || '') !== draft.lead || (turn.draftPoints || []).join('␞') !== draft.points.join('␞')))) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, draftLead: draft.lead, draftPoints: draft.points } : turn)); },
     })
-      .then((response) => {
+      .then((raw) => {
         if (activeRequest.current?.id !== id) return;
+        // The v2 answer and cut-over fields render only after validation (cards, tel: links, notices, safety card).
+        const response: GuideChatResponse = { ...raw, lead: undefined, points: undefined, gap: undefined, pageEntity: undefined, safety: undefined, notice: undefined, fallbackHelp: undefined, corrected: undefined, ...parseBayBayAnswerFields(raw) };
         recordBayBayLatency(performance.now() - startedAt);
         if (response.degraded) recordProductEvent('baybay_degraded');
         activeRequest.current = null;
@@ -317,7 +320,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
             {pageQuestions.length > 0 && <div className="bb-chip-group"><p>{copy('围绕这一页提问', 'Ask about this page')}</p>
               <ul className="bb-chips bb-chips--page" aria-label={copy('围绕这一页提问', 'Ask about this page')}>{pageQuestions.map(prompt => <li key={prompt.label}><button type="button" disabled={loading} onClick={() => askBayBay(prompt.question)}>{prompt.label}<ArrowUp aria-hidden="true" size={16} /></button></li>)}</ul></div>}
             <div className="bb-chip-group"><p>{copy('常用问题', 'Popular questions')}</p>
-              <ul className="bb-chips" aria-label={copy('常用问题', 'Popular questions')}>{BAYBAY_STARTERS.map(starter => { const Icon = STARTER_ICONS[starter.id] || ArrowUp; return <li key={starter.id}><button type="button" disabled={loading && (starter.action === 'send')} onClick={() => startWith(starter)}><Icon aria-hidden="true" size={18} />{copy(starter.zh, starter.en)}</button></li>; })}</ul></div>
+              <ul className="bb-chips" aria-label={copy('常用问题', 'Popular questions')}>{BAYBAY_STARTERS.map(starter => <li key={starter.id}><button type="button" disabled={loading && starter.action === 'send'} onClick={() => startWith(starter)}>{copy(starter.zh, starter.en)}</button></li>)}</ul></div>
             <p className="bb-also" translate="no"><span>{copy('也可以：', 'You can also:')}</span>
               <button type="button" onClick={() => { const original = question.trim(), social = `${original}${copy('，我想找搭子一起去。', '. I want to find people to go with.')}`; askBayBay(original ? isBayBaySocialRequest(original) || social.length > 500 ? original : social : copy('我想找搭子一起去，请先问我城市和日期。', 'I want to find people to go with. Ask me which city and date first.'), contextPath, true); }}>{copy('找搭子一起去', 'Find a small group')}</button>
               <button type="button" onClick={() => { setQuestion(translateText('我想找本地服务：', locale)); inputRef.current?.focus(); }}>{copy('找本地服务', 'Find a local service')}</button>

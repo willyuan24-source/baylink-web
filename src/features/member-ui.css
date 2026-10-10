@@ -135,7 +135,7 @@
 .member-baybay-ask:disabled { opacity: .5; }
 .member-baybay-error { margin-top: 13px; padding: 14px 16px; border: 1px solid #efdcbf; border-radius: 12px; background: #fff9ed; color: #805f2e; font-size: .6875rem; line-height: 1.75; }
 .member-baybay-answer { margin-top: 20px; padding: 21px; border: 1px solid #dce7d2; border-radius: 5px 20px 20px; background: white; }
-.member-baybay-answer-label { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; font-size: .6875rem; font-weight: 600; color: #176b52; }
+.member-baybay-answer-label { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; font-size: var(--text-caption); font-weight: 600; color: var(--color-brand); }
 .member-baybay-answer-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8125rem; line-height: 1.9; color: #596c50; }
 .member-baybay-guide-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 8px 10px; border: 1px solid #dce5d2; border-radius: 10px; background: #f2f6ec; color: #49643c; font-size: .6875rem; font-weight: 400; }
 .member-baybay-guide-chip:hover { background: #e9f2df; }
