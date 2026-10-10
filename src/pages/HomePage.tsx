@@ -94,8 +94,9 @@ export default function HomePage() {
   const { posts, keyword, feedError, isInitialLoading, hasMore, openCreate, openBayBay, openSearch } = useApp();
   useWarmSearchDictionaries();
   const scrollToFeed = () => {
-    // After the board's chunk failed to load, asking for the board asks for it again (the slot suspends on that load and
-    // shows the board, or its "could not load" state)
+    // After the board's chunk failed to load, asking for the board imports it again and the slot suspends on that load:
+    // the board, or its "could not load" state. Only an engine that refetches a failed module can succeed here (Node does);
+    // Chrome answers from its module map without a request, which is why the notice's 重新加载 reloads the page.
     if (communityBoardFailure() !== undefined) void loadCommunityBoard();
     setCommunityExpanded(true);
     setFeedScrollRequest(request => request + 1);

@@ -1,7 +1,8 @@
 // WEB-HOMEPREP review: when the community board's chunk does not load. On the discovery view the homepage stays as it
-// is until the reader asks for the board; 浏览邻里信息 asks for the chunk again and then shows the board's own "could not
-// load" state, whose 重新加载 reloads the page at the neighborhood anchor (a browser keeps a failed chunk request for the
-// life of the page) or, offline, tries in place. A direct load of a page that is the board (a category, a search) fails
+// is until the reader asks for the board; 浏览邻里信息 imports the chunk again (only an engine that refetches a failed
+// module gets anything from that, as Node does here; Chrome answers from its module map with no request) and then shows
+// the board's own "could not load" state, whose 重新加载 reloads the page at the neighborhood anchor or, offline, tries in
+// place. A direct load of a page that is the board (a category, a search) fails
 // with the page module, as a page chunk that does not load, so main.tsx keeps the prerendered page instead of the error
 // page. This file runs in its own process: the board starts out not loaded and its chunk is blocked until a test lets it
 // through.
@@ -81,7 +82,7 @@ const settled = () => waitFor(() => assert.notEqual(loader.communityBoardFailure
 test('a board shown on its own (≥4 recent posts) that does not load leaves the discovery view as it is', async () => {
   const view = render(app('/', { posts: recentPosts }));
   await settled();
-  assert.equal(boardRequests, 2, 'one request and one retry, as the app\'s other lazy chunks');
+  assert.equal(boardRequests, 1, 'one request, no in-page retry (a browser answers a retry from its module map)');
   assert.ok(screen.getByRole('heading', { name: '邻里信息' }));
   assert.ok(view.container.querySelector('.bay-home-footer'));
   assert.equal(screen.queryByText('连接暂时慢了一点'), null, 'no error the reader did not ask for');
@@ -97,16 +98,16 @@ test('a direct load of a category page whose board does not load fails with the 
   } finally {
     dom.reconfigure({ url: 'https://www.baylink.us/' });
   }
-  assert.equal(boardRequests, before + 2, 'the page load asked for the board again (and retried once)');
+  assert.equal(boardRequests, before + 1, 'the page load asked for the board again');
 });
 
-test('浏览邻里信息 after a failed load asks for the board again, then shows its "could not load" state; online, 重新加载 reloads the page at the anchor', async () => {
+test('浏览邻里信息 after a failed load imports the board again, then shows its "could not load" state; online, 重新加载 reloads the page at the anchor', async () => {
   const view = render(app('/'));
   const before = boardRequests;
   fireEvent.click(screen.getByRole('button', { name: '浏览邻里信息' }));
-  assert.equal(boardRequests, before + 1, 'tapping 浏览邻里信息 requests the board again');
+  assert.equal(boardRequests, before + 1, 'tapping 浏览邻里信息 imports the board again');
   assert.ok(await screen.findByText('连接暂时慢了一点', undefined, { timeout: 5000 }));
-  assert.equal(boardRequests, before + 2);
+  assert.equal(boardRequests, before + 1);
   const order = [...view.container.querySelectorAll('.bay-community-intro, .bay-feed-empty, .bay-home-footer')].map(element => element.className);
   assert.deepEqual(order, ['bay-community-intro', 'bay-feed-empty', 'bay-home-footer']);
   assert.equal(view.container.querySelector('.bay-feed-empty')?.id, 'home-feed-section', 'the neighborhood anchor still lands');
@@ -119,7 +120,7 @@ test('浏览邻里信息 after a failed load asks for the board again, then show
   fireEvent.click(screen.getByRole('button', { name: '重新加载' }));
   assert.equal(dom.window.location.href, 'https://www.baylink.us/#home-feed-section');
   assert.deepEqual(navigations, ['Not implemented: navigation to another Document'], 'the page reloads');
-  assert.equal(boardRequests, before + 2, 'no in-place request');
+  assert.equal(boardRequests, before + 1, 'no in-place request');
   dom.reconfigure({ url: 'https://www.baylink.us/' });
 });
 
@@ -136,7 +137,7 @@ test("offline, 重新加载 tries in place (a reload would show the browser's of
     // while the new load is under way React hides the notice (display: none); it is back, usable, when that load fails
     assert.equal(screen.queryByRole('button', { name: '重新加载' }), null);
     assert.ok(await screen.findByRole('button', { name: '重新加载' }, { timeout: 5000 }));
-    assert.equal(boardRequests, before + 2);
+    assert.equal(boardRequests, before + 1);
     assert.deepEqual(navigations, [], 'no reload offline');
 
     boardBlocked = false;
