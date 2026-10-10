@@ -60,6 +60,20 @@ export function cleanPlan(plan: readonly string[], dateLabel: string, costLabel:
   return lines;
 }
 
+/**
+ * A one-day label never repeats its own date: "10/24 · 10 月 24 日 · 11:00–14:00" → "10/24 · 11:00–14:00",
+ * "10/17 · 10/17/2026 18:30开始" → "10/17 · 18:30开始". Ranges and labels that only start with a date stay as they are.
+ */
+export function cleanDateLabel(label: string, startDate: string, endDate: string): string {
+  if (startDate !== endDate) return label;
+  const [year, month, day] = startDate.split('-').map(Number);
+  const head = `${month}/${day} · `;
+  if (!label.startsWith(head)) return label;
+  const rest = label.slice(head.length);
+  const repeat = [`${month} 月 ${day} 日 · `, `${month} 月 ${day} 日 `, `${month}月${day}日 `, `${month}/${day}/${year} `].find(text => rest.startsWith(text));
+  return repeat && rest.length > repeat.length ? head + rest.slice(repeat.length) : label;
+}
+
 const TITLE_SEPARATOR = /[：:｜|]| — | – /u;
 /** A title that already reads as a card title (≤16 units, no separator) is its own short title. */
 export const ownShortTitle = (title: string) => displayUnits(title) <= 16 && !TITLE_SEPARATOR.test(title) ? title : undefined;
@@ -92,6 +106,7 @@ export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: 
     const street = address ?? place.address;
     return {
       ...corrected, ...editorial,
+      dateLabel: cleanDateLabel(corrected.dateLabel, corrected.startDate, corrected.endDate),
       plan: plan ? plan.flatMap(line => typeof line === 'number' ? cleaned[line] ?? [] : [line]) : cleaned,
       shortTitle: editorial.shortTitle ?? ownShortTitle(corrected.title),
       venueShort: venueShort ?? place.venueShort,

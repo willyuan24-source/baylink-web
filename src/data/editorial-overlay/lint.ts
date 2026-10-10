@@ -76,6 +76,11 @@ export function lintEditorial(input: LintInput): LintIssue[] {
   const english = (covered: boolean, kind: LintKind, id: string, texts: string[]) => {
     for (const text of texts) if (HAN.test(text) && !Object.hasOwn(input.english, normalize(text))) add(covered, kind, id, 'english', text);
   };
+  /** A composed label translates whole or, like `translateText`, part by part at its separators. */
+  const englishLabel = (kind: LintKind, id: string, label: string) => {
+    if (!HAN.test(label) || Object.hasOwn(input.english, normalize(label))) return;
+    for (const part of label.split(/\n| · | \/ |｜/u)) if (HAN.test(part) && !Object.hasOwn(input.english, normalize(part))) add(true, kind, id, 'english', `${label} (${part})`);
+  };
   const reader = (covered: boolean, kind: LintKind, id: string, fields: Record<string, unknown>) => {
     for (const [field, value] of Object.entries(fields)) for (const text of strings(value)) {
       if (INTERNAL_NOTE.test(text)) add(covered, kind, id, 'internal-note', `${field}: ${text}`);
@@ -138,6 +143,7 @@ export function lintEditorial(input: LintInput): LintIssue[] {
       if ((price.min ?? 0) > 0 && event.cost !== 'paid' && event.cost !== 'mixed') add(true, 'event', event.id, 'price', `an amount but cost is ${event.cost}`);
     }
     english(true, 'event', event.id, [event.shortTitle ?? '', event.dek ?? '', ...(event.tips ?? []), event.dateNote ?? '', event.ageChip ?? '', event.venueShort ?? '', event.address ?? '', price?.note ?? '', ...event.plan, ...strings(entry.fix)]);
+    englishLabel('event', event.id, event.dateLabel);
   }
 
   const offerIds = new Set(input.offers.map(offer => offer.id));

@@ -25,7 +25,11 @@ Offers (`offers.json`): `shortTitle`, `dek`, `tips`, `valueText`, `publicBenefit
 
 For a covered event the plan is cleaned automatically: the filler sentence "出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。",
 a "时间安排：" line that only repeats the date label, and the copy of the cost label at the start of a "费用与参加条件：" line are removed.
+A one-day date label also drops a repeated date ("10/24 · 10 月 24 日 · 11:00–14:00" reads "10/24 · 11:00–14:00").
 New content does not need those lines at all.
+
+The calendar schedule (`scripts/data/event-calendar-schedule.ts`) applies an entry's `fix.occurrenceDates` last, and a
+corrected `fix.dateLabel` replaces the calendar note copied from the old label.
 
 ## English
 
@@ -36,7 +40,8 @@ Every Chinese string an entry adds needs an entry in `src/data/editorial-overlay
 
 - `npx tsx --tsconfig tsconfig.app.json scripts/audit-editorial-content.ts 2026-10-16 --strict` — the content.md §4.4 lints. Items
   with an entry get errors; items without one only warnings, so new catalog content is never blocked (RC-29).
-- `tests/editorial-overlay.test.ts` runs the same lint in CI.
+- `tests/editorial-overlay.test.ts` runs the same lint in CI. A displayed date label must translate whole or part by part
+  at its " · " separators, as `translateText` does.
 - After editing entries, run the audit with `--write-basis` so `basis.json` records the source fields each entry was written
   against. When a source field later changes under an entry, the audit warns `source-changed`: re-check that entry.
 
