@@ -30,6 +30,8 @@ export const editorialStyleScopes = [
   // WEB-GUIDES: the guide index and article templates.
   { file: 'src/features/guides/guide-library.css' },
   { file: 'src/features/guides/guide-article.css' },
+  // WEB-BB-UI: the BayBay answer layout.
+  { file: 'src/features/baybay/baybay-answer.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

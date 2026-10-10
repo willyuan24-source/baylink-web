@@ -89,6 +89,7 @@
 :is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
+:is(.ui-cover,.ui-type-cover)[data-ratio="16:10"] { --ui-cover-ratio:16 / 10; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="3:2"] { --ui-cover-ratio:3 / 2; }
 :is(.ui-cover,.ui-type-cover)[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 3 / 4); }
 .ui-cover { background:var(--ui-lqip, var(--color-surface-2)); }

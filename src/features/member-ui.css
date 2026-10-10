@@ -116,10 +116,6 @@
 :is(.member-compose-overlay, .member-baybay-overlay) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid #77aa8f; outline-offset: 3px; }
 
 /* BayBay blends a warm conversational frame with honest, existing shortcuts. */
-.member-baybay-entry { border: 1px solid #dce5d3; border-radius: 18px; background: #f0f5e8; }
-.member-baybay-entry--sidebar { margin-bottom: 14px; padding: 19px; }
-.member-baybay-entry--inline { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 70px; padding: 15px; text-align: left; transition: background-color .18s; }
-.member-baybay-entry--inline:hover { background: #e8f1df; }
 .member-baybay-dialog { display: flex; flex-direction: column; width: 100%; max-width: 650px; max-height: min(87vh, 820px); max-height: min(87dvh, 820px); overflow: hidden; border: 1px solid #ffffff52; border-radius: 26px; background: #f8f9f6; box-shadow: 0 30px 100px #07271d40; }
 .member-baybay-header { display: flex; flex-shrink: 0; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px; background: #123c31; }
 .member-baybay-avatar { width: 55px; height: 55px; flex-shrink: 0; object-fit: cover; border: 1px solid #dff3a64a; border-radius: 17px; }
