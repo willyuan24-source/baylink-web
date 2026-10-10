@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
@@ -9,6 +10,7 @@ import {
   applyEventOverlay, cleanPlan, EVENT_OVERLAY, FILLER_SENTENCES, OFFER_OVERLAY, OPENING_OVERLAY, ownShortTitle, PRE_OVERLAY, venueParts,
 } from '../src/data/editorial-overlay/apply';
 import { basisFor, fieldHash, lintEditorial, overlayCoverage, readEnglishSources, type LintInput } from '../src/data/editorial-overlay/lint';
+import { eventOccursOn } from '../src/lib/event-calendar';
 import { displayUnits, eventShortTitle } from '../src/lib/event-facts';
 
 // The lane's scope: every item live on or after 10/16 (owner, 10/09). A fixed day keeps the gate deterministic.
@@ -127,4 +129,16 @@ test('basis.json notices when a source field changes under an entry', () => {
 test('the Sonoma movie night no longer advertises 免费 while its cost is unknown (CNT-13)', () => {
   const event = MONTHLY_EVENTS.find(item => item.id === 'sonoma-dia-movie-night-2026')!;
   if (event.cost !== 'free' && event.cost !== 'mixed') assert.doesNotMatch(event.title, /免费/u);
+});
+
+test('the calendar follows overlay date corrections: a postponed event has no day and no superseded time note', () => {
+  for (const [id, { fix, dateNote }] of Object.entries(EVENT_OVERLAY)) {
+    if (fix?.occurrenceDates !== undefined) assert.deepEqual(EVENT_DATE_OVERRIDES[id], fix.occurrenceDates, id);
+    if (fix?.dateLabel && Object.hasOwn(EVENT_SCHEDULE_NOTES, id)) {
+      const note = EVENT_SCHEDULE_NOTES[id];
+      assert.ok(note === dateNote || fix.dateLabel.endsWith(note.replace(/^时间安排：/u, '')), `${id}: ${note}`);
+    }
+  }
+  const postponed = MONTHLY_EVENTS.find(event => event.id === 'south-sf-state-of-city-2026')!;
+  assert.equal(eventOccursOn(postponed, '2026-10-27'), false);
 });
