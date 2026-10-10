@@ -69,13 +69,15 @@
 .ev-credits li { display:flex; flex-wrap:wrap; align-items:center; gap:0 .5rem; padding:.25rem 0; border-top:1px solid var(--color-line); }
 .ev-credits__label { color:var(--color-ink-3); }
 
-/* Page-end links: two columns on a phone (one at 大/特大 and in 简洁显示), a lone last link takes the row. */
+/* Page-end links: two columns on a phone (one at 大/特大 and in 简洁显示), a lone last link takes the row; one height
+   for every link (room for two lines), so a wrapped label never makes a second button style. */
 .ev-end { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.5rem; margin:2rem 0 0; }
 .ev-end>.ev-end__item:last-child:nth-child(odd) { grid-column:1 / -1; }
 @media (min-width:768px) { .ev-end { grid-template-columns:repeat(auto-fill, minmax(15rem, 1fr)); } .ev-end>.ev-end__item:last-child:nth-child(odd) { grid-column:auto; } }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ev-end { grid-template-columns:minmax(0, 1fr); } }
 .ev-end__item { display:flex; align-items:center; min-height:3rem; padding:.5rem .875rem; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.429; font-weight:600; text-decoration:none; }
 .ev-end__item:hover { border-color:var(--color-brand); color:var(--color-brand); }
+@media (max-width:767px) { .ev-end__item { min-height:3.75rem; } }
 .ev-end__item:focus-visible,.ev-alerts>summary:focus-visible,.ev-credits>summary:focus-visible,.ev-inline-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .ev-inline-link { display:inline-flex; align-items:center; min-height:2.75rem; margin:0 0 .75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 
