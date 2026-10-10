@@ -12,7 +12,10 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // plus opencc for zh-Hant and the route's English scopes for en. Ceilings are the
 // 10/08 measurements + 2% and only ratchet down (plan §3.0 rule 8): lower a
 // ceiling when a PR makes a route smaller; raising one needs the owner's approval.
-// Home zh-Hans keeps the 200 KiB gate below. /events took over /this-week's row (same ceilings).
+// Home zh-Hans keeps the 200 KiB gate below. /events took over /this-week's row.
+// /events and /calendar read the slim events index (WEB-EVENTS, RC-33): measured 306.3 / 309.1 KiB zh-Hans on 10/09;
+// their ceilings keep 400 KB (390 KiB) zh-Hans and the same ~80 KiB allowance in zh-Hant / en for the CNT-EVENTS
+// overlay fields (shortTitle, dek, sessions, price) the index copies.
 // WEB-HOMEPREP (10/09) moved the community board, the search dictionaries and the schedule notes off the homepage
 // (zh 218.4 → 167.9, English with dictionaries 357.8 → 307.4 KiB) and lowered the homepage gates to the plan's targets,
 // 220 → 200 and 360 → 340, with the '/' row 20 KiB lower in every language: the rest is headroom for WEB-HOME (RC-17).
@@ -21,11 +24,11 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // the dictionaries on these searching pages and stay where they were.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 993.9, 'zh-Hant': 1496.8, en: 1635.1 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 390.0, 'zh-Hant': 890.0, en: 1030.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1036.4, 'zh-Hant': 1532.1, en: 2207.3 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1560.4, en: 1361.3 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 1023.3, 'zh-Hant': 1519.8, en: 1664.4 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 993.8, 'zh-Hant': 1490.0, en: 1634.9 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 390.0, 'zh-Hant': 890.0, en: 1030.0 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
