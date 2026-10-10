@@ -9,10 +9,9 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { UnifiedSavedItems } = await import('../src/components/UnifiedSavedItems');
-const { SavedPostsPanel } = await import('../src/components/SavedPostsPanel');
 const { READER_LIBRARY_KEY } = await import('../src/lib/reader-library');
 const { savedPostsKey } = await import('../src/lib/savedPosts');
-const { resetSaveStore, savesKey } = await import('../src/lib/saves');
+const { resetSaveStore, savesKey, useSavedCount } = await import('../src/lib/saves');
 const { getGuideBySlug } = await import('../src/data/guides');
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { currentFreebies } = await import('../src/data/october-offers');
@@ -27,8 +26,10 @@ const guide = getGuideBySlug('bay-area-roommate-guide')!;
 const event = MONTHLY_EVENTS[0], offer = currentFreebies[0], opening = currentOpenings[0];
 const post = { id: 'public-one', title: 'User text stays original', city: 'SF', category: '租屋', budget: '待确认', savedAt: 1 };
 const guestList = (items: { kind: string; id: string }[]) => localStorage.setItem(savesKey(), JSON.stringify({ v: 1, items: items.map(item => ({ ...item, savedAt: 1 })) }));
+// What /me's 收藏 tile renders (WEB-ACCOUNT's MeTiles reads useSavedCount; null → no number).
+function MeCount({ userId }: { userId?: string }) { const count = useSavedCount(userId ?? null); return <output data-testid="me-saved-count">{count ?? '—'}</output>; }
 const page = (user: { id: string } | null = null) => <MemoryRouter><Routes><Route element={<Outlet context={{ user }} />}><Route path="/" element={<>
-  <SavedPostsPanel userId={user?.id} />
+  <MeCount userId={user?.id} />
   <UnifiedSavedItems today={TODAY} signedIn={!!user} />
 </>} /></Route></Routes></MemoryRouter>;
 beforeEach(t => { t.mock.method(globalThis, 'fetch', async () => Response.json({})); });
@@ -43,8 +44,7 @@ test('one saved list: every kind as a row with a cover, and the /me count equals
   const rows = view.getByTestId('my-week-saved').querySelectorAll('ul > li');
   assert.equal(rows.length, 5);
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '5');
-  assert.match(view.getByTestId('saved-count-link').textContent!, /我的收藏\s*5/, '/me names the same number');
-  assert.equal(view.getByTestId('saved-count-link').getAttribute('href'), '/my-week#saved');
+  assert.equal(view.getByTestId('me-saved-count').textContent, '5', '/me names the same number');
   assert.ok(section.getByRole('link', { name: offer.title }));
   assert.match(section.getByRole('link', { name: offer.title }).closest('li')!.textContent!, new RegExp(`优惠 · ${brandCase(offer.brand)} · `), 'the brand leads the meta line in its display casing');
   assert.ok(section.getByRole('link', { name: opening.name }));
@@ -64,7 +64,7 @@ test('filters by kind, removes with the ♡, and keeps a retired item listed (wi
   assert.equal(view.getByTestId('my-week-saved').querySelectorAll('ul > li').length, 2);
   await act(async () => { fireEvent.click(section.getByRole('button', { name: `取消收藏：${offer.title}` })); });
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '2');
-  assert.match(view.getByTestId('saved-count-link').textContent!, /我的收藏\s*2/);
+  assert.equal(view.getByTestId('me-saved-count').textContent, '2');
   assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items.map((item: { id: string }) => item.id), ['retired-offer-id', event.id]);
 });
 
@@ -107,12 +107,12 @@ test('an unavailable account keeps device items readable while the account count
   const view = render(page({ id: 'alice' }));
   await act(async () => {});
   assert.ok(view.getByLabelText('账号收藏暂时未知'));
-  assert.match(view.getByTestId('saved-count-link').textContent!, /—/);
+  assert.equal(view.getByTestId('me-saved-count').textContent, '—');
   assert.ok(within(view.getByTestId('my-week-saved')).getByRole('link', { name: post.title }));
   fail = false;
   await act(async () => { fireEvent.click(within(view.getByTestId('my-week-saved')).getByRole('button', { name: '重试' })); });
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '2');
-  assert.match(view.getByTestId('saved-count-link').textContent!, /我的收藏\s*2/);
+  assert.equal(view.getByTestId('me-saved-count').textContent, '2');
 });
 
 test('saved listings on screen are checked: a deleted or hidden one says so and offers its ♡, a live one keeps its link', async t => {
