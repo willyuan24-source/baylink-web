@@ -23,7 +23,6 @@ const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
-const { BayBayEntityCards } = await import('../src/components/BayBayEntityCards');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { getListingImage } = await import('../src/lib/offer-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
@@ -48,25 +47,6 @@ const nextDay = (value: string) => {
 };
 const detail = (item: LocalDiscovery, today = '2026-09-15') =>
   <MemoryRouter><LocalDiscoveryDetail item={item} today={today} /></MemoryRouter>;
-
-test('BayBay event actions point to the real detail participation section, and expired cards retain only reference access', () => {
-  const event = eventItem.event;
-  const visited: string[] = [];
-  const card = { kind: 'event' as const, id: event.id, title: event.title, summary: event.summary, url: `/events/${event.id}`, date: event.startDate, temporalStatus: 'upcoming' };
-  const view = render(<BayBayEntityCards cards={[card]} onNavigate={path => visited.push(path)} />);
-  fireEvent.click(view.getByRole('button', { name: '想去、存日历或找同行' }));
-  const url = new URL(visited[0], SITE_URL);
-  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location={url.pathname}><LocalDiscoveryDetail item={eventItem} today="2026-09-15" /></StaticRouter>)).window.document;
-  assert.ok(doc.getElementById(url.hash.slice(1)), 'the action has a visible participation destination on the actual detail page');
-  doc.defaultView!.close();
-  for (const temporalStatus of ['past', 'inactive', 'ended']) {
-    view.rerender(<BayBayEntityCards cards={[{ ...card, date: undefined, temporalStatus }]} onNavigate={path => visited.push(path)} />);
-    assert.ok(view.getByText('已结束 · 仅供参考'));
-    assert.equal(Boolean(view.queryByRole('button', { name: '加入计划' })), false);
-    assert.equal(Boolean(view.queryByRole('button', { name: '想去、存日历或找同行' })), false);
-    assert.ok(view.getByRole('button', { name: event.title }));
-  }
-});
 
 test('soft opening details and share metadata preserve trial operation without claiming a grand opening', () => {
   const item: LocalDiscovery = { kind: 'opening', shop: { ...openShop.shop, status: 'soft_open', openedOn: undefined, dateLabel: '试营业 · 正式开业日未确认' } };

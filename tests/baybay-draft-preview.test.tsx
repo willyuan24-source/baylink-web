@@ -41,18 +41,24 @@ test('requests advertise the draft-capable stream dialect and keep the assistant
   assert.equal(body.streamVersion, 3);
 });
 
-test('a streamed lead previews in the pending bubble outside live regions; validated text and the result replace it', async t => {
+test('a streamed lead and its points preview progressively outside live regions; validated text and the result replace them', async t => {
   const { view, send } = await askWithStream(t, '向 BayBay 提问', '这周末带孩子去哪里？');
-  await send(frame('draft', { seq: 1, field: 'lead', text: '这个周末' }) + frame('draft', { seq: 2, field: 'point', index: 0, text: '要点草稿' }));
+  await send(frame('draft', { seq: 1, field: 'lead', text: '这个周末' }));
+  assert.ok(view.getByText('这个周末'), 'the lead shows as soon as its first words arrive');
+  assert.equal(view.baseElement.querySelectorAll('[data-draft] li').length, 0);
+  await send(frame('draft', { seq: 2, field: 'point', index: 0, text: '要点草稿' }));
   await send(frame('draft', { seq: 3, field: 'lead', text: '去金门公园。' }));
   const preview = view.getByText('这个周末去金门公园。');
   assert.equal(preview.closest('[aria-live]'), null, 'draft text never enters a live region');
   assert.equal(preview.closest('[role="status"]'), null);
-  assert.equal(view.queryByText(/要点草稿/), null, 'only the lead is previewed');
+  const point = view.getByText('要点草稿');
+  assert.equal(point.closest('[data-draft]') === preview.closest('[data-draft]'), true, 'each point appears under the lead as it streams');
+  assert.equal(point.closest('[aria-live]'), null);
   assert.equal(view.getAllByRole('status').filter(status => /正在等待答复/.test(status.textContent || '')).length, 1, 'the pending status still says the answer is not ready');
   await send(frame('delta', { validated: true, text: '已核实的答复。' }));
   assert.equal(view.getByText('已核实的答复。') === preview, true, 'validated text replaces the draft in the same bubble');
   assert.equal(view.queryByText('这个周末去金门公园。'), null);
+  assert.equal(view.queryByText('要点草稿') === null, true, 'validated text replaces the point drafts too');
   await send(frame('result', { ok: true, answer: '完整回答：金门公园。' }));
   assert.ok(view.getByText(/完整回答：金门公园。/));
   assert.equal(view.queryByText('已核实的答复。'), null, 'the result replaces the streamed text');

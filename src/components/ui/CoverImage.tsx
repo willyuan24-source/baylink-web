@@ -5,7 +5,8 @@ import { cx } from './ui-copy';
 import { COVER_SIZES } from './cover-sizes';
 import type { CoverAsset } from '../../lib/cover';
 
-export type CoverRatio = '3:4' | '4:5' | '1:1' | '16:9' | '3:2';
+/** `16:10` is the BayBay answer card (264 wide, design.md §4.7.7). */
+export type CoverRatio = '3:4' | '4:5' | '1:1' | '16:9' | '16:10' | '3:2';
 
 export type CoverImageProps = {
   image: Pick<CoverAsset, 'src' | 'alt' | 'width' | 'height'> & Partial<Pick<CoverAsset, 'srcSet' | 'lqip'>>;

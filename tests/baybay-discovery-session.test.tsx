@@ -41,7 +41,7 @@ test('food evidence gaps never present page-context cards or invented plan follo
       const view = render(<BayBayAssistantEntry {...props} onNavigate={path => opened.push(path)} currentPath={`/guides/${reading.slug}`} initialConversation={{ question: '', turns: [{ id: 1, question: '湾区哪里饮茶', currentPath: `/guides/${reading.slug}`, state: 'complete', response, quickCards: [contextCard] }] }} />);
       const answerBlock = view.baseElement.querySelector('.member-baybay-answer')!;
       assert.equal(answerBlock.querySelector('.member-baybay-answer-label')?.textContent, label);
-      assert.equal(answerBlock.querySelector('.baybay-entity-cards'), null, 'page context and stale quick cards are not food recommendations');
+      assert.equal(answerBlock.querySelector('.bb-cards'), null, 'page context and stale quick cards are not food recommendations');
       assert.equal(answerBlock.querySelector('.member-baybay-answer-text')?.textContent, answer, 'the full evidence-gap answer remains intact');
       assert.equal(view.baseElement.querySelector('.baybay-followups:not([role])'), null, 'empty API followups must not invent recommended places or a plan');
       assert.equal(view.baseElement.querySelector('.baybay-task-handoff'), null, 'a broad discovery goal cannot turn an evidence gap into a plan');
@@ -63,7 +63,7 @@ test('ordinary guide replies retain entity cards and fallback followups while ex
     const explicit = '你想核实哪个城市的餐厅菜单？';
     const response: GuideChatResponse = { ok: true, answer: '先核对当前资料。', localMatches: [card], followups: warnings.length ? [explicit] : [], research: { steps: [], warnings } };
     const view = render(<BayBayAssistantEntry {...props} initialConversation={{ question: '', turns: [{ id: 1, question: '湾区哪里饮茶', state: 'complete', currentPath: `/guides/${reading.slug}`, response }] }} />);
-    assert.equal(Boolean(view.baseElement.querySelector('.baybay-entity-cards')), !warnings.length);
+    assert.equal(Boolean(view.baseElement.querySelector('.bb-cards')), !warnings.length);
     assert.ok(view.baseElement.querySelector('.baybay-followups:not([role])'));
     if (warnings.length) assert.ok(view.getByRole('button', { name: explicit }));
     else assert.ok(view.getByRole('button', { name: '帮我按已经提供的条件，把推荐整理成出游安排' }));

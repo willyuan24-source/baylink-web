@@ -34,12 +34,6 @@
 .baybay-task-handoff label { display:block; margin-top:15px; font-size:.75rem; color:#5b7356; }
 .baybay-task-handoff textarea { width:100%; min-height:95px; display:block; resize:vertical; padding:10px; border:1px solid #d4ddce; border-radius:8px; background:white; line-height:1.8; margin-top:6px; }
 .baybay-task-handoff button { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:12px; font-size:.8125rem; font-weight:600; color:#32583d; }
-.baybay-reference-image .guide-figure { margin:8px 0; border-radius:12px; overflow:hidden; }
-.baybay-reference-image .guide-figure-image { max-height:155px; width:100%; object-fit:cover; }
-.baybay-reference-image .guide-image-caption>p { display:none; }
-.baybay-reference-image .guide-image-caption { padding:5px 8px; }
-.baybay-reference-image .guide-image-attribution { font-size:.5625rem; }
-.baybay-reference-image .guide-figure--full-frame .guide-figure-image { object-fit:contain; }
 .planner-option-media { margin:-18px -18px 17px; }
 .planner-option-media .guide-figure,.planner-place-media .guide-figure { margin:0; overflow:hidden; border-radius:14px; }
 .planner-option-media .guide-figure-image,.planner-place-media .guide-figure-image { height:170px; width:100%; object-fit:cover; }
@@ -90,7 +84,6 @@
   .baybay-discovery-cards article { display:grid; grid-template-columns:74px minmax(0,1fr); }
   .baybay-discovery-cover { height:100%; padding:13px 8px; flex-direction:column; justify-content:flex-start; gap:14px; }
   .baybay-search-modes button { min-height:44px; }
-  .baybay-reference-image .guide-figure-image { max-height:140px; }
   .planner-option-media .guide-figure-image,.planner-place-media .guide-figure-image { height:190px; }
 }
 @media(prefers-reduced-motion:reduce) { .baybay-discovery * { scroll-behavior:auto; } }
