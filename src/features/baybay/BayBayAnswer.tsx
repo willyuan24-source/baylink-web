@@ -5,7 +5,7 @@ import { EventCover, OfferCover, OpeningCover, Cover, TypeCover } from '../../co
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { languagePrefix } from '../../lib/language-path';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
-import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerDeadline, openingChip } from '../../lib/event-facts';
+import { brandCase, eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerDeadline, openingChip } from '../../lib/event-facts';
 import { bayBayAnswerView, bayBayReadableText, bayBayResumeLabel, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayPoint, type BayBayProfessionalSafety } from '../../lib/baybay-answer';
 import { bayBayCardCitations, bayBayCardModels, bayBaySitePath, type BayBayCardModel } from './answer-cards';
 import { useBayBaySaves } from './save-context';
@@ -46,7 +46,7 @@ function cardMeta(model: BayBayCardModel, today: string, english: boolean, pick:
   }
   if (model.kind === 'offer') {
     const deadline = offerDeadline(model.offer, today);
-    return [deadline ? pick(deadline.text) : undefined, model.offer.brand].filter(Boolean).join(' · ');
+    return [deadline ? pick(deadline.text) : undefined, brandCase(model.offer.brand)].filter(Boolean).join(' · ');
   }
   if (model.kind === 'opening') return [pick(openingChip(model.shop, today)), model.shop.city].filter(Boolean).join(' · ');
   return pick({ zh: '办事指南', en: 'Guide' });

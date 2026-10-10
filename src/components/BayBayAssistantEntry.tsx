@@ -151,7 +151,8 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
       followReply.current = true;
       target = element?.querySelector('.baybay-user-question');
     } else if (previous.state !== latest.state && followReply.current) {
-      target = element?.querySelector(latest.state === 'complete' ? '.member-baybay-answer-label' : '.baybay-request-error');
+      // The answer starts at its pause notice when there is one, else its label; an emergency answer starts at its 911 card.
+      target = element?.querySelector(latest.state === 'complete' ? '[data-notice], .member-baybay-answer-label, .bb-emergency' : '.baybay-request-error');
     }
     // Start at the answer, not the controls below it. A reader who scrolled
     // upward while waiting keeps their position when the response arrives.
@@ -384,8 +385,7 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
   return <div className="member-baybay-answer" data-safety={safety?.kind}>
     {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} actions={response.fallbackHelp?.actions} />}
     <div className="member-baybay-answer-label" translate={foodGap ? 'no' : undefined}><Sparkles size={12} />{foodGap ? locale === 'zh-Hant' ? '餐飲資訊待確認' : copy('餐饮信息待确认', 'Food information unconfirmed') : response.outingSearch ? copy('小队搜索', 'Outing search') : response.degraded ? '参考指引' : 'BayBay 建议'}</div>
-    <BayBayRetrievalLabel response={response} guest={guest} />
-    {response.degraded && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
+    {response.degraded && !response.notice && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
     {v2 ? <BayBayAnswerBody fields={response} cards={cards} sources={sources} today={today} onNavigate={onNavigate} /> : <>
       {response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={response} onNavigate={onNavigate} />}
       <BayBayCardRail cards={cards} sources={sources} today={today} onNavigate={onNavigate} />
@@ -398,6 +398,8 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
       onAnswer={isLatest && !loading && !question.trim() && !schoolContext ? answer => { if (!composing.current) onAsk(answer, turn.currentPath, true); } : undefined}/>}
     <BayBayMatchingPosts posts={response.matchingPosts || []} note={response.responseMode === 'catalog' || ['completed', 'unavailable', 'verification_failed'].includes(response.retrieval?.webStatus || '') ? undefined : response.matchNote} onNavigate={onNavigate} />
     {response.interactiveCards?.map((card) => <BayBaySmartCard key={card.id} card={card} onAction={onAction} />)}
+    {/* How the answer was found sits with its sources, after the answer itself (the lead comes first). */}
+    <BayBayRetrievalLabel response={response} guest={guest} />
     <BayBayDiscoveryResults response={response} ownerId={ownerId} sessionKey={sessionKey} onNavigate={onNavigate} />
     <BayBayFeedback turnId={turn.id} />
     <BayBayReferences response={response} currentPath={turn.currentPath} onNavigate={onNavigate} />
@@ -407,12 +409,14 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
 }
 
 function BayBayReferences({ response, currentPath, onNavigate }: { response: GuideChatResponse; currentPath?: string; onNavigate: (path: string) => void }) {
+  const locale = useLocale();
+  const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const reading = response.responseMode === 'catalog' ? undefined : currentBayBayGuide(currentPath || '');
   const references = bayBayReferenceGuides(response);
   const items = reading ? [reading, ...references.filter(guide => guide.slug !== reading.slug)] : references;
   if (!items.length) return null;
   // One compact row per guide (BBLIVE-13): a 40px mark, the title and its own official sources one tap away; no large cover.
-  return <div className="baybay-references"><p>相关攻略</p><small className="bb-references-note">以下是站内指南列出的参考资料，不表示已实时核验。</small>{items.map(guide => <div key={guide.slug} className="bb-reference">
+  return <div className="baybay-references"><p>{copy('相关攻略', 'Related guides')}</p><small className="bb-references-note">以下是站内指南列出的参考资料，不表示已实时核验。</small>{items.map(guide => <div key={guide.slug} className="bb-reference">
     {guide.slug === reading?.slug && <small>提问时阅读的指南</small>}
     <button type="button" onClick={() => onNavigate(`/guides/${guide.slug}`)}><span className="bb-reference__mark" aria-hidden="true"><BookOpen size={18} /></span><span>{guide.title}</span><ChevronRight size={16} /></button>
     {bayBayGuideSources(guide).length > 0 && <details><summary>查看原文来源</summary><ul>{bayBayGuideSources(guide).map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}
