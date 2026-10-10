@@ -28,9 +28,9 @@ export function EventMeta({ event }: { event: IndexEvent }) {
  * Two-column feed card (3:4): the cover from `resolveCovers`, title, place · price, and the source check. `day` (the
  * calendar's chosen day) goes into the link, so the detail page opens on it.
  */
-export function EventFeedCard({ event, cover, tone, today, days, day, priority, heading = 'h3' }: { event: IndexEvent; cover: ResolvedCover; tone?: CoverTone; today: string; days?: readonly string[]; day?: string; priority?: boolean; heading?: 'h2' | 'h3' }) {
+export function EventFeedCard({ event, cover, tone, today, days, day, priority, sizes, heading = 'h3' }: { event: IndexEvent; cover: ResolvedCover; tone?: CoverTone; today: string; days?: readonly string[]; day?: string; priority?: boolean; sizes?: string; heading?: 'h2' | 'h3' }) {
   return <FeedCard title={event.title} to={day ? `/events/${event.id}?date=${day}` : `/events/${event.id}`} heading={heading}
-    cover={<EventCover event={facts(event)} cover={cover} tone={tone} today={today} days={days} priority={priority} decorative />}
+    cover={<EventCover event={facts(event)} cover={cover} tone={tone} today={today} days={days} priority={priority} sizes={sizes} decorative />}
     meta={<EventMeta event={event} />} trust={<TrustLine day={event.verifiedAt} />} />;
 }
 
