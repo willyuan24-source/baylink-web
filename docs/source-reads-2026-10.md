@@ -11,6 +11,9 @@ page was read with one read-only GET on 2026-10-09 (PT, ~14:05–14:40) by the C
 "Monitor" is the status `GET /api/sources/freshness` reported the same afternoon. Quotes are short excerpts of the page text.
 Outcome counts: match 269 · not machine-readable 73 · date not located in page text 28 · reviewed 10 · corrected 9 · unreachable 3 · no change 1.
 Corrections are applied in `src/data/editorial-overlay` (`fix`) and listed in the lane PR; `verifiedAt` is never changed (D12).
+The Presidio time correction is also applied where the overlay cannot reach: the planner schedule in
+`src/data/november-refresh-east-sf-planning.json` and the city bulletin in `src/data/city-current-east-sf.json` (+ its English).
+The calendar schedule follows the overlay's `fix.occurrenceDates` (the postponed South San Francisco State of the City).
 Pages that could not be read by script (HTTP 403 bot walls, script-rendered calendars) keep their last human-verified facts and need a
 human re-read if the item falls within the next 3 days.
 
