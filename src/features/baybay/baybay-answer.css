@@ -45,6 +45,7 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 
 /* Image cards: 264 wide, 16:10, title 16/600, one 13px meta line, two 44px buttons; a horizontal rail */
 .baybay-conversation .bb-cards { display:flex; gap:12px; margin:0; padding:2px 2px 8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; list-style:none; }
+.baybay-conversation .bb-cards--loading>span { flex:0 0 min(16.5rem, 85%); aspect-ratio:16 / 10; border-radius:16px; background:var(--color-surface-2); }
 .baybay-conversation .bb-card { position:relative; display:flex; flex:0 0 min(16.5rem, 85%); flex-direction:column; gap:6px; min-width:0; scroll-snap-align:start; }
 .baybay-conversation .bb-cards[data-count="1"] .bb-card { flex-basis:min(22rem, 100%); }
 .baybay-conversation .bb-card__media { order:1; }

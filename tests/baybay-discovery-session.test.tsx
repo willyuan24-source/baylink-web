@@ -12,6 +12,8 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
+// The image cards are their own chunk (loaded when the panel opens); load it before rendering restored answers.
+await (await import('../src/features/baybay/cards-loader')).loadBayBayCards();
 const { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
 const { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates } = await import('../src/lib/planner-web-search');
 const { guides } = await import('../src/data/guides');

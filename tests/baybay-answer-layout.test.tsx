@@ -16,9 +16,11 @@ const { BayBayCardRail } = await import('../src/features/baybay/BayBayAnswer');
 const { BayBaySaveScope } = await import('../src/features/baybay/BayBaySaveScope');
 const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayTextUnits } = await import('../src/lib/baybay-answer');
 const { bayBayCardCitations, bayBayCardModels } = await import('../src/features/baybay/answer-cards');
-const { bayBayPageRef } = await import('../src/lib/baybay-conversation');
+const { bayBayPageRef } = await import('../src/features/baybay/panel-chips');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
 const { setLocale } = await import('../src/i18n/locale');
+// The image cards are their own chunk (loaded when the panel opens); load it before rendering restored answers.
+await (await import('../src/features/baybay/cards-loader')).loadBayBayCards();
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 const noop = () => {};
 const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };

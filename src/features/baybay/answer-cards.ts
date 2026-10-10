@@ -8,6 +8,7 @@ import { createCoverPage, getCover, type CoverPage, type ResolvedCover } from '.
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { SeptemberOpening } from '../../data/september-openings';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
+import { bayBaySitePath } from './site-path';
 
 /**
  * BayBay answer cards (design.md §4.7.7, 1007 §5.7): the server names the cards (`localMatches`, `kind:id`), the
@@ -57,15 +58,6 @@ export function bayBayCardModels(cards: readonly BayBayQuickCard[], today: strin
   }).slice(0, BAYBAY_MAX_CARDS);
 }
 
-/** "/events/x" for a BAYLINK page link (absolute www.baylink.us or relative), else null. */
-export function bayBaySitePath(url: string): string | null {
-  try {
-    const parsed = new URL(url, 'https://www.baylink.us');
-    if (!['www.baylink.us', 'baylink.us'].includes(parsed.hostname) || parsed.protocol !== 'https:') return null;
-    return parsed.pathname.replace(/\/$/, '') || '/';
-  } catch { return null; }
-}
-
 /** The citation number of each card: the answer's source `[n]` that is the card's own page. */
 export function bayBayCardCitations(models: readonly Pick<BayBayCardModel, 'key' | 'url'>[], sources: readonly { number: number; url: string }[]): Map<string, number> {
   const byPath = new Map<string, number>();
@@ -79,12 +71,4 @@ export function bayBayCardCitations(models: readonly Pick<BayBayCardModel, 'key'
     if (number !== undefined) result.set(model.key, number);
   }
   return result;
-}
-
-/** The title of the page the reader is on, for the "正在看：xx" capsule; null when the listing is unknown. */
-export function bayBayPageTitle(ref: { kind: 'event' | 'offer' | 'opening' | 'guide'; id: string }): string | null {
-  if (ref.kind === 'guide') return guides.find(guide => guide.slug === ref.id)?.title ?? null;
-  if (ref.kind === 'event') return PLANNER_EVENTS.find(item => item.id === canonicalEventId(ref.id))?.title ?? null;
-  const item = getLocalDiscovery(ref.kind, ref.id);
-  return item?.kind === 'offer' ? item.offer.title : item?.kind === 'opening' ? item.shop.name : null;
 }

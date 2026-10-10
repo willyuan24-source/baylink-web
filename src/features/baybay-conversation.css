@@ -98,11 +98,11 @@ p.baybay-outing-state { display:flex; gap:8px; align-items:center; }
 .baybay-context-line button { padding:6px 9px; border:1px solid #d9e1d3; border-radius:8px; background:white; }
 .baybay-turn+.baybay-turn { margin-top:28px; }
 .baybay-user-question { margin-left:35px; display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
-.baybay-user-question>span { font-size:.625rem; color:#829079; }
+.baybay-user-question>span { font-size:var(--text-caption); color:var(--color-ink-3); }
 .baybay-user-question>p { white-space:pre-wrap; overflow-wrap:anywhere; background:#e5eddc; color:#344932; padding:12px 15px; border-radius:15px 15px 3px 15px; font-size:.8125rem; line-height:1.85; }
 .baybay-conversation .member-baybay-answer { margin-top:13px; background:white; border-color:#e0e6d9; }
 .baybay-conversation .member-baybay-answer-text { white-space:pre-wrap; line-height:1.95; overflow-wrap:anywhere; }
-.baybay-thinking { display:flex; align-items:center; gap:9px; padding:20px 6px; color:#697c62; font-size:.75rem; }
+.baybay-thinking { display:flex; align-items:center; gap:9px; padding:20px 6px; color:var(--color-ink-3); font-size:var(--text-caption); }
 .baybay-degraded { margin:10px 0; background:#f4f5ef; border-radius:8px; padding:10px; font-size:.6875rem; line-height:1.75; color:#6b765f; }
 .baybay-request-error { margin-top:13px; padding:14px; border-radius:11px; background:#f2efe7; color:#756750; font-size:.75rem; line-height:1.8; }
 .baybay-request-error button { display:flex; align-items:center; gap:7px; font-weight:600; color:#496140; margin-top:8px; }
