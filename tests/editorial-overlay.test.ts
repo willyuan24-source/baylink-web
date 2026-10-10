@@ -7,7 +7,7 @@ import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import {
-  applyEventOverlay, cleanPlan, EVENT_OVERLAY, FILLER_SENTENCES, OFFER_OVERLAY, OPENING_OVERLAY, ownShortTitle, PRE_OVERLAY, venueParts,
+  applyEventOverlay, cleanDateLabel, cleanPlan, EVENT_OVERLAY, FILLER_SENTENCES, OFFER_OVERLAY, OPENING_OVERLAY, ownShortTitle, PRE_OVERLAY, venueParts,
 } from '../src/data/editorial-overlay/apply';
 import { basisFor, fieldHash, lintEditorial, overlayCoverage, readEnglishSources, type LintInput } from '../src/data/editorial-overlay/lint';
 import { eventOccursOn } from '../src/lib/event-calendar';
@@ -99,6 +99,19 @@ test('a title that already reads as a card title is its own short title; venues 
   assert.deepEqual(venueParts('Alameda County Fairgrounds，Gate 8 · 2005 Valley Avenue, Pleasanton, CA 94566'), { venueShort: 'Alameda County Fairgrounds', address: '2005 Valley Avenue, Pleasanton, CA 94566' });
 });
 
+test('a one-day date label never repeats its date; ranges and new facts after the date stay', () => {
+  assert.equal(cleanDateLabel('10/24 · 10 月 24 日 · 11:00–14:00', '2026-10-24', '2026-10-24'), '10/24 · 11:00–14:00');
+  assert.equal(cleanDateLabel('10/17 · 10/17/2026 18:30开始；结束时间未公布。', '2026-10-17', '2026-10-17'), '10/17 · 18:30开始；结束时间未公布。');
+  assert.equal(cleanDateLabel('10/16–10/17 · 10/16 09:30–17:00', '2026-10-16', '2026-10-17'), '10/16–10/17 · 10/16 09:30–17:00');
+  assert.equal(cleanDateLabel('10/24 · 10 月 25 日改期', '2026-10-24', '2026-10-24'), '10/24 · 10 月 25 日改期');
+  assert.equal(cleanDateLabel('10/24 · 10 月 24 日 · ', '2026-10-24', '2026-10-24'), '10/24 · 10 月 24 日 · ');
+  const live = MONTHLY_EVENTS.filter(event => event.endDate >= FROM && event.startDate === event.endDate && Object.hasOwn(EVENT_OVERLAY, event.id));
+  for (const event of live) {
+    const [, month, day] = event.startDate.split('-').map(Number);
+    assert.doesNotMatch(event.dateLabel, new RegExp(`^${month}/${day} · (${month} 月 ${day} 日|${month}/${day}/2026) `, 'u'), event.id);
+  }
+});
+
 test('items without an entry are only warned, so new catalog content is never blocked (RC-29)', () => {
   const stranger: MonthlyEvent = { ...MONTHLY_EVENTS[0], id: 'brand-new-2026', title: '免费活动：标题', cost: 'unknown', endDate: '2026-12-01', plan: [FILLER_SENTENCES[0]] };
   const issues = lintEditorial(input({ events: [stranger], offers: [], openings: [], overlay: { events: {}, offers: {}, openings: {} } }));
@@ -108,10 +121,11 @@ test('items without an entry are only warned, so new catalog content is never bl
 
 test('the lint flags overlay errors: long short titles, bad sessions, impossible prices and missing English', () => {
   const event = { ...MONTHLY_EVENTS.find(item => item.id === 'concord-trick-or-treat-trail-2026')! };
-  const bad = { ...event, shortTitle: '一二三四五六七八九十一二三四五六七', sessions: [{ date: '2026-12-31', start: '25:00' }], price: { free: true, min: 5 }, dek: '没有英文的一句新简介' };
+  const bad = { ...event, shortTitle: '一二三四五六七八九十一二三四五六七', sessions: [{ date: '2026-12-31', start: '25:00' }], price: { free: true, min: 5 }, dek: '没有英文的一句新简介', dateLabel: '10/18 · 没有英文的时间说明' };
   const issues = lintEditorial(input({ events: [bad], offers: [], openings: [], overlay: { events: { [event.id]: { dek: bad.dek } }, offers: {}, openings: {} } }));
   const rules = new Set(issues.filter(issue => issue.level === 'error').map(issue => issue.rule));
   for (const rule of ['short-title', 'sessions', 'price', 'english']) assert.ok(rules.has(rule), `${rule}: ${[...rules]}`);
+  assert.ok(issues.some(issue => issue.rule === 'english' && issue.detail.includes('(没有英文的时间说明)')), 'a date label part without English');
 });
 
 test('basis.json notices when a source field changes under an entry', () => {
