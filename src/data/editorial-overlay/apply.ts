@@ -61,16 +61,21 @@ export function cleanPlan(plan: readonly string[], dateLabel: string, costLabel:
 }
 
 /**
- * A one-day label never repeats its own date: "10/24 · 10 月 24 日 · 11:00–14:00" → "10/24 · 11:00–14:00",
- * "10/17 · 10/17/2026 18:30开始" → "10/17 · 18:30开始". Ranges and labels that only start with a date stay as they are.
+ * A label never repeats its own dates: "10/24 · 10 月 24 日 · 11:00–14:00" → "10/24 · 11:00–14:00",
+ * "10/17 · 10/17/2026 18:30开始" → "10/17 · 18:30开始", "10/17–10/18 · 10 月 17–18 日 · 周六…" → "10/17–10/18 · 周六…".
+ * Labels whose text after the dates adds per-day detail ("10/16–10/17 · 10/16 09:30…") stay as they are.
  */
 export function cleanDateLabel(label: string, startDate: string, endDate: string): string {
-  if (startDate !== endDate) return label;
   const [year, month, day] = startDate.split('-').map(Number);
-  const head = `${month}/${day} · `;
+  const [, endMonth, endDay] = endDate.split('-').map(Number);
+  const oneDay = startDate === endDate;
+  const head = oneDay ? `${month}/${day} · ` : `${month}/${day}–${endMonth}/${endDay} · `;
   if (!label.startsWith(head)) return label;
   const rest = label.slice(head.length);
-  const repeat = [`${month} 月 ${day} 日 · `, `${month} 月 ${day} 日 `, `${month}月${day}日 `, `${month}/${day}/${year} `].find(text => rest.startsWith(text));
+  const repeats = oneDay
+    ? [`${month} 月 ${day} 日 · `, `${month} 月 ${day} 日 `, `${month}月${day}日 `, `${month}/${day}/${year} `]
+    : month === endMonth ? [`${month} 月 ${day}–${endDay} 日 · `] : [];
+  const repeat = repeats.find(text => rest.startsWith(text));
   return repeat && rest.length > repeat.length ? head + rest.slice(repeat.length) : label;
 }
 
