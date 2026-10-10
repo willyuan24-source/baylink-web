@@ -39,12 +39,13 @@ export default function CalendarView({ today }: { today: string }) {
   const date = validCalendarDay(dateParam) ? dateParam : today;
   const regionParam = params.get('region');
   const region: MonthlyRegion | 'all' = isRegion(regionParam) ? regionParam : regionParam === 'all' ? 'all' : savedRegion ?? 'all';
+  // Each day is its own history entry (Back returns to the previous day); the region choice replaces the entry.
   const update = (values: Record<string, string>) => setParams(previous => {
     const next = new URLSearchParams(previous);
     for (const [key, value] of Object.entries(values)) next.set(key, value);
     if (values.date === today) next.delete('date');
     return next;
-  }, { replace: true, preventScrollReset: true });
+  }, { replace: !('date' in values), preventScrollReset: true });
 
   const pool = useMemo(() => INDEX_EVENTS.filter(event => region === 'all' || event.region === region), [region]);
   const week = calendarPeriod(date, 'week').days;
@@ -114,6 +115,7 @@ export default function CalendarView({ today }: { today: string }) {
       {pointIds && <Button variant="text" onClick={() => setFocus({ scope, city })}>{t('看这一天全部活动', 'Show every event that day')}</Button>}
     </div>}
 
+    {beforeIndex && <p className="ev-calendar__note ev-calendar__before">{t(`这一天在本期收录（${monthDay(EVENTS_INDEX.edition.checkedAt)} 起）之前，只列出当时还在进行、现在仍可去的活动。`, `This day is before this edition (from ${monthDay(EVENTS_INDEX.edition.checkedAt)}): only events still running now are listed.`)}</p>}
     <div className="ev-calendar__rows" aria-live="polite">
       {shownEvents.length ? shownEvents.map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index]} today={today} day={date} />)
         : <EmptyState headingLevel="h3" icon={CalendarDays}
