@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { registerHooks } from 'node:module';
 import test, { after, afterEach, beforeEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -13,14 +14,11 @@ import { guides, getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', {
-  url: 'https://www.baylink.us/this-month', pretendToBeVisual: true,
+  url: 'https://www.baylink.us/events?view=openings', pretendToBeVisual: true,
 });
-const openingStyles = dom.window.document.createElement('style');
-openingStyles.textContent = readFileSync(new URL('../src/components/monthly-discoveries.css', import.meta.url), 'utf8');
-dom.window.document.head.append(openingStyles);
 const browserGlobals = {
   window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage,
-  HTMLElement: dom.window.HTMLElement, Node: dom.window.Node,
+  HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, MutationObserver: dom.window.MutationObserver,
   getComputedStyle: dom.window.getComputedStyle.bind(dom.window),
   requestAnimationFrame: dom.window.requestAnimationFrame.bind(dom.window),
   cancelAnimationFrame: dom.window.cancelAnimationFrame.bind(dom.window),
@@ -30,9 +28,14 @@ const previousGlobals = new Map(Object.keys(browserGlobals).map(key => [key, Obj
 for (const [key, value] of Object.entries(browserGlobals)) {
   Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
 }
+// The board imports its stylesheets; here CSS loads as an empty module (the prerender does the same).
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
 const { render, fireEvent, within, cleanup } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
-const { MonthlyOpenings, OPENINGS_GUIDE_SLUG } = await import('../src/components/MonthlyOpenings');
+const { default: OpeningsView } = await import('../src/features/events/OpeningsView');
+const { INDEX_OPENINGS, coverContext, filterOpenings } = await import('../src/features/events/events-model');
+const { getCover } = await import('../src/lib/cover');
+const { openingChip } = await import('../src/lib/event-facts');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { setLocale } = await import('../src/i18n/locale');
 
@@ -41,7 +44,6 @@ afterEach(async () => {
   cleanup();
   await setLocale('zh-Hans', false);
   dom.window.localStorage.clear();
-  dom.window.history.replaceState(null, '', '/this-month');
 });
 after(() => {
   dom.window.close();
@@ -51,208 +53,107 @@ after(() => {
   }
 });
 
-const edition = (today = '2026-09-15') => <MemoryRouter><MonthlyOpenings today={today} /></MemoryRouter>;
-const names = (view: ReturnType<typeof render>) => view.queryAllByRole('article').map(article => within(article).getByRole('heading', { level: 3 }).textContent);
-const statusFilters = (view: ReturnType<typeof render>) => within(view.getByRole('group', { name: '按开业状态筛选' }));
+/** 新店 (the events column's openings board, WEB-EVENTS): the merchant, map and source links live on /openings/{id}. */
+const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
+const TODAY = '2026-10-09';
+type Region = Parameters<typeof filterOpenings>[2];
+const board = (today = TODAY, region: Region = 'all') => <MemoryRouter><OpeningsView today={today} region={region} /></MemoryRouter>;
+type View = ReturnType<typeof render>;
+const names = (view: View) => [...view.container.querySelectorAll('.ui-feed-card .ui-feed-card__title a')].map(link => link.textContent);
+const card = (view: View, name: string) => {
+  const article = view.getByRole('link', { name, exact: true }).closest('article');
+  assert.ok(article, `${name} has a card`);
+  return article as HTMLElement;
+};
+const statusFilters = (view: View) => within(view.getByRole('group', { name: '按开业状态筛选' }));
+const showAll = (view: View) => { for (let more = view.queryByRole('button', { name: /^再看 \d+ 家$/ }); more; more = view.queryByRole('button', { name: /^再看 \d+ 家$/ })) fireEvent.click(more); };
 const lateSeptemberOpenings = [...lateSeptemberSfEastOpenings, ...lateSeptemberPeninsulaSouthOpenings, ...lateSeptemberNorthOpenings];
 const openShops = currentOpenings.filter(shop => shop.status === 'open');
 const announcedShops = currentOpenings.filter(shop => shop.status === 'announced');
 const softOpenShops = currentOpenings.filter(shop => shop.status === 'soft_open');
-const operatingShops = currentOpenings.filter(shop => shop.status !== 'announced');
-const firstSix = currentOpenings.slice(0, 6).map(shop => shop.name);
-const firstSixOpen = openShops.slice(0, 6).map(shop => shop.name);
-const sfOpen = openShops.filter(shop => shop.region === 'sf').map(shop => shop.name);
 const canonicalOpening = (id: string) => {
   const shop = currentOpenings.find(item => item.id === id);
   assert.ok(shop, `${id} remains in the canonical catalog`);
   return shop;
 };
 
-test('soft openings have their own filter and never inherit an open or announced label', () => {
-  const originalCount = currentOpenings.length;
-  const shop = { ...currentOpenings[0], id: 'test-soft-opening', name: 'SoftOpeningFixture', status: 'soft_open' as const, openedOn: undefined, dateLabel: '试营业 · 正式开业日未确认' };
-  currentOpenings.push(shop);
-  try {
-    const view = render(edition('2026-09-29'));
-    fireEvent.click(statusFilters(view).getByRole('button', { name: /^试营业/ }));
-    const card = within(view.getByRole('article', { name: shop.name }));
-    assert.ok(card.getByText('试营业', { exact: true }));
-    assert.equal(card.queryByText('已开业', { exact: true }), null);
-    assert.equal(card.queryByText('开业预告', { exact: true }), null);
-    assert.equal(card.getByRole('link', { name: shop.name }).getAttribute('href'), `/openings/${shop.id}`);
-    view.rerender(edition('2026-11-01'));
-    assert.ok(within(view.getByRole('article', { name: shop.name })).getByText('试营业', { exact: true }));
-    assert.equal(shop.openedOn, undefined);
-  } finally { currentOpenings.splice(originalCount); }
-});
-
-test('opening status and region use confirmed business status without reviving an ended celebration', () => {
-  const view = render(edition());
-  assert.deepEqual(names(view), firstSix);
+test('the board reads the whole canonical catalog: each shop once, every status counted on its chip', () => {
+  assert.deepEqual(INDEX_OPENINGS.map(shop => shop.id), currentOpenings.map(shop => shop.id), 'the slim index keeps the catalog order');
   assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, currentOpenings.length);
   for (const shop of lateSeptemberOpenings) assert.equal(currentOpenings.filter(item => item.id === shop.id).length, 1, `${shop.id} is registered once`);
   assert.equal(openShops.length + softOpenShops.length + announcedShops.length, currentOpenings.length);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部记录/ }).textContent, `全部记录${currentOpenings.length}`);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, `已开业${openShops.length}`);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^试营业/ }).textContent, `试营业${softOpenShops.length}`);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, `预告与庆典${announcedShops.length}`);
-  assert.ok(view.getByText(/尚未实地探店/));
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
-  fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'sf' } });
-  assert.deepEqual(names(view), announcedShops.filter(shop => shop.region === 'sf').slice(0, 6).map(shop => shop.name));
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
-  assert.deepEqual(names(view), sfOpen.slice(0, 6));
-  if (view.queryByRole('button', { name: '展开其余新店' })) fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  assert.deepEqual(names(view), sfOpen);
-  const bakery = within(view.getByRole('article', { name: 'La Boulangerie at ERIA Marina' }));
-  assert.ok(bakery.getByText('已开业', { exact: true }));
-  assert.ok(!bakery.queryByText('开业庆典', { exact: true }));
-  assert.ok(bakery.getByText('已营业 · 9 月 12 日庆典已结束', { exact: true }));
-  assert.ok(bakery.getByText(/首日营业日期未核实/));
-  assert.ok(!bakery.queryByText(/espresso|pastry|获赠/));
-  assert.equal(canonicalOpening('boulangerie-eria-celebration').openedOn, undefined, 'verified operation does not invent a first-service date');
-  assert.equal((view.getByRole('combobox', { name: '新店所在地区' }) as HTMLSelectElement).value, 'sf');
-  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).getAttribute('aria-pressed'), 'true');
+  const view = render(board());
+  assert.equal(statusFilters(view).getByRole('button', { name: /^全部/ }).textContent, `全部 ${currentOpenings.length}`);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, `已开业 ${openShops.length}`);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^试营业/ }).textContent, `试营业 ${softOpenShops.length}`);
+  assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, `预告与庆典 ${announcedShops.length}`);
+  assert.match(view.container.querySelector('.ev-count')!.textContent!, new RegExp(`^${currentOpenings.length} 家 · .*未实地探店`));
+  assert.deepEqual(names(view), currentOpenings.slice(0, 12).map(shop => shop.name));
+  showAll(view);
+  assert.deepEqual(names(view), currentOpenings.map(shop => shop.name));
+  assert.deepEqual(names(view).slice(-announcedShops.length), announcedShops.map(shop => shop.name), 'confirmed full and trial operation precede announcements');
+  for (const shop of currentOpenings) assert.equal(view.getByRole('link', { name: shop.name, exact: true }).getAttribute('href'), `/openings/${shop.id}`);
 });
 
-test('an empty status-region combination offers a reset that restores both filters and every available opening', () => {
-  const view = render(edition());
-  fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'peninsula' } });
-  assert.deepEqual(names(view), currentOpenings.filter(shop => shop.region === 'peninsula').slice(0, 6).map(shop => shop.name));
-  const emptyRegion = [...new Set(currentOpenings.map(shop => shop.region))].find(region => !softOpenShops.some(shop => shop.region === region));
+test('soft openings have their own filter and never inherit an open or announced label', () => {
+  assert.ok(softOpenShops.length > 0);
+  const view = render(board());
+  fireEvent.click(statusFilters(view).getByRole('button', { name: /^试营业/ }));
+  assert.deepEqual(names(view), softOpenShops.map(shop => shop.name));
+  for (const shop of softOpenShops) {
+    const meta = card(view, shop.name).querySelector('.ui-feed-card__meta')!.textContent!;
+    if (!shop.openedOn) assert.match(meta, /试营业$/, shop.id);
+    assert.doesNotMatch(meta, /即将开业/, shop.id);
+  }
+  const fixture = { status: 'soft_open' as const, openedOn: undefined };
+  assert.deepEqual(openingChip(fixture, '2026-11-01'), { zh: '试营业', en: 'Soft opening' }, 'time passing does not make a soft opening open');
+});
+
+test('status and region narrow the board, and an empty combination offers a reset to every opening in the region', () => {
+  const emptyRegion = (['sf', 'peninsula', 'north-bay'] as const).find(region => !softOpenShops.some(shop => shop.region === region))!;
   assert.ok(emptyRegion, 'the catalog has a region without confirmed trial operation');
-  fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: emptyRegion } });
+  const view = render(board(TODAY, emptyRegion));
+  const inRegion = currentOpenings.filter(shop => shop.region === emptyRegion);
+  showAll(view);
+  assert.deepEqual(names(view), inRegion.map(shop => shop.name));
+  assert.equal(statusFilters(view).getByRole('button', { name: /^试营业/ }).textContent, '试营业 0');
   fireEvent.click(statusFilters(view).getByRole('button', { name: /^试营业/ }));
   assert.deepEqual(names(view), []);
-  assert.ok(view.getByText('这个地区暂没有符合条件的已核实新店。'));
-  fireEvent.click(view.getByRole('button', { name: '查看全部新店', exact: true }));
-  assert.deepEqual(names(view), firstSix);
-  assert.equal((view.getByRole('combobox', { name: '新店所在地区' }) as HTMLSelectElement).value, 'all');
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部记录/ }).getAttribute('aria-pressed'), 'true');
-  assert.ok(!view.queryByText('这个地区暂没有符合条件的已核实新店。'));
-  assert.ok(view.getByRole('button', { name: '展开其余新店' }));
+  assert.ok(view.getByRole('heading', { name: '这个地区暂时没有符合条件的新店' }));
+  fireEvent.click(view.getByRole('button', { name: '看全部新店' }));
+  assert.equal(statusFilters(view).getByRole('button', { name: /^全部/ }).getAttribute('aria-pressed'), 'true');
+  showAll(view);
+  assert.deepEqual(names(view), inRegion.map(shop => shop.name));
+  cleanup();
+  const announcedSf = render(board(TODAY, 'sf'));
+  fireEvent.click(statusFilters(announcedSf).getByRole('button', { name: /^预告与庆典/ }));
+  assert.deepEqual(names(announcedSf), announcedShops.filter(shop => shop.region === 'sf').map(shop => shop.name));
 });
 
-test('six recently verified operating shops appear first, expanding reveals every announcement and filtering collapses the list', () => {
-  const view = render(edition());
-  assert.deepEqual(names(view), firstSix);
-  assert.equal(firstSix.length, 6, 'the initial page shows six operating shops');
-  assert.ok(currentOpenings.slice(0, 6).every(shop => shop.status === 'open' || shop.status === 'soft_open'));
-  for (let index = 1; index < operatingShops.length; index += 1) {
-    const previous = operatingShops[index - 1];
-    const shop = operatingShops[index];
-    assert.ok(previous.verifiedAt >= shop.verifiedAt, 'recent verification comes first');
-    if (previous.verifiedAt === shop.verifiedAt) assert.ok((previous.openedOn || '') >= (shop.openedOn || ''), 'first-service dates break verification-date ties');
-  }
-  assert.ok(!view.queryByRole('article', { name: 'Marufuku Ramen · Burlingame' }));
-  fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  assert.equal(names(view).length, currentOpenings.length);
-  assert.deepEqual(new Set(names(view)), new Set(currentOpenings.map(shop => shop.name)));
-  assert.deepEqual(names(view).slice(0, 6), firstSix);
-  assert.deepEqual(names(view).slice(0, operatingShops.length), operatingShops.map(shop => shop.name), 'confirmed full and trial operation precede announcements');
-  assert.deepEqual(names(view).slice(operatingShops.length), announcedShops.map(shop => shop.name));
-  assert.ok(!view.queryByRole('button', { name: '展开其余新店' }));
-  fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'south-bay' } });
-  assert.deepEqual(names(view), currentOpenings.filter(shop => shop.region === 'south-bay').slice(0, 6).map(shop => shop.name));
-  fireEvent.change(view.getByRole('combobox', { name: '新店所在地区' }), { target: { value: 'all' } });
-  assert.deepEqual(names(view), firstSix, 'Changing filters resets the expanded state');
-  assert.ok(view.getByRole('button', { name: '展开其余新店' }));
-});
-
-test('passing an announced date or month never silently promotes a forecast or archives every shop', () => {
-  const originalStatuses = currentOpenings.map(shop => [shop.id, shop.status, shop.openedOn]);
-  const view = render(edition());
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
-  assert.deepEqual(names(view), firstSixOpen);
-  view.rerender(edition('2026-09-30'));
-  assert.deepEqual(names(view), firstSixOpen, 'Dates passing are not proof that service started');
-  view.rerender(edition('2026-10-01'));
-  assert.ok(view.getByRole('heading', { name: '湾区开业消息与店铺记录' }));
-  assert.ok(!view.queryByRole('heading', { name: '本期新店记录' }));
-  view.rerender(edition('2026-10-31'));
-  assert.ok(view.getByRole('heading', { name: '湾区开业消息与店铺记录' }));
-  assert.deepEqual(names(view), firstSixOpen);
-  view.rerender(edition('2026-11-01'));
-  assert.ok(view.getByRole('heading', { name: '湾区开业消息与店铺记录' }));
-  assert.equal(view.queryByText('这是本期开业消息快照，当前营业情况请查商家公告。'), null);
-  assert.ok(!view.queryByRole('heading', { name: '湾区新店，找个理由去尝鲜。' }));
-  assert.deepEqual(names(view), firstSixOpen);
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
-  if (view.queryByRole('button', { name: '展开其余新店' })) fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  for (const shop of currentOpenings.filter(shop => shop.status === 'announced')) {
-    const card = within(view.getByRole('article', { name: shop.name, exact: true }));
-    assert.ok(card.getByText(shop.openingType === 'opening-celebration' ? '开业庆典' : '开业预告', { exact: true }));
-    assert.ok(card.getByText(shop.dateLabel, { exact: true }));
-  }
-  assert.deepEqual(currentOpenings.map(shop => [shop.id, shop.status, shop.openedOn]), originalStatuses);
-});
-
-test('November records distinguish confirmed opening dates, recent operating checks and announcements in every locale', async () => {
-  const original = [...currentOpenings];
-  const base = { ...original[0], imageKey: '', verifiedAt: '2026-11-05', status: 'open' as const, openingType: 'new-store' as const };
-  const fixtures = [
-    { ...base, id: 'review-recent', name: 'Recent fixture', openedOn: '2026-11-02' },
-    { ...base, id: 'review-older', name: 'Older fixture', openedOn: '2026-07-01' },
-    { ...base, id: 'review-unknown', name: 'Unknown fixture', openedOn: undefined },
-    { ...base, id: 'review-announced', name: 'Announced fixture', openedOn: undefined, status: 'announced' as const },
-  ];
-  currentOpenings.splice(0, currentOpenings.length, ...fixtures);
-  try {
-    for (const [locale, expected] of [
-      ['zh-Hans', ['实际首日营业在近 90 天内。', '保留营业记录，已不属于近 90 天新开。', '营业情况近期核查；首日营业日期未确认。', '仍为预告，尚未确认开始营业。']],
-      ['zh-Hant', ['實際首日營業在近 90 天內。', '保留營業記錄，已不屬於近 90 天新開。', '營業情況近期核查；首日營業日期未確認。', '仍為預告，尚未確認開始營業。']],
-      ['en', ['The confirmed first service date is within the past 90 days.', 'An operating record, rather than an opening within the past 90 days.', 'Operating information was checked recently; the first service date is unconfirmed.', 'Still an announcement; the start of service is unconfirmed.']],
-    ] as const) {
-      await setLocale(locale, false);
-      const view = render(edition('2026-11-06'));
-      fixtures.forEach((shop, index) => {
-        const card = within(view.getByRole('article', { name: shop.name }));
-        assert.ok(card.getByText(expected[index]));
-        assert.equal(card.getByRole('link', { name: shop.name }).getAttribute('href'), `/openings/${shop.id}`, 'the standalone route fixture preserves the canonical detail link');
-      });
-      assert.equal(view.queryByText('本期新店记录'), null);
-      view.unmount();
+test('passing an announced date or month never silently promotes a forecast to open', () => {
+  for (const today of ['2026-10-09', '2026-10-31', '2026-11-15', '2027-01-05']) {
+    const view = render(board(today));
+    fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
+    showAll(view);
+    assert.deepEqual(names(view), announcedShops.map(shop => shop.name), today);
+    for (const shop of announcedShops) {
+      assert.equal(shop.openedOn, undefined, 'an announcement cannot claim a first-service date');
+      assert.match(card(view, shop.name).querySelector('.ui-feed-card__meta')!.textContent!, /即将开业$/, `${today}: ${shop.id}`);
     }
-    assert.equal(fixtures[2].openedOn, undefined, 'a new review does not invent the first service date');
-    assert.equal(fixtures[3].status, 'announced', 'passing time never confirms operation');
-  } finally { currentOpenings.splice(0, currentOpenings.length, ...original); }
-});
-
-test('every opening exposes its merchant, encoded map destination and independently traceable news source', () => {
-  const view = render(edition());
-  fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  for (const shop of currentOpenings) {
-    const card = within(view.getByRole('article', { name: shop.name, exact: true }));
-    const merchant = card.getByRole('link', { name: '商家入口' });
-    assert.equal(merchant.getAttribute('href'), shop.officialUrl);
-    const map = card.getByRole('link', { name: '查看位置' });
-    const location = new URL(map.getAttribute('href')!);
-    assert.equal(location.origin, 'https://www.google.com');
-    assert.equal(location.pathname, '/maps/search/');
-    assert.equal(location.searchParams.get('api'), '1');
-    assert.ok(location.searchParams.get('query')?.includes(shop.address));
-    assert.ok(location.searchParams.get('query')?.includes(shop.name));
-    const toggle = card.getByText('开业消息与图片来源');
-    const details = toggle.closest('details');
-    assert.ok(details);
-    assert.equal(details.open, false);
-    fireEvent.click(toggle);
-    assert.equal(details.open, true);
-    const source = within(details).getByRole('link', { name: shop.sourceLabel, exact: true });
-    assert.equal(source.getAttribute('href'), shop.sourceUrl);
-    assert.ok(within(details).getByText(`核对 ${shop.verifiedAt}`));
-    for (const link of [merchant, map, source]) {
-      assert.equal(link.getAttribute('target'), '_blank');
-      assert.equal(link.getAttribute('rel'), 'noopener noreferrer');
-      assert.equal(new URL(link.getAttribute('href')!).protocol, 'https:');
-    }
+    cleanup();
   }
-  assert.equal(view.getByRole('link', { name: '收藏新店手册' }).getAttribute('href'), `/guides/${OPENINGS_GUIDE_SLUG}`);
+  // A confirmed first day reads as the month it opened; a future one as the expected day.
+  assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-08-10' }, TODAY), { zh: '8 月开业', en: 'Opened Aug' });
+  assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-10-20' }, TODAY), { zh: '预计 10/20 开业', en: 'Opening 10/20' });
+  assert.deepEqual(openingChip({ status: 'open', openedOn: undefined }, TODAY), { zh: '即将开业', en: 'Opening soon' });
+  const bakery = canonicalOpening('boulangerie-eria-celebration');
+  assert.equal(bakery.status, 'open');
+  assert.equal(bakery.openedOn, undefined, 'verified operation does not invent a first-service date');
 });
 
-test('new opening cards retain evidence and operating status, displaying only attributable photos or posters', () => {
-  const view = render(edition());
-  fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
+test('opening cards show only attributable photos or posters; synthetic shop artwork becomes the information card', () => {
+  const view = render(board());
+  showAll(view);
   for (const previous of [...additionalOctoberOpenings, ...lateSeptemberOpenings]) {
     const shop = canonicalOpening(previous.id);
     assert.ok(shop.imageKey, `${shop.id} has an editorially selected picture`);
@@ -260,38 +161,35 @@ test('new opening cards retain evidence and operating status, displaying only at
     assert.ok(shop.verifiedAt >= previous.verifiedAt, `${shop.id} does not discard newer verification`);
     assert.equal(new URL(shop.sourceUrl).protocol, 'https:');
     assert.ok(shop.sourceLabel.trim());
-    const article = view.getByRole('article', { name: shop.name, exact: true });
-    const card = within(article);
-    const registered = GUIDE_IMAGES[shop.imageKey];
+  }
+  const reviewed = new Set([...additionalOctoberOpenings, ...lateSeptemberOpenings].map(shop => shop.id));
+  for (const shop of currentOpenings) {
+    const article = card(view, shop.name);
+    const registered = Object.hasOwn(GUIDE_IMAGES, shop.imageKey) ? GUIDE_IMAGES[shop.imageKey] : undefined;
     const image = registered?.kind === 'illustration' ? undefined : registered;
-    if (image) {
+    const img = article.querySelector('img.ui-cover__img');
+    // The cover ladder decides which factual images an opening may use (official images and own shots, WEB-UI).
+    if (image && getCover({ kind: 'opening', id: shop.id, imageKey: shop.imageKey }, coverContext(TODAY)).tier !== 'type') {
       assert.ok(image.kind === 'photo' || image.kind === 'poster', `${shop.id} uses factual media`);
       assert.ok(readFileSync(new URL(`../public${image.src}`, import.meta.url)).length > 0, `${shop.id} image file exists`);
-      assert.equal(card.getByRole('img').getAttribute('src'), image.src);
-      assert.equal(card.getByRole('img').getAttribute('alt'), image.alt);
-      assert.ok(card.getByRole('button', { name: /^查看大图/ }));
+      assert.ok(img, `${shop.id} shows its own image`);
+      assert.match(img.getAttribute('src')!, new RegExp(image.src.replace(/\.webp$/, '').replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')));
       assert.ok(image.caption.trim() && image.credit.trim());
-      assert.equal(new URL(image.creditUrl!).hostname, new URL(shop.officialUrl).hostname, `${shop.id} image is attributed to this merchant`);
-      const brand = shop.id === 'kaiyo-handroll-union' ? /KAIY[ŌO]|Kaiy[ōo]/ : shop.id === 'mess-hall-presidio-breadwinner' ? /Mess Hall|Breadwinner/ : shop.id === 'broken-dreams-oakland' ? /Broken Dreams/ : shop.id === 'hijau-san-jose-storefront' ? /Hijau/ : /Marufuku.*Burlingame|Burlingame.*Marufuku/;
-      assert.match(`${image.alt} ${image.caption}`, brand, `${shop.id} media belongs to the named shop and location`);
+      if (reviewed.has(shop.id)) assert.equal(new URL(image.creditUrl!).hostname, new URL(shop.officialUrl).hostname, `${shop.id} image is attributed to this merchant`);
+      const fit = article.querySelector('[data-cover="image"]')!.getAttribute('data-fit');
+      assert.equal(fit, image.kind === 'poster' || image.fullFrame ? 'contain' : 'cover', `${shop.id}: posters and full-frame photos are never cropped`);
     } else {
-      assert.equal(card.queryByRole('img'), null);
-      assert.equal(card.queryByRole('button', { name: /^查看大图/ }), null);
-      assert.equal(article.querySelector('.bl-opening-photo'), null);
-      if (registered?.kind === 'illustration') assert.equal(card.queryByText(registered.caption), null, 'hidden synthetic artwork must not leave misleading picture captions');
+      assert.equal(img, null, `${shop.id} has no unrelated, synthetic or unlicensed picture`);
+      assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
+      if (registered?.kind === 'illustration') assert.equal(article.textContent!.includes(registered.caption), false, 'hidden synthetic artwork leaves no picture caption');
     }
-    assert.ok(card.getByText(shop.summary));
-    assert.ok(card.getByText(shop.editorTip));
-    assert.equal(card.getByRole('link', { name: shop.name, exact: true }).getAttribute('href'), `/openings/${shop.id}`);
-    fireEvent.click(card.getByText('开业消息与图片来源'));
-    assert.equal(card.getByRole('link', { name: shop.sourceLabel, exact: true }).getAttribute('href'), shop.sourceUrl);
-    if (image) {
-      assert.ok(card.getByText(image.caption));
-      assert.ok(card.getByText(image.credit), 'image credit is visible even when it has no external URL');
-    }
-    assert.ok(card.getByText(`核对 ${shop.verifiedAt}`));
-    if (shop.status === 'announced') assert.equal(shop.openedOn, undefined, 'an announcement cannot claim a first-service date');
+    assert.match(article.querySelector('.ui-feed-card__trust')!.textContent!, /^官网核对 \d+\/\d+$/);
   }
+  for (const id of ['kaiyo-handroll-union', 'marufuku-burlingame-announced', 'broken-dreams-oakland']) {
+    const image = GUIDE_IMAGES[canonicalOpening(id).imageKey];
+    assert.ok(image.kind === 'poster' || image.fullFrame, `${id} requires its complete artwork or photo`);
+  }
+  for (const id of ['mess-hall-presidio-breadwinner', 'hijau-san-jose-storefront']) assert.equal(GUIDE_IMAGES[canonicalOpening(id).imageKey].kind, 'illustration');
   const brokenDreams = canonicalOpening('broken-dreams-oakland');
   assert.equal(brokenDreams.openedOn, '2026-08-10');
   assert.match(brokenDreams.editorTip, /周末暂休/);
@@ -300,66 +198,23 @@ test('new opening cards retain evidence and operating status, displaying only at
   assert.match(marufuku.dateLabel, /预告.*10\/11.*Grand Opening.*11:00.*14:00.*17:00.*21:00/);
   assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
   assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/burlingame');
-  assert.equal(marufuku.officialUrl, 'https://www.marufukuramen.com/burlingame');
   assert.equal(marufuku.address, '225 Lorton Ave, Burlingame, CA 94010');
-  assert.equal(marufuku.verifiedAt, '2026-10-07');
-  assert.match(marufuku.summary, /尚未到开业日.*预告/);
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /Coming Soon|尚未开业|不代表已开业/);
 });
 
-test('opening posters and full-frame food photos remain uncropped while synthetic shop artwork becomes readable text cards', () => {
-  const view = render(edition());
-  fireEvent.click(view.getByRole('button', { name: '展开其余新店' }));
-  for (const id of ['kaiyo-handroll-union', 'marufuku-burlingame-announced', 'broken-dreams-oakland']) {
-    const shop = canonicalOpening(id);
-    const image = GUIDE_IMAGES[shop.imageKey];
-    assert.ok(image.kind === 'poster' || image.fullFrame, `${id} requires its complete artwork or photo`);
-    const card = within(view.getByRole('article', { name: shop.name, exact: true }));
-    const img = card.getByRole('img');
-    assert.equal(dom.window.getComputedStyle(img).objectFit, 'contain', `${id} must not crop text or product framing`);
-  }
-  for (const id of ['mess-hall-presidio-breadwinner', 'hijau-san-jose-storefront']) {
-    const shop = canonicalOpening(id);
-    const image = GUIDE_IMAGES[shop.imageKey];
-    const card = within(view.getByRole('article', { name: shop.name, exact: true }));
-    assert.equal(image.kind, 'illustration');
-    assert.equal(card.queryByRole('img'), null);
-    assert.equal(card.queryByRole('button', { name: /^查看大图/ }), null);
-    assert.equal(card.queryByText('AI 原创插图'), null);
-    assert.ok(card.getByText(shop.summary));
-    assert.ok(card.getByText(shop.editorTip));
-    fireEvent.click(card.getByText('开业消息与图片来源'));
-    assert.equal(card.queryByText(image.credit), null);
-    assert.equal(card.queryByText(image.caption), null);
-    assert.equal(card.getByRole('link', { name: shop.sourceLabel, exact: true }).getAttribute('href'), shop.sourceUrl);
-    assert.ok(card.getByText(`核对 ${shop.verifiedAt}`));
+test('unavailable and inherited opening image keys safely fall back to the information card', () => {
+  const shop = INDEX_OPENINGS[0];
+  for (const imageKey of ['unregistered-opening-test-image', '__proto__', 'constructor', 'family-workshop']) {
+    const cover = getCover({ kind: 'opening', id: shop.id, imageKey }, coverContext(TODAY));
+    assert.equal(cover.tier, 'type', imageKey);
   }
 });
 
-test('unavailable and inherited opening image keys safely omit the picture and lightbox while retaining evidence', () => {
-  const shop = currentOpenings[0];
-  const originalKey = shop.imageKey;
-  try {
-    for (const key of ['unregistered-opening-test-image', '__proto__', 'constructor', 'family-workshop']) {
-      shop.imageKey = key;
-      const view = render(edition());
-      const card = within(view.getByRole('article', { name: shop.name, exact: true }));
-      assert.equal(card.queryByRole('img'), null);
-      assert.equal(card.queryByRole('button', { name: /^查看大图/ }), null);
-      assert.ok(card.getByText(shop.summary));
-      assert.equal(card.getByRole('link', { name: /商家入口/ }).getAttribute('href'), shop.officialUrl);
-      fireEvent.click(card.getByText('开业消息与图片来源'));
-      assert.equal(card.getByRole('link', { name: shop.sourceLabel, exact: true }).getAttribute('href'), shop.sourceUrl);
-      view.unmount();
-    }
-  } finally {
-    shop.imageKey = originalKey;
-  }
-});
-
-test('the handbook route resolves to the full canonical opening catalog and clickable primary sources in server HTML', () => {
+test('the board links the new-shop handbook, which resolves to the full catalog with clickable primary sources in server HTML', () => {
+  const view = render(board());
+  assert.equal(view.getByRole('link', { name: '新店手册：去之前先确认开门' }).getAttribute('href'), `/guides/${OPENINGS_GUIDE_SLUG}`);
   const guide = getGuideBySlug(OPENINGS_GUIDE_SLUG);
-  assert.ok(guide, 'the card link must point to a registered guide');
+  assert.ok(guide, 'the link must point to a registered guide');
   assert.equal(guides.filter(item => item.slug === OPENINGS_GUIDE_SLUG).length, 1);
   assert.equal(guide.editionMonth, '2026-09');
   assert.match(guide.sourceNote || '', /未实地探店/);
