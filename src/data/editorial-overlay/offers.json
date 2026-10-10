@@ -78,7 +78,7 @@
 "san-mateo-jacks-happy-hour-ongoing": {"shortTitle":"Jack’s 工作日 Happy Hour"},
 "sf-city-guides-free-walks": {"shortTitle":"SF 志愿导览免费散步"},
 "sf-greyhound-trivia-happy-hour-2026": {"shortTitle":"The Crossing 问答夜"},
-"sf-opera-dolby-figaro-offer-2026": {"shortTitle":"湾区新观众 $10 歌剧票","fix":{"description":"Dolby Opera for the Bay 为符合条件的湾区新观众按剧目分批发售 $10 票；《Manon》与《费加罗的婚礼》批次已售罄，下一批为《Tosca》。","dateLabel":"《Manon》《费加罗的婚礼》批次已售罄 · 下一批《Tosca》2027/4/27 中午开售"}},
+"sf-opera-dolby-figaro-offer-2026": {"shortTitle":"湾区新观众 $10 歌剧票","fix":{"description":"Dolby Opera for the Bay 为符合条件的湾区新观众按剧目分批发售 $10 票；《Manon》与《费加罗的婚礼》批次已售罄，下一批为《Tosca》。","title":"湾区新观众 $10 歌剧票：按剧目分批开售","dateLabel":"《Manon》《费加罗的婚礼》批次已售罄 · 下一批《Tosca》2027/4/27 中午开售"}},
 "sfmoma-family-oct25": {"shortTitle":"10/25 SFMOMA 亲子免费日"},
 "sfmoma-free-public-art-spaces": {"shortTitle":"免票看 SFMOMA 公共艺术区"},
 "sfmoma-museums-for-all": {"shortTitle":"SF 居民福利卡 SFMOMA 免费"},
