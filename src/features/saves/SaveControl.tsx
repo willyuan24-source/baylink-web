@@ -6,6 +6,7 @@ import { translateText, useLocale } from '../../i18n/locale';
 import type { SaveToWeekProps } from '../../components/SaveToWeek';
 import { saveButtonName } from './save-name';
 import { SaveToast } from './SaveToast';
+import { prepareSaveAnnouncer } from './save-announcer';
 
 /**
  * ♡ 收藏 for one event, place, offer or opening: the one save model (src/lib/saves.ts). Loaded on its own by
@@ -28,6 +29,7 @@ export default function SaveControl({ favorite, compact, title }: SaveToWeekProp
   const toggle = async () => {
     setToast('');
     setTapped(true);
+    prepareSaveAnnouncer();
     if (rereadOnTap) { save.retry(); return; }
     const result = await save.toggle();
     if (!result?.saved) return;

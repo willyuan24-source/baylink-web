@@ -111,3 +111,102 @@ test('a browser that refuses storage keeps the save for this visit and says so',
   assert.equal(result.current.saved, true);
   assert.equal(result.current.persisted, false);
 });
+
+test('an opening saved on its card is the ♡ its detail page shows (saved there as a place): one key, one row, one count', async () => {
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ plans: [], preferences: {}, favorites: [{ kind: 'place', id: 'opening-older-shop' }] }));
+  const { result } = renderHook(() => ({
+    card: useSave('opening', 'new-shop', { userId: null }), detail: useSave('place', 'opening-new-shop', { userId: null }),
+    list: useSavedEntries(null), count: useSavedCount(null),
+  }));
+  assert.deepEqual(ids(result.current.list.entries), ['opening:older-shop'], 'an older device save of the place is the opening');
+  await act(async () => { await result.current.card.toggle(); });
+  assert.equal(result.current.detail.saved, true, 'the detail page shows the card’s save');
+  assert.deepEqual(ids(result.current.list.entries), ['opening:new-shop', 'opening:older-shop']);
+  assert.equal(result.current.count, 2);
+  await act(async () => { await result.current.detail.toggle(); });
+  assert.equal(result.current.card.saved, false, 'removing it on the detail page removes the card’s save');
+  await act(async () => { await result.current.detail.toggle(); });
+  assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items.map((item: { kind: string; id: string }) => `${item.kind}:${item.id}`), ['opening:new-shop', 'opening:older-shop'],
+    'a save from the detail page is stored as the opening');
+  assert.equal(result.current.count, 2);
+});
+
+test('signed in: an opening the account holds as a place lists once, shows saved on the card, and un-saving deletes each stored form', async t => {
+  session('alice');
+  let favorites = [{ kind: 'place', id: 'opening-shop-a' }, { kind: 'event', id: 'fleet-week' }, { kind: 'place', id: 'opening-shop-b' }, { kind: 'opening', id: 'shop-b' }];
+  const writes: string[] = [];
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (!options?.method) return { ...structuredClone(EMPTY_LIBRARY), favorites: structuredClone(favorites) };
+    writes.push(`${options.method} ${path}`);
+    const [kind, id] = path.split('/').slice(-2);
+    favorites = options.method === 'PUT' ? [...favorites, { kind, id }] : favorites.filter(item => item.kind !== kind || item.id !== id);
+    return { favorites: structuredClone(favorites) };
+  });
+  const { result } = renderHook(() => ({
+    a: useSave('opening', 'shop-a', { userId: 'alice' }), aDetail: useSave('place', 'opening-shop-a', { userId: 'alice' }),
+    b: useSave('opening', 'shop-b', { userId: 'alice' }), list: useSavedEntries('alice'), count: useSavedCount('alice'),
+  }));
+  await act(async () => {});
+  assert.equal(result.current.a.saved, true);
+  assert.deepEqual(ids(result.current.list.entries), ['opening:shop-b', 'event:fleet-week', 'opening:shop-a'], 'two stored forms of shop-b are one row');
+  assert.equal(result.current.count, 3);
+  await act(async () => { await result.current.a.toggle(); await result.current.b.toggle(); });
+  assert.deepEqual(writes, ['DELETE /planner/favorites/place/opening-shop-a', 'DELETE /planner/favorites/place/opening-shop-b', 'DELETE /planner/favorites/opening/shop-b']);
+  assert.equal(result.current.aDetail.saved, false);
+  assert.deepEqual(ids(result.current.list.entries), ['event:fleet-week']);
+  await act(async () => { await result.current.aDetail.toggle(); });
+  assert.equal(writes.at(-1), 'PUT /planner/favorites/opening/shop-a', 'a new save is written as the opening');
+  assert.equal(result.current.a.saved, true);
+  assert.equal(result.current.count, 2);
+});
+
+test('signed in: quick saves of two items keep both, whatever lands first; writes go one at a time', async t => {
+  session('alice');
+  let favorites: { kind: string; id: string }[] = [];
+  const sent: string[] = [];
+  let release!: () => void;
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (!options?.method) return { ...structuredClone(EMPTY_LIBRARY), favorites: structuredClone(favorites) };
+    sent.push(path);
+    const [kind, id] = path.split('/').slice(-2);
+    favorites = [...favorites, { kind, id }];
+    const answer = { favorites: structuredClone(favorites) };
+    if (sent.length === 1) await new Promise<void>(resolve => { release = resolve; });
+    return answer;
+  });
+  const { result } = renderHook(() => ({ a: useSave('offer', 'offer-a', { userId: 'alice' }), b: useSave('offer', 'offer-b', { userId: 'alice' }), list: useSavedEntries('alice') }));
+  await act(async () => {});
+  let pending: Promise<unknown>[] = [];
+  await act(async () => { pending = [result.current.a.toggle(), result.current.b.toggle()]; await new Promise(resolve => setTimeout(resolve, 0)); });
+  assert.deepEqual(sent, ['/planner/favorites/offer/offer-a'], 'the second write waits for the first answer');
+  assert.equal(result.current.a.saved, true); assert.equal(result.current.b.saved, true);
+  // A read that lands meanwhile (the tab regained focus) still shows both.
+  await act(async () => { await loadPlannerAccount('alice'); });
+  assert.deepEqual(ids(result.current.list.entries).sort(), ['offer:offer-a', 'offer:offer-b']);
+  await act(async () => { release(); await Promise.all(pending); });
+  assert.deepEqual(sent, ['/planner/favorites/offer/offer-a', '/planner/favorites/offer/offer-b']);
+  assert.deepEqual(ids(result.current.list.entries).sort(), ['offer:offer-a', 'offer:offer-b']);
+});
+
+test('signed in: a read that started before a save answered does not put the older list back', async t => {
+  session('alice');
+  let favorites: { kind: string; id: string }[] = [];
+  let hold = false, answerRead = () => {};
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (!options?.method) {
+      const answer = { ...structuredClone(EMPTY_LIBRARY), favorites: structuredClone(favorites) };
+      return hold ? new Promise(resolve => { answerRead = () => resolve(answer); }) : answer;
+    }
+    favorites = [...favorites, { kind: 'offer', id: 'offer-c' }];
+    return { favorites: structuredClone(favorites) };
+  });
+  const { result } = renderHook(() => ({ c: useSave('offer', 'offer-c', { userId: 'alice' }), list: useSavedEntries('alice') }));
+  await act(async () => {});
+  hold = true;
+  let read!: Promise<unknown>;
+  await act(async () => { read = loadPlannerAccount('alice'); await new Promise(resolve => setTimeout(resolve, 0)); });
+  await act(async () => { await result.current.c.toggle(); });
+  await act(async () => { answerRead(); await read; });
+  assert.equal(result.current.c.saved, true, 'the older list (without the save) is not shown');
+  assert.deepEqual(ids(result.current.list.entries), ['offer:offer-c']);
+});

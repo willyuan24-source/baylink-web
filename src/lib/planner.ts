@@ -1,6 +1,5 @@
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
 import { PLANNER_PLACES } from '../data/planner-catalog';
-import { guides } from '../data/guides';
 import type { MonthlyEvent } from '../data/monthly-types';
 import type { PageMetadata } from './seo';
 import { canonicalEventId } from './event-id';
@@ -35,11 +34,6 @@ export const placeFor = (id: string) => PLANNER_PLACES.find(item => item.id === 
 export const validStop = (stop: Stop) => stop?.kind === 'event' ? !!eventFor(stop.id) : stop?.kind === 'place' && !!placeFor(stop.id);
 export const stopTitle = (stop: Stop) => (stop.kind === 'event' ? eventFor(stop.id) : placeFor(stop.id))?.title || stop.id;
 export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encodeURIComponent(stop.id)}` : placeFor(stop.id)?.path || `/guides/${encodeURIComponent(placeFor(stop.id)?.guideSlug || '')}`;
-/** Offer and opening titles come from the discovery catalog (`src/lib/saved-items.ts`); this module does not load it. */
-export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id
-  : favorite.kind === 'offer' || favorite.kind === 'opening' ? favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
-export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}`
-  : favorite.kind === 'offer' || favorite.kind === 'opening' ? `/${favorite.kind}s/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
 export const favoriteKey = (item: Favorite) => `${item.kind}:${item.kind === 'event' ? canonicalEventId(item.id) : item.id}`;
 export { MAX_PLAN_STOPS } from './plan-limits';
 export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(stop)) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];

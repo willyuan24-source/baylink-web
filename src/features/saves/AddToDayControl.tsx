@@ -5,6 +5,7 @@ import { translateText, useLocale } from '../../i18n/locale';
 import type { AddToDayPlanProps } from '../../components/AddToDayPlan';
 import { addToDayName, shortDay } from './add-to-day-name';
 import { SaveToast } from './SaveToast';
+import { prepareSaveAnnouncer } from './save-announcer';
 
 // Styles: src/components/reader-library.css (global; this appears on prerendered pages).
 
@@ -21,6 +22,7 @@ export default function AddToDayControl({ stop, date, title, compact, className,
   const day = shortDay(date);
   const add = async () => {
     setState({ status: 'busy' });
+    prepareSaveAnnouncer();
     try {
       // The planner and its catalog load on the first add, not with the page (route JS budgets, plan §3.0 rule 8).
       const { appendToDay } = await import('../../lib/planner-library');

@@ -25,6 +25,8 @@ export type SavedItemView = {
    * its own: the dictionaries hold the pieces, not the joined line, so a joined line would stay in Chinese on /en.
    */
   meta: string[];
+  /** Pieces of the meta line written by a member (a listing's city and budget): shown as written, never translated. */
+  userMeta?: string[];
   /** For `resolveCovers`; absent for posts (they get a TypeCover). */
   cover?: CoverItem;
   event?: PlannerEvent;
@@ -32,7 +34,7 @@ export type SavedItemView = {
   guide?: Guide;
   offer?: FreebieOffer;
   opening?: SeptemberOpening;
-  /** User text: render with translate="no". */
+  /** The title is user text: shown exactly as written (no 繁體 conversion, no dictionary). */
   userText?: boolean;
 };
 
@@ -80,7 +82,8 @@ export function savedItemView(entry: SavedEntry): SavedItemView {
     }
     case 'post': {
       const post = entry.post;
-      return { ...base, userText: true, title: post?.title || entry.id, path: `/posts/${encodeURIComponent(entry.id)}`, meta: parts(post?.category, post?.city, post?.budget) };
+      // The category is the board's own label (translated like on the board); city and budget are the member's words.
+      return { ...base, userText: true, title: post?.title || entry.id, path: `/posts/${encodeURIComponent(entry.id)}`, meta: parts(post?.category), userMeta: parts(post?.city, post?.budget) };
     }
   }
 }

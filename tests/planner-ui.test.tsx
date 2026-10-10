@@ -21,6 +21,7 @@ const { PLANNER_EVENTS, PLANNER_PLACES } = await import('../src/data/planner-cat
 const { getGuideBySlug } = await import('../src/data/guides');
 const { getGuideMedia } = await import('../src/data/guide-media');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
+const { savesKey, resetSaveStore } = await import('../src/lib/saves');
 const { setLocale } = await import('../src/i18n/locale');
 const originalRequest = api.request;
 const account = { id: 'planner-user', token: 'planner-token', nickname: 'Planner user', role: 'user', isBanned: false } as UserData;
@@ -308,4 +309,25 @@ test('stopping an automatic plan request preserves the text and ignores a late r
   assert.equal(view.queryByRole('heading', { name: '有依据的出游建议' }), null);
   assert.equal((view.getByLabelText('这次想怎么过？') as HTMLTextAreaElement).value, message);
   assert.match(view.getByRole('alert').textContent || '', /已停止挑选/);
+});
+
+test('a new shop saved on the openings board shows saved on its planner card, and the planner ♡ removes that one save', async () => {
+  const place = PLANNER_PLACES.find(row => row.id.startsWith('opening-'))!;
+  const opening = place.id.slice('opening-'.length);
+  localStorage.setItem(savesKey(), JSON.stringify({ v: 1, items: [{ kind: 'opening', id: opening, savedAt: 1 }] }));
+  resetSaveStore();
+  const view = await openPlanner();
+  const tab = { restaurant: '餐饮', cafe: '咖啡与小食', shop: '商店', attraction: '景点' }[place.category || 'attraction'];
+  fireEvent.click(view.getByRole('button', { name: tab }));
+  const card = async () => {
+    for (let more = 0; !view.container.querySelector(`[id="catalog-place:${place.id}"]`) && more < 20; more++) {
+      await act(async () => { fireEvent.click(view.getByRole('button', { name: '继续看更多地点' })); });
+    }
+    return view.container.querySelector(`[id="catalog-place:${place.id}"]`) as HTMLElement;
+  };
+  const heart = within(await card()).getByRole('button', { name: '取消收藏' });
+  assert.equal(heart.getAttribute('aria-pressed'), 'true', 'the planner names the board’s save as saved');
+  await act(async () => { fireEvent.click(heart); });
+  assert.equal(within(await card()).getByRole('button', { name: '收藏到我的这周' }).getAttribute('aria-pressed'), 'false');
+  assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items, [], 'the one save is gone, not doubled');
 });

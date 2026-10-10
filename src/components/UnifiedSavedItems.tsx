@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { Fragment, useMemo, useState, type ReactNode } from 'react';
 import { Heart } from 'lucide-react';
 import { useSavedEntries, type SavedEntry } from '../lib/saves';
 import { savedCoverImage, savedItemView, SAVED_KIND_LABELS, type SavedItemView } from '../lib/saved-items';
@@ -19,6 +19,8 @@ import type { CoverTone } from '../lib/event-facts';
 
 const KIND_ORDER: SavedEntry['kind'][] = ['event', 'offer', 'opening', 'place', 'guide', 'post'];
 const KIND_TONES: Record<'place' | 'guide' | 'post', CoverTone> = { place: 'outdoors', guide: 'culture', post: 'family' };
+/** "a · b · c" with each piece kept as its own node (a member's words keep their translate="no" span). */
+const joinMeta = (pieces: ReactNode[]) => pieces.map((piece, index) => <Fragment key={index}>{index > 0 && ' · '}{piece}</Fragment>);
 
 /** The 88px thumbnail: the item's own photo when the honesty ladder allows one, else its TypeCover. */
 function Thumb({ view, cover, today, label, ended }: { view: SavedItemView; cover: ResolvedCover; today: string; label: string; ended?: boolean }) {
@@ -69,16 +71,18 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
       const title = view.userText ? view.title : translateText(view.title, locale);
       const kind = pick(view.kindLabel);
       const availability = view.entry.kind === 'post' ? posts.get(view.entry.id) : undefined;
-      // Each piece is translated on its own (the dictionaries hold the pieces, not the joined line).
-      const meta = [kind, ...view.meta.map(part => view.userText ? part : translateText(part, locale)), view.entry.source === 'pending' ? t('本机，稍后同步到账号', 'on this device, syncing to your account') : '',
-        availability === 'unknown' ? t('暂时无法检查是否仍在', 'could not check whether it is still listed') : ''].filter(Boolean).join(' · ');
+      // Each piece is translated on its own (the dictionaries hold the pieces, not the joined line); a member's own
+      // words (a listing's city and budget) are shown as written.
+      const meta = joinMeta([kind, ...view.meta.map(part => translateText(part, locale)), ...(view.userMeta ?? []).map(part => <span translate="no">{part}</span>),
+        view.entry.source === 'pending' ? t('本机，稍后同步到账号', 'on this device, syncing to your account') : '',
+        availability === 'unknown' ? t('暂时无法检查是否仍在', 'could not check whether it is still listed') : ''].filter(Boolean));
       const chip = view.event ? eventDateChip(view.event, today) : undefined;
       const ended = chip?.kind === 'day' && chip.ended;
       const date = chip ? `${ended ? `${t('已结束', 'Ended')} · ` : ''}${formatDateChip(chip, english).label}` : view.offer ? (() => { const deadline = offerDeadline(view.offer!, today); return deadline ? pick(deadline.text) : undefined; })() : undefined;
       const heart = <SaveHeart kind={view.entry.kind} id={view.entry.id} title={title} post={view.entry.post} />;
-      return <li key={view.entry.key} data-kind={view.entry.kind} data-ended={ended ? '' : undefined} translate={view.userText ? 'no' : undefined}>
-        {availability === 'gone' ? <div className="my-week__retired" data-testid="saved-post-gone"><p><strong>{title}</strong> · {t('这条信息目前不可访问，可以移除收藏。', 'This listing is no longer available. You can remove it.')}</p>{heart}</div>
-          : view.path ? <RowCard title={title} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} ended={ended} />} date={date} meta={meta} trailing={heart} />
+      return <li key={view.entry.key} data-kind={view.entry.kind} data-ended={ended ? '' : undefined}>
+        {availability === 'gone' ? <div className="my-week__retired" data-testid="saved-post-gone"><p><strong translate={view.userText ? 'no' : undefined}>{title}</strong> · {t('这条信息目前不可访问，可以移除收藏。', 'This listing is no longer available. You can remove it.')}</p>{heart}</div>
+          : view.path ? <RowCard title={title} rawTitle={view.userText} to={view.path} thumb={<Thumb view={view} cover={cover} today={today} label={kind} ended={ended} />} date={date} meta={meta} trailing={heart} />
           : <div className="my-week__retired"><p><strong>{kind}</strong> · {t('这条内容已下架或暂时找不到。', 'This item is no longer listed.')}</p>{heart}</div>}
       </li>;
     })}</ul>}

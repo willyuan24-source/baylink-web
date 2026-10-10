@@ -49,7 +49,7 @@ test('one saved list: every kind as a row with a cover, and the /me count equals
   assert.match(section.getByRole('link', { name: offer.title }).closest('li')!.textContent!, new RegExp(`优惠 · ${brandCase(offer.brand)} · `), 'the brand leads the meta line in its display casing');
   assert.ok(section.getByRole('link', { name: opening.name }));
   assert.ok(section.getByRole('link', { name: guide.title }));
-  assert.equal(section.getByRole('link', { name: post.title }).closest('li')!.getAttribute('translate'), 'no', 'user text is never translated');
+  assert.equal(section.getByRole('link', { name: post.title }).querySelector('[translate="no"]')!.textContent, post.title, 'user text is never translated');
   assert.equal(view.queryByText('Bob only'), null, 'another account’s device list stays apart');
   for (const row of rows) assert.ok(row.querySelector('[data-cover]'), 'every row carries a cover: a photo or its TypeCover');
   assert.ok(section.getByRole('group', { name: '按类型筛选收藏' }));
@@ -139,4 +139,24 @@ test('saved listings on screen are checked: a deleted or hidden one says so and 
   await act(async () => { fireEvent.click(within(goneRow).getByRole('button', { name: `取消收藏：${gone.title}` })); });
   assert.equal(view.getByTestId('my-week-saved-count').textContent, '2');
   assert.equal(checked.length, 3, 'each listing is checked once per visit');
+});
+
+test('a member’s words stay as written in every language; the board’s own labels are translated', async () => {
+  const listing = { id: 'fremont-room', title: '东湾 Fremont 两房出租，近 BART', city: 'Fremont', category: '租屋', budget: '$2,600/月', savedAt: 1 };
+  localStorage.setItem(savedPostsKey(), JSON.stringify([listing]));
+  const row = (view: ReturnType<typeof render>) => view.getByTestId('my-week-saved').querySelector('li[data-kind="post"]')!;
+  await act(async () => { await setLocale('zh-Hant', false); });
+  try {
+    const hant = render(page());
+    const link = within(row(hant)).getByRole('link');
+    assert.equal(link.textContent, listing.title, 'the title is not converted to 繁體');
+    const meta = row(hant).querySelector('.ui-row-card__meta')!;
+    assert.match(meta.textContent!, /^鄰里資訊 · 租屋 · Fremont · \$2,600\/月$/, 'labels in 繁體, the budget exactly as written');
+    assert.equal([...meta.querySelectorAll('[translate="no"]')].map(node => node.textContent).join('|'), 'Fremont|$2,600/月');
+    cleanup();
+    await act(async () => { await setLocale('en', false); });
+    const english = render(page());
+    assert.equal(within(row(english)).getByRole('link').textContent, listing.title);
+    assert.equal(row(english).querySelector('.ui-row-card__meta')!.textContent, 'Neighborhood listing · Housing · Fremont · $2,600/月', 'the category is the board’s label, translated');
+  } finally { await act(async () => { await setLocale('zh-Hans', false); }); }
 });

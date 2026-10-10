@@ -162,11 +162,23 @@ export function usePlannerLibrary(userId?: string) {
 export type AppendToDayResult = { plan: SavedPlan; created: boolean; alreadyThere: boolean };
 type AppendError = { error: string; code: 'date' | 'stop' | 'full' | 'session' };
 
+/** Account adds run one at a time per account, so a second quick add reads the plan the first one created. */
+const appendQueues = new Map<string, Promise<void>>();
+
 /**
  * "加入这天计划" (plan D19): add one stop to the owner's plan for that date, or create that plan, and save it right
  * away. A plan that already has six stops gets a second plan for the day. Open plan lists read again afterwards.
  */
-export async function appendToDay(userId: string | undefined, date: string, stop: Stop, title: string, today = todayInBay()): Promise<AppendToDayResult> {
+export function appendToDay(userId: string | undefined, date: string, stop: Stop, title: string, today = todayInBay()): Promise<AppendToDayResult> {
+  if (!userId) return appendNow(userId, date, stop, title, today);
+  const run = (appendQueues.get(userId) ?? Promise.resolve()).then(() => appendNow(userId, date, stop, title, today));
+  const settled = run.then(() => {}, () => {});
+  appendQueues.set(userId, settled);
+  void settled.then(() => { if (appendQueues.get(userId) === settled) appendQueues.delete(userId); });
+  return run;
+}
+
+async function appendNow(userId: string | undefined, date: string, stop: Stop, title: string, today: string): Promise<AppendToDayResult> {
   if (!validDay(date) || date < today) throw { error: '请选择今天或之后的日期。', code: 'date' } satisfies AppendError;
   const [clean] = cleanStops([stop]);
   if (!clean || !validStop(clean)) throw { error: '这一站暂时不能加入计划。', code: 'stop' } satisfies AppendError;

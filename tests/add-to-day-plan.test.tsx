@@ -77,8 +77,12 @@ test('the button saves at once, confirms with “已加入 12/12 计划 · 查�
   await waitFor(() => assert.equal(button().hasAttribute('disabled'), false));
   await act(async () => { fireEvent.click(button()); });
   const toast = view.getByTestId('save-toast');
-  assert.equal(toast.getAttribute('role'), 'status');
   assert.match(toast.textContent!, /已加入 12\/12 计划/);
+  // Screen readers hear it from one polite region that was in the page, empty, before the message arrived.
+  const announcer = view.getByTestId('save-announcer');
+  assert.equal(announcer.getAttribute('role'), 'status');
+  assert.equal(toast.getAttribute('role'), null, 'the toast itself is not a second live region');
+  await waitFor(() => assert.equal(announcer.textContent, '已加入 12/12 计划'));
   assert.equal(within(toast).getByRole('link', { name: '查看' }).getAttribute('href'), `/my-week#plan-${DAY}`);
   // Once the stop is in, the accessible name starts with the visible text again (WCAG 2.5.3).
   assert.equal(view.queryByRole('button', { name: `加入这天计划：${MONTHLY_EVENTS[0].title}` }), null);
@@ -87,6 +91,29 @@ test('the button saves at once, confirms with “已加入 12/12 计划 · 查�
   assert.deepEqual(result.current.data.plans.map(plan => plan.stops), [[event]], 'the mounted planner library reread after the change');
   await act(async () => { fireEvent.click(within(toast).getByRole('button', { name: '关闭提示' })); });
   assert.equal(view.queryByTestId('save-toast'), null);
+  assert.equal(announcer.textContent, '', 'a closed confirmation is not read again');
+});
+
+test('signed in: two quick adds for the same day make one plan (the second add reads the plan the first created)', async t => {
+  session('alice');
+  const second: Stop = { kind: 'event', id: MONTHLY_EVENTS[1].id };
+  let plans: SavedPlan[] = [];
+  const calls: string[] = [];
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    calls.push(`${options?.method ?? 'GET'} ${path}`);
+    if (!options?.method) return { ...structuredClone(EMPTY_LIBRARY), plans: structuredClone(plans) };
+    await new Promise(resolve => setTimeout(resolve, 5));
+    const body = JSON.parse(String(options.body));
+    const plan: SavedPlan = { id: options.method === 'POST' ? 'day-plan' : path.split('/').at(-1)!, title: body.title, date: body.date, stops: body.stops, version: (body.version ?? 0) + 1, createdAt: '2026-10-09T00:00:00Z', updatedAt: `2026-10-09T00:00:0${calls.length}Z` };
+    plans = [plan, ...plans.filter(item => item.id !== plan.id)];
+    return { plan };
+  });
+  const [one, two] = await Promise.all([appendToDay('alice', DAY, event, '12/12 计划', TODAY), appendToDay('alice', DAY, second, '12/12 计划', TODAY)]);
+  assert.equal(one.created, true);
+  assert.equal(two.created, false);
+  assert.deepEqual(calls, ['GET /planner/me', 'POST /planner/plans', 'GET /planner/me', 'PUT /planner/plans/day-plan']);
+  assert.equal(plans.length, 1);
+  assert.deepEqual(plans[0].stops, [event, second]);
 });
 
 test('English copy for the button and the confirmation', async () => {

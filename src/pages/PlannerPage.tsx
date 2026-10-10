@@ -10,6 +10,7 @@ import { ATTRACTION_REGIONS } from '../data/attractions';
 import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
 import { favoriteKey, cleanStops, errorText, MAX_PLAN_STOPS, parseSharedPlan, sharePlanUrl, stopPath, stopTitle, todayInBay, type PlanDetails, type PlanFilters, type Recommendations, type SavedPlan, type Stop } from '../lib/planner';
 import { usePlannerLibrary } from '../lib/planner-library';
+import { saveKey } from '../lib/saves';
 import { PlannerMap } from '../components/PlannerMap';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
 import { setPageMetadata } from '../lib/seo';
@@ -231,7 +232,8 @@ function PlannerWorkspace() {
   const share = async () => {
     try { await navigator.clipboard.writeText(sharePlanUrl({ date, stops }, window.location.origin)); recordProductEvent('plan_shared'); setStatus('公开地点与日期链接已复制；不包含账号或私人标题。'); } catch { setStatus('复制失败，请使用下方分享链接。'); }
   };
-  const favorite = (kind: 'event' | 'place', id: string) => library.data.favorites.some(item => favoriteKey(item) === favoriteKey({ kind, id }));
+  // One save key: an open new shop listed here as a place is the same ♡ as the shop on the openings board.
+  const favorite = (kind: 'event' | 'place', id: string) => library.data.favorites.some(item => saveKey(item.kind, item.id) === saveKey(kind, id));
   return <div className="planner-page"><fieldset className="planner-interaction-scope" disabled={library.busy}>
     <header className="planner-hero planner-hero--visual"><div className="planner-hero-copy"><EnglishOnly><div className="planner-eyebrow"><Sparkles size={16} /> BAYBAY / PLAN A LITTLE BETTER</div></EnglishOnly><h1>下一次出门，<br /><em>从一个好计划开始。</em></h1><p>告诉 BayBay 想吃什么、去哪里、想花多少。从活动、餐厅、新店或景点开始，把这一天安排好。</p><nav><Link to="/my-week"><CalendarDays size={16} /> 我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动</Link><Link to="/calendar">活动日历</Link></nav></div><div className="planner-hero-photo"><GuideFigure image={getGuideMedia(getGuideBySlug('sf-golden-gate-bridge-fort-point-guide')!).cover} variant="preview" /><button type="button" onClick={() => document.getElementById('planner-discoveries')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{locale === 'en' ? 'Find your next little escape' : '先看看，这次想去哪里'}<ArrowUp size={15} /></button></div></header>
     <form className="planner-form" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>

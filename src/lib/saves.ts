@@ -50,7 +50,21 @@ const REFRESH_AFTER_MS = 60_000;
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/;
 
 const isServerKind = (kind: unknown): kind is ServerSaveKind => typeof kind === 'string' && (SERVER_SAVE_KINDS as readonly string[]).includes(kind);
-export const saveKey = (kind: SaveKind, id: string) => `${kind}:${kind === 'event' ? canonicalEventId(id) : id}`;
+/**
+ * The planner lists every open new shop as a place `opening-<id>` too, and the opening's detail page saves that place.
+ * It is the same item as `opening:<id>` (the ♡ on the openings board): one key, one row in My Week, one count.
+ */
+const OPENING_PLACE = 'opening-';
+const openingOfPlace = (kind: SaveKind, id: string) => kind === 'place' && id.startsWith(OPENING_PLACE) && id.length > OPENING_PLACE.length ? id.slice(OPENING_PLACE.length) : null;
+export const saveKey = (kind: SaveKind, id: string) => {
+  const opening = openingOfPlace(kind, id);
+  return opening ? `opening:${opening}` : `${kind}:${kind === 'event' ? canonicalEventId(id) : id}`;
+};
+/** The form a new save is written in: an opening place becomes the opening. Records already stored keep their form. */
+export function canonicalSaveRef<T extends SaveRef>(ref: T): T {
+  const opening = openingOfPlace(ref.kind, ref.id);
+  return opening ? { ...ref, kind: 'opening', id: opening } : ref;
+}
 const validRef = (value: unknown): value is SaveRef => !!value && typeof value === 'object'
   && isServerKind((value as SaveRef).kind) && typeof (value as SaveRef).id === 'string' && ID.test((value as SaveRef).id);
 const keyOf = (ref: SaveRef) => saveKey(ref.kind, ref.id);
@@ -95,7 +109,7 @@ function parseLocal(raw: string | null): LocalEntry[] | null {
       if (!validRef(item) || seen.has(keyOf(item))) return [];
       seen.add(keyOf(item));
       const entry = item as LocalEntry;
-      return [{ kind: entry.kind, id: entry.id, savedAt: Number.isFinite(entry.savedAt) ? entry.savedAt : 0, ...(Number.isFinite(entry.triedAt) ? { triedAt: entry.triedAt } : {}) }];
+      return [{ ...canonicalSaveRef({ kind: entry.kind, id: entry.id }), savedAt: Number.isFinite(entry.savedAt) ? entry.savedAt : 0, ...(Number.isFinite(entry.triedAt) ? { triedAt: entry.triedAt } : {}) }];
     }).slice(0, MAX_SAVES);
   } catch { return null; }
 }
@@ -109,7 +123,7 @@ export function legacyGuestSaves(store: Pick<Storage, 'getItem'> | null = storag
     ...(Array.isArray(reader?.saved) ? reader.saved.filter((slug: unknown) => typeof slug === 'string' && /^[a-z0-9-]{1,120}$/.test(slug)).map((id: string) => ({ kind: 'guide' as const, id })) : []),
   ];
   const seen = new Set<string>();
-  return refs.filter(ref => !seen.has(keyOf(ref)) && !!seen.add(keyOf(ref))).slice(0, MAX_SAVES).map(({ kind, id }) => ({ kind, id, savedAt: 0 }));
+  return refs.filter(ref => !seen.has(keyOf(ref)) && !!seen.add(keyOf(ref))).slice(0, MAX_SAVES).map(({ kind, id }) => ({ ...canonicalSaveRef({ kind, id }), savedAt: 0 }));
 }
 /** Write one owner's device list; returns the stored text, or null when the browser refused. */
 function writeLocal(userId: string | undefined, local: LocalEntry[]): string | null {
@@ -148,6 +162,31 @@ const sessionMatches = (userId: string) => getStoredUser()?.id === userId;
 const accountRefs = (favorites: unknown): SaveRef[] => Array.isArray(favorites) ? favorites.filter(validRef).map(({ kind, id }) => ({ kind, id })) : [];
 const notInCatalog = (error: unknown) => !!error && typeof error === 'object' && (error as { status?: number }).status === 404 && (error as { code?: string }).code === 'ITEM_NOT_IN_CATALOG';
 
+type Intent = { ref: SaveRef; saving: boolean };
+/** Account writes not answered yet, per owner and key: a list that lands meanwhile is shown with them applied. */
+const intents = new Map<string, Map<string, Intent>>();
+/** Account writes run one at a time per owner, so their answers arrive in the order the account applied them. */
+const queues = new Map<string, Promise<void>>();
+/** Answered account writes per owner: a read that started before one does not put the older list back. */
+const writeCounts = new Map<string, number>();
+const writesOf = (owner: string) => writeCounts.get(owner) ?? 0;
+
+function enqueue<T>(owner: string, task: () => Promise<T>): Promise<T> {
+  const run = (queues.get(owner) ?? Promise.resolve()).then(task);
+  const settled = run.then(() => { writeCounts.set(owner, writesOf(owner) + 1); }, () => {});
+  queues.set(owner, settled);
+  void settled.then(() => { if (queues.get(owner) === settled) queues.delete(owner); });
+  return run;
+}
+
+function withIntents(owner: string, account: SaveRef[]): SaveRef[] {
+  let next = account;
+  for (const [key, intent] of intents.get(owner) ?? []) {
+    next = intent.saving ? next.some(ref => keyOf(ref) === key) ? next : [...next, intent.ref] : next.filter(ref => keyOf(ref) !== key);
+  }
+  return next;
+}
+
 /** Accept the account's favorites (from a read or a write response) and drop pending entries it now holds. */
 export function adoptAccountFavorites(userId: string, favorites: unknown) {
   if (!sessionMatches(userId)) return;
@@ -156,7 +195,7 @@ export function adoptAccountFavorites(userId: string, favorites: unknown) {
   const held = new Set(account.map(keyOf));
   const local = slot.local.filter(entry => !held.has(keyOf(entry)));
   if (local.length !== slot.local.length) slot = withLocal(slot, local);
-  put({ ...slot, account, status: 'ready', loadedAt: now() });
+  put({ ...slot, account: withIntents(slot.owner, account), status: 'ready', loadedAt: now() });
 }
 
 /**
@@ -168,6 +207,7 @@ export function loadPlannerAccount(userId: string): Promise<AccountLibrary> {
   if (running) return running;
   const slot = slotFor(userId);
   if (slot.status !== 'ready') put({ ...slot, status: 'loading' });
+  const writes = writesOf(slot.owner);
   const request = (async () => {
     try {
       const library: AccountLibrary = await api.request('/planner/me');
@@ -177,7 +217,8 @@ export function loadPlannerAccount(userId: string): Promise<AccountLibrary> {
         if (current.status !== 'ready') put({ ...current, status: 'idle' });
         return library;
       }
-      adoptAccountFavorites(userId, library?.favorites);
+      // A write answered while this read was out carries the newer list; keep that one.
+      if (writesOf(slot.owner) === writes || slotFor(userId).status !== 'ready') adoptAccountFavorites(userId, library?.favorites);
       void retryPending(userId);
       return library;
     } catch (error) {
@@ -192,12 +233,17 @@ export function loadPlannerAccount(userId: string): Promise<AccountLibrary> {
 }
 
 async function retryPending(userId: string) {
+  const owner = ownerOf(userId);
   const due = slotFor(userId).local.filter(entry => !entry.triedAt || now() - entry.triedAt >= PENDING_RETRY_MS);
   for (const entry of due) {
     if (!sessionMatches(userId)) return;
     try {
-      const result = await api.request(`/planner/favorites/${entry.kind}/${encodeURIComponent(entry.id)}`, { method: 'PUT' });
-      adoptAccountFavorites(userId, result?.favorites);
+      const result = await enqueue(owner, async () => {
+        // Removed (or taken by the account) while this retry waited its turn: nothing to send.
+        if (!sessionMatches(userId) || !slotFor(userId).local.some(item => keyOf(item) === keyOf(entry))) return null;
+        return api.request(`/planner/favorites/${entry.kind}/${encodeURIComponent(entry.id)}`, { method: 'PUT' });
+      });
+      if (result) adoptAccountFavorites(userId, result.favorites);
     } catch {
       // Still unknown to the account (or offline): keep the device save and try again later.
       const slot = slotFor(userId);
@@ -256,8 +302,8 @@ function entriesOf(slot: Slot, posts: readonly SavedPost[]): SavedEntry[] {
   const seen = new Set<string>();
   const add = (entry: SavedEntry) => { if (!seen.has(entry.key)) { seen.add(entry.key); entries.push(entry); } };
   const deviceSource: SaveSource = slot.userId ? 'pending' : 'device';
-  for (const entry of slot.local) add({ kind: entry.kind, id: entry.id, key: keyOf(entry), source: deviceSource });
-  if (known(slot)) for (const ref of [...slot.account].reverse()) add({ kind: ref.kind, id: ref.id, key: keyOf(ref), source: 'account' });
+  for (const entry of slot.local) add({ ...canonicalSaveRef({ kind: entry.kind, id: entry.id }), key: keyOf(entry), source: deviceSource });
+  if (known(slot)) for (const ref of [...slot.account].reverse()) add({ ...canonicalSaveRef({ kind: ref.kind, id: ref.id }), key: keyOf(ref), source: 'account' });
   for (const post of posts) add({ kind: 'post', id: post.id, key: saveKey('post', post.id), source: 'device', post });
   return entries;
 }
@@ -265,14 +311,17 @@ function entriesOf(slot: Slot, posts: readonly SavedPost[]): SavedEntry[] {
 /** `pending`: saved in this browser until the account accepts it (RC-15). */
 export type SaveOutcome = { saved: boolean; persisted: boolean; pending?: boolean };
 type ToggleResult = SaveOutcome | { error: SaveErrorCode };
-async function toggleServer(userId: string | undefined, ref: SaveRef): Promise<ToggleResult> {
+const SESSION_CHANGED = { status: 0, code: 'SESSION_CHANGED' };
+async function toggleServer(userId: string | undefined, input: SaveRef): Promise<ToggleResult> {
   const owner = ownerOf(userId);
   const slot = slotFor(userId);
+  const ref = canonicalSaveRef(input);
   const key = keyOf(ref);
   if (slot.busy.includes(key)) return { error: 'write' };
-  const inAccount = slot.account.some(item => keyOf(item) === key);
-  const inLocal = slot.local.some(item => keyOf(item) === key);
-  const saving = !inAccount && !inLocal;
+  // The account may hold this item in more than one form (an opening saved as a place): removing it removes each.
+  const records = slot.account.filter(item => keyOf(item) === key);
+  const localHits = slot.local.filter(item => keyOf(item) === key);
+  const saving = !records.length && !localHits.length;
   if (!userId) {
     if (saving && slot.local.length >= MAX_SAVES) return { error: 'full' };
     const next = withLocal(slot, saving ? [{ ...ref, savedAt: now() }, ...slot.local] : slot.local.filter(item => keyOf(item) !== key));
@@ -283,37 +332,50 @@ async function toggleServer(userId: string | undefined, ref: SaveRef): Promise<T
   if (!known(slot)) return { error: 'read' };
   if (!sessionMatches(userId)) return { error: 'session' };
   if (saving && slot.account.length + slot.local.length >= MAX_SAVES) return { error: 'full' };
-  const release = () => { const current = slotFor(userId); put({ ...current, busy: current.busy.filter(item => item !== key) }); };
-  if (!saving && !inAccount) {
+  if (!saving && !records.length) {
     // Only a pending device save: nothing to delete on the account.
     const next = withLocal(slot, slot.local.filter(item => keyOf(item) !== key));
     put(next);
     return { saved: false, persisted: !next.sessionOnly };
   }
-  // Optimistic: the ♡ changes now; a failure restores the confirmed state.
-  const before = { account: slot.account, local: slot.local };
-  const account = saving ? [...slot.account, ref] : slot.account.filter(item => keyOf(item) !== key);
-  put({ ...slot, account, local: slot.local.filter(item => keyOf(item) !== key), busy: [...slot.busy, key] });
+  // Optimistic: the ♡ changes now. The write waits for this owner's earlier writes, and a list that lands before it is
+  // answered is shown with it applied.
+  intents.set(owner, (intents.get(owner) ?? new Map<string, Intent>()).set(key, { ref, saving }));
+  const settle = () => {
+    const open = intents.get(owner);
+    open?.delete(key);
+    if (open && !open.size) intents.delete(owner);
+    const latest = slotFor(userId);
+    return { ...latest, busy: latest.busy.filter(item => item !== key) };
+  };
+  put({ ...slot, account: saving ? [...slot.account, ref] : slot.account.filter(item => keyOf(item) !== key), local: slot.local.filter(item => keyOf(item) !== key), busy: [...slot.busy, key] });
   try {
-    const result = await api.request(`/planner/favorites/${ref.kind}/${encodeURIComponent(ref.id)}`, { method: saving ? 'PUT' : 'DELETE' });
-    release();
+    const result = await enqueue(owner, async () => {
+      if (!sessionMatches(userId)) throw SESSION_CHANGED;
+      if (saving) return api.request(`/planner/favorites/${ref.kind}/${encodeURIComponent(ref.id)}`, { method: 'PUT' });
+      let last: { favorites?: unknown } | undefined;
+      for (const record of records) last = await api.request(`/planner/favorites/${record.kind}/${encodeURIComponent(record.id)}`, { method: 'DELETE' });
+      return last;
+    });
+    put(settle());
     if (!sessionMatches(userId)) return { error: 'session' };
     adoptAccountFavorites(userId, result?.favorites);
-    if (inLocal) { const current = slotFor(userId); put(withLocal(current, current.local.filter(item => keyOf(item) !== key))); }
+    if (localHits.length) { const current = slotFor(userId); put(withLocal(current, current.local.filter(item => keyOf(item) !== key))); }
     if (saving) recordProductEvent('favorite_saved');
     return { saved: saving, persisted: true };
   } catch (error) {
-    const current = slotFor(userId);
-    const busy = current.busy.filter(item => item !== key);
+    const current = settle();
     if (saving && notInCatalog(error) && sessionMatches(userId)) {
       // RC-15: the account's catalog copy has not caught up with this item yet. Keep it saved here; retry later.
-      const next = withLocal({ ...current, account: current.account.filter(item => keyOf(item) !== key), busy },
+      const next = withLocal({ ...current, account: current.account.filter(item => keyOf(item) !== key) },
         [{ ...ref, savedAt: now(), triedAt: now() }, ...current.local.filter(item => keyOf(item) !== key)]);
       put(next);
       recordProductEvent('favorite_saved');
       return { saved: true, persisted: !next.sessionOnly, pending: true };
     }
-    put({ ...current, ...before, busy });
+    // Undo this item only: other items may have changed while this write waited.
+    const others = current.account.filter(item => keyOf(item) !== key);
+    put({ ...current, account: saving ? others : [...others, ...records], local: [...localHits, ...current.local.filter(item => keyOf(item) !== key)] });
     return { error: owner === ownerOf(getStoredUser()?.id) ? 'write' : 'session' };
   }
 }
@@ -429,7 +491,7 @@ export async function importGuestSaves(userId: string): Promise<void> {
   for (const ref of guestServerSaves()) {
     if (!sessionMatches(userId)) throw { error: SAVE_ERROR_COPY.session.zh };
     try {
-      const result = await api.request(`/planner/favorites/${ref.kind}/${encodeURIComponent(ref.id)}`, { method: 'PUT' });
+      const result = await enqueue(ownerOf(userId), () => api.request(`/planner/favorites/${ref.kind}/${encodeURIComponent(ref.id)}`, { method: 'PUT' }));
       adoptAccountFavorites(userId, result?.favorites);
     } catch (error) {
       if (!notInCatalog(error)) throw error;
@@ -442,4 +504,4 @@ export async function importGuestSaves(userId: string): Promise<void> {
 }
 
 /** Test hook: forget every slot and pending read so the next access starts from storage. */
-export function resetSaveStore() { slots.clear(); reads.clear(); errors.clear(); emit(); }
+export function resetSaveStore() { slots.clear(); reads.clear(); errors.clear(); intents.clear(); queues.clear(); writeCounts.clear(); emit(); }
