@@ -233,8 +233,8 @@ export function EventsPageEnd({ region }: { region: EventsFilters['region'] }) {
   const { t } = useUiCopy();
   const card = region === 'all' ? 'all' : region;
   return <nav className="ev-end" aria-label={t('更多活动入口', 'More from Events')}>
-    <a className="ev-end__item" href={`/weekly/${card}.png`} target="_blank" rel="noopener">{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
-    <a className="ev-end__item" href={`webcal://www.baylink.us/calendars/${card}.ics`}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={`/weekly/${card}.png`} target="_blank" rel="noopener">{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${card}.ics`}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
     <Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link>
     <Link className="ev-end__item" to="/events?view=openings">{t('新店与开业', 'New shops')}</Link>
     <Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link>
