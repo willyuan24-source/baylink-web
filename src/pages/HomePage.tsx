@@ -12,11 +12,12 @@ import { communityBoardFailure, loadCommunityBoard, LoadedCommunityBoard } from 
 // download it; it loads when the board is shown.
 
 /** The 繁→简 search dictionaries are not part of this page's load (WEB-HOMEPREP), but the next page that searches, the
- * search dialog and BayBay wait for them (about 300 ms on a slow phone). Once the page has loaded and the browser is
- * idle, fetch them, so they are already in when the reader moves on. Not with Save-Data, and not offline: a browser
- * keeps a failed chunk request for the life of the page, so a load attempted offline could not succeed later. A failure
- * is handled as when a page loads them: search matches exact characters, and (online) the app's chunk recovery reloads
- * the page once, as for any chunk that fails (lib/chunk-recovery.ts). */
+ * search dialog and BayBay wait for them (about 300 ms on a slow phone). Once the page has loaded — or 2 s after it
+ * rendered, whichever comes first: on a slow phone the photos hold the load event back for many seconds — and the
+ * browser is idle, fetch them, so they are already in when the reader moves on. Not with Save-Data, and not offline: a
+ * browser keeps a failed chunk request for the life of the page, so a load attempted offline could not succeed later. A
+ * failure is handled as when a page loads them: search matches exact characters, and (online) the app's chunk recovery
+ * reloads the page once, as for any chunk that fails (lib/chunk-recovery.ts). */
 function useWarmSearchDictionaries() {
   useEffect(() => {
     if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
@@ -25,16 +26,21 @@ function useWarmSearchDictionaries() {
     const warm = () => {
       if (navigator.onLine) loadSearchConversion().catch(() => { /* search keeps working on exact characters */ });
     };
-    const schedule = () => {
+    const settled = () => {
+      window.removeEventListener('load', settled);
+      clearTimeout(timer);
       if (typeof window.requestIdleCallback === 'function') idle = window.requestIdleCallback(warm, { timeout: 2000 });
-      else timer = setTimeout(warm, 2000);
+      else warm();
     };
-    if (document.readyState === 'complete') schedule();
-    else window.addEventListener('load', schedule, { once: true });
+    if (document.readyState === 'complete') settled();
+    else {
+      window.addEventListener('load', settled);
+      timer = setTimeout(settled, 2000);
+    }
     return () => {
-      window.removeEventListener('load', schedule);
+      window.removeEventListener('load', settled);
+      clearTimeout(timer);
       if (idle !== undefined) window.cancelIdleCallback(idle);
-      if (timer !== undefined) clearTimeout(timer);
     };
   }, []);
 }

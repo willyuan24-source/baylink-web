@@ -1,9 +1,9 @@
 // WEB-HOMEPREP review round 3: the 繁→简 search dictionaries stay off the homepage's load, but the homepage fetches them
-// once it has loaded and the browser is idle, so the next page that searches, the search dialog and BayBay do not wait
-// for them. Not with Save-Data, not offline (a failed chunk request stays failed for the life of the page). This file
+// once it has loaded (or 2 s after it rendered) and the browser is idle, so the next page that searches, the search
+// dialog and BayBay do not wait for them. Not with Save-Data, not offline (a failed chunk request stays failed for the life of the page). This file
 // runs in its own process and takes the browser's path (the dictionaries start out not loaded).
 import assert from 'node:assert/strict';
-import test, { after, afterEach } from 'node:test';
+import test, { after, afterEach, mock } from 'node:test';
 import { registerHooks } from 'node:module';
 import { JSDOM } from 'jsdom';
 import React, { Suspense } from 'react';
@@ -116,13 +116,30 @@ test('the homepage renders without the dictionaries and fetches them once it has
   assert.equal(simplifySearch('金門大橋'), '金门大桥');
 });
 
-test('a page still loading waits for its load event before it schedules the fetch', async () => {
+test('a page still loading waits for its load event, or 2 s at most (photos can hold the load event back for long)', async () => {
   Object.defineProperty(dom.window.document, 'readyState', { configurable: true, get: () => 'interactive' });
   try {
     render(home());
     assert.equal(idle.size, 0);
     dom.window.dispatchEvent(new dom.window.Event('load'));
-    assert.equal(idle.size, 1);
+    assert.equal(idle.size, 1, 'the load event');
+    dom.window.dispatchEvent(new dom.window.Event('load'));
+    assert.equal(idle.size, 1, 'once');
+    cleanup();
+    idle.clear();
+
+    mock.timers.enable({ apis: ['setTimeout'] });
+    try {
+      render(home());
+      mock.timers.tick(1999);
+      assert.equal(idle.size, 0);
+      mock.timers.tick(1);
+      assert.equal(idle.size, 1, '2 s after the page rendered, with no load event');
+      dom.window.dispatchEvent(new dom.window.Event('load'));
+      assert.equal(idle.size, 1, 'the later load event does not schedule it again');
+    } finally {
+      mock.timers.reset();
+    }
   } finally {
     Reflect.deleteProperty(dom.window.document, 'readyState');
   }
