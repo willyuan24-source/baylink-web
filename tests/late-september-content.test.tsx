@@ -4,7 +4,6 @@ import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
-import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { lateSeptemberSfEastEvents, lateSeptemberSfEastOpenings } from '../src/data/late-september-sf-east';
 import { lateSeptemberPeninsulaSouthEvents, lateSeptemberPeninsulaSouthOpenings } from '../src/data/late-september-peninsula-south';
 import { lateSeptemberNorthEvents, lateSeptemberNorthOpenings, lateSeptemberNorthOffers } from '../src/data/late-september-north';
