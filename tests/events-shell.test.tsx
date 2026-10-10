@@ -220,7 +220,12 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   assert.equal(days.find(day => day.getAttribute('aria-current') === 'date')?.querySelector('.ev-week__date')?.textContent, '9');
   assert.equal(days.find(day => day.getAttribute('aria-pressed') === 'true')?.querySelector('.ev-week__date')?.textContent, '10');
   const onDay = model.INDEX_EVENTS.filter(event => nextOccurrence(event, '2026-10-10') === '2026-10-10');
-  assert.equal(view.container.querySelectorAll('.ui-row-card').length, onDay.length);
+  // One wide lead cover (one-offs first, a real photo first), then a row for every other event of the day.
+  assert.equal(view.container.querySelectorAll('.ev-calendar__lead .ui-feed-card').length, 1);
+  assert.equal(view.container.querySelectorAll('.ui-row-card').length, onDay.length - 1);
+  const leadHref = view.container.querySelector('.ev-calendar__lead a.ui-card-link')!.getAttribute('href')!;
+  const lead = model.INDEX_EVENTS.find(event => leadHref.startsWith(`/events/${event.id}?`))!;
+  assert.ok(model.hasRealCover('event', lead, today) || !onDay.some(event => model.hasRealCover('event', event, today)), 'a real photo leads the day when one exists');
   assert.match(view.container.querySelector('#ev-calendar-day')!.textContent!, new RegExp(`10月10日 周六${onDay.length} 场`));
   // Cities in one row, the Chinese name first ("圣何塞 San Jose").
   const cityChip = within(view.container.querySelector('.ev-cities')!).getAllByRole('button')[1];
@@ -230,7 +235,7 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   fireEvent.click(within(sheet).getByRole('button', { name: /10月17日 周六/ }));
   assert.equal(new URL(view.getByTestId('route').textContent!, 'https://www.baylink.us').searchParams.get('date'), '2026-10-17');
   // Rows carry the day, so the detail page opens on it.
-  const links = [...view.container.querySelectorAll('.ui-row-card a.ui-card-link')];
+  const links = [...view.container.querySelectorAll('.ev-calendar__rows a.ui-card-link')];
   assert.ok(links.length > 0);
   for (const link of links) assert.match(link.getAttribute('href')!, /\?date=2026-10-17$/);
 });

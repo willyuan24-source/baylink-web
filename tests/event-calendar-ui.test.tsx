@@ -29,13 +29,14 @@ async function open(query = '', openBayBay: AppContextValue['openBayBay'] = () =
   return view;
 }
 const onDay = (day: string, region?: string) => INDEX_EVENTS.filter(event => nextOccurrence(event, day) === day && (!region || event.region === region));
-const rowIds = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll('.ui-row-card a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0].replace('/events/', ''));
+// The day's lead card, then its rows.
+const rowIds = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll('.ev-calendar__rows a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0].replace('/events/', ''));
 const sameIds = (actual: string[], expected: { id: string }[]) => assert.deepEqual([...actual].sort(), expected.map(event => event.id).sort());
 
 test('the week strip, city choices and row links all use the selected day', async () => {
   const view = await open('?date=2026-10-17');
   sameIds(rowIds(view), onDay('2026-10-17'));
-  for (const link of view.container.querySelectorAll('.ui-row-card a.ui-card-link')) assert.match(link.getAttribute('href')!, /\?date=2026-10-17$/);
+  for (const link of view.container.querySelectorAll('.ev-calendar__rows a.ui-card-link')) assert.match(link.getAttribute('href')!, /\?date=2026-10-17$/);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /^10月18日 周日/ })); });
   sameIds(rowIds(view), onDay('2026-10-18'));
   assert.match(view.getByTestId('query').textContent!, /date=2026-10-18/);

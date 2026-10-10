@@ -1,16 +1,16 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button, ChipRow, EmptyState, FilterChip, IconButton, SegmentedControl, Sheet, SkeletonFeed } from '../../components/ui';
+import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, IconButton, SegmentedControl, Sheet, SkeletonFeed } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import { useApp } from '../../app/context';
 import { addCalendarDays, calendarCells, calendarPeriod, shiftCalendarPeriod, validCalendarDay } from '../../lib/calendar-days';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
-import { nextOccurrence } from '../../lib/monthly';
-import { ALL_REGIONS, EVENTS_INDEX, INDEX_EVENTS, REGIONS, coverContext, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion } from './events-model';
+import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
+import { ALL_REGIONS, EVENTS_INDEX, INDEX_EVENTS, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion } from './events-model';
 import type { IndexEvent, MonthlyRegion } from './events-index-types';
-import { EventRowCard } from './EventCards';
+import { EventFeedCard, EventRowCard } from './EventCards';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
@@ -23,8 +23,8 @@ const weekdayOf = (day: string) => new Date(`${day}T12:00:00Z`).getUTCDay();
 
 /**
  * 日历·地图 (design.md §4.11 ④; EVT-10): a 7-day week strip on screen 1 (weekday, date, a dot per day with events), the
- * month grid in a Sheet, the day's cities in one bilingual row ("圣何塞 San Jose"), image rows for the day, and a
- * 列表 | 地图 switch whose map loads only when opened.
+ * month grid in a Sheet, the day's cities in one bilingual row ("圣何塞 San Jose"), the day led by one wide cover (one-offs
+ * first, a real photo first) and image rows for the rest, and a 列表 | 地图 switch whose map loads only when opened.
  */
 export default function CalendarView({ today }: { today: string }) {
   const { t, pick, english, locale } = useUiCopy();
@@ -50,7 +50,8 @@ export default function CalendarView({ today }: { today: string }) {
   const pool = useMemo(() => INDEX_EVENTS.filter(event => region === 'all' || event.region === region), [region]);
   const week = calendarPeriod(date, 'week').days;
   const countOn = (day: string) => pool.filter(event => occursOn(event, day)).length;
-  const dayEvents = pool.filter(event => occursOn(event, date));
+  // One-offs before long-running series, a real photo first within them (the first one leads the day as a wide cover).
+  const dayEvents = orderByNextDay(pool.filter(event => occursOn(event, date)), date, event => hasRealCover('event', event, today));
   const scope = `${date}:${region}`;
   const city = focus.scope === scope ? focus.city : '';
   const pointIds = focus.scope === scope ? focus.ids : undefined;
@@ -117,7 +118,12 @@ export default function CalendarView({ today }: { today: string }) {
 
     {beforeIndex && <p className="ev-calendar__note ev-calendar__before">{t(`这一天在本期收录（${monthDay(EVENTS_INDEX.edition.checkedAt)} 起）之前，只列出当时还在进行、现在仍可去的活动。`, `This day is before this edition (from ${monthDay(EVENTS_INDEX.edition.checkedAt)}): only events still running now are listed.`)}</p>}
     <div className="ev-calendar__rows" aria-live="polite">
-      {shownEvents.length ? shownEvents.map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index]} today={today} day={date} />)
+      {shownEvents.length ? <>
+        <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
+          <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} /></FeedItem>
+        </FeedGrid>
+        {shownEvents.slice(1).map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index + 1]} today={today} day={date} />)}
+      </>
         : <EmptyState headingLevel="h3" icon={CalendarDays}
           title={beforeIndex ? t('这一天在本期收录之前', 'This day is before this edition') : past ? t('这一天没有收录的活动', 'No events recorded that day') : t('这一天暂未收录活动', 'No events listed that day yet')}
           body={t('没有标记不代表当地没有活动。可以看最近有活动的一天。', 'No listing does not mean nothing is on. Try the nearest day with events.')}
