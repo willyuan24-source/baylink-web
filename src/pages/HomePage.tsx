@@ -3,12 +3,41 @@ import { Link, useParams, useLocation } from 'react-router-dom';
 import { ChevronRight, Compass, Plus, RotateCw } from 'lucide-react';
 import { useApp } from '../app/context';
 import { HomeDiscovery } from '../components/HomeDiscovery';
+import { loadSearchConversion } from '../i18n/locale';
 import type { CommunityBoardProps } from './CommunityBoard';
 import { communityBoardFailure, loadCommunityBoard, LoadedCommunityBoard } from './community-board-loader';
 
 // The homepage (/) and the shell of category pages, /?q= searches and the /posts/:id, /users/:id deep links. The
 // community board itself is a separate chunk (CommunityBoard.tsx, WEB-HOMEPREP): the homepage's first load does not
 // download it; it loads when the board is shown.
+
+/** The 繁→简 search dictionaries are not part of this page's load (WEB-HOMEPREP), but the next page that searches, the
+ * search dialog and BayBay wait for them (about 300 ms on a slow phone). Once the page has loaded and the browser is
+ * idle, fetch them, so they are already in when the reader moves on. Not with Save-Data, and not offline: a browser
+ * keeps a failed chunk request for the life of the page, so a load attempted offline could not succeed later. A failure
+ * is handled as when a page loads them: search matches exact characters, and (online) the app's chunk recovery reloads
+ * the page once, as for any chunk that fails (lib/chunk-recovery.ts). */
+function useWarmSearchDictionaries() {
+  useEffect(() => {
+    if ((navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData) return;
+    let idle: number | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const warm = () => {
+      if (navigator.onLine) loadSearchConversion().catch(() => { /* search keeps working on exact characters */ });
+    };
+    const schedule = () => {
+      if (typeof window.requestIdleCallback === 'function') idle = window.requestIdleCallback(warm, { timeout: 2000 });
+      else timer = setTimeout(warm, 2000);
+    };
+    if (document.readyState === 'complete') schedule();
+    else window.addEventListener('load', schedule, { once: true });
+    return () => {
+      window.removeEventListener('load', schedule);
+      if (idle !== undefined) window.cancelIdleCallback(idle);
+      if (timer !== undefined) clearTimeout(timer);
+    };
+  }, []);
+}
 
 /** A direct load of a board URL waits for the board together with this page (main.tsx awaits the page module before
  * the first render), so the prerendered page is replaced once, by the finished board, as before the split. Where the
@@ -63,6 +92,7 @@ export default function HomePage() {
   const [communityExpanded, setCommunityExpanded] = useState(false);
   const [feedScrollRequest, setFeedScrollRequest] = useState(0);
   const { posts, keyword, feedError, isInitialLoading, hasMore, openCreate, openBayBay, openSearch } = useApp();
+  useWarmSearchDictionaries();
   const scrollToFeed = () => {
     // After the board's chunk failed to load, asking for the board asks for it again (the slot suspends on that load and
     // shows the board, or its "could not load" state)

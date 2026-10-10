@@ -34,13 +34,15 @@ export function englishScopesForFeature(feature: 'search'): string[] {
 }
 
 /**
- * Pages that never search: the homepage, what opens over it (posts, profiles, the password reset) and the community
- * board. Every other page waits for the search dictionaries in its language gate (i18n/locale.ts, WEB-HOMEPREP) and its
- * JS budget counts them (scripts/route-budgets.mjs). It sits with the English scopes, the other "what a path loads"
- * rule, in this import-free file that the budget script reads with Node's type stripping.
+ * Pages that never search: the homepage, what opens over it (posts, profiles, the password reset), the community board,
+ * and the pages whose modules never reach simplifySearch (about, the legal pages, the token pages, the archive, tools,
+ * the AI page, the account hub and its bookings). Every other page waits for the search dictionaries in its language
+ * gate (i18n/locale.ts, WEB-HOMEPREP) and its JS budget counts them (scripts/route-budgets.mjs); tests/search-cold.test.ts
+ * walks each listed page's imports so the list stays true. It sits with the English scopes, the other "what a path
+ * loads" rule, in this import-free file that the budget script reads with Node's type stripping.
  */
 export function searchFreePath(value: string): boolean {
-  return /^\/(?:(?:posts|users|category)\/.*|reset-password)?$/u.test(routePath(value));
+  return /^\/(?:(?:posts|users|category)\/.*|reset-password|about|privacy|terms|sms-consent|verify-email|notifications\/unsubscribe|archive|tools|ai-in-the-bay|me|me\/bookings)?$/u.test(routePath(value));
 }
 
 /** Successful scopes are cached; rejected loads retry and do not mark a route ready. */
