@@ -16,6 +16,8 @@ import { retryableLazy } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
 
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
+// The lead cover is one column wide: the phone width, at most 36rem on desktop (events.css).
+const LEAD_SIZES = '(max-width: 1023px) calc(100vw - 32px), 576px';
 const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六'];
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const occursOn = (event: IndexEvent, day: string) => nextOccurrence(event, day) === day;
@@ -123,7 +125,7 @@ export default function CalendarView({ today }: { today: string }) {
     <div className="ev-calendar__rows" aria-live="polite">
       {shownEvents.length ? <>
         <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
-          <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} /></FeedItem>
+          <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} sizes={LEAD_SIZES} priority /></FeedItem>
         </FeedGrid>
         {shownEvents.slice(1).map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index + 1]} today={today} day={date} />)}
       </>
