@@ -25,7 +25,8 @@ Offers (`offers.json`): `shortTitle`, `dek`, `tips`, `valueText`, `publicBenefit
 
 For a covered event the plan is cleaned automatically: the filler sentence "出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。",
 a "时间安排：" line that only repeats the date label, and the copy of the cost label at the start of a "费用与参加条件：" line are removed.
-A one-day date label also drops a repeated date ("10/24 · 10 月 24 日 · 11:00–14:00" reads "10/24 · 11:00–14:00").
+A date label also drops its repeated dates ("10/24 · 10 月 24 日 · 11:00–14:00" reads "10/24 · 11:00–14:00";
+"10/17–10/18 · 10 月 17–18 日 · 周六…" reads "10/17–10/18 · 周六…").
 New content does not need those lines at all.
 
 The calendar schedule (`scripts/data/event-calendar-schedule.ts`) applies an entry's `fix.occurrenceDates` last, and a
