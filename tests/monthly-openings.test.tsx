@@ -33,7 +33,7 @@ registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { forma
 const { render, fireEvent, within, cleanup } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { default: OpeningsView } = await import('../src/features/events/OpeningsView');
-const { INDEX_OPENINGS, coverContext, filterOpenings } = await import('../src/features/events/events-model');
+const { INDEX_OPENINGS, coverContext } = await import('../src/features/events/events-model');
 const { getCover } = await import('../src/lib/cover');
 const { openingChip } = await import('../src/lib/event-facts');
 const { GuideDetail } = await import('../src/components/GuideDetail');
@@ -56,7 +56,7 @@ after(() => {
 /** 新店 (the events column's openings board, WEB-EVENTS): the merchant, map and source links live on /openings/{id}. */
 const OPENINGS_GUIDE_SLUG = 'bay-area-new-openings-2026-09';
 const TODAY = '2026-10-09';
-type Region = Parameters<typeof filterOpenings>[2];
+type Region = import('../src/features/events/events-index-types').MonthlyRegion | 'all';
 const board = (today = TODAY, region: Region = 'all') => <MemoryRouter><OpeningsView today={today} region={region} /></MemoryRouter>;
 type View = ReturnType<typeof render>;
 const names = (view: View) => [...view.container.querySelectorAll('.ui-feed-card .ui-feed-card__title a')].map(link => link.textContent);

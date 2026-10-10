@@ -30,7 +30,7 @@ const { render, fireEvent, cleanup, within, act } = await import('@testing-libra
 const { MemoryRouter, StaticRouter, useLocation } = await import('react-router-dom');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 const { EventsView } = await import('../src/components/EventsView');
-const { INDEX_EVENTS, TAGS, listEvents, matchesFilters, weekendTabs, weekendPicks } = await import('../src/features/events/events-model');
+const { INDEX_EVENTS, listEvents, matchesFilters, weekendTabs, weekendPicks } = await import('../src/features/events/events-model');
 const { isFreeToAttend, nextOccurrence } = await import('../src/lib/monthly');
 const { normalizeSearchText } = await import('../src/lib/search-synonyms');
 
@@ -66,7 +66,7 @@ const status = (view: View) => {
   return element.textContent!;
 };
 /** The expected list for a date filter other than 本周末: next-day order (events-model listEvents). */
-const expected = (today: string, filters: { region?: 'all' | 'sf' | 'east-bay' | 'south-bay' | 'peninsula' | 'north-bay'; free?: boolean; q?: string; tag?: (typeof TAGS)[number]['id'] } = {}, when: Parameters<typeof listEvents>[1] = 'all') =>
+const expected = (today: string, filters: { region?: 'all' | 'sf' | 'east-bay' | 'south-bay' | 'peninsula' | 'north-bay'; free?: boolean; q?: string; tag?: import('../src/features/events/events-model').EventTag } = {}, when: Parameters<typeof listEvents>[1] = 'all') =>
   listEvents(INDEX_EVENTS.filter(event => matchesFilters(event, { region: filters.region ?? 'all', free: !!filters.free, q: filters.q ?? '', tag: filters.tag }, normalizeSearchText)), when, today).map(event => event.id);
 const showAll = (view: View) => {
   for (let pages = 0; ; pages++) {
