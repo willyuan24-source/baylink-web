@@ -169,7 +169,9 @@ test('a share-card landing lists exactly the card’s ids first and leaves them 
   await waitFor(() => assert.equal(strip.getAttribute('data-card-ids'), card.join(' ')));
   assert.deepEqual(requests, ['/weekly/sf.json']);
   assert.deepEqual([...strip.querySelectorAll('.ui-row-card a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0]), card.map(id => `/events/${id}`));
-  assert.equal(within(strip).getByRole('heading', { level: 2 }).textContent, '分享卡上的 旧金山周末 · 10/10–10/11');
+  assert.equal(within(strip).getByRole('heading', { level: 2 }).textContent, '分享卡上的旧金山周末 · 10/10–10/11');
+  // Rows open on the card's weekend: Fleet Week (on since 10/4) reads 周六 10/10, not today's Friday.
+  assert.match(strip.querySelector('a[href^="/events/san-francisco-fleet-week-2026"]')!.getAttribute('href')!, /date=2026-10-10$/);
   for (const id of card) assert.equal(feedIds(view.container).includes(id), false, id);
   assert.equal(view.container.querySelector('.ev-picks'), null, 'the strip replaces the picks rail');
   cleanup();

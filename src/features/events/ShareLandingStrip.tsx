@@ -19,11 +19,13 @@ export function ShareLandingStrip({ region, state, events, covers, today }: { re
   const { t, pick } = useUiCopy();
   const place = region === 'all' ? t('湾区', 'Bay Area') : pick(regionLabel(region));
   const range = state.status === 'ready' && state.range ? ` · ${monthDay(state.range.start)}–${monthDay(state.range.end)}` : '';
+  // A row shows the card's own day: the first day the event is on within the card's weekend (Fleet Week reads 周六, not today's 周五).
+  const from = state.status === 'ready' && state.range && state.range.start > today ? state.range.start : today;
   return <section className="ev-strip" aria-labelledby="ev-strip-heading" data-testid="share-landing-strip" data-card-ids={state.status === 'ready' ? state.ids.join(' ') : undefined}>
-    <h2 id="ev-strip-heading" className="ev-section-title">{t(`分享卡上的 ${place}周末`, `From the share card: ${place} this weekend`)}{range}</h2>
+    <h2 id="ev-strip-heading" className="ev-section-title">{t(`分享卡上的${place}周末`, `From the share card: ${place} this weekend`)}{range}</h2>
     {state.status === 'loading' || state.status === 'idle' ? <div aria-busy="true"><p className="ui-visually-hidden" role="status">{t('正在载入分享卡', 'Loading the share card')}</p><SkeletonRow /><SkeletonRow /><SkeletonRow /></div>
       : state.status === 'error' ? <p className="ev-strip__note" role="status">{t('分享卡的清单暂时没能载入，下面是这个周末的全部活动。', 'The share card’s list didn’t load; every event this weekend is below.')}</p>
-      : events.length ? <div className="ev-strip__rows">{events.map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index]} today={today} day={nextOccurrence(event, today) ?? today} />)}</div>
+      : events.length ? <div className="ev-strip__rows">{events.map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index]} today={today} day={nextOccurrence(event, from) ?? nextOccurrence(event, today) ?? today} />)}</div>
       : <p className="ev-strip__note">{t('分享卡上的活动都已结束，下面是这个周末的全部活动。', 'The card’s events have ended; every event this weekend is below.')}</p>}
   </section>;
 }
