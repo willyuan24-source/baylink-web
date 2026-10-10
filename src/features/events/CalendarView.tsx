@@ -23,8 +23,8 @@ const weekdayOf = (day: string) => new Date(`${day}T12:00:00Z`).getUTCDay();
 
 /**
  * 日历·地图 (design.md §4.11 ④; EVT-10): a 7-day week strip on screen 1 (weekday, date, a dot per day with events), the
- * month grid in a Sheet, the day's cities in one bilingual row ("圣何塞 San Jose"), the day led by one wide cover (one-offs
- * first, a real photo first) and image rows for the rest, and a 列表 | 地图 switch whose map loads only when opened.
+ * month grid in a Sheet, the day's cities in one bilingual row ("圣何塞 San Jose"), the day led by one wide cover (the first
+ * real photo of the day) and image rows for the rest, and a 列表 | 地图 switch whose map loads only when opened.
  */
 export default function CalendarView({ today }: { today: string }) {
   const { t, pick, english, locale } = useUiCopy();
@@ -50,13 +50,16 @@ export default function CalendarView({ today }: { today: string }) {
   const pool = useMemo(() => INDEX_EVENTS.filter(event => region === 'all' || event.region === region), [region]);
   const week = calendarPeriod(date, 'week').days;
   const countOn = (day: string) => pool.filter(event => occursOn(event, day)).length;
-  // One-offs before long-running series, a real photo first within them (the first one leads the day as a wide cover).
+  // One-offs before long-running series, a real photo first within them.
   const dayEvents = orderByNextDay(pool.filter(event => occursOn(event, date)), date, event => hasRealCover('event', event, today));
   const scope = `${date}:${region}`;
   const city = focus.scope === scope ? focus.city : '';
   const pointIds = focus.scope === scope ? focus.ids : undefined;
   const cities = [...new Set(dayEvents.map(event => event.city))].sort((a, b) => dayEvents.filter(event => event.city === b).length - dayEvents.filter(event => event.city === a).length || a.localeCompare(b));
-  const shownEvents = dayEvents.filter(event => (!city || event.city === city) && (!pointIds || pointIds.includes(event.id)));
+  const filtered = dayEvents.filter(event => (!city || event.city === city) && (!pointIds || pointIds.includes(event.id)));
+  // The lead is the first event with a real photo (else the first one); the rest keep their order as rows.
+  const leadIndex = Math.max(0, filtered.findIndex(event => hasRealCover('event', event, today)));
+  const shownEvents = filtered.length ? [filtered[leadIndex], ...filtered.filter((_, index) => index !== leadIndex)] : filtered;
   const covers = resolveCovers(shownEvents.map(event => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey })), { ...coverContext(today), page: createCoverPage() });
   const nearest = pool.flatMap(event => { const day = nextOccurrence(event, date > today ? date : today); return day ? [day] : []; }).filter(day => day !== date).sort()[0];
   const past = date < today;
