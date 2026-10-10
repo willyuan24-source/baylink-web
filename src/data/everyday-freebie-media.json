@@ -9,8 +9,7 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 1280,
-    "height": 1280,
-    "srcSet": "/guides/distinct/freebie-michaels-foam-small.webp 480w, /guides/distinct/freebie-michaels-foam.webp 1280w"
+    "height": 1280
   },
   {
     "key": "freebie-michaels-ghosts",
@@ -22,8 +21,7 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 1280,
-    "height": 1280,
-    "srcSet": "/guides/distinct/freebie-michaels-ghosts-small.webp 480w, /guides/distinct/freebie-michaels-ghosts.webp 1280w"
+    "height": 1280
   },
   {
     "key": "freebie-ikea-coffee",
@@ -35,8 +33,7 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 600,
-    "height": 336,
-    "srcSet": "/guides/distinct/freebie-ikea-coffee-small.webp 480w, /guides/distinct/freebie-ikea-coffee.webp 600w"
+    "height": 336
   },
   {
     "key": "freebie-sephora-birthday",
@@ -48,7 +45,6 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 1000,
-    "height": 564,
-    "srcSet": "/guides/distinct/freebie-sephora-birthday-small.webp 480w, /guides/distinct/freebie-sephora-birthday.webp 1000w"
+    "height": 564
   }
 ]

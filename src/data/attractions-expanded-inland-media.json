@@ -2,7 +2,6 @@
   {
     "key": "expanded-peninsula-hiller",
     "src": "/guides/regional-map/peninsula-hiller.webp",
-    "srcSet": "/guides/regional-map/peninsula-hiller-small.webp 480w, /guides/regional-map/peninsula-hiller.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -18,7 +17,6 @@
   {
     "key": "expanded-peninsula-coyote-point",
     "src": "/guides/regional-map/peninsula-coyote-point.webp",
-    "srcSet": "/guides/regional-map/peninsula-coyote-point-small.webp 480w, /guides/regional-map/peninsula-coyote-point.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -34,7 +32,6 @@
   {
     "key": "expanded-south-bay-computer-history",
     "src": "/guides/regional-map/south-bay-computer-history.webp",
-    "srcSet": "/guides/regional-map/south-bay-computer-history-small.webp 480w, /guides/regional-map/south-bay-computer-history.webp 1280w",
     "width": 1280,
     "height": 791,
     "kind": "photo",
@@ -50,7 +47,6 @@
   {
     "key": "expanded-south-bay-rosicrucian",
     "src": "/guides/regional-map/south-bay-rosicrucian.webp",
-    "srcSet": "/guides/regional-map/south-bay-rosicrucian-small.webp 480w, /guides/regional-map/south-bay-rosicrucian.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -66,7 +62,6 @@
   {
     "key": "expanded-east-bay-hornet",
     "src": "/guides/regional-map/east-bay-hornet.webp",
-    "srcSet": "/guides/regional-map/east-bay-hornet-small.webp 480w, /guides/regional-map/east-bay-hornet.webp 1280w",
     "width": 1280,
     "height": 658,
     "kind": "photo",
@@ -82,7 +77,6 @@
   {
     "key": "expanded-south-bay-shoreline",
     "src": "/guides/regional-map/south-bay-shoreline.webp",
-    "srcSet": "/guides/regional-map/south-bay-shoreline-small.webp 480w, /guides/regional-map/south-bay-shoreline.webp 1280w",
     "width": 1280,
     "height": 854,
     "kind": "photo",
@@ -98,7 +92,6 @@
   {
     "key": "expanded-east-bay-alameda-beach",
     "src": "/guides/regional-map/east-bay-alameda-beach.webp",
-    "srcSet": "/guides/regional-map/east-bay-alameda-beach-small.webp 480w, /guides/regional-map/east-bay-alameda-beach.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -114,7 +107,6 @@
   {
     "key": "expanded-coyote-hills",
     "src": "/guides/attractions-expanded/coyote-hills.webp",
-    "srcSet": "/guides/attractions-expanded/coyote-hills-small.webp 480w, /guides/attractions-expanded/coyote-hills.webp 1400w",
     "width": 1400,
     "height": 1050,
     "kind": "photo",

@@ -8,8 +8,7 @@
     "creditUrl": "https://www.waterlanternfestival.com/events/san-francisco",
     "kind": "photo",
     "width": 2010,
-    "height": 2712,
-    "srcSet": "/guides/september-refresh/water-lantern-festival-promo-small.webp 480w, /guides/september-refresh/water-lantern-festival-promo.webp 2010w"
+    "height": 2712
   },
   {
     "key": "refresh-community-swap",
@@ -19,8 +18,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-community-swap-small.webp 480w, /guides/september-refresh/refresh-community-swap.webp 1280w"
+    "height": 853
   },
   {
     "key": "refresh-makers",
@@ -30,8 +28,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-makers-small.webp 480w, /guides/september-refresh/refresh-makers.webp 1280w"
+    "height": 853
   },
   {
     "key": "refresh-pets",
@@ -41,8 +38,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-pets-small.webp 480w, /guides/september-refresh/refresh-pets.webp 1280w"
+    "height": 853
   },
   {
     "key": "refresh-sailing",
@@ -52,8 +48,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-sailing-small.webp 480w, /guides/september-refresh/refresh-sailing.webp 1280w"
+    "height": 853
   },
   {
     "key": "refresh-smoothie-rewards",
@@ -63,8 +58,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-smoothie-rewards-small.webp 480w, /guides/september-refresh/refresh-smoothie-rewards.webp 1280w"
+    "height": 853
   },
   {
     "key": "refresh-bats",
@@ -74,8 +68,7 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-bats-small.webp 480w, /guides/september-refresh/refresh-bats.webp 1280w"
+    "height": 853
   },
   {
     "key": "refresh-music",
@@ -85,7 +78,6 @@
     "credit": "BAYLINK · AI 原创插图",
     "kind": "illustration",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/september-refresh/refresh-music-small.webp 480w, /guides/september-refresh/refresh-music.webp 1280w"
+    "height": 853
   }
 ]

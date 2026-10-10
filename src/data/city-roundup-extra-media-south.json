@@ -2,7 +2,6 @@
   {
     "key": "roundup-south-atherton",
     "src": "/guides/city-roundup-south/roundup-south-atherton.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-atherton-small.webp 480w, /guides/city-roundup-south/roundup-south-atherton.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -19,7 +18,6 @@
   {
     "key": "roundup-south-colma",
     "src": "/guides/city-roundup-south/roundup-south-colma.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-colma-small.webp 480w, /guides/city-roundup-south/roundup-south-colma.webp 1280w",
     "width": 1280,
     "height": 964,
     "kind": "photo",
@@ -36,7 +34,6 @@
   {
     "key": "roundup-south-pacifica",
     "src": "/guides/city-roundup-south/roundup-south-pacifica.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-pacifica-small.webp 480w, /guides/city-roundup-south/roundup-south-pacifica.webp 1280w",
     "width": 1280,
     "height": 720,
     "kind": "photo",
@@ -53,7 +50,6 @@
   {
     "key": "roundup-south-san-carlos",
     "src": "/guides/city-roundup-south/roundup-south-san-carlos.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-san-carlos-small.webp 480w, /guides/city-roundup-south/roundup-south-san-carlos.webp 1280w",
     "width": 1280,
     "height": 850,
     "kind": "photo",
@@ -70,7 +66,6 @@
   {
     "key": "roundup-south-campbell",
     "src": "/guides/city-roundup-south/roundup-south-campbell.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-campbell-small.webp 480w, /guides/city-roundup-south/roundup-south-campbell.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -87,7 +82,6 @@
   {
     "key": "roundup-south-gilroy",
     "src": "/guides/city-roundup-south/roundup-south-gilroy.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-gilroy-small.webp 480w, /guides/city-roundup-south/roundup-south-gilroy.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -104,7 +98,6 @@
   {
     "key": "roundup-south-portola-valley",
     "src": "/guides/city-roundup-south/roundup-south-portola-valley.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-portola-valley-small.webp 480w, /guides/city-roundup-south/roundup-south-portola-valley.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -121,7 +114,6 @@
   {
     "key": "roundup-south-los-gatos",
     "src": "/guides/city-roundup-south/roundup-south-los-gatos.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-los-gatos-small.webp 480w, /guides/city-roundup-south/roundup-south-los-gatos.webp 1280w",
     "width": 1280,
     "height": 848,
     "kind": "photo",
@@ -138,7 +130,6 @@
   {
     "key": "roundup-south-morgan-hill",
     "src": "/guides/city-roundup-south/roundup-south-morgan-hill.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-morgan-hill-small.webp 480w, /guides/city-roundup-south/roundup-south-morgan-hill.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -155,7 +146,6 @@
   {
     "key": "roundup-south-woodside",
     "src": "/guides/city-roundup-south/roundup-south-woodside.webp",
-    "srcSet": "/guides/city-roundup-south/roundup-south-woodside-small.webp 480w, /guides/city-roundup-south/roundup-south-woodside.webp 1280w",
     "width": 1280,
     "height": 1849,
     "kind": "photo",
@@ -172,7 +162,6 @@
   {
     "key": "roundup-south-existing-belmont",
     "src": "/guides/regional-map/peninsula-twin-pines.webp",
-    "srcSet": "/guides/regional-map/peninsula-twin-pines-small.webp 480w, /guides/regional-map/peninsula-twin-pines.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -192,7 +181,6 @@
   {
     "key": "roundup-south-existing-daly-city",
     "src": "/guides/regional-map/peninsula-daly-city-bart.webp",
-    "srcSet": "/guides/regional-map/peninsula-daly-city-bart-small.webp 480w, /guides/regional-map/peninsula-daly-city-bart.webp 1280w",
     "width": 1280,
     "height": 855,
     "kind": "photo",
@@ -212,7 +200,6 @@
   {
     "key": "roundup-south-existing-foster-city",
     "src": "/guides/regional-map/peninsula-foster-city.webp",
-    "srcSet": "/guides/regional-map/peninsula-foster-city-small.webp 480w, /guides/regional-map/peninsula-foster-city.webp 1280w",
     "width": 1280,
     "height": 914,
     "kind": "photo",
@@ -232,7 +219,6 @@
   {
     "key": "roundup-south-existing-menlo-park",
     "src": "/guides/regional-map/peninsula-menlo-park-station.webp",
-    "srcSet": "/guides/regional-map/peninsula-menlo-park-station-small.webp 480w, /guides/regional-map/peninsula-menlo-park-station.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -252,7 +238,6 @@
   {
     "key": "roundup-south-existing-millbrae",
     "src": "/guides/regional-map/peninsula-millbrae-transit.webp",
-    "srcSet": "/guides/regional-map/peninsula-millbrae-transit-small.webp 480w, /guides/regional-map/peninsula-millbrae-transit.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -272,7 +257,6 @@
   {
     "key": "roundup-south-existing-san-bruno",
     "src": "/guides/regional-map/peninsula-san-bruno-park.webp",
-    "srcSet": "/guides/regional-map/peninsula-san-bruno-park-small.webp 480w, /guides/regional-map/peninsula-san-bruno-park.webp 1280w",
     "width": 1280,
     "height": 964,
     "kind": "photo",
@@ -292,7 +276,6 @@
   {
     "key": "roundup-south-existing-south-san-francisco",
     "src": "/guides/regional-map/peninsula-orange-memorial.webp",
-    "srcSet": "/guides/regional-map/peninsula-orange-memorial-small.webp 480w, /guides/regional-map/peninsula-orange-memorial.webp 1280w",
     "width": 1280,
     "height": 719,
     "kind": "photo",
@@ -312,7 +295,6 @@
   {
     "key": "roundup-south-existing-cupertino",
     "src": "/guides/regional-map/south-bay-apple-visitor.webp",
-    "srcSet": "/guides/regional-map/south-bay-apple-visitor-small.webp 480w, /guides/regional-map/south-bay-apple-visitor.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -332,7 +314,6 @@
   {
     "key": "roundup-south-existing-milpitas",
     "src": "/guides/regional-map/south-bay-milpitas-bart.webp",
-    "srcSet": "/guides/regional-map/south-bay-milpitas-bart-small.webp 480w, /guides/regional-map/south-bay-milpitas-bart.webp 1280w",
     "width": 1280,
     "height": 528,
     "kind": "photo",
@@ -352,7 +333,6 @@
   {
     "key": "roundup-south-existing-sunnyvale",
     "src": "/guides/regional-map/south-bay-sunnyvale-heritage.webp",
-    "srcSet": "/guides/regional-map/south-bay-sunnyvale-heritage-small.webp 480w, /guides/regional-map/south-bay-sunnyvale-heritage.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",

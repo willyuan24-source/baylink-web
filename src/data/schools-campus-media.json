@@ -2,7 +2,6 @@
   {
     "key": "school-campus-sf-state",
     "src": "/guides/sf-map/sf-state.webp",
-    "srcSet": "/guides/sf-map/sf-state-small.webp 480w, /guides/sf-map/sf-state.webp 1280w",
     "width": 1280,
     "height": 964,
     "credit": "Mariwlqs · CC BY-SA 4.0 · 已缩放压缩",
@@ -31,7 +30,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 910,
-    "srcSet": "/guides/attractions/region-berkeley-campus-small.webp 480w, /guides/attractions/region-berkeley-campus.webp 1400w",
     "provenance": {
       "title": "File:UCBerkeleyCampus.jpg",
       "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7f/UCBerkeleyCampus.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
@@ -57,7 +55,6 @@
     "kind": "photo",
     "width": 1400,
     "height": 934,
-    "srcSet": "/guides/attractions/region-stanford-quad-small.webp 480w, /guides/attractions/region-stanford-quad.webp 1400w",
     "provenance": {
       "title": "File:Stanford University in 2025 02.jpg",
       "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/4/4c/Stanford_University_in_2025_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original",
@@ -81,7 +78,6 @@
     "kind": "illustration",
     "width": 1536,
     "height": 1024,
-    "srcSet": "/guides/schools/east-small.webp 480w, /guides/schools/east.webp 1536w",
     "reusedFrom": "schools-media:school-east",
     "reuseReviewed": "2026-09-27"
   },
@@ -94,7 +90,6 @@
     "kind": "illustration",
     "width": 1536,
     "height": 1024,
-    "srcSet": "/guides/schools/peninsula-small.webp 480w, /guides/schools/peninsula.webp 1536w",
     "reusedFrom": "schools-media:school-peninsula",
     "reuseReviewed": "2026-09-27"
   }

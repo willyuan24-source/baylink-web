@@ -2,7 +2,6 @@
   {
     "key": "roundup-sap-center",
     "src": "/guides/city-roundup/roundup-sap-center.webp",
-    "srcSet": "/guides/city-roundup/roundup-sap-center-small.webp 480w, /guides/city-roundup/roundup-sap-center.webp 1280w",
     "width": 1280,
     "height": 907,
     "kind": "photo",
@@ -18,7 +17,6 @@
   {
     "key": "roundup-oakland-arena",
     "src": "/guides/city-roundup/roundup-oakland-arena.webp",
-    "srcSet": "/guides/city-roundup/roundup-oakland-arena-small.webp 480w, /guides/city-roundup/roundup-oakland-arena.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -34,7 +32,6 @@
   {
     "key": "roundup-levis-stadium",
     "src": "/guides/city-roundup/roundup-levis-stadium.webp",
-    "srcSet": "/guides/city-roundup/roundup-levis-stadium-small.webp 480w, /guides/city-roundup/roundup-levis-stadium.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -50,7 +47,6 @@
   {
     "key": "roundup-chase-center",
     "src": "/guides/city-roundup/roundup-chase-center.webp",
-    "srcSet": "/guides/city-roundup/roundup-chase-center-small.webp 480w, /guides/city-roundup/roundup-chase-center.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",

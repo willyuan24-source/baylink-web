@@ -40,6 +40,22 @@ import septemberRefreshMedia from './september-refresh-media.json';
 import shoppingMedia from './shopping-media.json';
 import cityRoundupMedia from './city-roundup-media.json';
 import { currentOpenings as septemberOpenings } from './local-discoveries';
+import { ladderSrcSet, readExtraLadder, readLadder, registrySources } from './image-ladder';
+import mediaRightsOverlay from './media-rights-overlay.json';
+
+/** Why BAYLINK may show an image (structured record shape from a4 `federal-pd-media.json`; read by getCover). */
+export type MediaRightsBasis = 'official' | 'permission' | 'press-kit' | 'promo-editorial' | 'public-domain' | 'cc' | 'owner' | 'ai';
+export type MediaRights = {
+  basis: MediaRightsBasis;
+  /** The page that shows the licence, press-kit terms or permission. */
+  evidenceUrl?: string;
+  /** When a permission was granted (YYYY-MM-DD). */
+  grantedAt?: string;
+  /** Where the image may be used, in plain words ("same-event coverage only"). */
+  scope?: string;
+  /** May the image appear in promotion (share cards, ads), not only beside its own coverage. */
+  promoAllowed?: boolean;
+};
 
 export type GuideImage = {
   src: string;
@@ -53,6 +69,20 @@ export type GuideImage = {
   height: number;
   fullFrame?: boolean;
   srcSet?: string;
+  /** Dominant colour placeholder (`#rgb`) from the image manifest. */
+  lqip?: string;
+  /** Crop focus in percent, [x, y]; posters and full-frame art are never cropped, so they have none. */
+  focal?: readonly number[];
+  /** Editor approval (true) or veto (false) for use as a listing cover; absent means not reviewed yet. */
+  coverOk?: boolean;
+  /** Today's records keep a prose string; structured records come from the source JSON or media-rights-overlay.json. */
+  rights?: string | MediaRights;
+  /** BAYLINK's own photograph (owner or editor on location): the only source of the 实拍 label. */
+  ownShot?: boolean;
+  /** Capture date of an own shot (YYYY-MM-DD). */
+  shotAt?: string;
+  /** A view of BAYLINK's 3D world (scene3d-postcards.ts), never a photograph. */
+  scene3d?: boolean;
 };
 
 const illustration = (name: string, alt: string, caption: string): GuideImage => ({
@@ -98,12 +128,12 @@ for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { 
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The download record (event, source URL, retrieval time, hash) stays in the JSON; pages get what they
 // render plus the crop focus and rights basis the cover resolver reads.
-const officialEventImage = ({ src, srcSet, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
-  src, srcSet, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const, ...(fullFrame ? { fullFrame } : { focal }), rights,
+const officialEventImage = ({ src, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
+  src, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const,
+  ...(fullFrame ? { fullFrame } : { focal }), rights: rights as MediaRights,
 });
 for (const record of officialEventMedia) GUIDE_IMAGES[record.key] = officialEventImage(record);
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
-for (const image of Object.values(GUIDE_IMAGES)) image.srcSet ??= `${image.src.replace('.webp', '-small.webp')} 480w, ${image.src} ${image.width}w`;
 
 // Reuse verified regional photographs with their original attribution intact.
 for (const { key, ...asset } of [...expandedInlandMedia, ...expandedCoastMedia, ...dailyLifeMedia]) {
@@ -238,6 +268,36 @@ for (const { key, ...asset } of schoolCampusMedia) {
   if (!Object.values(GUIDE_IMAGES).some(image => image.src === asset.src)) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 }
 
+// D8 image ladder: every registered image's srcset (480/800/1200) and placeholder colour come from the generated
+// table (`npm run images:variants`); the media records no longer carry srcset strings of their own
+// (scripts/codemods/registry-srcset.mjs), which kept about 2–4 KB gzip off every page that loads this registry.
+// A table generated for a different image list is ignored as a whole, so a stale table falls back to the plain
+// `-small` 480w + original pair (the original alone up to 480 wide) instead of naming rungs that may not exist.
+const ladder = readLadder(registrySources(Object.values(GUIDE_IMAGES)));
+const NO_RUNGS = { medium: false, large: false };
+for (const image of Object.values(GUIDE_IMAGES)) {
+  const entry = ladder.get(image.src);
+  if (entry) {
+    image.srcSet = ladderSrcSet(image.src, image.width, entry);
+    image.lqip = entry.lqip;
+  } else image.srcSet ??= ladderSrcSet(image.src, image.width, NO_RUNGS);
+}
+
+type MediaRightsOverlayEntry = Pick<GuideImage, 'coverOk' | 'focal' | 'ownShot' | 'shotAt'> & { rights?: MediaRights };
+/**
+ * Editorial media facts (coverOk, focal, shotAt, ownShot, structured rights), keyed by image key and applied after every
+ * other registration so no later map can undo a veto or a rights record. Each entry covers its own key only: an alias
+ * that reuses a file needs its own entry. tests/media-rights-overlay.test.ts validates the shapes.
+ */
+export function applyMediaRightsOverlay(images: Record<string, GuideImage>, overlay: Readonly<Record<string, MediaRightsOverlayEntry>>) {
+  for (const [key, entry] of Object.entries(overlay)) {
+    const image = images[key];
+    if (!image) continue;
+    images[key] = { ...image, ...entry };
+  }
+}
+applyMediaRightsOverlay(GUIDE_IMAGES, mediaRightsOverlay as Record<string, MediaRightsOverlayEntry>);
+
 // The introductory routes revisit these same places and services. Reuse their
 // credited reference photos and labelled illustrations, including original dates.
 export const FIRST_VISIT_GUIDE_MEDIA: Record<string, [string, string]> = {
@@ -332,7 +392,11 @@ function localizedServiceImage(image: GuideImage): GuideImage {
   const previous = cached[locale];
   if (previous) return previous;
   const suffix = locale === 'en' ? '-en' : '-hant';
-  const localized = { ...image, src: image.src.replace('.webp', `${suffix}.webp`), srcSet: image.srcSet?.replace(/(-small)?\.webp(?=\s)/g, (_match, small: string | undefined) => `${suffix}${small || ''}.webp`) };
+  const src = image.src.replace('.webp', `${suffix}.webp`);
+  const entry = readExtraLadder(src);
+  const localized = entry
+    ? { ...image, src, srcSet: ladderSrcSet(src, image.width, entry), lqip: entry.lqip }
+    : { ...image, src, srcSet: `${src.replace('.webp', '-small.webp')} 480w, ${src} ${image.width}w` };
   cached[locale] = localized;
   localizedServiceImages.set(image, cached);
   return localized;

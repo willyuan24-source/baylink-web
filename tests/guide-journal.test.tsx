@@ -142,16 +142,22 @@ test('all published guides and the complete media registry have usable local ima
     if (checked.has(image.src)) return;
     checked.add(image.src);
     assert.deepEqual(dimensions(image.src), { width: image.width, height: image.height });
+    // The D8 ladder (src/data/image-ladder.ts): 480 `-small`, an optional `-800`, then the original or its `-1200`.
     const candidates = image.srcSet!.split(',').map(candidate => candidate.trim().split(/\s+/));
-    assert.equal(candidates.length, image.width <= 480 ? 1 : 2);
+    assert.ok(candidates.length >= 1 && candidates.length <= 3, image.src);
     const smallWidth = Math.min(480, image.width);
     const small = candidates.find(([, width]) => width === `${smallWidth}w`);
     assert.ok(small, image.src);
     assert.equal(small[0], image.width <= 480 ? image.src : image.src.replace(/\.webp$/, '-small.webp'));
-    const smallSize = dimensions(small[0]);
-    assert.equal(smallSize.width, smallWidth);
-    assert.ok(Math.abs(smallSize.height - image.height * smallWidth / image.width) <= 1, image.src);
-    assert.ok(candidates.some(([src, width]) => src === image.src && width === `${image.width}w`));
+    for (const [file, descriptor] of candidates) {
+      assert.ok([image.src, ...['-small', '-800', '-1200'].map(rung => image.src.replace(/\.webp$/, `${rung}.webp`))].includes(file), `${image.src}: ${file}`);
+      const size = dimensions(file);
+      assert.equal(`${size.width}w`, descriptor, file);
+      assert.ok(size.width <= image.width, `${file} is never upscaled`);
+      assert.ok(Math.abs(size.height - image.height * size.width / image.width) <= 1, `${file} keeps the original framing`);
+    }
+    const largest = candidates.at(-1)!;
+    assert.ok(largest[0] === image.src ? largest[1] === `${image.width}w` : largest[0] === image.src.replace(/\.webp$/, '-1200.webp'), image.src);
     if (image.kind === 'illustration') {
       assert.match(image.credit, /AI/);
       assert.match(image.caption, /插图|插画|示意/);
@@ -404,9 +410,10 @@ test('guide social metadata uses a branded share card while article photos and o
   }
   for (const slug of ['san-francisco-guide', 'san-jose-guide']) {
     const guide = getGuideBySlug(slug)!;
-    assert.equal(guide.cover, `/guides/${slug}.png`);
+    // The original posters, re-encoded once from PNG to WebP at their own 1055 × 1491 size (WEB-IMAGES).
+    assert.equal(guide.cover, `/guides/${slug}.webp`);
     assert.notEqual(getGuideMetadata(guide).image, guide.cover);
-    assert.deepEqual([...asset(guide.cover!).subarray(0, 8)], [137, 80, 78, 71, 13, 10, 26, 10]);
+    assert.deepEqual(dimensions(guide.cover!), { width: 1055, height: 1491 });
   }
 });
 

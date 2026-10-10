@@ -9,8 +9,7 @@
     "kind": "poster",
     "src": "/guides/distinct/event-mountain-view.webp",
     "width": 1440,
-    "height": 754,
-    "srcSet": "/guides/distinct/event-mountain-view-small.webp 480w, /guides/distinct/event-mountain-view.webp 1440w"
+    "height": 754
   },
   {
     "key": "event-mill-valley",
@@ -21,8 +20,7 @@
     "kind": "poster",
     "src": "/guides/distinct/event-mill-valley.webp",
     "width": 720,
-    "height": 1080,
-    "srcSet": "/guides/distinct/event-mill-valley-small.webp 480w, /guides/distinct/event-mill-valley.webp 720w"
+    "height": 1080
   },
   {
     "key": "event-opera",
@@ -35,8 +33,7 @@
     "kind": "photo",
     "src": "/guides/distinct/event-opera.webp",
     "width": 1440,
-    "height": 478,
-    "srcSet": "/guides/distinct/event-opera-small.webp 480w, /guides/distinct/event-opera.webp 1440w"
+    "height": 478
   },
   {
     "key": "event-muni",
@@ -48,8 +45,7 @@
     "kind": "photo",
     "src": "/guides/distinct/event-muni.webp",
     "width": 1280,
-    "height": 960,
-    "srcSet": "/guides/distinct/event-muni-small.webp 480w, /guides/distinct/event-muni.webp 1280w"
+    "height": 960
   },
   {
     "key": "event-moon",
@@ -60,8 +56,7 @@
     "kind": "photo",
     "src": "/guides/distinct/event-moon.webp",
     "width": 936,
-    "height": 623,
-    "srcSet": "/guides/distinct/event-moon-small.webp 480w, /guides/distinct/event-moon.webp 936w"
+    "height": 623
   },
   {
     "key": "event-portola",
@@ -72,8 +67,7 @@
     "kind": "poster",
     "src": "/guides/distinct/event-portola.webp",
     "width": 819,
-    "height": 1024,
-    "srcSet": "/guides/distinct/event-portola-small.webp 480w, /guides/distinct/event-portola.webp 819w"
+    "height": 1024
   },
   {
     "key": "event-lafayette",
@@ -84,8 +78,7 @@
     "kind": "poster",
     "src": "/guides/distinct/event-lafayette.webp",
     "width": 1440,
-    "height": 1029,
-    "srcSet": "/guides/distinct/event-lafayette-small.webp 480w, /guides/distinct/event-lafayette.webp 1440w"
+    "height": 1029
   },
   {
     "key": "event-bark",
@@ -96,7 +89,6 @@
     "kind": "poster",
     "src": "/guides/distinct/event-bark.webp",
     "width": 600,
-    "height": 294,
-    "srcSet": "/guides/distinct/event-bark-small.webp 480w, /guides/distinct/event-bark.webp 600w"
+    "height": 294
   }
 ]

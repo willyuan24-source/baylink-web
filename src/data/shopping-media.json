@@ -2,7 +2,6 @@
   {
     "key": "shopping-stonestown",
     "src": "/guides/sf-map/stonestown.webp",
-    "srcSet": "/guides/sf-map/stonestown-small.webp 480w, /guides/sf-map/stonestown.webp 1280w",
     "width": 1280,
     "height": 786,
     "credit": "Mx. Granger · CC0 · 已缩放压缩",

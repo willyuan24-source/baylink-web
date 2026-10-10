@@ -26,6 +26,8 @@ BAYLINK 湾区华人本地信息网站，React 18 + TypeScript + Vite。前端�
 
 36 篇指南共用 `src/data/guide-media.ts` 的封面与文章插图映射；8 张湾区实景照片、3 张 AI 原创插图均位于 `public/guides/editorial/`，每张有 480px 小图及阅读用大图。实景作者、原文件、拍摄年份、授权和缩放说明保存在 `photo-credits.json`，列表页与文章提供署名/授权入口；AI 插图明确标注，不当作真实房源或导航地图。原有两张城市海报保留为可展开附图。
 
+新增、替换或复用图片前先看 [`docs/images.md`](docs/images.md)：记录里不写 `srcSet`，补 `rights` 与 `coverOk`，再运行 `npm run images:variants` 生成 480/800/1200 尺寸。
+
 指南列表的六种周末灵感入口切换对应文章；文章照片可用键盘打开/关闭大图。路线区块支持逐站切换与地图地点链接，在无 JavaScript 的预渲染 HTML 中保留全部步骤；搜索与 BayBay 导出共用 `guideBlockText`，不会丢失隐藏步骤的文字。交互状态只在本次页面停留期间保留，切换文章重置。
 
 新增攻略在 `src/data/guides-weekends.ts`；来源复核记录和插图生成提示词见 `docs/guide-weekends-source-review-2026-09-08.md`、`docs/guide-illustration-prompts-2026-09-08.md`。公园施工、开放、市场与场馆安排仍需按官方更新维护；纯视觉修改不自动刷新旧文章的内容核验日期。

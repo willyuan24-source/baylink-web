@@ -9,8 +9,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 875,
-    "srcSet": "/guides/attractions/sf-bridge-small.webp 480w, /guides/attractions/sf-bridge.webp 1400w"
+    "height": 875
   },
   {
     "key": "sf-fort-point",
@@ -22,8 +21,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/sf-fort-point-small.webp 480w, /guides/attractions/sf-fort-point.webp 1400w"
+    "height": 933
   },
   {
     "key": "sf-pier39",
@@ -35,8 +33,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/sf-pier39-small.webp 480w, /guides/attractions/sf-pier39.webp 1400w"
+    "height": 933
   },
   {
     "key": "sf-wharf",
@@ -49,8 +46,7 @@
     "kind": "photo",
     "width": 1000,
     "height": 1500,
-    "fullFrame": true,
-    "srcSet": "/guides/attractions/sf-wharf-small.webp 480w, /guides/attractions/sf-wharf.webp 1000w"
+    "fullFrame": true
   },
   {
     "key": "sf-alcatraz",
@@ -62,8 +58,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
     "kind": "photo",
     "width": 1400,
-    "height": 892,
-    "srcSet": "/guides/attractions/sf-alcatraz-small.webp 480w, /guides/attractions/sf-alcatraz.webp 1400w"
+    "height": 892
   },
   {
     "key": "sf-cellhouse",
@@ -75,8 +70,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/sf-cellhouse-small.webp 480w, /guides/attractions/sf-cellhouse.webp 1400w"
+    "height": 933
   },
   {
     "key": "sf-chinatown",
@@ -88,8 +82,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/sf-chinatown-small.webp 480w, /guides/attractions/sf-chinatown.webp 1400w"
+    "height": 933
   },
   {
     "key": "sf-northbeach",
@@ -101,8 +94,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 1050,
-    "srcSet": "/guides/attractions/sf-northbeach-small.webp 480w, /guides/attractions/sf-northbeach.webp 1400w"
+    "height": 1050
   },
   {
     "key": "sf-palace",
@@ -114,8 +106,7 @@
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/sf-palace-small.webp 480w, /guides/attractions/sf-palace.webp 1400w"
+    "height": 933
   },
   {
     "key": "sf-marina",
@@ -127,7 +118,6 @@
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
     "kind": "photo",
     "width": 1400,
-    "height": 933,
-    "srcSet": "/guides/attractions/sf-marina-small.webp 480w, /guides/attractions/sf-marina.webp 1400w"
+    "height": 933
   }
 ]

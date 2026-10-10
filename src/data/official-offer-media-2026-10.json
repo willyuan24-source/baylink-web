@@ -2,7 +2,6 @@
   {
     "key": "official-lowes-firefighting-plane-2026",
     "src": "/guides/official-offers/lowes-firefighting-plane.webp",
-    "srcSet": "/guides/official-offers/lowes-firefighting-plane-small.webp 480w, /guides/official-offers/lowes-firefighting-plane.webp 1440w",
     "width": 1440,
     "height": 929,
     "alt": "Lowe’s 官方消防飞机工作坊照片，儿童与店员展示黄色救援飞机成品",
@@ -18,7 +17,6 @@
   {
     "key": "official-lowes-money-days-2026",
     "src": "/guides/official-offers/lowes-money-days.webp",
-    "srcSet": "/guides/official-offers/lowes-money-days-small.webp 480w, /guides/official-offers/lowes-money-days.webp 1440w",
     "width": 1440,
     "height": 74,
     "alt": "Lowe’s MyLowe’s Money Days 10 月 10 至 11 日到店赢奖官方横幅",
@@ -34,7 +32,6 @@
   {
     "key": "official-lowes-mrbeast-2026",
     "src": "/guides/official-offers/lowes-mrbeast.webp",
-    "srcSet": "/guides/official-offers/lowes-mrbeast-small.webp 480w, /guides/official-offers/lowes-mrbeast.webp 1440w",
     "width": 1440,
     "height": 286,
     "alt": "Lowe’s 官方 MrBeast Day 10 月 24 日宣传横幅及 Swarms 赠品",
@@ -50,7 +47,6 @@
   {
     "key": "official-target-eos-2026",
     "src": "/guides/official-offers/target-eos.webp",
-    "srcSet": "/guides/official-offers/target-eos-small.webp 480w, /guides/official-offers/target-eos.webp 1440w",
     "width": 1440,
     "height": 720,
     "alt": "Target eos 秋香活动官方图，展示身体喷雾与绒毛拉链包",
@@ -66,7 +62,6 @@
   {
     "key": "official-target-acotar-2026",
     "src": "/guides/official-offers/target-acotar.webp",
-    "srcSet": "/guides/official-offers/target-acotar-small.webp 480w, /guides/official-offers/target-acotar.webp 1440w",
     "width": 1440,
     "height": 876,
     "alt": "Target ACOTAR 午夜活动官方图，展示黑猫钥匙扣及新书",
@@ -82,7 +77,6 @@
   {
     "key": "official-ikea-as-is-2026",
     "src": "/guides/official-offers/ikea-as-is.webp",
-    "srcSet": "/guides/official-offers/ikea-as-is-small.webp 480w, /guides/official-offers/ikea-as-is.webp 1100w",
     "width": 1100,
     "height": 618,
     "alt": "顾客在 IKEA As-is 区查看家具的官方照片",
@@ -98,7 +92,6 @@
   {
     "key": "official-ikea-cinnamon-2026",
     "src": "/guides/official-offers/ikea-cinnamon.webp",
-    "srcSet": "/guides/official-offers/ikea-cinnamon-small.webp 480w, /guides/official-offers/ikea-cinnamon.webp 1082w",
     "width": 1082,
     "height": 1440,
     "alt": "IKEA 官方肉桂卷照片，肉桂卷放在烤架上",
@@ -114,7 +107,6 @@
   {
     "key": "official-ikea-chipotle-chicken-2026",
     "src": "/guides/official-offers/ikea-chipotle-chicken.webp",
-    "srcSet": "/guides/official-offers/ikea-chipotle-chicken-small.webp 480w, /guides/official-offers/ikea-chipotle-chicken.webp 500w",
     "width": 500,
     "height": 500,
     "alt": "IKEA Chipotle Lime Chicken 主菜官方产品照片",
@@ -130,7 +122,6 @@
   {
     "key": "official-ikea-tres-leches-2026",
     "src": "/guides/official-offers/ikea-tres-leches.webp",
-    "srcSet": "/guides/official-offers/ikea-tres-leches-small.webp 480w, /guides/official-offers/ikea-tres-leches.webp 1400w",
     "width": 1400,
     "height": 1400,
     "alt": "IKEA Tres Leches Cake 三奶蛋糕官方产品照片",
@@ -146,7 +137,6 @@
   {
     "key": "official-chipotle-rewards-2026",
     "src": "/guides/official-offers/chipotle-rewards.webp",
-    "srcSet": "/guides/official-offers/chipotle-rewards-small.webp 480w, /guides/official-offers/chipotle-rewards.webp 1440w",
     "width": 1440,
     "height": 788,
     "alt": "Chipotle Rewards 官网宣传照片，含玉米片、牛油果酱与会员手机画面",
@@ -162,7 +152,6 @@
   {
     "key": "official-wendys-boo-books-2026",
     "src": "/guides/official-offers/wendys-boo-books.webp",
-    "srcSet": "/guides/official-offers/wendys-boo-books-small.webp 480w, /guides/official-offers/wendys-boo-books.webp 750w",
     "width": 750,
     "height": 550,
     "alt": "Wendy’s 当期 Boo! Books 券本与 Frosty Frights 角色官方宣传图",
@@ -178,7 +167,6 @@
   {
     "key": "official-michaels-frame-2026",
     "src": "/guides/official-offers/michaels-frame.webp",
-    "srcSet": "/guides/official-offers/michaels-frame-small.webp 480w, /guides/official-offers/michaels-frame.webp 1440w",
     "width": 1440,
     "height": 1440,
     "alt": "Michaels 官方作品照片，毛线绕线相框：橙色南瓜与白色幽灵成品",
@@ -194,7 +182,6 @@
   {
     "key": "official-michaels-jar-2026",
     "src": "/guides/official-offers/michaels-jar.webp",
-    "srcSet": "/guides/official-offers/michaels-jar-small.webp 480w, /guides/official-offers/michaels-jar.webp 1440w",
     "width": 1440,
     "height": 1440,
     "alt": "Michaels 官方作品照片，玻璃罐中的白色小幽灵成品",
@@ -210,7 +197,6 @@
   {
     "key": "official-michaels-fest-2026",
     "src": "/guides/official-offers/michaels-fest.webp",
-    "srcSet": "/guides/official-offers/michaels-fest-small.webp 480w, /guides/official-offers/michaels-fest.webp 1440w",
     "width": 1440,
     "height": 1440,
     "alt": "Michaels 官方作品照片，绿色怪物造型手作手提袋",
@@ -226,7 +212,6 @@
   {
     "key": "official-michaels-lantern-2026",
     "src": "/guides/official-offers/michaels-lantern.webp",
-    "srcSet": "/guides/official-offers/michaels-lantern-small.webp 480w, /guides/official-offers/michaels-lantern.webp 1440w",
     "width": 1440,
     "height": 1440,
     "alt": "Michaels 官方作品照片，南瓜、幽灵与怪物造型玻璃罐灯笼",
@@ -242,7 +227,6 @@
   {
     "key": "official-michaels-ghost-2026",
     "src": "/guides/official-offers/michaels-ghost.webp",
-    "srcSet": "/guides/official-offers/michaels-ghost-small.webp 480w, /guides/official-offers/michaels-ghost.webp 1111w",
     "width": 1111,
     "height": 1111,
     "alt": "Michaels 官方作品照片，扭扭棒制作的白色幽灵和黑色蜘蛛",
@@ -258,7 +242,6 @@
   {
     "key": "official-michaels-costume-2026",
     "src": "/guides/official-offers/michaels-costume.webp",
-    "srcSet": "/guides/official-offers/michaels-costume-small.webp 480w, /guides/official-offers/michaels-costume.webp 1183w",
     "width": 1183,
     "height": 1183,
     "alt": "Michaels 官方作品照片，黑色上衣上的荧光彩色南瓜表情",
@@ -274,7 +257,6 @@
   {
     "key": "official-shake-shack-october-2026",
     "src": "/guides/official-offers/shake-shack-october.webp",
-    "srcSet": "/guides/official-offers/shake-shack-october-small.webp 480w, /guides/official-offers/shake-shack-october.webp 1440w",
     "width": 1440,
     "height": 810,
     "alt": "Shake Shack 十月 SCARYGOOD 官方产品照片，展示鸡肉三明治与两种汉堡",
@@ -290,7 +272,6 @@
   {
     "key": "official-petsmart-halloween-2026",
     "src": "/guides/official-offers/petsmart-halloween.webp",
-    "srcSet": "/guides/official-offers/petsmart-halloween-small.webp 480w, /guides/official-offers/petsmart-halloween.webp 1440w",
     "width": 1440,
     "height": 788,
     "alt": "PetSmart 官方万圣节宣传照片，一只狗穿着骷髅图案服装在户外散步",
@@ -306,7 +287,6 @@
   {
     "key": "official-peets-welcome-2026",
     "src": "/guides/official-offers/peets-welcome.webp",
-    "srcSet": "/guides/official-offers/peets-welcome.webp 375w",
     "width": 375,
     "height": 375,
     "alt": "Peet’s 官方 125 欢迎积分图，以咖啡杯和积分刻度呈现",
@@ -322,7 +302,6 @@
   {
     "key": "official-peets-birthday-2026",
     "src": "/guides/official-offers/peets-birthday.webp",
-    "srcSet": "/guides/official-offers/peets-birthday.webp 375w",
     "width": 375,
     "height": 375,
     "alt": "Peet’s 官方生日福利照片，一杯拉花咖啡摆在彩纸旁",
@@ -338,7 +317,6 @@
   {
     "key": "official-taco-bell-welcome-2026",
     "src": "/guides/official-offers/taco-bell-welcome.webp",
-    "srcSet": "/guides/official-offers/taco-bell-welcome-small.webp 480w, /guides/official-offers/taco-bell-welcome.webp 960w",
     "width": 960,
     "height": 654,
     "alt": "Taco Bell 官方新会员欢迎礼图，展示墨西哥卷饼与塔可餐点",
@@ -354,7 +332,6 @@
   {
     "key": "official-lowes-holiday-engine-2026",
     "src": "/guides/official-offers/lowes-holiday-engine.webp",
-    "srcSet": "/guides/official-offers/lowes-holiday-engine-small.webp 480w, /guides/official-offers/lowes-holiday-engine.webp 1440w",
     "width": 1440,
     "height": 929,
     "alt": "Lowe’s Holiday Engine 官方照片，儿童与成人在工作台展示节日火车头成品",
@@ -370,7 +347,6 @@
   {
     "key": "official-lowes-winter-lodge-2026",
     "src": "/guides/official-offers/lowes-winter-lodge.webp",
-    "srcSet": "/guides/official-offers/lowes-winter-lodge-small.webp 480w, /guides/official-offers/lowes-winter-lodge.webp 1440w",
     "width": 1440,
     "height": 929,
     "alt": "Lowe’s Winter Play Lodge 官方照片，儿童与成人展示冬季木屋成品",
@@ -386,7 +362,6 @@
   {
     "key": "official-smashburger-kids-2026",
     "src": "/guides/official-offers/smashburger-kids.webp",
-    "srcSet": "/guides/official-offers/smashburger-kids-small.webp 480w, /guides/official-offers/smashburger-kids.webp 728w",
     "width": 728,
     "height": 532,
     "alt": "Smashburger 官方儿童餐宣传图，儿童面前摆着汉堡、薯条与牛奶",
@@ -402,7 +377,6 @@
   {
     "key": "official-mod-kids-2026",
     "src": "/guides/official-offers/mod-kids.webp",
-    "srcSet": "/guides/official-offers/mod-kids-small.webp 480w, /guides/official-offers/mod-kids.webp 768w",
     "width": 768,
     "height": 576,
     "alt": "MOD Pizza 官方儿童披萨宣传图，芝士披萨与儿童线描图案",

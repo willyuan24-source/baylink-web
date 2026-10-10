@@ -9,8 +9,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "kind": "photo",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/community-2026/community-history-park-small.webp 480w, /guides/community-2026/community-history-park.webp 1280w"
+    "height": 853
   },
   {
     "key": "community-tilden-little-farm",
@@ -22,8 +21,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "kind": "photo",
     "width": 1280,
-    "height": 960,
-    "srcSet": "/guides/community-2026/community-tilden-little-farm-small.webp 480w, /guides/community-2026/community-tilden-little-farm.webp 1280w"
+    "height": 960
   },
   {
     "key": "community-china-camp-village",
@@ -35,7 +33,6 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "kind": "photo",
     "width": 1280,
-    "height": 916,
-    "srcSet": "/guides/community-2026/community-china-camp-village-small.webp 480w, /guides/community-2026/community-china-camp-village.webp 1280w"
+    "height": 916
   }
 ]

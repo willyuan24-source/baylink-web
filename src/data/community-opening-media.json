@@ -9,8 +9,7 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 1080,
-    "height": 1350,
-    "srcSet": "/guides/community-2026/opening-kaiyo-handroll-small.webp 480w, /guides/community-2026/opening-kaiyo-handroll.webp 1080w"
+    "height": 1350
   },
   {
     "key": "opening-marufuku-burlingame",
@@ -22,8 +21,7 @@
     "kind": "poster",
     "fullFrame": true,
     "width": 1400,
-    "height": 817,
-    "srcSet": "/guides/community-2026/opening-marufuku-burlingame-small.webp 480w, /guides/community-2026/opening-marufuku-burlingame.webp 1400w"
+    "height": 817
   },
   {
     "key": "opening-broken-dreams",
@@ -35,7 +33,6 @@
     "kind": "photo",
     "fullFrame": true,
     "width": 1050,
-    "height": 1400,
-    "srcSet": "/guides/community-2026/opening-broken-dreams-small.webp 480w, /guides/community-2026/opening-broken-dreams.webp 1050w"
+    "height": 1400
   }
 ]

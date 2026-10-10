@@ -9,8 +9,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 1050,
-    "srcSet": "/guides/distinct/filoli-small.webp 480w, /guides/distinct/filoli.webp 1400w"
+    "height": 1050
   },
   {
     "key": "ferry-market",
@@ -22,8 +21,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 1050,
-    "srcSet": "/guides/distinct/ferry-market-small.webp 480w, /guides/distinct/ferry-market.webp 1400w"
+    "height": 1050
   },
   {
     "key": "burlingame",
@@ -35,8 +33,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1204,
-    "height": 800,
-    "srcSet": "/guides/distinct/burlingame-small.webp 480w, /guides/distinct/burlingame.webp 1204w"
+    "height": 800
   },
   {
     "key": "sanmateo",
@@ -48,8 +45,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1400,
-    "height": 1050,
-    "srcSet": "/guides/distinct/sanmateo-small.webp 480w, /guides/distinct/sanmateo.webp 1400w"
+    "height": 1050
   },
   {
     "key": "library",
@@ -61,8 +57,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "kind": "photo",
     "width": 1280,
-    "height": 854,
-    "srcSet": "/guides/distinct/library-small.webp 480w, /guides/distinct/library.webp 1280w"
+    "height": 854
   },
   {
     "key": "sfo",
@@ -74,8 +69,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1280,
-    "height": 960,
-    "srcSet": "/guides/distinct/sfo-small.webp 480w, /guides/distinct/sfo.webp 1280w"
+    "height": 960
   },
   {
     "key": "museum",
@@ -87,8 +81,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/distinct/museum-small.webp 480w, /guides/distinct/museum.webp 1280w"
+    "height": 853
   },
   {
     "key": "bart",
@@ -100,8 +93,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/distinct/bart-small.webp 480w, /guides/distinct/bart.webp 1280w"
+    "height": 853
   },
   {
     "key": "dog",
@@ -113,8 +105,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
     "kind": "photo",
     "width": 1280,
-    "height": 851,
-    "srcSet": "/guides/distinct/dog-small.webp 480w, /guides/distinct/dog.webp 1280w"
+    "height": 851
   },
   {
     "key": "repair",
@@ -126,8 +117,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
     "kind": "photo",
     "width": 1280,
-    "height": 1917,
-    "srcSet": "/guides/distinct/repair-small.webp 480w, /guides/distinct/repair.webp 1280w"
+    "height": 1917
   },
   {
     "key": "dog-park",
@@ -139,8 +129,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1280,
-    "height": 960,
-    "srcSet": "/guides/distinct/dog-park-small.webp 480w, /guides/distinct/dog-park.webp 1280w"
+    "height": 960
   },
   {
     "key": "produce",
@@ -152,8 +141,7 @@
     "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
     "kind": "photo",
     "width": 1280,
-    "height": 853,
-    "srcSet": "/guides/distinct/produce-small.webp 480w, /guides/distinct/produce.webp 1280w"
+    "height": 853
   },
   {
     "key": "sausalito",
@@ -165,8 +153,7 @@
     "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
     "kind": "photo",
     "width": 1280,
-    "height": 753,
-    "srcSet": "/guides/distinct/sausalito-small.webp 480w, /guides/distinct/sausalito.webp 1280w"
+    "height": 753
   },
   {
     "key": "sanjose-city",
@@ -178,7 +165,6 @@
     "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "kind": "photo",
     "width": 1280,
-    "height": 720,
-    "srcSet": "/guides/distinct/sanjose-city-small.webp 480w, /guides/distinct/sanjose-city.webp 1280w"
+    "height": 720
   }
 ]

@@ -1,7 +1,6 @@
 {
   "roundup-east-emeryville": {
     "src": "/guides/city-roundup-east/roundup-east-emeryville.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-emeryville-small.webp 480w, /guides/city-roundup-east/roundup-east-emeryville.webp 1200w",
     "width": 1200,
     "height": 681,
     "kind": "photo",
@@ -16,7 +15,6 @@
   },
   "roundup-east-dublin": {
     "src": "/guides/city-roundup-east/roundup-east-dublin.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-dublin-small.webp 480w, /guides/city-roundup-east/roundup-east-dublin.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -31,7 +29,6 @@
   },
   "roundup-east-san-leandro": {
     "src": "/guides/city-roundup-east/roundup-east-san-leandro.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-san-leandro-small.webp 480w, /guides/city-roundup-east/roundup-east-san-leandro.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -46,7 +43,6 @@
   },
   "roundup-east-hayward": {
     "src": "/guides/city-roundup-east/roundup-east-hayward.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-hayward-small.webp 480w, /guides/city-roundup-east/roundup-east-hayward.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -61,7 +57,6 @@
   },
   "roundup-east-union-city": {
     "src": "/guides/city-roundup-east/roundup-east-union-city.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-union-city-small.webp 480w, /guides/city-roundup-east/roundup-east-union-city.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -76,7 +71,6 @@
   },
   "roundup-east-newark": {
     "src": "/guides/city-roundup-east/roundup-east-newark.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-newark-small.webp 480w, /guides/city-roundup-east/roundup-east-newark.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -91,7 +85,6 @@
   },
   "roundup-east-livermore": {
     "src": "/guides/city-roundup-east/roundup-east-livermore.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-livermore-small.webp 480w, /guides/city-roundup-east/roundup-east-livermore.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -106,7 +99,6 @@
   },
   "roundup-east-albany": {
     "src": "/guides/city-roundup-east/roundup-east-albany.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-albany-small.webp 480w, /guides/city-roundup-east/roundup-east-albany.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
@@ -121,7 +113,6 @@
   },
   "roundup-east-concord": {
     "src": "/guides/city-roundup-east/roundup-east-concord.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-concord-small.webp 480w, /guides/city-roundup-east/roundup-east-concord.webp 1280w",
     "width": 1280,
     "height": 850,
     "kind": "photo",
@@ -136,7 +127,6 @@
   },
   "roundup-east-oakley": {
     "src": "/guides/city-roundup-east/roundup-east-oakley.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-oakley-small.webp 480w, /guides/city-roundup-east/roundup-east-oakley.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -151,7 +141,6 @@
   },
   "roundup-east-brentwood": {
     "src": "/guides/city-roundup-east/roundup-east-brentwood.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-brentwood-small.webp 480w, /guides/city-roundup-east/roundup-east-brentwood.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -166,7 +155,6 @@
   },
   "roundup-east-hercules": {
     "src": "/guides/city-roundup-east/roundup-east-hercules.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-hercules-small.webp 480w, /guides/city-roundup-east/roundup-east-hercules.webp 1280w",
     "width": 1280,
     "height": 848,
     "kind": "photo",
@@ -181,7 +169,6 @@
   },
   "roundup-east-san-pablo": {
     "src": "/guides/city-roundup-east/roundup-east-san-pablo.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-san-pablo-small.webp 480w, /guides/city-roundup-east/roundup-east-san-pablo.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -196,7 +183,6 @@
   },
   "roundup-east-antioch": {
     "src": "/guides/city-roundup-east/roundup-east-antioch.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-antioch-small.webp 480w, /guides/city-roundup-east/roundup-east-antioch.webp 1280w",
     "width": 1280,
     "height": 737,
     "kind": "photo",
@@ -211,7 +197,6 @@
   },
   "roundup-east-danville": {
     "src": "/guides/city-roundup-east/roundup-east-danville.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-danville-small.webp 480w, /guides/city-roundup-east/roundup-east-danville.webp 1280w",
     "width": 1280,
     "height": 853,
     "kind": "photo",
@@ -226,7 +211,6 @@
   },
   "roundup-east-el-cerrito": {
     "src": "/guides/city-roundup-east/roundup-east-el-cerrito.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-el-cerrito-small.webp 480w, /guides/city-roundup-east/roundup-east-el-cerrito.webp 1280w",
     "width": 1280,
     "height": 783,
     "kind": "photo",
@@ -241,7 +225,6 @@
   },
   "roundup-east-san-ramon": {
     "src": "/guides/city-roundup-east/roundup-east-san-ramon.webp",
-    "srcSet": "/guides/city-roundup-east/roundup-east-san-ramon-small.webp 480w, /guides/city-roundup-east/roundup-east-san-ramon.webp 1280w",
     "width": 1280,
     "height": 960,
     "kind": "photo",
