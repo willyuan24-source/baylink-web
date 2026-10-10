@@ -16,13 +16,16 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // WEB-HOMEPREP (10/09) moved the community board, the search dictionaries and the schedule notes off the homepage
 // (zh 218.4 → 167.9, English with dictionaries 357.8 → 307.4 KiB) and lowered the homepage gates to the plan's targets,
 // 220 → 200 and 360 → 340, with the '/' row 20 KiB lower in every language: the rest is headroom for WEB-HOME (RC-17).
+// Every other zh-Hant row lost the shell's copy of the search dictionaries (繁體 search uses the full opencc build), so
+// those ceilings go down to the 10/09 measurement + 2% (e.g. /guides 1502.0 → 1532.1); the 简体 and English rows count
+// the dictionaries on these searching pages and stay where they were.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 993.9, 'zh-Hant': 1504.5, en: 1635.1 } },
-  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1036.4, 'zh-Hant': 1547.0, en: 2207.3 } },
-  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1573.9, en: 1361.3 } },
-  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 1023.3, 'zh-Hant': 1533.8, en: 1664.4 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 993.8, 'zh-Hant': 1504.3, en: 1634.9 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 993.9, 'zh-Hant': 1496.8, en: 1635.1 } },
+  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1036.4, 'zh-Hant': 1532.1, en: 2207.3 } },
+  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1560.4, en: 1361.3 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 1023.3, 'zh-Hant': 1519.8, en: 1664.4 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 993.8, 'zh-Hant': 1490.0, en: 1634.9 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
