@@ -1,4 +1,4 @@
-import type { EventEditorial, MonthlyEvent } from '../monthly-types';
+import type { EditorialStatus, EventEditorial, MonthlyEvent } from '../monthly-types';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { SeptemberOpening } from '../september-openings';
 import { displayUnits } from '../../lib/event-facts';
@@ -20,18 +20,28 @@ type Correctable<T> = Partial<Omit<T, 'id' | 'verifiedAt' | 'imageKey'>>;
  * `fix` corrects source facts; each correction has a dated source read in `docs/source-reads-2026-10.md`.
  */
 export type EventOverlayEntry = EventEditorial & { plan?: (string | number)[]; fix?: Correctable<MonthlyEvent> };
-/** Offer fields read by `src/lib/event-facts.ts` (`valueText`, `publicBenefit`) plus the shared short forms. */
-export type OfferEditorial = { shortTitle?: string; dek?: string; tips?: string[]; valueText?: string; publicBenefit?: boolean };
+/**
+ * Offer fields read by `src/lib/event-facts.ts` (`valueText`, `publicBenefit`) plus the shared short forms.
+ * `status: 'sold_out'` marks an offer with nothing on sale right now (its date label says when the next batch opens).
+ */
+export type OfferEditorial = { shortTitle?: string; dek?: string; tips?: string[]; valueText?: string; publicBenefit?: boolean; status?: EditorialStatus };
 export type OfferOverlayEntry = OfferEditorial & { fix?: Correctable<FreebieOffer> };
 export type OpeningEditorial = { shortTitle?: string; dek?: string };
 /** `openedOn` only where the source states the first day of public service. */
 export type OpeningOverlayEntry = OpeningEditorial & { openedOn?: string; fix?: Correctable<SeptemberOpening> };
 
 export const EVENT_OVERLAY = eventEntries as Record<string, EventOverlayEntry>;
-/** The record each entry was applied to, keyed `kind:id`: the lint compares it with basis.json to spot later source edits. */
-export const PRE_OVERLAY = new Map<string, Record<string, unknown>>();
 export const OFFER_OVERLAY = offerEntries as Record<string, OfferOverlayEntry>;
 export const OPENING_OVERLAY = openingEntries as Record<string, OpeningOverlayEntry>;
+/** Sources are recorded for the lint, tests and prerender scripts only; a production build never fills the map. */
+const RECORD_SOURCES = !import.meta.env?.PROD;
+/**
+ * The record each entry was applied to, keyed `kind:id`: the lint compares it with basis.json to spot later source
+ * edits. Filled outside production builds only (Node scripts, tests, the dev server).
+ */
+export const PRE_OVERLAY = new Map<string, Record<string, unknown>>();
+type Sources = Map<string, Record<string, unknown>> | undefined;
+const defaultSources = (): Sources => RECORD_SOURCES ? PRE_OVERLAY : undefined;
 
 /** Sentences that carry no fact about the item (content.md §2.5: on 169 events, 56 of them free). */
 export const FILLER_SENTENCES = [
@@ -100,10 +110,10 @@ export function venueParts(venue: string): { venueShort: string; address?: strin
   return { venueShort: place.replace(/[，,;；].*$/u, '').trim(), ...(address ? { address: address.replace(/[；;].*$/u, '').trim() } : {}) };
 }
 
-export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: Record<string, EventOverlayEntry> = EVENT_OVERLAY): T[] {
+export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: Record<string, EventOverlayEntry> = EVENT_OVERLAY, sources: Sources = defaultSources()): T[] {
   return events.map(event => {
     if (!Object.hasOwn(entries, event.id)) return event;
-    PRE_OVERLAY.set(`event:${event.id}`, event);
+    sources?.set(`event:${event.id}`, event);
     const { fix, plan, venueShort, address, ...editorial } = entries[event.id];
     const corrected = { ...event, ...fix };
     const cleaned = cleanPlan(event.plan, event.dateLabel, event.costLabel);
@@ -120,20 +130,20 @@ export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: 
   });
 }
 
-export function applyOfferOverlay<T extends FreebieOffer>(offers: T[], entries: Record<string, OfferOverlayEntry> = OFFER_OVERLAY): (T & OfferEditorial)[] {
+export function applyOfferOverlay<T extends FreebieOffer>(offers: T[], entries: Record<string, OfferOverlayEntry> = OFFER_OVERLAY, sources: Sources = defaultSources()): (T & OfferEditorial)[] {
   return offers.map(offer => {
     if (!Object.hasOwn(entries, offer.id)) return offer;
-    PRE_OVERLAY.set(`offer:${offer.id}`, offer);
+    sources?.set(`offer:${offer.id}`, offer);
     const { fix, ...editorial } = entries[offer.id];
     const corrected = { ...offer, ...fix };
     return { ...corrected, ...editorial, shortTitle: editorial.shortTitle ?? ownShortTitle(corrected.title) };
   });
 }
 
-export function applyOpeningOverlay<T extends SeptemberOpening>(openings: T[], entries: Record<string, OpeningOverlayEntry> = OPENING_OVERLAY): (T & OpeningEditorial)[] {
+export function applyOpeningOverlay<T extends SeptemberOpening>(openings: T[], entries: Record<string, OpeningOverlayEntry> = OPENING_OVERLAY, sources: Sources = defaultSources()): (T & OpeningEditorial)[] {
   return openings.map(shop => {
     if (!Object.hasOwn(entries, shop.id)) return shop;
-    PRE_OVERLAY.set(`opening:${shop.id}`, shop);
+    sources?.set(`opening:${shop.id}`, shop);
     const { fix, ...editorial } = entries[shop.id];
     const corrected = { ...shop, ...fix };
     return { ...corrected, ...editorial, shortTitle: editorial.shortTitle ?? ownShortTitle(corrected.name) };

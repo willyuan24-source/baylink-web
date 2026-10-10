@@ -31,7 +31,7 @@ export type LintInput = {
 
 /** The source fields an entry's short forms and corrections were written against (`basis.json`). */
 export const BASIS_FIELDS = {
-  event: ['title', 'startDate', 'endDate', 'occurrenceDates', 'dateLabel', 'cost', 'costLabel', 'venue', 'plan'],
+  event: ['title', 'startDate', 'endDate', 'occurrenceDates', 'dateLabel', 'cost', 'costLabel', 'venue', 'plan', 'summary', 'audience'],
   offer: ['title', 'startDate', 'endDate', 'dateLabel', 'requirement', 'description'],
   opening: ['name', 'status', 'openedOn', 'dateLabel', 'summary', 'editorTip'],
 } as const;
@@ -46,8 +46,32 @@ export function fieldHash(value: unknown): string {
 /** basis.json content for the given pre-overlay records (`PRE_OVERLAY`), sorted for stable diffs. */
 export function basisFor(sources: Map<string, Record<string, unknown>>): Basis {
   return Object.fromEntries([...sources].sort(([a], [b]) => a.localeCompare(b)).map(([key, record]) => [key,
-    Object.fromEntries(BASIS_FIELDS[key.split(':')[0] as keyof typeof BASIS_FIELDS].filter(field => record[field] !== undefined).map(field => [field, fieldHash(record[field])]))]));
+    Object.fromEntries(BASIS_FIELDS[key.split(':')[0] as keyof typeof BASIS_FIELDS].map(field => [field, fieldHash(record[field])]))]));
 }
+
+/**
+ * Source fields each stored entry field was written from. When one of them changes upstream, the stored value would
+ * silently win over the edit (the overlay applies last), so the lint reports an error until an editor re-checks the
+ * entry. A `fix.<field>` always depends on that same source field.
+ */
+export const DERIVED_FROM: Record<LintKind, Record<string, readonly string[]>> = {
+  event: {
+    shortTitle: ['title'], price: ['cost', 'costLabel'], sessions: ['startDate', 'endDate', 'occurrenceDates', 'dateLabel'],
+    dateNote: ['startDate', 'endDate', 'occurrenceDates', 'dateLabel'], venueShort: ['venue'], address: ['venue'], ageChip: ['audience'],
+    plan: ['plan'], status: ['startDate', 'endDate', 'occurrenceDates', 'dateLabel', 'costLabel'],
+  },
+  offer: { shortTitle: ['title'], status: ['startDate', 'endDate', 'dateLabel'] },
+  opening: { shortTitle: ['name'], openedOn: ['status', 'openedOn', 'dateLabel'] },
+};
+/** The stored entry fields that would mask an upstream edit of each source field. */
+export function overriddenFields(kind: LintKind, entry: object & { fix?: object }): Map<string, string[]> {
+  const owners = new Map<string, string[]>();
+  const own = (source: string, owner: string) => owners.set(source, [...(owners.get(source) ?? []), owner]);
+  for (const key of Object.keys(entry)) if (key !== 'fix') for (const source of DERIVED_FROM[kind][key] ?? []) own(source, key);
+  for (const key of Object.keys(entry.fix ?? {})) own(key, `fix.${key}`);
+  return owners;
+}
+export const STATUSES = ['postponed', 'cancelled', 'sold_out'] as const;
 
 /** The merged English dictionary, read from its sources (the same order as the generated english.json). */
 export function readEnglishSources(read: (path: string) => string): Record<string, string> {
@@ -67,6 +91,29 @@ const HAN = /[㐀-鿿]/u;
 const LIMITS = { shortTitle: 16, dek: 30, tip: 40, tips: 3, dateLabel: 40 } as const;
 const FORBIDDEN_FIX = ['id', 'verifiedAt', 'imageKey'];
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
+/** Text without spaces and punctuation, to compare a tip with the fields shown beside it. */
+const squash = (text: string) => text.replace(/[\s。；;，,、：:（）()·.!！?？“”"'‘’]/gu, '');
+const bigrams = (text: string) => {
+  const chars = [...squash(text)];
+  return new Set(chars.slice(0, -1).map((char, index) => char + chars[index + 1]));
+};
+/** Share of a tip's character pairs that one shown field already carries (1 = the field says all of it). */
+const overlap = (tip: string, field: string) => {
+  const own = bigrams(tip), other = bigrams(field);
+  return own.size ? [...own].filter(pair => other.has(pair)).length / own.size : 0;
+};
+/**
+ * A tip must add information no other shown field carries (content.md §4.4). A tip contained in the plan, a label,
+ * the summary or the date note (after squashing) is an error; one whose wording is mostly in one field is a warning.
+ */
+export function tipRepeats(tip: string, shown: Record<string, string | readonly string[]>): { field: string; level: LintLevel } | undefined {
+  let warn: string | undefined;
+  for (const [field, value] of Object.entries(shown)) for (const text of typeof value === 'string' ? [value] : value) {
+    if (squash(tip) && squash(text).includes(squash(tip))) return { field, level: 'error' };
+    if (!warn && overlap(tip, text) >= 0.75) warn = field;
+  }
+  return warn ? { field: warn, level: 'warn' } : undefined;
+}
 const strings = (value: unknown): string[] => typeof value === 'string' ? [value] : Array.isArray(value) ? value.flatMap(strings) : value && typeof value === 'object' ? Object.values(value).flatMap(strings) : [];
 
 export function lintEditorial(input: LintInput): LintIssue[] {
@@ -93,13 +140,27 @@ export function lintEditorial(input: LintInput): LintIssue[] {
     if (entry.dek && displayUnits(entry.dek) > LIMITS.dek) add(covered, kind, id, 'dek', `${entry.dek} (${displayUnits(entry.dek)} units)`);
     if (entry.tips && (entry.tips.length > LIMITS.tips || entry.tips.some(tip => !tip.trim() || displayUnits(tip) > LIMITS.tip))) add(covered, kind, id, 'tips', entry.tips.join(' | '));
   };
+  /** A fix key the basis does not track could mask an upstream edit unnoticed. */
   const fixKeys = (kind: LintKind, id: string, fix: object | undefined) => {
-    for (const key of Object.keys(fix ?? {})) if (FORBIDDEN_FIX.includes(key)) add(true, kind, id, 'fix-field', `${key} belongs to the source package`);
+    for (const key of Object.keys(fix ?? {})) {
+      if (FORBIDDEN_FIX.includes(key)) add(true, kind, id, 'fix-field', `${key} belongs to the source package`);
+      else if (!(BASIS_FIELDS[kind] as readonly string[]).includes(key)) add(true, kind, id, 'fix-field', `${key} is not tracked in BASIS_FIELDS, so an upstream edit would go unnoticed`);
+    }
   };
-  const drift = (kind: LintKind, id: string) => {
+  /**
+   * A source field that changed since the entry was written (basis.json): an error when a stored entry field overrides
+   * it (the upstream edit would be masked), otherwise a warning to re-read the short forms.
+   */
+  const drift = (kind: LintKind, id: string, entry: object & { fix?: object }) => {
     const recorded = input.basis?.[`${kind}:${id}`], source = input.sources?.get(`${kind}:${id}`);
     if (!recorded || !source) return;
-    for (const [field, hash] of Object.entries(recorded)) if (fieldHash(source[field]) !== hash) add(false, kind, id, 'source-changed', `${field} changed since the overlay entry was written; re-check it`);
+    const owners = overriddenFields(kind, entry);
+    for (const [field, hash] of Object.entries(recorded)) {
+      if (fieldHash(source[field]) === hash) continue;
+      const masking = owners.get(field);
+      if (masking) add(true, kind, id, 'source-changed', `${field} changed upstream but the entry's ${masking.join(', ')} still applies over it: update or remove that, then run the audit with --write-basis`);
+      else add(false, kind, id, 'source-changed', `${field} changed since the overlay entry was written; re-check it`);
+    }
   };
 
   const eventIds = new Set(input.events.map(event => event.id));
@@ -123,7 +184,7 @@ export function lintEditorial(input: LintInput): LintIssue[] {
     if (!covered) continue;
     short(true, 'event', event.id, entry, event);
     fixKeys('event', event.id, entry.fix);
-    drift('event', event.id);
+    drift('event', event.id, entry);
     const source = input.sources?.get(`event:${event.id}`) as MonthlyEvent | undefined;
     if (entry.plan && source) {
       const cleaned = cleanPlan(source.plan, source.dateLabel, source.costLabel);
@@ -135,6 +196,15 @@ export function lintEditorial(input: LintInput): LintIssue[] {
       if ((session.start && !TIME.test(session.start)) || (session.end && !TIME.test(session.end)) || (session.end && !session.start) || (session.start && session.end && session.end <= session.start)) add(true, 'event', event.id, 'sessions', `${session.date} ${session.start ?? ''}–${session.end ?? ''}`);
     }
     if (event.sessions && new Set(event.sessions.map(session => session.date)).size !== event.sessions.length) add(true, 'event', event.id, 'sessions', 'repeated day');
+    for (const tip of event.tips ?? []) {
+      const repeat = tipRepeats(tip, { plan: event.plan, costLabel: event.costLabel, dateLabel: event.dateLabel, summary: event.summary, dateNote: event.dateNote ?? '' });
+      if (repeat) add(true, 'event', event.id, 'tip-repeats', `${tip} (${repeat.field})`, repeat.level);
+    }
+    if (event.status !== undefined) {
+      if (!(STATUSES as readonly string[]).includes(event.status)) add(true, 'event', event.id, 'status', `unknown status ${event.status}`);
+      // A postponed or cancelled event has no confirmed day; its original date belongs in dateNote.
+      if ((event.status === 'postponed' || event.status === 'cancelled') && (event.occurrenceDates?.length !== 0 || event.sessions?.length)) add(true, 'event', event.id, 'status', `${event.status} but it still has confirmed days`);
+    }
     const price = event.price;
     if (price) {
       const numbers = [price.min, price.max].filter((value): value is number => value !== undefined);
@@ -155,8 +225,9 @@ export function lintEditorial(input: LintInput): LintIssue[] {
     reader(covered, 'offer', offer.id, { title: offer.title, dateLabel: offer.dateLabel, requirement: offer.requirement, description: offer.description, dek: offer.dek, tips: offer.tips });
     if (!covered) continue;
     short(true, 'offer', offer.id, entry, offer);
+    if (offer.status !== undefined && offer.status !== 'sold_out') add(true, 'offer', offer.id, 'status', `an offer is only marked sold_out, not ${offer.status}`);
     fixKeys('offer', offer.id, entry.fix);
-    drift('offer', offer.id);
+    drift('offer', offer.id, entry);
     english(true, 'offer', offer.id, [offer.shortTitle ?? '', offer.dek ?? '', ...(offer.tips ?? []), ...strings(entry.fix)]);
   }
 
@@ -169,7 +240,7 @@ export function lintEditorial(input: LintInput): LintIssue[] {
     if (!covered) continue;
     short(true, 'opening', shop.id, entry, shop);
     fixKeys('opening', shop.id, entry.fix);
-    drift('opening', shop.id);
+    drift('opening', shop.id, entry);
     if (entry.openedOn !== undefined && (!DATE_LINE.test(entry.openedOn) || shop.status === 'announced')) add(true, 'opening', shop.id, 'opened-on', `${entry.openedOn} (${shop.status})`);
     english(true, 'opening', shop.id, [shop.shortTitle ?? '', shop.dek ?? '', ...strings(entry.fix)]);
   }
