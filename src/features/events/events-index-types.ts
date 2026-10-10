@@ -11,8 +11,9 @@ import type { RegionalBulletin } from '../../data/late-september-local';
  */
 
 /**
- * The CNT editorial overlay, read when present (plan CNT-EVENTS): every field is optional, and every surface falls back
- * to today's fields without it. `sessions` and `price` feed src/lib/event-facts.ts; the rest is shown as written.
+ * The CNT editorial overlay fields a listing uses, read when present (plan CNT-EVENTS): every field is optional, and every
+ * surface falls back to today's fields without it. `sessions` and `price` feed src/lib/event-facts.ts; `dek` is searched.
+ * The detail-page fields (address, ageChip, tips, dateNote) are not in the index (RC-33).
  */
 export type EditorialOverlay = {
   shortTitle?: string;
@@ -21,12 +22,6 @@ export type EditorialOverlay = {
   sessions?: { date: string; start?: string; end?: string }[];
   price?: { free?: boolean; min?: number; max?: number; note?: string };
   venueShort?: string;
-  address?: string;
-  /** "4 岁以上" / "全年龄". */
-  ageChip?: string;
-  tips?: string[];
-  /** "10/18、10/25 结束时间待确认" — the part of the date that is not a session. */
-  dateNote?: string;
   iconKey?: string;
 };
 

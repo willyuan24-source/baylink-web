@@ -12,15 +12,16 @@ import type { EventsIndex, IndexEvent, IndexImage, IndexOffer, IndexOpening } fr
 /**
  * The slim events index (RC-33): what /events, /this-month and /calendar render, without guide articles, the full
  * local-discoveries catalog, plan steps or summaries. Generated from the same catalogs as the detail pages, so titles,
- * dates, prices and source checks cannot drift. The CNT editorial overlay (shortTitle, dek, sessions, price, venueShort,
- * address, ageChip, tips, dateNote) is copied when an event carries it.
+ * dates, prices and source checks cannot drift. The CNT editorial overlay fields a listing shows or searches (shortTitle, dek,
+ * sessions, price, venueShort, iconKey) are copied when an event carries them; address, ageChip, tips and dateNote stay
+ * on the detail page, so the overlay adds as little as possible to /events.
  *
  * Deterministic for a given catalog (no build date): it keeps everything that had not ended by the edition's check date;
  * pages filter by the reader's own day. Run by `npm run generate:home` (prebuild and pretest).
  */
 const cutoff = MONTHLY_EDITION.checkedAt;
 
-const OVERLAY_KEYS = ['shortTitle', 'dek', 'sessions', 'price', 'venueShort', 'address', 'ageChip', 'tips', 'dateNote', 'iconKey'] as const;
+const OVERLAY_KEYS = ['shortTitle', 'dek', 'sessions', 'price', 'venueShort', 'iconKey'] as const;
 const pick = <T extends object, K extends string>(source: T, keys: readonly K[]) => Object.fromEntries(keys.flatMap(key => {
   const value = (source as Record<string, unknown>)[key];
   return value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length) ? [] : [[key, value]];
