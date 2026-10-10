@@ -13,6 +13,7 @@ import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../sr
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { EVENTS_INDEX, INDEX_EVENTS } from '../src/features/events/events-model';
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 import { generateSitemap } from '../scripts/generate-sitemap';
@@ -20,13 +21,15 @@ import { generateSitemap } from '../scripts/generate-sitemap';
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const noop = () => {};
 
-test('monthly structured data links every event to a readable canonical detail page beyond the initial six cards', () => {
+test('monthly structured data links every live event of the edition to a readable canonical detail page beyond the first page', () => {
   const html = renderHtmlDocument(template, MONTHLY_METADATA, '<main>Monthly edition</main>');
   const dom = new JSDOM(html);
   const [collection] = JSON.parse(dom.window.document.querySelector('script[type="application/ld+json"]')!.textContent!);
   const entries: { url: string; name: string }[] = collection.mainEntity.itemListElement;
-  assert.equal(entries.length, MONTHLY_EVENTS.length);
-  assert.ok(entries.length > 6, 'the monthly list paginates content beyond its first six cards');
+  // The events column's slim index: every event that had not ended by the edition's check date (RC-33), in catalog order.
+  assert.deepEqual(entries.map(entry => entry.url), INDEX_EVENTS.map(event => `https://www.baylink.us/events/${event.id}`));
+  for (const event of MONTHLY_EVENTS.filter(item => item.endDate >= EVENTS_INDEX.edition.checkedAt)) assert.ok(entries.some(entry => entry.url.endsWith(`/events/${event.id}`)), `${event.id} is listed`);
+  assert.ok(entries.length > 12, 'the list reaches beyond the first page of cards');
   for (const entry of entries) {
     const url = new URL(entry.url);
     assert.equal(url.hash, '', 'a filtered or unrendered monthly card cannot be a durable entry point');
@@ -37,7 +40,9 @@ test('monthly structured data links every event to a readable canonical detail p
     assert.equal(item.kind, 'event');
     const detail = getDiscoveryMetadata(item);
     assert.equal(url.pathname, detail.path);
-    assert.equal(entry.name, MONTHLY_EVENTS.find(event => event.id === id)?.title);
+    assert.equal(entry.name, INDEX_EVENTS.find(event => event.id === id)?.title);
+    const monthly = MONTHLY_EVENTS.find(event => event.id === id);
+    if (monthly) assert.equal(entry.name, monthly.title, 'the index keeps the catalog title');
   }
   dom.window.close();
 });
