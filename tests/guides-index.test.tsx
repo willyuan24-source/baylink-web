@@ -87,6 +87,20 @@ test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, 
   assert.equal(new URL(view.getByTestId('location').textContent!, 'http://localhost').searchParams.get('topic'), null);
 });
 
+test('searching inside a topic searches that topic’s own list, so the 长辈与家属 hub finds guides filed under another topic', () => {
+  const hub = new Set(guideSlugsForTopic('elders', guides));
+  for (const [query, slug] of [['Medicare', 'bay-area-medicare-hicap-medi-cal-guide'], ['牙科', 'bay-area-dental-care-insurance-low-cost-guide'], ['SSA', 'bay-area-social-security-retirement-preparation-guide']]) {
+    const view = open(`/guides?topic=elders&q=${encodeURIComponent(query)}`);
+    const hrefs = within(view.getByRole('list', { name: '搜索结果' })).getAllByRole('link').map(link => link.getAttribute('href')!.replace('/guides/', ''));
+    assert.ok(hrefs.includes(slug), `${query} → ${slug}`);
+    for (const href of hrefs) assert.ok(hub.has(href), `${href} is in the hub`);
+    cleanup();
+  }
+  // The topic still narrows: nothing outside the hub comes back.
+  const view = open('/guides?topic=elders&q=押金');
+  for (const link of view.container.querySelectorAll('.gl-results a')) assert.ok(hub.has(link.getAttribute('href')!.replace('/guides/', '')));
+});
+
 test('a region chip lists only that region’s guides', () => {
   const view = open('/guides?region=sf');
   assert.equal(view.getByRole('button', { name: '旧金山' }).getAttribute('aria-pressed'), 'true');
