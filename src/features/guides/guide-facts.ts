@@ -87,6 +87,13 @@ export function guideReadMinutes(guide: Pick<Guide, 'title' | 'summary' | 'block
 
 export const guideSourceCount = (guide: Pick<Guide, 'sources'>) => new Set(guide.sources.map(source => source.url)).size;
 
+/** A guide date for English readers: '2026-10-06' → 'Oct 6, 2026' (the head meta line and the carousel cover). */
+export const guideEnglishDate = (iso: string): string => {
+  const [year, month, day] = iso.split('-').map(Number);
+  if (!year || !month || !day) return iso;
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day, 12)));
+};
+
 /** One cover per guide through the honesty ladder: a photo or official image, never an AI illustration (→ TypeCover). */
 export function guideCover(guide: Guide, today: string, page?: CoverPage): ResolvedCover {
   const image = getGuideMedia(guide).cover;
