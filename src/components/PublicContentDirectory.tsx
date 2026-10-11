@@ -16,9 +16,14 @@ function directoryRow(item: LocalDiscovery, today: string, locale: Locale): Dire
   const share = discoveryShare(item);
   const base = { path: share.path, title: translateText(share.title, locale), date: translateText(share.date, locale), checkedAt: share.checkedAt };
   if (item.kind === 'event') {
-    const state = getEventStatus(item.event, today);
-    const labels = { upcoming: ['尚有后续日期', 'Upcoming dates'], ongoing: ['列明日期内', 'Within listed dates'], ended: ['已结束 · 往期记录', 'Ended · past record'] } as const;
-    return { ...base, start: item.event.startDate, end: item.event.endDate, status: label(locale, labels[state][0], labels[state][1]), archived: state === 'ended' };
+    // A postponed or cancelled event (status from a dated source read) has no confirmed day, which is not "ended".
+    const halted = item.event.status === 'postponed' || item.event.status === 'cancelled' ? item.event.status : undefined;
+    const state = halted ?? getEventStatus(item.event, today);
+    const labels = {
+      upcoming: ['尚有后续日期', 'Upcoming dates'], ongoing: ['列明日期内', 'Within listed dates'], ended: ['已结束 · 往期记录', 'Ended · past record'],
+      postponed: ['已延期 · 新日期待公布', 'Postponed · new date to be announced'], cancelled: ['已取消', 'Cancelled'],
+    } as const;
+    return { ...base, start: item.event.startDate, end: item.event.endDate, status: label(locale, labels[state][0], labels[state][1]), archived: state === 'ended' || state === 'cancelled' };
   }
   if (item.kind === 'opening') {
     const labels = { open: ['已报道开业', 'Reported open'], soft_open: ['试营业记录', 'Soft opening record'], announced: ['预告与庆典记录', 'Announcement or celebration record'] } as const;

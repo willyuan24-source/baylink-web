@@ -67,6 +67,8 @@ test('ended and unconfirmed records remain readable without inventing current av
       { kind: 'offer', offer: { ...offer.offer, id: 'recurring-fixture', availability: 'ongoing', startDate: undefined, endDate: undefined, verifiedAt: undefined } },
       { kind: 'offer', offer: { ...offer.offer, id: 'unconfirmed-fixture', verificationStatus: 'needs-confirmation', startDate: '2026-10-07', endDate: '2026-10-08', verifiedAt: '2026-10-07' } },
       { kind: 'opening', shop: { ...opening.shop, id: 'announcement-fixture', status: 'announced', openedOn: undefined, verifiedAt: '2026-10-01' } },
+      { kind: 'event', event: { ...event.event, id: 'postponed-fixture', startDate: '2026-10-27', endDate: '2026-10-27', occurrenceDates: [], status: 'postponed', verifiedAt: '2026-10-01' } },
+      { kind: 'event', event: { ...event.event, id: 'cancelled-fixture', startDate: '2026-10-27', endDate: '2026-10-27', occurrenceDates: [], status: 'cancelled', verifiedAt: '2026-10-01' } },
     ];
     const dom = renderDirectory('en', fixtures);
     const row = (path: string) => [...dom.window.document.querySelectorAll('a')].find(anchor => anchor.getAttribute('href') === `/en/${path}`)!.closest('li')!;
@@ -78,6 +80,12 @@ test('ended and unconfirmed records remain readable without inventing current av
     assert.equal([...row('offers/unconfirmed-fixture').querySelectorAll('time')].some(time => time.parentElement?.textContent?.includes('Source checked:')), false);
     assert.match(row('openings/announcement-fixture').textContent!, /Announcement or celebration record/);
     assert.equal(row('openings/announcement-fixture').querySelectorAll('time').length, 1, 'an announcement has only its actual check date, no manufactured first-service date');
+    // A postponed event has no confirmed day but is not a past record (`status` from the editorial overlay, review 10/11).
+    assert.match(row('events/postponed-fixture').textContent!, /Postponed · new date to be announced/);
+    assert.doesNotMatch(row('events/postponed-fixture').textContent!, /Ended/);
+    assert.match(row('events/postponed-fixture').closest('details')!.querySelector('summary')!.textContent!, /Upcoming, recurring and unconfirmed records/);
+    assert.match(row('events/cancelled-fixture').textContent!, /Cancelled/);
+    assert.match(row('events/cancelled-fixture').closest('details')!.querySelector('summary')!.textContent!, /Ended records/);
     dom.window.close();
     const finalDay = renderDirectory('en', [fixtures[1]], '2026-10-05');
     assert.match(finalDay.window.document.body.textContent!, /Within listed dates/);
