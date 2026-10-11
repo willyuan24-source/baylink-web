@@ -14,6 +14,7 @@ import { LocaleContentGate } from '../components/LocaleContentGate';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
 import { lazyChunk } from '../lib/chunk-recovery';
+import { reportClientError } from '../lib/error-beacon';
 import { api } from '../lib/api';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import type { AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData } from '../lib/types';
@@ -50,11 +51,14 @@ const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef }: { label: 
   </ModalShell>;
 };
 
-/** Contains a dialog whose chunk failed twice (offline, a stale deploy): close it and say so, keep the page. */
-class OverlayBoundary extends Component<{ onFail: () => void; children: ReactNode }, { failed: boolean }> {
+/**
+ * Contains a dialog whose chunk failed twice (offline, a stale deploy) or that crashed: close it and say so, keep the
+ * page. Reported like the root boundary (the beacon files a lost chunk as `chunk`, anything else as `render`).
+ */
+export class OverlayBoundary extends Component<{ onFail: () => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch() { this.props.onFail(); }
+  componentDidCatch(error: Error) { reportClientError('render', error); this.props.onFail(); }
   render() { return this.state.failed ? null : this.props.children; }
 }
 

@@ -146,3 +146,17 @@ test('event, offer and opening pages are marked for their action bar (D10); othe
     t.mock.restoreAll();
   }
 });
+
+test('a dialog whose chunk is lost (or that crashes) closes with a message, keeps the page and files a beacon', async t => {
+  const { OverlayBoundary } = await import('../src/app/OverlayHost');
+  const fetch = t.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  t.mock.method(console, 'error', () => {});
+  let closed = 0;
+  const Lost = () => { throw new TypeError('Failed to fetch dynamically imported module: https://www.baylink.us/assets/ReportModal-x1.js'); };
+  const view = render(<div><p>page</p><OverlayBoundary onFail={() => { closed += 1; }}><Lost /></OverlayBoundary></div>);
+  assert.equal(closed, 1, 'the host closes the dialog and shows its toast');
+  assert.equal(view.container.textContent, 'page', 'the page stays; no error screen');
+  const sent = () => fetch.mock.calls.filter(call => String(call.arguments[0]).endsWith('/client-errors'));
+  await waitFor(() => assert.equal(sent().length, 1));
+  assert.equal(JSON.parse(String((sent()[0].arguments[1] as RequestInit).body)).kind, 'chunk');
+});
