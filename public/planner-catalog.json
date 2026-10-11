@@ -148,7 +148,7 @@
       "category": "food",
       "kind": "event",
       "cost": "mixed",
-      "costLabel": "食物饮料另购；未见单独入场费。",
+      "costLabel": "餐饮另购；活动页没有列入场费。",
       "summary": "餐车、社区摊位与周五夜间聚会；10 月 23 日有万圣节特别场。",
       "plan": [
         "按具体周五查看餐车阵容；不要沿用网页下方 2025 年的菜单与优惠。"
@@ -2353,7 +2353,7 @@
       "category": "family",
       "kind": "event",
       "cost": "paid",
-      "costLabel": "官方页面列 18 岁以上 $28.80、4–17 岁 $22.80；停车 $15（只收刷卡和手机支付）。",
+      "costLabel": "18 岁以上 $28.80、4–17 岁 $22.80，3 岁及以下免费；停车 $15（只收刷卡和手机支付）。",
       "summary": "沿灯光步道看南瓜雕刻和主题装置，需选择实际开放日。",
       "plan": [
         "按日期购票；从 Valley Avenue 的 Gate 8 入场，不能从 Pleasanton Avenue 入口进入。"
@@ -11489,9 +11489,12 @@
         {
           "date": "2026-10-17",
           "start": "10:00"
+        },
+        {
+          "date": "2026-10-17",
+          "start": "11:30"
         }
       ],
-      "dateNote": "10:00、11:30 两场",
       "venueShort": "Novato City Hall",
       "address": "901 Sherman Avenue",
       "aliases": [
@@ -12425,7 +12428,7 @@
       "category": "family",
       "kind": "event",
       "cost": "mixed",
-      "costLabel": "旅游局明确讲座/展示免费；未核到所有分项费用。",
+      "costLabel": "讲座和展示免费；观鸟行程等其他项目费用待确认。",
       "summary": "以本地鸟类为主题，包含观鸟行程、表演和艺术手工。",
       "plan": [
         "观鸟行程的报名和名额待公布，部分可能需要预约。"
@@ -20282,14 +20285,21 @@
           "start": "15:00"
         },
         {
+          "date": "2026-11-12",
+          "start": "17:30"
+        },
+        {
           "date": "2026-11-21",
           "start": "13:00"
+        },
+        {
+          "date": "2026-11-21",
+          "start": "15:00"
         }
       ],
       "price": {
         "min": 15
       },
-      "dateNote": "11/12 15:00、17:30；11/21 13:00、15:00",
       "venueShort": "Arion Press, Fort Mason",
       "address": "2 Marina Boulevard",
       "aliases": [
@@ -20639,8 +20649,16 @@
           "start": "14:00"
         },
         {
+          "date": "2026-11-14",
+          "start": "19:00"
+        },
+        {
           "date": "2026-11-15",
           "start": "13:00"
+        },
+        {
+          "date": "2026-11-15",
+          "start": "18:00"
         },
         {
           "date": "2026-11-20"
@@ -20652,7 +20670,7 @@
           "date": "2026-11-22"
         }
       ],
-      "dateNote": "11/14 14:00、19:00；11/15 13:00、18:00；11/20–22 场次见售票页",
+      "dateNote": "11/20–22 场次见售票页",
       "venueShort": "Montgomery Theater",
       "aliases": [
         "CMT San Jose《Matilda》音乐剧",
@@ -21062,6 +21080,10 @@
           "start": "14:00"
         },
         {
+          "date": "2026-11-14",
+          "start": "19:30"
+        },
+        {
           "date": "2026-11-15",
           "start": "13:00"
         },
@@ -21070,11 +21092,14 @@
           "start": "14:00"
         },
         {
+          "date": "2026-11-21",
+          "start": "19:30"
+        },
+        {
           "date": "2026-11-22",
           "start": "13:00"
         }
       ],
-      "dateNote": "周六 14:00、19:30；周日 13:00",
       "venueShort": "MVCPA MainStage",
       "address": "500 Castro Street",
       "aliases": [
@@ -21879,12 +21904,19 @@
           "start": "14:00"
         },
         {
+          "date": "2026-11-21",
+          "start": "19:30"
+        },
+        {
           "date": "2026-11-22",
           "start": "13:00"
+        },
+        {
+          "date": "2026-11-22",
+          "start": "18:30"
         }
       ],
       "ageChip": "建议 16 岁以上",
-      "dateNote": "11/21 14:00、19:30；11/22 13:00、18:30",
       "venueShort": "San Jose Center for the Performing Arts",
       "address": "255 Almaden Boulevard",
       "aliases": [
@@ -22280,27 +22312,75 @@
           "start": "11:30"
         },
         {
+          "date": "2026-11-20",
+          "start": "13:30"
+        },
+        {
+          "date": "2026-11-20",
+          "start": "14:30"
+        },
+        {
           "date": "2026-11-21",
           "start": "11:30"
+        },
+        {
+          "date": "2026-11-21",
+          "start": "13:30"
+        },
+        {
+          "date": "2026-11-21",
+          "start": "14:30"
         },
         {
           "date": "2026-11-22",
           "start": "11:30"
         },
         {
+          "date": "2026-11-22",
+          "start": "13:30"
+        },
+        {
+          "date": "2026-11-22",
+          "start": "14:30"
+        },
+        {
           "date": "2026-11-27",
           "start": "11:30"
+        },
+        {
+          "date": "2026-11-27",
+          "start": "13:30"
+        },
+        {
+          "date": "2026-11-27",
+          "start": "14:30"
         },
         {
           "date": "2026-11-28",
           "start": "11:30"
         },
         {
+          "date": "2026-11-28",
+          "start": "13:30"
+        },
+        {
+          "date": "2026-11-28",
+          "start": "14:30"
+        },
+        {
           "date": "2026-11-29",
           "start": "11:30"
+        },
+        {
+          "date": "2026-11-29",
+          "start": "13:30"
+        },
+        {
+          "date": "2026-11-29",
+          "start": "14:30"
         }
       ],
-      "dateNote": "每天 11:30、13:30、14:30 三场，各 15 分钟",
+      "dateNote": "每场约 15 分钟",
       "venueShort": "Fort Point National Historic Site",
       "address": "201 Marine Drive",
       "aliases": [
@@ -23252,13 +23332,17 @@
           "date": "2026-11-24",
           "start": "10:00",
           "end": "12:00"
+        },
+        {
+          "date": "2026-11-24",
+          "start": "14:00",
+          "end": "16:00"
         }
       ],
       "price": {
         "min": 160,
         "note": "会员九折"
       },
-      "dateNote": "11/24 另有 14:00 场",
       "venueShort": "Filoli",
       "address": "86 Cañada Road",
       "aliases": [
