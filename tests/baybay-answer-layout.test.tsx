@@ -12,7 +12,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
 const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
-const { BayBayCardRail } = await import('../src/features/baybay/BayBayAnswer');
+const { BayBayCardRail, BayBayReadAloud } = await import('../src/features/baybay/BayBayAnswer');
 const { BayBaySaveScope } = await import('../src/features/baybay/BayBaySaveScope');
 const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayTextUnits } = await import('../src/lib/baybay-answer');
 const { bayBayCardCitations, bayBayCardModels } = await import('../src/features/baybay/answer-cards');
@@ -80,8 +80,8 @@ test('a v2 answer reads lead, then image cards, then points with [n], then follo
   // Card ↔ point mapping: the card title carries the citation number of its own page.
   assert.match(items[0].textContent || '', /^\[1\]/);
   assert.match(items[2].textContent || '', /\[3\]/);
-  // Events offer ♡ 想去 and 加入行程; an offer card is a link only until WEB-SAVES adds offer saves.
-  assert.ok(within(items[0]).getByRole('button', { name: /想去：/ }));
+  // Events offer ♡ 收藏 (to 我的这周) and 加入行程; an offer card is a link only until WEB-SAVES adds offer saves.
+  assert.ok(within(items[0]).getByRole('button', { name: /^收藏到我的这周：/ }));
   fireEvent.click(within(items[0]).getByRole('button', { name: /加入行程：/ }));
   assert.equal(paths.at(-1), `/plan?date=2026-10-10&stops=${encodeURIComponent('event:santa-clara-library-comic-con-2026')}`);
   assert.equal(within(items[2]).queryAllByRole('button').length, 0);
@@ -148,15 +148,17 @@ test('card covers follow the honesty ladder and each card cites its own page', (
   assert.equal(bayBayCardModels([{ kind: 'event', id: 'not-a-real-event', title: 'x', url: '/events/not-a-real-event', summary: '' }], TODAY).length, 0, 'unknown listings are skipped, never invented');
 });
 
-test('♡ 想去 saves an event for a guest in this browser; ended events offer reference only', async () => {
+test('♡ 收藏 saves an event to 我的这周 for a guest in this browser; ended events offer reference only', async () => {
   const card = c01().localMatches[0];
   const paths: string[] = [];
   const view = render(<BayBaySaveScope active><BayBayCardRail cards={[card as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
-  const save = await view.findByRole('button', { name: /想去：/ });
+  const save = await view.findByRole('button', { name: /^收藏到我的这周：/ });
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
-  fireEvent.click(view.getByRole('button', { name: /想去：/ }));
-  await view.findByRole('button', { name: /已想去：/ });
-  assert.ok(save);
+  // The planner favorites are 我的这周 everywhere else (SaveToWeek); the event page's 我想去 is a separate store.
+  assert.equal(save.textContent, '收藏');
+  assert.doesNotMatch(view.baseElement.textContent || '', /想去/);
+  fireEvent.click(view.getByRole('button', { name: /^收藏到我的这周：/ }));
+  assert.equal((await view.findByRole('button', { name: /^已收藏到我的这周：/ })).textContent, '已收藏');
   assert.match(localStorage.getItem(GUEST_PLANNER_KEY) || '', /santa-clara-library-comic-con-2026/);
   view.rerender(<BayBaySaveScope active><BayBayCardRail cards={[{ ...card, date: undefined, temporalStatus: 'past' } as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
   assert.ok(view.getByText('已结束 · 仅供参考'));
@@ -234,4 +236,36 @@ test('the answer stylesheet uses tokens and rem only, and every control is at le
   // Answers read at 17px (20 in 简洁显示), never smaller than the legacy answer text — and the 911 instructions likewise.
   assert.match(css, /\.bb-points>li \{[^}]*font-size:var\(--text-reading\)/, 'points use the 17px reading size');
   assert.match(css, /\.bb-emergency__text \{[^}]*font-size:var\(--text-reading\)/, 'the 911 instructions use the reading size');
+});
+
+test('朗读 on a second answer is not cancelled by the first one being interrupted, and unmounting stops only its own voice', async () => {
+  class FakeUtterance { lang = ''; onend: (() => void) | null = null; onerror: (() => void) | null = null; text: string; constructor(text: string) { this.text = text; } }
+  const synth = { current: null as FakeUtterance | null, cancelled: [] as string[],
+    speak(utterance: FakeUtterance) { this.current = utterance; },
+    // Like Chrome: cancelling reports an error on the interrupted utterance a moment later.
+    cancel() { const interrupted = this.current; this.current = null; if (interrupted) { this.cancelled.push(interrupted.text); setTimeout(() => interrupted.onerror?.(), 0); } } };
+  const win = window as unknown as Record<string, unknown>;
+  Object.assign(win, { speechSynthesis: synth, SpeechSynthesisUtterance: FakeUtterance });
+  try {
+    const flush = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 5)); });
+    const both = (showA: boolean) => <>{showA && <BayBayReadAloud key="a" text="A" />}<BayBayReadAloud key="b" text="B" /></>;
+    const view = render(both(true));
+    const [a, b] = view.getAllByRole('button', { name: '朗读回答' });
+    fireEvent.click(a);
+    await flush();
+    assert.equal(synth.current?.text, 'A');
+    fireEvent.click(b);
+    await flush();
+    assert.equal(synth.current?.text, 'B', 'B keeps speaking after A reports its interruption');
+    assert.deepEqual(synth.cancelled, ['A']);
+    assert.equal(a.getAttribute('aria-pressed'), 'false');
+    assert.equal(b.getAttribute('aria-pressed'), 'true');
+    view.rerender(both(false));
+    await flush();
+    assert.equal(synth.current?.text, 'B', 'unmounting A does not stop B');
+    view.unmount();
+    assert.deepEqual(synth.cancelled, ['A', 'B'], 'unmounting B stops its own voice');
+  } finally {
+    delete win.speechSynthesis; delete win.SpeechSynthesisUtterance;
+  }
 });
