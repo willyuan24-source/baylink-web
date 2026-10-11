@@ -116,6 +116,13 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-article .bl-guide-source-link>a { color:var(--color-brand); font-size:var(--text-body); }
 .gd-article .bl-guide-source-link>p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
 
+/* A number in an official source description (PhoneText) keeps the prose chip: the legacy `.bl-guide-sources a` rules meant for
+   the source title (a flex row in guides-ui.css, ink-2 in tokens.css) would stretch it across the line and grey it out. The
+   title keeps its own tap area above the chip's 48px box, as in phone-links.css. */
+.gd-article .bl-guide-sources li p .phone-chip { display:inline-flex; align-items:center; justify-content:normal; gap:.25em; color:var(--color-brand); font-size:var(--text-reading); line-height:1.6; }
+.gd-article .bl-guide-sources li p .phone-chip>svg { margin-top:0; }
+.gd-article .bl-guide-sources li:has(.phone-chip)>a { position:relative; z-index:1; }
+
 /* The outing link's small line (outing-inspiration.css) reads at caption size inside an article. */
 .gd-article .outing-inspiration-link small { font-size:var(--text-caption); }
 
