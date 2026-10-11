@@ -40,7 +40,7 @@
 .gl-directory li { break-inside:avoid; }
 .gl-directory a { display:block; padding:10px 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; text-decoration:none; }
 .gl-directory a:hover { color:var(--color-brand); text-decoration:underline; }
-.gl-footer { display:flex; flex-wrap:wrap; align-items:center; gap:4px 16px; margin-top:24px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.gl-footer { display:flex; flex-wrap:wrap; align-items:center; gap:4px 16px; margin-top:24px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .gl-footer p { margin:0; }
 .gl-footer a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; }
 :is(.gl-search__clear,.gl-saved-link,.gl-directory>button,.gl-directory a,.gl-footer a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }

@@ -41,7 +41,7 @@ function ContactCard({ guide, contact }: { guide: Guide; contact: GuideContact }
   return <article className="gd-contact">
     <h3>{name}<SourceMark guide={guide} index={contact.source} /></h3>
     <p className="gd-contact__number">{contact.number}</p>
-    {contact.languages && <p className="gd-contact__languages">{contact.languages.map(language => <StatusChip key={language.zh} tone="info">{pick(language)}</StatusChip>)}</p>}
+    {contact.languages && <p className="gd-contact__languages">{contact.languages.map(language => <StatusChip key={language.zh}>{pick(language)}</StatusChip>)}</p>}
     {contact.note && <p className="gd-contact__note">{pick(contact.note)}</p>}
     {contact.address && <p className="gd-contact__address" translate="no">{contact.address}</p>}
     <div className="gd-contact__actions">

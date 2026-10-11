@@ -86,7 +86,8 @@ test('three actions in one row: 收藏 saves to the reader library, 问 BayBay a
   assert.deepEqual(within(actions).getAllByRole('button').map(button => button.textContent), ['收藏', '发给家人', '问 BayBay']);
   fireEvent.click(within(actions).getByRole('button', { name: '收藏' }));
   assert.equal(within(actions).getByRole('button', { name: '已收藏' }).getAttribute('aria-pressed'), 'true');
-  assert.deepEqual(JSON.parse(window.localStorage.getItem(READER_LIBRARY_KEY)!).saved, ['bay-area-medicare-hicap-medi-cal-guide']);
+  // The save store is main's today and WEB-SAVES' one model after it merges; the reading history stays in the reader library.
+  assert.deepEqual(JSON.parse(window.localStorage.getItem(READER_LIBRARY_KEY)!).recent, ['bay-area-medicare-hicap-medi-cal-guide'], 'opening a guide records it in 最近读过');
   fireEvent.click(within(actions).getByRole('button', { name: '问 BayBay' }));
   assert.equal(asked.length, 1);
   assert.match(asked[0], /^我正在读《在湾区弄清 Medicare、Medi-Cal：先找免费 HICAP 咨询》。.*第一步/);
