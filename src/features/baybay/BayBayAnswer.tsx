@@ -1,11 +1,11 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { BookOpen, ChevronDown, Globe2, Phone } from 'lucide-react';
 import './baybay-answer.css';
 import { useBayBayCopy } from './copy';
 import { SmartLink } from './SmartLink';
 import { useBayBayCardsModule } from './cards-loader';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
-import { bayBayAnswerView, bayBayReadableText, bayBayResumeLabel, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayPoint, type BayBayProfessionalSafety } from '../../lib/baybay-answer';
+import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayResumeLabel, bayBayResumeStyle, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayPoint, type BayBayProfessionalSafety } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 
 type Navigate = (path: string) => void;
@@ -87,12 +87,14 @@ export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate }: 
   const { t, english } = useBayBayCopy();
   const view = bayBayAnswerView(fields, english);
   const [expanded, setExpanded] = useState(false);
+  // Card [n] ↔ point: the rail follows the points that name each card, then the server's order.
+  const ordered = useMemo(() => bayBayOrderCards(cards, fields.points || []), [cards, fields.points]);
   if (!view) return null;
   const rest = view.more.length + (view.gap ? 1 : 0);
   const spoken = [view.lead, ...view.visible.map(point => point.text)].map(bayBayReadableText).join(english ? ' ' : '');
   return <div className="bb-answer" data-answer-layout="v2">
     <p className="bb-lead"><BayBayCitedText text={view.lead} sources={sources} onNavigate={onNavigate} /></p>
-    <BayBayCardRail cards={cards} sources={sources} today={today} onNavigate={onNavigate} />
+    <BayBayCardRail cards={ordered} sources={sources} today={today} onNavigate={onNavigate} />
     {view.visible.length > 0 && <PointList points={view.visible} sources={sources} onNavigate={onNavigate} />}
     {rest > 0 && (expanded ? <>
       {view.more.length > 0 && <PointList points={view.more} sources={sources} onNavigate={onNavigate} className="bb-points bb-points--more" />}
@@ -103,12 +105,18 @@ export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate }: 
   </div>;
 }
 
-/** The pending bubble while drafts stream: the lead, then each point as it arrives. Unvalidated text, never live. */
-export function BayBayDraftPreview({ lead, points }: { lead: string; points: readonly string[] }) {
-  const shown = points.filter(Boolean);
-  if (!lead && !shown.length) return null;
+/**
+ * The pending bubble in the final answer's order, so nothing jumps when the result replaces it: the streamed lead (or
+ * the legacy answer's validated text, in the legacy text style), the verified cards, then each point as it arrives.
+ * Draft text is unvalidated and never live.
+ */
+export function BayBayDraftPreview({ lead, legacy = '', points, cards = [], today, onNavigate }: { lead: string; legacy?: string; points: readonly string[]; cards?: readonly BayBayQuickCard[]; today: string; onNavigate: Navigate }) {
+  const text = legacy || lead;
+  const shown = legacy ? [] : points.filter(Boolean);
+  if (!text && !shown.length && !cards.length) return null;
   return <div className="bb-answer bb-answer--draft" data-draft="">
-    {lead && <p className="bb-lead baybay-stream-answer">{lead}</p>}
+    {text && <p className={legacy ? 'member-baybay-answer-text baybay-stream-answer' : 'bb-lead baybay-stream-answer'}>{text}</p>}
+    <BayBayCardRail cards={cards} today={today} onNavigate={onNavigate} />
     {shown.length > 0 && <ul className="bb-points">{shown.map((point, index) => <li key={index}>{point}</li>)}</ul>}
   </div>;
 }
@@ -158,9 +166,11 @@ const PAUSE_KINDS: readonly BayBayNoticeKind[] = ['ai_daily_budget', 'ai_paused'
 export function BayBayNoticeBanner({ kind, text, resumesAt, actions }: { kind: BayBayNoticeKind; text: string; resumesAt?: string; actions?: readonly BayBayCallAction[] }) {
   const { t, english } = useBayBayCopy();
   const paused = PAUSE_KINDS.includes(kind);
-  const resume = resumesAt ? bayBayResumeLabel(resumesAt, english) : '';
+  // The resume time once: nothing when the server text already gives a time; "即 …" after its own "明天会恢复".
+  const style = bayBayResumeStyle(text);
+  const resume = resumesAt && style !== 'none' ? bayBayResumeLabel(resumesAt, english) : '';
   return <div className="bb-notice" data-notice={kind} role="status">
     {paused && <BayBayCallActions actions={actions?.length ? actions : BAYBAY_HELP_ACTIONS} />}
-    <p translate="no">{text}{resume && <span className="bb-notice__resume">{t(`预计 ${resume}（湾区时间）恢复`, ` Back around ${resume} (Bay Area time).`)}</span>}</p>
+    <p translate="no">{text}{resume && <span className="bb-notice__resume">{style === 'time' ? t(`即 ${resume}（湾区时间）`, ` That is ${resume} (Bay Area time).`) : t(`预计 ${resume}（湾区时间）恢复`, ` Back around ${resume} (Bay Area time).`)}</span>}</p>
   </div>;
 }

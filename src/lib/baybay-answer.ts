@@ -152,6 +152,27 @@ export function bayBayResumeLabel(iso: string, english: boolean): string {
   return `${parts.month} 月 ${parts.day} 日 ${Number(parts.hour)}:${parts.minute}`;
 }
 
+/**
+ * How a pause banner adds its resume time so it is said once: `none` when the server text already gives a clock time
+ * or date, `time` when it already says BayBay comes back ("明天会恢复", "back tomorrow"), else the full `sentence`.
+ */
+export function bayBayResumeStyle(text: string): 'none' | 'time' | 'sentence' {
+  if (/\d{1,2}:\d{2}|\d{1,2}\s*月\s*\d{1,2}\s*[日号號]|\b\d{1,2}\s*[ap]\.?m\b|\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+\d{1,2}\b/i.test(text)) return 'none';
+  return /恢复|恢復|\bback\b|\bresum/i.test(text) ? 'time' : 'sentence';
+}
+
+/**
+ * The answer's cards in the order its points name them (`points[].cardIds`, so the card for point 1 comes first), then
+ * any card no point names, in the server's order.
+ */
+export function bayBayOrderCards<T extends { kind: string; id: string }>(cards: readonly T[], points: readonly Pick<BayBayPoint, 'cardIds'>[]): T[] {
+  const rank = new Map<string, number>();
+  for (const point of points) for (const key of point.cardIds) if (!rank.has(key)) rank.set(key, rank.size);
+  if (!rank.size) return [...cards];
+  return cards.map((card, index) => ({ card, index, rank: rank.get(`${card.kind}:${card.id}`) ?? Infinity }))
+    .sort((a, b) => a.rank - b.rank || a.index - b.index).map(entry => entry.card);
+}
+
 /** Points shown before "更多": the answer layout keeps 2–3 points visible (1007 §6.5). */
 export const BAYBAY_VISIBLE_POINTS = 3;
 /** The visible-answer budget: ≤250 字 (zh) or ≤120 words (en), excluding citation markers. */

@@ -70,7 +70,7 @@ export function BayBayCardRailView({ cards, sources = [], today, onNavigate, lab
     {models.map(model => {
       const cited = citations.get(model.key);
       return <li key={model.key} className="bb-card" data-kind={model.kind} data-card-key={model.key}>
-        <h4 className="bb-card__title"><SmartLink className="bb-card__link" href={model.url} onNavigate={onNavigate}>{cited !== undefined && <span className="bb-card__n" aria-label={t(`来源 ${cited}`, `Source ${cited}`)}>[{cited}]</span>}{model.title}</SmartLink></h4>
+        <h4 className="bb-card__title"><SmartLink className="bb-card__link" href={model.url} onNavigate={onNavigate}>{cited !== undefined && <span className="bb-card__n" aria-hidden="true">[{cited}]</span>}{cited !== undefined && <span className="sr-only">{t(`来源 ${cited}：`, `Source ${cited}: `)}</span>}{model.title}</SmartLink></h4>
         <div className="bb-card__media"><CardCover model={model} today={today} /></div>
         <p className="bb-card__meta">{cardMeta(model, today, english, pick)}</p>
         <CardActions model={model} onNavigate={onNavigate} />
