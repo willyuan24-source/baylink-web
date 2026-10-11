@@ -60,6 +60,9 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-card__actions button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand); }
 .baybay-conversation .bb-card__actions button:disabled { opacity:.6; }
 .baybay-conversation .bb-card__ended { order:4; margin:0; color:var(--color-ink-3); font-size:var(--text-caption); }
+/* The cards' chunk could not load (offline, or a new deploy renamed it): the same listings as plain links */
+.baybay-conversation .bb-card-links { display:grid; margin:0; padding:0; list-style:none; }
+.baybay-conversation .bb-card-links a { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); line-height:1.4; font-weight:600; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
 
 /* 911 first: the red emergency card (BBLIVE-09) */
 .baybay-conversation .bb-emergency { display:grid; gap:12px; padding:16px; border-radius:16px; background:var(--color-danger); color:var(--color-surface); }

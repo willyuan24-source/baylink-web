@@ -49,15 +49,18 @@ function CardActions({ model, onNavigate }: { model: BayBayCardModel; onNavigate
   const saved = !!saves?.ready && saves.saved(favorite);
   const plan = `/plan?${model.day ? `date=${model.day}&` : ''}stops=${encodeURIComponent(`event:${model.event.id}`)}`;
   return <div className="bb-card__actions">
+    {/* Planner favorites = 我的这周, as SaveToWeek labels them. The event page's 我想去 is a different store (sign-in
+        interest), so this says 收藏 until WEB-SAVES' useSave unifies the two and it can become ♡ 想去. */}
     <button type="button" aria-pressed={saves?.ready ? saved : undefined} disabled={!saves?.ready || saves.busy} onClick={() => saves?.toggle(favorite)}
-      aria-label={saved ? t(`已想去：${model.title}`, `Saved: ${model.title}`) : t(`想去：${model.title}`, `Want to go: ${model.title}`)}>
-      <Heart aria-hidden="true" size={18} fill={saved ? 'currentColor' : 'none'} />{saved ? t('已想去', 'Saved') : t('想去', 'Want to go')}
+      title={t('收藏到我的这周', 'Save to My Week')}
+      aria-label={saved ? t(`已收藏到我的这周：${model.title}`, `Saved to My Week: ${model.title}`) : t(`收藏到我的这周：${model.title}`, `Save to My Week: ${model.title}`)}>
+      <Heart aria-hidden="true" size={18} fill={saved ? 'currentColor' : 'none'} />{saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}
     </button>
     <button type="button" onClick={() => onNavigate(plan)} aria-label={t(`加入行程：${model.title}`, `Add to a plan: ${model.title}`)}><CalendarPlus aria-hidden="true" size={18} />{t('加入行程', 'Add to plan')}</button>
   </div>;
 }
 
-/** Horizontal image cards (264 wide, 16:10, provenance badge, title 16/600, one meta line, ♡ 想去 / 加入行程). */
+/** Horizontal image cards (264 wide, 16:10, provenance badge, title 16/600, one meta line, ♡ 收藏 / 加入行程). */
 export function BayBayCardRailView({ cards, sources = [], today, onNavigate, label }: { cards: readonly BayBayQuickCard[]; sources?: Sources; today: string; onNavigate: Navigate; label?: string }) {
   const { t, english, pick } = useBayBayCopy();
   const models = useMemo(() => bayBayCardModels(cards, today), [cards, today]);

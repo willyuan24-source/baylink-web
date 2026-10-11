@@ -1,9 +1,9 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { BookOpen, ChevronDown, Globe2, Phone } from 'lucide-react';
 import './baybay-answer.css';
 import { useBayBayCopy } from './copy';
 import { SmartLink } from './SmartLink';
-import { bayBayCardsModule, loadBayBayCards } from './cards-loader';
+import { useBayBayCardsModule } from './cards-loader';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
 import { bayBayAnswerView, bayBayReadableText, bayBayResumeLabel, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayPoint, type BayBayProfessionalSafety } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
@@ -22,30 +22,53 @@ export function BayBayCitedText({ text, sources, onNavigate }: { text: string; s
 
 /**
  * The image cards load as their own chunk (covers, TypeCover and the listing data), started when the panel opens, so the
- * site's entry does not list their dependencies; until then a fixed-height placeholder keeps the layout still.
+ * site's entry does not list their dependencies; until then a fixed-height placeholder keeps the layout still. If the
+ * chunk cannot load (offline, or a deploy renamed it), the same listings show as plain links, never an endless placeholder.
  */
 export function BayBayCardRail(props: { cards: readonly BayBayQuickCard[]; sources?: Sources; today: string; onNavigate: Navigate; label?: string }) {
-  const [module, setModule] = useState(bayBayCardsModule);
-  useEffect(() => { if (!module && props.cards.length) void loadBayBayCards().then(setModule, () => {}); }, [module, props.cards.length]);
+  const { t } = useBayBayCopy();
+  const { module, failed } = useBayBayCardsModule(props.cards.length > 0);
   if (!props.cards.length) return null;
-  if (!module) return <div className="bb-cards bb-cards--loading" aria-hidden="true"><span /><span /></div>;
-  const Rail = module.BayBayCardRailView;
-  return <Rail {...props} />;
+  if (module) { const Rail = module.BayBayCardRailView; return <Rail {...props} />; }
+  if (!failed) return <div className="bb-cards bb-cards--loading" aria-hidden="true"><span /><span /></div>;
+  const seen = new Set<string>();
+  const links = props.cards.filter(card => !seen.has(card.url) && !!seen.add(card.url)).slice(0, 5);
+  return <ul className="bb-card-links" data-fallback="" aria-label={props.label || t('相关活动与去处', 'Related events and places')}>
+    {links.map(card => <li key={card.url}><SmartLink href={card.url} onNavigate={props.onNavigate}>{card.title}</SmartLink></li>)}
+  </ul>;
 }
+
+/** The answer whose voice is playing, so one answer's 朗读 never stops another's. */
+let voice: { utterance: SpeechSynthesisUtterance; release: () => void } | null = null;
 
 /** 朗读 (简洁显示): reads the lead and points aloud with the browser's own voice; nothing is sent anywhere. */
 export function BayBayReadAloud({ text }: { text: string }) {
   const { t, locale } = useBayBayCopy();
   const [speaking, setSpeaking] = useState(false);
+  const mine = useRef<SpeechSynthesisUtterance | null>(null);
   const supported = typeof window !== 'undefined' && 'speechSynthesis' in window && typeof window.SpeechSynthesisUtterance === 'function';
-  useEffect(() => () => { if (supported && speaking) window.speechSynthesis.cancel(); }, [supported, speaking]);
+  // Stop on unmount only, and only this answer's own voice (an effect on `speaking` would cancel a newer answer's).
+  useEffect(() => () => { const own = mine.current; mine.current = null; if (own && voice?.utterance === own) { voice = null; window.speechSynthesis.cancel(); } }, []);
   if (!supported || !text) return null;
   const toggle = () => {
-    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    if (speaking) {
+      const own = mine.current;
+      mine.current = null;
+      setSpeaking(false);
+      if (own && voice?.utterance === own) { voice = null; window.speechSynthesis.cancel(); }
+      return;
+    }
     const utterance = new window.SpeechSynthesisUtterance(text);
     utterance.lang = locale === 'en' ? 'en-US' : locale === 'zh-Hant' ? 'zh-TW' : 'zh-CN';
-    utterance.onend = utterance.onerror = () => setSpeaking(false);
+    // An end, an error (an interrupted voice reports one) or a newer answer taking over only ever resets this answer.
+    const release = () => { if (voice?.utterance === utterance) voice = null; if (mine.current === utterance) { mine.current = null; setSpeaking(false); } };
+    utterance.onend = utterance.onerror = release;
+    const previous = voice;
+    voice = null;
+    previous?.release();
     window.speechSynthesis.cancel();
+    mine.current = utterance;
+    voice = { utterance, release };
     window.speechSynthesis.speak(utterance);
     setSpeaking(true);
   };
