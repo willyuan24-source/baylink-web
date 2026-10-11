@@ -8,17 +8,39 @@ import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { EVENT_OVERLAY, OFFER_OVERLAY, OPENING_OVERLAY, PRE_OVERLAY } from '../src/data/editorial-overlay/apply';
-import { basisFor, lintEditorial, overlayCoverage, readEnglishSources, type Basis } from '../src/data/editorial-overlay/lint';
+import { lintEditorial, nextBasis, overlayCoverage, readEnglishSources, type Basis } from '../src/data/editorial-overlay/lint';
 
-// Usage: tsx scripts/audit-editorial-content.ts [YYYY-MM-DD] [--strict] [--write-basis]
-//   --strict       exit 1 when an item with an overlay entry has an editorial lint error (content.md §4.4)
-//   --write-basis  record the source fields each overlay entry was written against (src/data/editorial-overlay/basis.json)
+// Usage: tsx scripts/audit-editorial-content.ts [YYYY-MM-DD] [--strict] [--write-basis[=kind:id,…]]
+//   --strict                  exit 1 when an item with an overlay entry has an editorial lint error (content.md §4.4)
+//   --write-basis             re-record the source fields every overlay entry was written against
+//                             (src/data/editorial-overlay/basis.json); refused, with nothing written, while a stored entry
+//                             field still masks an upstream edit (the lint's source-changed errors)
+//   --write-basis=event:<id>  re-record only the named items, after updating or removing the entry field that masked the edit
 const args = process.argv.slice(2);
 const today = args.find(arg => /^\d{4}-\d{2}-\d{2}$/.test(arg)) || getBayAreaToday();
 const BASIS_FILE = 'src/data/editorial-overlay/basis.json';
-if (args.includes('--write-basis')) {
-  const rows = Object.entries(basisFor(PRE_OVERLAY)).map(([key, fields]) => `${JSON.stringify(key)}: ${JSON.stringify(fields)}`);
-  writeFileSync(BASIS_FILE, `{\n${rows.join(',\n')}\n}\n`);
+const overlay = { events: EVENT_OVERLAY, offers: OFFER_OVERLAY, openings: OPENING_OVERLAY };
+let basis: Basis | undefined;
+try { basis = JSON.parse(readFileSync(BASIS_FILE, 'utf8')); } catch { basis = undefined; }
+const writeBasis = args.find(arg => arg === '--write-basis' || arg.startsWith('--write-basis='));
+if (writeBasis) {
+  const keys = writeBasis.includes('=') ? writeBasis.slice(writeBasis.indexOf('=') + 1).split(',').map(key => key.trim()).filter(Boolean) : undefined;
+  const next = nextBasis(overlay, PRE_OVERLAY, basis ?? {}, keys);
+  if (next.unknown.length) {
+    console.error(`--write-basis: no covered item ${next.unknown.join(', ')} (use kind:id, e.g. event:<id>)`);
+    process.exitCode = 1;
+  } else if (!next.basis) {
+    console.error([
+      `--write-basis refused: ${next.blocked.length} upstream edits are still masked by a stored entry field, nothing written.`,
+      ...next.blocked.map(line => `  ${line}`),
+      'Update or remove each masking entry field (or name it in the PR for the captain), then re-record those items with --write-basis=kind:id.',
+    ].join('\n'));
+    process.exitCode = 1;
+  } else {
+    basis = next.basis;
+    const rows = Object.entries(basis).map(([key, fields]) => `${JSON.stringify(key)}: ${JSON.stringify(fields)}`);
+    writeFileSync(BASIS_FILE, `{\n${rows.join(',\n')}\n}\n`);
+  }
 }
 
 const canonical = (value: string) => { const url = new URL(value); return `${url.hostname.replace(/^www\./, '')}${url.pathname.replace(/\/+$/, '')}${url.search}`; };
@@ -40,9 +62,6 @@ currentFreebies.forEach(item => visit(item, `offer:${item.id}`));
 currentOpenings.forEach(item => visit(item, `opening:${item.id}`));
 currentRegionalBulletins.forEach(item => visit(item, `bulletin:${item.id}`));
 
-let basis: Basis | undefined;
-try { basis = JSON.parse(readFileSync(BASIS_FILE, 'utf8')); } catch { basis = undefined; }
-const overlay = { events: EVENT_OVERLAY, offers: OFFER_OVERLAY, openings: OPENING_OVERLAY };
 const english = readEnglishSources(path => readFileSync(path, 'utf8'));
 const issues = lintEditorial({ events: MONTHLY_EVENTS, offers: currentFreebies, openings: currentOpenings, overlay, english, from: today, sources: PRE_OVERLAY, basis });
 const errors = issues.filter(issue => issue.level === 'error');

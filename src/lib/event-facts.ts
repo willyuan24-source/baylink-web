@@ -102,8 +102,17 @@ export function formatDateChip(chip: DateChip, english: boolean): DateChipText {
 const hour = (time: string | undefined) => /^(\d{1,2}):(\d{2})$/.exec(time || '');
 type TimeSpan = { open: string; close?: string };
 const span = (item?: { start?: string; end?: string }): TimeSpan | undefined => item?.start ? { open: item.start, close: item.end } : undefined;
-/** "11–19 点" / "11am–7pm" for the shown day, from structured sessions or the verified schedule only. */
+const twelve = (match: RegExpExecArray) => {
+  const h = Number(match[1]), suffix = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
+  return `${h12}${match[2] === '00' ? '' : `:${match[2]}`}${suffix}`;
+};
+/**
+ * "11–19 点" / "11am–7pm" for the shown day, from structured sessions or the verified schedule only. A day with several
+ * sessions (one per start time) lists the starts: "10:00、14:00" / "10am, 2pm".
+ */
 export function eventTimeLabel(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: string, english: boolean): string | undefined {
+  const starts = (event.sessions ?? []).filter(item => item.date === day).map(item => hour(item.start)).filter((match): match is RegExpExecArray => !!match);
+  if (starts.length > 1) return english ? starts.map(twelve).join(', ') : starts.map(match => `${match[1]}:${match[2]}`).join('、');
   const schedule = event.planning?.schedule;
   const weeklyApplies = !!schedule?.weekly && validDay(day) && (!schedule.validFrom || day >= schedule.validFrom) && (!schedule.validThrough || day <= schedule.validThrough);
   const window: TimeSpan | undefined = span(event.sessions?.find(item => item.date === day))
@@ -112,13 +121,7 @@ export function eventTimeLabel(event: Pick<EventFactsInput, 'sessions' | 'planni
     ?? (weeklyApplies ? schedule?.weekly?.[weekdayOf(day)]?.[0] : undefined);
   const a = hour(window?.open), b = hour(window?.close);
   if (!a) return undefined;
-  if (english) {
-    const twelve = (match: RegExpExecArray) => {
-      const h = Number(match[1]), suffix = h >= 12 ? 'pm' : 'am', h12 = h % 12 || 12;
-      return `${h12}${match[2] === '00' ? '' : `:${match[2]}`}${suffix}`;
-    };
-    return b ? `${twelve(a)}–${twelve(b)}` : `From ${twelve(a)}`;
-  }
+  if (english) return b ? `${twelve(a)}–${twelve(b)}` : `From ${twelve(a)}`;
   if (a[2] === '00' && (!b || b[2] === '00')) return b ? `${Number(a[1])}–${Number(b[1])} 点` : `${Number(a[1])} 点起`;
   return b ? `${a[1]}:${a[2]}–${b[1]}:${b[2]}` : `${a[1]}:${a[2]} 起`;
 }

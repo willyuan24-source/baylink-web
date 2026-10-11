@@ -14,18 +14,20 @@ and `src/data/city-exploration-east-sf-en.json` (SF city bulletin and its Englis
 |---|---|
 | `shortTitle` | Card title, ≤16 display units (CJK 1, Latin ½), no colon. A title that already fits is used as is. |
 | `dek` | "Why go", ≤30 units, no dates or prices (they are on the chips). |
-| `sessions` | `[{date, start?, end?}]`, 24-hour times, one per confirmed day. When present they are the event's confirmed days, so they must agree with `occurrenceDates`. |
+| `sessions` | `[{date, start?, end?}]`, 24-hour times, one per start time: a day with two shows has two sessions on that date. Sorted by date, then start; the same day and start twice is a lint error. When present their days are the event's confirmed days, so they must agree with `occurrenceDates`. A card's time for a day (`eventTimeLabel`) is the session's span, or the list of starts when the day has several ("10:00、14:00"). |
 | `price` | `{free?, min?, max?, note?}` in USD. `free` only when entry is free; amounts only for paid or mixed events. |
 | `venueShort`, `address` | Derived from `venue` ("Name · street address"); store only to override. `address: ""` means no single address. |
 | `ageChip` | Only from a stated age rule ("21+", "0–5 岁"), and only when the official page does not contradict it. A recommended age is labelled as one ("建议 8 岁以上"). |
 | `tips` | ≤3, each ≤40 units, each adding information no other shown field carries. A tip that repeats the plan, the cost or date label, the summary or the date note is a lint error (contained after removing spaces and punctuation) or a warning (most of its wording is in one field). A practical note that is already a plan line stays in the plan. |
-| `dateNote` | Schedule exceptions, detail page only. |
-| `status` | `postponed` (no confirmed day yet: `occurrenceDates: []`, the original date in `dateNote`), `cancelled`, or `sold_out` (takes place, nothing on sale). Only from a dated source read; the labels say it in words too. Consumers: schema `eventStatus`, share cards, badges. |
+| `dateNote` | Schedule facts the sessions cannot carry (doors, segments, talk length, "11/20–22 场次见售票页"), detail page only. A page that lists the sessions shows the date note beside them; a note that only repeats the sessions is dropped. |
+| `status` | `postponed` (no confirmed day yet: `occurrenceDates: []`, the original date in `dateNote`), `cancelled`, or `sold_out` (takes place, nothing on sale). Only from a dated source read; the labels say it in words too. Consumers: the archive directory (`PublicContentDirectory`: 已延期 / 已取消 instead of 已结束), schema `eventStatus`, share cards, badges. `getEventStatus` in `src/lib/monthly.ts` still returns `ended` for an event with no confirmed day, which keeps a postponed event out of every date list; a view that prints that state should read `status` first. |
 | `plan` | Replaces the cleaned plan: a number keeps that line of the cleaned plan, a string is a rewritten line. |
 | `fix` | Corrects a source fact (title, dateLabel, costLabel, occurrenceDates…). Never `id`, `verifiedAt` or `imageKey`, and only fields `basis.json` tracks (`BASIS_FIELDS` in `lint.ts`). Each correction needs a dated source read in `docs/source-reads-2026-10.md`. |
 
 Offers (`offers.json`): `shortTitle`, `dek`, `tips`, `valueText`, `publicBenefit`, `status` (`sold_out` only), `fix`. Openings
-(`openings.json`): `shortTitle`, `dek`, `openedOn` (only the stated first day of public service), `fix`.
+(`openings.json`): `shortTitle`, `dek`, `openedOn` (only the stated first day of public service), `fix`. An opening's
+`editorTip` (shown under 怎么安排) carries one fact about that shop the card does not already show (where it is, what else it
+serves, how to book), never a line every shop could share ("按菜单消费；价格与开业优惠见商家…").
 
 For a covered event the plan is cleaned automatically: the filler sentence "出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。",
 a "时间安排：" line that only repeats the date label, and the copy of the cost label at the start of a "费用与参加条件：" line are removed.
@@ -48,24 +50,34 @@ Every Chinese string an entry adds needs an entry in `src/data/editorial-overlay
   with an entry get errors; items without one only warnings, so new catalog content is never blocked (RC-29).
 - `tests/editorial-overlay.test.ts` runs the same lint, with `basis.json`, in CI. A displayed date label must translate whole or
   part by part at its " · " separators, as `translateText` does.
-- After editing entries, run the audit with `--write-basis` so `basis.json` records the source fields each entry was written
-  against. When a source field later changes under an entry, the lint reports `source-changed`:
+- `basis.json` records the source fields each entry was written against (`BASIS_FIELDS` in `lint.ts`). When a tracked source
+  field later changes under an entry, the lint reports `source-changed`:
   - an **error** when a stored field of the entry would win over the edit (the overlay applies last): a `fix` of that field, a
     `plan` override (source `plan`), `shortTitle` (source `title`), `price` (`cost`, `costLabel`), `sessions`, `dateNote` or `status`
-    (the dates, `dateLabel`; `status` also `costLabel`), `venueShort` / `address` (`venue`), `ageChip` (`audience`). Update or
-    remove the stored field, then run `--write-basis`;
-  - a **warning** otherwise (re-read the entry's `dek` and short forms).
+    (the dates, `dateLabel`; `status` also `costLabel`), `venueShort` / `address` (`venue`), `ageChip` (`audience`). CI fails
+    (`tests/editorial-overlay.test.ts`), for archived items too, until the stored field is updated or removed and the item is
+    re-recorded with `--write-basis=event:<id>` (or `offer:<id>`, `opening:<id>`; several ids separated by commas);
+  - a **warning** otherwise (re-read the entry's `dek` and short forms). CI does not fail on it; the captain re-records the item at
+    merge time.
+- `--write-basis` alone re-records every covered item, and refuses (writes nothing, exits 1, lists the items) while any masked
+  edit is unresolved, so it cannot be used to silence a `source-changed` error. A new entry needs its basis recorded too: the
+  test fails for a covered item without one, and `--write-basis=kind:id` records it.
+- Verification-log wording in reader text ("未核到…", "未见…", "官方页面列…") is a `log-voice` warning: say what the page states
+  or where to find it.
 - Pre-overlay records (`PRE_OVERLAY`) are kept for the lint, tests and Node scripts only; a production build does not fill them.
 
 ## Merging (captain)
 
-After rebasing a branch that touches catalog data onto main, run the audit above with `--strict` and resolve every
-`source-changed` (errors and warnings) before merging, then `--write-basis` and commit `basis.json` with the resolved entries.
+After rebasing a branch that touches catalog data onto main, run the audit above with `--strict`. Resolve each `source-changed`
+error (update or remove the masking entry field, then `--write-basis=kind:id` for that item), re-read the items with a warning,
+then run `--write-basis` (it succeeds once no masked edit is left) and commit `basis.json`.
 
 ## For content PRs (GPT)
 
 New events, offers and openings may ship without an entry; cards derive a short title from the title. Please do not add the filler
 sentence or plan lines that repeat the date or cost label, avoid editor's-log wording in reader fields (本次/本条/本卡/本轮…), and
 never write 免费 in a title unless `cost` is `free` or `mixed`.
-If you correct a field of an item that has an entry here and `tests/editorial-overlay.test.ts` fails with `source-changed`, the
-overlay still holds the old value: name the item in the PR so the captain updates or removes that entry field.
+Correcting a covered item is fine: CI only fails when the overlay would hide your correction (`tests/editorial-overlay.test.ts`
+names the item and the entry field, e.g. `fix.costLabel`). Then the overlay still holds the old value: name the item in the PR
+so the captain updates or removes that entry field. Do not run `--write-basis` to make the test pass; it refuses in that case.
+Edits that no entry field masks pass CI and show up as audit warnings for the captain.
