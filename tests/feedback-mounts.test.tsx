@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import { afterEach, test } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
@@ -9,6 +10,8 @@ Object.assign(globalThis, {
   Element: dom.window.Element, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+// The sheet dialogs import their stylesheets (WEB-SHELL2, RC-24); node only needs them to resolve.
+registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Link } = await import('react-router-dom');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');

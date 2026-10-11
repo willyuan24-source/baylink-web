@@ -5,12 +5,14 @@ import { setLocale, useLocale, localizedUrl, type Locale } from '../i18n/locale'
 import { navigateSiteLanguage } from './LanguageRouter';
 import { useDisclosure } from './useDisclosure';
 
-const LANGUAGES: ReadonlyArray<{ id: Locale; short: string; label: string }> = [
-  { id: 'zh-Hans', short: '简', label: '简体中文' },
-  { id: 'zh-Hant', short: '繁', label: '繁體中文' },
-  { id: 'en', short: 'EN', label: 'English' },
+// Each choice is named in its own script (the reader may not read the current one); `en` is the name an English page reads.
+const LANGUAGES: ReadonlyArray<{ id: Locale; short: string; label: string; en: string }> = [
+  { id: 'zh-Hans', short: '简', label: '简体中文', en: 'Simplified Chinese' },
+  { id: 'zh-Hant', short: '繁', label: '繁體中文', en: 'Traditional Chinese' },
+  { id: 'en', short: 'EN', label: 'English', en: 'English' },
 ];
-const TITLE = 'Language · 语言 · 語言';
+const TITLES = { en: 'Language', zh: '语言 · 語言' };
+const TITLE = `${TITLES.en} · ${TITLES.zh}`;
 
 /**
  * The header's language control (design.md §4.17): a button showing 简 / 繁 / EN that opens three choices, as a bottom
@@ -40,7 +42,7 @@ export function LanguageSwitcher({ realLocation }: { realLocation?: Location } =
     finally { setBusy(false); }
   };
   return <details className="site-language" data-lang-switch="" translate="no" ref={details}>
-    <summary ref={summary} className="site-language-trigger" aria-label={`${TITLE}: ${current.label}`}>
+    <summary ref={summary} className="site-language-trigger" aria-label={`${TITLE}: ${locale === 'en' ? current.en : current.label}`}>
       <Globe2 size={18} aria-hidden="true" strokeWidth={1.75} />
       <span className="site-language-short" lang={current.id}>{current.short}</span>
       <span className="site-language-name" lang={current.id}>{current.label}</span>

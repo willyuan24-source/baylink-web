@@ -96,7 +96,8 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 .site-toast-message { flex:1; min-width:0; padding-block:8px; font-size:var(--text-fact); font-weight:600; line-height:1.5; }
 .site-toast-action { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); padding:0 14px; border-radius:8px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
 .site-toast-action:hover { background:var(--color-brand-tint); }
-.site-toast-action:focus-visible,.site-toast-close:focus-visible { outline:2px solid var(--color-surface); outline-offset:2px; }
+/* On the ink toast the ring is drawn inside a white chip (brand on white), not on the dark background. */
+.site-toast-action:focus-visible,.site-toast-close:focus-visible { outline:2px solid var(--color-brand); outline-offset:-4px; background:var(--color-surface); color:var(--color-brand-deep); }
 .site-toast-close { display:grid; flex:none; place-items:center; width:var(--control-height); height:var(--control-height); border-radius:8px; color:var(--color-surface); }
 .site-toast-close:hover { background:rgb(255 255 255 / .12); }
 @keyframes site-toast-in { from { opacity:0; transform:translateY(8px); } }
@@ -134,13 +135,14 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
   .site-app .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:stretch; gap:3px; max-width:600px; height:100%; min-height:0; margin:auto; padding:4px 6px; font-size:var(--text-caption); }
   .site-app .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:0; min-height:var(--control-height); padding:0; border-radius:12px; background:transparent; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.25; text-align:center; }
   .site-app .site-mobile-nav .site-mobile-item>span { font-size:var(--text-caption); }
-  .site-app .site-mobile-nav .site-mobile-icon { position:relative; display:grid; place-items:center; width:3.5rem; height:2rem; border-radius:999px; }
-  .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:100%; min-height:1.25em; overflow-wrap:anywhere; }
-  .site-app .site-mobile-nav .site-mobile-item.is-active { color:var(--color-brand-deep); font-weight:600; }
+  .site-app .site-mobile-nav .site-mobile-icon { position:relative; display:grid; place-items:center; width:min(3.5rem,100%); height:2rem; border-radius:999px; }
+  /* Labels never break inside a word ("Guide/s" at 320 px, 特大 + 简洁显示): one line, centred on the tab. */
+  .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:none; min-height:1.25em; white-space:nowrap; }
+  .site-app .site-mobile-nav .site-mobile-item.is-active { background:transparent; color:var(--color-brand-deep); font-weight:600; }
   .site-app .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon { background:var(--color-selected); }
-  .site-app .site-mobile-nav .site-mobile-ask { color:var(--color-brand-deep); font-weight:600; }
+  .site-app .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand-deep); }
   .site-app .site-mobile-nav .site-mobile-ask .site-otter { width:2rem; height:2rem; }
-  .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { max-width:100%; min-height:1.25em; overflow-wrap:normal; white-space:nowrap; }
+  .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { min-height:1.25em; overflow-wrap:normal; white-space:nowrap; }
   .site-app .site-mobile-icon>b { position:absolute; top:-4px; left:calc(50% + 4px); min-width:1.125rem; padding:0 4px; }
   .site-app .site-mobile-icon>b.site-mobile-notification-dot { top:0; left:calc(50% + 8px); width:9px; height:9px; min-width:0; padding:0; }
   /* D10: on an event, offer or opening page the page's own action bar (WEB-DETAIL, .site-detail-actions) replaces the tab
@@ -153,6 +155,10 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
    4 x 3px gaps, so a tab is (width - 12px) / 5. The full label shows only while a tab is wider than it with room for wider
    phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for Ask BayBay; SF Pro runs about 5% wider): 4.9em and
    5.5em per tab, i.e. 5 x tab + 12px (at most .92em). */
+/* Narrow bars at the largest text (320 px, 特大 + 简洁显示): 2px gaps and padding give each tab the 61px "Guides" needs. */
+@media(max-width:359px) {
+  .site-app .site-mobile-nav .site-mobile-nav-items { gap:2px; padding-inline:2px; }
+}
 @container site-mobile-bar (max-width:25.4em) {
   .site-mobile-ask-label { display:none; }
   .site-mobile-ask-short { display:inline; }

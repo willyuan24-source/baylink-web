@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { X, AlertCircle, Loader2, CheckCircle } from 'lucide-react';
-import { ModalShell } from './ui/Modal';
-import { AuthBrandHeader } from './AuthBrandHeader';
+import { AlertCircle, Loader2, CheckCircle } from 'lucide-react';
+import { Sheet } from './ui/Sheet';
+import { Button } from './ui/Button';
+import './site-dialogs.css';
+import { useUiCopy } from './ui/ui-copy';
 
 type ResetPasswordModalProps = {
   isOpen: boolean;
@@ -14,7 +16,6 @@ type ResetPasswordModalProps = {
 const validatePassword = (password: string) =>
   password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password);
 
-const inputClass = 'w-full rounded-2xl border border-black/[0.06] bg-white/90 p-3.5 text-sm font-normal text-baylink-text outline-none placeholder:text-baylink-muted focus:border-baylink-green/40 focus:ring-2 focus:ring-baylink-green/15';
 
 export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit }: ResetPasswordModalProps) => {
   const [newPassword, setNewPassword] = useState('');
@@ -22,6 +23,7 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const { t } = useUiCopy();
 
   if (!isOpen || !token) return null;
 
@@ -55,74 +57,24 @@ export const ResetPasswordModal = ({ isOpen, token, onClose, onSuccess, onSubmit
   };
 
   return (
-    // 关闭会清掉 URL 中的重置 token，误触遮罩不关闭
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label="重设密码" className="fixed inset-0 z-[70] flex items-center justify-center bg-black/40 p-6 backdrop-blur-md animate-in fade-in">
-      <div className="relative max-h-[90vh] w-full max-w-xs overflow-y-auto rounded-[28px] border border-black/[0.04] bg-baylink-bg-alt/95 p-7 shadow-elevated backdrop-blur-xl">
-        <button type="button" onClick={onClose} className="absolute right-4 top-4 rounded-full border border-black/[0.06] bg-white/90 p-2 text-baylink-muted transition hover:text-baylink-text">
-          <X size={18} />
-        </button>
-        <AuthBrandHeader compact />
-        <h2 className="mb-1 text-center text-base font-semibold text-baylink-text">重设密码</h2>
-        <p className="mb-5 text-center text-[0.6875rem] text-baylink-muted">设置您的新登录密码</p>
-
-        {error && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600">
-            <AlertCircle size={14} />
-            {error}
-          </div>
-        )}
-
-        {successMessage ? (
-          <div className="space-y-4">
-            <div className="flex items-start gap-2 rounded-2xl border border-baylink-green/15 bg-baylink-green-light/60 p-4 text-sm text-baylink-text">
-              <CheckCircle size={18} className="mt-0.5 shrink-0 text-baylink-green" />
-              <p>{successMessage}</p>
-            </div>
-            <button
-              type="button"
-              onClick={onSuccess}
-              className="w-full rounded-2xl bg-baylink-green py-3.5 font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98]"
-            >
-              去登录
-            </button>
-          </div>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input
-              required
-              type="password"
-              autoComplete="new-password"
-              className={inputClass}
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="新密码"
-            />
-            <input
-              required
-              type="password"
-              autoComplete="new-password"
-              className={inputClass}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="确认新密码"
-            />
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-2xl bg-baylink-green py-3.5 font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover active:scale-[0.98] disabled:opacity-60"
-            >
-              {loading ? (
-                <span className="inline-flex items-center gap-2">
-                  <Loader2 size={16} className="animate-spin" />
-                  保存中...
-                </span>
-              ) : (
-                '更新密码'
-              )}
-            </button>
-          </form>
-        )}
-      </div>
-    </ModalShell>
+    // RC-24: on the WEB-UI Sheet. Closing clears the reset token from the URL, so a stray tap outside does not close it.
+    <Sheet open onClose={onClose} title="重设密码" closeOnBackdrop={false}>
+      <p className="site-dialog-intro">{t('设置您的新登录密码：至少 8 位，包含大写字母、小写字母和数字。', 'Choose a new password: at least 8 characters with upper- and lower-case letters and a number.')}</p>
+      {successMessage ? (
+        <>
+          <p role="status" className="site-dialog-success"><CheckCircle size={18} aria-hidden="true" /> {successMessage}</p>
+          <div className="site-dialog-actions"><Button variant="primary" onClick={onSuccess}>去登录</Button></div>
+        </>
+      ) : (
+        <form onSubmit={handleSubmit} className="site-dialog-form" noValidate>
+          <label className="site-dialog-label" htmlFor="reset-password-new">新密码</label>
+          <input id="reset-password-new" required type="password" autoComplete="new-password" className="site-dialog-field" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="新密码" />
+          <label className="site-dialog-label" htmlFor="reset-password-confirm">确认新密码</label>
+          <input id="reset-password-confirm" required type="password" autoComplete="new-password" className="site-dialog-field" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="确认新密码" />
+          {error && <p role="alert" className="site-dialog-error"><AlertCircle size={16} aria-hidden="true" />{error}</p>}
+          <Button type="submit" variant="primary" disabled={loading} icon={loading ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : undefined}>{loading ? '保存中…' : '更新密码'}</Button>
+        </form>
+      )}
+    </Sheet>
   );
 };

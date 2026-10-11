@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -10,6 +11,8 @@ Object.assign(globalThis, {
   HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+// The sheet dialogs import their stylesheets (WEB-SHELL2, RC-24); node only needs them to resolve.
+registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { LoginModal } = await import('../src/features/auth/LoginModal');
 const { api } = await import('../src/lib/api');
@@ -43,7 +46,7 @@ test('closing a pending login prevents its late success from replacing a newer l
   const first = render(<LoginModal onClose={() => first.unmount()} onLogin={user => loggedIn.push(user.id)}
     showToast={message => notices.push(message)} onForgotPassword={() => {}} />);
   submit(first);
-  fireEvent.click(first.getByRole('button', { name: '关闭登录注册' }));
+  fireEvent.click(first.getByRole('button', { name: '关闭' }));
   assert.equal(oldSignal?.aborted, true);
   const second = render(<LoginModal onClose={() => second.unmount()} onLogin={user => loggedIn.push(user.id)}
     showToast={message => notices.push(message)} onForgotPassword={() => {}} />);

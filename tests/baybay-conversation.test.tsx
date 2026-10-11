@@ -1,4 +1,5 @@
 import { mockBayBayFetch } from './baybay-test-transport';
+import { registerHooks } from 'node:module';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -9,6 +10,8 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, l
   HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
+// The sheet dialogs import their stylesheets (WEB-SHELL2, RC-24); node only needs them to resolve.
+registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { QuickExplore } = await import('../src/components/QuickExplore');

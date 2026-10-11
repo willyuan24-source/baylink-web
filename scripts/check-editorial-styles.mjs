@@ -32,6 +32,8 @@ export const editorialStyleScopes = [
   { file: 'src/features/guides/guide-article.css' },
   // WEB-BB-UI: the BayBay answer layout.
   { file: 'src/features/baybay/baybay-answer.css' },
+  // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast).
+  { file: 'src/components/site-chrome.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

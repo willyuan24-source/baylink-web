@@ -15,17 +15,21 @@ export type SheetProps = {
   /** Polite live text for the footer's result count ("显示 23 场"). */
   status?: string;
   initialFocusRef?: RefObject<HTMLElement>;
+  /** false for a form a stray tap must not throw away (sign-in, password, report text): only ✕ and Esc close it. */
+  closeOnBackdrop?: boolean;
+  /** The opener to return focus to when it is not the element focused at mount (a dialog behind a loading fallback). */
+  restoreFocusRef?: RefObject<HTMLElement>;
 };
 
 /**
  * Bottom sheet on phones (r24 top, 85dvh), 480px right drawer on desktop. Built on ModalShell, so the focus
  * trap, Esc, backdrop close, scroll lock and focus return are the site's existing, tested behaviour.
  */
-export function Sheet({ open, onClose, title, children, footer, status, initialFocusRef }: SheetProps) {
+export function Sheet({ open, onClose, title, children, footer, status, initialFocusRef, closeOnBackdrop = true, restoreFocusRef }: SheetProps) {
   const titleId = useId();
   const { t } = useUiCopy();
   if (!open) return null;
-  return <ModalShell onClose={onClose} className="ui-sheet-backdrop" labelledBy={titleId} initialFocusRef={initialFocusRef}>
+  return <ModalShell onClose={onClose} className="ui-sheet-backdrop" labelledBy={titleId} initialFocusRef={initialFocusRef} closeOnBackdrop={closeOnBackdrop} restoreFocusRef={restoreFocusRef}>
     <div className="ui-sheet">
       <div className="ui-sheet__handle" aria-hidden="true" />
       <div className="ui-sheet__header">
