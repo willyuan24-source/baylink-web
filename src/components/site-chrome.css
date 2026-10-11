@@ -15,9 +15,11 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 .site-app .site-skip-link { position:fixed; top:-5rem; left:16px; z-index:150; padding:12px 20px; border:2px solid var(--color-brand); border-radius:8px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); }
 .site-app .site-skip-link:focus { top:12px; }
 
-/* Header: 64 high on desktop, 56 on phones, sticky, white at 94% with a 1px line. */
-/* No backdrop-filter: it would make the header the containing block of its fixed menus (the phone language sheet, 更多). */
-.site-app .site-topbar { position:sticky; top:0; z-index:45; display:block; height:auto; min-height:0; padding:0; border-bottom:1px solid var(--color-line); background:rgb(255 255 255 / .97); backdrop-filter:none; }
+/* Header: 64 high on desktop, 56 on phones, sticky, white at 97% over a blur with a 1px line. The blur sits on a
+   pseudo-element: on the header itself it would make the header the containing block of its fixed menus (the phone
+   language sheet, 更多), and without it dark page text showed through the 3% (a ghost 「重新加载」 behind •••). */
+.site-app .site-topbar { position:sticky; top:0; z-index:45; display:block; height:auto; min-height:0; padding:0; border-bottom:1px solid var(--color-line); background:transparent; backdrop-filter:none; }
+.site-app .site-topbar::before { content:''; position:absolute; inset:0; z-index:-1; background:rgb(255 255 255 / .97); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); }
 .site-app .site-topbar-inner { display:flex; align-items:center; gap:16px; width:100%; max-width:1280px; min-height:var(--chrome-header-height); padding:0 32px; margin-inline:auto; }
 .site-app .site-header-navigation { display:flex; flex:1; align-items:center; gap:20px; min-width:0; }
 .site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:44px; }
