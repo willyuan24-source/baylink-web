@@ -293,16 +293,16 @@
   gap: 12px;
   text-align: center;
   padding: 32px 16px;
-  color: #5f705b;
+  color: var(--color-ink-2);
 }
 .bl-guide-empty h1,
 .bl-guide-empty h3 {
-  color: #123c31;
+  color: var(--color-ink);
   font-size: 1.125rem;
   font-weight: 600;
 }
 .bl-guide-empty p {
-  font-size: .8125rem;
+  font-size: var(--text-fact);
 }
 .bl-guide-empty button {
   display: inline-flex;
@@ -310,10 +310,10 @@
   gap: 10px;
   margin-top: 8px;
   border-radius: 10px;
-  background: #123c31;
+  background: var(--color-brand-deep);
   padding: 11px 16px;
-  color: #fff;
-  font-size: .75rem;
+  color: var(--color-surface);
+  font-size: var(--text-fact);
 }
 /* A quiet, readable article with a real table of contents and session checklist. */
 .bl-guide-detail {
@@ -359,7 +359,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: .75rem;
+  font-size: var(--text-fact);
   font-weight: 600;
 }
 .bl-guide-toc ol {
@@ -373,24 +373,24 @@
   gap: 10px;
   border-radius: 7px;
   padding: 8px 5px;
-  color: #5f705b;
-  font-size: .6875rem;
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
   line-height: 1.65;
 }
 .bl-guide-toc a:hover {
-  color: #123c31;
-  background: #eaf0e3;
+  color: var(--color-ink);
+  background: var(--color-surface-2);
 }
 .bl-guide-toc a > span {
   flex: 0 0 16px;
-  color: #5f705b;
+  color: var(--color-ink-2);
   font-family: ui-monospace, monospace;
-  font-size: .625rem;
+  font-size: var(--text-caption);
 }
 .bl-guide-toc-desktop > p {
   margin-top: 21px;
-  color: #5f705b;
-  font-size: .625rem;
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
 }
 .bl-guide-toc-mobile {
   display: none;
@@ -414,7 +414,7 @@
 }
 .bl-guide-prose > p,
 .bl-guide-bullet-list {
-  color: #546650;
+  color: var(--color-ink);
   font-size: .9375rem;
   line-height: 2;
 }
@@ -426,12 +426,12 @@
   margin-top: 10px;
 }
 .bl-guide-bullet-list li::marker {
-  color: #91aa78;
+  color: var(--color-brand);
 }
 .bl-guide-checklist {
   border: 1px solid #dfe6d6;
   border-radius: 15px;
-  background: #fff;
+  background: var(--color-surface);
   padding: 18px 20px;
 }
 .bl-guide-checklist-heading {
@@ -439,12 +439,12 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
-  color: #486240;
-  font-size: .6875rem;
+  color: var(--color-ink);
+  font-size: var(--text-caption);
   font-weight: 600;
 }
 .bl-guide-checklist-heading > span:last-child {
-  color: #5f705b;
+  color: var(--color-ink-2);
   font-family: ui-monospace, monospace;
 }
 .bl-guide-checklist li + li {
@@ -457,8 +457,8 @@
   gap: 11px;
   padding: 11px 0;
   cursor: pointer;
-  color: #586953;
-  font-size: .8125rem;
+  color: var(--color-ink-2);
+  font-size: var(--text-body);
   line-height: 1.9;
 }
 .bl-guide-checklist input {
@@ -478,15 +478,15 @@
   border: 1px solid #b9c9ac;
   border-radius: 5px;
   place-items: center;
-  color: #fff;
+  color: var(--color-surface);
   transition: background 0.15s;
 }
 .bl-guide-checklist input:checked + .bl-guide-check-box {
-  background: #176b52;
-  border-color: #176b52;
+  background: var(--color-brand);
+  border-color: var(--color-brand);
 }
 .bl-guide-checklist input:checked ~ span:last-child {
-  color: #5f705b;
+  color: var(--color-ink-2);
   text-decoration: line-through;
 }
 .bl-guide-checklist input:focus-visible + .bl-guide-check-box {
@@ -495,38 +495,38 @@
 }
 .bl-guide-checklist > p {
   margin-top: 8px;
-  font-size: .625rem;
-  color: #5f705b;
+  font-size: var(--text-caption);
+  color: var(--color-ink-2);
 }
 .bl-guide-tip {
   padding: 19px 21px;
   border: 1px solid #e3e7d2;
   border-radius: 14px;
-  background: #f1f3e5;
+  background: var(--color-surface-2);
 }
 .bl-guide-tip > span {
   display: flex;
   align-items: center;
   gap: 7px;
-  font-size: .75rem;
+  font-size: var(--text-fact);
   font-weight: 600;
-  color: #647444;
+  color: var(--color-ink);
 }
 .bl-guide-tip p {
   margin-top: 10px;
-  color: #62734e;
-  font-size: .8125rem;
+  color: var(--color-ink);
+  font-size: var(--text-body);
   line-height: 1.9;
 }
 .bl-guide-cta {
   padding: 24px;
   border-radius: 18px;
-  background: #123c31;
-  color: #fff;
+  background: var(--color-brand-deep);
+  color: var(--color-surface);
 }
 .bl-guide-cta .bl-guide-eyebrow {
-  color: #b7cc91;
-  font-size: .625rem;
+  color: var(--color-on-brand-muted);
+  font-size: var(--text-caption);
 }
 .bl-guide-cta h3 {
   margin-top: 13px;
@@ -536,8 +536,8 @@
 }
 .bl-guide-cta p {
   margin-top: 10px;
-  color: #ccdbc8;
-  font-size: .75rem;
+  color: var(--color-on-brand-muted);
+  font-size: var(--text-fact);
   line-height: 1.85;
 }
 .bl-guide-cta button,
@@ -546,19 +546,19 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 42px;
+  min-height: 3rem;
   margin-top: 20px;
-  border-radius: 9px;
-  background: #dff3a6;
-  padding: 11px 16px;
-  color: #21492e;
-  font-size: .75rem;
+  border-radius: 10px;
+  background: var(--color-brand-tint);
+  padding: 0 20px;
+  color: var(--color-brand);
+  font-size: var(--text-body);
   font-weight: 600;
   transition: background 0.2s;
 }
 .bl-guide-cta button:hover,
 .bl-guide-cta > a:hover {
-  background: #eeffbc;
+  background: var(--color-selected);
 }
 .bl-guide-cta-choices {
   display: grid;
@@ -577,12 +577,12 @@
   padding: 24px;
   border: 1px solid #dfe6d6;
   border-radius: 17px;
-  background: #fff;
+  background: var(--color-surface);
 }
 .bl-guide-source-icon {
   display: block;
   margin-bottom: 11px;
-  color: #5d7a49;
+  color: var(--color-brand);
 }
 .bl-guide-sources h2 {
   scroll-margin-top: calc(var(--guide-shell-offset) + 90px);
@@ -591,8 +591,8 @@
 }
 .bl-guide-sources > p {
   margin-top: 9px;
-  color: #5f705b;
-  font-size: .6875rem;
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
   line-height: 1.85;
 }
 .bl-guide-sources ul {
@@ -608,8 +608,8 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  color: #176b52;
-  font-size: .75rem;
+  color: var(--color-brand);
+  font-size: var(--text-fact);
   font-weight: 600;
   line-height: 1.65;
 }
@@ -623,14 +623,14 @@
 }
 .bl-guide-sources li p {
   margin-top: 5px;
-  color: #5f705b;
-  font-size: .6875rem;
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
   line-height: 1.85;
 }
 .bl-guide-source-note {
   margin-top: 22px;
-  color: #5f705b;
-  font-size: .625rem;
+  color: var(--color-ink-2);
+  font-size: var(--text-caption);
   line-height: 1.9;
 }
 .bl-guide-related {
@@ -649,14 +649,16 @@
   justify-content: center;
   gap: 10px;
   margin-top: 28px;
-  min-height: 46px;
-  border: 1px solid #dfe6d6;
-  border-radius: 11px;
-  color: #586f4b;
-  font-size: .75rem;
+  min-height: 3rem;
+  border: 1px solid var(--color-line-strong);
+  border-radius: 10px;
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: var(--text-body);
+  font-weight: 600;
 }
 .bl-guide-return:hover {
-  background: #edf2e6;
+  background: var(--color-surface-2);
 }
 /* Shared home-page journal teaser. */
 .bl-home-guides {
@@ -806,13 +808,13 @@
     padding: 14px 16px;
     border: 1px solid #dfe6d6;
     border-radius: 11px;
-    background: #fff;
+    background: var(--color-surface);
   }
   .bl-guide-toc-mobile summary {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: .75rem;
+    font-size: var(--text-fact);
     font-weight: 600;
     cursor: pointer;
     list-style: none;
@@ -822,8 +824,8 @@
   }
   .bl-guide-toc-mobile summary > span {
     margin-left: auto;
-    color: #5f705b;
-    font-size: .625rem;
+    color: var(--color-ink-2);
+    font-size: var(--text-caption);
     font-weight: 400;
   }
   .bl-guide-toc-mobile summary::after {
@@ -831,7 +833,7 @@
     margin-left: 6px;
     font-size: 1rem;
     font-weight: 400;
-    color: #5f705b;
+    color: var(--color-ink-2);
   }
   .bl-guide-toc-mobile[open] summary::after {
     content: "−";
@@ -929,15 +931,15 @@
   .site-main .bl-guide-detail { --guide-shell-offset: 67px; }
   .site-main .bl-guide-prose > h2, .site-main .bl-guide-sources h2 { scroll-margin-top: 64px; }
 }
-.bl-guide-template { margin:28px 0; border:1px solid #cfdcc9; border-radius:18px; background:#f2f6ed; padding:22px; }
+.bl-guide-template { margin:28px 0; border:1px solid #cfdcc9; border-radius:18px; background:var(--color-surface-2); padding:22px; }
 .bl-guide-template-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.bl-guide-template-heading h3 { font-size:1.0625rem; font-weight:700; color:#234b3d; margin:0; }
-.bl-guide-template-heading button { display:inline-flex; align-items:center; gap:7px; padding:10px 13px; min-height:44px; border-radius:10px; background:#176b52; color:white; font-size:.8125rem; font-weight:600; }
+.bl-guide-template-heading h3 { font-size:1.0625rem; font-weight:700; color:var(--color-ink); margin:0; }
+.bl-guide-template-heading button { display:inline-flex; align-items:center; gap:7px; padding:0 16px; min-height:3rem; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .bl-guide-template-heading button:disabled { opacity:.7; cursor:wait; }
-.bl-guide-template-heading button:hover:not(:disabled) { background:#123c31; }
-.bl-guide-template-note,.bl-guide-template-status { font-size:.75rem; line-height:1.8; color:#52654e; }
+.bl-guide-template-heading button:hover:not(:disabled) { background:var(--color-surface-2); }
+.bl-guide-template-note,.bl-guide-template-status { font-size:var(--text-fact); line-height:1.8; color:var(--color-ink-2); }
 .bl-guide-template-note { margin:12px 0; }
-.bl-guide-template pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:.875rem; line-height:1.95; background:white; border:1px solid #dde5d8; border-radius:12px; padding:18px; margin:0; user-select:text; }
+.bl-guide-template pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:.875rem; line-height:1.95; background:var(--color-surface); border:1px solid #dde5d8; border-radius:12px; padding:18px; margin:0; user-select:text; }
 .bl-guide-template-status { margin:9px 0 0; min-height:22px; }
 @media(max-width:639px) { .bl-guide-template { padding:17px; } .bl-guide-template pre { padding:14px; font-size:.875rem; } }
 .bl-guide-search-section {

@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bookmark, Check, MessageCircle, Send } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
 import { guideBayBayQuestion } from './guide-facts';
 import { localizedUrl, translateText } from '../../i18n/locale';
-import { toggleSavedGuide, useReaderLibrary } from '../../lib/reader-library';
+import { rememberGuide, toggleSavedGuide, useReaderLibrary } from '../../lib/reader-library';
 import { withFamilyReading } from '../../lib/family-reading';
 import { SITE_URL } from '../../lib/seo';
 import { copyText } from '../../utils/postShare';
@@ -36,6 +36,8 @@ function GuideSaveAction({ slug, onStatus }: { slug: string; onStatus: (text: st
 export function GuideActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
   const { t, locale } = useUiCopy();
   const [status, setStatus] = useState('');
+  // The reading history ("最近读过" on /guides?view=saved) stays in this browser.
+  useEffect(() => { rememberGuide(guide.slug); }, [guide.slug]);
   const title = translateText(guide.title, locale);
   const sendToFamily = async () => {
     setStatus('');
