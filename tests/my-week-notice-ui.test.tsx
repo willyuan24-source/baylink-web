@@ -172,6 +172,39 @@ test('optional guest account features and preferences have English and Tradition
   }
 });
 
+test('back online, plans that failed to load are read again by themselves, and loaded plans pick up changes softly', async t => {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  const stamp = new Date(now).toISOString();
+  const plan = (id: string, title: string) => ({ id, title, date: '2026-10-17', stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: stamp, updatedAt: stamp, version: 1 });
+  let fail = true, plans = [plan('first', '离线前保存的计划')], favorites = [{ kind: 'place', id: PLANNER_PLACES[0].id }], hold = false, release = () => {};
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
+    if (path === '/planner/imported-events') return { events: [], revision: 0 };
+    if (path === '/planner/me') {
+      if (fail) throw { status: 0, error: 'offline' };
+      if (hold) await new Promise<void>(resolve => { release = resolve; });
+      return { ...structuredClone(EMPTY_LIBRARY), plans: structuredClone(plans), favorites: structuredClone(favorites) };
+    }
+    throw new Error(`Unexpected request: ${path}`);
+  });
+  const view = render(page());
+  await view.findByRole('heading', { name: '暂时读不到你的行程' });
+  fail = false;
+  await act(async () => { window.dispatchEvent(new dom.window.Event('online')); });
+  await view.findByRole('heading', { name: '离线前保存的计划' });
+  assert.equal(view.queryByRole('heading', { name: '暂时读不到你的行程' }), null, 'no tap on 重试 was needed');
+  assert.equal(savedCount(view), '1');
+  // Another device added a plan and a save meanwhile: the next reconnect shows both without blanking the screen.
+  plans = [...plans, plan('second', '另一台设备加的计划')]; favorites = [...favorites, { kind: 'place', id: PLANNER_PLACES[1].id }]; hold = true;
+  await act(async () => { window.dispatchEvent(new dom.window.Event('online')); await new Promise(resolve => setTimeout(resolve, 0)); });
+  assert.ok(view.getByRole('heading', { name: '离线前保存的计划' }), 'the plans stay while the account is read again');
+  assert.equal(view.getByTestId('my-week-plans').querySelector('[aria-busy=true]'), null, 'no skeleton flash');
+  await act(async () => { release(); await new Promise(resolve => setTimeout(resolve, 0)); });
+  await view.findByRole('heading', { name: '另一台设备加的计划' });
+  assert.equal(savedCount(view), '2', 'the same account read refreshes the saved list');
+});
+
 test('signed-in My Week puts plans and saved items first, then bookings, groups, this week and imported events', async t => {
   localStorage.setItem('currentUser', JSON.stringify(user));
   const paths: string[] = [];

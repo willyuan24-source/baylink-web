@@ -11,7 +11,7 @@ const saves = await import('../src/lib/saves');
 const { usePlannerLibrary, GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
 const { savedPostsKey } = await import('../src/lib/savedPosts');
 const { READER_LIBRARY_KEY } = await import('../src/lib/reader-library');
-const { EMPTY_LIBRARY } = await import('../src/lib/planner');
+const { EMPTY_LIBRARY, errorText } = await import('../src/lib/planner');
 const { savesKey, resetSaveStore, useSave, useSavedEntries, useSavedCount, importGuestSaves, loadPlannerAccount, pendingRetryDue, PENDING_RETRY_MS, PENDING_SLOW_AFTER_MS, PENDING_SLOW_RETRY_MS, READ_RETRY_AFTER_MS } = saves;
 
 const session = (id?: string) => id ? localStorage.setItem('currentUser', JSON.stringify({ id, token: `${id}-test-token` })) : localStorage.removeItem('currentUser');
@@ -98,6 +98,31 @@ test('importing guest saves moves account kinds, keeps posts on the device and p
   const { result } = renderHook(() => useSavedEntries('alice'));
   assert.deepEqual(ids(result.current.entries), ['offer:not-synced-yet', 'event:fleet-week']);
   assert.ok(localStorage.getItem(savedPostsKey())!.includes('guest-post'), 'posts never move to the server');
+});
+
+test('an import the API throttles (429, 60 writes a minute) stops with its message and keeps the rest for the next tap', async t => {
+  const guest = ['fleet-week', 'pumpkin-patch', 'moon-festival'];
+  localStorage.setItem(savesKey(), JSON.stringify({ v: 1, items: guest.map((id, index) => ({ kind: 'event', id, savedAt: 10 - index })) }));
+  session('alice');
+  const account: { kind: string; id: string }[] = [];
+  let throttled = true, puts = 0;
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (!options?.method) return { ...structuredClone(EMPTY_LIBRARY), favorites: account };
+    if (throttled && ++puts === 2) throw { status: 429, error: '操作太频繁，请稍后再试。' };
+    account.push({ kind: 'event', id: decodeURIComponent(path.split('/').pop()!) });
+    return { favorites: structuredClone(account) };
+  });
+  await act(async () => { await loadPlannerAccount('alice'); });
+  let failure: unknown;
+  await act(async () => { await importGuestSaves('alice').catch(error => { failure = error; }); });
+  assert.equal(errorText(failure), '操作太频繁，请稍后再试。', 'the import notice shows the API’s “too many requests” line (English in the planner dictionary)');
+  const left = JSON.parse(localStorage.getItem(savesKey())!).items.map((item: { id: string }) => item.id);
+  assert.equal(account.length + left.length, guest.length, 'nothing is lost: each item is in the account or still in the guest list');
+  assert.equal(account.length, 1);
+  throttled = false;
+  await act(async () => { await importGuestSaves('alice'); });
+  assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items, []);
+  assert.deepEqual(account.map(item => item.id).sort(), [...guest].sort(), 'the next tap imports the rest');
 });
 
 test('a browser that refuses storage keeps the save for this visit and says so', async () => {

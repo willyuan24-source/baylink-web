@@ -87,9 +87,12 @@ export function usePlannerLibrary(userId?: string) {
     } catch { /* keep what is shown; the next full read reports a lasting failure */ }
   }, [userId, refresh]);
   useEffect(() => {
+    // Also when the browser is back online, as My Week's offline banner promises: plans that failed to load are read
+    // again in full, loaded plans softly (the account read is shared, so the ♡ list is refreshed by the same request).
     const changed = () => { if (!mutation.current) void reread(); };
     window.addEventListener(PLANNER_CHANGED_EVENT, changed);
-    return () => window.removeEventListener(PLANNER_CHANGED_EVENT, changed);
+    window.addEventListener('online', changed);
+    return () => { window.removeEventListener(PLANNER_CHANGED_EVENT, changed); window.removeEventListener('online', changed); };
   }, [reread]);
   const commitGuest = (next: Library) => {
     // A failed write is an error, never a successful save banner.
