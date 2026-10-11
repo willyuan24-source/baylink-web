@@ -84,7 +84,9 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const shown = new Set(elderRail.map(guide => guide.slug));
     return GUIDE_TOPICS.filter(item => item.id !== 'elders').map(item => {
       const all = guides.filter(guide => guideTopicOf(guide) === item.id);
-      return { topic: item, total: all.length, preview: all.filter(guide => !shown.has(guide.slug)).slice(0, PREVIEW_SIZE) };
+      // Skip guides the rail already shows, unless that would leave the topic with fewer than two covers (医疗保险 has three).
+      const others = all.filter(guide => !shown.has(guide.slug));
+      return { topic: item, total: all.length, preview: (others.length >= 2 ? others : all).slice(0, PREVIEW_SIZE) };
     });
   }, [elderRail]);
 
@@ -154,7 +156,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
             <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p>{summaryOf('elders')}</p></div>
             <Button variant="text" onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders}`)}</Button>
           </div>
-          <Carousel className="gl-rail" variant="rail" label={t('长辈与家属先看', 'Start here for seniors and family')}>
+          <Carousel className="gl-rail" variant="rail" label={t(`长辈与家属先看：${elderRail.length} 篇，左右滑动`, `Seniors and family: ${elderRail.length} guides, swipe for more`)}>
             {elderRail.map((guide, index) => <div key={guide.slug}>{card(guide, index === 0)}</div>)}
           </Carousel>
         </section>
