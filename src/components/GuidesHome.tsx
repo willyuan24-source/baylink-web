@@ -72,7 +72,9 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
 
   const listed = useMemo((): Listed[] => {
     const inRegion = (guide: Guide) => !region || guideRegionsOf(guide).includes(region);
-    if (searching) return searchGuides(guides, { query, category: category ?? 'all', locale }).filter(result => inRegion(result.guide) && (!topic || guideTopicOf(result.guide) === topic));
+    // Search inside a topic keeps that topic's list: the 长辈与家属 hub gathers guides whose primary topic is elsewhere.
+    const inTopic = topic ? new Set(guideSlugsForTopic(topic, guides)) : null;
+    if (searching) return searchGuides(guides, { query, category: category ?? 'all', locale }).filter(result => inRegion(result.guide) && (!inTopic || inTopic.has(result.guide.slug)));
     let list: Guide[] = topic ? guideSlugsForTopic(topic, guides).map(bySlug).filter((guide): guide is Guide => !!guide) : guides;
     if (category) list = list.filter(guide => guide.category === category);
     return list.filter(inRegion).map(guide => ({ guide }));
