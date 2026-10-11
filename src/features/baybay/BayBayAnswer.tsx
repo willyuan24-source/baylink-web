@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { BookOpen, ChevronDown, Globe2, Phone } from 'lucide-react';
 import './baybay-answer.css';
 import { useBayBayCopy } from './copy';
@@ -104,8 +104,10 @@ export function BayBayEmergencyCard({ safety, answer }: { safety: BayBayEmergenc
   const { t } = useBayBayCopy();
   const primary = safety.actions.find(action => action.href === 'tel:911')!;
   const others = safety.actions.filter(action => action !== primary);
-  return <section className="bb-emergency" role="alert" aria-labelledby="bb-emergency-title" data-safety="emergency">
-    <h3 id="bb-emergency-title" className="bb-emergency__title">{safety.title || t('现在就打 911', 'Call 911 now')}</h3>
+  // One id per card: a second emergency question in the same conversation gets its own label.
+  const titleId = useId();
+  return <section className="bb-emergency" role="alert" aria-labelledby={titleId} data-safety="emergency">
+    <h3 id={titleId} className="bb-emergency__title">{safety.title || t('现在就打 911', 'Call 911 now')}</h3>
     <a className="bb-emergency__call" href={primary.href}><Phone aria-hidden="true" size={24} />{primary.label}</a>
     {answer && <p className="bb-emergency__text">{answer}</p>}
     {others.length > 0 && <BayBayCallActions actions={others} className="bb-call-actions bb-call-actions--emergency" />}

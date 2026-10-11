@@ -33,6 +33,8 @@ test('an emergency answer is a red card with a 56px tel:911 button first, withou
     const view = render(<BayBayAssistantEntry {...props} pendingQuestion="我妈说话突然含糊不清，一边嘴角往下歪" pendingQuestionId={1} />);
     const card = await view.findByRole('alert');
     assert.equal(card.getAttribute('data-safety'), 'emergency');
+    const title = within(card).getByRole('heading');
+    assert.ok(title.id && card.getAttribute('aria-labelledby') === title.id, 'the card is named by its own heading (one id per card)');
     const links = within(card).getAllByRole('link');
     assert.equal(links[0].getAttribute('href'), 'tel:911', '911 is the first action');
     assert.ok(links[0].classList.contains('bb-emergency__call'), 'the large 56px call button');
