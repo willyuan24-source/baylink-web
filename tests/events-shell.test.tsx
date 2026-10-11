@@ -133,6 +133,51 @@ test('the 免费 chip, a story chip and the filter Sheet narrow the feed, keep o
   await waitFor(() => assert.equal(next.container.querySelector('.ev-range')?.textContent, '本周末 · 10/10–11 · 旧金山'));
 });
 
+test('the filter Sheet announces the number the page shows once it closes: the chosen day, not the weekend total', async () => {
+  const announced = (dialog: HTMLElement) => Number(within(dialog).getByRole('status').textContent!.match(/^显示 (\d+) 场$/)![1]);
+  const view = routed('/events', <EventsView today={today} />);
+  const close = async (dialog: HTMLElement, count: number) => {
+    fireEvent.click(within(dialog).getByRole('button', { name: `显示 ${count} 场`, exact: true }));
+    await waitFor(() => assert.equal(view.queryByRole('dialog'), null));
+  };
+  fireEvent.click(view.getByRole('button', { name: /筛选/ }));
+  const sheet = await view.findByRole('dialog');
+  const all = announced(sheet);
+  // 10/9 is a Friday: closing shows the 周六 tab, which is not the union of the three day tabs.
+  const union = weekendEvents().length;
+  assert.ok(all < union, `the Sheet says ${all}, not the weekend's ${union}`);
+  await close(sheet, all);
+  assert.equal(within(view.container.querySelector('.ev-days')!).getByRole('radio', { checked: true }).textContent, '周六 10/10');
+  assert.equal(view.container.querySelector('.ev-count')!.textContent, `找到 ${all} 场活动`);
+  assert.equal(view.container.querySelector('.ev-more__note')!.textContent, `已显示 12 / ${all} 场`);
+  // A filter chosen inside the Sheet updates the number to the narrowed list, and the page then shows that many.
+  fireEvent.click(view.getByRole('button', { name: /筛选/ }));
+  const again = await view.findByRole('dialog');
+  fireEvent.click(within(again).getByRole('button', { name: '旧金山', exact: true }));
+  const sf = announced(again);
+  assert.ok(sf > 0 && sf < all, `${sf} of ${all}`);
+  await close(again, sf);
+  assert.equal(view.container.querySelector('.ev-count')!.textContent, `找到 ${sf} 场活动`);
+  assert.equal(feedIds(view.container).length, Math.min(12, sf));
+});
+
+test('what left the listing stays on the detail page: 我想去, 一起去 and 存入日历 on a live weekend event', async () => {
+  const { getLocalDiscovery } = await import('../src/data/local-discoveries');
+  const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+  globalThis.fetch = (async () => { throw new Error('offline in tests'); }) as typeof fetch;
+  const event = weekendEvents()[0];
+  const item = getLocalDiscovery('event', event.id);
+  assert.ok(item?.kind === 'event', event.id);
+  const view = render(<MemoryRouter><LocalDiscoveryDetail item={item} today={today} /></MemoryRouter>);
+  const interest = view.getByRole('button', { name: `我想去：${item.event.title}`, exact: true }) as HTMLButtonElement;
+  assert.equal(interest.disabled, false);
+  assert.ok(view.getByRole('button', { name: /^一起去/ }));
+  fireEvent.click(view.getByText('收藏、日历与分享', { exact: true }));
+  assert.ok(view.getByRole('button', { name: '存入日历', exact: true }));
+  // The counts, the 一起去 sheet and private interest: tests/event-participation.test.tsx; the participation anchor and
+  // the ended state: tests/local-discovery.test.tsx.
+});
+
 test('再看 12 场 reveals the next cards; an empty search offers a reset and BayBay', () => {
   const view = routed('/events?when=all', <EventsView today={today} />);
   assert.equal(feedIds(view.container).length, 12);

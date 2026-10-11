@@ -7,6 +7,7 @@ import { translateText } from '../../i18n/locale';
 import { createCoverPage, distinctNeighbourTones, resolveCovers, type ResolvedCover } from '../../lib/cover';
 import { eventTone } from '../../lib/event-facts';
 import { normalizeSearchText } from '../../lib/search-synonyms';
+import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
 import {
   ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
@@ -115,9 +116,9 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   }, [card, strip, picks, visible, today]);
   const tones = distinctNeighbourTones(visible.map((event, index) => covers.feed[index].tier === 'type' ? eventTone(event) : null));
 
-  const resultCount = weekend ? new Set([...tabs.sat, ...tabs.sun, ...tabs.open].map(event => event.id)).size : matching.length;
+  // The Sheet announces what closing it shows: the chosen day's list (the status line's number), not the weekend's union.
   const status = t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`);
-  const sheetCount = t(`显示 ${resultCount} 场`, `Show ${resultCount}`);
+  const sheetCount = t(`显示 ${list.length} 场`, `Show ${list.length}`);
   const filterCount = activeFilterCount(filters, defaultWhen);
   const dayLabel = (value: string) => `${(english ? WEEKDAY_EN : WEEKDAY_ZH)[new Date(`${value}T12:00:00Z`).getUTCDay()]} ${monthDay(value)}`;
   const alerts = activeBulletins(today, filters.region);
@@ -233,8 +234,8 @@ export function EventsPageEnd({ region }: { region: EventsFilters['region'] }) {
   const { t } = useUiCopy();
   const card = region === 'all' ? 'all' : region;
   return <nav className="ev-end" aria-label={t('更多活动入口', 'More from Events')}>
-    <a className="ev-end__item ev-end__item--wide" href={`/weekly/${card}.png`} target="_blank" rel="noopener">{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
-    <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${card}.ics`}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={`/weekly/${card}.png`} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${card}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
     <Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link>
     <Link className="ev-end__item" to="/events?view=openings">{t('新店与开业', 'New shops')}</Link>
     <Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link>
