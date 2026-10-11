@@ -1,7 +1,8 @@
 // 登录 / 注册弹层
 import React, { useEffect, useRef, useState } from 'react';
-import { X, AlertCircle, ChevronRight, LockKeyhole } from 'lucide-react';
-import { ModalShell } from '../../components/ui/Modal';
+import { AlertCircle, ChevronRight, LockKeyhole } from 'lucide-react';
+import { Sheet } from '../../components/ui/Sheet';
+import '../../components/site-dialogs.css';
 import { api } from '../../lib/api';
 import { mapAuthError, showAccountStatusNotice, validateContactValue, validateEmail, validatePassword } from '../../lib/format';
 import type { UserData } from '../../lib/types';
@@ -94,17 +95,18 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
 
   const inputClass = 'member-auth-input';
 
-  if (challengeToken) return <ModalShell onClose={close} closeOnBackdrop={false} label={locale === 'en' ? 'Two-step verification' : translateText('两步验证', locale)} className="member-auth-overlay">
+  // RC-24: the sign-in sheet (WEB-UI Sheet: bottom sheet on phones, drawer on desktop). The register form has five
+  // required fields, so a stray tap outside never closes it: only ✕ and Esc do.
+  if (challengeToken) return <Sheet open onClose={close} closeOnBackdrop={false} title={locale === 'en' ? 'Two-step verification' : translateText('两步验证', locale)}><div className="member-auth-dialog">
     <MfaLoginChallenge challengeToken={challengeToken} onClose={close} onRestart={() => { setChallengeToken(null); setError(''); }} onComplete={user => {
       localStorage.setItem('currentUser', JSON.stringify(user)); onLogin(user); onClose();
       showToast(locale === 'en' ? 'Welcome back' : translateText('欢迎回来', locale), 'success');
       showAccountStatusNotice(user, showToast);
     }} />
-  </ModalShell>;
+  </div></Sheet>;
 
   return (
-    // 注册模式有 5 个必填字段，误触遮罩不关闭（与旧版一致，仅 X / Esc 可关）
-    <ModalShell onClose={close} closeOnBackdrop={false} label="登录 / 注册" className="member-auth-overlay">
+    <Sheet open onClose={close} closeOnBackdrop={false} title={mode === 'register' ? (locale === 'en' ? 'Create an account' : translateText('注册', locale)) : (locale === 'en' ? 'Sign in' : translateText('登录', locale))}>
       <div className="member-auth-dialog">
         <AuthBrandHeader />
         <div className="member-auth-heading">
@@ -159,8 +161,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         </form>
         <button disabled={loading} onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="member-auth-switch">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <p className="member-auth-privacy"><LockKeyhole size={12} aria-hidden="true" />你的联系方式不会公开显示</p>
-        <button onClick={close} aria-label="关闭登录注册" className="member-auth-close"><X size={18} /></button>
       </div>
-    </ModalShell>
+    </Sheet>
   );
 };

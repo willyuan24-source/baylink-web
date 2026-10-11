@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { Copy, Link2, Share2, X } from 'lucide-react';
-import { ModalShell } from './ui/Modal';
+import { Copy, Link2, Share2 } from 'lucide-react';
+import { Sheet } from './ui/Sheet';
+import { Button } from './ui/Button';
 import { BRAND } from '../brandAssets';
+import './site-dialogs.css';
 import { translateText, useLocale } from '../i18n/locale';
 import {
   buildPostShareUrl,
@@ -18,8 +20,6 @@ type PostShareSheetProps = {
   showToast: (msg: string, type?: 'success' | 'error' | 'info') => void;
 };
 
-const CONTENT_WIDTH = 'mx-auto w-full max-w-[300px]';
-
 const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
   const category = post.category?.trim() || '本地信息';
   const area = post.city?.trim() || '湾区';
@@ -28,28 +28,28 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
 
   return (
     <div className="w-full rounded-2xl border border-black/[0.08] bg-baylink-bg-alt/60 p-4 shadow-[0_4px_20px_rgba(23,32,42,0.08)]">
-      <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[0.6875rem] font-semibold text-baylink-green">
+      <span className="inline-flex rounded-full bg-baylink-green/[0.1] px-2.5 py-0.5 text-[0.8125rem] font-semibold text-baylink-green">
         {category}
       </span>
       <h4 translate="no" className="mt-2.5 line-clamp-2 text-left text-[0.9375rem] font-semibold leading-snug text-baylink-text">
         {post.title?.trim() || translateText('本地信息')}
       </h4>
       <div className="mt-2.5 space-y-1 text-left">
-        <p className="text-[0.75rem] text-baylink-text-secondary">
+        <p className="text-[0.8125rem] text-baylink-text-secondary">
           <span className="text-baylink-muted">地区</span> · <span translate="no">{post.city?.trim() || translateText(area)}</span>
         </p>
         {budget && (
-          <p className="text-[0.75rem] font-normal text-baylink-green">
+          <p className="text-[0.8125rem] font-normal text-baylink-green">
             <span className="font-normal text-baylink-muted">预算/价格</span> · <span translate="no">{budget}</span>
           </p>
         )}
         {timeInfo && (
-          <p className="text-[0.75rem] text-baylink-text-secondary">
+          <p className="text-[0.8125rem] text-baylink-text-secondary">
             <span className="text-baylink-muted">时间</span> · <span translate="no">{timeInfo}</span>
           </p>
         )}
       </div>
-      <p className="mt-3 border-t border-black/[0.04] pt-2.5 text-center text-[0.6875rem] text-baylink-muted">
+      <p className="mt-3 border-t border-black/[0.04] pt-2.5 text-center text-[0.8125rem] text-baylink-muted">
         来自 BAYLINK｜湾区生活信息站
       </p>
     </div>
@@ -103,83 +103,27 @@ export const PostShareSheet = ({ post, onClose, showToast }: PostShareSheetProps
     }
   };
 
-  const btnBase =
-    'flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-semibold transition active:scale-[0.98] disabled:opacity-60';
-
+  // RC-24: on the WEB-UI Sheet; one primary action, two secondary.
   return (
-    <ModalShell
-      onClose={onClose}
-      label="分享帖子"
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm animate-in fade-in"
-    >
-      <div
-        className="relative w-[calc(100%-32px)] max-w-[360px] max-h-[calc(100dvh-48px)] overflow-y-auto rounded-[32px] border border-black/[0.06] bg-white shadow-elevated animate-in zoom-in-95 fade-in duration-200"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute right-3 top-3 z-10 rounded-full p-2 text-baylink-muted hover:bg-black/[0.04]"
-          aria-label="关闭"
-        >
-          <X size={18} />
-        </button>
-
-        <div className={`${CONTENT_WIDTH} px-4 py-5 md:px-5 md:py-6`}>
-          <div className="mb-5 flex flex-col items-center text-center">
-            <div className="mb-4 flex items-center gap-2">
-              <img
-                src={BRAND.baybayAvatar}
-                alt=""
-                className="h-7 w-7 rounded-lg object-cover ring-1 ring-baylink-green/15"
-                width={28}
-                height={28}
-              />
-              <span className="text-sm font-bold tracking-tight text-baylink-text">BAYLINK</span>
-            </div>
-            <h3 className="text-base font-semibold text-baylink-text">分享这条帖子</h3>
-            <p className="mt-1.5 text-[0.6875rem] leading-relaxed text-baylink-muted">
-              可以发给微信好友、微信群、短信或其他 App。
-            </p>
-          </div>
-
-          <SharePreviewCard post={post} />
-
-          <div className="mt-6 flex flex-col gap-2.5">
-            <button
-              type="button"
-              disabled={!!busy}
-              onClick={handleQuickShare}
-              className={`${btnBase} bg-baylink-green text-white shadow-rest hover:bg-baylink-green-hover`}
-            >
-              <Share2 size={16} />
-              {busy === 'share' ? '处理中…' : nativeAvailable ? '一键分享' : '一键分享（复制文案）'}
-            </button>
-            <button
-              type="button"
-              disabled={!!busy}
-              onClick={handleCopyText}
-              className={`${btnBase} border border-black/[0.08] bg-white text-baylink-text hover:bg-baylink-section/40`}
-            >
-              <Copy size={16} />
-              {busy === 'text' ? '复制中…' : '复制分享文案'}
-            </button>
-            <button
-              type="button"
-              disabled={!!busy}
-              onClick={handleCopyLink}
-              className={`${btnBase} border border-black/[0.08] bg-white text-baylink-text-secondary hover:bg-baylink-section/40`}
-            >
-              <Link2 size={16} />
-              {busy === 'link' ? '复制中…' : '复制链接'}
-            </button>
-          </div>
-          {manualCopy && <label className="mt-4 block text-xs text-baylink-text-secondary">
-            <span>手动复制链接</span>
-            <input className="mt-2 w-full rounded-lg border border-black/10 p-2" readOnly value={buildPostShareUrl(post)} onFocus={event => event.currentTarget.select()} />
-          </label>}
-        </div>
+    <Sheet open onClose={onClose} title="分享这条帖子">
+      <p className="site-dialog-brand"><img src={BRAND.baybayAvatar} alt="" width={32} height={32} />BAYLINK</p>
+      <p className="site-dialog-intro">可以发给微信好友、微信群、短信或其他 App。</p>
+      <SharePreviewCard post={post} />
+      <div className="site-dialog-actions">
+        <Button variant="primary" disabled={!!busy} onClick={handleQuickShare} icon={<Share2 size={16} aria-hidden="true" />}>
+          {busy === 'share' ? '处理中…' : nativeAvailable ? '一键分享' : '一键分享（复制文案）'}
+        </Button>
+        <Button variant="secondary" disabled={!!busy} onClick={handleCopyText} icon={<Copy size={16} aria-hidden="true" />}>
+          {busy === 'text' ? '复制中…' : '复制分享文案'}
+        </Button>
+        <Button variant="secondary" disabled={!!busy} onClick={handleCopyLink} icon={<Link2 size={16} aria-hidden="true" />}>
+          {busy === 'link' ? '复制中…' : '复制链接'}
+        </Button>
       </div>
-    </ModalShell>
+      {manualCopy && <label className="site-dialog-label">
+        <span>手动复制链接</span>
+        <input className="site-dialog-field mt-2" readOnly value={buildPostShareUrl(post)} onFocus={event => event.currentTarget.select()} />
+      </label>}
+    </Sheet>
   );
 };

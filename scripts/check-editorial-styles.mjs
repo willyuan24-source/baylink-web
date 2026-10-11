@@ -22,6 +22,8 @@ export const editorialStyleScopes = [
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },
   { file: 'src/components/phone-links.css' },
+  // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast).
+  { file: 'src/components/site-chrome.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

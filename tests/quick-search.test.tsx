@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
@@ -6,6 +7,8 @@ import React from 'react';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+// The sheet dialogs import their stylesheets (WEB-SHELL2, RC-24); node only needs them to resolve.
+registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { searchQuickDestinations } = await import('../src/lib/quick-search');
 const { QuickExplore } = await import('../src/components/QuickExplore');
