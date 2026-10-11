@@ -16,8 +16,8 @@ import { retryableLazy } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
 
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
-// The lead cover is one column wide: the phone width, at most 36rem on desktop (events.css).
-const LEAD_SIZES = '(max-width: 1023px) calc(100vw - 32px), 576px';
+// The lead cover is one column wide: the phone width, or the left of the two desktop columns (events.css).
+const LEAD_SIZES = '(max-width: 1023px) calc(100vw - 32px), 592px';
 const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六'];
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const occursOn = (event: IndexEvent, day: string) => nextOccurrence(event, day) === day;
