@@ -4,7 +4,7 @@
 .gd-article.bl-guide-article { max-width:1080px; padding:12px 16px 24px; }
 
 /* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → meta line. */
-.gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .gd-crumbs a { display:inline-flex; align-items:center; gap:2px; min-height:2.75rem; color:var(--color-ink-2); font-weight:600; text-decoration:none; }
 .gd-crumbs a:hover { color:var(--color-brand); text-decoration:underline; }
 .gd-crumbs a>svg { width:1rem; height:1rem; }
@@ -12,7 +12,7 @@
 .gd-title__head { font-size:1.625rem; line-height:1.308; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
 .gd-title__sep { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .gd-title__rest { color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; font-weight:400; }
-.gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.571; }
+.gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .gd-meta a { color:var(--color-brand); font-weight:600; text-decoration:none; }
 .gd-meta a:hover { text-decoration:underline; }
 .gd-meta__last { white-space:nowrap; }
@@ -34,7 +34,7 @@
 .gd-actions__error { margin:4px 0 0; color:var(--color-danger); font-size:var(--text-caption); line-height:1.385; }
 .gd-actions__error button { min-height:2.75rem; border:0; background:transparent; color:var(--color-brand); font-weight:600; text-decoration:underline; cursor:pointer; }
 .gd-summary p { margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.75; }
-.gd-summary .gd-summary__audience { margin-top:6px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.gd-summary .gd-summary__audience { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 
 /* The 3:4 slides (1007 §5.5). Sizes follow the slide width (cqw), never below 13px, and grow with Aa (--fluid-scale). */
 .gd-carousel .ui-carousel__slide { container-type:inline-size; }
@@ -78,7 +78,7 @@
 .gd-keyfacts ol { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
 .gd-keyfacts li { display:flex; flex-direction:column; gap:2px; padding:10px 0; border-top:1px solid var(--color-line); }
 .gd-keyfacts li:first-child { border-top:0; padding-top:2px; }
-.gd-keyfacts__label { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .gd-keyfacts__value { color:var(--color-ink); font-size:1.0625rem; line-height:1.6; font-weight:600; }
 .gd-source-mark { display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:600; text-decoration:none; }
 .gd-contacts { margin-top:24px; }
