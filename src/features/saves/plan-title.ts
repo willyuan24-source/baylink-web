@@ -12,5 +12,6 @@ export function planDisplayTitle(title: string, locale: Locale): { text: string;
   const match = AUTO_TITLE.exec(title.trim());
   if (!match) return { text: title, auto: false };
   const day = match[1] ?? match[2];
-  return { text: locale === 'en' ? `Plan for ${day}` : translateText(`${day} 计划`, locale), auto: true };
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  return { text: t(`${day} 计划`, `Plan for ${day}`), auto: true };
 }
