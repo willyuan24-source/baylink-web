@@ -114,7 +114,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const coverOf = (guide: Guide, options: { priority?: boolean; thumb?: boolean } = {}) => {
     const entry = covers.get(guide.slug);
     if (!entry) return null;
-    return <GuideCover guide={guide} cover={entry.cover} tone={entry.tone} priority={options.priority} ratio={options.thumb ? '1:1' : undefined}
+    return <GuideCover guide={guide} cover={entry.cover} tone={entry.tone} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
       sizes={options.thumb ? COVER_SIZES.thumb : COVER_SIZES.feed} answer={options.thumb ? undefined : guideEditorialAnswer(guide.slug, locale)} />;
   };
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.

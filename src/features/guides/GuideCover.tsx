@@ -20,15 +20,17 @@ export type GuideCoverProps = {
   tone?: CoverTone;
   /** A one-line answer printed on a coded cover (pilot guides: "先打 800-510-2020"). */
   answer?: string;
+  /** 88px row thumbnail: a coded cover shows its palette and topic only. */
+  mini?: boolean;
 };
 
 /** A guide's cover: its photo with the provenance badge, or a coded cover with the topic, the short title and the source count. */
-export function GuideCover({ guide, cover, ratio, sizes, priority, tone, answer }: GuideCoverProps) {
+export function GuideCover({ guide, cover, ratio, sizes, priority, tone, answer, mini }: GuideCoverProps) {
   const { t, pick, locale } = useUiCopy();
   const topic = guideTopicOf(guide);
   const sources = guideSourceCount(guide);
   const fallback = <TypeCover family="guide" tone={tone ?? TOPIC_COVER[topic].tone} icon={TOPIC_COVER[topic].icon} label={pick(topicCopy(topic))}
     title={splitGuideTitle(translateText(guide.title, locale)).head} note={answer}
-    place={sources ? t(`${sources} 个官方来源`, `${sources} official source${sources === 1 ? '' : 's'}`) : undefined} ratio={ratio} ariaHidden />;
+    place={sources ? t(`${sources} 个官方来源`, `${sources} official source${sources === 1 ? '' : 's'}`) : undefined} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
   return <Cover cover={cover} fallback={fallback} ratio={ratio} sizes={sizes} priority={priority} decorative />;
 }
