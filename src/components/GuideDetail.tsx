@@ -28,6 +28,7 @@ import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './GuideEditionNotice';
 import { FreebieBoard } from './FreebieBoard';
 import { discoverRelatedGuides } from '../lib/guide-discovery';
+import { getOfferImage } from '../lib/offer-media';
 import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
@@ -125,8 +126,16 @@ const GuideDetailSession = ({
     const coverPage = createCoverPage();
     const media = getGuideMedia(guide);
     const cover = guideCover(guide, today, coverPage);
-    const inline = media.inline.filter(item => keepInlineImage(item.image, guide, guides));
-    return { coverPage, cover, inline, related: discoverRelatedGuides(guide, 4, today) };
+    // Rule 6, one picture once per page: the deals board shows each offer's own picture, so the article drops an inline
+    // picture the board already shows; the legacy poster opens only when it is not the cover; and every picture shown
+    // claims its place before the related guides resolve, so their covers fall back to a TypeCover instead of repeating it.
+    const boardImages = guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []).flatMap(offer => getOfferImage(offer)?.src ?? []);
+    const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
+    const inline = media.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
+      && !boardImages.includes(item.image.src) && keepInlineImage(item.image, guide, guides));
+    const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
+    for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
+    return { coverPage, cover, inline, poster, related: discoverRelatedGuides(guide, 4, today) };
   }, [guide, today]);
 
   if (!guide || !page)
@@ -145,7 +154,6 @@ const GuideDetailSession = ({
   const headingIndexes = guide.blocks.flatMap((block, index) => block.type === 'heading' ? [index] : []);
   const inlineAfter = new Map<number, GuideImage[]>();
   for (const item of page.inline) {
-    if (!Number.isInteger(item.afterHeading) || item.afterHeading < 1 || item.afterHeading > headingIndexes.length) continue;
     const lastBlock = (headingIndexes[item.afterHeading] ?? guide.blocks.length) - 1;
     inlineAfter.set(lastBlock, [...(inlineAfter.get(lastBlock) || []), item.image]);
   }
@@ -243,10 +251,10 @@ const GuideDetailSession = ({
             </details>
           </aside>
           <div className="bl-guide-reading-main">
-            {guide.cover && (
+            {page.poster && (
               <details className="guide-poster-disclosure">
                 <summary>查看原版图文海报<ChevronDown size={17} aria-hidden="true" /></summary>
-                <GuideFigure variant="poster" image={{ src: guide.cover, alt: `${guide.title} 原版图文海报`, caption: '原版图文海报作为补充阅读，最新整理请以本文正文及官方资料为准。', credit: 'BAYLINK 原有指南附图', kind: 'illustration', width: 1055, height: 1491 }} />
+                <GuideFigure variant="poster" image={{ src: page.poster, alt: `${guide.title} 原版图文海报`, caption: '原版图文海报作为补充阅读，最新整理请以本文正文及官方资料为准。', credit: 'BAYLINK 原有指南附图', kind: 'illustration', width: 1055, height: 1491 }} />
               </details>
             )}
             {body}
