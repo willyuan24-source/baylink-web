@@ -19,6 +19,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const [loading, setLoading] = useState(false);
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const activeRequest = useRef<AbortController | null>(null);
   const mounted = useRef(true);
 
@@ -106,7 +107,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   </div></Sheet>;
 
   return (
-    <Sheet open onClose={close} closeOnBackdrop={false} title={mode === 'register' ? (locale === 'en' ? 'Create an account' : translateText('注册', locale)) : (locale === 'en' ? 'Sign in' : translateText('登录', locale))}>
+    <Sheet open onClose={close} closeOnBackdrop={false} title={mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
       <div className="member-auth-dialog">
         <AuthBrandHeader />
         <div className="member-auth-heading">
