@@ -66,18 +66,21 @@ function GuideSearchHarness() {
 test('a shared search URL restores query/category, shows the body match and survives article navigation', () => {
   const view = render(<MemoryRouter initialEntries={['/guides?q=公证&category=service']}><GuideSearchHarness /></MemoryRouter>);
   assert.equal((view.getByRole('searchbox', { name: /在 \d+ 篇指南中搜索/ }) as HTMLInputElement).value, '公证');
-  assert.equal(view.getByRole('button', { name: '本地服务' }).getAttribute('aria-pressed'), 'true');
+  // A legacy ?category= link keeps narrowing the list and shows as a removable chip beside the topics.
+  assert.equal(view.getByRole('button', { name: '取消筛选：本地服务' }).getAttribute('aria-pressed'), 'true');
   assert.match(view.getByText(/联系学校、法院或其他接收机构/).textContent || '', /公证/);
   const result = view.getByRole('link', { name: /在湾区找翻译：先确认用途/ });
   fireEvent.click(result);
   assert.match(view.getByTestId('location').textContent || '', /\/guides\/bay-area-translation-service-guide/);
   fireEvent.click(view.getByRole('link', { name: '返回湾区指南', exact: true }));
   assert.equal((view.getByRole('searchbox') as HTMLInputElement).value, '公证');
-  assert.equal(view.getByRole('button', { name: '本地服务' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(view.getByRole('button', { name: '取消筛选：本地服务' }).getAttribute('aria-pressed'), 'true');
   fireEvent.change(view.getByRole('searchbox'), { target: { value: '打印' } });
-  fireEvent.click(view.getByRole('button', { name: '新手' }));
+  // Choosing a topic replaces the legacy category; the query stays.
+  fireEvent.click(view.getByRole('button', { name: /^证件与移民/ }));
   const url = new URL(view.getByTestId('location').textContent || '', 'http://localhost');
   assert.equal(url.searchParams.get('q'), '打印');
-  assert.equal(url.searchParams.get('category'), 'newcomer');
+  assert.equal(url.searchParams.get('topic'), 'documents');
+  assert.equal(url.searchParams.get('category'), null);
   assert.ok(view.getByRole('link', { name: /湾区图书馆不只借书/ }));
 });

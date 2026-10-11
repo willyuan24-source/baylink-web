@@ -6,7 +6,7 @@ import type { Guide } from '../../data/guides';
 import { guideBayBayQuestion } from './guide-facts';
 import { localizedUrl, translateText } from '../../i18n/locale';
 import { toggleSavedGuide, useReaderLibrary } from '../../lib/reader-library';
-import { withFamilyReading } from '../../lib/reading-preferences';
+import { withFamilyReading } from '../../lib/family-reading';
 import { SITE_URL } from '../../lib/seo';
 import { copyText } from '../../utils/postShare';
 
@@ -34,7 +34,7 @@ function GuideSaveAction({ slug, onStatus }: { slug: string; onStatus: (text: st
  * 特大 with 简洁显示, product.md §5) and [问 BayBay] with a question about this guide.
  */
 export function GuideActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
-  const { t, english, locale } = useUiCopy();
+  const { t, locale } = useUiCopy();
   const [status, setStatus] = useState('');
   const title = translateText(guide.title, locale);
   const sendToFamily = async () => {
@@ -53,8 +53,8 @@ export function GuideActions({ guide, onAsk }: { guide: Guide; onAsk?: (question
     <div className="gd-actions" role="group" aria-label={t('文章操作', 'Article actions')}>
       <GuideSaveAction slug={guide.slug} onStatus={setStatus} />
       <Button onClick={() => void sendToFamily()} icon={<Send aria-hidden="true" strokeWidth={1.75} />}>{t('发给家人', 'Send to family')}</Button>
-      {onAsk ? <Button onClick={() => onAsk(guideBayBayQuestion(guide, english, title))} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>
-        : <Button to={`/plan?q=${encodeURIComponent(guideBayBayQuestion(guide, english, title))}`} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>}
+      {onAsk ? <Button onClick={() => onAsk(guideBayBayQuestion(guide, t, title))} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>
+        : <Button to={`/plan?q=${encodeURIComponent(guideBayBayQuestion(guide, t, title))}`} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>}
     </div>
     <p className="gd-actions__status" role="status">{status}</p>
   </div>;

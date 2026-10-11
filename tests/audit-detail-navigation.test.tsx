@@ -128,5 +128,5 @@ test('the complete guide directory stays in crawlable HTML while its collapsed l
   fireEvent.click(trigger);
   assert.equal(directory.hidden, true);
   const ssr = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/guides"><GuidesHome onOpenGuide={() => {}} /></StaticRouter>));
-  for (const guide of guides) assert.ok(ssr.querySelector(`.guide-complete-index a[href="/guides/${guide.slug}"]`));
+  for (const guide of guides) assert.ok(ssr.querySelector(`#guide-complete-directory a[href="/guides/${guide.slug}"]`));
 });
