@@ -83,3 +83,21 @@ test('on zh-Hant a Simplified draft previews in Traditional Chinese, like the fi
   assert.notEqual(expected, '这个周末去金门公园，下午人少一些。');
   assert.ok(view.getByText(expected));
 });
+
+test('the pending bubble keeps the final order (lead, cards, points) and streams legacy text in the plain answer style', async t => {
+  const { view, send } = await askWithStream(t, '向 BayBay 提问', '这周末带孩子去哪里？');
+  const card = { kind: 'event', id: 'santa-clara-library-comic-con-2026', title: 'Santa Clara 图书馆免费 Comic Con', url: '/events/santa-clara-library-comic-con-2026', summary: '' };
+  // Verified cards usually arrive before the drafted text.
+  await send(frame('quick_card', { verified: true, cards: [card] }));
+  await send(frame('draft', { seq: 1, field: 'lead', text: '周六去 Santa Clara 图书馆。' }) + frame('draft', { seq: 2, field: 'point', index: 0, text: '10:00 开门，免费。' }));
+  const bubble = view.baseElement.querySelector('[data-draft]')!;
+  const order = [...bubble.children].map(child => child.classList.contains('bb-lead') ? 'lead' : child.classList.contains('bb-cards') ? 'cards' : child.classList.contains('bb-points') ? 'points' : child.className);
+  assert.deepEqual(order, ['lead', 'cards', 'points'], 'the lead does not jump above the cards when the result arrives');
+  // A legacy (v1) answer streams validated text: it reads like the final legacy answer, not as a bold lead.
+  await send(frame('delta', { validated: true, text: '已核实的答复。' }));
+  const legacy = view.getByText('已核实的答复。');
+  assert.ok(legacy.classList.contains('member-baybay-answer-text'));
+  assert.equal(legacy.classList.contains('bb-lead'), false);
+  assert.ok(legacy.compareDocumentPosition(bubble.querySelector('.bb-cards')!) & Node.DOCUMENT_POSITION_FOLLOWING, 'legacy text first, then its cards, as in the final v1 answer');
+  await send(frame('result', { ok: true, answer: '完整回答。' }));
+});

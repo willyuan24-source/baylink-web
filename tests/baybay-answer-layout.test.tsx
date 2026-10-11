@@ -12,9 +12,9 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
 const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
-const { BayBayCardRail, BayBayReadAloud } = await import('../src/features/baybay/BayBayAnswer');
+const { BayBayAnswerBody, BayBayCardRail, BayBayReadAloud } = await import('../src/features/baybay/BayBayAnswer');
 const { BayBaySaveScope } = await import('../src/features/baybay/BayBaySaveScope');
-const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayTextUnits } = await import('../src/lib/baybay-answer');
+const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayOrderCards, bayBayResumeStyle, bayBayTextUnits } = await import('../src/lib/baybay-answer');
 const { bayBayCardCitations, bayBayCardModels } = await import('../src/features/baybay/answer-cards');
 const { bayBayPageRef } = await import('../src/features/baybay/panel-chips');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
@@ -77,9 +77,11 @@ test('a v2 answer reads lead, then image cards, then points with [n], then follo
   assert.equal(items.length, 3);
   for (const item of items) assert.ok(item.querySelector('[data-cover]'), 'every card has a cover (photo or BAYLINK 信息卡)');
   for (const item of items) assert.ok(item.querySelector('[data-provenance]'), 'every cover carries its provenance badge');
-  // Card ↔ point mapping: the card title carries the citation number of its own page.
+  // Card ↔ point mapping: the card title carries the citation number of its own page, read as "来源 1：" (not a bare [1]).
   assert.match(items[0].textContent || '', /^\[1\]/);
   assert.match(items[2].textContent || '', /\[3\]/);
+  assert.equal(items[0].querySelector('.bb-card__n')?.getAttribute('aria-hidden'), 'true');
+  assert.ok(within(items[0]).getByRole('link', { name: /^来源 1：Santa Clara/ }));
   // Events offer ♡ 收藏 (to 我的这周) and 加入行程; an offer card is a link only until WEB-SAVES adds offer saves.
   assert.ok(within(items[0]).getByRole('button', { name: /^收藏到我的这周：/ }));
   fireEvent.click(within(items[0]).getByRole('button', { name: /加入行程：/ }));
@@ -221,7 +223,9 @@ test('a paused BayBay shows its banner with 911 and 211 first and never a dollar
     const calls = within(box as HTMLElement).getAllByRole('link');
     assert.deepEqual(calls.map(link => link.getAttribute('href')), ['tel:911', 'tel:211']);
     assert.ok(calls[0].compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING, '911 comes before the text');
-    assert.match(box.textContent || '', locale === 'en' ? /Back around Oct 10, 12:00 AM/ : /预计 10 月 10 日 0:00（湾区时间）恢复/);
+    // The banner already says it is back tomorrow, so the time follows once, without a second "恢复".
+    assert.match(box.textContent || '', locale === 'en' ? /back tomorrow\. That is Oct 10, 12:00 AM \(Bay Area time\)\.$/ : /明天会恢复。即 10 月 10 日 0:00（湾区时间）$/);
+    assert.equal((box.textContent || '').match(/恢复|back/gi)?.length, 1);
     assert.doesNotMatch(box.textContent || '', /\$/);
     cleanup();
   }
@@ -236,6 +240,33 @@ test('the answer stylesheet uses tokens and rem only, and every control is at le
   // Answers read at 17px (20 in 简洁显示), never smaller than the legacy answer text — and the 911 instructions likewise.
   assert.match(css, /\.bb-points>li \{[^}]*font-size:var\(--text-reading\)/, 'points use the 17px reading size');
   assert.match(css, /\.bb-emergency__text \{[^}]*font-size:var\(--text-reading\)/, 'the 911 instructions use the reading size');
+});
+
+test('the resume time is said once: none when the banner has a time, "即 …" after its own 恢复, else a sentence', () => {
+  assert.equal(bayBayResumeStyle('今日 AI 名额已满，以下为站内资料；明天会恢复。'), 'time');
+  assert.equal(bayBayResumeStyle('今日 AI 名額已滿，以下為站內資料；明天會恢復。'), 'time');
+  assert.equal(bayBayResumeStyle("Today's AI answers are used up. BayBay is back tomorrow."), 'time');
+  assert.equal(bayBayResumeStyle('BayBay 暂停服务，10 月 10 日 0:00 恢复。'), 'none');
+  assert.equal(bayBayResumeStyle('BayBay is paused until Oct 10, 9 am.'), 'none');
+  assert.equal(bayBayResumeStyle('BayBay 暂时只用站内资料回答。'), 'sentence');
+});
+
+test('the card rail follows the points that name each card (card for point 1 first), then the server order', () => {
+  const card = (kind: string, id: string) => ({ kind, id });
+  // D-HANT-FREE-KIDS from the engine eval: the server listed an ongoing offer first, while point 1 cites a storytime.
+  const server = [card('offer', 'presidio-field-station-free'), card('event', 'stanford-art-for-all-oct-2026'), card('event', 'burlingame-mandarin-storytime-2026'), card('event', 'napa-musictime-halloween-2026'), card('offer', 'randall-museum-free'), card('guide', 'unnamed')];
+  const points = [{ cardIds: ['event:burlingame-mandarin-storytime-2026'] }, { cardIds: ['event:napa-musictime-halloween-2026'] }, { cardIds: ['event:stanford-art-for-all-oct-2026', 'event:burlingame-mandarin-storytime-2026'] }, { cardIds: ['offer:presidio-field-station-free'] }, { cardIds: [] }];
+  assert.deepEqual(bayBayOrderCards(server, points).map(item => item.id), ['burlingame-mandarin-storytime-2026', 'napa-musictime-halloween-2026', 'stanford-art-for-all-oct-2026', 'presidio-field-station-free', 'randall-museum-free', 'unnamed']);
+  assert.deepEqual(bayBayOrderCards(server, [{ cardIds: [] }]), server, 'no cardIds keeps the server order');
+});
+
+test('a v2 answer renders its cards in point order', () => {
+  const reply = c01();
+  const fields = parseBayBayAnswerFields({ ...reply, points: [reply.points[1], reply.points[0], reply.points[2]] });
+  const sources = reply.sources.map((source, index) => ({ ...source, number: index + 1 }));
+  const view = render(<BayBayAnswerBody fields={fields} cards={reply.localMatches as never} sources={sources as never} today={TODAY} onNavigate={noop} />);
+  const keys = [...view.baseElement.querySelectorAll('.bb-cards [data-card-key]')].map(item => item.getAttribute('data-card-key'));
+  assert.deepEqual(keys, ['event:mountain-view-oktoberfest-2026', 'event:santa-clara-library-comic-con-2026', 'offer:apple-kids-earth-comics']);
 });
 
 test('朗读 on a second answer is not cancelled by the first one being interrupted, and unmounting stops only its own voice', async () => {
