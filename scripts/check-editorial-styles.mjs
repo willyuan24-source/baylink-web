@@ -27,6 +27,9 @@ export const editorialStyleScopes = [
   // WEB-SAVES: the one save model's controls (global, for prerendered pages) and My Week.
   { file: 'src/components/reader-library.css', after: '/* WEB-SAVES: the one save model' },
   { file: 'src/features/saves/my-week.css' },
+  // WEB-GUIDES: the guide index and article templates.
+  { file: 'src/features/guides/guide-library.css' },
+  { file: 'src/features/guides/guide-article.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

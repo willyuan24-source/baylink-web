@@ -1,0 +1,54 @@
+/* 指南 index (T2, WEB-GUIDES): loaded with GuidesHome only (route CSS, RC-6). Tokens and rem only; covers, chips, cards and the
+   rail are the WEB-UI primitives (ui.css). Reviewed by scripts/check-editorial-styles.mjs. */
+.gl-page { box-sizing:content-box; max-width:1216px; margin-inline:auto; padding:16px 16px 48px; color:var(--color-ink); }
+.gl-header { margin-bottom:16px; }
+.gl-header .ui-page-header__lede { font-size:var(--text-body); }
+
+.gl-find { display:flex; align-items:center; gap:8px; }
+.gl-search { position:relative; display:flex; flex:1 1 auto; align-items:center; gap:8px; min-width:0; min-height:3rem; padding:0 4px 0 16px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink-2); }
+.gl-search:focus-within { border-color:var(--color-brand); box-shadow:0 0 0 2px var(--color-brand-tint); }
+.gl-search>svg { flex:none; width:1.25rem; height:1.25rem; }
+.gl-search input { flex:1 1 auto; min-width:0; min-height:2.75rem; padding:0; border:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; outline:none; }
+.gl-search input::-webkit-search-cancel-button { display:none; }
+.gl-search__clear { display:inline-grid; place-items:center; flex:none; width:2.75rem; height:2.75rem; border:0; border-radius:999px; background:transparent; color:var(--color-ink-2); cursor:pointer; }
+.gl-search__clear>svg { width:1.25rem; height:1.25rem; }
+.gl-saved-link { display:inline-flex; align-items:center; gap:6px; flex:none; min-height:3rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:600; text-decoration:none; }
+.gl-saved-link>svg { width:1.125rem; height:1.125rem; color:var(--color-brand); }
+
+.gl-filters { display:flex; flex-direction:column; gap:8px; margin:12px 0 4px; }
+
+.gl-section { margin-top:28px; }
+.gl-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; }
+.gl-section__head h2 { margin:0; color:var(--color-ink); font-size:1.375rem; line-height:1.364; font-weight:600; text-wrap:balance; }
+.gl-section__head p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.gl-section__head .ui-button { flex:none; }
+.gl-count { flex:none; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-variant-numeric:tabular-nums; }
+
+/* The 长辈与家属 rail: about two and a quarter cards on a phone, four across on a desktop. */
+.gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 12px) / 2.2); }
+@media (min-width:768px) { .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 24px) / 3.2); } }
+@media (min-width:1024px) { .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 36px) / 4); } }
+@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc(100% - 40px); } }
+
+.gl-results { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gl-results>li { min-width:0; }
+.gl-more { display:flex; justify-content:center; margin-top:20px; }
+
+.gl-directory { margin-top:36px; border-top:1px solid var(--color-line); padding-top:12px; }
+.gl-directory>button { display:inline-flex; align-items:center; min-height:2.75rem; padding:0; border:0; background:transparent; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:600; cursor:pointer; }
+.gl-directory ul { columns:2 18rem; column-gap:24px; margin:8px 0 0; padding:0; list-style:none; }
+.gl-directory li { break-inside:avoid; }
+.gl-directory a { display:block; padding:10px 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; text-decoration:none; }
+.gl-directory a:hover { color:var(--color-brand); text-decoration:underline; }
+.gl-footer { display:flex; flex-wrap:wrap; align-items:center; gap:4px 16px; margin-top:24px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.gl-footer p { margin:0; }
+.gl-footer a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; }
+:is(.gl-search__clear,.gl-saved-link,.gl-directory>button,.gl-directory a,.gl-footer a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+
+@media (min-width:768px) { .gl-page { padding:24px 24px 64px; } }
+@media (min-width:1024px) {
+  .gl-page { padding:32px 32px 72px; }
+  .gl-find { max-width:720px; }
+  .gl-section { margin-top:40px; }
+  .gl-section__head h2 { font-size:1.5rem; line-height:1.333; }
+}

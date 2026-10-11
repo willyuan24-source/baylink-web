@@ -22,7 +22,8 @@ const HAN = /[\u3400-\u9fff]/;
 
 export type TypeCoverProps = {
   tone: CoverTone;
-  family?: 'event' | 'offer' | 'opening';
+  /** `guide`: family C, a guide without a qualifying photo (topic palette, short title, source count). */
+  family?: 'event' | 'offer' | 'opening' | 'guide';
   /** The truthful category label, already localized ("亲子活动"). */
   label: string;
   date?: DateChipText;
