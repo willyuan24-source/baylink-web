@@ -231,4 +231,7 @@ test('the answer stylesheet uses tokens and rem only, and every control is at le
   assert.doesNotMatch(css, /font-size:\s*\d+px/, 'no px text sizes');
   assert.match(css, /\.bb-emergency__call \{[^}]*min-height:3\.5rem/, 'the 911 button is 56px');
   assert.match(css, /html\[data-simple\] \.baybay-conversation :is\(\.bb-points>li,\.bb-gap\) \{ font-size:var\(--text-reading\)/, '简洁显示 sets points to the 20px reading size');
+  // Answers read at 17px (20 in 简洁显示), never smaller than the legacy answer text — and the 911 instructions likewise.
+  assert.match(css, /\.bb-points>li \{[^}]*font-size:var\(--text-reading\)/, 'points use the 17px reading size');
+  assert.match(css, /\.bb-emergency__text \{[^}]*font-size:var\(--text-reading\)/, 'the 911 instructions use the reading size');
 });
