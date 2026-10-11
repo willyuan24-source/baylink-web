@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { registerHooks } from 'node:module';
 import '../src/i18n/router';
 import '../src/i18n/metadata';
 import { setLocale, translateText } from '../src/i18n/locale';
@@ -8,8 +9,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React, { type ReactNode } from 'react';
 import { guides, getGuidesForCategorySlug } from '../src/data/guides';
-import { GuideDetail } from '../src/components/GuideDetail';
-import { GuidesHome } from '../src/components/GuidesHome';
 import { TermsView } from '../src/components/TermsView';
 import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
 import { SmsConsentView } from '../src/components/SmsConsentView';
@@ -44,6 +43,13 @@ import AiLocalPage from '../src/pages/AiLocalPage';
 import { PLAN_METADATA } from '../src/lib/planner';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { opusBayHeadExtras, opusBayInHalloween, opusBayMetadata } from '../src/lib/opus-bay-metadata';
+
+// Component stylesheets (the WEB-UI primitives' ui.css, the guide pages' guide-article.css / guide-library.css) are bundled by
+// Vite and linked per route below (RC-6); here they load as empty modules. Static imports load before this line runs, so a
+// page that imports CSS is imported after the hook, dynamically.
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
+const { GuideDetail } = await import('../src/components/GuideDetail');
+const { GuidesHome } = await import('../src/components/GuidesHome');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
