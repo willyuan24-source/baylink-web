@@ -204,6 +204,39 @@ test('verification-log wording in reader text is a warning for the next content 
   for (const tip of tips) assert.doesNotMatch(tip, /按菜单消费；价格与开业优惠见商家|未见开业优惠/u);
 });
 
+test('deks and short titles keep to the source; one session per slot; plan lines speak to the reader (review 10/11, round 3)', () => {
+  const byId = (id: string) => MONTHLY_EVENTS.find(item => item.id === id)!;
+  // Words the sources never state: a genre, a ship's era, a show length, the stage of a season, a kind of bird, a device.
+  const unsourced: Record<string, [RegExp, RegExp]> = {
+    'uptown-jackson-dean-2026': [/乡村/u, /country/iu],
+    'nov2026-red-oak-fall-swing': [/二战|货船/u, /WWII|cargo/iu],
+    'sj-disney-on-ice-2026': [/下午/u, /afternoon/iu],
+    'sf-warriors-heat-november-2026': [/常规赛/u, /regular/iu],
+    'nov2026-hayward-monday-birding': [/候鸟/u, /shorebird|migrat/iu],
+    'octnov-healdsburg-tech-help-2026': [/手机/u, /phone/iu],
+  };
+  for (const [id, [zh, en]] of Object.entries(unsourced)) {
+    const { dek } = byId(id);
+    assert.ok(dek && english[dek], id);
+    assert.doesNotMatch(dek!, zh, id);
+    assert.doesNotMatch(english[dek!], en, `${id} (en)`);
+  }
+  // Orinda registers per 45-minute slot, so each slot is a session and the card lists the three starts.
+  const orinda = byId('orinda-trunk-and-treat-october-2026');
+  assert.deepEqual(orinda.sessions?.map(session => `${session.date} ${session.start}–${session.end}`), ['2026-10-22 16:30–17:15', '2026-10-22 17:15–18:00', '2026-10-22 18:00–18:45']);
+  assert.equal(eventTimeLabel(orinda, '2026-10-22', false), '16:30、17:15、18:00');
+  for (const id of ['bay-area-musical-improv-festival-2026', 'sf-sunday-streets-excelsior-oct18-2026', 'orinda-trunk-and-treat-october-2026']) {
+    for (const line of byId(id).plan) assert.doesNotMatch(line, /编辑建议|标记|可能已过时/u, `${id}: ${line}`);
+  }
+  // "编辑建议…" in reader text is a log-voice warning, like the verification-log wording.
+  const concord = byId('concord-trick-or-treat-trail-2026');
+  const issues = lintEditorial(input({ events: [{ ...concord, plan: ['编辑建议先逛家庭区。'] }], offers: [], openings: [] })).filter(issue => issue.rule === 'log-voice');
+  assert.deepEqual(issues.map(issue => issue.level), ['warn']);
+  // Offer short titles keep the source's condition and craft: 满 50 岁 (not 长者), pipe-cleaner (扭扭棒, not plush).
+  assert.match(OFFER_OVERLAY['happy-hollow-senior-safari-oct22'].shortTitle!, /满 50 岁/u);
+  assert.match(OFFER_OVERLAY['michaels-chenille-ghost-oct24-2026'].shortTitle!, /扭扭棒/u);
+});
+
 test('tips add information no shown field carries; status marks postponed and sold-out items (review 10/09)', () => {
   for (const event of MONTHLY_EVENTS) for (const tip of event.tips ?? []) {
     assert.equal(tipRepeats(tip, { plan: event.plan, costLabel: event.costLabel, dateLabel: event.dateLabel, summary: event.summary, dateNote: event.dateNote ?? '' }), undefined, `${event.id}: ${tip}`);
