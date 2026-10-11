@@ -156,7 +156,7 @@ export default function CalendarView({ today }: { today: string }) {
             const outside = day < period.start || day > period.end;
             return <button key={day} type="button" className="ev-month__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined} data-outside={outside ? '' : undefined}
               aria-label={`${longDate(day)} · ${t(`${count} 场`, `${count} events`)}`} onClick={() => update({ date: day })}>
-              <span aria-hidden="true">{Number(day.slice(8, 10))}</span>
+              <span className="ev-month__num" aria-hidden="true">{Number(day.slice(8, 10))}</span>
               <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
             </button>;
           })}
