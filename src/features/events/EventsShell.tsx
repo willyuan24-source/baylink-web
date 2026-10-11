@@ -53,7 +53,8 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   const free = inScope.filter(event => isFreeToAttend(event)).length;
   const offers = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region).length : 0;
   const checked = t(`核对于 ${md(EVENTS_INDEX.edition.checkedAt)}`, `checked ${md(EVENTS_INDEX.edition.checkedAt)}`);
-  const promise = t('逐条附官方来源', 'every listing links its official source');
+  // The listing card is one link to the detail page, which links the official source.
+  const promise = t('逐条附官方来源', 'every listing has an official source');
 
   const rangeLine = column === 'perks' ? t('免费与优惠', 'Free & deals') + region
     : column === 'openings' ? t('新店', 'New shops') + region
@@ -75,7 +76,8 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   let body: ReactNode;
   if (column === 'list') body = <WeekendView today={today} filters={filters} defaultWhen={defaultWhen} />;
   else if (column === 'calendar') body = calendar!(today);
-  else body = <ChunkBoundary>{attempt => {
+  // Keyed by board, so switching straight from one board to the other never carries the first one's failure over.
+  else body = <ChunkBoundary key={column}>{attempt => {
     const View = (column === 'perks' ? perksView : openingsView)(attempt);
     return <Suspense fallback={<SkeletonFeed count={4} />}><View today={today} region={filters.region} /></Suspense>;
   }}</ChunkBoundary>;
