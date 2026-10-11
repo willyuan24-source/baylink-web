@@ -135,7 +135,7 @@ test('the actual October deals guide uses official photography and preserves loc
   const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-10-01" {...actions} /></StaticRouter>);
   const server = new JSDOM(html).window.document;
   assert.equal(server.querySelector('h1')?.textContent, previousGuide.title);
-  assert.equal(server.querySelector('.guide-figure--cover img')?.getAttribute('src'), media.cover.src);
+  assert.equal(server.querySelector('.gd-cover img:not(.ui-cover__backdrop)')?.getAttribute('src'), media.cover.src);
   assert.match(server.querySelector('.bl-guide-edition-notice')?.textContent || '', /2026 年 10 月 · 本期攻略/);
   const sourceCards = [...server.querySelectorAll('.bl-guide-source-link')];
   assert.equal(sourceCards.length, sourceBlocks.length);
