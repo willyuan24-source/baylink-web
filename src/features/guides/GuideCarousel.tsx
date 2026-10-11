@@ -4,6 +4,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
 import type { EditorialPhone, GuideEditorial, GuideSlide } from '../../data/guide-editorial';
 import { guideTopicOf, type GuideTopicId } from '../../data/guide-topics';
+import { guideEnglishDate, guideSourceCount } from './guide-facts';
 
 /** Phone numbers and other digit runs never break across lines ("800-510-
 2020" at 特大). */
@@ -30,13 +31,18 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
     <span className="gd-slide__phone-label">{pick(entry.label)}</span><span className="gd-slide__phone-number">{entry.number}</span>
   </a>;
   const { cover } = editorial;
+  // The same count and date as the head meta line: de-duplicated source URLs, an English date, one source in the singular.
+  const sources = guideSourceCount(guide), date = guideEnglishDate(guide.updatedAt);
+  const kicker = sources
+    ? t(`${sources} 个官方来源 · ${guide.updatedAt} 整理`, `${sources} official source${sources === 1 ? '' : 's'} · updated ${date}`)
+    : t(`${guide.updatedAt} 整理`, `Updated ${date}`);
   const Mark = TOPIC_MARKS[guideTopicOf(guide)];
   return <div className="gd-carousel">
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
       {/* data-cover="type": a coded card, counted as cover area and never as photo area (RC-31). */}
       <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="type">
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
-        <div className="gd-slide__top"><span className="gd-slide__kicker">{t(`${guide.sources.length} 个官方来源 · ${guide.updatedAt} 整理`, `${guide.sources.length} official sources · updated ${guide.updatedAt}`)}</span>{counter(1)}</div>
+        <div className="gd-slide__top"><span className="gd-slide__kicker">{kicker}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
         <h2 className="gd-slide__cover-title">{pick(cover.title)}</h2>
         <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{keepNumbers(pick(cover.answer))}</a> : keepNumbers(pick(cover.answer))}</p>

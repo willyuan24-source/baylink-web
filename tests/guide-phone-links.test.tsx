@@ -62,3 +62,21 @@ test('RC-11(i): on /en the linkified paragraphs are the English translation, not
   }
   for (const p of document.querySelectorAll('p')) if (p.querySelector('a.phone-chip')) assert.doesNotMatch(p.textContent!, chinese, p.textContent!.slice(0, 60));
 });
+
+for (const [locale, prefix] of [['zh-Hans', ''], ['en', '/en']] as const) {
+  test(`a number in an official source's description is a tel: link too (${locale})`, async () => {
+    await setLocale(locale, false);
+    let checked = 0;
+    for (const slug of [seniorSlug, 'bay-area-medicare-hicap-medi-cal-guide', 'bay-area-dental-care-insurance-low-cost-guide']) {
+      const guide = getGuideBySlug(slug)!;
+      const items = [...renderGuide(slug, prefix).querySelectorAll('#guide-sources ~ ul > li')];
+      guide.sources.forEach((source, index) => {
+        const expected = tels(translateText(source.description, locale));
+        const links = [...items[index].querySelectorAll('p a[href^="tel:"]')].map(link => link.getAttribute('href')!.slice(4));
+        assert.deepEqual(links, expected, `${slug} source ${index + 1}`);
+        checked += expected.length;
+      });
+    }
+    assert.ok(checked >= 3, 'Medicare 1-800-434-0222, dental 1-800-322-6384, senior 510-763-9017');
+  });
+}

@@ -282,7 +282,7 @@ const GuideDetailSession = ({
                       <ArrowUpRight size={15} aria-hidden="true" />
                       <span className="sr-only">（在新标签页打开）</span>
                     </a>
-                    <p>{source.description}</p>
+                    <p><PhoneText text={source.description} /></p>
                   </li>
                 ))}
               </ul>

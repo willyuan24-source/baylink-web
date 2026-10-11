@@ -73,6 +73,18 @@ test('phone numbers and sources in the pilot data match the article exactly', ()
   }
 });
 
+test('every part of a contact address is written in the article', () => {
+  let checked = 0;
+  for (const slug of PILOTS) {
+    const article = articleText(getGuideBySlug(slug)!);
+    for (const contact of getGuideEditorial(slug)!.contacts ?? []) for (const part of (contact.address ?? '').split(/[,/]/).map(item => item.trim()).filter(Boolean)) {
+      assert.ok(article.includes(part), `${slug}: "${part}" of ${contact.address} is not in the article`);
+      checked++;
+    }
+  }
+  assert.ok(checked >= 6, 'the senior-services addresses are checked');
+});
+
 test('pilot copy is written in both languages and the English has no Chinese', () => {
   for (const slug of PILOTS) for (const copy of [...copies(getGuideEditorial(slug)!), GUIDE_COVER_ANSWERS[slug]]) {
     assert.ok(copy.zh.trim() && copy.en.trim(), `${slug}: ${copy.zh}`);

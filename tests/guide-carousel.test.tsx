@@ -66,6 +66,8 @@ test('the carousel reads in English on /en and in Traditional Chinese on /zh-Han
   let carousel = carouselOf(view);
   assert.doesNotMatch(carousel.textContent!, /[㐀-鿿]/u, 'no Chinese in the English carousel');
   assert.ok(within(carousel).getByText('Name the kind of help'));
+  // The cover kicker matches the head meta line: de-duplicated sources and an English date, never the ISO date.
+  assert.match(carousel.querySelector('.gd-slide__kicker')!.textContent!, /^\d+ official sources? · updated [A-Z][a-z]{2} \d{1,2}, \d{4}$/);
   cleanup();
   await setLocale('zh-Hant', false);
   view = article(SENIOR);

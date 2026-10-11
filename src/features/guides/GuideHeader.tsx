@@ -6,13 +6,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
 import { guideTopicOf } from '../../data/guide-topics';
 import { translateText } from '../../i18n/locale';
-import { guideReadMinutes, guideSourceCount, splitGuideTitle, topicCopy } from './guide-facts';
-
-const englishDate = (iso: string) => {
-  const [year, month, day] = iso.split('-').map(Number);
-  if (!year || !month || !day) return iso;
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(year, month - 1, day, 12)));
-};
+import { guideEnglishDate, guideReadMinutes, guideSourceCount, splitGuideTitle, topicCopy } from './guide-facts';
 
 /**
  * The article head (design.md §4.10, GUIDE-03): breadcrumb → H1 (the short part at title size, the rest of the SEO title as
@@ -38,7 +32,7 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
       {rest && <><span className="gd-title__sep">{separator}</span><span className="gd-title__rest">{english ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest}</span></>}
     </h1>
     <p className="gd-meta">
-      <span>{t(`内容更新 ${guide.updatedAt}`, `Updated ${englishDate(guide.updatedAt)}`)}</span>
+      <span>{t(`内容更新 ${guide.updatedAt}`, `Updated ${guideEnglishDate(guide.updatedAt)}`)}</span>
       {sources > 0 && <><span aria-hidden="true"> · </span><a href="#guide-sources">{t(`官方来源 ${sources} 个`, `${sources} official source${sources === 1 ? '' : 's'}`)}</a></>}
       <span className="gd-meta__last"><span aria-hidden="true"> · </span><span>{t(`约 ${minutes} 分钟`, `${minutes} min read`)}</span>
         <button type="button" className="gd-meta__info" aria-haspopup="dialog" aria-label={t('关于日期与来源', 'About dates and sources')} onClick={() => setAboutOpen(true)}><Info aria-hidden="true" strokeWidth={1.75} /></button></span>
