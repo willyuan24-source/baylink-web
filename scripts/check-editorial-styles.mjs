@@ -22,6 +22,9 @@ export const editorialStyleScopes = [
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },
   { file: 'src/components/phone-links.css' },
+  // WEB-GUIDES: the guide index and article templates.
+  { file: 'src/features/guides/guide-library.css' },
+  { file: 'src/features/guides/guide-article.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
