@@ -245,3 +245,24 @@ test('legacy poster remains expandable and full guide server rendering retains e
   for (const stop of routeBlock.stops) assert.ok(server.body.textContent?.includes(stop.text));
   assert.equal(server.querySelectorAll('.guide-route-stop[hidden]').length, 0);
 });
+
+test('no article shows the same picture twice: a related guide, an inline figure or the legacy poster never repeats a picture already on the page', () => {
+  const repeats: string[] = [];
+  for (const guide of guides) {
+    const html = renderToStaticMarkup(<StaticRouter location={`/guides/${guide.slug}`}><GuideDetail slug={guide.slug} {...guideProps} /></StaticRouter>);
+    // Posters letterbox on a blurred copy of themselves (one picture, two <img>); count the picture once.
+    const images = Array.from(new JSDOM(html).window.document.querySelectorAll('img:not(.ui-cover__backdrop)'));
+    // The deals board (FreebieBoard, WEB-EVENTS) reuses an offer picture across offers and shows the lead offer's photo,
+    // which the deals guides keep as their cover (monthly-deals-ui); every other picture appears once on the page.
+    const inBoard = (image: Element) => !!image.closest('[id^="freebie-board-"]');
+    const lead = new Set(images.filter(image => image.closest('.gd-lead')).map(image => image.getAttribute('src')));
+    const board = new Set(images.filter(inBoard).map(image => image.getAttribute('src')));
+    const seen = new Set<string | null>();
+    for (const image of images.filter(image => !inBoard(image))) {
+      const src = image.getAttribute('src');
+      if (seen.has(src) || (board.has(src) && !lead.has(src))) repeats.push(`${guide.slug}: ${src}`);
+      seen.add(src);
+    }
+  }
+  assert.deepEqual(repeats, []);
+});
