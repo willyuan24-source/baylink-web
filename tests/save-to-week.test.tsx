@@ -12,6 +12,7 @@ const { SaveToWeek } = await import('../src/components/SaveToWeek');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { resetSaveStore, savesKey } = await import('../src/lib/saves');
+const { saveButtonName } = await import('../src/features/saves/save-name');
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { currentFreebies } = await import('../src/data/october-offers');
 type Favorite = import('../src/lib/planner').Favorite;
@@ -74,8 +75,10 @@ test('an offer the account catalog does not know yet stays saved on this device 
   });
   const view = render(page(offer,account,true));await act(async () => {});
   await act(async () => { fireEvent.click(view.getByRole('button',{ name:'收藏：Fixture offer' })); });
-  const saved = view.getByRole('button',{ name:'取消收藏：Fixture offer' });
+  const saved = view.getByRole('button',{ name:'已收藏：Fixture offer' });
   assert.equal(saved.getAttribute('aria-pressed'),'true');
+  // WCAG 2.5.3: the name starts with the words on the button, in both states.
+  assert.equal(saved.textContent,'已收藏');assert.ok(saved.getAttribute('aria-label')!.startsWith(saved.textContent!));
   assert.equal(view.queryByRole('alert'),null);
   assert.match(view.getByTestId('save-toast').textContent!,/本机/);
   assert.deepEqual(writes,[`PUT /planner/favorites/offer/${encodeURIComponent(offer.id)}`]);
@@ -83,7 +86,9 @@ test('an offer the account catalog does not know yet stays saved on this device 
   assert.deepEqual(pending.map((item: Favorite) => `${item.kind}:${item.id}`),[`offer:${offer.id}`]);
   // Removing a device-only save needs no account call.
   await act(async () => { fireEvent.click(saved); });
-  assert.equal(view.getByRole('button',{ name:'收藏：Fixture offer' }).getAttribute('aria-pressed'),'false');
+  const unsaved = view.getByRole('button',{ name:'收藏：Fixture offer' });
+  assert.equal(unsaved.getAttribute('aria-pressed'),'false');
+  assert.equal(unsaved.textContent,'收藏');
   assert.equal(writes.length,1);
 });
 
@@ -126,8 +131,17 @@ test('a failed account read stays silent on list cards; only the card the reader
   await act(async () => { fireEvent.click(heart(2)); });
   assert.equal(reads,3);
   await waitFor(() => assert.equal(view.queryAllByRole('alert').length,0));
-  assert.equal(view.getByRole('button',{ name:`取消收藏：${offers[1].title}` }).getAttribute('aria-pressed'),'true');
+  assert.equal(view.getByRole('button',{ name:`已收藏：${offers[1].title}` }).getAttribute('aria-pressed'),'true');
   assert.equal(heart(2).getAttribute('aria-pressed'),'false','the re-read itself never saves the tapped item');
+});
+
+test('the ♡ name starts with the words on the button in every locale and state (WCAG 2.5.3 Label in Name)', () => {
+  const cases: [Parameters<typeof saveButtonName>[2], string, string][] = [['zh-Hans','收藏：Muni','已收藏：Muni'],['zh-Hant','收藏：Muni','已收藏：Muni'],['en','Save: Muni','Saved: Muni']];
+  for (const [locale,off,on] of cases) {
+    assert.equal(saveButtonName(false,'Muni',locale),off);
+    assert.equal(saveButtonName(true,'Muni',locale),on);
+  }
+  assert.equal(saveButtonName(true,undefined,'en'),undefined,'without a title the visible label is the name');
 });
 
 test('two saves in a row show one confirmation, not two stacked toasts', async () => {

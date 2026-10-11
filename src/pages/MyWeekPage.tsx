@@ -13,7 +13,7 @@ import { setPageMetadata } from '../lib/seo';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
 import { savedCoverImage } from '../lib/saved-items';
-import { translateText, useLocale } from '../i18n/locale';
+import { translateText, useLocale, type Locale } from '../i18n/locale';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
 import { ImportedEventsPanel } from '../components/ImportedEventsPanel';
 import { MyWeekOutings } from '../features/outings/MyWeekOutings';
@@ -22,6 +22,7 @@ import { PlannerPreferenceMemory } from '../components/PlannerPreferenceMemory';
 import { UnifiedSavedItems } from '../components/UnifiedSavedItems';
 import { AddToDayPlan } from '../components/AddToDayPlan';
 import { SaveHeart } from '../features/saves/SaveHeart';
+import { planDisplayTitle } from '../features/saves/plan-title';
 import { Button, IconButton } from '../components/ui/Button';
 import { RowCard } from '../components/ui/Card';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
@@ -52,6 +53,12 @@ function useOnline() {
   return online;
 }
 
+/** A plan's title: the one 加入这天计划 gave it in the page's language; a title the reader wrote as written. */
+function PlanTitle({ title, locale }: { title: string; locale: Locale }) {
+  const shown = planDisplayTitle(title, locale);
+  return <span translate={shown.auto ? undefined : 'no'}>{shown.text}</span>;
+}
+
 /** 行程: upcoming plans as a timeline, one day per row, each plan's stops in order. */
 function PlanTimeline({ plans, english, busy, onDelete }: { plans: SavedPlan[]; english: boolean; busy: boolean; onDelete: (plan: SavedPlan) => void }) {
   const locale = useLocale();
@@ -59,8 +66,8 @@ function PlanTimeline({ plans, english, busy, onDelete }: { plans: SavedPlan[]; 
   const days = [...new Set(plans.map(plan => plan.date))];
   return <ol className="my-week__timeline">{days.map(date => <li key={date} id={`plan-${date}`} className="my-week__day">
     <p className="my-week__day-date"><time dateTime={date}>{dayLabel(date, english)}</time></p>
-    {plans.filter(plan => plan.date === date).map(plan => <article key={plan.id} className="my-week__plan" aria-label={plan.title}>
-      <h3 translate="no">{plan.title}</h3>
+    {plans.filter(plan => plan.date === date).map(plan => <article key={plan.id} className="my-week__plan" aria-label={planDisplayTitle(plan.title, locale).text}>
+      <h3><PlanTitle title={plan.title} locale={locale} /></h3>
       <ol className="my-week__stops">{plan.stops.map((stop, index) => <li key={`${stop.kind}:${stop.id}`}><span aria-hidden="true">{index + 1}</span><Link to={stopPath(stop)}>{translateText(stopTitle(stop), locale)}</Link></li>)}</ol>
       <div className="my-week__plan-actions">
         <Button variant="secondary" to={`/plan?edit=${encodeURIComponent(plan.id)}`}>{t('继续编辑', 'Edit plan')}</Button>
@@ -164,7 +171,7 @@ export default function MyWeekPage() {
 
     {pastPlans.length > 0 && <details className="my-week__prefs my-week__past">
       <summary>{t('过去的计划', 'Past plans')} <span className="my-week__count">{pastPlans.length}</span></summary>
-      <ul>{pastPlans.map(plan => <li key={plan.id}><span><time dateTime={plan.date}>{dayLabel(plan.date, english)}</time> · <span translate="no">{plan.title}</span></span><Button variant="text" disabled={disabled} onClick={() => void deletePlan(plan)}>{t('删除计划', 'Delete plan')}</Button></li>)}</ul>
+      <ul>{pastPlans.map(plan => <li key={plan.id}><span><time dateTime={plan.date}>{dayLabel(plan.date, english)}</time> · <PlanTitle title={plan.title} locale={locale} /></span><Button variant="text" disabled={disabled} onClick={() => void deletePlan(plan)}>{t('删除计划', 'Delete plan')}</Button></li>)}</ul>
     </details>}
     {!signedIn && <details className="my-week__prefs">
       <summary>{t('账号功能：预约与小队', 'Account features: bookings and groups')}</summary>

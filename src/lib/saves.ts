@@ -11,7 +11,8 @@ import { useApp } from '../app/context';
  *
  *  - Signed in: the account's favorites (`GET /api/planner/me`, `PUT/DELETE /api/planner/favorites/:kind/:id`).
  *    A save the API answers with 404 ITEM_NOT_IN_CATALOG (its catalog copy lags the web, RC-15) stays saved as a
- *    *pending* entry in this browser and is retried later; the ♡ is never lost and no error is shown.
+ *    *pending* entry in this browser and is retried later (until the item leaves the web catalog); the ♡ is never
+ *    lost and no error is shown.
  *  - Guest: one list in this browser. On first use it absorbs the older device lists (the planner's guest favorites
  *    and the reader library's saved guides); those keys are left in place so an older build still finds them.
  *  - Posts have no server kind; they stay in the per-account device list of `savedPosts.ts` and join the same list.
@@ -44,9 +45,14 @@ export const savesKey = (userId?: string) => `${SAVES_KEY_PREFIX}${userId ? `use
 export const LEGACY_PLANNER_KEY = 'baylink.planner.guest.v1';
 export const LEGACY_READER_KEY = 'baylink.reader-library.v1';
 export const MAX_SAVES = 150;
-/** A pending save is retried at most this often (and after every fresh account read). */
+/** A pending save is retried after an account read or tab focus, at most this often in the week after it was saved… */
 export const PENDING_RETRY_MS = 15 * 60_000;
+/** …and at most once a day after that (API contract: "after at most one day"), until it leaves the web catalog. */
+export const PENDING_SLOW_AFTER_MS = 7 * 24 * 60 * 60_000;
+export const PENDING_SLOW_RETRY_MS = 24 * 60 * 60_000;
 const REFRESH_AFTER_MS = 60_000;
+/** After a failed account read, tab focus reads again at most this often; coming back online reads at once. */
+export const READ_RETRY_AFTER_MS = 15_000;
 const ID = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,119}$/;
 
 const isServerKind = (kind: unknown): kind is ServerSaveKind => typeof kind === 'string' && (SERVER_SAVE_KINDS as readonly string[]).includes(kind);
@@ -69,7 +75,11 @@ const validRef = (value: unknown): value is SaveRef => !!value && typeof value =
   && isServerKind((value as SaveRef).kind) && typeof (value as SaveRef).id === 'string' && ID.test((value as SaveRef).id);
 const keyOf = (ref: SaveRef) => saveKey(ref.kind, ref.id);
 
-type LocalEntry = SaveRef & { savedAt: number; triedAt?: number };
+/**
+ * `retired`: a pending save whose item has left the web catalog (My Week finds no page for it). The API contract says
+ * to stop retrying it; it stays listed (with its ♡) until the reader removes it.
+ */
+type LocalEntry = SaveRef & { savedAt: number; triedAt?: number; retired?: true };
 type Slot = {
   owner: string;
   userId?: string;
@@ -85,6 +95,8 @@ type Slot = {
   /** Keys with a write in flight. */
   busy: readonly string[];
   loadedAt: number;
+  /** When the last account read failed (0: none since the last success). */
+  failedAt: number;
 };
 
 const ownerOf = (userId?: string) => userId ? `user:${userId}` : 'guest';
@@ -109,7 +121,7 @@ function parseLocal(raw: string | null): LocalEntry[] | null {
       if (!validRef(item) || seen.has(keyOf(item))) return [];
       seen.add(keyOf(item));
       const entry = item as LocalEntry;
-      return [{ ...canonicalSaveRef({ kind: entry.kind, id: entry.id }), savedAt: Number.isFinite(entry.savedAt) ? entry.savedAt : 0, ...(Number.isFinite(entry.triedAt) ? { triedAt: entry.triedAt } : {}) }];
+      return [{ ...canonicalSaveRef({ kind: entry.kind, id: entry.id }), savedAt: Number.isFinite(entry.savedAt) ? entry.savedAt : 0, ...(Number.isFinite(entry.triedAt) ? { triedAt: entry.triedAt } : {}), ...(entry.retired === true ? { retired: true as const } : {}) }];
     }).slice(0, MAX_SAVES);
   } catch { return null; }
 }
@@ -151,11 +163,11 @@ function slotFor(userId?: string): Slot {
   }
   const slot: Slot = existing
     ? { ...existing, local: local ?? [], raw: stored }
-    : { owner, userId, status: userId ? 'idle' : 'ready', account: [], local: local ?? [], raw: stored, sessionOnly: false, busy: [], loadedAt: 0 };
+    : { owner, userId, status: userId ? 'idle' : 'ready', account: [], local: local ?? [], raw: stored, sessionOnly: false, busy: [], loadedAt: 0, failedAt: 0 };
   slots.set(owner, slot);
   return slot;
 }
-const EMPTY_SLOT: Slot = { owner: 'guest', status: 'ready', account: [], local: [], raw: null, sessionOnly: false, busy: [], loadedAt: 0 };
+const EMPTY_SLOT: Slot = { owner: 'guest', status: 'ready', account: [], local: [], raw: null, sessionOnly: false, busy: [], loadedAt: 0, failedAt: 0 };
 
 type AccountLibrary = { favorites?: unknown; plans?: unknown; preferences?: unknown };
 const sessionMatches = (userId: string) => getStoredUser()?.id === userId;
@@ -195,7 +207,7 @@ export function adoptAccountFavorites(userId: string, favorites: unknown) {
   const held = new Set(account.map(keyOf));
   const local = slot.local.filter(entry => !held.has(keyOf(entry)));
   if (local.length !== slot.local.length) slot = withLocal(slot, local);
-  put({ ...slot, account: withIntents(slot.owner, account), status: 'ready', loadedAt: now() });
+  put({ ...slot, account: withIntents(slot.owner, account), status: 'ready', loadedAt: now(), failedAt: 0 });
 }
 
 /**
@@ -224,7 +236,7 @@ export function loadPlannerAccount(userId: string): Promise<AccountLibrary> {
     } catch (error) {
       // A failed re-read keeps the list that was already confirmed.
       const current = slotFor(userId);
-      if (current.status !== 'ready') put({ ...current, status: 'error' });
+      if (current.status !== 'ready') put({ ...current, status: 'error', failedAt: now() });
       throw error;
     } finally { reads.delete(userId); }
   })();
@@ -232,9 +244,17 @@ export function loadPlannerAccount(userId: string): Promise<AccountLibrary> {
   return request;
 }
 
+/** Whether a pending save is due for another PUT: never once retired; every 15 min in its first week, then daily. */
+export function pendingRetryDue(entry: { savedAt: number; triedAt?: number; retired?: true }, at = now()) {
+  if (entry.retired) return false;
+  if (!entry.triedAt) return true;
+  const wait = entry.savedAt > 0 && at - entry.savedAt < PENDING_SLOW_AFTER_MS ? PENDING_RETRY_MS : PENDING_SLOW_RETRY_MS;
+  return at - entry.triedAt >= wait;
+}
+
 async function retryPending(userId: string) {
   const owner = ownerOf(userId);
-  const due = slotFor(userId).local.filter(entry => !entry.triedAt || now() - entry.triedAt >= PENDING_RETRY_MS);
+  const due = slotFor(userId).local.filter(entry => pendingRetryDue(entry));
   for (const entry of due) {
     if (!sessionMatches(userId)) return;
     try {
@@ -255,13 +275,19 @@ async function retryPending(userId: string) {
 function watchWindow() {
   if (watching || typeof window === 'undefined') return;
   watching = true;
-  const revalidate = () => {
+  // A confirmed list is read again after a minute away; a list that failed to load is read again on focus (at most every
+  // 15 s) and as soon as the browser is back online, so a brief network blip does not leave every ♡ disabled.
+  const revalidate = (event: Event) => {
     if (document.visibilityState === 'hidden') return;
     const userId = getStoredUser()?.id;
     const slot = userId ? slots.get(ownerOf(userId)) : undefined;
-    if (userId && slot?.status === 'ready' && now() - slot.loadedAt >= REFRESH_AFTER_MS) void loadPlannerAccount(userId).catch(() => {});
+    if (!userId || !slot) return;
+    const stale = slot.status === 'ready' && now() - slot.loadedAt >= REFRESH_AFTER_MS;
+    const failed = slot.status === 'error' && (event.type === 'online' || now() - slot.failedAt >= READ_RETRY_AFTER_MS);
+    if (stale || failed) void loadPlannerAccount(userId).catch(() => {});
   };
   window.addEventListener('focus', revalidate);
+  window.addEventListener('online', revalidate);
   document.addEventListener('visibilitychange', revalidate);
   window.addEventListener('storage', event => {
     if (event.key !== null && !event.key.startsWith(SAVES_KEY_PREFIX)) return;
@@ -274,6 +300,24 @@ function subscribe(listener: () => void) {
   listeners.add(listener);
   watchWindow();
   return () => { listeners.delete(listener); };
+}
+
+/**
+ * Mark which pending saves of an account have left the web catalog (`retiredKeys`): those are not sent to the account
+ * again. The others (back in the catalog, or never out) are retried as usual. Called by My Week, which loads the
+ * catalogs; this module stays free of them.
+ */
+export function setPendingRetired(userId: string, retiredKeys: ReadonlySet<string>) {
+  const slot = slotFor(userId);
+  if (!slot.local.some(entry => !!entry.retired !== retiredKeys.has(keyOf(entry)))) return;
+  put(withLocal(slot, slot.local.map(entry => {
+    const retire = retiredKeys.has(keyOf(entry));
+    if (!!entry.retired === retire) return entry;
+    if (retire) return { ...entry, retired: true as const };
+    const back = { ...entry };
+    delete back.retired;
+    return back;
+  })));
 }
 
 /** Server rendering never reads a browser list: a guest list is empty and an account list unknown. */
@@ -451,6 +495,8 @@ export type SavedList = {
   busyKeys: readonly string[];
   retry: () => void;
   remove: (entry: SavedEntry) => Promise<boolean>;
+  /** Signed in: the pending saves (by key) whose item has left the web catalog; they are not sent again (RC-15). */
+  retirePending: (keys: ReadonlySet<string>) => void;
 };
 
 /** The whole list of one owner (default: the signed-in user from the app context), as My Week renders it. */
@@ -469,7 +515,8 @@ export function useSavedEntries(userId?: string | null): SavedList {
     const result = await toggleServer(owner, { kind: entry.kind, id: entry.id });
     return !('error' in result) && !result.saved;
   }, [owner]);
-  return { entries, count: known(slot) ? entries.length : null, status: slot.status, persisted: !slot.sessionOnly, busyKeys: slot.busy, retry, remove };
+  const retirePending = useCallback((keys: ReadonlySet<string>) => { if (owner) setPendingRetired(owner, keys); }, [owner]);
+  return { entries, count: known(slot) ? entries.length : null, status: slot.status, persisted: !slot.sessionOnly, busyKeys: slot.busy, retry, remove, retirePending };
 }
 
 /** The saved-item count for the /me tile (WEB-ACCOUNT); always the number of rows My Week shows. null = not known yet. */

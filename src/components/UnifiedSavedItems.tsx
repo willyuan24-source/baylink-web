@@ -1,7 +1,7 @@
-import { Fragment, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Heart } from 'lucide-react';
 import { useSavedEntries, type SavedEntry } from '../lib/saves';
-import { savedCoverImage, savedItemView, SAVED_KIND_LABELS, type SavedItemView } from '../lib/saved-items';
+import { inWebCatalog, savedCoverImage, savedItemView, SAVED_KIND_LABELS, type SavedItemView } from '../lib/saved-items';
 import { resolveCovers, type CoverPage, type ResolvedCover } from '../lib/cover';
 import { eventDateChip, formatDateChip, offerDeadline } from '../lib/event-facts';
 import { translateText, useLocale } from '../i18n/locale';
@@ -44,6 +44,10 @@ export function UnifiedSavedItems({ today, signedIn, coverPage }: { today: strin
   const list = useSavedEntries();
   const [filter, setFilter] = useState<SavedEntry['kind'] | 'all'>('all');
   const views = useMemo(() => list.entries.map(savedItemView), [list.entries]);
+  // RC-15: a save still waiting for the account whose item has left the web catalog is not sent again (it stays listed).
+  const retiredPending = useMemo(() => new Set(views.filter(view => view.entry.source === 'pending' && !inWebCatalog(view)).map(view => view.entry.key)), [views]);
+  const { retirePending } = list;
+  useEffect(() => { retirePending(retiredPending); }, [retirePending, retiredPending]);
   const covers = useMemo(() => resolveCovers(views.map(view => view.cover ?? { kind: 'bulletin', id: view.entry.key }), { images: savedCoverImage, today, page: coverPage }), [views, today, coverPage]);
   const kinds = KIND_ORDER.filter(kind => views.some(view => view.entry.kind === kind));
   const active = filter !== 'all' && kinds.includes(filter) ? filter : 'all';

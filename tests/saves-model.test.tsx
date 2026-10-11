@@ -12,7 +12,7 @@ const { usePlannerLibrary, GUEST_PLANNER_KEY } = await import('../src/lib/planne
 const { savedPostsKey } = await import('../src/lib/savedPosts');
 const { READER_LIBRARY_KEY } = await import('../src/lib/reader-library');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
-const { savesKey, resetSaveStore, useSave, useSavedEntries, useSavedCount, importGuestSaves, loadPlannerAccount, PENDING_RETRY_MS } = saves;
+const { savesKey, resetSaveStore, useSave, useSavedEntries, useSavedCount, importGuestSaves, loadPlannerAccount, pendingRetryDue, PENDING_RETRY_MS, PENDING_SLOW_AFTER_MS, PENDING_SLOW_RETRY_MS, READ_RETRY_AFTER_MS } = saves;
 
 const session = (id?: string) => id ? localStorage.setItem('currentUser', JSON.stringify({ id, token: `${id}-test-token` })) : localStorage.removeItem('currentUser');
 const ids = (entries: { kind: string; id: string }[]) => entries.map(entry => `${entry.kind}:${entry.id}`);
@@ -66,7 +66,7 @@ test('signed-in lists: one shared /planner/me read, unknown kinds skipped, other
 test('a pending save is retried after the next account read and becomes an account save once accepted', async t => {
   session('alice');
   const now = Date.now();
-  localStorage.setItem(savesKey('alice'), JSON.stringify({ v: 1, items: [{ kind: 'offer', id: 'new-offer', savedAt: now, triedAt: now }, { kind: 'opening', id: 'old-opening', savedAt: 1, triedAt: now - PENDING_RETRY_MS - 1 }] }));
+  localStorage.setItem(savesKey('alice'), JSON.stringify({ v: 1, items: [{ kind: 'offer', id: 'new-offer', savedAt: now, triedAt: now }, { kind: 'opening', id: 'old-opening', savedAt: now - 60 * 60_000, triedAt: now - PENDING_RETRY_MS - 1 }] }));
   const puts: string[] = [];
   let accepted = false;
   t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
@@ -209,4 +209,64 @@ test('signed in: a read that started before a save answered does not put the old
   await act(async () => { answerRead(); await read; });
   assert.equal(result.current.c.saved, true, 'the older list (without the save) is not shown');
   assert.deepEqual(ids(result.current.list.entries), ['offer:offer-c']);
+});
+
+test('RC-15 retries: every 15 min in the first week, then once a day, and never once the item has left the web catalog', () => {
+  const at = Date.parse('2026-10-11T12:00:00Z');
+  const fresh = { savedAt: at - 60 * 60_000 }, old = { savedAt: at - PENDING_SLOW_AFTER_MS - 1 };
+  assert.equal(pendingRetryDue({ ...fresh }, at), true, 'never tried');
+  assert.equal(pendingRetryDue({ ...fresh, triedAt: at - PENDING_RETRY_MS + 1 }, at), false);
+  assert.equal(pendingRetryDue({ ...fresh, triedAt: at - PENDING_RETRY_MS }, at), true);
+  assert.equal(pendingRetryDue({ ...old, triedAt: at - PENDING_RETRY_MS }, at), false, 'a week on, at most once a day');
+  assert.equal(pendingRetryDue({ ...old, triedAt: at - PENDING_SLOW_RETRY_MS }, at), true);
+  assert.equal(pendingRetryDue({ ...fresh, retired: true }, at), false);
+});
+
+test('a pending save whose item left the web catalog is not sent again; back in the catalog, it is', async t => {
+  session('alice');
+  const now = Date.now();
+  localStorage.setItem(savesKey('alice'), JSON.stringify({ v: 1, items: [{ kind: 'offer', id: 'gone-offer', savedAt: now - 60_000 }, { kind: 'offer', id: 'live-offer', savedAt: now - 60_000 }] }));
+  const puts: string[] = [];
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (!options?.method) return structuredClone(EMPTY_LIBRARY);
+    puts.push(path);
+    throw { status: 404, code: 'ITEM_NOT_IN_CATALOG' };
+  });
+  const { result } = renderHook(() => useSavedEntries('alice'));
+  act(() => { result.current.retirePending(new Set(['offer:gone-offer'])); });
+  const stored = () => JSON.parse(localStorage.getItem(savesKey('alice'))!).items as { id: string; retired?: boolean; triedAt?: number }[];
+  assert.deepEqual(stored().map(item => [item.id, !!item.retired]), [['gone-offer', true], ['live-offer', false]], 'the mark is kept with the device save');
+  await act(async () => { await loadPlannerAccount('alice'); await new Promise(resolve => setTimeout(resolve, 0)); });
+  assert.deepEqual(puts, ['/planner/favorites/offer/live-offer'], 'only the item still in the catalog is retried');
+  assert.equal(result.current.count, 2, 'a retired save stays listed (and counted) until the reader removes it');
+  // The same offer is published again: the next retry sends it.
+  act(() => { result.current.retirePending(new Set()); });
+  assert.deepEqual(stored().map(item => [item.id, !!item.retired]), [['gone-offer', false], ['live-offer', false]]);
+  await act(async () => { await loadPlannerAccount('alice'); await new Promise(resolve => setTimeout(resolve, 0)); });
+  assert.deepEqual(puts, ['/planner/favorites/offer/live-offer', '/planner/favorites/offer/gone-offer'], 'live-offer waits 15 min; gone-offer was never tried');
+});
+
+test('a failed first account read is tried again when the browser is back online, and on focus at most every 15 s', async t => {
+  session('alice');
+  t.mock.timers.enable({ apis: ['Date'], now: Date.parse('2026-10-11T12:00:00Z') });
+  let reads = 0, fail = true;
+  t.mock.method(api, 'request', async () => {
+    reads++;
+    if (fail) throw { status: 503 };
+    return { ...structuredClone(EMPTY_LIBRARY), favorites: [{ kind: 'offer', id: 'kept-offer' }] };
+  });
+  const { result } = renderHook(() => ({ list: useSavedEntries('alice'), heart: useSave('offer', 'kept-offer', { userId: 'alice' }) }));
+  await act(async () => {});
+  assert.equal(reads, 1); assert.equal(result.current.list.status, 'error'); assert.equal(result.current.heart.saved, null);
+  await act(async () => { window.dispatchEvent(new window.Event('focus')); });
+  assert.equal(reads, 1, 'focus right after the failure does not read again');
+  t.mock.timers.tick(READ_RETRY_AFTER_MS);
+  await act(async () => { window.dispatchEvent(new window.Event('focus')); });
+  assert.equal(reads, 2, 'focus 15 s later reads again'); assert.equal(result.current.list.status, 'error');
+  fail = false;
+  await act(async () => { window.dispatchEvent(new window.Event('online')); });
+  assert.equal(reads, 3, 'back online reads at once');
+  assert.equal(result.current.list.status, 'ready'); assert.equal(result.current.heart.saved, true);
+  await act(async () => { window.dispatchEvent(new window.Event('online')); window.dispatchEvent(new window.Event('focus')); });
+  assert.equal(reads, 3, 'a confirmed list is not read again within the minute');
 });

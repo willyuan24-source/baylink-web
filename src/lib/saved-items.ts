@@ -88,6 +88,13 @@ export function savedItemView(entry: SavedEntry): SavedItemView {
   }
 }
 
+/**
+ * Whether the item is still in the web's catalogs (a place without a page of its own still is). A pending save whose
+ * item is not is no longer sent to the account (API contract, docs/planner-favorites.md: "stop retrying when the item
+ * leaves the web catalog"). Posts are not catalog items.
+ */
+export const inWebCatalog = (view: SavedItemView) => !!(view.event || view.place || view.guide || view.offer || view.opening);
+
 /** The image registry for saved-item covers: listing images by key, and each guide's own cover. */
 export function savedCoverImage(key: string): GuideImage | undefined {
   if (key.startsWith(GUIDE_COVER)) {

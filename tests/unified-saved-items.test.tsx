@@ -160,3 +160,21 @@ test('a member’s words stay as written in every language; the board’s own la
     assert.equal(row(english).querySelector('.ui-row-card__meta')!.textContent, 'Neighborhood listing · Housing · Fremont · $2,600/月', 'the category is the board’s label, translated');
   } finally { await act(async () => { await setLocale('zh-Hans', false); }); }
 });
+
+test('RC-15: My Week stops the retries of a pending save whose item has left the web catalog, and lists it as retired', async t => {
+  localStorage.setItem('currentUser', JSON.stringify({ id: 'alice', token: 'test-only' }));
+  const now = Date.now();
+  localStorage.setItem(savesKey('alice'), JSON.stringify({ v: 1, items: [{ kind: 'offer', id: 'retired-offer-zz', savedAt: now, triedAt: now }, { kind: 'offer', id: offer.id, savedAt: now, triedAt: now }] }));
+  t.mock.method(api, 'request', async (_path: string, options?: RequestInit) => {
+    if (options?.method) throw { status: 404, code: 'ITEM_NOT_IN_CATALOG' };
+    return structuredClone(EMPTY_LIBRARY);
+  });
+  const view = render(page({ id: 'alice' }));
+  await act(async () => {});
+  const stored = JSON.parse(localStorage.getItem(savesKey('alice'))!).items as { id: string; retired?: boolean }[];
+  assert.deepEqual(stored.map(item => [item.id, !!item.retired]), [['retired-offer-zz', true], [offer.id, false]]);
+  const saved = within(view.getByTestId('my-week-saved'));
+  assert.equal(saved.getAllByText('这条内容已下架或暂时找不到。', { exact: false }).length, 1);
+  assert.ok(saved.getByRole('link', { name: new RegExp(offer.title.slice(0, 8)) }), 'the offer still listed keeps its row');
+  assert.equal(view.getByTestId('my-week-saved-count').textContent, '2', 'the count never drifts');
+});

@@ -246,3 +246,22 @@ test('signed in: 加入这天计划 on My Week keeps the rows, the preferences a
   await view.findByRole('heading', { name: String(posted!.title) });
   assert.ok(view.getByTestId('save-toast'), 'the confirmation outlives the re-read');
 });
+
+test('a plan 加入这天计划 named reads in the page’s language; a title the reader wrote stays as written', async t => {
+  const stamp = new Date(now).toISOString();
+  const plan = (id: string, title: string, date: string) => ({ id, title, date, stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: stamp, updatedAt: stamp, version: 1 });
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ ...structuredClone(EMPTY_LIBRARY), plans: [plan('zh-auto', '10/17 计划', '2026-10-17'), plan('en-auto', 'Plan for 10/18', '2026-10-18'), plan('own', '周六 Santana Row 一日', '2026-10-17')] }));
+  t.mock.method(api, 'request', async () => { throw new Error('Guest content must not request private account data'); });
+  const { translateText } = await import('../src/i18n/locale');
+  for (const [locale, zhAuto, enAuto] of [['en', 'Plan for 10/17', 'Plan for 10/18'], ['zh-Hans', '10/17 计划', '10/18 计划'], ['zh-Hant', translateText('10/17 计划', 'zh-Hant'), translateText('10/18 计划', 'zh-Hant')]] as const) {
+    await setLocale(locale);
+    const view = render(page(null));
+    for (const title of [zhAuto, enAuto]) {
+      const heading = await view.findByRole('heading', { name: title });
+      assert.equal(heading.querySelector('[translate=no]'), null, `${locale}: ${title} is site copy`);
+    }
+    const own = view.getByRole('heading', { name: '周六 Santana Row 一日' });
+    assert.ok(own.querySelector('[translate=no]'), `${locale}: the reader's own title is not translated`);
+    cleanup();
+  }
+});
