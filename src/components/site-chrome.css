@@ -197,6 +197,10 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
   .site-app .site-language-menu { position:fixed; top:auto; left:0; right:0; bottom:0; width:auto; max-height:85dvh; padding:8px 16px calc(16px + env(safe-area-inset-bottom,0px)); border-radius:24px 24px 0 0; }
   .site-app .site-language-menu::before { content:''; display:block; width:36px; height:4px; margin:4px auto 8px; border-radius:999px; background:var(--color-line-strong); }
   .site-app .site-language-menu>button { min-height:max(3.25rem,var(--control-height)); font-size:var(--text-body); }
+  /* The header's sticky stacking (45) would keep the sheet and its scrim under the tab bar (50), which then hid the
+     last choice: while the sheet is open the header sits above the bar. Without :has() the sheet stops above the bar. */
+  .site-app .site-topbar:has(.site-language[open]) { z-index:51; }
+  @supports not selector(:has(*)) { .site-app .site-language-menu { bottom:var(--site-mobile-nav-height); } }
   .site-app .site-footer-inner { padding-inline:20px; }
 }
 @media(max-width:374px) {
