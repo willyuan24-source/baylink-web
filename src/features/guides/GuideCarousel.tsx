@@ -33,7 +33,8 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
   const Mark = TOPIC_MARKS[guideTopicOf(guide)];
   return <div className="gd-carousel">
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
-      <article className="gd-slide gd-slide--cover" data-kind="cover">
+      {/* data-cover="type": a coded card, counted as cover area and never as photo area (RC-31). */}
+      <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="type">
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
         <div className="gd-slide__top"><span className="gd-slide__kicker">{t(`${guide.sources.length} 个官方来源 · ${guide.updatedAt} 整理`, `${guide.sources.length} official sources · updated ${guide.updatedAt}`)}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
@@ -42,7 +43,7 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
         <p className="gd-slide__source">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
-      {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind}>
+      {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="type">
         <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>
         <h3 className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}{pick(slide.title)}</h3>
         {slide.body && <p className="gd-slide__body">{pick(slide.body)}</p>}
