@@ -122,10 +122,11 @@ export const INTERNAL_NOTE = /本包|本轮|本次|本卡|本条|本记录|录�
 /** Self-defensive phrasing (content.md §2.5); a warning, rewritten item by item. */
 export const SELF_DEFENSIVE = /不把|不当作|不代表|不保证|不等于|非亲测|不直接|不沿用|不能据/u;
 /**
- * Verification-log wording ("未核到所有分项费用", "未见…", "官方页面列…") reads as the editor's notes, not as a fact for the
- * reader; a warning, rewritten in the next content pass (say what the page states, or where to find it).
+ * Verification-log wording ("未核到所有分项费用", "未见…", "官方页面列…") and the editor speaking of itself ("编辑建议…")
+ * read as the editor's notes, not as a fact for the reader; a warning, rewritten in the next content pass (say what the
+ * page states, or where to find it).
  */
-export const LOG_VOICE = /未核|未见|页面列/u;
+export const LOG_VOICE = /未核|未见|页面列|编辑建议/u;
 const HEDGES = /待核实|待确认|未核实|未确认|以[^，。；]{1,12}为准|出发前|复核|再查|另查|核对|可能/gu;
 const DATE_LINE = /^\d{4}-\d{2}-\d{2}$/u;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/u;
