@@ -19,7 +19,7 @@ dom.window.scrollTo = () => {};
 const styles = registerHooks({ load(url, context, next) {
   return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context);
 } });
-const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, act, within, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, useLocation, useNavigate } = await import('react-router-dom');
 const { default: AppLayout } = await import('../src/app/AppLayout');
 const { api } = await import('../src/lib/api');
@@ -52,9 +52,19 @@ function fixture(t: TestContext, resetPath = '/reset-password?token=fixture-rese
   return { view, calls };
 }
 
+/**
+ * The reset dialog loads on first use (WEB-SHELL2), so it commits outside the render's act() and can be in the DOM a
+ * moment before ModalShell's mount effect moves focus in and starts listening for Esc. Wait for that effect.
+ */
+async function resetDialog(view: ReturnType<typeof render>) {
+  const dialog = await view.findByRole('dialog', { name: '重设密码', exact: true });
+  await waitFor(() => assert.ok(dialog.contains(document.activeElement), 'focus is inside the dialog'));
+  return dialog;
+}
+
 test('a password reset URL with a trailing slash still opens its token dialog', async t => {
   const { view } = fixture(t, '/reset-password/?token=fixture-reset-token');
-  const dialog = await view.findByRole('dialog', { name: '重设密码', exact: true });
+  const dialog = await resetDialog(view);
   await act(async () => { fireEvent.keyDown(dialog, { key: 'Escape' }); });
   assert.equal(view.getByTestId('router-location').textContent, '/');
 });
@@ -64,7 +74,7 @@ test('closing password reset replaces the router entry so Back and Forward canno
   // Exercise and await the same lazy modules as AppLayout's idle preload while
   // mounted, rather than letting CPU load decide whether their CSS loads in time.
   await act(async () => { await Promise.all([import('../src/features/posts/PostDetailModal'), import('../src/features/users/UserProfileModal')]); });
-  const dialog = await view.findByRole('dialog', { name: '重设密码', exact: true });
+  const dialog = await resetDialog(view);
   await act(async () => { fireEvent.keyDown(dialog, { key: 'Escape' }); });
   assert.equal(view.getByTestId('router-location').textContent, '/');
   assert.equal(view.queryByRole('dialog', { name: '重设密码', exact: true }), null);
@@ -78,7 +88,7 @@ test('closing password reset replaces the router entry so Back and Forward canno
 
 test('successful password reset clears the router token before opening login', async t => {
   const { view, calls } = fixture(t);
-  const dialog = within(await view.findByRole('dialog', { name: '重设密码', exact: true }));
+  const dialog = within(await resetDialog(view));
   fireEvent.change(dialog.getByPlaceholderText('新密码', { exact: true }), { target: { value: 'FixturePassword8' } });
   fireEvent.change(dialog.getByPlaceholderText('确认新密码', { exact: true }), { target: { value: 'FixturePassword8' } });
   await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '更新密码', exact: true })); });
@@ -90,8 +100,10 @@ test('successful password reset clears the router token before opening login', a
   assert.equal(view.getByTestId('router-location').textContent, '/');
   assert.equal(view.queryByRole('dialog', { name: '重设密码', exact: true }), null);
   // Close login before testing ordinary history navigation.
-  const login = view.getByRole('dialog');
+  const login = await view.findByRole('dialog');
+  await waitFor(() => assert.ok(login.contains(document.activeElement), 'focus is inside the sign-in dialog (loaded on first use)'));
   await act(async () => { fireEvent.keyDown(login, { key: 'Escape' }); });
+  assert.equal(view.queryByRole('dialog'), null);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'fixture back' })); });
   assert.equal(view.getByTestId('router-location').textContent, '/guides');
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'fixture forward' })); });
