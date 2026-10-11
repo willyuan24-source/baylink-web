@@ -127,6 +127,18 @@ test('avatar initials and accessible names remain the user’s original spelling
   assert.ok(!han.test(view.container.querySelector('p')!.textContent!));
 });
 
+// The header's language control (WEB-SHELL2): a <details> whose three choices are <button>s with their own lang (RC-7).
+const chooseLanguage = async (container: HTMLElement, label: string) => {
+  const menu = container.querySelector<HTMLDetailsElement>('details[data-lang-switch]')!;
+  assert.equal(menu.getAttribute('translate'), 'no');
+  assert.deepEqual([...menu.querySelectorAll('button')].map(button => [button.getAttribute('lang'), button.textContent]), [['zh-Hans', '简体中文'], ['zh-Hant', '繁體中文'], ['en', 'English']]);
+  assert.equal(menu.querySelector('a'), null, 'no links: the language choices are buttons');
+  menu.open = true;
+  const choice = [...menu.querySelectorAll('button')].find(button => button.textContent === label)!;
+  await act(async () => { fireEvent.click(choice); });
+  assert.equal(menu.open, false, 'the menu closes once the language is chosen');
+};
+
 test('language selector keeps route filters and hash while saving preference', async () => {
   window.history.replaceState(null, '', '/guides?q=park#reading');
   function RouteReceipt() { const location = useLocation(); return <output>{location.pathname + location.search + location.hash}</output>; }
@@ -134,7 +146,7 @@ test('language selector keeps route filters and hash while saving preference', a
   const view = render(<LanguageRouter><LanguageSwitcher /><RouteReceipt /><input ref={draft} defaultValue="未发布草稿" /></LanguageRouter>);
   const input = draft.current!;
   input.focus();
-  await act(async () => { fireEvent.change(view.getByRole('combobox'), { target: { value: 'zh-Hant' } }); });
+  await chooseLanguage(view.container, '繁體中文');
   assert.equal(localStorage.getItem(LOCALE_KEY), 'zh-Hant');
   assert.equal(document.documentElement.lang, 'zh-Hant');
   assert.equal(window.location.pathname + window.location.search + window.location.hash, '/zh-Hant/guides?q=park#reading');
@@ -195,7 +207,7 @@ test('a language switch inside a background route keeps the open post URL and dr
   const actualLocation = { pathname: '/posts/sample', search: '?older=1', hash: '#contact', state: null, key: 'post' };
   const view = render(<MemoryRouter initialEntries={['/category/rent']}><LanguageSwitcher realLocation={actualLocation} /><input defaultValue="私信草稿" /></MemoryRouter>);
   const input = view.container.querySelector('input');
-  await act(async () => { fireEvent.change(view.getByRole('combobox'), { target: { value: 'zh-Hant' } }); });
+  await chooseLanguage(view.container, '繁體中文');
   assert.equal(window.location.pathname + window.location.search + window.location.hash, '/zh-Hant/posts/sample?older=1#contact');
   assert.equal(view.container.querySelector('input'), input);
   assert.equal(input?.value, '私信草稿');

@@ -1,9 +1,11 @@
 import { matchRoute, type PageKey } from './app/route-table';
+import { settleChunk } from './lib/chunk-recovery';
 
-/** Shared promises let startup load the current page before replacing its prerendered content. */
+/** Shared promises let startup load the current page before replacing its prerendered content. settleChunk (WEB-SHELL2,
+ * REG-15): a page chunk lost to a newer deploy waits for the recovery reload instead of reaching the error page. */
 const cached = <T,>(load: () => Promise<T>) => {
   let promise: Promise<T> | undefined;
-  return () => promise ||= load().catch(error => { promise = undefined; throw error; });
+  return () => promise ||= load().then(settleChunk).catch(error => { promise = undefined; throw error; });
 };
 /** One loader per route-table page key (PAGE_MODULES; tests/route-table.test.ts checks the files match). */
 export const pageLoaders = {

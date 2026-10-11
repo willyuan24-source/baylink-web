@@ -14,7 +14,6 @@ import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
 import { SmsConsentView } from '../src/components/SmsConsentView';
 import { AboutContent } from '../src/components/AboutContent';
 import { ABOUT_METADATA } from '../src/lib/about-metadata';
-import { Shell } from './prerender-shell';
 import ArchivePage from '../src/pages/ArchivePage';
 import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
 import NotFoundPage from '../src/pages/NotFoundPage';
@@ -41,10 +40,12 @@ import { PLAN_METADATA } from '../src/lib/planner';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { opusBayHeadExtras, opusBayInHalloween, opusBayMetadata } from '../src/lib/opus-bay-metadata';
 
-// Component stylesheets (the WEB-UI primitives' ui.css, the events column's events.css, the guide pages' guide-article.css /
-// guide-library.css) are bundled by Vite and linked per route below (RC-6); here they load as empty modules. Static imports
-// load before this line runs, so a page that imports CSS is imported after the hook, dynamically.
-registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
+// The page chrome is the app's SiteChrome, which imports its own stylesheet (the build links it from the global CSS); the
+// WEB-UI primitives' ui.css, the events column's events.css and the guide pages' guide-article.css / guide-library.css are
+// bundled by Vite and linked per route below (RC-6). Node cannot load .css, so they load as empty modules here. Static
+// imports load before this line runs, so the chrome and every page that imports CSS are imported after the hook, dynamically.
+const cssAsEmptyModule = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
+const { Shell } = await import('./prerender-shell');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
@@ -79,7 +80,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as SiteLanguage[]) {
     await setLocale(locale, false);
     const path = languagePath(metadata.path, locale);
-    const body = renderToStaticMarkup(<StaticRouter basename={languagePrefix(locale) || undefined} location={path}><Shell locale={locale}>{content}</Shell></StaticRouter>);
+    const body = renderToStaticMarkup(<StaticRouter basename={languagePrefix(locale) || undefined} location={path}><Shell path={metadata.path}>{content}</Shell></StaticRouter>);
     const relative = filename || (metadata.path === '/' ? 'index.html' : `${metadata.path.slice(1)}.html`);
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
@@ -147,4 +148,5 @@ await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找�
 
 const { paths: sitemapPaths, xml: sitemap } = generateSitemap();
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
+cssAsEmptyModule.deregister();
 console.log(`Prerendered ${sitemapPaths.length + 1} public HTML pages and sitemap. No authenticated or live user data was fetched.`);

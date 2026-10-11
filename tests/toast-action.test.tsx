@@ -1,5 +1,6 @@
-// G1: "收到新私信 · 查看" opens the thread in one tap; with unread messages the desktop avatar opens the inbox; the header
-// has no 发布 (G16); a toast's action is a real 44 px button; errors close after 8 s instead of sticking (E2E-08).
+// G1: "收到新私信 · 查看" opens the thread in one tap; the desktop account menu (WEB-SHELL2) leads with 消息 and its count; the
+// header has no 发布 (G16); a toast's action is a real 44 px button; errors close after 8 s instead of sticking (E2E-08); the
+// toast sits at the bottom, above the phone tab bar, so it never covers the header's •••.
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test, { after, afterEach, type TestContext } from 'node:test';
@@ -46,7 +47,7 @@ test('a toast action is a labelled button: it runs once and closes the toast', (
 });
 
 test('the action button is at least 44 px (48 in 简洁显示) through the shared control height', () => {
-  const css = postcss.parse(readFileSync('src/editorial-refinement.css', 'utf8'));
+  const css = postcss.parse(readFileSync('src/components/site-chrome.css', 'utf8'));
   const declared: Record<string, string> = {};
   css.walkRules('.site-toast-action', rule => rule.walkDecls(declaration => { declared[declaration.prop] = declaration.value; }));
   assert.equal(declared['min-height'], 'var(--control-height)');
@@ -120,18 +121,43 @@ test('G1: a new message toast opens its thread in one tap', async t => {
   assert.equal(other.getByTestId('where').textContent, '/messages');
 });
 
-test('G1: with unread messages the header avatar opens the inbox (the count is in its name); without, it opens 我的', async t => {
+test('G1: the desktop account menu leads with 消息 and its unread count; 我的这周, 设置 and 退出 follow', async t => {
   const view = mount(t, '/guides', 2);
   await settle();
   assert.equal(view.getByTestId('badge').textContent, '2', 'messagesBadgeCount is on the app context');
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: '消息，2 条未读' })); });
+  const summary = view.getByLabelText('账号菜单，消息 2 条未读');
+  const menu = summary.closest('details')!;
+  menu.open = true; // tap 1 (the native <details> toggle)
+  const panel = within(menu.querySelector<HTMLElement>('.site-account-panel')!);
+  assert.deepEqual(panel.getAllByRole('link').map(link => link.getAttribute('href')), ['/messages', '/my-week', '/me']);
+  const inbox = panel.getByRole('link', { name: /^消息/ });
+  assert.equal(within(inbox).getByLabelText('2 条未读').textContent, '2');
+  await act(async () => { fireEvent.click(inbox); }); // tap 2
   assert.equal(view.getByTestId('where').textContent, '/messages');
+  assert.equal(menu.open, false, 'the menu closes after a navigation');
+  menu.open = true;
+  await act(async () => { fireEvent.click(panel.getByRole('button', { name: '退出登录' })); });
+  assert.equal(view.getByTestId('where').textContent, '/');
+  assert.equal(localStorage.getItem(SESSION_KEY), null, 'signed out of this browser');
+  assert.ok(view.getByRole('button', { name: '登录' }), 'the header offers 登录 again');
   view.unmount();
   sockets.length = 0;
   const quiet = mount(t, '/guides', 0);
   await settle();
-  await act(async () => { fireEvent.click(quiet.getByRole('button', { name: '查看我的资料' })); });
-  assert.equal(quiet.getByTestId('where').textContent, '/me');
+  assert.ok(quiet.getByLabelText('账号菜单'), 'no count in the name when nothing is unread');
+});
+
+test('the toast sits at the bottom, above the phone tab bar: never over the header ••• or search', () => {
+  const css = postcss.parse(readFileSync('src/components/site-chrome.css', 'utf8'));
+  const placed: Record<string, string> = {};
+  css.walkRules('.site-toast', rule => rule.walkDecls(declaration => { placed[`${rule.parent?.type === 'atrule' ? (rule.parent as { params: string }).params : 'base'} ${declaration.prop}`] = declaration.value; }));
+  assert.equal(placed['base position'], 'fixed');
+  assert.equal(placed['base top'], undefined, 'not anchored to the top');
+  assert.match(placed['base bottom'], /24px/);
+  assert.equal(placed['(max-width:1023px) bottom'], 'calc(var(--site-mobile-nav-height) + 12px)', 'phones: 12px above the tab bar');
+  const view = render(<Toast type="info" message="已保存" onClose={() => {}} />);
+  assert.ok(view.container.querySelector('.site-toast > .site-toast-box[role=status]'));
+  assert.equal(view.container.querySelector('[class*="top-"]'), null, 'no top-anchored utility classes left');
 });
 
 test('G16: the header carries no 发布 button', async t => {
