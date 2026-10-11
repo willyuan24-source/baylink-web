@@ -139,7 +139,8 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-days .ui-segmented_
 
 /* The day's lead: one wide 3:2 cover before the rows (the day reads as pictures, image area ≥ .15 on screen 1). */
 .ev-calendar__lead { margin:0 0 .25rem; }
-@media (min-width:1024px) { .ev-calendar__rows>.ev-calendar__lead { grid-column:1 / -1; max-width:36rem; margin-bottom:.5rem; } }
+/* Desktop: the lead fills the left column and the next rows stack beside it, so no half-empty row. */
+@media (min-width:1024px) { .ev-calendar__rows>.ev-calendar__lead { grid-column:1; grid-row:span 3; align-self:start; margin:.75rem 0 0; } }
 /* Calendar rows: larger thumbnails and two columns on desktop. */
 .ev-calendar__rows .ui-row-card { grid-template-columns:6.5rem minmax(0, 1fr) auto; }
 .ev-calendar__rows .ui-row-card__thumb { width:6.5rem; height:6.5rem; }
