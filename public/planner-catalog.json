@@ -595,8 +595,7 @@
       "costLabel": "基础入场及停车免费；日间大迷宫6岁以上$9、5岁及以下免费；周五周六夜迷宫$13；其他项目、南瓜和餐饮另付。",
       "summary": "在 Sonoma County 的农场挑南瓜、看农场动物，或挑战每年重新设计的玉米迷宫。周五、周六可以把行程留到傍晚，体验夜间迷宫。",
       "plan": [
-        "日间大迷宫 6 岁以上 $9，周五六夜迷宫 $13",
-        "迷宫在闭园前 30 分钟停止入场"
+        "迷宫最晚入场：周日至周四 18:30，周五周六 21:30。"
       ],
       "audience": [
         "亲子家庭",
@@ -607,10 +606,6 @@
       "verifiedAt": "2026-09-29",
       "imageKey": "autumn-neighbors",
       "dek": "挑南瓜、看农场动物，周五六还有夜迷宫",
-      "tips": [
-        "日间大迷宫 6 岁以上 $9，周五六夜迷宫 $13",
-        "迷宫在闭园前 30 分钟停止入场"
-      ],
       "shortTitle": "Petaluma 南瓜田与玉米迷宫",
       "venueShort": "Petaluma Pumpkin Patch",
       "address": "450 Stony Point Road",
@@ -1675,10 +1670,6 @@
       "verifiedAt": "2026-09-29",
       "imageKey": "garden-walk",
       "dek": "在市立公园找南瓜卡片，找到可领奖",
-      "tips": [
-        "卡片补藏到 10/23，最后领奖日 10/30",
-        "到 Finley Community Center 领奖，工作日 8–18 点"
-      ],
       "shortTitle": "Santa Rosa 公园南瓜寻宝",
       "venueShort": "Santa Rosa city parks",
       "aliases": [
@@ -2475,9 +2466,6 @@
         "max": 28.8,
         "note": "停车 $15"
       },
-      "tips": [
-        "从 Valley Avenue 的 Gate 8 入场"
-      ],
       "dateNote": "每晚至 22:00，开场时间按周不同",
       "venueShort": "Alameda County Fairgrounds",
       "address": "2005 Valley Avenue, Pleasanton, CA 94566",
@@ -3560,10 +3548,6 @@
         "min": 30,
         "note": "会员通常 $5"
       },
-      "tips": [
-        "EBT/SNAP/WIC 优惠票每张 $10，限现场购买",
-        "博物馆免费停车；活动风雨照常"
-      ],
       "venueShort": "Bay Area Discovery Museum",
       "address": "557 McReynolds Road, Fort Baker",
       "aliases": [
@@ -7338,9 +7322,6 @@
           "end": "12:00"
         }
       ],
-      "tips": [
-        "导航到 3 North Street 的新棚亭"
-      ],
       "venueShort": "Foley Family Community Pavilion",
       "address": "3 North Street",
       "aliases": [
@@ -9023,9 +9004,6 @@
       "imageKey": "weekend",
       "shortTitle": "Disney On Ice 冰上演出",
       "dek": "迪士尼角色故事搬上冰场",
-      "tips": [
-        "各场提前一小时开门；停车票另购"
-      ],
       "venueShort": "Oakland Arena",
       "address": "7000 Coliseum Way, Oakland, CA 94621",
       "aliases": [
@@ -9694,9 +9672,6 @@
           "start": "18:40"
         }
       ],
-      "tips": [
-        "约 18:40 日落后开映；带毯子或低背沙滩椅"
-      ],
       "venueShort": "Piedmont Park",
       "aliases": [
         "Piedmont 草坪免费电影：《Wonka》",
@@ -9742,9 +9717,6 @@
           "start": "15:00",
           "end": "17:00"
         }
-      ],
-      "tips": [
-        "可带 T 恤去现场印制；自备水杯"
       ],
       "venueShort": "Huerta Gym",
       "aliases": [
@@ -9873,10 +9845,10 @@
       "category": "culture",
       "kind": "meetup",
       "cost": "free",
-      "costLabel": "免费；需获准入场或候补转正",
+      "costLabel": "免费；需在 Luma 报名",
       "summary": "开源 AI 社区开幕聚会，结合项目演示、开发者交流和晚间音乐。",
       "plan": [
-        "在 Luma 报名，主办方审核后入场；演示申请已于 10/2 截止。"
+        "演示申请已于 10/2 截止，现在可报名参加交流和舞会。"
       ],
       "audience": [
         "AI 开发者",
@@ -9943,9 +9915,6 @@
           "date": "2026-10-16",
           "start": "17:00"
         }
-      ],
-      "tips": [
-        "带保暖外套和坐垫，查好夜间回程公交"
       ],
       "venueShort": "Crane Cove Park",
       "aliases": [
@@ -10035,10 +10004,6 @@
           "start": "20:00"
         }
       ],
-      "ageChip": "12 岁以上",
-      "tips": [
-        "19:00 开门；16 岁以下须成人陪同"
-      ],
       "venueShort": "Uptown Theatre Napa",
       "address": "1350 Third Street, Napa, CA 94559",
       "aliases": [
@@ -10127,9 +10092,6 @@
           "end": "15:00"
         }
       ],
-      "tips": [
-        "接驳与攀岩必须登记；无障碍接驳连 North Berkeley BART"
-      ],
       "venueShort": "James Kenney Community Center",
       "address": "1720 8th Street, Berkeley",
       "aliases": [
@@ -10195,9 +10157,6 @@
           "start": "11:00",
           "end": "16:00"
         }
-      ],
-      "tips": [
-        "有免费自行车寄存"
       ],
       "shortTitle": "Berkeley 免费丰收节与种子交换",
       "venueShort": "Cedar Rose Park",
@@ -10518,10 +10477,6 @@
       "price": {
         "free": true
       },
-      "tips": [
-        "10/17 12:00 有游行",
-        "走 Highway 92 留足堵车时间"
-      ],
       "venueShort": "Main Street",
       "address": "Main Street, Half Moon Bay, CA",
       "aliases": [
@@ -11631,9 +11586,6 @@
           "end": "14:00"
         }
       ],
-      "tips": [
-        "下雨改到 San Bruno Senior Center"
-      ],
       "venueShort": "Centennial Plaza",
       "address": "470 San Mateo Avenue",
       "aliases": [
@@ -12356,9 +12308,6 @@
           "start": "16:30"
         }
       ],
-      "tips": [
-        "停车票单独购买"
-      ],
       "venueShort": "Stanford Stadium",
       "aliases": [
         "Stanford 橄榄球主场对 Elon：校友返校周末",
@@ -12552,9 +12501,6 @@
           "end": "16:00"
         }
       ],
-      "tips": [
-        "街边停车免费"
-      ],
       "venueShort": "Harding Park",
       "address": "Ashbury Avenue & C Street, El Cerrito, CA",
       "aliases": [
@@ -12692,9 +12638,6 @@
       "price": {
         "free": true
       },
-      "tips": [
-        "免费停车"
-      ],
       "shortTitle": "Petaluma 免费复古市集",
       "venueShort": "Petaluma Fairgrounds",
       "address": "900 East Washington Street, Petaluma, CA 94952",
@@ -12746,9 +12689,6 @@
           "start": "11:00",
           "end": "16:00"
         }
-      ],
-      "tips": [
-        "搭 BART 到 Balboa Park 再步行"
       ],
       "venueShort": "Mission Street",
       "aliases": [
@@ -12852,9 +12792,6 @@
           "date": "2026-10-19",
           "start": "17:15"
         }
-      ],
-      "tips": [
-        "停车另售"
       ],
       "shortTitle": "49ers 主场对 Commanders",
       "venueShort": "Levi’s Stadium",
@@ -13320,9 +13257,6 @@
         "min": 15
       },
       "ageChip": "13 岁以上",
-      "tips": [
-        "只是体验课，不发 CPR 证书"
-      ],
       "venueShort": "Monte Sereno City Hall",
       "aliases": [
         "10 月 22 日 CPR 与 AED 基础体验课",
@@ -14128,9 +14062,6 @@
           "end": "19:30"
         }
       ],
-      "tips": [
-        "地下停车场前 2 小时免费"
-      ],
       "venueShort": "The Glade Dog Park",
       "address": "1300 El Camino Real",
       "aliases": [
@@ -14192,9 +14123,6 @@
           "date": "2026-10-23",
           "start": "19:30"
         }
-      ],
-      "tips": [
-        "停车票单独购买"
       ],
       "venueShort": "Stanford Stadium",
       "aliases": [
@@ -14387,9 +14315,6 @@
           "start": "15:00",
           "end": "18:00"
         }
-      ],
-      "tips": [
-        "可停指定 BART overflow 停车场，免费"
       ],
       "venueShort": "Concord Police Department",
       "address": "1350 Galindo Street, Concord, CA 94520",
@@ -15458,9 +15383,6 @@
           "end": "17:00"
         }
       ],
-      "tips": [
-        "一对一咨询 10/22 午夜截止预约"
-      ],
       "venueShort": "SF Main Library",
       "address": "100 Larkin Street, San Francisco, CA 94102",
       "aliases": [
@@ -16161,9 +16083,6 @@
         "max": 20,
         "note": "12 岁及以下 $10"
       },
-      "tips": [
-        "欢迎穿万圣节服装来"
-      ],
       "venueShort": "Weill Hall, Green Music Center",
       "aliases": [
         "Boo! Let’s Dance：和 Snoopy 一起听交响乐",
@@ -16434,9 +16353,6 @@
           "start": "19:30"
         }
       ],
-      "tips": [
-        "现场手机要封袋，同行者先约好集合点"
-      ],
       "dateNote": "18:30 开门",
       "venueShort": "Chase Center",
       "address": "1 Warriors Way, San Francisco, CA 94158",
@@ -16520,6 +16436,7 @@
       "shortTitle": "南旧金山城市近况会",
       "dek": "已延期：新日期待市府公布",
       "dateNote": "原定 10/27 17:00–19:00",
+      "status": "postponed",
       "venueShort": "Library | Parks and Recreation Center",
       "address": "901 Civic Campus Way, South San Francisco, CA 94080",
       "aliases": [
@@ -16564,7 +16481,6 @@
           "start": "18:00"
         }
       ],
-      "ageChip": "2 岁以上",
       "dateNote": "17:00 开门",
       "venueShort": "Uptown Theatre Napa",
       "address": "1350 Third Street, Napa, CA 94559",
@@ -17285,7 +17201,6 @@
       "costLabel": "普通票 $175 加税 · 会员票 $150 加税；官网 10/9 显示已售罄",
       "summary": "在 Napa 的葡萄酒接待与家庭式晚餐中迎接收获季，主办方鼓励面具或盛装。适合提前安排的成年朋友聚会或纪念日晚餐。",
       "plan": [
-        "从品牌官方入口购票；普通$175加税，会员$150加税，每份会员最多4张。",
         "仅限21岁及以上。 官方说明不允许宠物，售票不可退款。"
       ],
       "audience": [
@@ -17310,9 +17225,7 @@
         "note": "另加税；会员 $150"
       },
       "ageChip": "21+",
-      "tips": [
-        "官网 10/9 显示已售罄"
-      ],
+      "status": "sold_out",
       "venueShort": "Paraduxx (Duckhorn)",
       "address": "7257 Silverado Trail",
       "aliases": [
@@ -17358,9 +17271,6 @@
           "start": "17:00",
           "end": "21:00"
         }
-      ],
-      "tips": [
-        "车库当晚停车 $10，至 22:00"
       ],
       "dateNote": "LA GENTE SF 18:15–19:15",
       "venueShort": "Oakland Museum of California",
@@ -17435,7 +17345,7 @@
           "start": "19:30"
         }
       ],
-      "ageChip": "3 岁以上",
+      "ageChip": "建议 8 岁以上",
       "venueShort": "Lucie Stern Theater",
       "address": "1305 Middlefield Road",
       "aliases": [
@@ -17620,7 +17530,6 @@
           "end": "11:00"
         }
       ],
-      "ageChip": "为 2–5 岁设计",
       "venueShort": "Crow Canyon Gardens",
       "aliases": [
         "San Ramon 自然故事时间：万圣节专场",
@@ -19370,9 +19279,6 @@
           "start": "10:00",
           "end": "17:00"
         }
-      ],
-      "tips": [
-        "成人先在主办方页面免费登记"
       ],
       "shortTitle": "Marin Arts & Crafts Show 手作展",
       "venueShort": "Marin Center Exhibit Hall",
