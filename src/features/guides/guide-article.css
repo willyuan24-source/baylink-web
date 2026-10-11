@@ -15,7 +15,7 @@
 .gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.571; }
 .gd-meta a { color:var(--color-brand); font-weight:600; text-decoration:none; }
 .gd-meta a:hover { text-decoration:underline; }
-.gd-meta__last { display:inline-flex; align-items:center; white-space:nowrap; }
+.gd-meta__last { white-space:nowrap; }
 .gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin:-8px -8px -8px 0; border:0; border-radius:999px; background:transparent; color:var(--color-ink-2); cursor:pointer; }
 .gd-meta__info>svg { width:1.125rem; height:1.125rem; }
 .gd-about p { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
