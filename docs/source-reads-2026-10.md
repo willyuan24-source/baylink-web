@@ -427,3 +427,26 @@ fetched on 10/09 (no new requests) changed only overlay age chips; no source pac
 
 The same evening `sf-open-together-ai-2026` was re-checked against its 10/09 text ("Welcome! To join the event, please register
 below." and "free for everyone"; no waitlist and no approval step shown): its cost line now reads "免费；需在 Luma 报名".
+
+### CNT-EVENTS · opening tips and wording, 2026-10-11 (review round 2)
+
+Ten opening tips (`fix.editorTip`) had been the shared menu-and-hours line or a repeat of the summary. Each now carries one fact
+about that shop, from the source article already recorded on the item (`sourceUrl`) or from one read-only GET of its official
+page on 2026-10-11 (PT) by the CNT-EVENTS lane agent. Three cost lines lost their verification-log wording without a fact
+changing (Pleasanton adds the page's "3 and under free"). No source package was edited and `verifiedAt` is unchanged.
+
+| Kind | Id | URL | HTTP (10/11) | Quote |
+|---|---|---|---|---|
+| opening | `berkeley-cere-tea-opening-2026` | https://richmondside.org/2026/09/16/delage-55-coffee-juxi-cere-tea-skula-open/ | 200 | "Ceré Tea soft opened in the former Happy Lemon in downtown … hojicha drinks, blended ube drinks, and coffees" |
+| opening | `oakland-55-coffee-pop-up-2026` | https://richmondside.org/2026/09/16/delage-55-coffee-juxi-cere-tea-skula-open/ | 200 | "now operating at The Saap Avenue in Oakland. 55 Coffee Co. serves banh mi, pastries, coffee, and matcha" |
+| opening | `alameda-juxi-soft-opening-2026` | https://www.juxialameda.com/ | 200 | "Book your JuXi reservation on Resy" (the 9/16 article: "A new Cantonese American restaurant") |
+| opening | `oakland-chez-maeju-soft-opening-2026` | https://chezmaeju.com/ | 200 | "Reservations 6200 Claremont Avenue · Oakland Dinner nightly · Closed Tue" |
+| opening | `albany-o2-sushi-opening-2026` | https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/ | 200 | "From the folks at O2 Eatery on Solano Avenue … udon, ramen, bento boxes, katsu plates" |
+| opening | `berkeley-top-dog-downtown-opening-2026` | https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/ | 200 | "a location at The BreakRoom, a billiards hall and cocktail bar … 2021 Shattuck Ave. (at University Avenue)" |
+| opening | `pittsburg-nekter-opening-2026` | https://richmondside.org/2026/09/22/top-dog-chez-maeju-kash-hoagies-penca-azul-open/ | 200 | "serves juices, smoothies, bowls, and waffles. Additional locations include Fremont and Danville" |
+| opening | `anya-gifting-larkspur` | https://marincountrymart.com/anya-hindmarch-gifting-agency | 200 | "2257 Larkspur Landing Circle, Larkspur CA 94939 Across from the Larkspur Ferry Terminal" (mall footer) |
+| opening | `margaux-larkspur` | https://marincountrymart.com/margaux | 200 | "sizes (from EU 33-44) and three widths … Phone: (415) 306-7425" |
+| opening | `varley-larkspur` | https://marincountrymart.com/varley | 200 | "Phone: (628) 229-2058 Email: marin@varley.com 2409 Larkspur Landing Cir" |
+| event | `pleasanton-pumpkins-after-dark-2026` | (10/09 read above) | — | "Child 3 years old and under FREE … Parking : $15 – Credit, debit and mobile tap-to-pay … only" |
+| event | `berkeley-bird-festival-2026` | (10/09 read above) | — | the festival page lists no fees; the line keeps "talks and exhibits free" and says the rest is to be confirmed |
+| event | `fremont-street-eats-autumn-2026` | (10/09 read above) | — | the events page lists no admission fee (only "Exhibiting at Fremont Street Eats is free") |

@@ -1,14 +1,14 @@
 {
-"alameda-juxi-soft-opening-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。商家提供预约入口，试营业期间先核对时间与菜单。"}},
-"albany-o2-sushi-opening-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。到访前核对营业时间和是否需要预约。"}},
-"anya-gifting-larkspur": {"fix":{"summary":"礼品、皮革手袋与可个性化产品。商场标注为新开业，具体开业月份未公布。","editorTip":"按商品售价，未见开业优惠；门店营业中，开业月份未公布。"}},
-"berkeley-cere-tea-opening-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。到访前核对营业时间和是否需要预约。"}},
-"berkeley-top-dog-downtown-opening-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。到访前核对营业时间和是否需要预约。"}},
-"margaux-larkspur": {"fix":{"summary":"女性鞋履品牌，可现场了解尺码及宽度选择。商场标注为新开业，具体开业月份未公布。","editorTip":"按商品售价，未见开业优惠；门店营业中，开业月份未公布。"}},
-"oakland-55-coffee-pop-up-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。到访前核对营业时间和是否需要预约。"}},
-"oakland-chez-maeju-soft-opening-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。到访前核对营业时间和是否需要预约。"}},
-"pittsburg-nekter-opening-2026": {"fix":{"editorTip":"按菜单消费；价格与开业优惠见商家。到访前核对营业时间和是否需要预约。"}},
+"alameda-juxi-soft-opening-2026": {"fix":{"editorTip":"粤式美式菜；订位走官网的 Resy 入口。"}},
+"albany-o2-sushi-opening-2026": {"fix":{"editorTip":"与 Solano Avenue 的 O2 Eatery 同一团队；除寿司卷也有乌冬、拉面和便当。"}},
+"anya-gifting-larkspur": {"fix":{"summary":"礼品、皮革手袋与可个性化产品。商场标注为新开业，具体开业月份未公布。","editorTip":"店在 Marin Country Mart 商场，对面就是 Larkspur 渡轮码头。"}},
+"berkeley-cere-tea-opening-2026": {"fix":{"editorTip":"开在原 Happy Lemon 店面；也有紫薯冰沙和咖啡。"}},
+"berkeley-top-dog-downtown-opening-2026": {"fix":{"editorTip":"在 Shattuck 与 University Avenue 路口的台球酒吧 The BreakRoom 里。"}},
+"margaux-larkspur": {"fix":{"summary":"女性鞋履品牌，可现场了解尺码及宽度选择。商场标注为新开业，具体开业月份未公布。","editorTip":"鞋码 EU 33–44，有三种宽度；门店电话 (415) 306-7425。"}},
+"oakland-55-coffee-pop-up-2026": {"fix":{"editorTip":"快闪设在 The Saap Avenue 店内；也卖糕点。"}},
+"oakland-chez-maeju-soft-opening-2026": {"fix":{"editorTip":"只做晚餐，周二休息；官网可订位。"}},
+"pittsburg-nekter-opening-2026": {"fix":{"editorTip":"除果汁和 smoothie 也有果碗和华夫饼；Fremont、Danville 另有分店。"}},
 "san-jose-bitterbuck-soft-opening-2026": {"openedOn":"2026-09-04","fix":{"editorTip":"按单点菜单消费，价格见店内菜单。店方不接受预约；试营业阶段菜单和时段可能调整。试营业日期来自当地媒体报道。"}},
 "santa-clara-cider-valley-fair-opening-2026": {"openedOn":"2026-08-29","fix":{"editorTip":"商品按标价；开幕赠品已结束。普通购物无需预约，营业时间以商场门店页为准。"}},
-"varley-larkspur": {"fix":{"summary":"针织、外套与日常服饰。商场标注为新开业，具体开业月份未公布。","editorTip":"按商品售价，未见开业优惠；门店营业中，开业月份未公布。"}}
+"varley-larkspur": {"fix":{"summary":"针织、外套与日常服饰。商场标注为新开业，具体开业月份未公布。","editorTip":"在 Marin Country Mart 商场内；门店电话 (628) 229-2058。"}}
 }

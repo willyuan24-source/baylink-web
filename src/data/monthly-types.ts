@@ -26,7 +26,10 @@ export type MonthlyEvent = {
   relatedGuideSlug?: string;
 } & EventEditorial;
 
-/** One confirmed day of an event; times are 24-hour "HH:MM" Bay Area local time when the source states them. */
+/**
+ * One session on a confirmed day; times are 24-hour "HH:MM" Bay Area local time when the source states them. A day with
+ * several start times has one session per start (sorted by date, then start).
+ */
 export type EditorialSession = { date: string; start?: string; end?: string };
 /** Structured admission: `free` only when entry is free, `min`/`max` in USD, `note` for a short condition. */
 export type EditorialPrice = { free?: boolean; min?: number; max?: number; note?: string };
@@ -45,7 +48,10 @@ export type EventEditorial = {
   shortTitle?: string;
   /** "Why go" line, ≤30 display units. */
   dek?: string;
-  /** Confirmed days with start/end times; when present they are the event's confirmed days. */
+  /**
+   * Sessions with start/end times; when present their days are the event's confirmed days. `dateNote` keeps what they
+   * cannot say (doors, segments, a series whose times are on the ticket page), so show it beside them.
+   */
   sessions?: EditorialSession[];
   price?: EditorialPrice;
   /** Short place for a meta line ("Baldwin Park"). */

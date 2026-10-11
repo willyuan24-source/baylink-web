@@ -9,15 +9,16 @@ import type { MonthlyEvent } from '../src/data/monthly-types';
 import {
   applyEventOverlay, cleanDateLabel, cleanPlan, EVENT_OVERLAY, FILLER_SENTENCES, OFFER_OVERLAY, OPENING_OVERLAY, ownShortTitle, PRE_OVERLAY, venueParts,
 } from '../src/data/editorial-overlay/apply';
-import { basisFor, fieldHash, lintEditorial, overlayCoverage, readEnglishSources, tipRepeats, type Basis, type LintInput } from '../src/data/editorial-overlay/lint';
+import { fieldHash, lintEditorial, maskedChanges, nextBasis, overlayCoverage, readEnglishSources, tipRepeats, type Basis, type LintInput } from '../src/data/editorial-overlay/lint';
 import { eventOccursOn } from '../src/lib/event-calendar';
-import { displayUnits, eventShortTitle } from '../src/lib/event-facts';
+import { displayUnits, eventShortTitle, eventTimeLabel } from '../src/lib/event-facts';
 
 // The lane's scope: every item live on or after 10/16 (owner, 10/09). A fixed day keeps the gate deterministic.
 const FROM = '2026-10-16';
 const english = readEnglishSources(path => readFileSync(path, 'utf8'));
 const overlay = { events: EVENT_OVERLAY, offers: OFFER_OVERLAY, openings: OPENING_OVERLAY };
-// basis.json: a covered field changed upstream under a stored override fails here, so CI catches a masked edit.
+// basis.json: a covered field changed upstream under a stored override fails here, so CI catches a masked edit. Any other
+// upstream edit of a covered item only warns (RC-29: content PRs are not blocked); the captain re-records it at merge.
 const basis = JSON.parse(readFileSync('src/data/editorial-overlay/basis.json', 'utf8')) as Basis;
 const input = (extra: Partial<LintInput> = {}): LintInput => ({ events: MONTHLY_EVENTS, offers: currentFreebies, openings: currentOpenings, overlay, english, from: FROM, sources: PRE_OVERLAY, basis, ...extra });
 
@@ -134,8 +135,10 @@ test('the lint flags overlay errors: long short titles, bad sessions, impossible
 });
 
 test('basis.json notices a source edit under an entry: an error when a stored field would mask it, else a warning', () => {
-  assert.ok(Object.keys(basis).length >= Object.keys(EVENT_OVERLAY).length, 'every covered item has a recorded basis');
-  assert.deepEqual(basis, basisFor(new Map([...PRE_OVERLAY].filter(([key]) => Object.hasOwn(basis, key)))), 'basis.json matches today’s sources (run the audit with --write-basis after editing entries)');
+  for (const key of PRE_OVERLAY.keys()) assert.ok(Object.hasOwn(basis, key), `${key} has no recorded basis: after writing its entry, run the audit with --write-basis=${key}`);
+  // Only edits a stored entry field would mask fail here (every covered item, archived ones included); other tracked-field
+  // edits stay lint warnings, so a content PR that corrects a covered item is not blocked unless the overlay hides its fix.
+  assert.deepEqual(maskedChanges(overlay, PRE_OVERLAY, basis), [], 'resolve the source-changed errors first (update or remove the masking entry field; the lint test names it), then re-record each item with the audit\'s --write-basis=kind:id');
   const drift = (key: string, change: Record<string, unknown>) => {
     const edited = new Map(PRE_OVERLAY);
     edited.set(key, { ...PRE_OVERLAY.get(key)!, ...change });
@@ -155,6 +158,50 @@ test('basis.json notices a source edit under an entry: an error when a stored fi
   assert.deepEqual(drift(concord, { plan: ['新的一步安排，内容足够长。'] }), [['warn', 'concord-trick-or-treat-trail-2026', 'plan']]);
   // A dated offer correction masks the same field.
   assert.deepEqual(drift('offer:sf-opera-dolby-figaro-offer-2026', { dateLabel: '10/30 · 新批次' }).map(row => row[0]), ['error']);
+});
+
+test('--write-basis cannot re-record a masked upstream edit; an editor re-records the items they re-checked by name (review 10/11)', () => {
+  const vacaville = 'event:vacaville-boo-bash-20261030', concord = 'event:concord-trick-or-treat-trail-2026';
+  const masked = new Map(PRE_OVERLAY);
+  masked.set(vacaville, { ...PRE_OVERLAY.get(vacaville)!, costLabel: '$30/人' });
+  const refused = nextBasis(overlay, masked, basis);
+  assert.equal(refused.basis, undefined, 'nothing is written while fix.costLabel would hide the upstream correction');
+  assert.deepEqual(refused.blocked, [`${vacaville} costLabel (masked by price, fix.costLabel)`]);
+  const named = nextBasis(overlay, masked, basis, [vacaville]);
+  assert.deepEqual(Object.keys(named.basis!).filter(key => JSON.stringify(named.basis![key]) !== JSON.stringify(basis[key])), [vacaville], 'only the named item is re-recorded');
+  assert.equal(named.basis![vacaville].costLabel, fieldHash('$30/人'));
+  assert.deepEqual(Object.keys(named.basis!), Object.keys(basis), 'rows stay sorted and complete');
+  // An edit no entry field masks does not block a full re-record (it was only a warning).
+  const unmasked = new Map(PRE_OVERLAY);
+  unmasked.set(concord, { ...PRE_OVERLAY.get(concord)!, costLabel: '收费 $5。' });
+  assert.equal(nextBasis(overlay, unmasked, basis).basis?.[concord].costLabel, fieldHash('收费 $5。'));
+  assert.deepEqual(nextBasis(overlay, PRE_OVERLAY, basis, ['event:no-such-item']).unknown, ['event:no-such-item']);
+});
+
+test('a day with several start times lists each session; cards read the starts (review 10/11)', () => {
+  const filoli = MONTHLY_EVENTS.find(event => event.id === 'octnov-filoli-thanksgiving-flora-2026')!;
+  assert.deepEqual(filoli.sessions?.filter(session => session.date === '2026-11-24').map(session => `${session.start}–${session.end}`), ['10:00–12:00', '14:00–16:00']);
+  assert.equal(eventTimeLabel(filoli, '2026-11-24', false), '10:00、14:00');
+  assert.equal(eventTimeLabel(filoli, '2026-11-24', true), '10am, 2pm');
+  assert.equal(eventTimeLabel(filoli, '2026-11-23', false), '14–16 点', 'a one-session day keeps its span');
+  const event = MONTHLY_EVENTS.find(item => item.id === 'concord-trick-or-treat-trail-2026')!;
+  const lint = (sessions: MonthlyEvent['sessions']) => lintEditorial(input({ events: [{ ...event, sessions }], offers: [], openings: [] })).filter(issue => issue.rule === 'sessions').map(issue => issue.detail);
+  const day = event.sessions![0].date;
+  assert.deepEqual(lint([{ date: day, start: '16:00' }, { date: day, start: '17:30' }]), []);
+  assert.deepEqual(lint([{ date: day, start: '16:00' }, { date: day, start: '16:00' }]), ['repeated session (same day and start)']);
+  assert.deepEqual(lint([{ date: day, start: '17:30' }, { date: day, start: '16:00' }]), ['not in date and start order']);
+});
+
+test('verification-log wording in reader text is a warning for the next content pass (review 10/11)', () => {
+  const event = MONTHLY_EVENTS.find(item => item.id === 'concord-trick-or-treat-trail-2026')!;
+  const issues = lintEditorial(input({ events: [{ ...event, costLabel: '旅游局明确讲座免费；未核到所有分项费用。' }], offers: [], openings: [] })).filter(issue => issue.rule === 'log-voice');
+  assert.deepEqual(issues.map(issue => issue.level), ['warn']);
+  const byId = (id: string) => MONTHLY_EVENTS.find(item => item.id === id)!;
+  for (const id of ['berkeley-bird-festival-2026', 'pleasanton-pumpkins-after-dark-2026', 'fremont-street-eats-autumn-2026']) assert.doesNotMatch(byId(id).costLabel, /未核|未见|页面列/u, id);
+  // Opening tips name something about that shop, never the shared menu-and-hours boilerplate.
+  const tips = currentOpenings.filter(shop => Object.hasOwn(OPENING_OVERLAY, shop.id)).map(shop => shop.editorTip);
+  assert.equal(new Set(tips).size, tips.length, 'no two covered openings share a tip');
+  for (const tip of tips) assert.doesNotMatch(tip, /按菜单消费；价格与开业优惠见商家|未见开业优惠/u);
 });
 
 test('tips add information no shown field carries; status marks postponed and sold-out items (review 10/09)', () => {
