@@ -57,8 +57,18 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   if (page !== 'opus-bay') {
     // Article heroes can have their own header/footer. Check the outer page
     // navigation: the first header and the final footer surround the article.
-    const shell = [html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/)?.[1], [...html.matchAll(/<footer\b[^>]*>([\s\S]*?)<\/footer>/g)].at(-1)?.[1]].filter(Boolean);
-    if (shell.length !== 2) throw new Error(`Missing anonymous navigation shell: ${path}`);
+    const header = html.match(/<header\b[^>]*>([\s\S]*?)<\/header>/)?.[1];
+    const footer = [...html.matchAll(/<footer\b[^>]*>([\s\S]*?)<\/footer>/g)].at(-1)?.[1];
+    if (!header || !footer) throw new Error(`Missing anonymous navigation shell: ${path}`);
+    // WEB-SHELL2: the first paint is the app's own chrome (SiteChrome: header, footer, tab bar), not a separate static shell.
+    if (!html.includes('class="site-topbar"') || !html.includes('class="site-footer"') || !html.includes('class="site-mobile-nav"')) throw new Error(`First paint is not the site chrome: ${path}`);
+    const languageSwitch = header.match(/<details\b[^>]*data-lang-switch[^>]*>[\s\S]*?<\/details>/)?.[0] || '';
+    if (['zh-Hans', 'zh-Hant', 'en'].some(lang => !new RegExp(`<button[^>]*lang="${lang}"`).test(languageSwitch)) || languageSwitch.includes('href=')) throw new Error(`Header language choices must be three <button>s, each with its own lang: ${path}`);
+    for (const target of ['/about', '/archive', '/terms', '/privacy', '/sms-consent']) if (!footer.includes(`href="${locale ? `/${locale.slice(0, -1)}` : ''}${target}"`)) throw new Error(`Footer misses ${target}: ${path}`);
+    if (!/<button[^>]*>(?:\u53cd\u9988|\u53cd\u994b|Feedback)<\/button>/.test(footer)) throw new Error(`Footer misses \u53cd\u9988: ${path}`);
+    // RC-7: the language choices name each language in its own script (\u7b80\u4f53\u4e2d\u6587 \u00b7 \u7e41\u9ad4\u4e2d\u6587 \u00b7 English) and have no links, so
+    // the /en and link-language checks below skip that one subtree (data-lang-switch).
+    const shell = [header.replace(languageSwitch, ''), footer];
     if (locale === 'en/' && shell.some(markup => /[\u3400-\u9fff]/.test(markup))) throw new Error(`Untranslated first-paint navigation: ${path}`);
     if (locale && shell.some(markup => [...markup.matchAll(/href="(\/[^"]*)"/g)].some(match => !match[1].startsWith(`/${locale.slice(0, -1)}`)))) throw new Error(`First-paint navigation loses its language: ${path}`);
   }

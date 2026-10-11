@@ -589,12 +589,6 @@ html, body, #root {
     background: radial-gradient(ellipse, rgba(255,255,255,0.12) 0%, transparent 70%);
     pointer-events: none;
   }
-  .toast-success {
-    @apply bg-baylink-green-light/90 text-[#2d6b4f] border-[#d4e8dc];
-  }
-  .toast-error {
-    @apply bg-[#FDF5F3] text-[#B4534B] border-[#F0D8D4];
-  }
   .sidebar-panel {
     @apply bg-white/85 backdrop-blur-sm rounded-2xl p-3.5 border border-black/[0.04] shadow-rest;
   }

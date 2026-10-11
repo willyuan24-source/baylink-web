@@ -39,7 +39,7 @@ test('events and personal routes have one correct tab, while BayBay opens in one
 
 test('reading choices persist, initialize from a shared link, and close with restored focus', () => {
   const view = render(<ReadingPreferencesButton />);
-  const trigger = view.getByRole('button', { name: '调整阅读字号' }); trigger.focus(); fireEvent.click(trigger);
+  const trigger = view.getByRole('button', { name: '字号' }); trigger.focus(); fireEvent.click(trigger);
   fireEvent.click(view.getByRole('button', { name: /特大/ }));
   assert.equal(getReadingSize(), 'extra-large');
   assert.equal(document.documentElement.dataset.reading, 'extra-large');
@@ -54,7 +54,7 @@ test('reading choices persist, initialize from a shared link, and close with res
 
 test('简洁显示 is a 48px switch that persists, follows a family link, and can be switched off by one', () => {
   const view = render(<ReadingPreferencesButton />);
-  fireEvent.click(view.getByRole('button', { name: '调整阅读字号' }));
+  fireEvent.click(view.getByRole('button', { name: '字号' }));
   // The name is the short label alone; the longer explanation is the description.
   const toggle = view.getByRole('switch', { name: '简洁显示（适合长辈）', description: /全站文字至少 16 像素/ });
   assert.equal(toggle.getAttribute('aria-checked'), 'false');
