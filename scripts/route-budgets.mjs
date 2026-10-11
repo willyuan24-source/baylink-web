@@ -24,17 +24,24 @@ export function englishScopeModules(loaderSource) {
   return new Map([...loaderSource.matchAll(/"([^"]+)": \(\) => import\("\.\/(english-scopes\/[^"]+\.json)"\)/g)].map(match => [match[1], `src/data/generated/${match[2]}`]));
 }
 
+/** The search dictionaries' chunk (src/i18n/locale.ts loadSearchConversion). */
+export const SEARCH_DICTIONARIES = 'src/i18n/search-dictionaries.ts';
+
 /**
  * Manifest keys each locale loads for one route: the shell and page graph, plus
- * the opencc converter for 繁體 and the scoped dictionaries for English
- * (src/i18n/locale.ts loadLocaleForPath).
+ * the opencc converter for 繁體 (it carries search too), the search dictionaries
+ * for 简体 and English on pages that search, and the scoped dictionaries for
+ * English (src/i18n/locale.ts loadLocaleForPath).
  */
-export function routeModules(manifest, { route, module }, locale, { englishScopesForPath, scopeModules }) {
+export function routeModules(manifest, { route, module }, locale, { englishScopesForPath, scopeModules, searchFreePath = () => false }) {
   const keys = ['index.html', module];
   if (locale === 'zh-Hant') {
-    const opencc = Object.keys(manifest).find(key => key.startsWith('node_modules/opencc-js/') && manifest[key].isDynamicEntry);
-    if (!opencc) throw new Error('The 繁體 converter (opencc-js) is no longer a dynamic entry; update scripts/route-budgets.mjs');
+    const opencc = Object.keys(manifest).find(key => key.startsWith('node_modules/opencc-js/') && key.endsWith('/full.js') && manifest[key].isDynamicEntry);
+    if (!opencc) throw new Error('The 繁體 converter (opencc-js full build) is no longer a dynamic entry; update scripts/route-budgets.mjs');
     keys.push(opencc);
+  } else if (!searchFreePath(route)) {
+    if (!manifest[SEARCH_DICTIONARIES]?.isDynamicEntry) throw new Error(`The search dictionaries (${SEARCH_DICTIONARIES}) are no longer a dynamic entry; update scripts/route-budgets.mjs`);
+    keys.push(SEARCH_DICTIONARIES);
   }
   if (locale === 'en') {
     keys.push('src/data/generated/english-scope-loaders.ts');
@@ -50,9 +57,9 @@ export function routeModules(manifest, { route, module }, locale, { englishScope
 /** Measure every budgeted route × locale in gzip bytes and compare with its KiB ceiling. */
 export async function measureRouteBudgets(budgets, { dist = 'dist', root = '.', manifest } = {}) {
   manifest ||= JSON.parse(await readFile(join(dist, '.vite/manifest.json'), 'utf8'));
-  let englishScopesForPath;
+  let englishScopesForPath, searchFreePath;
   try {
-    ({ englishScopesForPath } = await import(pathToFileURL(join(root, 'src/lib/english-loading.ts')).href));
+    ({ englishScopesForPath, searchFreePath } = await import(pathToFileURL(join(root, 'src/lib/english-loading.ts')).href));
   } catch (error) {
     throw new Error(`Route budgets read English scopes from src/lib/english-loading.ts with Node's type stripping; keep that file free of imports and non-erasable syntax (${error.message})`);
   }
@@ -65,7 +72,7 @@ export async function measureRouteBudgets(budgets, { dist = 'dist', root = '.', 
   const rows = [];
   for (const budget of budgets) {
     for (const locale of ROUTE_LOCALES) {
-      const files = moduleGraph(manifest, routeModules(manifest, budget, locale, { englishScopesForPath, scopeModules }));
+      const files = moduleGraph(manifest, routeModules(manifest, budget, locale, { englishScopesForPath, scopeModules, searchFreePath }));
       let bytes = 0;
       for (const file of files) bytes += await gzip(file);
       const ceiling = budget.kib[locale];

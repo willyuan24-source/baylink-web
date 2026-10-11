@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import test, { afterEach } from 'node:test';
+import test, { afterEach, before } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -8,7 +8,11 @@ import HomePage from '../src/pages/HomePage';
 import type { AppContextValue } from '../src/app/context';
 import type { PostData } from '../src/lib/types';
 import { setLocale } from '../src/i18n/locale';
+import { loadCommunityBoard } from '../src/pages/community-board-loader';
 
+// The board is its own chunk (WEB-HOMEPREP); a static render shows it once it has loaded, as the app does after its
+// first request.
+before(async () => { await loadCommunityBoard(); });
 afterEach(async () => { await setLocale('zh-Hans', false); });
 
 function home(feedError: boolean, location = '/', overrides: Partial<AppContextValue> = {}) {

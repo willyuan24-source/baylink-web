@@ -1,6 +1,6 @@
 import cityAliases from '../data/city-search-aliases.json';
 import { CITY_EXPLORATION_SLUG, cityExplorationKey } from '../data/city-exploration-types';
-import { simplifySearch } from '../i18n/locale';
+import { isSearchConversionReady, simplifySearch } from '../i18n/locale';
 import { parseDiscoveryQuery } from './discovery-query';
 import { validCalendarDay } from './event-calendar';
 import { matchRoute } from '../app/route-table';
@@ -23,7 +23,13 @@ const entries: [string, Location][] = [
   ...BAYBAY_CITIES.flatMap(city => [city, ...(cityAliases[city as keyof typeof cityAliases] || []), ...(city === 'San Jose' ? ['San José'] : []), ...(city === 'Fremont' ? ['佛利蒙', '費利蒙'] : [])].map(alias => [alias, { city }] as [string, Location])),
   ...regionalAliases.flatMap(([location, aliases]) => aliases.map(alias => [alias, location] as [string, Location])),
 ];
-const locations = new Map(entries.map(([alias, location]) => [normalized(alias), location]));
+// Alias keys go through simplifySearch, whose dictionaries may arrive after this module loads: rebuilt once they do.
+let locationIndex: { converted: boolean; map: Map<string, Location> } | undefined;
+const locations = () => {
+  const converted = isSearchConversionReady();
+  if (locationIndex?.converted !== converted) locationIndex = { converted, map: new Map(entries.map(([alias, location]) => [normalized(alias), location])) };
+  return locationIndex.map;
+};
 const pattern = entries.map(([alias]) => `${/^[a-z]/i.test(alias) ? '\\b' : ''}${escape(alias)}${/[a-z]$/i.test(alias) ? '\\b' : ''}`).sort((a, b) => b.length - a.length).join('|');
 
 /** Match public city names only, with separate departure and destination roles. */
@@ -33,7 +39,7 @@ export function bayBayLocationMentions(message: string): BayBayLocationMention[]
     const after = simplifySearch(message.slice(match.index! + match[0].length));
     const origin = /(?:从|住在|居住在|家在|(?:出发(?:城市|地点|地)?|起点)(?:\s*(?:改成|改为|换成|变成|是|在|到))?|\b(?:from|leaving|departing(?:\s+from)?|live in|based in|starting(?:\s+from)?|(?:origin|departure city)(?:\s+(?:is|to|changed? to|instead))?))\s*$/i.test(before)
       || /^\s*(?:出发|to\b|[-=]?>|→)/i.test(after);
-    return { ...locations.get(normalized(match[0]))!, at: match.index!, end: match.index! + match[0].length, origin,
+    return { ...locations().get(normalized(match[0]))!, at: match.index!, end: match.index! + match[0].length, origin,
       excluded: /(?:不(?:想去|想在|去|在|是)|不要(?:去|在)?|别(?:去|在)?|排除|避免|\bnot(?:\s+(?:in|going to))?|\binstead of|\b(?:do not|don't|don’t)\s+(?:want\s+to\s+)?(?:go\s+to|visit|be\s+in))\s*$/i.test(before) };
   });
 }

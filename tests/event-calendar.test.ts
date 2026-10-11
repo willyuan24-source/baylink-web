@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { CALENDAR_CITY_LOCATIONS } from '../src/data/calendar-city-locations';
-import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
+import { EVENT_DATE_OVERRIDES } from '../src/data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-schedule-notes';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 import type { PlannerEvent } from '../src/lib/planner';
