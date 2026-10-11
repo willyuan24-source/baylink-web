@@ -19,7 +19,7 @@ const { default: MessagesPage } = await import('../src/pages/MessagesPage');
 const { NotificationPreferencesCard } = await import('../src/features/profile/NotificationPreferencesCard');
 const { parseSystemNotice, previewText, noticeLine, noticeStatus, isNoticeWording } = await import('../src/features/messages/system-notice');
 const { SystemNoticeCard } = await import('../src/features/messages/SystemNoticeCard');
-const { readerError } = await import('../src/features/messages/reader-error');
+const { friendlyErrorMessage } = await import('../src/lib/format');
 const { api } = await import('../src/lib/api');
 const { EMPTY_LIBRARY } = await import('../src/lib/planner');
 const { setLocale } = await import('../src/i18n/locale');
@@ -93,6 +93,12 @@ test('settings rows open the reading sheet and deep-linkable sub-views that retu
   assert.ok(await view.findByRole('button', { name: '开启全部提醒' }));
   fireEvent.click(view.getByRole('button', { name: '返回我的' }));
   assert.equal(view.getByTestId('where').textContent, '/me');
+  // 反馈与客服 opens the site's feedback sheet (WEB-FEEDBACK's openFeedback), not a separate support page.
+  await act(async () => { fireEvent.click(within(view.getByRole('list', { name: '设置' })).getByRole('button', { name: /反馈与客服/ })); await new Promise(resolve => setTimeout(resolve, 50)); });
+  const feedback = await waitFor(() => within(document.body).getByRole('dialog', { name: '反馈与报错' }));
+  assert.equal(view.getByTestId('where').textContent, '/me');
+  await act(async () => { fireEvent.click(within(feedback).getByRole('button', { name: '取消' })); });
+  assert.equal(within(document.body).queryByRole('dialog'), null);
   cleanup();
   const direct = render(app(context(), '/me?view=privacy'));
   assert.ok(await direct.findByRole('heading', { level: 1, name: '账号隐私与安全' }));
@@ -234,10 +240,12 @@ test('a system notice reads in 繁體: the server wording converts, the item tit
     assert.equal(title.getAttribute('translate'), 'no');
     assert.equal(within(card).getByText('已確認').getAttribute('translate'), null);
     assert.ok(within(card).getByRole('link', { name: '查看預約' }));
-    // Shared error wording (friendlyErrorMessage answers in Simplified Chinese) follows the reader too.
-    assert.doesNotMatch(readerError('网络连接异常，请稍后再试。', 'zh-Hant', 'x'), /网络|异常|请/);
-    assert.equal(readerError('网络连接异常，请稍后再试。', 'en', 'Unable to load contact requests.'), 'Unable to load contact requests.');
-    assert.equal(readerError('Rate limited', 'en', 'x'), 'Rate limited');
+    // Shared error wording (friendlyErrorMessage, used by the messages pages) follows the reader too.
+    assert.doesNotMatch(friendlyErrorMessage(new Error('Failed to fetch'), 'x'), /网络|异常|请/);
+    assert.doesNotMatch(friendlyErrorMessage({ error: '联系方式请求加载失败。' }, 'x'), /联系|请求/);
+    await setLocale('en', false);
+    assert.doesNotMatch(friendlyErrorMessage({ error: '这条私信暂时无法发送给对方' }, 'Unable to load contact requests.'), /\p{Script=Han}/u);
+    assert.equal(friendlyErrorMessage('Rate limited', 'Unable to load contact requests.'), 'Unable to load contact requests.');
   } finally {
     cleanup();
     await setLocale('zh-Hans', false);

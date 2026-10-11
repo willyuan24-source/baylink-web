@@ -1,23 +1,45 @@
 // 共享格式化 / 校验 / 错误映射工具
 import { OFFICIAL_VERIFICATION_TYPE_LABELS } from './constants';
 import type { AdData, AdDetailItem, PostData, PostType, UserData } from './types';
-import type { Locale } from '../i18n/locale';
+import { getLocale, translateText, type Locale } from '../i18n/locale';
 import { contactQuotaErrorMessage } from './contact-error-copy';
 
+const HAN = /[㐀-鿿]/;
+/** One line in the reader's language: 繁體 by conversion, English as written. */
+const inReaderLanguage = (zh: string, en: string, locale: Locale) => locale === 'en' ? en : translateText(zh, locale);
+/**
+ * A Chinese line (server wording or a caller's Chinese fallback) for the reader: converted for 繁體; on English pages the
+ * dictionary's English, else `english`, so an English page never shows Chinese error text.
+ */
+const readerLine = (text: string, locale: Locale, english: string) => {
+  if (locale !== 'en') return translateText(text, locale);
+  if (!HAN.test(text)) return text;
+  const translated = translateText(text, 'en');
+  return HAN.test(translated) ? english : translated;
+};
+
+/**
+ * A safe message for a failed request, in the reader's language (zh-Hans, zh-Hant or en). Pass `fallback` as t(zh, en);
+ * a Chinese fallback still works (converted for 繁體; the dictionary's English or a generic English line on English
+ * pages). Unknown English server details never reach the reader; Chinese server wording does, in the reader's script, and
+ * gives way to the fallback on English pages.
+ */
 export const friendlyErrorMessage = (err: unknown, fallback = '操作失败，请稍后再试。'): string => {
   const contactQuotaMessage = contactQuotaErrorMessage(err);
   if (contactQuotaMessage) return contactQuotaMessage;
+  const locale = getLocale();
+  const safeFallback = readerLine(fallback, locale, 'Something went wrong. Please try again later.');
   const raw = err && typeof err === 'object'
     ? String((err as { error?: string; message?: string }).error || (err as { message?: string }).message || '').trim()
     : typeof err === 'string' ? err.trim() : '';
-  if (!raw || raw === 'undefined' || raw === 'null') return fallback;
-  if (/failed to fetch|networkerror|network error|load failed/i.test(raw)) return '网络连接异常，请稍后再试。';
-  if (/^request failed$/i.test(raw) || /^something went wrong$/i.test(raw)) return fallback;
-  if (/^failed$/i.test(raw)) return fallback;
-  if (/^unauthorized$/i.test(raw)) return '请先登录';
-  if (/^forbidden$/i.test(raw)) return '暂无权限执行此操作';
-  if ([...raw].every((character) => character.codePointAt(0)! <= 0x7f)) return fallback;
-  return raw;
+  if (!raw || raw === 'undefined' || raw === 'null') return safeFallback;
+  if (/failed to fetch|networkerror|network error|load failed/i.test(raw)) return inReaderLanguage('网络连接异常，请稍后再试。', 'Network connection problem. Please try again later.', locale);
+  if (/^request failed$/i.test(raw) || /^something went wrong$/i.test(raw)) return safeFallback;
+  if (/^failed$/i.test(raw)) return safeFallback;
+  if (/^unauthorized$/i.test(raw)) return inReaderLanguage('请先登录', 'Please sign in first.', locale);
+  if (/^forbidden$/i.test(raw)) return inReaderLanguage('暂无权限执行此操作', 'You do not have permission to do this.', locale);
+  if ([...raw].every((character) => character.codePointAt(0)! <= 0x7f)) return safeFallback;
+  return readerLine(raw, locale, safeFallback);
 };
 
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

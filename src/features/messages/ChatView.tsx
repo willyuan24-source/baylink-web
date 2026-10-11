@@ -16,7 +16,6 @@ import { mergeMessages, messageText, readServerMessage, readMessageDraft, saveMe
 import { ChatAiComposer, ChatAiTranslation } from './ChatAiTools';
 import { CategorySafetyNotice } from '../../components/CategorySafetyNotice';
 import { SystemNoticeCard } from './SystemNoticeCard';
-import { readerError } from './reader-error';
 
 type ChatViewProps = {
   currentUser: UserData;
@@ -226,7 +225,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
       setMessages(previous => previous.map(message => message.id === optimistic.id ? { ...message, delivery: 'failed' } : message));
       if (type === 'text' && draftRevision.current === revision) { writeDraft(content); setReplyTo(quoted); }
       const fallback = t('发送未确认，请刷新消息后再试。', "Sending hasn't been confirmed. Refresh your messages and try again.");
-      showToast?.(readerError(friendlyErrorMessage(error, fallback), locale, fallback), 'error');
+      showToast?.(friendlyErrorMessage(error, fallback), 'error');
     } finally { if (active.current) { sendingRef.current = false; setSending(false); } }
   };
 
@@ -240,7 +239,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
       const saved = readServerMessage(response);
       if (!saved || saved.id !== message.id || (saved.conversationId && saved.conversationId !== conversation.id)) throw new Error(t('回应暂时未保存，请重试。', 'Your reaction could not be saved. Please try again.'));
       setMessages(previous => mergeMessages(previous, [saved]));
-    } catch (error) { if (active.current) { const fallback = t('回应暂时未保存，请重试。', 'Your reaction could not be saved. Please try again.'); showToast?.(readerError(friendlyErrorMessage(error, fallback), locale, fallback), 'error'); } }
+    } catch (error) { if (active.current) { const fallback = t('回应暂时未保存，请重试。', 'Your reaction could not be saved. Please try again.'); showToast?.(friendlyErrorMessage(error, fallback), 'error'); } }
     finally { if (active.current) { reactionBusy.current = false; setReactionPending(null); } }
   };
   const insertEmoji = (emoji: string) => {
@@ -268,7 +267,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
         <CategorySafetyNotice category={contextCategory} onNavigate={onClose} />
         <div className="modern-chat-history" ref={scrollRef} onScroll={handleScroll} role="region" aria-label={t('聊天记录', 'Conversation history')} tabIndex={0}>
           {loading && <p role="status" className="modern-chat-notice">{t('正在加载消息…', 'Loading messages…')}</p>}
-          {loadError && <div role="alert" className="modern-chat-notice"><p>{loadError === LOAD_FAILED ? t('消息加载失败，请重试。', "Couldn't load messages. Please try again.") : readerError(loadError, locale, t('消息加载失败，请重试。', "Couldn't load messages. Please try again."))}</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>{t('重新加载', 'Reload')}</button></div>}
+          {loadError && <div role="alert" className="modern-chat-notice"><p>{loadError === LOAD_FAILED ? t('消息加载失败，请重试。', "Couldn't load messages. Please try again.") : loadError}</p><button type="button" onClick={() => setRetryKey(key => key + 1)}>{t('重新加载', 'Reload')}</button></div>}
           {pendingDrafts.filter(draft => !messages.some(message => message.id === draft.id)).map(draft => <div className="modern-chat-pending" key={draft.id}>
             <p>{t('还有一条发送结果未确认的消息。先刷新核实，避免重复发送。', 'A previous message has unconfirmed delivery. Refresh to check before sending it again.')}</p>
             <details><summary>{t('未确认消息原文', 'Unconfirmed message text')}</summary><p translate="no">{draft.content}</p></details>
