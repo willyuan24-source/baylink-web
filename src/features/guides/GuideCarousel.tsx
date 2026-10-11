@@ -5,6 +5,10 @@ import type { Guide } from '../../data/guides';
 import type { EditorialPhone, GuideEditorial, GuideSlide } from '../../data/guide-editorial';
 import { guideTopicOf, type GuideTopicId } from '../../data/guide-topics';
 
+/** Phone numbers and other digit runs never break across lines ("800-510-
+2020" at 特大). */
+const keepNumbers = (text: string) => text.split(/(\d[\d-]{5,}\d)/).map((part, index) => index % 2 ? <span key={index} className="gd-nowrap">{part}</span> : part);
+
 const TOPIC_MARKS: Record<GuideTopicId, LucideIcon> = { elders: HeartHandshake, health: Stethoscope, documents: Landmark, housing: House, transport: TrainFront, savings: Gift, outings: Trees };
 
 /**
@@ -34,7 +38,7 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         <div className="gd-slide__top"><span className="gd-slide__kicker">{t(`${guide.sources.length} 个官方来源 · ${guide.updatedAt} 整理`, `${guide.sources.length} official sources · updated ${guide.updatedAt}`)}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
         <h2 className="gd-slide__cover-title">{pick(cover.title)}</h2>
-        <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{pick(cover.answer)}</a> : pick(cover.answer)}</p>
+        <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{keepNumbers(pick(cover.answer))}</a> : keepNumbers(pick(cover.answer))}</p>
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
         <p className="gd-slide__source">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
