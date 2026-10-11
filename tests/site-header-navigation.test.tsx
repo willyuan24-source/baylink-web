@@ -141,6 +141,12 @@ test('the bottom bar names the assistant 问 BayBay, 问问 below 375 px; both l
   const otter = ask.querySelector('img.site-otter')!;
   assert.equal(otter.getAttribute('src'), '/brand/otter.svg');
   assert.equal(otter.getAttribute('alt'), '');
+  // No unread-badge look-alike on the icon: the only dot in the bar is 我的's real unread mark (no fake counts).
+  const svg = readFileSync('public/brand/otter.svg', 'utf8');
+  assert.doesNotMatch(svg, /#f0603e/i, 'no orange-red dot on the navigation otter');
+  for (const [, cx, cy] of svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)"/g)) {
+    assert.ok(Math.hypot(Number(cx) - 32, Number(cy) - 33) <= 28, `circle at ${cx},${cy} sits inside the face, not on its corner`);
+  }
   const css = readFileSync('src/components/site-chrome.css', 'utf8').replace(/\s+/g, ' ');
   assert.match(css, /@media\(max-width:374px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
 });
