@@ -8,7 +8,7 @@ import { useApp } from '../../app/context';
 import { addCalendarDays, calendarCells, calendarPeriod, shiftCalendarPeriod, validCalendarDay } from '../../lib/calendar-days';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
-import { ALL_REGIONS, EVENTS_INDEX, INDEX_EVENTS, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion } from './events-model';
+import { ALL_REGIONS, EVENTS_INDEX, INDEX_EVENTS, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion, weekdayIndex, WEEKDAYS } from './events-model';
 import type { IndexEvent, MonthlyRegion } from './events-index-types';
 import { EventFeedCard, EventRowCard } from './EventCards';
 import { ChunkBoundary } from './ChunkBoundary';
@@ -18,10 +18,7 @@ import { ImageCredits } from './ImageCredits';
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
 // The lead cover is one column wide: the phone width, or the left of the two desktop columns (events.css).
 const LEAD_SIZES = '(max-width: 1023px) calc(100vw - 32px), 592px';
-const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六'];
-const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const occursOn = (event: IndexEvent, day: string) => nextOccurrence(event, day) === day;
-const weekdayOf = (day: string) => new Date(`${day}T12:00:00Z`).getUTCDay();
 
 /**
  * 日历·地图 (design.md §4.11 ④; EVT-10): a 7-day week strip on screen 1 (weekday, date, a dot per day with events), the
@@ -67,9 +64,9 @@ export default function CalendarView({ today }: { today: string }) {
   const past = date < today;
   const beforeIndex = date < EVENTS_INDEX.edition.checkedAt;
 
-  const weekdayShort = (day: string) => (english ? WEEKDAY_EN : WEEKDAY_ZH)[weekdayOf(day)];
+  const weekdayShort = (day: string) => pick(WEEKDAYS[weekdayIndex(day)].char);
   const longDate = (day: string) => english ? new Intl.DateTimeFormat('en-US', { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${day}T12:00:00Z`))
-    : `${Number(day.slice(5, 7))}月${Number(day.slice(8, 10))}日 周${WEEKDAY_ZH[weekdayOf(day)]}`;
+    : `${Number(day.slice(5, 7))}月${Number(day.slice(8, 10))}日 ${WEEKDAYS[weekdayIndex(day)].short.zh}`;
   const cityLabel = (name: string) => {
     const zh = EVENTS_INDEX.cityNames[name];
     return english || !zh ? name : `${translateText(zh, locale)} ${name}`;
@@ -150,7 +147,7 @@ export default function CalendarView({ today }: { today: string }) {
           <IconButton label={t('下个月', 'Next month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', 1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', 1) })}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
         </div>
         <div className="ev-month" role="group" aria-label={monthLabel}>
-          {[1, 2, 3, 4, 5, 6, 0].map(weekday => <span key={weekday} className="ev-month__weekday" aria-hidden="true">{(english ? WEEKDAY_EN : WEEKDAY_ZH)[weekday]}</span>)}
+          {[1, 2, 3, 4, 5, 6, 0].map(weekday => <span key={weekday} className="ev-month__weekday" aria-hidden="true">{pick(WEEKDAYS[weekday].char)}</span>)}
           {calendarCells(date, 'month').map(day => {
             const count = countOn(day);
             const outside = day < period.start || day > period.end;

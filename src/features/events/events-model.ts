@@ -36,6 +36,19 @@ export function columnFor(params: URLSearchParams, hash: string, calendar: boole
   return 'list';
 }
 
+// Weekdays, Sunday first (getUTCDay order), each with its English: `short` for day tabs and the range line, `char`
+// for the calendar's week strip and month grid.
+export const WEEKDAYS: readonly { short: Copy; char: Copy }[] = [
+  { short: { zh: '周日', en: 'Sun' }, char: { zh: '日', en: 'Sun' } },
+  { short: { zh: '周一', en: 'Mon' }, char: { zh: '一', en: 'Mon' } },
+  { short: { zh: '周二', en: 'Tue' }, char: { zh: '二', en: 'Tue' } },
+  { short: { zh: '周三', en: 'Wed' }, char: { zh: '三', en: 'Wed' } },
+  { short: { zh: '周四', en: 'Thu' }, char: { zh: '四', en: 'Thu' } },
+  { short: { zh: '周五', en: 'Fri' }, char: { zh: '五', en: 'Fri' } },
+  { short: { zh: '周六', en: 'Sat' }, char: { zh: '六', en: 'Sat' } },
+];
+export const weekdayIndex = (day: string) => new Date(`${day}T12:00:00Z`).getUTCDay();
+
 // Regions ------------------------------------------------------------------------------------------------------
 
 export const REGIONS: readonly { id: MonthlyRegion; label: Copy }[] = [

@@ -11,7 +11,7 @@ import { recordIcsDownload, recordProductEvent } from '../../lib/product-events'
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
 import {
   ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
-  hasRealCover, inRange, listEvents, matchesFilters, monthDay, regionLabel, saveRegion, weekendPicks, weekendTabs, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
+  hasRealCover, inRange, listEvents, matchesFilters, monthDay, regionLabel, saveRegion, weekdayIndex, weekendPicks, weekendTabs, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
 } from './events-model';
 import type { IndexEvent } from './events-index-types';
 import { EventFeedCard, EventHeroCard } from './EventCards';
@@ -20,8 +20,6 @@ import { ImageCredits } from './ImageCredits';
 
 const PAGE = 12;
 const STORY_ICONS: Record<EventTag | 'free', LucideIcon> = { free: Gift, kids: Baby, seniors: HeartHandshake, outdoors: Trees, shows: Music, markets: Store, pumpkin: Leaf, indoor: Umbrella };
-const WEEKDAY_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const eventItem = (event: IndexEvent) => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey });
 
 /**
@@ -51,7 +49,7 @@ function useCardIds(card: CardRegion | undefined): StripState {
  * two-column cover feed 12 at a time, the folded travel alerts, and one link each to the rest of the column.
  */
 export function WeekendView({ today, filters, defaultWhen }: { today: string; filters: EventsFilters; defaultWhen: EventsWhen }) {
-  const { t, pick, english, locale } = useUiCopy();
+  const { t, pick, locale } = useUiCopy();
   const [params, setParams] = useSearchParams();
   const [shown, setShown] = useState(PAGE);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -120,7 +118,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const status = t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`);
   const sheetCount = t(`显示 ${list.length} 场`, `Show ${list.length}`);
   const filterCount = activeFilterCount(filters, defaultWhen);
-  const dayLabel = (value: string) => `${(english ? WEEKDAY_EN : WEEKDAY_ZH)[new Date(`${value}T12:00:00Z`).getUTCDay()]} ${monthDay(value)}`;
+  const dayLabel = (value: string) => `${pick(WEEKDAYS[weekdayIndex(value)].short)} ${monthDay(value)}`;
   const alerts = activeBulletins(today, filters.region);
   const countFor = (next: Pick<EventsFilters, 'free' | 'tag'>) => base.filter(event => matchesFilters(event, { region: 'all', q: '', ...next }, normalize, translate)).length;
   const stories = [{ id: 'free' as const, label: { zh: '免费', en: 'Free' } }, ...TAGS]

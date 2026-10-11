@@ -6,7 +6,7 @@ import './events.css';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { getMonthlyDateRange, isFreeToAttend } from '../../lib/monthly';
-import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, type EventsWhen } from './events-model';
+import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsWhen } from './events-model';
 import { WeekendView } from './WeekendView';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
@@ -14,9 +14,6 @@ import { retryableLazy } from './lazy-view';
 // The two other boards load on demand: /events itself stays small (RC-33), and their skeleton and retry states are real.
 const perksView = retryableLazy(() => import('./PerksView'));
 const openingsView = retryableLazy(() => import('./OpeningsView'));
-
-const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 /**
  * 活动 (plan D3, design.md §4.11): one header — H1 活动, a range line that follows `when` (本周末 · 10/10–11, 今天 · 10/9
@@ -39,7 +36,7 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   const filters = readFilters(params, defaultWhen, savedRegion);
 
   const md = monthDay;
-  const weekday = (day: string) => (english ? WEEKDAYS_EN : WEEKDAYS_ZH)[new Date(`${day}T12:00:00Z`).getUTCDay()];
+  const weekday = (day: string) => pick(WEEKDAYS[weekdayIndex(day)].short);
   const range = getMonthlyDateRange(filters.when, today);
   const span = (start: string, end: string) => start === end ? `${md(start)} ${weekday(start)}`
     : start.slice(0, 7) === end.slice(0, 7) ? `${md(start)}–${Number(end.slice(8, 10))}` : `${md(start)}–${md(end)}`;
