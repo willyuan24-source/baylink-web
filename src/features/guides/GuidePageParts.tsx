@@ -1,4 +1,3 @@
-import { ArrowUpRight } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { GuideImage } from '../../data/guide-media';
 import { getImageProvenance } from '../../lib/image-provenance';
@@ -18,8 +17,8 @@ export function GuidePageImageCredits({ images }: { images: readonly GuideImage[
     <ul>{shown.map(image => <li key={image.src}>
       <span className="gd-credits__kind">{getImageProvenance(image, english)}</span>
       <span className="gd-credits__caption">{image.caption}</span>
-      {isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}<ArrowUpRight aria-hidden="true" strokeWidth={1.75} /></a> : <span>{image.credit}</span>}
-      {isWebLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'Licence')}<ArrowUpRight aria-hidden="true" strokeWidth={1.75} /></a>}
+      {isWebLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}
+      {isWebLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'Licence')}</a>}
     </li>)}</ul>
   </details>;
 }

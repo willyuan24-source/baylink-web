@@ -65,9 +65,9 @@ export const topicCopy = (topic: GuideTopicId): Copy => {
  * A display title split at its first colon: "湾区中文长者服务：餐食、日间照护…" → head + rest. Takes the already-translated
  * title (RC-11 i: the dictionary keys whole sentences, so split after translating). A head shorter than 4 characters stays whole.
  */
-export function splitGuideTitle(title: string): { head: string; rest: string } {
-  const match = /^(.{4,}?)\s*[：:｜|]\s*(.+)$/su.exec(title.trim());
-  return match ? { head: match[1].trim(), rest: match[2].trim() } : { head: title.trim(), rest: '' };
+export function splitGuideTitle(title: string): { head: string; separator: string; rest: string } {
+  const match = /^(.{4,}?)(\s*[：:｜|]\s*)(.+)$/su.exec(title.trim());
+  return match ? { head: match[1], separator: match[2], rest: match[3] } : { head: title.trim(), separator: '', rest: '' };
 }
 
 /** Reading time from the article's own words (GUIDE-16): about 400 Chinese characters or 220 English words a minute. */
@@ -117,12 +117,8 @@ export function keepInlineImage(image: GuideImage, guide: Guide, guides: readonl
 }
 
 /** The question BayBay starts with: what to do first for this guide, never a generic "出发前" prompt (GUIDE-10). */
-export function guideBayBayQuestion(guide: Pick<Guide, 'slug' | 'category'>, english: boolean, title: string): string {
-  const outing = guideTopicOf(guide) === 'outings';
-  if (english) return outing
-    ? `I'm reading "${title}". Using this guide, how should I plan the half day, and what should I confirm first?`
-    : `I'm reading "${title}". Using this guide, what is my first step, who do I contact, and what should I prepare?`;
-  return outing
-    ? `我正在读《${title}》。请根据这篇指南，帮我把半天怎么走排一下，并告诉我先要确认什么。`
-    : `我正在读《${title}》。请根据这篇指南，告诉我第一步做什么、该联系谁、要准备什么。`;
+export function guideBayBayQuestion(guide: Pick<Guide, 'slug' | 'category'>, t: (zh: string, en: string) => string, title: string): string {
+  return guideTopicOf(guide) === 'outings'
+    ? t(`我正在读《${title}》。请根据这篇指南，帮我把半天怎么走排一下，并告诉我先要确认什么。`, `I'm reading "${title}". Using this guide, how should I plan the half day, and what should I confirm first?`)
+    : t(`我正在读《${title}》。请根据这篇指南，告诉我第一步做什么、该联系谁、要准备什么。`, `I'm reading "${title}". Using this guide, what is my first step, who do I contact, and what should I prepare?`);
 }

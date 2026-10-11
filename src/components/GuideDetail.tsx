@@ -1,6 +1,6 @@
 import { PerksGallery } from './PerksGallery';
 import { EnglishOnly } from './EnglishOnly';
-import { Fragment, useMemo, useState, type ReactNode } from "react";
+import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -33,7 +33,7 @@ import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { CityExplorationDirectory } from './CityExplorationDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
-import { PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
+import { linkifyPhones, PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
 import { createCoverPage, distinctNeighbourTones, type CoverPage } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
@@ -48,6 +48,7 @@ import { GuideActions } from '../features/guides/GuideActions';
 import { GuideCarousel } from '../features/guides/GuideCarousel';
 import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { GuideCover } from '../features/guides/GuideCover';
+import { handleGuideLinkClick } from './GuideCard';
 import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
 import { guideCover, guideReadMinutes, guideSourceCount, keepInlineImage, TOPIC_COVER } from '../features/guides/guide-facts';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
@@ -85,7 +86,7 @@ function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Gu
       <Link to="/guides">{t('全部指南', 'All guides')}</Link>
     </div>
     <FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
-      <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={() => onOpenGuide(guide.slug)}
+      <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={(event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(guide.slug)) : onOpenGuide(guide.slug)}
         cover={<GuideCover guide={guide} cover={covers[index]} tone={tones[index] ?? undefined} sizes={COVER_SIZES.feed} />}
         meta={t(`${guideSourceCount(guide)} 个官方来源 · 约 ${guideReadMinutes(guide)} 分钟`, `${guideSourceCount(guide)} official sources · ${guideReadMinutes(guide)} min read`)} />
     </FeedItem>)}</FeedGrid>
@@ -99,7 +100,7 @@ function StepSection({ number, heading, id, conclusion, children }: { number: nu
   return <section className="gd-step" aria-labelledby={id}>
     <div className="gd-step__head">
       <span className="gd-step__number" aria-hidden="true">{number}</span>
-      <div><h2 id={id}>{heading}</h2>{conclusion && <p className="gd-step__conclusion">{pick(conclusion)}</p>}</div>
+      <div><h2 id={id}>{heading}</h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion))}</p>}</div>
     </div>
     {conclusion ? <details className="gd-step__more"><summary>{t('展开原文与来源', 'Full text and sources')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary><div className="bl-guide-prose">{children}</div></details>
       : <div className="bl-guide-prose">{children}</div>}

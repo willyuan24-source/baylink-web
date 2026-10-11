@@ -23,7 +23,7 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
   const { t, pick, locale, english } = useUiCopy();
   const [aboutOpen, setAboutOpen] = useState(false);
   const topic = guideTopicOf(guide);
-  const { head, rest } = splitGuideTitle(translateText(guide.title, locale));
+  const { head, separator, rest } = splitGuideTitle(translateText(guide.title, locale));
   const sources = guideSourceCount(guide);
   const minutes = guideReadMinutes(guide);
   return <header className="gd-header">
@@ -34,13 +34,14 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
     </nav>
     <h1 className="gd-title" lang={english ? 'en' : undefined}>
       <span className="gd-title__head">{head}</span>
-      {rest && <span className="gd-title__rest">{rest}</span>}
+      {/* The separator stays in the heading's text (accessible name, SEO) but is not drawn: the rest sits on its own line. */}
+      {rest && <><span className="gd-title__sep">{separator}</span><span className="gd-title__rest">{english ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest}</span></>}
     </h1>
     <p className="gd-meta">
-      <span>{english ? `Updated ${englishDate(guide.updatedAt)}` : `${translateText('内容更新', locale)} ${guide.updatedAt}`}</span>
+      <span>{t(`内容更新 ${guide.updatedAt}`, `Updated ${englishDate(guide.updatedAt)}`)}</span>
       {sources > 0 && <><span aria-hidden="true"> · </span><a href="#guide-sources">{t(`官方来源 ${sources} 个`, `${sources} official source${sources === 1 ? '' : 's'}`)}</a></>}
-      <span aria-hidden="true"> · </span><span>{t(`约 ${minutes} 分钟`, `${minutes} min read`)}</span>
-      <button type="button" className="gd-meta__info" aria-haspopup="dialog" aria-label={t('关于日期与来源', 'About dates and sources')} onClick={() => setAboutOpen(true)}><Info aria-hidden="true" strokeWidth={1.75} /></button>
+      <span className="gd-meta__last"><span aria-hidden="true"> · </span><span>{t(`约 ${minutes} 分钟`, `${minutes} min read`)}</span>
+        <button type="button" className="gd-meta__info" aria-haspopup="dialog" aria-label={t('关于日期与来源', 'About dates and sources')} onClick={() => setAboutOpen(true)}><Info aria-hidden="true" strokeWidth={1.75} /></button></span>
     </p>
     <Sheet open={aboutOpen} onClose={() => setAboutOpen(false)} title={t('关于日期与来源', 'About dates and sources')}>
       <div className="gd-about">

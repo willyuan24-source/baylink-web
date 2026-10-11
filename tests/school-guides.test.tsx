@@ -149,24 +149,26 @@ function SchoolHomeHarness() {
 const unrelatedPromos = '.guide-attraction-entry, .daily-guide-topics:not(.reader-paths), .bl-monthly-spotlight, .bl-monthly-deals, .bl-guides-spotlights, .bl-guide-explorer, .editorial-collections';
 
 function assertEducationView(view: ReturnType<typeof render>) {
-  assert.equal(view.getByRole('button', { name: '学校与学区', exact: true }).getAttribute('aria-pressed'), 'true');
-  const library = view.getByRole('region', { name: '五区学校与学区指南' });
+  assert.equal(view.getByRole('button', { name: '取消筛选：学校与学区' }).getAttribute('aria-pressed'), 'true');
+  const library = view.getByRole('list', { name: '学校与学区' });
   const cards = within(library).getAllByRole('link');
   assert.deepEqual(cards.map(card => card.getAttribute('href')?.replace('/guides/', '')).sort(), schoolSlugs);
   for (const guide of schoolGuides) assert.ok(within(library).getByRole('heading', { name: guide.title }));
   assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0, 'an education filter must not promote unrelated activities, deals or attractions');
 }
 
-test('the guide overview previews four school guides and its category control opens the complete school library', () => {
+test('the guide overview files schools under 证件与移民 (D22) and the topic chip opens all of them', () => {
   const view = render(<MemoryRouter initialEntries={['/guides']}><SchoolHomeHarness /></MemoryRouter>);
-  const categories = view.getByRole('group', { name: '指南分类' });
-  const topics = view.getByRole('region', { name: '学校与学区', exact: true });
-  assert.ok(categories.compareDocumentPosition(topics) & Node.DOCUMENT_POSITION_FOLLOWING, 'category controls must precede the library');
-  assert.equal(within(topics).getAllByRole('link').length, 4);
+  const topics = view.getByRole('group', { name: '指南主题' });
+  const documents = view.getByRole('region', { name: '证件与移民', exact: true });
+  assert.ok(topics.compareDocumentPosition(documents) & Node.DOCUMENT_POSITION_FOLLOWING, 'topic chips must precede the library');
+  assert.equal(within(documents).getAllByRole('link').length, 4, 'each topic previews four covers');
   assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0, 'the compact overview has no unrelated promotional modules');
-  fireEvent.click(within(categories).getByRole('button', { name: '学校与学区', exact: true }));
-  assert.match(view.getByTestId('location').textContent || '', /category=education/);
-  assertEducationView(view);
+  fireEvent.click(within(topics).getByRole('button', { name: /^证件与移民/ }));
+  assert.match(view.getByTestId('location').textContent || '', /topic=documents/);
+  const library = view.getByRole('list', { name: '证件与移民' });
+  const hrefs = within(library).getAllByRole('link').map(card => card.getAttribute('href')?.replace('/guides/', ''));
+  for (const slug of schoolSlugs) assert.ok(hrefs.includes(slug), slug);
 });
 
 test('a shared education URL restores the filter and supports school searches without reintroducing promotions', () => {
@@ -176,5 +178,8 @@ test('a shared education URL restores the filter and supports school searches wi
   const url = new URL(view.getByTestId('location').textContent || '', 'http://localhost');
   assert.equal(url.searchParams.get('category'), 'education');
   assert.equal(url.searchParams.get('q'), '學區');
-  assertEducationView(view);
+  assert.equal(view.getByRole('button', { name: '取消筛选：学校与学区' }).getAttribute('aria-pressed'), 'true');
+  const results = view.getByRole('list', { name: '搜索结果' });
+  assert.deepEqual(within(results).getAllByRole('link').map(card => card.getAttribute('href')?.replace('/guides/', '')).sort(), schoolSlugs);
+  assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0);
 });

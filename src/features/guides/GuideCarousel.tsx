@@ -1,8 +1,11 @@
-import { Check, ShieldAlert } from 'lucide-react';
+import { Check, Gift, HeartHandshake, House, Landmark, ShieldAlert, Stethoscope, TrainFront, Trees, type LucideIcon } from 'lucide-react';
 import { Carousel } from '../../components/ui/Carousel';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
 import type { EditorialPhone, GuideEditorial, GuideSlide } from '../../data/guide-editorial';
+import { guideTopicOf, type GuideTopicId } from '../../data/guide-topics';
+
+const TOPIC_MARKS: Record<GuideTopicId, LucideIcon> = { elders: HeartHandshake, health: Stethoscope, documents: Landmark, housing: House, transport: TrainFront, savings: Gift, outings: Trees };
 
 /**
  * 看 (1007 §5.5, design.md §4.10): the pilot guide's 3:4 slides — a family C cover with the first answer, then one point per
@@ -23,9 +26,11 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
     <span className="gd-slide__phone-label">{pick(entry.label)}</span><span className="gd-slide__phone-number">{entry.number}</span>
   </a>;
   const { cover } = editorial;
+  const Mark = TOPIC_MARKS[guideTopicOf(guide)];
   return <div className="gd-carousel">
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
       <article className="gd-slide gd-slide--cover" data-kind="cover">
+        <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
         <div className="gd-slide__top"><span className="gd-slide__kicker">{t(`${guide.sources.length} 个官方来源 · ${guide.updatedAt} 整理`, `${guide.sources.length} official sources · updated ${guide.updatedAt}`)}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
         <h2 className="gd-slide__cover-title">{pick(cover.title)}</h2>

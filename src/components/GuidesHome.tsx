@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useMemo, useState, type MouseEvent } from 'react';
 import { Bookmark, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { guides, GUIDE_CATEGORY_TABS, type Guide, type GuideCategory } from '../data/guides';
@@ -19,6 +19,7 @@ import { EmptyState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover } from '../features/guides/GuideCover';
+import { handleGuideLinkClick } from './GuideCard';
 import { GUIDE_REGIONS, guideCover, guideReadMinutes, guideRegionsOf, guideSourceCount, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
 import { guideEditorialAnswer } from '../data/guide-editorial/answers';
 import '../features/guides/guide-library.css';
@@ -114,8 +115,10 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     return <GuideCover guide={guide} cover={entry.cover} tone={entry.tone} priority={options.priority} ratio={options.thumb ? '1:1' : undefined}
       sizes={options.thumb ? COVER_SIZES.thumb : COVER_SIZES.feed} answer={options.thumb ? undefined : guideEditorialAnswer(guide.slug, locale)} />;
   };
+  // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
+  const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
   const card = (guide: Guide, priority = false) => <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-    onOpen={() => onOpenGuide(guide.slug)} cover={coverOf(guide, { priority })} meta={meta(guide)} />;
+    onOpen={open(guide.slug)} cover={coverOf(guide, { priority })} meta={meta(guide)} />;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
   const categoryLabel = category ? translateText(GUIDE_CATEGORY_TABS.find(item => item.id === category)!.label, locale) : '';
@@ -173,8 +176,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
             {searching && onAsk ? <Button variant="text" onClick={() => onAsk(query)}>{t('问 BayBay', 'Ask BayBay')}</Button>
               : searching && onSearch ? <Button variant="text" onClick={() => onSearch(query)}>{t('搜全站', 'Search the whole site')}</Button> : null}
           </>} />
-          : searching ? <ul className="gl-results">{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>
-            <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={() => onOpenGuide(guide.slug)}
+          : searching ? <ul className="gl-results" aria-label={heading}>{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>
+            <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
               thumb={coverOf(guide, { thumb: true })} date={section ? t(`文内匹配 · ${section}`, `Match in · ${section}`) : topicName(guideTopicOf(guide))} meta={snippet || meta(guide)} />
           </li>)}</ul>
             : <FeedGrid label={heading}>{listed.slice(0, visibleCount).map(({ guide }, index) => <FeedItem key={guide.slug}>{card(guide, index === 0)}</FeedItem>)}</FeedGrid>}

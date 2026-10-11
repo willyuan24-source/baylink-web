@@ -25,7 +25,7 @@
 .gl-count { flex:none; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-variant-numeric:tabular-nums; }
 
 /* The 长辈与家属 rail: about two and a quarter cards on a phone, four across on a desktop. */
-.gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 12px) / 2.2); }
+.gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 12px) / 1.9); }
 @media (min-width:768px) { .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 24px) / 3.2); } }
 @media (min-width:1024px) { .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 36px) / 4); } }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc(100% - 40px); } }

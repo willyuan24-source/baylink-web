@@ -13,11 +13,6 @@
 .school-guide-grid strong { display:flex; justify-content:space-between; gap:8px; font-size:1.0625rem; }
 .school-guide-grid small { display:block; margin-top:8px; color:#606d61; font-size:.75rem; line-height:1.8; }
 .school-guide-note { margin-top:16px; font-size:.6875rem; }
-.school-guide-intro { max-width:760px; color:#5d6c60; line-height:1.9; margin:0 0 28px; font-size:.875rem; }
-.bl-guides-controls--top { margin:12px 0 28px; }
-.bl-guides-page--filtered .bl-guides-intro h1 { font-size:clamp(1.75rem,calc(3vw * var(--fluid-scale)),2.5rem); line-height:1.3; }
-.bl-guides-page--filtered .bl-guides-intro h1 br { display:none; }
-@media(max-width:639px) { .bl-guides-page--filtered .bl-guides-edition { display:none; } .bl-guides-page--filtered .bl-guides-intro { padding-bottom:18px; } }
 @media(max-width:1023px) { .school-guide-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:767px) { .school-guide-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .school-guide-heading { align-items:flex-start; flex-direction:column; } .school-guide-topics { padding:20px; } }
 @media(max-width:599px) { .school-guide-grid { grid-template-columns:1fr; } .school-guide-grid>a { display:grid; grid-template-columns:40% 1fr; } .school-guide-grid img { height:100%; min-height:130px; } }

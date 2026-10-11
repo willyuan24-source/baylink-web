@@ -27,7 +27,8 @@ const { render, fireEvent, cleanup, within } = await import('@testing-library/re
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { GuideFigure, GuideRouteRenderer } = await import('../src/components/GuideVisuals');
 const { GuideDetail } = await import('../src/components/GuideDetail');
-const { getGuideBySlug } = await import('../src/data/guides');
+const { getGuideBySlug, guides } = await import('../src/data/guides');
+const { keepInlineImage } = await import('../src/features/guides/guide-facts');
 const { getGuideMedia } = await import('../src/data/guide-media');
 
 afterEach(() => { cleanup(); document.body.style.overflow = ''; });
@@ -156,17 +157,24 @@ test('route tabs support keyboard selection, wrapping, previous/next controls an
   assert.equal(document.activeElement, tabs[0]);
 });
 
-test('complete guide places inline media after the selected section and preserves source, contents and return links', () => {
-  const slug = 'half-moon-bay-coastal-half-day-guide';
+test('complete guide places kept inline media after the selected section and preserves source, contents and return links', () => {
+  // A guide whose inline picture is its own subject (a photo); generic and off-topic pictures are hidden (GUIDE-05).
+  const slug = 'sf-golden-gate-bridge-fort-point-guide';
   const guide = getGuideBySlug(slug);
   assert.ok(guide);
   const media = getGuideMedia(guide);
+  const kept = media.inline.filter(item => keepInlineImage(item.image, guide, guides));
+  assert.ok(kept.length >= 1, 'this guide keeps its inline photo');
   const view = render(article(slug));
   const prose = view.container.querySelector('.bl-guide-prose');
   assert.ok(prose);
-  assert.equal(view.container.querySelectorAll('.guide-figure--cover').length, 1);
-  assert.equal(prose.querySelectorAll('.guide-figure--inline').length, media.inline.length);
-  for (const item of media.inline) {
+  // The cover is a photo cover with its provenance badge (honesty ladder), not a second captioned figure.
+  const cover = view.container.querySelector('.gd-cover');
+  assert.ok(cover);
+  assert.ok(cover.querySelector('[data-provenance]'));
+  assert.equal(view.container.querySelectorAll('.guide-figure--cover').length, 0);
+  assert.equal(prose.querySelectorAll('.guide-figure--inline').length, kept.length);
+  for (const item of kept) {
     const figure = Array.from(prose.querySelectorAll('figure')).find(element => element.querySelector('img')?.getAttribute('src') === item.image.src);
     assert.ok(figure);
     let cursor = figure.previousElementSibling;
@@ -179,11 +187,26 @@ test('complete guide places inline media after the selected section and preserve
   assert.ok(view.getByRole('heading', { name: '官方参考资料与办事入口' }));
   assert.equal(view.getByRole('link', { name: '返回湾区指南' }).getAttribute('href'), '/guides?q=海边');
   assert.equal(view.getAllByRole('tabpanel').length, 1, 'the real article route is interactive');
+  // Credits for every picture shown on the page are listed once, under the sources.
+  const credits = view.container.querySelector('.gd-credits');
+  assert.ok(credits);
+  assert.equal(credits.querySelectorAll('li').length, new Set([getGuideMedia(guide).cover.src, ...kept.map(item => item.image.src)]).size);
+});
+
+test('off-topic inline pictures are hidden: the stock laptop photo and shared AI theme illustrations', () => {
+  for (const slug of ['bay-area-medicare-hicap-medi-cal-guide', 'half-moon-bay-coastal-half-day-guide', 'bay-area-naturalization-official-path-guide']) {
+    const guide = getGuideBySlug(slug);
+    assert.ok(guide);
+    const view = render(article(slug));
+    const sources = Array.from(view.container.querySelectorAll('img')).map(img => img.getAttribute('src'));
+    for (const item of getGuideMedia(guide).inline) assert.ok(!sources.includes(item.image.src), `${slug}: ${item.image.src} is hidden`);
+    cleanup();
+  }
 });
 
 test('switching guide slugs resets route and checklist state and closes any enlarged image', () => {
-  const first = 'half-moon-bay-coastal-half-day-guide';
-  const second = 'reinhardt-redwood-first-walk-guide';
+  const first = 'sf-golden-gate-bridge-fort-point-guide';
+  const second = 'sf-fishermans-wharf-pier39-guide';
   const view = render(article(first));
   const tabs = view.getAllByRole('tab');
   fireEvent.click(tabs[tabs.length - 1]);
