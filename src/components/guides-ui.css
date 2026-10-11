@@ -384,7 +384,7 @@
 .bl-guide-toc a > span {
   flex: 0 0 16px;
   color: var(--color-ink-2);
-  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
   font-size: var(--text-caption);
 }
 .bl-guide-toc-desktop > p {
@@ -445,7 +445,7 @@
 }
 .bl-guide-checklist-heading > span:last-child {
   color: var(--color-ink-2);
-  font-family: ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
 }
 .bl-guide-checklist li + li {
   border-top: 1px solid #f0f2eb;
