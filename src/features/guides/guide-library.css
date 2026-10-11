@@ -20,7 +20,7 @@
 .gl-section { margin-top:28px; }
 .gl-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; }
 .gl-section__head h2 { margin:0; color:var(--color-ink); font-size:1.375rem; line-height:1.364; font-weight:600; text-wrap:balance; }
-.gl-section__head p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.gl-section__head p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; text-wrap:pretty; }
 .gl-section__head .ui-button { flex:none; }
 .gl-count { flex:none; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-variant-numeric:tabular-nums; }
 
