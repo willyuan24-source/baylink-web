@@ -94,7 +94,8 @@ test('English opening status, plan action and related event controls have no unt
   for (const [status, label] of [['open', 'Open'], ['soft_open', 'Soft opening'], ['announced', 'Announced']] as const) {
     const doc = page({ ...shop, shop: { ...shop.shop, status } });
     assert.equal(doc.querySelector('.discovery-eyebrow')?.textContent, `New opening · ${label}`);
-    assert.equal(doc.querySelector('.discovery-detail-header a.discovery-secondary')?.textContent, 'Plan a day around this place');
+    // Only a shop that serves customers is a planner place (src/lib/opening-place.ts, the planner catalog's rule): an announcement has no plan link.
+    assert.equal(doc.querySelector('.discovery-detail-header a.discovery-secondary')?.textContent, status === 'announced' ? undefined : 'Plan a day around this place');
   }
   const event = localDiscoveries.find(item => item.kind === 'event' && item.event.relatedGuideSlug);
   assert.ok(event?.kind === 'event');

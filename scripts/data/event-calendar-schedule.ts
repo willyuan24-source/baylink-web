@@ -1,5 +1,6 @@
 import { communityDiscoveryEventDates, communityDiscoveryScheduleNotes } from '../../src/data/community-discovery-events';
 import autumnReview from '../../src/data/autumn-release-events.json';
+import { EVENT_OVERLAY } from '../../src/data/editorial-overlay/apply';
 
 /**
  * Calendar-day exceptions, reviewed 2026-09-23 in America/Los_Angeles.
@@ -59,4 +60,13 @@ for (const event of autumnReview) {
   if (event.occurrenceDates !== undefined) EVENT_DATE_OVERRIDES[event.id] = event.occurrenceDates;
   else delete EVENT_DATE_OVERRIDES[event.id];
   EVENT_SCHEDULE_NOTES[event.id] = event.plan[0];
+}
+
+// The editorial overlay is applied last (src/data/editorial-overlay): its dated corrections win. A corrected date
+// label replaces a note copied from the old one, so the calendar never shows a superseded time.
+for (const [id, { fix, dateNote }] of Object.entries(EVENT_OVERLAY)) {
+  if (fix?.occurrenceDates !== undefined) EVENT_DATE_OVERRIDES[id] = [...fix.occurrenceDates];
+  if (fix?.dateLabel && Object.hasOwn(EVENT_SCHEDULE_NOTES, id)) {
+    EVENT_SCHEDULE_NOTES[id] = dateNote ?? `时间安排：${fix.dateLabel.split(' · ').slice(1).join(' · ') || fix.dateLabel}`;
+  }
 }

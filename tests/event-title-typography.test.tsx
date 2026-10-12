@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import React from 'react';
@@ -8,6 +9,8 @@ import postcss, { type AtRule, type Rule } from 'postcss';
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/calendar' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+// The events column imports its stylesheet; here CSS loads as an empty module.
+registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
 const { render, cleanup, act } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
@@ -31,24 +34,29 @@ test('title links in event and calendar cards take the heading size while card a
   // :is() counts its most specific argument: (0,1,2) for heading links outranks (0,1,1) for controls in any order.
   assert.deepEqual([...declarations(headingLinks)], [['font-size', 'inherit'], ['min-height', '0']]);
 
+  // The events column (WEB-EVENTS) renders its titles through the WEB-UI card primitives, outside these legacy scopes:
+  // the title link is `.ui-card-link` (no size of its own, so it inherits), its heading takes the card title size from
+  // ui.css, and no tokens.css or events.css rule gives a card title link the shared control size.
   let calendar!: ReturnType<typeof render>;
   await act(async () => { calendar = render(<MemoryRouter initialEntries={['/calendar?date=2026-10-10']}><Routes><Route element={<Outlet context={{ openBayBay: () => {} }} />}><Route path="/calendar" element={<CalendarPage today="2026-10-07" />} /></Route></Routes></MemoryRouter>); });
   const monthly = render(<MemoryRouter><MonthlyEdition today="2026-10-07" /></MemoryRouter>);
-  const titles = [...calendar.container.querySelectorAll('.ec-event-card h3 a'), ...monthly.container.querySelectorAll('.bl-monthly-event h3 a')];
-  const actions = [...calendar.container.querySelectorAll('.ec-event-actions a'), ...monthly.container.querySelectorAll('.bl-monthly-event-actions a')];
-  assert.ok(calendar.container.querySelector('.ec-event-card h3 a') && monthly.container.querySelector('.bl-monthly-event h3 a'), 'both card kinds render a title link');
-  assert.ok(actions.length > 0);
+  const titles = [...calendar.container.querySelectorAll('.ui-row-card__title a'), ...monthly.container.querySelectorAll('.ui-feed-card__title a')];
+  assert.ok(calendar.container.querySelector('.ui-row-card__title a') && monthly.container.querySelector('.ui-feed-card__title a'), 'both card kinds render a title link');
+  const sheetRules = (path: string) => { const list: Rule[] = []; postcss.parse(readFileSync(new URL(path, import.meta.url), 'utf8')).each(node => { if (node.type === 'rule') list.push(node); }); return list; };
+  const uiRules = sheetRules('../src/components/ui/ui.css');
+  const eventsRules = sheetRules('../src/features/events/events.css');
+  // Pseudo-element and :focus-visible selectors never match an element at rest, and jsdom may not parse them.
+  const matches = (list: Rule[], element: Element) => list.filter(rule => { try { return element.matches(rule.selector); } catch { return false; } });
+  const CARD_TITLE_SIZES: Record<string, string> = { 'ui-feed-card__title': '.9375rem', 'ui-row-card__title': '1.0625rem' };
   for (const title of titles) {
-    const matched = matching(title);
-    assert.ok(matched.includes(headingLinks), `${title.textContent}: the heading-link rule applies`);
-    for (const rule of matched) {
-      const size = declarations(rule).get('font-size');
-      assert.ok(!size?.endsWith('!important'), `${rule.selector} must not force a title size`);
-      assert.ok(size === undefined || rule === headingLinks || rule === controls, `${rule.selector} sets ${size} on a title link`);
-    }
-  }
-  for (const action of actions) {
-    assert.ok(matching(action).includes(controls) && !matching(action).includes(headingLinks), `${action.textContent}: actions stay controls`);
+    const linkRules = matches(uiRules, title);
+    assert.ok(linkRules.some(rule => rule.selector === '.ui-card-link'), `${title.textContent}: the title is the card link`);
+    for (const rule of [...linkRules, ...matching(title), ...matches(eventsRules, title)]) assert.equal(declarations(rule).get('font-size'), undefined, `${rule.selector} sets a size on ${title.textContent}`);
+    const heading = title.closest('.ui-feed-card__title, .ui-row-card__title')!;
+    const kind = [...heading.classList].find(name => name in CARD_TITLE_SIZES)!;
+    const own = matches(uiRules, heading).find(rule => rule.selector === `.${kind}`);
+    assert.equal(own && declarations(own).get('font-size'), CARD_TITLE_SIZES[kind], `${title.textContent}: the heading takes the card title size`);
+    assert.equal(matches(eventsRules, heading).find(rule => declarations(rule).has('font-size')), undefined, `the events column leaves ${kind} at its size`);
   }
 });
 

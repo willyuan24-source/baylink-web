@@ -26,6 +26,7 @@ import roundupEvents2 from './city-roundup-north-events.json';
 import type { MonthlyEvent, MonthlyPlace } from './monthly-types';
 import { mergeReviewedEvents } from './autumn-release';
 import { applyOctober2026Events } from './october-2026-events-refresh';
+import { applyEventOverlay } from './editorial-overlay/apply';
 
 export { MONTHLY_EDITION } from './monthly-settings';
 
@@ -34,7 +35,8 @@ const previousMonthlyEvents = applyOctober2026Events(mergeReviewedEvents([...sfS
   .map(event => ({ ...event, ...(Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? { occurrenceDates: EVENT_DATE_OVERRIDES[event.id] } : {}) })))
   ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
-export const MONTHLY_EVENTS = [...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] })).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+// The editorial overlay goes last: short forms, cleaned plan lines and dated corrections (src/data/editorial-overlay).
+export const MONTHLY_EVENTS = applyEventOverlay([...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] }))).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

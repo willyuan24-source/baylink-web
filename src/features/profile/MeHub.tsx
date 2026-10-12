@@ -10,6 +10,7 @@ import { ReadingPreferencesCard } from '../../components/ReadingPreferences';
 import { navigateSiteLanguage } from '../../components/LanguageRouter';
 import { localizedUrl, setLocale, type Locale } from '../../i18n/locale';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
+import { openFeedback } from '../feedback/open-feedback';
 import './me-hub.css';
 
 /** The site's positioning sentence (index.html title, manifest, About), shown under the name on /me (PROD-10). */
@@ -122,13 +123,18 @@ export function MeDisplaySettings() {
   </>;
 }
 
-/** Rows that need an account (通知, 隐私与账号) plus help; `view` opens the sub-view with a shareable URL (?view=…). */
+/**
+ * Rows that need an account (通知, 隐私与账号) plus help; `view` opens the sub-view with a shareable URL (?view=…).
+ * 反馈与客服 opens the site's feedback sheet (WEB-FEEDBACK's openFeedback, the same one as the footer and 更多); if the
+ * sheet cannot load (offline, a stale deploy) it falls back to the support page.
+ */
 export function MeAccountRows({ onView }: { onView: (view: 'notifications' | 'privacy' | 'support') => void }) {
   const { t } = useUiCopy();
+  const openHelp = () => void openFeedback({ kind: 'page' }).then(opened => { if (!opened) onView('support'); });
   return <>
     <li><MeRow icon={Bell} label={t('通知', 'Notifications')} value={t('邮件与短信提醒', 'Email and SMS reminders')} onClick={() => onView('notifications')} /></li>
     <li><MeRow icon={ShieldCheck} label={t('隐私与账号', 'Privacy and account')} value={t('导出资料、退出所有登录、注销账号', 'Export data, sign out everywhere, delete account')} onClick={() => onView('privacy')} /></li>
-    <li><MeRow icon={LifeBuoy} label={t('反馈与客服', 'Feedback and help')} value={t('告诉我们哪里不对', 'Tell us what is wrong')} onClick={() => onView('support')} /></li>
+    <li><MeRow icon={LifeBuoy} label={t('反馈与客服', 'Feedback and help')} value={t('告诉我们哪里不对', 'Tell us what is wrong')} onClick={openHelp} /></li>
   </>;
 }
 

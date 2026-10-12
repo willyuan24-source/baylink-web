@@ -1,12 +1,13 @@
 import { recordProductEvent } from '../lib/product-events';
 import { getListingImage } from '../lib/offer-media';
 import { useMemo, useRef, useState } from 'react';
-import { ArrowRight, BookOpen, CalendarDays, Home, MapPin, Search, Sparkles, Store, Ticket, Wrench, X, type LucideIcon } from 'lucide-react';
+import { ArrowRight, BookOpen, CalendarDays, Home, MapPin, Search, Sparkles, Store, Ticket, Wrench, type LucideIcon } from 'lucide-react';
 import { CATEGORIES } from '../lib/constants';
 import { guides } from '../data/guides';
 import { searchGuides } from '../lib/guide-search';
 import { getSlugFromCategory } from '../routing';
-import { ModalShell } from './ui/Modal';
+import { Sheet } from './ui/Sheet';
+import './site-dialogs.css';
 import { translateText, useLocale } from '../i18n/locale';
 import { searchQuickDestinations } from '../lib/quick-search';
 import { getGuideMedia } from '../data/guide-media';
@@ -119,8 +120,9 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuer
   ];
   const selected = Math.min(active, results.length - 1);
   return (
-    <ModalShell onClose={onClose} label="快速搜索与导航" className="quick-explore-overlay" initialFocusRef={inputRef} restoreFocusRef={restoreFocusRef}>
-      <div className="quick-explore" onClick={(event) => event.stopPropagation()}>
+    // RC-24: search on the WEB-UI Sheet (bottom sheet on phones, drawer on desktop), its ✕ and Esc close it.
+    <Sheet open onClose={onClose} title={copy('快速搜索与导航', 'Search and go')} initialFocusRef={inputRef} restoreFocusRef={restoreFocusRef}>
+      <div className="quick-explore quick-explore--sheet">
         <form onSubmit={(event) => { event.preventDefault(); if (!composing.current) run(results[selected].run); }} className="quick-search-form">
           <Search size={22} />
           <input ref={inputRef} maxLength={200} aria-label="快速搜索" role="combobox" aria-expanded="true" aria-controls="quick-explore-results"
@@ -139,7 +141,6 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuer
                 document.getElementById(`quick-result-${next}`)?.scrollIntoView?.({ block: 'nearest' });
               }
             }} />
-          <button type="button" aria-label="关闭搜索" onClick={onClose}><X size={20} /></button>
         </form>
         <div className="quick-explore-body">
           {!term && <div className="quick-suggestions" aria-label="试试这些搜索"><span>试试搜索</span>{[
@@ -164,6 +165,6 @@ export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuer
         </div>
         <footer><span><kbd>↑ ↓</kbd> 选择 · <kbd>Enter</kbd> 打开</span><span><kbd>Esc</kbd> 关闭</span></footer>
       </div>
-    </ModalShell>
+    </Sheet>
   );
 }

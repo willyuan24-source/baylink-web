@@ -48,7 +48,9 @@ import './audit-integration.css'
 import './tokens.css'
 import './editorial-refinement.css'
 import './components/local-discovery-detail.css'
-import { unprefixedPath } from './lib/language-path'
+import { pathLanguage, unprefixedPath } from './lib/language-path'
+import { captureBootMain, hasBootMain } from './app/boot-main'
+import { bootApp, showBootRetryBar } from './app/boot'
 installChunkRecovery()
 import { installProductObserver } from './lib/product-observer'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
@@ -65,7 +67,16 @@ const renderApp = () => createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-void Promise.all([initializeLocale(), currentPageLoader(unprefixedPath(window.location.pathname))()]).then(() => { installProductObserver(); renderApp() }).catch(() => {
-  // Keep useful prerendered content if an offline visitor cannot load the interactive page.
-  if (!document.getElementById('root')?.hasChildNodes()) renderApp()
+// The prerendered <main> stays on screen until the app's page renders (no blank frame at the swap).
+captureBootMain()
+// REG+2: if the page's code or its dictionary does not load, the reader keeps a readable page and gets the retry bar (boot.ts).
+void bootApp({
+  locale: initializeLocale(),
+  loadPage: currentPageLoader(unprefixedPath(window.location.pathname)),
+  renderApp,
+  showRetryBar: () => showBootRetryBar(),
+  language: pathLanguage(window.location.pathname),
+  prerendered: hasBootMain(),
+  rootHasContent: () => Boolean(document.getElementById('root')?.hasChildNodes()),
+  onSettled: installProductObserver,
 })

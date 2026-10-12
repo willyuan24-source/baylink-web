@@ -1,15 +1,3 @@
-.baybay-action-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
-.baybay-action-grid>button { display:flex; align-items:center; gap:12px; min-height:94px; padding:17px 14px; border:1px solid #dbe3d4; border-radius:14px; background:#fff; text-align:left; color:#35553b; transition:background .15s,border-color .15s; }
-.baybay-action-grid>button:hover { background:#edf3e6; border-color:#9ab08b; }
-.baybay-action-grid>button:focus-visible,.baybay-action-example button:focus-visible { outline:2px solid #527445; outline-offset:3px; }
-.baybay-action-icon { display:grid; place-items:center; flex:0 0 36px; height:38px; border-radius:11px; background:#eef2e4; color:#5d7c4b; }
-.baybay-action-grid>button>span:nth-child(2) { flex:1; min-width:0; }
-.baybay-action-grid strong { display:block; font-size:.875rem; line-height:1.5; font-weight:600; }
-.baybay-action-grid small { display:block; margin-top:4px; color:#66745e; font-size:.6875rem; line-height:1.65; }
-.baybay-action-grid>button>svg { flex-shrink:0; opacity:.55; }
-.baybay-action-example { display:flex; align-items:flex-start; gap:10px; margin-top:17px; color:#66745e; font-size:.6875rem; line-height:1.75; }
-.baybay-action-example>span { flex-shrink:0; padding-top:5px; }
-.baybay-action-example button { text-align:left; padding:5px 8px; border-radius:7px; color:#527145; background:#eef2e7; }
 .planner-refinements { margin-top:18px; border-top:1px solid #edf0e7; padding-top:15px; }
 .planner-refinements summary { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:.75rem; color:#59734c; font-weight:600; list-style:none; }
 .planner-refinements summary::-webkit-details-marker { display:none; }
@@ -34,12 +22,5 @@
   .planner-hero nav { margin-top:16px; gap:12px; }
 }
 @media(max-width:520px) {
-  .baybay-action-grid { gap:8px; }
-  .baybay-action-grid>button { flex-wrap:wrap; align-content:flex-start; gap:9px; padding:13px 12px; }
-  .baybay-action-grid>button>.baybay-action-icon { flex-basis:32px; height:32px; }
-  .baybay-action-grid>button>span:nth-child(2) { flex-basis:calc(100% - 24px); order:2; }
-  .baybay-action-grid>button>svg { margin-left:auto; }
-  .baybay-action-grid strong { font-size:.8125rem; }
-  .baybay-action-example { flex-direction:column; gap:3px; }
   .planner-applied-filters { font-size:.625rem; }
 }

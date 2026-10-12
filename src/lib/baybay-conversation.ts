@@ -10,6 +10,7 @@ import { parsePlannerWebResult, validPlannerWebDate, type PlannerWebResult } fro
 import { bayBayClearedSearchFields, bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext, type BayBaySearchOverrides } from './baybay-context';
 import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssistantFields } from './baybay-assistant';
 import { stageBayBayRequirementsDraft, validBayBayDraftId } from './baybay-plan-handoff';
+import type { BayBayAnswerFields } from './baybay-answer';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
 export type BayBayRetrieval = { requestedMode: BayBaySearchMode; effectiveMode?: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed' | 'auth_required'; webAccess?: { authenticated: boolean; allowed: boolean; reason?: 'auth_required' }; failureCode?: string; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
@@ -19,7 +20,7 @@ export type GuideChatAction = {
   label: string; type: 'category' | 'guide' | 'post' | 'postAssist';
   url?: string; postType?: 'client' | 'provider'; category?: string;
 };
-export type GuideChatResponse = BayBayAssistantFields & {
+export type GuideChatResponse = BayBayAssistantFields & BayBayAnswerFields & {
   ok: boolean; answer?: string; error?: string; code?: string;
   suggestedGuides?: { title: string; slug: string; url: string }[];
   suggestedActions?: GuideChatAction[]; safetyNote?: string;
@@ -126,7 +127,7 @@ export function bayBayOutingPath(filters: BayBayOutingSearch['filters'], id?: st
 }
 export type BayBayTurn = {
   progress?: BayBayProgress;
-  quickCards?: BayBayQuickCard[]; partialAnswer?: string; draftLead?: string;
+  quickCards?: BayBayQuickCard[]; partialAnswer?: string; draftLead?: string; draftPoints?: string[];
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
   response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; restartAssistant?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
 };
@@ -245,13 +246,6 @@ export function isBayBayPlanRequest(message: string): boolean {
   return outing && (planning || (specificDay && personalDetails));
 }
 
-export const BAYBAY_SCENARIOS = [
-  { label: '周末去哪里', icon: '☀', question: '周末想在湾区轻松玩一天，请根据站内攻略帮我选几个方向，再问我出发城市和交通方式。' },
-  { label: '省钱带娃', icon: '✦', question: '想找湾区省钱亲子去处和免费手工，请根据站内最新攻略帮我比较，并提醒年龄、预约和领取条件。' },
-  { label: '当月优惠', icon: '↗', question: '站内当月优惠攻略有哪些值得先看？请区分直接免费、需消费和会员优惠，过期项目不要推荐。' },
-  { label: '刚来湾区', icon: '⌂', question: '我刚来湾区，想先安排第一个月的生活。请根据站内指南给我三个优先事项，再问我需要补充什么。' },
-];
-
 export function bayBayFollowups(question: string, hasArticle: boolean, schoolContext = false, suggested: string[] = []): string[] {
   const normalized = simplifySearch(question);
   const localize = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh, getLocale());
@@ -332,6 +326,9 @@ export async function fetchBayBayReply(
           throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
         }
         // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
+        // The v2 answer and cut-over fields (lead/points, safety card, notice) pass through here unparsed: the panel
+        // validates them with parseBayBayAnswerFields before it renders (BayBayAssistantEntry), which keeps the parser
+        // out of this module — guide pages load it for bayBayPageQuestions.
         const safe = { ...data, localMatches: parseBayBayQuickCards(data.localMatches), assistantSessionToken: undefined, taskState: undefined, assistantPlan: undefined, evidence: undefined, research: undefined, followups: undefined, answerCoverage: undefined, ...parseBayBayAssistantFields(data) };
         if (data.outingSearch !== undefined) return { ...safe, outingSearch: parseBayBayOutingSearch(data.outingSearch) };
         if (data.responseMode === 'outing-search') throw new BayBayServiceError('小队搜索条件暂时无法读取，请重试；这不代表没有小队。');

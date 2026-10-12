@@ -15,7 +15,7 @@ export const editorialStyleScopes = [
   { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
   { file: 'src/features/profile/me-hub.css' },
   { file: 'src/features/messages/messages-hub.css' },
-  { file: 'src/pages/events-page.css' },
+  { file: 'src/features/events/events.css' },
   // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
   { file: 'src/components/ui/ui.css' },
   { file: 'src/features/feedback/feedback.css' },
@@ -27,6 +27,15 @@ export const editorialStyleScopes = [
   // WEB-SAVES: the one save model's controls (global, for prerendered pages) and My Week.
   { file: 'src/components/reader-library.css', after: '/* WEB-SAVES: the one save model' },
   { file: 'src/features/saves/my-week.css' },
+  // WEB-GUIDES: the guide index and article templates.
+  { file: 'src/features/guides/guide-library.css' },
+  { file: 'src/features/guides/guide-article.css' },
+  // WEB-BB-UI: the BayBay answer layout.
+  { file: 'src/features/baybay/baybay-answer.css' },
+  // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast).
+  // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast) and the account / community dialogs on the Sheet.
+  { file: 'src/components/site-chrome.css' },
+  { file: 'src/components/site-dialogs.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

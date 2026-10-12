@@ -12,7 +12,8 @@ function useCopy() {
   return (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
 }
 
-export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse }) {
+/** `guest`: the panel already says once that a guest gets site information only, so a reply does not repeat it (BBLIVE-12). */
+export function BayBayRetrievalLabel({ response, guest = false }: { response: GuideChatResponse; guest?: boolean }) {
   const t = useCopy(), web = bayBayWebResult(response), retrieval = response.retrieval;
   const catalog = response.responseMode === 'catalog' && retrieval && ['site', 'site+web'].includes(retrieval.scope);
   const catalogDay = catalog ? validPlannerWebDate(retrieval.catalogCheckedAt) : null;
@@ -20,7 +21,7 @@ export function BayBayRetrievalLabel({ response }: { response: GuideChatResponse
   const failed = retrieval?.webStatus === 'verification_failed';
   const failureCodes = [retrieval?.failureCode, ...(response.research?.warnings || []), ...(response.research?.steps || []).map(step => step.code)];
   const webNotice = retrieval?.webStatus === 'auth_required' || retrieval?.webAccess?.reason === 'auth_required'
-    ? t('本次仅使用站内资料（回答时未登录或登录已失效）', 'Site information only for this reply (not signed in or sign-in had expired)')
+    ? guest ? '' : t('本次仅使用站内资料（回答时未登录或登录已失效）', 'Site information only for this reply (not signed in or sign-in had expired)')
     : failureCodes.includes('web_daily_limit') ? t('今日联网额度已用完，已保留站内资料', 'Today’s web lookup limit has been reached; site information remains available')
       : failureCodes.some(code => ['web_rate_limit', 'web_provider_rate_limit'].includes(code || '')) ? t('联网查询暂时过于频繁，请稍后再试；站内资料仍可使用', 'Web lookups are temporarily rate-limited; retry later. Site information remains available')
         : retrieval?.webStatus === 'unavailable' ? t('本次联网未成功，可稍后重试', 'Web lookup unavailable; retry later') : '';

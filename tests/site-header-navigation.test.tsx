@@ -19,9 +19,10 @@ test('the More disclosure keeps secondary destinations available and closes afte
   const view = render(<MemoryRouter><SiteNavigation {...base} /><Location /><button type="button">Outside</button></MemoryRouter>);
   const menu = view.container.querySelector('details')!;
   const trigger = view.getByLabelText('更多导航');
-  // Plan §1 更多 (反馈 arrives with WEB-SHELL2); /archive stays until the global footer carries it.
-  const destinations = ['/my-week', '/category/rent', '/explore', '/tools', '/opus-bay?from=nav', '/about', '/archive', '/terms', '/privacy', '/sms-consent'];
+  // Plan §1 更多, with 反馈与报错 (WEB-SHELL2); the published directory moved to the global footer.
+  const destinations = ['/my-week', '/category/rent', '/explore', '/tools', '/opus-bay?from=nav', '/about', '/terms', '/privacy', '/sms-consent'];
   assert.deepEqual([...menu.querySelectorAll('a')].map(a => a.getAttribute('href')), destinations, 'a guest sees no 消息 (nothing to read yet)');
+  assert.ok(within(menu.querySelector<HTMLElement>('.site-secondary-nav')!).getByRole('button', { name: '反馈与报错' }), '更多 gains 反馈与报错');
   assert.equal(view.getByRole('link', { name: '邻里信息（测试中）' }).getAttribute('href'), '/category/rent', 'the board is labelled as a trial (G16)');
   assert.ok(view.getByRole('link', { name: '我的这周' }), 'naming table: 我的这周, not 我的收藏与计划');
   menu.open = true;
@@ -133,20 +134,30 @@ test('the bottom bar names the assistant 问 BayBay, 问问 below 375 px; both l
   assert.equal(label.textContent, '问 BayBay');
   assert.equal(short.textContent, '问问');
   assert.equal(short.getAttribute('aria-hidden'), 'true', 'the button keeps one accessible name');
-  // `html[lang=en] .site-mobile-nav span` sets 10 px; only the bar's direct-child rule lifts labels back to 13 px.
+  // The bar's label rule is for direct children (`.site-mobile-item>span`), so both labels sit in the button itself.
   assert.equal(label.parentElement, ask);
   assert.equal(short.parentElement, ask);
-  const css = readFileSync('src/editorial-refinement.css', 'utf8').replace(/\s+/g, ' ');
+  // WEB-SHELL2: the otter (public/brand/otter.svg) is the item's icon; it is decorative, the label names the button.
+  const otter = ask.querySelector('img.site-otter')!;
+  assert.equal(otter.getAttribute('src'), '/brand/otter.svg');
+  assert.equal(otter.getAttribute('alt'), '');
+  // No unread-badge look-alike on the icon: the only dot in the bar is 我的's real unread mark (no fake counts).
+  const svg = readFileSync('public/brand/otter.svg', 'utf8');
+  assert.doesNotMatch(svg, /#f0603e/i, 'no orange-red dot on the navigation otter');
+  for (const [, cx, cy] of svg.matchAll(/<circle cx="([\d.]+)" cy="([\d.]+)"/g)) {
+    assert.ok(Math.hypot(Number(cx) - 32, Number(cy) - 33) <= 28, `circle at ${cx},${cy} sits inside the face, not on its corner`);
+  }
+  const css = readFileSync('src/components/site-chrome.css', 'utf8').replace(/\s+/g, ' ');
   assert.match(css, /@media\(max-width:374px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
 });
 
 test('the 问 BayBay label never wraps: 大, 特大, 简洁显示 and English swap to 问问 / Ask whenever one tab is too narrow', async () => {
   const { readFileSync } = await import('node:fs');
-  const css = readFileSync('src/editorial-refinement.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
+  const css = readFileSync('src/components/site-chrome.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   const em = (pattern: RegExp) => Number(css.match(pattern)?.[1]);
   // The bar is a size container whose em is the label size, so the thresholds follow Aa and 简洁显示 by themselves.
-  assert.match(css, /\.site-mobile-nav \.site-mobile-nav-items \{ container:site-mobile-bar \/ inline-size; font-size:var\(--text-caption\); \}/);
-  assert.match(css, /\.site-mobile-nav \.site-mobile-ask>span \{[^}]*white-space:nowrap;/);
+  assert.match(css, /\.site-mobile-nav \.site-mobile-nav-items \{ container:site-mobile-bar \/ inline-size;[^}]*font-size:var\(--text-caption\); \}/);
+  assert.match(css, /\.site-mobile-nav \.site-mobile-ask>span:not\(\.site-mobile-icon\) \{[^}]*white-space:nowrap;/);
   const zh = em(/@container site-mobile-bar \(max-width:([\d.]+)em\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
   const en = em(/@container site-mobile-bar \(max-width:([\d.]+)em\) \{ html:lang\(en\) \.site-mobile-ask-label \{ display:none; \} html:lang\(en\) \.site-mobile-ask-short \{ display:inline; \} \}/);
   // One tab is (content width - 4 x 3px gaps) / 5. Measured one-line widths (Segoe UI / YaHei): 问 BayBay 4.41em,

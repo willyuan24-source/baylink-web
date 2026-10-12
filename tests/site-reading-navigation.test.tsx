@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import React from 'react';
@@ -8,6 +9,8 @@ const dom = new JSDOM('<!doctype html><html><body><div id="root"></div></body></
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
+// The sign-in sheet imports its stylesheets (WEB-SHELL2, RC-24); node only needs them to resolve.
+registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
@@ -39,7 +42,7 @@ test('events and personal routes have one correct tab, while BayBay opens in one
 
 test('reading choices persist, initialize from a shared link, and close with restored focus', () => {
   const view = render(<ReadingPreferencesButton />);
-  const trigger = view.getByRole('button', { name: '调整阅读字号' }); trigger.focus(); fireEvent.click(trigger);
+  const trigger = view.getByRole('button', { name: '字号' }); trigger.focus(); fireEvent.click(trigger);
   fireEvent.click(view.getByRole('button', { name: /特大/ }));
   assert.equal(getReadingSize(), 'extra-large');
   assert.equal(document.documentElement.dataset.reading, 'extra-large');
@@ -54,7 +57,7 @@ test('reading choices persist, initialize from a shared link, and close with res
 
 test('简洁显示 is a 48px switch that persists, follows a family link, and can be switched off by one', () => {
   const view = render(<ReadingPreferencesButton />);
-  fireEvent.click(view.getByRole('button', { name: '调整阅读字号' }));
+  fireEvent.click(view.getByRole('button', { name: '字号' }));
   // The name is the short label alone; the longer explanation is the description.
   const toggle = view.getByRole('switch', { name: '简洁显示（适合长辈）', description: /全站文字至少 16 像素/ });
   assert.equal(toggle.getAttribute('aria-checked'), 'false');
@@ -121,7 +124,8 @@ test('blocked storage still changes text size for this session', () => {
 
 test('search controls outside the app root are covered by the shared keyboard focus ring', async () => {
   const { QuickExplore } = await import('../src/components/QuickExplore');
-  const tokens = postcss.parse(readFileSync(new URL('../src/tokens.css', import.meta.url), 'utf8'));
+  // The search sheet (WEB-SHELL2, RC-24) carries its own ring: site-dialogs.css next to the theme's tokens.css.
+  const tokens = postcss.parse(readFileSync(new URL('../src/tokens.css', import.meta.url), 'utf8') + readFileSync(new URL('../src/components/site-dialogs.css', import.meta.url), 'utf8'));
   const view = render(<QuickExplore onClose={() => {}} onSearch={() => {}} onNavigate={() => {}} onAsk={() => {}} />);
   const dialog = view.getByRole('dialog');
   assert.equal(dialog.closest('.site-app'), null, 'the actual search portal is outside the app-scoped focus rule');
@@ -156,7 +160,8 @@ test('actual sign-in and MFA safety facts use reading tokens, including registra
   assert.equal(dialog.closest('.site-app'), null);
   for (const fact of dialog.querySelectorAll('.member-auth-heading p,.member-auth-form > label,.member-auth-privacy')) usesToken(fact, 'font-size', 'var(--text-fact)');
   usesToken(login.getByLabelText('邮箱或用户名'), 'font-size', 'var(--text-body)');
-  usesToken(login.getByRole('button', { name: '关闭登录注册' }), 'min-height', 'var(--control-height)');
+  // The sheet's ✕ is the WEB-UI IconButton: a 44px hit area (48 in 简洁显示) from ui.css (RC-24, WEB-SHELL2).
+  assert.ok(login.getByRole('button', { name: '关闭' }).classList.contains('ui-icon-button'));
   fireEvent.click(login.getByRole('button', { name: '还没有账号？去注册' }));
   usesToken(login.getByText('仅用于账号信任与联系方式请求功能，不会公开显示。'), 'font-size', 'var(--text-fact)');
   login.unmount();

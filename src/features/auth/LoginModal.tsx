@@ -1,7 +1,8 @@
 // 登录 / 注册弹层
 import React, { useEffect, useRef, useState } from 'react';
-import { X, AlertCircle, ChevronRight, LockKeyhole } from 'lucide-react';
-import { ModalShell } from '../../components/ui/Modal';
+import { AlertCircle, ChevronRight, LockKeyhole } from 'lucide-react';
+import { Sheet } from '../../components/ui/Sheet';
+import '../../components/site-dialogs.css';
 import { api } from '../../lib/api';
 import { mapAuthError, showAccountStatusNotice, validateContactValue, validateEmail, validatePassword } from '../../lib/format';
 import type { UserData } from '../../lib/types';
@@ -18,8 +19,13 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const [loading, setLoading] = useState(false);
   const [challengeToken, setChallengeToken] = useState<string | null>(null);
   const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const activeRequest = useRef<AbortController | null>(null);
   const mounted = useRef(true);
+  // With a mouse and keyboard the sheet opens in the email field, as the dialog did before the Sheet (a desktop reader types
+  // at once). On a touch screen the ✕ takes focus, so the on-screen keyboard does not cover the sheet before it is read.
+  const emailRef = useRef<HTMLInputElement>(null);
+  const [typeFirst] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(hover: hover) and (pointer: fine)').matches));
 
   // One signup_gate per time the sign-in / register sheet is shown (G10: the gate was never counted).
   useEffect(() => { recordProductEvent('signup_gate'); }, []);
@@ -94,17 +100,18 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
 
   const inputClass = 'member-auth-input';
 
-  if (challengeToken) return <ModalShell onClose={close} closeOnBackdrop={false} label={locale === 'en' ? 'Two-step verification' : translateText('两步验证', locale)} className="member-auth-overlay">
+  // RC-24: the sign-in sheet (WEB-UI Sheet: bottom sheet on phones, drawer on desktop). The register form has five
+  // required fields, so a stray tap outside never closes it: only ✕ and Esc do.
+  if (challengeToken) return <Sheet open onClose={close} closeOnBackdrop={false} title={locale === 'en' ? 'Two-step verification' : translateText('两步验证', locale)}><div className="member-auth-dialog">
     <MfaLoginChallenge challengeToken={challengeToken} onClose={close} onRestart={() => { setChallengeToken(null); setError(''); }} onComplete={user => {
       localStorage.setItem('currentUser', JSON.stringify(user)); onLogin(user); onClose();
       showToast(locale === 'en' ? 'Welcome back' : translateText('欢迎回来', locale), 'success');
       showAccountStatusNotice(user, showToast);
     }} />
-  </ModalShell>;
+  </div></Sheet>;
 
   return (
-    // 注册模式有 5 个必填字段，误触遮罩不关闭（与旧版一致，仅 X / Esc 可关）
-    <ModalShell onClose={close} closeOnBackdrop={false} label="登录 / 注册" className="member-auth-overlay">
+    <Sheet open onClose={close} closeOnBackdrop={false} initialFocusRef={typeFirst ? emailRef : undefined} title={mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
       <div className="member-auth-dialog">
         <AuthBrandHeader />
         <div className="member-auth-heading">
@@ -114,7 +121,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="member-auth-form">
             <label htmlFor="auth-email" className="block text-xs font-normal">{mode === 'register' ? '邮箱账号' : '邮箱或用户名'}</label>
-            <input id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />
+            <input ref={emailRef} id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />
             <label htmlFor="auth-password" className="block text-xs font-normal">密码</label>
             <input id="auth-password" required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className={inputClass} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
             {mode === 'register' && (
@@ -159,8 +166,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         </form>
         <button disabled={loading} onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setError(''); setConfirmPassword(''); }} className="member-auth-switch">{mode === 'login' ? '还没有账号？去注册' : '已有账号？去登录'}</button>
         <p className="member-auth-privacy"><LockKeyhole size={12} aria-hidden="true" />你的联系方式不会公开显示</p>
-        <button onClick={close} aria-label="关闭登录注册" className="member-auth-close"><X size={18} /></button>
       </div>
-    </ModalShell>
+    </Sheet>
   );
 };

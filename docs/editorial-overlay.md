@@ -1,0 +1,87 @@
+# Editorial overlay (events, offers, openings)
+
+Short reader-facing forms and structured facts for catalog items live in `src/data/editorial-overlay/`, keyed by id and applied
+after every content and media overlay (`apply.ts`; hooks in `monthly-edition.ts`, `october-offers.ts`, `local-discoveries.ts`).
+Source packages stay as they are, with one kind of exception: a dated correction that must also reach data the overlay does not
+cover is made in that source file directly and recorded in the ledger. So far that is the Presidio Día de los Muertos & Diwali
+10:00 start, edited in `src/data/november-refresh-east-sf-planning.json` (planner schedule), `src/data/city-current-east-sf.json`
+and `src/data/city-exploration-east-sf-en.json` (SF city bulletin and its English). Cards and detail pages read the fields through
+`src/lib/event-facts.ts` and fall back to the full fields when an item has no entry.
+
+## Fields (events, `events.json`)
+
+| Field | Rule |
+|---|---|
+| `shortTitle` | Card title, ≤16 display units (CJK 1, Latin ½), no colon. A title that already fits is used as is. |
+| `dek` | "Why go", ≤30 units, no dates or prices (they are on the chips). |
+| `sessions` | `[{date, start?, end?}]`, 24-hour times, one per start time: a day with two shows has two sessions on that date. Sorted by date, then start; the same day and start twice is a lint error. When present their days are the event's confirmed days, so they must agree with `occurrenceDates`. A card's time for a day (`eventTimeLabel`) is the session's span, or the list of starts when the day has several ("10:00、14:00"). |
+| `price` | `{free?, min?, max?, note?}` in USD. `free` only when entry is free; amounts only for paid or mixed events. |
+| `venueShort`, `address` | Derived from `venue` ("Name · street address"); store only to override. `address: ""` means no single address. |
+| `ageChip` | Only from a stated age rule ("21+", "0–5 岁"), and only when the official page does not contradict it. A recommended age is labelled as one ("建议 8 岁以上"). |
+| `tips` | ≤3, each ≤40 units, each adding information no other shown field carries. A tip that repeats the plan, the cost or date label, the summary or the date note is a lint error (contained after removing spaces and punctuation) or a warning (most of its wording is in one field). A practical note that is already a plan line stays in the plan. |
+| `dateNote` | Schedule facts the sessions cannot carry (doors, segments, talk length, "11/20–22 场次见售票页"), detail page only. A page that lists the sessions shows the date note beside them; a note that only repeats the sessions is dropped. |
+| `status` | `postponed` (no confirmed day yet: `occurrenceDates: []`, the original date in `dateNote`), `cancelled`, or `sold_out` (takes place, nothing on sale). Only from a dated source read; the labels say it in words too. Consumers: the archive directory (`PublicContentDirectory`: 已延期 / 已取消 instead of 已结束), schema `eventStatus`, share cards, badges. `getEventStatus` in `src/lib/monthly.ts` still returns `ended` for an event with no confirmed day, which keeps a postponed event out of every date list; a view that prints that state should read `status` first. |
+| `plan` | Replaces the cleaned plan: a number keeps that line of the cleaned plan, a string is a rewritten line. |
+| `fix` | Corrects a source fact (title, dateLabel, costLabel, occurrenceDates…). Never `id`, `verifiedAt` or `imageKey`, and only fields `basis.json` tracks (`BASIS_FIELDS` in `lint.ts`). Each correction needs a dated source read in `docs/source-reads-2026-10.md`. |
+
+Offers (`offers.json`): `shortTitle`, `dek`, `tips`, `valueText`, `publicBenefit`, `status` (`sold_out` only), `fix`. An offer's
+`shortTitle` keeps the condition its title (or `requirement`) leads with: who qualifies ("Berkeley 居民", "5–18 岁", "美国居民"),
+the purchase a gift needs ("买成人套餐送…", "下单送…") or the one store it runs at. Openings
+(`openings.json`): `shortTitle`, `dek`, `openedOn` (only the stated first day of public service), `fix`. An opening's
+`editorTip` (shown under 怎么安排) carries one fact about that shop the card does not already show (where it is, what else it
+serves, how to book), never a line every shop could share ("按菜单消费；价格与开业优惠见商家…").
+
+For a covered event the plan is cleaned automatically: the filler sentence "出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。",
+a "时间安排：" line that only repeats the date label, and the copy of the cost label at the start of a "费用与参加条件：" line are removed.
+A date label also drops its repeated dates ("10/24 · 10 月 24 日 · 11:00–14:00" reads "10/24 · 11:00–14:00";
+"10/17–10/18 · 10 月 17–18 日 · 周六…" reads "10/17–10/18 · 周六…").
+New content does not need those lines at all.
+
+The calendar schedule (`scripts/data/event-calendar-schedule.ts`) applies an entry's `fix.occurrenceDates` last, and a
+corrected `fix.dateLabel` replaces the calendar note copied from the old label. The other calendar notes (the "时间安排：…" first
+plan line of the autumn package) are not cleaned here: Little Bay's city guide shows the note instead of the label.
+
+## English
+
+Every Chinese string an entry adds needs an entry in `src/data/editorial-overlay-en.json` (registered last in
+`scripts/english-sources.json`). zh-Hant is the runtime conversion. Do not re-translate a string another pack already covers.
+
+## Checks
+
+- `npx tsx --tsconfig tsconfig.app.json scripts/audit-editorial-content.ts 2026-10-16 --strict` — the content.md §4.4 lints. Items
+  with an entry get errors; items without one only warnings, so new catalog content is never blocked (RC-29).
+- `tests/editorial-overlay.test.ts` runs the same lint, with `basis.json`, in CI. A displayed date label must translate whole or
+  part by part at its " · " separators, as `translateText` does.
+- `basis.json` records the source fields each entry was written against (`BASIS_FIELDS` in `lint.ts`). When a tracked source
+  field later changes under an entry, the lint reports `source-changed`:
+  - an **error** when a stored field of the entry would win over the edit (the overlay applies last): a `fix` of that field, a
+    `plan` override (source `plan`), `shortTitle` (source `title`; an offer's also `requirement`), `price` (`cost`,
+    `costLabel`), `sessions`, `dateNote` or `status` (the dates, `dateLabel`; `status` also `costLabel`), `venueShort` /
+    `address` (`venue`), `ageChip` (`audience`). CI fails
+    (`tests/editorial-overlay.test.ts`), for archived items too, until the stored field is updated or removed and the item is
+    re-recorded with `--write-basis=event:<id>` (or `offer:<id>`, `opening:<id>`; several ids separated by commas);
+  - a **warning** otherwise (re-read the entry's `dek` and short forms). CI does not fail on it; the captain re-records the item at
+    merge time.
+- `--write-basis` alone re-records every covered item, and refuses (writes nothing, exits 1, lists the items) while any masked
+  edit is unresolved, so it cannot be used to silence a `source-changed` error. A new entry needs its basis recorded too: the
+  test fails for a covered item without one, and `--write-basis=kind:id` records it.
+- Verification-log or editor's-note wording in reader text ("未核到…", "未见…", "官方页面列…", "编辑建议…") is a `log-voice` warning:
+  say what the page states or where to find it.
+- Pre-overlay records (`PRE_OVERLAY`) are kept for the lint, tests and Node scripts only; a production build does not fill them.
+
+## Merging (captain)
+
+After rebasing a branch that touches catalog data onto main, run the audit above with `--strict`. Resolve each `source-changed`
+error (update or remove the masking entry field, then `--write-basis=kind:id` for that item), re-read the items with a warning,
+then run `--write-basis` (it succeeds once no masked edit is left) and commit `basis.json`.
+
+## For content PRs (GPT)
+
+New events, offers and openings may ship without an entry; cards derive a short title from the title. Please do not add the filler
+sentence or plan lines that repeat the date or cost label, avoid editor's-log wording in reader fields (本次/本条/本卡/本轮…), and
+never write 免费 in a title unless `cost` is `free` or `mixed`.
+In reader fields also avoid 未核…/未见…/页面列…/编辑建议…: say what the page states or where to find it ("完整名单见活动页").
+Correcting a covered item is fine: CI only fails when the overlay would hide your correction (`tests/editorial-overlay.test.ts`
+names the item and the entry field, e.g. `fix.costLabel`). Then the overlay still holds the old value: name the item in the PR
+so the captain updates or removes that entry field. Do not run `--write-basis` to make the test pass; it refuses in that case.
+Edits that no entry field masks pass CI and show up as audit warnings for the captain.

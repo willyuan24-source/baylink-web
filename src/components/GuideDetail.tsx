@@ -1,7 +1,6 @@
 import { PerksGallery } from './PerksGallery';
 import { EnglishOnly } from './EnglishOnly';
-import { Fragment, useEffect, useRef, useState } from "react";
-import { SaveToWeek } from './SaveToWeek';
+import { Fragment, useMemo, useState, type MouseEvent, type ReactNode } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -11,7 +10,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Clock3,
   Copy,
   Lightbulb,
   List,
@@ -20,30 +18,49 @@ import {
 import { Link } from "react-router-dom";
 import {
   getGuideBySlug,
+  guides,
+  type Guide,
   type GuideBlock,
 } from "../data/guides";
-import { GuideCardMini } from "./GuideCard";
 import { getGuideMedia, type GuideImage } from '../data/guide-media';
 import { OutingInspirationLink } from './OutingInspirationLink';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './GuideEditionNotice';
 import { FreebieBoard } from './FreebieBoard';
-import { GuideReaderActions } from './ReaderLibrary';
 import { discoverRelatedGuides } from '../lib/guide-discovery';
+import { getOfferImage } from '../lib/offer-media';
 import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { CityExplorationDirectory } from './CityExplorationDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
-import { guideContentReviewRecord } from '../lib/content-review';
-import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
-import { PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
+import { linkifyPhones, PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
+import { createCoverPage, distinctNeighbourTones, type CoverPage } from '../lib/cover';
+import { useBayAreaToday } from '../lib/useBayAreaToday';
+import { useUiCopy } from './ui/ui-copy';
+import { CoverImage } from './ui/CoverImage';
+import { COVER_SIZES } from './ui/cover-sizes';
+import { FeedGrid, FeedItem } from './ui/FeedGrid';
+import { FeedCard } from './ui/Card';
+import { getGuideEditorial, type EditorialCopy, type GuideEditorial } from '../data/guide-editorial';
+import { guideTopicOf } from '../data/guide-topics';
+import { GuideHeader } from '../features/guides/GuideHeader';
+import { GuideActions } from '../features/guides/GuideActions';
+import { GuideCarousel } from '../features/guides/GuideCarousel';
+import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
+import { GuideCover } from '../features/guides/GuideCover';
+import { handleGuideLinkClick } from './GuideCard';
+import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
+import { guideCardMeta, guideCover, keepInlineImage, TOPIC_COVER } from '../features/guides/guide-facts';
+import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
+import '../features/guides/guide-article.css';
 
 type GuideDetailProps = {
   slug: string;
   returnTo?: string;
   today?: string;
-  onBack: () => void;
+  /** Kept for callers; the breadcrumb's "‹ 指南" link returns to `returnTo`. */
+  onBack?: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
   onAsk?: (question: string) => void;
@@ -55,66 +72,73 @@ type GuideDetailProps = {
 
 export const GuideDetail = (props: GuideDetailProps) => <GuideDetailSession key={props.slug} {...props} />;
 
+const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | undefined> = {
+  'bay-area-birthday-perks': 'birthday', 'bay-area-everyday-free-perks': 'everyday', 'bay-area-retail-freebies-family-deals': 'retail', 'bay-area-freebies-deals-2026-10': undefined,
+};
+
+/** Related guides as covers (two columns on a phone), resolved on the article's cover page so no image repeats. */
+function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Guide[]; coverPage: CoverPage; today: string; onOpenGuide: (slug: string) => void }) {
+  const { t, pick, english, locale } = useUiCopy();
+  const covers = related.map(guide => guideCover(guide, today, coverPage));
+  const tones = distinctNeighbourTones(covers.map((cover, index) => cover.tier === 'type' ? TOPIC_COVER[guideTopicOf(related[index])].tone : null));
+  return <section className="bl-guide-related gd-related" aria-labelledby="gd-related-title">
+    <div className="gd-related__head">
+      <h2 id="gd-related-title">{t('接下来，你可能想看', 'Read next')}</h2>
+      <Link to="/guides">{t('全部指南', 'All guides')}</Link>
+    </div>
+    <FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
+      <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={(event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(guide.slug)) : onOpenGuide(guide.slug)}
+        cover={<GuideCover guide={guide} cover={covers[index]} tone={tones[index] ?? undefined} sizes={COVER_SIZES.feed} />}
+        meta={pick(guideCardMeta(guide))} />
+    </FeedItem>)}</FeedGrid>
+  </section>;
+}
+
+/** A pilot guide's H2 as a step card: a numeral, the original heading (anchor kept) and a one-line conclusion; the original
+ * prose and its links fold under "展开原文与来源" (design.md §4.10). Without a conclusion the prose stays open. */
+function StepSection({ number, heading, id, conclusion, children }: { number: number; heading: string; id: string; conclusion?: EditorialCopy; children: ReactNode }) {
+  const { t, pick } = useUiCopy();
+  return <section className="gd-step" aria-labelledby={id}>
+    <div className="gd-step__head">
+      <span className="gd-step__number" aria-hidden="true">{number}</span>
+      <div><h2 id={id}>{heading}</h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion))}</p>}</div>
+    </div>
+    {conclusion ? <details className="gd-step__more"><summary>{t('展开原文与来源', 'Full text and sources')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary><div className="bl-guide-prose">{children}</div></details>
+      : <div className="bl-guide-prose">{children}</div>}
+  </section>;
+}
+
 const GuideDetailSession = ({
   slug,
   returnTo = '/guides',
-  today,
-  onBack,
+  today: suppliedToday,
   onOpenGuide,
   onNavigate,
   onAsk,
   onOpenPost,
 }: GuideDetailProps) => {
   const guide = getGuideBySlug(slug);
-  const articleRef = useRef<HTMLElement>(null);
-  const [progress, setProgress] = useState(0);
-  useEffect(() => {
-    const article = articleRef.current;
-    if (!article) return;
-    // The shared layout may scroll the app root, the page, or a bounded pane.
-    // Measure the actual scrolling ancestor instead of assuming main owns it.
-    let ancestor = article.parentElement;
-    let container: HTMLElement | null = null;
-    while (ancestor) {
-      if (
-        /auto|scroll|overlay/.test(getComputedStyle(ancestor).overflowY) &&
-        ancestor.scrollHeight > ancestor.clientHeight
-      ) {
-        container = ancestor;
-        break;
-      }
-      ancestor = ancestor.parentElement;
-    }
-    const target = container || window;
-    let frame = 0;
-    const measure = () => {
-      const rect = article.getBoundingClientRect();
-      const top = container ? container.getBoundingClientRect().top : 0;
-      const visibleHeight = container?.clientHeight || window.innerHeight;
-      const distance = rect.height - visibleHeight;
-      setProgress(
-        distance > 0
-          ? Math.round(
-              Math.min(100, Math.max(0, ((top - rect.top) / distance) * 100)),
-            )
-          : 100,
-      );
-    };
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(measure);
-    };
-    measure();
-    target.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-    return () => {
-      cancelAnimationFrame(frame);
-      target.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, [slug]);
+  const { t, english } = useUiCopy();
+  const today = useBayAreaToday(suppliedToday);
+  const editorial: GuideEditorial | undefined = guide ? getGuideEditorial(guide.slug) : undefined;
+  const page = useMemo(() => {
+    if (!guide) return null;
+    const coverPage = createCoverPage();
+    const media = getGuideMedia(guide);
+    const cover = guideCover(guide, today, coverPage);
+    // Rule 6, one picture once per page: the deals board shows each offer's own picture, so the article drops an inline
+    // picture the board already shows; the legacy poster opens only when it is not the cover; and every picture shown
+    // claims its place before the related guides resolve, so their covers fall back to a TypeCover instead of repeating it.
+    const boardImages = guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []).flatMap(offer => getOfferImage(offer)?.src ?? []);
+    const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
+    const inline = media.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
+      && !boardImages.includes(item.image.src) && keepInlineImage(item.image, guide, guides));
+    const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
+    for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
+    return { coverPage, cover, inline, poster, related: discoverRelatedGuides(guide, 4, today) };
+  }, [guide, today]);
 
-  if (!guide)
+  if (!guide || !page)
     return (
       <div className="bl-guide-empty">
         <BookOpen size={30} aria-hidden="true" />
@@ -125,16 +149,15 @@ const GuideDetailSession = ({
         </button>
       </div>
     );
-  const related = discoverRelatedGuides(guide, 3, today);
-  const media = getGuideMedia(guide);
+  const { cover, related, coverPage } = page;
   const prefaceLength = Math.max(0, guide.blocks.findIndex(block => block.type === 'freebies'));
   const headingIndexes = guide.blocks.flatMap((block, index) => block.type === 'heading' ? [index] : []);
   const inlineAfter = new Map<number, GuideImage[]>();
-  for (const item of media.inline) {
-    if (!Number.isInteger(item.afterHeading) || item.afterHeading < 1 || item.afterHeading > headingIndexes.length) continue;
+  for (const item of page.inline) {
     const lastBlock = (headingIndexes[item.afterHeading] ?? guide.blocks.length) - 1;
     inlineAfter.set(lastBlock, [...(inlineAfter.get(lastBlock) || []), item.image]);
   }
+  const shownImages = [...(cover.tier !== 'type' ? [cover.image] : []), ...page.inline.map(item => item.image)];
   const headings = guide.blocks.flatMap((block, index) =>
     block.type === "heading"
       ? [{ text: block.text, id: `guide-section-${index}` }]
@@ -156,6 +179,19 @@ const GuideDetailSession = ({
       {inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
     </Fragment>
   );
+  // Pilot guides: each H2 and the blocks under it become one step card.
+  const bodyBlocks = guide.blocks.map((block, index) => ({ block, index })).filter(({ index }) => index >= prefaceLength);
+  const stepHeadings = headingIndexes.filter(index => index >= prefaceLength);
+  const body = !editorial?.steps ? <div className="bl-guide-prose">{bodyBlocks.map(({ block, index }) => renderBlock(block, index))}</div> : <>
+    {bodyBlocks.some(({ index }) => !stepHeadings.length || index < stepHeadings[0]) && <div className="bl-guide-prose">{bodyBlocks.filter(({ index }) => !stepHeadings.length || index < stepHeadings[0]).map(({ block, index }) => renderBlock(block, index))}</div>}
+    {stepHeadings.map((headingIndex, order) => {
+      const next = stepHeadings[order + 1] ?? guide.blocks.length;
+      const heading = guide.blocks[headingIndex] as Extract<GuideBlock, { type: 'heading' }>;
+      return <StepSection key={headingIndex} number={order + 1} heading={heading.text} id={`guide-section-${headingIndex}`} conclusion={editorial.steps?.[headingIndexes.indexOf(headingIndex)]}>
+        {bodyBlocks.filter(({ index }) => index > headingIndex && index < next).map(({ block, index }) => renderBlock(block, index))}
+      </StepSection>;
+    })}
+  </>;
   const contents = (
     <ol>
       {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <li key={`freebies-${index}`}><a href={`#freebie-board-${index}`}><span>🎁</span>{block.title}</a></li>)}
@@ -177,69 +213,26 @@ const GuideDetailSession = ({
       </li>
     </ol>
   );
+  const visual = editorial ? <GuideCarousel guide={guide} editorial={editorial} />
+    : cover.tier !== 'type' ? <CoverImage className="gd-cover" image={cover.image} label={english ? cover.label.en : translateText(cover.label.zh)} fit={cover.fit} focal={cover.focal} ratio="3:2" sizes={COVER_SIZES.detail} priority /> : null;
 
   return (
-    <div className="bl-guide-detail bl-guide-detail--visual">
-      <div className="bl-guide-reader-bar">
-        <button type="button" onClick={onBack} aria-label="返回湾区指南">
-          <ArrowLeft size={17} aria-hidden="true" />
-          <span>湾区指南</span>
-        </button>
-        <EnglishOnly><span className="bl-guide-reader-label">THE BAYLINK JOURNAL</span></EnglishOnly>
-        <span
-          className="bl-guide-reader-progress"
-          aria-label={`阅读进度 ${progress}%`}
-        >
-          {progress}%
-        </span>
-        <div className="bl-guide-progress-track" aria-hidden="true">
-          <span style={{ transform: `scaleX(${progress / 100})` }} />
+    <div className="bl-guide-detail gd-page" data-pilot={editorial ? '' : undefined}>
+      <article className="bl-guide-article gd-article">
+        <GuideHeader guide={guide} returnTo={returnTo} />
+        <div className="gd-lead" data-visual={visual ? '' : undefined}>
+          {visual && <div className="gd-lead__visual">{visual}</div>}
+          <div className="gd-lead__side">
+            <GuideActions guide={guide} onAsk={onAsk} />
+            {guide.blocks.some(block => block.type === 'freebies') && <a className="bl-freebie-jump" href="#freebie-board-0">看免费领取图鉴<ArrowDownRight size={17} aria-hidden="true" /></a>}
+            {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} startDate={guide.editionStartDate} throughDate={guide.editionThroughDate} checkedAt={guide.updatedAt} today={today} />}
+            {editorial ? <KeyFactsCard guide={guide} facts={editorial.keyFacts} />
+              : <div className="gd-summary"><p>{guide.summary}</p>{guide.audience.length > 0 && <p className="gd-summary__audience"><span>{t('适合：', 'For: ')}</span>{guide.audience.map((audience, index) => <Fragment key={audience}>{index > 0 && '、'}<span>{audience}</span></Fragment>)}</p>}</div>}
+          </div>
         </div>
-      </div>
-      <article ref={articleRef} className="bl-guide-article">
-        <header className="bl-guide-article-header">
-          <div className="bl-guide-article-kicker">
-            <Link to={returnTo}>湾区生活指南</Link>
-            <span>/</span>
-            <span>{guide.categoryLabel}</span>
-            {guide.priority === "P0" && (
-              <span className="bl-guide-essential">新手必看</span>
-            )}
-          </div>
-          <h1>{guide.title}</h1>
-          <p className="bl-guide-subtitle">{guide.subtitle}</p>
-          {guide.blocks.some(block => block.type === 'freebies') && <a className="bl-freebie-jump" href="#freebie-board-0">看免费领取图鉴<ArrowDownRight size={17} aria-hidden="true" /></a>}
-          <div className="bl-guide-byline">
-            <span className="bl-guide-editor-mark">B.</span>
-            <span>
-              <strong>BAYLINK 生活整理</strong>
-              <small>更新 {guide.updatedAt}</small>
-            </span>
-            <span className="bl-guide-reading-time">
-              <Clock3 size={15} aria-hidden="true" />
-              {guide.readMinutes} 分钟阅读
-            </span>
-          </div>
-          {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} startDate={guide.editionStartDate} throughDate={guide.editionThroughDate} checkedAt={guide.updatedAt} today={today} />}
-          <ContentReviewNotice record={guideContentReviewRecord(guide)} today={today} sourcesAnchor="#guide-sources" />
-          <GuideReaderActions guide={guide} onAsk={onAsk} />
-          <SaveToWeek favorite={{ kind: 'guide', id: guide.slug }} />
-          {(guide.category === 'city' || guide.category === 'events') && <OutingInspirationLink kind="guide" id={guide.slug} />}
-          <GuideFigure image={media.cover} variant="cover" />
-          <div className="bl-guide-abstract">
-            <span>这篇指南，帮你理清</span>
-            <p>{guide.summary}</p>
-            {guide.audience.length > 0 && (
-              <div className="bl-guide-audience">
-                {guide.audience.map((a) => (
-                  <span key={a}>{a}</span>
-                ))}
-              </div>
-            )}
-          </div>
-        </header>
+        {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}
-        {['bay-area-birthday-perks', 'bay-area-everyday-free-perks', 'bay-area-retail-freebies-family-deals', 'bay-area-freebies-deals-2026-10'].includes(guide.slug) && <PerksGallery topic={guide.slug === 'bay-area-birthday-perks' ? 'birthday' : guide.slug === 'bay-area-everyday-free-perks' ? 'everyday' : guide.slug === 'bay-area-retail-freebies-family-deals' ? 'retail' : undefined} />}
+        {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
         {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoard offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
         <div className="bl-guide-reading-layout">
           <aside className="bl-guide-toc" aria-label="文章目录">
@@ -248,7 +241,6 @@ const GuideDetailSession = ({
                 <List size={16} aria-hidden="true" /> 这篇会读到
               </h2>
               {contents}
-              <p>先了解，再行动。</p>
             </div>
             <details className="bl-guide-toc-mobile">
               <summary>
@@ -259,15 +251,14 @@ const GuideDetailSession = ({
             </details>
           </aside>
           <div className="bl-guide-reading-main">
-            {guide.cover && (
+            {page.poster && (
               <details className="guide-poster-disclosure">
                 <summary>查看原版图文海报<ChevronDown size={17} aria-hidden="true" /></summary>
-                <GuideFigure variant="poster" image={{ src: guide.cover, alt: `${guide.title} 原版图文海报`, caption: '原版图文海报作为补充阅读，最新整理请以本文正文及官方资料为准。', credit: 'BAYLINK 原有指南附图', kind: 'illustration', width: 1055, height: 1491 }} />
+                <GuideFigure variant="poster" image={{ src: page.poster, alt: `${guide.title} 原版图文海报`, caption: '原版图文海报作为补充阅读，最新整理请以本文正文及官方资料为准。', credit: 'BAYLINK 原有指南附图', kind: 'illustration', width: 1055, height: 1491 }} />
               </details>
             )}
-            <div className="bl-guide-prose">
-              {guide.blocks.map((block, index) => index < prefaceLength ? null : renderBlock(block, index))}
-            </div>
+            {body}
+            {(guide.category === 'city' || guide.category === 'events') && <OutingInspirationLink kind="guide" id={guide.slug} />}
             <section
               className="bl-guide-sources"
               aria-labelledby="guide-sources"
@@ -280,8 +271,8 @@ const GuideDetailSession = ({
                 按你的具体情况核对原始资料。票价、开放时间、法规和服务安排可能变化。
               </p>
               <ul>
-                {guide.sources.map((source) => (
-                  <li key={source.url}>
+                {guide.sources.map((source, index) => (
+                  <li key={source.url} id={`guide-source-${index + 1}`}>
                     <a
                       href={source.url}
                       target="_blank"
@@ -291,38 +282,19 @@ const GuideDetailSession = ({
                       <ArrowUpRight size={15} aria-hidden="true" />
                       <span className="sr-only">（在新标签页打开）</span>
                     </a>
-                    <p>{source.description}</p>
+                    <p><PhoneText text={source.description} /></p>
                   </li>
                 ))}
               </ul>
+              <LazyReportErrorLink key={`report-guide-${slug}`} className="feedback-report-row--guide" entity={{ kind: 'guide', id: slug }} title={guide.title} />
             </section>
             {guide.sourceNote && (
               <p className="bl-guide-source-note">{guide.sourceNote}</p>
             )}
+            <GuidePageImageCredits images={shownImages} />
           </div>
         </div>
-        {related.length > 0 && (
-          <section className="bl-guide-related">
-            <div className="bl-guide-related-heading">
-              <div>
-                <EnglishOnly><span className="bl-guide-eyebrow">KEEP EXPLORING</span></EnglishOnly>
-                <h2>接下来，你可能想看</h2>
-              </div>
-              <Link to="/guides">
-                全部指南 <ArrowRight size={16} aria-hidden="true" />
-              </Link>
-            </div>
-            <div className="bl-guide-related-grid">
-              {related.map((g) => (
-                <GuideCardMini
-                  key={g.slug}
-                  guide={g}
-                  onClick={() => onOpenGuide(g.slug)}
-                />
-              ))}
-            </div>
-          </section>
-        )}
+        {related.length > 0 && <RelatedGuides related={related} coverPage={coverPage} today={today} onOpenGuide={onOpenGuide} />}
         <Link to={returnTo} className="bl-guide-return">
           <ArrowLeft size={16} aria-hidden="true" />
           返回湾区指南

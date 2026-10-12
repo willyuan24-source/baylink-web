@@ -16,16 +16,11 @@
 .member-secondary:hover { border-color: #87ae98; background: #f1f6ed; }
 .member-text-action { color: #176b52; }
 .member-text-action:hover { color: #123c31; text-decoration: underline; text-underline-offset: 4px; }
-.member-auth-overlay :is(button, a, input, select):focus-visible {
-  outline: 3px solid #77aa8f;
-  outline-offset: 4px;
-}
 
 /* The 发布成功 badge in CreatePostModal (until WEB-COMMUNITY restyles that screen). */
 .member-empty-icon { display:grid; place-items:center; width:4.125rem; height:4.125rem; border-radius:22px; background:var(--color-brand-tint); color:var(--color-brand); }
 
 /* Auth keeps the existing modal stack and focus behavior. */
-.member-auth-overlay { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 24px; background: #102c2580; backdrop-filter: blur(9px); }
 .member-auth-dialog { position: relative; width: 100%; max-width: 468px; max-height: min(90vh, 900px); max-height: min(90dvh, 900px); overflow-y: auto; padding: 34px 38px 25px; border: 1px solid #ffffffa6; border-radius: 28px; background: #f8f9f6; box-shadow: 0 32px 100px #07271d40; }
 .member-auth-brand { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 26px; }
 .member-auth-lockup { display: flex; align-items: center; gap: 10px; }
@@ -47,11 +42,8 @@
 .member-auth-switch { display: block; width: 100%; min-height: var(--control-height); margin-top: 21px; padding: 8px; font-size: var(--text-fact); font-weight: 600; color: #176b52; }
 .member-auth-switch:hover { text-decoration: underline; text-underline-offset: 4px; }
 .member-auth-privacy { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 18px; padding-top: 16px; border-top: 1px solid #e5eae0; color: #5f705b; font-size: var(--text-fact); line-height: 1.8; }
-.member-auth-close { position: absolute; top: 16px; right: 16px; display: grid; place-items: center; width: var(--control-height); height: var(--control-height); border-radius: 50%; color: #6d786f; background: white; border: 1px solid #e3e8df; }
-.member-auth-close:hover { color: #123c31; background: #eaf1e5; }
 
 @media (max-width: 639px) {
-  .member-auth-overlay { padding: 16px; }
   .member-auth-dialog { padding: 31px 24px 20px; border-radius: 24px; max-height: 92vh; max-height: 92dvh; }
   .member-auth-heading h2 { font-size: 1.4375rem; }
   .member-auth-input { font-size: var(--text-body); }
@@ -116,10 +108,6 @@
 :is(.member-compose-overlay, .member-baybay-overlay) :is(button, a, input, select, textarea):focus-visible { outline: 3px solid #77aa8f; outline-offset: 3px; }
 
 /* BayBay blends a warm conversational frame with honest, existing shortcuts. */
-.member-baybay-entry { border: 1px solid #dce5d3; border-radius: 18px; background: #f0f5e8; }
-.member-baybay-entry--sidebar { margin-bottom: 14px; padding: 19px; }
-.member-baybay-entry--inline { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 70px; padding: 15px; text-align: left; transition: background-color .18s; }
-.member-baybay-entry--inline:hover { background: #e8f1df; }
 .member-baybay-dialog { display: flex; flex-direction: column; width: 100%; max-width: 650px; max-height: min(87vh, 820px); max-height: min(87dvh, 820px); overflow: hidden; border: 1px solid #ffffff52; border-radius: 26px; background: #f8f9f6; box-shadow: 0 30px 100px #07271d40; }
 .member-baybay-header { display: flex; flex-shrink: 0; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px; background: #123c31; }
 .member-baybay-avatar { width: 55px; height: 55px; flex-shrink: 0; object-fit: cover; border: 1px solid #dff3a64a; border-radius: 17px; }
@@ -139,7 +127,7 @@
 .member-baybay-ask:disabled { opacity: .5; }
 .member-baybay-error { margin-top: 13px; padding: 14px 16px; border: 1px solid #efdcbf; border-radius: 12px; background: #fff9ed; color: #805f2e; font-size: .6875rem; line-height: 1.75; }
 .member-baybay-answer { margin-top: 20px; padding: 21px; border: 1px solid #dce7d2; border-radius: 5px 20px 20px; background: white; }
-.member-baybay-answer-label { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; font-size: .6875rem; font-weight: 600; color: #176b52; }
+.member-baybay-answer-label { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; font-size: var(--text-caption); font-weight: 600; color: var(--color-brand); }
 .member-baybay-answer-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8125rem; line-height: 1.9; color: #596c50; }
 .member-baybay-guide-chip { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 8px 10px; border: 1px solid #dce5d2; border-radius: 10px; background: #f2f6ec; color: #49643c; font-size: .6875rem; font-weight: 400; }
 .member-baybay-guide-chip:hover { background: #e9f2df; }
@@ -190,5 +178,5 @@
   .member-baybay-shortcut-arrow { right: 10px; top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .member-compose-close, .member-compose-type, .member-category-choice, .member-baybay-entry--inline, .member-baybay-ask, .member-baybay-shortcut { transition: none; }
+  .member-compose-close, .member-compose-type, .member-category-choice, .member-baybay-ask, .member-baybay-shortcut { transition: none; }
 }

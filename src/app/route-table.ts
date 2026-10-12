@@ -72,6 +72,12 @@ export type AppRoute = {
   bare?: boolean;
   /** prerendered page checked by scripts/verify-release.mjs in every language */
   release?: boolean;
+  /**
+   * 'detail': a phone detail page whose own 64 px action bar (♡ 想去 · 加入行程 · 问 BayBay · 官方页 ↗) replaces the tab bar
+   * (D10). SiteChrome marks the page `data-chrome="detail"` and hides the tab bar once the page renders an element with the
+   * class `site-detail-actions` (WEB-DETAIL), so the tab bar never disappears before the action bar exists.
+   */
+  chrome?: 'detail';
 };
 
 const DISCOVERY = ['discovery', 'guide-index'] as const;
@@ -90,9 +96,9 @@ export const ROUTES: readonly AppRoute[] = [
   { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
   { path: '/this-week', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: DISCOVERY, baybay: true },
   { path: '/calendar', page: 'calendar', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
-  { path: '/events/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY },
-  { path: '/offers/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY },
-  { path: '/openings/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY },
+  { path: '/events/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY, chrome: 'detail' },
+  { path: '/offers/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY, chrome: 'detail' },
+  { path: '/openings/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY, chrome: 'detail' },
   { path: '/ai-in-the-bay', page: 'ai', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY },
   { path: '/plan', page: 'plan', section: 'events', hosting: 'page', sitemap: true, english: PLANNING, baybay: true, release: true },
   { path: '/together', page: 'together', section: 'events', hosting: 'spa', english: PLANNING, baybay: true },

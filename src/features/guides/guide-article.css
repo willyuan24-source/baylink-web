@@ -1,0 +1,167 @@
+/* Guide article (T7, WEB-GUIDES; design.md §4.10): head, lead (carousel or cover + actions + 30 秒看懂), contact cards, step
+   cards, related covers and credits. Loaded with GuideDetail only (route CSS, RC-6). Tokens and rem only; the body prose keeps
+   its reviewed reading styles in guides-ui.css. Reviewed by scripts/check-editorial-styles.mjs. */
+.gd-article.bl-guide-article { max-width:1080px; padding:12px 16px 24px; }
+
+/* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → meta line. */
+.gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-crumbs a { display:inline-flex; align-items:center; gap:2px; min-height:2.75rem; color:var(--color-ink-2); font-weight:600; text-decoration:none; }
+.gd-crumbs a:hover { color:var(--color-brand); text-decoration:underline; }
+.gd-crumbs a>svg { width:1rem; height:1rem; }
+.gd-article .gd-title { display:flex; flex-direction:column; gap:6px; max-width:36em; margin:0; color:var(--color-ink); letter-spacing:0; }
+.gd-title__head { font-size:1.625rem; line-height:1.308; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
+.gd-title__sep { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.gd-title__rest { color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; font-weight:400; }
+.gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.gd-meta a { color:var(--color-brand); font-weight:600; text-decoration:none; }
+.gd-meta a:hover { text-decoration:underline; }
+.gd-meta__last { display:inline-flex; align-items:center; gap:0 4px; white-space:nowrap; }
+.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin:-8px -8px -8px -4px; border:0; border-radius:999px; background:transparent; color:var(--color-ink-2); cursor:pointer; }
+.gd-meta__info>svg { width:1.125rem; height:1.125rem; }
+.gd-about p { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
+.gd-about a { color:var(--color-brand); font-weight:600; }
+
+/* Lead: the carousel (pilot guides) or the cover photo, then the three actions and the quick answer. */
+.gd-lead { display:flex; flex-direction:column; gap:16px; margin-top:12px; }
+.gd-lead__side { display:flex; flex-direction:column; gap:16px; min-width:0; }
+.gd-lead__visual { min-width:0; }
+.gd-lead .bl-freebie-jump { align-self:flex-start; }
+.gd-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.gd-actions>.ui-button { flex:1 1 auto; padding:0 12px; gap:6px; white-space:nowrap; }
+.gd-actions>.ui-button>svg { flex:none; width:1.125rem; height:1.125rem; }
+.gd-actions__status { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-actions__status:empty { display:none; }
+.gd-actions__error { margin:4px 0 0; color:var(--color-danger); font-size:var(--text-caption); line-height:1.385; }
+.gd-actions__error button { min-height:2.75rem; border:0; background:transparent; color:var(--color-brand); font-weight:600; text-decoration:underline; cursor:pointer; }
+.gd-summary p { margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.75; }
+.gd-summary .gd-summary__audience { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+
+/* The 3:4 slides (1007 §5.5). Sizes follow the slide width (cqw), never below 13px, and grow with Aa (--fluid-scale).
+   3:4 is the floor, not a cap: at 大/特大, in 简洁显示 and in English the text can need more room, so a slide grows past
+   3:4 instead of clipping its source line (min-height = 4/3 of the slide width; 100cqw is the slide's own width). The
+   track stretches every slide to the tallest one, so the cards stay one height while you swipe. */
+.gd-carousel .ui-carousel__slide { container-type:inline-size; }
+.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:min(3cqw, 14px); min-height:calc(100cqw * 4 / 3); height:100%; padding:6cqw; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
+/* Three card looks on an article (SYS ≤3): white with a line (points, contacts), surface-2 (compare, checklist, safety, 30 秒看懂,
+   tips, templates) and brand-deep (the cover). */
+.gd-slide:is([data-kind=compare],[data-kind=checklist],[data-kind=safety]) { border-color:transparent; background:var(--color-surface-2); }
+.gd-slide--cover { border-color:transparent; background:var(--color-brand-deep); color:var(--color-surface); }
+.gd-slide__mark { position:absolute; top:14cqw; right:-8cqw; width:56cqw; height:56cqw; color:var(--color-surface); opacity:.12; pointer-events:none; }
+.gd-slide--cover>:not(.gd-slide__mark) { position:relative; }
+.gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
+.gd-slide__kicker { color:var(--color-brand); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.4; font-weight:600; }
+.gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
+.gd-slide__count { flex:none; color:inherit; font-size:var(--text-caption); line-height:1.385; font-weight:700; opacity:.7; font-variant-numeric:tabular-nums; }
+.gd-slide__question { margin:auto 0 0; color:var(--color-on-brand-muted); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.6cqw * var(--fluid-scale)), 1.25rem); line-height:1.5; font-weight:600; }
+.gd-slide__cover-title { margin:0; color:var(--color-surface); font-size:clamp(1.5rem, calc(9.5cqw * var(--fluid-scale)), 2.375rem); line-height:1.25; font-weight:600; text-wrap:balance; }
+.gd-answer { align-self:flex-start; margin:0; padding:2px 10px; border-radius:6px; background:var(--ui-highlight); color:var(--color-brand-deep); font-size:clamp(1.0625rem, calc(6cqw * var(--fluid-scale)), 1.625rem); line-height:1.35; font-weight:700; font-variant-numeric:tabular-nums; }
+.gd-nowrap { white-space:nowrap; }
+.gd-answer a { display:inline-flex; flex-wrap:wrap; align-items:center; column-gap:.3em; min-height:3rem; color:inherit; text-decoration:none; }
+.gd-slide__line { margin:0; color:var(--color-surface); font-size:clamp(max(.875rem, var(--text-floor)), calc(4cqw * var(--fluid-scale)), 1.125rem); line-height:1.57; opacity:.92; }
+.gd-slide__title { display:flex; align-items:flex-start; gap:8px; margin:4px 0 0; color:var(--color-ink); font-size:clamp(1.25rem, calc(7cqw * var(--fluid-scale)), 1.875rem); line-height:1.3; font-weight:600; text-wrap:balance; }
+.gd-slide__title>svg { flex:none; width:1.5rem; height:1.5rem; margin-top:.15em; color:var(--tc-family-fg); }
+.gd-slide__body { margin:0; color:var(--color-ink); font-size:clamp(1rem, calc(4.4cqw * var(--fluid-scale)), 1.25rem); line-height:1.6; }
+.gd-slide__items { display:flex; flex-direction:column; gap:min(2.4cqw, 10px); margin:0; padding:0; list-style:none; }
+.gd-slide__items li { display:flex; align-items:flex-start; gap:8px; color:var(--color-ink); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.2cqw * var(--fluid-scale)), 1.1875rem); line-height:1.5; }
+.gd-slide__items li::before { content:""; flex:none; width:6px; height:6px; margin-top:.65em; border-radius:999px; background:currentColor; opacity:.6; }
+.gd-slide[data-kind=checklist] .gd-slide__items li::before { display:none; }
+.gd-slide__items li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.15em; color:var(--color-brand); }
+.gd-slide__phones { display:flex; flex-direction:column; gap:8px; }
+.gd-slide__phones[data-count=many] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px 12px; }
+.gd-slide__phone { display:flex; flex-direction:column; justify-content:center; min-height:3rem; color:var(--color-brand); text-decoration:none; }
+.gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.gd-slide__phone-number { font-size:clamp(1.0625rem, calc(5.2cqw * var(--fluid-scale)), 1.375rem); line-height:1.25; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:clamp(1.5rem, calc(9cqw * var(--fluid-scale)), 2.375rem); line-height:1.15; }
+.gd-slide__source { margin:auto 0 0; padding-top:8px; color:var(--color-ink-2); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.45; }
+.gd-slide--cover .gd-slide__source { color:var(--color-on-brand-muted); }
+
+/* 查: "30 秒看懂" and the contact cards. */
+.gd-keyfacts { padding:20px; border-left:4px solid var(--color-brand); border-radius:16px; background:var(--color-surface-2); }
+.gd-keyfacts h2 { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
+.gd-keyfacts ol { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gd-keyfacts li { display:flex; flex-direction:column; gap:2px; padding:10px 0; border-top:1px solid var(--color-line); }
+.gd-keyfacts li:first-child { border-top:0; padding-top:2px; }
+.gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.gd-keyfacts__value { color:var(--color-ink); font-size:1.0625rem; line-height:1.6; font-weight:600; }
+.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:600; text-decoration:none; }
+/* The glyph stays caption size; the tap area around it is 44px (48px in 简洁显示), rule 5. */
+.gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
+html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
+.gd-contacts { margin-top:24px; }
+.gd-contacts>h2,.gd-related__head h2 { margin:0 0 12px; color:var(--color-ink); font-size:1.375rem; line-height:1.364; font-weight:600; }
+.gd-contacts__list { display:grid; grid-template-columns:minmax(0, 1fr); gap:12px; }
+.gd-contact { display:flex; flex-direction:column; gap:6px; padding:16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+.gd-contact h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
+.gd-contact__number { margin:0; color:var(--color-ink); font-size:1.375rem; line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-contact__languages { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 0; }
+.gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; }
+.gd-contact__places { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gd-contact__places a { display:inline-flex; align-items:center; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:.9375rem; line-height:1.6; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.gd-contact__places svg { flex:none; width:1.125rem; height:1.125rem; }
+.gd-contact__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
+.gd-contact__actions>.ui-button { flex:1 1 7rem; }
+.gd-contact__actions>.ui-button>svg { width:1.125rem; height:1.125rem; }
+.gd-contact__status { margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-contact__status:empty { display:none; }
+
+/* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源". */
+.gd-step { margin-top:28px; }
+.gd-step__head { display:flex; align-items:flex-start; gap:12px; }
+.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-card); line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
+.gd-step__head h2 { margin:6px 0 0; color:var(--color-ink); font-size:1.25rem; line-height:1.4; font-weight:600; text-wrap:balance; scroll-margin-top:64px; }
+.gd-step__conclusion { margin:6px 0 0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.765; }
+.gd-step__more { margin:8px 0 0 52px; }
+.gd-step__more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:600; cursor:pointer; list-style:none; }
+.gd-step__more>summary::-webkit-details-marker { display:none; }
+.gd-step__more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
+.gd-step__more[open]>summary>svg { transform:rotate(180deg); }
+.gd-step>.bl-guide-prose { margin-left:52px; }
+
+/* Link cards inside the prose: their base rules live in monthly-deals.css (WEB-EVENTS' file; CSS-PRUNE moves them here). */
+.gd-article .bl-guide-source-link { border-color:var(--color-line); background:var(--color-surface-2); }
+.gd-article .bl-guide-source-link>a { color:var(--color-brand); font-size:var(--text-body); }
+.gd-article .bl-guide-source-link>p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
+
+/* A number in an official source description (PhoneText) keeps the prose chip: the legacy `.bl-guide-sources a` rules meant for
+   the source title (a flex row in guides-ui.css, ink-2 in tokens.css) would stretch it across the line and grey it out. The
+   title keeps its own tap area above the chip's 48px box, as in phone-links.css. */
+.gd-article .bl-guide-sources li p .phone-chip { display:inline-flex; align-items:center; justify-content:normal; gap:.25em; color:var(--color-brand); font-size:var(--text-reading); line-height:1.6; }
+.gd-article .bl-guide-sources li p .phone-chip>svg { margin-top:0; }
+.gd-article .bl-guide-sources li:has(.phone-chip)>a { position:relative; z-index:1; }
+
+/* The outing link's small line (outing-inspiration.css) reads at caption size inside an article. */
+.gd-article .outing-inspiration-link small { font-size:var(--text-caption); }
+
+/* Related covers and the page's image credits. */
+.gd-related { margin-top:40px; }
+.gd-related__head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+.gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+.gd-credits { margin-top:20px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
+.gd-credits>summary { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; cursor:pointer; }
+.gd-credits ul { display:flex; flex-direction:column; gap:10px; margin:4px 0 0; padding:0; list-style:none; }
+.gd-credits li { display:flex; flex-wrap:wrap; gap:2px 10px; }
+.gd-credits__kind { color:var(--color-ink); font-weight:600; }
+.gd-credits__caption { flex-basis:100%; }
+.gd-credits a { display:inline-flex; align-items:center; gap:2px; color:var(--color-brand); }
+.gd-credits a>svg { width:.875rem; height:.875rem; }
+:is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-step__more>summary,.gd-related__head a,.gd-credits>summary,.gd-credits a,.gd-about a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+
+/* Large text and 简洁显示: the step text drops its indent; the carousel keeps one slide at full width. */
+@media (max-width:767px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) :is(.gd-step__more,.gd-step>.bl-guide-prose) { margin-left:0; }
+}
+
+@media (min-width:768px) {
+  .gd-article.bl-guide-article { padding:24px 28px 28px; }
+  .gd-contacts__list { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width:1024px) {
+  .gd-article.bl-guide-article { padding:32px 40px 32px; }
+  .gd-title__head { font-size:2rem; line-height:1.3125; }
+.gd-title__rest { font-size:var(--text-body); }
+  .gd-lead { margin-top:20px; }
+  .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }
+  .gd-lead:not([data-visual]) { max-width:780px; }
+  .gd-lead .gd-cover { border-radius:24px; }
+  .gd-step__head h2 { font-size:1.375rem; line-height:1.364; }
+}

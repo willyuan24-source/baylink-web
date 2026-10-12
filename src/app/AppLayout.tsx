@@ -1,87 +1,38 @@
-// 应用布局层：共享状态容器 + 侧栏/底部导航 chrome + URL 驱动的覆盖层（帖子/用户/聊天）+ 全局弹层
-// 页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过 background-location 模式覆盖在来源页之上
-import { lazy, Suspense, useState, useEffect, useRef, useCallback } from 'react';
+// 应用布局层：组合会话（useSession）、邻里 feed（useCommunityFeed，只在 feed 页取数）、站点外框（SiteChrome，与预渲染同一份标记）
+// 和覆盖层（OverlayHost：帖子/用户/聊天/登录等弹层，按需加载）。页面内容由 <Outlet context> 渲染；/posts/:id 与 /users/:id 通过
+// background-location 模式覆盖在来源页之上。
+import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, useNavigate, type Location } from 'react-router-dom';
-import { Search, UserRound, Loader2 } from 'lucide-react';
-import type { Socket } from 'socket.io-client';
-import { api, SOCKET_URL } from '../lib/api';
-import { getStoredUser, removeStoredUser, SESSION_KEY } from '../lib/session';
-import { HOME_CHANNELS, matchesCategory } from '../lib/constants';
+import { Loader2 } from 'lucide-react';
+import { api } from '../lib/api';
+import type { HOME_CHANNELS } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
-import { clearFeedCache, readFeedCache, writeFeedCache } from '../lib/feedCache';
-import { postAvailability } from '../lib/postAvailability';
+import { clearFeedCache } from '../lib/feedCache';
 import { setPageMetadata, SITE_STRUCTURED_DATA } from '../lib/seo';
 import { TOOLS_METADATA } from '../data/tool-catalog';
 import { EXPLORE_METADATA } from '../lib/explore-metadata';
 import { ABOUT_METADATA } from '../lib/about-metadata';
 import { GUIDES_METADATA } from '../lib/guides-metadata';
 import type {
-  AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget, UserData,
+  AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget,
 } from '../lib/types';
-import {
-  getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isHomePath, isKnownAppPath,
-} from '../routing';
+import { getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isKnownAppPath } from '../routing';
 import type { AppContextValue } from './context';
 import { usePageScroll } from './usePageScroll';
-import { feedPageLocation, useFeedFilters } from './useFeedFilters';
 import { useContactIntent } from './useContactIntent';
 import { useConversationOpener } from './useConversationOpener';
 import { withConversationContext } from '../lib/conversation-context';
-import { useUnreadMessages } from './useUnreadMessages';
 import { useCloseOverlay } from './overlay-close';
-import { getLocale, useLocale } from '../i18n/locale';
-import { usePendingContacts } from './usePendingContacts';
-import { clearMessageDrafts } from '../features/messages/messageState';
-
-import Avatar from '../components/Avatar';
-import { ConfirmHost, confirmDialog } from '../components/ui/confirm';
-import { ModalShell } from '../components/ui/Modal';
-import { Toast, type ToastAction } from '../components/Toast';
-import { ImageViewer } from '../components/ImageViewer';
-import { PostNotFoundView } from '../components/PostNotFoundView';
+import { getLocale } from '../i18n/locale';
+import { useSession } from './useSession';
+import { useCommunityFeed } from './useCommunityFeed';
+import { OverlayHost } from './OverlayHost';
+import { BootMainSettled, bootMainFallback } from './boot-main';
+import { confirmDialog } from '../components/ui/confirm';
+import type { ToastAction } from '../components/Toast';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
-
-import { ForgotPasswordModal } from '../components/ForgotPasswordModal';
-import { ResetPasswordModal } from '../components/ResetPasswordModal';
-import { BlockedUsersModal } from '../components/BlockedUsersModal';
-import ReportModal, { type ReportReason } from '../components/ReportModal';
-import { PostShareSheet } from '../components/PostShareSheet';
-import { SiteNavigation } from '../components/SiteNavigation';
-import { LanguageSwitcher } from '../components/LanguageSwitcher';
-import { LocaleContentGate } from '../components/LocaleContentGate';
-import { SiteMobileNavigation } from '../components/SiteMobileNavigation';
-import { ReadingPreferencesButton } from '../components/ReadingPreferences';
-import { AdDetailModal } from '../features/ads/OfficialAds';
-import { LoginModal } from '../features/auth/LoginModal';
-
-// chunk 拉取失败重试一次，瞬时网络错误 / 发版换 hash 不至于直接炸到根级 ErrorBoundary
-const retryImport = <T,>(load: () => Promise<T>): Promise<T> =>
-  load().catch(() => new Promise<void>((res) => setTimeout(res, 1000)).then(load));
-
-const QuickExplore = lazy(() => retryImport(() => import('../components/QuickExplore').then(m => ({ default: m.QuickExplore }))));
-const BayBayAssistantEntry = lazy(() => retryImport(() => import('../components/BayBayAssistantEntry').then(m => ({ default: m.BayBayAssistantEntry }))));
-
-// 大弹层懒加载：发帖（含图片压缩管线）/ 帖子详情 / 聊天 / 用户名片只在打开时才拉取代码
-const CreatePostModal = lazy(() => retryImport(() => import('../features/posts/CreatePostModal').then((m) => ({ default: m.CreatePostModal }))));
-const PostDetailModal = lazy(() => retryImport(() => import('../features/posts/PostDetailModal').then((m) => ({ default: m.PostDetailModal }))));
-const UserProfileModal = lazy(() => retryImport(() => import('../features/users/UserProfileModal').then((m) => ({ default: m.UserProfileModal }))));
-const ChatView = lazy(() => retryImport(() => import('../features/messages/ChatView').then((m) => ({ default: m.ChatView }))));
-
-// 懒弹层 chunk 就绪前的可见占位：避免「点了没反应」和深链下的覆盖层空洞
-const overlayChunkFallback = (
-  <div className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80">
-    <Loader2 className="h-8 w-8 animate-spin text-baylink-green" />
-  </div>
-);
-const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef }: { label: string; onClose: () => void; restoreFocusRef?: React.RefObject<HTMLElement> }) => (
-  <ModalShell onClose={onClose} className="fixed inset-0 z-[110] flex items-center justify-center bg-white/90 p-5" label={label} restoreFocusRef={restoreFocusRef}>
-    <div className="rounded-2xl border border-baylink-border bg-white p-8 text-center">
-    <Loader2 aria-hidden="true" className="mx-auto h-8 w-8 animate-spin text-baylink-green" />
-    <p role="status" className="mt-4 text-base">{label}</p>
-    <button type="button" onClick={onClose} className="mt-5 min-h-11 rounded-xl border border-baylink-border px-6 text-base">关闭</button>
-    </div>
-  </ModalShell>
-);
+import type { ReportReason } from '../components/ReportModal';
+import { SiteChrome } from '../components/SiteChrome';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -91,29 +42,95 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const navigate = useNavigate();
   const navigateRef = useRef(navigate);
   useEffect(() => { navigateRef.current = navigate; });
-  const english = useLocale() === 'en';
   const tab = tabFromPathname(location.pathname);
-  const playingLittleBay = /^\/play\/?$/.test(location.pathname);
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
-  const feedPage = feedPageLocation(location);
-  const includeUnconfirmed = new URLSearchParams(feedPage.search).get('older') === '1';
-  const categorySlug = feedPage.pathname.startsWith('/category/')
-    ? feedPage.pathname.split('/category/')[1]?.split('/')[0]
-    : undefined;
 
-  const [user, setUser] = useState<UserData | null>(getStoredUser);
+  // ✨ Toast
+  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; action?: ToastAction; id: number } | null>(null);
+  // id 让相同内容的 toast 也能通过 key 强制重挂载，从而每次调用都重置计时
+  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info', action?: ToastAction) => setToast({ message, type, action, id: Date.now() }), []);
+  // E2E-08: a failure toast (e.g. a photo that could not be processed) must not outlive the save that then succeeded.
+  const dismissErrorToast = useCallback(() => setToast(current => current?.type === 'error' ? null : current), []);
+
   const [showLogin, setShowLogin] = useState(false);
   const [quickExploreOpen, setQuickExploreOpen] = useState(false);
   const [quickQuery, setQuickQuery] = useState('');
   const quickSearchOpenerRef = useRef<HTMLElement | null>(null);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
   const [baybayLoaded, setBaybayLoaded] = useState(false);
+  const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
+  const baybayOpenerRef = useRef<HTMLElement | null>(null);
+  const [baybaySessionRevision, setBaybaySessionRevision] = useState(0);
+  const baybayLoginDraft = useRef<BayBayConversationDraft | null>(null);
+  const baybayResumeOwner = useRef<string | null>(null);
+  const [baybayResumedConversation, setBaybayResumedConversation] = useState<{ ownerId: string; draft: BayBayConversationDraft } | null>(null);
+  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<{ text: string; scope: string; mode: 'send' | 'draft' } | null>(null);
+  const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
+  const [baybayPendingQuestionId, setBaybayPendingQuestionId] = useState(0);
+  const baybayQuestionSequence = useRef(0);
+  const [showCreate, setShowCreate] = useState(false);
+  const pendingCreateRef = useRef(false);
+  const [editingPost, setEditingPost] = useState<PostData | null>(null);
+  const [createDefaultType, setCreateDefaultType] = useState<PostType | undefined>(undefined);
+  const [createDefaultCategory, setCreateDefaultCategory] = useState<string | undefined>(undefined);
+  const [createInitialIntent, setCreateInitialIntent] = useState('');
+  const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
+  const selectedPostRef = useRef(selectedPost);
+  useEffect(() => { selectedPostRef.current = selectedPost; });
+  const [postDetailRefreshing, setPostDetailRefreshing] = useState(false);
+  const [postRouteMissing, setPostRouteMissing] = useState(false);
+  const [postRouteLoading, setPostRouteLoading] = useState(false);
+  const [postRouteError, setPostRouteError] = useState<string | null>(null);
+  const [postRetry, setPostRetry] = useState(0);
+  const [chatConv, setChatConv] = useState<Conversation | null>(null);
+  const [chatRouteStatus, setChatRouteStatus] = useState<AppContextValue['chatRouteStatus']>('idle');
+  const [chatRouteError, setChatRouteError] = useState<string | null>(null);
+  const [chatRetry, setChatRetry] = useState(0);
+  const retryChatRoute = () => setChatRetry((value) => value + 1);
+  const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [sharingPost, setSharingPost] = useState<PostData | null>(null);
+  const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
+  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
+  const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
+  const [adsRefreshKey, setAdsRefreshKey] = useState(0);
+  const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
+
+  // The feed is created after the session (it needs the reader); the session's callbacks reach it through this ref.
+  const feedRef = useRef<ReturnType<typeof useCommunityFeed> | null>(null);
+  const session = useSession({
+    onNewMessage: (threadId) => {
+      if (tabRef.current === 'messages') return;
+      // G1: one tap from the toast to the thread (the payload carries its conversationId).
+      showToast('收到新私信', 'info', { label: getLocale() === 'en' ? 'View' : '查看', onClick: () => navigateRef.current(threadId ? `/messages/${threadId}` : '/messages') });
+    },
+    onCleared: () => {
+      feedRef.current?.resetFeed();
+      // Storage events can replace a token for the same account in one batched update.
+      // Rotate the assistant session even when the final user ID has not changed.
+      setBaybaySessionRevision(value => value + 1);
+      setSelectedPost(null);
+      setChatConv(null);
+      setReportTarget(null);
+      setShowCreate(false);
+      setShowBlockedUsersModal(false);
+      setSharingPost(null);
+    },
+    onExpired: () => { setShowLogin(true); showToast('登录已过期，请重新登录。', 'error'); },
+    onBlocksLoaded: (ids) => feedRef.current?.hideBlockedAuthors(ids),
+  });
+  const { user, setUser, blockedUserIds, setBlockedUserIds, messagesBadgeCount } = session;
+  const feed = useCommunityFeed({ location, navigate, userId: user?.id, blockedUserIds });
+  useEffect(() => { feedRef.current = feed; });
+  const { posts, setPosts, categorySlug, fetchPosts, feedType, feedLocation } = feed;
+
   const openSearch = (query = '') => {
     if (!quickExploreOpen) quickSearchOpenerRef.current = document.activeElement as HTMLElement | null;
     setQuickQuery(query); setQuickExploreOpen(true);
   };
   useEffect(() => {
-    const openSearch = (event: KeyboardEvent) => {
+    const toggleSearch = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k' && !event.isComposing && !document.getElementById('root')?.inert) {
         event.preventDefault();
         quickSearchOpenerRef.current = document.activeElement as HTMLElement | null;
@@ -121,23 +138,12 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
         setQuickExploreOpen((open) => !open);
       }
     };
-    window.addEventListener('keydown', openSearch);
-    return () => window.removeEventListener('keydown', openSearch);
+    window.addEventListener('keydown', toggleSearch);
+    return () => window.removeEventListener('keydown', toggleSearch);
   }, []);
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
-  const [resetPasswordToken, setResetPasswordToken] = useState<string | null>(null);
-  const [baybayPanelOpen, setBaybayPanelOpen] = useState(false);
-  const baybayOpenerRef = useRef<HTMLElement | null>(null);
-  useEffect(() => { if (baybayPanelOpen) setBaybayLoaded(true); }, [baybayPanelOpen]);
-  const [baybaySessionRevision, setBaybaySessionRevision] = useState(0);
-  const baybayLoginDraft = useRef<BayBayConversationDraft | null>(null);
-  const baybayResumeOwner = useRef<string | null>(null);
-  const [baybayResumedConversation, setBaybayResumedConversation] = useState<{ ownerId: string; draft: BayBayConversationDraft } | null>(null);
+
   const baybaySessionScope = user?.id || 'guest';
-  const [baybayPendingQuestion, setBaybayPendingQuestion] = useState<{ text: string; scope: string; mode: 'send' | 'draft' } | null>(null);
-  const [baybayCategoryHint, setBaybayCategoryHint] = useState<string | undefined>(undefined);
-  const [baybayPendingQuestionId, setBaybayPendingQuestionId] = useState(0);
-  const baybayQuestionSequence = useRef(0);
+  useEffect(() => { if (baybayPanelOpen) setBaybayLoaded(true); }, [baybayPanelOpen]);
   const openBayBay = useCallback((question?: string, options?: { mode?: 'send' | 'draft' }) => {
     if (!baybayPanelOpen) baybayOpenerRef.current = document.activeElement as HTMLElement | null;
     if (question?.trim()) {
@@ -155,64 +161,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setBaybayPendingQuestion(null);
     setBaybayCategoryHint(undefined);
   }, [baybaySessionScope, baybaySessionRevision, user?.id]);
-  const [showCreate, setShowCreate] = useState(false);
-  const pendingCreateRef = useRef(false);
-  const [editingPost, setEditingPost] = useState<PostData | null>(null);
-
-  const { feedType, setFeedType, keyword, setKeyword, regionFilter, setRegionFilter, feedLocation } = useFeedFilters(location, navigate);
-  const [createDefaultType, setCreateDefaultType] = useState<PostType | undefined>(undefined);
-  const [createDefaultCategory, setCreateDefaultCategory] = useState<string | undefined>(undefined);
-  const [createInitialIntent, setCreateInitialIntent] = useState('');
-  // 上次会话缓存的 feed 先渲染（挂载后的首次 fetch 会在后台刷新替换）。
-  // 缓存只存「全部分类」默认视图：/category/:slug 冷启动不读缓存，避免首帧闪现错误分类的帖子
-  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug || keyword || regionFilter !== '全部' || includeUnconfirmed ? [] : readFeedCache(feedType).filter(post => postAvailability(post).tone === 'confirmed')));
-  const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  const [debouncedKeyword, setDebouncedKeyword] = useState(keyword.trim());
-  const [feedError, setFeedError] = useState(false);
-  const fetchSeqRef = useRef(0);
-  const [selectedPost, setSelectedPost] = useState<PostData | null>(null);
-  const selectedPostRef = useRef(selectedPost);
-  useEffect(() => { selectedPostRef.current = selectedPost; });
-  const [postDetailRefreshing, setPostDetailRefreshing] = useState(false);
-  const sessionExpiredHandledRef = useRef(false);
-  const [postRouteMissing, setPostRouteMissing] = useState(false);
-  const [postRouteLoading, setPostRouteLoading] = useState(false);
-  const [postRouteError, setPostRouteError] = useState<string | null>(null);
-  const [postRetry, setPostRetry] = useState(0);
-  const [chatConv, setChatConv] = useState<Conversation | null>(null);
-  const [chatRouteStatus, setChatRouteStatus] = useState<AppContextValue['chatRouteStatus']>('idle');
-  const [chatRouteError, setChatRouteError] = useState<string | null>(null);
-  const [chatRetry, setChatRetry] = useState(0);
-  const retryChatRoute = () => setChatRetry((value) => value + 1);
-  // 直接落在 /category/:slug 时按 URL 初始化，省掉一次按「全部」发出的无效首拉
-  const [categoryFilter, setCategoryFilter] = useState<string>(() =>
-    isHomePath(feedPage.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
-  const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, includeUnconfirmed, user?.id || 'guest']);
-  const feedQueryKeyRef = useRef(feedQueryKey);
-
-  const [viewingImage, setViewingImage] = useState<string | null>(null);
-  const [sharingPost, setSharingPost] = useState<PostData | null>(null);
-
-  // ✨ Toast & Socket State
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; action?: ToastAction; id: number } | null>(null);
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const unreadMessageCount = useUnreadMessages(user, socket);
-  const [contactRequestRefreshKey, setContactRequestRefreshKey] = useState(0);
-  const [pendingContactRequestCount, setPendingContactRequestCount] = usePendingContacts(user, contactRequestRefreshKey);
-  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
-  const [showBlockedUsersModal, setShowBlockedUsersModal] = useState(false);
-  const [reportTarget, setReportTarget] = useState<ReportTarget | null>(null);
-  const [detailAd, setDetailAd] = useState<AdDetailItem | null>(null);
-  const [adsRefreshKey, setAdsRefreshKey] = useState(0);
-  const [featuredRefreshKey, setFeaturedRefreshKey] = useState(0);
-  // id 让相同内容的 toast 也能通过 key 强制重挂载，从而每次调用都重置计时
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info', action?: ToastAction) => setToast({ message, type, action, id: Date.now() }), []);
-  // E2E-08: a failure toast (e.g. a photo that could not be processed) must not outlive the save that then succeeded.
-  const dismissErrorToast = useCallback(() => setToast(current => current?.type === 'error' ? null : current), []);
 
   const postIdParam = location.pathname.match(/^\/posts\/([^/]+)\/?$/)?.[1];
   const userIdParam = location.pathname.match(/^\/users\/([^/]+)\/?$/)?.[1];
@@ -261,58 +209,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     }
   };
 
-  // ✨ Socket 初始化：握手携带 JWT，服务端仅允许加入本人 room
-  // socket.io-client 动态加载：未登录访客的首包不用背这份体积
-  useEffect(() => {
-    if (!user?.token) {
-      setSocket((previous) => { previous?.disconnect(); return null; });
-      return;
-    }
-
-    let cancelled = false;
-    let created: Socket | null = null;
-    (async () => {
-      const { io } = await import('socket.io-client');
-      if (cancelled) return;
-
-      const newSocket = io(SOCKET_URL, {
-        auth: { token: user.token },
-      });
-      created = newSocket;
-
-      newSocket.on('connect', () => {
-        console.log('Socket Connected');
-        newSocket.emit('join_room');
-      });
-
-      newSocket.on('connect_error', () => {
-        // 鉴权失败时不影响页面渲染
-      });
-
-      newSocket.on('new_message', (message?: { conversationId?: unknown }) => {
-        window.dispatchEvent(new Event('baylink:messages-changed'));
-        if (tabRef.current !== 'messages') {
-          // G1: one tap from the toast to the thread (the payload carries its conversationId).
-          const threadId = typeof message?.conversationId === 'string' && /^[A-Za-z0-9_-]{1,200}$/.test(message.conversationId) ? message.conversationId : null;
-          showToast('收到新私信', 'info', { label: getLocale() === 'en' ? 'View' : '查看', onClick: () => navigateRef.current(threadId ? `/messages/${threadId}` : '/messages') });
-        }
-      });
-
-      setSocket(newSocket);
-    })();
-    return () => { cancelled = true; created?.disconnect(); };
-  }, [user?.id, user?.token, showToast]);
-
-  const messagesBadgeCount = Math.min(unreadMessageCount + pendingContactRequestCount, 99);
-  const showMessagesBadge = messagesBadgeCount > 0;
-
-  // URL → 分类筛选
-  useEffect(() => {
-    if (isHomePath(location.pathname)) {
-      setCategoryFilter(getCategoryFromSlug(categorySlug));
-    }
-  }, [location.pathname, categorySlug]);
-
   // 每次站内导航同步分享摘要与 canonical，避免沿用前一页的元数据。
   useEffect(() => {
     if (!isKnownAppPath(location.pathname)) return; // 404 页独立管理 noindex。
@@ -344,8 +240,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       document.title = '服务条款｜BAYLINK';
     } else if (path === '/sms-consent') {
       document.title = 'SMS Verification Consent｜BAYLINK';
-    } else if (path === '/') {
-      document.title = 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案';
     } else {
       document.title = 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案';
     }
@@ -447,71 +341,21 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       } catch (error) {
         if (cancelled) return;
         setChatRouteStatus('error');
-        setChatRouteError(friendlyErrorMessage(error, '无法加载会话，请重试。'));
+        // '' lets the messages page say it in its own words when the server gave no usable reason.
+        setChatRouteError(friendlyErrorMessage(error, '') || null);
       }
     })();
     return () => { cancelled = true; };
   }, [threadIdParam, user, chatRetry, chatPostTitle, chatPostId]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedKeyword(keyword.trim()), 400);
-    return () => clearTimeout(t);
-  }, [keyword]);
-
   // 首屏空闲后预热高频弹层 chunk，让首次点击基本即开
   useEffect(() => {
-    if (playingLittleBay) return;
     const id = window.setTimeout(() => {
-      import('../features/posts/PostDetailModal');
-      import('../features/users/UserProfileModal');
+      void import('../features/posts/PostDetailModal');
+      void import('../features/users/UserProfileModal');
     }, 2500);
     return () => window.clearTimeout(id);
-  }, [playingLittleBay]);
-
-  const clearLocalSession = useCallback(() => {
-    ++fetchSeqRef.current;
-    // Storage events can replace a token for the same account in one batched update.
-    // Rotate the assistant session even when the final user ID has not changed.
-    setBaybaySessionRevision(value => value + 1);
-    clearFeedCache();
-    setUser(null);
-    setSocket((prev) => { prev?.disconnect(); return null; });
-    setPosts([]);
-    setSelectedPost(null);
-    setChatConv(null);
-    setBlockedUserIds(previous => previous.length ? [] : previous);
-    setReportTarget(null);
-    setShowCreate(false);
-    setShowBlockedUsersModal(false);
-    setSharingPost(null);
   }, []);
-
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== SESSION_KEY && event.key !== null) return;
-      clearLocalSession();
-      setUser(getStoredUser());
-    };
-    window.addEventListener('storage', onStorage);
-    return () => window.removeEventListener('storage', onStorage);
-  }, [clearLocalSession]);
-
-  useEffect(() => {
-    const onSessionExpired = () => {
-      if (!localStorage.getItem('currentUser')) return;
-      if (sessionExpiredHandledRef.current) return;
-      sessionExpiredHandledRef.current = true;
-      const expiringUser = getStoredUser();
-      if (expiringUser) clearMessageDrafts(expiringUser.id);
-      removeStoredUser();
-      clearLocalSession();
-      setShowLogin(true);
-      showToast('登录已过期，请重新登录。', 'error');
-      window.setTimeout(() => { sessionExpiredHandledRef.current = false; }, 3000);
-    };
-    window.addEventListener('session-expired', onSessionExpired);
-    return () => window.removeEventListener('session-expired', onSessionExpired);
-  }, [clearLocalSession, showToast]);
 
   useEffect(() => {
     if (/^\/reset-password\/?$/.test(location.pathname)) {
@@ -533,119 +377,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     setShowForgotPassword(true);
   };
 
-  useEffect(() => {
-    if (!user) {
-      setBlockedUserIds([]);
-      return;
-    }
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await api.getMyBlocks();
-        if (cancelled) return;
-        const ids: string[] = (res.blocks || []).map((b: { id: string }) => b.id).filter(Boolean);
-        setBlockedUserIds(ids);
-        setPosts((prev) => filterPostsByBlockedUsers(prev, ids));
-      } catch { /* ignore */ }
-    })();
-    return () => { cancelled = true; };
-  }, [user]);
-
-  const fetchPosts = useCallback(async (pageNum: number, isRefresh: boolean = false, keywordOverride?: string) => {
-    // 请求代际守卫：每次调用使之前 in-flight 的请求失效，
-    // 防止用户中途切换筛选/Tab 时，旧请求的结果把新列表和 page/hasMore 写脏
-    const seq = ++fetchSeqRef.current;
-    const searchKw = keywordOverride ?? debouncedKeyword;
-    try {
-      if (!isRefresh) setIsLoadingMore(true);
-      else { setIsInitialLoading(true); setFeedError(false); }
-      // 服务端每页 5 条，而地区/分类目前在客户端过滤：筛选激活时一页可能被滤到 0 条，
-      // 表现为"点了加载更多却什么都没出现"。这里自动连续翻页直到凑够一批可见帖子或翻完。
-      const MIN_VISIBLE_PER_LOAD = 5;
-      const MAX_PAGES_PER_LOAD = 4;
-      const hasClientFilter = regionFilter !== '全部' || categoryFilter !== '全部' || (!!user && blockedUserIds.length > 0);
-      const collected: PostData[] = [];
-      const seenIds = new Set<string>();
-      let currentPage = pageNum;
-      let more = true;
-      let pagesFetched = 0;
-      while (true) {
-        let queryParams = `?type=${feedType}&page=${currentPage}&limit=6&availability=${includeUnconfirmed ? 'all' : 'current'}`;
-        if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
-        if (categoryFilter !== '全部') queryParams += `&category=${encodeURIComponent(categoryFilter)}`;
-        if (regionFilter !== '全部') queryParams += `&city=${encodeURIComponent(regionFilter)}`;
-        const res = await api.request(`/posts${queryParams}`);
-        if (fetchSeqRef.current !== seq) return; // 已被更新的请求接管，丢弃本次结果
-        const newPosts: PostData[] = res.posts || [];
-        more = res.hasMore;
-        pagesFetched += 1;
-        let filtered = newPosts;
-        if (regionFilter !== '全部') filtered = filtered.filter((p) => (p.city || '').includes(regionFilter));
-        filtered = filtered.filter((p) => matchesCategory(p.category, categoryFilter) && p.status !== 'closed');
-        if (user && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
-        for (const p of filtered) {
-          if (!seenIds.has(p.id)) { seenIds.add(p.id); collected.push(p); }
-        }
-        if (!more || !hasClientFilter || collected.length >= MIN_VISIBLE_PER_LOAD || pagesFetched >= MAX_PAGES_PER_LOAD) break;
-        // 只在确定还要再翻一页时才前进，保证 setPage 记录的是"实际拉取过"的最后一页，
-        // 否则下次 加载更多 会从未拉取的页码之后开始，凭空跳过一页帖子
-        currentPage += 1;
-      }
-      setPage(currentPage);
-      if (isRefresh) {
-        setPosts(collected);
-        // 只缓存默认视图（无搜索词、无筛选），供下次进入先渲染
-        if (!searchKw && regionFilter === '全部' && categoryFilter === '全部' && !includeUnconfirmed) {
-          writeFeedCache(feedType, collected);
-        }
-      } else {
-        // 两次翻页之间可能有新帖发布导致服务端分页偏移，按 id 去重避免重复卡片/重复 key
-        setPosts(prev => {
-          const prevIds = new Set(prev.map(p => p.id));
-          return [...prev, ...collected.filter(p => !prevIds.has(p.id))];
-        });
-      }
-      setHasMore(more);
-      setFeedError(false);
-    } catch (e) {
-      if (fetchSeqRef.current !== seq) return;
-      console.error(e);
-      setFeedError(true);
-      if (isRefresh) setHasMore(false);
-    } finally {
-      // 只清理本次调用自己设置的加载标记（即使已被新请求取代也要清，避免标记卡死）
-      if (fetchSeqRef.current === seq) { setIsLoadingMore(false); setIsInitialLoading(false); }
-    }
-  }, [feedType, regionFilter, categoryFilter, debouncedKeyword, includeUnconfirmed, user, blockedUserIds]);
-
-  useEffect(() => {
-    // The standalone 3D outing uses the editorial catalog, not the community feed.
-    if (playingLittleBay) { setIsInitialLoading(false); return; }
-    if (feedQueryKeyRef.current !== feedQueryKey) { setPosts([]); feedQueryKeyRef.current = feedQueryKey; }
-    setPage(1); setHasMore(true); void fetchPosts(1, true);
-  }, [fetchPosts, feedQueryKey, playingLittleBay]);
-
-  const retryFeed = () => {
-    setPage(1);
-    setHasMore(true);
-    fetchPosts(1, true);
-  };
-
-  const searchPostsNow = () => {
-    const kw = keyword.trim();
-    setPage(1);
-    setHasMore(true);
-    if (kw === debouncedKeyword) {
-      // 关键词没变时 effect 不会触发，手动刷新一次
-      fetchPosts(1, true, kw);
-    } else {
-      // 关键词变了交给 debouncedKeyword 的 effect 去拉取，避免同一次搜索发两个请求
-      setDebouncedKeyword(kw);
-    }
-  };
-
-  const handleLoadMore = () => { if (!isLoadingMore && !isInitialLoading && hasMore) fetchPosts(page + 1, false); };
-
   const openContactConversation = useConversationOpener({
     routeKey: location.key,
     onOpened: (conversation, { postTitle, postId }) => {
@@ -663,17 +394,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const openConversation = (c: Conversation) => { setChatConv(c); navigate(`/messages/${c.id}`); };
 
   const clearAccountSession = () => {
-    if (user) clearMessageDrafts(user.id);
-    removeStoredUser();
-    clearLocalSession();
+    session.endLocalSession();
     navigate('/');
   };
 
   const handleLogout = () => {
     const logout = api.request('/auth/logout', { method: 'POST' });
-    if (user) clearMessageDrafts(user.id);
-    removeStoredUser();
-    clearLocalSession();
+    session.endLocalSession();
     navigate('/');
     showToast('已退出当前浏览器', 'info');
     void logout.then(() => showToast('已退出登录，会话已撤销', 'info'))
@@ -828,9 +555,9 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const ctx: AppContextValue = {
     user, setUser, showToast, setShowLogin, handleLogout, clearAccountSession, messagesBadgeCount,
     chatRouteStatus, chatRouteError, retryChatRoute,
-    posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
-    regionFilter, setRegionFilter, categoryFilter,
-    feedError, isInitialLoading, isLoadingMore, hasMore, handleLoadMore, retryFeed,
+    posts, feedType, setFeedType: feed.setFeedType, keyword: feed.keyword, setKeyword: feed.setKeyword, searchPostsNow: feed.searchPostsNow,
+    regionFilter: feed.regionFilter, setRegionFilter: feed.setRegionFilter, categoryFilter: feed.categoryFilter,
+    feedError: feed.feedError, isInitialLoading: feed.isInitialLoading, isLoadingMore: feed.isLoadingMore, hasMore: feed.hasMore, handleLoadMore: feed.handleLoadMore, retryFeed: feed.retryFeed,
     blockedUserIds,
     navigateToPost, navigateToCategory, openUserProfile, openRecentPostFromProfile, openPostById, handleChannelClick,
     openCreate, openEditPost, handleDeletePost, handleToggleFeature, handleToggleLike,
@@ -839,214 +566,106 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     openBlockedUsersModal: () => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); },
     setBaybayPanelOpen, openBayBay, openSearch,
     adsRefreshKey, featuredRefreshKey,
-    contactRequestRefreshKey, setContactRequestRefreshKey, setPendingContactRequestCount,
+    contactRequestRefreshKey: session.contactRequestRefreshKey, setContactRequestRefreshKey: session.setContactRequestRefreshKey, setPendingContactRequestCount: session.setPendingContactRequestCount,
   };
 
+  const closeCreate = () => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); setCreateInitialIntent(''); };
+  const overlays = <OverlayHost
+    locationKey={location.key}
+    user={user}
+    socket={session.socket}
+    blockedUserIds={blockedUserIds}
+    showToast={showToast}
+    navigate={navigate}
+    toast={toast}
+    closeToast={() => setToast(null)}
+    ad={{ item: detailAd, close: () => setDetailAd(null), isAdmin: user?.role === 'admin', onDelete: user?.role === 'admin' ? handleDeleteAdFromDetail : undefined }}
+    search={{ open: quickExploreOpen, query: quickQuery, openerRef: quickSearchOpenerRef, close: () => setQuickExploreOpen(false), onSearch: (value) => navigate(feedLocation('/', { keyword: value })), onAsk: openBayBay }}
+    baybay={{
+      open: baybayPanelOpen, loaded: baybayLoaded, scope: baybaySessionScope, sessionKey: `${baybaySessionScope}:${baybaySessionRevision}`, openerRef: baybayOpenerRef,
+      initialConversation: baybayResumedConversation?.ownerId === user?.id ? baybayResumedConversation?.draft : undefined,
+      pendingQuestion: baybayPendingQuestion?.scope === baybaySessionScope ? baybayPendingQuestion.text : null,
+      pendingQuestionMode: baybayPendingQuestion?.mode, pendingQuestionId: baybayPendingQuestionId,
+      currentPath: location.pathname + location.search, categoryHint: baybayCategoryHint, showLogin,
+      onLoginNeeded: (draft) => { baybayLoginDraft.current = user ? null : draft; pendingCreateRef.current = false; setShowLogin(true); },
+      onOpenChange: (open) => {
+        setBaybayPanelOpen(open);
+        if (!open) {
+          setBaybayPendingQuestion(null);
+          setBaybayCategoryHint(undefined);
+        }
+      },
+      onPendingQuestionConsumed: (id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); },
+      onCreatePost: (opts) => openCreate(opts?.postType, opts?.category, opts?.initialIntent),
+    }}
+    login={{
+      open: showLogin,
+      close: () => { setShowLogin(false); pendingCreateRef.current = false; baybayLoginDraft.current = null; cancelPendingContact(); },
+      onLogin: (loggedInUser) => { if (baybayLoginDraft.current) { baybayResumeOwner.current = loggedInUser.id; setBaybayResumedConversation({ ownerId: loggedInUser.id, draft: baybayLoginDraft.current }); } baybayLoginDraft.current = null; setBaybaySessionRevision(value => value + 1); clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); completeContactLogin(loggedInUser); },
+      onForgotPassword: handleOpenForgotPassword,
+    }}
+    forgotPassword={{ open: showForgotPassword, close: () => setShowForgotPassword(false) }}
+    resetPassword={{ token: resetPasswordToken, close: () => { navigate('/', { replace: true }); setResetPasswordToken(null); }, onSuccess: handleResetPasswordSuccess }}
+    create={{
+      open: showCreate, editingPost, defaultType: createDefaultType, defaultCategory: createDefaultCategory, initialIntent: createInitialIntent,
+      close: closeCreate,
+      onSaved: () => { dismissErrorToast(); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); },
+      onManageAvailability: openPostById,
+    }}
+    post={{
+      id: postIdParam, selected: selectedPost, loading: postRouteLoading, missing: postRouteMissing, error: postRouteError, refreshing: postDetailRefreshing,
+      close: (post) => closeOverlay(postFallback(post)),
+      retry: () => setPostRetry((value) => value + 1),
+      detail: {
+        onLoginNeeded: () => setShowLogin(true),
+        onContactLoginNeeded: () => { if (selectedPost) requestPostContact(selectedPost); },
+        onOpenChat: (id: string, nickname?: string, title?: string) => openChat(id, nickname, title, selectedPost?.id),
+        onOpenUserProfile: openUserProfile,
+        // The editor mounts in this layout, so it survives the overlay closing; open it first (G4).
+        onEdit: (p: PostData) => { openEditPost(p); closeOverlay(postFallback(p)); },
+        onToggleFeature: handleToggleFeature,
+        onDeleted: () => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); },
+        onImageClick: (src: string) => setViewingImage(src),
+        onShare: (p: PostData) => setSharingPost(p),
+        onLike: handleToggleLike,
+        onReport: (p: PostData) => openReportTarget({ targetType: 'post', targetId: p.id, authorId: p.authorId }),
+        onToggleBlockUser: handleToggleBlockUser,
+        onAskBayBay: (question: string) => {
+          openBayBay(question);
+          setBaybayCategoryHint(selectedPost?.category ? (getSlugFromCategory(selectedPost.category) || undefined) : undefined);
+        },
+      },
+    }}
+    chat={{ conversation: chatConv, ready: chatRouteStatus === 'ready', threadId: threadIdParam, close: () => { setChatConv(null); navigate('/messages'); }, onViewProfile: openUserProfile, onReportMessage: openReportTarget, onToggleBlockUser: handleToggleBlockUser }}
+    profile={{
+      userId: userIdParam, close: () => closeOverlay('/'),
+      card: { onChat: openChat, onOpenRecentPost: openRecentPostFromProfile, onLoginNeeded: () => setShowLogin(true), onReportUser: (id: string) => openReportTarget({ targetType: 'user', targetId: id }), onToggleBlockUser: handleToggleBlockUser },
+    }}
+    blockedUsers={{ open: showBlockedUsersModal, close: () => setShowBlockedUsersModal(false), onUnblock: handleUnblockUser }}
+    report={{ target: reportTarget, close: () => setReportTarget(null), onSubmit: handleSubmitReport }}
+    image={{ src: viewingImage, close: () => setViewingImage(null) }}
+    share={{ post: sharingPost, close: () => setSharingPost(null) }}
+  />;
 
   return (
-    <div className="site-app font-sans">
-      {/* locationKey 必须用真实位置：导航（含浏览器后退）时取消挂起的确认框，避免过期闭包执行 */}
-      <ConfirmHost locationKey={location.key} />
-      {toast && <Toast key={toast.id} message={toast.message} type={toast.type} action={toast.action} onClose={() => setToast(null)} />}
-      {detailAd && (
-        <AdDetailModal
-          ad={detailAd}
-          onClose={() => setDetailAd(null)}
-          isAdmin={user?.role === 'admin'}
-          onDelete={user?.role === 'admin' ? handleDeleteAdFromDetail : undefined}
-        />
-      )}
-
-      <a href="#scroll-container" className="site-skip-link">跳到主要内容</a>
-      <div className="site-workspace">
-        <header className="site-topbar">
-          <div className="site-topbar-inner">
-            <SiteNavigation active={tab} category={categoryFilter} homeActive={isHomePath(location.pathname)} pathname={location.pathname} user={user} notification={showMessagesBadge} notificationCount={messagesBadgeCount} onCreate={() => openCreate()} onAsk={() => openBayBay()} onAccount={() => user ? navigate('/me') : setShowLogin(true)} />
-            <div className="site-header-utilities">
-              <button type="button" className="site-command-trigger" onClick={() => openSearch()} aria-label="打开快速搜索" aria-keyshortcuts="Control+k Meta+k" title="Ctrl / ⌘ K"><Search size={21} aria-hidden="true" /></button>
-              {/* G16: 发布 lives inside 邻里 only. G1: with unread messages the avatar opens the inbox. */}
-              <div className="site-topbar-actions"><button type="button" className="site-topbar-account" aria-label={!user ? '登录账号' : showMessagesBadge ? (english ? `Messages, ${messagesBadgeCount} unread` : `消息，${messagesBadgeCount} 条未读`) : '查看我的资料'} onClick={() => user ? navigate(showMessagesBadge ? '/messages' : '/me') : setShowLogin(true)}>{user ? <Avatar theme={user.profileTheme} src={user.avatar} name={user.nickname} size={8} /> : <><UserRound size={20} aria-hidden="true" /><span className="site-account-desktop-label">登录</span></>}{showMessagesBadge && <b className="site-header-notification" aria-label="有未读通知">{messagesBadgeCount || '•'}</b>}</button></div>
-              <ReadingPreferencesButton />
-              <LanguageSwitcher realLocation={realLocation} />
-            </div>
-          </div>
-        </header>
-        {quickExploreOpen && <Suspense fallback={<DismissibleChunkFallback label="正在打开搜索…" onClose={() => setQuickExploreOpen(false)} restoreFocusRef={quickSearchOpenerRef} />}><LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={quickQuery} restoreFocusRef={quickSearchOpenerRef} onClose={() => setQuickExploreOpen(false)} onNavigate={navigate} onSearch={(value) => navigate(feedLocation('/', { keyword: value }))} onAsk={openBayBay} /></LocaleContentGate></Suspense>}
-
-        <main className="site-main" id="scroll-container" tabIndex={-1}>
-           <Suspense fallback={<div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
-             <Outlet context={ctx} />
-           </Suspense>
-        </main>
-
-        <SiteMobileNavigation pathname={location.pathname} notificationCount={messagesBadgeCount} hasNotification={showMessagesBadge} onAsk={() => openBayBay()} />
-
-        {(baybayPanelOpen || baybayLoaded) && <Suspense fallback={baybayPanelOpen ? <DismissibleChunkFallback label="正在打开 BayBay…" onClose={() => setBaybayPanelOpen(false)} restoreFocusRef={baybayOpenerRef} /> : null}><LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
-          key={baybaySessionScope}
-          ownerId={user?.id}
-          sessionKey={`${baybaySessionScope}:${baybaySessionRevision}`}
-          initialConversation={baybayResumedConversation?.ownerId === user?.id ? baybayResumedConversation?.draft : undefined}
-          onLoginNeeded={(draft) => { baybayLoginDraft.current = user ? null : draft; pendingCreateRef.current = false; setShowLogin(true); }}
-          variant="headless"
-          restoreFocusRef={baybayOpenerRef}
-          panelOpen={baybayPanelOpen && !showLogin}
-          onPanelOpenChange={(open) => {
-            setBaybayPanelOpen(open);
-            if (!open) {
-              setBaybayPendingQuestion(null);
-              setBaybayCategoryHint(undefined);
-            }
-          }}
-          pendingQuestion={baybayPendingQuestion?.scope === baybaySessionScope ? baybayPendingQuestion.text : null}
-          pendingQuestionMode={baybayPendingQuestion?.mode}
-          pendingQuestionId={baybayPendingQuestionId}
-          onPendingQuestionConsumed={(id) => { if (id === baybayQuestionSequence.current) setBaybayPendingQuestion(null); }}
-          currentPath={location.pathname + location.search}
-          categoryHint={baybayCategoryHint}
-          blockedUserIds={blockedUserIds}
-          onNavigate={navigate}
-          onCreatePostClick={(opts) => openCreate(opts?.postType, opts?.category, opts?.initialIntent)}
-        />
-        </LocaleContentGate>
-        </Suspense>}
-
-
-        {/* Modals（四个懒加载弹层各带 Suspense 占位，chunk 下载期间显示 spinner 遮罩而不是毫无反馈） */}
-        {showLogin && (
-          <LoginModal
-            onClose={() => { setShowLogin(false); pendingCreateRef.current = false; baybayLoginDraft.current = null; cancelPendingContact(); }}
-            onLogin={(loggedInUser) => { if (baybayLoginDraft.current) { baybayResumeOwner.current = loggedInUser.id; setBaybayResumedConversation({ ownerId: loggedInUser.id, draft: baybayLoginDraft.current }); } baybayLoginDraft.current = null; setBaybaySessionRevision(value => value + 1); clearFeedCache(); setPosts([]); setUser(loggedInUser); if (pendingCreateRef.current) setShowCreate(true); completeContactLogin(loggedInUser); }}
-            showToast={showToast}
-            onForgotPassword={handleOpenForgotPassword}
-          />
-        )}
-        {showForgotPassword && (
-          <ForgotPasswordModal
-            isOpen={showForgotPassword}
-            onClose={() => setShowForgotPassword(false)}
-            onSubmit={(email) => api.forgotPassword(email)}
-          />
-        )}
-        {resetPasswordToken && (
-          <ResetPasswordModal
-            isOpen={!!resetPasswordToken}
-            token={resetPasswordToken}
-            onClose={() => {
-              navigate('/', { replace: true });
-              setResetPasswordToken(null);
-            }}
-            onSuccess={handleResetPasswordSuccess}
-            onSubmit={(token, newPassword) => api.resetPassword(token, newPassword)}
-          />
-        )}
-        {showCreate && user && (
-          <Suspense fallback={overlayChunkFallback}>
-          <CreatePostModal
-            key={`${user.id}:${editingPost?.id || 'new'}`}
-            user={user}
-            mode={editingPost ? 'edit' : 'create'}
-            editingPost={editingPost}
-            defaultType={createDefaultType}
-            defaultCategory={createDefaultCategory}
-            initialIntent={editingPost ? undefined : createInitialIntent}
-            onClose={() => { setShowCreate(false); setEditingPost(null); setCreateDefaultCategory(undefined); setCreateInitialIntent(''); }}
-            onCreated={() => { dismissErrorToast(); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
-            onUpdated={() => { dismissErrorToast(); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
-            onManageAvailability={openPostById}
-            showToast={showToast}
-          />
-          </Suspense>
-        )}
-        {postIdParam && postRouteLoading && selectedPost?.id !== postIdParam && (
-          <ModalShell onClose={() => closeOverlay(postFallback())} label="正在加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-white/90"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /><button type="button" onClick={() => closeOverlay(postFallback())}>返回</button></ModalShell>
-        )}
-        {postIdParam && postRouteMissing && <PostNotFoundView onBack={() => closeOverlay(postFallback())} />}
-        {postIdParam && postRouteError && !postRouteLoading && <ModalShell onClose={() => closeOverlay(postFallback())} label="暂时无法加载信息" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-baylink-bg p-6"><p role="alert">{postRouteError}</p><button type="button" className="btn-primary px-6 py-3" onClick={() => setPostRetry((value) => value + 1)}>重试加载</button><button type="button" onClick={() => closeOverlay(postFallback())}>返回</button></ModalShell>}
-        {postIdParam && selectedPost?.id === postIdParam && !postRouteMissing && (
-          <Suspense fallback={overlayChunkFallback}>
-          <PostDetailModal
-            key={`${user?.id || 'guest'}:${postIdParam}`}
-            post={selectedPost}
-            detailRefreshing={postDetailRefreshing}
-            currentUser={user}
-            onClose={() => closeOverlay(postFallback(selectedPost))}
-            onLoginNeeded={() => setShowLogin(true)}
-            onContactLoginNeeded={() => requestPostContact(selectedPost)}
-            onOpenChat={(id, nickname, title) => openChat(id, nickname, title, selectedPost.id)}
-            onOpenUserProfile={openUserProfile}
-            // The editor mounts in this layout, so it survives the overlay closing; open it first (G4).
-            onEdit={(p: PostData) => { openEditPost(p); closeOverlay(postFallback(p)); }}
-            onToggleFeature={handleToggleFeature}
-            onDeleted={() => { navigate('/'); fetchPosts(1, true); setFeaturedRefreshKey((k) => k + 1); }}
-            onImageClick={(src: string) => setViewingImage(src)}
-            onShare={(p: PostData) => setSharingPost(p)}
-            onLike={handleToggleLike}
-            onReport={(p: PostData) => openReportTarget({ targetType: 'post', targetId: p.id, authorId: p.authorId })}
-            onToggleBlockUser={handleToggleBlockUser}
-            blockedUserIds={blockedUserIds}
-            showToast={showToast}
-            onAskBayBay={(question: string) => {
-              openBayBay(question);
-              setBaybayCategoryHint(selectedPost?.category ? (getSlugFromCategory(selectedPost.category) || undefined) : undefined);
-            }}
-          />
-          </Suspense>
-        )}
-        {chatConv && user && chatRouteStatus === 'ready' && chatConv.id === threadIdParam && (
-          <Suspense fallback={overlayChunkFallback}>
-          <ChatView
-            key={`${user.id}:${chatConv.id}`}
-            currentUser={user}
-            conversation={chatConv}
-            onClose={() => { setChatConv(null); navigate('/messages'); }}
-            socket={socket}
-            onViewProfile={openUserProfile}
-            onReportMessage={openReportTarget}
-            onToggleBlockUser={handleToggleBlockUser}
-            blockedUserIds={blockedUserIds}
-            showToast={showToast}
-          />
-          </Suspense>
-        )}
-        {userIdParam && (
-          <Suspense fallback={overlayChunkFallback}>
-          <UserProfileModal
-            userId={userIdParam}
-            onClose={() => closeOverlay('/')}
-            currentUser={user}
-            onChat={openChat}
-            onOpenRecentPost={openRecentPostFromProfile}
-            showToast={showToast}
-            onLoginNeeded={() => setShowLogin(true)}
-            onReportUser={(id) => openReportTarget({ targetType: 'user', targetId: id })}
-            onToggleBlockUser={handleToggleBlockUser}
-            blockedUserIds={blockedUserIds}
-          />
-          </Suspense>
-        )}
-        {showBlockedUsersModal && user && (
-          <BlockedUsersModal
-            isOpen={showBlockedUsersModal}
-            onClose={() => setShowBlockedUsersModal(false)}
-            loadBlocks={api.getMyBlocks}
-            onUnblock={handleUnblockUser}
-            showToast={showToast}
-            Avatar={Avatar}
-          />
-        )}
-        {reportTarget && (
-          <ReportModal
-            targetType={reportTarget.targetType}
-            targetId={reportTarget.targetId}
-            conversationId={reportTarget.targetType === 'message' ? reportTarget.conversationId : undefined}
-            onClose={() => setReportTarget(null)}
-            onSubmit={handleSubmitReport}
-          />
-        )}
-        {viewingImage && <ImageViewer src={viewingImage} onClose={() => setViewingImage(null)} />}
-        {sharingPost && <PostShareSheet post={sharingPost} onClose={() => setSharingPost(null)} showToast={showToast} />}
-      </div>
-
-    </div>
+    <SiteChrome
+      pathname={location.pathname}
+      user={user}
+      messagesCount={messagesBadgeCount}
+      onAsk={() => openBayBay()}
+      onSearch={() => openSearch()}
+      onLogin={() => setShowLogin(true)}
+      onAccount={() => user ? navigate('/me') : setShowLogin(true)}
+      onCreate={() => openCreate()}
+      onLogout={handleLogout}
+      realLocation={realLocation}
+      overlays={overlays}
+    >
+      {/* The first route keeps the prerendered page on screen while its chunk settles (boot-main.ts): no blank frame. */}
+      <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
+        <BootMainSettled />
+        <Outlet context={ctx} />
+      </Suspense>
+    </SiteChrome>
   );
 }

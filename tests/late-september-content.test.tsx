@@ -4,13 +4,12 @@ import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
-import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { lateSeptemberSfEastEvents, lateSeptemberSfEastOpenings } from '../src/data/late-september-sf-east';
 import { lateSeptemberPeninsulaSouthEvents, lateSeptemberPeninsulaSouthOpenings } from '../src/data/late-september-peninsula-south';
 import { lateSeptemberNorthEvents, lateSeptemberNorthOpenings, lateSeptemberNorthOffers } from '../src/data/late-september-north';
 import { lateSeptemberLocalOffers, regionalBulletins } from '../src/data/late-september-local';
 import { currentRegionalBulletins, getActiveRegionalBulletins } from '../src/data/october-2026-bulletins';
-import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { loadLocale, translateText } from '../src/i18n/locale';
@@ -20,7 +19,8 @@ import { buildEventCalendar, filterMonthlyEvents } from '../src/lib/monthly';
 const cssHook = registerHooks({ load(url, context, nextLoad) {
   return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context);
 } });
-const { RegionalBulletins } = await import('../src/components/RegionalBulletins');
+const { StaticRouter } = await import('react-router-dom');
+const { EventsView } = await import('../src/components/EventsView');
 cssHook.deregister();
 
 const events = [...lateSeptemberSfEastEvents, ...lateSeptemberPeninsulaSouthEvents, ...lateSeptemberNorthEvents];
@@ -83,58 +83,49 @@ test('every new Chinese editorial string translates through the loaded English r
   }
 });
 
-test('regional bulletins disappear at their expiry boundary without leaving an empty section', () => {
+test('regional bulletins disappear at their expiry boundary, in the data and in the events column’s travel alerts', () => {
   const bart = regionalBulletins.find(item => item.id === 'east-bay-yellow-line-sep29');
   assert.ok(bart);
-  const initial = renderToStaticMarkup(<RegionalBulletins today="2026-09-30" />);
-  assert.equal((initial.match(/<article>/g) || []).length, getActiveRegionalBulletins('2026-09-30').length);
+  const ids = (day: string) => getActiveRegionalBulletins(day).map(item => item.id);
   const wolfe = regionalBulletins.find(item => item.id === 'south-bay-wolfe-ramp-oct2')!;
-  assert.ok(!initial.includes(wolfe.sourceUrl), 'the October 5 closure update cannot appear in a September 30 snapshot');
-  assert.ok(renderToStaticMarkup(<RegionalBulletins today="2026-10-01" />).includes(bart.sourceUrl), 'BART remains on its final listed day');
-  const october = renderToStaticMarkup(<RegionalBulletins today="2026-10-02" />);
-  assert.equal((october.match(/<article>/g) || []).length, getActiveRegionalBulletins('2026-10-02').length);
-  assert.ok(!october.includes(bart.title), 'the September BART reminder expires even when an October reminder cites the same source');
-  for (const bulletin of regionalBulletins.filter(item => item.id !== bart.id && item.verifiedAt <= '2026-10-02')) {
-    assert.ok(october.includes(bulletin.sourceUrl), `${bulletin.id}: still-current bulletin missing`);
+  assert.ok(!ids('2026-09-30').includes(wolfe.id), 'the October 5 closure update cannot appear in a September 30 snapshot');
+  assert.ok(ids('2026-10-01').includes(bart.id), 'BART remains on its final listed day');
+  assert.ok(!getActiveRegionalBulletins('2026-10-02').some(item => item.title === bart.title), 'the September BART reminder expires even when an October reminder cites the same source');
+  for (const bulletin of regionalBulletins.filter(item => item.id !== bart.id && item.verifiedAt <= '2026-10-02' && item.expiresAt >= '2026-10-02')) {
+    assert.ok(getActiveRegionalBulletins('2026-10-02').some(item => item.sourceUrl === bulletin.sourceUrl), `${bulletin.id}: still-current bulletin missing`);
   }
-  for (const bulletin of currentRegionalBulletins) {
-    assert.ok(renderToStaticMarkup(<RegionalBulletins today={bulletin.expiresAt} />).includes(bulletin.sourceUrl), `${bulletin.id}: visible through its expiry date`);
-    assert.ok(!renderToStaticMarkup(<RegionalBulletins today={addCalendarDays(bulletin.expiresAt, 1)} />).includes(bulletin.sourceUrl), `${bulletin.id}: removed after its expiry date`);
+  // The column shows the same rule from its index (bulletins still in force on the edition's check date).
+  const alerts = (day: string) => renderToStaticMarkup(<StaticRouter location="/events?when=all"><EventsView today={day} /></StaticRouter>);
+  for (const bulletin of currentRegionalBulletins.filter(item => item.expiresAt >= MONTHLY_EDITION.checkedAt)) {
+    const day = bulletin.verifiedAt > bulletin.expiresAt ? bulletin.verifiedAt : bulletin.expiresAt;
+    if (day > bulletin.expiresAt) continue;
+    assert.ok(alerts(day).includes(bulletin.sourceUrl), `${bulletin.id}: visible through its expiry date`);
+    assert.ok(!alerts(addCalendarDays(bulletin.expiresAt, 1)).includes(bulletin.sourceUrl), `${bulletin.id}: removed after its expiry date`);
   }
   const holidayService = getActiveRegionalBulletins('2026-11-01').find(item => item.id === 'caltrain-thanksgiving-nov2026');
   assert.ok(holidayService, 'the consolidated November advisory must survive the old edition boundary');
   assert.match(holidayService.summary, /11\/11/);
   assert.equal(holidayService.expiresAt, '2026-11-27');
   const finalExpiry = currentRegionalBulletins.map(item => item.expiresAt).sort().at(-1)!;
-  assert.equal(renderToStaticMarkup(<RegionalBulletins today={addCalendarDays(finalExpiry, 1)} />), '');
+  assert.equal(JSDOM.fragment(alerts(addCalendarDays(finalExpiry, 1))).querySelector('#monthly-news'), null, 'no empty alerts block');
 });
 
-test('factual regional news preserves official sources and real photos while AI-only notices become text cards', () => {
-  const active = getActiveRegionalBulletins('2026-10-05');
-  const document = new JSDOM(renderToStaticMarkup(<RegionalBulletins today="2026-10-05" />)).window.document;
-  const cards = [...document.querySelectorAll('article')];
-  assert.equal(cards.length, active.length);
-  let photos = 0;
-  let textCards = 0;
+test('travel alerts keep each notice’s official source, date line and title, folded into one line', () => {
+  const day = '2026-10-09';
+  const active = getActiveRegionalBulletins(day);
+  const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today={day} /></StaticRouter>));
+  const alerts = fragment.querySelector('details#monthly-news')!;
+  assert.ok(alerts, 'the alerts keep the #monthly-news anchor');
+  assert.equal(alerts.hasAttribute('open'), false, 'folded by default');
+  assert.equal(alerts.querySelector('summary')!.textContent, `出行提醒 ${active.length} 条`);
+  const items = [...alerts.querySelectorAll('li')];
+  assert.equal(items.length, active.length);
   for (const bulletin of active) {
-    const card = cards.find(item => item.querySelector('h3')?.textContent === bulletin.title)!;
-    assert.ok(card, bulletin.id);
-    assert.ok(card.textContent?.includes(bulletin.summary));
-    assert.ok(card.textContent?.includes(bulletin.dateLabel));
-    assert.ok([...card.querySelectorAll('a')].some(link => link.getAttribute('href') === bulletin.sourceUrl));
-    assert.equal(card.querySelector('time')?.getAttribute('datetime'), bulletin.verifiedAt);
-    const image = GUIDE_IMAGES[bulletin.imageKey];
-    if (image && image.kind !== 'illustration') {
-      photos++;
-      assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
-      assert.ok(card.querySelector('figcaption')?.textContent?.includes(image.credit));
-    } else {
-      textCards++;
-      assert.equal(card.querySelector('figure'), null, bulletin.id);
-      assert.equal(card.querySelector('img'), null, bulletin.id);
-    }
+    const item = items.find(entry => entry.querySelector('strong')?.textContent === bulletin.title)!;
+    assert.ok(item, bulletin.id);
+    assert.ok(item.textContent!.includes(bulletin.dateLabel));
+    assert.ok([...item.querySelectorAll('a')].some(link => link.getAttribute('href') === bulletin.sourceUrl));
   }
-  assert.ok(photos > 0 && textCards > 0, 'exercise both original photos and notices that have no factual image');
 });
 
 test('published dates drive calendar filtering and export without filling gaps between Napa workshops', () => {

@@ -1,5 +1,5 @@
 import { useEffect, useId, useState } from 'react';
-import { Check, Type, X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { ModalShell } from './ui/Modal';
 import { initializeReadingSize, setReadingSize, setSimpleDisplay, useReadingSize, useSimpleDisplay, type ReadingSize } from '../lib/reading-preferences';
 import { translateText, useLocale } from '../i18n/locale';
@@ -34,7 +34,9 @@ export function ReadingPreferencesButton() {
   const english = useLocale() === 'en';
   useEffect(initializeReadingSize, []);
   return <>
-    <button type="button" className="site-reading-button" aria-label={english ? 'Change text size' : '调整阅读字号'} aria-haspopup="dialog" onClick={() => setOpen(true)}><Type size={20} aria-hidden="true" /><span>Aa</span></button>
+    {/* Aa labelled 字号 (WEB-SHELL2): the visible label is the accessible name; phones narrower than 360 px keep it for
+        screen readers only. */}
+    <button type="button" className="site-reading-button" aria-haspopup="dialog" onClick={() => setOpen(true)}><span className="site-reading-glyph" aria-hidden="true">Aa</span><span className="site-reading-label">{english ? 'Text size' : '字号'}</span></button>
     {open && <ModalShell label={english ? 'Reading preferences' : '阅读与显示'} onClose={() => setOpen(false)} className="reading-overlay"><div className="reading-dialog"><button type="button" className="reading-close" aria-label={english ? 'Close reading preferences' : '关闭阅读设置'} onClick={() => setOpen(false)}><X size={22} /></button><ReadingPreferencesCard /></div></ModalShell>}
   </>;
 }

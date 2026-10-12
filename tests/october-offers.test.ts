@@ -14,6 +14,7 @@ import { additionalOctoberOffers } from '../src/data/october-offers-extra';
 import { reviewedAutumnOffers } from '../src/data/autumn-release';
 import { offerReviews20261007 } from '../src/data/offers-reviewed-2026-10-07';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
+import { applyOfferOverlay } from '../src/data/editorial-overlay/apply';
 
 const offer = (id: string) => {
   const result = currentFreebies.find(item => item.id === id);
@@ -32,7 +33,8 @@ test('the unified guide preserves valid anchors and merges reviewed autumn benef
   assert.equal(new Set(currentFreebies.map(item => item.id)).size, currentFreebies.length);
   for (const reviewed of reviewedAutumnOffers) {
     assert.equal(currentFreebies.filter(item => item.id === reviewed.id).length, 1, `Reviewed offer must appear once: ${reviewed.id}`);
-    assert.deepEqual(offer(reviewed.id), { ...reviewed, ...currentOfferUpdates[reviewed.id], ...offerReviews20261007[reviewed.id] }, `Published conditions use the latest dated review: ${reviewed.id}`);
+    // The editorial overlay applies last (short forms and dated corrections from the 10/09 source reads).
+    assert.deepEqual(offer(reviewed.id), applyOfferOverlay([{ ...reviewed, ...currentOfferUpdates[reviewed.id], ...offerReviews20261007[reviewed.id] }], undefined, new Map())[0], `Published conditions use the latest dated review: ${reviewed.id}`);
     if (offerReviews20261007[reviewed.id]) {
       assert.equal(offer(reviewed.id).verifiedAt, '2026-10-07');
       assert.equal(offer(reviewed.id).endDate, '2026-10-07', 'A source review does not extend the actual offer expiry');

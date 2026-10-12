@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import Avatar from './Avatar';
 import { friendlyErrorMessage } from '../lib/format';
-import { readerError } from '../features/messages/reader-error';
 import { useUiCopy } from './ui/ui-copy';
 import '../features/messages/messages-hub.css';
 
@@ -46,7 +45,7 @@ export const ContactRequestInboxPanel = ({
   showEmpty = false,
   id,
 }: ContactRequestInboxPanelProps) => {
-  const { t, locale } = useUiCopy();
+  const { t } = useUiCopy();
   const [requests, setRequests] = useState<ContactRequestInboxItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [ownExpanded, setOwnExpanded] = useState(false);
@@ -103,7 +102,7 @@ export const ContactRequestInboxPanel = ({
       callbacks.current.onCountChange?.(next.length);
       showToast(approve ? t('已发送联系方式', 'Contact details sent') : t('已拒绝请求', 'Request declined'), approve ? 'success' : 'info');
     } catch (err) {
-      if (active.current) { const fallback = t('操作失败，请重试。', 'Action failed. Please try again.'); showToast(readerError(friendlyErrorMessage(err, fallback), locale, fallback), 'error'); }
+      if (active.current) { const fallback = t('操作失败，请重试。', 'Action failed. Please try again.'); showToast(friendlyErrorMessage(err, fallback), 'error'); }
     } finally {
       if (active.current) { actionPending.current = false; setActingId(null); }
     }
@@ -124,7 +123,7 @@ export const ContactRequestInboxPanel = ({
           {expanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
         </button>}
       </div>
-      {error && <p role="alert" className="msg-requests__error">{readerError(error, locale, t('联系方式请求加载失败。', 'Unable to load contact requests.'))}<button type="button" onClick={() => void load()}>{t('重新加载', 'Reload')}</button></p>}
+      {error && <p role="alert" className="msg-requests__error">{error}<button type="button" onClick={() => void load()}>{t('重新加载', 'Reload')}</button></p>}
       {!error && !count && (loading
         ? <p role="status" className="msg-requests__empty">{t('正在加载联系方式请求…', 'Loading contact requests…')}</p>
         : <p className="msg-requests__empty">{t('暂时没有待处理的联系请求。', 'No contact requests to answer right now.')}</p>)}

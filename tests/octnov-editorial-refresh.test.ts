@@ -25,7 +25,9 @@ test('new programs enter the public calendar and planner with only explicitly re
     assert.equal(PLANNER_EVENTS.filter(event => event.id === reviewed.id).length, 1);
     const calendar = buildEventCalendar(published[0]).replace(/\r\n /g, '');
     assert.equal(calendar.match(/BEGIN:VEVENT/g)?.length, new Set(reviewed.occurrenceDates).size);
-    for (const date of reviewed.occurrenceDates) assert.match(calendar, new RegExp(`DTSTART;VALUE=DATE:${date.replaceAll('-', '')}`));
+    // A day whose session time the CNT-EVENTS overlay confirms exports as a timed Pacific event (WEB-EVENTS E2E-13); the rest
+    // stay all-day dates. Either way each reviewed day starts an event.
+    for (const date of reviewed.occurrenceDates) assert.match(calendar, new RegExp(`DTSTART(?:;VALUE=DATE:|;TZID=America/Los_Angeles:)${date.replaceAll('-', '')}(?:T[0-9]{6})?`));
   }
   const yoga = MONTHLY_EVENTS.find(event => event.id === 'nov2026-presidio-free-yoga')!;
   assert.deepEqual(filterMonthlyEvents([yoga], { date: 'today' }, '2026-11-29'), []);

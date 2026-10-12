@@ -89,6 +89,7 @@
 :is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
+:is(.ui-cover,.ui-type-cover)[data-ratio="16:10"] { --ui-cover-ratio:16 / 10; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="3:2"] { --ui-cover-ratio:3 / 2; }
 :is(.ui-cover,.ui-type-cover)[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 3 / 4); }
 .ui-cover { background:var(--ui-lqip, var(--color-surface-2)); }
@@ -109,6 +110,8 @@
 .ui-type-cover[data-tone=food] { --tc-bg:var(--tc-food-bg); --tc-fg:var(--tc-food-fg); }
 .ui-type-cover[data-tone=seniors] { --tc-bg:var(--tc-seniors-bg); --tc-fg:var(--tc-seniors-fg); }
 .ui-type-cover[data-tone=free] { --tc-bg:var(--tc-free-bg); --tc-fg:var(--tc-free-fg); }
+/* Family C (guides): the topic shows in the pastel; text stays ink, so a page of guide covers reads in one text colour. */
+.ui-type-cover[data-family=guide] { --tc-fg:var(--color-ink); }
 .ui-type-cover__icon { position:absolute; top:12cqw; right:-10cqw; width:60cqw; height:60cqw; opacity:.16; color:currentColor; pointer-events:none; }
 .ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + 1.75rem); }
 .ui-type-cover__body>* { flex:none; margin:0; }

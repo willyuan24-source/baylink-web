@@ -1,0 +1,222 @@
+/* The site chrome (WEB-SHELL2, design.md §4.13): header, 更多 / language / account menus, global footer, phone tab bar and
+   the toast. SiteChrome.tsx renders this markup in the app and in the prerendered pages. Selectors start at .site-app so they
+   outrank the legacy shell rules still in design.css and tokens.css (both owned by other lanes) without !important.
+   Tokens and rem only; 400/600/700 weights; 13px (--text-caption) is the smallest text; 44px targets (48 in 简洁显示). */
+
+html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)); }
+.site-app {
+  --chrome-shadow-pop:0 14px 48px rgb(22 46 41 / .14);
+  --chrome-shadow-bar:0 -3px 18px rgb(22 46 41 / .03);
+  --chrome-header-height:4rem;
+  display:block; max-width:none; min-height:100dvh; background:var(--color-bg); color:var(--color-ink);
+}
+.site-app .site-workspace { width:100%; min-height:100dvh; display:flex; flex-direction:column; }
+.site-app .site-main { flex:1 0 auto; width:100%; max-width:1280px; margin-inline:auto; outline:none; }
+.site-app .site-skip-link { position:fixed; top:-5rem; left:16px; z-index:150; padding:12px 20px; border:2px solid var(--color-brand); border-radius:8px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); }
+.site-app .site-skip-link:focus { top:12px; }
+
+/* Header: 64 high on desktop, 56 on phones, sticky, white at 97% over a blur with a 1px line. The blur sits on a
+   pseudo-element: on the header itself it would make the header the containing block of its fixed menus (the phone
+   language sheet, 更多), and without it dark page text showed through the 3% (a ghost 「重新加载」 behind •••). */
+.site-app .site-topbar { position:sticky; top:0; z-index:45; display:block; height:auto; min-height:0; padding:0; border-bottom:1px solid var(--color-line); background:transparent; backdrop-filter:none; }
+.site-app .site-topbar::before { content:''; position:absolute; inset:0; z-index:-1; background:rgb(255 255 255 / .97); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); }
+.site-app .site-topbar-inner { display:flex; align-items:center; gap:16px; width:100%; max-width:1280px; min-height:var(--chrome-header-height); padding:0 32px; margin-inline:auto; }
+.site-app .site-header-navigation { display:flex; flex:1; align-items:center; gap:20px; min-width:0; }
+.site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:44px; }
+.site-app .site-header-brand img { display:block; width:140px; height:auto; object-fit:contain; }
+.site-app .site-header-primary.site-nav { display:flex; flex-direction:row; align-items:center; gap:4px; margin:0; }
+.site-app .site-header-primary .site-nav-link { position:relative; display:flex; align-items:center; gap:6px; min-height:44px; padding:10px 12px; border-radius:8px; background:transparent; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; white-space:nowrap; }
+.site-app .site-header-primary .site-nav-link:hover { background:var(--color-surface-2); color:var(--color-ink); }
+.site-app .site-header-primary .site-nav-link.is-active { color:var(--color-ink); font-weight:600; }
+.site-app .site-header-primary .site-nav-link.is-active::after,.site-app .site-navigation-more>summary.is-active::after { content:''; position:absolute; left:12px; right:12px; bottom:2px; height:2px; border-radius:2px; background:var(--color-brand); }
+.site-app .site-header-primary .site-nav-ask { color:var(--color-brand); }
+.site-app .site-nav-ask .site-otter { width:1.375rem; height:1.375rem; }
+.site-app .site-otter { display:block; flex:none; }
+
+/* 更多 */
+.site-app .site-navigation-more { position:relative; flex:none; }
+.site-app .site-navigation-more>summary { position:relative; display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:10px; border-radius:8px; list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; }
+.site-app :is(.site-navigation-more,.site-language,.site-account-menu)>summary::-webkit-details-marker { display:none; }
+.site-app .site-navigation-more>summary:hover,.site-app .site-navigation-more[open]>summary { background:var(--color-surface-2); color:var(--color-ink); }
+.site-app .site-navigation-more>summary.is-active { color:var(--color-ink); font-weight:600; }
+.site-app .site-more-icon { display:none; }
+.site-mobile-ask-short { display:none; }
+.site-app .site-more-notification { position:absolute; top:8px; right:6px; width:8px; height:8px; border-radius:50%; background:var(--color-danger); }
+.site-app .site-navigation-panel,.site-app .site-account-panel,.site-app .site-language-menu { position:absolute; z-index:60; top:calc(100% + 10px); right:0; overflow:auto; overscroll-behavior:contain; padding:8px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); box-shadow:var(--chrome-shadow-pop); }
+.site-app .site-navigation-panel { width:20rem; max-width:calc(100vw - 32px); max-height:calc(100dvh - 6rem); }
+.site-app .site-navigation-panel .site-secondary-nav { display:flex; flex-direction:column; gap:2px; margin:0; padding:0; border:0; }
+.site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button),.site-app .site-navigation-account button,.site-app .site-account-panel>button { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--control-height); padding:10px 12px; border-radius:8px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; text-align:left; }
+.site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button)>svg,.site-app .site-navigation-account button>svg,.site-app .site-account-panel>button>svg { flex:none; }
+.site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button):hover,.site-app .site-secondary-nav a[aria-current=page],.site-app .site-navigation-account button:hover,.site-app .site-account-panel>button:hover { background:var(--color-surface-2); color:var(--color-brand); }
+.site-app .site-unread,.site-app .site-header-notification,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:999px; background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); font-weight:700; line-height:1.5; text-align:center; }
+.site-app :is(.site-secondary-nav,.site-account-panel nav) .site-unread { margin-left:auto; }
+.site-app .site-navigation-account { margin-top:8px; padding-top:8px; border-top:1px solid var(--color-line); }
+.site-app .site-navigation-account p { padding:4px 12px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
+.site-app .site-navigation-legal { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; padding:6px 12px 0; border-top:1px solid var(--color-line); }
+.site-app .site-navigation-legal a { display:flex; align-items:center; min-height:44px; color:var(--color-ink-3); font-size:var(--text-caption); }
+.site-app .site-navigation-legal a:hover { color:var(--color-brand); text-decoration:underline; }
+
+/* Right-hand utilities: search, 字号, language, account. */
+.site-app .site-header-utilities { display:flex; flex:none; align-items:center; gap:4px; margin-left:auto; }
+.site-app .site-topbar .site-command-trigger { display:flex; align-items:center; gap:8px; flex:none; width:15rem; min-width:0; height:2.5rem; min-height:44px; margin:0 8px 0 0; padding:0 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); box-shadow:none; color:var(--color-ink-3); font-size:var(--text-fact); }
+.site-app .site-command-trigger:hover { border-color:var(--color-brand); color:var(--color-ink-2); }
+.site-app .site-command-placeholder { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.site-app .site-topbar .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; width:auto; min-width:44px; min-height:44px; padding:0 10px; border:0; border-radius:8px; background:transparent; color:var(--color-ink-2); }
+.site-app .site-reading-button:hover,.site-app .site-language-trigger:hover,.site-app .site-language[open]>.site-language-trigger,.site-app .site-topbar-account:hover { background:var(--color-surface-2); color:var(--color-ink); }
+.site-app .site-reading-glyph { font-size:var(--text-body); font-weight:600; }
+.site-app .site-reading-label { font-size:var(--text-fact); }
+.site-app .site-language { position:relative; flex:none; display:block; min-height:0; padding:0; border:0; background:transparent; }
+.site-app .site-language-trigger { display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:0 10px; border-radius:8px; list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-fact); }
+.site-app .site-language-short { display:none; font-size:.9375rem; font-weight:600; }
+.site-app .site-language-menu { width:14rem; }
+.site-app .site-language-title { padding:6px 12px 4px; color:var(--color-ink-3); font-size:var(--text-caption); }
+.site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:var(--control-height); padding:10px 12px; border-radius:8px; color:var(--color-ink); font-size:var(--text-body); text-align:left; }
+.site-app .site-language-menu>button:hover { background:var(--color-surface-2); }
+.site-app .site-language-menu>button[aria-pressed=true] { background:var(--color-selected); color:var(--color-brand-deep); font-weight:600; }
+.site-app .site-language-error { padding:8px 12px; color:var(--color-danger); font-size:var(--text-caption); }
+.site-app .site-topbar-actions { display:flex; flex:none; align-items:center; }
+.site-app .site-topbar .site-topbar-account { position:relative; display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:0 10px; border:0; border-radius:8px; list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-fact); }
+.site-app .site-account-menu { position:relative; }
+.site-app .site-header-notification { position:absolute; top:2px; right:0; min-width:1.125rem; padding:0 4px; }
+.site-app .site-account-panel { width:15rem; }
+.site-app .site-account-name { padding:8px 12px; overflow:hidden; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
+.site-app .site-account-panel nav { display:flex; flex-direction:column; gap:2px; padding:4px 0; border-block:1px solid var(--color-line); }
+.site-app .site-account-panel>button { margin-top:4px; }
+
+/* Global footer (plan §1): 13px, 44px targets, above the tab bar on phones. */
+.site-app .site-footer { margin-top:3rem; border-top:1px solid var(--color-line); background:var(--color-surface-2); }
+.site-app .site-footer-inner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 24px; max-width:1280px; margin-inline:auto; padding:16px 32px 24px; }
+.site-app .site-footer-brand { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
+.site-app .site-footer-brand strong { color:var(--color-ink-2); font-size:var(--text-fact); font-weight:700; }
+.site-app .site-footer nav { display:flex; flex-wrap:wrap; gap:0 4px; margin-inline:-10px; }
+.site-app .site-footer nav>:is(a,button) { display:inline-flex; align-items:center; min-height:44px; padding:0 10px; border-radius:8px; color:var(--color-ink-2); font-size:var(--text-caption); }
+.site-app .site-footer nav>:is(a,button):hover { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; }
+
+/* Toast (design.md §4.5): bottom, above the tab bar, so it never covers the header's ••• or search on a phone. */
+.site-toast { position:fixed; z-index:10000; left:0; right:0; bottom:calc(24px + env(safe-area-inset-bottom,0px)); display:flex; justify-content:center; padding:0 16px; pointer-events:none; }
+.site-toast-box { display:flex; align-items:center; gap:10px; max-width:min(36rem,100%); padding:6px 6px 6px 16px; border-radius:10px; background:var(--color-ink); color:var(--color-surface); box-shadow:var(--chrome-shadow-pop); pointer-events:auto; animation:site-toast-in .2s ease-out; }
+.site-toast-box>svg { flex:none; }
+.site-toast-message { flex:1; min-width:0; padding-block:8px; font-size:var(--text-fact); font-weight:600; line-height:1.5; }
+.site-toast-action { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); padding:0 14px; border-radius:8px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
+.site-toast-action:hover { background:var(--color-brand-tint); }
+/* On the ink toast the ring is drawn inside a white chip (brand on white), not on the dark background. */
+.site-toast-action:focus-visible,.site-toast-close:focus-visible { outline:2px solid var(--color-brand); outline-offset:-4px; background:var(--color-surface); color:var(--color-brand-deep); }
+.site-toast-close { display:grid; flex:none; place-items:center; width:var(--control-height); height:var(--control-height); border-radius:8px; color:var(--color-surface); }
+.site-toast-close:hover { background:rgb(255 255 255 / .12); }
+@keyframes site-toast-in { from { opacity:0; transform:translateY(8px); } }
+/* main.tsx: a boot step failed (page code or dictionary). 16px, above the tab bar, with a 44px 重试 that reloads. */
+.site-boot-retry { position:fixed; z-index:9999; left:12px; right:12px; bottom:calc(var(--site-mobile-nav-height) + 12px); display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:36rem; margin-inline:auto; padding:6px 6px 6px 16px; border-radius:10px; background:var(--color-ink); color:var(--color-surface); font-size:max(1rem,var(--text-body)); line-height:1.5; }
+.site-boot-retry button { min-width:var(--control-height); min-height:var(--control-height); padding:0 16px; border-radius:8px; background:var(--color-surface); color:var(--color-brand-deep); font-size:inherit; font-weight:600; }
+@media(min-width:1024px) { .site-boot-retry { bottom:24px; } }
+@media(prefers-reduced-motion:reduce) { .site-toast-box { animation:none; } }
+
+@media(min-width:1024px) and (max-width:1199px) {
+  .site-app .site-topbar-inner { gap:12px; padding-inline:24px; }
+  .site-app .site-header-navigation { gap:12px; }
+  .site-app .site-header-brand img { width:120px; }
+  .site-app .site-header-primary .site-nav-link { padding-inline:8px; }
+  .site-app .site-topbar .site-command-trigger { width:2.75rem; justify-content:center; padding:0; border-color:transparent; }
+  .site-app .site-command-placeholder,.site-app .site-language-name { display:none; }
+  .site-app .site-language-short { display:inline; }
+}
+
+/* Phones and tablets: the tab bar takes the primary links; the header keeps the logo, 更多 and the utilities. */
+@media(max-width:1023px) {
+  .site-app .site-topbar-inner { padding-inline:24px; }
+  .site-app .site-header-primary.site-nav { display:none; }
+  .site-app .site-navigation-more { margin-left:auto; }
+  .site-app .site-navigation-panel { max-height:calc(100dvh - var(--site-mobile-nav-height) - 6rem); }
+  .site-app .site-topbar .site-command-trigger { width:2.75rem; justify-content:center; margin:0; padding:0; border-color:transparent; background:transparent; color:var(--color-ink-2); }
+  .site-app .site-command-placeholder,.site-app .site-language-name { display:none; }
+  .site-app .site-language-short { display:inline; }
+  .site-app .site-main { padding-bottom:0; }
+  .site-app .site-footer { margin-top:2rem; }
+  .site-app .site-footer-inner { padding:12px 24px calc(var(--site-mobile-nav-height) + 16px); }
+
+  /* Tab bar: 64 + safe area (76 in 简洁显示, tokens.css), five cells, 24px icons, the otter at 32px, labels 13px. */
+  .site-app .site-mobile-nav { position:fixed; z-index:50; left:0; right:0; bottom:0; display:block; height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box; border-top:1px solid var(--color-line); background:rgb(255 255 255 / .96); backdrop-filter:blur(12px); box-shadow:var(--chrome-shadow-bar); }
+  .site-app .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:stretch; gap:3px; max-width:600px; height:100%; min-height:0; margin:auto; padding:4px 6px; font-size:var(--text-caption); }
+  .site-app .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:0; min-height:var(--control-height); padding:0; border-radius:12px; background:transparent; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.25; text-align:center; }
+  .site-app .site-mobile-nav .site-mobile-item>span { font-size:var(--text-caption); }
+  .site-app .site-mobile-nav .site-mobile-icon { position:relative; display:grid; place-items:center; width:min(3.5rem,100%); height:2rem; border-radius:999px; }
+  /* Labels never break inside a word ("Guide/s" at 320 px, 特大 + 简洁显示): one line, centred on the tab. */
+  .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:none; min-height:1.25em; white-space:nowrap; }
+  .site-app .site-mobile-nav .site-mobile-item.is-active { background:transparent; color:var(--color-brand-deep); font-weight:600; }
+  .site-app .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon { background:var(--color-selected); }
+  .site-app .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand-deep); }
+  .site-app .site-mobile-nav .site-mobile-ask .site-otter { width:2rem; height:2rem; }
+  .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { min-height:1.25em; overflow-wrap:normal; white-space:nowrap; }
+  .site-app .site-mobile-icon>b { position:absolute; top:-4px; left:calc(50% + 4px); min-width:1.125rem; padding:0 4px; }
+  .site-app .site-mobile-icon>b.site-mobile-notification-dot { top:0; left:calc(50% + 8px); width:9px; height:9px; min-width:0; padding:0; }
+  /* D10: on an event, offer or opening page the page's own action bar (WEB-DETAIL, .site-detail-actions) replaces the tab
+     bar. Until a page renders one, the tab bar stays. */
+  .site-app[data-chrome=detail]:has(.site-detail-actions) .site-mobile-nav { display:none; }
+  .site-toast { bottom:calc(var(--site-mobile-nav-height) + 12px); }
+}
+/* 问 BayBay / Ask BayBay never wraps: the bar is a size container in the label's own em (--text-caption), so the swap to
+   问问 / Ask follows 大, 特大 and 简洁显示 as well as the screen width. Five equal tabs share the bar's content box less
+   4 x 3px gaps, so a tab is (width - 12px) / 5. The full label shows only while a tab is wider than it with room for wider
+   phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for Ask BayBay; SF Pro runs about 5% wider): 4.9em and
+   5.5em per tab, i.e. 5 x tab + 12px (at most .92em). */
+/* Narrow bars at the largest text (320 px, 特大 + 简洁显示): 2px gaps and padding give each tab the 61px "Guides" needs. */
+@media(max-width:359px) {
+  .site-app .site-mobile-nav .site-mobile-nav-items { gap:2px; padding-inline:2px; }
+}
+@container site-mobile-bar (max-width:25.4em) {
+  .site-mobile-ask-label { display:none; }
+  .site-mobile-ask-short { display:inline; }
+}
+@container site-mobile-bar (max-width:28.4em) {
+  html:lang(en) .site-mobile-ask-label { display:none; }
+  html:lang(en) .site-mobile-ask-short { display:inline; }
+}
+/* Safari 15 / Firefox < 110 have no container queries: the short label on every phone. */
+@supports not (container-type:inline-size) {
+  @media(max-width:599px) {
+    .site-mobile-ask-label { display:none; }
+    .site-mobile-ask-short { display:inline; }
+  }
+}
+
+@media(max-width:767px) {
+  .site-app { --chrome-header-height:3.5rem; }
+  .site-app .site-topbar-inner { gap:2px; padding:4px max(8px,env(safe-area-inset-right,0px)) 4px max(12px,env(safe-area-inset-left,0px)); }
+  .site-app .site-header-navigation { gap:2px; }
+  .site-app .site-header-brand img { width:6.5rem; }
+  .site-app .site-navigation-more>summary { width:44px; padding:10px; }
+  .site-app .site-navigation-more>summary>span,.site-app .site-more-chevron { display:none; }
+  .site-app .site-more-icon { display:block; }
+  .site-app .site-navigation-more>summary.is-active { background:var(--color-brand-tint); }
+  .site-app .site-navigation-more>summary.is-active::after { display:none; }
+  .site-app .site-navigation-panel { position:fixed; top:calc(var(--chrome-header-height) + 8px); left:12px; right:12px; width:auto; max-width:none; max-height:calc(100dvh - var(--site-mobile-nav-height) - var(--chrome-header-height) - 20px); }
+  .site-app .site-header-utilities { gap:0; }
+  .site-app .site-topbar .site-reading-button { padding:0 8px; }
+  .site-app .site-topbar .site-reading-button,.site-app .site-language-trigger { min-width:44px; }
+  .site-app .site-language-trigger>svg { display:none; }
+  .site-app .site-topbar-actions { display:none; }
+  /* The language choices as a bottom sheet, with a scrim behind it; tapping the scrim closes it (it is the summary). */
+  .site-app .site-language[open]>.site-language-trigger::before { content:''; position:fixed; z-index:59; inset:0; background:rgb(22 46 41 / .32); cursor:default; }
+  .site-app .site-language-menu { position:fixed; top:auto; left:0; right:0; bottom:0; width:auto; max-height:85dvh; padding:8px 16px calc(16px + env(safe-area-inset-bottom,0px)); border-radius:24px 24px 0 0; }
+  .site-app .site-language-menu::before { content:''; display:block; width:36px; height:4px; margin:4px auto 8px; border-radius:999px; background:var(--color-line-strong); }
+  .site-app .site-language-menu>button { min-height:max(3.25rem,var(--control-height)); font-size:var(--text-body); }
+  /* The header's sticky stacking (45) would keep the sheet and its scrim under the tab bar (50), which then hid the
+     last choice: while the sheet is open the header sits above the bar. Without :has() the sheet stops above the bar. */
+  .site-app .site-topbar:has(.site-language[open]) { z-index:51; }
+  @supports not selector(:has(*)) { .site-app .site-language-menu { bottom:var(--site-mobile-nav-height); } }
+  .site-app .site-footer-inner { padding-inline:20px; }
+}
+@media(max-width:374px) {
+  .site-mobile-ask-label { display:none; }
+  .site-mobile-ask-short { display:inline; }
+}
+/* 字号 shows next to Aa from 360px (Chinese) and from 600px in English; narrower, it stays the button's accessible name. */
+@media(max-width:359px) {
+  .site-app .site-header-brand img { width:4rem; }
+  .site-app .site-reading-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+}
+@media(max-width:599px) {
+  html:lang(en) .site-app .site-reading-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+}
+@media(max-width:1023px) and (min-width:768px) {
+  .site-app .site-language-trigger>svg { display:block; }
+}

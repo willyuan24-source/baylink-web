@@ -16,7 +16,8 @@ import lateSfEastEnglish from '../src/data/late-september-sf-east-en.json';
 import latePeninsulaSouthEnglish from '../src/data/late-september-peninsula-south-en.json';
 import lateNorthEnglish from '../src/data/late-september-north-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
-import { buildEventCalendar, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, resolveMonthlyDateFilter } from '../src/lib/monthly';
+import { EVENT_OVERLAY } from '../src/data/editorial-overlay/apply';
+import { buildEventCalendar, featurePhotos, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, isLongRunning, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs } from '../src/lib/monthly';
 
 test('unknown admission remains searchable but never qualifies as a free event', () => {
   const item: MonthlyEvent = { ...MONTHLY_EVENTS[0], id: 'unknown-admission-fixture', kind: 'performance', startDate: '2026-10-03', endDate: '2026-10-03', occurrenceDates: ['2026-10-03'], cost: 'unknown', costLabel: '票价尚未公布，请查主办方。' };
@@ -272,7 +273,10 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-11-30', `${item.id} overlaps the fall edition or its November previews`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
-    assert.ok(item.plan.length >= 3 && item.plan.length <= 4, `${item.id} keeps a concise three- or four-step preparation list`);
+    // The editorial overlay drops filler and label repeats, so a covered plan may be one to four steps (CNT-EVENTS);
+    // items without an entry keep the three- or four-step guard.
+    const minSteps = Object.hasOwn(EVENT_OVERLAY, item.id) ? 1 : 3;
+    assert.ok(item.plan.length >= minSteps && item.plan.length <= 4, `${item.id} keeps a concise ${minSteps === 1 ? 'one' : 'three'}- to four-step preparation list`);
     assert.equal(new Set(item.plan).size, item.plan.length, `${item.id} does not repeat a preparation step`);
     assert.ok(item.plan.every(step => step.trim().length > 10));
   }
@@ -427,9 +431,59 @@ test('late-month calendars preserve actual selected dates without turning a clos
   const exhibition = buildEventCalendar(event('emeryville-art-exhibition-closing-2026'));
   assert.equal(field(exhibition, 'DTSTART;VALUE=DATE'), '20261023');
   assert.equal(field(exhibition, 'DTEND;VALUE=DATE'), '20261026');
+  // CNT-EVENTS' overlay confirms one session (10/31 17:30–22:30), so WEB-EVENTS' E2E-13 export makes it a timed Pacific
+  // event (never an invented time: an event without a confirmed session, like the closing weekend above, stays all-day).
   const halloween = buildEventCalendar(event('san-jose-avenida-altares-2026'));
-  assert.equal(field(halloween, 'DTSTART;VALUE=DATE'), '20261031');
-  assert.equal(field(halloween, 'DTEND;VALUE=DATE'), '20261101');
+  assert.equal(field(halloween, 'DTSTART;TZID=America/Los_Angeles'), '20261031T173000');
+  assert.equal(field(halloween, 'DTEND;TZID=America/Los_Angeles'), '20261031T223000');
   assert.equal(field(halloween, 'TRANSP'), 'TRANSPARENT');
   assert.ok(decodeText(field(halloween, 'DESCRIPTION')).includes(event('san-jose-avenida-altares-2026').officialUrl));
+});
+
+// Events column views (plan WEB-EVENTS: day tabs, 整个周末都开放, next-day order, real photo first within ties) ----------
+
+const dated = (id: string, startDate: string, endDate: string, occurrenceDates?: string[]) => ({ id, startDate, endDate, ...(occurrenceDates ? { occurrenceDates } : {}) });
+
+test('weekend day tabs: one-offs sit under their day, long runs on both days are 整个周末都开放, past days drop out', () => {
+  const weekend = ['2026-10-10', '2026-10-11'] as const;
+  assert.deepEqual(weekendDayTabs(dated('sat-only', '2026-10-10', '2026-10-10'), weekend, '2026-10-09'), ['sat']);
+  assert.deepEqual(weekendDayTabs(dated('two-day-fair', '2026-10-10', '2026-10-11'), weekend, '2026-10-09'), ['sat', 'sun'], 'a two-day festival is on both day tabs');
+  assert.deepEqual(weekendDayTabs(dated('exhibition', '2026-09-01', '2026-11-30'), weekend, '2026-10-09'), ['open']);
+  assert.deepEqual(weekendDayTabs(dated('weekly-sunday', '2026-09-06', '2026-10-25', ['2026-10-04', '2026-10-11', '2026-10-18']), weekend, '2026-10-09'), ['sun'], 'a long series confirmed only on Sunday stays a Sunday item');
+  assert.deepEqual(weekendDayTabs(dated('exhibition', '2026-09-01', '2026-11-30'), weekend, '2026-10-11'), ['sun'], 'on Sunday, Saturday is over');
+  assert.deepEqual(weekendDayTabs(dated('sat-only', '2026-10-10', '2026-10-10'), weekend, '2026-10-11'), []);
+  assert.deepEqual(weekendDayTabs(dated('gap', '2026-10-01', '2026-10-31', ['2026-10-03', '2026-10-17']), weekend, '2026-10-09'), [], 'an unconfirmed weekend inside the run is not listed');
+  assert.equal(isLongRunning(dated('six-days', '2026-10-05', '2026-10-11')), false);
+  assert.equal(isLongRunning(dated('week', '2026-10-04', '2026-10-11')), true);
+});
+
+test('nextOccurrence reads confirmed dates first and ends with the run', () => {
+  assert.equal(nextOccurrence(dated('run', '2026-10-01', '2026-10-31'), '2026-09-20'), '2026-10-01');
+  assert.equal(nextOccurrence(dated('run', '2026-10-01', '2026-10-31'), '2026-10-09'), '2026-10-09');
+  assert.equal(nextOccurrence(dated('run', '2026-10-01', '2026-10-31'), '2026-11-01'), undefined);
+  assert.equal(nextOccurrence(dated('series', '2026-10-01', '2026-10-31', ['2026-10-17', '2026-10-03']), '2026-10-09'), '2026-10-17');
+  assert.equal(nextOccurrence(dated('empty', '2026-09-01', '2026-09-30', []), '2026-09-01'), undefined, 'an empty confirmed schedule is never an upcoming outing');
+  assert.equal(nextOccurrence(dated('outside', '2026-10-01', '2026-10-10', ['2026-10-20']), '2026-10-01'), undefined, 'a date outside the run is ignored');
+});
+
+test('event lists order by the next day, one-offs before series, then a real photo within ties', () => {
+  const events = [
+    dated('series-started-september', '2026-09-01', '2026-11-30'),
+    dated('one-off-today-text', '2026-10-09', '2026-10-09'),
+    dated('one-off-today-photo', '2026-10-09', '2026-10-09'),
+    dated('next-week', '2026-10-16', '2026-10-16'),
+  ];
+  const photo = new Set(['one-off-today-photo', 'series-started-september']);
+  assert.deepEqual(orderByNextDay(events, '2026-10-09', event => photo.has(event.id)).map(event => event.id),
+    ['one-off-today-photo', 'one-off-today-text', 'series-started-september', 'next-week'], 'a September series sorts by its next day, after the one-offs');
+});
+
+test('featurePhotos moves the best-ranked real photos into the first screen’s diagonal slots and drops nothing', () => {
+  const ranked = ['t1', 'p1', 't2', 't3', 'p2', 't4', 'p3', 't5', 'p4', 'p5'];
+  const photo = (id: string) => id.startsWith('p');
+  const result = featurePhotos(ranked, photo);
+  assert.deepEqual(result, ['p1', 't1', 't2', 'p2', 'p3', 't3', 't4', 'p4', 't5', 'p5']);
+  assert.deepEqual([...result].sort(), [...ranked].sort());
+  assert.deepEqual(featurePhotos(['t1', 't2'], photo), ['t1', 't2'], 'no photos: the rank order stands');
+  assert.deepEqual(featurePhotos(['t1', 'p1'], photo), ['p1', 't1']);
 });
