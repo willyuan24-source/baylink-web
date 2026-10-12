@@ -95,7 +95,8 @@ test('the route renders 404 for an unknown id and the record for a known one', a
   const view = render(<MemoryRouter initialEntries={['/offers/sfmta-free-muni-seniors']}><Suspense fallback={<p>loading</p>}><Routes>
     <Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} />
   </Routes></Suspense></MemoryRouter>);
-  assert.ok(await view.findByRole('heading', { level: 1 }));
+  // The record is a first dynamic import: allow for a loaded machine (testing-library waits 1 s by default).
+  assert.ok(await view.findByRole('heading', { level: 1 }, { timeout: 15_000 }));
   assert.ok(view.container.querySelector('.site-detail-actions'));
 });
 

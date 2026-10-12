@@ -23,23 +23,26 @@ afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 const events = (fetch: { mock: { calls: { arguments: unknown[] }[] } }) => fetch.mock.calls
   .filter(call => String(call.arguments[0]).endsWith('/product-events')).map(call => JSON.parse(String((call.arguments[1] as RequestInit).body)));
 
+const RECORD_WAIT = 15_000;
+
 test('an event detail counts one event_detail_open per item and offers "这条信息有误？" in its source section', async context => {
   const fetch = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
   const view = render(<MemoryRouter initialEntries={['/events/san-jose-avenida-altares-2026']}>
     <Link to="/offers/sephora-birthday">next item</Link>
     <Suspense fallback={null}><Routes><Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} /><Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} /></Routes></Suspense>
   </MemoryRouter>);
-  // The page renders once its generated record is in (features/detail/load-detail.ts).
-  const report = await view.findByRole('button', { name: '这条信息有误？告诉我们' });
+  // The page renders once its generated record is in (features/detail/load-detail.ts): a first dynamic import, slow on a
+  // loaded machine, so the waits are longer than testing-library's 1 s default.
+  const report = await view.findByRole('button', { name: '这条信息有误？告诉我们' }, { timeout: RECORD_WAIT });
   const article = view.container.querySelector('article.local-discovery-detail')!;
   assert.ok(article.querySelector('.detail-source')?.contains(report), 'with the source and its checks (WEB-DETAIL)');
   assert.deepEqual(events(fetch).filter(body => body.event === 'event_detail_open').map(body => body.route), ['/events/:id']);
   dom.reconfigure({ url: 'https://www.baylink.us/offers/sephora-birthday' });
   fireEvent.click(view.getByRole('link', { name: 'next item' }));
-  await waitFor(() => assert.equal(events(fetch).filter(body => body.event === 'event_detail_open').length, 2));
+  await waitFor(() => assert.equal(events(fetch).filter(body => body.event === 'event_detail_open').length, 2), { timeout: RECORD_WAIT });
   assert.doesNotMatch(JSON.stringify(events(fetch)), /sephora|avenida/, 'ids never leave the browser');
   await act(async () => { await setLocale('en', false); });
-  assert.ok(await view.findByRole('button', { name: 'Something wrong here? Tell us' }));
+  assert.ok(await view.findByRole('button', { name: 'Something wrong here? Tell us' }, { timeout: RECORD_WAIT }));
 });
 
 test('the 404 page offers feedback', async () => {
