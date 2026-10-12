@@ -13,7 +13,7 @@ import { PLANNER_CATALOG } from '../src/data/planner-catalog';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES } from '../src/data/attractions';
 import { ATTRACTION_REGION_INTROS } from '../src/data/attraction-region-intros';
 import { READER_PATHS } from '../src/data/reader-paths';
-import { perksPosters } from '../src/data/perks-posters';
+import { perksPosterCaption, perksPosters } from '../src/data/perks-posters';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import { DETAIL_BUCKET_COUNT, detailBucket, type EnglishDictionary } from '../src/lib/english-loading';
 import { allDetailRecords } from '../src/features/detail/build-detail';
@@ -145,11 +145,14 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     sizes[scope] = gzipSync(serialized).length;
     await writeFile(`${directory}/${scope}.json`, serialized);
   }
+  // The posters' share captions (PerksGallery) pass their fixed lines through translate() at render time.
+  const posterCaptionLines: string[] = [];
+  for (const poster of perksPosters) perksPosterCaption(poster, text => { posterCaptionLines.push(text); return text; });
   for (const guide of guides) {
     if (!/^[a-z0-9][a-z0-9-]*$/u.test(guide.slug)) throw new Error(`Unsafe guide scope slug: ${guide.slug}`);
     // The deals board resolves each offer's picture at runtime (getOfferImage): its alt text, caption and credit too.
     const offers = guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []);
-    const values = [records.get(guide.slug), offers.length ? [perksPosters, offers.map(getOfferImage)] : undefined];
+    const values = [records.get(guide.slug), offers.length ? [perksPosters, posterCaptionLines, offers.map(getOfferImage)] : undefined];
     const file = `guide-${guide.slug}.json`;
     registry[`guide:${guide.slug}`] = file;
     await writeFile(`${directory}/${file}`, JSON.stringify(remaining(values)));
