@@ -43,7 +43,7 @@ export function readableText(html) {
       last = end >= 0 ? body.indexOf('>', end) + 1 : body.length;
       continue;
     }
-    const skip = /\stranslate="no"/.test(attributes) || /\sdata-lang-switch\b/.test(attributes) || /\slang="zh/.test(attributes) || /\saria-hidden="true"/.test(attributes) && false;
+    const skip = /\stranslate="no"/.test(attributes) || /\sdata-lang-switch\b/.test(attributes) || /\slang="zh/.test(attributes);
     if (!skipDepth) for (const attribute of ATTRIBUTES) {
       const value = new RegExp(`\\s${attribute}="([^"]*)"`).exec(attributes)?.[1];
       if (value) parts.push(decode(value));

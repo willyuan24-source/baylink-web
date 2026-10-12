@@ -2,9 +2,7 @@ import { readFile } from 'node:fs/promises';
 import QRCode from 'qrcode';
 import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { guides } from '../src/data/guides';
-import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../src/data/guide-media';
-import { LIFE_TOOLS } from '../src/data/tool-catalog';
 import { loadLocale, translateText } from '../src/i18n/locale';
 import { guideShare, shareCardPath } from '../src/lib/editorial-share';
 import { renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
@@ -12,10 +10,9 @@ import { discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_P
 import { hubCardPath } from '../src/lib/hub-cards';
 import { SITE_URL } from '../src/lib/seo';
 import { languagePath } from '../src/lib/language-path';
-import { getBayAreaToday, getMonthlyDateRange } from '../src/lib/monthly';
-import { getBuildWeekend } from '../src/lib/home-weekend-build';
-import { formatDateChip } from '../src/lib/event-facts';
+import { getBayAreaToday } from '../src/lib/monthly';
 import { createGlyphOutliner, createRasterPool } from './card-glyphs';
+import { hubCardData } from './share-card-data';
 
 /**
  * Share cards v2 (I18N-SEO-05) and hub cards (I18N-SEO-03), 1200 × 630, one per language: zh-Hans at the original
@@ -81,14 +78,10 @@ for (const guide of guides) {
 }
 
 // Hub cards: this weekend's picks (the home page's and the weekly card's), the guide topics, the tools.
-const weekend = getBuildWeekend(today, MONTHLY_EVENTS).picks;
-const range = getMonthlyDateRange('weekend', today);
 for (const locale of LOCALES) {
-  const english = locale === 'en', t = tr(locale);
-  const rows = weekend.map(({ event, date }) => ({ date: t(formatDateChip({ kind: 'day', date, ended: false }, english).label), title: t(event.shortTitle || event.title), city: event.city }));
-  const span = range ? `${Number(range.start.slice(5, 7))}/${Number(range.start.slice(8, 10))}–${range.end.slice(5, 7) === range.start.slice(5, 7) ? Number(range.end.slice(8, 10)) : `${Number(range.end.slice(5, 7))}/${Number(range.end.slice(8, 10))}`}` : '';
+  const t = tr(locale), data = hubCardData(locale, t, today);
   for (const name of HUB_CARD_NAMES) {
-    const model = hubCardModel(name, locale, t, { weekend: rows, range: span, tools: LIFE_TOOLS.map(tool => tool.title), guideCount: guides.length });
+    const model = hubCardModel(name, locale, t, data);
     const { draw, finish } = outline();
     const svg = renderHubCardSvg(model, qrFor(`${SITE_URL}${languagePath(HUB_PATHS[name], locale)}?from=card`), logo, draw);
     await queue(finish(svg), filePath(hubCardPath(name), locale));
