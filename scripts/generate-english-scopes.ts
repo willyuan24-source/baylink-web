@@ -121,7 +121,9 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   await import('./generate-events-index');
   const eventsList = [JSON.parse(await readFile('src/data/generated/events-index.json', 'utf8')), officialEventMedia, CALENDAR_CITY_LOCATIONS,
     VERIFIED_PLACE_PHOTO_ALIASES, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_OFFER_PLACE_MEDIA_UPDATES,
-    OCTNOV_EVENT_PHOTO_ALIASES, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_CONTEXT_PHOTOS, EVENT_CONTEXT_PHOTOS];
+    OCTNOV_EVENT_PHOTO_ALIASES, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_CONTEXT_PHOTOS, EVENT_CONTEXT_PHOTOS,
+    // every compact schedule note: the calendar can show any of them (tests/octnov-metadata-i18n.test.tsx)
+    EVENT_SCHEDULE_NOTES];
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),

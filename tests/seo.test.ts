@@ -17,6 +17,11 @@ import { EVENTS_INDEX, INDEX_EVENTS } from '../src/features/events/events-model'
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 import { generateSitemap } from '../scripts/generate-sitemap';
+import { preloadAllGuideBlocks } from '../src/features/guides/guide-blocks';
+
+// The deals board and the city directory are chunks an article loads with its record (WEB-DATA-SPLIT); the page waits for
+// them, so does this test.
+await preloadAllGuideBlocks();
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const noop = () => {};
