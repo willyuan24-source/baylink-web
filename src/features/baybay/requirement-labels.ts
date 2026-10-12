@@ -12,6 +12,8 @@ const REGIONS: Record<string, Names> = {
   'south-bay': { zh: '南湾', hant: '南灣', en: 'South Bay' },
   peninsula: { zh: '半岛', hant: '半島', en: 'Peninsula' },
   'north-bay': { zh: '北湾', hant: '北灣', en: 'North Bay' },
+  // The API's region after "城市不限" / "anywhere in the Bay" (api baybayState: clear the city, region 'all').
+  all: { zh: '湾区各地', hant: '灣區各地', en: 'Anywhere in the Bay Area' },
 };
 const WEEKDAYS: Names[] = [
   { zh: '周日', hant: '週日', en: 'Sun' }, { zh: '周一', hant: '週一', en: 'Mon' }, { zh: '周二', hant: '週二', en: 'Tue' }, { zh: '周三', hant: '週三', en: 'Wed' },

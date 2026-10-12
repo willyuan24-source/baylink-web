@@ -26,6 +26,7 @@ import { BayBaySaveScope } from '../features/baybay/BayBaySaveScope';
 import { bayBayPageTitle } from '../features/baybay/page-title';
 import { loadBayBayCards } from '../features/baybay/cards-loader';
 import { translateText, useLocale } from '../i18n/locale';
+import { useReadingSize, useSimpleDisplay } from '../lib/reading-preferences';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
 import { LocaleFeatureGate } from './LocaleContentGate';
 
@@ -292,7 +293,9 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   };
   const placeholder = schoolContext ? '例如：东湾 Fremont，准备入读三年级' : turns.length ? '继续补充城市、预算或你的想法…' : '例如：周末带 6 岁孩子，东湾有什么免费去处？';
   // The question box fits its text up to four lines (then scrolls), and an empty box is as tall as its whole example
-  // at any text size, so the example that teaches what to ask is never cut off (READ-10).
+  // at any text size, so the example that teaches what to ask is never cut off (READ-10). Aa (特大) and 简洁显示 change
+  // the text size without a resize, so the box fits again when either changes.
+  const readingSize = useReadingSize(), simpleDisplay = useSimpleDisplay();
   useLayoutEffect(() => {
     const field = inputRef.current;
     if (!open || !field) return;
@@ -314,7 +317,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     fit();
     view.addEventListener('resize', fit);
     return () => view.removeEventListener('resize', fit);
-  }, [open, question, placeholder, locale]);
+  }, [open, question, placeholder, locale, readingSize, simpleDisplay]);
   const emergencyLast = lastComplete?.response?.safety?.kind === 'emergency';
   const fullNotice = bayBayFullNoticeTurns(turns);
 

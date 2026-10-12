@@ -23,13 +23,13 @@
 .baybay-requirements strong,.baybay-assistant-plan h4 { font-size:.8125rem; font-weight:600; }
 .baybay-requirements small,.baybay-assistant-plan small { color:var(--color-ink-3); font-size:.6875rem; line-height:1.6; }
 .baybay-requirement-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
-.baybay-requirement-chips button { display:flex; align-items:center; gap:6px; max-width:100%; min-height:40px; padding:7px 10px; border:1px solid #dbe4d3; border-radius:9px; background:white; text-align:left; font-size:.6875rem; }
+.baybay-requirement-chips button { display:flex; align-items:center; gap:6px; max-width:100%; min-height:var(--control-height); padding:7px 10px; border:1px solid #dbe4d3; border-radius:9px; background:white; text-align:left; font-size:.6875rem; }
 .baybay-requirement-chips button strong { min-width:0; font-size:inherit; }
 .baybay-requirement-editor { padding-top:12px; }
 .baybay-requirement-editor label { display:block; margin-bottom:6px; font-size:.75rem; }
-.baybay-requirement-editor input { width:100%; min-height:44px; border:1px solid var(--color-line-control); border-radius:8px; padding:8px 10px; font-size:.8125rem; background:white; }
+.baybay-requirement-editor input { width:100%; min-height:var(--control-height); border:1px solid #9cad8f; border-radius:8px; padding:8px 10px; font-size:.8125rem; background:white; }
 .baybay-requirement-editor>div { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px; }
-.baybay-requirement-editor button,.baybay-plan-followups button { min-height:40px; border:1px solid var(--color-line-strong); border-radius:8px; padding:7px 10px; font-size:.75rem; background:white; }
+.baybay-requirement-editor button,.baybay-plan-followups button { min-height:var(--control-height); border:1px solid #d5dfcc; border-radius:8px; padding:7px 10px; font-size:.75rem; background:white; }
 .baybay-assistant-plan h3 { margin-top:4px; font-size:1.0625rem; line-height:1.5; font-weight:600; }
 .baybay-plan-status { flex-shrink:0; max-width:40%; padding:5px 8px; border-radius:7px; font-size:.625rem; background:var(--color-line); }
 .baybay-plan-status--needs_verification,.baybay-plan-status--needs_details { background:var(--color-warning-tint); color:var(--color-warning); }

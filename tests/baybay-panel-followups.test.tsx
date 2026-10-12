@@ -23,6 +23,7 @@ const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant
 const { bayBayCardModels } = await import('../src/features/baybay/answer-cards');
 const { resetSaveStore, savesKey } = await import('../src/lib/saves');
 const { setLocale } = await import('../src/i18n/locale');
+const { setReadingSize, setSimpleDisplay } = await import('../src/lib/reading-preferences');
 await (await import('../src/features/baybay/cards-loader')).loadBayBayCards();
 afterEach(async () => { cleanup(); localStorage.clear(); resetSaveStore(); await setLocale('zh-Hans', false); });
 const noop = () => {};
@@ -42,6 +43,10 @@ test('the requirement card names the region and the day in words, in three langu
   assert.equal(bayBayRegionLabel('east-bay', 'zh-Hant'), '東灣');
   assert.equal(bayBayRegionLabel('south-bay', 'en'), 'South Bay');
   assert.equal(bayBayRegionLabel('mid-ocean', 'en'), null, 'an unknown slug never shows raw');
+  // "城市不限": the API clears the city and sends region 'all' — named, not dropped (and never the raw 'all').
+  assert.equal(bayBayRegionLabel('all', 'zh-Hans'), '湾区各地');
+  assert.equal(bayBayRegionLabel('all', 'zh-Hant'), '灣區各地');
+  assert.equal(bayBayRegionLabel('all', 'en'), 'Anywhere in the Bay Area');
   assert.equal(bayBayDayLabel('2026-10-17', 'zh-Hans'), '10/17 周六');
   assert.equal(bayBayDayLabel('2026-10-17', 'zh-Hant'), '10/17 週六');
   assert.equal(bayBayDayLabel('2026-10-17', 'en'), 'Sat 10/17');
@@ -71,6 +76,10 @@ test('the requirement card names the region and the day in words, in three langu
   const unknown = parseBayBayAssistantFields({ taskState: { version: 1, revision: 1, region: 'mid-ocean', dateRange: { start: '2026-10-17', end: '2026-12-31' } } }).taskState!;
   view.rerender(<BayBayRequirements state={unknown} disabled={false} onAsk={noop} />);
   assert.doesNotMatch(view.container.textContent || '', /mid-ocean|2026-1/, 'an unknown region or a wild range is left out, never shown raw');
+  const anywhere = parseBayBayAssistantFields({ taskState: { version: 1, revision: 2, goal: 'discover', city: null, region: 'all', date: '2026-10-17' } }).taskState!;
+  view.rerender(<BayBayRequirements state={anywhere} disabled={false} onAsk={noop} />);
+  assert.ok(view.getByRole('button', { name: '目的地 湾区各地' }));
+  assert.doesNotMatch(view.container.textContent || '', /\ball\b/);
 });
 
 test('the plan card dates its plan in words and its notes call numbers with one tap', () => {
@@ -139,7 +148,9 @@ test('legacy answers, the 911 card text, English answers and safety cards link t
   const emergency = await ask(t, { ok: true, responseMode: 'safety', answer: '请立即拨打 911。疑似中毒可联系 Poison Control：1-800-222-1222。',
     safety: { kind: 'emergency', topic: 'stroke', title: '现在就打 911', actions: [{ id: 'call-911', label: '拨打 911', href: 'tel:911', primary: true }], hideFollowups: true, hideFeedback: true } });
   const instructions = await emergency.view.findByText(/疑似中毒/, { selector: '.bb-emergency__text' });
-  assert.deepEqual(within(instructions).getAllByRole('link').map(link => link.getAttribute('href')), ['tel:911', 'tel:+18002221222']);
+  // Only the number the card has no button for becomes a chip: 911 is the big red button already, so no second 911.
+  assert.deepEqual(within(instructions).getAllByRole('link').map(link => link.getAttribute('href')), ['tel:+18002221222']);
+  assert.match(instructions.textContent || '', /^请立即拨打 911。疑似中毒/, 'the 911 in the text stays as plain words');
   cleanup();
   // When the card's own buttons already call every number in the instructions, the text stays plain (no second 911).
   const covered = await ask(t, { ok: true, responseMode: 'safety', answer: '请立即拨打 911。疑似中毒可联系 Poison Control：1-800-222-1222。',
@@ -246,6 +257,24 @@ test('the question box is a textarea that grows and keeps its whole example; Ent
   assert.doesNotMatch(css, /\.baybay-composer-footer input::placeholder/, 'the 12px placeholder rule of the old input is gone');
 });
 
+test('the empty question box fits its example again when Aa or 简洁显示 changes the text size with the panel open', async t => {
+  mockBayBayFetch(t, async () => Response.json({ ok: true, answer: 'OK' }));
+  t.after(() => { setReadingSize('standard'); setSimpleDisplay(false); });
+  const view = render(<BayBayAssistantEntry {...props} />);
+  const field = view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLTextAreaElement;
+  // jsdom has no layout: the example's height follows the text size the way a browser's would.
+  const root = document.documentElement, style = window.getComputedStyle(field);
+  const border = parseFloat(style.borderTopWidth) + parseFloat(style.borderBottomWidth), px = (content: number) => `${content + border}px`;
+  Object.defineProperty(field, 'scrollHeight', { configurable: true, get: () => (root.dataset.reading === 'extra-large' ? 96 : 48) + (root.hasAttribute('data-simple') ? 24 : 0) });
+  await act(async () => { setReadingSize('extra-large'); });
+  assert.equal(field.value, '', 'the box is still empty');
+  assert.equal(field.style.height, px(96), '特大: as tall as its whole example, with no keystroke');
+  await act(async () => { setSimpleDisplay(true); });
+  assert.equal(field.style.height, px(120), '简洁显示 too');
+  await act(async () => { setReadingSize('standard'); setSimpleDisplay(false); });
+  assert.equal(field.style.height, px(48));
+});
+
 test('desktop opens a 440px drawer on the right with the page in view and no scrim (FC3-08)', () => {
   const css = readFileSync('src/features/baybay-conversation.css', 'utf8');
   const desktop = /@media\(min-width:1024px\) \{([\s\S]*?)\n\}/.exec(css)?.[1] || '';
@@ -254,6 +283,10 @@ test('desktop opens a 440px drawer on the right with the page in view and no scr
   const answerCss = readFileSync('src/features/baybay/baybay-answer.css', 'utf8');
   assert.match(answerCss, /\.baybay-conversation \.phone-chip \{ min-width:0; min-height:0; font-size:inherit; \}/, 'chips sit in the text at its size');
   assert.doesNotMatch(answerCss, /#[0-9a-f]{3,8}\b/i);
+  // The requirement chips and their editor are §3.0 rule-5 tap targets: 44px, 48px in 简洁显示 (the token's own values).
+  assert.match(css, /\.baybay-requirement-chips button \{[^}]*min-height:var\(--control-height\)/);
+  assert.match(css, /\.baybay-requirement-editor button,\.baybay-plan-followups button \{[^}]*min-height:var\(--control-height\)/);
+  assert.match(css, /\.baybay-requirement-editor input \{[^}]*min-height:var\(--control-height\)/);
 });
 
 test('a sources block with nothing to fold shows its line only, and visible notices stay outside the fold', () => {

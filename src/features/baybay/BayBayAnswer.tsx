@@ -8,7 +8,6 @@ import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-
 import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeIsPause, bayBayResumeLabel, bayBayResumeStyle, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 import { linkifyPhones } from '../../lib/phone-links';
-import { findPhoneNumbers } from '../../lib/phone-numbers';
 import { translateText } from '../../i18n/locale';
 
 type Navigate = (path: string) => void;
@@ -18,9 +17,9 @@ type Sources = PlannerWebResult['sources'];
  * Reader text with every phone number tap-to-call (G27, ELDERS' chips): translated first, then split (RC-11 i), so a
  * zh-Hant reader gets the converted sentence and an English answer is left as it is.
  */
-export function BayBayPhoneText({ text }: { text: string }) {
+export function BayBayPhoneText({ text, except }: { text: string; except?: ReadonlySet<string> }) {
   const { locale } = useBayBayCopy();
-  return <>{linkifyPhones(translateText(text, locale))}</>;
+  return <>{linkifyPhones(translateText(text, locale), { except })}</>;
 }
 
 /** Answer text with its `[n]` citations as small links to the cited source and tap-to-call numbers. */
@@ -156,13 +155,12 @@ export function BayBayEmergencyCard({ safety, answer }: { safety: BayBayEmergenc
   const others = safety.actions.filter(action => action !== primary);
   // One id per card: a second emergency question in the same conversation gets its own label.
   const titleId = useId();
-  // The card's own buttons already call 911, Poison Control and 988: the instructions link only a number they lack.
+  // The card's own buttons already call 911, Poison Control and 988: the instructions link only the numbers they lack.
   const buttons = new Set(safety.actions.map(action => action.href.slice('tel:'.length)));
-  const unlinked = !!answer && findPhoneNumbers(answer).some(match => !buttons.has(match.tel));
   return <section className="bb-emergency" role="alert" aria-labelledby={titleId} data-safety="emergency">
     <h3 id={titleId} className="bb-emergency__title">{safety.title || t('现在就打 911', 'Call 911 now')}</h3>
     <a className="bb-emergency__call" href={primary.href}><Phone aria-hidden="true" size={24} /><CallLabel label={primary.label} /></a>
-    {answer && <p className="bb-emergency__text">{unlinked ? <BayBayPhoneText text={answer} /> : answer}</p>}
+    {answer && <p className="bb-emergency__text"><BayBayPhoneText text={answer} except={buttons} /></p>}
     {others.length > 0 && <BayBayCallActions actions={others} className="bb-call-actions bb-call-actions--emergency" />}
   </section>;
 }
