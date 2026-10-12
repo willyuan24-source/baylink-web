@@ -15,8 +15,9 @@ import { taiwanConverter, TAIWAN_WORDS } from '../src/i18n/locale';
  * site's sources (src/**: UI, editorial data, generated catalogs), in the text the 3D game's word list produces, or in the
  * converted output (the converter checks its own output once more, locale.ts taiwanConverter), and proves that the pruned
  * converter turns every Chinese run of those sources into exactly what the full one does. Text the site does not ship
- * (posts, BayBay answers, messages) converts with the full dictionary, which the browser loads after the page is ready
- * (locale.ts). Run with the English scopes (generate:home, prebuild and pretest); deterministic for given sources.
+ * (posts, BayBay answers, messages) converts with the full dictionary, which the browser loads when such text is shown
+ * (locale.ts noteDynamicChinese); text the pages assemble at render time is checked by the prerender (checkSiteTraditional).
+ * Run with the English scopes (generate:home, prebuild and pretest); deterministic for given sources.
  */
 const HAN_RUN = /[〇㐀-鿿豈-﫿\u{20000}-\u{2ffff}]+/gu;
 

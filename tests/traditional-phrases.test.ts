@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as OpenCC from 'opencc-js';
-import { taiwanConverter } from '../src/i18n/locale';
+import { checkSiteTraditional, setLocale, taiwanConverter, translateText } from '../src/i18n/locale';
 import { SITE_LOCALE, Trie } from '../src/i18n/traditional';
 import { fullPhrases } from '../src/i18n/traditional-full';
 import STCharacters from 'opencc-js/dict/STCharacters';
@@ -11,8 +11,9 @@ import { currentFreebies } from '../src/data/october-offers';
 
 /**
  * WEB-DATA-SPLIT: 繁體 pages convert with opencc's core and only the phrases the site's sources contain
- * (src/data/generated/zh-hant-phrases.json, scripts/generate-traditional-phrases.ts); the full table loads after the reader's
- * first tap. A failure here after a content change means the pruned table is stale: run `npm run generate:home`.
+ * (src/data/generated/zh-hant-phrases.json, scripts/generate-traditional-phrases.ts); the full table loads only for text the
+ * site does not ship (tests/traditional-upgrade.test.ts). A failure here after a content change means the pruned table is
+ * stale: run `npm run generate:home`.
  */
 const site = () => taiwanConverter({ Trie, Locale: SITE_LOCALE } as unknown as Parameters<typeof taiwanConverter>[0]);
 const corpus = [
@@ -40,4 +41,16 @@ test('the site table is a small part of the full one, and the full table built i
   for (const text of ['她的头发很长，理发店在后面', '干净的面条和干燥的面包', '这只钟表准时', ...corpus.slice(0, 300)]) assert.equal(sliced(text), full(text), text);
   // Text the site does not ship may differ before the full table arrives (here 发 in 头发 → 髮 needs the phrase).
   assert.equal(full('头发'), '頭髮');
+});
+
+test('the prerender’s check lists every string the browser’s table would convert differently from the full build', async () => {
+  const pruned = site(), full = taiwanConverter(OpenCC);
+  const dynamic = fullPhrases.split('|').map(entry => entry.slice(0, entry.indexOf(' '))).find(key => pruned(key, true) !== full(key, true))!;
+  const mismatches = await checkSiteTraditional();
+  await setLocale('zh-Hant', false);
+  for (const text of corpus.slice(0, 300)) translateText(text);
+  assert.deepEqual(mismatches(), [], 'the site’s own text agrees');
+  translateText(`${dynamic}，在后面`);
+  assert.deepEqual(mismatches(), [`${dynamic}，在后面`], 'text the site does not ship is reported');
+  await setLocale('zh-Hans', false);
 });

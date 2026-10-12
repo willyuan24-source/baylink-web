@@ -2,6 +2,7 @@
 import { friendlyErrorMessage } from './format';
 import type { UserData } from './types';
 import { getStoredUser } from './session';
+import { noteDynamicChinese } from '../i18n/locale';
 export { getStoredUser } from './session';
 
 // 开发默认仅连接本地服务；Vercel 构建默认连接线上 API。
@@ -37,6 +38,8 @@ export const api = {
       const res = await fetch(`${API_BASE_URL}${endpoint}`, { ...options, headers, signal: controller.signal });
       let data: any = {};
       const text = await res.text();
+      // Posts, profiles, messages, API errors: text the site does not ship (繁體 loads its full phrase table for it).
+      noteDynamicChinese(text);
       try { data = text ? JSON.parse(text) : {}; } catch { throw { status: res.status >= 400 ? res.status : 502, error: '服务返回了无效数据，请稍后重试。' }; }
       if (res.status === 401) {
         const isPublicAuth = endpoint.includes('/auth/login')

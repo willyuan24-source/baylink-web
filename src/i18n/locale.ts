@@ -37,21 +37,53 @@ export const useLocale = () => { useSyncExternalStore(subscribeLocale, readingSn
 
 /**
  * 繁體's converter (WEB-DATA-SPLIT, ENGSEC-01). In the browser: opencc's core with only the phrases the site's sources
- * contain (i18n/traditional.ts, about 45 KB instead of the 495 KB full build, exact on every Chinese run of the sources), and
- * the full phrase table after the reader's first tap, for text the site does not ship (traditional.ts). 繁體 search
- * uses the same search dictionaries as the other languages (loadSearchConversion). Node (tests, prerender, generators)
- * keeps the full build, which also carries search; its specifier is hidden from the bundler, so the browser never loads it.
+ * contain (i18n/traditional.ts, about 45 KB instead of the 495 KB full build, exact on every Chinese run of the sources),
+ * and the full phrase table only once text the site does not ship is shown (noteDynamicChinese). 繁體 search uses the same
+ * search dictionaries as the other languages (loadSearchConversion). Node (tests, prerender, generators) keeps the full
+ * build, which also carries search; its specifier is hidden from the bundler, so the browser never loads it.
+ * BAYLINK_SITE_TRADITIONAL=1 makes Node take the browser's path (tests/traditional-upgrade.test.ts).
  */
 const OPENCC_FULL = 'opencc-js';
-const loadChinese = () => chineseLoad ||= (nodeProcess?.getBuiltinModule
+/** The full phrase table's loader once the site converter is in; whether text the site does not ship has been shown. */
+let upgradeTraditional: (() => void) | undefined;
+let dynamicChinese = false;
+const loadChinese = () => chineseLoad ||= (nodeProcess?.getBuiltinModule && nodeProcess.env?.BAYLINK_SITE_TRADITIONAL !== '1'
   ? (import(/* @vite-ignore */ OPENCC_FULL) as Promise<typeof import('opencc-js')>).then((module) => {
     traditional = taiwanConverter(module);
     // the full opencc build holds the search dictionaries too (Locale.to.cn is TSPhrases then TSCharacters)
     if (!buildSearch) { buildSearch = () => module.ConverterFactory(module.Locale.to.cn); searchUnavailable = false; notifyLocale(); }
   })
   : import('./traditional').then(({ siteTraditional }) => {
-    traditional = siteTraditional(taiwanConverter, (full, changed) => { traditional = full; if (changed) notifyLocale(); });
+    const site = siteTraditional(taiwanConverter, (full, changed) => { traditional = full; if (changed) notifyLocale(); });
+    traditional = site.convert;
+    upgradeTraditional = site.upgrade;
+    if (dynamicChinese) site.upgrade();
   })).catch((error) => { chineseLoad = undefined; throw error; });
+
+/**
+ * Text the site does not ship is about to be shown: an API response (lib/api.ts: posts, profiles, messages, errors) or
+ * BayBay's answers (its feature gate, LocaleContentGate.tsx). The site's own text converts exactly with the pruned phrase
+ * table; this text needs opencc's full one, which then loads in idle time (once 繁體's converter is in, if it is not yet).
+ * A reader who only reads the site never downloads it. `text` without Chinese changes nothing.
+ */
+export function noteDynamicChinese(text?: string): void {
+  if (text !== undefined && !/[\u3400-\u9fff]/u.test(text)) return;
+  dynamicChinese = true;
+  upgradeTraditional?.();
+}
+
+/** Strings the browser's pruned converter would turn into something else than the full build (checkSiteTraditional). */
+let siteCheck: { convert: (text: string, words?: boolean) => string; mismatched: Set<string> } | undefined;
+/**
+ * The prerender converts every 繁體 page with the full build and, after this call, also with the browser's pruned phrase
+ * table (i18n/traditional.ts): the returned function lists the strings where the two differ, so text the pages assemble
+ * at render time (template joins, dates, counts) is proven too, not only the Chinese runs of the sources.
+ */
+export async function checkSiteTraditional(): Promise<() => string[]> {
+  const { siteTraditional } = await import('./traditional');
+  const check = siteCheck = { convert: siteTraditional(taiwanConverter, () => {}).convert, mismatched: new Set<string>() };
+  return () => [...check.mismatched];
+}
 
 /**
  * Search folds 繁體 into 简体 with opencc's traditional → simplified dictionaries (TSPhrases, TSCharacters). They are not
@@ -229,7 +261,11 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
 export function translateText(text: string, locale: Locale = current, depth = 0): string {
   if (locale === 'zh-Hans' || !/[\u3400-\u9fff]/.test(text)) return text;
-  if (locale === 'zh-Hant') return (traditional?.(text, true) ?? text).replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
+  if (locale === 'zh-Hant') {
+    const converted = traditional?.(text, true) ?? text;
+    if (siteCheck && traditional && siteCheck.convert(text, true) !== converted) siteCheck.mismatched.add(text);
+    return converted.replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
+  }
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   const numericDate = /^(?:(\d{4})\s*年\s*)?(\d{1,2})月\s*(\d{1,2})日$/.exec(text.trim());

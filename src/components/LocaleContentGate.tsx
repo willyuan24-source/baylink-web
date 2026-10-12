@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { isLocaleReadyForFeature, isLocaleReadyForPath, loadLocaleForFeature, loadLocaleForPath, useLocale, type Locale } from '../i18n/locale';
+import { useEffect, type ReactNode } from 'react';
+import { isLocaleReadyForFeature, isLocaleReadyForPath, loadLocaleForFeature, loadLocaleForPath, noteDynamicChinese, useLocale, type Locale } from '../i18n/locale';
 import type { EnglishFeature } from '../lib/english-loading';
 
 type Pending = { promise: Promise<void>; error?: unknown };
@@ -35,10 +35,12 @@ export function LocaleContentGate({ paths, children }: { paths: readonly string[
 /**
  * A feature that shows content from many routes (the search dialog: guides' full text, events, places; BayBay's cards) waits
  * for that feature's dictionaries, not for whichever pages it happens to be opened over (WEB-DATA-SPLIT: /guides, /events
- * and /calendar now load only what they display).
+ * and /calendar now load only what they display). BayBay's answers are text the site does not ship: once its panel is open
+ * in 繁體, opencc's full phrase table loads in idle time, before the first answer arrives (noteDynamicChinese).
  */
 export function LocaleFeatureGate({ feature, children }: { feature: EnglishFeature; children: ReactNode }) {
   const locale = useLocale();
+  useEffect(() => { if (feature === 'baybay' && locale === 'zh-Hant') noteDynamicChinese(); }, [feature, locale]);
   if (!isLocaleReadyForFeature(locale, feature)) requireLoad(`${locale}:feature:${feature}`, () => loadLocaleForFeature(locale, feature));
   return children;
 }

@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { registerHooks } from 'node:module';
 import '../src/i18n/router';
 import '../src/i18n/metadata';
-import { setLocale, translateText } from '../src/i18n/locale';
+import { checkSiteTraditional, setLocale, translateText } from '../src/i18n/locale';
 import { languagePath, languagePrefix, type SiteLanguage } from '../src/lib/language-path';
 import { dirname, join, resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
@@ -54,6 +54,8 @@ const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryD
 // WEB-DATA-SPLIT: the deals board and the city directory are chunks the article loads with its record; load them before rendering.
 const { preloadAllGuideBlocks } = await import('../src/features/guides/guide-blocks');
 await preloadAllGuideBlocks();
+// WEB-DATA-SPLIT: 繁體 pages render with the full opencc build; the browser's pruned phrase table must agree on every string.
+const siteTraditionalMismatches = await checkSiteTraditional();
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
@@ -170,4 +172,6 @@ await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找�
 const { paths: sitemapPaths, xml: sitemap } = generateSitemap();
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
 cssAsEmptyModule.deregister();
+const mismatched = siteTraditionalMismatches();
+if (mismatched.length) throw new Error(`繁體: the browser's phrase table (src/data/generated/zh-hant-phrases.json) converts ${mismatched.length} prerendered strings differently from the full opencc build, e.g. ${mismatched.slice(0, 5).join(' | ')}`);
 console.log(`Prerendered ${sitemapPaths.length + 1} public HTML pages and sitemap. No authenticated or live user data was fetched.`);

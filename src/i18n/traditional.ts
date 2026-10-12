@@ -1,8 +1,8 @@
 // 繁體 for the site's own text (WEB-DATA-SPLIT, ENGSEC-01): opencc's core with its character table, the Taiwan variants and
 // only the simplified → traditional phrases the site's sources contain (scripts/generate-traditional-phrases.ts proves the
-// result equals the full dictionary on every Chinese run of the sources). About 45 KB instead of the 495 KB full build on a
-// 繁體 page's critical path; the full phrase table (traditional-full.ts) loads after the reader's first tap, for text the
-// site does not ship (BayBay answers, messages from the API).
+// result equals the full dictionary on every Chinese run of the sources; the prerender checks every string it converts).
+// About 45 KB instead of the 495 KB full build on a 繁體 page's critical path; the full phrase table (traditional-full.ts)
+// loads only for text the site does not ship (BayBay answers, posts, messages from the API: locale.ts noteDynamicChinese).
 import { Trie } from 'opencc-js/core';
 import STCharacters from 'opencc-js/dict/STCharacters';
 import TWVariantsPhrases from 'opencc-js/dict/TWVariantsPhrases';
@@ -22,43 +22,49 @@ const idleSlice = () => new Promise<void>(resolve => {
   if (idle) idle(() => resolve(), { timeout: 2000 }); else setTimeout(resolve, 50);
 });
 
+/** Strings remembered for the check after the upgrade, phrases added to the trie per slice, strings checked per slice. */
+const SEEN_LIMIT = 20000, BUILD_SLICE = 2000, CHECK_SLICE = 250;
+
 /**
- * The browser's 繁體 converter (i18n/locale.ts): the site's phrases now. Text the site does not ship appears after the reader
- * does something, so the full phrase table waits for the first tap or key press: a reader who only reads never downloads it.
- * Then, between idle periods, it downloads, its trie is built in slices of 2,000 phrases (no long task) and `onUpgrade`
- * receives the full converter. Text converted so far is converted again and `changed` says whether any of it differs (the
- * page re-renders only then); the site's own text never does.
+ * The browser's 繁體 converter (i18n/locale.ts): `convert` uses the site's phrases. `upgrade()` (once; again after a failed
+ * download) fetches the full phrase table between idle periods and builds its trie in slices of 2,000 phrases; from then on
+ * `convert` uses it, so new text is exact at once. The text converted before is checked again, 250 strings per idle slice
+ * (no long task right after the reader's action), and `onUpgrade(full, changed)` receives the full converter and whether
+ * any of that text now converts differently: the page re-renders only then. The site's own text never does.
  */
-export function siteTraditional(make: typeof taiwanConverter, onUpgrade: (full: Converter, changed: boolean) => void): Converter {
+export function siteTraditional(make: typeof taiwanConverter, onUpgrade: (full: Converter, changed: boolean) => void, idle: () => Promise<void> = idleSlice): { convert: Converter; upgrade: () => void } {
   const site = make({ Trie, Locale: SITE_LOCALE } as unknown as Tables);
   const seen = new Map<string, string>();
+  let full: Converter | undefined;
   const convert: Converter = (text, words = false) => {
+    if (full) return full(text, words);
     const out = site(text, words);
-    if (seen.size < 20000) seen.set(`${words ? 1 : 0}${text}`, out);
+    if (seen.size < SEEN_LIMIT) seen.set(`${words ? 1 : 0}${text}`, out);
     return out;
   };
-  if (typeof window === 'undefined') return convert;
-  const upgrade = async () => {
-    await idleSlice();
+  const run = async () => {
+    await idle();
     const { fullPhrases } = await import('./traditional-full');
     const phrases = new Trie();
     phrases.loadDict(STCharacters);
     const entries = fullPhrases.split('|');
-    for (let at = 0; at < entries.length; at += 2000) {
-      for (const entry of entries.slice(at, at + 2000)) { const space = entry.indexOf(' '); phrases.addWord(entry.slice(0, space), entry.slice(space + 1)); }
-      await idleSlice();
+    for (let at = 0; at < entries.length; at += BUILD_SLICE) {
+      for (const entry of entries.slice(at, at + BUILD_SLICE)) { const space = entry.indexOf(' '); phrases.addWord(entry.slice(0, space), entry.slice(space + 1)); }
+      await idle();
     }
-    const full = make({ Trie, Locale: { from: { cn: [[]] }, to: SITE_LOCALE.to } } as unknown as Tables, phrases);
-    let changed = false;
-    for (const [key, out] of seen) if (full(key.slice(1), key[0] === '1') !== out) { changed = true; break; }
+    const upgraded = make({ Trie, Locale: { from: { cn: [[]] }, to: SITE_LOCALE.to } } as unknown as Tables, phrases);
+    full = upgraded;
+    const earlier = [...seen];
     seen.clear();
-    onUpgrade(full, changed);
+    let changed = false;
+    for (let at = 0; at < earlier.length && !changed; at += CHECK_SLICE) {
+      if (at) await idle();
+      changed = earlier.slice(at, at + CHECK_SLICE).some(([key, out]) => upgraded(key.slice(1), key[0] === '1') !== out);
+    }
+    onUpgrade(upgraded, changed);
   };
-  const triggers = ['pointerdown', 'keydown'] as const;
-  const begin = () => {
-    for (const type of triggers) window.removeEventListener(type, begin, true);
-    void upgrade().catch(() => { /* The site's own phrases stay; other text converts by character until a reload. */ });
-  };
-  for (const type of triggers) window.addEventListener(type, begin, { capture: true, passive: true });
-  return convert;
+  let started: Promise<void> | undefined;
+  // A failed download keeps the site's phrases (other text converts by character) until the next dynamic text asks again.
+  const upgrade = () => { started ||= run().catch(() => { started = undefined; }); };
+  return { convert, upgrade };
 }
