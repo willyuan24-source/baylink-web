@@ -3,6 +3,7 @@ import { translateText, useLocale } from '../i18n/locale';
 import { eventFor, placeFor, sharePlanUrl, stopPath, stopTitle, type SavedPlan } from '../lib/planner';
 import type { usePlannerLibrary } from '../lib/planner-library';
 import { recordProductEvent } from '../lib/product-events';
+import { eventOccursOn } from '../lib/event-calendar';
 import type { ResolvedCover } from '../lib/cover';
 import { planDisplayTitle } from '../features/saves/plan-title';
 import { Button } from './ui/Button';
@@ -16,9 +17,10 @@ import { planDayLabel } from '../lib/plan-stop-cover';
 const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Dining'], cafe: ['咖啡与小食', 'Coffee'], shop: ['商店', 'Shop'] } as const;
 
 /**
- * 已排的日子 (行程, plan T13 + FC3-01): every upcoming saved plan — made here, by 加入这天计划 on home, the calendar or a
- * detail page, or by BayBay — one day per group, each stop a RowCard with its cover and the plan's date. Loading, API
- * failure and the empty state use the WEB-UI primitives (RC-25); the page shows the offline line above.
+ * 已排的日子 (行程, plan T13 + FC3-01): every upcoming saved plan — made here, by 加入这天计划 (the events calendar on
+ * this base; home and detail pages save into the same plans as they gain the action), or by BayBay — one day per group,
+ * each stop a RowCard with its cover and the plan's date. An event that does not run on the plan's day says so. Loading,
+ * API failure and the empty state use the WEB-UI primitives (RC-25); the page shows the offline line above.
  */
 export function PlannerDayPlans({ library, plans, covers, today, editingId }: { library: ReturnType<typeof usePlannerLibrary>; plans: readonly SavedPlan[]; covers: readonly ResolvedCover[]; today: string; editingId?: string }) {
   const locale = useLocale();
@@ -32,7 +34,7 @@ export function PlannerDayPlans({ library, plans, covers, today, editingId }: { 
       : !library.ready && library.error ? <ErrorState headingLevel="h3" homeTo={null} onRetry={() => void library.refresh()} title={t('暂时读不到已排的日子', 'Your planned days didn’t load')}
         body={t('可能是网络不稳或服务繁忙。已保存的行程不会因此消失。', 'The connection or our service may be busy. Your saved plans are not lost.')} />
         : !plans.length ? <EmptyState headingLevel="h3" icon={CalendarCheck} title={t('还没有排好的日子', 'No days planned yet')}
-          body={t('在活动、日历或详情页点「加入这天计划」，那一天就会出现在这里；也可以在下面挑一个地点开始。', 'Tap “Add to this day’s plan” on an event, the calendar or a detail page and that day appears here. Or start from a place below.')}
+          body={t('把活动加入某一天的计划（比如在活动日历点「加入这天计划」），那一天就会出现在这里；也可以在下面挑一个地点开始。', 'Add an event to a day’s plan (for example with “Add to this day’s plan” on the events calendar) and that day appears here. Or start from a place below.')}
           actions={<Button variant="tonal" to="/events">{t('看本周末活动', 'See this weekend’s events')}</Button>} />
           : <ol className="plan-days__list">{days.map(date => <li key={date} id={`plan-day-${date}`} className="plan-days__day">
             <p className="plan-days__date"><time dateTime={date}>{planDayLabel(date, english)}</time></p>
@@ -53,7 +55,7 @@ export function PlannerDayPlans({ library, plans, covers, today, editingId }: { 
                   return <li key={`${stop.kind}:${stop.id}`}>
                     <RowCard title={translateText(stopTitle(stop), locale)} {...(external ? { href: path } : { to: path })} heading="h4"
                       thumb={<PlannerStopThumb stop={stop} cover={coverFor(plan, index)} today={today} day={date} />}
-                      date={t(`第 ${index + 1} 站`, `Stop ${index + 1}`)}
+                      date={<>{t(`第 ${index + 1} 站`, `Stop ${index + 1}`)}{event && !eventOccursOn(event, date) && <> <StatusChip tone="warning">{t('不在这一天', 'Not on this day')}</StatusChip></>}</>}
                       meta={meta.filter(Boolean).map(part => translateText(part!, locale)).join(' · ')} />
                   </li>;
                 })}</ul>

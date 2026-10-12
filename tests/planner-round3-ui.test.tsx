@@ -109,7 +109,7 @@ test('place-only restaurant recommendations can start and adopt an outing withou
   assert.ok(selectedLinks(view).includes(gotts.officialUrl));
   assert.ok(selectedLinks(view).every(path => !path?.startsWith('/events/')), 'a place anchor must never become a fabricated event');
   fireEvent.change(field(view, '餐饮预留（整组）$'), { target: { value: '44' } });
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存到行程' })); });
   const plan = stored().plans[0];
   assert.ok(plan.stops.some(stop => stop.kind === 'place' && stop.id === gotts.id));
   assert.equal(plan.details?.partySize, 2);
@@ -149,7 +149,7 @@ test('editing an existing plan previews without mutation, applies, undoes, and s
   assert.deepEqual(snapshot(view), before);
   preview(view);
   fireEvent.click(editPanel(view).getByRole('button', { name: '采用修改' }));
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新行程' })); });
   const plan = stored().plans[0];
   assert.equal(stored().plans.length, 1);
   assert.equal(plan.id, original.id);
