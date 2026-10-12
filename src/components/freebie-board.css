@@ -5,7 +5,7 @@
 .bl-freebie-jump>svg { flex-shrink:0; }
 .bl-freebie-jump:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
 .bl-freebie-board-heading>span { display:flex; align-items:center; gap:7px; color:var(--color-warm); font-size:.625rem; font-weight:700; letter-spacing:.1em; }
-.bl-freebie-board-heading h2 { margin:12px 0 9px; color:var(--color-ink-2); font-size:1.6875rem; line-height:1.5; font-weight:700; letter-spacing:-.035em; }
+.bl-freebie-board-heading h2 { margin:12px 0 9px; color:var(--color-ink-2); font-size:1.6875rem; line-height:1.5; font-weight:700; letter-spacing:0; }
 .bl-freebie-board-heading>p { margin:0; color:var(--color-ink-3); font-size:.8125rem; line-height:1.85; }
 .bl-freebie-board-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; margin:21px 0 8px; overflow:hidden; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-line-strong); }
 .bl-freebie-board-stats>span { display:flex; align-items:center; justify-content:center; gap:9px; min-width:0; padding:15px 9px; color:var(--color-warning); font-size:.6875rem; background:var(--color-warm-tint); }
@@ -42,7 +42,7 @@
 .bl-freebie-status--local,.bl-freebie-status--unverified { color:var(--color-warm); background:var(--color-warm-tint); }
 .bl-freebie-status--preview { color:var(--color-info); background:var(--color-info-tint); }
 .bl-freebie-status--ended { color:var(--color-ink-3); background:var(--color-line); }
-.bl-freebie-card h3 { margin:13px 0 11px; color:var(--color-ink-2); font-size:1.1875rem; font-weight:700; line-height:1.6; letter-spacing:-.02em; overflow-wrap:anywhere; }
+.bl-freebie-card h3 { margin:13px 0 11px; color:var(--color-ink-2); font-size:1.1875rem; font-weight:700; line-height:1.6; letter-spacing:0; overflow-wrap:anywhere; }
 .bl-freebie-requirement { margin:0; padding:11px 12px; border-left:3px solid var(--color-line-strong); background:var(--color-warm-tint); color:var(--color-ink-3); font-size:.75rem; line-height:1.9; overflow-wrap:anywhere; }
 .bl-freebie-requirement>strong { display:block; margin-bottom:4px; color:var(--color-warning); font-size:.625rem; font-weight:600; }
 .bl-freebie-description { margin:12px 0 0; color:var(--color-ink-3); font-size:.75rem; line-height:1.9; overflow-wrap:anywhere; }

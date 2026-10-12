@@ -10,7 +10,7 @@
   .bay-hero { min-height:0; border-radius:16px; }
   .bay-hero-copy { padding:17px 18px; }
   .bay-hero-eyebrow,.bay-hero-copy>p { display:none; }
-  .bay-hero h1 { font-size:1.4375rem; line-height:1.36; letter-spacing:-.7px; margin:0; }
+  .bay-hero h1 { font-size:1.4375rem; line-height:1.36; letter-spacing:0; margin:0; }
   .bay-hero h1 br { display:none; }
   .bay-hero h1 { max-width:270px; }
   .bay-hero h1>span { display:block; }

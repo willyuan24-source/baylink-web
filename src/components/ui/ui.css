@@ -309,18 +309,16 @@ html[data-simple] .ui-save::before { inset:-8px; }
 /* Page header and containers: one H1 spec, three widths, gutters 16/24/32. */
 .ui-page-header { display:flex; flex-direction:column; gap:8px; margin:0 0 24px; }
 .ui-page-header__crumbs { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
-.ui-page-header__title { margin:0; color:var(--color-ink); font-size:1.625rem; line-height:1.308; font-weight:600; letter-spacing:0; text-wrap:balance; }
-.ui-page-header[data-size=display] .ui-page-header__title { font-size:1.75rem; line-height:1.286; }
+.ui-page-header__title { margin:0; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; letter-spacing:0; text-wrap:balance; }
+.ui-page-header[data-size=display] .ui-page-header__title { font-size:var(--text-display); line-height:var(--lh-display); }
 .ui-page-header__lede { max-width:40em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
 .ui-page-header__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-.ui-container { box-sizing:content-box; max-width:1216px; margin-inline:auto; padding-inline:16px; }
-.ui-container[data-size=content] { max-width:960px; }
-.ui-container[data-size=reading] { max-width:720px; }
-@media (min-width:768px) { .ui-container { padding-inline:24px; } }
+/* The page frame and the heading sizes are the shared tokens (src/tokens.css: --container-*, --page-gutter, --text-title,
+   --text-display), the same values .site-container and .type-* use. */
+.ui-container { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding-inline:var(--page-gutter); }
+.ui-container[data-size=content] { max-width:var(--container-content); }
+.ui-container[data-size=reading] { max-width:var(--container-reading); }
 @media (min-width:1024px) {
-  .ui-container { padding-inline:32px; }
-  .ui-page-header__title { font-size:2rem; line-height:1.3125; }
-  .ui-page-header[data-size=display] .ui-page-header__title { font-size:clamp(2.5rem, 1.6rem + calc(1.25vw * var(--fluid-scale)), 3.25rem); line-height:1.2; }
   .ui-hero-card__title { font-size:1.75rem; line-height:1.286; }
 }
 

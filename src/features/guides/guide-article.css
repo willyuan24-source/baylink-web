@@ -1,15 +1,16 @@
 /* Guide article (T7, WEB-GUIDES; design.md §4.10): head, lead (carousel or cover + actions + 30 秒看懂), contact cards, step
    cards, related covers and credits. Loaded with GuideDetail only (route CSS, RC-6). Tokens and rem only; the body prose keeps
    its reviewed reading styles in guides-ui.css. Reviewed by scripts/check-editorial-styles.mjs. */
-.gd-article.bl-guide-article { max-width:1080px; padding:12px 16px 24px; }
+/* The article card spans the shared page frame (SV-09: 112–1328 at 1440, like /guides and the header). */
+.gd-article.bl-guide-article { max-width:var(--container-wide); padding:12px 16px 24px; }
 
 /* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → meta line. */
 .gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .gd-crumbs a { display:inline-flex; align-items:center; gap:2px; min-height:2.75rem; color:var(--color-ink-2); font-weight:600; text-decoration:none; }
 .gd-crumbs a:hover { color:var(--color-brand); text-decoration:underline; }
 .gd-crumbs a>svg { width:1rem; height:1rem; }
-.gd-article .gd-title { display:flex; flex-direction:column; gap:6px; max-width:36em; margin:0; color:var(--color-ink); letter-spacing:0; }
-.gd-title__head { font-size:1.625rem; line-height:1.308; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
+.gd-article .gd-title { display:flex; flex-direction:column; gap:6px; max-width:36em; margin:0; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; }
+.gd-title__head { font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
 .gd-title__sep { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 .gd-title__rest { color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; font-weight:400; }
 .gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -88,7 +89,7 @@
 .gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
 html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contacts { margin-top:24px; }
-.gd-contacts>h2,.gd-related__head h2 { margin:0 0 12px; color:var(--color-ink); font-size:1.375rem; line-height:1.364; font-weight:600; }
+.gd-contacts>h2,.gd-related__head h2 { margin:0 0 12px; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .gd-contacts__list { display:grid; grid-template-columns:minmax(0, 1fr); gap:12px; }
 .gd-contact { display:flex; flex-direction:column; gap:6px; padding:16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
 .gd-contact h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
@@ -157,7 +158,6 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 }
 @media (min-width:1024px) {
   .gd-article.bl-guide-article { padding:32px 40px 32px; }
-  .gd-title__head { font-size:2rem; line-height:1.3125; }
 .gd-title__rest { font-size:var(--text-body); }
   .gd-lead { margin-top:20px; }
   .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }

@@ -1,6 +1,6 @@
 @import './phone-links.css'; /* Tap-to-call chips (WEB-ELDERS): global like the rest of the guide styles, since prerender and tests render GuideDetail without a CSS loader. */
 /* BAYLINK field notes: an editorial reading system, scoped to guide surfaces. */
-.daily-guide-topics{margin:28px 0 34px;padding:25px;border:1px solid var(--color-line);border-radius:18px;background:var(--color-surface-2)}.daily-guide-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:18px}.daily-guide-heading h2{margin:7px 0;font-size:1.5625rem;letter-spacing:-.6px}.daily-guide-heading p{margin:0;color:var(--color-ink-3);font-size:.8125rem;line-height:1.7}.daily-guide-heading>a{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;font-size:.75rem;color:var(--color-brand);font-weight:600}.daily-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.daily-guide-grid>a{display:flex;align-items:center;gap:13px;padding:16px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:11px;color:var(--color-brand-deep);transition:border-color .15s,background .15s}.daily-guide-grid>a:hover{border-color:var(--color-line-control);background:var(--color-surface)}.daily-guide-grid>a:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}.daily-guide-number{font-size:.6875rem;color:var(--color-ink-3);font-variant-numeric:tabular-nums}.daily-guide-grid h3{margin:0 0 4px;font-size:.9375rem}.daily-guide-grid p{margin:0;color:var(--color-ink-3);font-size:.75rem;line-height:1.65}.daily-guide-grid svg{margin-left:auto;flex-shrink:0;color:var(--color-brand)}@media(max-width:639px){.daily-guide-topics{padding:19px 15px}.daily-guide-heading{align-items:flex-start}.daily-guide-heading h2{font-size:1.375rem}.daily-guide-heading>a{margin-top:26px}.daily-guide-grid{grid-template-columns:1fr}.daily-guide-grid>a{padding:14px 12px}}
+.daily-guide-topics{margin:28px 0 34px;padding:25px;border:1px solid var(--color-line);border-radius:18px;background:var(--color-surface-2)}.daily-guide-heading{display:flex;justify-content:space-between;align-items:center;gap:18px;margin-bottom:18px}.daily-guide-heading h2{margin:7px 0;font-size:1.5625rem;letter-spacing:0}.daily-guide-heading p{margin:0;color:var(--color-ink-3);font-size:.8125rem;line-height:1.7}.daily-guide-heading>a{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;font-size:.75rem;color:var(--color-brand);font-weight:600}.daily-guide-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.daily-guide-grid>a{display:flex;align-items:center;gap:13px;padding:16px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:11px;color:var(--color-brand-deep);transition:border-color .15s,background .15s}.daily-guide-grid>a:hover{border-color:var(--color-line-control);background:var(--color-surface)}.daily-guide-grid>a:focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}.daily-guide-number{font-size:.6875rem;color:var(--color-ink-3);font-variant-numeric:tabular-nums}.daily-guide-grid h3{margin:0 0 4px;font-size:.9375rem}.daily-guide-grid p{margin:0;color:var(--color-ink-3);font-size:.75rem;line-height:1.65}.daily-guide-grid svg{margin-left:auto;flex-shrink:0;color:var(--color-brand)}@media(max-width:639px){.daily-guide-topics{padding:19px 15px}.daily-guide-heading{align-items:flex-start}.daily-guide-heading h2{font-size:1.375rem}.daily-guide-heading>a{margin-top:26px}.daily-guide-grid{grid-template-columns:1fr}.daily-guide-grid>a{padding:14px 12px}}
 .bl-guide-detail {
   --guide-ink: var(--color-brand-deep);
   --guide-green: var(--color-brand);
@@ -200,7 +200,7 @@
   font-size: 1rem;
   font-weight: 600;
   line-height: 1.6;
-  letter-spacing: -0.025em;
+  letter-spacing: 0;
 }
 .bl-guide-card-summary {
   display: -webkit-box;
@@ -338,7 +338,7 @@
   font-size: clamp(1.75rem, calc(3.5vw * var(--fluid-scale)), 2.625rem);
   font-weight: 600;
   line-height: 1.45;
-  letter-spacing: -0.05em;
+  letter-spacing: 0;
 }
 .bl-guide-reading-layout {
   display: grid;
@@ -407,7 +407,7 @@
   font-size: 1.3125rem;
   font-weight: 600;
   line-height: 1.6;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 .bl-guide-prose > h2:first-child {
   margin-top: 0;
@@ -680,7 +680,7 @@
   margin-top: 8px;
   font-size: 1.3125rem;
   font-weight: 600;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 .bl-home-guides-heading p {
   margin-top: 7px;
@@ -739,7 +739,7 @@
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1.5;
-  letter-spacing: -0.03em;
+  letter-spacing: 0;
 }
 .bl-home-guide-spotlight p {
   display: -webkit-box;

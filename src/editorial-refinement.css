@@ -2,7 +2,7 @@
 :root { --color-editorial:var(--color-brand); }
 .bay-home { padding-top:28px; padding-bottom:40px; }
 .bl-guides-page--compact .bl-guides-intro { padding-top:10px; padding-bottom:22px; border-bottom:1px solid var(--color-line); margin-bottom:24px; }
-.bl-guides-page--compact .bl-guides-intro h1 { font-size:2.5rem; font-weight:600; letter-spacing:-.025em; }
+.bl-guides-page--compact .bl-guides-intro h1 { font-size:2.5rem; font-weight:600; letter-spacing:0; }
 .bl-guides-page--compact .bl-guides-count { padding:8px 12px; border:1px solid var(--color-line); border-radius:8px; color:var(--color-editorial); font-size:var(--text-caption); background:var(--color-surface); }
 .bl-guides-page--compact .bl-guide-tabs { gap:6px; }
 .bl-guides-page--compact .bl-guide-tabs button { border-color:transparent; border-radius:8px; }

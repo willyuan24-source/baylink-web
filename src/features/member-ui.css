@@ -31,7 +31,7 @@
 .member-auth-brand--compact .member-auth-mascot { width: 32px; height: 32px; border-radius: 10px; }
 .member-auth-brand--compact .member-auth-wordmark { font-size: 1.0625rem; }
 .member-auth-heading { margin: 0 0 24px; text-align: center; }
-.member-auth-heading h2 { font-size: 1.5625rem; line-height: 1.4; font-weight: 700; letter-spacing: -.045em; color: var(--color-brand-deep); text-wrap: balance; }
+.member-auth-heading h2 { font-size: 1.5625rem; line-height: 1.4; font-weight: 700; letter-spacing: 0; color: var(--color-brand-deep); text-wrap: balance; }
 .member-auth-heading p { margin-top: 10px; color: var(--color-ink-3); font-size: var(--text-fact); line-height: 1.8; text-wrap: balance; }
 .member-auth-form { display: flex; flex-direction: column; gap: 10px; }
 .member-auth-form > label { margin-top: 4px; color: var(--color-ink-2); font-size: var(--text-fact); font-weight: 600; }
@@ -58,7 +58,7 @@
 .member-compose-dialog { display: flex; flex-direction: column; width: 100%; max-width: 640px; max-height: 90vh; max-height: 90dvh; overflow: hidden; border: 1px solid rgb(var(--color-surface-rgb) / .38); border-radius: 26px; background: var(--color-surface-2); box-shadow: 0 30px 100px rgb(var(--color-ink-rgb) / .25); }
 .member-compose-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-shrink: 0; padding: 27px 30px 25px; color: var(--color-surface); background: var(--color-brand-deep); }
 .member-compose-eyebrow { display: block; color: var(--color-highlight); font-size: .5625rem; line-height: 1.7; font-weight: 600; letter-spacing: .13em; }
-.member-compose-header h2 { margin-top: 9px; font-size: 1.4375rem; line-height: 1.5; font-weight: 600; letter-spacing: -.035em; }
+.member-compose-header h2 { margin-top: 9px; font-size: 1.4375rem; line-height: 1.5; font-weight: 600; letter-spacing: 0; }
 .member-compose-header p { margin-top: 7px; color: var(--color-on-brand-muted); font-size: .6875rem; line-height: 1.8; }
 .member-compose-close { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid rgb(var(--color-surface-rgb) / .16); border-radius: 50%; color: var(--color-ink-3); background: rgb(var(--color-surface-rgb) / .04); transition: background-color .18s; }
 .member-compose-close:hover { background: rgb(var(--color-surface-rgb) / .12); color: white; }
@@ -111,12 +111,12 @@
 .member-baybay-dialog { display: flex; flex-direction: column; width: 100%; max-width: 650px; max-height: min(87vh, 820px); max-height: min(87dvh, 820px); overflow: hidden; border: 1px solid rgb(var(--color-surface-rgb) / .32); border-radius: 26px; background: var(--color-surface-2); box-shadow: 0 30px 100px rgb(var(--color-ink-rgb) / .25); }
 .member-baybay-header { display: flex; flex-shrink: 0; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px; background: var(--color-brand-deep); }
 .member-baybay-avatar { width: 55px; height: 55px; flex-shrink: 0; object-fit: cover; border: 1px solid rgb(var(--color-highlight-rgb) / .29); border-radius: 17px; }
-.member-baybay-header h2 { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--color-brand-tint); font-size: 1.125rem; line-height: 1.5; font-weight: 600; letter-spacing: -.02em; }
+.member-baybay-header h2 { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--color-brand-tint); font-size: 1.125rem; line-height: 1.5; font-weight: 600; letter-spacing: 0; }
 .member-baybay-header h2 > svg { color: var(--color-highlight); }
 .member-baybay-header p { max-width: 385px; margin-top: 7px; color: var(--color-on-brand-muted); font-size: .6875rem; line-height: 1.8; }
 .member-baybay-body { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 27px 28px 25px; }
 .member-baybay-question-section { min-width: 0; margin-bottom: 25px; }
-.member-baybay-question-section > h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.5; letter-spacing: -.025em; color: var(--color-brand-deep); }
+.member-baybay-question-section > h3 { font-size: 1.125rem; font-weight: 600; line-height: 1.5; letter-spacing: 0; color: var(--color-brand-deep); }
 .member-baybay-intro { margin-top: 8px; color: var(--color-ink-3); font-size: .6875rem; line-height: 1.8; }
 .member-baybay-composer { display: flex; align-items: stretch; gap: 8px; margin-top: 18px; padding: 6px; border: 1px solid var(--color-line-strong); border-radius: 15px; background: white; box-shadow: 0 3px 10px rgb(var(--color-brand-deep-rgb) / .02); }
 .member-baybay-composer:focus-within { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgb(var(--color-brand-rgb) / .05); }

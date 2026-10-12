@@ -58,7 +58,21 @@
   --reading-scale:1; --fluid-scale:1; --text-floor:0px; --control-height:2.75rem;
   --text-caption:.8125rem; --text-fact:.875rem;
   --text-body:1rem; --text-reading:1.0625rem;
-  --text-card:1.125rem; --text-section:1.5rem;
+  --text-card:1.125rem;
+  /* Type scale (SV-06, design.md §4.3): one spec per heading level on every page, weight 600 and letter-spacing 0 (CJK
+     titles take no negative tracking), in rem so Aa grows them. Phone values here, desktop (≥1024px) below the block.
+     Mark a heading with .type-display / .type-title / .type-section, or read the tokens in a component's heading rule.
+       display  28/36 · 40–52 (about 44 at 1440)   the home H1 and the events column header; one per page at most
+       title    26/34 · 32/42                      every other page H1: detail, guide, list, account, legal, 404
+       section  22/30 · 24/32                      H2 section heads
+       card     18/27                              card and row titles (H3) */
+  --text-display:1.75rem; --lh-display:1.286;
+  --text-title:1.625rem; --lh-title:1.308;
+  --text-section:1.375rem; --lh-section:1.364;
+  --lh-card:1.5;
+  /* Layout (SV-09, design.md §4.4): one page frame, aligned to the header (the logo and the content edge at 112–1328 in a
+     1440 window). .site-container (below) and the WEB-UI PageContainer read these; gutters are px and do not grow with Aa. */
+  --container-wide:1216px; --container-content:960px; --container-reading:720px; --page-gutter:16px;
   --baylink-bg:var(--color-bg); --baylink-green:var(--color-brand); --baylink-green-hover:var(--color-brand-hover);
   --baylink-text:var(--color-ink); --baylink-border:var(--color-line); --baylink-green-light:var(--color-brand-tint);
   --bay-paper:var(--color-bg); --bay-forest:var(--color-brand-deep); --bay-green:var(--color-brand); --bay-line:var(--color-line); --bay-muted:var(--color-ink-3);
@@ -70,6 +84,22 @@
 .profile-theme-sunset{--profile-sky:#f5d5b9;--profile-horizon:#da9a83;--profile-land:#bc786b;--profile-ink:#8a493e;--profile-tint:#fff2e9}
 .profile-theme-redwood{--profile-sky:#d7dfb9;--profile-horizon:#8fa889;--profile-land:#557868;--profile-ink:#365b44;--profile-tint:#f0f4e8}
 .profile-theme-lavender{--profile-sky:#ddd5f4;--profile-horizon:#aaa1ce;--profile-land:#7b7ea9;--profile-ink:#5b5686;--profile-tint:#f5f1fc}
+@media(min-width:768px) { :root { --page-gutter:24px; } }
+@media(min-width:1024px) { :root {
+  --page-gutter:32px;
+  --text-section:1.5rem; --lh-section:1.333;
+  --text-title:2rem; --lh-title:1.3125;
+  --text-display:clamp(2.5rem, calc(1.6rem + 1.25vw * var(--fluid-scale)), 3.25rem); --lh-display:1.2;
+} }
+/* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
+   heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). */
+.type-display,.type-title,.type-section { font-weight:600; letter-spacing:0; text-wrap:balance; }
+.type-display { font-size:var(--text-display); line-height:var(--lh-display); }
+.type-title { font-size:var(--text-title); line-height:var(--lh-title); }
+.type-section { font-size:var(--text-section); line-height:var(--lh-section); }
+.site-container { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding-inline:var(--page-gutter); }
+.site-container[data-size=content] { max-width:var(--container-content); }
+.site-container[data-size=reading] { max-width:var(--container-reading); }
 html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC','Noto Sans TC',sans-serif; }
 /* Aa: 标准 100% / 大 112.5% / 特大 125% of the browser's own size, set before the first paint by public/reading-init.js.
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
@@ -99,8 +129,8 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .public-content-directory :is(p,time,.text-xs,.text-sm) { font-size:var(--text-fact); color:var(--color-ink-2); }
 .public-content-directory a { display:inline-flex; align-items:center; min-height:var(--control-height); font-size:var(--text-fact); }
 .public-content-directory summary { min-height:var(--control-height); padding-block:.5rem; font-size:var(--text-fact); }
-.public-content-directory h1 { font-size:2rem; line-height:1.4; overflow-wrap:anywhere; }
-.public-content-directory h2 { font-size:var(--text-section); line-height:1.5; }
+.public-content-directory h1 { font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; letter-spacing:0; overflow-wrap:anywhere; }
+.public-content-directory h2 { font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .site-app { font-family:var(--font-sans); }
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; min-width:44px; min-height:44px; color:var(--color-ink); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); font-size:var(--text-fact); }
@@ -141,11 +171,11 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .bl-guide-prose h2 { font-size:var(--text-section); color:var(--color-ink); }
 .bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-source-card p,.bl-guide-source-card small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; }
 .bl-guide-byline small,.bl-guide-reading-time,.bl-guide-article-kicker,.bl-guide-reader-progress { font-size:var(--text-caption); }
-.bl-guide-article-header h1 { font-size:2rem; line-height:1.4; text-wrap:balance; letter-spacing:0; }
+.bl-guide-article-header h1 { font-size:var(--text-title); line-height:var(--lh-title); text-wrap:balance; letter-spacing:0; }
 .bl-guide-reader-label { display:none; }
 .bl-guides-page--compact { max-width:1100px; margin-inline:auto; }
 .bl-guides-page--compact .bl-guides-intro { padding-bottom:16px; }
-.bl-guides-page--compact .bl-guides-intro h1 { font-size:2rem; line-height:1.4; letter-spacing:0; font-weight:600; text-wrap:balance; }
+.bl-guides-page--compact .bl-guides-intro h1 { font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; font-weight:600; text-wrap:balance; }
 .bl-guides-page--compact .bl-guides-intro p { font-size:var(--text-body); max-width:640px; }
 .bl-guides-page--compact .bl-guides-controls { margin:16px 0 28px; }
 .bl-guides-page--compact .bl-guide-tabs { display:flex; flex-wrap:wrap; gap:8px; }
@@ -239,7 +269,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 }
 @media(prefers-reduced-motion:reduce) { .reading-dialog,.home-discovery--focused *,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .discovery-detail-main-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
-.local-discovery-detail .discovery-detail-header h1 { font-size:2rem; line-height:1.4; letter-spacing:0; }
+.local-discovery-detail .discovery-detail-header h1 { font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; }
 .local-discovery-detail .discovery-detail-summary,.local-discovery-detail .discovery-detail-body>p,.local-discovery-detail .discovery-plan p { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
 .local-discovery-detail .discovery-detail-facts span { font-size:var(--text-fact); color:var(--color-ink-2); }
 .local-discovery-detail .discovery-source { font-size:var(--text-fact)!important; color:var(--color-ink-2); }

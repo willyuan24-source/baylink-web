@@ -22,7 +22,7 @@
 
 .my-week__section { margin-top:32px; scroll-margin-top:80px; }
 .my-week__head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
-.my-week__head h2 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-section); line-height:1.333; font-weight:600; }
+.my-week__head h2 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .my-week__head h2>svg { width:1.375rem; height:1.375rem; flex:none; color:var(--color-brand); }
 .my-week__count { margin-left:4px; color:var(--color-ink-2); font-size:var(--text-body); font-weight:600; font-variant-numeric:tabular-nums; }
 .my-week__note,.my-week__empty-line { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
