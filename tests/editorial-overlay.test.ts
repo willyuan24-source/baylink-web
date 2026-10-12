@@ -158,6 +158,8 @@ test('basis.json notices a source edit under an entry: an error when a stored fi
   assert.deepEqual(drift(concord, { plan: ['新的一步安排，内容足够长。'] }), [['warn', 'concord-trick-or-treat-trail-2026', 'plan']]);
   // A dated offer correction masks the same field.
   assert.deepEqual(drift('offer:sf-opera-dolby-figaro-offer-2026', { dateLabel: '10/30 · 新批次' }).map(row => row[0]), ['error']);
+  // An offer short title can carry its requirement ("美国居民"), so a requirement edit under one is an error too.
+  assert.deepEqual(drift('offer:muir-woods-fee-free-oct27', { requirement: '所有访客免入园费。' }), [['error', 'muir-woods-fee-free-oct27', 'requirement']]);
 });
 
 test('--write-basis cannot re-record a masked upstream edit; an editor re-records the items they re-checked by name (review 10/11)', () => {
@@ -204,7 +206,7 @@ test('verification-log wording in reader text is a warning for the next content 
   for (const tip of tips) assert.doesNotMatch(tip, /按菜单消费；价格与开业优惠见商家|未见开业优惠/u);
 });
 
-test('deks and short titles keep to the source; one session per slot; plan lines speak to the reader (review 10/11, round 3)', () => {
+test('deks and short titles keep to the source; one session per slot; plan lines speak to the reader (review 10/11, rounds 3–4)', () => {
   const byId = (id: string) => MONTHLY_EVENTS.find(item => item.id === id)!;
   // Words the sources never state: a genre, a ship's era, a show length, the stage of a season, a kind of bird, a device.
   const unsourced: Record<string, [RegExp, RegExp]> = {
@@ -244,6 +246,33 @@ test('deks and short titles keep to the source; one session per slot; plan lines
     'sfmta-free-muni-seniors': /合资格/u,
     'muir-woods-fee-free-oct27': /美国居民/u,
     'muir-woods-veterans-day-nov11-2026': /美国居民/u,
+    // Round 4: the condition the source title leads with (who qualifies, the purchase a gift needs, the one store).
+    'clipper-start-half-fares': /符合收入资格/u,
+    'berkeley-tool-lending': /Berkeley 居民/u,
+    'oakland-tool-library': /三市居民/u,
+    'ikea-kids-eat-free-wednesdays-oct2026': /IKEA Family.*买主餐/u,
+    'smashburger-kids-wednesdays-2026': /买成人套餐/u,
+    'roundup-krispy-kreme-welcome-2026': /下单/u,
+    'botanical-thanksgiving-nov26-2026': /旧金山植物园/u,
+    'ac-library-free-printing': /持卡/u,
+    'amc-birthday-popcorn-2026': /会员/u,
+    'apple-kids-kindness-story': /6–10 岁/u,
+    'auntie-annes-birthday-pretzel-2026': /有消费/u,
+    'chilis-veterans-day-nov11-2026': /军人及退伍军人/u,
+    'chm-museums-on-us-nov7-8-2026': /指定银行卡/u,
+    'cinnabon-welcome-bonbites-2026': /下单/u,
+    'dunkin-survey-donut-2026': /买中杯/u,
+    'ikea-emeryville-as-is-wednesdays': /Emeryville/u,
+    'lego-free-kids-magazine': /5–9 岁/u,
+    'lowes-mrbeast-swarms-oct24-2026': /首百名会员/u,
+    'mcdonalds-new-app-nuggets-2026': /首单满 \$1/u,
+    'michaels-halloween-lantern-oct18-2026': /买玻璃罐/u,
+    'peets-birthday-drink-2026': /有消费记录/u,
+    'roundup-jersey-mikes-birthday-points-2026': /买过主食/u,
+    'roundup-wendys-weekly-app-offers-2026': /满 \$5/u,
+    'target-acotar-keychain-oct26-2026': /前 100 名/u,
+    'target-baby-welcome-kit-2026': /清单/u,
+    'world-market-zombie-reward-oct31-2026': /已有/u,
   };
   for (const [id, words] of Object.entries(kept)) {
     const title = OFFER_OVERLAY[id].shortTitle!;

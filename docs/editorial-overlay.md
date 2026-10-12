@@ -24,7 +24,9 @@ and `src/data/city-exploration-east-sf-en.json` (SF city bulletin and its Englis
 | `plan` | Replaces the cleaned plan: a number keeps that line of the cleaned plan, a string is a rewritten line. |
 | `fix` | Corrects a source fact (title, dateLabel, costLabel, occurrenceDates…). Never `id`, `verifiedAt` or `imageKey`, and only fields `basis.json` tracks (`BASIS_FIELDS` in `lint.ts`). Each correction needs a dated source read in `docs/source-reads-2026-10.md`. |
 
-Offers (`offers.json`): `shortTitle`, `dek`, `tips`, `valueText`, `publicBenefit`, `status` (`sold_out` only), `fix`. Openings
+Offers (`offers.json`): `shortTitle`, `dek`, `tips`, `valueText`, `publicBenefit`, `status` (`sold_out` only), `fix`. An offer's
+`shortTitle` keeps the condition its title (or `requirement`) leads with: who qualifies ("Berkeley 居民", "5–18 岁", "美国居民"),
+the purchase a gift needs ("买成人套餐送…", "下单送…") or the one store it runs at. Openings
 (`openings.json`): `shortTitle`, `dek`, `openedOn` (only the stated first day of public service), `fix`. An opening's
 `editorTip` (shown under 怎么安排) carries one fact about that shop the card does not already show (where it is, what else it
 serves, how to book), never a line every shop could share ("按菜单消费；价格与开业优惠见商家…").
@@ -53,8 +55,9 @@ Every Chinese string an entry adds needs an entry in `src/data/editorial-overlay
 - `basis.json` records the source fields each entry was written against (`BASIS_FIELDS` in `lint.ts`). When a tracked source
   field later changes under an entry, the lint reports `source-changed`:
   - an **error** when a stored field of the entry would win over the edit (the overlay applies last): a `fix` of that field, a
-    `plan` override (source `plan`), `shortTitle` (source `title`), `price` (`cost`, `costLabel`), `sessions`, `dateNote` or `status`
-    (the dates, `dateLabel`; `status` also `costLabel`), `venueShort` / `address` (`venue`), `ageChip` (`audience`). CI fails
+    `plan` override (source `plan`), `shortTitle` (source `title`; an offer's also `requirement`), `price` (`cost`,
+    `costLabel`), `sessions`, `dateNote` or `status` (the dates, `dateLabel`; `status` also `costLabel`), `venueShort` /
+    `address` (`venue`), `ageChip` (`audience`). CI fails
     (`tests/editorial-overlay.test.ts`), for archived items too, until the stored field is updated or removed and the item is
     re-recorded with `--write-basis=event:<id>` (or `offer:<id>`, `opening:<id>`; several ids separated by commas);
   - a **warning** otherwise (re-read the entry's `dek` and short forms). CI does not fail on it; the captain re-records the item at
@@ -62,8 +65,8 @@ Every Chinese string an entry adds needs an entry in `src/data/editorial-overlay
 - `--write-basis` alone re-records every covered item, and refuses (writes nothing, exits 1, lists the items) while any masked
   edit is unresolved, so it cannot be used to silence a `source-changed` error. A new entry needs its basis recorded too: the
   test fails for a covered item without one, and `--write-basis=kind:id` records it.
-- Verification-log wording in reader text ("未核到…", "未见…", "官方页面列…") is a `log-voice` warning: say what the page states
-  or where to find it.
+- Verification-log or editor's-note wording in reader text ("未核到…", "未见…", "官方页面列…", "编辑建议…") is a `log-voice` warning:
+  say what the page states or where to find it.
 - Pre-overlay records (`PRE_OVERLAY`) are kept for the lint, tests and Node scripts only; a production build does not fill them.
 
 ## Merging (captain)
@@ -77,6 +80,7 @@ then run `--write-basis` (it succeeds once no masked edit is left) and commit `b
 New events, offers and openings may ship without an entry; cards derive a short title from the title. Please do not add the filler
 sentence or plan lines that repeat the date or cost label, avoid editor's-log wording in reader fields (本次/本条/本卡/本轮…), and
 never write 免费 in a title unless `cost` is `free` or `mixed`.
+In reader fields also avoid 未核…/未见…/页面列…/编辑建议…: say what the page states or where to find it ("完整名单见活动页").
 Correcting a covered item is fine: CI only fails when the overlay would hide your correction (`tests/editorial-overlay.test.ts`
 names the item and the entry field, e.g. `fix.costLabel`). Then the overlay still holds the old value: name the item in the PR
 so the captain updates or removes that entry field. Do not run `--write-basis` to make the test pass; it refuses in that case.
