@@ -20,6 +20,7 @@ const { render, fireEvent, cleanup, waitFor } = await import('@testing-library/r
 const { MemoryRouter, StaticRouter, Routes, Route, Link } = await import('react-router-dom');
 const { localDiscoveries, currentOpenings, getLocalDiscovery, discoveryShare } = await import('../src/data/local-discoveries');
 const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
+const { eventOffers, eventTimes } = await import('../src/lib/schema-org');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
@@ -210,9 +211,11 @@ test('all detail pages server-render full content with matching canonical, OG, T
     assert.equal(meta(doc, 'twitter:image'), expectedImage);
     assert.equal(meta(doc, 'twitter:card'), 'summary_large_image');
     assert.equal(meta(doc, 'robots'), 'index, follow');
-    assert.ok(meta(doc, 'description')!.includes(share.date));
-    assert.ok(meta(doc, 'description')!.includes(share.area));
-    assert.ok(meta(doc, 'description')!.includes(share.summary));
+    // the share description is complete; the search snippet is its first ~90 characters (I18N-SEO-11)
+    assert.ok(meta(doc, 'og:description')!.includes(share.date));
+    assert.ok(meta(doc, 'og:description')!.includes(share.area));
+    assert.ok(meta(doc, 'og:description')!.includes(share.summary));
+    assert.ok(meta(doc, 'og:description')!.startsWith(meta(doc, 'description')!.replace(/…$/, '')));
     const jsonLd = doc.querySelectorAll('script[type="application/ld+json"]');
     assert.equal(jsonLd.length, 1);
     const [entity, breadcrumb] = JSON.parse(jsonLd[0].textContent!);
@@ -220,23 +223,28 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.equal(entity['@type'], 'Event');
       assert.equal(entity.name, share.title);
       assert.equal(entity.url, expectedUrl);
-      assert.equal(entity.startDate, item.event.startDate);
-      assert.equal(entity.endDate, item.event.endDate);
+      // the sessions' first start and last end with the Bay Area offset when the overlay states times (schema-org.ts)
+      assert.equal(entity.startDate, eventTimes(item.event).startDate);
+      assert.equal(entity.endDate, eventTimes(item.event).endDate);
+      assert.ok(entity.startDate.startsWith(item.event.sessions?.length && !['postponed', 'cancelled'].includes(item.event.status || '') ? [...item.event.sessions].sort((a, b) => a.date.localeCompare(b.date))[0].date : item.event.startDate));
       assert.equal(entity.location.name, item.event.venue);
       assert.equal(entity.location.address.addressLocality, item.event.city);
       assert.equal(entity.location.address.addressRegion, 'CA');
       assert.equal(entity.location.address.addressCountry, 'US');
-      assert.equal(Object.hasOwn(entity, 'offers'), false, 'unconfirmed ticket prices are not invented');
-      assert.equal(entity.isAccessibleForFree, item.event.cost === 'free' ? true : undefined);
-      if (item.event.occurrenceDates) assert.deepEqual(entity.subEvent.map((event: { startDate: string }) => event.startDate), item.event.occurrenceDates);
+      // offers only from a stated price or a free listing: unconfirmed ticket prices are not invented
+      assert.deepEqual(entity.offers, eventOffers(item.event));
+      if (!item.event.price && item.event.cost !== 'free') assert.equal(Object.hasOwn(entity, 'offers'), false, 'unconfirmed ticket prices are not invented');
+      assert.equal(entity.isAccessibleForFree, item.event.cost === 'free' || item.event.price?.free ? true : undefined);
+      if (item.event.occurrenceDates?.length && !eventTimes(item.event).sessions.length) assert.deepEqual(entity.subEvent.map((event: { startDate: string }) => event.startDate), item.event.occurrenceDates);
     } else {
       assert.equal(entity['@type'], 'Article');
       assert.equal(entity.headline, share.title);
       assert.equal(entity.mainEntityOfPage, expectedUrl);
       assert.equal(entity.publisher.name, 'BAYLINK');
       assert.equal(entity.publisher.url, SITE_URL);
-      if (share.checkedAt) assert.equal(entity.dateModified, share.checkedAt);
-      else assert.equal(Object.hasOwn(entity, 'dateModified'), false, 'offers without a checked date do not invent one');
+      assert.equal(entity.author['@type'], 'Organization', 'the editorial desk, never an invented person');
+      if (share.checkedAt) assert.ok(entity.dateModified >= share.checkedAt);
+      else if (!entity.datePublished) assert.equal(Object.hasOwn(entity, 'dateModified'), false, 'offers without a checked date do not invent one');
     }
     assert.equal(breadcrumb['@type'], 'BreadcrumbList');
     assert.equal(breadcrumb.itemListElement.at(-1).item, expectedUrl);

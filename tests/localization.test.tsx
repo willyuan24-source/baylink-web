@@ -315,7 +315,7 @@ test('a dated guide title follows language changes in the browser and social met
 
   const titles = [
     ['zh-Hans', '2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票｜BAYLINK'],
-    ['en', 'October 2026 Bay Area savings: free museums, kids workshops and library passes｜BAYLINK'],
+    ['en', 'October 2026 Bay Area savings: free museums, kids workshops and library passes | BAYLINK'],
     ['zh-Hant', '2026 年 10 月灣區省錢攻略：免費場館、親子手工與圖書館門票｜BAYLINK'],
     ['zh-Hans', '2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票｜BAYLINK'],
   ] as const;
@@ -332,17 +332,22 @@ test('a dated guide title follows language changes in the browser and social met
 
 test('all published editorial metadata titles translate completely and restore their Chinese originals', async () => {
   const pages = [...guides.map(getGuideMetadata), ...localDiscoveries.map(getDiscoveryMetadata)];
+  // The <title> is the full title, or for a very long one the reviewed short title + brand (I18N-SEO-11); the share
+  // titles keep the full one. English titles separate the brand with " | ".
   await setLocale('en', false);
   for (const metadata of pages) {
     setPageMetadata(metadata);
+    const ogTitle = document.querySelector('meta[property="og:title"]')!.getAttribute('content')!;
     assert.ok(!han.test(document.title), `${metadata.path}: ${document.title}`);
-    assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), document.title, metadata.path);
-    assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), document.title, metadata.path);
+    assert.ok(!han.test(ogTitle), `${metadata.path}: ${ogTitle}`);
+    assert.ok(document.title === ogTitle || ogTitle.length > 72 && document.title.endsWith(' | BAYLINK'), `${metadata.path}: ${document.title}`);
+    assert.ok(!ogTitle.includes('｜'), `${metadata.path}: ${ogTitle}`);
+    assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), ogTitle, metadata.path);
   }
   await setLocale('zh-Hans', false);
   for (const metadata of pages) {
     setPageMetadata(metadata);
-    assert.equal(document.title, metadata.title, metadata.path);
+    assert.ok(document.title === metadata.title || document.title === `${metadata.shortTitle}｜BAYLINK`, metadata.path);
     assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), metadata.title, metadata.path);
     assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), metadata.title, metadata.path);
   }

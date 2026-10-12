@@ -11,12 +11,14 @@ import { GuidesHome } from '../src/components/GuidesHome';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
-import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { monthlyMetadata } from '../src/lib/monthly-metadata';
+import { nextOccurrence } from '../src/lib/monthly';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { EVENTS_INDEX, INDEX_EVENTS } from '../src/features/events/events-model';
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 import { generateSitemap } from '../scripts/generate-sitemap';
+import guidePublished from '../src/data/first-published/guides.json';
 import { preloadAllGuideBlocks } from '../src/features/guides/guide-blocks';
 
 // The deals board and the city directory are chunks an article loads with its record (WEB-DATA-SPLIT); the page waits for
@@ -27,13 +29,17 @@ const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
 const noop = () => {};
 
 test('monthly structured data links every live event of the edition to a readable canonical detail page beyond the first page', () => {
-  const html = renderHtmlDocument(template, MONTHLY_METADATA, '<main>Monthly edition</main>');
+  const day = '2026-10-12';
+  const html = renderHtmlDocument(template, monthlyMetadata(day), '<main>Monthly edition</main>');
   const dom = new JSDOM(html);
   const [collection] = JSON.parse(dom.window.document.querySelector('script[type="application/ld+json"]')!.textContent!);
   const entries: { url: string; name: string }[] = collection.mainEntity.itemListElement;
-  // The events column's slim index: every event that had not ended by the edition's check date (RC-33), in catalog order.
-  assert.deepEqual(entries.map(entry => entry.url), INDEX_EVENTS.map(event => `https://www.baylink.us/events/${event.id}`));
-  for (const event of MONTHLY_EVENTS.filter(item => item.endDate >= EVENTS_INDEX.edition.checkedAt)) assert.ok(entries.some(entry => entry.url.endsWith(`/events/${event.id}`)), `${event.id} is listed`);
+  // The events column's slim index (RC-33): what is still on that day, by the next day each event happens (I18N-SEO-10).
+  const live = INDEX_EVENTS.filter(event => nextOccurrence(event, day));
+  assert.deepEqual(new Set(entries.map(entry => entry.url)), new Set(live.map(event => `https://www.baylink.us/events/${event.id}`)));
+  const next = entries.map(entry => nextOccurrence(INDEX_EVENTS.find(event => entry.url.endsWith(`/events/${event.id}`))!, day)!);
+  assert.deepEqual(next, [...next].sort(), 'by the next day each event is on');
+  for (const event of MONTHLY_EVENTS.filter(item => item.endDate >= EVENTS_INDEX.edition.checkedAt && nextOccurrence(item, day))) assert.ok(entries.some(entry => entry.url.endsWith(`/events/${event.id}`)), `${event.id} is listed`);
   assert.ok(entries.length > 12, 'the list reaches beyond the first page of cards');
   for (const entry of entries) {
     const url = new URL(entry.url);
@@ -93,9 +99,10 @@ test('guide structured data uses real modification dates, escapes script delimit
   assert.equal(scripts.length, 1);
   const [article, breadcrumbs] = JSON.parse(scripts[0].textContent || '[]');
   assert.equal(article.headline, guide.title);
-  assert.equal(article.dateModified, guide.updatedAt);
-  assert.equal(article.author, undefined, 'do not invent a personal author');
-  assert.equal(article.datePublished, undefined, 'modification time is not a known publication date');
+  assert.ok(article.dateModified >= guide.updatedAt);
+  assert.deepEqual(article.author, { '@type': 'Organization', name: 'BAYLINK', url: 'https://www.baylink.us/about' }, 'the editorial desk, never an invented person');
+  // the day the guide first shipped (data/first-published, from the history), never the modification time
+  assert.equal(article.datePublished, (guidePublished as Record<string, string>)[guide.slug]);
   assert.equal(breadcrumbs.itemListElement.at(-1).item, `https://www.baylink.us/guides/${guide.slug}`);
   assert.equal(dom.window.document.querySelectorAll('script:not([src]):not([type="application/ld+json"])').length, 0);
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');

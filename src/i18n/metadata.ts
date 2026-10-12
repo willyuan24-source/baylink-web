@@ -2,7 +2,8 @@ import { configureMetadataLanguage } from '../lib/seo';
 import { getLocale, subscribeLocale, translateText, translateEditorial, localizedUrl } from './locale';
 
 function localizeSchema(value: unknown, key = ''): unknown {
-  if (typeof value === 'string' && ['url', '@id', 'item'].includes(key) && value.startsWith('https://www.baylink.us/')) return localizedUrl(value);
+  // Page URLs take the page's language; files (the logo, images) keep their one address.
+  if (typeof value === 'string' && ['url', '@id', 'item', 'mainEntityOfPage'].includes(key) && value.startsWith('https://www.baylink.us/') && !/\.[a-z0-9]{2,5}$/i.test(new URL(value).pathname)) return localizedUrl(value);
   if (Array.isArray(value)) return value.map(item => localizeSchema(item, key));
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([name, item]) => [name, localizeSchema(item, name)]));
   return value;
