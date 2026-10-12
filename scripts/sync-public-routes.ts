@@ -64,6 +64,9 @@ export const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(), pay
  * browser cache that then revalidates, so a fix to the size or language redirect reaches readers within minutes. */
 export const READING_INIT_SRC = String.raw`^/reading-init\.js$`;
 export const READING_INIT_CACHE_CONTROL = 'public, max-age=600, must-revalidate';
+/** CW-02 / EVT11-05: the daily rebuild (api/daily-rebuild.ts, inert until the owner sets its env). Vercel cron times are UTC:
+ * 08:10 UTC is 00:10 PST / 01:10 PDT, always after Pacific midnight. Other cron entries in vercel.json are kept. */
+export const DAILY_REBUILD_CRON = { path: '/api/daily-rebuild', schedule: '10 8 * * *' };
 const LOCALE_PREFIX = '(en|zh-Hant)';
 /** Route-table pattern → hosting regex body: `/messages/:threadId` → `messages/[^/]+`. */
 const routeSource = (path: string) => path.slice(1).replace(/:[A-Za-z]+/g, '[^/]+');
@@ -117,6 +120,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const functionConfig = config as typeof config & { functions: Record<string, { includeFiles: string; maxDuration: number }> };
   functionConfig.functions ||= {};
   for (const file of ['api/outing-page.ts', 'api/user-card-page.ts']) functionConfig.functions[file] = { includeFiles: 'dist/index.html', maxDuration: 15 };
+  const cronConfig = config as typeof config & { crons?: { path: string; schedule: string }[] };
+  cronConfig.crons = [...(cronConfig.crons || []).filter(cron => cron.path !== DAILY_REBUILD_CRON.path), DAILY_REBUILD_CRON];
   const catalog: PublicCatalog = { events: [], offers: [], openings: [], guides: guides.map(guide => guide.slug) };
   for (const item of localDiscoveries) catalog[item.kind === 'event' ? 'events' : item.kind === 'offer' ? 'offers' : 'openings'].push(discoveryShare(item).id);
   const table = tableHostingRoutes();
