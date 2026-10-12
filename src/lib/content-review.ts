@@ -132,10 +132,23 @@ export function sourceComparedAt(rows: readonly FreshnessSourceRow[] | null, now
 }
 
 /**
+ * A pending source change a reader should hear about (EVT11-07, CNT-1011-02): source triage judged it `material`, no
+ * person has reviewed it, and it came after the editor's last check of the facts (a check dated after the day of the
+ * change already covers it). Everything else is editor work in the admin queue, not a reason to send readers away:
+ * a change triage has not judged (triage off, or not yet run on this text), a cosmetic one (`material: false`), and a
+ * row that is `unchanged`, never compared or unreadable with nothing material pending.
+ */
+const unreviewedMaterial = (row: FreshnessSourceRow, verifiedAt: string | undefined) => row.needsReview && row.material === true
+  && !(verifiedAt && finiteTime(row.changedAt) && verifiedAt > contentReviewToday(new Date(row.changedAt)));
+
+/**
  * Reader freshness follows source state, not the calendar (D11). `sources === null`
- * means the API has not answered or is unreachable, which reads as OK. A source the
- * monitor cannot read is an editor task, shown to readers only when the date is near
- * and the last human check is old.
+ * means the API has not answered or is unreachable, which reads as OK. Only an
+ * unreviewed material change prompts, and only inside the item's live window (not
+ * archived; an event whose `nextDate` is known to be null has no session left and
+ * says so itself; offers and openings carry no `nextDate`, null or absent, and stay
+ * live until their end date). A source the monitor cannot read is an editor task, shown to
+ * readers only when the date is near and the last human check is old.
  */
 export function getReaderFreshness(item: ReaderFreshnessItem, sources: readonly FreshnessSourceRow[] | null, { today, now }: { today: string; now: number }): ReaderFreshness {
   const verifiedAt = validDate(item.verifiedAt) && item.verifiedAt <= today ? item.verifiedAt : undefined;
@@ -145,8 +158,7 @@ export function getReaderFreshness(item: ReaderFreshnessItem, sources: readonly 
   if (validDate(item.endDate) && item.endDate < today) return { state: 'archived', ...base };
   if (!sources) return { state: 'ok', ...base };
   const active = sources.filter(row => row.status !== 'expired');
-  // Triage marks cosmetic edits `material: false`; without triage a pending change may matter.
-  const pending = active.filter(row => row.needsReview && row.material !== false);
+  const pending = item.kind === 'event' && item.nextDate === null ? [] : active.filter(row => unreviewedMaterial(row, verifiedAt));
   const earliest = (rows: FreshnessSourceRow[]) => { const times = rows.map(row => row.changedAt).filter(finiteTime); return times.length ? { changedAt: Math.min(...times) } : {}; };
   const hard = pending.filter(row => row.changeFields?.some(field => HARD_FIELDS.has(field)));
   if (hard.length) return { state: 'hard', ...base, ...earliest(hard) };

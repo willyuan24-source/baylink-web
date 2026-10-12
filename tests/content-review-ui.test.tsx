@@ -72,7 +72,7 @@ test('discovery notices follow source state: the calendar alone never raises a b
   assert.equal(view.getByRole('link').getAttribute('href'), 'https://example.com/official');
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]|Internal capture detail/u);
   view.unmount();
-  api.request = async () => ({ sources: [{ sourceId: 's', status: 'changed', needsReview: true, changeFields: ['cancel'], lastFetchedAt: 1, lastReviewedAt: null }] });
+  api.request = async () => ({ sources: [{ sourceId: 's', status: 'changed', needsReview: true, material: true, changeFields: ['cancel'], lastFetchedAt: 1, lastReviewedAt: null }] });
   await act(async () => { view = render(<ContentReviewNotice record={{ ...record, kind: 'event', id: 'cancelled' }} today="2026-10-06" />); });
   await act(async () => {});
   const box = view.getByRole('complementary', { name: 'Official page change' });
