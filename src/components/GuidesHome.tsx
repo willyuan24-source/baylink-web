@@ -41,24 +41,29 @@ const GUIDE_CATEGORY_TABS = INDEX.categoryTabs;
 const cardsBySlug = new Map(guides.map(guide => [guide.slug, guide]));
 const bySlug = (slug: string) => cardsBySlug.get(slug);
 
-/** The full guide corpus for full-text search: a chunk of its own, loaded on the first search (with English's search scope). */
+/**
+ * The full guide corpus for full-text search: a chunk of its own, loaded on the first search. English also needs the guides'
+ * full-text pack ('guide-search') before it matches, in whichever language the reader searches first.
+ */
 let corpus: Guide[] | undefined;
 let corpusLoad: Promise<Guide[]> | undefined;
-const loadSearchCorpus = (locale: string) => corpusLoad ||= Promise.all([
-  import('../features/guides/guide-search-corpus').then(module => module.guides),
-  locale === 'en' ? loadLocaleForFeature('en', 'guide-search').catch(() => undefined) : undefined,
-]).then(([loaded]) => (corpus = loaded)).catch((error: unknown) => { corpusLoad = undefined; throw error; });
+const searchReady = new Set<string>();
+const loadCorpus = () => corpusLoad ||= import('../features/guides/guide-search-corpus').then(module => (corpus = module.guides))
+  .catch((error: unknown) => { corpusLoad = undefined; throw error; });
+const loadSearch = (locale: string) => Promise.all([loadCorpus(), locale === 'en' ? loadLocaleForFeature('en', 'guide-search').catch(() => undefined) : undefined])
+  .then(() => { searchReady.add(locale); });
 function useSearchCorpus(active: boolean, locale: string): { guides?: Guide[]; failed: boolean; retry: () => void } {
   const [, setLoaded] = useState(0);
   const [failed, setFailed] = useState(false);
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
-    if (!active || corpus) return;
+    if (!active || searchReady.has(locale)) return;
     let live = true;
-    loadSearchCorpus(locale).then(() => { if (live) setLoaded(count => count + 1); }, () => { if (live) setFailed(true); });
+    loadSearch(locale).then(() => { if (live) setLoaded(count => count + 1); }, () => { if (live) setFailed(true); });
     return () => { live = false; };
   }, [active, locale, attempt]);
-  return { guides: corpus, failed: failed && !corpus, retry: () => { setFailed(false); setAttempt(count => count + 1); } };
+  const ready = searchReady.has(locale);
+  return { guides: ready ? corpus : undefined, failed: failed && !ready, retry: () => { setFailed(false); setAttempt(count => count + 1); } };
 }
 
 /**
