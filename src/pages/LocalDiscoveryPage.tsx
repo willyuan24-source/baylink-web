@@ -7,6 +7,7 @@ import { ErrorState } from '../components/ui';
 import { useUiCopy } from '../components/ui/ui-copy';
 import { preloadDetailRecord, readDetailRecord, retryDetailRecord, type DetailKind } from '../features/detail/load-detail';
 import { routePathname } from '../app/route-table';
+import { isChunkLoadFailure } from '../lib/chunk-recovery';
 import NotFoundPage from './NotFoundPage';
 
 const KINDS = { events: 'event', offers: 'offer', openings: 'opening' } as const;
@@ -38,11 +39,20 @@ function DetailRoute({ kind, id }: { kind: DetailKind; id: string }) {
   return <LocalDiscoveryDetail key={`${kind}-${id}`} record={record} />;
 }
 
-/** RC-25: the record could not load (offline, a stranded deploy): say so and offer 重试 instead of a blank page. */
-class DetailLoadBoundary extends Component<{ children: ReactNode; onRetry: () => void }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() { return { failed: true }; }
-  render() { return this.state.failed ? <DetailLoadError onRetry={this.props.onRetry} /> : this.props.children; }
+/**
+ * RC-25: the record could not load (offline, a stranded deploy): say so and offer 重试 instead of a blank page. Only a
+ * failed load is caught here (load-detail marks it, isChunkLoadFailure); a render bug in the page is thrown on to the
+ * app's ErrorBoundary, which reports it, rather than being shown to the reader as a network problem.
+ */
+class DetailLoadBoundary extends Component<{ children: ReactNode; onRetry: () => void }, { error: unknown }> {
+  state: { error: unknown } = { error: undefined };
+  static getDerivedStateFromError(error: unknown) { return { error: error ?? new Error('Detail render failed') }; }
+  render() {
+    const { error } = this.state;
+    if (error === undefined) return this.props.children;
+    if (isChunkLoadFailure(error)) return <DetailLoadError onRetry={this.props.onRetry} />;
+    throw error;
+  }
 }
 
 function DetailLoadError({ onRetry }: { onRetry: () => void }) {
