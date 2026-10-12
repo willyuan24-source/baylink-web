@@ -19,7 +19,7 @@ import { SegmentedTitle } from './SegmentedTitle';
 import { openingStatusNote } from '../lib/opening-status';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { eventOccursOn } from '../lib/event-calendar';
-import { placeFor } from '../lib/planner';
+import { isPlannableOpening, openingPlaceId } from '../lib/opening-place';
 import { discoveryContentReviewRecord } from '../lib/content-review';
 import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
 
@@ -51,7 +51,8 @@ function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string
   const share = discoveryShare(item);
   const planDate = item.kind === 'event' ? confirmedEventDate(item.event, today) : null;
   const relatedEvents = item.kind === 'event' ? getRelatedUpcomingEvents(item.event, today) : [];
-  const openingPlace = item.kind === 'opening' ? placeFor(`opening-${item.shop.id}`) : undefined;
+  // The planner place of an open new shop (same rule as the planner catalog), without importing the catalog and the guides behind it.
+  const openingPlace = item.kind === 'opening' && isPlannableOpening(item.shop) ? { id: openingPlaceId(item.shop.id) } : undefined;
   const ended = item.kind === 'event' ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
   const unconfirmed = item.kind === 'event' && (Object.hasOwn(EVENT_DATE_OVERRIDES, item.event.id) ? EVENT_DATE_OVERRIDES[item.event.id] : item.event.occurrenceDates)?.length === 0;
   const unconfirmedOffer = item.kind === 'offer' && item.offer.verificationStatus === 'needs-confirmation';

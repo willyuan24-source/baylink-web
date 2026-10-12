@@ -3,6 +3,7 @@ import placeLocationData from './place-locations.json';
 import { VERIFIED_PLACE_SCHEDULES, VERIFIED_VENUE_LOCATIONS } from './planner-verified-hours';
 import { PLANNER_NEIGHBORHOOD_STOPS } from './planner-neighborhood-stops';
 import type { GeoPoint, PlannerPlace } from '../lib/planner';
+import { isPlannableOpening, openingPlaceId } from '../lib/opening-place';
 
 const cafes = new Set([
   'san-jose-bitterbuck-soft-opening-2026', 'hijau-san-jose-storefront', 'oakland-55-coffee-pop-up-2026',
@@ -22,8 +23,8 @@ const openingLocations: Record<string, GeoPoint> = {
 };
 
 /** Opening status stays explicit; announcement dates never turn a store into an open place. */
-const openingStops: PlannerPlace[] = currentOpenings.filter(shop => shop.status === 'open' || shop.status === 'soft_open').map(shop => ({
-  id: `opening-${shop.id}`, title: shop.name, region: shop.region, city: shop.city,
+const openingStops: PlannerPlace[] = currentOpenings.filter(isPlannableOpening).map(shop => ({
+  id: openingPlaceId(shop.id), title: shop.name, region: shop.region, city: shop.city,
   summary: shop.summary, guideSlug: '', path: `/openings/${encodeURIComponent(shop.id)}`,
   officialUrl: shop.officialUrl, cost: 'unknown',
   category: shops.has(shop.id) ? 'shop' : cafes.has(shop.id) ? 'cafe' : 'restaurant',
