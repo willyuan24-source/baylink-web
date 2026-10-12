@@ -95,6 +95,23 @@ test('Event JSON-LD: Bay Area times with their offset, status, attendance, organ
   assert.equal(eventOrganizer({ sourceLabel: 'chasecenter.com', officialUrl: 'https://www.chasecenter.com/events/x' }), undefined, 'a bare commercial domain is not named as the organizer');
   assert.deepEqual(eventOrganizer({ sourceLabel: 'sfpl.org', officialUrl: 'https://sfpl.org/events/x' }), { '@type': 'Organization', name: 'sfpl.org', url: 'https://sfpl.org/' });
   assert.deepEqual(eventOrganizer({ sourceLabel: 'Lambtown Festival 主办方', officialUrl: 'https://www.lambtown.org/schedule' }), { '@type': 'Organization', name: 'Lambtown Festival', url: 'https://www.lambtown.org/' });
+  // a bureau's listing names the organizer after the slash, and its host is never the organizer's url
+  assert.deepEqual(eventOrganizer({ sourceLabel: 'Marin Convention & Visitors Bureau / Point Reyes Open Studios', officialUrl: 'https://www.visitmarin.org/event-calendar/x/' }), { '@type': 'Organization', name: 'Point Reyes Open Studios' });
+  assert.deepEqual(eventOrganizer({ sourceLabel: 'Point Reyes Open Studios', officialUrl: 'https://www.visitmarin.org/event-calendar/x/' }), { '@type': 'Organization', name: 'Point Reyes Open Studios' });
+  // a section host (calendar., events.) names its organisation's site
+  assert.deepEqual(eventOrganizer({ sourceLabel: 'calendar.santaclaraca.gov', officialUrl: 'https://calendar.santaclaraca.gov/santaclaraca/1' }), { '@type': 'Organization', name: 'santaclaraca.gov', url: 'https://calendar.santaclaraca.gov/' });
+  assert.equal(eventOrganizer({ sourceLabel: 'events.napalibrary.gov', officialUrl: 'https://events.napalibrary.gov/event/1' })?.name, 'napalibrary.gov');
+  // listing rules match whole hosts: Bark in the Park San Jose, Symphony San José and Stanford Athletics run their own sites
+  assert.equal(eventOrganizer({ sourceLabel: 'Bark in the Park San Jose 官方', officialUrl: 'https://www.barksanjose.org/' })?.url, 'https://www.barksanjose.org/');
+  assert.equal(eventOrganizer({ sourceLabel: 'symphonysanjose.org', officialUrl: 'https://symphonysanjose.org/x' })?.name, 'symphonysanjose.org');
+  assert.equal(eventOrganizer({ sourceLabel: 'Stanford Athletics', officialUrl: 'https://gostanford.com/calendar' })?.url, 'https://gostanford.com/');
+  assert.equal(eventOrganizer({ sourceLabel: 'sanjose.org', officialUrl: 'https://www.sanjose.org/events/x' }), undefined, 'the city’s visitor site lists');
+  for (const event of MONTHLY_EVENTS) {
+    const organizer = eventOrganizer(event) as { name: string; url?: string } | undefined;
+    if (!organizer) continue;
+    assert.ok(!/visitors?\s+bureau|^(?:calendar|events?)\./i.test(organizer.name), `${event.id}: ${organizer.name}`);
+    if (organizer.url) assert.ok(!/visit[a-z-]*\.(?:com|org)|luma\.com|eventbrite/.test(organizer.url), `${event.id}: ${organizer.url} is a listing`);
+  }
 });
 
 test('Article JSON-LD: the editorial desk as author, the first-published day, localized page URLs, files keep one address', async () => {

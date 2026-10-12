@@ -53,21 +53,27 @@ export function venueParts(venue: string, address?: string): VenueParts {
 const PLATFORM = /(?:^|\.)(?:luma\.com|lu\.ma|eventbrite\.com|ticketmaster\.com|livenation\.com|meetup\.com|axs\.com|partiful\.com|tixr\.com|universe\.com|seatgeek\.com|stubhub\.com|dice\.fm|posh\.vip|allevents\.in|facebook\.com|instagram\.com|activecommunities\.com|bibliocommons\.com|libcal\.com|evanced\.info|eventeny\.com|showclix\.com|etix\.com|ticketweb\.com|simpletix\.com|brownpapertickets\.com|zeffy\.com|givebutter\.com)$/i;
 const DOMAIN = /^[a-z0-9-]+(?:\.[a-z0-9-]+)+$/i;
 const ORGANISATION_SITE = /\.(?:gov|edu|org|us|museum)$/i;
-const LISTING_SITE = /^(?:www\.)?(?:visit|go|see|explore|discover)[a-z-]*\.|tourism|travel|chamber|patch\.com|sanjose\.org|funcheap|allevents|eventful/i;
+/** Visitor bureaus, tourism boards, chambers and event listings: they list events, they do not organize them. */
+const LISTING_SITE = /^(?:www\.)?(?:visit|see|explore|discover)[a-z-]*\.|tourism|travel|chamber|(?:^|\.)(?:patch\.com|sanjose\.org)$|funcheap|allevents|eventful/i;
+const VISITOR_BUREAU = /visitors?\s+bureau|convention\s*(?:&|and)\s*visitors|tourism|visitor\s+cent(?:er|re)/i;
+/** A site's section, not its organisation: calendar.santaclaraca.gov is santaclaraca.gov's calendar. */
+const SECTION_HOST = /^(?:www|calendar|events?|admissions|members|tickets?|register|registration|apps?|portal)\./i;
 /** The organizer named by the listing's official source, or nothing when the source is a report or a platform. */
 export function eventOrganizer(event: Pick<MonthlyEvent, 'sourceLabel' | 'officialUrl'>): Record<string, unknown> | undefined {
-  const label = event.sourceLabel.trim();
-  if (/媒体报道|新闻|报道|media|news/i.test(label)) return undefined;
+  if (/媒体报道|新闻|报道|media|news/i.test(event.sourceLabel)) return undefined;
+  // "Marin Convention & Visitors Bureau / Point Reyes Open Studios": the bureau lists, the studios organize
+  const label = event.sourceLabel.split(/\s+\/\s+/).filter(part => !VISITOR_BUREAU.test(part)).join(' / ').trim();
   let host = '';
   let origin = '';
   try { const url = new URL(event.officialUrl); host = url.hostname.replace(/^www\./, ''); origin = `${url.origin}/`; } catch { /* no organizer URL */ }
   // A bare domain names the organizer only when it is an organisation's own site (a city, a library, a park district, a
-  // museum), never a visitor bureau, a listing site or a ticket platform.
+  // museum), never a visitor bureau, a listing site or a ticket platform; a section host names its organisation.
   if (DOMAIN.test(label) && (!ORGANISATION_SITE.test(label) || LISTING_SITE.test(label))) return undefined;
   // "Lambtown Festival 主办方", "Novato 市官方活动页": the Latin name before the Chinese description of the page
-  const name = DOMAIN.test(label) ? label.replace(/^www\./, '') : label.replace(/\s*\p{Script=Han}.*$/u, '').replace(/[\s·/,-]+$/, '').trim();
+  const name = DOMAIN.test(label) ? label.replace(SECTION_HOST, '') : label.replace(/\s*\p{Script=Han}.*$/u, '').replace(/[\s·/,-]+$/, '').trim();
   if (!name || name.length < 3 || PLATFORM.test(name) || /^visit[\s·]/i.test(name)) return undefined;
-  return { '@type': 'Organization', name, ...(origin && !PLATFORM.test(host) ? { url: origin } : {}) };
+  // the url only when the page is on the organizer's own site: never a ticket platform, a bureau or a listing site
+  return { '@type': 'Organization', name, ...(origin && !PLATFORM.test(host) && !LISTING_SITE.test(host) ? { url: origin } : {}) };
 }
 
 const STATUS: Record<string, string> = { cancelled: 'https://schema.org/EventCancelled', postponed: 'https://schema.org/EventPostponed' };
