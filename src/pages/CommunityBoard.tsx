@@ -23,7 +23,7 @@ import type { PostData } from '../lib/types';
 import { CategorySafetyNotice } from '../components/CategorySafetyNotice';
 import { PostCard } from '../features/posts/PostCard';
 import { BoardLinks } from '../features/posts/BoardLinks';
-import { categoryName, feedTypeNames, isNewPost, publishLabel, showCount } from '../features/posts/community-copy';
+import { categoryName, feedTypeNames, isNewPost, publishLabel, REGION_NAMES, showCount } from '../features/posts/community-copy';
 import { OfficialAds } from '../features/ads/OfficialAds';
 const CategoryGuideStrip = lazy(() => import('../components/CategoryGuideStrip').then(m => ({ default: m.CategoryGuideStrip })));
 
@@ -34,10 +34,6 @@ export interface CommunityBoardProps {
   scrollRequest: number;
 }
 
-const REGION_NAMES: Record<string, { zh: string; en: string }> = {
-  旧金山: { zh: '旧金山', en: 'San Francisco' }, 中半岛: { zh: '半岛', en: 'Peninsula' }, 东湾: { zh: '东湾', en: 'East Bay' },
-  南湾: { zh: '南湾', en: 'South Bay' }, 北湾: { zh: '北湾', en: 'North Bay' },
-};
 
 export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
   const { t, pick } = useUiCopy();
@@ -109,7 +105,7 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
         <Heading id="cm-board-title" className="ui-page-header__title">{isSearch ? t('搜索邻里信息', 'Search the neighborhood board') : name}</Heading>
         <StatusChip tone="info">{t('测试中', 'Testing')}</StatusChip>
       </div>
-      <p className="ui-page-header__lede">{t('湾区邻居发布的房源、二手和服务。平台不核实每条信息，联系和付款前请自己确认。', 'Rentals, secondhand items and services posted by Bay Area neighbors. BAYLINK does not verify each post; check before you contact or pay.')}</p>
+      <p className="ui-page-header__lede">{t('邻居发布，平台不逐条核实；联系和付款前请先确认。', 'Posted by neighbors and not verified by BAYLINK. Check before you contact or pay.')}</p>
       <div className="ui-page-header__actions"><Button variant="primary" icon={<Plus aria-hidden="true" strokeWidth={1.75} />} onClick={publish}>{pick(publishLabel(board))}</Button></div>
     </header>
 
@@ -128,11 +124,9 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
       <div className="cm-board__switches">
         <SegmentedControl label={t('信息类型', 'Type of post')} value={feedType} onChange={(id) => setFeedType(id === 'client' ? 'client' : 'provider')}
           items={[{ id: 'provider', label: pick(types.provider) }, { id: 'client', label: pick(types.client) }]} />
-        <FilterChip selected={recentOnly} onClick={() => setRecentOnly(!recentOnly)}>{t('只看近期确认', 'Recently confirmed only')}</FilterChip>
+        <FilterChip selected={recentOnly} onClick={() => setRecentOnly(!recentOnly)}>{t('近期确认', 'Recently confirmed')}</FilterChip>
       </div>
     </div>
-
-    {categorySlug && !keyword && <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>}
 
     <div className="cm-board__results">
       {resultsLine && <p className="cm-board__count" role="status" data-quiet={quiet ? '' : undefined}>{resultsLine}</p>}
@@ -155,6 +149,8 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
             {hasMore ? <div className="cm-board__more"><Button variant="secondary" onClick={handleLoadMore} disabled={isLoadingMore} icon={isLoadingMore ? <Loader2 className="animate-spin" aria-hidden="true" /> : undefined}>{isLoadingMore ? t('加载中…', 'Loading…') : t('加载更多', 'Load more')}</Button></div>
               : <p className="cm-board__end">{t('已经是全部信息', 'That’s everything for now')}</p>}
           </>}
+
+    {categorySlug && !keyword && <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>}
 
     <div className="cm-board__notes">
       <section className="cm-board__safety" aria-label={t('交易安全', 'Trading safety')}>

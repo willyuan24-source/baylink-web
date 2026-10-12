@@ -27,7 +27,7 @@ import { setPageMetadata } from '../../lib/seo';
 import { usePostTranslation } from './usePostTranslation';
 import { PostTranslationNotice } from './PostTranslationNotice';
 import { ServiceBookingPanel } from '../bookings/ServiceBookingPanel';
-import { categoryName, feedTypeNames, isFounderPost, postDate, showCount } from './community-copy';
+import { categoryName, feedTypeNames, isFounderPost, postDate, regionName, showCount } from './community-copy';
 
 const extractQuickTagsFromDescription = (description: string): string[] => {
   const matches = String(description || '').match(/#([^\s#]+)/g) || [];
@@ -74,7 +74,7 @@ function RelatedPosts({ post, currentUser, blockedUserIds }: { post: PostData; c
   if (!state || state.posts.length === 0) return null;
   const name = pick(categoryName(post.category));
   return <section className="cm-sheet__related" aria-labelledby="cm-related-title">
-    <h2 className="cm-board__subhead" id="cm-related-title">{state.sameArea ? t(`${post.city}的其他${name}信息`, `More ${name.toLowerCase()} posts nearby`) : t(`其他${name}信息`, `More ${name.toLowerCase()} posts`)}</h2>
+    <h2 className="cm-board__subhead" id="cm-related-title">{state.sameArea ? t(`${pick(regionName(post.city))}的其他${name}信息`, `More ${name.toLowerCase()} posts in ${pick(regionName(post.city))}`) : t(`其他${name}信息`, `More ${name.toLowerCase()} posts`)}</h2>
     <FeedGrid label={t('同区同类', 'Similar posts')} ratio="1:1">
       {state.posts.map(item => <FeedItem key={item.id}><PostCard post={item} currentUser={currentUser} /></FeedItem>)}
     </FeedGrid>
@@ -105,6 +105,8 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   const active = useRef(true);
   const locallyModified = useRef(false);
   const composing = useRef(false);
+  // The sheet opens on its title (read first by a screen reader; no focus ring on the back button at load).
+  const titleRef = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
 
@@ -234,10 +236,10 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
     onReport?.(post);
   };
 
-  const meta = [post.city, `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`, isPostEdited(post) ? t('已编辑', 'edited') : ''].filter(Boolean).join(' · ');
+  const meta = [post.city ? pick(regionName(post.city)) : '', `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`, isPostEdited(post) ? t('已编辑', 'edited') : ''].filter(Boolean).join(' · ');
 
   return (
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className="cm-sheet">
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className="cm-sheet" initialFocusRef={titleRef}>
       <header className="cm-sheet__toolbar">
         <button type="button" onClick={onClose} className="cm-sheet__back"><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{t('返回', 'Back')}</button>
         <div className="cm-sheet__toolbar-actions">
@@ -271,7 +273,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
 
           <p className="cm-sheet__eyebrow"><span>{pick(categoryName(post.category))}</span><span aria-hidden="true">·</span><span>{pick(types[post.type === 'client' ? 'client' : 'provider'])}</span>
             {post.isFeatured && <><span aria-hidden="true">·</span><span>{t('编辑精选', 'Editor’s pick')}</span></>}</p>
-          <h1 translate="no">{displayed.title}</h1>
+          <h1 translate="no" ref={titleRef} tabIndex={-1}>{displayed.title}</h1>
           <PostTranslationNotice reading={reading} />
           {post.budget && <p className="cm-sheet__price" translate="no">{displayed.budget}</p>}
           <div className="cm-sheet__availability"><PostStatusLine post={post} /><p>{english ? (availability.tone === 'confirmed' ? 'Confirmed by the poster; BAYLINK does not guarantee availability or the outcome of a deal.' : availability.tone === 'closed' ? 'The poster has ended this post.' : 'Not reconfirmed recently; ask the poster whether it still stands before you contact them.') : t(availability.detail, availability.detail)}</p></div>
@@ -297,7 +299,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
             <aside className="cm-sheet__aside" aria-label={t('发布者和联系方式', 'Poster and contact')}>
               <div className="cm-sheet__panel">
                 {(post.city || post.timeInfo || post.category) && <dl className="cm-sheet__facts">
-                  {post.city && <div><dt>{t('地区', 'Area')}</dt><dd>{post.city}</dd></div>}
+                  {post.city && <div><dt>{t('地区', 'Area')}</dt><dd>{pick(regionName(post.city))}</dd></div>}
                   {post.timeInfo && <div><dt>{t('时间', 'Timing')}</dt><dd translate="no">{displayed.timeInfo}</dd></div>}
                   {post.category && <div><dt>{t('分类', 'Category')}</dt><dd>{pick(categoryName(post.category))}</dd></div>}
                 </dl>}

@@ -15,7 +15,7 @@ import { isDefaultCoverUrl, normalizePostImages } from '../../lib/constants';
 import { postImageUrl } from '../../lib/post-image';
 import { postAvailability } from '../../lib/postAvailability';
 import type { PostData, UserData } from '../../lib/types';
-import { categoryName, FOUNDER_LABEL, isFounderPost, postDate, showCount } from './community-copy';
+import { categoryName, FOUNDER_LABEL, isFounderPost, postDate, regionName, showCount } from './community-copy';
 import { PostSaveHeart } from './PostSaveHeart';
 import { usePostTranslation } from './usePostTranslation';
 import { usePostVisibility } from './usePostVisibility';
@@ -87,7 +87,7 @@ type PostCardProps = {
 const plainClick = (event: MouseEvent) => !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0;
 
 export const PostCard = ({ post, layout = 'grid', priority, onClick, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: PostCardProps) => {
-  const { t, english } = useUiCopy();
+  const { t, pick, english } = useUiCopy();
   const location = useLocation();
   const backgroundLocation = location.state?.backgroundLocation || location;
   const isAdmin = currentUser?.role === 'admin';
@@ -98,7 +98,7 @@ export const PostCard = ({ post, layout = 'grid', priority, onClick, currentUser
   const reading = usePostTranslation(post, visible);
   const displayed = reading.display;
   const images = normalizePostImages(post).filter(url => !isDefaultCoverUrl(url));
-  const meta = [post.city || t('湾区', 'Bay Area'), `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`].join(' · ');
+  const meta = [post.city ? pick(regionName(post.city)) : t('湾区', 'Bay Area'), `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`].join(' · ');
   const close = () => setMenuOpen(false);
   return <article ref={ref} className="ui-feed-card cm-card" data-layout={layout} data-closed={post.status === 'closed' ? '' : undefined}>
     <h3 className="ui-feed-card__title cm-card__title">

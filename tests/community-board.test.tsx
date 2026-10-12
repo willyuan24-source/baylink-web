@@ -58,7 +58,7 @@ test('a board whose newest post is over 30 days old shows every post and says �
   assert.equal(view.container.querySelectorAll('h1').length, 1);
   assert.doesNotMatch(view.container.textContent!, /还没有资源|共 2 条/);
   // Each card carries its posted date and its confirmation status.
-  assert.match(view.container.querySelector('.cm-card__meta')!.textContent!, /中半岛 · \d+\/\d+ 发布/);
+  assert.match(view.container.querySelector('.cm-card__meta')!.textContent!, /半岛 · \d+\/\d+ 发布/);
   assert.ok(view.container.querySelector('.cm-card .ui-status')!.textContent!.includes('待确认有效'));
 });
 

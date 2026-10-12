@@ -7,7 +7,7 @@
  */
 
 /* ---------- Board ---------- */
-.cm-board { width:min(100%, 60rem); margin:0 auto; padding:1rem 0 3rem; color:var(--color-ink); }
+.cm-board { width:min(100%, 76rem); margin:0 auto; padding:1rem 0 3rem; color:var(--color-ink); }
 .cm-board[data-mode=home] { padding-top:2rem; border-top:1px solid var(--color-line); margin-top:2rem; }
 .cm-board__header { margin-bottom:1rem; scroll-margin-top:5rem; }
 .cm-board__header .ui-page-header__crumbs a { color:var(--color-ink-2); text-decoration:underline; text-underline-offset:3px; }
@@ -23,7 +23,9 @@
 
 .cm-board__filters { display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem; }
 .cm-board__switches { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .75rem; }
-.cm-board__switches .ui-segmented { flex:0 1 20rem; }
+.cm-board__switches { flex-wrap:nowrap; }
+.cm-board__switches .ui-segmented { flex:1 1 auto; max-width:20rem; }
+.cm-board__switches .ui-chip { flex:none; }
 
 .cm-board__results { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem 1rem; margin:1rem 0 .75rem; }
 .cm-board__count { flex:1 1 16rem; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -44,12 +46,16 @@
 .cm-board__ads:empty { display:none; }
 @media (min-width:768px) {
   .cm-board { padding-top:1.5rem; }
+  .cm-board__header { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:1.5rem; align-items:end; }
+  .cm-board__header>:not(.ui-page-header__actions) { grid-column:1; }
+  .cm-board__header>.ui-page-header__actions { grid-column:2; grid-row:1 / span 3; align-self:end; margin:0; }
+  .cm-board__filters { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; }
   .cm-board__notes { grid-template-columns:minmax(0, 1.2fr) minmax(0, 1fr); align-items:start; }
   .cm-board__ads { grid-column:1 / -1; }
 }
 
 /* Related guides under the filters (CategoryGuideStrip). */
-.cm-guides { margin:0 0 1rem; }
+.cm-guides { margin:2.5rem 0 0; }
 .cm-guides__title { margin:0 0 .5rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; font-weight:600; }
 .cm-guides__list { display:grid; gap:.5rem; margin:0; padding:0; list-style:none; }
 .cm-guides__list a { display:flex; align-items:center; gap:.5rem; min-height:var(--control-height); padding:.5rem .75rem; border:1px solid var(--color-line); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; text-decoration:none; }
@@ -125,6 +131,7 @@ html[data-post-sheet] #root main { visibility:hidden; }
 .cm-sheet__photo .ui-cover { border-radius:16px; }
 .cm-sheet__photo .cm-sheet__count { position:absolute; right:8px; bottom:8px; z-index:1; padding:3px 8px; border-radius:6px; background:var(--ui-badge-bg); color:var(--color-surface); font-size:var(--text-caption); font-weight:600; }
 .cm-sheet__eyebrow { display:flex; flex-wrap:wrap; align-items:center; gap:.375rem .75rem; margin:0 0 .5rem; color:var(--color-ink-2); font-size:var(--text-fact); }
+.cm-sheet h1:focus { outline:none; }
 .cm-sheet h1 { margin:0 0 .5rem; color:var(--color-ink); font-size:1.625rem; line-height:1.308; font-weight:600; overflow-wrap:anywhere; }
 .cm-sheet__price { margin:0 0 .75rem; color:var(--color-brand); font-size:1.375rem; line-height:1.4; font-weight:700; overflow-wrap:anywhere; }
 .cm-sheet__availability { margin:0 0 1rem; }
@@ -164,7 +171,8 @@ html[data-post-sheet] #root main { visibility:hidden; }
   .cm-sheet h1 { font-size:2rem; line-height:1.3125; }
   .cm-sheet__columns { grid-template-columns:minmax(0, 1fr) 20rem; align-items:start; }
   .cm-sheet__aside { position:sticky; top:0; }
-  .cm-sheet__bar { justify-content:flex-end; padding-left:2rem; padding-right:2rem; }
+  .cm-sheet__toolbar,.cm-sheet__bar { padding-left:max(1rem, calc((100% - 60rem) / 2 + 1.5rem)); padding-right:max(1rem, calc((100% - 60rem) / 2 + 1.5rem)); }
+  .cm-sheet__bar { justify-content:flex-end; }
   .cm-sheet__bar-price { flex:0 1 auto; margin-right:auto; }
 }
 @media (prefers-reduced-motion:reduce) { .cm-sheet__gallery { scroll-behavior:auto; } }

@@ -843,7 +843,7 @@ test('old outing list rows gain designed or linked-event covers while keeping fa
   const standaloneCard = (await view.findByRole('link', { name: standalone.title })).closest('article')!;
   const linkedCard = view.getByRole('link', { name: linked.title }).closest('article')!;
   assert.equal(within(standaloneCard).queryByRole('img'), null);
-  assert.ok(within(standaloneCard).getByText('BAYLINK · TOGETHER'));
+  assert.ok(within(standaloneCard).getByText('一起去'), 'the designed card says 一起去 (no English kicker on a Chinese page)');
   assert.equal(within(linkedCard).getByRole('img').getAttribute('src'), GUIDE_IMAGES[coverEvent.imageKey].src);
   assert.equal(within(linkedCard).getByRole('link', { name: `参考内容 · ${coverEvent.title}` }).getAttribute('href'), `https://www.baylink.us/events/${coverEvent.id}`);
   for (const [row, card] of [[standalone, standaloneCard], [linked, linkedCard]] as const) {

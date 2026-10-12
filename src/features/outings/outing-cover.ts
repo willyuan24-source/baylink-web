@@ -4,11 +4,14 @@ import { getGuideMedia, type GuideImage } from '../../data/guide-media';
 import { discoveryShare, localDiscoveries } from '../../data/local-discoveries';
 import { getLocale, simplifySearch, translateText, type Locale } from '../../i18n/locale';
 import type { OutingCoverSelection, OutingDraft } from '../../lib/outings';
+import { getCover, type ImageCover } from '../../lib/cover';
 
 export type OutingCoverInput = Pick<OutingDraft, 'title' | 'eventId' | 'date' | 'city' | 'startTime'> & { cover?: OutingCoverSelection };
 export type OutingCoverChoice = {
   kind: 'guide' | 'event' | 'offer' | 'opening'; id: string; title: string; summary: string; area: string;
   path: string; image: GuideImage;
+  /** The registry key, so the cover rules (venue / theme photos, the 8-year rule) apply as on every other page. */
+  imageKey?: string;
 };
 
 let catalog: OutingCoverChoice[] | undefined;
@@ -19,9 +22,9 @@ function choices(): OutingCoverChoice[] {
       const image = getListingImage(content.imageKey);
       if (!image) return [];
       const source = discoveryShare(item);
-      return [{ kind: item.kind, id: source.id, title: source.title, summary: source.summary, area: source.area, path: source.path, image }];
+      return [{ kind: item.kind, id: source.id, title: source.title, summary: source.summary, area: source.area, path: source.path, image, imageKey: content.imageKey }];
     }),
-    ...guides.map(guide => ({ kind: 'guide' as const, id: guide.slug, title: guide.title, summary: guide.summary, area: guide.categoryLabel, path: `/guides/${encodeURIComponent(guide.slug)}`, image: getGuideMedia(guide).cover })),
+    ...guides.map(guide => ({ kind: 'guide' as const, id: guide.slug, title: guide.title, summary: guide.summary, area: guide.categoryLabel, path: `/guides/${encodeURIComponent(guide.slug)}`, image: getGuideMedia(guide).cover, imageKey: `guide-cover:${guide.slug}` })),
   ];
 }
 
@@ -54,4 +57,15 @@ export function coverFromSearchParams(params: URLSearchParams): OutingCoverSelec
 
 export function outingCoverHref(selection: OutingCoverSelection): string | undefined {
   return resolveOutingCover({ eventId: null, cover: selection })?.path;
+}
+
+/**
+ * The photo an outing may show for its reference, through the site's one cover resolver (WEB-COMMUNITY: covers via
+ * getCover, labels via getImageProvenance): an AI illustration, an undated or old third-party photo or a theme photo
+ * is refused, and the outing shows its own designed card instead.
+ */
+export function outingCoverImage(choice: OutingCoverChoice, today: string): ImageCover | null {
+  const key = choice.imageKey || `outing-cover:${choice.kind}:${choice.id}`;
+  const resolved = getCover({ kind: choice.kind, id: choice.id, imageKey: key }, { images: lookup => lookup === key ? choice.image : undefined, today });
+  return resolved.tier === 'type' ? null : resolved;
 }

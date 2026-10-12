@@ -22,6 +22,13 @@ const CATEGORY_NAMES: Record<string, Copy> = {
 };
 export const categoryName = (category: string): Copy => CATEGORY_NAMES[category] || { zh: category || '湾区生活', en: 'Bay Area life' };
 
+/** The five areas posts are filed under, as the site names them (中半岛 → 半岛, the naming table). Other places as written. */
+export const REGION_NAMES: Record<string, Copy> = {
+  旧金山: { zh: '旧金山', en: 'San Francisco' }, 中半岛: { zh: '半岛', en: 'Peninsula' }, 东湾: { zh: '东湾', en: 'East Bay' },
+  南湾: { zh: '南湾', en: 'South Bay' }, 北湾: { zh: '北湾', en: 'North Bay' },
+};
+export const regionName = (city: string): Copy => REGION_NAMES[city] || { zh: city, en: city };
+
 /** The boards a reader can switch to (the service trades share 本地服务). */
 export const BOARD_CATEGORIES = ['租屋', '闲置', '本地服务', '接送', '兼职', '其他'];
 

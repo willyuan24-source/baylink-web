@@ -6,7 +6,7 @@ import { guides as GUIDES } from '../src/data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../src/data/guide-media';
 import { getListingImage } from '../src/lib/offer-media';
 import { discoveryShare, localDiscoveries } from '../src/data/local-discoveries';
-import { coverFromSearchParams, getOutingCoverChoices, outingCoverHref, resolveOutingCover, type OutingCoverInput } from '../src/features/outings/outing-cover';
+import { coverFromSearchParams, getOutingCoverChoices, outingCoverHref, outingCoverImage, resolveOutingCover, type OutingCoverInput } from '../src/features/outings/outing-cover';
 import type { OutingCoverSelection } from '../src/lib/outings';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/together' });
@@ -121,4 +121,24 @@ test('list cover links open the gathering without wrapping reference and credit 
   assert.equal(view.getByRole('link', { name: `查看小队: ${outing.title}` }).getAttribute('href'), '/together?outing=test');
   assert.equal(view.container.querySelectorAll('a a').length, 0);
   assert.ok(view.getByRole('link', { name: /参考内容/ }));
+});
+
+test('outing covers go through getCover: an AI illustration is never a cover, a shown photo carries its provenance label (WEB-COMMUNITY)', () => {
+  const today = '2026-10-12';
+  const choices = [
+    ...GUIDES.map(guide => resolveOutingCover({ eventId: null, cover: { kind: 'guide', id: guide.slug } })),
+    ...localDiscoveries.slice(0, 80).map(item => resolveOutingCover({ eventId: null, cover: { kind: item.kind, id: discoveryShare(item).id } as OutingCoverSelection })),
+  ].filter(choice => !!choice);
+  const aiGuide = choices.find(choice => choice.kind === 'guide' && choice.image.kind === 'illustration');
+  assert.ok(aiGuide, 'the catalog has a guide whose cover is an illustration');
+  assert.equal(outingCoverImage(aiGuide, today), null);
+  let shown = 0;
+  for (const choice of choices) {
+    const cover = outingCoverImage(choice, today);
+    if (!cover) continue;
+    shown += 1;
+    assert.notEqual(cover.image.kind, 'illustration', choice.id);
+    assert.match(cover.label.zh, /^(官方图|照片|资料图|BAYLINK 实拍)/, choice.id);
+  }
+  assert.ok(shown > 0, 'real photos still show');
 });
