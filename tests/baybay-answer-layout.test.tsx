@@ -154,6 +154,9 @@ test('a first point over the budget is cut at its last sentence end that fits, a
   assert.equal(view.more[1].text, '第二条。[2]');
   const en = bayBayAnswerView({ lead: 'Yes.', points: [{ text: `${'This sentence has exactly eight words in it. '.repeat(16).trim()} [3]`, cardIds: [] }] }, true)!;
   assert.ok(en.visibleUnits <= 120 && en.visible[0].text.endsWith('it. [3]') && en.more[0].continued);
+  const usa = bayBayAnswerView({ lead: 'Yes.', points: [{ text: `${'This sentence has exactly eight words in it. '.repeat(14)}Then the U.S. Navy Blue Angels fly over the bay. [3]`, cardIds: [] }] }, true)!;
+  assert.ok(usa.visible[0].text.endsWith('in it. [3]'), 'never cut after an abbreviation such as U.S.');
+  assert.ok(usa.more[0].text.startsWith('Then the U.S. Navy'));
   // A single sentence longer than the budget cannot be cut honestly, so it shows whole.
   const one = bayBayAnswerView({ lead: '结论。', points: [{ text: `${'很长'.repeat(140)}。`, cardIds: [] }] }, false)!;
   assert.equal(one.visible.length, 1);

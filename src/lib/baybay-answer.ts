@@ -206,12 +206,21 @@ export function bayBayTextUnits(text: string, english: boolean): number {
 export type BayBayViewPoint = BayBayPoint & { continued?: boolean };
 
 const CITATION = /\[\d{1,3}\]/g;
-/** Sentences of a point: split after 。！？； (zh) or . ! ? and a space (en); a [n] right after the end stays with it. */
+/** "U.S.", "Mr.", "St.", "a.m.": a full stop that does not end the sentence. */
+const ABBREVIATION = /^(?:(?:[A-Z]\.)+|(?:Mr|Mrs|Ms|Dr|St|Ave|Blvd|Rd|No|vs|etc)\.)$/i;
+const BREAK = '\u0000';
+/**
+ * Sentences of a point: split after 。！？； (zh) or . ! ? and a space (en), with any closing quote or bracket; a [n]
+ * right after the end stays with it. No look-behind: Safari before 16.4 cannot parse one.
+ */
 function bayBaySentences(text: string, english: boolean): string[] {
+  const marked = english
+    ? text.replace(/(\S*)([.!?]["”’')\]]*)\s+/g, (all: string, word: string, end: string) => ABBREVIATION.test(word + end) ? all : `${word}${end}${BREAK}`)
+    : text.replace(/[。！？；][”’」』）)]*/g, `$&${BREAK}`);
   const out: string[] = [];
-  for (const piece of text.split(english ? /(?<=[.!?])\s+/ : /(?<=[。！？；])/)) {
+  for (const piece of marked.split(BREAK)) {
     const marks = /^(?:\s*\[\d{1,3}\])+/.exec(piece)?.[0] || '';
-    if (marks && out.length) out[out.length - 1] += marks.trim();
+    if (marks && out.length) out[out.length - 1] += `${english ? ' ' : ''}${marks.trim()}`;
     const rest = (out.length && marks ? piece.slice(marks.length) : piece).trim();
     if (rest) out.push(rest);
   }
