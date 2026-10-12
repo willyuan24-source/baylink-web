@@ -9997,7 +9997,7 @@
       "verifiedAt": "2026-09-28",
       "imageKey": "weekend",
       "shortTitle": "Jackson Dean 纳帕演出",
-      "dek": "Napa 市中心剧院的乡村音乐夜",
+      "dek": "Napa 市中心剧院的音乐演出夜",
       "sessions": [
         {
           "date": "2026-10-16",
@@ -12678,7 +12678,7 @@
         "2026 独立活动页已确认 Mission Street 的 Geneva–Theresa 路段及 11:00–16:00；Persia Triangle 为家庭活动点。",
         "主办方建议搭 BART 到 Balboa Park 后接驳步行；14 Mission 活动期间绕行 Alemany，临时站点以 SFMTA 当日提醒为准。",
         "09:30 从 Cayuga Playground 出发的 Excelsior 5K Walktober 是另一个需登记项目；只参加白天街区活动无需报名这场步行。",
-        "编辑建议先逛家庭区或旧衣交换，再沿街找午餐；摊商名单仍在更新。"
+        "完整摊商名单和天气安排见活动页。"
       ],
       "audience": [
         "湾区新居民",
@@ -13153,7 +13153,7 @@
       "summary": "第二届音乐即兴剧节把湾区与外地团队带到 Uptown Oakland，现场看故事和歌曲即兴成形。除了观演，也可选择适合自身经验的工作坊。",
       "plan": [
         "演出和工作坊分别在官方入口报名；经验要求、当前价格及库存逐项目核对。",
-        "10/22–25 在 All Out Comedy Theater：9 场演出、29 组团队、9 项工作坊；早先的售罄标记可能已过时。"
+        "10/22–25 在 All Out Comedy Theater：9 场演出、29 组团队、9 项工作坊；余票见售票页。"
       ],
       "audience": [
         "剧场爱好者",
@@ -13286,7 +13286,7 @@
       "summary": "10月22日活动面向1–11岁儿童，在 Library Parking Garage and Plaza 分为16:30、17:15、18:00三场，每场45分钟。只需登记参加的儿童；付款前确认页面实际显示的场次，家长不另报名。",
       "plan": [
         "对象为1–11岁儿童；只给参加的儿童登记，家长无需另报，付款前核对实际显示时段。",
-        "活动使用图书馆停车库与广场，编辑建议另查停车位置；后续餐车消费另计。"
+        "活动在图书馆停车库与广场举行；之后的餐车消费另计。"
       ],
       "audience": [
         "亲子家庭"
@@ -13301,6 +13301,16 @@
         {
           "date": "2026-10-22",
           "start": "16:30",
+          "end": "17:15"
+        },
+        {
+          "date": "2026-10-22",
+          "start": "17:15",
+          "end": "18:00"
+        },
+        {
+          "date": "2026-10-22",
+          "start": "18:00",
           "end": "18:45"
         }
       ],
@@ -13558,7 +13568,7 @@
       "verifiedAt": "2026-09-28",
       "imageKey": "weekend",
       "shortTitle": "Disney On Ice 圣何塞场",
-      "dek": "冰上歌舞和迪士尼角色，一场就是一个下午",
+      "dek": "冰上歌舞和迪士尼角色，适合亲子外出",
       "dateNote": "10/24 有 11:00、15:00、19:00 三场；10/25 为 13:00、17:00",
       "venueShort": "SAP Center",
       "address": "525 W Santa Clara St, San Jose, CA 95113",
@@ -17479,7 +17489,7 @@
       "verifiedAt": "2026-09-29",
       "imageKey": "weekend",
       "shortTitle": "San Leandro 长者万圣节宾果",
-      "dek": "长者中心玩主题宾果、吃点心、交朋友",
+      "dek": "长者中心玩主题宾果、吃点心、和邻居聊天",
       "sessions": [
         {
           "date": "2026-10-30",
@@ -18947,7 +18957,7 @@
       "imageKey": "november-community",
       "relatedGuideSlug": "east-bay-november-nature-programs-2026",
       "shortTitle": "Hayward 海岸周一观鸟",
-      "dek": "在海岸线观察秋冬候鸟",
+      "dek": "在海岸线观察秋冬鸟类",
       "sessions": [
         {
           "date": "2026-11-02",
@@ -19172,7 +19182,7 @@
       "verifiedAt": "2026-10-02",
       "imageKey": "roundup-chase-center",
       "shortTitle": "勇士对热火",
-      "dek": "在 Chase Center 看 NBA 常规赛",
+      "dek": "Chase Center 的 11 月 NBA 篮球夜",
       "sessions": [
         {
           "date": "2026-11-05",
@@ -20916,7 +20926,7 @@
       "verifiedAt": "2026-10-05",
       "imageKey": "november-community",
       "shortTitle": "Red Oak Victory 船上摇摆舞",
-      "dek": "二战货船上跟着乐队跳摇摆舞",
+      "dek": "历史船上跟着现场乐队跳摇摆舞",
       "sessions": [
         {
           "date": "2026-11-14",
@@ -23767,7 +23777,7 @@
       "officialUrl": "https://events.sonomalibrary.org/event/one-one-tech-help-110761",
       "sourceLabel": "Sonoma County Library",
       "shortTitle": "Healdsburg 一对一数码帮助",
-      "dek": "馆员半小时帮你解决电子书和手机问题",
+      "dek": "馆员半小时帮你解决电子书、邮件和设备问题",
       "sessions": [
         {
           "date": "2026-11-28",
