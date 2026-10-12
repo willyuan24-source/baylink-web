@@ -8,6 +8,7 @@ import STCharacters from 'opencc-js/dict/STCharacters';
 import TWVariantsPhrases from 'opencc-js/dict/TWVariantsPhrases';
 import TWVariants from 'opencc-js/dict/TWVariants';
 import { taiwanConverter, TAIWAN_WORDS } from '../src/i18n/locale';
+import { SITE_TAIWAN_TERMS } from '../src/i18n/taiwan-terms';
 
 /**
  * 繁體 without the 400 KB phrase dictionary on the critical path (WEB-DATA-SPLIT, ENGSEC-01): the site's own text uses a
@@ -17,7 +18,9 @@ import { taiwanConverter, TAIWAN_WORDS } from '../src/i18n/locale';
  * converter turns every Chinese run of those sources into exactly what the full one does. Text the site does not ship
  * (posts, BayBay answers, messages) converts with the full dictionary, which the browser loads when such text is shown
  * (locale.ts noteDynamicChinese); text the pages assemble at render time is checked by the prerender (checkSiteTraditional).
- * Run with the English scopes (generate:home, prebuild and pretest); deterministic for given sources.
+ * Run with the English scopes (generate:home, prebuild and pretest); deterministic for given sources. Every converter here
+ * applies the site's 繁體 term table (i18n/taiwan-terms.ts, WEB-SEO-I18N) as the browser's does, so the phrases are collected
+ * from the term-substituted text too and the proof covers what 繁體 pages actually show.
  */
 const HAN_RUN = /[〇㐀-鿿豈-﫿\u{20000}-\u{2ffff}]+/gu;
 
@@ -63,8 +66,8 @@ export async function generateTraditionalPhrases(): Promise<void> {
   const runs = [...await sourceRuns()].sort();
   const entries = STPhrases.split('|');
   const trie = phraseTrie(entries);
-  const full = taiwanConverter(OpenCC);
-  const local = new Trie(); local.loadDict(TAIWAN_WORDS as unknown as string[][]);
+  const full = taiwanConverter(OpenCC, undefined, SITE_TAIWAN_TERMS);
+  const local = new Trie(); local.loadDict([...TAIWAN_WORDS, ...SITE_TAIWAN_TERMS.words] as unknown as string[][]);
   const found = new Set<string>();
   for (const run of runs) {
     for (const text of [run, local.convert(run)]) {
@@ -73,8 +76,8 @@ export async function generateTraditionalPhrases(): Promise<void> {
     }
   }
   const pruned = entries.filter(entry => found.has(entry.slice(0, entry.indexOf(' ')))).join('|');
-  const prunedConverter = taiwanConverter({ Trie, Locale: { from: { cn: [[pruned, STCharacters]] }, to: { tw: [[TWVariantsPhrases, TWVariants]] } } } as unknown as Parameters<typeof taiwanConverter>[0]);
-  const fresh = taiwanConverter(OpenCC);
+  const prunedConverter = taiwanConverter({ Trie, Locale: { from: { cn: [[pruned, STCharacters]] }, to: { tw: [[TWVariantsPhrases, TWVariants]] } } } as unknown as Parameters<typeof taiwanConverter>[0], undefined, SITE_TAIWAN_TERMS);
+  const fresh = taiwanConverter(OpenCC, undefined, SITE_TAIWAN_TERMS);
   const differing = runs.filter(run => prunedConverter(run) !== fresh(run) || prunedConverter(run, true) !== fresh(run, true));
   if (differing.length) throw new Error(`The pruned 繁體 phrases convert ${differing.length} source runs differently, e.g. ${differing.slice(0, 5).join(', ')}`);
   await writeFile('src/data/generated/zh-hant-phrases.json', JSON.stringify(pruned));
