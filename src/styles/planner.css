@@ -134,6 +134,8 @@
 .planner-schedule label { margin-top:12px; }
 .planner-timeline { display:grid; gap:10px; margin:16px 0; padding:0; list-style:none; }
 .planner-timeline>li { padding:12px 14px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+/* The stop with a time conflict keeps its warning edge (the list below names the conflict). */
+.planner-timeline>li.has-conflict { border-color:var(--ui-warning, var(--color-line-strong)); box-shadow:inset 4px 0 0 var(--ui-warning, var(--color-line-strong)); }
 .planner-time-range { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; color:var(--color-brand); font-size:var(--text-body); font-weight:700; font-variant-numeric:tabular-nums; }
 .planner-time-range small { color:var(--color-ink-2); font-size:var(--text-caption); font-weight:400; }
 .planner-timeline strong { color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
