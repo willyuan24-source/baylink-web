@@ -1,5 +1,6 @@
-import type { CoverItem } from './cover';
-import { eventFor, placeFor, type Stop } from './planner';
+import type { CoverItem, ResolvedCover } from './cover';
+import { typeCoverProvenance } from './image-provenance';
+import { eventFor, placeFor, type SavedPlan, type Stop } from './planner';
 import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia, GUIDE_IMAGES } from '../data/guide-media';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../data/scene3d-postcards';
@@ -34,4 +35,22 @@ export function planDayLabel(date: string, english: boolean) {
   const md = `${day.getUTCMonth() + 1}/${day.getUTCDate()}`;
   const weekday = new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { weekday: 'short', timeZone: 'UTC' }).format(day);
   return english ? `${weekday} ${md}` : `${md} ${weekday}`;
+}
+
+/** 已排的日子 in display order: upcoming plans by day, the most recently changed first within a day. */
+export const upcomingPlans = (plans: readonly SavedPlan[], today: string) =>
+  plans.filter(plan => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date) || b.updatedAt.localeCompare(a.updatedAt));
+
+/**
+ * One photo once per page (rule 6) when the same stop is listed more than once — in two saved days, a suggestion and
+ * the list. getCover lets an item keep its claim when it resolves again, so each repeat would show the same file; given
+ * the page's covers in display order, the first occurrence keeps the photo and every later one shows its information card.
+ */
+export function onePhotoEach(covers: readonly ResolvedCover[]): ResolvedCover[] {
+  const shown = new Set<string>();
+  return covers.map(cover => {
+    if (cover.tier === 'type') return cover;
+    if (!shown.has(cover.image.src)) { shown.add(cover.image.src); return cover; }
+    return { tier: 'type', reason: 'duplicate', rejectedKey: cover.key, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) } };
+  });
 }

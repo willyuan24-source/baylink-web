@@ -6,18 +6,19 @@ import type { CompleteOuting } from '../lib/planner-outings';
 import { recordProductEvent } from '../lib/product-events';
 import { PlannerPlaceOutingOptions } from './PlannerOutingOptions';
 import { plannerNoticeText } from '../lib/planner-copy';
-import type { CoverPage } from '../lib/cover';
+import type { ResolvedCover } from '../lib/cover';
 import { PlannerOptionCover } from './PlannerStopCover';
 
-export function PlannerPlaceRecommendations({ suggestions, filters, message, onChoose, onStart, today, coverPage }: {
-  suggestions: PlaceSuggestion[]; filters: PlanFilters; message: string; today: string; coverPage: CoverPage;
+/** `covers`: one per suggestion, in order (the page resolves every cover once, in display order). */
+export function PlannerPlaceRecommendations({ suggestions, filters, message, onChoose, onStart, covers }: {
+  suggestions: PlaceSuggestion[]; filters: PlanFilters; message: string; covers: readonly ResolvedCover[];
   onChoose: (outing: CompleteOuting) => void;
   onStart: (stops: Stop[], date: string, title: string, filters: PlanFilters) => void;
 }) {
   const locale = useLocale();
   const text = (zh: string, en: string) => locale === 'en' ? en : zh;
   if (!suggestions.length) return null;
-  return <div className="planner-options planner-place-options">{suggestions.map(suggestion => {
+  return <div className="planner-options planner-place-options">{suggestions.map((suggestion, index) => {
     const place = PLANNER_PLACES.find(item => item.id === suggestion.placeId);
     if (!place) return null;
     const stop: Stop = { kind: 'place', id: place.id };
@@ -25,7 +26,7 @@ export function PlannerPlaceRecommendations({ suggestions, filters, message, onC
     const costLabel = typeof admission === 'number' ? text(`已知入场起价 $${admission.toFixed(2)}；餐饮、购物另计`, `Recorded admission from $${admission.toFixed(2)}; meals and purchases are extra`)
       : ['unknown', 'free', 'paid', 'mixed'].includes(place.cost) ? text('具体费用待确认', 'Exact costs are unconfirmed') : place.cost;
     return <article className="planner-option" key={suggestion.id}>
-      <PlannerOptionCover stop={stop} today={today} page={coverPage} />
+      <PlannerOptionCover cover={covers[index]} />
       <span className="planner-option-kind">{place.category === 'restaurant' ? text('餐厅', 'Dining') : place.category === 'cafe' ? text('咖啡与小食', 'Coffee') : place.category === 'shop' ? text('商店', 'Shop') : text('景点', 'Place')}</span>
       {suggestion.budgetStatus === 'unknown' && <span className="planner-unverified-price">{text('费用待核实 · 备选', 'Price unverified · alternative')}</span>}
       <h3><Link to={stopPath(stop)}>{place.title}</Link></h3>

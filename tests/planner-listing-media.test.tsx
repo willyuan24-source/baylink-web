@@ -13,7 +13,8 @@ const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { PlannerPlaceRecommendations } = await import('../src/components/PlannerPlaceRecommendations');
 const { PLANNER_PLACES } = await import('../src/data/planner-catalog');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
-const { createCoverPage } = await import('../src/lib/cover');
+const { resolveCovers } = await import('../src/lib/cover');
+const { stopCoverImage, stopCoverItem } = await import('../src/lib/plan-stop-cover');
 const { api } = await import('../src/lib/api');
 const originalRequest = api.request;
 
@@ -32,7 +33,8 @@ test('new-shop recommendations show known official media and preserve text/sourc
   assert.ok(illustrated && photographed, 'exercise both real catalog cases');
   const view = render(<MemoryRouter><PlannerPlaceRecommendations
     suggestions={[illustrated, photographed].map(place => ({ id: `media-${place.id}`, placeId: place.id, date: '2026-10-05', reason: 'Official source available', reasons: [], unknowns: [] }))}
-    filters={{}} message="" onChoose={() => {}} onStart={() => {}} today="2026-10-05" coverPage={createCoverPage()}
+    filters={{}} message="" onChoose={() => {}} onStart={() => {}}
+    covers={resolveCovers([illustrated, photographed].map(place => stopCoverItem({ kind: 'place', id: place.id })), { images: stopCoverImage, today: '2026-10-05' })}
   /></MemoryRouter>);
   const cards = [...view.container.querySelectorAll('article.planner-option')];
   const textCard = cards.find(card => card.querySelector('h3')?.textContent === illustrated.title)!;

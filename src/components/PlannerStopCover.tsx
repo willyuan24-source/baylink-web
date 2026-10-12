@@ -1,7 +1,6 @@
-import { getCover, type CoverPage, type ImageCover, type ResolvedCover } from '../lib/cover';
+import type { ImageCover, ResolvedCover } from '../lib/cover';
 import { translateText } from '../i18n/locale';
 import { eventFor, placeFor, type Stop } from '../lib/planner';
-import { stopCoverImage, stopCoverItem } from '../lib/plan-stop-cover';
 import { Cover } from './ui/Cover';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { EventTypeCover, TypeCover } from './ui/TypeCover';
@@ -23,12 +22,12 @@ export function PlannerStopThumb({ stop, cover, today, day }: { stop: Stop; cove
 }
 
 /**
- * The photo on a suggestion card (按条件挑选 results): the stop's own photo when the ladder allows one, else nothing —
- * the card's title, date and cost already say what the stop is, so a suggestion never shows a stand-in picture.
+ * The photo on a suggestion card (按条件挑选 results): the stop's own photo when the ladder (and the page's one-photo-once
+ * pass) allows one, else nothing — the card's title, date and cost already say what the stop is, so a suggestion never
+ * shows a stand-in picture.
  */
-export function PlannerOptionCover({ stop, today, page }: { stop: Stop; today: string; page: CoverPage }) {
-  const cover = getCover(stopCoverItem(stop), { images: stopCoverImage, today, page });
-  if (cover.tier === 'type') return null;
+export function PlannerOptionCover({ cover }: { cover?: ResolvedCover }) {
+  if (!cover || cover.tier === 'type') return null;
   return <div className="planner-option-media"><Cover cover={cover} fallback={null} ratio="16:9" sizes={COVER_SIZES.single} decorative /></div>;
 }
 
@@ -36,11 +35,10 @@ export function PlannerOptionCover({ stop, today, page }: { stop: Stop; today: s
  * 本页图片来源: who made each photo on the page and under which licence (the badge on a cover says what it is; credit and
  * licence sit here, as on the events column). Information cards and the 3D postcards' own captions need no credit line.
  */
-export function PlannerImageCredits({ stops, today, page }: { stops: readonly Stop[]; today: string; page: CoverPage }) {
+export function PlannerImageCredits({ covers }: { covers: readonly ResolvedCover[] }) {
   const { t, pick, locale } = useUiCopy();
   const seen = new Set<string>();
-  const images = stops.map(stop => getCover(stopCoverItem(stop), { images: stopCoverImage, today, page }))
-    .filter((cover): cover is ImageCover => cover.tier !== 'type' && !seen.has(cover.image.src) && !!seen.add(cover.image.src));
+  const images = covers.filter((cover): cover is ImageCover => cover.tier !== 'type' && !seen.has(cover.image.src) && !!seen.add(cover.image.src));
   if (!images.length) return null;
   return <details className="planner-credits">
     <summary>{t(`本页图片来源（${images.length}）`, `Image credits (${images.length})`)}</summary>

@@ -33,7 +33,7 @@ import { eventDateChip, formatDateChip } from '../lib/event-facts';
 import { PlannerDayPlans } from '../components/PlannerDayPlans';
 import { PlannerCatalogCard, type PlannerCatalogItem } from '../components/PlannerCatalogCard';
 import { PlannerImageCredits, PlannerOptionCover } from '../components/PlannerStopCover';
-import { stopCoverImage, stopCoverItem } from '../lib/plan-stop-cover';
+import { onePhotoEach, stopCoverImage, stopCoverItem, upcomingPlans } from '../lib/plan-stop-cover';
 import { Button, IconButton } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
@@ -267,7 +267,18 @@ function PlannerWorkspace() {
     ...visiblePlaces.map(place => ({ kind: 'place' as const, id: place.id, title: place.title, city: place.city, summary: place.summary, kicker: placeKind(place.category), detail: place.planning?.schedule ? t('已收录官方时段', 'Official hours recorded') : t('营业时间待确认', 'Opening hours unconfirmed'), point: place.location, official: place.officialUrl })),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- placeKind and t only read locale
   ].slice(0, catalogLimit), [events, visiblePlaces, catalogCategory, catalogLimit, locale, today, requestedDate]);
-  const catalogCovers = useMemo(() => resolveCovers(catalogItems.map(stopCoverItem), { images: stopCoverImage, today, page: coverPage }), [catalogItems, today, coverPage]);
+  // Every cover on the page in one pass, in display order (已排的日子, the suggestions, the list), so a stop listed twice
+  // shows its photo once (onePhotoEach) and 本页图片来源 credits exactly the photos shown.
+  const dayPlans = useMemo(() => upcomingPlans(library.data.plans, today), [library.data.plans, today]);
+  const suggestionStops = useMemo<Stop[]>(() => [
+    ...(results?.suggestions.map(suggestion => ({ kind: 'event' as const, id: canonicalEventId(suggestion.eventId) })) || []),
+    ...(results?.placeSuggestions?.map(suggestion => ({ kind: 'place' as const, id: suggestion.placeId })) || []),
+  ], [results]);
+  const pageCovers = useMemo(() => onePhotoEach(resolveCovers([...dayPlans.flatMap(plan => plan.stops), ...suggestionStops, ...catalogItems].map(stopCoverItem), { images: stopCoverImage, today, page: coverPage })),
+    [dayPlans, suggestionStops, catalogItems, today, coverPage]);
+  const dayStopCount = dayPlans.reduce((sum, plan) => sum + plan.stops.length, 0);
+  const suggestionCovers = pageCovers.slice(dayStopCount, dayStopCount + suggestionStops.length);
+  const catalogCovers = pageCovers.slice(dayStopCount + suggestionStops.length);
   // The draft's save state, shown on screen 1 (FC3-01): a stop that arrived by link or from the list is not saved yet.
   // A saved plan reads 已保存 only while everything save() would store matches it: date, title, stops and the details
   // (start / finish time, party, travel, budget, each stop's time), so an edit to the details never looks saved.
@@ -284,7 +295,7 @@ function PlannerWorkspace() {
       actions={<><Button variant="primary" icon={<Sparkles size={18} aria-hidden="true" />} onClick={askBayBay}>{t('问 BayBay 排一天', 'Ask BayBay to plan a day')}</Button><Button variant="text" to="/my-week">{t('我的这周', 'My Week')}</Button></>} />
     {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{t('你现在离线：已保存的行程和本机草稿仍可查看；挑选方案和地图要联网后才能用。', 'You are offline. Saved plans and this device’s draft are still here; suggestions and the map need a connection.')}</p>}
     <PlannerPlanOverview stops={stops} date={date} details={details} admissionOverride={admissionOverride} state={draftState} saving={library.busy} canSave={library.ready && !library.busy} onSave={() => void save()} status={status} />
-    <PlannerDayPlans library={library} today={today} coverPage={coverPage} editingId={editing?.id} />
+    <PlannerDayPlans library={library} plans={dayPlans} covers={pageCovers.slice(0, dayStopCount)} today={today} editingId={editing?.id} />
     <form className="planner-form" aria-labelledby="planner-form-title" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
       <h2 id="planner-form-title">{t('按条件挑选', 'Find options by your conditions')}</h2>
       {Object.keys(persistedFilters).length > 0 && <p className="planner-note">{locale === 'en' ? 'Saved conditions are included: ' : '沿用这份计划的条件：'}{[persistedFilters.city, persistedFilters.partySize ? String(persistedFilters.partySize) + (locale === 'en' ? ' people' : '人') : '', persistedFilters.childAges?.length ? (locale === 'en' ? 'Child ages ' : '孩子年龄 ') + persistedFilters.childAges.join('、') : '', persistedFilters.budget != null ? (persistedFilters.budgetScope === 'total' ? (locale === 'en' ? 'Group admission budget ' : '门票总预算 ') : (locale === 'en' ? 'Per-person admission budget ' : '每人门票预算 ')) + '$' + persistedFilters.budget : '', persistedFilters.freeOnly ? (locale === 'en' ? 'Free only' : '仅免费') : ''].filter(Boolean).join(' · ')} <button type="button" onClick={() => { request.current?.abort(); request.current = undefined; setRequesting(false); setPersistedFilters({}); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setResults(null); }}>{locale === 'en' ? 'Clear saved conditions' : '清除沿用条件'}</button></p>}{queryMessage && <p className="planner-handoff-note"><Sparkles size={15} />已经带上你说的条件。修改后，点“帮我挑选方案”重新选择。</p>}
@@ -299,8 +310,8 @@ function PlannerWorkspace() {
       {appliedFilters.length > 0 && <div className="planner-applied-filters" aria-label={translateText('已使用的条件', locale)}><span>已使用的条件</span>{appliedFilters.map((filter, index) => <strong key={index}>{filter}</strong>)}</div>}
       {results.notices.length > 0 && <details className="planner-result-notes"><summary>{translateText('筛选说明与出行提示', locale)} ({results.notices.length})</summary>{results.notices.map((notice, index) => <p className="planner-note" key={index}>{notice}</p>)}</details>}
       {!results.suggestions.length && !results.placeSuggestions?.length && <p className="planner-note">没有完全符合条件的活动或地点。可以调整条件，或点击下方站外搜索，查看更多来源。</p>}
-      <div className="planner-options">{results.suggestions.map((suggestion, index) => { const event = PLANNER_EVENTS.find(e => e.id === canonicalEventId(suggestion.eventId)); if (!event) return null; return <article className="planner-option" key={suggestion.id}><PlannerOptionCover stop={{ kind: 'event', id: event.id }} today={today} page={coverPage} /><span className="planner-number">{index + 1}</span>{suggestion.budgetStatus === 'unknown' && <span className="planner-unverified-price">{locale === 'en' ? 'Price unverified · alternative' : '费用待核实 · 备选'}</span>}<h3><Link to={`/events/${event.id}`}>{event.title}</Link></h3><p className="planner-meta">{event.dateLabel} · {event.city}</p><p>{suggestion.reasons?.length ? suggestion.reasons.join(' ') : suggestion.reason}</p><strong className="planner-cost">{event.costLabel}</strong><ul>{suggestion.unknowns.map((unknown, i) => <li key={i}>{unknown}</li>)}</ul><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noreferrer">查看主办方最新信息 ↗</a><small>资料核查：{event.verifiedAt}</small><PlannerOutingOptions suggestion={suggestion} filters={results.filters} message={message} onChoose={applyOuting} /><button className="planner-primary" onClick={() => beginPlan([{ kind: 'event', id: event.id }, ...suggestion.placeIds.map(id => ({ kind: 'place' as const, id }))], suggestion.date, event.title, results.filters)}>用这个方案开始</button></article>; })}</div>
-      <PlannerPlaceRecommendations suggestions={results.placeSuggestions || []} filters={results.filters} message={message} onChoose={applyOuting} onStart={beginPlan} today={today} coverPage={coverPage} />
+      <div className="planner-options">{results.suggestions.map((suggestion, index) => { const event = PLANNER_EVENTS.find(e => e.id === canonicalEventId(suggestion.eventId)); if (!event) return null; return <article className="planner-option" key={suggestion.id}><PlannerOptionCover cover={suggestionCovers[index]} /><span className="planner-number">{index + 1}</span>{suggestion.budgetStatus === 'unknown' && <span className="planner-unverified-price">{locale === 'en' ? 'Price unverified · alternative' : '费用待核实 · 备选'}</span>}<h3><Link to={`/events/${event.id}`}>{event.title}</Link></h3><p className="planner-meta">{event.dateLabel} · {event.city}</p><p>{suggestion.reasons?.length ? suggestion.reasons.join(' ') : suggestion.reason}</p><strong className="planner-cost">{event.costLabel}</strong><ul>{suggestion.unknowns.map((unknown, i) => <li key={i}>{unknown}</li>)}</ul><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noreferrer">查看主办方最新信息 ↗</a><small>资料核查：{event.verifiedAt}</small><PlannerOutingOptions suggestion={suggestion} filters={results.filters} message={message} onChoose={applyOuting} /><button className="planner-primary" onClick={() => beginPlan([{ kind: 'event', id: event.id }, ...suggestion.placeIds.map(id => ({ kind: 'place' as const, id }))], suggestion.date, event.title, results.filters)}>用这个方案开始</button></article>; })}</div>
+      <PlannerPlaceRecommendations suggestions={results.placeSuggestions || []} filters={results.filters} message={message} onChoose={applyOuting} onStart={beginPlan} covers={suggestionCovers.slice(results.suggestions.length)} />
     </section>}
     <PlannerWebSearch ownerId={app?.user?.id} sessionKey={app?.user?.token} onLogin={() => app?.setShowLogin(true)} query={message} date={effectiveFilters.date || requestedDate} region={effectiveFilters.region || region} city={effectiveFilters.city} locale={locale} />
     <EventScreenshotImport userId={app?.user?.id} />
@@ -332,11 +343,6 @@ function PlannerWorkspace() {
       {status && <p className="planner-note" role="status">{status}</p>}
       <p className="planner-note">景点顺序由你决定。出发前确认门票、开放时间及导航路线。</p>
     </aside></div>
-    <PlannerImageCredits today={today} page={coverPage} stops={[
-      ...library.data.plans.filter(plan => plan.date >= today).flatMap(plan => plan.stops),
-      ...(results?.suggestions.map(suggestion => ({ kind: 'event' as const, id: canonicalEventId(suggestion.eventId) })) || []),
-      ...(results?.placeSuggestions?.map(suggestion => ({ kind: 'place' as const, id: suggestion.placeId })) || []),
-      ...catalogItems,
-    ]} />
+    <PlannerImageCredits covers={pageCovers} />
   </fieldset></PageContainer>;
 }

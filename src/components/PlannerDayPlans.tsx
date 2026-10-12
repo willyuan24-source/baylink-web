@@ -1,10 +1,9 @@
-import { useMemo } from 'react';
 import { CalendarCheck } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { eventFor, placeFor, sharePlanUrl, stopPath, stopTitle, type SavedPlan } from '../lib/planner';
 import type { usePlannerLibrary } from '../lib/planner-library';
 import { recordProductEvent } from '../lib/product-events';
-import { resolveCovers, type CoverPage } from '../lib/cover';
+import type { ResolvedCover } from '../lib/cover';
 import { planDisplayTitle } from '../features/saves/plan-title';
 import { Button } from './ui/Button';
 import { RowCard } from './ui/Card';
@@ -12,7 +11,7 @@ import { StatusChip } from './ui/Badges';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { PlannerStopThumb } from './PlannerStopCover';
-import { planDayLabel, stopCoverImage, stopCoverItem } from '../lib/plan-stop-cover';
+import { planDayLabel } from '../lib/plan-stop-cover';
 
 const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Dining'], cafe: ['咖啡与小食', 'Coffee'], shop: ['商店', 'Shop'] } as const;
 
@@ -21,13 +20,10 @@ const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Di
  * detail page, or by BayBay — one day per group, each stop a RowCard with its cover and the plan's date. Loading, API
  * failure and the empty state use the WEB-UI primitives (RC-25); the page shows the offline line above.
  */
-export function PlannerDayPlans({ library, today, coverPage, editingId }: { library: ReturnType<typeof usePlannerLibrary>; today: string; coverPage: CoverPage; editingId?: string }) {
+export function PlannerDayPlans({ library, plans, covers, today, editingId }: { library: ReturnType<typeof usePlannerLibrary>; plans: readonly SavedPlan[]; covers: readonly ResolvedCover[]; today: string; editingId?: string }) {
   const locale = useLocale();
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
-  const plans = useMemo(() => library.data.plans.filter(plan => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date) || b.updatedAt.localeCompare(a.updatedAt)), [library.data.plans, today]);
-  const stops = useMemo(() => plans.flatMap(plan => plan.stops), [plans]);
-  const covers = useMemo(() => resolveCovers(stops.map(stopCoverItem), { images: stopCoverImage, today, page: coverPage }), [stops, today, coverPage]);
   const coverFor = (plan: SavedPlan, index: number) => covers[plans.slice(0, plans.indexOf(plan)).reduce((sum, item) => sum + item.stops.length, 0) + index];
   const days = [...new Set(plans.map(plan => plan.date))];
   return <section id="plan-days" className="plan-days" aria-labelledby="plan-days-title" data-testid="plan-days">

@@ -391,3 +391,21 @@ test('a saved day opened with ?edit= reads 已保存 until a detail changes; a n
   assert.equal(overview().getAttribute('data-state'), 'saved');
   assert.equal(stored().details.startTime, '13:30');
 });
+
+test('a stop listed twice on 行程 shows its photo once: the first saved day keeps it, later rows show the information card', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  await appendToDay(undefined, '2026-09-28', { kind: 'place', id: 'golden-gate' }, '9/28 计划', '2026-09-23');
+  const view = await openPlanner();
+  for (let page = 0; page < 40 && !view.container.querySelector('[id="catalog-place:golden-gate"]'); page++) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
+  assert.ok(view.container.querySelector('[id="catalog-place:golden-gate"]'), `the list reaches the same place (${view.container.querySelectorAll('.planner-catalog .planner-place').length} rows)`);
+  // A letterboxed poster draws its file twice inside one cover (the blurred fill); count each cover's files once.
+  const sources = [...view.container.querySelectorAll('[data-cover]')].flatMap(cover => [...new Set([...cover.querySelectorAll('img')].map(image => image.getAttribute('src')))]);
+  assert.deepEqual(sources.filter((src, index) => sources.indexOf(src) !== index), [], 'no image file appears in two covers on the page');
+  // (By class: getAllByRole('article') inside 已排的日子 exhausted jsdom's memory on this page.)
+  const [first, second] = [...view.getByTestId('plan-days').querySelectorAll('.plan-days__plan')];
+  assert.ok(first.querySelector('[data-cover] img'), 'the first saved day keeps the photo');
+  assert.equal(second.querySelector('img'), null);
+  assert.ok(second.querySelector('[data-cover="type"]'), 'the repeat shows its information card');
+  assert.ok(view.container.querySelector('[id="catalog-place:golden-gate"] [data-cover="type"]'), 'so does the list row');
+});
