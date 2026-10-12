@@ -9,7 +9,7 @@ import { guides, getGuidesForCategorySlug } from '../src/data/guides';
 import { GuideDetail } from '../src/components/GuideDetail';
 import { GuidesHome } from '../src/components/GuidesHome';
 import { SLUG_TO_CATEGORY } from '../src/routing';
-import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
+import { configureMetadataLanguage, DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { monthlyMetadata } from '../src/lib/monthly-metadata';
 import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
@@ -86,6 +86,40 @@ test('client navigation resets stale article image and noindex metadata', () => 
     assert.equal(dom.window.document.querySelector('meta[property="og:image"]')?.getAttribute('content'), DEFAULT_SOCIAL_IMAGE);
     assert.equal(dom.window.document.querySelectorAll('link[rel="canonical"]').length, 1);
   } finally {
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else Reflect.deleteProperty(globalThis, 'document');
+  }
+});
+
+test('I18N-SEO-12 after hydration: a user post keeps one canonical page, no hreflang, and its language copies noindex', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const dom = new JSDOM(template);
+  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true });
+  const head = () => ({
+    canonical: dom.window.document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+    robots: dom.window.document.querySelector('meta[name="robots"]')?.getAttribute('content'),
+    hreflang: dom.window.document.querySelectorAll('link[rel="alternate"][hreflang]').length,
+    url: dom.window.document.querySelector('meta[property="og:url"]')?.getAttribute('content'),
+  });
+  const same = (text: string) => text, data = (blocks: Record<string, unknown>[]) => blocks;
+  try {
+    // what AppLayout and PostDetailModal pass for /en/posts/:id and /zh-Hant/posts/:id (the path without the prefix)
+    configureMetadataLanguage('en_US', same, data);
+    setPageMetadata({ title: 'Room for rent｜BAYLINK', description: '近 BART', path: '/posts/p1', type: 'article', preserveText: true });
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/posts/p1', robots: 'noindex, follow', hreflang: 0, url: 'https://www.baylink.us/posts/p1' });
+    configureMetadataLanguage('zh_TW', same, data);
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/posts/p1', robots: 'noindex, follow', hreflang: 0, url: 'https://www.baylink.us/posts/p1' }, 'a language switch re-applies the policy');
+    // the original: indexed, its own canonical, still no cluster claiming translations
+    configureMetadataLanguage('zh_CN', same, data);
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/posts/p1', robots: 'index, follow', hreflang: 0, url: 'https://www.baylink.us/posts/p1' });
+    // a closed post stays noindex; other pages keep their language cluster
+    setPageMetadata({ title: '已结束｜BAYLINK', description: '已结束', path: '/en/posts/p2/', noindex: true });
+    assert.equal(head().canonical, 'https://www.baylink.us/posts/p2');
+    configureMetadataLanguage('en_US', same, data);
+    setPageMetadata({ title: 'Guides', description: 'Guides', path: '/guides' });
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/en/guides', robots: 'index, follow', hreflang: 4, url: 'https://www.baylink.us/en/guides' });
+  } finally {
+    configureMetadataLanguage('zh_CN', same, data);
     if (previous) Object.defineProperty(globalThis, 'document', previous);
     else Reflect.deleteProperty(globalThis, 'document');
   }

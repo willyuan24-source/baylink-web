@@ -173,15 +173,33 @@ const metadataData = (metadata: PageMetadata): Record<string, unknown>[] => {
 };
 const hasAlternates = (metadata: PageMetadata) => !metadata.noindex && metadata.languageAlternates !== false;
 
+/**
+ * A user's post (UGC) is one text in its author's language (I18N-SEO-12): no hreflang cluster claiming translations, and
+ * its /en and /zh-Hant copies (the same text with translated controls) canonical to the original and not indexed, so
+ * search engines see one page per post. Applied here, so every caller gets it: the server page (api/post-page.ts), the
+ * app's post route (AppLayout) and the post sheet (PostDetailModal), in whatever language the reader switches to.
+ */
+const USER_POST = /^\/(?:(?:en|zh-Hant)\/)?posts\/([^/]+)\/?$/;
+const withPagePolicy = (metadata: PageMetadata): PageMetadata => {
+  let pathname: string;
+  try { pathname = new URL(metadata.path, SITE_URL).pathname; } catch { return metadata; }
+  const post = USER_POST.exec(pathname);
+  if (!post) return metadata;
+  const copy = (metadata.locale || metadataLocale) !== 'zh_CN';
+  return { ...metadata, languageAlternates: false, canonicalPath: `/posts/${post[1]}`, noindex: metadata.noindex || copy };
+};
+
 // JSON-LD is data, but HTML parsers still recognize a closing script tag inside strings.
 export const serializeStructuredData = (data: Record<string, unknown>[]): string =>
   JSON.stringify(data).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 
 /** Used on client navigation. Importing this module is also safe during server rendering. */
 let currentMetadata: PageMetadata | undefined;
-export const setPageMetadata = (metadata: PageMetadata): void => {
+export const setPageMetadata = (page: PageMetadata): void => {
   if (typeof document === 'undefined') return;
-  currentMetadata = metadata;
+  // kept as given: a language switch re-applies it (configureMetadataLanguage), and the post policy depends on the language
+  currentMetadata = page;
+  const metadata = withPagePolicy(page);
   document.title = documentTitle(metadata);
   // Image size tags this module wrote for the previous page; other head tags (the game's own) are not ours to remove
   document.head.querySelectorAll('meta[data-baylink-image-size]').forEach(element => element.remove());
@@ -221,13 +239,16 @@ export const setPageMetadata = (metadata: PageMetadata): void => {
   }
 };
 
-export const renderMetadataHtml = (metadata: PageMetadata): string => [
-  `<title>${escapeHtml(documentTitle(metadata))}</title>`,
-  `<link rel="canonical" href="${escapeHtml(metadataUrl(metadata))}" />`,
-  ...(hasAlternates(metadata) ? languageAlternates(metadata.path).map(([locale, href]) => `<link rel="alternate" hreflang="${locale}" href="${escapeHtml(href)}" data-baylink-language />`) : []),
-  ...metadataEntries(metadata).map(([attribute, key, value]) => `<meta ${attribute}="${key}" content="${escapeHtml(value)}"${IMAGE_SIZE_KEY.test(key) ? ' data-baylink-image-size' : ''} />`),
-  ...(metadata.structuredData?.length ? [`<script type="application/ld+json" data-baylink-structured-data data-baylink-prerendered data-url="${escapeHtml(metadataUrl(metadata))}">${serializeStructuredData(metadataData(metadata))}</script>`] : []),
-].join('\n    ');
+export const renderMetadataHtml = (page: PageMetadata): string => {
+  const metadata = withPagePolicy(page);
+  return [
+    `<title>${escapeHtml(documentTitle(metadata))}</title>`,
+    `<link rel="canonical" href="${escapeHtml(metadataUrl(metadata))}" />`,
+    ...(hasAlternates(metadata) ? languageAlternates(metadata.path).map(([locale, href]) => `<link rel="alternate" hreflang="${locale}" href="${escapeHtml(href)}" data-baylink-language />`) : []),
+    ...metadataEntries(metadata).map(([attribute, key, value]) => `<meta ${attribute}="${key}" content="${escapeHtml(value)}"${IMAGE_SIZE_KEY.test(key) ? ' data-baylink-image-size' : ''} />`),
+    ...(metadata.structuredData?.length ? [`<script type="application/ld+json" data-baylink-structured-data data-baylink-prerendered data-url="${escapeHtml(metadataUrl(metadata))}">${serializeStructuredData(metadataData(metadata))}</script>`] : []),
+  ].join('\n    ');
+};
 
 /** Marker replacement keeps the Vite asset references and avoids serializing user/API objects. */
 export const renderHtmlDocument = (template: string, metadata: PageMetadata, body: string): string => {
