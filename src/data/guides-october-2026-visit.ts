@@ -21,7 +21,7 @@ export const october2026VisitGuides: Guide[] = [
       "无车旅行",
       "门票预算"
     ],
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other",
@@ -162,7 +162,7 @@ export const october2026VisitGuides: Guide[] = [
       "博物馆",
       "亲子省钱"
     ],
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"

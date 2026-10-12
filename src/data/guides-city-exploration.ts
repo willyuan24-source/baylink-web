@@ -46,7 +46,7 @@ export const cityExplorationGuides: Guide[] = [{
     "Sonoma",
     "Solano"
   ],
-  "priority": "P0",
+  "priority": "P1",
   "featuredOnHome": true,
   "recommendedForCategories": [
     "other",

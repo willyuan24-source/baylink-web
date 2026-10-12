@@ -20,7 +20,7 @@ export const newResidentPersonaGuides: Guide[] = [
       "中文口译",
       "医疗账单"
     ],
-    "priority": "P1",
+    "priority": "P0",
     "featuredOnHome": false,
     "recommendedForCategories": [
       "other"

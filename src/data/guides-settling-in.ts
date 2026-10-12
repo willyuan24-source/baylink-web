@@ -49,7 +49,7 @@ export const settlingInGuides: Guide[] = [
     category: 'newcomer', categoryLabel: '新手指南', emoji: '🪪',
     audience: ['新来加州', '首次申请驾照', '需要身份证明'],
     tags: ['DMV', '驾照', '驾驶证', 'ID', 'REAL ID', '办证', '地址证明', '车辆登记', '地址更新', '新居民', '笔试', '中文笔试', '驾驶手册'],
-    priority: 'P1', featuredOnHome: false,
+    priority: 'P0', featuredOnHome: false,
     recommendedForCategories: ['other', 'ride', 'translation'],
     readMinutes: 6, updatedAt: '2026-10-12', sourceNote: 'BAYLINK 编辑整理。2026-10-12 读取 DMV 驾照、费用、学习许可、驾驶手册、练习题与新居民页面；AB 60 与普通 ID 资料沿用 2026-09-08 核验。个人居民认定、例外和材料资格由 DMV 判断。',
     sources: [

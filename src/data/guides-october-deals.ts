@@ -9,7 +9,7 @@ export const octoberDealsGuides: Guide[] = [{
   category: 'events', categoryLabel: '生活活动', emoji: '🎁',
   audience: ['湾区亲子家庭', '想省门票的本地居民', '十月周末出行者'],
   tags: ['2026年10月', '当月优惠', '免费场馆', '亲子手工', 'Discover & Go', 'BAMPFA', 'OMCA', 'Lowe’s', 'Yogurtland', '图书馆', '南湾', '东湾', '半岛', '北湾'],
-  priority: 'P0', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
+  priority: 'P1', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
   updatedAt: '2026-10-05', editionMonth: '2026-10',
   sourceNote: '2026-10-05 新增 12 项门店活动、餐饮优惠及积分活动，并更新官方配图。各卡片保留自己的核对日期，不代表旧条目全部重新确认。按周期推算的日期另有注明；出发前复核门店参与、预约和库存。',
   sources: [...new Map([

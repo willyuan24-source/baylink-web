@@ -12,7 +12,7 @@ const drafts: Guide[] = [
     "category": "events",
     "categoryLabel": "生活活动",
     "emoji": "🎁",
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"
@@ -106,7 +106,7 @@ const drafts: Guide[] = [
     "category": "events",
     "categoryLabel": "生活活动",
     "emoji": "🎁",
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"

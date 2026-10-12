@@ -23,7 +23,7 @@ export const november2026Guides: Guide[] = [
       "生日福利",
       "免费场馆"
     ],
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"
@@ -61,7 +61,7 @@ export const november2026Guides: Guide[] = [
     ]
   },
   {
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other",
@@ -320,7 +320,7 @@ export const november2026Guides: Guide[] = [
     ]
   },
   {
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other",

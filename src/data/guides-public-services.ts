@@ -42,7 +42,7 @@ export const publicServiceGuides: Guide[] = [
     category: 'newcomer', categoryLabel: '医疗与福利', emoji: '🩺',
     audience: ['接近 Medicare 资格的人', '照顾父母的家属', '需要保险费用帮助的人'],
     tags: ['Medicare', 'Medi-Cal', '医保', 'HICAP', '父母', '65岁', '老人福利', 'BenefitsCal', '资产上限'],
-    priority: 'P0', featuredOnHome: false, recommendedForCategories: ['newcomer', 'service'], readMinutes: 4,
+    priority: 'P1', featuredOnHome: false, recommendedForCategories: ['newcomer', 'service'], readMinutes: 4,
     updatedAt: '2026-10-12',
     sourceNote: '2026-10-12 读取 Medicare.gov、加州老龄事务局与 DHCS 官方页面。本文帮你准备咨询，不判断个人资格，也不推荐保险产品。',
     sources: [
