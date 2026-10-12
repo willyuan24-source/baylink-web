@@ -94,7 +94,7 @@ p.baybay-outing-state { display:flex; gap:8px; align-items:center; }
 .baybay-outing-quick-replies button:hover { background:#eaf0e1; border-color:#92aa81; }
 .baybay-conversation .member-baybay-body { padding: 18px 25px 22px; }
 .baybay-context-line { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#71816e; font-size:.6875rem; margin-bottom:17px; }
-.baybay-context-line button,.baybay-start-links button { display:flex; align-items:center; gap:6px; color:#386344; font-weight:600; }
+.baybay-context-line button { display:flex; align-items:center; gap:6px; color:#386344; font-weight:600; }
 .baybay-context-line button { padding:6px 9px; border:1px solid #d9e1d3; border-radius:8px; background:white; }
 .baybay-turn+.baybay-turn { margin-top:28px; }
 .baybay-user-question { margin-left:35px; display:flex; flex-direction:column; align-items:flex-end; gap:5px; }

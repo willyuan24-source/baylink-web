@@ -186,5 +186,5 @@
   .member-baybay-shortcut-arrow { right: 10px; top: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .member-compose-close, .member-compose-type, .member-category-choice, .member-baybay-entry--inline, .member-baybay-ask, .member-baybay-shortcut { transition: none; }
+  .member-compose-close, .member-compose-type, .member-category-choice, .member-baybay-ask, .member-baybay-shortcut { transition: none; }
 }

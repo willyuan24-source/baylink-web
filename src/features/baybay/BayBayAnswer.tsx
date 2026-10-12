@@ -5,7 +5,7 @@ import { useBayBayCopy } from './copy';
 import { SmartLink } from './SmartLink';
 import { useBayBayCardsModule } from './cards-loader';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
-import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayResumeLabel, bayBayResumeStyle, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayPoint, type BayBayProfessionalSafety } from '../../lib/baybay-answer';
+import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeIsPause, bayBayResumeLabel, bayBayResumeStyle, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 
 type Navigate = (path: string) => void;
@@ -75,8 +75,8 @@ export function BayBayReadAloud({ text }: { text: string }) {
   return <button type="button" className="bb-read-aloud" aria-pressed={speaking} onClick={toggle}>{speaking ? t('停止朗读', 'Stop reading') : t('朗读回答', 'Read aloud')}</button>;
 }
 
-function PointList({ points, sources, onNavigate, className }: { points: BayBayPoint[]; sources: Sources; onNavigate: Navigate; className?: string }) {
-  return <ul className={className || 'bb-points'}>{points.map((point, index) => <li key={index}><BayBayCitedText text={point.text} sources={sources} onNavigate={onNavigate} /></li>)}</ul>;
+function PointList({ points, sources, onNavigate, className }: { points: BayBayViewPoint[]; sources: Sources; onNavigate: Navigate; className?: string }) {
+  return <ul className={className || 'bb-points'}>{points.map((point, index) => <li key={index} data-continued={point.continued ? '' : undefined}><BayBayCitedText text={point.text} sources={sources} onNavigate={onNavigate} /></li>)}</ul>;
 }
 
 /**
@@ -121,13 +121,20 @@ export function BayBayDraftPreview({ lead, legacy = '', points, cards = [], toda
   </div>;
 }
 
+/** "Poison Control 1-800-222-1222": the words may wrap, the number at the end stays on one line. */
+function CallLabel({ label }: { label: string }) {
+  const match = /^(.*?\S)\s+(\+?[\d(][\d\s().-]*\d)$/.exec(label);
+  if (!match) return <span className={/^\+?[\d(][\d\s().-]*\d$/.test(label) ? 'bb-call__number' : undefined}>{label}</span>;
+  return <span>{match[1]} <span className="bb-call__number">{match[2]}</span></span>;
+}
+
 /** 911 / 211 / Poison Control / 988 as large call buttons; the primary one first. */
 export function BayBayCallActions({ actions, className }: { actions: readonly BayBayCallAction[]; className?: string }) {
   const { t } = useBayBayCopy();
   if (!actions.length) return null;
   const ordered = [...actions].sort((a, b) => Number(!!b.primary || b.href === 'tel:911') - Number(!!a.primary || a.href === 'tel:911'));
   return <div className={className || 'bb-call-actions'}>{ordered.map(action => <a key={action.id} href={action.href} className="bb-call" data-primary={action.primary || action.href === 'tel:911' ? '' : undefined}
-    aria-label={/^\d+$/.test(action.label) ? t(`拨打 ${action.label}`, `Call ${action.label}`) : undefined}><Phone aria-hidden="true" size={18} />{action.label}</a>)}</div>;
+    aria-label={/^\d+$/.test(action.label) ? t(`拨打 ${action.label}`, `Call ${action.label}`) : undefined}><Phone aria-hidden="true" size={18} /><CallLabel label={action.label} /></a>)}</div>;
 }
 
 /** The red emergency card (BBLIVE-09): first in the answer, a 56px tel:911 button, no feedback or follow-ups. */
@@ -139,7 +146,7 @@ export function BayBayEmergencyCard({ safety, answer }: { safety: BayBayEmergenc
   const titleId = useId();
   return <section className="bb-emergency" role="alert" aria-labelledby={titleId} data-safety="emergency">
     <h3 id={titleId} className="bb-emergency__title">{safety.title || t('现在就打 911', 'Call 911 now')}</h3>
-    <a className="bb-emergency__call" href={primary.href}><Phone aria-hidden="true" size={24} />{primary.label}</a>
+    <a className="bb-emergency__call" href={primary.href}><Phone aria-hidden="true" size={24} /><CallLabel label={primary.label} /></a>
     {answer && <p className="bb-emergency__text">{answer}</p>}
     {others.length > 0 && <BayBayCallActions actions={others} className="bb-call-actions bb-call-actions--emergency" />}
   </section>;
@@ -154,18 +161,21 @@ export function BayBayResourceCard({ safety, onNavigate }: { safety: BayBayProfe
     <ul>
       {safety.resources.map(resource => <li key={resource.id}>
         <SmartLink href={resource.url} className="bb-resources__name"><Globe2 aria-hidden="true" size={16} />{resource.title}</SmartLink>
-        {resource.href && resource.phone && <a className="bb-call" href={resource.href} aria-label={t(`拨打 ${resource.title} ${resource.phone}`, `Call ${resource.title} ${resource.phone}`)}><Phone aria-hidden="true" size={18} />{resource.phone}</a>}
+        {resource.href && resource.phone && <a className="bb-call" href={resource.href} aria-label={t(`拨打 ${resource.title} ${resource.phone}`, `Call ${resource.title} ${resource.phone}`)}><Phone aria-hidden="true" size={18} /><CallLabel label={resource.phone} /></a>}
       </li>)}
       {safety.guides.map(guide => <li key={guide.slug}><SmartLink href={guide.url} onNavigate={onNavigate} className="bb-resources__name"><BookOpen aria-hidden="true" size={16} />{guide.title}</SmartLink></li>)}
     </ul>
   </section>;
 }
 
-const PAUSE_KINDS: readonly BayBayNoticeKind[] = ['ai_daily_budget', 'ai_paused'];
-/** Pause / daily-limit / reduced-mode banner. Paused kinds lead with 911 / 211; never a dollar amount. */
-export function BayBayNoticeBanner({ kind, text, resumesAt, actions }: { kind: BayBayNoticeKind; text: string; resumesAt?: string; actions?: readonly BayBayCallAction[] }) {
+/**
+ * Pause / daily-limit / reduced-mode banner. Paused kinds lead with 911 / 211; never a dollar amount. `compact` is the
+ * same notice on an earlier answer: its text only, because the full banner (and its call buttons) shows once.
+ */
+export function BayBayNoticeBanner({ kind, text, resumesAt, actions, compact }: { kind: BayBayNoticeKind; text: string; resumesAt?: string; actions?: readonly BayBayCallAction[]; compact?: boolean }) {
   const { t, english } = useBayBayCopy();
-  const paused = PAUSE_KINDS.includes(kind);
+  if (compact) return <p className="bb-notice-label" data-notice={kind} translate="no">{text}</p>;
+  const paused = bayBayNoticeIsPause(kind);
   // The resume time once: nothing when the server text already gives a time; "即 …" after its own "明天会恢复".
   const style = bayBayResumeStyle(text);
   const resume = resumesAt && style !== 'none' ? bayBayResumeLabel(resumesAt, english) : '';
