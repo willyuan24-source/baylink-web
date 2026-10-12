@@ -1,5 +1,6 @@
 // 共享 API client：全站唯一的请求入口（含鉴权头、401 会话过期广播、错误规范化）
 import { friendlyErrorMessage } from './format';
+import { localizeApiError } from './api-errors';
 import type { UserData } from './types';
 import { getStoredUser } from './session';
 import { noteDynamicChinese } from '../i18n/locale';
@@ -53,7 +54,8 @@ export const api = {
       if (!res.ok) {
         const err: any = { ...data, status: res.status };
         if (typeof data.status === 'string') err.requestStatus = data.status;
-        throw err;
+        // The API answers in Chinese: an English page shows its error in English (I18N-SEO-06)
+        throw await localizeApiError(err);
       }
       return data;
     } catch (err: any) {
