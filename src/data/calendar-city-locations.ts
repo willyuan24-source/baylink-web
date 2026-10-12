@@ -26,6 +26,9 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Martinez': { lat: 37.998, lng: -122.114, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Oakley': { lat: 37.996, lng: -121.682, precision: 'city', sourceUrl: CENSUS_PLACES },
   'St. Helena': { lat: 38.513, lng: -122.468, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Added 2026-10-12 (CNT-SUPPLY) from Census 2026 places: Castro Valley CDP 0611964, Crockett CDP 0617274.
+  'Castro Valley': { lat: 37.708, lng: -122.063, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Crockett': { lat: 38.052, lng: -122.220, precision: 'city', sourceUrl: CENSUS_PLACES },
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
   // Census 2026 GEOID 0600562; city reference only, never a venue entrance.
   'Alameda': { lat: 37.742, lng: -122.261, precision: 'city', sourceUrl: CENSUS_PLACES },
