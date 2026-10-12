@@ -139,9 +139,9 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         <p className="xp-card__facts"><span><Clock3 size={16} aria-hidden="true" />{item.duration}</span><span><Ticket size={16} aria-hidden="true" />{ATTRACTION_COSTS.find(entry => entry.id === item.cost)!.label}</span></p>
         <p className="xp-card__note">{item.note}</p>
         <div className="xp-card__actions">
-          <button type="button" className="xp-add" aria-pressed={added} aria-label={`${added ? '移出清单' : '加入清单'}：${item.title}`} disabled={!added && plan.length >= MAX_OUTING_STOPS} onClick={() => toggle(item.id)}>{added ? <Check size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}{added ? '已加入' : '加入清单'}</button>
+          <Button variant="tonal" className="xp-add" aria-pressed={added} aria-label={`${added ? '移出清单' : '加入清单'}：${item.title}`} disabled={!added && plan.length >= MAX_OUTING_STOPS} onClick={() => toggle(item.id)} icon={added ? <Check size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}>{added ? '已加入' : '加入清单'}</Button>
           <Link className="xp-text-link" to={`/guides/${item.slug}`}>读完整攻略</Link>
-          {worldEntry && <Link className="xp-3d-chip" to={fromExplore(worldEntry.href)} reloadDocument>{translateText(worldEntry.label, locale)}</Link>}
+          {worldEntry && <Link className="xp-text-link xp-3d-link" to={fromExplore(worldEntry.href)} reloadDocument>{translateText(worldEntry.label, locale)}</Link>}
         </div>
         {cover.tier !== 'type' && <details className="attraction-credit"><summary>照片来源</summary><p>{image.caption}</p><a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>}
       </div>
@@ -152,7 +152,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     <div className="xp-3d__head">
       <div><h2 id="xp-3d-title">{t('在 3D 旧金山里先看看', 'Look around in 3D San Francisco first')}</h2>
         <p>{t('独立的 3D 体验，约 8MB，建议用 Wi-Fi 打开。下面是 3D 场景插图（AI 生成、人工挑选），不是实景照片。', 'A separate 3D experience, about 8 MB, best opened on Wi-Fi. The pictures below are 3D scene illustrations (AI-generated, hand-picked), not photos.')}</p></div>
-      <Button variant="secondary" href={fromExplore('/opus-bay')}>{t('打开 3D 旧金山', 'Open 3D San Francisco')}</Button>
+      <Button variant="tonal" href={fromExplore('/opus-bay')}>{t('打开 3D 旧金山', 'Open 3D San Francisco')}</Button>
     </div>
     <ul className="xp-3d__rail">
       {SCENE3D_RAIL.map(({ id, key, card: postcard }) => {
@@ -193,7 +193,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     {filtered.length ? <div className="xp-grid">{cards}</div>
       : <EmptyState icon={Compass} title={t('换个范围，可能就有新发现。', 'Try a wider search: there may be more to discover.')} body={t('试试减少条件，或用城市、景点的中英文名称搜索。', 'Remove a filter, or search a city or place in Chinese or English.')}
         actions={<Button variant="primary" onClick={resetFilters}>{t('重置景点筛选', 'Reset place filters')}</Button>} />}
-    {filtered.length > visibleCount && <div className="xp-more-row"><Button variant="secondary" onClick={() => setPage({ key: resultKey, count: visibleCount + 12 })}>{english ? `Show more places (${visibleCount}/${filtered.length})` : `继续发现更多（${visibleCount}/${filtered.length}）`}</Button></div>}
+    {filtered.length > visibleCount && <div className="xp-more-row"><Button variant="tonal" onClick={() => setPage({ key: resultKey, count: visibleCount + 12 })}>{english ? `Show more places (${visibleCount}/${filtered.length})` : `继续发现更多（${visibleCount}/${filtered.length}）`}</Button></div>}
     {!planOnTop && planDisclosure}
     <details className="xp-plan xp-more">
       <summary>{t('更多安排：城市攻略、计划与搭子', 'More: city guides, plans and groups')}</summary>

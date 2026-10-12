@@ -5,11 +5,13 @@
 .xp-page .ui-page-header{margin-bottom:16px}
 .xp-filters{display:grid;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--color-line)}
 .xp-filter-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,11rem) minmax(0,11rem);gap:8px}
-.xp-search,.xp-select select{display:flex;align-items:center;gap:8px;min-height:var(--control-height);border:1px solid var(--color-line-strong);border-radius:10px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body)}
-.xp-search{padding:0 12px;color:var(--color-ink-3)}
-.xp-search input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--color-ink);font-size:var(--text-body)}
+/* The field's box is the input itself (the label only positions the icon), so the label is not a second control style. */
+.xp-search{position:relative;display:block;min-width:0;color:var(--color-ink-3)}
+.xp-search>svg{position:absolute;top:50%;left:12px;transform:translateY(-50%);pointer-events:none}
+.xp-search input,.xp-select select{width:100%;min-height:var(--control-height);border:1px solid var(--color-line-strong);border-radius:10px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body)}
+.xp-search input{padding:0 12px 0 40px;outline:none}
 .xp-search input::placeholder{color:var(--color-ink-3)}
-.xp-search:focus-within{outline:2px solid var(--color-brand);outline-offset:2px}
+.xp-search input:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
 .xp-select{display:block;min-width:0}
 .xp-select select{width:100%;padding:0 32px 0 12px}
 .xp-note>summary,.xp-plan>summary{display:flex;align-items:center;min-height:var(--control-height);cursor:pointer;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.5;overflow-wrap:anywhere}
@@ -45,14 +47,12 @@
 .xp-card__facts svg{flex:none;color:var(--color-brand)}
 .xp-card__note{flex:1;margin:8px 0 0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.714}
 .xp-card__actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin-top:12px}
-.xp-add{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:var(--control-height);padding:0 16px;border:0;border-radius:10px;background:var(--color-brand-tint);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;cursor:pointer}
-.xp-add[aria-pressed=true]{background:var(--color-brand);color:var(--color-surface)}
-.xp-add:disabled{background:var(--color-surface-2);color:var(--color-ink-3);cursor:not-allowed}
+.xp-page .xp-add[aria-pressed=true]{background:var(--color-brand);color:var(--color-surface)}
 .xp-text-link,.xp-more-links a,.xp-next a{display:inline-flex;align-items:center;gap:6px;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em}
 .xp-text-link:hover,.xp-more-links a:hover,.xp-next a:hover{text-decoration-color:currentColor}
-/* "3D 看一看": a chip, because it opens a separate full-page experience. */
-.xp-3d-chip{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0 14px;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact);font-weight:600;text-decoration:none}
-.xp-3d-chip::before{content:"3D";margin-right:6px;padding:1px 6px;border-radius:6px;background:var(--color-brand-deep);color:var(--color-surface);font-size:var(--text-caption);line-height:1.385;font-weight:700}
+/* "3D 看一看": a text link with a small 3D mark, because it opens a separate full-page experience. */
+.xp-page .xp-3d-link{text-decoration:none}
+.xp-3d-link::before{content:"3D";padding:1px 6px;border-radius:6px;background:var(--color-brand-deep);color:var(--color-surface);font-size:var(--text-caption);line-height:1.385;font-weight:700;text-decoration:none}
 .attraction-credit{margin-top:4px;color:var(--color-ink-3);font-size:var(--text-caption);line-height:1.6}
 .attraction-credit summary{display:inline-flex;align-items:center;min-height:var(--control-height);cursor:pointer;color:var(--color-ink-2)}
 .attraction-credit p{margin:0 0 4px;color:var(--color-ink-2)}

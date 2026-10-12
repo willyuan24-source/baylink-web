@@ -20,8 +20,6 @@
 .about-labels dd{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}
 .about-page .about-badge{position:static;display:inline-block;max-width:100%;white-space:normal}
 .about-contact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;margin-top:12px}
-.about-mail{display:inline-flex;align-items:center;gap:8px;min-height:var(--control-height);padding:0 16px;border:1px solid var(--color-line-strong);border-radius:10px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact);font-weight:600}
-.about-mail>svg{flex:none;width:1.125rem;height:1.125rem;color:var(--color-brand)}
 .about-policies{display:flex;flex-wrap:wrap;gap:0 24px;margin-top:16px;padding-top:8px;border-top:1px solid var(--color-line)}
 .about-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:4px}}

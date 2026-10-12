@@ -94,7 +94,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
       <p>{t('有问题、建议，或发现信息有误，可以直接在网站上反馈，也可以发邮件告诉我们。浏览不用登录；发布邻里信息和发私信需要登录。', 'Questions, ideas or something wrong? Send feedback right here on the site, or email us. You can browse without an account; posting and messages need you to sign in.')}</p>
       <div className="about-contact">
         <FeedbackLink />
-        <a className="about-mail" href={`mailto:${CONTACT_EMAIL}`}><Mail aria-hidden="true" strokeWidth={1.75} /><span translate="no">{CONTACT_EMAIL}</span></a>
+        <Button variant="secondary" href={`mailto:${CONTACT_EMAIL}`} icon={<Mail aria-hidden="true" strokeWidth={1.75} size={18} />}><span translate="no">{CONTACT_EMAIL}</span></Button>
       </div>
       <nav className="about-policies" aria-label={t('网站说明', 'Site policies')}>
         <Link to="/guides/baylink-safety-guide">{t('社区安全指南', 'Community safety guide')}</Link>

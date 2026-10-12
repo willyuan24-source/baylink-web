@@ -24,3 +24,4 @@
 .nf-feedback{display:flex;justify-content:center;margin-top:8px}
 .nf-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(max-width:639px){.nf-page{padding-top:24px}.nf-links ul{grid-template-columns:1fr}}
+@media(min-width:1024px){.nf-hero h1{font-size:2rem;line-height:1.3125}}
