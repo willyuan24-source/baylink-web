@@ -26,21 +26,23 @@ export function englishScopeModules(loaderSource) {
 
 /** The search dictionaries' chunk (src/i18n/locale.ts loadSearchConversion). */
 export const SEARCH_DICTIONARIES = 'src/i18n/search-dictionaries.ts';
+/** 繁體's converter for the site's own text (src/i18n/traditional.ts; the full phrase table loads after a tap, off this budget). */
+export const TRADITIONAL = 'src/i18n/traditional.ts';
 
 /**
  * Manifest keys each locale loads for one route: the shell and page graph, plus
  * the data the page loads before it renders (`data`: a guide article's own record,
- * WEB-DATA-SPLIT), the opencc converter for 繁體 (it carries search too), the search
- * dictionaries for 简体 and English on pages that search, and the scoped dictionaries
- * for English (src/i18n/locale.ts loadLocaleForPath).
+ * WEB-DATA-SPLIT), 繁體's site converter, the search dictionaries on pages that
+ * search (every language), and the scoped dictionaries for English
+ * (src/i18n/locale.ts loadLocaleForPath).
  */
 export function routeModules(manifest, { route, module, data = [] }, locale, { englishScopesForPath, scopeModules, searchFreePath = () => false }) {
   const keys = ['index.html', module, ...data];
   if (locale === 'zh-Hant') {
-    const opencc = Object.keys(manifest).find(key => key.startsWith('node_modules/opencc-js/') && key.endsWith('/full.js') && manifest[key].isDynamicEntry);
-    if (!opencc) throw new Error('The 繁體 converter (opencc-js full build) is no longer a dynamic entry; update scripts/route-budgets.mjs');
-    keys.push(opencc);
-  } else if (!searchFreePath(route)) {
+    if (!manifest[TRADITIONAL]?.isDynamicEntry) throw new Error(`The 繁體 converter (${TRADITIONAL}) is no longer a dynamic entry; update scripts/route-budgets.mjs`);
+    keys.push(TRADITIONAL);
+  }
+  if (!searchFreePath(route)) {
     if (!manifest[SEARCH_DICTIONARIES]?.isDynamicEntry) throw new Error(`The search dictionaries (${SEARCH_DICTIONARIES}) are no longer a dynamic entry; update scripts/route-budgets.mjs`);
     keys.push(SEARCH_DICTIONARIES);
   }

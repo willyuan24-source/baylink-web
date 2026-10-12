@@ -35,12 +35,72 @@ export const subscribeLocale = (listener: () => void) => { listeners.add(listene
 const readingSnapshot = () => `${current}:${dictionaryRevision}`;
 export const useLocale = () => { useSyncExternalStore(subscribeLocale, readingSnapshot, readingSnapshot); return current; };
 
-const loadChinese = () => chineseLoad ||= import('opencc-js').then((module) => {
-  traditional = taiwanConverter(module);
-  // 繁體 readers' search: the full opencc build already holds the search dictionaries (Locale.to.cn is TSPhrases then
-  // TSCharacters, the pair and order below), so it needs no second download
-  if (!buildSearch) { buildSearch = () => module.ConverterFactory(module.Locale.to.cn); searchUnavailable = false; notifyLocale(); }
-}).catch((error) => { chineseLoad = undefined; throw error; });
+/**
+ * 繁體's converter (WEB-DATA-SPLIT, ENGSEC-01). In the browser: opencc's core with only the phrases the site's sources
+ * contain (i18n/traditional.ts, about 45 KB instead of the 495 KB full build, exact on every Chinese run of the sources), and
+ * the full phrase table once the page is ready and idle (upgradeTraditional) for text the site does not ship. 繁體 search
+ * uses the same search dictionaries as the other languages (loadSearchConversion). Node (tests, prerender, generators)
+ * keeps the full build, which also carries search; its specifier is hidden from the bundler, so the browser never loads it.
+ */
+const OPENCC_FULL = 'opencc-js';
+const loadChinese = () => chineseLoad ||= (nodeProcess?.getBuiltinModule
+  ? (import(/* @vite-ignore */ OPENCC_FULL) as Promise<typeof import('opencc-js')>).then((module) => {
+    traditional = taiwanConverter(module);
+    // the full opencc build holds the search dictionaries too (Locale.to.cn is TSPhrases then TSCharacters)
+    if (!buildSearch) { buildSearch = () => module.ConverterFactory(module.Locale.to.cn); searchUnavailable = false; notifyLocale(); }
+  })
+  : import('./traditional').then(({ Trie, SITE_LOCALE }) => {
+    const site = taiwanConverter({ Trie, Locale: SITE_LOCALE } as unknown as OpenccTables);
+    const seen = new Map<string, string>();
+    traditional = (text, words = false) => {
+      const out = site(text, words);
+      if (seen.size < 20000) seen.set(`${words ? 1 : 0}${text}`, out);
+      return out;
+    };
+    upgradeTraditional(Trie, SITE_LOCALE, seen);
+  })).catch((error) => { chineseLoad = undefined; throw error; });
+
+type OpenccTables = Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>;
+type TrieClass = OpenccTables['Trie'];
+/** One idle slice (or a short timeout where requestIdleCallback is missing, Safari). */
+const idleSlice = () => new Promise<void>(resolve => {
+  const idle = (globalThis as { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => void }).requestIdleCallback;
+  if (idle) idle(() => resolve(), { timeout: 2000 }); else setTimeout(resolve, 50);
+});
+/**
+ * Text the site does not ship (BayBay answers, API messages) appears after the reader does something, so the full phrase
+ * table waits for the first tap or key press: a reader who only reads never downloads it. Then, between idle periods,
+ * it downloads, its trie is built in slices of 2,000 phrases (no long task) and the converter switches to it. Text converted
+ * so far is converted again with the full table and the page re-renders only when some of it changes; the site's own text
+ * never does (scripts/generate-traditional-phrases.ts).
+ */
+function upgradeTraditional(Trie: TrieClass, siteLocale: typeof import('./traditional')['SITE_LOCALE'], seen: Map<string, string>): void {
+  if (typeof window === 'undefined') return;
+  const start = async () => {
+    await idleSlice();
+    const { fullPhrases } = await import('./traditional-full');
+    const [[, characters]] = siteLocale.from.cn;
+    const phrases = new Trie();
+    phrases.loadDict(characters);
+    const entries = fullPhrases.split('|');
+    for (let at = 0; at < entries.length; at += 2000) {
+      for (const entry of entries.slice(at, at + 2000)) { const space = entry.indexOf(' '); phrases.addWord(entry.slice(0, space), entry.slice(space + 1)); }
+      await idleSlice();
+    }
+    const full = taiwanConverter({ Trie, Locale: { from: { cn: [[]] }, to: siteLocale.to } } as unknown as OpenccTables, phrases);
+    let changed = false;
+    for (const [key, out] of seen) if (full(key.slice(1), key[0] === '1') !== out) { changed = true; break; }
+    traditional = full;
+    seen.clear();
+    if (changed) notifyLocale();
+  };
+  const triggers = ['pointerdown', 'keydown'] as const;
+  const begin = () => {
+    for (const type of triggers) window.removeEventListener(type, begin, true);
+    void start().catch(() => { /* The site's own phrases stay; text it does not ship converts by character until a reload. */ });
+  };
+  for (const type of triggers) window.addEventListener(type, begin, { capture: true, passive: true });
+}
 
 /**
  * Search folds 繁體 into 简体 with opencc's traditional → simplified dictionaries (TSPhrases, TSCharacters). They are not
@@ -113,10 +173,11 @@ const TAIWAN_AFTER: readonly (readonly [string, string])[] = [['阿什伯裡', '
  * of the text is added to the trie as itself (Traditional → Traditional) and the second pass leaves it alone. Cheap: one
  * extra pass per string; the trie learns only the phrases that need it. `words`: TAIWAN_WORDS first and metres as 公尺.
  */
-export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>): (text: string, words?: boolean) => string {
+export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>, prebuilt?: InstanceType<typeof O.Trie>): (text: string, words?: boolean) => string {
   const [st0] = O.Locale.from.cn, [tw0] = O.Locale.to.tw;
-  const st = new O.Trie(), tw = new O.Trie(), local = new O.Trie();
-  st.loadDictGroup(st0);
+  // `prebuilt`: a cn trie already filled (the browser's full phrase table, built in slices: upgradeTraditional)
+  const st = prebuilt ?? new O.Trie(), tw = new O.Trie(), local = new O.Trie();
+  if (!prebuilt) st.loadDictGroup(st0);
   tw.loadDictGroup(tw0);
   local.loadDict(TAIWAN_WORDS);
   const once = (text: string) => tw.convert(st.convert(text));
@@ -138,7 +199,7 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 /** Everything a language needs, search included (exports, SSR and scripts; zh-Hant's opencc build carries search). */
 export async function loadLocale(locale: Locale): Promise<void> {
   if (locale === 'en') await Promise.all([englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadSearchConversion().catch(() => undefined)]);
-  else if (locale === 'zh-Hant') await loadChinese();
+  else if (locale === 'zh-Hant') await Promise.all([loadChinese(), loadSearchConversion().catch(() => undefined)]);
   else await loadSearchConversion().catch(() => undefined);
 }
 
@@ -152,13 +213,13 @@ export function isLocaleReadyForPath(locale: Locale, paths: string | readonly st
 export async function loadLocaleForPath(locale: Locale, paths: string | readonly string[]): Promise<void> {
   // The page still works without them (exact-character search); the gate stops waiting after a failure. Handled from
   // the start, so a failure is never unhandled when the language's own load fails first.
-  const search = locale !== 'zh-Hant' && pathsSearch(paths) ? loadSearchConversion().catch(() => undefined) : undefined;
+  const search = pathsSearch(paths) ? loadSearchConversion().catch(() => undefined) : undefined;
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(scopesForPaths(paths)); } }
   else if (locale === 'zh-Hant') await loadChinese();
   await search;
 }
 export async function loadLocaleForFeature(locale: Locale, feature: 'search' | 'guide-search'): Promise<void> {
-  const search = locale !== 'zh-Hant' ? loadSearchConversion().catch(() => undefined) : undefined;
+  const search = loadSearchConversion().catch(() => undefined);
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
   else if (locale === 'zh-Hant') await loadChinese();
   await search;
