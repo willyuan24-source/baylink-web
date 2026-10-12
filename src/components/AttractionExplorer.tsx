@@ -20,7 +20,11 @@ import { PageContainer, PageHeader } from './ui/HeroCard';
 import { TypeCover } from './ui/TypeCover';
 
 const available = ATTRACTIONS.filter(item => getGuideBySlug(item.slug));
-/** The 3D city is a separate full-page app; every link from /explore says where it came from (`from=explore`). */
+/**
+ * The 3D city is a separate full-page app. The "在 3D 旧金山里先看看" module's links say `from=explore`; the place cards keep the
+ * guide entry's `from=guide` (opusBayAttractionEntry), which the game already counts. Until the Opus lane adds `explore` to
+ * its ENTRY_SOURCES (src/opus-bay/ui/entrySource.ts, game/metricNames.ts), the game files a module start under `direct`.
+ */
 const fromExplore = (href: string) => {
   const url = new URL(href, 'https://www.baylink.us');
   url.searchParams.set('from', 'explore');
@@ -141,7 +145,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         <div className="xp-card__actions">
           <Button variant="tonal" className="xp-add" aria-pressed={added} aria-label={`${added ? '移出清单' : '加入清单'}：${item.title}`} disabled={!added && plan.length >= MAX_OUTING_STOPS} onClick={() => toggle(item.id)} icon={added ? <Check size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}>{added ? '已加入' : '加入清单'}</Button>
           <Link className="xp-text-link" to={`/guides/${item.slug}`}>读完整攻略</Link>
-          {worldEntry && <Link className="xp-text-link xp-3d-link" to={fromExplore(worldEntry.href)} reloadDocument><Rotate3d size={18} aria-hidden="true" />{translateText(worldEntry.label, locale)}</Link>}
+          {worldEntry && <Link className="xp-text-link xp-3d-link" to={worldEntry.href} reloadDocument><Rotate3d size={18} aria-hidden="true" />{translateText(worldEntry.label, locale)}</Link>}
         </div>
         {cover.tier !== 'type' && <details className="attraction-credit"><summary>{cover.tier === 'scene3d' ? t('图片说明', 'About this picture') : '照片来源'}</summary><p>{cover.image.caption}</p>{cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{cover.image.credit}</a> : <p>{cover.image.credit}</p>}{cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>}
       </div>
