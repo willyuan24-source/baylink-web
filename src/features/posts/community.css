@@ -99,9 +99,10 @@
 .cm-status__founder { color:var(--color-brand); font-weight:600; }
 .cm-card__menu { position:absolute; top:4px; left:4px; z-index:3; }
 .cm-menu-trigger { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:50%; color:var(--color-ink); }
-.cm-menu-trigger>svg { width:2rem; height:2rem; padding:.375rem; border-radius:50%; background:rgb(255 255 255 / .9); }
+.cm-menu-trigger>svg { width:2rem; height:2rem; padding:.375rem; border-radius:50%; background:var(--color-surface); }
 .cm-menu-dismiss { position:fixed; inset:0; z-index:10; }
-.cm-menu { position:absolute; top:100%; left:0; z-index:20; min-width:10rem; padding:4px; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); box-shadow:0 12px 32px rgb(22 46 41 / .14); }
+/* The site chrome's pop-over shadow; the sheet is portaled outside .site-app, which defines it, hence the token fallback. */
+.cm-menu { position:absolute; top:100%; left:0; z-index:20; min-width:10rem; padding:4px; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); box-shadow:var(--chrome-shadow-pop, 0 12px 32px var(--color-line-strong)); }
 .cm-sheet__toolbar .cm-menu { left:auto; right:0; }
 .cm-menu button { display:flex; align-items:center; gap:.5rem; width:100%; min-height:var(--control-height); padding:0 .75rem; border-radius:8px; color:var(--color-ink); font-size:var(--text-fact); text-align:left; }
 .cm-menu button>svg { flex:none; width:1rem; height:1rem; }
@@ -228,7 +229,7 @@ html[data-post-sheet] #root main { visibility:hidden; }
 .cm-photos__tile>img { display:block; width:100%; height:100%; object-fit:cover; }
 .cm-photos__cover { position:absolute; left:6px; bottom:6px; padding:2px 8px; border-radius:6px; background:var(--ui-badge-bg); color:var(--color-surface); font-size:var(--text-caption); font-weight:600; }
 .cm-photos__remove { position:absolute; top:2px; right:2px; display:grid; place-items:center; width:2.75rem; height:2.75rem; color:var(--color-ink); }
-.cm-photos__remove>svg { width:1.75rem; height:1.75rem; padding:.3rem; border-radius:50%; background:rgb(255 255 255 / .92); }
+.cm-photos__remove>svg { width:1.75rem; height:1.75rem; padding:.3rem; border-radius:50%; background:var(--color-surface); }
 .cm-photos__add { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.375rem; border:1.5px dashed var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; cursor:pointer; }
 .cm-photos__add:first-child { grid-column:span 2; aspect-ratio:auto; min-height:9rem; }
 .cm-photos__add>svg { width:1.75rem; height:1.75rem; color:var(--color-brand); }

@@ -172,8 +172,9 @@ const ContactPanelSession = ({
         <CategorySafetyNotice category={post.category} />
         <div className="cm-contact__actions">
           {section === 'all' && !isOwner && !isClosed && <Button variant="primary" icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />} onClick={handleDm}>{t('私信联系', 'Message')}</Button>}
-          {isOwner && <p className="cm-contact__note">{t('这是你发布的帖子。收到的私信和联系方式请求可在消息页查看。', 'This is your post. Messages and contact requests are in Messages.')}</p>}
-          {!isOwner && isClosed && <p className="cm-contact__note">{t('这条信息已结束，不再接受新的联系请求。', 'This post has ended and takes no new contact requests.')}</p>}
+          {/* On the sheet (section 'contact') its sticky bar says these once. */}
+          {section === 'all' && isOwner && <p className="cm-contact__note">{t('这是你发布的帖子。收到的私信和联系方式请求可在消息页查看。', 'This is your post. Messages and contact requests are in Messages.')}</p>}
+          {section === 'all' && !isOwner && isClosed && <p className="cm-contact__note">{t('这条信息已结束，不再接受新的联系请求。', 'This post has ended and takes no new contact requests.')}</p>}
           {canRequestContact && <Button variant="secondary" onClick={handleRequest}
             disabled={loadingRequest || requestStatus === 'pending' || requestStatus === 'auto_sent' || requestStatus === 'approved'}
             icon={loadingRequest ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Phone aria-hidden="true" strokeWidth={1.75} />}>{t('请求联系方式', 'Ask for contact details')}</Button>}

@@ -4,9 +4,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Location, NavigateFunction } from 'react-router-dom';
 import { api } from '../lib/api';
-import { matchesCategory } from '../lib/constants';
 import { filterPostsByBlockedUsers } from '../lib/format';
 import { readFeedCache, writeFeedCache } from '../lib/feedCache';
+import { feedQueryString, visibleFeedPosts } from '../features/posts/feed-query';
 import type { PostData } from '../lib/types';
 import { getCategoryFromSlug, isHomePath } from '../routing';
 import { matchRoute } from './route-table';
@@ -75,20 +75,12 @@ export function useCommunityFeed({ location, navigate, userId, blockedUserIds }:
       let more = true;
       let pagesFetched = 0;
       while (true) {
-        let queryParams = `?type=${feedType}&page=${currentPage}&limit=6&availability=${recentOnly ? 'current' : 'all'}`;
-        if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
-        if (categoryFilter !== '全部') queryParams += `&category=${encodeURIComponent(categoryFilter)}`;
-        if (regionFilter !== '全部') queryParams += `&city=${encodeURIComponent(regionFilter)}`;
-        const res = await api.request(`/posts${queryParams}`);
+        const res = await api.request(`/posts${feedQueryString({ type: feedType, page: currentPage, limit: 6, recentOnly, keyword: searchKw, categoryFilter, regionFilter })}`);
         if (fetchSeqRef.current !== seq) return;
         const newPosts: PostData[] = res.posts || [];
         more = res.hasMore;
         pagesFetched += 1;
-        let filtered = newPosts;
-        if (regionFilter !== '全部') filtered = filtered.filter((p) => (p.city || '').includes(regionFilter));
-        filtered = filtered.filter((p) => matchesCategory(p.category, categoryFilter) && p.status !== 'closed');
-        if (userId && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
-        for (const p of filtered) {
+        for (const p of visibleFeedPosts(newPosts, { regionFilter, categoryFilter, userId, blockedUserIds })) {
           if (!seenIds.has(p.id)) { seenIds.add(p.id); collected.push(p); }
         }
         if (!more || !hasClientFilter || collected.length >= MIN_VISIBLE_PER_LOAD || pagesFetched >= MAX_PAGES_PER_LOAD) break;

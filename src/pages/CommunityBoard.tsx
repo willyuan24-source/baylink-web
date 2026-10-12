@@ -1,7 +1,8 @@
 // 邻里信息（测试中）: category boards /category/:slug, searches /?q=, the home page's expanded board, and the page under
 // /posts/:id and /users/:id deep links. Its own chunk (WEB-HOMEPREP); HomePage decides when to mount it.
 // WEB-COMMUNITY (T15): one H1 (the board's name) with 测试中, region chips, the 1:1 post cards in the WEB-UI feed grid,
-// every post by default (FC3-04: the older ones say so, and a quiet board says 近 30 天 0 条新信息 instead of "empty"),
+// every post by default (FC3-04: the older ones say so, a quiet board says 近 30 天 0 条新信息 instead of "empty", and an
+// empty 出租 list says so and offers 求租 instead of calling the whole board empty; a keyword miss offers 清除筛选),
 // one publish button that does not preset 提供 / 需求 (E2E+2), and the safety note and guides under the feed.
 import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -24,6 +25,7 @@ import { PostCard } from '../features/posts/PostCard';
 import { BoardLinks } from '../features/posts/BoardLinks';
 import { categoryName, feedTypeNames, isNewPost, publishLabel, REGION_NAMES, showCount } from '../features/posts/community-copy';
 import { OfficialAds } from '../features/ads/OfficialAds';
+import { useOtherTypeHasPosts } from '../features/posts/useOtherTypeHasPosts';
 const CategoryGuideStrip = lazy(() => import('../components/CategoryGuideStrip').then(m => ({ default: m.CategoryGuideStrip })));
 
 export interface CommunityBoardProps {
@@ -76,30 +78,44 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
     return () => cancelAnimationFrame(frame);
   }, [scrollRequest]);
 
+  // `?${query}` only when something is left. Not `query.size`: Safari before 17 (iOS 15/16, a build target) lacks it.
+  const searchOf = (query: URLSearchParams) => { const text = query.toString(); return text ? `?${text}` : ''; };
   const setRecentOnly = (on: boolean) => {
     const query = new URLSearchParams(location.search);
     query.delete('older');
     if (on) query.set('recent', '1'); else query.delete('recent');
-    navigate({ pathname: location.pathname, search: query.size ? `?${query}` : '', hash: location.hash }, { replace: true, state: location.state, preventScrollReset: true });
+    navigate({ pathname: location.pathname, search: searchOf(query), hash: location.hash }, { replace: true, state: location.state, preventScrollReset: true });
   };
   const clearFilters = () => {
     const query = new URLSearchParams(location.search);
     for (const key of ['q', 'region', 'older', 'recent']) query.delete(key);
-    navigate({ pathname: categorySlug ? location.pathname : '/', search: query.size ? `?${query}` : '', hash: location.hash });
+    navigate({ pathname: categorySlug ? location.pathname : '/', search: searchOf(query), hash: location.hash });
   };
+  const hasKeyword = !!keyword.trim();
   const isSearch = !!keyword && !categorySlug;
   const isDiscovery = !keyword && !categorySlug;
   const board = categorySlug ? categoryFilter : '全部';
   const name = pick(categoryName(board));
   const types = feedTypeNames(board);
+  const activeType: PostType = feedType === 'client' ? 'client' : 'provider';
+  const otherType: PostType = activeType === 'client' ? 'provider' : 'client';
   const publish = () => openCreate(undefined, ['全部', '本地服务'].includes(board) ? undefined : board);
   const unavailable = !!feedError && posts.length === 0 && !isInitialLoading;
   const loadingFirst = isInitialLoading && posts.length === 0;
   const newCount = posts.filter(post => isNewPost(post, now)).length;
   // Posts arrive newest first, so a first page without a new post means none in 30 days.
   const quiet = !recentOnly && !loadingFirst && !unavailable && posts.length > 0 && newCount === 0;
-  const hasFilters = regionFilter !== '全部' || recentOnly || (isSearch && !!keyword);
+  const hasFilters = regionFilter !== '全部' || recentOnly || hasKeyword;
   const Heading = isDiscovery ? 'h2' : 'h1';
+  // FC3-04: an empty list is empty for the kind on screen (出租), not for the board: 求租 may hold every post. Only when
+  // the other kind is empty too does the empty state speak for the whole board.
+  const otherHasPosts = useOtherTypeHasPosts({
+    enabled: !unavailable && !loadingFirst && posts.length === 0, type: otherType, recentOnly, keyword: keyword.trim(),
+    categoryFilter: board, regionFilter, userId: user?.id, blockedUserIds,
+  });
+  const wholeBoard = otherHasPosts === false;
+  // 租房信息; the home board is 邻里信息 itself (not 邻里信息信息).
+  const feedLabel = board === '全部' ? t('邻里信息', 'Neighborhood posts') : t(`${name}信息`, `${name} posts`);
 
   const resultsLine = loadingFirst ? t('正在读取邻里信息…', 'Loading posts…')
     : unavailable ? null
@@ -107,15 +123,31 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
         : showCount(newCount) ? t(`近 30 天 ${newCount}${hasMore ? '+' : ''} 条新信息 · 按发布时间排列`, `${newCount}${hasMore ? '+' : ''} new in the last 30 days · Newest first`)
           : posts.length ? t('按发布时间排列，最新的在前', 'Newest first') : null;
 
-  const emptyState = recentOnly
-    ? <EmptyState headingLevel="h3" title={t('近 30 天 0 条新信息', 'No new posts in the last 30 days')} body={t('较早的信息还在，联系前请先向发布者确认。', 'Older posts are still here; check with the poster before you contact them.')}
-      actions={<><Button variant="primary" onClick={() => setRecentOnly(false)}>{t('查看较早信息', 'See older posts')}</Button><Button variant="text" onClick={publish}>{pick(publishLabel(board))}</Button></>} />
-    : isSearch ? <EmptyState headingLevel="h3" icon={Search} title={t('没有找到相关信息', 'No posts match')} body={t('换个关键词，或去掉地区筛选再试。', 'Try another word, or remove the area filter.')}
-      actions={<Button variant="primary" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button>} />
-      : regionFilter !== '全部' ? <EmptyState headingLevel="h3" title={t(`${pick(REGION_NAMES[regionFilter] || { zh: regionFilter, en: regionFilter })}暂时没有${name}信息`, `No ${name.toLowerCase()} posts in ${pick(REGION_NAMES[regionFilter] || { zh: regionFilter, en: regionFilter })} yet`)}
-        body={t('看看整个湾区的信息，或换个地区。', 'See the whole Bay Area, or pick another area.')} actions={<Button variant="primary" onClick={() => setRegionFilter('全部')}>{t('看整个湾区', 'Whole Bay Area')}</Button>} />
-        : <EmptyState headingLevel="h3" title={t(`${name}还没有信息`, `No ${name.toLowerCase()} posts yet`)} body={t('邻里信息还在测试中。发布前可以先看看下面的安全提醒和指南。', 'The neighborhood board is still in testing. The safety notes and guides below are a good start.')}
-          actions={<Button variant="primary" icon={<Plus aria-hidden="true" strokeWidth={1.75} />} onClick={publish}>{pick(publishLabel(board))}</Button>} />;
+  const kind = { zh: `「${types[activeType].zh}」`, en: `“${types[activeType].en}”` };
+  const other = { zh: `「${types[otherType].zh}」`, en: `“${types[otherType].en}”` };
+  const areaName = pick(REGION_NAMES[regionFilter] || { zh: regionFilter, en: regionFilter });
+  const seeOther = (variant: 'primary' | 'text') => <Button variant={variant} onClick={() => setFeedType(otherType)}>{t(`看看${other.zh}`, `See ${other.en}`)}</Button>;
+  const publishButton = (variant: 'primary' | 'text') => <Button variant={variant} icon={variant === 'primary' ? <Plus aria-hidden="true" strokeWidth={1.75} /> : undefined} onClick={publish}>{pick(publishLabel(board))}</Button>;
+  const emptyState = hasKeyword
+    ? <EmptyState headingLevel="h3" icon={Search}
+      title={!wholeBoard ? t(`${kind.zh}里没有找到相关信息`, `Nothing under ${kind.en} matches`)
+        : categorySlug ? t(`没有找到相关的${name}信息`, `No ${name.toLowerCase()} posts match`) : t('没有找到相关信息', 'No posts match')}
+      body={otherHasPosts ? t(`${other.zh}里有相关的信息。`, `There are matches under ${other.en}.`) : t('换个关键词，或去掉筛选再试。', 'Try another word, or clear the filters.')}
+      actions={otherHasPosts ? <>{seeOther('primary')}<Button variant="text" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button></>
+        : <Button variant="primary" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button>} />
+    : recentOnly ? <EmptyState headingLevel="h3"
+      title={wholeBoard ? t('近 30 天 0 条新信息', 'No new posts in the last 30 days') : t(`近 30 天没有${kind.zh}的新信息`, `No new ${kind.en} posts in the last 30 days`)}
+      body={t('较早的信息还在，联系前请先向发布者确认。', 'Older posts are still here; check with the poster before you contact them.')}
+      actions={<><Button variant="primary" onClick={() => setRecentOnly(false)}>{t('查看较早信息', 'See older posts')}</Button>{otherHasPosts ? seeOther('text') : publishButton('text')}</>} />
+      : regionFilter !== '全部' ? <EmptyState headingLevel="h3"
+        title={wholeBoard ? t(`${areaName}暂时没有${name}信息`, `No ${name.toLowerCase()} posts in ${areaName} yet`) : t(`${areaName}暂时没有${kind.zh}的${name}信息`, `No ${kind.en} posts in ${areaName} yet`)}
+        body={t('看看整个湾区的信息，或换个地区。', 'See the whole Bay Area, or pick another area.')}
+        actions={<><Button variant="primary" onClick={() => setRegionFilter('全部')}>{t('看整个湾区', 'Whole Bay Area')}</Button>{otherHasPosts && seeOther('text')}</>} />
+        : wholeBoard ? <EmptyState headingLevel="h3" title={t(`${name}还没有信息`, `No ${name.toLowerCase()} posts yet`)} body={t('邻里信息还在测试中。发布前可以先看看下面的安全提醒和指南。', 'The neighborhood board is still in testing. The safety notes and guides below are a good start.')}
+          actions={publishButton('primary')} />
+          : <EmptyState headingLevel="h3" title={t(`还没有${kind.zh}的${name}信息`, categorySlug ? `No ${kind.en} posts in ${name} yet` : `No ${kind.en} posts yet`)}
+            body={otherHasPosts ? t(`${other.zh}里有信息，可以先看看。`, `There are posts under ${other.en}.`) : t('邻里信息还在测试中。发布前可以先看看下面的安全提醒和指南。', 'The neighborhood board is still in testing. The safety notes and guides below are a good start.')}
+            actions={otherHasPosts ? <>{seeOther('primary')}{publishButton('text')}</> : publishButton('primary')} />;
 
   return <section className="cm-board" aria-labelledby="cm-board-title" data-mode={isDiscovery ? 'home' : isSearch ? 'search' : 'category'}>
     <header className="ui-page-header cm-board__header" id="home-feed-section">
@@ -147,6 +179,8 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
       </div>
     </div>
 
+    {/* The feed's heading (H1 board name → h2 → card h3s); the home board's own heading is already an h2. */}
+    {!isDiscovery && <h2 className="sr-only">{isSearch ? t('搜索结果', 'Results') : feedLabel}</h2>}
     <div className="cm-board__results">
       {resultsLine && <p className="cm-board__count" role="status" data-quiet={quiet ? '' : undefined}>{resultsLine}</p>}
       <div className="cm-board__tools">
@@ -160,7 +194,7 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
       : loadingFirst ? <div aria-busy="true" aria-label={t('内容加载中', 'Loading')}><FeedGrid label={t('正在加载', 'Loading')} ratio="1:1" layout={feedLayout.layout}>{Array.from({ length: 4 }, (_, index) => <FeedItem key={index}><SkeletonCard /></FeedItem>)}</FeedGrid></div>
         : posts.length === 0 ? <div className="cm-board__empty">{emptyState}</div>
           : <>
-            <FeedGrid label={t(`${name}信息`, `${name} posts`)} ratio="1:1" layout={feedLayout.layout}>
+            <FeedGrid label={feedLabel} ratio="1:1" layout={feedLayout.layout}>
               {posts.map((post, index) => <FeedItem key={post.id}><PostCard post={post} layout="grid" priority={index === 0 && !isDiscovery} currentUser={user} blockedUserIds={blockedUserIds}
                 onClick={() => navigateToPost(post)} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature}
                 onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} /></FeedItem>)}

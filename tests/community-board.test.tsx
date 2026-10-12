@@ -18,7 +18,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.matchMedia = ((query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {} })) as unknown as typeof dom.window.matchMedia;
 const styles = registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, fireEvent, cleanup, screen, waitFor, act } = await import('@testing-library/react');
-const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
+const { MemoryRouter, Routes, Route, Outlet, useLocation } = await import('react-router-dom');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
 const { default: CommunityBoard } = await import('../src/pages/CommunityBoard');
@@ -37,6 +37,8 @@ const post = (id: string, overrides: Partial<PostData> = {}): PostData => ({
   commentsCount: 0, comments: [], createdAt: Date.now() - 120 * DAY, status: 'active', confirmedAt: null, ...overrides,
 });
 const noop = () => {};
+/** The router's current path and query, for the board's URL changes. */
+function LocationProbe() { const location = useLocation(); return <output data-testid="location">{location.pathname + location.search}</output>; }
 const board = (posts: PostData[], entry = '/category/rent', overrides: Partial<AppContextValue> = {}) => {
   const context = {
     user: null, posts, feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: '租屋', feedError: false, isInitialLoading: false,
@@ -46,7 +48,7 @@ const board = (posts: PostData[], entry = '/category/rent', overrides: Partial<A
   } as unknown as AppContextValue;
   return render(<MemoryRouter initialEntries={[entry]}><Routes><Route element={<Outlet context={context} />}>
     <Route path="/category/:categorySlug" element={<CommunityBoard onScrollToFeed={noop} scrollRequest={0} />} />
-  </Route></Routes></MemoryRouter>);
+  </Route></Routes><LocationProbe /></MemoryRouter>);
 };
 
 test('a board whose newest post is over 30 days old shows every post and says 近 30 天 0 条新信息 instead of "empty"', () => {
@@ -72,11 +74,93 @@ test('counts under 3 are hidden; 3 or more new posts are counted', () => {
   assert.equal(showCount(3), true);
 });
 
-test('?recent=1 with nothing recent offers 查看较早信息 (the WEB-UI EmptyState)', () => {
+test('?recent=1 with nothing recent offers 查看较早信息 (the WEB-UI EmptyState)', async () => {
   const view = board([], '/category/rent?recent=1');
-  assert.ok(screen.getByRole('heading', { name: '近 30 天 0 条新信息' }));
+  // 求租 is empty too (the quiet api), so the state may speak for the whole board.
+  assert.ok(await screen.findByRole('heading', { name: '近 30 天 0 条新信息' }));
   assert.ok(screen.getByRole('button', { name: '查看较早信息' }));
   assert.ok(view.container.querySelector('.ui-state[data-kind=empty]'));
+});
+
+/** The api with posts of one kind only: `/posts?type=<kind>` returns them, the other kind nothing. */
+const onlyKind = (kind: 'provider' | 'client', posts: PostData[], calls: string[] = []) => (async (path: string) => {
+  calls.push(path);
+  return path.startsWith('/posts?') && path.includes(`type=${kind}`) ? { posts, hasMore: false } : { posts: [], ads: [] };
+}) as typeof api.request;
+
+test('FC3-04: the service board’s default 提供 view with only 需要 posts names the kind and offers 需要, never “本地服务还没有信息”', async () => {
+  const calls: string[] = [];
+  api.request = onlyKind('client', [post('c', { type: 'client', category: '清洁', title: '找清洁阿姨' })], calls);
+  const switched: unknown[] = [];
+  const view = board([], '/category/service', { categoryFilter: '本地服务', setFeedType: ((type: unknown) => { switched.push(type); }) as AppContextValue['setFeedType'] });
+  assert.ok(screen.getByRole('heading', { level: 3, name: '还没有「提供」的本地服务信息' }), 'the claim is about the kind on screen from the first frame');
+  const see = await screen.findByRole('button', { name: '看看「需要」' });
+  assert.ok(screen.getByText('「需要」里有信息，可以先看看。'));
+  assert.doesNotMatch(view.container.textContent!, /本地服务还没有信息|还没有资源/);
+  fireEvent.click(see);
+  assert.deepEqual(switched, ['client']);
+  // The check asks for the other kind under the same board and filters.
+  assert.ok(calls.some(path => path.includes('type=client') && path.includes(`category=${encodeURIComponent('本地服务')}`) && path.includes('availability=all')), calls.join('\n'));
+});
+
+test('FC3-04: 求租 on a board whose posts are all 出租 says so and offers 出租', async () => {
+  api.request = onlyKind('provider', [post('a')]);
+  const view = board([], '/category/rent?type=client', { feedType: 'client' });
+  assert.ok(screen.getByRole('heading', { level: 3, name: '还没有「求租」的租房信息' }));
+  assert.ok(await screen.findByRole('button', { name: '看看「出租」' }));
+  assert.doesNotMatch(view.container.textContent!, /租房还没有信息/);
+});
+
+test('FC3-04: a board with neither kind says the board itself is empty (both kinds checked)', async () => {
+  const view = board([], '/category/rent');
+  assert.ok(await screen.findByRole('heading', { level: 3, name: '租房还没有信息' }));
+  assert.equal(screen.queryByRole('button', { name: /^看看/ }), null);
+  assert.ok(view.container.querySelector('.ui-state[data-kind=empty]'));
+});
+
+test('RC-25: a keyword with no match inside a category is a search miss with 清除筛选, never “还没有信息”', async () => {
+  const calls: string[] = [];
+  api.request = (async (path: string) => { calls.push(path); return { posts: [], ads: [] }; }) as typeof api.request;
+  const view = board([], '/category/rent?q=zzz', { keyword: 'zzz' });
+  assert.ok(await screen.findByRole('heading', { level: 3, name: '没有找到相关的租房信息' }));
+  assert.doesNotMatch(view.container.textContent!, /还没有信息/);
+  assert.ok(calls.some(path => path.includes('type=client') && path.includes('keyword=zzz')), 'the other kind is checked with the same keyword');
+  const clear = screen.getAllByRole('button', { name: '清除筛选' });
+  assert.equal(clear.length, 2, 'one in the results bar, one in the empty state');
+  fireEvent.click(clear[1]);
+  assert.equal(screen.getByTestId('location').textContent, '/category/rent');
+});
+
+test('RC-25: a keyword miss under 出租 that 求租 matches offers 求租 first', async () => {
+  api.request = onlyKind('client', [post('c', { type: 'client', title: '求租 zzz' })]);
+  board([], '/category/rent?q=zzz', { keyword: 'zzz' });
+  assert.ok(screen.getByRole('heading', { level: 3, name: '「出租」里没有找到相关信息' }));
+  assert.ok(await screen.findByRole('button', { name: '看看「求租」' }));
+  assert.ok(screen.getAllByRole('button', { name: '清除筛选' }).length >= 1);
+});
+
+test('the board’s filters survive a browser without URLSearchParams.size (Safari before 17: iOS 15/16)', async () => {
+  const prototypes = [URLSearchParams.prototype, dom.window.URLSearchParams.prototype];
+  const saved = prototypes.map(proto => Object.getOwnPropertyDescriptor(proto, 'size'));
+  for (const proto of prototypes) Object.defineProperty(proto, 'size', { configurable: true, get: () => undefined });
+  try {
+    assert.equal(new URLSearchParams('a=1').size, undefined, 'the stub is in place');
+    const { feedSearch } = await import('../src/app/useFeedFilters');
+    assert.equal(feedSearch({ keyword: '', regionFilter: '东湾', feedType: 'client' }), `?region=${encodeURIComponent('东湾')}&type=client`);
+    assert.equal(feedSearch({ keyword: '', regionFilter: '全部', feedType: 'provider' }, '?region=东湾'), '');
+    board([post('a')]);
+    fireEvent.click(screen.getByRole('button', { name: '近期确认' }));
+    assert.equal(screen.getByTestId('location').textContent, '/category/rent?recent=1');
+  } finally {
+    prototypes.forEach((proto, index) => { const descriptor = saved[index]; if (descriptor) Object.defineProperty(proto, 'size', descriptor); else delete (proto as { size?: number }).size; });
+  }
+});
+
+test('category boards have an h2 between the board’s H1 and the card titles', () => {
+  const view = board([post('a')]);
+  const headings = [...view.container.querySelectorAll('h1, h2, h3')].map(element => element.tagName);
+  assert.deepEqual(headings.slice(0, 3), ['H1', 'H2', 'H3']);
+  assert.equal(view.container.querySelector('h2.sr-only')!.textContent, '租房信息');
 });
 
 test('the founder’s two accounts’ posts say 站长发布; other members’ and other admins’ do not', () => {
