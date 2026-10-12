@@ -134,7 +134,7 @@ export const AdminOfficialVerificationsView = ({ onBack, showToast }: { onBack: 
   };
 
   return (
-    <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
+    <div className="fixed inset-0 z-[85] flex flex-col bg-baylink-bg">
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
         <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
         <h2 className="text-lg font-bold text-baylink-text">资料审核管理</h2>
@@ -350,7 +350,7 @@ export const AdminReportsView = ({ onBack, showToast }: { onBack: () => void; sh
   };
 
   return (
-    <div className="fixed inset-0 z-[85] flex flex-col bg-[#FAFAFA]">
+    <div className="fixed inset-0 z-[85] flex flex-col bg-baylink-bg">
       <div className="flex items-center gap-3 border-b border-baylink-border/40 bg-white px-4 py-3 pt-safe-top">
         <button type="button" onClick={onBack} className="rounded-full p-2 hover:bg-baylink-section"><ChevronLeft size={20} /></button>
         <h2 className="flex-1 text-lg font-bold text-baylink-text">举报管理</h2>

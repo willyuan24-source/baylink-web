@@ -1,13 +1,13 @@
 /* 我的 /me hub (WEB-ACCOUNT, design.md T18): profile header, the 2×2 tiles (消息 first), the settings list and the
    account sections. Tokens and rem only, so Aa and 简洁显示 grow every line; content container 960 with 16/24/32 gutters. */
-.me-hub { box-sizing:content-box; max-width:960px; margin:0 auto; padding:24px 16px calc(env(safe-area-inset-bottom, 0px) + 40px); color:var(--color-ink); }
+.me-hub { box-sizing:content-box; max-width:var(--container-content); margin:0 auto; padding:24px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + 40px); color:var(--color-ink); }
 .me-hub__header { display:grid; grid-template-columns:auto minmax(0, 1fr); align-items:center; gap:16px; }
 .me-hub__header[data-guest] { grid-template-columns:minmax(0, 1fr); }
 .me-hub__avatar { display:grid; place-items:center; width:4.5rem; height:4.5rem; border-radius:50%; overflow:hidden; background:var(--color-brand-tint); color:var(--color-brand); }
 .me-hub__avatar>* { width:100% !important; height:100% !important; }
 .me-hub__heading { display:flex; flex-direction:column; gap:4px; min-width:0; }
 /* The page H1 uses the site's one title spec (26/34 phone, 32/42 desktop · 600), like PageHeader. */
-.me-hub__name { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; color:var(--color-ink); font-size:1.625rem; line-height:1.308; font-weight:600; letter-spacing:0; overflow-wrap:anywhere; text-wrap:balance; }
+.me-hub__name { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:0; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; letter-spacing:0; overflow-wrap:anywhere; text-wrap:balance; }
 .me-hub__positioning { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-hub__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:16px; }
 .me-hub__actions :is(a,button) { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.3; font-weight:600; text-decoration:none; }
@@ -64,9 +64,9 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-guest-card ul { margin:4px 0 8px; padding:0 0 0 1.25rem; list-style:disc; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
 
 /* Sub-views (通知, 隐私与账号): a back row above the panel. */
-.me-subview { box-sizing:content-box; max-width:720px; margin:0 auto; padding:16px 16px calc(env(safe-area-inset-bottom, 0px) + 40px); }
+.me-subview { box-sizing:content-box; max-width:var(--container-reading); margin:0 auto; padding:16px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + 40px); }
 .me-back { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); margin:0 0 8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; text-decoration:none; }
-.me-subview__title { margin:0 0 8px; color:var(--color-ink); font-size:1.625rem; line-height:1.308; font-weight:600; }
+.me-subview__title { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; }
 
 /* Settings sheets */
 .me-language { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
@@ -106,6 +106,6 @@ html[data-simple] .me-language button { min-height:3.75rem; }
   .me-subview { padding:24px 24px 56px; }
   .me-guest-card { padding:32px; }
 }
-@media (min-width:1024px) { .me-hub,.me-subview { padding-inline:32px; } :is(.me-subview__title,.me-hub__name) { font-size:2rem; line-height:1.3125; } }
+@media (min-width:1024px) { .me-hub,.me-subview { padding-inline:32px; } }
 /* Large Aa on a phone: one tile per row, so the labels never squeeze (D9). */
 @media (max-width:767px) { html:is([data-reading=extra-large],[data-simple]) .me-tiles { grid-template-columns:minmax(0, 1fr); } }

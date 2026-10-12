@@ -1,6 +1,6 @@
 /* 指南 index (T2, WEB-GUIDES): loaded with GuidesHome only (route CSS, RC-6). Tokens and rem only; covers, chips, cards and the
    rail are the WEB-UI primitives (ui.css). Reviewed by scripts/check-editorial-styles.mjs. */
-.gl-page { box-sizing:content-box; max-width:1216px; margin-inline:auto; padding:16px 16px 48px; color:var(--color-ink); }
+.gl-page { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding:16px var(--page-gutter) 48px; color:var(--color-ink); }
 .gl-header { margin-bottom:16px; }
 .gl-header .ui-page-header__lede { font-size:var(--text-body); }
 
@@ -45,9 +45,9 @@
 .gl-footer a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; }
 :is(.gl-search__clear,.gl-saved-link,.gl-directory>button,.gl-directory a,.gl-footer a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 
-@media (min-width:768px) { .gl-page { padding:24px 24px 64px; } }
+@media (min-width:768px) { .gl-page { padding-block:24px 64px; } }
 @media (min-width:1024px) {
-  .gl-page { padding:32px 32px 72px; }
+  .gl-page { padding-block:32px 72px; }
   .gl-find { max-width:720px; }
   .gl-section { margin-top:40px; }
 }
