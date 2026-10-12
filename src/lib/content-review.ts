@@ -73,11 +73,14 @@ export function parseContentReviewManifest(value: unknown, today: string): Conte
 /**
  * One row of `GET /api/sources/freshness`. `changedAt`, `material`, `changeFields`
  * and `reviewedBy` arrive with source triage; until then they are absent.
+ * `changedAt` is the FIRST detection of the change still waiting for review (later
+ * changes to the same page keep it); `lastChangedAt` is the latest detection, an
+ * additive field asked of the API (`pendingChange.detectedAt`) and absent until then.
  */
 export type FreshnessSourceRow = {
   sourceId: string; status: string; needsReview: boolean; contentIds?: string[];
   lastFetchedAt: number | null; lastReviewedAt: number | null;
-  changedAt?: number | null; material?: boolean | null; changeFields?: string[]; reviewedBy?: string;
+  changedAt?: number | null; lastChangedAt?: number | null; material?: boolean | null; changeFields?: string[]; reviewedBy?: string;
 };
 export type ReaderFreshnessItem = { kind: ContentReviewRecord['kind']; verifiedAt?: string; endDate?: string; nextDate?: string | null };
 /**
@@ -116,7 +119,7 @@ export function parseFreshnessRows(value: unknown): FreshnessSourceRow[] | null 
     return [{
       sourceId: row.sourceId, status: row.status, needsReview: row.needsReview === true,
       contentIds: Array.isArray(row.contentIds) ? row.contentIds.filter((id): id is string => typeof id === 'string') : undefined,
-      lastFetchedAt: time('lastFetchedAt'), lastReviewedAt: time('lastReviewedAt'), changedAt: time('changedAt'),
+      lastFetchedAt: time('lastFetchedAt'), lastReviewedAt: time('lastReviewedAt'), changedAt: time('changedAt'), lastChangedAt: time('lastChangedAt'),
       material: typeof row.material === 'boolean' ? row.material : null,
       changeFields: Array.isArray(row.changeFields) ? row.changeFields.filter((field): field is string => typeof field === 'string') : undefined,
       reviewedBy: typeof row.reviewedBy === 'string' ? row.reviewedBy : undefined,
@@ -132,14 +135,20 @@ export function sourceComparedAt(rows: readonly FreshnessSourceRow[] | null, now
 }
 
 /**
- * A pending source change a reader should hear about (EVT11-07, CNT-1011-02): source triage judged it `material`, no
- * person has reviewed it, and it came after the editor's last check of the facts (a check dated after the day of the
- * change already covers it). Everything else is editor work in the admin queue, not a reason to send readers away:
+ * A pending source change a reader should hear about (EVT11-07, CNT-1011-02): source triage judged it `material` and
+ * no person has reviewed it. Everything else is editor work in the admin queue, not a reason to send readers away:
  * a change triage has not judged (triage off, or not yet run on this text), a cosmetic one (`material: false`), and a
  * row that is `unchanged`, never compared or unreadable with nothing material pending.
  */
-const unreviewedMaterial = (row: FreshnessSourceRow, verifiedAt: string | undefined) => row.needsReview && row.material === true
-  && !(verifiedAt && finiteTime(row.changedAt) && verifiedAt > contentReviewToday(new Date(row.changedAt)));
+const unreviewedMaterial = (row: FreshnessSourceRow) => row.needsReview && row.material === true;
+/**
+ * An editor check of the facts dated after the day of the LATEST detected change covers a soft prompt. Only
+ * `lastChangedAt` can say that: `changedAt` is the first detection, so a re-check after an old unreviewed change
+ * would also hide every later change to the same page. Without `lastChangedAt` nothing is covered, and a likely
+ * cancellation (the hard box) is never covered by a date bump.
+ */
+const coveredByCheck = (row: FreshnessSourceRow, verifiedAt: string | undefined) => !!verifiedAt && finiteTime(row.lastChangedAt)
+  && verifiedAt > contentReviewToday(new Date(row.lastChangedAt));
 
 /**
  * Reader freshness follows source state, not the calendar (D11). `sources === null`
@@ -158,12 +167,12 @@ export function getReaderFreshness(item: ReaderFreshnessItem, sources: readonly 
   if (validDate(item.endDate) && item.endDate < today) return { state: 'archived', ...base };
   if (!sources) return { state: 'ok', ...base };
   const active = sources.filter(row => row.status !== 'expired');
-  const pending = item.kind === 'event' && item.nextDate === null ? [] : active.filter(row => unreviewedMaterial(row, verifiedAt));
+  const pending = item.kind === 'event' && item.nextDate === null ? [] : active.filter(unreviewedMaterial);
   const earliest = (rows: FreshnessSourceRow[]) => { const times = rows.map(row => row.changedAt).filter(finiteTime); return times.length ? { changedAt: Math.min(...times) } : {}; };
   const hard = pending.filter(row => row.changeFields?.some(field => HARD_FIELDS.has(field)));
   if (hard.length) return { state: 'hard', ...base, ...earliest(hard) };
   // Editors get 48 hours to review a dated change; an undated change has no known grace period.
-  const due = pending.filter(row => !finiteTime(row.changedAt) || now - row.changedAt >= SOFT_AFTER_MS);
+  const due = pending.filter(row => !coveredByCheck(row, verifiedAt) && (!finiteTime(row.changedAt) || now - row.changedAt >= SOFT_AFTER_MS));
   if (due.length) return { state: 'soft', reason: 'source-changed', ...base, ...earliest(due) };
   const near = validDate(item.nextDate ?? undefined) && item.nextDate! >= today && item.nextDate! <= addDays(today, NEAR_DAYS);
   const unread = active.length > 0 && active.every(row => UNREAD.has(row.status));
