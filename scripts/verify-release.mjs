@@ -25,12 +25,15 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // WEB-GUIDES removed the legacy guide CSS, index and reader bar: on the integrated Wave-2 build (with the CNT-EVENTS overlay)
 // /guides measured 996.0 / 1472.7 / 2138.8 and the guide detail 1045.1 / 1521.8 / 1330.1 KiB, so /guides and the detail's
 // zh-Hant / en rows go to measured + 2%; the detail's zh-Hans row (1066.0 at + 2%) stays at 1063.3.
+// The event detail stopped importing the planner catalog and the guides corpus (W2 integration): it measured
+// 548.5 / 1025.3 / 1190.1 KiB, so its ceilings go to measured + 5% (headroom for the content batches until WEB-DETAIL
+// moves details to per-item data).
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 328.6, 'zh-Hant': 814.9, en: 983.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1015.9, 'zh-Hant': 1502.2, en: 2181.6 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1552.3, en: 1356.8 } },
-  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 1023.3, 'zh-Hant': 1519.8, en: 1664.4 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 576.0, 'zh-Hant': 1076.6, en: 1249.6 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 324.4, 'zh-Hant': 810.6, en: 978.8 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
