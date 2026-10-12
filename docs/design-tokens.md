@@ -40,11 +40,32 @@ outlines become the brand ring, and everything else snaps to the nearest palette
 contents, TS/TSX and the 3D worlds, and it is idempotent: after a rebase, run it again instead of resolving colour
 conflicts by hand, then `npm run ratchet:update`. `--check` lists what is left; `--dry` prints the mapping table.
 
+Status rules keep their meaning. A rule whose selector names an error (`error|danger|invalid|fail|destructive`) or a
+warning (`warn|notice|caution`), or that already paints `var(--color-danger…)` / `var(--color-warning…)`, takes its warm
+colours (reds, browns, ambers) from that family instead of the nearest neutral:
+
+| Old colour in a status rule | Becomes |
+|---|---|
+| text | `danger` / `warning` (the `-tint` when the text is light, e.g. on a dark chat bubble) |
+| near-white background | `danger-tint` / `warning-tint` |
+| pale border or tint | `rgb(var(--color-danger-rgb) / .2–.45)`: the status colour at the alpha that matches the old lightness on white |
+| anything darker | `danger` / `warning` |
+
+An "error" rule drawn in amber (its strongest warm colour has OKLab hue ≥ 70°, like `.member-baybay-error`) is a soft
+notice and takes the warning family. White, greys, greens, blues and focus rings follow the ordinary rules, so a green
+retry link inside an error box stays green.
+
 Files not converted yet (their lanes were in flight when TOKENS-B landed; run the codemod on them after they merge):
 `src/components/about-baylink.css`, `discovery-community.css`, `home-discovery.css`, `outing-inspiration.css`,
 `planner-web-library.css`, `src/components/tools/*.css`, `src/features/outings/*.css`, `src/features/posts/posts-ui.css`,
 `src/features/source-monitor/source-monitor.css`, `src/styles/attractions.css`, `discovery-workflow.css`, `planner.css`,
 and the `.bay-category-*` rules in `src/design.css`.
+
+Files converted here that lanes in flight may also edit. Resolve a conflict in them by taking the other lane's side and
+re-running both codemods (`hex-to-tokens.mjs`, then `heading-tracking.mjs`), not by merging colour values by hand:
+`src/features/baybay-conversation.css`, `src/features/baybay-actions.css`, `src/features/baybay/baybay-answer.css`
+(WEB-BB-UI-2), and `src/design.css`, whose one-line `@media (max-width:639px)` block also holds WEB-COMMUNITY's
+`.bay-category-*` rules (pass `--skip-selector=bay-category-` until that lane has deleted them).
 
 ## 2. Type scale (SV-06)
 
@@ -62,6 +83,17 @@ Line heights: `--lh-display`, `--lh-title`, `--lh-section`, `--lh-card`. The WEB
 `--text-title` / `--text-display`. Adopting: put the class on the heading (or read the tokens in the component's heading
 rule) and delete the component's own `font-size`, `line-height`, `font-weight` and negative `letter-spacing` for it.
 
+The `.type-display` / `.type-title` / `.type-section` classes (and `.site-container` below) are the adoption API; no
+component uses them yet. So far adoption goes through the tokens: PageContainer / PageHeader (`ui.css`), the /guides
+library (`.gl-page`), the guide article (`.gd-article`), /me (`me-hub.css`) and /messages (`messages-hub.css`).
+
+Two heading rules in `src/tokens.css` set the title spec on templates other lanes own. When that lane moves its H1 to
+`.type-title`, delete the duplicate (keep one spec, not two):
+- `.public-content-directory h1` / `h2` (WEB-SECONDARY's Archive, `PublicContentDirectory`): title / section spec. This
+  is the one visible change (phone H1 32/700 → 26/600).
+- `.local-discovery-detail .discovery-detail-header h1` (WEB-DETAIL): title spec. `local-discovery-detail.css` overrides
+  it today, so it has no visible effect.
+
 H1s still on their own spec when TOKENS-B landed (desktop, zh-Hans, base 5e288412), for the owning lanes:
 home 52/700/-2.07 (WEB-HOME → display), detail pages 40/600/-1 (WEB-DETAIL → title), /plan 49/700/-2 (WEB-PLAN),
 /about 46/700/-2.07, /tools 42/700/-1.5, /ai-in-the-bay 44/600/-1.1, /explore 32/700, /privacy and 404 24/700
@@ -74,11 +106,17 @@ home 52/700/-2.07 (WEB-HOME → display), detail pages 40/600/-1 (WEB-DETAIL →
 `max-width: var(--container-wide); margin-inline: auto; padding-inline: var(--page-gutter)`, which puts the content edge
 on the header's 112–1328 in a 1440 window. `data-size="content"` and `data-size="reading"` narrow it, centred.
 
+Running text keeps the reading measure inside the wide frame. The guide article is the example: its crumbs, H1, lead,
+contact cards and related guides sit on the 112 edge, while the body column beside the contents list (step cards,
+prose, dividers, checklists, sources) stops at `--container-reading` at ≥1024px, so the body has one right edge.
+
 ## 中文摘要
 
 - 颜色：只用 `src/tokens.css` 里的 token（`var(--color-ink-3)`；半透明写 `rgb(var(--color-brand-rgb) / .12)`；Tailwind 用
   `text-baylink-*`，`/60` 这类透明度照常生效）。其它文件不要再写 #hex，风格棘轮只降不升。
 - 对比度：所有文字 token 在所有浅色底上都 ≥4.5:1，测试会检查 CSS 规则和 Tailwind 类名里的文字/底色组合。
 - 旧文件的 hex：运行 `node scripts/codemods/hex-to-tokens.mjs <文件>`，再 `npm run ratchet:update`。标题里的强调字（如 `.about-hero h1 em` 的橄榄绿）会换成品牌绿，不会变灰；灰绿色的说明文字换成 ink-3。
-- 标题：H1 用 `.type-title`（手机 26/34，桌面 32/42，600，字距 0）；首页和活动栏目用 `.type-display`；H2 用 `.type-section`。
-- 页面宽度：`.site-container`（1216，左右边距 16/24/32），桌面上与页头 112–1328 对齐。
+- 错误和提醒框保留原来的含义：选择器里有 error / danger / invalid / fail / destructive（或规则里已经用了 danger token）的，暖色换成 danger 系列（文字 danger，浅底 danger-tint，浅边框用半透明 danger）；warn / notice 换成 warning 系列。原本画成琥珀色的“错误”框按柔和提醒处理，用 warning 系列。
+- 合并冲突：本 lane 已转换、其他 lane 也在改的文件（BayBay 三个样式文件、`design.css`），冲突时取对方版本，再重跑两个 codemod，不要手工合并颜色值。
+- 标题：H1 用 `.type-title`（手机 26/34，桌面 32/42，600，字距 0）；首页和活动栏目用 `.type-display`；H2 用 `.type-section`。这些类目前还没有组件使用，现有页面是直接读 token。`tokens.css` 里归档页和详情页的 H1 规则是临时的，对应 lane 改用 `.type-title` 后删掉其中一份。
+- 页面宽度：`.site-container`（1216，左右边距 16/24/32），桌面上与页头 112–1328 对齐。正文保持 720 的阅读宽度（指南文章正文一栏统一在 720 处结束）。
