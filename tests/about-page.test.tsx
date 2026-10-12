@@ -34,7 +34,10 @@ test('public About HTML contains readable content, contact and a usable AI fallb
   const page = new JSDOM(renderHtmlDocument(template, ABOUT_METADATA, body));
   const doc = page.window.document;
   assert.equal(doc.querySelectorAll('h1').length, 1);
-  assert.match(doc.querySelector('h1')!.textContent!, /湾区生活/);
+  assert.match(doc.querySelector('h1')!.textContent!, /湾区去哪、怎么办/);
+  assert.match(doc.querySelector('title')!.textContent!, /湾区去哪、怎么办——有来源的中文答案/, 'the About title carries the positioning line (HOMEIA-03)');
+  assert.match(body, /有来源的中文答案/);
+  assert.doesNotMatch(body, /房源、闲置/, 'About no longer describes a classifieds site');
   assert.equal(doc.querySelector('a[href^="mailto:"]')?.getAttribute('href'), 'mailto:Baylink.us@gmail.com');
   assert.ok(doc.querySelector('a[href="/tools?tool=communication"]'), 'without JavaScript, AI discovery still leads to a real tool');
   assert.equal(doc.querySelector('link[rel="canonical"]')?.getAttribute('href'), `${SITE_URL}/about`);
@@ -58,14 +61,15 @@ test('About keeps its assistant action and navigation usable when switching Engl
   await act(async () => { await setLocale('en', false); });
   assert.doesNotMatch(view.container.textContent!, /[\u3400-\u9fff]/, 'all public introduction text should be translated');
   // About also has the 反馈与报错 button (WEB-FEEDBACK), so the assistant is found by name.
-  const assistantButton = view.getByRole('button', { name: /BayBay/ });
+  const assistantButton = view.getByRole('button', { name: 'Chat with BayBay' });
   assert.ok(view.getByRole('button', { name: 'Feedback and error reports' }));
   assert.doesNotMatch(assistantButton.textContent!, /[\u3400-\u9fff]/);
   fireEvent.click(assistantButton);
   assert.equal(opened, 2);
-  assert.equal(view.getByRole('link', { name: 'Browse neighborhood listings' }).getAttribute('href'), '/#home-feed-section');
+  assert.equal(view.getByRole('link', { name: 'Neighborhood board (beta)' }).getAttribute('href'), '/category/rent');
+  assert.match(view.getByRole('heading', { level: 1 }).textContent!, /^Where to go and how to get it done in the Bay$/);
   await act(async () => { await setLocale('zh-Hant', false); });
-  assert.match(view.getByRole('heading', { level: 1 }).textContent!, /灣區生活/);
+  assert.match(view.getByRole('heading', { level: 1 }).textContent!, /灣區去哪/);
   const emailLinks = view.getAllByRole('link', { name: /Baylink.us@gmail.com/ });
   assert.equal(emailLinks.length, 2, 'the image takedown line and the contact footer both link the same address');
   for (const link of emailLinks) assert.equal(link.getAttribute('href'), 'mailto:Baylink.us@gmail.com');
@@ -99,7 +103,7 @@ test('guest and signed-in About entries open the same public page without reques
       <Route path="/about" element={<AboutContent />} />
     </Routes></MemoryRouter>);
     fireEvent.click(view.getByRole('link', { name: '关于与核验方法' }));
-    assert.ok(await view.findByRole('heading', { name: /湾区生活/ }));
+    assert.ok(await view.findByRole('heading', { level: 1, name: /湾区去哪/ }));
     view.unmount();
   }
   assert.deepEqual(requests, []);

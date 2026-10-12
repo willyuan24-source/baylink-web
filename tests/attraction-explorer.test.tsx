@@ -101,7 +101,8 @@ test('add, reorder and remove persist the exact user order; a shared link does n
 test('invalid shared data is harmless and restoring a local plan remains available', () => {
   localStorage.setItem(OUTING_STORAGE_KEY, JSON.stringify(['baylands']));
   const view = render(<MemoryRouter initialEntries={['/explore?plan=unknown,https://evil.example']}><AttractionExplorer /></MemoryRouter>);
-  assert.equal(view.queryAllByRole('listitem').length, 0);
+  // Scoped to the outing list: the 3D San Francisco rail lower on the page is a list of postcards too.
+  assert.equal(within(view.getByRole('region', { name: '我的出游清单' })).queryAllByRole('listitem').length, 0);
   fireEvent.click(view.getByRole('button', { name: '恢复本机清单' }));
   assert.deepEqual(loadOuting(), ['baylands']);
   assert.ok(view.getByRole('button', { name: '移除：Palo Alto Baylands 湿地' }));

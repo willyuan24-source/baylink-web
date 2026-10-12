@@ -9,14 +9,8 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React, { type ReactNode } from 'react';
 import { guides } from '../src/data/guides';
-import { TermsView } from '../src/components/TermsView';
-import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
-import { SmsConsentView } from '../src/components/SmsConsentView';
-import { AboutContent } from '../src/components/AboutContent';
 import { ABOUT_METADATA } from '../src/lib/about-metadata';
-import ArchivePage from '../src/pages/ArchivePage';
 import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
-import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { renderHtmlDocument, SITE_STRUCTURED_DATA, type PageMetadata } from '../src/lib/seo';
 import { HUB_CARDS } from '../src/lib/hub-cards';
@@ -28,7 +22,6 @@ import { CategoryHubPrerender, ToolsHubPrerender } from '../src/components/HubPr
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
-import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
 import { allDetailRecords } from '../src/features/detail/build-detail';
 import { detailBucket } from '../src/lib/english-loading';
@@ -40,7 +33,6 @@ import listingsPublished from '../src/data/first-published/listings.json';
 
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
 import PlannerPage from '../src/pages/PlannerPage';
-import AiLocalPage from '../src/pages/AiLocalPage';
 import { PLAN_METADATA } from '../src/lib/planner';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { opusBayHeadExtras, opusBayInHalloween, opusBayMetadata } from '../src/lib/opus-bay-metadata';
@@ -64,6 +56,15 @@ await preloadAllGuideBlocks();
 const siteTraditionalMismatches = await checkSiteTraditional();
 // The home sections render WEB-UI covers (ui.css), so the home is imported after the hook too (WEB-HOME).
 const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
+// WEB-SECONDARY: these pages render the WEB-UI primitives (ui.css), so they load after the CSS hook as well.
+const { TermsView } = await import('../src/components/TermsView');
+const { PrivacyPolicyView } = await import('../src/components/PrivacyPolicyView');
+const { SmsConsentView } = await import('../src/components/SmsConsentView');
+const { AboutContent } = await import('../src/components/AboutContent');
+const { default: ArchivePage } = await import('../src/pages/ArchivePage');
+const { default: NotFoundPage } = await import('../src/pages/NotFoundPage');
+const { AttractionExplorer } = await import('../src/components/AttractionExplorer');
+const { default: AiLocalPage } = await import('../src/pages/AiLocalPage');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
