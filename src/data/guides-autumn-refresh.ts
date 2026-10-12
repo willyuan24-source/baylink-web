@@ -61,7 +61,7 @@ export const autumnRefreshGuides: Guide[] = [
     "blocks": [
       {
         "type": "paragraph",
-        "text": "从 2026 年 9 月 1 日起，MuniMobile 已停止销售新的单程票。十月乘车可改用 Clipper，或用带感应支付标志的银行卡支付成人票。App 在 2026 年仍销售 Muni-only Day Pass、缆车票和 Visitor Passport；不要把“停售单程”理解为整个 App 已停用。"
+        "text": "从 2026 年 9 月 1 日起，MuniMobile 已停止销售新的单程票。十月乘车可改用 Clipper，或用带感应支付标志的银行卡支付成人票。App 在 2026 年仍销售 Muni-only Day Pass、缆车票和 Visitor Passport；停售的只是单程票，App 本身照常使用。"
       },
       {
         "type": "heading",
@@ -70,7 +70,7 @@ export const autumnRefreshGuides: Guide[] = [
       {
         "type": "list",
         "items": [
-          "普通成人：实体感应银行卡、手机钱包中的银行卡或 Clipper 都是可选方式；实体银行卡需有感应标志，仅有芯片不等于支持拍卡。",
+          "普通成人：实体感应银行卡、手机钱包中的银行卡或 Clipper 都是可选方式；实体银行卡要有感应标志才能拍卡，只有芯片不够。",
           "青年、长者、Clipper Access 或 START 乘客：要用对应优惠 Clipper 才能获得该项目票价，直接拍银行卡会按成人票收费。",
           "多人同行：每位乘客分别准备自己的付款卡或设备。一次行程的进出站使用同一张卡或同一设备，不在实体卡、手机和手表之间切换。"
         ]
@@ -81,17 +81,17 @@ export const autumnRefreshGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "新一代 Clipper 提供符合条件的两小时跨机构换乘最高 2.85 美元优惠，感应银行卡也可参与。MTC 九月报告确认旧卡迁移仍在进行；使用既有 Clipper 前，先在账户或客服处核对升级状态。优惠并非每次固定返还 2.85 美元，也不是整天免费；需要出站拍卡的系统仍须完成拍卡。"
+        "text": "新一代 Clipper 提供符合条件的两小时跨机构换乘最高 2.85 美元优惠，感应银行卡也可参与。MTC 九月报告说旧卡迁移仍在进行；用旧 Clipper 卡之前，先在账户或客服处查卡是否已升级。优惠并非每次固定返还 2.85 美元，也不是整天免费；需要出站拍卡的系统仍须完成拍卡。"
       },
       {
         "type": "tip",
         "title": "编辑建议：出发前只做三件事",
-        "text": "先给每位同行者选定付款媒介；再把去程与返程分别查好，不为追换乘优惠赶车；最后核对 Muni-only Day Pass 不含缆车，而 Visitor Passport 的适用范围不同。已有月票的人先看原有覆盖，别重复买票。"
+        "text": "先给每位同行者选定付款媒介；再把去程与返程分别查好，不为追换乘优惠赶车；最后记住 Muni-only Day Pass 不含缆车，而 Visitor Passport 的适用范围不同。已有月票的人先看原有覆盖，别重复买票。"
       },
       {
         "type": "link",
         "title": "查看 SFMTA 最新 MuniMobile 说明",
-        "text": "保留这个入口，后续退场日期若调整可直接核对。",
+        "text": "收藏这个页面，退场日期如有调整，在这里查看。",
         "url": "https://www.sfmta.com/getting-around/muni/fares/munimobile"
       }
     ]

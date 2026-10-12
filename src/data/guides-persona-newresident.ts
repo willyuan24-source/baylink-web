@@ -73,7 +73,7 @@ export const newResidentPersonaGuides: Guide[] = [
     "blocks": [
       {
         "type": "paragraph",
-        "text": "这份流程适合安排日常、非急诊的首次就诊。目标是拿到一个确认过保险网络、地点、时间和材料的预约。若正在发生医疗紧急情况，请拨 911；不确定该去哪里时，使用保险卡上的医疗咨询电话，由专业人员判断，别等待普通预约流程。"
+        "text": "这份流程适合安排日常、非急诊的首次就诊。目标是拿到一个保险网络、地点、时间和材料都问清楚的预约。若正在发生医疗紧急情况，请拨 911；不确定该去哪里时，使用保险卡上的医疗咨询电话，由专业人员判断，别等待普通预约流程。"
       },
       {
         "type": "heading",
@@ -83,21 +83,21 @@ export const newResidentPersonaGuides: Guide[] = [
         "type": "checklist",
         "items": [
           "准备保险卡正反面、会员号码、计划完整名称、保障开始日期，以及卡上是否已指定 PCP 或 medical group；资料只交诊所或保险方。",
-          "登录会员门户，找 Provider Directory、Member Services 和 benefits；只有雇主的参保邮件时，向福利团队确认实际生效状态。",
+          "登录会员门户，找 Provider Directory、Member Services 和 benefits；只有雇主的参保邮件时，问福利团队保险从哪天起生效。",
           "写下成人或儿科、希望使用的语言、能到达的城市和可约时段；需要无障碍或陪同安排也一起说明。"
         ]
       },
       {
         "type": "paragraph",
-        "text": "先问保险方：“我的具体计划在湾区使用哪个网络？是否必须先选 PCP 或 medical group？专科、检验和影像需要什么转诊或授权？”诊所说“收这个保险品牌”还不够。把答复日期、客服姓名或确认号记下来，再按诊所与计划双方答复推进。"
+        "text": "先问保险方：“我的具体计划在湾区使用哪个网络？是否必须先选 PCP 或 medical group？专科、检验和影像需要什么转诊或授权？”诊所说“收这个保险品牌”还不够。把答复日期、客服姓名或通话编号记下来，再按诊所与计划双方答复推进。"
       },
       {
         "type": "heading",
-        "text": "第二步：从保险目录筛三家，再逐家确认"
+        "text": "第二步：从保险目录筛三家，再逐家打电话"
       },
       {
         "type": "paragraph",
-        "text": "按地点、年龄范围与语言筛选，再用诊所官网找预约联系方式。给每家记三栏：是否网络内、是否收新病人、最早实际可约时间。PCP 是日常照护联系起点；medical group 是合作医生组织，不能仅凭医院楼名推断可以使用其中所有医生。"
+        "text": "按地点、年龄范围与语言筛选，再用诊所官网找预约联系方式。给每家记三栏：是否网络内、是否收新病人、最早实际可约时间。PCP 是日常照护联系起点；medical group 是合作医生组织，同一栋医院楼里的医生不一定都在你的网络里。"
       },
       {
         "type": "template",
@@ -107,7 +107,7 @@ export const newResidentPersonaGuides: Guide[] = [
       {
         "type": "link",
         "title": "旧金山示例：从 UCSF Primary Care 找地点和预约",
-        "text": "先查地点，再确认具体医生的新病人名额与保险；预约请求需要诊所明确回复日期和时间。",
+        "text": "先查地点，再问具体医生收不收新病人、收不收你的保险；预约请求需要诊所明确回复日期和时间。",
         "url": "https://www.ucsfhealth.org/care/services/primary-care"
       },
       {
@@ -118,15 +118,15 @@ export const newResidentPersonaGuides: Guide[] = [
       },
       {
         "type": "heading",
-        "text": "第三步：预约与保险两边都要有确认"
+        "text": "第三步：预约和保险两边都要问到答复"
       },
       {
         "type": "paragraph",
-        "text": "预约台给出时间后，核对医生姓名、门牌、现场或视频、new patient visit 类型、到达时间、改约与取消规定。问报价包含什么、是否另有会员费或设施费；这是询问清单，不表示每家都会收。再请保险方核对这次服务的自付安排，不把预约成功当报销承诺。"
+        "text": "预约台给出时间后，记下医生姓名、门牌、现场或视频、new patient visit 类型、到达时间、改约与取消规定。问报价包含什么、是否另有会员费或设施费；这是询问清单，不表示每家都会收。再问保险方这次服务自付多少，不把预约成功当报销承诺。"
       },
       {
         "type": "paragraph",
-        "text": "需要专科时，分别追踪 referral 是否发出、所需 authorization 是否完成、接收诊所是否收到资料并可以排期。向两边索取提交日期、接收渠道和缺件说明。“已经转了”不等于有预约；现有照护如何衔接，也要向相关医护人员确认。"
+        "text": "需要专科时，分别追踪 referral 是否发出、所需 authorization 是否完成、接收诊所是否收到资料并可以排期。向两边索取提交日期、接收渠道和缺件说明。“已经转了”还不是预约；现有照护如何衔接，也要问相关医护人员。"
       },
       {
         "type": "heading",
@@ -146,12 +146,12 @@ export const newResidentPersonaGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "保存打过的诊所、日期、拒收原因与最早可约日，交给 Member Services，请其找合适的服务方。可以问其他地点、取消候补或视频安排；哪种适合你的医疗需要由医护人员确认，不能仅为缩短等待自行更换照护类型。"
+        "text": "保存打过的诊所、日期、拒收原因与最早可约日，交给 Member Services，请其找合适的服务方。可以问其他地点、取消候补或视频安排；哪种适合你的医疗需要，由医护人员判断，别只为等得短自己换照护类型。"
       },
       {
         "type": "tip",
         "title": "预约时限不是指定医生的空位承诺",
-        "text": "DMHC 对适用计划公布非急诊基层医生 10 个工作日、专科 15 个工作日等标准，并有临床记录支持的例外。具体适用范围、急迫程度和是否需更快安排，向计划或 DMHC 确认；这不是可以安全等待这么久的诊疗判断。"
+        "text": "DMHC 对适用计划公布非急诊基层医生 10 个工作日、专科 15 个工作日等标准，并有临床记录支持的例外。具体适用范围、急迫程度和是否需更快安排，问计划或 DMHC；这不是可以安全等待这么久的诊疗判断。"
       },
       {
         "type": "link",
@@ -165,12 +165,12 @@ export const newResidentPersonaGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "从 Covered California 的 Find an Enroller 按地区、语言找免费申请协助，说明现有保障与搬家情况，让认证人员核对路径、生效日和材料。同时可用 HRSA 查就近 Health Center，问新病人登记、付款方式和费用协助审核。目录收录不代表免费，也不代表已经具备某项资格。"
+        "text": "从 Covered California 的 Find an Enroller 按地区、语言找免费申请协助，说明现有保障与搬家情况，让认证人员看适合的路径、生效日和材料。同时可用 HRSA 查就近 Health Center，问新病人登记、付款方式和费用协助审核。目录只列机构；费用和资格要问机构本身。"
       },
       {
         "type": "link",
         "title": "按城市或邮编找社区 Health Center",
-        "text": "记录可到达的地点，再确认预约、材料、语言和费用；网上没显示名额时向机构问新病人登记。",
+        "text": "记录可到达的地点，再问预约、材料、语言和费用；网上没显示名额时向机构问新病人登记。",
         "url": "https://findahealthcenter.hrsa.gov/"
       },
       {
@@ -179,7 +179,7 @@ export const newResidentPersonaGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "有保险时问 copay、deductible 与 coinsurance 如何适用于这次服务；检查和影像也分别核对。自费或不使用保险时，向提供方询问书面 Good Faith Estimate 的适用办法，说明计划接受的服务。这里没有统一看诊价，预计费用也不是最终账单。"
+        "text": "有保险时问 copay、deductible 与 coinsurance 如何适用于这次服务；检查和影像也分开问。自费或不使用保险时，向提供方询问书面 Good Faith Estimate 的适用办法，说明计划接受的服务。这里没有统一看诊价，预计费用也不是最终账单。"
       },
       {
         "type": "paragraph",
@@ -191,12 +191,12 @@ export const newResidentPersonaGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "先向计划提交对应问题的 grievance 并保存回复。DMHC 通常要求先走计划申诉程序，30 天未解决或不满意答复时按官网流程求助；紧急健康问题另有即时协助。DMHC 会核对监管范围，不归其管的计划会转指其他机构。让朋友协助时用官方授权手续，不交出门户密码。"
+        "text": "先向计划提交对应问题的 grievance 并保存回复。DMHC 通常要求先走计划申诉程序，30 天未解决或不满意答复时按官网流程求助；紧急健康问题另有即时协助。DMHC 先看计划是否归它管，不归其管的计划会转指其他机构。让朋友协助时用官方授权手续，不交出门户密码。"
       },
       {
         "type": "link",
         "title": "打开 DMHC 官方申诉说明",
-        "text": "核对流程和材料；Help Center 为 1-888-466-2219，联系前再按官网复核。",
+        "text": "流程和材料都在这里；Help Center 电话 1-888-466-2219。",
         "url": "https://www.dmhc.ca.gov/FileaComplaint.aspx"
       },
       {

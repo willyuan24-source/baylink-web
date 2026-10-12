@@ -68,10 +68,12 @@ test('every new official figure is registered with a dated read and still printe
   }
 });
 
-test('the rewritten pillars stay plain: hedging at most 8 per 1,000 characters (GUIDE-E)', () => {
-  for (const slug of REWRITTEN) {
+test('pillars stay plain: hedging at most 12 per 1,000 characters on every pillar, at most 8 on the rewritten ten (GUIDE-E)', () => {
+  // Every guide with a 30 秒看懂 card counts as a pillar in the audit (MASTER-PLAN §3.2 acceptance: ≤12).
+  for (const slug of Object.keys(GUIDE_EDITORIAL)) {
     const perK = hedgesPerK(getGuideBySlug(slug)!);
-    assert.ok(perK <= 8, `${slug}: ${perK.toFixed(1)} hedges per 1,000 characters`);
+    const ceiling = REWRITTEN.includes(slug) ? 8 : 12;
+    assert.ok(perK <= ceiling, `${slug}: ${perK.toFixed(1)} hedges per 1,000 characters (ceiling ${ceiling})`);
   }
 });
 

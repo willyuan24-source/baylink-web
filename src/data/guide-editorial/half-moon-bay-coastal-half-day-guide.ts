@@ -26,7 +26,7 @@ export const halfMoonBayEditorial: GuideEditorial = {
         { zh: '远离浪边漂木', en: 'Keep away from logs at the waterline' },
         { zh: '有海滩危险警示，就留在岸上步道', en: 'Beach hazard warning? Stay on the trail' },
       ], source: 3 },
-    { kind: 'compare', kicker: { zh: '带狗、带推车', en: 'Dogs and strollers' }, title: { zh: '各有一道确认', en: 'One check each' },
+    { kind: 'compare', kicker: { zh: '带狗、带推车', en: 'Dogs and strollers' }, title: { zh: '各有一条要先知道', en: 'One thing each to know' },
       items: [
         { zh: '狗：沙滩禁止；步道和指定野餐区可牵绳', en: 'Dogs: not on the beach; leashed on the trail and picnic areas' },
         { zh: '推车：铺装路好走，沙地另说；沙滩轮椅先问入口站', en: 'Strollers: easy on pavement, not on sand; ask the entrance station about beach wheelchairs' },
