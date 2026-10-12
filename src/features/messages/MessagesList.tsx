@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MessagesSquare, Search, Pin, PinOff, X, Inbox } from 'lucide-react';
-import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';
 import { RowCard } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
@@ -8,10 +7,10 @@ import { ChipRow, FilterChip } from '../../components/ui/Chip';
 import { EmptyState, ErrorState } from '../../components/ui/States';
 import { SkeletonFeed } from '../../components/ui/SkeletonCard';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { friendlyErrorMessage } from '../../lib/format';
 import { readMessageDraft, readMessagePins, saveMessagePins } from './messageState';
 import { previewText } from './system-notice';
 import { simplifySearch } from '../../i18n/locale';
+import { conversationIdentity, refreshConversations, useConversationFeed } from '../../app/conversation-feed';
 import type { Conversation, UserData } from '../../lib/types';
 import './messages-hub.css';
 
@@ -20,18 +19,21 @@ type MessagesListProps = {
   onLoginNeeded?: () => void;
 };
 
-const isOffline = () => typeof navigator !== 'undefined' && navigator.onLine === false;
-
 export const MessagesList = (props: MessagesListProps) => <ConversationList key={JSON.stringify([props.currentUser?.id, props.currentUser?.token])} {...props} />;
 
 /** Conversation threads as RowCards (WEB-UI): avatar, name, last message without links or ids, time and unread count. */
 const ConversationList = ({ currentUser, onLoginNeeded }: MessagesListProps) => {
   const { t, english, locale } = useUiCopy();
-  const [convs, setConvs] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [offline, setOffline] = useState(isOffline);
-  const [retryKey, setRetryKey] = useState(0);
+  // G91 (CW-08): the list comes from the one shared /conversations poll (app/conversation-feed.ts, every 15 s while the
+  // inbox is open), which the unread badge reads too.
+  const feed = useConversationFeed(conversationIdentity(currentUser), 15000);
+  const convs = useMemo(() => {
+    const list = (feed.rows || []).filter((conversation): conversation is Conversation => !!(conversation as Conversation | null)?.id && !!(conversation as Conversation).otherUser?.id);
+    return [...new Map(list.map(conversation => [conversation.id, conversation])).values()];
+  }, [feed.rows]);
+  const loading = feed.loading;
+  const offline = feed.offline;
+  const error = feed.failed || offline;
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<'all' | 'unread'>('all');
   const [pins, setPins] = useState(() => currentUser ? readMessagePins(currentUser.id) : []);
@@ -40,53 +42,10 @@ const ConversationList = ({ currentUser, onLoginNeeded }: MessagesListProps) => 
 
   useEffect(() => {
     if (!userId) return;
-    let cancelled = false;
-    let inFlight = false;
-    let refreshQueued = false;
-    const controller = new AbortController();
-    const load = async () => {
-      if (cancelled || document.visibilityState === 'hidden') return;
-      if (inFlight) { refreshQueued = true; return; }
-      inFlight = true;
-      try {
-        const response = await api.request('/conversations', { signal: controller.signal });
-        if (!Array.isArray(response)) throw new Error('Unexpected conversation list response');
-        if (!cancelled) {
-          const list = response.filter((conversation: Conversation) => conversation?.id && conversation.otherUser?.id);
-          setConvs([...new Map(list.map((conversation: Conversation) => [conversation.id, conversation])).values()]);
-          setError(null); setOffline(false);
-        }
-      } catch (err) {
-        if (!cancelled) { setOffline(isOffline()); setError(friendlyErrorMessage(err, '') || 'error'); }
-      } finally {
-        inFlight = false;
-        if (!cancelled) {
-          setLoading(false);
-          if (refreshQueued) { refreshQueued = false; void load(); }
-        }
-      }
-    };
-    void load();
-    const interval = window.setInterval(() => { void load(); }, 15000);
-    const resume = () => { void load(); };
-    const wentOffline = () => { setOffline(true); };
     const syncPins = () => { setPins(readMessagePins(userId)); };
-    document.addEventListener('visibilitychange', resume);
-    window.addEventListener('online', resume);
-    window.addEventListener('offline', wentOffline);
-    window.addEventListener('baylink:messages-read', resume);
-    window.addEventListener('baylink:messages-changed', resume);
     window.addEventListener('storage', syncPins);
-    return () => {
-      cancelled = true; controller.abort(); window.clearInterval(interval);
-      document.removeEventListener('visibilitychange', resume);
-      window.removeEventListener('online', resume);
-      window.removeEventListener('offline', wentOffline);
-      window.removeEventListener('baylink:messages-read', resume);
-      window.removeEventListener('baylink:messages-changed', resume);
-      window.removeEventListener('storage', syncPins);
-    };
-  }, [userId, retryKey]);
+    return () => { window.removeEventListener('storage', syncPins); };
+  }, [userId]);
 
   const togglePin = (id: string) => {
     if (!userId) return;
@@ -115,9 +74,13 @@ const ConversationList = ({ currentUser, onLoginNeeded }: MessagesListProps) => 
       ? new Intl.DateTimeFormat(dateLocale, { hour: 'numeric', minute: '2-digit' }).format(date)
       : new Intl.DateTimeFormat(dateLocale, { month: 'numeric', day: 'numeric', ...(date.getFullYear() !== today.getFullYear() ? { year: 'numeric' } : {}) }).format(date);
   };
-  const failure = error && (offline
-    ? <ErrorState title={t('网络已断开', 'You are offline')} body={t('连上网络后会自动刷新对话。', 'Conversations refresh by themselves when you are back online.')} onRetry={() => setRetryKey(key => key + 1)} homeTo={null} headingLevel="h3" />
-    : <ErrorState title={t('对话暂时没能加载', 'Conversations did not load')} onRetry={() => setRetryKey(key => key + 1)} homeTo={null} headingLevel="h3" />);
+  // A list that already loaded stays on screen when one refresh fails: a quiet line instead of an error over working
+  // conversations. The full error state is only for an inbox that has nothing to show.
+  const failure = error && !loading && (convs.length > 0
+    ? <p className="msg-refresh-note" role="status">{offline ? t('网络已断开，连上网络后会自动刷新。', 'You are offline. Conversations refresh when you are back online.') : t('刷新失败，稍后会自动重试。', 'Could not refresh. Trying again shortly.')}</p>
+    : offline
+      ? <ErrorState title={t('网络已断开', 'You are offline')} body={t('连上网络后会自动刷新对话。', 'Conversations refresh by themselves when you are back online.')} onRetry={refreshConversations} homeTo={null} headingLevel="h3" />
+      : <ErrorState title={t('对话暂时没能加载', 'Conversations did not load')} onRetry={refreshConversations} homeTo={null} headingLevel="h3" />);
 
   return <section className="msg-list" aria-labelledby="msg-list-title" aria-busy={loading && convs.length === 0}>
     <h2 id="msg-list-title" className="msg-list__title">{t('最近对话', 'Recent conversations')}</h2>
