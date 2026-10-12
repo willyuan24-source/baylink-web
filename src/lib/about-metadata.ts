@@ -4,8 +4,8 @@ import { HUB_CARDS } from './hub-cards';
 
 const TITLE = { zh: '关于 BAYLINK｜湾区去哪、怎么办——有来源的中文答案', en: 'About BAYLINK | Where to go and how to get it done in the Bay, with sources' };
 const DESCRIPTION = {
-  zh: '湾区去哪、怎么办：本周末活动、福利和办事指南，每条附官方来源和核对日期。了解 BAYLINK 怎么核对信息、图片标签的含义、BayBay 助手和联系方式。',
-  en: 'Where to go and how to get it done in the Bay: weekend events, benefits and practical guides, each with its official source and check date. How BAYLINK checks information, what the image labels mean, BayBay and how to reach us.',
+  zh: '湾区去哪、怎么办：活动、福利和办事指南，每条附官方来源和核对日期。BAYLINK 的核对方法、图片标签说明和联系方式。',
+  en: 'Bay Area events, benefits and practical guides, each with its official source and check date: how BAYLINK checks them, what image labels mean and how to reach us.',
 };
 
 /**
