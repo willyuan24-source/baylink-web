@@ -103,3 +103,10 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
 .planner-credits li>span:first-child { color:var(--color-ink); font-weight:600; }
 .planner-credits a { overflow-wrap:anywhere; text-decoration:underline; text-underline-offset:3px; }
 .planner-page .ui-icon-button { min-height:2.5rem; }
+/* 已排的日子 with nothing yet: one quiet row on wider screens, so an open draft keeps the page's first screen. */
+@media (min-width:768px) {
+  .plan-days .ui-state { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto; column-gap:20px; align-items:center; padding:20px 24px; text-align:left; }
+  .plan-days .ui-state__icon { grid-row:1 / span 2; width:3.5rem; height:3.5rem; margin:0; }
+  .plan-days .ui-state__body { max-width:none; }
+  .plan-days .ui-state__actions { grid-column:3; grid-row:1 / span 2; margin:0; }
+}
