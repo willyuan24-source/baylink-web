@@ -71,7 +71,7 @@ test('with Save-Data on, the homepage does not fetch the dictionaries', async ()
   Object.defineProperty(dom.window.navigator, 'connection', { configurable: true, value: { saveData: true } });
   try {
     render(home());
-    assert.ok(screen.getByRole('heading', { name: '邻里信息' }));
+    assert.ok(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
     assert.equal(idle.size, 0, 'nothing scheduled');
     await settle();
     assert.equal(dictionaryRequests, 0);

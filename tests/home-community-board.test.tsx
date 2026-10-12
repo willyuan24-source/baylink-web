@@ -60,9 +60,9 @@ const app = (entry: string, overrides: Record<string, unknown> = {}) => (
 test('the homepage renders without the board chunk and does not fetch it until the board is asked for', async () => {
   assert.equal(loader.LoadedCommunityBoard, undefined, 'this process starts with the board not loaded');
   const view = render(app('/'));
-  assert.ok(screen.getByRole('heading', { name: '邻里信息' }));
+  assert.ok(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
   assert.equal(view.container.querySelector('#home-feed-section'), null);
-  assert.ok(view.container.querySelector('.bay-home-footer'));
+  assert.equal(view.container.querySelector('.bay-home-footer'), null, 'the site footer closes the home (WEB-HOME)');
   await new Promise(resolve => setTimeout(resolve, 50));
   assert.equal(loader.LoadedCommunityBoard, undefined, 'the folded board is not downloaded');
 });
@@ -76,13 +76,13 @@ test('a category page waits for the board at the page level (never a page withou
   assert.equal(view.container.querySelector('.bay-community-intro'), null);
 });
 
-test('浏览邻里信息 opens the board and scrolls to its heading; the board sits where it was before the split', async () => {
+test('邻里信息（测试中）· 去看看 opens the board and scrolls to its heading; the board sits after the home sections', async () => {
   const view = render(app('/'));
-  fireEvent.click(screen.getByRole('button', { name: '浏览邻里信息' }));
+  fireEvent.click(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
   await waitFor(() => assert.ok(view.container.querySelector('#home-feed-section')));
   await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']));
-  const order = [...view.container.querySelectorAll('.bay-community-intro, .bay-home-columns, .bay-home-footer')].map(element => element.className);
-  assert.deepEqual(order, ['bay-community-intro', 'bay-home-columns', 'bay-home-footer']);
+  const order = [...view.container.querySelectorAll('.home-discovery, .bay-home-columns')].map(element => element.className);
+  assert.deepEqual(order, ['home-discovery', 'bay-home-columns']);
 });
 
 test('a search keeps its heading and the feed, and the rail shows the newcomer help', async () => {
@@ -94,6 +94,7 @@ test('a search keeps its heading and the feed, and the rail shows the newcomer h
 
 test('编辑精选「更多」 opens /events, not the retired /recommend', async () => {
   render(app('/', { feedError: true }));
+  fireEvent.click(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
   fireEvent.click(await screen.findByRole('button', { name: '更多' }));
   await waitFor(() => assert.equal(screen.getByTestId('where').textContent, '/events'));
 });

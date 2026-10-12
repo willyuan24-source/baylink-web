@@ -19,45 +19,28 @@ function home(feedError: boolean, location = '/', overrides: Partial<AppContextV
   const context = { user: null, posts: [], feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: '全部', feedError, isInitialLoading: false, isLoadingMore: false, hasMore: false, blockedUserIds: [], retryFeed() {}, ...overrides } as unknown as AppContextValue;
   return renderToStaticMarkup(<StaticRouter location={location}><Routes><Route element={<Outlet context={context} />}><Route index element={<HomePage />} /></Route></Routes></StaticRouter>);
 }
+const recentPosts = (count: number) => Array.from({ length: count }, (_, index) => ({ id: `fresh-${index}`, title: `fresh ${index}`, createdAt: Date.now() - index * 60_000 })) as unknown as PostData[];
 
-test('a failed initial community fetch remains unknown and exposes its retry without opening the board', () => {
-  const html = home(true);
-  assert.ok(html.includes('邻里信息暂时无法读取，请稍后重试。'));
-  assert.ok(!html.includes('筛选结果 0 条'));
-  assert.ok(!html.includes('共 0 条信息'));
-  assert.ok(!html.includes('这里还在起步'));
-  assert.ok(html.includes('home-feed-section'));
-  assert.ok(html.includes('重新加载'));
+test('until the board has four fresh posts, the home shows one quiet line instead of counts (1007 §4.2 ⑨, HOMEIA-02)', () => {
+  for (const [label, html] of [['empty', home(false)], ['failed', home(true)], ['loading', home(false, '/', { isInitialLoading: true })], ['three fresh', home(false, '/', { posts: recentPosts(3) })]] as const) {
+    const doc = JSDOM.fragment(html);
+    assert.equal(doc.querySelector('.home-community button')?.textContent, '邻里信息（测试中）· 去看看', label);
+    assert.equal(doc.querySelector('#home-feed-section'), null, `${label}: the board stays folded`);
+    for (const text of ['筛选结果', '近 30 天发布', '这里还在起步', '发布需求', '邻里信息暂时无法读取']) assert.ok(!html.includes(text), `${label}: no "${text}" on the home`);
+  }
+  assert.equal(JSDOM.fragment(home(false)).querySelector('.bay-home-footer'), null, 'the site footer closes the home; no second footer');
 });
 
-test('a successful empty community result honestly shows zero and the starting-stage explanation', () => {
-  const html = home(false);
-  assert.ok(html.includes('筛选结果 0 条'));
-  assert.ok(html.includes('这里还在起步'));
-  assert.ok(!html.includes('邻里信息暂时无法读取'));
-  assert.ok(!html.includes('id="home-feed-section"'), 'the default empty discovery page keeps secondary community content folded');
-});
-
-test('the published neighborhood anchor reveals its target even when the community has no recent posts', () => {
-  const html = home(false, '/#home-feed-section');
-  assert.ok(html.includes('id="home-feed-section"'));
-  assert.ok(html.includes('搜索本地信息'));
-  assert.ok(html.includes('这里还在起步'));
-  assert.ok(!html.includes('id="home-feed-section"', html.indexOf('id="home-feed-section"') + 1));
+test('the published neighborhood anchor opens the board (four fresh posts open it too: tests/home-community-board-failure)', () => {
+  const anchored = home(false, '/#home-feed-section');
+  assert.ok(anchored.includes('id="home-feed-section"'));
+  assert.ok(!anchored.includes('id="home-feed-section"', anchored.indexOf('id="home-feed-section"') + 1), 'one board');
   assert.ok(!home(false, '/#unrelated-section').includes('id="home-feed-section"'));
 });
 
-test('English neighborhood copy distinguishes filtered and partial counts, loading and unavailable results', async () => {
+test('English: the neighborhood line is English', async () => {
   await setLocale('en', false);
-  const posts = [{ id: 'old-fixture', title: '保留作者原文', createdAt: 0 }] as PostData[];
-  const saved = structuredClone(posts);
-  const intro = (feedError: boolean, overrides: Partial<AppContextValue> = {}) => JSDOM.fragment(home(feedError, '/', overrides)).querySelector('.bay-community-intro p')!.textContent!;
-  const explanation = 'This board is just getting started. Contact the author to confirm older listings are still available.';
-  assert.equal(intro(false, { posts }), `Matching listings: 1; posted in the past 30 days: 0. ${explanation}`);
-  assert.equal(intro(false, { posts, hasMore: true }), `Listings loaded so far: 1; posted in the past 30 days: 0. ${explanation}`);
-  assert.equal(intro(false, { isInitialLoading: true }), 'Loading current neighborhood listings…');
-  const unavailable = intro(true);
-  assert.doesNotMatch(unavailable, /[\u3400-\u9fff]|\d/);
-  assert.ok(!unavailable.includes(explanation), 'a failed read must not claim the board is empty or just starting');
-  assert.deepEqual(posts, saved, 'interface copy must not rewrite the author’s post');
+  const line = JSDOM.fragment(home(false)).querySelector('.home-community button')!.textContent!;
+  assert.equal(line, 'Neighborhood board (beta) · Take a look');
+  assert.doesNotMatch(line, /[㐀-鿿]/);
 });

@@ -25,7 +25,6 @@ import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
-import { HomeDiscovery } from '../src/components/HomeDiscovery';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
 import { allDetailRecords } from '../src/features/detail/build-detail';
@@ -56,6 +55,8 @@ const { preloadAllGuideBlocks } = await import('../src/features/guides/guide-blo
 await preloadAllGuideBlocks();
 // WEB-DATA-SPLIT: 繁體 pages render with the full opencc build; the browser's pruned phrase table must agree on every string.
 const siteTraditionalMismatches = await checkSiteTraditional();
+// The home sections render WEB-UI covers (ui.css), so the home is imported after the hook too (WEB-HOME).
+const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');

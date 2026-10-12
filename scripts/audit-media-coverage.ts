@@ -41,9 +41,10 @@ export function publishedImageSources(): Set<string> {
   for (const guide of guides) for (const inline of getGuideMedia(guide).inline) if (inline.image) sources.add(inline.image.src);
   const homeCatalog = fileURLToPath(new URL('../src/data/generated/home-catalog.json', import.meta.url));
   if (existsSync(homeCatalog)) {
-    const home = JSON.parse(readFileSync(homeCatalog, 'utf8')) as { images: Record<string, { src: string }>; guides: { media: { cover: { src: string } } }[] };
+    // The home ships every image it shows in `images` (listing covers and the intent rail's guide covers) plus the 3D tile's postcard.
+    const home = JSON.parse(readFileSync(homeCatalog, 'utf8')) as { images: Record<string, { src: string }>; scene3d?: { src: string } };
     for (const image of Object.values(home.images)) sources.add(image.src);
-    for (const guide of home.guides) sources.add(guide.media.cover.src);
+    if (home.scene3d) sources.add(home.scene3d.src);
   }
   return sources;
 }

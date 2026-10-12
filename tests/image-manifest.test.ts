@@ -195,17 +195,17 @@ test('the 3D postcards are byte-for-byte copies in /guides/3d, labelled 3D åœºæ™
   assert.deepEqual(opusPostcards.filter(name => /-(small|800)\.webp$/.test(name)), []);
 });
 
-test('the slim home catalog carries the same ladder srcset for its images, without the unused placeholder colour', () => {
+test('the slim home catalog carries the same ladder srcset and placeholder colour as the registry (the home renders CoverImage)', () => {
   type HomeImage = { src: string; srcSet: string; lqip?: string };
-  const home = JSON.parse(readFileSync(new URL('../src/data/generated/home-catalog.json', import.meta.url), 'utf8')) as { images: Record<string, HomeImage>; guides: { slug: string; media: { cover: HomeImage } }[] };
+  const home = JSON.parse(readFileSync(new URL('../src/data/generated/home-catalog.json', import.meta.url), 'utf8')) as { images: Record<string, HomeImage>; guides: { slug: string; imageKey?: string }[] };
   for (const [key, image] of Object.entries(home.images)) {
-    assert.equal(image.srcSet, GUIDE_IMAGES[key].srcSet, key);
-    assert.equal(Object.hasOwn(image, 'lqip'), false, `${key}: the home draws no placeholder yet, so it ships none`);
+    // Listing images are keyed by their registry key, guide covers by their path (guides have no image key).
+    const source = Object.hasOwn(GUIDE_IMAGES, key) ? GUIDE_IMAGES[key] : undefined;
+    const ladder = manifest.images[image.src]?.srcset.join(', ');
+    assert.equal(image.srcSet, source?.srcSet ?? ladder ?? image.srcSet, key);
+    if (source?.lqip) assert.equal(image.lqip, source.lqip, `${key}: the cover's placeholder colour`);
   }
-  for (const guide of home.guides) {
-    assert.equal(guide.media.cover.srcSet, manifest.images[guide.media.cover.src]?.srcset.join(', ') ?? guide.media.cover.srcSet, guide.slug);
-    assert.equal(Object.hasOwn(guide.media.cover, 'lqip'), false, guide.slug);
-  }
+  for (const guide of home.guides) if (guide.imageKey) assert.ok(Object.hasOwn(home.images, guide.imageKey), `${guide.slug}: its cover ships with the catalog`);
 });
 
 test('editorial images under /guides are WebP; the old PNG guide posters are gone', () => {

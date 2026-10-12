@@ -21,12 +21,19 @@ export function selectHomeOffers<T extends Pick<HomeOffer, 'id' | 'brand' | 'sta
     .sort((a, b) => a.endDate!.localeCompare(b.endDate!) || a.id.localeCompare(b.id));
   const usable = dated.filter(offer => (offer.startDate ?? today) <= week);
   const chosen: T[] = [];
-  const take = (list: readonly T[], count: number) => {
-    for (const offer of list) if (count > 0 && chosen.length < limit && !chosen.includes(offer)) { chosen.push(offer); count--; }
+  // One ticket per brand while others are left ("IKEA · Emeryville" and "IKEA · Bay Area" are one brand), so the rail varies.
+  const brandOf = (offer: T) => offer.brand.split(/\s+[·・|]\s+/u)[0].trim().toLowerCase();
+  const take = (list: readonly T[], count: number, anyBrand = false) => {
+    for (const offer of list) {
+      if (count <= 0 || chosen.length >= limit || chosen.includes(offer)) continue;
+      if (!anyBrand && chosen.some(item => brandOf(item) === brandOf(offer))) continue;
+      chosen.push(offer); count--;
+    }
   };
   take(usable.filter(offer => offer.endDate! <= addDays(today, 1)), 2);
   take(usable.filter(offer => offer.endDate! <= week), 2);
   take(dated.filter(offer => isPublicBenefit(offer) && (offer.startDate ?? today) <= fortnight), 2);
   take(usable, limit);
+  take(usable, limit, true);
   return chosen;
 }

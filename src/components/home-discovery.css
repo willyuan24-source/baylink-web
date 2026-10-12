@@ -52,6 +52,10 @@
 .home-mood__label { font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
 
+/* ♡ on a cover: a 44px circle; the button keeps its full name (收藏：…) for assistive tech. */
+.home-discovery :is(.ui-feed-card__save,.ui-hero-card__save) .saves-toggle { justify-content:flex-start; gap:2rem; width:2.75rem; height:2.75rem; min-height:2.75rem; padding:0 0 0 .75rem; overflow:hidden; border-color:transparent; border-radius:50%; white-space:nowrap; }
+html[data-simple] .home-discovery :is(.ui-feed-card__save,.ui-hero-card__save) .saves-toggle { width:3rem; height:3rem; padding-left:.875rem; }
+
 /* ④ weekend feed */
 .home-feed__all { margin-top:16px; }
 
@@ -129,7 +133,12 @@
 @media (min-width:1024px) {
   .bay-home.bay-home-editorial { padding:32px 32px 56px; }
   /* Desktop head: headline and ask box in 5 columns, the cover mosaic in 7 (one 4:5 lead, two 4:3 covers). */
-  .home-top { display:grid; grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); align-items:start; gap:32px; }
+  .home-top { display:grid; grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); grid-template-rows:auto 1fr; grid-template-areas:'head picks' 'moods picks'; align-items:start; gap:32px; }
+  .home-head { grid-area:head; }
+  .home-picks { grid-area:picks; }
+  .home-moods { grid-area:moods; }
+  .home-moods ul { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:16px 8px; }
+  .home-mood { width:auto; }
   .home-head { padding-top:24px; }
   .home-head__title { font-size:clamp(2.5rem, 1.6rem + calc(1.25vw * var(--fluid-scale)), 3.25rem); line-height:1.2; }
   .home-head__lede { font-size:var(--text-body); line-height:1.625; }

@@ -7,6 +7,7 @@ import { currentFreebies } from '../src/data/october-offers';
 import { HOME_INTENTS } from '../src/data/home-pathways';
 import { guideTopicOf } from '../src/data/guide-topics';
 import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
+import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { guideReadMinutes, guideSourceCount, TOPIC_COVER } from '../src/features/guides/guide-facts';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
@@ -16,7 +17,7 @@ import { addCalendarDays } from '../src/lib/event-calendar';
 
 // The first page needs summaries, not 141 articles, image galleries or planning instructions (plan WEB-HOME).
 // Generate from the same catalogs as detail pages so titles, dates and source checks cannot drift:
-// - weekends: for each day from the edition's check date through its last day, the three picks (the weekly share card's)
+// - weekends: for each day of the four weekends from the build day, the three picks (the weekly share card's)
 //   and the eight feed cards after them, with the weekend's event count;
 // - events: only the events some day shows, with the overlay fields and planning facts a card prints (date, time, price);
 // - guides: the intent rail's guides (topic, palette, source count, cover key), never their bodies;
@@ -80,7 +81,7 @@ const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(eve
   const plan = facts ? present({ admissionUsd: facts.admissionUsd, schedule }, ['admissionUsd', 'schedule']) : {};
   const sessions = event.sessions?.filter(session => weekendDays.has(session.date));
   const { id, title, aliases, startDate, endDate, occurrenceDates, region, city, category, cost, verifiedAt, imageKey, audience } = event;
-  if (getCover({ kind: 'event', id, imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type') imageKeys.add(imageKey);
+  if (getCover({ kind: 'event', id, imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(imageKey);
   return {
     id, title, ...(aliases?.length ? { aliases } : {}), startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}), region, city, category, cost,
     verifiedAt, imageKey, audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
@@ -88,7 +89,7 @@ const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(eve
   };
 });
 const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).map(offer => {
-  if (getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type') imageKeys.add(offer.imageKey);
+  if (getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(offer.imageKey);
   return {
     id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
     ...present(offer, ['region', 'startDate', 'endDate', 'verifiedAt', 'valueText', 'publicBenefit']),
@@ -109,6 +110,8 @@ await writeFile('src/data/generated/home-catalog.json', JSON.stringify({
   edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d,
 }));
 console.log(`Home catalog: ${homeGuides.length} guide summaries, ${events.length} event facts, ${offers.length} offers; no article bodies.`);
+// The cover resolver's venue/theme approvals (src/lib/cover.ts) as plain data, without the media registry they are built from.
+await writeFile('src/data/generated/event-context-photos.json', JSON.stringify(Object.fromEntries(Object.entries(EVENT_CONTEXT_PHOTOS).sort(([a], [b]) => a.localeCompare(b)))));
 
 const dictionarySources = JSON.parse(await readFile('scripts/english-sources.json', 'utf8')) as string[];
 const english = Object.assign({}, ...await Promise.all(dictionarySources.map(async file => JSON.parse(await readFile(file, 'utf8')))));

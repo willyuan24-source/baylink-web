@@ -71,8 +71,8 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     <div className="home-top">
       <HomeHead today={today} weekendTotal={weekend.total} guideCount={guideCount} checkedAt={MONTHLY_EDITION.checkedAt} onAskBayBay={onAskBayBay} onSearch={onSearch} />
       <HeroPicks picks={weekend.picks} covers={covers.picks} today={today} start={weekend.start} end={weekend.end} total={weekend.total} />
+      <MoodCircles />
     </div>
-    <MoodCircles />
     <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} tones={feedTones} today={today} total={weekend.total} />
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />
     <GuideRail intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
