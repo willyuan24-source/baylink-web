@@ -75,7 +75,10 @@ const GUIDES_PUBLISHED = guidesPublished as Record<string, string>, LISTINGS_PUB
 const manifest = JSON.parse(await readFile(join(outputDir, '.vite/manifest.json'), 'utf8'));
 // The page module comes from the route table (src/app/route-table.ts), as at boot (route-loaders.ts): /404 → NotFoundPage.
 const routeModule = (path: string) => PAGE_MODULES[matchRoute(path)?.page || 'notFound'];
-type ManifestChunk = { file: string; imports?: string[]; css?: string[] };
+type ManifestChunk = { file: string; name?: string; isDynamicEntry?: boolean; imports?: string[]; css?: string[] };
+/** A page that other chunks also import statically (NotFoundPage, rendered by the detail pages for a missing id) is emitted as
+ * a shared chunk keyed `_Name-hash.js`, without its source path: find it by name so its stylesheets are linked too. */
+const manifestEntry = (module: string): ManifestChunk | undefined => manifest[module] ?? (Object.values(manifest) as ManifestChunk[]).find(item => item.isDynamicEntry && item.name === module.split('/').pop()!.replace(/\.tsx?$/, ''));
 /** WEB-DATA-SPLIT: an article also loads its own record chunk and, for a few guides, a block renderer (guide-store.ts). */
 const guideModules = (path: string) => {
   const guide = guides.find(item => `/guides/${item.slug}` === path);
@@ -87,7 +90,9 @@ const guideModules = (path: string) => {
 const routeGraph = (path: string) => {
   const files = new Set<string>(); const styles = new Set<string>();
   const visit = (item: ManifestChunk) => { if (files.has(item.file)) return; files.add(item.file); for (const css of item.css || []) styles.add(css); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
-  for (const key of [routeModule(path), ...guideModules(path)]) if (manifest[key]) visit(manifest[key]);
+  const entry = manifestEntry(routeModule(path));
+  if (entry) visit(entry);
+  for (const key of guideModules(path)) if (manifest[key]) visit(manifest[key]);
   return { files: [...files], styles: [...styles] };
 };
 /** An event, offer or opening detail also preloads its generated record bucket (and, in English, its dictionary pack):
