@@ -18,6 +18,7 @@ import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
 import { DETAIL_BUCKET_COUNT, detailBucket, type EnglishDictionary } from '../src/lib/english-loading';
 import { allDetailRecords } from '../src/features/detail/build-detail';
 import eventIdAliases from '../src/data/event-id-aliases.json';
+import { buildGuideData, writeGuideData } from './generate-guide-data';
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
 const chinese = /[\u3400-\u9fff]/u;
@@ -100,12 +101,18 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     Object.values(ATTRACTION_REGION_INTROS).map(intro => [intro.text, intro.planning]),
   ];
   const ui = englishDictionaryForUiScope(dictionary, await uiStrings(), uiDictionaries, editorialProse);
+  // The guide routes' generated index and per-guide records (WEB-DATA-SPLIT): /guides translates what its cards show
+  // ('guide-list'), and an article's own scope covers everything its record renders, "Read next" cards included.
+  const guideData = await buildGuideData();
+  await writeGuideData(guideData);
+  const records = new Map(guideData.records.map(record => [record.guide.slug, record]));
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
   const guideIndex = [guides.map(guide => ({ ...Object.fromEntries(Object.entries(guide).filter(([key]) => key !== 'blocks')), media: getGuideMedia(guide).cover })), GUIDE_CATEGORY_TABS, READER_PATHS];
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
     'guide-index': guideIndex,
+    'guide-list': guideData.index,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
@@ -122,7 +129,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   }
   for (const guide of guides) {
     if (!/^[a-z0-9][a-z0-9-]*$/u.test(guide.slug)) throw new Error(`Unsafe guide scope slug: ${guide.slug}`);
-    const values = [guide, getGuideMedia(guide), guide.blocks.some(block => block.type === 'freebies') ? perksPosters : undefined];
+    const values = [records.get(guide.slug), guide.blocks.some(block => block.type === 'freebies') ? perksPosters : undefined];
     const file = `guide-${guide.slug}.json`;
     registry[`guide:${guide.slug}`] = file;
     await writeFile(`${directory}/${file}`, JSON.stringify(remaining(values)));
@@ -130,9 +137,9 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   // Event, offer and opening details: one pack per detail bucket (the listing, its rails and its head), so a detail page
   // loads ~10 listings' English instead of the whole discovery pack (ENGSEC-01; lib/english-loading.ts detailBucket).
   const detailValues: unknown[][] = Array.from({ length: DETAIL_BUCKET_COUNT }, () => []);
-  const records = allDetailRecords();
-  const keyed = [...records].map(([key, record]) => [key, record] as const);
-  for (const [alias, canonical] of Object.entries(eventIdAliases as Record<string, string>)) { const record = records.get(`event:${canonical}`); if (record) keyed.push([`event:${alias}`, record]); }
+  const detailRecords = allDetailRecords();
+  const keyed = [...detailRecords].map(([key, record]) => [key, record] as const);
+  for (const [alias, canonical] of Object.entries(eventIdAliases as Record<string, string>)) { const record = detailRecords.get(`event:${canonical}`); if (record) keyed.push([`event:${alias}`, record]); }
   for (const [key, record] of keyed) {
     const [kind, id] = key.split(':') as ['event' | 'offer' | 'opening', string];
     detailValues[Number(detailBucket(kind, id))].push(record);

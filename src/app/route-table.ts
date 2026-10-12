@@ -91,7 +91,7 @@ export const ROUTES: readonly AppRoute[] = [
   // a user card: the user-card function serves valid ids first (share head); any other id gets the shell. Both noindex.
   { path: '/users/:userId', page: 'home', section: 'more', hosting: 'spa', english: ['home'] },
   { path: '/reset-password', page: 'home', section: 'none', hosting: 'spa', english: ['home'] },
-  { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-index', 'guide-search'], release: true },
+  { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-list'], release: true },
   { path: '/guides/:slug', page: 'guide', section: 'guides', hosting: 'ids', sitemap: true },
   { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
   { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },

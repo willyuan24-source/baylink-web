@@ -35,6 +35,13 @@ test('the homepage does not count the search dictionaries (it loads them on the 
   assert.throws(() => routeModules(withoutSearch, budget, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath }), /search dictionaries/);
 });
 
+test('a page that loads its data before rendering counts that data chunk too (a guide article and its record)', () => {
+  const withRecord = { ...manifest, 'src/data/generated/guides/a.json': { file: 'assets/a.js', isDynamicEntry: true } };
+  const article = { route: '/guides/a', module: 'src/pages/GuidesPage.tsx', data: ['src/data/generated/guides/a.json'] };
+  assert.ok([...moduleGraph(withRecord, routeModules(withRecord, article, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath }))].includes('assets/a.js'));
+  assert.throws(() => moduleGraph(manifest, routeModules(manifest, article, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath })), /Missing build module/);
+});
+
 test('a missing page module or English scope fails loudly instead of measuring less', () => {
   assert.throws(() => moduleGraph(manifest, ['src/pages/Missing.tsx']), /Missing build module/);
   assert.throws(() => routeModules(manifest, budget, 'en', { englishScopesForPath: () => ['ui', 'planning'], scopeModules }), /planning/);

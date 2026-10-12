@@ -2,7 +2,7 @@ import type { Guide } from "../data/guides";
 import { getGuideMedia } from '../data/guide-media';
 import { getImageProvenance } from '../lib/image-provenance';
 import { useLocale } from '../i18n/locale';
-import type { MouseEvent } from "react";
+import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { Link } from "react-router-dom";
 import {
   ChevronRight,
@@ -19,26 +19,10 @@ import {
   Wrench,
 } from "lucide-react";
 
-type GuideCardProps = { guide: Guide; onClick?: () => void; compact?: boolean; searchSnippet?: string; searchSection?: string };
+// Re-exported for the components that import it from here.
+export { handleGuideLinkClick };
 
-/** Preserve app navigation callbacks while allowing copy-link and modified clicks. */
-export const handleGuideLinkClick = (
-  event: MouseEvent<HTMLAnchorElement>,
-  onClick?: () => void,
-) => {
-  if (
-    !onClick ||
-    event.defaultPrevented ||
-    event.button !== 0 ||
-    event.metaKey ||
-    event.ctrlKey ||
-    event.shiftKey ||
-    event.altKey
-  )
-    return;
-  event.preventDefault();
-  onClick();
-};
+type GuideCardProps = { guide: Guide; onClick?: () => void; compact?: boolean; searchSnippet?: string; searchSection?: string };
 
 const categoryIcons = {
   rent: House,

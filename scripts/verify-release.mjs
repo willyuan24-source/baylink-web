@@ -37,7 +37,7 @@ const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 328.6, 'zh-Hant': 814.9, en: 983.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1015.9, 'zh-Hant': 1502.2, en: 2181.6 } },
-  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1552.3, en: 1356.8 } },
+  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1552.3, en: 1356.8 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 224.8, 'zh-Hant': 711.1, en: 349.3 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 324.4, 'zh-Hant': 810.6, en: 978.8 } },
 ];

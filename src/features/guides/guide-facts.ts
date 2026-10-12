@@ -1,14 +1,15 @@
 import type { Guide } from '../../data/guides';
-import { getGuideMedia, type GuideImage } from '../../data/guide-media';
-import { ATTRACTIONS } from '../../data/attractions';
 import { GUIDE_TOPICS, guideTopicOf, type GuideTopicId } from '../../data/guide-topics';
 import { getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import type { Copy, CoverTone } from '../../lib/event-facts';
+import { getLocale } from '../../i18n/locale';
+import { coverFor, type GuideCard } from './guide-records';
 
 /**
  * Guide facts for the index (T2) and the article template (T7), computed from the published guide only: topics come from
- * src/data/guide-topics.ts (D22), covers from the honesty ladder (getCover), regions from the slug and the attraction
- * registry. No React here, so tests and scripts can use it.
+ * src/data/guide-topics.ts (D22), covers from the honesty ladder (getCover). No React and no guide corpus here (WEB-DATA-SPLIT):
+ * the facts that need the corpus, the media registry or the attraction registry (regions, card covers, shared inline pictures)
+ * are computed at build time by guide-data.ts into the generated guide index and records.
  */
 
 export type GuideRegionId = 'sf' | 'east-bay' | 'peninsula' | 'south-bay' | 'north-bay';
@@ -21,23 +22,6 @@ export const GUIDE_REGIONS: readonly { id: GuideRegionId; zh: string; en: string
 ];
 export const isGuideRegion = (value: unknown): value is GuideRegionId => GUIDE_REGIONS.some(region => region.id === value);
 export const isGuideTopic = (value: unknown): value is GuideTopicId => GUIDE_TOPICS.some(topic => topic.id === value);
-
-// Place words in slugs; a guide may belong to two regions ("peninsula-south-bay-…"). Everything else is Bay-wide.
-const REGION_WORDS: readonly [GuideRegionId, RegExp][] = [
-  ['sf', /(?:^|-)(?:sf|san-francisco|presidio|golden-gate|alcatraz|chinatown|fishermans|lands-end|mission-dolores|palace-fine|sunset-dunes)(?:-|$)/],
-  ['east-bay', /(?:^|-)(?:east-bay|oakland|berkeley|alameda|fremont|richmond|martinez|pleasanton|tilden|reinhardt|ardenwood|coyote-hills)(?:-|$)/],
-  ['peninsula', /(?:^|-)(?:peninsula|san-mateo|palo-alto|stanford|san-carlos|filoli|half-moon-bay|coyote-point)(?:-|$)/],
-  ['south-bay', /(?:^|-)(?:south-bay|san-jose|alviso|saratoga|hakone|sccld|santa-clara)(?:-|$)/],
-  ['north-bay', /(?:^|-)(?:north-bay|marin|sausalito|muir|point-reyes|napa|sonoma|china-camp|angel-island)(?:-|$)/],
-];
-const ATTRACTION_REGION = new Map<string, GuideRegionId>(ATTRACTIONS.map(item => [item.slug, item.region as GuideRegionId]));
-
-/** The regions a guide is about; an empty list means it serves the whole Bay Area. */
-export function guideRegionsOf(guide: Pick<Guide, 'slug'>): GuideRegionId[] {
-  const listed = ATTRACTION_REGION.get(guide.slug);
-  if (listed) return [listed];
-  return REGION_WORDS.filter(([, words]) => words.test(guide.slug)).map(([id]) => id);
-}
 
 /** Each topic's TypeCover palette and texture icon (keys of TypeCover's closed icon list). */
 export const TOPIC_COVER: Readonly<Record<GuideTopicId, { tone: CoverTone; icon: string }>> = {
@@ -82,8 +66,8 @@ export function guideReadMinutes(guide: Pick<Guide, 'title' | 'summary' | 'block
 export const guideSourceCount = (guide: Pick<Guide, 'sources'>) => new Set(guide.sources.map(source => source.url)).size;
 
 /** A guide card's meta line (index feed, rails, "Read next"): one source in the singular, the reading time alone without sources. */
-export function guideCardMeta(guide: Pick<Guide, 'sources' | 'title' | 'summary' | 'blocks'>): Copy {
-  const sources = guideSourceCount(guide), minutes = guideReadMinutes(guide);
+export function guideCardMeta(card: Pick<GuideCard, 'sourceCount' | 'readMinutes'>): Copy {
+  const sources = card.sourceCount, minutes = card.readMinutes;
   return sources
     ? { zh: `${sources} 个官方来源 · 约 ${minutes} 分钟`, en: `${sources} official source${sources === 1 ? '' : 's'} · ${minutes} min read` }
     : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
@@ -97,32 +81,9 @@ export const guideEnglishDate = (iso: string): string => {
 };
 
 /** One cover per guide through the honesty ladder: a photo or official image, never an AI illustration (→ TypeCover). */
-export function guideCover(guide: Guide, today: string, page?: CoverPage): ResolvedCover {
-  const image = getGuideMedia(guide).cover;
-  return getCover({ kind: 'guide', id: guide.slug, imageKey: image.src }, { images: () => image, today, page });
-}
-
-// Inline images that several guides share are generic theme pictures, not this guide's subject (GUIDE-05).
-let sharedInline: Map<string, number> | undefined;
-function sharedInlineCount(guides: readonly Guide[], src: string): number {
-  if (!sharedInline) {
-    sharedInline = new Map();
-    for (const guide of guides) for (const { image } of getGuideMedia(guide).inline) sharedInline.set(image.src, (sharedInline.get(image.src) || 0) + 1);
-  }
-  return sharedInline.get(src) || 0;
-}
-/** The stock laptop photo whose caption says it is not the event or service shown (Medicare, Social Security …). */
-const OFF_TOPIC_SOURCES = new Set(['/guides/coverage-2026/coverage-laptop.webp']);
-
-/**
- * Whether an inline picture stays in the article. 办事 pages stay quiet (D9): no AI mood illustrations outside 周末出游;
- * an AI illustration several guides share is generic everywhere; the stock laptop photo is off-topic everywhere.
- */
-export function keepInlineImage(image: GuideImage, guide: Guide, guides: readonly Guide[]): boolean {
-  if (OFF_TOPIC_SOURCES.has(image.src)) return false;
-  if (image.kind !== 'illustration' || image.scene3d) return true;
-  if (guideTopicOf(guide) !== 'outings') return false;
-  return sharedInlineCount(guides, image.src) < 2;
+export function guideCover(card: Pick<GuideCard, 'slug' | 'covers'>, today: string, page?: CoverPage): ResolvedCover {
+  const image = coverFor(card.covers, getLocale());
+  return getCover({ kind: 'guide', id: card.slug, imageKey: image.src }, { images: () => image, today, page });
 }
 
 /**

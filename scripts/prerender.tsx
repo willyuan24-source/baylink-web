@@ -51,6 +51,9 @@ const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// WEB-DATA-SPLIT: the deals board and the city directory are chunks the article loads with its record; load them before rendering.
+const { preloadAllGuideBlocks } = await import('../src/features/guides/guide-blocks');
+await preloadAllGuideBlocks();
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
@@ -60,11 +63,18 @@ const manifest = JSON.parse(await readFile(join(outputDir, '.vite/manifest.json'
 // The page module comes from the route table (src/app/route-table.ts), as at boot (route-loaders.ts): /404 → NotFoundPage.
 const routeModule = (path: string) => PAGE_MODULES[matchRoute(path)?.page || 'notFound'];
 type ManifestChunk = { file: string; imports?: string[]; css?: string[] };
+/** WEB-DATA-SPLIT: an article also loads its own record chunk and, for a few guides, a block renderer (guide-store.ts). */
+const guideModules = (path: string) => {
+  const guide = guides.find(item => `/guides/${item.slug}` === path);
+  if (!guide) return [];
+  const uses = (type: string) => guide.blocks.some(block => block.type === type);
+  return [`src/data/generated/guides/${guide.slug}.json`, ...(uses('freebies') ? ['src/components/FreebieBoard.tsx'] : []), ...(uses('city-exploration') ? ['src/components/CityExplorationDirectory.tsx'] : [])];
+};
 /** The page's static module graph: its JS files and every stylesheet the graph imports. */
 const routeGraph = (path: string) => {
   const files = new Set<string>(); const styles = new Set<string>();
   const visit = (item: ManifestChunk) => { if (files.has(item.file)) return; files.add(item.file); for (const css of item.css || []) styles.add(css); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
-  if (manifest[routeModule(path)]) visit(manifest[routeModule(path)]);
+  for (const key of [routeModule(path), ...guideModules(path)]) if (manifest[key]) visit(manifest[key]);
   return { files: [...files], styles: [...styles] };
 };
 /** An event, offer or opening detail also preloads its generated record bucket (and, in English, its dictionary pack):

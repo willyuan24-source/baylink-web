@@ -29,12 +29,13 @@ export const SEARCH_DICTIONARIES = 'src/i18n/search-dictionaries.ts';
 
 /**
  * Manifest keys each locale loads for one route: the shell and page graph, plus
- * the opencc converter for 繁體 (it carries search too), the search dictionaries
- * for 简体 and English on pages that search, and the scoped dictionaries for
- * English (src/i18n/locale.ts loadLocaleForPath).
+ * the data the page loads before it renders (`data`: a guide article's own record,
+ * WEB-DATA-SPLIT), the opencc converter for 繁體 (it carries search too), the search
+ * dictionaries for 简体 and English on pages that search, and the scoped dictionaries
+ * for English (src/i18n/locale.ts loadLocaleForPath).
  */
-export function routeModules(manifest, { route, module }, locale, { englishScopesForPath, scopeModules, searchFreePath = () => false }) {
-  const keys = ['index.html', module];
+export function routeModules(manifest, { route, module, data = [] }, locale, { englishScopesForPath, scopeModules, searchFreePath = () => false }) {
+  const keys = ['index.html', module, ...data];
   if (locale === 'zh-Hant') {
     const opencc = Object.keys(manifest).find(key => key.startsWith('node_modules/opencc-js/') && key.endsWith('/full.js') && manifest[key].isDynamicEntry);
     if (!opencc) throw new Error('The 繁體 converter (opencc-js full build) is no longer a dynamic entry; update scripts/route-budgets.mjs');

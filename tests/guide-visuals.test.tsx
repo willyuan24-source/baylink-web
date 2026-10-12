@@ -28,7 +28,9 @@ const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { GuideFigure, GuideRouteRenderer } = await import('../src/components/GuideVisuals');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { getGuideBySlug, guides } = await import('../src/data/guides');
-const { keepInlineImage } = await import('../src/features/guides/guide-facts');
+const { keepInlineImage } = await import('../src/features/guides/guide-data');
+// The deals board is a chunk the article loads with its record (WEB-DATA-SPLIT); the page waits for it, so do the tests.
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
 const { getGuideMedia } = await import('../src/data/guide-media');
 
 afterEach(() => { cleanup(); document.body.style.overflow = ''; });

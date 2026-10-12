@@ -16,23 +16,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import {
-  getGuideBySlug,
-  guides,
-  type Guide,
-  type GuideBlock,
-} from "../data/guides";
-import { getGuideMedia, type GuideImage } from '../data/guide-media';
+import type { GuideBlock } from "../data/guides";
+import type { GuideImage } from '../data/guide-media';
 import { OutingInspirationLink } from './OutingInspirationLink';
 import { GuideFigure, GuideRouteRenderer } from './GuideVisuals';
 import { GuideEditionNotice } from './GuideEditionNotice';
-import { FreebieBoard } from './FreebieBoard';
-import { discoverRelatedGuides } from '../lib/guide-discovery';
-import { getOfferImage } from '../lib/offer-media';
 import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
-import { CityExplorationDirectory } from './CityExplorationDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 import { linkifyPhones, PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
 import { createCoverPage, distinctNeighbourTones, type CoverPage } from '../lib/cover';
@@ -42,21 +33,26 @@ import { CoverImage } from './ui/CoverImage';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard } from './ui/Card';
-import { getGuideEditorial, type EditorialCopy, type GuideEditorial } from '../data/guide-editorial';
+import type { EditorialCopy, GuideEditorial } from '../data/guide-editorial';
 import { guideTopicOf } from '../data/guide-topics';
 import { GuideHeader } from '../features/guides/GuideHeader';
 import { GuideActions } from '../features/guides/GuideActions';
 import { GuideCarousel } from '../features/guides/GuideCarousel';
 import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { GuideCover } from '../features/guides/GuideCover';
-import { handleGuideLinkClick } from './GuideCard';
+import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
-import { guideCardMeta, guideCover, keepInlineImage, TOPIC_COVER } from '../features/guides/guide-facts';
+import { guideCardMeta, guideCover, TOPIC_COVER } from '../features/guides/guide-facts';
+import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
+import { peekGuide } from '../features/guides/guide-store';
+import { CityExplorationBlock, FreebieBoardBlock } from '../features/guides/guide-blocks';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import '../features/guides/guide-article.css';
 
 type GuideDetailProps = {
   slug: string;
+  /** The guide's generated record (guide-store.ts); read from the store when absent. The page loads it before rendering. */
+  record?: GuideRecord;
   returnTo?: string;
   today?: string;
   /** Kept for callers; the breadcrumb's "‹ 指南" link returns to `returnTo`. */
@@ -77,7 +73,7 @@ const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | und
 };
 
 /** Related guides as covers (two columns on a phone), resolved on the article's cover page so no image repeats. */
-function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Guide[]; coverPage: CoverPage; today: string; onOpenGuide: (slug: string) => void }) {
+function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: GuideCard[]; coverPage: CoverPage; today: string; onOpenGuide: (slug: string) => void }) {
   const { t, pick, english, locale } = useUiCopy();
   const covers = related.map(guide => guideCover(guide, today, coverPage));
   const tones = distinctNeighbourTones(covers.map((cover, index) => cover.tier === 'type' ? TOPIC_COVER[guideTopicOf(related[index])].tone : null));
@@ -110,6 +106,7 @@ function StepSection({ number, heading, id, conclusion, children }: { number: nu
 
 const GuideDetailSession = ({
   slug,
+  record: suppliedRecord,
   returnTo = '/guides',
   today: suppliedToday,
   onOpenGuide,
@@ -117,26 +114,28 @@ const GuideDetailSession = ({
   onAsk,
   onOpenPost,
 }: GuideDetailProps) => {
-  const guide = getGuideBySlug(slug);
+  const record = suppliedRecord ?? peekGuide(slug);
+  const guide = record?.guide;
   const { t, english } = useUiCopy();
   const today = useBayAreaToday(suppliedToday);
-  const editorial: GuideEditorial | undefined = guide ? getGuideEditorial(guide.slug) : undefined;
+  const editorial: GuideEditorial | undefined = record?.editorial;
   const page = useMemo(() => {
-    if (!guide) return null;
+    if (!record) return null;
+    const { guide } = record;
     const coverPage = createCoverPage();
-    const media = getGuideMedia(guide);
-    const cover = guideCover(guide, today, coverPage);
+    const cover = guideCover({ slug: guide.slug, covers: record.covers }, today, coverPage);
     // Rule 6, one picture once per page: the deals board shows each offer's own picture, so the article drops an inline
     // picture the board already shows; the legacy poster opens only when it is not the cover; and every picture shown
     // claims its place before the related guides resolve, so their covers fall back to a TypeCover instead of repeating it.
-    const boardImages = guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []).flatMap(offer => getOfferImage(offer)?.src ?? []);
+    // The record's inline pictures already passed keepInlineImage (guide-data.ts) and its board pictures are getOfferImage's.
+    const boardImages = record.boardImages ?? [];
     const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
-    const inline = media.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
-      && !boardImages.includes(item.image.src) && keepInlineImage(item.image, guide, guides));
+    const inline = record.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
+      && !boardImages.includes(item.image.src));
     const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
     for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
-    return { coverPage, cover, inline, poster, related: discoverRelatedGuides(guide, 4, today) };
-  }, [guide, today]);
+    return { coverPage, cover, inline, poster, related: relatedForToday(record.related, today) };
+  }, [record, today]);
 
   if (!guide || !page)
     return (
@@ -233,7 +232,7 @@ const GuideDetailSession = ({
         {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}
         {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
-        {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoard offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
+        {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
         <div className="bl-guide-reading-layout">
           <aside className="bl-guide-toc" aria-label="文章目录">
             <div className="bl-guide-toc-desktop">
@@ -387,7 +386,7 @@ const BlockRenderer = ({
     case 'useful-platforms':
       return <UsefulPlatformsDirectory platforms={block.platforms} title={block.title} text={block.text} />;
     case 'city-exploration':
-      return <CityExplorationDirectory cities={block.cities} title={block.title} text={block.text} />;
+      return <CityExplorationBlock cities={block.cities} title={block.title} text={block.text} />;
     case 'shopping-directory':
       return <ShoppingDirectory places={block.places} title={block.title} text={block.text} />;
     case 'utility-directory':

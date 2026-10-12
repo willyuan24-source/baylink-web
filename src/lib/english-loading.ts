@@ -35,11 +35,11 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
   else if (path.startsWith('/guides/')) {
     let slug = path.slice('/guides/'.length);
     try { slug = decodeURIComponent(slug); } catch { /* An invalid URL still gets translated not-found UI. */ }
-    scopes.push('guide-index');
+    // The article's own scope covers its record, "Read next" cards included (generate-guide-data.ts): no catalog-wide pack.
     if (hasScope(`guide:${slug}`)) scopes.push(`guide:${slug}`);
     // City directories also show the next actual events, independently of article text.
     if (slug === 'bay-area-101-city-exploration-living-guide') scopes.push('discovery', 'explore');
-  } else if (path === '/guides') scopes.push('guide-index', 'guide-search');
+  } else if (path === '/guides') scopes.push('guide-list');
   else if (DETAIL_PATH.test(path)) {
     // An event, offer or opening detail loads the pack of its own bucket (ENGSEC-01): the listing, its rails and its head.
     const [, section, id] = DETAIL_PATH.exec(path)!;
@@ -54,9 +54,10 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
   return [...new Set(scopes)].filter(hasScope);
 }
 
-/** The search dialog is opened from many routes; it needs English full-text matches too. */
-export function englishScopesForFeature(feature: 'search'): string[] {
-  return feature === 'search' ? ['ui', 'guide-index', 'guide-search', 'discovery', 'explore'] : [];
+/** The search dialog is opened from many routes; it needs English full-text matches too. The guide index's own search
+ * ('guide-search') needs only the guides' full text: /guides loads it on the first search, not with the page. */
+export function englishScopesForFeature(feature: 'search' | 'guide-search'): string[] {
+  return feature === 'search' ? ['ui', 'guide-index', 'guide-search', 'discovery', 'explore'] : feature === 'guide-search' ? ['ui', 'guide-search'] : [];
 }
 
 /**

@@ -29,6 +29,8 @@ const { getGuideBySlug } = await import('../src/data/guides');
 const { guideBlockText } = await import('../src/lib/guide-content');
 const { searchGuides } = await import('../src/lib/guide-search');
 const { GuideDetail } = await import('../src/components/GuideDetail');
+// The deals board is a chunk the article loads with its record (WEB-DATA-SPLIT); the page waits for it, so do the tests.
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
 const { StaticRouter } = await import('react-router-dom');
 
 const picture: GuideImage = {

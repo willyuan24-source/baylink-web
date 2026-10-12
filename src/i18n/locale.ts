@@ -157,7 +157,7 @@ export async function loadLocaleForPath(locale: Locale, paths: string | readonly
   else if (locale === 'zh-Hant') await loadChinese();
   await search;
 }
-export async function loadLocaleForFeature(locale: Locale, feature: 'search'): Promise<void> {
+export async function loadLocaleForFeature(locale: Locale, feature: 'search' | 'guide-search'): Promise<void> {
   const search = locale !== 'zh-Hant' ? loadSearchConversion().catch(() => undefined) : undefined;
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
   else if (locale === 'zh-Hant') await loadChinese();
