@@ -53,15 +53,15 @@ export const SmsConsentView = () => {
       BAYLINK offers two separate SMS uses: verification codes that you request, and optional booking updates for service providers. Verifying a phone number does not subscribe you to booking updates. Neither program sends marketing or promotional messages.
     </LegalP>
 
-    <LegalSection title={t('中文说明：何时会发送短信', 'In short: when BAYLINK sends a text')}>
+    <LegalSection title={'中文说明：何时会发送短信'}>
       <LegalUl items={[
-        t('一般使用 BAYLINK 不要求手机验证。登录后，你可以在个人资料中主动打开手机验证。', 'General use of BAYLINK does not require phone verification. After signing in, you can open phone verification in your profile if you choose.'),
-        t('输入手机号码、阅读按钮旁的说明，并点击「发送验证码」后，才会请求发送一次性验证码；普通账号注册不会自动请求验证短信。', 'A one-time code is requested only after you enter a mobile number, read the note beside the button and click “Send verification code”. Signing up for an account never requests a verification text by itself.'),
-        t('本验证项目用于账号安全和手机号验证，不发送营销短信。发送次数取决于你的验证请求，运营商可能收取短信或流量费。', 'This verification program is for account security and phone verification and sends no marketing texts. How often you get a text depends on your requests; carrier message and data rates may apply.'),
+        '一般使用 BAYLINK 不要求手机验证。登录后，你可以在个人资料中主动打开手机验证。',
+        '输入手机号码、阅读按钮旁的说明，并点击「发送验证码」后，才会请求发送一次性验证码；普通账号注册不会自动请求验证短信。',
+        '本验证项目用于账号安全和手机号验证，不发送营销短信。发送次数取决于你的验证请求，运营商可能收取短信或流量费。',
         t('服务提供者可另外在预约短信设置中主动开启业务通知。手机验证不等于同意预约短信；当前预约短信仅发给已同意的服务提供者，不发给顾客。', 'Service providers can separately turn on booking notifications in their booking SMS settings. Phone verification is not consent to booking texts; booking texts currently go only to providers who opted in, never to customers.'),
         t('预约短信只用于新申请、即时预约和顾客取消的相关通知，不是营销短信或定时到场提醒。预约状态与站内消息仍是查看处理结果的入口。', 'Booking texts cover only new requests, instant bookings and customer cancellations. They are not marketing or scheduled appointment reminders; the booking record and in-site messages show the current status.'),
-        t('短信退订与帮助方式见下方 STOP / HELP 说明；验证码收不到或有其他问题，可联系 Baylink.us@gmail.com。', 'See STOP / HELP below to opt out or get help. If a code does not arrive or you have another question, contact Baylink.us@gmail.com.'),
-        t('验证码请只填写在你主动打开的 BAYLINK 验证页面，不要发给其他用户。', 'Enter a code only on the BAYLINK verification page you opened yourself, and never send it to another member.'),
+        '短信退订与帮助方式见下方 STOP / HELP 说明；验证码收不到或有其他问题，可联系 Baylink.us@gmail.com。',
+        '验证码请只填写在你主动打开的 BAYLINK 验证页面，不要发给其他用户。',
       ]} />
     </LegalSection>
 

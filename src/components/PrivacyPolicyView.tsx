@@ -12,15 +12,15 @@ export const PrivacyPolicyView = () => {
       BAYLINK helps people in the San Francisco Bay Area find where to go and how to get things done, with sources: events and benefits, practical guides, BayBay AI answers and a neighborhood board. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use service bookings or BayBay AI features, or verify their phone number.
     </LegalP>
 
-    <LegalSection title={t('中文阅读要点', 'Policy highlights')}>
+    <LegalSection title={'中文阅读要点'}>
       <LegalP>{t('BAYLINK：湾区去哪、怎么办 · 有来源的中文答案。以下说明帮助你理解不同信息的用途与可见范围；详细内容见下方完整政策。', 'What each kind of information is used for and who can see it, in short. The full policy below has the details.')}</LegalP>
       <LegalUl items={[
-        t('账号资料、公开帖子和公开个人资料可能被其他用户或访客看到。请勿在公开正文中填写不希望公开的电话号码、住址或证件信息。', 'Your account profile, public posts and public profile can be seen by other members and visitors. Do not put a phone number, address or ID details you want to keep private in public text.'),
-        t('用于短信验证的手机号与「联系方式设置」中主动填写的电话、微信、邮箱是不同用途的信息。验证手机号不会因为完成验证而自动展示在帖子或资料中。', 'The phone number used for SMS verification is separate from the phone, WeChat or email you choose to add in contact settings. Verifying a number never shows it on your posts or profile.'),
+        '账号资料、公开帖子和公开个人资料可能被其他用户或访客看到。请勿在公开正文中填写不希望公开的电话号码、住址或证件信息。',
+        '用于短信验证的手机号与「联系方式设置」中主动填写的电话、微信、邮箱是不同用途的信息。验证手机号不会因为完成验证而自动展示在帖子或资料中。',
         t('预约双方可以查看该预约的时间、状态和顾客填写的备注。请不要在备注中填写密码、证件号码或无需提供的信息。提供者发布的可申请时段与服务设置会用于预约展示。', 'Both sides of a booking can see its time, status and the customer’s notes. Do not put passwords, ID numbers or anything unnecessary in notes. A provider’s published time slots and service settings are shown for booking.'),
         t('手机验证与预约短信同意分开。服务提供者可单独开启预约业务短信；当前不向顾客发送预约短信。短信开关不影响站内预约记录与通知。', 'Phone verification and booking-SMS consent are separate. Service providers can turn on booking texts on their own; customers do not receive booking texts today. The SMS setting does not affect booking records or in-site notifications.'),
-        t('你可选择优先私信、对方请求后自动发送联系方式，或经你确认后发送。接收人可以保存已收到的联系方式，请在发送前确认内容与对象。', 'You can choose private messages first, send your contact details automatically on request, or send them only after you confirm. Recipients can keep contact details they receive, so check what you send and to whom.'),
-        t('使用 BayBay AI 时，你输入的文字可能被处理以生成建议和草稿。不要输入证件号码、账号密码或其他高度敏感信息。', 'When you use BayBay AI, the text you enter may be processed to produce suggestions and drafts. Do not enter ID numbers, passwords or other highly sensitive information.'),
+        '你可选择优先私信、对方请求后自动发送联系方式，或经你确认后发送。接收人可以保存已收到的联系方式，请在发送前确认内容与对象。',
+        '使用 BayBay AI 时，你输入的文字可能被处理以生成建议和草稿。不要输入证件号码、账号密码或其他高度敏感信息。',
         t('站内反馈只发送你在反馈表里选择和填写的内容，以及页面类型、语言、字号和网站版本；报告某条信息有误时，还会附上该条目的编号。反馈保存 90 天，不附带网址、账号或 BayBay 对话。内测模式须你点同意后才开启。', 'Site feedback sends only what you choose and type in the form, plus the page type, language, text size and site version, and the item’s id when you report an item. It is kept for 90 days and never includes the address, your account or a BayBay conversation. Tester mode starts only after you agree.'),
         t('登录后，可在「我的 → 隐私与安全」下载本人资料、退出所有登录或确认永久注销。每次敏感操作都须确认当前凭证。资料较多、账号无法登录或需人工核验时，可向页末邮箱提出隐私申请；不承诺固定处理时限或外部缓存即时清除。', 'After signing in, open My profile → Privacy and security to download your data, sign out all sessions, or confirm permanent account deletion. Each sensitive operation requires current credentials. For larger exports, inaccessible accounts or requests requiring manual verification, contact the email below. We do not promise a fixed processing deadline or immediate erasure of external caches.'),
       ]} />

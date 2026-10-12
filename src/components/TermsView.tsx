@@ -10,16 +10,16 @@ export const TermsView = () => {
     </LegalP>
     <LegalP>By accessing or using BAYLINK, you agree to these Terms of Service.</LegalP>
 
-    <LegalSection title={t('中文阅读要点', 'Terms in short')}>
+    <LegalSection title={'中文阅读要点'}>
       <LegalP>{t('BAYLINK：湾区去哪、怎么办 · 有来源的中文答案。以下是便于阅读的中文说明，对应下方英文条款。涉及具体权利、责任和适用条件，请结合完整条款阅读；有疑问可通过页末邮箱联系 BAYLINK。', 'A plain-language summary of the Terms below. The full Terms set out rights, responsibilities and conditions; email BAYLINK at the end of this page with any questions.')}</LegalP>
       <LegalUl items={[
-        t('BAYLINK 提供本地信息发布与沟通工具。用户之间的租房、买卖、接送和服务交易由交易双方自行确认和履行。', 'BAYLINK provides tools to publish local information and communicate. Rentals, sales, rides and services between members are agreed and carried out by the people involved.'),
-        t('请发布真实、合法的信息，不得诈骗、骚扰、冒充他人、歧视或侵犯他人权益。请妥善保管账号。', 'Post truthful, lawful information. No scams, harassment, impersonation, discrimination or violations of others’ rights. Keep your account secure.'),
-        t('「手机号已验证」表示完成过短信验证码验证；「资料审核通过」表示资料经过 BAYLINK 人工审核。两者都不构成政府认证、身份或执照保证，也不保证交易安全。', '“Phone verified” means the member completed SMS code verification; “Profile reviewed” means BAYLINK reviewed the profile by hand. Neither is government certification or a guarantee of identity or licensing, and neither makes a transaction safe.'),
-        t('编辑推荐表示平台选择展示的内容。请仍然自行核实房源、商品、服务资质、价格和付款安排。', 'An editor’s pick means BAYLINK chose to feature the content. Still check listings, goods, service qualifications, prices and payment arrangements yourself.'),
+        'BAYLINK 提供本地信息发布与沟通工具。用户之间的租房、买卖、接送和服务交易由交易双方自行确认和履行。',
+        '请发布真实、合法的信息，不得诈骗、骚扰、冒充他人、歧视或侵犯他人权益。请妥善保管账号。',
+        '「手机号已验证」表示完成过短信验证码验证；「资料审核通过」表示资料经过 BAYLINK 人工审核。两者都不构成政府认证、身份或执照保证，也不保证交易安全。',
+        '编辑推荐表示平台选择展示的内容。请仍然自行核实房源、商品、服务资质、价格和付款安排。',
         t('服务预约不在 BAYLINK 收取服务款项。默认提交的是待服务提供者确认的申请；只有页面明确支持即时预约时，系统才可在时段有效且无冲突时直接确认。', 'BAYLINK does not collect payment for service bookings. A booking is a request the provider must confirm, unless the page clearly offers instant booking; then the system confirms a valid time without conflicts directly.'),
         t('待确认申请暂时占用时段，在提交后 24 小时或预约开始时到期，以较早者为准。双方可取消；当前更换时间需要取消原预约后重新申请，不能把提出改期当作新时间已确认。', 'A pending request holds its time slot and expires 24 hours after it is sent or when the appointment starts, whichever is earlier. Either side can cancel. To change the time, cancel and send a new request; proposing a new time does not confirm it.'),
-        t('BayBay AI 和生活指南可能存在遗漏或错误。重要事项请核对原始资料，不能替代法律、财务、医疗等专业意见。', 'BayBay AI and the guides can be incomplete or wrong. Check important matters against the original sources; they are not legal, financial, medical or other professional advice.'),
+        'BayBay AI 和生活指南可能存在遗漏或错误。重要事项请核对原始资料，不能替代法律、财务、医疗等专业意见。',
         t('验证码由你主动请求；服务提供者预约短信另行同意，当前不向顾客发送预约短信。短信提交不保证送达，短信失败不影响已保存的预约与站内通知。', 'Verification codes are sent only when you request them. Booking texts for providers need separate consent, and customers do not receive booking texts today. A submitted text is not guaranteed to arrive; a failed text does not affect saved bookings or in-site notifications.'),
       ]} />
     </LegalSection>
