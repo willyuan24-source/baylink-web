@@ -1,13 +1,4 @@
 import { LegalPageLayout, LegalP, LegalSection, LegalUl } from './LegalPageLayout';
-import { useLocale } from '../i18n/locale';
-
-/**
- * The verification button's bilingual label as the disclosure beside it quotes it. On /en it is a verbatim quote of the
- * interface (translate="no"), so the English page keeps the exact wording the consent refers to; the Chinese pages
- * convert it with the rest of the text, as the interface does.
- */
-const BUTTON_LABEL = '发送验证码 / Send verification code';
-const ButtonLabel = () => useLocale() === 'en' ? <span translate="no">&ldquo;{BUTTON_LABEL}&rdquo;</span> : <span>&ldquo;{BUTTON_LABEL}&rdquo;</span>;
 
 const OPT_IN_FLOW = [
   {
@@ -27,8 +18,7 @@ const OPT_IN_FLOW = [
       'The user enters their mobile number and sees the SMS consent disclosure before requesting a code.',
   },
   {
-    title: 'Step 4: Click',
-    button: true,
+    title: 'Step 4: Click “发送验证码 / Send verification code”',
     image: '/sms-consent/step3-phone-verification-consent.png',
     description:
       'BAYLINK sends the one-time verification code only after the user actively clicks the button.',
@@ -37,7 +27,7 @@ const OPT_IN_FLOW = [
 
 const SmsVerificationDisclosure = () => (
   <p className="text-sm leading-relaxed text-baylink-text-secondary">
-    By clicking <ButtonLabel />, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
+    By clicking &ldquo;发送验证码 / Send verification code&rdquo;, you agree to receive one-time SMS verification codes from BAYLINK at the mobile number provided for account security and phone verification. Message frequency varies based on your verification requests. Msg &amp; data rates may apply. Reply STOP to opt out or HELP for help. View our{' '}
     <a href="/privacy" className="font-normal text-baylink-green hover:underline">
       Privacy Policy
     </a>
@@ -79,7 +69,7 @@ export const SmsConsentView = () => (
     <LegalSection title="How users opt in to verification codes">
       <LegalP>Users opt in by completing the following steps inside BAYLINK:</LegalP>
       <LegalP>
-        Phone verification is optional for general BAYLINK use and is only used when a user chooses to verify their phone number for account security and community trust. BAYLINK does not send SMS during account registration unless the user separately opens Phone Verification, enters a mobile number, and clicks <ButtonLabel />.
+        Phone verification is optional for general BAYLINK use and is only used when a user chooses to verify their phone number for account security and community trust. BAYLINK does not send SMS during account registration unless the user separately opens Phone Verification, enters a mobile number, and clicks &ldquo;发送验证码 / Send verification code&rdquo;.
       </LegalP>
       <LegalUl
         items={[
@@ -87,12 +77,12 @@ export const SmsConsentView = () => (
           'Open Profile and select Phone Verification.',
           'Enter their mobile phone number.',
           'Review the consent disclosure shown before sending a code.',
-          <>Click <ButtonLabel />.</>,
+          'Click “发送验证码 / Send verification code”.',
           'Receive a one-time verification code by SMS.',
         ]}
       />
       <LegalP>
-        No verification SMS is sent until the user enters a mobile number and clicks <ButtonLabel />. Verification consent is collected at that point inside the logged-in profile flow. The screenshots below show this verification flow, not consent to booking notifications.
+        No verification SMS is sent until the user enters a mobile number and clicks &ldquo;发送验证码 / Send verification code&rdquo;. Verification consent is collected at that point inside the logged-in profile flow. The screenshots below show this verification flow, not consent to booking notifications.
       </LegalP>
     </LegalSection>
 
@@ -137,21 +127,21 @@ export const SmsConsentView = () => (
 
     <LegalSection title="Phone Verification Opt-in Flow">
       <LegalP>
-        The screenshots below illustrate the phone verification flow; the current interface may look different. A verification SMS is requested only after the user enters their mobile number, reviews the consent disclosure, and actively clicks <ButtonLabel />.
+        The screenshots below illustrate the phone verification flow; the current interface may look different. A verification SMS is requested only after the user enters their mobile number, reviews the consent disclosure, and actively clicks &ldquo;发送验证码 / Send verification code&rdquo;.
       </LegalP>
       <div className="mt-4 space-y-5">
         {OPT_IN_FLOW.map((step) => (
           <div
-            key={step.image + step.title}
+            key={step.title}
             className="overflow-hidden rounded-2xl border border-baylink-border/60 bg-white/90 shadow-rest"
           >
             <div className="border-b border-baylink-border/40 px-4 py-3">
-              <h3 className="text-sm font-semibold text-baylink-text">{step.title}{'button' in step && <> <ButtonLabel /></>}</h3>
+              <h3 className="text-sm font-semibold text-baylink-text">{step.title}</h3>
             </div>
             <div className="bg-baylink-bg-alt/50 p-3">
               <img
                 src={step.image}
-                alt={`${'button' in step ? 'Step 4: Click Send verification code' : step.title} screenshot`}
+                alt={`${step.title} screenshot`}
                 loading="lazy"
                 className="mx-auto w-full max-w-full rounded-xl border border-black/[0.04] bg-white object-contain"
               />
