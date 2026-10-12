@@ -14,6 +14,11 @@ export const GUIDE_COVER_ANSWERS: Readonly<Record<string, EditorialCopy>> = {
   'bay-area-free-tax-help-vita-calfile-guide': { zh: '报税 800-906-9887', en: 'VITA 800-906-9887' },
   'california-tenant-deposit-rights-help-guide': { zh: '押金：搬出后 21 天', en: 'Deposit: 21 days' },
   'california-driver-license-id-preparation-guide': { zh: '首次驾照申请费 $46', en: 'First license: $46' },
+  'bay-area-newcomer-first-month-checklist': { zh: '社安卡 3 周没到去 SSA', en: 'No SSN card in 3 weeks? SSA' },
+  'bay-area-rental-scam-guide': { zh: '没看房先别转钱', en: "Don't pay before viewing" },
+  'bay-area-october-muni-clipper-payment-update-2026': { zh: '长者用优惠 Clipper', en: 'Seniors: discount Clipper' },
+  'half-moon-bay-coastal-half-day-guide': { zh: '入口 95 Kelly Avenue', en: 'Enter at 95 Kelly Avenue' },
+  'bay-area-first-doctor-insurance-network-guide': { zh: '先认准保险网络', en: 'Know your network first' },
 };
 
 export function guideEditorialAnswer(slug: string, locale: Locale): string | undefined {
