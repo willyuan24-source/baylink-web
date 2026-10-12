@@ -94,8 +94,15 @@ test('the 简洁显示 switch is visible in both states: track and thumb reach 3
       for (const selector of rule.selectors) rules.set(selector, new Map([...(rules.get(selector) || []), [node.prop, node.value]]));
     }
   });
-  const hex = (value: string) => /^var\((--color-[a-z0-9-]+)\)$/.exec(value) ? palette.get(/^var\((--color-[a-z0-9-]+)\)$/.exec(value)![1])! : value;
-  const luminance = (color: string) => [1, 3, 5].map(offset => Number.parseInt(hex(color).slice(offset, offset + 2), 16) / 255)
+  // Palette tokens are channel tokens (TOKENS-B): --color-x: rgb(var(--color-x-rgb)), --color-x-rgb: R G B.
+  const channels = (value: string): number[] => {
+    const alias = /^(?:var\(|rgb\(var\()(--color-[a-z0-9-]+)\)\)?$/.exec(value);
+    if (alias) return channels(palette.get(alias[1])!);
+    const rgb = /^(\d{1,3}) (\d{1,3}) (\d{1,3})$/.exec(value);
+    assert.ok(rgb, `${value} resolves to an opaque colour`);
+    return rgb.slice(1).map(Number);
+  };
+  const luminance = (color: string) => channels(color).map(channel => channel / 255)
     .map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
   const contrast = (a: string, b: string) => { const [high, low] = [luminance(a), luminance(b)].sort((x, y) => y - x); return (high + .05) / (low + .05); };
   const off = rules.get('.reading-simple-track')!, offThumb = rules.get('.reading-simple-track>span')!;

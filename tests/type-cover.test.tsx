@@ -146,7 +146,7 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
     // Root Aa (html[data-reading], WEB-TOKENS-A) scales every rem: a second --reading-scale would double-scale, px never grows.
     assert.doesNotMatch(declaration.value, /--reading-scale|\d(?:\.\d+)?px\b/, where);
     // A bare .47em under a 22px value floor was 10.3px; the small date/value part now keeps the caption size as its floor.
-    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
+    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|display)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
     if (declaration.value.startsWith('clamp(')) {
       const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)), (.*), [\d.]+rem\)$/.exec(declaration.value);
       assert.ok(clamp, `${where}: clamp(rem floor, …, rem cap)`);

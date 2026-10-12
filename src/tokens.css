@@ -64,6 +64,12 @@
   --bay-paper:var(--color-bg); --bay-forest:var(--color-brand-deep); --bay-green:var(--color-brand); --bay-line:var(--color-line); --bay-muted:var(--color-ink-3);
   --site-mobile-nav-height:calc(4.5rem + env(safe-area-inset-bottom,0px));
 }
+/* Profile card themes (ProfileIdentity, EditProfileModal): the four palettes a member picks for their card. They are the
+   only hues outside the site palette, by design, so they live here with it (moved from profile-personality.css). */
+.profile-theme-bay{--profile-sky:#a9d6e7;--profile-horizon:#659fa9;--profile-land:#357784;--profile-ink:#205966;--profile-tint:#edf6f7}
+.profile-theme-sunset{--profile-sky:#f5d5b9;--profile-horizon:#da9a83;--profile-land:#bc786b;--profile-ink:#8a493e;--profile-tint:#fff2e9}
+.profile-theme-redwood{--profile-sky:#d7dfb9;--profile-horizon:#8fa889;--profile-land:#557868;--profile-ink:#365b44;--profile-tint:#f0f4e8}
+.profile-theme-lavender{--profile-sky:#ddd5f4;--profile-horizon:#aaa1ce;--profile-land:#7b7ea9;--profile-ink:#5b5686;--profile-tint:#f5f1fc}
 html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang TC','Microsoft JhengHei','Noto Sans CJK TC','Noto Sans TC',sans-serif; }
 /* Aa: 标准 100% / 大 112.5% / 特大 125% of the browser's own size, set before the first paint by public/reading-init.js.
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale

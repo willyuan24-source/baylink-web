@@ -68,6 +68,10 @@ test('every CSS rule that sets a text token on a background token passes AA', ()
         if (node.prop === 'background' || node.prop === 'background-color') background = node.value;
       });
       if (!color || !background) return;
+      // A translucent background shows what is under it (a photo, a brand bubble), which a stylesheet cannot know: only
+      // opaque backgrounds are measured here; the page probes measure the rest.
+      const alpha = /\/ (\d*\.?\d+)\)$/.exec(background.trim());
+      if (alpha && Number(alpha[1]) < .95) return;
       const bg = resolve(background); const fg = bg && resolve(color, bg);
       if (!bg || !fg) return;
       pairs++;
