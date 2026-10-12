@@ -22,6 +22,10 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const activeRequest = useRef<AbortController | null>(null);
   const mounted = useRef(true);
+  // With a mouse and keyboard the sheet opens in the email field, as the dialog did before the Sheet (a desktop reader types
+  // at once). On a touch screen the ✕ takes focus, so the on-screen keyboard does not cover the sheet before it is read.
+  const emailRef = useRef<HTMLInputElement>(null);
+  const [typeFirst] = useState(() => typeof window !== 'undefined' && Boolean(window.matchMedia?.('(hover: hover) and (pointer: fine)').matches));
 
   // One signup_gate per time the sign-in / register sheet is shown (G10: the gate was never counted).
   useEffect(() => { recordProductEvent('signup_gate'); }, []);
@@ -107,7 +111,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   </div></Sheet>;
 
   return (
-    <Sheet open onClose={close} closeOnBackdrop={false} title={mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
+    <Sheet open onClose={close} closeOnBackdrop={false} initialFocusRef={typeFirst ? emailRef : undefined} title={mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
       <div className="member-auth-dialog">
         <AuthBrandHeader />
         <div className="member-auth-heading">
@@ -117,7 +121,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
         {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="member-auth-form">
             <label htmlFor="auth-email" className="block text-xs font-normal">{mode === 'register' ? '邮箱账号' : '邮箱或用户名'}</label>
-            <input id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />
+            <input ref={emailRef} id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />
             <label htmlFor="auth-password" className="block text-xs font-normal">密码</label>
             <input id="auth-password" required type="password" autoComplete={mode === 'register' ? 'new-password' : 'current-password'} className={inputClass} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} placeholder="密码" />
             {mode === 'register' && (
