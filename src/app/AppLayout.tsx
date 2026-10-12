@@ -354,14 +354,20 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     return () => window.clearTimeout(id);
   }, []);
 
+  // G78 (api #38 contract): a reset e-mail carries its token in the fragment (#token=…), which no server log or Referer
+  // sees; links already sent with ?token= keep working until the owner sets PASSWORD_RESET_LINK_STYLE=fragment (at least
+  // 7 days after this ships, then the query form can go). Either way the token is read once and leaves the address bar
+  // and this history entry at once; the token already read stays for the open dialog.
   useEffect(() => {
-    if (/^\/reset-password\/?$/.test(location.pathname)) {
-      const token = new URLSearchParams(location.search).get('token');
-      setResetPasswordToken(token || null);
-    } else {
-      setResetPasswordToken(null);
-    }
-  }, [location.pathname, location.search]);
+    if (!/^\/reset-password\/?$/.test(location.pathname)) { setResetPasswordToken(null); return; }
+    const query = new URLSearchParams(location.search);
+    const token = new URLSearchParams(location.hash.replace(/^#/, '')).get('token') || query.get('token');
+    if (!token) return;
+    setResetPasswordToken(token);
+    query.delete('token');
+    const search = query.toString();
+    navigate({ pathname: location.pathname, search: search ? `?${search}` : '', hash: '' }, { replace: true, state: location.state });
+  }, [location.pathname, location.search, location.hash, location.state, navigate]);
 
   const handleResetPasswordSuccess = () => {
     navigate('/', { replace: true });

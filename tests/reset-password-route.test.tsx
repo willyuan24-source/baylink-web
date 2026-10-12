@@ -110,3 +110,33 @@ test('successful password reset clears the router token before opening login', a
   assert.equal(view.getByTestId('router-location').textContent, '/');
   assert.equal(view.queryByRole('dialog', { name: '重设密码', exact: true }), null);
 });
+
+// G78 (api #38): the e-mail link carries its token in the fragment; the dialog reads it, posts it unchanged, and the
+// token leaves the address bar and the history entry at once. The old ?token= form still works for links already sent.
+test('a reset link with #token= opens the dialog, leaves no token in the URL or history, and posts the token unchanged', async t => {
+  const token = 'a'.repeat(64);
+  const { view, calls } = fixture(t, `/reset-password#token=${token}`);
+  const dialog = within(await resetDialog(view));
+  assert.equal(view.getByTestId('router-location').textContent, '/reset-password', 'no token in the address bar');
+  fireEvent.change(dialog.getByPlaceholderText('新密码', { exact: true }), { target: { value: 'FixturePassword8' } });
+  fireEvent.change(dialog.getByPlaceholderText('确认新密码', { exact: true }), { target: { value: 'FixturePassword8' } });
+  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '更新密码', exact: true })); });
+  assert.deepEqual(JSON.parse(calls.find(call => call.path === '/auth/reset-password')!.options!.body as string), { token, newPassword: 'FixturePassword8' });
+  // Back from the reset entry goes to the page before it; Forward returns to /reset-password without a token.
+  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '去登录', exact: true })); });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'fixture back' })); });
+  assert.equal(view.getByTestId('router-location').textContent, '/guides');
+});
+
+test('the old ?token= link still opens the dialog, and the token is stripped from the address bar at once (other parameters kept)', async t => {
+  const { view } = fixture(t, '/reset-password?token=legacy-query-token&lang=en');
+  await resetDialog(view);
+  assert.equal(view.getByTestId('router-location').textContent, '/reset-password?lang=en');
+});
+
+test('the forgot-password request asks for the fragment link style', async t => {
+  const bodies: unknown[] = [];
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => { if (path === '/auth/forgot-password') bodies.push(JSON.parse(String(options?.body))); return { message: 'ok' }; });
+  await api.forgotPassword('reader@example.com');
+  assert.deepEqual(bodies, [{ email: 'reader@example.com', resetLinkStyle: 'fragment' }]);
+});
