@@ -60,7 +60,8 @@ export const DERIVED_FROM: Record<LintKind, Record<string, readonly string[]>> =
     dateNote: ['startDate', 'endDate', 'occurrenceDates', 'dateLabel'], venueShort: ['venue'], address: ['venue'], ageChip: ['audience'],
     plan: ['plan'], status: ['startDate', 'endDate', 'occurrenceDates', 'dateLabel', 'costLabel'],
   },
-  offer: { shortTitle: ['title'], status: ['startDate', 'endDate', 'dateLabel'] },
+  // An offer's short title keeps who qualifies, which can come from `requirement` ("美国居民" for the NPS free days).
+  offer: { shortTitle: ['title', 'requirement'], status: ['startDate', 'endDate', 'dateLabel'] },
   opening: { shortTitle: ['name'], openedOn: ['status', 'openedOn', 'dateLabel'] },
 };
 /** The stored entry fields that would mask an upstream edit of each source field. */
