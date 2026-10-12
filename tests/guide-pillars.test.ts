@@ -77,6 +77,13 @@ test('pillars stay plain: hedging at most 12 per 1,000 characters on every pilla
   }
 });
 
+test('every source a pillar card cites has a circled mark (GuideFactCards prints ①–⑬; a higher index falls back to [14])', () => {
+  for (const [slug, editorial] of Object.entries(GUIDE_EDITORIAL)) {
+    const cited = [...editorial.keyFacts.map(fact => fact.source), ...(editorial.contacts ?? []).map(contact => contact.source), ...editorial.slides.map(slide => slide.source)];
+    for (const source of cited) if (source !== undefined) assert.ok(source <= 13, `${slug}: source ${source}`);
+  }
+});
+
 test('no editor or pipeline notes reach readers in any guide', () => {
   const NOTE = /本次直接读取|读取返回|返回 ?403|HTTP 403|可检索说明|未完成全页人工核验|直接读取未成功|本轮|本包|(?<!登)录入|抓取/u;
   for (const guide of guides) for (const text of strings(guide)) assert.doesNotMatch(text, NOTE, `${guide.slug}: ${text.slice(0, 80)}`);

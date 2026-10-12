@@ -12,9 +12,9 @@ export const driverLicenseEditorial: GuideEditorial = {
   },
   keyFacts: [
     { label: { zh: '先选类型', en: 'Choose the card' }, value: { zh: 'ID 不能用来开车；REAL ID 不免驾照考试', en: 'An ID is not a license; REAL ID does not skip the tests' }, source: 2 },
-    { label: { zh: '首次申请费', en: 'First license fee' }, value: { zh: 'C 类驾照 $46，申请 12 个月内有效', en: 'Class C $46; the application is valid 12 months' }, source: 14 },
-    { label: { zh: '笔试', en: 'Knowledge test' }, value: { zh: '要预约；答对 80% 通过，每科最多考 3 次', en: 'By appointment; 80% passes, up to 3 tries per test' }, source: 15 },
-    { label: { zh: '中文准备', en: 'Study in Chinese' }, value: { zh: '中文驾驶手册和中文 C 类练习题；外语笔试加考交通标志', en: 'Chinese handbook and Chinese Class C practice tests; a test in another language adds a signs test' }, source: 16 },
+    { label: { zh: '首次申请费', en: 'First license fee' }, value: { zh: 'C 类驾照 $46，申请 12 个月内有效', en: 'Class C $46; the application is valid 12 months' }, source: 8 },
+    { label: { zh: '笔试', en: 'Knowledge test' }, value: { zh: '要预约；答对 80% 通过，每科最多考 3 次', en: 'By appointment; 80% passes, up to 3 tries per test' }, source: 9 },
+    { label: { zh: '中文准备', en: 'Study in Chinese' }, value: { zh: '中文驾驶手册和中文 C 类练习题；外语笔试加考交通标志', en: 'Chinese handbook and Chinese Class C practice tests; a test in another language adds a signs test' }, source: 10 },
     { label: { zh: '新居民', en: 'New residents' }, value: { zh: '外州驾照最多再开 10 天；外州车辆 20 天内登记', en: 'Out-of-state license for at most 10 more days; register the car within 20 days' }, source: 6 },
   ],
   slides: [
@@ -31,9 +31,9 @@ export const driverLicenseEditorial: GuideEditorial = {
         { zh: '网上填表，再预约到 DMV', en: 'Start online, then book a DMV visit' },
         { zh: '笔试答对 80% 通过，每科最多 3 次', en: '80% passes, up to 3 tries per test' },
         { zh: '下午 4:30 以后不安排笔试', en: 'No knowledge tests after 4:30 p.m.' },
-      ], source: 14 },
+      ], source: 8 },
     { kind: 'point', kicker: { zh: '中文准备', en: 'Study in Chinese' }, title: { zh: '中文手册和练习题', en: 'Chinese handbook and practice tests' },
-      body: { zh: 'DMV 有中文版驾驶手册和中文 C 类练习题。现场笔试有多种语言，用外语考要加考交通标志；预约时说明想用中文考。', en: 'DMV has the handbook and Class C practice tests in Chinese. In-person tests come in many languages, and a test in another language adds a traffic signs test; say you want Chinese when you book.' }, source: 17 },
+      body: { zh: 'DMV 有中文版驾驶手册和中文 C 类练习题。现场笔试有多种语言，用外语考要加考交通标志；预约时说明想用中文考。', en: 'DMV has the handbook and Class C practice tests in Chinese. In-person tests come in many languages, and a test in another language adds a traffic signs test; say you want Chinese when you book.' }, source: 11 },
     { kind: 'point', kicker: { zh: '期限', en: 'Deadlines' }, title: { zh: '三个期限分开算', en: 'Three separate clocks' },
       items: [
         { zh: '10 天：新居民依原豁免最多再驾驶', en: '10 days: driving under the old exemption as a new resident' },
@@ -45,7 +45,7 @@ export const driverLicenseEditorial: GuideEditorial = {
         { zh: '普通驾照或 ID：至少一份合格住址文件', en: 'Standard license or ID: at least one accepted document' },
         { zh: 'REAL ID：两份不同的打印文件', en: 'REAL ID: two different printed documents' },
         { zh: '姓名不一致：准备衔接证明', en: 'Name differs: bring the linking document' },
-      ], source: 9 },
+      ], source: 13 },
     { kind: 'checklist', kicker: { zh: '预约前', en: 'Before your visit' }, title: { zh: '文件夹检查一遍', en: 'Check your folder' },
       items: [
         { zh: '业务入口选对：首次、换州、外国驾照、ID 或续补', en: 'The right service: first-time, out-of-state, foreign, ID or renewal' },
