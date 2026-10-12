@@ -96,15 +96,16 @@ test('About carries the positioning line in its title, H1 and lede, in English t
 });
 
 test('legal pages show English readers only English, and Chinese readers the summaries and Chinese sections', async () => {
-  for (const [path, view, title] of [['/privacy', PrivacyPolicyView, 'Privacy Policy'], ['/terms', TermsView, 'Terms of Service'], ['/sms-consent', SmsConsentView, 'SMS Consent']] as const) {
+  for (const [path, view, zhTitle, title] of [['/privacy', PrivacyPolicyView, '隐私政策', 'Privacy Policy'], ['/terms', TermsView, '服务条款', 'Terms of Service'], ['/sms-consent', SmsConsentView, '短信同意说明', 'SMS Consent']] as const) {
     const en = await render('en', path, createElement(view));
     assert.equal(page(en).getByRole('heading', { level: 1 }).textContent, title);
     assert.deepEqual(englishLeaks(en), [], path);
     assert.match(page(en).getByText(/^Last updated:/).textContent!, /^Last updated: [A-Z][a-z]+ \d{1,2}, 2026$/);
+    // Chinese pages keep the English title and date: the bodies are English-first, and carrier reviewers open the unprefixed URL.
     const zh = await render('zh-Hans', path, createElement(view));
-    assert.doesNotMatch(page(zh).getByRole('heading', { level: 1 }).textContent!, /[A-Za-z]{4}/, `${path}: the Chinese H1 is Chinese`);
+    assert.equal(page(zh).getByRole('heading', { level: 1 }).textContent, `${zhTitle} · ${title}`, `${path}: the Chinese H1 keeps the English title`);
     assert.match(zh.body.textContent!, path === '/sms-consent' ? /中文说明：何时会发送短信/ : /中文阅读要点/);
-    assert.match(page(zh).getByText(/^更新日期：/).textContent!, /^更新日期：2026年/);
+    assert.match(page(zh).getByText(/^更新日期：/).textContent!, /^更新日期：2026年\d{1,2}月\d{1,2}日 · Last updated: [A-Z][a-z]+ \d{1,2}, 2026$/);
   }
   const privacy = await render('zh-Hans', '/privacy', createElement(PrivacyPolicyView));
   assert.match(privacy.body.textContent!, /Cloudflare/, 'the API network edge is named (ENGSEC-11)');
@@ -115,6 +116,8 @@ test('legal pages show English readers only English, and Chinese readers the sum
   const hant = await render('zh-Hant', '/sms-consent', createElement(SmsConsentView));
   assert.equal(hant.querySelectorAll('[lang="zh-Hans"]').length, 0);
   assert.match(hant.body.textContent!, /發送驗證碼 \/ Send verification code/);
+  assert.equal(page(hant).getByRole('heading', { level: 1 }).textContent, '簡訊同意說明 · SMS Consent');
+  assert.match(page(hant).getByText(/^更新日期：/).textContent!, / · Last updated: September 30, 2026$/);
   assert.doesNotMatch(hant.body.textContent!, /发送验证码/);
 });
 
