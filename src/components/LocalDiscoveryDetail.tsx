@@ -102,6 +102,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
     ...(event && planDate ? { day: { stop: { kind: 'event' as const, id: event.id }, date: planDate, today } } : {}),
     ...(item.kind === 'opening' && record.placeId ? { planPath: `/plan?stops=place:${record.placeId}` } : {}),
   };
+  const facts = item.kind === 'event' ? <EventFacts event={item.event} today={today} /> : item.kind === 'offer' ? <OfferFacts offer={item.offer} /> : <OpeningFacts shop={item.shop} />;
   const planLines = event ? readerPlanLines(event).filter(line => readerProse(line, locale)) : [];
   const nextCards = event && eventOver ? railEvents(event, record.rail, today, { sameCategory: false, limit: 4 }) : [];
   const relatedCards = event && !eventOver ? railEvents(event, record.rail, today, { sameCategory: true, limit: 3 }) : [];
@@ -109,7 +110,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   return <article className="local-discovery-detail detail-page" data-kind={item.kind} data-ended={ended ? '' : undefined}>
     <nav className="detail-back" aria-label={t('返回', 'Back')}><Link to={back.to}><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{pick(back.label)}</Link></nav>
     <div className="detail-layout">
-      <div className="detail-main">
+      <div className="detail-main detail-main--top">
         <DetailHero record={record} cover={cover} today={today} ended={eventOver} />
         <header className="detail-head">
           <p className="detail-chips">{chips.map(chip => <StatusChip key={chip.key} tone={chip.tone}>{chip.text}</StatusChip>)}</p>
@@ -122,7 +123,11 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
         {unconfirmed && <p className="detail-note">{t('暂无已确认场次，请查看主办方最新安排。', 'No date is confirmed yet. Check the organizer’s latest schedule.')}</p>}
         {item.kind === 'offer' && ended && <p className="detail-note">{t('这份优惠已过期，保留供分享链接回顾。', 'This offer has expired; the page stays for shared links.')}</p>}
         {unconfirmedOffer && <p className="detail-note">{t('当前优惠待确认；请先联系官方，确认后再安排行程。', 'This offer is not confirmed yet. Check with the provider before you plan around it.')}</p>}
-        {item.kind === 'event' ? <EventFacts event={item.event} today={today} /> : item.kind === 'offer' ? <OfferFacts offer={item.offer} /> : <OpeningFacts shop={item.shop} />}
+      </div>
+      {/* The facts and the actions: in the flow under the H1 on a phone (the bar itself is fixed), the sticky card beside the
+          column on a desktop (design.md §4.9). One copy, so the reading order is the same everywhere. */}
+      <aside className="detail-aside">{facts}<DetailActionBar actions={actions} /></aside>
+      <div className="detail-main detail-main--body">
         <ContentReviewNotice record={review} today={today} />
         {item.kind === 'opening' && <p className="detail-note">{translateText(openingStatusNote(item.shop.status), locale)}</p>}
 
@@ -163,7 +168,6 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             cards={relatedCards} today={today} page={coverPage} />}
         </div>
       </div>
-      <aside className="detail-aside"><DetailActionBar actions={actions} /></aside>
     </div>
     <footer className="discovery-return">
       <span className="discovery-eyebrow" translate="no">{t('继续发现湾区', 'Keep exploring the Bay')}</span>

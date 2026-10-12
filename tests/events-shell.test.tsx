@@ -161,18 +161,18 @@ test('the filter Sheet announces the number the page shows once it closes: the c
   assert.equal(feedIds(view.container).length, Math.min(12, sf));
 });
 
-test('what left the listing stays on the detail page: 我想去, 一起去 and 存入日历 on a live weekend event', async () => {
+test('what left the listing stays on the detail page: 公开想去, 一起去 and 存入日历 on a live weekend event', async () => {
   const { getLocalDiscovery } = await import('../src/data/local-discoveries');
   const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+  const { buildDetailRecord } = await import('../src/features/detail/build-detail');
   globalThis.fetch = (async () => { throw new Error('offline in tests'); }) as typeof fetch;
   const event = weekendEvents()[0];
   const item = getLocalDiscovery('event', event.id);
   assert.ok(item?.kind === 'event', event.id);
-  const view = render(<MemoryRouter><LocalDiscoveryDetail item={item} today={today} /></MemoryRouter>);
-  const interest = view.getByRole('button', { name: `我想去：${item.event.title}`, exact: true }) as HTMLButtonElement;
+  const view = render(<MemoryRouter><LocalDiscoveryDetail record={buildDetailRecord(item)} today={today} /></MemoryRouter>);
+  const interest = view.getByRole('button', { name: `公开想去：${item.event.title}`, exact: true }) as HTMLButtonElement;
   assert.equal(interest.disabled, false);
   assert.ok(view.getByRole('button', { name: /^一起去/ }));
-  fireEvent.click(view.getByText('收藏、日历与分享', { exact: true }));
   assert.ok(view.getByRole('button', { name: '存入日历', exact: true }));
   // The counts, the 一起去 sheet and private interest: tests/event-participation.test.tsx; the participation anchor and
   // the ended state: tests/local-discovery.test.tsx.

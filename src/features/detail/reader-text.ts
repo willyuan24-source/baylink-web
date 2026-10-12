@@ -129,8 +129,12 @@ export function readerCost(costLabel: string, cost: string, locale: Locale): str
   return text && locale === 'zh-Hant' ? translateText(text, 'zh-Hant') : text;
 }
 
+const SEMICOLON_MARK = '\uE001';
 /** Catalog prose in the reader's language, one sentence per item (offer conditions and steps read as lists). */
 export function readerSentences(text: string | undefined, locale: Locale): string[] {
   const prose = readerProse(text, locale);
-  return prose ? sentences(prose, locale === 'en').map(sentence => sentence.trim()).filter(Boolean) : [];
+  if (!prose) return [];
+  // English list items end at a full stop only: "…onto Senior Clipper; it is not automatically free…" stays one item.
+  if (locale === 'en') return sentences(prose.split(';').join(SEMICOLON_MARK), true).map(sentence => sentence.split(SEMICOLON_MARK).join(';').trim()).filter(Boolean);
+  return sentences(prose, false).map(sentence => sentence.trim()).filter(Boolean);
 }

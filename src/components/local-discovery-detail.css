@@ -66,6 +66,7 @@
 /* Rails: 172px feed cards in a scroller on a phone (the page itself never scrolls sideways), four in a row on a desktop. */
 .local-discovery-detail .detail-rail { margin:20px 0 0; }
 .local-discovery-detail .detail-main>.detail-rail { margin-inline:16px; }
+.local-discovery-detail .detail-main--body>:not(.detail-body,.detail-note) { margin-inline:16px; }
 .local-discovery-detail .detail-rail h2 { margin:0 0 4px; font-size:1.25rem; font-weight:600; line-height:1.4; }
 .local-discovery-detail .detail-rail__note { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 .local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:10.75rem; gap:12px; margin-inline:-16px; padding:4px 16px 8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; }
@@ -102,17 +103,21 @@
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
 }
 
-/* Desktop: the column and the sticky action card. */
+/* Desktop: the column (top: hero and title; body: the rest) and the sticky card beside both (facts as a list, then the
+   actions). The card comes between the two blocks in the DOM, so a phone reads the facts right under the H1. */
 @media(min-width:1024px) {
+  .local-discovery-detail .detail-aside .detail-facts { grid-template-columns:minmax(0,1fr); margin:0 0 16px; }
   .local-discovery-detail { padding:16px 40px 72px; }
   .local-discovery-detail .detail-back { padding:0; margin-bottom:8px; }
   .local-discovery-detail .detail-back a { padding-left:0; }
-  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:minmax(0,50rem) 22.5rem; justify-content:center; align-items:start; gap:48px; }
-  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail { margin-inline:0; }
+  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:minmax(0,50rem) 22.5rem; grid-template-areas:"top aside" "body aside"; grid-template-rows:auto 1fr; justify-content:center; align-items:start; gap:0 48px; }
+  .local-discovery-detail .detail-main--top { grid-area:top; }
+  .local-discovery-detail .detail-main--body { grid-area:body; }
+  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
   .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:24px; overflow:hidden; }
   .local-discovery-detail .detail-head { padding-top:20px; }
   .local-discovery-detail .detail-head h1 { font-size:2rem; line-height:1.3125; }
-  .local-discovery-detail .detail-aside { position:sticky; top:5.5rem; }
+  .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }
   .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
   .local-discovery-detail .detail-actions>*,.local-discovery-detail .detail-actions .saves-control .saves-toggle { width:100%; }
   .local-discovery-detail .detail-actions .detail-actions__primary { order:-1; }

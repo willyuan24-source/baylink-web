@@ -52,10 +52,11 @@ test('T6: the hero opens every sampled detail, then the chips, the H1 and the at
     const head = main.querySelector('.detail-head')!;
     assert.ok(head.querySelector('.detail-chips .ui-status'), id);
     assert.equal(head.querySelectorAll('h1').length, 1, id);
-    const facts = main.querySelector('dl.detail-facts')!;
+    const facts = doc.querySelector('dl.detail-facts')!;
+    assert.equal(doc.querySelectorAll('dl.detail-facts').length, 1, `${id}: one copy of the facts (the desktop card is the same element)`);
     assert.ok(facts.querySelectorAll('.detail-fact').length >= 3, `${id}: at least three facts`);
     assert.ok(head.compareDocumentPosition(facts) & FOLLOWING, `${id}: facts follow the H1`);
-    assert.ok(facts.compareDocumentPosition(main.querySelector('.detail-body')!) & FOLLOWING, `${id}: the body follows the facts`);
+    assert.ok(facts.compareDocumentPosition(doc.querySelector('.detail-body')!) & FOLLOWING, `${id}: the body follows the facts`);
     assert.equal(doc.querySelector('.discovery-detail-brand, .discovery-detail-more-actions, details'), null, `${id}: no masthead and no tucked-away actions`);
     assert.ok(!/湾区生活手记/.test(doc.textContent || ''), id);
   }
