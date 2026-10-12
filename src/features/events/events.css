@@ -3,8 +3,10 @@
  * (EventsShell imports it) and linked by the prerender (RC-6). Composes the WEB-UI primitives (ui.css); every class here
  * is `ev-` prefixed. Sizes are rem or text tokens (the root Aa scale grows them), colours are tokens, weights 400/600/700.
  */
-.ev-page { --ev-header:68px; padding-bottom:3rem; color:var(--color-ink); background:var(--color-bg); }
-@media (min-width:640px) { .ev-page { --ev-header:80px; } }
+/* The sticky rows sit under the site header: its own height variable (WEB-SHELL2's --chrome-header-height, rem, so it
+   grows with Aa), else today's header (68px on phones, 80px from 768px, editorial-refinement.css). */
+.ev-page { --ev-header:var(--chrome-header-height, 68px); padding-bottom:3rem; color:var(--color-ink); background:var(--color-bg); }
+@media (min-width:768px) { .ev-page { --ev-header:var(--chrome-header-height, 80px); } }
 
 /* Header: H1 活动, the range line (follows `when`), counts and the source promise. */
 .ev-page .ev-header { margin:0; padding:1.25rem 0 1rem; gap:.25rem; }
@@ -13,7 +15,7 @@
 .ev-lede-facts { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 
 /* The four views: one sticky row under the site header; full-bleed white bar, one line at 390 in every language. */
-.ev-tabs-bar { position:sticky; top:var(--ev-header); z-index:40; background:rgb(255 255 255 / .96); border-bottom:1px solid var(--color-line); backdrop-filter:blur(12px); }
+.ev-tabs-bar { position:sticky; top:var(--ev-header); z-index:40; background:var(--color-surface); border-bottom:1px solid var(--color-line); }
 .ev-tabs-bar .ui-tabs { border-bottom:0; gap:0; }
 .ev-tabs-bar .ui-tabs__item { padding:0 .75rem; }
 @media (max-width:420px) { .ev-tabs-bar .ui-tabs__item { padding:0 .5rem; font-size:var(--text-fact); } }
@@ -46,7 +48,24 @@
 
 /* 编辑精选: the 4:5 rail (one slide plus a peek on phones; all four across on desktop, so the feed starts on screen 1). */
 .ev-picks .ui-carousel { margin-bottom:.5rem; }
-@media (min-width:1024px) { .ev-picks .ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 36px) / 4); } }
+/* One slide at a time (below 1024px): every pick is as tall as the tallest, so the dots follow every slide's text instead
+   of an empty band under a photo. A TypeCover pick prints its title under the poster, so its poster starts nearly square
+   (20:21) and the cover of each pick takes what is left: photos stay at about 4:5, a pick without a reason line grows a
+   little. */
+@media (max-width:1023px) {
+  .ev-picks .ui-carousel__slide { display:flex; flex-direction:column; }
+  .ev-picks .ui-hero-card { flex:1 0 auto; }
+  .ev-picks .ui-hero-card__media { display:flex; flex:1 0 auto; flex-direction:column; }
+  .ev-picks .ui-hero-card__media>:is(.ui-cover,.ui-type-cover) { flex:1 0 auto; }
+  .ev-picks .ui-hero-card:not([data-overlay]) .ui-type-cover { aspect-ratio:20 / 21; }
+  .ev-picks .ui-hero-card[data-overlay] .ui-hero-card__media { display:grid; grid-template-rows:minmax(0, 1fr); }
+  .ev-picks .ui-hero-card[data-overlay] .ui-hero-card__media>.ui-cover { height:100%; }
+}
+@media (min-width:1024px) {
+  .ev-picks .ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 36px) / 4); }
+  /* All four picks are on screen: no paging controls that would do nothing. */
+  .ev-picks .ui-carousel__controls { display:none; }
+}
 
 /* 周六 / 周日 / 整个周末都开放 and the filter row. */
 .ev-days { margin:0 0 .75rem; }
@@ -123,6 +142,17 @@
 .ev-week__day[aria-pressed=true] .ev-week__date,.ev-month__day[aria-pressed=true] .ev-month__num { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); }
 .ev-week__day[aria-pressed=true] .ev-week__weekday { color:var(--color-ink); font-weight:600; }
 .ev-week__day:focus-visible,.ev-month__day:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+.ev-week__range { display:none; }
+/* 大/特大 on phones: seven date circles do not fit between ‹ and ›, so the arrows move above the days around the week's
+   range and the days take the full width (each date keeps its own circle). */
+@media (max-width:767px) {
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week { grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; row-gap:.25rem; }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__prev { grid-area:prev; }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__next { grid-area:next; }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__days { grid-area:days; gap:0; }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__range { display:block; grid-area:range; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; text-align:center; font-variant-numeric:tabular-nums; }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__date { min-width:2rem; height:2rem; padding:0; font-size:1.125rem; }
+}
 .ev-calendar__head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem .75rem; margin:.5rem 0 .75rem; }
 .ev-calendar__head .ev-section-title { margin:0; }
 .ev-calendar__count { margin-left:.5rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }
