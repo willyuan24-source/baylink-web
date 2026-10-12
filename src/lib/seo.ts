@@ -80,7 +80,7 @@ const isEnglish = (metadata: PageMetadata) => (metadata.locale || metadataLocale
 /** English titles separate the brand with an ASCII bar (" | BAYLINK"), not the full-width ｜ (I18N-SEO-08). */
 const englishSeparators = (value: string) => value.replace(/\s*｜\s*/g, ' | ');
 const localizedField = (metadata: PageMetadata, field: 'title' | 'description' | 'imageAlt'): string => {
-  const english = isEnglish(metadata) ? metadata.english?.[field] : undefined;
+  const english = isEnglish(metadata) ? metadata.english?.[field] ?? (field === 'imageAlt' && !metadata.imageAlt ? metadata.english?.title : undefined) : undefined;
   if (english) return english;
   const value = field === 'imageAlt' ? metadata.imageAlt || metadata.title : metadata[field];
   const text = metadata.preserveText ? value : translateText(value);

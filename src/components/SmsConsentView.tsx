@@ -7,7 +7,7 @@ import { useLocale } from '../i18n/locale';
  * convert it with the rest of the text, as the interface does.
  */
 const BUTTON_LABEL = '发送验证码 / Send verification code';
-const ButtonLabel = () => useLocale() === 'en' ? <span translate="no">&ldquo;{BUTTON_LABEL}&rdquo;</span> : <>&ldquo;{BUTTON_LABEL}&rdquo;</>;
+const ButtonLabel = () => useLocale() === 'en' ? <span translate="no">&ldquo;{BUTTON_LABEL}&rdquo;</span> : <span>&ldquo;{BUTTON_LABEL}&rdquo;</span>;
 
 const OPT_IN_FLOW = [
   {
