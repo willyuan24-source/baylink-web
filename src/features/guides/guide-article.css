@@ -159,8 +159,10 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 }
 @media (min-width:1024px) {
   .gd-article.bl-guide-article { padding-block:32px; }
-  /* The frame is wide; running text keeps a reading measure (--container-reading, about 42 CJK characters a line). */
-  .gd-article .bl-guide-prose>:is(p,ul,ol) { max-width:var(--container-reading); }
+  /* The frame is wide; the article body keeps one reading measure (--container-reading). The column beside the contents
+     list (step cards, prose, dividers, checklists, sources) and any prose above the boards end on one right edge; the
+     crumbs, H1, lead, contact cards and related guides stay on the frame. */
+  .gd-article .bl-guide-reading-main,.gd-article>.bl-guide-prose { max-width:var(--container-reading); }
 .gd-title__rest { font-size:var(--text-body); }
   .gd-lead { margin-top:20px; }
   .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }
