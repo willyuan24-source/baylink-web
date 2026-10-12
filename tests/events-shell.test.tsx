@@ -393,3 +393,18 @@ test('covers come from the ladder: no image twice on a page, information cards a
     for (const badge of page.querySelectorAll('[data-cover="image"] .ui-provenance')) assert.doesNotMatch(badge.textContent!, /AI/);
   }
 });
+
+test('RC-33: a phone-wide cover (the picks, the calendar lead) asks for the 800w rung at most, so the LCP image is not starved', () => {
+  const cap = /^\(max-width: 767px\) 266px, /;
+  const events = ssr('/events', <EventsView today={today} />);
+  const picks = [...events.querySelectorAll('.ev-picks img.ui-cover__img')];
+  assert.ok(picks.length > 0);
+  for (const img of picks) assert.match(img.getAttribute('sizes')!, cap);
+  assert.equal(picks[0].getAttribute('fetchpriority'), 'high', 'the first pick is the eager LCP image');
+  const calendar = ssr('/calendar?date=2026-10-10', <CalendarPage today={today} />);
+  const lead = calendar.querySelector('.ev-calendar__lead img.ui-cover__img')!;
+  assert.match(lead.getAttribute('sizes')!, cap);
+  assert.equal(lead.getAttribute('fetchpriority'), 'high');
+  // Feed cards keep the shared feed sizes (173px slots already pick 800w at DPR 3).
+  assert.doesNotMatch(events.querySelector('.ev-feed img.ui-cover__img')!.getAttribute('sizes')!, cap);
+});
