@@ -122,9 +122,14 @@ export async function renderPublicPostPage(request: Request, dependencies: Depen
     const post = publicPost(data, id);
     if (!post) return errorResponse(503);
     const description = post.description.replace(/\s+/g, ' ').slice(0, 180) || [post.category, post.city, post.budget].filter(Boolean).join(' · ');
-    const metadata: PageMetadata = { title: `${post.title}｜BAYLINK`, description, path, image: post.image, type: 'article', noindex: post.closed, preserveText: true, locale };
+    // A user's post is one text in its author's language (I18N-SEO-12): no hreflang cluster claiming translations; the
+    // /en and /zh-Hant copies (the same text with translated controls) point their canonical at the original and are not
+    // indexed, so search engines see one page per post.
+    const languageCopy = lang !== 'zh-Hans';
+    const metadata: PageMetadata = { title: `${post.title}｜BAYLINK`, description, path, image: post.image, type: 'article', noindex: post.closed || languageCopy, preserveText: true, locale, languageAlternates: false, canonicalPath: `/posts/${id}` };
     const body = `<article translate="no"><h1 class="mt-6 text-2xl font-bold">${escapeHtml(post.title)}</h1><p class="mt-3 text-sm">${escapeHtml([post.category, post.city, post.budget, post.closed ? copy.closed : copy.confirm].filter(Boolean).join(' · '))}</p>${post.image ? `<img src="${escapeHtml(safeSocialImage(post.image))}" alt="${copy.image}" class="mt-5 max-h-[500px] max-w-full rounded-2xl object-contain" />` : ''}<p class="mt-5 whitespace-pre-wrap leading-relaxed">${escapeHtml(post.description)}</p><p class="mt-6 text-sm">${copy.note}</p><a href="${prefix}/" class="mt-5 inline-block underline">${copy.browse}</a></article>`;
     const result = respond(200, metadata, body);
+    if (languageCopy) result.headers.set('X-Robots-Tag', 'noindex, follow');
     return request.method === 'HEAD' ? new Response(null, { status: 200, headers: result.headers }) : result;
   } catch {
     return errorResponse(503);
