@@ -1,4 +1,5 @@
-import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhOnly, legalTitle, useLegalCopy } from './LegalPageLayout';
+import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhOnly } from './LegalPageLayout';
+import { legalTitle, useLegalCopy } from './legal-copy';
 
 export const TermsView = () => {
   const { english, t } = useLegalCopy();

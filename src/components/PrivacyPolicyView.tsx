@@ -1,4 +1,5 @@
-import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhOnly, legalTitle } from './LegalPageLayout';
+import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhOnly } from './LegalPageLayout';
+import { legalTitle } from './legal-copy';
 import { useLocale, translateText } from '../i18n/locale';
 
 export const PrivacyPolicyView = () => {

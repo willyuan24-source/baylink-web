@@ -1,17 +1,12 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { translateText, useLocale } from '../i18n/locale';
+import { useLocale } from '../i18n/locale';
+import { useLegalCopy } from './legal-copy';
 import { PageContainer, PageHeader } from './ui/HeroCard';
 import './legal-page.css';
 
 type Copy = { zh: string; en: string };
 
-/** t(zh, en) for the legal pages; zh-Hant is the runtime conversion of zh. */
-export function useLegalCopy() {
-  const locale = useLocale();
-  const english = locale === 'en';
-  return { locale, english, t: (zh: string, en: string) => english ? en : translateText(zh, locale) };
-}
 
 const formatUpdated = (day: string, english: boolean) => {
   const date = new Date(`${day}T12:00:00Z`);
@@ -41,8 +36,6 @@ export function LegalPageLayout({ title, updated, children }: { title: Copy; /**
   </PageContainer>;
 }
 
-/** A section title in English, with its Chinese name after it on Chinese pages. */
-export const legalTitle = (en: string, zh: string, english: boolean) => english ? en : `${en} / ${zh}`;
 
 export const LegalSection = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="legal-section">

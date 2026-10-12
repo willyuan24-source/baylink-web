@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhLabel, ZhOnly, legalTitle, useLegalCopy } from './LegalPageLayout';
+import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhLabel, ZhOnly } from './LegalPageLayout';
+import { legalTitle, useLegalCopy } from './legal-copy';
 
 /** The verification button's own bilingual label, quoted in the English text; its Chinese half is marked as Chinese. */
 const SEND_CODE = <span>&ldquo;<ZhLabel>发送验证码</ZhLabel> / Send verification code&rdquo;</span>;
