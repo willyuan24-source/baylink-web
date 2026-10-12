@@ -193,7 +193,13 @@ export const dentalSeniorServiceGuides: Guide[] = [
       "senior services",
       "AAA",
       "Self-Help for the Elderly",
-      "Family Bridges"
+      "Family Bridges",
+      "老人送餐",
+      "送餐上门",
+      "爸妈",
+      "父母",
+      "陪伴探访",
+      "Meals on Wheels"
     ],
     "priority": "P1",
     "featuredOnHome": false,
