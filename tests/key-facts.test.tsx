@@ -103,6 +103,15 @@ test('three actions in one row: 收藏 saves to the reader library, 问 BayBay a
   assert.doesNotMatch(asked[0], /出发前/);
 });
 
+test('问 BayBay on a school guide asks for enrollment steps and only area and grade, never a child’s details', () => {
+  const asked: string[] = [];
+  const view = article('sf-school-district-enrollment-guide', { onAsk: question => asked.push(question) });
+  fireEvent.click(within(view.getByRole('group', { name: '文章操作' })).getByRole('button', { name: '问 BayBay' }));
+  assert.equal(asked.length, 1);
+  assert.match(asked[0], /^我正在读《.+》。根据这篇学校与学区指南，帮我整理入学步骤/);
+  assert.match(asked[0], /只需了解地区与年级，不要让我在聊天中提交孩子个人资料或证件/);
+});
+
 test('发给家人 copies a link that opens at 特大 with 简洁显示', async () => {
   const view = article('bay-area-chinese-senior-services-referral-guide');
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '发给家人' })); });
