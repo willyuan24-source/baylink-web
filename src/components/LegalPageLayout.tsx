@@ -7,7 +7,6 @@ import './legal-page.css';
 
 type Copy = { zh: string; en: string };
 
-
 const formatUpdated = (day: string, english: boolean) => {
   const date = new Date(`${day}T12:00:00Z`);
   if (Number.isNaN(date.getTime())) return day;
@@ -35,7 +34,6 @@ export function LegalPageLayout({ title, updated, children }: { title: Copy; /**
     </nav>
   </PageContainer>;
 }
-
 
 export const LegalSection = ({ title, children }: { title: string; children: ReactNode }) => (
   <section className="legal-section">

@@ -143,7 +143,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
           <Link className="xp-text-link" to={`/guides/${item.slug}`}>读完整攻略</Link>
           {worldEntry && <Link className="xp-text-link xp-3d-link" to={fromExplore(worldEntry.href)} reloadDocument><Rotate3d size={18} aria-hidden="true" />{translateText(worldEntry.label, locale)}</Link>}
         </div>
-        {cover.tier !== 'type' && <details className="attraction-credit"><summary>照片来源</summary><p>{image.caption}</p><a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>}
+        {cover.tier !== 'type' && <details className="attraction-credit"><summary>{cover.tier === 'scene3d' ? t('图片说明', 'About this picture') : '照片来源'}</summary><p>{cover.image.caption}</p>{cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{cover.image.credit}</a> : <p>{cover.image.credit}</p>}{cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>}
       </div>
     </article>;
   };
