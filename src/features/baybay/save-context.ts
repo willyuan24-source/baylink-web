@@ -1,7 +1,8 @@
 import { createContext, useContext } from 'react';
-import type { Favorite } from '../../lib/planner';
 
-/** ♡ 想去 for BayBay answer cards; `null` outside a BayBaySaveScope or before the library has loaded. */
-export type BayBaySaves = { ready: boolean; busy: boolean; error: string; saved: (favorite: Favorite) => boolean; toggle: (favorite: Favorite) => void };
-export const BayBaySaveContext = createContext<BayBaySaves | null>(null);
-export const useBayBaySaves = () => useContext(BayBaySaveContext);
+/**
+ * Whose saves the answer cards' ♡ writes: the panel's signed-in owner, or a guest (undefined). The panel passes it down
+ * because it can open outside the router outlet, where the app context's user is not the one it was opened for.
+ */
+export const BayBayOwnerContext = createContext<string | undefined>(undefined);
+export const useBayBayOwner = () => useContext(BayBayOwnerContext);

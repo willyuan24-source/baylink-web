@@ -131,9 +131,16 @@ export type BayBayTurn = {
   quickCards?: BayBayQuickCard[]; partialAnswer?: string; draftLead?: string; draftPoints?: string[];
   id: number; question: string; state: 'pending' | 'complete' | 'error' | 'cancelled';
   response?: GuideChatResponse; error?: string; currentPath?: string; restartRequired?: boolean; restartAssistant?: boolean; searchContext?: BayBaySearchContext; searchOverrides?: BayBaySearchOverrides;
+  /** The API's refusal code (AI_DAILY_LIMIT, AI_CONCURRENCY_LIMIT …), so the panel can word it in the reader's language. */
+  errorCode?: string;
 };
 
-class BayBayServiceError extends Error {}
+class BayBayServiceError extends Error {
+  readonly code?: string;
+  constructor(message: string, code?: string) { super(message); this.code = code; }
+}
+/** The API's error code behind a failed reply, when it sent one (`{ ok: false, code, error }`). */
+export const bayBayErrorCode = (error: unknown): string | undefined => error instanceof BayBayServiceError && error.code && /^[A-Z][A-Z0-9_]{2,60}$/.test(error.code) ? error.code : undefined;
 class BayBaySearchContextExpiredError extends BayBayServiceError {}
 class BayBayAssistantContextExpiredError extends BayBaySearchContextExpiredError {}
 export const isBayBaySearchContextExpired = (error: unknown): boolean => error instanceof BayBaySearchContextExpiredError;
@@ -326,7 +333,7 @@ export async function fetchBayBayReply(
           const message = typeof data.error === 'string' ? await localizeApiMessage(data.error, data.code) : undefined;
           if (data.code === 'INVALID_ASSISTANT_SESSION') throw new BayBayAssistantContextExpiredError(message ?? '对话条件已过期，请开启新对话并重新说明安排。');
           if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(message ?? '搜索条件已过期，请开启新对话并重新说明城市和日期。');
-          throw new BayBayServiceError(message ?? 'BayBay 暂时没连上，请重试。');
+          throw new BayBayServiceError(message ?? 'BayBay 暂时没连上，请重试。', typeof data.code === 'string' ? data.code : undefined);
         }
         // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
         // The v2 answer and cut-over fields (lead/points, safety card, notice) pass through here unparsed: the panel

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo, useState } from 'react';
 import { CalendarPlus, Heart } from 'lucide-react';
 import { EventCover, OfferCover, OpeningCover, Cover } from '../../components/ui/Cover';
 import { TypeCover } from '../../components/ui/TypeCover';
@@ -6,9 +6,9 @@ import { useBayBayCopy } from './copy';
 import { SmartLink } from './SmartLink';
 import { brandCase, eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerDeadline, openingChip } from '../../lib/event-facts';
 import { bayBayCardCitations, bayBayCardModels, type BayBayCardModel } from './answer-cards';
-import { useBayBaySaves, type BayBaySaves } from './save-context';
-import { usePlannerLibrary } from '../../lib/planner-library';
-import { favoriteKey } from '../../lib/planner';
+import { useBayBayOwner } from './save-context';
+import { SAVE_ERROR_COPY, useSave, type ServerSaveKind } from '../../lib/saves';
+import { saveButtonName } from '../saves/save-name';
 import type { PlannerWebResult } from '../../lib/planner-web-search';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 
@@ -40,23 +40,39 @@ function CardCover({ model, today }: { model: BayBayCardModel; today: string }) 
   return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick({ zh: '办事指南', en: 'Guide' })} title={model.title} ratio="16:10" ratioLock ariaHidden />} />;
 }
 
-function CardActions({ model, onNavigate }: { model: BayBayCardModel; onNavigate: Navigate }) {
-  const { t } = useBayBayCopy();
-  const saves = useBayBaySaves();
-  if (model.ended) return <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
-  if (model.kind !== 'event') return null;
-  const favorite = { kind: 'event' as const, id: model.event.id };
-  const saved = !!saves?.ready && saves.saved(favorite);
-  const plan = `/plan?${model.day ? `date=${model.day}&` : ''}stops=${encodeURIComponent(`event:${model.event.id}`)}`;
-  return <div className="bb-card__actions">
-    {/* Planner favorites = 我的这周, as SaveToWeek labels them. The event page's 我想去 is a different store (sign-in
-        interest), so this says 收藏 until WEB-SAVES' useSave unifies the two and it can become ♡ 想去. */}
-    <button type="button" aria-pressed={saves?.ready ? saved : undefined} disabled={!saves?.ready || saves.busy} onClick={() => saves?.toggle(favorite)}
-      title={t('收藏到我的这周', 'Save to My Week')}
-      aria-label={saved ? t(`已收藏到我的这周：${model.title}`, `Saved to My Week: ${model.title}`) : t(`收藏到我的这周：${model.title}`, `Save to My Week: ${model.title}`)}>
+/** The listing a card saves, in the one save model's kinds (D19): events, offers, openings and guides. */
+const saveRef = (model: BayBayCardModel): { kind: ServerSaveKind; id: string } =>
+  model.kind === 'event' ? { kind: 'event', id: model.event.id } : model.kind === 'offer' ? { kind: 'offer', id: model.offer.id }
+    : model.kind === 'opening' ? { kind: 'opening', id: model.shop.id } : { kind: 'guide', id: model.guide.slug };
+
+/**
+ * ♡ 收藏 through SAVES' `useSave` (src/lib/saves.ts): the same heart, store and names as every card on the site, so a
+ * save here is the row My Week shows. Disabled while a signed-in list is still unknown; a failed write says so here.
+ */
+function CardSave({ model }: { model: BayBayCardModel }) {
+  const { t, locale } = useBayBayCopy();
+  const owner = useBayBayOwner();
+  const ref = saveRef(model);
+  const save = useSave(ref.kind, ref.id, { userId: owner ?? null });
+  const [tapped, setTapped] = useState(false);
+  const saved = !!save.saved, unknown = save.saved === null;
+  const error = tapped ? save.error : null;
+  return <>
+    <button type="button" className="bb-card__save" aria-pressed={unknown ? undefined : saved} disabled={unknown || save.busy} onClick={() => { setTapped(true); void save.toggle(); }}
+      aria-label={saveButtonName(saved, model.title, locale)}>
       <Heart aria-hidden="true" size={18} fill={saved ? 'currentColor' : 'none'} />{saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}
     </button>
-    <button type="button" onClick={() => onNavigate(plan)} aria-label={t(`加入行程：${model.title}`, `Add to a plan: ${model.title}`)}><CalendarPlus aria-hidden="true" size={18} />{t('加入行程', 'Add to plan')}</button>
+    {error && <p className="bb-card__error" role="alert">{t(SAVE_ERROR_COPY[error].zh, SAVE_ERROR_COPY[error].en)}</p>}
+  </>;
+}
+
+function CardActions({ model, onNavigate }: { model: BayBayCardModel; onNavigate: Navigate }) {
+  const { t } = useBayBayCopy();
+  if (model.ended) return <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
+  const plan = model.kind === 'event' ? `/plan?${model.day ? `date=${model.day}&` : ''}stops=${encodeURIComponent(`event:${model.event.id}`)}` : null;
+  return <div className="bb-card__actions">
+    <CardSave model={model} />
+    {plan && <button type="button" onClick={() => onNavigate(plan)} aria-label={t(`加入行程：${model.title}`, `Add to a plan: ${model.title}`)}><CalendarPlus aria-hidden="true" size={18} />{t('加入行程', 'Add to plan')}</button>}
   </div>;
 }
 
@@ -77,18 +93,4 @@ export function BayBayCardRailView({ cards, sources = [], today, onNavigate, lab
       </li>;
     })}
   </ul>;
-}
-
-/** The planner library behind ♡ 想去 (see BayBaySaveScope), loaded with the cards. */
-export function BayBaySaveLibrary({ ownerId, onChange }: { ownerId?: string; onChange: (saves: BayBaySaves) => void }) {
-  const library = usePlannerLibrary(ownerId);
-  const latest = useRef(library);
-  useEffect(() => { latest.current = library; });
-  const keys = library.data.favorites.map(favoriteKey).join('\n');
-  const busy = library.loading || library.busy;
-  useEffect(() => {
-    const saved = new Set(keys ? keys.split('\n') : []);
-    onChange({ ready: library.ready, busy, error: library.error, saved: favorite => saved.has(favoriteKey(favorite)), toggle: favorite => { void latest.current.toggleFavorite(favorite); } });
-  }, [library.ready, busy, library.error, keys, onChange]);
-  return null;
 }

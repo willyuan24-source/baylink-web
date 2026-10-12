@@ -57,11 +57,12 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-card__link:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; border-radius:4px; }
 .baybay-conversation .bb-card__n { margin-right:4px; color:var(--color-brand); font-variant-numeric:tabular-nums; }
 .baybay-conversation .bb-card__meta { order:3; margin:0; overflow:hidden; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; white-space:nowrap; text-overflow:ellipsis; }
-.baybay-conversation .bb-card__actions { position:relative; z-index:1; display:flex; order:4; gap:8px; }
+.baybay-conversation .bb-card__actions { position:relative; z-index:1; display:flex; flex-wrap:wrap; order:4; gap:8px; }
 .baybay-conversation .bb-card__actions button { display:inline-flex; flex:1; align-items:center; justify-content:center; gap:6px; min-height:var(--control-height); padding:0 10px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; white-space:nowrap; }
 .baybay-conversation .bb-card__actions button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand); }
 .baybay-conversation .bb-card__actions button:disabled { opacity:.6; }
 .baybay-conversation .bb-card__ended { order:4; margin:0; color:var(--color-ink-3); font-size:var(--text-caption); }
+.baybay-conversation .bb-card__error { flex-basis:100%; margin:0; color:var(--color-danger); font-size:var(--text-caption); line-height:1.5; }
 /* The cards' chunk could not load (offline, or a new deploy renamed it): the same listings as plain links */
 .baybay-conversation .bb-card-links { display:grid; margin:0; padding:0; list-style:none; }
 .baybay-conversation .bb-card-links a { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); line-height:1.4; font-weight:600; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
@@ -96,9 +97,34 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 /* The same notice on an earlier answer: its line only (the full banner and its call buttons show once) */
 .baybay-conversation .bb-notice-label { margin:0 0 10px; padding-left:10px; border-left:3px solid var(--color-line-strong); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 
-/* Related guides: one compact row each (BBLIVE-13), no large cover; their own sources one tap away */
-.baybay-conversation .baybay-references { display:grid; gap:4px; margin-top:16px; padding-top:12px; border-top:1px solid var(--color-line); }
-.baybay-conversation .baybay-references>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; font-weight:600; }
+/* The AI cutoff ahead (api pauseScheduled, its last 7 days): a calm line, not a warning */
+.baybay-conversation .bb-scheduled { margin:0 0 12px; padding:10px 12px; border-radius:10px; background:var(--ui-info-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
+
+/* Tap-to-call numbers in answers, notices, plan notes and safety cards (G27): ELDERS' chip at the text's own size */
+.baybay-conversation .phone-chip { min-width:0; min-height:0; font-size:inherit; }
+.baybay-conversation .bb-emergency .phone-chip { background:var(--color-surface); color:var(--color-danger); }
+
+/* Today's AI answers are used up: the site's own pages instead of a retry that cannot work */
+.baybay-conversation .bb-error-links { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 0; }
+.baybay-conversation .bb-error-links button { margin:0; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+
+/* One sources block per answer (BBL-14, G79): the retrieval line is its summary; opened, the cited sources and guides */
+.baybay-conversation .bb-sources { display:grid; gap:6px; margin-top:16px; padding-top:12px; border-top:1px solid var(--color-line); }
+.baybay-conversation .bb-sources__note { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+.baybay-conversation :is(.bb-sources__line,.bb-sources__details>summary) { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
+.baybay-conversation .bb-sources__details>summary { min-height:var(--control-height); cursor:pointer; list-style:none; }
+.baybay-conversation .bb-sources__details>summary::-webkit-details-marker { display:none; }
+.baybay-conversation :is(.bb-sources__line,.bb-sources__details>summary)>span { flex:1; min-width:0; overflow-wrap:anywhere; }
+.baybay-conversation :is(.bb-sources__line,.bb-sources__details>summary)>svg { flex:none; color:var(--color-ink-3); }
+.baybay-conversation .bb-sources__details[open] .bb-sources__chevron { transform:rotate(180deg); }
+.baybay-conversation .bb-sources__details h4 { margin:12px 0 4px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; font-weight:600; }
+.baybay-conversation .bb-sources__list { display:grid; gap:2px; margin:4px 0 8px; padding-left:1.5rem; list-style:decimal; color:var(--color-ink-3); font-size:var(--text-caption); }
+.baybay-conversation ul.bb-sources__list { list-style:disc; }
+.baybay-conversation .bb-sources__list a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:4px; color:var(--color-brand); font-size:var(--text-fact); line-height:1.5; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
+.baybay-conversation .bb-sources__list small { color:var(--color-ink-3); font-size:var(--text-caption); text-decoration:none; }
+
+/* Related guides inside the sources block: one compact row each (BBLIVE-13), no large cover; their own sources one tap away */
+.baybay-conversation .baybay-references { display:grid; gap:4px; margin-top:4px; }
 .baybay-conversation .bb-references-note { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.5; }
 .baybay-conversation .bb-reference>small { display:block; margin-top:4px; color:var(--color-ink-3); font-size:var(--text-caption); }
 .baybay-conversation .bb-reference>button { display:flex; align-items:center; gap:10px; width:100%; min-height:3rem; padding:4px 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.4; text-align:start; }
