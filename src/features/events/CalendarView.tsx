@@ -80,7 +80,9 @@ export default function CalendarView({ today }: { today: string }) {
 
   return <section className="ev-calendar" aria-labelledby="ev-calendar-day">
     <div className="ev-week" role="group" aria-label={t('这一周', 'This week')}>
-      <IconButton label={t('上一周', 'Previous week')} onClick={() => update({ date: addCalendarDays(date, -7) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
+      <IconButton className="ev-week__prev" label={t('上一周', 'Previous week')} onClick={() => update({ date: addCalendarDays(date, -7) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
+      {/* Shown only at 大/特大 on phones, where ‹ › move above the days so each date keeps its circle (no overlap). */}
+      <span className="ev-week__range" aria-hidden="true">{monthDay(week[0])}–{monthDay(week[6])}</span>
       <ol className="ev-week__days">{week.map(day => {
         const count = countOn(day);
         return <li key={day}><button type="button" className="ev-week__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined}
@@ -90,7 +92,7 @@ export default function CalendarView({ today }: { today: string }) {
           <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
         </button></li>;
       })}</ol>
-      <IconButton label={t('下一周', 'Next week')} onClick={() => update({ date: addCalendarDays(date, 7) })}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
+      <IconButton className="ev-week__next" label={t('下一周', 'Next week')} onClick={() => update({ date: addCalendarDays(date, 7) })}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
     </div>
 
     <div className="ev-calendar__head">
