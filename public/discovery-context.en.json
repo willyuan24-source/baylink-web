@@ -3660,18 +3660,37 @@
       "path": "/openings/old-post-office-burlingame",
       "summary": "The former post office now serves French-influenced California cuisine. The official address is 222 Park Road, with dinner daily from 5–10 PM.",
       "details": [
-        "Weekday lunch starts Oct 12, 11:30 AM–2 PM; weekend brunch starts Oct 17, 11 AM–2 PM. Check menus and reservations. This is opening news, not a dining review; no opening discount is confirmed.",
+        "Weekday lunch runs 11:30 am–2 pm from Oct 12; weekend brunch runs 11 am–2 pm but starts on Sunday, Oct 18, so there is no brunch on Saturday, Oct 17. Lunch and brunch can be booked on the official site.",
         "222 Park Road, Burlingame, CA 94010",
         "New restaurant in a historic building"
       ],
       "region": "peninsula",
       "city": "Burlingame",
       "startDate": "2026-10-01",
-      "dateLabel": "Open since Oct 1 · lunch from Oct 12, brunch from Oct 17",
+      "dateLabel": "Open since Oct 1 · lunch from Oct 12, brunch from Oct 18",
       "status": "open",
       "verifiedAt": "2026-10-07",
       "sourceUrl": "https://www.oldpostofficeburlingame.com/",
       "sourceLabel": "The Old Post Office · Official website"
+    },
+    {
+      "kind": "opening",
+      "id": "marufuku-burlingame-announced",
+      "title": "Marufuku Ramen · Burlingame",
+      "path": "/openings/marufuku-burlingame-announced",
+      "summary": "Marufuku Ramen’s Burlingame branch at 225 Lorton Avenue. The store page lists a grand opening on Oct 11 and regular hours from Oct 12; the brand homepage and location list still say Coming Soon.",
+      "details": [
+        "Closed 2–5 pm on weekdays; open straight through 11 am–9 pm on weekends.",
+        "225 Lorton Ave, Burlingame, CA 94010",
+        "Upcoming ramen restaurant"
+      ],
+      "region": "peninsula",
+      "city": "Burlingame",
+      "dateLabel": "Grand opening Oct 11 · from Oct 12: weekdays 11 am–2 pm and 5–9 pm, weekends 11 am–9 pm",
+      "status": "open",
+      "verifiedAt": "2026-10-07",
+      "sourceUrl": "https://www.marufukuramen.com/burlingame",
+      "sourceLabel": "Marufuku Ramen · Burlingame · Official website"
     },
     {
       "kind": "opening",
@@ -3680,7 +3699,7 @@
       "path": "/openings/passdoor-santa-rosa-opening-2026",
       "summary": "The Passdoor's website lists its Santa Rosa address, operating hours and later events. The jewelry, art and home-design business relocated to 1160 4th Street; its October 1–3 opening celebration has ended.",
       "details": [
-        "Hours differ between pages on the official website; contact the store before visiting. The celebration dates do not establish the first day of public service or an ongoing giveaway or opening offer.",
+        "The official homepage lists hours: Monday–Saturday, 11 am–5:30 pm.",
         "1160 4th Street, Santa Rosa, CA",
         "Retail relocation"
       ],
@@ -3689,7 +3708,7 @@
       "dateLabel": "Santa Rosa address now lists operating information · October 1–3 opening celebration has ended",
       "status": "open",
       "verifiedAt": "2026-10-05",
-      "sourceUrl": "https://www.thepassdoor.net/new-page",
+      "sourceUrl": "https://www.thepassdoor.net/",
       "sourceLabel": "The Passdoor · Official website"
     },
     {
@@ -4289,6 +4308,25 @@
     },
     {
       "kind": "opening",
+      "id": "albany-o2-sushi-opening-2026",
+      "title": "O2 Sushi",
+      "path": "/openings/albany-o2-sushi-opening-2026",
+      "summary": "A sushi restaurant on San Pablo Avenue from the O2 Eatery team; it celebrated its opening on Sept 23, and its official Instagram bio says Now Open.",
+      "details": [
+        "From the team behind O2 Eatery on Solano Avenue; besides sushi rolls it serves udon, ramen and bento boxes.",
+        "977 San Pablo Ave, Albany, CA",
+        "New dining spot"
+      ],
+      "region": "east-bay",
+      "city": "Albany",
+      "dateLabel": "Official Instagram says Now Open · no hours listed",
+      "status": "open",
+      "verifiedAt": "2026-09-28",
+      "sourceUrl": "https://www.instagram.com/o2.sushi/",
+      "sourceLabel": "O2 Sushi · Official website"
+    },
+    {
+      "kind": "opening",
       "id": "berkeley-top-dog-downtown-opening-2026",
       "title": "Top Dog／The BreakRoom",
       "path": "/openings/berkeley-top-dog-downtown-opening-2026",
@@ -4559,25 +4597,6 @@
     },
     {
       "kind": "opening",
-      "id": "marufuku-burlingame-announced",
-      "title": "Marufuku Ramen · Burlingame",
-      "path": "/openings/marufuku-burlingame-announced",
-      "summary": "The Burlingame location page announces an Oct 11 grand opening with lunch and dinner hours at 225 Lorton Avenue. The date is still ahead as of this review, so this remains an announcement; other branches being open does not confirm this branch is operating.",
-      "details": [
-        "The page header announces the Oct 11 grand opening while the location directory still says Coming Soon. Check this branch again before visiting. No opening gift, discount or queue guarantee was verified, and a celebration date does not establish the first day of public service.",
-        "225 Lorton Ave, Burlingame, CA 94010",
-        "Upcoming ramen restaurant"
-      ],
-      "region": "peninsula",
-      "city": "Burlingame",
-      "dateLabel": "Official grand opening announced for Oct 11 · 11am–2pm / 5pm–9pm",
-      "status": "announced",
-      "verifiedAt": "2026-10-07",
-      "sourceUrl": "https://www.marufukuramen.com/burlingame",
-      "sourceLabel": "Marufuku Ramen · Burlingame · Official website"
-    },
-    {
-      "kind": "opening",
       "id": "shinka-the-jay-announced",
       "title": "Shinka",
       "path": "/openings/shinka-the-jay-announced",
@@ -4676,15 +4695,15 @@
       "id": "los-altos-coffeebar-announced-2026",
       "title": "Coffeebar at State Street Market",
       "path": "/openings/los-altos-coffeebar-announced-2026",
-      "summary": "A new State Street Market location for an Italian cafe, with plans to add Bay Area baking production. Local media expects an early-October opening; the official first day has not been confirmed.",
+      "summary": "A new espresso bar at State Street Market, planned to add baking for the Bay Area. The official locations page says it opens in October 2026 (“Opening soon”); the first day is not announced.",
       "details": [
-        "Food and drink are charged by the menu; per-person spending has not been confirmed and this is not a fixed admission price. Reconfirm with the business before the opening; this listing does not guarantee it will be operating that day. Only the anticipated opening month is known, which does not establish operation throughout the month or a confirmed first day. Not counted among confirmed openings.",
+        "To try it before this one opens, the Menlo Park shop at 1149 Chestnut St. is open daily 6:30 am–6 pm.",
         "170 State Street, Los Altos, CA",
         "New dining spot"
       ],
       "region": "south-bay",
       "city": "Los Altos",
-      "dateLabel": "This is only an expected opening window reported by the media; specific operating dates and hours are unconfirmed.",
+      "dateLabel": "Official site: opening October 2026 · first day not announced",
       "status": "announced",
       "verifiedAt": "2026-09-28",
       "sourceUrl": "https://coffeebar.com/",
@@ -4708,25 +4727,6 @@
       "verifiedAt": "2026-09-28",
       "sourceUrl": "https://www.millbraescafe.com/",
       "sourceLabel": "Millbrae’s Cafe · Official website"
-    },
-    {
-      "kind": "opening",
-      "id": "albany-o2-sushi-opening-2026",
-      "title": "O2 Sushi",
-      "path": "/openings/albany-o2-sushi-opening-2026",
-      "summary": "The new sushi restaurant announced a September 23 opening celebration; its actual operating status needs to be rechecked.",
-      "details": [
-        "From the team behind O2 Eatery on Solano Avenue; besides sushi rolls it serves udon, ramen and bento boxes.",
-        "977 San Pablo Ave, Albany, CA",
-        "New dining spot"
-      ],
-      "region": "east-bay",
-      "city": "Albany",
-      "dateLabel": "Check the business's latest announcements for regular hours and future plans.",
-      "status": "announced",
-      "verifiedAt": "2026-09-28",
-      "sourceUrl": "https://www.instagram.com/o2.sushi/",
-      "sourceLabel": "O2 Sushi · Official website"
     },
     {
       "kind": "opening",
