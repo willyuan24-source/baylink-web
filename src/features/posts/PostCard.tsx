@@ -116,6 +116,7 @@ export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser
         </StickerRow>
       </PostCover>
     </div>
+    {layout === 'list' && post.budget ? <p className="cm-card__price" translate="no">{displayed.budget}</p> : null}
     <p className="ui-feed-card__meta cm-card__meta">{meta}</p>
     <div className="cm-card__translation"><PostTranslationNotice reading={reading} /></div>
     {post.isFeatured && <p className="cm-card__note"><Star aria-hidden="true" strokeWidth={1.75} />{t('编辑精选', 'Editor’s pick')}</p>}

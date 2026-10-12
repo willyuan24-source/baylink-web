@@ -93,10 +93,12 @@ test('the founder’s two accounts’ posts say 站长发布; other members’ a
 test('board cards are grid cards; a card outside a feed grid (我的发布) is a row by default', async () => {
   const view = board([post('a')]);
   assert.equal(view.container.querySelector('.cm-card')!.getAttribute('data-layout'), 'grid');
+  assert.equal(view.container.querySelector('.cm-card__price'), null, 'a grid card carries its price on the photo');
   cleanup();
   const { PostCard } = await import('../src/features/posts/PostCard');
   const list = render(<MemoryRouter><PostCard post={post('mine')} /></MemoryRouter>);
   assert.equal(list.container.querySelector('.cm-card')!.getAttribute('data-layout'), 'list');
+  assert.equal(list.container.querySelector('.cm-card__price')!.textContent, '$1500');
 });
 
 test('English boards use English names, dates and the publish label; the composer is never preset to 提供 / 需求', async () => {

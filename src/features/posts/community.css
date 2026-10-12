@@ -110,11 +110,12 @@
 .cm-save-error { display:block; color:var(--color-danger); font-size:var(--text-caption); }
 /* A post card outside a feed grid (我的发布): a row — a 5.5rem thumbnail, then the title, meta and status; rows divided
    like the WEB-UI row card. */
-/* The last row is 1fr: a thumbnail taller than the text grows that row, not the gaps between the text lines. */
-.cm-card[data-layout=list] { display:grid; grid-template-columns:5.5rem minmax(0, 1fr); grid-template-rows:repeat(5, auto) 1fr; column-gap:12px; row-gap:2px; padding:12px 3rem 12px 0; border-bottom:1px solid var(--color-line); }
+/* The last row is 1fr: a thumbnail taller than the text grows that row, not the gaps between the text lines. The price
+   (a sticker on a grid card's photo) is a line under the title here. */
+.cm-card[data-layout=list] { display:grid; grid-template-columns:5.5rem minmax(0, 1fr); grid-template-rows:repeat(6, auto) 1fr; column-gap:12px; row-gap:2px; padding:12px 3rem 12px 0; border-bottom:1px solid var(--color-line); }
 .cm-card[data-layout=list]>* { grid-column:2; }
 .cm-card[data-layout=list]>:is(.ui-feed-card__save,.cm-card__menu) { grid-column:auto; }
-.cm-card[data-layout=list]>.ui-feed-card__media { grid-column:1; grid-row:1 / span 6; align-self:start; margin:0; border-radius:10px; }
+.cm-card[data-layout=list]>.ui-feed-card__media { grid-column:1; grid-row:1 / span 7; align-self:start; margin:0; border-radius:10px; }
 .cm-card[data-layout=list] .ui-cover { border-radius:10px; }
 .cm-card[data-layout=list] .ui-card-link::after { border-radius:10px; }
 .cm-card[data-layout=list] .ui-stickers,.cm-card[data-layout=list] .cm-cover__note,.cm-card[data-layout=list] .cm-cover__type>span { display:none; }
@@ -124,6 +125,7 @@
 .cm-card[data-layout=list] .ui-feed-card__meta { font-size:var(--text-fact); line-height:1.571; white-space:normal; }
 .cm-card[data-layout=list] .ui-feed-card__save { top:8px; right:0; }
 .cm-card[data-layout=list] .cm-card__menu { top:12px; left:0; }
+.cm-card__price { margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:700; overflow-wrap:anywhere; }
 
 /* 收藏 / 有用 / 分享 on the post sheet are WEB-UI secondary buttons; only their icon is styled here. */
 .cm-action>svg { flex:none; width:1.125rem; height:1.125rem; color:var(--color-brand); }
