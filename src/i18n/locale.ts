@@ -42,19 +42,21 @@ export const useLocale = () => { useSyncExternalStore(subscribeLocale, readingSn
  * search dictionaries as the other languages (loadSearchConversion). Node (tests, prerender, generators) keeps the full
  * build, which also carries search; its specifier is hidden from the bundler, so the browser never loads it.
  * BAYLINK_SITE_TRADITIONAL=1 makes Node take the browser's path (tests/traditional-upgrade.test.ts).
+ * WEB-SEO-I18N: the site's term table rides with opencc (taiwan-terms.ts): every 繁體 converter the app installs takes it,
+ * the browser's pruned one and its full-table upgrade included.
  */
 const OPENCC_FULL = 'opencc-js';
 /** The full phrase table's loader once the site converter is in; whether text the site does not ship has been shown. */
 let upgradeTraditional: (() => void) | undefined;
 let dynamicChinese = false;
 const loadChinese = () => chineseLoad ||= (nodeProcess?.getBuiltinModule && nodeProcess.env?.BAYLINK_SITE_TRADITIONAL !== '1'
-  ? (import(/* @vite-ignore */ OPENCC_FULL) as Promise<typeof import('opencc-js')>).then((module) => {
-    traditional = taiwanConverter(module);
+  ? Promise.all([import(/* @vite-ignore */ OPENCC_FULL) as Promise<typeof import('opencc-js')>, import('./taiwan-terms')]).then(([module, terms]) => {
+    traditional = taiwanConverter(module, undefined, terms.SITE_TAIWAN_TERMS);
     // the full opencc build holds the search dictionaries too (Locale.to.cn is TSPhrases then TSCharacters)
     if (!buildSearch) { buildSearch = () => module.ConverterFactory(module.Locale.to.cn); searchUnavailable = false; notifyLocale(); }
   })
-  : import('./traditional').then(({ siteTraditional }) => {
-    const site = siteTraditional(taiwanConverter, (full, changed) => { traditional = full; if (changed) notifyLocale(); });
+  : Promise.all([import('./traditional'), import('./taiwan-terms')]).then(([{ siteTraditional }, terms]) => {
+    const site = siteTraditional((O, prebuilt) => taiwanConverter(O, prebuilt, terms.SITE_TAIWAN_TERMS), (full, changed) => { traditional = full; if (changed) notifyLocale(); });
     traditional = site.convert;
     upgradeTraditional = site.upgrade;
     if (dynamicChinese) site.upgrade();
@@ -77,11 +79,12 @@ let siteCheck: { convert: (text: string, words?: boolean) => string; mismatched:
 /**
  * The prerender converts every 繁體 page with the full build and, after this call, also with the browser's pruned phrase
  * table (i18n/traditional.ts): the returned function lists the strings where the two differ, so text the pages assemble
- * at render time (template joins, dates, counts) is proven too, not only the Chinese runs of the sources.
+ * at render time (template joins, dates, counts) is proven too, not only the Chinese runs of the sources. Both sides
+ * apply the site's term table (taiwan-terms.ts), as the browser does.
  */
 export async function checkSiteTraditional(): Promise<() => string[]> {
-  const { siteTraditional } = await import('./traditional');
-  const check = siteCheck = { convert: siteTraditional(taiwanConverter, () => {}).convert, mismatched: new Set<string>() };
+  const [{ siteTraditional }, { SITE_TAIWAN_TERMS }] = await Promise.all([import('./traditional'), import('./taiwan-terms')]);
+  const check = siteCheck = { convert: siteTraditional((O, prebuilt) => taiwanConverter(O, prebuilt, SITE_TAIWAN_TERMS), () => {}).convert, mismatched: new Set<string>() };
   return () => [...check.mismatched];
 }
 
@@ -156,13 +159,14 @@ const TAIWAN_AFTER: readonly (readonly [string, string])[] = [['阿什伯裡', '
  * of the text is added to the trie as itself (Traditional → Traditional) and the second pass leaves it alone. Cheap: one
  * extra pass per string; the trie learns only the phrases that need it. `words`: TAIWAN_WORDS first and metres as 公尺.
  */
-export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>, prebuilt?: InstanceType<typeof O.Trie>): (text: string, words?: boolean) => string {
+export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>, prebuilt?: InstanceType<typeof O.Trie>, site: { words: readonly (readonly [string, string])[]; after: readonly (readonly [RegExp, string])[] } = { words: [], after: [] }): (text: string, words?: boolean) => string {
   const [st0] = O.Locale.from.cn, [tw0] = O.Locale.to.tw;
   // `prebuilt`: a cn trie already filled (the browser's full phrase table, built in slices: traditional.ts siteTraditional)
   const st = prebuilt ?? new O.Trie(), tw = new O.Trie(), local = new O.Trie();
   if (!prebuilt) st.loadDictGroup(st0);
   tw.loadDictGroup(tw0);
-  local.loadDict(TAIWAN_WORDS);
+  // the site's term table (taiwan-terms.ts, loaded with opencc) on top of the game's words
+  local.loadDict([...TAIWAN_WORDS, ...site.words]);
   const once = (text: string) => tw.convert(st.convert(text));
   return (text: string, words = false) => {
     const source = words ? local.convert(text) : text;
@@ -175,7 +179,7 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
       }
     }
     // metres: 40 米 → 40 公尺, 15,000 平方米 → 15,000 平方公尺 (never 米飯 / 米色 / 米其林 …)
-    return words ? TAIWAN_AFTER.reduce((t, [from, to]) => t.replaceAll(from, to), out.replace(/(\d)(\s*)(平方)?米(?![飯色黃粉其糕蘭])/g, '$1$2$3公尺')) : out;
+    return words ? site.after.reduce((t, [pattern, to]) => t.replace(pattern, to), TAIWAN_AFTER.reduce((t, [from, to]) => t.replaceAll(from, to), out.replace(/(\d)(\s*)(平方)?米(?![飯色黃粉其糕蘭])/g, '$1$2$3公尺'))) : out;
   };
 }
 
