@@ -9,15 +9,17 @@ type LegalPageLayoutProps = {
 
 /**
  * The legal pages are bilingual: the English text is complete and binding, the Chinese paragraphs are reading aids for
- * it. On /en a paragraph, bullet or title part written in Chinese is the twin of English beside it, so it is left out
- * (I18N-SEO-09: /en/privacy and /en/terms carried ~1,000 Chinese characters); the Chinese pages show both, as before.
+ * it. On /en a Chinese paragraph or bullet shows in English when the reviewed dictionary has it (the reading notes), and
+ * is left out when it has none — it is the twin of English beside it (I18N-SEO-09: /en/privacy and /en/terms carried
+ * ~1,000 Chinese characters). The Chinese pages show both, as before.
  */
 const HAN = /[㐀-鿿]/;
 const count = (text: string, pattern: RegExp) => text.match(pattern)?.length ?? 0;
 const chineseOnly = (node: React.ReactNode): boolean => {
   if (typeof node !== 'string') return false;
   const han = count(node, /[㐀-鿿]/g);
-  return han > 0 && han >= count(node, /[A-Za-z]/g);
+  // written in Chinese, and the dictionary has no (complete) English for it
+  return han > 0 && han >= count(node, /[A-Za-z]/g) && HAN.test(translateText(node, 'en'));
 };
 /** "隐私政策 · Privacy Policy" → "Privacy Policy"; an all-Chinese title goes through the dictionary. */
 const englishTitle = (title: string): string | undefined => {
