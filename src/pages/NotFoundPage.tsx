@@ -1,31 +1,54 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { BookOpen, CalendarDays, Compass, HeartHandshake, MapPinned, Search } from 'lucide-react';
 import { setPageMetadata } from '../lib/seo';
+import { translateText, useLocale } from '../i18n/locale';
+import { useApp } from '../app/context';
 import { LazyFeedbackLink } from '../features/feedback/LazyEntryLinks';
+import { Button } from '../components/ui/Button';
+import { PageContainer } from '../components/ui/HeroCard';
+import '../components/not-found.css';
 
+/** A friendly 404 in three languages (WEB-SECONDARY-B): what happened, a search, the five places people usually want. */
 export default function NotFoundPage() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  // The prerendered 404.html has no app context; BayBay is offered once the app is running.
+  const app = useApp() as ReturnType<typeof useApp> | undefined;
   const [query, setQuery] = useState('');
   useEffect(() => {
     setPageMetadata({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页和生活指南。', path: pathname, noindex: true });
   }, [pathname]);
-  return (
-    <section className="mx-auto flex min-h-[50vh] max-w-lg flex-col items-center justify-center px-6 py-12 text-center">
-      <p className="text-sm font-semibold text-baylink-green">404</p>
-      <h1 className="mt-2 text-2xl font-bold text-baylink-text">没有找到这个页面</h1>
-      <p className="mt-3 text-sm leading-relaxed text-baylink-text-secondary">链接可能有误，或内容已被移除。你可以回到首页继续浏览。</p>
-      <form role="search" className="mt-5 flex w-full flex-wrap gap-2" onSubmit={event => { event.preventDefault(); if (query.trim()) navigate(`/guides?${new URLSearchParams({ q: query.trim() })}`); }}>
-        <label htmlFor="missing-page-search" className="sr-only">搜索生活指南</label>
-        <input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder="输入想找的活动或生活问题" className="min-w-0 flex-1 rounded-xl border border-baylink-border bg-white px-4 py-3" />
-        <button type="submit" className="btn-primary px-5 py-3">搜索指南</button>
+  const links = [
+    { to: '/events', icon: CalendarDays, label: t('本周末活动', 'This weekend'), note: t('活动、免费福利和新店', 'Events, free benefits, new shops') },
+    { to: '/guides', icon: BookOpen, label: t('办事指南', 'Guides'), note: t('医疗、证件、住房、出行', 'Health, IDs, housing, transport') },
+    { to: '/guides?topic=elders', icon: HeartHandshake, label: t('长辈与家属', 'Seniors and families'), note: t('长者服务、Medicare、免费交通', 'Senior services, Medicare, free rides') },
+    { to: '/explore', icon: MapPinned, label: t('按地区找景点', 'Places by area'), note: t('旧金山、东湾、半岛、南湾、北湾', 'SF, East Bay, Peninsula, South Bay, North Bay') },
+  ];
+  return <PageContainer size="content" className="nf-page">
+    <section className="nf-hero" aria-labelledby="nf-title">
+      <span className="nf-icon" aria-hidden="true"><Compass strokeWidth={1.75} /></span>
+      <p className="nf-code">404</p>
+      <h1 id="nf-title">{t('没有找到这个页面', 'We couldn’t find this page')}</h1>
+      <p className="nf-body">{t('链接可能有误，或内容已经移除。可以搜索一下，或从下面几个常用入口继续。', 'The link may be wrong, or the page was removed. Try a search, or pick up from one of the places below.')}</p>
+      <form role="search" className="nf-search" onSubmit={event => { event.preventDefault(); if (query.trim()) navigate(`/guides?${new URLSearchParams({ q: query.trim() })}`); }}>
+        <label htmlFor="missing-page-search" className="sr-only">{t('搜索生活指南', 'Search guides')}</label>
+        <span className="nf-search-field"><Search aria-hidden="true" strokeWidth={1.75} /><input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder={t('输入想找的活动或生活问题', 'An event, a place or a question')} /></span>
+        <Button type="submit" variant="primary">{t('搜索', 'Search')}</Button>
       </form>
-      <div className="mt-6 flex flex-wrap justify-center gap-3">
-        <Link to="/" className="btn-primary px-5 py-2.5 text-sm">返回首页</Link>
-        <Link to="/guides" className="rounded-xl border border-baylink-border bg-white px-5 py-2.5 text-sm font-semibold text-baylink-text">查看生活指南</Link>
-      </div>
-      {/* A broken link someone followed is exactly what we want to hear about. */}
-      <LazyFeedbackLink className="mt-4" />
     </section>
-  );
+    <nav className="nf-links" aria-label={t('常用入口', 'Popular places')}>
+      <ul>
+        {links.map(({ to, icon: Icon, label, note }) => <li key={to}><Link to={to}><span className="nf-link-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span><span><strong>{label}</strong><small>{note}</small></span></Link></li>)}
+      </ul>
+    </nav>
+    <div className="nf-actions">
+      <Button variant="secondary" to="/">{t('回到首页', 'Back to home')}</Button>
+      {app?.openBayBay && <Button variant="secondary" onClick={() => app.openBayBay()}>{t('问 BayBay', 'Ask BayBay')}</Button>}
+    </div>
+    {/* A broken link someone followed is exactly what we want to hear about. */}
+    <div className="nf-feedback"><LazyFeedbackLink /></div>
+  </PageContainer>;
 }

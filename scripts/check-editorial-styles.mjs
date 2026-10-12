@@ -36,6 +36,11 @@ export const editorialStyleScopes = [
   // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast) and the account / community dialogs on the Sheet.
   { file: 'src/components/site-chrome.css' },
   { file: 'src/components/site-dialogs.css' },
+  // WEB-SECONDARY: /explore, /about, the legal pages and the 404 (about-baylink.css keeps two home-footer rules WEB-HOME owns).
+  { file: 'src/styles/attractions.css' },
+  { file: 'src/components/about-baylink.css', selectors: /^\.about-/ },
+  { file: 'src/components/legal-page.css' },
+  { file: 'src/components/not-found.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
