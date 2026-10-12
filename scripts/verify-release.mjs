@@ -48,6 +48,8 @@ const ROUTE_JS_BUDGETS = [
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 237.5, 'zh-Hant': 280.6, en: 353.4 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 224.8, 'zh-Hant': 711.1, en: 349.3 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 324.4, 'zh-Hant': 367.6, en: 535.4 } },
+  // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 1126.8, 'zh-Hant': 1613.1, en: 2011.6 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
