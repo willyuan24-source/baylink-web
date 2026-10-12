@@ -1,0 +1,32 @@
+import type { FreebieOffer } from '../components/FreebieBoard';
+import { isPublicBenefit } from './event-facts';
+
+/** An offer as the home ticket rail needs it (scripts/generate-home-catalog.ts): no requirement text, no source URL. */
+export type HomeOffer = Pick<FreebieOffer, 'id' | 'title' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'kind' | 'imageKey' | 'verifiedAt' | 'region'>
+  & { valueText?: string; publicBenefit?: boolean };
+
+const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:00:00Z`) + amount * 86_400_000).toISOString().slice(0, 10);
+
+/**
+ * The home 免费与优惠 tickets (1007 §4.2 ⑦, HOME-13): up to `limit` offers a reader can use within the week, mixed as
+ * the plan asks — ending today or tomorrow first, then ending this week, then public benefits (museum free days, library
+ * and park programs) in the next two weeks, then the rest by end date. Only reviewed, dated offers: ongoing retail
+ * promotions and "check your local store" offers stay on /events?view=perks. Pure, so the generator (which ships only
+ * the offers some day selects) and the page agree for every day.
+ */
+export function selectHomeOffers<T extends Pick<HomeOffer, 'id' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'publicBenefit'> & { verificationStatus?: string }>(offers: readonly T[], today: string, limit = 6): T[] {
+  const week = addDays(today, 6);
+  const fortnight = addDays(today, 13);
+  const dated = offers.filter(offer => offer.availability === 'dated' && offer.verificationStatus !== 'needs-confirmation' && !!offer.endDate && offer.endDate >= today)
+    .sort((a, b) => a.endDate!.localeCompare(b.endDate!) || a.id.localeCompare(b.id));
+  const usable = dated.filter(offer => (offer.startDate ?? today) <= week);
+  const chosen: T[] = [];
+  const take = (list: readonly T[], count: number) => {
+    for (const offer of list) if (count > 0 && chosen.length < limit && !chosen.includes(offer)) { chosen.push(offer); count--; }
+  };
+  take(usable.filter(offer => offer.endDate! <= addDays(today, 1)), 2);
+  take(usable.filter(offer => offer.endDate! <= week), 2);
+  take(dated.filter(offer => isPublicBenefit(offer) && (offer.startDate ?? today) <= fortnight), 2);
+  take(usable, limit);
+  return chosen;
+}
