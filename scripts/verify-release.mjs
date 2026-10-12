@@ -29,12 +29,16 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // The event detail stopped importing the planner catalog and the guides corpus (W2 integration): it measured
 // 548.5 / 1025.3 / 1190.1 KiB, so its ceilings go to measured + 5% (headroom for the content batches until WEB-DETAIL
 // moves details to per-item data).
+// WEB-DETAIL (ENGSEC-01): event, offer and opening details read one generated record bucket (features/detail) instead of
+// importing every catalog, guide and image, and English details load their bucket's pack instead of the discovery and
+// guide-index packs: 576.0 / 1076.6 / 1249.6 (main) → measured 220.4 / 697.1 / 342.4 + 2% (the bucket itself is a dynamic chunk,
+// 6–22 KiB gzip, preloaded by the prerendered page).
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 328.6, 'zh-Hant': 814.9, en: 983.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1015.9, 'zh-Hant': 1502.2, en: 2181.6 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1552.3, en: 1356.8 } },
-  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 576.0, 'zh-Hant': 1076.6, en: 1249.6 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 224.8, 'zh-Hant': 711.1, en: 349.3 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 324.4, 'zh-Hant': 810.6, en: 978.8 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
