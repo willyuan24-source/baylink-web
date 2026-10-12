@@ -117,7 +117,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
       {fallback && <label className="xp-outing-fallback">手动复制<textarea value={fallback} readOnly rows={4} onFocus={event => event.currentTarget.select()} /></label>}
     </section>
   );
-  const planDisclosure = <details className="xp-plan" open={plan.length > 0 || shared}><summary>{t('我的出游清单', 'My saved outing stops')} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>;
+  const planDisclosure = <details className="xp-plan" open={plan.length > 0 || shared}><summary>{'我的出游清单'} · {plan.length}/{MAX_OUTING_STOPS}</summary>{outingPanel}</details>;
   const planOnTop = plan.length > 0 || shared;
 
   const card = (item: Attraction): ReactNode => {
@@ -191,19 +191,19 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     <div className="xp-results-heading"><h2>选一个想去的地方</h2><span role="status">{english ? `${filtered.length} ${filtered.length === 1 ? 'place' : 'places'} to explore` : `${filtered.length} ${translateText('处可探索', locale)}`}</span></div>
     {plan.length >= MAX_OUTING_STOPS && <p className="xp-cap-note">清单最多放 6 处。先移除一处，或把剩下的留给下次。</p>}
     {filtered.length ? <div className="xp-grid">{cards}</div>
-      : <EmptyState icon={Compass} title={t('换个范围，可能就有新发现。', 'Try a wider search: there may be more to discover.')} body={t('试试减少条件，或用城市、景点的中英文名称搜索。', 'Remove a filter, or search a city or place in Chinese or English.')}
-        actions={<Button variant="primary" onClick={resetFilters}>{t('重置景点筛选', 'Reset place filters')}</Button>} />}
+      : <EmptyState icon={Compass} title={'换个范围，可能就有新发现。'} body={'试试减少条件，或用城市、景点的中英文名称搜索。'}
+        actions={<Button variant="primary" onClick={resetFilters}>{'重置景点筛选'}</Button>} />}
     {filtered.length > visibleCount && <div className="xp-more-row"><Button variant="tonal" onClick={() => setPage({ key: resultKey, count: visibleCount + 12 })}>{english ? `Show more places (${visibleCount}/${filtered.length})` : `继续发现更多（${visibleCount}/${filtered.length}）`}</Button></div>}
     {!planOnTop && planDisclosure}
     <details className="xp-plan xp-more">
       <summary>{t('更多安排：城市攻略、计划与搭子', 'More: city guides, plans and groups')}</summary>
       <nav className="xp-more-links" aria-label={t('继续安排出游', 'Continue planning your outing')}>
-        <Link to={`/plan?places=${plan.join(',')}`}><Sparkles size={18} aria-hidden="true" />{plan.length ? t('在地图里安排完整清单', 'Arrange all saved stops on the map') : t('让 BayBay 帮我排一天', 'Plan a day with BayBay')}</Link>
-        <Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={18} aria-hidden="true" />{t('按城市探索：九县 101 城景点与生活指南', 'Explore 101 cities across the nine Bay Area counties')}</Link>
-        <Link to="/my-week">{t('我的这周', 'My Week')}</Link>
+        <Link to={`/plan?places=${plan.join(',')}`}><Sparkles size={18} aria-hidden="true" />{plan.length ? t('在地图里安排完整清单', 'Arrange all saved stops on the map') : '让 BayBay 帮我排一天'}</Link>
+        <Link to={`/guides/${CITY_EXPLORATION_SLUG}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}><Compass size={18} aria-hidden="true" />{'按城市探索：九县 101 城景点与生活指南'}</Link>
+        <Link to="/my-week">{'我的这周'}</Link>
         <Link to="/together">{t('找搭子，一起出门', 'Go together')}</Link>
       </nav>
     </details>
-    <nav className="xp-next" aria-label={t('顺路看看', 'Also worth a look')}><Link to="/events">{t('本周末活动', 'This weekend')}</Link><Link to="/guides">{t('全部生活指南', 'All guides')}</Link><Link to="/tools?tool=split">{t('出游费用分账', 'Split trip costs')}</Link></nav>
+    <nav className="xp-next" aria-label={t('顺路看看', 'Also worth a look')}><Link to="/events">{t('本周末活动', 'This weekend')}</Link><Link to="/guides">{'全部生活指南'}</Link><Link to="/tools?tool=split">{'出游费用分账'}</Link></nav>
   </PageContainer>;
 }
