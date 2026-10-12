@@ -372,3 +372,22 @@ test('行程 shows a fixed-height loading state, then an error with retry when t
   await act(async () => { fireEvent.click(within(days).getByRole('button', { name: '重试' })); });
   assert.ok(within(view.getByTestId('plan-days')).getByRole('heading', { name: '还没有排好的日子' }));
 });
+
+test('a saved day opened with ?edit= reads 已保存 until a detail changes; a new start time says unsaved and saves from the overview', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  const stored = () => JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
+  const view = await openPlanner(`?edit=${encodeURIComponent(stored().id)}`);
+  const overview = () => view.getByRole('region', { name: '当前计划概览' });
+  assert.equal(overview().getAttribute('data-state'), 'saved', 'opening a saved day changes nothing');
+  assert.equal(within(overview()).queryByRole('button', { name: '保存到行程' }), null);
+
+  fireEvent.change(editor(view).getByLabelText('开始时间'), { target: { value: '13:30' } });
+  assert.equal(overview().getAttribute('data-state'), 'changed', 'a new start time is not saved yet');
+  assert.match(overview().textContent || '', /有修改还没保存/);
+  assert.equal(stored().details?.startTime ?? '10:00', '10:00', 'nothing was written');
+
+  await act(async () => { fireEvent.click(within(overview()).getByRole('button', { name: '保存到行程' })); });
+  assert.equal(overview().getAttribute('data-state'), 'saved');
+  assert.equal(stored().details.startTime, '13:30');
+});

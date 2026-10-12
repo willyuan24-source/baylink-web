@@ -27,7 +27,7 @@ import { BayBayImportedRequirements } from '../components/BayBayImportedRequirem
 import { PlannerWebSearch } from '../components/PlannerWebSearch';
 import { PlannerPlaceRecommendations } from '../components/PlannerPlaceRecommendations';
 import type { CompleteOuting } from '../lib/planner-outings';
-import { defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../lib/planner-itinerary';
+import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../lib/planner-itinerary';
 import { createCoverPage, resolveCovers } from '../lib/cover';
 import { eventDateChip, formatDateChip } from '../lib/event-facts';
 import { PlannerDayPlans } from '../components/PlannerDayPlans';
@@ -49,6 +49,12 @@ function useOnline() {
   }, []);
   return online;
 }
+
+/** The details as save() stores them, in one canonical form (key order included), for the overview's 已保存 claim. */
+const storedDetails = (value: unknown, stops: Stop[], date: string) => {
+  const details = normalizePlanDetails(value, stops);
+  return JSON.stringify(details.constraints ? { ...details, constraints: cleanPlanFilters({ ...details.constraints, date }) } : details);
+};
 
 export default function PlannerPage() {
   const app = useApp();
@@ -263,8 +269,11 @@ function PlannerWorkspace() {
   ].slice(0, catalogLimit), [events, visiblePlaces, catalogCategory, catalogLimit, locale, today, requestedDate]);
   const catalogCovers = useMemo(() => resolveCovers(catalogItems.map(stopCoverItem), { images: stopCoverImage, today, page: coverPage }), [catalogItems, today, coverPage]);
   // The draft's save state, shown on screen 1 (FC3-01): a stop that arrived by link or from the list is not saved yet.
+  // A saved plan reads 已保存 only while everything save() would store matches it: date, title, stops and the details
+  // (start / finish time, party, travel, budget, each stop's time), so an edit to the details never looks saved.
   const draftState = !stops.length ? 'none' as const : !editing ? 'unsaved' as const
-    : editing.date === date && editing.title === title && JSON.stringify(cleanStops(editing.stops)) === JSON.stringify(stops) ? 'saved' as const : 'changed' as const;
+    : editing.date === date && editing.title === title && JSON.stringify(cleanStops(editing.stops)) === JSON.stringify(stops)
+      && !planDetailsError(details) && storedDetails(editing.details, cleanStops(editing.stops), editing.date) === storedDetails(details, stops, date) ? 'saved' as const : 'changed' as const;
   // 问 BayBay opens the site's one BayBay panel (the same panel as every page) with a draft the reader can edit first.
   const askBayBay = () => app?.openBayBay?.(stops.length
     ? t(`帮我看看${date ? ` ${date} ` : ''}这份行程：${stops.map(stop => stopTitle(stop)).join('、')}。还可以怎么排？`, `Please look at my plan${date ? ` for ${date}` : ''}: ${stops.map(stop => translateText(stopTitle(stop), 'en')).join(', ')}. How could I arrange it better?`)
