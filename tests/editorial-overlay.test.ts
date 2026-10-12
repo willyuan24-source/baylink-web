@@ -232,9 +232,24 @@ test('deks and short titles keep to the source; one session per slot; plan lines
   const concord = byId('concord-trick-or-treat-trail-2026');
   const issues = lintEditorial(input({ events: [{ ...concord, plan: ['编辑建议先逛家庭区。'] }], offers: [], openings: [] })).filter(issue => issue.rule === 'log-voice');
   assert.deepEqual(issues.map(issue => issue.level), ['warn']);
-  // Offer short titles keep the source's condition and craft: 满 50 岁 (not 长者), pipe-cleaner (扭扭棒, not plush).
-  assert.match(OFFER_OVERLAY['happy-hollow-senior-safari-oct22'].shortTitle!, /满 50 岁/u);
-  assert.match(OFFER_OVERLAY['michaels-chenille-ghost-oct24-2026'].shortTitle!, /扭扭棒/u);
+  // Offer short titles keep who qualifies and what is made: 满 50 岁 (not 长者), pipe-cleaner (扭扭棒, not plush), the age
+  // range rather than 青少年, the county, the income test and the NPS residents-only rule.
+  const kept: Record<string, RegExp> = {
+    'happy-hollow-senior-safari-oct22': /满 50 岁/u,
+    'michaels-chenille-ghost-oct24-2026': /扭扭棒/u,
+    'caltrain-youth-dollar-fare': /5–18 岁/u,
+    'sjpl-booktacular-oct24-31': /0–18 岁/u,
+    'smart-youth-senior-fare-free': /0–18 岁和 65\+/u,
+    'winchester-santa-clara-locals-2026': /圣克拉拉县/u,
+    'sfmta-free-muni-seniors': /合资格/u,
+    'muir-woods-fee-free-oct27': /美国居民/u,
+    'muir-woods-veterans-day-nov11-2026': /美国居民/u,
+  };
+  for (const [id, words] of Object.entries(kept)) {
+    const title = OFFER_OVERLAY[id].shortTitle!;
+    assert.match(title, words, id);
+    assert.ok(displayUnits(title) <= 16 && english[title], `${id}: ${title}`);
+  }
 });
 
 test('tips add information no shown field carries; status marks postponed and sold-out items (review 10/09)', () => {
