@@ -32,7 +32,6 @@ import guidesPublished from '../src/data/first-published/guides.json';
 import listingsPublished from '../src/data/first-published/listings.json';
 
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
-import PlannerPage from '../src/pages/PlannerPage';
 import { PLAN_METADATA } from '../src/lib/planner';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { opusBayHeadExtras, opusBayInHalloween, opusBayMetadata } from '../src/lib/opus-bay-metadata';
@@ -65,6 +64,8 @@ const { default: ArchivePage } = await import('../src/pages/ArchivePage');
 const { default: NotFoundPage } = await import('../src/pages/NotFoundPage');
 const { AttractionExplorer } = await import('../src/components/AttractionExplorer');
 const { default: AiLocalPage } = await import('../src/pages/AiLocalPage');
+// WEB-PLAN: PlannerPage imports its own CSS (plan-page.css), so it loads after the CSS hook too.
+const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');

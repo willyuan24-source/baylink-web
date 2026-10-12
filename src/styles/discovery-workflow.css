@@ -36,7 +36,7 @@
 .baybay-task-handoff button { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:12px; font-size:.8125rem; font-weight:600; color:#32583d; }
 /* Planner panels (WEB-PLAN): private preference memory (My Week) and the travel-time check (行程 editor). Tokens and
    rem only, text ≥ --text-caption, the UI secondary look for their buttons. */
-.planner-preference-memory { margin:16px 0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); }
+.planner-preference-memory { margin:16px 0; padding:20px; border-radius:16px; background:var(--color-surface-2); }
 .planner-preference-memory h3 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .planner-preference-memory p { margin:8px 0 14px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-preference-memory label { display:flex; flex-direction:column; gap:6px; color:var(--color-ink); font-size:var(--text-fact); }
@@ -44,7 +44,7 @@
 .planner-preference-memory button { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 .planner-preference-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; }
 .planner-preference-footer small { color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-travel-check { margin-bottom:20px; padding:16px; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); }
+.planner-travel-check { margin-bottom:20px; padding:16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
 .planner-travel-check>h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:var(--text-body); }
 .planner-travel-check p { margin:6px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-travel-leg { margin-top:12px; padding:12px 0; border-top:1px solid var(--color-line); overflow-wrap:anywhere; }

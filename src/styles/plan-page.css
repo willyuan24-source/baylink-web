@@ -4,13 +4,20 @@
  * the panels inside the page keep src/styles/planner.css. Tokens and rem only; text ≥ --text-caption; ≥44px targets.
  */
 .planner-page.ui-container { padding-block:24px 96px; }
+/* tokens.css sizes every control on .planner-page to the fact size; the UI buttons keep their own 16/48 (15/44 desktop). */
+.planner-page .ui-button { min-height:max(var(--control-height), 3rem); font-size:var(--text-body); }
+@media (min-width:1024px) { .planner-page :is(.ui-button,.event-import-entry>button) { min-height:var(--control-height); font-size:.9375rem; } }
+/* The screenshot import entry on this page: a quiet panel with the secondary button, like the page's other panels. */
+.planner-page .event-import-entry { border:0; background:var(--color-surface-2); color:var(--color-ink); }
+.planner-page .event-import-entry p { color:var(--color-ink-2); font-size:var(--text-fact); }
+.planner-page .event-import-entry .event-import-icon { color:var(--color-brand); }
+.planner-page .event-import-entry>button { min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
 .planner-page .ui-page-header { margin-bottom:20px; }
 .planner-offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:12px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-offline>svg { flex:none; margin-top:2px; }
 
 /* 这一天的安排: first whenever the plan has stops, with its save state (FC3-01). */
-.planner-plan-overview { margin:0 0 24px; padding:20px; border:1px solid var(--color-line-strong); border-radius:16px; background:var(--color-surface); scroll-margin-top:96px; }
-.planner-plan-overview[data-state=unsaved],.planner-plan-overview[data-state=changed] { border-color:var(--color-brand); }
+.planner-plan-overview { margin:0 0 24px; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); scroll-margin-top:96px; }
 .planner-overview-head { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
 .planner-overview-head>h2 { margin:0; }
 .planner-overview-head>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -34,7 +41,7 @@
 .plan-days__day { display:grid; gap:8px; }
 @media (min-width:768px) { .plan-days__day { grid-template-columns:7.5rem minmax(0, 1fr); gap:16px; } }
 .plan-days__date { margin:0; color:var(--color-brand); font-size:var(--text-body); line-height:1.5; font-weight:700; font-variant-numeric:tabular-nums; }
-.plan-days__plan { min-width:0; padding:4px 16px 16px; border:1px solid var(--color-line-strong); border-radius:16px; background:var(--color-surface); }
+.plan-days__plan { min-width:0; padding:4px 16px 16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
 .plan-days__plan+.plan-days__plan { margin-top:12px; }
 @media (min-width:768px) { .plan-days__plan { grid-column:2; } }
 .plan-days__plan-head { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:12px; }
@@ -75,11 +82,13 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
 
 /* Print: the day itself — overview, stops and timeline — on paper, without the page's tools. */
 @media print {
-  .planner-page :is(.ui-page-header__actions,.planner-form,.planner-web-search,.planner-results,#planner-discoveries,.planner-overview-actions,.planner-edit-assistant,.planner-share-actions,.planner-compose-outing,.planner-account,.planner-undo,.event-import-entry,.plan-days__actions,.planner-calendar-export,.planner-stops li>div) { display:none!important; }
-  .planner-page .planner-workspace { display:block; }
-  .planner-page .planner-editor { border:0; padding:0; background:none; }
-  .planner-page :is(.planner-plan-overview,.planner-timeline>li,.plan-days__plan) { break-inside:avoid; }
-  .planner-page details:not([open])>:not(summary) { display:none; }
+  .planner-page.ui-container :is(.ui-page-header__actions,.planner-form,.planner-web-search,.planner-results,#planner-discoveries,.planner-overview-actions,.planner-edit-assistant,.planner-share-actions,.planner-compose-outing,.planner-account,.planner-undo,.event-import-entry,.plan-days__actions,.planner-calendar-export,.planner-stops li>div) { display:none!important; }
+  .planner-page.ui-container .planner-workspace { display:block; }
+  .planner-page.ui-container .planner-editor { border:0; padding:0; background:none; }
+  .planner-page.ui-container :is(.planner-plan-overview,.planner-timeline>li,.plan-days__plan) { break-inside:avoid; }
+  .planner-page.ui-container details:not([open])>:not(summary) { display:none; }
+  /* The site's bars and BayBay entry are screen tools; only the 行程 page prints them away. */
+  body:has(.planner-page.ui-container) :is(.site-topbar,.site-mobile-nav,.site-footer,.site-skip-link) { display:none!important; }
 }
 /* 本页图片来源 */
 .planner-credits { margin-top:32px; padding-top:8px; border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
@@ -88,3 +97,4 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
 .planner-credits li { display:flex; flex-wrap:wrap; gap:4px 10px; }
 .planner-credits li>span:first-child { color:var(--color-ink); font-weight:600; }
 .planner-credits a { overflow-wrap:anywhere; text-decoration:underline; text-underline-offset:3px; }
+.planner-page .ui-icon-button { min-height:2.5rem; }

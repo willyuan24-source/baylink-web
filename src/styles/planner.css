@@ -16,13 +16,13 @@
 .planner-eyebrow { display:flex; align-items:center; gap:8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.4; font-weight:600; }
 
 /* Primary, secondary and chip controls in the planner panels share the UI primitive's geometry and colours. */
-.planner-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:10px; background:var(--color-brand); color:var(--color-surface)!important; font-size:var(--text-body); line-height:1.25; font-weight:600; text-align:center; text-decoration:none; }
-.planner-primary:hover { background:var(--color-brand-hover); }
-.planner-primary:disabled { background:var(--color-surface-2); color:var(--color-ink-3)!important; }
-:is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:600; text-decoration:none; white-space:normal; }
-:is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-web-candidate>button,.planner-edit-actions>button):disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); }
-:is(.planner-outing-tabs,.planner-edit-examples) button { display:inline-flex; align-items:center; min-height:2.5rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:400; text-align:left; }
-.planner-outing-tabs button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
+.planner-page .planner-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:10px; background:var(--color-brand); color:var(--color-surface)!important; font-size:var(--text-body); line-height:1.25; font-weight:600; text-align:center; text-decoration:none; }
+.planner-page .planner-primary:hover { background:var(--color-brand-hover); }
+.planner-page .planner-primary:disabled { background:var(--color-surface-2); color:var(--color-ink-3)!important; }
+.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:600; text-decoration:none; white-space:normal; }
+.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-web-candidate>button,.planner-edit-actions>button:not(.planner-primary)):disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); }
+.planner-page :is(.planner-outing-tabs,.planner-edit-examples) button { display:inline-flex; align-items:center; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:400; text-align:left; }
+.planner-page .planner-outing-tabs button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
 
 /* Account / storage notice (here and, compact, on My Week). */
 .planner-account { display:flex; gap:12px 16px; align-items:center; flex-wrap:wrap; margin:16px 0; padding:16px; border-radius:12px; background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); }
@@ -87,7 +87,7 @@
 .planner-workspace { display:grid; grid-template-columns:minmax(0, 1fr) 22rem; align-items:start; gap:32px; margin-top:32px; }
 .planner-workspace>#planner-discoveries { min-width:0; }
 .planner-workspace .planner-section-head { margin-top:0; }
-.planner-map-shell { overflow:hidden; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); }
+.planner-map-shell { overflow:hidden; border-radius:16px; background:var(--color-surface-2); }
 .planner-map { height:24rem; }
 .planner-map-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:16rem; padding:24px; text-align:center; }
 .planner-map-placeholder>span { color:var(--color-brand); font-size:2rem; }
@@ -101,7 +101,7 @@
 .planner-map-disclosure>summary::-webkit-details-marker { display:none; }
 .planner-map-disclosure>summary::after { content:'+'; margin-left:auto; font-size:1.375rem; font-weight:400; }
 .planner-map-disclosure[open]>summary::after { content:'−'; }
-.planner-nearby { margin-top:16px; padding:16px; border-radius:12px; background:var(--color-surface-2); }
+.planner-nearby { margin-top:16px; padding:16px; border-radius:16px; background:var(--color-surface-2); }
 .planner-nearby h3 { margin:0; font-size:var(--text-body); }
 .planner-nearby>p { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
 .planner-nearby>button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:var(--control-height); padding:8px 0; border-bottom:1px solid var(--color-line); color:var(--color-ink); font-size:var(--text-fact); text-align:left; }
@@ -109,7 +109,7 @@
 .planner-nearby>button span { display:flex; align-items:center; gap:8px; color:var(--color-brand); font-size:var(--text-caption); white-space:nowrap; }
 .planner-catalog { display:grid; margin-top:8px; }
 
-.planner-editor { padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); scroll-margin-top:96px; }
+.planner-editor { padding:20px; border-radius:16px; background:var(--color-surface-2); scroll-margin-top:96px; }
 .planner-editor>h2 { margin:0 0 8px; }
 .planner-editor>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-editor label { margin-top:16px; }
@@ -133,8 +133,7 @@
 .planner-detail-grid label { min-width:0; }
 .planner-schedule label { margin-top:12px; }
 .planner-timeline { display:grid; gap:10px; margin:16px 0; padding:0; list-style:none; }
-.planner-timeline>li { padding:12px; border:1px solid var(--color-line); border-left:3px solid var(--color-brand); border-radius:10px; background:var(--color-surface); }
-.planner-timeline>li.has-conflict { border-left-color:var(--ui-warning, var(--color-danger)); }
+.planner-timeline>li { padding:12px 14px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
 .planner-time-range { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; color:var(--color-brand); font-size:var(--text-body); font-weight:700; font-variant-numeric:tabular-nums; }
 .planner-time-range small { color:var(--color-ink-2); font-size:var(--text-caption); font-weight:400; }
 .planner-timeline strong { color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
@@ -227,7 +226,7 @@
 .planner-web-candidate dt svg { flex-shrink:0; margin-top:3px; }
 .planner-web-candidate dd { margin:0; color:var(--color-ink); font-size:var(--text-fact); }
 .planner-web-candidate-links { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:var(--text-fact); }
-.planner-web-saved { margin:20px 0; padding:16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); }
+.planner-web-saved { margin:20px 0; padding:16px; border-radius:16px; background:var(--color-surface-2); }
 .planner-web-saved>p { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 
 /* Panels other templates mount */
@@ -252,3 +251,6 @@
   .planner-outing-tabs button { flex:1; justify-content:center; }
 }
 @media (prefers-reduced-motion:reduce) { .planner-page * { scroll-behavior:auto!important; transition:none!important; } }
+@media (min-width:1024px) {
+  .planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { min-height:var(--control-height); font-size:.9375rem; }
+}
