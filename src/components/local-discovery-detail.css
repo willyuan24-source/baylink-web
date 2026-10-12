@@ -93,6 +93,13 @@
   .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:12px; font-size:var(--text-body); }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { height:100%; }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day__error { display:none; }
+  .local-discovery-detail .detail-actions .detail-actions__primary { container:detail-primary / inline-size; font-size:var(--text-body); }
+}
+/* 加入这天计划 stays on one line: when the primary cell is narrower than icon + six characters (简洁显示, 特大, a 375px
+   phone), the icon goes and the padding tightens, instead of the label breaking after 计. em = the cell's --text-body. */
+@container detail-primary (max-width:9.5em) {
+  .local-discovery-detail .detail-actions :is(.detail-action--primary,.saves-add-day)>svg { display:none; }
+  .local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { padding:0 8px; }
 }
 @media(max-width:359px) { .local-discovery-detail .detail-action--ask>span { display:none; } }
 

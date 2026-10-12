@@ -136,5 +136,6 @@ export function readerSentences(text: string | undefined, locale: Locale): strin
   if (!prose) return [];
   // English list items end at a full stop only: "…onto Senior Clipper; it is not automatically free…" stays one item.
   if (locale === 'en') return sentences(prose.split(';').join(SEMICOLON_MARK), true).map(sentence => sentence.split(SEMICOLON_MARK).join(';').trim()).filter(Boolean);
-  return sentences(prose, false).map(sentence => sentence.trim()).filter(Boolean);
+  // Each list item reads as a whole sentence: one cut at "；" ends with "。" ("新卡约四周；" → "新卡约四周。").
+  return sentences(prose, false).map(sentence => sentence.trim().replace(/[；;]$/, '。')).filter(Boolean);
 }

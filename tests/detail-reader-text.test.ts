@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { localDiscoveries } from '../src/data/local-discoveries';
 import { loadLocale } from '../src/i18n/locale';
-import { EDITOR_NOTE_EN, EDITOR_NOTE_ZH, hasEditorNote, readerCost, readerPlanLines, readerProse, TICKETS_BOILERPLATE, withoutEditorNotes } from '../src/features/detail/reader-text';
+import { EDITOR_NOTE_EN, EDITOR_NOTE_ZH, hasEditorNote, readerCost, readerPlanLines, readerProse, readerSentences, TICKETS_BOILERPLATE, withoutEditorNotes } from '../src/features/detail/reader-text';
 
 /**
  * CNT-1011-05 / CNT-1011-06: readers get answers, not the editor's working notes or templated repeats. The filter runs at
@@ -31,6 +31,11 @@ test('plan lines that only repeat the date or the price go, and a free event nev
   assert.deepEqual(readerPlanLines({ ...event, tips: ['带折叠椅。'] }), ['带折叠椅。'], 'the editorial overlay\'s tips win');
   assert.equal(readerCost('参考：免费 · 须提前在线报名；最终价格以票页为准', 'free', 'zh-Hans'), '免费 · 须提前在线报名');
   assert.equal(readerCost('参考：$15–27；最终价格以票页为准', 'paid', 'zh-Hans'), '参考：$15–27；最终价格以票页为准', 'a ticketed event keeps its hedge');
+});
+
+test('offer conditions and steps read one whole sentence per item', () => {
+  assert.deepEqual(readerSentences('已有 Clipper 的申请可能需三周，新卡约四周；获批后再用，补发遗失卡可能收费。', 'zh-Hans'), ['已有 Clipper 的申请可能需三周，新卡约四周。', '获批后再用，补发遗失卡可能收费。'], 'an item cut at "；" ends with "。"');
+  assert.deepEqual(readerSentences('Apply onto Senior Clipper; it is not automatically free. Approval takes about three weeks.', 'en'), ['Apply onto Senior Clipper; it is not automatically free.', 'Approval takes about three weeks.']);
 });
 
 // Catalog fields a detail page shows. The lint counts note sentences in them; the filter hides them meanwhile.
