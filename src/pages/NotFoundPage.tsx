@@ -20,9 +20,12 @@ export default function NotFoundPage() {
   // The prerendered 404.html has no app context; BayBay is offered once the app is running.
   const app = useApp() as ReturnType<typeof useApp> | undefined;
   const [query, setQuery] = useState('');
+  // Written in the reader's language here (the dictionary has no English for the description), so preserveText.
+  const metaTitle = t('页面不存在｜BAYLINK', 'Page not found | BAYLINK');
+  const metaDescription = t('没有找到这个页面。请检查链接，或返回 BAYLINK 首页和生活指南。', 'We couldn’t find this page. Check the link, or go back to the BAYLINK home page or the guides.');
   useEffect(() => {
-    setPageMetadata({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页和生活指南。', path: pathname, noindex: true });
-  }, [pathname]);
+    setPageMetadata({ title: metaTitle, description: metaDescription, path: pathname, noindex: true, preserveText: true });
+  }, [pathname, metaTitle, metaDescription]);
   const links = [
     { to: '/events', icon: CalendarDays, label: t('本周末活动', 'This weekend'), note: t('活动、免费福利和新店', 'Events, free benefits, new shops') },
     { to: '/guides', icon: BookOpen, label: t('办事指南', 'Guides'), note: t('医疗、证件、住房、出行', 'Health, IDs, housing, transport') },
@@ -37,7 +40,7 @@ export default function NotFoundPage() {
       <p className="nf-body">{t('链接可能有误，或内容已经移除。可以搜索一下，或从下面几个常用入口继续。', 'The link may be wrong, or the page was removed. Try a search, or pick up from one of the places below.')}</p>
       <form role="search" className="nf-search" onSubmit={event => { event.preventDefault(); if (query.trim()) navigate(`/guides?${new URLSearchParams({ q: query.trim() })}`); }}>
         <label htmlFor="missing-page-search" className="sr-only">{t('搜索生活指南', 'Search guides')}</label>
-        <span className="nf-search-field"><Search aria-hidden="true" strokeWidth={1.75} /><input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder={t('搜活动、地点或问题', 'An event, place or question')} /></span>
+        <span className="nf-search-field"><Search aria-hidden="true" strokeWidth={1.75} /><input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder={t('搜指南或生活问题', 'A guide or a question')} /></span>
         <button type="submit" className="nf-button" data-variant="primary">{t('搜索', 'Search')}</button>
       </form>
     </section>

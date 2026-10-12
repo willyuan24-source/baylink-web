@@ -186,6 +186,12 @@ await renderPage(SMS_METADATA, <SmsConsentView />);
 await renderPage({ title: '验证邮箱｜BAYLINK', description: '确认由本人发起的邮箱验证请求。', english: { title: 'Verify your email | BAYLINK', description: 'Confirm an email verification you asked for.' }, path: '/verify-email', noindex: true }, <NotificationTokenPage purpose="verify" />);
 await renderPage({ title: '取消站外通知｜BAYLINK', description: '主动取消 BAYLINK 邮件或短信提醒。', english: { title: 'Turn off email or text notices | BAYLINK', description: 'Turn off BAYLINK email or text reminders.' }, path: '/notifications/unsubscribe', noindex: true }, <NotificationTokenPage purpose="unsubscribe" />);
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', english: { title: 'Page not found | BAYLINK', description: 'We could not find this page. Check the link, or go back to the BAYLINK home page.' }, path: '/404', noindex: true }, <NotFoundPage />, '404.html');
+// RC-6 for 404.html: NotFoundPage is a shared chunk found by name (manifestEntry). If that lookup ever misses, the page would
+// paint without its stylesheet, so the build stops instead.
+const notFoundStyles = routeGraph('/404').styles;
+const notFoundHtml = await readFile(join(outputDir, '404.html'), 'utf8');
+const unlinkedNotFoundStyles = notFoundStyles.filter(file => !notFoundHtml.includes(`href="/${file}"`));
+if (!notFoundStyles.length || unlinkedNotFoundStyles.length) throw new Error(`prerender: 404.html must link NotFoundPage's stylesheets (${unlinkedNotFoundStyles.join(', ') || 'none found in the Vite manifest'})`);
 
 const { paths: sitemapPaths, xml: sitemap } = generateSitemap();
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
