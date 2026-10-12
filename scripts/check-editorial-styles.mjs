@@ -12,7 +12,9 @@ export const editorialStyleScopes = [
   { file: 'src/editorial-refinement.css' },
   { file: 'src/features/outings/outings.css', after: '/* Editorial refinement and shared reading controls.' },
   { file: 'src/features/posts/posts-ui.css', selectors: /^\.post-translation(?:\s|$)/ },
-  { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
+  { file: 'src/features/source-monitor/source-monitor.css' },
+  // WEB-FRESH2: the editor's source desk (loaded with the admin view).
+  { file: 'src/features/source-monitor/source-monitor-admin.css' },
   { file: 'src/features/profile/me-hub.css' },
   { file: 'src/features/messages/messages-hub.css' },
   { file: 'src/features/events/events.css' },
