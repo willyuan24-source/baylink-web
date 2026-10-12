@@ -28,7 +28,7 @@ export function LegalPageLayout({ title, updated, children }: { title: Copy; /**
       title={english ? title.en : `${t(title.zh, title.en)} · ${title.en}`}
       lede={english
         ? <span>Last updated: <time dateTime={updated}>{formatUpdated(updated, true)}</time></span>
-        : <span>{t('更新日期：', 'Last updated: ')}<time dateTime={updated}>{formatUpdated(updated, false)}</time><span lang="en"> · Last updated: {formatUpdated(updated, true)}</span></span>} />
+        : <span>{t('更新日期：', 'Last updated: ')}<time dateTime={updated}>{formatUpdated(updated, false)}</time><span className="legal-updated-en" lang="en">Last updated: {formatUpdated(updated, true)}</span></span>} />
     <div className="legal-doc">{children}</div>
     <nav className="legal-related" aria-label={t('网站说明', 'Site policies')}>
       <Link to="/terms">{t('服务条款', 'Terms of Service')}</Link>

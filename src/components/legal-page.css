@@ -2,6 +2,7 @@
 .legal-page{padding-block:24px 56px;color:var(--color-ink);overflow-wrap:anywhere}
 .legal-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
 .legal-page .ui-page-header__lede{color:var(--color-ink-2);font-size:var(--text-fact)}
+.legal-updated-en{display:block}
 .legal-doc{display:grid;gap:24px;color:var(--color-ink-2);font-size:var(--text-body);line-height:1.75}
 .legal-doc p{margin:0}
 .legal-doc p+p{margin-top:12px}

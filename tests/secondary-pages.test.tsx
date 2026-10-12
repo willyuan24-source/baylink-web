@@ -105,7 +105,8 @@ test('legal pages show English readers only English, and Chinese readers the sum
     const zh = await render('zh-Hans', path, createElement(view));
     assert.equal(page(zh).getByRole('heading', { level: 1 }).textContent, `${zhTitle} · ${title}`, `${path}: the Chinese H1 keeps the English title`);
     assert.match(zh.body.textContent!, path === '/sms-consent' ? /中文说明：何时会发送短信/ : /中文阅读要点/);
-    assert.match(page(zh).getByText(/^更新日期：/).textContent!, /^更新日期：2026年\d{1,2}月\d{1,2}日 · Last updated: [A-Z][a-z]+ \d{1,2}, 2026$/);
+    assert.match(page(zh).getByText(/^更新日期：/).textContent!, /^更新日期：2026年\d{1,2}月\d{1,2}日/);
+    assert.equal(page(zh).getByText(/^Last updated: [A-Z][a-z]+ \d{1,2}, 2026$/).getAttribute('lang'), 'en', `${path}: the English date line on Chinese pages`);
   }
   const privacy = await render('zh-Hans', '/privacy', createElement(PrivacyPolicyView));
   assert.match(privacy.body.textContent!, /Cloudflare/, 'the API network edge is named (ENGSEC-11)');
@@ -117,7 +118,7 @@ test('legal pages show English readers only English, and Chinese readers the sum
   assert.equal(hant.querySelectorAll('[lang="zh-Hans"]').length, 0);
   assert.match(hant.body.textContent!, /發送驗證碼 \/ Send verification code/);
   assert.equal(page(hant).getByRole('heading', { level: 1 }).textContent, '簡訊同意說明 · SMS Consent');
-  assert.match(page(hant).getByText(/^更新日期：/).textContent!, / · Last updated: September 30, 2026$/);
+  page(hant).getByText('Last updated: September 30, 2026');
   assert.doesNotMatch(hant.body.textContent!, /发送验证码/);
 });
 
