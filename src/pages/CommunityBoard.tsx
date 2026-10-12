@@ -145,7 +145,7 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
         actions={<><Button variant="primary" onClick={() => setRegionFilter('全部')}>{t('看整个湾区', 'Whole Bay Area')}</Button>{otherHasPosts && seeOther('text')}</>} />
         : wholeBoard ? <EmptyState headingLevel="h3" title={t(`${name}还没有信息`, `No ${name.toLowerCase()} posts yet`)} body={t('邻里信息还在测试中。发布前可以先看看下面的安全提醒和指南。', 'The neighborhood board is still in testing. The safety notes and guides below are a good start.')}
           actions={publishButton('primary')} />
-          : <EmptyState headingLevel="h3" title={t(`还没有${kind.zh}的${name}信息`, categorySlug ? `No ${kind.en} posts in ${name} yet` : `No ${kind.en} posts yet`)}
+          : <EmptyState headingLevel="h3" title={categorySlug ? t(`还没有${kind.zh}的${name}信息`, `No ${kind.en} posts in ${name} yet`) : t(`还没有${kind.zh}的${name}信息`, `No ${kind.en} posts yet`)}
             body={otherHasPosts ? t(`${other.zh}里有信息，可以先看看。`, `There are posts under ${other.en}.`) : t('邻里信息还在测试中。发布前可以先看看下面的安全提醒和指南。', 'The neighborhood board is still in testing. The safety notes and guides below are a good start.')}
             actions={otherHasPosts ? <>{seeOther('primary')}{publishButton('text')}</> : publishButton('primary')} />;
 
