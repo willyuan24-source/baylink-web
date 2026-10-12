@@ -6,12 +6,14 @@ import { SaveToWeek } from '../../components/SaveToWeek';
 import type { ResolvedCover } from '../../lib/cover';
 import { brandCase, offerKindLabel, type OfferFactsInput } from '../../lib/event-facts';
 import type { HomeOffer } from '../../lib/home-offers';
+import { monthDay } from './home-model';
 
-const TICKET_SIZES = '(max-width: 767px) 160px, 200px';
+const TICKET_SIZES = '(max-width: 767px) 176px, 300px';
 
 /**
  * ⑦ 免费与优惠 (1007 §4.2 ⑦, SV-03): a rail of 1:1 tickets — the brand's own image with its deadline, or the B information
- * card with the value large ("免费", "8 折") — ending soonest first, then public benefits. ♡ saves the offer (one save model).
+ * card with the value large ("免费", "8 折") — ending soonest first, then public benefits. Under each: the brand, the kind,
+ * the source check (as on the event cards) and ♡, which saves the offer (one save model).
  */
 export function OfferTickets({ offers, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
   const { t, pick } = useUiCopy();
@@ -26,6 +28,7 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
           cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} sizes={TICKET_SIZES} decorative />}
           meta={<><span translate="no">{brandCase(offer.brand)}</span> · {pick(offerKindLabel(offer))}</>}
+          trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}
     </ul>

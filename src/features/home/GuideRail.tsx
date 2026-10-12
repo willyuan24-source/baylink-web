@@ -30,7 +30,7 @@ function GuideCard({ guide, cover }: { guide: HomeGuide; cover: ResolvedCover })
 export function GuideRail({ intent, onIntent, guides, covers, guideCount }: { intent: HomeIntentId; onIntent: (intent: HomeIntentId) => void; guides: readonly HomeGuide[]; covers: readonly ResolvedCover[]; guideCount: number }) {
   const { t } = useUiCopy();
   const selected = HOME_INTENTS.find(item => item.id === intent)!;
-  const topic = TOPIC_LABELS[selected.topic];
+  const topic = selected.topic && TOPIC_LABELS[selected.topic];
   return <section className="home-guides" aria-labelledby="home-guides-title">
     <div className="home-section-head">
       <h2 id="home-guides-title">{t('办事与生活指南', 'How-to guides')}</h2>
@@ -43,7 +43,8 @@ export function GuideRail({ intent, onIntent, guides, covers, guideCount }: { in
       {guides.map((guide, index) => <li key={guide.slug}><GuideCard guide={guide} cover={covers[index]} /></li>)}
     </ul>
     <div className="home-guides__more">
-      <Link to={`/guides?topic=${selected.topic}`}>{t(`看全部「${topic.zh}」指南`, `All ${topic.en} guides`)}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
+      {topic ? <Link to={`/guides?topic=${selected.topic}`}>{t(`看全部「${topic.zh}」指南`, `All ${topic.en} guides`)}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
+        : <Link to="/guides">{t('看全部办事指南', 'All how-to guides')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>}
       {intent === 'elders' && <FamilyLinkButton path="/guides?topic=elders" title={t('长辈与家属：湾区中文办事指南', 'Seniors & family: Bay Area guides')} variant="tonal" />}
     </div>
   </section>;

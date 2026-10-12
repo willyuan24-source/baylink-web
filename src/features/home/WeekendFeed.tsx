@@ -20,9 +20,9 @@ function EventMeta({ event }: { event: HomeEvent }) {
 /**
  * ④ The rest of this weekend (1007 §4.2 ④, D9): a two-column cover feed of eight, the date on the photo, place and price
  * under it, the source check and ♡ 收藏 (FC3-02: the one save model, as on /events). One column at 大/特大 and in 简洁显示
- * on phones (FeedGrid). Ends with one button to the whole weekend.
+ * on phones (FeedGrid). Ends with one button to the whole weekend (without a number when the home cannot count it).
  */
-export function WeekendFeed({ feed, covers, tones, today, total }: { feed: readonly FeedEntry[]; covers: readonly ResolvedCover[]; tones: readonly (CoverTone | null)[]; today: string; total: number }) {
+export function WeekendFeed({ feed, covers, tones, today, total }: { feed: readonly FeedEntry[]; covers: readonly ResolvedCover[]; tones: readonly (CoverTone | null)[]; today: string; total: number | null }) {
   const { t } = useUiCopy();
   const { layout } = useFeedLayout();
   if (!feed.length) return null;
@@ -30,14 +30,14 @@ export function WeekendFeed({ feed, covers, tones, today, total }: { feed: reado
     <div className="home-section-head"><h2 id="home-feed-title">{t('本周末还有', 'More this weekend')}</h2></div>
     <FeedGrid label={t('本周末活动', 'Events this weekend')} layout={layout}>
       {feed.map(({ event, date }, index) => <FeedItem key={event.id}>
-        <FeedCard title={event.title} to={`/events/${event.id}`}
+        <FeedCard title={event.title} to={`/events/${event.id}?date=${date}`}
           cover={<EventCover event={facts(event)} cover={covers[index]} tone={tones[index] ?? undefined} today={today} days={[date]} decorative />}
           meta={<EventMeta event={event} />} trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt)}</>}
           save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
       </FeedItem>)}
     </FeedGrid>
-    {total > feed.length && <Button variant="secondary" block to="/events" className="home-feed__all">
-      {t(`看本周末全部 ${total} 场`, `See all ${total} events this weekend`)}
+    {(total === null || total > feed.length) && <Button variant="secondary" block to="/events" className="home-feed__all">
+      {total === null ? t('看本周末全部活动', 'See all events this weekend') : t(`看本周末全部 ${total} 场`, `See all ${total} events this weekend`)}
     </Button>}
   </section>;
 }

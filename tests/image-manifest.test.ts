@@ -202,7 +202,9 @@ test('the slim home catalog carries the same ladder srcset and placeholder colou
     // Listing images are keyed by their registry key, guide covers by their path (guides have no image key).
     const source = Object.hasOwn(GUIDE_IMAGES, key) ? GUIDE_IMAGES[key] : undefined;
     const ladder = manifest.images[image.src]?.srcset.join(', ');
-    assert.equal(image.srcSet, source?.srcSet ?? ladder ?? image.srcSet, key);
+    const expected = source?.srcSet ?? ladder;
+    assert.ok(expected, `${key}: a registry image or a ladder in the manifest (the catalog never ships an image of its own)`);
+    assert.equal(image.srcSet, expected, key);
     if (source?.lqip) assert.equal(image.lqip, source.lqip, `${key}: the cover's placeholder colour`);
   }
   for (const guide of home.guides) if (guide.imageKey) assert.ok(Object.hasOwn(home.images, guide.imageKey), `${guide.slug}: its cover ships with the catalog`);

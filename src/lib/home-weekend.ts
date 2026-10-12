@@ -42,11 +42,15 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
   const list = editorialPicks[range.start] || [];
   // The published snapshot answers only the default call; any option asks for a fresh selection.
   const custom = Object.values(options).some(value => value !== undefined);
-  const snapshot = catalog === MONTHLY_EVENTS && !custom ? (HOME_WEEKENDS as Record<string, HomeWeekendSnapshot>)[today] : undefined;
+  const published = catalog === MONTHLY_EVENTS ? (HOME_WEEKENDS as Record<string, HomeWeekendSnapshot>)[today] : undefined;
+  // The weekend's event count. The compact pool holds only the events some snapshot day shows, so on a day past the
+  // snapshots (no deploy for four weeks) counting it would undercount: the count is unknown (null) and the home says
+  // "全部活动" without a number.
+  const total: number | null = catalog !== MONTHLY_EVENTS ? events.length : published ? published.total : null;
   const byIds = (ids: readonly string[]) => ids.flatMap(id => events.filter(entry => entry.event.id === id));
-  if (snapshot) {
-    const picks = byIds(snapshot.ids).map((entry): HomeWeekendPick => ({ ...entry, editorial: editorialFor(list, entry.event.id) }));
-    return { ...range, events, picks, feed: byIds(snapshot.feed ?? []), total: snapshot.total };
+  if (published && !custom) {
+    const picks = byIds(published.ids).map((entry): HomeWeekendPick => ({ ...entry, editorial: editorialFor(list, entry.event.id) }));
+    return { ...range, events, picks, feed: byIds(published.feed ?? []), total };
   }
   const picks: HomeWeekendPick[] = [];
   // Editor picks first, in their order. An id this catalog does not hold for the
@@ -62,7 +66,7 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
   // the best real photos on the grid's diagonal.
   const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), range.start, { hasPhoto, flagships });
   const feed = featurePhotos(rest, entry => hasPhoto(entry.event.imageKey), FEED_PHOTO_SLOTS).slice(0, feedLimit);
-  return { ...range, events, picks, feed, total: events.length };
+  return { ...range, events, picks, feed, total };
 }
 
 /** Days with a dated /weekly card: each home snapshot day in the week after the home catalog was generated. */

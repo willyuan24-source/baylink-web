@@ -85,6 +85,24 @@ test('邻里信息（测试中）· 去看看 opens the board and scrolls to its
   assert.deepEqual(order, ['home-discovery', 'bay-home-columns']);
 });
 
+test('the board views keep their footer, with the positioning line in the reader’s language (rule 4: t(zh, en))', async () => {
+  const view = render(app('/category/rent', { categoryFilter: '租房' }));
+  await screen.findByRole('heading', { level: 1, name: /租房，就在你身边。/ });
+  assert.match(view.container.querySelector('.bay-home-footer')!.textContent!, /湾区去哪、怎么办 · 有来源的中文答案/);
+  view.unmount();
+  const { setLocale } = await import('../src/i18n/locale');
+  try {
+    await setLocale('en', false);
+    const english = render(app('/category/rent', { categoryFilter: '租房' }));
+    await waitFor(() => assert.ok(english.container.querySelector('.bay-home-footer')));
+    const footer = english.container.querySelector('.bay-home-footer')!.textContent!;
+    assert.match(footer, /Where to go and how to get it done in the Bay, with sources/);
+    assert.doesNotMatch(footer, /湾区去哪/);
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
+});
+
 test('a search keeps its heading and the feed, and the rail shows the newcomer help', async () => {
   const view = render(app('/?q=%E7%A7%9F%E6%88%BF', { keyword: '租房' }));
   assert.ok(screen.getByRole('heading', { level: 1, name: /找到你需要的/ }));

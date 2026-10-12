@@ -1,7 +1,8 @@
 /**
  * The home page's 办事与生活指南 rail (1007 §4.2 ⑥, plan WEB-HOME): five reader intents, 长辈与家属 second (HOMEIA-08),
- * each with up to four guides and the guide topic it continues into (/guides?topic=…, D22). The home catalog generator
- * copies these guides' titles, topics, source counts and covers; the reader's choice is remembered in this browser.
+ * each with up to four guides and the guide topic it continues into (/guides?topic=…, D22); 日常办事 spans several topics
+ * (311, repairs, getting around, rental scams), so it continues into the whole library (topic null). The home catalog
+ * generator copies these guides' titles, topics, source counts and covers; the reader's choice is remembered in this browser.
  */
 export const HOME_INTENTS = [
   {
@@ -21,7 +22,7 @@ export const HOME_INTENTS = [
     slugs: ['bay-area-first-doctor-insurance-network-guide', 'bay-area-medicare-hicap-medi-cal-guide', 'bay-area-dental-care-insurance-low-cost-guide'],
   },
   {
-    id: 'everyday', label: '日常办事', en: 'Everyday errands', topic: 'housing',
+    id: 'everyday', label: '日常办事', en: 'Everyday errands', topic: null,
     slugs: ['bay-area-311-211-local-help-guide', 'bay-area-repair-request-guide', 'bay-area-without-car-guide', 'bay-area-rental-scam-guide'],
   },
 ] as const;

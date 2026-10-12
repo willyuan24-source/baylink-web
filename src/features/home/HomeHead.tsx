@@ -7,8 +7,9 @@ import { longDate, monthDay } from './home-model';
 
 export type HomeHeadProps = {
   today: string;
-  /** Events this weekend (the remaining days), guides in the library and the edition's check date: the live subtitle (D21). */
-  weekendTotal: number;
+  /** Events this weekend (the remaining days; null when unknown), guides in the library and the edition's check date: the
+   * live subtitle (D21). */
+  weekendTotal: number | null;
   guideCount: number;
   checkedAt: string;
   onAskBayBay: (question?: string) => void;
@@ -34,7 +35,7 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
     else navigate(`/guides?q=${encodeURIComponent(value)}`);
   };
   const facts = [
-    ...(weekendTotal > 0 ? [t(`本周末 ${weekendTotal} 场活动`, `${weekendTotal} events this weekend`)] : []),
+    ...(weekendTotal ? [t(`本周末 ${weekendTotal} 场活动`, `${weekendTotal} events this weekend`)] : []),
     t(`${guideCount} 篇办事指南`, `${guideCount} guides`),
     t(`每条附官方来源，${monthDay(checkedAt)} 核对`, `official sources, checked ${monthDay(checkedAt)}`),
   ];

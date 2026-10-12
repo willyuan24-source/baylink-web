@@ -6,7 +6,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { getHomeWeekend, getWeeklyCardHref, HOME_FEED_SIZE } from '../src/lib/home-weekend';
 import { GUIDE_IMAGES, guideCount, HOME_WEEKENDS, MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/lib/home-catalog';
 import { WEEKEND_PICKS, type WeekendPickEntry } from '../src/data/weekend-picks';
-import { eventOccursOn } from '../src/lib/event-calendar';
+import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
 import { GUIDE_IMAGES as COMPLETE_IMAGES } from '../src/data/guide-media';
 import { guides as COMPLETE_GUIDES } from '../src/data/guides';
@@ -46,7 +46,7 @@ test('the picks are the weekly share card\'s three, each a cover with its date, 
   assert.equal(picks.length, 3);
   picks.forEach((card, index) => {
     const { event, date } = weekend.picks[index];
-    assert.equal(card.querySelector('h3 a')!.getAttribute('href'), `/events/${event.id}`);
+    assert.equal(card.querySelector('h3 a')!.getAttribute('href'), `/events/${event.id}?date=${date}`, 'the detail opens on the occurrence the card shows');
     assert.ok(date >= today && eventOccursOn(event, date));
     assert.ok(card.querySelector('.ui-hero-card__media')!.textContent!.includes(monthDay(date)), `${event.id}: the date on the cover`);
     // One save model: the ♡ is the save control, and 加入这天计划 is the saving control (a button), never a link to /plan.
@@ -55,6 +55,10 @@ test('the picks are the weekly share card\'s three, each a cover with its date, 
     assert.equal(card.querySelector('a[href^="/plan"]'), null);
   });
   assert.equal(doc.querySelector('.home-picks .home-section-head__more')!.getAttribute('href'), '/events');
+  assert.equal(doc.querySelector('.home-picks .home-section-head__more')!.textContent, `全部 ${weekend.total} 场`);
+  // The date kicker sits inside the heading; a hidden separator keeps the heading's name from running together.
+  const range = weekend.start.slice(0, 7) === weekend.end.slice(0, 7) ? `${monthDay(weekend.start)}–${Number(weekend.end.slice(8))}` : `${monthDay(weekend.start)}–${monthDay(weekend.end)}`;
+  assert.equal(doc.querySelector('#home-picks-title')!.textContent, `本周末先看这几件，${range}`);
   assert.equal(doc.querySelector('.home-share a[download]')!.getAttribute('href'), getWeeklyCardHref(today));
 });
 
@@ -82,7 +86,7 @@ test('the feed holds the rest of the weekend: up to eight covers after the picks
   const pickIds = new Set(weekend.picks.map(pick => pick.event.id));
   cards.forEach((card, index) => {
     const { event, date } = weekend.feed[index];
-    assert.equal(card.querySelector('h3 a')!.getAttribute('href'), `/events/${event.id}`);
+    assert.equal(card.querySelector('h3 a')!.getAttribute('href'), `/events/${event.id}?date=${date}`);
     assert.ok(!pickIds.has(event.id), 'a pick is not repeated in the feed');
     assert.ok(eventOccursOn(event, date) && date >= today);
     assert.equal(card.querySelector('.ui-feed-card__trust')!.textContent, `官网核对 ${monthDay(event.verifiedAt)}`);
@@ -110,7 +114,7 @@ test('an editor pick shows its reason under its cover, in Chinese and in English
   const second = snapshots[today].ids[1];
   editorPicks[saturday] = [{ id: second, reason: { zh: '测试理由', en: 'Test reason' } }];
   const reasonOf = (container: ParentNode, href: string) => [...container.querySelectorAll('.home-picks__list > li')]
-    .find(item => item.querySelector(`a[href="${href}"]`))?.querySelector('.ui-hero-card__reason')?.textContent;
+    .find(item => item.querySelector(`a[href^="${href}?date="]`))?.querySelector('.ui-hero-card__reason')?.textContent;
   const { setLocale } = await import('../src/i18n/locale');
   try {
     // The published snapshot keeps its ids; the reason is looked up from the editor list when the home renders.
@@ -176,18 +180,59 @@ test('长辈与家属 is the second intent; the choice is remembered and offers 
   await waitFor(() => assert.equal(again.getByRole('button', { name: '长辈与家属' }).getAttribute('aria-pressed'), 'true'));
   fireEvent.click(again.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
   assert.equal(browsed, 1);
+  // 日常办事 spans several topics, so its way on is the whole library, not one topic's list.
+  fireEvent.click(again.getByRole('button', { name: '日常办事' }));
+  assert.equal(again.getByRole('link', { name: /看全部办事指南/ }).getAttribute('href'), '/guides');
+  assert.equal(again.queryByRole('link', { name: /看全部「住房」指南/ }), null);
 });
 
-test('a Sunday never recommends yesterday and an empty future weekend offers an honest next step', () => {
+test('a Sunday never recommends yesterday and a published weekend without events offers an honest next step', () => {
   const sunday = days.find(day => new Date(`${day}T12:00:00Z`).getUTCDay() === 0)!;
   const weekend = getHomeWeekend(sunday);
   assert.ok([...weekend.picks, ...weekend.feed].every(entry => entry.date === sunday));
-  const view = render(<MemoryRouter><HomeDiscovery today="2099-01-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
-  assert.equal(view.container.querySelectorAll('.home-picks__list').length, 0);
-  assert.ok(view.getByText('这个周末暂没有已确认的活动，先看常设去处或换个日期。'));
-  assert.equal(view.getByRole('link', { name: '按地区找景点' }).getAttribute('href'), '/explore');
-  assert.equal(view.container.querySelector('.home-feed'), null);
-  assert.equal(view.container.querySelector('.home-offers'), null, 'expired offers never look current');
+  // A snapshot day whose weekend really has nothing: the build counted the whole catalog, so the sentence is true.
+  snapshots['2099-01-05'] = { ids: [], feed: [], total: 0 };
+  try {
+    const view = render(<MemoryRouter><HomeDiscovery today="2099-01-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
+    assert.equal(view.container.querySelectorAll('.home-picks__list').length, 0);
+    assert.ok(view.getByText('这个周末暂没有已确认的活动，先看常设去处或换个日期。'));
+    assert.equal(view.getByRole('link', { name: '按地区找景点' }).getAttribute('href'), '/explore');
+    assert.equal(view.container.querySelector('.home-feed'), null);
+    assert.equal(view.container.querySelector('.home-offers'), null, 'expired offers never look current');
+  } finally {
+    delete snapshots['2099-01-05'];
+  }
+});
+
+test('past the published snapshots the home claims no count and no empty weekend: it points to /events', () => {
+  // The compact pool only holds the events some snapshot day shows; a day after the last one (no deploy for weeks) must
+  // not print a short count or say the weekend is empty while /events lists events.
+  const after = addCalendarDays(days.at(-1)!, 1);
+  assert.equal(getHomeWeekend(after).total, null);
+  const doc = serverHome(after);
+  assert.doesNotMatch(doc.querySelector('.home-head__lede')!.textContent!, /场活动/);
+  assert.equal(doc.querySelector('.home-picks .home-section-head__more')!.textContent, '全部活动');
+  const all = doc.querySelector('.home-feed__all');
+  if (all) assert.equal(all.textContent, '看本周末全部活动');
+  assert.doesNotMatch(doc.body.textContent!, /暂没有已确认的活动|全部 \d+ 场|看本周末全部 \d+ 场/);
+  // Far past the edition: nothing in the pool, and still no claim, only the way to the whole catalog.
+  const later = serverHome('2099-01-05');
+  assert.equal(later.querySelector('.home-picks__list'), null);
+  assert.equal(later.querySelector('.home-empty a')!.getAttribute('href'), '/events');
+  assert.equal(later.querySelector('.home-empty a')!.textContent, '看本周末全部活动');
+  assert.doesNotMatch(later.body.textContent!, /暂没有已确认的活动/);
+  // A snapshot day keeps its count.
+  assert.equal(getHomeWeekend(today).total, snapshots[today].total);
+});
+
+test('every offer ticket names its brand and kind, its source check and a ♡ that saves it (FC3-03)', () => {
+  const doc = serverHome();
+  const tickets = [...doc.querySelectorAll('.home-offers__rail > li')];
+  assert.ok(tickets.length > 0, 'the snapshot day has tickets');
+  for (const ticket of tickets) {
+    assert.match(ticket.querySelector('.ui-feed-card__trust')!.textContent!, /^官网核对 \d+\/\d+$/);
+    assert.match(ticket.querySelector('.saves-toggle')!.getAttribute('aria-label')!, /^收藏：/);
+  }
 });
 
 test('the first cover is fetched first; English has the question H1 and English section names', async () => {
