@@ -24,6 +24,8 @@
 .planner-overview-head>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-overview-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:4px; }
 .planner-overview-status { margin:0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+/* A failed save, right under 保存到行程 (the planner's one error look, without its outer margin). */
+.planner-plan-overview .planner-overview-error { margin:0; }
 .planner-plan-overview>p { margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-plan-overview dl { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:16px 0; }
 .planner-plan-overview dl>div { min-width:0; padding:12px; border-radius:12px; background:var(--color-surface-2); }
@@ -50,6 +52,8 @@
 .plan-days__stops { margin:0 0 12px; padding:0; list-style:none; }
 @media (min-width:1024px) { .plan-days__stops { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:24px; } }
 .plan-days__actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.plan-days__more { margin:12px 0 0; }
+@media (min-width:768px) { .plan-days__more { padding-left:8.5rem; } }
 
 /* The list: RowCards with their actions below; the heart is the row's one trailing action. */
 .planner-place { scroll-margin-top:96px; border-bottom:1px solid var(--color-line); padding-bottom:12px; }
@@ -105,6 +109,8 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
 .planner-credits li>span:first-child { color:var(--color-ink); font-weight:600; }
 .planner-credits a { overflow-wrap:anywhere; text-decoration:underline; text-underline-offset:3px; }
 .planner-page .ui-icon-button { min-height:2.5rem; }
+/* 换 (replace this stop) is a one-character text button: it keeps a 44px-wide target like the icon buttons beside it. */
+.planner-page .planner-stops li>div .ui-button { min-width:2.75rem; justify-content:center; }
 /* 已排的日子 with nothing yet: one quiet row on wider screens, so an open draft keeps the page's first screen. */
 @media (min-width:768px) {
   .plan-days .ui-state { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto; column-gap:20px; align-items:center; padding:20px 24px; text-align:left; }

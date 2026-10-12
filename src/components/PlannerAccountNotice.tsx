@@ -2,7 +2,8 @@ import { Link } from 'react-router-dom';
 import type { usePlannerLibrary } from '../lib/planner-library';
 import { translateText, useLocale } from '../i18n/locale';
 
-export function PlannerAccountNotice({ library, signedIn, login, variant = 'default' }: { library: ReturnType<typeof usePlannerLibrary>; signedIn: boolean; login?: () => void; variant?: 'default' | 'week' }) {
+/** `announceError={false}`: the page already announces this error elsewhere (行程's overview, by its save button). */
+export function PlannerAccountNotice({ library, signedIn, login, variant = 'default', announceError = true }: { library: ReturnType<typeof usePlannerLibrary>; signedIn: boolean; login?: () => void; variant?: 'default' | 'week'; announceError?: boolean }) {
   const locale = useLocale();
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const compact = variant === 'week';
@@ -14,6 +15,6 @@ export function PlannerAccountNotice({ library, signedIn, login, variant = 'defa
         : library.guestCount > 0 ? <p>{t('此浏览器还有访客计划或收藏，导入后才会加入当前账号。', 'This browser has guest plans or saved items. Import them to add them to this account.')}</p> : null}
     {signedIn ? !compact && <Link to="/my-week">{t('我的这周', 'My Week')}</Link> : <button type="button" onClick={login}>{compact ? t('登录后选择同步', 'Sign in to choose sync') : t('登录并同步', 'Sign in and sync')}</button>}
     {signedIn && library.guestCount > 0 && <button type="button" disabled={library.busy || library.loading || !library.ready} onClick={() => void library.importGuest()}>{t('导入本机访客计划与收藏', 'Import guest plans and saved items')}</button>}
-    {library.error && <p role="alert" className="planner-error">{translateText(library.error, locale)} <button type="button" disabled={library.busy || library.loading} onClick={() => void library.refresh()}>{signedIn ? t('刷新账号资料', 'Refresh account data') : t('重新读取本机计划', 'Reload browser plans')}</button></p>}
+    {library.error && <p role={announceError ? 'alert' : undefined} className="planner-error">{translateText(library.error, locale)} <button type="button" disabled={library.busy || library.loading} onClick={() => void library.refresh()}>{signedIn ? t('刷新账号资料', 'Refresh account data') : t('重新读取本机计划', 'Reload browser plans')}</button></p>}
   </div>;
 }

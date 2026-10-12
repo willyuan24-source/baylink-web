@@ -30,6 +30,8 @@
 .planner-account strong { color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .planner-account p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-account .planner-error { flex-basis:100%; }
+/* My Week mounts the compact notice straight on the page: a quiet panel so the storage note keeps its container. */
+.planner-account-compact { background:var(--color-surface-2); }
 
 /* 按条件挑选 */
 .planner-form { margin:32px 0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
