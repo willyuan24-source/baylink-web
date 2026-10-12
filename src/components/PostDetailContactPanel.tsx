@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Loader2, MessageCircle, Phone, Share2, Sparkles } from 'lucide-react';
 import { getBayBayCategoryPrompt } from '../utils/categorySafetyTips';
+import { Button } from './ui/Button';
+import { useUiCopy } from './ui/ui-copy';
 import { friendlyErrorMessage } from '../lib/format';
 import { CategorySafetyNotice } from './CategorySafetyNotice';
 
@@ -34,13 +36,15 @@ type PostDetailContactPanelProps = {
   section?: 'contact' | 'baybay' | 'owner' | 'all';
 };
 
-const REQUEST_STATUS_COPY: Record<string, string> = {
-  pending: '请求已发送，等待帖主确认',
-  auto_sent: '联系方式已发送到私信',
-  approved: '联系方式已发送到私信',
-  declined: '帖主暂未发送联系方式，你仍可以通过 BAYLINK 私信联系',
-  dm_first: '该帖子仅支持站内私信',
+const REQUEST_STATUS_COPY: Record<string, { zh: string; en: string }> = {
+  pending: { zh: '请求已发送，等待帖主确认', en: 'Request sent; waiting for the poster' },
+  auto_sent: { zh: '联系方式已发送到私信', en: 'Contact details were sent to your messages' },
+  approved: { zh: '联系方式已发送到私信', en: 'Contact details were sent to your messages' },
+  declined: { zh: '帖主暂未发送联系方式，你仍可以通过 BAYLINK 私信联系', en: 'The poster has not shared contact details; you can still message them on BAYLINK' },
+  dm_first: { zh: '该帖子仅支持站内私信', en: 'This post takes messages on BAYLINK only' },
 };
+
+const PENDING_LOAD_FAILED = '联系方式请求加载失败。';
 
 export const PostDetailContactPanel = (props: PostDetailContactPanelProps) => (
   <ContactPanelSession key={`${props.post.id}:${props.currentUser?.id || 'guest'}:${props.section || 'all'}:${props.post.contactPreference?.mode || 'dm_first'}:${props.post.status || 'active'}`} {...props} />
@@ -63,6 +67,7 @@ const ContactPanelSession = ({
   onShare,
   section = 'all',
 }: PostDetailContactPanelProps) => {
+  const { t } = useUiCopy();
   const [requestStatus, setRequestStatus] = useState<string | null>(null);
   const [verificationNeeded, setVerificationNeeded] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
@@ -94,7 +99,7 @@ const ContactPanelSession = ({
     setPendingError(null);
     pendingFetcher.current()
       .then(list => { if (!cancelled) setPendingOwner(list.filter(request => !completedIds.current.has(request.id))); })
-      .catch(error => { if (!cancelled) setPendingError(friendlyErrorMessage(error, '联系方式请求加载失败。')); })
+      .catch(error => { if (!cancelled) setPendingError(friendlyErrorMessage(error, PENDING_LOAD_FAILED)); })
       .finally(() => { if (!cancelled) setLoadingPending(false); });
     return () => { cancelled = true; };
   }, [showOwner, isOwner, post.id, pendingRetry]);
@@ -109,7 +114,7 @@ const ContactPanelSession = ({
     if (!currentUser) return onLoginNeeded();
     if (requestInFlight.current || isOwner || isClosed) return;
     if (mode === 'dm_first') {
-      showToast('该帖子仅支持站内私信', 'info');
+      showToast(t('该帖子仅支持站内私信', 'This post takes messages on BAYLINK only'), 'info');
       return;
     }
     requestInFlight.current = true;
@@ -124,15 +129,15 @@ const ContactPanelSession = ({
       }
       setRequestStatus(res.status);
       if (res.status === 'auto_sent' || res.status === 'approved') {
-        showToast('联系方式已发送到私信', 'success');
+        showToast(t('联系方式已发送到私信', 'Contact details were sent to your messages'), 'success');
         if (res.threadId) onOpenChat(post.authorId, authorName, post.title);
       } else if (res.status === 'pending') {
-        showToast('请求已发送，等待帖主确认', 'success');
+        showToast(t('请求已发送，等待帖主确认', 'Request sent; waiting for the poster'), 'success');
       }
     } catch (error) {
       if (active.current) {
         if (error && typeof error === 'object' && 'code' in error && error.code === 'VERIFIED_CONTACT_REQUIRED') setVerificationNeeded(true);
-        showToast(friendlyErrorMessage(error, '请求失败，请重试。'), 'error');
+        showToast(friendlyErrorMessage(error, t('请求失败，请重试。', 'The request failed. Please try again.')), 'error');
       }
     } finally {
       if (active.current) { requestInFlight.current = false; setLoadingRequest(false); }
@@ -149,9 +154,9 @@ const ContactPanelSession = ({
       if (!active.current) return;
       completedIds.current.add(id);
       setPendingOwner(previous => previous.filter(request => request.id !== id));
-      showToast(approve ? '已发送联系方式' : '已拒绝请求', approve ? 'success' : 'info');
+      showToast(approve ? t('已发送联系方式', 'Contact details sent') : t('已拒绝请求', 'Request declined'), approve ? 'success' : 'info');
     } catch (error) {
-      if (active.current) showToast(friendlyErrorMessage(error, '操作失败，请重试。'), 'error');
+      if (active.current) showToast(friendlyErrorMessage(error, t('操作失败，请重试。', 'That didn’t work. Please try again.')), 'error');
     } finally {
       if (active.current) { ownerActionInFlight.current = false; setActingId(null); }
     }
@@ -160,90 +165,52 @@ const ContactPanelSession = ({
   const categoryPrompt = getBayBayCategoryPrompt(post.category);
 
   return (
-    <div className={section === 'all' ? 'mb-5 space-y-3' : 'mb-5'}>
-      {verificationNeeded && <p role="status"><a href="/me">请到“我的”验证手机号后再请求自动发送的联系方式。你仍可使用站内私信。</a></p>}
-      {showContact && (
-        <div className="surface-card p-3.5">
-          <CategorySafetyNotice category={post.category} />
-          <div className="flex flex-wrap gap-2">
-            {!isOwner && !isClosed && <button type="button" onClick={handleDm} className="inline-flex items-center gap-1.5 rounded-xl bg-baylink-green px-3.5 py-2 text-xs font-semibold text-white shadow-rest hover:bg-baylink-green-hover">
-              <MessageCircle size={14} /> 私信联系
-            </button>}
-            {isOwner && <p className="text-sm text-baylink-text-secondary">这是你发布的帖子。收到的私信和联系方式请求可在消息页查看。</p>}
-            {!isOwner && isClosed && <p className="text-sm text-baylink-text-secondary">这条信息已结束，不再接受新的联系请求。</p>}
-            {canRequestContact && (
-              <button
-                type="button"
-                onClick={handleRequest}
-                disabled={loadingRequest || requestStatus === 'pending' || requestStatus === 'auto_sent' || requestStatus === 'approved'}
-                className="inline-flex items-center gap-1.5 rounded-xl border border-baylink-green/25 bg-baylink-green-light px-3.5 py-2 text-xs font-semibold text-baylink-green disabled:opacity-60"
-              >
-                {loadingRequest ? <Loader2 size={14} className="animate-spin" /> : <Phone size={14} />}
-                请求联系方式
-              </button>
-            )}
-          </div>
-          {onShare && (
-            <button
-              type="button"
-              onClick={onShare}
-              className="mt-2 inline-flex items-center gap-1 rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[0.6875rem] font-normal text-baylink-text-secondary transition hover:border-baylink-green/20 hover:text-baylink-green"
-            >
-              <Share2 size={12} /> 分享给朋友
-            </button>
-          )}
-          {requestStatus && (
-            <p role="status" className="mt-2 text-[0.6875rem] text-baylink-text-secondary">{REQUEST_STATUS_COPY[requestStatus] || '请求状态已更新，可前往消息页查看。'}</p>
-          )}
+    <div className="cm-contact">
+      {verificationNeeded && <p role="status" className="cm-contact__note"><a href="/me">{t('请到“我的”验证手机号后再请求自动发送的联系方式。你仍可使用站内私信。', 'Verify your phone in Me to request contact details. You can still message the poster here.')}</a></p>}
+      {showContact && <section aria-label={t('联系发布者', 'Contact the poster')}>
+        <h2 className="cm-board__subhead">{t('联系之前', 'Before you contact')}</h2>
+        <CategorySafetyNotice category={post.category} />
+        <div className="cm-contact__actions">
+          {section === 'all' && !isOwner && !isClosed && <Button variant="primary" icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />} onClick={handleDm}>{t('私信联系', 'Message')}</Button>}
+          {isOwner && <p className="cm-contact__note">{t('这是你发布的帖子。收到的私信和联系方式请求可在消息页查看。', 'This is your post. Messages and contact requests are in Messages.')}</p>}
+          {!isOwner && isClosed && <p className="cm-contact__note">{t('这条信息已结束，不再接受新的联系请求。', 'This post has ended and takes no new contact requests.')}</p>}
+          {canRequestContact && <Button variant="secondary" onClick={handleRequest}
+            disabled={loadingRequest || requestStatus === 'pending' || requestStatus === 'auto_sent' || requestStatus === 'approved'}
+            icon={loadingRequest ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Phone aria-hidden="true" strokeWidth={1.75} />}>{t('请求联系方式', 'Ask for contact details')}</Button>}
+          {!isOwner && !isClosed && mode === 'dm_first' && <p className="cm-contact__note">{t('发布者选择先通过站内私信沟通。', 'The poster prefers to talk by message first.')}</p>}
         </div>
-      )}
+        {onShare && <Button variant="text" icon={<Share2 aria-hidden="true" strokeWidth={1.75} />} onClick={onShare}>{t('分享给朋友', 'Share')}</Button>}
+        {requestStatus && <p role="status" className="cm-contact__note">{REQUEST_STATUS_COPY[requestStatus] ? t(REQUEST_STATUS_COPY[requestStatus].zh, REQUEST_STATUS_COPY[requestStatus].en) : t('请求状态已更新，可前往消息页查看。', 'Request updated; see Messages.')}</p>}
+      </section>}
 
-      {showBaybay && (
-        <div className="rounded-2xl border border-baylink-green/15 bg-baylink-green/[0.04] p-3.5">
-          <div className="flex items-center gap-1.5 text-sm font-semibold text-baylink-text">
-            <Sparkles size={15} className="text-baylink-green" /> 问问 BayBay
-          </div>
-          <p className="mt-1 text-[0.6875rem] text-baylink-muted">不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。</p>
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {['这类帖子联系前要问什么？', '这条信息有什么需要注意？', '帮我整理一段私信开场白'].map((q) => (
-              <button key={q} type="button" onClick={() => onAskBayBay(q)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[0.6875rem] font-normal text-baylink-green hover:bg-baylink-green-light/60">
-                {q}
-              </button>
-            ))}
-            {categoryPrompt && (
-              <button type="button" onClick={() => onAskBayBay(categoryPrompt)} className="rounded-full border border-baylink-green/20 bg-white/80 px-2.5 py-1 text-[0.6875rem] font-normal text-baylink-green hover:bg-baylink-green-light/60">
-                {categoryPrompt}
-              </button>
-            )}
-          </div>
+      {showBaybay && <section aria-label={t('问问 BayBay', 'Ask BayBay')}>
+        <h2 className="cm-board__subhead"><Sparkles aria-hidden="true" strokeWidth={1.75} />{t('问问 BayBay', 'Ask BayBay')}</h2>
+        <p className="cm-contact__note">{t('不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。', 'Not sure what to ask? BayBay can list the questions and the safety checks.')}</p>
+        <div className="cm-sheet__prompts">
+          {[{ zh: '这类帖子联系前要问什么？', en: 'What should I ask before contacting?' }, { zh: '这条信息有什么需要注意？', en: 'What should I watch out for here?' }, { zh: '帮我整理一段私信开场白', en: 'Help me write a first message' }].map((q) => (
+            <button key={q.zh} type="button" className="ui-chip" onClick={() => onAskBayBay(t(q.zh, q.en))}>{t(q.zh, q.en)}</button>
+          ))}
+          {categoryPrompt && <button type="button" className="ui-chip" onClick={() => onAskBayBay(categoryPrompt)}>{t(categoryPrompt, categoryPrompt)}</button>}
         </div>
-      )}
+      </section>}
 
-      {showOwner && isOwner && (
-        <div className="surface-card p-3.5">
-          <h4 className="text-sm font-semibold text-baylink-text">联系方式请求</h4>
-          {pendingError && <div role="alert" className="mt-2 text-sm text-baylink-text-secondary"><p>{pendingError}</p><button type="button" onClick={() => setPendingRetry(key => key + 1)} className="mt-1 font-semibold text-baylink-green">重新加载</button></div>}
-          {loadingPending ? (
-            <p className="mt-2 text-xs text-baylink-muted flex items-center gap-1"><Loader2 size={12} className="animate-spin" /> 加载中...</p>
-          ) : pendingOwner.length === 0 && !pendingError ? (
-            <p className="mt-2 text-[0.6875rem] text-baylink-muted">暂无待处理的联系方式请求</p>
-          ) : (
-            <div className="mt-2 space-y-2">
-              {pendingOwner.map((r) => (
-                <div key={r.id} className="rounded-xl border border-black/[0.04] bg-white/80 p-3">
-                  <div className="text-sm font-normal text-baylink-text">{r.requester?.nickname ? <span translate="no">{r.requester.nickname}</span> : '用户'}</div>
-                  {r.requestMessage && <p className="mt-1 text-[0.6875rem] text-baylink-muted" translate="no">{r.requestMessage}</p>}
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button type="button" disabled={actingId !== null || !approveRequest} onClick={() => void handleOwnerAction(r.id, true)} className="rounded-lg bg-baylink-green px-2.5 py-1.5 text-[0.6875rem] font-semibold text-white disabled:opacity-60">{actingId === r.id ? '处理中…' : '同意并发送'}</button>
-                    <button type="button" disabled={actingId !== null || !declineRequest} onClick={() => void handleOwnerAction(r.id, false)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[0.6875rem] font-normal text-baylink-text-secondary disabled:opacity-60">暂不发送</button>
-                    <button type="button" onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, post.title)} className="rounded-lg border border-black/[0.06] px-2.5 py-1.5 text-[0.6875rem] font-normal text-baylink-text-secondary">先私信聊聊</button>
-                  </div>
+      {showOwner && isOwner && <section className="cm-contact__owner" aria-label={t('联系方式请求', 'Contact requests')}>
+        <h2 className="cm-board__subhead">{t('联系方式请求', 'Contact requests')}</h2>
+        {pendingError && <div role="alert" className="cm-contact__note"><p>{pendingError === PENDING_LOAD_FAILED ? t(PENDING_LOAD_FAILED, 'Contact requests did not load.') : pendingError}</p><Button variant="text" onClick={() => setPendingRetry(key => key + 1)}>{t('重新加载', 'Reload')}</Button></div>}
+        {loadingPending ? <p className="cm-contact__note"><Loader2 size={14} className="animate-spin" aria-hidden="true" /> {t('加载中…', 'Loading…')}</p>
+          : pendingOwner.length === 0 && !pendingError ? <p className="cm-contact__note">{t('暂无待处理的联系方式请求', 'No contact requests waiting')}</p>
+            : <ul className="cm-contact__requests">
+              {pendingOwner.map((r) => <li key={r.id}>
+                <p className="cm-contact__requester">{r.requester?.nickname ? <span translate="no">{r.requester.nickname}</span> : t('用户', 'Member')}</p>
+                {r.requestMessage && <p className="cm-contact__note" translate="no">{r.requestMessage}</p>}
+                <div className="cm-contact__actions">
+                  <Button variant="primary" disabled={actingId !== null || !approveRequest} onClick={() => void handleOwnerAction(r.id, true)}>{actingId === r.id ? t('处理中…', 'Working…') : t('同意并发送', 'Approve and send')}</Button>
+                  <Button variant="secondary" disabled={actingId !== null || !declineRequest} onClick={() => void handleOwnerAction(r.id, false)}>{t('暂不发送', 'Not now')}</Button>
+                  <Button variant="text" onClick={() => r.requester?.id && onOpenChat(r.requester.id, r.requester.nickname, post.title)}>{t('先私信聊聊', 'Message first')}</Button>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+              </li>)}
+            </ul>}
+      </section>}
     </div>
   );
 };

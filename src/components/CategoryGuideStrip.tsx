@@ -1,54 +1,39 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { handleGuideLinkClick } from './GuideCard';
-// guides 语料 ~1800 行：这里只用 type（编译期擦除），数据在 effect 里动态 import，避免进首包
+import '../features/posts/community.css';
+import { useUiCopy } from './ui/ui-copy';
+import { translateText } from '../i18n/locale';
+// The guides corpus is large: only its type here (erased at compile time); the data is imported in the effect.
 import type { Guide } from '../data/guides';
 
-type CategoryGuideStripProps = {
-  categorySlug: string;
-  onOpenGuide: (slug: string) => void;
+/** "Read this first" for a board: what each board's readers usually need (WEB-COMMUNITY, T15). */
+const STRIP_TITLES: Record<string, { zh: string; en: string }> = {
+  service: { zh: '找本地服务先看', en: 'Before you hire someone' },
+  rent: { zh: '租房前先看', en: 'Before you rent' },
+  used: { zh: '二手交易先看', en: 'Before you buy or sell' },
+  moving: { zh: '找本地服务先看', en: 'Before you hire someone' },
+  cleaning: { zh: '预约清洁先看', en: 'Before you book a cleaner' },
+  ride: { zh: '接送通勤先看', en: 'Rides and commuting' },
+  repair: { zh: '安排维修先看', en: 'Before you book a repair' },
+  translation: { zh: '找翻译先看', en: 'Before you hire a translator' },
+  'part-time': { zh: '联系招聘方之前', en: 'Before you contact an employer' },
 };
 
-export const CategoryGuideStrip = ({ categorySlug, onOpenGuide }: CategoryGuideStripProps) => {
+export const CategoryGuideStrip = ({ categorySlug }: { categorySlug: string }) => {
+  const { t, pick, locale } = useUiCopy();
   const [items, setItems] = useState<Guide[]>([]);
-  const [title, setTitle] = useState('相关生活指南');
-
   useEffect(() => {
     let cancelled = false;
-    import('../data/guides').then((m) => {
-      if (cancelled) return;
-      setItems(m.getGuidesForCategorySlug(categorySlug, 3));
-      setTitle(m.CATEGORY_STRIP_TITLES[categorySlug] ?? '相关生活指南');
-    }).catch(() => { /* 加载失败就不展示条目 */ });
+    import('../data/guides').then((m) => { if (!cancelled) setItems(m.getGuidesForCategorySlug(categorySlug, 3)); })
+      .catch(() => { /* No guides when the corpus does not load. */ });
     return () => { cancelled = true; };
   }, [categorySlug]);
-
   if (items.length === 0) return null;
-
-  return (
-    <div className="mb-3 rounded-xl border border-baylink-border/40 bg-baylink-section/30 px-3 py-2.5">
-      <div className="mb-1.5 flex items-center justify-between">
-        <span className="text-[0.6875rem] font-semibold text-baylink-text">{title}</span>
-        <span className="text-[0.6875rem] text-baylink-muted">湾区指南</span>
-      </div>
-      <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap">
-        {items.map((g) => (
-          <GuidePill key={g.slug} guide={g} onClick={() => onOpenGuide(g.slug)} />
-        ))}
-      </div>
-    </div>
-  );
+  return <section className="cm-guides" aria-labelledby="cm-guides-title">
+    <h2 className="cm-guides__title" id="cm-guides-title">{STRIP_TITLES[categorySlug] ? pick(STRIP_TITLES[categorySlug]) : t('相关生活指南', 'Related guides')}</h2>
+    <ul className="cm-guides__list">
+      {items.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}><span>{translateText(guide.title, locale)}</span><ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link></li>)}
+    </ul>
+  </section>;
 };
-
-const GuidePill = ({ guide, onClick }: { guide: Guide; onClick: () => void }) => (
-  <Link
-    to={`/guides/${guide.slug}`}
-    onClick={(event) => handleGuideLinkClick(event, onClick)}
-    className="flex min-h-[40px] w-full cursor-pointer items-center gap-2 rounded-lg border border-baylink-border/50 bg-white px-2.5 py-2 text-left transition hover:border-baylink-green/30 sm:max-w-[calc(50%-4px)] sm:flex-1"
-  >
-    <span className="text-base">{guide.emoji}</span>
-    <span className="min-w-0 flex-1 line-clamp-1 text-xs font-normal text-baylink-text">{guide.title}</span>
-    <ChevronRight size={14} className="shrink-0 text-gray-300" />
-  </Link>
-);

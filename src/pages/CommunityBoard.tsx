@@ -1,31 +1,31 @@
-// 邻里信息板：分类页 /category/:slug、搜索 /?q=、首页展开的邻里信息，以及 /posts/:id、/users/:id 深链的覆盖层背景。
-// WEB-HOMEPREP 把它从 HomePage 拆成懒加载 chunk（首页首屏不再下载帖子卡、筛选与侧栏代码），渲染与拆分前逐像素一致；
-// HomePage 决定何时挂载它，并在直达这些 URL 时先把它和页面一起加载（无中间的加载转圈）。WEB-COMMUNITY 之后在这里改版。
+// 邻里信息（测试中）: category boards /category/:slug, searches /?q=, the home page's expanded board, and the page under
+// /posts/:id and /users/:id deep links. Its own chunk (WEB-HOMEPREP); HomePage decides when to mount it.
+// WEB-COMMUNITY (T15): one H1 (the board's name) with 测试中, region chips, the 1:1 post cards in the WEB-UI feed grid,
+// every post by default (FC3-04: the older ones say so, and a quiet board says 近 30 天 0 条新信息 instead of "empty"),
+// one publish button that does not preset 提供 / 需求 (E2E+2), and the safety note and guides under the feed.
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { EnglishOnly } from '../components/EnglishOnly';
-import { Link, useNavigate, useParams, useLocation } from 'react-router-dom';
-import { ArrowRight, ChevronRight, BookOpen, Compass, LayoutGrid, List, Loader2, MapPin, Plus, RotateCw, Search, ShieldCheck, SlidersHorizontal, Sparkles, X } from 'lucide-react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Loader2, Plus, RotateCw, Search, ShieldCheck } from 'lucide-react';
+import '../components/ui/ui.css';
+import '../features/posts/community.css';
 import { useApp } from '../app/context';
-import { BRAND } from '../brandAssets';
-import { CATEGORIES, REGIONS, SERVICE_CATEGORIES } from '../lib/constants';
+import { Button } from '../components/ui/Button';
+import { ChipRow, FilterChip } from '../components/ui/Chip';
+import { FeedGrid, FeedItem, FeedLayoutToggle } from '../components/ui/FeedGrid';
+import { useFeedLayout } from '../components/ui/feed-layout';
+import { SegmentedControl } from '../components/ui/Segmented';
+import { SkeletonCard } from '../components/ui/SkeletonCard';
+import { EmptyState, ErrorState } from '../components/ui/States';
+import { StatusChip } from '../components/ui/Badges';
+import { useUiCopy } from '../components/ui/ui-copy';
+import { REGIONS } from '../lib/constants';
 import type { PostData } from '../lib/types';
-const CategoryGuideStrip = lazy(() => import('../components/CategoryGuideStrip').then(m => ({ default: m.CategoryGuideStrip })));
-const EditorialCollections = lazy(() => import('../components/EditorialCollections').then(m => ({ default: m.EditorialCollections })));
-import { CategoryChip, EmptyFeed, FeedSwitch, FilterTag, HotRecommend } from '../features/home/HomeSections';
-import { RegionExplorer } from '../features/home/RegionExplorer';
+import { CategorySafetyNotice } from '../components/CategorySafetyNotice';
 import { PostCard } from '../features/posts/PostCard';
+import { BoardLinks } from '../features/posts/BoardLinks';
+import { categoryName, feedTypeNames, isNewPost, publishLabel, showCount } from '../features/posts/community-copy';
 import { OfficialAds } from '../features/ads/OfficialAds';
-import { PostCardSkeleton } from '../components/ui/Skeleton';
-
-const VIEW_KEY = 'baylink.feed-view.v2';
-const getSavedView = (): 'grid' | 'list' => {
-  try {
-    if (typeof window === 'undefined') return 'grid';
-    const saved = window.localStorage.getItem(VIEW_KEY);
-    if (saved === 'grid' || saved === 'list') return saved;
-    return window.matchMedia('(max-width: 639px)').matches ? 'list' : 'grid';
-  } catch { return 'grid'; }
-};
+const CategoryGuideStrip = lazy(() => import('../components/CategoryGuideStrip').then(m => ({ default: m.CategoryGuideStrip })));
 
 export interface CommunityBoardProps {
   /** Scroll the feed heading into view (HomePage's "浏览邻里信息"; a region picked on the map). */
@@ -34,84 +34,139 @@ export interface CommunityBoardProps {
   scrollRequest: number;
 }
 
-export default function CommunityBoard({ onScrollToFeed, scrollRequest }: CommunityBoardProps) {
+const REGION_NAMES: Record<string, { zh: string; en: string }> = {
+  旧金山: { zh: '旧金山', en: 'San Francisco' }, 中半岛: { zh: '半岛', en: 'Peninsula' }, 东湾: { zh: '东湾', en: 'East Bay' },
+  南湾: { zh: '南湾', en: 'South Bay' }, 北湾: { zh: '北湾', en: 'North Bay' },
+};
+
+export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
+  const { t, pick } = useUiCopy();
   const navigate = useNavigate();
   const location = useLocation();
-  const includeUnconfirmed = new URLSearchParams(location.search).get('older') === '1';
-  const changeUnconfirmed = (checked: boolean) => {
-    const query = new URLSearchParams(location.search);
-    if (checked) query.set('older', '1'); else query.delete('older');
-    navigate({ pathname: location.pathname, search: query.toString() ? `?${query}` : '', hash: location.hash });
-  };
   const { categorySlug } = useParams();
-  const [view, setView] = useState<'grid' | 'list'>(getSavedView);
+  const params = new URLSearchParams(location.search);
+  // Every post by default; ?recent=1 keeps only those the poster confirmed recently (the API's `current`).
+  const recentOnly = params.get('recent') === '1';
+  const [now] = useState(Date.now);
+  const feedLayout = useFeedLayout();
   const {
     user, showToast, posts, feedType, setFeedType, keyword, setKeyword, searchPostsNow,
     regionFilter, setRegionFilter, categoryFilter, feedError, isInitialLoading, isLoadingMore, hasMore, handleLoadMore, retryFeed,
-    blockedUserIds, navigateToPost, navigateToCategory, openCreate, openEditPost, handleDeletePost,
-    handleToggleFeature, handleToggleLike, handleToggleBlockUser, openReportTarget, requestPostContact, openUserProfile,
-    setViewingImage, setSharingPost, openBayBay, featuredRefreshKey, openAdDetail, adsRefreshKey,
+    blockedUserIds, navigateToPost, openCreate, openEditPost, handleDeletePost,
+    handleToggleFeature, handleToggleBlockUser, openReportTarget, openAdDetail, adsRefreshKey,
   } = useApp();
-  const changeView = (next: 'grid' | 'list') => {
-    setView(next);
-    try { window.localStorage.setItem(VIEW_KEY, next); } catch { /* The selected view still works when storage is unavailable. */ }
-  };
   useEffect(() => {
     if (!scrollRequest) return;
     const frame = requestAnimationFrame(() => document.getElementById('home-feed-section')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
     return () => cancelAnimationFrame(frame);
   }, [scrollRequest]);
-  const selectRegion = (region: string) => { setRegionFilter(region); onScrollToFeed(); };
-  const hasFilters = !!keyword || regionFilter !== '全部' || !!categorySlug;
-  const isDiscovery = !keyword && !categorySlug;
-  const communityUnavailable = !!feedError && posts.length === 0 && !isInitialLoading;
+
+  const setRecentOnly = (on: boolean) => {
+    const query = new URLSearchParams(location.search);
+    query.delete('older');
+    if (on) query.set('recent', '1'); else query.delete('recent');
+    navigate({ pathname: location.pathname, search: query.size ? `?${query}` : '', hash: location.hash }, { replace: true, state: location.state, preventScrollReset: true });
+  };
   const clearFilters = () => {
     const query = new URLSearchParams(location.search);
-    for (const key of ['q', 'region', 'older']) query.delete(key);
-    navigate({ pathname: '/', search: query.size ? `?${query}` : '', hash: location.hash });
+    for (const key of ['q', 'region', 'older', 'recent']) query.delete(key);
+    navigate({ pathname: categorySlug ? location.pathname : '/', search: query.size ? `?${query}` : '', hash: location.hash });
   };
+  const isSearch = !!keyword && !categorySlug;
+  const isDiscovery = !keyword && !categorySlug;
+  const board = categorySlug ? categoryFilter : '全部';
+  const name = pick(categoryName(board));
+  const types = feedTypeNames(board);
+  const publish = () => openCreate(undefined, ['全部', '本地服务'].includes(board) ? undefined : board);
+  const unavailable = !!feedError && posts.length === 0 && !isInitialLoading;
+  const loadingFirst = isInitialLoading && posts.length === 0;
+  const newCount = posts.filter(post => isNewPost(post, now)).length;
+  // Posts arrive newest first, so a first page without a new post means none in 30 days.
+  const quiet = !recentOnly && !loadingFirst && !unavailable && posts.length > 0 && newCount === 0;
+  const hasFilters = regionFilter !== '全部' || recentOnly || (isSearch && !!keyword);
+  const Heading = isDiscovery ? 'h2' : 'h1';
 
-  return (
-    <>
-      {categorySlug && <header className="bay-category-header"><Link to="/"><Compass size={15} /> 发现湾区</Link><EnglishOnly><span className="bay-section-kicker">LOCAL CONNECTIONS</span></EnglishOnly><div><h1>{categoryFilter}<span>，就在你身边。</span></h1><button type="button" onClick={() => openCreate('client', categoryFilter === '本地服务' ? undefined : categoryFilter)} className="bay-button-dark"><Plus size={17} />发布需求</button></div><p>从一条信息开始，找到合适的人、物与服务。</p></header>}
-      {keyword && !categorySlug && <header className="bay-search-heading"><EnglishOnly><span className="bay-section-kicker">FIND SOMETHING GOOD</span></EnglishOnly><h1>找到你需要的，<span>刚刚好。</span></h1></header>}
-      <div className="bay-home-columns">
-        <section className="bay-feed-column" aria-label="本地信息">
-          <div className="bay-feed-heading" id="home-feed-section"><div><EnglishOnly><span className="bay-section-kicker">THE NEIGHBORHOOD BOARD</span></EnglishOnly><h2>{keyword ? '搜索本地信息' : categorySlug ? `${categoryFilter}信息` : '发现身边的好信息'}<span className="bay-heading-mark" /></h2></div><div className="bay-view-toggle" role="group" aria-label="浏览方式"><button type="button" aria-label="图卡视图" aria-pressed={view === 'grid'} onClick={() => changeView('grid')} className={view === 'grid' ? 'is-active' : ''}><LayoutGrid size={17} /></button><button type="button" aria-label="列表视图" aria-pressed={view === 'list'} onClick={() => changeView('list')} className={view === 'list' ? 'is-active' : ''}><List size={19} /></button></div></div>
-          <form className="bay-feed-search" onSubmit={(event) => { event.preventDefault(); searchPostsNow(); }} role="search"><Search size={19} /><input aria-label="搜索本地信息" type="search" placeholder="试试「San Mateo 租房」或「周末搬家」" value={keyword} onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} /><button type="submit" aria-label="搜索"><ArrowRight size={19} /></button></form>
-          <FeedSwitch feedType={feedType} onClient={() => setFeedType('client')} onProvider={() => setFeedType('provider')} />
-          <label className="bay-confirmation-filter"><input type="checkbox" checked={includeUnconfirmed} onChange={event => changeUnconfirmed(event.target.checked)} />也看待确认的旧信息</label>
-          <p className="bay-confirmation-note">默认显示近期由发布者确认的信息。租屋、闲置和兼职 30 天，其他信息 60 天；超过期限保留原页，需再次确认。</p>
-          <div className="bay-feed-filters"><MapPin size={15} /><div>{['全部', ...REGIONS].map((region) => <FilterTag key={region} label={region === '全部' ? '全部地区' : region} active={regionFilter === region} onClick={() => setRegionFilter(region)} />)}</div></div>
-          <details className="bay-extra-filters"><summary><SlidersHorizontal size={15} /><span>更多分类与地区地图</span><Plus size={15} /></summary>
-          <div className="bay-mobile-categories"><SlidersHorizontal size={15} /><div><CategoryChip label="全部" active={categoryFilter === '全部'} onClick={() => navigateToCategory('全部')} />{CATEGORIES.map((category) => <CategoryChip key={category} label={category} active={categoryFilter === category} onClick={() => navigateToCategory(category)} />)}</div></div>
-          {categoryFilter === '本地服务' && <div className="bay-service-categories">{SERVICE_CATEGORIES.map((category) => <CategoryChip key={category} label={category} active={false} onClick={() => navigateToCategory(category)} />)}</div>}
-          <details className="bay-mobile-explorer"><summary><MapPin size={16} /><span>用地区示意图探索</span><Plus size={16} /></summary><RegionExplorer selected={regionFilter} onSelect={selectRegion} /></details>
-          </details>
-          {categorySlug && !keyword && <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} onOpenGuide={(slug) => navigate(`/guides/${slug}`)} /></Suspense>}
-          <div className="bay-results-meta"><span>{isInitialLoading ? '正在发现附近的信息…' : communityUnavailable ? '邻里信息暂时无法读取，请稍后重试。' : `${hasMore ? '已加载' : '共'} ${posts.length} 条信息`}<i />按最新发布排序</span><button type="button" onClick={retryFeed} disabled={isInitialLoading} aria-label="刷新信息"><RotateCw size={13} className={isInitialLoading ? 'animate-spin' : ''} /> 刷新</button></div>
-          {hasFilters && <div className="bay-active-filters">{keyword && <button type="button" onClick={() => setKeyword('')}>关键词：{keyword}<X size={12} /></button>}{regionFilter !== '全部' && <button type="button" onClick={() => setRegionFilter('全部')}>{regionFilter}<X size={12} /></button>}{categorySlug && <button type="button" onClick={() => navigateToCategory('全部')}>{categoryFilter}<X size={12} /></button>}<button type="button" onClick={clearFilters} className="bay-clear-filters">清除筛选</button></div>}
-          {feedError && posts.length > 0 && <div role="status" className="bay-feed-error"><p>更新失败，当前保留已加载信息。</p><button type="button" onClick={retryFeed}>重新加载当前结果 <RotateCw size={14} /></button></div>}
-          {feedError && posts.length === 0 && !isInitialLoading ? <div className="bay-feed-empty"><Compass size={34} /><h3>连接暂时慢了一点</h3><p>信息未能加载，请稍后重试。</p><button type="button" onClick={retryFeed} className="bay-button-dark">重新加载<RotateCw size={16} /></button></div>
-            : isInitialLoading && posts.length === 0 ? <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'} aria-busy="true" aria-label="内容加载中">{Array.from({ length: 4 }, (_, index) => <PostCardSkeleton key={index} />)}</div>
-              : posts.length === 0 ? <div className="bay-feed-empty"><Compass size={34} /><EmptyFeed feedType={feedType} keyword={keyword} onPublishService={() => openCreate('provider', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onPublishInfo={() => openCreate('client', ['全部', '本地服务'].includes(categoryFilter) ? undefined : categoryFilter)} onOpenGuides={() => navigate('/guides')} onAskBayBay={() => openBayBay()} />{hasFilters && <button type="button" onClick={clearFilters} className="bay-button-text">清除筛选，发现更多 <ArrowRight size={15} /></button>}{hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-button-dark">{isLoadingMore ? '继续查找中…' : '继续查找更多信息'}</button>}</div>
-                : <>
-                  <div className={view === 'grid' ? 'bay-feed-grid' : 'bay-feed-list'}>{posts.map((post) => <PostCard key={post.id} layout={view} post={post} currentUser={user} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature} onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} blockedUserIds={blockedUserIds} onClick={() => navigateToPost(post)} onContactClick={() => requestPostContact(post)} onAvatarClick={openUserProfile} onImageClick={(src: string) => setViewingImage(src)} onShare={(item: PostData) => setSharingPost(item)} onLike={handleToggleLike} />)}</div>
-                  {!isInitialLoading && hasMore && <button type="button" onClick={handleLoadMore} disabled={isLoadingMore} className="bay-load-more">{isLoadingMore ? <><Loader2 size={17} className="animate-spin" />加载中…</> : <>继续发现更多<ArrowRight size={17} /></>}</button>}
-                  {!hasMore && <div className="bay-feed-end"><span /><p>当前信息已全部展示<br /><Link to="/guides">去生活指南里逛逛 <ChevronRight size={13} /></Link></p><span /></div>}
-                </>}
-          {!keyword && !categorySlug && <div className="bay-featured-wrap"><HotRecommend onOpenPost={navigateToPost} refreshKey={featuredRefreshKey} onViewMore={() => navigate('/events')} /></div>}
-        </section>
-        <aside className="bay-home-rail" aria-label="湾区探索与生活帮助">
-          <div className="bay-desktop-explorer"><RegionExplorer selected={regionFilter} onSelect={selectRegion} /></div>
-          {!isDiscovery && <section className="bay-assistant-card"><div className="bay-assistant-header"><img src={BRAND.baybayAvatar} alt="BayBay" width="54" height="54" /><span><strong>嗨，我是 BayBay</strong><small>你的 AI 湾区生活助手</small></span><Sparkles size={19} /></div><h2>生活的小问号，<br />我们一起解开。</h2><p>找信息、理思路、写帖子，<br />从你的一句话开始。</p><div className="bay-assistant-prompts"><button type="button" onClick={() => openBayBay('我想在湾区找个家。请先问我通勤地点、预算和入住时间，再帮我整理找房范围与看房清单。')}>想在湾区找个家<ChevronRight size={14} /></button><button type="button" onClick={() => openBayBay('帮我整理一份清楚的发布需求。请先了解我要找什么、地点、预算和时间，再写成可以核对的帖子草稿。')}>帮我整理发布需求<ChevronRight size={14} /></button></div><button type="button" onClick={() => openBayBay()} className="bay-assistant-cta">和 BayBay 聊聊<ArrowRight size={17} /></button><span className="bay-ai-note">AI 提供参考，重要信息请再核实</span></section>}
-          {!isDiscovery && <section className="bay-start-guide"><EnglishOnly><span className="bay-section-kicker">A LITTLE LOCAL KNOW-HOW</span></EnglishOnly><h2>新来湾区？从这里开始。</h2><p>把陌生的地方，慢慢过成熟悉的日常。</p>{[{ n: '01', title: '安顿好第一个月', slug: 'bay-area-newcomer-first-month-checklist', text: '从落地到日常，逐步安排' }, { n: '02', title: '找到适合自己的家', slug: 'bay-area-rental-scam-guide', text: '看房、签约前的安全功课' }, { n: '03', title: '摸清湾区的出行方式', slug: 'bay-area-commute-guide', text: '通勤路线和交通选择' }].map((item) => <Link key={item.slug} to={`/guides/${item.slug}`}><span>{item.n}</span><div><strong>{item.title}</strong><small>{item.text}</small></div><ChevronRight size={15} /></Link>)}<Link className="bay-guides-all" to="/guides"><BookOpen size={15} /> 查看全部生活指南<ArrowRight size={15} /></Link></section>}
-          {!isDiscovery && <Suspense fallback={null}><EditorialCollections compact /></Suspense>}
-          <section className="bay-start-guide"><EnglishOnly><span className="bay-section-kicker">A LITTLE EASIER, EVERY DAY</span></EnglishOnly><h2>顺手解决，生活小事。</h2><p>一句英文、一笔账、一个陌生的单位。</p><Link to="/tools?tool=communication"><span>AI</span><div><strong>中英文沟通助手</strong><small>把你的意思，表达得更清楚</small></div><ChevronRight size={15} /></Link><Link to="/tools?tool=dining#tool-workspace"><span>$</span><div><strong>餐厅小费与分账</strong><small>税、小费、每人多少，一次算清</small></div><ChevronRight size={15} /></Link><Link to="/tools?tool=units"><span>↔</span><div><strong>日常单位换算</strong><small>华氏、英里、平方英尺，一键换算</small></div><ChevronRight size={15} /></Link><Link to="/tools" className="bay-guides-all">打开生活工具箱<ArrowRight size={15} /></Link></section>
-          <div className="bay-home-ads"><OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} /></div>
-          <div className="bay-community-note"><ShieldCheck size={20} /><p><strong>友好连接，谨慎交易。</strong>手机号验证与资料审核不代表交易担保。看房、面交和付款前，请核实对方信息。</p></div>
-        </aside>
+  const resultsLine = loadingFirst ? t('正在读取邻里信息…', 'Loading posts…')
+    : unavailable ? null
+      : quiet ? t(`近 30 天 0 条新信息 · 下面是较早的信息，联系前请先向发布者确认是否仍有效`, 'No new posts in the last 30 days · These are older posts; check with the poster that they still stand')
+        : showCount(newCount) ? t(`近 30 天 ${newCount}${hasMore ? '+' : ''} 条新信息 · 按发布时间排列`, `${newCount}${hasMore ? '+' : ''} new in the last 30 days · Newest first`)
+          : posts.length ? t('按发布时间排列，最新的在前', 'Newest first') : null;
+
+  const emptyState = recentOnly
+    ? <EmptyState headingLevel="h3" title={t('近 30 天 0 条新信息', 'No new posts in the last 30 days')} body={t('较早的信息还在，联系前请先向发布者确认。', 'Older posts are still here; check with the poster before you contact them.')}
+      actions={<><Button variant="primary" onClick={() => setRecentOnly(false)}>{t('查看较早信息', 'See older posts')}</Button><Button variant="text" onClick={publish}>{pick(publishLabel(board))}</Button></>} />
+    : isSearch ? <EmptyState headingLevel="h3" icon={Search} title={t('没有找到相关信息', 'No posts match')} body={t('换个关键词，或去掉地区筛选再试。', 'Try another word, or remove the area filter.')}
+      actions={<Button variant="primary" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button>} />
+      : regionFilter !== '全部' ? <EmptyState headingLevel="h3" title={t(`${pick(REGION_NAMES[regionFilter] || { zh: regionFilter, en: regionFilter })}暂时没有${name}信息`, `No ${name.toLowerCase()} posts in ${pick(REGION_NAMES[regionFilter] || { zh: regionFilter, en: regionFilter })} yet`)}
+        body={t('看看整个湾区的信息，或换个地区。', 'See the whole Bay Area, or pick another area.')} actions={<Button variant="primary" onClick={() => setRegionFilter('全部')}>{t('看整个湾区', 'Whole Bay Area')}</Button>} />
+        : <EmptyState headingLevel="h3" title={t(`${name}还没有信息`, `No ${name.toLowerCase()} posts yet`)} body={t('邻里信息还在测试中。发布前可以先看看下面的安全提醒和指南。', 'The neighborhood board is still in testing. The safety notes and guides below are a good start.')}
+          actions={<Button variant="primary" icon={<Plus aria-hidden="true" strokeWidth={1.75} />} onClick={publish}>{pick(publishLabel(board))}</Button>} />;
+
+  return <section className="cm-board" aria-labelledby="cm-board-title" data-mode={isDiscovery ? 'home' : isSearch ? 'search' : 'category'}>
+    <header className="ui-page-header cm-board__header" id="home-feed-section">
+      {categorySlug && <nav className="ui-page-header__crumbs" aria-label={t('当前位置', 'Breadcrumb')}><Link to="/">{t('首页', 'Home')}</Link> › {t('邻里信息（测试中）', 'Neighborhood board (testing)')}</nav>}
+      <div className="cm-board__title-row">
+        <Heading id="cm-board-title" className="ui-page-header__title">{isSearch ? t('搜索邻里信息', 'Search the neighborhood board') : name}</Heading>
+        <StatusChip tone="info">{t('测试中', 'Testing')}</StatusChip>
       </div>
-    </>
-  );
+      <p className="ui-page-header__lede">{t('湾区邻居发布的房源、二手和服务。平台不核实每条信息，联系和付款前请自己确认。', 'Rentals, secondhand items and services posted by Bay Area neighbors. BAYLINK does not verify each post; check before you contact or pay.')}</p>
+      <div className="ui-page-header__actions"><Button variant="primary" icon={<Plus aria-hidden="true" strokeWidth={1.75} />} onClick={publish}>{pick(publishLabel(board))}</Button></div>
+    </header>
+
+    <form className="cm-search" role="search" onSubmit={(event) => { event.preventDefault(); searchPostsNow(); }}>
+      <Search aria-hidden="true" strokeWidth={1.75} />
+      <input aria-label={t('搜索邻里信息', 'Search the neighborhood board')} type="search" maxLength={80} placeholder={t('试试「San Mateo 租房」或「搬家」', 'Try “San Mateo room” or “moving”')} value={keyword}
+        onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} />
+      <button type="submit" className="cm-search__submit">{t('搜索', 'Search')}</button>
+    </form>
+
+    <div className="cm-board__filters">
+      <ChipRow label={t('地区', 'Area')}>
+        <FilterChip selected={regionFilter === '全部'} onClick={() => setRegionFilter('全部')}>{t('全部地区', 'All areas')}</FilterChip>
+        {REGIONS.map(region => <FilterChip key={region} selected={regionFilter === region} onClick={() => setRegionFilter(regionFilter === region ? '全部' : region)}>{pick(REGION_NAMES[region] || { zh: region, en: region })}</FilterChip>)}
+      </ChipRow>
+      <div className="cm-board__switches">
+        <SegmentedControl label={t('信息类型', 'Type of post')} value={feedType} onChange={(id) => setFeedType(id === 'client' ? 'client' : 'provider')}
+          items={[{ id: 'provider', label: pick(types.provider) }, { id: 'client', label: pick(types.client) }]} />
+        <FilterChip selected={recentOnly} onClick={() => setRecentOnly(!recentOnly)}>{t('只看近期确认', 'Recently confirmed only')}</FilterChip>
+      </div>
+    </div>
+
+    {categorySlug && !keyword && <Suspense fallback={null}><CategoryGuideStrip categorySlug={categorySlug} /></Suspense>}
+
+    <div className="cm-board__results">
+      {resultsLine && <p className="cm-board__count" role="status" data-quiet={quiet ? '' : undefined}>{resultsLine}</p>}
+      <div className="cm-board__tools">
+        {hasFilters && <Button variant="text" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button>}
+        <FeedLayoutToggle effective={feedLayout.effective} onChange={feedLayout.setLayout} />
+      </div>
+    </div>
+
+    {feedError && posts.length > 0 && <div role="status" className="cm-board__stale"><p>{t('更新失败，下面是已加载的信息。', 'Could not refresh; showing what was already loaded.')}</p><Button variant="text" icon={<RotateCw aria-hidden="true" strokeWidth={1.75} />} onClick={retryFeed}>{t('重试', 'Try again')}</Button></div>}
+    {unavailable ? <ErrorState headingLevel="h3" title={t('邻里信息暂时没能加载', 'The board didn’t load')} body={t('可能是网络不稳或服务暂时繁忙。稍后再试一次。', 'The connection or our service may be busy. Please try again in a moment.')} onRetry={retryFeed} homeTo={null} />
+      : loadingFirst ? <div aria-busy="true" aria-label={t('内容加载中', 'Loading')}><FeedGrid label={t('正在加载', 'Loading')} ratio="1:1" layout={feedLayout.layout}>{Array.from({ length: 4 }, (_, index) => <FeedItem key={index}><SkeletonCard /></FeedItem>)}</FeedGrid></div>
+        : posts.length === 0 ? <div className="cm-board__empty">{emptyState}</div>
+          : <>
+            <FeedGrid label={t(`${name}信息`, `${name} posts`)} ratio="1:1" layout={feedLayout.layout}>
+              {posts.map((post, index) => <FeedItem key={post.id}><PostCard post={post} priority={index === 0 && !isDiscovery} currentUser={user} blockedUserIds={blockedUserIds}
+                onClick={() => navigateToPost(post)} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature}
+                onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} /></FeedItem>)}
+            </FeedGrid>
+            {hasMore ? <div className="cm-board__more"><Button variant="secondary" onClick={handleLoadMore} disabled={isLoadingMore} icon={isLoadingMore ? <Loader2 className="animate-spin" aria-hidden="true" /> : undefined}>{isLoadingMore ? t('加载中…', 'Loading…') : t('加载更多', 'Load more')}</Button></div>
+              : <p className="cm-board__end">{t('已经是全部信息', 'That’s everything for now')}</p>}
+          </>}
+
+    <div className="cm-board__notes">
+      <section className="cm-board__safety" aria-label={t('交易安全', 'Trading safety')}>
+        <h2 className="cm-board__subhead"><ShieldCheck aria-hidden="true" strokeWidth={1.75} />{t('联系和付款前', 'Before you contact or pay')}</h2>
+        <CategorySafetyNotice category={categorySlug ? categoryFilter : null} />
+        <p className="cm-board__fineprint">{t('手机号验证和资料审核不代表交易担保。看房、面交和付款前，请核实对方信息。', 'A verified phone or profile is not a guarantee. Check the other person before a viewing, a meetup or a payment.')}</p>
+      </section>
+      <nav className="cm-board__boards" aria-label={t('其他分类', 'Other boards')}>
+        <h2 className="cm-board__subhead">{t('其他分类', 'Other boards')}</h2>
+        <BoardLinks current={categorySlug ? categoryFilter : undefined} />
+      </nav>
+      <div className="cm-board__ads"><OfficialAds isAdmin={user?.role === 'admin'} showToast={showToast} onOpenDetail={openAdDetail} refreshKey={adsRefreshKey} /></div>
+    </div>
+  </section>;
 }

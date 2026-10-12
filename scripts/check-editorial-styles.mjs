@@ -53,6 +53,8 @@ export const editorialStyleScopes = [
   { file: 'src/styles/planner.css' },
   { file: 'src/components/planner-web-library.css' },
   { file: 'src/styles/discovery-workflow.css', selectors: /^.planner-/ },
+  // WEB-COMMUNITY: the 邻里信息 board, the post cards and the post sheet.
+  { file: 'src/features/posts/community.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

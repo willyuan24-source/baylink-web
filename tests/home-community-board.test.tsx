@@ -1,7 +1,7 @@
 // WEB-HOMEPREP: the community board is its own chunk. The homepage renders without it and shows it when it is asked
-// for; a category page or a search waits for it at the page level (never a page without its board); the board's
-// 编辑精选「更多」 opens /events directly (no hop through the retired /recommend). This file runs in its own process, so
-// the board starts out not loaded.
+// for; a category page or a search waits for it at the page level (never a page without its board). WEB-COMMUNITY: the
+// board's publish button never presets 提供 / 需求 (E2E+2). This file runs in its own process, so the board starts out
+// not loaded.
 import assert from 'node:assert/strict';
 import test, { after, afterEach } from 'node:test';
 import { registerHooks } from 'node:module';
@@ -68,10 +68,10 @@ test('the homepage renders without the board chunk and does not fetch it until t
 });
 
 test('a category page waits for the board at the page level (never a page without its board), then shows both', async () => {
-  const view = render(app('/category/rent', { categoryFilter: '租房' }));
+  const view = render(app('/category/rent', { categoryFilter: '租屋' }));
   assert.ok(screen.getByText('page loading'), 'the route-level fallback, as while a page chunk loads');
   assert.equal(view.container.querySelector('.bay-home-footer'), null, 'no half-rendered page');
-  assert.ok(await screen.findByRole('heading', { level: 1, name: /租房，就在你身边。/ }));
+  assert.ok(await screen.findByRole('heading', { level: 1, name: '租房' }));
   assert.ok(view.container.querySelector('#home-feed-section'));
   assert.equal(view.container.querySelector('.bay-community-intro'), null);
 });
@@ -81,19 +81,21 @@ test('邻里信息（测试中）· 去看看 opens the board and scrolls to its
   fireEvent.click(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
   await waitFor(() => assert.ok(view.container.querySelector('#home-feed-section')));
   await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']));
-  const order = [...view.container.querySelectorAll('.home-discovery, .bay-home-columns')].map(element => element.className);
-  assert.deepEqual(order, ['home-discovery', 'bay-home-columns']);
+  // WEB-COMMUNITY: the board's own element is .cm-board (was .bay-home-columns); its heading is an h2 on the homepage.
+  const order = [...view.container.querySelectorAll('.home-discovery, .cm-board')].map(element => element.classList[0]);
+  assert.deepEqual(order, ['home-discovery', 'cm-board']);
+  assert.equal(view.container.querySelector('.cm-board h1'), null, 'on the homepage the board heading is an h2 (the page keeps its own H1)');
 });
 
 test('the board views keep their footer, with the positioning line in the reader’s language (rule 4: t(zh, en))', async () => {
-  const view = render(app('/category/rent', { categoryFilter: '租房' }));
-  await screen.findByRole('heading', { level: 1, name: /租房，就在你身边。/ });
+  const view = render(app('/category/rent', { categoryFilter: '租屋' }));
+  await screen.findByRole('heading', { level: 1, name: '租房' });
   assert.match(view.container.querySelector('.bay-home-footer')!.textContent!, /湾区去哪、怎么办 · 有来源的中文答案/);
   view.unmount();
   const { setLocale } = await import('../src/i18n/locale');
   try {
     await setLocale('en', false);
-    const english = render(app('/category/rent', { categoryFilter: '租房' }));
+    const english = render(app('/category/rent', { categoryFilter: '租屋' }));
     await waitFor(() => assert.ok(english.container.querySelector('.bay-home-footer')));
     const footer = english.container.querySelector('.bay-home-footer')!.textContent!;
     assert.match(footer, /Where to go and how to get it done in the Bay, with sources/);
@@ -103,16 +105,16 @@ test('the board views keep their footer, with the positioning line in the reader
   }
 });
 
-test('a search keeps its heading and the feed, and the rail shows the newcomer help', async () => {
+test('a search has one H1 and keeps the search box and the feed', async () => {
   const view = render(app('/?q=%E7%A7%9F%E6%88%BF', { keyword: '租房' }));
-  assert.ok(screen.getByRole('heading', { level: 1, name: /找到你需要的/ }));
-  assert.ok(screen.getByRole('heading', { name: '搜索本地信息' }));
-  assert.ok(view.container.querySelector('.bay-assistant-card'));
+  assert.ok(screen.getByRole('heading', { level: 1, name: '搜索邻里信息' }));
+  assert.equal(view.container.querySelectorAll('h1').length, 1);
+  assert.equal((screen.getByRole('searchbox', { name: '搜索邻里信息' }) as HTMLInputElement).value, '租房');
 });
 
-test('编辑精选「更多」 opens /events, not the retired /recommend', async () => {
-  render(app('/', { feedError: true }));
-  fireEvent.click(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
-  fireEvent.click(await screen.findByRole('button', { name: '更多' }));
-  await waitFor(() => assert.equal(screen.getByTestId('where').textContent, '/events'));
+test('the publish button opens the composer on its first step (no preset 提供 / 需求), with the board category', async () => {
+  const calls: unknown[][] = [];
+  render(app('/category/rent', { categoryFilter: '租屋', openCreate: (...args: unknown[]) => { calls.push(args); } }));
+  fireEvent.click((await screen.findAllByRole('button', { name: '发布房源或求租' }))[0]);
+  assert.deepEqual(calls, [[undefined, '租屋']]);
 });

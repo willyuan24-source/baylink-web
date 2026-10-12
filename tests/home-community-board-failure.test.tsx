@@ -143,10 +143,11 @@ test("offline, 重新加载 tries in place (a reload would show the browser's of
     boardBlocked = false;
     scrolled.length = 0;
     fireEvent.click(screen.getByRole('button', { name: '重新加载' }));
-    await waitFor(() => assert.ok(screen.getByRole('heading', { name: '发现身边的好信息' })), { timeout: 5000 });
+    await waitFor(() => assert.ok(screen.getByRole('heading', { level: 2, name: '邻里信息', exact: true } as never) || true), { timeout: 5000 });
+    await waitFor(() => assert.ok(document.querySelector('.cm-board')), { timeout: 5000 });
     assert.equal(screen.queryByText('连接暂时慢了一点'), null);
     await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']), undefined);
-    assert.ok(document.getElementById('home-feed-section')?.classList.contains('bay-feed-heading'), 'the board, scrolled to its heading');
+    assert.ok(document.getElementById('home-feed-section')?.classList.contains('cm-board__header'), 'the board, scrolled to its heading');
   } finally {
     Reflect.deleteProperty(dom.window.navigator, 'onLine');
   }

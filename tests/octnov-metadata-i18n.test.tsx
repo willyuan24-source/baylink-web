@@ -23,8 +23,6 @@ import sfEastEvents from '../src/data/octnov-2026-sf-east-events.json';
 import regionalEvents from '../src/data/octnov-2026-regional-events.json';
 import offers from '../src/data/octnov-2026-offers.json';
 import openings from '../src/data/octnov-2026-openings.json';
-import { CategoryChip } from '../src/features/home/HomeSections';
-import { CATEGORIES, CATEGORY_EMOJI } from '../src/lib/constants';
 import { getSlugFromCategory } from '../src/routing';
 import { EVENT_SCHEDULE_NOTES } from '../src/data/event-schedule-notes';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
@@ -35,6 +33,8 @@ import { GuidesHome } from '../src/components/GuidesHome';
 registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
 const { EventsView } = await import('../src/components/EventsView');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
+const { BoardLinks } = await import('../src/features/posts/BoardLinks');
+const { BOARD_CATEGORIES } = await import('../src/features/posts/community-copy');
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const routes = [
@@ -45,20 +45,17 @@ const routes = [
   { metadata: GUIDES_METADATA, content: <GuidesHome onOpenGuide={() => {}} /> },
 ];
 
-test('fresh home scope translates each category label independently of its decorative emoji', async () => {
-  await setLocale('en', false, '/en/');
-  const full = JSON.parse(readFileSync(new URL('../src/data/generated/english.json', import.meta.url), 'utf8')) as Record<string, string>;
-  const body = renderToStaticMarkup(<StaticRouter basename="/en" location="/en/"><nav>{CATEGORIES.map(category => <CategoryChip key={category} label={category} active={category === CATEGORIES[0]} onClick={() => {}} />)}</nav></StaticRouter>);
+test('the board links name every board in English on /en, with the board on screen marked current', async () => {
+  await setLocale('en', false, '/en/category/rent');
+  const body = renderToStaticMarkup(<StaticRouter basename="/en" location="/en/category/rent"><nav><BoardLinks current="租屋" /></nav></StaticRouter>);
   const dom = new JSDOM(body);
   const links = [...dom.window.document.querySelectorAll('a')];
-  assert.equal(links.length, 9);
+  assert.equal(links.length, BOARD_CATEGORIES.length);
   for (const [index, link] of links.entries()) {
-    const category = CATEGORIES[index];
-    assert.equal(link.getAttribute('href'), `/en/category/${getSlugFromCategory(category)}`);
-    assert.equal(link.querySelector('[aria-hidden="true"]')?.textContent, CATEGORY_EMOJI[category]);
-    assert.equal(link.querySelector('span:not([aria-hidden])')?.textContent, full[category]);
-    assert.doesNotMatch(link.textContent!, /\p{Script=Han}/u, category);
+    assert.equal(link.getAttribute('href'), `/en/category/${getSlugFromCategory(BOARD_CATEGORIES[index])}`);
+    assert.doesNotMatch(link.textContent!, /\p{Script=Han}/u, BOARD_CATEGORIES[index]);
   }
+  assert.equal(links[0].textContent, 'Housing');
   assert.equal(links[0].getAttribute('aria-current'), 'page');
   dom.window.close();
 });
