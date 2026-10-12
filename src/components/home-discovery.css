@@ -122,6 +122,9 @@
 .home-credits ul { display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none; }
 .home-credits li { display:flex; flex-wrap:wrap; gap:4px 8px; }
 .home-credits a { color:var(--color-brand); text-decoration:underline; }
+/* 简洁显示: the credit and licence links are 48px targets too (they sit in a list, not in a sentence). */
+html[data-simple] .home-credits li { align-items:center; }
+html[data-simple] .home-credits a { display:inline-flex; align-items:center; min-height:var(--control-height); }
 .home-credits__label { color:var(--color-ink-2); font-weight:600; }
 
 @media (min-width:768px) {
