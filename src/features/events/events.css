@@ -99,8 +99,12 @@
 .ev-strip__note { margin:.25rem 0 .5rem; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .ev-strip .ui-row-card:last-child { border-bottom:0; }
 
-.ev-perks-kinds { margin:0 -16px .5rem; }
-@media (min-width:1024px) { .ev-perks-kinds { margin:0 0 .5rem; } }
+/* The boards' filter row: the region chip (整个湾区 ▾), then the condition / status chips, which scroll to the screen edge
+   on phones and wrap on desktop. */
+.ev-board-filters { display:flex; align-items:center; gap:.5rem; margin:0 0 .5rem; }
+.ev-board-filters>.ui-chip { flex:none; }
+.ev-board-filters>.ev-perks-kinds { flex:1 1 auto; min-width:0; margin:0 -16px 0 0; padding-left:2px; scroll-padding-inline:2px 16px; }
+@media (min-width:1024px) { .ev-board-filters { align-items:flex-start; } .ev-board-filters>.ev-perks-kinds { margin:0; padding:0; } }
 
 /* 日历·地图: the week strip, the day head, the city row and the rows. */
 .ev-week { display:grid; grid-template-columns:2.75rem minmax(0, 1fr) 2.75rem; align-items:center; gap:.25rem; margin:0 0 .5rem; }
