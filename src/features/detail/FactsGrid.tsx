@@ -26,6 +26,9 @@ function Facts({ cells, label }: { cells: Cell[]; label: string }) {
   </dl>;
 }
 
+/** A cost sentence that opens by saying it is unconfirmed ("费用待核：…") under the value 费用待确认 starts at its reason. */
+const UNCONFIRMED_LEAD = /^(?:费用待[核定确认]+|費用待[核定確認]+|Cost (?:to be confirmed|TBC|unconfirmed))[：:]\s*/i;
+
 const mapLink = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -63,9 +66,11 @@ export function EventFacts({ event, today }: { event: MonthlyEvent; today: strin
         {event.address && event.address !== place && <span className="detail-fact__line detail-fact__sub">{event.address}</span>}
         {!event.address && event.city && !place.includes(event.city) && <span className="detail-fact__line detail-fact__sub">{translateText(event.city, locale)}</span>}</>,
       note: <a className="detail-map-link" href={mapLink(query)} target="_blank" rel="noopener noreferrer">{t('地图', 'Map')}</a> },
+    // The value is always short (免费 / 部分免费 / $8–12 / 收费, design.md §4.9): the listing's cost sentence is the note under
+    // it, never a bold paragraph in the value slot. With no price at all the value says so instead of guessing.
     { key: 'cost', icon: <Ticket aria-hidden="true" />, label: t('多少钱', 'Cost'),
-      value: price && (price.tone !== 'paid' || !cost) ? <span className="detail-fact__line" data-tone={price.tone}>{pick(price.text)}</span> : <span className="detail-fact__line">{cost || t('票价见官网', 'See the official site')}</span>,
-      note: price && price.tone !== 'paid' && cost && cost !== pick(price.text) ? cost : undefined },
+      value: <span className="detail-fact__line" data-tone={price?.tone}>{price ? pick(price.text) : cost ? t('费用待确认', 'Cost not confirmed') : t('票价见官网', 'See the official site')}</span>,
+      note: cost && cost !== (price ? pick(price.text) : '') ? (price ? cost : cost.replace(UNCONFIRMED_LEAD, '')) : undefined },
   ];
   if (audience.length) cells.push({ key: 'for', icon: <Users aria-hidden="true" />, label: t('适合', 'Good for'), value: audience.map(value => translateText(value, locale)).join(' / ') });
   return <Facts cells={cells} label={t('一眼看懂', 'At a glance')} />;

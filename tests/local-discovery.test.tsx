@@ -265,7 +265,8 @@ test('all detail pages server-render full content with matching canonical, OG, T
       const expected = over ? [] : readerPlanLines(item.event).map(line => readerProse(line, 'zh-Hans')).filter(Boolean);
       assert.deepEqual([...content.querySelectorAll('.detail-plan li p')].map(node => node.textContent), expected, share.id + ': every reader planning line, indexable; none on an ended event');
       const cost = readerCost(item.event.costLabel, item.event.cost, 'zh-Hans');
-      if (cost) assert.ok(content.textContent!.includes(cost), share.id + ' states its cost');
+      // Under the value 费用待确认 the sentence starts at its reason ("费用待核：" is not repeated).
+      if (cost) assert.ok(content.querySelector('[data-fact="cost"]')!.textContent!.includes(cost.replace(/^费用待[核定确认]+[：:]\s*/, '')), share.id + ' states its cost');
       const place = item.event.venueShort || item.event.venue;
       assert.ok(typeof place === 'string' && place.trim(), share.id + ' has a venue or explicit location guidance');
       assert.ok(content.textContent!.includes(place), share.id + ' preserves location guidance');

@@ -116,3 +116,18 @@ test('a venue photo too old to be the cover still shows the place below the summ
     assert.equal(page(find(kind, id)).querySelector('.detail-photo'), null, `${kind}:${id}`);
   }
 });
+
+test('多少钱 is a short value (免费 / 部分免费 / $8–12 / 收费 / 费用待确认) with the listing’s cost sentence as the note under it', () => {
+  const events = localDiscoveries.filter(row => row.kind === 'event' && row.event.endDate >= TODAY);
+  assert.ok(events.length > 100);
+  for (const item of events) {
+    const doc = page(item);
+    const value = doc.querySelector('[data-fact="cost"] dd > .detail-fact__line')!;
+    assert.ok(value, discoveryShare(item).id);
+    assert.ok((value.textContent || '').length <= 12, `${discoveryShare(item).id}: "${value.textContent}" is not a sentence`);
+  }
+  const swap = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'sf-main-halloween-costume-swap-oct15-2026')!;
+  const cost = page(swap).querySelector('[data-fact="cost"] dd')!;
+  assert.equal(cost.querySelector('.detail-fact__line')!.textContent, '费用待确认');
+  assert.match(cost.querySelector('small')!.textContent || '', /^官方活动页未列明收费/, 'the note starts at its reason, not a second 费用待核');
+});

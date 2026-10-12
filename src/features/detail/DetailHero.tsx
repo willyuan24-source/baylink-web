@@ -29,17 +29,17 @@ export function DetailPlacePhoto({ photo }: { photo: ImageCover }) {
   const { pick } = useUiCopy();
   return <figure className="detail-photo">
     <CoverImage image={photo.image} label={pick(photo.label)} fit={photo.fit} focal={photo.focal} ratio="3:2" sizes={COVER_SIZES.detail} />
-    <figcaption><HeroCredit cover={photo} /></figcaption>
+    <figcaption><HeroCredit cover={photo} label={false} /></figcaption>
   </figure>;
 }
 
-/** "图片：caption · credit · 图片授权" for the hero photo; nothing for a TypeCover. */
-export function HeroCredit({ cover }: { cover: ResolvedCover }) {
+/** "图片：caption · credit · 图片授权" for the hero photo; nothing for a TypeCover. Under a figure the badge already says the label. */
+export function HeroCredit({ cover, label = true }: { cover: ResolvedCover; label?: boolean }) {
   const { t, pick, locale } = useUiCopy();
   if (cover.tier === 'type') return null;
   const { image } = cover;
   return <p className="detail-credit">
-    <span className="detail-credit__label">{pick(cover.label)}</span>
+    {label && <span className="detail-credit__label">{pick(cover.label)}</span>}
     {image.caption && <span>{translateText(image.caption, locale)}</span>}
     {webLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(image.credit, locale)}</a> : <span>{translateText(image.credit, locale)}</span>}
     {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'Licence')}</a>}
