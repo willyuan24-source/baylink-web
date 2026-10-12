@@ -1,8 +1,9 @@
 .loan-down-input { display:grid; grid-template-columns:minmax(0,1fr) 85px; gap:8px; }
 .loan-down-input select { padding-left:10px; padding-right:8px; }
-.loan-term-shortcuts { display:flex; gap:6px; }
-.loan-term-shortcuts button { min-height:var(--control-height); flex:1; border:1px solid var(--color-line-strong); border-radius:7px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-caption); }
-.loan-term-shortcuts button[aria-pressed=true] { background:var(--color-brand-tint); border-color:var(--color-line-strong); color:var(--color-brand); }
+/* The term chips look like the mode toggle above them (.tool-choice-row: the FilterChip look), not a third button style. */
+.loan-term-shortcuts { display:flex; flex-wrap:wrap; gap:8px; }
+.loan-term-shortcuts button { min-height:var(--control-height); flex:1; padding:0 12px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); white-space:nowrap; }
+.loan-term-shortcuts button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
 .loan-options { border:1px solid var(--color-line); padding:0 16px; border-radius:12px; }
 .loan-options summary { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:15px 0; font-size:.8125rem; color:var(--color-ink-2); font-weight:600; cursor:pointer; list-style:none; }
 .loan-options summary::-webkit-details-marker { display:none; }
