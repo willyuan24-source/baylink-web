@@ -94,6 +94,36 @@
     "officialUrl": "https://sfpl.org/events/2026/10/17/film-killer"
   },
   {
+    "id": "sjpl-almaden-20th-harvest-festival-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "鬼屋、南瓜园、游戏和手工要买票；活动页没有写入场费",
+    "sourceLabel": "圣何塞公共图书馆活动页（Almaden 分馆）",
+    "title": "Almaden 图书馆 20 周年暨丰收节：乐团、泡泡派对和南瓜园",
+    "dateLabel": "10/17（周六）· 11:00–16:00",
+    "city": "San Jose",
+    "venue": "Almaden 分馆与社区中心 · 6445 Camden Ave., San Jose, CA 95120",
+    "summary": "Almaden 分馆与社区中心开馆 20 周年，和圣何塞市公园与娱乐部门的年度丰收节一起办：Castillero 中学乐团演出、文化舞蹈、泡泡派对、气球艺人、书法师现场写字、摊位和充气城堡，还有赠书。",
+    "plan": [
+      "鬼屋走廊、南瓜园、游戏、脸部彩绘和手工的票价在现场公布。",
+      "书法师 12:00–15:00 免费给丰收节布袋写名字，每个整点前在票亭领号。"
+    ],
+    "audience": [
+      "全年龄",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/69cd448ae2a2952aed0bf2ba"
+  },
+  {
     "id": "sjpl-berryessa-mandarin-ell-club-fall-2026",
     "kind": "event",
     "startDate": "2026-10-17",
@@ -939,6 +969,62 @@
     "officialUrl": "https://ccclib.bibliocommons.com/events/6aa1b929ca248a002914a0a3"
   },
   {
+    "id": "marin-bolinas-saturday-crafts-nov14-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "north-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名；活动页没有写费用",
+    "sourceLabel": "Marin County Free Library 活动页（Bolinas）",
+    "title": "Bolinas 图书馆周六亲子手工与游戏",
+    "dateLabel": "11/14（周六）· 10:00–12:00",
+    "city": "Bolinas",
+    "venue": "Bolinas 图书馆 · 14 Wharf Rd, Bolinas, CA 94924",
+    "summary": "Marin County Free Library 的 Bolinas 分馆每周六上午有亲子手工、社区交流和游戏时间，婴儿、幼儿到 9 岁的孩子都可以来。",
+    "plan": [
+      "每周六上午都有，11/14 是其中一次。"
+    ],
+    "audience": [
+      "0–9 岁儿童与家长"
+    ],
+    "officialUrl": "https://marinlibrary.bibliocommons.com/events/6a84e038be148200298848cc"
+  },
+  {
+    "id": "marin-corte-madera-quiltmaking-talk-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "north-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "不用报名，座位有限；活动页没有写费用",
+    "sourceLabel": "Marin County Free Library 活动页（Corte Madera）",
+    "title": "Corte Madera 图书馆讲座：两位非裔拼布艺术家的创作之路",
+    "dateLabel": "11/14（周六）· 15:00–16:00",
+    "city": "Corte Madera",
+    "venue": "Corte Madera 图书馆 · 707 Meadowsweet Dr, Corte Madera, CA 94925",
+    "summary": "奥克兰非裔美国人拼布协会（AAQGO）的 Ora Clay 和 Niambi Clay 分享各自的拼布经历，讲拼布怎样成为讲述文化故事的方式，以及她们参加“Routed West”展览的经过。",
+    "plan": [
+      "座位有限，想坐前排的早点到。"
+    ],
+    "audience": [
+      "成人"
+    ],
+    "officialUrl": "https://marinlibrary.bibliocommons.com/events/6abc235a035faf0033d92f29"
+  },
+  {
     "id": "marin-point-reyes-librito-concert-2026",
     "kind": "event",
     "startDate": "2026-11-14",
@@ -1287,6 +1373,62 @@
       "爱书家庭"
     ],
     "officialUrl": "https://smcl.bibliocommons.com/events/69375c607ed7c62f00a97cb8"
+  },
+  {
+    "id": "sjpl-evergreen-thanksgiving-storytime-2026",
+    "kind": "event",
+    "startDate": "2026-11-19",
+    "endDate": "2026-11-19",
+    "occurrenceDates": [
+      "2026-11-19"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "圣何塞公共图书馆活动页（Evergreen 分馆）",
+    "title": "Evergreen 分馆感恩节故事会与手工",
+    "dateLabel": "11/19（周四）· 16:30–17:30",
+    "city": "San Jose",
+    "venue": "Evergreen 分馆 · 2635 Aborn Rd, San Jose, CA 95121",
+    "summary": "圣何塞公共图书馆 Evergreen 分馆的感恩节特别故事会，听讲家人、感谢和团聚的故事，唱歌、念童谣、做动作，适合全家一起参加。",
+    "plan": [
+      "周四放学后的时段，各年龄的孩子和家长都可以来。"
+    ],
+    "audience": [
+      "0–10 岁儿童与家长"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6acaac15754bb0003ac3a888"
+  },
+  {
+    "id": "sjpl-village-square-thanksgiving-2026",
+    "kind": "event",
+    "startDate": "2026-11-20",
+    "endDate": "2026-11-20",
+    "occurrenceDates": [
+      "2026-11-20"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "随到随参加；活动页没有写费用",
+    "sourceLabel": "圣何塞公共图书馆活动页（Village Square 分馆）",
+    "title": "Village Square 分馆感恩节派对：手工、点心和小奖品",
+    "dateLabel": "11/20（周五）· 15:30–16:30",
+    "city": "San Jose",
+    "venue": "Village Square 分馆 · 4001 Evergreen Village Square, San Jose, CA 95135",
+    "summary": "圣何塞公共图书馆 Village Square 分馆的感恩节下午，有美术手工、点心和小奖品，适合 12 岁以下的孩子。",
+    "plan": [
+      "周五放学后的时段，可以直接去，不用预约。"
+    ],
+    "audience": [
+      "0–12 岁儿童与家长"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6a7a43adb3bdcec4a6676595"
   },
   {
     "id": "sv-turkey-trot-2026",

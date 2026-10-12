@@ -222,5 +222,40 @@
     "label": "Point Reyes · 11431 State Route One, Point Reyes Station",
     "sourceUrl": "https://marinlibrary.org/locations/MP",
     "precision": "venue"
+  },
+  "sjpl-almaden-20th-harvest-festival-2026": {
+    "lat": 37.221497,
+    "lng": -121.869015,
+    "label": "Almaden · 6445 Camden Ave., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/almaden/",
+    "precision": "venue"
+  },
+  "sjpl-evergreen-thanksgiving-storytime-2026": {
+    "lat": 37.314174,
+    "lng": -121.795829,
+    "label": "Evergreen · 2635 Aborn Rd, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/evergreen/",
+    "precision": "venue"
+  },
+  "sjpl-village-square-thanksgiving-2026": {
+    "lat": 37.313412,
+    "lng": -121.774483,
+    "label": "Village Square · 4001 Evergreen Village Square, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/village-square/",
+    "precision": "venue"
+  },
+  "marin-bolinas-saturday-crafts-nov14-2026": {
+    "lat": 37.909299,
+    "lng": -122.685706,
+    "label": "Bolinas · 14 Wharf Rd, Bolinas",
+    "sourceUrl": "https://marinlibrary.org/locations/MB",
+    "precision": "venue"
+  },
+  "marin-corte-madera-quiltmaking-talk-2026": {
+    "lat": 37.924153,
+    "lng": -122.518136,
+    "label": "Corte Madera · 707 Meadowsweet Dr, Corte Madera",
+    "sourceUrl": "https://marinlibrary.org/locations/MM",
+    "precision": "venue"
   }
 }

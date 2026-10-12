@@ -1423,5 +1423,150 @@
         ]
       }
     }
+  },
+  "sjpl-almaden-20th-harvest-festival-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/69cd448ae2a2952aed0bf2ba",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-10-17",
+        "dates": {
+          "2026-10-17": [
+            {
+              "open": "11:00",
+              "close": "16:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "11:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-evergreen-thanksgiving-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6acaac15754bb0003ac3a888",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-19",
+        "validThrough": "2026-11-19",
+        "dates": {
+          "2026-11-19": [
+            {
+              "open": "16:30",
+              "close": "17:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-19",
+            "start": "16:30",
+            "end": "17:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-village-square-thanksgiving-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a7a43adb3bdcec4a6676595",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-20",
+        "validThrough": "2026-11-20",
+        "dates": {
+          "2026-11-20": [
+            {
+              "open": "15:30",
+              "close": "16:30"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-20",
+            "start": "15:30",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "marin-bolinas-saturday-crafts-nov14-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6a84e038be148200298848cc",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "10:00",
+              "close": "12:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "marin-corte-madera-quiltmaking-talk-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6abc235a035faf0033d92f29",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "15:00",
+              "close": "16:00"
+            }
+          ]
+        },
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "15:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
   }
 }
