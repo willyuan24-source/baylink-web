@@ -25,6 +25,11 @@ const { GuideEditionNotice } = await import('../src/components/GuideEditionNotic
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
 const { default: PerksView } = await import('../src/features/events/PerksView');
+// WEB-DATA-SPLIT: an article renders its generated record; a fixture guide gets a record built the same way, and the deals
+// board is a chunk the article loads with its record (the page waits for it, so do the tests).
+const { guideRecordOf } = await import('../src/features/guides/guide-data');
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
+const recordFor = (guide: Guide) => guideRecordOf(guide, item => ({ 'zh-Hans': getGuideMedia(item).cover }));
 
 const slug = 'bay-area-freebies-deals-2026-11';
 const fixture: Guide = {
@@ -76,7 +81,7 @@ test('edition notice changes at Los Angeles midnight and preserves the explicit 
 
 test('monthly guide includes its edition notice and safe inline official links in both interactive and server HTML', () => {
   installFixture();
-  const view = render(<MemoryRouter><GuideDetail slug={slug} today="2026-10-01" {...actions} /></MemoryRouter>);
+  const view = render(<MemoryRouter><GuideDetail slug={slug} record={recordFor(fixture)} today="2026-10-01" {...actions} /></MemoryRouter>);
   assert.ok(view.getByText('往期攻略 · 2026 年 9 月'));
   const source = view.getByRole('link', { name: /品牌官方领取说明/ });
   assert.equal(source.getAttribute('href'), 'https://example.com/rewards');
@@ -84,7 +89,7 @@ test('monthly guide includes its edition notice and safe inline official links i
   assert.equal(source.getAttribute('rel'), 'noopener noreferrer');
   assert.ok(view.getByText('无效来源仍保留说明'));
   assert.equal(view.queryByRole('link', { name: /无效来源仍保留说明/ }), null);
-  const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} today="2026-10-01" {...actions} /></StaticRouter>);
+  const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} record={recordFor(fixture)} today="2026-10-01" {...actions} /></StaticRouter>);
   const server = new JSDOM(html).window.document;
   assert.match(server.querySelector('.bl-guide-edition-notice')?.textContent || '', /不能当作实时优惠/);
   assert.equal(server.querySelector('.bl-guide-source-link a')?.getAttribute('href'), 'https://example.com/rewards');
@@ -94,10 +99,11 @@ test('monthly guide includes its edition notice and safe inline official links i
 });
 
 test('the compact guide library retains the published deal guide and shows no promotional card', () => {
-  installFixture();
-  const library = new JSDOM(renderToStaticMarkup(<StaticRouter location={`/guides?q=${encodeURIComponent(fixture.title)}`}><GuidesHome onOpenGuide={() => {}} /></StaticRouter>)).window.document;
+  // The library renders the generated index (WEB-DATA-SPLIT): the published deals guide, not a fixture, is what it lists.
+  const published = previousGuide!;
+  const library = new JSDOM(renderToStaticMarkup(<StaticRouter location="/guides"><GuidesHome onOpenGuide={() => {}} /></StaticRouter>)).window.document;
   assert.equal(library.querySelector('.bl-monthly-deals'), null);
-  assert.ok(library.querySelector(`a[href="/guides/${slug}"]`)?.textContent?.includes(fixture.title));
+  assert.ok(library.querySelector(`a[href="/guides/${slug}"]`)?.textContent?.includes(published.title));
 });
 
 test('the actual October deals guide uses official photography and preserves local discovery entries and safe sources', () => {
