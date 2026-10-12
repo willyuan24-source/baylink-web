@@ -7,11 +7,12 @@ import { parentPort } from 'node:worker_threads';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { Resvg } from '@resvg/resvg-js';
-import sharp from 'sharp';
+// sharp (a pinned devDependency) shrinks the PNG; without it the card is written as resvg drew it.
+const sharp = await import('sharp').then(module => module.default, () => undefined);
 
 export async function rasterize({ svg, out }) {
   const png = new Resvg(svg, { font: { loadSystemFonts: false } }).render().asPng();
-  const small = await sharp(png).png({ palette: true, colors: 192, effort: 4, compressionLevel: 9 }).toBuffer();
+  const small = sharp ? await sharp(png).png({ palette: true, colors: 192, effort: 4, compressionLevel: 9 }).toBuffer() : png;
   await mkdir(dirname(out), { recursive: true });
   await writeFile(out, small);
   return small.length;

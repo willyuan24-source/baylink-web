@@ -1,6 +1,5 @@
 import { readFile } from 'node:fs/promises';
 import QRCode from 'qrcode';
-import sharp from 'sharp';
 import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { guides } from '../src/data/guides';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -43,7 +42,7 @@ const photoData = new Map<string, Promise<string | undefined>>();
 const photoFor = (image: GuideImage | undefined) => {
   const photo = promoPhoto(image);
   if (!photo) return Promise.resolve(undefined);
-  if (!photoData.has(photo.src)) photoData.set(photo.src, sharp(`public${photo.src}`).resize(940, 1260, { fit: 'cover' }).jpeg({ quality: 78 }).toBuffer()
+  if (!photoData.has(photo.src)) photoData.set(photo.src, import('sharp').then(({ default: sharp }) => sharp(`public${photo.src}`).resize(940, 1260, { fit: 'cover' }).jpeg({ quality: 78 }).toBuffer())
     .then(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).catch(() => undefined));
   return photoData.get(photo.src)!;
 };

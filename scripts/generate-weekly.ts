@@ -1,6 +1,5 @@
 import { mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises';
 import QRCode from 'qrcode';
-import sharp from 'sharp';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { getContentReviewManifest } from '../src/data/content-review';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
@@ -44,7 +43,7 @@ const qrFor = (url: string) => {
 const photos = new Map<string, Promise<string | undefined>>();
 const photoData = (src?: string) => {
   if (!src) return Promise.resolve(undefined);
-  if (!photos.has(src)) photos.set(src, sharp(`public${src}`).resize(940, 760, { fit: 'cover' }).jpeg({ quality: 78 }).toBuffer().then(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).catch(() => undefined));
+  if (!photos.has(src)) photos.set(src, import('sharp').then(({ default: sharp }) => sharp(`public${src}`).resize(940, 760, { fit: 'cover' }).jpeg({ quality: 78 }).toBuffer()).then(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).catch(() => undefined));
   return photos.get(src)!;
 };
 const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
