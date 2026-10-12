@@ -47,8 +47,9 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
   const acorn = await import('acorn').catch(() => null);
   if (acorn) acorn.parse(SRC, { ecmaVersion: 5 });
   const code = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
-  // ~1 KB with the D17 language redirect (WEB-SHELL1), ~1.55 KB with the CW-02 stale-date check (WEB-FRESH2: 1,548 chars,
-  // budget +5%); still one small blocking request, cached briefly (vercel.json).
+  // ~1 KB with the D17 language redirect (WEB-SHELL1), ~1.6 KB with the CW-02 stale-date check (WEB-FRESH2: 1,624 chars;
+  // the US DST rule instead of Intl with a time zone, whose first use cost ~95 ms at 4x CPU before the first paint);
+  // still one small blocking request, cached briefly (vercel.json).
   assert.ok(code.length < 1625, `reading-init stays small on the critical path (${code.length} chars without comments)`);
   const html = fs.readFileSync('index.html', 'utf8');
   const head = html.slice(0, html.indexOf('</head>'));

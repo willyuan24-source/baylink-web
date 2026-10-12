@@ -56,6 +56,32 @@ test('reading-init marks the page before the first paint exactly as date-guard s
   assert.equal(staleAt('2026-10-18T20:00:00Z', '2026-10-12', 'https://www.baylink.us/opus-bay'), null, 'the 3D world is left alone');
 });
 
+test('reading-init’s Pacific day (the US DST rule, no Intl on the critical path) is Intl’s America/Los_Angeles day, 2026–2035', () => {
+  // Every day at 06:59, 07:30 and 08:01 UTC: Pacific midnight is 07:00 UTC in PDT and 08:00 UTC in PST, so a wrong DST day
+  // shows up as a wrong date. The page is built for Intl's day (not stale) and for the day before (stale) — one week key
+  // check per day as well: built 7 days earlier is always "day weekend".
+  const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { runScripts: 'outside-only', url: 'https://www.baylink.us/events' });
+  dom.window.eval(`var RealDate = Date; function setClock(t) { function Fake() { return arguments.length ? new (Function.prototype.bind.apply(RealDate, [null].concat([].slice.call(arguments))))() : new RealDate(t); }
+    Fake.UTC = RealDate.UTC; Fake.parse = RealDate.parse; Fake.now = function () { return t; }; Fake.prototype = RealDate.prototype; Date = Fake; }`);
+  const root = dom.window.document.documentElement;
+  const run = (t: number, builtFor: string) => {
+    root.removeAttribute('data-date-stale'); root.setAttribute('data-built-for', builtFor);
+    dom.window.eval(`setClock(${t});`); dom.window.eval(SRC);
+    return root.getAttribute('data-date-stale');
+  };
+  const pacific = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Los_Angeles' });
+  const shift = (day: string, days: number) => new Date(Date.parse(`${day}T12:00:00Z`) + days * 864e5).toISOString().slice(0, 10);
+  const wrong: string[] = [];
+  for (let day = Date.UTC(2026, 0, 1); day < Date.UTC(2036, 0, 1); day += 864e5) {
+    for (const t of [day + 6 * 36e5 + 59 * 6e4, day + 7.5 * 36e5, day + 8 * 36e5 + 6e4]) {
+      const today = pacific.format(new Date(t));
+      if (run(t, today) !== null || run(t, shift(today, -1)) === null) wrong.push(new Date(t).toISOString());
+    }
+    if (run(day + 20 * 36e5, shift(pacific.format(new Date(day + 20 * 36e5)), -7)) !== 'day weekend') wrong.push(`week ${new Date(day).toISOString()}`);
+  }
+  assert.deepEqual(wrong, []);
+});
+
 /** The guard's rules in source-monitor.css: the selectors that hide a block, draw its skeleton, or drop a nested one. */
 function guardRules() {
   const css = fs.readFileSync('src/features/source-monitor/source-monitor.css', 'utf8');

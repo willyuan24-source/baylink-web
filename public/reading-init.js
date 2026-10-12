@@ -6,10 +6,12 @@
  * CW-02: a page prerendered for another Pacific day (<html data-built-for>) is marked data-date-stale="day[ weekend]", so its
  * date blocks show a skeleton until the app renders today's result (src/lib/date-guard.ts states the same rule). week():
  * the 本周末 a day shows, Monday–Friday the coming Saturday's, Saturday and Sunday their own (the list drops past days).
- * Today's Pacific day comes from the sv-SE format (YYYY-MM-DD); any other shape leaves the page as built.
+ * Today's Pacific day follows the US rule (since 2007: PDT from the second Sunday of March 10:00 UTC to the first Sunday of
+ * November 09:00 UTC), not Intl with a time zone: its first use in a page costs ~95 ms at 4x CPU before the first paint,
+ * this rule ~1 ms (lanes/WEB-FRESH2/reading-init-cost*.json). tests/date-guard.test.tsx checks it against Intl for 2026-2035.
  * Keys and URL parameters match src/i18n/locale.ts (LOCALE_KEY) and src/lib/reading-preferences.ts. */
 (function (d, w) {
-  var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, lang, size, simple, built, today;
+  var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, lang, size, simple, built, today, y;
   if (/^\/(?:en\/|zh-Hant\/)?(?:opus-bay|play)(?:[/.]|$)/.test(path)) return;
   function saved(key) { try { return w.localStorage.getItem(key); } catch (e) { return null; } }
   lang = saved('baylink.reading-language.v1');
@@ -22,10 +24,13 @@
   simple = /[?&]simple=([01])(?:&|#|$)/.exec(query);
   simple = simple ? simple[1] : saved('baylink.simple-display.v1');
   if (simple === '1') root.setAttribute('data-simple', '');
-  function week(day) { var x = new Date(day + 'T12:00:00Z'), n = x.getUTCDay(); x.setUTCDate(x.getUTCDate() + (n % 6 && 6 - n)); return x.toISOString().slice(0, 10); }
+  /* Days count from 1970-01-01, a Thursday. week(): the coming Saturday's number Monday to Friday, its own on the weekend.
+     sunday(): the first Sunday on or after day n of month m, at h:00 UTC, in ms. today: hours, then the Pacific day number. */
+  function week(n) { return n + ((n + 4) % 7 % 6 && 6 - (n + 4) % 7); }
+  function sunday(m, n, h) { var t = Date.UTC(y, m, n, h); return t + (7 - (t / 864e5 + 4 | 0) % 7) % 7 * 864e5; }
   try {
-    built = root.getAttribute('data-built-for');
-    today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Los_Angeles' }).format(new Date());
-    if (/^(\d{4}-\d\d-\d\d){2}$/.test(built + today) && built !== today) root.setAttribute('data-date-stale', week(built) === week(today) ? 'day' : 'day weekend');
-  } catch (e) { /* no time-zone support: the page stays as built */ }
+    built = Date.parse(root.getAttribute('data-built-for') + 'T00:00Z') / 864e5; y = new Date(today = Date.now()).getUTCFullYear();
+    today = (today / 36e5 - (today >= sunday(2, 8, 10) && today < sunday(10, 1, 9) ? 7 : 8)) / 24 | 0;
+    if (built % 1 === 0 && built - today) root.setAttribute('data-date-stale', week(built) === week(today) ? 'day' : 'day weekend');
+  } catch (e) { /* no date support: the page stays as built */ }
 })(document, window);
