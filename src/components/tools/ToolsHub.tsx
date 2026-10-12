@@ -26,7 +26,7 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
   const CurrentIcon = ICONS[current.icon];
   return <PageContainer className="tools-page">
     <PageHeader title={t('生活工具箱', 'Everyday tools')}
-      lede={t('算小费、比单价、算房贷、写一条英文消息。计算在你的浏览器里完成；AI 沟通只在你点「生成」后提交内容。', 'Tips, unit prices, a mortgage, a message in English. Calculations stay in your browser; the AI helper sends your text only when you tap Generate.')} />
+      lede={t('算小费、比单价、算房贷、写一条英文消息。计算在你的浏览器里完成；AI 沟通只在你点按钮生成草稿时提交内容。', 'Tips, unit prices, a mortgage, a message in English. Calculations stay in your browser; the AI helper sends your text only when you tap the button to generate a draft.')} />
     <div className="tools-layout">
       <nav className="tools-picker" aria-label="选择生活工具">
         <ul>

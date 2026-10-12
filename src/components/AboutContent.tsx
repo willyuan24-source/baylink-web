@@ -29,7 +29,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
   const uses = [
-    { icon: CalendarDays, to: '/events', title: t('本周末去哪', 'This weekend'), text: t('活动、免费福利和新店，按地区和日期筛选；每条写清时间、地点、费用和官方页面。', 'Events, free benefits and new shops by area and date, each with its time, place, cost and official page.'), action: t('看本周末', 'See this weekend') },
+    { icon: CalendarDays, to: '/events', title: t('本周末去哪', 'This weekend'), text: t('活动、免费福利和新店，按地区和日期筛选；写清已知的时间、地点、费用和官方页面。', 'Events, free benefits and new shops by area and date, with the time, place, cost and official page where we know them.'), action: t('看本周末', 'See this weekend') },
     { icon: BookOpen, to: '/guides', title: t('办事怎么办', 'Getting things done'), text: t('医疗保险、证件、住房、出行和长辈服务的指南：先看要点，再按步骤办。', 'Guides to health coverage, IDs, housing, transport and senior services: the key facts first, then the steps.'), action: t('看办事指南', 'Browse guides') },
   ];
   const method = [
@@ -42,7 +42,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
     <PageHeader
       breadcrumb={<span><Link to="/">{t('首页', 'Home')}</Link><span aria-hidden="true"> / </span><span aria-current="page">{t('关于与核验方法', 'About and sources')}</span></span>}
       title={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}
-      lede={t('有来源的中文答案：本周末去哪、福利和办事怎么准备，每条都附官方来源和核对日期。', 'With sources: where to go this weekend, which benefits apply and how to get everyday tasks done, each with its official source and the date we checked it.')}
+      lede={t('有来源的中文答案：本周末去哪、福利和办事怎么准备，每条都附来源和核对日期。', 'With sources: where to go this weekend, which benefits apply and how to get everyday tasks done, each with its source and the date we checked it.')}
       actions={[
         <Button key="events" variant="primary" to="/events">{t('看本周末活动', 'See this weekend')}</Button>,
         onAskBayBay ? <Button key="ask" variant="secondary" onClick={onAskBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button key="guides" variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>,
