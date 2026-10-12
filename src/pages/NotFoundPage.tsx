@@ -37,7 +37,7 @@ export default function NotFoundPage() {
       <p className="nf-body">{t('链接可能有误，或内容已经移除。可以搜索一下，或从下面几个常用入口继续。', 'The link may be wrong, or the page was removed. Try a search, or pick up from one of the places below.')}</p>
       <form role="search" className="nf-search" onSubmit={event => { event.preventDefault(); if (query.trim()) navigate(`/guides?${new URLSearchParams({ q: query.trim() })}`); }}>
         <label htmlFor="missing-page-search" className="sr-only">{t('搜索生活指南', 'Search guides')}</label>
-        <span className="nf-search-field"><Search aria-hidden="true" strokeWidth={1.75} /><input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder={t('输入想找的活动或生活问题', 'An event, a place or a question')} /></span>
+        <span className="nf-search-field"><Search aria-hidden="true" strokeWidth={1.75} /><input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder={t('搜活动、地点或问题', 'An event, place or question')} /></span>
         <button type="submit" className="nf-button" data-variant="primary">{t('搜索', 'Search')}</button>
       </form>
     </section>
