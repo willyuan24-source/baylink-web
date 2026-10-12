@@ -21,6 +21,8 @@ const { MemoryRouter, StaticRouter, Routes, Route, Link } = await import('react-
 const { localDiscoveries, currentOpenings, getLocalDiscovery, discoveryShare } = await import('../src/data/local-discoveries');
 const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 const { eventOffers, eventTimes } = await import('../src/lib/schema-org');
+const { listingEndedDaysAgo } = await import('../src/lib/listing-lifecycle');
+const { getBayAreaToday } = await import('../src/lib/monthly');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
@@ -210,7 +212,8 @@ test('all detail pages server-render full content with matching canonical, OG, T
     assert.equal(meta(doc, 'og:image'), expectedImage);
     assert.equal(meta(doc, 'twitter:image'), expectedImage);
     assert.equal(meta(doc, 'twitter:card'), 'summary_large_image');
-    assert.equal(meta(doc, 'robots'), 'index, follow');
+    // ended listings stay readable but ask not to be indexed a month after their last day (I18N-SEO-10)
+    assert.equal(meta(doc, 'robots'), (listingEndedDaysAgo(item, getBayAreaToday()) ?? -1) > 30 ? 'noindex, follow' : 'index, follow');
     // the share description is complete; the search snippet is its first ~90 characters (I18N-SEO-11)
     assert.ok(meta(doc, 'og:description')!.includes(share.date));
     assert.ok(meta(doc, 'og:description')!.includes(share.area));

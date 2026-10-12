@@ -1,6 +1,8 @@
 import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
 import { shareCardPath } from './editorial-share';
 import { SITE_URL, localCopy, type PageMetadata } from './seo';
+import { getBayAreaToday } from './monthly';
+import { listingEndedDaysAgo, NOINDEX_ENDED_DAYS } from './listing-lifecycle';
 import { BAYLINK_EDITORIAL, BAYLINK_ORGANIZATION, eventOffers, eventOrganizer, eventStatusUrl, eventTimes, pacificDateTime, publicationDates, venueParts } from './schema-org';
 
 const OFFLINE = 'https://schema.org/OfflineEventAttendanceMode';
@@ -11,7 +13,7 @@ const OFFLINE = 'https://schema.org/OfflineEventAttendanceMode';
  * price only when stated. `published` is the day an offer or opening first shipped (data/first-published, passed by the
  * prerender only, so the dates never ride in the page's bundle; the app keeps the prerendered JSON-LD, seo.ts).
  */
-export function getDiscoveryMetadata(item: LocalDiscovery, published?: string): PageMetadata {
+export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, today = getBayAreaToday()): PageMetadata {
   const share = discoveryShare(item);
   const url = `${SITE_URL}${share.path}`;
   const image = [`${SITE_URL}${shareCardPath(share)}`];
@@ -50,7 +52,9 @@ export function getDiscoveryMetadata(item: LocalDiscovery, published?: string): 
   }
   const section = item.kind === 'event' ? localCopy('活动', 'Events') : item.kind === 'offer' ? localCopy('免费与优惠', 'Free & deals') : localCopy('新店', 'New openings');
   // Keep each reviewed date/summary intact: date labels may already contain middle dots.
-  return { title: `${share.title}｜BAYLINK`, shortTitle: item.kind === 'event' ? item.event.shortTitle : undefined, description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
+  // a month after its last day an ended listing asks not to be indexed (it left the sitemap after a week)
+  const ended = (listingEndedDaysAgo(item, today) ?? -1) > NOINDEX_ENDED_DAYS;
+  return { title: `${share.title}｜BAYLINK`, ...(ended ? { noindex: true } : {}), shortTitle: item.kind === 'event' ? item.event.shortTitle : undefined, description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
     structuredData: [entity, { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: localCopy('首页', 'Home'), item: `${SITE_URL}/` },
       { '@type': 'ListItem', position: 2, name: section, item: `${SITE_URL}/events` },

@@ -84,7 +84,9 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   const route=matchRoute(page==='index'?'/':`/${page}`);
   // RC-6: a prerendered page links its route CSS, or <main> paints unstyled until the chunk loads.
   if(!route?.bare) for(const css of routeStyles(PAGE_MODULES[route.page])) if(!html.includes(`href="/${css}"`)) throw new Error(`Route stylesheet /${css} is not linked: ${path}`);
-  if(!html.includes('rel="canonical"') || !html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"')) throw new Error(`Missing language metadata: ${path}`);
+  // a page that asks not to be indexed (an ended event a month on, I18N-SEO-10) carries no language cluster
+  const indexed=!/<meta name="robots" content="noindex/.test(html);
+  if(!html.includes('rel="canonical"') || indexed && (!html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"'))) throw new Error(`Missing language metadata: ${path}`);
   if(!html.includes('rel="modulepreload"')) throw new Error(`Missing route preload: ${path}`);
   if(page.startsWith('events/')&&!html.includes('"@type":"Event"')) throw new Error(`Wrong event schema: ${path}`);
   if(locale==='en/'&&!html.includes('<html lang="en"')) throw new Error(`Wrong document language: ${path}`);

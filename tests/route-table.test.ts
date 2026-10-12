@@ -91,11 +91,11 @@ test('known paths, analytics templates, English scopes and BayBay context come f
 });
 
 test('the sitemap lists the table\'s public pages in every language with x-default, and no redirect or game alias', () => {
-  const { paths, xml } = generateSitemap();
+  const { paths, indexed, xml } = generateSitemap();
   for (const path of ['/events', '/en/events', '/zh-Hant/events', '/calendar', '/this-month', '/opus-bay']) assert.ok(paths.includes(path), path);
   for (const path of ['/this-week', '/recommend', '/play', '/my-week', '/verify-email']) assert.ok(!paths.some(entry => entry.replace(/^\/(en|zh-Hant)/, '') === path), path);
   for (const route of ROUTES.filter(entry => entry.sitemap && !entry.path.includes(':'))) assert.ok(paths.includes(route.path), route.path);
-  assert.equal((xml.match(/hreflang="x-default"/g) || []).length, paths.length, 'each URL names its default (Simplified) edition');
+  assert.equal((xml.match(/hreflang="x-default"/g) || []).length, indexed.length, 'each URL names its default (Simplified) edition');
   assert.ok(xml.includes('<loc>https://www.baylink.us/en/events</loc>'));
   assert.match(xml, /<loc>https:\/\/www\.baylink\.us\/en\/events<\/loc>.*?hreflang="x-default" href="https:\/\/www\.baylink\.us\/events"/);
 });

@@ -12,7 +12,8 @@ import { SLUG_TO_CATEGORY } from '../src/routing';
 import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { monthlyMetadata } from '../src/lib/monthly-metadata';
-import { nextOccurrence } from '../src/lib/monthly';
+import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
+import { listingEndedDaysAgo } from '../src/lib/listing-lifecycle';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { EVENTS_INDEX, INDEX_EVENTS } from '../src/features/events/events-model';
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
@@ -200,15 +201,18 @@ test('hosting config has explicit public routes, a real missing-page status and 
 });
 
 test('public and prerendered sitemaps share the complete current catalog and source dates', () => {
-  const { paths, xml } = generateSitemap();
+  const { paths, indexed, xml } = generateSitemap();
   assert.equal(readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8').replace(/\r\n/g, '\n'), xml);
   const dom = new JSDOM(xml, { contentType: 'application/xml' });
   const entries = [...dom.window.document.querySelectorAll('url')];
   const urls = entries.map(entry => entry.querySelector('loc')!.textContent!);
-  assert.equal(new Set(urls).size, paths.length, 'every public route appears exactly once');
+  assert.equal(new Set(urls).size, indexed.length, 'every indexed public route appears exactly once');
+  assert.ok(indexed.every(path => paths.includes(path)) && indexed.length < paths.length, 'ended listings leave the sitemap; their pages stay');
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);
     const entry = entries.find(row => row.querySelector('loc')!.textContent === `https://www.baylink.us${share.path}`);
+    // I18N-SEO-10: an event or offer that ended more than a week ago is not in the sitemap
+    if ((listingEndedDaysAgo(item, getBayAreaToday()) ?? -1) > 7) { assert.equal(entry, undefined, share.path); continue; }
     assert.ok(entry, share.path);
     assert.equal(entry.querySelector('lastmod')?.textContent || undefined, share.checkedAt || undefined, share.path);
   }
