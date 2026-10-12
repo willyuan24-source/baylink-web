@@ -3,7 +3,7 @@ import { getGuideMedia, type GuideImage } from '../../data/guide-media';
 import { ATTRACTIONS } from '../../data/attractions';
 import { getGuideEditorial } from '../../data/guide-editorial';
 import { guideTopicOf } from '../../data/guide-topics';
-import { discoverRelatedGuides } from '../../lib/guide-discovery';
+import { rankRelatedGuides } from '../../lib/guide-discovery';
 import { getGuideMetadata } from '../../lib/guide-metadata';
 import { getOfferImage } from '../../lib/offer-media';
 import { guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
@@ -75,11 +75,11 @@ export function guideCardOf(guide: Guide, covers: GuideCovers): GuideCard {
 }
 
 /**
- * "Read next" before the reader's date: discoverRelatedGuides with a date before every edition gives the full ranking; it is
- * kept up to the `count`-th guide without an edition month, which always passes the date filter (relatedForToday).
+ * "Read next" before the reader's date (discoverRelatedGuides(guide, count, today) = relatedForToday(this, today, count)): the
+ * full ranking is kept up to the `count`-th guide without an edition month, which always passes the date filter.
  */
 export function rankedRelatedGuides(guide: Guide, count = 4): Guide[] {
-  const ranked = discoverRelatedGuides(guide, guides.length, '0000-01-01');
+  const ranked = rankRelatedGuides(guide, count);
   let evergreen = 0;
   const end = ranked.findIndex(candidate => !candidate.editionMonth && ++evergreen === count);
   return end < 0 ? ranked : ranked.slice(0, end + 1);
