@@ -3,14 +3,14 @@ import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhOnly, legalTitle, use
 export const TermsView = () => {
   const { english, t } = useLegalCopy();
   return (
-  <LegalPageLayout title={{ zh: '服务条款', en: 'Terms of Service' }} updated="2026-09-30">
+  <LegalPageLayout title={{ zh: '服务条款', en: 'Terms of Service' }} updated="2026-10-12">
     <LegalP>
-      Welcome to BAYLINK. BAYLINK is a Bay Area local community and lifestyle information platform for local posts, housing, roommate search, secondhand exchange, local services, rides, moving, cleaning, repairs, community help, local guides, and BayBay AI features.
+      Welcome to BAYLINK. BAYLINK answers where to go and how to get things done in the Bay Area, with sources. It offers local events and benefits, local guides, BayBay AI features, and a neighborhood board for local posts, housing, roommate search, secondhand exchange, local services, rides, moving, cleaning, repairs and community help.
     </LegalP>
     <LegalP>By accessing or using BAYLINK, you agree to these Terms of Service.</LegalP>
 
     <LegalSection title={t('中文阅读要点', 'Terms in short')}>
-      <LegalP>{t('以下是便于阅读的中文说明，对应下方英文条款。涉及具体权利、责任和适用条件，请结合完整条款阅读；有疑问可通过页末邮箱联系 BAYLINK。', 'A plain-language summary of the Terms below. The full Terms set out rights, responsibilities and conditions; email BAYLINK at the end of this page with any questions.')}</LegalP>
+      <LegalP>{t('BAYLINK：湾区去哪、怎么办 · 有来源的中文答案。以下是便于阅读的中文说明，对应下方英文条款。涉及具体权利、责任和适用条件，请结合完整条款阅读；有疑问可通过页末邮箱联系 BAYLINK。', 'A plain-language summary of the Terms below. The full Terms set out rights, responsibilities and conditions; email BAYLINK at the end of this page with any questions.')}</LegalP>
       <LegalUl items={[
         t('BAYLINK 提供本地信息发布与沟通工具。用户之间的租房、买卖、接送和服务交易由交易双方自行确认和履行。', 'BAYLINK provides tools to publish local information and communicate. Rentals, sales, rides and services between members are agreed and carried out by the people involved.'),
         t('请发布真实、合法的信息，不得诈骗、骚扰、冒充他人、歧视或侵犯他人权益。请妥善保管账号。', 'Post truthful, lawful information. No scams, harassment, impersonation, discrimination or violations of others’ rights. Keep your account secure.'),

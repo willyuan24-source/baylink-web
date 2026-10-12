@@ -8,11 +8,11 @@ export const PrivacyPolicyView = () => {
   return (
   <LegalPageLayout title={{ zh: '隐私政策', en: 'Privacy Policy' }} updated="2026-10-12">
     <LegalP>
-      BAYLINK is a Bay Area local community and lifestyle information platform. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use service bookings or BayBay AI features, or verify their phone number.
+      BAYLINK helps people in the San Francisco Bay Area find where to go and how to get things done, with sources: events and benefits, practical guides, BayBay AI answers and a neighborhood board. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use service bookings or BayBay AI features, or verify their phone number.
     </LegalP>
 
     <LegalSection title={t('中文阅读要点', 'Policy highlights')}>
-      <LegalP>{t('以下说明帮助你理解不同信息的用途与可见范围；详细内容见下方完整政策。', 'What each kind of information is used for and who can see it, in short. The full policy below has the details.')}</LegalP>
+      <LegalP>{t('BAYLINK：湾区去哪、怎么办 · 有来源的中文答案。以下说明帮助你理解不同信息的用途与可见范围；详细内容见下方完整政策。', 'What each kind of information is used for and who can see it, in short. The full policy below has the details.')}</LegalP>
       <LegalUl items={[
         t('账号资料、公开帖子和公开个人资料可能被其他用户或访客看到。请勿在公开正文中填写不希望公开的电话号码、住址或证件信息。', 'Your account profile, public posts and public profile can be seen by other members and visitors. Do not put a phone number, address or ID details you want to keep private in public text.'),
         t('用于短信验证的手机号与「联系方式设置」中主动填写的电话、微信、邮箱是不同用途的信息。验证手机号不会因为完成验证而自动展示在帖子或资料中。', 'The phone number used for SMS verification is separate from the phone, WeChat or email you choose to add in contact settings. Verifying a number never shows it on your posts or profile.'),
