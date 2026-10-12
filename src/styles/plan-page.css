@@ -88,7 +88,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
 
 /* Print: the day itself — overview, stops and timeline — on paper, without the page's tools. */
 @media print {
-  .planner-page.ui-container :is(.ui-page-header__actions,.planner-form,.planner-web-search,.planner-results,#planner-discoveries,.planner-overview-actions,.planner-edit-assistant,.planner-share-actions,.planner-compose-outing,.planner-account,.planner-undo,.event-import-entry,.plan-days,.planner-offline,.planner-credits,.planner-calendar-export,.planner-stops li>div) { display:none!important; }
+  .planner-page.ui-container :is(.ui-page-header__actions,.planner-form,.planner-web-search,.planner-results,#planner-discoveries,.planner-overview-actions,.planner-edit-assistant,.planner-share-actions,.planner-compose-outing,.planner-account,.planner-undo,.event-import-entry,.plan-days,.planner-offline,.planner-credits,.planner-calendar-export,.planner-save,.planner-stops li>div) { display:none!important; }
   .planner-page.ui-container .planner-workspace { display:block; }
   .planner-page.ui-container .planner-editor { border:0; padding:0; background:none; }
   .planner-page.ui-container :is(.planner-plan-overview,.planner-timeline>li) { break-inside:avoid; }
