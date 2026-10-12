@@ -270,7 +270,7 @@
 "sj-sharks-senators-2026": {"shortTitle":"Sharks 对 Senators 冰球赛","dek":"Los Tiburones 主题场，下午开赛","sessions":[{"date":"2026-10-31","start":"13:00"}]},
 "sj-smashing-pumpkins-nov-2026": {"shortTitle":"Smashing Pumpkins 演唱会","dek":"The Rats In a Cage 巡演圣荷西站","sessions":[{"date":"2026-11-08","start":"20:00"}]},
 "sj-symphonic-spooktacular-2026": {"shortTitle":"Symphony San Jose 万圣节音乐会","dek":"英雄与反派主题音乐迎万圣节","sessions":[{"date":"2026-10-24","start":"19:30"},{"date":"2026-10-25","start":"14:30"}],"dateNote":"约 1 小时 50 分钟，含中场"},
-"sj-veterans-day-parade-2026": {"shortTitle":"圣何塞退伍军人节游行","dek":"市中心沿街向退伍和现役军人致意","sessions":[{"date":"2026-11-11"}]},
+"sj-veterans-day-parade-2026": {"shortTitle":"圣何塞退伍军人节游行","dek":"市中心沿街向退伍和现役军人致意","sessions":[{"date":"2026-11-11","start":"12:00"}]},
 "sjpl-almaden-20th-harvest-festival-2026": {"shortTitle":"Almaden 图书馆 20 周年丰收节","dek":"乐团、舞蹈、泡泡派对和充气城堡的社区日","sessions":[{"date":"2026-10-17","start":"11:00","end":"16:00"}],"price":{"note":"部分项目需买票"},"venueShort":"Almaden 分馆与社区中心"},
 "sjpl-almaden-sounds-of-south-asia-2026": {"shortTitle":"Almaden 南亚弦乐小演出","dek":"孩子们现场演奏北印度古典音乐的两种弦乐器","sessions":[{"date":"2026-11-14","start":"12:00","end":"13:00"}],"venueShort":"Almaden 分馆"},
 "sjpl-berryessa-diwali-2026": {"shortTitle":"Berryessa 图书馆排灯节","dek":"一小时认识排灯节，大人孩子都能参加","sessions":[{"date":"2026-11-15","start":"15:00","end":"16:00"}],"venueShort":"Berryessa 分馆"},

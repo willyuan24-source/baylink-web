@@ -426,7 +426,13 @@
         "sourceUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade",
         "verifiedAt": "2026-10-12",
         "validFrom": "2026-11-11",
-        "validThrough": "2026-11-11"
+        "validThrough": "2026-11-11",
+        "sessions": [
+          {
+            "date": "2026-11-11",
+            "start": "12:00"
+          }
+        ]
       }
     }
   },

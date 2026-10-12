@@ -225,7 +225,7 @@
     "verifiedAt": "2026-10-12",
     "imageKey": "",
     "region": "sf",
-    "category": "family",
+    "category": "culture",
     "cost": "free",
     "costLabel": "免费；不用报名",
     "sourceLabel": "旧金山公共图书馆活动页（Excelsior 分馆）",
@@ -895,12 +895,13 @@
     "costLabel": "沿街观看；官网没有写观众费用",
     "sourceLabel": "San Jose Veterans Day Parade 官网",
     "title": "圣何塞退伍军人节游行：北加州规模最大的 Veterans Day 游行",
-    "dateLabel": "11/11（周三）· 出发时间待公布",
+    "dateLabel": "11/11（周三）· 12:00 出发",
     "city": "San Jose",
     "venue": "圣何塞市中心",
     "summary": "圣何塞的退伍军人节游行从 1918 年办到现在，由市政府和县政府支持，是北加州规模最大的 Veterans Day 游行，向所有曾经和正在服役的人致意。",
     "plan": [
-      "11/11 是周三；官网还没有写出发时间和路线，临近再看。"
+      "12:00 准时从 Santa Clara Street 与 Almaden Boulevard 路口（87 号公路桥下）出发，沿 Santa Clara Street 向东，右转 Market Street 经过 Plaza de César Chávez，到 San Carlos Street 结束。",
+      "路线约 1 英里，整支队伍大约一个半小时走完；信息台是 Delmas Avenue 与 Santa Clara Street 路口的蓝色帐篷。"
     ],
     "audience": [
       "全家",
