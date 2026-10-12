@@ -1,0 +1,226 @@
+{
+  "sjpl-berryessa-mandarin-ell-club-fall-2026": {
+    "lat": 37.393943,
+    "lng": -121.840738,
+    "label": "Berryessa · 3355 Noble Avenue, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/berryessa/",
+    "precision": "venue"
+  },
+  "sjpl-joyce-ellington-halloween-2026": {
+    "lat": 37.349841,
+    "lng": -121.886946,
+    "label": "Joyce Ellington · 491 E. Empire St, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/joyce-ellington/",
+    "precision": "venue"
+  },
+  "sjpl-berryessa-halloween-party-2026": {
+    "lat": 37.393943,
+    "lng": -121.840738,
+    "label": "Berryessa · 3355 Noble Avenue, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/berryessa/",
+    "precision": "venue"
+  },
+  "sjpl-west-valley-book-sale-nov-2026": {
+    "lat": 37.302368,
+    "lng": -121.979392,
+    "label": "West Valley · 1243 San Tomas Aquino Rd., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/west-valley/",
+    "precision": "venue"
+  },
+  "sccl-campbell-friends-book-sale-nov14-2026": {
+    "lat": 37.288227,
+    "lng": -121.943248,
+    "label": "Campbell Library · 77 Harrison Ave., Campbell",
+    "sourceUrl": "https://sccld.org/locations/campbell",
+    "precision": "venue"
+  },
+  "sjpl-almaden-sounds-of-south-asia-2026": {
+    "lat": 37.221497,
+    "lng": -121.869015,
+    "label": "Almaden · 6445 Camden Ave., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/almaden/",
+    "precision": "venue"
+  },
+  "sjpl-berryessa-diwali-2026": {
+    "lat": 37.393943,
+    "lng": -121.840738,
+    "label": "Berryessa · 3355 Noble Avenue, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/berryessa/",
+    "precision": "venue"
+  },
+  "smcl-millbrae-chinese-storytime-oct-2026": {
+    "lat": 37.602306,
+    "lng": -122.396952,
+    "label": "Millbrae · 1 Library Avenue, Millbrae",
+    "sourceUrl": "https://smcl.org/locations/1M",
+    "precision": "venue"
+  },
+  "smcl-portola-valley-mid-autumn-lantern-2026": {
+    "lat": 37.381853,
+    "lng": -122.230293,
+    "label": "Portola Valley · 765 Portola Road, Portola Valley",
+    "sourceUrl": "https://smcl.org/locations/1V",
+    "precision": "venue"
+  },
+  "smcl-san-carlos-ofrenda-musical-2026": {
+    "lat": 37.503624,
+    "lng": -122.262314,
+    "label": "San Carlos · 610 Elm Street, San Carlos",
+    "sourceUrl": "https://smcl.org/locations/1S",
+    "precision": "venue"
+  },
+  "smcl-brisbane-sugar-skull-2026": {
+    "lat": 37.683222,
+    "lng": -122.402957,
+    "label": "Brisbane · 163 Visitacion Avenue, Brisbane",
+    "sourceUrl": "https://smcl.org/locations/1R",
+    "precision": "venue"
+  },
+  "smcl-foster-city-nidhi-chanani-2026": {
+    "lat": 37.558591,
+    "lng": -122.270472,
+    "label": "Foster City · 1000 East Hillsdale Boulevard, Foster City",
+    "sourceUrl": "https://smcl.org/locations/1F",
+    "precision": "venue"
+  },
+  "smcl-pacifica-robotics-team5940-2026": {
+    "lat": 37.632169,
+    "lng": -122.491929,
+    "label": "Pacifica Sharp Park · 104 Hilton Way, Pacifica",
+    "sourceUrl": "https://smcl.org/locations/1P",
+    "precision": "venue"
+  },
+  "smcl-atherton-diwali-henna-2026": {
+    "lat": 37.463224,
+    "lng": -122.196894,
+    "label": "Atherton · 2 Dinkelspiel Station Lane, Atherton",
+    "sourceUrl": "https://smcl.org/locations/1A",
+    "precision": "venue"
+  },
+  "smcl-north-fair-oaks-diwali-henna-2026": {
+    "lat": 37.477331,
+    "lng": -122.214244,
+    "label": "North Fair Oaks · 2510 Middlefield Road, Redwood City",
+    "sourceUrl": "https://smcl.org/locations/1N",
+    "precision": "venue"
+  },
+  "smcl-portola-valley-nahuatl-prints-2026": {
+    "lat": 37.381853,
+    "lng": -122.230293,
+    "label": "Portola Valley · 765 Portola Road, Portola Valley",
+    "sourceUrl": "https://smcl.org/locations/1V",
+    "precision": "venue"
+  },
+  "smcl-brisbane-zuni-water-jar-2026": {
+    "lat": 37.683222,
+    "lng": -122.402957,
+    "label": "Brisbane · 163 Visitacion Avenue, Brisbane",
+    "sourceUrl": "https://smcl.org/locations/1R",
+    "precision": "venue"
+  },
+  "smcl-brisbane-puzzle-swap-2026": {
+    "lat": 37.683222,
+    "lng": -122.402957,
+    "label": "Brisbane · 163 Visitacion Avenue, Brisbane",
+    "sourceUrl": "https://smcl.org/locations/1R",
+    "precision": "venue"
+  },
+  "smcl-belmont-friends-book-sale-nov-2026": {
+    "lat": 37.508798,
+    "lng": -122.293256,
+    "label": "Belmont · 1110 Alameda de las Pulgas, Belmont",
+    "sourceUrl": "https://smcl.org/locations/1B",
+    "precision": "venue"
+  },
+  "smcl-san-carlos-friends-book-sale-nov15-2026": {
+    "lat": 37.503624,
+    "lng": -122.262314,
+    "label": "San Carlos · 610 Elm Street, San Carlos",
+    "sourceUrl": "https://smcl.org/locations/1S",
+    "precision": "venue"
+  },
+  "smcl-pacifica-ofrenda-musical-nov14-2026": {
+    "lat": 37.584453,
+    "lng": -122.476348,
+    "label": "Pacifica Sanchez · 1111 Terra Nova Boulevard, Pacifica",
+    "sourceUrl": "https://smcl.org/locations/1Z",
+    "precision": "venue"
+  },
+  "acl-dublin-halloween-crafts-costume-2026": {
+    "lat": 37.702777,
+    "lng": -121.918955,
+    "label": "Dublin · 200 Civic Plaza, Dublin",
+    "sourceUrl": "https://aclibrary.org/locations/DUB",
+    "precision": "venue"
+  },
+  "ccclib-crockett-halloween-hullabaloo-2026": {
+    "lat": 38.055419,
+    "lng": -122.220738,
+    "label": "Crockett · 991 Loring Avenue, Crockett",
+    "sourceUrl": "https://ccclib.org/locations/8",
+    "precision": "venue"
+  },
+  "ccclib-martinez-mug-swap-2026": {
+    "lat": 38.01795,
+    "lng": -122.134175,
+    "label": "Martinez · 740 Court Street, Martinez",
+    "sourceUrl": "https://ccclib.org/locations/16",
+    "precision": "venue"
+  },
+  "ccclib-martinez-friends-book-sale-nov7-2026": {
+    "lat": 38.01795,
+    "lng": -122.134175,
+    "label": "Martinez · 740 Court Street, Martinez",
+    "sourceUrl": "https://ccclib.org/locations/16",
+    "precision": "venue"
+  },
+  "acl-castro-valley-ohlone-tapestries-2026": {
+    "lat": 37.692979,
+    "lng": -122.07105,
+    "label": "Castro Valley · 3600 Norbridge Ave, Castro Valley",
+    "sourceUrl": "https://aclibrary.org/locations/CSV",
+    "precision": "venue"
+  },
+  "acl-castro-valley-military-records-2026": {
+    "lat": 37.692979,
+    "lng": -122.07105,
+    "label": "Castro Valley · 3600 Norbridge Ave, Castro Valley",
+    "sourceUrl": "https://aclibrary.org/locations/CSV",
+    "precision": "venue"
+  },
+  "acl-san-lorenzo-diwali-diya-2026": {
+    "lat": 37.681064,
+    "lng": -122.125946,
+    "label": "San Lorenzo · 395 Paseo Grande, San Lorenzo",
+    "sourceUrl": "https://aclibrary.org/locations/SLZ",
+    "precision": "venue"
+  },
+  "ccclib-hercules-library-20th-2026": {
+    "lat": 38.009565,
+    "lng": -122.265167,
+    "label": "Hercules · 109 Civic Drive, Hercules",
+    "sourceUrl": "https://ccclib.org/locations/55",
+    "precision": "venue"
+  },
+  "ccclib-lafayette-half-price-books-2026": {
+    "lat": 37.892258,
+    "lng": -122.116019,
+    "label": "Lafayette · 3491 Mt. Diablo Boulevard, Lafayette",
+    "sourceUrl": "https://ccclib.org/locations/14",
+    "precision": "venue"
+  },
+  "acl-cherryland-chinese-storytimes-oct24-2026": {
+    "lat": 37.684317,
+    "lng": -122.111969,
+    "label": "Cherryland · 278 Hampton Road, Hayward",
+    "sourceUrl": "https://aclibrary.org/locations/CHY",
+    "precision": "venue"
+  },
+  "marin-point-reyes-librito-concert-2026": {
+    "lat": 38.069612,
+    "lng": -122.80656,
+    "label": "Point Reyes · 11431 State Route One, Point Reyes Station",
+    "sourceUrl": "https://marinlibrary.org/locations/MP",
+    "precision": "venue"
+  }
+}

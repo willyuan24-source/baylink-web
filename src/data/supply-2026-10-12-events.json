@@ -1,0 +1,1320 @@
+[
+  {
+    "id": "sfpl-chinatown-creative-saturdays-fall-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（华埠分馆）",
+    "title": "华埠分馆周六午后：中文书法、填色与桌游",
+    "dateLabel": "10/17、10/24、10/31、11/7、11/14 · 周六 14:30–16:00",
+    "city": "San Francisco",
+    "venue": "华埠/麦礼谦分馆会议室 · 1135 Powell Street, San Francisco, CA 94108",
+    "summary": "旧金山公共图书馆华埠分馆每周六下午开放会议室，成人可以自主练习中文书法、填色或玩桌游；活动以粤语和普通话进行。",
+    "plan": [
+      "形式是自主练习，不是老师授课。",
+      "五个周六都在同一时段，选一次去就可以。"
+    ],
+    "audience": [
+      "成人"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/17/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu"
+  },
+  {
+    "id": "sfpl-marina-wild-goose-qigong-oct-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "outdoors",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（Marina 分馆）",
+    "title": "Marina 分馆大雁功：普通话和英语讲解的户外晨练",
+    "dateLabel": "10/17、10/24、10/31 · 周六 08:30–09:15",
+    "city": "San Francisco",
+    "venue": "Marina 分馆后院 · 1890 Chestnut Street, San Francisco, CA 94123",
+    "summary": "Chunfu Cai 老师每周六早上带大雁功，用普通话和英语讲解，练习放松姿势和缓慢呼吸。课在图书馆开门前于后院进行。",
+    "plan": [
+      "从游乐场旁边的步道走进后院，图书馆此时还没开门。",
+      "户外上课，下雨当天取消。"
+    ],
+    "audience": [
+      "成人"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/17/activity-wild-goose-qigong-chunfu-cai"
+  },
+  {
+    "id": "sfpl-richmond-hk-film-the-killer-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-10-17",
+    "occurrenceDates": [
+      "2026-10-17"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（列治文分馆）",
+    "title": "香港动作经典《喋血双雄》：粤语原声放映",
+    "dateLabel": "10/17（周六）· 14:00–16:00",
+    "city": "San Francisco",
+    "venue": "列治文分馆会议室 · 351 9th Avenue, San Francisco, CA 94118",
+    "summary": "列治文分馆秋季周六午场放映香港动作经典，10 月是 1989 年的《喋血双雄》：杀手误伤夜总会歌手后寻求救赎。粤语原声，配英文字幕。",
+    "plan": [
+      "R 级影片，片长 111 分钟，面向成人观众。",
+      "11/14 同一系列放映《辣手神探》。"
+    ],
+    "audience": [
+      "成人",
+      "港片影迷"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/17/film-killer"
+  },
+  {
+    "id": "sjpl-berryessa-mandarin-ell-club-fall-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "圣何塞公共图书馆活动页（Berryessa 分馆）",
+    "title": "Berryessa 分馆英语会话俱乐部：普通话老师带练",
+    "dateLabel": "10/17、10/24、10/31、11/7、11/14 · 周六 10:30–11:30",
+    "city": "San Jose",
+    "venue": "Berryessa 分馆 · 3355 Noble Avenue, San Jose, CA 95132",
+    "summary": "圣何塞公共图书馆 Berryessa 分馆每周六上午的成人英语会话俱乐部，主讲人英语、普通话双语，适合想练日常英语口语的普通话使用者；什么程度都可以来。",
+    "plan": [
+      "什么英语程度都可以来，其他语言背景的学习者也欢迎。",
+      "五个周六同一时段，可以只来一次。"
+    ],
+    "audience": [
+      "成人",
+      "长者"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6a67cc6b7b79214226abb91f"
+  },
+  {
+    "id": "smcl-millbrae-chinese-storytime-oct-2026",
+    "kind": "event",
+    "startDate": "2026-10-18",
+    "endDate": "2026-10-25",
+    "occurrenceDates": [
+      "2026-10-18",
+      "2026-10-25"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Millbrae）",
+    "title": "Millbrae 图书馆国语、粤语故事会",
+    "dateLabel": "10/18、10/25 · 周日 10:30–11:00",
+    "city": "Millbrae",
+    "venue": "Millbrae 图书馆 · 1 Library Avenue, Millbrae, CA 94030",
+    "summary": "San Mateo County Libraries 在 Millbrae 图书馆的周日故事会，用国语、粤语和英语讲故事、唱歌，孩子可以一起听、一起唱、一起玩；主要面向 0–5 岁，任何年龄的孩子都欢迎。",
+    "plan": [
+      "10/18 和 10/25 两个周日，时间相同。"
+    ],
+    "audience": [
+      "0–5 岁儿童与家长"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6ab6e6d208693b0f7374a99f"
+  },
+  {
+    "id": "acl-cherryland-chinese-storytimes-oct24-2026",
+    "kind": "event",
+    "startDate": "2026-10-24",
+    "endDate": "2026-10-24",
+    "occurrenceDates": [
+      "2026-10-24"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名；活动页没有写费用",
+    "sourceLabel": "Alameda County Library 活动页（Cherryland）",
+    "title": "Cherryland 图书馆粤语、国语故事会",
+    "dateLabel": "10/24（周六）· 10:30 粤语场、11:30 国语场",
+    "city": "Hayward",
+    "venue": "Cherryland 图书馆 · 278 Hampton Road, Hayward, CA 94541",
+    "summary": "Alameda County Library 的 Cherryland 分馆同一个周六上午有两场中文故事会：10:30 粤语场有歌曲和故事，主要面向学龄前儿童；11:30 是每月一次的国语（普通话）故事会，每次主题不同。",
+    "plan": [
+      "10:30 粤语场、11:30 国语场，可以连着参加。"
+    ],
+    "audience": [
+      "0–5 岁儿童与家长"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6a174e9ec6a1dc3d00d67cec"
+  },
+  {
+    "id": "sfpl-excelsior-multilingual-tech-help-2026",
+    "kind": "event",
+    "startDate": "2026-10-25",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-10-25",
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（Excelsior 分馆）",
+    "title": "Excelsior 分馆多语科技答疑：粤语、普通话都能问",
+    "dateLabel": "10/25、11/15 · 周日 13:00–16:00",
+    "city": "San Francisco",
+    "venue": "Excelsior 分馆会议室 · 4400 Mission Street, San Francisco, CA 94112",
+    "summary": "digitalLIFT 在 Excelsior 分馆开设随到随问的科技答疑，可用英语、西班牙语、菲律宾语、粤语和普通话，一对一帮忙用手机、平板或电脑：给家人发短信、视频看诊、网上买菜都可以问。",
+    "plan": [
+      "带上自己的手机、平板、iPad 或笔记本电脑。",
+      "10/25 和 11/15 两个周日，时间相同。"
+    ],
+    "audience": [
+      "长者",
+      "成人"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/25/tutorial-drop-tech-help-english-spanish-filipino-cantonese-mandarin"
+  },
+  {
+    "id": "smcl-portola-valley-mid-autumn-lantern-2026",
+    "kind": "event",
+    "startDate": "2026-10-25",
+    "endDate": "2026-10-25",
+    "occurrenceDates": [
+      "2026-10-25"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "需在图书馆网站报名；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Portola Valley）",
+    "title": "中秋中文书法纸灯笼：学写毛笔字，做一盏扇形灯",
+    "dateLabel": "10/25（周日）· 10:30–11:30",
+    "city": "Portola Valley",
+    "venue": "Portola Valley 图书馆 · 765 Portola Road, Portola Valley, CA 94028",
+    "summary": "认识中秋节的习俗和寓意，学基础的中文毛笔字，写上与月亮、团圆有关的吉祥话，做一盏属于自己的扇形纸灯笼带回家。",
+    "plan": [
+      "需要报名；同一系列每人只报一场。"
+    ],
+    "audience": [
+      "成人",
+      "长者"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6a92017e4cb69d003e242443"
+  },
+  {
+    "id": "acl-dublin-halloween-crafts-costume-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "随到随参加；活动页没有写费用",
+    "sourceLabel": "Alameda County Library 活动页（Dublin）",
+    "title": "Dublin 图书馆万圣节手工与装扮比赛",
+    "dateLabel": "10/31（周六）· 11:00–12:30",
+    "city": "Dublin",
+    "venue": "Dublin 图书馆 · 200 Civic Plaza, Dublin, CA 94568",
+    "summary": "Alameda County Library 的 Dublin 图书馆万圣节当天有各种手工和活动，大人小孩都能参加，逛完每个摊位能拿小礼物，另有小型装扮比赛。",
+    "plan": [
+      "随到随参加，但活动室同时最多 60 人。",
+      "14:00 同馆还有家庭电影《Hocus Pocus》，可以带毯子坐地上看。"
+    ],
+    "audience": [
+      "全年龄",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6a83981ad4b10d0030073337"
+  },
+  {
+    "id": "ccclib-crockett-halloween-hullabaloo-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用",
+    "sourceLabel": "Contra Costa County Library 活动页（Crockett）",
+    "title": "Crockett 图书馆万圣节嘉年华：游戏、手工和找找看",
+    "dateLabel": "10/31（周六）· 12:00–16:00",
+    "city": "Crockett",
+    "venue": "Crockett 图书馆 · 991 Loring Avenue, Crockett, CA 94525",
+    "summary": "Contra Costa County Library 的 Crockett 图书馆万圣节下午：玩万圣节小游戏、做手工、参加找找看，穿装扮来的大人小孩都能领到一颗糖。",
+    "plan": [
+      "四个小时随时可以去，不用排在开头。"
+    ],
+    "audience": [
+      "全年龄",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://ccclib.bibliocommons.com/events/6abc44a4a85a2c00337bfcb5"
+  },
+  {
+    "id": "sfpl-north-beach-open-house-oct31-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（North Beach 分馆）",
+    "title": "North Beach 分馆万圣节开放日：故事会、芭蕾游戏与鬼故事导览",
+    "dateLabel": "10/31（周六）· 10:00–18:00",
+    "city": "San Francisco",
+    "venue": "North Beach 分馆 · 850 Columbus Avenue, San Francisco, CA 94133",
+    "summary": "North Beach 分馆在万圣节办开放日：10:30 有 5 岁以下的不吓人万圣节故事会，中午 Tutu School 芭蕾游戏，下午有北滩鬼故事步行导览；儿童区整天设亡灵节祭坛。",
+    "plan": [
+      "10:30–11:00 故事会适合 5 岁以下；12:00–14:00 户外芭蕾游戏。",
+      "14:00–15:30 有鬼故事步行导览，从图书馆出发。"
+    ],
+    "audience": [
+      "亲子家庭",
+      "全年龄"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/10/31/celebration-north-beach-branch-open-house"
+  },
+  {
+    "id": "sjpl-berryessa-halloween-party-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "圣何塞公共图书馆活动页（Berryessa 分馆）",
+    "title": "Berryessa 分馆万圣节派对：手工、讨糖和装扮游行",
+    "dateLabel": "10/31（周六）· 14:30–16:00",
+    "city": "San Jose",
+    "venue": "Berryessa 分馆 · 3355 Noble Avenue, San Jose, CA 95132",
+    "summary": "圣何塞公共图书馆 Berryessa 分馆的万圣节派对，穿装扮来做万圣节手工、玩小把戏、领糖果，最后一起游行，适合幼儿到青少年。",
+    "plan": [
+      "请孩子穿上万圣节装扮来参加。"
+    ],
+    "audience": [
+      "0–18 岁儿童与青少年"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6abc15d2035faf0033d92969"
+  },
+  {
+    "id": "sjpl-joyce-ellington-halloween-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "圣何塞公共图书馆活动页（Joyce Ellington 分馆）",
+    "title": "Joyce Ellington 分馆万圣节：故事会、游行和馆内讨糖",
+    "dateLabel": "10/31（周六）· 14:00–15:30",
+    "city": "San Jose",
+    "venue": "Joyce Ellington 分馆 · 491 E. Empire St, San Jose, CA 95112",
+    "summary": "圣何塞公共图书馆 Joyce Ellington 分馆的万圣节活动：先听万圣节故事，再在馆内游行、讨糖，另有可以带走的手工材料包。",
+    "plan": [
+      "请孩子穿上万圣节装扮来。"
+    ],
+    "audience": [
+      "0–12 岁儿童与家长"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6ac4082ede300e0045186d78"
+  },
+  {
+    "id": "smcl-brisbane-sugar-skull-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用；材料用完即止",
+    "sourceLabel": "San Mateo County Libraries 活动页（Brisbane）",
+    "title": "Brisbane 图书馆亡灵节糖骷髅彩绘",
+    "dateLabel": "10/31（周六）· 11:00–12:30",
+    "city": "Brisbane",
+    "venue": "Brisbane 图书馆 · 163 Visitacion Avenue, Brisbane, CA 94005",
+    "summary": "给自己的糖骷髅（calavera）上色装饰，先看一段简短的图片介绍，了解亡灵节做糖骷髅装饰的传统。",
+    "plan": [
+      "面向 8 岁以上的儿童和青少年，材料用完为止。"
+    ],
+    "audience": [
+      "8 岁以上儿童与青少年"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6ab6e6fe3dd190003e749f25"
+  },
+  {
+    "id": "smcl-san-carlos-ofrenda-musical-2026",
+    "kind": "event",
+    "startDate": "2026-10-31",
+    "endDate": "2026-10-31",
+    "occurrenceDates": [
+      "2026-10-31"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（San Carlos）",
+    "title": "San Carlos 图书馆亡灵节音乐会：Cascada de Flores 双语互动演出",
+    "dateLabel": "10/31（周六）· 10:30–11:15",
+    "city": "San Carlos",
+    "venue": "San Carlos 图书馆 · 610 Elm Street, San Carlos, CA 94070",
+    "summary": "Cascada de Flores 用西英双语、歌舞和多种乐器介绍墨西哥和中美洲的亡灵节传统，孩子们一起放风筝寄语、认识糖骷髅，用音乐和回忆搭一座祭坛。",
+    "plan": [
+      "互动演出，孩子可以跟着唱跳。"
+    ],
+    "audience": [
+      "0–11 岁儿童与家长"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6aa8571f56fe62004a2fc09e"
+  },
+  {
+    "id": "sfpl-bernal-dia-de-los-muertos-2026",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "occurrenceDates": [
+      "2026-11-01"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（Bernal Heights 分馆）",
+    "title": "Bernal Heights 社区亡灵节：一起搭祭坛、听现场音乐",
+    "dateLabel": "11/1（周日）· 13:00–15:00",
+    "city": "San Francisco",
+    "venue": "Bernal Heights 分馆户外（Moultrie St. 一侧）· 500 Cortland Avenue, San Francisco, CA 94110",
+    "summary": "旧金山艺术家 Calixto Robles 带领社区一起搭亡灵节祭坛，René y Familia 现场演奏双语传统与原创音乐。可以带花、香、照片、信件或密封的食物饮料，放上祭坛纪念逝去的亲人。",
+    "plan": [
+      "活动在户外 Moultrie St. 一侧，不在馆内。",
+      "想放上祭坛的照片或小物件，当天带来。"
+    ],
+    "audience": [
+      "全年龄",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/01/social-bernal-community-dia-de-los-muertos"
+  },
+  {
+    "id": "smcl-foster-city-nidhi-chanani-2026",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "occurrenceDates": [
+      "2026-11-01"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Foster City）",
+    "title": "Foster City 图书馆：绘本作家 Nidhi Chanani 讲故事、现场画画",
+    "dateLabel": "11/1（周日）· 10:30–11:30",
+    "city": "Foster City",
+    "venue": "Foster City 图书馆 · 1000 East Hillsdale Boulevard, Foster City, CA 94404",
+    "summary": "绘本作家、插画家 Nidhi Chanani 以排灯节为主题讲故事，分享自己怎样成为画家和作家，带孩子们一起画画并回答提问；她插画的作品包括 Binny’s Diwali 和获奖绘本 Strong。",
+    "plan": [
+      "面向儿童和家庭，可以带纸笔跟着画。"
+    ],
+    "audience": [
+      "0–11 岁儿童与家长"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6ab5876708693b0f7374643a"
+  },
+  {
+    "id": "smcl-pacifica-robotics-team5940-2026",
+    "kind": "event",
+    "startDate": "2026-11-01",
+    "endDate": "2026-11-01",
+    "occurrenceDates": [
+      "2026-11-01"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "需网上报名，限 15 人；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Pacifica Sharp Park）",
+    "title": "Pacifica 图书馆机器人入门：高中战队 Team 5940 带孩子编程",
+    "dateLabel": "11/1（周日）· 11:00–14:30",
+    "city": "Pacifica",
+    "venue": "Pacifica Sharp Park 图书馆 · 104 Hilton Way, Pacifica, CA 94044",
+    "summary": "获奖的高中机器人战队 Team 5940 BREAD 示范机器人和电路的基础，参加者可以亲手给机器人编程、学习电路原理。",
+    "plan": [
+      "只收前 15 位报名者，额满后可候补。"
+    ],
+    "audience": [
+      "6–18 岁儿童与青少年"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6abadaa39abb62002c6ac8d1"
+  },
+  {
+    "id": "acl-castro-valley-ohlone-tapestries-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-07",
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "不用报名，随时进去看；活动页没有写费用",
+    "sourceLabel": "Alameda County Library 活动页（Castro Valley）",
+    "title": "Castro Valley 图书馆：Muwekma Ohlone 原住民挂毯展",
+    "dateLabel": "11/7、11/8 · 13:00–17:00",
+    "city": "Castro Valley",
+    "venue": "Castro Valley 图书馆 Chabot Room · 3600 Norbridge Ave, Castro Valley, CA 94546",
+    "summary": "美洲原住民传统月期间，Castro Valley 图书馆展出艺术家 Kalie Granier 与 Muwekma Ohlone 后人 Monica V. Arellano、Gloria E. Arellano-Gómez 合作的两幅挂毯，颜料取自 Djerassi 土地上的地衣，让 Ohlone 人重新连接祖先的土地。",
+    "plan": [
+      "11 月全月大厅另有创作过程的图片与资料展。"
+    ],
+    "audience": [
+      "全年龄"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6abef89debad2200454279ac"
+  },
+  {
+    "id": "acl-san-lorenzo-diwali-diya-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "occurrenceDates": [
+      "2026-11-07"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "需在图书馆网站报名；活动页没有写费用",
+    "sourceLabel": "Alameda County Library 活动页（San Lorenzo）",
+    "title": "San Lorenzo 图书馆儿童美术课：用黏土做排灯节小油灯",
+    "dateLabel": "11/7（周六）· 13:00–14:00",
+    "city": "San Lorenzo",
+    "venue": "San Lorenzo 图书馆 · 395 Paseo Grande, San Lorenzo, CA 94580",
+    "summary": "美术老师 Raquel Gunther 带 6–12 岁的孩子认识排灯节点亮小油灯（diya）的传统，再用风干黏土捏出并装饰自己的彩色小油灯，材料都由图书馆提供。",
+    "plan": [
+      "请报名并准时到；有空位时也接受现场参加。"
+    ],
+    "audience": [
+      "6–12 岁儿童"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6ac6a340295b3b0033cadefa"
+  },
+  {
+    "id": "ccclib-martinez-friends-book-sale-nov7-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "occurrenceDates": [
+      "2026-11-07"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页没有写入场费；一袋书 $10",
+    "sourceLabel": "Contra Costa County Library 活动页（Martinez）",
+    "title": "Martinez 图书馆之友季度旧书义卖：一袋 $10",
+    "dateLabel": "11/7（周六）· 10:30–15:00",
+    "city": "Martinez",
+    "venue": "Martinez 图书馆 · 740 Court Street, Martinez, CA 94553",
+    "summary": "Martinez 图书馆之友的季度义卖采用装袋形式：自己带袋子来，装满一袋书付 10 美元，给家里书架添点新书。",
+    "plan": [
+      "请自己带购物袋来装书。",
+      "同一天 10:00–16:00 还有马克杯交换。"
+    ],
+    "audience": [
+      "全年龄",
+      "爱书家庭"
+    ],
+    "officialUrl": "https://ccclib.bibliocommons.com/events/696935881e64afd01e548be7"
+  },
+  {
+    "id": "ccclib-martinez-mug-swap-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "occurrenceDates": [
+      "2026-11-07"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用",
+    "sourceLabel": "Contra Costa County Library 活动页（Martinez）",
+    "title": "Martinez 图书馆马克杯交换",
+    "dateLabel": "11/7（周六）· 10:00–16:00",
+    "city": "Martinez",
+    "venue": "Martinez 图书馆 · 740 Court Street, Martinez, CA 94553",
+    "summary": "天冷了，带一只干净的旧马克杯来，换一只新的回家；只想捐的话，活动前任何一天都可以把杯子送到图书馆。",
+    "plan": [
+      "同一天 10:30–15:00 有图书馆之友的旧书义卖，一袋 $10。"
+    ],
+    "audience": [
+      "全年龄"
+    ],
+    "officialUrl": "https://ccclib.bibliocommons.com/events/6a8f544229a7dd0d6746e5b3"
+  },
+  {
+    "id": "smcl-atherton-diwali-henna-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "occurrenceDates": [
+      "2026-11-07"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名，先到先得；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Atherton）",
+    "title": "Atherton 图书馆排灯节手绘指甲花",
+    "dateLabel": "11/7（周六）· 11:30–13:30",
+    "city": "Atherton",
+    "venue": "Atherton 图书馆 · 2 Dinkelspiel Station Lane, Atherton, CA 94027",
+    "summary": "庆祝排灯节，本地艺术家 Swati 用指甲花（henna）在手上画图案。指甲花是天然染料，会暂时染色皮肤。",
+    "plan": [
+      "皮肤敏感或有过敏史的，先考虑是否适合。",
+      "先到先画，名额看现场情况。"
+    ],
+    "audience": [
+      "0–18 岁儿童与青少年"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6aa9bb61ab7a8e0037c21242"
+  },
+  {
+    "id": "smcl-portola-valley-nahuatl-prints-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2026-11-07",
+    "occurrenceDates": [
+      "2026-11-07"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "需在图书馆网站报名，限 10 人；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Portola Valley）",
+    "title": "Portola Valley 图书馆版画课：刻一枚阿兹特克历法日符",
+    "dateLabel": "11/7（周六）· 11:00–12:00",
+    "city": "Portola Valley",
+    "venue": "Portola Valley 图书馆 · 765 Portola Road, Portola Valley, CA 94028",
+    "summary": "参加者从墨西卡（阿兹特克）历法的 20 个日符中选一个，刻成版再印出来，同时了解纳瓦特尔文字和这套历法。",
+    "plan": [
+      "名额 10 人，需要报名，额满可候补。"
+    ],
+    "audience": [
+      "成人",
+      "长者"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6a9204474cb69d003e2424d1"
+  },
+  {
+    "id": "acl-castro-valley-military-records-2026",
+    "kind": "event",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "需在图书馆网站报名，限 24 人；活动页没有写费用",
+    "sourceLabel": "Alameda County Library 活动页（Castro Valley）",
+    "title": "退伍军人节前的家谱课：查家人的军队服役记录",
+    "dateLabel": "11/8（周日）· 14:00–16:00",
+    "city": "Castro Valley",
+    "venue": "Castro Valley 图书馆 · 3600 Norbridge Ave, Castro Valley, CA 94546",
+    "summary": "家谱讲师 Ron Chan 教大家查找家中退伍军人的服役记录，例如 DD-214 和花名册，使用 NARA、Fold3、FamilySearch 等资源，再把资料整理成家族故事。他是湾区华人家谱研究会（Bay Area Chinese Genealogy Group）创办人，也参与创办华裔美国军人项目。",
+    "plan": [
+      "带自己的笔记本电脑，或在图书馆借用一台。",
+      "需要报名，额满后可候补。"
+    ],
+    "audience": [
+      "成人",
+      "长者",
+      "退伍军人家庭"
+    ],
+    "officialUrl": "https://aclibrary.bibliocommons.com/events/6ab311fcda318a10e63609a4"
+  },
+  {
+    "id": "chsa-lily-qi-book-talk-nov8-2026",
+    "kind": "event",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "$15；含书 $40；含午餐自助",
+    "sourceLabel": "美国华人历史学会活动页",
+    "title": "美国华人历史学会讲座：Lily Qi 谈新书《Elected American》",
+    "dateLabel": "11/8（周日）· 11:00–13:00",
+    "city": "San Francisco",
+    "venue": "美国华人历史学会博物馆 · 965 Clay Street, San Francisco, CA 94108",
+    "summary": "美国华人历史学会邀请 Lily Qi 谈她的政治回忆录《Elected American: From Red China to Blue Maryland》：她在上海长大，后来成为马里兰州议员，讲移民为什么要参与投票和政治。",
+    "plan": [
+      "在 Eventbrite 买票；书在现场另售 $35。"
+    ],
+    "audience": [
+      "成人",
+      "关心移民参政的读者"
+    ],
+    "officialUrl": "https://chsa.org/event/book-talk-with-lily-qi-elected-american/"
+  },
+  {
+    "id": "smcl-brisbane-puzzle-swap-2026",
+    "kind": "event",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Brisbane）",
+    "title": "Brisbane 图书馆拼图交换会",
+    "dateLabel": "11/8（周日）· 14:00–16:00",
+    "city": "Brisbane",
+    "venue": "Brisbane 图书馆 · 163 Visitacion Avenue, Brisbane, CA 94005",
+    "summary": "Brisbane 图书馆第一次办拼图交换会：带一盒拼完的拼图来换一盒新的，也可以只来挑一盒带走，各种年龄和难度都有。",
+    "plan": [
+      "只收拼图，要装在印有完成图的盒子里，不要缺片；不收桌游。"
+    ],
+    "audience": [
+      "全年龄",
+      "拼图爱好者"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6ac7ef9329c3d600332e9e65"
+  },
+  {
+    "id": "smcl-brisbane-zuni-water-jar-2026",
+    "kind": "event",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用；材料限前 25 人",
+    "sourceLabel": "San Mateo County Libraries 活动页（Brisbane）",
+    "title": "Brisbane 图书馆儿童画：祖尼族水罐图案",
+    "dateLabel": "11/8（周日）· 11:00–12:00",
+    "city": "Brisbane",
+    "venue": "Brisbane 图书馆 · 163 Visitacion Avenue, Brisbane, CA 94005",
+    "summary": "孩子们画一只祖尼族风格的水罐，同时认识来自新墨西哥州西北部的古老祖尼族。",
+    "plan": [
+      "面向 6–11 岁，材料只够前 25 位。"
+    ],
+    "audience": [
+      "6–11 岁儿童"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6ab6e72008693b0f7374a9b3"
+  },
+  {
+    "id": "smcl-north-fair-oaks-diwali-henna-2026",
+    "kind": "event",
+    "startDate": "2026-11-08",
+    "endDate": "2026-11-08",
+    "occurrenceDates": [
+      "2026-11-08"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名，先到先得；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（North Fair Oaks）",
+    "title": "North Fair Oaks 图书馆排灯节手绘指甲花",
+    "dateLabel": "11/8（周日）· 12:00–14:00",
+    "city": "Redwood City",
+    "venue": "North Fair Oaks 图书馆 · 2510 Middlefield Road, Redwood City, CA 94063",
+    "summary": "庆祝排灯节，本地艺术家 Swati 在 North Fair Oaks 图书馆用指甲花（henna）在手上画图案。指甲花是天然染料，会暂时染色皮肤。",
+    "plan": [
+      "皮肤敏感或有过敏史的，先考虑是否适合。",
+      "先到先画，名额看现场情况。"
+    ],
+    "audience": [
+      "0–18 岁儿童与青少年"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6aaa33f04b3b0600308414d5"
+  },
+  {
+    "id": "sj-veterans-day-parade-2026",
+    "kind": "event",
+    "startDate": "2026-11-11",
+    "endDate": "2026-11-11",
+    "occurrenceDates": [
+      "2026-11-11"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "沿街观看；官网没有写观众费用",
+    "sourceLabel": "San Jose Veterans Day Parade 官网",
+    "title": "圣何塞退伍军人节游行：北加州规模最大的 Veterans Day 游行",
+    "dateLabel": "11/11（周三）· 出发时间待公布",
+    "city": "San Jose",
+    "venue": "圣何塞市中心",
+    "summary": "圣何塞的退伍军人节游行从 1918 年办到现在，由市政府和县政府支持，是北加州规模最大的 Veterans Day 游行，向所有曾经和正在服役的人致意。",
+    "plan": [
+      "11/11 是周三；官网还没有写出发时间和路线，临近再看。"
+    ],
+    "audience": [
+      "全家",
+      "退伍军人家庭"
+    ],
+    "officialUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade"
+  },
+  {
+    "id": "ccclib-hercules-library-20th-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用",
+    "sourceLabel": "Contra Costa County Library 活动页（Hercules）",
+    "title": "Hercules 图书馆 20 周年派对：泡泡秀、脸部彩绘和气球",
+    "dateLabel": "11/14（周六）· 13:00–15:00",
+    "city": "Hercules",
+    "venue": "Hercules 图书馆 · 109 Civic Drive, Hercules, CA 94547",
+    "summary": "Hercules 图书馆开馆 20 周年，下午办社区派对，有脸部彩绘、临时喷绘纹身、扭气球和 DJ，泡泡艺人 Bubble Sam 13:30 表演。",
+    "plan": [
+      "想看泡泡秀的，13:30 前到。"
+    ],
+    "audience": [
+      "全年龄",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://ccclib.bibliocommons.com/events/6a77be55c7e02e3d006ee576"
+  },
+  {
+    "id": "ccclib-lafayette-half-price-books-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页没有写入场费；书一律五折",
+    "sourceLabel": "Contra Costa County Library 活动页（Lafayette）",
+    "title": "Lafayette 图书馆之友书店半价日",
+    "dateLabel": "11/14（周六）· 10:00–16:00",
+    "city": "Lafayette",
+    "venue": "Lafayette 图书馆 · 3491 Mt. Diablo Boulevard, Lafayette, CA 94549",
+    "summary": "Lafayette 图书馆之友的街角书店（Friends Corner Book Shop）这天全店半价，收入用于图书馆的馆藏、活动和服务。",
+    "plan": [
+      "书店在图书馆里，周六营业到 16:00。"
+    ],
+    "audience": [
+      "全年龄",
+      "爱书家庭"
+    ],
+    "officialUrl": "https://ccclib.bibliocommons.com/events/6aa1b929ca248a002914a0a3"
+  },
+  {
+    "id": "marin-point-reyes-librito-concert-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "north-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用",
+    "sourceLabel": "Marin County Free Library 活动页（Point Reyes）",
+    "title": "Point Reyes 图书馆亲子音乐会：Rositas Arribeñas 演奏墨西哥 son huasteco",
+    "dateLabel": "11/14（周六）· 11:00–12:00",
+    "city": "Point Reyes Station",
+    "venue": "Point Reyes 图书馆 · 11431 State Route One, Point Reyes Station, CA 94956",
+    "summary": "Marin County Free Library 第一场 Librito 音乐会，由 San Rafael Del Real 音乐学院的学生乐团 Rositas Arribeñas 演奏墨西哥东北部的 son huasteco 传统音乐，弦乐明快、节奏热闹，欢迎全家一起跳舞。",
+    "plan": [
+      "面向家庭，可以跟着音乐跳舞。"
+    ],
+    "audience": [
+      "亲子家庭"
+    ],
+    "officialUrl": "https://marinlibrary.bibliocommons.com/events/6aca449ffee2d21deb225dba"
+  },
+  {
+    "id": "sccl-campbell-friends-book-sale-nov14-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页没有写入场费；书按价购买",
+    "sourceLabel": "Santa Clara County Library District 活动页（Campbell 图书馆）",
+    "title": "Campbell 图书馆之友旧书义卖：书、拼图和桌游",
+    "dateLabel": "11/14（周六）· 10:00–13:00",
+    "city": "Campbell",
+    "venue": "Campbell 图书馆 · 77 Harrison Ave., Campbell, CA 95008",
+    "summary": "Campbell 图书馆之友的旧书义卖，有拼图、桌游、精装小说、童书、悬疑、有声书、DVD、CD 和各种实用书。",
+    "plan": [
+      "可以付现金、支票、Zelle、银行卡或 Venmo，记得自己带袋子。"
+    ],
+    "audience": [
+      "全年龄",
+      "爱书家庭"
+    ],
+    "officialUrl": "https://sccl.bibliocommons.com/events/6a4ec0bfc7e02e3d0067c3ea"
+  },
+  {
+    "id": "sfpl-chinese-book-club-nov14-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（中文中心）",
+    "title": "旧金山总馆中文读书会：陈年喜《活着就是冲天一喊》",
+    "dateLabel": "11/14（周六）· 10:00–11:00",
+    "city": "San Francisco",
+    "venue": "旧金山总馆三楼中文中心展区 · 100 Larkin Street, San Francisco, CA 94102",
+    "summary": "旧金山公共图书馆中文中心的中文读书会，11 月共读陈年喜的《活着就是冲天一喊》，和热爱中文阅读的朋友一起谈文字与阅读。",
+    "plan": [
+      "先读完或读一部分这本书，讨论用中文进行。"
+    ],
+    "audience": [
+      "成人",
+      "中文读者"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/14/dushuhuihuozhejiushichongtianyihan"
+  },
+  {
+    "id": "sfpl-richmond-hk-film-hard-boiled-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（列治文分馆）",
+    "title": "香港动作经典《辣手神探》：粤语原声放映",
+    "dateLabel": "11/14（周六）· 14:00–16:30",
+    "city": "San Francisco",
+    "venue": "列治文分馆会议室 · 351 9th Avenue, San Francisco, CA 94118",
+    "summary": "列治文分馆秋季港片午场的 11 月片目是 1992 年的《辣手神探》：一名警探的擅自行动，威胁到卧底警察要扳倒犯罪集团的计划。粤语原声，配英文字幕。",
+    "plan": [
+      "R 级影片，片长 128 分钟，面向成人观众。"
+    ],
+    "audience": [
+      "成人",
+      "港片影迷"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/14/film-hard-boiled"
+  },
+  {
+    "id": "sjpl-almaden-sounds-of-south-asia-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用；不用报名",
+    "sourceLabel": "圣何塞公共图书馆活动页（Almaden 分馆）",
+    "title": "Almaden 分馆南亚音乐小演出：西塔琴与萨罗德琴",
+    "dateLabel": "11/14（周六）· 12:00–13:00",
+    "city": "San Jose",
+    "venue": "Almaden 分馆 · 6445 Camden Ave., San Jose, CA 95120",
+    "summary": "Fremont 的 Path of Raga 音乐学校的孩子来 Almaden 分馆演奏西塔琴和萨罗德琴，作为“Sounds of South Asia”展览的开幕；听完可以在展区扫码听各种南亚乐器的声音。",
+    "plan": [
+      "演出是两段简短表演，之后可以看馆内的南亚乐器展。"
+    ],
+    "audience": [
+      "全年龄",
+      "对音乐感兴趣的孩子"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6ac02d38de300e004517d3f5"
+  },
+  {
+    "id": "sjpl-west-valley-book-sale-nov-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-14",
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费入场；周六按标价，周日 $5 一袋",
+    "sourceLabel": "圣何塞公共图书馆活动页（West Valley 分馆）",
+    "title": "West Valley 分馆旧书义卖：周日一袋 $5",
+    "dateLabel": "11/14（周六）10:00–16:00；11/15（周日）12:00–15:00",
+    "city": "San Jose",
+    "venue": "West Valley 分馆 · 1243 San Tomas Aquino Rd., San Jose, CA 95117",
+    "summary": "West Valley 之友的旧书义卖，有捐赠书和图书馆下架的书。周六按标价卖，周日下午是一袋 $5 的装袋特卖，收入用于图书馆活动和购书。",
+    "plan": [
+      "只收现金和支票，自己带购物袋。",
+      "周六 9:00–10:00 先给之友会员选购，公众 10:00 开始。"
+    ],
+    "audience": [
+      "全年龄",
+      "爱书家庭"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/690e9ccafbf38a280022a873"
+  },
+  {
+    "id": "smcl-belmont-friends-book-sale-nov-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-14",
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页没有写入场费；书按价购买",
+    "sourceLabel": "San Mateo County Libraries 活动页（Belmont）",
+    "title": "Belmont 图书馆之友旧书义卖",
+    "dateLabel": "11/14–11/15（周六、周日）",
+    "city": "Belmont",
+    "venue": "Belmont 图书馆 · 1110 Alameda de las Pulgas, Belmont, CA 94002",
+    "summary": "Belmont 图书馆之友的周末旧书义卖，有各个年龄段的二手书，收入用来支持图书馆。",
+    "plan": [
+      "活动页只列日期、没有列时段，按图书馆开放时间去。"
+    ],
+    "audience": [
+      "全年龄",
+      "爱书家庭"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6941f5eb7ed7c62f00aad129"
+  },
+  {
+    "id": "smcl-pacifica-ofrenda-musical-nov14-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "不用报名；活动页没有写费用",
+    "sourceLabel": "San Mateo County Libraries 活动页（Pacifica Sanchez）",
+    "title": "Pacifica 图书馆亡灵节音乐会：Cascada de Flores 双语互动演出",
+    "dateLabel": "11/14（周六）· 11:15–12:00",
+    "city": "Pacifica",
+    "venue": "Pacifica Sanchez 图书馆 · 1111 Terra Nova Boulevard, Pacifica, CA 94044",
+    "summary": "Cascada de Flores 用西英双语、歌舞和多种乐器介绍墨西哥和中美洲的亡灵节传统，孩子们一起放风筝寄语、认识糖骷髅，用音乐和回忆搭一座祭坛。",
+    "plan": [
+      "同一场演出 10/31 在 San Carlos 图书馆也有。"
+    ],
+    "audience": [
+      "0–11 岁儿童与家长"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6aaa340cca248a0029162a85"
+  },
+  {
+    "id": "chsa-taiwanese-chinese-roots-seminar-2026",
+    "kind": "event",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "10/15 开放报名；活动页没有写费用",
+    "sourceLabel": "美国华人历史学会活动页",
+    "title": "台湾与中国寻根讲座：查家谱、找祖籍、规划回乡",
+    "dateLabel": "11/15（周日）· 14:00–17:00",
+    "city": "Foster City",
+    "venue": "Foster City Community Center",
+    "summary": "美国华人历史学会的家谱讲座：通过档案、数据库和真实案例，讲怎样用美国、台湾和中国的资料找到祖籍村落、规划回乡，并为下一代保存家族故事；也欢迎当年参加过台湾“爱之船”项目的人。",
+    "plan": [
+      "只办现场活动，10/15 开始报名。",
+      "不论家族世代在台湾，还是 1949 年前后从大陆迁台，都适合。"
+    ],
+    "audience": [
+      "成人",
+      "华人及台湾裔家庭"
+    ],
+    "officialUrl": "https://chsa.org/event/finding-your-taiwanese-and-chinese-roots-seminar/"
+  },
+  {
+    "id": "petaluma-vintage-market-nov15-2026",
+    "kind": "event",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "north-bay",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费入场、免费停车；商品另购",
+    "sourceLabel": "Petaluma Vintage Market 官网",
+    "title": "Petaluma 复古市集 11 月场：免费入场、免费停车",
+    "dateLabel": "11/15（周日）· 开放时段待公布",
+    "city": "Petaluma",
+    "venue": "Petaluma Fairgrounds · 900 East Washington Street, Petaluma, CA 94952",
+    "summary": "Petaluma Vintage Market 在 Petaluma Fairgrounds 的月度复古市集，摊位有古董和复古玩具、漫画、老衣服、首饰、帽子和中世纪家具，入场和停车都免费。",
+    "plan": [
+      "官网目前列出 10/18 场 9:00–15:00；11/15 场的时段等官网更新。"
+    ],
+    "audience": [
+      "全年龄",
+      "复古收藏爱好者"
+    ],
+    "officialUrl": "https://www.petalumavintage.com/"
+  },
+  {
+    "id": "sjpl-berryessa-diwali-2026",
+    "kind": "event",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "family",
+    "cost": "unknown",
+    "costLabel": "活动页没有写费用",
+    "sourceLabel": "圣何塞公共图书馆活动页（Berryessa 分馆）",
+    "title": "Berryessa 分馆排灯节：故事、手工、舞蹈和小点心",
+    "dateLabel": "11/15（周日）· 15:00–16:00",
+    "city": "San Jose",
+    "venue": "Berryessa 分馆 · 3355 Noble Avenue, San Jose, CA 95132",
+    "summary": "圣何塞公共图书馆 Berryessa 分馆的排灯节活动，有故事、讲解、手工、舞蹈和小点心，认识身边不同的文化。",
+    "plan": [
+      "全家都可以来，从幼儿到成人都在活动对象内。"
+    ],
+    "audience": [
+      "全家",
+      "全年龄"
+    ],
+    "officialUrl": "https://sjpl.bibliocommons.com/events/6a7cfa34b204780029928736"
+  },
+  {
+    "id": "smcl-san-carlos-friends-book-sale-nov15-2026",
+    "kind": "event",
+    "startDate": "2026-11-15",
+    "endDate": "2026-11-15",
+    "occurrenceDates": [
+      "2026-11-15"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "culture",
+    "cost": "unknown",
+    "costLabel": "活动页没有写入场费；书 $0.25–$2",
+    "sourceLabel": "San Mateo County Libraries 活动页（San Carlos）",
+    "title": "San Carlos 图书馆之友旧书义卖：25 美分到 2 美元",
+    "dateLabel": "11/15（周日）· 13:00–16:00",
+    "city": "San Carlos",
+    "venue": "San Carlos 图书馆 · 610 Elm Street, San Carlos, CA 94070",
+    "summary": "San Carlos 图书馆之友每月一次的旧书义卖，有几千本书、CD 和 DVD，各年龄、各类型都有，大多 25 美分到 2 美元，另有单独标价的珍本书，收入支持图书馆。",
+    "plan": [
+      "义卖一般在每月第三个周日，偶有例外。"
+    ],
+    "audience": [
+      "全年龄",
+      "爱书家庭"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/69375c607ed7c62f00a97cb8"
+  },
+  {
+    "id": "sv-turkey-trot-2026",
+    "kind": "event",
+    "startDate": "2026-11-26",
+    "endDate": "2026-11-26",
+    "occurrenceDates": [
+      "2026-11-26"
+    ],
+    "verifiedAt": "2026-10-12",
+    "imageKey": "",
+    "region": "south-bay",
+    "category": "outdoors",
+    "cost": "paid",
+    "costLabel": "5K、10K $55（含手续费），儿童跑 $27.50；10/30 之后涨价",
+    "sourceLabel": "Silicon Valley Turkey Trot 报名页（RunSignup）",
+    "title": "感恩节 Silicon Valley Turkey Trot：圣何塞市中心 5K、10K 和儿童跑",
+    "dateLabel": "11/26（周四）· 08:30–11:00",
+    "city": "San Jose",
+    "venue": "圣何塞市中心起点 · W Santa Clara Street 与 N First Street 路口",
+    "summary": "硅谷领导集团基金会办的感恩节长跑，分 5K 跑走、10K 跑和 2–7 岁儿童趣味跑，起点在圣何塞市中心；报名费用于支持本地慈善机构。",
+    "plan": [
+      "5K 和 10K 8:30 出发，儿童趣味跑 10:15 出发。",
+      "在 RunSignup 报名，10/30 晚上之后价格上涨。"
+    ],
+    "audience": [
+      "全家",
+      "跑步爱好者"
+    ],
+    "officialUrl": "https://runsignup.com/Race/CA/SanJose/SiliconValleyTurkeyTrot"
+  }
+]
