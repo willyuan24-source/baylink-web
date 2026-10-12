@@ -40,16 +40,17 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // in flight (home: WEB-HOME, RC-17), where it keeps the same headroom over its zh-Hans ceiling. English /events and /calendar
 // load the events column's own pack (the slim index's text, 'events-list') instead of the discovery and guide-index packs:
 // 959.2 / 963.3 → 524.8 / 529.0 KiB, so those two en rows are measured + 2% too.
-// W3 integration: each cell keeps the lower of the two lanes' ceilings (the event detail's zh-Hant row stays at WEB-DETAIL's 711.1).
+// W3 integration: each cell keeps the lower of the lanes' ceilings; then every cell with more than 5% headroom on the
+// integrated build (CNT-GUIDES + DETAIL + DATA-SPLIT + HOME + SEO-I18N + SECONDARY + PLAN + VISUAL-SYS) goes to measured + 5%.
 const ROUTE_JS_BUDGETS = [
-  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 248.0, en: 345.3 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 328.6, 'zh-Hant': 371.9, en: 539.6 } },
-  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 229.2, 'zh-Hant': 272.3, en: 364.6 } },
-  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 237.5, 'zh-Hant': 280.6, en: 353.4 } },
-  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 224.8, 'zh-Hant': 711.1, en: 349.3 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 324.4, 'zh-Hant': 367.6, en: 535.4 } },
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.1, 'zh-Hant': 241.9, en: 327.1 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 324.8, 'zh-Hant': 370.4, en: 539.6 } },
+  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 222.5, 'zh-Hant': 268.1, en: 361.6 } },
+  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.6, 'zh-Hant': 277.1, en: 348.6 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 219.3, 'zh-Hant': 264.9, en: 345.6 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 320.9, 'zh-Hant': 366.5, en: 535.4 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
-  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 1126.8, 'zh-Hant': 1613.1, en: 2011.6 } },
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 1126.8, 'zh-Hant': 1212.3, en: 2011.6 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
