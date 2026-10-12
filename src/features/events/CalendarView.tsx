@@ -10,14 +10,15 @@ import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
 import { ALL_REGIONS, EVENTS_INDEX, INDEX_EVENTS, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion, weekdayIndex, WEEKDAYS } from './events-model';
 import type { IndexEvent, MonthlyRegion } from './events-index-types';
-import { EventFeedCard, EventRowCard } from './EventCards';
+import { EventFeedCard, EventRowCard, PHONE_COVER_CAP } from './EventCards';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
 
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
-// The lead cover is one column wide: the phone width, or the left of the two desktop columns (events.css).
-const LEAD_SIZES = '(max-width: 1023px) calc(100vw - 32px), 592px';
+// The lead cover is one column wide: the phone width, or the left of the two desktop columns (events.css). It is the
+// day's LCP image, so on phones it takes the 800w rung at most (PHONE_COVER_CAP).
+const LEAD_SIZES = `${PHONE_COVER_CAP}, (max-width: 1023px) calc(100vw - 32px), 592px`;
 const occursOn = (event: IndexEvent, day: string) => nextOccurrence(event, day) === day;
 
 /**

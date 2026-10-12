@@ -7,6 +7,14 @@ import type { IndexEvent, IndexOffer, IndexOpening } from './events-index-types'
 import { monthDay, regionLabel } from './events-model';
 
 const facts = (event: IndexEvent) => event as unknown as EventFactsInput;
+
+/**
+ * A phone-wide cover (a 4:5 pick, the calendar's lead) takes the 800w rung at most: 266px × DPR 3 = 798. At DPR 3 the
+ * 1200w rung is about twice the bytes (autumn-ardenwood: 135 KB vs 72 KB) for a 358px slot, and on the cold profile
+ * (1.6 Mbps) those bytes delay the page's largest image (RC-33); 800w is still 2.2 device pixels per CSS pixel there.
+ */
+export const PHONE_COVER_CAP = '(max-width: 767px) 266px';
+const HERO_SIZES = `${PHONE_COVER_CAP}, 380px`;
 const HAN = /[\u3400-\u9fff]/;
 
 /** "官网核对 10/2" / "Source checked 10/2": the record's own check date, never a bumped one (D12). */
@@ -44,7 +52,7 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
   const region = pick(regionLabel(event.region));
   const city = translateText(eventPlace(event), locale);
   return <HeroCard title={translateText(event.title, locale)} to={`/events/${event.id}`} heading="h3" overlay={photo}
-    cover={<EventCover event={facts(event)} cover={cover} today={today} days={[date]} ratio="4:5" ratioLock priority={priority} sizes={COVER_SIZES.hero} decorative />}
+    cover={<EventCover event={facts(event)} cover={cover} today={today} days={[date]} ratio="4:5" ratioLock priority={priority} sizes={HERO_SIZES} decorative />}
     kicker={city === region || (event.city === 'San Francisco' && event.region === 'sf') ? region : `${city} · ${region}`}
     facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [pick(price.text)] : [])]}
     reason={reason ? { label: t('编辑推荐', 'Editor’s pick'), text: pick(reason) } : undefined}
