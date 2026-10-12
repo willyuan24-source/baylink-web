@@ -109,7 +109,8 @@ test('a published service has an explicit next step into its own availability, n
   savePostDraft(user.id, draft);
   const paths: string[] = [];
   let managed = '', closed = false;
-  t.mock.method(api, 'request', async (path: string, options: RequestInit) => { paths.push(path); assert.equal(JSON.parse(String(options.body)).type, 'provider'); return { id: 'cleaning-published' }; });
+  // The success sheet also reads the reminder settings (FC3-05 offer); unreadable settings show no offer.
+  t.mock.method(api, 'request', async (path: string, options: RequestInit) => { if (path.startsWith('/notifications/')) throw new Error('not in this test'); paths.push(path); assert.equal(JSON.parse(String(options.body)).type, 'provider'); return { id: 'cleaning-published' }; });
   const view = mount({ defaultType: 'client', onManageAvailability: postId => { assert.equal(closed, true); managed = postId; }, onClose: () => { closed = true; } });
   fireEvent.click(view.getByRole('button', { name: '继续之前的草稿' }));
   fireEvent.click(view.getByRole('button', { name: '下一步' }));

@@ -1,8 +1,10 @@
 // 发布 / 编辑信息弹层（3 步向导）+ 默认封面选择器
 import React, { useEffect, useRef, useState } from 'react';
-import { EnglishOnly } from '../../components/EnglishOnly';
 import { X, CheckCircle, Loader2, Plus, Search, Store, ArrowRight, MapPin, ImagePlus, PenLine, Check } from 'lucide-react';
 import { ModalShell } from '../../components/ui/Modal';
+import { useUiCopy } from '../../components/ui/ui-copy';
+import './community.css';
+import { NoticeOptIn } from './NoticeOptIn';
 import { api } from '../../lib/api';
 import { useLocale } from '../../i18n/locale';
 import { clearPostDraft, hasPostDraftContent, readPostDraft, savePostDraft, type PostDraft } from '../../lib/postDraft';
@@ -138,7 +140,10 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
   editingPost?: PostData | null;
 }) => {
   const locale = useLocale();
+  const { t } = useUiCopy();
   const isEdit = mode === 'edit' && !!editingPost;
+  // The BayBay draft helper sits under the description; it opens by itself when BayBay sent the reader here.
+  const [assistOpen] = useState(() => !!initialIntent.trim());
   const [typeChosen, setTypeChosen] = useState(isEdit || !!defaultType);
   const [step, setStep] = useState(isEdit || defaultType ? 2 : 1);
   const [createdPostId, setCreatedPostId] = useState('');
@@ -386,15 +391,16 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
            <div className="member-empty-icon mx-auto mb-5">
               <CheckCircle size={36} />
            </div>
-           <h2 className="mb-2 text-xl font-bold text-baylink-text">发布成功</h2>
-           <p className="mb-4 text-sm text-baylink-muted">你的信息已发布，湾区邻居可以在社区中查看。</p>
+           <h2 className="mb-2 text-xl font-bold text-baylink-text">{t('发布成功', 'Posted')}</h2>
+           <p className="mb-4 text-sm text-baylink-muted">{t('你的信息已发布，湾区邻居可以在邻里信息里看到。', 'Your post is live on the neighborhood board.')}</p>
            {postTrustWarning && (
              <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs leading-relaxed text-amber-800">
                {postTrustWarning}
              </p>
            )}
            {form.type === 'provider' && ['清洁', '维修', '接送', '搬家', '翻译', '其他'].includes(form.category) && createdPostId && onManageAvailability && <div className="mb-4 rounded-xl border border-baylink-border p-4 text-left"><strong className="text-sm">下一步：开放服务预约</strong><p className="my-2 text-xs text-baylink-muted">在服务详情中选择可用日期与时段。完成手机号验证或平台资料核验后，即可接收预约申请，无需线上收款。</p><button type="button" className="member-primary w-full" onClick={() => { onClose(); onManageAvailability(createdPostId); }}>设置可预约时段</button></div>}
-           <button onClick={onClose} className="member-primary w-full">知道了</button>
+           <NoticeOptIn userId={user.id} context="post" />
+           <button type="button" onClick={onClose} className="member-primary mt-4 w-full">{t('知道了', 'Done')}</button>
         </div>
       </ModalShell>
     );
@@ -413,9 +419,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
       <div className="member-compose-dialog">
         <div className="member-compose-header">
           <div>
-            <EnglishOnly><span className="member-compose-eyebrow">SHARE WITH YOUR NEIGHBORHOOD</span></EnglishOnly>
-            <h2>{isEdit ? '编辑信息' : '让你的信息，遇见需要的人。'}</h2>
-            <p>{isEdit ? '更新内容，让邻居看到准确的信息。' : '发布需求或分享资源，与湾区邻里建立联系。'}</p>
+            <h2>{isEdit ? t('编辑信息', 'Edit your post') : t('发布到邻里信息', 'Post to the neighborhood board')}</h2>
+            <p>{isEdit ? t('更新内容，让邻居看到准确的信息。', 'Keep it accurate for your neighbors.') : t('邻里信息还在测试中：照片在前，一句话说清楚，联系方式保持私密。', 'The board is in testing: photos first, one clear line, contact details kept private.')}</p>
           </div>
           <button type="button" aria-label="关闭发布窗口" onClick={onClose} className="member-compose-close"><X size={18}/></button>
         </div>
@@ -424,11 +429,6 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
         </ol>
         <div className="member-compose-body">
 
-        {!isEdit && <div className="mx-1 mb-4 rounded-xl border border-baylink-border bg-white p-3 text-xs text-baylink-text-secondary">
-          <p role="status">{draftSaveState === 'failed' ? '浏览器未能保存草稿，关闭或刷新后内容可能丢失。' : draftSaveState === 'saved' ? '文字和发布设置已自动保存到此账号的本机草稿。' : '文字和发布设置会自动保存到此账号的本机草稿。'}</p>
-          <p className="mt-1">照片不会保存到草稿，重新打开后需要再次选择。{missingDraftPhotos && uploadedImages.length === 0 ? '这份草稿之前有照片，请重新添加。' : ''}</p>
-          {draftSaveState !== 'empty' && <button type="button" onClick={discardCurrentDraft} className="mt-1 min-h-11 font-semibold text-baylink-green underline">丢弃草稿并关闭</button>}
-        </div>}
 
         {step === 1 && (
           <div className="member-compose-step space-y-6">
@@ -474,23 +474,41 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
 
         {step === 2 && (
           <div className="member-compose-step space-y-4">
-            <div className="member-compose-section-title"><span><PenLine size={18} aria-hidden="true" /></span><div><h3>把信息说清楚</h3><p>好的描述，让沟通更简单。</p></div></div>
-            <div className="member-compose-ai">
-            <BayBayPostAssist
-              postType={form.type}
-              categorySlug={getSlugFromCategory(form.category)}
-              areaHint={form.city}
-              user={user}
-              showToast={showToast}
-              onApply={applyAiDraft}
-              intent={aiIntent}
-              onIntentChange={setAiIntent}
-              intentFromQuestion={!isEdit && !!initialIntent.trim()}
-              requestAiAssist={(body) =>
-                api.request('/ai/post-assist', { method: 'POST', body: JSON.stringify(body) })
-              }
-            />
-            </div>
+            <div className="member-compose-section-title"><span><PenLine size={18} aria-hidden="true" /></span><div><h3>{t('照片和说明', 'Photos and details')}</h3><p>{t('先放照片，再用一句话说清楚。', 'Photos first, then say it in one line.')}</p></div></div>
+            <section className="cm-photos" aria-labelledby="cm-photos-title">
+              <div className="cm-photos__head">
+                <h4 id="cm-photos-title"><ImagePlus aria-hidden="true" strokeWidth={1.75} />{t('先放照片', 'Photos first')}</h4>
+                <span>{t(`${uploadedImages.length}/${MAX_POST_IMAGES} 张 · 第一张是封面`, `${uploadedImages.length} of ${MAX_POST_IMAGES} · The first one is the cover`)}</span>
+              </div>
+              <div className="cm-photos__grid">
+                {uploadedImages.map((img, i) => (
+                  <div key={i} className="cm-photos__tile">
+                    <img src={img} alt={t(`第 ${i + 1} 张照片`, `Photo ${i + 1}`)} className="member-compose-image" />
+                    {i === 0 && <span className="cm-photos__cover">{t('封面', 'Cover')}</span>}
+                    <button type="button" aria-label={t(`移除第 ${i + 1} 张照片`, `Remove photo ${i + 1}`)} disabled={imageCompressing || submitting} onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="cm-photos__remove"><X aria-hidden="true" strokeWidth={2} /></button>
+                  </div>
+                ))}
+                {uploadedImages.length < MAX_POST_IMAGES && (
+                  <label htmlFor="create-post-image-input" className="cm-photos__add">
+                    <input id="create-post-image-input" type="file" accept="image/*" multiple disabled={imageCompressing || submitting} onChange={handleImageUpload} aria-label="添加图片" />
+                    {imageCompressing ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Plus aria-hidden="true" strokeWidth={1.75} />}
+                    <span>{imageCompressing ? t('处理中', 'Processing') : uploadedImages.length ? t('再加一张', 'Add another') : t('添加照片', 'Add photos')}</span>
+                  </label>
+                )}
+              </div>
+              {!imageCompressing && imageCompressHint && <p className="cm-photos__note">{imageCompressHint}</p>}
+              {uploadedImages.length === 0 && <p className="cm-photos__note">{t('真实照片最能说明情况：房间、物品或服务现场，最多 5 张。', 'Real photos say the most: the room, the item or your work. Up to 5.')}</p>}
+            </section>
+            {uploadedImages.length === 0 && <DefaultCoverPicker
+              type={form.type}
+              category={form.category}
+              selected={selectedDefaultCover}
+              onSelect={setSelectedDefaultCover}
+              open={coversPickerOpen}
+              onToggleOpen={() => setCoversPickerOpen((v) => !v)}
+              expanded={coversExpanded}
+              onToggleExpanded={() => setCoversExpanded((v) => !v)}
+            />}
             <div>
               <div className="mb-1 flex flex-wrap items-baseline gap-x-1.5 gap-y-0 px-0.5">
                 <label htmlFor="post-title" className="text-[0.6875rem] font-semibold text-baylink-text">帖子标题</label>
@@ -591,65 +609,23 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
                 </div>
               </div>
             )}
-            <div className="member-compose-upload-heading">
-              <span><ImagePlus size={17} aria-hidden="true" />上传照片</span>
-              <span className="text-[0.6875rem] text-baylink-muted">
-                {uploadedImages.length > 0
-                  ? `已上传 ${uploadedImages.length}/${MAX_POST_IMAGES} 张 · 最多上传 5 张照片`
-                  : '最多上传 5 张照片'}
-              </span>
-            </div>
-            <div className="member-compose-images hide-scrollbar">
-              {uploadedImages.map((img, i) => (
-                <div key={i} className="relative shrink-0">
-                  <img src={img} alt="" className="member-compose-image" />
-                  <button type="button" aria-label={`移除第 ${i + 1} 张照片`} disabled={imageCompressing || submitting} onClick={() => setUploadedImages((prev) => prev.filter((_, idx) => idx !== i))} className="absolute -right-1 -top-1 rounded-full bg-white p-0.5 text-red-500 shadow-sm disabled:opacity-50"><X size={12} /></button>
-                </div>
-              ))}
-              {uploadedImages.length < MAX_POST_IMAGES && (
-                <label
-                  htmlFor="create-post-image-input"
-                  className="member-compose-upload"
-                >
-                  <input
-                    id="create-post-image-input"
-                    type="file"
-                    accept="image/*"
-                    multiple
-                    disabled={imageCompressing || submitting}
-                    className="absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0"
-                    onChange={handleImageUpload}
-                    aria-label="添加图片"
-                  />
-                  <span className="pointer-events-none flex flex-col items-center justify-center">
-                    {imageCompressing ? <Loader2 size={18} className="animate-spin text-baylink-green" /> : <Plus size={18} />}
-                    <span className="mt-0.5 text-[0.6875rem]">{imageCompressing ? '处理中' : '添加图片'}</span>
-                  </span>
-                </label>
-              )}
-            </div>
-            {imageCompressing && (
-              <p className="flex items-center gap-1 text-[0.6875rem] text-baylink-muted px-0.5">
-                <Loader2 size={11} className="animate-spin" /> 图片处理中...
-              </p>
-            )}
-            {!imageCompressing && imageCompressHint && (
-              <p className="text-[0.6875rem] text-baylink-green px-0.5">{imageCompressHint}</p>
-            )}
-            {uploadedImages.length > 0 && (
-              <p className="text-[0.6875rem] text-baylink-muted px-0.5">已上传真实照片，发布时将优先使用照片</p>
-            )}
-            <DefaultCoverPicker
-              type={form.type}
-              category={form.category}
-              selected={selectedDefaultCover}
-              onSelect={setSelectedDefaultCover}
-              open={coversPickerOpen}
-              onToggleOpen={() => setCoversPickerOpen((v) => !v)}
-              expanded={coversExpanded}
-              onToggleExpanded={() => setCoversExpanded((v) => !v)}
+            <details className="member-compose-ai cm-compose-assist" open={assistOpen || undefined}>
+            <summary>{t('不知道怎么写？让 BayBay 帮你起草', 'Not sure what to write? Let BayBay draft it')}</summary>
+            <BayBayPostAssist
+              postType={form.type}
+              categorySlug={getSlugFromCategory(form.category)}
+              areaHint={form.city}
+              user={user}
+              showToast={showToast}
+              onApply={applyAiDraft}
+              intent={aiIntent}
+              onIntentChange={setAiIntent}
+              intentFromQuestion={!isEdit && !!initialIntent.trim()}
+              requestAiAssist={(body) =>
+                api.request('/ai/post-assist', { method: 'POST', body: JSON.stringify(body) })
+              }
             />
-
+            </details>
             <div className="member-compose-actions">
               <button type="button" disabled={imageCompressing || submitting} onClick={()=>setStep(1)} className="member-secondary flex-1 disabled:opacity-50">上一步</button>
               <button type="button" onClick={goToStep3} disabled={imageCompressing || submitting} className="member-primary flex-[2] disabled:opacity-50">{imageCompressing ? '照片处理中…' : '下一步'}<ArrowRight size={16} aria-hidden="true" /></button>
@@ -718,6 +694,11 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             </div>
           </div>
         )}
+        {!isEdit && <div className="cm-compose-draft">
+          <p role="status">{draftSaveState === 'failed' ? '浏览器未能保存草稿，关闭或刷新后内容可能丢失。' : draftSaveState === 'saved' ? '文字和发布设置已自动保存到此账号的本机草稿。' : '文字和发布设置会自动保存到此账号的本机草稿。'}</p>
+          <p className="mt-1">照片不会保存到草稿，重新打开后需要再次选择。{missingDraftPhotos && uploadedImages.length === 0 ? '这份草稿之前有照片，请重新添加。' : ''}</p>
+          {draftSaveState !== 'empty' && <button type="button" onClick={discardCurrentDraft} className="mt-1 min-h-11 font-semibold text-baylink-green underline">丢弃草稿并关闭</button>}
+        </div>}
         </div>
       </div>
     </ModalShell>

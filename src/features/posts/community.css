@@ -178,3 +178,40 @@ html[data-post-sheet] #root main { visibility:hidden; }
 .cm-contact__requests { display:grid; gap:.75rem; margin:0; padding:0; list-style:none; }
 .cm-contact__requests>li { display:grid; gap:.375rem; padding:.75rem 0; border-top:1px solid var(--color-line); }
 .cm-contact__requester { margin:0; color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+
+/* FC3-05: the one-tap reminder offer after a post is published or a message is sent (NoticeOptIn). */
+.cm-optin { display:flex; gap:.75rem; margin:1rem 0 0; padding:1rem; border:1px solid var(--color-line); border-radius:14px; background:var(--color-surface-2); color:var(--color-ink); text-align:left; }
+.cm-optin__icon { flex:none; width:1.5rem; height:1.5rem; color:var(--color-brand); }
+.cm-optin__body { display:grid; gap:.5rem; min-width:0; font-size:var(--text-fact); line-height:1.571; }
+.cm-optin__body p { margin:0; }
+.cm-optin__fine { color:var(--color-ink-2); }
+.cm-optin__error { color:var(--color-danger); }
+.cm-optin__actions { display:flex; flex-wrap:wrap; gap:.5rem; }
+.cm-optin__link { color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+
+/* Composer (CreatePostModal): photos first (E2E-11) — a 3:4 grid, up to five, the first one is the cover. */
+.cm-photos { display:grid; gap:.5rem; }
+.cm-photos__head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:.25rem .75rem; }
+.cm-photos__head h4 { display:flex; align-items:center; gap:.375rem; margin:0; color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+.cm-photos__head h4>svg { width:1.125rem; height:1.125rem; color:var(--color-brand); }
+.cm-photos__head>span { color:var(--color-ink-2); font-size:var(--text-caption); }
+.cm-photos__grid { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.5rem; }
+.cm-photos__tile,.cm-photos__add { position:relative; aspect-ratio:3 / 4; overflow:hidden; border-radius:12px; }
+.cm-photos__tile>img { display:block; width:100%; height:100%; object-fit:cover; }
+.cm-photos__cover { position:absolute; left:6px; bottom:6px; padding:2px 8px; border-radius:6px; background:var(--ui-badge-bg); color:var(--color-surface); font-size:var(--text-caption); font-weight:600; }
+.cm-photos__remove { position:absolute; top:2px; right:2px; display:grid; place-items:center; width:2.75rem; height:2.75rem; color:var(--color-ink); }
+.cm-photos__remove>svg { width:1.75rem; height:1.75rem; padding:.3rem; border-radius:50%; background:rgb(255 255 255 / .92); }
+.cm-photos__add { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.375rem; border:1.5px dashed var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; cursor:pointer; }
+.cm-photos__add:first-child { grid-column:span 2; aspect-ratio:auto; min-height:9rem; }
+.cm-photos__add>svg { width:1.75rem; height:1.75rem; color:var(--color-brand); }
+.cm-photos__add>input { position:absolute; inset:0; z-index:1; width:100%; height:100%; opacity:0; cursor:pointer; }
+.cm-photos__add:focus-within { outline:2px solid var(--color-brand); outline-offset:2px; }
+.cm-photos__note { margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
+.cm-compose-assist>summary { min-height:var(--control-height); padding:.625rem .25rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; cursor:pointer; }
+.cm-compose-draft { margin:1rem .25rem 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
+.cm-compose-draft p { margin:0; }
+.cm-compose-draft button { min-height:var(--control-height); color:var(--color-brand); font-weight:600; text-decoration:underline; }
+/* The same notes inside a chat (ChatView): a band under the header, and the reminder offer between the bubbles. */
+.modern-chat .cm-safety { flex:none; padding:.5rem 1rem; border-bottom:1px solid var(--color-line); background:var(--color-surface-2); }
+.modern-chat .cm-safety a { min-height:2.75rem; }
+.modern-chat-history .cm-optin { margin:1rem 0; background:var(--color-surface); }
