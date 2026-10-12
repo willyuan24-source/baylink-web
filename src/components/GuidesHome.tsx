@@ -20,7 +20,7 @@ import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from './GuideCard';
-import { GUIDE_REGIONS, guideCover, guideReadMinutes, guideRegionsOf, guideSourceCount, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
+import { GUIDE_REGIONS, guideCardMeta, guideCover, guideRegionsOf, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
 import { guideEditorialAnswer } from '../data/guide-editorial/answers';
 import '../features/guides/guide-library.css';
 
@@ -107,12 +107,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   }, [browsing, elderRail, sections, listed, visibleCount, today]);
 
   const guideTitle = (guide: Guide) => translateText(guide.title, locale);
-  const meta = (guide: Guide) => {
-    const sources = guideSourceCount(guide), minutes = guideReadMinutes(guide);
-    return sources
-      ? t(`${sources} 个官方来源 · 约 ${minutes} 分钟`, `${sources} official source${sources === 1 ? '' : 's'} · ${minutes} min read`)
-      : t(`约 ${minutes} 分钟`, `${minutes} min read`);
-  };
+  const meta = (guide: Guide) => pick(guideCardMeta(guide));
   const coverOf = (guide: Guide, options: { priority?: boolean; thumb?: boolean } = {}) => {
     const entry = covers.get(guide.slug);
     if (!entry) return null;

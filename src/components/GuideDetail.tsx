@@ -51,7 +51,7 @@ import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from './GuideCard';
 import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
-import { guideCover, guideReadMinutes, guideSourceCount, keepInlineImage, TOPIC_COVER } from '../features/guides/guide-facts';
+import { guideCardMeta, guideCover, keepInlineImage, TOPIC_COVER } from '../features/guides/guide-facts';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import '../features/guides/guide-article.css';
 
@@ -78,7 +78,7 @@ const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | und
 
 /** Related guides as covers (two columns on a phone), resolved on the article's cover page so no image repeats. */
 function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Guide[]; coverPage: CoverPage; today: string; onOpenGuide: (slug: string) => void }) {
-  const { t, english, locale } = useUiCopy();
+  const { t, pick, english, locale } = useUiCopy();
   const covers = related.map(guide => guideCover(guide, today, coverPage));
   const tones = distinctNeighbourTones(covers.map((cover, index) => cover.tier === 'type' ? TOPIC_COVER[guideTopicOf(related[index])].tone : null));
   return <section className="bl-guide-related gd-related" aria-labelledby="gd-related-title">
@@ -89,7 +89,7 @@ function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Gu
     <FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
       <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={(event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(guide.slug)) : onOpenGuide(guide.slug)}
         cover={<GuideCover guide={guide} cover={covers[index]} tone={tones[index] ?? undefined} sizes={COVER_SIZES.feed} />}
-        meta={t(`${guideSourceCount(guide)} 个官方来源 · 约 ${guideReadMinutes(guide)} 分钟`, `${guideSourceCount(guide)} official sources · ${guideReadMinutes(guide)} min read`)} />
+        meta={pick(guideCardMeta(guide))} />
     </FeedItem>)}</FeedGrid>
   </section>;
 }
