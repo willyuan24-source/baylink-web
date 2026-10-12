@@ -71,7 +71,7 @@ test('fresh English selected plan translates controls before interaction and rep
   const replacement = view.container.querySelector('.planner-catalog [id^="catalog-place:"]') as HTMLElement;
   assert.ok(replacement);
   // The row's title is its link to the detail page (RowCard).
-  const replacementHref = replacement.querySelector('.ui-card-link')!.getAttribute('href');
+  const replacementHref = within(within(replacement).getAllByRole('heading')[0]).getByRole('link').getAttribute('href');
   fireEvent.click(within(replacement).getByRole('button', { name: 'Replace selected stop' }));
   assert.deepEqual(links(view), [replacementHref]);
   assert.ok(editor(view).getByRole('status').textContent?.includes('Stop replaced. Your other places and date are unchanged.'));

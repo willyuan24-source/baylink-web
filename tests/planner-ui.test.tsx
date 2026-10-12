@@ -338,9 +338,8 @@ test('行程 lists a day added elsewhere with each stop\'s cover and the day, an
   const days = view.getByTestId('plan-days');
   assert.ok(within(days).getByRole('heading', { name: '9/27 计划' }));
   assert.equal(days.querySelector('time')?.getAttribute('dateTime'), '2026-09-27');
-  const row = days.querySelector('.ui-row-card')!;
-  assert.match(row.querySelector('h4')?.textContent || '', /金门大桥/);
-  assert.ok(row.querySelector('.ui-row-card__thumb [data-cover] img'), 'the stop shows its photo cover');
+  const row = within(days).getByRole('heading', { level: 4, name: /金门大桥/ }).closest('li')!;
+  assert.ok(row.querySelector('[data-cover] img'), 'the stop shows its photo cover');
   assert.equal(within(days).getByRole('link', { name: '打开这一天' }).getAttribute('href'), `/plan?edit=${encodeURIComponent(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0].id)}`);
   cleanup();
 
@@ -352,12 +351,68 @@ test('行程 lists a day added elsewhere with each stop\'s cover and the day, an
   await act(async () => { fireEvent.click(within(overview).getByRole('button', { name: '保存到行程' })); });
   assert.match(shared.getByRole('region', { name: '当前计划概览' }).textContent || '', /已保存到行程/);
   assert.ok(within(shared.getByTestId('plan-days')).getAllByRole('heading', { level: 3 }).length >= 2, 'the saved draft joins 已排的日子');
+  // The link draft is now the saved day in the URL: a reload, Back or a return visit opens it as saved, never as the
+  // same unsaved draft whose second save would duplicate it.
+  const plans = () => JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans as { id: string; date: string }[];
+  const savedId = plans().find(plan => plan.date === '2026-09-28')!.id;
+  const url = new URLSearchParams(shared.getByTestId('planner-location').textContent || '');
+  assert.deepEqual([...url.keys()], ['edit']);
+  assert.equal(url.get('edit'), savedId);
+  assert.ok(within(shared.getByRole('complementary')).getByRole('button', { name: '更新行程' }), 'the editor now updates that plan');
+  cleanup();
+  const reloaded = await openPlanner(`?${url}`);
+  const again = reloaded.getByRole('region', { name: '当前计划概览' });
+  assert.equal(again.getAttribute('data-state'), 'saved');
+  assert.equal(within(again).queryByRole('button', { name: /保存到行程|更新行程/ }), null);
+  assert.equal(plans().length, 2, 'no second copy of the day');
+});
+
+test('a 保存到行程 that fails says why next to the button, once, and the draft stays a draft', async () => {
+  let writes = 0;
+  api.request = async (path, options) => {
+    if (path === '/planner/me' && !options?.method) return { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } };
+    if (path === '/planner/web-candidates' && !options?.method) return { candidates: [], revision: 0 };
+    if (path === '/planner/plans' && options?.method === 'POST') { writes++; throw { status: 503 }; }
+    throw new Error(`Unexpected request: ${options?.method || 'GET'} ${path}`);
+  };
+  const view = await openAccountPlanner('?date=2026-09-28&stops=place:chinatown');
+  const overview = () => view.getByRole('region', { name: '当前计划概览' });
+  await act(async () => { fireEvent.click(within(overview()).getByRole('button', { name: '保存到行程' })); });
+  assert.equal(writes, 1);
+  assert.equal(within(overview()).getByRole('alert').textContent, '暂时无法保存，请稍后重试。');
+  assert.equal(view.getAllByRole('alert').length, 1, 'the account notice shows the same error without announcing it twice');
+  assert.equal(overview().getAttribute('data-state'), 'unsaved');
+  assert.ok(within(overview()).getByRole('button', { name: '保存到行程' }), 'the reader can try again from the same place');
+});
+
+test('the overview reads naturally in English: the day as on 已排的日子, one stop, one person', async () => {
+  await act(async () => { await setLocale('en', false); });
+  try {
+    const view = await openPlanner('?date=2026-09-28&stops=place:chinatown');
+    const head = within(view.getByRole('region', { name: 'Current plan overview' })).getByRole('heading', { name: 'This day at a glance' }).parentElement!;
+    assert.match(head.textContent || '', /Mon 9\/28 · 1 stop · 1 person/);
+    assert.doesNotMatch(view.getByRole('region', { name: 'Current plan overview' }).textContent || '', /\b1 (stops|people)\b|2026-09-28/);
+  } finally {
+    await act(async () => { await setLocale('zh-Hans', false); });
+  }
+});
+
+test('已排的日子 lists the next five days and sends the rest to My Week', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  for (const day of ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30']) {
+    await appendToDay(undefined, day, { kind: 'place', id: 'chinatown' }, `${day.slice(5)} 计划`, '2026-09-23');
+  }
+  const view = await openPlanner();
+  const days = view.getByTestId('plan-days');
+  assert.deepEqual([...days.querySelectorAll('time')].map(time => time.getAttribute('dateTime')), ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28']);
+  assert.equal(within(days).getByRole('link', { name: '还有 2 天 · 在我的这周查看' }).getAttribute('href'), '/my-week#plans');
 });
 
 test('行程 shows a fixed-height loading state, then an error with retry when the account read fails, and an empty state for a new guest', async () => {
   const empty = await openPlanner();
   assert.ok(within(empty.getByTestId('plan-days')).getByRole('heading', { name: '还没有排好的日子' }));
-  assert.equal(within(empty.getByTestId('plan-days')).getByRole('link', { name: '看本周末活动' }).getAttribute('href'), '/events');
+  // The copy names 加入这天计划 on the events calendar, so the one action opens that calendar.
+  assert.equal(within(empty.getByTestId('plan-days')).getByRole('link', { name: '打开活动日历' }).getAttribute('href'), '/calendar');
   cleanup();
   let fail = true;
   let answer!: () => void;
@@ -408,8 +463,8 @@ test('a stop listed twice on 行程 shows its photo once: the first saved day ke
   // A letterboxed poster draws its file twice inside one cover (the blurred fill); count each cover's files once.
   const sources = [...view.container.querySelectorAll('[data-cover]')].flatMap(cover => [...new Set([...cover.querySelectorAll('img')].map(image => image.getAttribute('src')))]);
   assert.deepEqual(sources.filter((src, index) => sources.indexOf(src) !== index), [], 'no image file appears in two covers on the page');
-  // (By class: getAllByRole('article') inside 已排的日子 exhausted jsdom's memory on this page.)
-  const [first, second] = [...view.getByTestId('plan-days').querySelectorAll('.plan-days__plan')];
+  // Each plan by its heading (getAllByRole('article') inside 已排的日子 exhausted jsdom's memory on this page).
+  const [first, second] = ['9/27 计划', '9/28 计划'].map(name => within(view.getByTestId('plan-days')).getByRole('heading', { level: 3, name }).closest('article')!);
   assert.ok(first.querySelector('[data-cover] img'), 'the first saved day keeps the photo');
   assert.equal(second.querySelector('img'), null);
   assert.ok(second.querySelector('[data-cover="type"]'), 'the repeat shows its information card');

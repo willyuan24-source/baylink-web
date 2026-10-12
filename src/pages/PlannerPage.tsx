@@ -33,7 +33,7 @@ import { eventDateChip, formatDateChip } from '../lib/event-facts';
 import { PlannerDayPlans } from '../components/PlannerDayPlans';
 import { PlannerCatalogCard, type PlannerCatalogItem } from '../components/PlannerCatalogCard';
 import { PlannerImageCredits, PlannerOptionCover } from '../components/PlannerStopCover';
-import { onePhotoEach, stopCoverImage, stopCoverItem, upcomingPlans } from '../lib/plan-stop-cover';
+import { firstPlanDays, onePhotoEach, stopCoverImage, stopCoverItem, upcomingPlans } from '../lib/plan-stop-cover';
 import { Button, IconButton } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
@@ -117,10 +117,16 @@ function PlannerWorkspace() {
   const editLoaded = useRef('');
   const prefsLoaded = useRef(false);
   const autoStarted = useRef(new Set<string>());
+  // The plan id a first save just put in the URL (?edit=): that URL change is this page's own, not a new link to load.
+  const adoptedSave = useRef('');
+  // The last 保存到行程 failed: the overview shows why next to its button until the next library action starts.
+  const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => () => request.current?.abort(), []);
   useEffect(() => { if (results) resultsHeading.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' }); }, [results]);
   useEffect(() => { request.current?.abort(); setRequesting(false); setResults(null); setError(''); setMessage(queryMessage); }, [queryMessage]);
   useEffect(() => {
+    const edit = new URLSearchParams(planSearch).get('edit');
+    if (edit && edit === adoptedSave.current) { adoptedSave.current = ''; return; }
     setEditing(undefined); setSearchDate(undefined); setStops(importedDraft?.stops || shared.stops); setDate(importedDraft?.date || shared.date);
     setTitle(importedDraft?.title || translateText('我的湾区出游')); setDetails(importedDraft?.details || defaultPlanDetails()); setPersistedFilters(importedDraft?.details.constraints || {});
     setUndo(undefined); setReplaceIndex(null); editLoaded.current = ''; prefsLoaded.current = !!importedDraft;
@@ -242,9 +248,10 @@ function PlannerWorkspace() {
     results.filters.partySize ? `${results.filters.partySize} ${locale === 'en' ? 'people' : '人同行'}` : undefined,
     results.filters.freeOnly ? (locale === 'en' ? 'Confirmed free admission' : '仅已确认免费') : undefined,
   ].filter(Boolean) : [];
+  useEffect(() => { if (library.busy) setSaveFailed(false); }, [library.busy]);
   const save = async () => {
     if (!library.ready || library.busy) return;
-    setStatus('');
+    setStatus(''); setSaveFailed(false);
     if (!stops.length) { setStatus('先选择至少一站。'); return; }
     if (!date) { setStatus('请先选择出游日期。'); return; }
     if (date < todayInBay()) { setStatus('请选择今天或未来日期。'); return; }
@@ -252,7 +259,16 @@ function PlannerWorkspace() {
     if (badDate) { setStatus('计划日期与所选活动不一致，请调整日期或移除活动。'); return; }
     const detailsError = planDetailsError(details); if (detailsError) { setStatus(detailsError); return; }
     const saved = await library.savePlan({ title: title.trim() || translateText('我的湾区出游', locale), date, stops, details: { ...normalizePlanDetails(details, stops), ...(details.constraints ? { constraints: { ...details.constraints, date } } : {}) } }, editing);
-    if (saved) { setUndo(undefined); setEditing(saved); setStatus(app?.user ? '已保存到账号。' : '已保存到这个浏览器。'); }
+    if (!saved) { setSaveFailed(true); return; }
+    setUndo(undefined); setEditing(saved); setStatus(app?.user ? '已保存到账号。' : '已保存到这个浏览器。');
+    // A draft that came by link (?date=&stops=, ?places=, a BayBay plan) becomes the saved day in the URL, so a reload,
+    // Back or a return visit opens the saved plan (已保存) instead of the same draft, which a second save would duplicate.
+    const next = new URLSearchParams(location.search);
+    if (next.get('edit') !== saved.id) {
+      for (const key of ['date', 'stops', 'places']) next.delete(key);
+      next.set('edit', saved.id); adoptedSave.current = saved.id;
+      navigate({ pathname: location.pathname, search: next.toString(), hash: location.hash }, { replace: true });
+    }
   };
   const share = async () => {
     try { await navigator.clipboard.writeText(sharePlanUrl({ date, stops }, window.location.origin)); recordProductEvent('plan_shared'); setStatus('公开地点与日期链接已复制；不包含账号或私人标题。'); } catch { setStatus('复制失败，请使用下方分享链接。'); }
@@ -269,7 +285,7 @@ function PlannerWorkspace() {
   ].slice(0, catalogLimit), [events, visiblePlaces, catalogCategory, catalogLimit, locale, today, requestedDate]);
   // Every cover on the page in one pass, in display order (已排的日子, the suggestions, the list), so a stop listed twice
   // shows its photo once (onePhotoEach) and 本页图片来源 credits exactly the photos shown.
-  const dayPlans = useMemo(() => upcomingPlans(library.data.plans, today), [library.data.plans, today]);
+  const { plans: dayPlans, moreDays } = useMemo(() => firstPlanDays(upcomingPlans(library.data.plans, today)), [library.data.plans, today]);
   const suggestionStops = useMemo<Stop[]>(() => [
     ...(results?.suggestions.map(suggestion => ({ kind: 'event' as const, id: canonicalEventId(suggestion.eventId) })) || []),
     ...(results?.placeSuggestions?.map(suggestion => ({ kind: 'place' as const, id: suggestion.placeId })) || []),
@@ -296,8 +312,9 @@ function PlannerWorkspace() {
     {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{library.ready
       ? t('你现在离线：已保存的行程和这台设备上的草稿仍可查看；挑选方案和地图要联网后才能用。', 'You are offline. Your saved plans and this device’s draft are still here; suggestions and the map need a connection.')
       : t('你现在离线：这台设备上的草稿仍可查看；已保存的行程、挑选方案和地图要联网后才能读取。', 'You are offline. This device’s draft is still here; your saved plans, suggestions and the map load once you are back online.')}</p>}
-    <PlannerPlanOverview stops={stops} date={date} details={details} admissionOverride={admissionOverride} state={draftState} saving={library.busy} canSave={library.ready && !library.busy} onSave={() => void save()} status={status} />
-    <PlannerDayPlans library={library} plans={dayPlans} covers={pageCovers.slice(0, dayStopCount)} today={today} editingId={editing?.id} />
+    <PlannerPlanOverview stops={stops} date={date} details={details} admissionOverride={admissionOverride} state={draftState} saving={library.busy} canSave={library.ready && !library.busy} onSave={() => void save()} status={status}
+      saveError={!saveFailed || !stops.length ? '' : library.error ? translateText(library.error, locale) : t('没有保存成功，请再试一次。', 'Not saved. Please try again.')} />
+    <PlannerDayPlans library={library} plans={dayPlans} moreDays={moreDays} covers={pageCovers.slice(0, dayStopCount)} today={today} editingId={editing?.id} />
     <form className="planner-form" aria-labelledby="planner-form-title" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
       <h2 id="planner-form-title">{t('按条件挑选', 'Find options by your conditions')}</h2>
       {Object.keys(persistedFilters).length > 0 && <p className="planner-note">{locale === 'en' ? 'Saved conditions are included: ' : '沿用这份计划的条件：'}{[persistedFilters.city, persistedFilters.partySize ? String(persistedFilters.partySize) + (locale === 'en' ? ' people' : '人') : '', persistedFilters.childAges?.length ? (locale === 'en' ? 'Child ages ' : '孩子年龄 ') + persistedFilters.childAges.join('、') : '', persistedFilters.budget != null ? (persistedFilters.budgetScope === 'total' ? (locale === 'en' ? 'Group admission budget ' : '门票总预算 ') : (locale === 'en' ? 'Per-person admission budget ' : '每人门票预算 ')) + '$' + persistedFilters.budget : '', persistedFilters.freeOnly ? (locale === 'en' ? 'Free only' : '仅免费') : ''].filter(Boolean).join(' · ')} <button type="button" onClick={() => { request.current?.abort(); request.current = undefined; setRequesting(false); setPersistedFilters({}); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setResults(null); }}>{locale === 'en' ? 'Clear saved conditions' : '清除沿用条件'}</button></p>}{queryMessage && <p className="planner-handoff-note"><Sparkles size={15} />已经带上你说的条件。修改后，点“帮我挑选方案”重新选择。</p>}
@@ -340,7 +357,7 @@ function PlannerWorkspace() {
       <PlannerSchedule ownerId={app?.user?.id} sessionKey={app?.user?.token} onLogin={() => app?.setShowLogin(true)} stops={stops} date={date} title={title} details={details} admissionOverride={admissionOverride} onChange={changePlanDetails} onStatus={setStatus} />
       <Button variant="primary" block className="planner-save" disabled={!library.ready || library.busy || !stops.length} onClick={() => void save()}>{library.busy ? '保存中…' : editing ? t('更新行程', 'Update my plan') : t('保存到行程', 'Save to my plans')}</Button>
       <Button variant="secondary" block className="planner-compose-outing" disabled={!stops.length || !date} icon={<Plus size={18} aria-hidden="true" />} onClick={() => { if (!app?.user?.id) { app?.setShowLogin(true); return; } const state = createOutingPlanHandoff({ ownerId: app.user.id, title, date, stops, details }); if (state) navigate('/together?draft=plan', { state }); else setStatus(locale === 'en' ? 'Check your date and selected places before creating an outing.' : '请先核对日期与所选地点，再发起小队。'); }}>{locale === 'en' ? 'Find company for this plan' : '带着这份计划，发起小队'}</Button></>}
-      <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} />
+      <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} announceError={!saveFailed} />
       {stops.length > 0 && <div className="planner-share-actions"><Button variant="secondary" icon={<Share2 size={18} aria-hidden="true" />} onClick={() => void share()}>分享地点与日期</Button><Button variant="text" icon={<Printer size={18} aria-hidden="true" />} onClick={() => window.print()}>{t('打印这一天', 'Print this day')}</Button><a className="planner-public-link" onClick={() => recordProductEvent('plan_shared')} href={sharePlanUrl({ date, stops })}>打开公开分享链接 ↗</a></div>}
       {status && <p className="planner-note" role="status">{status}</p>}
       <p className="planner-note">景点顺序由你决定。出发前确认门票、开放时间及导航路线。</p>

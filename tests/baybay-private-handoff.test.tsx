@@ -109,7 +109,7 @@ test('handoff edits and planner edits survive language switches; a private hando
   await act(async () => { await setLocale('en', false, '/plan'); });
   assert.equal(questionInput(view).value, plannerEdit);
   assert.equal(requests.length, 0);
-  await act(async () => { fireEvent.click(view.container.querySelector<HTMLButtonElement>('form.planner-form button[type=submit]')!); });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Find options for me' })); });
   assert.deepEqual(requests, [{ endpoint: '/planner/recommend', message: plannerEdit }]);
   assert.doesNotMatch(localStorage.getItem('baylink.planner.guest.v1') || '', /PRIVATE|Home Street/u);
 });
