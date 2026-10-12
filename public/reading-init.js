@@ -9,9 +9,13 @@
  * Today's Pacific day follows the US rule (since 2007: PDT from the second Sunday of March 10:00 UTC to the first Sunday of
  * November 09:00 UTC), not Intl with a time zone: its first use in a page costs ~95 ms at 4x CPU before the first paint,
  * this rule ~1 ms (lanes/WEB-FRESH2/reading-init-cost*.json). tests/date-guard.test.tsx checks it against Intl for 2026-2035.
+ * G52: a family link (?reading=…&simple=…) leaves the address bar at once (replaceState, before the router reads the URL)
+ * and is handed to the app for this tab as sessionStorage 'baylink.reading-link.v1' = "size|simple"; the app keeps it
+ * for this visit only when the reader already has a saved choice, else saves it (src/lib/reading-preferences.ts). A reload
+ * in the same tab reads the handed-over link before the saved choice.
  * Keys and URL parameters match src/i18n/locale.ts (LOCALE_KEY) and src/lib/reading-preferences.ts. */
 (function (d, w) {
-  var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, lang, size, simple, built, today, y;
+  var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, key = 'baylink.reading-link.v1', link = [], lang, size, simple, built, today, y;
   if (/^\/(?:en\/|zh-Hant\/)?(?:opus-bay|play)(?:[/.]|$)/.test(path)) return;
   function saved(key) { try { return w.localStorage.getItem(key); } catch (e) { return null; } }
   lang = saved('baylink.reading-language.v1');
@@ -19,10 +23,17 @@
     try { loc.replace('/' + lang + path + query + loc.hash); root.style.visibility = 'hidden'; return; } catch (e) { /* stay on this page */ }
   }
   size = /[?&]reading=(large|extra-large)(?:&|#|$)/.exec(query);
-  size = size ? size[1] : saved('baylink.reading-size.v1');
-  if (size === 'large' || size === 'extra-large') root.setAttribute('data-reading', size);
   simple = /[?&]simple=([01])(?:&|#|$)/.exec(query);
-  simple = simple ? simple[1] : saved('baylink.simple-display.v1');
+  try {
+    if (size || simple) {
+      w.sessionStorage.setItem(key, (size ? size[1] : '') + '|' + (simple ? simple[1] : ''));
+      query = query.slice(1).replace(/(^|&)(?:reading|simple)=[^&]*/g, '').replace(/^&/, '');
+      w.history.replaceState(w.history.state, '', path + (query ? '?' + query : '') + loc.hash);
+    } else link = (w.sessionStorage.getItem(key) || '').split('|');
+  } catch (e) { /* the link still applies to this page */ }
+  size = size ? size[1] : link[0] || saved('baylink.reading-size.v1');
+  if (size === 'large' || size === 'extra-large') root.setAttribute('data-reading', size);
+  simple = simple ? simple[1] : link[1] || saved('baylink.simple-display.v1');
   if (simple === '1') root.setAttribute('data-simple', '');
   /* Days count from 1970-01-01, a Thursday. week(): the coming Saturday's number Monday to Friday, its own on the weekend.
      sunday(): the first Sunday on or after day n of month m, at h:00 UTC, in ms. today: hours, then the Pacific day number. */
