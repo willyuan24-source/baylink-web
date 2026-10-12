@@ -19,7 +19,7 @@ import {
 } from '../lib/baybay-conversation';
 import { BAYBAY_STARTERS, BAYBAY_ENTITY_QUESTIONS, bayBayPageRef, type BayBayStarter } from '../features/baybay/panel-chips';
 import { bayBayAssistantResult } from '../lib/baybay-assistant';
-import { parseBayBayAnswerFields, parseBayBayCapabilities, type BayBayCapabilities } from '../lib/baybay-answer';
+import { bayBayFullNoticeTurns, parseBayBayAnswerFields, parseBayBayCapabilities, type BayBayCapabilities } from '../lib/baybay-answer';
 import { getBayAreaToday } from '../lib/monthly';
 import { BayBayAnswerBody, BayBayCardRail, BayBayCallActions, BayBayDraftPreview, BayBayEmergencyCard, BayBayNoticeBanner, BayBayResourceCard } from '../features/baybay/BayBayAnswer';
 import { BayBaySaveScope } from '../features/baybay/BayBaySaveScope';
@@ -288,6 +288,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   // ♡ 想去 loads the save library only once an answer shows an event card.
   const savable = turns.some(turn => (turn.response?.localMatches || turn.quickCards || []).some(card => card.kind === 'event'));
   const emergencyLast = lastComplete?.response?.safety?.kind === 'emergency';
+  const fullNotice = bayBayFullNoticeTurns(turns);
 
   return <>
     {open && <ModalShell onClose={close} labelledBy="baybay-panel-title" className="member-baybay-overlay" initialFocusRef={pendingQuestionMode === 'draft' ? inputRef : undefined} restoreFocusRef={restoreFocusRef}>
@@ -304,8 +305,9 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
           if (top < lastScrollTop.current - 2) followReply.current = false;
           lastScrollTop.current = top;
         }}>
-          {capabilities.pause ? <BayBayNoticeBanner kind={capabilities.pause.kind} text={capabilities.pause.banner[locale]} resumesAt={capabilities.pause.resumesAt} actions={capabilities.pause.actions} />
-            : capabilities.reduced && <BayBayNoticeBanner kind="ai_budget_reduced" text={capabilities.reduced.banner[locale]} resumesAt={capabilities.reduced.resumesAt} />}
+          {/* The pause banner (with 911 · 211) shows once: here until an answer carries the notice, then on the newest such answer. */}
+          {capabilities.pause ? fullNotice.pause === undefined && <BayBayNoticeBanner kind={capabilities.pause.kind} text={capabilities.pause.banner[locale]} resumesAt={capabilities.pause.resumesAt} actions={capabilities.pause.actions} />
+            : capabilities.reduced && fullNotice.reduced === undefined && <BayBayNoticeBanner kind="ai_budget_reduced" text={capabilities.reduced.banner[locale]} resumesAt={capabilities.reduced.resumesAt} />}
           <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); setCompletionNotice(null); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
           <details className="baybay-conversation-details" translate="no">
             <summary>{copy('检索、额度与对话说明', 'Search, limits and conversation details')}</summary>
@@ -337,7 +339,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
               {turn.state === 'pending' && <BayBayDraftPreview lead={turn.draftLead || ''} legacy={turn.partialAnswer} points={turn.draftPoints || []} cards={turn.quickCards} today={today} onNavigate={navigate} />}
               {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error"><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.restartRequired ? <button type="button" disabled={loading} onClick={() => { const draft = turn.restartAssistant ? (bayBayTaskBrief(turns) || turn.question).slice(0, 500) : copy('我想找搭子一起去。', 'I want to find people to go with.'); stop(); updateTurns(() => []); setQuestion(draft); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{turn.restartAssistant ? copy('重新开始对话', 'Start a new conversation') : copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}
               {turn.response && <BayBayTurnAnswer turn={turn} today={today} guest={!ownerId} ownerId={ownerId} sessionKey={sessionKey} loading={loading} lastCompleteId={lastComplete?.id}
-                isLatest={turn.id === turns[turns.length - 1]?.id} question={question} schoolContext={schoolContext} blockedUserIds={blockedUserIds} composing={composing}
+                isLatest={turn.id === turns[turns.length - 1]?.id} fullNotice={turn.id === fullNotice.pause || turn.id === fullNotice.reduced} question={question} schoolContext={schoolContext} blockedUserIds={blockedUserIds} composing={composing}
                 onAsk={askBayBay} onNavigate={navigate} onAction={action => handleAction(action, turn.question)} />}
             </section>)}
           </div></BayBaySaveScope>
@@ -366,7 +368,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
 };
 
 type TurnAnswerProps = {
-  turn: BayBayTurn; today: string; guest: boolean; ownerId?: string; sessionKey?: string; loading: boolean; lastCompleteId?: number; isLatest: boolean; question: string; schoolContext: boolean;
+  turn: BayBayTurn; today: string; guest: boolean; ownerId?: string; sessionKey?: string; loading: boolean; lastCompleteId?: number; isLatest: boolean; fullNotice: boolean; question: string; schoolContext: boolean;
   blockedUserIds?: string[]; composing: React.MutableRefObject<boolean>;
   onAsk: (text: string, requestPath?: string, keepConversation?: boolean) => boolean; onNavigate: (path: string) => void; onAction: (action: GuideChatAction) => void;
 };
@@ -375,7 +377,7 @@ type TurnAnswerProps = {
  * One answer (1007 §6.5): the 911 card first; then the pause / reduced notice; then lead → image cards → points (v2) or
  * the legacy text with its cards (v1); the professional resource card; the existing plan, outing, post and source blocks.
  */
-function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, lastCompleteId, isLatest, question, schoolContext, blockedUserIds, composing, onAsk, onNavigate, onAction }: TurnAnswerProps) {
+function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, lastCompleteId, isLatest, fullNotice, question, schoolContext, blockedUserIds, composing, onAsk, onNavigate, onAction }: TurnAnswerProps) {
   const locale = useLocale();
   const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const response = turn.response!;
@@ -386,7 +388,7 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
   const v2 = !!response.lead && !!response.points && response.outingSearch === undefined;
   if (safety?.kind === 'emergency') return <div className="member-baybay-answer" data-safety="emergency"><BayBayEmergencyCard safety={safety} answer={response.answer} /></div>;
   return <div className="member-baybay-answer" data-safety={safety?.kind}>
-    {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} actions={response.fallbackHelp?.actions} />}
+    {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} actions={response.fallbackHelp?.actions} compact={!fullNotice} />}
     <div className="member-baybay-answer-label" translate={foodGap ? 'no' : undefined}><Sparkles size={12} />{foodGap ? locale === 'zh-Hant' ? '餐飲資訊待確認' : copy('餐饮信息待确认', 'Food information unconfirmed') : response.outingSearch ? copy('小队搜索', 'Outing search') : response.degraded ? '参考指引' : 'BayBay 建议'}</div>
     {response.degraded && !response.notice && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
     {v2 ? <BayBayAnswerBody fields={response} cards={cards} sources={sources} today={today} onNavigate={onNavigate} /> : <>

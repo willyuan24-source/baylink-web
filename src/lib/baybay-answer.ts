@@ -140,6 +140,19 @@ export function parseBayBayCapabilities(input: unknown): BayBayCapabilities {
   return none;
 }
 
+/** A pause notice (daily budget or paused) leads with 911 · 211; a reduced-budget notice has no call buttons. */
+export const bayBayNoticeIsPause = (kind: BayBayNoticeKind): boolean => kind !== 'ai_budget_reduced';
+
+/**
+ * The turn whose pause / reduced notice shows in full: the newest answer carrying one of that kind. Earlier answers show
+ * theirs compact (text only), and the panel's top banner steps aside once an answer carries one, so 911 · 211 appear once.
+ */
+export function bayBayFullNoticeTurns(turns: readonly { id: number; response?: { notice?: BayBayNotice } }[]): { pause?: number; reduced?: number } {
+  const full: { pause?: number; reduced?: number } = {};
+  for (const turn of turns) if (turn.response?.notice) full[bayBayNoticeIsPause(turn.response.notice.kind) ? 'pause' : 'reduced'] = turn.id;
+  return full;
+}
+
 /** The 911 / 211 pair a paused BayBay shows first when the server sent none. */
 export const BAYBAY_HELP_ACTIONS: readonly BayBayCallAction[] = [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }];
 
@@ -189,17 +202,53 @@ export function bayBayTextUnits(text: string, english: boolean): number {
   return han + latinWords;
 }
 
+/** A point as laid out; `continued` is the rest of a first point cut at a sentence end (no bullet of its own). */
+export type BayBayViewPoint = BayBayPoint & { continued?: boolean };
+
+const CITATION = /\[\d{1,3}\]/g;
+/** Sentences of a point: split after 。！？； (zh) or . ! ? and a space (en); a [n] right after the end stays with it. */
+function bayBaySentences(text: string, english: boolean): string[] {
+  const out: string[] = [];
+  for (const piece of text.split(english ? /(?<=[.!?])\s+/ : /(?<=[。！？；])/)) {
+    const marks = /^(?:\s*\[\d{1,3}\])+/.exec(piece)?.[0] || '';
+    if (marks && out.length) out[out.length - 1] += marks.trim();
+    const rest = (out.length && marks ? piece.slice(marks.length) : piece).trim();
+    if (rest) out.push(rest);
+  }
+  return out;
+}
+
+/**
+ * A first point too long for the budget: the sentences that fit stay visible (keeping its [n] if they had none) and
+ * the rest continues behind "更多". Null when not even its first sentence fits; then the whole point shows.
+ */
+function bayBayCutPoint(point: BayBayPoint, room: number, english: boolean): [BayBayViewPoint, BayBayViewPoint] | null {
+  const sentences = bayBaySentences(point.text, english);
+  let count = 0, units = 0;
+  while (count < sentences.length - 1 && units + bayBayTextUnits(sentences[count], english) <= room) units += bayBayTextUnits(sentences[count++], english);
+  if (!count) return null;
+  const join = (list: string[]) => list.join(english ? ' ' : '');
+  const shown = join(sentences.slice(0, count)), rest = join(sentences.slice(count));
+  const cites = shown.match(CITATION) ? [] : [...new Set(rest.match(CITATION) || [])];
+  return [{ ...point, text: cites.length ? `${shown}${english ? ' ' : ''}${cites.join('')}` : shown }, { text: rest, cardIds: [], continued: true }];
+}
+
 /**
  * The answer as laid out: the lead, then up to BAYBAY_VISIBLE_POINTS points that fit the visible budget together
- * with the lead (the first point always shows), then the rest behind "更多". The gap line is part of the rest.
+ * with the lead, then the rest behind "更多". The gap line is part of the rest. The first point always shows; when it
+ * does not fit, it is cut at its last sentence end that does and continues behind "更多".
  */
 export function bayBayAnswerView(fields: Pick<BayBayAnswerFields, 'lead' | 'points' | 'gap'>, english: boolean) {
   if (!fields.lead || !fields.points) return null;
   const budget = english ? BAYBAY_ANSWER_BUDGET.en : BAYBAY_ANSWER_BUDGET.zh;
   let used = bayBayTextUnits(fields.lead, english);
-  const visible: BayBayPoint[] = [], more: BayBayPoint[] = [];
+  const visible: BayBayViewPoint[] = [], more: BayBayViewPoint[] = [];
   for (const point of fields.points) {
     const units = bayBayTextUnits(point.text, english);
+    if (!visible.length && used + units > budget) {
+      const cut = bayBayCutPoint(point, budget - used, english);
+      if (cut) { visible.push(cut[0]); more.push(cut[1]); used += bayBayTextUnits(cut[0].text, english); continue; }
+    }
     if (!more.length && visible.length < BAYBAY_VISIBLE_POINTS && (!visible.length || used + units <= budget)) { visible.push(point); used += units; }
     else more.push(point);
   }

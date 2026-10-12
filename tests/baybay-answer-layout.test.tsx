@@ -14,7 +14,7 @@ const { render, fireEvent, cleanup, act, within } = await import('@testing-libra
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { BayBayAnswerBody, BayBayCardRail, BayBayReadAloud } = await import('../src/features/baybay/BayBayAnswer');
 const { BayBaySaveScope } = await import('../src/features/baybay/BayBaySaveScope');
-const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayOrderCards, bayBayResumeStyle, bayBayTextUnits } = await import('../src/lib/baybay-answer');
+const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayResumeStyle, bayBayTextUnits } = await import('../src/lib/baybay-answer');
 const { bayBayCardCitations, bayBayCardModels } = await import('../src/features/baybay/answer-cards');
 const { bayBayPageRef } = await import('../src/features/baybay/panel-chips');
 const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
@@ -140,6 +140,26 @@ test('the visible budget keeps the lead and the first point, and moves the rest 
   assert.equal(bayBayTextUnits('Blue Angels fly at 3 pm [2].', true), 6);
 });
 
+test('a first point over the budget is cut at its last sentence end that fits, and the rest continues behind 更多', () => {
+  const sentence = '这是一句用来测试长要点的句子，大约有三十个字左右的长度。';
+  const long = `${sentence.repeat(10)}[1]`;
+  const view = bayBayAnswerView({ lead: '结论一句话。', points: [{ text: long, cardIds: ['event:x'] }, { text: '第二条。[2]', cardIds: [] }] }, false)!;
+  assert.ok(bayBayTextUnits(long, false) + 5 > 250, 'the point alone breaks the budget');
+  assert.ok(view.visibleUnits <= 250, `visible ${view.visibleUnits} 字 stays within 250`);
+  assert.equal(view.visible.length, 1);
+  assert.ok(view.visible[0].text.endsWith('。[1]'), 'the shown part ends at a sentence end and keeps the point’s citation');
+  assert.deepEqual(view.visible[0].cardIds, ['event:x']);
+  assert.equal(view.more[0].continued, true);
+  assert.equal(bayBayReadableText(view.visible[0].text) + bayBayReadableText(view.more[0].text), bayBayReadableText(long), 'nothing is lost');
+  assert.equal(view.more[1].text, '第二条。[2]');
+  const en = bayBayAnswerView({ lead: 'Yes.', points: [{ text: `${'This sentence has exactly eight words in it. '.repeat(16).trim()} [3]`, cardIds: [] }] }, true)!;
+  assert.ok(en.visibleUnits <= 120 && en.visible[0].text.endsWith('it. [3]') && en.more[0].continued);
+  // A single sentence longer than the budget cannot be cut honestly, so it shows whole.
+  const one = bayBayAnswerView({ lead: '结论。', points: [{ text: `${'很长'.repeat(140)}。`, cardIds: [] }] }, false)!;
+  assert.equal(one.visible.length, 1);
+  assert.equal(one.more.length, 0);
+});
+
 test('card covers follow the honesty ladder and each card cites its own page', () => {
   const models = bayBayCardModels(c01().localMatches as never, TODAY);
   assert.deepEqual(models.map(model => model.key), ['event:santa-clara-library-comic-con-2026', 'event:mountain-view-oktoberfest-2026', 'offer:apple-kids-earth-comics']);
@@ -235,6 +255,31 @@ test('a paused BayBay shows its banner with 911 and 211 first and never a dollar
   }
 });
 
+test('while paused, 911 · 211 show once: at the top until an answer carries the notice, then on the newest answer only', async t => {
+  const banner = { 'zh-Hans': '今日 AI 名额已满，以下为站内资料；明天会恢复。', 'zh-Hant': '今日 AI 名額已滿，以下為站內資料；明天會恢復。', en: "Today's AI answers are used up. Here is information from the site; BayBay is back tomorrow." };
+  const actions = [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }];
+  let count = 0;
+  mockBayBayFetch(t, async () => Response.json({ ok: true, degraded: true, answer: `站内资料第 ${++count} 条`, notice: { kind: 'ai_daily_budget', text: banner['zh-Hans'], resumesAt: '2026-10-10T07:00:00.000Z' }, fallbackHelp: { actions } }));
+  const realFetch = globalThis.fetch;
+  t.mock.method(globalThis, 'fetch', ((input: unknown, init?: RequestInit) => String(input).endsWith('/ai/baybay-capabilities')
+    ? Promise.resolve(Response.json({ engine: 'v2', enabled: false, pause: { reason: 'daily_budget', kind: 'ai_daily_budget', banner, resumesAt: '2026-10-10T07:00:00.000Z', actions }, reduced: null }))
+    : realFetch(input as RequestInfo, init)) as typeof fetch);
+  const view = render(<BayBayAssistantEntry {...props} />);
+  await view.findByText(/今日 AI 名额已满/);
+  const calls = () => view.baseElement.querySelectorAll('a[href="tel:911"]');
+  assert.equal(calls().length, 1, 'the top banner before any answer');
+  for (const question of ['周末去哪', '下雨天去哪']) {
+    fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: question } });
+    fireEvent.click(view.getByRole('button', { name: '问一下' }));
+    await view.findByText(`站内资料第 ${count} 条`);
+    assert.equal(calls().length, 1, `one 911 button with ${count} answer(s)`);
+  }
+  const [first, second] = view.baseElement.querySelectorAll('.baybay-turn');
+  assert.ok(second.querySelector('.bb-notice a[href="tel:911"]'), 'the newest answer carries the full banner');
+  assert.equal(first.querySelector('.bb-notice-label')?.textContent, banner['zh-Hans'], 'an earlier answer keeps its line only');
+  assert.equal(first.querySelector('a[href^="tel:"]'), null);
+});
+
 test('the answer stylesheet uses tokens and rem only, and every control is at least 44px', () => {
   const css = readFileSync('src/features/baybay/baybay-answer.css', 'utf8');
   assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i, 'no hex colours outside tokens.css');
@@ -244,6 +289,8 @@ test('the answer stylesheet uses tokens and rem only, and every control is at le
   // Answers read at 17px (20 in 简洁显示), never smaller than the legacy answer text — and the 911 instructions likewise.
   assert.match(css, /\.bb-points>li \{[^}]*font-size:var\(--text-reading\)/, 'points use the 17px reading size');
   assert.match(css, /\.bb-emergency__text \{[^}]*font-size:var\(--text-reading\)/, 'the 911 instructions use the reading size');
+  assert.match(css, /\.bb-reference li>a \{[^}]*min-height:var\(--control-height\)/, 'source links are full-size targets (44px, 48 in 简洁显示)');
+  assert.match(css, /\.bb-call__number \{ white-space:nowrap; \}/, 'a phone number stays on one line');
 });
 
 test('the resume time is said once: none when the banner has a time, "即 …" after its own 恢复, else a sentence', () => {

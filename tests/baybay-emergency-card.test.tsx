@@ -39,6 +39,11 @@ test('an emergency answer is a red card with a 56px tel:911 button first, withou
     assert.equal(links[0].getAttribute('href'), 'tel:911', '911 is the first action');
     assert.ok(links[0].classList.contains('bb-emergency__call'), 'the large 56px call button');
     assert.deepEqual(links.slice(1).map(link => link.getAttribute('href')), ['tel:+18002221222', 'tel:988']);
+    // The number never breaks across lines at 390px; the words before it may wrap, and the name reads as one phrase.
+    assert.equal(links[1].querySelector('.bb-call__number')?.textContent, '1-800-222-1222');
+    assert.equal(links[1].textContent, 'Poison Control 1-800-222-1222');
+    assert.equal(links[0].querySelector('.bb-call__number')?.textContent, '911');
+    assert.equal(links[2].querySelector('.bb-call__number'), null, 'a label that ends in words wraps normally');
     assert.match(card.textContent || '', locale === 'en' ? /Call 911 now/ : /911/);
     const answer = card.closest('.member-baybay-answer')!;
     assert.equal(answer.firstElementChild, card, 'nothing comes before the emergency card');
