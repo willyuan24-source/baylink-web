@@ -171,7 +171,7 @@ test('♡ 收藏 saves an event to 我的这周 for a guest in this browser; end
 
 test('on an event page the capsule names the page, page chips ask about it, and ✕ stops sending the page', async t => {
   const bodies: Record<string, unknown>[] = [];
-  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Response.json({ ok: true, answer: '适合，但人多，建议早到。' }); });
+  mockBayBayFetch(t, async (_url: unknown, init: RequestInit) => { bodies.push(JSON.parse(String(init.body))); return Response.json({ ok: true, answer: bodies.length > 1 ? `第 ${bodies.length} 条回答` : '适合，但人多，建议早到。', followups: ['附近怎么停车？'] }); });
   assert.deepEqual(bayBayPageRef('/en/events/san-francisco-fleet-week-2026?date=2026-10-11'), { kind: 'event', id: 'san-francisco-fleet-week-2026' });
   const view = render(<BayBayAssistantEntry {...props} currentPath="/events/san-francisco-fleet-week-2026" />);
   assert.match(view.baseElement.querySelector('.bb-capsule')?.textContent || '', /正在看：.*Fleet Week/);
@@ -182,10 +182,14 @@ test('on an event page the capsule names the page, page chips ask about it, and 
   assert.deepEqual(bodies[0].context, { currentPath: '/events/san-francisco-fleet-week-2026' });
   fireEvent.click(view.getByRole('button', { name: '不再参考这一页' }));
   assert.equal(view.baseElement.querySelector('.bb-capsule'), null);
+  // A 接着聊 chip under the answer asked on this page no longer carries the page either.
+  fireEvent.click(view.getByRole('button', { name: /附近怎么停车/ }));
+  await view.findByText('第 2 条回答');
+  assert.deepEqual(bodies[1].context, { currentPath: '/' });
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '附近还有什么？' } });
   fireEvent.click(view.getByRole('button', { name: '问一下' }));
-  await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
-  assert.deepEqual(bodies[1].context, { currentPath: '/' });
+  await view.findByText('第 3 条回答');
+  assert.deepEqual(bodies[2].context, { currentPath: '/' });
 });
 
 test('starter chips ask, prefill or open the right tool, in each language', async t => {

@@ -162,9 +162,11 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     scrolledTurn.current = { id: latest.id, state: latest.state };
   }, [open, turns]);
 
-  const askBayBay = useCallback((text: string, requestPath = contextPath, keepConversation = false): boolean => {
+  const askBayBay = useCallback((text: string, askedPath = contextPath, keepConversation = false): boolean => {
     const message = text.trim();
     if (message.length < 2 || message.length > 500 || activeRequest.current) return false;
+    // After ✕ the dismissed page goes with nothing: not with follow-ups, retries or plan answers of turns asked on it either.
+    const requestPath = pageOff && askedPath === currentPath ? '/' : askedPath;
     // Keep the first request in the conversation, including plans. Moving to the
     // planner is an explicit action after the user has reviewed their needs.
     void keepConversation;
@@ -189,7 +191,6 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     }, {
       onCards: cards => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, quickCards: cards } : turn)); },
       onText: text => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, partialAnswer: (turn.partialAnswer || '') + text } : turn)); },
-      // Only the streamed lead is previewed (a points-only draft does not re-render); the final result replaces it.
       // The lead and each point preview as they stream (unvalidated, outside live regions); the result replaces them.
       onDraft: draft => { if (activeRequest.current?.id === id && turnsRef.current.some(turn => turn.id === id && turn.state === 'pending' && ((turn.draftLead || '') !== draft.lead || (turn.draftPoints || []).join('␞') !== draft.points.join('␞')))) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, draftLead: draft.lead, draftPoints: draft.points } : turn)); },
     })
@@ -233,7 +234,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
         } : turn));
       });
     return true;
-  }, [categoryHint, contextPath, effectiveSearchMode, updateTurns]);
+  }, [categoryHint, contextPath, currentPath, effectiveSearchMode, pageOff, updateTurns]);
 
   useEffect(() => {
     if (!pendingQuestion) { consumedPending.current = null; pendingContext.current = null; return; }
@@ -267,7 +268,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     }
   };
   const lastComplete = [...turns].reverse().find((turn) => turn.state === 'complete');
-  const followupPath = lastComplete?.currentPath || contextPath;
+  const followupPath = pageOff && lastComplete?.currentPath === currentPath ? contextPath : lastComplete?.currentPath || contextPath;
   const schoolContext = isBayBaySchoolGuide(currentGuide) || isBayBaySchoolGuide(currentBayBayGuide(followupPath)) || isBayBaySchoolRequest(question) || isBayBaySchoolRequest(turns[turns.length - 1]?.question || '');
   const outingContext = !!lastComplete?.response?.outingSearch;
   const lastResponse = lastComplete?.response;
