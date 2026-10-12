@@ -94,6 +94,9 @@
 @media(max-width:1023px) {
   .local-discovery-detail .detail-actions { position:fixed; z-index:50; left:0; right:0; bottom:0; height:var(--site-mobile-nav-height); padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px)); box-sizing:border-box; border-top:1px solid var(--color-line); background:color-mix(in srgb,var(--color-surface) 96%,transparent); backdrop-filter:blur(12px); box-shadow:var(--chrome-shadow-bar); }
   .local-discovery-detail .detail-actions>* { display:flex; justify-content:center; min-width:3.5rem; }
+  /* The side cells keep their labels' width (white-space:nowrap); only the primary gives way, so "Ask BayBay" and
+     "Official site" never run into each other next to a long "Add to a plan". */
+  .local-discovery-detail .detail-actions>:not(.detail-actions__primary) { flex-shrink:0; }
   .local-discovery-detail .detail-actions .detail-action--official>svg { order:-1; }
   .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
   .local-discovery-detail .detail-actions .saves-control { height:100%; }
