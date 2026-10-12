@@ -35,8 +35,8 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
   };
   const facts = [
     ...(weekendTotal > 0 ? [t(`本周末 ${weekendTotal} 场活动`, `${weekendTotal} events this weekend`)] : []),
-    t(`${guideCount} 篇办事指南`, `${guideCount} how-to guides`),
-    t(`每条附官方来源，${monthDay(checkedAt)} 核对`, `every item with its official source, checked ${monthDay(checkedAt)}`),
+    t(`${guideCount} 篇办事指南`, `${guideCount} guides`),
+    t(`每条附官方来源，${monthDay(checkedAt)} 核对`, `official sources, checked ${monthDay(checkedAt)}`),
   ];
   return <header className="home-head">
     <p className="home-head__dateline"><span>{t('湾区', 'Bay Area')}</span> · <time dateTime={today}>{longDate(today, english)}</time></p>
@@ -46,7 +46,7 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
       <img className="home-ask__otter" src="/brand/otter.svg" alt="" width={28} height={28} decoding="async" />
       <input id={`${id}-ask`} value={query} maxLength={500} enterKeyHint={asking ? 'send' : 'search'}
-        placeholder={t('比如：这周末带爸妈去哪，不用开车？', 'e.g. Where can we go this weekend without a car?')}
+        placeholder={t('比如：这周末带爸妈去哪？', 'e.g. Free things to do with kids?')}
         onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} />
       <button type="submit" disabled={!query.trim()}>{asking ? t('问 BayBay', 'Ask BayBay') : <><Search aria-hidden="true" strokeWidth={1.75} />{t('搜索', 'Search')}</>}</button>
     </form>

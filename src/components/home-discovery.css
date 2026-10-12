@@ -6,7 +6,7 @@
 .home-discovery { display:flex; flex-direction:column; gap:40px; max-width:1216px; margin-inline:auto; color:var(--color-ink); }
 
 /* ① headline, live subtitle and the ask box */
-.home-top { display:flex; flex-direction:column; gap:24px; }
+.home-top { display:flex; flex-direction:column; gap:20px; }
 .home-head { min-width:0; }
 .home-head__dateline { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .home-head__title { margin-top:6px; color:var(--color-ink); font-size:1.75rem; line-height:1.286; font-weight:600; letter-spacing:0; text-wrap:balance; }
@@ -22,7 +22,7 @@
 .home-ask button:disabled { background:var(--color-surface-2); color:var(--color-ink-3); }
 
 /* Section heads: one H2 per section, the date range as a kicker, one "all" link. */
-.home-section-head { display:flex; align-items:center; justify-content:space-between; gap:4px 12px; margin-bottom:12px; }
+.home-section-head { display:flex; align-items:center; justify-content:space-between; gap:4px 12px; margin-bottom:10px; }
 .home-section-head h2 { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 8px; min-width:0; color:var(--color-ink); font-size:1.25rem; line-height:1.4; font-weight:600; }
 .home-section-head__kicker { color:var(--color-brand); font-size:var(--text-caption); line-height:1.385; font-weight:600; font-variant-numeric:tabular-nums; }
 .home-section-head__more { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
