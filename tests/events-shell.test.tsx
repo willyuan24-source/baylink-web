@@ -220,10 +220,37 @@ test('a share-card landing lists exactly the card’s ids first and leaves them 
   for (const id of card) assert.equal(feedIds(view.container).includes(id), false, id);
   assert.equal(view.container.querySelector('.ev-picks'), null, 'the strip replaces the picks rail');
   cleanup();
+  // A manifest that fails to load (offline, 404) hides nothing: the page is the plain 本周末, picks rail and full feed,
+  // so the note's "every event this weekend is below" is true (RC-25).
+  const page = (root: ParentNode) => ({
+    picks: [...root.querySelectorAll('.ev-picks .ui-hero-card a.ui-card-link')].map(link => link.getAttribute('href')),
+    feed: feedIds(root), count: root.querySelector('.ev-count')!.textContent,
+  });
+  const plain = routed('/events?day=open', <EventsView today={today} />);
+  const expected = page(plain.container);
+  cleanup();
   globalThis.fetch = (async () => new Response('', { status: 404 })) as typeof fetch;
-  const failed = routed('/events?from=card-all', <EventsView today={today} />);
+  const failed = routed('/events?from=card-all&day=open', <EventsView today={today} />);
   await waitFor(() => assert.match(failed.getByTestId('share-landing-strip').textContent!, /分享卡的清单暂时没能载入/));
   assert.equal(failed.getByTestId('share-landing-strip').getAttribute('data-card-ids'), null);
+  assert.equal(failed.getByTestId('share-landing-strip').querySelectorAll('.ui-row-card').length, 0);
+  assert.ok(expected.picks.length > 0 && expected.feed.length > 0);
+  assert.deepEqual(page(failed.container), expected, 'the same picks, feed and count as /events');
+  const shown = [...expected.picks.map(href => href!.replace('/events/', '')), ...expected.feed];
+  assert.ok(shown.includes('san-francisco-fleet-week-2026'), 'Fleet Week is on the page');
+});
+
+test('the page-end image link opens the card dated today when the build wrote one (as the home page does)', () => {
+  const days = ['2026-10-11', '2026-10-12'];
+  assert.equal(model.weeklyCardHref('all', '2026-10-12', days), '/weekly/all-2026-10-12.png');
+  assert.equal(model.weeklyCardHref('all', '2026-10-20', days), '/weekly/all.png', 'outside the build week: the build-day card');
+  assert.equal(model.weeklyCardHref('sf', '2026-10-12', days), '/weekly/sf.png', 'regions have no dated cards');
+  assert.deepEqual(model.EVENTS_INDEX.weeklyCardDays, [...model.EVENTS_INDEX.weeklyCardDays].sort());
+  const day = model.EVENTS_INDEX.weeklyCardDays[0];
+  if (day) {
+    const view = routed('/events', <EventsView today={day} />);
+    assert.equal(view.getByRole('link', { name: '存成一张图：本周末精选' }).getAttribute('href'), `/weekly/all-${day}.png`);
+  }
 });
 
 test('免费与优惠 and 新店 load as their own boards: a skeleton, 1:1 offer covers ending soonest first, opening counts that add up', async () => {

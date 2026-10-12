@@ -256,6 +256,13 @@ export const filterOpenings = (openings: readonly IndexOpening[], status: Openin
 export const activeBulletins = (today: string, region: MonthlyRegion | 'all') =>
   EVENTS_INDEX.bulletins.filter(item => item.verifiedAt <= today && item.expiresAt >= today && (region === 'all' || item.region === region));
 
+/**
+ * The share card the page-end link opens: for the whole Bay Area the card dated today when this build wrote one (the
+ * same card the home page links, RC-12), otherwise the region's build-day card.
+ */
+export const weeklyCardHref = (region: MonthlyRegion | 'all', today: string, days: readonly string[] = EVENTS_INDEX.weeklyCardDays ?? []) =>
+  region === 'all' && days.includes(today) ? `/weekly/all-${today}.png` : `/weekly/${region}.png`;
+
 /** Share card regions (/n/{region} → /events?region=…&from=card-…). */
 export const CARD_REGIONS = ['all', 'sf', 'east-bay', 'peninsula', 'south-bay', 'north-bay'] as const;
 export type CardRegion = typeof CARD_REGIONS[number];
