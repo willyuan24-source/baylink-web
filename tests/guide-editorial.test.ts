@@ -77,7 +77,7 @@ test('every part of a contact address is written in the article', () => {
   let checked = 0;
   for (const slug of PILOTS) {
     const article = articleText(getGuideBySlug(slug)!);
-    for (const contact of getGuideEditorial(slug)!.contacts ?? []) for (const part of (contact.address ?? '').split(/[,/]/).map(item => item.trim()).filter(Boolean)) {
+    for (const contact of getGuideEditorial(slug)!.contacts ?? []) for (const part of [contact.address ?? []].flat().join(',').split(/[,/]/).map(item => item.trim()).filter(Boolean)) {
       assert.ok(article.includes(part), `${slug}: "${part}" of ${contact.address} is not in the article`);
       checked++;
     }

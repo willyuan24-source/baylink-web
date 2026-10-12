@@ -95,6 +95,9 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contact__number { margin:0; color:var(--color-ink); font-size:1.375rem; line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-contact__languages { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 0; }
 .gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; }
+.gd-contact__places { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gd-contact__places a { display:inline-flex; align-items:center; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:.9375rem; line-height:1.6; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.gd-contact__places svg { flex:none; width:1.125rem; height:1.125rem; }
 .gd-contact__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
 .gd-contact__actions>.ui-button { flex:1 1 7rem; }
 .gd-contact__actions>.ui-button>svg { width:1.125rem; height:1.125rem; }
@@ -141,7 +144,7 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-credits__caption { flex-basis:100%; }
 .gd-credits a { display:inline-flex; align-items:center; gap:2px; color:var(--color-brand); }
 .gd-credits a>svg { width:.875rem; height:.875rem; }
-:is(.gd-crumbs a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-step__more>summary,.gd-related__head a,.gd-credits>summary,.gd-credits a,.gd-about a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+:is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-step__more>summary,.gd-related__head a,.gd-credits>summary,.gd-credits a,.gd-about a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 
 /* Large text and 简洁显示: the step text drops its indent; the carousel keeps one slide at full width. */
 @media (max-width:767px) {

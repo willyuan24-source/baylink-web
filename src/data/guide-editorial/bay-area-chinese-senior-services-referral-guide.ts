@@ -28,7 +28,7 @@ export const seniorServicesEditorial: GuideEditorial = {
       languages: [{ zh: '普通话', en: 'Mandarin' }, { zh: '粤语', en: 'Cantonese' }],
       note: { zh: '服务 Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont 年满 60 岁、居家不便或社交较少的长者。', en: 'For people 60 and up in Alameda, Albany, Berkeley, Emeryville, Oakland or Piedmont who are homebound or isolated.' }, source: 5 },
     { name: { zh: 'Hong Lok 长者中心（Oakland）', en: 'Hong Lok Senior Centers (Oakland)' }, number: '510-763-9017', tel: '+15107639017',
-      address: '168 11th Street / 388 9th Street #290, Oakland',
+      address: ['168 11th Street, Oakland', '388 9th Street #290, Oakland'],
       note: { zh: '先致电确认地点、开放安排、活动资格与语言。', en: 'Call first to confirm the location, hours, eligibility and languages.' }, source: 6 },
   ],
   slides: [

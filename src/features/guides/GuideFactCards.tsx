@@ -32,24 +32,31 @@ export function KeyFactsCard({ guide, facts }: { guide: Guide; facts: readonly G
   </section>;
 }
 
-/** One agency: name, the number large and unbroken, languages, [拨打] [复制] and a map link when there is an address. */
+const mapsUrl = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+
+/** One agency: name, the number large and unbroken, languages, [拨打] [复制] and a map link for each address. */
 function ContactCard({ guide, contact }: { guide: Guide; contact: GuideContact }) {
   const { t, pick } = useUiCopy();
   const [copied, setCopied] = useState<'idle' | 'done' | 'failed'>('idle');
   const name = pick(contact.name);
   const copy = async () => setCopied(await copyText(contact.number) ? 'done' : 'failed');
+  const addresses: readonly string[] = contact.address === undefined ? [] : typeof contact.address === 'string' ? [contact.address] : contact.address;
   return <article className="gd-contact">
     <h3>{name}<SourceMark guide={guide} index={contact.source} /></h3>
     <p className="gd-contact__number">{contact.number}</p>
     {contact.languages && <p className="gd-contact__languages">{contact.languages.map(language => <StatusChip key={language.zh}>{pick(language)}</StatusChip>)}</p>}
     {contact.note && <p className="gd-contact__note">{pick(contact.note)}</p>}
-    {contact.address && <p className="gd-contact__address" translate="no">{contact.address}</p>}
+    {addresses.length === 1 && <p className="gd-contact__address" translate="no">{addresses[0]}</p>}
+    {/* Several places: each address is its own map link (one search per place, never two addresses in one query). */}
+    {addresses.length > 1 && <ul className="gd-contact__places" aria-label={t('地点', 'Locations')}>{addresses.map(address => <li key={address}>
+      <a href={mapsUrl(address)} target="_blank" rel="noopener noreferrer" translate="no" aria-label={t(`在地图打开 ${address}`, `Open ${address} in Maps`)}><MapPin aria-hidden="true" strokeWidth={1.75} />{address}</a>
+    </li>)}</ul>}
     <div className="gd-contact__actions">
       <Button variant="primary" href={`tel:${contact.tel}`} aria-label={t(`拨打 ${name} ${contact.number}`, `Call ${name} ${contact.number}`)} icon={<Phone aria-hidden="true" strokeWidth={1.75} />}>{t('拨打', 'Call')}</Button>
       <Button onClick={() => void copy()} aria-label={t(`复制号码 ${contact.number}`, `Copy ${contact.number}`)} icon={copied === 'done' ? <Check aria-hidden="true" strokeWidth={1.75} /> : <Copy aria-hidden="true" strokeWidth={1.75} />}>
         {copied === 'done' ? t('已复制', 'Copied') : t('复制', 'Copy')}
       </Button>
-      {contact.address && <Button href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contact.address)}`} target="_blank" rel="noopener noreferrer" icon={<MapPin aria-hidden="true" strokeWidth={1.75} />}>{t('在地图打开', 'Open in Maps')}</Button>}
+      {addresses.length === 1 && <Button href={mapsUrl(addresses[0])} target="_blank" rel="noopener noreferrer" icon={<MapPin aria-hidden="true" strokeWidth={1.75} />}>{t('在地图打开', 'Open in Maps')}</Button>}
     </div>
     <p className="gd-contact__status" role="status">{copied === 'failed' ? t('浏览器未允许复制，请长按号码手动复制。', 'Copy was blocked; press and hold the number to copy it.') : ''}</p>
   </article>;
