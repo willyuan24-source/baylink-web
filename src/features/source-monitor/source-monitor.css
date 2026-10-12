@@ -24,8 +24,9 @@
    prerendered <main>, and of the boot snapshot SHELL2 keeps while the route's code settles (.site-boot-main), then keep their
    height under a skeleton until the app renders today's result; blocks the app renders are never covered. Home's sections
    stand in until home marks its blocks with dateScope(): on the weekend .home-weekend and .home-weekly-share (this base) and
-   WEB-HOME's .home-picks, .home-feed and .home-share; on the day .home-offers (both). tests/date-guard.test.tsx fails when an
-   event or offer on the prerendered home is left uncovered. A scoped block inside a covered one draws no second skeleton. If the app never starts,
+   WEB-HOME's .home-picks, .home-feed, .home-share and the head's weekend count .home-head__lede; on the day .home-offers
+   (both) and WEB-HOME's dateline .home-head__dateline. tests/date-guard.test.tsx fails when an event, an offer, a <time> or
+   an event count on the prerendered home is left uncovered. A scoped block inside a covered one draws no second skeleton. If the app never starts,
    the old blocks come back after 15 s. */
 html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"],
 html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"],
@@ -39,8 +40,12 @@ html[data-date-stale~="weekend"] main[data-prerender-path] .home-feed,
 html[data-date-stale~="weekend"] .site-boot-main .home-feed,
 html[data-date-stale~="weekend"] main[data-prerender-path] .home-share,
 html[data-date-stale~="weekend"] .site-boot-main .home-share,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-head__lede,
+html[data-date-stale~="weekend"] .site-boot-main .home-head__lede,
 html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"],
 html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"],
+html[data-date-stale~="day"] main[data-prerender-path] .home-head__dateline,
+html[data-date-stale~="day"] .site-boot-main .home-head__dateline,
 html[data-date-stale~="day"] main[data-prerender-path] .home-offers,
 html[data-date-stale~="day"] .site-boot-main .home-offers{position:relative;visibility:hidden;animation:date-guard-reveal 0s 15s forwards}
 html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"]::before,
@@ -55,8 +60,12 @@ html[data-date-stale~="weekend"] main[data-prerender-path] .home-feed::before,
 html[data-date-stale~="weekend"] .site-boot-main .home-feed::before,
 html[data-date-stale~="weekend"] main[data-prerender-path] .home-share::before,
 html[data-date-stale~="weekend"] .site-boot-main .home-share::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-head__lede::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-head__lede::before,
 html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"]::before,
 html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before,
+html[data-date-stale~="day"] main[data-prerender-path] .home-head__dateline::before,
+html[data-date-stale~="day"] .site-boot-main .home-head__dateline::before,
 html[data-date-stale~="day"] main[data-prerender-path] .home-offers::before,
 html[data-date-stale~="day"] .site-boot-main .home-offers::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:12px;background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
 html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope] [data-date-scope]::before,
@@ -67,5 +76,5 @@ html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"] [data-date-
 @keyframes date-guard-clear{to{visibility:hidden}}
 @keyframes date-guard-shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
 @media (prefers-reduced-motion:reduce){
-  html[data-date-stale] main[data-prerender-path] [data-date-scope]::before,html[data-date-stale] main[data-prerender-path] .home-weekend::before,html[data-date-stale] main[data-prerender-path] .home-weekly-share::before,html[data-date-stale] main[data-prerender-path] .home-picks::before,html[data-date-stale] main[data-prerender-path] .home-feed::before,html[data-date-stale] main[data-prerender-path] .home-share::before,html[data-date-stale] main[data-prerender-path] .home-offers::before,html[data-date-stale] .site-boot-main [data-date-scope]::before,html[data-date-stale] .site-boot-main .home-weekend::before,html[data-date-stale] .site-boot-main .home-weekly-share::before,html[data-date-stale] .site-boot-main .home-picks::before,html[data-date-stale] .site-boot-main .home-feed::before,html[data-date-stale] .site-boot-main .home-share::before,html[data-date-stale] .site-boot-main .home-offers::before{animation:date-guard-clear 0s 15s forwards}
+  html[data-date-stale] main[data-prerender-path] [data-date-scope]::before,html[data-date-stale] main[data-prerender-path] .home-weekend::before,html[data-date-stale] main[data-prerender-path] .home-weekly-share::before,html[data-date-stale] main[data-prerender-path] .home-picks::before,html[data-date-stale] main[data-prerender-path] .home-feed::before,html[data-date-stale] main[data-prerender-path] .home-share::before,html[data-date-stale] main[data-prerender-path] .home-head__lede::before,html[data-date-stale] main[data-prerender-path] .home-head__dateline::before,html[data-date-stale] main[data-prerender-path] .home-offers::before,html[data-date-stale] .site-boot-main [data-date-scope]::before,html[data-date-stale] .site-boot-main .home-weekend::before,html[data-date-stale] .site-boot-main .home-weekly-share::before,html[data-date-stale] .site-boot-main .home-picks::before,html[data-date-stale] .site-boot-main .home-feed::before,html[data-date-stale] .site-boot-main .home-share::before,html[data-date-stale] .site-boot-main .home-head__lede::before,html[data-date-stale] .site-boot-main .home-head__dateline::before,html[data-date-stale] .site-boot-main .home-offers::before{animation:date-guard-clear 0s 15s forwards}
 }

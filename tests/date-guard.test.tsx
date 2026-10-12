@@ -116,21 +116,60 @@ test('the events column marks its range line, counts and body: weekend on 本周
   assert.equal(calendar.querySelector('.ev-body > div[data-date-scope="day"] > p')?.textContent, '2026-10-12', 'the calendar view sits inside the day block');
 });
 
-test('every event and offer on the prerendered home sits in a block the guard covers (WEB-HOME: dateScope() or a covered class)', async () => {
+/** An event count ("全部 63 场", "本周末 67 场活动", "All 63 events"): the smallest element whose text carries one. */
+const EVENT_COUNT = /\d+\s*场|\b\d+ events\b|\bAll \d+\b/u;
+const countLines = (root: Element) => [...root.querySelectorAll('*')].filter(node => EVENT_COUNT.test(node.textContent || '') && ![...node.children].some(child => EVENT_COUNT.test(child.textContent || '')));
+const describe = (node: Element) => node.outerHTML.replace(/\s+/gu, ' ').slice(0, 120);
+
+test('every event, offer, <time> and event count on the prerendered home sits in a block the guard covers (WEB-HOME: dateScope() or a covered class)', async () => {
   // The home prerender (scripts/prerender.tsx) renders HomeDiscovery. A dated item outside every covered block would show
-  // last weekend's (or yesterday's) pick on a later day: this test turns red when a home redesign drops the marks.
+  // last weekend's (or yesterday's) pick, count or dateline on a later day: this test turns red when a home redesign drops
+  // the marks. WEB-HOME's head carries the build day (<time> in .home-head__dateline) and the weekend count
+  // (.home-head__lede); checked against its tree (see PR.md): red without those two fallbacks, green with them.
+  const today = '2026-10-12';
   const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
-  const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2026-10-12" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
+  const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
   const doc = new JSDOM(`<!doctype html><html data-date-stale="day weekend"><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
-  const dated = [...doc.querySelectorAll('main a[href]')].filter(link => /^\/(?:events|offers|openings)\/[^/?#]+/.test(link.getAttribute('href') || ''));
+  const main = doc.querySelector('main')!;
+  const dated = [...main.querySelectorAll('a[href]')].filter(link => /^\/(?:events|offers|openings)\/[^/?#]+/.test(link.getAttribute('href') || ''));
   const events = dated.filter(link => link.getAttribute('href')!.startsWith('/events/'));
   const offers = dated.filter(link => link.getAttribute('href')!.startsWith('/offers/'));
+  const times = [...main.querySelectorAll('time')];
+  const counts = countLines(main);
   assert.ok(events.length >= 3, 'home lists this weekend’s events');
+  assert.ok(times.length >= 1 && counts.length >= 1, 'home shows dates and an event count');
+  // A Sunday or a later week: everything dated is stale.
   const covered = coveredIn(doc);
   assert.deepEqual(dated.filter(link => !insideCovered(link, covered)).map(link => link.getAttribute('href')), []);
-  // Monday to Wednesday ("day" only): the 本周末 picks keep, the dated offers are covered.
+  assert.deepEqual(times.filter(node => !insideCovered(node, covered)).map(describe), [], 'every <time> on home is covered');
+  assert.deepEqual(counts.filter(node => !insideCovered(node, covered)).map(describe), [], 'every event count is covered');
+  // Monday to Saturday of the build's week ("day" only): the 本周末 picks keep; dated offers and the build day are covered.
   doc.documentElement.setAttribute('data-date-stale', 'day');
   const dayCovered = coveredIn(doc);
   assert.deepEqual(events.filter(link => insideCovered(link, dayCovered)).map(link => link.getAttribute('href')), [], 'the 本周末 picks keep all week');
   assert.deepEqual(offers.filter(link => !insideCovered(link, dayCovered)).map(link => link.getAttribute('href')), [], 'dated offers are keyed to the day');
+  assert.deepEqual(times.filter(node => node.getAttribute('datetime') === today && !insideCovered(node, dayCovered)).map(describe), [], 'a <time> showing the build day is keyed to the day');
+});
+
+test('the home fallbacks reach WEB-HOME’s head: the dateline is a day block, the weekend count a weekend block', () => {
+  // The shape of WEB-HOME's HomeHead (src/features/home/HomeHead.tsx there) as prerendered.
+  const doc = new JSDOM(`<!doctype html><html data-date-stale="day"><body><main data-prerender-path="/"><header class="home-head">
+    <p class="home-head__dateline"><span>湾区</span> · <time datetime="2026-10-12">10 月 12 日 周一</time></p><h1 class="home-head__title">这个周末，湾区去哪？</h1>
+    <p class="home-head__lede">本周末 67 场活动 · 141 篇办事指南 · 每条附官方来源，10/12 核对</p></header></main>
+    <div class="site-boot-main"><p class="home-head__dateline"><time datetime="2026-10-12">10 月 12 日 周一</time></p><p class="home-head__lede">本周末 67 场活动</p></div>
+    <main id="app"><p class="home-head__dateline"><time datetime="2026-10-19">10 月 19 日 周一</time></p></main></body></html>`).window.document;
+  const covered = (stale: string) => { doc.documentElement.setAttribute('data-date-stale', stale); return [...coveredIn(doc)].map(node => `${node.closest('.site-boot-main') ? 'boot' : 'prerender'} ${node.className}`); };
+  assert.deepEqual(covered('day'), ['prerender home-head__dateline', 'boot home-head__dateline'], 'Monday to Saturday: only the dateline; the app’s own head never');
+  assert.deepEqual(covered('day weekend'), ['prerender home-head__dateline', 'prerender home-head__lede', 'boot home-head__dateline', 'boot home-head__lede']);
+  const { skeleton } = guardRules();
+  for (const block of ['home-head__dateline', 'home-head__lede']) assert.equal(skeleton.filter(selector => selector.endsWith(`.${block}::before`)).length, 2, `${block} draws its skeleton in both wrappers`);
+  // Every skeleton stops shimmering under reduced motion (the reduced-motion rule names each block without its scope).
+  const reduced: string[] = [];
+  postcss.parse(fs.readFileSync('src/features/source-monitor/source-monitor.css', 'utf8')).walkAtRules('media', media => {
+    if (media.params.includes('prefers-reduced-motion')) media.walkRules(rule => { reduced.push(...rule.selectors); });
+  });
+  for (const selector of skeleton) {
+    const unscoped = selector.replace(/^html\[data-date-stale~="\w+"\]/u, 'html[data-date-stale]').replace(/\[data-date-scope="\w+"\]/u, '[data-date-scope]');
+    assert.ok(reduced.includes(unscoped), `reduced motion: ${unscoped}`);
+  }
 });
