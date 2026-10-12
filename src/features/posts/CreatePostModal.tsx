@@ -65,7 +65,7 @@ const DefaultCoverPicker = ({
           <button type="button" onClick={() => onSelect(null)} className="shrink-0 text-[0.8125rem] font-semibold text-baylink-muted hover:text-red-500">清除封面</button>
         </div>
       )}
-      <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-xs font-semibold text-baylink-text transition hover:border-baylink-green/40">
+      <button type="button" onClick={onToggleOpen} className="mt-2 w-full rounded-lg border border-baylink-border/60 bg-baylink-section/40 py-2 text-[0.8125rem] font-semibold text-baylink-text transition hover:border-baylink-green/40">
         {open ? '收起封面' : '选择默认封面'}
       </button>
       {open && (
@@ -372,8 +372,8 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
       <div className="member-compose-success">
         <h2 className="text-xl font-bold text-baylink-text">有一份没写完的草稿</h2>
         <p className="mt-3 text-sm text-baylink-text-secondary">{savedDraft.form.title || savedDraft.aiIntent.slice(0, 70) || '未命名的发布草稿'}</p>
-        <p className="mt-2 text-xs leading-relaxed text-baylink-text-secondary">保存于 {new Date(savedDraft.updatedAt).toLocaleString('zh-CN')}，仅在当前账号的本机浏览器中保留。照片没有保存，恢复后请重新选择。</p>
-        {initialIntent.trim() && <p className="mt-2 text-xs text-baylink-text-secondary">继续旧草稿会保留原来的内容；选择重新开始，会带入你这次向 BayBay 提出的需求。</p>}
+        <p className="mt-2 text-[0.8125rem] leading-relaxed text-baylink-text-secondary">保存于 {new Date(savedDraft.updatedAt).toLocaleString('zh-CN')}，仅在当前账号的本机浏览器中保留。照片没有保存，恢复后请重新选择。</p>
+        {initialIntent.trim() && <p className="mt-2 text-[0.8125rem] text-baylink-text-secondary">继续旧草稿会保留原来的内容；选择重新开始，会带入你这次向 BayBay 提出的需求。</p>}
         <div className="mt-6 flex flex-col gap-2">
           <button type="button" className="member-primary min-h-11" onClick={restoreDraft}>继续之前的草稿</button>
           <button type="button" className="member-secondary min-h-11" onClick={discardSavedDraft}>丢弃旧草稿，重新开始</button>
@@ -637,7 +637,7 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
           <div className="member-compose-step space-y-4">
             <div className="member-compose-section-title"><span><MapPin size={18} aria-hidden="true" /></span><div><h3>补充发布设置</h3><p>确认地区、时间，以及你希望被联系的方式。</p></div></div>
             <div>
-              <label className="block text-xs font-normal text-baylink-text-secondary mb-2">选择地区</label>
+              <label className="block text-[0.8125rem] font-normal text-baylink-text-secondary mb-2">选择地区</label>
               <div className="grid grid-cols-2 gap-2">
                 {REGIONS.map(r => (
                   <button
@@ -676,11 +676,11 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
             <div className="member-compose-contact"><ContactPreferenceForm value={contactPreference} onChange={setContactPreference} /></div>
             {isEdit && (
               <div className="rounded-xl border border-baylink-border/60 bg-white p-3">
-                <label htmlFor="post-status" className="mb-2 block text-xs font-semibold">信息状态</label>
+                <label htmlFor="post-status" className="mb-2 block text-[0.8125rem] font-semibold">信息状态</label>
                 <select id="post-status" value={postStatus} onChange={(e) => { setPostStatus(e.target.value as 'active' | 'closed'); setConfirmAvailability(false); }} className="w-full rounded-lg border border-baylink-border bg-white p-2 text-sm">
                   <option value="active">仍在进行</option><option value="closed">{closedStatusLabel}</option>
                 </select>
-                {postStatus === 'active' && editingPost?.authorId === user.id && <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed">
+                {postStatus === 'active' && editingPost?.authorId === user.id && <label className="mt-3 flex items-start gap-2 text-[0.8125rem] leading-relaxed">
                   <input type="checkbox" className="mt-0.5 accent-baylink-green" checked={confirmAvailability} onChange={(e) => setConfirmAvailability(e.target.checked)} />
                   <span>我已重新核实，这条信息目前仍然有效。<span className="block mt-1 text-baylink-muted">仅修改文字不会更新有效性确认时间。</span></span>
                 </label>}

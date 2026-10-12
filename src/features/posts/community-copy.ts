@@ -48,12 +48,12 @@ export function publishLabel(category: string): Copy {
 }
 
 /**
- * The founder's own account and the platform admin account post the seed listings (D20: 站长发布). Like
- * src/lib/ad-disclosure.ts, the ids are listed here; `author.isAdmin` covers any other admin account.
+ * The founder's own account and the platform admin account he posts the seed listings from (D20: 站长发布). Like
+ * src/lib/ad-disclosure.ts, the ids are listed here — only these two: another admin account (a moderator) is not the
+ * site owner, and the post sheet names its posts 「BAYLINK 平台账号发布」 instead.
  */
 const FOUNDER_ACCOUNT_IDS = new Set(['1779316048437', 'admin']);
-export const isFounderPost = (post: Pick<PostData, 'authorId'> & { author?: { isAdmin?: boolean } | null }) =>
-  FOUNDER_ACCOUNT_IDS.has(post.authorId) || !!post.author?.isAdmin;
+export const isFounderPost = (post: Pick<PostData, 'authorId'>) => FOUNDER_ACCOUNT_IDS.has(post.authorId);
 export const FOUNDER_LABEL: Copy = { zh: '站长发布', en: 'Posted by the site owner' };
 
 /** Counts under 3 are not shown (D20: no numbers that make a quiet board look emptier or busier than it is). */
@@ -75,4 +75,11 @@ export function postDate(createdAt: number, english: boolean, now = Date.now()):
     return text;
   }
   return parts.year === thisYear ? `${parts.month}/${parts.day}` : `${parts.year}/${parts.month}/${parts.day}`;
+}
+
+/** 「6/12 发布」; en "Posted Jun 12". */
+export function postedOn(createdAt: number, english: boolean, now = Date.now()): string {
+  const date = postDate(createdAt, english, now);
+  if (!date) return '';
+  return english ? `Posted ${date}` : `${date} 发布`;
 }

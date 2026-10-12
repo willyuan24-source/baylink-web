@@ -23,7 +23,7 @@ const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
 const { default: CommunityBoard } = await import('../src/pages/CommunityBoard');
 const { NoticeOptIn } = await import('../src/features/posts/NoticeOptIn');
-const { isFounderPost, postDate, publishLabel, showCount } = await import('../src/features/posts/community-copy');
+const { isFounderPost, postDate, postedOn, publishLabel, showCount } = await import('../src/features/posts/community-copy');
 const originalRequest = api.request;
 const quietApi = (async () => ({ posts: [], ads: [] })) as typeof api.request;
 before(() => { api.request = quietApi; });
@@ -79,14 +79,24 @@ test('?recent=1 with nothing recent offers 查看较早信息 (the WEB-UI EmptyS
   assert.ok(view.container.querySelector('.ui-state[data-kind=empty]'));
 });
 
-test('the founder and admin accounts’ posts say 站长发布; other members’ do not', () => {
-  const view = board([post('f', { authorId: '1779316048437', author: { id: '1779316048437', nickname: 'Will Yuan' } }), post('m')]);
+test('the founder’s two accounts’ posts say 站长发布; other members’ and other admins’ do not', () => {
+  const view = board([post('f', { authorId: '1779316048437', author: { id: '1779316048437', nickname: 'Will Yuan' } }), post('m'),
+    post('moderator', { authorId: 'moderator-1', author: { id: 'moderator-1', nickname: '版主', isAdmin: true } as PostData['author'] })]);
   const cards = [...view.container.querySelectorAll('.cm-card')];
   assert.ok(cards[0].textContent!.includes('站长发布'));
   assert.ok(!cards[1].textContent!.includes('站长发布'));
+  assert.ok(!cards[2].textContent!.includes('站长发布'), 'a moderator is not the site owner');
   assert.equal(isFounderPost({ authorId: 'admin' }), true);
-  assert.equal(isFounderPost({ authorId: 'someone', author: { isAdmin: true } }), true);
-  assert.equal(isFounderPost({ authorId: 'someone', author: {} }), false);
+  assert.equal(isFounderPost({ authorId: 'moderator-1' }), false);
+});
+
+test('board cards are grid cards; a card outside a feed grid (我的发布) is a row by default', async () => {
+  const view = board([post('a')]);
+  assert.equal(view.container.querySelector('.cm-card')!.getAttribute('data-layout'), 'grid');
+  cleanup();
+  const { PostCard } = await import('../src/features/posts/PostCard');
+  const list = render(<MemoryRouter><PostCard post={post('mine')} /></MemoryRouter>);
+  assert.equal(list.container.querySelector('.cm-card')!.getAttribute('data-layout'), 'list');
 });
 
 test('English boards use English names, dates and the publish label; the composer is never preset to 提供 / 需求', async () => {
@@ -100,6 +110,13 @@ test('English boards use English names, dates and the publish label; the compose
   assert.doesNotMatch(chrome, /\p{Script=Han}/u);
   assert.match(postDate(Date.UTC(2026, 5, 13, 19), true, Date.UTC(2026, 9, 12)), /^Jun 13$/);
   assert.equal(postDate(Date.UTC(2026, 5, 13, 19), false, Date.UTC(2026, 9, 12)), '6/13');
+  // English reads "Posted Jun 13" (never "Jun 13 posted").
+  assert.equal(postedOn(Date.UTC(2026, 5, 13, 19), true, Date.UTC(2026, 9, 12)), 'Posted Jun 13');
+  assert.equal(postedOn(Date.UTC(2026, 5, 13, 19), false, Date.UTC(2026, 9, 12)), '6/13 发布');
+  assert.match(view.container.querySelector('.cm-card__meta')!.textContent!, /^Peninsula · Posted [A-Z][a-z]{2} \d+/);
+  // 出租 / 求租 is a radio group of chips (the area chips' two styles).
+  const types = screen.getByRole('radiogroup', { name: 'Type of post' });
+  assert.deepEqual([...types.querySelectorAll('[role=radio]')].map(item => [item.className, item.getAttribute('aria-checked')]), [['ui-chip', 'true'], ['ui-chip', 'false']]);
 });
 
 const settings = (overrides: Record<string, unknown> = {}) => ({
@@ -127,7 +144,7 @@ test('FC3-05: with every reminder off, one tap turns on email for messages and c
 });
 
 test('FC3-05: nothing is offered when a reminder is already on, when the settings cannot be read, or after 以后再说', async () => {
-  localStorage.setItem('currentUser', JSON.stringify({ id: 'member-1', token: 't' }));
+  localStorage.setItem('currentUser', JSON.stringify({ id: 'member-1', token: 't', email: 'member@example.com' }));
   const wait = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
   api.request = (async () => settings({ preferences: { email: { message: true, contact_request: false }, sms: {} } })) as typeof api.request;
   let view = render(<MemoryRouter><NoticeOptIn userId="member-1" context="dm" /></MemoryRouter>);
@@ -141,11 +158,34 @@ test('FC3-05: nothing is offered when a reminder is already on, when the setting
   cleanup();
   api.request = (async () => settings({ emailVerified: false })) as typeof api.request;
   view = render(<MemoryRouter><NoticeOptIn userId="member-1" context="post" /></MemoryRouter>);
-  assert.ok(await screen.findByRole('button', { name: '验证邮箱并开启' }));
+  // Unverified: the button says what the tap does (the API turns email on only for a verified address).
+  assert.ok(await screen.findByRole('button', { name: '先验证邮箱' }));
   fireEvent.click(screen.getByRole('button', { name: '以后再说' }));
   assert.equal(view.container.querySelector('.cm-optin'), null);
   cleanup();
   view = render(<MemoryRouter><NoticeOptIn userId="member-1" context="post" /></MemoryRouter>);
   await wait();
   assert.equal(view.container.querySelector('.cm-optin'), null, '以后再说 is remembered for this account');
+});
+
+test('FC3-05: an unverified account without a usable email is offered nothing; a stale address gets a plain note', async () => {
+  const wait = () => act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+  localStorage.setItem('currentUser', JSON.stringify({ id: 'member-2', token: 't', email: '' }));
+  api.request = (async () => settings({ emailVerified: false })) as typeof api.request;
+  let view = render(<MemoryRouter><NoticeOptIn userId="member-2" context="dm" /></MemoryRouter>);
+  await wait();
+  assert.equal(view.container.querySelector('.cm-optin'), null);
+  cleanup();
+  localStorage.setItem('currentUser', JSON.stringify({ id: 'member-2', token: 't', email: 'old@example.com' }));
+  api.request = (async (path: string) => {
+    if (path === '/notifications/email/start') throw { status: 403, error: '当前账号邮箱不可用。' };
+    return settings({ emailVerified: false });
+  }) as typeof api.request;
+  let shown = 0;
+  view = render(<MemoryRouter><NoticeOptIn userId="member-2" context="dm" onShown={() => { shown += 1; }} /></MemoryRouter>);
+  const verify = await screen.findByRole('button', { name: '先验证邮箱' });
+  await act(async () => { fireEvent.click(verify); });
+  await waitFor(() => assert.match(screen.getByRole('status').textContent!, /还没有可用的邮箱/));
+  assert.equal(shown, 1, 'onShown runs once, when the offer appears');
+  assert.equal(view.container.querySelector('[role=alert]'), null);
 });

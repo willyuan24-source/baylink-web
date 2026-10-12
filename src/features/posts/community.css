@@ -19,14 +19,14 @@
 .cm-search input { flex:1; min-width:0; min-height:2.75rem; border:0; outline:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); }
 .cm-search input::placeholder { color:var(--color-ink-3); }
 .cm-search:focus-within { border-color:var(--color-brand); }
-.cm-search__submit { flex:none; min-height:2.5rem; min-width:2.75rem; padding:0 .875rem; border-radius:9px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+/* The submit is the WEB-UI text button (no fill of its own: one button family less on the board, SYS ≤5). */
+.cm-search .cm-search__submit { flex:none; min-height:2.75rem; padding:0 .75rem; }
 
 .cm-board__filters { display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem; }
-/* The type switch sizes each label to its words (en "Looking to rent" never ends in "…"); 近期确认 wraps under it when
-   the row is too narrow (390 en, 特大). */
+/* The type switch is a radio group of WEB-UI chips (the same two chip styles as the areas: SYS ≤5 button styles); each
+   label keeps its words (en "Looking to rent"), and 近期确认 wraps under it when the row is too narrow (390 en, 特大). */
 .cm-board__switches { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .75rem; }
-.cm-board__switches .ui-segmented { flex:1 1 auto; max-width:24rem; }
-.cm-board__switches .ui-segmented__item { flex:1 1 auto; }
+.cm-type-switch { display:flex; flex-wrap:wrap; gap:.5rem; }
 .cm-board__switches .ui-chip { flex:none; }
 
 .cm-board__results { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem 1rem; margin:1rem 0 .75rem; }
@@ -56,15 +56,17 @@
   .cm-board__ads { grid-column:1 / -1; }
 }
 
-/* Related guides under the filters (CategoryGuideStrip). */
+/* Related guides under the filters (CategoryGuideStrip): a plain list with dividers, like the sheet's facts — rows, not
+   bordered buttons (SYS ≤5 button styles). */
 .cm-guides { margin:2.5rem 0 0; }
-.cm-guides__title { margin:0 0 .5rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; font-weight:600; }
-.cm-guides__list { display:grid; gap:.5rem; margin:0; padding:0; list-style:none; }
-.cm-guides__list a { display:flex; align-items:center; gap:.5rem; min-height:var(--control-height); padding:.5rem .75rem; border:1px solid var(--color-line); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; text-decoration:none; }
+.cm-guides__title { margin:0 0 .25rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; font-weight:600; }
+.cm-guides__list { display:grid; margin:0; padding:0; list-style:none; }
+.cm-guides__list>li { border-bottom:1px solid var(--color-line); }
+.cm-guides__list a { display:flex; align-items:center; gap:.5rem; min-height:var(--control-height); padding:.5rem 0; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; text-decoration:none; }
 .cm-guides__list a>span { flex:1; min-width:0; }
-.cm-guides__list a>svg { flex:none; width:1rem; height:1rem; color:var(--color-ink-3); }
-.cm-guides__list a:hover { border-color:var(--color-line-strong); }
-@media (min-width:768px) { .cm-guides__list { grid-template-columns:repeat(3, minmax(0, 1fr)); } }
+.cm-guides__list a>svg { flex:none; width:1.125rem; height:1.125rem; color:var(--color-ink-3); }
+.cm-guides__list a:hover>span { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; }
+@media (min-width:768px) { .cm-guides__list { grid-template-columns:repeat(3, minmax(0, 1fr)); column-gap:1.5rem; } }
 
 /* Safety note (CategorySafetyNotice) inside the board and on the post sheet. */
 .cm-safety { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -106,15 +108,27 @@
 .cm-menu button:hover { background:var(--color-surface-2); }
 .cm-menu .cm-menu__danger { color:var(--color-danger); }
 .cm-save-error { display:block; color:var(--color-danger); font-size:var(--text-caption); }
-/* A post card outside a feed grid (My posts, a profile): one card per row. */
-.cm-card[data-layout=list] { max-width:24rem; margin-bottom:1.5rem; }
+/* A post card outside a feed grid (我的发布): a row — a 5.5rem thumbnail, then the title, meta and status; rows divided
+   like the WEB-UI row card. */
+/* The last row is 1fr: a thumbnail taller than the text grows that row, not the gaps between the text lines. */
+.cm-card[data-layout=list] { display:grid; grid-template-columns:5.5rem minmax(0, 1fr); grid-template-rows:repeat(5, auto) 1fr; column-gap:12px; row-gap:2px; padding:12px 3rem 12px 0; border-bottom:1px solid var(--color-line); }
+.cm-card[data-layout=list]>* { grid-column:2; }
+.cm-card[data-layout=list]>:is(.ui-feed-card__save,.cm-card__menu) { grid-column:auto; }
+.cm-card[data-layout=list]>.ui-feed-card__media { grid-column:1; grid-row:1 / span 6; align-self:start; margin:0; border-radius:10px; }
+.cm-card[data-layout=list] .ui-cover { border-radius:10px; }
+.cm-card[data-layout=list] .ui-card-link::after { border-radius:10px; }
+.cm-card[data-layout=list] .ui-stickers,.cm-card[data-layout=list] .cm-cover__note,.cm-card[data-layout=list] .cm-cover__type>span { display:none; }
+.cm-card[data-layout=list] .cm-cover__type { padding:0; }
+.cm-card[data-layout=list] .cm-cover__type>svg { width:2rem; height:2rem; }
+.cm-card[data-layout=list] .ui-feed-card__title { font-size:var(--text-body); line-height:1.5; }
+.cm-card[data-layout=list] .ui-feed-card__meta { font-size:var(--text-fact); line-height:1.571; white-space:normal; }
+.cm-card[data-layout=list] .ui-feed-card__save { top:8px; right:0; }
+.cm-card[data-layout=list] .cm-card__menu { top:12px; left:0; }
 
-/* Text actions (有用, 收藏, 分享) on the post sheet. */
-.cm-action { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:var(--control-height); min-width:2.75rem; padding:0 .75rem; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
+/* 收藏 / 有用 / 分享 on the post sheet are WEB-UI secondary buttons; only their icon is styled here. */
 .cm-action>svg { flex:none; width:1.125rem; height:1.125rem; color:var(--color-brand); }
 .cm-action[aria-pressed=true]>svg { fill:currentColor; }
 .cm-action__count { font-variant-numeric:tabular-nums; color:var(--color-ink-2); }
-.cm-action--compact { border-color:transparent; }
 
 /* ---------- Post sheet (T20): a full-height page over the board ---------- */
 /* The page under the sheet is hidden while it is open: one H1, and nothing behind the sheet for a screen reader. */
@@ -126,7 +140,7 @@ html[data-post-sheet] #root main { visibility:hidden; }
 .cm-sheet__toolbar-actions { position:relative; display:flex; align-items:center; gap:2px; }
 .cm-sheet__scroll { flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; }
 .cm-sheet__body { width:min(100%, 60rem); margin:0 auto; padding:1rem 1rem 2rem; }
-.cm-sheet__gallery { display:flex; gap:8px; overflow-x:auto; margin:0 -1rem 1rem; padding:0 1rem; scroll-snap-type:x mandatory; scrollbar-width:none; }
+.cm-sheet__gallery { display:flex; gap:8px; overflow-x:auto; margin:0 -1rem 1rem; padding:0 1rem; scroll-padding-inline:1rem; scroll-snap-type:x mandatory; scrollbar-width:none; }
 .cm-sheet__gallery::-webkit-scrollbar { display:none; }
 .cm-sheet__photo { position:relative; flex:0 0 min(100%, 30rem); scroll-snap-align:start; border-radius:16px; overflow:hidden; cursor:zoom-in; }
 .cm-sheet__gallery[data-single] .cm-sheet__photo { flex-basis:100%; }

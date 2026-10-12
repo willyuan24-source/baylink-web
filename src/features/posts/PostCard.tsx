@@ -10,12 +10,13 @@ import {
 import '../../components/ui/ui.css';
 import './community.css';
 import { StatusChip, Sticker, StickerRow } from '../../components/ui/Badges';
+import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { isDefaultCoverUrl, normalizePostImages } from '../../lib/constants';
 import { postImageUrl } from '../../lib/post-image';
 import { postAvailability } from '../../lib/postAvailability';
 import type { PostData, UserData } from '../../lib/types';
-import { categoryName, FOUNDER_LABEL, isFounderPost, postDate, regionName, showCount } from './community-copy';
+import { categoryName, FOUNDER_LABEL, isFounderPost, postedOn, regionName, showCount } from './community-copy';
 import { PostSaveHeart } from './PostSaveHeart';
 import { usePostTranslation } from './usePostTranslation';
 import { usePostVisibility } from './usePostVisibility';
@@ -25,14 +26,13 @@ const categoryIcons: Record<string, typeof House> = {
   租屋: House, 闲置: Armchair, 维修: Wrench, 接送: Car, 兼职: BriefcaseBusiness, 搬家: Truck, 清洁: Sparkles, 翻译: Languages,
 };
 
-/** 有用: the count shows from 3 (D20). */
-export const UsefulLikeButton = ({ post, onLike, compact = false }: { post: PostData; onLike: (post: PostData) => void; compact?: boolean }) => {
+/** 有用 (the WEB-UI secondary button): the count shows from 3 (D20). */
+export const UsefulLikeButton = ({ post, onLike }: { post: PostData; onLike: (post: PostData) => void }) => {
   const { t } = useUiCopy();
-  return <button type="button" onClick={(event) => { event.stopPropagation(); onLike(post); }}
-    className={`cm-action${compact ? ' cm-action--compact' : ''}`} aria-pressed={post.hasLiked}
-    title={post.hasLiked ? t('取消标记有用', 'Unmark as helpful') : t('标记为有用', 'Mark as helpful')}>
-    <ThumbsUp aria-hidden="true" strokeWidth={1.75} />{t('有用', 'Helpful')}{showCount(post.likesCount) && <span className="cm-action__count">{post.likesCount}</span>}
-  </button>;
+  return <Button variant="secondary" className="cm-action" aria-pressed={!!post.hasLiked} onClick={(event) => { event.stopPropagation(); onLike(post); }}
+    title={post.hasLiked ? t('取消标记有用', 'Unmark as helpful') : t('标记为有用', 'Mark as helpful')} icon={<ThumbsUp aria-hidden="true" strokeWidth={1.75} />}>
+    {t('有用', 'Helpful')}{showCount(post.likesCount) && <span className="cm-action__count">{post.likesCount}</span>}
+  </Button>;
 };
 
 /**
@@ -73,7 +73,10 @@ export function PostStatusLine({ post }: { post: PostData }) {
 
 type PostCardProps = {
   post: PostData; currentUser?: UserData | null; blockedUserIds?: string[];
-  /** `grid`: the 1:1 feed card. `list`: one column (My posts, a profile); the feed's own layout switch decides on the board. */
+  /**
+   * `grid`: the 1:1 card inside a WEB-UI FeedGrid (the board, 同区同类; the grid's own switch sets its columns).
+   * `list` (the default): a row with a small thumbnail, for a plain list outside a feed grid (我的发布).
+   */
   layout?: 'list' | 'grid';
   /** The first card of the feed (LCP). */
   priority?: boolean;
@@ -86,7 +89,7 @@ type PostCardProps = {
 
 const plainClick = (event: MouseEvent) => !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0;
 
-export const PostCard = ({ post, layout = 'grid', priority, onClick, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: PostCardProps) => {
+export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser, onEdit, onDelete, onToggleFeature, onReport, onToggleBlockUser, blockedUserIds }: PostCardProps) => {
   const { t, pick, english } = useUiCopy();
   const location = useLocation();
   const backgroundLocation = location.state?.backgroundLocation || location;
@@ -98,7 +101,7 @@ export const PostCard = ({ post, layout = 'grid', priority, onClick, currentUser
   const reading = usePostTranslation(post, visible);
   const displayed = reading.display;
   const images = normalizePostImages(post).filter(url => !isDefaultCoverUrl(url));
-  const meta = [post.city ? pick(regionName(post.city)) : t('湾区', 'Bay Area'), `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`].join(' · ');
+  const meta = [post.city ? pick(regionName(post.city)) : t('湾区', 'Bay Area'), postedOn(post.createdAt, english)].filter(Boolean).join(' · ');
   const close = () => setMenuOpen(false);
   return <article ref={ref} className="ui-feed-card cm-card" data-layout={layout} data-closed={post.status === 'closed' ? '' : undefined}>
     <h3 className="ui-feed-card__title cm-card__title">

@@ -143,8 +143,10 @@ test("offline, 重新加载 tries in place (a reload would show the browser's of
     boardBlocked = false;
     scrolled.length = 0;
     fireEvent.click(screen.getByRole('button', { name: '重新加载' }));
-    await waitFor(() => assert.ok(screen.getByRole('heading', { level: 2, name: '邻里信息', exact: true } as never) || true), { timeout: 5000 });
-    await waitFor(() => assert.ok(document.querySelector('.cm-board')), { timeout: 5000 });
+    // The home page has its own 邻里信息 heading; this waits for the board's (an H2 on the home page).
+    const title = await waitFor(() => { const element = document.querySelector('.cm-board #cm-board-title'); assert.ok(element); return element; }, { timeout: 5000 });
+    assert.equal(title.tagName, 'H2');
+    assert.equal(title.textContent, '邻里信息');
     assert.equal(screen.queryByText('连接暂时慢了一点'), null);
     await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']), undefined);
     assert.ok(document.getElementById('home-feed-section')?.classList.contains('cm-board__header'), 'the board, scrolled to its heading');

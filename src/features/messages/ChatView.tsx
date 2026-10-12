@@ -186,6 +186,12 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     setAtBottom(true); setNewMessages(0); markReadRef.current();
   };
+  // The reminder offer appears under the message just sent: bring it on screen the way a new message is (no read marks).
+  const revealOffer = useCallback(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    setAtBottom(true);
+  }, []);
   const handleScroll = () => {
     const bottom = isNearMessageBottom(scrollRef.current);
     setAtBottom(bottom);
@@ -302,7 +308,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
               </article>}
             </div>;
           })}
-          {sentHere && <NoticeOptIn userId={currentUser.id} context="dm" />}
+          {sentHere && <NoticeOptIn userId={currentUser.id} context="dm" onShown={revealOffer} />}
         </div>
         {(!atBottom || newMessages > 0) && <button type="button" className="modern-chat-jump" onClick={jumpToLatest}><ArrowDown size={15} />{newMessages ? <><span>{t('新消息', 'New messages')}</span><span translate="no">{newMessages}</span></> : <span>{t('回到最新消息', 'Jump to latest')}</span>}</button>}
         <div className="modern-chat-composer">

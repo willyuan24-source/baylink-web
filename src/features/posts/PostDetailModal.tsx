@@ -27,7 +27,7 @@ import { setPageMetadata } from '../../lib/seo';
 import { usePostTranslation } from './usePostTranslation';
 import { PostTranslationNotice } from './PostTranslationNotice';
 import { ServiceBookingPanel } from '../bookings/ServiceBookingPanel';
-import { categoryName, feedTypeNames, isFounderPost, postDate, regionName, showCount } from './community-copy';
+import { categoryName, feedTypeNames, isFounderPost, postedOn, regionName, showCount } from './community-copy';
 
 const extractQuickTagsFromDescription = (description: string): string[] => {
   const matches = String(description || '').match(/#([^\s#]+)/g) || [];
@@ -52,22 +52,29 @@ export const PostDetailModal = (props: PostDetailProps) => (
   <PostDetailSession key={`${props.post.id}:${props.currentUser?.id || 'guest'}`} {...props} />
 );
 
-/** Up to three other posts in the same category, from the same area first (同区同类); older ones are labelled on the card. */
-function RelatedPosts({ post, currentUser, blockedUserIds }: { post: PostData; currentUser: UserData | null; blockedUserIds?: string[] }) {
+/**
+ * 同区同类: three other open posts in the same category — the same area's first, then the rest of the category (closed
+ * posts and blocked members' left out). The heading names the area only when every card shown is from it.
+ */
+export function RelatedPosts({ post, currentUser, blockedUserIds }: { post: PostData; currentUser: UserData | null; blockedUserIds?: string[] }) {
   const { t, pick } = useUiCopy();
   const [state, setState] = useState<{ posts: PostData[]; sameArea: boolean } | null>(null);
   useEffect(() => {
     let cancelled = false;
     const blocked = new Set(blockedUserIds || []);
     const usable = (items: PostData[] | undefined) => (items || []).filter(item => item.id !== post.id && item.status !== 'closed' && !blocked.has(item.authorId));
-    const query = (city?: string) => api.request(`/posts?page=1&limit=4&availability=all&category=${encodeURIComponent(post.category)}${city ? `&city=${encodeURIComponent(city)}` : ''}`) as Promise<{ posts?: PostData[] }>;
+    const query = (limit: number, city?: string) => api.request(`/posts?page=1&limit=${limit}&availability=all&category=${encodeURIComponent(post.category)}${city ? `&city=${encodeURIComponent(city)}` : ''}`) as Promise<{ posts?: PostData[] }>;
     (async () => {
-      try {
-        const local = post.city ? usable((await query(post.city)).posts) : [];
-        if (local.length >= 1 || !post.category) { if (!cancelled) setState({ posts: local.slice(0, 3), sameArea: true }); return; }
-        const wider = usable((await query()).posts);
-        if (!cancelled) setState({ posts: wider.slice(0, 3), sameArea: false });
-      } catch { if (!cancelled) setState({ posts: [], sameArea: true }); }
+      if (!post.category) { if (!cancelled) setState({ posts: [], sameArea: false }); return; }
+      let shown: PostData[] = [];
+      try { if (post.city) shown = usable((await query(4, post.city)).posts).slice(0, 3); } catch { /* The category below still fills the row. */ }
+      if (shown.length < 3) {
+        try {
+          const seen = new Set(shown.map(item => item.id));
+          shown = [...shown, ...usable((await query(8)).posts).filter(item => !seen.has(item.id))].slice(0, 3);
+        } catch { /* Whatever the area query found is shown. */ }
+      }
+      if (!cancelled) setState({ posts: shown, sameArea: !!post.city && shown.length > 0 && shown.every(item => item.city === post.city) });
     })();
     return () => { cancelled = true; };
   }, [post.id, post.category, post.city, blockedUserIds]);
@@ -76,7 +83,7 @@ function RelatedPosts({ post, currentUser, blockedUserIds }: { post: PostData; c
   return <section className="cm-sheet__related" aria-labelledby="cm-related-title">
     <h2 className="cm-board__subhead" id="cm-related-title">{state.sameArea ? t(`${pick(regionName(post.city))}的其他${name}信息`, `More ${name.toLowerCase()} posts in ${pick(regionName(post.city))}`) : t(`其他${name}信息`, `More ${name.toLowerCase()} posts`)}</h2>
     <FeedGrid label={t('同区同类', 'Similar posts')} ratio="1:1">
-      {state.posts.map(item => <FeedItem key={item.id}><PostCard post={item} currentUser={currentUser} /></FeedItem>)}
+      {state.posts.map(item => <FeedItem key={item.id}><PostCard post={item} layout="grid" currentUser={currentUser} /></FeedItem>)}
     </FeedGrid>
   </section>;
 }
@@ -101,6 +108,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   >({ type: 'new' });
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentBusy, setCommentBusy] = useState(false);
+  const commentInputRef = useRef<HTMLInputElement>(null);
   const busyRef = useRef(false);
   const active = useRef(true);
   const locallyModified = useRef(false);
@@ -126,7 +134,9 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
 
   const submitComment = async () => {
     if (!currentUser) return onLoginNeeded();
-    if (!input.trim() || busyRef.current) return;
+    if (busyRef.current) return;
+    // 发送 stays a plain secondary button (no greyed-out state): with nothing typed it puts the cursor in the box.
+    if (!input.trim()) { commentInputRef.current?.focus(); return; }
     busyRef.current = true;
     setCommentBusy(true);
     try {
@@ -238,7 +248,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
     onReport?.(post);
   };
 
-  const meta = [post.city ? pick(regionName(post.city)) : '', `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`, isPostEdited(post) ? t('已编辑', 'edited') : ''].filter(Boolean).join(' · ');
+  const meta = [post.city ? pick(regionName(post.city)) : '', postedOn(post.createdAt, english), isPostEdited(post) ? t('已编辑', 'edited') : ''].filter(Boolean).join(' · ');
 
   return (
     <ModalShell onClose={onClose} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className="cm-sheet">
@@ -290,7 +300,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
                 <div className="cm-sheet__reactions">
                   <PostSaveHeart post={post} title={displayed.title} userId={currentUser?.id} labelled />
                   {onLike && <UsefulLikeButton post={post} onLike={onLike} />}
-                  <button type="button" onClick={() => onShare(post)} className="cm-action"><Share2 aria-hidden="true" strokeWidth={1.75} />{t('分享给家人朋友', 'Share')}</button>
+                  <Button variant="secondary" className="cm-action" onClick={() => onShare(post)} icon={<Share2 aria-hidden="true" strokeWidth={1.75} />}>{t('分享', 'Share')}</Button>
                 </div>
               </section>
               {post.type === 'provider' && SERVICE_BOOKING_CATEGORIES.includes(post.category) && (
@@ -346,6 +356,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
               {commentMode.type !== 'new' && <div className="cm-sheet__reply-state"><span>{commentMode.type === 'reply' ? t(`回复 ${commentMode.nickname}`, `Replying to ${commentMode.nickname}`) : t('编辑评论', 'Editing your comment')}</span><Button variant="text" disabled={commentBusy} onClick={resetCommentInput}>{t('取消', 'Cancel')}</Button></div>}
               <div className="cm-sheet__composer-row">
                 <input
+                  ref={commentInputRef}
                   placeholder={commentPlaceholder}
                   aria-label={commentMode.type === 'reply' ? t(`回复 ${commentMode.nickname}`, `Reply to ${commentMode.nickname}`) : commentMode.type === 'edit' ? t('编辑评论内容', 'Edit comment') : t('评论内容', 'Comment')}
                   disabled={commentBusy}
@@ -356,7 +367,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
                   onCompositionEnd={() => { composing.current = false; }}
                   onKeyDown={event => { if (event.key === 'Enter' && !composing.current && !event.nativeEvent.isComposing && event.nativeEvent.keyCode !== 229) { event.preventDefault(); void submitComment(); } }}
                 />
-                <Button variant="secondary" onClick={() => void submitComment()} disabled={!input.trim() || commentBusy} aria-label={t('发送评论', 'Send comment')} icon={commentBusy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" strokeWidth={1.75} />}>{t('发送', 'Send')}</Button>
+                <Button variant="secondary" onClick={() => void submitComment()} aria-busy={commentBusy || undefined} aria-label={t('发送评论', 'Send comment')} icon={commentBusy ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Send aria-hidden="true" strokeWidth={1.75} />}>{t('发送', 'Send')}</Button>
               </div>
             </div>
           </section>

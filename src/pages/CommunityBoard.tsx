@@ -3,7 +3,7 @@
 // WEB-COMMUNITY (T15): one H1 (the board's name) with 测试中, region chips, the 1:1 post cards in the WEB-UI feed grid,
 // every post by default (FC3-04: the older ones say so, and a quiet board says 近 30 天 0 条新信息 instead of "empty"),
 // one publish button that does not preset 提供 / 需求 (E2E+2), and the safety note and guides under the feed.
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Loader2, Plus, RotateCw, Search, ShieldCheck } from 'lucide-react';
 import '../components/ui/ui.css';
@@ -13,13 +13,12 @@ import { Button } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { FeedGrid, FeedItem, FeedLayoutToggle } from '../components/ui/FeedGrid';
 import { useFeedLayout } from '../components/ui/feed-layout';
-import { SegmentedControl } from '../components/ui/Segmented';
 import { SkeletonCard } from '../components/ui/SkeletonCard';
 import { EmptyState, ErrorState } from '../components/ui/States';
 import { StatusChip } from '../components/ui/Badges';
 import { useUiCopy } from '../components/ui/ui-copy';
 import { REGIONS } from '../lib/constants';
-import type { PostData } from '../lib/types';
+import type { PostData, PostType } from '../lib/types';
 import { CategorySafetyNotice } from '../components/CategorySafetyNotice';
 import { PostCard } from '../features/posts/PostCard';
 import { BoardLinks } from '../features/posts/BoardLinks';
@@ -34,6 +33,26 @@ export interface CommunityBoardProps {
   scrollRequest: number;
 }
 
+
+/**
+ * 出租 / 求租 (提供 / 需要): a radio group of WEB-UI chips — the same two chip styles as the area chips beside it, so the
+ * board keeps to the SYS bar of ≤5 button styles. ←/→ move and select, like the WEB-UI SegmentedControl.
+ */
+function TypeSwitch({ label, value, items, onChange }: { label: string; value: PostType; items: { id: PostType; label: string }[]; onChange: (id: PostType) => void }) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const onKeyDown = (event: KeyboardEvent, index: number) => {
+    const step = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? 1 : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    const next = (index + step + items.length) % items.length;
+    refs.current[next]?.focus();
+    onChange(items[next].id);
+  };
+  return <div role="radiogroup" aria-label={label} className="cm-type-switch">
+    {items.map((item, index) => <button key={item.id} ref={element => { refs.current[index] = element; }} type="button" role="radio" className="ui-chip"
+      aria-checked={item.id === value} tabIndex={item.id === value ? 0 : -1} onClick={() => onChange(item.id)} onKeyDown={event => onKeyDown(event, index)}>{item.label}</button>)}
+  </div>;
+}
 
 export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
   const { t, pick } = useUiCopy();
@@ -111,9 +130,9 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
 
     <form className="cm-search" role="search" onSubmit={(event) => { event.preventDefault(); searchPostsNow(); }}>
       <Search aria-hidden="true" strokeWidth={1.75} />
-      <input aria-label={t('搜索邻里信息', 'Search the neighborhood board')} type="search" maxLength={80} placeholder={t('试试「San Mateo 租房」或「搬家」', 'Try “San Mateo room” or “moving”')} value={keyword}
+      <input aria-label={t('搜索邻里信息', 'Search the neighborhood board')} type="search" maxLength={80} placeholder={t('搜标题或地点，如「搬家」', 'Search, e.g. “moving”')} value={keyword}
         onChange={(event) => setKeyword(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} />
-      <button type="submit" className="cm-search__submit">{t('搜索', 'Search')}</button>
+      <Button type="submit" variant="text" className="cm-search__submit">{t('搜索', 'Search')}</Button>
     </form>
 
     <div className="cm-board__filters">
@@ -122,7 +141,7 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
         {REGIONS.map(region => <FilterChip key={region} selected={regionFilter === region} onClick={() => setRegionFilter(regionFilter === region ? '全部' : region)}>{pick(REGION_NAMES[region] || { zh: region, en: region })}</FilterChip>)}
       </ChipRow>
       <div className="cm-board__switches">
-        <SegmentedControl label={t('信息类型', 'Type of post')} value={feedType} onChange={(id) => setFeedType(id === 'client' ? 'client' : 'provider')}
+        <TypeSwitch label={t('信息类型', 'Type of post')} value={feedType === 'client' ? 'client' : 'provider'} onChange={setFeedType}
           items={[{ id: 'provider', label: pick(types.provider) }, { id: 'client', label: pick(types.client) }]} />
         <FilterChip selected={recentOnly} onClick={() => setRecentOnly(!recentOnly)}>{t('近期确认', 'Recently confirmed')}</FilterChip>
       </div>
@@ -142,7 +161,7 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
         : posts.length === 0 ? <div className="cm-board__empty">{emptyState}</div>
           : <>
             <FeedGrid label={t(`${name}信息`, `${name} posts`)} ratio="1:1" layout={feedLayout.layout}>
-              {posts.map((post, index) => <FeedItem key={post.id}><PostCard post={post} priority={index === 0 && !isDiscovery} currentUser={user} blockedUserIds={blockedUserIds}
+              {posts.map((post, index) => <FeedItem key={post.id}><PostCard post={post} layout="grid" priority={index === 0 && !isDiscovery} currentUser={user} blockedUserIds={blockedUserIds}
                 onClick={() => navigateToPost(post)} onEdit={openEditPost} onDelete={handleDeletePost} onToggleFeature={handleToggleFeature}
                 onReport={(item: PostData) => openReportTarget({ targetType: 'post', targetId: item.id, authorId: item.authorId })} onToggleBlockUser={handleToggleBlockUser} /></FeedItem>)}
             </FeedGrid>

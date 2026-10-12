@@ -201,8 +201,11 @@ test('Traditional detail display and metadata share one original toggle while sh
   assert.equal(document.querySelector('.cm-sheet__price')!.textContent, source.budget);
   assert.ok(document.querySelector('.cm-sheet__description')!.textContent!.includes('https://example.com/书架?价格=20'));
   assert.ok(view.getByText(post.author.nickname, { exact: true }));
-  fireEvent.click(view.getByRole('button', { name: translateText('分享'), exact: true }));
-  assert.equal(shares[0], post);
+  // 分享 is in the toolbar and in the 收藏 / 有用 / 分享 row (the same name for the same action); both share the original.
+  const shareButtons = view.getAllByRole('button', { name: translateText('分享'), exact: true });
+  assert.equal(shareButtons.length, 2);
+  for (const button of shareButtons) fireEvent.click(button);
+  assert.deepEqual(shares, [post, post]);
   fireEvent.click(view.getByRole('button', { name: '查看原文', exact: true }));
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, source.title);
   assert.equal(document.querySelector('.cm-sheet__description')!.textContent, post.description);

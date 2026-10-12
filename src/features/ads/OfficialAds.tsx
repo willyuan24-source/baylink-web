@@ -75,19 +75,19 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
           </div>
           <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</h4>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary">{content}</p>
-          {adRelationshipDisclosure(ad.id) && <p className="mt-3 text-xs font-semibold text-baylink-text">{adRelationshipDisclosure(ad.id)}</p>}
+          {adRelationshipDisclosure(ad.id) && <p className="mt-3 text-sm font-semibold text-baylink-text">{adRelationshipDisclosure(ad.id)}</p>}
           <p className="mt-3 text-[0.8125rem] leading-relaxed text-baylink-muted">此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
           {links.length > 0 && (
             <div className="mt-4 space-y-2">
               {links.map((link) => (
                 <a key={link.url} href={link.url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between gap-2 rounded-xl border border-baylink-green/20 bg-baylink-green-light/50 px-3 py-2.5 text-sm font-semibold text-baylink-green">
-                  <span>查看提供的链接 <span className="text-xs font-normal">· {link.host}</span></span><ExternalLink size={15} />
+                  <span>查看提供的链接 <span className="text-[0.8125rem] font-normal">· {link.host}</span></span><ExternalLink size={15} />
                 </a>
               ))}
             </div>
           )}
-          <button type="button" onClick={copyInfo} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-baylink-border px-3 py-2 text-xs font-semibold text-baylink-text"><Copy size={14} />复制推广信息</button>
-          {copyMessage && <p role="status" className="mt-2 text-xs text-baylink-text-secondary">{copyMessage}</p>}
+          <button type="button" onClick={copyInfo} className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-baylink-border px-3 py-2 text-[0.8125rem] font-semibold text-baylink-text"><Copy size={14} />复制推广信息</button>
+          {copyMessage && <p role="status" className="mt-2 text-[0.8125rem] text-baylink-text-secondary">{copyMessage}</p>}
         </div>
         <div className="shrink-0 border-t border-baylink-border/40 px-5 py-4">
           {isAdmin && !ad.isDemo && onDelete ? (
@@ -221,7 +221,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
     <div className="w-full rounded-2xl border border-baylink-border/50 bg-white p-4">
       <div className="flex items-center gap-2">
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-baylink-green-light"><Megaphone size={16} className="text-baylink-green" /></span>
-        <p className="text-xs font-semibold text-baylink-text">本地推广信息</p>
+        <p className="text-[0.8125rem] font-semibold text-baylink-text">本地推广信息</p>
       </div>
       <p className="mt-2 text-[0.8125rem] leading-relaxed text-baylink-muted">平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
     </div>
