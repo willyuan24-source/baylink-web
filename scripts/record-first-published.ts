@@ -1,9 +1,11 @@
 /**
  * Records the day each guide, offer and opening first shipped (src/data/first-published/*.json), for the Article
- * `datePublished` (I18N-SEO-13). The day is the first commit (Pacific author date) whose added lines under src/data
- * carry the item's id — a real fact from the history, not the review date. Append-only: an existing entry never changes;
- * items without one simply have no `datePublished` until this runs where the git history is available (a full clone,
- * not CI's shallow checkout). Run: `npx tsx --tsconfig tsconfig.app.json scripts/record-first-published.ts`.
+ * `datePublished` (I18N-SEO-13). The day is the first commit (Pacific author date) that adds the item's defining record
+ * under src/data: a line that opens with its `id:` / `slug:` key (`slug: 'x',`, `"id": "x",`), as a record does — never
+ * a mention of the id elsewhere (a related-guide list, a persona's links, a `{ slug, label }` link), which can predate
+ * the item. A real fact from the history, not the review date. Append-only: an existing entry never changes; items
+ * without one simply have no `datePublished` until this runs where the git history is available (a full clone, not CI's
+ * shallow checkout). Run: `npx tsx --tsconfig tsconfig.app.json scripts/record-first-published.ts`.
  */
 import { spawn } from 'node:child_process';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -25,14 +27,18 @@ for (const item of localDiscoveries) {
 if (wanted.size) {
   const found = new Map<string, string>();
   await new Promise<void>((resolve, reject) => {
-    const git = spawn('git', ['log', '--reverse', '--format=@@COMMIT %aI', '-p', '--unified=0', '--no-renames', '--', 'src/data']);
+    // generated catalogs and these records are outputs, not where an item is defined
+    const git = spawn('git', ['log', '--reverse', '--format=@@COMMIT %aI', '-p', '--unified=0', '--no-renames', '--', 'src/data', ':(exclude)src/data/generated', ':(exclude)src/data/first-published']);
     let date = '', buffer = '';
     const pacificDay = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' });
-    const quoted = /['"`]([a-z0-9][a-z0-9._-]{2,120})['"`]/g;
+    // a record's own key, first on its line (after a spread of shared fields): `slug: 'x',` / `"id": "x",` /
+    // `id: 'x', brand: …` / `...base, slug: 'x',` — not `{ slug: 'x', label }` or a list of ids
+    const defining = /^\s*(?:\.\.\.[\w.]+,\s*)?["']?(?:id|slug)["']?\s*:\s*['"`]([a-z0-9][a-z0-9._-]{2,120})['"`]/;
     const line = (text: string) => {
       if (text.startsWith('@@COMMIT ')) { date = pacificDay.format(new Date(text.slice(9).trim())); return; }
       if (!text.startsWith('+') || text.startsWith('+++')) return;
-      for (const match of text.matchAll(quoted)) if (wanted.has(match[1]) && !found.has(match[1])) found.set(match[1], date);
+      const id = defining.exec(text.slice(1))?.[1];
+      if (id && wanted.has(id) && !found.has(id)) found.set(id, date);
     };
     git.stdout.setEncoding('utf8');
     git.stdout.on('data', (chunk: string) => { buffer += chunk; let index; while ((index = buffer.indexOf('\n')) >= 0) { line(buffer.slice(0, index)); buffer = buffer.slice(index + 1); } });
