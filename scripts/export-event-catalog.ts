@@ -1,8 +1,11 @@
 import { writeFile, mkdir } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { inPublicEventCatalogs } from '../src/data/public-catalog-holdout';
 
-const catalog = MONTHLY_EVENTS.map(({ id, title, startDate, endDate, occurrenceDates }) => ({ id, title, startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}) }));
+// The same events as public/planner-catalog.json (export-planner-catalog.ts): the API refuses a sync unless both files
+// cover identical ids, so src/data/public-catalog-holdout.ts holds the same pending events out of both.
+const catalog = MONTHLY_EVENTS.filter(event => inPublicEventCatalogs(event.id)).map(({ id, title, startDate, endDate, occurrenceDates }) => ({ id, title, startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}) }));
 if (new Set(catalog.map(event => event.id)).size !== catalog.length) throw new Error('Duplicate event IDs');
 const destinations = [resolve('public/event-catalog.json'), ...(process.argv[2] ? [resolve(process.argv[2])] : [])];
 for (const destination of destinations) {
