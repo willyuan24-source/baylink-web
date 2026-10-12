@@ -53,6 +53,9 @@ test('retirement timing and naturalization test versions cannot be treated as on
   assert.match(naturalizationText, /递交日期.*2025 年 10 月 20 日或以后递交的人考 2025 版/u);
   assert.match(naturalizationText, /之前递交的人考 2008 版/u);
   assert.match(naturalizationText, /年龄与年限要同时满足/u);
-  // GUIDE-F: the old "naturalization interview and test" page is a 404; the guide links Study for the Test instead.
-  assert.doesNotMatch(textValues(naturalization).join('\n'), /the-naturalization-interview-and-test/u);
+  // GUIDE-F: the old "naturalization interview and test" URL (find-study-materials-and-resources/…) is a 404; the guide
+  // links Study for the Test, and its sources keep that page at its current URL (learn-about-citizenship/…, CNT-HOTFIX).
+  const naturalizationUrls = textValues(naturalization).join('\n');
+  assert.doesNotMatch(naturalizationUrls, /find-study-materials-and-resources\/the-naturalization-interview-and-test/u);
+  assert.match(naturalizationUrls, /find-study-materials-and-resources\/study-for-the-test/u);
 });
