@@ -1,6 +1,6 @@
 import { recordProductEvent } from '../lib/product-events';
 import { useEffect, useState } from 'react';
-import { ArrowRight, ArrowUpRight, CalendarDays, CheckCircle2, MapPin, Sparkles, Ticket } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, CalendarDays, CheckCircle2, MapPin, Ticket } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { selectAiLocalEvents, type AiLocalGoal } from '../lib/ai-local';
 import { aiWeekGuideSlug } from '../data/guides-ai-week';
@@ -12,6 +12,9 @@ import { HUB_CARDS } from '../lib/hub-cards';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
+import { PageContainer, PageHeader } from '../components/ui/HeroCard';
+import { Button } from '../components/ui/Button';
+import { EmptyState } from '../components/ui/States';
 
 const goals = [
   { id: 'all', label: '所有场次' },
@@ -24,10 +27,13 @@ const statusLabels = { upcoming: '即将开始', ongoing: '活动日期内', end
 export default function AiLocalPage({ today: suppliedToday }: { today?: string } = {}) {
   const locale = useLocale();
   const t = (text: string) => translateText(text, locale);
+  const tt = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [goal, setGoal] = useState<AiLocalGoal>('all');
   const [week, setWeek] = useState('all');
-  const [includeEnded, setIncludeEnded] = useState(false);
   const today = suppliedToday || getBayAreaToday();
+  // Both AI weeks are over: the page keeps their sessions as past records and says so, instead of an empty filter result.
+  const allEnded = selectAiLocalEvents({ today, includeEnded: false }).length === 0;
+  const [includeEnded, setIncludeEnded] = useState(allEnded);
   const events = selectAiLocalEvents({ today, goal, week, includeEnded });
   const latestCheck = events.reduce((date, event) => event.verifiedAt > date ? event.verifiedAt : date, '');
   const reset = () => { setGoal('all'); setWeek('all'); };
@@ -40,23 +46,20 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
     });
   }, [locale]);
 
-  return <main className="bl-ai-local">
-    <header className="bl-ai-hero">
-      <div className="bl-ai-hero-copy">
-        <p className="bl-ai-kicker"><Sparkles size={17} aria-hidden="true" /> {t('湾区 AI 现场')}</p>
-        <h1>{t('从一个晚上，走进 AI 社区。')}</h1>
-        <p className="bl-ai-intro">{t('把公开活动变成能真正参加的一次体验：看清日期、地点、费用与报名条件，再挑适合自己的那一场。')}</p>
-        {latestCheck && <p className="bl-ai-checked"><CheckCircle2 size={15} aria-hidden="true" /> {t('最近内容核对')} <time dateTime={latestCheck}>{latestCheck}</time> · {t('各场次保留自己的核对日期')}</p>}
-      </div>
-      <div className="bl-ai-weeks">
-        {today <= '2026-10-03' && <a href="https://aiweeksf.com/calendar" target="_blank" rel="noopener noreferrer" aria-label={t('查看 AI Week SF 官方日历')}>
-          <span>{t('9 月 27 日—10 月 3 日')}</span><strong>AI Week SF <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
-        </a>}
-        {today <= '2026-10-11' && <a href="https://www.tech-week.com/calendar/sf" target="_blank" rel="noopener noreferrer" aria-label={t('查看 SF Tech Week 官方日历')}>
-          <span>{t('10 月 5 日—11 日')}</span><strong>SF Tech Week <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
-        </a>}
-      </div>
-    </header>
+  return <PageContainer className="bl-ai-local">
+    <PageHeader title={t('湾区 AI 现场')}
+      lede={tt('从一个晚上，走进 AI 社区：看清日期、地点、费用与报名条件，再挑适合自己的那一场。', 'One evening into the AI community: check the date, place, cost and sign-up rules, then pick the session that suits you.')}
+    />
+    {latestCheck && <p className="bl-ai-checked"><CheckCircle2 size={16} aria-hidden="true" /> {t('最近内容核对')} <time dateTime={latestCheck}>{latestCheck}</time> · {t('各场次保留自己的核对日期')}</p>}
+    {today <= '2026-10-11' && <div className="bl-ai-weeks">
+      {today <= '2026-10-03' && <a href="https://aiweeksf.com/calendar" target="_blank" rel="noopener noreferrer" aria-label={t('查看 AI Week SF 官方日历')}>
+        <span>{t('9 月 27 日—10 月 3 日')}</span><strong>AI Week SF <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
+      </a>}
+      {today <= '2026-10-11' && <a href="https://www.tech-week.com/calendar/sf" target="_blank" rel="noopener noreferrer" aria-label={t('查看 SF Tech Week 官方日历')}>
+        <span>{t('10 月 5 日—11 日')}</span><strong>SF Tech Week <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
+      </a>}
+    </div>}
+    {allEnded && <p className="bl-ai-ended" role="note">{tt('AI Week SF（9/27–10/3）和 SF Tech Week（10/5–10/11）都已结束。下面保留往期场次，方便回看主办方和下次参加；新的活动请看本周末活动。', 'AI Week SF (9/27–10/3) and SF Tech Week (10/5–10/11) are over. Their sessions stay below as past records, so you can find the organizers next time; for new events, see this weekend.')} <Link to="/events">{tt('看本周末活动', 'See this weekend')}</Link></p>}
 
     <section className="bl-ai-guide" aria-labelledby="ai-guide-title">
       <div>
@@ -88,7 +91,8 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         <label><input type="checkbox" checked={includeEnded} onChange={event => setIncludeEnded(event.target.checked)} />{t('显示已结束场次')}</label>
       </div>
       <p className="bl-ai-scope">{t('场次按日期分组，不代表主办方合作关系。')} {t('时间均为湾区当地时间。活动周不是连续开放的展会通票。')}</p>
-      {events.length === 0 ? <div className="bl-ai-empty"><p>{t('这个筛选下暂时没有尚未结束的场次。')}</p><button type="button" onClick={reset}>{t('重置筛选')}</button></div>
+      {events.length === 0 ? <EmptyState headingLevel="h3" title={tt('这个筛选下没有场次', 'No sessions match these filters')} body={t('这个筛选下暂时没有尚未结束的场次。')}
+          actions={<><Button variant="primary" onClick={reset}>{t('重置筛选')}</Button>{!includeEnded && <Button variant="text" onClick={() => setIncludeEnded(true)}>{t('显示已结束场次')}</Button>}</>} />
         : <div className="bl-ai-event-grid">{events.map(event => {
           const status = getEventStatus(event, today);
           const image = getListingImage(event.imageKey);
@@ -117,5 +121,5 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
       ].map(([number, title, body]) => <div key={number}><span>{number}</span><h3>{t(title)}</h3><p>{t(body)}</p></div>)}
     </section>
     <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/this-month">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
-  </main>;
+  </PageContainer>;
 }

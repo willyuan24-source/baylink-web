@@ -41,6 +41,7 @@ export const editorialStyleScopes = [
   { file: 'src/components/about-baylink.css', selectors: /^\.about-/ },
   { file: 'src/components/legal-page.css' },
   { file: 'src/components/not-found.css' },
+  { file: 'src/components/archive.css' },
   { file: 'src/components/tools/tools.css' },
   { file: 'src/components/tools/unit-price.css' },
   { file: 'src/components/tools/dining-calculator.css' },
