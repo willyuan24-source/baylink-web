@@ -6,7 +6,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
     "slug": "bay-area-dental-care-insurance-low-cost-guide",
     "title": "湾区看牙与牙科费用：保险网络、Medi-Cal Dental 和低费入口",
     "subtitle": "先核对牙科保障，再向诊所确认新病人、语言与书面报价",
-    "summary": "从官方牙医目录、NEMS 费用减免和 UCSF 学生诊所开始，分清牙科与一般医保；附预约前的问题、材料与福利变动核对路径。",
+    "summary": "Medicare 一般不付洗牙、补牙、拔牙和假牙；有 Medi-Cal 找不到接新病人的牙医，打 1-800-322-6384（可要求口译）；低费可问 NEMS 按收入减费和 UCSF 学生诊所。",
     "category": "service",
     "categoryLabel": "牙科就医",
     "emoji": "🦷",
@@ -32,29 +32,29 @@ export const dentalSeniorServiceGuides: Guide[] = [
       "service",
       "newcomer"
     ],
-    "readMinutes": 5,
-    "updatedAt": "2026-10-06",
-    "sourceNote": "2026-10-06 编辑并读取 Medicare、DHCS 牙科变动及机构服务说明。DHCS 牙医目录原站直接读取未成功，本次仅取得可检索说明。本文提供预约与咨询路径，不诊断牙病、不判断个人保险资格，也不保证费用、中文服务或即时名额；预约时以机构确认及个人保障为准。",
+    "readMinutes": 4,
+    "updatedAt": "2026-10-12",
+    "sourceNote": "2026-10-12 读取 Medicare.gov、DHCS 牙科、NEMS 与 UCSF 官方页面。本文提供预约和咨询路径，不诊断牙病，也不判断个人保险资格。",
     "sources": [
       {
         "title": "Medicare.gov：牙科保障",
         "url": "https://www.medicare.gov/coverage/dental-services",
-        "description": "一般牙科与特定医疗治疗关联的例外须分开核对。"
+        "description": "多数情况下不付洗牙、补牙、拔牙和假牙。"
       },
       {
         "title": "DHCS：Medi-Cal 牙医目录",
         "url": "https://www.dental.dhcs.ca.gov/Members/Medi-Cal_Dental/Find_A_Dentist/",
-        "description": "按地区寻找牙医；无法找到接收新病人的机构时可拨打 1-800-322-6384。本次直接读取未成功。"
+        "description": "按县找牙医；找不到接新病人的，打 1-800-322-6384。"
       },
       {
         "title": "DHCS：牙科福利变动与延期说明",
         "url": "https://www.dhcs.ca.gov/services/medi-cal-dental-benefit-changes/",
-        "description": "官方专门更新页说明部分成人牙科变动延至 2027 年 7 月 1 日，并提供中文通知。"
+        "description": "部分成人牙科变动延到 2027 年 7 月 1 日，附中文通知。"
       },
       {
         "title": "DHCS：牙科福利变动 FAQ",
         "url": "https://www.dhcs.ca.gov/services/medi-cal-dental-benefit-changes/medi-cal-dental-benefit-changes-frequently-asked-questions/",
-        "description": "申请时间、覆盖范围与例外各有规则；个人情况应由县或牙科服务中心核对。"
+        "description": "申请时间、覆盖范围与例外的官方问答。"
       },
       {
         "title": "NEMS：牙科服务",
@@ -64,12 +64,12 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "title": "NEMS：费用、保险与按收入减费",
         "url": "https://www.nems.org/resources/paying-for-your-care/",
-        "description": "并非免费诊所；费用减免按家庭人数、收入及材料核对，并需每年重新登记。"
+        "description": "不是免费诊所；按收入减费，每年重新登记。"
       },
       {
         "title": "UCSF：Parnassus 学生综合牙科诊所",
         "url": "https://dentistry.ucsf.edu/dental-center/clinics/student-general-dentistry-clinic-parnassus",
-        "description": "确认新病人预约、当前保险参与和 Denti-Cal 接收情况；不同诊所不能混用规则。"
+        "description": "接收 Denti-Cal；新病人网上自助预约，老病人打 415-502-5800。"
       },
       {
         "title": "UCSF：牙科中心常见问题",
@@ -84,14 +84,14 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "有医疗保险不代表所有牙科项目都被支付。Medicare 官方说明，大多数常规洗牙、补牙、拔牙、假牙与种植牙不由 Original Medicare 支付；与特定受保障医疗治疗直接相关的牙科服务可能有例外。请按自己的牙科计划或 Medicare Advantage 计划询问具体项目，不只问“收不收医保”。"
+        "text": "Medicare.gov 写明：多数情况下 Medicare 不付洗牙、补牙、拔牙，也不付假牙和种植牙；只有住院做牙科手术等少数情况例外。牙科要看你的牙科计划或 Medicare Advantage 计划，按具体项目问，不只问“收不收医保”。"
       },
       {
         "type": "checklist",
         "items": [
-          "请保险计划和诊所分别确认：牙医是否属于你的具体网络，现在是否接收新病人。",
-          "问清检查、X 光及后续治疗的保障、自付额、共同支付、年度上限、等待期和事先批准要求；未确认的金额先保留为空。",
-          "预约时说明需要普通话、粤语或口译，确认当天能够安排的语言与费用；网站有中文不代表每位牙医都讲中文。"
+          "分别问保险计划和诊所：这位牙医在不在你的网络里，现在接不接新病人。",
+          "问清检查、X 光和后续治疗的保障、自付额、年度上限、等待期，以及是否要事先批准。",
+          "预约时说要普通话、粤语或口译，问清当天能安排的语言；网站有中文，不等于每位牙医都讲中文。"
         ]
       },
       {
@@ -100,22 +100,22 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "持有 Medi-Cal 时，先核对自己当前牙科保障和就诊路径，再使用 DHCS 牙医目录查询。目录中的接诊信息仍需电话确认；找不到接收新病人的牙医，可拨打官方牙科服务中心 1-800-322-6384 请求帮助。不要自行把医疗计划网络当作牙科网络。"
+        "text": "有 Medi-Cal 的，用 DHCS 牙医目录按县查找，可以只看“接收新病人”的牙医，也能按普通话、粤语筛选，再打电话确认。找不到接新病人的牙医，打 Medi-Cal 牙科服务中心 1-800-322-6384（周一到周五 8 点到 17 点），可要求口译。医疗计划的网络和牙科网络是两回事。"
       },
       {
         "type": "link",
         "title": "打开 Medi-Cal 牙医目录",
-        "text": "先查询所在地，再向诊所确认接诊、语言和保障。",
+        "text": "按县查找，可只看接收新病人的牙医。",
         "url": "https://www.dental.dhcs.ca.gov/Members/Medi-Cal_Dental/Find_A_Dentist/"
       },
       {
         "type": "paragraph",
-        "text": "福利变动要看最新专门通知。2026-10-06 读取的 DHCS 牙科更新页说明，部分成人因移民身份而受影响的非急诊牙科变动已延至 2027 年 7 月 1 日；这不是所有成年人的牙科都取消。申请时间、目前覆盖范围、怀孕／产后或原寄养青年等例外要分别核对。带自己的通知向县或牙科服务中心确认，不用旧的 2026 年截图替自己判断。"
+        "text": "DHCS 写明：牙科福利变动已延到 2027 年 7 月 1 日。从那天起，19 岁以上、因移民身份不符合联邦全额 Medi-Cal 的成人，牙科只保急诊；这不是所有成年人的牙科都取消。申请时间、目前覆盖范围和怀孕／产后等例外各有规则，拿着自己的通知问县办公室或牙科服务中心。"
       },
       {
         "type": "link",
         "title": "核对 DHCS 牙科变动与中文通知",
-        "text": "官方延期说明和 FAQ 有助于准备个人保障问题；本文不判定你的身份或资格。",
+        "text": "延期说明、常见问题和中文通知。",
         "url": "https://www.dhcs.ca.gov/services/medi-cal-dental-benefit-changes/"
       },
       {
@@ -124,22 +124,22 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "NEMS（东北医疗中心）提供成人与儿童牙科，可从牙科服务页联系，并向会员服务询问保险及按收入减费。机构明确说明不是免费诊所：减费需要按家庭人数、收入和证明材料评估，每年重新登记；未被保障或不符合减费的项目可能按完整费用收费。先问牙科项目是否适用，再提交机构要求的材料。"
+        "text": "NEMS（东北医疗中心）有成人和儿童牙科，接受多种牙科保险。NEMS 写明自己不是免费诊所：没有保险或项目不在保障内的，按收入分级减费，最多收全价；减费资格每年重新登记，过期就按全价。会员服务部会按你的收入证明定减费等级。"
       },
       {
         "type": "link",
         "title": "查看 NEMS 牙科与预约入口",
-        "text": "另读来源区的费用说明；请机构确认所选地点的牙科与语言安排。",
+        "text": "牙科服务与预约入口。",
         "url": "https://www.nems.org/services/dental/"
       },
       {
         "type": "paragraph",
-        "text": "UCSF 的 Parnassus 学生综合牙科诊所是另一条可以询问的路线。官网说明学生在教职牙医监督下治疗，该诊所接收 Denti-Cal；学生服务可能较低费，但耗时更长、需要多次预约。先通过该诊所的新病人入口问评估、当前保险与完整治疗报价；教职、专科与学生诊所的规则不同，不能只凭“UCSF”推定价格或接收情况。"
+        "text": "UCSF Parnassus 学生综合牙科诊所接收 Denti-Cal，学生在 UCSF 教职牙医的指导下治疗，费用较低，但耗时更长、常要多次预约。新病人用 UCSF 的新病人自助预约入口，老病人打 415-502-5800。UCSF 各个诊所的规则不同，按具体诊所问。"
       },
       {
         "type": "link",
         "title": "查看 UCSF 学生牙科的新病人入口",
-        "text": "按具体诊所核对预约和保险，接受评估不等于一定能完成所需治疗。",
+        "text": "新病人预约入口和保险说明。",
         "url": "https://dentistry.ucsf.edu/dental-center/clinics/student-general-dentistry-clinic-parnassus"
       },
       {
@@ -149,9 +149,9 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "type": "checklist",
         "items": [
-          "整理保险计划名称、会员卡、希望处理的问题与既往牙科记录；是否需要 X 光转移，由诊所说明。",
-          "先问首次检查费与书面治疗计划，再核对每项保险支付、自付费用和分期条件；不要只比较广告中的起价。",
-          "需要急诊牙科时，直接联系诊所说明情况，问其当天评估方式；指南和保险查询不能替代医疗人员判断。"
+          "带上保险计划名称、会员卡、想处理的问题和以前的牙科记录。",
+          "先要首次检查费和书面治疗计划，再逐项问保险付多少、自己付多少、能否分期；别只比广告上的起价。",
+          "牙痛、肿胀等急诊，直接打给诊所说明情况，问当天怎么评估。"
         ]
       },
       {
@@ -162,7 +162,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "type": "tip",
         "title": "个人资料只交给核实后的机构",
-        "text": "不要在公开帖子上传保险卡、完整生日、病历、收入材料或身份号码。先从官网核对联系方式，再使用机构指定的安全渠道。"
+        "text": "保险卡、完整生日、病历、收入材料和身份号码只交给核实过的机构，别发到公开帖子。"
       }
     ]
   },
@@ -170,7 +170,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
     "slug": "bay-area-chinese-senior-services-referral-guide",
     "title": "湾区中文长者服务：餐食、日间照护、陪伴与县级转介",
     "subtitle": "按居住县和实际需要找入口，再确认语言、资格、费用与候补",
-    "summary": "为中文老人、中文长者与照顾者整理安老自助处、Family Bridges 及县级 AAA 的实际入口，分清活动中心、送餐和成人日间照护。",
+    "summary": "先打所在县的老龄机构 AAA（全州 800-510-2020）；旧金山白天照护找安老自助处 415-677-7556；东湾中文探访 Family Bridges 510-839-2022，免费。分清活动、送餐、探访和日间照护。",
     "category": "service",
     "categoryLabel": "长者服务",
     "emoji": "🤝",
@@ -201,24 +201,24 @@ export const dentalSeniorServiceGuides: Guide[] = [
       "service",
       "newcomer"
     ],
-    "readMinutes": 5,
-    "updatedAt": "2026-10-06",
-    "sourceNote": "2026-10-06 编辑并读取加州老龄事务局、安老自助处与 Family Bridges 官方网页。以下是寻找和准备服务的入口，不判断个人福利或照护资格；机构提及某种语言不等于每个地点、时段和项目都可安排。费用、覆盖区域、转介要求及候补请向项目直接确认。",
+    "readMinutes": 4,
+    "updatedAt": "2026-10-12",
+    "sourceNote": "2026-10-12 读取加州老龄事务局、安老自助处与 Family Bridges 官方网页。本文是找服务的入口，不判断个人福利或照护资格；费用、覆盖区域和候补以机构答复为准。",
     "sources": [
       {
         "title": "California Department of Aging：按县寻找服务",
         "url": "https://aging.ca.gov/Find_Services_in_my_County/",
-        "description": "全州与湾区各县的 AAA 信息及协助电话；先按长者居住县转介。"
+        "description": "全州 800-510-2020 与各县 AAA 电话。"
       },
       {
         "title": "安老自助处：成人日间照护",
         "url": "https://www.selfhelpelderly.org/our-services/health-and-home-care/senior-care/adult-day-services",
-        "description": "明确列出普通话、粤语、台山话等员工语言，以及评估、医生书面许可与费用路径。"
+        "description": "普通话、粤语、台山话员工；医生书面许可与 12 个月内的结核病检查。"
       },
       {
         "title": "安老自助处：餐食项目",
         "url": "https://www.selfhelpelderly.org/our-services/nutrition-services",
-        "description": "区分送餐、集体用餐与 CHAMPSS；各项目报名和覆盖范围应另外核对。"
+        "description": "送餐、到中心用餐与 CHAMPSS 三个项目。"
       },
       {
         "title": "安老自助处：社会服务",
@@ -228,12 +228,12 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "title": "Family Bridges：中文长者探访项目",
         "url": "https://familybridges.org/visiting-program/",
-        "description": "普通话与粤语陪伴项目面向北 Alameda County 指定城市中居家或较少社交的 60 岁以上长者。"
+        "description": "普通话、粤语探访，免费；60 岁以上，北 Alameda County 六个城市。"
       },
       {
         "title": "Family Bridges：Hong Lok 长者中心",
         "url": "https://familybridges.org/hong-lok-senior-centers/",
-        "description": "当前官网列出 Oakland 中心地址与 510-763-9017；活动、开放时间和语言须先询问。"
+        "description": "Oakland 两处中心，电话 510-763-9017。"
       }
     ],
     "blocks": [
@@ -243,7 +243,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "中文长者需要的可能是读英文通知、参加活动、送餐、有人探访，或白天需要照护。活动中心不自动提供医疗照护，餐食项目也不等于全天照护；先说明长者所在县、需要的语言与帮助类型，再问能处理的项目。不要只问“有没有老人福利”而漏掉居住范围和转介步骤。"
+        "text": "中文长者需要的可能是读英文通知、参加活动、送餐、有人探访，或白天有人照护。活动中心不提供医疗照护，餐食项目也不等于全天照护。先说清长者住在哪个县、用什么语言、要哪种帮助，再问机构能做什么。"
       },
       {
         "type": "heading",
@@ -251,7 +251,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "加州老龄事务局的按县目录可寻找 Area Agency on Aging（AAA），全州信息线为 800-510-2020。即使不住在下列社区项目附近，也可以从自己县的入口询问餐食、交通、照顾者支持和当地转介。先要求普通话、粤语或口译，再确认机构实际能安排什么。"
+        "text": "加州老龄事务局的按县目录列出各县的老龄机构（Area Agency on Aging，AAA），全州信息线是 800-510-2020。不住在下面这些社区项目附近，也可以打自己县的 AAA，问餐食、交通、照顾者支持和当地转介；先要求普通话、粤语或口译。"
       },
       {
         "type": "list",
@@ -264,7 +264,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "type": "link",
         "title": "按长者居住县查官方转介电话",
-        "text": "以上号码来自本次读取的官方目录，拨打前可再次核对更新。",
+        "text": "各县电话 2026-10-12 在官方目录核对。",
         "url": "https://aging.ca.gov/Find_Services_in_my_County/"
       },
       {
@@ -273,12 +273,12 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "安老自助处（Self-Help for the Elderly）的成人日间照护页列出普通话、粤语、台山话等员工语言，地点为旧金山 Jackie Chan Center，408 22nd Avenue，电话 415-677-7556。项目按个人情况评估照护，官网说明参加者需要医生书面许可及符合要求的结核病检查证明；Medi-Cal 支付仅适用于符合资格者，另有自费路线。先问当前转介、语言安排、接送、费用和名额，不把网站服务清单当作每个人都能取得的承诺。"
+        "text": "安老自助处（Self-Help for the Elderly）的成人日间照护有讲普通话、粤语、台山话的员工，地点在旧金山 Jackie Chan Center，408 22nd Avenue，电话 415-677-7556。参加前要有家庭医生书面许可和 12 个月内的结核病检查证明；符合资格的由 Medi-Cal 支付，也可以按照护程度自费。"
       },
       {
         "type": "link",
         "title": "查看安老自助处成人日间照护",
-        "text": "需要白天照护时向该项目咨询；主要想读通知或找社区资源时，也可从来源区的社会服务入口询问。",
+        "text": "白天照护咨询；只想找社区资源，可问社会服务部。",
         "url": "https://www.selfhelpelderly.org/our-services/health-and-home-care/senior-care/adult-day-services"
       },
       {
@@ -287,12 +287,12 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "安老自助处的餐食页分别提供 Home Delivered Meals、Congregate Meals 和 CHAMPSS 项目入口。能够出门聚餐与难以离家需要送餐，应说明不同情况。先问自己的地址是否在覆盖区、如何评估或登记、是否候补，以及饮食限制与付款／捐款规则；不要把一个项目的条件套到另一个项目。"
+        "text": "安老自助处的餐食分三种：送餐（Home Delivered Meals）、到中心一起吃饭（Congregate Meals）和 CHAMPSS 餐厅计划。能出门的问到中心用餐，难离家的问送餐。先问地址是否在覆盖区、怎样登记、要不要候补，以及饮食限制和付款或捐款方式。"
       },
       {
         "type": "link",
         "title": "查看安老自助处餐食项目",
-        "text": "从对应项目入口核对所在地、报名、语言与餐食安排。",
+        "text": "按项目问所在地、报名、语言和餐食安排。",
         "url": "https://www.selfhelpelderly.org/our-services/nutrition-services"
       },
       {
@@ -301,22 +301,22 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "Family Bridges 的 Visiting Program 明确服务普通话或粤语长者，提供探访、电话联系及轻量购物协助；官网列出的对象是 Alameda、Albany、Berkeley、Emeryville、Oakland 或 Piedmont 中年满 60 岁、居家不便或社交较少的长者。当前项目页电话为 510-839-2022。先请项目评估地址与需要、确认候补和具体安排；志愿陪伴不是医疗或全天居家照护。"
+        "text": "Family Bridges 的探访项目（Visiting Program）服务讲普通话或粤语的长者：志愿者定期上门探访、打电话问候、帮忙买点日用品。对象是住在 Alameda、Albany、Berkeley、Emeryville、Oakland 或 Piedmont，年满 60 岁、出门不便或很少与人来往的长者。项目免费，办公时间周一到周五 9 点到 15 点，电话 510-839-2022。先请项目看地址和需要、问清候补；志愿陪伴不是医疗或全天居家照护。"
       },
       {
         "type": "link",
         "title": "查看 Family Bridges 中文长者探访项目",
-        "text": "以当前项目页联系方式为准，先询问服务区域与申请步骤。",
+        "text": "服务区域、申请步骤和联系方式。",
         "url": "https://familybridges.org/visiting-program/"
       },
       {
         "type": "paragraph",
-        "text": "主要想参加社区活动，可另问 Family Bridges 的 Hong Lok 长者中心：当前官网列出 168 11th Street 与 388 9th Street #290，Oakland，电话 510-763-9017。先确认具体地点、当天开放安排、活动资格与可用语言；旧网页缓存里的地址、免费或年龄说明，不代替项目现在的确认。"
+        "text": "想参加社区活动的，可以问 Family Bridges 的 Hong Lok 长者中心：Oakland 168 11th Street 和 388 9th Street #290 两处，电话 510-763-9017。去之前先打电话问当天开放安排、活动资格和语言。"
       },
       {
         "type": "link",
         "title": "查看 Hong Lok 中心当前地址与联系入口",
-        "text": "先致电确认后再前往，并说明需要的中文协助。",
+        "text": "先打电话再前往，说明需要中文协助。",
         "url": "https://familybridges.org/hong-lok-senior-centers/"
       },
       {
@@ -326,9 +326,9 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "type": "checklist",
         "items": [
-          "准备长者居住的市和县、偏好的普通话／粤语／其他语言，以及希望自己联系还是由获授权家属协助。",
-          "用日常事实说明需求：能否出门用餐、是否希望有人陪伴、白天需要怎样的协助；需要照护评估时交给项目专业人员。",
-          "逐项问服务区域、年龄或其他条件、医生转介、费用／捐款、候补、接送与语言；确认下一步和需要安全提交的材料。"
+          "准备长者住的市和县、想用普通话、粤语还是其他语言，以及由本人还是获授权的家属联系。",
+          "用日常事实说明需要：能不能出门吃饭、想不想有人陪、白天需要哪些帮助；照护评估交给项目的专业人员。",
+          "逐项问服务区域、年龄等条件、医生转介、费用或捐款、候补、接送和语言，记下下一步和要提交的材料。"
         ]
       },
       {
@@ -339,7 +339,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "type": "tip",
         "title": "先核实机构，再提交长者资料",
-        "text": "公开求助只描述大致需要，不上传完整生日、保险号码、医疗记录、住址或收入证明。家属帮助前先确认本人同意及机构授权要求，通过核实后的安全渠道递交材料。"
+        "text": "公开求助只写大致需要，不写完整生日、保险号码、医疗记录、住址或收入证明。家属代办前先问本人同意和机构的授权要求，材料走机构的安全渠道。"
       }
     ]
   }

@@ -22,7 +22,7 @@ test('dental access failure remains manual and care eligibility is reviewed mont
     assert.equal(row.dateMeaning, 'content-updated');
     assert.equal(row.verifiedAt, getGuideBySlug(row.id)!.updatedAt);
   }
-  assert.equal(contentReviewQueue([senior], '2026-11-05')[0].status, 'due');
+  assert.equal(contentReviewQueue([senior], '2026-11-12')[0].status, 'due');
   assert.equal(contentReviewQueue([dental], '2026-11-05')[0].status, 'manual-review');
 });
 const textValues = (value: unknown): string[] => {
@@ -56,7 +56,7 @@ test('every reader-facing field has complete English copy and a bounded reviewed
     assert.doesNotMatch(dictionary[value], chinese, value);
   }
   for (const guide of dentalSeniorServiceGuides) {
-    assert.equal(guide.updatedAt, '2026-10-06');
+    assert.equal(guide.updatedAt, '2026-10-12');
     assert.equal(guide.editionMonth, undefined);
     assert.ok(guide.blocks.some(block => block.type === 'template'));
     assert.match(guide.sourceNote || '', /不.*(?:判断个人|诊断牙病)/u);
@@ -80,7 +80,8 @@ test('dental benefits keep the updated effective date, individual plan checks an
   assert.match(body, /每年重新登记/u);
   assert.match(body, /书面治疗计划|书面报价/u);
   assert.match(body, /不同.*诊所|诊所的规则不同/u);
-  assert.match(guide.sourceNote!, /目录原站直接读取未成功/u);
+  // The DHCS directory was read in a browser on 2026-10-12; no pipeline notes reach readers.
+  assert.doesNotMatch(textValues(guide).join('\n'), /本次|直接读取|可检索说明/u);
   assert.ok(guide.sources.some(source => source.url.includes('medi-cal-dental-benefit-changes/')));
 });
 
@@ -94,5 +95,6 @@ test('senior routes preserve geography, updated provider contacts and distinct c
   assert.match(body, /510-763-9017/u);
   assert.match(body, /志愿陪伴不是医疗或全天居家照护/u);
   assert.match(body, /候补/u);
-  assert.match(guide.sourceNote!, /不等于每个地点、时段和项目都可安排/u);
+  assert.match(guide.sourceNote!, /不判断个人福利或照护资格/u);
+  assert.match(body, /免费/u);
 });
