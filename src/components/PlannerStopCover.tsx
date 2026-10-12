@@ -1,0 +1,52 @@
+import { getCover, type CoverPage, type ImageCover, type ResolvedCover } from '../lib/cover';
+import { translateText } from '../i18n/locale';
+import { eventFor, placeFor, type Stop } from '../lib/planner';
+import { stopCoverImage, stopCoverItem } from '../lib/plan-stop-cover';
+import { Cover } from './ui/Cover';
+import { COVER_SIZES } from './ui/cover-sizes';
+import { EventTypeCover, TypeCover } from './ui/TypeCover';
+import { useUiCopy } from './ui/ui-copy';
+
+const PLACE_LABELS = {
+  attraction: { zh: '景点', en: 'Place' }, restaurant: { zh: '餐饮', en: 'Dining' }, cafe: { zh: '咖啡与小食', en: 'Coffee' }, shop: { zh: '商店', en: 'Shop' },
+} as const;
+
+/** The 88px thumbnail: the stop's own photo when the ladder allows one, else its TypeCover (decorative; the row reads the title). */
+export function PlannerStopThumb({ stop, cover, today }: { stop: Stop; cover: ResolvedCover; today: string }) {
+  const { pick } = useUiCopy();
+  const event = stop.kind === 'event' ? eventFor(stop.id) : undefined;
+  const place = stop.kind === 'place' ? placeFor(stop.id) : undefined;
+  const fallback = event ? <EventTypeCover event={event} today={today} size="mini" ariaHidden />
+    : <TypeCover tone={place?.category === 'restaurant' || place?.category === 'cafe' ? 'food' : 'outdoors'} label={pick(PLACE_LABELS[place?.category ?? 'attraction'])} size="mini" ariaHidden />;
+  return <Cover cover={cover} fallback={fallback} sizes={COVER_SIZES.thumb} decorative />;
+}
+
+/**
+ * The photo on a suggestion card (按条件挑选 results): the stop's own photo when the ladder allows one, else nothing —
+ * the card's title, date and cost already say what the stop is, so a suggestion never shows a stand-in picture.
+ */
+export function PlannerOptionCover({ stop, today, page }: { stop: Stop; today: string; page: CoverPage }) {
+  const cover = getCover(stopCoverItem(stop), { images: stopCoverImage, today, page });
+  if (cover.tier === 'type') return null;
+  return <div className="planner-option-media"><Cover cover={cover} fallback={null} ratio="16:9" sizes={COVER_SIZES.single} decorative /></div>;
+}
+
+/**
+ * 本页图片来源: who made each photo on the page and under which licence (the badge on a cover says what it is; credit and
+ * licence sit here, as on the events column). Information cards and the 3D postcards' own captions need no credit line.
+ */
+export function PlannerImageCredits({ stops, today, page }: { stops: readonly Stop[]; today: string; page: CoverPage }) {
+  const { t, pick, locale } = useUiCopy();
+  const seen = new Set<string>();
+  const images = stops.map(stop => getCover(stopCoverItem(stop), { images: stopCoverImage, today, page }))
+    .filter((cover): cover is ImageCover => cover.tier !== 'type' && !seen.has(cover.image.src) && !!seen.add(cover.image.src));
+  if (!images.length) return null;
+  return <details className="planner-credits">
+    <summary>{t(`本页图片来源（${images.length}）`, `Image credits (${images.length})`)}</summary>
+    <ul>{images.map(cover => <li key={cover.image.src}>
+      <span>{pick(cover.label)}</span>
+      {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(cover.image.credit, locale)}</a> : <span>{translateText(cover.image.credit, locale)}</span>}
+      {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'Licence')}</a>}
+    </li>)}</ul>
+  </details>;
+}

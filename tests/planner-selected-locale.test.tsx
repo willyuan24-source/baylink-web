@@ -68,9 +68,10 @@ test('fresh English selected plan translates controls before interaction and rep
   assert.equal(view.queryByRole('button', { name: 'Replace selected stop' }), null);
   fireEvent.click(editor(view).getByRole('button', { name: 'Replace this stop' }));
   fireEvent.click(view.getByRole('button', { name: 'Attractions', exact: true }));
-  const replacement = view.container.querySelector('.planner-catalog article[id^="catalog-place:"]') as HTMLElement;
+  const replacement = view.container.querySelector('.planner-catalog [id^="catalog-place:"]') as HTMLElement;
   assert.ok(replacement);
-  const replacementHref = within(replacement).getByRole('link', { name: 'Read more' }).getAttribute('href');
+  // The row's title is its link to the detail page (RowCard).
+  const replacementHref = replacement.querySelector('.ui-card-link')!.getAttribute('href');
   fireEvent.click(within(replacement).getByRole('button', { name: 'Replace selected stop' }));
   assert.deepEqual(links(view), [replacementHref]);
   assert.ok(editor(view).getByRole('status').textContent?.includes('Stop replaced. Your other places and date are unchanged.'));
@@ -92,7 +93,7 @@ test('replacement date rejection and six-stop limit are English and do not mutat
   const original = links(view);
   fireEvent.click(editor(view).getByRole('button', { name: 'Replace this stop' }));
   fireEvent.change(view.getByLabelText('Outing date'), { target: { value: '2026-10-10' } });
-  const candidate = view.container.querySelector('.planner-catalog article[id^="catalog-event:"]') as HTMLElement;
+  const candidate = view.container.querySelector('.planner-catalog [id^="catalog-event:"]') as HTMLElement;
   assert.ok(candidate);
   fireEvent.click(within(candidate).getByRole('button', { name: 'Replace selected stop' }));
   assert.ok(editor(view).getByText('This event is not on your plan date. Choose an event on the same day.'));
@@ -105,7 +106,7 @@ test('replacement date rejection and six-stop limit are English and do not mutat
   const sixStops = links(view);
   assert.equal(sixStops.length, 6);
   assert.equal(editor(view).getAllByRole('button', { name: 'Move stop up' }).length, 5);
-  const extraEvent = view.container.querySelector('.planner-catalog article[id^="catalog-event:"]') as HTMLElement;
+  const extraEvent = view.container.querySelector('.planner-catalog [id^="catalog-event:"]') as HTMLElement;
   assert.ok(extraEvent);
   fireEvent.click(within(extraEvent).getByRole('button', { name: 'Add to plan' }));
   assert.ok(editor(view).getByText('A plan can have up to six stops. Remove one before adding another.'));

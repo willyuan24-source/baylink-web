@@ -13,6 +13,7 @@ const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { PlannerPlaceRecommendations } = await import('../src/components/PlannerPlaceRecommendations');
 const { PLANNER_PLACES } = await import('../src/data/planner-catalog');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
+const { createCoverPage } = await import('../src/lib/cover');
 const { api } = await import('../src/lib/api');
 const originalRequest = api.request;
 
@@ -31,7 +32,7 @@ test('new-shop recommendations show known official media and preserve text/sourc
   assert.ok(illustrated && photographed, 'exercise both real catalog cases');
   const view = render(<MemoryRouter><PlannerPlaceRecommendations
     suggestions={[illustrated, photographed].map(place => ({ id: `media-${place.id}`, placeId: place.id, date: '2026-10-05', reason: 'Official source available', reasons: [], unknowns: [] }))}
-    filters={{}} message="" onChoose={() => {}} onStart={() => {}}
+    filters={{}} message="" onChoose={() => {}} onStart={() => {}} today="2026-10-05" coverPage={createCoverPage()}
   /></MemoryRouter>);
   const cards = [...view.container.querySelectorAll('article.planner-option')];
   const textCard = cards.find(card => card.querySelector('h3')?.textContent === illustrated.title)!;
@@ -46,12 +47,14 @@ test('planner shop catalog never restores an illustration for a text-only new-sh
   let view!: ReturnType<typeof render>;
   await act(async () => { view = render(<MemoryRouter initialEntries={['/plan?date=2026-10-05']}><PlannerPage /></MemoryRouter>); });
   fireEvent.click(view.getByRole('button', { name: '商店', exact: true }));
-  const cards = [...view.container.querySelectorAll('.planner-catalog article.planner-place')];
+  const cards = [...view.container.querySelectorAll('.planner-catalog .planner-place')];
   assert.ok(cards.length > 0);
   const illustratedSources = new Set(Object.values(GUIDE_IMAGES).filter(image => image.kind === 'illustration').map(image => image.src));
   for (const card of cards) {
     for (const image of card.querySelectorAll('img')) assert.ok(!illustratedSources.has(image.getAttribute('src') || ''), card.querySelector('h3')?.textContent || 'shop');
     assert.ok(card.querySelector('h3')?.textContent);
+    // Every row keeps a cover slot: the shop's own photo, or its information card (TypeCover), never AI art.
+    assert.ok(card.querySelector('.ui-row-card__thumb [data-cover]'), card.querySelector('h3')?.textContent || 'shop');
   }
-  assert.ok(cards.some(card => !card.querySelector('img')), 'missing official shop images keep a useful text card');
+  assert.ok(cards.some(card => card.querySelector('[data-cover="type"]') && !card.querySelector('img')), 'missing official shop images keep a useful information card');
 });

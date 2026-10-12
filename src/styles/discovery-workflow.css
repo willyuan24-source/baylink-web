@@ -34,56 +34,30 @@
 .baybay-task-handoff label { display:block; margin-top:15px; font-size:.75rem; color:#5b7356; }
 .baybay-task-handoff textarea { width:100%; min-height:95px; display:block; resize:vertical; padding:10px; border:1px solid #d4ddce; border-radius:8px; background:white; line-height:1.8; margin-top:6px; }
 .baybay-task-handoff button { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:12px; font-size:.8125rem; font-weight:600; color:#32583d; }
-.planner-option-media { margin:-18px -18px 17px; }
-.planner-option-media .guide-figure,.planner-place-media .guide-figure { margin:0; overflow:hidden; border-radius:14px; }
-.planner-option-media .guide-figure-image,.planner-place-media .guide-figure-image { height:170px; width:100%; object-fit:cover; }
-.planner-option-media .guide-figure--full-frame .guide-figure-image,.planner-place-media .guide-figure--full-frame .guide-figure-image { object-fit:contain; background:#f0f0e8; }
-.planner-option-media .guide-image-caption>p,.planner-place-media .guide-image-caption>p { display:none; }
-.planner-option-media .guide-image-caption,.planner-place-media .guide-image-caption { padding:7px 9px; }
-.planner-option-media .guide-image-attribution,.planner-place-media .guide-image-attribution { font-size:.5625rem; }
-.planner-place-media { margin:12px 0; }
-.planner-compose-outing { display:flex; align-items:center; justify-content:center; gap:8px; min-height:46px; border:1px solid #bad0b5; background:#f1f6ed; border-radius:11px; width:100%; color:#355f42; font-size:.8125rem; margin:13px 0; padding:9px; }
-.planner-map-disclosure>summary { display:flex; gap:10px; align-items:center; cursor:pointer; padding:15px 0; color:#3d6145; min-height:48px; font-weight:600; }
-.planner-map-disclosure>summary::after { content:'+'; margin-left:auto; font-size:1.375rem; }
-.planner-map-disclosure[open]>summary::after { content:'−'; }
-.planner-catalog-more { display:flex; justify-content:center; align-items:center; gap:8px; width:100%; min-height:48px; margin:15px 0; border:1px solid #d2ddc8; border-radius:12px; color:#426741; background:#f5f8ee; font-size:.8125rem; }
-.planner-hero--visual { display:grid; grid-template-columns:minmax(0,1fr) minmax(230px,32%); align-items:center; gap:32px; }
-.planner-hero-copy { min-width:0; }
-.planner-hero--visual h1 { font-size:clamp(2.125rem,calc(3.5vw * var(--fluid-scale)),3.0625rem); }
-.planner-hero-photo { border-radius:20px; overflow:hidden; border:1px solid #dfe5d6; background:#fffefa; box-shadow:0 12px 30px #263b2710; }
-.planner-hero-photo .guide-figure { margin:0; border:0; border-radius:0; }
-.planner-hero-photo .guide-figure-image { width:100%; height:185px; object-fit:cover; }
-.planner-hero-photo .guide-image-caption { padding:7px 11px; }
-.planner-hero-photo .guide-image-caption>p { font-size:.625rem; line-height:1.6; }
-.planner-hero-photo .guide-image-attribution { font-size:.5625rem; }
-.planner-hero-photo>button { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:46px; width:100%; padding:9px 14px; border-top:1px solid #e5e9df; font-size:.75rem; font-weight:600; color:#426442; }
-.planner-hero-photo>button svg { transform:rotate(180deg); }
-.planner-preference-memory { padding:23px; border:1px solid #dfe6d7; background:#f5f7ef; border-radius:18px; margin:18px 0; }
-.planner-preference-memory h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:1rem; font-weight:600; color:#385740; }
-.planner-preference-memory p { color:#6d7c64; font-size:.75rem; line-height:1.8; margin:9px 0 15px; }
-.planner-preference-memory label { display:flex; flex-direction:column; gap:7px; font-size:.75rem; color:#53684e; }
-.planner-preference-memory input,.planner-preference-memory select { min-height:44px; padding:9px 12px; border:1px solid #d9e2d2; border-radius:9px; background:white; width:100%; }
-.planner-preference-memory button { min-height:44px; display:inline-flex; align-items:center; gap:7px; font-size:.75rem; color:#385b40; text-decoration:underline; text-underline-offset:3px; }
-.planner-preference-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:13px; }
-.planner-preference-footer small { font-size:.6875rem; color:#73816b; }
-.planner-travel-check { border:1px solid #dce4d6; padding:15px; margin-bottom:20px; border-radius:14px; background:#f7f8f2; }
-.planner-travel-check>h3 { display:flex; align-items:center; gap:8px; font-size:.9375rem; }
-.planner-travel-check p { font-size:.6875rem; line-height:1.8; color:#63735e; margin:7px 0; }
-.planner-travel-leg { padding:14px 0; border-top:1px solid #e0e7d9; margin-top:12px; overflow-wrap:anywhere; }
-.planner-travel-leg>strong { font-size:.75rem; line-height:1.7; display:block; }
-.planner-travel-actions { display:flex; flex-wrap:wrap; gap:5px 12px; }
-.planner-travel-actions button,.planner-travel-actions a { display:flex; align-items:center; gap:5px; font-size:.6875rem; min-height:44px; color:#3b6041; }
-.planner-travel-estimate { padding:13px; margin-top:12px; border:1px solid #d7dfd2; border-radius:10px; background:white; }
+/* Planner panels (WEB-PLAN): private preference memory (My Week) and the travel-time check (行程 editor). Tokens and
+   rem only, text ≥ --text-caption, the UI secondary look for their buttons. */
+.planner-preference-memory { margin:16px 0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); }
+.planner-preference-memory h3 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+.planner-preference-memory p { margin:8px 0 14px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-preference-memory label { display:flex; flex-direction:column; gap:6px; color:var(--color-ink); font-size:var(--text-fact); }
+.planner-preference-memory :is(input,select) { width:100%; min-height:var(--control-height); padding:8px 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
+.planner-preference-memory button { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.planner-preference-footer { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-top:12px; }
+.planner-preference-footer small { color:var(--color-ink-2); font-size:var(--text-caption); }
+.planner-travel-check { margin-bottom:20px; padding:16px; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); }
+.planner-travel-check>h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:var(--text-body); }
+.planner-travel-check p { margin:6px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-travel-leg { margin-top:12px; padding:12px 0; border-top:1px solid var(--color-line); overflow-wrap:anywhere; }
+.planner-travel-leg>strong { display:block; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+.planner-travel-actions { display:flex; flex-wrap:wrap; gap:4px 12px; }
+.planner-travel-actions :is(button,a) { display:flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+.planner-travel-estimate { margin-top:12px; padding:12px; border:1px solid var(--color-line); border-radius:10px; background:var(--color-surface-2); }
+/* Google's own attribution style, as its terms require. */
 .google-maps-attribution { display:inline-block; color:#5e5e5e; font:400 .75rem/1.5 Arial,sans-serif; letter-spacing:normal; white-space:nowrap; padding:3px 0; }
 @media(max-width:520px) {
-  .planner-hero--visual { grid-template-columns:minmax(0,1fr); gap:20px; }
-  .planner-hero--visual h1 { font-size:2.125rem; }
-  .planner-hero-photo .guide-figure-image { height:140px; }
-  .planner-hero-photo .guide-image-caption>p { display:none; }
   .baybay-discovery-cards { grid-template-columns:minmax(0,1fr); }
   .baybay-discovery-cards article { display:grid; grid-template-columns:74px minmax(0,1fr); }
   .baybay-discovery-cover { height:100%; padding:13px 8px; flex-direction:column; justify-content:flex-start; gap:14px; }
   .baybay-search-modes button { min-height:44px; }
-  .planner-option-media .guide-figure-image,.planner-place-media .guide-figure-image { height:190px; }
 }
 @media(prefers-reduced-motion:reduce) { .baybay-discovery * { scroll-behavior:auto; } }

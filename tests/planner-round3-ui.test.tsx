@@ -317,7 +317,7 @@ test('the overview opens the editor by scrolling without changing the URL or reb
   const target = view.getByRole('complementary');
   Object.defineProperty(target, 'scrollIntoView', { configurable: true, value: (options: unknown) => { scrolls.push(options); } });
   const overview = view.getByRole('region', { name: '当前计划概览' });
-  const button = within(overview).getByRole('button', { name: '查看与修改计划 ↓' });
+  const button = within(overview).getByRole('button', { name: '查看与修改这一天' });
   assert.equal(button.tagName, 'BUTTON', 'an anchor would allow a real browser hash navigation to recreate the draft');
   assert.equal(button.getAttribute('type'), 'button');
   assert.equal(button.getAttribute('href'), null);

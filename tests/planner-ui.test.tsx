@@ -140,24 +140,22 @@ test('an edit link waits through a failed read and hydrates the saved plan after
   assert.equal((editor(view).getByRole('button', { name: '更新这份计划' }) as HTMLButtonElement).disabled, false);
 });
 
-test('visual catalog starts with a bounded page of lazy images and reveals more without changing the plan', async () => {
+test('the list starts with a bounded page of rows, each with its cover, and credits every photo it shows', async () => {
   const view = await openPlanner();
-  assert.ok(view.container.querySelectorAll('.planner-place-media').length > 0);
-  assert.ok(view.container.querySelectorAll('.planner-place').length <= 12, 'the first page stays bounded on mobile');
+  const rows = () => [...view.container.querySelectorAll('.planner-catalog .planner-place')];
+  assert.ok(rows().length > 0 && rows().length <= 12, 'the first page stays bounded on mobile');
+  for (const row of rows()) assert.ok(row.querySelector('.ui-row-card__thumb [data-cover]'), 'every row shows a photo or its information card');
   for (const id of ['golden-gate', 'hakone']) {
     const place = PLANNER_PLACES.find(item => item.id === id)!;
     const image = getGuideMedia(getGuideBySlug(place.guideSlug)!).cover;
     assert.equal(image.kind, 'photo', 'map attraction previews must use actual place photography');
     while (!view.container.querySelector(`[id="catalog-place:${id}"]`)) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
     const card = view.container.querySelector(`[id="catalog-place:${id}"]`)!;
-    fireEvent.click(card.querySelector('.planner-place-title')!);
-    const photo = card.querySelector('.planner-place-media img')!;
+    const photo = card.querySelector('.ui-row-card__thumb img')!;
     assert.equal(photo.getAttribute('src'), image.src);
-    assert.equal(photo.getAttribute('alt'), image.alt);
     assert.equal(photo.getAttribute('loading'), 'lazy');
-    assert.ok(view.container.querySelectorAll('.planner-place-media').length <= view.container.querySelectorAll('.planner-place').length);
-    assert.ok(card.textContent?.includes(image.caption), 'historical/context captions remain visible beside the photo');
-    assert.ok(card.querySelector(`a[href="${image.creditUrl}"]`), 'photo source remains available');
+    assert.ok(card.querySelector('[data-provenance]')?.textContent, 'the photo carries its provenance label');
+    assert.ok(view.container.querySelector(`.planner-credits a[href="${image.creditUrl}"]`), 'photo source remains available in 本页图片来源');
   }
   assert.equal(editor(view).queryAllByRole('listitem').length, 0, 'previewing a photo does not add an itinerary stop');
 });
