@@ -172,3 +172,19 @@ test('the 问 BayBay label never wraps: 大, 特大, 简洁显示 and English sw
   // Without container queries (Safari 15, Firefox < 110) every phone gets the short label.
   assert.match(css, /@supports not \(container-type:inline-size\) \{ @media\(max-width:599px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \} \}/);
 });
+
+test('G55: 我的 is in the desktop header for guests and members; /me, /me/bookings, /my-week and /messages highlight it', () => {
+  for (const user of [null, member]) {
+    for (const pathname of ['/me', '/me/bookings', '/my-week', '/messages', '/messages/thread-1', '/en/me']) {
+      const view = render(<MemoryRouter><SiteNavigation {...base} user={user} pathname={pathname} /></MemoryRouter>);
+      const primary = within(view.getByRole('navigation', { name: '主要导航' }));
+      const mine = primary.getByRole('link', { name: '我的' });
+      assert.equal(mine.getAttribute('href'), '/me');
+      assert.equal(mine.getAttribute('aria-current'), 'page', pathname);
+      assert.deepEqual(primary.getAllByRole('link').filter(link => link.getAttribute('aria-current') === 'page').map(link => link.textContent), ['我的'], pathname);
+      cleanup();
+    }
+  }
+  const view = render(<MemoryRouter><SiteNavigation {...base} pathname="/guides" /></MemoryRouter>);
+  assert.equal(within(view.getByRole('navigation', { name: '主要导航' })).getByRole('link', { name: '我的' }).getAttribute('aria-current'), null);
+});

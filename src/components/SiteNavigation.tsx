@@ -36,10 +36,13 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
     action();
   };
   const unread = notification && <b className="site-unread" aria-label={english ? 'Unread messages' : '未读消息'}>{notificationCount || '•'}</b>;
+  // G55 (HOMEIA-12): 我的 is a primary destination on desktop too, for guests as well (the phone tab bar has it); /me,
+  // /me/bookings, /my-week and /messages highlight it (route-table section 'me').
   const links = [
     { href: '/', label: english ? 'Home' : '首页' },
     { href: '/events', label: english ? 'Events' : '活动' },
     { href: '/guides', label: english ? 'Guides' : '指南' },
+    { href: '/me', label: english ? 'Me' : '我的' },
   ];
   const here = (path: string) => pathname === path ? 'page' : undefined;
 
