@@ -41,7 +41,7 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
       <div className="gd-about">
         <p>{t('“内容更新”是这篇指南内容的整理日期，不代表每个官方来源都在当天重新核验。', 'The “updated” date is when this guide’s content was revised, not a re-check of every official source on that day.')}</p>
         {guide.sourceNote && <p>{guide.sourceNote}</p>}
-        {sources > 0 && <p><a href="#guide-sources" onClick={() => setAboutOpen(false)}>{t(`查看 ${sources} 个官方来源`, `See the ${sources} official sources`)}</a></p>}
+        {sources > 0 && <p><a href="#guide-sources" onClick={() => setAboutOpen(false)}>{t(`查看 ${sources} 个官方来源`, sources === 1 ? 'See the official source' : `See the ${sources} official sources`)}</a></p>}
       </div>
     </Sheet>
   </header>;

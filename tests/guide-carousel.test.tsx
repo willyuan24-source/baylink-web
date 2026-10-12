@@ -98,3 +98,15 @@ test('a slide is 3:4 at least but never a fixed 3:4 box: at 特大, in 简洁显
   assert.match(rule, /height:100%/, 'the track stretches every slide to the tallest one');
   assert.doesNotMatch(css, /\.gd-slide[^{]*\{[^}]*(?:aspect-ratio|max-height|overflow:hidden)/, 'no fixed ratio or clipping on a slide');
 });
+
+test('English "Read next" cards say "1 official source" in the singular, like the index and the head meta line', async () => {
+  await loadLocale('en');
+  await setLocale('en', false);
+  // Its Read next list holds three outings with one official source each (Alviso, Half Moon Bay, Sonoma).
+  const view = article('sf-autumn-art-half-day-2026');
+  const related = view.getByRole('heading', { name: 'Read next' }).closest('section')!;
+  const metas = [...related.querySelectorAll('.ui-feed-card__meta')].map(meta => meta.textContent!);
+  assert.equal(metas.length, related.querySelectorAll('article').length, 'every card has a meta line');
+  assert.ok(metas.some(text => /^1 official source · \d+ min read$/.test(text)), metas.join(' | '));
+  assert.ok(metas.every(text => /^(?:1 official source|(?:[02-9]|\d{2,}) official sources) · \d+ min read$|^\d+ min read$/.test(text)), metas.join(' | '));
+});

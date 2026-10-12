@@ -87,6 +87,14 @@ export function guideReadMinutes(guide: Pick<Guide, 'title' | 'summary' | 'block
 
 export const guideSourceCount = (guide: Pick<Guide, 'sources'>) => new Set(guide.sources.map(source => source.url)).size;
 
+/** A guide card's meta line (index feed, rails, "Read next"): one source in the singular, the reading time alone without sources. */
+export function guideCardMeta(guide: Pick<Guide, 'sources' | 'title' | 'summary' | 'blocks'>): Copy {
+  const sources = guideSourceCount(guide), minutes = guideReadMinutes(guide);
+  return sources
+    ? { zh: `${sources} 个官方来源 · 约 ${minutes} 分钟`, en: `${sources} official source${sources === 1 ? '' : 's'} · ${minutes} min read` }
+    : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
+}
+
 /** A guide date for English readers: '2026-10-06' → 'Oct 6, 2026' (the head meta line and the carousel cover). */
 export const guideEnglishDate = (iso: string): string => {
   const [year, month, day] = iso.split('-').map(Number);
