@@ -25,13 +25,24 @@ export type EditorialOverlay = {
   iconKey?: string;
 };
 
+/**
+ * The time windows a card's hours label reads (src/lib/event-facts.ts eventTimeLabel). The schedule's sourceUrl and
+ * verifiedAt stay with the detail page; sessions equal to the overlay's own `sessions` are left out (generate-events-index.ts).
+ */
+export type IndexSchedule = Pick<PlanningSchedule, 'validFrom' | 'validThrough' | 'weekly' | 'dates' | 'sessions'>;
+
 export type IndexPlanning = Pick<PlanningFacts, 'setting' | 'admissionUsd' | 'minAge' | 'maxAge'> & {
-  schedule?: PlanningSchedule;
+  schedule?: IndexSchedule;
 };
 
-/** An event as the column needs it: no summary, plan steps or long date line. `occurrenceDates` has the reviewed date overrides applied. */
+/**
+ * An event as the column needs it: no summary, plan steps, long date line or source label (a card's trust line reads
+ * verifiedAt). The free-text `costLabel` is kept only on mixed-cost events, the one case the 免费 filter reads it
+ * (isFreeToAttend); a card's price comes from cost / price / admission. `occurrenceDates` has the reviewed date overrides
+ * applied.
+ */
 export type IndexEvent = Pick<MonthlyEvent, 'id' | 'title' | 'aliases' | 'kind' | 'startDate' | 'endDate' | 'occurrenceDates' | 'region' | 'city' | 'venue'
-  | 'category' | 'cost' | 'costLabel' | 'audience' | 'sourceLabel' | 'verifiedAt' | 'imageKey'> & EditorialOverlay & {
+  | 'category' | 'cost' | 'audience' | 'verifiedAt' | 'imageKey'> & Partial<Pick<MonthlyEvent, 'costLabel'>> & EditorialOverlay & {
   planning?: IndexPlanning;
   location?: Pick<GeoPoint, 'lat' | 'lng' | 'precision' | 'sourceUrl'>;
   /** The calendar's schedule note for this event. */

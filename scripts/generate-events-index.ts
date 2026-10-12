@@ -8,14 +8,19 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import cityAliases from '../src/data/city-search-aliases.json';
 import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from './data/event-calendar-schedule';
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
-import type { EventsIndex, IndexEvent, IndexImage, IndexOffer, IndexOpening } from '../src/features/events/events-index-types';
+import type { EventsIndex, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
+import type { PlanningSchedule } from '../src/lib/planner';
 
 /**
  * The slim events index (RC-33): what /events, /this-month and /calendar render, without guide articles, the full
  * local-discoveries catalog, plan steps or summaries. Generated from the same catalogs as the detail pages, so titles,
  * dates, prices and source checks cannot drift. The CNT editorial overlay fields a listing shows or searches (shortTitle, dek,
  * sessions, price, venueShort, iconKey) are copied when an event carries them; address, ageChip, tips and dateNote stay
- * on the detail page, so the overlay adds as little as possible to /events.
+ * on the detail page, so the overlay adds as little as possible to /events. Fields no listing reads stay out too: the
+ * sourceLabel (a card's trust line reads verifiedAt), the free-text costLabel except on mixed-cost events (the 免费 filter's
+ * isFreeToAttend reads it only there; a card's price comes from cost / price / admission) and the schedule's own
+ * sourceUrl / verifiedAt (listSchedule below), so each new batch of events costs the list routes as few bytes as possible
+ * (CNT-SUPPLY, verify-release route budgets).
  *
  * Deterministic for a given catalog apart from `weeklyCardDays`: it keeps everything that had not ended by the edition's
  * check date; pages filter by the reader's own day. `weeklyCardDays` are the days this build writes a dated Bay Area share
@@ -30,12 +35,26 @@ const pick = <T extends object, K extends string>(source: T, keys: readonly K[])
   return value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length) ? [] : [[key, value]];
 }));
 
+/**
+ * The planner schedule as a listing reads it (src/lib/event-facts.ts eventTimeLabel): the time windows and their validity
+ * only. Its sourceUrl / verifiedAt stay with the detail page, and sessions that repeat the overlay's own `sessions` are
+ * dropped (the overlay's are read first, so the label is the same). A schedule left with no time window is dropped.
+ */
+const sessionKey = (sessions: readonly { date: string; start?: string; end?: string }[] | undefined) =>
+  JSON.stringify((sessions ?? []).map(({ date, start, end }) => [date, start ?? '', end ?? '']));
+function listSchedule(schedule: PlanningSchedule, overlaySessions: IndexEvent['sessions']): IndexSchedule | undefined {
+  const list: IndexSchedule = pick(schedule, ['validFrom', 'validThrough', 'weekly', 'dates', 'sessions'] as const);
+  if (list.sessions && overlaySessions?.length && sessionKey(list.sessions) === sessionKey(overlaySessions)) delete list.sessions;
+  return list.weekly || list.dates || list.sessions ? list : undefined;
+}
+
 const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cutoff).map(event => {
   const dates = Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? EVENT_DATE_OVERRIDES[event.id] : event.occurrenceDates;
-  const schedule = event.planning?.schedule;
+  const overlay = event as typeof event & Pick<IndexEvent, 'sessions'>;
+  const schedule = event.planning?.schedule && listSchedule(event.planning.schedule, overlay.sessions);
   const planning = event.planning ? {
     ...pick(event.planning, ['setting', 'admissionUsd', 'minAge', 'maxAge'] as const),
-    ...(schedule ? { schedule: pick(schedule, ['sourceUrl', 'verifiedAt', 'validFrom', 'validThrough', 'weekly', 'dates', 'sessions'] as const) } : {}),
+    ...(schedule ? { schedule } : {}),
   } : undefined;
   const aliases = (event.aliases ?? []).filter(alias => alias !== event.title);
   return {
@@ -44,8 +63,8 @@ const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cut
     ...(event.kind && event.kind !== 'event' ? { kind: event.kind } : {}),
     startDate: event.startDate, endDate: event.endDate, ...(dates !== undefined ? { occurrenceDates: dates } : {}),
     region: event.region, city: event.city, venue: event.venue, category: event.category,
-    cost: event.cost, costLabel: event.costLabel, audience: event.audience,
-    sourceLabel: event.sourceLabel, verifiedAt: event.verifiedAt, imageKey: event.imageKey,
+    cost: event.cost, ...(event.cost === 'mixed' ? { costLabel: event.costLabel } : {}),
+    audience: event.audience, verifiedAt: event.verifiedAt, imageKey: event.imageKey,
     ...(planning && Object.keys(planning).length ? { planning } : {}),
     ...(event.location ? { location: { lat: event.location.lat, lng: event.location.lng, precision: event.location.precision, sourceUrl: event.location.sourceUrl } } : {}),
     ...(EVENT_SCHEDULE_NOTES[event.id] ? { note: EVENT_SCHEDULE_NOTES[event.id] } : {}),
