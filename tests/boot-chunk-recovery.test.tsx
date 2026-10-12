@@ -20,13 +20,16 @@ const hooks = registerHooks({ load(url, context, next) {
   return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context);
 } });
 const { render, cleanup, act, fireEvent, waitFor } = await import('@testing-library/react');
-const { settleChunk, chunkLoader, lazyChunk, isChunkLoadFailure, forgetLostChunks } = await import('../src/lib/chunk-recovery');
+const { settleChunk, chunkLoader, lazyChunk, isChunkLoadFailure, forgetLostChunks, lostChunkUrl, chunkRefetch } = await import('../src/lib/chunk-recovery');
 const { OverlayBoundary } = await import('../src/app/OverlayHost');
 const { useReopenAfterFailure } = await import('../src/app/useReopenAfterFailure');
 const { bootApp, showBootRetryBar } = await import('../src/app/boot');
 const { captureBootMain, bootMainFallback, hasBootMain, BootMainSettled } = await import('../src/app/boot-main');
 after(() => { hooks.deregister(); });
-afterEach(() => { cleanup(); document.body.innerHTML = ''; forgetLostChunks(); });
+const nodeImport = chunkRefetch.import;
+afterEach(() => { cleanup(); document.body.innerHTML = ''; forgetLostChunks(); chunkRefetch.import = nodeImport; delete (globalThis as { location?: Location }).location; });
+/** The page's location, so a lost chunk's URL can be checked as this site's own (Node has no `location`). */
+const onSite = () => Object.defineProperty(globalThis, 'location', { configurable: true, value: dom.window.location });
 
 const never = Symbol('pending');
 /** The promise's value, or `never` if it is still pending after a few ticks. */
@@ -59,15 +62,40 @@ test('every named-export loader in the shell is guarded before it picks (Overlay
   for (const line of named) assert.match(line, /import\('[^']+'\)\.then\(settleChunk\)\.then\(m => \(\{ default: m\.\w+ \}\)\)/, line);
 });
 
-test('a load that fails twice is marked as a lost chunk; one retry first', async () => {
-  let calls = 0;
+test('a lost chunk is named from the browser message only when it is one of this site’s own scripts', () => {
+  assert.equal(lostChunkUrl(lostChunkError()), null, 'no location (Node): never');
+  onSite();
+  assert.equal(lostChunkUrl(lostChunkError()), 'https://www.baylink.us/assets/ReportModal-x1.js', 'Chrome');
+  assert.equal(lostChunkUrl(new TypeError('error loading dynamically imported module: https://www.baylink.us/assets/Chat-Ab_9.js?retry=12')), 'https://www.baylink.us/assets/Chat-Ab_9.js', 'Firefox; an earlier retry query dropped');
+  assert.equal(lostChunkUrl(new TypeError('Importing a module script failed.')), null, 'Safari names no URL');
+  assert.equal(lostChunkUrl(new TypeError('Failed to fetch dynamically imported module: https://cdn.example.com/assets/x.js')), null, 'another origin');
+  assert.equal(lostChunkUrl(new TypeError('Failed to fetch dynamically imported module: https://www.baylink.us/sw.js')), null, 'not a built chunk');
+  assert.equal(lostChunkUrl('offline'), null);
+});
+
+test('the retry asks for a lost chunk under a new URL (the browser keeps a failed import), and fails with the first error', async () => {
+  onSite();
+  const asked: string[] = [];
+  let loads = 0;
   const error = lostChunkError();
+  chunkRefetch.import = async url => { asked.push(url); return { Dialog: 'fresh' }; };
+  assert.equal(await chunkLoader(async () => { loads += 1; throw error; }, (m: { Dialog: string }) => m.Dialog, 1)(), 'fresh');
+  assert.equal(loads, 1, 'the cached failure is not asked again');
+  assert.match(asked[0], /^https:\/\/www\.baylink\.us\/assets\/ReportModal-x1\.js\?retry=\d+$/);
+  chunkRefetch.import = async url => { asked.push(url); throw new TypeError(`Failed to fetch dynamically imported module: ${url}`); };
+  await assert.rejects(chunkLoader(async () => { throw error; }, module => module, 1)(), (caught: unknown) => caught === error && isChunkLoadFailure(caught));
+  assert.equal(asked.length, 2);
+});
+
+test('without a URL in the error (Safari) the retry loads once more; a load that fails twice is marked as a lost chunk', async () => {
+  let calls = 0;
+  const error = new TypeError('Importing a module script failed.');
   const load = chunkLoader(async () => { calls += 1; throw error; }, module => module, 1);
   await assert.rejects(load(), (caught: unknown) => caught === error && isChunkLoadFailure(caught));
   assert.equal(calls, 2);
   assert.equal(isChunkLoadFailure(new Error('a crash')), false);
   let flaky = 0;
-  assert.equal(await chunkLoader(async () => { flaky += 1; if (flaky === 1) throw lostChunkError(); return 'second try'; }, module => module, 1)(), 'second try');
+  assert.equal(await chunkLoader(async () => { flaky += 1; if (flaky === 1) throw new TypeError('Importing a module script failed.'); return 'second try'; }, module => module, 1)(), 'second try');
 });
 
 function DialogHost({ Dialog, onFail }: { Dialog: React.ComponentType<{ text: string }>; onFail: (lost: boolean) => void }) {
@@ -79,24 +107,29 @@ function DialogHost({ Dialog, onFail }: { Dialog: React.ComponentType<{ text: st
   </div>;
 }
 
-test('a dialog whose chunk failed loads again the next time it opens (React.lazy alone keeps the failure)', async t => {
+test('a dialog whose chunk failed loads again the next time it opens (React.lazy and the browser alone keep the failure)', async t => {
   t.mock.method(console, 'error', () => {});
   t.mock.method(globalThis, 'fetch', async () => new Response('{}'));
-  let calls = 0;
+  onSite();
+  // As in the browser: once the chunk failed, its import keeps failing at once; only a new URL is fetched again.
+  let loads = 0;
+  const refetches: string[] = [];
   let online = false;
-  const Dialog = lazyChunk(async () => { calls += 1; if (!online) throw lostChunkError(); return { Named: ({ text }: { text: string }) => <p>{text}</p> }; }, m => m.Named, 1);
+  chunkRefetch.import = async url => { refetches.push(url); if (!online) throw new TypeError(`Failed to fetch dynamically imported module: ${url}`); return { Named: ({ text }: { text: string }) => <p>{text}</p> }; };
+  const Dialog = lazyChunk(async (): Promise<{ Named: React.ComponentType<{ text: string }> }> => { loads += 1; throw lostChunkError(); }, m => m.Named, 1);
   const failures: boolean[] = [];
   const view = render(<DialogHost Dialog={Dialog} onFail={lost => failures.push(lost)} />);
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'open' })); });
   await waitFor(() => assert.deepEqual(failures, [true]), { timeout: 500 });
-  assert.equal(calls, 2, 'the first load and its one retry; no loop of fresh loads while it fails');
+  assert.deepEqual([loads, refetches.length], [1, 1], 'the first load and its one retry; no loop of fresh loads while it fails');
   assert.equal(view.container.textContent, 'pageopen', 'the page stays; the dialog closed');
   await new Promise(resolve => setTimeout(resolve, 30));
-  assert.equal(calls, 2, 'nothing loads again until the reader asks');
+  assert.deepEqual([loads, refetches.length], [1, 1], 'nothing loads again until the reader asks');
   online = true;
   await act(async () => { fireEvent.click(view.getByRole('button', { name: 'open' })); });
   await waitFor(() => assert.equal(view.container.textContent, 'pageopendialog'), { timeout: 500 });
-  assert.equal(calls, 3);
+  assert.deepEqual([loads, refetches.length], [2, 2]);
+  assert.notEqual(refetches[0], refetches[1], 'each retry is a new URL');
 });
 
 test('a loader that resolves undefined keeps the dialog loading (the reload replaces the page); the boundary never trips', async () => {
