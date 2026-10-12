@@ -9609,7 +9609,8 @@
       "costLabel": "免费；须提前登记参加活动、领取糖果袋。",
       "summary": "装扮讨糖、手工和寻宝游戏，也可参观幼儿园教室。",
       "plan": [
-        "2026-10-01 开始预登记；儿童须成人陪同。"
+        "2026-10-01 开始预登记；儿童须成人陪同。",
+        "17:30 停止签到；走完步道约 30–45 分钟。"
       ],
       "audience": [
         "亲子",
@@ -10215,7 +10216,7 @@
       "dateLabel": "10/17 · 11:00–18:00",
       "region": "south-bay",
       "city": "Cupertino",
-      "venue": "Memorial Park · 10185 N Stelling Road, Cupertino, CA",
+      "venue": "Memorial Park · 21121 Stevens Creek Blvd, Cupertino, CA 95014",
       "category": "family",
       "kind": "event",
       "cost": "unknown",
@@ -10242,7 +10243,7 @@
         }
       ],
       "venueShort": "Memorial Park",
-      "address": "10185 N Stelling Road, Cupertino, CA",
+      "address": "21121 Stevens Creek Blvd, Cupertino, CA 95014",
       "aliases": [
         "Cupertino Bay Area Diwali 排灯节",
         "Cupertino Bay Area Diwali festival",
@@ -10272,8 +10273,9 @@
       "summary": "第三届 Top of the Hill Festival 回到 Mission Street 与 John Daly Boulevard 一带，用现场音乐、文化表演和本地商家摊位连接社区。",
       "plan": [
         "12:00–18:00 为整场街庆开放时间；各舞台节目时刻看主办方更新。",
-        "全年龄免费入场；餐饮和商品另付。",
-        "活动在 Mission Street 街区，不在 Daly City City Hall；交通安排以市府公告为准。"
+        "San Mateo 县参事会 8/25 拨款案（档案 26-685）写明全年龄免费入场；餐饮和商品另付。",
+        "活动在 Mission Street 街区，不在 Daly City City Hall；交通安排以市府公告为准。",
+        "Jefferson High、市府和 Seton 医疗办公楼三处停车场有免费接驳车，11:30 起发车；网约车在 6600 Mission Street 下车。"
       ],
       "audience": [
         "社区居民",
@@ -10448,7 +10450,8 @@
       "summary": "海岸小城的秋季街庆，结合艺术摊位、南瓜展示与多舞台音乐。",
       "plan": [
         "节庆免费入场；餐饮、商品、停车及部分周边体验另收费；附属活动分别核对。",
-        "10 月 12 日南瓜称重赛是另一场活动，不属于 10 月 17–18 日周末。按当年节目表选择游行、早餐或跑步活动，并预留 Highway 92 的交通时间。"
+        "10 月 12 日南瓜称重赛是另一场活动，不属于 10 月 17–18 日周末。按当年节目表选择游行、早餐或跑步活动，并预留 Highway 92 的交通时间。",
+        "节庆现场谢绝宠物，不要带狗或其他宠物。"
       ],
       "audience": [
         "亲子",
@@ -12854,49 +12857,6 @@
       }
     },
     {
-      "id": "sf-doja-cat-2026",
-      "title": "Doja Cat：Tour Ma Vie 演唱会",
-      "startDate": "2026-10-19",
-      "endDate": "2026-10-19",
-      "dateLabel": "10/19 · 19:30",
-      "region": "sf",
-      "city": "San Francisco",
-      "venue": "Chase Center · 1 Warriors Way, San Francisco, CA 94158",
-      "category": "culture",
-      "kind": "performance",
-      "cost": "paid",
-      "costLabel": "票价尚未核实，以官方购票页为准",
-      "summary": "Doja Cat 的全球巡演旧金山站；场馆日历同时列出特别嘉宾 Latto。",
-      "plan": [
-        "通过场馆官方售票入口购票；票价与余票请以官方售票页为准"
-      ],
-      "audience": [
-        "音乐爱好者"
-      ],
-      "officialUrl": "https://www.chasecenter.com/news/doja-cat-announcement-20261019/",
-      "sourceLabel": "chasecenter.com",
-      "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
-      "shortTitle": "Doja Cat 旧金山演唱会",
-      "dek": "全球巡演旧金山站，嘉宾 Latto",
-      "sessions": [
-        {
-          "date": "2026-10-19",
-          "start": "19:30"
-        }
-      ],
-      "venueShort": "Chase Center",
-      "address": "1 Warriors Way, San Francisco, CA 94158",
-      "aliases": [
-        "Doja Cat：Tour Ma Vie 演唱会",
-        "Doja Cat: Tour Ma Vie concert",
-        "Doja Cat：Tour Ma Vie 演唱會"
-      ],
-      "planning": {
-        "admissionUsd": null
-      }
-    },
-    {
       "id": "sf-open-weight-debate-2026",
       "title": "开放权重 AI 辩论之夜",
       "startDate": "2026-10-19",
@@ -13858,11 +13818,11 @@
       "category": "family",
       "kind": "event",
       "cost": "paid",
-      "costLabel": "室内讨糖$15/儿童，仅预售；包括20处讨糖、礼袋、额外奖品、拍照及10项嘉年华游戏。餐饮及其他活动另付。",
-      "summary": "市府与 Fremont 商会合办万圣节晚间活动，有音乐、餐车、摊位和装扮比赛。室内讨糖采用预售票，适合先买好票再带孩子穿好服装出门。",
+      "costLabel": "室内讨糖票（仅预售）已售罄、当天不卖；其他活动现场购票，餐饮另付。",
+      "summary": "市府与 Fremont 商会合办万圣节晚间活动，有音乐、餐车、摊位和装扮比赛。室内讨糖只卖预售票，现已售罄。",
       "plan": [
-        "室内项目适合 2–10 岁儿童，须成人陪同；每张票预约一个 30 分钟时段。票量有限、只预售，买前看剩余名额。",
-        "整场活动 17:00–21:00；30 分钟是室内讨糖时段。地点 Downtown Event Center & Plaza，3500 Capitol Avenue；$15 只是室内讨糖票。"
+        "室内讨糖预售票已售罄，当天不卖，票也不能转让。音乐、餐车、摊位和 19:00 装扮赛照常；其他活动的票在现场买。",
+        "整场活动 17:00–21:00，地点 Downtown Event Center & Plaza，3500 Capitol Avenue。"
       ],
       "audience": [
         "亲子家庭",
@@ -13880,10 +13840,6 @@
           "end": "21:00"
         }
       ],
-      "price": {
-        "min": 15,
-        "note": "室内讨糖每名儿童"
-      },
       "ageChip": "室内项目 2–10 岁",
       "shortTitle": "Fremont 市中心 Trick-or-Treat",
       "venueShort": "Downtown Event Center & Plaza",
@@ -15963,6 +15919,54 @@
         "City Center Howl-O-Ween 宠物巡游",
         "City Center Howl-O-Ween Pet Parade",
         "City Center Howl-O-Ween 寵物巡遊"
+      ],
+      "planning": {
+        "admissionUsd": null
+      }
+    },
+    {
+      "id": "sf-doja-cat-2026",
+      "title": "Doja Cat：Tour Ma Vie 演唱会",
+      "startDate": "2026-10-25",
+      "endDate": "2026-10-25",
+      "dateLabel": "10/25 · 19:30；18:30 开门",
+      "region": "sf",
+      "city": "San Francisco",
+      "venue": "Chase Center · 1 Warriors Way, San Francisco, CA 94158",
+      "category": "culture",
+      "kind": "performance",
+      "cost": "paid",
+      "costLabel": "票价尚未核实，以官方购票页为准",
+      "summary": "Doja Cat 的全球巡演旧金山站；场馆日历同时列出特别嘉宾 Latto。",
+      "plan": [
+        "因 Valkyries 打进 WNBA 总决赛，原定 10/19（周一）的演出改到 10/25（周日）19:30；原票在新日期继续有效。",
+        "通过场馆官方售票入口购票；票价与余票请以官方售票页为准"
+      ],
+      "audience": [
+        "音乐爱好者"
+      ],
+      "officialUrl": "https://www.chasecenter.com/news/doja-cat-announcement-20261019/",
+      "sourceLabel": "chasecenter.com",
+      "verifiedAt": "2026-09-28",
+      "imageKey": "weekend",
+      "occurrenceDates": [
+        "2026-10-25"
+      ],
+      "shortTitle": "Doja Cat 旧金山演唱会",
+      "dek": "全球巡演旧金山站，嘉宾 Latto",
+      "sessions": [
+        {
+          "date": "2026-10-25",
+          "start": "19:30"
+        }
+      ],
+      "dateNote": "18:30 开门；原定 10/19，原票在 10/25 有效",
+      "venueShort": "Chase Center",
+      "address": "1 Warriors Way, San Francisco, CA 94158",
+      "aliases": [
+        "Doja Cat：Tour Ma Vie 演唱会",
+        "Doja Cat: Tour Ma Vie concert",
+        "Doja Cat：Tour Ma Vie 演唱會"
       ],
       "planning": {
         "admissionUsd": null
@@ -19104,12 +19108,12 @@
       "sourceLabel": "Downtown San Mateo Association / West Coast Farmers Market Association",
       "verifiedAt": "2026-10-05",
       "title": "San Mateo 周四傍晚农贸市场",
-      "dateLabel": "11/5 周四 · 15:00–19:00",
+      "dateLabel": "11/5 未获确认 · 协会日历只列到 7/23",
       "venue": "原 Draeger’s 停车场，222 East 4th Avenue",
       "costLabel": "蔬果与餐车食物自费；官网未列入场售票",
-      "summary": "市中心协会日历明确列出 2026 年 11 月 5 日场次，包含蔬果与少量餐车，适合下班后采购。目的地是原超市停车场，不是 College of San Mateo 的周六市场。",
+      "summary": "Downtown San Mateo 的周四傍晚农贸市场，有蔬果与少量餐车，适合下班后采购。目的地是原超市停车场，不是 College of San Mateo 的周六市场。",
       "plan": [
-        "先查当日主办方更新，带购物袋并按需要购买；天气、摊位及品项可能调整。",
+        "市中心协会日历上的周四市集今年只列到 7/23，主办方 WCFMA 的市集名单也没有它；11/5 没有确认，不要按 11/5 前往。",
         "停车依现场标志付费或限时；不要因活动在停车场就假定可以停在摊位区。",
         "有食物过敏或饮食要求时，直接向摊商核对配料。"
       ],
@@ -19118,15 +19122,10 @@
         "想认识本地食物的人"
       ],
       "relatedGuideSlug": "peninsula-south-bay-autumn-farmers-markets-2026",
+      "occurrenceDates": [],
       "shortTitle": "San Mateo 周四傍晚市集",
       "dek": "下班后买蔬果，还有几辆餐车",
-      "sessions": [
-        {
-          "date": "2026-11-05",
-          "start": "15:00",
-          "end": "19:00"
-        }
-      ],
+      "dateNote": "原列 11/5 15:00–19:00",
       "venueShort": "原 Draeger’s 停车场",
       "aliases": [
         "San Mateo 周四傍晚农贸市场",
@@ -25138,6 +25137,28 @@
       ]
     },
     {
+      "id": "opening-marufuku-burlingame-announced",
+      "title": "Marufuku Ramen · Burlingame",
+      "region": "peninsula",
+      "city": "Burlingame",
+      "summary": "Marufuku 拉面的 Burlingame 分店，地址 225 Lorton Avenue。门店页写 10/11 Grand Opening、10/12 起按常规时间营业；品牌首页和分店目录仍标 Coming Soon。",
+      "guideSlug": "",
+      "path": "/openings/marufuku-burlingame-announced",
+      "officialUrl": "https://www.marufukuramen.com/burlingame",
+      "cost": "unknown",
+      "category": "restaurant",
+      "address": "225 Lorton Ave, Burlingame, CA 94010",
+      "imageKey": "opening-marufuku-burlingame",
+      "openingStatus": "open",
+      "planning": {
+        "admissionUsd": null
+      },
+      "offerIds": [],
+      "aliases": [
+        "Marufuku Ramen · Burlingame"
+      ]
+    },
+    {
       "id": "opening-passdoor-santa-rosa-opening-2026",
       "title": "The Passdoor",
       "region": "north-bay",
@@ -25145,7 +25166,7 @@
       "summary": "The Passdoor 官网已列出 Santa Rosa 新址、营业时段及后续活动。珠宝、艺术及家居精选品牌迁至 1160 4th Street；10/1–3 的开业庆典已结束。",
       "guideSlug": "",
       "path": "/openings/passdoor-santa-rosa-opening-2026",
-      "officialUrl": "https://www.thepassdoor.net/new-page",
+      "officialUrl": "https://www.thepassdoor.net/",
       "cost": "unknown",
       "category": "restaurant",
       "address": "1160 4th Street, Santa Rosa, CA",
@@ -26264,6 +26285,28 @@
       "offerIds": [],
       "aliases": [
         "Nékter Juice Bar"
+      ]
+    },
+    {
+      "id": "opening-albany-o2-sushi-opening-2026",
+      "title": "O2 Sushi",
+      "region": "east-bay",
+      "city": "Albany",
+      "summary": "O2 Eatery 团队在 San Pablo Avenue 开的寿司餐厅，9/23 庆祝开业，官方 Instagram 简介写着 Now Open。",
+      "guideSlug": "",
+      "path": "/openings/albany-o2-sushi-opening-2026",
+      "officialUrl": "https://www.instagram.com/o2.sushi/",
+      "cost": "unknown",
+      "category": "restaurant",
+      "address": "977 San Pablo Ave, Albany, CA",
+      "imageKey": "autumn-new-shops",
+      "openingStatus": "open",
+      "planning": {
+        "admissionUsd": null
+      },
+      "offerIds": [],
+      "aliases": [
+        "O2 Sushi"
       ]
     },
     {

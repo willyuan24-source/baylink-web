@@ -450,3 +450,41 @@ changing (Pleasanton adds the page's "3 and under free"). No source package was 
 | event | `pleasanton-pumpkins-after-dark-2026` | (10/09 read above) | — | "Child 3 years old and under FREE … Parking : $15 – Credit, debit and mobile tap-to-pay … only" |
 | event | `berkeley-bird-festival-2026` | (10/09 read above) | — | the festival page lists no fees; the line keeps "talks and exhibits free" and says the rest is to be confirmed |
 | event | `fremont-street-eats-autumn-2026` | (10/09 read above) | — | the events page lists no admission fee (only "Exhibiting at Fremont Street Eats is free") |
+
+## CNT-HOTFIX · official-page reads, 2026-10-12 (PT)
+
+Scope: the audit's CNT-HOTFIX list (gaps G02, G03, G61, G62, G99, G107) plus a one-time sweep of the official page of every live
+event, offer and opening happening 10/12–11/08 (231 events, 159 offers, 60 openings; 427 URLs). Each page was read with a read-only
+GET on 2026-10-12 between 00:50 and 01:30 PT, then headless Chrome for pages that failed or rendered short; no forms, logins or
+posts. Page texts and the per-item outcome table are kept in the lane directory (`opus-qa/overhaul/lanes/CNT-HOTFIX/sweep.md`).
+Corrections are in `src/data/editorial-overlay` (`fix`, `status`, `plan`; author patch `work/author/zz-hotfix-1012.cjs` in
+the lane directory), except where the overlay cannot reach: the Passdoor source URL (`src/data/content-audit-updates.ts`), the
+naturalization guide's USCIS link (`src/data/guides-benefits-citizenship.ts`), the Marufuku image caption
+(`src/data/community-opening-media.json` + `src/i18n/en.json`) and the /this-month title (`src/lib/monthly-metadata.ts`).
+`verifiedAt` is never changed (D12).
+
+| Kind | Id | URL | HTTP | Change | Quote |
+|---|---|---|---|---|---|
+| event | `sf-doja-cat-2026` | https://www.chasecenter.com/news/doja-cat-announcement-20261019/ (redirects to /events/doja-cat-20261025/) | 200 | 10/19 → Sun 10/25 19:30, doors 18:30 | "originally scheduled for Monday, October 19, will now take place on Sunday, October 25. All tickets remain valid for the new date." |
+| event | `fremont-trick-or-treat-2026` | https://www.fremont.gov/government/departments/parks-recreation/events/trick-or-treat-event | 200 | cost line, summary and plan: indoor presale sold out, no day-of sales; the $15 price is dropped (nothing is on sale and the page no longer lists it) | "Trick or Treat Pre-Sale Tickets are sold out. Tickets are non transferrable and will not be sold the day of the event." |
+| event | `cupertino-diwali-festival-2026` | https://www.cupertino.gov/Parks-Recreation/Events/Festivals/Diwali-Festival | 200 | venue address 10185 N Stelling Road → 21121 Stevens Creek Blvd | "Location · Memorial Park, 21121 Stevens Creek Blvd, 95014" |
+| event | `daly-city-top-of-the-hill-festival-2026` | https://sanmateocounty.legistar.com/LegislationDetail.aspx?FullText=1&GUID=CAAACC49-AD28-4590-A944-841B4C055DD3&ID=8183943&Options=&Search= | 200 | the "全年龄免费" plan line now names its source (the board memo in county file 26-685, grant adopted 8/25) | "Free Admission: Festivalgoers of all ages can enjoy this free community event." |
+| event | `daly-city-top-of-the-hill-festival-2026` | https://www.dalycity.org/1339/Parking-Shuttle-Information | 200 | plan line: free shuttle lots, rideshare drop-off | "three convenient parking locations with FREE shuttle service … First shuttle: 11:30 AM … drop off location: 6600 Mission Street" |
+| event | `concord-trick-or-treat-trail-2026` | https://cityofconcord.org/1130/Trick-or-Treat-Trail | 200 | plan line: check-in closes 17:30 | "Check-in will close at 5:30pm." / "approximately 30-45min to walk through the trail" |
+| event | `half-moon-bay-pumpkin-festival-2026` | https://hmbpumpkinfest.com/experience/schedule.html | 200 | plan line: no pets | "NO PETS, Please" |
+| event | `san-mateo-downtown-market-nov5-2026` | https://dsma.org/event/downtown-san-mateo-farmers-market/2026-11-05/, https://dsma.org/events/list/?tribe-bar-date=2026-11-05, DSMA calendar data (`/wp-json/tribe/events/v1/events`), https://www.wcfma.org/markets | 301 → 200 | 11/5 is no longer a confirmed day (`occurrenceDates: []`, no status: nothing says it was cancelled); label "11/5 未获确认 · 协会日历只列到 7/23"; summary drops "日历明确列出 11/5 场次"; plan says not to plan on 11/5 | the 11/05 URL redirects to the 04/09 page ("This event has passed"); the calendar data lists the series 16 times, Apr 9–Jul 23, 2026; the organizer's market list has no San Mateo Thursday market |
+| guide | `peninsula-south-bay-autumn-farmers-markets-2026` | (same reads) | — | the San Mateo list line no longer says "11/5 官方场次" (raw guide + English) | as above |
+| opening | `old-post-office-burlingame` | https://www.oldpostofficeburlingame.com/ | 200 | brunch from 10/17 → Sun 10/18 (date label, tip) | "Brunch: Sat–Sun, 11 a.m.–2 p.m. (10/18)" / "Lunch begins on October 12, followed by brunch on October 18." |
+| opening | `marufuku-burlingame-announced` | https://www.marufukuramen.com/burlingame | 200 | status `open` (no `openedOn`); regular hours; summary notes the brand homepage and location list still say Coming Soon | "GRAND OPENING: OCT. 11 … Regular hours starting 10/12: MON–FRI 11am-2pm / 5pm-9pm SAT–SUN 11am-9pm" |
+| opening | `albany-o2-sushi-opening-2026` | https://www.instagram.com/o2.sushi/ | 200 | status `open` (no `openedOn`); label "未列营业时间" (the profile lists no hours) | "Brought to you by O2 Eatery 📍 Albany, CA ✨ Now Open!" (richmondside.org 9/22: "celebrating its opening on Wednesday, Sept. 23") |
+| opening | `los-altos-coffeebar-announced-2026` | https://coffeebar.com/pages/locations (redirects to /locations/) | 200 | label: official "Coming October 2026" replaces the media window; tip from the same page | "Los Altos · Coming October 2026 · 170 State St … OPENING SOON!" / "Menlo Park · 1149 Chestnut St. … 6:30 AM - 6 PM DAILY" |
+| opening | `passdoor-santa-rosa-opening-2026` | https://www.thepassdoor.net/new-page → https://www.thepassdoor.net/ | 404 → 200 | source URL to the homepage; tip with hours | /new-page: "We couldn't find the page you were looking for"; homepage: "1160 4th Street Santa Rosa … Hours Monday – Saturday 11am - 5:30pm" |
+| guide | `bay-area-naturalization-official-path-guide` | https://www.uscis.gov/citizenship/learn-about-citizenship/the-naturalization-interview-and-test | 200 (old …/find-study-materials-and-resources/… 404) | both links to the moved page; the source row no longer says the page could not be read | "Aliens who file Form N-400 to apply for naturalization on or after Oct. 20, 2025, will take the 2025 naturalization civics test." |
+
+Re-read, no change: Menlo Park Halloween Hoopla (the page now shows "Cost Free" and no RSVP line), Auntea Jenny (brand site lists no
+Palo Alto store), Hedley Club (hoteldeanza.com fails its certificate check; no newer source), Woods Fisherman's Wharf (woodsbeer.com
+lists five locations and "Coming Soon: Woods San Anselmo", no Wharf), Rush at SAP Center (rush-1 "Oct 15 7:30 PM", rush-2
+"Saturday, October 17"), the Napa County Library Halloween series (napalibrary.libnet.info JSON-LD start/end match).
+Second pass: an independent agent re-read every changed item's source on 2026-10-12, ~01:55–02:10 PT (lane `crosscheck.md`); its
+fixes (San Mateo date withdrawn, Fremont price, Marufuku Coming Soon note, O2 hours, Daly City wording,
+USCIS source row) are in the rows above.
