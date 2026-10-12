@@ -11,14 +11,15 @@ const CONTACT_EMAIL = 'Baylink.us@gmail.com';
 
 /**
  * The image labels readers meet on covers, written by the function that labels the covers (getImageProvenance), so this
- * page never describes a label the site does not use. The sample inputs only select the label; the years are examples.
+ * page never describes a label the site does not use. The sample inputs are data, not copy: they only select the label (the
+ * years are examples), so they are written in English and never shown as text.
  */
 const IMAGE_LABELS: readonly { sample: ProvenanceInput; zh: string; en: string }[] = [
-  { sample: { kind: 'poster', credit: '官方', caption: '' }, zh: '主办方、品牌或机构自己发布的图片，或经授权使用的图片。', en: 'Published by the organizer, brand or agency itself, or used with its permission.' },
-  { sample: { kind: 'photo', credit: 'CC BY', caption: '2023 年摄' }, zh: '第三方拍摄、按授权（如 CC）使用的照片；年份是拍摄年份。', en: 'A third-party photo used under its license (such as CC); the year is when it was taken.' },
-  { sample: { kind: 'photo', credit: 'CC BY', caption: '2017 年资料照片' }, zh: '较早的资料照片，帮你认出地方，不代表现场现在的样子。', en: 'An older reference photo that helps you recognize the place; it does not show how it looks today.' },
+  { sample: { kind: 'poster', credit: 'Official', caption: '' }, zh: '主办方、品牌或机构自己发布的图片，或经授权使用的图片。', en: 'Published by the organizer, brand or agency itself, or used with its permission.' },
+  { sample: { kind: 'photo', credit: 'CC BY', caption: '2023' }, zh: '第三方拍摄、按授权（如 CC）使用的照片；年份是拍摄年份。', en: 'A third-party photo used under its license (such as CC); the year is when it was taken.' },
+  { sample: { kind: 'photo', credit: 'CC BY', caption: '2017 archive' }, zh: '较早的资料照片，帮你认出地方，不代表现场现在的样子。', en: 'An older reference photo that helps you recognize the place; it does not show how it looks today.' },
   { sample: { kind: 'photo', credit: 'BAYLINK', caption: '', ownShot: true, shotAt: '2026-10-10' }, zh: 'BAYLINK 自己拍的照片，后面是拍摄日期。', en: 'A photo BAYLINK took itself, with the date it was taken.' },
-  { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '' }, zh: 'AI 生成的主题插画；不会用作具体活动、优惠或店铺的封面。', en: 'An AI-generated theme illustration. It is never the cover of a specific event, offer or shop.' },
+  { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '' }, zh: 'AI 生成的主题插画。我们的规则是不拿它当具体活动、优惠或店铺的封面；如果看到这样用了，请告诉我们。', en: 'An AI-generated theme illustration. Our rule is not to use one as the cover of a specific event, offer or shop; if you see one used that way, please tell us.' },
   { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '', scene3d: true }, zh: 'BAYLINK 3D 旧金山里的场景插图（AI 生成、人工挑选），只用于旧金山地点，不是实景照片。', en: 'A scene from BAYLINK’s 3D San Francisco (AI-generated, hand-picked), used for San Francisco places only; not a photograph.' },
 ];
 
@@ -78,7 +79,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
 
     <section className="about-section" aria-labelledby="about-images-title">
       <h2 id="about-images-title">{t('图片怎么标', 'How images are labelled')}</h2>
-      <p>{t('每张图左上角的标签说明这张图是什么，不说明活动现在的情况。', 'The label at the top left of every picture says what the picture is. It says nothing about how the event or place is today.')}</p>
+      <p>{t('图片上的标签说明这张图是什么，不说明活动现在的情况。', 'The label on a picture says what the picture is. It says nothing about how the event or place is today.')}</p>
       <dl className="about-labels">
         {IMAGE_LABELS.map(({ sample, zh, en }) => {
           const label = getImageProvenance(sample, english, '2026-10-12');

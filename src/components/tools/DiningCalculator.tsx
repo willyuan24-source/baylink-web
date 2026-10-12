@@ -17,6 +17,8 @@ const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency
 export function DiningCalculator({ onToast }: { onToast: ShowToast }) {
   const locale = useLocale();
   const tr = (text: string) => translateText(text, locale);
+  /** A line with its own English (no dictionary entry). */
+  const t = (zh: string, en: string) => locale === 'en' ? en : tr(zh);
   const prefix = useId();
   const [values, setValues] = useState<DiningInput>(EMPTY);
   const [example, setExample] = useState(false);
@@ -74,7 +76,7 @@ export function DiningCalculator({ onToast }: { onToast: ShowToast }) {
         {error && <p id={`${prefix}-error`} className="tool-error" role="alert">{error.message}</p>}
       </div>
       <section className={`dining-receipt ${result ? 'has-result' : ''}`} aria-label="聚餐计算结果" aria-live="polite">
-        <div className="dining-receipt-heading"><span>{locale === 'en' ? 'Your table' : tr('本桌账单')}</span><ReceiptText size={23} aria-hidden="true" /></div>
+        <div className="dining-receipt-heading"><span>{t('本桌账单', 'Your table')}</span><ReceiptText size={23} aria-hidden="true" /></div>
         {result ? <>
           <dl className="dining-breakdown"><div><dt>税前消费金额</dt><dd>{usd(result.subtotalCents)}</dd></div><div><dt>账单上的实际税额</dt><dd>{usd(result.taxCents)}</dd></div><div><dt>账单已列的服务费</dt><dd>{usd(result.serviceChargeCents)}</dd></div><div><dt>{tr('额外小费')} · {result.tipPercent}%</dt><dd>{usd(result.tipCents)}</dd></div></dl>
           <p className="dining-basis-note">{tr('小费计算基数')}: {usd(result.tipBaseCents)} · {tr(basisLabel)}</p>

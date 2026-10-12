@@ -66,11 +66,13 @@ export function PublicContentDirectory({ today = getBayAreaToday(), items = loca
     { kind: 'offer', id: 'directory-offers', title: label(locale, '优惠与福利记录', 'Offer records') },
     { kind: 'opening', id: 'directory-openings', title: label(locale, '新店记录', 'Opening records') },
   ] as const;
-  const sections = [
-    ['/', '首页', 'Home'], ['/events', '本周末活动', 'This weekend'], ['/calendar', '活动日历', 'Event calendar'], ['/guides', '办事指南', 'Guides'],
-    ['/this-month', '当期发现', 'Current edition'], ['/explore', '按地区找景点', 'Places by area'], ['/plan', '行程', 'Plan'],
-    ['/opus-bay', '3D 旧金山', '3D San Francisco'], ['/ai-in-the-bay', '湾区 AI 现场', 'AI in the Bay'],
-    ['/tools', '生活工具箱', 'Everyday tools'], ['/about', '关于与核验方法', 'About and sources'],
+  const sections: readonly { path: string; zh: string; en: string }[] = [
+    { path: '/', zh: '首页', en: 'Home' }, { path: '/events', zh: '本周末活动', en: 'This weekend' },
+    { path: '/calendar', zh: '活动日历', en: 'Event calendar' }, { path: '/guides', zh: '办事指南', en: 'Guides' },
+    { path: '/this-month', zh: '当期发现', en: 'Current edition' }, { path: '/explore', zh: '按地区找景点', en: 'Places by area' },
+    { path: '/plan', zh: '行程', en: 'Plan' }, { path: '/opus-bay', zh: '3D 旧金山', en: '3D San Francisco' },
+    { path: '/ai-in-the-bay', zh: '湾区 AI 现场', en: 'AI in the Bay' }, { path: '/tools', zh: '生活工具箱', en: 'Everyday tools' },
+    { path: '/about', zh: '关于与核验方法', en: 'About and sources' },
   ];
   return <PageContainer size="content" className="archive-page">
     <PageHeader title={label(locale, '内容目录与往期记录', 'Content directory and archives')}
@@ -87,6 +89,6 @@ export function PublicContentDirectory({ today = getBayAreaToday(), items = loca
         {archived.length > 0 && <details><summary>{label(locale, '已结束的往期记录', 'Ended records')} · {archived.length}</summary><DirectoryList rows={archived} today={today} locale={locale} /></details>}
       </section>;
     })}
-    <section className="archive-group" aria-labelledby="directory-more-heading"><h2 id="directory-more-heading">{label(locale, '继续浏览', 'Keep browsing')}</h2><nav aria-label={label(locale, '网站内容栏目', 'Site sections')} className="archive-links">{sections.map(([path, zh, en]) => path === '/opus-bay' ? <Link key={path} to={path} reloadDocument>{label(locale, zh, en)}</Link> : <Link key={path} to={path}>{label(locale, zh, en)}</Link>)}</nav><nav aria-label={label(locale, '邻里信息分类', 'Neighborhood categories')} className="archive-links">{Object.entries(SLUG_TO_CATEGORY).map(([slug, title]) => <Link key={slug} to={`/category/${slug}`}>{translateText(title, locale)}</Link>)}</nav></section>
+    <section className="archive-group" aria-labelledby="directory-more-heading"><h2 id="directory-more-heading">{label(locale, '继续浏览', 'Keep browsing')}</h2><nav aria-label={label(locale, '网站内容栏目', 'Site sections')} className="archive-links">{sections.map(({ path, zh, en }) => path === '/opus-bay' ? <Link key={path} to={path} reloadDocument>{label(locale, zh, en)}</Link> : <Link key={path} to={path}>{label(locale, zh, en)}</Link>)}</nav><nav aria-label={label(locale, '邻里信息分类', 'Neighborhood categories')} className="archive-links">{Object.entries(SLUG_TO_CATEGORY).map(([slug, title]) => <Link key={slug} to={`/category/${slug}`}>{translateText(title, locale)}</Link>)}</nav></section>
   </PageContainer>;
 }
