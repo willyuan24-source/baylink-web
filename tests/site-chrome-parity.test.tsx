@@ -81,7 +81,7 @@ for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
   });
 }
 
-test('the /en first paint has no Chinese outside the language choices, and every link keeps /en (verify-release, RC-7)', async () => {
+test('the /en first paint (header, footer and tab bar) has no Chinese outside the language choices, and every link keeps /en (verify-release, RC-7)', async () => {
   await setLocale('en', false);
   const html = renderToStaticMarkup(<StaticRouter basename="/en" location="/en/guides"><Shell path="/guides"><p>body</p></Shell></StaticRouter>);
   const doc = new JSDOM(html).window.document;
@@ -92,7 +92,9 @@ test('the /en first paint has no Chinese outside the language choices, and every
   assert.equal(choices.querySelector('summary .site-language-short')!.textContent, 'EN');
   choices.remove();
   const footer = [...doc.querySelectorAll('footer')].at(-1)!;
-  for (const part of [header, footer]) {
+  const tabs = doc.querySelector('nav.site-mobile-nav')!;
+  assert.equal(tabs.textContent, 'HomeEventsAsk BayBayAskGuidesMe');
+  for (const part of [header, footer, tabs]) {
     assert.doesNotMatch(part.textContent!, han);
     assert.doesNotMatch([...part.querySelectorAll('[aria-label]')].map(el => el.getAttribute('aria-label')).join(' '), han);
     for (const link of part.querySelectorAll('a')) assert.match(link.getAttribute('href')!, /^\/en(?:\/|$|\?)/, link.outerHTML);
