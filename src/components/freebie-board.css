@@ -10,8 +10,8 @@
 .bl-freebie-board-heading>span { display:flex; align-items:center; gap:7px; color:var(--color-ink-3); font-size:var(--text-caption); font-weight:700; letter-spacing:.08em; }
 .bl-freebie-board-heading h2 { margin:12px 0 8px; color:var(--color-ink); font-size:var(--text-section); line-height:1.4; font-weight:700; }
 .bl-freebie-board-heading>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
-.bl-freebie-board-stats { display:flex; flex-wrap:wrap; gap:1px; margin:20px 0 8px; overflow:hidden; border:1px solid var(--color-line); border-radius:10px; background:var(--color-line); }
-.bl-freebie-board-stats>span { display:flex; flex:1 1 7rem; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:0; padding:12px 8px; color:var(--color-ink-2); font-size:var(--text-caption); background:var(--color-surface-2); text-align:center; }
+.bl-freebie-board-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(8rem,40%),1fr)); gap:1px; margin:20px 0 8px; overflow:hidden; border:1px solid var(--color-line); border-radius:10px; background:var(--color-line); }
+.bl-freebie-board-stats>span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:0; padding:12px 8px; color:var(--color-ink-2); font-size:var(--text-caption); background:var(--color-surface-2); text-align:center; }
 .bl-freebie-board-stats strong { color:var(--color-brand-deep); font-size:var(--text-section); font-weight:700; line-height:1.1; }
 .bl-freebie-board-count-note { margin:0 0 16px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
 .bl-freebie-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
@@ -82,6 +82,7 @@
  .bl-freebie-grid { grid-template-columns:minmax(0,1fr); gap:12px; }
  .bl-freebie-picture-open { aspect-ratio:1.65; }
  .bl-freebie-filters { gap:6px; }
+ .bl-freebie-board-stats>span:last-child:nth-child(odd) { grid-column:1/-1; }
  .bl-freebie-filters button { padding:8px 12px; }
 }
 /* 特大 and 简洁显示: one column at every width (D9), so the larger text never squeezes two cards. */
