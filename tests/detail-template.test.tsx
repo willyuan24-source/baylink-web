@@ -131,3 +131,70 @@ test('多少钱 is a short value (免费 / 部分免费 / $8–12 / 收费 / 费
   assert.equal(cost.querySelector('.detail-fact__line')!.textContent, '费用待确认');
   assert.match(cost.querySelector('small')!.textContent || '', /^官方活动页未列明收费/, 'the note starts at its reason, not a second 费用待核');
 });
+
+const findItem = (kind: string, id: string) => {
+  const item = localDiscoveries.find(row => `${row.kind}:${discoveryShare(row).id}` === `${kind}:${id}`);
+  assert.ok(item, `${kind}:${id}`);
+  return item;
+};
+const render0 = (record: ReturnType<typeof buildDetailRecord>) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location={discoveryShare(record.item).path}><LocalDiscoveryDetail record={record} today={TODAY} /></StaticRouter>));
+const HAN = /[㐀-鿿]/;
+
+test('a fact or a section whose text is all editor note is left out: no label or heading over nothing', () => {
+  const record = buildDetailRecord(findItem('opening', 'marufuku-burlingame-announced'));
+  assert.equal(record.item.kind, 'opening');
+  if (record.item.kind !== 'opening') return;
+  const doc = render0({ ...record, item: { ...record.item, shop: { ...record.item.shop, dateLabel: '本包只录入九月场', summary: '核对时尚未到开业日，保留预告状态。', editorTip: '本条只收录 10/5 场。' } } });
+  assert.equal(doc.querySelector('[data-fact="when"]'), null, 'no 开业 cell without a date');
+  assert.ok(doc.querySelector('[data-fact="where"]'), 'the other facts stay');
+  assert.equal(doc.querySelector('#detail-visit-title'), null, 'no 这一趟怎么安排 without a tip');
+  assert.equal(doc.querySelector('.detail-summary'), null, 'no empty summary paragraph');
+  for (const cell of doc.querySelectorAll('.detail-fact dd')) assert.ok((cell.textContent || '').trim(), 'every fact has a value');
+});
+
+test('an ended event promises the 接下来可以去 rail only when it has cards', () => {
+  const record = buildDetailRecord(findItem('event', 'vallejo-brewing-artwalk-2026'));
+  const withRail = render0(record);
+  assert.ok(withRail.querySelector('#detail-next-title'), 'the fixture still has upcoming events nearby');
+  assert.match(withRail.textContent || '', /下面是附近接下来可以去的活动/);
+  const alone = render0({ ...record, rail: [] });
+  assert.equal(alone.querySelector('#detail-next-title'), null);
+  assert.ok(!/下面是附近接下来可以去的活动/.test(alone.textContent || ''), 'no promise of a list that is not there');
+  const note = [...alone.querySelectorAll('.detail-note')].find(node => /这场活动已结束/.test(node.textContent || ''));
+  assert.ok(note?.querySelector('a[href="/events"]'), 'a way to the events list instead');
+});
+
+test('怎么领 · 怎么用 numbers only the steps a listing numbers itself; hedges about the listing follow as a note', () => {
+  const muni = page(findItem('offer', 'sfmta-free-muni-seniors'));
+  assert.equal(muni.querySelector('.detail-steps ol'), null, 'a description sentence is not step 1');
+  assert.ok(muni.querySelectorAll('.detail-steps ul > li').length >= 3);
+  const happy = page(findItem('offer', 'sunnyvale-st-johns-happy-hour-ongoing'));
+  assert.match(happy.querySelector('.detail-steps__note')?.textContent || '', /^截至2026-09-29官网可见。/);
+  assert.ok(![...happy.querySelectorAll('.detail-steps li')].some(li => /官网可见|未公布有效期/.test(li.textContent || '')), 'no hedge in the list');
+  const record = buildDetailRecord(findItem('offer', 'oakland-tool-library'));
+  if (record.item.kind !== 'offer') return;
+  const numbered = render0({ ...record, item: { ...record.item, offer: { ...record.item.offer, description: '1. 先在官网登记会员。2. 带证件到馆领卡。3. 每次最多借 5 件。' } } });
+  assert.deepEqual([...numbered.querySelectorAll('.detail-steps ol > li p')].map(node => node.textContent), ['先在官网登记会员。', '带证件到馆领卡。', '每次最多借 5 件。']);
+});
+
+test('English details: the facts and the visit tip keep their reader text, and an offer never prints a Chinese brand', async () => {
+  const { setLocale } = await import('../src/i18n/locale');
+  await setLocale('en', false);
+  try {
+    const asia = page(findItem('opening', 'asia-live-valley-fair'));
+    assert.match(asia.querySelector('[data-fact="when"] dd')?.textContent || '', /^Open since June 2026/);
+    const florecita = page(findItem('opening', 'florecita-mission'));
+    assert.match(florecita.querySelector('#detail-visit-title')?.parentElement?.querySelector('p')?.textContent || '', /Wait for the brand.s update before visiting 3349 23rd Street/);
+    const offers = localDiscoveries.filter(row => row.kind === 'offer');
+    assert.ok(offers.length > 100);
+    for (const item of offers) {
+      const doc = page(item);
+      const id = discoveryShare(item).id;
+      for (const node of doc.querySelectorAll('.detail-brand, .detail-hero .ui-type-cover__brand')) assert.ok(!HAN.test(node.textContent || ''), `${id}: "${node.textContent}"`);
+    }
+    const cal = page(findItem('offer', 'berkeley-cal-golden-bear-oct-sale-2026'));
+    assert.match(cal.querySelector('.detail-brand')?.textContent || '', /^Cal Performances/);
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
+});

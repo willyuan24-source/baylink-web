@@ -16,7 +16,7 @@ import { translateText } from '../i18n/locale';
 import { openingStatusNote } from '../lib/opening-status';
 import { discoveryContentReviewRecord } from '../lib/content-review';
 import { createCoverPage } from '../lib/cover';
-import { brandCase, eventTone, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
+import { eventTone, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
 import { detailShare, nextEventDay, railEvents, unconfirmedEvent, type DetailRecord } from '../features/detail/detail-record';
 import { DetailHero, DetailPlacePhoto, HeroCredit } from '../features/detail/DetailHero';
 import { heroCover, placePhoto } from '../features/detail/hero-cover';
@@ -26,7 +26,7 @@ import { DetailRail } from '../features/detail/DetailRail';
 import { BenefitSteps } from '../features/detail/BenefitSteps';
 import { SquadTeaser } from '../features/detail/SquadTeaser';
 import { ReaderText } from '../features/detail/ReaderText';
-import { readerPlanLines, readerProse } from '../features/detail/reader-text';
+import { offerBrand, readerPlanLines, readerProse } from '../features/detail/reader-text';
 
 /**
  * Event, offer and opening detail (T6; design.md §4.9 with D10; EVT11-03, SV-05). Phone order: "‹ 活动" → the hero →
@@ -79,6 +79,11 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   if (venuePhoto) coverPage.claims.set(venuePhoto.image.src, `${item.kind}:${share.id}`);
   const title = item.kind === 'offer' ? item.offer.title : share.title;
   const back = BACK[item.kind];
+  // Catalog prose blocks render only when reader text is left after the note filter (no heading or paragraph over nothing).
+  const dek = event ? readerProse(event.dek, locale) : '';
+  const summary = event ? readerProse(event.summary, locale) : item.kind === 'opening' ? readerProse(item.shop.summary, locale) : '';
+  const visitTip = item.kind === 'opening' ? readerProse(item.shop.editorTip, locale) : '';
+  const brand = item.kind === 'offer' ? offerBrand(item.offer.brand, locale) : '';
 
   const chips: { key: string; tone: StatusTone; text: string }[] = [];
   if (event) {
@@ -118,10 +123,12 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
         <header className="detail-head">
           <p className="detail-chips">{chips.map(chip => <StatusChip key={chip.key} tone={chip.tone}>{chip.text}</StatusChip>)}</p>
           <h1><SegmentedTitle text={title} /></h1>
-          {item.kind === 'offer' && <p className="detail-brand" translate="no">{brandCase(item.offer.brand)}</p>}
-          {event?.dek && <p className="detail-dek"><ReaderText text={event.dek} /></p>}
+          {brand && <p className="detail-brand">{brand}</p>}
+          {dek && <p className="detail-dek"><ReaderText text={event?.dek} /></p>}
         </header>
-        {eventOver && <p className="detail-note">{t('这场活动已结束。下面是附近接下来可以去的活动。', 'This event has ended. Here is what is on next nearby.')}</p>}
+        {/* The "here is what is on next" line only above a rail that has cards; otherwise a way to the events list. */}
+        {eventOver && (nextCards.length ? <p className="detail-note">{t('这场活动已结束。下面是附近接下来可以去的活动。', 'This event has ended. Here is what is on next nearby.')}</p>
+          : <p className="detail-note">{t('这场活动已结束。', 'This event has ended.')} <Link to="/events">{t('看看接下来的活动', 'See upcoming events')}</Link></p>)}
         {eventOver && <DetailRail id="detail-next-title" title={t('接下来可以去', 'Up next nearby')} cards={nextCards} today={today} page={coverPage} />}
         {unconfirmed && <p className="detail-note">{t('暂无已确认场次，请查看主办方最新安排。', 'No date is confirmed yet. Check the organizer’s latest schedule.')}</p>}
         {item.kind === 'offer' && ended && <p className="detail-note">{t('这份优惠已过期，保留供分享链接回顾。', 'This offer has expired; the page stays for shared links.')}</p>}
@@ -136,7 +143,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
 
         <div className="detail-body">
           {event && <>
-            {event.summary && <p className="detail-summary"><ReaderText text={event.summary} /></p>}
+            {summary && <p className="detail-summary"><ReaderText text={event.summary} /></p>}
             {venuePhoto && <DetailPlacePhoto photo={venuePhoto} />}
             {!eventOver && planLines.length > 0 && <section aria-labelledby="detail-plan-title">
               <h2 id="detail-plan-title">{t('出发前，做好这些安排', 'Before you go')}</h2>
@@ -150,8 +157,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
           </>}
           {item.kind === 'offer' && <BenefitSteps offer={item.offer} />}
           {item.kind === 'opening' && <>
-            <p className="detail-summary"><ReaderText text={item.shop.summary} /></p>
-            <section aria-labelledby="detail-visit-title"><h2 id="detail-visit-title">{t('这一趟怎么安排', 'Planning the visit')}</h2><p><ReaderText text={item.shop.editorTip} name={item.shop.name} /></p></section>
+            {summary && <p className="detail-summary"><ReaderText text={item.shop.summary} /></p>}
+            {visitTip && <section aria-labelledby="detail-visit-title"><h2 id="detail-visit-title">{t('这一趟怎么安排', 'Planning the visit')}</h2><p><ReaderText text={item.shop.editorTip} name={item.shop.name} /></p></section>}
           </>}
           {item.kind !== 'event' && !ended && !unconfirmedOffer && <OutingInspirationLink kind={item.kind} id={share.id} />}
 

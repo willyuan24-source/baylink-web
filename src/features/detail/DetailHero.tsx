@@ -4,6 +4,7 @@ import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
 import type { EventFactsInput } from '../../lib/event-facts';
 import type { DetailRecord } from './detail-record';
+import { offerBrand } from './reader-text';
 
 const webLink = (value: string | undefined): value is string => !!value && /^https:\/\//.test(value);
 
@@ -15,9 +16,10 @@ const webLink = (value: string | undefined): value is string => !!value && /^htt
  */
 export function DetailHero({ record, cover, today, ended }: { record: DetailRecord; cover: ResolvedCover; today: string; ended: boolean }) {
   const { item } = record;
+  const { locale } = useUiCopy();
   const slot = { ratio: '16:9' as const, ratioLock: true };
   const fallback = item.kind === 'event' ? <EventTypeCover event={item.event as EventFactsInput} today={today} {...slot} />
-    : item.kind === 'offer' ? <OfferTypeCover offer={item.offer} today={today} {...slot} />
+    : item.kind === 'offer' ? <OfferTypeCover offer={{ ...item.offer, brand: offerBrand(item.offer.brand, locale) }} today={today} {...slot} />
     : <OpeningTypeCover opening={item.shop} today={today} {...slot} />;
   return <figure className="detail-hero" data-tier={cover.tier}>
     <Cover cover={cover} {...slot} sizes={COVER_SIZES.detail} priority ended={ended} fallback={fallback} />

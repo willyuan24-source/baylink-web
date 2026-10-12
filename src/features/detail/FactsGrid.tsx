@@ -1,25 +1,31 @@
 import type { ReactNode } from 'react';
 import { CalendarDays, Gift, MapPin, ShoppingBag, Store, Ticket, Users } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { translateText } from '../../i18n/locale';
+import { translateText, type Locale } from '../../i18n/locale';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { MonthlyEvent } from '../../data/monthly-types';
 import type { SeptemberOpening } from '../../data/september-openings';
 import { eventPriceChip, eventTimeLabel, offerKindLabel, offerValue, weekdayOf } from '../../lib/event-facts';
 import { ReaderText } from './ReaderText';
-import { readerCost } from './reader-text';
+import { readerCost, readerProse } from './reader-text';
 
 /**
  * "一眼看懂" (design.md §4.9 step 6): four facts in a 2×2 grid on a phone (one column at 大/特大 and in 简洁显示), a list in
  * the desktop column. Each cell: an icon, a 13px label, the value. Values come from structured overlay fields when present
  * (sessions, price, venueShort, address, ageChip) and from the listing's own labels otherwise; nothing is invented, so a
- * fact the source does not state is left out rather than guessed.
+ * fact the source does not state is left out rather than guessed. A cell whose text is all editor note (reader-text.ts) is
+ * left out too: never an icon and a label over nothing.
  */
 type Cell = { key: string; icon: ReactNode; label: string; value: ReactNode; note?: ReactNode };
 
+/** Catalog text as a cell value or note, or undefined when no reader text is left (readerProse). */
+function readerNode(text: string | undefined, locale: Locale): ReactNode {
+  return readerProse(text, locale) ? <ReaderText text={text} /> : undefined;
+}
+
 function Facts({ cells, label }: { cells: Cell[]; label: string }) {
   return <dl className="detail-facts" aria-label={label}>
-    {cells.map(cell => <div key={cell.key} className="detail-fact" data-fact={cell.key}>
+    {cells.filter(cell => cell.value !== undefined && cell.value !== null && cell.value !== '').map(cell => <div key={cell.key} className="detail-fact" data-fact={cell.key}>
       <dt>{cell.icon}<span>{cell.label}</span></dt>
       <dd>{cell.value}{cell.note && <small>{cell.note}</small>}</dd>
     </div>)}
@@ -59,8 +65,8 @@ export function EventFacts({ event, today }: { event: MonthlyEvent; today: strin
   const audience = [event.ageChip, ...event.audience].filter((value): value is string => !!value);
   const cells: Cell[] = [
     { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('何时', 'When'),
-      value: event.sessions?.length ? <SessionLines event={event} today={today} /> : <ReaderText text={event.dateLabel} />,
-      note: event.dateNote ? <ReaderText text={event.dateNote} /> : undefined },
+      value: event.sessions?.length ? <SessionLines event={event} today={today} /> : readerNode(event.dateLabel, locale),
+      note: readerNode(event.dateNote, locale) },
     { key: 'where', icon: <MapPin aria-hidden="true" />, label: t('在哪', 'Where'),
       value: <><span className="detail-fact__line">{translateText(place, locale)}</span>
         {event.address && event.address !== place && <span className="detail-fact__line detail-fact__sub">{event.address}</span>}
@@ -84,10 +90,10 @@ const PURCHASE: Record<FreebieOffer['kind'], { zh: string; en: string }> = {
 };
 
 export function OfferFacts({ offer }: { offer: FreebieOffer }) {
-  const { t, pick } = useUiCopy();
+  const { t, pick, locale } = useUiCopy();
   const value = offerValue(offer);
   const cells: Cell[] = [
-    { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('有效期', 'Valid'), value: <ReaderText text={offer.dateLabel} /> },
+    { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('有效期', 'Valid'), value: readerNode(offer.dateLabel, locale) },
     { key: 'what', icon: <Gift aria-hidden="true" />, label: t('福利', 'Benefit'), value: pick(value ?? offerKindLabel(offer)) },
     { key: 'terms', icon: <ShoppingBag aria-hidden="true" />, label: t('要不要消费', 'Purchase'), value: pick(PURCHASE[offer.kind]) },
   ];
@@ -101,7 +107,7 @@ export function OfferFacts({ offer }: { offer: FreebieOffer }) {
 export function OpeningFacts({ shop }: { shop: SeptemberOpening }) {
   const { t, locale } = useUiCopy();
   const cells: Cell[] = [
-    { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('开业', 'Opening'), value: <ReaderText text={shop.dateLabel} /> },
+    { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('开业', 'Opening'), value: readerNode(shop.dateLabel, locale) },
     { key: 'where', icon: <MapPin aria-hidden="true" />, label: t('在哪', 'Where'),
       value: <span className="detail-fact__line">{shop.address || translateText(shop.city, locale)}</span>,
       note: <a className="detail-map-link" href={mapLink(`${shop.name}, ${shop.address || shop.city}`)} target="_blank" rel="noopener noreferrer">{t('地图', 'Map')}</a> },

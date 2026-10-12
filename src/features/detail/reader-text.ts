@@ -1,4 +1,5 @@
 import { translateText, type Locale } from '../../i18n/locale';
+import { brandCase } from '../../lib/event-facts';
 
 /**
  * Reader text on event, offer and opening details (CNT-1011-05, CNT-1011-06). Catalog prose sometimes still carries the
@@ -12,9 +13,14 @@ import { translateText, type Locale } from '../../i18n/locale';
  */
 
 /** A clause that talks about the editing process ("本条只收录", "核对时…", "不沿用旧年描述"), not about the event. */
-export const EDITOR_NOTE_ZH = /本包|本轮|录入|web ?open|缓存|HTTP(?!S?:\/\/)|抓取|读取|交叉确认|不沿用|不再声明|本条(?:不|只|仅)|不计入已确认|本次核实|核对时(?!间)|待复核|保留预告状态|旧链接|(?:^|[^\d-])403(?:[^\d-]|$)/i;
-/** The same notes in the reviewed English translations (whole sentences are dropped there). */
-export const EDITOR_NOTE_EN = /\bweb[- ]?open\b|\bcached\b|\bcache\b|\bretriev|cross-?check|corroborat|\bHTTP\b|needs? to be re-?checked|\brecheck|not counted among|this (?:collection|batch|package|entry|listing) (?:includes|only|uses only|covers only|does not treat|does not present|is not treated)|at the time of (?:checking|verification|review)|as of this review|when checked|no claim is made|\bdo not (?:borrow|reuse|carry over)\b|old links|(?:^|[^\d-])403(?:[^\d-]|$)/i;
+export const EDITOR_NOTE_ZH = /本包|本轮|录入|web ?open|缓存|HTTP(?!S?:\/\/)|抓取|读取|交叉确认|不沿用|不再声明|[本此]条(?:不|只|仅)|不计入已确认|本次(?:核实|未)|核对时(?!间)|待复核|保留预告状态|旧链接|(?:^|[^\d-])403(?:[^\d-]|$)/i;
+/**
+ * The same notes in the reviewed English translations, in their editorial forms only. A whole English sentence goes, so a
+ * broad word would take reader facts with it: "was not rechecked", never the reader's own "recheck … before going" or a
+ * dated "rechecked in September"; "could not be retrieved", never "retrieval and evaluation"; "this listing covers only",
+ * never "when checked, the center was changing ticket systems" (the 简体 page keeps that fact too).
+ */
+export const EDITOR_NOTE_EN = /\bweb[- ]?open\b|\bcached\b|\bcache\b|could not be retrieved|(?:have|has) not been retrieved|\bretrieved (?:venue|page|source) text|\bweb retrieval\b|cross-?check|corroborates? current operation|\bHTTP\b|needs? to be re-?checked|\bnot (?:been )?re-?checked\b|\bnot (?:been )?re-?(?:verified|confirmed) in this (?:review|check)\b|not counted among|this (?:collection|batch|package|entry|listing) (?:includes|only|uses only|covers only|does not treat|does not present|is not treated)|as of this review|no claim is made|\bdo not (?:borrow|carry over)\b|old links|(?:^|[^\d-])403(?:[^\d-]|$)/i;
 
 /** A URL inside a sentence, with its "：" label separator; it becomes a placeholder before the text is split. */
 const URL = /\s*[：:]?\s*https?:\/\/[^\s，。；、）)」"';,]+\s*/gi;
@@ -23,15 +29,29 @@ const URL_MARK = '\uE000';
 const BARE_LABEL_ZH = /^[\p{Script=Han}A-Za-z ]{1,8}[。；;.]?$/u;
 const BARE_LABEL_EN = /^[A-Za-z ]{1,24}[.;:]?$/;
 
-/** Sentences with their closing punctuation (and the space after it) kept, so joining them gives the text back. */
-function sentences(text: string, english: boolean): string[] {
-  const boundary = english ? /[.;!?]+["”’)]?(?:\s+|$)/g : /[。；！？;!?]+[”’」）)]?\s*/g;
+/** "St. Helena", "Oct. 2", "Ave. B": a full stop after an initial or a short abbreviation does not end an English sentence. */
+const ABBREVIATION = /(?:\b[A-Z][a-z]?|\b(?:Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec|Ave|Blvd|Hwy|approx|vs))$/;
+
+/**
+ * Sentences with their closing punctuation (and the space after it) kept, so joining them gives the text back. For the
+ * note filter (`labelParts`) a " · " ends a part too, so a label like "Open since June 2026 · <note>" keeps its first
+ * half; a list item is never cut there. An English full stop needs a space after it, so "10.5" never splits, while a
+ * sentence ending in a date or a time ("…Oct 3. The…", "…18:00. This…") ends there like any other.
+ */
+function sentences(text: string, english: boolean, labelParts = false): string[] {
+  const boundary = english
+    ? (labelParts ? /[.;!?]+["”’)]?(?:\s+|$)|\s+·\s+/g : /[.;!?]+["”’)]?(?:\s+|$)/g)
+    : (labelParts ? /[。；！？;!?]+[”’」）)]?\s*|\s+·\s+/g : /[。；！？;!?]+[”’」）)]?\s*/g);
   const parts: string[] = [];
   let at = 0;
   for (const match of text.matchAll(boundary)) {
     const end = match.index! + match[0].length;
-    // "St. Helena", "a.m.", "10.5": a full stop inside a name or a number does not end an English sentence.
-    if (english && match[0].startsWith('.') && /(?:\b[A-Z][a-z]?|\b[ap]\.m|\d)$/.test(text.slice(at, match.index!))) continue;
+    if (english && match[0].startsWith('.')) {
+      const before = text.slice(at, match.index!);
+      if (ABBREVIATION.test(before)) continue;
+      // "6 p.m. on Main Street" goes on; "…until 6 p.m. Bring a chair." ends at the "p.m.".
+      if (/\b[ap]\.m$/.test(before) && !/^[A-Z]/.test(text.slice(end))) continue;
+    }
     parts.push(text.slice(at, end));
     at = end;
   }
@@ -55,7 +75,8 @@ export function withoutEditorNotes(text: string, english: boolean): string {
   const marked = text.replace(URL, URL_MARK);
   let changed = marked !== text;
   let dropped = false;
-  const kept = sentences(marked, english).flatMap(sentence => {
+  const kept: string[] = [];
+  for (const sentence of sentences(marked, english, true)) {
     const reader = english ? (EDITOR_NOTE_EN.test(sentence) ? '' : sentence) : withoutNoteClauses(sentence);
     if (reader !== sentence) changed = true;
     let out = reader;
@@ -63,14 +84,21 @@ export function withoutEditorNotes(text: string, english: boolean): string {
       const stripped = reader.split(URL_MARK).join(english ? ' ' : '').replace(/\s+([。；，.;,])/g, '$1').trim();
       out = !stripped || bare.test(stripped) ? '' : english ? `${stripped} ` : stripped;
     }
-    if (!out.trim()) { dropped = true; return []; }
-    // An English sentence that followed a dropped one ("…; this is not …") starts with a capital again.
-    if (english && dropped && /^[a-z]/.test(out)) out = out[0].toUpperCase() + out.slice(1);
+    if (!out.trim()) { dropped = true; continue; }
+    if (english && dropped) {
+      // The sentence after a dropped one: "…; this is not …" starts with a capital again, and "…tickets; [note.] Every…"
+      // ends the sentence before it with a full stop.
+      if (/^[a-z]/.test(out)) out = out[0].toUpperCase() + out.slice(1);
+      if (kept.length) kept[kept.length - 1] = kept[kept.length - 1].replace(/[;,]\s*$/, '. ');
+    }
     dropped = false;
-    return [out];
-  });
+    kept.push(out);
+  }
   if (!changed) return text.trim();
-  const joined = kept.join('').replace(/\s{2,}/g, ' ').trim();
+  const whole = kept.join('').replace(/\s{2,}/g, ' ').trim();
+  // A label part dropped after " · " leaves the label as it was ("Oct 2 · <note>" → "Oct 2"), without a full stop.
+  if (/\s·$/.test(whole)) return whole.replace(/\s*·$/, '');
+  const joined = whole;
   if (!joined) return '';
   // The last kept sentence may end on "；" or have lost its full stop with the URL.
   if (english) return joined.replace(/[;,:]$/, '.').replace(/([A-Za-z0-9)])$/, '$1.');
@@ -138,4 +166,14 @@ export function readerSentences(text: string | undefined, locale: Locale): strin
   if (locale === 'en') return sentences(prose.split(';').join(SEMICOLON_MARK), true).map(sentence => sentence.split(SEMICOLON_MARK).join(';').trim()).filter(Boolean);
   // Each list item reads as a whole sentence: one cut at "；" ends with "。" ("新卡约四周；" → "新卡约四周。").
   return sentences(prose, false).map(sentence => sentence.trim().replace(/[；;]$/, '。')).filter(Boolean);
+}
+
+/**
+ * An offer's brand line in the reader's language, in normal case (EVT-09). A few brand fields still hold a Chinese phrase
+ * ("Cal Performances 网上售票；演出在 …"): the English page prints their reviewed translation, and nothing when none is known,
+ * never Chinese.
+ */
+export function offerBrand(brand: string, locale: Locale): string {
+  const text = brandCase(translateText(brand, locale)).trim();
+  return locale === 'en' && /[㐀-鿿]/.test(text) ? '' : text;
 }

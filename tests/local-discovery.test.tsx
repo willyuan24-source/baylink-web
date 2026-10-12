@@ -273,7 +273,12 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.equal(Boolean(content.querySelector('.event-interest span')), false, 'server HTML does not invent a participant count');
     } else if (item.kind === 'offer') {
       assert.ok(squash(content.textContent!).includes(squash(readerSentences(item.offer.requirement, 'zh-Hans').join(''))), 'redemption conditions are visible before following the offer');
-      assert.equal(squash([...content.querySelectorAll('.detail-steps li p')].map(node => node.textContent).join('')), squash(readerSentences(item.offer.description, 'zh-Hans').join('')), share.id + ': every step, in order');
+      // The description in order; a line about how current the listing is ("截至…官网可见") follows the list as its note.
+      const steps = readerSentences(item.offer.description, 'zh-Hans');
+      const note = content.querySelector('.detail-steps__note')?.textContent ?? '';
+      const listed = [...content.querySelectorAll('.detail-steps li p')].map(node => node.textContent).join('');
+      assert.equal(squash(listed), squash(steps.filter(line => !note.includes(line)).join('')), share.id + ': every step, in order');
+      assert.equal(squash(listed + note).length, squash(steps.join('')).length, share.id + ': no sentence lost');
       assert.equal(Boolean(content.querySelector('.event-participation')), false);
     } else {
       assert.ok(squash(content.textContent!).includes(squash(readerProse(item.shop.editorTip, 'zh-Hans'))));
