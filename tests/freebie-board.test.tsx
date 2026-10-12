@@ -24,6 +24,7 @@ style.textContent = readFileSync(new URL('../src/components/freebie-board.css', 
 document.head.append(style);
 const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { FreebieBoard } = await import('../src/components/FreebieBoard');
+const { validThisWeek } = await import('../src/lib/offer-week');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { getGuideBySlug } = await import('../src/data/guides');
 const { guideBlockText } = await import('../src/lib/guide-content');
@@ -58,7 +59,7 @@ afterEach(() => { cleanup(); delete GUIDE_IMAGES['freebie-test-poster']; delete 
 
 test('board counts only dated, unexpired current-month offers and separates ongoing and local-check items', () => {
   install();
-  const view = render(<FreebieBoard offers={offers} today="2026-09-09" title="九月领取清单" description="先按条件选。" />);
+  const view = render(<FreebieBoard offers={offers} today="2026-09-09" title="九月领取清单" description="先按条件选。" initialDates="all" />);
   assert.ok(view.getByRole('heading', { name: '九月领取清单', level: 2 }));
   assert.ok(view.getByText('先按条件选。'));
   const counts = [...view.container.querySelectorAll('.bl-freebie-board-stats>span')].map(item => item.textContent);
@@ -67,7 +68,7 @@ test('board counts only dated, unexpired current-month offers and separates ongo
   assert.ok(within(view.getByRole('article', { name: '本店手作场次' })).getByText('查本店场次'));
   assert.equal(view.queryByRole('article', { name: '日期仍需核对' }), null);
   assert.ok(within(view.getByRole('article', { name: '下月儿童手作' })).getByText('下月预告'));
-  view.rerender(<FreebieBoard offers={offers} today="2026-10-01" />);
+  view.rerender(<FreebieBoard offers={offers} today="2026-10-01" initialDates="all" />);
   assert.equal(view.container.querySelector('.bl-freebie-board-stats>span')?.textContent, '1本月已确认');
   assert.equal(view.queryByRole('article', { name: '周末小杯咖啡' }), null);
   assert.ok(within(view.getByRole('article', { name: '会员生日礼' })).getByText('长期福利'));
@@ -76,6 +77,10 @@ test('board counts only dated, unexpired current-month offers and separates ongo
 test('condition filters select the matching offers without hiding requirements or losing the reset path', () => {
   install();
   const view = render(<FreebieBoard offers={offers} today="2026-09-09" />);
+  // G26: the board opens on 本周有效 (through Sunday 9/13: only the ongoing birthday perk; the 查本店 sessions start 9/20).
+  assert.equal(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '本周有效 1' }).getAttribute('aria-pressed'), 'true');
+  assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-birthday']);
+  fireEvent.click(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '全部日期' }));
   const filters = within(view.getByRole('group', { name: '按领取条件筛选' }));
   for (const [label, kind] of [['无需购物', 'no-purchase'], ['需预约', 'reservation'], ['消费优惠', 'purchase']] as const) {
     fireEvent.click(filters.getByRole('button', { name: label, exact: true }));
@@ -128,16 +133,17 @@ test('cards omit expired and invalid dated offers without mutating source order'
   ];
   const originalIds = input.map(offer => offer.id);
   Object.freeze(input);
-  const view = render(<FreebieBoard offers={input} today="2026-09-12" />);
+  const view = render(<FreebieBoard offers={input} today="2026-09-12" initialDates="all" />);
   const ids = () => [...view.container.querySelectorAll('article')].map(card => card.id.replace('offer-', ''));
-  assert.deepEqual(ids(), ['month-pass', 'early-a', 'early-b', 'coffee', 'single-date', 'next-month', 'birthday', 'local']);
+  // One section per kind (无需购物, 需预约, 消费优惠), each in date order with ongoing and 查本店 offers after the dated ones.
+  assert.deepEqual(ids(), ['early-a', 'early-b', 'coffee', 'birthday', 'single-date', 'next-month', 'local', 'month-pass']);
   assert.deepEqual(input.map(offer => offer.id), originalIds, 'sorting must not reorder exported data used by source lists');
   assert.ok(document.getElementById('offer-early-a'), 'card anchors stay tied to offer IDs');
   fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '需预约', exact: true }));
   assert.deepEqual(ids(), ['single-date', 'next-month', 'local']);
   fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '全部', exact: true }));
-  view.rerender(<FreebieBoard offers={input} today="2026-09-21" />);
-  assert.deepEqual(ids(), ['month-pass', 'single-date', 'next-month', 'birthday', 'local']);
+  view.rerender(<FreebieBoard offers={input} today="2026-09-21" initialDates="all" />);
+  assert.deepEqual(ids(), ['birthday', 'single-date', 'next-month', 'local', 'month-pass']);
   assert.deepEqual(input.map(offer => offer.id), originalIds);
 });
 
@@ -175,7 +181,7 @@ test('each card keeps official links separate from image zoom and complete poste
 
 test('only valid unexpired offers and their conditions appear in server HTML', () => {
   install();
-  const document = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today="2026-09-09" />)).window.document;
+  const document = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today="2026-09-09" initialDates="all" />)).window.document;
   const cards = [...document.querySelectorAll('article')];
   assert.equal(cards.length, 5);
   assert.equal(document.getElementById('offer-ended'), null);
@@ -190,7 +196,7 @@ test('only valid unexpired offers and their conditions appear in server HTML', (
     assert.equal(card.hasAttribute('hidden'), false);
     assert.ok(card.querySelector(`a[href="${offer.sourceUrl}"]`));
   }
-  assert.equal(document.querySelectorAll('[aria-pressed="true"]').length, 1);
+  assert.equal(document.querySelectorAll('[aria-pressed="true"]').length, 2, 'one date choice and one condition choice');
 });
 
 test('invalid source protocols and missing media do not create unsafe links or unrelated fallback images', () => {
@@ -236,11 +242,17 @@ test('the cleaned September guide retains valid cards and factual media while om
   assert.equal(boards.length, 1, 'the board must not repeat in the prose after its full-width rendering');
   const board = boards[0];
   assert.equal(board.closest('.bl-guide-reading-layout'), null, 'cards belong above the narrow reading column');
-  const cards = [...board.querySelectorAll('.bl-freebie-card')];
-  assert.equal(cards.length, block.offers.length);
   assert.deepEqual([...board.querySelectorAll('.bl-freebie-board-stats>span')].map(item => item.textContent), ['6本月已确认', '4长期福利', '1下月预告']);
+  // G26: the guide opens the board on 本周有效 (when anything is) with at most six cards per kind; the rest is one tap away.
+  const thisWeek = block.offers.some(offer => validThisWeek(offer, '2026-09-11'));
+  assert.equal(board.querySelector('[aria-label="按日期筛选"] [aria-pressed="true"]')?.textContent?.startsWith(thisWeek ? '本周有效' : '全部日期'), true);
+  for (const section of board.querySelectorAll('.bl-freebie-section')) assert.ok(section.querySelectorAll('.bl-freebie-card').length <= 6);
+  // Every valid offer, its conditions and its own picture: the same board on every date with every card.
+  const full = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={block.offers} today="2026-09-11" initialDates="all" sectionSize={Infinity} />)).window.document;
+  const cards = [...full.querySelectorAll('.bl-freebie-card')];
+  assert.equal(cards.length, block.offers.length);
   for (const [index, offer] of block.offers.entries()) {
-    const card = document.getElementById(`offer-${offer.id}`);
+    const card = full.getElementById(`offer-${offer.id}`);
     assert.ok(card);
     assert.ok(card.textContent?.includes(offer.title));
     assert.ok(card.textContent?.includes(offer.requirement));
@@ -260,12 +272,12 @@ test('the cleaned September guide retains valid cards and factual media while om
   assert.equal(targetOffers.length, 1);
   assert.ok(!block.offers.some(offer => ['target-eucerin-sep12', 'lowes-haunted-house-sep12', 'michaels-foam-sep12', 'nothing-bundt-joy-sep15'].includes(offer.id)));
   for (const target of targetOffers) {
-    const card = cards.find(element => element.querySelector('h3')?.textContent === target.title);
+    const card = cards.find(element => element.querySelector('h4')?.textContent === target.title);
     assert.equal(card?.querySelector('a[aria-label="TARGET：查询本地门店"]')?.getAttribute('href'), target.storeUrl);
   }
   const october = block.offers.find(offer => offer.id === 'homedepot-october-preview');
   assert.ok(october);
-  const preview = cards.find(element => element.querySelector('h3')?.textContent === october.title);
+  const preview = cards.find(element => element.querySelector('h4')?.textContent === october.title);
   assert.equal(preview?.querySelector('.bl-freebie-status')?.textContent, '下月预告');
   assert.match(october.startDate!, /^2026-10-/);
   assert.ok(preview?.textContent?.includes(october.dateLabel));

@@ -92,7 +92,7 @@ test('reviewed offers retain primary sources, explicit costs and the exact offic
   assert.equal(image.creditUrl, 'https://www.lowes.com/events/register/firefighting-plane');
   assert.match(image.alt, /消防飞机/);
   assert.ok(existsSync('public' + image.src));
-  const view = render(<FreebieBoard offers={[plane]} today={today} />);
+  const view = render(<FreebieBoard offers={[plane]} today={today} initialDates="all" sectionSize={Infinity} />);
   assert.equal(within(view.getByRole('article', { name: plane.title })).getByRole('img').getAttribute('src'), image.src);
   assert.match(view.container.querySelector('figcaption')?.textContent || '', /官方宣传照片/);
   assert.equal(view.queryByText(/AI 原创插图/), null);
@@ -102,7 +102,7 @@ test('unconfirmed prize conditions cannot enter no-purchase filters or free-only
   const money = reviewed.find(offer => offer.id === moneyId)!;
   assert.equal(money.kind, 'check-terms');
   assert.match(money.requirement, /购买条件.*尚未公开核实/);
-  const view = render(<FreebieBoard offers={reviewed} today={today} />);
+  const view = render(<FreebieBoard offers={reviewed} today={today} initialDates="all" sectionSize={Infinity} />);
   assert.ok(view.getByRole('article', { name: money.title }), 'the confirmed dated event remains discoverable');
   const filters = within(view.getByRole('group', { name: '按领取条件筛选' }));
   fireEvent.click(filters.getByRole('button', { name: '无需购物', exact: true }));
@@ -133,7 +133,7 @@ test('missing media and rejected AI artwork keep cards usable without an unrelat
     { ...reviewed[0], id: 'missing-official-image-fixture', title: 'Missing official image fixture', imageKey: 'missing-official-image-key' },
     { ...reviewed[0], id: 'rejected-ai-image-fixture', title: 'Rejected AI image fixture', imageKey: 'family-workshop' },
   ];
-  const view = render(<FreebieBoard offers={fixtures} today={today} />);
+  const view = render(<FreebieBoard offers={fixtures} today={today} initialDates="all" sectionSize={Infinity} />);
   for (const offer of fixtures) {
     assert.equal(getOfferImage(offer), undefined);
     const card = within(view.getByRole('article', { name: offer.title }));

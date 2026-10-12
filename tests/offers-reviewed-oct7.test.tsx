@@ -44,8 +44,8 @@ test('real benefit conditions remain narrow and expiry follows Pacific date with
   const startOctober8 = getBayAreaToday(new Date('2026-10-08T07:00:00Z'));
   assert.equal(lateOctober7, '2026-10-07');
   assert.equal(startOctober8, '2026-10-08');
-  const current = renderToStaticMarkup(<FreebieBoard offers={reviewed} today={lateOctober7} />);
-  const ended = renderToStaticMarkup(<FreebieBoard offers={reviewed} today={startOctober8} />);
+  const current = renderToStaticMarkup(<FreebieBoard offers={reviewed} today={lateOctober7} initialDates="all" sectionSize={Infinity} />);
+  const ended = renderToStaticMarkup(<FreebieBoard offers={reviewed} today={startOctober8} initialDates="all" sectionSize={Infinity} />);
   for (const id of ids) {
     assert.ok(current.includes(`id="offer-${id}"`));
     assert.ok(!ended.includes(`id="offer-${id}"`));

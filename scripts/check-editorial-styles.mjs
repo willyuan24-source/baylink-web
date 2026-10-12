@@ -55,6 +55,9 @@ export const editorialStyleScopes = [
   { file: 'src/styles/discovery-workflow.css', selectors: /^.planner-/ },
   // WEB-COMMUNITY: the 邻里信息 board, the post cards and the post sheet.
   { file: 'src/features/posts/community.css' },
+  // WEB-POLISH (G26): the deals board and the saved-poster gallery on the perks guides.
+  { file: 'src/components/freebie-board.css' },
+  { file: 'src/components/perks-gallery.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
