@@ -207,6 +207,10 @@ export const setPageMetadata = (metadata: PageMetadata): void => {
     const link = document.createElement('link'); link.rel = 'alternate'; link.hreflang = locale; link.href = href;
     link.dataset.baylinkLanguage = ''; document.head.append(link);
   }
+  // The page the server rendered keeps its JSON-LD while the app shows that same page: the prerender adds facts the
+  // bundle does not carry (an article's first-published day). Any other page, or another language, replaces it.
+  const prerendered = document.head.querySelector<HTMLScriptElement>('script[data-baylink-structured-data][data-baylink-prerendered]');
+  if (prerendered && metadata.structuredData?.length && prerendered.dataset.url === metadataUrl(metadata)) return;
   document.head.querySelectorAll('script[data-baylink-structured-data]').forEach((element) => element.remove());
   if (metadata.structuredData?.length) {
     const script = document.createElement('script');
@@ -222,7 +226,7 @@ export const renderMetadataHtml = (metadata: PageMetadata): string => [
   `<link rel="canonical" href="${escapeHtml(metadataUrl(metadata))}" />`,
   ...(hasAlternates(metadata) ? languageAlternates(metadata.path).map(([locale, href]) => `<link rel="alternate" hreflang="${locale}" href="${escapeHtml(href)}" data-baylink-language />`) : []),
   ...metadataEntries(metadata).map(([attribute, key, value]) => `<meta ${attribute}="${key}" content="${escapeHtml(value)}"${IMAGE_SIZE_KEY.test(key) ? ' data-baylink-image-size' : ''} />`),
-  ...(metadata.structuredData?.length ? [`<script type="application/ld+json" data-baylink-structured-data>${serializeStructuredData(metadataData(metadata))}</script>`] : []),
+  ...(metadata.structuredData?.length ? [`<script type="application/ld+json" data-baylink-structured-data data-baylink-prerendered data-url="${escapeHtml(metadataUrl(metadata))}">${serializeStructuredData(metadataData(metadata))}</script>`] : []),
 ].join('\n    ');
 
 /** Marker replacement keeps the Vite asset references and avoids serializing user/API objects. */

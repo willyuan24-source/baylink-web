@@ -33,6 +33,10 @@ import { EXPLORE_METADATA } from '../src/data/attractions';
 import { allDetailRecords } from '../src/features/detail/build-detail';
 import { detailBucket } from '../src/lib/english-loading';
 import { generateSitemap } from './generate-sitemap';
+import { discoveryShare } from '../src/data/local-discoveries';
+import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
+import guidesPublished from '../src/data/first-published/guides.json';
+import listingsPublished from '../src/data/first-published/listings.json';
 
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
 import PlannerPage from '../src/pages/PlannerPage';
@@ -65,6 +69,8 @@ const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
 const noop = () => {};
+// Article datePublished: the day each guide, offer and opening first shipped (scripts/record-first-published.ts).
+const GUIDES_PUBLISHED = guidesPublished as Record<string, string>, LISTINGS_PUBLISHED = listingsPublished as Record<string, string>;
 const manifest = JSON.parse(await readFile(join(outputDir, '.vite/manifest.json'), 'utf8'));
 // The page module comes from the route table (src/app/route-table.ts), as at boot (route-loaders.ts): /404 → NotFoundPage.
 const routeModule = (path: string) => PAGE_MODULES[matchRoute(path)?.page || 'notFound'];
@@ -156,11 +162,16 @@ await renderPage(ARCHIVE_METADATA, <ArchivePage />);
 // Hub bodies render through src/components/HubPrerender.tsx: the site's JSX runtime localizes them (I18N-SEO-02).
 await renderPage(TOOLS_METADATA, <ToolsHubPrerender />);
 for (const guide of guides) {
-  await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
+  await renderPage(getGuideMetadata(guide, GUIDES_PUBLISHED[guide.slug]), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
 // Event, offer and opening details render the same generated records the app loads (src/features/detail, ENGSEC-01).
+// An offer's or opening's Article datePublished (first-published/listings.json) rides in the prerendered JSON-LD only — the
+// app keeps that block while it shows the same page (seo.ts) — so their metadata is built here with the day (WEB-SEO-I18N);
+// the record's own metadata is the same call without it.
 for (const record of new Set(allDetailRecords().values())) {
-  await renderPage(record.metadata, <LocalDiscoveryDetail record={record} />);
+  const { item } = record;
+  const metadata = item.kind === 'event' ? record.metadata : getDiscoveryMetadata(item, LISTINGS_PUBLISHED[`${item.kind}:${discoveryShare(item).id}`]);
+  await renderPage(metadata, <LocalDiscoveryDetail record={record} />);
 }
 for (const slug of Object.keys(SLUG_TO_CATEGORY)) await renderPage(categoryHubMetadata(slug), <CategoryHubPrerender slug={slug} />);
 await renderPage(TERMS_METADATA, <TermsView />);

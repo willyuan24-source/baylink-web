@@ -1,18 +1,17 @@
 import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
-import firstPublished from '../data/first-published/listings.json';
 import { shareCardPath } from './editorial-share';
 import { SITE_URL, localCopy, type PageMetadata } from './seo';
 import { BAYLINK_EDITORIAL, BAYLINK_ORGANIZATION, eventOffers, eventOrganizer, eventStatusUrl, eventTimes, pacificDateTime, publicationDates, venueParts } from './schema-org';
 
-const PUBLISHED = firstPublished as Record<string, string>;
 const OFFLINE = 'https://schema.org/OfflineEventAttendanceMode';
 
 /**
  * Event and Article JSON-LD for /events/:id, /offers/:id and /openings/:id (I18N-SEO-04, -13). Times come from the
  * overlay's sessions (Bay Area wall time with its offset), the address from the overlay or the venue's street line, the
- * price only when stated; an article's publication day is the day the listing first shipped (data/first-published).
+ * price only when stated. `published` is the day an offer or opening first shipped (data/first-published, passed by the
+ * prerender only, so the dates never ride in the page's bundle; the app keeps the prerendered JSON-LD, seo.ts).
  */
-export function getDiscoveryMetadata(item: LocalDiscovery): PageMetadata {
+export function getDiscoveryMetadata(item: LocalDiscovery, published?: string): PageMetadata {
   const share = discoveryShare(item);
   const url = `${SITE_URL}${share.path}`;
   const image = [`${SITE_URL}${shareCardPath(share)}`];
@@ -45,7 +44,7 @@ export function getDiscoveryMetadata(item: LocalDiscovery): PageMetadata {
   } else {
     entity = {
       '@context': 'https://schema.org', '@type': 'Article', headline: share.title, description: share.summary, url, mainEntityOfPage: url, image,
-      ...publicationDates(PUBLISHED[`${item.kind}:${share.id}`], share.checkedAt),
+      ...publicationDates(published, share.checkedAt),
       author: BAYLINK_EDITORIAL, publisher: BAYLINK_ORGANIZATION,
     };
   }

@@ -1,14 +1,14 @@
 import type { Guide } from '../data/guides';
 import { getGuideMedia } from '../data/guide-media';
-import firstPublished from '../data/first-published/guides.json';
 import { SITE_URL, absolutePageUrl, localCopy, safeSocialImage, type PageMetadata } from './seo';
 import { guideShare, shareCardPath } from './editorial-share';
 import { BAYLINK_EDITORIAL, BAYLINK_ORGANIZATION, publicationDates } from './schema-org';
 
-const PUBLISHED = firstPublished as Record<string, string>;
-
-/** Only published editorial data belongs in the public article metadata. */
-export const getGuideMetadata = (guide: Guide): PageMetadata => {
+/**
+ * Only published editorial data belongs in the public article metadata. `published`: the day the guide first shipped
+ * (data/first-published/guides.json), passed by the prerender only (see discovery-metadata.ts).
+ */
+export const getGuideMetadata = (guide: Guide, published?: string): PageMetadata => {
   const path = `/guides/${guide.slug}`;
   // The zh-Hans URL: the page's language edition localizes url, @id, item and mainEntityOfPage (i18n/metadata.ts).
   const url = absolutePageUrl(path, 'zh_CN');
@@ -19,7 +19,7 @@ export const getGuideMetadata = (guide: Guide): PageMetadata => {
       {
         '@context': 'https://schema.org', '@type': 'Article', '@id': `${url}#article`,
         headline: guide.title, description: guide.summary, inLanguage: 'zh-CN',
-        url, mainEntityOfPage: url, ...publicationDates(PUBLISHED[guide.slug], guide.updatedAt),
+        url, mainEntityOfPage: url, ...publicationDates(published, guide.updatedAt),
         // The editorial desk: no personal author is recorded, so none is named.
         author: BAYLINK_EDITORIAL, publisher: BAYLINK_ORGANIZATION,
         image: safeSocialImage(image),

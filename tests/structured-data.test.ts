@@ -13,6 +13,7 @@ import { languagePath, type SiteLanguage } from '../src/lib/language-path';
 import { eventOffers, eventOrganizer, eventTimes, pacificDateTime, pacificOffset, venueParts } from '../src/lib/schema-org';
 import { checkStructuredData, structuredDataOf } from '../scripts/structured-data-check';
 import guidePublished from '../src/data/first-published/guides.json';
+import listingPublished from '../src/data/first-published/listings.json';
 
 // JSON-LD is read as plain data in these assertions.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -24,7 +25,8 @@ const ldOf = (metadata: Parameters<typeof renderMetadataHtml>[0]) => {
 };
 
 test('I18N-SEO-04/-13: every event, offer, opening and guide passes the schema check in all three languages', async () => {
-  const pages = [...localDiscoveries.map(getDiscoveryMetadata), ...guides.map(getGuideMetadata)];
+  const pages = [...localDiscoveries.map(item => getDiscoveryMetadata(item, item.kind === 'event' ? undefined : (listingPublished as Record<string, string>)[`${item.kind}:${discoveryShare(item).id}`])),
+    ...guides.map(guide => getGuideMetadata(guide, (guidePublished as Record<string, string>)[guide.slug]))];
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as SiteLanguage[]) {
     await setLocale(locale, false);
     const problems = pages.flatMap(metadata => checkStructuredData(ldOf({ ...metadata, path: languagePath(metadata.path, locale) }), { english: locale === 'en', where: languagePath(metadata.path, locale) }));
@@ -87,7 +89,7 @@ test('Article JSON-LD: the editorial desk as author, the first-published day, lo
   const guide = guides.find(item => item.slug === 'bay-area-rental-scam-guide')!;
   for (const locale of ['zh-Hans', 'en'] as SiteLanguage[]) {
     await setLocale(locale, false);
-    const [article, breadcrumb] = ldOf({ ...getGuideMetadata(guide), path: languagePath(`/guides/${guide.slug}`, locale) });
+    const [article, breadcrumb] = ldOf({ ...getGuideMetadata(guide, (guidePublished as Record<string, string>)[guide.slug]), path: languagePath(`/guides/${guide.slug}`, locale) });
     const prefix = locale === 'en' ? '/en' : '';
     assert.equal(article.author['@type'], 'Organization', 'the desk, never an invented person');
     assert.equal(article.datePublished, (guidePublished as Record<string, string>)[guide.slug]);
@@ -115,4 +117,26 @@ test('I18N-SEO-10: the events hub lists what is still on, by its next day, never
   assert.deepEqual(list.map(item => item.position), list.map((_, index) => index + 1));
   const [collection] = eventsMetadata('2026-10-12').structuredData!;
   assert.equal((collection.mainEntity as Block).itemListElement.length, list.length);
+});
+
+test('the app keeps the prerendered JSON-LD of the page it hydrates (it carries the first-published day), and replaces it elsewhere', async () => {
+  const { JSDOM } = await import('jsdom');
+  const { setPageMetadata } = await import('../src/lib/seo');
+  await setLocale('zh-Hans', false);
+  const guide = guides[0];
+  const server = renderMetadataHtml(getGuideMetadata(guide, '2026-05-22'));
+  const dom = new JSDOM(`<!doctype html><html><head>${server}</head><body></body></html>`);
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true });
+  try {
+    setPageMetadata(getGuideMetadata(guide));
+    const kept = JSON.parse(dom.window.document.querySelector('script[data-baylink-structured-data]')!.textContent!);
+    assert.equal(kept[0].datePublished, '2026-05-22', 'the hydrated page keeps the server JSON-LD');
+    setPageMetadata(getGuideMetadata(guides[1]));
+    const scripts = dom.window.document.querySelectorAll('script[data-baylink-structured-data]');
+    assert.equal(scripts.length, 1);
+    assert.equal(JSON.parse(scripts[0].textContent!)[0].headline, guides[1].title, 'another page replaces it');
+  } finally {
+    if (previous) Object.defineProperty(globalThis, 'document', previous); else Reflect.deleteProperty(globalThis, 'document');
+  }
 });

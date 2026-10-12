@@ -92,7 +92,7 @@ test('client navigation resets stale article image and noindex metadata', () => 
 
 test('guide structured data uses real modification dates, escapes script delimiters and clears on navigation', () => {
   const guide = { ...guides[0], title: '指南 </script><script>alert(1)</script>' };
-  const metadata = getGuideMetadata(guide);
+  const metadata = getGuideMetadata(guide, (guidePublished as Record<string, string>)[guides[0].slug]);
   const html = renderHtmlDocument(template, metadata, '<article>指南正文</article>');
   const dom = new JSDOM(html);
   const scripts = dom.window.document.querySelectorAll('script[type="application/ld+json"]');
@@ -102,7 +102,7 @@ test('guide structured data uses real modification dates, escapes script delimit
   assert.ok(article.dateModified >= guide.updatedAt);
   assert.deepEqual(article.author, { '@type': 'Organization', name: 'BAYLINK', url: 'https://www.baylink.us/about' }, 'the editorial desk, never an invented person');
   // the day the guide first shipped (data/first-published, from the history), never the modification time
-  assert.equal(article.datePublished, (guidePublished as Record<string, string>)[guide.slug]);
+  assert.equal(article.datePublished, (guidePublished as Record<string, string>)[guides[0].slug], "the prerender passes the first-published day");
   assert.equal(breadcrumbs.itemListElement.at(-1).item, `https://www.baylink.us/guides/${guide.slug}`);
   assert.equal(dom.window.document.querySelectorAll('script:not([src]):not([type="application/ld+json"])').length, 0);
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
