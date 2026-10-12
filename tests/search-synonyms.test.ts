@@ -104,7 +104,9 @@ test('home: a Traditional question goes to BayBay like a Simplified one; keyword
 });
 
 test('quick search lists the senior pages first for 长者: a synonym or a venue name only fills the rest', async () => {
-  const seniorEvents = ['el-cerrito-senior-resource-fair-2026', 'san-leandro-senior-halloween-bingo-2026'];
+  // Three event slots, soonest first: newer programs for older adults (the 10/25 Portola Valley lantern class, 55+) may
+  // list ahead of the 10/30 San Leandro bingo, so only the first senior-specific event is pinned here.
+  const seniorEvents = ['el-cerrito-senior-resource-fair-2026'];
   for (const [locale, query] of [['zh-Hans', '长者'], ['zh-Hant', '長者'], ['zh-Hans', '老人'], ['en', 'senior']] as const) {
     await setLocale(locale, false);
     const found = searchQuickDestinations(query, locale, today);
