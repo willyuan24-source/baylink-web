@@ -11,7 +11,7 @@ import { recordIcsDownload, recordProductEvent } from '../../lib/product-events'
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
 import {
   ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
-  hasRealCover, inRange, listEvents, matchesFilters, monthDay, regionLabel, saveRegion, weekdayIndex, weekendPicks, weekendTabs, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
+  hasRealCover, inRange, listEvents, matchesFilters, monthDay, regionLabel, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
 } from './events-model';
 import type { IndexEvent } from './events-index-types';
 import { EventFeedCard, EventHeroCard } from './EventCards';
@@ -86,15 +86,17 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const dayParam = params.get('day');
   const day: WeekendDayTab = dayParam === 'sat' || dayParam === 'sun' || dayParam === 'open' ? dayParam : defaultDayTab(tabs, today, days);
   const narrowed = filters.free || !!filters.tag || !!filters.category || !!filters.q;
-  const picks = useMemo(() => weekend && !narrowed && !card ? weekendPicks(base, today) : [], [weekend, narrowed, card, base, today]);
+  // A card whose manifest did not load lists nothing, so the page falls back to the plain 本周末: picks rail and full feed.
+  const listsCard = !!card && strip.status !== 'error';
+  const picks = useMemo(() => weekend && !narrowed && !listsCard ? weekendPicks(base, today) : [], [weekend, narrowed, listsCard, base, today]);
   // Until the card's manifest arrives, the same rule the card used stands in for its ids (they match on the build day).
   const cardIds = useMemo(() => {
-    if (!card) return [];
+    if (!card || strip.status === 'error') return [];
     if (strip.status === 'ready') return strip.ids;
     return weekendPicks(card === 'all' ? INDEX_EVENTS : INDEX_EVENTS.filter(event => event.region === card), today, { limit: 3 }).map(item => item.event.id);
   }, [card, strip, today]);
   const stripEvents = cardIds.flatMap(id => INDEX_EVENTS.filter(event => event.id === id && nextOccurrence(event, today)));
-  const excluded = new Set(card ? cardIds : picks.map(item => item.event.id));
+  const excluded = new Set(listsCard ? cardIds : picks.map(item => item.event.id));
   // 本周末 is ranked, so its best real photos take the first screen's diagonal slots; the date lists stay in date order.
   const list = useMemo(() => weekend ? featurePhotos(tabs[day].filter(event => !excluded.has(event.id)), event => hasRealCover('event', event, today))
     : listEvents(matching, filters.when, today).filter(event => !excluded.has(event.id)),
@@ -169,7 +171,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         <FeedGrid label={weekend ? t('本周末活动', 'Events this weekend') : t('活动', 'Events')} layout={layout}>
           {visible.map((event, index) => <FeedItem key={event.id}>
             <EventFeedCard event={event} cover={covers.feed[index]} tone={tones[index] ?? undefined} today={today} days={feedDays}
-              priority={!picks.length && !card && index === 0} />
+              priority={!picks.length && !listsCard && index === 0} />
           </FeedItem>)}
         </FeedGrid>
         {more > 0 && <div className="ev-more">
@@ -194,7 +196,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
       </li>)}</ul>
     </details>}
 
-    <EventsPageEnd region={filters.region} />
+    <EventsPageEnd region={filters.region} today={today} />
     <ImageCredits covers={[...covers.strip, ...covers.picks, ...covers.feed]} />
 
     <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('筛选活动', 'Filter events')} status={sheetCount}
@@ -228,12 +230,11 @@ function SheetSection({ title, children }: { title: string; children: ReactNode 
 }
 
 /** The end of the list: save the weekend as an image, subscribe, and one link each to the rest (VISUAL-18). */
-export function EventsPageEnd({ region }: { region: EventsFilters['region'] }) {
+export function EventsPageEnd({ region, today }: { region: EventsFilters['region']; today: string }) {
   const { t } = useUiCopy();
-  const card = region === 'all' ? 'all' : region;
   return <nav className="ev-end" aria-label={t('更多活动入口', 'More from Events')}>
-    <a className="ev-end__item ev-end__item--wide" href={`/weekly/${card}.png`} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
-    <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${card}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
     <Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link>
     <Link className="ev-end__item" to="/events?view=openings">{t('新店与开业', 'New shops')}</Link>
     <Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link>

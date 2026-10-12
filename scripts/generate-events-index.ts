@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { MONTHLY_EDITION } from '../src/data/monthly-edition';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 import { currentFreebies } from '../src/data/october-offers';
@@ -7,6 +7,7 @@ import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import cityAliases from '../src/data/city-search-aliases.json';
 import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from './data/event-calendar-schedule';
+import { getWeeklyCardDays } from '../src/lib/home-weekend';
 import type { EventsIndex, IndexEvent, IndexImage, IndexOffer, IndexOpening } from '../src/features/events/events-index-types';
 
 /**
@@ -16,8 +17,10 @@ import type { EventsIndex, IndexEvent, IndexImage, IndexOffer, IndexOpening } fr
  * sessions, price, venueShort, iconKey) are copied when an event carries them; address, ageChip, tips and dateNote stay
  * on the detail page, so the overlay adds as little as possible to /events.
  *
- * Deterministic for a given catalog (no build date): it keeps everything that had not ended by the edition's check date;
- * pages filter by the reader's own day. Run by `npm run generate:home` (prebuild and pretest).
+ * Deterministic for a given catalog apart from `weeklyCardDays`: it keeps everything that had not ended by the edition's
+ * check date; pages filter by the reader's own day. `weeklyCardDays` are the days this build writes a dated Bay Area share
+ * card for (/weekly/all-{day}.png, generate-weekly.ts), read from the home catalog written just before, so the page-end
+ * "存成一张图" link opens the same card as the home page (RC-12). Run by `npm run generate:home` (prebuild and pretest).
  */
 const cutoff = MONTHLY_EDITION.checkedAt;
 
@@ -82,9 +85,13 @@ const cityNames: Record<string, string> = Object.fromEntries([...new Set(events.
   return zh ? [[city, zh]] : [];
 }));
 
+// The same days generate-weekly.ts writes all-{day}.png for (the home catalog's snapshot days in the week after the build).
+const home = JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')) as { generatedAt: string; weekends: Record<string, unknown> };
+const weeklyCardDays = getWeeklyCardDays(home.generatedAt, home.weekends);
+
 const index: EventsIndex = {
   edition: { label: MONTHLY_EDITION.label, checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate, startMonth: MONTHLY_EDITION.startMonth },
-  events, offers, openings, bulletins, images, cityNames,
+  events, offers, openings, bulletins, images, cityNames, weeklyCardDays,
 };
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/events-index.json', JSON.stringify(index));

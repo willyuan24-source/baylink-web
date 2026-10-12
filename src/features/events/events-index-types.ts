@@ -52,6 +52,8 @@ export type EventsIndex = {
   images: Record<string, IndexImage>;
   /** English city name → its Chinese name (city-search-aliases), for bilingual city chips. */
   cityNames: Record<string, string>;
+  /** Days this build wrote a dated Bay Area share card for (/weekly/all-{day}.png), as the home page links it. */
+  weeklyCardDays: string[];
 };
 
 export type { MonthlyRegion };
