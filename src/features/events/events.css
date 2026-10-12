@@ -185,6 +185,11 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-days .ui-segmented_
 /* Calendar rows: larger thumbnails and two columns on desktop. */
 .ev-calendar__rows .ui-row-card { grid-template-columns:6.5rem minmax(0, 1fr) auto; }
 .ev-calendar__rows .ui-row-card__thumb { width:6.5rem; height:6.5rem; }
+/* A card with its one save control (WEB-SAVES: ♡ on offers and new shops, 加入这天计划 on the calendar): the control
+   sits under the text, in the flow, above the stretched card link, so it never covers the picture or squeezes the title. */
+.ev-card--action .ui-feed-card__save { position:relative; top:auto; right:auto; }
+.ev-calendar__rows .ui-row-card.ev-card--action { grid-template-columns:6.5rem minmax(0, 1fr); grid-template-areas:"thumb body" "thumb trailing"; }
+.ev-calendar__rows .ev-card--action .ui-row-card__trailing { align-self:start; }
 /* The day's cities stay one scrolling row at every width (EVT-10). */
 .ev-page .ev-cities { flex-wrap:nowrap; overflow-x:auto; }
 @media (min-width:1024px) {

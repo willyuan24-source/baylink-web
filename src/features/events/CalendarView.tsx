@@ -14,6 +14,7 @@ import { EventFeedCard, EventRowCard, PHONE_COVER_CAP } from './EventCards';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
+import { AddToDayPlan } from '../../components/AddToDayPlan';
 
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
 // The lead cover is one column wide: the phone width, or the left of the two desktop columns (events.css). It is the
@@ -63,6 +64,8 @@ export default function CalendarView({ today }: { today: string }) {
   const covers = resolveCovers(shownEvents.map(event => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey })), { ...coverContext(today), page: createCoverPage() });
   const nearest = pool.flatMap(event => { const day = nextOccurrence(event, date > today ? date : today); return day ? [day] : []; }).filter(day => day !== date).sort()[0];
   const past = date < today;
+  // 加入这天计划 (WEB-SAVES, plan D19) on every listed event of today or a later day: saves into that day's plan at once.
+  const addToDay = (event: IndexEvent) => past ? undefined : <AddToDayPlan stop={{ kind: 'event', id: event.id }} date={date} title={event.title} today={today} compact />;
   const beforeIndex = date < EVENTS_INDEX.edition.checkedAt;
 
   const weekdayShort = (day: string) => pick(WEEKDAYS[weekdayIndex(day)].char);
@@ -125,9 +128,9 @@ export default function CalendarView({ today }: { today: string }) {
     <div className="ev-calendar__rows" aria-live="polite">
       {shownEvents.length ? <>
         <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
-          <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} sizes={LEAD_SIZES} priority /></FeedItem>
+          <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} sizes={LEAD_SIZES} priority action={addToDay(shownEvents[0])} /></FeedItem>
         </FeedGrid>
-        {shownEvents.slice(1).map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index + 1]} today={today} day={date} />)}
+        {shownEvents.slice(1).map((event, index) => <EventRowCard key={event.id} event={event} cover={covers[index + 1]} today={today} day={date} action={addToDay(event)} />)}
       </>
         : <EmptyState headingLevel="h3" icon={CalendarDays}
           title={beforeIndex ? t('这一天在本期收录之前', 'This day is before this edition') : past ? t('这一天没有收录的活动', 'No events recorded that day') : t('这一天暂未收录活动', 'No events listed that day yet')}

@@ -13,7 +13,7 @@ dom.window.HTMLElement.prototype.getClientRects = function () {
 };
 // The calendar (the events column's 日历·地图 view) imports its stylesheet; here CSS loads as an empty module.
 registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
-const { render, cleanup, fireEvent, act, within } = await import('@testing-library/react');
+const { render, cleanup, fireEvent, act, within, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, useLocation, useNavigate, Routes, Route, Outlet } = await import('react-router-dom');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { INDEX_EVENTS } = await import('../src/features/events/events-model');
@@ -47,6 +47,28 @@ test('the week strip, city choices and row links all use the selected day', asyn
   // A new day clears a city chosen for the previous one.
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /^10月17日 周六/ })); });
   sameIds(rowIds(view), onDay('2026-10-17'));
+});
+
+test('加入这天计划 on every listed event of an upcoming day saves into that day at once; a past day has none', async t => {
+  // WEB-SAVES (plan D19) moved with the calendar into the events column: one enabled button per listed event.
+  t.mock.method(globalThis, 'fetch', async () => new Response('{}'));
+  const view = await open('?date=2026-10-17');
+  const listed = rowIds(view);
+  sameIds(listed, onDay('2026-10-17'));
+  // The button loads on its own; a disabled copy holds its place until then.
+  await waitFor(() => assert.ok(view.getAllByRole('button', { name: /^加入这天计划：/ }).every(button => !button.hasAttribute('disabled'))));
+  const adds = view.getAllByRole('button', { name: /^加入这天计划：/ });
+  assert.equal(adds.length, listed.length);
+  await act(async () => { fireEvent.click(adds[0]); });
+  const plan = JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0];
+  assert.equal(plan.date, '2026-10-17');
+  assert.deepEqual(plan.stops, [{ kind: 'event', id: listed[0] }]);
+  assert.match(view.getByTestId('save-toast').textContent!, /已加入 10\/17 计划/);
+  assert.equal(within(view.getByTestId('save-toast')).getByRole('link', { name: '查看' }).getAttribute('href'), '/my-week#plan-2026-10-17');
+  cleanup();
+  const past = await open('?date=2026-10-08');
+  assert.ok(rowIds(past).length > 0, 'the past day lists events');
+  assert.equal(past.queryAllByRole('button', { name: /^加入这天计划/ }).length, 0, 'no 加入这天计划 on a past day');
 });
 
 test('week navigation crosses the month boundary, keeps the region and restores with Back', async () => {
