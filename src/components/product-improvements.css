@@ -1,6 +1,6 @@
 .bookmark-control { position:relative; display:inline-flex; }
 .post-action.is-saved { color:var(--color-brand); background:var(--color-brand-tint); }
-.bookmark-error { position:absolute; z-index:5; left:0; bottom:100%; width:210px; padding:9px; border:1px solid var(--color-line-strong); border-radius:9px; background:var(--color-surface-2); color:var(--color-warm); font-size:.75rem; line-height:1.5; box-shadow:0 5px 18px rgb(var(--color-brand-deep-rgb) / .13); }
+.bookmark-error { position:absolute; z-index:5; left:0; bottom:100%; width:210px; padding:9px; border:1px solid rgb(var(--color-danger-rgb) / .2); border-radius:9px; background:var(--color-danger-tint); color:var(--color-danger); font-size:.75rem; line-height:1.5; box-shadow:0 5px 18px rgb(var(--color-brand-deep-rgb) / .13); }
 .site-topbar-tools { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex-shrink:0; min-height:40px; padding:0 10px; border:1px solid var(--color-line); border-radius:10px; color:var(--color-ink-3); font-size:.75rem; }
 .site-topbar-tools[aria-current=page] { background:var(--color-brand-tint); border-color:var(--color-line-strong); }
 @media(max-width:767px) { .site-topbar-tools { width:36px; height:36px; min-height:36px; padding:0; } .site-topbar-tools>span { display:none; } }

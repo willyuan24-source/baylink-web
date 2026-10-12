@@ -40,6 +40,33 @@ test('emphasis inside a heading is an accent: a coloured one stays coloured (bra
   for (const selector of ['.about-hero h1', '.a em', '.card h2 + p em', '.card h2 ~ p strong']) assert.ok(!isHeadingAccent(selector), selector);
 });
 
+test('error and warning rules keep their status family instead of the nearest neutral or warm colour', () => {
+  // The import dialog's error box (event-import.css): a pink border, a pink-white ground and red-brown text.
+  assert.equal(run('.event-error{background:#fff1ed;border:1px solid #e8c4b9;color:#923e2c}').css,
+    '.event-error{background:var(--color-danger-tint);border:1px solid rgb(var(--color-danger-rgb) / .3);color:var(--color-danger)}');
+  // The delete-account zone keeps a red border; a cream ground in an error rule is the danger tint, not surface-2.
+  assert.equal(run('.account-privacy .account-privacy-danger{border-color:#e2b4ad}').css, '.account-privacy .account-privacy-danger{border-color:rgb(var(--color-danger-rgb) / .35)}');
+  assert.equal(run('.bookmark-error{border:1px solid #ecd2c5;background:#fff9f2;color:#813f27}').css,
+    '.bookmark-error{border:1px solid rgb(var(--color-danger-rgb) / .2);background:var(--color-danger-tint);color:var(--color-danger)}');
+  assert.equal(run('.chat-ai-error{color:#95563e}').css, '.chat-ai-error{color:var(--color-danger)}');
+  assert.equal(run('input:invalid{border-color:#c0392b}').css, 'input:invalid{border-color:var(--color-danger)}');
+  // Light text in a failed state on a dark bubble stays light and warm (the tint), not brand-tint green.
+  assert.equal(run('.modern-chat-delivery.is-failed{border-top:1px solid #ffffff35;color:#fff2d8}').css,
+    '.modern-chat-delivery.is-failed{border-top:1px solid rgb(var(--color-surface-rgb) / .21);color:var(--color-warning-tint)}');
+  // Warnings and notices: the warning family; an "error" rule drawn in amber is a soft notice and takes it too.
+  assert.equal(run('.booking-notification-warning{background:#fff4dc;border:1px solid #e8d8b7;color:#775f30}').css,
+    '.booking-notification-warning{background:var(--color-warning-tint);border:1px solid rgb(var(--color-warning-rgb) / .25);color:var(--color-warning)}');
+  assert.equal(run('.member-baybay-error{border:1px solid #efdcbf;color:#805f2e}').css, '.member-baybay-error{border:1px solid rgb(var(--color-warning-rgb) / .2);color:var(--color-warning)}');
+  // A rule that already paints a status token is a status rule whatever its name.
+  assert.equal(run('.booking-alert{background:#fff1ea;color:var(--color-danger);border:1px solid #efd1c5}').css,
+    '.booking-alert{background:var(--color-danger-tint);color:var(--color-danger);border:1px solid rgb(var(--color-danger-rgb) / .2)}');
+  // Only warm colours change family: white, greys and a green retry link inside an error box snap as usual.
+  assert.equal(run('.baybay-request-error button{color:#496140;background:#fff}').css, '.baybay-request-error button{color:var(--color-ink-2);background:var(--color-surface)}');
+  assert.equal(run('.form-error:focus-visible{outline:2px solid #c0392b}').css, '.form-error:focus-visible{outline:2px solid var(--color-brand)}', 'focus stays the brand ring');
+  // Ordinary rules are unchanged: a warm label is still warm, a pale warm border still a neutral line.
+  assert.equal(run('.offer{color:#923e2c;border:1px solid #e8c4b9}').css, '.offer{color:var(--color-warm);border:1px solid var(--color-line-strong)}');
+});
+
 test('url() contents, known var() fallbacks and skipped selectors', () => {
   const svg = '.a{background:url("data:image/svg+xml;utf8,<svg fill=\'#123c31\'/>") no-repeat,#f4f7f5}';
   assert.equal(run(svg).css, '.a{background:url("data:image/svg+xml;utf8,<svg fill=\'#123c31\'/>") no-repeat,var(--color-surface-2)}');

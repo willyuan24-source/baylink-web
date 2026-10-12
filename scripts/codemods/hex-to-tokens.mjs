@@ -21,7 +21,15 @@
 //   anything else   backgrounds, borders, shadows, gradients, fills: the nearest palette colour, hue weighted over
 //                   lightness so a tinted border keeps its family. Greens land on the brand family (success and its
 //                   tint are left to status chips); keyboard-focus outlines become the brand ring.
-//   alpha           #RRGGBBAA / #RGBA keep their alpha: `rgb(var(--color-brand-deep-rgb) / .13)`.
+//   status rules    a rule whose selector names an error (error|danger|invalid|fail|destructive) or a warning
+//                   (warn|notice|caution), or that already paints var(--color-danger…) / var(--color-warning…), keeps
+//                   that meaning: its warm colours (reds, browns, ambers; greys, greens and blues follow the rules above)
+//                   take the status family instead of the nearest neutral. Text → danger / warning (the tint when the
+//                   text is light, on a dark bubble); a near-white background → danger-tint / warning-tint; a pale border
+//                   or tint → the status colour, translucent to the old lightness (`rgb(var(--color-danger-rgb) / .35)`);
+//                   anything darker → the status colour. An "error" rule drawn in amber (its strongest warm colour has
+//                   OKLab hue ≥ 70°, like `.member-baybay-error`) is a soft notice and takes the warning family.
+//   alpha          #RRGGBBAA / #RGBA keep their alpha: `rgb(var(--color-brand-deep-rgb) / .13)`.
 //   var() fallbacks `var(--color-bg, #fff)` drops the fallback when tokens.css defines the variable.
 // Out of scope: url(…) contents (an SVG data URI cannot read a CSS variable), TS/TSX (runtime colours for maps, canvas
 // and the resvg share cards need literal values), the 3D worlds (src/opus-bay/**, Little Bay) and src/tokens.css itself.
@@ -66,6 +74,57 @@ export const oklab = ([r, g, b]) => {
 };
 /** OKLab distance × 100; `lightness` < 1 lets hue and chroma count for more than lightness. */
 const distance = (a, b, lightness = 1) => Math.hypot((a[0] - b[0]) * lightness, a[1] - b[1], a[2] - b[2]) * 100;
+const hueOf = lab => Math.atan2(lab[2], lab[1]) * 180 / Math.PI;
+const chromaOf = lab => Math.hypot(lab[1], lab[2]);
+
+/** Status families (see "status rules" above): the selector words, and the tokens a warm colour in such a rule becomes. */
+const DANGER_WORDS = /error|danger|invalid|fail|destructive/i;
+const WARNING_WORDS = /warn|notice|caution/i;
+export const STATUS_FAMILIES = { danger: { text: 'danger', tint: 'danger-tint' }, warning: { text: 'warning', tint: 'warning-tint' } };
+/** A red, brown, orange or amber (not a grey, green, blue or plum): the colours a status rule draws its state with. */
+const isWarm = lab => chromaOf(lab) >= .008 && hueOf(lab) >= -40 && hueOf(lab) <= 115;
+
+/** The status family of a rule, or null. Read before any of its declarations is rewritten. */
+export function statusFamily(rule) {
+  if (rule?.type !== 'rule') return null;
+  let token = null; let strongest = null;
+  rule.each(node => {
+    if (node.type !== 'decl') return;
+    token ??= /var\(--color-(danger|warning)\b/.exec(node.value)?.[1] ?? null;
+    const spans = urlSpans(node.value);
+    for (const match of node.value.matchAll(HEX)) {
+      if (spans.some(([start, end]) => match.index >= start && match.index < end)) continue;
+      const lab = oklab(hexToRgb(match[0]).rgb);
+      if (isWarm(lab) && (!strongest || chromaOf(lab) > chromaOf(strongest))) strongest = lab;
+    }
+  });
+  if (DANGER_WORDS.test(rule.selector)) return strongest && hueOf(strongest) >= 70 ? 'warning' : 'danger';
+  if (WARNING_WORDS.test(rule.selector)) return 'warning';
+  return token;
+}
+
+/** The alpha (.15–.9 in .05 steps) at which `rgb` over white comes closest to the OKLab lightness `target`. */
+const alphaForLightness = (rgb, target) => {
+  let best = { alpha: 1, gap: Infinity };
+  for (let step = 3; step <= 18; step++) {
+    const alpha = step / 20;
+    const gap = Math.abs(oklab(rgb.map(channel => channel * alpha + 255 * (1 - alpha)))[0] - target);
+    if (gap < best.gap) best = { alpha, gap };
+  }
+  return best.alpha;
+};
+
+/** A warm colour in a status rule → { name, alpha } in its family; null leaves the colour to the ordinary snapping. */
+export function statusToken(rgb, alpha, { role, prop = '', family, palette, forceDark = false, forceLight = false }) {
+  const lab = oklab(rgb);
+  const names = STATUS_FAMILIES[family];
+  if (!names || role === 'focus' || !isWarm(lab) || !palette.has(names.text) || !palette.has(names.tint)) return null;
+  const pick = name => ({ name, distance: distance(lab, oklab(palette.get(name))) });
+  if (role === 'text') return { ...pick(!forceDark && (forceLight || lab[0] >= .72) ? names.tint : names.text), alpha };
+  if (/^background/i.test(prop) && lab[0] >= .9) return { ...pick(names.tint), alpha };
+  if (lab[0] < .7) return { ...pick(names.text), alpha };
+  return { ...pick(names.text), alpha: Number((alpha * alphaForLightness(palette.get(names.text), lab[0])).toFixed(2)) };
+}
 
 /** The palette from tokens.css: every `--color-<name>-rgb: R G B` channel token. */
 export function readPalette(tokensCss = readFileSync(join(root, 'src/tokens.css'), 'utf8')) {
@@ -140,9 +199,13 @@ const backgroundLightness = rule => {
 export function rewriteCss(css, { palette, defined = new Set(), skipSelector } = {}) {
   const ast = postcss.parse(css);
   const changes = [];
+  // A rule's status family is read on its first declaration, before any of them is rewritten.
+  const families = new Map();
   ast.walkDecls(declaration => {
     const rule = declaration.parent;
     if (skipSelector && rule?.type === 'rule' && skipSelector.test(rule.selector)) return;
+    if (!families.has(rule)) families.set(rule, statusFamily(rule));
+    const family = families.get(rule);
     let value = declaration.value;
     // `var(--known-token, #hex)` → `var(--known-token)`.
     value = value.replace(/var\(\s*(--[a-z0-9-]+)\s*,\s*(#[\da-f]{3,8})\s*\)/gi, (whole, name) => defined.has(name) ? `var(${name})` : whole);
@@ -156,9 +219,10 @@ export function rewriteCss(css, { palette, defined = new Set(), skipSelector } =
       if (spans.some(([start, end]) => offset >= start && offset < end)) return hex;
       const { rgb, alpha } = hexToRgb(hex);
       const context = { forceDark: placeholder || (background !== null && background > .85), forceLight: background !== null && background < .5, accent: role === 'text' && rule?.type === 'rule' && isHeadingAccent(rule.selector) };
-      const best = nearestToken(rgb, role, palette, context);
-      changes.push({ hex: hex.toLowerCase(), token: best.name, alpha: Number(alpha.toFixed(2)), role, distance: Number(best.distance.toFixed(1)), selector: rule?.selector ?? declaration.prop });
-      return tokenColor(best.name, alpha);
+      const status = family ? statusToken(rgb, alpha, { role, prop: declaration.prop, family, palette, ...context }) : null;
+      const best = status ?? { ...nearestToken(rgb, role, palette, context), alpha };
+      changes.push({ hex: hex.toLowerCase(), token: best.name, alpha: Number(best.alpha.toFixed(2)), role, distance: Number(best.distance.toFixed(1)), selector: rule?.selector ?? declaration.prop, ...(status ? { status: family } : {}) });
+      return tokenColor(best.name, best.alpha);
     });
     declaration.value = value;
   });

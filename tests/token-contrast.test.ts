@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import postcss from 'postcss';
 import { listSources } from '../scripts/check-style-ratchet.mjs';
-import { TEXT_DARK, TEXT_LIGHT } from '../scripts/codemods/hex-to-tokens.mjs';
+import { STATUS_FAMILIES, TEXT_DARK, TEXT_LIGHT } from '../scripts/codemods/hex-to-tokens.mjs';
 import config from '../tailwind.config.js';
 
 // READ-02 at the token level (TOKENS-B): every text token passes WCAG AA (4.5:1) on every surface it is drawn on, so a
@@ -32,6 +32,11 @@ test('palette matrix: dark text tokens on every light surface, light text tokens
   for (const text of TEXT_LIGHT) for (const surface of DARK_SURFACES) {
     const value = ratio(rgbOf(text), rgbOf(surface));
     if (value < 4.5) failures.push(`${text} on ${surface} ${value.toFixed(2)}:1`);
+  }
+  // The codemod's light status text (a failed message on the brand bubble): the danger and warning tints.
+  for (const { tint } of Object.values(STATUS_FAMILIES)) for (const surface of [...DARK_SURFACES, 'brand']) {
+    const value = ratio(rgbOf(tint), rgbOf(surface));
+    if (value < 4.5) failures.push(`${tint} on ${surface} ${value.toFixed(2)}:1`);
   }
   // White on the brand button and the plum TypeCover pair.
   for (const [text, surface] of [['surface', 'brand'], ['plum', 'plum-tint']]) {

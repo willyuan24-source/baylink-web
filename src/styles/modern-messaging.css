@@ -50,7 +50,7 @@
 .modern-chat-reaction-picker button:hover{background:var(--color-brand-tint)}
 .modern-chat-delivery{font-size:.625rem;line-height:1.7;opacity:.85;margin-top:5px}
 .modern-chat-delivery button{text-decoration:underline;text-underline-offset:3px;margin-right:12px;margin-top:4px}
-.modern-chat-delivery.is-failed{padding-top:8px;border-top:1px solid rgb(var(--color-surface-rgb) / .21);color:var(--color-brand-tint)}
+.modern-chat-delivery.is-failed{padding-top:8px;border-top:1px solid rgb(var(--color-surface-rgb) / .21);color:var(--color-warning-tint)}
 .modern-chat-composer{position:relative;padding:15px 23px 11px;border-top:1px solid var(--color-line);background:var(--color-surface);flex-shrink:0}
 .modern-chat-compose-row{display:flex;align-items:flex-end;gap:7px;padding:6px;border:1px solid var(--color-line);border-radius:19px;background:var(--color-surface)}
 .modern-chat-compose-row:focus-within{border-color:var(--color-line-control);box-shadow:0 0 0 3px var(--color-brand-tint)}
@@ -66,7 +66,7 @@
 .modern-chat-compose-meta button:disabled{opacity:.4}
 .modern-chat-key-hint{display:flex;align-items:center;gap:4px;margin-left:auto}
 .modern-chat-draft-note{font-size:.5625rem;color:var(--color-ink-3);line-height:1.6;margin-top:1px}
-.modern-chat-draft-note.is-error{color:var(--color-warm)}
+.modern-chat-draft-note.is-error{color:var(--color-danger)}
 .modern-chat-reply-preview{display:flex;align-items:center;gap:10px;padding:5px 4px 12px;color:var(--color-ink-3);font-size:.6875rem}
 .modern-chat-reply-preview>div{min-width:0;flex:1}
 .modern-chat-reply-preview p{font-size:.75rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--color-ink-3);margin-top:2px}

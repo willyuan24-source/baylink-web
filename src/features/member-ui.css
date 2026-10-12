@@ -125,7 +125,7 @@
 .member-baybay-ask { display: flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; min-height: 42px; padding: 11px 14px; border-radius: 10px; background: var(--color-brand); color: white; font-size: .75rem; font-weight: 600; transition: background-color .18s; }
 .member-baybay-ask:hover { background: var(--color-brand-deep); }
 .member-baybay-ask:disabled { opacity: .5; }
-.member-baybay-error { margin-top: 13px; padding: 14px 16px; border: 1px solid var(--color-warning-tint); border-radius: 12px; background: var(--color-warm-tint); color: var(--color-warning); font-size: .6875rem; line-height: 1.75; }
+.member-baybay-error { margin-top: 13px; padding: 14px 16px; border: 1px solid rgb(var(--color-warning-rgb) / .2); border-radius: 12px; background: var(--color-warning-tint); color: var(--color-warning); font-size: .6875rem; line-height: 1.75; }
 .member-baybay-answer { margin-top: 20px; padding: 21px; border: 1px solid var(--color-line); border-radius: 5px 20px 20px; background: white; }
 .member-baybay-answer-label { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; font-size: var(--text-caption); font-weight: 600; color: var(--color-brand); }
 .member-baybay-answer-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8125rem; line-height: 1.9; color: var(--color-ink-3); }
