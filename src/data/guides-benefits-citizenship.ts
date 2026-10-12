@@ -60,7 +60,7 @@ export const benefitsCitizenshipGuides: Guide[] = [
       { title: 'USCIS：N-400 入籍申请入口', url: 'https://www.uscis.gov/n-400', description: '提交前确认当前版本、说明书、费用与递交方式；本次直接读取返回 403。' },
       { title: 'USCIS：N-400 官方说明书', url: 'https://www.uscis.gov/sites/default/files/document/forms/n-400instr.pdf', description: '一般资格、婚姻路径与证据要求；本次仅取得可检索说明，当前版须再确认。' },
       { title: 'USCIS：入籍流程概览', url: 'https://www.uscis.gov/sites/default/files/document/guides/M-685.pdf', description: '永久居民年限、申请、面试与宣誓的官方概览；本次仅取得可检索说明。' },
-      { title: 'USCIS：入籍面试与考试', url: 'https://www.uscis.gov/citizenship/learn-about-citizenship/the-naturalization-interview-and-test', description: '按递交日期确认应准备的考试版本；本次未能完整读取。' },
+      { title: 'USCIS：入籍面试与考试', url: 'https://www.uscis.gov/citizenship/learn-about-citizenship/the-naturalization-interview-and-test', description: '按 N-400 递交日期确认应准备的考试版本（2025 年 10 月 20 日前后不同）。' },
       { title: 'USCIS：2025 版公民知识题库', url: 'https://www.uscis.gov/sites/default/files/document/questions-and-answers/2025-Civics-Test-128-Questions-and-Answers.pdf', description: '该版本的 128 道题与 65／20 特别考虑；本次仅取得可检索说明。' },
       { title: 'USCIS：50 岁以上申请人的说明', url: 'https://www.uscis.gov/sites/default/files/document/fact-sheets/Fact-Sheet-Promoting-Citizenship-for-50-and-Older.pdf', description: '年龄与永久居民年限同时决定的英语例外；本次仅取得可检索说明。' },
       { title: 'USCIS：寻找合资格法律服务', url: 'https://www.uscis.gov/scams-fraud-and-misconduct/avoid-scams/find-legal-services', description: '核实律师或受认可机构的获认证代表；本次直接读取返回 403。' },

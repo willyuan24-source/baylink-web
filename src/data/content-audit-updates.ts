@@ -8,8 +8,9 @@ export const CONTENT_AUDIT_OPENING_UPDATES: Record<string, Partial<SeptemberOpen
     dateLabel: 'Santa Rosa 新址已列营业信息 · 10/1–3 开业庆典已结束',
     summary: 'The Passdoor 官网已列出 Santa Rosa 新址、营业时段及后续活动。珠宝、艺术及家居精选品牌迁至 1160 4th Street；10/1–3 的开业庆典已结束。',
     editorTip: '官网不同页面的营业时段不一致，出发前联系门店确认。开业庆典日期不等于首次接客日，也不代表当前仍有赠品或开业优惠。',
-    officialUrl: 'https://www.thepassdoor.net/new-page',
-    sourceUrl: 'https://www.thepassdoor.net/new-page',
+    // 2026-10-12: /new-page now returns "page not found"; the homepage lists the Santa Rosa address and hours (CNT-HOTFIX).
+    officialUrl: 'https://www.thepassdoor.net/',
+    sourceUrl: 'https://www.thepassdoor.net/',
     sourceLabel: 'The Passdoor 官网 Santa Rosa 地址、营业信息与活动日历',
     verifiedAt: '2026-10-05',
   },

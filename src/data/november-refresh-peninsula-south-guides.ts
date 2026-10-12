@@ -209,7 +209,7 @@ export const novemberPeninsulaSouthGuides: Guide[] = [
       {
         "type": "list",
         "items": [
-          "San Mateo：11/5 官方场次为周四 15:00–19:00，在 222 East 4th Avenue 原 Draeger’s 停车场，有蔬果和餐车。不要与 CSM 校园周六市场混淆。",
+          "San Mateo：市中心协会日历上的周四傍晚市集（222 East 4th Avenue 原 Draeger’s 停车场）今年只列到 7/23，11/5 没有确认场次，不要按 11/5 前往。不要与 CSM 校园周六市场混淆。",
           "Mountain View：常规周日 9:00–13:00 在 600 West Evelyn Avenue 的 Caltrain 站停车场；11/8 明确改到 190 Hope Street 的 4、8 号停车场。",
           "Campbell：常规周日 9:00–13:00，位于 East Campbell Avenue 的 Central Avenue 至 3rd Street 段。2026/10/18 因 Oktoberfest 停开，节庆摊位不能当作原农贸市场照常营业。",
           "San Carlos：运营方列周日 9:00–13:00 全年市场，但 2026/10/11 因 Art & Wine Faire 停开。出门前再查具体街段与当日公告。"

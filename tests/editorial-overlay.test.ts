@@ -156,7 +156,9 @@ test('basis.json notices a source edit under an entry: an error when a stored fi
   // A plan override masks plan edits; an entry without one follows the source plan (cleaned automatically).
   const withPlan = Object.keys(EVENT_OVERLAY).find(id => EVENT_OVERLAY[id].plan && PRE_OVERLAY.has(`event:${id}`))!;
   assert.deepEqual(drift(`event:${withPlan}`, { plan: ['新的一步安排，内容足够长。'] }), [['error', withPlan, 'plan']]);
-  assert.deepEqual(drift(concord, { plan: ['新的一步安排，内容足够长。'] }), [['warn', 'concord-trick-or-treat-trail-2026', 'plan']]);
+  // (Concord gained a plan override in CNT-HOTFIX, so the follower is any entry without one.)
+  const withoutPlan = Object.keys(EVENT_OVERLAY).find(id => !EVENT_OVERLAY[id].plan && PRE_OVERLAY.has(`event:${id}`))!;
+  assert.deepEqual(drift(`event:${withoutPlan}`, { plan: ['新的一步安排，内容足够长。'] }), [['warn', withoutPlan, 'plan']]);
   // A dated offer correction masks the same field.
   assert.deepEqual(drift('offer:sf-opera-dolby-figaro-offer-2026', { dateLabel: '10/30 · 新批次' }).map(row => row[0]), ['error']);
   // An offer short title can carry its requirement ("美国居民"), so a requirement edit under one is an error too.

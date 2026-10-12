@@ -194,12 +194,13 @@ test('opening cards show only attributable photos or posters; synthetic shop art
   assert.equal(brokenDreams.openedOn, '2026-08-10');
   assert.match(brokenDreams.editorTip, /周末暂休/);
   const marufuku = canonicalOpening('marufuku-burlingame-announced');
-  assert.equal(marufuku.status, 'announced');
-  assert.match(marufuku.dateLabel, /预告.*10\/11.*Grand Opening.*11:00.*14:00.*17:00.*21:00/);
+  // 2026-10-12 (CNT-HOTFIX): open after the 10/11 grand opening, with the regular hours the store page lists from 10/12.
+  assert.equal(marufuku.status, 'open');
+  assert.match(marufuku.dateLabel, /10\/11.*Grand Opening.*10\/12.*11:00.*14:00.*17:00.*21:00/);
   assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
   assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/burlingame');
   assert.equal(marufuku.address, '225 Lorton Ave, Burlingame, CA 94010');
-  assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /Coming Soon|尚未开业|不代表已开业/);
+  assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /宣传图.*不是开业当天/);
 });
 
 test('unavailable and inherited opening image keys safely fall back to the information card', () => {

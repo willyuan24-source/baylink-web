@@ -57,10 +57,11 @@ test('verified factual corrections survive the final merged catalogs without inv
   assert.match(vta.sourceUrl, /closes-friday-morning-oct-2-2026-600/);
   assert.equal(vta.verifiedAt, '2026-10-05');
   const restaurant = currentOpenings.find(item => item.id === 'marufuku-burlingame-announced')!;
-  assert.equal(restaurant.status, 'announced');
+  // 2026-10-12 (CNT-HOTFIX): the grand opening has passed and the store page lists regular hours from 10/12.
+  assert.equal(restaurant.status, 'open');
   assert.match(restaurant.address, /225 Lorton/);
   assert.match(restaurant.summary, /10\/11.*Grand Opening/);
-  assert.match(restaurant.dateLabel, /10\/11.*11:00–14:00.*17:00–21:00/);
+  assert.match(restaurant.dateLabel, /10\/11.*平日 11:00–14:00、17:00–21:00.*周末 11:00–21:00/);
   assert.equal(restaurant.verifiedAt, '2026-10-07');
   assert.equal(restaurant.sourceUrl, 'https://www.marufukuramen.com/burlingame');
   const museum = currentFreebies.find(item => item.id === 'famsf-bay-area-free-saturdays')!;
