@@ -1,8 +1,8 @@
 /**
  * New official figures written into the pillar guides by CNT-GUIDES (Wave 3). Each was read on the official page on the
  * date given, with the quote copied from that page (also in docs/source-reads-2026-10.md), and is listed for the owner in the
- * lane PR under "新官方数字（请店主过目）". Tests only (tests/guide-official-figures.test.ts): every dollar amount in a pillar
- * guide must be registered here, and every registered figure must still be written in its guide. Not imported by the app.
+ * lane PR under "新官方数字（请店主过目）". Tests only (tests/guide-pillars.test.ts): every dollar amount in a rewritten
+ * pillar guide must be registered here, and every registered figure must still be written in its guide. Not imported by the app.
  */
 export type OfficialFigure = { slug: string; figure: string; url: string; readOn: string; quote: string };
 
