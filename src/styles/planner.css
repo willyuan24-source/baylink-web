@@ -36,7 +36,7 @@
 .planner-form>h2 { margin-bottom:12px; }
 .planner-page label { display:flex; flex-direction:column; gap:8px; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 .planner-page :is(input,select,textarea) { box-sizing:border-box; width:100%; min-height:var(--control-height); padding:10px 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:400; }
-.planner-page input[type=checkbox] { flex:none; width:1.25rem; min-height:1.25rem; height:1.25rem; padding:0; }
+.planner-page input[type=checkbox] { flex:none; width:1.25rem; min-height:auto; height:1.25rem; padding:0; }
 .planner-question textarea { min-height:5.5rem; resize:vertical; line-height:1.625; }
 .planner-filters { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; margin-top:8px; }
 .planner-refinements { margin-top:12px; }
@@ -168,7 +168,7 @@
 
 /* Offers at a stop */
 .planner-stop-offers { margin:12px 0; padding:10px 12px; border:1px solid var(--color-line); border-radius:10px; background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-stop-offers summary { display:flex; align-items:center; gap:6px; min-height:2.25rem; color:var(--color-ink); font-weight:600; cursor:pointer; }
+.planner-stop-offers summary { display:flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-ink); font-weight:600; cursor:pointer; }
 .planner-stop-offers>p { margin-top:6px; }
 .planner-stop-offers>div { margin-top:8px; padding-top:8px; border-top:1px solid var(--color-line); }
 .planner-stop-offers a { display:block!important; margin-top:4px!important; font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }

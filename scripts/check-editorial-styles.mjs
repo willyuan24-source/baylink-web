@@ -46,6 +46,11 @@ export const editorialStyleScopes = [
   { file: 'src/components/tools/unit-price.css' },
   { file: 'src/components/tools/dining-calculator.css' },
   { file: 'src/components/tools/loan-calculator.css' },
+  // WEB-PLAN: 行程 (/plan) and the planner panels it and My Week mount.
+  { file: 'src/styles/plan-page.css' },
+  { file: 'src/styles/planner.css' },
+  { file: 'src/components/planner-web-library.css' },
+  { file: 'src/styles/discovery-workflow.css', selectors: /^.planner-/ },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
