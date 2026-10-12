@@ -15,6 +15,8 @@ import { reviewedAutumnOffers } from '../src/data/autumn-release';
 import { offerReviews20261007 } from '../src/data/offers-reviewed-2026-10-07';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { applyOfferOverlay } from '../src/data/editorial-overlay/apply';
+import { offerMatchesDateRange } from '../src/lib/offer-calendar';
+import { offerDeadline } from '../src/lib/event-facts';
 
 const offer = (id: string) => {
   const result = currentFreebies.find(item => item.id === id);
@@ -104,10 +106,17 @@ test('calendar-rule free days are identified and material ticket restrictions re
   assert.match(offer('asian-art-free-oct4').description, /官网也已单独公布 10\/4/);
   assert.match(offer('chm-museums-on-us-oct3-4').requirement, /仅持卡人.*同伴不包含/);
   assert.match(offer('santa-clara-library-parks-pass').description, /不含 Uvas Canyon、Sunnyvale Baylands、露营/);
-  for (const id of ['ikea-emeryville-as-is-wednesdays', 'poppy-claro-doggie-dinners-fall']) {
-    assert.match(offer(id).description, /规则/);
-    assert.match(offer(id).description, /未公布.*结束日/);
-  }
+  assert.match(offer('ikea-emeryville-as-is-wednesdays').description, /规则/);
+  assert.match(offer('ikea-emeryville-as-is-wednesdays').description, /未公布.*结束日/);
+  // Poppy & Claro (re-read 10/12): Fridays only, and the Howl-O-Ween costume night is the season's last dog dinner
+  // (winner named 10/31), so the offer ends on the last October Friday at the latest.
+  const dogDinners = offer('poppy-claro-doggie-dinners-fall');
+  assert.match(dogDinners.description, /按周五规则/);
+  assert.match(dogDinners.description, /万圣节狗狗服装比赛那晚是本季最后一次狗狗晚餐/);
+  assert.doesNotMatch(dogDinners.description, /未公布.*结束日/);
+  assert.match(dogDinners.dateLabel, /^10 月每周五 .*最后一次是万圣节服装比赛那晚（10\/31 前）$/);
+  assert.doesNotMatch(dogDinners.title, /延长至秋季/);
+  assert.equal(dogDinners.endDate, '2026-10-30');
 });
 
 test('new local benefits retain the family, residence, borrowing and purchase restrictions', () => {
@@ -171,6 +180,14 @@ test('additional dated family benefits remain visible on their day and expire th
   assert.equal(hasCard(renderBoard('2026-10-11'), 'sonoma-county-museum-family-oct10'), false);
   assert.ok(hasCard(renderBoard('2026-10-25'), 'sfmoma-family-oct25'));
   assert.equal(hasCard(renderBoard('2026-10-26'), 'sfmoma-family-oct25'), false);
+});
+
+test('the dog dinners end on the last October Friday: date searches and the deadline chip stop after 10/30', () => {
+  const dogDinners = offer('poppy-claro-doggie-dinners-fall');
+  assert.equal(offerMatchesDateRange(dogDinners, '2026-10-30', '2026-10-30'), true);
+  assert.equal(offerMatchesDateRange(dogDinners, '2026-10-31', '2026-11-01'), false);
+  assert.equal(offerDeadline(dogDinners, '2026-10-30')?.text.zh, '今天截止');
+  assert.equal(offerDeadline(dogDinners, '2026-10-31')?.text.zh, '已结束');
 });
 
 test('benefit cards show sourced photos or posters and omit AI art while retaining conditions and the genuine source', () => {
