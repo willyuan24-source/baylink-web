@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { ArrowDown, ArrowUp, Check, Clock3, Compass, Copy, MapPin, Plus, Search, Share2, Sparkles, Ticket, X } from 'lucide-react';
+import { ArrowDown, ArrowUp, Check, Clock3, Compass, Copy, MapPin, Plus, Rotate3d, Search, Share2, Sparkles, Ticket, X } from 'lucide-react';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES, type Attraction } from '../data/attractions';
 import { getGuideBySlug } from '../data/guides';
 import { getGuideMedia, type GuideImage } from '../data/guide-media';
@@ -141,7 +141,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         <div className="xp-card__actions">
           <Button variant="tonal" className="xp-add" aria-pressed={added} aria-label={`${added ? '移出清单' : '加入清单'}：${item.title}`} disabled={!added && plan.length >= MAX_OUTING_STOPS} onClick={() => toggle(item.id)} icon={added ? <Check size={18} aria-hidden="true" /> : <Plus size={18} aria-hidden="true" />}>{added ? '已加入' : '加入清单'}</Button>
           <Link className="xp-text-link" to={`/guides/${item.slug}`}>读完整攻略</Link>
-          {worldEntry && <Link className="xp-text-link xp-3d-link" to={fromExplore(worldEntry.href)} reloadDocument>{translateText(worldEntry.label, locale)}</Link>}
+          {worldEntry && <Link className="xp-text-link xp-3d-link" to={fromExplore(worldEntry.href)} reloadDocument><Rotate3d size={18} aria-hidden="true" />{translateText(worldEntry.label, locale)}</Link>}
         </div>
         {cover.tier !== 'type' && <details className="attraction-credit"><summary>照片来源</summary><p>{image.caption}</p><a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a>{image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">授权说明</a>}</details>}
       </div>

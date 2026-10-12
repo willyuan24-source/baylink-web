@@ -14,7 +14,7 @@
 .xp-search input:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
 .xp-select{display:block;min-width:0}
 .xp-select select{width:100%;padding:0 32px 0 12px}
-.xp-note>summary,.xp-plan>summary{display:flex;align-items:center;min-height:var(--control-height);cursor:pointer;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.5;overflow-wrap:anywhere}
+.xp-note>summary,.xp-plan>summary{display:list-item;min-height:var(--control-height);padding-block:10px;cursor:pointer;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.5;overflow-wrap:anywhere}
 .xp-note>p{margin:0 0 4px;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.6}
 .xp-plan{margin-top:16px;border-bottom:1px solid var(--color-line)}
 .xp-plan>summary{font-weight:600;color:var(--color-ink)}
@@ -50,11 +50,10 @@
 .xp-page .xp-add[aria-pressed=true]{background:var(--color-brand);color:var(--color-surface)}
 .xp-text-link,.xp-more-links a,.xp-next a{display:inline-flex;align-items:center;gap:6px;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em}
 .xp-text-link:hover,.xp-more-links a:hover,.xp-next a:hover{text-decoration-color:currentColor}
-/* "3D 看一看": a text link with a small 3D mark, because it opens a separate full-page experience. */
+/* "3D 看一看": a text link with the 3D icon; it opens a separate full-page experience. */
 .xp-page .xp-3d-link{text-decoration:none}
-.xp-3d-link::before{content:"3D";padding:1px 6px;border-radius:6px;background:var(--color-brand-deep);color:var(--color-surface);font-size:var(--text-caption);line-height:1.385;font-weight:700;text-decoration:none}
 .attraction-credit{margin-top:4px;color:var(--color-ink-3);font-size:var(--text-caption);line-height:1.6}
-.attraction-credit summary{display:inline-flex;align-items:center;min-height:var(--control-height);cursor:pointer;color:var(--color-ink-2)}
+.attraction-credit summary{display:list-item;min-height:var(--control-height);padding-block:10px;cursor:pointer;color:var(--color-ink-2)}
 .attraction-credit p{margin:0 0 4px;color:var(--color-ink-2)}
 .attraction-credit a{display:inline-flex;align-items:center;min-height:var(--control-height);margin-right:16px;color:var(--color-ink-2);text-decoration:underline;overflow-wrap:anywhere}
 /* The 3D San Francisco module takes one full row of the grid. */
