@@ -85,7 +85,7 @@ export function MediaCandidateQueue({ today: suppliedToday }: { today?: string }
                 {candidate.likelyLogo && <span className="source-monitor-field">{t('疑似标志', 'Likely logo')}</span>}
                 {candidate.siteDefault && <span className="source-monitor-field">{t('全站默认图', 'Site default')}</span>}
                 {decision && <span className="source-monitor-field">{t(DECISION_LABELS[decision.decision].zh, DECISION_LABELS[decision.decision].en)}</span>}</p>
-              <h3>{listing ? <a href={listing.path}>{listing.title}</a> : candidate.title}</h3>
+              <h3 translate="no">{listing ? <a href={listing.path}>{translateText(listing.title, locale)}</a> : translateText(candidate.title, locale)}</h3>
               <p className="source-monitor-note">{t('图片网址', 'Image URL')}：<a href={image} target="_blank" rel="noopener noreferrer" className="media-candidate-url">{image}</a>
                 {candidate.ogImageWidth && candidate.ogImageHeight ? ` · ${candidate.ogImageWidth}×${candidate.ogImageHeight}` : ''}</p>
               {candidate.ogImageAlt && <p className="source-monitor-note">{t('官方替代文字', 'Official alt text')}：<span translate="no">{candidate.ogImageAlt}</span></p>}

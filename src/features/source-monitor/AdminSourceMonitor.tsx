@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Check, ExternalLink, RefreshCw, ShieldCheck, X } from 'lucide-react';
 import { api } from '../../lib/api';
-import { translateText, useLocale } from '../../i18n/locale';
+import { translateText, useLocale, type Locale } from '../../i18n/locale';
 import { ProductMetrics } from './ProductMetrics';
 import { EditorialReviewQueue } from './EditorialReviewQueue';
 import { MediaCandidateQueue } from './MediaCandidateQueue';
@@ -119,7 +119,7 @@ export function AdminSourceMonitor({ onBack }: { onBack?: () => void }) {
       {queue.autoDismissed.length > 0 && <details className="source-monitor-auto">
         <summary>{t(`最近 48 小时自动忽略的无关变化（${queue.autoDismissed.length}）`, `Cosmetic changes dismissed automatically in the last 48 hours (${queue.autoDismissed.length})`)}</summary>
         <p className="source-monitor-note">{t('由自动分诊判断为无关变化，不算人工复核，也不显示给读者。抽查时如发现判断错误，请在官方页面核实后修改站内内容。', 'Judged cosmetic by automatic triage. This is not an editor review and readers never see it. If a spot check finds a mistake, verify the official page and update the listing.')}</p>
-        <ul>{queue.autoDismissed.map(row => <li key={row.id}><a href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>{row.triage?.summaryZh && <span lang="zh-Hans" translate="no"> · {row.triage.summaryZh}</span>}</li>)}</ul>
+        <ul>{queue.autoDismissed.map(row => <li key={row.id}><a href={row.url} target="_blank" rel="noopener noreferrer" translate="no">{translateText(row.title, locale)}</a>{row.triage?.summaryZh && <span lang="zh-Hans" translate="no"> · {row.triage.summaryZh}</span>}</li>)}</ul>
       </details>}
     </> : <div className="source-monitor-list">
       {(tab === 'unreadable' ? queue.unreadable : sources).length === 0 && <p className="source-monitor-empty">{t('这里暂时没有来源。', 'No sources here yet.')}</p>}
@@ -145,7 +145,7 @@ const stamp = (value: number | null | undefined, locale: string, none: string) =
   ? new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : 'zh-CN', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', timeZone: 'America/Los_Angeles' }).format(value) : none;
 
 function SourceChangeCard({ row, now, t, locale, busy, note, onNote, onReview }: {
-  row: AdminSourceRow; now: number; t: Copy; locale: string; busy: string; note: string; onNote: (value: string) => void; onReview: (decision: 'acknowledged' | 'dismissed') => void;
+  row: AdminSourceRow; now: number; t: Copy; locale: Locale; busy: string; note: string; onNote: (value: string) => void; onReview: (decision: 'acknowledged' | 'dismissed') => void;
 }) {
   const triage = currentTriage(row), hours = hoursWaiting(row, now), seen = readersSeeIt(row, now);
   const cancel = !!triage?.material && !!triage.fields?.includes('cancel');
@@ -157,7 +157,7 @@ function SourceChangeCard({ row, now, t, locale, busy, note, onNote, onReview }:
         <p className="source-monitor-chips"><span className="source-monitor-status is-attention">{label}</span>
           {fields.map(field => <span key={field} className="source-monitor-field">{t(TRIAGE_FIELD_LABELS[field].zh, TRIAGE_FIELD_LABELS[field].en)}</span>)}
           <span className="source-monitor-field">{t((STATUS[row.status] || STATUS['not-checked']).zh, (STATUS[row.status] || STATUS['not-checked']).en)}</span></p>
-        <h3>{row.title}</h3>
+        <h3 translate="no">{translateText(row.title, locale)}</h3>
         {triage?.summaryZh && <p className="source-monitor-triage" lang="zh-Hans" translate="no">{triage.summaryZh}</p>}
         <p className="source-monitor-age">{changedAtOf(row) ? t(`${stamp(changedAtOf(row), locale, '')} 发现变化 · 已等 ${hours} 小时`, `Changed ${stamp(changedAtOf(row), locale, '')} · waiting ${hours} h`) : t('变化时间未知', 'Change time unknown')}
           {seen && <strong>{t(' · 读者已看到提示', ' · readers see a prompt')}</strong>}</p>
@@ -180,13 +180,13 @@ function SourceChangeCard({ row, now, t, locale, busy, note, onNote, onReview }:
   </article>;
 }
 
-function SourceRowCard({ row, t, locale }: { row: AdminSourceRow; t: Copy; locale: string }) {
+function SourceRowCard({ row, t, locale }: { row: AdminSourceRow; t: Copy; locale: Locale }) {
   const unreadable = row.status === 'manual-required' || row.status === 'error';
   return <article className="source-monitor-card source-monitor-card--compact">
     <div className="source-monitor-card-top">
       <div><p className="source-monitor-chips"><span className={`source-monitor-status${unreadable ? ' is-attention' : ''}`}>{t((STATUS[row.status] || STATUS['not-checked']).zh, (STATUS[row.status] || STATUS['not-checked']).en)}</span>
         {row.reviewedBy === 'auto-triage' && <span className="source-monitor-field">{t('自动分诊：无关变化', 'Auto-triage: cosmetic')}</span>}</p>
-        <h3>{row.title}</h3></div>
+        <h3 translate="no">{translateText(row.title, locale)}</h3></div>
       <a href={row.url} target="_blank" rel="noopener noreferrer">{t('查看官方页面', 'Open official page')} <ExternalLink size={16} aria-hidden="true" /></a>
     </div>
     <dl className="source-monitor-dates"><div><dt>{t('最近尝试', 'Last attempt')}</dt><dd>{stamp(row.lastAttemptAt, locale, t('尚无记录', 'No record yet'))}</dd></div>

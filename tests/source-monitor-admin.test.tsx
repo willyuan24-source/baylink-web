@@ -141,3 +141,14 @@ test('the desk reads in English without Chinese chrome', async () => {
   assert.match(desk.textContent || '', /Triage used 3 of 200 calls today/);
   assert.match(desk.textContent || '', /readers see a prompt/);
 });
+
+test('source titles are data: shown in the reader’s script (繁體 for zh-Hant) and kept from page translation', async () => {
+  await setLocale('zh-Hant', false);
+  const chinese = { ...rows[2], title: '旧金山舰队活动' };
+  api.request = async (endpoint: string) => endpoint === '/admin/source-monitor' ? { sources: [chinese], running: false, triage: { enabled: true, reason: 'on', calls: 0, dailyLimit: 200 } } : { candidates: [] };
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(<AdminSourceMonitor />); });
+  await act(async () => {});
+  const heading = view.getByRole('heading', { level: 3, name: '舊金山艦隊活動' });
+  assert.equal(heading.getAttribute('translate'), 'no');
+});

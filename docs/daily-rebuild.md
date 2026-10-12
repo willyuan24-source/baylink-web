@@ -12,7 +12,7 @@
    - `VERCEL_DEPLOY_HOOK_URL` = 上一步复制的网址
    - `CRON_SECRET` = 一串至少 32 位的随机字符（例如在终端运行 `node -e "console.log(crypto.randomUUID()+crypto.randomUUID())"`）。Vercel 定时任务会自动带上它；没有它，任何人都不能让网站重建。
 3. 重新部署一次（Deployments → 最新的 Production → Redeploy），让环境变量生效。
-4. 第二天看 Vercel → Settings → **Cron Jobs**：`/api/daily-rebuild` 每天 08:10 UTC 运行（太平洋时间冬令时 00:10、夏令时 01:10）；Deployments 里会多出一条由 Deploy Hook 触发的发布。
+4. 第二天看 Vercel → Settings → **Cron Jobs**：`/api/daily-rebuild` 每天 08:10 UTC 运行（太平洋时间冬令时 00:10、夏令时 01:10；Vercel 免费版 Hobby 的定时任务可能在这一小时内任意时刻触发，即 08:00–08:59 UTC，仍在太平洋时间午夜之后）；Deployments 里会多出一条由 Deploy Hook 触发的发布。
 
 **费用与风险**：每天多 1 次生产构建（约 10–20 分钟构建时长）。构建失败时线上保持上一版，不影响读者。想停用：删掉 `VERCEL_DEPLOY_HOOK_URL` 即可（函数会回到“未配置、什么都不做”）。
 
@@ -30,7 +30,7 @@
    - `VERCEL_DEPLOY_HOOK_URL` = the hook URL
    - `CRON_SECRET` = a random string of at least 32 characters. Vercel Cron sends it as `Authorization: Bearer …`; without it nobody else can trigger a rebuild.
 3. Redeploy production once so the variables apply.
-4. Next day, check Settings → **Cron Jobs**: `/api/daily-rebuild` runs daily at 08:10 UTC (00:10 PST / 01:10 PDT), and Deployments shows a deploy-hook build.
+4. Next day, check Settings → **Cron Jobs**: `/api/daily-rebuild` runs daily at 08:10 UTC (00:10 PST / 01:10 PDT; on the Hobby plan Vercel may fire it at any minute of that hour, 08:00–08:59 UTC, which is still after Pacific midnight), and Deployments shows a deploy-hook build.
 
 **Cost and risk.** One extra production build per day. A failed build leaves the previous deployment live. To stop it, remove `VERCEL_DEPLOY_HOOK_URL` (the function goes back to "not configured").
 
@@ -44,4 +44,4 @@
 
 ## Reader-side guard (no owner action)
 
-Every prerendered page carries the Pacific date it was built for (`<html data-built-for="YYYY-MM-DD">`). Date-dependent blocks are marked with `dateScope()` from `src/lib/date-guard.ts`: `data-date-scope="weekend"` (本周末 lists: the same from Monday to Saturday; stale on Sunday, which drops Saturday, and from the next Monday) or `data-date-scope="day"` (anything keyed to today: stale on any later day). Today `/events` and `/calendar` are marked (inside the 本周末 list, the travel alerts and the share-card link are `day` blocks of their own); home is covered through its section classes (`.home-weekend`, `.home-weekly-share`, `.home-offers`, and WEB-HOME's `.home-picks`, `.home-feed`, `.home-share`) until its sections carry `dateScope()` — `tests/date-guard.test.tsx` fails when an event or offer on the prerendered home is left uncovered. `public/reading-init.js`, which already runs before the first paint, compares the build date with today's Pacific date and marks the page `data-date-stale`; the stylesheet then shows a fixed-height skeleton in place of those prerendered blocks (and of the same snapshot that SHELL2's boot keeps on screen while the route's code settles) until the app renders the current result. Blocks the app renders itself are never hidden. If the app never starts, the stale blocks reappear after 15 s (with the retry bar) rather than staying blank.
+Every prerendered page carries the Pacific date it was built for (`<html data-built-for="YYYY-MM-DD">`). Date-dependent blocks are marked with `dateScope()` from `src/lib/date-guard.ts`: `data-date-scope="weekend"` (本周末 lists: the same from Monday to Saturday; stale on Sunday, which drops Saturday, and from the next Monday) or `data-date-scope="day"` (anything keyed to today: stale on any later day). Today `/events` and `/calendar` are marked (inside the 本周末 list, the travel alerts and the share-card link are `day` blocks of their own); home is covered through its section classes (`.home-weekend`, `.home-weekly-share`, `.home-offers`, and WEB-HOME's `.home-picks`, `.home-feed`, `.home-share`, plus its head: the dateline `.home-head__dateline` as a day block and the weekend count `.home-head__lede` as a weekend block) until its sections carry `dateScope()` — `tests/date-guard.test.tsx` fails when an event, an offer, a `<time>` or an event count on the prerendered home is left uncovered. `public/reading-init.js`, which already runs before the first paint, compares the build date with today's Pacific date and marks the page `data-date-stale`; the stylesheet then shows a fixed-height skeleton in place of those prerendered blocks (and of the same snapshot that SHELL2's boot keeps on screen while the route's code settles) until the app renders the current result. Blocks the app renders itself are never hidden. If the app never starts, the stale blocks reappear after 15 s (with the retry bar) rather than staying blank.
