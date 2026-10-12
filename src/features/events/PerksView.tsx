@@ -10,6 +10,7 @@ import type { MonthlyRegion } from './events-index-types';
 import { getMonthlyDateRange } from '../../lib/monthly';
 import { OfferFeedCard } from './EventCards';
 import { ImageCredits } from './ImageCredits';
+import { RegionFilter } from './RegionFilter';
 
 const PAGE = 12;
 const DEALS_GUIDE = '/guides/bay-area-freebies-deals-2026-11';
@@ -33,9 +34,12 @@ export default function PerksView({ today, region }: { today: string; region: Mo
   const freeEvents = INDEX_EVENTS.filter(event => inRange(event, weekend, today) && isFreeToAttend(event) && (region === 'all' || event.region === region)).length;
   const more = Math.min(PAGE, offers.length - visible.length);
   return <>
-    <ChipRow label={t('按领取条件筛选', 'Filter by condition')} className="ev-perks-kinds">
-      {OFFER_KINDS.map(option => <FilterChip key={option.id} selected={kind === option.id} onClick={() => { setKind(option.id); setShown(PAGE); }}>{pick(option.label)}</FilterChip>)}
-    </ChipRow>
+    <div className="ev-board-filters">
+      <RegionFilter region={region} status={t(`显示 ${offers.length} 条`, `Show ${offers.length}`)} />
+      <ChipRow label={t('按领取条件筛选', 'Filter by condition')} className="ev-perks-kinds">
+        {OFFER_KINDS.map(option => <FilterChip key={option.id} selected={kind === option.id} onClick={() => { setKind(option.id); setShown(PAGE); }}>{pick(option.label)}</FilterChip>)}
+      </ChipRow>
+    </div>
     <p className="ev-count" role="status" aria-live="polite">{t(`${offers.length} 条，快截止的排在前面`, `${offers.length} offers, ending soonest first`)}</p>
     {freeEvents > 0 && <Link className="ev-inline-link" to="/events?cost=free">{t(`本周末还有 ${freeEvents} 场免费活动`, `${freeEvents} free events this weekend`)}</Link>}
     {visible.length ? <>

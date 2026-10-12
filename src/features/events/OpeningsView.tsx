@@ -7,6 +7,7 @@ import { INDEX_OPENINGS, OPENING_STATUSES, coverContext, filterOpenings, type Op
 import type { MonthlyRegion } from './events-index-types';
 import { OpeningFeedCard } from './EventCards';
 import { ImageCredits } from './ImageCredits';
+import { RegionFilter } from './RegionFilter';
 
 const PAGE = 12;
 const OPENINGS_GUIDE = '/guides/bay-area-new-openings-2026-09';
@@ -27,9 +28,12 @@ export default function OpeningsView({ today, region }: { today: string; region:
   const counts = Object.fromEntries(OPENING_STATUSES.map(option => [option.id, filterOpenings(INDEX_OPENINGS, option.id, region).length]));
   const more = Math.min(PAGE, openings.length - visible.length);
   return <>
-    <ChipRow label={t('按开业状态筛选', 'Filter by status')} className="ev-perks-kinds">
-      {OPENING_STATUSES.map(option => <FilterChip key={option.id} selected={status === option.id} count={counts[option.id]} onClick={() => { setStatus(option.id); setShown(PAGE); }}>{pick(option.label)}</FilterChip>)}
-    </ChipRow>
+    <div className="ev-board-filters">
+      <RegionFilter region={region} status={t(`显示 ${openings.length} 家`, `Show ${openings.length}`)} />
+      <ChipRow label={t('按开业状态筛选', 'Filter by status')} className="ev-perks-kinds">
+        {OPENING_STATUSES.map(option => <FilterChip key={option.id} selected={status === option.id} count={counts[option.id]} onClick={() => { setStatus(option.id); setShown(PAGE); }}>{pick(option.label)}</FilterChip>)}
+      </ChipRow>
+    </div>
     <p className="ev-count" role="status" aria-live="polite">{t(`${openings.length} 家 · 已开业、试营业与预告分开标注；整理自公开资料，未实地探店`, `${openings.length} shops · open, soft-opening and announced are marked apart; from public sources, not visited`)}</p>
     {visible.length ? <>
       <FeedGrid label={t('新店', 'New shops')} layout={layout}>
