@@ -98,3 +98,20 @@ test('the route renders 404 for an unknown id and the record for a known one', a
   assert.ok(await view.findByRole('heading', { level: 1 }));
   assert.ok(view.container.querySelector('.site-detail-actions'));
 });
+
+test('a venue photo too old to be the cover still shows the place below the summary, labelled 资料图 · 年份; theme, AI and offer photos do not', () => {
+  const find = (kind: string, id: string) => localDiscoveries.find(row => `${row.kind}:${discoveryShare(row).id}` === `${kind}:${id}`)!;
+  // The SF main library's 2013 atrium photo is the approved venue photo of this swap, past the 8-year cover rule.
+  const old = page(find('event', 'sf-main-halloween-costume-swap-oct15-2026'));
+  assert.equal(old.querySelector('.detail-hero [data-cover]')?.getAttribute('data-cover'), 'type', 'the hero is the TypeCover');
+  const photo = old.querySelector('.detail-body figure.detail-photo')!;
+  assert.ok(photo, 'the venue photo is in the body');
+  assert.ok(old.querySelector('.detail-summary')!.compareDocumentPosition(photo) & FOLLOWING, 'after the summary');
+  assert.match(photo.textContent || '', /资料图 · 2013/);
+  assert.ok(photo.querySelector('img[loading="lazy"]'), 'below the fold, so it loads lazily');
+  assert.equal(old.querySelectorAll('.detail-credit').length, 1, 'one credit line for the one photo');
+  // A photo that is the cover is not repeated; offers keep the brand-image rule (a CC Muni photo is not the offer).
+  for (const [kind, id] of [['event', 'san-francisco-fleet-week-2026'], ['offer', 'sfmta-free-muni-seniors'], ['offer', 'omca-free-oct4']]) {
+    assert.equal(page(find(kind, id)).querySelector('.detail-photo'), null, `${kind}:${id}`);
+  }
+});

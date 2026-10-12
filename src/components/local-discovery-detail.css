@@ -41,6 +41,10 @@
 .local-discovery-detail .detail-body h2 { margin:28px 0 12px; font-size:1.25rem; font-weight:600; line-height:1.4; }
 .local-discovery-detail .detail-summary { margin:20px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.8; }
 .local-discovery-detail .detail-body p { overflow-wrap:break-word; }
+/* The venue's archive photo (too old to be the cover): 3:2, r16, its badge, then its caption and credit. */
+.local-discovery-detail .detail-photo { margin:20px 0 0; }
+.local-discovery-detail .detail-photo .ui-cover { width:100%; border-radius:16px; overflow:hidden; }
+.local-discovery-detail .detail-photo .detail-credit { margin-top:8px; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol) { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol)>li { display:flex; align-items:flex-start; gap:12px; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul)>li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.25rem; color:var(--color-brand); }

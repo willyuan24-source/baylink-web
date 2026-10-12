@@ -1,7 +1,7 @@
-import { Cover, COVER_SIZES, EventTypeCover, OfferTypeCover, OpeningTypeCover } from '../../components/ui';
+import { Cover, CoverImage, COVER_SIZES, EventTypeCover, OfferTypeCover, OpeningTypeCover } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
-import type { ResolvedCover } from '../../lib/cover';
+import type { ImageCover, ResolvedCover } from '../../lib/cover';
 import type { EventFactsInput } from '../../lib/event-facts';
 import type { DetailRecord } from './detail-record';
 
@@ -21,6 +21,15 @@ export function DetailHero({ record, cover, today, ended }: { record: DetailReco
     : <OpeningTypeCover opening={item.shop} today={today} {...slot} />;
   return <figure className="detail-hero" data-tier={cover.tier}>
     <Cover cover={cover} {...slot} sizes={COVER_SIZES.detail} priority ended={ended} fallback={fallback} />
+  </figure>;
+}
+
+/** The venue's archive photo below the summary (hero-cover.ts placePhoto), with its badge, caption and credit. */
+export function DetailPlacePhoto({ photo }: { photo: ImageCover }) {
+  const { pick } = useUiCopy();
+  return <figure className="detail-photo">
+    <CoverImage image={photo.image} label={pick(photo.label)} fit={photo.fit} focal={photo.focal} ratio="3:2" sizes={COVER_SIZES.detail} />
+    <figcaption><HeroCredit cover={photo} /></figcaption>
   </figure>;
 }
 

@@ -18,8 +18,8 @@ import { discoveryContentReviewRecord } from '../lib/content-review';
 import { createCoverPage } from '../lib/cover';
 import { brandCase, eventTone, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
 import { detailShare, nextEventDay, railEvents, unconfirmedEvent, type DetailRecord } from '../features/detail/detail-record';
-import { DetailHero, HeroCredit } from '../features/detail/DetailHero';
-import { heroCover } from '../features/detail/hero-cover';
+import { DetailHero, DetailPlacePhoto, HeroCredit } from '../features/detail/DetailHero';
+import { heroCover, placePhoto } from '../features/detail/hero-cover';
 import { EventFacts, OfferFacts, OpeningFacts } from '../features/detail/FactsGrid';
 import { DetailActionBar, type DetailActions } from '../features/detail/DetailActionBar';
 import { DetailRail } from '../features/detail/DetailRail';
@@ -30,7 +30,8 @@ import { readerPlanLines, readerProse } from '../features/detail/reader-text';
 
 /**
  * Event, offer and opening detail (T6; design.md §4.9 with D10; EVT11-03, SV-05). Phone order: "‹ 活动" → the hero →
- * status chips → H1 → the why-go line → (ended: 接下来可以去) → 一眼看懂 2×2 → the body (出发前 / 领取条件 / 怎么安排) →
+ * status chips → H1 → the why-go line → (ended: 接下来可以去) → 一眼看懂 2×2 → the body (summary, the venue's archive photo
+ * when it is too old to be the cover, 出发前 / 领取条件 / 怎么安排) →
  * 一起去 → source and checks → share → 附近同类活动. The action bar (♡ 收藏 · 加入这天计划 · 问 BayBay · 官方页 ↗) replaces
  * the tab bar on a phone and is the sticky aside on a desktop.
  *
@@ -74,6 +75,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   // The hero's photo is never repeated in the page's rails (VISUAL-10).
   const coverPage = createCoverPage();
   if (cover.tier !== 'type') coverPage.claims.set(cover.image.src, `${item.kind}:${share.id}`);
+  const venuePhoto = placePhoto(record, cover, today);
+  if (venuePhoto) coverPage.claims.set(venuePhoto.image.src, `${item.kind}:${share.id}`);
   const title = item.kind === 'offer' ? item.offer.title : share.title;
   const back = BACK[item.kind];
 
@@ -134,6 +137,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
         <div className="detail-body">
           {event && <>
             {event.summary && <p className="detail-summary"><ReaderText text={event.summary} /></p>}
+            {venuePhoto && <DetailPlacePhoto photo={venuePhoto} />}
             {!eventOver && planLines.length > 0 && <section aria-labelledby="detail-plan-title">
               <h2 id="detail-plan-title">{t('出发前，做好这些安排', 'Before you go')}</h2>
               <ul className="detail-plan">{planLines.map(line => <li key={line}><Check aria-hidden="true" strokeWidth={2} /><p><ReaderText text={line} /></p></li>)}</ul>
