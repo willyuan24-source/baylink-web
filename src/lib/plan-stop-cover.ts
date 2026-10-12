@@ -41,6 +41,16 @@ export function planDayLabel(date: string, english: boolean) {
 export const upcomingPlans = (plans: readonly SavedPlan[], today: string) =>
   plans.filter(plan => plan.date >= today).sort((a, b) => a.date.localeCompare(b.date) || b.updatedAt.localeCompare(a.updatedAt));
 
+/** How many upcoming days 行程 lists; the rest are one link away in My Week, so many plans never push the tools down. */
+export const PLAN_DAYS_SHOWN = 5;
+
+/** The plans of the first `days` upcoming days (in upcomingPlans order) and how many later days are left out. */
+export function firstPlanDays(plans: readonly SavedPlan[], days = PLAN_DAYS_SHOWN) {
+  const dates = [...new Set(plans.map(plan => plan.date))];
+  const shown = new Set(dates.slice(0, days));
+  return { plans: plans.filter(plan => shown.has(plan.date)), moreDays: dates.length - shown.size };
+}
+
 /**
  * One photo once per page (rule 6) when the same stop is listed more than once — in two saved days, a suggestion and
  * the list. getCover lets an item keep its claim when it resolves again, so each repeat would show the same file; given

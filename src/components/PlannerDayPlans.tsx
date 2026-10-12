@@ -20,9 +20,10 @@ const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Di
  * 已排的日子 (行程, plan T13 + FC3-01): every upcoming saved plan — made here, by 加入这天计划 (the events calendar on
  * this base; home and detail pages save into the same plans as they gain the action), or by BayBay — one day per group,
  * each stop a RowCard with its cover and the plan's date. An event that does not run on the plan's day says so. Loading,
- * API failure and the empty state use the WEB-UI primitives (RC-25); the page shows the offline line above.
+ * API failure and the empty state use the WEB-UI primitives (RC-25); the page shows the offline line above. The page
+ * passes the next few days only (`moreDays` = how many later days are left to My Week).
  */
-export function PlannerDayPlans({ library, plans, covers, today, editingId }: { library: ReturnType<typeof usePlannerLibrary>; plans: readonly SavedPlan[]; covers: readonly ResolvedCover[]; today: string; editingId?: string }) {
+export function PlannerDayPlans({ library, plans, moreDays = 0, covers, today, editingId }: { library: ReturnType<typeof usePlannerLibrary>; plans: readonly SavedPlan[]; moreDays?: number; covers: readonly ResolvedCover[]; today: string; editingId?: string }) {
   const locale = useLocale();
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
@@ -35,7 +36,7 @@ export function PlannerDayPlans({ library, plans, covers, today, editingId }: { 
         body={t('可能是网络不稳或服务繁忙。已保存的行程不会因此消失。', 'The connection or our service may be busy. Your saved plans are not lost.')} />
         : !plans.length ? <EmptyState headingLevel="h3" icon={CalendarCheck} title={t('还没有排好的日子', 'No days planned yet')}
           body={t('把活动加入某一天的计划（比如在活动日历点「加入这天计划」），那一天就会出现在这里；也可以在下面挑一个地点开始。', 'Add an event to a day’s plan (for example with “Add to this day’s plan” on the events calendar) and that day appears here. Or start from a place below.')}
-          actions={<Button variant="tonal" to="/events">{t('看本周末活动', 'See this weekend’s events')}</Button>} />
+          actions={<Button variant="tonal" to="/calendar">{t('打开活动日历', 'Open the events calendar')}</Button>} />
           : <ol className="plan-days__list">{days.map(date => <li key={date} id={`plan-day-${date}`} className="plan-days__day">
             <p className="plan-days__date"><time dateTime={date}>{planDayLabel(date, english)}</time></p>
             {plans.filter(plan => plan.date === date).map(plan => {
@@ -52,10 +53,11 @@ export function PlannerDayPlans({ library, plans, covers, today, editingId }: { 
                   const external = /^https?:/.test(path);
                   const kind = place ? PLACE_KIND[place.category ?? 'attraction'] : undefined;
                   const meta = event ? [event.city, event.costLabel] : [place?.city, kind ? t(kind[0], kind[1]) : undefined];
+                  const offDay = !!event && !eventOccursOn(event, date);
                   return <li key={`${stop.kind}:${stop.id}`}>
                     <RowCard title={translateText(stopTitle(stop), locale)} {...(external ? { href: path } : { to: path })} heading="h4"
                       thumb={<PlannerStopThumb stop={stop} cover={coverFor(plan, index)} today={today} day={date} />}
-                      date={<>{t(`第 ${index + 1} 站`, `Stop ${index + 1}`)}{event && !eventOccursOn(event, date) && <> <StatusChip tone="warning">{t('不在这一天', 'Not on this day')}</StatusChip></>}</>}
+                      date={<span>{t(`第 ${index + 1} 站`, `Stop ${index + 1}`)}{offDay && ' '}{offDay && <StatusChip tone="warning">{t('不在这一天', 'Not on this day')}</StatusChip>}</span>}
                       meta={meta.filter(Boolean).map(part => translateText(part!, locale)).join(' · ')} />
                   </li>;
                 })}</ul>
@@ -66,5 +68,6 @@ export function PlannerDayPlans({ library, plans, covers, today, editingId }: { 
               </article>;
             })}
           </li>)}</ol>}
+    {library.ready && moreDays > 0 && <p className="plan-days__more"><Button variant="text" to="/my-week#plans">{t(`还有 ${moreDays} 天 · 在我的这周查看`, `${moreDays} more ${moreDays === 1 ? 'day' : 'days'} · See them in My Week`)}</Button></p>}
   </section>;
 }
