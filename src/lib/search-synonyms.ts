@@ -7,13 +7,26 @@ import { simplifySearch } from '../i18n/locale';
  * Traditional Chinese to Simplified first (simplifySearch), so 藍天使 / 艦隊週 / 養老金 / 長者 need no entries of
  * their own. Every member of a group is rewritten to the group's key, one token that spells out all members, so a
  * query and a document meet on the same key while a partial word ("angels", "天使") still finds its literal
- * spelling inside the key. Matching is symmetric: the same function runs on the query and on the text.
+ * spelling inside the key. Matching is symmetric: the same function runs on the query and on the text (a typed query
+ * through normalizeSearchQuery, which only splits the keys into words of their own).
  */
 export const SEARCH_SYNONYM_GROUPS: readonly (readonly string[])[] = [
   // Events people name by their nickname.
   ['舰队周', '海军周', '蓝天使', '蓝天使飞行表演', 'fleet week', 'blue angels'],
   // Seniors and the benefits they ask about.
-  ['长者', '长辈', '老人', '老年人', '年长者', '耆英', 'seniors', 'senior', 'elderly', 'older adults'],
+  // 爸妈 / 父母 on this site are the reader's own ageing parents (帮父母看医保, 爸妈来住): G89, GUIDE-K.
+  ['长者', '长辈', '老人', '老年人', '年长者', '耆英', '爸妈', '父母', '老爸老妈', '爸爸妈妈', 'seniors', 'senior', 'elderly', 'older adults'],
+  // The reduced-fare card: 老人卡 is the Senior Clipper, not every senior page (G24).
+  ['老人卡', '长者卡', '老人交通卡', '长者交通卡', 'senior clipper card', 'senior clipper'],
+  // Meals brought to the door (Home Delivered Meals, Meals on Wheels): GUIDE-K 老人送餐.
+  ['送餐', '上门送餐', '送餐服务', 'meals on wheels', 'home-delivered meals', 'home delivered meals'],
+  // 老人看牙 asks where an older reader can see a dentist: the dental guide (Medicare / Medi-Cal dental) answers it, though
+  // it does not use the word 老人; as two separate words the search would ask for both (READ-03).
+  ['看牙', '看牙医', '牙医', '牙科', '洗牙', '老人看牙', '老人 看牙', '长者看牙', '长者 看牙', '老人牙科', '长者牙科', 'senior dental', 'dental care', 'dentists', 'dentist', 'dental'],
+  // Riding the bus: 坐公交 / 巴士 meet the pages that say 公交 (the SFMTA 65+ free Muni page says "Muni 公交").
+  ['公交', '坐公交', '乘公交', '搭公交', '公交车', '公车', '巴士', '坐巴士', 'public transit', 'buses', 'bus'],
+  // The neighbourhood, not a school district: the guides write "Mission 社区" or name Mission Dolores in it (CW-05).
+  ['mission district', 'mission dolores', 'mission 社区', 'mission社区', 'mission 区', 'mission区', '米慎区', '教会区'],
   ['养老金', '退休金', '社安金', '社安福利', '社会保障退休金', 'social security retirement', 'social security benefits', 'social security', 'pension', 'ssa'],
   // A Social Security number is paperwork, not a pension: listed apart so the longer names win.
   ['社安号', '社会安全号', '社会安全号码', '社会安全卡', '社安卡', 'social security number', 'social security card', 'ssn'],
@@ -21,10 +34,13 @@ export const SEARCH_SYNONYM_GROUPS: readonly (readonly string[])[] = [
   ['medicare', '联邦医保', '红蓝卡', '红白蓝卡'],
   ['medi-cal', '白卡', 'medi cal'],
   // Everyday errands (kept from the guide search).
-  ['学区', 'school districts', 'school district', 'districts', 'district'], ['学校', 'schools', 'school'],
+  // Only a school district is a 学区: "Mission District" and "East Bay Regional Park District" are not (CW-05).
+  ['学区', 'school districts', 'school district'], ['学校', 'schools', 'school'],
   ['校区', '校园', 'campuses', 'campus'], ['入学', 'enrollment', 'enrolment'],
   ['租房', '租屋', '租赁'], ['二手', '闲置'],
-  ['驾照', '考驾照', '驾驶证', 'driver license', "driver's license"], ['宽带', '网络', '网路'],
+  ['驾照', '考驾照', '驾驶证', 'driver license', "driver's license"],
+  // Not 网络: 哪个网络 on a doctor page is an insurance network (CW-05).
+  ['宽带', 'broadband', 'internet'],
   ['打印', '列印'], ['维修', '修理'], ['净滩', '海岸清理', 'coastal cleanup'],
   ['就医', '看病', '看医生', 'medical care'],
   ['报税', 'tax filing', 'tax return'], ['押金', 'security deposit'],
@@ -54,6 +70,9 @@ export const SEARCH_SYNONYM_GROUPS: readonly (readonly string[])[] = [
 const SEARCH_PHRASES: readonly (readonly [string, string])[] = [
   ['会说中文的医生', '中文 医生'], ['说中文的医生', '中文 医生'], ['讲中文的医生', '中文 医生'],
   ['中文医生', '中文 医生'], ['华语医生', '中文 医生'], ['华人医生', '中文 医生'], ['中文家庭医生', '中文 家庭医生'],
+  // SF Muni is free at 65+ (SFMTA Free Muni for Seniors); readers ask for it in their own words (G24).
+  ...['老人免费坐公交', '老人坐公交免费', '老人免费乘公交', '老人免费公交', '老人公交免费', '长者免费坐公交', '长者免费公交', '老人免费坐巴士', '长者免费坐巴士']
+    .map(phrase => [phrase, '长者 免费 muni'] as const),
 ];
 
 // U+2063 INVISIBLE SEPARATOR: not whitespace to /\s/ or to the discovery tokenizer, so a key stays one token.
@@ -69,7 +88,8 @@ function buildMatcher() {
     const key = SEPARATOR + group.map(member => member.replaceAll(' ', SEPARATOR)).join(SEPARATOR) + SEPARATOR;
     for (const member of group) replacements.set(member, key);
   }
-  for (const [phrase, words] of SEARCH_PHRASES) replacements.set(phrase, ` ${words} `);
+  // A phrase's words take their group keys (长者 → the senior key), so the phrase finds what each word would.
+  for (const [phrase, words] of SEARCH_PHRASES) replacements.set(phrase, ` ${words.split(' ').map(word => replacements.get(word) ?? word).join(' ')} `);
   const alternatives = [...replacements.keys()].sort((a, b) => b.length - a.length).map(value => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
   return { pattern: new RegExp(alternatives.join('|'), 'g'), replacements };
 }
@@ -80,7 +100,7 @@ function buildMatcher() {
  * both ends; the neighbouring characters are checked in code, as a regex look-behind would stop Safari < 16.4. Nothing
  * inside a web address (http://, https:// or www.) is rewritten.
  */
-export function normalizeSearchText(text: string): string {
+export function normalizeSearchText(text: string, { separate = false }: { separate?: boolean } = {}): string {
   const value = simplifySearch(text).normalize('NFKC').toLowerCase();
   const { pattern, replacements } = matcher ||= buildMatcher();
   const addresses = value.includes('http') || value.includes('www.') ? [...value.matchAll(webAddress)].map(found => [found.index!, found.index! + found[0].length]) : [];
@@ -89,9 +109,16 @@ export function normalizeSearchText(text: string): string {
     const before = value[offset - 1] || '', after = value[offset + match.length] || '';
     if (latin.test(match[0]) && latin.test(before)) return match;
     if (match.length <= 4 && latin.test(match[match.length - 1]) && latin.test(after)) return match;
-    return replacements.get(match)!;
+    const replacement = replacements.get(match)!;
+    return separate ? ` ${replacement} ` : replacement;
   }).trim();
 }
+
+/**
+ * A typed query: the same rewrite, with every synonym a word of its own. 老人送餐 → senior + 送餐 and 老人看牙 → senior +
+ * dental each match anywhere in a text (all words must), not only side by side as the keys stand in the text.
+ */
+export const normalizeSearchQuery = (query: string): string => normalizeSearchText(query, { separate: true }).replace(/\s+/g, ' ');
 
 /** The other spellings a reader may have meant, for "also searched" hints and tests; [] when the term is in no group. */
 export function searchSynonymsOf(term: string): string[] {
