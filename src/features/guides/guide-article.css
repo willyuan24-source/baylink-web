@@ -36,9 +36,12 @@
 .gd-summary p { margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.75; }
 .gd-summary .gd-summary__audience { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 
-/* The 3:4 slides (1007 §5.5). Sizes follow the slide width (cqw), never below 13px, and grow with Aa (--fluid-scale). */
+/* The 3:4 slides (1007 §5.5). Sizes follow the slide width (cqw), never below 13px, and grow with Aa (--fluid-scale).
+   3:4 is the floor, not a cap: at 大/特大, in 简洁显示 and in English the text can need more room, so a slide grows past
+   3:4 instead of clipping its source line (min-height = 4/3 of the slide width; 100cqw is the slide's own width). The
+   track stretches every slide to the tallest one, so the cards stay one height while you swipe. */
 .gd-carousel .ui-carousel__slide { container-type:inline-size; }
-.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:min(3cqw, 14px); aspect-ratio:3 / 4; height:100%; padding:6cqw; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
+.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:min(3cqw, 14px); min-height:calc(100cqw * 4 / 3); height:100%; padding:6cqw; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
 /* Three card looks on an article (SYS ≤3): white with a line (points, contacts), surface-2 (compare, checklist, safety, 30 秒看懂,
    tips, templates) and brand-deep (the cover). */
 .gd-slide:is([data-kind=compare],[data-kind=checklist],[data-kind=safety]) { border-color:transparent; background:var(--color-surface-2); }

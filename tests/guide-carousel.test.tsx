@@ -89,3 +89,12 @@ test('guides without pilot data keep a photo cover or no picture, never a carous
   const scam = article(slug);
   assert.equal(scam.container.querySelector('.gd-lead img'), null);
 });
+
+test('a slide is 3:4 at least but never a fixed 3:4 box: at 特大, in 简洁显示 and in English it grows instead of clipping', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('../src/features/guides/guide-article.css', import.meta.url), 'utf8');
+  const rule = /^\.gd-slide \{([^}]*)\}/m.exec(css)?.[1] ?? '';
+  assert.match(rule, /min-height:calc\(100cqw \* 4 \/ 3\)/, 'the 3:4 floor follows the slide width');
+  assert.match(rule, /height:100%/, 'the track stretches every slide to the tallest one');
+  assert.doesNotMatch(css, /\.gd-slide[^{]*\{[^}]*(?:aspect-ratio|max-height|overflow:hidden)/, 'no fixed ratio or clipping on a slide');
+});
