@@ -1,4 +1,4 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
 import { verifyPhoneLinks } from './verify-phone-links.mjs';
@@ -112,6 +112,28 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
     if (locale && shell.some(markup => [...markup.matchAll(/href="(\/[^"]*)"/g)].some(match => !match[1].startsWith(`/${locale.slice(0, -1)}`)))) throw new Error(`First-paint navigation loses its language: ${path}`);
   }
 }
+// WEB-SEO-I18N (I18N-SEO-02/-04): every built page, in each language. /en carries no Chinese and /zh-Hant no Simplified-only
+// character outside markup that says so (translate="no", lang="zh…", the language switch), in the text and in the head;
+// every JSON-LD block passes the schema check (scripts/structured-data-check.ts).
+const { checkStructuredData, structuredDataOf } = await tsImport('./structured-data-check.ts', import.meta.url);
+const { englishProblems, traditionalProblems, simplifiedOnlyCharacters } = await import('./i18n-html-check.mjs');
+const { createRequire } = await import('node:module');
+const { sep } = await import('node:path');
+const openccDictionary = createRequire(import.meta.url);
+const simplifiedOnly = simplifiedOnlyCharacters(openccDictionary('opencc-js/dict/STCharacters').default, openccDictionary('opencc-js/dict/TSCharacters').default);
+const builtPages = (await readdir('dist', { recursive: true })).filter(file => file.endsWith('.html')).map(file => file.split(sep).join('/'));
+const languageProblems = [], schemaProblems = [];
+for (const file of builtPages) {
+  const html = await readFile(`dist/${file}`, 'utf8');
+  const language = /^en\//.test(file) ? 'en' : /^zh-Hant\//.test(file) ? 'zh-Hant' : 'zh-Hans';
+  if (language === 'en') for (const problem of englishProblems(html)) languageProblems.push(`${file}: Chinese on /en: ${problem}`);
+  if (language === 'zh-Hant') for (const problem of traditionalProblems(html, simplifiedOnly)) languageProblems.push(`${file}: Simplified on /zh-Hant: ${problem}`);
+  const { blocks, problems } = structuredDataOf(html);
+  schemaProblems.push(...problems.map(problem => `${file}: ${problem}`), ...checkStructuredData(blocks, { english: language === 'en', where: file }));
+}
+if (languageProblems.length) throw new Error(`Wrong-language text in built pages (${languageProblems.length}):\n${languageProblems.slice(0, 30).join('\n')}`);
+if (schemaProblems.length) throw new Error(`Structured data problems (${schemaProblems.length}):\n${schemaProblems.slice(0, 30).join('\n')}`);
+console.log(`Languages and structured data verified on ${builtPages.length} built pages.`);
 // Legacy and shared URLs (QR codes, the 3D game, old shares) resolve on the host as the route table says, onto built pages.
 const legacyProblems=checkLegacyUrls(JSON.parse(await readFile('vercel.json','utf8')).routes);
 if(legacyProblems.length) throw new Error(`Legacy URLs: ${legacyProblems.join('; ')}`);

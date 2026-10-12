@@ -8,6 +8,7 @@ import { translateText, useLocale } from '../i18n/locale';
 import { getBayAreaToday, getEventStatus } from '../lib/monthly';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { setPageMetadata } from '../lib/seo';
+import { HUB_CARDS } from '../lib/hub-cards';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
@@ -35,6 +36,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
       title: translateText('湾区 AI 现场｜BAYLINK', locale),
       description: translateText('湾区 AI 活动专题：AI Week SF 与 SF Tech Week 的真实场次、报名要求、费用与第一次参加的实用准备。', locale),
       path: '/ai-in-the-bay',
+      image: HUB_CARDS.events,
     });
   }, [locale]);
 

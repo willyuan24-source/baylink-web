@@ -13,10 +13,12 @@ import { TOOLS_METADATA } from '../data/tool-catalog';
 import { EXPLORE_METADATA } from '../lib/explore-metadata';
 import { ABOUT_METADATA } from '../lib/about-metadata';
 import { GUIDES_METADATA } from '../lib/guides-metadata';
+import { categoryHubMetadata, LEGAL_METADATA } from '../lib/hub-metadata';
+import { HUB_CARDS } from '../lib/hub-cards';
 import type {
   AdDetailItem, Conversation, PostData, PostType, PublicUserProfile, ReportTarget,
 } from '../lib/types';
-import { getCategoryFromSlug, getSlugFromCategory, tabFromPathname, isKnownAppPath } from '../routing';
+import { getSlugFromCategory, tabFromPathname, isKnownAppPath } from '../routing';
 import type { AppContextValue } from './context';
 import { usePageScroll } from './usePageScroll';
 import { useContactIntent } from './useContactIntent';
@@ -222,10 +224,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (path === '/tools' || path === '/tools/') { setPageMetadata(TOOLS_METADATA); return; }
     if (path === '/explore' || path === '/explore/') { setPageMetadata(EXPLORE_METADATA); return; }
     if (path === '/about' || path === '/about/') { setPageMetadata(ABOUT_METADATA); return; }
-    if (path.startsWith('/category/')) {
-      const cat = getCategoryFromSlug(categorySlug);
-      document.title = `${cat}｜BAYLINK`;
-    } else if (path.startsWith('/guides')) {
+    // Hubs with reviewed English (lib/hub-metadata.ts), the same records the prerender writes (I18N-SEO-02)
+    if (path.startsWith('/category/')) { setPageMetadata(categoryHubMetadata(categorySlug || '')); return; }
+    if (LEGAL_METADATA[path.replace(/\/$/, '')]) { setPageMetadata(LEGAL_METADATA[path.replace(/\/$/, '')]); return; }
+    if (path.startsWith('/guides')) {
       // /guides/:slug 的具体标题由 GuideDetailPage 设置（guides 语料已懒加载，布局层不再 import）
       if (!guideSlugParam) document.title = '湾区生活指南｜BAYLINK';
     } else if (path.startsWith('/messages')) {
@@ -234,19 +236,14 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       document.title = '服务预约｜BAYLINK';
     } else if (path === '/me') {
       document.title = '我的｜BAYLINK';
-    } else if (path === '/privacy') {
-      document.title = '隐私政策｜BAYLINK';
-    } else if (path === '/terms') {
-      document.title = '服务条款｜BAYLINK';
-    } else if (path === '/sms-consent') {
-      document.title = 'SMS Verification Consent｜BAYLINK';
     } else {
       document.title = 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案';
     }
     setPageMetadata({
       title: document.title,
-      description: path.startsWith('/category/') ? `浏览湾区${getCategoryFromSlug(categorySlug)}信息，联系发布者确认详情与当前有效状态。` : '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。',
+      description: '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。',
       path,
+      image: path === '/' ? HUB_CARDS.home : undefined,
       structuredData: path === '/' ? SITE_STRUCTURED_DATA : undefined,
       noindex: path.startsWith('/messages') || path.startsWith('/users/') || path === '/me' || path.startsWith('/me/') || path.startsWith('/reset-password') || path === '/verify-email' || path === '/notifications/unsubscribe',
     });

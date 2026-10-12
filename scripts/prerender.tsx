@@ -8,7 +8,7 @@ import { dirname, join, resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React, { type ReactNode } from 'react';
-import { guides, getGuidesForCategorySlug } from '../src/data/guides';
+import { guides } from '../src/data/guides';
 import { TermsView } from '../src/components/TermsView';
 import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
 import { SmsConsentView } from '../src/components/SmsConsentView';
@@ -19,9 +19,12 @@ import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
 import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { renderHtmlDocument, SITE_STRUCTURED_DATA, type PageMetadata } from '../src/lib/seo';
+import { HUB_CARDS } from '../src/lib/hub-cards';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
-import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
+import { TOOLS_METADATA } from '../src/data/tool-catalog';
+import { categoryHubMetadata, PRIVACY_METADATA, SMS_METADATA, TERMS_METADATA } from '../src/lib/hub-metadata';
+import { CategoryHubPrerender, ToolsHubPrerender } from '../src/components/HubPrerender';
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
@@ -115,7 +118,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
 };
 
 const homeDescription = '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。';
-await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', structuredData: SITE_STRUCTURED_DATA }, (
+await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', image: HUB_CARDS.home, imageAlt: '这个周末，湾区去哪？BAYLINK 本周末精选', english: { imageAlt: 'Where to go in the Bay Area this weekend: BAYLINK picks' }, structuredData: SITE_STRUCTURED_DATA }, (
   <section className="px-5 py-8">
     <HomeDiscovery onAskBayBay={noop} onBrowseCommunity={noop} />
   </section>
@@ -147,10 +150,11 @@ await setLocale('zh-Hans', false);
 // W9-E-switch: /play is the game now — its page is the game's shell with canonical /opus-bay (App.tsx's PlayRedirect sends
 // the visitor on, keeping ?lang; an old weekend ticket goes to /plan); out of the sitemap
 await writeFile(join(outputDir, 'play.html'), opusBayDocument(opusBayMetadata(buildDate)));
-await renderPage({title:'湾区 AI 现场｜BAYLINK',description:'AI Week SF 与 SF Tech Week 的真实场次、报名要求、费用与第一次参加的实用准备。',path:'/ai-in-the-bay'}, <AiLocalPage />);
+await renderPage({title:'湾区 AI 现场｜BAYLINK',description:'AI Week SF 与 SF Tech Week 的真实场次、报名要求、费用与第一次参加的实用准备。',path:'/ai-in-the-bay',image:HUB_CARDS.events}, <AiLocalPage />);
 await renderPage(ABOUT_METADATA, <AboutContent />);
 await renderPage(ARCHIVE_METADATA, <ArchivePage />);
-await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="text-3xl font-bold">湾区生活工具箱</h1><p className="mt-3 leading-relaxed">AI 沟通、日常换算、费用计算和生活清单，让湾区日常更方便。</p><ul className="mt-6 space-y-5">{LIFE_TOOLS.map(tool => <li key={tool.id}><a href={`/tools?tool=${tool.id}`} className="text-lg font-semibold text-baylink-green">{tool.title}</a><p className="mt-2 leading-relaxed">{tool.description}</p></li>)}</ul><p className="mt-6 text-sm">互动工具在页面加载后即可使用。计算在浏览器本机完成；AI 沟通只在点击生成后提交内容。</p></section>);
+// Hub bodies render through src/components/HubPrerender.tsx: the site's JSX runtime localizes them (I18N-SEO-02).
+await renderPage(TOOLS_METADATA, <ToolsHubPrerender />);
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
@@ -158,17 +162,13 @@ for (const guide of guides) {
 for (const record of new Set(allDetailRecords().values())) {
   await renderPage(record.metadata, <LocalDiscoveryDetail record={record} />);
 }
-for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
-  await renderPage({ title: `${category}｜湾区本地信息 · BAYLINK`, description: `浏览湾区${category}信息，按地区查找本地资源和邻里需求。请联系发布者确认信息仍有效。`, path: `/category/${slug}` }, (
-    <section className="px-5 py-8"><h1 className="text-2xl font-bold">湾区{category}信息</h1><p className="mt-3">浏览本地资源和邻里需求，联系前请确认地点、价格和时间。</p><h2 className="mt-6 font-bold">行动前，先读一份实用指南</h2><ul className="mt-3 space-y-3">{getGuidesForCategorySlug(slug).map((guide) => <li key={guide.slug}><a href={`/guides/${guide.slug}`} className="text-baylink-green underline">{guide.title}</a><p className="mt-1 text-sm">{guide.summary}</p></li>)}</ul><a className="mt-5 inline-block text-baylink-green underline" href="/guides">全部生活指南</a><p className="mt-3 text-sm text-baylink-muted">最新帖子和地区筛选会在页面加载后显示。</p></section>
-  ));
-}
-await renderPage({ title: '服务条款｜BAYLINK', description: '了解 BAYLINK 的账号、信息发布、用户交易、AI 功能和短信验证使用条款。', path: '/terms' }, <TermsView />);
-await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK 账号资料、公开内容、验证手机号、联系方式分享与隐私申请说明。', path: '/privacy' }, <PrivacyPolicyView />);
-await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
-await renderPage({ title: '验证邮箱｜BAYLINK', description: '确认由本人发起的邮箱验证请求。', path: '/verify-email', noindex: true }, <NotificationTokenPage purpose="verify" />);
-await renderPage({ title: '取消站外通知｜BAYLINK', description: '主动取消 BAYLINK 邮件或短信提醒。', path: '/notifications/unsubscribe', noindex: true }, <NotificationTokenPage purpose="unsubscribe" />);
-await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
+for (const slug of Object.keys(SLUG_TO_CATEGORY)) await renderPage(categoryHubMetadata(slug), <CategoryHubPrerender slug={slug} />);
+await renderPage(TERMS_METADATA, <TermsView />);
+await renderPage(PRIVACY_METADATA, <PrivacyPolicyView />);
+await renderPage(SMS_METADATA, <SmsConsentView />);
+await renderPage({ title: '验证邮箱｜BAYLINK', description: '确认由本人发起的邮箱验证请求。', english: { title: 'Verify your email | BAYLINK', description: 'Confirm an email verification you asked for.' }, path: '/verify-email', noindex: true }, <NotificationTokenPage purpose="verify" />);
+await renderPage({ title: '取消站外通知｜BAYLINK', description: '主动取消 BAYLINK 邮件或短信提醒。', english: { title: 'Turn off email or text notices | BAYLINK', description: 'Turn off BAYLINK email or text reminders.' }, path: '/notifications/unsubscribe', noindex: true }, <NotificationTokenPage purpose="unsubscribe" />);
+await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', english: { title: 'Page not found | BAYLINK', description: 'We could not find this page. Check the link, or go back to the BAYLINK home page.' }, path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 
 const { paths: sitemapPaths, xml: sitemap } = generateSitemap();
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);

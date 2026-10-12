@@ -1,6 +1,7 @@
 import { EVENTS_INDEX } from '../features/events/events-model';
 import { getBayAreaToday, nextOccurrence } from './monthly';
 import { SITE_URL, localCopy, type PageMetadata } from './seo';
+import { HUB_CARDS } from './hub-cards';
 
 // Read from the slim events index (RC-33), not the full catalog: the events column's pages load this module.
 const { edition, events } = EVENTS_INDEX;
@@ -22,8 +23,6 @@ const collection = (path: string, today?: string) => [{
   mainEntity: { '@type': 'ItemList', itemListElement: upcomingEventList(today) },
 }];
 
-/** The hubs' 1200 × 630 share card, one per language (scripts/generate-share-cards.ts). */
-export const EVENTS_HUB_CARD = '/share-cards/hub-events.png';
 
 // I18N-SEO-15: the edition label ("2026 年秋季 · 收录至 11/30") is set apart from the title, not glued to it (the
 // separator CNT-HOTFIX gave it on main; its English is the dictionary's).
@@ -36,7 +35,7 @@ export const monthlyMetadata = (today?: string): PageMetadata => ({
     imageAlt: 'BAYLINK: this weekend in the Bay Area',
   },
   path: '/this-month',
-  image: EVENTS_HUB_CARD,
+  image: HUB_CARDS.events,
   imageAlt: 'BAYLINK：这个周末湾区去哪',
   structuredData: collection('/this-month', today),
 });

@@ -115,7 +115,10 @@ console.log(`Home catalog: ${homeGuides.length} guide summaries, ${events.length
 await writeFile('src/data/generated/event-context-photos.json', JSON.stringify(Object.fromEntries(Object.entries(EVENT_CONTEXT_PHOTOS).sort(([a], [b]) => a.localeCompare(b)))));
 
 const dictionarySources = JSON.parse(await readFile('scripts/english-sources.json', 'utf8')) as string[];
-const english = Object.assign({}, ...await Promise.all(dictionarySources.map(async file => JSON.parse(await readFile(file, 'utf8')))));
+// Keys are looked up whitespace-normalized (locale.ts normalizeText): a multi-line source key (a guide's copyable template)
+// is stored the same way, or it never matches and /en shows the Chinese lines (I18N-SEO-02). Values keep their newlines.
+const english = Object.fromEntries(Object.entries(Object.assign({}, ...await Promise.all(dictionarySources.map(async file => JSON.parse(await readFile(file, 'utf8'))))) as Record<string, string>)
+  .map(([key, value]) => [key.trim().replace(/\s+/g, ' '), value]));
 await writeFile('src/data/generated/english.json', JSON.stringify(english));
 const { generateEnglishScopes } = await import('./generate-english-scopes');
 await generateEnglishScopes(english, dictionarySources);
