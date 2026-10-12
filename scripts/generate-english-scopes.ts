@@ -128,7 +128,8 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
     'guide-index': guideIndex,
-    'guide-list': guideData.index,
+    // the cards, and what the saved shelf (/guides?view=saved, ReaderLibrary) adds to them: each guide's category label
+    'guide-list': [guideData.index, guides.map(guide => guide.categoryLabel)],
     'events-list': eventsList,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
