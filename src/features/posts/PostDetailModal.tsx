@@ -105,8 +105,10 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   const active = useRef(true);
   const locallyModified = useRef(false);
   const composing = useRef(false);
-  // The sheet opens on its title (read first by a screen reader; no focus ring on the back button at load).
+  // The sheet opens on its title: read first by a screen reader, and no focus ring on 返回 at load. The dialog focuses
+  // its first control in its own effect (a child's effects run first); this one then moves focus to the title.
   const titleRef = useRef<HTMLHeadingElement>(null);
+  useEffect(() => { titleRef.current?.focus({ preventScroll: true }); }, []);
 
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
 
@@ -239,7 +241,7 @@ const PostDetailSession = ({ post, onClose, currentUser, onLoginNeeded, onContac
   const meta = [post.city ? pick(regionName(post.city)) : '', `${postDate(post.createdAt, english)} ${t('发布', 'posted')}`, isPostEdited(post) ? t('已编辑', 'edited') : ''].filter(Boolean).join(' · ');
 
   return (
-    <ModalShell onClose={onClose} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className="cm-sheet" initialFocusRef={titleRef}>
+    <ModalShell onClose={onClose} closeOnBackdrop={false} label={displayed.title || t('帖子详情', 'Post')} className="cm-sheet">
       <header className="cm-sheet__toolbar">
         <button type="button" onClick={onClose} className="cm-sheet__back"><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{t('返回', 'Back')}</button>
         <div className="cm-sheet__toolbar-actions">

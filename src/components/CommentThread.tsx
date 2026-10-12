@@ -1,4 +1,5 @@
 import { CommentItem, type PostComment } from './CommentItem';
+import { useUiCopy } from './ui/ui-copy';
 
 type CommentThreadProps = {
   comments: PostComment[];
@@ -19,6 +20,7 @@ export const CommentThread = ({
   onLoginNeeded,
   disabled = false,
 }: CommentThreadProps) => {
+  const { t } = useUiCopy();
   const uniqueComments = [...new Map(comments.map(comment => [comment.id, comment])).values()];
   const commentIds = new Set(uniqueComments.map(comment => comment.id));
   const topLevel = uniqueComments.filter((c) => !c.parentId || !commentIds.has(c.parentId));
@@ -31,10 +33,8 @@ export const CommentThread = ({
 
   if (topLevel.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-baylink-border/70 bg-white/60 py-6 text-center">
-        <p className="text-[0.8125rem] font-normal text-baylink-text-secondary">还没有评论</p>
-        <p className="mt-1 type-footnote text-baylink-muted">有疑问或补充？欢迎留言和帖主交流。</p>
-      </div>
+      // The post sheet's quiet empty line (WEB-COMMUNITY: no dashed boxes).
+      <p className="cm-comments-empty">{t('还没有评论。有疑问或补充，可以在下面留言和发布者交流。', 'No comments yet. Ask a question or add a detail below.')}</p>
     );
   }
 
