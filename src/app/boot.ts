@@ -4,17 +4,22 @@ import { pathLanguage, type SiteLanguage } from '../lib/language-path';
  * REG+2: a boot step failed (the page's code or its language did not load). The page must never look ready while doing
  * nothing, so a 16 px bar says so and offers a reload, in the URL's language (the dictionary may be what failed).
  */
+const retryBarCopy = {
+  message: { 'zh-Hans': '部分功能没加载完', 'zh-Hant': '部分功能沒載入完', en: 'Some features did not load' },
+  retry: { 'zh-Hans': '重试', 'zh-Hant': '重試', en: 'Retry' },
+};
+
 export function showBootRetryBar(pathname = window.location.pathname): void {
   if (document.querySelector('.site-boot-retry')) return;
-  const words = { 'zh-Hans': ['部分功能没加载完', '重试'], 'zh-Hant': ['部分功能沒載入完', '重試'], en: ['Some features did not load', 'Retry'] }[pathLanguage(pathname)];
+  const language = pathLanguage(pathname);
   const bar = document.createElement('div');
   bar.className = 'site-boot-retry';
   bar.setAttribute('role', 'alert');
   const text = document.createElement('span');
-  text.textContent = words[0];
+  text.textContent = retryBarCopy.message[language];
   const retry = document.createElement('button');
   retry.type = 'button';
-  retry.textContent = words[1];
+  retry.textContent = retryBarCopy.retry[language];
   retry.addEventListener('click', () => window.location.reload());
   bar.append(text, retry);
   document.body.append(bar);
