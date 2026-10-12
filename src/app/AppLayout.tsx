@@ -27,7 +27,7 @@ import { getLocale } from '../i18n/locale';
 import { useSession } from './useSession';
 import { useCommunityFeed } from './useCommunityFeed';
 import { OverlayHost } from './OverlayHost';
-import { bootMainFallback } from './boot-main';
+import { BootMainSettled, bootMainFallback } from './boot-main';
 import { confirmDialog } from '../components/ui/confirm';
 import type { ToastAction } from '../components/Toast';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
@@ -663,6 +663,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     >
       {/* The first route keeps the prerendered page on screen while its chunk settles (boot-main.ts): no blank frame. */}
       <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
+        <BootMainSettled />
         <Outlet context={ctx} />
       </Suspense>
     </SiteChrome>

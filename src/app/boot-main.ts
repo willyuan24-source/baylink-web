@@ -1,4 +1,4 @@
-import { createElement, type ReactElement } from 'react';
+import { createElement, useEffect, type ReactElement } from 'react';
 import { routePathname } from './route-table';
 
 // No blank frame at boot (quality lens §2.4, perf-cold `blankMainAt`): the app replaces the prerendered page in one commit,
@@ -18,9 +18,29 @@ export function captureBootMain(): void {
   boot = main && main.dataset.prerenderPath === path && main.innerHTML.trim() ? { path, html: main.innerHTML } : null;
 }
 
+/** A page prerendered for this URL was captured (boot.ts keeps it on screen when only the dictionary failed). */
+export function hasBootMain(): boolean {
+  return boot !== null;
+}
+
 /** The prerendered content while the boot route is still suspended; null afterwards or on any other route. */
 export function bootMainFallback(pathname: string): ReactElement | null {
   if (!boot) return null;
   if (routePathname(pathname) !== boot.path) { boot = null; return null; }
   return createElement('div', { className: 'site-boot-main', dangerouslySetInnerHTML: { __html: boot.html } });
+}
+
+/** The first route has rendered: from now on a suspension shows the spinner, never the (possibly stale) boot snapshot. */
+export function clearBootMain(): void {
+  boot = null;
+}
+
+/**
+ * Rendered next to the route inside the layout's Suspense. Its effect runs only once the boundary's content commits (a
+ * suspended mount commits nothing), i.e. when the first route is on screen. After that, a lazy section suspending on the
+ * same path, or a language switch (the router path stays unprefixed), shows the spinner instead of the old snapshot.
+ */
+export function BootMainSettled(): null {
+  useEffect(clearBootMain, []);
+  return null;
 }
