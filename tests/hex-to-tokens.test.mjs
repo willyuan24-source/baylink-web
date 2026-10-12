@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { TEXT_DARK, TEXT_LIGHT, readPalette, remainingHex, rewriteCss } from '../scripts/codemods/hex-to-tokens.mjs';
+import { TEXT_DARK, TEXT_LIGHT, isHeadingAccent, readPalette, remainingHex, rewriteCss } from '../scripts/codemods/hex-to-tokens.mjs';
 
 // The hex → token codemod (TOKENS-B): role-aware snapping onto the palette in src/tokens.css.
 const palette = readPalette();
@@ -27,6 +27,17 @@ test('text snaps to an AA-safe text token: grey-green labels become ink-3, light
   assert.equal(run('.hero p{color:#b6cbb9}').css, '.hero p{color:var(--color-on-brand-muted)}');
   assert.equal(run('.dark{background:#123c31;color:#9bb49c}').css, '.dark{background:var(--color-brand-deep);color:var(--color-on-brand-muted)}', 'a dark background in the same rule keeps the text light');
   assert.equal(run('input::placeholder{color:#a0aa99}').css, 'input::placeholder{color:var(--color-ink-3)}', 'placeholders sit on light inputs');
+});
+
+test('emphasis inside a heading is an accent: a coloured one stays coloured (brand family), a grey one stays grey', () => {
+  // The olive accents of the /about and /plan heroes (#69825a 4.2:1, #6e8862) would otherwise turn ink-3 like a label.
+  assert.equal(run('.about-hero h1 em{font-style:normal;color:#69825a}').css, '.about-hero h1 em{font-style:normal;color:var(--color-brand)}');
+  assert.equal(run('.planner-hero h1 em{color:#6e8862}').css, '.planner-hero h1 em{color:var(--color-brand)}');
+  assert.equal(run('.x-title strong{color:#a0562e}').css, '.x-title strong{color:var(--color-warm)}');
+  assert.equal(run('.t h2 em{color:#8b937f}').css, '.t h2 em{color:var(--color-ink-3)}', 'a grey accent stays a grey');
+  assert.equal(run('.lead em{color:#69825a}').css, '.lead em{color:var(--color-ink-3)}', 'emphasis outside a heading is running text');
+  for (const selector of ['.about-hero h1 em', 'h3 mark:hover', '.gd-title__head em', '.a,.b h2>strong']) assert.ok(isHeadingAccent(selector), selector);
+  for (const selector of ['.about-hero h1', '.a em', '.card h2 + p em', '.card h2 ~ p strong']) assert.ok(!isHeadingAccent(selector), selector);
 });
 
 test('url() contents, known var() fallbacks and skipped selectors', () => {

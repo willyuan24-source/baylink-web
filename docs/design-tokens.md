@@ -34,8 +34,9 @@ Rules:
 ### The codemod
 
 `node scripts/codemods/hex-to-tokens.mjs [file.css …]` rewrites hex colours to the nearest token by role: text snaps to
-an AA-safe text token (light text on dark backgrounds stays light), keyboard-focus outlines become the brand ring, and
-everything else snaps to the nearest palette colour with alpha kept (`rgb(var(--color-x-rgb) / .13)`). It skips `url()`
+an AA-safe text token (light text on dark backgrounds stays light; a coloured accent inside a heading, such as
+`.about-hero h1 em`, keeps its colour family and becomes `brand`, while grey-green labels become `ink-3`), keyboard-focus
+outlines become the brand ring, and everything else snaps to the nearest palette colour with alpha kept (`rgb(var(--color-x-rgb) / .13)`). It skips `url()`
 contents, TS/TSX and the 3D worlds, and it is idempotent: after a rebase, run it again instead of resolving colour
 conflicts by hand, then `npm run ratchet:update`. `--check` lists what is left; `--dry` prints the mapping table.
 
@@ -78,6 +79,6 @@ on the header's 112–1328 in a 1440 window. `data-size="content"` and `data-siz
 - 颜色：只用 `src/tokens.css` 里的 token（`var(--color-ink-3)`；半透明写 `rgb(var(--color-brand-rgb) / .12)`；Tailwind 用
   `text-baylink-*`，`/60` 这类透明度照常生效）。其它文件不要再写 #hex，风格棘轮只降不升。
 - 对比度：所有文字 token 在所有浅色底上都 ≥4.5:1，测试会检查 CSS 规则和 Tailwind 类名里的文字/底色组合。
-- 旧文件的 hex：运行 `node scripts/codemods/hex-to-tokens.mjs <文件>`，再 `npm run ratchet:update`。
+- 旧文件的 hex：运行 `node scripts/codemods/hex-to-tokens.mjs <文件>`，再 `npm run ratchet:update`。标题里的强调字（如 `.about-hero h1 em` 的橄榄绿）会换成品牌绿，不会变灰；灰绿色的说明文字换成 ink-3。
 - 标题：H1 用 `.type-title`（手机 26/34，桌面 32/42，600，字距 0）；首页和活动栏目用 `.type-display`；H2 用 `.type-section`。
 - 页面宽度：`.site-container`（1216，左右边距 16/24/32），桌面上与页头 112–1328 对齐。

@@ -15,6 +15,9 @@
 //                   (ink, ink-2, ink-3, brand, brand-hover, brand-deep, the status colours); light text (OKLab L ≥ .72,
 //                   or any text in a rule that paints a dark background) → white, on-brand-muted, highlight or brand-tint,
 //                   which pass on brand-deep. A grey-green #8b937f label (3.2:1) therefore becomes ink-3 (6.25:1).
+//                   Emphasis inside a heading (`h1 em`, `.x-title strong`, `mark`) is an accent, not a label: a coloured
+//                   one keeps its hue and snaps to the nearest of the coloured text tokens, so the olive `.about-hero h1
+//                   em` (#69825a, 4.2:1) becomes brand (6.4:1) instead of turning grey.
 //   anything else   backgrounds, borders, shadows, gradients, fills: the nearest palette colour, hue weighted over
 //                   lightness so a tinted border keeps its family. Greens land on the brand family (success and its
 //                   tint are left to status chips); keyboard-focus outlines become the brand ring.
@@ -35,10 +38,15 @@ const excluded = path => /^src\/(?:opus-bay\/|features\/little-bay\/|data\/gener
 export const TEXT_DARK = ['ink', 'ink-2', 'ink-3', 'brand', 'brand-hover', 'brand-deep', 'warm', 'success', 'warning', 'danger', 'info', 'plum'];
 export const TEXT_LIGHT = ['surface', 'on-brand-muted', 'highlight', 'brand-tint'];
 const TEXT_NEUTRAL = ['ink', 'ink-2', 'ink-3'];
+/** Emphasis inside a heading: the last compound of the selector is em / strong / mark under an h1–h3 or a *-title. */
+const HEADING_ACCENT = /(?:^|[\s>+~(])(?:h[1-3]|[^\s>+~,()]*[.-]title(?:__head)?)(?![\w-])[^,+~]*[\s>]\s*(?:em|strong|mark)(?![\w-])[^\s>+~,]*$/i;
+export const isHeadingAccent = selector => selector.split(',').some(part => HEADING_ACCENT.test(part.trim()));
 /** Snapping targets. Success and its tint sit next to brand and brand-tint, so a legacy olive becomes the brand colour
  *  (one green family on a page, SV-07); success stays for status chips that ask for it by name. on-brand-muted is text
  *  on brand-deep, never a border. bg and selected share their values with surface and brand-tint. */
 const TEXT_SNAP = TEXT_DARK.filter(name => name !== 'success');
+/** Coloured text tokens: where a coloured accent snaps (never a grey). */
+const TEXT_ACCENT = TEXT_SNAP.filter(name => !TEXT_NEUTRAL.includes(name));
 const NOT_FOR_ANY = new Set(['bg', 'selected', 'success', 'success-tint', 'on-brand-muted']);
 
 export const hexToRgb = hex => {
@@ -92,7 +100,7 @@ export function nearestToken(rgb, role, palette, context = {}) {
     const light = context.forceDark ? false : context.forceLight ? true : lab[0] >= .72;
     // A grey stays a grey: low-chroma text never turns into a status colour, only into ink / ink-2 / ink-3.
     const grey = Math.hypot(lab[1], lab[2]) < .035;
-    candidates = (light ? TEXT_LIGHT : grey ? TEXT_NEUTRAL : TEXT_SNAP).filter(name => palette.has(name));
+    candidates = (light ? TEXT_LIGHT : grey ? TEXT_NEUTRAL : context.accent ? TEXT_ACCENT : TEXT_SNAP).filter(name => palette.has(name));
     lightness = .5;
   }
   let best = null;
@@ -147,7 +155,7 @@ export function rewriteCss(css, { palette, defined = new Set(), skipSelector } =
     value = value.replace(HEX, (hex, offset) => {
       if (spans.some(([start, end]) => offset >= start && offset < end)) return hex;
       const { rgb, alpha } = hexToRgb(hex);
-      const context = { forceDark: placeholder || (background !== null && background > .85), forceLight: background !== null && background < .5 };
+      const context = { forceDark: placeholder || (background !== null && background > .85), forceLight: background !== null && background < .5, accent: role === 'text' && rule?.type === 'rule' && isHeadingAccent(rule.selector) };
       const best = nearestToken(rgb, role, palette, context);
       changes.push({ hex: hex.toLowerCase(), token: best.name, alpha: Number(alpha.toFixed(2)), role, distance: Number(best.distance.toFixed(1)), selector: rule?.selector ?? declaration.prop });
       return tokenColor(best.name, alpha);
