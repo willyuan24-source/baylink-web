@@ -296,8 +296,10 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   useLayoutEffect(() => {
     const field = inputRef.current;
     if (!open || !field) return;
+    const view = field.ownerDocument.defaultView;
+    if (!view) return;
     const fit = () => {
-      const style = getComputedStyle(field);
+      const style = view.getComputedStyle(field);
       const line = parseFloat(style.lineHeight) || (parseFloat(style.fontSize) || 16) * 1.5;
       const border = (parseFloat(style.borderTopWidth) || 0) + (parseFloat(style.borderBottomWidth) || 0);
       const padding = (parseFloat(style.paddingTop) || 0) + (parseFloat(style.paddingBottom) || 0);
@@ -310,8 +312,8 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
       field.style.overflowY = content + border > cap ? 'auto' : 'hidden';
     };
     fit();
-    window.addEventListener('resize', fit);
-    return () => window.removeEventListener('resize', fit);
+    view.addEventListener('resize', fit);
+    return () => view.removeEventListener('resize', fit);
   }, [open, question, placeholder, locale]);
   const emergencyLast = lastComplete?.response?.safety?.kind === 'emergency';
   const fullNotice = bayBayFullNoticeTurns(turns);

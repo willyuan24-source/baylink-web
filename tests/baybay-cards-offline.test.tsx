@@ -30,7 +30,7 @@ const until = (ready: () => boolean, what: string) => waitFor(() => { if (!ready
 
 test('when the card chunk cannot load, the cards become plain links instead of an endless placeholder, and load once back online', async () => {
   const paths: string[] = [];
-  const view = render(<BayBaySaveScope active><BayBayCardRail cards={[card, { ...card }]} today="2026-10-09" onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
+  const view = render(<BayBaySaveScope><BayBayCardRail cards={[card, { ...card }]} today="2026-10-09" onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
   const $ = (selector: string) => view.baseElement.querySelector(selector);
   assert.ok($('.bb-cards--loading'), 'a placeholder holds the space while the chunk loads');
   // The first failure retries once after a second (like the app's lazy panels); then the fallback shows.
@@ -47,7 +47,7 @@ test('when the card chunk cannot load, the cards become plain links instead of a
   await until(() => !!$('.bb-cards [data-card-key="event:santa-clara-library-comic-con-2026"]'), 'the image card');
   assert.equal($('[data-fallback]'), null);
   assert.equal($('.bb-cards--loading'), null);
-  // The save scope picked up the same load, so 收藏 works again.
+  // The ♡ on the image card is the one save model (a guest's list is known at once).
   await until(() => !!$('.bb-card__actions button:not(:disabled)'), 'the save button');
-  assert.ok(view.getByRole('button', { name: /^收藏到我的这周：/ }));
+  assert.ok(view.getByRole('button', { name: /^收藏：Santa Clara/ }));
 });

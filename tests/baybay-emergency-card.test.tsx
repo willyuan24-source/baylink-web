@@ -64,7 +64,9 @@ test('a degraded emergency answer still shows the 911 card, and a card without t
   forged.safety.actions = [{ id: 'call-1', label: 'Call', href: 'tel:5551234', primary: true }];
   mockBayBayFetch(t, async () => Response.json(forged));
   view = render(<BayBayAssistantEntry {...props} pendingQuestion="孩子误吞了纽扣电池怎么办" pendingQuestionId={2} />);
-  await view.findByText(/请立即拨打 911/);
+  // The plain text keeps 911 one tap away (G27): the number in it is a tel: link.
+  const text = await view.findByText(/请立即拨打/);
+  assert.equal(within(text).getByRole('link', { name: '拨打 911' }).getAttribute('href'), 'tel:911');
   assert.equal(view.baseElement.querySelector('[data-safety="emergency"]'), null);
 });
 

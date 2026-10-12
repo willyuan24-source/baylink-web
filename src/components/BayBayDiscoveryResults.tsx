@@ -89,8 +89,8 @@ export function BayBaySources({ response, guest = false, currentPath, onNavigate
   const t = useCopy();
   const { line, notes } = retrievalSummary(response, guest, t);
   const assistant = response.responseMode === 'assistant' ? bayBayAssistantResult(response) : null;
-  const catalog = bayBayCatalogResult(response), supplements = bayBayCatalogWebReferences(response);
-  const web = bayBayWebResult(response);
+  const catalogResult = bayBayCatalogResult(response), catalog = catalogResult?.sources.length ? catalogResult : null;
+  const supplements = bayBayCatalogWebReferences(response), web = bayBayWebResult(response);
   const webDate = supplements.length ? plannerWebCheckedDate(response.retrieval?.checkedAt) : null;
   // Related guides: the guide being read (not for catalog answers) and the API's suggestions, minus guides already cited.
   const cited = new Set([...assistant?.sources || [], ...catalog?.sources || [], ...web?.sources || []].flatMap(source => sitePathOf(source.url) || []));

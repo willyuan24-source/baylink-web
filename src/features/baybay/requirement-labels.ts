@@ -13,7 +13,10 @@ const REGIONS: Record<string, Names> = {
   peninsula: { zh: '半岛', hant: '半島', en: 'Peninsula' },
   'north-bay': { zh: '北湾', hant: '北灣', en: 'North Bay' },
 };
-const WEEKDAYS: Names[] = ['日', '一', '二', '三', '四', '五', '六'].map((day, index) => ({ zh: `周${day}`, hant: `週${day}`, en: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index] }));
+const WEEKDAYS: Names[] = [
+  { zh: '周日', hant: '週日', en: 'Sun' }, { zh: '周一', hant: '週一', en: 'Mon' }, { zh: '周二', hant: '週二', en: 'Tue' }, { zh: '周三', hant: '週三', en: 'Wed' },
+  { zh: '周四', hant: '週四', en: 'Thu' }, { zh: '周五', hant: '週五', en: 'Fri' }, { zh: '周六', hant: '週六', en: 'Sat' },
+];
 const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 
 const pick = (names: Names, locale: Locale) => locale === 'en' ? names.en : locale === 'zh-Hant' ? names.hant : names.zh;
