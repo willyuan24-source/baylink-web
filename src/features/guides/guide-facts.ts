@@ -1,4 +1,4 @@
-import type { Guide, GuideCategory } from '../../data/guides';
+import type { Guide } from '../../data/guides';
 import { getGuideMedia, type GuideImage } from '../../data/guide-media';
 import { ATTRACTIONS } from '../../data/attractions';
 import { GUIDE_TOPICS, guideTopicOf, type GuideTopicId } from '../../data/guide-topics';
@@ -38,12 +38,6 @@ export function guideRegionsOf(guide: Pick<Guide, 'slug'>): GuideRegionId[] {
   if (listed) return [listed];
   return REGION_WORDS.filter(([, words]) => words.test(guide.slug)).map(([id]) => id);
 }
-
-/** Old `/guides?category=` links (school strips, shared links) keep working: the category narrows the list. */
-export const LEGACY_CATEGORY_TOPIC: Readonly<Record<GuideCategory, GuideTopicId>> = {
-  rent: 'housing', roommate: 'housing', used: 'housing', service: 'housing', safety: 'housing',
-  newcomer: 'documents', education: 'documents', commute: 'transport', city: 'outings', events: 'outings',
-};
 
 /** Each topic's TypeCover palette and texture icon (keys of TypeCover's closed icon list). */
 export const TOPIC_COVER: Readonly<Record<GuideTopicId, { tone: CoverTone; icon: string }>> = {
@@ -131,8 +125,17 @@ export function keepInlineImage(image: GuideImage, guide: Guide, guides: readonl
   return sharedInlineCount(guides, image.src) < 2;
 }
 
-/** The question BayBay starts with: what to do first for this guide, never a generic "出发前" prompt (GUIDE-10). */
-export function guideBayBayQuestion(guide: Pick<Guide, 'slug' | 'category'>, t: (zh: string, en: string) => string, title: string): string {
+/**
+ * The question BayBay starts with: what to do first for this guide, never a generic "出发前" prompt (GUIDE-10). School and
+ * district guides keep the enrollment-steps prompt that asks only for area and grade, never a child's details (the same
+ * wording and rule as bayBayPageQuestions' "整理入学步骤" in src/lib/baybay-conversation.ts, copied so the guide route
+ * does not load the assistant module; the title goes in front so a /plan?q= link still names the guide).
+ */
+export function guideBayBayQuestion(guide: Pick<Guide, 'slug' | 'category' | 'tags'>, t: (zh: string, en: string) => string, title: string): string {
+  if (guide.category === 'education' || guide.tags.includes('学校与学区') || /(?:^|-)schools?(?:-|$)/.test(guide.slug)) {
+    return t(`我正在读《${title}》。根据这篇学校与学区指南，帮我整理入学步骤、要到官网核实的时间和材料类别。只需了解地区与年级，不要让我在聊天中提交孩子个人资料或证件。`,
+      `I'm reading "${title}". Using this school and district guide, outline enrollment steps, dates to check on official websites and categories of required documents. Ask only for my area and grade, and do not ask me to submit a child's personal details or documents in chat.`);
+  }
   return guideTopicOf(guide) === 'outings'
     ? t(`我正在读《${title}》。请根据这篇指南，帮我把半天怎么走排一下，并告诉我先要确认什么。`, `I'm reading "${title}". Using this guide, how should I plan the half day, and what should I confirm first?`)
     : t(`我正在读《${title}》。请根据这篇指南，告诉我第一步做什么、该联系谁、要准备什么。`, `I'm reading "${title}". Using this guide, what is my first step, who do I contact, and what should I prepare?`);
