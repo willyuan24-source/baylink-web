@@ -11,6 +11,10 @@ import { renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg'
 import { localizedSocialImage } from '../src/lib/seo';
 import { shareCardPath } from '../src/lib/editorial-share';
 import { simplifiedOnlyCharacters } from '../scripts/i18n-html-check.mjs';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { LocalizedHost } from '../src/i18n/host';
+import { setLocale } from '../src/i18n/locale';
 
 const require = createRequire(import.meta.url);
 const simplifiedOnly = simplifiedOnlyCharacters(require('opencc-js/dict/STCharacters').default, require('opencc-js/dict/TSCharacters').default);
@@ -46,6 +50,16 @@ test('I18N-SEO-05: every card says its listing in the card’s own language (Eng
     }
   }
   assert.deepEqual(problems.slice(0, 15), [], `${problems.length} card texts in the wrong language`);
+});
+
+test('a link to the weekend card opens the reader’s language edition', async () => {
+  const link = (href: string) => renderToStaticMarkup(createElement(LocalizedHost, { tag: 'a', hostProps: { href, children: 'card' }, staticChildren: false }));
+  for (const [locale, prefix] of [['zh-Hans', ''], ['zh-Hant', 'zh-Hant/'], ['en', 'en/']] as const) {
+    await setLocale(locale, false);
+    assert.match(link('/weekly/all-2026-10-12.png'), new RegExp(`href="/weekly/${prefix}all-2026-10-12\\.png"`));
+    assert.match(link('/weekly/sf.png'), new RegExp(`href="/weekly/${prefix}sf\\.png"`));
+  }
+  await setLocale('zh-Hans', false);
 });
 
 test('share cards and hub cards are 1200 × 630 SVGs with the QR in the bottom-right corner; each language has its own image', () => {

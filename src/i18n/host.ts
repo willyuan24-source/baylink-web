@@ -32,6 +32,8 @@ export const LocalizedHost = forwardRef<unknown, { tag: ElementType; hostProps: 
     const url = new URL(localizedUrl(props.href, linkLocale));
     props.href = url.pathname + url.search + url.hash;
   }
+  // The weekend card exists in each language (scripts/generate-weekly.ts): a link to it opens the reader's own.
+  if (tag === 'a' && typeof props.href === 'string' && /^\/weekly\/[\w-]+\.png$/.test(props.href) && locale !== 'zh-Hans') props.href = props.href.replace('/weekly/', `/weekly/${locale}/`);
   if (enabled) {
     for (const key of attributes) if (typeof props[key] === 'string') props[key] = translateText(props[key] as string, locale);
     if (tag === 'option' && props.value === undefined && typeof props.children === 'string') props.value = props.children;
