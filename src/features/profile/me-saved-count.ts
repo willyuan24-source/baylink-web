@@ -6,6 +6,7 @@ import type { Library } from '../../lib/planner';
  * null while the account library is still loading, so the tile never shows a wrong 0.
  * The library argument is kept for callers; the save model reads the same planner library itself.
  */
-export function useMyWeekSavedCount(userId: string | undefined, _library?: { ready: boolean; data: Library }): number | null {
+export function useMyWeekSavedCount(userId: string | undefined, library?: { ready: boolean; data: Library }): number | null {
+  void library;
   return useSavedCount(userId);
 }
