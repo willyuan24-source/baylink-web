@@ -49,7 +49,7 @@ export function HeroPicks({ picks, covers, today, start, end, total }: { picks: 
     <div className="home-section-head">
       {/* The separator keeps the heading's name readable ("本周末先看这几件，10/17–18"); the date shows as a kicker. */}
       <h2 id="home-picks-title">{t('本周末先看这几件', 'This weekend, start here')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{weekendRange(start, end)}</span></h2>
-      <Link to="/events" className="home-section-head__more">{total === null ? t('全部活动', 'All events') : t(`全部 ${total} 场`, `All ${total}`)}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
+      <Link to="/events" className="home-section-head__more">{total ? t(`全部 ${total} 场`, `All ${total}`) : t('全部活动', 'All events')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
     </div>
     {picks.length ? <ul className="home-picks__list" aria-label={t('本周末精选', 'This weekend’s picks')}>
       {picks.map((pick, index) => <li key={pick.event.id}><PickCard pick={pick} cover={covers[index]} today={today} priority={index === 0} /></li>)}

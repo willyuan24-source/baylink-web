@@ -4,7 +4,7 @@ import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
 import { createCoverPage, distinctNeighbourTones, getCover, type CoverContext } from '../lib/cover';
 import { eventTone } from '../lib/event-facts';
 import { getBayAreaToday } from '../lib/monthly';
-import { getHomeWeekend, getWeeklyCardHref } from '../lib/home-weekend';
+import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
 import { getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, MONTHLY_EDITION, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
 import { selectHomeOffers } from '../lib/home-offers';
 import { HomeHead } from '../features/home/HomeHead';
@@ -65,6 +65,9 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       offers: offers.map(offer => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, context)),
     };
   }, [weekend, guides, offers, today]);
+  // ⑧ offers the share card only on days the build wrote a card for (the week after it): on a later day the undated card is
+  // an earlier weekend's, so saving it would send the family the wrong three until the next build.
+  const cardHref = getWeeklyCardDays().includes(today) ? getWeeklyCardHref(today) : null;
   const feedTones = distinctNeighbourTones(weekend.feed.map((entry, index) => covers.feed[index].tier === 'type' ? eventTone(entry.event) : null));
 
   return <section className="home-discovery" aria-label={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}>
@@ -78,7 +81,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     <GuideRail intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
     <OfferTickets offers={offers} covers={covers.offers} today={today} />
     <div className="home-end">
-      <ShareStrip picks={weekend.picks} start={weekend.start} end={weekend.end} cardHref={getWeeklyCardHref(today)} />
+      {cardHref && <ShareStrip picks={weekend.picks} start={weekend.start} end={weekend.end} cardHref={cardHref} />}
       <Home3DTile />
     </div>
     <p className="home-community"><button type="button" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}</button></p>

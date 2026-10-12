@@ -3,7 +3,7 @@ import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { getHomeWeekend, getWeeklyCardHref, HOME_FEED_SIZE } from '../src/lib/home-weekend';
+import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref, HOME_FEED_SIZE } from '../src/lib/home-weekend';
 import { GUIDE_IMAGES, guideCount, HOME_WEEKENDS, MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/lib/home-catalog';
 import { WEEKEND_PICKS, type WeekendPickEntry } from '../src/data/weekend-picks';
 import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
@@ -197,6 +197,7 @@ test('a Sunday never recommends yesterday and a published weekend without events
     assert.equal(view.container.querySelectorAll('.home-picks__list').length, 0);
     assert.ok(view.getByText('这个周末暂没有已确认的活动，先看常设去处或换个日期。'));
     assert.equal(view.getByRole('link', { name: '按地区找景点' }).getAttribute('href'), '/explore');
+    assert.equal(view.container.querySelector('.home-picks .home-section-head__more')!.textContent, '全部活动', 'never "全部 0 场"');
     assert.equal(view.container.querySelector('.home-feed'), null);
     assert.equal(view.container.querySelector('.home-offers'), null, 'expired offers never look current');
   } finally {
@@ -223,6 +224,20 @@ test('past the published snapshots the home claims no count and no empty weekend
   assert.doesNotMatch(later.body.textContent!, /暂没有已确认的活动/);
   // A snapshot day keeps its count.
   assert.equal(getHomeWeekend(today).total, snapshots[today].total);
+});
+
+test('the family-chat card is offered only on days the build wrote it for, never an earlier weekend’s card', () => {
+  const cardDays = getWeeklyCardDays();
+  assert.ok(cardDays.includes(today), 'the first snapshot day has its dated card');
+  assert.equal(serverHome().querySelector('.home-share a[download]')!.getAttribute('href'), `/weekly/all-${today}.png`);
+  // A snapshot day after the card week (no deploy since): the undated /weekly/all.png shows the build weekend's three.
+  const late = days.find(day => !cardDays.includes(day) && snapshots[day].ids.length > 0);
+  if (late) {
+    const doc = serverHome(late);
+    assert.ok(doc.querySelector('.home-picks__list'), `${late}: the picks still show`);
+    assert.equal(doc.querySelector('.home-share'), null, `${late}: no card for another weekend`);
+  }
+  assert.equal(serverHome(addCalendarDays(days.at(-1)!, 1)).querySelector('.home-share'), null);
 });
 
 test('every offer ticket names its brand and kind, its source check and a ♡ that saves it (FC3-03)', () => {

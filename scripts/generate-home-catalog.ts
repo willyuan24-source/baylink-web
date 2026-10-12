@@ -29,7 +29,8 @@ const homeSlugs = new Set<string>(HOME_INTENTS.flatMap(intent => [...intent.slug
 const OFF_TOPIC_COVERS = new Set(['/guides/coverage-2026/coverage-laptop.webp']);
 const today = getBayAreaToday();
 // Four weekends from the build day: the site redeploys far more often than that (and daily once the owner adds the
-// deploy hook, WEB-FRESH2). A day outside the snapshots is computed from the shipped events, so it degrades, never breaks.
+// deploy hook, WEB-FRESH2). A day outside the snapshots is computed from the shipped events, so it degrades, never breaks:
+// its picks come from the compact pool and its count is unknown (getHomeWeekend's total is null; the home prints no number).
 const lastDay = [MONTHLY_EDITION.throughDate, addCalendarDays(today, 27)].sort()[0];
 const imageKeys = new Set<string>();
 const guideImages: Record<string, GuideImage> = {};
