@@ -63,6 +63,9 @@ test('Event JSON-LD: Bay Area times with their offset, status, attendance, organ
       offered++;
       if (offers['@type'] === 'Offer') assert.equal(offers.price, event.price?.min ?? 0, `${event.id}: the stated price or a free listing`);
       assert.ok(event.cost === 'free' || event.price?.free || typeof event.price?.min === 'number', `${event.id}: no price without a stated one`);
+      // availability only as the source states it: sold out, or nothing (never an invented InStock)
+      assert.equal(offers.availability, event.status === 'sold_out' ? 'https://schema.org/SoldOut' : undefined, `${event.id}: availability`);
+      assert.notEqual(event.status, 'cancelled', `${event.id}: a cancelled event offers no tickets`);
     } else assert.equal(Object.hasOwn(entity, 'offers'), false, `${event.id}: unconfirmed ticket prices are not invented`);
     assert.equal(entity.isAccessibleForFree, event.cost === 'free' || event.price?.free ? true : undefined, event.id);
     assert.equal(entity.location.name, event.venue, 'the venue string whole, as the dictionary translates it');
@@ -75,6 +78,15 @@ test('Event JSON-LD: Bay Area times with their offset, status, attendance, organ
   assert.ok(offered >= 60, `${offered} offers`);
   const soldOut = MONTHLY_EVENTS.find(event => event.status === 'sold_out');
   if (soldOut) assert.equal(eventOffers(soldOut)?.availability, 'https://schema.org/SoldOut');
+  const priced = { cost: 'paid', price: { min: 12 }, officialUrl: 'https://example.org/e' } as const;
+  assert.deepEqual(eventOffers(priced), { '@type': 'Offer', url: 'https://example.org/e', priceCurrency: 'USD', price: 12 }, 'no availability nobody stated');
+  assert.equal(eventOffers({ ...priced, status: 'cancelled' }), undefined, 'a cancelled event offers no tickets');
+  assert.equal(eventOffers({ ...priced, status: 'sold_out' })?.availability, 'https://schema.org/SoldOut');
+  // the schema check holds the same rules for every built page
+  const offerEvent = (offers: Record<string, unknown>, eventStatus = 'https://schema.org/EventScheduled') => [{ '@context': 'https://schema.org', '@type': 'Event', name: 'X', startDate: '2026-10-17', eventStatus, eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode', url: 'https://www.baylink.us/events/x', image: ['https://www.baylink.us/x.png'], location: { '@type': 'Place', name: 'X', address: { '@type': 'PostalAddress', addressLocality: 'Oakland' } }, offers }];
+  assert.match(checkStructuredData(offerEvent({ ...eventOffers(priced), availability: 'https://schema.org/InStock' })).join(' '), /availability is stated only when the source says sold out/);
+  assert.match(checkStructuredData(offerEvent(eventOffers(priced)!, 'https://schema.org/EventCancelled')).join(' '), /a cancelled event offers no tickets/);
+  assert.deepEqual(checkStructuredData(offerEvent(eventOffers({ ...priced, status: 'sold_out' })!)), []);
   assert.deepEqual(venueParts('Vallejo Brewing Company · 430 Virginia Street, Vallejo, CA 94590'), { name: 'Vallejo Brewing Company', streetAddress: '430 Virginia Street', postalCode: '94590' });
   assert.deepEqual(venueParts('Ross Street, Downtown Santa Rosa'), { name: 'Ross Street, Downtown Santa Rosa' });
   assert.equal(eventOrganizer({ sourceLabel: '媒体报道 · thesocomarket.com', officialUrl: 'https://thesocomarket.com/' }), undefined);

@@ -1,7 +1,8 @@
 /**
  * A schema check for the site's JSON-LD (I18N-SEO-04 / -13): the fields Google's rich results require for Event,
  * Article, BreadcrumbList and ItemList, the value formats it rejects, and the honesty rules BAYLINK adds (an English page
- * carries no Chinese in its labels; a time carries its offset). Used by tests/structured-data.test.ts on the metadata of
+ * carries no Chinese in its labels; a time carries its offset; an offer states no availability but a source's sold out,
+ * and a cancelled event has none). Used by tests/structured-data.test.ts on the metadata of
  * every published item in three languages and by scripts/verify-release.mjs on every built page.
  * `checkStructuredData(blocks, { english })` returns a list of problems; empty means valid.
  */
@@ -10,7 +11,8 @@ const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?(?:Z|[+-]\d{2}:\d{2})$/;
 const EVENT_STATUS = new Set(['EventScheduled', 'EventCancelled', 'EventPostponed', 'EventRescheduled', 'EventMovedOnline'].map(name => `https://schema.org/${name}`));
 const ATTENDANCE = new Set(['OfflineEventAttendanceMode', 'OnlineEventAttendanceMode', 'MixedEventAttendanceMode'].map(name => `https://schema.org/${name}`));
-const AVAILABILITY = new Set(['InStock', 'SoldOut', 'PreOrder', 'LimitedAvailability', 'OnlineOnly', 'Discontinued'].map(name => `https://schema.org/${name}`));
+/** The only availability BAYLINK states: a source that says sold out (it does not show live ticket availability). */
+const AVAILABILITY = new Set(['SoldOut'].map(name => `https://schema.org/${name}`));
 const HAN = /[㐀-鿿]/;
 
 type Node = Record<string, unknown>;
@@ -42,7 +44,7 @@ export function checkStructuredData(blocks: unknown, options: StructuredDataOpti
   const offer = (path: string, value: unknown) => {
     if (!isNode(value) || !['Offer', 'AggregateOffer'].includes(String(value['@type']))) return fail(path, 'must be an Offer or AggregateOffer');
     if (!absolute(value.url)) fail(`${path}.url`, 'must be an absolute URL');
-    if (value.availability !== undefined && !AVAILABILITY.has(String(value.availability))) fail(`${path}.availability`, `is not a schema.org availability: ${value.availability}`);
+    if (value.availability !== undefined && !AVAILABILITY.has(String(value.availability))) fail(`${path}.availability`, `is stated only when the source says sold out: ${value.availability}`);
     if (!/^[A-Z]{3}$/.test(String(value.priceCurrency))) fail(`${path}.priceCurrency`, 'must be a 3-letter currency code');
     if (value['@type'] === 'Offer') { if (typeof value.price !== 'number' || value.price < 0) fail(`${path}.price`, 'must be a number ≥ 0'); }
     else if (typeof value.lowPrice !== 'number' || typeof value.highPrice !== 'number' || value.lowPrice < 0 || value.highPrice < value.lowPrice) fail(path, 'needs lowPrice ≤ highPrice');
@@ -66,7 +68,10 @@ export function checkStructuredData(blocks: unknown, options: StructuredDataOpti
       if (!isNode(value.organizer) || !text(value.organizer.name)) fail(`${path}.organizer`, 'needs a name');
       else if (value.organizer.url !== undefined && !absolute(value.organizer.url)) fail(`${path}.organizer.url`, 'must be an absolute URL');
     }
-    if (value.offers !== undefined) (Array.isArray(value.offers) ? value.offers : [value.offers]).forEach((item, index) => offer(`${path}.offers[${index}]`, item));
+    if (value.offers !== undefined) {
+      if (value.eventStatus === 'https://schema.org/EventCancelled') fail(`${path}.offers`, 'a cancelled event offers no tickets');
+      (Array.isArray(value.offers) ? value.offers : [value.offers]).forEach((item, index) => offer(`${path}.offers[${index}]`, item));
+    }
     if (value.isAccessibleForFree !== undefined && value.isAccessibleForFree !== true) fail(`${path}.isAccessibleForFree`, 'is only written when true');
     if (value.subEvent !== undefined) {
       if (!Array.isArray(value.subEvent) || !value.subEvent.length) fail(`${path}.subEvent`, 'must be a non-empty list');

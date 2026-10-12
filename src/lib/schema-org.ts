@@ -73,10 +73,13 @@ export function eventOrganizer(event: Pick<MonthlyEvent, 'sourceLabel' | 'offici
 const STATUS: Record<string, string> = { cancelled: 'https://schema.org/EventCancelled', postponed: 'https://schema.org/EventPostponed' };
 export const eventStatusUrl = (status?: MonthlyEvent['status']) => (status && STATUS[status]) || 'https://schema.org/EventScheduled';
 
-/** Offers only from a stated price or a free listing; `availability` says sold out when the source does. */
+/**
+ * Offers only from a stated price or a free listing, and none for a cancelled event. `availability` only when the source
+ * states it (sold out): BAYLINK does not show live ticket availability (不代表实时余票), so it never claims InStock.
+ */
 export function eventOffers(event: Pick<MonthlyEvent, 'cost' | 'price' | 'officialUrl' | 'status'>): Record<string, unknown> | undefined {
-  const availability = event.status === 'sold_out' ? 'https://schema.org/SoldOut' : 'https://schema.org/InStock';
-  const base = { url: event.officialUrl, priceCurrency: 'USD', availability };
+  if (event.status === 'cancelled') return undefined;
+  const base = { url: event.officialUrl, priceCurrency: 'USD', ...(event.status === 'sold_out' ? { availability: 'https://schema.org/SoldOut' } : {}) };
   const price = event.price;
   if (price && typeof price.min === 'number' && price.min >= 0) {
     return typeof price.max === 'number' && price.max > price.min
