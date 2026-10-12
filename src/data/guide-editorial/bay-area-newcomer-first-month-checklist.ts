@@ -7,7 +7,7 @@ export const newcomerFirstMonthEditorial: GuideEditorial = {
   slug: 'bay-area-newcomer-first-month-checklist',
   cover: {
     question: { zh: '刚到湾区，第一个月先办什么？', en: 'Just arrived? What comes first?' },
-    title: { zh: '先稳住住和行，再办证件和医保', en: 'Housing and transport first, then papers and health cover' },
+    title: { zh: '先安顿住和行，再办证件和医保', en: 'Housing and transport first, then papers and health cover' },
     answer: { zh: '社安卡入境 3 周没到，去 SSA', en: 'No SSN card 3 weeks after arrival? Go to SSA' },
     phone: { label: { zh: '社会保障局 SSA', en: 'Social Security Administration' }, number: '1-800-772-1213', tel: '+18007721213' },
     line: { zh: '住处 · 通勤 · 手机 · SSN · 驾照 · 医保', en: 'Housing · commute · phone · SSN · license · health cover' },
