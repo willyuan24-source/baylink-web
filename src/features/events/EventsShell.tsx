@@ -5,6 +5,7 @@ import { PageContainer, PageHeader, SegmentedTabs, SkeletonFeed } from '../../co
 import './events.css';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
+import { dateScope } from '../../lib/date-guard';
 import { getMonthlyDateRange, isFreeToAttend } from '../../lib/monthly';
 import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsWhen } from './events-model';
 import { WeekendView } from './WeekendView';
@@ -67,6 +68,9 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
     { id: 'perks', label: t('免费与优惠', 'Free & deals'), to: '/events?view=perks' },
     { id: 'openings', label: t('新店', 'New shops'), to: '/events?view=openings' },
   ];
+  // CW-02 stale-date guard: the prerendered range line, counts and body show a skeleton on a later day until the app renders
+  // (src/lib/date-guard.ts). The 本周末 list keeps from Monday to Saturday; every other view is keyed to the day.
+  const scope = dateScope(column === 'list' && filters.when === 'weekend' ? 'weekend' : 'day');
   // 本周末 is current only while the list shows the weekend; other dates leave the row unmarked (the range line says which).
   const current = column === 'list' && filters.when !== 'weekend' ? '' : column;
 
@@ -82,9 +86,9 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   return <div className="ev-page">
     <PageContainer>
       <PageHeader title={t('活动', 'Events')} size="display" className="ev-header"
-        lede={<><strong className="ev-range">{rangeLine}</strong><span className="ev-lede-facts">{[counts, promise, checked].filter(Boolean).join(' · ')}</span></>} />
+        lede={<><strong className="ev-range" {...scope}>{rangeLine}</strong><span className="ev-lede-facts" {...scope}>{[counts, promise, checked].filter(Boolean).join(' · ')}</span></>} />
     </PageContainer>
     <div className="ev-tabs-bar"><PageContainer><SegmentedTabs label={t('活动分区', 'Event views')} items={tabs} value={current} /></PageContainer></div>
-    <PageContainer className="ev-body">{body}</PageContainer>
+    <PageContainer className="ev-body"><div {...scope}>{body}</div></PageContainer>
   </div>;
 }

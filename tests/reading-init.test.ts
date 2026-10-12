@@ -47,8 +47,9 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
   const acorn = await import('acorn').catch(() => null);
   if (acorn) acorn.parse(SRC, { ecmaVersion: 5 });
   const code = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
-  // ~1 KB with the D17 language redirect (WEB-SHELL1); still one small blocking request, cached briefly (vercel.json).
-  assert.ok(code.length < 1200, `reading-init stays small on the critical path (${code.length} chars without comments)`);
+  // ~1 KB with the D17 language redirect (WEB-SHELL1), ~1.7 KB with the CW-02 stale-date check (WEB-FRESH2); still one small
+  // blocking request, cached briefly (vercel.json).
+  assert.ok(code.length < 1750, `reading-init stays small on the critical path (${code.length} chars without comments)`);
   const html = fs.readFileSync('index.html', 'utf8');
   const head = html.slice(0, html.indexOf('</head>'));
   const tag = '<script src="/reading-init.js"></script>';

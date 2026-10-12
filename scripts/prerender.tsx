@@ -30,6 +30,7 @@ import { discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 import guidesPublished from '../src/data/first-published/guides.json';
 import listingsPublished from '../src/data/first-published/listings.json';
+import { getBayAreaToday } from '../src/lib/monthly';
 
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
 import { PLAN_METADATA } from '../src/lib/planner';
@@ -115,6 +116,8 @@ const withRouteStylesheets = (html: string, path: string) => {
   return links && end >= 0 ? `${html.slice(0, end)}${links}\n${html.slice(end)}` : html;
 };
 
+// CW-02 stale-date guard (src/lib/date-guard.ts): every page names the Pacific day it was built for; reading-init.js compares.
+const builtFor = getBayAreaToday();
 const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?: string) => {
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as SiteLanguage[]) {
     await setLocale(locale, false);
@@ -124,7 +127,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
     await mkdir(dirname(destination), { recursive: true });
-    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
+    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}" data-built-for="${builtFor}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
     await writeFile(destination, html);
   }
   await setLocale('zh-Hans', false);

@@ -20,3 +20,27 @@
 .guide-date-meta details[open]{flex-basis:100%}
 .guide-date-meta details p{margin:0 0 .5rem;max-width:40em;font-size:var(--text-fact);line-height:1.7;color:var(--color-ink-2)}
 .trust-row a:focus-visible,.reader-freshness-line a:focus-visible,.content-review-notice.reader-freshness-hard a:focus-visible,.guide-date-meta a:focus-visible,.guide-date-meta summary:focus-visible{outline:.1875rem solid var(--color-brand);outline-offset:.125rem}
+
+/* CW-02 / EVT11-05 stale-date guard (src/lib/date-guard.ts, docs/daily-rebuild.md). public/reading-init.js marks
+   html[data-date-stale] before the first paint when the page was prerendered for another Pacific day. The date blocks of the
+   prerendered <main>, and of the boot snapshot SHELL2 keeps while the route's code settles (.site-boot-main), then keep their
+   height under a skeleton until the app renders today's result; blocks the app renders are never covered. .home-weekend
+   stands in until home marks its blocks with dateScope(). If the app never starts, the old blocks come back after 15 s. */
+html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"],
+html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"],
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekend,
+html[data-date-stale~="weekend"] .site-boot-main .home-weekend,
+html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"],
+html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]{position:relative;visibility:hidden;animation:date-guard-reveal 0s 15s forwards}
+html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"]::before,
+html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"]::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekend::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-weekend::before,
+html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"]::before,
+html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:12px;background:linear-gradient(90deg,var(--color-surface-2) 0%,var(--color-line) 50%,var(--color-surface-2) 100%) 0 0/200% 100%;animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
+@keyframes date-guard-reveal{to{visibility:visible}}
+@keyframes date-guard-clear{to{visibility:hidden}}
+@keyframes date-guard-shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
+@media (prefers-reduced-motion:reduce){
+  html[data-date-stale] main[data-prerender-path] [data-date-scope]::before,html[data-date-stale] .site-boot-main [data-date-scope]::before,html[data-date-stale] main[data-prerender-path] .home-weekend::before,html[data-date-stale] .site-boot-main .home-weekend::before{animation:date-guard-clear 0s 15s forwards}
+}
