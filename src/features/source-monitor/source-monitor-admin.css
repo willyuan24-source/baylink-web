@@ -73,7 +73,11 @@
   .source-monitor-header,.source-monitor-card-top{flex-direction:column;gap:.75rem}
   .source-monitor-card{padding:1rem}
   .source-monitor-diff{grid-template-columns:1fr}
-  .source-monitor-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .source-monitor-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}
+  .source-monitor-summary>div{padding:.5rem .625rem}
+  .source-monitor-summary dd{font-size:var(--text-card)}
+  .source-monitor>.source-monitor-filters{flex-wrap:nowrap;overflow-x:auto;padding-bottom:.25rem}
+  .source-monitor>.source-monitor-filters button{flex:none}
 }
 
 .product-metrics{margin:1.5rem 0;padding:1.25rem;border:.0625rem solid var(--color-line);border-radius:16px;background:var(--color-surface)}

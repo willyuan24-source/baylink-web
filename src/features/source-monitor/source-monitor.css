@@ -35,7 +35,7 @@ html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"]::be
 html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekend::before,
 html[data-date-stale~="weekend"] .site-boot-main .home-weekend::before,
 html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"]::before,
-html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:12px;background:linear-gradient(90deg,var(--color-surface-2) 0%,var(--color-line) 50%,var(--color-surface-2) 100%) 0 0/200% 100%;animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
+html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:12px;background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
 @keyframes date-guard-reveal{to{visibility:visible}}
 @keyframes date-guard-clear{to{visibility:hidden}}
 @keyframes date-guard-shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
