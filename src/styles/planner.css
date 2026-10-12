@@ -60,8 +60,8 @@
 
 /* Suggestion cards */
 .planner-options { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; }
-.planner-option { display:flex; flex-direction:column; align-items:flex-start; gap:12px; min-width:0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
-.planner-option-media { align-self:stretch; margin:-20px -20px 4px; overflow:hidden; border-radius:16px 16px 0 0; }
+.planner-option { display:flex; flex-direction:column; align-items:flex-start; gap:12px; min-width:0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); overflow:hidden; }
+.planner-option-media { align-self:stretch; margin:-20px -20px 4px; }
 .planner-number { display:grid; place-items:center; width:2rem; height:2rem; border-radius:50%; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-fact); font-weight:700; }
 .planner-option-kind { color:var(--color-ink-2); font-size:var(--text-caption); font-weight:600; }
 .planner-option h3 { margin:0; font-size:var(--text-card); line-height:1.444; }
