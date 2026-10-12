@@ -8,7 +8,8 @@ import { RowCard } from './ui/Card';
 import { PlannerStopThumb } from './PlannerStopCover';
 import { PlannerStopOffers } from './PlannerStopOffers';
 
-export type PlannerCatalogItem = Stop & { title: string; city: string; summary: string; kicker: string; detail: string; point?: GeoPoint; official: string };
+/** `kicker`: the short date (events) or the kind (places); `when`: an event's full schedule line, shown above the summary. */
+export type PlannerCatalogItem = Stop & { title: string; city: string; summary: string; kicker: string; when?: string; detail: string; point?: GeoPoint; official: string };
 
 /**
  * One event or place in the planner's list (行程, plan T13): a RowCard with its cover (getCover via PlannerStopThumb),
@@ -32,6 +33,7 @@ export function PlannerCatalogCard({ item, cover, today, date, pin, selected, fa
       date={<>{pin >= 0 && <span className="planner-pin-no" title={t('地图上的编号', 'Number on the map')}>{pin + 1}</span>}{translateText(item.kicker, locale)}</>}
       meta={`${translateText(item.city, locale)} · ${item.detail}`}
       trailing={<button type="button" className="planner-heart" aria-label={heartLabel} aria-pressed={favoriteReady ? favorite : undefined} disabled={!favoriteReady || busy} onClick={onToggleFavorite}><Heart size={20} aria-hidden="true" fill={favorite ? 'currentColor' : 'none'} /></button>} />
+    {item.when && <p className="planner-place-when">{item.when}</p>}
     {item.summary && <p className="planner-place-summary">{item.summary}</p>}
     <PlannerStopOffers stop={item} date={date} />
     <div className="planner-place-actions">

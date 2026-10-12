@@ -58,6 +58,7 @@
 .planner-heart { display:grid; place-items:center; width:2.75rem; height:2.75rem; border:1px solid var(--color-line-strong); border-radius:50%; background:var(--color-surface); color:var(--color-brand); cursor:pointer; }
 .planner-heart[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); }
 .planner-heart:disabled { color:var(--color-ink-3); cursor:not-allowed; }
+.planner-place-when { margin:0 0 4px 6.25rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
 .planner-place-summary { margin:0 0 8px 6.25rem; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-place .planner-stop-offers { margin-left:6.25rem; }
 .planner-place-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:6.25rem; }
@@ -66,9 +67,9 @@
 .planner-place .planner-outing-preview { margin-left:6.25rem; width:auto; }
 .planner-place .planner-small-note { margin-left:6.25rem; }
 @media (max-width:420px) {
-  :is(.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
+  :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
 }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
 .planner-catalog-more { margin-top:16px; }
 .planner-catalog-tabs { margin:8px 0 4px; }
 .planner-examples { margin:12px 0 0; }
@@ -78,7 +79,11 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
   .planner-plan-overview { padding:16px; }
   .planner-plan-overview dl { gap:8px; }
 }
-@media (max-width:420px) { .planner-plan-overview dl { grid-template-columns:1fr; } }
+@media (max-width:767px) {
+  .planner-plan-overview dl>div { padding:10px; }
+  .planner-plan-overview dd { font-size:var(--text-body); }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .planner-plan-overview dl { grid-template-columns:1fr; }
+}
 
 /* Print: the day itself — overview, stops and timeline — on paper, without the page's tools. */
 @media print {

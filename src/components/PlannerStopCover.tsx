@@ -12,11 +12,12 @@ const PLACE_LABELS = {
 } as const;
 
 /** The 88px thumbnail: the stop's own photo when the ladder allows one, else its TypeCover (decorative; the row reads the title). */
-export function PlannerStopThumb({ stop, cover, today }: { stop: Stop; cover: ResolvedCover; today: string }) {
+/** `day`: the plan's day, so an event's information card shows the day it is planned for, not its first date. */
+export function PlannerStopThumb({ stop, cover, today, day }: { stop: Stop; cover: ResolvedCover; today: string; day?: string }) {
   const { pick } = useUiCopy();
   const event = stop.kind === 'event' ? eventFor(stop.id) : undefined;
   const place = stop.kind === 'place' ? placeFor(stop.id) : undefined;
-  const fallback = event ? <EventTypeCover event={event} today={today} size="mini" ariaHidden />
+  const fallback = event ? <EventTypeCover event={event} today={today} days={day ? [day] : undefined} size="mini" ariaHidden />
     : <TypeCover tone={place?.category === 'restaurant' || place?.category === 'cafe' ? 'food' : 'outdoors'} label={pick(PLACE_LABELS[place?.category ?? 'attraction'])} size="mini" ariaHidden />;
   return <Cover cover={cover} fallback={fallback} sizes={COVER_SIZES.thumb} decorative />;
 }

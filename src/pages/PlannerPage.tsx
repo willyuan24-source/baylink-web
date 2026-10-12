@@ -29,6 +29,7 @@ import { PlannerPlaceRecommendations } from '../components/PlannerPlaceRecommend
 import type { CompleteOuting } from '../lib/planner-outings';
 import { defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../lib/planner-itinerary';
 import { createCoverPage, resolveCovers } from '../lib/cover';
+import { eventDateChip, formatDateChip } from '../lib/event-facts';
 import { PlannerDayPlans } from '../components/PlannerDayPlans';
 import { PlannerCatalogCard, type PlannerCatalogItem } from '../components/PlannerCatalogCard';
 import { PlannerImageCredits, PlannerOptionCover } from '../components/PlannerStopCover';
@@ -256,10 +257,10 @@ function PlannerWorkspace() {
   const placeKind = (category?: string) => category === 'restaurant' ? t('餐饮', 'Dining') : category === 'cafe' ? t('咖啡与小食', 'Coffee') : category === 'shop' ? t('商店', 'Shop') : t('常设景点', 'Attraction');
   const catalogTotal = visiblePlaces.length + (catalogCategory === 'all' ? events.length : 0);
   const catalogItems = useMemo<PlannerCatalogItem[]>(() => [
-    ...events.filter(() => catalogCategory === 'all').map(event => ({ kind: 'event' as const, id: event.id, title: event.title, city: event.city, summary: event.summary, kicker: translateText(event.dateLabel, locale), detail: translateText(event.costLabel, locale), point: event.location, official: event.officialUrl })),
+    ...events.filter(() => catalogCategory === 'all').map(event => ({ kind: 'event' as const, id: event.id, title: event.title, city: event.city, summary: event.summary, kicker: formatDateChip(eventDateChip(event, today, requestedDate ? [requestedDate] : []), locale === 'en').label, when: translateText(event.dateLabel, locale), detail: translateText(event.costLabel, locale), point: event.location, official: event.officialUrl })),
     ...visiblePlaces.map(place => ({ kind: 'place' as const, id: place.id, title: place.title, city: place.city, summary: place.summary, kicker: placeKind(place.category), detail: place.planning?.schedule ? t('已收录官方时段', 'Official hours recorded') : t('营业时间待确认', 'Opening hours unconfirmed'), point: place.location, official: place.officialUrl })),
     // eslint-disable-next-line react-hooks/exhaustive-deps -- placeKind and t only read locale
-  ].slice(0, catalogLimit), [events, visiblePlaces, catalogCategory, catalogLimit, locale]);
+  ].slice(0, catalogLimit), [events, visiblePlaces, catalogCategory, catalogLimit, locale, today, requestedDate]);
   const catalogCovers = useMemo(() => resolveCovers(catalogItems.map(stopCoverItem), { images: stopCoverImage, today, page: coverPage }), [catalogItems, today, coverPage]);
   // The draft's save state, shown on screen 1 (FC3-01): a stop that arrived by link or from the list is not saved yet.
   const draftState = !stops.length ? 'none' as const : !editing ? 'unsaved' as const

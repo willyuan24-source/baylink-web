@@ -56,8 +56,8 @@ export function PlannerDayPlans({ library, today, coverPage, editingId }: { libr
                   const meta = event ? [event.city, event.costLabel] : [place?.city, kind ? t(kind[0], kind[1]) : undefined];
                   return <li key={`${stop.kind}:${stop.id}`}>
                     <RowCard title={translateText(stopTitle(stop), locale)} {...(external ? { href: path } : { to: path })} heading="h4"
-                      thumb={<PlannerStopThumb stop={stop} cover={coverFor(plan, index)} today={today} />}
-                      date={<><time dateTime={date}>{planDayLabel(date, english)}</time> · {t(`第 ${index + 1} 站`, `Stop ${index + 1}`)}</>}
+                      thumb={<PlannerStopThumb stop={stop} cover={coverFor(plan, index)} today={today} day={date} />}
+                      date={t(`第 ${index + 1} 站`, `Stop ${index + 1}`)}
                       meta={meta.filter(Boolean).map(part => translateText(part!, locale)).join(' · ')} />
                   </li>;
                 })}</ul>

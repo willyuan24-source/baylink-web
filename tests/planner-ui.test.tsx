@@ -329,3 +329,46 @@ test('a new shop saved on the openings board shows saved on its planner card, an
   assert.equal(within(await card()).getByRole('button', { name: '收藏到我的这周' }).getAttribute('aria-pressed'), 'false');
   assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items, [], 'the one save is gone, not doubled');
 });
+
+test('行程 lists a day added elsewhere with each stop\'s cover and the day, and a shared draft says it is unsaved and saves from the overview', async () => {
+  // 加入这天计划 (home, calendar, detail) writes the day's plan; 行程 shows it without any edit link.
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  const view = await openPlanner();
+  const days = view.getByTestId('plan-days');
+  assert.ok(within(days).getByRole('heading', { name: '9/27 计划' }));
+  assert.equal(days.querySelector('time')?.getAttribute('dateTime'), '2026-09-27');
+  const row = days.querySelector('.ui-row-card')!;
+  assert.match(row.querySelector('h4')?.textContent || '', /金门大桥/);
+  assert.ok(row.querySelector('.ui-row-card__thumb [data-cover] img'), 'the stop shows its photo cover');
+  assert.equal(within(days).getByRole('link', { name: '打开这一天' }).getAttribute('href'), `/plan?edit=${encodeURIComponent(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0].id)}`);
+  cleanup();
+
+  // A shared link opens a draft: the overview (first on the page) says it is not saved and saves it in place.
+  const shared = await openPlanner('?date=2026-09-28&stops=place:chinatown');
+  const overview = shared.getByRole('region', { name: '当前计划概览' });
+  assert.match(overview.textContent || '', /草稿 · 还没保存/);
+  assert.equal(shared.container.querySelector('.planner-page')?.querySelector('section'), overview, 'the draft overview is the first section on the page');
+  await act(async () => { fireEvent.click(within(overview).getByRole('button', { name: '保存到行程' })); });
+  assert.match(shared.getByRole('region', { name: '当前计划概览' }).textContent || '', /已保存到行程/);
+  assert.ok(within(shared.getByTestId('plan-days')).getAllByRole('heading', { level: 3 }).length >= 2, 'the saved draft joins 已排的日子');
+});
+
+test('行程 shows a fixed-height loading state, then an error with retry when the account read fails, and an empty state for a new guest', async () => {
+  const empty = await openPlanner();
+  assert.ok(within(empty.getByTestId('plan-days')).getByRole('heading', { name: '还没有排好的日子' }));
+  assert.equal(within(empty.getByTestId('plan-days')).getByRole('link', { name: '看本周末活动' }).getAttribute('href'), '/events');
+  cleanup();
+  let fail = true;
+  api.request = async (path, options) => {
+    if (options?.method) throw new Error('Unexpected write');
+    if (path === '/planner/me') { if (fail) throw { status: 503 }; return { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } }; }
+    throw new Error(`Unexpected read: ${path}`);
+  };
+  const view = await openAccountPlanner('');
+  const days = view.getByTestId('plan-days');
+  assert.ok(within(days).getByRole('alert'), 'API down: the saved days say so instead of looking empty');
+  fail = false;
+  await act(async () => { fireEvent.click(within(days).getByRole('button', { name: '重试' })); });
+  assert.ok(within(view.getByTestId('plan-days')).getByRole('heading', { name: '还没有排好的日子' }));
+});
