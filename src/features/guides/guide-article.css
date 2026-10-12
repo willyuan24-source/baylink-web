@@ -1,8 +1,9 @@
 /* Guide article (T7, WEB-GUIDES; design.md §4.10): head, lead (carousel or cover + actions + 30 秒看懂), contact cards, step
    cards, related covers and credits. Loaded with GuideDetail only (route CSS, RC-6). Tokens and rem only; the body prose keeps
    its reviewed reading styles in guides-ui.css. Reviewed by scripts/check-editorial-styles.mjs. */
-/* The article card spans the shared page frame (SV-09: 112–1328 at 1440, like /guides and the header). */
-.gd-article.bl-guide-article { max-width:var(--container-wide); padding:12px 16px 24px; }
+/* The article sits in the shared page frame (SV-09): content box --container-wide, side padding --page-gutter, so its text
+   starts on the header's edge (112 in a 1440 window), like /guides. */
+.gd-article.bl-guide-article { box-sizing:content-box; max-width:var(--container-wide); padding:12px var(--page-gutter) 24px; }
 
 /* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → meta line. */
 .gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
@@ -153,11 +154,11 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 }
 
 @media (min-width:768px) {
-  .gd-article.bl-guide-article { padding:24px 28px 28px; }
+  .gd-article.bl-guide-article { padding-block:24px 28px; }
   .gd-contacts__list { grid-template-columns:repeat(2, minmax(0, 1fr)); }
 }
 @media (min-width:1024px) {
-  .gd-article.bl-guide-article { padding:32px 40px 32px; }
+  .gd-article.bl-guide-article { padding-block:32px; }
 .gd-title__rest { font-size:var(--text-body); }
   .gd-lead { margin-top:20px; }
   .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }
