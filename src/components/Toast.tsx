@@ -1,5 +1,6 @@
 // Toast: one message at a time, with an optional action ("收到新私信 · 查看"). Styles: site-chrome.css.
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useLocale } from '../i18n/locale';
 
@@ -22,7 +23,10 @@ export const Toast = ({ message, type, action, onClose }: { message: string, typ
     return () => clearTimeout(t);
   }, [message, type, held]);
   const english = useLocale() === 'en';
-  return (
+  // G90 (CW-07): the toast lives beside #root, not inside it. A sheet or dialog makes #root inert (ui/Modal.tsx), which
+  // would leave a toast raised meanwhile (a dialog's error, "收到新私信 · 查看") untappable and unannounced; its z-index
+  // (site-chrome.css) keeps it above the dialog.
+  return createPortal(
     // design.md §4.5: at the bottom, above the tab bar on phones (site-chrome.css), so it never covers the header's ••• or
     // search; ink background, white text. The outer box places it, the inner one is the toast.
     <div className="site-toast">
@@ -37,6 +41,7 @@ export const Toast = ({ message, type, action, onClose }: { message: string, typ
         {action && <button type="button" className="site-toast-action" onClick={() => { action.onClick(); onCloseRef.current(); }}>{action.label}</button>}
         <button type="button" aria-label={english ? 'Close' : '关闭提示'} className="site-toast-close" onClick={() => onCloseRef.current()}><X size={20} aria-hidden="true" /></button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };

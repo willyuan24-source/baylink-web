@@ -32,6 +32,7 @@ const { MemoryRouter, Routes, Route, useLocation } = await import('react-router-
 const { default: AppLayout } = await import('../src/app/AppLayout');
 const { useApp } = await import('../src/app/context');
 const { Toast } = await import('../src/components/Toast');
+const { ModalShell } = await import('../src/components/ui/Modal');
 const { api } = await import('../src/lib/api');
 const { SESSION_KEY } = await import('../src/lib/session');
 after(() => { hooks.deregister(); });
@@ -44,6 +45,28 @@ test('a toast action is a labelled button: it runs once and closes the toast', (
   assert.ok(button.classList.contains('site-toast-action'));
   fireEvent.click(button);
   assert.deepEqual([opened, closed], [1, 1]);
+});
+
+// G90 (CW-07): a sheet makes #root inert (ui/Modal.tsx); the toast is portalled beside #root, so a toast raised meanwhile
+// (a dialog's error, "收到新私信 · 查看") can still be tapped and is still announced.
+test('a toast raised while a sheet is open sits outside the inert page: its 查看 can be tapped and its status is read', () => {
+  const root = document.createElement('div');
+  root.id = 'root';
+  document.body.append(root);
+  try {
+    let opened = 0, closed = 0;
+    const view = render(<><ModalShell label="示例弹层" onClose={() => {}}><p>sheet</p></ModalShell>
+      <Toast type="info" message="收到新私信" action={{ label: '查看', onClick: () => opened++ }} onClose={() => closed++} /></>, { container: root, baseElement: document.body });
+    assert.equal(root.inert, true, 'the open sheet makes the page inert');
+    const status = view.getByRole('status');
+    assert.equal(root.contains(status), false, 'the toast is not inside the inert page');
+    assert.equal(status.closest('.site-toast')?.parentElement, document.body);
+    assert.equal(status.getAttribute('aria-live'), 'polite');
+    fireEvent.click(within(status).getByRole('button', { name: '查看' }));
+    assert.deepEqual([opened, closed], [1, 1]);
+    view.unmount();
+    assert.equal(document.querySelector('.site-toast'), null, 'unmounting removes the portalled toast');
+  } finally { root.remove(); }
 });
 
 test('the action button is at least 44 px (48 in 简洁显示) through the shared control height', () => {
@@ -156,8 +179,9 @@ test('the toast sits at the bottom, above the phone tab bar: never over the head
   assert.match(placed['base bottom'], /24px/);
   assert.equal(placed['(max-width:1023px) bottom'], 'calc(var(--site-mobile-nav-height) + 12px)', 'phones: 12px above the tab bar');
   const view = render(<Toast type="info" message="已保存" onClose={() => {}} />);
-  assert.ok(view.container.querySelector('.site-toast > .site-toast-box[role=status]'));
-  assert.equal(view.container.querySelector('[class*="top-"]'), null, 'no top-anchored utility classes left');
+  // G90: portalled beside #root (the test's container is not where it lands).
+  assert.ok(view.baseElement.querySelector('.site-toast > .site-toast-box[role=status]'));
+  assert.equal(view.baseElement.querySelector('.site-toast [class*="top-"]'), null, 'no top-anchored utility classes left');
 });
 
 test('G16: the header carries no 发布 button', async t => {
