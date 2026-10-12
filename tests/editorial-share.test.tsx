@@ -240,10 +240,12 @@ test('native image sharing receives the PNG file, and dismissing it does not cop
 });
 
 test('SVG cards retain BAYLINK identity and a QR path while escaping hostile editorial text', () => {
-  const unsafe = { ...card, title: '<script>alert("x")</script> & 🌉', label: '活动 <安全>', date: '10/25 & "Sunday"', area: '<Oakland>' };
+  const unsafe = { tone: 'family' as const, coverLabel: '活动 <安全>', big: '10/25', small: '周日', sticker: '免费', provenance: 'BAYLINK 信息卡',
+    kindLabel: '湾区活动', title: '<script>alert("x")</script> & 🌉', meta: ['10/25 & "Sunday"', '<Oakland>'], summary: card.summary,
+    scan: '扫码查看这条详情', footnote: '日期、领取条件与开放状态，请以详情页和官方入口为准。' };
   const qrPath = 'M0 0h7v7H0zM2 2h3v3H2z';
   const logo = 'data:image/png;base64,' + png.toString('base64');
-  const svg = renderShareCardSvg(unsafe, qrPath, 21, logo);
+  const svg = renderShareCardSvg(unsafe, { path: qrPath, size: 21 }, logo);
   const parsed = new dom.window.DOMParser().parseFromString(svg, 'image/svg+xml');
   assert.equal(parsed.querySelector('parsererror'), null);
   assert.equal(parsed.documentElement.getAttribute('viewBox'), '0 0 1200 630');
