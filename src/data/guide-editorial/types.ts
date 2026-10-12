@@ -18,7 +18,8 @@ export type GuideContact = {
   number: string;
   tel: string;
   languages?: EditorialCopy[];
-  address?: string;
+  /** One street address, or a list when the agency names several places (each gets its own map link). */
+  address?: string | readonly string[];
   note?: EditorialCopy;
   source?: number;
 };

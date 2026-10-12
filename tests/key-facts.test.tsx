@@ -57,6 +57,15 @@ test('contact cards: the number large and whole, [拨打] dials it, [复制] cop
   assert.ok(within(selfHelp as HTMLElement).getByText('已复制'));
 });
 
+test('a contact with two places gets one map link per address, never both addresses in one search', () => {
+  const view = article('bay-area-chinese-senior-services-referral-guide');
+  const hongLok = [...view.getByRole('heading', { name: '联系电话' }).closest('section')!.querySelectorAll('article')].find(card => card.textContent?.includes('510-763-9017')) as HTMLElement;
+  const maps = within(hongLok).getAllByRole('link', { name: /^在地图打开/ });
+  assert.deepEqual(maps.map(link => new URL(link.getAttribute('href')!).searchParams.get('query')), ['168 11th Street, Oakland', '388 9th Street #290, Oakland']);
+  assert.ok(maps.every(link => link.getAttribute('target') === '_blank' && link.getAttribute('rel') === 'noopener noreferrer'));
+  assert.equal(hongLok.querySelectorAll('.gd-contact__actions a[href*="google.com/maps"]').length, 0, 'no third map button that searches both');
+});
+
 test('step cards: each H2 keeps its anchor, gains a number and a conclusion, and the original text folds under 展开原文与来源', () => {
   const slug = 'bay-area-chinese-senior-services-referral-guide';
   const guide = getGuideBySlug(slug)!;
