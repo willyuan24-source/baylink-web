@@ -431,9 +431,11 @@ test('late-month calendars preserve actual selected dates without turning a clos
   const exhibition = buildEventCalendar(event('emeryville-art-exhibition-closing-2026'));
   assert.equal(field(exhibition, 'DTSTART;VALUE=DATE'), '20261023');
   assert.equal(field(exhibition, 'DTEND;VALUE=DATE'), '20261026');
+  // CNT-EVENTS' overlay confirms one session (10/31 17:30–22:30), so WEB-EVENTS' E2E-13 export makes it a timed Pacific
+  // event (never an invented time: an event without a confirmed session, like the closing weekend above, stays all-day).
   const halloween = buildEventCalendar(event('san-jose-avenida-altares-2026'));
-  assert.equal(field(halloween, 'DTSTART;VALUE=DATE'), '20261031');
-  assert.equal(field(halloween, 'DTEND;VALUE=DATE'), '20261101');
+  assert.equal(field(halloween, 'DTSTART;TZID=America/Los_Angeles'), '20261031T173000');
+  assert.equal(field(halloween, 'DTEND;TZID=America/Los_Angeles'), '20261031T223000');
   assert.equal(field(halloween, 'TRANSP'), 'TRANSPARENT');
   assert.ok(decodeText(field(halloween, 'DESCRIPTION')).includes(event('san-jose-avenida-altares-2026').officialUrl));
 });

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from '../src/data/event-calendar-dates';
+import { EVENT_DATE_OVERRIDES } from '../src/data/event-calendar-dates';
+import { EVENT_SCHEDULE_NOTES } from '../src/data/event-schedule-notes';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
