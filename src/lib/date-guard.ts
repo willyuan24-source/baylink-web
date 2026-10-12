@@ -6,7 +6,13 @@
  * same size over the prerendered blocks marked with `dateScope()`, and over the boot snapshot SHELL2 keeps on screen
  * while the route settles, until the app renders today's result. Blocks the app renders are never covered.
  *
- * This module is the TypeScript statement of reading-init's rule (tests/date-guard.test.ts runs the script against it)
+ * Scopes nest: a `day` block inside a `weekend` list (the /events travel alerts and its share-card link) is covered on
+ * its own from the next day, while the list itself keeps until Sunday. Known trade-off: inside the 本周末 list, the order
+ * of the cards (photos first, by a photo-age rule that reads only today's year) and the day tabs that drop a past Saturday are not
+ * marked separately — the first is cosmetic, the second is the `weekend` key's Sunday rule. Crawlers and no-JS readers see
+ * the build day until the daily rebuild runs.
+ *
+ * This module is the TypeScript statement of reading-init's rule (tests/date-guard.test.tsx runs the script against it)
  * and the one way a component marks a date block.
  */
 export type DateScope = 'day' | 'weekend';

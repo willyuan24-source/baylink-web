@@ -5,7 +5,7 @@ import fs from 'node:fs';
 import { test } from 'node:test';
 import { JSDOM } from 'jsdom';
 import postcss from 'postcss';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, StaticRouter } from 'react-router-dom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { dateScope, staleScopes, weekendKey } from '../src/lib/date-guard';
@@ -56,31 +56,81 @@ test('reading-init marks the page before the first paint exactly as date-guard s
   assert.equal(staleAt('2026-10-18T20:00:00Z', '2026-10-12', 'https://www.baylink.us/opus-bay'), null, 'the 3D world is left alone');
 });
 
-test('only the prerendered copy of a date block is covered; the blocks the app renders never are', () => {
+/** The guard's rules in source-monitor.css: the selectors that hide a block, draw its skeleton, or drop a nested one. */
+function guardRules() {
   const css = fs.readFileSync('src/features/source-monitor/source-monitor.css', 'utf8');
-  const selectors: string[] = [];
-  postcss.parse(css).walkRules(rule => { if (rule.selector.includes('data-date-stale')) selectors.push(...rule.selectors); });
+  const cover: string[] = [], skeleton: string[] = [], nested: string[] = [];
+  postcss.parse(css).walkRules(rule => {
+    if (!rule.selector.includes('data-date-stale')) return;
+    const declares = (prop: string, value: string) => rule.nodes.some(node => node.type === 'decl' && node.prop === prop && node.value === value);
+    if (declares('visibility', 'hidden')) cover.push(...rule.selectors);
+    else if (declares('content', 'none')) nested.push(...rule.selectors);
+    else if (declares('visibility', 'visible')) skeleton.push(...rule.selectors);
+  });
+  return { cover, skeleton, nested, all: [...cover, ...skeleton, ...nested] };
+}
+
+/** Elements the guard hides on this page, for its current `data-date-stale`. */
+const coveredIn = (doc: Document) => new Set(doc.querySelectorAll(guardRules().cover.join(',')));
+const insideCovered = (node: Element, covered: Set<Element>) => {
+  for (let n: Element | null = node; n; n = n.parentElement) if (covered.has(n)) return true;
+  return false;
+};
+
+test('only the prerendered copy of a date block is covered; the blocks the app renders never are', () => {
+  const { cover, skeleton, nested, all } = guardRules();
   for (const scope of ['weekend', 'day'] as const) {
     for (const wrapper of ['main[data-prerender-path]', '.site-boot-main']) {
-      assert.ok(selectors.includes(`html[data-date-stale~="${scope}"] ${wrapper} [data-date-scope="${scope}"]`), `${scope} under ${wrapper}`);
+      assert.ok(cover.includes(`html[data-date-stale~="${scope}"] ${wrapper} [data-date-scope="${scope}"]`), `${scope} under ${wrapper}`);
+      assert.ok(skeleton.includes(`html[data-date-stale~="${scope}"] ${wrapper} [data-date-scope="${scope}"]::before`), `${scope} skeleton under ${wrapper}`);
     }
   }
-  for (const selector of selectors) assert.match(selector, /main\[data-prerender-path\]|\.site-boot-main/, `${selector} is limited to the prerendered page or its boot snapshot`);
+  assert.equal(skeleton.length, cover.length, 'every covered block draws its skeleton');
+  for (const selector of all) assert.match(selector, /main\[data-prerender-path\]|\.site-boot-main/, `${selector} is limited to the prerendered page or its boot snapshot`);
   // Rendered into a real DOM: the guard's selector reaches the prerendered block and not a fresh app block.
-  const dom = new JSDOM(`<html data-date-stale="day weekend"><body><div id="root"><main data-prerender-path="/events"><div data-date-scope="weekend">old</div></main></div><main id="app"><div data-date-scope="weekend">new</div></main></body></html>`);
-  const covered = (selector: string) => [...dom.window.document.querySelectorAll(selector)].map(node => node.textContent);
-  assert.deepEqual(covered('html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"], html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"]'), ['old']);
+  const dom = new JSDOM('<html data-date-stale="day weekend"><body><div id="root"><main data-prerender-path="/events"><div data-date-scope="weekend">old<p data-date-scope="day">alerts</p></div></main></div><main id="app"><div data-date-scope="weekend">new</div></main></body></html>');
+  const text = (selectors: string[]) => [...dom.window.document.querySelectorAll(selectors.map(item => item.replace('::before', '')).join(','))].map(node => node.firstChild?.textContent);
+  assert.deepEqual(text(cover), ['old', 'alerts']);
+  assert.deepEqual(text(nested), ['alerts'], 'a day block inside a covered weekend list draws no second skeleton');
+  // Monday to Wednesday only the day is stale: the weekend list stays, the day block inside it gets its own skeleton.
+  dom.window.document.documentElement.setAttribute('data-date-stale', 'day');
+  assert.deepEqual(text(cover), ['alerts']);
+  assert.deepEqual(text(nested), []);
 });
 
 test('the events column marks its range line, counts and body: weekend on 本周末, day on every other view', async () => {
   assert.deepEqual(dateScope('weekend'), { 'data-date-scope': 'weekend' });
   const { EventsShell } = await import('../src/features/events/EventsShell');
-  const weekend = renderToStaticMarkup(<MemoryRouter initialEntries={['/events']}><EventsShell today="2026-10-12" /></MemoryRouter>);
-  assert.equal(weekend.match(/data-date-scope="weekend"/g)?.length, 3, 'range line, counts, body');
-  assert.doesNotMatch(weekend, /data-date-scope="day"/);
-  const today = renderToStaticMarkup(<MemoryRouter initialEntries={['/events?when=today']}><EventsShell today="2026-10-12" /></MemoryRouter>);
-  assert.equal(today.match(/data-date-scope="day"/g)?.length, 3);
-  const calendar = renderToStaticMarkup(<MemoryRouter initialEntries={['/calendar']}><EventsShell today="2026-10-12" calendar={day => <p>{day}</p>} /></MemoryRouter>);
-  assert.equal(calendar.match(/data-date-scope="day"/g)?.length, 3, 'the calendar is keyed to the day');
-  assert.ok(calendar.includes('<div data-date-scope="day"><p>2026-10-12</p></div>'), 'the calendar view sits inside the day block');
+  const page = (location: string, calendar?: (day: string) => React.ReactNode) =>
+    new JSDOM(renderToStaticMarkup(<MemoryRouter initialEntries={[location]}><EventsShell today="2026-10-12" calendar={calendar} /></MemoryRouter>)).window.document;
+  const scopes = (doc: Document) => ['.ev-range', '.ev-lede-facts', '.ev-body > div'].map(selector => doc.querySelector(selector)?.getAttribute('data-date-scope'));
+  const weekend = page('/events');
+  assert.deepEqual(scopes(weekend), ['weekend', 'weekend', 'weekend'], 'range line, counts, body');
+  // Inside the 本周末 body, what is keyed to the day: the share-card link (and the travel alerts when there are any).
+  const nestedDay = [...weekend.querySelectorAll('.ev-body [data-date-scope="day"]')];
+  assert.ok(nestedDay.some(node => node.matches('a.ev-end__item[href^="/weekly/"]')), 'the share-card link is a day block');
+  for (const node of nestedDay) assert.ok(node.matches('.ev-alerts, a.ev-end__item'), node.outerHTML.slice(0, 80));
+  assert.deepEqual(scopes(page('/events?when=today')), ['day', 'day', 'day']);
+  const calendar = page('/calendar', day => <p>{day}</p>);
+  assert.deepEqual(scopes(calendar), ['day', 'day', 'day'], 'the calendar is keyed to the day');
+  assert.equal(calendar.querySelector('.ev-body > div[data-date-scope="day"] > p')?.textContent, '2026-10-12', 'the calendar view sits inside the day block');
+});
+
+test('every event and offer on the prerendered home sits in a block the guard covers (WEB-HOME: dateScope() or a covered class)', async () => {
+  // The home prerender (scripts/prerender.tsx) renders HomeDiscovery. A dated item outside every covered block would show
+  // last weekend's (or yesterday's) pick on a later day: this test turns red when a home redesign drops the marks.
+  const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
+  const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2026-10-12" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
+  const doc = new JSDOM(`<!doctype html><html data-date-stale="day weekend"><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
+  const dated = [...doc.querySelectorAll('main a[href]')].filter(link => /^\/(?:events|offers|openings)\/[^/?#]+/.test(link.getAttribute('href') || ''));
+  const events = dated.filter(link => link.getAttribute('href')!.startsWith('/events/'));
+  const offers = dated.filter(link => link.getAttribute('href')!.startsWith('/offers/'));
+  assert.ok(events.length >= 3, 'home lists this weekend’s events');
+  const covered = coveredIn(doc);
+  assert.deepEqual(dated.filter(link => !insideCovered(link, covered)).map(link => link.getAttribute('href')), []);
+  // Monday to Wednesday ("day" only): the 本周末 picks keep, the dated offers are covered.
+  doc.documentElement.setAttribute('data-date-stale', 'day');
+  const dayCovered = coveredIn(doc);
+  assert.deepEqual(events.filter(link => insideCovered(link, dayCovered)).map(link => link.getAttribute('href')), [], 'the 本周末 picks keep all week');
+  assert.deepEqual(offers.filter(link => !insideCovered(link, dayCovered)).map(link => link.getAttribute('href')), [], 'dated offers are keyed to the day');
 });

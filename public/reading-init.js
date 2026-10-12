@@ -6,6 +6,7 @@
  * CW-02: a page prerendered for another Pacific day (<html data-built-for>) is marked data-date-stale="day[ weekend]", so its
  * date blocks show a skeleton until the app renders today's result (src/lib/date-guard.ts states the same rule). week():
  * the 本周末 a day shows, Monday–Friday the coming Saturday's, Saturday and Sunday their own (the list drops past days).
+ * Today's Pacific day comes from the sv-SE format (YYYY-MM-DD); any other shape leaves the page as built.
  * Keys and URL parameters match src/i18n/locale.ts (LOCALE_KEY) and src/lib/reading-preferences.ts. */
 (function (d, w) {
   var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, lang, size, simple, built, today;
@@ -24,8 +25,7 @@
   function week(day) { var x = new Date(day + 'T12:00:00Z'), n = x.getUTCDay(); x.setUTCDate(x.getUTCDate() + (n % 6 && 6 - n)); return x.toISOString().slice(0, 10); }
   try {
     built = root.getAttribute('data-built-for');
-    today = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-    today = today.slice(6, 10) + '-' + today.slice(0, 2) + '-' + today.slice(3, 5);
+    today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Los_Angeles' }).format(new Date());
     if (/^(\d{4}-\d\d-\d\d){2}$/.test(built + today) && built !== today) root.setAttribute('data-date-stale', week(built) === week(today) ? 'day' : 'day weekend');
   } catch (e) { /* no time-zone support: the page stays as built */ }
 })(document, window);
