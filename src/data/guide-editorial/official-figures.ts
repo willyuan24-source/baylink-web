@@ -14,6 +14,8 @@ const NATURALIZATION = 'bay-area-naturalization-official-path-guide';
 const DRIVER = 'california-driver-license-id-preparation-guide';
 const DENTAL = 'bay-area-dental-care-insurance-low-cost-guide';
 const SENIOR = 'bay-area-chinese-senior-services-referral-guide';
+const NEWCOMER = 'bay-area-newcomer-first-month-checklist';
+const RENTAL_SCAM = 'bay-area-rental-scam-guide';
 
 export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
   { slug: VITA, figure: '$70,244', url: 'https://www.irs.gov/individuals/free-tax-return-preparation-for-qualifying-taxpayers', readOn: '2026-10-12',
@@ -80,4 +82,14 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: 'No Fees: This program is free. Donations are always welcome. Office Hours Monday – Friday 9:00 a.m. to 3:00 p.m.' },
   { slug: SENIOR, figure: '12 个月', url: 'https://www.selfhelpelderly.org/our-services/health-and-home-care/senior-care/adult-day-services', readOn: '2026-10-12',
     quote: 'Proof of tuberculosis clearance within the past 12 months is also a requirement.' },
+  { slug: NEWCOMER, figure: '3 周', url: 'https://www.ssa.gov/ssnvisa/whatyou_need.htm', readOn: '2026-10-12',
+    quote: "If you don't receive your card within 3 weeks of being admitted to the U.S., go into the nearest Social Security office or Card Center with proof of age, identity and employment authorization" },
+  { slug: NEWCOMER, figure: '5 到 10 个工作日', url: 'https://www.ssa.gov/number-card/request-number-first-time', readOn: '2026-10-12',
+    quote: "If you’re in the U.S., you can apply online, then go to a local Social Security office to provide your documentation. Once your application is approved, you’ll receive a Social Security card with your number on it by mail in 5 to 10 business days." },
+  { slug: NEWCOMER, figure: '11 月 1 日到次年 1 月 31 日', url: 'https://www.coveredca.com/enrollment/open-enrollment', readOn: '2026-10-12',
+    quote: 'It lasts from Nov. 1 to Jan. 31. … Enroll by Dec. 31 for a health plan that starts Jan. 1. … This period usually lasts 60 days from the date of the event.' },
+  { slug: NEWCOMER, figure: '800-300-1533', url: 'https://www.coveredca.com/support/contact-us/', readOn: '2026-10-12',
+    quote: '粵語 (Cantonese)(800) 339-8938 … 國語 (Mandarin)(800) 300-1533' },
+  { slug: RENTAL_SCAM, figure: '一个月房租', url: 'https://oag.ca.gov/news/press-releases/attorney-general-bonta-issues-consumer-alerts-guidance-protect-california', readOn: '2026-10-12',
+    quote: 'After July 1, 2024, for most landlords, the security deposit is limited to one month’s rent.' },
 ];
