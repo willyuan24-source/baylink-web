@@ -49,7 +49,8 @@ import './tokens.css'
 import './editorial-refinement.css'
 import './components/local-discovery-detail.css'
 import { pathLanguage, unprefixedPath } from './lib/language-path'
-import { captureBootMain } from './app/boot-main'
+import { captureBootMain, hasBootMain } from './app/boot-main'
+import { bootApp, showBootRetryBar } from './app/boot'
 installChunkRecovery()
 import { installProductObserver } from './lib/product-observer'
 import ErrorBoundary from './components/ErrorBoundary.tsx'
@@ -66,42 +67,16 @@ const renderApp = () => createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-/**
- * REG+2: a boot step failed (the page's code or its language did not load). The page must never look ready while doing
- * nothing, so a 16 px bar says so and offers a reload, in the URL's language (the dictionary may be what failed).
- */
-const showBootRetryBar = () => {
-  if (document.querySelector('.site-boot-retry')) return
-  const words = { 'zh-Hans': ['部分功能没加载完', '重试'], 'zh-Hant': ['部分功能沒載入完', '重試'], en: ['Some features did not load', 'Retry'] }[pathLanguage(window.location.pathname)]
-  const bar = document.createElement('div')
-  bar.className = 'site-boot-retry'
-  bar.setAttribute('role', 'alert')
-  const text = document.createElement('span')
-  text.textContent = words[0]
-  const retry = document.createElement('button')
-  retry.type = 'button'
-  retry.textContent = words[1]
-  retry.addEventListener('click', () => window.location.reload())
-  bar.append(text, retry)
-  document.body.append(bar)
-}
-
-const path = unprefixedPath(window.location.pathname)
-const loadPage: () => Promise<unknown> = currentPageLoader(path)
 // The prerendered <main> stays on screen until the app's page renders (no blank frame at the swap).
 captureBootMain()
-void Promise.allSettled([initializeLocale(), loadPage()]).then(async ([language, page]) => {
-  installProductObserver()
-  // One more try for the page's code after a brief network drop or a deploy swapping files.
-  const pageReady = page.status === 'fulfilled' || await new Promise(resolve => setTimeout(resolve, 1500)).then(() => loadPage()).then(() => true, () => false)
-  if (pageReady) {
-    // A dictionary that did not load leaves the page in 简体 (the app still works); say so.
-    renderApp()
-    if (language.status === 'rejected') showBootRetryBar()
-    return
-  }
-  // The page's code is unreachable (offline?): keep the useful prerendered page and offer a reload; with nothing
-  // prerendered, render the app, which shows its own loading and error states.
-  if (!document.getElementById('root')?.hasChildNodes()) renderApp()
-  showBootRetryBar()
+// REG+2: if the page's code or its dictionary does not load, the reader keeps a readable page and gets the retry bar (boot.ts).
+void bootApp({
+  locale: initializeLocale(),
+  loadPage: currentPageLoader(unprefixedPath(window.location.pathname)),
+  renderApp,
+  showRetryBar: () => showBootRetryBar(),
+  language: pathLanguage(window.location.pathname),
+  prerendered: hasBootMain(),
+  rootHasContent: () => Boolean(document.getElementById('root')?.hasChildNodes()),
+  onSettled: installProductObserver,
 })

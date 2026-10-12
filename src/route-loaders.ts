@@ -2,7 +2,8 @@ import { matchRoute, type PageKey } from './app/route-table';
 import { settleChunk } from './lib/chunk-recovery';
 
 /** Shared promises let startup load the current page before replacing its prerendered content. settleChunk (WEB-SHELL2,
- * REG-15): a page chunk lost to a newer deploy waits for the recovery reload instead of reaching the error page. */
+ * REG-15): a page chunk lost to a newer deploy waits for the recovery reload instead of reaching the error page. A loader
+ * that picks a named export settles the module before picking (the pick would throw on `undefined` first). */
 const cached = <T,>(load: () => Promise<T>) => {
   let promise: Promise<T> | undefined;
   return () => promise ||= load().then(settleChunk).catch(error => { promise = undefined; throw error; });
@@ -28,9 +29,9 @@ export const pageLoaders = {
   about: cached(() => import('./pages/AboutPage')),
   archive: cached(() => import('./pages/ArchivePage')),
   notFound: cached(() => import('./pages/NotFoundPage')),
-  privacy: cached(() => import('./components/PrivacyPolicyView').then(m => ({ default: m.PrivacyPolicyView }))),
-  terms: cached(() => import('./components/TermsView').then(m => ({ default: m.TermsView }))),
-  sms: cached(() => import('./components/SmsConsentView').then(m => ({ default: m.SmsConsentView }))),
+  privacy: cached(() => import('./components/PrivacyPolicyView').then(settleChunk).then(m => ({ default: m.PrivacyPolicyView }))),
+  terms: cached(() => import('./components/TermsView').then(settleChunk).then(m => ({ default: m.TermsView }))),
+  sms: cached(() => import('./components/SmsConsentView').then(settleChunk).then(m => ({ default: m.SmsConsentView }))),
   notificationToken: cached(() => import('./pages/NotificationTokenPage')),
   opus: cached(() => import('./opus-bay/OpusBayPage')),
 } satisfies Record<PageKey, unknown>;

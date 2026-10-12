@@ -1,8 +1,8 @@
 // Everything AppLayout shows over the page (WEB-SHELL2, split out of AppLayout): the toast, confirmations, search, BayBay,
 // the sign-in / password / report / block / share dialogs, the post, chat and profile overlays. Every dialog loads on first
 // use (its chunk is not in the shell graph every page downloads) and sits behind a boundary: if its chunk cannot load,
-// the dialog closes with a message instead of taking the page down.
-import { Component, lazy, Suspense, type ComponentProps, type ReactNode, type RefObject } from 'react';
+// the dialog closes with a message instead of taking the page down, and the next time it is opened it loads again.
+import { Component, Suspense, type ComponentProps, type ReactNode, type RefObject } from 'react';
 import { Loader2 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import type { NavigateFunction } from 'react-router-dom';
@@ -13,28 +13,29 @@ import { Toast, type ToastAction } from '../components/Toast';
 import { LocaleContentGate } from '../components/LocaleContentGate';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
-import { lazyChunk } from '../lib/chunk-recovery';
+import { forgetLostChunks, isChunkLoadFailure, lazyChunk } from '../lib/chunk-recovery';
 import { reportClientError } from '../lib/error-beacon';
 import { api } from '../lib/api';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import type { AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData } from '../lib/types';
 import type { AppContextValue, ShowToast } from './context';
+import { useReopenAfterFailure } from './useReopenAfterFailure';
 
-const QuickExplore = lazy(lazyChunk(() => import('../components/QuickExplore').then(m => ({ default: m.QuickExplore }))));
-const BayBayAssistantEntry = lazy(lazyChunk(() => import('../components/BayBayAssistantEntry').then(m => ({ default: m.BayBayAssistantEntry }))));
-const CreatePostModal = lazy(lazyChunk(() => import('../features/posts/CreatePostModal').then(m => ({ default: m.CreatePostModal }))));
-const PostDetailModal = lazy(lazyChunk(() => import('../features/posts/PostDetailModal').then(m => ({ default: m.PostDetailModal }))));
-const UserProfileModal = lazy(lazyChunk(() => import('../features/users/UserProfileModal').then(m => ({ default: m.UserProfileModal }))));
-const ChatView = lazy(lazyChunk(() => import('../features/messages/ChatView').then(m => ({ default: m.ChatView }))));
-const LoginModal = lazy(lazyChunk(() => import('../features/auth/LoginModal').then(m => ({ default: m.LoginModal }))));
-const ForgotPasswordModal = lazy(lazyChunk(() => import('../components/ForgotPasswordModal').then(m => ({ default: m.ForgotPasswordModal }))));
-const ResetPasswordModal = lazy(lazyChunk(() => import('../components/ResetPasswordModal').then(m => ({ default: m.ResetPasswordModal }))));
-const BlockedUsersModal = lazy(lazyChunk(() => import('../components/BlockedUsersModal').then(m => ({ default: m.BlockedUsersModal }))));
-const ReportModal = lazy(lazyChunk(() => import('../components/ReportModal').then(m => ({ default: m.ReportModal }))));
-const PostShareSheet = lazy(lazyChunk(() => import('../components/PostShareSheet').then(m => ({ default: m.PostShareSheet }))));
-const AdDetailModal = lazy(lazyChunk(() => import('../features/ads/OfficialAds').then(m => ({ default: m.AdDetailModal }))));
-const ImageViewer = lazy(lazyChunk(() => import('../components/ImageViewer').then(m => ({ default: m.ImageViewer }))));
-const PostNotFoundView = lazy(lazyChunk(() => import('../components/PostNotFoundView').then(m => ({ default: m.PostNotFoundView }))));
+const QuickExplore = lazyChunk(() => import('../components/QuickExplore'), m => m.QuickExplore);
+const BayBayAssistantEntry = lazyChunk(() => import('../components/BayBayAssistantEntry'), m => m.BayBayAssistantEntry);
+const CreatePostModal = lazyChunk(() => import('../features/posts/CreatePostModal'), m => m.CreatePostModal);
+const PostDetailModal = lazyChunk(() => import('../features/posts/PostDetailModal'), m => m.PostDetailModal);
+const UserProfileModal = lazyChunk(() => import('../features/users/UserProfileModal'), m => m.UserProfileModal);
+const ChatView = lazyChunk(() => import('../features/messages/ChatView'), m => m.ChatView);
+const LoginModal = lazyChunk(() => import('../features/auth/LoginModal'), m => m.LoginModal);
+const ForgotPasswordModal = lazyChunk(() => import('../components/ForgotPasswordModal'), m => m.ForgotPasswordModal);
+const ResetPasswordModal = lazyChunk(() => import('../components/ResetPasswordModal'), m => m.ResetPasswordModal);
+const BlockedUsersModal = lazyChunk(() => import('../components/BlockedUsersModal'), m => m.BlockedUsersModal);
+const ReportModal = lazyChunk(() => import('../components/ReportModal'), m => m.ReportModal);
+const PostShareSheet = lazyChunk(() => import('../components/PostShareSheet'), m => m.PostShareSheet);
+const AdDetailModal = lazyChunk(() => import('../features/ads/OfficialAds'), m => m.AdDetailModal);
+const ImageViewer = lazyChunk(() => import('../components/ImageViewer'), m => m.ImageViewer);
+const PostNotFoundView = lazyChunk(() => import('../components/PostNotFoundView'), m => m.PostNotFoundView);
 
 const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
 
@@ -53,12 +54,20 @@ const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef }: { label: 
 
 /**
  * Contains a dialog whose chunk failed twice (offline, a stale deploy) or that crashed: close it and say so, keep the
- * page. Reported like the root boundary (the beacon files a lost chunk as `chunk`, anything else as `render`).
+ * page. Reported like the root boundary (`chunk` for code that did not load, anything else `render`; the beacon also
+ * files a crash whose message is a chunk failure as `chunk`). The lost chunk is forgotten here, so opening the dialog
+ * again loads it again (React.lazy alone keeps the failure until the page reloads). The host unmounts the boundary (or
+ * changes its key) to try again; a failed boundary renders nothing.
  */
-export class OverlayBoundary extends Component<{ onFail: () => void; children: ReactNode }, { failed: boolean }> {
+export class OverlayBoundary extends Component<{ onFail: (lostChunk: boolean) => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(error: Error) { reportClientError('render', error); this.props.onFail(); }
+  componentDidCatch(error: Error) {
+    const lostChunk = isChunkLoadFailure(error);
+    reportClientError(lostChunk ? 'chunk' : 'render', error);
+    forgetLostChunks();
+    this.props.onFail(lostChunk);
+  }
   render() { return this.state.failed ? null : this.props.children; }
 }
 
@@ -101,9 +110,16 @@ export function OverlayHost(props: OverlayHostProps) {
   const { user, showToast, blockedUserIds, post, chat, profile, baybay, search } = props;
   const locale = useLocale();
   const t = (zh: string, en: string) => copy(locale, zh, en);
-  const unavailable = (close: () => void) => () => { close(); showToast(t('暂时打不开，请检查网络后重试。', 'This could not open. Check your connection and try again.'), 'error'); };
-  const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <OverlayChunkFallback />) =>
-    <OverlayBoundary onFail={unavailable(close)}><Suspense fallback={fallback}>{node}</Suspense></OverlayBoundary>;
+  // Opening it again loads it again (OverlayBoundary forgets the lost chunk). Online, code that would not load is most
+  // likely from an older deploy, so the toast also offers a reload.
+  const unavailable = (close: () => void) => (lostChunk: boolean) => {
+    close();
+    showToast(t('暂时打不开，请检查网络后重试。', 'This could not open. Check your connection and try again.'), 'error',
+      lostChunk && navigator.onLine ? { label: t('重新加载', 'Reload'), onClick: () => window.location.reload() } : undefined);
+  };
+  const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <OverlayChunkFallback />, options: { key?: string; onFail?: () => void } = {}) =>
+    <OverlayBoundary key={options.key} onFail={lostChunk => { options.onFail?.(); unavailable(close)(lostChunk); }}><Suspense fallback={fallback}>{node}</Suspense></OverlayBoundary>;
+  const baybayAttempt = useReopenAfterFailure(baybay.open);
   const postClose = () => post.close(post.selected);
 
   return <>
@@ -114,7 +130,7 @@ export function OverlayHost(props: OverlayHostProps) {
     {search.open && lazyDialog(search.close, <LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={search.query} restoreFocusRef={search.openerRef} onClose={search.close} onNavigate={props.navigate} onSearch={search.onSearch} onAsk={search.onAsk} /></LocaleContentGate>,
       <DismissibleChunkFallback label={t('正在打开搜索…', 'Opening search…')} onClose={search.close} restoreFocusRef={search.openerRef} />)}
 
-    {(baybay.open || baybay.loaded) && lazyDialog(() => baybay.onOpenChange(false), <LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
+    {(baybay.open || (baybay.loaded && !baybayAttempt.failed)) && lazyDialog(() => baybay.onOpenChange(false), <LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
       key={baybay.scope}
       ownerId={user?.id}
       sessionKey={baybay.sessionKey}
@@ -133,7 +149,8 @@ export function OverlayHost(props: OverlayHostProps) {
       blockedUserIds={blockedUserIds}
       onNavigate={props.navigate}
       onCreatePostClick={baybay.onCreatePost}
-    /></LocaleContentGate>, baybay.open ? <DismissibleChunkFallback label={t('正在打开 BayBay…', 'Opening BayBay…')} onClose={() => baybay.onOpenChange(false)} restoreFocusRef={baybay.openerRef} /> : null)}
+    /></LocaleContentGate>, baybay.open ? <DismissibleChunkFallback label={t('正在打开 BayBay…', 'Opening BayBay…')} onClose={() => baybay.onOpenChange(false)} restoreFocusRef={baybay.openerRef} /> : null,
+    { key: baybayAttempt.key, onFail: baybayAttempt.fail })}
 
     {props.login.open && lazyDialog(props.login.close, <LoginModal onClose={props.login.close} onLogin={props.login.onLogin} showToast={showToast} onForgotPassword={props.login.onForgotPassword} />)}
     {props.forgotPassword.open && lazyDialog(props.forgotPassword.close, <ForgotPasswordModal isOpen onClose={props.forgotPassword.close} onSubmit={(email) => api.forgotPassword(email)} />)}
