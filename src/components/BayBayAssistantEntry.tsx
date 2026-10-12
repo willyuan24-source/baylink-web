@@ -165,7 +165,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     scrolledTurn.current = { id: latest.id, state: latest.state };
   }, [open, turns]);
 
-  const askBayBay = useCallback((text: string, askedPath = contextPath, keepConversation = false): boolean => {
+  const askBayBay = useCallback((text: string, askedPath = contextPath, keepConversation = false, mode: BayBaySearchMode = effectiveSearchMode): boolean => {
     const message = text.trim();
     if (message.length < 2 || message.length > 500 || activeRequest.current) return false;
     // After ✕ the dismissed page goes with nothing: not with follow-ups, retries or plan answers of turns asked on it either.
@@ -189,7 +189,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     recordProductEvent('baybay_ask');
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
     setQuestion('');
-    void fetchBayBayReply(message, { currentPath: requestPath, searchMode: effectiveSearchMode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
+    void fetchBayBayReply(message, { currentPath: requestPath, searchMode: mode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
       if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id && turn.state === 'pending' ? { ...turn, progress } : turn));
     }, {
       onCards: cards => { if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id ? { ...turn, quickCards: cards } : turn)); },
@@ -370,7 +370,10 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
               <div className="baybay-user-question"><span>你</span><p translate="no">{turn.question}</p></div>
               {turn.state === 'pending' && <p role="status" className="baybay-thinking" translate="no"><Loader2 size={15} className="animate-spin" />{turn.progress ? <span>{({ site: copy('站内资料', 'Site information'), research: copy('问题分析与检索', 'Analysis and research'), sources: copy('来源阅读', 'Source review'), routes: copy('路线估算', 'Route estimates'), answer: copy('答复整理', 'Answer preparation') })[turn.progress.phase]}{turn.progress.status === 'running' ? copy('处理中…', ' in progress…') : copy('阶段结束，正在等待结果…', ' stage ended; waiting for the result…')}</span> : copy('正在等待答复；完成后会显示本次来源。', 'Waiting for the answer; sources will appear when it is ready.')}</p>}
               {turn.state === 'pending' && <BayBayDraftPreview lead={turn.draftLead || ''} legacy={turn.partialAnswer} points={turn.draftPoints || []} cards={turn.quickCards} today={today} onNavigate={navigate} />}
-              {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error" data-error-code={turn.errorCode}><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.errorCode && BAYBAY_QUOTA_ERRORS[turn.errorCode]?.daily
+              {(turn.state === 'error' || turn.state === 'cancelled') && <div className="baybay-request-error" data-error-code={turn.errorCode}><p role={turn.state === 'error' ? 'alert' : undefined}>{turn.state === 'cancelled' ? '已停止。问题保留在这里，随时可以重试。' : turn.error}</p>{turn.errorCode && BAYBAY_QUOTA_ERRORS[turn.errorCode]?.siteRetry
+                // Web lookups are paused for the day: the same question works site only, and the box stays on 仅站内 after.
+                ? <button type="button" disabled={loading} onClick={() => { setSearchMode('site'); askBayBay(turn.question, turn.currentPath, false, 'site'); }} translate="no"><RotateCcw size={13} />{copy('仅站内重试', 'Retry with site only')}</button>
+                : turn.errorCode && BAYBAY_QUOTA_ERRORS[turn.errorCode]?.daily
                 // Today's AI answers are used up: a retry cannot work until tomorrow, the site's own pages still do.
                 ? <p className="bb-error-links" translate="no"><button type="button" onClick={() => navigate('/events')}>{copy('看本周末活动', 'This weekend’s events')}</button><button type="button" onClick={() => navigate('/guides')}>{copy('查办事指南', 'Browse guides')}</button></p>
                 : turn.restartRequired ?<button type="button" disabled={loading} onClick={() => { const draft = turn.restartAssistant ? (bayBayTaskBrief(turns) || turn.question).slice(0, 500) : copy('我想找搭子一起去。', 'I want to find people to go with.'); stop(); updateTurns(() => []); setQuestion(draft); inputRef.current?.focus(); }} translate="no"><RotateCcw size={13}/>{turn.restartAssistant ? copy('重新开始对话', 'Start a new conversation') : copy('重新开始查找', 'Start a new search')}</button> : <button type="button" disabled={loading} onClick={() => askBayBay(turn.question, turn.currentPath)}><RotateCcw size={13} />重试这个问题</button>}</div>}

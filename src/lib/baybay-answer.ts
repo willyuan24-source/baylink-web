@@ -178,12 +178,13 @@ export function parseBayBayCapabilities(input: unknown, now = Date.now()): BayBa
 
 /**
  * The governance refusals in the reader's language (api `lib/aiBudget.js`; BBENG-04, CODE-API-05), so a quota message
- * never depends on the server's copy or an older server: `daily` ones cannot be retried today.
+ * never depends on the server's copy or an older server: `daily` ones cannot be retried as asked today (api
+ * `DAILY_REFUSALS`); `siteRetry` ones refuse only the web lookup, so the same question can be asked again site only.
  */
-export const BAYBAY_QUOTA_ERRORS: Record<string, { zh: string; en: string; daily: boolean }> = {
+export const BAYBAY_QUOTA_ERRORS: Record<string, { zh: string; en: string; daily: boolean; siteRetry?: boolean }> = {
   AI_DAILY_LIMIT: { zh: '今日 AI 额度已用完，请明天再试；仍可浏览站内资料。', en: "You have used today's AI answers. Please try again tomorrow; site information is still available.", daily: true },
   AI_DAILY_BUDGET: { zh: '今日 AI 名额已满，明天会恢复；站内资料仍可浏览。', en: "Today's AI capacity is used up and resets tomorrow. Site information is still available.", daily: true },
-  AI_WEB_BUDGET: { zh: '今天 AI 用量较高，暂停联网查询；站内资料仍可使用。', en: 'Web lookups are paused for today because AI use is high. Site information is still available.', daily: false },
+  AI_WEB_BUDGET: { zh: '今天 AI 用量较高，暂停联网查询；站内资料仍可使用。', en: 'Web lookups are paused for today because AI use is high. Site information is still available.', daily: true, siteRetry: true },
   AI_CONCURRENCY_LIMIT: { zh: 'BayBay 正忙，请稍后再试。', en: 'BayBay is busy. Please try again shortly.', daily: false },
   AI_QUOTA_UNAVAILABLE: { zh: 'AI 额度暂时无法确认，请稍后再试；站内资料仍可浏览。', en: 'AI capacity cannot be checked right now. Please try again shortly; site information is still available.', daily: false },
 };

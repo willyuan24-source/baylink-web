@@ -86,7 +86,7 @@ function SourceList({ sources, response, onNavigate, siteLabel }: { sources: Sou
  * official sources. Notices a reader must act on (web limits, failed checks) stay visible above it.
  */
 export function BayBaySources({ response, guest = false, currentPath, onNavigate }: { response: GuideChatResponse; guest?: boolean; currentPath?: string; onNavigate?: Navigate }) {
-  const t = useCopy();
+  const t = useCopy(), locale = useLocale();
   const { line, notes } = retrievalSummary(response, guest, t);
   const assistant = response.responseMode === 'assistant' ? bayBayAssistantResult(response) : null;
   const catalogResult = bayBayCatalogResult(response), catalog = catalogResult?.sources.length ? catalogResult : null;
@@ -110,11 +110,13 @@ export function BayBaySources({ response, guest = false, currentPath, onNavigate
       {supplements.length > 0 && <section aria-label={t('联网补充来源', 'Supplementary web sources')}><h4>{t('联网补充来源 · 日期、场次及票价待核实', 'Supplementary web sources · Dates, sessions and prices unverified')}</h4>
         <ul className="bb-sources__list">{supplements.map(source => <li key={`${source.number}:${source.url}`}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{hostOf(source.url)}</small></a></li>)}</ul>
         {webDate && <p className="baybay-discovery-note">{t(`联网查询日期 ${webDate}（湾区时间）`, `Web lookup date ${webDate} (Bay Area time)`)}</p>}</section>}
+      {/* The block is translate="no", so the site's own guide titles and their source names are translated here, as the
+          JSX runtime did when the guides sat outside it. */}
       {guides.length > 0 && <div className="baybay-references"><h4>{t('相关攻略', 'Related guides')}</h4><small className="bb-references-note">{t('以下是站内指南列出的参考资料，不表示已实时核验。', 'These are the references the site guides list; they have not been checked live.')}</small>
         {guides.map(guide => <div key={guide.slug} className="bb-reference">
           {guide.slug === reading?.slug && <small>{t('提问时阅读的指南', 'The guide you were reading')}</small>}
-          <button type="button" onClick={() => onNavigate?.(`/guides/${guide.slug}`)}><span className="bb-reference__mark" aria-hidden="true"><BookOpen size={18} /></span><span>{guide.title}</span><ChevronRight size={16} /></button>
-          {bayBayGuideSources(guide).length > 0 && <details><summary>{t('查看原文来源', 'Original sources')}</summary><ul>{bayBayGuideSources(guide).map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}</a></li>)}</ul></details>}
+          <button type="button" onClick={() => onNavigate?.(`/guides/${guide.slug}`)}><span className="bb-reference__mark" aria-hidden="true"><BookOpen size={18} /></span><span>{translateText(guide.title, locale)}</span><ChevronRight size={16} /></button>
+          {bayBayGuideSources(guide).length > 0 && <details><summary>{t('查看原文来源', 'Original sources')}</summary><ul>{bayBayGuideSources(guide).map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{translateText(source.title, locale)}</a></li>)}</ul></details>}
         </div>)}</div>}
     </details> : line && <p className="bb-sources__line"><Globe2 aria-hidden="true" size={16} /><span>{line}</span></p>}
   </section>;

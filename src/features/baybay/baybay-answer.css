@@ -102,6 +102,8 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 
 /* Tap-to-call numbers in answers, notices, plan notes and safety cards (G27): ELDERS' chip at the text's own size */
 .baybay-conversation .phone-chip { min-width:0; min-height:0; font-size:inherit; }
+/* A closing mark kept beside the chip (「911。」) follows the number without a pill's worth of gap */
+.baybay-conversation .phone-chip-keep > .phone-chip { padding-inline-end:.15em; }
 .baybay-conversation .bb-emergency .phone-chip { background:var(--color-surface); color:var(--color-danger); }
 
 /* Today's AI answers are used up: the site's own pages instead of a retry that cannot work */

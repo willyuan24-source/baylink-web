@@ -22,7 +22,8 @@ const { parseBayBayCapabilities, bayBayScheduledPauseBanner } = await import('..
 const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
 const { bayBayCardModels } = await import('../src/features/baybay/answer-cards');
 const { resetSaveStore, savesKey } = await import('../src/lib/saves');
-const { setLocale } = await import('../src/i18n/locale');
+const { setLocale, translateText } = await import('../src/i18n/locale');
+const { guides } = await import('../src/data/guides');
 const { setReadingSize, setSimpleDisplay } = await import('../src/lib/reading-preferences');
 await (await import('../src/features/baybay/cards-loader')).loadBayBayCards();
 afterEach(async () => { cleanup(); localStorage.clear(); resetSaveStore(); await setLocale('zh-Hans', false); });
@@ -132,6 +133,23 @@ test('phone numbers in answers are tap-to-call, citations stay links, and one so
   assert.doesNotMatch(turn.textContent || '', /未记录/);
 });
 
+test('related guides inside the sources block read in the reader’s language, with their own sources (translate="no" block)', async () => {
+  const guide = guides.find(item => item.slug === 'bay-area-without-car-guide')!;
+  const response = { ok: true, answer: 'x', responseMode: 'assistant', retrieval: { requestedMode: 'site', scope: 'site', webStatus: 'not_requested' },
+    suggestedGuides: [{ title: guide.title, slug: guide.slug, url: `/guides/${guide.slug}` }] } as const;
+  const rowOf = (view: ReturnType<typeof render>) => view.container.querySelector('.bb-reference button span:not(.bb-reference__mark)')?.textContent;
+  const view = render(<BayBaySources response={response} />);
+  assert.equal(rowOf(view), guide.title);
+  await act(async () => { await setLocale('en', false); });
+  assert.equal(rowOf(view), 'Bay Area life without a car: Plan BART, Caltrain, buses, rides, and groceries');
+  const sourceNames = [...view.container.querySelectorAll('.bb-reference details a')].map(link => link.textContent);
+  assert.ok(sourceNames.length > 0);
+  assert.deepEqual(sourceNames, guide.sources.map(source => translateText(source.title, 'en')).slice(0, sourceNames.length), 'the guide’s own source names are translated too');
+  await act(async () => { await setLocale('zh-Hant', false); });
+  assert.equal(rowOf(view), translateText(guide.title, 'zh-Hant'));
+  assert.match(rowOf(view) || '', /^灣區沒有車怎麼生活/);
+});
+
 test('legacy answers, the 911 card text, English answers and safety cards link their numbers too', async t => {
   const { view } = await ask(t, { ok: true, answer: '可以拨打 Santa Clara 县长者热线 408-350-3200，或先打 211。' });
   await view.findByText(/长者热线/);
@@ -214,6 +232,31 @@ test('quota refusals read in the reader’s language; a daily limit offers the s
   const busy = await ask(t, { ok: false, code: 'AI_CONCURRENCY_LIMIT', error: 'BayBay 正忙，请稍后再试。' }, 429);
   assert.equal((await busy.view.findByRole('alert')).textContent, 'BayBay is busy. Please try again shortly.');
   assert.ok(busy.view.getByRole('button', { name: /Retry/ }), 'a busy BayBay can be asked again');
+});
+
+test('web lookups paused for the day: the question is asked again site only, and the box stays on 仅站内 (AI_WEB_BUDGET)', async t => {
+  const modes: string[] = [];
+  mockBayBayFetch(t, async (_url: unknown, init?: RequestInit) => {
+    modes.push(JSON.parse(String(init?.body)).searchMode);
+    return modes.length === 1 ? Response.json({ ok: false, code: 'AI_WEB_BUDGET', error: '今天 AI 用量较高，暂停联网查询；站内资料仍可使用。' }, { status: 429 })
+      : Response.json({ ok: true, answer: '站内答复' });
+  });
+  localStorage.setItem('currentUser', JSON.stringify({ id: 'member', token: 'session-token' }));
+  const view = render(<BayBayAssistantEntry {...props} ownerId="member" sessionKey="member" pendingQuestion="这周末有什么免费活动？" pendingQuestionId={2} />);
+  const alert = await view.findByRole('alert');
+  assert.match(alert.textContent || '', /^今天 AI 用量较高，暂停联网查询/);
+  const box = alert.closest('.baybay-request-error') as HTMLElement;
+  assert.ok(!within(box).queryByRole('button', { name: '重试这个问题' }), 'no retry that would hit the same pause');
+  await act(async () => { fireEvent.click(within(box).getByRole('button', { name: '仅站内重试' })); });
+  await view.findByText('站内答复');
+  assert.deepEqual(modes, ['smart', 'site']);
+  assert.equal(view.getByRole('button', { name: '仅站内', exact: true }).getAttribute('aria-pressed'), 'true', 'the next question stays site only');
+  cleanup();
+  await setLocale('en', false);
+  modes.length = 0;
+  const english = render(<BayBayAssistantEntry {...props} ownerId="member" sessionKey="member" pendingQuestion="Free events this weekend?" pendingQuestionId={3} />);
+  assert.equal((await english.findByRole('alert')).textContent, 'Web lookups are paused for today because AI use is high. Site information is still available.');
+  assert.ok(english.getByRole('button', { name: 'Retry with site only' }));
 });
 
 test('offer, opening and guide cards save with the same ♡ as event cards, through the one save model', async () => {
