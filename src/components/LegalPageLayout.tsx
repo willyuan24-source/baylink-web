@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { useLocale } from '../i18n/locale';
+import { translateText, useLocale } from '../i18n/locale';
 import { useLegalCopy } from './legal-copy';
 import { PageContainer, PageHeader } from './ui/HeroCard';
 import './legal-page.css';
@@ -55,5 +55,11 @@ export function ZhOnly({ children }: { children: ReactNode }) {
   return useLocale() === 'en' ? null : <>{children}</>;
 }
 
-/** A Chinese UI label quoted inside English text ("发送验证码 / Send verification code"): marked as Chinese, never translated. */
-export const ZhLabel = ({ children }: { children: string }) => <span lang="zh-Hans" translate="no">{children}</span>;
+/**
+ * A Chinese UI label quoted inside English text ("发送验证码 / Send verification code"). English pages mark it as Chinese and
+ * keep it from being machine-translated; Chinese pages show it as the button reads in their script (zh-Hant: 發送驗證碼).
+ */
+export function ZhLabel({ children }: { children: string }) {
+  const locale = useLocale();
+  return locale === 'en' ? <span lang="zh-Hans" translate="no">{children}</span> : <>{translateText(children, locale)}</>;
+}
