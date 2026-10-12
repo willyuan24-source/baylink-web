@@ -17,11 +17,11 @@ const { BayBaySaveScope } = await import('../src/features/baybay/BayBaySaveScope
 const { parseBayBayAnswerFields, parseBayBayCapabilities, bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayResumeStyle, bayBayTextUnits } = await import('../src/lib/baybay-answer');
 const { bayBayCardCitations, bayBayCardModels } = await import('../src/features/baybay/answer-cards');
 const { bayBayPageRef } = await import('../src/features/baybay/panel-chips');
-const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
+const { resetSaveStore, savesKey } = await import('../src/lib/saves');
 const { setLocale } = await import('../src/i18n/locale');
 // The image cards are their own chunk (loaded when the panel opens); load it before rendering restored answers.
 await (await import('../src/features/baybay/cards-loader')).loadBayBayCards();
-afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
+afterEach(async () => { cleanup(); localStorage.clear(); resetSaveStore(); await setLocale('zh-Hans', false); });
 const noop = () => {};
 const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: noop, onNavigate: noop, onCreatePostClick: noop };
 const TODAY = '2026-10-09';
@@ -184,7 +184,8 @@ test('♡ 收藏 saves an event to 我的这周 for a guest in this browser; end
   assert.doesNotMatch(view.baseElement.textContent || '', /想去/);
   fireEvent.click(view.getByRole('button', { name: /^收藏到我的这周：/ }));
   assert.equal((await view.findByRole('button', { name: /^已收藏到我的这周：/ })).textContent, '已收藏');
-  assert.match(localStorage.getItem(GUEST_PLANNER_KEY) || '', /santa-clara-library-comic-con-2026/);
+  // Planner favorites write the one save model since WEB-SAVES: a guest's saves live in its guest list.
+  assert.match(localStorage.getItem(savesKey()) || '', /santa-clara-library-comic-con-2026/);
   view.rerender(<BayBaySaveScope active><BayBayCardRail cards={[{ ...card, date: undefined, temporalStatus: 'past' } as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
   assert.ok(view.getByText('已结束 · 仅供参考'));
   assert.equal(view.queryByRole('button', { name: /加入行程/ }), null);
