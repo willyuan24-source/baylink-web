@@ -14,7 +14,7 @@ const globals = {
 };
 const previous = new Map(Object.keys(globals).map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
 for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
-const { render, cleanup, act } = await import('@testing-library/react');
+const { render, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
@@ -71,7 +71,7 @@ test('details with no future confirmed sessions hide plan and calendar actions e
   }
 });
 
-test('My Week excludes gaps covering the entire week and links only to a confirmed future day', async () => {
+test('My Week excludes gaps covering the entire week and plans only a confirmed future day', async () => {
   MONTHLY_EVENTS.splice(0, MONTHLY_EVENTS.length,
     fixture('next-week-only', ['2026-09-26', '2026-10-10']),
     fixture('no-confirmed-days', []),
@@ -81,10 +81,15 @@ test('My Week excludes gaps covering the entire week and links only to a confirm
   );
   let view!: ReturnType<typeof render>;
   await act(async () => { view = render(<MemoryRouter><MyWeekPage /></MemoryRouter>); });
-  const cards = [...view.container.querySelectorAll('.week-event-card')];
-  assert.deepEqual(cards.map(card => card.querySelector('h3')?.textContent), ['continuous-program', 'this-week-sessions']);
-  assert.deepEqual(cards.map(card => card.querySelector('a[href^="/plan?"]')?.getAttribute('href')), [
-    '/plan?stops=event:continuous-program&date=2026-09-27',
-    '/plan?stops=event:this-week-sessions&date=2026-09-29',
-  ]);
+  const rows = [...view.getByTestId('my-week-events').querySelectorAll('ul > li')];
+  assert.deepEqual(rows.map(row => row.querySelector('h3')?.textContent), ['continuous-program', 'this-week-sessions']);
+  assert.deepEqual(rows.map(row => row.querySelector('time')?.getAttribute('datetime')), ['2026-09-27', '2026-09-29']);
+  // 加入这天计划 saves that confirmed day, never the start of the wider range.
+  // The button loads on its own; a disabled copy holds its place until then.
+  const add = () => rows[1].querySelector('button[aria-label^="加入这天计划"]') as HTMLButtonElement;
+  await waitFor(() => assert.equal(add().disabled, false));
+  await act(async () => { add().click(); });
+  const plan = JSON.parse(localStorage.getItem('baylink.planner.guest.v1')!).plans[0];
+  assert.equal(plan.date, '2026-09-29');
+  assert.deepEqual(plan.stops, [{ kind: 'event', id: 'this-week-sessions' }]);
 });

@@ -70,7 +70,7 @@ test('expired and unconfirmed event details preserve archives and official acces
 test('confirmed future sessions retain saving and planning, while an empty future catalog offers no invented next event', () => {
   const event = fixture('audit-confirmed-detail');
   const upcoming = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event }} today="2026-10-06" /></StaticRouter>));
-  assert.ok(upcoming.querySelector('.discovery-detail-more-actions .planner-launch-links'));
+  assert.ok([...upcoming.querySelectorAll('.discovery-detail-more-actions button')].some(button => button.textContent === '收藏'), 'the one ♡ save control');
   assert.ok(upcoming.querySelector('.discovery-detail-more-actions button.discovery-secondary'));
   assert.ok(upcoming.querySelector('a[href="/plan?stops=event:audit-confirmed-detail&date=2026-10-10"]'));
   const empty = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event }} today="2027-01-01" /></StaticRouter>));

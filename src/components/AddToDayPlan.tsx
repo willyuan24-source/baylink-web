@@ -1,0 +1,38 @@
+import { lazy, Suspense } from 'react';
+import { CalendarPlus } from 'lucide-react';
+import type { Stop } from '../lib/planner';
+import { translateText, useLocale } from '../i18n/locale';
+import { addToDayName } from '../features/saves/add-to-day-name';
+
+export type AddToDayPlanProps = {
+  stop: Stop;
+  date: string;
+  /** The item's title (catalog source text), read with the button: "加入这天计划：…". */
+  title?: string;
+  compact?: boolean;
+  className?: string;
+  /** The page's Pacific day, when it has one (calendar). */
+  today?: string;
+};
+
+// The control, its confirmation and the planner behind it load on their own (route JS budgets, plan §3.0 rule 8):
+// the calendar shows this button on every card and does not carry them in its route bundle.
+const AddToDayControl = lazy(() => import('../features/saves/AddToDayControl'));
+
+/**
+ * "加入这天计划": saves the stop into that day's plan right away and confirms with "已加入 10/10 计划 · 查看" (plan D19).
+ * The implementation is `features/saves/AddToDayControl`.
+ */
+export function AddToDayPlan(props: AddToDayPlanProps) {
+  return <Suspense fallback={<AddToDayPlaceholder {...props} />}><AddToDayControl {...props} /></Suspense>;
+}
+
+/** The same box as the control while it loads (and in prerendered HTML): a disabled button, so nothing moves when it arrives. */
+function AddToDayPlaceholder({ title, compact, className }: AddToDayPlanProps) {
+  const locale = useLocale();
+  return <span className={['saves-day', className].filter(Boolean).join(' ')}>
+    <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale)} disabled>
+      <CalendarPlus aria-hidden="true" strokeWidth={1.75} />{locale === 'en' ? 'Add to this day’s plan' : translateText('加入这天计划', locale)}
+    </button>
+  </span>;
+}

@@ -9,7 +9,7 @@ import type { usePlannerLibrary } from '../src/lib/planner-library';
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/my-week' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { PlannerAccountNotice } = await import('../src/components/PlannerAccountNotice');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
@@ -18,6 +18,7 @@ const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-library');
 const { PLANNER_PLACES } = await import('../src/data/planner-catalog');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
+const { resetSaveStore } = await import('../src/lib/saves');
 const now = Date.parse('2026-10-16T18:00:00Z');
 const user = { id: 'week-user', token: 'week-token', nickname: 'User', role: 'user', isBanned: false } as UserData;
 const noop = () => {};
@@ -27,8 +28,10 @@ const library = (patch: Partial<ReturnType<typeof usePlannerLibrary>> = {}) => (
 }) as ReturnType<typeof usePlannerLibrary>;
 const notice = (props: Partial<React.ComponentProps<typeof PlannerAccountNotice>> = {}) => <MemoryRouter><PlannerAccountNotice library={library()} signedIn variant="week" {...props}/></MemoryRouter>;
 const page = (account: UserData | null = user, login = noop) => <MemoryRouter initialEntries={['/my-week']}><Routes><Route element={<Outlet context={{ user: account, setShowLogin: login } as AppContextValue}/>}><Route path="/my-week" element={<MyWeekPage/>}/></Route></Routes></MemoryRouter>;
-beforeEach(async t => { t.mock.timers.enable({ apis: ['Date'], now }); localStorage.clear(); await setLocale('zh-Hans'); });
+beforeEach(async t => { t.mock.timers.enable({ apis: ['Date'], now }); t.mock.method(globalThis, 'fetch', async () => Response.json({})); localStorage.clear(); resetSaveStore(); await setLocale('zh-Hans'); });
 afterEach(() => cleanup());
+const savedCount = (view: ReturnType<typeof render>) => view.getByTestId('my-week-saved-count').textContent;
+const chips = (view: ReturnType<typeof render>) => [...within(view.getByRole('group', { name: '常去的地区' })).getAllByRole('button'), ...within(view.getByRole('group', { name: '兴趣' })).getAllByRole('button')] as HTMLButtonElement[];
 after(() => dom.window.close());
 
 test('healthy signed-in My Week has no self-link notice while the planner still has its useful library link', () => {
@@ -85,23 +88,22 @@ test('failed account reads do not claim saved plans disappeared and retain impor
     if (path === '/planner/preferences') throw { status: 503 };
     throw new Error(`Unexpected request: ${path}`);
   });
-  const view = render(page()); await view.findByText('暂时不能确认已保存的计划。请使用上方的重试入口。');
-  assert.equal(view.queryByText('第一份计划，从一站开始。'), null);
-  assert.equal(view.container.querySelector('.week-favorites .planner-section-head > span')?.textContent, '—');
+  const view = render(page()); await view.findByRole('heading', { name: '暂时读不到你的行程' });
+  assert.equal(view.queryByText(/还没有安排哪天出门/), null, 'an unread account never claims there are no plans');
+  assert.equal(savedCount(view), '—');
   assert.equal((view.getByRole('combobox', { name: '常用出行方式' }) as HTMLSelectElement).disabled, true);
-  assert.ok([...view.container.querySelectorAll<HTMLButtonElement>('.week-chips button')].every(button => button.disabled));
-  assert.equal(view.queryByText('在出游地图中收藏活动和景点，也可以把本机已收藏攻略加入这里。'), null);
+  assert.ok(chips(view).every(button => button.disabled));
   assert.ok(view.getByRole('button', { name: '重新加载记录' }), 'imported-event errors remain independently recoverable');
   fail = false; fireEvent.click(view.getByRole('button', { name: '刷新账号资料' }));
   await view.findByRole('heading', { name: plan.title });
-  assert.equal(view.queryByText('暂时不能确认已保存的计划。请使用上方的重试入口。'), null);
+  assert.equal(view.queryByRole('heading', { name: '暂时读不到你的行程' }), null);
   assert.equal(view.container.querySelector('.planner-account-compact'), null, 'healthy account notice no longer uses screen space');
   assert.ok(view.getByRole('button', { name: '重新加载记录' }));
-  assert.equal(view.container.querySelector('.week-favorites .planner-section-head > span')?.textContent, '1');
+  assert.equal(savedCount(view), '1');
   assert.equal((view.getByRole('combobox', { name: '常用出行方式' }) as HTMLSelectElement).disabled, false);
   fireEvent.change(view.getByRole('combobox', { name: '常用出行方式' }), { target: { value: 'transit' } });
   await view.findByRole('button', { name: '刷新账号资料' });
-  assert.equal(view.container.querySelector('.week-favorites .planner-section-head > span')?.textContent, '1', 'a failed mutation keeps the real previously read count');
+  assert.equal(savedCount(view), '1', 'a failed mutation keeps the real previously read count');
   assert.equal((view.getByRole('combobox', { name: '常用出行方式' }) as HTMLSelectElement).disabled, false, 'a failed write after a successful read remains retryable');
   assert.ok(view.getByRole('heading', { name: plan.title }));
 });
@@ -136,18 +138,18 @@ test('guests can use saved plans and favorites before optional account features 
   t.mock.method(api, 'request', async () => { requests++; throw new Error('Guest content must not request private account data'); });
   const view = render(page(null, () => { logins++; }));
   await view.findByRole('heading', { name: plan.title });
-  const optional = view.container.querySelector<HTMLDetailsElement>('.week-account-features')!;
+  const optional = view.getByText('账号功能：预约与小队').closest('details')!;
   assert.equal(optional.open, false);
-  for (const selector of ['.imported-events-panel', '.week-plans', '.week-events', '.week-favorites']) {
-    const section = view.container.querySelector(selector)!;
-    assert.ok(section, selector);
-    assert.ok(section.compareDocumentPosition(optional) & Node.DOCUMENT_POSITION_FOLLOWING, selector);
+  for (const section of [view.getByTestId('my-week-plans'), view.getByTestId('my-week-saved'), view.getByTestId('my-week-events'), view.container.querySelector('.imported-events-panel')!]) {
+    assert.ok(section);
+    assert.ok(section.compareDocumentPosition(optional) & Node.DOCUMENT_POSITION_FOLLOWING, section.textContent!.slice(0, 20));
   }
   assert.ok(view.getByRole('link', { name: '继续编辑' }).getAttribute('href')?.includes(plan.id));
-  assert.ok(view.getByRole('link', { name: '公开分享版 ↗' }).getAttribute('href')?.includes('/plan'));
+  assert.ok(view.getByRole('link', { name: '分享版' }).getAttribute('href')?.includes('/plan'));
+  assert.equal(savedCount(view), '1', 'the guest favorite from the older planner list is in the one saved list');
   assert.equal(view.queryByRole('button', { name: '登录查看预约' }), null);
   assert.equal(view.queryByRole('button', { name: '登录查看小队' }), null);
-  assert.equal(view.container.querySelectorAll('.week-chips').length, 2, 'guest preferences remain available below saved content');
+  assert.equal(chips(view).length > 2, true, 'guest preferences remain available below saved content');
   assert.equal(requests, 0); assert.equal(logins, 0);
   fireEvent.click(optional.querySelector('summary')!);
   fireEvent.click(view.getByRole('button', { name: '登录查看预约与小队' }));
@@ -157,8 +159,8 @@ test('guests can use saved plans and favorites before optional account features 
 
 test('optional guest account features and preferences have English and Traditional Chinese labels', async () => {
   for (const [locale, summary, action, preferences] of [
-    ['en', 'Account features: bookings and groups', 'Sign in for bookings and groups', 'Adjust areas, interests and outing preferences'],
-    ['zh-Hant', '帳號功能：預約與小隊', '登入查看預約與小隊', '調整地區、興趣和出遊偏好'],
+    ['en', 'Account features: bookings and groups', 'Sign in for bookings and groups', 'Filter by my areas and interests'],
+    ['zh-Hant', '帳號功能：預約與小隊', '登入查看預約與小隊', '按我常去的地區和興趣篩選'],
   ] as const) {
     await setLocale(locale);
     const view = render(page(null));
@@ -170,7 +172,40 @@ test('optional guest account features and preferences have English and Tradition
   }
 });
 
-test('signed-in My Week keeps bookings, groups and imported events ahead of preferences and plans', async t => {
+test('back online, plans that failed to load are read again by themselves, and loaded plans pick up changes softly', async t => {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  const stamp = new Date(now).toISOString();
+  const plan = (id: string, title: string) => ({ id, title, date: '2026-10-17', stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: stamp, updatedAt: stamp, version: 1 });
+  let fail = true, plans = [plan('first', '离线前保存的计划')], favorites = [{ kind: 'place', id: PLANNER_PLACES[0].id }], hold = false, release = () => {};
+  t.mock.method(api, 'request', async (path: string) => {
+    if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
+    if (path === '/planner/imported-events') return { events: [], revision: 0 };
+    if (path === '/planner/me') {
+      if (fail) throw { status: 0, error: 'offline' };
+      if (hold) await new Promise<void>(resolve => { release = resolve; });
+      return { ...structuredClone(EMPTY_LIBRARY), plans: structuredClone(plans), favorites: structuredClone(favorites) };
+    }
+    throw new Error(`Unexpected request: ${path}`);
+  });
+  const view = render(page());
+  await view.findByRole('heading', { name: '暂时读不到你的行程' });
+  fail = false;
+  await act(async () => { window.dispatchEvent(new dom.window.Event('online')); });
+  await view.findByRole('heading', { name: '离线前保存的计划' });
+  assert.equal(view.queryByRole('heading', { name: '暂时读不到你的行程' }), null, 'no tap on 重试 was needed');
+  assert.equal(savedCount(view), '1');
+  // Another device added a plan and a save meanwhile: the next reconnect shows both without blanking the screen.
+  plans = [...plans, plan('second', '另一台设备加的计划')]; favorites = [...favorites, { kind: 'place', id: PLANNER_PLACES[1].id }]; hold = true;
+  await act(async () => { window.dispatchEvent(new dom.window.Event('online')); await new Promise(resolve => setTimeout(resolve, 0)); });
+  assert.ok(view.getByRole('heading', { name: '离线前保存的计划' }), 'the plans stay while the account is read again');
+  assert.equal(view.getByTestId('my-week-plans').querySelector('[aria-busy=true]'), null, 'no skeleton flash');
+  await act(async () => { release(); await new Promise(resolve => setTimeout(resolve, 0)); });
+  await view.findByRole('heading', { name: '另一台设备加的计划' });
+  assert.equal(savedCount(view), '2', 'the same account read refreshes the saved list');
+});
+
+test('signed-in My Week puts plans and saved items first, then bookings, groups, this week and imported events', async t => {
   localStorage.setItem('currentUser', JSON.stringify(user));
   const paths: string[] = [];
   t.mock.method(api, 'request', async (path: string) => {
@@ -182,10 +217,84 @@ test('signed-in My Week keeps bookings, groups and imported events ahead of pref
     throw new Error(`Unexpected request: ${path}`);
   });
   const view = render(page());
-  await view.findByRole('heading', { name: '我常去的地方' });
-  const text = view.container.textContent!;
-  const titles = ['预约与待办', '小队安排 · 未来7天', '我导入的活动', '我常去的地方', '已经排好的期待'];
-  for (let index = 1; index < titles.length; index++) assert.ok(text.indexOf(titles[index - 1]) >= 0 && text.indexOf(titles[index]) > text.indexOf(titles[index - 1]), titles[index]);
-  assert.equal(view.container.querySelector('.week-account-features'), null);
+  await view.findByRole('heading', { name: '预约与待办' });
+  const headings = view.getAllByRole('heading', { level: 2 }).map(heading => heading.textContent!.replace(/\d+$/, '').trim());
+  const titles = ['行程', '收藏', '预约与待办', '小队安排 · 未来7天', '这周可以去', '我导入的活动'];
+  for (let index = 1; index < titles.length; index++) assert.ok(headings.indexOf(titles[index - 1]) >= 0 && headings.indexOf(titles[index]) > headings.indexOf(titles[index - 1]), `${titles[index]} in ${headings.join(' / ')}`);
+  assert.equal(view.queryByText('账号功能：预约与小队'), null);
   assert.ok(paths.includes('/outings/me')); assert.ok(paths.includes('/service-bookings/me'));
+});
+
+test('signed in: 加入这天计划 on My Week keeps the rows, the preferences and the confirmation while the account is read again', async t => {
+  const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
+  const { nextConfirmedEventDate } = await import('../src/lib/event-occurrences');
+  const { ATTRACTION_REGIONS } = await import('../src/data/attractions');
+  // The same "这周可以去" list the page builds; pick an area whose list has an event the unfiltered list does not
+  // show, so a re-read that dropped the preferences would also drop the tapped row.
+  const today = '2026-10-16', weekEnd = '2026-10-22';
+  const week = (region?: string) => MONTHLY_EVENTS.filter(event => !region || event.region === region)
+    .flatMap(event => { const date = nextConfirmedEventDate(event, today); return date && date <= weekEnd ? [{ event, date }] : []; })
+    .sort((a, b) => a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id)).slice(0, 6);
+  const unfiltered = new Set(week().map(item => item.event.id));
+  const regions = ATTRACTION_REGIONS.filter(region => region.id !== 'all').map(region => region.id as string);
+  const region = regions.find(id => week(id).some(item => !unfiltered.has(item.event.id))) ?? regions.find(id => week(id).length)!;
+  const target = week(region).find(item => !unfiltered.has(item.event.id)) ?? week(region)[0];
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  const preferences = { regions: [region], interests: [], travelMode: 'any' };
+  let posted: Record<string, unknown> | null = null, hold = false, release = () => {};
+  t.mock.method(api, 'request', async (path: string, options?: RequestInit) => {
+    if (path === '/outings/me') return { outings: [] };
+    if (path === '/service-bookings/me') return { asCustomer: [], asProvider: [], sms: { enabled: false, eligible: false, configured: false } };
+    if (path === '/planner/imported-events') return { events: [], revision: 0 };
+    if (path === '/planner/me') {
+      if (hold) await new Promise<void>(resolve => { release = resolve; });
+      return { ...structuredClone(EMPTY_LIBRARY), preferences, plans: posted ? [posted] : [] };
+    }
+    if (path === '/planner/plans' && options?.method === 'POST') {
+      posted = { id: 'added', ...JSON.parse(String(options.body)), version: 1, createdAt: new Date(now).toISOString(), updatedAt: new Date(now).toISOString() };
+      hold = true;
+      return { plan: posted };
+    }
+    throw new Error(`Unexpected request: ${options?.method ?? 'GET'} ${path}`);
+  });
+  const view = render(page());
+  const name = `加入这天计划：${target.event.title}`;
+  const button = await view.findByRole('button', { name });
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
+  const ready = () => assert.equal((view.getByRole('button', { name }) as HTMLButtonElement).disabled, false);
+  for (let tries = 0; tries < 50; tries++) { try { ready(); break; } catch { await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); }); } }
+  ready();
+  await act(async () => { fireEvent.click(view.getByRole('button', { name })); });
+  for (let tries = 0; tries < 50 && !view.queryByTestId('save-toast'); tries++) await act(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+  // The re-read after the add is still running: nothing on screen may fall back to an empty library meanwhile.
+  assert.equal(hold, true);
+  const day = `${Number(target.date.slice(5, 7))}/${Number(target.date.slice(8, 10))}`;
+  assert.equal(view.getByTestId('save-toast').textContent!.includes(`已加入 ${day} 计划`), true);
+  const added = within(view.getByTestId('my-week-events')).getByRole('button', { name: `已加入 ${day} 计划：${target.event.title}` });
+  assert.ok(added.isConnected && button.isConnected, 'the tapped row stays mounted');
+  const label = ATTRACTION_REGIONS.find(item => item.id === region)!.label;
+  assert.equal(within(view.getByRole('group', { name: '常去的地区' })).getByRole('button', { name: label }).getAttribute('aria-pressed'), 'true', 'preferences stay applied');
+  assert.equal(view.getByTestId('my-week-plans').querySelector('[aria-busy=true]'), null, 'the plans do not flash to a skeleton');
+  await act(async () => { release(); await new Promise(resolve => setTimeout(resolve, 0)); });
+  await view.findByRole('heading', { name: String(posted!.title) });
+  assert.ok(view.getByTestId('save-toast'), 'the confirmation outlives the re-read');
+});
+
+test('a plan 加入这天计划 named reads in the page’s language; a title the reader wrote stays as written', async t => {
+  const stamp = new Date(now).toISOString();
+  const plan = (id: string, title: string, date: string) => ({ id, title, date, stops: [{ kind: 'place', id: PLANNER_PLACES[0].id }], createdAt: stamp, updatedAt: stamp, version: 1 });
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ ...structuredClone(EMPTY_LIBRARY), plans: [plan('zh-auto', '10/17 计划', '2026-10-17'), plan('en-auto', 'Plan for 10/18', '2026-10-18'), plan('own', '周六 Santana Row 一日', '2026-10-17')] }));
+  t.mock.method(api, 'request', async () => { throw new Error('Guest content must not request private account data'); });
+  const { translateText } = await import('../src/i18n/locale');
+  for (const [locale, zhAuto, enAuto] of [['en', 'Plan for 10/17', 'Plan for 10/18'], ['zh-Hans', '10/17 计划', '10/18 计划'], ['zh-Hant', translateText('10/17 计划', 'zh-Hant'), translateText('10/18 计划', 'zh-Hant')]] as const) {
+    await setLocale(locale);
+    const view = render(page(null));
+    for (const title of [zhAuto, enAuto]) {
+      const heading = await view.findByRole('heading', { name: title });
+      assert.equal(heading.querySelector('[translate=no]'), null, `${locale}: ${title} is site copy`);
+    }
+    const own = view.getByRole('heading', { name: '周六 Santana Row 一日' });
+    assert.ok(own.querySelector('[translate=no]'), `${locale}: the reader's own title is not translated`);
+    cleanup();
+  }
 });

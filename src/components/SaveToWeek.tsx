@@ -1,14 +1,41 @@
+import { lazy, Suspense } from 'react';
 import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useApp } from '../app/context';
-import { usePlannerLibrary } from '../lib/planner-library';
-import { favoriteKey, type Favorite } from '../lib/planner';
+import type { Favorite } from '../lib/planner';
 import { translateText, useLocale } from '../i18n/locale';
+import { saveButtonName } from '../features/saves/save-name';
 
-export function SaveToWeek({ favorite }: { favorite: Favorite }) {
-  const app = useApp();
+export type SaveToWeekProps = {
+  favorite: Favorite;
+  /** On a list card: the button only (no "我的这周" link), with the item's title in its accessible name. */
+  compact?: boolean;
+  /** The item's title (catalog source text), read with the button: "收藏：…". */
+  title?: string;
+};
+
+// The control and the save store behind it load on their own (route JS budgets, plan §3.0 rule 8): list pages that
+// show a ♡ on every card do not carry them in their route bundle.
+const SaveControl = lazy(() => import('../features/saves/SaveControl'));
+
+/**
+ * ♡ 收藏 for one event, place, offer or opening: the one save model (src/lib/saves.ts). Signed-in saves go to the
+ * account, guests keep them in this browser, and a save the account cannot accept yet stays saved here (RC-15).
+ */
+export function SaveToWeek(props: SaveToWeekProps) {
+  // On a guide page the reader actions beside this mount carry the same ♡ (GuideReaderActions); two buttons for one
+  // save would confuse. WEB-GUIDES removes this mount from GuideDetail.
+  if (props.favorite.kind === 'guide' && !props.compact) return null;
+  return <Suspense fallback={<SavePlaceholder {...props} />}><SaveControl {...props} /></Suspense>;
+}
+
+/** The same box as the control while it loads (and in prerendered HTML): a disabled ♡, so nothing moves when it arrives. */
+function SavePlaceholder({ compact, title }: SaveToWeekProps) {
   const locale = useLocale();
-  const library = usePlannerLibrary(app?.user?.id);
-  const saved = library.data.favorites.some(f => favoriteKey(f) === favoriteKey(favorite));
-  return <div className="planner-launch-links"><button type="button" className="planner-primary" aria-pressed={library.ready ? saved : undefined} disabled={library.loading || library.busy || !library.ready} onClick={() => void library.toggleFavorite(favorite)}><Heart size={15} fill={saved ? 'currentColor' : 'none'} />{saved ? '已加入我的这周' : '收藏到我的这周'}</button><Link to="/my-week">我的这周</Link>{library.error && <p role="alert">{library.error}{!library.ready && <button type="button" disabled={library.loading || library.busy} onClick={() => void library.refresh()} translate="no">{locale === 'en' ? 'Reload saved items' : translateText('重新读取收藏', locale)}</button>}</p>}</div>;
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  return <div className="saves-control" data-compact={compact ? '' : undefined}>
+    <button type="button" className="saves-toggle" data-compact={compact ? '' : undefined} aria-label={saveButtonName(false, title, locale)} disabled>
+      <Heart aria-hidden="true" strokeWidth={1.75} />{t('收藏', 'Save')}
+    </button>
+    {!compact && <Link className="saves-control__link" to="/my-week#saved">{t('我的这周', 'My Week')}</Link>}
+  </div>;
 }

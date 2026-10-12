@@ -22,6 +22,11 @@ export const editorialStyleScopes = [
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },
   { file: 'src/components/phone-links.css' },
+  // WEB-SAVES: the one save model's controls and My Week.
+  // WEB-SAVES: the one save model's controls (global, for prerendered pages), the /me row and My Week.
+  // WEB-SAVES: the one save model's controls (global, for prerendered pages) and My Week.
+  { file: 'src/components/reader-library.css', after: '/* WEB-SAVES: the one save model' },
+  { file: 'src/features/saves/my-week.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

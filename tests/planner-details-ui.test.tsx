@@ -447,3 +447,19 @@ test('account save sends compatible details and blocks editor mutations until th
   assert.equal(input(view, '整趟总预算 $').value, '240');
   assert.equal(localStorage.getItem(GUEST_PLANNER_KEY), null, 'account details must not enter guest storage');
 });
+
+test('the plan overview says 费用待确认, never $0.00, when nothing is priced yet', async () => {
+  const { PLANNER_PLACES } = await import('../src/data/planner-catalog');
+  const unpriced = PLANNER_PLACES.find(place => typeof place.planning?.admissionUsd !== 'number')!;
+  const free = PLANNER_PLACES.find(place => place.planning?.admissionUsd === 0)!;
+  const known = (view: View) => within(view.getByRole('region', { name: /当前计划概览|Current plan overview/ })).getByText(/已知金额与预留小计|Known costs \+ allowances/).nextElementSibling?.textContent;
+  let view = render(<PlannerPlanOverview stops={[{ kind: 'place', id: unpriced.id }]} date="2026-11-07" details={defaultPlanDetails()} />);
+  assert.equal(known(view), '费用待确认');
+  view.unmount();
+  view = render(<PlannerPlanOverview stops={[{ kind: 'place', id: free.id }]} date="2026-11-07" details={defaultPlanDetails()} />);
+  assert.equal(known(view), '$0.00', 'a known free admission is a real $0');
+  view.unmount();
+  await setLocale('en', false);
+  view = render(<PlannerPlanOverview stops={[{ kind: 'place', id: unpriced.id }]} date="2026-11-07" details={defaultPlanDetails()} />);
+  assert.equal(known(view), 'Cost to be confirmed');
+});

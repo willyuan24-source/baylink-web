@@ -1,6 +1,5 @@
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
 import { PLANNER_PLACES } from '../data/planner-catalog';
-import { guides } from '../data/guides';
 import type { MonthlyEvent } from '../data/monthly-types';
 import type { PageMetadata } from './seo';
 import { canonicalEventId } from './event-id';
@@ -14,7 +13,8 @@ export type PlanningFacts = { setting?: 'indoor' | 'outdoor' | 'mixed'; admissio
 export type PlannerEvent = MonthlyEvent & { location?: GeoPoint; planning?: PlanningFacts };
 export type PlannerPlace = { aliases?: string[]; id: string; title: string; region: string; city: string; summary: string; guideSlug: string; officialUrl: string; cost: string; location?: GeoPoint; planning?: PlanningFacts; path?: string; category?: 'attraction' | 'restaurant' | 'cafe' | 'shop'; address?: string; imageKey?: string; openingStatus?: 'open' | 'soft_open' | 'announced'; openedOn?: string; offerIds?: string[] };
 export type Stop = { kind: 'event' | 'place'; id: string };
-export type Favorite = { kind: 'event' | 'place' | 'guide'; id: string };
+/** A ♡ saved item (plan D19, `src/lib/saves.ts`). Offers and openings can be saved but are never plan stops. */
+export type Favorite = { kind: 'event' | 'place' | 'guide' | 'offer' | 'opening'; id: string };
 export type StopSetting = Stop & { durationMinutes: number; travelMinutes: number; fixedStartTime?: string; breakBeforeMinutes?: number; breakLabel?: 'meal' | 'rest' };
 export type PlanDetails = { startTime: string; finishBy: string; partySize: number; totalBudgetUsd: number | null; extraCostUsd: number; travelMode: 'any' | 'drive' | 'transit' | 'walk'; stopSettings: StopSetting[]; constraints?: PlanFilters; costBreakdown?: { foodUsd: number; transportUsd: number; otherUsd: number } };
 export type SavedPlan = { id: string; title: string; date: string; stops: Stop[]; details?: PlanDetails; version: number; createdAt: string; updatedAt: string };
@@ -34,8 +34,6 @@ export const placeFor = (id: string) => PLANNER_PLACES.find(item => item.id === 
 export const validStop = (stop: Stop) => stop?.kind === 'event' ? !!eventFor(stop.id) : stop?.kind === 'place' && !!placeFor(stop.id);
 export const stopTitle = (stop: Stop) => (stop.kind === 'event' ? eventFor(stop.id) : placeFor(stop.id))?.title || stop.id;
 export const stopPath = (stop: Stop) => stop.kind === 'event' ? `/events/${encodeURIComponent(stop.id)}` : placeFor(stop.id)?.path || `/guides/${encodeURIComponent(placeFor(stop.id)?.guideSlug || '')}`;
-export const favoriteTitle = (favorite: Favorite) => favorite.kind === 'guide' ? guides.find(guide => guide.slug === favorite.id)?.title || favorite.id : stopTitle({ kind: favorite.kind, id: favorite.id });
-export const favoritePath = (favorite: Favorite) => favorite.kind === 'guide' ? `/guides/${encodeURIComponent(favorite.id)}` : stopPath({ kind: favorite.kind, id: favorite.id });
 export const favoriteKey = (item: Favorite) => `${item.kind}:${item.kind === 'event' ? canonicalEventId(item.id) : item.id}`;
 export { MAX_PLAN_STOPS } from './plan-limits';
 export const cleanStops = (input: unknown): Stop[] => Array.isArray(input) ? input.filter((stop): stop is Stop => !!stop && validStop(stop)).filter((stop, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(stop)) === i).slice(0, MAX_PLAN_STOPS).map(({ kind, id }) => ({ kind, id })) : [];
