@@ -60,10 +60,9 @@ test('one page frame: .site-container and the WEB-UI PageContainer read the same
 test('no negative letter-spacing on headings, except in the files of lanes still in flight', () => {
   // These files belong to lanes that were running when the scale landed (docs/design-tokens.md); each lane adopts the
   // scale in its own template and removes its file here. Nothing may be added to the list.
-  const pending = new Set(['src/components/about-baylink.css', 'src/components/ai-local.css', 'src/components/discovery-community.css',
-    'src/components/home-discovery.css', 'src/components/local-discovery-detail.css', 'src/components/tools/tools.css', 'src/design.css',
-    'src/features/outings/outing-time-poll.css', 'src/features/outings/outings.css', 'src/features/posts/posts-ui.css', 'src/i18n/languages.css',
-    'src/styles/attractions.css', 'src/styles/planner.css']);
+  // W3 integration: WEB-HOME, WEB-DETAIL, WEB-SECONDARY and WEB-PLAN landed with the scale; languages.css went through the codemod.
+  const pending = new Set(['src/components/discovery-community.css', 'src/design.css',
+    'src/features/outings/outing-time-poll.css', 'src/features/outings/outings.css', 'src/features/posts/posts-ui.css']);
   const offenders: string[] = [];
   for (const file of siteStylesheets() as string[]) {
     const { changes } = rewriteTracking(readFileSync(file, 'utf8'), file === 'src/design.css' ? { skipSelector: /bay-category-/ } : {});

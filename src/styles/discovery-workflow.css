@@ -1,39 +1,39 @@
 .baybay-search-modes { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-.baybay-search-modes button { min-height:40px; padding:8px 13px; font-size:.75rem; border:1px solid #dce4d8; border-radius:20px; background:#fff; color:#486248; }
-.baybay-search-modes button[aria-pressed=true] { color:white; background:#2e503e; border-color:#2e503e; }
-.baybay-search-modes>span { width:100%; color:#647560; font-size:.6875rem; line-height:1.7; }
-.baybay-access-label { font-size:.75rem; color:#2e503e; padding:6px 2px; }
+.baybay-search-modes button { min-height:40px; padding:8px 13px; font-size:.75rem; border:1px solid var(--color-line); border-radius:20px; background:var(--color-surface); color:var(--color-ink-2); }
+.baybay-search-modes button[aria-pressed=true] { color:white; background:var(--color-ink-2); border-color:var(--color-ink-2); }
+.baybay-search-modes>span { width:100%; color:var(--color-ink-3); font-size:.6875rem; line-height:1.7; }
+.baybay-access-label { font-size:.75rem; color:var(--color-ink-2); padding:6px 2px; }
 .baybay-retrieval { display:flex; gap:7px; align-items:flex-start; margin:10px 0 14px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.65; }
 .baybay-retrieval svg { flex-shrink:0; margin-top:2px; }
-.baybay-inline-citation { color:#306248; text-decoration:underline; text-underline-offset:3px; padding:2px 4px; border-radius:4px; background:#f0f5e9; }
+.baybay-inline-citation { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; padding:2px 4px; border-radius:4px; background:var(--color-brand-tint); }
 .baybay-discovery { margin-top:20px; }
-.baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:7px; margin-bottom:12px; color:#2e503e; font-size:.875rem; font-weight:600; }
-.baybay-discovery-heading small { font-size:.6875rem; font-weight:400; color:#73806a; }
+.baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:7px; margin-bottom:12px; color:var(--color-ink-2); font-size:.875rem; font-weight:600; }
+.baybay-discovery-heading small { font-size:.6875rem; font-weight:400; color:var(--color-ink-3); }
 .baybay-discovery-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-.baybay-discovery-cards article { min-width:0; overflow:hidden; border:1px solid #e0e6d8; border-radius:16px; background:#fffefa; }
-.baybay-discovery-cover { height:86px; display:flex; align-items:center; justify-content:space-between; padding:20px; background:linear-gradient(125deg,#dfe8d5,#f2ebd7); color:#4b684f; }
-.baybay-discovery-cover span { font-size:2rem; font-family:Georgia,serif; color:#849875; }
+.baybay-discovery-cards article { min-width:0; overflow:hidden; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+.baybay-discovery-cover { height:86px; display:flex; align-items:center; justify-content:space-between; padding:20px; background:linear-gradient(125deg,var(--color-line),var(--color-warm-tint)); color:var(--color-ink-3); }
+.baybay-discovery-cover span { font-size:2rem; font-family:Georgia,serif; color:var(--color-ink-3); }
 .baybay-discovery-content { padding:14px; overflow-wrap:anywhere; }
-.baybay-discovery-content>small { font-size:.6875rem; color:#6a7e67; }
+.baybay-discovery-content>small { font-size:.6875rem; color:var(--color-ink-3); }
 .baybay-discovery-content h4 { margin:5px 0 8px; font-size:.9375rem; line-height:1.5; font-weight:600; }
-.baybay-discovery-content p,.baybay-discovery-content dd { font-size:.75rem; line-height:1.8; color:#5f6d59; margin:0; }
+.baybay-discovery-content p,.baybay-discovery-content dd { font-size:.75rem; line-height:1.8; color:var(--color-ink-3); margin:0; }
 .baybay-discovery-content dl { display:grid; gap:8px; margin:12px 0; }
-.baybay-discovery-content dt { font-size:.625rem; color:#78826f; }
-.baybay-discovery-content>a,.baybay-discovery-content>button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; gap:5px; font-size:.75rem; color:#365b40; margin-right:8px; }
-.baybay-discovery-content>button { padding:5px 10px; border:1px solid #cfdbca; border-radius:8px; }
-.baybay-discovery-note { font-size:.6875rem; color:#78816e; line-height:1.8; margin:10px 0; }
-.baybay-web-sources { margin-top:14px; font-size:.75rem; color:#45653f; }
+.baybay-discovery-content dt { font-size:.625rem; color:var(--color-ink-3); }
+.baybay-discovery-content>a,.baybay-discovery-content>button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; gap:5px; font-size:.75rem; color:var(--color-brand-hover); margin-right:8px; }
+.baybay-discovery-content>button { padding:5px 10px; border:1px solid var(--color-line-strong); border-radius:8px; }
+.baybay-discovery-note { font-size:.6875rem; color:var(--color-ink-3); line-height:1.8; margin:10px 0; }
+.baybay-web-sources { margin-top:14px; font-size:.75rem; color:var(--color-brand); }
 .baybay-web-sources summary { cursor:pointer; min-height:40px; padding:10px 0; }
 .baybay-web-sources ol { padding-left:23px; }
 .baybay-web-sources li { padding:6px 0; overflow-wrap:anywhere; }
 .baybay-web-sources a { text-decoration:underline; text-underline-offset:3px; }
 .baybay-web-sources small { display:block; font-size:var(--text-caption); color:var(--color-ink-3); text-decoration:none; }
-.baybay-task-handoff { margin-top:20px; padding:14px 16px; background:#eff3e8; border:1px solid #dce5d4; border-radius:14px; }
-.baybay-task-handoff summary { cursor:pointer; font-size:.8125rem; line-height:1.8; font-weight:600; color:#35553c; }
+.baybay-task-handoff { margin-top:20px; padding:14px 16px; background:var(--color-brand-tint); border:1px solid var(--color-line); border-radius:14px; }
+.baybay-task-handoff summary { cursor:pointer; font-size:.8125rem; line-height:1.8; font-weight:600; color:var(--color-ink-2); }
 .baybay-task-handoff summary svg { display:inline; margin-left:9px; }
-.baybay-task-handoff label { display:block; margin-top:15px; font-size:.75rem; color:#5b7356; }
-.baybay-task-handoff textarea { width:100%; min-height:95px; display:block; resize:vertical; padding:10px; border:1px solid #d4ddce; border-radius:8px; background:white; line-height:1.8; margin-top:6px; }
-.baybay-task-handoff button { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:12px; font-size:.8125rem; font-weight:600; color:#32583d; }
+.baybay-task-handoff label { display:block; margin-top:15px; font-size:.75rem; color:var(--color-ink-3); }
+.baybay-task-handoff textarea { width:100%; min-height:95px; display:block; resize:vertical; padding:10px; border:1px solid var(--color-line-strong); border-radius:8px; background:white; line-height:1.8; margin-top:6px; }
+.baybay-task-handoff button { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:12px; font-size:.8125rem; font-weight:600; color:var(--color-brand-hover); }
 /* Planner panels (WEB-PLAN): private preference memory (My Week) and the travel-time check (行程 editor). Tokens and
    rem only, text ≥ --text-caption, the UI secondary look for their buttons. */
 .planner-preference-memory { margin:16px 0; padding:20px; border-radius:16px; background:var(--color-surface-2); }
