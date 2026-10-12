@@ -52,8 +52,8 @@ function DirectoryList({ rows, today, locale }: { rows: DirectoryRow[]; today: s
   return <ul className="archive-list">
     {rows.map(row => <li key={row.path}>
       <Link to={row.path} className="archive-title">{row.title}</Link>
-      <p className="archive-date">{row.date}{validDay(row.start) && <> · <time dateTime={row.start}>{row.start}</time>{validDay(row.end) && row.end !== row.start && <> — <time dateTime={row.end}>{row.end}</time></>}</>}</p>
-      <p className="archive-status"><StatusChip tone={row.tone}>{row.status}</StatusChip><span>{validDay(row.checkedAt) && row.checkedAt <= today ? <>{label(locale, '来源核对：', 'Source checked: ')}<time dateTime={row.checkedAt}>{row.checkedAt}</time></> : label(locale, '来源核对日期待确认', 'Source check date unconfirmed')}</span></p>
+      <p className="archive-date">{row.date}{validDay(row.start) && <span> · <time dateTime={row.start}>{row.start}</time>{validDay(row.end) && row.end !== row.start && <span> — <time dateTime={row.end}>{row.end}</time></span>}</span>}</p>
+      <p className="archive-status"><StatusChip tone={row.tone}>{row.status}</StatusChip><span>{validDay(row.checkedAt) && row.checkedAt <= today ? <span>{label(locale, '来源核对：', 'Source checked: ')}<time dateTime={row.checkedAt}>{row.checkedAt}</time></span> : label(locale, '来源核对日期待确认', 'Source check date unconfirmed')}</span></p>
     </li>)}
   </ul>;
 }

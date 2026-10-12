@@ -92,7 +92,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
       </div>
       <p className="bl-ai-scope">{t('场次按日期分组，不代表主办方合作关系。')} {t('时间均为湾区当地时间。活动周不是连续开放的展会通票。')}</p>
       {events.length === 0 ? <EmptyState headingLevel="h3" title={tt('这个筛选下没有场次', 'No sessions match these filters')} body={t('这个筛选下暂时没有尚未结束的场次。')}
-          actions={<><Button variant="primary" onClick={reset}>{t('重置筛选')}</Button>{!includeEnded && <Button variant="text" onClick={() => setIncludeEnded(true)}>{t('显示已结束场次')}</Button>}</>} />
+          actions={[<Button key="reset" variant="primary" onClick={reset}>{t('重置筛选')}</Button>, !includeEnded && <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{t('显示已结束场次')}</Button>]} />
         : <div className="bl-ai-event-grid">{events.map(event => {
           const status = getEventStatus(event, today);
           const image = getListingImage(event.imageKey);

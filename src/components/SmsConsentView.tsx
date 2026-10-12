@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { LegalPageLayout, LegalP, LegalSection, LegalUl, ZhLabel, ZhOnly, legalTitle, useLegalCopy } from './LegalPageLayout';
 
 /** The verification button's own bilingual label, quoted in the English text; its Chinese half is marked as Chinese. */
-const SEND_CODE = <>&ldquo;<ZhLabel>发送验证码</ZhLabel> / Send verification code&rdquo;</>;
+const SEND_CODE = <span>&ldquo;<ZhLabel>发送验证码</ZhLabel> / Send verification code&rdquo;</span>;
 
 const OPT_IN_FLOW: { title: string; label?: ReactNode; image: string; description: string }[] = [
   {
@@ -23,7 +23,7 @@ const OPT_IN_FLOW: { title: string; label?: ReactNode; image: string; descriptio
   },
   {
     title: 'Step 4: Click “Send verification code”',
-    label: <>Step 4: Click {SEND_CODE}</>,
+    label: <span>Step 4: Click {SEND_CODE}</span>,
     image: '/sms-consent/step3-phone-verification-consent.png',
     description:
       'BAYLINK sends the one-time verification code only after the user actively clicks the button.',
@@ -84,7 +84,7 @@ export const SmsConsentView = () => {
           'Open Profile and select Phone Verification.',
           'Enter their mobile phone number.',
           'Review the consent disclosure shown before sending a code.',
-          <>Click {SEND_CODE}.</>,
+          <span>Click {SEND_CODE}.</span>,
           'Receive a one-time verification code by SMS.',
         ]}
       />

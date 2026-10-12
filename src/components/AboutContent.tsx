@@ -39,13 +39,13 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
   ];
   return <PageContainer size="reading" className="about-page">
     <PageHeader
-      breadcrumb={<><Link to="/">{t('首页', 'Home')}</Link><span aria-hidden="true"> / </span><span aria-current="page">{t('关于与核验方法', 'About and sources')}</span></>}
+      breadcrumb={<span><Link to="/">{t('首页', 'Home')}</Link><span aria-hidden="true"> / </span><span aria-current="page">{t('关于与核验方法', 'About and sources')}</span></span>}
       title={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}
       lede={t('有来源的中文答案：本周末去哪、福利和办事怎么准备，每条都附官方来源和核对日期。', 'With sources: where to go this weekend, which benefits apply and how to get everyday tasks done, each with its official source and the date we checked it.')}
-      actions={<>
-        <Button variant="primary" to="/events">{t('看本周末活动', 'See this weekend')}</Button>
-        {onAskBayBay ? <Button variant="secondary" onClick={onAskBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>}
-      </>} />
+      actions={[
+        <Button key="events" variant="primary" to="/events">{t('看本周末活动', 'See this weekend')}</Button>,
+        onAskBayBay ? <Button key="ask" variant="secondary" onClick={onAskBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button key="guides" variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>,
+      ]} />
 
     <section className="about-section" aria-labelledby="about-uses-title">
       <h2 id="about-uses-title">{t('BAYLINK 能帮你做什么', 'What BAYLINK helps with')}</h2>
