@@ -22,9 +22,11 @@
 .cm-search__submit { flex:none; min-height:2.5rem; min-width:2.75rem; padding:0 .875rem; border-radius:9px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 
 .cm-board__filters { display:flex; flex-direction:column; gap:.75rem; margin-bottom:1rem; }
+/* The type switch sizes each label to its words (en "Looking to rent" never ends in "…"); 近期确认 wraps under it when
+   the row is too narrow (390 en, 特大). */
 .cm-board__switches { display:flex; flex-wrap:wrap; align-items:center; gap:.5rem .75rem; }
-.cm-board__switches { flex-wrap:nowrap; }
-.cm-board__switches .ui-segmented { flex:1 1 auto; max-width:20rem; }
+.cm-board__switches .ui-segmented { flex:1 1 auto; max-width:24rem; }
+.cm-board__switches .ui-segmented__item { flex:1 1 auto; }
 .cm-board__switches .ui-chip { flex:none; }
 
 .cm-board__results { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem 1rem; margin:1rem 0 .75rem; }

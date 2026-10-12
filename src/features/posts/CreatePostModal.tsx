@@ -356,9 +356,9 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
         if (!clearPostDraft(user.id)) showToast('发布成功，但浏览器未能清除本机草稿，请稍后丢弃。', 'info');
         onCreated();
         const warning = typeof res?.trustWarning === 'string' ? res.trustWarning : null;
+        // The success sheet prints the warning; a toast of the same words would cover its 知道了 button.
         setPostTrustWarning(warning);
         setIsSuccess(true);
-        if (warning) showToast(warning, 'info');
       }
     } catch (err: any) {
       showToast(mapPostSaveError(err, isEdit, locale), 'error');
@@ -394,11 +394,11 @@ export const CreatePostModal = ({ onClose, onCreated, onUpdated, onManageAvailab
            <h2 className="mb-2 text-xl font-bold text-baylink-text">{t('发布成功', 'Posted')}</h2>
            <p className="mb-4 text-sm text-baylink-muted">{t('你的信息已发布，湾区邻居可以在邻里信息里看到。', 'Your post is live on the neighborhood board.')}</p>
            {postTrustWarning && (
-             <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-xs leading-relaxed text-amber-800">
+             <p className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-left text-sm leading-relaxed text-amber-800">
                {postTrustWarning}
              </p>
            )}
-           {form.type === 'provider' && ['清洁', '维修', '接送', '搬家', '翻译', '其他'].includes(form.category) && createdPostId && onManageAvailability && <div className="mb-4 rounded-xl border border-baylink-border p-4 text-left"><strong className="text-sm">下一步：开放服务预约</strong><p className="my-2 text-xs text-baylink-muted">在服务详情中选择可用日期与时段。完成手机号验证或平台资料核验后，即可接收预约申请，无需线上收款。</p><button type="button" className="member-primary w-full" onClick={() => { onClose(); onManageAvailability(createdPostId); }}>设置可预约时段</button></div>}
+           {form.type === 'provider' && ['清洁', '维修', '接送', '搬家', '翻译', '其他'].includes(form.category) && createdPostId && onManageAvailability && <div className="mb-4 rounded-xl border border-baylink-border p-4 text-left"><strong className="text-sm">下一步：开放服务预约</strong><p className="my-2 text-sm text-baylink-muted">在服务详情中选择可用日期与时段。完成手机号验证或平台资料核验后，即可接收预约申请，无需线上收款。</p><button type="button" className="member-primary w-full" onClick={() => { onClose(); onManageAvailability(createdPostId); }}>设置可预约时段</button></div>}
            <NoticeOptIn userId={user.id} context="post" />
            <button type="button" onClick={onClose} className="member-primary mt-4 w-full">{t('知道了', 'Done')}</button>
         </div>
