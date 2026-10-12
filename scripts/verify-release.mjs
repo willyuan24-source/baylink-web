@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
+import { verifyPhoneLinks } from './verify-phone-links.mjs';
 import { formatRouteBudgets, measureRouteBudgets } from './route-budgets.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { checkLegacyUrls, LEGACY_URLS } from './hosting-routes.mjs';
@@ -105,4 +106,7 @@ if(legacyProblems.length) throw new Error(`Legacy URLs: ${legacyProblems.join(';
 for(const item of LEGACY_URLS.filter(entry=>entry.page)) await readFile(`dist${item.page}`).catch(()=>{ throw new Error(`${item.url} is served by dist${item.page}, which the build did not write`); });
 const release=JSON.parse(await readFile('dist/release.json','utf8'));if(!/^[a-f0-9]{40}$/.test(release.commit))throw new Error('Release commit missing');
 await verifyStaticLinks();
+// CW-01 (WEB-DETAIL): every phone number a prerendered page shows is tap-to-call, in all three languages.
+const phoneFailures=await verifyPhoneLinks();
+if(phoneFailures.length) throw new Error(`Phone numbers without a tel: link (CW-01) on ${phoneFailures.length} pages: ${phoneFailures.slice(0,12).map(item=>`${item.page} (${item.numbers.join(', ')})`).join('; ')}`);
 console.log(`Release verified: shell ${(shell/1024).toFixed(1)} KiB, homepage route graph ${(total/1024).toFixed(1)} KiB; English homepage with dictionaries ${(englishTotal/1024).toFixed(1)} KiB gzip; ${routeBudgets.length} route × locale JS budgets hold; translated prerenders, route stylesheets and Event schema present; ${LEGACY_URLS.length} legacy URLs resolve.`);

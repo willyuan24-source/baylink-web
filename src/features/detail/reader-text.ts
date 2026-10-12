@@ -11,12 +11,14 @@ import { translateText, type Locale } from '../../i18n/locale';
  * No regex look-behind (Safari < 16.4 cannot parse one; W9-E guard).
  */
 
-/** A sentence that talks about the editing process, not about the event. */
-export const EDITOR_NOTE_ZH = /本包|本轮|录入|web ?open|缓存|HTTP(?!S?:\/\/)|抓取|读取|交叉确认|不沿用|不再声明|本条(?:不|只|仅)|不计入已确认|本次核实|核对时(?!间)|待复核|保留预告状态|(?:^|[^\d-])403(?:[^\d-]|$)/i;
-/** The same notes in the reviewed English translations. */
-export const EDITOR_NOTE_EN = /\bweb[- ]?open\b|\bcached\b|\bcache\b|\bretriev|cross-?check|corroborat|\bHTTP\b|needs? to be re-?checked|\brecheck|not counted among|this (?:collection|batch|package|entry) (?:includes|only|does not treat|is not treated)|at the time of (?:checking|verification|review)|(?:^|[^\d-])403(?:[^\d-]|$)/i;
+/** A clause that talks about the editing process ("本条只收录", "核对时…", "不沿用旧年描述"), not about the event. */
+export const EDITOR_NOTE_ZH = /本包|本轮|录入|web ?open|缓存|HTTP(?!S?:\/\/)|抓取|读取|交叉确认|不沿用|不再声明|本条(?:不|只|仅)|不计入已确认|本次核实|核对时(?!间)|待复核|保留预告状态|旧链接|(?:^|[^\d-])403(?:[^\d-]|$)/i;
+/** The same notes in the reviewed English translations (whole sentences are dropped there). */
+export const EDITOR_NOTE_EN = /\bweb[- ]?open\b|\bcached\b|\bcache\b|\bretriev|cross-?check|corroborat|\bHTTP\b|needs? to be re-?checked|\brecheck|not counted among|this (?:collection|batch|package|entry|listing) (?:includes|only|uses only|covers only|does not treat|does not present|is not treated)|at the time of (?:checking|verification|review)|as of this review|when checked|no claim is made|\bdo not (?:borrow|reuse|carry over)\b|old links|(?:^|[^\d-])403(?:[^\d-]|$)/i;
 
-const URL = /\s*[：:]?\s*https?:\/\/[^\s，。；、）)」"']+\s*/gi;
+/** A URL inside a sentence, with its "：" label separator; it becomes a placeholder before the text is split. */
+const URL = /\s*[：:]?\s*https?:\/\/[^\s，。；、）)」"';,]+\s*/gi;
+const URL_MARK = '\uE000';
 /** What is left of "出行说明：https://…。" once the URL goes: a bare label is not worth a line. */
 const BARE_LABEL_ZH = /^[\p{Script=Han}A-Za-z ]{1,8}[。；;.]?$/u;
 const BARE_LABEL_EN = /^[A-Za-z ]{1,24}[.;:]?$/;
@@ -37,17 +39,42 @@ function sentences(text: string, english: boolean): string[] {
   return parts.filter(part => part.trim());
 }
 
+/** A Chinese sentence without its note clauses (split at "，"): "选一天10:00–14:00参加，不沿用普通周末闭馆时刻。" keeps the time. */
+function withoutNoteClauses(sentence: string): string {
+  const end = /[。；！？;!?]+[”’」）)]?\s*$/.exec(sentence)?.[0] ?? '';
+  const clauses = sentence.slice(0, sentence.length - end.length).split('，');
+  const kept = clauses.filter(clause => !EDITOR_NOTE_ZH.test(clause));
+  if (!kept.length) return '';
+  return kept.length === clauses.length ? sentence : `${kept.join('，')}${end.trim() || '。'}`;
+}
+
 /** Drop editor notes and raw URLs from one already-localized string. '' when nothing for the reader is left. */
 export function withoutEditorNotes(text: string, english: boolean): string {
-  const note = english ? EDITOR_NOTE_EN : EDITOR_NOTE_ZH;
   const bare = english ? BARE_LABEL_EN : BARE_LABEL_ZH;
-  const kept = sentences(text, english).flatMap(sentence => {
-    if (note.test(sentence)) return [];
-    if (!/https?:\/\//i.test(sentence)) return [sentence];
-    const stripped = sentence.replace(URL, english ? ' ' : '').replace(/\s+([。；，.;,])/g, '$1').replace(/[：:]\s*([。；.;])/g, '$1').trim();
-    return !stripped || bare.test(stripped) ? [] : [english ? `${stripped} ` : stripped];
+  // URLs first: their "?" and "!" are not sentence ends.
+  const marked = text.replace(URL, URL_MARK);
+  let changed = marked !== text;
+  let dropped = false;
+  const kept = sentences(marked, english).flatMap(sentence => {
+    const reader = english ? (EDITOR_NOTE_EN.test(sentence) ? '' : sentence) : withoutNoteClauses(sentence);
+    if (reader !== sentence) changed = true;
+    let out = reader;
+    if (reader.includes(URL_MARK)) {
+      const stripped = reader.split(URL_MARK).join(english ? ' ' : '').replace(/\s+([。；，.;,])/g, '$1').trim();
+      out = !stripped || bare.test(stripped) ? '' : english ? `${stripped} ` : stripped;
+    }
+    if (!out.trim()) { dropped = true; return []; }
+    // An English sentence that followed a dropped one ("…; this is not …") starts with a capital again.
+    if (english && dropped && /^[a-z]/.test(out)) out = out[0].toUpperCase() + out.slice(1);
+    dropped = false;
+    return [out];
   });
-  return kept.join('').replace(/\s{2,}/g, ' ').trim();
+  if (!changed) return text.trim();
+  const joined = kept.join('').replace(/\s{2,}/g, ' ').trim();
+  if (!joined) return '';
+  // The last kept sentence may end on "；" or have lost its full stop with the URL.
+  if (english) return joined.replace(/[;,:]$/, '.').replace(/([A-Za-z0-9)])$/, '$1.');
+  return joined.replace(/[；;，,：:]$/, '。').replace(/([\p{Script=Han}A-Za-z0-9)）])$/u, '$1。');
 }
 
 /** Catalog prose in the reader's language, without editor notes (see the module note for the order of operations). */

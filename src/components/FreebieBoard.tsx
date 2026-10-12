@@ -10,6 +10,7 @@ import { offerShare } from '../lib/editorial-share';
 import { SaveToWeek } from './SaveToWeek';
 import type { MonthlyRegion } from '../data/monthly-types';
 import { simplifySearch, translateText, useLocale } from '../i18n/locale';
+import { PhoneText } from '../lib/phone-links';
 
 export type FreebieOffer = {
   id: string;
@@ -110,8 +111,8 @@ function FreebieCard({ offer, today }: { offer: FreebieOffer; today: string }) {
       <div className="bl-freebie-card-date"><CalendarDays size={14} aria-hidden="true" /><span>{offer.dateLabel}</span></div>
       <div className="bl-freebie-card-tags"><span className={`bl-freebie-kind bl-freebie-kind--${offer.kind}`}>{KIND_LABELS[offer.kind]}</span><span className={`bl-freebie-status bl-freebie-status--${status.key}`}>{status.label}</span></div>
       <h3 id={headingId}><a href={`/offers/${offer.id}`}>{offer.title}</a></h3>
-      <p className="bl-freebie-requirement"><strong>领取条件</strong>{offer.requirement}</p>
-      <p className="bl-freebie-description">{offer.description}</p>
+      <p className="bl-freebie-requirement"><strong>领取条件</strong><PhoneText text={offer.requirement} /></p>
+      <p className="bl-freebie-description"><PhoneText text={offer.description} /></p>
       {validDate(offer.verifiedAt) && <p className="bl-freebie-verified">核对 <time dateTime={offer.verifiedAt}>{offer.verifiedAt}</time></p>}
       <EditorialShareActions item={offerShare(offer)} />
       <div className="bl-freebie-card-actions">
