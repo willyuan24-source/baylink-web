@@ -3,12 +3,12 @@ import { CalendarPlus, Heart } from 'lucide-react';
 import { EventCover, OfferCover, OpeningCover, Cover } from '../../components/ui/Cover';
 import { TypeCover } from '../../components/ui/TypeCover';
 import { useBayBayCopy } from './copy';
+import { translateText } from '../../i18n/locale';
 import { SmartLink } from './SmartLink';
 import { brandCase, eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerDeadline, openingChip } from '../../lib/event-facts';
 import { bayBayCardCitations, bayBayCardModels, type BayBayCardModel } from './answer-cards';
 import { useBayBayOwner } from './save-context';
 import { SAVE_ERROR_COPY, useSave, type ServerSaveKind } from '../../lib/saves';
-import { saveButtonName } from '../saves/save-name';
 import type { PlannerWebResult } from '../../lib/planner-web-search';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 
@@ -46,11 +46,12 @@ const saveRef = (model: BayBayCardModel): { kind: ServerSaveKind; id: string } =
     : model.kind === 'opening' ? { kind: 'opening', id: model.shop.id } : { kind: 'guide', id: model.guide.slug };
 
 /**
- * ♡ 收藏 through SAVES' `useSave` (src/lib/saves.ts): the same heart, store and names as every card on the site, so a
- * save here is the row My Week shows. Disabled while a signed-in list is still unknown; a failed write says so here.
+ * ♡ 收藏 through SAVES' `useSave` (src/lib/saves.ts): the same heart, store and names as every card on the site
+ * ("收藏：…" / "已收藏：…", as features/saves/save-name.ts words them; written out here so the save button's module stays
+ * inside SaveToWeek's chunk), so a save here is the row My Week shows. Disabled while a signed-in list is still unknown; a failed write says so here.
  */
 function CardSave({ model }: { model: BayBayCardModel }) {
-  const { t, locale } = useBayBayCopy();
+  const { t, english, locale } = useBayBayCopy();
   const owner = useBayBayOwner();
   const ref = saveRef(model);
   const save = useSave(ref.kind, ref.id, { userId: owner ?? null });
@@ -59,7 +60,7 @@ function CardSave({ model }: { model: BayBayCardModel }) {
   const error = tapped ? save.error : null;
   return <>
     <button type="button" className="bb-card__save" aria-pressed={unknown ? undefined : saved} disabled={unknown || save.busy} onClick={() => { setTapped(true); void save.toggle(); }}
-      aria-label={saveButtonName(saved, model.title, locale)}>
+      aria-label={`${saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}${english ? ': ' : '：'}${translateText(model.title, locale)}`}>
       <Heart aria-hidden="true" size={18} fill={saved ? 'currentColor' : 'none'} />{saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}
     </button>
     {error && <p className="bb-card__error" role="alert">{t(SAVE_ERROR_COPY[error].zh, SAVE_ERROR_COPY[error].en)}</p>}
