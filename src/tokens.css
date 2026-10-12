@@ -1,10 +1,57 @@
 /* Shared values; older component variables remain aliases during migration. */
 :root {
-  --color-bg:#FFFFFF; --color-surface:#FFFFFF; --color-surface-2:#F4F7F5; --color-selected:#EAF5EF;
-  --color-ink:#162E29; --color-ink-2:#3E554D; --color-ink-3:#54645E;
-  --color-brand:#096B54; --color-brand-hover:#075440; --color-brand-deep:#123C31; --color-brand-tint:#EAF5EF;
-  --color-on-brand-muted:#B6CBB9;
-  --color-line:#E7EBE8; --color-line-strong:#CBD6D0; --color-danger:#B3261E;
+  color-scheme:light;
+  /* Palette (TOKENS-B, RC-9). Each colour is an "R G B" channel token, and the colour token reads it, so one value drives
+     plain uses (var(--color-ink-3)), translucent ones (rgb(var(--color-brand-rgb) / .12)) and Tailwind's baylink.*
+     utilities with their /NN modifiers (tailwind.config.js, tests/tailwind-tokens.test.ts). This is the only stylesheet
+     with colour literals: the rest reads these names (scripts/codemods/hex-to-tokens.mjs; the style ratchet counts hex).
+     Contrast is a test, not a comment: tests/token-contrast.test.ts holds every text token to WCAG AA (4.5:1) on every
+     surface it may sit on, and checks each CSS rule and Tailwind class string that pairs a text and a background token.
+     On white: ink 14.41, ink-2 8.04, ink-3 6.25, brand 6.48, warm 5.43, warning 5.93, danger 6.54, info 6.72 :1. */
+  --color-bg-rgb:255 255 255; --color-surface-rgb:255 255 255; --color-surface-2-rgb:244 247 245; --color-selected-rgb:234 245 239;
+  --color-ink-rgb:22 46 41; --color-ink-2-rgb:62 85 77; --color-ink-3-rgb:84 100 94;
+  --color-brand-rgb:9 107 84; --color-brand-hover-rgb:7 84 64; --color-brand-deep-rgb:18 60 49; --color-brand-tint-rgb:234 245 239;
+  --color-on-brand-muted-rgb:182 203 185;   /* text on brand-deep only (7.13:1) */
+  --color-highlight-rgb:223 243 166;        /* with brand-deep text (10.2:1) */
+  --color-line-rgb:231 235 232; --color-line-strong-rgb:203 214 208;   /* decorative dividers */
+  --color-line-control-rgb:127 143 136;     /* input and control borders, 3.39:1 (WCAG 1.4.11); never text */
+  --color-warm-rgb:160 86 46; --color-warm-tint-rgb:251 241 230;       /* offers and the family TypeCover */
+  --color-success-rgb:39 107 68; --color-success-tint-rgb:232 243 236;
+  --color-warning-rgb:138 90 0; --color-warning-tint-rgb:255 244 220;
+  --color-danger-rgb:179 38 30; --color-danger-tint-rgb:253 236 234;
+  --color-info-rgb:47 95 138; --color-info-tint-rgb:234 241 248;
+  --color-plum-rgb:91 58 122; --color-plum-tint-rgb:237 228 243;       /* the seniors TypeCover */
+  --color-scrim-rgb:8 24 18;                /* photo scrims, lightboxes and dark overlays */
+  --color-bg:rgb(var(--color-bg-rgb)); --color-surface:rgb(var(--color-surface-rgb)); --color-surface-2:rgb(var(--color-surface-2-rgb)); --color-selected:rgb(var(--color-selected-rgb));
+  --color-ink:rgb(var(--color-ink-rgb)); --color-ink-2:rgb(var(--color-ink-2-rgb)); --color-ink-3:rgb(var(--color-ink-3-rgb));
+  --color-brand:rgb(var(--color-brand-rgb)); --color-brand-hover:rgb(var(--color-brand-hover-rgb)); --color-brand-deep:rgb(var(--color-brand-deep-rgb)); --color-brand-tint:rgb(var(--color-brand-tint-rgb));
+  --color-on-brand-muted:rgb(var(--color-on-brand-muted-rgb)); --color-highlight:rgb(var(--color-highlight-rgb));
+  --color-line:rgb(var(--color-line-rgb)); --color-line-strong:rgb(var(--color-line-strong-rgb)); --color-line-control:rgb(var(--color-line-control-rgb));
+  --color-warm:rgb(var(--color-warm-rgb)); --color-warm-tint:rgb(var(--color-warm-tint-rgb));
+  --color-success:rgb(var(--color-success-rgb)); --color-success-tint:rgb(var(--color-success-tint-rgb));
+  --color-warning:rgb(var(--color-warning-rgb)); --color-warning-tint:rgb(var(--color-warning-tint-rgb));
+  --color-danger:rgb(var(--color-danger-rgb)); --color-danger-tint:rgb(var(--color-danger-tint-rgb));
+  --color-info:rgb(var(--color-info-rgb)); --color-info-tint:rgb(var(--color-info-tint-rgb));
+  --color-plum:rgb(var(--color-plum-rgb)); --color-plum-tint:rgb(var(--color-plum-tint-rgb));
+  --color-scrim:rgb(var(--color-scrim-rgb));
+  /* Overlays (design.md §4.2): the provenance badge (white text ≥6.25:1 over any pixel), the sheet backdrop, and the photo
+     scrim (text only below 62% of the height: white ≥5.52:1, highlight ≥4.6:1). */
+  --color-badge-bg:rgb(var(--color-brand-deep-rgb) / .78);
+  --color-backdrop:rgb(var(--color-ink-rgb) / .48);
+  --scrim-photo:linear-gradient(180deg, rgb(var(--color-scrim-rgb) / 0) 40%, rgb(var(--color-scrim-rgb) / .64) 62%, rgb(var(--color-scrim-rgb) / .82) 100%);
+  /* TypeCover pairs, fg on bg (moved here from components/ui/ui.css): family 4.87, culture 5.90, outdoors 5.80, food 5.43,
+     seniors 7.29, free 5.64 :1. */
+  --tc-family-bg:var(--color-warm-tint); --tc-family-fg:var(--color-warm);
+  --tc-culture-bg:var(--color-info-tint); --tc-culture-fg:var(--color-info);
+  --tc-outdoors-bg:var(--color-brand-tint); --tc-outdoors-fg:var(--color-brand);
+  --tc-food-bg:var(--color-warning-tint); --tc-food-fg:var(--color-warning);
+  --tc-seniors-bg:var(--color-plum-tint); --tc-seniors-fg:var(--color-plum);
+  --tc-free-bg:var(--color-success-tint); --tc-free-fg:var(--color-success);
+  /* The names the WEB-UI block used before the move, kept so stylesheets written against them keep their colours. New
+     code reads the --color-* names; WEB-CSS-PRUNE deletes these once nothing reads them. */
+  --ui-success:var(--color-success); --ui-success-tint:var(--color-success-tint); --ui-warning:var(--color-warning); --ui-warning-tint:var(--color-warning-tint);
+  --ui-danger-tint:var(--color-danger-tint); --ui-info:var(--color-info); --ui-info-tint:var(--color-info-tint); --ui-highlight:var(--color-highlight);
+  --ui-badge-bg:var(--color-badge-bg); --ui-scrim:var(--color-backdrop); --ui-scrim-photo:var(--scrim-photo);
   --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif;
   /* Aa scales the root (html[data-reading] below), so every rem grows together. --reading-scale stays pinned at 1 for
      older calc() forms: multiplying a rem by it again would turn 特大 into 125% x 1.25 = 156%. */
@@ -52,7 +99,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; min-width:44px; min-height:44px; color:var(--color-ink); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); font-size:var(--text-fact); }
 .site-reading-button>svg { display:none; }
-.reading-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:16px; background:#16352B70; }
+.reading-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:16px; background:rgb(var(--color-ink-rgb) / .44); }
 .reading-dialog { position:relative; width:100%; max-width:520px; max-height:calc(100dvh - 32px); overflow:auto; border-radius:24px; padding:28px; background:var(--color-bg); }
 .reading-close { display:grid; place-items:center; width:44px; height:44px; margin-left:auto; border-radius:10px; border:1px solid var(--color-line-strong); background:var(--color-surface); }
 .reading-preferences h2 { font-size:var(--text-section); line-height:1.4; margin:16px 0; color:var(--color-ink); text-wrap:balance; }

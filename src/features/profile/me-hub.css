@@ -14,7 +14,7 @@
 .me-hub__actions .profile-share { display:contents; }
 .me-hub__actions .profile-share>p,.me-hub__actions .profile-share>label { flex-basis:100%; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); }
 .me-hub__actions .profile-share input { width:100%; min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-strong); border-radius:10px; font-size:var(--text-fact); }
-.me-hub__notice { margin:16px 0 0; padding:12px 16px; border-radius:10px; background:var(--ui-warning-tint, var(--color-surface-2)); color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+.me-hub__notice { margin:16px 0 0; padding:12px 16px; border-radius:10px; background:var(--color-warning-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
 .me-hub__notice[data-tone=danger] { background:var(--color-surface-2); color:var(--color-danger); }
 
 /* The four tiles: 消息 (with the unread count), 我的这周, 我的发布, 小队与预约. Two by two on phones, one row on wider screens. */

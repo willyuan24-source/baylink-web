@@ -78,11 +78,16 @@ function paletteIssues(values) {
     const value = values.get(name);
     const alias = /^var\((--[a-z0-9-]+)\)$/i.exec(value || '');
     if (alias) return resolveColor(alias[1], seen);
+    // The palette's channel form (TOKENS-B): --color-x:rgb(var(--color-x-rgb)) and --color-x-rgb:R G B.
+    const channelAlias = /^rgb\(\s*var\((--[a-z0-9-]+)\)\s*\)$/i.exec(value || '');
+    if (channelAlias) return resolveColor(channelAlias[1], seen);
+    const channels = /^(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})$/.exec((value || '').trim());
+    if (channels) return channels.slice(1).map(channel => Number(channel) / 255);
     const color = /^#([\da-f]{6})$/i.exec(value || '');
     return color ? [0, 2, 4].map(offset => Number.parseInt(color[1].slice(offset, offset + 2), 16) / 255) : null;
   };
   const luminance = rgb => rgb.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
-  const pairs = ['--color-ink', '--color-ink-2', '--color-ink-3', '--color-brand'].flatMap(text => ['--color-bg', '--color-surface'].map(background => [text, background, 4.5]));
+  const pairs = ['--color-ink', '--color-ink-2', '--color-ink-3', '--color-brand'].flatMap(text => ['--color-bg', '--color-surface', '--color-surface-2', '--color-selected'].filter(background => background === '--color-bg' || background === '--color-surface' || values.has(background)).map(background => [text, background, 4.5]));
   pairs.push(['--color-on-brand-muted', '--color-brand-deep', 4.5]);
   if (values.has('--color-editorial')) pairs.push(['--color-editorial', '--color-bg', 4.5]);
   // TypeCover pairs (--tc-<tone>-fg on --tc-<tone>-bg) and sticker/status pairs, wherever a guarded file defines them.
