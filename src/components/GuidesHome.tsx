@@ -45,7 +45,7 @@ const bySlug = (slug: string) => cardsBySlug.get(slug);
 let corpus: Guide[] | undefined;
 let corpusLoad: Promise<Guide[]> | undefined;
 const loadSearchCorpus = (locale: string) => corpusLoad ||= Promise.all([
-  import('../data/guides').then(module => module.guides),
+  import('../features/guides/guide-search-corpus').then(module => module.guides),
   locale === 'en' ? loadLocaleForFeature('en', 'guide-search').catch(() => undefined) : undefined,
 ]).then(([loaded]) => (corpus = loaded)).catch((error: unknown) => { corpusLoad = undefined; throw error; });
 function useSearchCorpus(active: boolean, locale: string): { guides?: Guide[]; failed: boolean; retry: () => void } {
