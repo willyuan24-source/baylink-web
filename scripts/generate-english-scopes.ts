@@ -21,6 +21,11 @@ import eventIdAliases from '../src/data/event-id-aliases.json';
 import { buildGuideData, writeGuideData } from './generate-guide-data';
 import { getOfferImage } from '../src/lib/offer-media';
 import { generateTraditionalPhrases } from './generate-traditional-phrases';
+import officialEventMedia from '../src/data/official-event-media.json';
+import { CALENDAR_CITY_LOCATIONS } from '../src/data/calendar-city-locations';
+import { OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, VERIFIED_OFFER_PLACE_MEDIA_UPDATES, VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
+import { OCTNOV_EVENT_CONTEXT_PHOTOS, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_PHOTO_ALIASES } from '../src/data/octnov-2026-event-photo-aliases';
+import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
 const chinese = /[\u3400-\u9fff]/u;
@@ -110,11 +115,19 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   const records = new Map(guideData.records.map(record => [record.guide.slug, record]));
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
   const guideIndex = [guides.map(guide => ({ ...Object.fromEntries(Object.entries(guide).filter(([key]) => key !== 'blocks')), media: getGuideMedia(guide).cover })), GUIDE_CATEGORY_TABS, READER_PATHS];
+  // The events column (/events, /calendar) renders the slim events index and the media tables its covers read: its own pack
+  // ('events-list', WEB-DATA-SPLIT) instead of the whole discovery catalog and every guide. The index is generated here,
+  // first: importing the generator runs it once (generate:home's own import of it afterwards is the same, cached module).
+  await import('./generate-events-index');
+  const eventsList = [JSON.parse(await readFile('src/data/generated/events-index.json', 'utf8')), officialEventMedia, CALENDAR_CITY_LOCATIONS,
+    VERIFIED_PLACE_PHOTO_ALIASES, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_OFFER_PLACE_MEDIA_UPDATES,
+    OCTNOV_EVENT_PHOTO_ALIASES, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_CONTEXT_PHOTOS, EVENT_CONTEXT_PHOTOS];
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
     'guide-index': guideIndex,
     'guide-list': guideData.index,
+    'events-list': eventsList,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],

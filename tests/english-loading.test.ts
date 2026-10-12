@@ -66,7 +66,7 @@ test('the compact UI dictionary includes all eight tools catalog labels and page
 
 test('English home and article navigation request only their displayed content, including language prefixes', () => {
   assert.deepEqual(englishScopesForPath('/en/?lang=en#weekend'), ['ui', 'home']);
-  assert.deepEqual(englishScopesForPath('/zh-Hant/calendar?cost=free'), ['ui', 'discovery', 'guide-index']);
+  assert.deepEqual(englishScopesForPath('/zh-Hant/calendar?cost=free'), ['ui', 'events-list']);
   // WEB-DATA-SPLIT: an article's own scope covers its record ("Read next" included); the index loads its cards' pack and the
   // guides' full text only when the reader searches.
   assert.deepEqual(englishScopesForPath('/en/guides/medicare?q=help', scope => scope !== 'guide:missing'), ['ui', 'guide:medicare']);

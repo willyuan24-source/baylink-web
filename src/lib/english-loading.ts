@@ -46,7 +46,10 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
     const scope = `detail-${detailBucket(DETAIL_KINDS[section], safeDecode(id))}`;
     if (hasScope(scope)) scopes.push(scope);
     else scopes.push('discovery', 'guide-index');
-  } else if (/^\/(?:events|this-month|this-week|calendar|ai-in-the-bay|archive)$/u.test(path)) scopes.push('discovery', 'guide-index');
+  }
+  // The events column renders the slim events index (WEB-EVENTS, RC-33): its own pack, not the whole catalog (WEB-DATA-SPLIT).
+  else if (/^\/(?:events|this-week|calendar)$/u.test(path)) scopes.push('events-list');
+  else if (/^\/(?:this-month|ai-in-the-bay|archive)$/u.test(path)) scopes.push('discovery', 'guide-index');
   else if (/^\/(?:plan|my-week|together|me)$/u.test(path)) scopes.push('planning', 'discovery', 'guide-index');
   else if (path === '/explore') scopes.push('explore', 'guide-index');
   else if (path === '/' || path === '/reset-password' || /^\/(?:posts|users)\//u.test(path)) scopes.push('home');
@@ -56,9 +59,12 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
 
 /** The search dialog is opened from many routes; it needs English full-text matches too. The guide index's own search
  * ('guide-search') needs only the guides' full text: /guides loads it on the first search, not with the page. */
-export function englishScopesForFeature(feature: 'search' | 'guide-search'): string[] {
-  return feature === 'search' ? ['ui', 'guide-index', 'guide-search', 'discovery', 'explore'] : feature === 'guide-search' ? ['ui', 'guide-search'] : [];
+export function englishScopesForFeature(feature: EnglishFeature): string[] {
+  return feature === 'search' ? ['ui', 'guide-index', 'guide-search', 'discovery', 'explore'] : feature === 'guide-search' ? ['ui', 'guide-search']
+    // BayBay's answer cards show any event, offer, opening or guide, over any page.
+    : feature === 'baybay' ? ['ui', 'discovery', 'guide-index'] : [];
 }
+export type EnglishFeature = 'search' | 'guide-search' | 'baybay';
 
 /**
  * Pages that never search: the homepage, what opens over it (posts, profiles, the password reset), the community board,

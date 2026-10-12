@@ -82,6 +82,8 @@ export type AppRoute = {
 };
 
 const DISCOVERY = ['discovery', 'guide-index'] as const;
+/** The events column renders the slim events index: its own English pack (WEB-DATA-SPLIT). */
+const EVENTS_LIST = ['events-list'] as const;
 const PLANNING = ['planning', 'discovery', 'guide-index'] as const;
 
 export const ROUTES: readonly AppRoute[] = [
@@ -93,10 +95,10 @@ export const ROUTES: readonly AppRoute[] = [
   { path: '/reset-password', page: 'home', section: 'none', hosting: 'spa', english: ['home'] },
   { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-list'], release: true },
   { path: '/guides/:slug', page: 'guide', section: 'guides', hosting: 'ids', sitemap: true },
-  { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
+  { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
   { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
-  { path: '/this-week', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: DISCOVERY, baybay: true },
-  { path: '/calendar', page: 'calendar', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
+  { path: '/this-week', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: EVENTS_LIST, baybay: true },
+  { path: '/calendar', page: 'calendar', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
   { path: '/events/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
   { path: '/offers/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
   { path: '/openings/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },

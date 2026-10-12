@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import type { DictLike } from 'opencc-js/core';
 import patterns from './en-patterns.json';
 import { pathLanguage, languagePath } from '../lib/language-path';
-import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath, searchFreePath } from '../lib/english-loading';
+import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath, searchFreePath, type EnglishFeature } from '../lib/english-loading';
 
 export type Locale = 'zh-Hans' | 'zh-Hant' | 'en';
 export const LOCALE_KEY = 'baylink.reading-language.v1';
@@ -170,11 +170,11 @@ export async function loadLocaleForPath(locale: Locale, paths: string | readonly
   await search;
 }
 /** Whether a feature's displayed content and search dictionaries are in (the search dialog: LocaleFeatureGate). */
-export function isLocaleReadyForFeature(locale: Locale, feature: 'search' | 'guide-search'): boolean {
+export function isLocaleReadyForFeature(locale: Locale, feature: EnglishFeature): boolean {
   const content = locale === 'en' ? englishFullyLoaded || !!englishScopes && englishScopes.isReady(englishScopesForFeature(feature).filter(englishScopes.has)) : locale === 'zh-Hant' ? !!traditional : true;
   return content && (!!buildSearch || searchUnavailable);
 }
-export async function loadLocaleForFeature(locale: Locale, feature: 'search' | 'guide-search'): Promise<void> {
+export async function loadLocaleForFeature(locale: Locale, feature: EnglishFeature): Promise<void> {
   const search = loadSearchConversion().catch(() => undefined);
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
   else if (locale === 'zh-Hant') await loadChinese();

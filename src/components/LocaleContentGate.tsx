@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { isLocaleReadyForFeature, isLocaleReadyForPath, loadLocaleForFeature, loadLocaleForPath, useLocale, type Locale } from '../i18n/locale';
+import type { EnglishFeature } from '../lib/english-loading';
 
 type Pending = { promise: Promise<void>; error?: unknown };
 const pending = new Map<string, Pending>();
@@ -32,11 +33,11 @@ export function LocaleContentGate({ paths, children }: { paths: readonly string[
 }
 
 /**
- * A feature that shows content from many routes (the search dialog: guides' full text, events, places) waits for that
- * feature's dictionaries, not for whichever pages it happens to be opened over (WEB-DATA-SPLIT: /guides no longer loads
- * the guides' full text with the page).
+ * A feature that shows content from many routes (the search dialog: guides' full text, events, places; BayBay's cards) waits
+ * for that feature's dictionaries, not for whichever pages it happens to be opened over (WEB-DATA-SPLIT: /guides, /events
+ * and /calendar now load only what they display).
  */
-export function LocaleFeatureGate({ feature, children }: { feature: 'search'; children: ReactNode }) {
+export function LocaleFeatureGate({ feature, children }: { feature: EnglishFeature; children: ReactNode }) {
   const locale = useLocale();
   if (!isLocaleReadyForFeature(locale, feature)) requireLoad(`${locale}:feature:${feature}`, () => loadLocaleForFeature(locale, feature));
   return children;

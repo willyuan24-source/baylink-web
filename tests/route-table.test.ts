@@ -80,8 +80,9 @@ test('known paths, analytics templates, English scopes and BayBay context come f
   for (const path of ['/events/:id', '/offers/:id', '/openings/:id']) assert.equal(ROUTES.find(entry => entry.path === path)?.english, undefined, path);
   assert.deepEqual(englishScopesForPath('/en/events/san-francisco-fleet-week-2026'), ['ui', `detail-${detailBucket('event', 'san-francisco-fleet-week-2026')}`]);
   assert.deepEqual(englishScopesForPath('/en/offers/sfmta-free-muni-seniors', scope => !scope.startsWith('detail-')), ['ui', 'discovery', 'guide-index'], 'a registry without detail packs falls back to the discovery pack');
-  assert.deepEqual(englishScopesForPath('/en/events?when=today'), ['ui', 'discovery', 'guide-index']);
-  assert.deepEqual(englishScopesForPath('/en/this-week'), ['ui', 'discovery', 'guide-index']);
+  // WEB-DATA-SPLIT: the events column loads its own pack (the slim index's text); the details load their bucket's pack (WEB-DETAIL).
+  assert.deepEqual(englishScopesForPath('/en/events?when=today'), ['ui', 'events-list']);
+  assert.deepEqual(englishScopesForPath('/en/this-week'), ['ui', 'events-list']);
   assert.deepEqual(englishScopesForPath('/en/me/bookings'), ['ui']);
   assert.deepEqual(bayBayPageSearchContext('/events?region=sf&from=card-sf'), { region: 'sf' });
   assert.deepEqual(bayBayPageSearchContext('/events?when=today', '2026-10-08'), { date: '2026-10-08' });
