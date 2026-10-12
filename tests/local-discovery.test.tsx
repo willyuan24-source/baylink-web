@@ -26,7 +26,7 @@ const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryD
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { nextEventDay, unconfirmedEvent } = await import('../src/features/detail/detail-record');
 const { heroCover } = await import('../src/features/detail/hero-cover');
-const { hasEditorNote, readerCost, readerPlanLines, readerProse } = await import('../src/features/detail/reader-text');
+const { hasEditorNote, readerCost, readerPlanLines, readerProse, readerSentences } = await import('../src/features/detail/reader-text');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
 const { api } = await import('../src/lib/api');
@@ -271,8 +271,8 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.ok(content.textContent!.includes(place), share.id + ' preserves location guidance');
       assert.equal(Boolean(content.querySelector('.event-interest span')), false, 'server HTML does not invent a participant count');
     } else if (item.kind === 'offer') {
-      assert.ok(squash(content.textContent!).includes(squash(readerProse(item.offer.requirement, 'zh-Hans'))), 'redemption conditions are visible before following the offer');
-      assert.equal(squash([...content.querySelectorAll('.detail-steps li p')].map(node => node.textContent).join('')), squash(readerProse(item.offer.description, 'zh-Hans')), share.id + ': every step, in order');
+      assert.ok(squash(content.textContent!).includes(squash(readerSentences(item.offer.requirement, 'zh-Hans').join(''))), 'redemption conditions are visible before following the offer');
+      assert.equal(squash([...content.querySelectorAll('.detail-steps li p')].map(node => node.textContent).join('')), squash(readerSentences(item.offer.description, 'zh-Hans').join('')), share.id + ': every step, in order');
       assert.equal(Boolean(content.querySelector('.event-participation')), false);
     } else {
       assert.ok(squash(content.textContent!).includes(squash(readerProse(item.shop.editorTip, 'zh-Hans'))));
@@ -405,7 +405,7 @@ test('offers without end dates retain their actual conditions instead of acquiri
     const view = render(detail(item, '2027-01-01'));
     assert.equal(Boolean(view.queryByText(/已过期/)), false);
     const conditions = [...view.container.querySelectorAll('section[aria-labelledby="offer-conditions-title"] li')].map(li => li.textContent).join('');
-    assert.equal(conditions.replace(/\s+/g, ''), readerProse(item.offer.requirement, 'zh-Hans').replace(/\s+/g, ''));
+    assert.equal(conditions.replace(/\s+/g, ''), readerSentences(item.offer.requirement, 'zh-Hans').join('').replace(/\s+/g, ''), 'every condition, one sentence per item');
     assert.ok(view.container.querySelector('.detail-fact[data-fact="when"]')?.textContent?.includes(readerProse(item.offer.dateLabel, 'zh-Hans')));
     view.unmount();
   }
