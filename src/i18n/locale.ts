@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react';
 import type { DictLike } from 'opencc-js/core';
+import type { TaiwanTerms } from './taiwan-terms';
 import patterns from './en-patterns.json';
 import { pathLanguage, languagePath } from '../lib/language-path';
 import { createEnglishScopeLoader, englishScopesForFeature, englishScopesForPath, searchFreePath, type EnglishFeature } from '../lib/english-loading';
@@ -157,17 +158,21 @@ const TAIWAN_AFTER: readonly (readonly [string, string])[] = [['阿什伯裡', '
  * (馬裡納區, 小傢夥, 花崗巖) — and the site does convert twice wherever a string already in Traditional (the game's
  * pick()) is a JSX child (i18n/host.ts). So every conversion is checked: when its output would change again, each phrase
  * of the text is added to the trie as itself (Traditional → Traditional) and the second pass leaves it alone. Cheap: one
- * extra pass per string; the trie learns only the phrases that need it. `words`: TAIWAN_WORDS first and metres as 公尺.
+ * extra pass per string; the trie learns only the phrases that need it. `words`: TAIWAN_WORDS and the site's `terms`
+ * (taiwan-terms.ts) first, metres as 公尺.
  */
-export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>, prebuilt?: InstanceType<typeof O.Trie>, site: { words: readonly (readonly [string, string])[]; after: readonly (readonly [RegExp, string])[] } = { words: [], after: [] }): (text: string, words?: boolean) => string {
+const NO_TERMS: TaiwanTerms = { words: [], after: [] };
+export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Locale'>, prebuilt?: InstanceType<typeof O.Trie>, terms: TaiwanTerms = NO_TERMS): (text: string, words?: boolean) => string {
   const [st0] = O.Locale.from.cn, [tw0] = O.Locale.to.tw;
   // `prebuilt`: a cn trie already filled (the browser's full phrase table, built in slices: traditional.ts siteTraditional)
   const st = prebuilt ?? new O.Trie(), tw = new O.Trie(), local = new O.Trie();
   if (!prebuilt) st.loadDictGroup(st0);
   tw.loadDictGroup(tw0);
-  // the site's term table (taiwan-terms.ts, loaded with opencc) on top of the game's words
-  local.loadDict([...TAIWAN_WORDS, ...site.words]);
   const once = (text: string) => tw.convert(st.convert(text));
+  // the site's term table (taiwan-terms.ts, loaded with opencc) on top of the game's words; a guard (a phrase mapped to
+  // itself, left to opencc) also guards its converted form, so a second pass cannot cut it (按周邊 never becomes 按週邊)
+  local.loadDict([...TAIWAN_WORDS, ...terms.words]);
+  for (const [from, to] of terms.words) if (from === to) local.addWord(once(from), once(from));
   return (text: string, words = false) => {
     const source = words ? local.convert(text) : text;
     const out = once(source);
@@ -179,7 +184,7 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
       }
     }
     // metres: 40 米 → 40 公尺, 15,000 平方米 → 15,000 平方公尺 (never 米飯 / 米色 / 米其林 …)
-    return words ? site.after.reduce((t, [pattern, to]) => t.replace(pattern, to), TAIWAN_AFTER.reduce((t, [from, to]) => t.replaceAll(from, to), out.replace(/(\d)(\s*)(平方)?米(?![飯色黃粉其糕蘭])/g, '$1$2$3公尺'))) : out;
+    return words ? terms.after.reduce((t, [pattern, to]) => t.replace(pattern, to), TAIWAN_AFTER.reduce((t, [from, to]) => t.replaceAll(from, to), out.replace(/(\d)(\s*)(平方)?米(?![飯色黃粉其糕蘭])/g, '$1$2$3公尺'))) : out;
   };
 }
 
