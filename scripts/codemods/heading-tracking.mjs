@@ -7,16 +7,16 @@
 //   node scripts/codemods/heading-tracking.mjs --check [file.css …]  exit 1 if a heading rule still tracks negative
 //   --skip-selector=<regex>  leave rules whose selector matches
 //
-// A rule counts as a heading when its selector targets h1–h3 or a class ending in "title" / "title__head" (`.bay-hero h1`,
-// `.gd-title__head`, `.baylink-hero-title`); wordmarks and names stay as they are. Idempotent; re-run after a rebase.
+// A rule counts as a heading when the subject of its selector (the last compound) is h1–h3 or a class ending in "title" /
+// "title__head" (`.bay-hero h1`, `.gd-title__head`, `.baylink-hero-title`; not `.card h2 + p`), the same test the hex
+// codemod uses (isHeadingSubject); wordmarks and names stay as they are. Idempotent; re-run after a rebase.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import postcss from 'postcss';
-import { siteStylesheets } from './hex-to-tokens.mjs';
+import { isHeadingSubject, siteStylesheets } from './hex-to-tokens.mjs';
 
 const root = fileURLToPath(new URL('../..', import.meta.url));
-const HEADING = /(?:^|[\s>+~,(])h[1-3](?![\w-])|[.-]title(?:__head)?(?![\w-])/i;
 const negative = value => /^-\s*(?:\d*\.?\d+)(?:em|px|rem)?$/.test(value.trim()) && Number.parseFloat(value.replace(/\s/g, '')) < 0;
 
 /** Rewrite one stylesheet; returns { css, changes: [{selector, from}] }. */
@@ -25,7 +25,7 @@ export function rewriteTracking(css, { skipSelector } = {}) {
   const changes = [];
   ast.walkDecls('letter-spacing', declaration => {
     const rule = declaration.parent;
-    if (rule?.type !== 'rule' || !HEADING.test(rule.selector) || !negative(declaration.value)) return;
+    if (rule?.type !== 'rule' || !isHeadingSubject(rule.selector) || !negative(declaration.value)) return;
     if (skipSelector?.test(rule.selector)) return;
     changes.push({ selector: rule.selector, from: declaration.value });
     declaration.value = '0';

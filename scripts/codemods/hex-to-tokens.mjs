@@ -46,8 +46,14 @@ const excluded = path => /^src\/(?:opus-bay\/|features\/little-bay\/|data\/gener
 export const TEXT_DARK = ['ink', 'ink-2', 'ink-3', 'brand', 'brand-hover', 'brand-deep', 'warm', 'success', 'warning', 'danger', 'info', 'plum'];
 export const TEXT_LIGHT = ['surface', 'on-brand-muted', 'highlight', 'brand-tint'];
 const TEXT_NEUTRAL = ['ink', 'ink-2', 'ink-3'];
+/** A heading compound: h1–h3, or a class ending in "title" / "title__head" (`.gd-title__head`, `.baylink-hero-title`). */
+const HEADING_COMPOUND = String.raw`(?:h[1-3]|[^\s>+~,()]*[.-]title(?:__head)?)(?![\w-])`;
+/** A heading rule: the last compound of the selector (its subject) is a heading — `.bay-hero h1`, `.x-title:hover`, but
+ *  not `.card h2 + p`. Shared with scripts/codemods/heading-tracking.mjs, so both codemods agree on what a heading is. */
+const HEADING_SUBJECT = new RegExp(String.raw`(?:^|[\s>+~(])${HEADING_COMPOUND}[^\s>+~,]*$`, 'i');
+export const isHeadingSubject = selector => selector.split(',').some(part => HEADING_SUBJECT.test(part.trim()));
 /** Emphasis inside a heading: the last compound of the selector is em / strong / mark under an h1–h3 or a *-title. */
-const HEADING_ACCENT = /(?:^|[\s>+~(])(?:h[1-3]|[^\s>+~,()]*[.-]title(?:__head)?)(?![\w-])[^,+~]*[\s>]\s*(?:em|strong|mark)(?![\w-])[^\s>+~,]*$/i;
+const HEADING_ACCENT = new RegExp(String.raw`(?:^|[\s>+~(])${HEADING_COMPOUND}[^,+~]*[\s>]\s*(?:em|strong|mark)(?![\w-])[^\s>+~,]*$`, 'i');
 export const isHeadingAccent = selector => selector.split(',').some(part => HEADING_ACCENT.test(part.trim()));
 /** Snapping targets. Success and its tint sit next to brand and brand-tint, so a legacy olive becomes the brand colour
  *  (one green family on a page, SV-07); success stays for status chips that ask for it by name. on-brand-muted is text

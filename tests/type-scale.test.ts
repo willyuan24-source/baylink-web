@@ -71,5 +71,5 @@ test('no negative letter-spacing on headings, except in the files of lanes still
     if (file === 'src/design.css') assert.equal(changes.length, 0, 'design.css: only the .bay-category-* rules WEB-COMMUNITY deletes may still track negative');
   }
   assert.deepEqual(offenders, []);
-  assert.equal(rewriteTracking('.a h2{letter-spacing:-.03em}.b strong{letter-spacing:-.02em}.c-title{letter-spacing:-1px}').css, '.a h2{letter-spacing:0}.b strong{letter-spacing:-.02em}.c-title{letter-spacing:0}');
+  assert.equal(rewriteTracking('.a h2{letter-spacing:-.03em}.b strong{letter-spacing:-.02em}.c-title{letter-spacing:-1px}.card h2 + p{letter-spacing:-.01em}').css, '.a h2{letter-spacing:0}.b strong{letter-spacing:-.02em}.c-title{letter-spacing:0}.card h2 + p{letter-spacing:-.01em}', 'a heading is the selector subject, as in the hex codemod');
 });

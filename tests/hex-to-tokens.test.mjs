@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { TEXT_DARK, TEXT_LIGHT, isHeadingAccent, readPalette, remainingHex, rewriteCss } from '../scripts/codemods/hex-to-tokens.mjs';
+import { TEXT_DARK, TEXT_LIGHT, isHeadingAccent, isHeadingSubject, readPalette, remainingHex, rewriteCss } from '../scripts/codemods/hex-to-tokens.mjs';
 
 // The hex → token codemod (TOKENS-B): role-aware snapping onto the palette in src/tokens.css.
 const palette = readPalette();
@@ -38,6 +38,9 @@ test('emphasis inside a heading is an accent: a coloured one stays coloured (bra
   assert.equal(run('.lead em{color:#69825a}').css, '.lead em{color:var(--color-ink-3)}', 'emphasis outside a heading is running text');
   for (const selector of ['.about-hero h1 em', 'h3 mark:hover', '.gd-title__head em', '.a,.b h2>strong']) assert.ok(isHeadingAccent(selector), selector);
   for (const selector of ['.about-hero h1', '.a em', '.card h2 + p em', '.card h2 ~ p strong']) assert.ok(!isHeadingAccent(selector), selector);
+  // Both codemods share the heading test: the selector's subject (its last compound) is h1–h3 or a *-title class.
+  for (const selector of ['.bay-hero h1', 'h2', '.gd-title__head', '.x-title:hover', '.a > h3.b', '.a, .card h2']) assert.ok(isHeadingSubject(selector), selector);
+  for (const selector of ['.card h2 + p', '.card h2 span', '.subtitle', '.about-hero h1 em', '.x-title > a']) assert.ok(!isHeadingSubject(selector), selector);
 });
 
 test('error and warning rules keep their status family instead of the nearest neutral or warm colour', () => {

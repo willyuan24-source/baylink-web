@@ -1,6 +1,6 @@
 // 骨架屏原语与常用形态：替代全局 spinner，让加载中也保持页面结构
 export const Skeleton = ({ className = '' }: { className?: string }) => (
-  <div className={`animate-pulse rounded-lg bg-baylink-section/70 ${className}`} />
+  <div className={`animate-pulse rounded-lg bg-baylink-border/70 ${className}`} />
 );
 
 /** 与 PostCard 同构的骨架：头像行 + 标题 + 图区 + 摘要 + 底栏 */
