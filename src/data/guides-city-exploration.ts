@@ -59,7 +59,7 @@ export const cityExplorationGuides: Guide[] = [{
   "sources": [
     {
       "title": "ABAG: How We Govern",
-      "url": "https://www.abag.ca.gov/about-abag/what-we-do/how-we-govern",
+      "url": "https://abag.ca.gov/about-abag/what-we-do/how-we-govern",
       "description": "本文九县 101 个建制城市和镇的范围依据。"
     },
     {
