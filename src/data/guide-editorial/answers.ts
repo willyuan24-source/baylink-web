@@ -13,7 +13,7 @@ export const GUIDE_COVER_ANSWERS: Readonly<Record<string, EditorialCopy>> = {
   'bay-area-naturalization-official-path-guide': { zh: '一般：绿卡满 5 年', en: 'Usually 5 years' },
   'bay-area-free-tax-help-vita-calfile-guide': { zh: '报税 800-906-9887', en: 'VITA 800-906-9887' },
   'california-tenant-deposit-rights-help-guide': { zh: '押金：搬出后 21 天', en: 'Deposit: 21 days' },
-  'california-driver-license-id-preparation-guide': { zh: '驾照、ID、REAL ID', en: 'License, ID, REAL ID' },
+  'california-driver-license-id-preparation-guide': { zh: '首次驾照申请费 $46', en: 'First license: $46' },
 };
 
 export function guideEditorialAnswer(slug: string, locale: Locale): string | undefined {

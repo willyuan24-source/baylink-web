@@ -1,6 +1,7 @@
 import type { GuideEditorial } from './types';
 
-// Facts from the article (read 2026-10-06): Medicare.gov, DHCS dental directory and benefit-change pages, NEMS and UCSF pages.
+// Facts from the article. CNT-GUIDES read Medicare.gov, the DHCS dentist directory (new-patient filter, 1-800-322-6384, Mon-Fri
+// 8-5), the DHCS benefit-change page, NEMS and UCSF Parnassus (415-502-5800) in a browser on 2026-10-12.
 export const dentalEditorial: GuideEditorial = {
   slug: 'bay-area-dental-care-insurance-low-cost-guide',
   cover: {
@@ -12,22 +13,24 @@ export const dentalEditorial: GuideEditorial = {
   },
   keyFacts: [
     { label: { zh: '有 Medi-Cal', en: 'With Medi-Cal' }, value: { zh: '查 DHCS 牙医目录；找不到接新病人的牙医打 1-800-322-6384', en: "Use the DHCS dentist directory; if no one takes new patients, call 1-800-322-6384" }, source: 2 },
-    { label: { zh: '只有 Original Medicare', en: 'Original Medicare only' }, value: { zh: '大多数常规洗牙、补牙、拔牙、假牙不由它支付', en: 'Most routine cleanings, fillings, extractions and dentures are not covered' }, source: 1 },
+    { label: { zh: '只有 Original Medicare', en: 'Original Medicare only' }, value: { zh: '多数情况下不付洗牙、补牙、拔牙和假牙', en: 'In most cases no cleanings, fillings, extractions or dentures' }, source: 1 },
     { label: { zh: '福利变动', en: 'Benefit changes' }, value: { zh: '部分成人非急诊牙科变动延至 2027 年 7 月 1 日', en: 'Some adult non-emergency dental changes are delayed to July 1, 2027' }, source: 3 },
     { label: { zh: '低费路线', en: 'Lower-cost options' }, value: { zh: 'NEMS 按收入减费（不是免费诊所）；UCSF 学生诊所接收 Denti-Cal', en: 'NEMS sliding fee (not a free clinic); the UCSF student clinic accepts Denti-Cal' }, source: 6 },
   ],
   contacts: [
     { name: { zh: 'Medi-Cal 牙科服务中心', en: 'Medi-Cal Dental Telephone Service Center' }, number: '1-800-322-6384', tel: '+18003226384',
-      note: { zh: '目录里找不到接收新病人的牙医时，打这个官方电话请求帮助。', en: 'Call this official line when the directory has no dentist taking new patients.' }, source: 2 },
+      note: { zh: '周一到周五 8 点到 17 点；目录里找不到接新病人的牙医时打这个电话，可要求口译。', en: 'Monday–Friday 8 a.m.–5 p.m.; call when the directory has no dentist taking new patients, and ask for an interpreter if needed.' }, source: 2 },
+    { name: { zh: 'UCSF Parnassus 学生牙科诊所（老病人）', en: 'UCSF Parnassus Student Dentistry Clinic (returning patients)' }, number: '415-502-5800', tel: '+14155025800',
+      note: { zh: '接收 Denti-Cal；新病人用 UCSF 网上自助预约。', en: "Accepts Denti-Cal; new patients book through UCSF's online portal." }, source: 7 },
   ],
   slides: [
     { kind: 'point', kicker: { zh: '先分清', en: 'First' }, title: { zh: '有医保，不等于牙科都能报', en: 'Health insurance is not dental coverage' },
       body: { zh: '大多数常规洗牙、补牙、拔牙、假牙与种植牙不由 Original Medicare 支付；按自己的牙科计划逐项问。', en: 'Original Medicare does not pay for most routine cleanings, fillings, extractions, dentures or implants; ask your dental plan item by item.' }, source: 1 },
     { kind: 'contacts', kicker: { zh: '有 Medi-Cal', en: 'With Medi-Cal' }, title: { zh: '先查官方牙医目录', en: 'Start with the official dentist directory' },
-      body: { zh: '目录里的接诊信息仍要电话确认。', en: 'Phone the office to confirm it takes new patients.' },
+      body: { zh: '按县查找，可只看接收新病人的牙医，也能按普通话、粤语筛选；再打电话确认。', en: 'Search by county, show only dentists taking new patients and filter for Mandarin or Cantonese; then phone to confirm.' },
       phones: [{ label: { zh: '找不到接新病人的牙医', en: 'No dentist taking new patients' }, number: '1-800-322-6384', tel: '+18003226384' }], source: 2 },
     { kind: 'point', kicker: { zh: '福利变动', en: 'Benefit changes' }, title: { zh: '看最新的专门通知', en: 'Read the latest notice' },
-      body: { zh: '部分成人因移民身份受影响的非急诊牙科变动已延至 2027 年 7 月 1 日；这不是所有成人牙科都取消。', en: 'Some non-emergency dental changes for adults affected by immigration status are delayed to July 1, 2027; adult dental care is not cancelled for everyone.' }, source: 3 },
+      body: { zh: '变动已延到 2027 年 7 月 1 日：从那天起，19 岁以上、因移民身份不符合联邦全额 Medi-Cal 的成人，牙科只保急诊。这不是所有成年人的牙科都取消。', en: 'The change is delayed to July 1, 2027: from then, adults 19+ who do not qualify for federally funded full-scope Medi-Cal because of immigration status keep emergency dental care only. Adult dental care is not cancelled for everyone.' }, source: 3 },
     { kind: 'compare', kicker: { zh: '低费路线', en: 'Lower-cost options' }, title: { zh: '各有规则，先问清', en: 'Each has its own rules' },
       items: [
         { zh: 'NEMS：按家庭人数和收入减费，每年重新登记；不是免费诊所', en: 'NEMS: sliding fee by household size and income, renewed yearly; not a free clinic' },

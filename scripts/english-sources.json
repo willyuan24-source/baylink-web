@@ -133,5 +133,6 @@
   "src/data/octnov-2026-event-media-en.json",
   "src/data/federal-pd-media-en.json",
   "src/data/official-event-media-en.json",
-  "src/data/editorial-overlay-en.json"
+  "src/data/editorial-overlay-en.json",
+  "src/data/guide-pillars-2026-10-en.json"
 ]
