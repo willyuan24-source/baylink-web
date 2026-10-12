@@ -1,8 +1,9 @@
 import { useSearchParams, Link } from 'react-router-dom';
-import { ChevronRight, Calculator, CheckCheck, Landmark, ReceiptText, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
+import { Calculator, CheckCheck, Landmark, ReceiptText, Ruler, ShoppingBasket, Sparkles, UsersRound } from 'lucide-react';
 import { LIFE_TOOLS, resolveLifeTool } from '../../data/tool-catalog';
-import { useLocale } from '../../i18n/locale';
+import { translateText, useLocale } from '../../i18n/locale';
 import type { ShowToast } from '../../app/context';
+import { PageContainer, PageHeader } from '../ui/HeroCard';
 import { AiCommunicationTool } from './AiCommunicationTool';
 import { UnitConverterTool } from './UnitConverterTool';
 import { RentalBudgetTool, SharedBillTool } from './BudgetTools';
@@ -14,27 +15,41 @@ import './tools.css';
 import './loan-calculator.css';
 
 const ICONS = { sparkles: Sparkles, ruler: Ruler, users: UsersRound, calculator: Calculator, checklist: CheckCheck, landmark: Landmark, basket: ShoppingBasket, receipt: ReceiptText };
+
+/** 生活工具箱 (/tools, WEB-SECONDARY-A): PageHeader, a list of the eight tools, then the open tool's workspace. */
 export function ToolsHub({ storageScope, onToast }: { storageScope: string; onToast: ShowToast }) {
   const locale = useLocale();
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const [params] = useSearchParams();
   const active = resolveLifeTool(params.get('tool'));
   const current = LIFE_TOOLS.find(tool => tool.id === active)!;
   const CurrentIcon = ICONS[current.icon];
-  return <div className="life-tools">
-    <header className="tools-hero"><div><span className="tools-eyebrow" translate="no">{locale === 'en' ? 'Everyday tools' : locale === 'zh-Hant' ? '日常實用工具' : '日常实用工具'}</span><h1>生活的小麻烦，<br /><em>顺手解决。</em></h1><p>从一句英文、一笔账，到搬家前的一张清单。<br />给湾区日常，准备一套用得上的小工具。</p></div><div className="tools-hero-art" aria-hidden="true"><div><Sparkles /><span>表达清楚</span></div><div><Calculator /><span>心里有数</span></div><div><CheckCheck /><span>慢慢办妥</span></div></div></header>
-    <nav className="tools-picker" aria-label="选择生活工具">{LIFE_TOOLS.map(tool => { const Icon = ICONS[tool.icon]; return <Link key={tool.id} to={`/tools?tool=${tool.id}#tool-workspace`} aria-current={active === tool.id ? 'page' : undefined} className={`tools-picker-card ${active === tool.id ? 'is-active' : ''}`}><span className="tools-picker-icon"><Icon size={22} /></span><span className="tools-picker-tag">{tool.tag}</span><strong>{tool.title}</strong><small>{tool.short}</small><ChevronRight className="tools-picker-arrow" size={17} /></Link>; })}</nav>
-    <section id="tool-workspace" className="tool-workspace" aria-labelledby="active-tool-title"><header className="tool-workspace-header"><span><CurrentIcon size={24} /></span><div><p>{current.tag}</p><h2 id="active-tool-title">{current.title}</h2><p>{current.description}</p></div></header>
-      <div className="tool-workspace-body">
-        <div hidden={active !== 'communication'}><AiCommunicationTool onToast={onToast} /></div>
-        <div hidden={active !== 'dining'}><DiningCalculator onToast={onToast} /></div>
-        <div hidden={active !== 'loan'}><LoanCalculatorTool onToast={onToast} /></div>
-        <div hidden={active !== 'unit-price'}><UnitPriceTool onToast={onToast} /></div>
-        <div hidden={active !== 'units'}><UnitConverterTool onToast={onToast} /></div>
-        <div hidden={active !== 'split'}><SharedBillTool onToast={onToast} /></div>
-        <div hidden={active !== 'budget'}><RentalBudgetTool onToast={onToast} /></div>
-        <div hidden={active !== 'moving'}><MovingChecklistTool key={storageScope} storageScope={storageScope} onToast={onToast} /></div>
-      </div>
-    </section>
-    <footer className="tools-footer"><p>计算和清单在本机处理；AI 沟通仅在你点击生成后提交内容。<br />关闭页面后，未保存的计算输入和沟通草稿不会保留。</p><Link to="/guides">需要更完整的生活攻略？<span>看看湾区指南 <ChevronRight size={15} /></span></Link></footer>
-  </div>;
+  return <PageContainer className="tools-page">
+    <PageHeader title={t('生活工具箱', 'Everyday tools')}
+      lede={t('算小费、比单价、算房贷、写一条英文消息。计算在你的浏览器里完成；AI 沟通只在你点「生成」后提交内容。', 'Tips, unit prices, a mortgage, a message in English. Calculations stay in your browser; the AI helper sends your text only when you tap Generate.')} />
+    <div className="tools-layout">
+      <nav className="tools-picker" aria-label="选择生活工具">
+        <ul>
+          {LIFE_TOOLS.map(tool => { const Icon = ICONS[tool.icon]; return <li key={tool.id}><Link to={`/tools?tool=${tool.id}#tool-workspace`} aria-current={active === tool.id ? 'page' : undefined} className="tools-picker-item">
+            <span className="tools-picker-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
+            <span className="tools-picker-text"><strong>{tool.title}</strong><small>{tool.short}</small><span className="tools-picker-tag">{tool.tag}</span></span>
+          </Link></li>; })}
+        </ul>
+      </nav>
+      <section id="tool-workspace" className="tool-workspace" aria-labelledby="active-tool-title">
+        <header className="tool-workspace-header"><span aria-hidden="true"><CurrentIcon strokeWidth={1.75} /></span><div><p>{current.tag}</p><h2 id="active-tool-title">{current.title}</h2><p>{current.description}</p></div></header>
+        <div className="tool-workspace-body">
+          <div hidden={active !== 'communication'}><AiCommunicationTool onToast={onToast} /></div>
+          <div hidden={active !== 'dining'}><DiningCalculator onToast={onToast} /></div>
+          <div hidden={active !== 'loan'}><LoanCalculatorTool onToast={onToast} /></div>
+          <div hidden={active !== 'unit-price'}><UnitPriceTool onToast={onToast} /></div>
+          <div hidden={active !== 'units'}><UnitConverterTool onToast={onToast} /></div>
+          <div hidden={active !== 'split'}><SharedBillTool onToast={onToast} /></div>
+          <div hidden={active !== 'budget'}><RentalBudgetTool onToast={onToast} /></div>
+          <div hidden={active !== 'moving'}><MovingChecklistTool key={storageScope} storageScope={storageScope} onToast={onToast} /></div>
+        </div>
+      </section>
+    </div>
+    <footer className="tools-footer"><p>计算和清单在本机处理；AI 沟通仅在你点击生成后提交内容。<br />关闭页面后，未保存的计算输入和沟通草稿不会保留。</p><Link to="/guides">{t('需要更完整的办事步骤？看湾区指南', 'Need the full steps? Read the Bay Area guides')}</Link></footer>
+  </PageContainer>;
 }
