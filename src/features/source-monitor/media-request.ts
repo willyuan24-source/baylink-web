@@ -60,7 +60,7 @@ export function permissionMailto(candidate: MediaCandidate): string {
   const body = [
     'Hello,',
     '',
-    'I run BAYLINK (https://www.baylink.us), a Chinese-language guide that helps Chinese-speaking families in the San Francisco Bay Area find local events. Every listing links to its official source.',
+    'I am writing on behalf of BAYLINK (https://www.baylink.us), a Chinese-language guide that helps Chinese-speaking families in the San Francisco Bay Area find local events. Every listing links to its official source.',
     '',
     `We list "${listing}"${when} and link to your page: ${candidate.url}`,
     `May we show your official image on that listing? ${imageOf(candidate)}`,

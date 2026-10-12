@@ -91,6 +91,8 @@ test('image candidates: next 21 days only, never displayed; request, record a ba
   const mail = view.getByRole('link', { name: '请求授权' }).getAttribute('href') || '';
   assert.match(mail, /^mailto:\?subject=Photo%20permission%20request%3A%20Harvest%20festival&body=/);
   assert.match(decodeURIComponent(mail), /remove it promptly if you ask/);
+  assert.match(decodeURIComponent(mail), /I am writing on behalf of BAYLINK/, 'any editor can send it, so it never claims to be the owner');
+  assert.doesNotMatch(decodeURIComponent(mail), /I run BAYLINK/);
   assert.match(decodeURIComponent(mail), /https:\/\/harvest\.example\/hero\.jpg/);
   fireEvent.click(view.getByRole('button', { name: '记录 PD·CC 依据' }));
   fireEvent.change(view.getByLabelText('授权依据'), { target: { value: 'press-kit' } });
@@ -140,6 +142,26 @@ test('the desk reads in English without Chinese chrome', async () => {
   assert.doesNotMatch(desk.textContent || '', /[㐀-鿿]/u);
   assert.match(desk.textContent || '', /Triage used 3 of 200 calls today/);
   assert.match(desk.textContent || '', /readers see a prompt/);
+});
+
+test('English admin labels carry their own punctuation (no full-width colon after a translated label)', async () => {
+  await setLocale('en', false);
+  const noted = { ...rows.find(row => row.id === 'blocked')!, reviewNote: 'Checked by hand: still on' };
+  api.request = async (endpoint: string) => endpoint === '/admin/source-monitor' ? { sources: [noted], running: false, triage: { enabled: true, reason: 'on', calls: 0, dailyLimit: 200 } } : { candidates: [] };
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(<AdminSourceMonitor />); });
+  await act(async () => {});
+  await act(async () => { fireEvent.click(view.getAllByRole('button', { name: /Unreadable/ })[0]); });
+  assert.match(view.container.textContent || '', /Review note: Checked by hand: still on/);
+  cleanup();
+  const english = { candidates: [{ ...candidates.candidates[0], nextDate: '2026-10-17', listings: [{ title: 'Harvest festival', path: '/events/harvest-2026' }] }] };
+  api.request = async () => english;
+  await act(async () => { view = render(<MediaCandidateQueue today="2026-10-12" />); });
+  await act(async () => {});
+  const text = view.container.textContent || '';
+  assert.match(text, /Image URL: https:\/\/harvest\.example\/hero\.jpg/);
+  assert.match(text, /Official alt text: Families at the pumpkin patch/);
+  assert.doesNotMatch(text, /[\u3000-\u303f\uff01-\uff60]/u, 'no CJK punctuation in the English desk');
 });
 
 test('source titles are data: shown in the reader’s script (繁體 for zh-Hant) and kept from page translation', async () => {

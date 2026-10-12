@@ -194,6 +194,6 @@ function SourceRowCard({ row, t, locale }: { row: AdminSourceRow; t: Copy; local
       <div><dt>{t('编辑复核', 'Editor review')}</dt><dd>{stamp(row.lastEditorReviewAt ?? (row.reviewedBy === 'auto-triage' ? null : row.lastReviewedAt), locale, t('尚无记录', 'No record yet'))}</dd></div>
       {row.endDate && <div><dt>{t('内容截止日期', 'Content end date')}</dt><dd>{row.endDate}</dd></div>}</dl>
     {unreadable && <p className="source-monitor-note">{t('页面可能阻止自动访问、需要 JavaScript 或暂时不可用，请手动查看。此状态不代表活动取消。', 'The page may block automated access, need JavaScript, or be temporarily down. Check it by hand; this does not mean the event is cancelled.')}{row.errorCode && <> <code>{row.errorCode}</code></>}</p>}
-    {row.reviewNote && <p className="source-monitor-note">{t('复核备注', 'Review note')}：<span translate="no">{row.reviewNote}</span></p>}
+    {row.reviewNote && <p className="source-monitor-note">{t('复核备注：', 'Review note: ')}<span translate="no">{row.reviewNote}</span></p>}
   </article>;
 }
