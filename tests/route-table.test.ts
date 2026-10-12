@@ -5,7 +5,7 @@ import { matchRoute, PAGE_MODULES, ROUTES, routeTemplate, type RouteSection } fr
 import { primaryNavigationPath } from '../src/lib/ui-navigation';
 import { isKnownAppPath } from '../src/routing';
 import { currentPageLoader, pageLoaders } from '../src/route-loaders';
-import { englishScopesForPath } from '../src/lib/english-loading';
+import { detailBucket, englishScopesForPath } from '../src/lib/english-loading';
 import { bayBayPageSearchContext } from '../src/lib/baybay-context';
 import { generateSitemap } from '../scripts/generate-sitemap';
 
@@ -74,7 +74,12 @@ test('known paths, analytics templates, English scopes and BayBay context come f
   assert.equal(routeTemplate('/zh-Hant/events/'), '/events');
   assert.equal(routeTemplate('/wp-admin'), 'other');
   // lib/english-loading.ts cannot import the table (the 3D title chunk loads it): its answers must equal the table's
-  for (const route of ROUTES.filter(entry => entry.path !== '/guides/:slug')) assert.deepEqual(englishScopesForPath(`/en${sample(route.path)}`), ['ui', ...(route.english || [])], route.path);
+  // /guides/:slug and the event, offer and opening details load a pack of their own (the article; the detail's bucket).
+  const ownPack = new Set(['/guides/:slug', '/events/:id', '/offers/:id', '/openings/:id']);
+  for (const route of ROUTES.filter(entry => !ownPack.has(entry.path))) assert.deepEqual(englishScopesForPath(`/en${sample(route.path)}`), ['ui', ...(route.english || [])], route.path);
+  for (const path of ['/events/:id', '/offers/:id', '/openings/:id']) assert.equal(ROUTES.find(entry => entry.path === path)?.english, undefined, path);
+  assert.deepEqual(englishScopesForPath('/en/events/san-francisco-fleet-week-2026'), ['ui', `detail-${detailBucket('event', 'san-francisco-fleet-week-2026')}`]);
+  assert.deepEqual(englishScopesForPath('/en/offers/sfmta-free-muni-seniors', scope => !scope.startsWith('detail-')), ['ui', 'discovery', 'guide-index'], 'a registry without detail packs falls back to the discovery pack');
   assert.deepEqual(englishScopesForPath('/en/events?when=today'), ['ui', 'discovery', 'guide-index']);
   assert.deepEqual(englishScopesForPath('/en/this-week'), ['ui', 'discovery', 'guide-index']);
   assert.deepEqual(englishScopesForPath('/en/me/bookings'), ['ui']);

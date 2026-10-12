@@ -28,10 +28,9 @@ import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
 import { HomeDiscovery } from '../src/components/HomeDiscovery';
 import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
-import { localDiscoveries } from '../src/data/local-discoveries';
+import { allDetailRecords } from '../src/features/detail/build-detail';
+import { detailBucket } from '../src/lib/english-loading';
 import { generateSitemap } from './generate-sitemap';
-import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
-import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
 import PlannerPage from '../src/pages/PlannerPage';
@@ -51,6 +50,7 @@ const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
+const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
@@ -67,7 +67,17 @@ const routeGraph = (path: string) => {
   if (manifest[routeModule(path)]) visit(manifest[routeModule(path)]);
   return { files: [...files], styles: [...styles] };
 };
-const modulePreloads = (path: string) => routeGraph(path).files.map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
+/** An event, offer or opening detail also preloads its generated record bucket (and, in English, its dictionary pack):
+ * the page reads them before it replaces this HTML (WEB-DETAIL, ENGSEC-01; lib/english-loading.ts detailBucket). */
+const DETAIL_KINDS = { events: 'event', offers: 'offer', openings: 'opening' } as const;
+const detailChunks = (path: string, locale: SiteLanguage): string[] => {
+  const match = /^\/(events|offers|openings)\/([^/]+)$/.exec(path);
+  if (!match) return [];
+  const bucket = detailBucket(DETAIL_KINDS[match[1] as keyof typeof DETAIL_KINDS], decodeURIComponent(match[2]));
+  const keys = [`src/data/generated/details/bucket-${bucket}.json`, ...(locale === 'en' ? [`src/data/generated/english-scopes/detail-${bucket}.json`] : [])];
+  return keys.map(key => manifest[key]?.file).filter((file): file is string => !!file);
+};
+const modulePreloads = (path: string, locale: SiteLanguage = 'zh-Hans') => [...routeGraph(path).files, ...detailChunks(path, locale)].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
 /** RC-6: CSS that Vite splits out of the global bundle arrives with the page chunk, after first paint. Link it in the
  * prerendered head after the global stylesheet: the same cascade order as when the chunk appends it in the app. */
 const withRouteStylesheets = (html: string, path: string) => {
@@ -85,7 +95,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
     await mkdir(dirname(destination), { recursive: true });
-    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path) + '\n<!--baylink-meta-end-->'), metadata.path);
+    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
     await writeFile(destination, html);
   }
   await setLocale('zh-Hans', false);
@@ -131,8 +141,9 @@ await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="t
 for (const guide of guides) {
   await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
-for (const item of localDiscoveries) {
-  await renderPage(getDiscoveryMetadata(item), <LocalDiscoveryDetail item={item} />);
+// Event, offer and opening details render the same generated records the app loads (src/features/detail, ENGSEC-01).
+for (const record of new Set(allDetailRecords().values())) {
+  await renderPage(record.metadata, <LocalDiscoveryDetail record={record} />);
 }
 for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
   await renderPage({ title: `${category}｜湾区本地信息 · BAYLINK`, description: `浏览湾区${category}信息，按地区查找本地资源和邻里需求。请联系发布者确认信息仍有效。`, path: `/category/${slug}` }, (

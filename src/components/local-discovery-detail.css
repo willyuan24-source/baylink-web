@@ -1,50 +1,131 @@
-/* Discovery articles share the site's reading controls without flattening the
-   editorial hierarchy into a stack of tinted cards. Loaded after tokens.css. */
-.local-discovery-detail{width:min(100%,1040px);margin-inline:auto;padding:38px 40px 72px;color:var(--color-ink)}
-.local-discovery-detail .discovery-back{display:inline-flex;align-items:center;gap:9px;min-height:var(--control-height);margin-bottom:24px;font-size:var(--text-fact);color:var(--color-ink-2)}
-.local-discovery-detail .discovery-detail-header{padding:0 0 24px;border:0;border-top:3px solid var(--color-brand-deep);border-radius:0;background:transparent;box-shadow:none}
-.local-discovery-detail .discovery-detail-brand{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:18px 0;margin-bottom:25px;border-bottom:1px solid var(--color-line-strong)}
-.local-discovery-detail .discovery-detail-brand>span:first-child{font-size:1.125rem;font-weight:700;letter-spacing:.08em;color:var(--color-brand-deep)}
-.local-discovery-detail .discovery-detail-brand>span:last-child{max-width:none;font-size:var(--text-caption);letter-spacing:0;text-transform:none;color:var(--color-ink-3)}
-.local-discovery-detail .discovery-eyebrow{font-size:var(--text-caption);font-weight:600;letter-spacing:0;text-transform:none;color:var(--color-brand)}
-.local-discovery-detail .discovery-detail-header h1{max-width:28ch;margin:15px 0 18px;font-size:2.5rem;font-weight:600;line-height:1.3;letter-spacing:-.025em;overflow-wrap:break-word;text-wrap:balance}
-.local-discovery-detail .discovery-detail-header h1 .title-keep{white-space:nowrap}
-.local-discovery-detail .discovery-detail-summary{max-width:44em;margin:0;font-size:var(--text-reading);line-height:1.85;color:var(--color-ink-2)}
-.local-discovery-detail .discovery-detail-facts{display:grid;gap:12px;margin:22px 0;padding:18px 0;border-block:1px solid var(--color-line)}
-.local-discovery-detail .discovery-detail-facts>span{display:flex;align-items:flex-start;gap:10px;font-size:var(--text-fact);line-height:1.75;color:var(--color-ink-2)}
-.local-discovery-detail .discovery-detail-facts svg{flex:none;margin-top:3px;color:var(--color-brand)}
-.local-discovery-detail .discovery-detail-main-actions{align-items:stretch;gap:10px 14px;margin:22px 0 12px}
-.local-discovery-detail :is(.discovery-primary,.discovery-secondary){display:inline-flex;align-items:center;justify-content:center;gap:9px;min-height:var(--control-height);padding:12px 18px;border-radius:6px;font-size:var(--text-fact);line-height:1.5;text-align:center}
-.local-discovery-detail .discovery-primary{background:var(--color-brand-deep);border:1px solid var(--color-brand-deep);color:var(--color-surface)}
-.local-discovery-detail .discovery-primary:hover{background:var(--color-brand-hover);border-color:var(--color-brand-hover)}
-.local-discovery-detail .discovery-secondary{background:transparent;border:1px solid var(--color-line-strong);color:var(--color-brand-deep)}
-.local-discovery-detail :is(.discovery-primary,.discovery-secondary) svg{flex:none}
-.local-discovery-detail .discovery-detail-more-actions{margin-top:12px;padding-bottom:4px;border-top:0;border-bottom:1px solid var(--color-line)}
-.local-discovery-detail .discovery-detail-more-actions>summary{display:list-item;width:fit-content;list-style-position:inside;min-height:var(--control-height);padding:12px 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2);text-decoration:none;cursor:pointer}
-.local-discovery-detail .discovery-detail-more-actions .editorial-share-actions{margin:8px 0 16px}
-.local-discovery-detail .discovery-detail-more-actions .outing-inspiration-link{background:transparent;border-radius:6px}
-.local-discovery-detail .outing-inspiration-link strong{font-size:var(--text-fact)}
-.local-discovery-detail .outing-inspiration-link small{font-size:var(--text-caption);color:var(--color-ink-3)}
-.local-discovery-detail .discovery-offer-conditions{max-width:48em;padding:4px 0 26px}
-.local-discovery-detail .discovery-offer-conditions h2{margin:0 0 12px;font-size:var(--text-card);font-weight:600;line-height:1.5}
-.local-discovery-detail .discovery-offer-conditions .discovery-important{margin:0;font-size:var(--text-body);line-height:1.85;color:var(--color-ink-2)}
-.local-discovery-detail .discovery-detail-media{margin:8px 0 28px;border-radius:4px}
-.local-discovery-detail .discovery-detail-media .guide-figure{margin:0}
-.local-discovery-detail .guide-figure-open{border-radius:4px;border-color:var(--color-line-strong)}
-.local-discovery-detail .guide-figure-zoom{font-size:var(--text-caption);line-height:1.5;border-radius:4px}
-.local-discovery-detail .guide-image-kind{font-size:var(--text-caption);background:transparent;border:1px solid var(--color-line-strong);border-radius:3px;color:var(--color-ink-2)}
-.local-discovery-detail .discovery-detail-media img{max-height:560px;aspect-ratio:16/10;object-fit:cover}
-.local-discovery-detail .discovery-detail-media--full img{max-height:560px;aspect-ratio:auto;object-fit:contain}
-.local-discovery-detail .discovery-detail-media :is(figcaption,.guide-image-attribution){font-size:var(--text-caption);line-height:1.7}
-.local-discovery-detail .discovery-detail-body{padding:0 0 32px}
-.local-discovery-detail .discovery-detail-body h2{margin:28px 0 14px;font-size:var(--text-section);font-weight:600;line-height:1.5}
-.local-discovery-detail .discovery-plan li{gap:20px;padding:20px 0;border-color:var(--color-line)}
-.local-discovery-detail .discovery-plan li>span{font-size:var(--text-section);font-weight:400;color:var(--color-brand)}
-.local-discovery-detail .discovery-return{padding:28px 0 0;border:0;border-top:2px solid var(--color-brand-deep);border-radius:0;background:transparent}
-.local-discovery-detail .discovery-return h2{font-size:var(--text-section);font-weight:600;line-height:1.5}
-.local-discovery-detail .discovery-return a{min-height:var(--control-height);font-size:var(--text-fact)}
-.local-discovery-detail :is(a,button,summary):focus-visible{outline:2px solid var(--color-brand);outline-offset:4px}
-@media(max-width:760px){.local-discovery-detail{padding:22px 20px 48px}.local-discovery-detail .discovery-detail-brand{padding:15px 0;margin-bottom:20px}.local-discovery-detail .discovery-detail-header h1{font-size:1.875rem;line-height:1.4}.local-discovery-detail .discovery-detail-main-actions{flex-direction:column}.local-discovery-detail .discovery-detail-main-actions>a{width:100%}.local-discovery-detail .discovery-return>div{gap:4px}}
-@media(max-width:480px){.local-discovery-detail .discovery-detail-offer h1{font-size:1.7rem;line-height:1.35}}
+/* Event, offer and opening detail (WEB-DETAIL; design.md §4.9 with plan D10). Phone: "‹ 活动", the 16:9 full-bleed hero,
+   chips, H1 26/34, the why-go line, 一眼看懂 on a surface-2 card, the body, and a 64px action bar that replaces the tab bar.
+   Desktop: an 800px column with an 800×450 r24 hero and a 360px sticky action card, 48px apart. Tokens and rem only;
+   400/600/700; 13px (--text-caption) is the smallest text; 44px targets (48 in 简洁显示). Loaded globally after tokens.css,
+   so selectors start at .local-discovery-detail to outrank the legacy discovery rules in tokens.css and
+   discovery-community.css (other lanes' files) without !important. */
+.local-discovery-detail { width:min(100%,76rem); margin-inline:auto; padding:0 0 2rem; color:var(--color-ink); }
+.local-discovery-detail .detail-back { display:flex; align-items:center; min-height:2.75rem; padding:0 8px; }
+.local-discovery-detail .detail-back a { display:inline-flex; align-items:center; gap:2px; min-height:2.75rem; padding:0 8px; color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-back svg { width:1.25rem; height:1.25rem; }
+
+/* Hero: full-bleed on a phone, square corners; the provenance badge and stickers come from ui.css. */
+.local-discovery-detail .detail-hero { margin:0; }
+.local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { width:100%; border-radius:0; }
+
+.local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
+.local-discovery-detail .detail-head { padding-top:12px; }
+.local-discovery-detail .detail-chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 8px; }
+.local-discovery-detail .detail-head h1 { max-width:28ch; margin:0; font-size:1.625rem; font-weight:600; line-height:1.3077; letter-spacing:0; overflow-wrap:break-word; text-wrap:balance; }
+.local-discovery-detail .detail-head h1 .title-keep { white-space:nowrap; }
+.local-discovery-detail .detail-brand { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; }
+.local-discovery-detail .detail-dek { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.647; }
+.local-discovery-detail .detail-note { margin-block:12px 0; padding:12px 14px; border-radius:10px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+
+/* 一眼看懂: "when" across the card, then two columns (one at 大/特大 and in 简洁显示 on a phone). */
+.local-discovery-detail .detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px; margin-block:16px 0; padding:16px; border-radius:16px; background:var(--color-surface-2); }
+.local-discovery-detail .detail-fact { min-width:0; }
+.local-discovery-detail .detail-fact[data-fact=when] { grid-column:1 / -1; }
+.local-discovery-detail .detail-fact dt { display:flex; align-items:center; gap:6px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.4; }
+.local-discovery-detail .detail-fact dt svg { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
+.local-discovery-detail .detail-fact dd { margin:4px 0 0; color:var(--color-ink); font-size:var(--text-reading); font-weight:600; line-height:1.412; overflow-wrap:anywhere; }
+.local-discovery-detail .detail-fact__line { display:block; }
+.local-discovery-detail .detail-fact__sub { color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }
+.local-discovery-detail .detail-fact__line[data-tone=free] { color:var(--color-brand); }
+.local-discovery-detail .detail-fact dd small { display:block; margin-top:2px; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:1.5; }
+.local-discovery-detail .detail-map-link { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.local-discovery-detail .detail-fact .phone-chip { font-weight:600; }
+
+/* Body: summary, 出发前 checklist, offer conditions and steps, 一起去, source, share. */
+.local-discovery-detail .detail-body { padding-top:8px; }
+.local-discovery-detail .detail-body h2 { margin:28px 0 12px; font-size:1.25rem; font-weight:600; line-height:1.4; }
+.local-discovery-detail .detail-summary { margin:20px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.8; }
+.local-discovery-detail .detail-body p { overflow-wrap:break-word; }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol) { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol)>li { display:flex; align-items:flex-start; gap:12px; }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul)>li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.25rem; color:var(--color-brand); }
+.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:700; }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol) p { margin:0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.75; }
+.local-discovery-detail .detail-together .event-participation { margin:0; padding:0; border:0; }
+.local-discovery-detail .detail-together .event-participation-buttons button { min-height:var(--control-height); padding:0 16px; border-radius:10px; font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-together .event-participation-note { margin-top:8px; color:var(--color-ink-3); font-size:var(--text-caption); }
+.local-discovery-detail .detail-squad { display:flex; align-items:center; gap:10px; min-height:3rem; margin-top:12px; padding:0 14px; border-radius:10px; background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-squad span { flex:1; min-width:0; }
+.local-discovery-detail .detail-squad svg { flex:none; width:1.25rem; height:1.25rem; }
+.local-discovery-detail .outing-inspiration-link { margin-top:24px; border-radius:10px; }
+.local-discovery-detail .detail-source { margin-top:32px; padding-top:4px; border-top:1px solid var(--color-line); }
+.local-discovery-detail .detail-source h2 { margin-top:20px; }
+.local-discovery-detail .detail-credit { display:flex; flex-wrap:wrap; gap:4px 10px; margin:12px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
+.local-discovery-detail .detail-credit__label { font-weight:600; color:var(--color-ink-2); }
+.local-discovery-detail .detail-credit a { color:var(--color-ink-2); text-decoration:underline; text-underline-offset:2px; }
+.local-discovery-detail .discovery-related { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); margin-top:8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-share { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px 12px; margin-top:24px; }
+.local-discovery-detail .detail-share .editorial-share-actions { margin:0; }
+.local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
+
+/* Rails: 140px feed cards in a scroller on a phone (the page itself never scrolls sideways), four in a row on a desktop. */
+.local-discovery-detail .detail-rail { margin:20px 0 0; }
+.local-discovery-detail .detail-main>.detail-rail { margin-inline:16px; }
+.local-discovery-detail .detail-rail h2 { margin:0 0 4px; font-size:1.25rem; font-weight:600; line-height:1.4; }
+.local-discovery-detail .detail-rail__note { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+.local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:8.75rem; gap:12px; margin-inline:-16px; padding:4px 16px 8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; }
+.local-discovery-detail .detail-rail__track>.ui-feed-card { scroll-snap-align:start; }
+
+/* The action bar. Phones and tablets: fixed at the bottom where the tab bar was (SiteChrome hides the tab bar on this route
+   once .site-detail-actions is on the page). ♡ and 问 BayBay are icon-over-label cells; the day plan (or the official
+   page) is the filled primary button that takes the rest of the row. */
+.local-discovery-detail .detail-actions { display:flex; align-items:stretch; gap:6px; }
+.local-discovery-detail .detail-actions :is(.saves-control,.saves-day) { margin:0; }
+.local-discovery-detail .detail-action { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; line-height:1.25; text-align:center; }
+.local-discovery-detail .detail-action svg { flex:none; width:1.125rem; height:1.125rem; }
+.local-discovery-detail .detail-action__otter { flex:none; width:1.75rem; height:1.75rem; }
+.local-discovery-detail .detail-actions__primary { flex:1 1 auto; min-width:0; }
+.local-discovery-detail .detail-actions .detail-action--primary,.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { width:100%; border-color:var(--color-brand-deep); background:var(--color-brand-deep); color:var(--color-surface); }
+.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day>svg { color:currentColor; }
+.local-discovery-detail .detail-actions .detail-actions__primary .saves-day { display:flex; width:100%; }
+@media(max-width:1023px) {
+  .local-discovery-detail .detail-actions { position:fixed; z-index:50; left:0; right:0; bottom:0; height:var(--site-mobile-nav-height); padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px)); box-sizing:border-box; border-top:1px solid var(--color-line); background:color-mix(in srgb,var(--color-surface) 96%,transparent); backdrop-filter:blur(12px); box-shadow:var(--chrome-shadow-bar); }
+  .local-discovery-detail .detail-actions>* { display:flex; min-width:0; }
+  .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
+  .local-discovery-detail .detail-actions .saves-control { height:100%; }
+  .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:12px; font-size:var(--text-body); }
+  .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { height:100%; }
+  .local-discovery-detail .detail-actions .detail-actions__primary .saves-day__error { display:none; }
+}
+@media(max-width:359px) { .local-discovery-detail .detail-action--ask>span { display:none; } }
+
+@media(min-width:768px) {
+  .local-discovery-detail .detail-rail__track { grid-auto-flow:row; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-columns:auto; margin-inline:0; padding-inline:0; overflow:visible; }
+}
+@media(max-width:767px) {
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
+}
+
+/* Desktop: the column and the sticky action card. */
+@media(min-width:1024px) {
+  .local-discovery-detail { padding:16px 40px 72px; }
+  .local-discovery-detail .detail-back { padding:0; margin-bottom:8px; }
+  .local-discovery-detail .detail-back a { padding-left:0; }
+  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:minmax(0,50rem) 22.5rem; justify-content:center; align-items:start; gap:48px; }
+  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail { margin-inline:0; }
+  .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:24px; overflow:hidden; }
+  .local-discovery-detail .detail-head { padding-top:20px; }
+  .local-discovery-detail .detail-head h1 { font-size:2rem; line-height:1.3125; }
+  .local-discovery-detail .detail-aside { position:sticky; top:5.5rem; }
+  .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+  .local-discovery-detail .detail-actions>*,.local-discovery-detail .detail-actions .saves-control .saves-toggle { width:100%; }
+  .local-discovery-detail .detail-actions .detail-actions__primary { order:-1; }
+  .local-discovery-detail .detail-action { min-height:3rem; font-size:var(--text-body); }
+}
+
+/* Page end: the next places to go. */
+.local-discovery-detail .discovery-return { margin:40px 16px 0; padding:24px 0 0; border:0; border-top:2px solid var(--color-brand-deep); border-radius:0; background:transparent; }
+.local-discovery-detail .discovery-return .discovery-eyebrow { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; letter-spacing:0; text-transform:none; }
+.local-discovery-detail .discovery-return h2 { margin:6px 0 8px; font-size:1.25rem; font-weight:600; line-height:1.4; }
+.local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:4px 20px; }
+.local-discovery-detail .discovery-return a { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
+@media(min-width:1024px) { .local-discovery-detail .discovery-return { margin-inline:0; } }
+.local-discovery-detail :is(a,button,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+html[data-simple] .local-discovery-detail :is(.detail-action,.detail-map-link,.detail-calendar,.discovery-return a,.detail-back a) { min-height:3rem; }
 /* Under 360px a full 8-character or 14-letter title unit is wider than the H1 at extra-large Aa, so units may wrap. */
-@media(max-width:359px){.local-discovery-detail .discovery-detail-header h1 .title-keep{white-space:normal}}
+@media(max-width:359px) { .local-discovery-detail .detail-head h1 .title-keep { white-space:normal; } }

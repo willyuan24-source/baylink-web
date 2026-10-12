@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { EnglishOnly } from './EnglishOnly';
-import { Check, Heart, MessageCircle, RefreshCw, Users, X } from 'lucide-react';
+import { Check, Hand, MessageCircle, RefreshCw, Users, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useApp, type AppContextValue } from '../app/context';
 import type { MonthlyEvent } from '../data/monthly-types';
@@ -100,10 +100,14 @@ export function EventParticipationActions({ event, today = getBayAreaToday(), av
   const isInterested = !!entry?.me?.interested;
   const pending = participation.busy.includes(event.id);
   const count = !entry || participation.failed ? null : entry.interestedCount;
+  // FC3-02: the page's one heart is ♡ 收藏 (the save model, no sign-in). This public interest count is a different thing,
+  // so it has its own name and a hand, not a heart.
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  const label = unavailable && !isInterested ? ended ? t('活动已结束', 'Event ended') : t('暂无已确认场次', 'No confirmed date') : isInterested ? t('已公开想去', 'Interest shared') : t('公开想去', 'Share interest');
   return <div className="event-participation">
     <div className="event-participation-buttons">
-      <button type="button" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (unavailable && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? translateText('取消想去') : translateText('我想去')}：${translateText(event.title)}`}>
-        {isInterested ? <Check size={17} /> : <Heart size={17} />}{unavailable && !isInterested ? ended ? '活动已结束' : '暂无已确认场次' : isInterested ? '已想去' : '我想去'}{count !== null && count >= 3 && <span>{count}</span>}
+      <button type="button" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (unavailable && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? t('取消公开想去', 'Withdraw interest') : t('公开想去', 'Share interest')}：${translateText(event.title, locale)}`}>
+        {isInterested ? <Check size={17} aria-hidden="true" /> : <Hand size={17} aria-hidden="true" />}{label}{count !== null && count >= 3 && <span>{count}</span>}
       </button>
       <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />{unavailable ? '查看出行意向' : '一起去'}{entry && !participation.failed && entry.buddyCount >= 3 && <span>{entry.buddyCount}</span>}</button>
     </div>
