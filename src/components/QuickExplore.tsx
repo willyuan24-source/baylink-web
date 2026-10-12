@@ -7,6 +7,7 @@ import { guides } from '../data/guides';
 import { searchGuides } from '../lib/guide-search';
 import { getSlugFromCategory } from '../routing';
 import { Sheet } from './ui/Sheet';
+import { LocaleFeatureGate } from './LocaleContentGate';
 import './site-dialogs.css';
 import { translateText, useLocale } from '../i18n/locale';
 import { searchQuickDestinations } from '../lib/quick-search';
@@ -15,12 +16,20 @@ import { openingStatusLabel } from '../lib/opening-status';
 
 type QuickResult = { id: string; title: string; detail: string; icon: LucideIcon; group: string; run: () => void; image?: string };
 
-export function QuickExplore({ onClose, onSearch, onNavigate, onAsk, initialQuery = '', restoreFocusRef }: {
+type QuickExploreProps = {
   initialQuery?: string;
   onClose: () => void; onSearch: (value: string) => void;
   onNavigate: (path: string) => void; onAsk: (question?: string) => void;
   restoreFocusRef?: React.RefObject<HTMLElement>;
-}) {
+};
+
+/** The search dialog searches guides' full text, events and places in the reader's language: it waits for the search
+ * feature's dictionaries (WEB-DATA-SPLIT; the page under it may have loaded only its own). */
+export function QuickExplore(props: QuickExploreProps) {
+  return <LocaleFeatureGate feature="search"><QuickExploreDialog {...props} /></LocaleFeatureGate>;
+}
+
+function QuickExploreDialog({ onClose, onSearch, onNavigate, onAsk, initialQuery = '', restoreFocusRef }: QuickExploreProps) {
   const [query, setQuery] = useState(initialQuery);
   const locale = useLocale();
   const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);

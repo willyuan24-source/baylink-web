@@ -169,6 +169,11 @@ export async function loadLocaleForPath(locale: Locale, paths: string | readonly
   else if (locale === 'zh-Hant') await loadChinese();
   await search;
 }
+/** Whether a feature's displayed content and search dictionaries are in (the search dialog: LocaleFeatureGate). */
+export function isLocaleReadyForFeature(locale: Locale, feature: 'search' | 'guide-search'): boolean {
+  const content = locale === 'en' ? englishFullyLoaded || !!englishScopes && englishScopes.isReady(englishScopesForFeature(feature).filter(englishScopes.has)) : locale === 'zh-Hant' ? !!traditional : true;
+  return content && (!!buildSearch || searchUnavailable);
+}
 export async function loadLocaleForFeature(locale: Locale, feature: 'search' | 'guide-search'): Promise<void> {
   const search = loadSearchConversion().catch(() => undefined);
   if (locale === 'en') { if (!englishFullyLoaded) { const scopes = await loadEnglishScopes(); await scopes.load(englishScopesForFeature(feature)); } }
