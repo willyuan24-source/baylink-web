@@ -10,6 +10,7 @@ import { getLocalDiscovery } from '../src/data/local-discoveries';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { FreebieBoard } from '../src/components/FreebieBoard';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
+import { buildDetailRecord } from '../src/features/detail/build-detail';
 import { canonicalEventId } from '../src/lib/event-id';
 import { filterMonthlyEvents, getMonthlyDateRange, resolveMonthlyDateFilter } from '../src/lib/monthly';
 import { eventFor } from '../src/lib/planner';
@@ -58,7 +59,7 @@ test('unconfirmed source pages do not remain current recommendations; old links 
   assert.equal(offer.verificationStatus, 'needs-confirmation');
   const board = renderToStaticMarkup(<FreebieBoard offers={[offer]} today="2026-10-02" />);
   assert.ok(!board.includes(`href="/offers/${offer.id}"`));
-  const detail = renderToStaticMarkup(<MemoryRouter><LocalDiscoveryDetail item={{ kind: 'offer', offer }} today="2026-10-02" /></MemoryRouter>);
+  const detail = renderToStaticMarkup(<MemoryRouter><LocalDiscoveryDetail record={buildDetailRecord({ kind: 'offer', offer })} today="2026-10-02" /></MemoryRouter>);
   assert.match(detail, /当前优惠待确认/);
   assert.ok(!detail.includes('用这条内容开始'));
 });

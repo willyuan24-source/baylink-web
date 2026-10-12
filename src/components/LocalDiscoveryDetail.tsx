@@ -97,7 +97,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const favorite = item.kind === 'event' ? { kind: 'event' as const, id: item.event.id } : item.kind === 'offer' ? { kind: 'offer' as const, id: item.offer.id } : { kind: 'opening' as const, id: item.shop.id };
   const actions: DetailActions = {
     title,
-    official: { href: officialUrl, label: item.kind === 'offer' ? t('领取入口', 'How to claim') : item.kind === 'opening' ? t('商家官网', 'Official site') : t('官方页', 'Official page') },
+    official: { href: officialUrl, label: item.kind === 'offer' ? t('领取入口', 'How to claim') : item.kind === 'opening' ? t('商家官网', 'Official site') : t('官方页', 'Official') },
     ...(!ended && !unconfirmed ? { favorite } : {}),
     ...(event && planDate ? { day: { stop: { kind: 'event' as const, id: event.id }, date: planDate, today } } : {}),
     ...(item.kind === 'opening' && record.placeId ? { planPath: `/plan?stops=place:${record.placeId}` } : {}),
@@ -151,7 +151,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             <TrustRow contentId={review.id} item={review} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
             <SourceFreshness contentId={review.id} item={{ ...review, nextDate: planDate }} officialUrl={officialUrl} include={['soft']} today={today} />
             <HeroCredit cover={cover} />
-            {event?.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'A local guide for this outing')}<ArrowRight size={17} aria-hidden="true" /></Link>}
+            {event?.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'Read a related local guide')}<ArrowRight size={17} aria-hidden="true" /></Link>}
             <LazyReportErrorLink entity={{ kind: item.kind, id: share.id }} title={share.title} />
           </section>
           <section className="detail-share" aria-label={t('分享与日历', 'Share and calendar')}>

@@ -17,11 +17,13 @@ for (const [key, value] of Object.entries(globals)) Object.defineProperty(global
 const { render, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { default: MyWeekPage } = await import('../src/pages/MyWeekPage');
 const { api } = await import('../src/lib/api');
 const publishedEvents = [...MONTHLY_EVENTS];
+// No overlay sessions: these fixtures state their confirmed days through occurrenceDates only.
 const fixture = (id: string, occurrenceDates?: string[]) => ({
-  ...publishedEvents[0], id, title: id, startDate: '2026-09-20', endDate: '2026-10-31', occurrenceDates,
+  ...publishedEvents[0], id, title: id, startDate: '2026-09-20', endDate: '2026-10-31', occurrenceDates, sessions: undefined,
 });
 
 beforeEach(context => {
@@ -53,18 +55,19 @@ test('next confirmed day supports unordered sessions, continuous events and exha
 test('the published Fleet Week detail starts a plan on its first confirmed program day', () => {
   const event = publishedEvents.find(item => item.id === 'san-francisco-fleet-week-2026')!;
   assert.equal(event.startDate, '2026-10-04');
-  const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event }} today="2026-09-27" /></StaticRouter>);
+  const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord({ kind: 'event', event })} today="2026-09-27" /></StaticRouter>);
   const page = new JSDOM(body);
-  const link = [...page.window.document.querySelectorAll('a')].find(node => node.textContent?.includes('新建出游计划'));
-  assert.equal(link?.getAttribute('href'), `/plan?stops=event:${event.id}&date=2026-10-06`);
+  // "加入这天计划" in the action bar adds the stop to that day's plan (WEB-SAVES' AddToDayPlan).
+  assert.equal(page.window.document.querySelector('.site-detail-actions [data-day]')?.getAttribute('data-day'), '2026-10-06');
+  assert.ok(page.window.document.querySelector('.site-detail-actions .saves-add-day'));
   page.window.close();
 });
 
 test('details with no future confirmed sessions hide plan and calendar actions even before the wider range ends', () => {
   for (const occurrenceDates of [[], ['2026-09-20']]) {
-    const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event: fixture('no-future', occurrenceDates) }} today="2026-09-27" /></StaticRouter>);
+    const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord({ kind: 'event', event: fixture('no-future', occurrenceDates) }, [])} today="2026-09-27" /></StaticRouter>);
     const page = new JSDOM(body);
-    assert.equal([...page.window.document.querySelectorAll('a')].some(node => node.textContent?.includes('新建出游计划')), false);
+    assert.equal(page.window.document.querySelector('.saves-add-day'), null);
     assert.equal([...page.window.document.querySelectorAll('button')].some(node => node.textContent?.includes('存入日历')), false);
     if (!occurrenceDates.length) assert.match(page.window.document.body.textContent!, /暂无已确认场次/);
     page.window.close();

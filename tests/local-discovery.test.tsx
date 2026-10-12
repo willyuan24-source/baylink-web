@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test, { after, afterEach, beforeEach } from 'node:test';
 import { JSDOM } from 'jsdom';
-import React from 'react';
+import React, { Suspense } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type { LocalDiscovery } from '../src/data/local-discoveries';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -16,15 +16,18 @@ const globals = {
 };
 const previousGlobals = new Map(Object.keys(globals).map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
 for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
-const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter, Routes, Route, Link } = await import('react-router-dom');
 const { localDiscoveries, currentOpenings, getLocalDiscovery, discoveryShare } = await import('../src/data/local-discoveries');
 const { getDiscoveryMetadata } = await import('../src/lib/discovery-metadata');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+const { buildDetailRecord } = await import('../src/features/detail/build-detail');
+const { nextEventDay, unconfirmedEvent } = await import('../src/features/detail/detail-record');
+const { heroCover } = await import('../src/features/detail/hero-cover');
+const { hasEditorNote, readerCost, readerPlanLines, readerProse } = await import('../src/features/detail/reader-text');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
-const { getListingImage } = await import('../src/lib/offer-media');
 const { default: LocalDiscoveryPage } = await import('../src/pages/LocalDiscoveryPage');
 const { api } = await import('../src/lib/api');
 const { setLocale, translateText } = await import('../src/i18n/locale');
@@ -46,7 +49,7 @@ const nextDay = (value: string) => {
   return date.toISOString().slice(0, 10);
 };
 const detail = (item: LocalDiscovery, today = '2026-09-15') =>
-  <MemoryRouter><LocalDiscoveryDetail item={item} today={today} /></MemoryRouter>;
+  <MemoryRouter><LocalDiscoveryDetail record={buildDetailRecord(item)} today={today} /></MemoryRouter>;
 
 test('soft opening details and share metadata preserve trial operation without claiming a grand opening', () => {
   const item: LocalDiscovery = { kind: 'opening', shop: { ...openShop.shop, status: 'soft_open', openedOn: undefined, dateLabel: '试营业 · 正式开业日未确认' } };
@@ -183,12 +186,16 @@ test('every public discovery has a unique same-site PNG share URL without requir
 test('all detail pages server-render full content with matching canonical, OG, Twitter and factual Event or Article metadata', async t => {
   const request = t.mock.method(api, 'request', async () => { throw new Error('Prerender cannot request engagement'); });
   const fetch = t.mock.method(globalThis, 'fetch', async () => { throw new Error('Prerender cannot use the network'); });
+  const today = '2026-09-15';
+  const squash = (text: string) => text.replace(/\s+/g, '');
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);
-    const metadata = getDiscoveryMetadata(item);
+    const record = buildDetailRecord(item);
+    const metadata = record.metadata;
+    assert.deepEqual(metadata, getDiscoveryMetadata(item), 'the generated record carries the same page head as the catalog');
     const expectedUrl = SITE_URL + '/' + folders[item.kind] + '/' + share.id;
     const expectedImage = SITE_URL + '/share-cards/' + item.kind + '-' + share.id + '.png';
-    const body = renderToStaticMarkup(<StaticRouter location={share.path}><LocalDiscoveryDetail item={item} today="2026-09-15" /></StaticRouter>);
+    const body = renderToStaticMarkup(<StaticRouter location={share.path}><LocalDiscoveryDetail record={record} today={today} /></StaticRouter>);
     // One shared fragment parser covers every page without allocating hundreds of browser windows.
     const page = JSDOM.fragment(renderMetadataHtml(metadata) + body);
     try {
@@ -235,39 +242,46 @@ test('all detail pages server-render full content with matching canonical, OG, T
     assert.equal(breadcrumb.itemListElement.at(-1).item, expectedUrl);
 
     const content = doc.querySelector('.local-discovery-detail')!;
-    const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
-    const expectedMedia = getListingImage(imageKey);
-    const figure = content.querySelector('.discovery-detail-media');
-    if (expectedMedia) {
-      assert.ok(figure, share.id + ' displays its registered editorial image');
-      const img = figure.querySelector('img')!;
-      assert.equal(img.getAttribute('src'), expectedMedia.src);
-      assert.equal(img.getAttribute('srcset'), expectedMedia.srcSet);
-      assert.equal(img.getAttribute('alt'), expectedMedia.alt);
-      assert.equal(img.getAttribute('width'), String(expectedMedia.width));
-      assert.equal(img.getAttribute('height'), String(expectedMedia.height));
-      assert.equal(img.getAttribute('loading'), 'eager');
-      assert.ok(figure.textContent!.includes(expectedMedia.caption));
-      assert.ok(figure.textContent!.includes(expectedMedia.credit));
-      if (expectedMedia.creditUrl) assert.ok([...figure.querySelectorAll('a')].some(a => a.getAttribute('href') === expectedMedia.creditUrl));
-      if (expectedMedia.licenseUrl) assert.ok([...figure.querySelectorAll('a')].some(a => a.getAttribute('href') === expectedMedia.licenseUrl));
-    } else assert.equal(Boolean(figure), false, share.id + ' stays readable without inventing an image');
+    // The hero opens the page: the listing's photo when the cover ladder accepts it, else its TypeCover (never empty).
+    const main = content.querySelector('.detail-main')!;
+    assert.ok(main.firstElementChild?.classList.contains('detail-hero'), share.id + ' opens on its hero');
+    const cover = heroCover(record, today);
+    const img = content.querySelector('.detail-hero [data-cover="image"] img.ui-cover__img');
+    if (cover.tier !== 'type') {
+      assert.equal(img?.getAttribute('src'), cover.image.src, share.id);
+      assert.equal(img?.getAttribute('alt'), cover.image.alt);
+      assert.equal(img?.getAttribute('loading'), 'eager');
+      assert.equal(img?.getAttribute('fetchpriority'), 'high');
+      const credit = content.querySelector('.detail-credit')!;
+      assert.ok(squash(credit.textContent!).includes(squash(cover.image.credit)), share.id + ' keeps its photo credit');
+      if (cover.image.licenseUrl?.startsWith('https://')) assert.ok([...credit.querySelectorAll('a')].some(a => a.getAttribute('href') === cover.image.licenseUrl));
+    } else {
+      assert.equal(img, null);
+      assert.ok(content.querySelector('.detail-hero [data-cover="type"]'), share.id + ' shows a TypeCover rather than inventing an image');
+    }
+    assert.equal(content.querySelector('.discovery-detail-brand'), null, 'no masthead');
     if (item.kind === 'event') {
-      assert.deepEqual([...content.querySelectorAll('.discovery-plan li p')].map(node => node.textContent), item.event.plan, 'all three planning steps are indexable outside the paginated list');
-      assert.ok(content.textContent!.includes(item.event.costLabel));
-      assert.ok(typeof item.event.venue === 'string' && item.event.venue.trim(), share.id + ' has a venue or explicit location guidance');
-      assert.ok(content.textContent!.includes(item.event.venue), share.id + ' preserves location guidance');
+      const over = nextEventDay(record.item.kind === 'event' ? record.item.event : item.event, today) === null && !unconfirmedEvent(record.item.kind === 'event' ? record.item.event : item.event);
+      const expected = over ? [] : readerPlanLines(item.event).map(line => readerProse(line, 'zh-Hans')).filter(Boolean);
+      assert.deepEqual([...content.querySelectorAll('.detail-plan li p')].map(node => node.textContent), expected, share.id + ': every reader planning line, indexable; none on an ended event');
+      const cost = readerCost(item.event.costLabel, item.event.cost, 'zh-Hans');
+      if (cost) assert.ok(content.textContent!.includes(cost), share.id + ' states its cost');
+      const place = item.event.venueShort || item.event.venue;
+      assert.ok(typeof place === 'string' && place.trim(), share.id + ' has a venue or explicit location guidance');
+      assert.ok(content.textContent!.includes(place), share.id + ' preserves location guidance');
       assert.equal(Boolean(content.querySelector('.event-interest span')), false, 'server HTML does not invent a participant count');
     } else if (item.kind === 'offer') {
-      assert.ok(content.textContent!.includes(item.offer.requirement), 'redemption conditions are visible before following the offer');
-      assert.ok(content.textContent!.includes(item.offer.description));
+      assert.ok(squash(content.textContent!).includes(squash(readerProse(item.offer.requirement, 'zh-Hans'))), 'redemption conditions are visible before following the offer');
+      assert.equal(squash([...content.querySelectorAll('.detail-steps li p')].map(node => node.textContent).join('')), squash(readerProse(item.offer.description, 'zh-Hans')), share.id + ': every step, in order');
       assert.equal(Boolean(content.querySelector('.event-participation')), false);
     } else {
-      assert.ok(content.textContent!.includes(item.shop.editorTip));
+      assert.ok(squash(content.textContent!).includes(squash(readerProse(item.shop.editorTip, 'zh-Hans'))));
       assert.ok(content.textContent!.includes(item.shop.address));
-      assert.ok(content.textContent!.includes(item.shop.dateLabel));
+      assert.ok(content.textContent!.includes(readerProse(item.shop.dateLabel, 'zh-Hans')));
       assert.equal(Boolean(content.querySelector('.event-participation')), false);
     }
+    // Catalog text only (the interface's own loading lines are not editor notes).
+    for (const node of content.querySelectorAll('.detail-head, .detail-facts, .detail-summary, .detail-plan li, .detail-conditions li, .detail-steps li, .detail-body section > p')) assert.ok(!hasEditorNote(node.textContent || ''), share.id + ': ' + node.textContent);
     assert.equal(doc.querySelector('link[rel="canonical"]')!.getAttribute('href')!.includes('?'), false);
     } finally { page.replaceChildren(); }
     // Let JSDOM finish detached-document cleanup between catalog entries.
@@ -283,11 +297,12 @@ test('missing, unknown and inherited image keys leave event, offer and opening d
       const fixture: LocalDiscovery = item.kind === 'event' ? { ...item, event: { ...item.event, imageKey } }
         : item.kind === 'offer' ? { ...item, offer: { ...item.offer, imageKey } }
         : { ...item, shop: { ...item.shop, imageKey } };
-      const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={fixture} today="2026-09-15" /></StaticRouter>);
+      const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord(fixture)} today="2026-09-15" /></StaticRouter>);
       const page = new JSDOM(body);
       assert.equal(page.window.document.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : discoveryShare(item).title);
-      assert.equal(Boolean(page.window.document.querySelector('.discovery-detail-media')), false);
-      assert.ok(page.window.document.querySelector('.discovery-detail-links a'));
+      assert.equal(page.window.document.querySelector('.detail-hero [data-cover="image"]'), null);
+      assert.ok(page.window.document.querySelector('.detail-hero [data-cover="type"]'), 'a TypeCover stands in');
+      assert.ok(page.window.document.querySelector('.site-detail-actions a[target="_blank"]'));
       page.window.close();
     }
   }
@@ -304,117 +319,94 @@ test('detail H1 wraps between whole words and reads exactly like the translated 
   // Converting each word on its own differs from the whole title here (了解 → 瞭解, 游戲 → 遊戲); the H1 must not.
   for (const id of ['union-city-cert-shakealert-october-2026', 'san-leandro-family-not-spooky-2026']) {
     const share = discoveryShare(find('event', item => item.event.id === id));
-    const view = render(<MemoryRouter initialEntries={['/zh-Hant' + share.path]}><Routes><Route path="/zh-Hant/events/:id" element={<LocalDiscoveryPage kind="event" />} /></Routes></MemoryRouter>);
-    const title = view.getByRole('heading', { level: 1 });
+    const view = render(<MemoryRouter initialEntries={['/zh-Hant' + share.path]}><Suspense fallback={null}><Routes><Route path="/zh-Hant/events/:id" element={<LocalDiscoveryPage kind="event" />} /></Routes></Suspense></MemoryRouter>);
+    const title = await view.findByRole('heading', { level: 1 });
     assert.ok(title.querySelector('span.title-keep'), id);
     assert.equal(title.textContent, translateText(share.title, 'zh-Hant'));
-    assert.equal(document.title, title.textContent + '｜BAYLINK');
+    await waitFor(() => assert.equal(document.title, title.textContent + '｜BAYLINK'));
     view.unmount();
   }
 });
 
-test('discovery posters and full-frame photos stay contained and open their complete source in an accessible lightbox', () => {
-  const style = document.createElement('style');
-  style.textContent = readFileSync(new URL('../src/components/guide-visuals.css', import.meta.url), 'utf8') + '\n'
-    + readFileSync(new URL('../src/components/discovery-community.css', import.meta.url), 'utf8');
-  document.head.append(style);
-  const poster = find('event', item => GUIDE_IMAGES[item.event.imageKey]?.kind === 'poster');
-  const fullPhoto = find('offer', item => GUIDE_IMAGES[item.offer.imageKey]?.kind === 'photo' && !!GUIDE_IMAGES[item.offer.imageKey]?.fullFrame);
-  for (const item of [poster, fullPhoto]) {
-    const imageKey = item.kind === 'event' ? item.event.imageKey : item.offer.imageKey;
-    const image = GUIDE_IMAGES[imageKey];
-    const view = render(detail(item));
-    const img = view.getByRole('img', { name: image.alt });
-    assert.ok(img.closest('.discovery-detail-media--full'));
-    const computed = dom.window.getComputedStyle(img);
-    assert.equal(computed.objectFit, 'contain');
-    assert.equal(computed.aspectRatio, 'auto');
-    const zoom = view.getByRole('button', { name: '放大图片：' + image.alt });
-    fireEvent.click(zoom);
-    const dialog = view.getByRole('dialog', { name: '图片放大：' + image.alt });
-    assert.equal(within(dialog).getByRole('img', { name: image.alt }).getAttribute('src'), image.src);
-    assert.ok(within(dialog).getByText(image.caption));
-    fireEvent.click(within(dialog).getByRole('button', { name: '关闭放大图片' }));
-    assert.equal(Boolean(view.queryByRole('dialog')), false);
-    assert.equal(document.body.style.overflow, '');
-    view.unmount();
-  }
+test('discovery posters and full-frame photos stay whole on the blur-fill hero (never cropped)', () => {
+  const poster = find('event', item => GUIDE_IMAGES[item.event.imageKey]?.kind === 'poster' && heroCover(buildDetailRecord(item), '2026-09-15').tier !== 'type');
+  const view = render(detail(poster));
+  const cover = view.container.querySelector('.detail-hero [data-cover="image"]')!;
+  assert.equal(cover.getAttribute('data-fit'), 'contain', 'posters are letterboxed on their own blur (D25)');
+  assert.ok(cover.querySelector('img.ui-cover__backdrop'));
+  assert.equal(cover.querySelector('img.ui-cover__img')?.getAttribute('src'), GUIDE_IMAGES[poster.event.imageKey].src);
+  view.unmount();
 });
 
-test('event recipients see all planning, cost, venue and audience details and retain safe source and return links', () => {
+test('event recipients see the facts, the planning lines and the source; the page ends with evergreen links', () => {
   const view = render(detail(eventItem, eventItem.event.endDate));
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, eventItem.event.title);
-  assert.ok(view.getByRole('heading', { name: '出发前，做好这些安排' }));
-  const steps = within(view.getByRole('list')).getAllByRole('listitem');
-  assert.ok(steps.length >= 1);
-  assert.equal(steps.length, eventItem.event.plan.length, 'every preparation step renders (the overlay drops filler and label repeats)');
-  eventItem.event.plan.forEach((step, index) => assert.ok(steps[index].textContent!.includes(step)));
-  assert.ok(view.getByText(eventItem.event.costLabel, { exact: true }));
-  assert.ok(view.container.textContent!.includes(eventItem.event.venue));
-  assert.ok(view.container.textContent!.includes(eventItem.event.audience.join(' / ')));
-  assertExternal(view.getByRole('link', { name: '查看主办方详情' }), eventItem.event.officialUrl);
-  assertExternal(view.getByRole('link', { name: eventItem.event.sourceLabel, exact: true }), eventItem.event.officialUrl);
-  const primaryActions = view.getByRole('group', { name: '活动主要操作' });
-  assert.equal(within(primaryActions).getAllByRole('link').length, 2, 'official facts and starting a plan are the two visible decisions');
-  assert.equal(view.container.querySelector<HTMLDetailsElement>('.discovery-detail-more-actions')?.open, false, 'secondary tasks start collapsed');
-  fireEvent.click(view.getByText('收藏、日历与分享', { exact: true }));
-  assert.ok(view.getByRole('button', { name: '存入日历', exact: true }), 'the final event day is still valid');
-  assert.equal(view.getByRole('link', { name: '本周活动' }).getAttribute('href'), '/this-week');
-  assert.equal(view.getByRole('link', { name: '当期月刊优惠' }).getAttribute('href'), '/this-month#monthly-perks');
-  assert.equal(Boolean(view.queryByText(/这条信息的日期已过/)), false);
-});
-
-test('four-step activity detail pages keep all preparation notes without a fixed three-step heading', () => {
-  for (const id of ['woodside-djerassi-free-art-hike-oct5-2026', 'fremont-fog-diwali-mela-2026']) {
-    const selected = find('event', row => row.event.id === id);
-    const view = render(detail(selected, '2026-09-30'));
+  const facts = view.container.querySelector('.detail-facts')!;
+  assert.deepEqual([...facts.querySelectorAll('dt')].map(node => node.textContent), ['何时', '在哪', '多少钱', '适合']);
+  assert.ok(facts.textContent!.includes(eventItem.event.venueShort || eventItem.event.venue));
+  assert.ok(facts.textContent!.includes(eventItem.event.audience.join(' / ')));
+  const lines = readerPlanLines(eventItem.event);
+  if (lines.length) {
     assert.ok(view.getByRole('heading', { name: '出发前，做好这些安排' }));
-    assert.equal(selected.event.plan.length, 4);
-    assert.deepEqual([...view.container.querySelectorAll('.discovery-plan li p')].map(step => step.textContent), selected.event.plan);
-    view.unmount();
+    assert.equal(view.container.querySelectorAll('.detail-plan li').length, lines.length);
   }
+  const actions = view.container.querySelector('.site-detail-actions')!;
+  assertExternal(actions.querySelector('a[target="_blank"]') as HTMLAnchorElement, eventItem.event.officialUrl);
+  assertExternal(view.getByRole('link', { name: eventItem.event.sourceLabel, exact: true }), eventItem.event.officialUrl);
+  assert.ok(view.getByRole('button', { name: '存入日历', exact: true }), 'the final event day is still valid');
+  assert.equal(view.getByRole('link', { name: '本周末活动' }).getAttribute('href'), '/events');
+  assert.equal(view.getByRole('link', { name: '我的收藏' }).getAttribute('href'), '/my-week#saved');
+  assert.equal(view.container.querySelector('.detail-back a')?.getAttribute('href'), '/events');
+  assert.equal(Boolean(view.queryByText(/这场活动已结束/)), false);
 });
 
-test('expired event links remain readable and shareable but cannot create new interest or a calendar reminder', () => {
+test('preparation lines drop editor notes and raw URLs but keep every reader fact', () => {
+  const selected = find('event', row => row.event.id === 'woodside-djerassi-free-art-hike-oct5-2026');
+  const view = render(detail(selected, '2026-09-30'));
+  const lines = [...view.container.querySelectorAll('.detail-plan li p')].map(step => step.textContent!);
+  assert.equal(lines.length, 4, 'all four notes stay: the last keeps its reader part');
+  assert.ok(!lines.some(line => /https?:\/\/|本条/.test(line)), lines.join('\n'));
+  assert.ok(lines[3].includes('最低年龄、无障碍条件和剩余名额未确认'));
+  view.unmount();
+});
+
+test('expired event links stay readable and shareable but cannot be saved, planned or put in a calendar', () => {
   const view = render(detail(eventItem, nextDay(eventItem.event.endDate)));
-  assert.ok(view.getByText(/这条信息的日期已过/));
+  assert.ok(view.getByText(/这场活动已结束/));
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, eventItem.event.title);
   assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
-  const interest = view.getByRole('button', { name: '我想去：' + eventItem.event.title, exact: true }) as HTMLButtonElement;
-  assert.equal(interest.disabled, true);
-  assert.match(interest.textContent!, /活动已结束/);
-  fireEvent.click(view.getByText('历史资料与分享', { exact: true }));
-  assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false, 'opening secondary tasks cannot restore an expired date');
+  assert.equal(view.container.querySelector('.site-detail-actions .saves-toggle'), null);
+  assert.equal(view.container.querySelector('.event-participation'), null, 'no new interest on an ended event');
   assert.ok(view.getByRole('button', { name: '分享：' + eventItem.event.title, exact: true }));
-  assertExternal(view.getByRole('link', { name: '查看主办方详情' }), eventItem.event.officialUrl);
-  assert.equal(view.container.querySelector('.discovery-plan')!.querySelectorAll('li').length, eventItem.event.plan.length);
+  assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, eventItem.event.officialUrl);
+  assert.equal(view.container.querySelector('.detail-plan'), null, 'the departure checklist is hidden (EVT-11)');
 });
 
 test('offer details preserve eligibility and local-store links, while expiry begins after the final redemption day', () => {
   const view = render(detail(offerItem, offerItem.offer.endDate));
   assert.ok(view.getByRole('heading', { name: '先看领取条件' }));
-  assert.ok(view.getByRole('heading', { name: '这份福利怎么用' }));
-  assert.equal(view.container.querySelector('.discovery-important')!.textContent, offerItem.offer.requirement);
-  assert.ok(view.getByText(offerItem.offer.description, { exact: true }));
-  assertExternal(view.getByRole('link', { name: '查看领取入口' }), offerItem.offer.sourceUrl);
+  assert.ok(view.getByRole('heading', { name: '怎么领 · 怎么用' }));
+  assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, offerItem.offer.sourceUrl);
   assertExternal(view.getByRole('link', { name: '查询本地门店' }), offerItem.offer.storeUrl!);
-  assert.equal(view.getByRole('link', { name: '发现更多湾区好去处' }).getAttribute('href'), '/this-month#monthly-perks');
-  assert.equal(Boolean(view.queryByText(/这条信息的日期已过/)), false);
+  assert.equal(view.container.querySelector('.detail-back a')?.getAttribute('href'), '/events?view=perks');
+  assert.equal(Boolean(view.queryByText(/已过期/)), false);
   assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
   assert.equal(Boolean(view.container.querySelector('.event-participation')), false);
+  assert.ok(view.container.querySelector('.site-detail-actions .saves-toggle'), '♡ on a live offer (FC3-03)');
   view.rerender(detail(offerItem, nextDay(offerItem.offer.endDate!)));
-  assert.ok(view.getByText(/这条信息的日期已过/));
-  assert.equal(view.container.querySelector('.discovery-important')!.textContent, offerItem.offer.requirement);
-  assertExternal(view.getByRole('link', { name: '查看领取入口' }), offerItem.offer.sourceUrl);
+  assert.ok(view.getByText(/已过期/));
+  assert.ok(view.container.querySelector('section[aria-labelledby="offer-conditions-title"] li'));
+  assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, offerItem.offer.sourceUrl);
 });
 
 test('offers without end dates retain their actual conditions instead of acquiring an invented expiry', () => {
   for (const availability of ['ongoing', 'check-local'] as const) {
     const item = find('offer', value => value.offer.availability === availability && !value.offer.endDate);
     const view = render(detail(item, '2027-01-01'));
-    assert.equal(Boolean(view.queryByText(/这条信息的日期已过/)), false);
-    assert.ok(view.getAllByText(item.offer.requirement, { exact: true }).length > 0);
-    assert.ok(view.getByText(item.offer.dateLabel, { exact: true }));
+    assert.equal(Boolean(view.queryByText(/已过期/)), false);
+    const conditions = [...view.container.querySelectorAll('section[aria-labelledby="offer-conditions-title"] li')].map(li => li.textContent).join('');
+    assert.equal(conditions.replace(/\s+/g, ''), readerProse(item.offer.requirement, 'zh-Hans').replace(/\s+/g, ''));
+    assert.ok(view.container.querySelector('.detail-fact[data-fact="when"]')?.textContent?.includes(readerProse(item.offer.dateLabel, 'zh-Hans')));
     view.unmount();
   }
 });
@@ -423,20 +415,20 @@ test('opening recipients can distinguish an operating shop from an unconfirmed a
   for (const item of [openShop, announcedShop]) {
     const view = render(detail(item, '2027-01-01'));
     assert.ok(view.getByRole('heading', { name: '这一趟怎么安排' }));
-    assert.ok(view.getByText(item.shop.editorTip, { exact: true }));
     assert.ok(view.container.textContent!.includes(item.shop.address));
-    assertExternal(view.getByRole('link', { name: '查看商家官网' }), item.shop.officialUrl);
+    assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, item.shop.officialUrl);
     assertExternal(view.getByRole('link', { name: item.shop.sourceLabel, exact: true }), item.shop.sourceUrl);
-    const notice = view.container.querySelector('.discovery-inline-note')!.textContent!;
+    const notice = [...view.container.querySelectorAll('.detail-note')].map(node => node.textContent).join(' ');
     if (item.shop.status === 'open') assert.match(notice, /已开业.*当天营业与订位/);
     else {
       assert.match(notice, /开业预告.*尚未确认正式营业/);
       assert.doesNotMatch(notice, /已开业/, 'an expected opening date does not automatically confirm operation');
     }
-    assert.equal(Boolean(view.queryByText(/这条信息的日期已过/)), false, 'an opening report is not an expiring event');
+    assert.equal(Boolean(view.queryByText(/已结束|已过期/)), false, 'an opening report is not an expiring event');
     assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
     assert.equal(Boolean(view.container.querySelector('.event-participation')), false);
-    assert.equal(view.getByRole('link', { name: '发现更多湾区好去处' }).getAttribute('href'), '/this-month#monthly-openings');
+    assert.equal(view.container.querySelector('.detail-back a')?.getAttribute('href'), '/events?view=openings');
+    assert.ok(view.container.querySelector('.site-detail-actions .saves-toggle'), '♡ 收藏 on a new shop (FC3-03)');
     const trust = view.getByRole('note', { name: '来源与核对' });
     assert.equal(trust.querySelector('time')?.getAttribute('datetime'), item.shop.verifiedAt);
     assert.match(trust.textContent || '', item.shop.sourceUrl === item.shop.officialUrl ? /^官方来源/ : /^来源 /, 'a press report is not presented as the official source');
@@ -451,19 +443,21 @@ const RouteHarness = () => <>
     <Link to={discoveryShare(announcedShop).path}>fixture opening</Link>
     <Link to={'/events/' + discoveryShare(offerItem).id}>fixture wrong kind</Link>
   </nav>
-  <Routes>
+  <Suspense fallback={null}><Routes>
     <Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} />
     <Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} />
     <Route path="/openings/:id" element={<LocalDiscoveryPage kind="opening" />} />
-  </Routes>
+  </Routes></Suspense>
 </>;
 
-test('client recipient navigation replaces category content and metadata, and wrong-kind URLs clear stale article metadata', () => {
+test('client recipient navigation replaces category content and metadata, and wrong-kind URLs clear stale article metadata', async () => {
   const view = render(<MemoryRouter initialEntries={[discoveryShare(eventItem).path + '?from=share&lang=en#planning']}><RouteHarness /></MemoryRouter>);
   for (const [label, item] of [['fixture event', eventItem], ['fixture offer', offerItem], ['fixture opening', announcedShop]] as const) {
-    fireEvent.click(view.getByRole('link', { name: label, exact: true }));
+    fireEvent.click(await view.findByRole('link', { name: label, exact: true }));
     const share = discoveryShare(item);
-    assert.equal(view.getByRole('heading', { level: 1 }).textContent, item.kind === 'offer' ? item.offer.title : share.title);
+    // The page shows once its generated record is in (features/detail/load-detail.ts).
+    await waitFor(() => assert.equal(view.getByRole('heading', { level: 1 }).textContent, item.kind === 'offer' ? item.offer.title : share.title));
+    await waitFor(() => assert.equal(canonical(document), SITE_URL + share.path));
     assert.equal(canonical(document), SITE_URL + share.path, 'attribution, locale query and fragments do not alter canonical URLs');
     assert.equal(meta(document, 'og:url'), SITE_URL + share.path);
     assert.equal(meta(document, 'og:image'), SITE_URL + shareCardPath(share));
@@ -475,8 +469,8 @@ test('client recipient navigation replaces category content and metadata, and wr
     assert.equal(item.kind === 'event' ? entity.url : entity.mainEntityOfPage, SITE_URL + share.path);
   }
   fireEvent.click(view.getByRole('link', { name: 'fixture wrong kind', exact: true }));
-  assert.ok(view.getByRole('heading', { name: '没有找到这个页面' }));
-  assert.equal(meta(document, 'robots'), 'noindex, follow');
+  assert.ok(await view.findByRole('heading', { name: '没有找到这个页面' }));
+  await waitFor(() => assert.equal(meta(document, 'robots'), 'noindex, follow'));
   assert.equal(meta(document, 'og:type'), 'website');
   assert.equal(meta(document, 'og:image'), DEFAULT_SOCIAL_IMAGE, '404 must not advertise the previously viewed shop');
   assert.equal(document.querySelectorAll('script[data-baylink-structured-data]').length, 0);

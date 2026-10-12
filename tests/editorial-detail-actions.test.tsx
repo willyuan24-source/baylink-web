@@ -5,10 +5,12 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
 import { StaticRouter } from 'react-router-dom';
 import '../src/i18n/router';
-import { localDiscoveries } from '../src/data/local-discoveries';
+import { localDiscoveries, type LocalDiscovery } from '../src/data/local-discoveries';
 import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
+import { buildDetailRecord } from '../src/features/detail/build-detail';
 import { setLocale } from '../src/i18n/locale';
 import { getListingImage } from '../src/lib/offer-media';
+import { brandCase } from '../src/lib/event-facts';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/' });
 const globals = { window: dom.window, document: dom.window.document, navigator: dom.window.navigator };
@@ -27,80 +29,78 @@ const offer = localDiscoveries.find(item => item.kind === 'offer' && !!item.offe
 const opening = localDiscoveries.find(item => item.kind === 'opening' && item.shop.status === 'open' && !!getListingImage(item.shop.imageKey));
 assert.ok(offer?.kind === 'offer');
 assert.ok(opening?.kind === 'opening');
-const page = (item: Parameters<typeof LocalDiscoveryDetail>[0]['item'], today = '2026-10-01') => JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={item} today={today} /></StaticRouter>));
+const page = (item: LocalDiscovery, today = '2026-10-01') => JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord(item)} today={today} /></StaticRouter>));
+const FOLLOWING = 4;
 
-test('offer and opening official actions precede media while sharing remains available in a closed disclosure', () => {
+test('offer and opening pages open on the hero; the official page is in the action bar and sharing is not hidden', () => {
   for (const item of [offer, opening]) {
     const doc = page(item);
-    const official = doc.querySelector<HTMLAnchorElement>('.discovery-detail-main-actions .discovery-primary')!;
-    const media = doc.querySelector('.discovery-detail-media')!;
+    const main = doc.querySelector('.detail-main')!;
+    assert.ok(main.firstElementChild?.classList.contains('detail-hero'), 'the hero is the first thing in the column (EVT11-03, SV-05)');
+    assert.equal(doc.querySelector('.discovery-detail-brand'), null, 'no BAYLINK masthead');
+    const official = doc.querySelector<HTMLAnchorElement>('.site-detail-actions a[target="_blank"]')!;
     assert.equal(official.getAttribute('href'), item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl);
     assert.match(official.rel, /noopener/);
-    assert.equal(official.closest('details'), null);
-    assert.ok(official.compareDocumentPosition(media) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING);
-    const secondary = doc.querySelector<HTMLDetailsElement>('.discovery-detail-more-actions')!;
-    assert.equal(secondary.open, false);
-    assert.ok(secondary.querySelector('summary')?.textContent);
-    assert.ok(secondary.querySelector('.editorial-share-actions button'), 'the source can still be shared when requested');
-    assert.equal(doc.querySelector('.discovery-detail-header>.editorial-share-actions'), null);
-    assert.ok(doc.querySelector('.guide-image-caption'), 'editorial image provenance remains visible');
+    assert.equal(doc.querySelector('details'), null, 'no action is tucked into a disclosure');
+    assert.ok(doc.querySelector('.detail-share .editorial-share-actions button'), 'the listing can be shared');
+    assert.ok(doc.querySelector('.detail-hero')!.compareDocumentPosition(doc.querySelector('h1')!) & FOLLOWING);
   }
+  const shopPage = page(opening);
+  assert.ok(shopPage.querySelector('.detail-hero [data-cover="image"] .ui-provenance'), 'the photo carries its provenance badge');
+  assert.ok(shopPage.querySelector('.detail-credit'), 'the credit line stays on the page');
 });
 
-test('offer conditions appear once, before media, and preserve the real store lookup', () => {
+test('offer conditions read as a checklist, the steps as 1-2-3, and the real store lookup stays', () => {
   const doc = page(offer);
   assert.equal(doc.querySelector('h1')?.textContent, offer.offer.title, 'the headline does not repeat the uppercase brand prefix');
-  assert.ok(doc.querySelector('.discovery-eyebrow')?.textContent?.includes(offer.offer.brand), 'the brand stays visible beside the category');
-  const paragraphs = [...doc.querySelectorAll('p')].filter(node => node.textContent === offer.offer.requirement);
-  assert.equal(paragraphs.length, 1);
-  assert.equal(paragraphs[0].closest('section')?.getAttribute('aria-labelledby'), 'offer-conditions-title');
-  assert.ok(paragraphs[0].compareDocumentPosition(doc.querySelector('.discovery-detail-media')!) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING);
-  assert.equal(doc.querySelector('.discovery-detail-header a.discovery-secondary')?.getAttribute('href'), offer.offer.storeUrl);
-  assert.ok(doc.querySelector('.discovery-detail-body')?.textContent?.includes(offer.offer.description));
+  assert.equal(doc.querySelector('.detail-brand')?.textContent, brandCase(offer.offer.brand), 'the brand stays visible under the title');
+  const conditions = doc.querySelector('section[aria-labelledby="offer-conditions-title"]')!;
+  assert.equal(conditions.querySelector('h2')?.textContent, '先看领取条件');
+  assert.equal([...conditions.querySelectorAll('li')].map(li => li.textContent).join('').replace(/\s+/g, ''), offer.offer.requirement.replace(/\s+/g, ''), 'every condition, once, in order');
+  assert.equal(doc.querySelectorAll('section[aria-labelledby="offer-conditions-title"]').length, 1);
+  assert.equal(doc.querySelector('.detail-fact[data-fact="where"] a')?.getAttribute('href'), offer.offer.storeUrl);
+  assert.ok(doc.querySelectorAll('.detail-steps li').length >= 1);
+  assert.ok(!doc.textContent?.includes('以官方入口的最新说明为准'), 'no generic "check the official site" line (CNT-1011-06)');
 });
 
 test('directory regions never become a claim that an offer is available at a specific Bay Area location', async () => {
-  const locales = [
-    ['zh-Hans', '参与门店 · 先查本地地址', '适用地点请查官方说明'],
-    ['zh-Hant', '參與門店 · 先查本地地址', '適用地點請查官方說明'],
-    ['en', 'Participating locations · check local addresses', 'Check the official terms for applicable locations'],
-  ] as const;
-  for (const [locale, withStore, withoutStore] of locales) {
+  const locales = [['zh-Hans', '参与门店 · 先查本地地址'], ['zh-Hant', '參與門店 · 先查本地地址'], ['en', 'Participating locations · check local addresses']] as const;
+  for (const [locale, withStore] of locales) {
     await setLocale(locale, false);
-    for (const [storeUrl, expected] of [[offer.offer.storeUrl, withStore], [undefined, withoutStore]] as const) {
-      const doc = page({ ...offer, offer: { ...offer.offer, region: 'south-bay', storeUrl } });
-      assert.equal(doc.querySelector('.discovery-detail-facts>span:nth-child(2)')?.textContent, expected);
-      assert.equal(doc.querySelectorAll('.discovery-detail-facts>span').length, 2, 'no invented address, event venue or additional eligibility fact');
-    }
+    const withLookup = page({ ...offer, offer: { ...offer.offer, region: 'south-bay' } });
+    assert.ok(withLookup.querySelector('.detail-fact[data-fact="where"] dd')?.textContent?.startsWith(withStore));
+    const single = page({ ...offer, offer: { ...offer.offer, region: 'south-bay', storeUrl: undefined } });
+    assert.equal(single.querySelector('.detail-fact[data-fact="where"]'), null, 'no store list, so no "where" cell and no invented address');
+    assert.ok(!/适用地点请查官方说明|適用地點請查官方說明|Check the official terms for applicable locations/.test(single.textContent || ''));
   }
 });
 
-test('expired or unconfirmed offers retain official reference access without inviting a new outing', () => {
+test('expired or unconfirmed offers keep official access and their conditions without inviting a new outing or a save', () => {
   for (const item of [
     { ...offer, offer: { ...offer.offer, endDate: '2026-09-30' } },
     { ...offer, offer: { ...offer.offer, endDate: '2026-10-31', verificationStatus: 'needs-confirmation' as const } },
   ]) {
     const doc = page(item);
     assert.equal(doc.querySelector('.outing-inspiration-link'), null);
-    assert.equal(doc.querySelector('.discovery-detail-main-actions .discovery-primary')?.getAttribute('href'), item.offer.sourceUrl);
-    assert.equal(doc.querySelector('.discovery-important')?.textContent, item.offer.requirement);
+    assert.equal(doc.querySelector('.site-detail-actions a[target="_blank"]')?.getAttribute('href'), item.offer.sourceUrl);
+    assert.ok(doc.querySelector('section[aria-labelledby="offer-conditions-title"] li'));
+    assert.ok(doc.querySelector('.detail-note'));
   }
+  assert.equal(page({ ...offer, offer: { ...offer.offer, endDate: '2026-09-30' } }).querySelector('.saves-toggle'), null);
+  assert.ok(page(offer, offer.offer.endDate).querySelector('.site-detail-actions .saves-toggle'), 'a live offer has the ♡ (FC3-03)');
 });
 
-test('English opening status, plan action and related event controls have no untranslated interface labels', async () => {
+test('English detail chrome, plan action and related guide link have no untranslated interface labels', async () => {
   await setLocale('en', false);
   const shop = localDiscoveries.find(item => item.kind === 'opening' && item.shop.id === 'sergeant-ma');
   assert.ok(shop?.kind === 'opening');
-  for (const [status, label] of [['open', 'Open'], ['soft_open', 'Soft opening'], ['announced', 'Announced']] as const) {
-    const doc = page({ ...shop, shop: { ...shop.shop, status } });
-    assert.equal(doc.querySelector('.discovery-eyebrow')?.textContent, `New opening · ${label}`);
-    // Only a shop that serves customers is a planner place (src/lib/opening-place.ts, the planner catalog's rule): an announcement has no plan link.
-    assert.equal(doc.querySelector('.discovery-detail-header a.discovery-secondary')?.textContent, status === 'announced' ? undefined : 'Plan a day around this place');
-  }
+  const doc = page(shop);
+  assert.equal(doc.querySelector('.detail-back a')?.textContent, 'New shops');
+  assert.equal(doc.querySelector('.site-detail-actions')?.getAttribute('aria-label'), 'Actions for this page');
   const event = localDiscoveries.find(item => item.kind === 'event' && item.event.relatedGuideSlug);
   assert.ok(event?.kind === 'event');
-  const doc = page(event, event.event.startDate);
-  assert.equal(doc.querySelector('.discovery-detail-main-actions')?.getAttribute('aria-label'), 'Event actions');
-  assert.equal(doc.querySelector('.discovery-detail-more-actions summary')?.textContent, 'Save, calendar and sharing');
-  assert.equal(doc.querySelector('.discovery-related')?.textContent, 'Read a related local guide');
+  const eventPage = page(event, event.event.startDate);
+  assert.equal(eventPage.querySelector('.detail-back a')?.textContent, 'Events');
+  assert.equal(eventPage.querySelector('.discovery-related')?.textContent, 'Read a related local guide');
+  for (const node of eventPage.querySelectorAll('.detail-facts dt, .site-detail-actions, .detail-body h2, .discovery-return')) assert.ok(!/[㐀-鿿]/.test(node.textContent || ''), node.textContent || '');
 });

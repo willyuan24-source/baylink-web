@@ -32,7 +32,7 @@ export function DetailActionBar({ actions }: { actions: DetailActions }) {
   const primaryOfficial = !actions.day && !actions.planPath;
   return <div className="site-detail-actions detail-actions" role="group" aria-label={t('这一页的操作', 'Actions for this page')}>
     {actions.favorite && <div className="detail-actions__save"><SaveToWeek favorite={actions.favorite} title={actions.title} compact /></div>}
-    {actions.day && <div className="detail-actions__primary"><AddToDayPlan stop={actions.day.stop} date={actions.day.date} today={actions.day.today} title={actions.title} compact /></div>}
+    {actions.day && <div className="detail-actions__primary" data-day={actions.day.date}><AddToDayPlan stop={actions.day.stop} date={actions.day.date} today={actions.day.today} title={actions.title} compact /></div>}
     {actions.planPath && <Link className="detail-actions__primary detail-action detail-action--primary" to={actions.planPath}><CalendarPlus aria-hidden="true" strokeWidth={1.75} />{t('加入行程', 'Add to a plan')}</Link>}
     <button type="button" className="detail-action detail-action--ask" onClick={() => app?.openBayBay()} aria-label={t('问 BayBay 这一页', 'Ask BayBay about this page')}>
       <img className="detail-action__otter" src="/brand/otter.svg" alt="" width={28} height={28} aria-hidden="true" /><span>{t('问 BayBay', 'Ask BayBay')}</span>

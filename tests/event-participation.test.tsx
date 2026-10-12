@@ -48,7 +48,7 @@ function fixture(app?: AppContextValue, today = '2026-10-15') {
   const contents = <EventParticipationProvider events={[EVENT]}><EventParticipationActions event={EVENT} today={today} /></EventParticipationProvider>;
   return <MemoryRouter><Routes><Route element={<Outlet context={app} />}><Route index element={contents} /><Route path="together" element={<p>小队公开浏览页</p>} /></Route></Routes></MemoryRouter>;
 }
-const interestedButton = (view: ReturnType<typeof render>, selected = false) => view.getByRole('button', { name: `${selected ? '取消想去' : '我想去'}：${EVENT.title}`, exact: true });
+const interestedButton = (view: ReturnType<typeof render>, selected = false) => view.getByRole('button', { name: `${selected ? '取消公开想去' : '公开想去'}：${EVENT.title}`, exact: true });
 const getNote = (count: number) => `${count >= 3 ? `${count} 人想去 · ` : ''}意向不等于报名或购票。`;
 
 test('small real counts stay private while three or more participants remain visible', async t => {
@@ -439,7 +439,7 @@ test('ended events refuse a new interest but retain the cancellation path for ex
   assert.deepEqual(writes, []);
   current = state({ interested: true, lookingForBuddy: true });
   fireEvent(window, new dom.window.Event('focus'));
-  await view.findByRole('button', { name: `取消想去：${EVENT.title}` });
+  await view.findByRole('button', { name: `取消公开想去：${EVENT.title}` });
   fireEvent.click(interestedButton(view, true));
   await view.findByText(getNote(6));
   assert.deepEqual(writes, [{ interested: false, lookingForBuddy: false }]);
