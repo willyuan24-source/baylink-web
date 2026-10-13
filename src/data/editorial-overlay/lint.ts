@@ -33,7 +33,8 @@ export type LintInput = {
 export const BASIS_FIELDS = {
   event: ['title', 'startDate', 'endDate', 'occurrenceDates', 'dateLabel', 'cost', 'costLabel', 'venue', 'plan', 'summary', 'audience'],
   offer: ['title', 'startDate', 'endDate', 'dateLabel', 'requirement', 'description'],
-  opening: ['name', 'status', 'openedOn', 'dateLabel', 'summary', 'editorTip'],
+  // `category` since WEB-FIX5 corrected Marufuku's 拉面新店预告 to 拉面 (H09); records written before it carry no hash for it.
+  opening: ['name', 'category', 'status', 'openedOn', 'dateLabel', 'summary', 'editorTip'],
 } as const;
 
 /** FNV-1a over the JSON of a field value: 8 hex characters, enough to notice that a source field changed. */
