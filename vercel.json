@@ -31,7 +31,8 @@
         "X-Frame-Options": "DENY",
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Content-Security-Policy": "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data: blob:; connect-src 'self' blob: https://baylink-api.onrender.com wss://baylink-api.onrender.com https://tiles.openfreemap.org; worker-src 'self' blob:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'; form-action 'self'; upgrade-insecure-requests",
-        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()"
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=()",
+        "Strict-Transport-Security": "max-age=63072000; includeSubDomains; preload"
       },
       "continue": true
     },
@@ -341,6 +342,10 @@
       "dest": "/en/$1.html"
     },
     {
+      "src": "^/en/(?:me|me/bookings|my-week|messages|messages/[^/]+|together)/?$",
+      "dest": "/en/account-shell.html"
+    },
+    {
       "src": "^/en/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
       "dest": "/en/index.html"
     },
@@ -431,6 +436,10 @@
       "dest": "/zh-Hant/$1.html"
     },
     {
+      "src": "^/zh-Hant/(?:me|me/bookings|my-week|messages|messages/[^/]+|together)/?$",
+      "dest": "/zh-Hant/account-shell.html"
+    },
+    {
       "src": "^/zh-Hant/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",
       "dest": "/zh-Hant/index.html"
     },
@@ -497,6 +506,10 @@
     },
     {
       "handle": "filesystem"
+    },
+    {
+      "src": "^/(?:me|me/bookings|my-week|messages|messages/[^/]+|together)/?$",
+      "dest": "/account-shell.html"
     },
     {
       "src": "^/(?:users/[^/]+|reset-password|together|me|me/bookings|my-week|messages|messages/[^/]+)/?$",

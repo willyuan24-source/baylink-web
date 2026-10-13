@@ -5,9 +5,9 @@
     "hexDistinct": 48,
     "fontSizePx": 0,
     "fontSizePxUnder13": 0,
-    "fontSizeUnder13": 456,
+    "fontSizeUnder13": 403,
     "radiusKinds": 66,
-    "shadowKinds": 65,
+    "shadowKinds": 64,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 64,
     "baylinkClasses": 427,
@@ -281,7 +281,6 @@
       "0 3px 8px rgba(80,60,40,0.12)",
       "0 4px 13px rgb(var(--color-ink-rgb) / .07)",
       "0 4px 14px rgb(var(--color-brand-deep-rgb) / .07)",
-      "0 4px 14px rgb(var(--color-ink-2-rgb) / .06)",
       "0 4px 15px rgb(var(--color-brand-deep-rgb) / .02)",
       "0 4px 24px -6px rgba(23,32,42,0.08),0 2px 8px -2px rgba(22,166,106,0.06)",
       "0 5px 14px rgb(var(--color-brand-deep-rgb) / .03)",
@@ -375,9 +374,6 @@
     "src/components/editorial-content.css": {
       "fontSizeUnder13": 4
     },
-    "src/components/freebie-board.css": {
-      "fontSizeUnder13": 33
-    },
     "src/components/FreebieBoard.tsx": {
       "arrowUpRight": 1
     },
@@ -411,9 +407,6 @@
     },
     "src/components/outing-inspiration.css": {
       "fontSizeUnder13": 1
-    },
-    "src/components/perks-gallery.css": {
-      "fontSizeUnder13": 20
     },
     "src/components/PerksGallery.tsx": {
       "arrowUpRight": 1
