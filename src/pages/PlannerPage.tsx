@@ -1,18 +1,17 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { MapPin, Sparkles, Plus, X, Share2, ArrowUp, ChevronRight, SlidersHorizontal, Square, Printer, WifiOff } from 'lucide-react';
 import { useApp } from '../app/context';
 import { api } from '../lib/api';
 import { useLocale, translateText } from '../i18n/locale';
-import { ATTRACTION_REGIONS } from '../data/attractions';
-import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
-import { favoriteKey, cleanStops, errorText, MAX_PLAN_STOPS, parseSharedPlan, sharePlanUrl, stopPath, stopTitle, todayInBay, type PlanDetails, type PlanFilters, type Recommendations, type SavedPlan, type Stop } from '../lib/planner';
+import { PLAN_REGIONS, PLANNER_EVENTS, PLANNER_PLACES } from '../lib/planner-source';
+import { favoriteKey, cleanStops, errorText, MAX_PLAN_STOPS, parseSharedPlan, sharePlanUrl, stopPath, stopTitle, todayInBay, type PlanDetails, type PlanFilters, type Recommendations, type SavedPlan, type Stop } from '../lib/planner-core';
 import { usePlannerLibrary } from '../lib/planner-library';
 import { saveKey } from '../lib/saves';
 import { PlannerMap } from '../components/PlannerMap';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
 import { setPageMetadata } from '../lib/seo';
-import { PLAN_METADATA } from '../lib/planner';
+import { PLAN_METADATA } from '../lib/planner-core';
 import { recordProductEvent } from '../lib/product-events';
 import { eventOccursOn } from '../lib/event-calendar';
 import { canonicalEventId } from '../lib/event-id';
@@ -37,18 +36,13 @@ import { firstPlanDays, onePhotoEach, stopCoverImage, stopCoverItem, upcomingPla
 import { Button, IconButton } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
+import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
+import { useOnline } from '../features/plan/use-online';
+import { loadPlan, planLoadFailed } from '../features/plan/plan-catalog';
 import '../styles/plan-page.css';
 
-/** Whether the browser says it is online; the page keeps working from this device's data when it is not (RC-25). */
-function useOnline() {
-  const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
-  useEffect(() => {
-    const on = () => setOnline(true), off = () => setOnline(false);
-    window.addEventListener('online', on); window.addEventListener('offline', off);
-    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
-  }, []);
-  return online;
-}
+/** Before paint in the browser; the prerender (no window) has nothing to report and React warns about layout effects there. */
+const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 /** The details as save() stores them, in one canonical form (key order included), for the overview's 已保存 claim. */
 const storedDetails = (value: unknown, stops: Stop[], date: string) => {
@@ -59,10 +53,43 @@ const storedDetails = (value: unknown, stops: Stop[], date: string) => {
 export default function PlannerPage() {
   const app = useApp();
   // Drafts, inferred preferences and in-flight searches belong to one account.
-  return <PlannerWorkspace key={app?.user?.id || 'guest'} />;
+  return <PlannerShell key={app?.user?.id || 'guest'} />;
 }
 
-function PlannerWorkspace() {
+/**
+ * 行程's header renders at once (WEB-PLAN-DATA); the workspace below it reads the planner catalog, which loads after the
+ * first paint (features/plan). The workspace reports the library's busy state (the whole page is one fieldset, disabled
+ * while a save runs) and its 问 BayBay draft; a tap on 问 BayBay before the workspace is in opens BayBay as soon as it is.
+ */
+function PlannerShell() {
+  const app = useApp();
+  const locale = useLocale();
+  useEffect(() => { setPageMetadata(PLAN_METADATA); }, [locale]);
+  const [busy, setBusy] = useState(false);
+  // 问 BayBay with the current plan, once the workspace is in; a tap before that waits for it.
+  const askPlan = useRef<{ ask?: () => void; waiting: boolean }>({ waiting: false });
+  const registerAsk = useCallback((ask?: () => void) => {
+    askPlan.current.ask = ask;
+    if (ask && askPlan.current.waiting) { askPlan.current.waiting = false; ask(); }
+  }, []);
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  // Without the catalog (offline, a lost chunk) there is no plan to describe: BayBay opens with the general draft.
+  const askGeneral = () => app?.openBayBay?.(t('帮我排一天湾区出游：', 'Help me plan a day out in the Bay Area: '), { mode: 'draft' });
+  const ask = () => {
+    if (askPlan.current.ask) { askPlan.current.ask(); return; }
+    if (planLoadFailed(locale)) { askGeneral(); return; }
+    askPlan.current.waiting = true;
+    loadPlan(locale).catch(() => { if (askPlan.current.waiting) { askPlan.current.waiting = false; askGeneral(); } });
+  };
+  return <PageContainer size="wide" className="planner-page"><fieldset className="planner-interaction-scope" disabled={busy}>
+    <PageHeader title={t('行程', 'Plans')}
+      lede={t('把想去的活动和地点排进一天：时间、门票和路线一起看，存好后发给家人。', 'Put the events and places you want into one day, with times, tickets and routes in view. Save it and send it to family.')}
+      actions={<><Button variant="primary" icon={<Sparkles size={18} aria-hidden="true" />} onClick={ask}>{t('问 BayBay 排一天', 'Ask BayBay to plan a day')}</Button><Button variant="text" to="/my-week">{t('我的这周', 'My Week')}</Button></>} />
+    <PlanWorkspaceSlot><PlannerWorkspace onBusy={setBusy} registerAsk={registerAsk} /></PlanWorkspaceSlot>
+  </fieldset></PageContainer>;
+}
+
+function PlannerWorkspace({ onBusy, registerAsk }: { onBusy: (busy: boolean) => void; registerAsk: (ask?: () => void) => void }) {
   const app = useApp();
   const location = useLocation();
   const navigate = useNavigate();
@@ -80,7 +107,6 @@ function PlannerWorkspace() {
   const shared = useMemo(() => parseSharedPlan(planSearch), [planSearch]);
   const importedDraft = useMemo(() => readBayBayPlanDraft(new URLSearchParams(planSearch).get('baybayDraft'), app?.user?.id), [planSearch, app?.user?.id]);
   const locale = useLocale();
-  useEffect(() => { setPageMetadata(PLAN_METADATA); }, [locale]);
   const library = usePlannerLibrary(app?.user?.id);
   const online = useOnline();
   const today = todayInBay();
@@ -240,7 +266,7 @@ function PlannerWorkspace() {
     return () => { cancelled = true; };
   }, [location.search, location.key, location.pathname, location.hash, queryMessage, shared.date, recommend, navigate]);
   const stopRequest = () => { request.current?.abort(); request.current = undefined; setRequesting(false); setError('已停止挑选。你的条件还在，可以修改后重试。'); };
-  const appliedFilters = results ? [results.filters.date, results.filters.city, results.filters.region && results.filters.region !== 'all' ? ATTRACTION_REGIONS.find(item => item.id === results.filters.region)?.label : undefined,
+  const appliedFilters = results ? [results.filters.date, results.filters.city, results.filters.region && results.filters.region !== 'all' ? PLAN_REGIONS.find(item => item.id === results.filters.region)?.label : undefined,
     results.filters.budget != null ? `${translateText(results.filters.budgetScope === 'total' ? '同行门票总预算' : '每人门票预算', locale)} $${results.filters.budget}` : undefined,
     results.filters.childAges?.length ? `${translateText('孩子年龄', locale)} ${results.filters.childAges.join('、')}` : results.filters.childAge != null ? `${translateText('孩子年龄', locale)} ${results.filters.childAge}` : undefined,
     results.filters.setting === 'indoor' ? '室内' : results.filters.setting === 'outdoor' ? '户外' : undefined,
@@ -305,10 +331,12 @@ function PlannerWorkspace() {
   const askBayBay = () => app?.openBayBay?.(stops.length
     ? t(`帮我看看${date ? ` ${date} ` : ''}这份行程：${stops.map(stop => stopTitle(stop)).join('、')}。还可以怎么排？`, `Please look at my plan${date ? ` for ${date}` : ''}: ${stops.map(stop => translateText(stopTitle(stop), 'en')).join(', ')}. How could I arrange it better?`)
     : t('帮我排一天湾区出游：', 'Help me plan a day out in the Bay Area: '), { mode: 'draft' });
-  return <PageContainer size="wide" className="planner-page"><fieldset className="planner-interaction-scope" disabled={library.busy}>
-    <PageHeader title={t('行程', 'Plans')}
-      lede={t('把想去的活动和地点排进一天：时间、门票和路线一起看，存好后发给家人。', 'Put the events and places you want into one day, with times, tickets and routes in view. Save it and send it to family.')}
-      actions={<><Button variant="primary" icon={<Sparkles size={18} aria-hidden="true" />} onClick={askBayBay}>{t('问 BayBay 排一天', 'Ask BayBay to plan a day')}</Button><Button variant="text" to="/my-week">{t('我的这周', 'My Week')}</Button></>} />
+  // The header above reads the library's busy state and this plan's 问 BayBay draft (before paint, so the fieldset is
+  // disabled in the same frame as the save starts); a tap that came while the catalog loaded opens BayBay now.
+  useBrowserLayoutEffect(() => { onBusy(library.busy); }, [library.busy, onBusy]);
+  useBrowserLayoutEffect(() => { registerAsk(askBayBay); });
+  useEffect(() => () => { registerAsk(undefined); onBusy(false); }, [registerAsk, onBusy]);
+  return <div className="planner-data-slot" data-plan-slot="">
     {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{library.ready
       ? t('你现在离线：已保存的行程和这台设备上的草稿仍可查看；挑选方案和地图要联网后才能用。', 'You are offline. Your saved plans and this device’s draft are still here; suggestions and the map need a connection.')
       : t('你现在离线：这台设备上的草稿仍可查看；已保存的行程、挑选方案和地图要联网后才能读取。', 'You are offline. This device’s draft is still here; your saved plans, suggestions and the map load once you are back online.')}</p>}
@@ -321,7 +349,7 @@ function PlannerWorkspace() {
       {requirementsDraftId !== null && !requirementsDraft && <p className="planner-handoff-note" role="status" translate="no">{locale === 'en' ? 'Your requirement draft is unavailable. Please enter your requirements again.' : translateText('需求草稿暂不可读取，请重新输入条件。', locale)}</p>}
       <label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => { setMessage(e.target.value); setPersistedFilters({}); }} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
       <ChipRow label={t('试着这样问', 'Try asking')} className="planner-examples">{['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'].map(example => <FilterChip selected={false} key={example} onClick={() => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); }}>{example}</FilterChip>)}</ChipRow>
-      <details className="planner-refinements"><summary><SlidersHorizontal size={16} aria-hidden="true" />日期、地区与预算（可选）<ChevronRight size={16} aria-hidden="true" /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={requestedDate} onChange={e => { setSearchDate(e.target.value); }} /></label><label>地区<select value={region} onChange={e => { setRegion(e.target.value); setPersistedFilters(current => ({ ...current, region: e.target.value, city: undefined })); }}>{ATTRACTION_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => { setBudget(e.target.value); setPersistedFilters(current => ({ ...current, budget: undefined, budgetScope: 'person', freeOnly: undefined })); }} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => { setAge(e.target.value); setPersistedFilters(current => ({ ...current, childAge: undefined, childAges: undefined })); }} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => { setSetting(e.target.value); setPersistedFilters(current => ({ ...current, setting: e.target.value })); }}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option><option value="mixed">已确认室内外结合</option></select></label><label>出行方式<select value={travel} onChange={e => { setTravel(e.target.value); setPersistedFilters(current => ({ ...current, travelMode: e.target.value })); }}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
+      <details className="planner-refinements"><summary><SlidersHorizontal size={16} aria-hidden="true" />日期、地区与预算（可选）<ChevronRight size={16} aria-hidden="true" /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={requestedDate} onChange={e => { setSearchDate(e.target.value); }} /></label><label>地区<select value={region} onChange={e => { setRegion(e.target.value); setPersistedFilters(current => ({ ...current, region: e.target.value, city: undefined })); }}>{PLAN_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => { setBudget(e.target.value); setPersistedFilters(current => ({ ...current, budget: undefined, budgetScope: 'person', freeOnly: undefined })); }} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => { setAge(e.target.value); setPersistedFilters(current => ({ ...current, childAge: undefined, childAges: undefined })); }} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => { setSetting(e.target.value); setPersistedFilters(current => ({ ...current, setting: e.target.value })); }}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option><option value="mixed">已确认室内外结合</option></select></label><label>出行方式<select value={travel} onChange={e => { setTravel(e.target.value); setPersistedFilters(current => ({ ...current, travelMode: e.target.value })); }}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
       <div className="planner-form-actions"><Button type="submit" variant="secondary" disabled={requesting} icon={<Sparkles size={18} aria-hidden="true" />}>{requesting ? '正在挑选…' : '帮我挑选方案'}</Button>{requesting && <Button variant="text" onClick={stopRequest} icon={<Square size={14} aria-hidden="true" />}>停止</Button>}<span>门票预算不含餐饮、停车与交通。</span></div>
     </form>
     {error && <p className="planner-error" role="alert">{error}</p>}
@@ -363,5 +391,5 @@ function PlannerWorkspace() {
       <p className="planner-note">景点顺序由你决定。出发前确认门票、开放时间及导航路线。</p>
     </aside></div>
     <PlannerImageCredits covers={pageCovers} />
-  </fieldset></PageContainer>;
+  </div>;
 }

@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test, { after } from 'node:test';
 import '../src/i18n/router';
 import { setLocale, simplifySearch } from '../src/i18n/locale';
-import { normalizeSearchText, searchSynonymsOf, SEARCH_SYNONYM_GROUPS } from '../src/lib/search-synonyms';
+import { normalizeSearchQuery, normalizeSearchText, searchSynonymsOf, SEARCH_SYNONYM_GROUPS } from '../src/lib/search-synonyms';
 import { searchGuides } from '../src/lib/guide-search';
 import { searchQuickDestinations } from '../src/lib/quick-search';
 import { isHomeQuestion } from '../src/lib/home-query';
@@ -104,7 +104,9 @@ test('home: a Traditional question goes to BayBay like a Simplified one; keyword
 });
 
 test('quick search lists the senior pages first for 长者: a synonym or a venue name only fills the rest', async () => {
-  const seniorEvents = ['el-cerrito-senior-resource-fair-2026', 'san-leandro-senior-halloween-bingo-2026'];
+  // Three event slots, soonest first: newer programs for older adults (the 10/25 Portola Valley lantern class, 55+) may
+  // list ahead of the 10/30 San Leandro bingo, so only the first senior-specific event is pinned here.
+  const seniorEvents = ['el-cerrito-senior-resource-fair-2026'];
   for (const [locale, query] of [['zh-Hans', '长者'], ['zh-Hant', '長者'], ['zh-Hans', '老人'], ['en', 'senior']] as const) {
     await setLocale(locale, false);
     const found = searchQuickDestinations(query, locale, today);
@@ -119,4 +121,58 @@ test('quick search lists the senior pages first for 长者: a synonym or a venue
   const muni = searchQuickDestinations('长者 Muni', 'zh-Hans', today);
   assert.deepEqual(muni.events.map(event => event.id), []);
   assert.deepEqual(muni.offers.map(offer => offer.id), [seniorMuni]);
+});
+
+// ELDERS-2 (G24, G89; READ-03, CW-05, GUIDE-K): what an older reader or their family types reaches the right page first,
+// and two shared words that used to pull in unrelated pages no longer do.
+test('elder searches put the page a reader means first (zh-Hans and zh-Hant)', async () => {
+  const seniorGuide = 'bay-area-chinese-senior-services-referral-guide';
+  const dentalGuide = 'bay-area-dental-care-insurance-low-cost-guide';
+  const firstGuide = (query: string, locale: 'zh-Hans' | 'zh-Hant' = 'zh-Hans') => searchGuides(guides, { query, locale })[0]?.guide.slug;
+  for (const [locale, rows] of [['zh-Hans', ['老人卡', '老人免费坐公交', '长者免费坐公交', '老人坐公交免费']], ['zh-Hant', ['老人卡', '老人免費坐公交']]] as const) {
+    await setLocale(locale, false);
+    for (const query of rows) assert.equal(searchQuickDestinations(query, locale, today).offers[0]?.id, seniorMuni, `${locale}: ${query} → the SFMTA 65+ free Muni page`);
+  }
+  await setLocale('zh-Hans', false);
+  // 送餐 (Home Delivered Meals) is in the senior services guide; 爸妈 / 父母 are the reader's parents.
+  assert.equal(firstGuide('老人送餐'), seniorGuide);
+  assert.equal(firstGuide('长者 送餐'), seniorGuide);
+  assert.equal(firstGuide('Meals on Wheels'), seniorGuide);
+  assert.equal(firstGuide('爸妈'), seniorGuide);
+  assert.equal(firstGuide('父母'), seniorGuide);
+  assert.equal(firstGuide('爸媽', 'zh-Hant'), seniorGuide);
+  // 看牙 = dental; with 老人 in front it still means the dental guide, which covers Medicare and Medi-Cal dental.
+  for (const query of ['看牙', '老人 看牙', '老人看牙', '長者 看牙', '牙医', 'dentist']) assert.equal(firstGuide(query), dentalGuide, query);
+  // 圣荷西 is San José.
+  assert.equal(firstGuide('圣荷西'), firstGuide('San Jose'));
+  assert.equal(firstGuide('圣荷西'), 'san-jose-guide');
+  // The words each phrase is made of reach the same key the single words do.
+  assert.ok(normalizeSearchQuery('老人免费坐公交').split(' ').includes(normalizeSearchText('长者')));
+  assert.deepEqual(searchSynonymsOf('老人卡').filter(member => member.includes('clipper')), ['senior clipper card', 'senior clipper']);
+});
+
+test('a district is not a school district and a network is not broadband (CW-05)', async () => {
+  await setLocale('zh-Hans', false);
+  const slugs = (query: string) => searchGuides(guides, { query, locale: 'zh-Hans' }).map(result => result.guide.slug);
+  const schoolGuides = guides.filter(guide => /school-district/.test(guide.slug)).map(guide => guide.slug);
+  assert.ok(schoolGuides.length >= 4);
+  const mission = slugs('Mission District');
+  assert.equal(mission[0], 'sf-mission-dolores-murals-walk-guide');
+  assert.deepEqual(mission.filter(slug => schoolGuides.includes(slug)), [], 'no school-district guide for the neighbourhood');
+  assert.ok(!normalizeSearchText('East Bay Regional Park District').includes(normalizeSearchText('学区')));
+  assert.ok(!searchQuickDestinations('学区', 'zh-Hans', today).offers.some(offer => offer.id === 'east-bay-green-friday-nov27-2026'), 'a park district is not a 学区');
+  assert.ok(slugs('学区').slice(0, 4).every(slug => schoolGuides.includes(slug)), '学区 still finds the school-district guides');
+  // 保险网络 is the doctor's insurance network; 宽带 is internet service.
+  assert.equal(slugs('保险网络')[0], 'bay-area-first-doctor-insurance-network-guide');
+  assert.ok(!normalizeSearchText('哪个网络').includes(normalizeSearchText('宽带')));
+  assert.notEqual(slugs('宽带')[0], 'bay-area-first-doctor-insurance-network-guide');
+  assert.deepEqual(slugs('宽带').slice(0, 1), ['bay-area-city-utilities-internet-phone-directory']);
+  assert.ok(normalizeSearchText('home internet').includes(normalizeSearchText('宽带')));
+});
+
+test('a typed query keeps each synonym a word of its own; the text side keeps them joined', () => {
+  const senior = normalizeSearchText('长者');
+  assert.deepEqual(normalizeSearchQuery('老人送餐').split(' '), [senior, normalizeSearchText('送餐')]);
+  assert.equal(normalizeSearchText('老人送餐'), `${senior}${normalizeSearchText('送餐')}`);
+  assert.equal(normalizeSearchQuery('养老金'), normalizeSearchText('养老金'));
 });

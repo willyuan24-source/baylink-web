@@ -5,6 +5,7 @@ import { currentFreebies } from '../data/october-offers';
 import { currentOpenings } from '../data/local-discoveries';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import { normalizeGuideQuery } from './guide-search';
+import { normalizeSearchQuery } from './search-synonyms';
 import { getBayAreaToday, getEventStatus, isFreeToAttend } from './monthly';
 import { validCalendarDay } from './event-calendar';
 import { offerMatchesDateRange } from './offer-calendar';
@@ -47,8 +48,9 @@ export function searchQuickDestinations(query: string, locale: Locale, today = g
   const active = !!query.trim() && !queryInfo.invalidDate && !queryInfo.unsupported.some(value => value === 'negative-preference' || value === 'multiple-dates');
   const normalize = (value: string) => normalizeGuideQuery(normalizeDiscoveryTopic(value));
   const literal = (value: string) => normalizeDiscoveryTopic(value).normalize('NFKC');
-  // Synonyms (search-synonyms.ts) may turn one typed word into two (中文医生 → 中文 + 医生); every part must match.
-  const typed = tokens.map(token => ({ parts: normalize(token).split(/\s+/).filter(Boolean), literal: literal(token).trim() })).filter(token => token.parts.length);
+  // Synonyms (search-synonyms.ts) may turn one typed word into two (中文医生 → 中文 + 医生, 老人送餐 → senior + 送餐);
+  // every part must match.
+  const typed = tokens.map(token => ({ parts: normalizeSearchQuery(normalizeDiscoveryTopic(token)).split(/\s+/).filter(Boolean), literal: literal(token).trim() })).filter(token => token.parts.length);
   // A Latin word matches from the start of a word: "muni" is not inside "community".
   const hasTerm = (text: string, term: string) => {
     if (!/^[a-z]/.test(term)) return text.includes(term);

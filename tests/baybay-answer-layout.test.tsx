@@ -82,11 +82,11 @@ test('a v2 answer reads lead, then image cards, then points with [n], then follo
   assert.match(items[2].textContent || '', /\[3\]/);
   assert.equal(items[0].querySelector('.bb-card__n')?.getAttribute('aria-hidden'), 'true');
   assert.ok(within(items[0]).getByRole('link', { name: /^来源 1：Santa Clara/ }));
-  // Events offer ♡ 收藏 (to 我的这周) and 加入行程; an offer card is a link only until WEB-SAVES adds offer saves.
-  assert.ok(within(items[0]).getByRole('button', { name: /^收藏到我的这周：/ }));
+  // Every card has the one ♡ 收藏 (SAVES' useSave); events also offer 加入行程, an offer card only the ♡.
+  assert.ok(within(items[0]).getByRole('button', { name: /^收藏：Santa Clara/ }));
   fireEvent.click(within(items[0]).getByRole('button', { name: /加入行程：/ }));
   assert.equal(paths.at(-1), `/plan?date=2026-10-10&stops=${encodeURIComponent('event:santa-clara-library-comic-con-2026')}`);
-  assert.equal(within(items[2]).queryAllByRole('button').length, 0);
+  assert.deepEqual(within(items[2]).getAllByRole('button').map(button => button.getAttribute('aria-label')), ['收藏：免费亲子课：用 iPad 做地球主题漫画']);
   // [1] in a point opens the event page inside the app.
   fireEvent.click(within(points as HTMLElement).getAllByRole('link', { name: '[1]' })[0]);
   assert.equal(paths.at(-1), '/events/santa-clara-library-comic-con-2026');
@@ -127,7 +127,7 @@ test('answer fields are validated: card keys, tel links, notices, page entity an
   const paused = parseBayBayCapabilities({ engine: 'v2', pause: { reason: 'daily_budget', kind: 'ai_daily_budget', banner, resumesAt: '2026-10-10T07:00:00.000Z', actions: [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }] }, reduced: null });
   assert.equal(paused.pause?.resumesAt, '2026-10-10T07:00:00.000Z');
   assert.deepEqual(paused.pause?.actions.map(action => action.href), ['tel:911', 'tel:211']);
-  assert.deepEqual(parseBayBayCapabilities({ pause: { kind: 'ai_paused', banner: { en: 'only one locale' } } }), { pause: null, reduced: null });
+  assert.deepEqual(parseBayBayCapabilities({ pause: { kind: 'ai_paused', banner: { en: 'only one locale' } } }), { pause: null, reduced: null, scheduled: null });
 });
 
 test('the visible budget keeps the lead and the first point, and moves the rest behind 更多', () => {
@@ -173,20 +173,23 @@ test('card covers follow the honesty ladder and each card cites its own page', (
   assert.equal(bayBayCardModels([{ kind: 'event', id: 'not-a-real-event', title: 'x', url: '/events/not-a-real-event', summary: '' }], TODAY).length, 0, 'unknown listings are skipped, never invented');
 });
 
-test('♡ 收藏 saves an event to 我的这周 for a guest in this browser; ended events offer reference only', async () => {
+test('♡ 收藏 saves an event in the one save model for a guest in this browser; ended events offer reference only', async () => {
   const card = c01().localMatches[0];
   const paths: string[] = [];
-  const view = render(<BayBaySaveScope active><BayBayCardRail cards={[card as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
-  const save = await view.findByRole('button', { name: /^收藏到我的这周：/ });
+  const view = render(<BayBaySaveScope><BayBayCardRail cards={[card as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
+  const save = await view.findByRole('button', { name: /^收藏：/ });
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
-  // The planner favorites are 我的这周 everywhere else (SaveToWeek); the event page's 我想去 is a separate store.
+  // The same ♡ and names as every card on the site (SaveHeart / SaveControl); the event page's 我想去 is a different store.
   assert.equal(save.textContent, '收藏');
+  assert.equal(save.getAttribute('aria-pressed'), 'false');
   assert.doesNotMatch(view.baseElement.textContent || '', /想去/);
-  fireEvent.click(view.getByRole('button', { name: /^收藏到我的这周：/ }));
-  assert.equal((await view.findByRole('button', { name: /^已收藏到我的这周：/ })).textContent, '已收藏');
-  // Planner favorites write the one save model since WEB-SAVES: a guest's saves live in its guest list.
+  fireEvent.click(view.getByRole('button', { name: /^收藏：/ }));
+  const saved = await view.findByRole('button', { name: /^已收藏：/ });
+  assert.equal(saved.textContent, '已收藏');
+  assert.equal(saved.getAttribute('aria-pressed'), 'true');
+  // A guest's saves live in the guest list of the one save model (src/lib/saves.ts), which My Week reads.
   assert.match(localStorage.getItem(savesKey()) || '', /santa-clara-library-comic-con-2026/);
-  view.rerender(<BayBaySaveScope active><BayBayCardRail cards={[{ ...card, date: undefined, temporalStatus: 'past' } as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
+  view.rerender(<BayBaySaveScope><BayBayCardRail cards={[{ ...card, date: undefined, temporalStatus: 'past' } as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
   assert.ok(view.getByText('已结束 · 仅供参考'));
   assert.equal(view.queryByRole('button', { name: /加入行程/ }), null);
   fireEvent.click(view.getByRole('link', { name: /Santa Clara/ }));

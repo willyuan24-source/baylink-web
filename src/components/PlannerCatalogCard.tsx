@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Heart, Plus } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
-import { stopPath, type GeoPoint, type Stop } from '../lib/planner';
+import { stopPath, type GeoPoint, type Stop } from '../lib/planner-core';
 import type { ResolvedCover } from '../lib/cover';
 import { Button } from './ui/Button';
 import { RowCard } from './ui/Card';

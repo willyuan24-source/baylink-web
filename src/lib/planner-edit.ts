@@ -1,4 +1,4 @@
-import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
+import { PLANNER_EVENTS, PLANNER_PLACES } from './planner-source';
 import { simplifySearch } from '../i18n/locale';
 import { eventOccursOn } from './event-calendar';
 import { canonicalEventId } from './event-id';
@@ -6,7 +6,7 @@ import { parsePlanEditCommand } from './planner-edit-command';
 import { plannerNoticeText } from './planner-copy';
 import { clockMinutes, resolveStopTiming, resolveTimeEvidence } from './planner-hours';
 import { clockLabel, knownAdmissionUsd, placeMatchesFilters, planBudget, planDetailsError, settingForStop, stopKey } from './planner-itinerary';
-import { distanceKm, todayInBay, validDay, type PlanDetails, type PlannerEvent, type PlannerPlace, type Stop } from './planner';
+import { distanceKm, todayInBay, validDay, type PlanDetails, type PlannerEvent, type PlannerPlace, type Stop } from './planner-core';
 import type { OutingCatalog } from './planner-outings';
 
 export type EditablePlan = { title: string; date: string; stops: Stop[]; details: PlanDetails };

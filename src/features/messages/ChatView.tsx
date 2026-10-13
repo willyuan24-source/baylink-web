@@ -16,6 +16,7 @@ import { mergeMessages, messageText, readServerMessage, readMessageDraft, saveMe
 import { ChatAiComposer, ChatAiTranslation } from './ChatAiTools';
 import { CategorySafetyNotice } from '../../components/CategorySafetyNotice';
 import { SystemNoticeCard } from './SystemNoticeCard';
+import { NoticeOptIn } from '../posts/NoticeOptIn';
 
 type ChatViewProps = {
   currentUser: UserData;
@@ -42,6 +43,8 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const [draftStored, setDraftStored] = useState(true);
   const [pendingDrafts, setPendingDrafts] = useState(() => readPendingMessages(currentUser.id, conversation.id));
   const [sending, setSending] = useState(false);
+  // FC3-05: after a message is sent here, offer the email reminder for replies (NoticeOptIn decides whether to show).
+  const [sentHere, setSentHere] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [retryKey, setRetryKey] = useState(0);
@@ -183,6 +186,12 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     setAtBottom(true); setNewMessages(0); markReadRef.current();
   };
+  // The reminder offer appears under the message just sent: bring it on screen the way a new message is (no read marks).
+  const revealOffer = useCallback(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    setAtBottom(true);
+  }, []);
   const handleScroll = () => {
     const bottom = isNearMessageBottom(scrollRef.current);
     setAtBottom(bottom);
@@ -219,7 +228,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
           setPendingDrafts(readPendingMessages(currentUser.id, conversation.id));
         }
       }
-      if (active.current) window.dispatchEvent(new Event('baylink:messages-changed'));
+      if (active.current) { window.dispatchEvent(new Event('baylink:messages-changed')); if (type === 'text') setSentHere(true); }
     } catch (error) {
       if (!active.current) return;
       setMessages(previous => previous.map(message => message.id === optimistic.id ? { ...message, delivery: 'failed' } : message));
@@ -299,6 +308,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
               </article>}
             </div>;
           })}
+          {sentHere && <NoticeOptIn userId={currentUser.id} context="dm" onShown={revealOffer} />}
         </div>
         {(!atBottom || newMessages > 0) && <button type="button" className="modern-chat-jump" onClick={jumpToLatest}><ArrowDown size={15} />{newMessages ? <><span>{t('新消息', 'New messages')}</span><span translate="no">{newMessages}</span></> : <span>{t('回到最新消息', 'Jump to latest')}</span>}</button>}
         <div className="modern-chat-composer">

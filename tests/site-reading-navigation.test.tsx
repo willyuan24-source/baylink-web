@@ -15,8 +15,8 @@ const { render, fireEvent, cleanup, act } = await import('@testing-library/react
 const { MemoryRouter } = await import('react-router-dom');
 const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
 const { ReadingPreferencesButton } = await import('../src/components/ReadingPreferences');
-const { getReadingSize, setReadingSize, initializeReadingSize, READING_SIZE_KEY, getSimpleDisplay, setSimpleDisplay, SIMPLE_DISPLAY_KEY, withFamilyReading } = await import('../src/lib/reading-preferences');
-afterEach(() => { cleanup(); setReadingSize('standard'); setSimpleDisplay(false); dom.window.localStorage.clear(); });
+const { getReadingSize, setReadingSize, initializeReadingSize, READING_SIZE_KEY, getSimpleDisplay, setSimpleDisplay, SIMPLE_DISPLAY_KEY, FAMILY_LINK_KEY, withFamilyReading } = await import('../src/lib/reading-preferences');
+afterEach(() => { cleanup(); setReadingSize('standard'); setSimpleDisplay(false); dom.window.localStorage.clear(); dom.window.sessionStorage.clear(); });
 
 test('events and personal routes have one correct tab, while BayBay opens in one action', () => {
   let asked = 0;
@@ -80,6 +80,41 @@ test('简洁显示 is a 48px switch that persists, follows a family link, and ca
   dom.window.history.replaceState({}, '', '/guides?simple=0');
   act(() => initializeReadingSize());
   assert.equal(getSimpleDisplay(), false); assert.equal(document.documentElement.hasAttribute('data-simple'), false);
+  dom.window.history.replaceState({}, '', '/');
+});
+
+// G52 / CW-06: the link (also handed over by public/reading-init.js, tests/reading-init.test.ts) leaves the address bar;
+// it becomes the reader's choice only when they have none, otherwise it holds for this visit.
+test('a family link without a saved choice becomes the reader’s; with one it holds for this visit only and leaves the address bar', () => {
+  dom.window.localStorage.clear(); dom.window.sessionStorage.clear();
+  dom.window.history.replaceState({ key: 'router-entry' }, '', '/events?day=sat&reading=extra-large&simple=1#top');
+  act(() => initializeReadingSize());
+  assert.equal(dom.window.location.pathname + dom.window.location.search + dom.window.location.hash, '/events?day=sat#top');
+  assert.deepEqual(dom.window.history.state, { key: 'router-entry' }, 'the router’s history entry is kept');
+  assert.equal(getReadingSize(), 'extra-large'); assert.equal(getSimpleDisplay(), true);
+  assert.equal(dom.window.localStorage.getItem(READING_SIZE_KEY), 'extra-large', 'no choice yet: the link’s choice is saved');
+  assert.equal(dom.window.localStorage.getItem(SIMPLE_DISPLAY_KEY), '1');
+  assert.equal(dom.window.sessionStorage.getItem(FAMILY_LINK_KEY), null);
+
+  // The reader turns both back (their own choice), then opens the link again from the family chat.
+  setReadingSize('standard'); setSimpleDisplay(false);
+  dom.window.history.replaceState({}, '', '/guides/bay-area-chinese-senior-services-referral-guide?reading=extra-large&simple=1');
+  act(() => initializeReadingSize());
+  assert.equal(dom.window.location.search, '');
+  assert.equal(getReadingSize(), 'extra-large'); assert.equal(getSimpleDisplay(), true);
+  assert.equal(document.documentElement.dataset.reading, 'extra-large'); assert.ok(document.documentElement.hasAttribute('data-simple'));
+  assert.equal(dom.window.localStorage.getItem(READING_SIZE_KEY), 'standard', 'their saved choice is untouched');
+  assert.equal(dom.window.localStorage.getItem(SIMPLE_DISPLAY_KEY), '0');
+  assert.equal(dom.window.sessionStorage.getItem(FAMILY_LINK_KEY), 'extra-large|1', 'held for this visit (reloads in this tab)');
+  // A reload in this tab (no parameters any more) keeps the visit's link.
+  act(() => initializeReadingSize());
+  assert.equal(getReadingSize(), 'extra-large'); assert.equal(getSimpleDisplay(), true);
+  // Turning 简洁显示 off in the Aa sheet is their choice: it is saved and the visit's link keeps only the size.
+  setSimpleDisplay(false);
+  assert.equal(dom.window.sessionStorage.getItem(FAMILY_LINK_KEY), 'extra-large|');
+  setReadingSize('large');
+  assert.equal(dom.window.sessionStorage.getItem(FAMILY_LINK_KEY), null);
+  assert.equal(getReadingSize(), 'large');
   dom.window.history.replaceState({}, '', '/');
 });
 

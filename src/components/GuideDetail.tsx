@@ -232,7 +232,7 @@ const GuideDetailSession = ({
         {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}
         {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
-        {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} /></div>)}
+        {guide.blocks.filter(block => block.type === 'freebies').map((block, index) => <div id={`freebie-board-${index}`} key={index}><FreebieBoardBlock offers={block.offers} title={block.title} description={block.text} today={today} skipImages={!editorial && cover.tier !== 'type' ? [cover.image.src] : []} /></div>)}
         <div className="bl-guide-reading-layout">
           <aside className="bl-guide-toc" aria-label="文章目录">
             <div className="bl-guide-toc-desktop">

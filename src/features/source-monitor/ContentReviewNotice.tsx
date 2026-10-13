@@ -1,6 +1,6 @@
 import { Check } from 'lucide-react';
 import { translateText, useLocale } from '../../i18n/locale';
-import { getReaderFreshness, type ContentReviewRecord } from '../../lib/content-review';
+import { getReaderFreshness, type ContentReviewRecord, type ReaderFreshnessItem } from '../../lib/content-review';
 import { contentReviewText, contentReviewTextStyle } from './content-review-copy';
 import { pageNames, useContentReviewToday, useSourceFreshness } from './content-review-runtime';
 
@@ -8,9 +8,10 @@ import { pageNames, useContentReviewToday, useSourceFreshness } from './content-
  * The reader notice above the actions follows source state (D11). Discovery items show a box
  * only when archived or when the organizer's page carries cancellation wording; the calendar
  * review cadence stays an editor tool. Guides never get a box: a meta line points to the
- * official references and explains what the "updated" date means.
+ * official references and explains what the "updated" date means. An event mount passes `nextDate` (its next confirmed
+ * session, null when none is left) so the box keeps to the live window, as the soft line does.
  */
-export function ContentReviewNotice({ record, today, sourcesAnchor }: { record: ContentReviewRecord; today?: string; sourcesAnchor?: string }) {
+export function ContentReviewNotice({ record, today, sourcesAnchor }: { record: ContentReviewRecord & Pick<ReaderFreshnessItem, 'nextDate'>; today?: string; sourcesAnchor?: string }) {
   const locale = useLocale(), day = useContentReviewToday(today);
   const { rows, receivedAt } = useSourceFreshness(record.kind === 'guide' ? null : record.id);
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);

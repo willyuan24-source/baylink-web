@@ -4,7 +4,7 @@ import { ArrowUpRight, ChevronRight, Copy, Download, Images } from 'lucide-react
 import { Link } from 'react-router-dom';
 import { translateText, useLocale } from '../i18n/locale';
 import { copyText } from '../utils/postShare';
-import { PERKS_POSTER_CHECKED, perksPosters, perksPosterCaption, type PerksPoster } from '../data/perks-posters';
+import { PERKS_POSTER_CHECKED, perksPosterRung, perksPosterSrcSet, perksPosters, perksPosterCaption, type PerksPoster } from '../data/perks-posters';
 
 export function PerksGallery({ compact = false, topic }: { compact?: boolean; topic?: PerksPoster['topic'] }) {
   const locale = useLocale();
@@ -30,7 +30,8 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
     <div className="perks-gallery-grid">
       {cards.map((poster, index) => <article className="perks-gallery-card" key={poster.id}>
         <a href={poster.path} target="_blank" rel="noreferrer" className="perks-gallery-art" aria-label={`${t('查看图文大图')}：${t(poster.title)}`}>
-          <img src={poster.path} width={1080} height={1350} loading="lazy" alt={`${t('BAYLINK 中文福利图文')}：${t(poster.title)}`} />
+          {/* G72: the 480 / 800 WebP rungs (≤ 60 KB on a phone); the link and the download keep the full PNG. */}
+          <img src={perksPosterRung(poster, 800)} srcSet={perksPosterSrcSet(poster)} sizes="(max-width: 560px) 88vw, (max-width: 760px) 45vw, 300px" width={1080} height={1350} loading="lazy" decoding="async" alt={`${t('BAYLINK 中文福利图文')}：${t(poster.title)}`} />
           <span><ArrowUpRight size={16} aria-hidden="true" />{t('查看大图')}</span>
         </a>
         <div className="perks-gallery-body"><span className="perks-gallery-number">{String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}</span><h3>{poster.title}</h3>

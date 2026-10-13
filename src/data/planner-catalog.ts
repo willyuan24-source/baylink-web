@@ -5,11 +5,14 @@ import novemberSouthPlanning from './november-refresh-peninsula-south-planning.j
 import novemberEastPlanning from './november-refresh-east-sf-planning.json';
 import octnovSfEastPlanning from './octnov-2026-sf-east-planning.json';
 import octnovRegionalPlanning from './octnov-2026-regional-planning.json';
+import supplyPlanning1012 from './supply-2026-10-12-planning.json';
+import supplyLocations1012 from './supply-2026-10-12-locations.json';
 import { guides } from './guides';
 import type { GeoPoint, PlannerEvent, PlannerPlace, PlanningFacts } from '../lib/planner';
 import placeLocationData from './place-locations.json';
 import { aiEventLocations, aiEventSettings } from './ai-local-events';
 import { PLANNER_LOCAL_STOPS } from './planner-local-stops';
+import { installFullPlannerCatalog } from '../lib/planner-source';
 import { VERIFIED_EVENT_SCHEDULES, VERIFIED_PLACE_SCHEDULES, VERIFIED_VENUE_LOCATIONS } from './planner-verified-hours';
 import { SEPTEMBER_REFRESH_PLANNING, SEPTEMBER_REFRESH_SCHEDULES } from './september-refresh-planning';
 import { COVERAGE_AUDIT_REGIONAL_PLANNING, COVERAGE_AUDIT_REGIONAL_SCHEDULES } from './coverage-audit-regional-planning';
@@ -70,6 +73,8 @@ const eventPlanning: Record<string, PlanningFacts> = {
   'fremont-trick-or-treat-2026': { minAge: 2, maxAge: 10, reservation: 'required' },
 };
 const eventLocations: Record<string, GeoPoint> = {
+  // Library branch pins from each library's own location record (CNT-SUPPLY 2026-10-12 batch).
+  ...supplyLocations1012 as Record<string, GeoPoint>,
   ...OCTOBER_REFRESH_LOCATIONS,
   ...OCTOBER_REFRESH_COMMUNITY_LOCATIONS,
   ...aiEventLocations,
@@ -85,7 +90,7 @@ const eventLocations: Record<string, GeoPoint> = {
 
 // Coordinates are added only from individually checked public venue sources.
 const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
-const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning } as Record<string, { planning: PlanningFacts }>;
+const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning, ...supplyPlanning1012 } as Record<string, { planning: PlanningFacts }>;
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, aliases: [...new Set([event.title, ...(event.aliases || []), ...(EVENT_ALIASES[event.id] || [])])], ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, aliases: [...new Set([place.title, ...(PLACE_ALIASES[place.id] || [])])], region: place.region, city: place.city, summary: place.note,
@@ -95,3 +100,6 @@ export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): Plann
   planning: { admissionUsd: place.cost === 'free' ? 0 : null, setting: ['golden-gate', 'chinatown', 'palace', 'presidio', 'redwood', 'half-moon-bay', 'baylands', 'hakone', 'muir-woods', 'sausalito', 'lands-end', 'mission-dolores', 'coyote-hills', 'angel-island'].includes(place.id) ? 'outdoor' : 'mixed', ...(VERIFIED_PLACE_SCHEDULES[place.id] ? { schedule: VERIFIED_PLACE_SCHEDULES[place.id] } : {}), ...(place.id === 'filoli' ? { reservation: 'optional' as const } : {}) },
 })), ...PLANNER_LOCAL_STOPS];
 export const PLANNER_CATALOG = { version: 1, checkedAt: MONTHLY_EDITION.checkedAt, events: PLANNER_EVENTS, places: PLANNER_PLACES, guides: guides.map(({ slug, title }) => ({ slug, title })) };
+// Every page that imports lib/planner.ts reads this catalog through lib/planner-source.ts (WEB-PLAN-DATA; 行程 loads the
+// generated copy instead, scripts/generate-plan-catalog.ts).
+installFullPlannerCatalog({ events: PLANNER_EVENTS, places: PLANNER_PLACES, catalogEvents: MONTHLY_EVENTS });

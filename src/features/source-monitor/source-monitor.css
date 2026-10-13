@@ -1,5 +1,3 @@
-.source-monitor{max-width:1080px;margin:0 auto;padding:24px;color:#183e38}.source-monitor-header,.source-monitor-card-top{display:flex;justify-content:space-between;gap:24px;align-items:flex-start}.source-monitor-header h1{font-size:1.75rem;font-weight:700;margin:8px 0}.source-monitor-header p{max-width:640px;line-height:1.7;color:#58736c}.source-monitor-eyebrow,.source-monitor-actions,.source-monitor-back,.source-monitor-card-top a{display:flex;align-items:center;gap:8px}.source-monitor-eyebrow{font-size:.75rem;letter-spacing:.08em}.source-monitor-back{margin-bottom:20px}.source-monitor button{padding:9px 13px;border:1px solid #b7cdc4;border-radius:10px;background:#fff;font-size:.8125rem;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.source-monitor button:focus-visible,.source-monitor a:focus-visible,.source-monitor textarea:focus-visible{outline:3px solid #efaa56;outline-offset:3px}.source-monitor button:disabled{opacity:.5;cursor:not-allowed}.source-monitor .source-monitor-primary{background:#15594c;color:#fff;border-color:#15594c}.source-monitor-summary{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:24px 0;padding:16px;background:#eef5ef;border:1px solid #d5e4d9;border-radius:14px;font-size:.8125rem}.source-monitor-summary strong{font-size:1.3125rem;margin-right:4px}.source-monitor-filters{display:flex;gap:8px;margin-bottom:18px}.source-monitor-filters button[aria-pressed=true]{background:#e2eee7;border-color:#638c78}.source-monitor-error{padding:14px;border:1px solid #c98263;background:#fff3e8;border-radius:10px}.source-monitor-list{display:grid;gap:16px}.source-monitor-card{padding:20px;border:1px solid #d7e2db;background:white;border-radius:16px}.source-monitor-card h2{font-size:1.125rem;font-weight:700;margin:10px 0}.source-monitor-card-top a{font-size:.8125rem;color:#145e4e;white-space:nowrap}.source-monitor-status{display:inline-block;border-radius:6px;background:#edf4f0;padding:4px 8px;font-size:.6875rem}.source-monitor-status.is-attention{background:#fff0d1;color:#8b5518}.source-monitor-dates{display:flex;gap:22px;flex-wrap:wrap;font-size:.75rem;margin:14px 0}.source-monitor-dates dt{color:#738278;margin-bottom:3px}.source-monitor-note,.source-monitor-review p{font-size:.75rem;color:#666d63;line-height:1.7}.source-monitor-note code{display:inline-block;padding:2px 5px;background:#f4f1e9;border-radius:3px}.source-monitor-evidence{margin-top:16px;padding-top:12px;border-top:1px solid #e4eae6}.source-monitor summary{cursor:pointer;font-size:.8125rem;padding:6px 0;font-weight:600}.source-monitor-diff{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:10px 0}.source-monitor-diff>div,.source-monitor-diff>pre{padding:12px;background:#f8f6f0;border-radius:8px;min-width:0;overflow-wrap:anywhere}.source-monitor-diff>div+div,.source-monitor-diff>pre+pre{background:#eef6ef}.source-monitor-diff h3{font-weight:600;font-size:.75rem;margin-bottom:8px}.source-monitor-diff p{font-size:.75rem;line-height:1.6;margin:8px 0}.source-monitor-diff pre{white-space:pre-wrap;max-height:360px;overflow:auto;font-size:.6875rem;line-height:1.6}.source-monitor-review{margin-top:14px}.source-monitor-review label{display:block;font-size:.8125rem;font-weight:600;margin-bottom:7px}.source-monitor-review textarea{width:100%;border:1px solid #becfc4;border-radius:9px;padding:10px;font-size:.8125rem;resize:vertical}.source-monitor-review p{margin:8px 0}.source-monitor-empty{padding:36px 20px;text-align:center;border:1px dashed #bccfc3;border-radius:12px;color:#6a7f74;font-size:.875rem}@media(max-width:700px){.source-monitor{padding:16px}.source-monitor-header,.source-monitor-card-top{flex-direction:column;gap:12px}.source-monitor-card{padding:15px}.source-monitor-diff{grid-template-columns:1fr}.source-monitor-dates{gap:12px 20px}.source-monitor-summary{gap:10px}}
-.product-metrics{margin:24px 0;padding:20px;border:1px solid #d7e2db;border-radius:16px;background:#fff}.product-metrics-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}.product-metrics h2{font-size:1.1875rem;font-weight:700;margin-top:6px}.product-metrics-explainer,.product-metrics-note{font-size:.75rem;line-height:1.7;color:#61756b;margin:12px 0}.product-metrics-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:14px}.product-metrics-grid>div{background:#f0f6f1;border-radius:10px;padding:14px}.product-metrics-grid dt{font-size:.75rem;color:#587368;line-height:1.5}.product-metrics-grid dd{font-size:1.6875rem;font-weight:700;line-height:1.5;margin-top:5px;font-variant-numeric:tabular-nums}.product-metrics-error{padding:12px;border-radius:8px;background:#fff6e9;font-size:.8125rem;line-height:1.7}.product-metrics-error button{margin-top:8px}@media(max-width:580px){.product-metrics{padding:15px}.product-metrics-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.product-metrics-heading{align-items:flex-start}.product-metrics-heading button{padding:7px 9px}}
 /* Reader trust row and source-state prompts (D11). Reviewed by check-editorial-styles. */
 .trust-row{margin:1.25rem 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2);overflow-wrap:anywhere}
 .trust-row-item{white-space:nowrap}
@@ -20,3 +18,63 @@
 .guide-date-meta details[open]{flex-basis:100%}
 .guide-date-meta details p{margin:0 0 .5rem;max-width:40em;font-size:var(--text-fact);line-height:1.7;color:var(--color-ink-2)}
 .trust-row a:focus-visible,.reader-freshness-line a:focus-visible,.content-review-notice.reader-freshness-hard a:focus-visible,.guide-date-meta a:focus-visible,.guide-date-meta summary:focus-visible{outline:.1875rem solid var(--color-brand);outline-offset:.125rem}
+
+/* CW-02 / EVT11-05 stale-date guard (src/lib/date-guard.ts, docs/daily-rebuild.md). public/reading-init.js marks
+   html[data-date-stale] before the first paint when the page was prerendered for another Pacific day. The date blocks of the
+   prerendered <main>, and of the boot snapshot SHELL2 keeps while the route's code settles (.site-boot-main), then keep their
+   height under a skeleton until the app renders today's result; blocks the app renders are never covered. Home's sections
+   stand in until home marks its blocks with dateScope(): on the weekend .home-weekend and .home-weekly-share (this base) and
+   WEB-HOME's .home-picks, .home-feed, .home-share and the head's weekend count .home-head__lede; on the day .home-offers
+   (both) and WEB-HOME's dateline .home-head__dateline. tests/date-guard.test.tsx fails when an event, an offer, a <time> or
+   an event count on the prerendered home is left uncovered. A scoped block inside a covered one draws no second skeleton. If the app never starts,
+   the old blocks come back after 15 s. */
+html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"],
+html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"],
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekend,
+html[data-date-stale~="weekend"] .site-boot-main .home-weekend,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekly-share,
+html[data-date-stale~="weekend"] .site-boot-main .home-weekly-share,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-picks,
+html[data-date-stale~="weekend"] .site-boot-main .home-picks,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-feed,
+html[data-date-stale~="weekend"] .site-boot-main .home-feed,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-share,
+html[data-date-stale~="weekend"] .site-boot-main .home-share,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-head__lede,
+html[data-date-stale~="weekend"] .site-boot-main .home-head__lede,
+html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"],
+html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"],
+html[data-date-stale~="day"] main[data-prerender-path] .home-head__dateline,
+html[data-date-stale~="day"] .site-boot-main .home-head__dateline,
+html[data-date-stale~="day"] main[data-prerender-path] .home-offers,
+html[data-date-stale~="day"] .site-boot-main .home-offers{position:relative;visibility:hidden;animation:date-guard-reveal 0s 15s forwards}
+html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope="weekend"]::before,
+html[data-date-stale~="weekend"] .site-boot-main [data-date-scope="weekend"]::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekend::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-weekend::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-weekly-share::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-weekly-share::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-picks::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-picks::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-feed::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-feed::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-share::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-share::before,
+html[data-date-stale~="weekend"] main[data-prerender-path] .home-head__lede::before,
+html[data-date-stale~="weekend"] .site-boot-main .home-head__lede::before,
+html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"]::before,
+html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before,
+html[data-date-stale~="day"] main[data-prerender-path] .home-head__dateline::before,
+html[data-date-stale~="day"] .site-boot-main .home-head__dateline::before,
+html[data-date-stale~="day"] main[data-prerender-path] .home-offers::before,
+html[data-date-stale~="day"] .site-boot-main .home-offers::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:12px;background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
+html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope] [data-date-scope]::before,
+html[data-date-stale~="weekend"] .site-boot-main [data-date-scope] [data-date-scope]::before,
+html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"] [data-date-scope]::before,
+html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"] [data-date-scope]::before{content:none}
+@keyframes date-guard-reveal{to{visibility:visible}}
+@keyframes date-guard-clear{to{visibility:hidden}}
+@keyframes date-guard-shimmer{from{background-position:100% 0}to{background-position:-100% 0}}
+@media (prefers-reduced-motion:reduce){
+  html[data-date-stale] main[data-prerender-path] [data-date-scope]::before,html[data-date-stale] main[data-prerender-path] .home-weekend::before,html[data-date-stale] main[data-prerender-path] .home-weekly-share::before,html[data-date-stale] main[data-prerender-path] .home-picks::before,html[data-date-stale] main[data-prerender-path] .home-feed::before,html[data-date-stale] main[data-prerender-path] .home-share::before,html[data-date-stale] main[data-prerender-path] .home-head__lede::before,html[data-date-stale] main[data-prerender-path] .home-head__dateline::before,html[data-date-stale] main[data-prerender-path] .home-offers::before,html[data-date-stale] .site-boot-main [data-date-scope]::before,html[data-date-stale] .site-boot-main .home-weekend::before,html[data-date-stale] .site-boot-main .home-weekly-share::before,html[data-date-stale] .site-boot-main .home-picks::before,html[data-date-stale] .site-boot-main .home-feed::before,html[data-date-stale] .site-boot-main .home-share::before,html[data-date-stale] .site-boot-main .home-head__lede::before,html[data-date-stale] .site-boot-main .home-head__dateline::before,html[data-date-stale] .site-boot-main .home-offers::before{animation:date-guard-clear 0s 15s forwards}
+}

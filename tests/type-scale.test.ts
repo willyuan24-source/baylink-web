@@ -61,13 +61,12 @@ test('no negative letter-spacing on headings, except in the files of lanes still
   // These files belong to lanes that were running when the scale landed (docs/design-tokens.md); each lane adopts the
   // scale in its own template and removes its file here. Nothing may be added to the list.
   // W3 integration: WEB-HOME, WEB-DETAIL, WEB-SECONDARY and WEB-PLAN landed with the scale; languages.css went through the codemod.
-  const pending = new Set(['src/components/discovery-community.css', 'src/design.css',
-    'src/features/outings/outing-time-poll.css', 'src/features/outings/outings.css', 'src/features/posts/posts-ui.css']);
+  // W4 integration: WEB-COMMUNITY deleted the .bay-category-* rules and its files went through both codemods; the list is empty.
+  const pending = new Set<string>([]);
   const offenders: string[] = [];
   for (const file of siteStylesheets() as string[]) {
-    const { changes } = rewriteTracking(readFileSync(file, 'utf8'), file === 'src/design.css' ? { skipSelector: /bay-category-/ } : {});
+    const { changes } = rewriteTracking(readFileSync(file, 'utf8'));
     if (changes.length && !pending.has(file)) offenders.push(`${file}: ${changes.map(change => `${change.selector} ${change.from}`).join('; ')}`);
-    if (file === 'src/design.css') assert.equal(changes.length, 0, 'design.css: only the .bay-category-* rules WEB-COMMUNITY deletes may still track negative');
   }
   assert.deepEqual(offenders, []);
   assert.equal(rewriteTracking('.a h2{letter-spacing:-.03em}.b strong{letter-spacing:-.02em}.c-title{letter-spacing:-1px}.card h2 + p{letter-spacing:-.01em}').css, '.a h2{letter-spacing:0}.b strong{letter-spacing:-.02em}.c-title{letter-spacing:0}.card h2 + p{letter-spacing:-.01em}', 'a heading is the selector subject, as in the hex codemod');

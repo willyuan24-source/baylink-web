@@ -24,8 +24,9 @@ export default function AddToDayControl({ stop, date, title, compact, className,
     setState({ status: 'busy' });
     prepareSaveAnnouncer();
     try {
-      // The planner and its catalog load on the first add, not with the page (route JS budgets, plan §3.0 rule 8).
-      const { appendToDay } = await import('../../lib/planner-library');
+      // The planner and its catalog load on the first add, not with the page (route JS budgets, plan §3.0 rule 8):
+      // lib/planner installs the full catalog the library checks the stop against (WEB-PLAN-DATA).
+      const [{ appendToDay }] = await Promise.all([import('../../lib/planner-library'), import('../../lib/planner')]);
       const result = await appendToDay(app?.user?.id, date, stop, t(`${day} 计划`, `Plan for ${day}`), today);
       setState({ status: 'done', toast: result.alreadyThere ? t(`已在 ${day} 计划里`, `Already in your ${day} plan`) : t(`已加入 ${day} 计划`, `Added to your ${day} plan`) });
     } catch (error) {

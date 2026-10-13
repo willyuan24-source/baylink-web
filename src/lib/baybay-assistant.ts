@@ -1,11 +1,14 @@
 import { plannerWebCheckedDate, safePlannerWebUrl, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
-import { cleanStops, eventFor, sharePlanUrl } from './planner';
+import { cleanStops, eventFor, sharePlanUrl } from './planner-core';
 import { eventOccursOn } from './event-calendar';
-import { guides } from '../data/guides';
+// The published guides' slugs (one record each, WEB-DATA-SPLIT), without every guide's text.
+import { guideLoaders } from '../data/generated/guide-loaders';
 
 export type BayBayDurationPreference = 'outing-duration:half-day' | `outing-duration:${60 | 120 | 180 | 240 | 300 | 360 | 420 | 480 | 540}-minutes`;
 export type BayBayTaskState = {
   version: 1; revision: number; goal?: string | null; city?: string | null; region?: string | null; date?: string | null;
+  /** A weekend or other span the reader named ("这周末"): shown on the requirement card when there is no single date. */
+  dateRange?: { start: string; end: string };
   origin?: string | null; travelMode?: 'any' | 'drive' | 'transit' | 'walk' | null; partySize?: number | null;
   childAges?: number[]; budget?: number | null; budgetScope?: 'person' | 'total' | null; freeOnly?: boolean;
   setting?: 'any' | 'indoor' | 'outdoor' | 'mixed' | null; startTime?: string | null; finishBy?: string | null; excludedCities?: string[];
@@ -41,7 +44,7 @@ export type BayBayAssistantFields = {
   research?: { steps: { tool: string; status: string; label: string; code?: string }[]; warnings: string[]; timings?: Partial<Record<'siteMs' | 'searchMs' | 'readMs' | 'modelMs' | 'finalMs' | 'routeMs' | 'stateMs' | 'monitorMs' | 'quotaMs' | 'weatherMs' | 'planMs' | 'otherMs' | 'totalMs', number>> };
 };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
-const guidePaths = new Set(guides.map(guide => `/guides/${guide.slug}`));
+const guidePaths = new Set(Object.keys(guideLoaders).map(slug => `/guides/${slug}`));
 const text = (v: unknown, max = 500): string | undefined => typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : undefined;
 const number = (v: unknown, max = 1_000_000): number | undefined => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max ? v : undefined;
 const travelMinutes = (v: unknown): number | undefined => Number.isInteger(v) ? number(v, 720) : undefined;
@@ -114,6 +117,10 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     const goal = option(value.goal, ['day-plan', 'discover', 'transit', 'newcomer', 'shopping', 'information']);
     if (value.goal === null || goal) state.goal = goal || null;
     if (value.date === null || validPlannerWebDate(value.date)) state.date = validPlannerWebDate(value.date);
+    if (record(value.dateRange)) {
+      const start = validPlannerWebDate(value.dateRange.start), end = validPlannerWebDate(value.dateRange.end);
+      if (start && end && start <= end && Date.parse(`${end}T12:00:00Z`) - Date.parse(`${start}T12:00:00Z`) <= 14 * 86_400_000) state.dateRange = { start, end };
+    }
     for (const key of ['startTime', 'finishBy'] as const) if (value[key] === null || clock(value[key])) state[key] = clock(value[key]) || null;
     if (value.partySize === null || Number.isInteger(value.partySize) && Number(value.partySize) >= 1 && Number(value.partySize) <= 100) state.partySize = value.partySize === null ? null : Number(value.partySize);
     if (value.budget === null || number(value.budget) !== undefined) state.budget = value.budget === null ? null : number(value.budget);
@@ -134,7 +141,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
     const id = text(item.id, 160), title = text(item.title), url = safeEvidenceUrl(item.url), kind = option(item.kind, ['guide', 'event', 'place', 'web']);
     if (!id || !title || !url || !kind || ids.has(id)) return [];
     ids.add(id);
-    return [{ id, title, url, kind, checkedAt: evidenceCheckedAt(item.checkedAt), verification: option(item.verification, ['catalog', 'page-read', 'api', 'search-result']), text: text(item.text, 1500) }];
+    return [{ id, title, url, kind, checkedAt: evidenceCheckedAt(item.checkedAt), verification: item.verification === 'site-record' ? 'catalog' as const : option(item.verification, ['catalog', 'page-read', 'api', 'search-result']), text: text(item.text, 1500) }];
   }) : [];
   const coverage = input.answerCoverage;
   if (record(coverage) && option(coverage.status, ['complete', 'partial', 'unassessed']) && Array.isArray(coverage.items)) {

@@ -21,6 +21,11 @@ export type PerksPoster = {
 };
 
 export const PERKS_POSTER_CHECKED = '2026-10-04';
+/** G72: the 480 / 800 WebP rungs scripts/generate-perks-posters.ts writes beside each 1080 × 1350 PNG (the PNG stays the
+ * download and the full-size view). Phones get the 800 rung, at most 60 KB. */
+export const PERKS_POSTER_RUNGS = [480, 800] as const;
+export const perksPosterRung = (poster: Pick<PerksPoster, 'path'>, width: (typeof PERKS_POSTER_RUNGS)[number]) => poster.path.replace(/\.png$/, `-${width}.webp`);
+export const perksPosterSrcSet = (poster: Pick<PerksPoster, 'path'>) => PERKS_POSTER_RUNGS.map(width => `${perksPosterRung(poster, width)} ${width}w`).join(', ');
 export const perksPosters: PerksPoster[] = [
   {
     id: 'birthday-01', topic: 'birthday', title: '生日福利 01：美妆与甜蜜小礼',

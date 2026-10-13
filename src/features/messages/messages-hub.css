@@ -84,3 +84,5 @@ html[data-simple] :is(.msg-round,.msg-requests__toggle,.msg-request__actions but
   .msg-list__title { font-size:1.5rem; line-height:1.333; }
 }
 @media (min-width:1024px) { .msg-hub { padding-inline:32px; } }
+/* G91: one failed refresh over a list that already loaded: a quiet line, not the full error state. */
+.msg-refresh-note { margin:4px 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.5; }

@@ -1,4 +1,4 @@
-import { cleanStops, eventFor, placeFor, todayInBay, validDay, type PlanDetails, type Stop } from './planner';
+import { cleanStops, eventFor, placeFor, todayInBay, validDay, type PlanDetails, type Stop } from './planner-core';
 import { eventOccursOn } from './event-calendar';
 import { buildItinerary, clockLabel } from './planner-itinerary';
 import type { OutingDraft } from './outings';

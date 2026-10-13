@@ -4,7 +4,7 @@ import { translateText, useLocale } from '../../i18n/locale';
 import { pageNames, readerDate, useContentReviewToday, useSourceFreshness } from './content-review-runtime';
 
 /**
- * The one-line prompt under the facts: soft for a pending source change (or a near date
+ * The one-line prompt under the facts: soft for an unreviewed material source change (or a near date
  * whose source cannot be read and whose human check is old), hard for likely cancellation
  * wording. OK, archived and guide states render nothing.
  */

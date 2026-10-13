@@ -5,7 +5,7 @@ import { ModalShell } from './ui/Modal';
 import { api } from '../lib/api';
 import { EMPTY_EVENT, EVENT_LIMITS, downloadImportedEvent, eventDraftError, parseEventDraft, type EventDraft, type ImportedEvent } from '../lib/imported-events';
 import { useImportedEvents } from '../lib/useImportedEvents';
-import { todayInBay } from '../lib/planner';
+import { todayInBay } from '../lib/planner-core';
 import { getLocale, translateText, useLocale } from '../i18n/locale';
 import { compressImageFile, fileToDataUrl } from '../utils/imageCompression';
 

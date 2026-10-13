@@ -12,6 +12,8 @@ import {
   getOfficialTypeLabel, getPhoneVerificationTrustLabel,
 } from '../../lib/format';
 import { usePlannerLibrary } from '../../lib/planner-library';
+// The library checks saved stops against the planner catalog: lib/planner installs the full one (WEB-PLAN-DATA).
+import '../../lib/planner';
 import type { UserData, PostData } from '../../lib/types';
 import { AdminOfficialVerificationsView, AdminReportsView } from '../admin/AdminViews';
 import { EditProfileModal } from './EditProfileModal';

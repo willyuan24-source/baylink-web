@@ -13,7 +13,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList; };
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
-const { BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
+const { BayBaySources } = await import('../src/components/BayBayDiscoveryResults');
 const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
 const { setLocale } = await import('../src/i18n/locale');
 const props = { variant: 'headless' as const, panelOpen: true, onPanelOpenChange: () => {}, onNavigate: () => {}, onCreatePostClick: () => {} };
@@ -103,7 +103,7 @@ test('authentication, daily quota, temporary rate limits and unavailable provide
     for (const item of cases) {
       const raw = { research: { steps: [{ tool: 'search_web', status: 'unavailable', label: 'search_web', code: item.code }], warnings: [] } };
       const response: GuideChatResponse = { ok: true, answer: 'Site information', responseMode: 'assistant', ...parseBayBayAssistantFields(raw), retrieval: { requestedMode: 'web', scope: 'site', webStatus: item.status } };
-      const view = render(<BayBayRetrievalLabel response={response} />);
+      const view = render(<BayBaySources response={response} />);
       if (locale !== 'zh-Hant') assert.match(view.baseElement.textContent || '', locale === 'en' ? item.en : item.zh);
       else assert.match(view.baseElement.textContent || '', /站內|聯網/);
       view.unmount();

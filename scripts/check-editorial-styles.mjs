@@ -12,7 +12,9 @@ export const editorialStyleScopes = [
   { file: 'src/editorial-refinement.css' },
   { file: 'src/features/outings/outings.css', after: '/* Editorial refinement and shared reading controls.' },
   { file: 'src/features/posts/posts-ui.css', selectors: /^\.post-translation(?:\s|$)/ },
-  { file: 'src/features/source-monitor/source-monitor.css', after: '/* Reader trust row and source-state prompts' },
+  { file: 'src/features/source-monitor/source-monitor.css' },
+  // WEB-FRESH2: the editor's source desk (loaded with the admin view).
+  { file: 'src/features/source-monitor/source-monitor-admin.css' },
   { file: 'src/features/profile/me-hub.css' },
   { file: 'src/features/messages/messages-hub.css' },
   { file: 'src/features/events/events.css' },
@@ -51,6 +53,11 @@ export const editorialStyleScopes = [
   { file: 'src/styles/planner.css' },
   { file: 'src/components/planner-web-library.css' },
   { file: 'src/styles/discovery-workflow.css', selectors: /^.planner-/ },
+  // WEB-COMMUNITY: the 邻里信息 board, the post cards and the post sheet.
+  { file: 'src/features/posts/community.css' },
+  // WEB-POLISH (G26): the deals board and the saved-poster gallery on the perks guides.
+  { file: 'src/components/freebie-board.css' },
+  { file: 'src/components/perks-gallery.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

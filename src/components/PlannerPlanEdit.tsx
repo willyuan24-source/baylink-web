@@ -3,7 +3,7 @@ import { WandSparkles } from 'lucide-react';
 import { useLocale } from '../i18n/locale';
 import { proposePlanEdit } from '../lib/planner-edit';
 import { buildItinerary, clockLabel, planBudget, stopKey } from '../lib/planner-itinerary';
-import { stopTitle, type PlanDetails, type Stop } from '../lib/planner';
+import { stopTitle, type PlanDetails, type Stop } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
 
 type EditablePlan = { title: string; date: string; stops: Stop[]; details: PlanDetails };

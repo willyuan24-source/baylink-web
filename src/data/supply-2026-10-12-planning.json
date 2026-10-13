@@ -1,0 +1,1114 @@
+{
+  "sfpl-chinatown-creative-saturdays-fall-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/10/17/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-10-24",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "14:30",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-marina-wild-goose-qigong-oct-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/10/17/activity-wild-goose-qigong-chunfu-cai",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "08:30",
+            "end": "09:15"
+          },
+          {
+            "date": "2026-10-24",
+            "start": "08:30",
+            "end": "09:15"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "08:30",
+            "end": "09:15"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-richmond-hk-film-the-killer-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/10/17/film-killer",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-10-17",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-richmond-hk-film-hard-boiled-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/14/film-hard-boiled",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "14:00",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-chinese-book-club-nov14-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/14/dushuhuihuozhejiushichongtianyihan",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-excelsior-multilingual-tech-help-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/10/25/tutorial-drop-tech-help-english-spanish-filipino-cantonese-mandarin",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-25",
+        "validThrough": "2026-11-15",
+        "sessions": [
+          {
+            "date": "2026-10-25",
+            "start": "13:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "13:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "chsa-lily-qi-book-talk-nov8-2026": {
+    "planning": {
+      "admissionUsd": 15,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://chsa.org/event/book-talk-with-lily-qi-elected-american/",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "11:00",
+            "end": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-bernal-dia-de-los-muertos-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/01/social-bernal-community-dia-de-los-muertos",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-01",
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "13:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-north-beach-open-house-oct31-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/10/31/celebration-north-beach-branch-open-house",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "10:00",
+            "end": "18:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-berryessa-mandarin-ell-club-fall-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a67cc6b7b79214226abb91f",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-10-24",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-joyce-ellington-halloween-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6ac4082ede300e0045186d78",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "14:00",
+            "end": "15:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-berryessa-halloween-party-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6abc15d2035faf0033d92969",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "14:30",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-west-valley-book-sale-nov-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/690e9ccafbf38a280022a873",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-15",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "12:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-campbell-friends-book-sale-nov14-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6a4ec0bfc7e02e3d0067c3ea",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-almaden-sounds-of-south-asia-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6ac02d38de300e004517d3f5",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "12:00",
+            "end": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-berryessa-diwali-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a7cfa34b204780029928736",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15",
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "15:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sv-turkey-trot-2026": {
+    "planning": {
+      "admissionUsd": 55,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://runsignup.com/Race/CA/SanJose/SiliconValleyTurkeyTrot",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-26",
+        "validThrough": "2026-11-26",
+        "sessions": [
+          {
+            "date": "2026-11-26",
+            "start": "08:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "sj-veterans-day-parade-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-11",
+        "validThrough": "2026-11-11",
+        "sessions": [
+          {
+            "date": "2026-11-11",
+            "start": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-millbrae-chinese-storytime-oct-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6ab6e6d208693b0f7374a99f",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-18",
+        "validThrough": "2026-10-25",
+        "sessions": [
+          {
+            "date": "2026-10-18",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-10-25",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-portola-valley-mid-autumn-lantern-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a92017e4cb69d003e242443",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-25",
+        "validThrough": "2026-10-25",
+        "sessions": [
+          {
+            "date": "2026-10-25",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-san-carlos-ofrenda-musical-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6aa8571f56fe62004a2fc09e",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "10:30",
+            "end": "11:15"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-brisbane-sugar-skull-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 8,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6ab6e6fe3dd190003e749f25",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "11:00",
+            "end": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-foster-city-nidhi-chanani-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6ab5876708693b0f7374643a",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-01",
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-pacifica-robotics-team5940-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6abadaa39abb62002c6ac8d1",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-11-01",
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "11:00",
+            "end": "14:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-atherton-diwali-henna-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6aa9bb61ab7a8e0037c21242",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "11:30",
+            "end": "13:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-north-fair-oaks-diwali-henna-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6aaa33f04b3b0600308414d5",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "12:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-portola-valley-nahuatl-prints-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a9204474cb69d003e2424d1",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-brisbane-zuni-water-jar-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 6,
+      "maxAge": 11,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6ab6e72008693b0f7374a9b3",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-brisbane-puzzle-swap-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6ac7ef9329c3d600332e9e65",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-belmont-friends-book-sale-nov-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6941f5eb7ed7c62f00aad129",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-15"
+      }
+    }
+  },
+  "smcl-san-carlos-friends-book-sale-nov15-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/69375c607ed7c62f00a97cb8",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15",
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "13:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-pacifica-ofrenda-musical-nov14-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6aaa340cca248a0029162a85",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "11:15",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "chsa-taiwanese-chinese-roots-seminar-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://chsa.org/event/finding-your-taiwanese-and-chinese-roots-seminar/",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15",
+        "sessions": [
+          {
+            "date": "2026-11-15",
+            "start": "14:00",
+            "end": "17:00"
+          }
+        ]
+      }
+    }
+  },
+  "acl-dublin-halloween-crafts-costume-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6a83981ad4b10d0030073337",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "11:00",
+            "end": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-crockett-halloween-hullabaloo-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6abc44a4a85a2c00337bfcb5",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-31",
+        "validThrough": "2026-10-31",
+        "sessions": [
+          {
+            "date": "2026-10-31",
+            "start": "12:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-martinez-mug-swap-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6a8f544229a7dd0d6746e5b3",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "10:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-martinez-friends-book-sale-nov7-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/696935881e64afd01e548be7",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "10:30",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "acl-castro-valley-ohlone-tapestries-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6abef89debad2200454279ac",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-08",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "13:00",
+            "end": "17:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "13:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "acl-castro-valley-military-records-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6ab311fcda318a10e63609a4",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-08",
+        "validThrough": "2026-11-08",
+        "sessions": [
+          {
+            "date": "2026-11-08",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "acl-san-lorenzo-diwali-diya-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 6,
+      "maxAge": 12,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6ac6a340295b3b0033cadefa",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-07",
+        "validThrough": "2026-11-07",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "13:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-hercules-library-20th-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6a77be55c7e02e3d006ee576",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "13:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-lafayette-half-price-books-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6aa1b929ca248a002914a0a3",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "acl-cherryland-chinese-storytimes-oct24-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6a174e9ec6a1dc3d00d67cec",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-10-24",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-10-24",
+            "start": "11:30",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "petaluma-vintage-market-nov15-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://www.petalumavintage.com/",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-15",
+        "validThrough": "2026-11-15"
+      }
+    }
+  },
+  "marin-point-reyes-librito-concert-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6aca449ffee2d21deb225dba",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-almaden-20th-harvest-festival-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/69cd448ae2a2952aed0bf2ba",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-10-17",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "11:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-evergreen-thanksgiving-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6acaac15754bb0003ac3a888",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-19",
+        "validThrough": "2026-11-19",
+        "sessions": [
+          {
+            "date": "2026-11-19",
+            "start": "16:30",
+            "end": "17:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-village-square-thanksgiving-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a7a43adb3bdcec4a6676595",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-20",
+        "validThrough": "2026-11-20",
+        "sessions": [
+          {
+            "date": "2026-11-20",
+            "start": "15:30",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "marin-bolinas-saturday-crafts-nov14-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6a84e038be148200298848cc",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "marin-corte-madera-quiltmaking-talk-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6abc235a035faf0033d92f29",
+        "verifiedAt": "2026-10-12",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "15:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  }
+}

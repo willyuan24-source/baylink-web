@@ -1,8 +1,7 @@
 import type { CoverItem, ResolvedCover } from './cover';
 import { typeCoverProvenance } from './image-provenance';
-import { eventFor, placeFor, type SavedPlan, type Stop } from './planner';
-import { getGuideBySlug } from '../data/guides';
-import { getGuideMedia, GUIDE_IMAGES } from '../data/guide-media';
+import { eventFor, placeFor, type SavedPlan, type Stop } from './planner-core';
+import { PLAN_COVER_IMAGES } from './planner-source';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../data/scene3d-postcards';
 
 /**
@@ -18,14 +17,15 @@ export function stopCoverItem(stop: Stop): CoverItem {
   return { kind: 'place', id: stop.id, imageKey: place?.imageKey ?? (place?.guideSlug ? `guide-cover:${place.guideSlug}` : undefined), postcardKey };
 }
 
-const GUIDE_COVER = 'guide-cover:';
 /**
  * The image registry for stop covers: listing images, guide covers (`guide-cover:` keys, as on My Week's saved list) and
  * the 3D postcards. Kept apart from saved-items.ts so the planner does not load the offer and new-shop catalogs for it.
+ * The listing images and guide covers a stop can ask for come with 行程's generated catalog (planner-source.ts,
+ * scripts/generate-plan-catalog.ts: data/guide-media.ts GUIDE_IMAGES and getGuideMedia(guide).cover), not with the whole
+ * image registry and every guide.
  */
 export function stopCoverImage(key: string) {
-  if (key.startsWith(GUIDE_COVER)) { const guide = getGuideBySlug(key.slice(GUIDE_COVER.length)); return guide ? getGuideMedia(guide).cover : undefined; }
-  if (Object.hasOwn(GUIDE_IMAGES, key)) return GUIDE_IMAGES[key];
+  if (Object.hasOwn(PLAN_COVER_IMAGES, key)) return PLAN_COVER_IMAGES[key];
   return Object.hasOwn(SCENE3D_POSTCARD_IMAGES, key) ? SCENE3D_POSTCARD_IMAGES[key] : undefined;
 }
 

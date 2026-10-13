@@ -1,5 +1,5 @@
 import { bayBayAssistantPlanImport, parseBayBayAssistantFields, type BayBayAdmissionFacts, type BayBayAssistantPlan, type BayBayTaskState } from './baybay-assistant';
-import { parseSharedPlan, type PlanDetails, type PlanFilters, type Stop } from './planner';
+import { parseSharedPlan, type PlanDetails, type PlanFilters, type Stop } from './planner-core';
 import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails } from './planner-itinerary';
 import { sourcedAdmissionSubtotal } from './baybay-admission-reference';
 

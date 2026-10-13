@@ -71,6 +71,9 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const sourceUrl = item.kind === 'opening' ? item.shop.sourceUrl : officialUrl;
   const sourceLabel = item.kind === 'event' ? item.event.sourceLabel : item.kind === 'offer' ? item.offer.sourceLabel : item.shop.sourceLabel;
   const review = discoveryContentReviewRecord(item);
+  // Source prompts keep to the live window (WEB-FRESH2): an event with no confirmed session left says so itself (nextDate null);
+  // one still waiting for a date (unconfirmed) is live, so it passes no nextDate and a material change can still prompt.
+  const liveReview = { ...review, nextDate: unconfirmed ? undefined : planDate };
   const cover = heroCover(record, today);
   // The hero's photo is never repeated in the page's rails (VISUAL-10).
   const coverPage = createCoverPage();
@@ -138,7 +141,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
           column on a desktop (design.md §4.9). One copy, so the reading order is the same everywhere. */}
       <aside className="detail-aside">{facts}<DetailActionBar actions={actions} /></aside>
       <div className="detail-main detail-main--body">
-        <ContentReviewNotice record={review} today={today} />
+        <ContentReviewNotice record={liveReview} today={today} />
         {item.kind === 'opening' && <p className="detail-note">{translateText(openingStatusNote(item.shop.status), locale)}</p>}
 
         <div className="detail-body">
@@ -165,7 +168,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
           <section className="detail-source" aria-labelledby="detail-source-title">
             <h2 id="detail-source-title">{t('来源与核对', 'Source and checks')}</h2>
             <TrustRow contentId={review.id} item={review} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
-            <SourceFreshness contentId={review.id} item={{ ...review, nextDate: planDate }} officialUrl={officialUrl} include={['soft']} today={today} />
+            <SourceFreshness contentId={review.id} item={liveReview} officialUrl={officialUrl} include={['soft']} today={today} />
             <HeroCredit cover={cover} />
             {event?.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'Read a related local guide')}<ArrowRight size={17} aria-hidden="true" /></Link>}
             <LazyReportErrorLink entity={{ kind: item.kind, id: share.id }} title={share.title} />

@@ -1,5 +1,5 @@
-import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
-import { distanceKm, favoriteKey, stopTitle, validDay, type GeoPoint, type PlanDetails, type PlanFilters, type PlannerPlace, type PlanningFacts, type Stop, type StopSetting } from './planner';
+import { PLANNER_EVENTS, PLANNER_PLACES } from './planner-source';
+import { distanceKm, favoriteKey, stopTitle, validDay, type GeoPoint, type PlanDetails, type PlanFilters, type PlannerPlace, type PlanningFacts, type Stop, type StopSetting } from './planner-core';
 import { canonicalEventId } from './event-id';
 import { eventOccursOn } from './event-calendar';
 import { getBayAreaToday } from './monthly';

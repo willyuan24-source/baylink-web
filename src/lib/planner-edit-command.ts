@@ -1,5 +1,5 @@
 import { simplifySearch } from '../i18n/locale';
-import { validDay } from './planner';
+import { validDay } from './planner-core';
 
 export type EditCommand =
   | { kind: 'shift'; minutes: number }

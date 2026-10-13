@@ -3,7 +3,7 @@ import { ChevronDown, MapPin, Route, LoaderCircle } from 'lucide-react';
 import { useLocale, translateText } from '../i18n/locale';
 import { api } from '../lib/api';
 import { buildItinerary, clockLabel, factsForStop } from '../lib/planner-itinerary';
-import { stopTitle, validDay, type PlanDetails, type Stop } from '../lib/planner';
+import { stopTitle, validDay, type PlanDetails, type Stop } from '../lib/planner-core';
 import { isPlannerTravelEstimate, plannerLegMapUrl, type PlannerTravelEstimate } from '../lib/planner-travel';
 
 const record = (value: unknown): value is Record<string, unknown> => !!value && typeof value === 'object' && !Array.isArray(value);

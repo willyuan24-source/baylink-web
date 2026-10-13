@@ -72,7 +72,7 @@ const settle = () => act(async () => { for (let i = 0; i < 5; i++) await new Pro
 const dialogNamed = async (view: ReturnType<typeof render>, name: string) => { await view.findByRole('dialog', { name }); await settle(); return within(view.getByRole('dialog', { name })); };
 const closePost = async (view: ReturnType<typeof render>) => {
   const dialog = await dialogNamed(view, post.title);
-  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '关闭' })); });
+  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '返回' })); });
 };
 
 test('a shared post link (another site before it) closes onto its 邻里 board, not back out of BAYLINK', async t => {
@@ -102,8 +102,9 @@ test('after a reload the saved background page replaces the overlay (its history
 test('编辑 from a shared link opens the editor and keeps it open on the board (it no longer depends on history)', async t => {
   const view = mount(t, ['/elsewhere-before-baylink', '/posts/p1'], { signedIn: true });
   const dialog = await dialogNamed(view, post.title);
-  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '更多' })); });
-  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '编辑' })); });
+  await act(async () => { fireEvent.click(dialog.getByRole('button', { name: '更多操作' })); });
+  // The menu's 编辑 (the owner's contact bar has one too, after it).
+  await act(async () => { fireEvent.click(dialog.getAllByRole('button', { name: '编辑' })[0]); });
   assert.ok(await view.findByRole('dialog', { name: '编辑信息' }), 'the editor is open');
   assert.equal(where(view), '/category/used');
   assert.equal(view.queryByRole('dialog', { name: post.title }), null);

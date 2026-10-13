@@ -19,6 +19,8 @@ import { DETAIL_BUCKET_COUNT, detailBucket, type EnglishDictionary } from '../sr
 import { allDetailRecords } from '../src/features/detail/build-detail';
 import eventIdAliases from '../src/data/event-id-aliases.json';
 import { buildGuideData, writeGuideData } from './generate-guide-data';
+import { buildPlanCatalog, writePlanCatalog } from './generate-plan-catalog';
+import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { getOfferImage } from '../src/lib/offer-media';
 import { generateTraditionalPhrases } from './generate-traditional-phrases';
 import officialEventMedia from '../src/data/official-event-media.json';
@@ -113,6 +115,10 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   const guideData = await buildGuideData();
   await writeGuideData(guideData);
   const records = new Map(guideData.records.map(record => [record.guide.slug, record]));
+  // 行程's generated catalog (WEB-PLAN-DATA): its workspace translates what the catalog carries ('plan-catalog') and the 3D
+  // postcards' credits, loaded with the catalog instead of the whole planning, discovery and guide-index packs.
+  const planCatalog = buildPlanCatalog();
+  await writePlanCatalog(planCatalog);
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
   const guideIndex = [guides.map(guide => ({ ...Object.fromEntries(Object.entries(guide).filter(([key]) => key !== 'blocks')), media: getGuideMedia(guide).cover })), GUIDE_CATEGORY_TABS, READER_PATHS];
   // The events column (/events, /calendar) renders the slim events index and the media tables its covers read: its own pack
@@ -134,6 +140,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
+    'plan-catalog': [planCatalog, SCENE3D_POSTCARD_IMAGES],
     explore: [ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES, ATTRACTION_REGION_INTROS, ATTRACTIONS.map(place => { const guide = guides.find(item => item.slug === place.slug); return guide ? getGuideMedia(guide) : undefined; })],
   };
   const registry: Record<string, string> = { ui: 'ui.json' };

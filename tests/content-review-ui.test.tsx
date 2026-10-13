@@ -72,13 +72,18 @@ test('discovery notices follow source state: the calendar alone never raises a b
   assert.equal(view.getByRole('link').getAttribute('href'), 'https://example.com/official');
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]|Internal capture detail/u);
   view.unmount();
-  api.request = async () => ({ sources: [{ sourceId: 's', status: 'changed', needsReview: true, changeFields: ['cancel'], lastFetchedAt: 1, lastReviewedAt: null }] });
+  api.request = async () => ({ sources: [{ sourceId: 's', status: 'changed', needsReview: true, material: true, changeFields: ['cancel'], lastFetchedAt: 1, lastReviewedAt: null }] });
   await act(async () => { view = render(<ContentReviewNotice record={{ ...record, kind: 'event', id: 'cancelled' }} today="2026-10-06" />); });
   await act(async () => {});
   const box = view.getByRole('complementary', { name: 'Official page change' });
   assert.equal(box.querySelector('h2')?.textContent, 'The organizer’s page suggests a date change or cancellation');
   assert.equal(view.getByRole('link', { name: 'Open the official page ›' }).getAttribute('href'), 'https://example.com/official');
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/u);
+  view.unmount();
+  // Outside the live window: an event with no confirmed session left (nextDate null) says so itself; no box.
+  await act(async () => { view = render(<ContentReviewNotice record={{ ...record, kind: 'event', id: 'no-session-left', nextDate: null }} today="2026-10-06" />); });
+  await act(async () => {});
+  assert.equal(view.container.textContent, '');
 });
 
 test('admin queue recomputes dates, paginates and remains read only instead of trusting generated statuses', async context => {

@@ -110,6 +110,14 @@ test('legal pages show English readers only English, and Chinese readers the sum
   }
   const privacy = await render('zh-Hans', '/privacy', createElement(PrivacyPolicyView));
   assert.match(privacy.body.textContent!, /Cloudflare/, 'the API network edge is named (ENGSEC-11)');
+  // G77 (WEB-POLISH): the ad images still hosted on imgur are named, with what imgur sees, in all three languages.
+  for (const [locale, edge, imgur] of [['zh-Hans', /Cloudflare 会看到访问者的 IP 地址/, /imgur（i\.imgur\.com）.*imgur 会看到你的 IP 地址/],
+    ['zh-Hant', /Cloudflare 會看到訪問者的 IP 地址/, /imgur（i\.imgur\.com）.*imgur 會看到你的 IP 地址/],
+    ['en', /Cloudflare’s network edge first, which sees visitors’ IP addresses/, /hosted on imgur \(i\.imgur\.com\).*imgur sees your IP address/]] as const) {
+    const text = (await render(locale, '/privacy', createElement(PrivacyPolicyView))).body.textContent!;
+    assert.match(text, edge, `${locale}: Cloudflare sees the IP address`);
+    assert.match(text, imgur, `${locale}: imgur is named`);
+  }
   // The quoted button label: marked as Chinese on /en only; Chinese pages show it as their own button reads.
   const sms = await render('en', '/sms-consent', createElement(SmsConsentView));
   const marked = [...sms.querySelectorAll('[lang="zh-Hans"]')];

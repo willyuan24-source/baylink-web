@@ -1,6 +1,7 @@
 import { VERIFIED_EVENT_PLACE_MEDIA_UPDATES } from './verified-place-media-updates';
 import octnovSfEastEvents from './octnov-2026-sf-east-events.json';
 import octnovRegionalEvents from './octnov-2026-regional-events.json';
+import supplyEvents1012 from './supply-2026-10-12-events.json';
 import octnovExtraImages from './octnov-2026-extra-image-updates.json';
 import { OCTNOV_EVENT_MEDIA_UPDATES } from './octnov-2026-event-photo-aliases';
 const extraImageUpdates: Record<string, { imageKey: string }> = octnovExtraImages;
@@ -36,7 +37,7 @@ const previousMonthlyEvents = applyOctober2026Events(mergeReviewedEvents([...sfS
   ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 // The editorial overlay goes last: short forms, cleaned plan lines and dated corrections (src/data/editorial-overlay).
-export const MONTHLY_EVENTS = applyEventOverlay([...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] }))).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+export const MONTHLY_EVENTS = applyEventOverlay([...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents, ...supplyEvents1012] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] }))).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

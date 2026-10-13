@@ -59,9 +59,10 @@ test('contact panels link the actual rental, secondhand and service categories t
   for (const [category, slug, label] of [['租屋', 'bay-area-rental-scam-guide', '租房防骗指南'], ['闲置', 'bay-area-used-trading-safety-guide', '二手交易安全指南'], ['清洁', 'local-service-safety-guide', '本地服务安全指南']]) {
     assert.ok(getGuideBySlug(slug), `Safety destination must exist: ${slug}`);
     const view = render(<MemoryRouter><PostDetailContactPanel post={{ id: 'public', authorId: 'owner', category, title: 'Public listing' }}
-      currentUser={null} isOwner={false} authorName="Owner" section="contact" onLoginNeeded={() => {}} onOpenChat={() => {}}
+      currentUser={null} isOwner={false} authorName="Owner" section="all" onLoginNeeded={() => {}} onOpenChat={() => {}}
       requestContact={async () => ({ status: 'dm_first' })} onAskBayBay={() => {}} showToast={() => {}} /></MemoryRouter>);
     assert.equal(view.getByRole('link', { name: label }).getAttribute('href'), `/guides/${slug}`);
+    // The post sheet shows the panel's contact section with 私信 in its contact bar; the whole panel carries its own button.
     assert.ok(view.getByRole('button', { name: '私信联系' }));
     cleanup();
   }

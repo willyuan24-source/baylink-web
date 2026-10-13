@@ -4,10 +4,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Location, NavigateFunction } from 'react-router-dom';
 import { api } from '../lib/api';
-import { matchesCategory } from '../lib/constants';
 import { filterPostsByBlockedUsers } from '../lib/format';
 import { readFeedCache, writeFeedCache } from '../lib/feedCache';
-import { postAvailability } from '../lib/postAvailability';
+import { feedQueryString, visibleFeedPosts } from '../features/posts/feed-query';
 import type { PostData } from '../lib/types';
 import { getCategoryFromSlug, isHomePath } from '../routing';
 import { matchRoute } from './route-table';
@@ -25,14 +24,16 @@ export function useCommunityFeed({ location, navigate, userId, blockedUserIds }:
 }) {
   const enabled = isFeedPage(location);
   const feedPage = feedPageLocation(location);
-  const includeUnconfirmed = new URLSearchParams(feedPage.search).get('older') === '1';
+  // Every post by default, older ones included (WEB-COMMUNITY, FC3-04: each card says how current it is); `?recent=1`
+  // keeps only what the poster confirmed recently (the API's `current`).
+  const recentOnly = new URLSearchParams(feedPage.search).get('recent') === '1';
   const categorySlug = feedPage.pathname.startsWith('/category/')
     ? feedPage.pathname.split('/category/')[1]?.split('/')[0]
     : undefined;
   const { feedType, setFeedType, keyword, setKeyword, regionFilter, setRegionFilter, feedLocation } = useFeedFilters(location, navigate);
   // The last session's cached feed renders first (the first fetch replaces it). Only the default "all categories" view is
   // cached: a cold /category/:slug does not read it, so the first frame never shows another category's posts.
-  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug || keyword || regionFilter !== '全部' || includeUnconfirmed ? [] : readFeedCache(feedType).filter(post => postAvailability(post).tone === 'confirmed')));
+  const [posts, setPosts] = useState<PostData[]>(() => (categorySlug || keyword || regionFilter !== '全部' || recentOnly ? [] : readFeedCache(feedType)));
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -43,7 +44,7 @@ export function useCommunityFeed({ location, navigate, userId, blockedUserIds }:
   // A direct /category/:slug load starts from the URL, which saves a first fetch for "all".
   const [categoryFilter, setCategoryFilter] = useState<string>(() =>
     isHomePath(feedPage.pathname) ? getCategoryFromSlug(categorySlug) : '全部');
-  const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, includeUnconfirmed, userId || 'guest']);
+  const feedQueryKey = JSON.stringify([feedType, regionFilter, categoryFilter, debouncedKeyword, recentOnly, userId || 'guest']);
   const feedQueryKeyRef = useRef(feedQueryKey);
 
   // URL → category filter
@@ -74,20 +75,12 @@ export function useCommunityFeed({ location, navigate, userId, blockedUserIds }:
       let more = true;
       let pagesFetched = 0;
       while (true) {
-        let queryParams = `?type=${feedType}&page=${currentPage}&limit=6&availability=${includeUnconfirmed ? 'all' : 'current'}`;
-        if (searchKw) queryParams += `&keyword=${encodeURIComponent(searchKw)}`;
-        if (categoryFilter !== '全部') queryParams += `&category=${encodeURIComponent(categoryFilter)}`;
-        if (regionFilter !== '全部') queryParams += `&city=${encodeURIComponent(regionFilter)}`;
-        const res = await api.request(`/posts${queryParams}`);
+        const res = await api.request(`/posts${feedQueryString({ type: feedType, page: currentPage, limit: 6, recentOnly, keyword: searchKw, categoryFilter, regionFilter })}`);
         if (fetchSeqRef.current !== seq) return;
         const newPosts: PostData[] = res.posts || [];
         more = res.hasMore;
         pagesFetched += 1;
-        let filtered = newPosts;
-        if (regionFilter !== '全部') filtered = filtered.filter((p) => (p.city || '').includes(regionFilter));
-        filtered = filtered.filter((p) => matchesCategory(p.category, categoryFilter) && p.status !== 'closed');
-        if (userId && blockedUserIds.length) filtered = filterPostsByBlockedUsers(filtered, blockedUserIds);
-        for (const p of filtered) {
+        for (const p of visibleFeedPosts(newPosts, { regionFilter, categoryFilter, userId, blockedUserIds })) {
           if (!seenIds.has(p.id)) { seenIds.add(p.id); collected.push(p); }
         }
         if (!more || !hasClientFilter || collected.length >= MIN_VISIBLE_PER_LOAD || pagesFetched >= MAX_PAGES_PER_LOAD) break;
@@ -98,7 +91,7 @@ export function useCommunityFeed({ location, navigate, userId, blockedUserIds }:
       if (isRefresh) {
         setPosts(collected);
         // Only the default view (no keyword, no filter) is cached for the next visit.
-        if (!searchKw && regionFilter === '全部' && categoryFilter === '全部' && !includeUnconfirmed) writeFeedCache(feedType, collected);
+        if (!searchKw && regionFilter === '全部' && categoryFilter === '全部' && !recentOnly) writeFeedCache(feedType, collected);
       } else {
         // A post published between two pages shifts the server's paging; de-duplicate by id.
         setPosts(prev => {
@@ -117,7 +110,7 @@ export function useCommunityFeed({ location, navigate, userId, blockedUserIds }:
       // Clear only this call's loading flags, even when a newer call took over.
       if (fetchSeqRef.current === seq) { setIsLoadingMore(false); setIsInitialLoading(false); }
     }
-  }, [feedType, regionFilter, categoryFilter, debouncedKeyword, includeUnconfirmed, userId, blockedUserIds]);
+  }, [feedType, regionFilter, categoryFilter, debouncedKeyword, recentOnly, userId, blockedUserIds]);
 
   // Fetch when a feed page is on screen and the query (or the reader) changed. Coming back to the feed with the same query
   // keeps what was loaded instead of fetching again.

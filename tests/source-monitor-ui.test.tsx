@@ -45,7 +45,7 @@ const reader = (contentId = 'sample-event') => <>
 </>;
 
 test('a pending source change becomes one plain line under the facts, without pipeline wording', async () => {
-  api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true }] });
+  api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true, material: true }] });
   const view = await mount(reader());
   const line = view.getByRole('note', { name: '官方页面提示' });
   assert.equal(line.textContent, '主办方页面有更新，出发前看一眼官方 ›', 'an undated change does not claim it was recent');
@@ -94,6 +94,25 @@ test('manual-required, error and unreachable sources stay off the reader page', 
   }
 });
 
+test('pending changes nobody has judged material stay off the reader page (EVT11-07: triage off, 23% of live pages prompted)', async context => {
+  context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-08T19:00:00Z') });
+  // The exact live shapes of 10/12 with SOURCE_TRIAGE off (no changedAt, material or changeFields), then a cosmetic verdict.
+  const rows = [
+    { ...unchanged, status: 'unchanged', needsReview: true },
+    { ...unchanged, status: 'changed', needsReview: true },
+    { ...unchanged, status: 'manual-required', needsReview: true },
+    { ...unchanged, status: 'changed', needsReview: true, material: false, changedAt: Date.parse('2026-10-01T00:00:00Z'), changeFields: [] },
+  ];
+  for (const [index, row] of rows.entries()) {
+    api.request = async () => ({ sources: [row] });
+    const view = await mount(reader(`unjudged-${index}`));
+    assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null, JSON.stringify(row));
+    // Still no "no change" claim: the change is pending for an editor.
+    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example · 编辑核对 9/29', JSON.stringify(row));
+    view.unmount();
+  }
+});
+
 test('dated, near-date and hard prompts read naturally in every language', async context => {
   context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-08T19:00:00Z') });
   const changedAt = Date.parse('2026-10-06T17:00:00Z');
@@ -107,12 +126,12 @@ test('dated, near-date and hard prompts read naturally in every language', async
   assert.doesNotMatch(view.container.textContent || '', JARGON);
   view.unmount();
   await setLocale('zh-Hant', false);
-  api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true, changeFields: ['cancel'] }] });
+  api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true, material: true, changeFields: ['cancel'] }] });
   view = await mount(<SourceFreshness contentId="hard" item={item} today={today} />);
   assert.equal(view.getByRole('note').textContent, '主辦方頁面顯示可能改期或取消，出發前務必確認。');
   view.unmount();
   await setLocale('en', false);
-  api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true, changedAt }] });
+  api.request = async () => ({ sources: [{ ...unchanged, status: 'changed', needsReview: true, material: true, changedAt }] });
   view = await mount(<SourceFreshness contentId="english" item={item} officialUrl={official} today={today} />);
   assert.equal(view.getByRole('note').textContent, 'The organizer’s page was updated on Oct 6. Take a quick look before you go ›');
 });
@@ -121,7 +140,7 @@ test('readers on one page share a single bounded request and each reads only its
   const requests: string[] = [];
   api.request = async endpoint => { requests.push(endpoint); return { sources: [
     { ...unchanged, sourceId: 'shared', contentIds: ['first-event', 'second-event'] },
-    { ...unchanged, sourceId: 'own', contentIds: ['second-event'], status: 'changed', needsReview: true },
+    { ...unchanged, sourceId: 'own', contentIds: ['second-event'], status: 'changed', needsReview: true, material: true },
   ] }; };
   const view = await mount(<>
     {reader('first-event')}
@@ -139,7 +158,7 @@ test('AI event cards pass their dates, so an ended card never asks the reader to
   const { default: AiLocalPage } = await import('../src/pages/AiLocalPage');
   api.request = async endpoint => {
     const ids = new URL(endpoint, 'https://x.example').searchParams.get('ids')?.split(',') ?? [];
-    return { sources: ids.map(id => ({ ...unchanged, sourceId: `source-${id}`, contentIds: [id], status: 'changed', needsReview: true })) };
+    return { sources: ids.map(id => ({ ...unchanged, sourceId: `source-${id}`, contentIds: [id], status: 'changed', needsReview: true, material: true })) };
   };
   const view = await mount(<MemoryRouter><AiLocalPage today="2026-10-05" /></MemoryRouter>);
   await act(async () => { fireEvent.click(view.getByRole('checkbox', { name: '显示已结束场次' })); });

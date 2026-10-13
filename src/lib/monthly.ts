@@ -41,10 +41,11 @@ export const getMonthlyDateRange = (filter: MonthlyDateFilter, today = getBayAre
 const FREE_OPENING = /^[^；;·，,。]{0,16}?(?:入场|观赏|观看|参观|活动|节庆|街区节|庆典|演出|讲座|讲解|导览|巡游|试吃)[^；;·，,。]{0,6}?免费|^免费(?:入场|观看|参观|社区活动)/;
 const CONDITIONAL_OPENING = /符合|岁|会员|居民|学生|长者|登记|参考/;
 const NOT_YET_FREE = /[须需]购票|待确认|待核|未核/;
-export const isFreeToAttend = (event: Pick<MonthlyEvent, 'cost' | 'costLabel'>): boolean => {
+// The events index (generate-events-index.ts) carries costLabel only on mixed-cost events, the one case read here.
+export const isFreeToAttend = (event: Pick<MonthlyEvent, 'cost'> & Partial<Pick<MonthlyEvent, 'costLabel'>>): boolean => {
   if (event.cost === 'free') return true;
   if (event.cost !== 'mixed') return false;
-  const label = event.costLabel.trim();
+  const label = (event.costLabel ?? '').trim();
   const opening = label.split(/[；;·]/)[0];
   return FREE_OPENING.test(label) && !CONDITIONAL_OPENING.test(opening) && !NOT_YET_FREE.test(label);
 };

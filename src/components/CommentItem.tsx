@@ -71,9 +71,9 @@ export const CommentItem = ({
             {comment.isAdmin && (
               <UserTrustBadges user={{ isAdmin: true }} size={9} showText adminCompact />
             )}
-            <span className="text-[0.6875rem] text-baylink-muted">{formatCommentTime(comment.createdAt)}</span>
+            <span className="text-[0.8125rem] text-baylink-muted">{formatCommentTime(comment.createdAt)}</span>
             {comment.editedAt && !isDeleted && (
-              <span className="text-[0.6875rem] text-baylink-muted">已编辑</span>
+              <span className="text-[0.8125rem] text-baylink-muted">已编辑</span>
             )}
           </div>
           <p className={`mt-1 whitespace-pre-wrap break-words text-[0.875rem] leading-relaxed ${isDeleted ? 'italic text-baylink-muted' : 'text-baylink-text-secondary'}`}>
@@ -86,7 +86,7 @@ export const CommentItem = ({
                   type="button"
                   disabled={disabled}
                   onClick={() => requireLogin(() => onReply!(comment))}
-                  className="text-[0.6875rem] font-normal text-baylink-green hover:underline"
+                  className="text-[0.8125rem] font-normal text-baylink-green hover:underline"
                 >
                   回复
                 </button>
@@ -97,7 +97,7 @@ export const CommentItem = ({
                     type="button"
                     disabled={disabled}
                     onClick={() => requireLogin(() => onEdit(comment))}
-                    className="text-[0.6875rem] font-normal text-baylink-text-secondary hover:text-baylink-text"
+                    className="text-[0.8125rem] font-normal text-baylink-text-secondary hover:text-baylink-text"
                   >
                     编辑
                   </button>
@@ -105,7 +105,7 @@ export const CommentItem = ({
                     type="button"
                     disabled={disabled}
                     onClick={() => requireLogin(() => onDelete(comment))}
-                    className="text-[0.6875rem] font-normal text-red-500/90 hover:text-red-600"
+                    className="text-[0.8125rem] font-normal text-red-500/90 hover:text-red-600"
                   >
                     删除
                   </button>

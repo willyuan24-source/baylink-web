@@ -54,11 +54,13 @@ test('signed-in contact opens directly while own or closed posts never initiate 
   assert.equal(opened.length, 1);
 });
 
+// The post sheet shows the panel's contact section and puts 私信 in its contact bar (the same onContactLoginNeeded for a
+// guest); the whole panel carries both buttons, which is what this checks.
 test('detail separates login for private chat from a contact-info request and never auto-submits either', () => {
   let contactLogins = 0;
   let ordinaryLogins = 0;
   const view = render(<MemoryRouter><PostDetailContactPanel post={{ id: post.id, authorId: post.authorId, title: post.title, category: '搬家', contactPreference: { mode: 'manual_approve' } }}
-    section="contact" currentUser={null} isOwner={false} authorName="邻居" showToast={() => {}} onAskBayBay={() => {}}
+    section="all" currentUser={null} isOwner={false} authorName="邻居" showToast={() => {}} onAskBayBay={() => {}}
     onLoginNeeded={() => { ordinaryLogins += 1; }} onContactLoginNeeded={() => { contactLogins += 1; }}
     onOpenChat={() => assert.fail('anonymous chat must wait for login')}
     requestContact={async () => { assert.fail('contact sharing must wait for an explicit authenticated request'); }} /></MemoryRouter>);

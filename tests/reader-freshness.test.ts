@@ -22,8 +22,25 @@ test('reader states follow source state, never the review calendar', () => {
     { name: 'pending change judged cosmetic', rows: [row({ status: 'changed', needsReview: true, material: false, changedAt: hours(80) })], expected: 'ok' },
     { name: 'pending material change inside the 48 h editor window', rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(47) })], expected: 'ok' },
     { name: 'pending material change past 48 h', rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(49) })], expected: 'soft', reason: 'source-changed' },
-    { name: 'pending change before triage exists (no date, no materiality)', rows: [row({ status: 'changed', needsReview: true })], expected: 'soft', reason: 'source-changed' },
-    { name: 'still pending after a later identical read', rows: [row({ status: 'unchanged', needsReview: true })], expected: 'soft', reason: 'source-changed' },
+    // EVT11-07 / CNT-1011-02: what the live API sends while SOURCE_TRIAGE is off. Materiality unknown: editor work, no prompt.
+    { name: 'pending change triage has not judged (triage off: no date, no materiality)', rows: [row({ status: 'changed', needsReview: true })], expected: 'ok' },
+    { name: 'unchanged since the last read, change still unjudged', rows: [row({ status: 'unchanged', needsReview: true })], expected: 'ok' },
+    { name: 'unreadable now, change still unjudged', rows: [row({ status: 'manual-required', needsReview: true })], expected: 'ok' },
+    { name: 'a cancel field without a material verdict is not trusted', rows: [row({ status: 'changed', needsReview: true, changeFields: ['cancel'] })], expected: 'ok' },
+    // A material change stays a prompt after the page settles (the status flips back to unchanged until an editor reviews it).
+    { name: 'material change, page unchanged since, past 48 h', rows: [row({ status: 'unchanged', needsReview: true, material: true, changedAt: hours(60) })], expected: 'soft', reason: 'source-changed' },
+    { name: 'material change, page unreadable since, past 48 h', rows: [row({ status: 'manual-required', needsReview: true, material: true, changedAt: hours(60) })], expected: 'soft', reason: 'source-changed' },
+    { name: 'an unjudged row never hides a material one', rows: [row({ sourceId: 'source-b', status: 'changed', needsReview: true }), row({ status: 'changed', needsReview: true, material: true, changedAt: hours(50) })], expected: 'soft', reason: 'source-changed' },
+    // An editor re-check covers the soft line only when it is dated after the LATEST detected change (lastChangedAt).
+    // changedAt is the first detection of a still-pending change, so it can never show that a re-check saw the newest text.
+    { name: 'latest material change before the editor checked the facts again', item: { ...event, verifiedAt: '2026-10-07' }, rows: [row({ status: 'unchanged', needsReview: true, material: true, changedAt: Date.parse('2026-10-03T18:00:00Z'), lastChangedAt: Date.parse('2026-10-05T18:00:00Z') })], expected: 'ok' },
+    { name: 'a re-check is not compared with the first detection (no lastChangedAt: nothing covered)', item: { ...event, verifiedAt: '2026-10-07' }, rows: [row({ status: 'unchanged', needsReview: true, material: true, changedAt: Date.parse('2026-10-05T18:00:00Z') })], expected: 'soft', reason: 'source-changed' },
+    { name: 'material change on the day of the editor check still prompts', item: { ...event, verifiedAt: '2026-10-05' }, rows: [row({ status: 'unchanged', needsReview: true, material: true, changedAt: Date.parse('2026-10-05T18:00:00Z'), lastChangedAt: Date.parse('2026-10-05T18:00:00Z') })], expected: 'soft', reason: 'source-changed' },
+    { name: 'earlier pending change, re-check, then a new material change', item: { ...event, verifiedAt: '2026-10-06' }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: Date.parse('2026-10-02T18:00:00Z'), lastChangedAt: Date.parse('2026-10-07T18:00:00Z') })], expected: 'soft', reason: 'source-changed' },
+    { name: 'earlier pending change, re-check, then cancellation wording', item: { ...event, verifiedAt: '2026-10-06' }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: Date.parse('2026-10-02T18:00:00Z'), lastChangedAt: Date.parse('2026-10-07T18:00:00Z'), changeFields: ['cancel'] })], expected: 'hard' },
+    { name: 'earlier pending change, re-check, then cancellation wording (API without lastChangedAt)', item: { ...event, verifiedAt: '2026-10-06' }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: Date.parse('2026-10-02T18:00:00Z'), changeFields: ['cancel'] })], expected: 'hard' },
+    { name: 'a date bump never hides cancellation wording, even after the latest change', item: { ...event, verifiedAt: '2026-10-07' }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: Date.parse('2026-10-05T18:00:00Z'), lastChangedAt: Date.parse('2026-10-06T18:00:00Z'), changeFields: ['cancel'] })], expected: 'hard' },
+    { name: 'event with no session left is outside its live window', item: { ...event, nextDate: null }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(60), changeFields: ['cancel'] })], expected: 'ok' },
     { name: 'cancellation wording, even inside 48 h', rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(3), changeFields: ['date', 'cancel'] })], expected: 'hard' },
     { name: 'expired source is ignored', rows: [row({ status: 'expired', needsReview: true })], expected: 'ok' },
     { name: 'manual-required source, date far away', rows: [row({ status: 'manual-required', lastFetchedAt: null })], expected: 'ok' },
@@ -35,7 +52,10 @@ test('reader states follow source state, never the review calendar', () => {
     { name: 'date near but API unreachable', item: { ...event, nextDate: '2026-10-09', verifiedAt: '2026-09-01' }, rows: null, expected: 'ok' },
     { name: 'ended item keeps the archive banner', item: { ...event, endDate: '2026-10-07' }, rows: [row({ status: 'changed', needsReview: true, changeFields: ['cancel'] })], expected: 'archived' },
     { name: 'guides never get a banner', item: { kind: 'guide', verifiedAt: '2026-06-01' }, rows: [row({ status: 'changed', needsReview: true, changeFields: ['cancel'] })], expected: 'guide' },
-    { name: 'offer with a pending change', item: { kind: 'offer', verifiedAt: '2026-10-04' }, rows: [row({ status: 'changed', needsReview: true })], expected: 'soft', reason: 'source-changed' },
+    { name: 'offer with an unjudged pending change', item: { kind: 'offer', verifiedAt: '2026-10-04' }, rows: [row({ status: 'changed', needsReview: true })], expected: 'ok' },
+    // The detail page passes nextDate: null for offers and openings (planDate is an event idea): they stay live until endDate.
+    { name: 'offer with a material change past 48 h', item: { kind: 'offer', verifiedAt: '2026-10-04', nextDate: null }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(72) })], expected: 'soft', reason: 'source-changed' },
+    { name: 'opening with a material cancellation', item: { kind: 'opening', verifiedAt: '2026-09-01', nextDate: null }, rows: [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(2), changeFields: ['cancel'] })], expected: 'hard' },
     { name: 'opening with an unread source and no date', item: { kind: 'opening', verifiedAt: '2026-09-01' }, rows: [row({ status: 'manual-required' })], expected: 'ok' },
   ];
   for (const value of cases) {
@@ -46,7 +66,7 @@ test('reader states follow source state, never the review calendar', () => {
 });
 
 test('the earliest dated change is reported; human and automatic dates stay separate', () => {
-  const result = state(event, [row({ status: 'changed', needsReview: true, changedAt: hours(60) }), row({ sourceId: 'b', status: 'changed', needsReview: true, changedAt: hours(90) })]);
+  const result = state(event, [row({ status: 'changed', needsReview: true, material: true, changedAt: hours(60) }), row({ sourceId: 'b', status: 'changed', needsReview: true, material: true, changedAt: hours(90) })]);
   assert.equal(result.changedAt, hours(90));
   assert.equal(result.verifiedAt, '2026-09-29', 'the editor date is the human verifiedAt, never a monitor date');
   assert.equal(result.comparedAt, undefined, 'a pending change is never described as "no change"');
@@ -70,9 +90,10 @@ test('only the documented response shape is trusted', () => {
   assert.equal(parseFreshnessRows({ error: 'rate limited' }), null);
   assert.equal(parseFreshnessRows('<html>'), null);
   const rows = parseFreshnessRows({ sources: [
-    { sourceId: 'a', status: 'changed', needsReview: true, contentIds: ['x', 3], lastFetchedAt: 1791429866752, lastReviewedAt: null, changedAt: 'yesterday', material: 'yes', changeFields: ['cancel', 9], reviewedBy: 'editor' },
+    { sourceId: 'a', status: 'changed', needsReview: true, contentIds: ['x', 3], lastFetchedAt: 1791429866752, lastReviewedAt: null, changedAt: 'yesterday', lastChangedAt: 1791429000000, material: 'yes', changeFields: ['cancel', 9], reviewedBy: 'editor' },
     { sourceId: 7, status: 'unchanged' },
     null,
   ] });
-  assert.deepEqual(rows, [{ sourceId: 'a', status: 'changed', needsReview: true, contentIds: ['x'], lastFetchedAt: 1791429866752, lastReviewedAt: null, changedAt: null, material: null, changeFields: ['cancel'], reviewedBy: 'editor' }]);
+  assert.deepEqual(rows, [{ sourceId: 'a', status: 'changed', needsReview: true, contentIds: ['x'], lastFetchedAt: 1791429866752, lastReviewedAt: null, changedAt: null, lastChangedAt: 1791429000000, material: null, changeFields: ['cancel'], reviewedBy: 'editor' }]);
+  assert.equal(parseFreshnessRows({ sources: [{ sourceId: 'b', status: 'unchanged', lastChangedAt: -5 }] })![0].lastChangedAt, null);
 });

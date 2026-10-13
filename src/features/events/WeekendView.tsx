@@ -8,6 +8,7 @@ import { createCoverPage, distinctNeighbourTones, resolveCovers, type ResolvedCo
 import { eventTone } from '../../lib/event-facts';
 import { normalizeSearchText } from '../../lib/search-synonyms';
 import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
+import { dateScope } from '../../lib/date-guard';
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
 import {
   ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
@@ -187,7 +188,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         </>} />}
     </section>
 
-    {alerts.length > 0 && <details className="ev-alerts" id="monthly-news">
+    {/* CW-02: the alerts and the share card are keyed to the day, inside a 本周末 list that keeps all week (date-guard.ts). */}
+    {alerts.length > 0 && <details className="ev-alerts" id="monthly-news" {...dateScope('day')}>
       <summary>{t(`出行提醒 ${alerts.length} 条`, `Travel alerts · ${alerts.length}`)}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
       <ul>{alerts.map(item => <li key={item.id}>
         <strong>{item.title}</strong>
@@ -233,7 +235,7 @@ function SheetSection({ title, children }: { title: string; children: ReactNode 
 export function EventsPageEnd({ region, today }: { region: EventsFilters['region']; today: string }) {
   const { t } = useUiCopy();
   return <nav className="ev-end" aria-label={t('更多活动入口', 'More from Events')}>
-    <a className="ev-end__item ev-end__item--wide" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
+    <a className="ev-end__item ev-end__item--wide" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')} {...dateScope('day')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
     <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
     <Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link>
     <Link className="ev-end__item" to="/events?view=openings">{t('新店与开业', 'New shops')}</Link>

@@ -20,6 +20,9 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
   const { head, separator, rest } = splitGuideTitle(translateText(guide.title, locale));
   const sources = guideSourceCount(guide);
   const minutes = guideReadMinutes(guide);
+  // G26: a guide built around a deals board is browsed, not read through; a reading time from its prose alone would
+  // promise minutes for a list of a hundred cards, so its meta says what it is instead.
+  const board = guide.blocks.some(block => block.type === 'freebies');
   return <header className="gd-header">
     <nav className="gd-crumbs" aria-label={t('当前位置', 'Breadcrumb')}>
       <Link to={returnTo}><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{t('指南', 'Guides')}</Link>
@@ -34,7 +37,7 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
     <p className="gd-meta">
       <span>{t(`内容更新 ${guide.updatedAt}`, `Updated ${guideEnglishDate(guide.updatedAt)}`)}</span>
       {sources > 0 && <><span aria-hidden="true"> · </span><a href="#guide-sources">{t(`官方来源 ${sources} 个`, `${sources} official source${sources === 1 ? '' : 's'}`)}</a></>}
-      <span className="gd-meta__last"><span aria-hidden="true"> · </span><span>{t(`约 ${minutes} 分钟`, `${minutes} min read`)}</span>
+      <span className="gd-meta__last"><span aria-hidden="true"> · </span><span>{board ? t('优惠清单 · 可按条件筛选', 'Deals list · filter by condition') : t(`约 ${minutes} 分钟`, `${minutes} min read`)}</span>
         <button type="button" className="gd-meta__info" aria-haspopup="dialog" aria-label={t('关于日期与来源', 'About dates and sources')} onClick={() => setAboutOpen(true)}><Info aria-hidden="true" strokeWidth={1.75} /></button></span>
     </p>
     <Sheet open={aboutOpen} onClose={() => setAboutOpen(false)} title={t('关于日期与来源', 'About dates and sources')}>

@@ -58,7 +58,7 @@ test('prior-purchase birthdays do not appear as no-purchase offers and local ben
   assert.match(printing.requirement, /彩印每页 \$0\.35.*超额黑白每页 \$0\.15/);
 
   assert.deepEqual([...new Set(everydayPerks2026.map(offer => offer.region))].sort(), ['east-bay', 'north-bay', 'peninsula', 'sf', 'south-bay']);
-  const html = renderToStaticMarkup(<FreebieBoard offers={added} today="2026-10-04" />);
+  const html = renderToStaticMarkup(<FreebieBoard offers={added} today="2026-10-04" initialDates="all" sectionSize={Infinity} />);
   assert.match(html, /datetime="2026-10-04"/i);
 });
 

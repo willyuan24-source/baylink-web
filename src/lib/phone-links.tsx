@@ -30,11 +30,15 @@ export function PhoneChip({ number, tel, name, variant = 'inline' }: { number: s
 // the next line with it; the chip and its punctuation are kept together instead.
 const closingPunctuation = /^[。，、；：！？）」』”’.,;:!?)\]]+/;
 
-/** Already-translated text with each phone number replaced by a chip; the text between numbers stays as it was. */
-export function linkifyPhones(text: string, options: { name?: string; variant?: PhoneChipVariant } = {}): ReactNode[] {
+/**
+ * Already-translated text with each phone number replaced by a chip; the text between numbers stays as it was. A number
+ * whose tel is in `except` (one that a big call button beside the text already dials) stays plain text.
+ */
+export function linkifyPhones(text: string, options: { name?: string; variant?: PhoneChipVariant; except?: ReadonlySet<string> } = {}): ReactNode[] {
   const parts: ReactNode[] = [];
   let at = 0;
   for (const match of findPhoneNumbers(text)) {
+    if (options.except?.has(match.tel)) continue;
     if (match.start > at) parts.push(text.slice(at, match.start));
     const key = `${match.start}-${match.tel}`;
     const chip = <PhoneChip key={key} number={match.text} tel={match.tel} name={options.name} variant={options.variant} />;

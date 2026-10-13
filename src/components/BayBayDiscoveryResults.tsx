@@ -1,20 +1,37 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Bookmark, Check, Globe2, MapPin } from 'lucide-react';
+import { ArrowRight, BookOpen, Bookmark, Check, ChevronDown, ChevronRight, Globe2, MapPin } from 'lucide-react';
 import { useLocale, translateText } from '../i18n/locale';
-import { bayBayCatalogResult, bayBayCatalogWebReferences, bayBayPlanPath, bayBayWebResult, type GuideChatResponse } from '../lib/baybay-conversation';
-import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, plannerWebMapSearchUrl, plannerWebAnswerParts, plannerWebCheckedDate, validPlannerWebDate, saveAccountWebCandidate, type SavedWebCandidate } from '../lib/planner-web-search';
+import { bayBayCatalogResult, bayBayCatalogWebReferences, bayBayGuideSources, bayBayPlanPath, bayBayReferenceGuides, bayBayWebResult, currentBayBayGuide, type GuideChatResponse } from '../lib/baybay-conversation';
+import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, plannerWebMapSearchUrl, plannerWebAnswerParts, plannerWebCheckedDate, validPlannerWebDate, saveAccountWebCandidate, type PlannerWebResult, type SavedWebCandidate } from '../lib/planner-web-search';
 import { getStoredUser } from '../lib/session';
 import { bayBayAssistantResult } from '../lib/baybay-assistant';
+import { linkifyPhones } from '../lib/phone-links';
 import { BayBayEvidenceStamp } from './BayBayEvidenceStamp';
 
 function useCopy() {
   const locale = useLocale();
   return (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
 }
+type Copy = ReturnType<typeof useCopy>;
+type Navigate = (path: string) => void;
+type Sources = PlannerWebResult['sources'];
 
-/** `guest`: the panel already says once that a guest gets site information only, so a reply does not repeat it (BBLIVE-12). */
-export function BayBayRetrievalLabel({ response, guest = false }: { response: GuideChatResponse; guest?: boolean }) {
-  const t = useCopy(), web = bayBayWebResult(response), retrieval = response.retrieval;
+const hostOf = (url: string) => { try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return ''; } };
+const sitePathOf = (url: string) => {
+  if (url.startsWith('/') && !url.startsWith('//')) return url.split(/[?#]/, 1)[0];
+  try { const parsed = new URL(url); return /(?:^|\.)baylink\.us$/.test(parsed.hostname) ? parsed.pathname : null; } catch { return null; }
+};
+const openInApp = (url: string, onNavigate?: Navigate) => (event: React.MouseEvent<HTMLAnchorElement>) => {
+  if (url.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(url); }
+};
+
+/**
+ * How the answer was found, in one line, and the notices a reader must see (never folded away). The line names the
+ * evidence it cites by method: 站内快照 (site records; the API's `site-record` counts as one), 本次网页读取 …; evidence
+ * without a recorded method is counted in the list, never labelled "取得方式未记录" (BBL-09).
+ */
+function retrievalSummary(response: GuideChatResponse, guest: boolean, t: Copy): { line: string; notes: { text: string; status: boolean }[] } {
+  const web = bayBayWebResult(response), retrieval = response.retrieval;
   const catalog = response.responseMode === 'catalog' && retrieval && ['site', 'site+web'].includes(retrieval.scope);
   const catalogDay = catalog ? validPlannerWebDate(retrieval.catalogCheckedAt) : null;
   const checked = catalogDay ? t(`资料核对 ${catalogDay}`, `Catalog checked ${catalogDay}`) : web ? (plannerWebCheckedDate(web.checkedAt) || t('查询日期未知', 'Retrieval date unknown')) + (web.checkedAt && web.checkedAt.length !== 10 ? t('（湾区时间）', ' (Bay Area time)') : '') : '';
@@ -25,7 +42,14 @@ export function BayBayRetrievalLabel({ response, guest = false }: { response: Gu
     : failureCodes.includes('web_daily_limit') ? t('今日联网额度已用完，已保留站内资料', 'Today’s web lookup limit has been reached; site information remains available')
       : failureCodes.some(code => ['web_rate_limit', 'web_provider_rate_limit'].includes(code || '')) ? t('联网查询暂时过于频繁，请稍后再试；站内资料仍可使用', 'Web lookups are temporarily rate-limited; retry later. Site information remains available')
         : retrieval?.webStatus === 'unavailable' ? t('本次联网未成功，可稍后重试', 'Web lookup unavailable; retry later') : '';
+  const notes: { text: string; status: boolean }[] = [];
+  if (webNotice) notes.push({ text: webNotice, status: false });
   if (response.responseMode === 'assistant') {
+    if (failed) notes.push({ text: t('部分联网资料未通过核验', 'Some web information did not pass verification'), status: false });
+    for (const warning of new Set(response.research?.warnings || [])) {
+      if (warning === 'additional_web_lookup_unavailable') notes.push({ text: t('部分补充查询未完成，已保留取得的资料。', 'Some additional lookups could not finish. The information already found is retained.'), status: false });
+      if (warning === 'task_memory_unavailable') notes.push({ text: t('本次未能保留完整安排条件，继续提问时请再次注明关键需求。', 'The full planning context could not be retained. Please repeat your key requirements in the next question.'), status: false });
+    }
     const sources = bayBayAssistantResult(response)?.sources || [];
     const methods = sources.map(source => response.evidence?.find(item => item.url === source.url)?.verification);
     const sourceSummary = ([
@@ -33,7 +57,6 @@ export function BayBayRetrievalLabel({ response, guest = false }: { response: Gu
       ['page-read', t('本次网页读取', 'Pages read this turn')],
       ['api', t('接口获取', 'API retrievals')],
       ['search-result', t('搜索线索（未读正文）', 'Search leads (page not read)')],
-      [undefined, t('取得方式未记录', 'Retrieval method not recorded')],
     ] as const).flatMap(([method, label]) => {
       const count = methods.filter(value => value === method).length;
       return count ? [t(`${label} ${count} 条`, `${label}: ${count}`)] : [];
@@ -42,20 +65,72 @@ export function BayBayRetrievalLabel({ response, guest = false }: { response: Gu
       : retrieval?.webStatus === 'completed' && retrieval.scope === 'web' ? t('已检索站外公开资料', 'Searched public web information')
         : retrieval?.scope === 'site' ? t('已检索站内资料', 'Searched site information')
           : retrieval?.scope === 'none' ? t('本次未检索', 'No search this turn') : t('根据当前条件整理', 'Organized around your requirements');
-    return <div className="baybay-retrieval" translate="no"><Globe2 size={13} /><span>{searched}{sourceSummary && t(` · 实际引用：${sourceSummary}`, ` · Cited evidence: ${sourceSummary}`)}{webNotice && ` · ${webNotice}`}{failed && t(' · 部分联网资料未通过核验', ' · Some web information did not pass verification')}</span></div>;
+    return { line: [searched, sourceSummary].filter(Boolean).join(' · '), notes };
   }
-  return <div className="baybay-retrieval" role={failed ? 'status' : undefined} translate="no"><Globe2 size={13} /><span>{failed && t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.')}{catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`) : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references')}{checked && ` · ${checked}`}{web?.cached && t(' · 近期缓存', ' · Recent cached lookup')}{webNotice && ` · ${webNotice}`}</span></div>;
+  if (failed) notes.push({ text: t('本次联网答复未通过地点或日期检查，以下显示站内参考资料，可稍后重试。', 'The web answer did not pass location or date checks. Site references are shown below; you can retry later.'), status: true });
+  const what = catalog ? t('站内活动与去处资料', 'Site event and place catalog') : web ? t(`站外来源 ${web.sources.length} 条${retrieval?.scope === 'site+web' ? ' · 结合站内资料' : ''}`, `${web.sources.length} web sources${retrieval?.scope === 'site+web' ? ' · with site information' : ''}`)
+    : retrieval?.scope === 'none' ? t('待补充条件 · 本次未检索', 'More details needed · No search yet') : t('参考站内资料', 'Site references');
+  return { line: [what, checked, web?.cached ? t('近期缓存', 'Recent cached lookup') : ''].filter(Boolean).join(' · '), notes };
 }
 
+function SourceList({ sources, response, onNavigate, siteLabel }: { sources: Sources; response?: GuideChatResponse; onNavigate?: Navigate; siteLabel?: string }) {
+  return <ol className="bb-sources__list">{sources.map(source => <li key={`${source.number}:${source.url}`} value={source.number}>
+    <a href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" onClick={openInApp(source.url, onNavigate)}>{source.title}
+      <small>{source.url.startsWith('/') ? siteLabel : hostOf(source.url)}</small>{response && <BayBayEvidenceStamp source={response.evidence?.find(item => item.url === source.url)} />}</a>
+  </li>)}</ol>;
+}
+
+/**
+ * One sources block per answer (BBL-14, G79): the retrieval line is its summary; opened, it lists the cited sources
+ * (numbered like the answer's [n]), the catalog and supplementary web sources, and the related guides with their own
+ * official sources. Notices a reader must act on (web limits, failed checks) stay visible above it.
+ */
+export function BayBaySources({ response, guest = false, currentPath, onNavigate }: { response: GuideChatResponse; guest?: boolean; currentPath?: string; onNavigate?: Navigate }) {
+  const t = useCopy(), locale = useLocale();
+  const { line, notes } = retrievalSummary(response, guest, t);
+  const assistant = response.responseMode === 'assistant' ? bayBayAssistantResult(response) : null;
+  const catalogResult = bayBayCatalogResult(response), catalog = catalogResult?.sources.length ? catalogResult : null;
+  const supplements = bayBayCatalogWebReferences(response), web = bayBayWebResult(response);
+  const webDate = supplements.length ? plannerWebCheckedDate(response.retrieval?.checkedAt) : null;
+  // Related guides: the guide being read (not for catalog answers) and the API's suggestions, minus guides already cited.
+  const cited = new Set([...assistant?.sources || [], ...catalog?.sources || [], ...web?.sources || []].flatMap(source => sitePathOf(source.url) || []));
+  const reading = response.responseMode === 'catalog' ? undefined : currentBayBayGuide(currentPath || '');
+  const guides = (reading ? [reading, ...bayBayReferenceGuides(response).filter(guide => guide.slug !== reading.slug)] : bayBayReferenceGuides(response))
+    .filter(guide => guide.slug === reading?.slug || !cited.has(`/guides/${guide.slug}`));
+  const lists = !!assistant || !!catalog || supplements.length > 0 || !!web?.sources.length || guides.length > 0;
+  if (!line && !notes.length && !lists) return null;
+  const guideCount = guides.length ? t(`相关攻略 ${guides.length} 篇`, `${guides.length} related ${guides.length === 1 ? 'guide' : 'guides'}`) : '';
+  return <section className="bb-sources" aria-label={t('来源', 'Sources')} translate="no">
+    {notes.map(note => <p key={note.text} className="bb-sources__note" role={note.status ? 'status' : undefined}>{note.text}</p>)}
+    {lists ? <details className="bb-sources__details" open={!!web && !web.candidates.length}>
+      <summary><Globe2 aria-hidden="true" size={16} /><span>{[t('来源', 'Sources'), line, guideCount].filter(Boolean).join(' · ')}</span><ChevronDown aria-hidden="true" className="bb-sources__chevron" size={16} /></summary>
+      {assistant && <SourceList sources={assistant.sources} response={response} onNavigate={onNavigate} siteLabel={t('站内攻略', 'Site guide')} />}
+      {web && web.sources.length > 0 && <SourceList sources={web.sources} />}
+      {catalog && <section aria-label={t('站内收录官方来源', 'Official sources in the site catalog')}><h4>{t('站内收录官方来源', 'Official sources in the site catalog')}</h4><SourceList sources={catalog.sources} /></section>}
+      {supplements.length > 0 && <section aria-label={t('联网补充来源', 'Supplementary web sources')}><h4>{t('联网补充来源 · 日期、场次及票价待核实', 'Supplementary web sources · Dates, sessions and prices unverified')}</h4>
+        <ul className="bb-sources__list">{supplements.map(source => <li key={`${source.number}:${source.url}`}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{hostOf(source.url)}</small></a></li>)}</ul>
+        {webDate && <p className="baybay-discovery-note">{t(`联网查询日期 ${webDate}（湾区时间）`, `Web lookup date ${webDate} (Bay Area time)`)}</p>}</section>}
+      {/* The block is translate="no", so the site's own guide titles and their source names are translated here, as the
+          JSX runtime did when the guides sat outside it. */}
+      {guides.length > 0 && <div className="baybay-references"><h4>{t('相关攻略', 'Related guides')}</h4><small className="bb-references-note">{t('以下是站内指南列出的参考资料，不表示已实时核验。', 'These are the references the site guides list; they have not been checked live.')}</small>
+        {guides.map(guide => <div key={guide.slug} className="bb-reference">
+          {guide.slug === reading?.slug && <small>{t('提问时阅读的指南', 'The guide you were reading')}</small>}
+          <button type="button" onClick={() => onNavigate?.(`/guides/${guide.slug}`)}><span className="bb-reference__mark" aria-hidden="true"><BookOpen size={18} /></span><span>{translateText(guide.title, locale)}</span><ChevronRight size={16} /></button>
+          {bayBayGuideSources(guide).length > 0 && <details><summary>{t('查看原文来源', 'Original sources')}</summary><ul>{bayBayGuideSources(guide).map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{translateText(source.title, locale)}</a></li>)}</ul></details>}
+        </div>)}</div>}
+    </details> : line && <p className="bb-sources__line"><Globe2 aria-hidden="true" size={16} /><span>{line}</span></p>}
+  </section>;
+}
+
+/** The legacy answer text with its [n] citations as links and every phone number tap-to-call (G27). */
 export function BayBayAnswer({ response, onNavigate }: { response: GuideChatResponse; onNavigate?: (path: string) => void }) {
+  const locale = useLocale();
   const result = bayBayAssistantResult(response) || bayBayCatalogResult(response) || bayBayWebResult(response);
   const parts = plannerWebAnswerParts(result || { answer: response.answer || '', sources: [] }, true);
   return <p className="member-baybay-answer-text">{parts.map((part, index) => {
     const href = part.source?.url || part.href;
     return href ? <a key={index} href={href} target={href.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" title={part.source?.title || href}
-      className={part.source ? 'baybay-inline-citation' : 'underline underline-offset-2'} onClick={event => {
-        if (href.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(href); }
-      }}>{part.text}</a> : <span key={index}>{part.text}</span>;
+      className={part.source ? 'baybay-inline-citation' : 'underline underline-offset-2'} onClick={openInApp(href, onNavigate)}>{part.text}</a> : <span key={index}>{linkifyPhones(translateText(part.text, locale))}</span>;
   })}</p>;
 }
 
@@ -71,35 +146,10 @@ export function BayBayCoverageSummary({ response }: { response: GuideChatRespons
   </details>;
 }
 
-export function BayBayDiscoveryResults({ response, ownerId, sessionKey, onNavigate }: { response: GuideChatResponse; ownerId?: string; sessionKey?: string; onNavigate?: (path: string) => void }) {
-  if (response.responseMode === 'assistant') return <AssistantSources response={response} onNavigate={onNavigate} />;
-  if (response.responseMode === 'catalog') return <CatalogSources response={response} />;
+/** Web candidates found for this reply (web answers only); their sources are in the answer's one sources block. */
+export function BayBayDiscoveryResults({ response, ownerId, sessionKey }: { response: GuideChatResponse; ownerId?: string; sessionKey?: string; onNavigate?: (path: string) => void }) {
+  if (response.responseMode === 'assistant' || response.responseMode === 'catalog') return null;
   return <DiscoverySession key={JSON.stringify([ownerId || 'guest', sessionKey])} response={response} ownerId={ownerId} />;
-}
-
-function AssistantSources({ response, onNavigate }: { response: GuideChatResponse; onNavigate?: (path: string) => void }) {
-  const t = useCopy(), result = bayBayAssistantResult(response);
-  const notices = [...new Set((response.research?.warnings || []).flatMap(warning => warning === 'additional_web_lookup_unavailable'
-    ? [t('部分补充查询未完成，已保留取得的资料。', 'Some additional lookups could not finish. The information already found is retained.')]
-    : warning === 'task_memory_unavailable' ? [t('本次未能保留完整安排条件，继续提问时请再次注明关键需求。', 'The full planning context could not be retained. Please repeat your key requirements in the next question.')]
-      : []))];
-  if (!result && !notices.length) return null;
-  return <section className="baybay-discovery" aria-label={t('本次回答来源', 'Sources for this answer')} translate="no">
-    {result && <details className="baybay-web-sources"><summary>{t('本次回答来源', 'Sources for this answer')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={source.number} value={source.number}><a href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer" onClick={event => { if (source.url.startsWith('/') && onNavigate && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && event.button === 0) { event.preventDefault(); onNavigate(source.url); } }}>{source.title}<small>{source.url.startsWith('/') ? t('站内攻略', 'Site guide') : new URL(source.url).hostname.replace(/^www\./, '')}</small><BayBayEvidenceStamp source={response.evidence?.find(item => item.url === source.url)} /></a></li>)}</ol></details>}
-    {!!notices.length && <ul className="baybay-plan-notes">{notices.map((notice, index) => <li key={index}>{notice}</li>)}</ul>}
-  </section>;
-}
-
-function CatalogSources({ response }: { response: GuideChatResponse }) {
-  const t = useCopy(), result = bayBayCatalogResult(response), supplements = bayBayCatalogWebReferences(response);
-  const webDate = supplements.length ? plannerWebCheckedDate(response.retrieval?.checkedAt) : null;
-  if (!result && !supplements.length) return null;
-  return <>{result && <section className="baybay-discovery" aria-label={t('站内收录官方来源', 'Official sources in the site catalog')} translate="no">
-    <details className="baybay-web-sources" open><summary>{t('站内收录官方来源', 'Official sources in the site catalog')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={`${source.number}:${source.url}`} value={source.number}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ol></details>
-  </section>}{supplements.length > 0 && <section className="baybay-discovery" aria-label={t('联网补充来源', 'Supplementary web sources')} translate="no">
-    <details className="baybay-web-sources" open><summary>{t('联网补充来源 · 日期、场次及票价待核实', 'Supplementary web sources · Dates, sessions and prices unverified')}</summary><ul>{supplements.map(source => <li key={`${source.number}:${source.url}`}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ul></details>
-    {webDate && <p className="baybay-discovery-note">{t(`联网查询日期 ${webDate}（湾区时间）`, `Web lookup date ${webDate} (Bay Area time)`)}</p>}
-  </section>}</>;
 }
 
 function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; ownerId?: string }) {
@@ -124,17 +174,16 @@ function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; 
       if (!controller.signal.aborted && sameSession()) setError(reason instanceof Error ? reason.message : t('未能保存，请重试。', 'Could not save. Please try again.'));
     } finally { if (!controller.signal.aborted) { request.current = null; setBusy(''); } }
   };
-  if (!result) return null;
-  return <section className="baybay-discovery" aria-label={t('站外发现与来源', 'Web discoveries and sources')} translate="no">
-    {result.candidates.length > 0 && <><div className="baybay-discovery-heading"><span>{t('值得再看一眼', 'A closer look')}</span><small>{t('站外候选 · 待确认', 'Web shortlist · Unconfirmed')}</small></div><div className="baybay-discovery-cards">{result.candidates.map((candidate, index) => <article key={candidate.id}>
+  if (!result?.candidates.length) return null;
+  return <section className="baybay-discovery" aria-label={t('站外发现', 'Web discoveries')} translate="no">
+    <div className="baybay-discovery-heading"><span>{t('值得再看一眼', 'A closer look')}</span><small>{t('站外候选 · 待确认', 'Web shortlist · Unconfirmed')}</small></div><div className="baybay-discovery-cards">{result.candidates.map((candidate, index) => <article key={candidate.id}>
       <div className="baybay-discovery-cover" aria-hidden="true"><MapPin size={32} /><span>{String(index + 1).padStart(2, '0')}</span></div>
       <div className="baybay-discovery-content"><small>{candidate.city || t('城市待确认', 'City unconfirmed')}</small><h4>{candidate.name}</h4>{candidate.summary && <p>{candidate.summary}</p>}
         <dl><div><dt>{t('时间', 'When')}</dt><dd>{candidate.timeSummary || t('请查看来源确认', 'Check the source')}</dd></div><div><dt>{t('费用', 'Cost')}</dt><dd>{candidate.priceSummary || t('待确认', 'Unconfirmed')}</dd></div></dl>
         <a href={plannerWebMapSearchUrl(candidate)} target="_blank" rel="noopener noreferrer"><MapPin size={13} />{t('地图查找', 'Find on map')}</a>
         <button type="button" disabled={!!busy || saved.includes(candidate.id)} onClick={() => void save({ ...candidate, checkedAt: result.checkedAt, requestedDate: validPlannerWebDate(response.retrieval?.requestedDate) })}>{saved.includes(candidate.id) ? <Check size={14} /> : <Bookmark size={14} />}{saved.includes(candidate.id) ? t('已存入候选', 'Saved') : busy === candidate.id ? t('保存中…', 'Saving…') : t('存入候选', 'Save to shortlist')}</button>
-      </div></article>)}</div><p className="baybay-discovery-note">{ownerId ? t('保存到你的私人候选清单，在计划页继续查看。', 'Saved to your private shortlist. Continue on the planner page.') : t('游客候选保存在这个浏览器，可在计划页继续查看。', 'Guest candidates stay in this browser. Continue on the planner page.')}{t('具体位置、所选日期时段与预约仍需核实。', ' Exact location, date-specific hours and reservations still need checking.')}</p></>}
+      </div></article>)}</div><p className="baybay-discovery-note">{ownerId ? t('保存到你的私人候选清单，在计划页继续查看。', 'Saved to your private shortlist. Continue on the planner page.') : t('游客候选保存在这个浏览器，可在计划页继续查看。', 'Guest candidates stay in this browser. Continue on the planner page.')}{t('具体位置、所选日期时段与预约仍需核实。', ' Exact location, date-specific hours and reservations still need checking.')}</p>
     {error && <p role="alert">{error}</p>}
-    <details className="baybay-web-sources" open={!result.candidates.length}><summary>{t('查看本次联网来源', 'Sources from this lookup')} · {result.sources.length}</summary><ol>{result.sources.map(source => <li key={`${source.number}:${source.url}`} value={source.number}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title}<small>{new URL(source.url).hostname.replace(/^www\./, '')}</small></a></li>)}</ol></details>
   </section>;
 }
 

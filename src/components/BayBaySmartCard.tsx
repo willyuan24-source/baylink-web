@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Shield, Check } from 'lucide-react';
+import { linkifyPhones } from '../lib/phone-links';
+import { translateText, useLocale } from '../i18n/locale';
 
 export type BayBayCardAction = {
   label: string;
@@ -36,6 +38,9 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
   }, []);
 
   const isChecklist = card.type === 'checklist';
+  const locale = useLocale();
+  // Numbers in a safety card's lines are tap-to-call (G27); a checklist line is a button, so it keeps plain text.
+  const reader = (text: string) => linkifyPhones(translateText(text, locale));
 
   return (
     <div className="mt-2 rounded-2xl border border-baylink-green/10 bg-white p-3.5 shadow-rest">
@@ -49,7 +54,7 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
           </span>
           <h4 className="text-[0.9375rem] font-semibold text-baylink-text leading-snug">{card.title}</h4>
           {card.subtitle && (
-            <p className="mt-0.5 text-[0.75rem] leading-[1.35] text-baylink-text-secondary">{card.subtitle}</p>
+            <p className="mt-0.5 text-[0.75rem] leading-[1.35] text-baylink-text-secondary">{reader(card.subtitle)}</p>
           )}
         </div>
       </div>
@@ -89,7 +94,7 @@ export const BayBaySmartCard = ({ card, onAction }: BayBaySmartCardProps) => {
           return (
             <li key={item.id} className="flex items-start gap-2">
               <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-baylink-green/60" aria-hidden />
-              <span className="text-[0.8125rem] leading-snug text-baylink-text">{item.label}</span>
+              <span className="text-[0.8125rem] leading-snug text-baylink-text">{reader(item.label)}</span>
             </li>
           );
         })}

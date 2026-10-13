@@ -10,6 +10,7 @@ import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateCh
 import type { HomeEvent } from '../../lib/home-catalog';
 import type { HomeWeekendPick } from '../../lib/home-weekend';
 import { monthDay, REGION_LABELS, weekendRange } from './home-model';
+import { dateScope } from '../../lib/date-guard';
 
 /** Phones take the 800w rung at most for a 358px card (as /events' picks, RC-33); desktop's 4:5 lead is 380px wide. */
 const PICK_SIZES = '(max-width: 767px) 266px, (max-width: 1023px) 45vw, 380px';
@@ -45,7 +46,7 @@ function PickCard({ pick, cover, today, priority }: { pick: HomeWeekendPick; cov
  */
 export function HeroPicks({ picks, covers, today, start, end, total }: { picks: readonly HomeWeekendPick[]; covers: readonly ResolvedCover[]; today: string; start: string; end: string; total: number | null }) {
   const { t } = useUiCopy();
-  return <section className="home-picks" aria-labelledby="home-picks-title">
+  return <section className="home-picks" aria-labelledby="home-picks-title" {...dateScope('weekend')}>
     <div className="home-section-head">
       {/* The separator keeps the heading's name readable ("本周末先看这几件，10/17–18"); the date shows as a kicker. */}
       <h2 id="home-picks-title">{t('本周末先看这几件', 'This weekend, start here')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{weekendRange(start, end)}</span></h2>

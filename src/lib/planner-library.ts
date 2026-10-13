@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api } from './api';
 import { getStoredUser } from './session';
-import { favoriteKey, cleanStops, EMPTY_LIBRARY, errorText, eventFor, MAX_PLAN_STOPS, placeFor, todayInBay, validDay, validStop, type Favorite, type Library, type Preferences, type SavedPlan, type Stop } from './planner';
-import { guides } from '../data/guides';
+import { favoriteKey, cleanStops, EMPTY_LIBRARY, errorText, eventFor, MAX_PLAN_STOPS, placeFor, todayInBay, validDay, validStop, type Favorite, type Library, type Preferences, type SavedPlan, type Stop } from './planner-core';
+import { guideLoaders } from '../data/generated/guide-loaders';
 import { recordProductEvent } from './product-events';
 import { normalizePlanDetails } from './planner-itinerary';
 import { guestServerSaves, importGuestSaves, loadPlannerAccount, SAVE_ERROR_COPY, toggleSave, useSavedEntries } from './saves';
@@ -19,7 +19,7 @@ export const loadGuestLibrary = (): Library => {
     const interests = Array.isArray(prefs?.interests) ? [...new Set<string>(prefs.interests.filter((i: unknown) => typeof i === 'string' && i.length <= 40))].slice(0, 12) : [];
     const travelMode = ['any', 'drive', 'transit', 'walk'].includes(prefs?.travelMode) ? prefs.travelMode : 'any';
     // The ♡ list lives in src/lib/saves.ts now; this older field is kept as stored so a previous build still finds it.
-    const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && guides.some(guide => guide.slug === f.id)).filter((f, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(f)) === i).slice(0, 150);
+    const favorites = (data.favorites as Favorite[]).filter(f => f?.kind === 'event' ? !!eventFor(f.id) : f?.kind === 'place' ? !!placeFor(f.id) : f?.kind === 'guide' && typeof f.id === 'string' && Object.hasOwn(guideLoaders, f.id)).filter((f, i, all) => all.findIndex(other => favoriteKey(other) === favoriteKey(f)) === i).slice(0, 150);
     const plans = data.plans.filter((p: SavedPlan) => typeof p?.id === 'string' && typeof p.title === 'string' && typeof p.date === 'string' && validDay(p.date) && cleanStops(p.stops).length).slice(0, 30).map((p: SavedPlan) => ({ ...p, title: p.title.slice(0, 80), stops: cleanStops(p.stops), ...(p.details ? { details: normalizePlanDetails(p.details, cleanStops(p.stops)) } : {}) }));
     const admissionBudgetUsd = prefs?.admissionBudgetUsd === null || (typeof prefs?.admissionBudgetUsd === 'number' && Number.isFinite(prefs.admissionBudgetUsd) && prefs.admissionBudgetUsd >= 0 && prefs.admissionBudgetUsd <= 10000) ? prefs.admissionBudgetUsd : undefined;
     const setting = ['any', 'indoor', 'outdoor', 'mixed'].includes(prefs?.setting) ? prefs.setting : undefined;

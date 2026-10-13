@@ -7,15 +7,26 @@ import { useBayBayCardsModule } from './cards-loader';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
 import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeIsPause, bayBayResumeLabel, bayBayResumeStyle, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
+import { linkifyPhones } from '../../lib/phone-links';
+import { translateText } from '../../i18n/locale';
 
 type Navigate = (path: string) => void;
 type Sources = PlannerWebResult['sources'];
 
-/** Answer text with its `[n]` citations as small links to the cited source. */
+/**
+ * Reader text with every phone number tap-to-call (G27, ELDERS' chips): translated first, then split (RC-11 i), so a
+ * zh-Hant reader gets the converted sentence and an English answer is left as it is.
+ */
+export function BayBayPhoneText({ text, except }: { text: string; except?: ReadonlySet<string> }) {
+  const { locale } = useBayBayCopy();
+  return <>{linkifyPhones(translateText(text, locale), { except })}</>;
+}
+
+/** Answer text with its `[n]` citations as small links to the cited source and tap-to-call numbers. */
 export function BayBayCitedText({ text, sources, onNavigate }: { text: string; sources: Sources; onNavigate?: Navigate }) {
   return <>{plannerWebAnswerParts({ answer: text, sources }, true).map((part, index) => {
     const href = part.source?.url || part.href;
-    if (!href) return <span key={index}>{part.text}</span>;
+    if (!href) return <span key={index}><BayBayPhoneText text={part.text} /></span>;
     return <SmartLink key={index} href={href} onNavigate={onNavigate} className={part.source ? 'bb-cite' : 'bb-inline-link'} title={part.source?.title}>{part.text}</SmartLink>;
   })}</>;
 }
@@ -144,10 +155,12 @@ export function BayBayEmergencyCard({ safety, answer }: { safety: BayBayEmergenc
   const others = safety.actions.filter(action => action !== primary);
   // One id per card: a second emergency question in the same conversation gets its own label.
   const titleId = useId();
+  // The card's own buttons already call 911, Poison Control and 988: the instructions link only the numbers they lack.
+  const buttons = new Set(safety.actions.map(action => action.href.slice('tel:'.length)));
   return <section className="bb-emergency" role="alert" aria-labelledby={titleId} data-safety="emergency">
     <h3 id={titleId} className="bb-emergency__title">{safety.title || t('现在就打 911', 'Call 911 now')}</h3>
     <a className="bb-emergency__call" href={primary.href}><Phone aria-hidden="true" size={24} /><CallLabel label={primary.label} /></a>
-    {answer && <p className="bb-emergency__text">{answer}</p>}
+    {answer && <p className="bb-emergency__text"><BayBayPhoneText text={answer} except={buttons} /></p>}
     {others.length > 0 && <BayBayCallActions actions={others} className="bb-call-actions bb-call-actions--emergency" />}
   </section>;
 }
@@ -174,13 +187,22 @@ export function BayBayResourceCard({ safety, onNavigate }: { safety: BayBayProfe
  */
 export function BayBayNoticeBanner({ kind, text, resumesAt, actions, compact }: { kind: BayBayNoticeKind; text: string; resumesAt?: string; actions?: readonly BayBayCallAction[]; compact?: boolean }) {
   const { t, english } = useBayBayCopy();
-  if (compact) return <p className="bb-notice-label" data-notice={kind} translate="no">{text}</p>;
+  // The server writes notices in the reader's language (translate="no"); only their numbers become tap-to-call.
+  if (compact) return <p className="bb-notice-label" data-notice={kind} translate="no">{linkifyPhones(text)}</p>;
   const paused = bayBayNoticeIsPause(kind);
   // The resume time once: nothing when the server text already gives a time; "即 …" after its own "明天会恢复".
   const style = bayBayResumeStyle(text);
   const resume = resumesAt && style !== 'none' ? bayBayResumeLabel(resumesAt, english) : '';
   return <div className="bb-notice" data-notice={kind} role="status">
     {paused && <BayBayCallActions actions={actions?.length ? actions : BAYBAY_HELP_ACTIONS} />}
-    <p translate="no">{text}{resume && <span className="bb-notice__resume">{style === 'time' ? t(`即 ${resume}（湾区时间）`, ` That is ${resume} (Bay Area time).`) : t(`预计 ${resume}（湾区时间）恢复`, ` Back around ${resume} (Bay Area time).`)}</span>}</p>
+    <p translate="no">{linkifyPhones(text)}{resume && <span className="bb-notice__resume">{style === 'time' ? t(`即 ${resume}（湾区时间）`, ` That is ${resume} (Bay Area time).`) : t(`预计 ${resume}（湾区时间）恢复`, ` Back around ${resume} (Bay Area time).`)}</span>}</p>
   </div>;
+}
+
+/**
+ * The calm notice of the last 7 days before the AI cutoff (capabilities `pauseScheduled`, api #37): when BayBay pauses
+ * and that site information stays. No call buttons (nothing is wrong yet); its "拨打 911" is tap-to-call like any number.
+ */
+export function BayBayScheduledNotice({ text }: { text: string }) {
+  return <p className="bb-scheduled" data-notice="ai_pause_scheduled" role="note" translate="no">{linkifyPhones(text)}</p>;
 }

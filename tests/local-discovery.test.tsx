@@ -205,7 +205,11 @@ test('all detail pages server-render full content with matching canonical, OG, T
     const doc = page;
     assert.equal(doc.querySelectorAll('h1').length, 1, share.id);
     assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : share.title);
-    assert.equal(doc.querySelector('title')?.textContent, share.title + '｜BAYLINK');
+    // The <title> is the full title, or for one wider than a search result shows (38 display units with the brand) the
+    // reviewed short title + brand (I18N-SEO-11, seo.ts); the share titles keep the full one.
+    const width = [...share.title + '｜BAYLINK'].reduce((sum, character) => sum + (/[\u2e80-\uffff]/.test(character) ? 1 : 0.5), 0);
+    const short = item.kind === 'event' && item.event.shortTitle && width > 38 ? item.event.shortTitle : undefined;
+    assert.equal(doc.querySelector('title')?.textContent, (short ?? share.title) + '｜BAYLINK', share.id);
     assert.equal(canonical(doc), expectedUrl);
     assert.equal(meta(doc, 'og:url'), expectedUrl);
     assert.equal(meta(doc, 'og:type'), 'article');

@@ -13,7 +13,7 @@ const offer = (id: string) => {
   assert.ok(value, id);
   return value;
 };
-const board = (today: string) => renderToStaticMarkup(<FreebieBoard offers={octoberRefreshOffers} today={today} />);
+const board = (today: string) => renderToStaticMarkup(<FreebieBoard offers={octoberRefreshOffers} today={today} initialDates="all" sectionSize={Infinity} />);
 
 test('the reviewed batch has distinct identities, official source links and complete media', () => {
   assert.equal(octoberRefreshOffers.length, 7);

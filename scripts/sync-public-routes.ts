@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { guides } from '../src/data/guides';
 import { CARD_REGIONS, LANG_REDIRECT_EXCLUDED, ROUTES } from '../src/app/route-table';
+import { ACCOUNT_SHELL_FILE, ACCOUNT_SHELL_PATHS } from '../src/app/account-shell';
 
 // Vercel limits each route's src to 4096 characters; leave room for future syntax changes.
 export const PUBLIC_ROUTE_SRC_LIMIT = 3500;
@@ -60,10 +61,16 @@ export function syncPublicRoutes(routes: HostingRoute[], catalog: PublicCatalog,
 
 /** Sent with every response (route 0): the site uses none of these features. */
 export const PERMISSIONS_POLICY = 'camera=(), microphone=(), geolocation=(), payment=()';
+/** G78 / ENGSEC-12: HTTPS only, for two years, on every subdomain too, and eligible for the browsers' preload list
+ * (submitting baylink.us to hstspreload.org is the owner's step). Sent with every response (route 0). */
+export const STRICT_TRANSPORT_SECURITY = 'max-age=63072000; includeSubDomains; preload';
 /** public/reading-init.js runs before the first paint on every page and is not content-hashed (index.html names it): a short
  * browser cache that then revalidates, so a fix to the size or language redirect reaches readers within minutes. */
 export const READING_INIT_SRC = String.raw`^/reading-init\.js$`;
 export const READING_INIT_CACHE_CONTROL = 'public, max-age=600, must-revalidate';
+/** CW-02 / EVT11-05: the daily rebuild (api/daily-rebuild.ts, inert until the owner sets its env). Vercel cron times are UTC:
+ * 08:10 UTC is 00:10 PST / 01:10 PDT, always after Pacific midnight. Other cron entries in vercel.json are kept. */
+export const DAILY_REBUILD_CRON = { path: '/api/daily-rebuild', schedule: '10 8 * * *' };
 const LOCALE_PREFIX = '(en|zh-Hant)';
 /** Route-table pattern → hosting regex body: `/messages/:threadId` → `messages/[^/]+`. */
 const routeSource = (path: string) => path.slice(1).replace(/:[A-Za-z]+/g, '[^/]+');
@@ -102,6 +109,8 @@ export function tableHostingRoutes() {
   return {
     staticPages: { src: `^/(${pages.join('|')})/?$`, dest: '/$1.html' } as HostingRoute,
     spaShell: { src: `^/(?:${spa.join('|')})/?$`, dest: '/index.html' } as HostingRoute,
+    // G70: the signed-in pages' neutral first paint (src/app/account-shell.ts), placed before spaShell, which still lists them.
+    accountShell: { src: `^/(?:${ACCOUNT_SHELL_PATHS.map(routeSource).join('|')})/?$`, dest: `/${ACCOUNT_SHELL_FILE}` } as HostingRoute,
     spaHeaders: `^/(?:(?:en|zh-Hant)/)?(?:${spa.join('|')})/?$`,
     legacy, langRedirects,
   };
@@ -117,16 +126,20 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const functionConfig = config as typeof config & { functions: Record<string, { includeFiles: string; maxDuration: number }> };
   functionConfig.functions ||= {};
   for (const file of ['api/outing-page.ts', 'api/user-card-page.ts']) functionConfig.functions[file] = { includeFiles: 'dist/index.html', maxDuration: 15 };
+  const cronConfig = config as typeof config & { crons?: { path: string; schedule: string }[] };
+  cronConfig.crons = [...(cronConfig.crons || []).filter(cron => cron.path !== DAILY_REBUILD_CRON.path), DAILY_REBUILD_CRON];
   const catalog: PublicCatalog = { events: [], offers: [], openings: [], guides: guides.map(guide => guide.slug) };
   for (const item of localDiscoveries) catalog[item.kind === 'event' ? 'events' : item.kind === 'offer' ? 'offers' : 'openings'].push(discoveryShare(item).id);
   const table = tableHostingRoutes();
   const security = config.routes.find(route => (route.headers as Record<string, string> | undefined)?.['Content-Security-Policy']);
   if (!security) throw new Error('vercel.json lost its security headers route');
   (security.headers as Record<string, string>)['Permissions-Policy'] = PERMISSIONS_POLICY;
+  (security.headers as Record<string, string>)['Strict-Transport-Security'] = STRICT_TRANSPORT_SECURITY;
   const baseRoutes = config.routes
-    .filter(route => !route.src?.startsWith('^/en/') && !route.src?.startsWith('^/zh-Hant/') && !route.src?.startsWith('^/(en|zh-Hant)') && route.dest !== '/en/index.html' && route.dest !== '/zh-Hant/index.html' && route.dest !== '/this-week.html' && !isRedirect(route) && !String(route.dest || '').startsWith('/api/outing-page') && !String(route.dest || '').startsWith('/api/user-card-page'))
+    .filter(route => !route.src?.startsWith('^/en/') && !route.src?.startsWith('^/zh-Hant/') && !route.src?.startsWith('^/(en|zh-Hant)') && route.dest !== '/en/index.html' && route.dest !== '/zh-Hant/index.html' && route.dest !== '/this-week.html' && !isRedirect(route) && !String(route.dest || '').startsWith('/api/outing-page') && !String(route.dest || '').startsWith('/api/user-card-page') && route.dest !== table.accountShell.dest)
     .map(route => isStaticGroup(route) ? { ...route, ...table.staticPages } : isSpaShell(route) ? { ...route, ...table.spaShell } : isSpaHeaders(route) ? { ...route, src: table.spaHeaders } : route);
   if ([isStaticGroup, isSpaShell, isSpaHeaders].some(kind => baseRoutes.filter(kind).length !== 1)) throw new Error('vercel.json must keep exactly one static-page group, SPA shell route and SPA header route');
+  baseRoutes.splice(baseRoutes.findIndex(isSpaShell), 0, table.accountShell);
   config.routes = syncPublicRoutes(baseRoutes, catalog);
   config.routes.splice(1, 0,
     // Rewrites forward the original query. Do not interpolate an unnamed has capture.

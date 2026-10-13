@@ -93,7 +93,8 @@ export const api = {
   verifyPhoneCode: async (code: string) =>
     await api.request('/users/me/phone/verify', { method: 'POST', body: JSON.stringify({ code }) }),
   forgotPassword: async (email: string) =>
-    await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+    // G78: ask for the link with its token in the fragment (#token=), which the reset dialog reads (api #38).
+    await api.request('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email, resetLinkStyle: 'fragment' }) }),
   resetPassword: async (token: string, newPassword: string) =>
     await api.request('/auth/reset-password', { method: 'POST', body: JSON.stringify({ token, newPassword }) }),
   submitOfficialVerification: async (payload: Record<string, string | undefined>) =>

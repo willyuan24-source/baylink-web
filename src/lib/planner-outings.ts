@@ -1,8 +1,8 @@
-import { PLANNER_EVENTS, PLANNER_PLACES } from '../data/planner-catalog';
+import { PLANNER_EVENTS, PLANNER_PLACES } from './planner-source';
 import { eventOccursOn } from './event-calendar';
 import { buildItinerary, clockLabel, knownAdmissionUsd, placeMatchesFilters, timeEvidence } from './planner-itinerary';
 import { resolveTimeEvidence } from './planner-hours';
-import { distanceKm, todayInBay, validDay, type PlanDetails, type PlanFilters, type PlannerEvent, type PlannerPlace, type Stop, type StopSetting, type Suggestion } from './planner';
+import { distanceKm, todayInBay, validDay, type PlanDetails, type PlanFilters, type PlannerEvent, type PlannerPlace, type Stop, type StopSetting, type Suggestion } from './planner-core';
 
 /** budgetStatus describes admission evidence only, never an all-in budget guarantee. */
 export type CompleteOuting = { id: string; title: string; summary: string; date: string; stops: Stop[]; details: PlanDetails; notices: string[]; style: 'half-day' | 'full-day'; budgetStatus: 'known' | 'unknown' };

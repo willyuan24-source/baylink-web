@@ -1,5 +1,5 @@
 import { factsForStop } from './planner-itinerary';
-import { stopTitle, type PlanDetails, type Stop } from './planner';
+import { stopTitle, type PlanDetails, type Stop } from './planner-core';
 import { canonicalEventId } from './event-id';
 
 export type PlannerTravelEstimate = { ok: true; provider: 'google-maps'; from: Stop; to: Stop; travelMode: PlanDetails['travelMode']; durationMinutes: number; distanceMeters: number; warnings: string[]; departureAt: string; checkedAt: string };

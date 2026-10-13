@@ -1,10 +1,12 @@
-import { currentFreebies } from '../data/october-offers';
-import { PLANNER_PLACES } from '../data/planner-catalog';
-import { todayInBay, validDay, type Stop } from './planner';
+import { PLAN_OFFERS, PLANNER_PLACES } from './planner-source';
+import { todayInBay, validDay, type Stop } from './planner-core';
 import type { FreebieOffer } from '../components/FreebieBoard';
 
-/** Explicit venue links only. A displayed offer never automatically reduces a trip budget. */
-export function offersForStop(stop: Stop, date: string, offers: FreebieOffer[] = currentFreebies, asOf = todayInBay()) {
+/**
+ * Explicit venue links only. A displayed offer never automatically reduces a trip budget. The default list is the live offers
+ * linked to a planner place (data/october-offers.ts currentFreebies, kept in 行程's generated catalog: planner-source.ts).
+ */
+export function offersForStop(stop: Stop, date: string, offers: FreebieOffer[] = PLAN_OFFERS, asOf = todayInBay()) {
   const ids = stop.kind === 'place' ? PLANNER_PLACES.find(place => place.id === stop.id)?.offerIds || [] : [];
   const day = validDay(date) ? date : asOf;
   return offers.filter(offer => ids.includes(offer.id)).filter(offer => {

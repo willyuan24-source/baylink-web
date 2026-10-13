@@ -12,7 +12,7 @@ dom.window.HTMLElement.prototype.getClientRects = function () { return (this.isC
 const { render, fireEvent, cleanup, act } = await import('@testing-library/react');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { BayBayAssistantPlanCard, BayBayRequirements } = await import('../src/components/BayBayAssistantPlan');
-const { BayBayAnswer, BayBayCoverageSummary, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
+const { BayBayAnswer, BayBayCoverageSummary, BayBaySources } = await import('../src/components/BayBayDiscoveryResults');
 const { parseBayBayAssistantFields, safeAssistantSessionToken, bayBayAssistantPlanImport } = await import('../src/lib/baybay-assistant');
 const { fetchBayBayReply, bayBayFollowups } = await import('../src/lib/baybay-conversation');
 const { parseSharedPlan } = await import('../src/lib/planner');
@@ -258,7 +258,7 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
     evidence: [...fixture().evidence, { id: 'guide', kind: 'guide', title: 'Published guide', url: guidePath }, { id: 'private', kind: 'web', title: 'Private URL', url: 'http://127.0.0.1/' }, { id: 'invented', kind: 'guide', title: 'Invented guide', url: '/guides/not-published' }],
   };
   const response = { ...raw, ...parseBayBayAssistantFields(raw), retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const } };
-  const view = render(<><BayBayRetrievalLabel response={response} /><BayBayAnswer response={response} onNavigate={path => paths.push(path)} /><BayBayDiscoveryResults response={response} onNavigate={path => paths.push(path)} /></>);
+  const view = render(<><BayBayAnswer response={response} onNavigate={path => paths.push(path)} /><BayBaySources response={response} onNavigate={path => paths.push(path)} /></>);
   assert.ok(view.getByRole('link', { name: '[1]' })); assert.ok(view.getByRole('link', { name: '[3]' }));
   assert.equal(view.queryByRole('link', { name: '[2]' }), null); assert.equal(view.queryByRole('link', { name: '[4]' }), null); assert.equal(view.queryByRole('link', { name: '[5]' }), null);
   let modifiedWasPrevented = true;
@@ -267,10 +267,11 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
   fireEvent.click(view.getByRole('link', { name: '[1]' }), { ctrlKey: true }); assert.deepEqual(paths, []); assert.equal(modifiedWasPrevented, false);
   fireEvent.click(view.getByRole('link', { name: '[1]' })); assert.deepEqual(paths, [guidePath]);
   assert.equal(view.getByRole('link', { name: '[3]' }).getAttribute('target'), '_blank');
-  const region = view.getByRole('region', { name: '本次回答来源' });
-  assert.deepEqual(Array.from(region.querySelectorAll('li')).map(item => item.getAttribute('value')), ['1', '3']);
-  assert.match(view.container.textContent || '', /已检索站内与站外/);
-  assert.match(view.container.textContent || '', /实际引用：取得方式未记录 2 条/);
+  // One sources block (BBL-14): the cited sources inside, numbered like the answer; no "取得方式未记录" (BBL-09).
+  const region = view.getByRole('region', { name: '来源' });
+  assert.deepEqual(Array.from(region.querySelectorAll('.bb-sources__list > li')).map(item => item.getAttribute('value')), ['1', '3']);
+  assert.match(region.querySelector('summary')?.textContent || '', /^来源 · 已检索站内与站外/);
+  assert.doesNotMatch(view.container.textContent || '', /未记录/);
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
 });
 
@@ -463,7 +464,7 @@ test('source methods remain distinct and ISO dates display in Bay Area time acro
   ];
   const parsed = parseBayBayAssistantFields({ evidence: rows });
   const response = { ok: true, responseMode: 'assistant', answer: 'Sources [1] [2] [3] [4].', sources: rows.map(({ title, url }) => ({ title, url })), ...parsed };
-  const view = render(<BayBayDiscoveryResults response={response} />);
+  const view = render(<BayBaySources response={response} />);
   assert.match(view.container.textContent || '', /网页读取 · 2026-10-04（湾区日期）/);
   assert.match(view.container.textContent || '', /接口获取 · 2026-10-04（湾区日期）/);
   assert.match(view.container.textContent || '', /资料快照 · 2026-10-05/);
@@ -501,13 +502,13 @@ test('a completed web search with only site citations does not claim the answer 
     evidence: [{ id: 'guide', kind: 'guide' as const, title: 'Published guide', url: guidePath, verification: 'catalog' as const }],
     retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const },
   };
-  const view = render(<BayBayRetrievalLabel response={response} />);
-  assert.match(view.container.textContent || '', /已检索站内与站外 · 实际引用：站内快照 1 条/);
+  const view = render(<BayBaySources response={response} />);
+  assert.match(view.container.textContent || '', /已检索站内与站外 · 站内快照 1 条/);
   assert.doesNotMatch(view.container.textContent || '', /包含联网公开资料/);
   await act(async () => { await setLocale('en', false); });
-  assert.match(view.container.textContent || '', /Searched site and web · Cited evidence: Site snapshots: 1/);
+  assert.match(view.container.textContent || '', /Searched site and web · Site snapshots: 1/);
   await act(async () => { await setLocale('zh-Hant', false); });
-  assert.match(view.container.textContent || '', /實際引用：站內快照 1 條/);
+  assert.match(view.container.textContent || '', /已檢索站內與站外 · 站內快照 1 條/);
 });
 
 
@@ -521,17 +522,23 @@ test('official URLs in site snapshots are not presented as new web reads, includ
   ];
   const snapshot = { ok: true, responseMode: 'assistant', answer: 'Refer to this stored official entry [1].', sources: rows.slice(0, 1),
     ...parseBayBayAssistantFields({ evidence: rows.slice(0, 1) }), retrieval: { requestedMode: 'site' as const, scope: 'site' as const, webStatus: 'not_requested' as const } };
-  const view = render(<BayBayRetrievalLabel response={snapshot} />);
-  assert.match(view.container.textContent || '', /已检索站内资料 · 实际引用：站内快照 1 条/);
+  const view = render(<BayBaySources response={snapshot} />);
+  assert.match(view.container.textContent || '', /已检索站内资料 · 站内快照 1 条/);
   assert.doesNotMatch(view.container.textContent || '', /本次网页读取|站外来源|已核验/);
-  view.rerender(<BayBayRetrievalLabel response={{ ...snapshot, retrieval: { requestedMode: 'web', scope: 'site', webStatus: 'unavailable' } }} />);
-  assert.match(view.container.textContent || '', /站内快照 1 条.*本次联网未成功/);
+  view.rerender(<BayBaySources response={{ ...snapshot, retrieval: { requestedMode: 'web', scope: 'site', webStatus: 'unavailable' } }} />);
+  // The failed lookup stays visible above the folded sources; the summary still names the snapshot.
+  assert.match(view.container.querySelector('.bb-sources__note')?.textContent || '', /本次联网未成功/);
+  assert.match(view.container.querySelector('summary')?.textContent || '', /站内快照 1 条/);
   assert.doesNotMatch(view.container.textContent || '', /本次网页读取/);
   const mixed = { ...snapshot, sources: rows, ...parseBayBayAssistantFields({ evidence: rows }), retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const } };
-  view.rerender(<BayBayRetrievalLabel response={mixed} />);
-  for (const text of ['站内快照 1 条', '本次网页读取 1 条', '接口获取 1 条', '搜索线索（未读正文） 1 条', '取得方式未记录 1 条']) assert.ok(view.container.textContent?.includes(text));
+  view.rerender(<BayBaySources response={mixed} />);
+  for (const text of ['站内快照 1 条', '本次网页读取 1 条', '接口获取 1 条', '搜索线索（未读正文） 1 条']) assert.ok(view.container.textContent?.includes(text));
+  // A source with no recorded method is listed, but never labelled "取得方式未记录" (BBL-09).
+  assert.equal(view.container.querySelectorAll('.bb-sources__list > li').length, 5);
+  assert.doesNotMatch(view.container.textContent || '', /取得方式未记录/);
   await act(async () => { await setLocale('en', false); });
-  for (const text of ['Site snapshots: 1', 'Pages read this turn: 1', 'API retrievals: 1', 'Search leads (page not read): 1', 'Retrieval method not recorded: 1']) assert.ok(view.container.textContent?.includes(text));
+  for (const text of ['Site snapshots: 1', 'Pages read this turn: 1', 'API retrievals: 1', 'Search leads (page not read): 1']) assert.ok(view.container.textContent?.includes(text));
+  assert.doesNotMatch(view.container.textContent || '', /not recorded/);
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.match(view.container.textContent || '', /站內快照 1 條.*本次網頁讀取 1 條/);
 });

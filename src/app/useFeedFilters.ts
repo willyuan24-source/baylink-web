@@ -19,7 +19,9 @@ export function feedSearch(filters: FeedFilters, search = '') {
   if (filters.keyword) params.set('q', filters.keyword); else params.delete('q');
   if (filters.regionFilter !== '全部') params.set('region', filters.regionFilter); else params.delete('region');
   if (filters.feedType === 'client') params.set('type', 'client'); else params.delete('type');
-  return params.size ? `?${params.toString()}` : '';
+  // Not `params.size`: Safari before 17 (iOS 15/16, a build target) has no URLSearchParams.size, so every filter would drop.
+  const query = params.toString();
+  return query ? `?${query}` : '';
 }
 
 /** The URL owns feed filters, while overlays and other pages retain the last feed context. */

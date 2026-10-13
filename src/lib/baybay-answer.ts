@@ -24,7 +24,9 @@ export type BayBayAnswerFields = {
 export type BayBayBanner = { 'zh-Hans': string; 'zh-Hant': string; en: string };
 export type BayBayPause = { reason: string; kind: 'ai_daily_budget' | 'ai_paused'; banner: BayBayBanner; resumesAt?: string; actions: BayBayCallAction[] };
 export type BayBayReduced = { reason: string; kind: 'ai_budget_reduced'; banner: BayBayBanner; resumesAt?: string };
-export type BayBayCapabilities = { pause: BayBayPause | null; reduced: BayBayReduced | null };
+/** The AI cutoff announced ahead (api #37: `pauseScheduled`, or `aiUntil` alone): only inside its last 7 days. */
+export type BayBayScheduledPause = { at: string; banner: BayBayBanner };
+export type BayBayCapabilities = { pause: BayBayPause | null; reduced: BayBayReduced | null; scheduled: BayBayScheduledPause | null };
 
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const clean = (v: unknown, max: number): string | undefined => {
@@ -124,21 +126,68 @@ function banner(v: unknown): BayBayBanner | undefined {
   return zh && hant && en ? { 'zh-Hans': zh, 'zh-Hant': hant, en } : undefined;
 }
 
-/** `pause` / `reduced` from the capabilities endpoint. Unknown shapes mean "not paused" — the answer's own `notice` still shows. */
-export function parseBayBayCapabilities(input: unknown): BayBayCapabilities {
-  const none: BayBayCapabilities = { pause: null, reduced: null };
+/** The cutoff is announced in its last 7 days only (api `lib/aiBudget.js` SCHEDULED_PAUSE_DAYS). */
+export const BAYBAY_SCHEDULED_PAUSE_DAYS = 7;
+const isoTime = (v: unknown) => typeof v === 'string' && ISO_TIME.test(v) && Number.isFinite(Date.parse(v)) ? v : undefined;
+
+/**
+ * The api's own `pauseScheduled` wording for a cutoff at `at` (Pacific date and time), for a server that sends only
+ * `aiUntil`: "AI 助手预计 10月29日（周四）17:00 起暂停；之后仍可查看站内资料，紧急情况请直接拨打 911。"
+ */
+export function bayBayScheduledPauseBanner(at: string): BayBayBanner {
+  const date = new Date(at);
+  const part = (options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', ...options }).format(date);
+  const month = Number(part({ month: 'numeric' })), day = Number(part({ day: 'numeric' }));
+  const weekday = '日一二三四五六'[['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(part({ weekday: 'short' }))];
+  const clock = part({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+  return {
+    'zh-Hans': `AI 助手预计 ${month}月${day}日（周${weekday}）${clock} 起暂停；之后仍可查看站内资料，紧急情况请直接拨打 911。`,
+    'zh-Hant': `AI 助手預計 ${month}月${day}日（週${weekday}）${clock} 起暫停；之後仍可查看站內資料，緊急情況請直接撥打 911。`,
+    en: `The AI assistant is scheduled to pause from ${part({ weekday: 'short' })}, ${part({ month: 'short' })} ${day}, ${part({ hour: 'numeric', minute: '2-digit' })} PT. Site information stays available; in an emergency, call 911.`,
+  };
+}
+
+/** `pauseScheduled` (or `aiUntil` alone) while the cutoff is ahead and at most 7 days away; otherwise null. */
+function scheduledPause(input: Record<string, unknown>, now: number): BayBayScheduledPause | null {
+  const announced = record(input.pauseScheduled) && input.pauseScheduled.kind === 'ai_pause_scheduled' ? input.pauseScheduled : null;
+  const at = isoTime(announced?.at) || isoTime(input.aiUntil);
+  if (!at) return null;
+  const ms = Date.parse(at);
+  if (!(ms > now) || ms - now > BAYBAY_SCHEDULED_PAUSE_DAYS * 86_400_000) return null;
+  return { at, banner: banner(announced?.banner) || bayBayScheduledPauseBanner(at) };
+}
+
+/**
+ * `pause` / `reduced` / the scheduled cutoff from the capabilities endpoint. Unknown shapes mean "not paused" — the
+ * answer's own `notice` still shows. A pause says everything, so it carries no scheduled notice.
+ */
+export function parseBayBayCapabilities(input: unknown, now = Date.now()): BayBayCapabilities {
+  const none: BayBayCapabilities = { pause: null, reduced: null, scheduled: null };
   if (!record(input)) return none;
-  const pause = input.pause, reduced = input.reduced;
+  const pause = input.pause, reduced = input.reduced, scheduled = scheduledPause(input, now);
   if (record(pause) && (pause.kind === 'ai_daily_budget' || pause.kind === 'ai_paused')) {
     const text = banner(pause.banner);
-    if (text) return { pause: { reason: clean(pause.reason, 60) || pause.kind, kind: pause.kind, banner: text, ...resumesAt(pause.resumesAt), actions: callActions(pause.actions) }, reduced: null };
+    if (text) return { pause: { reason: clean(pause.reason, 60) || pause.kind, kind: pause.kind, banner: text, ...resumesAt(pause.resumesAt), actions: callActions(pause.actions) }, reduced: null, scheduled: null };
   }
   if (record(reduced) && reduced.kind === 'ai_budget_reduced') {
     const text = banner(reduced.banner);
-    if (text) return { pause: null, reduced: { reason: clean(reduced.reason, 60) || reduced.kind, kind: 'ai_budget_reduced', banner: text, ...resumesAt(reduced.resumesAt) } };
+    if (text) return { pause: null, reduced: { reason: clean(reduced.reason, 60) || reduced.kind, kind: 'ai_budget_reduced', banner: text, ...resumesAt(reduced.resumesAt) }, scheduled };
   }
-  return none;
+  return { ...none, scheduled };
 }
+
+/**
+ * The governance refusals in the reader's language (api `lib/aiBudget.js`; BBENG-04, CODE-API-05), so a quota message
+ * never depends on the server's copy or an older server: `daily` ones cannot be retried as asked today (api
+ * `DAILY_REFUSALS`); `siteRetry` ones refuse only the web lookup, so the same question can be asked again site only.
+ */
+export const BAYBAY_QUOTA_ERRORS: Record<string, { zh: string; en: string; daily: boolean; siteRetry?: boolean }> = {
+  AI_DAILY_LIMIT: { zh: '今日 AI 额度已用完，请明天再试；仍可浏览站内资料。', en: "You have used today's AI answers. Please try again tomorrow; site information is still available.", daily: true },
+  AI_DAILY_BUDGET: { zh: '今日 AI 名额已满，明天会恢复；站内资料仍可浏览。', en: "Today's AI capacity is used up and resets tomorrow. Site information is still available.", daily: true },
+  AI_WEB_BUDGET: { zh: '今天 AI 用量较高，暂停联网查询；站内资料仍可使用。', en: 'Web lookups are paused for today because AI use is high. Site information is still available.', daily: true, siteRetry: true },
+  AI_CONCURRENCY_LIMIT: { zh: 'BayBay 正忙，请稍后再试。', en: 'BayBay is busy. Please try again shortly.', daily: false },
+  AI_QUOTA_UNAVAILABLE: { zh: 'AI 额度暂时无法确认，请稍后再试；站内资料仍可浏览。', en: 'AI capacity cannot be checked right now. Please try again shortly; site information is still available.', daily: false },
+};
 
 /** A pause notice (daily budget or paused) leads with 911 · 211; a reduced-budget notice has no call buttons. */
 export const bayBayNoticeIsPause = (kind: BayBayNoticeKind): boolean => kind !== 'ai_budget_reduced';

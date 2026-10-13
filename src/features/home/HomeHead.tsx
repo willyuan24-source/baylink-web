@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { isHomeQuestion } from '../../lib/home-query';
 import { longDate, monthDay } from './home-model';
+import { dateScope } from '../../lib/date-guard';
 
 export type HomeHeadProps = {
   today: string;
@@ -40,9 +41,9 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
     t(`每条附官方来源，${monthDay(checkedAt)} 核对`, `official sources, checked ${monthDay(checkedAt)}`),
   ];
   return <header className="home-head">
-    <p className="home-head__dateline"><span>{t('湾区', 'Bay Area')}</span> · <time dateTime={today}>{longDate(today, english)}</time></p>
+    <p className="home-head__dateline" {...dateScope('day')}><span>{t('湾区', 'Bay Area')}</span> · <time dateTime={today}>{longDate(today, english)}</time></p>
     <h1 className="home-head__title">{t('这个周末，湾区去哪？', 'Where to go in the Bay this weekend?')}</h1>
-    <p className="home-head__lede">{facts.join(' · ')}</p>
+    <p className="home-head__lede" {...dateScope('weekend')}>{facts.join(' · ')}</p>
     <form className="home-ask" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
       <img className="home-ask__otter" src="/brand/otter.svg" alt="" width={28} height={28} decoding="async" />

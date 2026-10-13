@@ -9,6 +9,7 @@ export const englishScopeLoaders = {
   "guide-search": () => import("./english-scopes/guide-search.json"),
   "discovery": () => import("./english-scopes/discovery.json"),
   "planning": () => import("./english-scopes/planning.json"),
+  "plan-catalog": () => import("./english-scopes/plan-catalog.json"),
   "explore": () => import("./english-scopes/explore.json"),
   "guide:bay-area-rental-scam-guide": () => import("./english-scopes/guide-bay-area-rental-scam-guide.json"),
   "guide:bay-area-newcomer-first-month-checklist": () => import("./english-scopes/guide-bay-area-newcomer-first-month-checklist.json"),

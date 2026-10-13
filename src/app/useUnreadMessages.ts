@@ -1,59 +1,28 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import type { Socket } from 'socket.io-client';
-import { api } from '../lib/api';
 import type { UserData } from '../lib/types';
+import { conversationIdentity, refreshConversations, useConversationFeed } from './conversation-feed';
 
-/** Opening the inbox is not reading a conversation. Only the server's read boundary clears it. */
+/**
+ * Opening the inbox is not reading a conversation. Only the server's read boundary clears it. The list comes from the
+ * one shared /conversations poll (conversation-feed.ts, G91), every 30 s here; a new message or a reconnect refreshes it.
+ * During a network interruption the last confirmed count stays.
+ */
 export function useUnreadMessages(user: UserData | null, socket: Socket | null): number {
-  const identity = user?.id && user.token ? `${user.id}:${user.token}` : '';
-  const [result, setResult] = useState({ identity: '', count: 0 });
-
+  const identity = conversationIdentity(user);
+  const feed = useConversationFeed(identity, 30_000);
   useEffect(() => {
-    if (!identity) return;
-    const controller = new AbortController();
-    let running = false;
-    let queued = false;
-    const refresh = async () => {
-      if (controller.signal.aborted || document.visibilityState === 'hidden') return;
-      if (running) { queued = true; return; }
-      running = true;
-      try {
-        const rows: unknown = await api.request('/conversations', { signal: controller.signal });
-        if (controller.signal.aborted || !Array.isArray(rows)) return;
-        const counts = new Map<string, number>();
-        for (const row of rows) {
-          if (row && typeof row.id === 'string' && typeof row.unreadCount === 'number' && Number.isSafeInteger(row.unreadCount) && row.unreadCount >= 0) {
-            counts.set(row.id, row.unreadCount);
-          }
-        }
-        setResult({ identity, count: [...counts.values()].reduce((total, count) => total + count, 0) });
-      } catch {
-        // Keep the last confirmed count during a network interruption.
-      } finally {
-        running = false;
-        if (queued && !controller.signal.aborted) { queued = false; void refresh(); }
-      }
-    };
-    const onRefresh = () => { void refresh(); };
-    onRefresh();
-    const timer = window.setInterval(onRefresh, 30_000);
-    document.addEventListener('visibilitychange', onRefresh);
-    window.addEventListener('focus', onRefresh);
-    window.addEventListener('online', onRefresh);
-    window.addEventListener('baylink:messages-read', onRefresh);
-    socket?.on('new_message', onRefresh);
-    socket?.on('connect', onRefresh);
-    return () => {
-      controller.abort();
-      window.clearInterval(timer);
-      document.removeEventListener('visibilitychange', onRefresh);
-      window.removeEventListener('focus', onRefresh);
-      window.removeEventListener('online', onRefresh);
-      window.removeEventListener('baylink:messages-read', onRefresh);
-      socket?.off('new_message', onRefresh);
-      socket?.off('connect', onRefresh);
-    };
+    if (!identity || !socket) return;
+    socket.on('new_message', refreshConversations);
+    socket.on('connect', refreshConversations);
+    return () => { socket.off('new_message', refreshConversations); socket.off('connect', refreshConversations); };
   }, [identity, socket]);
-
-  return result.identity === identity ? result.count : 0;
+  return useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const row of feed.rows || []) {
+      const item = row as { id?: unknown; unreadCount?: unknown } | null;
+      if (item && typeof item.id === 'string' && typeof item.unreadCount === 'number' && Number.isSafeInteger(item.unreadCount) && item.unreadCount >= 0) counts.set(item.id, item.unreadCount);
+    }
+    return [...counts.values()].reduce((total, count) => total + count, 0);
+  }, [feed.rows]);
 }

@@ -103,7 +103,8 @@ export const ROUTES: readonly AppRoute[] = [
   { path: '/offers/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
   { path: '/openings/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
   { path: '/ai-in-the-bay', page: 'ai', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY },
-  { path: '/plan', page: 'plan', section: 'events', hosting: 'page', sitemap: true, english: PLANNING, baybay: true, release: true },
+  // 行程's header needs only 'ui'; its workspace loads the planner catalog's own pack with the catalog (WEB-PLAN-DATA).
+  { path: '/plan', page: 'plan', section: 'events', hosting: 'page', sitemap: true, baybay: true, release: true },
   { path: '/together', page: 'together', section: 'events', hosting: 'spa', english: PLANNING, baybay: true },
   { path: '/recommend', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 } },
   { path: '/tools', page: 'tools', section: 'guides', hosting: 'page', sitemap: true },

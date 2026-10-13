@@ -1,7 +1,7 @@
 import type { Guide, GuideCategory } from '../data/guides';
 import { guideBlockText } from './guide-content';
 import { getLocale, translateEditorial, type Locale } from '../i18n/locale';
-import { normalizeSearchText } from './search-synonyms';
+import { normalizeSearchQuery, normalizeSearchText } from './search-synonyms';
 
 /** Synonyms live in search-synonyms.ts (G17); this name stays for the callers that import it. */
 export const normalizeGuideQuery = (text: string): string => normalizeSearchText(text);
@@ -59,7 +59,8 @@ export const searchGuides = (
   guides: Guide[],
   { query = '', category = 'all', locale = getLocale() }: { query?: string; category?: 'all' | GuideCategory; locale?: Locale } = {},
 ): GuideSearchResult[] => {
-  const tokens = [...new Set(normalizeGuideQuery(query).split(/\s+/).filter(Boolean))];
+  // The query keeps each synonym a word of its own (normalizeSearchQuery): 老人送餐 = senior AND 送餐.
+  const tokens = [...new Set(normalizeSearchQuery(query).split(/\s+/).filter(Boolean))];
   const scored = guides.filter((guide) => category === 'all' || guide.category === category).flatMap((guide) => {
     const published = indexed(guide);
     const translated = locale === 'zh-Hans' ? undefined : index(passagesFor(translateEditorial(guide, locale)));

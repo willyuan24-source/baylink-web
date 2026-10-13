@@ -1,4 +1,4 @@
-import { validDay } from './planner';
+import { validDay } from './planner-core';
 
 export type ImportedEvent = {
   id: string; title: string; date: string; startTime: string; endTime: string;

@@ -1,5 +1,6 @@
 import { translateText, useLocale } from '../i18n/locale';
 import type { BayBayPlanDraft } from '../lib/baybay-plan-handoff';
+import { bayBayDayLabel, bayBayPlaceLabel } from '../features/baybay/requirement-labels';
 
 export function BayBayImportedRequirements({ draft, requested }: { draft: BayBayPlanDraft | null; requested: boolean }) {
   const locale = useLocale(), t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
@@ -11,8 +12,10 @@ export function BayBayImportedRequirements({ draft, requested }: { draft: BayBay
     const hours = Number(preference.match(/:(\d+)-minutes$/u)?.[1]) / 60;
     return t(`${hours} 小时（时长偏好）`, `${hours} ${hours === 1 ? 'hour' : 'hours'} (duration preference only)`);
   }).join(' · ');
+  // "10/17 周六" and "东湾", never the API's own values ("2026-10-17", "east-bay"; BBL-12).
+  const day = bayBayDayLabel(state.date || draft.date, locale) || state.date || draft.date;
   const rows = [
-    [t('日期', 'Date'), state.date || draft.date], [t('目的地', 'Destination'), state.city || state.region],
+    [t('日期', 'Date'), day], [t('目的地', 'Destination'), bayBayPlaceLabel(state, locale)],
     [t('同行人数', 'People'), state.partySize], [t('孩子年龄', 'Child ages'), state.childAges?.map(age => t(`${age} 岁`, `${age} years`)).join(', ')],
     [t('原始预算', 'Original budget'), state.budget != null ? `$${state.budget} · ${state.budgetScope === 'total' ? t('全组', 'whole group') : state.budgetScope === 'person' ? t('每人', 'per person') : t('范围待确认', 'scope unconfirmed')}` : ''],
     [t('交通', 'Travel'), state.travelMode === 'transit' ? t('公共交通', 'Public transit') : state.travelMode === 'walk' ? t('步行', 'Walk') : state.travelMode === 'drive' ? t('开车', 'Drive') : ''],
@@ -22,7 +25,7 @@ export function BayBayImportedRequirements({ draft, requested }: { draft: BayBay
     [t('最多站数', 'Stop limit'), state.maxStops], [t('避开城市', 'Excluded cities'), state.excludedCities?.join(', ')],
     [t('门票', 'Admission'), state.freeOnly ? t('只看免费', 'Free only') : ''], [t('场景', 'Setting'), state.setting === 'indoor' ? t('室内', 'Indoors') : state.setting === 'outdoor' ? t('户外', 'Outdoors') : state.setting === 'mixed' ? t('室内与户外', 'Indoors and outdoors') : ''],
   ].filter(([, value]) => value !== undefined && value !== null && value !== '');
-  const brief = [state.date || draft.date, state.partySize ? t(`${state.partySize} 人`, `${state.partySize} people`) : '', durationSummary, rows.find(([label]) => label === t('原始预算', 'Original budget'))?.[1]].filter(Boolean).join(' · ');
+  const brief = [day, state.partySize ? t(`${state.partySize} 人`, `${state.partySize} people`) : '', durationSummary, rows.find(([label]) => label === t('原始预算', 'Original budget'))?.[1]].filter(Boolean).join(' · ');
   return <section className="baybay-imported-requirements" aria-label={t('BayBay 原对话条件', 'Original BayBay requirements')} translate="no">
     <h3>{t('BayBay 原对话条件', 'Original BayBay requirements')}</h3>
     <p>{brief}</p>

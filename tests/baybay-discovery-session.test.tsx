@@ -14,7 +14,7 @@ const { render, fireEvent, cleanup, act } = await import('@testing-library/react
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 // The image cards are their own chunk (loaded when the panel opens); load it before rendering restored answers.
 await (await import('../src/features/baybay/cards-loader')).loadBayBayCards();
-const { BayBayAnswer, BayBayDiscoveryResults, BayBayRetrievalLabel } = await import('../src/components/BayBayDiscoveryResults');
+const { BayBayAnswer, BayBayDiscoveryResults, BayBaySources } = await import('../src/components/BayBayDiscoveryResults');
 const { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates } = await import('../src/lib/planner-web-search');
 const { guides } = await import('../src/data/guides');
 const { setLocale } = await import('../src/i18n/locale');
@@ -168,7 +168,7 @@ test('legacy or invalid response dates are not inferred from the answer when sav
 test('BayBay retrieval dates use Pacific time, preserve date-only values and label invalid values unknown', () => {
   for (const [checkedAt, expected] of [['2026-10-02T02:00:00Z', '2026-10-01（湾区时间）'], ['2026-10-01', '2026-10-01'], ['2026-02-30', '查询日期未知']]) {
     const response = discovery(); response.retrieval!.checkedAt = checkedAt;
-    const view = render(<BayBayRetrievalLabel response={response} />);
+    const view = render(<BayBaySources response={response} />);
     assert.ok(view.container.textContent!.includes(expected));
     view.unmount();
   }
@@ -177,7 +177,7 @@ test('BayBay retrieval dates use Pacific time, preserve date-only values and lab
 test('failed location or date verification is explained without technical model details or usable web candidates', () => {
   const response = discovery();
   response.retrieval = { ...response.retrieval!, webStatus: 'verification_failed', model: 'private-model-id', configuredModel: 'configured-model-id' };
-  const view = render(<><BayBayRetrievalLabel response={response} /><BayBayDiscoveryResults response={response} /></>);
+  const view = render(<><BayBayDiscoveryResults response={response} /><BayBaySources response={response} /></>);
   assert.match(view.getByRole('status').textContent!, /未通过地点或日期检查/);
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
   assert.doesNotMatch(view.container.textContent!, /private-model-id|configured-model-id|站外来源 1 条/);
@@ -187,7 +187,7 @@ test('catalog answers render safe numbered official citations without web candid
   const response: GuideChatResponse = { ...discovery(), responseMode: 'catalog', answer: '<img src=x onerror=alert(1)> Catalog answer [1] [2] [99]',
     catalogSources: [{ title: 'Unsafe', url: 'javascript:alert(1)' }, { title: 'Official event', url: 'https://www.sfmta.com/calendar' }],
     retrieval: { requestedMode: 'smart', scope: 'site', webStatus: 'not_requested', catalogCheckedAt: '2026-10-04' } };
-  const view = render(<><BayBayRetrievalLabel response={response} /><BayBayAnswer response={response} /><BayBayDiscoveryResults response={response} /></>);
+  const view = render(<><BayBayAnswer response={response} /><BayBaySources response={response} /></>);
   assert.match(view.container.textContent!, /资料核对 2026-10-04/);
   assert.ok(view.getByRole('region', { name: '站内收录官方来源' }));
   assert.equal(view.getByRole('link', { name: '[2]' }).getAttribute('href'), 'https://www.sfmta.com/calendar');
@@ -198,7 +198,7 @@ test('catalog answers render safe numbered official citations without web candid
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
   assert.doesNotMatch(view.container.textContent!, /本次联网来源|站外来源|Museum candidate/);
   for (const link of view.getAllByRole('link')) assert.equal(link.getAttribute('rel'), 'noopener noreferrer');
-  view.rerender(<><BayBayRetrievalLabel response={{ ...response, retrieval: { ...response.retrieval!, webStatus: 'verification_failed' } }} /><BayBayDiscoveryResults response={response} /></>);
+  view.rerender(<BayBaySources response={{ ...response, retrieval: { ...response.retrieval!, webStatus: 'verification_failed' } }} />);
   assert.match(view.getByRole('status').textContent!, /以下显示站内参考资料/);
   assert.ok(view.getByRole('region', { name: '站内收录官方来源' }), 'failed web verification still shows the catalog fallback');
 });
@@ -207,7 +207,7 @@ test('empty or unsafe catalog sources leave plain answers and never promote stra
   for (const catalogSources of [[], [{ title: 'Private', url: 'http://127.0.0.1/' }], [{ title: 'Credentials', url: 'https://user:password@example.com/' }]]) {
     const response: GuideChatResponse = { ...discovery(), responseMode: 'catalog', catalogSources,
       retrieval: { requestedMode: 'smart', scope: 'site', webStatus: 'not_requested', catalogCheckedAt: '2026-02-30' } };
-    const view = render(<><BayBayRetrievalLabel response={response} /><BayBayAnswer response={response} /><BayBayDiscoveryResults response={response} /></>);
+    const view = render(<><BayBayAnswer response={response} /><BayBaySources response={response} /></>);
     assert.match(view.container.textContent!, /实际来源介绍 \[1\]/);
     assert.doesNotMatch(view.container.textContent!, /2026-02-30|本次联网来源|Museum candidate/);
     assert.equal(view.queryAllByRole('link').length, 0);
@@ -215,7 +215,7 @@ test('empty or unsafe catalog sources leave plain answers and never promote stra
     view.unmount();
   }
   const response: GuideChatResponse = { ...discovery(), responseMode: 'catalog', catalogSources: discovery().sources };
-  const view = render(<><BayBayAnswer response={response} /><BayBayDiscoveryResults response={response} /></>);
+  const view = render(<><BayBayAnswer response={response} /><BayBaySources response={response} /></>);
   assert.equal(view.queryAllByRole('link').length, 0, 'a contradictory scope must not become a catalog or web citation');
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
 });
@@ -225,7 +225,7 @@ test('catalog plus web keeps answer citations bound to catalog sources and web s
     catalogSources: [{ title: 'Catalog event', url: 'https://www.sfmta.com/calendar' }],
     webSearchReferences: [{ title: 'Supplemental result', url: 'https://www.sftravel.com/events' }, { title: 'Another result', url: 'https://fleetweeksf.org/' }],
     retrieval: { requestedMode: 'web', scope: 'site+web', webStatus: 'completed', catalogCheckedAt: '2026-10-02', checkedAt: '2026-10-05T02:00:00Z', model: 'private-model' } };
-  const view = render(<><BayBayRetrievalLabel response={response} /><BayBayAnswer response={response} /><BayBayDiscoveryResults response={response} /></>);
+  const view = render(<><BayBayAnswer response={response} /><BayBaySources response={response} /></>);
   assert.match(view.container.textContent!, /站内活动与去处资料 · 资料核对 2026-10-02/);
   assert.equal(view.getByRole('link', { name: '[1]' }).getAttribute('href'), 'https://www.sfmta.com/calendar');
   assert.equal(view.queryByRole('link', { name: '[2]' }), null, 'web source 2 must not bind to catalog citation 2');
@@ -249,7 +249,7 @@ test('supplementary catalog links reject unsafe URLs and never replace absent ca
       { title: 'Script', url: 'javascript:alert(1)' }, { title: 'Local', url: 'http://127.0.0.1/' },
       { title: 'Credentials', url: 'https://user:password@example.com/' }, { title: 'Safe <img src=x>', url: 'https://www.sftravel.com/events' },
     ], retrieval: { requestedMode: 'web', scope: 'site+web', webStatus: 'completed', checkedAt: '2026-02-30' } };
-  const view = render(<><BayBayAnswer response={response} /><BayBayDiscoveryResults response={response} /></>);
+  const view = render(<><BayBayAnswer response={response} /><BayBaySources response={response} /></>);
   assert.equal(view.queryByRole('link', { name: '[1]' }), null);
   assert.equal(view.queryByRole('region', { name: '站内收录官方来源' }), null);
   assert.equal(view.getAllByRole('link').length, 1);
@@ -262,7 +262,7 @@ test('supplementary catalog links reject unsafe URLs and never replace absent ca
     { retrieval: { ...response.retrieval!, webStatus: 'verification_failed' as const } },
     { webSearchReferences: [{ title: 'Unsafe only', url: 'http://localhost/' }] },
   ]) {
-    view.rerender(<BayBayDiscoveryResults response={{ ...response, ...change }} />);
+    view.rerender(<BayBaySources response={{ ...response, ...change }} />);
     assert.equal(view.queryByRole('region', { name: '联网补充来源' }), null);
     assert.equal(view.queryAllByRole('link').length, 0);
   }

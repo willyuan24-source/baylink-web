@@ -3,7 +3,8 @@ import { Resvg } from '@resvg/resvg-js';
 import { create as createFont } from 'fontkit';
 import { JSDOM } from 'jsdom';
 import QRCode from 'qrcode';
-import { PERKS_POSTER_CHECKED, perksPosters, type PerksPosterCard, type PerksPoster } from '../src/data/perks-posters';
+import sharp from 'sharp';
+import { PERKS_POSTER_CHECKED, PERKS_POSTER_RUNGS, perksPosterRung, perksPosters, type PerksPosterCard, type PerksPoster } from '../src/data/perks-posters';
 import { birthdayPerks2026, birthdayPerkUpdates2026 } from '../src/data/birthday-perks-2026';
 import { everydayPerks2026 } from '../src/data/everyday-perks-2026';
 import { targetLowesOffers2026 } from '../src/data/retail-target-lowes-2026';
@@ -125,6 +126,9 @@ for (const [index, poster] of perksPosters.entries()) {
   }
   const png = new Resvg(document.documentElement.outerHTML, { font: { loadSystemFonts: false } }).render().asPng();
   await writeFile(`public${poster.path}`, png);
+  // G72: the pages show 480 / 800 WebP rungs (the 800 at most 60 KB for phones); the PNG stays the download. Resize and
+  // re-encode only, at the image ladder's poster quality floor (72) so the small type stays legible.
+  for (const width of PERKS_POSTER_RUNGS) await writeFile(`public${perksPosterRung(poster, width)}`, await sharp(png).resize({ width }).webp({ quality: 72, effort: 6 }).toBuffer());
   dom.window.close();
 }
 await writeFile('public/social/perks-2026-10/manifest.json', JSON.stringify({ brand: 'BAYLINK', checked: PERKS_POSTER_CHECKED, width: 1080, height: 1350, note: 'Dated editorial snapshot. Source and eligibility details live in the linked guides.', posters: perksPosters.map(poster => ({ ...poster, cards: poster.cards.map(item => ({ ...item, sourceUrl: sources.get(item.sourceId)!.sourceUrl })) })) }, null, 2));
