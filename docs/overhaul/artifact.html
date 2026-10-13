@@ -1,0 +1,365 @@
+<title>BAYLINK 接手指南</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (max 46rem) on bay-fog ground; the scorecard is a list of 0–10 rulers with the 8-point line marked in International Orange. */
+:root {
+  --bg: #f1f5f4;
+  --surface: #ffffff;
+  --ink: #13272c;
+  --muted: #586d71;
+  --line: #d3dedd;
+  --bay: #0e5c64;
+  --bay-soft: #dcebea;
+  --accent: #c0461b;
+  --good: #2c7a4d;
+  --warn: #9a6410;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: 2.25rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1618; --surface: #132226; --ink: #e2ecea; --muted: #94a8aa; --line: #26383c;
+    --bay: #63b5ba; --bay-soft: #1a3236; --accent: #ee7a4b; --good: #6cc38f; --warn: #e2a64a;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0c1618; --surface: #132226; --ink: #e2ecea; --muted: #94a8aa; --line: #26383c;
+  --bay: #63b5ba; --bay-soft: #1a3236; --accent: #ee7a4b; --good: #6cc38f; --warn: #e2a64a;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: var(--step-0); line-height: 1.7;
+  padding-inline: 16px; padding-block: 24px 64px;
+}
+.wrap { max-width: 46rem; margin: 0 auto; display: grid; gap: 2.75rem; }
+h1, h2, h3 { line-height: 1.3; text-wrap: balance; margin: 0; }
+h1 { font-size: var(--step-3); font-weight: 800; letter-spacing: 0.01em; }
+h1 .latin { font-family: var(--font-display); }
+h2 { font-size: var(--step-2); font-weight: 700; padding-bottom: 0.5rem; border-bottom: 2px solid var(--ink); }
+h3 { font-size: var(--step-1); font-weight: 700; }
+p { margin: 0; }
+a { color: var(--bay); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.875em; overflow-wrap: anywhere; }
+code { background: var(--bay-soft); padding: 0.05em 0.35em; border-radius: 4px; }
+.muted { color: var(--muted); }
+.small { font-size: var(--step--1); }
+section { display: grid; gap: 1.1rem; min-width: 0; }
+ul, ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.45rem; }
+
+/* hero */
+.eyebrow { font-size: var(--step--1); letter-spacing: 0.08em; color: var(--muted); }
+.hero { display: grid; gap: 1.25rem; }
+.trend { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 1.25rem; font-family: var(--font-display); }
+.trend .pt { display: grid; gap: 0.1rem; }
+.trend .num { font-size: 2.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; color: var(--muted); }
+.trend .pt.now .num { color: var(--accent); font-size: 3.4rem; }
+.trend .lab { font-family: var(--font-body); font-size: var(--step--1); color: var(--muted); }
+.trend .arrow { font-size: 1.6rem; color: var(--muted); padding-bottom: 0.6rem; }
+.live { display: grid; gap: 0.5rem; padding: 1rem 1.1rem; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+.live li::marker { color: var(--good); }
+
+/* scorecard */
+.legend { display: flex; flex-wrap: wrap; gap: 0.4rem 1.2rem; font-size: var(--step--1); color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
+.sw { width: 18px; height: 8px; border-radius: 2px; background: var(--bay); display: inline-block; }
+.sw.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.sw.tick { width: 2px; height: 14px; background: var(--accent); border-radius: 0; }
+.score { display: grid; border-top: 1px solid var(--line); }
+.row { display: grid; grid-template-columns: minmax(0, 13rem) minmax(0, 1fr) 3rem; gap: 0.25rem 1rem; align-items: center; padding-block: 0.65rem; border-bottom: 1px solid var(--line); }
+.row .name { font-weight: 600; min-width: 0; }
+.row .name .w { font-weight: 400; color: var(--muted); font-size: var(--step--1); margin-left: 0.35rem; font-variant-numeric: tabular-nums; }
+.row .why { grid-column: 1 / -1; font-size: var(--step--1); color: var(--muted); }
+.row .val { font-family: var(--font-display); font-weight: 700; font-size: 1.15rem; text-align: right; font-variant-numeric: tabular-nums; }
+.row .hist { font-size: var(--step--1); color: var(--muted); font-variant-numeric: tabular-nums; }
+.ruler { position: relative; height: 12px; background: var(--bay-soft); border-radius: 3px; }
+.ruler .fill { position: absolute; inset: 0 auto 0 0; background: var(--bay); border-radius: 3px; }
+.ruler .then { position: absolute; top: 50%; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 2px var(--surface); }
+.ruler .eight { position: absolute; left: 80%; top: -4px; bottom: -4px; width: 2px; background: var(--accent); }
+.row.total { background: var(--surface); padding-inline: 0.75rem; border-bottom: 2px solid var(--ink); }
+.row.total .val { color: var(--accent); }
+.row.unw .name { font-weight: 500; }
+
+/* plan */
+.waves { display: grid; gap: 0; border-left: 2px solid var(--line); margin-left: 0.4rem; }
+.wave { position: relative; padding: 0 0 1.1rem 1.2rem; display: grid; gap: 0.2rem; }
+.wave::before { content: ""; position: absolute; left: -7px; top: 0.45rem; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); border: 2px solid var(--bay); }
+.wave.done::before { background: var(--bay); }
+.wave .when { font-size: var(--step--1); color: var(--muted); font-variant-numeric: tabular-nums; }
+.wave .est { font-family: var(--font-display); font-weight: 700; color: var(--bay); font-variant-numeric: tabular-nums; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr)); gap: 1rem; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.1rem; display: grid; gap: 0.6rem; align-content: start; min-width: 0; }
+.note { padding: 0.8rem 1rem; border-left: 3px solid var(--warn); background: var(--surface); font-size: var(--step--1); }
+
+/* env table */
+.tablebox { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: var(--step--1); }
+th, td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.env { white-space: nowrap; }
+
+/* steps + copy */
+.copyline { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 0.9rem; }
+.copyline .mono { flex: 1 1 14rem; min-width: 0; user-select: all; }
+button { font: inherit; font-size: var(--step--1); color: var(--surface); background: var(--bay); border: 0; border-radius: 6px; padding: 0.45rem 0.9rem; cursor: pointer; min-height: 44px; }
+button:hover { filter: brightness(1.08); }
+
+/* to-do */
+.todo { list-style: none; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--line); }
+.todo li { display: grid; grid-template-columns: auto 5.5rem minmax(0, 1fr); gap: 0.25rem 0.75rem; align-items: start; padding-block: 0.7rem; border-bottom: 1px solid var(--line); }
+.todo input { width: 20px; height: 20px; margin-top: 0.25rem; accent-color: var(--bay); }
+.todo .d { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--bay); }
+.todo .t { min-width: 0; }
+.todo .def { display: block; font-size: var(--step--1); color: var(--muted); }
+.todo li.checked .t { color: var(--muted); text-decoration: line-through; }
+.links { display: grid; gap: 0.35rem; }
+footer { font-size: var(--step--1); color: var(--muted); border-top: 1px solid var(--line); padding-top: 1rem; }
+
+@media (max-width: 560px) {
+  .row { grid-template-columns: minmax(0, 1fr) 3rem; }
+  .row .ruler { grid-column: 1 / -1; grid-row: 2; }
+  .row .why { grid-row: 3; }
+  .todo li { grid-template-columns: auto minmax(0, 1fr); }
+  .todo .d { grid-column: 2; }
+  .todo .t { grid-column: 2; }
+  .trend .num { font-size: 2.1rem; }
+  .trend .pt.now .num { font-size: 2.8rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">湾区去哪、怎么办 · 有来源的中文答案　|　2026-10-13 16:30（湾区时间）更新</p>
+    <h1><span class="latin">BAYLINK</span> 接手指南</h1>
+    <p>给店主，也给接手的新 Claude 账号。这一页是结论；完整的交接文件在 GitHub 上（见文末链接）。</p>
+    <div class="trend" aria-label="加权总分：10-07 5.4，10-11 6.03，10-13 7.0">
+      <div class="pt"><span class="num">5.4</span><span class="lab">10-07 首次审计</span></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="pt"><span class="num">6.0</span><span class="lab">10-11 复审</span></div>
+      <span class="arrow" aria-hidden="true">→</span>
+      <div class="pt now"><span class="num">7.0</span><span class="lab">10-13 复审（最新）</span></div>
+    </div>
+    <ul class="live">
+      <li><strong>已上线：</strong>网站改到 PR #38（WEB-FIX5，10-13 上午），API 改到 PR #42（API-FIX5，10-13 上午）。两个仓库现在都没有开着的 PR。</li>
+      <li><strong>FIX5 之后估计约 7.2</strong>，要下一次复审确认。BayBay 首句提速只在本地测过，线上 10 次实测还没做（约 $0.25，等你同意）。</li>
+      <li><strong>还没有一个维度到 8。</strong>只靠写代码，最多约 7.7；要到 8，需要你在内容、图片、社区和后台设置上一起做。</li>
+    </ul>
+  </header>
+
+  <section id="score" aria-labelledby="h-score">
+    <h2 id="h-score">评分卡</h2>
+    <p class="muted small">10-07 定的评分标准：15 个加权维度，另加两项不计权重但也要 ≥8 的。每行的尺子是 0–10 分。</p>
+    <div class="legend" aria-hidden="true">
+      <span><i class="sw"></i>10-13 分数</span>
+      <span><i class="sw dot"></i>10-07 分数</span>
+      <span><i class="sw tick"></i>8 分线</span>
+    </div>
+    <div class="score" id="score-rows"></div>
+  </section>
+
+  <section id="plan" aria-labelledby="h-plan">
+    <h2 id="h-plan">到 8–9 分要做什么</h2>
+    <div class="waves">
+      <div class="wave done"><span class="when">本周，到 10/18</span><h3>两个 FIX5 已上线 + 几条小修</h3><p>改已开业标签、图书馆费用、两篇指南；准备 10/23 换 key 的检查工具。<span class="est">约 7.2</span></p></div>
+      <div class="wave"><span class="when">Wave 5 · 10/19–10/25</span><h3>代码为主</h3><p>指南阅读、按钮与插画、英文时间格式、/plan 提速、11–12 月活动补齐、BayBay 回答质量。<span class="est">约 7.5</span></p></div>
+      <div class="wave"><span class="when">Wave 6 · 10/26–11/8</span><h3>要你的内容、图片和社区</h3><p>官方图接入、指南补齐、BayBay 评委分到 7.5 以上、会员流程在生产验证。<span class="est">约 7.8–8.2</span></p></div>
+      <div class="wave"><span class="when">Wave 7 · 11/9–11/22</span><h3>打磨 + 完整复审</h3><p>多语言、手机、SEO、工程冲 9。只有完整复审 ≥8，才说"到 8 了"。<span class="est">约 8.3</span></p></div>
+    </div>
+    <div class="two">
+      <div class="panel">
+        <h3>Claude 做（代码）</h3>
+        <ul>
+          <li>Wave 5：9 条网站 lane、5 条 API lane，同时最多 7 条。</li>
+          <li>每次内容合并后，同步 API 的目录。</li>
+          <li>每周三晚起草周四精选；每周五线上只读检查。</li>
+          <li>周用量这周 ≤55%（现在 45%），10/19 周一 05:00 重置后再开大批。</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>要你做（代码做不到的）</h3>
+        <ul>
+          <li>每周三复核下个周末的来源（2–3 小时，可交给 GPT 编辑）。</li>
+          <li>批准官方图下载清单（每批几分钟）。</li>
+          <li>社区：每类 8–12 条真实帖子，或者先隐藏社区。</li>
+          <li>后台：每日重建、根域 308、店主安全事项。</li>
+          <li>10/23 给 BayBay 换上新 key。</li>
+        </ul>
+      </div>
+    </div>
+    <p class="note"><strong>省时间的路线：</strong>一次性事项约 1 小时（安全事项、Deploy Hook、308、决定 Thrill-O-Ween、换 key、批图片清单、打开来源分诊、社区补帖或隐藏），周三复核交给 GPT。估计 Wave 6 后约 7.7–7.9，Wave 7 后约 7.9–8.1。整体 9 分这一季不现实；社区、内容时效、图文结合要几个月真实运营。</p>
+  </section>
+
+  <section id="baybay" aria-labelledby="h-bb">
+    <h2 id="h-bb">BayBay：10/23 换新 key</h2>
+    <p>新 key 约 $1,000、有效约 6 个月，平均每天约 $5.4，够用（每个回答约 $0.022）。现在的设置会让每页从 <strong>10/22 17:00</strong> 起显示"AI 助手预计…起暂停"，最晚 <strong>10/29 17:00</strong> 停用。所以 10/23 新 key 能用的当天，把 key 和截止日期<strong>一起</strong>换掉。Claude 不碰 key。</p>
+    <ol>
+      <li><strong>10/21，Anthropic Console：</strong>看余额；看组织有没有月度上限（两个工作区的上限加起来不能超过它）；看是不是已有评测工作区；记下工作区 ID。</li>
+      <li><strong>10/23，Render → baylink-api → Environment</strong>，按下表填好后保存，Render 会自动重新部署。</li>
+      <li>告诉 Claude"换好了"。Claude 只读检查 BayBay 状态；你同意后再问 5 个问题冒烟（约 $0.10）。</li>
+      <li>新 key 稳定 48 小时后，在 Console 吊销旧 key。</li>
+    </ol>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>变量</th><th>填什么</th></tr></thead>
+        <tbody>
+          <tr><td class="env"><code>ANTHROPIC_API_KEY</code></td><td>新的生产 key（只在 Render 里填，不要贴进聊天）</td></tr>
+          <tr><td class="env"><code>ANTHROPIC_WORKSPACE_ID</code></td><td>只有 key 是组织级、Console 说需要时才填</td></tr>
+          <tr><td class="env"><code>ANTHROPIC_USE_UNTIL</code></td><td>额度到期前一天，例如 <code>2027-04-19T00:00:00Z</code>。只能写 <code>YYYY-MM-DD</code> 或带 Z / 时区的完整时间，不能有空格；写错格式 BayBay 会马上停</td></tr>
+          <tr><td class="env"><code>AI_SPEND_SOFT_DAILY_USD</code></td><td><code>4</code></td></tr>
+          <tr><td class="env"><code>AI_SPEND_HARD_DAILY_USD</code></td><td><code>7</code></td></tr>
+          <tr><td class="env"><code>AI_ALERT_MTD_USD</code></td><td><code>100,140,165</code></td></tr>
+          <tr><td class="env"><code>AI_GUEST_BAYBAY_DAILY_LIMIT</code></td><td>建议 <code>15</code>（R1 测试用，你定）</td></tr>
+          <tr><td class="env"><code>AI_USER_BAYBAY_DAILY_LIMIT</code></td><td>建议 <code>40</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">想收花费提醒邮件，要打开 <code>NOTIFICATION_DELIVERY_ENABLED=true</code>。它会同时打开<strong>所有</strong>外发邮件（会员通知、登录提醒等），需要先配好 Resend（<code>RESEND_API_KEY</code>、<code>RESEND_FROM_EMAIL</code>、验证过的域名），并按 API 仓库（baylink-api）的 <code>docs/g5-production-checklist.md</code> 走一遍。不打开也行：每周自己看一眼 Console。<br>出问题时马上停 AI（911 急症卡照常）：<code>BAYBAY_PAUSED=true</code>。</p>
+  </section>
+
+  <section id="handover" aria-labelledby="h-hand">
+    <h2 id="h-hand">怎么接手</h2>
+    <div class="two">
+      <div class="panel">
+        <h3>换一个 Claude 账号，还是这台电脑</h3>
+        <ul>
+          <li>git、GitHub 登录和本机笔记都跟着电脑走，照常能用。Claude in Chrome 可能要重新配对。</li>
+          <li>在一个中性文件夹开新会话（例如 <code>C:/Users/willy/opus-qa</code>），不要选 3D 世界那个文件夹。</li>
+          <li>新账号有自己的周额度：告诉它这个账号的上限。</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <h3>换到新 Mac</h3>
+        <ul>
+          <li><strong>不用把整台电脑的文件拷过去。</strong>代码都在 GitHub；交接文件在网站仓库（baylink-web）的 <code>docs/overhaul/</code>。</li>
+          <li>装：Git、GitHub CLI（然后 <code>gh auth login</code>）、Node.js 24、Google Chrome、Claude 桌面版。</li>
+          <li>建 <code>~/baylink</code>，clone <code>baylink-web</code> 和 <code>baylink-api</code>。</li>
+          <li>密钥不走 git：Render、Vercel 的设置留在后台不用动；评测 key 文件你在新电脑上重新建，放在仓库之外。</li>
+          <li>想留历史：把旧电脑的 <code>opus-qa/overhaul</code> 和 <code>opus-qa/audit-1013</code> 打包私下拷走，不要放进公开仓库。</li>
+          <li>换电脑前，请 Claude 把唯一没推上去的分支（Thrill-O-Ween 标"已取消"）推到 GitHub。</li>
+        </ul>
+      </div>
+    </div>
+    <h3>新会话的第一句话</h3>
+    <div class="copyline">
+      <span class="mono" id="first-msg">读 ~/baylink/baylink-web/docs/overhaul/README.md，然后按 HANDOFF.md 继续</span>
+      <button type="button" id="copy-btn">复制</button>
+    </div>
+    <p class="muted small">在这台 Windows 电脑上，把路径换成 <code>C:/Users/willy/opus-qa/overhaul/kit/README.md</code>。之后新 Claude 会：查线上版本和开着的 PR → 读交接文件 → 看用量 → 给你一张决定卡 → 开下一条 lane。</p>
+  </section>
+
+  <section id="todo" aria-labelledby="h-todo">
+    <h2 id="h-todo">你的待办</h2>
+    <p class="muted small">每一项都带"不回复时的默认"。勾选只存在你这台设备的浏览器里。</p>
+    <ul class="todo" id="todo-list">
+      <li data-id="sec"><input type="checkbox" id="t-sec" aria-labelledby="l-sec"><span class="d">今天</span><span class="t" id="l-sec">店主安全事项（见私有笔记）<span class="def">默认：安全停在约 7 分，每天提醒</span></span></li>
+      <li data-id="card"><input type="checkbox" id="t-card" aria-labelledby="l-card"><span class="d">今天</span><span class="t" id="l-card">看决定卡：Thrill-O-Ween 挂"已取消"吗；/this-month 现在改 301 吗；R1 期间冻不冻结<span class="def">默认：活动照常保留；改 301；不全冻，周一统一合并</span></span></li>
+      <li data-id="wed"><input type="checkbox" id="t-wed" aria-labelledby="l-wed"><span class="d">10/14 周三</span><span class="t" id="l-wed">复核 10/17–18 的 73 场活动官网；打开来源分诊（先 dry run，≤$0.10）<span class="def">可交给 GPT 编辑；不做则内容时效停在约 6.5</span></span></li>
+      <li data-id="thu"><input type="checkbox" id="t-thu" aria-labelledby="l-thu"><span class="d">10/15 周四</span><span class="t" id="l-thu">点头本周末精选（Claude 周三晚起草）<span class="def">默认：标"本周末先看"</span></span></li>
+      <li data-id="vercel"><input type="checkbox" id="t-vercel" aria-labelledby="l-vercel"><span class="d">10/16 周五</span><span class="t" id="l-vercel">Vercel：Deploy Hook + <code>VERCEL_DEPLOY_HOOK_URL</code> + <code>CRON_SECRET</code>；根域 307 改 308<span class="def">默认：按日期变化的页面停在最近一次部署那天</span></span></li>
+      <li data-id="h07"><input type="checkbox" id="t-h07" aria-labelledby="l-h07"><span class="d">10/19 周一</span><span class="t" id="l-h07">9 场停放活动：A 请 3D 会话定场馆，还是 B 不依赖它<span class="def">默认：方案 B</span></span></li>
+      <li data-id="console"><input type="checkbox" id="t-console" aria-labelledby="l-console"><span class="d">10/21 周三</span><span class="t" id="l-console">Anthropic Console 查新 key（余额、组织上限、评测工作区、工作区 ID）<span class="def">默认：10/23 再提醒</span></span></li>
+      <li data-id="key"><input type="checkbox" id="t-key" aria-labelledby="l-key"><span class="d">10/23 周五</span><span class="t" id="l-key">Render 里同时换 key 和 <code>ANTHROPIC_USE_UNTIL</code>（上面的表）<span class="def">默认：10/29 17:00 起 BayBay 只给站内摘录</span></span></li>
+      <li data-id="img"><input type="checkbox" id="t-img" aria-labelledby="l-img"><span class="d">每周</span><span class="t" id="l-img">批准官方图下载清单；可选一次外拍<span class="def">默认：图文结合停在约 7</span></span></li>
+      <li data-id="comm"><input type="checkbox" id="t-comm" aria-labelledby="l-comm"><span class="d">R1 前</span><span class="t" id="l-comm">社区每类 8–12 条真实帖子 + 双账号投递测试，或者先隐藏社区<span class="def">默认：社区停在 5.5</span></span></li>
+      <li data-id="gsc"><input type="checkbox" id="t-gsc" aria-labelledby="l-gsc"><span class="d">有空时</span><span class="t" id="l-gsc">Search Console 和 Bing 验证并提交 sitemap；免费的在线监控<span class="def">默认：不做</span></span></li>
+    </ul>
+    <p class="muted small">公开招募 R1 测试者要等三件事：新 key 在用、9 场停放活动放出来、社区有帖子或已隐藏。亲友当面试用现在就可以。</p>
+  </section>
+
+  <section id="docs" aria-labelledby="h-docs">
+    <h2 id="h-docs">完整文件（合并后可用）</h2>
+    <p class="muted small">交接文件会通过一个只改文档的 PR 放进网站仓库。PR 合并之前，下面的链接打不开；在这台电脑上的副本在 <code>C:/Users/willy/opus-qa/overhaul/kit/</code>。</p>
+    <div class="links">
+      <a href="https://github.com/willyuan24-source/baylink-web/tree/main/docs/overhaul">docs/overhaul（文件夹）</a>
+      <a href="https://github.com/willyuan24-source/baylink-web/blob/main/docs/overhaul/README.md">README.md：索引和 5 步接手</a>
+      <a href="https://github.com/willyuan24-source/baylink-web/blob/main/docs/overhaul/HANDOFF.md">HANDOFF.md：交接主文件（含换电脑）</a>
+      <a href="https://github.com/willyuan24-source/baylink-web/blob/main/docs/overhaul/ROADMAP-8-9.md">ROADMAP-8-9.md：到 8–9 分的路线和你的日程</a>
+      <a href="https://github.com/willyuan24-source/baylink-web/blob/main/docs/overhaul/NEXT-LANES.md">NEXT-LANES.md：马上能开的 lane</a>
+    </div>
+  </section>
+
+  <footer>两个仓库都是公开的，这一页和交接文件都不写密钥、key 文件位置、账号邮箱或未修的安全细节。分数是估计，误差约 ±0.2，以复审为准。</footer>
+</div>
+
+<script>
+(function () {
+  var rows = [
+    ["产品定位与战略", "10%", 5.5, 6.1, 7.4, "周四精选没定；几处文案没统一；Thrill-O-Ween 按 P0 计"],
+    ["信息架构与导航", "8%", 5.5, 6.0, 7.3, "/this-month 孤页；搜索同义词；3D 入口太深"],
+    ["视觉与高级感", "10%", 5.5, 6.0, 7.1, "按钮种类多；文字封面像模板"],
+    ["手机、无障碍与适老", "8%", 6.0, 6.8, 7.6, "8.3% 控件小于 44px；窄屏标题截字"],
+    ["内容时效与准确", "7.5%", 6.0, 5.5, 6.3, "0 条人工复核；已取消活动在架"],
+    ["编辑质量与覆盖", "7.5%", 5.5, 5.0, 6.8, "答案优先只 13/141 篇；11/21 后活动断崖"],
+    ["多语言", "5%", 6.0, 7.0, 7.8, "英文 24 小时制和 ISO 日期；6 条错误提示缺英文"],
+    ["BayBay 架构", "7.5%", 5.0, 6.0, 7.0, "首句慢；10/30 停用（新 key 解决）"],
+    ["BayBay 回答质量", "7.5%", 5.0, 6.2, 6.6, "评委 6.9；额度用完后的回答差；不看住在哪"],
+    ["功能联动", "6%", 5.5, 6.5, 7.2, "9 场停放活动报错；/events 卡片没有 ♡"],
+    ["社区与交易", "6%", 4.5, 5.2, 5.5, "13 条帖子全是 6 月的；通知默认关"],
+    ["SEO、分享与增长", "6%", 5.5, 6.5, 7.6, "每日重建没配；活动结构化数据缺字段"],
+    ["工程与性能", "4%", 5.5, 6.5, 7.3, "/plan 5–8 秒；CSS 76 KB"],
+    ["安全与隐私", "4%", 5.0, 6.0, 7.0, "店主安全事项；根域 307"],
+    ["3D 世界的整合价值", "3%", 5.0, 5.0, 6.0, "首页入口在 85% 深处；停放活动"],
+    ["加权总分", "100%", 5.4, 6.03, 7.0, "", "total"],
+    ["图文结合（不计权重）", "需 ≥8", 4.0, 4.5, 6.4, "七八成是文字封面；指南正文没有图", "unw"],
+    ["功能走通（不计权重）", "需 ≥8", 5.5, 6.3, 7.0, "停放活动；会员流程没在生产验证", "unw"]
+  ];
+  var box = document.getElementById("score-rows");
+  rows.forEach(function (r) {
+    var d = document.createElement("div");
+    d.className = "row" + (r[6] ? " " + r[6] : "");
+    var label = r[0] + "：10-07 " + r[2] + "，10-11 " + r[3] + "，10-13 " + r[4];
+    d.innerHTML =
+      '<div class="name">' + r[0] + '<span class="w">' + r[1] + '</span></div>' +
+      '<div class="ruler" role="img" aria-label="' + label + '">' +
+        '<span class="fill" style="width:' + (r[4] * 10) + '%"></span>' +
+        '<span class="then" style="left:' + (r[2] * 10) + '%"></span>' +
+        '<span class="eight"></span></div>' +
+      '<div class="val">' + (r[6] === "total" ? r[4].toFixed(2) : r[4].toFixed(1)) + '</div>' +
+      '<div class="why">' + (r[5] ? r[5] + "　" : "") + '<span class="hist">10-07 ' + r[2] + ' · 10-11 ' + r[3] + '</span></div>';
+    box.appendChild(d);
+  });
+
+  var btn = document.getElementById("copy-btn");
+  var msg = document.getElementById("first-msg");
+  btn.addEventListener("click", function () {
+    var text = msg.textContent;
+    var done = function () { btn.textContent = "已复制"; setTimeout(function () { btn.textContent = "复制"; }, 1600); };
+    var fallback = function () {
+      var range = document.createRange(); range.selectNodeContents(msg);
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+      btn.textContent = "已选中，按复制键";
+    };
+    try {
+      navigator.clipboard.writeText(text).then(done, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  var KEY = "baylink-handoff-todo";
+  var saved = {};
+  try { saved = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { saved = {}; }
+  document.querySelectorAll("#todo-list li").forEach(function (li) {
+    var id = li.getAttribute("data-id");
+    var box = li.querySelector("input");
+    if (saved[id]) { box.checked = true; li.classList.add("checked"); }
+    box.addEventListener("change", function () {
+      li.classList.toggle("checked", box.checked);
+      saved[id] = box.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(saved)); } catch (e) {}
+    });
+  });
+})();
+</script>

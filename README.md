@@ -1,5 +1,7 @@
 # BAYLINK website
 
+> 全站优化的路线图、交接与最新审计：见 [docs/overhaul/README.md](docs/overhaul/README.md)（换 Claude 账号或新电脑时从这里开始）。
+
 BAYLINK 湾区华人本地信息网站，React 18 + TypeScript + Vite。前端由 Vercel 托管，API/Socket 服务位于同级 `baylink-backend` 仓库并由 Render 托管。
 
 ## 本地开发
