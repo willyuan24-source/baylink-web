@@ -10,6 +10,8 @@ export type AddToDayPlanProps = {
   /** The item's title (catalog source text), read with the button: "加入这天计划：…". */
   title?: string;
   compact?: boolean;
+  /** The detail action bar: in English the label is "Add to plan" (the button's name still says which day and what). */
+  short?: boolean;
   className?: string;
   /** The page's Pacific day, when it has one (calendar). */
   today?: string;
@@ -28,11 +30,11 @@ export function AddToDayPlan(props: AddToDayPlanProps) {
 }
 
 /** The same box as the control while it loads (and in prerendered HTML): a disabled button, so nothing moves when it arrives. */
-function AddToDayPlaceholder({ title, compact, className }: AddToDayPlanProps) {
+function AddToDayPlaceholder({ title, compact, short, className }: AddToDayPlanProps) {
   const locale = useLocale();
   return <span className={['saves-day', className].filter(Boolean).join(' ')}>
     <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale)} disabled>
-      <CalendarPlus aria-hidden="true" strokeWidth={1.75} />{locale === 'en' ? 'Add to this day’s plan' : translateText('加入这天计划', locale)}
+      <CalendarPlus aria-hidden="true" strokeWidth={1.75} />{locale === 'en' ? short ? 'Add to plan' : 'Add to this day’s plan' : translateText('加入这天计划', locale)}
     </button>
   </span>;
 }
