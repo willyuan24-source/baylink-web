@@ -12,6 +12,7 @@ import type { GeoPoint, PlannerEvent, PlannerPlace, PlanningFacts } from '../lib
 import placeLocationData from './place-locations.json';
 import { aiEventLocations, aiEventSettings } from './ai-local-events';
 import { PLANNER_LOCAL_STOPS } from './planner-local-stops';
+import { installFullPlannerCatalog } from '../lib/planner-source';
 import { VERIFIED_EVENT_SCHEDULES, VERIFIED_PLACE_SCHEDULES, VERIFIED_VENUE_LOCATIONS } from './planner-verified-hours';
 import { SEPTEMBER_REFRESH_PLANNING, SEPTEMBER_REFRESH_SCHEDULES } from './september-refresh-planning';
 import { COVERAGE_AUDIT_REGIONAL_PLANNING, COVERAGE_AUDIT_REGIONAL_SCHEDULES } from './coverage-audit-regional-planning';
@@ -99,3 +100,6 @@ export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): Plann
   planning: { admissionUsd: place.cost === 'free' ? 0 : null, setting: ['golden-gate', 'chinatown', 'palace', 'presidio', 'redwood', 'half-moon-bay', 'baylands', 'hakone', 'muir-woods', 'sausalito', 'lands-end', 'mission-dolores', 'coyote-hills', 'angel-island'].includes(place.id) ? 'outdoor' : 'mixed', ...(VERIFIED_PLACE_SCHEDULES[place.id] ? { schedule: VERIFIED_PLACE_SCHEDULES[place.id] } : {}), ...(place.id === 'filoli' ? { reservation: 'optional' as const } : {}) },
 })), ...PLANNER_LOCAL_STOPS];
 export const PLANNER_CATALOG = { version: 1, checkedAt: MONTHLY_EDITION.checkedAt, events: PLANNER_EVENTS, places: PLANNER_PLACES, guides: guides.map(({ slug, title }) => ({ slug, title })) };
+// Every page that imports lib/planner.ts reads this catalog through lib/planner-source.ts (WEB-PLAN-DATA; 行程 loads the
+// generated copy instead, scripts/generate-plan-catalog.ts).
+installFullPlannerCatalog({ events: PLANNER_EVENTS, places: PLANNER_PLACES, catalogEvents: MONTHLY_EVENTS });

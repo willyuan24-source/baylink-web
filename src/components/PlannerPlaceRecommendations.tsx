@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../i18n/locale';
-import { PLANNER_PLACES } from '../data/planner-catalog';
-import { stopPath, type PlaceSuggestion, type PlanFilters, type Stop } from '../lib/planner';
+import { PLANNER_PLACES } from '../lib/planner-source';
+import { stopPath, type PlaceSuggestion, type PlanFilters, type Stop } from '../lib/planner-core';
 import type { CompleteOuting } from '../lib/planner-outings';
 import { recordProductEvent } from '../lib/product-events';
 import { PlannerPlaceOutingOptions } from './PlannerOutingOptions';

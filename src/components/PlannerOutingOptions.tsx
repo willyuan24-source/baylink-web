@@ -3,7 +3,7 @@ import { Clock3, Coffee, WandSparkles } from 'lucide-react';
 import { useLocale } from '../i18n/locale';
 import { buildOutingOptions, buildPlaceOutingOptions, getPlaceOutingUnavailableReason, type CompleteOuting } from '../lib/planner-outings';
 import { buildItinerary, clockLabel, planBudget } from '../lib/planner-itinerary';
-import { stopTitle, type PlanFilters, type Suggestion } from '../lib/planner';
+import { stopTitle, type PlanFilters, type Suggestion } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
 
 export function PlannerOutingOptions({ suggestion, filters, message, onChoose }: { suggestion: Suggestion; filters: PlanFilters; message?: string; onChoose: (outing: CompleteOuting) => void }) {

@@ -1,6 +1,6 @@
 import type { ImageCover, ResolvedCover } from '../lib/cover';
 import { translateText } from '../i18n/locale';
-import { eventFor, placeFor, type Stop } from '../lib/planner';
+import { eventFor, placeFor, type Stop } from '../lib/planner-core';
 import { Cover } from './ui/Cover';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { EventTypeCover, TypeCover } from './ui/TypeCover';

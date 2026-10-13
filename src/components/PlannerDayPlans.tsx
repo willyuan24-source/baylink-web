@@ -1,6 +1,6 @@
 import { CalendarCheck } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
-import { eventFor, placeFor, sharePlanUrl, stopPath, stopTitle, type SavedPlan } from '../lib/planner';
+import { eventFor, placeFor, sharePlanUrl, stopPath, stopTitle, type SavedPlan } from '../lib/planner-core';
 import type { usePlannerLibrary } from '../lib/planner-library';
 import { recordProductEvent } from '../lib/product-events';
 import { eventOccursOn } from '../lib/event-calendar';

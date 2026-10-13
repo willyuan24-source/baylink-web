@@ -12,6 +12,8 @@ import { outingError, outingSessionKey, useOutingSession } from './outing-sessio
 import { OutingCover } from './OutingCover';
 import { coverFromSearchParams } from './outing-cover';
 import { readOutingPlanHandoff } from '../../lib/outing-plan-handoff';
+// The plan hand-off checks its stops against the planner catalog: lib/planner installs the full one (WEB-PLAN-DATA).
+import '../../lib/planner';
 import './outings.css';
 import './outing-cover.css';
 

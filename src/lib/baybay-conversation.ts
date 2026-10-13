@@ -10,6 +10,8 @@ import type { OutingFilters } from './outings';
 import { parsePlannerWebResult, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
 import { bayBayClearedSearchFields, bayBayLocationMentions, isBayBayResetRequest, type BayBaySearchContext, type BayBaySearchOverrides } from './baybay-context';
 import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssistantFields } from './baybay-assistant';
+// BayBay's plans are read against the planner catalog: ./planner installs the full one (WEB-PLAN-DATA).
+import './planner';
 import { stageBayBayRequirementsDraft, validBayBayDraftId } from './baybay-plan-handoff';
 import type { BayBayAnswerFields } from './baybay-answer';
 

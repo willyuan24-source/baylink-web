@@ -1,7 +1,8 @@
 import { plannerWebCheckedDate, safePlannerWebUrl, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
-import { cleanStops, eventFor, sharePlanUrl } from './planner';
+import { cleanStops, eventFor, sharePlanUrl } from './planner-core';
 import { eventOccursOn } from './event-calendar';
-import { guides } from '../data/guides';
+// The published guides' slugs (one record each, WEB-DATA-SPLIT), without every guide's text.
+import { guideLoaders } from '../data/generated/guide-loaders';
 
 export type BayBayDurationPreference = 'outing-duration:half-day' | `outing-duration:${60 | 120 | 180 | 240 | 300 | 360 | 420 | 480 | 540}-minutes`;
 export type BayBayTaskState = {
@@ -43,7 +44,7 @@ export type BayBayAssistantFields = {
   research?: { steps: { tool: string; status: string; label: string; code?: string }[]; warnings: string[]; timings?: Partial<Record<'siteMs' | 'searchMs' | 'readMs' | 'modelMs' | 'finalMs' | 'routeMs' | 'stateMs' | 'monitorMs' | 'quotaMs' | 'weatherMs' | 'planMs' | 'otherMs' | 'totalMs', number>> };
 };
 const record = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
-const guidePaths = new Set(guides.map(guide => `/guides/${guide.slug}`));
+const guidePaths = new Set(Object.keys(guideLoaders).map(slug => `/guides/${slug}`));
 const text = (v: unknown, max = 500): string | undefined => typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : undefined;
 const number = (v: unknown, max = 1_000_000): number | undefined => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= max ? v : undefined;
 const travelMinutes = (v: unknown): number | undefined => Number.isInteger(v) ? number(v, 720) : undefined;

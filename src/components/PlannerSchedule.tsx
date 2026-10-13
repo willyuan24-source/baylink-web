@@ -1,7 +1,7 @@
 import { CalendarDays, Clock3, Wallet } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { buildItinerary, clockLabel, factsForStop, itineraryIcs, planBudget, roundPlanMoney, settingForStop, stopKey } from '../lib/planner-itinerary';
-import { stopTitle, type PlanDetails, type Stop, type StopSetting } from '../lib/planner';
+import { stopTitle, type PlanDetails, type Stop, type StopSetting } from '../lib/planner-core';
 import { timeEvidenceLabel } from '../lib/planner-hours';
 import { plannerNoticeText } from '../lib/planner-copy';
 import { PlannerStopOffers } from './PlannerStopOffers';

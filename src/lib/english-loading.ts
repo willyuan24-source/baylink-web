@@ -50,7 +50,8 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
   // The events column renders the slim events index (WEB-EVENTS, RC-33): its own pack, not the whole catalog (WEB-DATA-SPLIT).
   else if (/^\/(?:events|this-week|calendar)$/u.test(path)) scopes.push('events-list');
   else if (/^\/(?:this-month|ai-in-the-bay|archive)$/u.test(path)) scopes.push('discovery', 'guide-index');
-  else if (/^\/(?:plan|my-week|together|me)$/u.test(path)) scopes.push('planning', 'discovery', 'guide-index');
+  // 行程 renders its header with the UI pack; its workspace waits for its own pack with its catalog (feature 'plan').
+  else if (/^\/(?:my-week|together|me)$/u.test(path)) scopes.push('planning', 'discovery', 'guide-index');
   else if (path === '/explore') scopes.push('explore', 'guide-index');
   else if (path === '/' || path === '/reset-password' || /^\/(?:posts|users)\//u.test(path)) scopes.push('home');
   else if (path.startsWith('/category/')) scopes.push('home', 'guide-index');
@@ -62,9 +63,11 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
 export function englishScopesForFeature(feature: EnglishFeature): string[] {
   return feature === 'search' ? ['ui', 'guide-index', 'guide-search', 'discovery', 'explore'] : feature === 'guide-search' ? ['ui', 'guide-search']
     // BayBay's answer cards show any event, offer, opening or guide, over any page.
-    : feature === 'baybay' ? ['ui', 'discovery', 'guide-index'] : [];
+    : feature === 'baybay' ? ['ui', 'discovery', 'guide-index']
+    // 行程's workspace (WEB-PLAN-DATA): the generated planner catalog's text, loaded with the catalog after the first paint.
+    : feature === 'plan' ? ['ui', 'plan-catalog'] : [];
 }
-export type EnglishFeature = 'search' | 'guide-search' | 'baybay';
+export type EnglishFeature = 'search' | 'guide-search' | 'baybay' | 'plan';
 
 /**
  * Pages that never search: the homepage, what opens over it (posts, profiles, the password reset), the community board,

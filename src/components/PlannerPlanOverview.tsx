@@ -2,7 +2,7 @@ import { translateText, useLocale } from '../i18n/locale';
 import { Button } from './ui/Button';
 import { StatusChip } from './ui/Badges';
 import { buildItinerary, clockLabel, planBudget, stopKey, planDetailsError } from '../lib/planner-itinerary';
-import { stopTitle, type PlanDetails, type Stop } from '../lib/planner';
+import { stopTitle, type PlanDetails, type Stop } from '../lib/planner-core';
 import type { BayBayAdmissionOverride } from '../lib/baybay-plan-handoff';
 import { planDayLabel } from '../lib/plan-stop-cover';
 
