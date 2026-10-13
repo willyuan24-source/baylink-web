@@ -10,6 +10,7 @@ import { normalizeSearchText } from '../../lib/search-synonyms';
 import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
 import { dateScope } from '../../lib/date-guard';
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
+import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 import {
   ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
   hasRealCover, inRange, listEvents, matchesFilters, monthDay, regionLabel, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
@@ -121,7 +122,11 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const status = t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`);
   const sheetCount = t(`显示 ${list.length} 场`, `Show ${list.length}`);
   const filterCount = activeFilterCount(filters, defaultWhen);
-  const dayLabel = (value: string) => `${pick(WEEKDAYS[weekdayIndex(value)].short)} ${monthDay(value)}`;
+  // At 大 / 特大 and in 简洁显示 the three day buttons get short names (周六 · 周日 · 两天): with the date the labels wrapped
+  // as 两天都开 / 放 and 周日 / 10/18. The weekend's dates stay in the page's range line right above.
+  const readingSize = useReadingSize(), simple = useSimpleDisplay();
+  const roomy = readingSize !== 'standard' || simple;
+  const dayLabel = (value: string) => roomy ? pick(WEEKDAYS[weekdayIndex(value)].short) : `${pick(WEEKDAYS[weekdayIndex(value)].short)} ${monthDay(value)}`;
   const alerts = activeBulletins(today, filters.region);
   const countFor = (next: Pick<EventsFilters, 'free' | 'tag'>) => base.filter(event => matchesFilters(event, { region: 'all', q: '', ...next }, normalize, translate)).length;
   const stories = [{ id: 'free' as const, label: { zh: '免费', en: 'Free' } }, ...TAGS]
@@ -152,12 +157,12 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
 
     <section id="monthly-events" className="ev-feed" aria-labelledby="ev-feed-heading">
       <h2 id="ev-feed-heading" className="ev-section-title">{weekend ? t('本周末全部活动', 'All events this weekend') : t('活动', 'Events')}</h2>
-      {weekend && <SegmentedControl className="ev-days" label={t('选择哪一天', 'Choose a day')} value={day} onChange={value => update({ day: value })}
+      {weekend && <div className="ev-days-bar"><SegmentedControl className="ev-days" label={t('选择哪一天', 'Choose a day')} value={day} onChange={value => update({ day: value })}
         items={[
           ...(days[0] >= today ? [{ id: 'sat', label: dayLabel(days[0]) }] : []),
           { id: 'sun', label: dayLabel(days[1]) },
-          { id: 'open', label: t('两天都开放', 'Both days') },
-        ]} />}
+          { id: 'open', label: roomy ? t('两天', 'Both') : t('两天都开放', 'Both days') },
+        ]} /></div>}
       <div className="ev-filter-row">
         <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
         <FilterChip selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>
