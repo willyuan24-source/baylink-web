@@ -4,6 +4,8 @@ import { MONTHLY_EVENTS, HOME_WEEKENDS, HOME_GENERATED_AT, GUIDE_IMAGES } from '
 import { featurePhotos, filterMonthlyEvents, getMonthlyDateRange } from './monthly';
 import { addCalendarDays, eventOccursOn } from './event-calendar';
 import { rankWeekendFallback, selectWeekendFallback } from './weekend-ranking';
+import { isSeniorFriendly } from './senior-friendly';
+import { checkSummary, type CheckSummary } from './check-dates';
 
 export type WeekendEditorial = { rank: number; reason: WeekendPickEntry['reason'] };
 export type HomeWeekendPick = { event: MonthlyEvent; date: string; editorial?: WeekendEditorial };
@@ -15,8 +17,12 @@ export type HomeWeekendOptions = {
   /** Cards in the home's two-column 本周末 feed after the picks (1007 §4.2 ④). */
   feedLimit?: number;
 };
-/** One published day: the picks (the weekly share card's three), the feed after them, and the weekend's event count. */
-export type HomeWeekendSnapshot = { ids: string[]; feed?: string[]; total: number };
+/**
+ * One published day: the picks (the weekly share card's three), the feed after them, the weekend's event count and how
+ * many of them are 长辈友好 (lib/senior-friendly.ts, counted with each event's planning facts at build time), and when
+ * they were checked (lib/check-dates.ts: most of them, and the latest).
+ */
+export type HomeWeekendSnapshot = { ids: string[]; feed?: string[]; total: number; seniors?: number; checked?: CheckSummary };
 
 export const HOME_FEED_SIZE = 8;
 /** The feed's real photos sit on the two-column grid's diagonal (cards 1, 4, 5, 8), as on /events. */
@@ -47,10 +53,13 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
   // snapshots (no deploy for four weeks) counting it would undercount: the count is unknown (null) and the home says
   // "全部活动" without a number.
   const total: number | null = catalog !== MONTHLY_EVENTS ? events.length : published ? published.total : null;
+  // 长辈友好 this weekend (H06): the home circle opens the /events list only when it has something; unknown reads as none.
+  const seniors: number | null = catalog !== MONTHLY_EVENTS ? events.filter(entry => isSeniorFriendly(entry.event)).length : published?.seniors ?? null;
+  const checked: CheckSummary | null = catalog !== MONTHLY_EVENTS ? checkSummary(events.map(entry => entry.event.verifiedAt), today) : published?.checked ?? null;
   const byIds = (ids: readonly string[]) => ids.flatMap(id => events.filter(entry => entry.event.id === id));
   if (published && !custom) {
     const picks = byIds(published.ids).map((entry): HomeWeekendPick => ({ ...entry, editorial: editorialFor(list, entry.event.id) }));
-    return { ...range, events, picks, feed: byIds(published.feed ?? []), total };
+    return { ...range, events, picks, feed: byIds(published.feed ?? []), total, seniors, checked };
   }
   const picks: HomeWeekendPick[] = [];
   // Editor picks first, in their order. An id this catalog does not hold for the
@@ -66,7 +75,7 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
   // the best real photos on the grid's diagonal.
   const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), range.start, { hasPhoto, flagships });
   const feed = featurePhotos(rest, entry => hasPhoto(entry.event.imageKey), FEED_PHOTO_SLOTS).slice(0, feedLimit);
-  return { ...range, events, picks, feed, total };
+  return { ...range, events, picks, feed, total, seniors, checked };
 }
 
 /** Days with a dated /weekly card: each home snapshot day in the week after the home catalog was generated. */

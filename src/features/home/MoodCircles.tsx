@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom';
 import { useUiCopy } from '../../components/ui/ui-copy';
 
 type Mood = { to: string; zh: string; en: string; icon: LucideIcon; tone: string };
-/** Each circle opens a filtered list that exists today: the events column's own filters, the calendar, a guide search. */
+/**
+ * Each circle opens a filtered list that exists today: the events column's own filters, the calendar, a guide search.
+ * 长辈友好 follows the /events rule for its story chips (shown only with a count above 0): with no 长辈友好 event this
+ * weekend (or an unknown count) it opens the 长辈与家属 guides instead of an empty list (H06 / HOMEIA13-01).
+ */
+const SENIOR_GUIDES = '/guides?topic=elders';
 const MOODS: readonly Mood[] = [
   { to: '/events?when=today', zh: '今天去哪', en: 'Today', icon: Sun, tone: 'food' },
   { to: '/events?cost=free', zh: '免费', en: 'Free', icon: Gift, tone: 'free' },
@@ -17,10 +22,11 @@ const MOODS: readonly Mood[] = [
 ];
 
 /** ③ 按心情找 (1007 §4.2 ③): one swipeable row of round entries, replacing the text links that were scattered in three places. */
-export function MoodCircles() {
+export function MoodCircles({ seniors }: { /** 长辈友好 events this weekend; null when the build did not count this day. */ seniors?: number | null }) {
   const { t } = useUiCopy();
+  const moods = MOODS.map(mood => mood.tone === 'seniors' && !seniors ? { ...mood, to: SENIOR_GUIDES } : mood);
   return <nav className="home-moods" aria-label={t('按心情找', 'Browse by mood')}>
-    <ul>{MOODS.map(({ to, zh, en, icon: Icon, tone }) => <li key={to}>
+    <ul>{moods.map(({ zh, en, to, icon: Icon, tone }) => <li key={zh}>
       <Link to={to} className="home-mood" data-tone={tone}>
         <span className="home-mood__icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
         <span className="home-mood__label">{t(zh, en)}</span>

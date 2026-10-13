@@ -3,17 +3,18 @@ import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { isHomeQuestion } from '../../lib/home-query';
-import { longDate, monthDay } from './home-model';
+import { longDate } from './home-model';
 import { dateScope } from '../../lib/date-guard';
+import { checkLine, type CheckSummary } from '../../lib/check-dates';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 
 export type HomeHeadProps = {
   today: string;
-  /** Events this weekend (the remaining days; null when unknown), guides in the library and the edition's check date: the
-   * live subtitle (D21). */
+  /** Events this weekend (the remaining days; null when unknown), guides in the library and when this weekend's events were
+   * checked (H02: most of them, and the latest; null when unknown): the live subtitle (D21). */
   weekendTotal: number | null;
   guideCount: number;
-  checkedAt: string;
+  checked: CheckSummary | null;
   onAskBayBay: (question?: string) => void;
   onSearch?: (query: string) => void;
 };
@@ -23,7 +24,7 @@ export type HomeHeadProps = {
  * subtitle that carries the 怎么办 half (HOMEIA-01), and one ask box: keywords search, full questions go to BayBay. Its
  * button is the page's only solid button.
  */
-export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayBay, onSearch }: HomeHeadProps) {
+export function HomeHead({ today, weekendTotal, guideCount, checked, onAskBayBay, onSearch }: HomeHeadProps) {
   const { t, english } = useUiCopy();
   const navigate = useNavigate();
   const id = useId();
@@ -43,7 +44,7 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
   const facts = [
     ...(weekendTotal ? [t(`本周末 ${weekendTotal} 场活动`, `${weekendTotal} events this weekend`)] : []),
     t(`${guideCount} 篇办事指南`, `${guideCount} guides`),
-    t(`每条附官方来源，${monthDay(checkedAt)} 核对`, `official sources, checked ${monthDay(checkedAt)}`),
+    checked ? `${t('每条附官方来源，', 'official sources, ')}${checkLine(checked, t).replace(' · ', t('，', ', '))}` : t('每条附官方来源', 'official sources'),
   ];
   return <header className="home-head">
     <p className="home-head__dateline" {...dateScope('day')}><span>{t('湾区', 'Bay Area')}</span> · <time dateTime={today}>{longDate(today, english)}</time></p>

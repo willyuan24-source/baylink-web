@@ -13,7 +13,7 @@ import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab 
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 import {
   ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
-  hasRealCover, inRange, listEvents, matchesFilters, monthDay, regionLabel, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
+  hasRealCover, inRange, listEvents, matchesFilters, monthDay, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
 } from './events-model';
 import type { IndexEvent } from './events-index-types';
 import { EventFeedCard, EventHeroCard } from './EventCards';
@@ -47,7 +47,7 @@ function useCardIds(card: CardRegion | undefined): StripState {
 
 /**
  * The 本周末 view (design.md §4.11 ③) and the other date lists: story chips, the editor's picks (4:5 rail), the 周六 /
- * 周日 / 整个周末都开放 toggle, one filter row (免费 · 地区 · 筛选 n) with the rest in a Sheet that announces its count, a
+ * 周日 / 整个周末都开放 toggle, a one-tap region row, one filter row (免费 · 筛选 n) with the rest in a Sheet that announces its count, a
  * two-column cover feed 12 at a time, the folded travel alerts, and one link each to the rest of the column.
  */
 export function WeekendView({ today, filters, defaultWhen }: { today: string; filters: EventsFilters; defaultWhen: EventsWhen }) {
@@ -91,6 +91,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // A card whose manifest did not load lists nothing, so the page falls back to the plain 本周末: picks rail and full feed.
   const listsCard = !!card && strip.status !== 'error';
   const picks = useMemo(() => weekend && !narrowed && !listsCard ? weekendPicks(base, today) : [], [weekend, narrowed, listsCard, base, today]);
+  // H26 / HOMEIA13-03: only picks from the editor's list (src/data/weekend-picks.ts, each with its reason) are 编辑精选.
+  const editorPicks = picks.some(item => item.reason);
   // Until the card's manifest arrives, the same rule the card used stands in for its ids (they match on the build day).
   const cardIds = useMemo(() => {
     if (!card || strip.status === 'error') return [];
@@ -149,8 +151,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     </div>
 
     {picks.length > 0 && <section className="ev-picks" aria-labelledby="ev-picks-heading">
-      <h2 id="ev-picks-heading" className="ev-section-title">{t('编辑精选', 'Editor’s picks')}</h2>
-      <Carousel variant="rail" label={t('本周末编辑精选', 'This weekend’s editor’s picks')}>
+      <h2 id="ev-picks-heading" className="ev-section-title">{editorPicks ? t('编辑精选', 'Editor’s picks') : t('本周末先看', 'This weekend, start here')}</h2>
+      <Carousel variant="rail" label={editorPicks ? t('本周末编辑精选', 'This weekend’s editor’s picks') : t('本周末先看这几件', 'This weekend, start with these')}>
         {picks.map((item, index) => <EventHeroCard key={item.event.id} event={item.event} cover={covers.picks[index]} today={today} date={item.date} reason={item.reason} priority={index === 0} />)}
       </Carousel>
     </section>}
@@ -163,11 +165,13 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
           { id: 'sun', label: dayLabel(days[1]) },
           { id: 'open', label: roomy ? t('两天', 'Both') : t('两天都开放', 'Both days') },
         ]} /></div>}
+      {/* H23 / HOMEIA13-02: 本周末旧金山免费亲子 in three taps from home — the region applies on one tap, no Sheet. */}
+      <ChipRow className="ev-regions" label={t('地区', 'Region')}>
+        <FilterChip selected={filters.region === 'all'} onClick={() => setRegion('all')}>{pick(ALL_REGIONS)}</FilterChip>
+        {REGIONS.map(region => <FilterChip key={region.id} selected={filters.region === region.id} onClick={() => setRegion(region.id)}>{pick(region.label)}</FilterChip>)}
+      </ChipRow>
       <div className="ev-filter-row">
         <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
-        <FilterChip selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>
-          {pick(regionLabel(filters.region))}<ChevronDown className="ev-chip-caret" aria-hidden="true" strokeWidth={1.75} />
-        </FilterChip>
         <FilterChip selected={filterCount > 0} aria-haspopup="dialog" onClick={() => setSheetOpen(true)} count={filterCount || undefined}
           icon={<SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />}>{t('筛选', 'Filters')}</FilterChip>
         <p className="ev-count" role="status" aria-live="polite">{status}</p>
@@ -186,7 +190,12 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         </div>}
       </> : <EmptyState headingLevel="h3" title={t('这组条件下暂时没有活动', 'Nothing matches these filters yet')}
         body={filters.q ? t('换个关键词，或把这句话交给 BayBay。', 'Try another word, or ask BayBay.') : t('换一天、换个地区，或清除筛选再看看。', 'Try another day or region, or clear the filters.')}
-        actions={<>
+        actions={filters.tag === 'seniors' && !filters.q ? <>
+          {/* H06: no 长辈友好 event in this range — the 长辈与家属 guides and BayBay instead of only "clear" (HOMEIA13-01). */}
+          <Button variant="primary" to="/guides?topic=elders">{t('看长辈与家属指南', 'Guides for seniors and family')}</Button>
+          <Button variant="text" to={`/plan?q=${encodeURIComponent(t('这周末带爸妈去哪？', 'Where can I take my parents this weekend?'))}`}>{t('问 BayBay：这周末带爸妈去哪', 'Ask BayBay where to take your parents')}</Button>
+          <Button variant="text" onClick={clear}>{t('清除筛选', 'Clear filters')}</Button>
+        </> : <>
           <Button variant="primary" onClick={clear}>{t('清除筛选', 'Clear filters')}</Button>
           {filters.q ? <Button variant="text" to={`/plan?q=${encodeURIComponent(filters.q)}`}>{t('问 BayBay', 'Ask BayBay')}</Button>
             : weekend ? <Button variant="text" to="/events?when=next7">{t('看未来 7 天', 'See the next 7 days')}</Button> : null}

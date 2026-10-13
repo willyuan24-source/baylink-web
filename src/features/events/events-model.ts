@@ -5,6 +5,7 @@ import type { Copy } from '../../lib/event-facts';
 import { getCover, type CoverContext } from '../../lib/cover';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs, type MonthlyDateFilter, type WeekendDayTab } from '../../lib/monthly';
 import { rankWeekendFallback, selectWeekendFallback } from '../../lib/weekend-ranking';
+import { isSeniorFriendly } from '../../lib/senior-friendly';
 import type { MonthlyEvent } from '../../data/monthly-types';
 
 /**
@@ -92,18 +93,19 @@ export const resolveWhen = (value: string | null, fallback: EventsWhen): EventsW
 
 export type EventTag = 'kids' | 'seniors' | 'outdoors' | 'shows' | 'markets' | 'pumpkin' | 'indoor';
 const KIDS = /亲子|儿童|孩子|家庭|全龄|全年龄|所有年龄|少儿|幼儿|学龄|青少年|kids?|famil/i;
-const SENIORS = /长者|长辈|老人|乐龄|樂齡|senior/i;
 const SHOWS = /演出|音乐会|演唱|音乐节|戏剧|话剧|舞蹈|舞台|歌剧|交响|爵士|concert|theat|opera|symphony|dance|music|performance/i;
 const MARKETS = /市集|集市|农夫|夜市|美食节|跳蚤|market|fair|bazaar|food festival/i;
 const PUMPKIN = /南瓜|万圣|萬聖|丰收|豐收|玉米迷宫|harvest|pumpkin|halloween|corn maze/i;
 const text = (event: IndexEvent) => [event.title, ...(event.aliases ?? [])].join(' ');
 /**
  * Each story is a fact the record states: the category, the audience line, the kind, the title, or the reviewed planning
- * `setting` (下雨也行 = indoor only). Nothing is guessed from a photo or a venue name.
+ * `setting` (下雨也行 = indoor only). Nothing is guessed from a photo. 长辈友好 is the shared rule in lib/senior-friendly.ts
+ * (also the home circle's count): seniors named, or accessible, Chinese-language, library or free all-ages daytime events.
+ * One label per story on the home circles and here (HOMEIA13-05): 亲子, 长辈友好.
  */
 export const TAGS: readonly { id: EventTag; label: Copy; test: (event: IndexEvent) => boolean }[] = [
-  { id: 'kids', label: { zh: '带娃', en: 'With kids' }, test: event => event.category === 'family' || event.audience.some(item => KIDS.test(item)) },
-  { id: 'seniors', label: { zh: '长者友好', en: 'Senior-friendly' }, test: event => event.audience.some(item => SENIORS.test(item)) || SENIORS.test(event.title) },
+  { id: 'kids', label: { zh: '亲子', en: 'With kids' }, test: event => event.category === 'family' || event.audience.some(item => KIDS.test(item)) },
+  { id: 'seniors', label: { zh: '长辈友好', en: 'Senior-friendly' }, test: isSeniorFriendly },
   { id: 'outdoors', label: { zh: '户外', en: 'Outdoors' }, test: event => event.category === 'outdoors' || event.planning?.setting === 'outdoor' },
   { id: 'shows', label: { zh: '演出', en: 'Shows' }, test: event => event.kind === 'performance' || SHOWS.test(text(event)) },
   { id: 'markets', label: { zh: '市集', en: 'Markets' }, test: event => event.category === 'food' || MARKETS.test(text(event)) },
