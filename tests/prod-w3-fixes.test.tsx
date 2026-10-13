@@ -262,13 +262,13 @@ test('closing punctuation after a title unit stays inside it, so no line starts 
   assert.ok(fleet.querySelector('.title-keep + wbr + .title-keep'), 'units still have a break between them');
 });
 
-test('the detail bar plan button says "Add to plan" in English; its name still says which day and what', async () => {
+test('the detail bar day-plan button says "Add to day" in English (BayBay’s is "Add to plan"); its name still says which day and what', async () => {
   await loadLocale('en');
   await setLocale('en', false);
   const { AddToDayPlan } = await import('../src/components/AddToDayPlan');
   const html = renderToStaticMarkup(<AddToDayPlan stop={{ kind: 'event', id: 'x' }} date="2026-10-17" title="Pumpkin Festival" compact short />);
   const button = JSDOM.fragment(html).querySelector('button')!;
-  assert.equal(button.textContent, 'Add to plan');
+  assert.equal(button.textContent, 'Add to day');
   assert.match(button.getAttribute('aria-label')!, /^Add to this day’s plan: /);
   const full = JSDOM.fragment(renderToStaticMarkup(<AddToDayPlan stop={{ kind: 'event', id: 'x' }} date="2026-10-17" title="Pumpkin Festival" compact />));
   assert.equal(full.querySelector('button')!.textContent, 'Add to this day’s plan', 'other places keep the full label');

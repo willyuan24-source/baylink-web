@@ -38,7 +38,7 @@ export default function AddToDayControl({ stop, date, title, compact, short, cla
   return <span className={['saves-day', className].filter(Boolean).join(' ')}>
     <button type="button" className="saves-add-day" data-compact={compact ? '' : undefined} aria-label={addToDayName(title, locale, state.status === 'done' ? day : undefined)} disabled={state.status === 'busy'} onClick={() => void add()}>
       {state.status === 'done' ? <Check aria-hidden="true" strokeWidth={2} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />}
-      {state.status === 'done' ? t(`已加入 ${day}`, `In your ${day} plan`) : t('加入这天计划', short ? 'Add to plan' : 'Add to this day’s plan')}
+      {state.status === 'done' ? t(`已加入 ${day}`, `In your ${day} plan`) : t('加入这天计划', short ? 'Add to day' : 'Add to this day’s plan')}
     </button>
     {state.status === 'error' && <span className="saves-day__error" role="alert">{state.message}</span>}
     {state.toast && <SaveToast message={state.toast} actionLabel={t('查看', 'View')} to={`/my-week#plan-${date}`} closeLabel={t('关闭提示', 'Dismiss')} onClose={() => setState(current => ({ ...current, toast: undefined }))} />}
