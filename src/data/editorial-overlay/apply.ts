@@ -119,7 +119,7 @@ export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: 
     const cleaned = cleanPlan(event.plan, event.dateLabel, event.costLabel);
     const place = venueParts(corrected.venue);
     const street = address ?? place.address;
-    return {
+    const overlaid: T = {
       ...corrected, ...editorial,
       dateLabel: cleanDateLabel(corrected.dateLabel, corrected.startDate, corrected.endDate),
       plan: plan ? plan.flatMap(line => typeof line === 'number' ? cleaned[line] ?? [] : [line]) : cleaned,
@@ -127,6 +127,10 @@ export function applyEventOverlay<T extends MonthlyEvent>(events: T[], entries: 
       venueShort: venueShort ?? place.venueShort,
       ...(street ? { address: street } : {}),
     };
+    // A long title with no reviewed short one has no shortTitle at all, not one that is undefined: the planner catalog
+    // and the edition then hold the same fields (an entry that only sets the venue, such as Fleet Week's, has none).
+    if (overlaid.shortTitle === undefined) delete overlaid.shortTitle;
+    return overlaid;
   });
 }
 

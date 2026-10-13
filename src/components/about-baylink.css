@@ -15,6 +15,8 @@
 .about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--text-fact);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em;cursor:pointer}
 .about-link:hover,.about-policies a:hover,.about-more a:hover{text-decoration-color:currentColor}
 .about-section>.about-more{color:var(--color-ink-2);font-size:var(--text-fact)}
+/* A separator travels with the link after it, so a line never ends on a lone " · " (PROD-W3). */
+.about-more__next{white-space:nowrap}
 .about-labels{display:grid;gap:12px;margin:16px 0 0}
 .about-labels>div{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:12px;align-items:start}
 .about-labels dd{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}

@@ -25,7 +25,7 @@ import { ProfilePersonalSpace } from './ProfilePersonalSpace';
 import { PrivacySecurity } from './PrivacySecurity';
 import { NotificationPreferencesCard } from './NotificationPreferencesCard';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { MeAboutRow, MeAccountRows, MeDisplaySettings, MeGuestCard, MeLegal, MeList, MePositioning, MeRow, MeTiles } from './MeHub';
+import { MeAboutRow, MeAccountRows, MeDisplaySettings, MeGuestCard, MeList, MePositioning, MeRow, MeTiles } from './MeHub';
 import { useMyWeekSavedCount } from './me-saved-count';
 import './me-hub.css';
 
@@ -82,7 +82,6 @@ function GuestHub({ onLogin }: { onLogin: () => void }) {
         <MeAboutRow />
       </MeList>
     </section>
-    <MeLegal />
   </div>;
 }
 
@@ -178,7 +177,6 @@ const ProfileSession = ({ user, onLogout, onSessionEnded, onOpenPost, onUpdateUs
         </MeList>
       </section>}
 
-      <MeLegal />
       {showOfficialModal && (
         <OfficialVerificationModal
           isOpen={showOfficialModal}

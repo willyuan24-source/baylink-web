@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Check, Copy, MapPin, Phone } from 'lucide-react';
 import { StatusChip } from '../../components/ui/Badges';
 import { Button } from '../../components/ui/Button';
@@ -17,6 +17,15 @@ function SourceMark({ guide, index }: { guide: Guide; index?: number }) {
   return <a className="gd-source-mark" href={`#guide-source-${index}`} aria-label={t(`来源 ${index}`, `Source ${index}`)}>{CIRCLED[index - 1] ?? `[${index}]`}</a>;
 }
 
+/** The ① mark holds on to the last two characters (or the phone chip) before it, so it never wraps onto a line alone. */
+function withMark(parts: ReactNode[], mark: ReactNode): ReactNode {
+  if (!mark) return parts;
+  const head = parts.slice(0, -1), last = parts.at(-1);
+  if (typeof last !== 'string') return <>{head}<span className="gd-nowrap">{last}{mark}</span></>;
+  const chars = Array.from(last), tail = chars.slice(-2).join('');
+  return <>{head}{chars.slice(0, -2).join('')}<span className="gd-nowrap">{tail}{mark}</span></>;
+}
+
 /**
  * 查 · "30 秒看懂" (design.md §4.10, GUIDE-04): three to five rows, each a short label over the decisive value; phone numbers
  * are tap-to-call buttons and ① marks link to the sources.
@@ -27,7 +36,7 @@ export function KeyFactsCard({ guide, facts }: { guide: Guide; facts: readonly G
     <h2 id="gd-keyfacts-title">{t('30 秒看懂', 'In 30 seconds')}</h2>
     <ol>{facts.map(fact => <li key={fact.label.zh}>
       <span className="gd-keyfacts__label">{pick(fact.label)}</span>
-      <span className="gd-keyfacts__value">{linkifyPhones(pick(fact.value), { variant: 'inline' })}<SourceMark guide={guide} index={fact.source} /></span>
+      <span className="gd-keyfacts__value">{withMark(linkifyPhones(pick(fact.value), { variant: 'inline' }), fact.source && guide.sources[fact.source - 1] ? <SourceMark guide={guide} index={fact.source} /> : null)}</span>
     </li>)}</ol>
   </section>;
 }

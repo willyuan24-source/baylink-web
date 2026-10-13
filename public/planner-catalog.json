@@ -3826,7 +3826,7 @@
       "title": "Tiburon Wine Festival：北湾品酒午后",
       "startDate": "2026-10-03",
       "endDate": "2026-10-03",
-      "dateLabel": "10/3 · 10 月 3 日 · 13:00–16:00",
+      "dateLabel": "10/3 · 13:00–16:00",
       "region": "north-bay",
       "city": "Tiburon",
       "venue": "Downtown Tiburon · check ticket for event entrance",
@@ -3836,9 +3836,8 @@
       "costLabel": "参考：需购票 · 仅限 21 岁及以上；最终价格以票页为准",
       "summary": "Tiburon 商会的年度品酒节集合酒庄、本地餐厅与现场音乐，适合成年朋友安排一个三小时的慢节奏午后。参加前先确认门票及渡轮回程。",
       "plan": [
-        "时间安排：10 月 3 日 · 13:00–16:00。",
-        "费用与参加条件：参考：需购票 · 仅限 21 岁及以上；最终价格以票页为准 通过商会官方售票入口购买；当前票价尚未取得。",
-        "仅限21岁及以上，并携带政府签发的照片身份证件。 官方明确婴儿、推车和动物不能进入场内。 出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。"
+        "通过商会官方售票入口购买；当前票价尚未取得。",
+        "仅限21岁及以上，并携带政府签发的照片身份证件。 官方明确婴儿、推车和动物不能进入场内。"
       ],
       "audience": [
         "21 岁以上",
@@ -3848,6 +3847,7 @@
       "sourceLabel": "tiburonchamber.org",
       "verifiedAt": "2026-09-29",
       "imageKey": "coverage-wine",
+      "venueShort": "Downtown Tiburon（入口见门票）",
       "aliases": [
         "Tiburon Wine Festival：北湾品酒午后",
         "Tiburon Wine Festival: a North Bay tasting afternoon",
@@ -4238,7 +4238,7 @@
       "title": "San Jose Little Italy 十周年街头节",
       "startDate": "2026-10-04",
       "endDate": "2026-10-04",
-      "dateLabel": "10/4 · 10 月 4 日 · 11:00–19:00",
+      "dateLabel": "10/4 · 11:00–19:00",
       "region": "south-bay",
       "city": "San Jose",
       "venue": "Little Italy business district · 323 Sharks Way",
@@ -4248,9 +4248,8 @@
       "costLabel": "参考：现场演出免费 · 餐饮、品酒等另付；最终价格以票页为准",
       "summary": "Little Italy 的十周年节庆把意大利餐饮、汽车展示、手工艺和音乐放在同一片街区。适合先吃午餐，再选一段现场演出慢慢听。",
       "plan": [
-        "时间安排：10 月 4 日 · 11:00–19:00。",
-        "费用与参加条件：参考：现场演出免费 · 餐饮、品酒等另付；最终价格以票页为准 现场娱乐免费；品酒、餐饮与其他收费体验分别核价。",
-        "11:00开始、11:30开幕式，不应将两者混淆。 出发前查看主办方最新公告，按场次确认余票、入场要求及交通安排。"
+        "现场娱乐免费；品酒、餐饮与其他收费体验分别核价。",
+        "11:00开始、11:30开幕式，不应将两者混淆。"
       ],
       "audience": [
         "美食爱好者",
@@ -4260,6 +4259,8 @@
       "sourceLabel": "littleitalysj.com",
       "verifiedAt": "2026-09-29",
       "imageKey": "autumn-neighbors",
+      "venueShort": "Little Italy 街区",
+      "address": "323 Sharks Way",
       "aliases": [
         "San Jose Little Italy 十周年街头节",
         "San Jose Little Italy 10th Anniversary Festival",
@@ -4495,6 +4496,8 @@
       "verifiedAt": "2026-10-02",
       "imageKey": "dvids-blue-angels-sffw-2024",
       "relatedGuideSlug": "sf-fishermans-wharf-pier39-guide",
+      "venueShort": "San Francisco 海滨（多处场地）",
+      "address": "Fisherman's Wharf / Pier 27",
       "aliases": [
         "San Francisco Fleet Week：海湾与城市活动周",
         "San Francisco Fleet Week",

@@ -1,5 +1,6 @@
 import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
 import { shareCardPath } from './editorial-share';
+import { brandCase } from './event-facts';
 import { SITE_URL, localCopy, type PageMetadata } from './seo';
 import { getBayAreaToday } from './monthly';
 import { listingEndedDaysAgo, NOINDEX_ENDED_DAYS } from './listing-lifecycle';
@@ -15,6 +16,8 @@ const OFFLINE = 'https://schema.org/OfflineEventAttendanceMode';
  */
 export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, today = getBayAreaToday()): PageMetadata {
   const share = discoveryShare(item);
+  // An offer's page name shows its brand as the page does ("SFMTA · San Francisco"), not the catalog's capitals.
+  const name = item.kind === 'offer' ? `${brandCase(item.offer.brand)} · ${item.offer.title}` : share.title;
   const url = `${SITE_URL}${share.path}`;
   const image = [`${SITE_URL}${shareCardPath(share)}`];
   let entity: Record<string, unknown>;
@@ -45,7 +48,7 @@ export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, t
     };
   } else {
     entity = {
-      '@context': 'https://schema.org', '@type': 'Article', headline: share.title, description: share.summary, url, mainEntityOfPage: url, image,
+      '@context': 'https://schema.org', '@type': 'Article', headline: name, description: share.summary, url, mainEntityOfPage: url, image,
       ...publicationDates(published, share.checkedAt),
       author: BAYLINK_EDITORIAL, publisher: BAYLINK_ORGANIZATION,
     };
@@ -54,11 +57,11 @@ export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, t
   // Keep each reviewed date/summary intact: date labels may already contain middle dots.
   // a month after its last day an ended listing asks not to be indexed (it left the sitemap after a week)
   const ended = (listingEndedDaysAgo(item, today) ?? -1) > NOINDEX_ENDED_DAYS;
-  return { title: `${share.title}｜BAYLINK`, ...(ended ? { noindex: true } : {}), shortTitle: item.kind === 'event' ? item.event.shortTitle : undefined, description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
+  return { title: `${name}｜BAYLINK`, ...(ended ? { noindex: true } : {}), shortTitle: item.kind === 'event' ? item.event.shortTitle : undefined, description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
     structuredData: [entity, { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: localCopy('首页', 'Home'), item: `${SITE_URL}/` },
       { '@type': 'ListItem', position: 2, name: section, item: `${SITE_URL}/events` },
-      { '@type': 'ListItem', position: 3, name: share.title, item: url },
+      { '@type': 'ListItem', position: 3, name, item: url },
     ] }],
   };
 }

@@ -63,7 +63,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
           </div>
         </li>
       </ul>
-      <p className="about-more">{t('还有：', 'Also: ')}<Link to="/explore">{t('按地区找景点', 'Places by area')}</Link><span aria-hidden="true"> · </span><Link to="/tools">{t('生活工具箱', 'Everyday tools')}</Link><span aria-hidden="true"> · </span><Link to="/opus-bay" reloadDocument>{t('3D 旧金山', '3D San Francisco')}</Link><span aria-hidden="true"> · </span><Link to="/category/rent">{t('邻里信息（测试中）', 'Neighborhood board (beta)')}</Link></p>
+      <p className="about-more">{t('还有：', 'Also: ')}<Link to="/explore">{t('按地区找景点', 'Places by area')}</Link><span className="about-more__next"><span aria-hidden="true"> · </span><Link to="/tools">{t('生活工具箱', 'Everyday tools')}</Link></span><span className="about-more__next"><span aria-hidden="true"> · </span><Link to="/opus-bay" reloadDocument>{t('3D 旧金山', '3D San Francisco')}</Link></span><span className="about-more__next"><span aria-hidden="true"> · </span><Link to="/category/rent">{t('邻里信息（测试中）', 'Neighborhood board (beta)')}</Link></span></p>
     </section>
 
     <section className="about-section" aria-labelledby="about-method-title">

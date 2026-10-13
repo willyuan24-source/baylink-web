@@ -1,10 +1,10 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { FeedCard, OfferCover } from '../../components/ui';
+import { FeedCard, OfferCardMeta, OfferCover, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import type { ResolvedCover } from '../../lib/cover';
-import { brandCase, offerKindLabel, type OfferFactsInput } from '../../lib/event-facts';
+import { offerKindLabel, type OfferFactsInput } from '../../lib/event-facts';
 import type { HomeOffer } from '../../lib/home-offers';
 import { monthDay } from './home-model';
 import { dateScope } from '../../lib/date-guard';
@@ -17,8 +17,9 @@ const TICKET_SIZES = '(max-width: 767px) 176px, 300px';
  * the source check (as on the event cards) and ♡, which saves the offer (one save model).
  */
 export function OfferTickets({ offers, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
-  const { t, pick } = useUiCopy();
+  const { t, pick, locale } = useUiCopy();
   if (!offers.length) return null;
+  const brands = offers.map(offer => offerBrandLine(offer.brand, locale));
   return <section className="home-offers" aria-labelledby="home-offers-title" {...dateScope('day')}>
     <div className="home-section-head">
       <h2 id="home-offers-title">{t('免费与优惠', 'Free & deals')}</h2>
@@ -28,7 +29,7 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
       {offers.map((offer, index) => <li key={offer.id}>
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
           cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} sizes={TICKET_SIZES} decorative />}
-          meta={<><span translate="no">{brandCase(offer.brand)}</span> · {pick(offerKindLabel(offer))}</>}
+          meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
           trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}

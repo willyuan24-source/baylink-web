@@ -6,25 +6,31 @@ export const PrivacyPolicyView = () => {
   const locale = useLocale();
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
-  return (
-  <LegalPageLayout title={{ zh: '隐私政策', en: 'Privacy Policy' }} updated="2026-10-13">
-    <LegalP>
+  const intro = <div className="legal-intro">
+    <ZhOnly><LegalP>{t('以下是完整政策。原文为英文，部分章节附中文说明。', 'The full policy follows. The original is in English; some sections add a Chinese version.')}</LegalP></ZhOnly>
+    <LegalP lang={english ? undefined : 'en'}>
       BAYLINK helps people in the San Francisco Bay Area find where to go and how to get things done, with sources: events and benefits, practical guides, BayBay AI answers and a neighborhood board. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use service bookings or BayBay AI features, or verify their phone number.
     </LegalP>
+  </div>;
+  const summary = <LegalSection title={'中文阅读要点'}>
+    <LegalP>{t('BAYLINK：湾区去哪、怎么办 · 有来源的中文答案。以下说明帮助你理解不同信息的用途与可见范围；详细内容见下方完整政策。', 'What each kind of information is used for and who can see it, in short. The full policy below has the details.')}</LegalP>
+    <LegalUl items={[
+      '账号资料、公开帖子和公开个人资料可能被其他用户或访客看到。请勿在公开正文中填写不希望公开的电话号码、住址或证件信息。',
+      '用于短信验证的手机号与「联系方式设置」中主动填写的电话、微信、邮箱是不同用途的信息。验证手机号不会因为完成验证而自动展示在帖子或资料中。',
+      t('预约双方可以查看该预约的时间、状态和顾客填写的备注。请不要在备注中填写密码、证件号码或无需提供的信息。提供者发布的可申请时段与服务设置会用于预约展示。', 'Both sides of a booking can see its time, status and the customer’s notes. Do not put passwords, ID numbers or anything unnecessary in notes. A provider’s published time slots and service settings are shown for booking.'),
+      t('手机验证与预约短信同意分开。服务提供者可单独开启预约业务短信；当前不向顾客发送预约短信。短信开关不影响站内预约记录与通知。', 'Phone verification and booking-SMS consent are separate. Service providers can turn on booking texts on their own; customers do not receive booking texts today. The SMS setting does not affect booking records or in-site notifications.'),
+      '你可选择优先私信、对方请求后自动发送联系方式，或经你确认后发送。接收人可以保存已收到的联系方式，请在发送前确认内容与对象。',
+      '使用 BayBay AI 时，你输入的文字可能被处理以生成建议和草稿。不要输入证件号码、账号密码或其他高度敏感信息。',
+      t('站内反馈只发送你在反馈表里选择和填写的内容，以及页面类型、语言、字号和网站版本；报告某条信息有误时，还会附上该条目的编号。反馈保存 90 天，不附带网址、账号或 BayBay 对话。内测模式须你点同意后才开启。', 'Site feedback sends only what you choose and type in the form, plus the page type, language, text size and site version, and the item’s id when you report an item. It is kept for 90 days and never includes the address, your account or a BayBay conversation. Tester mode starts only after you agree.'),
+      t('登录后，可在「我的 → 隐私与安全」下载本人资料、退出所有登录或确认永久注销。每次敏感操作都须确认当前凭证。资料较多、账号无法登录或需人工核验时，可向页末邮箱提出隐私申请；不承诺固定处理时限或外部缓存即时清除。', 'After signing in, open My profile → Privacy and security to download your data, sign out all sessions, or confirm permanent account deletion. Each sensitive operation requires current credentials. For larger exports, inaccessible accounts or requests requiring manual verification, contact the email below. We do not promise a fixed processing deadline or immediate erasure of external caches.'),
+    ]} />
+  </LegalSection>;
+  return (
+  <LegalPageLayout title={{ zh: '隐私政策', en: 'Privacy Policy' }} updated="2026-10-13">
 
-    <LegalSection title={'中文阅读要点'}>
-      <LegalP>{t('BAYLINK：湾区去哪、怎么办 · 有来源的中文答案。以下说明帮助你理解不同信息的用途与可见范围；详细内容见下方完整政策。', 'What each kind of information is used for and who can see it, in short. The full policy below has the details.')}</LegalP>
-      <LegalUl items={[
-        '账号资料、公开帖子和公开个人资料可能被其他用户或访客看到。请勿在公开正文中填写不希望公开的电话号码、住址或证件信息。',
-        '用于短信验证的手机号与「联系方式设置」中主动填写的电话、微信、邮箱是不同用途的信息。验证手机号不会因为完成验证而自动展示在帖子或资料中。',
-        t('预约双方可以查看该预约的时间、状态和顾客填写的备注。请不要在备注中填写密码、证件号码或无需提供的信息。提供者发布的可申请时段与服务设置会用于预约展示。', 'Both sides of a booking can see its time, status and the customer’s notes. Do not put passwords, ID numbers or anything unnecessary in notes. A provider’s published time slots and service settings are shown for booking.'),
-        t('手机验证与预约短信同意分开。服务提供者可单独开启预约业务短信；当前不向顾客发送预约短信。短信开关不影响站内预约记录与通知。', 'Phone verification and booking-SMS consent are separate. Service providers can turn on booking texts on their own; customers do not receive booking texts today. The SMS setting does not affect booking records or in-site notifications.'),
-        '你可选择优先私信、对方请求后自动发送联系方式，或经你确认后发送。接收人可以保存已收到的联系方式，请在发送前确认内容与对象。',
-        '使用 BayBay AI 时，你输入的文字可能被处理以生成建议和草稿。不要输入证件号码、账号密码或其他高度敏感信息。',
-        t('站内反馈只发送你在反馈表里选择和填写的内容，以及页面类型、语言、字号和网站版本；报告某条信息有误时，还会附上该条目的编号。反馈保存 90 天，不附带网址、账号或 BayBay 对话。内测模式须你点同意后才开启。', 'Site feedback sends only what you choose and type in the form, plus the page type, language, text size and site version, and the item’s id when you report an item. It is kept for 90 days and never includes the address, your account or a BayBay conversation. Tester mode starts only after you agree.'),
-        t('登录后，可在「我的 → 隐私与安全」下载本人资料、退出所有登录或确认永久注销。每次敏感操作都须确认当前凭证。资料较多、账号无法登录或需人工核验时，可向页末邮箱提出隐私申请；不承诺固定处理时限或外部缓存即时清除。', 'After signing in, open My profile → Privacy and security to download your data, sign out all sessions, or confirm permanent account deletion. Each sensitive operation requires current credentials. For larger exports, inaccessible accounts or requests requiring manual verification, contact the email below. We do not promise a fixed processing deadline or immediate erasure of external caches.'),
-      ]} />
-    </LegalSection>
+    {/* English readers start with the policy's own opening; Chinese readers with the Chinese summary, then the policy (PROD-W3:
+        a Chinese page opened on an English paragraph). */}
+    {english ? intro : summary}{english ? summary : intro}
 
     <div translate="no">
       <LegalSection title={t('账号导出、注销与两步验证', 'Account export, deletion and two-step verification')}>
@@ -46,7 +52,34 @@ export const PrivacyPolicyView = () => {
       <LegalP>Published outing details and the host’s public nickname are visible to other users and visitors. Request notes are shown to the host, while confirmed members can access the group roster and discussion. Leaving or removal ends discussion access. We store membership status, consent timestamps, changes, messages and report evidence to operate groups and handle abuse. Reports are available to administrators. Using the optional AI draft tool sends the idea you submit and any linked public event context to the AI provider; private profiles or group conversations are not included by this tool. Outing notifications use the site, not SMS.</LegalP>
     </LegalSection>
 
-    <LegalSection title="1. Information We Collect">
+    <LegalSection title={legalTitle('Anonymous product counters', '匿名功能统计', english)}>
+      <LegalP>{t('客户端功能统计只按日期、界面语言和页面类型累计浏览、粗略来源、推荐、保存、分享、收藏、地图与官方链接操作次数，不识别个人或跨次访问。页面类型是「活动详情」「指南文章」这样的模板（例如 /events/:id），不含具体条目编号或查询内容。来源只分直接访问、搜索、微信、社交、分享卡、Opus与其他，不发送来源网址。统计请求不携带账号、会话编号、IP、问题正文、页面网址或精确位置；浏览器开启 Do Not Track 或 Global Privacy Control 时不发送这些客户端统计请求。聚合记录保留180天，不代表活跃人数、个人留存或回复百分比。', 'Client feature counters count page views, coarse entry-source categories, recommendations, saves, shares, favorites, map opens and official-link clicks by day, interface language and page type. A page type is a template such as "event detail" (/events/:id), without the item id or any search text. Source categories are direct, search, WeChat, social, card, Opus or other; the source URL is not sent. These requests contain no account/session identifier, IP address, question text, page URL or precise location. Do Not Track and Global Privacy Control stop these client counter requests. Aggregate records expire after 180 days and do not represent active-user counts, individual retention or response percentages.')}</LegalP>
+      <LegalP>{t('服务端另累加已完成注册与真实消息请求及回复的匿名每日总数，不复制账号、联系方式或消息正文到匿名统计中。客户端统计开关不停止这些后台运营总数；为核验回复而保存的最少账号关联编号和时间遵循上文的清理范围。托管及安全日志也与客户端匿名计数分开。', 'The server separately counts completed registrations and real message requests/replies as anonymous daily totals, without copying account identifiers, contacts or message text into the aggregate. Client counter preferences do not stop these operational totals. Minimal account-linked references and timestamps needed to verify replies follow the cleanup boundaries above. Hosting and security logs are also separate from client anonymous counters.')}</LegalP>
+    </LegalSection>
+    <LegalSection title={t('意见反馈、错误统计与内测模式', 'Feedback, error reports and tester mode')}>
+      <LegalP>{t('意见反馈（反馈表、「这条信息有误？」和 BayBay 回答下的原因）只发送：你选择的问题类型、你填写的文字（最多 500 字）和可选的联系方式、所在页面类型、相关条目编号（报告某条活动、优惠、新店或指南有误时）、界面语言、字号和网站版本。不附带网址、账号、IP 或 BayBay 对话。反馈不与账号关联，保存 90 天后自动删除；需要提前删除可写信到页末邮箱。为防止滥用，服务器按访客每天计数，只保存每天更换的单向摘要，不保存 IP。', 'Feedback (the feedback form, "Something wrong here?" and the reasons under a BayBay answer) sends only the problem type you choose, the text you type (up to 500 characters), an optional contact, the page type, the item id when you report an event, offer, opening or guide, and the interface language, text size and site version. It never includes the address, your account, your IP address or a BayBay conversation. Feedback is not linked to an account and is deleted automatically after 90 days; email the address below to have it removed sooner. To prevent abuse the server counts submissions per visitor per day using a one-way digest that changes daily, never the IP address.')}</LegalP>
+      <LegalP>{t('页面出错时，浏览器只发送错误类型、页面类型、网站版本，以及由错误名称和部分错误信息生成的一串短摘要；错误原文、网址和你输入的内容都不会发送。服务器按天汇总计数，保存 30 天。浏览器开启 Do Not Track 或 Global Privacy Control 时不发送。', 'When a page fails, the browser sends only the error type, the page type, the site version and a short digest made from the error name and part of its message; the message itself, the address and anything you typed are never sent. The server keeps daily counts for 30 days. Do Not Track and Global Privacy Control stop these reports.')}</LegalP>
+      <LegalP>{t('内测模式只在你打开带测试编号的链接（例如 ?tester=T07）并点「同意」后开启：之后 30 天，这台设备的页面上会显示反馈按钮，测试编号保存在本浏览器，并预先填入反馈表的联系方式一栏（可修改或删除）。浏览统计和错误统计不带测试编号。可随时在反馈表中退出，30 天后自动结束。', 'Tester mode starts only when you open a link with a tester code (for example ?tester=T07) and choose Agree. For the next 30 days pages on this device show a Feedback button; the code is stored in this browser and pre-filled into the contact field of the feedback form, where you can change or delete it. Page counts and error reports never carry the code. You can leave from the feedback form at any time, and it ends by itself after 30 days.')}</LegalP>
+    </LegalSection>
+    <LegalSection title={legalTitle('Service Bookings', '服务预约信息', english)}>
+      <LegalP>
+        Provider availability and published booking settings help customers choose a time to request. A booking&apos;s provider and customer can access its selected time, status and customer notes. These appointment details are not a public booking list. BAYLINK processes the records to manage requests, confirmations, cancellations, declines, completion and expiry, and to save related in-site notifications. SMS delivery providers receive the recipient number and message content when an eligible provider has opted in. BAYLINK does not collect service payments through this booking feature.
+      </LegalP>
+      <ZhOnly><LegalP>
+        提供者发布的时段和预约设置用于让顾客选择申请时间。预约时间、状态及顾客备注可由该预约双方查看，不作为公开预约名单展示。系统处理申请、确认、取消、拒绝、完成与到期状态，并保存相应站内通知；服务提供者选择接收短信后，短信服务商会处理接收号码和消息内容。本预约功能不收取服务款项。
+      </LegalP></ZhOnly>
+      <LegalP>
+        Canceling a booking, allowing a request to expire, or disabling future availability changes its status or future availability; it does not automatically erase historical booking records or messages. Account-related access, correction or deletion requests can be sent to the contact below. Share only information needed to arrange the service, and avoid credentials, identity-document numbers or unnecessary sensitive details in booking notes.
+      </LegalP>
+      <ZhOnly><LegalP>取消、申请到期或关闭未来可预约时段不等于删除历史预约和消息。可通过页末联系方式提出访问、更正或删除申请。备注请只填写安排服务所需的信息，避免密码、证件号码和不必要的敏感内容。</LegalP></ZhOnly>
+    </LegalSection>
+    <LegalSection title={legalTitle('Outing Plans, Favorites and Maps', '出行计划、收藏与地图', english)}>
+      <LegalP>Guest plans and favorites stay in browser storage. When signed in, plans, favorites and selected regions, interests and travel preferences are stored with your account for access on other devices. Importing guest content is optional and requires a separate action. These account records are private. Public plan links contain selected public place or event IDs and a date, without your account ID or private plan title. Anyone receiving a link can view or forward those public selections.</LegalP>
+      <ZhOnly><LegalP>访客计划和收藏留在本机浏览器。登录后保存的计划、收藏、地区、兴趣和出行偏好会与账号关联，供其他设备读取；导入访客内容需要你主动选择。账号计划不公开，分享链接只包含公开地点编号和日期，不含账号编号或私人计划名称。拿到链接的人可以查看和转发这些公开选择。</LegalP></ZhOnly>
+      <LegalP>Opening the interactive map loads tiles from OpenFreeMap, which receives the network request and the map areas requested. This feature does not request your device location. You can remove saved plans and favorites in My Week; account-related privacy requests can be sent to the contact below.</LegalP>
+    </LegalSection>
+
+    <LegalSection title={legalTitle('1. Information We Collect', '我们收集的信息', english)}>
       <LegalP>We may collect the following information:</LegalP>
       <LegalUl items={[
         'Account information such as email address, nickname, password hash, avatar, profile description, area, city, profile tags, interests, website, and social links.',
@@ -61,17 +94,8 @@ export const PrivacyPolicyView = () => {
       ]} />
     </LegalSection>
 
-    <LegalSection title={legalTitle('Anonymous product counters', '匿名功能统计', english)}>
-      <LegalP>{t('客户端功能统计只按日期、界面语言和页面类型累计浏览、粗略来源、推荐、保存、分享、收藏、地图与官方链接操作次数，不识别个人或跨次访问。页面类型是「活动详情」「指南文章」这样的模板（例如 /events/:id），不含具体条目编号或查询内容。来源只分直接访问、搜索、微信、社交、分享卡、Opus与其他，不发送来源网址。统计请求不携带账号、会话编号、IP、问题正文、页面网址或精确位置；浏览器开启 Do Not Track 或 Global Privacy Control 时不发送这些客户端统计请求。聚合记录保留180天，不代表活跃人数、个人留存或回复百分比。', 'Client feature counters count page views, coarse entry-source categories, recommendations, saves, shares, favorites, map opens and official-link clicks by day, interface language and page type. A page type is a template such as "event detail" (/events/:id), without the item id or any search text. Source categories are direct, search, WeChat, social, card, Opus or other; the source URL is not sent. These requests contain no account/session identifier, IP address, question text, page URL or precise location. Do Not Track and Global Privacy Control stop these client counter requests. Aggregate records expire after 180 days and do not represent active-user counts, individual retention or response percentages.')}</LegalP>
-      <LegalP>{t('服务端另累加已完成注册与真实消息请求及回复的匿名每日总数，不复制账号、联系方式或消息正文到匿名统计中。客户端统计开关不停止这些后台运营总数；为核验回复而保存的最少账号关联编号和时间遵循上文的清理范围。托管及安全日志也与客户端匿名计数分开。', 'The server separately counts completed registrations and real message requests/replies as anonymous daily totals, without copying account identifiers, contacts or message text into the aggregate. Client counter preferences do not stop these operational totals. Minimal account-linked references and timestamps needed to verify replies follow the cleanup boundaries above. Hosting and security logs are also separate from client anonymous counters.')}</LegalP>
-    </LegalSection>
-    <LegalSection title={t('意见反馈、错误统计与内测模式', 'Feedback, error reports and tester mode')}>
-      <LegalP>{t('意见反馈（反馈表、「这条信息有误？」和 BayBay 回答下的原因）只发送：你选择的问题类型、你填写的文字（最多 500 字）和可选的联系方式、所在页面类型、相关条目编号（报告某条活动、优惠、新店或指南有误时）、界面语言、字号和网站版本。不附带网址、账号、IP 或 BayBay 对话。反馈不与账号关联，保存 90 天后自动删除；需要提前删除可写信到页末邮箱。为防止滥用，服务器按访客每天计数，只保存每天更换的单向摘要，不保存 IP。', 'Feedback (the feedback form, "Something wrong here?" and the reasons under a BayBay answer) sends only the problem type you choose, the text you type (up to 500 characters), an optional contact, the page type, the item id when you report an event, offer, opening or guide, and the interface language, text size and site version. It never includes the address, your account, your IP address or a BayBay conversation. Feedback is not linked to an account and is deleted automatically after 90 days; email the address below to have it removed sooner. To prevent abuse the server counts submissions per visitor per day using a one-way digest that changes daily, never the IP address.')}</LegalP>
-      <LegalP>{t('页面出错时，浏览器只发送错误类型、页面类型、网站版本，以及由错误名称和部分错误信息生成的一串短摘要；错误原文、网址和你输入的内容都不会发送。服务器按天汇总计数，保存 30 天。浏览器开启 Do Not Track 或 Global Privacy Control 时不发送。', 'When a page fails, the browser sends only the error type, the page type, the site version and a short digest made from the error name and part of its message; the message itself, the address and anything you typed are never sent. The server keeps daily counts for 30 days. Do Not Track and Global Privacy Control stop these reports.')}</LegalP>
-      <LegalP>{t('内测模式只在你打开带测试编号的链接（例如 ?tester=T07）并点「同意」后开启：之后 30 天，这台设备的页面上会显示反馈按钮，测试编号保存在本浏览器，并预先填入反馈表的联系方式一栏（可修改或删除）。浏览统计和错误统计不带测试编号。可随时在反馈表中退出，30 天后自动结束。', 'Tester mode starts only when you open a link with a tester code (for example ?tester=T07) and choose Agree. For the next 30 days pages on this device show a Feedback button; the code is stored in this browser and pre-filled into the contact field of the feedback form, where you can change or delete it. Page counts and error reports never carry the code. You can leave from the feedback form at any time, and it ends by itself after 30 days.')}</LegalP>
-    </LegalSection>
 
-    <LegalSection title="2. How We Use Information">
+    <LegalSection title={legalTitle('2. How We Use Information', '我们如何使用信息', english)}>
       <LegalP>BAYLINK uses information to:</LegalP>
       <LegalUl items={[
         'Provide account login, registration, password reset, and user profile features.',
@@ -86,7 +110,7 @@ export const PrivacyPolicyView = () => {
       ]} />
     </LegalSection>
 
-    <LegalSection title="3. Phone Numbers and SMS Consent">
+    <LegalSection title={legalTitle('3. Phone Numbers and SMS Consent', '手机号与短信同意', english)}>
       <LegalP>
         BAYLINK may collect your mobile phone number when you choose to complete phone verification for account security and community trust purposes. We use it to send requested verification codes and help protect the community from spam, fraud, and abuse. If you are a service provider and separately enable booking SMS, we also use your verified number for those transactional notices. Verification or booking-SMS consent does not publicly display that number. Contact details you separately provide for contact requests follow the sharing preferences you select.
       </LegalP>
@@ -104,20 +128,8 @@ export const PrivacyPolicyView = () => {
       </LegalP></ZhOnly>
     </LegalSection>
 
-    <LegalSection title={legalTitle('Service Bookings', '服务预约信息', english)}>
-      <LegalP>
-        Provider availability and published booking settings help customers choose a time to request. A booking&apos;s provider and customer can access its selected time, status and customer notes. These appointment details are not a public booking list. BAYLINK processes the records to manage requests, confirmations, cancellations, declines, completion and expiry, and to save related in-site notifications. SMS delivery providers receive the recipient number and message content when an eligible provider has opted in. BAYLINK does not collect service payments through this booking feature.
-      </LegalP>
-      <ZhOnly><LegalP>
-        提供者发布的时段和预约设置用于让顾客选择申请时间。预约时间、状态及顾客备注可由该预约双方查看，不作为公开预约名单展示。系统处理申请、确认、取消、拒绝、完成与到期状态，并保存相应站内通知；服务提供者选择接收短信后，短信服务商会处理接收号码和消息内容。本预约功能不收取服务款项。
-      </LegalP></ZhOnly>
-      <LegalP>
-        Canceling a booking, allowing a request to expire, or disabling future availability changes its status or future availability; it does not automatically erase historical booking records or messages. Account-related access, correction or deletion requests can be sent to the contact below. Share only information needed to arrange the service, and avoid credentials, identity-document numbers or unnecessary sensitive details in booking notes.
-      </LegalP>
-      <ZhOnly><LegalP>取消、申请到期或关闭未来可预约时段不等于删除历史预约和消息。可通过页末联系方式提出访问、更正或删除申请。备注请只填写安排服务所需的信息，避免密码、证件号码和不必要的敏感内容。</LegalP></ZhOnly>
-    </LegalSection>
 
-    <LegalSection title="4. SMS Data Sharing">
+    <LegalSection title={legalTitle('4. SMS Data Sharing', '短信数据共享', english)}>
       <LegalP>
         Mobile phone numbers, SMS opt-in data, and SMS consent are not shared with third parties or affiliates for marketing or promotional purposes.
       </LegalP>
@@ -126,13 +138,13 @@ export const PrivacyPolicyView = () => {
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="5. Emails">
+    <LegalSection title={legalTitle('5. Emails', '电子邮件', english)}>
       <LegalP>
         BAYLINK may send account-related emails, including password reset emails and important account notices. Users may contact BAYLINK if they have questions about account emails.
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="6. User Content">
+    <LegalSection title={legalTitle('6. User Content', '用户内容', english)}>
       <LegalP>Event interest is stored with your account and contributes to public aggregate counts. Selecting Interested alone does not publish your identity. If you explicitly join Go together, your nickname, avatar and city are displayed in that event's public buddy list, and members may contact you through site messaging. You may leave the list or cancel your interest at any time. Cancellation updates the stored choice; it does not automatically delete historical database records. Account data deletion requests can be made through the contact below.</LegalP>
       <ZhOnly><LegalP>活动“想去”会与账号关联并计入公开总人数，单独点“想去”不会公开你的身份。主动加入“一起去”后，昵称、头像和城市才会显示在该活动的公开搭子列表，其他用户可通过站内私信联系你。你可随时退出或取消想去。取消会更新已保存的状态，不会自动删除历史数据库记录；如需删除账号相关数据，可通过页末邮箱申请。</LegalP></ZhOnly>
       <LegalP>
@@ -143,7 +155,7 @@ export const PrivacyPolicyView = () => {
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="7. AI Features">
+    <LegalSection title={legalTitle('7. AI Features', 'AI 功能', english)}>
       <LegalP>Quick search searches the published editorial catalog in your browser and may send search keywords to BAYLINK to retrieve public community posts. Opening BayBay and submitting a question may send that question, the current page path, recognized city/date filters, city/date requirements you stated earlier in this chat and up to four recent question-and-answer pairs to our AI service provider. When available, Smart search may use web search for current or additional information; Web search explicitly requests it. Search terms may then be processed by the provider's web-search service. Site only disables external web retrieval, but may still use the AI service to explain site material. Each reply identifies its retrieval scope and any available sources.</LegalP>
       <ZhOnly><LegalP>快速搜索在浏览器中查找已发布的内容目录，也可能将搜索关键词发送给 BAYLINK 查询公开邻里帖子。向 BayBay 提问时，问题、当前页面路径、已识别的城市与日期筛选、你在本次对话中说明的城市与日期条件，以及最近最多四轮问答可能发送给 AI 服务提供商。服务可用时，「智能检索」会按需要联网补充信息，「联网查」会主动请求联网；搜索词可能由提供商的联网检索服务处理。「仅站内」关闭站外检索，但仍可能使用 AI 整理站内资料。每条回复会说明实际检索范围并提供可用来源。</LegalP></ZhOnly>
       <LegalP>
@@ -155,13 +167,8 @@ export const PrivacyPolicyView = () => {
       <ZhOnly><LegalP>识别活动截图时，所选图片会发送给 AI 服务提供商；你核对并确认后，BAYLINK 只保存活动文字，不把原图加入活动记录。访客活动保存在此浏览器，登录后的活动私密保存在账号中，可在「我的这周」修改或移除。私信翻译只处理所选文字消息，回复助手只处理你填写的意思和选中的一条消息，不发送整段聊天记录；回复由你决定是否发送。</LegalP></ZhOnly>
     </LegalSection>
 
-    <LegalSection title="Outing Plans, Favorites and Maps">
-      <LegalP>Guest plans and favorites stay in browser storage. When signed in, plans, favorites and selected regions, interests and travel preferences are stored with your account for access on other devices. Importing guest content is optional and requires a separate action. These account records are private. Public plan links contain selected public place or event IDs and a date, without your account ID or private plan title. Anyone receiving a link can view or forward those public selections.</LegalP>
-      <ZhOnly><LegalP>访客计划和收藏留在本机浏览器。登录后保存的计划、收藏、地区、兴趣和出行偏好会与账号关联，供其他设备读取；导入访客内容需要你主动选择。账号计划不公开，分享链接只包含公开地点编号和日期，不含账号编号或私人计划名称。拿到链接的人可以查看和转发这些公开选择。</LegalP></ZhOnly>
-      <LegalP>Opening the interactive map loads tiles from OpenFreeMap, which receives the network request and the map areas requested. This feature does not request your device location. You can remove saved plans and favorites in My Week; account-related privacy requests can be sent to the contact below.</LegalP>
-    </LegalSection>
 
-    <LegalSection title="8. Information Sharing">
+    <LegalSection title={legalTitle('8. Information Sharing', '信息共享', english)}>
       <LegalP>BAYLINK may share limited information:</LegalP>
       <LegalUl items={[
         'With service providers that help operate BAYLINK, such as hosting, database, image storage, email delivery, SMS delivery, analytics, or infrastructure providers.',
@@ -175,34 +182,34 @@ export const PrivacyPolicyView = () => {
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="9. Data Security">
+    <LegalSection title={legalTitle('9. Data Security', '数据安全', english)}>
       <LegalP>
         BAYLINK uses reasonable technical and organizational measures to protect user information, including password hashing, token-based authentication, limited public profile fields, and restricted access to sensitive information. However, no online service can guarantee complete security.
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="10. Data Retention">
+    <LegalSection title={legalTitle('10. Data Retention', '数据保留', english)}>
       <LegalP>{t('在线账号注销与上述去敏清理是独立可确认的操作。其余记录按提供服务、安全与必要核验的用途保留；我们尚未为每类托管日志、备份和历史第三方媒体公布统一固定期限，也不承诺即时清除。可通过页末联系方式申请人工核验、访问、更正或进一步清理。', 'Online account deletion and the anonymization described above are separate confirmable operations. Other records are retained for service, safety and necessary verification purposes. We have not published one fixed duration for every hosting-log, backup or historical third-party-media category and do not promise immediate erasure. Contact the address below for manually verified access, correction or further cleanup.')}</LegalP>
       <LegalP>{t('意见反馈保存 90 天，错误统计保存 30 天，匿名功能统计保存 180 天，到期自动删除。', 'Feedback is kept for 90 days, error reports for 30 days and anonymous feature counts for 180 days, then deleted automatically.')}</LegalP>
     </LegalSection>
 
-    <LegalSection title="11. Children">
+    <LegalSection title={legalTitle('11. Children', '儿童', english)}>
       <LegalP>BAYLINK is not intended for children under 13. Users should not use BAYLINK if they are under 13 years old.</LegalP>
     </LegalSection>
 
-    <LegalSection title="12. California Users">
+    <LegalSection title={legalTitle('12. California Users', '加州用户', english)}>
       <LegalP>
         California users may have rights under applicable privacy laws, including rights to request access, deletion, or correction of certain personal information, subject to legal limitations.
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="13. Changes to This Policy">
+    <LegalSection title={legalTitle('13. Changes to This Policy', '政策变更', english)}>
       <LegalP>
         BAYLINK may update this Privacy Policy from time to time. Updated versions will be posted on this page with a new &ldquo;Last updated&rdquo; date.
       </LegalP>
     </LegalSection>
 
-    <LegalSection title="14. Contact">
+    <LegalSection title={legalTitle('14. Contact', '联系方式', english)}>
       <LegalP>
         For privacy questions, contact:{' '}
         <a href="mailto:Baylink.us@gmail.com">Baylink.us@gmail.com</a>

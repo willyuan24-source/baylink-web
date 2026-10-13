@@ -7,7 +7,7 @@
     "fontSizePxUnder13": 0,
     "fontSizeUnder13": 403,
     "radiusKinds": 66,
-    "shadowKinds": 64,
+    "shadowKinds": 63,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 64,
     "baylinkClasses": 427,
@@ -243,7 +243,6 @@
       "tw:rounded-xl"
     ],
     "shadow": [
-      "0 0 0 .5rem var(--color-bg)",
       "0 0 0 18px rgb(var(--color-surface-rgb) / .07)",
       "0 0 0 1px var(--color-brand)",
       "0 0 0 1px var(--profile-ink)",

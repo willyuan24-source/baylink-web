@@ -127,6 +127,12 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
     if (locale && shell.some(markup => [...markup.matchAll(/href="(\/[^"]*)"/g)].some(match => !match[1].startsWith(`/${locale.slice(0, -1)}`)))) throw new Error(`First-paint navigation loses its language: ${path}`);
   }
 }
+// PROD-W3 perf: the prerendered home opens <main> with HomePage's own wrapper, so the app's first render keeps the hero
+// image's box (no late second LCP; tests/prod-w3-fixes checks the app side renders this wrapper).
+for(const locale of ['', 'en/', 'zh-Hant/']) {
+  const html=await readFile(`dist/${locale}index.html`,'utf8');
+  if(!/<main\b[^>]*><div class="bay-home bay-home-editorial"><section class="home-discovery"/.test(html)) throw new Error(`The prerendered home is not wrapped as HomePage renders it: dist/${locale}index.html`);
+}
 // WEB-SEO-I18N (I18N-SEO-02/-04): every built page, in each language. /en carries no Chinese and /zh-Hant no Simplified-only
 // character outside markup that says so (translate="no", lang="zh…", the language switch), in the text and in the head;
 // every JSON-LD block passes the schema check (scripts/structured-data-check.ts).

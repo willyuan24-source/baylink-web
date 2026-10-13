@@ -68,8 +68,8 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   const typed = view.container.querySelectorAll('[data-cover="type"][data-family="guide"]');
   assert.ok(typed.length > 0);
   for (const cover of typed) assert.equal(cover.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
-  // A pilot guide's coded cover prints its first answer.
-  assert.ok([...typed].some(cover => cover.textContent?.includes('800-510-2020')));
+  // A pilot guide's coded cover prints its first answer (the number joined by non-breaking hyphens, U+2011, so it keeps one line).
+  assert.ok([...typed].some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-510-2020')));
 });
 
 test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, and chips update the URL', () => {

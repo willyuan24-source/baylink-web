@@ -6,6 +6,8 @@
 .legal-doc{display:grid;gap:24px;color:var(--color-ink-2);font-size:var(--text-body);line-height:1.75}
 .legal-doc p{margin:0}
 .legal-doc p+p{margin-top:12px}
+/* A group of sections inside the document (the translate="no" block) keeps the 24px rhythm between them; the opening paragraphs (.legal-intro) are one block, 12px apart. */
+.legal-doc>div:not(.legal-intro){display:grid;gap:24px}
 .legal-section>h2{margin:0 0 8px;color:var(--color-ink);font-size:var(--text-card);line-height:1.5;font-weight:600;text-wrap:balance}
 .legal-section>h3{margin:16px 0 8px;color:var(--color-ink);font-size:var(--text-body);line-height:1.5;font-weight:600}
 .legal-doc ul{margin:12px 0 0;padding-left:1.25rem;list-style:disc}

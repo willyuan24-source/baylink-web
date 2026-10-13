@@ -5,6 +5,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { isHomeQuestion } from '../../lib/home-query';
 import { longDate, monthDay } from './home-model';
 import { dateScope } from '../../lib/date-guard';
+import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 
 export type HomeHeadProps = {
   today: string;
@@ -28,6 +29,10 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
   const id = useId();
   const [query, setQuery] = useState('');
   const asking = isHomeQuestion(query);
+  // At 大 / 特大 and in 简洁显示 the box holds about eight characters next to the button: a shorter example, so it is never
+  // cut mid-glyph ("比如：这周末带爸妈" with half a 妈). The first render is the standard one, as prerendered.
+  const readingSize = useReadingSize(), simple = useSimpleDisplay();
+  const roomy = readingSize !== 'standard' || simple;
   const submit = () => {
     const value = query.trim();
     if (!value) return;
@@ -48,7 +53,7 @@ export function HomeHead({ today, weekendTotal, guideCount, checkedAt, onAskBayB
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
       <img className="home-ask__otter" src="/brand/otter.svg" alt="" width={28} height={28} decoding="async" />
       <input id={`${id}-ask`} value={query} maxLength={500} enterKeyHint={asking ? 'send' : 'search'}
-        placeholder={t('比如：这周末带爸妈去哪？', 'e.g. Free things to do with kids?')}
+        placeholder={roomy ? t('周末带爸妈去哪？', 'Free fun with kids?') : t('比如：这周末带爸妈去哪？', 'e.g. Free fun with kids?')}
         onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} />
       <button type="submit" disabled={!query.trim()}>{asking ? t('问 BayBay', 'Ask BayBay') : <><Search aria-hidden="true" strokeWidth={1.75} />{t('搜索', 'Search')}</>}</button>
     </form>

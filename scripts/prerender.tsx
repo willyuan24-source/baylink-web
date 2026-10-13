@@ -137,9 +137,11 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
 
 const homeDescription = '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。';
 await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', image: HUB_CARDS.home, imageAlt: '这个周末，湾区去哪？BAYLINK 本周末精选', english: { imageAlt: 'Where to go in the Bay Area this weekend: BAYLINK picks' }, structuredData: SITE_STRUCTURED_DATA }, (
-  <section className="px-5 py-8">
+  // The same wrapper as HomePage renders, so the app's first render replaces the prerendered <main> box for box: the hero
+  // image keeps its size and place, and the browser records no second, later LCP for it (PROD-W3 perf: /en 7.8 s).
+  <div className="bay-home bay-home-editorial">
     <HomeDiscovery onAskBayBay={noop} onBrowseCommunity={noop} />
-  </section>
+  </div>
 ));
 
 await renderPage(GUIDES_METADATA, <GuidesHome onOpenGuide={noop} />);

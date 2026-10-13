@@ -3,12 +3,13 @@ import { Bike, BookOpen, Dog, Film, Gift, HeartHandshake, Landmark, Music, Palet
 import './ui.css';
 import { ProvenanceBadge, Sticker, type StickerTone } from './Badges';
 import { cx, useUiCopy } from './ui-copy';
+import { offerBrandLine } from './offer-brand';
 import { SegmentedTitle } from '../SegmentedTitle';
 import type { CoverRatio } from './CoverImage';
 import { translateText } from '../../i18n/locale';
 import { typeCoverProvenance } from '../../lib/image-provenance';
 import {
-  brandCase, eventDateChip, eventPlace, eventPriceChip, eventShortTitle, eventTone, formatDateChip, offerDeadline, offerKindLabel,
+  eventDateChip, eventPlace, eventPriceChip, eventShortTitle, eventTone, formatDateChip, offerDeadline, offerKindLabel,
   offerTone, offerValue, openingChip, toneLabel, type Copy, type CoverTone, type DateChipText, type EventFactsInput, type OfferFactsInput,
 } from '../../lib/event-facts';
 import type { SeptemberOpening } from '../../data/september-openings';
@@ -24,7 +25,7 @@ export type TypeCoverProps = {
   tone: CoverTone;
   /** `guide`: family C, a guide without a qualifying photo (topic palette, short title, source count). */
   family?: 'event' | 'offer' | 'opening' | 'guide';
-  /** The truthful category label, already localized ("亲子活动"). */
+  /** The truthful category label, already localized ("亲子活动"); '' when the page header already names it (a detail band). */
   label: string;
   date?: DateChipText;
   title?: string;
@@ -67,7 +68,7 @@ export function TypeCover({ tone, family = 'event', label, date, title, value, v
     {createElement(iconFor(tone, icon), { className: 'ui-type-cover__icon', 'aria-hidden': true, strokeWidth: 1.5 })}
     <ProvenanceBadge label={typeCoverProvenance(english)} />
     <div className="ui-type-cover__body">
-      <p className="ui-type-cover__label">{label}</p>
+      {label && <p className="ui-type-cover__label">{label}</p>}
       {dateParts}
       {value && <p className="ui-type-cover__value"><span>{value}</span>{valueSmall && <span className="ui-type-cover__value-small">{valueSmall}</span>}</p>}
       {brand && <p className="ui-type-cover__brand" lang={HAN.test(brand) ? undefined : 'en'} translate="no">{brand}</p>}
@@ -104,14 +105,16 @@ export function EventTypeCover({ event, today, days, tone, ...layout }: CoverLay
     place={eventPlace(event)} sticker={price ? { tone: price.tone, text: pick(price.text) } : undefined} icon={event.iconKey ?? ownTone} />;
 }
 
-/** Family B: the value large, the brand in normal case, the condition line and a deadline sticker. */
+/**
+ * Family B: the value large, the brand in normal case and a deadline sticker. Every offer cover sits on a card whose caption
+ * carries the full title, so the cover does not repeat it (cut short inside a 1:1 cover it read "Concord Taco Tra…", PROD-W3).
+ */
 export function OfferTypeCover({ offer, today, tone, ...layout }: CoverLayout & { offer: OfferFactsInput; today: string }) {
-  const { english, pick } = useUiCopy();
+  const { pick, locale } = useUiCopy();
   const value = offerValue(offer);
   const deadline = offerDeadline(offer, today);
-  const title = english ? translateText(offer.title, 'en') : offer.title;
   return <TypeCover {...layout} family="offer" tone={tone ?? offerTone(offer)} label={pick(offerKindLabel(offer))}
-    value={value ? pick(value) : undefined} valueSmall={value?.condition ? pick(value.condition) || undefined : undefined} brand={brandCase(offer.brand)} title={value ? undefined : title} note={value ? title : undefined}
+    value={value ? pick(value) : undefined} valueSmall={value?.condition ? pick(value.condition) || undefined : undefined} brand={offerBrandLine(offer.brand, locale) || undefined}
     sticker={deadline ? { tone: deadline.tone, text: pick(deadline.text) } : undefined} icon={offerTone(offer) === 'free' ? 'free' : 'store'} ratio={layout.ratio ?? '1:1'} />;
 }
 
@@ -123,11 +126,14 @@ const OPENING_LABELS: Record<SeptemberOpening['openingType'], Copy> = {
   'extended-pop-up': { zh: '快闪店', en: 'Pop-up' },
   'opening-celebration': { zh: '开业活动', en: 'Opening celebration' },
 };
-/** Openings: type, name, city and an honest opening chip ("10 月开业" / "即将开业"). Never AI food. */
-export function OpeningTypeCover({ opening, today, tone, ...layout }: CoverLayout & { opening: Pick<SeptemberOpening, 'name' | 'city' | 'status' | 'openedOn' | 'openingType'>; today: string }) {
+/**
+ * Openings: type, name, city and an honest opening chip ("10 月开业" / "即将开业"). Never AI food. `compact`: the type only,
+ * for a detail page whose header already shows the name, the city and the chip.
+ */
+export function OpeningTypeCover({ opening, today, tone, compact, ...layout }: CoverLayout & { opening: Pick<SeptemberOpening, 'name' | 'city' | 'status' | 'openedOn' | 'openingType'>; today: string; compact?: boolean }) {
   const { pick } = useUiCopy();
   const restaurant = opening.openingType === 'new-restaurant';
   return <TypeCover {...layout} family="opening" tone={tone ?? (restaurant ? 'food' : 'family')}
-    label={pick(OPENING_LABELS[opening.openingType])} title={opening.name} place={opening.city}
-    sticker={{ tone: opening.status === 'open' ? 'success' : 'neutral', text: pick(openingChip(opening, today)) }} icon={restaurant ? 'food' : 'store'} />;
+    label={pick(OPENING_LABELS[opening.openingType])} title={compact ? undefined : opening.name} place={compact ? undefined : opening.city}
+    sticker={compact ? undefined : { tone: opening.status === 'open' ? 'success' : 'neutral', text: pick(openingChip(opening, today)) }} icon={restaurant ? 'food' : 'store'} />;
 }

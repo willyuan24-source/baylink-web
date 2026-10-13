@@ -151,7 +151,9 @@ test('/tools has one H1 at the title spec and the eight tools; the AI page says 
   assert.equal(page(toolsEn).getByRole('heading', { level: 1 }).textContent, 'Everyday tools');
   const later = await render('zh-Hans', '/ai-in-the-bay', createElement(AiLocalPage, { today: '2026-10-12' }));
   assert.match(page(later).getByRole('note').textContent!, /都已结束/);
-  assert.ok(page(later).getAllByRole('article').length >= 8, 'past sessions stay readable as past records');
+  // The past sessions are folded behind one button (PROD-W3: the page opened on eight 已结束 cards); tests/prod-w3-fixes opens them.
+  assert.equal(page(later).queryAllByRole('article').length, 0, 'no wall of ended cards by default');
+  assert.match(page(later).getByRole('button', { name: /^看已结束的场次（\d+ 场）$/ }).textContent!, /（([89]|\d{2,}) 场）/, 'past sessions stay one tap away');
   assert.equal(page(later).queryAllByRole('main').length, 0, 'no <main> inside the site <main>');
   const during = await render('zh-Hans', '/ai-in-the-bay', createElement(AiLocalPage, { today: '2026-10-05' }));
   assert.equal(page(during).queryByRole('note'), null);
