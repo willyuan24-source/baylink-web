@@ -75,3 +75,17 @@ export function phoneDirectoryOf(items: string[], locale: Locale): PhoneDirector
   const lists = items.map(item => parsePhoneDirectory(translateText(item, locale)));
   return lists.length && lists.every(list => list) ? lists.flat() as PhoneDirectoryEntry[] : null;
 }
+
+const COVER_PHONE = /(^|[^\d-])((?:1-)?\d{3}-\d{3}-\d{4})(?![\d-])/g;
+/**
+ * A phone number on a coded cover stays whole (H21 / SV13-04, GR-05): its hyphens become non-breaking, and the cover that
+ * prints one sets its answer a step smaller (guide-library.css .gd-cover-phone) so "1‑800‑434‑0222" fits a 173 px card.
+ * Before, the whole-number word was wider than the card and the browser cut it before its last digit
+ * ("1-800-434-022 / 2"); a break after the area code instead split numbers that fit on their own line. Elders read and
+ * dial from these covers.
+ */
+export const coverPhoneKeep = (text: string): { text: string; phone: boolean } => {
+  let phone = false;
+  const kept = text.replace(COVER_PHONE, (_, before: string, number: string) => { phone = true; return before + number.replace(/-/g, '‑'); });
+  return { text: kept, phone };
+};

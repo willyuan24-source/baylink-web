@@ -324,3 +324,12 @@ test('the calendar follows overlay date corrections: a postponed event has no da
   const postponed = MONTHLY_EVENTS.find(event => event.id === 'south-sf-state-of-city-2026')!;
   assert.equal(eventOccursOn(postponed, '2026-10-27'), false);
 });
+
+test('an open shop never says it is coming: no 预告 type and no first day after today (H09, WEB-FIX5 review)', () => {
+  const marufuku = currentOpenings.find(shop => shop.id === 'marufuku-burlingame-announced')!;
+  const lint = (shop: typeof marufuku) => lintEditorial(input({ events: [], offers: [], openings: [shop] })).filter(issue => issue.rule === 'open-says-soon').map(issue => [issue.level, issue.detail]);
+  assert.deepEqual(lint(marufuku), []);
+  assert.deepEqual(lint({ ...marufuku, category: '拉面新店预告' }), [['error', 'status open but category 拉面新店预告']]);
+  assert.deepEqual(lint({ ...marufuku, openedOn: '2026-10-30' }), [['error', 'status open but openedOn 2026-10-30']]);
+  assert.deepEqual(lint({ ...marufuku, status: 'announced', category: '拉面新店预告', openedOn: undefined }), [], 'an announced shop may say 预告');
+});

@@ -28,6 +28,7 @@ const { retryableLazy } = await import('../src/features/events/lazy-view');
 const model = await import('../src/features/events/events-model');
 const { isFreeToAttend, getMonthlyDateRange, nextOccurrence } = await import('../src/lib/monthly');
 const { WEEKEND_PICKS } = await import('../src/data/weekend-picks');
+const { checkLine, checkSummary } = await import('../src/lib/check-dates');
 
 const originalFetch = globalThis.fetch;
 afterEach(() => { cleanup(); localStorage.clear(); globalThis.fetch = originalFetch; });
@@ -50,7 +51,9 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     assert.equal(page.querySelector('.ev-range')?.textContent, '本周末 · 10/10–11');
     const total = weekendEvents().length;
     const free = weekendEvents().filter(event => isFreeToAttend(event)).length;
-    assert.equal(page.querySelector('.ev-lede-facts')!.textContent, `${total} 场 · ${free} 场免费 · 逐条附官方来源 · 核对于 10/7`);
+    // H02: the check dates of the listed events (most of them, and the latest), not the edition's 10/7.
+    const checked = checkLine(checkSummary(weekendEvents().map(event => event.verifiedAt), today)!, zh => zh);
+    assert.equal(page.querySelector('.ev-lede-facts')!.textContent, `${total} 场 · ${free} 场免费 · 逐条附官方来源 · ${checked}`);
     const tabs = [...page.querySelectorAll('nav[aria-label="活动分区"] a')];
     assert.deepEqual(tabs.map(tab => [tab.textContent, tab.getAttribute('href')]), [['本周末', '/events'], ['日历·地图', '/calendar'], ['免费与优惠', '/events?view=perks'], ['新店', '/events?view=openings']]);
     assert.deepEqual(tabs.map(tab => tab.getAttribute('aria-current')), ['page', null, null, null]);
@@ -111,7 +114,7 @@ test('the 免费 chip, a story chip and the filter Sheet narrow the feed, keep o
   for (const id of feedIds(view.container)) assert.ok(isFreeToAttend(model.INDEX_EVENTS.find(event => event.id === id)!), id);
   assert.equal(view.container.querySelector('.ev-picks'), null, 'a narrowed list shows no picks rail');
   // Story chips are toggles over facts the record states.
-  fireEvent.click(within(view.container.querySelector('.ev-stories')!).getByRole('button', { name: '带娃' }));
+  fireEvent.click(within(view.container.querySelector('.ev-stories')!).getByRole('button', { name: '亲子' }));
   assert.equal(query(view).get('tag'), 'kids');
   const kids = model.TAGS.find(tag => tag.id === 'kids')!;
   for (const id of feedIds(view.container)) assert.ok(kids.test(model.INDEX_EVENTS.find(event => event.id === id)!), id);

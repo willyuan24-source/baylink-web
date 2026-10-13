@@ -273,7 +273,7 @@ test('offer, opening and guide cards save with the same ♡ as event cards, thro
     assert.ok(item.querySelector('[data-cover]'), 'the card has its cover from getCover');
     const heart = within(item).getByRole('button', { name: `收藏：${card.title}` });
     assert.equal(heart.getAttribute('aria-pressed'), 'false');
-    assert.equal(within(item).queryByRole('button', { name: /加入行程/ }), null, 'only events go into a day plan');
+    assert.equal(within(item).queryByRole('button', { name: /加入(这天)?计划/ }), null, 'only events go into a day plan');
     fireEvent.click(heart);
     assert.equal((await within(item).findByRole('button', { name: `已收藏：${card.title}` })).getAttribute('aria-pressed'), 'true');
   }

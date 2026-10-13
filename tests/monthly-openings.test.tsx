@@ -95,6 +95,25 @@ test('the board reads the whole canonical catalog: each shop once, every status 
   for (const shop of currentOpenings) assert.equal(view.getByRole('link', { name: shop.name, exact: true }).getAttribute('href'), `/openings/${shop.id}`);
 });
 
+test('an open shop never says 即将开业 / Opening soon on its chip, its card or in English (EVT13-02 / H09)', () => {
+  for (const today of [TODAY, '2026-10-13', '2026-11-20']) {
+    for (const shop of openShops) {
+      const chip = openingChip(shop, today);
+      assert.doesNotMatch(chip.zh, /即将/, `${today}: ${shop.id}`);
+      assert.doesNotMatch(chip.en, /soon/i, `${today}: ${shop.id}`);
+    }
+  }
+  const view = render(board());
+  fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
+  showAll(view);
+  for (const shop of openShops) assert.doesNotMatch(card(view, shop.name).textContent!, /即将开业/, shop.id);
+  const marufuku = canonicalOpening('marufuku-burlingame-announced');
+  assert.equal(marufuku.status, 'open');
+  assert.equal(marufuku.openedOn, '2026-10-11', 'the store page names 10/11 as the grand opening with service hours');
+  assert.equal(marufuku.category, '拉面');
+  assert.deepEqual(openingChip(marufuku, '2026-10-13'), { zh: '10 月开业', en: 'Opened Oct' });
+});
+
 test('soft openings have their own filter and never inherit an open or announced label', () => {
   assert.ok(softOpenShops.length > 0);
   const view = render(board());
@@ -145,7 +164,8 @@ test('passing an announced date or month never silently promotes a forecast to o
   // A confirmed first day reads as the month it opened; a future one as the expected day.
   assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-08-10' }, TODAY), { zh: '8 月开业', en: 'Opened Aug' });
   assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-10-20' }, TODAY), { zh: '预计 10/20 开业', en: 'Opening 10/20' });
-  assert.deepEqual(openingChip({ status: 'open', openedOn: undefined }, TODAY), { zh: '即将开业', en: 'Opening soon' });
+  // An open shop whose source names no first day is open, not coming (EVT13-02 / H09); only an announcement is 即将开业.
+  assert.deepEqual(openingChip({ status: 'open', openedOn: undefined }, TODAY), { zh: '已开业', en: 'Open now' });
   const bakery = canonicalOpening('boulangerie-eria-celebration');
   assert.equal(bakery.status, 'open');
   assert.equal(bakery.openedOn, undefined, 'verified operation does not invent a first-service date');
@@ -197,7 +217,9 @@ test('opening cards show only attributable photos or posters; synthetic shop art
   // 2026-10-12 (CNT-HOTFIX): open after the 10/11 grand opening, with the regular hours the store page lists from 10/12.
   assert.equal(marufuku.status, 'open');
   assert.match(marufuku.dateLabel, /10\/11.*Grand Opening.*10\/12.*11:00.*14:00.*17:00.*21:00/);
-  assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
+  // 2026-10-13 (WEB-FIX5, H09): the store page lists the 10/11 grand opening with its service hours, so 10/11 is the first
+  // day of public service (the location list still says Coming Soon; the store page is the more specific source).
+  assert.equal(marufuku.openedOn, '2026-10-11');
   assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/burlingame');
   assert.equal(marufuku.address, '225 Lorton Ave, Burlingame, CA 94010');
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /宣传图.*不是开业当天/);

@@ -5,7 +5,7 @@ import { createCoverPage, distinctNeighbourTones, getCover, type CoverContext } 
 import { eventTone } from '../lib/event-facts';
 import { getBayAreaToday } from '../lib/monthly';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
-import { getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, MONTHLY_EDITION, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
+import { getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
 import { selectHomeOffers } from '../lib/home-offers';
 import { HomeHead } from '../features/home/HomeHead';
 import { HeroPicks } from '../features/home/HeroPicks';
@@ -72,9 +72,9 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
 
   return <section className="home-discovery" aria-label={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}>
     <div className="home-top">
-      <HomeHead today={today} weekendTotal={weekend.total} guideCount={guideCount} checkedAt={MONTHLY_EDITION.checkedAt} onAskBayBay={onAskBayBay} onSearch={onSearch} />
+      <HomeHead today={today} weekendTotal={weekend.total} guideCount={guideCount} checked={weekend.checked} onAskBayBay={onAskBayBay} onSearch={onSearch} />
       <HeroPicks picks={weekend.picks} covers={covers.picks} today={today} start={weekend.start} end={weekend.end} total={weekend.total} />
-      <MoodCircles />
+      <MoodCircles seniors={weekend.seniors} />
     </div>
     <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} tones={feedTones} today={today} total={weekend.total} />
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />

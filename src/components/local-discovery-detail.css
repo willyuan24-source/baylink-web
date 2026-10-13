@@ -80,6 +80,10 @@
 .local-discovery-detail .discovery-related { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); margin-top:8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
 .local-discovery-detail .detail-share { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px 12px; margin-top:24px; }
 .local-discovery-detail .detail-share .editorial-share-actions { margin:0; }
+/* 发给家人（大字版） (H33): its copy status line sits under the button. */
+.local-discovery-detail .detail-family { display:inline-flex; flex-direction:column; align-items:flex-start; gap:4px; }
+.local-discovery-detail .detail-family .family-link__status { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.local-discovery-detail .detail-family .family-link__status:empty { display:none; }
 .local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
 
 /* Rails: 172px feed cards in a scroller on a phone (the page itself never scrolls sideways), four in a row on a desktop. */
@@ -144,6 +148,13 @@
 }
 @media(max-width:767px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
+  /* H58 / EVT13-12: the facts card ends higher on the first screen, above the action bar on more pages: the map link sits on
+     the 在哪 label's line (right-aligned, its 44px target kept) instead of a line of its own, and the card is a little
+     tighter. At 大 / 特大 and in 简洁显示 the link keeps its own line. */
+  .local-discovery-detail .detail-facts { gap:10px 16px; padding:14px 16px; margin-block:12px 0; }
+  .local-discovery-detail .detail-head { padding-top:8px; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-fact=where] { position:relative; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-fact=where] dd>small:has(>.detail-map-link) { position:absolute; top:calc((1.4 * var(--text-caption) - 2.75rem) / 2); right:0; margin:0; }
 }
 /* RC-26: at 大 / 特大 and in 简洁显示 the 16:9 hero TypeCover has no room for its title or note line, which the H1 right
    below repeats; it keeps the label, the big date or value, one brand line and the place, so nothing is cut mid-line. */

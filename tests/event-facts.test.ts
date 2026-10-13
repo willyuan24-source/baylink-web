@@ -183,6 +183,7 @@ test('opening chips and the weekend helper never guess a date', () => {
   assert.deepEqual(openingChip({ status: 'announced', openedOn: '2026-11-20' }, TODAY), { zh: '预计 11/20 开业', en: 'Opening 11/20' });
   assert.deepEqual(openingChip({ status: 'announced' }, TODAY), { zh: '即将开业', en: 'Opening soon' });
   assert.deepEqual(openingChip({ status: 'soft_open' }, TODAY), { zh: '试营业', en: 'Soft opening' });
+  assert.deepEqual(openingChip({ status: 'open' }, TODAY), { zh: '已开业', en: 'Open now' });
   assert.deepEqual(upcomingWeekend('2026-10-08'), ['2026-10-10', '2026-10-11']);
   assert.deepEqual(upcomingWeekend('2026-10-10'), ['2026-10-10', '2026-10-11']);
   assert.deepEqual(upcomingWeekend('2026-10-11'), ['2026-10-10', '2026-10-11']);

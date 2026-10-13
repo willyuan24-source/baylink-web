@@ -744,3 +744,12 @@ No new facts and no source reads: three `venueShort` entries in `src/data/editor
 | `san-francisco-fleet-week-2026` | San Francisco waterfront · Fisherman's Wharf / Pier 27 and other venues | venueShort San Francisco 海滨（多处场地）; address Fisherman's Wharf / Pier 27 (map search) |
 | `tiburon-wine-festival-2026` | Downtown Tiburon · check ticket for event entrance | venueShort Downtown Tiburon（入口见门票）; address "" (no single address) |
 | `little-italy-san-jose-festival-2026` | Little Italy business district · 323 Sharks Way | venueShort Little Italy 街区 (the derived address 323 Sharks Way stays) |
+
+## WEB-FIX5 · official-page reads, 2026-10-13 (PT)
+
+Two openings corrected through `src/data/editorial-overlay/openings.json` (H09 / EVT13-02, CNT-1013-02). `verifiedAt` is unchanged (D12).
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| opening | `marufuku-burlingame-announced` | https://www.marufukuramen.com/burlingame | 2026-10-13 | `openedOn` 2026-10-11 (the store page's grand opening, with its service hours, is the first day of public service); `fix.category` 拉面 (was 拉面新店预告). The site's location list still says "BURLINGAME (COMING SOON)"; the store page is the more specific source | "GRAND OPENING: OCT. 11 … 11am-2pm / 5pm-9pm … Regular hours starting 10/12" |
+| opening | `oakland-delage-reopening-2026` | https://www.delagesushi.com/ | 2026-10-13 | `fix.dateLabel` Now open · Mon–Sat lunch 11:00–15:00, dinner 17:00–21:00; `fix.editorTip` phone 341-213-7494 (call or text), no Sunday hours listed, the press omakase price kept with the record's own caveats (tax and tip: the report does not say whether they are included; 商家提供预约入口); dropped "试营业前核对" (the shop is open) | "Now open for lunch & Dinner … Open Monday - Saturday … Lunch • 11am - 3pm … Dinner • 5pm - 9pm … 341-213-7494" |

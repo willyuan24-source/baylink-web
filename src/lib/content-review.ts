@@ -97,10 +97,15 @@ export type ReaderFreshness = {
   comparedAt?: number;
   /** Earliest pending change, when the API reports one (ms). */
   changedAt?: number;
+  /**
+   * The next date is within a week and the monitor could read none of the item's sources (manual-required, error or not
+   * yet checked): the trust row says "未能自动核对" instead of staying silent (H02 / EVT13-04). Not a prompt.
+   */
+  unread?: true;
 };
 
 const SOFT_AFTER_MS = 48 * 3_600_000;
-const NEAR_DAYS = 3, STALE_CHECK_DAYS = 14;
+const NEAR_DAYS = 3, STALE_CHECK_DAYS = 14, UNREAD_NOTE_DAYS = 7;
 const FUTURE_TOLERANCE_MS = 5 * 60_000;
 /** Triage field for cancel, postpone, sold-out and reschedule wording. */
 const HARD_FIELDS = new Set(['cancel']);
@@ -167,6 +172,9 @@ export function getReaderFreshness(item: ReaderFreshnessItem, sources: readonly 
   if (validDate(item.endDate) && item.endDate < today) return { state: 'archived', ...base };
   if (!sources) return { state: 'ok', ...base };
   const active = sources.filter(row => row.status !== 'expired');
+  const unread = active.length > 0 && active.every(row => UNREAD.has(row.status));
+  const week = validDate(item.nextDate ?? undefined) && item.nextDate! >= today && item.nextDate! <= addDays(today, UNREAD_NOTE_DAYS);
+  if (unread && week) Object.assign(base, { unread: true as const });
   const pending = item.kind === 'event' && item.nextDate === null ? [] : active.filter(unreviewedMaterial);
   const earliest = (rows: FreshnessSourceRow[]) => { const times = rows.map(row => row.changedAt).filter(finiteTime); return times.length ? { changedAt: Math.min(...times) } : {}; };
   const hard = pending.filter(row => row.changeFields?.some(field => HARD_FIELDS.has(field)));
@@ -175,7 +183,6 @@ export function getReaderFreshness(item: ReaderFreshnessItem, sources: readonly 
   const due = pending.filter(row => !coveredByCheck(row, verifiedAt) && (!finiteTime(row.changedAt) || now - row.changedAt >= SOFT_AFTER_MS));
   if (due.length) return { state: 'soft', reason: 'source-changed', ...base, ...earliest(due) };
   const near = validDate(item.nextDate ?? undefined) && item.nextDate! >= today && item.nextDate! <= addDays(today, NEAR_DAYS);
-  const unread = active.length > 0 && active.every(row => UNREAD.has(row.status));
   if (near && unread && (!verifiedAt || verifiedAt < addDays(today, -STALE_CHECK_DAYS))) return { state: 'soft', reason: 'date-near-unconfirmed', ...base };
   return { state: 'ok', ...base };
 }

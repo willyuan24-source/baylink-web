@@ -28115,6 +28115,29 @@
       }
     },
     {
+      "id": "opening-marufuku-burlingame-announced",
+      "title": "Marufuku Ramen · Burlingame",
+      "region": "peninsula",
+      "city": "Burlingame",
+      "summary": "Marufuku 拉面的 Burlingame 分店，地址 225 Lorton Avenue。门店页写 10/11 Grand Opening、10/12 起按常规时间营业；品牌首页和分店目录仍标 Coming Soon。",
+      "guideSlug": "",
+      "path": "/openings/marufuku-burlingame-announced",
+      "officialUrl": "https://www.marufukuramen.com/burlingame",
+      "cost": "unknown",
+      "category": "restaurant",
+      "address": "225 Lorton Ave, Burlingame, CA 94010",
+      "imageKey": "opening-marufuku-burlingame",
+      "openingStatus": "open",
+      "openedOn": "2026-10-11",
+      "planning": {
+        "admissionUsd": null
+      },
+      "offerIds": [],
+      "aliases": [
+        "Marufuku Ramen · Burlingame"
+      ]
+    },
+    {
       "id": "opening-old-post-office-burlingame",
       "title": "The Old Post Office",
       "region": "peninsula",
@@ -28135,28 +28158,6 @@
       "offerIds": [],
       "aliases": [
         "The Old Post Office"
-      ]
-    },
-    {
-      "id": "opening-marufuku-burlingame-announced",
-      "title": "Marufuku Ramen · Burlingame",
-      "region": "peninsula",
-      "city": "Burlingame",
-      "summary": "Marufuku 拉面的 Burlingame 分店，地址 225 Lorton Avenue。门店页写 10/11 Grand Opening、10/12 起按常规时间营业；品牌首页和分店目录仍标 Coming Soon。",
-      "guideSlug": "",
-      "path": "/openings/marufuku-burlingame-announced",
-      "officialUrl": "https://www.marufukuramen.com/burlingame",
-      "cost": "unknown",
-      "category": "restaurant",
-      "address": "225 Lorton Ave, Burlingame, CA 94010",
-      "imageKey": "opening-marufuku-burlingame",
-      "openingStatus": "open",
-      "planning": {
-        "admissionUsd": null
-      },
-      "offerIds": [],
-      "aliases": [
-        "Marufuku Ramen · Burlingame"
       ]
     },
     {

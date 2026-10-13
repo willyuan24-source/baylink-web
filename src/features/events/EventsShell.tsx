@@ -6,6 +6,7 @@ import './events.css';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { dateScope } from '../../lib/date-guard';
+import { checkLine, checkSummary } from '../../lib/check-dates';
 import { getMonthlyDateRange, isFreeToAttend } from '../../lib/monthly';
 import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsWhen } from './events-model';
 import { WeekendView } from './WeekendView';
@@ -49,8 +50,12 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   const region = filters.region === 'all' ? '' : ` · ${pick(regionLabel(filters.region))}`;
   const inScope = INDEX_EVENTS.filter(event => inRange(event, range, today) && (filters.region === 'all' || event.region === filters.region));
   const free = inScope.filter(event => isFreeToAttend(event)).length;
-  const offers = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region).length : 0;
-  const checked = t(`核对于 ${md(EVENTS_INDEX.edition.checkedAt)}`, `checked ${md(EVENTS_INDEX.edition.checkedAt)}`);
+  const offerList = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region) : [];
+  const offers = offerList.length;
+  // H02: the editor check dates of what this view lists ("多数核对于 9/29 · 最近 10/12"), not the edition's date.
+  const listed = column === 'perks' ? offerList : column === 'openings' ? INDEX_OPENINGS : inScope;
+  const summary = checkSummary(listed.map(item => item.verifiedAt), today);
+  const checked = summary ? checkLine(summary, t) : '';
   // The listing card is one link to the detail page, which links the official source.
   const promise = t('逐条附官方来源', 'every listing has an official source');
 

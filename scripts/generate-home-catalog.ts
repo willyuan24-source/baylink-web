@@ -14,11 +14,16 @@ import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
+import { isSeniorFriendly } from '../src/lib/senior-friendly';
+import { checkSummary } from '../src/lib/check-dates';
+import type { HomeWeekendSnapshot } from '../src/lib/home-weekend';
+import { WEEKEND_PICKS } from '../src/data/weekend-picks';
 
 // The first page needs summaries, not 141 articles, image galleries or planning instructions (plan WEB-HOME).
 // Generate from the same catalogs as detail pages so titles, dates and source checks cannot drift:
 // - weekends: for each day of the four weekends from the build day, the three picks (the weekly share card's)
-//   and the eight feed cards after them, with the weekend's event count;
+//   and the eight feed cards after them, with the weekend's event count, its 长辈友好 count (the home circle, H06) and
+//   when its events were checked (most of them, and the latest: the home subtitle, H02);
 // - events: only the events some day shows, with the overlay fields and planning facts a card prints (date, time, price);
 // - guides: the intent rail's guides (topic, palette, source count, cover key), never their bodies;
 // - offers: only the offers some day's ticket rail selects (src/lib/home-offers.ts), with their image keys (HOME+3);
@@ -51,18 +56,27 @@ if (missing.length) throw new Error(`Home intent guides not in the catalog: ${mi
 
 const selectedIds = new Set<string>();
 const offerIds = new Set<string>();
-const weekends: Record<string, { ids: string[]; feed: string[]; total: number }> = {};
+const weekends: Record<string, HomeWeekendSnapshot> = {};
+const planning = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning]));
+// H26: /events and the home call the automatic ranking 本周末先看; only an editor list is 编辑精选. The list is due Thursday 18:00
+// (src/data/weekend-picks.ts), so a build from Thursday on says when the coming weekend still has none.
+{
+  const saturday = getBuildWeekend(today, MONTHLY_EVENTS).start;
+  const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
+  if ((weekday >= 4 || weekday === 0) && !WEEKEND_PICKS[saturday]?.length) console.warn(`Warning: no editor picks for the weekend of ${saturday} in src/data/weekend-picks.ts; /events and the home show the automatic ranking as 本周末先看.`);
+}
 const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation');
 const weekendDays = new Set<string>();
 for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   const weekend = getBuildWeekend(day, MONTHLY_EVENTS);
   for (const { event } of [...weekend.picks, ...weekend.feed]) selectedIds.add(event.id);
   weekendDays.add(weekend.start).add(weekend.end);
-  weekends[day] = { ids: weekend.picks.map(({ event }) => event.id), feed: weekend.feed.map(({ event }) => event.id), total: weekend.events.length };
+  const seniors = weekend.events.filter(({ event }) => isSeniorFriendly({ ...event, planning: planning.get(event.id) ?? undefined })).length;
+  weekends[day] = { ids: weekend.picks.map(({ event }) => event.id), feed: weekend.feed.map(({ event }) => event.id), total: weekend.events.length, seniors,
+    ...(() => { const checked = checkSummary(weekend.events.map(({ event }) => event.verifiedAt), day); return checked ? { checked } : {}; })() };
   selectHomeOffers(liveOffers, day).forEach(offer => offerIds.add(offer.id));
 }
 
-const planning = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning]));
 const present = <T extends object>(source: T, keys: readonly string[]) => Object.fromEntries(keys.flatMap(key => {
   const value = (source as Record<string, unknown>)[key];
   return value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length) ? [] : [[key, value]];

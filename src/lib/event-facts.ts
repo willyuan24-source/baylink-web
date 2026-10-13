@@ -305,7 +305,12 @@ export const offerKindLabel = (offer: Pick<OfferFactsInput, 'brand' | 'publicBen
 // Openings -------------------------------------------------------------------------------------
 
 export type OpeningFactsInput = Pick<SeptemberOpening, 'status' | 'openedOn'>;
-/** "10 月开业" for a shop with a recorded first day of service; "即将开业" otherwise. Never a guessed date. */
+/**
+ * "10 月开业" for a shop with a recorded first day of service, "预计 11/20 开业" for an announced day, "试营业" for a soft
+ * opening, and "已开业" for a shop its source calls open without naming the first day (EVT13-02: 33 open shops read
+ * 即将开业). Only an announced shop is "即将开业". Never a guessed date. The opening cards, TypeCover, BayBay's cards and
+ * the share cards all print this chip.
+ */
 export function openingChip(opening: OpeningFactsInput, today: string): Copy {
   const opened = validDay(opening.openedOn) ? opening.openedOn : undefined;
   if (opened && opened <= today && opening.status !== 'announced') {
@@ -313,7 +318,8 @@ export function openingChip(opening: OpeningFactsInput, today: string): Copy {
     return { zh: `${Number(opened.slice(5, 7))} 月开业`, en: `Opened ${month}` };
   }
   if (opened && opened > today) return { zh: `预计 ${monthDay(opened)} 开业`, en: `Opening ${monthDay(opened)}` };
-  return opening.status === 'soft_open' ? { zh: '试营业', en: 'Soft opening' } : { zh: '即将开业', en: 'Opening soon' };
+  if (opening.status === 'soft_open') return { zh: '试营业', en: 'Soft opening' };
+  return opening.status === 'open' ? { zh: '已开业', en: 'Open now' } : { zh: '即将开业', en: 'Opening soon' };
 }
 
 /** The Saturday and Sunday of the weekend containing or following `today` ("本周末"). */

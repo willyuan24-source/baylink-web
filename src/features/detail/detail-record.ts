@@ -24,7 +24,7 @@ export type DetailRecord = {
   item: LocalDiscovery;
   /** The listing's registry image (posters and photos; never an AI illustration). */
   image?: CoverAsset;
-  /** An opening's planner place, for the action bar's "加入行程". */
+  /** An opening's planner place, for the action bar's "加入计划". */
   placeId?: string;
   /** Upcoming events nearby, nearest first within each group; pages filter them by the reader's own day. */
   rail: RailEvent[];

@@ -80,8 +80,10 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   const open = onPanelOpenChange ? !!panelOpen : internalOpen;
   useEffect(() => {
     if (!open) return; const controller = new AbortController();
-    void fetch(`${API_BASE_URL}/ai/usage`, { headers: authHeaders(), signal: controller.signal }).then(async response => response.ok ? response.json() : null).then(value => {
+    void fetch(`${API_BASE_URL}/ai/usage`, { headers: authHeaders(), signal: controller.signal }).then(async response => response.ok ? response.json() : null).then(body => {
       if (controller.signal.aborted) return;
+      // BayBay has its own daily share on newer APIs (`baybay`); older APIs report one shared count at the top level.
+      const value = body && body.baybay && typeof body.baybay === 'object' ? body.baybay : body;
       if (value && Number.isInteger(value.remaining) && Number.isInteger(value.limit) && value.remaining >= 0 && value.remaining <= value.limit && value.limit <= 10000) setUsage({remaining:value.remaining,limit:value.limit,...(typeof value.resetAt==='string'?{resetAt:value.resetAt}: {})});
       else setUsage(null);
     }).catch(()=>{ if (!controller.signal.aborted) setUsage(null); });

@@ -14,6 +14,13 @@
 .gl-search__clear>svg { width:1.25rem; height:1.25rem; }
 .gl-saved-link { display:inline-flex; align-items:center; gap:6px; flex:none; min-height:3rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:600; text-decoration:none; }
 .gl-saved-link>svg { width:1.125rem; height:1.125rem; color:var(--color-brand); }
+/* At 大 / 特大 / 简洁 on a phone, and below 360 px, the search field keeps the full width and 我的指南收藏 takes its own row
+   (WEB-FIX5 review: beside the longer link the placeholder showed only 看医). */
+@media (max-width:767px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-find { flex-wrap:wrap; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-search { flex-basis:100%; }
+}
+@media (max-width:359px) { .gl-find { flex-wrap:wrap; } .gl-search { flex-basis:100%; } }
 
 .gl-filters { display:flex; flex-direction:column; gap:8px; margin:12px 0 4px; }
 
@@ -51,3 +58,6 @@
   .gl-find { max-width:720px; }
   .gl-section { margin-top:40px; }
 }
+/* H21: a coded cover whose answer is a phone number sets it a step smaller (9 instead of 10.5 cqw), so the whole number
+   (non-breaking hyphens, phone-numbers.ts coverPhoneKeep) fits a 173 px card and at 特大 without being cut. */
+.ui-type-cover.gd-cover-phone .ui-type-cover__title { font-size:clamp(max(.875rem, var(--text-floor)), min(calc(9cqw * var(--fluid-scale)), 10cqh), 1.5rem); overflow-wrap:normal; }

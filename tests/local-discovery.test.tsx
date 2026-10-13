@@ -205,7 +205,10 @@ test('all detail pages server-render full content with matching canonical, OG, T
     try {
     const doc = page;
     assert.equal(doc.querySelectorAll('h1').length, 1, share.id);
-    assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : share.title);
+    // H57: an event's H1 drops the age prefix its age chip already shows ("21+ · …").
+    const ageChip = item.kind === 'event' ? item.event.ageChip : undefined;
+    const heading = ageChip && share.title.startsWith(ageChip) ? share.title.slice(ageChip.length).replace(/^\s*[·•:：|｜–—-]\s*/u, '') || share.title : share.title;
+    assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : heading);
     // An offer's page name shows its brand as the page does ("SFMTA · San Francisco"), not the catalog's capitals (PROD-W3).
     const pageName = item.kind === 'offer' ? `${brandCase(item.offer.brand)} · ${item.offer.title}` : share.title;
     // The <title> is the full page name, or for one wider than a search result shows (38 display units with the brand) the

@@ -170,7 +170,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
           value={query} maxLength={200} onChange={event => update({ q: event.target.value })} />
         {query && <button type="button" className="gl-search__clear" aria-label={t('清除指南搜索', 'Clear search')} onClick={() => update({ q: '' })}><X aria-hidden="true" strokeWidth={1.75} /></button>}
       </label>
-      <Link className="gl-saved-link" to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark aria-hidden="true" strokeWidth={1.75} />{savedOnly ? t('继续发现', 'Discover guides') : t('我的收藏', 'Saved')}</Link>
+      <Link className="gl-saved-link" to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark aria-hidden="true" strokeWidth={1.75} />{savedOnly ? t('继续发现', 'Discover guides') : t('我的指南收藏', 'Saved guides')}</Link>
     </div>
     {!savedOnly && <nav className="gl-filters" aria-label={t('指南筛选', 'Guide filters')}>
       <ChipRow className="gl-topics" label={t('指南主题', 'Guide topics')}>
