@@ -8,7 +8,7 @@ import { StaticRouter } from 'react-router';
 import { JSDOM } from 'jsdom';
 import '../src/i18n/router';
 import '../src/i18n/metadata';
-import { setLocale, translateText, normalizeText, type Locale } from '../src/i18n/locale';
+import { loadLocaleForFeature, setLocale, translateText, normalizeText, type Locale } from '../src/i18n/locale';
 import { languagePath, languagePrefix } from '../src/lib/language-path';
 import { renderHtmlDocument } from '../src/lib/seo';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
@@ -74,11 +74,13 @@ test('monthly, events (weekend), planner, explore and guides SSR have translated
   const [, month, day] = MONTHLY_EDITION.throughDate.split('-').map(Number);
   const chineseDeadline = `${month} 月 ${day} 日`;
   const englishDeadline = new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' }).format(new Date(`${MONTHLY_EDITION.throughDate}T12:00:00Z`));
-  // English runs first: only actual route scopes are loaded, never the full export dictionary.
+  // English runs first: only actual route (and, on /plan, workspace) scopes are loaded, never the full export dictionary.
   for (const locale of ['en', 'zh-Hant', 'zh-Hans'] as Locale[]) {
     for (const { metadata, content } of routes) {
       const path = languagePath(metadata.path, locale);
       await setLocale(locale, false, path);
+      // 行程's workspace loads its own English pack with the planner catalog, after the header (WEB-PLAN-DATA: feature 'plan').
+      if (metadata.path === '/plan') await loadLocaleForFeature(locale, 'plan');
       const body = renderToStaticMarkup(<StaticRouter basename={languagePrefix(locale) || undefined} location={path}><main>{content}</main></StaticRouter>);
       const dom = new JSDOM(renderHtmlDocument(template, { ...metadata, path }, body));
       const doc = dom.window.document;
