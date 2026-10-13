@@ -89,13 +89,28 @@ test('a described offer brand reads in the page language; a store name keeps its
   assert.equal(offerBrandLine('SFMTA · SAN FRANCISCO', 'en'), 'SFMTA · San Francisco');
 });
 
-test('an offer cover carries the value and the brand, not the title its card caption already shows', () => {
+test('an offer cover carries the value and the brand, not the title its card caption already shows', async () => {
   const taco = localDiscoveries.find(row => row.kind === 'offer' && /taco-trail/.test(discoveryShare(row).id));
   assert.ok(taco && taco.kind === 'offer');
   const cover = JSDOM.fragment(renderToStaticMarkup(<OfferTypeCover offer={taco.offer} today="2026-10-12" />));
   assert.equal(cover.querySelector('.ui-type-cover__title'), null);
   assert.equal(cover.querySelector('.ui-type-cover__note'), null);
   assert.doesNotMatch(cover.textContent!, /Stamp Challenge|集章/);
+  // On the card, the TypeCover prints the brand; the meta line under it keeps the brand for screen readers only.
+  const { OfferFeedCard } = await import('../src/features/events/EventCards');
+  const card = (tier: 'type' | 'image') => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events">
+    <OfferFeedCard offer={taco.offer as never} cover={(tier === 'type' ? { tier, reason: 'no-image' } : { tier, image: { src: '/x.jpg', alt: '', credit: 'x' }, label: { zh: '图', en: 'Photo' } }) as never} today="2026-10-12" />
+  </StaticRouter>));
+  const typed = card('type');
+  const brand = offerBrandLine(taco.offer.brand, 'zh-Hans');
+  const meta = typed.querySelector('.ui-feed-card__meta')!;
+  assert.equal(meta.querySelector('.sr-only')!.textContent, `${brand} · `);
+  meta.querySelector('.sr-only')!.remove();
+  assert.equal(meta.textContent, '商家活动', 'the visible meta is the kind only');
+  assert.equal(typed.querySelector('.ui-type-cover__brand')!.textContent, brand, 'the brand shows once, on the cover');
+  const photo = card('image').querySelector('.ui-feed-card__meta')!;
+  assert.equal(photo.querySelector('.sr-only'), null);
+  assert.equal(photo.textContent, `${brand} · 商家活动`, 'a photo cover keeps the brand in the meta');
 });
 
 test('an offer or opening without an image opens on a band, not a 16:9 card repeating the header', async () => {

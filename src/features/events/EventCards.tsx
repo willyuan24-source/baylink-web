@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { translateText } from '../../i18n/locale';
-import { EventCover, FeedCard, HeroCard, OfferCover, OpeningCover, RowCard, TypeCover, Cover, COVER_SIZES, offerBrandLine } from '../../components/ui';
+import { EventCover, FeedCard, HeroCard, OfferCardMeta, OfferCover, OpeningCover, RowCard, TypeCover, Cover, COVER_SIZES, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { ResolvedCover } from '../../lib/cover';
 import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerKindLabel, openingChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
@@ -86,7 +86,7 @@ export function OfferFeedCard({ offer, cover, today, tone }: { offer: IndexOffer
   const brand = offerBrandLine(offer.brand, locale);
   return <FeedCard title={offer.title} to={`/offers/${offer.id}`} className="ev-card--action"
     cover={<OfferCover offer={offer} cover={cover} today={today} tone={tone} decorative />}
-    meta={<>{brand && <span translate="no">{brand}</span>}{brand && ' · '}{pick(offerKindLabel(offer))}</>}
+    meta={<OfferCardMeta brand={brand} kind={pick(offerKindLabel(offer))} onCover={cover.tier === 'type'} />}
     trust={<TrustLine day={offer.verifiedAt} />} save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />;
 }
 

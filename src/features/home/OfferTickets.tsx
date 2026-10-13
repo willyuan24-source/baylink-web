@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { FeedCard, OfferCover, offerBrandLine } from '../../components/ui';
+import { FeedCard, OfferCardMeta, OfferCover, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import type { ResolvedCover } from '../../lib/cover';
@@ -29,7 +29,7 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
       {offers.map((offer, index) => <li key={offer.id}>
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
           cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} sizes={TICKET_SIZES} decorative />}
-          meta={<>{brands[index] && <span translate="no">{brands[index]}</span>}{brands[index] && ' · '}{pick(offerKindLabel(offer))}</>}
+          meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
           trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}

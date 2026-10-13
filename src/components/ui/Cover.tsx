@@ -55,6 +55,16 @@ export function OfferCover({ offer, today, tone, ...slot }: CoverSlot & { offer:
   </Cover>;
 }
 
+/**
+ * The meta line under an offer card: "brand · kind". When the card's cover is the TypeCover (`onCover`), that cover already
+ * prints the brand large, so the line shows the kind only and keeps the brand for screen readers (the cover is decorative
+ * there): one brand per card, not two cut-short copies (PROD-W3 re-review).
+ */
+export function OfferCardMeta({ brand, kind, onCover }: { brand: string; kind: string; onCover: boolean }) {
+  if (!brand) return <>{kind}</>;
+  return onCover ? <><span className="sr-only" translate="no">{brand} · </span>{kind}</> : <><span translate="no">{brand}</span> · {kind}</>;
+}
+
 /** A new-shop cover: the shop's own image, or the opening TypeCover. */
 export function OpeningCover({ opening, today, tone, ...slot }: CoverSlot & { opening: Pick<SeptemberOpening, 'name' | 'city' | 'status' | 'openedOn' | 'openingType'>; today: string }) {
   return <Cover {...slot} fallback={<OpeningTypeCover opening={opening} today={today} tone={tone} ratio={slot.ratio} ratioLock={slot.ratioLock} ariaHidden={slot.decorative} />} />;
