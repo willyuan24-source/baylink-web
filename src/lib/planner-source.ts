@@ -39,8 +39,6 @@ export let PLAN_REGIONS: readonly PlanRegion[] = [];
 
 let fullCatalog = false;
 let planCatalog = false;
-const listeners = new Set<() => void>();
-const notify = () => { listeners.forEach(listener => listener()); };
 
 /** data/planner-catalog.ts, once evaluated: the full catalog, replacing a generated one. */
 export function installFullPlannerCatalog(catalog: { events: PlannerEvent[]; places: PlannerPlace[]; catalogEvents: MonthlyEvent[] }): void {
@@ -48,7 +46,6 @@ export function installFullPlannerCatalog(catalog: { events: PlannerEvent[]; pla
   PLANNER_PLACES = catalog.places;
   CATALOG_EVENTS = catalog.catalogEvents;
   fullCatalog = true;
-  notify();
 }
 
 /** The generated catalog (行程): its events and places unless the full catalog is in, and always 行程's extras. */
@@ -62,12 +59,10 @@ export function installPlanCatalog(catalog: PlanCatalog): void {
   PLAN_OFFERS = catalog.offers;
   PLAN_REGIONS = catalog.regions;
   planCatalog = true;
-  notify();
 }
 
 /** Whether 行程 can render: the generated catalog (and with it the extras) is installed. */
 export const isPlanCatalogInstalled = (): boolean => planCatalog;
-export const subscribePlannerSource = (listener: () => void): (() => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 
 type NodeProcess = { env?: Record<string, string | undefined>; getBuiltinModule?: (id: string) => unknown };
 const nodeProcess = (globalThis as { process?: NodeProcess }).process;

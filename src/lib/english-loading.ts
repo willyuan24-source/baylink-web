@@ -50,7 +50,8 @@ export function englishScopesForPath(value: string, hasScope: (scope: string) =>
   // The events column renders the slim events index (WEB-EVENTS, RC-33): its own pack, not the whole catalog (WEB-DATA-SPLIT).
   else if (/^\/(?:events|this-week|calendar)$/u.test(path)) scopes.push('events-list');
   else if (/^\/(?:this-month|ai-in-the-bay|archive)$/u.test(path)) scopes.push('discovery', 'guide-index');
-  // 行程 renders its header with the UI pack; its workspace waits for its own pack with its catalog (feature 'plan').
+  // /plan (行程) is not listed: its header needs only the UI pack, and its workspace waits for its own pack, loaded with its
+  // catalog after the first paint (feature 'plan', WEB-PLAN-DATA).
   else if (/^\/(?:my-week|together|me)$/u.test(path)) scopes.push('planning', 'discovery', 'guide-index');
   else if (path === '/explore') scopes.push('explore', 'guide-index');
   else if (path === '/' || path === '/reset-password' || /^\/(?:posts|users)\//u.test(path)) scopes.push('home');

@@ -41,6 +41,9 @@ import { useOnline } from '../features/plan/use-online';
 import { loadPlan, planLoadFailed } from '../features/plan/plan-catalog';
 import '../styles/plan-page.css';
 
+/** Before paint in the browser; the prerender (no window) has nothing to report and React warns about layout effects there. */
+const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
 /** The details as save() stores them, in one canonical form (key order included), for the overview's 已保存 claim. */
 const storedDetails = (value: unknown, stops: Stop[], date: string) => {
   const details = normalizePlanDetails(value, stops);
@@ -330,8 +333,8 @@ function PlannerWorkspace({ onBusy, registerAsk }: { onBusy: (busy: boolean) => 
     : t('帮我排一天湾区出游：', 'Help me plan a day out in the Bay Area: '), { mode: 'draft' });
   // The header above reads the library's busy state and this plan's 问 BayBay draft (before paint, so the fieldset is
   // disabled in the same frame as the save starts); a tap that came while the catalog loaded opens BayBay now.
-  useLayoutEffect(() => { onBusy(library.busy); }, [library.busy, onBusy]);
-  useLayoutEffect(() => { registerAsk(askBayBay); });
+  useBrowserLayoutEffect(() => { onBusy(library.busy); }, [library.busy, onBusy]);
+  useBrowserLayoutEffect(() => { registerAsk(askBayBay); });
   useEffect(() => () => { registerAsk(undefined); onBusy(false); }, [registerAsk, onBusy]);
   return <div className="planner-data-slot" data-plan-slot="">
     {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{library.ready
