@@ -7,7 +7,7 @@ export const PrivacyPolicyView = () => {
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
   const intro = <div className="legal-intro">
-    <ZhOnly><LegalP>{t('以下是完整政策。原文为英文，部分章节附中文说明。', '')}</LegalP></ZhOnly>
+    <ZhOnly><LegalP>{t('以下是完整政策。原文为英文，部分章节附中文说明。', 'The full policy follows. The original is in English; some sections add a Chinese version.')}</LegalP></ZhOnly>
     <LegalP lang={english ? undefined : 'en'}>
       BAYLINK helps people in the San Francisco Bay Area find where to go and how to get things done, with sources: events and benefits, practical guides, BayBay AI answers and a neighborhood board. This Privacy Policy explains how BAYLINK collects, uses, and protects information when users access baylink.us, create an account, publish posts, send messages, use service bookings or BayBay AI features, or verify their phone number.
     </LegalP>

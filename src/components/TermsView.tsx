@@ -4,7 +4,7 @@ import { legalTitle, useLegalCopy } from './legal-copy';
 export const TermsView = () => {
   const { english, t } = useLegalCopy();
   const intro = <div className="legal-intro">
-    <ZhOnly><LegalP>{t('以下是完整条款。原文为英文，部分章节附中文说明。', '')}</LegalP></ZhOnly>
+    <ZhOnly><LegalP>{t('以下是完整条款。原文为英文，部分章节附中文说明。', 'The full terms follow. The original is in English; some sections add a Chinese version.')}</LegalP></ZhOnly>
     <LegalP lang={english ? undefined : 'en'}>
       Welcome to BAYLINK. BAYLINK answers where to go and how to get things done in the Bay Area, with sources. It offers local events and benefits, local guides, BayBay AI features, and a neighborhood board for local posts, housing, roommate search, secondhand exchange, local services, rides, moving, cleaning, repairs and community help.
     </LegalP>
