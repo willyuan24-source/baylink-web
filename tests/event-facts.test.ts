@@ -7,6 +7,7 @@ import {
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { EVENT_DATE_OVERRIDES } from '../src/data/event-calendar-dates';
 import { currentFreebies } from '../src/data/october-offers';
+import { loadLocale, translateText } from '../src/i18n/locale';
 
 const TODAY = '2026-10-08';
 const day = { startDate: '2026-10-10', endDate: '2026-10-10' };
@@ -145,10 +146,36 @@ test('no live offer headline disagrees with a rate in its id or title', () => {
   assert.equal(isPublicBenefit({ brand: 'YOGURTLAND' }), false);
   assert.equal(brandCase('SFPL · LINKEDIN LEARNING'), 'SFPL · LinkedIn Learning');
   // Every all-caps brand in the catalog reads in normal case; only real acronyms keep their capitals.
-  const acronyms = new Set(['IKEA', 'BAMPFA', 'OMCA', 'SFMOMA', 'SFMTA', 'AMC', 'SJC', 'SFPL']);
+  const acronyms = new Set(['IKEA', 'BAMPFA', 'OMCA', 'SFMOMA', 'SFMTA', 'AMC', 'SJC', 'SFPL', 'IHOP', 'YBCA', 'SMART', 'LEGO', 'MOD', 'START']);
   for (const offer of currentFreebies.filter(item => !/\p{Ll}/u.test(item.brand))) {
     for (const word of brandCase(offer.brand).match(/\b[A-Z]{3,}\b/gu) ?? []) assert.ok(acronyms.has(word), `${offer.id}: ${brandCase(offer.brand)}`);
   }
+});
+
+test('brand display case keeps the names their owners spell (offer titles, JSON-LD, cards)', async () => {
+  // PROD-W3 review: the offer <title> read "Ihop · IHOP 生日煎饼…", "Smart · … SMART 免票", "85°c Bakery Cafe".
+  const expected: Record<string, string> = {
+    IHOP: 'IHOP', 'YBCA · SAN FRANCISCO': 'YBCA · San Francisco', 'SMART · SONOMA / MARIN': 'SMART · Sonoma / Marin', PETSMART: 'PetSmart',
+    'NOAH’S NY BAGELS · SAN FRANCISCO': 'Noah’s NY Bagels · San Francisco', '85°C BAKERY CAFE': '85°C Bakery Cafe', 'CHICK-FIL-A': 'Chick-fil-A',
+    'MOD PIZZA': 'MOD Pizza', 'CURIODYSSEY · SAN MATEO': 'CuriOdyssey · San Mateo', 'LEGO · HILLSDALE': 'LEGO · Hillsdale',
+    'LOWE’S · MRBEAST': 'Lowe’s · MrBeast', 'CHICHA SAN CHEN · NORCAL': 'Chicha San Chen · NorCal', 'CLIPPER START · BAY AREA': 'Clipper START · Bay Area',
+    'DE YOUNG / LEGION OF HONOR': 'de Young / Legion of Honor', '3D PRINT LAB': '3D Print Lab', '1ST STREET': '1st Street',
+  };
+  for (const [brand, cased] of Object.entries(expected)) assert.equal(brandCase(brand), cased, brand);
+  // Every stored brand: a word the offer's own title (or its English title) spells with inner capitals reads the same in the brand.
+  await loadLocale('en');
+  const word = /[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ’'&-]*/gu;
+  const misspelled: string[] = [];
+  for (const offer of currentFreebies) {
+    const cased = brandCase(offer.brand);
+    const titles = `${offer.title} ${translateText(offer.title, 'en')}`;
+    const spelled = new Map((titles.match(word) ?? []).filter(token => /\p{Lu}/u.test(token.slice(1))).map(token => [token.toLowerCase(), token]));
+    for (const token of cased.match(word) ?? []) {
+      const titleForm = spelled.get(token.toLowerCase());
+      if (titleForm && titleForm !== token) misspelled.push(`${offer.id}: ${cased} has ${token}, its title ${titleForm}`);
+    }
+  }
+  assert.deepEqual(misspelled, []);
 });
 
 test('opening chips and the weekend helper never guess a date', () => {

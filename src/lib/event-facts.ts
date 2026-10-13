@@ -262,14 +262,26 @@ export function offerDeadline(offer: Pick<OfferFactsInput, 'endDate' | 'availabi
   return offer.availability === 'ongoing' ? { tone: 'success', text: { zh: '长期有效', en: 'Ongoing' } } : null;
 }
 
-const ACRONYMS = new Set(['SF', 'SJ', 'UC', 'US', 'USA', 'BART', 'IKEA', 'OMCA', 'BAMPFA', 'SFMOMA', 'SFMTA', 'SFPL', 'SJMA', 'YMCA', 'AAPI', 'USCIS', 'CVS', 'AMC', 'REI', 'KQED', 'PBS', 'NASA', 'CHM', 'AT&T', 'H&M']);
-const CASED_WORDS: Record<string, string> = { LINKEDIN: 'LinkedIn', YOUTUBE: 'YouTube', IPHONE: 'iPhone', EBAY: 'eBay', 'MCDONALD’S': 'McDonald’s' };
+const ACRONYMS = new Set([
+  'SF', 'SJ', 'UC', 'US', 'USA', 'NY', 'BART', 'SMART', 'IKEA', 'LEGO', 'IHOP', 'MOD', 'OMCA', 'BAMPFA', 'SFMOMA', 'SFMTA', 'SFPL', 'SJMA', 'YBCA',
+  'YMCA', 'AAPI', 'USCIS', 'CVS', 'AMC', 'REI', 'KQED', 'PBS', 'NASA', 'CHM', 'AT&T', 'H&M',
+]);
+const CASED_WORDS: Record<string, string> = {
+  LINKEDIN: 'LinkedIn', YOUTUBE: 'YouTube', IPHONE: 'iPhone', EBAY: 'eBay', 'MCDONALD’S': 'McDonald’s', PETSMART: 'PetSmart',
+  'CHICK-FIL-A': 'Chick-fil-A', CURIODYSSEY: 'CuriOdyssey', MRBEAST: 'MrBeast', NORCAL: 'NorCal', MOAD: 'MoAD',
+};
+/** Names cased as a pair: Clipper START (the programme's own spelling), the de Young museum. */
+const CASED_PHRASES: [RegExp, string][] = [[/\bClipper Start\b/gu, 'Clipper START'], [/(^|[\s/·])De Young\b/gu, '$1de Young']];
 const SMALL_WORDS = new Set(['of', 'the', 'and', 'at', 'for', 'in', 'on', 'de', 'la', 'a', 'to']);
-/** Normal case for the all-caps brand names (EVT-09: 160 of 183); known acronyms stay as written. */
+/**
+ * Normal case for the all-caps brand names (EVT-09: 160 of 183); known acronyms and brands with their own casing stay as
+ * their owners write them (IHOP, YBCA, SMART, PetSmart, CuriOdyssey). A lone letter after a digit or degree sign keeps its
+ * capital (85°C, 3D). The page title and JSON-LD of /offers/:id carry this too (PROD-W3 review: no "Ihop · IHOP 生日煎饼").
+ */
 export function brandCase(brand: string): string {
   if (/\p{Ll}/u.test(brand) || !/\p{Lu}/u.test(brand)) return brand;
   let first = true;
-  return brand.split(/(\s+|·|\/)/).map(part => {
+  const cased = brand.split(/(\s+|·|\/)/).map(part => {
     if (!/\p{Lu}/u.test(part)) return part;
     const isFirst = first;
     first = false;
@@ -277,8 +289,11 @@ export function brandCase(brand: string): string {
     if (Object.hasOwn(CASED_WORDS, part)) return CASED_WORDS[part];
     const lower = part.toLocaleLowerCase('en-US');
     if (!isFirst && SMALL_WORDS.has(lower)) return lower;
-    return lower.replace(/(^|[-.])(\p{L})/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase('en-US'));
+    return lower
+      .replace(/(^|[-.])(\p{L})/gu, (_, separator: string, letter: string) => separator + letter.toLocaleUpperCase('en-US'))
+      .replace(/([\d°])(\p{L})(?!\p{L})/gu, (_, before: string, letter: string) => before + letter.toLocaleUpperCase('en-US'));
   }).join('');
+  return CASED_PHRASES.reduce((text, [pattern, replacement]) => text.replace(pattern, replacement), cased);
 }
 
 const PUBLIC_BRAND = /librar|museum|park|garden|county|city of|conservatory|zoo|aquarium|sfmta|bart|caltrain|state|national|district|college|university|ymca|图书馆|博物馆|公园/i;
