@@ -10,8 +10,12 @@
 .bl-guide-source-link:has(.phone-chip) > a { position:relative; z-index:1; }
 .phone-chip svg { flex:none; width:1em; height:1em; }
 .phone-chip-keep { white-space:nowrap; }
-/* H24: on a phone under 360 px the trailing 。or ， may go to the next line rather than push the chip off the screen. */
-@media (max-width:359px) { .phone-chip-keep { white-space:normal; } .phone-chip { gap:.125em; padding:0 .375em; font-size:.9em; } }
+/* H24: on a phone under 360 px the chips are a little tighter, and at 大 / 特大 / 简洁 a chip followed by 。or ， a step
+   smaller, so the chip and its punctuation fit a step's text column together: a line never starts with 。(WEB-FIX5 review). */
+@media (max-width:359px) {
+  .phone-chip { gap:.125em; padding:0 .375em; font-size:.9em; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:.82em; }
+}
 .phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; }
 .phone-chip:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .phone-chip--row { min-height:var(--control-height); padding:0 .75rem; font-size:var(--text-fact); }

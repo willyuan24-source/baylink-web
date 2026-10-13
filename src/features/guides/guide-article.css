@@ -148,6 +148,11 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-article .bl-guide-sources li p .phone-chip { display:inline-flex; align-items:center; justify-content:normal; gap:.25em; color:var(--color-brand); font-size:var(--text-reading); line-height:1.6; }
 .gd-article .bl-guide-sources li p .phone-chip>svg { margin-top:0; }
 .gd-article .bl-guide-sources li:has(.phone-chip)>a { position:relative; z-index:1; }
+/* Under 360 px at 大 / 特大 / 简洁 a source chip followed by 。or ， takes the description's size, so the two fit the line
+   together (phone-links.css keeps them on one line): 1-800-434-0222。 ran 25 px past the column at 320 px 特大. */
+@media (max-width:359px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .bl-guide-sources li p .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:1em; }
+}
 
 /* The outing link's small line (outing-inspiration.css) reads at caption size inside an article. */
 .gd-article .outing-inspiration-link small { font-size:var(--text-caption); }
