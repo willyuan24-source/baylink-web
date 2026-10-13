@@ -1,0 +1,555 @@
+[
+  {
+    "id": "H01",
+    "severity": "P0",
+    "kind": "owner",
+    "title": "Thrill-O-Ween（10/24）主办方已取消，站上仍是可加入计划的免费亲子活动，也在 all.ics 和 /en 页面里（EVT13-01；G02）。店主选择保留。[约 +0.04]",
+    "fix": "页面保留，在 overlay events.json:249 设 status 'cancelled'（STATUS 标签已有），去掉加入计划和 .ics，同步到 API。先征得店主同意。另外每周扫一遍未来 14 天内来源为 manual-required 的活动官网。"
+  },
+  {
+    "id": "H02",
+    "severity": "P1",
+    "kind": "code+owner",
+    "title": "来源 0/668 条人工复核。API 不返回 material/lastChangedAt，来源变了也无法提示读者。页头写核对于 10/7，但本周末 61/73 场的核对已超 14 天（EVT13-04、CNT-1013-03、HOMEIA13-09；G16）[约 +0.07]",
+    "fix": "代码：EventsShell.tsx:53 和 HomeHead 改写真实范围，例如「多数核对于 9/29 · 最近 10/12」；/api/sources/freshness 返回 material/lastChangedAt；7 天内的 manual-required 来源显示「未能自动核对」。店主：开 SOURCE_TRIAGE，指定 48 小时内处理的复核人。每周三复核下个周末，只给真正读过的条目更新 verifiedAt。"
+  },
+  {
+    "id": "H03",
+    "severity": "P1",
+    "kind": "code",
+    "title": "BayBay 首句 p50 5.9 s，10 次里只有 1 次 ≤3 s；调用模型前服务器就用了 p50 1.75 s；专业题和行程题不流式输出草稿（BB-1013-01；G30）[约 +0.06]",
+    "fix": "baybayAgent.js:594-598 的监控刷新改到后台定时器，按 URL 建索引；task-state、site-evidence、quota 三步并行；baybay_professional 和 agent 最后一步流式输出首句；启动时预热缓存和证据索引。验收：10 次线上实测首句 p50 ≤3 s。"
+  },
+  {
+    "id": "H04",
+    "severity": "P1",
+    "kind": "owner",
+    "title": "社区没有内容：13 帖全部发于 6/11–6/14，其中 12 帖是站长发的；0 个小队；本地服务「提供」为空（FCC-02；G48）[约 +0.06]",
+    "fix": "店主每个分类补 8–12 条真实帖子；6 月的 5 条租房重新确认或关闭。做不到就在 R1 前先隐藏本地服务和一起去。"
+  },
+  {
+    "id": "H05",
+    "severity": "P1",
+    "kind": "owner",
+    "title": "BayBay 在 10/30 00:00 UTC（即 10/29 17:00 PT）停用，还没决定怎么办（BB-1013-05；G39）[不决定的话 BayBay 两个维度都会掉分]",
+    "fix": "店主 10/23 前决定：充值或绑卡，或者换供应商，然后调整 aiUntil。决定之前，R1 的 BayBay 任务排在 10/29 前。"
+  },
+  {
+    "id": "H06",
+    "severity": "P1",
+    "kind": "code",
+    "title": "首页「长辈友好」圈在 10/17–18 是 0 场，空状态给的「看未来 7 天」也是 0 场（HOMEIA13-01；G24）[约 +0.04]",
+    "fix": "MoodCircles 套用 /events 的 count>0 规则，0 场时改指向 /guides?topic=elders；放宽长者判定，纳入无障碍、免费、中文、图书馆、全龄日间活动；空状态加「看长辈与家属指南」和「问 BayBay」；叫法统一。"
+  },
+  {
+    "id": "H07",
+    "severity": "P1",
+    "kind": "code",
+    "title": "9 场为 3D 停放的 SF 活动（6 场华人活动，3 场在首页）不在 API 目录。参与区显示「人数暂时无法加载」，会员加入计划报 404，BayBay 也推荐不了（FCC-01、EVT13-03、CNT-1013-05、BB-1013-12）[约 +0.04]",
+    "fix": "public-catalog-holdout.ts 不再挡公开目录和 API 目录，改由 /opus-bay 自己过滤；重新导出并做 API-SYNC。CI 检查每个详情 id 都在 API 目录里。engagement 批量接口返回已知 id 和 unknown 列表，404 时隐藏人数。ITEM_NOT_IN_CATALOG 降级为保存在本机。web 内容合并后自动给 api 开同步 PR。"
+  },
+  {
+    "id": "H08",
+    "severity": "P1",
+    "kind": "content+code",
+    "title": "答案优先只覆盖 13/141 篇指南。办事类（311/211、维修、无车出行等）第一屏没有答案（GR-03，部分成立；G20）[约 +0.04]",
+    "fix": "先给长辈与家属、新手必看、日常办事三类写 editorial 记录。其余指南由 GuideDetail 用第一条有来源的事实加第一个电话或截止日，生成「30 秒看懂」兜底卡。季节出游、目录、购物类不需要。"
+  },
+  {
+    "id": "H09",
+    "severity": "P1",
+    "kind": "code",
+    "title": "33/42 家已开业的店挂「即将开业 / Opening soon」；Marufuku 的类型仍是「拉面新店预告」（EVT13-02、CNT-1013-02；G61）[约 +0.03]",
+    "fix": "event-facts.ts:309-316 openingChip：status 为 open 且没有 openedOn 时显示「已开业 / Open now」，「即将开业」只给 announced。Marufuku 设 openedOn 10/11、类型改拉面；Delage 补官网营业时间和电话 341-213-7494。加测试和 lint：status 为 open 时不许出现「即将」。注意这个函数还给 TypeCover、BayBayCards 和分享卡用。"
+  },
+  {
+    "id": "H10",
+    "severity": "P1",
+    "kind": "code+owner",
+    "title": "访客 AI 额度每 IP 每天 15 次，和 /plan、帖子自动翻译共用（BB-1013-03；G40）[约 +0.03]",
+    "fix": "BayBay 单独一个日额度；访客的翻译只读缓存；访客身份用第一方访客 id 加 IP；从第一次回答起显示「剩余 N 次」。R1 的额度由店主定。"
+  },
+  {
+    "id": "H11",
+    "severity": "P1",
+    "kind": "code",
+    "title": "20 种新的急症说法有 3 种完全漏掉（摔倒头流血、蜂蛰后全身起疹喉咙发紧、坠楼不动）。模型出错时回答「补充一个城市」（BB-1013-04，部分成立；G29）[约 +0.03]",
+    "fix": "safetyRouting.js 的 EMERGENCY_PATTERNS 补上：摔倒+流血、蛰伤或食物+起疹或喉咙紧、坠落+不动、胸闷+左手麻。放宽 HEALTH_WORRY，模型不可用时一律给 911 兜底。这 20 种说法加进回归集。"
+  },
+  {
+    "id": "H12",
+    "severity": "P1",
+    "kind": "owner+code",
+    "title": "真实照片太少：下周末活动 70%、在架活动 79%、优惠和新店 82% 用文字封面；详情页约 19% 有真图；文字封面都是同款淡色图标加徽章，看着像模板（SV13-02、EVT13-07）[图文结合 +0.8，加权约 +0.03]",
+    "fix": "店主：确定授权模板，和前 20 家发布方谈署名授权，每周外拍一次；目标是每个周末前 20 条里 ≥60% 用真图。代码：每种色调画一套插画替代 UI 图标；列表已经署名的，去掉「BAYLINK 信息卡」徽章；先给未来两个周末找官方图。"
+  },
+  {
+    "id": "H13",
+    "severity": "P1",
+    "kind": "content",
+    "title": "支柱指南每千字有 10–16 个对冲词（部分是模板句造成的）；13 篇指南仍显示 5/22 或 6/10 更新，其中 9 篇没有图（GR-04；G25）[约 +0.03]",
+    "fix": "每节只留一句「以机构确认为准」，重复的「不要/不能」合并成一个注意清单；GuideDetail.tsx:271 的模板句不计入对冲词。这 13 篇重新核对、更新日期、配封面，日常办事里的 without-car 先做。"
+  },
+  {
+    "id": "H14",
+    "severity": "P1",
+    "kind": "code+owner",
+    "title": "站外通知默认全关，只有自己发帖或发私信后才提示打开；生产环境投递没有验证过（FCC-03；G49）[约 +0.03]",
+    "fix": "已验证的邮箱默认打开「新的私信 / 新的联系请求」邮件，可一键退订；收件方也给开启提示。店主在生产做双账号投递测试，并确认 NOTIFICATION_DELIVERY_ENABLED 已打开。"
+  },
+  {
+    "id": "H15",
+    "severity": "P1",
+    "kind": "owner",
+    "title": "店主安全事项（见私有笔记；I13-01，线上无法核实；G44）[约 +0.02]",
+    "fix": "店主：店主安全事项（见私有笔记）。代码：API-OPS 加一个只给已登录管理员看的加固状态，公开接口不暴露。"
+  },
+  {
+    "id": "H16",
+    "severity": "P1",
+    "kind": "owner",
+    "title": "每日重建没有配置（/api/daily-rebuild 返回 not-configured）。按日期变化的页面和本周末分享卡停在构建那天（I13-02；G15）[约 +0.02]",
+    "fix": "店主设 VERCEL_DEPLOY_HOOK_URL 和 CRON_SECRET（见 docs/daily-rebuild.md），然后确认 release.json 的 builtAt 每天都更新。"
+  },
+  {
+    "id": "H17",
+    "severity": "P1",
+    "kind": "code",
+    "title": "问「这周末有华人社区活动吗」，漏了站上 2 场中文活动；追问「明天有吗」时丢掉了中文条件（BB-1013-02，部分成立）[约 +0.02]",
+    "fix": "把华人、中文、国语、粤语、普通话、Mandarin、Cantonese、重阳映射成语言/社群维度，进检索和排序，并写入 taskState；这两个例子加进评测集。"
+  },
+  {
+    "id": "H18",
+    "severity": "P1",
+    "kind": "code",
+    "title": "38/141 篇指南小于 12px 的文字超过 2%：34 篇是因为 9–11px 的版本框，4 篇是目录里 11px 的 <small>（城市水电目录高达 60%）（GR-02；G21）[约 +0.02]",
+    "fix": "monthly-deals.css:4-5 和 guides-ui.css 里的 small 改用 --text-fact / --text-caption（≥13px）；版本框并进 H1 下面的信息行；CSS 棘轮覆盖这两个文件。"
+  },
+  {
+    "id": "H19",
+    "severity": "P1",
+    "kind": "code",
+    "title": "首页手机图片面积 0.400（目标 0.45），真实照片只占 0.291；优惠那一行 6 张里 5 张是文字封面（SV13-01、HOMEIA13-04；G10）[约 +0.02，图文结合 +0.3]",
+    "fix": "「免费与优惠」先放有官方图的（今天已有 32/182 条），第一张做成两格宽的照片卡；信息流同一档里有照片的排前面；指南卡改 4:5。目标：图片面积 ≥0.45，真实照片 ≥0.35。"
+  },
+  {
+    "id": "H20",
+    "severity": "P1",
+    "kind": "code",
+    "title": "/plan 冷启 LCP 5–6 s（英文 7–8 s），JS 593/966 KiB；LCP 元素是要等目录加载完才出现的空状态（I13-03）[约 +0.02]",
+    "fix": "先用本地保存的数据渲染「已排的日子」和空状态，并预留高度；目录和英文包推迟到用户交互或浏览器空闲时加载。/plan 预算：JS ≤400 KiB，LCP ≤3.5 s。"
+  },
+  {
+    "id": "H21",
+    "severity": "P1",
+    "kind": "code",
+    "title": "/guides 第一屏的封面把电话号码断成两行，例如「1-800-434-022 / 2」（SV13-04、GR-05）[约 +0.02]",
+    "fix": "只允许在区号后断一次（1-800-<wbr>434-0222），或者按容器宽度缩小字号；在 173px 宽和特大字号下加测试；WORDBREAK 探针加进 CI。"
+  },
+  {
+    "id": "H22",
+    "severity": "P1",
+    "kind": "content+code",
+    "title": "指南正文一张照片都没有：长辈指南连续 5.1 屏无图，32 篇完全无图，支柱指南没有事实图（SV13-03、GR-10；G22）[约 +0.02，图文结合 +0.4]",
+    "fix": "每 2 屏至少一张图：办公室照片、Clipper 或 Medicare 卡样例、各县 AAA 地图、HICAP 三步图。「30 秒看懂」后面加一行下一步。CI 检查最长无图段 ≤2.5 屏。"
+  },
+  {
+    "id": "H23",
+    "severity": "P1",
+    "kind": "code",
+    "title": "「本周末旧金山免费亲子活动」要点 5 步（10-11 是 4 步），因为本周末视图里地区只在全屏筛选里（HOMEIA13-02）[约 +0.015]",
+    "fix": "把 WeekendView.tsx:168-170 改成日期标签下面一行地区标签（整个湾区 · 旧金山 · 东湾 · 南湾 · 半岛 · 北湾），点一下就生效。目标 ≤3 步。"
+  },
+  {
+    "id": "H24",
+    "severity": "P1",
+    "kind": "code",
+    "title": "320px 宽、特大字号加简洁模式下（家人链接在小屏手机上就是这样），13 篇试点指南里有 7 篇被截字，电话标签被裁掉（GR-01）[约 +0.015]",
+    "fix": ".gd-step__head>div 加 flex:1 和 min-width:0；电话标签允许末尾标点换行，或设 max-width:100%；屏宽 <360px 时缩小步骤标题，不要放开 nowrap。CI 在 320×640 下加载这 13 篇检查越界。"
+  },
+  {
+    "id": "H25",
+    "severity": "P2",
+    "kind": "content",
+    "title": "11/15 之后供给断崖：11/21–22 只有 20 场，11/28–29 18 场，12/5–6 1 场。10/19 起这几周进入 5 个周末的窗口，届时升为 P1（CNT-1013-04）",
+    "fix": "10/23 前补齐 11/21–12/13（点灯、节日灯会、冬季市集、感恩节周末）；图书馆和公园的源每周拉一次；月刊延到 12/31。"
+  },
+  {
+    "id": "H26",
+    "severity": "P2",
+    "kind": "code+owner",
+    "title": "/events 把自动排序的结果叫「编辑精选」，但 10/17 并没有编辑名单（HOMEIA13-03）",
+    "fix": "只有 WEEKEND_PICKS 里有本周末时才显示「编辑精选」，否则显示「本周末先看」；构建时如果缺名单就报警。周四定精选，由店主或 Claude 按规则来。"
+  },
+  {
+    "id": "H27",
+    "severity": "P2",
+    "kind": "code",
+    "title": "命名不统一：加入这天计划 / 加入行程 / 加入计划；「计划」出现 30 次、「行程」6 次；「我的收藏」通往两个地方；亲子和带娃、长辈友好和长者友好混用；3D 心愿单独一套（HOMEIA13-05、FCC-07；G53）",
+    "fix": "统一叫「加入行程」；指南里的链接改叫「我的指南收藏」，或者指向 /my-week#saved；每个标签只用一个叫法；3D 心愿写进 ♡，或者标成「3D 心愿单」。"
+  },
+  {
+    "id": "H28",
+    "severity": "P2",
+    "kind": "code",
+    "title": "活动的文字封面大图重复了 H1、日期、地点和价格，第一屏 6 项事实里有 4 项出现两次（SV13-09、EVT13-07）",
+    "fix": "活动也改用紧凑横条（大号日期加色调插画），和优惠、新店一样；或者换成 8 年内拍的场馆照片。"
+  },
+  {
+    "id": "H29",
+    "severity": "P2",
+    "kind": "code",
+    "title": "主按钮有 2 种颜色，次按钮有 4 种变体；按 1011 的口径，26 个桌面模板里只有 3 个做到 ≤5 种按钮（SV13-06、EVT13-09 待查、GR-14）",
+    "fix": "Button 只留 primary、secondary、quiet 三种，DetailActionBar 也改用 <Button>；加棘轮：每页 ≤5 种，全站 ≤8 种。"
+  },
+  {
+    "id": "H30",
+    "severity": "P2",
+    "kind": "code",
+    "title": "桌面详情页 H1 偏离网格 40px；/together 和 /ai-in-the-bay 还是旧样式，H1 有第三种规格（SV13-07、SV13-08、GR-14）",
+    "fix": "local-discovery-detail.css:157 桌面改 padding-inline:0；这两页改用 PageHeader、PageContainer、Chip、Button；所有 H1 统一用 --text-h1。"
+  },
+  {
+    "id": "H31",
+    "severity": "P2",
+    "kind": "code",
+    "title": "/events 的 16 张活动卡都没有 ♡；优惠和新店卡用的是另一种描边「收藏」按钮（EVT13-10、FCC-04、SV13-10；G46）",
+    "fix": "EventFeedCard 和 HeroCard 用封面角上的 SaveToWeek 槽位；优惠和新店也换成同样叠在封面上的 ♡。"
+  },
+  {
+    "id": "H32",
+    "severity": "P2",
+    "kind": "code",
+    "title": "指南页的「问 BayBay」一点就把预设问题发出去，用掉访客额度；帖子页的 BayBay 不带帖子内容（FCC-05、FCC-06 部分成立）",
+    "fix": "GuideActions 改用 'draft' 模式，并显示「正在看」胶囊；帖子作为页面胶囊传进去；起草类意图不出活动卡。"
+  },
+  {
+    "id": "H33",
+    "severity": "P2",
+    "kind": "code",
+    "title": "活动、优惠、新店详情页没有「发给家人（大字版）」；首页的入口在第 3.3 屏（HOMEIA13-08；G52）",
+    "fix": "详情页的分享行加 FamilyLinkButton；「长辈友好」目的地旁边也加一个。"
+  },
+  {
+    "id": "H34",
+    "severity": "P2",
+    "kind": "code",
+    "title": "定位文案还有偏差：/guides 的标题和 H1 是「湾区生活指南」，帖子分享写「湾区生活信息站」，注册弹窗还是旧口号（HOMEIA13-06；G51）",
+    "fix": "/guides 标题改「办事指南｜BAYLINK 湾区去哪、怎么办」，H1 改「办事与生活指南」；分享文案结尾改「BAYLINK · 湾区去哪、怎么办」；注册弹窗换新标题。"
+  },
+  {
+    "id": "H35",
+    "severity": "P2",
+    "kind": "code",
+    "title": "/events 的今天、优惠、新店三个视图标题都是「本周末…」；/this-month 是一个孤立的全部日期页，标题还是季刊名（HOMEIA13-07）",
+    "fix": "每个视图用自己的标题；/this-month 301 跳到 /events?when=all，并选中「全部日期」。"
+  },
+  {
+    "id": "H36",
+    "severity": "P2",
+    "kind": "code",
+    "title": "3D 入口在首页约 85% 深的位置；SF 指南里没有 3D 链接；/explore 的链接来源参数写错（FCC-11；G93）",
+    "fix": "在周末信息流的 SF 部分，或「按地区找景点」下面加一条 3D 横条；SF 游客指南加「在 3D 里先看看」；/explore 的链接改成 from=explore。"
+  },
+  {
+    "id": "H37",
+    "severity": "P2",
+    "kind": "code",
+    "title": "额度用完时，每条回答上方都有红色的 911/211 大按钮（BB-1013-07）",
+    "fix": "每日额度用完的提示只放平静的说明，加「看活动 / 查指南」链接。健康或急症类回答、以及服务暂停时仍保留拨号按钮，它是 H11 的兜底。"
+  },
+  {
+    "id": "H38",
+    "severity": "P2",
+    "kind": "code",
+    "title": "行程追问里，「下午 4 点前回家」因为中间有空格被丢掉；没给最近的 BART 站；只排了一站（BB-1013-08）",
+    "fix": "baybayState.js:484 解析前先去掉数字和「点/點/时」之间的空格；按 finishBy 倒推时间表；场馆数据存最近车站；时间够的话给第二站。"
+  },
+  {
+    "id": "H39",
+    "severity": "P2",
+    "kind": "code",
+    "title": "问周六的回答里，卡片日期显示的是今天（周二 10/13）（BB-1013-09）",
+    "fix": "把 taskState 里的日期或日期范围传给卡片模型（model.day）。"
+  },
+  {
+    "id": "H40",
+    "severity": "P2",
+    "kind": "code",
+    "title": "BayBay 引擎文件 139 KB，v1 和 v2 混在同一个 run() 里（BB-1013-13；G83）",
+    "fix": "v2 拆成独立模块；回滚窗口过后删掉 v1。"
+  },
+  {
+    "id": "H41",
+    "severity": "P2",
+    "kind": "code",
+    "title": "英文页的编辑文本用 24 小时制和 ISO 日期，约 550–620 条字符串，抽查 22 个详情页有 4 个看得到（I13-04；G63）",
+    "fix": "generate-english-scopes 生成时转换成 am/pm、'Oct 13, 2026'、'Sep 25–Oct 31' 这类写法；i18n-html-check 拦住 24 小时制和 ISO 日期。"
+  },
+  {
+    "id": "H42",
+    "severity": "P2",
+    "kind": "owner",
+    "title": "根域名用 307 跳转，HSTS 没有 includeSubDomains 和 preload，进不了 preload 名单（I13-05；G78）",
+    "fix": "在 Vercel 域名设置里改成 308 跳到 www，根域发和 www 一样的 HSTS 头，然后提交 preload。"
+  },
+  {
+    "id": "H43",
+    "severity": "P2",
+    "kind": "code",
+    "title": "全局 CSS 76 KB br（原始 444 KB），阻塞首次渲染（I13-06；G13）",
+    "fix": "按路由拆分 CSS，清掉旧的 utility 类，内联关键外壳样式。目标 ≤40 KB br。"
+  },
+  {
+    "id": "H44",
+    "severity": "P2",
+    "kind": "code",
+    "title": "每次冷加载要发 77–105 个脚本请求，首页有 43 个 modulepreload（I13-07；G74）",
+    "fix": "合并小 chunk（experimentalMinChunkSize 或 manualChunks），modulepreload 只留首屏需要的。"
+  },
+  {
+    "id": "H45",
+    "severity": "P2",
+    "kind": "code",
+    "title": "分享卡三种语言都有、尺寸也对，但全是文字，有官方照片的也不放；中文卡上是英文口号（I13-08、EVT13-11；G43）",
+    "fix": "有授权封面时，把它放在卡片上方 55% 的位置；中文卡换中文口号。"
+  },
+  {
+    "id": "H46",
+    "severity": "P2",
+    "kind": "code",
+    "title": "英文 <title> 太长：33 个详情页里有 20 个、25 个栏目页里有 5 个超过 60 个字符（I13-09；G105）",
+    "fix": "英文标题用 shortTitle + ' | BAYLINK'，不超过 60 个字符；长版本留给 og:title 和 H1。"
+  },
+  {
+    "id": "H47",
+    "severity": "P2",
+    "kind": "code",
+    "title": "Event JSON-LD 有缺口：抽查 30 个，缺 offers 10 个、时间 10 个、街道地址 12 个、主办方 7 个，inLanguage 全部没有（I13-10；G68）",
+    "fix": "免费活动的 offers 写 price 0；主办方从来源域名取；每个语言版本加 inLanguage。"
+  },
+  {
+    "id": "H48",
+    "severity": "P2",
+    "kind": "code",
+    "title": "新加的 6 条 API 错误提示没有英文（I13-11；G65）",
+    "fix": "把它们补进 api-errors-en.ts；更好的做法是让 API 按 code 和 locale 返回。"
+  },
+  {
+    "id": "H49",
+    "severity": "P2",
+    "kind": "code",
+    "title": "繁体页还在用「計劃」（I13-12 部分成立；G64）",
+    "fix": "在 taiwan-terms.ts 加 計劃→計畫。「手機號」其实是「手機號碼」的一部分，不用改。"
+  },
+  {
+    "id": "H50",
+    "severity": "P2",
+    "kind": "code",
+    "title": "/en 分类页的广告是中文，但没有标 lang 或 translate=no（I13-13 部分成立）",
+    "fix": "OfficialAds.tsx:279-280 加上 lang=zh-Hans 和 translate=no；翻译失败时显示原文提示。"
+  },
+  {
+    "id": "H51",
+    "severity": "P2",
+    "kind": "code",
+    "title": "Windows 上繁体标题看起来比简体细（SV13-05）",
+    "fix": "繁体标题的字体栈最前面加一个拉丁字体别名，例如 local('Segoe UI Bold')，只覆盖 U+0000-024F；可选加 Noto Sans TC 700 子集，只给 H1/H2 用。"
+  },
+  {
+    "id": "H52",
+    "severity": "P2",
+    "kind": "code",
+    "title": "特大字号加简洁模式时，区块标题旁边挤着「看全部」；/guides 搜索框的占位文字被挡住（SV13-11）",
+    "fix": "阅读字号 ≥大或开了简洁模式时，区块操作移到标题下面；「我的收藏」挪到搜索框下面。"
+  },
+  {
+    "id": "H53",
+    "severity": "P2",
+    "kind": "code",
+    "title": "/category 还是旧页脚，4.8% 的文字小于 12px（SV13-12）",
+    "fix": "换成站点统一页脚，所有文字 ≥13px。"
+  },
+  {
+    "id": "H54",
+    "severity": "P2",
+    "kind": "code",
+    "title": "/plan 一开头就是表单，第一张图在 2.2 屏，图片面积只有 0.036（SV13-13）",
+    "fix": "表单上方加一条本周末精选的两列封面。"
+  },
+  {
+    "id": "H55",
+    "severity": "P2",
+    "kind": "code",
+    "title": "标题首行偶尔只有两个词，例如「免费 Día」（SV13-14）",
+    "fix": "加 text-wrap:pretty，或者让保留不断的拉丁短语在合适时可以换行。"
+  },
+  {
+    "id": "H56",
+    "severity": "P2",
+    "kind": "code",
+    "title": "往期活动同时显示「日期待定」和「已结束」（EVT13-05）",
+    "fix": "endDate 已过且没有延期时，显示「已结束 · 日期」，加「接下来可以去」。"
+  },
+  {
+    "id": "H57",
+    "severity": "P2",
+    "kind": "code",
+    "title": "售罄活动的主按钮还是「加入这天计划」；H1 前面重复了「21+」（EVT13-06）",
+    "fix": "sold_out 时主按钮改成官方页或候补，去掉加入计划；有年龄标签时，标题去掉这个前缀。"
+  },
+  {
+    "id": "H58",
+    "severity": "P2",
+    "kind": "code",
+    "title": "手机上 20 个详情页里有 11 个，事实卡最下面一行被固定操作栏盖住（EVT13-12）",
+    "fix": "让 2×2 事实卡在 780px 以上结束。"
+  },
+  {
+    "id": "H59",
+    "severity": "P2",
+    "kind": "content",
+    "title": "BORP 官网的时间表写 3:00–4:30，FAQ 写 3:30–5:30，站上只引用了 FAQ，没有说明冲突（CNT-1013-01，原 P0 被驳回）",
+    "fix": "中、繁、英三版都写明两个时间，建议 15:00 前到；列进周三复核。"
+  },
+  {
+    "id": "H60",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "/events 冷启 LCP 两次测量不一致：3.9 s 和 3.3 s（EVT13-08）",
+    "fix": "预渲染时预加载第一个精选的封面图，再按 5 次的中位数复测。"
+  },
+  {
+    "id": "H61",
+    "severity": "P2-待查",
+    "kind": "code+owner",
+    "title": "单元测试不在发布闸门里（I13-14；G73）",
+    "fix": "用 Vercel Ignored Build Step 等 CI 结果，或者在 release:hosting 里跑 test:site；需要店主同意改 CI。"
+  },
+  {
+    "id": "H62",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "8.3% 的主要控件点击区域小于 44px（GR-07）",
+    "fix": "ui-chip 设 min-height:44px；日历日期按钮 ≥44px；目录开关 ≥48px。"
+  },
+  {
+    "id": "H63",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "320px 宽、特大字号下，标题在词中间断行；/plan 和 /my-week 的标题被截掉（GR-06、GR-13）",
+    "fix": "屏宽 <360px 时用 cqw 缩小字号；标题单元设 max-width:100%。"
+  },
+  {
+    "id": "H64",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "长辈指南的县电话网格在 390px 宽下溢出，县名只有英文（GR-08；G75）",
+    "fix": "屏宽 <420px 时改成单列；县名写中文，英文放第二行。"
+  },
+  {
+    "id": "H65",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "搜「老人卡」找不到 Muni/Clipper 指南（GR-09；G89）",
+    "fix": "同义词加上 长者 Clipper、RTC、Free Muni；搜到长辈相关词时，提高长辈和出行类指南的排序。"
+  },
+  {
+    "id": "H66",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "十月免费优惠长文还有 59 屏（GR-11；G26）",
+    "fix": "每个分类只显示 6 条，加「看全部 N 条」，分类标签固定在顶部。"
+  },
+  {
+    "id": "H67",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "手机上指南轮播只能左右滑（GR-12）",
+    "fix": "触屏也显示 48px 的上一张、下一张按钮；简洁模式下改成竖排列表。"
+  },
+  {
+    "id": "H68",
+    "severity": "P2-待查",
+    "kind": "content",
+    "title": "新店文案还有很多含糊措辞；个别活动留着套话（CNT-1013-06）",
+    "fix": "开业日期写成「初秋开业」这类说法；付费活动也去重。"
+  },
+  {
+    "id": "H69",
+    "severity": "P2-待查",
+    "kind": "content",
+    "title": "23% 的在架活动写「费用待确认」，其中 43 场是图书馆活动（CNT-1013-07）",
+    "fix": "引用图书馆「活动免费」的通用政策，把这些活动标成免费，或者写「通常免费」。"
+  },
+  {
+    "id": "H70",
+    "severity": "P2-待查",
+    "kind": "content",
+    "title": "两条小事实还没核：Old Post Office 的早午餐从哪天开始；Millbrae 的年龄标签（CNT-1013-08）",
+    "fix": "打电话或查订位页面确认 10/17 有没有早午餐；Millbrae 的标签改成「儿童（任何年龄）」。"
+  },
+  {
+    "id": "H71",
+    "severity": "P2-待查",
+    "kind": "content",
+    "title": "缺三篇指南：防老人诈骗、长者出行、华人资源地图；报税和社安金的分类放错了（CNT-1013-09）",
+    "fix": "写这 3 篇；报税和社安金重新归类。"
+  },
+  {
+    "id": "H72",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "额度用完后的降级回答质量差：配了无关的活动卡、先讲 Medicare、英文回答里夹着中文（BB-1013-06）",
+    "fix": "按主题从支柱指南写兜底回答；专业类问题不出活动卡；英文兜底只用英文目录。"
+  },
+  {
+    "id": "H73",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "回答不考虑用户住在哪：Fremont 的家庭被推荐去 SF，还推了当天闭馆的地方（BB-1013-10）",
+    "fix": "按距离排序；去掉回答里自己已经排除的选项；没给地区时先问一句。"
+  },
+  {
+    "id": "H74",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "专业题路由 26 题对 21 题；报税讲座被误判成报税问题（BB-1013-11）",
+    "fix": "补剂量、签证、税额相关的说法；讲座和活动类问题不进报税护栏。"
+  },
+  {
+    "id": "H75",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "新手清单指南的起始提示写的是「出发前核实什么」（BB-1013-14）",
+    "fix": "按指南类型换提示语。"
+  },
+  {
+    "id": "H76",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "访客点私信时弹出的登录墙是通用文案（FCC-08；G94）",
+    "fix": "按场景写文案，主按钮改成「注册」。"
+  },
+  {
+    "id": "H77",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "/me 说收藏跟着账号走，但邻里帖的收藏只存在本机（FCC-09；G95）",
+    "fix": "改写说明，或者同步帖子收藏。"
+  },
+  {
+    "id": "H78",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "有具体时间的 .ics 仍写着「日期提醒」（FCC-10）",
+    "fix": "有确认的场次时，去掉后缀和免责声明。"
+  },
+  {
+    "id": "H79",
+    "severity": "P2-待查",
+    "kind": "code",
+    "title": "/plan 里收藏景点后没有提示（FCC-12）",
+    "fix": "复用 SaveToast。"
+  }
+]

@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
   // .vite-opus: the Opus Bay dev server's optimizer cache (vite.opus.config.ts cacheDir, git-ignored)
-  globalIgnores(['dist', '.vite-opus']),
+  globalIgnores(['dist', '.vite-opus', 'docs/overhaul']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
