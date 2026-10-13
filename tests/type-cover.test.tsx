@@ -86,7 +86,9 @@ test('offer and opening TypeCovers: value, normal-case brand, deadline; honest o
   assert.equal(root.querySelector('.ui-sticker')?.textContent, '明天截止');
   const retail = wrap(<OfferTypeCover offer={{ brand: 'YOGURTLAND', title: '会员生日礼', availability: 'ongoing' }} today={today} />);
   assert.equal(retail.container.querySelector('.ui-type-cover__label')?.textContent, '商家活动');
-  assert.equal(retail.container.querySelector('.ui-type-cover__title')?.textContent, '会员生日礼', 'without a value the title is shown');
+  // The card's caption carries the title, so the cover does not repeat it, value or not (PROD-W3: "Concord Taco Tra…").
+  assert.equal(retail.container.querySelector('.ui-type-cover__title'), null, 'without a value the cover shows the brand, not the title');
+  assert.equal(retail.container.querySelector('.ui-type-cover__brand')?.textContent, 'Yogurtland');
   const withOrder = { brand: 'SMASHBURGER', title: '周三买完整成人套餐，12 岁及以下儿童餐免费', availability: 'ongoing', kind: 'purchase' } as const;
   const zhOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
   assert.equal(zhOrder.container.querySelector('.ui-type-cover__value')?.textContent, '随单免费');
