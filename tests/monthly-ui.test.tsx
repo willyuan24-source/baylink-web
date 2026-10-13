@@ -384,7 +384,8 @@ test('再看 12 场 reveals twelve more without changing the total, and a new fi
 test('unknown filter and sort values fall back safely while preserving unrelated URL parameters', async () => {
   const view = render(edition(TODAY, '/this-month?region=unknown&cost=unknown&when=unknown&category=unknown&view=unknown&sort=unknown&lang=zh-Hant'));
   assert.equal(rangeLine(view.container), '全部日期 · 收录至 11/30');
-  assert.equal(filterRow(view).getByRole('button', { name: /整个湾区/ }).getAttribute('aria-pressed'), 'false');
+  // H23: the region is a one-tap chip row; an unknown region reads as 整个湾区 (selected), not as a narrowed region.
+  assert.equal(within(view.getByRole('group', { name: '地区' })).getByRole('button', { name: '整个湾区' }).getAttribute('aria-pressed'), 'true');
   assert.equal(filterRow(view).getByRole('button', { name: '免费', exact: true }).getAttribute('aria-pressed'), 'false');
   assert.equal(filterRow(view).getByRole('button', { name: /^筛选/ }).textContent, '筛选', 'nothing is counted as a filter');
   assert.deepEqual(feedIds(view.container), expected(TODAY).slice(0, 12));
