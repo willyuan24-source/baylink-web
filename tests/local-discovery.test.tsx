@@ -25,6 +25,7 @@ const { listingEndedDaysAgo } = await import('../src/lib/listing-lifecycle');
 const { getBayAreaToday } = await import('../src/lib/monthly');
 const { renderMetadataHtml, SITE_URL, DEFAULT_SOCIAL_IMAGE, configureMetadataLanguage } = await import('../src/lib/seo');
 const { shareCardPath } = await import('../src/lib/editorial-share');
+const { brandCase } = await import('../src/lib/event-facts');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { nextEventDay, unconfirmedEvent } = await import('../src/features/detail/detail-record');
@@ -205,11 +206,13 @@ test('all detail pages server-render full content with matching canonical, OG, T
     const doc = page;
     assert.equal(doc.querySelectorAll('h1').length, 1, share.id);
     assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : share.title);
-    // The <title> is the full title, or for one wider than a search result shows (38 display units with the brand) the
+    // An offer's page name shows its brand as the page does ("SFMTA · San Francisco"), not the catalog's capitals (PROD-W3).
+    const pageName = item.kind === 'offer' ? `${brandCase(item.offer.brand)} · ${item.offer.title}` : share.title;
+    // The <title> is the full page name, or for one wider than a search result shows (38 display units with the brand) the
     // reviewed short title + brand (I18N-SEO-11, seo.ts); the share titles keep the full one.
-    const width = [...share.title + '｜BAYLINK'].reduce((sum, character) => sum + (/[\u2e80-\uffff]/.test(character) ? 1 : 0.5), 0);
+    const width = [...pageName + '｜BAYLINK'].reduce((sum, character) => sum + (/[\u2e80-\uffff]/.test(character) ? 1 : 0.5), 0);
     const short = item.kind === 'event' && item.event.shortTitle && width > 38 ? item.event.shortTitle : undefined;
-    assert.equal(doc.querySelector('title')?.textContent, (short ?? share.title) + '｜BAYLINK', share.id);
+    assert.equal(doc.querySelector('title')?.textContent, (short ?? pageName) + '｜BAYLINK', share.id);
     assert.equal(canonical(doc), expectedUrl);
     assert.equal(meta(doc, 'og:url'), expectedUrl);
     assert.equal(meta(doc, 'og:type'), 'article');
@@ -245,7 +248,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
       if (item.event.occurrenceDates?.length && !eventTimes(item.event).sessions.length) assert.deepEqual(entity.subEvent.map((event: { startDate: string }) => event.startDate), item.event.occurrenceDates);
     } else {
       assert.equal(entity['@type'], 'Article');
-      assert.equal(entity.headline, share.title);
+      assert.equal(entity.headline, pageName);
       assert.equal(entity.mainEntityOfPage, expectedUrl);
       assert.equal(entity.publisher.name, 'BAYLINK');
       assert.equal(entity.publisher.url, SITE_URL);
