@@ -12,7 +12,8 @@ import { setLocale } from '../src/i18n/locale';
 const { StaticRouter } = await import('react-router-dom');
 const { AnonymousSiteChrome } = await import('../src/components/SiteChrome');
 const { AccountShell } = await import('../src/components/AccountShell');
-const { ACCOUNT_SHELL_FILE } = await import('../src/app/account-shell');
+const { ACCOUNT_SHELL_FILE, withoutPageAddress } = await import('../src/app/account-shell');
+const { renderHtmlDocument } = await import('../src/lib/seo');
 after(async () => { await setLocale('zh-Hans', false); });
 
 const shell = (prefix = '') => new JSDOM(renderToStaticMarkup(<StaticRouter basename={prefix || undefined} location={`${prefix}/me`}><AnonymousSiteChrome pathname="/me"><AccountShell /></AnonymousSiteChrome></StaticRouter>)).window.document;
@@ -30,12 +31,18 @@ test('the account shell is the chrome around a fixed-height skeleton: no heading
   }
 });
 
-test('the prerender writes the shell in three languages as noindex, without canonical or hreflang', () => {
+test('the prerender writes the shell in three languages as noindex, naming no page: no canonical, og:url or hreflang', () => {
   const script = readFileSync('scripts/prerender.tsx', 'utf8');
   assert.ok(script.includes(`renderPage({ title: 'BAYLINK', description: homeDescription, path: '/me', noindex: true }, <AccountShell />, ACCOUNT_SHELL_FILE)`));
-  // The canonical link is taken out of each language's file (the same pattern the prerender uses, applied to its output).
-  const strip = (html: string) => html.replace(/\s*<link rel="canonical" href="[^"]*" \/>/, '');
-  assert.ok(script.includes(String(/\s*<link rel="canonical" href="[^"]*" \/>/)), 'the prerender strips the canonical link');
-  assert.equal(strip('<title>BAYLINK</title>\n    <link rel="canonical" href="https://www.baylink.us/me" />\n    <meta name="robots" content="noindex, follow" />'), '<title>BAYLINK</title>\n    <meta name="robots" content="noindex, follow" />');
+  assert.ok(script.includes('writeFile(file, withoutPageAddress(await readFile(file, \'utf8\')))'), 'each language\'s file goes through withoutPageAddress');
+  // The head renderHtmlDocument writes for the shell (it serves /messages, /my-week and /together too, not only /me).
+  const template = '<html><head><!--baylink-meta-start--><!--baylink-meta-end--></head><body><!--baylink-app-start--><!--baylink-app-end--></body></html>';
+  const html = withoutPageAddress(renderHtmlDocument(template, { title: 'BAYLINK', description: '湾区活动', path: '/me', noindex: true }, '<main></main>'));
+  const head = new JSDOM(html).window.document.head;
+  assert.equal(head.querySelector('meta[name="robots"]')?.getAttribute('content'), 'noindex, follow');
+  assert.equal(head.querySelector('link[rel="canonical"]'), null);
+  assert.equal(head.querySelector('meta[property="og:url"]'), null);
+  assert.equal(head.querySelector('link[rel="alternate"]'), null);
+  assert.ok(head.querySelector('meta[property="og:title"]'), 'the rest of the head stays');
   assert.equal(ACCOUNT_SHELL_FILE, 'account-shell.html');
 });

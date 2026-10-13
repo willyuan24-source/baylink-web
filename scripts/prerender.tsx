@@ -68,7 +68,7 @@ const { default: AiLocalPage } = await import('../src/pages/AiLocalPage');
 // WEB-PLAN: PlannerPage imports its own CSS (plan-page.css), so it loads after the CSS hook too.
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { AccountShell } = await import('../src/components/AccountShell');
-const { ACCOUNT_SHELL_FILE } = await import('../src/app/account-shell');
+const { ACCOUNT_SHELL_FILE, withoutPageAddress } = await import('../src/app/account-shell');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
@@ -192,11 +192,11 @@ await renderPage(SMS_METADATA, <SmsConsentView />);
 await renderPage({ title: '验证邮箱｜BAYLINK', description: '确认由本人发起的邮箱验证请求。', english: { title: 'Verify your email | BAYLINK', description: 'Confirm an email verification you asked for.' }, path: '/verify-email', noindex: true }, <NotificationTokenPage purpose="verify" />);
 await renderPage({ title: '取消站外通知｜BAYLINK', description: '主动取消 BAYLINK 邮件或短信提醒。', english: { title: 'Turn off email or text notices | BAYLINK', description: 'Turn off BAYLINK email or text reminders.' }, path: '/notifications/unsubscribe', noindex: true }, <NotificationTokenPage purpose="unsubscribe" />);
 // G70: /me, /messages, /my-week and /together open on this neutral shell, not the homepage (src/app/account-shell.ts):
-// noindex, and no canonical or hreflang, as it stands for several private pages.
+// noindex, and no canonical, og:url or hreflang, as it stands for several private pages.
 await renderPage({ title: 'BAYLINK', description: homeDescription, path: '/me', noindex: true }, <AccountShell />, ACCOUNT_SHELL_FILE);
 for (const locale of ['', 'en', 'zh-Hant']) {
   const file = join(outputDir, locale, ACCOUNT_SHELL_FILE);
-  await writeFile(file, (await readFile(file, 'utf8')).replace(/\s*<link rel="canonical" href="[^"]*" \/>/, ''));
+  await writeFile(file, withoutPageAddress(await readFile(file, 'utf8')));
 }
 await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', english: { title: 'Page not found | BAYLINK', description: 'We could not find this page. Check the link, or go back to the BAYLINK home page.' }, path: '/404', noindex: true }, <NotFoundPage />, '404.html');
 // RC-6 for 404.html: NotFoundPage is a shared chunk found by name (manifestEntry). If that lookup ever misses, the page would

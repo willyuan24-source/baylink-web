@@ -6,3 +6,10 @@
  */
 export const ACCOUNT_SHELL_FILE = 'account-shell.html';
 export const ACCOUNT_SHELL_PATHS = ['/me', '/me/bookings', '/my-week', '/messages', '/messages/:threadId', '/together'] as const;
+
+/**
+ * One file stands for all of those pages, so it names none of them: the prerender renders it for /me, then takes out the
+ * canonical link and og:url that renderHtmlDocument writes for every page (noindex already leaves out hreflang).
+ */
+export const withoutPageAddress = (html: string): string =>
+  html.replace(/\s*<link rel="canonical" href="[^"]*" \/>/, '').replace(/\s*<meta property="og:url" content="[^"]*" \/>/, '');

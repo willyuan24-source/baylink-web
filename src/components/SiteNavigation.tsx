@@ -45,11 +45,13 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
     { href: '/me', label: english ? 'Me' : '我的' },
   ];
   const here = (path: string) => pathname === path ? 'page' : undefined;
+  // On /my-week and /messages the 更多 panel's own link is the page; 我的 marks the section (one aria-current="page").
+  const primaryCurrent = (href: string) => current !== href ? undefined : href === '/me' && pathname !== '/me' ? 'true' : 'page';
 
   return <div className="site-header-navigation">
     <Link to="/" className="site-header-brand" aria-label={english ? 'BAYLINK home' : 'BAYLINK 首页'}><img src={BRAND.logoHorizontal} alt="BAYLINK" width="160" height="43" /></Link>
     <nav className="site-nav site-header-primary" aria-label={english ? 'Main navigation' : '主要导航'}>
-      {links.map(({ href, label }) => <Link key={href} to={href} aria-current={current === href ? 'page' : undefined} className={`site-nav-link${current === href ? ' is-active' : ''}`}>{label}</Link>)}
+      {links.map(({ href, label }) => <Link key={href} to={href} aria-current={primaryCurrent(href)} className={`site-nav-link${current === href ? ' is-active' : ''}`}>{label}</Link>)}
       <button type="button" className="site-nav-link site-nav-ask" onClick={onAsk}><OtterIcon size={22} /><span>{english ? 'Ask BayBay' : '问 BayBay'}</span></button>
     </nav>
     {/* RC-8(ii): the panel stays in the DOM while closed (the OPUS contract reads its 3D link from static markup). */}
