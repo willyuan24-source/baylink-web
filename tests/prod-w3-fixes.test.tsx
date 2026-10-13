@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
+import postcss from 'postcss';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 
@@ -34,6 +35,19 @@ const { READING_SIZE_KEY, SIMPLE_DISPLAY_KEY } = await import('../src/lib/readin
 
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 const HAN = /[㐀-鿿]/u;
+/**
+ * The declarations a stylesheet gives one selector (every rule for it, in media queries too, later ones winning). Parsed, not
+ * matched as text, so reformatting, reordering or minifying the CSS does not break these checks; lengths compare in px.
+ */
+const declarations = (file: string, selector: string) => {
+  const normal = (text: string) => text.replace(/\s*([>+~,])\s*/g, '$1').replace(/\s+/g, ' ').trim();
+  const found: Record<string, string> = {};
+  postcss.parse(readFileSync(file, 'utf8')).walkRules(rule => {
+    if (normal(rule.selector) === normal(selector)) rule.each(node => { if (node.type === 'decl') found[node.prop] = node.value; });
+  });
+  return found;
+};
+const px = (length: string) => parseFloat(length) * (/rem$/.test(length) ? 16 : 1);
 const SENIOR = 'bay-area-chinese-senior-services-referral-guide';
 const guideProps = { onOpenGuide: () => {}, onNavigate: () => {}, onOpenPost: () => {} };
 const article = (slug: string) => render(<MemoryRouter initialEntries={[`/guides/${slug}`]}><GuideDetail slug={slug} today="2026-10-12" {...guideProps} /></MemoryRouter>);
@@ -170,8 +184,9 @@ test('legal pages: Chinese readers start with the Chinese summary, English reade
   const en = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/en/privacy" basename="/en"><PrivacyPolicyView /></StaticRouter>));
   assert.match(en.querySelector('.legal-doc')!.firstElementChild!.textContent!, /^\s*BAYLINK helps people/);
   assert.ok(titles(en).every(title => !HAN.test(title)));
-  const css = readFileSync('src/components/legal-page.css', 'utf8');
-  assert.match(css, /\.legal-doc>div:not\(\.legal-intro\)\{display:grid;gap:24px\}/, 'sections grouped in a div keep the 24px gap');
+  const group = declarations('src/components/legal-page.css', '.legal-doc>div:not(.legal-intro)');
+  assert.equal(group.display, 'grid', 'sections grouped in a div keep the gap between them');
+  assert.equal(px(group.gap), 24);
 });
 
 test('/ai-in-the-bay folds the ended sessions behind one button and shows a shared theme photo once', () => {
@@ -203,9 +218,9 @@ test('at 特大 and in 简洁显示 the weekend day buttons have short names, an
     cleanup();
     localStorage.clear();
   }
-  const css = readFileSync('src/features/events/events.css', 'utf8');
-  assert.match(css, /html:is\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) \.ev-days-bar \{ position:static; \}/);
-  assert.doesNotMatch(css, /\.ev-days \{[^}]*box-shadow/, 'no rounded halo cutting into the photos');
+  const events = 'src/features/events/events.css';
+  assert.equal(declarations(events, 'html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-days-bar').position, 'static');
+  assert.equal(declarations(events, '.ev-days')['box-shadow'], undefined, 'no rounded halo cutting into the photos');
 });
 
 test('the home ask box gets a shorter example at 大 / 特大 and in 简洁显示', () => {
@@ -220,13 +235,12 @@ test('the home ask box gets a shorter example at 大 / 特大 and in 简洁显�
 });
 
 test('one heading scale: section heads on home, events and details read the section tokens; Chinese pages name Chinese faces first', () => {
-  const rule = (file: string, selector: string) => new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')} \\{[^}]*font-size:var\\(--text-section\\)`);
-  assert.match(readFileSync('src/components/home-discovery.css', 'utf8'), rule('', '.home-section-head h2'));
-  assert.match(readFileSync('src/features/events/events.css', 'utf8'), rule('', '.ev-section-title'));
-  const detailCss = readFileSync('src/components/local-discovery-detail.css', 'utf8');
-  for (const selector of ['.local-discovery-detail .detail-body h2', '.local-discovery-detail .detail-rail h2', '.local-discovery-detail .discovery-return h2']) assert.match(detailCss, rule('', selector));
-  const tokens = readFileSync('src/tokens.css', 'utf8');
-  const stack = (lang: string) => new RegExp(`html:lang\\(${lang}\\) \\{ --font-sans:([^;]+);`).exec(tokens)?.[1] ?? '';
+  const heads: [string, string][] = [
+    ['src/components/home-discovery.css', '.home-section-head h2'], ['src/features/events/events.css', '.ev-section-title'],
+    ...['.detail-body h2', '.detail-rail h2', '.discovery-return h2'].map(head => ['src/components/local-discovery-detail.css', `.local-discovery-detail ${head}`] as [string, string]),
+  ];
+  for (const [file, selector] of heads) assert.equal(declarations(file, selector)['font-size'], 'var(--text-section)', selector);
+  const stack = (lang: string) => declarations('src/tokens.css', `html:lang(${lang})`)['--font-sans'] ?? '';
   for (const [lang, face] of [['zh-Hans', 'Microsoft YaHei UI'], ['zh-Hant', 'Microsoft JhengHei UI']]) {
     const fonts = stack(lang);
     assert.ok(fonts.indexOf(face) > 0 && fonts.indexOf(face) < fonts.indexOf('Segoe UI'), `${lang}: ${fonts}`);
@@ -234,12 +248,15 @@ test('one heading scale: section heads on home, events and details read the sect
   }
 });
 
-test('the prerendered home uses the app home wrapper, so the hero image keeps its box when the app takes over', () => {
-  const prerender = readFileSync('scripts/prerender.tsx', 'utf8');
-  const home = readFileSync('src/pages/HomePage.tsx', 'utf8');
-  assert.match(home, /className=\{`bay-home\$\{isDiscovery \? ' bay-home-editorial' : ''\}`\}/);
-  assert.match(prerender, /<div className="bay-home bay-home-editorial">\s*<HomeDiscovery /);
-  assert.doesNotMatch(prerender, /<section className="px-5 py-8">\s*<HomeDiscovery /);
+test('the app home renders the wrapper the prerender writes, so the hero image keeps its box when the app takes over', async () => {
+  // scripts/verify-release.mjs checks that the built pages (dist/{,en/,zh-Hant/}index.html) open <main> with this same wrapper.
+  const { default: HomePage } = await import('../src/pages/HomePage');
+  const { Routes, Route, Outlet } = await import('react-router-dom');
+  const context = { user: null, posts: [], feedType: 'provider', keyword: '', regionFilter: '全部', categoryFilter: '全部', feedError: false, isInitialLoading: false, isLoadingMore: false, hasMore: false, blockedUserIds: [], retryFeed() {}, openBayBay() {}, openSearch() {} };
+  const home = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/"><Routes><Route element={<Outlet context={context} />}><Route index element={<HomePage />} /></Route></Routes></StaticRouter>));
+  const root = home.firstElementChild!;
+  assert.equal(root.outerHTML.slice(0, root.outerHTML.indexOf('>') + 1), '<div class="bay-home bay-home-editorial">');
+  assert.ok(root.firstElementChild!.matches('section.home-discovery'), root.firstElementChild!.outerHTML.slice(0, 80));
 });
 
 test('small fixes: the offer page title in display case, the price never clipped, a signed-out 消息 tile not shown as selected', async () => {
@@ -252,7 +269,7 @@ test('small fixes: the offer page title in display case, the price never clipped
   const meta = JSDOM.fragment(renderToStaticMarkup(<p className="ui-feed-card__meta"><EventMeta event={priced} /></p>));
   assert.ok(meta.querySelector('.ui-meta-place') && meta.querySelector('.ui-meta-price strong'), 'place and price are separate pieces');
   assert.match(meta.textContent!, / · 免费$/);
-  assert.match(readFileSync('src/components/ui/ui.css', 'utf8'), /\.ui-meta-price \{ flex:none; \}/);
+  assert.equal(declarations('src/components/ui/ui.css', '.ui-meta-price').flex, 'none', 'the price never shrinks');
   const { MeTiles } = await import('../src/features/profile/MeHub');
   const tiles = (signedIn: boolean) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/me"><MeTiles signedIn={signedIn} messagesCount={0} savedCount={null} onMyPosts={() => {}} onLogin={() => {}} /></StaticRouter>));
   assert.equal(tiles(false).querySelector('a[href="/messages"]')!.hasAttribute('data-primary'), false);
