@@ -46,6 +46,9 @@ test('本周有效 means usable between today and this Sunday: ongoing, dated wi
   assert.equal(validThisWeek(offer('store-later', { availability: 'check-local', startDate: '2026-10-20' }), today), false);
   assert.equal(validThisWeek(offer('unconfirmed', { verificationStatus: 'needs-confirmation' }), today), false);
   assert.equal(validThisWeek(offer('undated', { availability: 'dated' }), today), false);
+  assert.equal(validThisWeek(offer('store-ended', { availability: 'check-local', endDate: '2026-10-13' }), today), false, 'a 查本店 offer past its stated end');
+  assert.equal(validThisWeek(offer('perk-ended', { availability: 'ongoing', endDate: '2026-10-13' }), today), false, 'an ongoing perk past its stated end');
+  assert.equal(validThisWeek(offer('store-ends-today', { availability: 'check-local', endDate: today }), today), true, 'its last day still counts');
 });
 
 test('a long board opens on 本周有效 with six cards per kind; 看全部 N 条 opens a kind and 收起 closes it; a search lists every match', () => {
@@ -104,6 +107,16 @@ test('no board offer that says it is sold out counts as 本周有效, on any day
   assert.ok(soldOut.length >= 1);
   for (let day = '2026-10-01'; day <= '2026-11-30'; day = addDays(day, 1)) {
     for (const item of soldOut) assert.equal(validThisWeek(item, day), false, `${item.id} on ${day}: ${item.dateLabel}`);
+  }
+});
+
+test('an offer on a guide board with a stated end date stops counting as 本周有效 after it (CNT-SUPPLY: Poppy & Claro by 10/30)', () => {
+  const offers = guides.flatMap(guide => guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []));
+  const dogDinners = offers.filter(item => item.id === 'poppy-claro-doggie-dinners-fall');
+  assert.ok(dogDinners.length >= 1 && dogDinners.every(item => item.endDate === '2026-10-30' && item.availability === 'check-local'), 'the boards list the dog dinners with their end date');
+  for (const item of dogDinners) {
+    assert.equal(validThisWeek(item, '2026-10-30'), true, 'the last Friday');
+    for (let day = '2026-10-31'; day <= '2026-11-30'; day = addDays(day, 1)) assert.equal(validThisWeek(item, day), false, day);
   }
 });
 
