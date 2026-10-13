@@ -1,4 +1,5 @@
 import { API_BASE_URL, authHeaders } from './api';
+import { localizeApiMessage } from './api-errors';
 import { getLocale, simplifySearch, translateText } from '../i18n/locale';
 import { readBayBayStream, parseBayBayQuickCards, BAYBAY_STREAM_VERSION, type BayBayQuickCard, type BayBayStreamHandlers, type BayBayProgress } from './baybay-stream';
 import { guides, type Guide } from '../data/guides';
@@ -321,9 +322,11 @@ export async function fetchBayBayReply(
         const data = (response.headers?.get('content-type')?.includes('text/event-stream') ? await readBayBayStream(response, onProgress, controller.signal, streamHandlers) : await response.json()) as GuideChatResponse;
         if (!data || typeof data !== 'object' || Array.isArray(data)) throw new BayBayServiceError('BayBay 答复格式异常，请重试。');
         if (!response.ok || !data.ok || typeof data.answer !== 'string' || !data.answer.trim()) {
-          if (data.code === 'INVALID_ASSISTANT_SESSION') throw new BayBayAssistantContextExpiredError(typeof data.error === 'string' ? data.error : '对话条件已过期，请开启新对话并重新说明安排。');
-          if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(typeof data.error === 'string' ? data.error : '搜索条件已过期，请开启新对话并重新说明城市和日期。');
-          throw new BayBayServiceError(typeof data.error === 'string' ? data.error : 'BayBay 暂时没连上，请重试。');
+          // The API's message is Chinese: English pages get it in English (I18N-SEO-06; lib/api-errors.ts)
+          const message = typeof data.error === 'string' ? await localizeApiMessage(data.error, data.code) : undefined;
+          if (data.code === 'INVALID_ASSISTANT_SESSION') throw new BayBayAssistantContextExpiredError(message ?? '对话条件已过期，请开启新对话并重新说明安排。');
+          if (data.code === 'INVALID_OUTING_SEARCH_TOKEN') throw new BayBaySearchContextExpiredError(message ?? '搜索条件已过期，请开启新对话并重新说明城市和日期。');
+          throw new BayBayServiceError(message ?? 'BayBay 暂时没连上，请重试。');
         }
         // Replace all v2 fields, including invalid ones, so untrusted optional data cannot reach rendering.
         // The v2 answer and cut-over fields (lead/points, safety card, notice) pass through here unparsed: the panel

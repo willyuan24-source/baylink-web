@@ -1,6 +1,7 @@
 import type { GuideEditorial } from './types';
 
-// Facts from the article (checked 2026-10-05): California Department of Aging HICAP, Medicare.gov and DHCS pages in its sources.
+// Facts from the article. CNT-GUIDES read Medicare.gov (2026 costs, sign-up window), the HICAP page and DHCS (four ways to apply,
+// the asset-limit FAQ) on 2026-10-12; quotes in docs/source-reads-2026-10.md.
 export const medicareEditorial: GuideEditorial = {
   slug: 'bay-area-medicare-hicap-medi-cal-guide',
   cover: {
@@ -12,9 +13,10 @@ export const medicareEditorial: GuideEditorial = {
   },
   keyFacts: [
     { label: { zh: '先打哪个电话', en: 'Who to call first' }, value: { zh: 'HICAP 免费咨询 1-800-434-0222', en: 'HICAP free counseling 1-800-434-0222' }, source: 1 },
-    { label: { zh: '首次报名窗口', en: 'First sign-up window' }, value: { zh: '65 岁生日月前三个月起，到生日月后三个月止', en: 'From three months before the month you turn 65 to three months after it' }, source: 2 },
-    { label: { zh: '两个名字', en: 'Two different programs' }, value: { zh: 'Medicare 是联邦医保；Medi-Cal 是加州的 Medicaid', en: "Medicare is federal health insurance; Medi-Cal is California's Medicaid" } },
-    { label: { zh: '保费和药费压力', en: 'Help with premiums and drugs' }, value: { zh: '问 Medicare Savings Programs 和药费 Extra Help，资格由州核对', en: 'Ask about Medicare Savings Programs and Extra Help; the state decides eligibility' }, source: 3 },
+    { label: { zh: '首次报名期', en: 'First sign-up window' }, value: { zh: '65 岁生日月前 3 个月到后 3 个月，共 7 个月', en: '3 months before to 3 months after the month you turn 65: 7 months' }, source: 2 },
+    { label: { zh: '2026 年 Part B', en: 'Part B in 2026' }, value: { zh: '保费每月 $202.90，年度自付额 $283', en: 'Premium $202.90 a month, deductible $283 a year' }, source: 5 },
+    { label: { zh: 'Medi-Cal 资产上限', en: 'Medi-Cal asset limit' }, value: { zh: '65 岁以上等：一人 $130,000（至 2027 年 6 月 30 日）', en: 'Age 65+ and others: $130,000 for one person (through June 30, 2027)' }, source: 7 },
+    { label: { zh: '怎么申请 Medi-Cal', en: 'How to apply for Medi-Cal' }, value: { zh: '网上 BenefitsCal、打电话或到县办公室', en: 'Online at BenefitsCal, by phone or at a county office' }, source: 6 },
   ],
   contacts: [
     { name: { zh: 'HICAP 免费 Medicare 咨询', en: 'HICAP free Medicare counseling' }, number: '1-800-434-0222', tel: '+18004340222',
@@ -26,21 +28,34 @@ export const medicareEditorial: GuideEditorial = {
         { zh: 'Medicare：联邦医保，通常与 65 岁或特定资格有关', en: 'Medicare: federal health insurance, usually tied to age 65 or other eligibility' },
         { zh: 'Medi-Cal：加州的 Medicaid，为符合规则的人提供免费或低成本保障', en: "Medi-Cal: California's Medicaid, free or low-cost coverage for those who qualify" },
       ] },
-    { kind: 'point', kicker: { zh: '报名时间', en: 'When to sign up' }, title: { zh: '首次报名：生日月前后各三个月', en: 'First sign-up: three months either side of your birthday month' },
-      body: { zh: '多数人的首次报名窗口从 65 岁生日所在月前三个月开始，到生日月后三个月结束。', en: 'For most people the first window opens three months before the month they turn 65 and ends three months after it.' },
-      items: [{ zh: '仍在工作、用配偶雇主保险、COBRA 或已有 Medi-Cal，处理方式可能不同', en: "Still working, on a spouse's employer plan, on COBRA or on Medi-Cal? It may work differently" }], source: 2 },
+    { kind: 'point', kicker: { zh: '报名时间', en: 'When to sign up' }, title: { zh: '首次报名期共 7 个月', en: 'The first sign-up window is 7 months' },
+      body: { zh: '从 65 岁生日所在月的前 3 个月开始，到生日月后 3 个月结束。错过又没有其他符合条件的保险，Part B 通常每晚一年保费多 10%。', en: 'It opens 3 months before the month you turn 65 and closes 3 months after it. Miss it without other qualifying coverage and the Part B premium typically rises 10% for each year late.' },
+      items: [{ zh: '仍在工作、用配偶雇主保险、COBRA 或已有 Medi-Cal：先和 HICAP 排好日期', en: "Still working, on a spouse's employer plan, on COBRA or on Medi-Cal? Work out your dates with HICAP" }], source: 2 },
+    { kind: 'compare', kicker: { zh: '2026 年费用', en: '2026 costs' }, title: { zh: 'Medicare 一年要付多少', en: 'What Medicare costs in 2026' },
+      items: [
+        { zh: 'Part B 保费：每月 $202.90（收入较高的人更多）', en: 'Part B premium: $202.90 a month (more at higher incomes)' },
+        { zh: 'Part B 自付额：每年 $283', en: 'Part B deductible: $283 a year' },
+        { zh: 'Part A 住院自付额：每个福利期 $1,736', en: 'Part A hospital deductible: $1,736 per benefit period' },
+      ], source: 5 },
     { kind: 'checklist', kicker: { zh: '咨询前', en: 'Before counseling' }, title: { zh: '带上这些', en: 'Bring these' },
       items: [
         { zh: '生日月份、目前保险名称和结束日期', en: 'Birth month, current insurance and its end date' },
         { zh: '保险卡和收到的报名或续保通知', en: 'Insurance cards and any sign-up or renewal letters' },
         { zh: '药名、剂量、常用药房和想保留的医生', en: 'Drug names, doses, your pharmacy and the doctors you want to keep' },
       ] },
-    { kind: 'point', kicker: { zh: '费用帮助', en: 'Help with costs' }, title: { zh: '保费和药费，分别问清帮助项目', en: 'Ask about each kind of cost help' },
+    { kind: 'checklist', kicker: { zh: 'Medi-Cal 资产', en: 'Medi-Cal assets' }, title: { zh: '2026 年起重新计算资产', en: 'Assets count again from 2026' },
       items: [
-        { zh: 'Medicare Savings Programs：由州判断资格', en: 'Medicare Savings Programs: the state decides eligibility' },
-        { zh: '药费 Extra Help：请咨询员核对', en: 'Extra Help with drug costs: ask your counselor' },
-        { zh: 'Medi-Cal 申请和规则：看 DHCS 官方入口', en: 'Medi-Cal applications and rules: the DHCS site' },
-      ], source: 3 },
+        { zh: '适用：65 岁以上、残障或住护理院', en: 'Applies to: age 65+, disability or nursing home' },
+        { zh: '至 2027 年 6 月 30 日：一人 $130,000，每多一人加 $65,000', en: 'Through June 30, 2027: $130,000 for one person, plus $65,000 per extra person' },
+        { zh: '2027 年 7 月 1 日起：一人 $21,000，两人 $31,000', en: 'From July 1, 2027: $21,000 for one, $31,000 for two' },
+        { zh: '不计入：自住房、主要用车、家具衣物', en: 'Not counted: your main home, main vehicle, household items' },
+      ], source: 7 },
+    { kind: 'point', kicker: { zh: '费用帮助', en: 'Help with costs' }, title: { zh: '保费和药费，分别申请帮助', en: 'Apply for each kind of cost help' },
+      items: [
+        { zh: 'Medi-Cal：网上 BenefitsCal、电话、邮寄或到县办公室', en: 'Medi-Cal: online at BenefitsCal, by phone, by mail or at a county office' },
+        { zh: 'Medicare Savings Programs：由州判断，觉得不符合也可申请', en: "Medicare Savings Programs: the state decides; apply even if you think you don't qualify" },
+        { zh: '药费 Extra Help：请 HICAP 咨询员一起看', en: 'Extra Help with drug costs: go over it with HICAP' },
+      ], source: 6 },
     { kind: 'safety', kicker: { zh: '保护资料', en: 'Protect your data' }, title: { zh: '这些不要发到公开帖子', en: 'Keep these out of public posts' },
       items: [
         { zh: 'Medicare 号码', en: 'Medicare number' },
@@ -50,7 +65,7 @@ export const medicareEditorial: GuideEditorial = {
   ],
   steps: [
     { zh: '先打 HICAP 1-800-434-0222 或按县找办公室，预约时说明需要中文或口译。', en: 'Call HICAP at 1-800-434-0222 or find your county office; ask for Chinese or an interpreter.' },
-    { zh: '多数人首次报名窗口是 65 岁生日月前后各三个月；先核对自己的日期再选计划。', en: 'For most people the first window is three months either side of the month they turn 65; check your dates before choosing a plan.' },
-    { zh: '保费和药费压力分别问 Medicare Savings Programs 和 Extra Help，资格由州核对。', en: 'For premiums and drug costs, ask about Medicare Savings Programs and Extra Help; the state checks eligibility.' },
+    { zh: '首次报名期是 65 岁生日月前后共 7 个月；先排好日期再选计划。2026 年 Part B 保费每月 $202.90。', en: 'The first sign-up window is the 7 months around the month you turn 65; set your dates before choosing a plan. The 2026 Part B premium is $202.90 a month.' },
+    { zh: 'Medi-Cal 可网上、电话、邮寄或到县办公室申请；65 岁以上资产上限一人 $130,000（至 2027 年 6 月 30 日）。', en: 'Apply for Medi-Cal online, by phone, by mail or at a county office; for people 65+ the asset limit is $130,000 for one person through June 30, 2027.' },
   ],
 };

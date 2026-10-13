@@ -66,12 +66,15 @@ test('the compact UI dictionary includes all eight tools catalog labels and page
 
 test('English home and article navigation request only their displayed content, including language prefixes', () => {
   assert.deepEqual(englishScopesForPath('/en/?lang=en#weekend'), ['ui', 'home']);
-  assert.deepEqual(englishScopesForPath('/zh-Hant/calendar?cost=free'), ['ui', 'discovery', 'guide-index']);
-  assert.deepEqual(englishScopesForPath('/en/guides/medicare?q=help', scope => scope !== 'guide:missing'), ['ui', 'guide-index', 'guide:medicare']);
-  assert.deepEqual(englishScopesForPath('/en/guides/missing', scope => scope !== 'guide:missing'), ['ui', 'guide-index']);
-  assert.deepEqual(englishScopesForPath('/guides'), ['ui', 'guide-index', 'guide-search']);
+  assert.deepEqual(englishScopesForPath('/zh-Hant/calendar?cost=free'), ['ui', 'events-list']);
+  // WEB-DATA-SPLIT: an article's own scope covers its record ("Read next" included); the index loads its cards' pack and the
+  // guides' full text only when the reader searches.
+  assert.deepEqual(englishScopesForPath('/en/guides/medicare?q=help', scope => scope !== 'guide:missing'), ['ui', 'guide:medicare']);
+  assert.deepEqual(englishScopesForPath('/en/guides/missing', scope => scope !== 'guide:missing'), ['ui']);
+  assert.deepEqual(englishScopesForPath('/guides'), ['ui', 'guide-list']);
   assert.ok(!englishScopesForPath('/').includes('guide-search'));
   assert.ok(englishScopesForFeature('search').includes('guide-search'));
+  assert.deepEqual(englishScopesForFeature('guide-search'), ['ui', 'guide-search']);
   assert.ok(englishScopesForPath('/category/housing').includes('guide-index'));
 });
 
@@ -114,11 +117,10 @@ test('actual scoped runtime leaves other articles unloaded, then supplies the co
   assert.equal(translateText('正在打开搜索…', 'en'), 'Opening search…');
   assert.equal(translateText('正在打开 BayBay…', 'en'), 'Opening BayBay…');
   assert.equal(translateText('新店 · 已开业', 'en'), 'New opening · Open now', 'composed opening labels belong in the UI pack');
-  assert.equal(translateText('用这家店开始出游计划', 'en'), 'Plan a day around this place');
   assert.equal(translateText('当前筛选结果 1 条，近 30 天发布 0 条。', 'en'), 'Matching listings: 1; posted in the past 30 days: 0. ');
   assert.equal(translateText('当前已加载 20 条，近 30 天发布 3 条。', 'en'), 'Listings loaded so far: 20; posted in the past 30 days: 3. ');
-  assert.equal(translateText('正在读取当前邻里信息…', 'en'), 'Loading current neighborhood listings…');
-  assert.doesNotMatch(translateText('这里还在起步，旧帖请先联系发布者确认有效。', 'en'), /[\u3400-\u9fff]/u);
+  // (WEB-HOME) The home no longer prints the board's loading and "just getting started" sentences: one line
+  // 邻里信息（测试中）· 去看看 (co-located t(), no dictionary) opens the board, which has its own states.
   assert.equal(isLocaleReadyForPath('en', path), false, 'home readiness cannot unlock an untranslated article');
   await loadLocaleForPath('en', ['/en', path]);
   assert.equal(isLocaleReadyForPath('en', path), true);

@@ -96,3 +96,6 @@ const index: EventsIndex = {
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/events-index.json', JSON.stringify(index));
 console.log(`Events index: ${events.length} events, ${offers.length} offers, ${openings.length} openings, ${bulletins.length} bulletins, ${Object.keys(images).length} images; no articles or plan steps.`);
+
+// The event, offer and opening detail records (WEB-DETAIL, ENGSEC-01) come from the same catalogs, in the same step.
+await import('./generate-detail-records');

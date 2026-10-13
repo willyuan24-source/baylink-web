@@ -1,7 +1,7 @@
 import type { GuideEditorial } from './types';
 
-// Facts from the article (read 2026-10-06): California Department of Aging county directory, Self-Help for the Elderly and
-// Family Bridges pages listed in its sources. Carousel per 1007 §5.5.
+// Facts from the article. CNT-GUIDES re-read the California Department of Aging county directory (every number below), Self-Help
+// for the Elderly and Family Bridges ("No Fees: This program is free") on 2026-10-12. Carousel per 1007 §5.5.
 export const seniorServicesEditorial: GuideEditorial = {
   slug: 'bay-area-chinese-senior-services-referral-guide',
   cover: {
@@ -14,7 +14,7 @@ export const seniorServicesEditorial: GuideEditorial = {
   keyFacts: [
     { label: { zh: '先打哪个电话', en: 'Who to call first' }, value: { zh: '所在县的 AAA；全州信息线 800-510-2020', en: "Your county's AAA; statewide line 800-510-2020" }, source: 1 },
     { label: { zh: '旧金山白天照护', en: 'Day care in San Francisco' }, value: { zh: '安老自助处 415-677-7556，普通话、粤语、台山话', en: 'Self-Help for the Elderly 415-677-7556, Mandarin, Cantonese, Toisanese' }, source: 2 },
-    { label: { zh: '东湾中文探访', en: 'Chinese-speaking visits in the East Bay' }, value: { zh: 'Family Bridges 510-839-2022，60 岁以上', en: 'Family Bridges 510-839-2022, age 60 and up' }, source: 5 },
+    { label: { zh: '东湾中文探访', en: 'Chinese-speaking visits in the East Bay' }, value: { zh: 'Family Bridges 510-839-2022，60 岁以上，免费', en: 'Family Bridges 510-839-2022, age 60 and up, free' }, source: 5 },
     { label: { zh: '打电话前准备', en: 'Before you call' }, value: { zh: '住在哪个市县、用什么语言、需要哪种帮助', en: 'City and county, language, and the kind of help needed' } },
   ],
   contacts: [
@@ -23,10 +23,10 @@ export const seniorServicesEditorial: GuideEditorial = {
     { name: { zh: '安老自助处 成人日间照护', en: 'Self-Help for the Elderly, adult day services' }, number: '415-677-7556', tel: '+14156777556',
       languages: [{ zh: '普通话', en: 'Mandarin' }, { zh: '粤语', en: 'Cantonese' }, { zh: '台山话', en: 'Toisanese' }],
       address: 'Jackie Chan Center, 408 22nd Avenue, San Francisco',
-      note: { zh: '需要医生书面许可和结核病检查证明；Medi-Cal 仅适用于符合资格者，另有自费路线。', en: "Needs a doctor's written approval and a TB test result; Medi-Cal only for those who qualify, otherwise private pay." }, source: 2 },
+      note: { zh: '需要家庭医生书面许可和 12 个月内的结核病检查证明；符合资格的由 Medi-Cal 支付，也可自费。', en: "Needs written approval from the primary care doctor and a TB clearance from the past 12 months; Medi-Cal pays for those who qualify, or pay privately." }, source: 2 },
     { name: { zh: 'Family Bridges 中文探访项目', en: 'Family Bridges Visiting Program' }, number: '510-839-2022', tel: '+15108392022',
       languages: [{ zh: '普通话', en: 'Mandarin' }, { zh: '粤语', en: 'Cantonese' }],
-      note: { zh: '服务 Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont 年满 60 岁、居家不便或社交较少的长者。', en: 'For people 60 and up in Alameda, Albany, Berkeley, Emeryville, Oakland or Piedmont who are homebound or isolated.' }, source: 5 },
+      note: { zh: '免费。服务 Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont 年满 60 岁、出门不便或很少与人来往的长者；办公时间周一到周五 9 点到 15 点。', en: 'Free. For people 60 and up in Alameda, Albany, Berkeley, Emeryville, Oakland or Piedmont who are homebound or isolated; office hours Monday–Friday 9 a.m.–3 p.m.' }, source: 5 },
     { name: { zh: 'Hong Lok 长者中心（Oakland）', en: 'Hong Lok Senior Centers (Oakland)' }, number: '510-763-9017', tel: '+15107639017',
       address: ['168 11th Street, Oakland', '388 9th Street #290, Oakland'],
       note: { zh: '先致电确认地点、开放安排、活动资格与语言。', en: 'Call first to confirm the location, hours, eligibility and languages.' }, source: 6 },
@@ -52,7 +52,7 @@ export const seniorServicesEditorial: GuideEditorial = {
       phones: [{ label: { zh: '安老自助处', en: 'Self-Help for the Elderly' }, number: '415-677-7556', tel: '+14156777556' }],
       items: [
         { zh: '普通话、粤语、台山话', en: 'Mandarin, Cantonese, Toisanese' },
-        { zh: '需医生书面许可和结核病检查证明', en: "Doctor's written approval and a TB test result" },
+        { zh: '需医生书面许可和 12 个月内的结核病检查', en: "Doctor's written approval and a TB clearance from the past 12 months" },
         { zh: 'Medi-Cal（符合资格者）或自费', en: 'Medi-Cal for those who qualify, or private pay' },
       ], source: 2 },
     { kind: 'compare', kicker: { zh: '餐食', en: 'Meals' }, title: { zh: '吃饭分两种，分别询问', en: 'Two kinds of meal help' },
@@ -62,7 +62,7 @@ export const seniorServicesEditorial: GuideEditorial = {
         { zh: '先问地址是否在覆盖区、要不要候补', en: 'Ask first whether the address is covered and if there is a waitlist' },
       ], source: 3 },
     { kind: 'contacts', kicker: { zh: '东湾 · 探访', en: 'East Bay · visits' }, title: { zh: 'Family Bridges 中文陪伴', en: 'Family Bridges companionship in Chinese' },
-      body: { zh: 'Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont，60 岁以上、居家不便或社交较少。', en: 'Alameda, Albany, Berkeley, Emeryville, Oakland, Piedmont; age 60 and up, homebound or isolated.' },
+      body: { zh: '免费。Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont，60 岁以上、出门不便或很少与人来往。', en: 'Free. Alameda, Albany, Berkeley, Emeryville, Oakland, Piedmont; age 60 and up, homebound or isolated.' },
       phones: [
         { label: { zh: '探访项目', en: 'Visiting Program' }, number: '510-839-2022', tel: '+15108392022' },
         { label: { zh: 'Hong Lok 长者中心', en: 'Hong Lok Senior Centers' }, number: '510-763-9017', tel: '+15107639017' },

@@ -27,10 +27,13 @@ const checkCard = async (name: string, region: string, catalog: typeof MONTHLY_E
     // The card prints 核对 dates; content review marks an entry due after 7 days.
     if (region === 'all' && pick.verifiedAt <= addCalendarDays(card.day, -7)) stale.set(name, [...stale.get(name) || [], `${pick.id} (核对 ${pick.verifiedAt})`]);
   }
-  const png = PNG.sync.read(await readFile(`public/weekly/${name}.png`));
-  assert.equal(png.width, 1080); assert.equal(png.height, 1440);
-  const qr = jsQR(new Uint8ClampedArray(png.data), png.width, png.height, { inversionAttempts: 'dontInvert' });
-  assert.equal(qr?.data, `https://www.baylink.us/n/${region}`);
+  // card v2: one image per language, each QR (≥300 px) opening the region's list in that language
+  for (const prefix of ['', 'zh-Hant/', 'en/']) {
+    const png = PNG.sync.read(await readFile(`public/weekly/${prefix}${name}.png`));
+    assert.equal(png.width, 1080); assert.equal(png.height, 1440);
+    const qr = jsQR(new Uint8ClampedArray(png.data), png.width, png.height, { inversionAttempts: 'dontInvert' });
+    assert.equal(qr?.data, `https://www.baylink.us${prefix ? `/${prefix.slice(0, -1)}` : ''}/n/${region}`, `${prefix}${name}.png`);
+  }
   return card;
 };
 
@@ -55,12 +58,18 @@ for (const region of regions) {
     assert.ok(event, `${region}: known public event`);
     assert.ok(eventOccursOn(event, source[2]), `${event.id}: actual occurrence`);
     assert.ok(source[2] >= card.generatedAt && source[2] <= addCalendarDays(card.generatedAt, 45));
-    assert.ok(block.includes(`DTSTART;VALUE=DATE:${source[2].replaceAll('-', '')}`));
-    assert.ok(block.includes(`DTEND;VALUE=DATE:${addCalendarDays(source[2], 1).replaceAll('-', '')}`));
+    // a stated session time makes a timed Bay Area event (TZID + VTIMEZONE); otherwise an all-day date
+    const day = source[2].replaceAll('-', '');
+    const timed = block.includes(`DTSTART;TZID=America/Los_Angeles:${day}T`);
+    if (timed) assert.ok(calendar.includes('BEGIN:VTIMEZONE\r\nTZID:America/Los_Angeles'), `${region}: VTIMEZONE for TZID`);
+    else {
+      assert.ok(block.includes(`DTSTART;VALUE=DATE:${day}`));
+      assert.ok(block.includes(`DTEND;VALUE=DATE:${addCalendarDays(source[2], 1).replaceAll('-', '')}`));
+    }
     assert.ok(block.includes('TRIGGER:-P2D'));
     occurrences++;
   }
 }
 // A warning, not a failure: re-verifying an event is content work, not a build fault.
 if (stale.size) console.warn(`Weekly cards print 核对 dates older than 7 days. Re-verify these events before sharing:\n${[...stale].map(([name, picks]) => `  ${name}.png: ${picks.join(', ')}`).join('\n')}`);
-console.log(`Verified six 1080×1440 cards and ${days.length} dated Bay Area cards matching the home page, all stable QR links, and ${occurrences} actual calendar occurrences.`);
+console.log(`Verified six 1080×1440 cards and ${days.length} dated Bay Area cards in three languages matching the home page, all stable QR links, and ${occurrences} actual calendar occurrences.`);

@@ -32,7 +32,7 @@ export const shoppingGuides: Guide[] = [{
     "Valley Fair",
     "Stanford"
   ],
-  "priority": "P0",
+  "priority": "P1",
   "featuredOnHome": true,
   "recommendedForCategories": [
     "used",

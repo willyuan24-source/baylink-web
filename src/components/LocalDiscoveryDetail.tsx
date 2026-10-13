@@ -1,109 +1,194 @@
-import { recordProductEvent } from '../lib/product-events';
-import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarDays, MapPin, Ticket } from 'lucide-react';
+import { ArrowRight, CalendarDays, Check, ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { discoveryShare, type LocalDiscovery } from '../data/local-discoveries';
-import { MONTHLY_EVENTS } from '../data/monthly-edition';
-import type { MonthlyEvent } from '../data/monthly-types';
-import { EVENT_DATE_OVERRIDES } from '../data/event-calendar-dates';
-import { getListingImage } from '../lib/offer-media';
-import { getBayAreaToday, downloadEventCalendar } from '../lib/monthly';
+import { getBayAreaToday } from '../lib/monthly';
+import { downloadEventCalendar } from '../lib/event-ics';
 import { EventParticipationActions, EventParticipationProvider } from './EventParticipation';
 import { EditorialShareActions } from './EditorialShareActions';
-import { translateText, useLocale } from '../i18n/locale';
-import { GuideFigure } from './GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { TrustRow } from '../features/source-monitor/TrustRow';
-import { SaveToWeek } from './SaveToWeek';
+import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
+import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import { OutingInspirationLink } from './OutingInspirationLink';
 import { SegmentedTitle } from './SegmentedTitle';
+import { StatusChip, type StatusTone } from './ui';
+import { useUiCopy } from './ui/ui-copy';
+import { translateText } from '../i18n/locale';
 import { openingStatusNote } from '../lib/opening-status';
-import { nextConfirmedEventDate } from '../lib/event-occurrences';
-import { eventOccursOn } from '../lib/event-calendar';
-import { isPlannableOpening, openingPlaceId } from '../lib/opening-place';
 import { discoveryContentReviewRecord } from '../lib/content-review';
-import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
+import { createCoverPage } from '../lib/cover';
+import { eventTone, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
+import { detailShare, nextEventDay, railEvents, unconfirmedEvent, type DetailRecord } from '../features/detail/detail-record';
+import { DetailHero, DetailPlacePhoto, HeroCredit } from '../features/detail/DetailHero';
+import { heroCover, placePhoto } from '../features/detail/hero-cover';
+import { EventFacts, OfferFacts, OpeningFacts } from '../features/detail/FactsGrid';
+import { DetailActionBar, type DetailActions } from '../features/detail/DetailActionBar';
+import { DetailRail } from '../features/detail/DetailRail';
+import { BenefitSteps } from '../features/detail/BenefitSteps';
+import { SquadTeaser } from '../features/detail/SquadTeaser';
+import { ReaderText } from '../features/detail/ReaderText';
+import { offerBrand, readerPlanLines, readerProse } from '../features/detail/reader-text';
 
-function confirmedEventDate(event: MonthlyEvent, today: string): string | null {
-  const occurrenceDates = Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? EVENT_DATE_OVERRIDES[event.id] : event.occurrenceDates;
-  const date = nextConfirmedEventDate({ startDate: event.startDate, endDate: event.endDate, occurrenceDates }, today);
-  return date && eventOccursOn(event, date) ? date : null;
+/**
+ * Event, offer and opening detail (T6; design.md §4.9 with D10; EVT11-03, SV-05). Phone order: "‹ 活动" → the hero →
+ * status chips → H1 → the why-go line → (ended: 接下来可以去) → 一眼看懂 2×2 → the body (summary, the venue's archive photo
+ * when it is too old to be the cover, 出发前 / 领取条件 / 怎么安排) →
+ * 一起去 → source and checks → share → 附近同类活动. The action bar (♡ 收藏 · 加入这天计划 · 问 BayBay · 官方页 ↗) replaces
+ * the tab bar on a phone and is the sticky aside on a desktop.
+ *
+ * The page renders one generated record (features/detail: ENGSEC-01), never the whole catalog. Every catalog string goes
+ * through the reader filters (editor notes out, templated date/price lines out; CNT-1011-05/06) and tap-to-call (CW-01).
+ */
+export function LocalDiscoveryDetail({ record, today = getBayAreaToday() }: { record: DetailRecord; today?: string }) {
+  if (record.item.kind === 'event') return <EventParticipationProvider events={[record.item.event]}><DiscoveryArticle record={record} today={today} /></EventParticipationProvider>;
+  return <DiscoveryArticle record={record} today={today} />;
 }
 
-/** Nearby events of the same category, with confirmed sessions on or after the Pacific date. */
-export function getRelatedUpcomingEvents(event: MonthlyEvent, today = getBayAreaToday(), events: readonly MonthlyEvent[] = MONTHLY_EVENTS): { event: MonthlyEvent; date: string }[] {
-  const city = event.city.trim().toLocaleLowerCase('en-US');
-  const sameCity = (candidate: MonthlyEvent) => candidate.city.trim().toLocaleLowerCase('en-US') === city;
-  return [...new Map(events.map(candidate => [candidate.id, candidate])).values()]
-    .filter(candidate => candidate.id !== event.id && candidate.category === event.category && (sameCity(candidate) || candidate.region === event.region))
-    .flatMap(candidate => { const date = confirmedEventDate(candidate, today); return date ? [{ event: candidate, date }] : []; })
-    .sort((a, b) => Number(!sameCity(a.event)) - Number(!sameCity(b.event)) || a.date.localeCompare(b.date) || a.event.id.localeCompare(b.event.id))
-    .slice(0, 3);
-}
+const BACK: Record<DetailRecord['item']['kind'], { to: string; label: Copy }> = {
+  event: { to: '/events', label: { zh: '活动', en: 'Events' } },
+  offer: { to: '/events?view=perks', label: { zh: '免费与优惠', en: 'Free & deals' } },
+  opening: { to: '/events?view=openings', label: { zh: '新店', en: 'New shops' } },
+};
+const STATUS: Record<'postponed' | 'cancelled' | 'sold_out', { tone: StatusTone; text: Copy }> = {
+  postponed: { tone: 'warning', text: { zh: '延期 · 日期待定', en: 'Postponed · new date TBA' } },
+  cancelled: { tone: 'danger', text: { zh: '已取消', en: 'Cancelled' } },
+  sold_out: { tone: 'warning', text: { zh: '已售罄', en: 'Sold out' } },
+};
+const DEADLINE_TONE: Record<string, StatusTone> = { danger: 'danger', warning: 'warning', success: 'success', neutral: 'neutral' };
+const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 
-export function LocalDiscoveryDetail({ item, today = getBayAreaToday() }: { item: LocalDiscovery; today?: string }) {
-  if (item.kind === 'event') return <EventParticipationProvider events={[item.event]}><DiscoveryArticle item={item} today={today} /></EventParticipationProvider>;
-  return <DiscoveryArticle item={item} today={today} />;
-}
-function DiscoveryArticle({ item, today }: { item: LocalDiscovery; today: string }) {
-  const locale = useLocale();
-  const english = locale === 'en';
-  const copy = (simplified: string, traditional: string, en: string) => locale === 'en' ? en : locale === 'zh-Hant' ? traditional : simplified;
-  const share = discoveryShare(item);
-  const planDate = item.kind === 'event' ? confirmedEventDate(item.event, today) : null;
-  const relatedEvents = item.kind === 'event' ? getRelatedUpcomingEvents(item.event, today) : [];
-  // The planner place of an open new shop (same rule as the planner catalog), without importing the catalog and the guides behind it.
-  const openingPlace = item.kind === 'opening' && isPlannableOpening(item.shop) ? { id: openingPlaceId(item.shop.id) } : undefined;
-  const ended = item.kind === 'event' ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
-  const unconfirmed = item.kind === 'event' && (Object.hasOwn(EVENT_DATE_OVERRIDES, item.event.id) ? EVENT_DATE_OVERRIDES[item.event.id] : item.event.occurrenceDates)?.length === 0;
+function DiscoveryArticle({ record, today }: { record: DetailRecord; today: string }) {
+  const { t, pick, locale, english } = useUiCopy();
+  const { item } = record;
+  const share = detailShare(item);
+  const event = item.kind === 'event' ? item.event : undefined;
+  const planDate = event ? nextEventDay(event, today) : null;
+  const unconfirmed = !!event && unconfirmedEvent(event);
+  const ended = event ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
+  // An event with no confirmed day is waiting for one, not over: it gets no "接下来可以去" in place of the page.
+  const eventOver = !!event && ended && !unconfirmed;
   const unconfirmedOffer = item.kind === 'offer' && item.offer.verificationStatus === 'needs-confirmation';
   const officialUrl = item.kind === 'event' ? item.event.officialUrl : item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl;
   const sourceUrl = item.kind === 'opening' ? item.shop.sourceUrl : officialUrl;
   const sourceLabel = item.kind === 'event' ? item.event.sourceLabel : item.kind === 'offer' ? item.offer.sourceLabel : item.shop.sourceLabel;
-  const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
-  const image = getListingImage(imageKey);
   const review = discoveryContentReviewRecord(item);
-  // Catalog regions organize discovery; they do not establish a participating
-  // address for a national offer. Keep that distinction visible to the reader.
-  const offerLocation = item.kind === 'offer' && (item.offer.storeUrl
-    ? copy('参与门店 · 先查本地地址', '參與門店 · 先查本地地址', 'Participating locations · check local addresses')
-    : copy('适用地点请查官方说明', '適用地點請查官方說明', 'Check the official terms for applicable locations'));
-  return <article className="local-discovery-detail">
-    <Link className="discovery-back" to={`/this-month${item.kind === 'offer' ? '#monthly-perks' : item.kind === 'opening' ? '#monthly-openings' : '#monthly-events'}`}><ArrowLeft size={16} />发现更多湾区好去处</Link>
-    <header className={`discovery-detail-header discovery-detail-${item.kind}`}>
-      <div className="discovery-detail-brand"><span>BAYLINK</span><span translate="no">{copy('湾区生活手记', '灣區生活手記', 'Notes on life in the Bay')}</span></div>
-      <span className="discovery-eyebrow">{share.label}{item.kind === 'offer' && <> · {item.offer.brand}</>}</span><h1><SegmentedTitle text={item.kind === 'offer' ? item.offer.title : share.title} /></h1>{item.kind !== 'offer' && <p className="discovery-detail-summary">{share.summary}</p>}
-      <div className="discovery-detail-facts"><span><CalendarDays size={17} aria-hidden="true" />{share.date}</span><span><MapPin size={17} aria-hidden="true" />{item.kind === 'offer' ? <span translate="no">{offerLocation}</span> : share.area}</span>{item.kind === 'event' && <span><Ticket size={17} aria-hidden="true" />{item.event.costLabel}</span>}</div>
-      <ContentReviewNotice record={review} today={today} />
-      {ended && <p className="discovery-inline-note">{unconfirmed ? '暂无已确认场次，请查看主办方最新安排。' : '这条信息的日期已过，保留供分享链接回顾。请查看本期月刊中的最新安排。'}</p>}
-      {unconfirmedOffer && <p className="discovery-inline-note">当前优惠待确认；请先联系官方，确认后再安排行程。</p>}
-      {item.kind === 'opening' && <p className="discovery-inline-note">{openingStatusNote(item.shop.status)}</p>}
-      {item.kind === 'event' ? <>
-        <div className="discovery-detail-main-actions discovery-detail-links" role="group" aria-label="活动主要操作"><a className="discovery-primary" onClick={() => recordProductEvent('official_source_click')} href={officialUrl} target="_blank" rel="noopener noreferrer">查看主办方详情<ArrowUpRight size={17} /></a>{planDate && <Link className="discovery-secondary" to={`/plan?stops=event:${item.event.id}&date=${planDate}`}>新建出游计划<ArrowRight size={16} /></Link>}</div>
-        <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={item.event} today={today} available={!ended} /></div>
-        <details className="discovery-detail-more-actions"><summary>{ended ? (english ? 'Archive and sharing' : '历史资料与分享') : '收藏、日历与分享'}</summary>{!ended && <><SaveToWeek favorite={{ kind: 'event', id: item.event.id }} /><button type="button" className="discovery-secondary" onClick={() => downloadEventCalendar(item.event)}><CalendarDays size={17} />存入日历</button></>}<EditorialShareActions item={share} /></details>
-      </> : <>
-        <div className="discovery-detail-main-actions discovery-detail-links" role="group" aria-label={copy('官方入口与下一步', '官方入口與下一步', 'Official links and next steps')}>
-          <a className="discovery-primary" onClick={() => recordProductEvent('official_source_click')} href={officialUrl} target="_blank" rel="noopener noreferrer">{item.kind === 'offer' ? '查看领取入口' : '查看商家官网'}<ArrowUpRight size={17} aria-hidden="true" /></a>
-          {item.kind === 'offer' && item.offer.storeUrl && <a className="discovery-secondary" href={item.offer.storeUrl} target="_blank" rel="noopener noreferrer">查询本地门店<ArrowUpRight size={17} aria-hidden="true" /></a>}
-          {openingPlace && <Link className="discovery-secondary" to={`/plan?stops=place:${openingPlace.id}`}>用这家店开始出游计划<ArrowRight size={16} aria-hidden="true" /></Link>}
+  const cover = heroCover(record, today);
+  // The hero's photo is never repeated in the page's rails (VISUAL-10).
+  const coverPage = createCoverPage();
+  if (cover.tier !== 'type') coverPage.claims.set(cover.image.src, `${item.kind}:${share.id}`);
+  const venuePhoto = placePhoto(record, cover, today);
+  if (venuePhoto) coverPage.claims.set(venuePhoto.image.src, `${item.kind}:${share.id}`);
+  const title = item.kind === 'offer' ? item.offer.title : share.title;
+  const back = BACK[item.kind];
+  // Catalog prose blocks render only when reader text is left after the note filter (no heading or paragraph over nothing).
+  const dek = event ? readerProse(event.dek, locale) : '';
+  const summary = event ? readerProse(event.summary, locale) : item.kind === 'opening' ? readerProse(item.shop.summary, locale) : '';
+  const visitTip = item.kind === 'opening' ? readerProse(item.shop.editorTip, locale) : '';
+  const brand = item.kind === 'offer' ? offerBrand(item.offer.brand, locale) : '';
+
+  const chips: { key: string; tone: StatusTone; text: string }[] = [];
+  if (event) {
+    chips.push({ key: 'tone', tone: 'neutral', text: pick(toneLabel(eventTone(event))) });
+    if (event.status) chips.push({ key: 'status', tone: STATUS[event.status].tone, text: pick(STATUS[event.status].text) });
+    if (eventOver) chips.push({ key: 'ended', tone: 'ended', text: t(`已结束 · ${monthDay(event.endDate)}`, `Ended · ${monthDay(event.endDate)}`) });
+    else if (unconfirmed && !event.status) chips.push({ key: 'tba', tone: 'warning', text: t('日期待定', 'Date TBA') });
+    if (event.cost === 'free') chips.push({ key: 'free', tone: 'success', text: t('免费', 'Free') });
+    if (event.ageChip) chips.push({ key: 'age', tone: 'info', text: translateText(event.ageChip, locale) });
+  } else if (item.kind === 'offer') {
+    chips.push({ key: 'kind', tone: 'neutral', text: pick(offerKindLabel(item.offer)) });
+    const deadline = offerDeadline(item.offer, today);
+    if (deadline) chips.push({ key: 'deadline', tone: ended ? 'ended' : DEADLINE_TONE[deadline.tone], text: pick(deadline.text) });
+    if (unconfirmedOffer) chips.push({ key: 'check', tone: 'warning', text: t('待确认', 'To be confirmed') });
+  } else if (item.kind === 'opening') {
+    chips.push({ key: 'opening', tone: item.shop.status === 'announced' ? 'info' : 'success', text: pick(openingChip(item.shop, today)) });
+  }
+
+  const favorite = item.kind === 'event' ? { kind: 'event' as const, id: item.event.id } : item.kind === 'offer' ? { kind: 'offer' as const, id: item.offer.id } : { kind: 'opening' as const, id: item.shop.id };
+  const actions: DetailActions = {
+    title,
+    official: { href: officialUrl, label: item.kind === 'offer' ? t('领取入口', 'How to claim') : item.kind === 'opening' ? t('商家官网', 'Official site') : t('官方页', 'Official') },
+    ...(!ended && !unconfirmed ? { favorite } : {}),
+    ...(event && planDate ? { day: { stop: { kind: 'event' as const, id: event.id }, date: planDate, today } } : {}),
+    ...(item.kind === 'opening' && record.placeId ? { planPath: `/plan?stops=place:${record.placeId}` } : {}),
+  };
+  const facts = item.kind === 'event' ? <EventFacts event={item.event} today={today} /> : item.kind === 'offer' ? <OfferFacts offer={item.offer} /> : <OpeningFacts shop={item.shop} />;
+  const planLines = event ? readerPlanLines(event).filter(line => readerProse(line, locale)) : [];
+  const nextCards = event && eventOver ? railEvents(event, record.rail, today, { sameCategory: false, limit: 4 }) : [];
+  const relatedCards = event && !eventOver ? railEvents(event, record.rail, today, { sameCategory: true, limit: 3 }) : [];
+
+  return <article className="local-discovery-detail detail-page" data-kind={item.kind} data-ended={ended ? '' : undefined}>
+    <nav className="detail-back" aria-label={t('返回', 'Back')}><Link to={back.to}><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{pick(back.label)}</Link></nav>
+    <div className="detail-layout">
+      <div className="detail-main detail-main--top">
+        <DetailHero record={record} cover={cover} today={today} ended={eventOver} />
+        <header className="detail-head">
+          <p className="detail-chips">{chips.map(chip => <StatusChip key={chip.key} tone={chip.tone}>{chip.text}</StatusChip>)}</p>
+          <h1><SegmentedTitle text={title} /></h1>
+          {brand && <p className="detail-brand">{brand}</p>}
+          {dek && <p className="detail-dek"><ReaderText text={event?.dek} /></p>}
+        </header>
+        {/* The "here is what is on next" line only above a rail that has cards; otherwise a way to the events list. */}
+        {eventOver && (nextCards.length ? <p className="detail-note">{t('这场活动已结束。下面是附近接下来可以去的活动。', 'This event has ended. Here is what is on next nearby.')}</p>
+          : <p className="detail-note">{t('这场活动已结束。', 'This event has ended.')} <Link to="/events">{t('看看接下来的活动', 'See upcoming events')}</Link></p>)}
+        {eventOver && <DetailRail id="detail-next-title" title={t('接下来可以去', 'Up next nearby')} cards={nextCards} today={today} page={coverPage} />}
+        {unconfirmed && <p className="detail-note">{t('暂无已确认场次，请查看主办方最新安排。', 'No date is confirmed yet. Check the organizer’s latest schedule.')}</p>}
+        {item.kind === 'offer' && ended && <p className="detail-note">{t('这份优惠已过期，保留供分享链接回顾。', 'This offer has expired; the page stays for shared links.')}</p>}
+        {unconfirmedOffer && <p className="detail-note">{t('当前优惠待确认；请先联系官方，确认后再安排行程。', 'This offer is not confirmed yet. Check with the provider before you plan around it.')}</p>}
+      </div>
+      {/* The facts and the actions: in the flow under the H1 on a phone (the bar itself is fixed), the sticky card beside the
+          column on a desktop (design.md §4.9). One copy, so the reading order is the same everywhere. */}
+      <aside className="detail-aside">{facts}<DetailActionBar actions={actions} /></aside>
+      <div className="detail-main detail-main--body">
+        <ContentReviewNotice record={review} today={today} />
+        {item.kind === 'opening' && <p className="detail-note">{translateText(openingStatusNote(item.shop.status), locale)}</p>}
+
+        <div className="detail-body">
+          {event && <>
+            {summary && <p className="detail-summary"><ReaderText text={event.summary} /></p>}
+            {venuePhoto && <DetailPlacePhoto photo={venuePhoto} />}
+            {!eventOver && planLines.length > 0 && <section aria-labelledby="detail-plan-title">
+              <h2 id="detail-plan-title">{t('出发前，做好这些安排', 'Before you go')}</h2>
+              <ul className="detail-plan">{planLines.map(line => <li key={line}><Check aria-hidden="true" strokeWidth={2} /><p><ReaderText text={line} /></p></li>)}</ul>
+            </section>}
+            {!eventOver && <section className="detail-together" aria-labelledby="detail-together-title">
+              <h2 id="detail-together-title">{t('想约人一起去？', 'Going with others?')}</h2>
+              <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={event} today={today} available={!ended} /></div>
+              <SquadTeaser eventId={event.id} />
+            </section>}
+          </>}
+          {item.kind === 'offer' && <BenefitSteps offer={item.offer} />}
+          {item.kind === 'opening' && <>
+            {summary && <p className="detail-summary"><ReaderText text={item.shop.summary} /></p>}
+            {visitTip && <section aria-labelledby="detail-visit-title"><h2 id="detail-visit-title">{t('这一趟怎么安排', 'Planning the visit')}</h2><p><ReaderText text={item.shop.editorTip} name={item.shop.name} /></p></section>}
+          </>}
+          {item.kind !== 'event' && !ended && !unconfirmedOffer && <OutingInspirationLink kind={item.kind} id={share.id} />}
+
+          <section className="detail-source" aria-labelledby="detail-source-title">
+            <h2 id="detail-source-title">{t('来源与核对', 'Source and checks')}</h2>
+            <TrustRow contentId={review.id} item={review} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
+            <SourceFreshness contentId={review.id} item={{ ...review, nextDate: planDate }} officialUrl={officialUrl} include={['soft']} today={today} />
+            <HeroCredit cover={cover} />
+            {event?.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'Read a related local guide')}<ArrowRight size={17} aria-hidden="true" /></Link>}
+            <LazyReportErrorLink entity={{ kind: item.kind, id: share.id }} title={share.title} />
+          </section>
+          <section className="detail-share" aria-label={t('分享与日历', 'Share and calendar')}>
+            <EditorialShareActions item={share} />
+            {event && planDate && <button type="button" className="detail-calendar" onClick={() => downloadEventCalendar(event, planDate)}><CalendarDays size={17} aria-hidden="true" />{t('存入日历', 'Add to calendar')}</button>}
+          </section>
+          {event && !eventOver && <DetailRail id="detail-related-title" title={english ? 'More upcoming events nearby' : translateText('附近同类活动的下一场', locale)}
+            note={english ? 'Confirmed sessions in the same city first, then the same region. Check the organizer before going.' : translateText('先看同城，再看同区域的已确认场次；出发前请核对主办方安排。', locale)}
+            cards={relatedCards} today={today} page={coverPage} />}
         </div>
-        <details className="discovery-detail-more-actions">
-          <summary translate="no">{openingPlace ? copy('收藏与分享', '收藏與分享', 'Save and share') : copy('分享这份发现', '分享這份發現', 'Share this find')}</summary>
-          {openingPlace && <SaveToWeek favorite={{ kind: 'place', id: openingPlace.id }} />}
-          <EditorialShareActions item={share} />
-          {!ended && !unconfirmedOffer && <OutingInspirationLink kind={item.kind} id={share.id} />}
-        </details>
-      </>}
-    </header>
-    {item.kind === 'offer' && <section className="discovery-offer-conditions" aria-labelledby="offer-conditions-title"><h2 id="offer-conditions-title">先看领取条件</h2><p className="discovery-important">{item.offer.requirement}</p></section>}
-    {image && <div className={`discovery-detail-media${image.kind === 'poster' || image.fullFrame ? ' discovery-detail-media--full' : ''}`}><GuideFigure image={image} variant="cover" /></div>}
-    <div className="discovery-detail-body">
-      {item.kind === 'event' ? <><h2>出发前，做好这些安排</h2><ol className="discovery-plan">{item.event.plan.map((tip, i) => <li key={tip}><span>0{i + 1}</span><p>{tip}</p></li>)}</ol><p><strong>具体地点</strong> · {item.event.venue}</p><p><strong>适合</strong> · {item.event.audience.map(value => translateText(value)).join(' / ')}</p></> : item.kind === 'offer' ? <><h2>这份福利怎么用</h2><p>{item.offer.description}</p><p className="discovery-small">免费或优惠资格、名额与参与门店，以官方入口的最新说明为准。</p></> : <><h2>这一趟怎么安排</h2><p>{item.shop.editorTip}</p><h2>地点与开业状态</h2><p>{item.shop.city} · {item.shop.address}</p><p>{item.shop.dateLabel}</p></>}
-      <SourceFreshness contentId={review.id} item={{ ...review, nextDate: planDate }} officialUrl={officialUrl} include={['soft']} today={today} />
-      <TrustRow contentId={review.id} item={review} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
-      {item.kind === 'event' && item.event.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${item.event.relatedGuideSlug}`}>搭配一篇本地攻略<ArrowRight size={17} /></Link>}
-      {item.kind === 'event' && <section className="discovery-next-events" aria-labelledby="discovery-next-events-title"><h2 id="discovery-next-events-title">{english ? 'More upcoming events nearby' : '附近同类活动的下一场'}</h2><p>{english ? 'Confirmed sessions in the same city first, then the same region. Check the organizer before going.' : '先看同城，再看同区域的已确认场次；出发前请核对主办方安排。'}</p>{relatedEvents.length > 0 ? <div className="discovery-next-event-grid">{relatedEvents.map(({ event, date }) => <article key={event.id} className="discovery-next-event"><h3><Link to={`/events/${event.id}`}>{event.title}<ArrowRight size={16} aria-hidden="true" /></Link></h3><p>{english ? 'Next session: ' : '下一场：'}<time dateTime={date}>{date}</time></p><p>{event.city} · {event.venue}</p><p>{english ? 'Cost: ' : '费用：'}{event.costLabel}</p><a href={event.officialUrl} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')}>{english ? 'Source: ' : '来源：'}{event.sourceLabel}<ArrowUpRight size={15} aria-hidden="true" /></a><small>{english ? 'Checked ' : '核对 '}<time dateTime={event.verifiedAt}>{event.verifiedAt}</time></small></article>)}</div> : <p className="discovery-inline-note">{english ? 'No further confirmed sessions in this city or region yet. Check this week’s events for other options.' : '同城或同区域暂未收录下一场已确认的同类活动，可以到本周活动看看其他选择。'}</p>}</section>}
+      </div>
     </div>
-    <footer className="discovery-return"><span className="discovery-eyebrow" translate="no">{copy('继续发现湾区', '繼續發現灣區', 'Keep exploring the Bay')}</span><h2>这只是湾区的一小部分。</h2><p>继续看看附近活动、免费福利和新店，把下一次出门也安排好。</p><div><Link to="/this-week">{english ? 'This week’s events' : '本周活动'}<ArrowRight size={17} /></Link><Link to="/this-month?view=interested#monthly-events">我的想去<ArrowRight size={17} /></Link><Link to="/this-month#monthly-perks">{english ? 'Current edition’s offers' : '当期月刊优惠'}<ArrowRight size={17} /></Link></div></footer>
+    <footer className="discovery-return">
+      <span className="discovery-eyebrow" translate="no">{t('继续发现湾区', 'Keep exploring the Bay')}</span>
+      <h2>{t('这只是湾区的一小部分。', 'This is only a small part of the Bay.')}</h2>
+      <div>
+        <Link to="/events">{t('本周末活动', 'This weekend’s events')}<ArrowRight size={17} aria-hidden="true" /></Link>
+        <Link to="/my-week#saved">{t('我的收藏', 'My saved items')}<ArrowRight size={17} aria-hidden="true" /></Link>
+        <Link to="/events?view=perks">{t('免费与优惠', 'Free & deals')}<ArrowRight size={17} aria-hidden="true" /></Link>
+      </div>
+    </footer>
   </article>;
 }
+

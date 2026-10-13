@@ -46,7 +46,7 @@ export const cityExplorationGuides: Guide[] = [{
     "Sonoma",
     "Solano"
   ],
-  "priority": "P0",
+  "priority": "P1",
   "featuredOnHome": true,
   "recommendedForCategories": [
     "other",
@@ -55,11 +55,11 @@ export const cityExplorationGuides: Guide[] = [{
   ],
   "readMinutes": 20,
   "updatedAt": "2026-10-05",
-  "sourceNote": "城市资料于 2026/10/2 建立，本轮在 2026/10/5 补充各城景点与资讯；新条目另列核验日期，未重查的旧资料保留原日期。半日路线为编辑建议，不是实时导航或开放保证。市内、附近与跨市景点明确区分；出发前查预约、施工、停车及开放公告。",
+  "sourceNote": "城市资料于 2026/10/2 建立，2026/10/5 补充各城景点与资讯；新条目另列核验日期，未重查的旧资料保留原日期。半日路线为编辑建议，不是实时导航或开放保证。市内、附近与跨市景点明确区分；出发前查预约、施工、停车及开放公告。",
   "sources": [
     {
       "title": "ABAG: How We Govern",
-      "url": "https://www.abag.ca.gov/about-abag/what-we-do/how-we-govern",
+      "url": "https://abag.ca.gov/about-abag/what-we-do/how-we-govern",
       "description": "本文九县 101 个建制城市和镇的范围依据。"
     },
     {

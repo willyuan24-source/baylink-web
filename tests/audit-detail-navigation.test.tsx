@@ -14,7 +14,9 @@ const previous = new Map(Object.keys(globals).map(key => [key, Object.getOwnProp
 for (const [key, value] of Object.entries(globals)) Object.defineProperty(globalThis, key, { configurable: true, writable: true, value });
 const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
-const { LocalDiscoveryDetail, getRelatedUpcomingEvents } = await import('../src/components/LocalDiscoveryDetail');
+const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+const { buildDetailRecord } = await import('../src/features/detail/build-detail');
+const { railEvents } = await import('../src/features/detail/detail-record');
 const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
 const { GuidesHome } = await import('../src/components/GuidesHome');
 
@@ -34,6 +36,13 @@ const fixture = (id: string, values: Partial<MonthlyEvent> = {}): MonthlyEvent =
   officialUrl: 'https://example.org/events/' + id, sourceLabel: 'Organizer ' + id, verifiedAt: '2026-10-06', imageKey: '', ...values,
 });
 
+/** The record a detail page renders for this event, with `events` as the catalog its rails draw from. */
+const recordFor = (event: MonthlyEvent, events: readonly MonthlyEvent[] = [event]) => buildDetailRecord({ kind: 'event', event }, events);
+const related = (event: MonthlyEvent, today: string, events: readonly MonthlyEvent[] = MONTHLY_EVENTS) =>
+  railEvents(event, recordFor(event, events).rail, today, { sameCategory: true, limit: 3 });
+const page = (event: MonthlyEvent, today: string, events?: readonly MonthlyEvent[]) =>
+  JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={recordFor(event, events)} today={today} /></StaticRouter>));
+
 test('related sessions prefer the same city, then region, and use actual occurrence dates without padding', () => {
   const current = fixture('audit-current');
   const laterCity = fixture('audit-city-later', { occurrenceDates: ['2026-10-16'] });
@@ -46,59 +55,68 @@ test('related sessions prefer the same city, then region, and use actual occurre
     fixture('audit-other-category', { category: 'food' }),
     fixture('audit-other-region', { region: 'south-bay', city: 'San Jose' }),
   ];
-  const actual = getRelatedUpcomingEvents(current, '2026-10-06', candidates);
+  const actual = related(current, '2026-10-06', candidates);
   assert.deepEqual(actual.map(({ event, date }) => [event.id, date]), [['audit-city-next', '2026-10-10'], ['audit-city-later', '2026-10-16'], ['audit-region', '2026-10-08']]);
-  for (const { event, date } of actual) assert.ok(eventOccursOn(event, date));
-  assert.equal(getRelatedUpcomingEvents(current, '2026-11-01', candidates).length, 0);
-  assert.equal(getRelatedUpcomingEvents(current, '2026-10-06', [current, nextCity]).length, 1, 'one real session does not become three fabricated cards');
+  for (const { event, date } of actual) assert.ok(eventOccursOn(event as unknown as MonthlyEvent, date));
+  assert.equal(related(current, '2026-11-01', candidates).length, 0);
+  assert.equal(related(current, '2026-10-06', [current, nextCity]).length, 1, 'one real session does not become three fabricated cards');
+  assert.ok(!recordFor(current, candidates).rail.some(event => event.id === 'audit-unconfirmed' || event.id === 'audit-other-region'), 'no unconfirmed or far-away candidates are kept');
 });
 
-test('expired and unconfirmed event details preserve archives and official access, without current-week saving or planning', () => {
+test('expired and unconfirmed event details keep official access and sharing, without saving or planning', () => {
   for (const event of [fixture('audit-ended-detail', { endDate: '2026-10-05', occurrenceDates: ['2026-10-05'] }), fixture('audit-empty-schedule', { occurrenceDates: [] })]) {
-    const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event }} today="2026-10-06" /></StaticRouter>));
-    const actions = fragment.querySelector('.discovery-detail-more-actions')!;
-    assert.equal(actions.querySelector('summary')?.textContent, '历史资料与分享');
-    assert.equal(actions.querySelector('.planner-launch-links'), null);
-    assert.equal(actions.querySelector('button.discovery-secondary'), null);
+    const fragment = page(event, '2026-10-06');
+    const actions = fragment.querySelector('.site-detail-actions')!;
+    assert.ok(actions, 'the action bar replaces the tab bar on this route');
+    assert.equal(actions.querySelector('a[target="_blank"]')?.getAttribute('href'), event.officialUrl);
+    assert.equal(actions.querySelector('.saves-toggle'), null, 'no ♡ for a listing that cannot be planned');
+    assert.equal(fragment.querySelector('.saves-add-day'), null);
     assert.equal(fragment.querySelector('a[href^="/plan?stops="]'), null);
-    assert.equal(fragment.querySelector('.discovery-detail-main-actions a')?.getAttribute('href'), event.officialUrl);
-    assert.ok(actions.querySelector('.editorial-share-actions'));
-    assert.ok(fragment.textContent?.includes(event.plan[0]));
+    assert.equal(fragment.querySelector('.detail-calendar'), null);
+    assert.ok(fragment.querySelector('.detail-share .editorial-share-actions'));
   }
+  const ended = page(fixture('audit-ended-detail', { endDate: '2026-10-05', occurrenceDates: ['2026-10-05'] }), '2026-10-06');
+  assert.ok([...ended.querySelectorAll('.ui-status')].some(chip => chip.textContent === '已结束 · 10/5'));
+  assert.ok(!ended.textContent?.includes('Check the organizer before leaving.'), 'an ended event hides the departure checklist');
+  const waiting = page(fixture('audit-empty-schedule', { occurrenceDates: [] }), '2026-10-06');
+  assert.ok(waiting.textContent?.includes('暂无已确认场次'));
+  assert.ok(waiting.textContent?.includes('Check the organizer before leaving.'), 'a postponed event is not over: its checklist stays');
 });
 
-test('confirmed future sessions retain saving and planning, while an empty future catalog offers no invented next event', () => {
+test('ended events show what is on next nearby on the first screen, before the facts', () => {
+  const ended = fixture('audit-ended-rail', { endDate: '2026-10-05', occurrenceDates: ['2026-10-05'] });
+  const next = [fixture('audit-next-a', { category: 'food', occurrenceDates: ['2026-10-12'] }), fixture('audit-next-b', { city: 'Berkeley', occurrenceDates: ['2026-10-09'] })];
+  const fragment = page(ended, '2026-10-06', [ended, ...next]);
+  const rail = fragment.querySelector('section[aria-labelledby="detail-next-title"]')!;
+  assert.equal(rail.querySelector('h2')?.textContent, '接下来可以去');
+  assert.deepEqual([...rail.querySelectorAll('a.ui-card-link')].map(link => link.getAttribute('href')), ['/events/audit-next-a?date=2026-10-12', '/events/audit-next-b?date=2026-10-09'], 'same city first, any category');
+  assert.ok(rail.compareDocumentPosition(fragment.querySelector('.detail-facts')!) & 4, 'the rail comes before the facts');
+  assert.ok(fragment.querySelector('.detail-hero')!.compareDocumentPosition(rail) & 4, 'after the hero');
+});
+
+test('confirmed future sessions keep the ♡, the day plan and the calendar; an empty future offers no invented next event', () => {
   const event = fixture('audit-confirmed-detail');
-  const upcoming = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event }} today="2026-10-06" /></StaticRouter>));
-  assert.ok([...upcoming.querySelectorAll('.discovery-detail-more-actions button')].some(button => button.textContent === '收藏'), 'the one ♡ save control');
-  assert.ok(upcoming.querySelector('.discovery-detail-more-actions button.discovery-secondary'));
-  assert.ok(upcoming.querySelector('a[href="/plan?stops=event:audit-confirmed-detail&date=2026-10-10"]'));
-  const empty = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event }} today="2027-01-01" /></StaticRouter>));
-  assert.equal(empty.querySelectorAll('.discovery-next-event').length, 0);
-  assert.ok(empty.querySelector('.discovery-next-events .discovery-inline-note')?.textContent?.includes('暂未收录'));
+  const upcoming = page(event, '2026-10-06');
+  const actions = upcoming.querySelector('.site-detail-actions')!;
+  assert.equal(actions.querySelector('.saves-toggle')?.textContent, '收藏', 'the one ♡ save control');
+  assert.equal(actions.querySelector('[data-day]')?.getAttribute('data-day'), '2026-10-10');
+  assert.ok(actions.querySelector('.saves-add-day'));
+  assert.ok(upcoming.querySelector('.detail-calendar'));
+  const later = page(event, '2027-01-01');
+  assert.equal(later.querySelectorAll('.detail-rail .ui-feed-card').length, 0);
 });
 
-test('current detail recommendations retain exact fees, confirmed dates, official sources, and evergreen return links', () => {
-  const selected = MONTHLY_EVENTS.find(event => getRelatedUpcomingEvents(event, '2026-10-06').length > 0);
+test('related cards are real sessions with their own date in the link, and the page ends with evergreen links', () => {
+  const selected = MONTHLY_EVENTS.find(event => related(event, '2026-10-06').length > 0);
   assert.ok(selected, 'the published catalog supplies genuine related sessions');
-  const related = getRelatedUpcomingEvents(selected, '2026-10-06');
-  const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail item={{ kind: 'event', event: selected }} today="2026-10-06" /></StaticRouter>));
-  const cards = [...fragment.querySelectorAll('.discovery-next-event')];
-  assert.equal(cards.length, related.length);
-  cards.forEach((card, index) => {
-    const { event, date } = related[index];
-    assert.equal(card.querySelector('h3 a')?.getAttribute('href'), `/events/${event.id}`);
-    assert.equal(card.querySelector('time')?.getAttribute('datetime'), date);
-    assert.ok(eventOccursOn(event, date));
-    assert.ok(card.textContent?.includes(event.costLabel));
-    assert.ok(card.textContent?.includes(event.venue));
-    const source = card.querySelector('a[target="_blank"]')!;
-    assert.equal(source.getAttribute('href'), event.officialUrl);
-    assert.match(source.getAttribute('rel')!, /noopener/);
-    assert.ok(source.textContent?.includes(event.sourceLabel));
-  });
-  assert.ok(fragment.querySelector('.discovery-return a[href="/this-week"]'));
-  assert.ok(fragment.querySelector('.discovery-return a[href="/this-month#monthly-perks"]'));
+  const cards = related(selected, '2026-10-06');
+  const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord({ kind: 'event', event: selected })} today="2026-10-06" /></StaticRouter>));
+  const links = [...fragment.querySelectorAll('section[aria-labelledby="detail-related-title"] a.ui-card-link')];
+  assert.deepEqual(links.map(link => link.getAttribute('href')), cards.map(({ event, date }) => `/events/${event.id}?date=${date}`));
+  for (const { event, date } of cards) assert.ok(eventOccursOn(event as unknown as MonthlyEvent, date));
+  assert.ok(fragment.querySelector('.discovery-return a[href="/events"]'));
+  assert.ok(fragment.querySelector('.discovery-return a[href="/my-week#saved"]'));
+  assert.ok(fragment.querySelector('.discovery-return a[href="/events?view=perks"]'));
   assert.equal(fragment.querySelector('.discovery-return a[href*="when=october"],.discovery-return a[href*="2026-10"]'), null);
 });
 

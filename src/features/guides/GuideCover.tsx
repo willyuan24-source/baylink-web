@@ -3,14 +3,15 @@ import { TypeCover } from '../../components/ui/TypeCover';
 import type { CoverRatio } from '../../components/ui/CoverImage';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { guideTopicOf } from '../../data/guide-topics';
-import type { Guide } from '../../data/guides';
 import type { ResolvedCover } from '../../lib/cover';
 import type { CoverTone } from '../../lib/event-facts';
 import { translateText } from '../../i18n/locale';
-import { guideSourceCount, splitGuideTitle, TOPIC_COVER, topicCopy } from './guide-facts';
+import { splitGuideTitle, TOPIC_COVER, topicCopy } from './guide-facts';
+import type { GuideCard } from './guide-records';
 
 export type GuideCoverProps = {
-  guide: Guide;
+  /** A guide card from the generated index or a record's "Read next" (guide-records.ts). */
+  guide: Pick<GuideCard, 'slug' | 'category' | 'title' | 'sourceCount'>;
   /** From `guideCover()` (the honesty ladder); a `type` result renders the guide's family C TypeCover. */
   cover: ResolvedCover;
   ratio?: CoverRatio;
@@ -28,7 +29,7 @@ export type GuideCoverProps = {
 export function GuideCover({ guide, cover, ratio, sizes, priority, tone, answer, mini }: GuideCoverProps) {
   const { t, pick, locale } = useUiCopy();
   const topic = guideTopicOf(guide);
-  const sources = guideSourceCount(guide);
+  const sources = guide.sourceCount;
   const fallback = <TypeCover family="guide" tone={tone ?? TOPIC_COVER[topic].tone} icon={TOPIC_COVER[topic].icon} label={pick(topicCopy(topic))}
     title={splitGuideTitle(translateText(guide.title, locale)).head} note={answer}
     place={sources ? t(`${sources} 个官方来源`, `${sources} official source${sources === 1 ? '' : 's'}`) : undefined} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;

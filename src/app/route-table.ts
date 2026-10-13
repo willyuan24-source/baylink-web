@@ -63,7 +63,8 @@ export type AppRoute = {
   redirect?: { to: string; status: 301 | 302 };
   /** listed in the sitemap (every language) */
   sitemap?: boolean;
-  /** English dictionary scopes the page displays ('ui' is always loaded; /guides/:slug adds its own). lib/english-loading.ts
+  /** English dictionary scopes the page displays ('ui' is always loaded; /guides/:slug and the event, offer and opening
+   * details load their own pack instead: lib/english-loading.ts detailBucket). lib/english-loading.ts
    * keeps its own copy (the 3D game's title chunk loads it and must not pull in this table); the route-table test compares them. */
   english?: readonly string[];
   /** public route parameters may become BayBay search context */
@@ -81,6 +82,8 @@ export type AppRoute = {
 };
 
 const DISCOVERY = ['discovery', 'guide-index'] as const;
+/** The events column renders the slim events index: its own English pack (WEB-DATA-SPLIT). */
+const EVENTS_LIST = ['events-list'] as const;
 const PLANNING = ['planning', 'discovery', 'guide-index'] as const;
 
 export const ROUTES: readonly AppRoute[] = [
@@ -90,15 +93,15 @@ export const ROUTES: readonly AppRoute[] = [
   // a user card: the user-card function serves valid ids first (share head); any other id gets the shell. Both noindex.
   { path: '/users/:userId', page: 'home', section: 'more', hosting: 'spa', english: ['home'] },
   { path: '/reset-password', page: 'home', section: 'none', hosting: 'spa', english: ['home'] },
-  { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-index', 'guide-search'], release: true },
+  { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-list'], release: true },
   { path: '/guides/:slug', page: 'guide', section: 'guides', hosting: 'ids', sitemap: true },
-  { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
+  { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
   { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
-  { path: '/this-week', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: DISCOVERY, baybay: true },
-  { path: '/calendar', page: 'calendar', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
-  { path: '/events/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY, chrome: 'detail' },
-  { path: '/offers/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY, chrome: 'detail' },
-  { path: '/openings/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, english: DISCOVERY, chrome: 'detail' },
+  { path: '/this-week', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: EVENTS_LIST, baybay: true },
+  { path: '/calendar', page: 'calendar', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
+  { path: '/events/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
+  { path: '/offers/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
+  { path: '/openings/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
   { path: '/ai-in-the-bay', page: 'ai', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY },
   { path: '/plan', page: 'plan', section: 'events', hosting: 'page', sitemap: true, english: PLANNING, baybay: true, release: true },
   { path: '/together', page: 'together', section: 'events', hosting: 'spa', english: PLANNING, baybay: true },

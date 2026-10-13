@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import postcss from 'postcss';
@@ -124,18 +124,19 @@ const tokens = readFileSync('src/tokens.css', 'utf8');
 postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { if (!rootTokens.has(declaration.prop)) rootTokens.set(declaration.prop, declaration.value); }));
 const resolve = (name: string, depth = 0): number[] => {
   const value = rootTokens.get(name) ?? '';
-  const alias = /^var\((--[\w-]+)\)$/.exec(value);
+  // The palette's channel form (TOKENS-B): --tc-x:var(--color-y), --color-y:rgb(var(--color-y-rgb)), --color-y-rgb:R G B.
+  const alias = /^(?:var\(|rgb\(var\()(--[\w-]+)\)\)?$/.exec(value);
   if (alias && depth < 5) return resolve(alias[1], depth + 1);
-  const hex = /^#([\da-f]{6})$/i.exec(value);
-  assert.ok(hex, `${name} resolves to an opaque colour (${value})`);
-  return [0, 2, 4].map(offset => Number.parseInt(hex[1].slice(offset, offset + 2), 16) / 255);
+  const channels = /^(\d{1,3}) (\d{1,3}) (\d{1,3})$/.exec(value);
+  assert.ok(channels, `${name} resolves to an opaque colour (${value})`);
+  return channels.slice(1).map(channel => Number(channel) / 255);
 };
 const luminance = (rgb: number[]) => rgb.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
 const contrast = (fg: string, bg: string) => { const [a, b] = [luminance(resolve(fg)), luminance(resolve(bg))].sort((x, y) => y - x); return (a + .05) / (b + .05); };
 
 test('every TypeCover and status pair is at least 4.5:1', () => {
   const pairs: [string, string][] = ['family', 'culture', 'outdoors', 'food', 'seniors', 'free'].map(tone => [`--tc-${tone}-fg`, `--tc-${tone}-bg`]);
-  pairs.push(['--ui-success', '--ui-success-tint'], ['--ui-warning', '--ui-warning-tint'], ['--color-danger', '--ui-danger-tint'], ['--ui-info', '--ui-info-tint'], ['--color-brand-deep', '--ui-highlight']);
+  pairs.push(['--color-success', '--color-success-tint'], ['--color-warning', '--color-warning-tint'], ['--color-danger', '--color-danger-tint'], ['--color-info', '--color-info-tint'], ['--color-brand-deep', '--color-highlight']);
   for (const [fg, bg] of pairs) assert.ok(contrast(fg, bg) >= 4.5, `${fg} on ${bg}: ${contrast(fg, bg).toFixed(2)}:1`);
 });
 
@@ -145,7 +146,7 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
     // Root Aa (html[data-reading], WEB-TOKENS-A) scales every rem: a second --reading-scale would double-scale, px never grows.
     assert.doesNotMatch(declaration.value, /--reading-scale|\d(?:\.\d+)?px\b/, where);
     // A bare .47em under a 22px value floor was 10.3px; the small date/value part now keeps the caption size as its floor.
-    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
+    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|display)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
     if (declaration.value.startsWith('clamp(')) {
       const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)), (.*), [\d.]+rem\)$/.exec(declaration.value);
       assert.ok(clamp, `${where}: clamp(rem floor, …, rem cap)`);
@@ -170,31 +171,21 @@ test('a neighbour palette changes only the colour: the label stays the item’s 
   assert.equal(bare.container.querySelector('.ui-type-cover__footer'), null, 'no empty footer');
 });
 
-test('the ui.css token block cannot shadow a global token: namespaced names only, none defined in another stylesheet', () => {
-  // ui.css loads lazily after tokens.css at the same specificity, so a global name defined here would override the
-  // site-wide value once a primitive mounts. The block therefore holds only --tc-* and --ui-* names.
-  const blockNames = new Set<string>();
-  postcss.parse(css).walkRules(':root', rule => rule.walkDecls(declaration => { if (declaration.prop.startsWith('--')) blockNames.add(declaration.prop); }));
-  assert.ok(blockNames.has('--tc-family-bg') && blockNames.has('--ui-success') && blockNames.has('--ui-highlight'), 'the block is parsed');
+test('the palette lives in tokens.css: ui.css defines no global names, and every name it reads exists', () => {
+  // TOKENS-B moved the WEB-UI token block (TypeCover pairs, status colours, badge, highlight, scrims) into tokens.css.
+  // ui.css loads lazily after tokens.css at the same specificity, so a :root name here would override the site-wide value
+  // once a primitive mounts; it may only set element-scoped layout variables.
+  postcss.parse(css).walkRules(':root', rule => assert.fail(`ui.css has a :root block again (${rule.toString().slice(0, 60)}…): palette names belong in src/tokens.css`));
   postcss.parse(css).walkDecls(declaration => {
-    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:tc|ui)-/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector}): ui.css defines only --tc-* / --ui-* names`);
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|tc-bg|tc-fg)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
   });
-  // Moving a name into tokens.css (TOKENS-B) must delete it here in the same commit: the same name in both files, or a
-  // global --color-<name> beside the --ui-<name> stand-in, fails until the block is gone and the reads use the global.
-  const sheets = (readdirSync('src', { recursive: true }) as string[]).map(path => path.replaceAll(String.fromCharCode(92), '/'))
-    .filter(path => path.endsWith('.css') && path !== 'components/ui/ui.css');
-  assert.ok(sheets.includes('tokens.css'));
-  for (const sheet of sheets) {
-    postcss.parse(readFileSync(`src/${sheet}`, 'utf8')).walkDecls(declaration => {
-      assert.ok(!blockNames.has(declaration.prop), `${declaration.prop} is defined in src/${sheet} and in the ui.css token block: move it and delete it from ui.css in one commit`);
-    });
-  }
   const globalNames = new Set<string>();
-  postcss.parse(readFileSync('src/tokens.css', 'utf8')).walkDecls(declaration => { globalNames.add(declaration.prop); });
-  for (const name of blockNames) {
-    const global = name.replace(/^--ui-/, '--color-');
-    assert.ok(name === global || !globalNames.has(global), `tokens.css now defines ${global}: read var(${global}) in ui.css and delete ${name} in the same commit`);
-  }
+  postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
+  for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--tc-bg', '--tc-fg']);
+  // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
+  for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
+  for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);
 });
 
 const declarations = (selector: string) => {

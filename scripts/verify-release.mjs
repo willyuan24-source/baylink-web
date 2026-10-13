@@ -1,6 +1,7 @@
-import { readFile } from 'node:fs/promises';
+import { readdir, readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
+import { verifyPhoneLinks } from './verify-phone-links.mjs';
 import { formatRouteBudgets, measureRouteBudgets } from './route-budgets.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { checkLegacyUrls, LEGACY_URLS } from './hosting-routes.mjs';
@@ -28,13 +29,28 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // The event detail stopped importing the planner catalog and the guides corpus (W2 integration): it measured
 // 548.5 / 1025.3 / 1190.1 KiB, so its ceilings go to measured + 5% (headroom for the content batches until WEB-DETAIL
 // moves details to per-item data).
+// WEB-DETAIL (ENGSEC-01): event, offer and opening details read one generated record bucket (features/detail) instead of
+// importing every catalog, guide and image, and English details load their bucket's pack instead of the discovery and
+// guide-index packs: 576.0 / 1076.6 / 1249.6 (main) → measured 220.4 / 697.1 / 342.4 + 2% (the bucket itself is a dynamic chunk,
+// 6–22 KiB gzip, preloaded by the prerendered page).
+// WEB-DATA-SPLIT (ENGSEC-01): /guides reads a slim generated index and an article loads only its own record (counted here
+// as the row's `data`), so both guide rows went from ~1 MB to measured + 2% (/guides 224.7 / 266.9 / 357.4, the senior
+// guide 232.8 / 275.0 / 346.4 KiB). 繁體 converts with the site's own opencc phrases (~45 KB) instead of the full 495 KB
+// build, so every zh-Hant row dropped ~430 KiB: it is measured + 2%, except where a zh-Hans row keeps headroom for a lane
+// in flight (home: WEB-HOME, RC-17), where it keeps the same headroom over its zh-Hans ceiling. English /events and /calendar
+// load the events column's own pack (the slim index's text, 'events-list') instead of the discovery and guide-index packs:
+// 959.2 / 963.3 → 524.8 / 529.0 KiB, so those two en rows are measured + 2% too.
+// W3 integration: each cell keeps the lower of the lanes' ceilings; then every cell with more than 5% headroom on the
+// integrated build (CNT-GUIDES + DETAIL + DATA-SPLIT + HOME + SEO-I18N + SECONDARY + PLAN + VISUAL-SYS) goes to measured + 5%.
 const ROUTE_JS_BUDGETS = [
-  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 200.0, 'zh-Hant': 711.6, en: 345.3 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 328.6, 'zh-Hant': 814.9, en: 983.0 } },
-  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 1015.9, 'zh-Hant': 1502.2, en: 2181.6 } },
-  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', kib: { 'zh-Hans': 1063.3, 'zh-Hant': 1552.3, en: 1356.8 } },
-  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 576.0, 'zh-Hant': 1076.6, en: 1249.6 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 324.4, 'zh-Hant': 810.6, en: 978.8 } },
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.1, 'zh-Hant': 241.9, en: 327.1 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 324.8, 'zh-Hant': 370.4, en: 539.6 } },
+  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 222.5, 'zh-Hant': 268.1, en: 361.6 } },
+  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.6, 'zh-Hant': 277.1, en: 348.6 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 219.3, 'zh-Hant': 264.9, en: 345.6 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 320.9, 'zh-Hant': 366.5, en: 535.4 } },
+  // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 1126.8, 'zh-Hant': 1212.3, en: 2011.6 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
@@ -71,7 +87,9 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   const route=matchRoute(page==='index'?'/':`/${page}`);
   // RC-6: a prerendered page links its route CSS, or <main> paints unstyled until the chunk loads.
   if(!route?.bare) for(const css of routeStyles(PAGE_MODULES[route.page])) if(!html.includes(`href="/${css}"`)) throw new Error(`Route stylesheet /${css} is not linked: ${path}`);
-  if(!html.includes('rel="canonical"') || !html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"')) throw new Error(`Missing language metadata: ${path}`);
+  // a page that asks not to be indexed (an ended event a month on, I18N-SEO-10) carries no language cluster
+  const indexed=!/<meta name="robots" content="noindex/.test(html);
+  if(!html.includes('rel="canonical"') || indexed && (!html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"'))) throw new Error(`Missing language metadata: ${path}`);
   if(!html.includes('rel="modulepreload"')) throw new Error(`Missing route preload: ${path}`);
   if(page.startsWith('events/')&&!html.includes('"@type":"Event"')) throw new Error(`Wrong event schema: ${path}`);
   if(locale==='en/'&&!html.includes('<html lang="en"')) throw new Error(`Wrong document language: ${path}`);
@@ -99,10 +117,35 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
     if (locale && shell.some(markup => [...markup.matchAll(/href="(\/[^"]*)"/g)].some(match => !match[1].startsWith(`/${locale.slice(0, -1)}`)))) throw new Error(`First-paint navigation loses its language: ${path}`);
   }
 }
+// WEB-SEO-I18N (I18N-SEO-02/-04): every built page, in each language. /en carries no Chinese and /zh-Hant no Simplified-only
+// character outside markup that says so (translate="no", lang="zh…", the language switch), in the text and in the head;
+// every JSON-LD block passes the schema check (scripts/structured-data-check.ts).
+const { checkStructuredData, structuredDataOf } = await tsImport('./structured-data-check.ts', import.meta.url);
+const { englishProblems, traditionalProblems, simplifiedOnlyCharacters } = await import('./i18n-html-check.mjs');
+const { createRequire } = await import('node:module');
+const { sep } = await import('node:path');
+const openccDictionary = createRequire(import.meta.url);
+const simplifiedOnly = simplifiedOnlyCharacters(openccDictionary('opencc-js/dict/STCharacters').default, openccDictionary('opencc-js/dict/TSCharacters').default);
+const builtPages = (await readdir('dist', { recursive: true })).filter(file => file.endsWith('.html')).map(file => file.split(sep).join('/'));
+const languageProblems = [], schemaProblems = [];
+for (const file of builtPages) {
+  const html = await readFile(`dist/${file}`, 'utf8');
+  const language = /^en\//.test(file) ? 'en' : /^zh-Hant\//.test(file) ? 'zh-Hant' : 'zh-Hans';
+  if (language === 'en') for (const problem of englishProblems(html)) languageProblems.push(`${file}: Chinese on /en: ${problem}`);
+  if (language === 'zh-Hant') for (const problem of traditionalProblems(html, simplifiedOnly)) languageProblems.push(`${file}: Simplified on /zh-Hant: ${problem}`);
+  const { blocks, problems } = structuredDataOf(html);
+  schemaProblems.push(...problems.map(problem => `${file}: ${problem}`), ...checkStructuredData(blocks, { english: language === 'en', where: file }));
+}
+if (languageProblems.length) throw new Error(`Wrong-language text in built pages (${languageProblems.length}):\n${languageProblems.slice(0, 30).join('\n')}`);
+if (schemaProblems.length) throw new Error(`Structured data problems (${schemaProblems.length}):\n${schemaProblems.slice(0, 30).join('\n')}`);
+console.log(`Languages and structured data verified on ${builtPages.length} built pages.`);
 // Legacy and shared URLs (QR codes, the 3D game, old shares) resolve on the host as the route table says, onto built pages.
 const legacyProblems=checkLegacyUrls(JSON.parse(await readFile('vercel.json','utf8')).routes);
 if(legacyProblems.length) throw new Error(`Legacy URLs: ${legacyProblems.join('; ')}`);
 for(const item of LEGACY_URLS.filter(entry=>entry.page)) await readFile(`dist${item.page}`).catch(()=>{ throw new Error(`${item.url} is served by dist${item.page}, which the build did not write`); });
 const release=JSON.parse(await readFile('dist/release.json','utf8'));if(!/^[a-f0-9]{40}$/.test(release.commit))throw new Error('Release commit missing');
 await verifyStaticLinks();
+// CW-01 (WEB-DETAIL): every phone number a prerendered page shows is tap-to-call, in all three languages.
+const phoneFailures=await verifyPhoneLinks();
+if(phoneFailures.length) throw new Error(`Phone numbers without a tel: link (CW-01) on ${phoneFailures.length} pages: ${phoneFailures.slice(0,12).map(item=>`${item.page} (${item.numbers.join(', ')})`).join('; ')}`);
 console.log(`Release verified: shell ${(shell/1024).toFixed(1)} KiB, homepage route graph ${(total/1024).toFixed(1)} KiB; English homepage with dictionaries ${(englishTotal/1024).toFixed(1)} KiB gzip; ${routeBudgets.length} route × locale JS budgets hold; translated prerenders, route stylesheets and Event schema present; ${LEGACY_URLS.length} legacy URLs resolve.`);

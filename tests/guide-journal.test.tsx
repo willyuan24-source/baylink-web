@@ -406,7 +406,8 @@ test('guide social metadata uses a branded share card while article photos and o
     const article = metadata.structuredData!.find(item => item['@type'] === 'Article')!;
     assert.equal(article.image, SITE_URL + cover.src);
     assert.equal(article.headline, guide.title);
-    assert.equal(article.dateModified, guide.updatedAt);
+    // the later of the first-published day and the last editorial check (a page cannot change before it exists)
+    assert.ok(article.dateModified >= guide.updatedAt && (!article.datePublished || article.dateModified >= article.datePublished));
   }
   for (const slug of ['san-francisco-guide', 'san-jose-guide']) {
     const guide = getGuideBySlug(slug)!;

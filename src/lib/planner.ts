@@ -1,3 +1,4 @@
+import { HUB_CARDS } from './hub-cards';
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
 import { PLANNER_PLACES } from '../data/planner-catalog';
 import type { MonthlyEvent } from '../data/monthly-types';
@@ -24,7 +25,7 @@ export type PlanFilters = { date?: string; region?: string; city?: string; budge
 export type Suggestion = { id: string; date: string; eventId: string; placeIds: string[]; reason: string; reasons: string[]; unknowns: string[]; budgetStatus?: 'known' | 'unknown' };
 export type PlaceSuggestion = { id: string; date: string; placeId: string; reason: string; reasons: string[]; unknowns: string[]; budgetStatus: 'known' | 'unknown' };
 export type Recommendations = { ok: boolean; responseMode: 'ai' | 'rules'; filters: PlanFilters; suggestions: Suggestion[]; placeSuggestions?: PlaceSuggestion[]; notices: string[]; checkedAt: string };
-export const PLAN_METADATA: PageMetadata = { title: 'BayBay 智能出游计划｜BAYLINK', description: '搜索湾区活动、餐厅、新店与景点，查看站外来源，安排时间和预算，一句话调整、保存与分享出游计划。', path: '/plan' };
+export const PLAN_METADATA: PageMetadata = { title: '行程：湾区一日出游计划｜BAYLINK', description: '搜索湾区活动、餐厅、新店与景点，查看站外来源，安排时间和预算，一句话调整、保存与分享出游计划。', path: '/plan', image: HUB_CARDS.plan };
 export const WEEK_METADATA: PageMetadata = { title: '我的这周｜BAYLINK', description: '在一个地方整理自己的湾区活动、收藏和出游计划。', path: '/my-week', noindex: true };
 export const EMPTY_LIBRARY: Library = { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } };
 export const todayInBay = (now = new Date()) => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(now);

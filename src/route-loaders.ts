@@ -1,4 +1,4 @@
-import { matchRoute, type PageKey } from './app/route-table';
+import { matchRoute, routePathname, type PageKey } from './app/route-table';
 import { settleChunk } from './lib/chunk-recovery';
 
 /** Shared promises let startup load the current page before replacing its prerendered content. settleChunk (WEB-SHELL2,
@@ -36,7 +36,13 @@ export const pageLoaders = {
   opus: cached(() => import('./opus-bay/OpusBayPage')),
 } satisfies Record<PageKey, unknown>;
 
-/** The page chunk for a URL path (language prefix already removed), loaded before the app replaces the prerender. */
+/** The page chunk for a URL path (language prefix already removed), loaded before the app replaces the prerender. A guide
+ * article also waits for its own record (WEB-DATA-SPLIT: guide-store.ts), so the app replaces the prerender in one pass. */
 export function currentPageLoader(path: string) {
-  return pageLoaders[matchRoute(path)?.page || 'notFound'];
+  const route = matchRoute(path);
+  const page = pageLoaders[route?.page || 'notFound'];
+  if (route?.page !== 'guide') return page;
+  let slug = routePathname(path).slice('/guides/'.length);
+  try { slug = decodeURIComponent(slug); } catch { return page; }
+  return () => Promise.all([page(), import('./features/guides/guide-store').then(settleChunk).then(store => store.loadGuide(slug))]).then(([module]) => module);
 }

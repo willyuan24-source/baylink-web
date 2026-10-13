@@ -1,30 +1,29 @@
-.about-baylink{max-width:1160px;margin:0 auto;padding:38px 38px 80px;color:#25463b;overflow-wrap:anywhere}
-.about-eyebrow{display:block;font-size:.625rem;font-weight:600;letter-spacing:.15em;line-height:1.7;color:#70816b}
-.about-hero{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(0,.85fr);gap:52px;align-items:center;padding:30px 0 58px}
-.about-page-label{font-size:.75rem;margin:18px 0 15px;color:#63775f}
-.about-hero h1{font-size:clamp(1.9375rem,calc(3.2vw * var(--fluid-scale)),2.9375rem);letter-spacing:-.045em;line-height:1.42;font-weight:700;margin:0}
-.about-hero h1 em{font-style:normal;color:#69825a}
-.about-lead{font-size:.9375rem;line-height:1.95;margin-top:24px;max-width:610px;color:#4e6256}
-.about-primary{display:inline-flex;gap:18px;align-items:center;justify-content:center;margin-top:28px;padding:13px 19px;border-radius:12px;background:#284e3d;color:#fff;font-size:.8125rem;font-weight:600;min-height:46px}
-.about-primary:hover{background:#35634d}
-.about-hero-art{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:100px 100px 24px 24px;padding:32px 20px 28px;min-height:390px;background:linear-gradient(150deg,#f2e6cd,#eef1df);border:1px solid #e9e1c9;text-align:center;overflow:hidden}
-.about-art-location{display:flex;gap:6px;align-items:center;font-size:.5rem;font-weight:600;letter-spacing:.1em;color:#777c60}
-.about-hero-art img{width:min(100%,250px);height:auto;aspect-ratio:1;object-fit:contain;margin:21px 0 13px;mix-blend-mode:multiply}
-.about-hero-art>div>span{font-size:.5625rem;letter-spacing:.18em;color:#8b8d70}.about-hero-art p{font-size:.9375rem;font-weight:600;margin-top:7px;color:#5f714c}
-.about-section-heading{margin-bottom:25px}.about-section-heading h2,.about-baybay h2,.about-contact h2{font-size:clamp(1.4375rem,calc(2.2vw * var(--fluid-scale)),1.8125rem);line-height:1.5;font-weight:600;letter-spacing:-.035em;margin-top:9px}
-.about-discover{padding:39px 0 43px;border-top:1px solid #dfe5d7}
-.about-discover-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 44px}
-.about-discover-item{padding:22px 0 26px;border-bottom:1px solid #e2e7dc;display:flex;flex-direction:column;align-items:flex-start}
-.about-discover-index{display:flex;justify-content:space-between;align-items:center;width:100%;color:#6e8459;margin-bottom:18px}.about-discover-index>span{font-size:.6875rem;color:#95a18c;letter-spacing:.1em}
-.about-discover-item h3{font-size:1.125rem;font-weight:600;line-height:1.55}.about-discover-item>p{font-size:.8125rem;line-height:1.9;margin:12px 0 21px;color:#697761;flex:1}
-.about-discover-item>a,.about-basics>a{display:inline-flex;align-items:center;gap:9px;font-size:.75rem;font-weight:600;color:#456a42;min-height:32px}
-.about-baybay{display:flex;align-items:flex-start;gap:26px;padding:31px 34px;border-radius:22px;background:#eaf0df;border:1px solid #dce5d0}
-.about-baybay-mark{display:grid;place-items:center;flex-shrink:0;width:56px;height:56px;border-radius:19px;background:#fff8;color:#66804c}
-.about-baybay>div:last-child{min-width:0}.about-baybay p{font-size:.8125rem;line-height:1.9;color:#5b7053;margin-top:13px}.about-baybay p.about-small{font-size:.6875rem;color:#77856a}
-.about-baybay button,.about-baybay a{display:inline-flex;align-items:center;gap:15px;margin-top:20px;padding:10px 15px;min-height:42px;font-size:.75rem;font-weight:600;border:1px solid #c8d6b9;border-radius:10px;background:#f9fbf4;color:#3e6240}
-.about-basics{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px 25px;padding:25px 0}.about-basics p{font-size:.75rem;line-height:1.9;color:#708069}
-.about-contact{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:22px;padding-top:35px;border-top:1px solid #dfe5d7}.about-contact>div{flex:1;min-width:240px}.about-contact p{font-size:.75rem;line-height:1.8;color:#76816f;margin-top:10px}.about-contact>a{display:inline-flex;align-items:center;gap:10px;padding:13px 15px;border:1px solid #d8e1cf;border-radius:12px;font-size:.8125rem;background:#fff}.about-contact nav{display:flex;flex-wrap:wrap;gap:23px;width:100%;padding-top:10px;color:#6c7e61;font-size:.6875rem}.about-contact nav a{display:inline-flex;align-items:center;gap:5px;min-height:32px}
-.about-baylink a:focus-visible,.about-baylink button:focus-visible{outline:2px solid #4d7452;outline-offset:4px}
+/* About and verification method (/about, WEB-SECONDARY-B): reading container (720), PageHeader title spec, tokens only. */
+.about-page{padding-block:24px 56px;color:var(--color-ink);overflow-wrap:anywhere}
+.about-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
+.about-section{margin-top:40px}
+.about-section>h2{margin:0 0 12px;color:var(--color-ink);font-size:1.375rem;line-height:1.364;font-weight:600;letter-spacing:0;text-wrap:balance}
+.about-section>p{margin:12px 0 0;color:var(--color-ink-2);font-size:var(--text-body);line-height:1.625}
+.about-list{margin:0;padding:0;list-style:none}
+.about-list>li{display:grid;grid-template-columns:2.75rem minmax(0,1fr);gap:16px;padding:16px 0;border-top:1px solid var(--color-line)}
+.about-list>li:last-child{border-bottom:1px solid var(--color-line)}
+.about-list h3{margin:0;color:var(--color-ink);font-size:var(--text-card);line-height:1.5;font-weight:600}
+.about-list p{margin:4px 0 0;color:var(--color-ink-2);font-size:var(--text-body);line-height:1.625}
+.about-icon{display:grid;place-items:center;width:2.75rem;height:2.75rem;border-radius:50%;background:var(--color-brand-tint);color:var(--color-brand)}
+.about-icon>svg{width:1.375rem;height:1.375rem}
+.about-icon>img{width:1.75rem;height:1.75rem}
+.about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--text-fact);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em;cursor:pointer}
+.about-link:hover,.about-policies a:hover,.about-more a:hover{text-decoration-color:currentColor}
+.about-section>.about-more{color:var(--color-ink-2);font-size:var(--text-fact)}
+.about-labels{display:grid;gap:12px;margin:16px 0 0}
+.about-labels>div{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:12px;align-items:start}
+.about-labels dd{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}
+.about-page .about-badge{position:static;display:inline-block;max-width:100%;white-space:normal}
+.about-contact{display:flex;flex-wrap:wrap;align-items:center;gap:8px 24px;margin-top:12px}
+.about-policies{display:flex;flex-wrap:wrap;gap:0 24px;margin-top:16px;padding-top:8px;border-top:1px solid var(--color-line)}
+.about-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
+@media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:4px}}
+@media(min-width:1024px){.about-page{padding-block:40px 72px}.about-section{margin-top:56px}.about-section>h2{font-size:var(--text-section);line-height:1.333}}
+/* The home footer (WEB-HOME's file) still reads these two rules; they move with that footer. */
 .bay-home-footer nav{display:flex;flex-wrap:wrap;gap:18px}.bay-home-footer nav a{display:inline-flex;align-items:center;gap:5px;font-size:.6875rem}
-@media(max-width:900px){.about-baylink{padding:27px 25px 90px}.about-hero{gap:28px;grid-template-columns:minmax(0,1.3fr) minmax(0,.8fr)}.about-hero-art{min-height:340px;padding:27px 16px}.about-lead{font-size:.875rem}.about-discover-grid{gap:0 28px}}
-@media(max-width:639px){.about-baylink{padding:17px 20px 100px}.about-hero{grid-template-columns:1fr;gap:27px;padding:13px 0 32px}.about-hero h1{font-size:2.0625rem}.about-hero-art{min-height:0;border-radius:20px;padding:18px 20px;display:grid;grid-template-columns:85px minmax(0,1fr);column-gap:17px;text-align:left}.about-art-location{grid-column:2;grid-row:1;font-size:.4375rem}.about-hero-art img{grid-column:1;grid-row:1/3;width:85px;margin:0}.about-hero-art>div{grid-column:2;grid-row:2}.about-hero-art>div>span{font-size:.5rem}.about-hero-art p{font-size:.8125rem}.about-discover{padding:27px 0}.about-discover-grid{grid-template-columns:1fr}.about-discover-item{padding:22px 0}.about-discover-index{margin-bottom:12px}.about-section-heading{margin-bottom:9px}.about-baybay{gap:14px;padding:23px 19px;display:block}.about-baybay-mark{width:44px;height:44px;border-radius:14px;margin-bottom:17px}.about-baybay h2{font-size:1.4375rem}.about-contact{padding-top:27px}.about-contact>div{min-width:0;flex-basis:100%}.about-contact>a{font-size:.75rem;max-width:100%}.about-contact nav{gap:20px}.bay-home-footer nav{gap:16px}}
+@media(max-width:639px){.bay-home-footer nav{gap:16px}}

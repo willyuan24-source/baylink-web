@@ -63,12 +63,13 @@ function GuideSearchHarness() {
   </Routes></>;
 }
 
-test('a shared search URL restores query/category, shows the body match and survives article navigation', () => {
+test('a shared search URL restores query/category, shows the body match and survives article navigation', async () => {
   const view = render(<MemoryRouter initialEntries={['/guides?q=公证&category=service']}><GuideSearchHarness /></MemoryRouter>);
   assert.equal((view.getByRole('searchbox', { name: /在 \d+ 篇指南中搜索/ }) as HTMLInputElement).value, '公证');
   // A legacy ?category= link keeps narrowing the list and shows as a removable chip beside the topics.
   assert.equal(view.getByRole('button', { name: '取消筛选：本地服务' }).getAttribute('aria-pressed'), 'true');
-  assert.match(view.getByText(/联系学校、法院或其他接收机构/).textContent || '', /公证/);
+  // Full-text search loads the guide corpus on the first search (WEB-DATA-SPLIT): the matching passage arrives with it.
+  assert.match((await view.findByText(/联系学校、法院或其他接收机构/)).textContent || '', /公证/);
   const result = view.getByRole('link', { name: /在湾区找翻译：先确认用途/ });
   fireEvent.click(result);
   assert.match(view.getByTestId('location').textContent || '', /\/guides\/bay-area-translation-service-guide/);

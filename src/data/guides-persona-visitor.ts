@@ -22,7 +22,7 @@ export const visitorPersonaGuides: Guide[] = [
       "Half Moon Bay",
       "返程计划"
     ],
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": false,
     "recommendedForCategories": [
       "other",
@@ -227,7 +227,7 @@ export const visitorPersonaGuides: Guide[] = [
       "无障碍出行",
       "游客求助"
     ],
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": false,
     "recommendedForCategories": [
       "other",

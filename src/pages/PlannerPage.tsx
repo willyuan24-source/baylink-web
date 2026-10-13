@@ -1,8 +1,6 @@
-import { getListingImage } from '../lib/offer-media';
-import { EnglishOnly } from '../components/EnglishOnly';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { MapPin, Sparkles, Heart, Plus, X, Share2, ArrowUp, CalendarDays, ChevronRight, SlidersHorizontal, Square } from 'lucide-react';
+import { MapPin, Sparkles, Plus, X, Share2, ArrowUp, ChevronRight, SlidersHorizontal, Square, Printer, WifiOff } from 'lucide-react';
 import { useApp } from '../app/context';
 import { api } from '../lib/api';
 import { useLocale, translateText } from '../i18n/locale';
@@ -19,9 +17,6 @@ import { recordProductEvent } from '../lib/product-events';
 import { eventOccursOn } from '../lib/event-calendar';
 import { canonicalEventId } from '../lib/event-id';
 import { EventScreenshotImport } from '../components/EventScreenshotImport';
-import { getGuideBySlug } from '../data/guides';
-import { getGuideMedia } from '../data/guide-media';
-import { GuideFigure } from '../components/GuideVisuals';
 import { PlannerSchedule } from '../components/PlannerSchedule';
 import { PlannerOutingOptions, PlannerPlaceOutingOptions } from '../components/PlannerOutingOptions';
 import { PlannerPlanEdit } from '../components/PlannerPlanEdit';
@@ -31,9 +26,35 @@ import { bayBayAdmissionOverride, readBayBayPlanDraft, readBayBayRequirementsDra
 import { BayBayImportedRequirements } from '../components/BayBayImportedRequirements';
 import { PlannerWebSearch } from '../components/PlannerWebSearch';
 import { PlannerPlaceRecommendations } from '../components/PlannerPlaceRecommendations';
-import { PlannerStopOffers } from '../components/PlannerStopOffers';
 import type { CompleteOuting } from '../lib/planner-outings';
-import { defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../lib/planner-itinerary';
+import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../lib/planner-itinerary';
+import { createCoverPage, resolveCovers } from '../lib/cover';
+import { eventDateChip, formatDateChip } from '../lib/event-facts';
+import { PlannerDayPlans } from '../components/PlannerDayPlans';
+import { PlannerCatalogCard, type PlannerCatalogItem } from '../components/PlannerCatalogCard';
+import { PlannerImageCredits, PlannerOptionCover } from '../components/PlannerStopCover';
+import { firstPlanDays, onePhotoEach, stopCoverImage, stopCoverItem, upcomingPlans } from '../lib/plan-stop-cover';
+import { Button, IconButton } from '../components/ui/Button';
+import { ChipRow, FilterChip } from '../components/ui/Chip';
+import { PageContainer, PageHeader } from '../components/ui/HeroCard';
+import '../styles/plan-page.css';
+
+/** Whether the browser says it is online; the page keeps working from this device's data when it is not (RC-25). */
+function useOnline() {
+  const [online, setOnline] = useState(() => typeof navigator === 'undefined' || navigator.onLine !== false);
+  useEffect(() => {
+    const on = () => setOnline(true), off = () => setOnline(false);
+    window.addEventListener('online', on); window.addEventListener('offline', off);
+    return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
+  }, []);
+  return online;
+}
+
+/** The details as save() stores them, in one canonical form (key order included), for the overview's 已保存 claim. */
+const storedDetails = (value: unknown, stops: Stop[], date: string) => {
+  const details = normalizePlanDetails(value, stops);
+  return JSON.stringify(details.constraints ? { ...details, constraints: cleanPlanFilters({ ...details.constraints, date }) } : details);
+};
 
 export default function PlannerPage() {
   const app = useApp();
@@ -61,6 +82,10 @@ function PlannerWorkspace() {
   const locale = useLocale();
   useEffect(() => { setPageMetadata(PLAN_METADATA); }, [locale]);
   const library = usePlannerLibrary(app?.user?.id);
+  const online = useOnline();
+  const today = todayInBay();
+  // One cover page for the saved days, the list and the suggestions: the same photo never shows twice on the page.
+  const coverPage = useMemo(() => createCoverPage(), []);
   const [message, setMessage] = useState(queryMessage);
   const [date, setDate] = useState(shared.date);
   const [searchDate, setSearchDate] = useState<string>();
@@ -92,10 +117,16 @@ function PlannerWorkspace() {
   const editLoaded = useRef('');
   const prefsLoaded = useRef(false);
   const autoStarted = useRef(new Set<string>());
+  // The plan id a first save just put in the URL (?edit=): that URL change is this page's own, not a new link to load.
+  const adoptedSave = useRef('');
+  // The last 保存到行程 failed: the overview shows why next to its button until the next library action starts.
+  const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => () => request.current?.abort(), []);
   useEffect(() => { if (results) resultsHeading.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' }); }, [results]);
   useEffect(() => { request.current?.abort(); setRequesting(false); setResults(null); setError(''); setMessage(queryMessage); }, [queryMessage]);
   useEffect(() => {
+    const edit = new URLSearchParams(planSearch).get('edit');
+    if (edit && edit === adoptedSave.current) { adoptedSave.current = ''; return; }
     setEditing(undefined); setSearchDate(undefined); setStops(importedDraft?.stops || shared.stops); setDate(importedDraft?.date || shared.date);
     setTitle(importedDraft?.title || translateText('我的湾区出游')); setDetails(importedDraft?.details || defaultPlanDetails()); setPersistedFilters(importedDraft?.details.constraints || {});
     setUndo(undefined); setReplaceIndex(null); editLoaded.current = ''; prefsLoaded.current = !!importedDraft;
@@ -217,9 +248,10 @@ function PlannerWorkspace() {
     results.filters.partySize ? `${results.filters.partySize} ${locale === 'en' ? 'people' : '人同行'}` : undefined,
     results.filters.freeOnly ? (locale === 'en' ? 'Confirmed free admission' : '仅已确认免费') : undefined,
   ].filter(Boolean) : [];
+  useEffect(() => { if (library.busy) setSaveFailed(false); }, [library.busy]);
   const save = async () => {
     if (!library.ready || library.busy) return;
-    setStatus('');
+    setStatus(''); setSaveFailed(false);
     if (!stops.length) { setStatus('先选择至少一站。'); return; }
     if (!date) { setStatus('请先选择出游日期。'); return; }
     if (date < todayInBay()) { setStatus('请选择今天或未来日期。'); return; }
@@ -227,51 +259,109 @@ function PlannerWorkspace() {
     if (badDate) { setStatus('计划日期与所选活动不一致，请调整日期或移除活动。'); return; }
     const detailsError = planDetailsError(details); if (detailsError) { setStatus(detailsError); return; }
     const saved = await library.savePlan({ title: title.trim() || translateText('我的湾区出游', locale), date, stops, details: { ...normalizePlanDetails(details, stops), ...(details.constraints ? { constraints: { ...details.constraints, date } } : {}) } }, editing);
-    if (saved) { setUndo(undefined); setEditing(saved); setStatus(app?.user ? '已保存到账号。' : '已保存到这个浏览器。'); }
+    if (!saved) { setSaveFailed(true); return; }
+    setUndo(undefined); setEditing(saved); setStatus(app?.user ? '已保存到账号。' : '已保存到这个浏览器。');
+    // A draft that came by link (?date=&stops=, ?places=, a BayBay plan) becomes the saved day in the URL, so a reload,
+    // Back or a return visit opens the saved plan (已保存) instead of the same draft, which a second save would duplicate.
+    const next = new URLSearchParams(location.search);
+    if (next.get('edit') !== saved.id) {
+      for (const key of ['date', 'stops', 'places']) next.delete(key);
+      next.set('edit', saved.id); adoptedSave.current = saved.id;
+      navigate({ pathname: location.pathname, search: next.toString(), hash: location.hash }, { replace: true });
+    }
   };
   const share = async () => {
     try { await navigator.clipboard.writeText(sharePlanUrl({ date, stops }, window.location.origin)); recordProductEvent('plan_shared'); setStatus('公开地点与日期链接已复制；不包含账号或私人标题。'); } catch { setStatus('复制失败，请使用下方分享链接。'); }
   };
   // One save key: an open new shop listed here as a place is the same ♡ as the shop on the openings board.
   const favorite = (kind: 'event' | 'place', id: string) => library.data.favorites.some(item => saveKey(item.kind, item.id) === saveKey(kind, id));
-  return <div className="planner-page"><fieldset className="planner-interaction-scope" disabled={library.busy}>
-    <header className="planner-hero planner-hero--visual"><div className="planner-hero-copy"><EnglishOnly><div className="planner-eyebrow"><Sparkles size={16} /> BAYBAY / PLAN A LITTLE BETTER</div></EnglishOnly><h1>下一次出门，<br /><em>从一个好计划开始。</em></h1><p>告诉 BayBay 想吃什么、去哪里、想花多少。从活动、餐厅、新店或景点开始，把这一天安排好。</p><nav><Link to="/my-week"><CalendarDays size={16} /> 我的这周</Link><Link to="/ai-in-the-bay">湾区 AI 活动</Link><Link to="/calendar">活动日历</Link></nav></div><div className="planner-hero-photo"><GuideFigure image={getGuideMedia(getGuideBySlug('sf-golden-gate-bridge-fort-point-guide')!).cover} variant="preview" /><button type="button" onClick={() => document.getElementById('planner-discoveries')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>{locale === 'en' ? 'Find your next little escape' : '先看看，这次想去哪里'}<ArrowUp size={15} /></button></div></header>
-    <form className="planner-form" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  const placeKind = (category?: string) => category === 'restaurant' ? t('餐饮', 'Dining') : category === 'cafe' ? t('咖啡与小食', 'Coffee') : category === 'shop' ? t('商店', 'Shop') : t('常设景点', 'Attraction');
+  const catalogTotal = visiblePlaces.length + (catalogCategory === 'all' ? events.length : 0);
+  const catalogItems = useMemo<PlannerCatalogItem[]>(() => [
+    ...events.filter(() => catalogCategory === 'all').map(event => ({ kind: 'event' as const, id: event.id, title: event.title, city: event.city, summary: event.summary, kicker: formatDateChip(eventDateChip(event, today, requestedDate ? [requestedDate] : []), locale === 'en').label, when: translateText(event.dateLabel, locale), detail: translateText(event.costLabel, locale), point: event.location, official: event.officialUrl })),
+    ...visiblePlaces.map(place => ({ kind: 'place' as const, id: place.id, title: place.title, city: place.city, summary: place.summary, kicker: placeKind(place.category), detail: place.planning?.schedule ? t('已收录官方时段', 'Official hours recorded') : t('营业时间待确认', 'Opening hours unconfirmed'), point: place.location, official: place.officialUrl })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- placeKind and t only read locale
+  ].slice(0, catalogLimit), [events, visiblePlaces, catalogCategory, catalogLimit, locale, today, requestedDate]);
+  // Every cover on the page in one pass, in display order (已排的日子, the suggestions, the list), so a stop listed twice
+  // shows its photo once (onePhotoEach) and 本页图片来源 credits exactly the photos shown.
+  const { plans: dayPlans, moreDays } = useMemo(() => firstPlanDays(upcomingPlans(library.data.plans, today)), [library.data.plans, today]);
+  const suggestionStops = useMemo<Stop[]>(() => [
+    ...(results?.suggestions.map(suggestion => ({ kind: 'event' as const, id: canonicalEventId(suggestion.eventId) })) || []),
+    ...(results?.placeSuggestions?.map(suggestion => ({ kind: 'place' as const, id: suggestion.placeId })) || []),
+  ], [results]);
+  const pageCovers = useMemo(() => onePhotoEach(resolveCovers([...dayPlans.flatMap(plan => plan.stops), ...suggestionStops, ...catalogItems].map(stopCoverItem), { images: stopCoverImage, today, page: coverPage })),
+    [dayPlans, suggestionStops, catalogItems, today, coverPage]);
+  const dayStopCount = dayPlans.reduce((sum, plan) => sum + plan.stops.length, 0);
+  const suggestionCovers = pageCovers.slice(dayStopCount, dayStopCount + suggestionStops.length);
+  const catalogCovers = pageCovers.slice(dayStopCount + suggestionStops.length);
+  // The draft's save state, shown on screen 1 (FC3-01): a stop that arrived by link or from the list is not saved yet.
+  // A saved plan reads 已保存 only while everything save() would store matches it: date, title, stops and the details
+  // (start / finish time, party, travel, budget, each stop's time), so an edit to the details never looks saved.
+  const draftState = !stops.length ? 'none' as const : !editing ? 'unsaved' as const
+    : editing.date === date && editing.title === title && JSON.stringify(cleanStops(editing.stops)) === JSON.stringify(stops)
+      && !planDetailsError(details) && storedDetails(editing.details, cleanStops(editing.stops), editing.date) === storedDetails(details, stops, date) ? 'saved' as const : 'changed' as const;
+  // 问 BayBay opens the site's one BayBay panel (the same panel as every page) with a draft the reader can edit first.
+  const askBayBay = () => app?.openBayBay?.(stops.length
+    ? t(`帮我看看${date ? ` ${date} ` : ''}这份行程：${stops.map(stop => stopTitle(stop)).join('、')}。还可以怎么排？`, `Please look at my plan${date ? ` for ${date}` : ''}: ${stops.map(stop => translateText(stopTitle(stop), 'en')).join(', ')}. How could I arrange it better?`)
+    : t('帮我排一天湾区出游：', 'Help me plan a day out in the Bay Area: '), { mode: 'draft' });
+  return <PageContainer size="wide" className="planner-page"><fieldset className="planner-interaction-scope" disabled={library.busy}>
+    <PageHeader title={t('行程', 'Plans')}
+      lede={t('把想去的活动和地点排进一天：时间、门票和路线一起看，存好后发给家人。', 'Put the events and places you want into one day, with times, tickets and routes in view. Save it and send it to family.')}
+      actions={<><Button variant="primary" icon={<Sparkles size={18} aria-hidden="true" />} onClick={askBayBay}>{t('问 BayBay 排一天', 'Ask BayBay to plan a day')}</Button><Button variant="text" to="/my-week">{t('我的这周', 'My Week')}</Button></>} />
+    {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{library.ready
+      ? t('你现在离线：已保存的行程和这台设备上的草稿仍可查看；挑选方案和地图要联网后才能用。', 'You are offline. Your saved plans and this device’s draft are still here; suggestions and the map need a connection.')
+      : t('你现在离线：这台设备上的草稿仍可查看；已保存的行程、挑选方案和地图要联网后才能读取。', 'You are offline. This device’s draft is still here; your saved plans, suggestions and the map load once you are back online.')}</p>}
+    <PlannerPlanOverview stops={stops} date={date} details={details} admissionOverride={admissionOverride} state={draftState} saving={library.busy} canSave={library.ready && !library.busy} onSave={() => void save()} status={status}
+      saveError={!saveFailed || !stops.length ? '' : library.error ? translateText(library.error, locale) : t('没有保存成功，请再试一次。', 'Not saved. Please try again.')} />
+    <PlannerDayPlans library={library} plans={dayPlans} moreDays={moreDays} covers={pageCovers.slice(0, dayStopCount)} today={today} editingId={editing?.id} />
+    <form className="planner-form" aria-labelledby="planner-form-title" onChange={() => { request.current?.abort(); setRequesting(false); setResults(null); }} onSubmit={e => { e.preventDefault(); void recommend(); }}>
+      <h2 id="planner-form-title">{t('按条件挑选', 'Find options by your conditions')}</h2>
       {Object.keys(persistedFilters).length > 0 && <p className="planner-note">{locale === 'en' ? 'Saved conditions are included: ' : '沿用这份计划的条件：'}{[persistedFilters.city, persistedFilters.partySize ? String(persistedFilters.partySize) + (locale === 'en' ? ' people' : '人') : '', persistedFilters.childAges?.length ? (locale === 'en' ? 'Child ages ' : '孩子年龄 ') + persistedFilters.childAges.join('、') : '', persistedFilters.budget != null ? (persistedFilters.budgetScope === 'total' ? (locale === 'en' ? 'Group admission budget ' : '门票总预算 ') : (locale === 'en' ? 'Per-person admission budget ' : '每人门票预算 ')) + '$' + persistedFilters.budget : '', persistedFilters.freeOnly ? (locale === 'en' ? 'Free only' : '仅免费') : ''].filter(Boolean).join(' · ')} <button type="button" onClick={() => { request.current?.abort(); request.current = undefined; setRequesting(false); setPersistedFilters({}); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setResults(null); }}>{locale === 'en' ? 'Clear saved conditions' : '清除沿用条件'}</button></p>}{queryMessage && <p className="planner-handoff-note"><Sparkles size={15} />已经带上你说的条件。修改后，点“帮我挑选方案”重新选择。</p>}
       {requirementsDraftId !== null && !requirementsDraft && <p className="planner-handoff-note" role="status" translate="no">{locale === 'en' ? 'Your requirement draft is unavailable. Please enter your requirements again.' : translateText('需求草稿暂不可读取，请重新输入条件。', locale)}</p>}
-      <div className="planner-examples"><span>试着这样问</span>{['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'].map(example => <button type="button" key={example} onClick={() => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); }}>{example}</button>)}</div><label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => { setMessage(e.target.value); setPersistedFilters({}); }} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
-      <details className="planner-refinements"><summary><SlidersHorizontal size={14} />日期、地区与预算（可选）<ChevronRight size={14} /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={requestedDate} onChange={e => { setSearchDate(e.target.value); }} /></label><label>地区<select value={region} onChange={e => { setRegion(e.target.value); setPersistedFilters(current => ({ ...current, region: e.target.value, city: undefined })); }}>{ATTRACTION_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => { setBudget(e.target.value); setPersistedFilters(current => ({ ...current, budget: undefined, budgetScope: 'person', freeOnly: undefined })); }} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => { setAge(e.target.value); setPersistedFilters(current => ({ ...current, childAge: undefined, childAges: undefined })); }} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => { setSetting(e.target.value); setPersistedFilters(current => ({ ...current, setting: e.target.value })); }}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option><option value="mixed">已确认室内外结合</option></select></label><label>出行方式<select value={travel} onChange={e => { setTravel(e.target.value); setPersistedFilters(current => ({ ...current, travelMode: e.target.value })); }}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
-      <div className="planner-form-actions"><button className="planner-primary" disabled={requesting}><Sparkles size={17} />{requesting ? '正在挑选…' : '帮我挑选方案'}</button>{requesting && <button type="button" className="planner-stop-request" onClick={stopRequest}><Square size={12} className="inline mr-1" />停止</button>}<span>门票预算不含餐饮、停车与交通。</span></div>
+      <label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => { setMessage(e.target.value); setPersistedFilters({}); }} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
+      <ChipRow label={t('试着这样问', 'Try asking')} className="planner-examples">{['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'].map(example => <FilterChip selected={false} key={example} onClick={() => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); }}>{example}</FilterChip>)}</ChipRow>
+      <details className="planner-refinements"><summary><SlidersHorizontal size={16} aria-hidden="true" />日期、地区与预算（可选）<ChevronRight size={16} aria-hidden="true" /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={requestedDate} onChange={e => { setSearchDate(e.target.value); }} /></label><label>地区<select value={region} onChange={e => { setRegion(e.target.value); setPersistedFilters(current => ({ ...current, region: e.target.value, city: undefined })); }}>{ATTRACTION_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => { setBudget(e.target.value); setPersistedFilters(current => ({ ...current, budget: undefined, budgetScope: 'person', freeOnly: undefined })); }} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => { setAge(e.target.value); setPersistedFilters(current => ({ ...current, childAge: undefined, childAges: undefined })); }} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => { setSetting(e.target.value); setPersistedFilters(current => ({ ...current, setting: e.target.value })); }}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option><option value="mixed">已确认室内外结合</option></select></label><label>出行方式<select value={travel} onChange={e => { setTravel(e.target.value); setPersistedFilters(current => ({ ...current, travelMode: e.target.value })); }}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
+      <div className="planner-form-actions"><Button type="submit" variant="secondary" disabled={requesting} icon={<Sparkles size={18} aria-hidden="true" />}>{requesting ? '正在挑选…' : '帮我挑选方案'}</Button>{requesting && <Button variant="text" onClick={stopRequest} icon={<Square size={14} aria-hidden="true" />}>停止</Button>}<span>门票预算不含餐饮、停车与交通。</span></div>
     </form>
-    <PlannerPlanOverview stops={stops} date={date} details={details} admissionOverride={admissionOverride} />
     {error && <p className="planner-error" role="alert">{error}</p>}
-    {results && <section className="planner-results"><div className="planner-section-head"><div><EnglishOnly><span className="planner-eyebrow">YOUR OPTIONS</span></EnglishOnly><h2 ref={resultsHeading}>有依据的出游建议</h2><p>{results.responseMode === 'ai' ? 'AI 根据已收录活动与地点整理，可查看每条建议的资料来源。' : '根据已收录活动、地点与筛选条件匹配。'}</p></div><button disabled={requesting} onClick={() => void recommend(true)}>换一批</button></div>
+    {results && <section className="planner-results"><div className="planner-section-head"><div><h2 ref={resultsHeading}>有依据的出游建议</h2><p>{results.responseMode === 'ai' ? 'AI 根据已收录活动与地点整理，可查看每条建议的资料来源。' : '根据已收录活动、地点与筛选条件匹配。'}</p></div><Button variant="text" disabled={requesting} onClick={() => void recommend(true)}>换一批</Button></div>
       {appliedFilters.length > 0 && <div className="planner-applied-filters" aria-label={translateText('已使用的条件', locale)}><span>已使用的条件</span>{appliedFilters.map((filter, index) => <strong key={index}>{filter}</strong>)}</div>}
       {results.notices.length > 0 && <details className="planner-result-notes"><summary>{translateText('筛选说明与出行提示', locale)} ({results.notices.length})</summary>{results.notices.map((notice, index) => <p className="planner-note" key={index}>{notice}</p>)}</details>}
       {!results.suggestions.length && !results.placeSuggestions?.length && <p className="planner-note">没有完全符合条件的活动或地点。可以调整条件，或点击下方站外搜索，查看更多来源。</p>}
-      <div className="planner-options">{results.suggestions.map((suggestion, index) => { const event = PLANNER_EVENTS.find(e => e.id === canonicalEventId(suggestion.eventId)); if (!event) return null; return <article className="planner-option" key={suggestion.id}><div className="planner-option-media">{getListingImage(event.imageKey) && <GuideFigure image={getListingImage(event.imageKey)!} variant="preview" />}</div><span className="planner-number">0{index + 1}</span>{suggestion.budgetStatus === 'unknown' && <span className="planner-unverified-price">{locale === 'en' ? 'Price unverified · alternative' : '费用待核实 · 备选'}</span>}<h3><Link to={`/events/${event.id}`}>{event.title}</Link></h3><p className="planner-meta">{event.dateLabel} · {event.city}</p><p>{suggestion.reasons?.length ? suggestion.reasons.join(' ') : suggestion.reason}</p><strong className="planner-cost">{event.costLabel}</strong><ul>{suggestion.unknowns.map((unknown, i) => <li key={i}>{unknown}</li>)}</ul><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noreferrer">查看主办方最新信息 ↗</a><small>资料核查：{event.verifiedAt}</small><PlannerOutingOptions suggestion={suggestion} filters={results.filters} message={message} onChoose={applyOuting} /><button className="planner-primary" onClick={() => beginPlan([{ kind: 'event', id: event.id }, ...suggestion.placeIds.map(id => ({ kind: 'place' as const, id }))], suggestion.date, event.title, results.filters)}>用这个方案开始</button></article>; })}</div>
-      <PlannerPlaceRecommendations suggestions={results.placeSuggestions || []} filters={results.filters} message={message} onChoose={applyOuting} onStart={beginPlan} />
+      <div className="planner-options">{results.suggestions.map((suggestion, index) => { const event = PLANNER_EVENTS.find(e => e.id === canonicalEventId(suggestion.eventId)); if (!event) return null; return <article className="planner-option" key={suggestion.id}><PlannerOptionCover cover={suggestionCovers[index]} /><span className="planner-number">{index + 1}</span>{suggestion.budgetStatus === 'unknown' && <span className="planner-unverified-price">{locale === 'en' ? 'Price unverified · alternative' : '费用待核实 · 备选'}</span>}<h3><Link to={`/events/${event.id}`}>{event.title}</Link></h3><p className="planner-meta">{event.dateLabel} · {event.city}</p><p>{suggestion.reasons?.length ? suggestion.reasons.join(' ') : suggestion.reason}</p><strong className="planner-cost">{event.costLabel}</strong><ul>{suggestion.unknowns.map((unknown, i) => <li key={i}>{unknown}</li>)}</ul><a onClick={() => recordProductEvent('official_source_click')} href={event.officialUrl} target="_blank" rel="noreferrer">查看主办方最新信息 ↗</a><small>资料核查：{event.verifiedAt}</small><PlannerOutingOptions suggestion={suggestion} filters={results.filters} message={message} onChoose={applyOuting} /><button className="planner-primary" onClick={() => beginPlan([{ kind: 'event', id: event.id }, ...suggestion.placeIds.map(id => ({ kind: 'place' as const, id }))], suggestion.date, event.title, results.filters)}>用这个方案开始</button></article>; })}</div>
+      <PlannerPlaceRecommendations suggestions={results.placeSuggestions || []} filters={results.filters} message={message} onChoose={applyOuting} onStart={beginPlan} covers={suggestionCovers.slice(results.suggestions.length)} />
     </section>}
     <PlannerWebSearch ownerId={app?.user?.id} sessionKey={app?.user?.token} onLogin={() => app?.setShowLogin(true)} query={message} date={effectiveFilters.date || requestedDate} region={effectiveFilters.region || region} city={effectiveFilters.city} locale={locale} />
     <EventScreenshotImport userId={app?.user?.id} />
-    <div className="planner-workspace"><section id="planner-discoveries" aria-label={locale === 'en' ? 'Discover places and events' : '发现地点与活动'}>
-      <div className="planner-section-head"><div><EnglishOnly><span className="planner-eyebrow">EXPLORE THE BAY</span></EnglishOnly><h2>地图上，接着逛</h2></div><span><MapPin size={15} /> {points.length}</span></div>
-      <details className="planner-map-disclosure"><summary><MapPin size={16} />{locale === 'en' ? 'Open the map to compare locations' : '展开地图，对比地点位置'}</summary><PlannerMap points={points} selected={selected} onSelect={choose} /></details>
-      {nearby.length > 0 && <section className="planner-nearby"><h3>附近再加一站</h3><p>仅比较同城准确地点。直线距离不代表步行路线或路程时间；请确认交通、开放时间与入场条件。</p>{nearby.map(({ place, km }) => <button key={place.id} onClick={() => add({ kind: 'place', id: place.id })}>{place.title}<span>{km.toFixed(1)} km <Plus size={14} /></span></button>)}</section>}
-      <p className="planner-small-note">{locale === 'en' ? 'Places follow your area, city, setting and known admission conditions. Unknown prices are not treated as free. Check each stop’s opening source; area pins are excluded from nearby distances.' : '地点列表沿用地区、城市、场地与已知门票条件；未知消费金额不按免费处理。营业时间按每站来源核对，区域参考点不用于附近距离。'}</p><div className="planner-catalog-tabs" role="group" aria-label={locale === 'en' ? 'Place categories' : '地点类型'}>{[['all', '全部地点', 'All places'], ['attraction', '景点', 'Attractions'], ['restaurant', '餐饮', 'Dining'], ['cafe', '咖啡与小食', 'Coffee'], ['shop', '商店', 'Shops']].map(([value, zh, en]) => <button key={value} type="button" aria-pressed={catalogCategory === value} onClick={() => setCatalogCategory(value)}>{locale === 'en' ? en : zh}</button>)}</div>{catalogCategory !== 'all' && !visiblePlaces.length && <p className="planner-note">{locale === 'en' ? 'No places of this type match the current conditions.' : '当前条件下还没有这类地点，可调整地区、场地或门票条件。'}</p>}<div className="planner-catalog">{[...events.filter(() => catalogCategory === 'all').map(event => ({ kind: 'event' as const, id: event.id, title: event.title, city: event.city, summary: event.summary, label: `${translateText(event.dateLabel, locale)} · ${translateText(event.costLabel, locale)}`, point: event.location, official: event.officialUrl, image: getListingImage(event.imageKey) })), ...visiblePlaces.map(place => ({ kind: 'place' as const, id: place.id, title: place.title, city: place.city, summary: place.summary, label: `${locale === 'en' ? (place.category === 'restaurant' ? 'Dining' : place.category === 'cafe' ? 'Coffee' : place.category === 'shop' ? 'Shop' : 'Attraction') : (place.category === 'restaurant' ? '餐饮' : place.category === 'cafe' ? '咖啡与小食' : place.category === 'shop' ? '商店' : '常设景点')} · ${locale === 'en' ? (place.planning?.schedule ? 'Official hours recorded' : 'Opening hours unconfirmed') : (place.planning?.schedule ? '已收录官方时段' : '营业时间待确认')}`, point: place.location, official: place.officialUrl, image: (() => { if (place.imageKey) return getListingImage(place.imageKey); const guide = getGuideBySlug(place.guideSlug); const image = guide ? getGuideMedia(guide).cover : undefined; return image?.kind === 'illustration' ? undefined : image; })() }))].slice(0, catalogLimit).map(item => { const key = `${item.kind}:${item.id}`; const pin = points.findIndex(point => point.key === key); return <article id={`catalog-${key}`} key={key} className={`planner-place ${selected === key ? 'is-selected' : ''}`}><div className="planner-place-heading"><button className="planner-place-title" onClick={() => setSelected(key)}>{pin >= 0 && <span>{pin + 1}</span>}<h3>{item.title}</h3></button><button aria-label={!library.ready ? (locale === 'en' ? 'Saved status unavailable' : translateText('收藏状态待载入', locale)) : translateText(favorite(item.kind, item.id) ? '取消收藏' : '收藏到我的这周', locale)} aria-pressed={library.ready ? favorite(item.kind, item.id) : undefined} disabled={!library.ready || library.busy} onClick={() => void library.toggleFavorite({ kind: item.kind, id: item.id })}><Heart size={17} fill={favorite(item.kind, item.id) ? 'currentColor' : 'none'} /></button></div>{item.image && <div className="planner-place-media"><GuideFigure image={item.image} variant="preview" /></div>}<p className="planner-meta">{item.city} · {item.label}</p><p>{item.summary}</p><PlannerStopOffers stop={{ kind: item.kind, id: item.id }} date={date} /><div className="planner-place-actions"><Link to={stopPath(item)} target={stopPath(item).startsWith('https:') ? '_blank' : undefined} rel={stopPath(item).startsWith('https:') ? 'noreferrer' : undefined}>阅读详情{stopPath(item).startsWith('https:') ? ' ↗' : ''}</Link>{item.point && <> <a href={item.point.sourceUrl} target="_blank" rel="noreferrer">坐标来源 ↗</a><a href={`https://www.google.com/maps/search/?api=1&query=${item.point.lat},${item.point.lng}`} target="_blank" rel="noreferrer">查看地图与路线 ↗</a></>}{item.kind === 'place' && <button type="button" onClick={() => beginPlan([{ kind: 'place', id: item.id }], requestedDate || todayInBay(), item.title, effectiveFilters)}>{locale === 'en' ? 'Start here' : '以这里为起点'}</button>}<button onClick={() => add({ kind: item.kind, id: item.id })}><Plus size={15} /> {replaceIndex != null ? '替换选中站点' : '加入计划'}</button></div>{item.kind === 'place' && selected === key && <PlannerPlaceOutingOptions placeId={item.id} date={requestedDate || todayInBay()} filters={effectiveFilters} onChoose={applyOuting} />}</article>; })}</div>{catalogLimit < visiblePlaces.length + (catalogCategory === 'all' ? events.length : 0) && <button type="button" className="planner-catalog-more" onClick={() => setCatalogLimit(value => value + 12)}>{locale === 'en' ? 'Show more places' : '继续看更多地点'}<ChevronRight size={15} /></button>}
-    </section><aside id="outing-plan" className={`planner-editor${stops.length ? " has-stops" : " is-empty"}`}><EnglishOnly><span className="planner-eyebrow">YOUR LITTLE ESCAPE</span></EnglishOnly><h2>排好这一天</h2><p>{stops.length ? "最多六站，时间和预算一起安排。" : "先选地点，再安排时间与预算。"}</p>{undo && <button className="planner-undo" onClick={restoreUndo}>撤销上次调整</button>}
-      <BayBayImportedRequirements draft={importedDraft} requested={new URLSearchParams(planSearch).has("baybayDraft")} />
-      {!stops.length && <div className="planner-empty"><p>{locale === "en" ? "Choose a place or event to start your day." : "从活动或地点列表选好第一站，再填写时间、人数和预算。"}</p><a className="planner-primary" href="#planner-discoveries">{locale === "en" ? "Browse places and events" : "先挑一个地点"}<MapPin size={16} /></a></div>}
+    <div className="planner-workspace"><section id="planner-discoveries" aria-labelledby="planner-discoveries-title">
+      <div className="planner-section-head"><h2 id="planner-discoveries-title">{t('挑地点和活动', 'Choose places and events')}</h2><span><MapPin size={16} aria-hidden="true" /> {points.length}</span></div>
+      <details className="planner-map-disclosure"><summary><MapPin size={18} aria-hidden="true" />{locale === 'en' ? 'Open the map to compare locations' : '展开地图，对比地点位置'}</summary><PlannerMap points={points} selected={selected} onSelect={choose} /></details>
+      {nearby.length > 0 && <section className="planner-nearby"><h3>附近再加一站</h3><p>仅比较同城准确地点。直线距离不代表步行路线或路程时间；请确认交通、开放时间与入场条件。</p>{nearby.map(({ place, km }) => <button key={place.id} onClick={() => add({ kind: 'place', id: place.id })}>{place.title}<span>{km.toFixed(1)} km <Plus size={16} aria-hidden="true" /></span></button>)}</section>}
+      <p className="planner-small-note">{locale === 'en' ? 'Places follow your area, city, setting and known admission conditions. Unknown prices are not treated as free. Check each stop’s opening source; area pins are excluded from nearby distances.' : '地点列表沿用地区、城市、场地与已知门票条件；未知消费金额不按免费处理。营业时间按每站来源核对，区域参考点不用于附近距离。'}</p>
+      <ChipRow label={locale === 'en' ? 'Place categories' : '地点类型'} className="planner-catalog-tabs">{[['all', '全部地点', 'All places'], ['attraction', '景点', 'Attractions'], ['restaurant', '餐饮', 'Dining'], ['cafe', '咖啡与小食', 'Coffee'], ['shop', '商店', 'Shops']].map(([value, zh, en]) => <FilterChip key={value} selected={catalogCategory === value} onClick={() => setCatalogCategory(value)}>{locale === 'en' ? en : zh}</FilterChip>)}</ChipRow>
+      {catalogCategory !== 'all' && !visiblePlaces.length && <p className="planner-note">{locale === 'en' ? 'No places of this type match the current conditions.' : '当前条件下还没有这类地点，可调整地区、场地或门票条件。'}</p>}
+      <div className="planner-catalog">{catalogItems.map((item, index) => { const key = `${item.kind}:${item.id}`; return <PlannerCatalogCard key={key} item={item} cover={catalogCovers[index]} today={today} date={date} pin={points.findIndex(point => point.key === key)} selected={selected === key}
+        favorite={favorite(item.kind, item.id)} favoriteReady={library.ready} busy={library.busy} replacing={replaceIndex != null}
+        onToggleFavorite={() => void library.toggleFavorite({ kind: item.kind, id: item.id })} onAdd={() => add({ kind: item.kind, id: item.id })}
+        onStart={item.kind === 'place' ? () => beginPlan([{ kind: 'place', id: item.id }], requestedDate || todayInBay(), item.title, effectiveFilters) : undefined}>
+        {item.kind === 'place' && selected === key && <PlannerPlaceOutingOptions placeId={item.id} date={requestedDate || todayInBay()} filters={effectiveFilters} onChoose={applyOuting} />}
+      </PlannerCatalogCard>; })}</div>
+      {catalogLimit < catalogTotal && <Button variant="secondary" block className="planner-catalog-more" onClick={() => setCatalogLimit(value => value + 12)}>{locale === 'en' ? 'Show more places' : '继续看更多地点'}<ChevronRight size={16} aria-hidden="true" /></Button>}
+    </section><aside id="outing-plan" className={`planner-editor${stops.length ? ' has-stops' : ' is-empty'}`} aria-labelledby="outing-plan-title"><h2 id="outing-plan-title">排好这一天</h2><p>{translateText(stops.length ? '最多六站，时间和预算一起安排。' : '先选地点，再安排时间与预算。', locale)}</p>{undo && <Button variant="text" className="planner-undo" onClick={restoreUndo}>撤销上次调整</Button>}
+      <BayBayImportedRequirements draft={importedDraft} requested={new URLSearchParams(planSearch).has('baybayDraft')} />
+      {!stops.length && <div className="planner-empty"><p>{t('从活动或地点列表选好第一站，再填写时间、人数和预算。', 'Choose a place or event to start your day.')}</p><Button variant="tonal" href="#planner-discoveries" icon={<MapPin size={18} aria-hidden="true" />}>{t('先挑一个地点', 'Browse places and events')}</Button></div>}
       {stops.length > 0 && <>{replaceIndex != null && <p className="planner-note" role="status">正在替换第 {replaceIndex + 1} 站，请从地点列表选择。<button onClick={() => setReplaceIndex(null)}>取消替换</button></p>}<label>计划名称<input maxLength={80} value={title} onChange={e => { setUndo(undefined); setTitle(e.target.value); }} /></label><label>日期<input type="date" value={date} onChange={e => { setUndo(undefined); setSearchDate(undefined); setDate(e.target.value); }} /></label>
-      <ol className="planner-stops" aria-label={translateText('所选地点', locale)}>{stops.map((stop, index) => <li key={`${stop.kind}:${stop.id}`}><span>{index + 1}</span><Link to={stopPath(stop)}>{stopTitle(stop)}</Link><div>{index > 0 && <button aria-label={translateText('上移一站', locale)} onClick={() => { remember(); setReplaceIndex(null); setStops(current => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; }); }}><ArrowUp size={14} /></button>}<button aria-label={translateText('替换此站', locale)} onClick={() => { setReplaceIndex(index); setStatus('从地点列表选择要换入的地点。'); }}>换</button><button aria-label={translateText('移除此站', locale)} onClick={() => { remember(); setReplaceIndex(null); setStops(stops.filter((_, i) => i !== index)); setDetails(current => ({ ...current, stopSettings: current.stopSettings.filter(item => favoriteKey(item) !== favoriteKey(stop)) })); }}><X size={14} /></button></div></li>)}</ol>
+      <ol className="planner-stops" aria-label={translateText('所选地点', locale)}>{stops.map((stop, index) => <li key={`${stop.kind}:${stop.id}`}><span>{index + 1}</span><Link to={stopPath(stop)}>{stopTitle(stop)}</Link><div>{index > 0 && <IconButton label={translateText('上移一站', locale)} onClick={() => { remember(); setReplaceIndex(null); setStops(current => { const next = [...current]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; return next; }); }}><ArrowUp size={18} aria-hidden="true" /></IconButton>}<Button variant="text" aria-label={translateText('替换此站', locale)} onClick={() => { setReplaceIndex(index); setStatus('从地点列表选择要换入的地点。'); }}>换</Button><IconButton label={translateText('移除此站', locale)} onClick={() => { remember(); setReplaceIndex(null); setStops(stops.filter((_, i) => i !== index)); setDetails(current => ({ ...current, stopSettings: current.stopSettings.filter(item => favoriteKey(item) !== favoriteKey(stop)) })); }}><X size={18} aria-hidden="true" /></IconButton></div></li>)}</ol>
       <PlannerPlanEdit key={`${app?.user?.id || 'guest'}:${editing?.id || 'draft'}:${planSearch}`} current={{ title, date, stops, details }} onApply={applyPlanEdit} />
       <PlannerSchedule ownerId={app?.user?.id} sessionKey={app?.user?.token} onLogin={() => app?.setShowLogin(true)} stops={stops} date={date} title={title} details={details} admissionOverride={admissionOverride} onChange={changePlanDetails} onStatus={setStatus} />
-      <button className="planner-primary" disabled={!library.ready || library.busy || !stops.length} onClick={() => void save()}>{library.busy ? '保存中…' : editing ? '更新这份计划' : '保存这份计划'}</button>
-      <button type="button" className="planner-compose-outing" disabled={!stops.length || !date} onClick={() => { if (!app?.user?.id) { app?.setShowLogin(true); return; } const state = createOutingPlanHandoff({ ownerId: app.user.id, title, date, stops, details }); if (state) navigate('/together?draft=plan', { state }); else setStatus(locale === 'en' ? 'Check your date and selected places before creating an outing.' : '请先核对日期与所选地点，再发起小队。'); }}><Plus size={15} />{locale === 'en' ? 'Find company for this plan' : '带着这份计划，发起小队'}</button></>}
-      <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} />
-      {stops.length > 0 && <><button className="planner-share" onClick={() => void share()}><Share2 size={15} /> 分享地点与日期</button><a className="planner-public-link" onClick={() => recordProductEvent('plan_shared')} href={sharePlanUrl({ date, stops })}>打开公开分享链接 ↗</a></>}
+      <Button variant="primary" block className="planner-save" disabled={!library.ready || library.busy || !stops.length} onClick={() => void save()}>{library.busy ? '保存中…' : editing ? t('更新行程', 'Update my plan') : t('保存到行程', 'Save to my plans')}</Button>
+      <Button variant="secondary" block className="planner-compose-outing" disabled={!stops.length || !date} icon={<Plus size={18} aria-hidden="true" />} onClick={() => { if (!app?.user?.id) { app?.setShowLogin(true); return; } const state = createOutingPlanHandoff({ ownerId: app.user.id, title, date, stops, details }); if (state) navigate('/together?draft=plan', { state }); else setStatus(locale === 'en' ? 'Check your date and selected places before creating an outing.' : '请先核对日期与所选地点，再发起小队。'); }}>{locale === 'en' ? 'Find company for this plan' : '带着这份计划，发起小队'}</Button></>}
+      <PlannerAccountNotice library={library} signedIn={!!app?.user} login={() => app?.setShowLogin(true)} announceError={!saveFailed} />
+      {stops.length > 0 && <div className="planner-share-actions"><Button variant="secondary" icon={<Share2 size={18} aria-hidden="true" />} onClick={() => void share()}>分享地点与日期</Button><Button variant="text" icon={<Printer size={18} aria-hidden="true" />} onClick={() => window.print()}>{t('打印这一天', 'Print this day')}</Button><a className="planner-public-link" onClick={() => recordProductEvent('plan_shared')} href={sharePlanUrl({ date, stops })}>打开公开分享链接 ↗</a></div>}
       {status && <p className="planner-note" role="status">{status}</p>}
       <p className="planner-note">景点顺序由你决定。出发前确认门票、开放时间及导航路线。</p>
     </aside></div>
-  </fieldset></div>;
+    <PlannerImageCredits covers={pageCovers} />
+  </fieldset></PageContainer>;
 }

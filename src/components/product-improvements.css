@@ -1,8 +1,8 @@
 .bookmark-control { position:relative; display:inline-flex; }
-.post-action.is-saved { color:#176b52; background:#eef5e8; }
-.bookmark-error { position:absolute; z-index:5; left:0; bottom:100%; width:210px; padding:9px; border:1px solid #ecd2c5; border-radius:9px; background:#fff9f2; color:#813f27; font-size:.75rem; line-height:1.5; box-shadow:0 5px 18px #123c3120; }
-.site-topbar-tools { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex-shrink:0; min-height:40px; padding:0 10px; border:1px solid #e4e9db; border-radius:10px; color:#54724c; font-size:.75rem; }
-.site-topbar-tools[aria-current=page] { background:#eaf0df; border-color:#bdcda9; }
+.post-action.is-saved { color:var(--color-brand); background:var(--color-brand-tint); }
+.bookmark-error { position:absolute; z-index:5; left:0; bottom:100%; width:210px; padding:9px; border:1px solid rgb(var(--color-danger-rgb) / .2); border-radius:9px; background:var(--color-danger-tint); color:var(--color-danger); font-size:.75rem; line-height:1.5; box-shadow:0 5px 18px rgb(var(--color-brand-deep-rgb) / .13); }
+.site-topbar-tools { display:inline-flex; align-items:center; justify-content:center; gap:7px; flex-shrink:0; min-height:40px; padding:0 10px; border:1px solid var(--color-line); border-radius:10px; color:var(--color-ink-3); font-size:.75rem; }
+.site-topbar-tools[aria-current=page] { background:var(--color-brand-tint); border-color:var(--color-line-strong); }
 @media(max-width:767px) { .site-topbar-tools { width:36px; height:36px; min-height:36px; padding:0; } .site-topbar-tools>span { display:none; } }
 @media (max-width:639px) {
   .bay-home { padding-top:14px; }
@@ -10,7 +10,7 @@
   .bay-hero { min-height:0; border-radius:16px; }
   .bay-hero-copy { padding:17px 18px; }
   .bay-hero-eyebrow,.bay-hero-copy>p { display:none; }
-  .bay-hero h1 { font-size:1.4375rem; line-height:1.36; letter-spacing:-.7px; margin:0; }
+  .bay-hero h1 { font-size:1.4375rem; line-height:1.36; letter-spacing:0; margin:0; }
   .bay-hero h1 br { display:none; }
   .bay-hero h1 { max-width:270px; }
   .bay-hero h1>span { display:block; }

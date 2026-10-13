@@ -2,40 +2,36 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { registerHooks } from 'node:module';
 import '../src/i18n/router';
 import '../src/i18n/metadata';
-import { setLocale, translateText } from '../src/i18n/locale';
+import { checkSiteTraditional, setLocale, translateText } from '../src/i18n/locale';
 import { languagePath, languagePrefix, type SiteLanguage } from '../src/lib/language-path';
 import { dirname, join, resolve } from 'node:path';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React, { type ReactNode } from 'react';
-import { guides, getGuidesForCategorySlug } from '../src/data/guides';
-import { TermsView } from '../src/components/TermsView';
-import { PrivacyPolicyView } from '../src/components/PrivacyPolicyView';
-import { SmsConsentView } from '../src/components/SmsConsentView';
-import { AboutContent } from '../src/components/AboutContent';
+import { guides } from '../src/data/guides';
 import { ABOUT_METADATA } from '../src/lib/about-metadata';
-import ArchivePage from '../src/pages/ArchivePage';
 import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
-import NotFoundPage from '../src/pages/NotFoundPage';
 import { SLUG_TO_CATEGORY } from '../src/routing';
 import { renderHtmlDocument, SITE_STRUCTURED_DATA, type PageMetadata } from '../src/lib/seo';
+import { HUB_CARDS } from '../src/lib/hub-cards';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { GUIDES_METADATA } from '../src/lib/guides-metadata';
-import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
+import { TOOLS_METADATA } from '../src/data/tool-catalog';
+import { categoryHubMetadata, PRIVACY_METADATA, SMS_METADATA, TERMS_METADATA } from '../src/lib/hub-metadata';
+import { CategoryHubPrerender, ToolsHubPrerender } from '../src/components/HubPrerender';
 import NotificationTokenPage from '../src/pages/NotificationTokenPage';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { matchRoute, PAGE_MODULES } from '../src/app/route-table';
-import { HomeDiscovery } from '../src/components/HomeDiscovery';
-import { AttractionExplorer } from '../src/components/AttractionExplorer';
 import { EXPLORE_METADATA } from '../src/data/attractions';
-import { localDiscoveries } from '../src/data/local-discoveries';
+import { allDetailRecords } from '../src/features/detail/build-detail';
+import { detailBucket } from '../src/lib/english-loading';
 import { generateSitemap } from './generate-sitemap';
-import { LocalDiscoveryDetail } from '../src/components/LocalDiscoveryDetail';
+import { discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
+import guidesPublished from '../src/data/first-published/guides.json';
+import listingsPublished from '../src/data/first-published/listings.json';
 
 import { CALENDAR_METADATA } from '../src/lib/event-calendar';
-import PlannerPage from '../src/pages/PlannerPage';
-import AiLocalPage from '../src/pages/AiLocalPage';
 import { PLAN_METADATA } from '../src/lib/planner';
 import { OpusBayShell } from '../src/components/OpusBayShell';
 import { opusBayHeadExtras, opusBayInHalloween, opusBayMetadata } from '../src/lib/opus-bay-metadata';
@@ -51,23 +47,66 @@ const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuidesHome } = await import('../src/components/GuidesHome');
+const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
+// WEB-DATA-SPLIT: the deals board and the city directory are chunks the article loads with its record; load them before rendering.
+const { preloadAllGuideBlocks } = await import('../src/features/guides/guide-blocks');
+await preloadAllGuideBlocks();
+// WEB-DATA-SPLIT: 繁體 pages render with the full opencc build; the browser's pruned phrase table must agree on every string.
+const siteTraditionalMismatches = await checkSiteTraditional();
+// The home sections render WEB-UI covers (ui.css), so the home is imported after the hook too (WEB-HOME).
+const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
+// WEB-SECONDARY: these pages render the WEB-UI primitives (ui.css), so they load after the CSS hook as well.
+const { TermsView } = await import('../src/components/TermsView');
+const { PrivacyPolicyView } = await import('../src/components/PrivacyPolicyView');
+const { SmsConsentView } = await import('../src/components/SmsConsentView');
+const { AboutContent } = await import('../src/components/AboutContent');
+const { default: ArchivePage } = await import('../src/pages/ArchivePage');
+const { default: NotFoundPage } = await import('../src/pages/NotFoundPage');
+const { AttractionExplorer } = await import('../src/components/AttractionExplorer');
+const { default: AiLocalPage } = await import('../src/pages/AiLocalPage');
+// WEB-PLAN: PlannerPage imports its own CSS (plan-page.css), so it loads after the CSS hook too.
+const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 
 // PRERENDER_OUT_DIR: QA renders a scratch build (vite build --outDir <dir>) without touching ./dist (W9-E)
 const outputDir = resolve(process.env.PRERENDER_OUT_DIR || 'dist');
 const template = await readFile(join(outputDir, 'index.html'), 'utf8');
 const noop = () => {};
+// Article datePublished: the day each guide, offer and opening first shipped (scripts/record-first-published.ts).
+const GUIDES_PUBLISHED = guidesPublished as Record<string, string>, LISTINGS_PUBLISHED = listingsPublished as Record<string, string>;
 const manifest = JSON.parse(await readFile(join(outputDir, '.vite/manifest.json'), 'utf8'));
 // The page module comes from the route table (src/app/route-table.ts), as at boot (route-loaders.ts): /404 → NotFoundPage.
 const routeModule = (path: string) => PAGE_MODULES[matchRoute(path)?.page || 'notFound'];
-type ManifestChunk = { file: string; imports?: string[]; css?: string[] };
+type ManifestChunk = { file: string; name?: string; isDynamicEntry?: boolean; imports?: string[]; css?: string[] };
+/** A page that other chunks also import statically (NotFoundPage, rendered by the detail pages for a missing id) is emitted as
+ * a shared chunk keyed `_Name-hash.js`, without its source path: find it by name so its stylesheets are linked too. */
+const manifestEntry = (module: string): ManifestChunk | undefined => manifest[module] ?? (Object.values(manifest) as ManifestChunk[]).find(item => item.isDynamicEntry && item.name === module.split('/').pop()!.replace(/\.tsx?$/, ''));
+/** WEB-DATA-SPLIT: an article also loads its own record chunk and, for a few guides, a block renderer (guide-store.ts). */
+const guideModules = (path: string) => {
+  const guide = guides.find(item => `/guides/${item.slug}` === path);
+  if (!guide) return [];
+  const uses = (type: string) => guide.blocks.some(block => block.type === type);
+  return [`src/data/generated/guides/${guide.slug}.json`, ...(uses('freebies') ? ['src/components/FreebieBoard.tsx'] : []), ...(uses('city-exploration') ? ['src/components/CityExplorationDirectory.tsx'] : [])];
+};
 /** The page's static module graph: its JS files and every stylesheet the graph imports. */
 const routeGraph = (path: string) => {
   const files = new Set<string>(); const styles = new Set<string>();
   const visit = (item: ManifestChunk) => { if (files.has(item.file)) return; files.add(item.file); for (const css of item.css || []) styles.add(css); for (const key of item.imports || []) if (manifest[key]) visit(manifest[key]); };
-  if (manifest[routeModule(path)]) visit(manifest[routeModule(path)]);
+  const entry = manifestEntry(routeModule(path));
+  if (entry) visit(entry);
+  for (const key of guideModules(path)) if (manifest[key]) visit(manifest[key]);
   return { files: [...files], styles: [...styles] };
 };
-const modulePreloads = (path: string) => routeGraph(path).files.map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
+/** An event, offer or opening detail also preloads its generated record bucket (and, in English, its dictionary pack):
+ * the page reads them before it replaces this HTML (WEB-DETAIL, ENGSEC-01; lib/english-loading.ts detailBucket). */
+const DETAIL_KINDS = { events: 'event', offers: 'offer', openings: 'opening' } as const;
+const detailChunks = (path: string, locale: SiteLanguage): string[] => {
+  const match = /^\/(events|offers|openings)\/([^/]+)$/.exec(path);
+  if (!match) return [];
+  const bucket = detailBucket(DETAIL_KINDS[match[1] as keyof typeof DETAIL_KINDS], decodeURIComponent(match[2]));
+  const keys = [`src/data/generated/details/bucket-${bucket}.json`, ...(locale === 'en' ? [`src/data/generated/english-scopes/detail-${bucket}.json`] : [])];
+  return keys.map(key => manifest[key]?.file).filter((file): file is string => !!file);
+};
+const modulePreloads = (path: string, locale: SiteLanguage = 'zh-Hans') => [...routeGraph(path).files, ...detailChunks(path, locale)].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
 /** RC-6: CSS that Vite splits out of the global bundle arrives with the page chunk, after first paint. Link it in the
  * prerendered head after the global stylesheet: the same cascade order as when the chunk appends it in the app. */
 const withRouteStylesheets = (html: string, path: string) => {
@@ -85,14 +124,14 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
     await mkdir(dirname(destination), { recursive: true });
-    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path) + '\n<!--baylink-meta-end-->'), metadata.path);
+    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
     await writeFile(destination, html);
   }
   await setLocale('zh-Hans', false);
 };
 
 const homeDescription = '湾区活动、免费福利与实用生活指南，附官方来源和核对日期。搜索下一步，或向 BayBay 提问。';
-await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', structuredData: SITE_STRUCTURED_DATA }, (
+await renderPage({ title: 'BAYLINK｜湾区去哪、怎么办——有来源的中文答案', description: homeDescription, path: '/', image: HUB_CARDS.home, imageAlt: '这个周末，湾区去哪？BAYLINK 本周末精选', english: { imageAlt: 'Where to go in the Bay Area this weekend: BAYLINK picks' }, structuredData: SITE_STRUCTURED_DATA }, (
   <section className="px-5 py-8">
     <HomeDiscovery onAskBayBay={noop} onBrowseCommunity={noop} />
   </section>
@@ -124,29 +163,40 @@ await setLocale('zh-Hans', false);
 // W9-E-switch: /play is the game now — its page is the game's shell with canonical /opus-bay (App.tsx's PlayRedirect sends
 // the visitor on, keeping ?lang; an old weekend ticket goes to /plan); out of the sitemap
 await writeFile(join(outputDir, 'play.html'), opusBayDocument(opusBayMetadata(buildDate)));
-await renderPage({title:'湾区 AI 现场｜BAYLINK',description:'AI Week SF 与 SF Tech Week 的真实场次、报名要求、费用与第一次参加的实用准备。',path:'/ai-in-the-bay'}, <AiLocalPage />);
+await renderPage({title:'湾区 AI 现场｜BAYLINK',description:'AI Week SF 与 SF Tech Week 的真实场次、报名要求、费用与第一次参加的实用准备。',path:'/ai-in-the-bay',image:HUB_CARDS.events}, <AiLocalPage />);
 await renderPage(ABOUT_METADATA, <AboutContent />);
 await renderPage(ARCHIVE_METADATA, <ArchivePage />);
-await renderPage(TOOLS_METADATA, <section className="px-5 py-8"><h1 className="text-3xl font-bold">湾区生活工具箱</h1><p className="mt-3 leading-relaxed">AI 沟通、日常换算、费用计算和生活清单，让湾区日常更方便。</p><ul className="mt-6 space-y-5">{LIFE_TOOLS.map(tool => <li key={tool.id}><a href={`/tools?tool=${tool.id}`} className="text-lg font-semibold text-baylink-green">{tool.title}</a><p className="mt-2 leading-relaxed">{tool.description}</p></li>)}</ul><p className="mt-6 text-sm">互动工具在页面加载后即可使用。计算在浏览器本机完成；AI 沟通只在点击生成后提交内容。</p></section>);
+// Hub bodies render through src/components/HubPrerender.tsx: the site's JSX runtime localizes them (I18N-SEO-02).
+await renderPage(TOOLS_METADATA, <ToolsHubPrerender />);
 for (const guide of guides) {
-  await renderPage(getGuideMetadata(guide), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
+  await renderPage(getGuideMetadata(guide, GUIDES_PUBLISHED[guide.slug]), <GuideDetail slug={guide.slug} onBack={noop} onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} />);
 }
-for (const item of localDiscoveries) {
-  await renderPage(getDiscoveryMetadata(item), <LocalDiscoveryDetail item={item} />);
+// Event, offer and opening details render the same generated records the app loads (src/features/detail, ENGSEC-01).
+// An offer's or opening's Article datePublished (first-published/listings.json) rides in the prerendered JSON-LD only — the
+// app keeps that block while it shows the same page (seo.ts) — so their metadata is built here with the day (WEB-SEO-I18N);
+// the record's own metadata is the same call without it.
+for (const record of new Set(allDetailRecords().values())) {
+  const { item } = record;
+  const metadata = item.kind === 'event' ? record.metadata : getDiscoveryMetadata(item, LISTINGS_PUBLISHED[`${item.kind}:${discoveryShare(item).id}`]);
+  await renderPage(metadata, <LocalDiscoveryDetail record={record} />);
 }
-for (const [slug, category] of Object.entries(SLUG_TO_CATEGORY)) {
-  await renderPage({ title: `${category}｜湾区本地信息 · BAYLINK`, description: `浏览湾区${category}信息，按地区查找本地资源和邻里需求。请联系发布者确认信息仍有效。`, path: `/category/${slug}` }, (
-    <section className="px-5 py-8"><h1 className="text-2xl font-bold">湾区{category}信息</h1><p className="mt-3">浏览本地资源和邻里需求，联系前请确认地点、价格和时间。</p><h2 className="mt-6 font-bold">行动前，先读一份实用指南</h2><ul className="mt-3 space-y-3">{getGuidesForCategorySlug(slug).map((guide) => <li key={guide.slug}><a href={`/guides/${guide.slug}`} className="text-baylink-green underline">{guide.title}</a><p className="mt-1 text-sm">{guide.summary}</p></li>)}</ul><a className="mt-5 inline-block text-baylink-green underline" href="/guides">全部生活指南</a><p className="mt-3 text-sm text-baylink-muted">最新帖子和地区筛选会在页面加载后显示。</p></section>
-  ));
-}
-await renderPage({ title: '服务条款｜BAYLINK', description: '了解 BAYLINK 的账号、信息发布、用户交易、AI 功能和短信验证使用条款。', path: '/terms' }, <TermsView />);
-await renderPage({ title: '隐私政策｜BAYLINK', description: '了解 BAYLINK 账号资料、公开内容、验证手机号、联系方式分享与隐私申请说明。', path: '/privacy' }, <PrivacyPolicyView />);
-await renderPage({ title: '短信验证说明｜BAYLINK', description: '了解 BAYLINK 手机验证码的主动请求、用途、短信费用、退订与帮助说明。', path: '/sms-consent' }, <SmsConsentView />);
-await renderPage({ title: '验证邮箱｜BAYLINK', description: '确认由本人发起的邮箱验证请求。', path: '/verify-email', noindex: true }, <NotificationTokenPage purpose="verify" />);
-await renderPage({ title: '取消站外通知｜BAYLINK', description: '主动取消 BAYLINK 邮件或短信提醒。', path: '/notifications/unsubscribe', noindex: true }, <NotificationTokenPage purpose="unsubscribe" />);
-await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', path: '/404', noindex: true }, <NotFoundPage />, '404.html');
+for (const slug of Object.keys(SLUG_TO_CATEGORY)) await renderPage(categoryHubMetadata(slug), <CategoryHubPrerender slug={slug} />);
+await renderPage(TERMS_METADATA, <TermsView />);
+await renderPage(PRIVACY_METADATA, <PrivacyPolicyView />);
+await renderPage(SMS_METADATA, <SmsConsentView />);
+await renderPage({ title: '验证邮箱｜BAYLINK', description: '确认由本人发起的邮箱验证请求。', english: { title: 'Verify your email | BAYLINK', description: 'Confirm an email verification you asked for.' }, path: '/verify-email', noindex: true }, <NotificationTokenPage purpose="verify" />);
+await renderPage({ title: '取消站外通知｜BAYLINK', description: '主动取消 BAYLINK 邮件或短信提醒。', english: { title: 'Turn off email or text notices | BAYLINK', description: 'Turn off BAYLINK email or text reminders.' }, path: '/notifications/unsubscribe', noindex: true }, <NotificationTokenPage purpose="unsubscribe" />);
+await renderPage({ title: '页面不存在｜BAYLINK', description: '没有找到这个页面。请检查链接，或返回 BAYLINK 首页。', english: { title: 'Page not found | BAYLINK', description: 'We could not find this page. Check the link, or go back to the BAYLINK home page.' }, path: '/404', noindex: true }, <NotFoundPage />, '404.html');
+// RC-6 for 404.html: NotFoundPage is a shared chunk found by name (manifestEntry). If that lookup ever misses, the page would
+// paint without its stylesheet, so the build stops instead.
+const notFoundStyles = routeGraph('/404').styles;
+const notFoundHtml = await readFile(join(outputDir, '404.html'), 'utf8');
+const unlinkedNotFoundStyles = notFoundStyles.filter(file => !notFoundHtml.includes(`href="/${file}"`));
+if (!notFoundStyles.length || unlinkedNotFoundStyles.length) throw new Error(`prerender: 404.html must link NotFoundPage's stylesheets (${unlinkedNotFoundStyles.join(', ') || 'none found in the Vite manifest'})`);
 
 const { paths: sitemapPaths, xml: sitemap } = generateSitemap();
 await writeFile(join(outputDir, 'sitemap.xml'), sitemap);
 cssAsEmptyModule.deregister();
+const mismatched = siteTraditionalMismatches();
+if (mismatched.length) throw new Error(`繁體: the browser's phrase table (src/data/generated/zh-hant-phrases.json) converts ${mismatched.length} prerendered strings differently from the full opencc build, e.g. ${mismatched.slice(0, 5).join(' | ')}`);
 console.log(`Prerendered ${sitemapPaths.length + 1} public HTML pages and sitemap. No authenticated or live user data was fetched.`);

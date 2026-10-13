@@ -13,7 +13,7 @@ function Contact({ contact }: { contact: UtilityContact }) {
     <a href={contact.url} target="_blank" rel="noopener noreferrer">{t(contact.name)} <ArrowUpRight size={14} aria-hidden="true" /><span className="sr-only">{t('（在新标签页打开）')}</span></a>
     {contact.phone && <span className="utility-phone">{linkifyPhones(contact.phone, { name: t(contact.name), variant: 'row' })}</span>}
     {contact.email && <a className="utility-email" href={`mailto:${contact.email}`}>{contact.email}</a>}
-    {contact.note && <p>{t(contact.note)}</p>}
+    {contact.note && <p>{linkifyPhones(t(contact.note))}</p>}
     {(contact.availabilityUrl || contact.movingUrl) && <div className="utility-contact-actions">
       {contact.availabilityUrl && <a href={contact.availabilityUrl} target="_blank" rel="noopener noreferrer">{t('查地址可用服务')} ↗</a>}
       {contact.movingUrl && <a href={contact.movingUrl} target="_blank" rel="noopener noreferrer">{t('搬家／转移服务')} ↗</a>}
@@ -59,7 +59,7 @@ export function UtilityDirectory({ cities, title, text }: { cities: UtilityCity[
         {rows.map(city => <details className="utility-city" key={`${name}-${city.city}`}>
           <summary><span><strong>{city.city}</strong><small>{[...city.water, ...city.electric, ...city.waste].map(contact => t(contact.name)).join(' · ')}</small></span><ChevronDown size={20} aria-hidden="true" /></summary>
           <div className="utility-city-body">
-            {city.notes && <p className="utility-city-note">{t(city.notes)}</p>}
+            {city.notes && <p className="utility-city-note">{linkifyPhones(t(city.notes))}</p>}
             <dl className="utility-services">{([
               ['供水／水费', city.water], ['电力／开户', city.electric], ['垃圾／回收', city.waste],
             ] as const).map(([label, contacts]) => <div key={label}><dt>{t(label)}</dt><dd>{contacts.map(contact => <Contact key={`${contact.name}-${contact.url}`} contact={contact} />)}</dd></div>)}

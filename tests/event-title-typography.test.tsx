@@ -71,7 +71,7 @@ test('detail title units stay whole from 360px and may wrap on narrower phones',
   const sheet = postcss.parse(readFileSync(new URL('../src/components/local-discovery-detail.css', import.meta.url), 'utf8'));
   const keep = (inMedia: string | undefined) => {
     let found: Rule | undefined;
-    sheet.walkRules('.local-discovery-detail .discovery-detail-header h1 .title-keep', rule => { if ((rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : undefined) === inMedia) found = rule; });
+    sheet.walkRules('.local-discovery-detail .detail-head h1 .title-keep', rule => { if ((rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : undefined) === inMedia) found = rule; });
     return found && declarations(found).get('white-space');
   };
   assert.equal(keep(undefined), 'nowrap');

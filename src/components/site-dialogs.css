@@ -16,7 +16,7 @@
 textarea.site-dialog-field { resize:vertical; min-height:6rem; }
 .site-dialog-count,.site-dialog-note { margin:6px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
 .site-dialog-count { text-align:right; }
-.site-dialog-error { display:flex; align-items:flex-start; gap:8px; margin:12px 0 0; padding:10px 12px; border-radius:10px; background:var(--ui-danger-tint); color:var(--color-danger); font-size:var(--text-fact); line-height:1.6; }
+.site-dialog-error { display:flex; align-items:flex-start; gap:8px; margin:12px 0 0; padding:10px 12px; border-radius:10px; background:var(--color-danger-tint); color:var(--color-danger); font-size:var(--text-fact); line-height:1.6; }
 .site-dialog-error>svg { flex:none; margin-top:3px; }
 .site-dialog-success { margin:0 0 16px; padding:14px 16px; border-radius:12px; background:var(--color-selected); color:var(--color-brand-deep); font-size:var(--text-body); line-height:1.7; }
 .site-dialog-actions { display:grid; gap:10px; margin-top:20px; }

@@ -33,13 +33,14 @@ export function EditorialShareActions({ item }: { item: EditorialShare }) {
 }
 
 function EditorialShareSheet({ item, onClose }: { item: EditorialShare; onClose: () => void }) {
-  useLocale();
+  const locale = useLocale();
   const [file, setFile] = useState<File | null>(null);
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const [manual, setManual] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const imagePath = shareCardPath(item);
+  // the card in the reader's language: its text and its QR (the page in that language)
+  const imagePath = shareCardPath(item, locale);
   useEffect(() => {
     const controller = new AbortController();
     fetch(imagePath, { signal: controller.signal }).then(async response => {

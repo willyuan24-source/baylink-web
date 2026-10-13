@@ -27,6 +27,7 @@ import { bayBayPageTitle } from '../features/baybay/page-title';
 import { loadBayBayCards } from '../features/baybay/cards-loader';
 import { translateText, useLocale } from '../i18n/locale';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
+import { LocaleFeatureGate } from './LocaleContentGate';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
 /** An explicit guest sign-in carries only this tab's in-memory draft, never account history. */
@@ -60,7 +61,8 @@ const resolveCategoryLabel = (category?: string) => {
 
 const hasUnconfirmedFoodEvidence = (response?: GuideChatResponse) => response?.research?.warnings?.includes('food_evidence_unconfirmed') === true;
 
-export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <BayBayAssistantSession key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props} />;
+// BayBay's cards show events, offers, openings and guides over any page: it waits for its own dictionaries (WEB-DATA-SPLIT).
+export const BayBayAssistantEntry = (props: BayBayAssistantEntryProps) => <LocaleFeatureGate feature="baybay"><BayBayAssistantSession key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props} /></LocaleFeatureGate>;
 
 const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   currentPath = typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search,

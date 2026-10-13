@@ -122,9 +122,13 @@ export async function renderPublicPostPage(request: Request, dependencies: Depen
     const post = publicPost(data, id);
     if (!post) return errorResponse(503);
     const description = post.description.replace(/\s+/g, ' ').slice(0, 180) || [post.category, post.city, post.budget].filter(Boolean).join(' · ');
+    // A user's post is one text in its author's language (I18N-SEO-12): seo.ts gives every /posts/ page no hreflang, and
+    // the /en and /zh-Hant copies a canonical at the original and noindex; the header says it before the HTML is read.
+    const languageCopy = lang !== 'zh-Hans';
     const metadata: PageMetadata = { title: `${post.title}｜BAYLINK`, description, path, image: post.image, type: 'article', noindex: post.closed, preserveText: true, locale };
     const body = `<article translate="no"><h1 class="mt-6 text-2xl font-bold">${escapeHtml(post.title)}</h1><p class="mt-3 text-sm">${escapeHtml([post.category, post.city, post.budget, post.closed ? copy.closed : copy.confirm].filter(Boolean).join(' · '))}</p>${post.image ? `<img src="${escapeHtml(safeSocialImage(post.image))}" alt="${copy.image}" class="mt-5 max-h-[500px] max-w-full rounded-2xl object-contain" />` : ''}<p class="mt-5 whitespace-pre-wrap leading-relaxed">${escapeHtml(post.description)}</p><p class="mt-6 text-sm">${copy.note}</p><a href="${prefix}/" class="mt-5 inline-block underline">${copy.browse}</a></article>`;
     const result = respond(200, metadata, body);
+    if (languageCopy) result.headers.set('X-Robots-Tag', 'noindex, follow');
     return request.method === 'HEAD' ? new Response(null, { status: 200, headers: result.headers }) : result;
   } catch {
     return errorResponse(503);

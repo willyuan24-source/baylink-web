@@ -65,7 +65,7 @@ export const utilityGuides: Guide[] = [{
     },
     {
       "title": "ABAG：湾区九县与 101 个城市和镇",
-      "url": "https://www.abag.ca.gov/about-abag/what-we-do/how-we-govern",
+      "url": "https://abag.ca.gov/about-abag/what-we-do/how-we-govern",
       "description": "本文城市覆盖范围；不将湾区以外城市或县内非建制社区算入 101 城。"
     },
     {

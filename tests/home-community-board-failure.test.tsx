@@ -83,8 +83,8 @@ test('a board shown on its own (≥4 recent posts) that does not load leaves the
   const view = render(app('/', { posts: recentPosts }));
   await settled();
   assert.equal(boardRequests, 1, 'one request, no in-page retry (a browser answers a retry from its module map)');
-  assert.ok(screen.getByRole('heading', { name: '邻里信息' }));
-  assert.ok(view.container.querySelector('.bay-home-footer'));
+  assert.ok(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
+  assert.ok(view.container.querySelector('.home-discovery'));
   assert.equal(screen.queryByText('连接暂时慢了一点'), null, 'no error the reader did not ask for');
 });
 
@@ -101,15 +101,15 @@ test('a direct load of a category page whose board does not load fails with the 
   assert.equal(boardRequests, before + 1, 'the page load asked for the board again');
 });
 
-test('浏览邻里信息 after a failed load imports the board again, then shows its "could not load" state; online, 重新加载 reloads the page at the anchor', async () => {
+test('邻里信息（测试中）· 去看看 after a failed load imports the board again, then shows its "could not load" state; online, 重新加载 reloads the page at the anchor', async () => {
   const view = render(app('/'));
   const before = boardRequests;
-  fireEvent.click(screen.getByRole('button', { name: '浏览邻里信息' }));
-  assert.equal(boardRequests, before + 1, 'tapping 浏览邻里信息 imports the board again');
+  fireEvent.click(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
+  assert.equal(boardRequests, before + 1, 'tapping 去看看 imports the board again');
   assert.ok(await screen.findByText('连接暂时慢了一点', undefined, { timeout: 5000 }));
   assert.equal(boardRequests, before + 1);
-  const order = [...view.container.querySelectorAll('.bay-community-intro, .bay-feed-empty, .bay-home-footer')].map(element => element.className);
-  assert.deepEqual(order, ['bay-community-intro', 'bay-feed-empty', 'bay-home-footer']);
+  const order = [...view.container.querySelectorAll('.home-discovery, .bay-feed-empty')].map(element => element.className);
+  assert.deepEqual(order, ['home-discovery', 'bay-feed-empty']);
   assert.equal(view.container.querySelector('.bay-feed-empty')?.id, 'home-feed-section', 'the neighborhood anchor still lands');
   await waitFor(() => assert.deepEqual(scrolled, ['home-feed-section']), undefined);
   assert.ok(view.container.querySelector('.bay-feed-empty')?.contains(screen.getByRole('button', { name: '重新加载' })), 'it scrolled to the notice (查看邻里信息 sits far above it)');
@@ -128,7 +128,7 @@ test("offline, 重新加载 tries in place (a reload would show the browser's of
   Object.defineProperty(dom.window.navigator, 'onLine', { configurable: true, get: () => false });
   try {
     render(app('/'));
-    fireEvent.click(screen.getByRole('button', { name: '浏览邻里信息' }));
+    fireEvent.click(screen.getByRole('button', { name: '邻里信息（测试中）· 去看看' }));
     assert.ok(await screen.findByRole('button', { name: '重新加载' }, { timeout: 5000 }));
     const before = boardRequests;
     navigations.length = 0;

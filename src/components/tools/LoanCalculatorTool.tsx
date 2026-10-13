@@ -25,14 +25,17 @@ function BalanceChart({ baseline, current, principal, months, selected }: { base
   const focus = current.annualSummary[selected];
   const focusX = focus ? 42 + Math.min(focus.year * 12, current.payoffMonths) / months * 506 : 42;
   const focusY = focus ? 22 + (1 - focus.balanceCents / principal) * 122 : 22;
-  return <svg className="loan-balance-chart" viewBox="0 0 590 178" role="img" aria-label="贷款本金余额下降趋势，深色为当前还款方案，浅色虚线为不额外还款方案；精确数值见年度明细">
-    <line x1="42" y1="144" x2="548" y2="144" stroke="#dce4d3" />
-    <line x1="42" y1="22" x2="548" y2="22" stroke="#edf0e8" strokeDasharray="4 5" />
-    <polyline points={path(baseline)} fill="none" stroke="#b8c4a9" strokeWidth="3" strokeDasharray="5 4" />
-    <polyline points={path(current)} fill="none" stroke="#456c43" strokeWidth="3" />
-    <circle cx={focusX} cy={focusY} r="5" fill="#456c43" stroke="white" strokeWidth="2" />
-    <text x="42" y="166" fontSize="11" fill="#738267">开始还款</text><text x="548" y="166" textAnchor="end" fontSize="11" fill="#738267">{locale === 'en' ? `Year ${months / 12}` : `第 ${months / 12} 年`}</text>
-  </svg>;
+  // Colours come from loan-calculator.css (tokens); the axis labels are HTML, so they keep a readable size when the chart shrinks.
+  return <>
+    <svg className="loan-balance-chart" viewBox="0 0 590 160" role="img" aria-label="贷款本金余额下降趋势，深色为当前还款方案，浅色虚线为不额外还款方案；精确数值见年度明细">
+      <line className="loan-chart-axis-line" x1="42" y1="144" x2="548" y2="144" />
+      <line className="loan-chart-top-line" x1="42" y1="22" x2="548" y2="22" strokeDasharray="4 5" />
+      <polyline className="loan-chart-baseline" points={path(baseline)} fill="none" strokeWidth="3" strokeDasharray="5 4" />
+      <polyline className="loan-chart-current" points={path(current)} fill="none" strokeWidth="3" />
+      <circle className="loan-chart-focus" cx={focusX} cy={focusY} r="5" strokeWidth="2" />
+    </svg>
+    <p className="loan-chart-axis" aria-hidden="true"><span>开始还款</span><span>{locale === 'en' ? `Year ${months / 12}` : `第 ${months / 12} 年`}</span></p>
+  </>;
 }
 
 export function LoanCalculatorTool({ onToast }: { onToast: ShowToast }) {

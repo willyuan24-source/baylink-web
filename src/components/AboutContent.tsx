@@ -1,72 +1,109 @@
 import { Link } from 'react-router-dom';
-import { EnglishOnly } from './EnglishOnly';
-import { ArrowRight, ArrowUpRight, BookOpen, CalendarDays, ChevronRight, Mail, MapPin, MessageCircle, Sparkles, Wrench } from 'lucide-react';
-import { BRAND } from '../brandAssets';
+import { BadgeCheck, BookOpen, CalendarDays, Eye, FileSearch, Mail, RefreshCcw } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { FeedbackLink } from '../features/feedback/ReportErrorLink';
+import { Button } from './ui/Button';
+import { PageContainer, PageHeader } from './ui/HeroCard';
+import { ProvenanceBadge } from './ui/Badges';
+import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from '../lib/image-provenance';
 
-const discoveries = [
-  { icon: CalendarDays, number: '01', title: '找活动和优惠', text: '看看本月活动、免费福利和周末好去处。', href: '/this-month', action: '去看活动' },
-  { icon: BookOpen, number: '02', title: '看生活攻略', text: '了解租房、搬家、通勤和刚来湾区要准备的事。', href: '/guides', action: '去看攻略' },
-  { icon: Wrench, number: '03', title: '用实用工具', text: '算小费、分账、比单价，换算单位或写英文消息。', href: '/tools', action: '打开生活工具箱' },
-  { icon: MessageCircle, number: '04', title: '找房源、闲置和服务', text: '浏览或发布本地信息，查看对方资料，再用私信联系。', href: '/#home-feed-section', action: '逛逛邻里信息' },
+const CONTACT_EMAIL = 'Baylink.us@gmail.com';
+
+/**
+ * The image labels readers meet on covers, written by the function that labels the covers (getImageProvenance), so this
+ * page never describes a label the site does not use. The sample inputs are data, not copy: they only select the label (the
+ * years are examples), so they are written in English and never shown as text.
+ */
+const IMAGE_LABELS: readonly { sample: ProvenanceInput; zh: string; en: string }[] = [
+  { sample: { kind: 'poster', credit: 'Official', caption: '' }, zh: '主办方、品牌或机构自己发布的图片，或经授权使用的图片。', en: 'Published by the organizer, brand or agency itself, or used with its permission.' },
+  { sample: { kind: 'photo', credit: 'CC BY', caption: '2023' }, zh: '第三方拍摄、按授权（如 CC）使用的照片；年份是拍摄年份。', en: 'A third-party photo used under its license (such as CC); the year is when it was taken.' },
+  { sample: { kind: 'photo', credit: 'CC BY', caption: '2017 archive' }, zh: '较早的资料照片，帮你认出地方，不代表现场现在的样子。', en: 'An older reference photo that helps you recognize the place; it does not show how it looks today.' },
+  { sample: { kind: 'photo', credit: 'BAYLINK', caption: '', ownShot: true, shotAt: '2026-10-10' }, zh: 'BAYLINK 自己拍的照片，后面是拍摄日期。', en: 'A photo BAYLINK took itself, with the date it was taken.' },
+  { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '' }, zh: 'AI 生成的主题插画。我们的规则是不拿它当具体活动、优惠或店铺的封面；如果看到这样用了，请告诉我们。', en: 'An AI-generated theme illustration. Our rule is not to use one as the cover of a specific event, offer or shop; if you see one used that way, please tell us.' },
+  { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '', scene3d: true }, zh: 'BAYLINK 3D 旧金山里的场景插图（AI 生成、人工挑选），只用于旧金山地点，不是实景照片。', en: 'A scene from BAYLINK’s 3D San Francisco (AI-generated, hand-picked), used for San Francisco places only; not a photograph.' },
 ];
 
-const sourceTextStyle = { fontSize: 'var(--text-body, 1rem)', lineHeight: 1.8, color: 'var(--color-ink, #16352b)', marginTop: 16 };
-const CONTACT_EMAIL = 'Baylink.us@gmail.com';
-// Body text links are otherwise drawn like plain text here; underline so the address reads as a link (WCAG 1.4.1).
-const inlineLinkStyle = { textDecoration: 'underline', textUnderlineOffset: '0.2em' };
-
-/** Public introduction shared by the interactive route and static HTML. */
+/** Public introduction shared by the interactive route and static HTML (HOMEIA-03: one positioning line on every surface). */
 export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
   const locale = useLocale();
-  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
-  return <article className="about-baylink">
-    <header className="about-hero">
-      <div className="about-hero-copy"><EnglishOnly><span className="about-eyebrow">BAY AREA LIFE</span></EnglishOnly>
-        <p className="about-page-label">关于 BAYLINK</p>
-        <h1>湾区生活，<br /><em>从这里开始。</em></h1>
-        <p className="about-lead">BAYLINK 是一个湾区生活网站。这里有活动优惠、生活攻略、实用工具，也有房源、闲置和本地服务信息。</p>
-        <Link to="/this-month" className="about-primary">去看活动<ArrowRight size={17} /></Link>
+  const english = locale === 'en';
+  const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
+  const uses = [
+    { icon: CalendarDays, to: '/events', title: t('本周末去哪', 'This weekend'), text: t('活动、免费福利和新店，按地区和日期筛选；写清已知的时间、地点、费用和官方页面。', 'Events, free benefits and new shops by area and date, with the time, place, cost and official page where we know them.'), action: t('看本周末', 'See this weekend') },
+    { icon: BookOpen, to: '/guides', title: t('办事怎么办', 'Getting things done'), text: t('医疗保险、证件、住房、出行和长辈服务的指南：先看要点，再按步骤办。', 'Guides to health coverage, IDs, housing, transport and senior services: the key facts first, then the steps.'), action: t('看办事指南', 'Browse guides') },
+  ];
+  const method = [
+    { icon: FileSearch, title: t('先找官方来源', 'Official sources first'), text: t('政府、主办方和服务机构的官方页面优先，每条内容都列出来源链接。媒体报道只作参考，标为「来源」而不是「官方来源」。', 'Government, organizer and agency pages come first, and every item links its source. A news report is only a reference and is labelled “Source”, not “Official source”.') },
+    { icon: BadgeCheck, title: t('编辑核对，写下日期', 'An editor checks and dates it'), text: t('「编辑核对 9/29」表示编辑那天打开官方页面，核对了时间、地点、费用和条件。这个日期只在人工核对后更新。', '“Editor checked 9/29” means an editor opened the official page that day and checked the time, place, cost and conditions. Only a person checking it again changes that date.') },
+    { icon: RefreshCcw, title: t('自动比对，有变化就提示', 'Automatic comparison, with a note when a page changes'), text: t('系统会定期重新读取官方页面。「自动比对 10/7 无变化」表示那天读到的内容与核对时一致；页面有实质变化时，条目会提示主办方页面有更新，直到编辑重新核对。自动比对不等于人工复核。', 'The system re-reads official pages regularly. “Auto-compared 10/7, no change” means the page matched what the editor checked. When a page changes in substance, the item says the organizer’s page was updated until an editor checks again. An automatic comparison is not a human review.') },
+    { icon: Eye, title: t('不确定的不写', 'No guessing'), text: t('官方页面没写清的时间和价格，我们不猜，请以官网为准；来源没说免费，就不标免费。已结束的活动保留为往期记录，不代表现在还能参加或领取。', 'If the official page does not give a time or price, we do not guess and point you to it; nothing is marked free unless the source says so. Ended events stay as past records, which does not mean you can still join or claim them.') },
+  ];
+  return <PageContainer size="reading" className="about-page">
+    <PageHeader
+      breadcrumb={<span><Link to="/">{t('首页', 'Home')}</Link><span aria-hidden="true"> / </span><span aria-current="page">{t('关于与核验方法', 'About and sources')}</span></span>}
+      title={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}
+      lede={t('有来源的中文答案：本周末去哪、福利和办事怎么准备，每条都附来源和核对日期。', 'With sources: where to go this weekend, which benefits apply and how to get everyday tasks done, each with its source and the date we checked it.')}
+      actions={[
+        <Button key="events" variant="primary" to="/events">{t('看本周末活动', 'See this weekend')}</Button>,
+        onAskBayBay ? <Button key="ask" variant="secondary" onClick={onAskBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button key="guides" variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>,
+      ]} />
+
+    <section className="about-section" aria-labelledby="about-uses-title">
+      <h2 id="about-uses-title">{t('BAYLINK 能帮你做什么', 'What BAYLINK helps with')}</h2>
+      <ul className="about-list">
+        {uses.map(({ icon: Icon, to, title, text, action }) => <li key={to}>
+          <span className="about-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
+          <div><h3>{title}</h3><p>{text}</p><Link className="about-link" to={to}>{action}</Link></div>
+        </li>)}
+        <li>
+          <span className="about-icon" aria-hidden="true"><img src="/brand/otter.svg" alt="" width={28} height={28} /></span>
+          <div><h3>{t('问 BayBay', 'Ask BayBay')}</h3>
+            <p>{t('用中文或英文问。BayBay 根据站内有来源的指南和活动回答，并在回答下方列出依据；访客模式只用站内资料，登录后可选择联网查。AI 回答可能出错，不代表人工审稿；日期、价格、名额和资格请以官方为准。', 'Ask in Chinese or English. BayBay answers from the site’s sourced guides and events and lists what it used under the answer. Visitors get site-only answers; signed-in members can choose web search. AI answers can be wrong and are not an editor’s review; confirm dates, prices, places and eligibility with the official source.')}</p>
+            {onAskBayBay ? <button type="button" className="about-link" onClick={onAskBayBay}>{t('和 BayBay 聊聊', 'Chat with BayBay')}</button> : <Link className="about-link" to="/tools?tool=communication">{t('试试 AI 沟通助手', 'Try the AI message helper')}</Link>}
+          </div>
+        </li>
+      </ul>
+      <p className="about-more">{t('还有：', 'Also: ')}<Link to="/explore">{t('按地区找景点', 'Places by area')}</Link><span aria-hidden="true"> · </span><Link to="/tools">{t('生活工具箱', 'Everyday tools')}</Link><span aria-hidden="true"> · </span><Link to="/opus-bay" reloadDocument>{t('3D 旧金山', '3D San Francisco')}</Link><span aria-hidden="true"> · </span><Link to="/category/rent">{t('邻里信息（测试中）', 'Neighborhood board (beta)')}</Link></p>
+    </section>
+
+    <section className="about-section" aria-labelledby="about-method-title">
+      <h2 id="about-method-title">{t('我们怎么核对', 'How we check')}</h2>
+      <ol className="about-list">
+        {method.map(({ icon: Icon, title, text }) => <li key={title}>
+          <span className="about-icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
+          <div><h3>{title}</h3><p>{text}</p></div>
+        </li>)}
+      </ol>
+      <p>{t('发现信息有误，请点详情页的「这条信息有误？」，或用页末的反馈与邮箱告诉我们。邻里信息由用户发布，联系前请核对发布者资料和实际情况。', 'If something is wrong, use “Something wrong here?” on the page, or the feedback button and email at the end of this page. Neighborhood posts come from members; check the poster and the details before you get in touch.')}</p>
+    </section>
+
+    <section className="about-section" aria-labelledby="about-images-title">
+      <h2 id="about-images-title">{t('图片怎么标', 'How images are labelled')}</h2>
+      <p>{t('图片上的标签说明这张图是什么，不说明活动现在的情况。', 'The label on a picture says what the picture is. It says nothing about how the event or place is today.')}</p>
+      <dl className="about-labels">
+        {IMAGE_LABELS.map(({ sample, zh, en }) => {
+          const label = getImageProvenance(sample, english, '2026-10-12');
+          return <div key={label}><dt><ProvenanceBadge className="about-badge" label={label} /></dt><dd>{t(zh, en)}</dd></div>;
+        })}
+        <div><dt><ProvenanceBadge className="about-badge" label={typeCoverProvenance(english)} /></dt><dd>{t('没有合适的图片时，用条目自己的日期、地点和费用排成的信息卡，不是照片。', 'When there is no suitable picture, a card set from the item’s own date, place and price. It is not a photo.')}</dd></div>
+      </dl>
+      <p data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={{ textDecoration: 'underline', textUnderlineOffset: '0.2em' }}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
+    </section>
+
+    <section className="about-section" aria-labelledby="about-contact-title">
+      <h2 id="about-contact-title">{t('联系与反馈', 'Contact and feedback')}</h2>
+      <p>{t('有问题、建议，或发现信息有误，可以直接在网站上反馈，也可以发邮件告诉我们。浏览不用登录；发布邻里信息和发私信需要登录。', 'Questions, ideas or something wrong? Send feedback right here on the site, or email us. You can browse without an account; posting and messages need you to sign in.')}</p>
+      <div className="about-contact">
+        <FeedbackLink />
+        <Button variant="secondary" href={`mailto:${CONTACT_EMAIL}`} icon={<Mail aria-hidden="true" strokeWidth={1.75} size={18} />}><span translate="no">{CONTACT_EMAIL}</span></Button>
       </div>
-      <div className="about-hero-art"><EnglishOnly><span className="about-art-location"><MapPin size={14} />SAN FRANCISCO BAY AREA</span></EnglishOnly>
-        <img src={BRAND.baybayAvatar} alt="BayBay" width={280} height={280} />
-        <div><EnglishOnly><span>GOOD TO BE HERE</span></EnglishOnly><p>你的湾区生活助手</p></div>
-      </div>
-    </header>
-
-    <section className="about-discover" aria-labelledby="about-discover-title">
-      <div className="about-section-heading"><h2 id="about-discover-title">你可以在这里做什么？</h2></div>
-      <div className="about-discover-grid">{discoveries.map(({ icon: Icon, number, title, text, href, action }) => <section className="about-discover-item" key={number}>
-        <div className="about-discover-index"><Icon size={23} /><span>{number}</span></div><h3>{title}</h3><p>{text}</p><Link to={href}>{action}<ChevronRight size={16} /></Link>
-      </section>)}</div>
+      <nav className="about-policies" aria-label={t('网站说明', 'Site policies')}>
+        <Link to="/guides/baylink-safety-guide">{t('社区安全指南', 'Community safety guide')}</Link>
+        <Link to="/archive">{t('内容目录与往期记录', 'Content directory and archives')}</Link>
+        <Link to="/terms">{t('服务条款', 'Terms of Service')}</Link>
+        <Link to="/privacy">{t('隐私政策', 'Privacy Policy')}</Link>
+        <Link to="/sms-consent">{t('短信验证说明', 'SMS verification')}</Link>
+      </nav>
     </section>
-
-    <section className="about-discover" aria-labelledby="about-sources-title">
-      <div className="about-section-heading"><h2 id="about-sources-title" style={{ fontSize: 'var(--text-section, 1.5rem)' }}>来源与核验方法</h2></div>
-      <p style={sourceTextStyle}>攻略和活动优先引用政府、主办方及服务机构等可核验来源，参考链接列在内容页。邻里帖子由用户发布，联系前请核对发布者资料与实际情况。</p>
-      <p style={sourceTextStyle}>指南的「更新」表示内容编辑日期；网页抓取只表示一次读取，不代表人工事实复核。人工核对的范围与日期，以文中的具体说明为准。</p>
-      <p style={sourceTextStyle}>阅读时留意「待复核」「需人工确认」和「往期内容」提示。来源读取失败或尚未读取时仍需确认；往期记录不表示现在仍可参加、领取或办理。</p>
-      <p style={sourceTextStyle}>行动前，请向对应机构核实个人资格、可用语言、价格与名额；有误的信息可通过下方邮箱告诉我们。</p>
-      <p style={sourceTextStyle}>AI 回答与草稿需要核对，生成结果不代表人工审稿。封面注明「AI 原创」或「AI 辅助原创」的，是主题插画，不是机构实景或服务、资格证明。</p>
-      <p style={sourceTextStyle} data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={inlineLinkStyle}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
-    </section>
-
-    <section className="about-baybay" aria-labelledby="about-baybay-title"><div className="about-baybay-mark"><Sparkles size={27} /></div><div>
-      <h2 id="about-baybay-title">BayBay AI 助手</h2>
-      <p>BayBay 可以根据站内攻略回答问题，帮你整理发帖内容或沟通草稿，由你确认后发布或发送。</p>
-      <p className="about-small">访客模式使用站内资料；登录后可选择联网研究。回答会标明来源，日期、价格、余票和预约仍请向官方确认。</p>
-      {onAskBayBay ? <button type="button" onClick={onAskBayBay}>和 BayBay 聊聊<ArrowRight size={16} /></button> : <Link to="/tools?tool=communication">试试 AI 沟通助手<ArrowRight size={16} /></Link>}
-    </div></section>
-
-    <section className="about-basics" aria-label="使用说明">
-      <p>浏览无需登录，发布信息和发私信请先登录。</p>
-      <Link to="/guides/baylink-safety-guide">阅读社区安全指南<ChevronRight size={15} /></Link>
-    </section>
-
-    <footer className="about-contact"><div><h2>联系我们</h2><p>{t('有问题、建议，或发现信息有误，可以直接在网站上反馈，也可以发邮件告诉我们。', 'Questions, ideas or something wrong? Send feedback right here on the site, or email us.')}</p><FeedbackLink /></div>
-      <a href={`mailto:${CONTACT_EMAIL}`}><Mail size={18} /><span translate="no">{CONTACT_EMAIL}</span><ArrowUpRight size={16} /></a>
-      <nav aria-label="网站说明"><Link to="/terms">服务条款</Link><Link to="/privacy">隐私政策</Link><Link to="/">回到首页<ArrowRight size={14} /></Link></nav>
-    </footer>
-  </article>;
+  </PageContainer>;
 }

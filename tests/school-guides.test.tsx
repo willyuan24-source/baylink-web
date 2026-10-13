@@ -171,7 +171,7 @@ test('the guide overview files schools under 证件与移民 (D22) and the topic
   for (const slug of schoolSlugs) assert.ok(hrefs.includes(slug), slug);
 });
 
-test('a shared education URL restores the filter and supports school searches without reintroducing promotions', () => {
+test('a shared education URL restores the filter and supports school searches without reintroducing promotions', async () => {
   const view = render(<MemoryRouter initialEntries={['/guides?category=education']}><SchoolHomeHarness /></MemoryRouter>);
   assertEducationView(view);
   fireEvent.change(view.getByRole('searchbox', { name: /篇指南中搜索/ }), { target: { value: '學區' } });
@@ -179,7 +179,8 @@ test('a shared education URL restores the filter and supports school searches wi
   assert.equal(url.searchParams.get('category'), 'education');
   assert.equal(url.searchParams.get('q'), '學區');
   assert.equal(view.getByRole('button', { name: '取消筛选：学校与学区' }).getAttribute('aria-pressed'), 'true');
-  const results = view.getByRole('list', { name: '搜索结果' });
+  // Full-text search loads the guide corpus on the first search (WEB-DATA-SPLIT).
+  const results = await view.findByRole('list', { name: '搜索结果' });
   assert.deepEqual(within(results).getAllByRole('link').map(card => card.getAttribute('href')?.replace('/guides/', '')).sort(), schoolSlugs);
   assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0);
 });

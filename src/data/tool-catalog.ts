@@ -1,3 +1,5 @@
+import { HUB_CARDS } from '../lib/hub-cards';
+
 export const LIFE_TOOLS = [
   { id: 'communication', title: 'AI 沟通助手', short: '一句话，表达得更清楚', description: '联系房东、预约维修、约好面交。把你的意思整理成中文、英文或双语消息。', tag: 'AI 帮忙', icon: 'sparkles' },
   { id: 'dining', title: '餐厅小费与分账', short: '税、小费、每人多少，一次算清', description: '照着餐厅账单填写税额与服务费，自选小费基数与比例，把总额准确分到每一美分。', tag: '即算即用', icon: 'receipt' },
@@ -15,4 +17,5 @@ export const TOOLS_METADATA = {
   title: '湾区生活工具箱 · 单价比较、房贷计算与 AI 沟通｜BAYLINK',
   description: '免费使用 BAYLINK 生活工具箱：餐厅小费与分账、商品单价比较、贷款与房贷计算、AI 中英文沟通助手、日常单位换算、租房费用计算与搬家清单。',
   path: '/tools',
+  image: HUB_CARDS.tools,
 };

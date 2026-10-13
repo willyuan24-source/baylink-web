@@ -23,7 +23,7 @@ export const november2026Guides: Guide[] = [
       "生日福利",
       "免费场馆"
     ],
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"
@@ -33,7 +33,7 @@ export const november2026Guides: Guide[] = [
     "editionMonth": "2026-11",
     "editionStartDate": "2026-10-05",
     "editionThroughDate": "2026-11-30",
-    "sourceNote": "本轮于 2026/10/7 增补到十一月底的已公布安排，包括感恩节植物园免费入场、Green Friday 与 11/20 会员折扣。各卡片保留自己的核查日期，并非全部旧优惠重新认证；有数量上限、会员或居民资格的项目按具体条款领取。",
+    "sourceNote": "2026/10/7 增补到十一月底的已公布安排，包括感恩节植物园免费入场、Green Friday 与 11/20 会员折扣。各卡片保留自己的核查日期，并非全部旧优惠重新认证；有数量上限、会员或居民资格的项目按具体条款领取。",
     "sources": currentFreebies.map(offer => ({ title: offer.sourceLabel, url: offer.sourceUrl, description: offer.requirement })),
     "blocks": [
       { "type": "heading", "text": "先看资格，再安排领取" },
@@ -61,7 +61,7 @@ export const november2026Guides: Guide[] = [
     ]
   },
   {
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other",
@@ -320,7 +320,7 @@ export const november2026Guides: Guide[] = [
     ]
   },
   {
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other",

@@ -1,0 +1,120 @@
+/*
+ * 行程 (/plan, T13; WEB-PLAN): the page around the UI primitives — PageContainer and PageHeader, the day at a glance,
+ * 已排的日子 (RowCards with covers), the list of places and events, and the print sheet. Loaded with the route (D6);
+ * the panels inside the page keep src/styles/planner.css. Tokens and rem only; text ≥ --text-caption; ≥44px targets.
+ */
+.planner-page.ui-container { padding-block:24px 96px; }
+/* tokens.css sizes every control on .planner-page to the fact size; the UI buttons keep their own 16/48 (15/44 desktop). */
+.planner-page .ui-button { min-height:max(var(--control-height), 3rem); font-size:var(--text-body); }
+/* The screenshot import entry on this page: a quiet panel with the secondary button, like the page's other panels. */
+.planner-page .event-import-entry { border:0; background:var(--color-surface-2); color:var(--color-ink); }
+.planner-page .event-import-entry p { color:var(--color-ink-2); font-size:var(--text-fact); }
+.planner-page .event-import-entry .event-import-icon { color:var(--color-brand); }
+.planner-page .event-import-entry>button { min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
+/* Desktop: every button on the page, the import entry's included, at the UI's 15/44 (after the rules above, same specificity). */
+@media (min-width:1024px) { .planner-page :is(.ui-button,.event-import-entry>button) { min-height:var(--control-height); font-size:.9375rem; } }
+.planner-page .ui-page-header { margin-bottom:20px; }
+.planner-offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:12px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-offline>svg { flex:none; margin-top:2px; }
+
+/* 这一天的安排: first whenever the plan has stops, with its save state (FC3-01). */
+.planner-plan-overview { margin:0 0 24px; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); scroll-margin-top:96px; }
+.planner-overview-head { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
+.planner-overview-head>h2 { margin:0; }
+.planner-overview-head>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-overview-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:4px; }
+.planner-overview-status { margin:0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+/* A failed save, right under 保存到行程 (the planner's one error look, without its outer margin). */
+.planner-plan-overview .planner-overview-error { margin:0; }
+.planner-plan-overview>p { margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-plan-overview dl { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:16px 0; }
+.planner-plan-overview dl>div { min-width:0; padding:12px; border-radius:12px; background:var(--color-surface-2); }
+.planner-plan-overview dt { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
+.planner-plan-overview dd { margin:4px 0 0; color:var(--color-ink); font-size:var(--text-card); line-height:1.4; font-weight:700; font-variant-numeric:tabular-nums; }
+.planner-plan-overview ol { display:flex; flex-wrap:wrap; gap:4px 16px; margin:12px 0 0; padding:0; list-style:decimal inside; color:var(--color-ink); font-size:var(--text-fact); line-height:1.75; }
+.planner-plan-overview .planner-overview-note { color:var(--color-ink-2); font-size:var(--text-caption); }
+.planner-overview-open { margin-top:8px; }
+
+/* 已排的日子 */
+.plan-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
+.plan-section-head>h2 { margin:0; }
+.plan-days { margin:0 0 8px; scroll-margin-top:96px; }
+.plan-days .ui-state { margin-top:8px; border-radius:16px; background:var(--color-surface-2); }
+.plan-days__list { display:grid; gap:20px; margin:0; padding:0; list-style:none; }
+.plan-days__day { display:grid; gap:8px; }
+@media (min-width:768px) { .plan-days__day { grid-template-columns:7.5rem minmax(0, 1fr); gap:16px; } }
+.plan-days__date { margin:0; color:var(--color-brand); font-size:var(--text-body); line-height:1.5; font-weight:700; font-variant-numeric:tabular-nums; }
+.plan-days__plan { min-width:0; padding:4px 16px 16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+.plan-days__plan+.plan-days__plan { margin-top:12px; }
+@media (min-width:768px) { .plan-days__plan { grid-column:2; } }
+.plan-days__plan-head { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:12px; }
+.plan-days__plan-head>h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; overflow-wrap:anywhere; }
+.plan-days__stops { margin:0 0 12px; padding:0; list-style:none; }
+@media (min-width:1024px) { .plan-days__stops { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:24px; } }
+.plan-days__actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
+.plan-days__more { margin:12px 0 0; }
+@media (min-width:768px) { .plan-days__more { padding-left:8.5rem; } }
+
+/* The list: RowCards with their actions below; the heart is the row's one trailing action. */
+.planner-place { scroll-margin-top:96px; border-bottom:1px solid var(--color-line); padding-bottom:12px; }
+.planner-place .ui-row-card { border-bottom:0; padding-bottom:4px; }
+.planner-place.is-selected .ui-row-card__thumb { outline:3px solid var(--color-brand); outline-offset:2px; }
+.planner-pin-no { display:inline-grid; place-items:center; min-width:1.5rem; height:1.5rem; margin-right:8px; padding:0 4px; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-caption); line-height:1; vertical-align:1px; }
+.planner-heart { display:grid; place-items:center; width:2.75rem; height:2.75rem; border:1px solid var(--color-line-strong); border-radius:50%; background:var(--color-surface); color:var(--color-brand); cursor:pointer; }
+.planner-heart[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); }
+.planner-heart:disabled { color:var(--color-ink-3); cursor:not-allowed; }
+.planner-place-when { margin:0 0 4px 6.25rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+.planner-place-summary { margin:0 0 8px 6.25rem; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-place .planner-stop-offers { margin-left:6.25rem; }
+.planner-place-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:6.25rem; }
+.planner-place-links { display:flex; flex-wrap:wrap; gap:4px 16px; margin:4px 0 0 6.25rem; font-size:var(--text-caption); }
+.planner-place-links>a { display:inline-flex; align-items:center; min-height:2.75rem; text-decoration:underline; text-underline-offset:3px; }
+.planner-place .planner-outing-preview { margin-left:6.25rem; width:auto; }
+.planner-place .planner-small-note { margin-left:6.25rem; }
+@media (max-width:420px) {
+  :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
+}
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
+.planner-catalog-more { margin-top:16px; }
+.planner-catalog-tabs { margin:8px 0 4px; }
+.planner-examples { margin:12px 0 0; }
+.planner-examples .ui-chip { white-space:normal; text-align:left; line-height:1.4; padding-block:6px; }
+@media (min-width:768px) { .planner-overview-head { flex-direction:row; flex-wrap:wrap; align-items:center; column-gap:12px; } .planner-overview-head>p { flex-basis:100%; } .planner-overview-actions { flex-basis:100%; } }
+@media (max-width:767px) {
+  .planner-plan-overview { padding:16px; }
+  .planner-plan-overview dl { gap:8px; }
+}
+@media (max-width:767px) {
+  .planner-plan-overview dl>div { padding:10px; }
+  .planner-plan-overview dd { font-size:var(--text-body); }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .planner-plan-overview dl { grid-template-columns:1fr; }
+}
+
+/* Print: the day itself — overview, stops and timeline — on paper, without the page's tools. */
+@media print {
+  .planner-page.ui-container :is(.ui-page-header__actions,.planner-form,.planner-web-search,.planner-results,#planner-discoveries,.planner-overview-actions,.planner-edit-assistant,.planner-share-actions,.planner-compose-outing,.planner-account,.planner-undo,.event-import-entry,.plan-days,.planner-offline,.planner-credits,.planner-calendar-export,.planner-save,.planner-stops li>div) { display:none!important; }
+  .planner-page.ui-container .planner-workspace { display:block; }
+  .planner-page.ui-container .planner-editor { border:0; padding:0; background:none; }
+  .planner-page.ui-container :is(.planner-plan-overview,.planner-timeline>li) { break-inside:avoid; }
+  .planner-page.ui-container details:not([open])>:not(summary) { display:none; }
+  /* The site's bars (BayBay's entry lives in them), the toast and the testers' feedback button are screen tools; only
+     the 行程 page prints them away. 已排的日子, the offline line and 本页图片来源 are not part of the day either. */
+  body:has(.planner-page.ui-container) :is(.site-topbar,.site-mobile-nav,.site-footer,.site-skip-link,.site-toast,.site-boot-retry,.feedback-tester-button) { display:none!important; }
+}
+/* 本页图片来源 */
+.planner-credits { margin-top:32px; padding-top:8px; border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
+.planner-credits>summary { min-height:var(--control-height); padding:10px 0; color:var(--color-ink-2); font-size:var(--text-fact); cursor:pointer; }
+.planner-credits>ul { display:grid; gap:6px; margin:0; padding:0; list-style:none; }
+.planner-credits li { display:flex; flex-wrap:wrap; gap:4px 10px; }
+.planner-credits li>span:first-child { color:var(--color-ink); font-weight:600; }
+.planner-credits a { overflow-wrap:anywhere; text-decoration:underline; text-underline-offset:3px; }
+.planner-page .ui-icon-button { min-height:2.5rem; }
+/* 换 (replace this stop) is a one-character text button: it keeps a 44px-wide target like the icon buttons beside it. */
+.planner-page .planner-stops li>div .ui-button { min-width:2.75rem; justify-content:center; }
+/* 已排的日子 with nothing yet: one quiet row on wider screens, so an open draft keeps the page's first screen. */
+@media (min-width:768px) {
+  .plan-days .ui-state { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-rows:auto auto; column-gap:20px; align-items:center; padding:20px 24px; text-align:left; }
+  .plan-days .ui-state__icon { grid-row:1 / span 2; width:3.5rem; height:3.5rem; margin:0; }
+  .plan-days .ui-state__body { max-width:none; }
+  .plan-days .ui-state__actions { grid-column:3; grid-row:1 / span 2; margin:0; }
+}

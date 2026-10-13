@@ -1,14 +1,14 @@
-.bl-guide-edition-notice { display:flex; align-items:flex-start; gap:12px; padding:18px 20px; margin:22px 0 0; border:1px solid #e4cfad; border-radius:12px; background:#fff8ec; color:#765535; }
+.bl-guide-edition-notice { display:flex; align-items:flex-start; gap:12px; padding:18px 20px; margin:22px 0 0; border:1px solid rgb(var(--color-warning-rgb) / .3); border-radius:12px; background:var(--color-warning-tint); color:var(--color-warning); }
 .bl-guide-edition-notice>svg { flex-shrink:0; margin-top:2px; }
 .bl-guide-edition-notice strong { font-size:.875rem; font-weight:600; line-height:1.8; }
-.bl-guide-edition-notice p { margin:7px 0; max-width:780px; font-size:.75rem; line-height:1.95; color:#856b4b; }
-.bl-guide-edition-notice div>span { font-size:.625rem; line-height:1.9; color:#9c8365; }
-.bl-guide-edition-notice--archive { background:#f6efdf; border-color:#ccb88f; }
-.bl-guide-source-link { margin:18px 0 24px; padding:16px 18px; border:1px solid #d4e0ca; border-radius:11px; background:#f4f7ee; }
-.bl-guide-source-link>a { display:inline-flex; align-items:center; gap:8px; min-height:30px; color:#2f6248; font-size:.875rem; font-weight:600; line-height:1.65; text-decoration:underline; text-underline-offset:4px; }
+.bl-guide-edition-notice p { margin:7px 0; max-width:780px; font-size:.75rem; line-height:1.95; color:var(--color-warning); }
+.bl-guide-edition-notice div>span { font-size:.625rem; line-height:1.9; color:var(--color-warning); }
+.bl-guide-edition-notice--archive { background:var(--color-warning-tint); border-color:rgb(var(--color-warning-rgb) / .45); }
+.bl-guide-source-link { margin:18px 0 24px; padding:16px 18px; border:1px solid var(--color-line-strong); border-radius:11px; background:var(--color-surface-2); }
+.bl-guide-source-link>a { display:inline-flex; align-items:center; gap:8px; min-height:30px; color:var(--color-brand); font-size:.875rem; font-weight:600; line-height:1.65; text-decoration:underline; text-underline-offset:4px; }
 .bl-guide-source-link>a>svg { flex-shrink:0; }
-.bl-guide-source-link>a:focus-visible { outline:3px solid #32734e; outline-offset:4px; }
-.bl-guide-source-link>p { margin:7px 0 0; color:#64765b; font-size:.75rem; line-height:1.9; }
+.bl-guide-source-link>a:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
+.bl-guide-source-link>p { margin:7px 0 0; color:var(--color-ink-3); font-size:.75rem; line-height:1.9; }
 @media(max-width:639px) {
  .bl-guide-edition-notice { gap:10px; padding:15px; margin-top:18px; }
  .bl-guide-edition-notice strong { font-size:.8125rem; }

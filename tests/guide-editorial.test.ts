@@ -10,6 +10,9 @@ const PILOTS = [
   'bay-area-chinese-senior-services-referral-guide', 'bay-area-medicare-hicap-medi-cal-guide', 'bay-area-dental-care-insurance-low-cost-guide',
   'bay-area-social-security-retirement-preparation-guide', 'bay-area-naturalization-official-path-guide', 'bay-area-free-tax-help-vita-calfile-guide',
   'california-tenant-deposit-rights-help-guide', 'california-driver-license-id-preparation-guide',
+  // CNT-GUIDES (Wave 3): one pillar for each topic that had none.
+  'bay-area-newcomer-first-month-checklist', 'bay-area-rental-scam-guide', 'bay-area-october-muni-clipper-payment-update-2026',
+  'half-moon-bay-coastal-half-day-guide', 'bay-area-first-doctor-insurance-network-guide',
 ];
 
 const articleText = (guide: Guide) => JSON.stringify([guide.title, guide.subtitle, guide.summary, guide.audience, guide.blocks, guide.sources, guide.sourceNote ?? '']);
@@ -25,7 +28,7 @@ const digitRuns = (text: string) => [...text.matchAll(/\d+(?:[-.,]\d+)*/g)].map(
 const digitsOnly = (text: string) => text.replace(/\D/g, '');
 const CHINESE_NUMERALS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
 
-test('the eight pilot guides are published and each has a carousel, 30 秒看懂 and step conclusions', () => {
+test('the pilot and pillar guides are published and each has a carousel, 30 秒看懂 and step conclusions', () => {
   assert.deepEqual(Object.keys(GUIDE_EDITORIAL).sort(), [...PILOTS].sort());
   for (const slug of PILOTS) {
     const guide = getGuideBySlug(slug);

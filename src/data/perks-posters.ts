@@ -79,5 +79,12 @@ export const perksPosterCaption = (poster: PerksPoster, translate: (text: string
   `${translate('图文静态快照，核验日期')}：${PERKS_POSTER_CHECKED}`,
   translate('奖励、库存及适用条件可能调整，请通过攻略内官网链接复核。'),
   `https://www.baylink.us${poster.guidePath}`,
-  poster.topic === 'retail' ? '#BAYLINK #BayArea #Freebies #湾区优惠' : poster.topic === 'everyday' ? '#BAYLINK #BayArea #LocalPerks #湾区生活' : '#BAYLINK #BayArea #BirthdayPerks #湾区生活',
+  hashtags(poster, translate),
 ].join('\n');
+
+/** The Chinese hashtag in the reader's script (繁體 converts it); an English caption keeps the English tags only. */
+const hashtags = (poster: PerksPoster, translate: (text: string) => string): string => {
+  const tags = poster.topic === 'retail' ? '#BAYLINK #BayArea #Freebies' : poster.topic === 'everyday' ? '#BAYLINK #BayArea #LocalPerks' : '#BAYLINK #BayArea #BirthdayPerks';
+  const chinese = translate(poster.topic === 'retail' ? '#湾区优惠' : '#湾区生活');
+  return /[㐀-鿿]/.test(translate('湾区')) ? `${tags} ${chinese}` : tags;
+};

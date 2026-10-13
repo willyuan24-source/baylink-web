@@ -3,13 +3,13 @@
 @tailwind utilities;
 
 :root {
-  background-color: var(--color-bg, #FFFFFF);
-  --baylink-bg: #F8F9F6;
-  --baylink-green: #176B52;
-  --baylink-green-hover: #12523F;
-  --baylink-green-light: #EAF6F0;
-  --baylink-border: #E2E7DF;
-  --baylink-text: #1C3029;
+  background-color: var(--color-bg);
+  --baylink-bg: var(--color-surface-2);
+  --baylink-green: var(--color-brand);
+  --baylink-green-hover: var(--color-brand-hover);
+  --baylink-green-light: var(--color-brand-tint);
+  --baylink-border: var(--color-line);
+  --baylink-text: var(--color-ink);
 }
 
 html, body, #root {
@@ -17,10 +17,10 @@ html, body, #root {
   width: 100%;
   margin: 0;
   padding: 0;
-  background-color: var(--color-bg, #FFFFFF);
+  background-color: var(--color-bg);
   font-family: var(--font-sans, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif);
   -webkit-font-smoothing: antialiased;
-  color: #1C3029;
+  color: var(--color-ink);
   overflow-x: hidden;
 }
 
@@ -56,7 +56,7 @@ html, body, #root {
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  background-image: linear-gradient(135deg, #176B52 0%, #12523F 100%);
+  background-image: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-hover) 100%);
 }
 
 /* Hero photo — public/baylink-hero-bg.webp (bridge bottom-left, map right) */
@@ -64,7 +64,7 @@ html, body, #root {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(227, 223, 214, 0.65);
-  background: #f7f4ec;
+  background: var(--color-warm-tint);
   isolation: isolate;
 }
 
@@ -186,8 +186,8 @@ html, body, #root {
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.22;
-  letter-spacing: -0.025em;
-  color: #17202a;
+  letter-spacing: 0;
+  color: var(--color-ink);
 }
 
 @media (min-width: 640px) {
@@ -206,7 +206,7 @@ html, body, #root {
   margin-top: 8px;
   font-size: 0.6875rem;
   line-height: 1.5;
-  color: #5c6370;
+  color: var(--color-ink-3);
   max-width: 28rem;
 }
 
@@ -280,7 +280,7 @@ html, body, #root {
   max-height: 60vh;
   object-fit: contain;
   border-radius: 1.25rem;
-  background: #f7f4ec;
+  background: var(--color-warm-tint);
 }
 
 @media (max-width: 640px) {
@@ -293,17 +293,17 @@ html, body, #root {
   width: 100%;
   min-height: 120px;
   border-radius: 1.25rem;
-  background: #f7f4ec;
+  background: var(--color-warm-tint);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.75rem;
-  color: #9a978f;
+  color: var(--color-ink-3);
 }
 
 .ad-thumb-contain {
   object-fit: contain;
-  background: #f7f4ec;
+  background: var(--color-warm-tint);
 }
 
 .channel-card {
@@ -324,11 +324,11 @@ html, body, #root {
   @apply mt-0.5 text-[0.5625rem] leading-tight text-baylink-muted line-clamp-1;
 }
 
-.channel-card--rent { border-color: rgba(22, 166, 106, 0.12); background: linear-gradient(180deg, #fff 0%, #f4faf7 100%); }
-.channel-card--used { border-color: rgba(154, 151, 143, 0.2); background: linear-gradient(180deg, #fff 0%, #faf9f6 100%); }
-.channel-card--service { border-color: rgba(22, 166, 106, 0.1); background: linear-gradient(180deg, #fff 0%, #f6faf8 100%); }
-.channel-card--ride { border-color: rgba(255, 138, 61, 0.12); background: linear-gradient(180deg, #fff 0%, #fffaf6 100%); }
-.channel-card--featured { border-color: rgba(255, 138, 61, 0.15); background: linear-gradient(180deg, #fff 0%, #fff8f2 100%); }
+.channel-card--rent { border-color: rgba(22, 166, 106, 0.12); background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%); }
+.channel-card--used { border-color: rgba(154, 151, 143, 0.2); background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%); }
+.channel-card--service { border-color: rgba(22, 166, 106, 0.1); background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%); }
+.channel-card--ride { border-color: rgba(255, 138, 61, 0.12); background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface) 100%); }
+.channel-card--featured { border-color: rgba(255, 138, 61, 0.15); background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-surface-2) 100%); }
 
 .channel-card-icon {
   @apply w-7 h-7 rounded-lg flex items-center justify-center text-sm mb-1;
@@ -394,20 +394,20 @@ html, body, #root {
 
 /* 房源 — 室内窗景 */
 .hot-cover--rent {
-  background: linear-gradient(180deg, #e8f0f6 0%, #f5f0e8 55%, #e8dfd0 100%);
+  background: linear-gradient(180deg, var(--color-info-tint) 0%, var(--color-warm-tint) 55%, var(--color-line) 100%);
 }
 .hot-cover-wall {
   inset: 0;
-  background: linear-gradient(90deg, #f8f6f2 0%, #faf8f4 60%, #f0ebe4 100%);
+  background: linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-surface-2) 60%, var(--color-line) 100%);
 }
 .hot-cover-window {
   left: 12%;
   top: 10%;
   width: 52%;
   height: 48%;
-  border: 2px solid #fff;
+  border: 2px solid var(--color-surface);
   border-radius: 2px;
-  background: linear-gradient(165deg, #a8cce8 0%, #d8ecfa 40%, #eef8ff 100%);
+  background: linear-gradient(165deg, var(--color-line-strong) 0%, var(--color-info-tint) 40%, var(--color-info-tint) 100%);
   box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.6);
 }
 .hot-cover-window::after {
@@ -425,7 +425,7 @@ html, body, #root {
   width: 56%;
   height: 22%;
   border-radius: 6px 6px 2px 2px;
-  background: linear-gradient(180deg, #d9cfc0 0%, #b5a592 100%);
+  background: linear-gradient(180deg, var(--color-line-strong) 0%, var(--color-line-control) 100%);
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
 }
 .hot-cover-floor {
@@ -433,16 +433,16 @@ html, body, #root {
   right: 0;
   bottom: 0;
   height: 18%;
-  background: linear-gradient(180deg, #e5ddd2 0%, #d4cabb 100%);
+  background: linear-gradient(180deg, var(--color-line) 0%, var(--color-line-strong) 100%);
 }
 
 /* 二手 — 沙发茶几 */
 .hot-cover--used {
-  background: linear-gradient(165deg, #f3ebe2 0%, #ebe2d6 100%);
+  background: linear-gradient(165deg, var(--color-warm-tint) 0%, var(--color-line) 100%);
 }
 .hot-cover-wall-warm {
   inset: 0;
-  background: linear-gradient(180deg, #f7f0e8 0%, #efe6da 100%);
+  background: linear-gradient(180deg, var(--color-warm-tint) 0%, var(--color-line) 100%);
 }
 .hot-cover-sofa-lg {
   left: 6%;
@@ -450,7 +450,7 @@ html, body, #root {
   width: 58%;
   height: 30%;
   border-radius: 10px 10px 4px 4px;
-  background: linear-gradient(180deg, #cbb89e 0%, #a08870 100%);
+  background: linear-gradient(180deg, var(--color-line-strong) 0%, var(--color-line-control) 100%);
   box-shadow: 0 3px 8px rgba(80, 60, 40, 0.12);
 }
 .hot-cover-table {
@@ -459,13 +459,13 @@ html, body, #root {
   width: 34%;
   height: 16%;
   border-radius: 4px;
-  background: linear-gradient(180deg, #ddd4c8 0%, #c4b8a8 100%);
+  background: linear-gradient(180deg, var(--color-line-strong) 0%, var(--color-line-strong) 100%);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 /* 服务 — 窗户清洁 */
 .hot-cover--service {
-  background: linear-gradient(165deg, #d4ecf4 0%, #e8f6f2 50%, #f2f8f5 100%);
+  background: linear-gradient(165deg, var(--color-info-tint) 0%, var(--color-brand-tint) 50%, var(--color-surface-2) 100%);
 }
 .hot-cover-window-svc {
   left: 10%;
@@ -482,7 +482,7 @@ html, body, #root {
   width: 22%;
   height: 8%;
   border-radius: 8px 8px 2px 2px;
-  background: linear-gradient(90deg, #7ec8a8, #5ab88e);
+  background: linear-gradient(90deg, var(--color-line-strong), var(--color-line-control));
   transform: rotate(-25deg);
   opacity: 0.7;
 }
@@ -492,12 +492,12 @@ html, body, #root {
   width: 20%;
   height: 22%;
   border-radius: 4px 4px 6px 6px;
-  background: linear-gradient(180deg, #8ec8e0 0%, #6aa8c8 100%);
+  background: linear-gradient(180deg, var(--color-line-strong) 0%, var(--color-line-control) 100%);
   opacity: 0.55;
 }
 
 .hot-cover--default {
-  background: linear-gradient(135deg, #eaf6f0 0%, #f0f7f3 50%, #efe9de 100%);
+  background: linear-gradient(135deg, var(--color-brand-tint) 0%, var(--color-surface-2) 50%, var(--color-line) 100%);
 }
 
 @media (min-width: 1024px) {
@@ -576,7 +576,7 @@ html, body, #root {
     @apply text-[0.625rem] font-normal px-1.5 py-0.5 rounded-full bg-white/90 text-baylink-green border border-baylink-green/15 whitespace-nowrap;
   }
   .hero-welcome {
-    background: linear-gradient(135deg, #0c3524 0%, #12603c 45%, #168A58 100%);
+    background: linear-gradient(135deg, var(--color-brand-deep) 0%, var(--color-brand) 45%, var(--color-brand) 100%);
     position: relative;
   }
   .hero-welcome::before {

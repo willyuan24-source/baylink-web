@@ -36,6 +36,21 @@ export const editorialStyleScopes = [
   // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast) and the account / community dialogs on the Sheet.
   { file: 'src/components/site-chrome.css' },
   { file: 'src/components/site-dialogs.css' },
+  // WEB-SECONDARY: /explore, /about, the legal pages and the 404 (about-baylink.css keeps two home-footer rules WEB-HOME owns).
+  { file: 'src/styles/attractions.css' },
+  { file: 'src/components/about-baylink.css', selectors: /^\.about-/ },
+  { file: 'src/components/legal-page.css' },
+  { file: 'src/components/not-found.css' },
+  { file: 'src/components/archive.css' },
+  { file: 'src/components/tools/tools.css' },
+  { file: 'src/components/tools/unit-price.css' },
+  { file: 'src/components/tools/dining-calculator.css' },
+  { file: 'src/components/tools/loan-calculator.css' },
+  // WEB-PLAN: 行程 (/plan) and the planner panels it and My Week mount.
+  { file: 'src/styles/plan-page.css' },
+  { file: 'src/styles/planner.css' },
+  { file: 'src/components/planner-web-library.css' },
+  { file: 'src/styles/discovery-workflow.css', selectors: /^.planner-/ },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;
@@ -63,11 +78,16 @@ function paletteIssues(values) {
     const value = values.get(name);
     const alias = /^var\((--[a-z0-9-]+)\)$/i.exec(value || '');
     if (alias) return resolveColor(alias[1], seen);
+    // The palette's channel form (TOKENS-B): --color-x:rgb(var(--color-x-rgb)) and --color-x-rgb:R G B.
+    const channelAlias = /^rgb\(\s*var\((--[a-z0-9-]+)\)\s*\)$/i.exec(value || '');
+    if (channelAlias) return resolveColor(channelAlias[1], seen);
+    const channels = /^(\d{1,3})\s+(\d{1,3})\s+(\d{1,3})$/.exec((value || '').trim());
+    if (channels) return channels.slice(1).map(channel => Number(channel) / 255);
     const color = /^#([\da-f]{6})$/i.exec(value || '');
     return color ? [0, 2, 4].map(offset => Number.parseInt(color[1].slice(offset, offset + 2), 16) / 255) : null;
   };
   const luminance = rgb => rgb.map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
-  const pairs = ['--color-ink', '--color-ink-2', '--color-ink-3', '--color-brand'].flatMap(text => ['--color-bg', '--color-surface'].map(background => [text, background, 4.5]));
+  const pairs = ['--color-ink', '--color-ink-2', '--color-ink-3', '--color-brand'].flatMap(text => ['--color-bg', '--color-surface', '--color-surface-2', '--color-selected'].filter(background => background === '--color-bg' || background === '--color-surface' || values.has(background)).map(background => [text, background, 4.5]));
   pairs.push(['--color-on-brand-muted', '--color-brand-deep', 4.5]);
   if (values.has('--color-editorial')) pairs.push(['--color-editorial', '--color-bg', 4.5]);
   // TypeCover pairs (--tc-<tone>-fg on --tc-<tone>-bg) and sticker/status pairs, wherever a guarded file defines them.

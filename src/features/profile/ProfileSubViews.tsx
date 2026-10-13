@@ -45,8 +45,8 @@ export const InfoPage = ({ title, storageKey, user, onBack, showToast }: any) =>
   };
 
   return (
-    <div className="fixed inset-0 z-[80] bg-[#FFF8F0] flex flex-col w-full h-full">
-      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[#FFF8F0]/80 backdrop-blur-md sticky top-0 pt-safe-top shrink-0 z-10">
+    <div className="fixed inset-0 z-[80] bg-[var(--color-surface-2)] flex flex-col w-full h-full">
+      <div className="px-4 py-3 border-b border-white/50 flex items-center justify-between bg-[rgb(var(--color-surface-2-rgb)/0.8)] backdrop-blur-md sticky top-0 pt-safe-top shrink-0 z-10">
         <div className="flex items-center gap-3"><button onClick={onBack} className="p-2 hover:bg-white/50 rounded-full transition active:scale-90"><ChevronLeft size={24} className="text-gray-900" /></button><span className="font-bold text-lg text-gray-900">{title}</span></div>
         {user?.role === 'admin' && !isEditing && <button onClick={() => setIsEditing(true)} className="text-green-700 text-sm font-bold flex items-center gap-1 bg-white px-3 py-1.5 rounded-full shadow-sm"><Edit size={14} /> 编辑</button>}
         {isEditing && <button onClick={handleSave} disabled={loading} className="text-white bg-green-700 text-sm font-bold flex items-center gap-1 px-3 py-1.5 rounded-full shadow-md"><Save size={14} /> {loading ? '...' : '发布'}</button>}

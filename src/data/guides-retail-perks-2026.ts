@@ -23,7 +23,7 @@ export const retailPerksGuides2026: Guide[] = [{
   title: 'Target、Lowe’s 到餐饮 App：湾区赠品与优惠查找手册',
   subtitle: '门店赠品、亲子手作、新会员礼与日常折扣，一次看清领取条件',
   summary: '从 Target 的限定门店活动、Lowe’s 儿童工作坊，到 Michaels、Lakeshore、IKEA 和餐饮会员礼。按品牌搜索，先看活动日期、年龄、预约及消费门槛，再决定是否值得专程出门。',
-  category: 'events', categoryLabel: '生活活动', emoji: '🛍️', priority: 'P0', featuredOnHome: true,
+  category: 'events', categoryLabel: '生活活动', emoji: '🛍️', priority: 'P1', featuredOnHome: true,
   audience: ['想找门店赠品的湾区居民', '安排免费亲子活动的家庭', '想少花冤枉钱的新会员'],
   tags: ['Freebies', 'Target', 'Lowe’s', 'Home Depot', 'Michaels', 'Lakeshore', 'IKEA', 'LEGO', '优惠', '亲子手作', '新会员礼'],
   recommendedForCategories: ['other'], readMinutes: 9, updatedAt: '2026-10-05',

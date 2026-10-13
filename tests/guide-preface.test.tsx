@@ -6,11 +6,17 @@ import { StaticRouter } from 'react-router-dom';
 import { JSDOM } from 'jsdom';
 import { GuideDetail } from '../src/components/GuideDetail';
 import { getGuideBySlug } from '../src/data/guides';
+import { preloadAllGuideBlocks } from '../src/features/guides/guide-blocks';
+import { peekGuide } from '../src/features/guides/guide-store';
+import type { GuideRecord } from '../src/features/guides/guide-records';
 
-const renderGuide = (slug: string) => {
+// The deals board is a chunk the article loads with its record (WEB-DATA-SPLIT); the page waits for it, so do the tests.
+await preloadAllGuideBlocks();
+
+const renderGuide = (slug: string, record?: GuideRecord) => {
   const html = renderToStaticMarkup(
     <StaticRouter location={`/guides/${slug}`}>
-      <GuideDetail slug={slug} today="2026-09-29" onBack={() => {}} onOpenGuide={() => {}} onNavigate={() => {}} onOpenPost={() => {}} />
+      <GuideDetail slug={slug} record={record} today="2026-09-29" onBack={() => {}} onOpenGuide={() => {}} onNavigate={() => {}} onOpenPost={() => {}} />
     </StaticRouter>,
   );
   return new JSDOM(html).window.document;
@@ -71,18 +77,14 @@ test('ordinary guides and guides starting with a board retain one unchanged body
 
 test('protocol-relative and backslash paths never become navigable guide entry links', () => {
   const slug = 'bay-area-airport-arrival-guide';
-  const guide = getGuideBySlug(slug)!;
-  const originalBlocks = guide.blocks;
+  // The article renders its generated record (WEB-DATA-SPLIT): give it one whose links are unsafe paths.
+  const record = peekGuide(slug)!;
   const unsafePaths = ['//example.test', String.raw`/\example.test`, String.raw`/events\example.test`, String.raw`/events/\example.test`];
-  try {
-    guide.blocks = unsafePaths.map((url, index) => ({ type: 'link', title: `Unsafe path ${index}`, text: 'Keep the description without a navigation target.', url }));
-    const document = renderGuide(slug);
-    for (const [index] of unsafePaths.entries()) {
-      const title = `Unsafe path ${index}`;
-      assert.equal([...document.querySelectorAll('a')].filter(link => link.textContent === title).length, 0);
-      assert.equal([...document.querySelectorAll('.bl-guide-source-link > strong')].filter(label => label.textContent === title).length, 1);
-    }
-  } finally {
-    guide.blocks = originalBlocks;
+  const blocks = unsafePaths.map((url, index) => ({ type: 'link' as const, title: `Unsafe path ${index}`, text: 'Keep the description without a navigation target.', url }));
+  const document = renderGuide(slug, { ...record, guide: { ...record.guide, blocks } });
+  for (const [index] of unsafePaths.entries()) {
+    const title = `Unsafe path ${index}`;
+    assert.equal([...document.querySelectorAll('a')].filter(link => link.textContent === title).length, 0);
+    assert.equal([...document.querySelectorAll('.bl-guide-source-link > strong')].filter(label => label.textContent === title).length, 1);
   }
 });

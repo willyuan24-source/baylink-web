@@ -88,8 +88,8 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-resources .bb-call { border-color:var(--color-brand); color:var(--color-brand); }
 
 /* Pause, daily limit and reduced mode: 911 / 211 first, then the honest line */
-.baybay-conversation .bb-notice { display:grid; gap:10px; margin:0 0 12px; padding:12px 14px; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--ui-warning-tint); }
-.baybay-conversation .bb-notice[data-notice=ai_budget_reduced] { background:var(--ui-info-tint); }
+.baybay-conversation .bb-notice { display:grid; gap:10px; margin:0 0 12px; padding:12px 14px; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-warning-tint); }
+.baybay-conversation .bb-notice[data-notice=ai_budget_reduced] { background:var(--color-info-tint); }
 .baybay-conversation .bb-notice>p { margin:0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
 .baybay-conversation .bb-notice .bb-call:not([data-primary]) { border-color:var(--color-brand); color:var(--color-brand); }
 .baybay-conversation .bb-notice__resume { display:block; color:var(--color-ink-2); font-size:var(--text-caption); }

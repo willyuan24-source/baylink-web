@@ -307,7 +307,7 @@ test('an old saved event cannot be added twice through its merged catalog card a
   assert.ok(card, 'the canonical catalog event is available alongside the old saved reference');
   fireEvent.click(within(card).getByRole('button', { name: '加入计划' }));
   assert.deepEqual(selectedLinks(view), [`/events/${legacy.id}`]);
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新行程' })); });
   const saved: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.equal(saved.version, 2);
   assert.deepEqual(saved.stops, [legacy]);
@@ -322,7 +322,7 @@ test('edited schedule and costs save locally, reopen faithfully and retain all q
   fireEvent.change(input(view, '开始时间'), { target: { value: '11:30' } });
   fireEvent.change(input(view, '整趟总预算 $'), { target: { value: '220.25' } });
   fireEvent.change(timingInputs(view, '停留（分钟）')[1], { target: { value: '40' } });
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新行程' })); });
   const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.equal(stored.version, 2);
   assert.deepEqual(stored.details, { ...savedDetails(), startTime: '11:30', totalBudgetUsd: 220.25,
@@ -387,7 +387,7 @@ test('changing the party and transport keeps saved constraints and later recomme
   fireEvent.change(editor(view).getByLabelText('这份计划的交通方式'), { target: { value: 'walk' } });
   fireEvent.change(input(view, '整趟总预算 $'), { target: { value: '240' } });
   assert.equal((view.getByLabelText('出行方式') as HTMLSelectElement).value, 'walk');
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新行程' })); });
   const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.equal(stored.details?.partySize, 6);
   assert.equal(stored.details?.travelMode, 'walk');
@@ -416,7 +416,7 @@ test('removing a stop also removes its invalid timing so the remaining plan can 
   assert.equal(timingInputs(view, '停留（分钟）').length, 1);
   assert.equal(timingInputs(view, '停留（分钟）')[0].value, '30');
   assert.equal((editor(view).getByRole('button', { name: '导出计划到日历' }) as HTMLButtonElement).disabled, false);
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新行程' })); });
   const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.deepEqual(stored.stops, [stops[1]]);
   assert.deepEqual(stored.details?.stopSettings, [savedDetails().stopSettings[1]]);
@@ -434,7 +434,7 @@ test('account save sends compatible details and blocks editor mutations until th
   };
   const view = await openPlanner('?edit=details-plan', true);
   fireEvent.change(input(view, '整趟总预算 $'), { target: { value: '240' } });
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '更新行程' })); });
   assert.equal(writes.length, 1);
   assert.equal(writes[0].endpoint, '/planner/plans/details-plan');
   assert.equal(writes[0].method, 'PUT');

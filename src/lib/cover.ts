@@ -1,5 +1,8 @@
 import type { GuideImage } from '../data/guide-media';
-import { EVENT_CONTEXT_PHOTOS } from '../data/event-image-usage';
+// The reviewed approvals of src/data/event-image-usage.ts, written by `npm run generate:home` (WEB-HOME): that module builds
+// them from the official-event media registry, which would otherwise ride along with every page that resolves a cover
+// (about 18 KiB gzip on the home page). tests/home-catalog.test.ts keeps the two equal.
+import eventContextPhotos from '../data/generated/event-context-photos.json';
 import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from './image-provenance';
 import { COVER_TONES, type Copy, type CoverTone } from './event-facts';
 
@@ -123,7 +126,7 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   if (tier === 'scene3d') return item.kind === 'place' ? make('scene3d', { ...image, scene3d: true }) : { rejected: 'not-allowed-for-kind' };
   // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover.
   if (isAiIllustration(image) || basis === 'ai') return { rejected: 'ai-illustration' };
-  const use = item.kind === 'event' ? (ctx.contextPhotos ?? EVENT_CONTEXT_PHOTOS)[key] : undefined;
+  const use = item.kind === 'event' ? (ctx.contextPhotos ?? eventContextPhotos as ContextPhotos)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
   if (use && !use.eventIds.includes(item.id)) return { rejected: 'unapproved-reuse' };
   if (!use && OFFICIAL.has(basis)) return make('official');

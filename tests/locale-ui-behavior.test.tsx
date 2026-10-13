@@ -57,7 +57,7 @@ test('switching a calculated loan to Traditional preserves inputs and the repaym
   fireEvent.change(view.getByRole('textbox', { name: 'Home price', exact: true }), { target: { value: '1000000' } });
   fireEvent.change(view.getByRole('textbox', { name: 'Annual interest rate', exact: true }), { target: { value: '6' } });
   fireEvent.click(view.getByRole('button', { name: 'Choose a 15-year loan' }));
-  assert.match(view.container.querySelector('.loan-balance-chart')!.textContent!, /Year 15/);
+  assert.match(view.container.querySelector('.loan-chart-axis')!.textContent!, /Year 15/);
   assert.equal(view.container.querySelector('.loan-year-slider span')!.textContent, 'End of year 1');
   assert.match(view.container.textContent!, /\$6,750\.85/);
   await act(async () => { await setLocale('zh-Hant', false); });

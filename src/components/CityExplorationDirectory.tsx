@@ -6,6 +6,7 @@ import { useLocale, translateText } from '../i18n/locale';
 import { cityExplorationMatches } from '../lib/city-exploration';
 import { ATTRACTIONS } from '../data/attractions';
 import { CityCurrentCard } from './CityCurrentCard';
+import { linkifyPhones } from '../lib/phone-links';
 
 export function CityExplorationDirectory({ cities, title, text }: { cities: CityExploration[]; title: string; text: string }) {
   const locale = useLocale(), id = useId();
@@ -47,17 +48,17 @@ export function CityExplorationDirectory({ cities, title, text }: { cities: City
             <h4>{t('值得去的地方')}</h4>
             <div className="city-exploration-places">{city.places.map(place => <article key={place.name}>
               <span className="city-place-scope">{t(place.scope === 'city' ? '市内去处' : place.scope === 'cross-boundary' ? '跨市界延伸' : '附近延伸 · 不在本市')}</span>
-              <h5>{t(place.name)}</h5><p>{t(place.description)}</p>
+              <h5>{t(place.name)}</h5><p>{linkifyPhones(t(place.description))}</p>
               {place.verifiedAt && <p className="city-current-date">{t('景点核验')}：<time dateTime={place.verifiedAt}>{place.verifiedAt}</time></p>}
               <div><a href={place.url} target="_blank" rel="noopener noreferrer">{t('官方参观信息')} <ArrowUpRight size={13} aria-hidden="true" /></a>
                 <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.mapQuery)}`} target="_blank" rel="noopener noreferrer"><MapPin size={13} aria-hidden="true" />{t('在地图查找')}</a></div>
             </article>)}</div>
             <dl className="city-exploration-tips">
-              <div><dt>{t('来玩：半日怎么安排')}</dt><dd>{t(city.halfDay)}</dd></div>
-              <div><dt>{t('刚搬来：从哪里开始')}</dt><dd>{t(city.arrival)}</dd></div>
-              <div><dt>{t('住久了：再发现身边资源')}</dt><dd>{t(city.residentTip)}</dd></div>
-              <div><dt>{t('交通与停车')}</dt><dd>{t(city.transport)}</dd></div>
-              <div><dt>{t('出发前核对')}</dt><dd>{t(city.checks)}</dd></div>
+              <div><dt>{t('来玩：半日怎么安排')}</dt><dd>{linkifyPhones(t(city.halfDay))}</dd></div>
+              <div><dt>{t('刚搬来：从哪里开始')}</dt><dd>{linkifyPhones(t(city.arrival))}</dd></div>
+              <div><dt>{t('住久了：再发现身边资源')}</dt><dd>{linkifyPhones(t(city.residentTip))}</dd></div>
+              <div><dt>{t('交通与停车')}</dt><dd>{linkifyPhones(t(city.transport))}</dd></div>
+              <div><dt>{t('出发前核对')}</dt><dd>{linkifyPhones(t(city.checks))}</dd></div>
             </dl>
             <h4>{t('当地官方资讯与活动入口')}</h4>
             <div className="city-exploration-links">{city.resources.map(resource => <a key={`${resource.kind}-${resource.url}`} href={resource.url} target="_blank" rel="noopener noreferrer">{t(resource.label)} <ArrowUpRight size={13} aria-hidden="true" /></a>)}</div>

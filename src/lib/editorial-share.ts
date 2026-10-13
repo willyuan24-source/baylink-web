@@ -15,7 +15,9 @@ export const eventShare = (event: MonthlyEvent): EditorialShare => ({ kind: 'eve
 export const offerShare = (offer: FreebieOffer): EditorialShare => ({ kind: 'offer', id: offer.id, title: `${offer.brand} · ${offer.title}`, summary: offer.requirement, date: offer.dateLabel, area: '湾区本地福利', label: '优惠与 Freebies', path: `/offers/${offer.id}`, checkedAt: offer.verifiedAt || '' });
 export const openingShare = (shop: SeptemberOpening): EditorialShare => ({ kind: 'opening', id: shop.id, title: shop.name, summary: shop.summary, date: shop.dateLabel, area: shop.city, label: `新店 · ${openingStatusLabel(shop.status)}`, path: `/openings/${shop.id}`, checkedAt: shop.verifiedAt });
 export const guideShare = (guide: Guide): EditorialShare => ({ kind: 'guide', id: guide.slug, title: guide.title, summary: guide.summary, date: `核对 ${guide.updatedAt}`, area: guide.categoryLabel, label: '湾区生活攻略', path: `/guides/${guide.slug}`, checkedAt: guide.updatedAt });
-export const shareCardPath = (item: Pick<EditorialShare, 'kind' | 'id'>) => `/share-cards/${item.kind}-${encodeURIComponent(item.id)}.png`;
+/** The item's 1200 × 630 card; zh-Hant and English cards sit in their own folder (scripts/generate-share-cards.ts). */
+export const shareCardPath = (item: Pick<EditorialShare, 'kind' | 'id'>, locale: 'zh-Hans' | 'zh-Hant' | 'en' = 'zh-Hans') =>
+  `/share-cards/${locale === 'zh-Hans' ? '' : `${locale}/`}${item.kind}-${encodeURIComponent(item.id)}.png`;
 export const editorialShareUrl = (item: EditorialShare) => localizedUrl(`${SITE_URL}${item.path}?from=share`);
 export const editorialShareText = (item: EditorialShare) => [
   `BAYLINK · ${translateText(item.label)}`, translateText(item.title),

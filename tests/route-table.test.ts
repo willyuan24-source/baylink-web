@@ -5,7 +5,7 @@ import { matchRoute, PAGE_MODULES, ROUTES, routeTemplate, type RouteSection } fr
 import { primaryNavigationPath } from '../src/lib/ui-navigation';
 import { isKnownAppPath } from '../src/routing';
 import { currentPageLoader, pageLoaders } from '../src/route-loaders';
-import { englishScopesForPath } from '../src/lib/english-loading';
+import { detailBucket, englishScopesForPath } from '../src/lib/english-loading';
 import { bayBayPageSearchContext } from '../src/lib/baybay-context';
 import { generateSitemap } from '../scripts/generate-sitemap';
 
@@ -74,9 +74,15 @@ test('known paths, analytics templates, English scopes and BayBay context come f
   assert.equal(routeTemplate('/zh-Hant/events/'), '/events');
   assert.equal(routeTemplate('/wp-admin'), 'other');
   // lib/english-loading.ts cannot import the table (the 3D title chunk loads it): its answers must equal the table's
-  for (const route of ROUTES.filter(entry => entry.path !== '/guides/:slug')) assert.deepEqual(englishScopesForPath(`/en${sample(route.path)}`), ['ui', ...(route.english || [])], route.path);
-  assert.deepEqual(englishScopesForPath('/en/events?when=today'), ['ui', 'discovery', 'guide-index']);
-  assert.deepEqual(englishScopesForPath('/en/this-week'), ['ui', 'discovery', 'guide-index']);
+  // /guides/:slug and the event, offer and opening details load a pack of their own (the article; the detail's bucket).
+  const ownPack = new Set(['/guides/:slug', '/events/:id', '/offers/:id', '/openings/:id']);
+  for (const route of ROUTES.filter(entry => !ownPack.has(entry.path))) assert.deepEqual(englishScopesForPath(`/en${sample(route.path)}`), ['ui', ...(route.english || [])], route.path);
+  for (const path of ['/events/:id', '/offers/:id', '/openings/:id']) assert.equal(ROUTES.find(entry => entry.path === path)?.english, undefined, path);
+  assert.deepEqual(englishScopesForPath('/en/events/san-francisco-fleet-week-2026'), ['ui', `detail-${detailBucket('event', 'san-francisco-fleet-week-2026')}`]);
+  assert.deepEqual(englishScopesForPath('/en/offers/sfmta-free-muni-seniors', scope => !scope.startsWith('detail-')), ['ui', 'discovery', 'guide-index'], 'a registry without detail packs falls back to the discovery pack');
+  // WEB-DATA-SPLIT: the events column loads its own pack (the slim index's text); the details load their bucket's pack (WEB-DETAIL).
+  assert.deepEqual(englishScopesForPath('/en/events?when=today'), ['ui', 'events-list']);
+  assert.deepEqual(englishScopesForPath('/en/this-week'), ['ui', 'events-list']);
   assert.deepEqual(englishScopesForPath('/en/me/bookings'), ['ui']);
   assert.deepEqual(bayBayPageSearchContext('/events?region=sf&from=card-sf'), { region: 'sf' });
   assert.deepEqual(bayBayPageSearchContext('/events?when=today', '2026-10-08'), { date: '2026-10-08' });
@@ -85,11 +91,11 @@ test('known paths, analytics templates, English scopes and BayBay context come f
 });
 
 test('the sitemap lists the table\'s public pages in every language with x-default, and no redirect or game alias', () => {
-  const { paths, xml } = generateSitemap();
+  const { paths, indexed, xml } = generateSitemap();
   for (const path of ['/events', '/en/events', '/zh-Hant/events', '/calendar', '/this-month', '/opus-bay']) assert.ok(paths.includes(path), path);
   for (const path of ['/this-week', '/recommend', '/play', '/my-week', '/verify-email']) assert.ok(!paths.some(entry => entry.replace(/^\/(en|zh-Hant)/, '') === path), path);
   for (const route of ROUTES.filter(entry => entry.sitemap && !entry.path.includes(':'))) assert.ok(paths.includes(route.path), route.path);
-  assert.equal((xml.match(/hreflang="x-default"/g) || []).length, paths.length, 'each URL names its default (Simplified) edition');
+  assert.equal((xml.match(/hreflang="x-default"/g) || []).length, indexed.length, 'each URL names its default (Simplified) edition');
   assert.ok(xml.includes('<loc>https://www.baylink.us/en/events</loc>'));
   assert.match(xml, /<loc>https:\/\/www\.baylink\.us\/en\/events<\/loc>.*?hreflang="x-default" href="https:\/\/www\.baylink\.us\/events"/);
 });

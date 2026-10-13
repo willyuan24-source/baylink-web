@@ -18,7 +18,7 @@ const { GuidesHome } = await import('../src/components/GuidesHome');
 const { guides } = await import('../src/data/guides');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { ELDER_HUB_SLUGS, GUIDE_TOPICS, guideSlugsForTopic } = await import('../src/data/guide-topics');
-const { guideRegionsOf } = await import('../src/features/guides/guide-facts');
+const { guideRegionsOf } = await import('../src/features/guides/guide-data');
 const { setLocale } = await import('../src/i18n/locale');
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
@@ -87,11 +87,12 @@ test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, 
   assert.equal(new URL(view.getByTestId('location').textContent!, 'http://localhost').searchParams.get('topic'), null);
 });
 
-test('searching inside a topic searches that topic’s own list, so the 长辈与家属 hub finds guides filed under another topic', () => {
+test('searching inside a topic searches that topic’s own list, so the 长辈与家属 hub finds guides filed under another topic', async () => {
   const hub = new Set(guideSlugsForTopic('elders', guides));
   for (const [query, slug] of [['Medicare', 'bay-area-medicare-hicap-medi-cal-guide'], ['牙科', 'bay-area-dental-care-insurance-low-cost-guide'], ['SSA', 'bay-area-social-security-retirement-preparation-guide']]) {
     const view = open(`/guides?topic=elders&q=${encodeURIComponent(query)}`);
-    const hrefs = within(view.getByRole('list', { name: '搜索结果' })).getAllByRole('link').map(link => link.getAttribute('href')!.replace('/guides/', ''));
+    // Full-text search loads the guide corpus on the first search (WEB-DATA-SPLIT).
+    const hrefs = within(await view.findByRole('list', { name: '搜索结果' })).getAllByRole('link').map(link => link.getAttribute('href')!.replace('/guides/', ''));
     assert.ok(hrefs.includes(slug), `${query} → ${slug}`);
     for (const href of hrefs) assert.ok(hub.has(href), `${href} is in the hub`);
     cleanup();
@@ -110,9 +111,9 @@ test('a region chip lists only that region’s guides', () => {
   assert.deepEqual(hrefs.sort(), expected.slice(0, 24).sort());
 });
 
-test('a search with no match says so and offers one next step', () => {
+test('a search with no match says so and offers one next step', async () => {
   const view = open('/guides?q=zzqqxx');
-  assert.ok(view.getByRole('heading', { name: '还没有找到相关指南' }));
+  assert.ok(await view.findByRole('heading', { name: '还没有找到相关指南' }));
   fireEvent.click(view.getByRole('button', { name: '查看全部指南' }));
   assert.equal(new URL(view.getByTestId('location').textContent!, 'http://localhost').searchParams.get('q'), null);
 });

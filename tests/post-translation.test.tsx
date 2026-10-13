@@ -115,7 +115,7 @@ test('Traditional display preserves prices, URLs, mentions and the author while 
   assert.equal(hook.result.current.status, 'converted');
   assert.equal(hook.result.current.translated, false, 'script conversion is not machine translation');
   assert.equal(hook.result.current.display.title, '閒置書架轉讓');
-  assert.equal(hook.result.current.display.description, '书架邻居甲 說歡迎聯繫 @陈小邻，定價 20美元 或 两百块，連結 https://example.com/闲置?q=书架。郵件 邻居@example.com。');
+  assert.equal(hook.result.current.display.description, '书架邻居甲 說歡迎聯絡 @陈小邻，定價 20美元 或 两百块，連結 https://example.com/闲置?q=书架。郵件 邻居@example.com。');
   assert.equal(hook.result.current.display.budget, item.budget);
   act(() => hook.result.current.toggleOriginal());
   assert.deepEqual(hook.result.current.display, postTranslationText(item));

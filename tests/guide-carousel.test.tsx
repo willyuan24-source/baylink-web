@@ -13,9 +13,9 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { GuideDetail } = await import('../src/components/GuideDetail');
-const { getGuideBySlug } = await import('../src/data/guides');
 const { getGuideEditorial } = await import('../src/data/guide-editorial');
 const { guideCover } = await import('../src/features/guides/guide-facts');
+const { peekGuide } = await import('../src/features/guides/guide-store');
 const { setLocale, loadLocale } = await import('../src/i18n/locale');
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
@@ -85,7 +85,7 @@ test('guides without pilot data keep a photo cover or no picture, never a carous
   assert.equal(cover.querySelector('img')?.getAttribute('loading'), 'eager');
   // A paperwork guide whose cover is an AI illustration shows no picture at the top (D9: 办事 pages stay quiet).
   const slug = 'bay-area-rental-scam-guide';
-  assert.equal(guideCover(getGuideBySlug(slug)!, '2026-10-10').tier, 'type');
+  assert.equal(guideCover({ slug, covers: peekGuide(slug)!.covers }, '2026-10-10').tier, 'type');
   const scam = article(slug);
   assert.equal(scam.container.querySelector('.gd-lead img'), null);
 });

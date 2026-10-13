@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { englishScopeModules, formatRouteBudgets, moduleGraph, routeModules, SEARCH_DICTIONARIES } from '../scripts/route-budgets.mjs';
+import { englishScopeModules, formatRouteBudgets, moduleGraph, routeModules, SEARCH_DICTIONARIES, TRADITIONAL } from '../scripts/route-budgets.mjs';
 import { searchFreePath } from '../src/lib/english-loading.ts';
 
 const manifest = {
@@ -10,6 +10,7 @@ const manifest = {
   '_guides.js': { file: 'assets/guides.js' },
   'node_modules/opencc-js/dist/esm-lib/core.js': { file: 'assets/opencc-core.js' },
   'node_modules/opencc-js/dist/esm/full.js': { file: 'assets/full.js', isDynamicEntry: true },
+  [TRADITIONAL]: { file: 'assets/traditional.js', isDynamicEntry: true, imports: ['node_modules/opencc-js/dist/esm-lib/core.js'] },
   [SEARCH_DICTIONARIES]: { file: 'assets/search-dictionaries.js', isDynamicEntry: true, imports: ['node_modules/opencc-js/dist/esm-lib/core.js'] },
   'src/pages/HomePage.tsx': { file: 'assets/home-page.js', imports: ['_react.js'] },
   'src/data/generated/english-scope-loaders.ts': { file: 'assets/loaders.js' },
@@ -22,17 +23,25 @@ const graph = (locale, page = budget) => [...moduleGraph(manifest, routeModules(
 
 test('each locale budget counts the shared shell once, plus the converter or dictionaries that locale loads', () => {
   assert.deepEqual(graph('zh-Hans'), ['assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/opencc-core.js', 'assets/react.js', 'assets/search-dictionaries.js']);
-  assert.deepEqual(graph('zh-Hant'), ['assets/full.js', 'assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/react.js']);
+  // 繁體: the site's converter (WEB-DATA-SPLIT) and, on a page that searches, the same search dictionaries; never the full build.
+  assert.deepEqual(graph('zh-Hant'), ['assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/opencc-core.js', 'assets/react.js', 'assets/search-dictionaries.js', 'assets/traditional.js']);
   assert.deepEqual(graph('en'), ['assets/guide-index.js', 'assets/guides-page.js', 'assets/guides.js', 'assets/index.js', 'assets/loaders.js', 'assets/opencc-core.js', 'assets/react.js', 'assets/search-dictionaries.js', 'assets/ui.js']);
 });
 
-test('the homepage does not count the search dictionaries (it loads them on the first search); 繁體 takes the full converter, never a search chunk', () => {
+test('the homepage does not count the search dictionaries (it loads them on the first search); 繁體 takes the site converter', () => {
   const home = { route: '/', module: 'src/pages/HomePage.tsx' };
   assert.deepEqual(graph('zh-Hans', home), ['assets/home-page.js', 'assets/index.js', 'assets/react.js']);
-  assert.deepEqual(graph('zh-Hant', home), ['assets/full.js', 'assets/home-page.js', 'assets/index.js', 'assets/react.js']);
+  assert.deepEqual(graph('zh-Hant', home), ['assets/home-page.js', 'assets/index.js', 'assets/opencc-core.js', 'assets/react.js', 'assets/traditional.js']);
   assert.ok(!graph('en', home).includes('assets/search-dictionaries.js'));
   const { [SEARCH_DICTIONARIES]: _dictionaries, ...withoutSearch } = manifest;
   assert.throws(() => routeModules(withoutSearch, budget, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath }), /search dictionaries/);
+});
+
+test('a page that loads its data before rendering counts that data chunk too (a guide article and its record)', () => {
+  const withRecord = { ...manifest, 'src/data/generated/guides/a.json': { file: 'assets/a.js', isDynamicEntry: true } };
+  const article = { route: '/guides/a', module: 'src/pages/GuidesPage.tsx', data: ['src/data/generated/guides/a.json'] };
+  assert.ok([...moduleGraph(withRecord, routeModules(withRecord, article, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath }))].includes('assets/a.js'));
+  assert.throws(() => moduleGraph(manifest, routeModules(manifest, article, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath })), /Missing build module/);
 });
 
 test('a missing page module or English scope fails loudly instead of measuring less', () => {

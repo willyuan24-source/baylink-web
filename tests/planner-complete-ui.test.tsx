@@ -50,7 +50,7 @@ test('a complete outing can be selected, edited, saved and reopened with its mea
   fireEvent.click(view.getByRole('button', { name: '采用这个完整方案' }));
   fireEvent.change(editor.getByLabelText('餐饮预留（整组）$'), { target: { value: '40' } });
   fireEvent.change(editor.getByLabelText('交通与停车预留（整组）$'), { target: { value: '12' } });
-  await act(async () => { fireEvent.click(editor.getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor.getByRole('button', { name: '保存到行程' })); });
   const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.equal(stored.details?.partySize, 2);
   assert.deepEqual(stored.details?.costBreakdown, { foodUsd: 40, transportUsd: 12, otherUsd: 0 });
@@ -71,7 +71,7 @@ test('published new shops remain valid plan stops through public links and guest
   const editor = within(view.getByRole('complementary'));
   const link = within(editor.getByRole('list', { name: '所选地点' })).getByRole('link', { name: shop.title });
   assert.equal(link.getAttribute('href'), shop.path);
-  await act(async () => { fireEvent.click(editor.getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor.getByRole('button', { name: '保存到行程' })); });
   const stored: SavedPlan = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
   assert.deepEqual(stored.stops, [{ kind: 'place', id: shop.id }]);
 });

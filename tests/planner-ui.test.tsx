@@ -81,7 +81,7 @@ test('an empty plan starts with places and opens scheduling only after choosing 
   const empty = editor(view);
   assert.equal(empty.queryByLabelText('计划名称'), null);
   assert.equal(empty.queryByLabelText('开始时间'), null);
-  assert.equal(empty.queryByRole('button', { name: '保存这份计划' }), null);
+  assert.equal(empty.queryByRole('button', { name: '保存到行程' }), null);
   assert.equal(empty.getByRole('link', { name: '先挑一个地点' }).getAttribute('href'), '#planner-discoveries');
   fireEvent.click(view.getByRole('button', { name: '景点', exact: true }));
   const firstPlace = view.container.querySelector('[id="catalog-place:golden-gate"]') as HTMLElement;
@@ -112,14 +112,14 @@ test('failed initial account reads keep favorites unknown and saving disabled, t
   const unavailable = within(view.container.querySelector('[id="catalog-place:golden-gate"]') as HTMLElement).getByRole('button', { name: '收藏状态待载入' });
   assert.equal(unavailable.getAttribute('aria-pressed'), null);
   assert.equal((unavailable as HTMLButtonElement).disabled, true);
-  const save = editor(view).getByRole('button', { name: '保存这份计划' }); assert.equal((save as HTMLButtonElement).disabled, true);
+  const save = editor(view).getByRole('button', { name: '保存到行程' }); assert.equal((save as HTMLButtonElement).disabled, true);
   fireEvent.click(save); fireEvent.click(unavailable); assert.equal(writes, 0);
   fail = false; await act(async () => { fireEvent.click(view.getByRole('button', { name: '刷新账号资料' })); });
   assert.equal((view.getByLabelText('地区') as HTMLSelectElement).value, 'sf', 'the failed read must not consume preference initialization');
   assert.equal((view.getByLabelText('出行方式') as HTMLSelectElement).value, 'transit');
   const favorite = within(view.container.querySelector('[id="catalog-place:golden-gate"]') as HTMLElement).getByRole('button', { name: '取消收藏' });
   assert.equal(favorite.getAttribute('aria-pressed'), 'true'); assert.equal((favorite as HTMLButtonElement).disabled, false);
-  assert.equal((editor(view).getByRole('button', { name: '保存这份计划' }) as HTMLButtonElement).disabled, false);
+  assert.equal((editor(view).getByRole('button', { name: '保存到行程' }) as HTMLButtonElement).disabled, false);
 });
 
 test('an edit link waits through a failed read and hydrates the saved plan after recovery', async () => {
@@ -131,33 +131,31 @@ test('an edit link waits through a failed read and hydrates the saved plan after
     return { plans: [saved], favorites: [], preferences: { regions: ['sf'], interests: [], travelMode: 'walk' } };
   };
   const view = await openAccountPlanner('?edit=recover-plan');
-  assert.equal(editor(view).queryByRole('button', { name: '保存这份计划' }), null, 'no empty plan is offered for saving before the account read recovers');
+  assert.equal(editor(view).queryByRole('button', { name: '保存到行程' }), null, 'no empty plan is offered for saving before the account read recovers');
   assert.equal(view.queryByText(/找不到计划|未找到.*计划/), null, 'a failed read cannot establish that the plan is missing');
   fail = false; await act(async () => { fireEvent.click(view.getByRole('button', { name: '刷新账号资料' })); });
   assert.equal((editor(view).getByLabelText('计划名称') as HTMLInputElement).value, saved.title);
   assert.equal((editor(view).getByLabelText('日期') as HTMLInputElement).value, saved.date);
   assert.equal(within(editor(view).getByRole('list', { name: '所选地点' })).getAllByRole('listitem').length, 1);
-  assert.equal((editor(view).getByRole('button', { name: '更新这份计划' }) as HTMLButtonElement).disabled, false);
+  assert.equal((editor(view).getByRole('button', { name: '更新行程' }) as HTMLButtonElement).disabled, false);
 });
 
-test('visual catalog starts with a bounded page of lazy images and reveals more without changing the plan', async () => {
+test('the list starts with a bounded page of rows, each with its cover, and credits every photo it shows', async () => {
   const view = await openPlanner();
-  assert.ok(view.container.querySelectorAll('.planner-place-media').length > 0);
-  assert.ok(view.container.querySelectorAll('.planner-place').length <= 12, 'the first page stays bounded on mobile');
+  const rows = () => [...view.container.querySelectorAll('.planner-catalog .planner-place')];
+  assert.ok(rows().length > 0 && rows().length <= 12, 'the first page stays bounded on mobile');
+  for (const row of rows()) assert.ok(row.querySelector('.ui-row-card__thumb [data-cover]'), 'every row shows a photo or its information card');
   for (const id of ['golden-gate', 'hakone']) {
     const place = PLANNER_PLACES.find(item => item.id === id)!;
     const image = getGuideMedia(getGuideBySlug(place.guideSlug)!).cover;
     assert.equal(image.kind, 'photo', 'map attraction previews must use actual place photography');
     while (!view.container.querySelector(`[id="catalog-place:${id}"]`)) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
     const card = view.container.querySelector(`[id="catalog-place:${id}"]`)!;
-    fireEvent.click(card.querySelector('.planner-place-title')!);
-    const photo = card.querySelector('.planner-place-media img')!;
+    const photo = card.querySelector('.ui-row-card__thumb img')!;
     assert.equal(photo.getAttribute('src'), image.src);
-    assert.equal(photo.getAttribute('alt'), image.alt);
     assert.equal(photo.getAttribute('loading'), 'lazy');
-    assert.ok(view.container.querySelectorAll('.planner-place-media').length <= view.container.querySelectorAll('.planner-place').length);
-    assert.ok(card.textContent?.includes(image.caption), 'historical/context captions remain visible beside the photo');
-    assert.ok(card.querySelector(`a[href="${image.creditUrl}"]`), 'photo source remains available');
+    assert.ok(card.querySelector('[data-provenance]')?.textContent, 'the photo carries its provenance label');
+    assert.ok(view.container.querySelector(`.planner-credits a[href="${image.creditUrl}"]`), 'photo source remains available in 本页图片来源');
   }
   assert.equal(editor(view).queryAllByRole('listitem').length, 0, 'previewing a photo does not add an itinerary stop');
 });
@@ -179,7 +177,7 @@ test('starting a text-parsed suggestion keeps its requested day inside a multi-d
   assert.equal((view.getByLabelText('出游日期') as HTMLInputElement).value, requestedDate);
   assert.equal((editor(view).getByLabelText('日期') as HTMLInputElement).value, requestedDate);
   assert.equal(within(editor(view).getByRole('list', { name: '所选地点' })).getAllByRole('listitem').length, 2);
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存到行程' })); });
   const stored = JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!);
   assert.equal(stored.plans[0].date, requestedDate, 'saving must preserve the suggested day, not the conference opening day');
   assert.equal(stored.plans[0].stops[0].id, event.id);
@@ -231,7 +229,7 @@ test('a shared query preserves more than three public stops and a guest can save
   assert.equal(publicLink.searchParams.get('stops')!.split(',').length, 4);
   assert.ok(publicLink.searchParams.get('stops')!.includes('chinatown'));
   fireEvent.change(editor(view).getByLabelText('计划名称'), { target: { value: '我的 AI 与海滨一天' } });
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存到行程' })); });
   assert.match(editor(view).getByRole('status').textContent || '', /已保存到这个浏览器/);
   const raw = localStorage.getItem(GUEST_PLANNER_KEY);
   assert.ok(raw, 'the actual browser storage must contain the saved guest plan');
@@ -255,11 +253,11 @@ test('a shared event cannot be saved on an unconfirmed day inside its date range
   const query = new URLSearchParams({ date: '2026-10-05', stops: `event:${fleet.id}` });
   const view = await openPlanner('?' + query.toString());
   assert.equal(view.container.querySelector(`[id="catalog-event:${fleet.id}"]`), null);
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存到行程' })); });
   assert.match(editor(view).getByRole('status').textContent || '', /计划日期与所选活动不一致/);
   assert.equal(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY) || '{"plans":[]}').plans.length, 0);
   fireEvent.change(editor(view).getByLabelText('日期'), { target: { value: '2026-10-06' } });
-  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存这份计划' })); });
+  await act(async () => { fireEvent.click(editor(view).getByRole('button', { name: '保存到行程' })); });
   assert.equal(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0].date, '2026-10-06');
 });
 
@@ -330,4 +328,176 @@ test('a new shop saved on the openings board shows saved on its planner card, an
   await act(async () => { fireEvent.click(heart); });
   assert.equal(within(await card()).getByRole('button', { name: '收藏到我的这周' }).getAttribute('aria-pressed'), 'false');
   assert.deepEqual(JSON.parse(localStorage.getItem(savesKey())!).items, [], 'the one save is gone, not doubled');
+});
+
+test('行程 lists a day added elsewhere with each stop\'s cover and the day, and a shared draft says it is unsaved and saves from the overview', async () => {
+  // 加入这天计划 (home, calendar, detail) writes the day's plan; 行程 shows it without any edit link.
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  const view = await openPlanner();
+  const days = view.getByTestId('plan-days');
+  assert.ok(within(days).getByRole('heading', { name: '9/27 计划' }));
+  assert.equal(days.querySelector('time')?.getAttribute('dateTime'), '2026-09-27');
+  const row = within(days).getByRole('heading', { level: 4, name: /金门大桥/ }).closest('li')!;
+  assert.ok(row.querySelector('[data-cover] img'), 'the stop shows its photo cover');
+  assert.equal(within(days).getByRole('link', { name: '打开这一天' }).getAttribute('href'), `/plan?edit=${encodeURIComponent(JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0].id)}`);
+  cleanup();
+
+  // A shared link opens a draft: the overview (first on the page) says it is not saved and saves it in place.
+  const shared = await openPlanner('?date=2026-09-28&stops=place:chinatown');
+  const overview = shared.getByRole('region', { name: '当前计划概览' });
+  assert.match(overview.textContent || '', /草稿 · 还没保存/);
+  assert.equal(shared.container.querySelector('.planner-page')?.querySelector('section'), overview, 'the draft overview is the first section on the page');
+  await act(async () => { fireEvent.click(within(overview).getByRole('button', { name: '保存到行程' })); });
+  assert.match(shared.getByRole('region', { name: '当前计划概览' }).textContent || '', /已保存到行程/);
+  assert.ok(within(shared.getByTestId('plan-days')).getAllByRole('heading', { level: 3 }).length >= 2, 'the saved draft joins 已排的日子');
+  // The link draft is now the saved day in the URL: a reload, Back or a return visit opens it as saved, never as the
+  // same unsaved draft whose second save would duplicate it.
+  const plans = () => JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans as { id: string; date: string }[];
+  const savedId = plans().find(plan => plan.date === '2026-09-28')!.id;
+  const url = new URLSearchParams(shared.getByTestId('planner-location').textContent || '');
+  assert.deepEqual([...url.keys()], ['edit']);
+  assert.equal(url.get('edit'), savedId);
+  assert.ok(within(shared.getByRole('complementary')).getByRole('button', { name: '更新行程' }), 'the editor now updates that plan');
+  cleanup();
+  const reloaded = await openPlanner(`?${url}`);
+  const again = reloaded.getByRole('region', { name: '当前计划概览' });
+  assert.equal(again.getAttribute('data-state'), 'saved');
+  assert.equal(within(again).queryByRole('button', { name: /保存到行程|更新行程/ }), null);
+  assert.equal(plans().length, 2, 'no second copy of the day');
+});
+
+test('a 保存到行程 that fails says why next to the button, once, and the draft stays a draft', async () => {
+  let writes = 0;
+  api.request = async (path, options) => {
+    if (path === '/planner/me' && !options?.method) return { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } };
+    if (path === '/planner/web-candidates' && !options?.method) return { candidates: [], revision: 0 };
+    if (path === '/planner/plans' && options?.method === 'POST') { writes++; throw { status: 503 }; }
+    throw new Error(`Unexpected request: ${options?.method || 'GET'} ${path}`);
+  };
+  const view = await openAccountPlanner('?date=2026-09-28&stops=place:chinatown');
+  const overview = () => view.getByRole('region', { name: '当前计划概览' });
+  await act(async () => { fireEvent.click(within(overview()).getByRole('button', { name: '保存到行程' })); });
+  assert.equal(writes, 1);
+  assert.equal(within(overview()).getByRole('alert').textContent, '暂时无法保存，请稍后重试。');
+  assert.equal(view.getAllByRole('alert').length, 1, 'the account notice shows the same error without announcing it twice');
+  assert.equal(overview().getAttribute('data-state'), 'unsaved');
+  assert.ok(within(overview()).getByRole('button', { name: '保存到行程' }), 'the reader can try again from the same place');
+});
+
+test('the overview reads naturally in English: the day as on 已排的日子, one stop, one person', async () => {
+  await act(async () => { await setLocale('en', false); });
+  try {
+    const view = await openPlanner('?date=2026-09-28&stops=place:chinatown');
+    const head = within(view.getByRole('region', { name: 'Current plan overview' })).getByRole('heading', { name: 'This day at a glance' }).parentElement!;
+    assert.match(head.textContent || '', /Mon 9\/28 · 1 stop · 1 person/);
+    assert.doesNotMatch(view.getByRole('region', { name: 'Current plan overview' }).textContent || '', /\b1 (stops|people)\b|2026-09-28/);
+  } finally {
+    await act(async () => { await setLocale('zh-Hans', false); });
+  }
+});
+
+test('已排的日子 lists the next five days and sends the rest to My Week', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  for (const day of ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28', '2026-09-29', '2026-09-30']) {
+    await appendToDay(undefined, day, { kind: 'place', id: 'chinatown' }, `${day.slice(5)} 计划`, '2026-09-23');
+  }
+  const view = await openPlanner();
+  const days = view.getByTestId('plan-days');
+  assert.deepEqual([...days.querySelectorAll('time')].map(time => time.getAttribute('dateTime')), ['2026-09-24', '2026-09-25', '2026-09-26', '2026-09-27', '2026-09-28']);
+  assert.equal(within(days).getByRole('link', { name: '还有 2 天 · 在我的这周查看' }).getAttribute('href'), '/my-week#plans');
+});
+
+test('行程 shows a fixed-height loading state, then an error with retry when the account read fails, and an empty state for a new guest', async () => {
+  const empty = await openPlanner();
+  assert.ok(within(empty.getByTestId('plan-days')).getByRole('heading', { name: '还没有排好的日子' }));
+  // The copy names 加入这天计划 on the events calendar, so the one action opens that calendar.
+  assert.equal(within(empty.getByTestId('plan-days')).getByRole('link', { name: '打开活动日历' }).getAttribute('href'), '/calendar');
+  cleanup();
+  let fail = true;
+  let answer!: () => void;
+  const pending = new Promise<void>(resolve => { answer = resolve; });
+  api.request = async (path, options) => {
+    if (options?.method) throw new Error('Unexpected write');
+    if (path === '/planner/me') { await pending; if (fail) throw { status: 503 }; return { plans: [], favorites: [], preferences: { regions: [], interests: [], travelMode: 'any' } }; }
+    throw new Error(`Unexpected read: ${path}`);
+  };
+  const view = await openAccountPlanner('');
+  // While the account read is out, 已排的日子 holds its place with skeleton rows and says it is loading.
+  assert.ok(view.getByTestId('plan-days').querySelector('[aria-busy="true"]'), 'skeleton rows while loading');
+  assert.equal(within(view.getByTestId('plan-days')).getByRole('status').textContent, '正在加载');
+  await act(async () => { answer(); await pending; });
+  const days = view.getByTestId('plan-days');
+  assert.ok(within(days).getByRole('alert'), 'API down: the saved days say so instead of looking empty');
+  fail = false;
+  await act(async () => { fireEvent.click(within(days).getByRole('button', { name: '重试' })); });
+  assert.ok(within(view.getByTestId('plan-days')).getByRole('heading', { name: '还没有排好的日子' }));
+});
+
+test('a saved day opened with ?edit= reads 已保存 until a detail changes; a new start time says unsaved and updates from the overview', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  const stored = () => JSON.parse(localStorage.getItem(GUEST_PLANNER_KEY)!).plans[0];
+  const view = await openPlanner(`?edit=${encodeURIComponent(stored().id)}`);
+  const overview = () => view.getByRole('region', { name: '当前计划概览' });
+  assert.equal(overview().getAttribute('data-state'), 'saved', 'opening a saved day changes nothing');
+  assert.equal(within(overview()).queryByRole('button', { name: /保存到行程|更新行程/ }), null);
+
+  fireEvent.change(editor(view).getByLabelText('开始时间'), { target: { value: '13:30' } });
+  assert.equal(overview().getAttribute('data-state'), 'changed', 'a new start time is not saved yet');
+  assert.match(overview().textContent || '', /有修改还没保存/);
+  assert.equal(stored().details?.startTime ?? '10:00', '10:00', 'nothing was written');
+
+  await act(async () => { fireEvent.click(within(overview()).getByRole('button', { name: '更新行程' })); });
+  assert.equal(overview().getAttribute('data-state'), 'saved');
+  assert.equal(stored().details.startTime, '13:30');
+});
+
+test('a stop listed twice on 行程 shows its photo once: the first saved day keeps it, later rows show the information card', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  await appendToDay(undefined, '2026-09-28', { kind: 'place', id: 'golden-gate' }, '9/28 计划', '2026-09-23');
+  const view = await openPlanner();
+  for (let page = 0; page < 40 && !view.container.querySelector('[id="catalog-place:golden-gate"]'); page++) fireEvent.click(view.getByRole('button', { name: '继续看更多地点' }));
+  assert.ok(view.container.querySelector('[id="catalog-place:golden-gate"]'), `the list reaches the same place (${view.container.querySelectorAll('.planner-catalog .planner-place').length} rows)`);
+  // A letterboxed poster draws its file twice inside one cover (the blurred fill); count each cover's files once.
+  const sources = [...view.container.querySelectorAll('[data-cover]')].flatMap(cover => [...new Set([...cover.querySelectorAll('img')].map(image => image.getAttribute('src')))]);
+  assert.deepEqual(sources.filter((src, index) => sources.indexOf(src) !== index), [], 'no image file appears in two covers on the page');
+  // Each plan by its heading (getAllByRole('article') inside 已排的日子 exhausted jsdom's memory on this page).
+  const [first, second] = ['9/27 计划', '9/28 计划'].map(name => within(view.getByTestId('plan-days')).getByRole('heading', { level: 3, name }).closest('article')!);
+  assert.ok(first.querySelector('[data-cover] img'), 'the first saved day keeps the photo');
+  assert.equal(second.querySelector('img'), null);
+  assert.ok(second.querySelector('[data-cover="type"]'), 'the repeat shows its information card');
+  assert.ok(view.container.querySelector('[id="catalog-place:golden-gate"] [data-cover="type"]'), 'so does the list row');
+});
+
+test('offline, 行程 says what still works: a guest’s saved days and draft stay, suggestions and the map wait for a connection', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-27', { kind: 'place', id: 'golden-gate' }, '9/27 计划', '2026-09-23');
+  const view = await openPlanner('?date=2026-09-28&stops=place:chinatown');
+  assert.equal(view.queryByText(/你现在离线/), null, 'online: no offline line');
+  Object.defineProperty(window.navigator, 'onLine', { configurable: true, get: () => false });
+  try {
+    await act(async () => { window.dispatchEvent(new window.Event('offline')); });
+    const line = view.getByText(/你现在离线/);
+    assert.equal(line.getAttribute('role'), 'status');
+    assert.match(line.textContent || '', /已保存的行程和这台设备上的草稿仍可查看/);
+    assert.ok(within(view.getByTestId('plan-days')).getByRole('heading', { name: '9/27 计划' }), 'the saved day is still listed');
+    assert.match(view.getByRole('region', { name: '当前计划概览' }).textContent || '', /草稿 · 还没保存/, 'the draft is still on screen 1');
+  } finally {
+    Object.defineProperty(window.navigator, 'onLine', { configurable: true, get: () => true });
+    await act(async () => { window.dispatchEvent(new window.Event('online')); });
+  }
+  assert.equal(view.queryByText(/你现在离线/), null, 'back online: the line goes away');
+});
+
+test('已排的日子 marks an event saved under a day it does not run on', async () => {
+  const { appendToDay } = await import('../src/lib/planner-library');
+  await appendToDay(undefined, '2026-09-30', { kind: 'event', id: event.id }, '9/30 计划', '2026-09-23');
+  await appendToDay(undefined, '2026-10-17', { kind: 'event', id: event.id }, '10/17 计划', '2026-09-23');
+  const view = await openPlanner();
+  const days = view.getByTestId('plan-days');
+  const day = (date: string) => days.querySelector(`[id="plan-day-${date}"]`) as HTMLElement;
+  assert.equal(within(day('2026-09-30')).queryByText('不在这一天'), null, 'the conference runs on 9/30');
+  assert.ok(within(day('2026-10-17')).getByText('不在这一天'), 'it does not run on 10/17');
 });

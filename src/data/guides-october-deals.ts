@@ -9,7 +9,7 @@ export const octoberDealsGuides: Guide[] = [{
   category: 'events', categoryLabel: '生活活动', emoji: '🎁',
   audience: ['湾区亲子家庭', '想省门票的本地居民', '十月周末出行者'],
   tags: ['2026年10月', '当月优惠', '免费场馆', '亲子手工', 'Discover & Go', 'BAMPFA', 'OMCA', 'Lowe’s', 'Yogurtland', '图书馆', '南湾', '东湾', '半岛', '北湾'],
-  priority: 'P0', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
+  priority: 'P1', featuredOnHome: true, recommendedForCategories: ['other'], readMinutes: 9,
   updatedAt: '2026-10-05', editionMonth: '2026-10',
   sourceNote: '2026-10-05 新增 12 项门店活动、餐饮优惠及积分活动，并更新官方配图。各卡片保留自己的核对日期，不代表旧条目全部重新确认。按周期推算的日期另有注明；出发前复核门店参与、预约和库存。',
   sources: [...new Map([
@@ -22,7 +22,7 @@ export const octoberDealsGuides: Guide[] = [{
   ].map(source => [source.url, source])).values()],
   blocks: [
     { type: 'heading', text: '10/5 更新：门店赠品、儿童餐与十月餐饮优惠' },
-    { type: 'paragraph', text: '本轮补入 Lowe’s Money Days、Shake Shack、Wendy’s、Smashburger、MOD、PetSmart 与 Dunkin 的官方信息。买赠、积分和条件待核对分别标注；10/1–4 已结束项目不再出现在可领取清单。' },
+    { type: 'paragraph', text: '10 月新增 Lowe’s Money Days、Shake Shack、Wendy’s、Smashburger、MOD、PetSmart 与 Dunkin 的官方信息。买赠、积分和条件待核对分别标注；10/1–4 已结束项目不再出现在可领取清单。' },
     { type: 'link', title: 'Lowe’s 10/10–11：现场奖品机会，先核对完整规则', text: '官方公布 10:00–13:00 门店活动；具体参与资格、购买条件和奖品数量请先问本店，不保证每位到场者获赠。', url: '/offers/lowes-money-days-prizes-oct10-11-2026' },
     { type: 'link', title: 'San Rafael 拼图交换：没有拼图可带也能参加', text: '10/8 13:00–16:00，到 Civic Center Library 挑选；如带拼图捐赠，须完整无缺件，现场款式与余量不保证。', url: '/events/san-rafael-civic-center-puzzle-swap-2026' },
     { type: 'link', title: 'Shake Shack：另购满 $10，按日期领取当期赠品', text: '10 月使用 SCARYGOOD，按日期赠鸡肉堡或牛肉堡；须通过指定官方渠道，并把符合当期规则的赠品加入购物车。', url: '/offers/shake-shack-scarygood-oct2026' },

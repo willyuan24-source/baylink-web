@@ -13,9 +13,19 @@ import { PLANNER_CATALOG } from '../src/data/planner-catalog';
 import { ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES } from '../src/data/attractions';
 import { ATTRACTION_REGION_INTROS } from '../src/data/attraction-region-intros';
 import { READER_PATHS } from '../src/data/reader-paths';
-import { perksPosters } from '../src/data/perks-posters';
+import { perksPosterCaption, perksPosters } from '../src/data/perks-posters';
 import { LIFE_TOOLS, TOOLS_METADATA } from '../src/data/tool-catalog';
-import type { EnglishDictionary } from '../src/lib/english-loading';
+import { DETAIL_BUCKET_COUNT, detailBucket, type EnglishDictionary } from '../src/lib/english-loading';
+import { allDetailRecords } from '../src/features/detail/build-detail';
+import eventIdAliases from '../src/data/event-id-aliases.json';
+import { buildGuideData, writeGuideData } from './generate-guide-data';
+import { getOfferImage } from '../src/lib/offer-media';
+import { generateTraditionalPhrases } from './generate-traditional-phrases';
+import officialEventMedia from '../src/data/official-event-media.json';
+import { CALENDAR_CITY_LOCATIONS } from '../src/data/calendar-city-locations';
+import { OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, VERIFIED_OFFER_PLACE_MEDIA_UPDATES, VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
+import { OCTNOV_EVENT_CONTEXT_PHOTOS, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_PHOTO_ALIASES } from '../src/data/octnov-2026-event-photo-aliases';
+import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
 const chinese = /[\u3400-\u9fff]/u;
@@ -98,12 +108,29 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     Object.values(ATTRACTION_REGION_INTROS).map(intro => [intro.text, intro.planning]),
   ];
   const ui = englishDictionaryForUiScope(dictionary, await uiStrings(), uiDictionaries, editorialProse);
+  // The guide routes' generated index and per-guide records (WEB-DATA-SPLIT): /guides translates what its cards show
+  // ('guide-list'), and an article's own scope covers everything its record renders, "Read next" cards included.
+  const guideData = await buildGuideData();
+  await writeGuideData(guideData);
+  const records = new Map(guideData.records.map(record => [record.guide.slug, record]));
   const remaining = (values: unknown) => Object.fromEntries(Object.entries(englishDictionaryForValues(dictionary, values)).filter(([key]) => !Object.hasOwn(ui, key)));
   const guideIndex = [guides.map(guide => ({ ...Object.fromEntries(Object.entries(guide).filter(([key]) => key !== 'blocks')), media: getGuideMedia(guide).cover })), GUIDE_CATEGORY_TABS, READER_PATHS];
+  // The events column (/events, /calendar) renders the slim events index and the media tables its covers read: its own pack
+  // ('events-list', WEB-DATA-SPLIT) instead of the whole discovery catalog and every guide. The index is generated here,
+  // first: importing the generator runs it once (generate:home's own import of it afterwards is the same, cached module).
+  await import('./generate-events-index');
+  const eventsList = [JSON.parse(await readFile('src/data/generated/events-index.json', 'utf8')), officialEventMedia, CALENDAR_CITY_LOCATIONS,
+    VERIFIED_PLACE_PHOTO_ALIASES, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_OFFER_PLACE_MEDIA_UPDATES,
+    OCTNOV_EVENT_PHOTO_ALIASES, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_CONTEXT_PHOTOS, EVENT_CONTEXT_PHOTOS,
+    // every compact schedule note: the calendar can show any of them (tests/octnov-metadata-i18n.test.tsx)
+    EVENT_SCHEDULE_NOTES];
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
     'guide-index': guideIndex,
+    // the cards, and what the saved shelf (/guides?view=saved, ReaderLibrary) adds to them: each guide's category label
+    'guide-list': [guideData.index, guides.map(guide => guide.categoryLabel)],
+    'events-list': eventsList,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
@@ -118,14 +145,36 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     sizes[scope] = gzipSync(serialized).length;
     await writeFile(`${directory}/${scope}.json`, serialized);
   }
+  // The posters' share captions (PerksGallery) pass their fixed lines through translate() at render time.
+  const posterCaptionLines: string[] = [];
+  for (const poster of perksPosters) perksPosterCaption(poster, text => { posterCaptionLines.push(text); return text; });
   for (const guide of guides) {
     if (!/^[a-z0-9][a-z0-9-]*$/u.test(guide.slug)) throw new Error(`Unsafe guide scope slug: ${guide.slug}`);
-    const values = [guide, getGuideMedia(guide), guide.blocks.some(block => block.type === 'freebies') ? perksPosters : undefined];
+    // The deals board resolves each offer's picture at runtime (getOfferImage): its alt text, caption and credit too.
+    const offers = guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []);
+    const values = [records.get(guide.slug), offers.length ? [perksPosters, posterCaptionLines, offers.map(getOfferImage)] : undefined];
     const file = `guide-${guide.slug}.json`;
     registry[`guide:${guide.slug}`] = file;
     await writeFile(`${directory}/${file}`, JSON.stringify(remaining(values)));
   }
+  // Event, offer and opening details: one pack per detail bucket (the listing, its rails and its head), so a detail page
+  // loads ~10 listings' English instead of the whole discovery pack (ENGSEC-01; lib/english-loading.ts detailBucket).
+  const detailValues: unknown[][] = Array.from({ length: DETAIL_BUCKET_COUNT }, () => []);
+  const detailRecords = allDetailRecords();
+  const keyed = [...detailRecords].map(([key, record]) => [key, record] as const);
+  for (const [alias, canonical] of Object.entries(eventIdAliases as Record<string, string>)) { const record = detailRecords.get(`event:${canonical}`); if (record) keyed.push([`event:${alias}`, record]); }
+  for (const [key, record] of keyed) {
+    const [kind, id] = key.split(':') as ['event' | 'offer' | 'opening', string];
+    detailValues[Number(detailBucket(kind, id))].push(record);
+  }
+  for (const [index, values] of detailValues.entries()) {
+    const bucket = String(index).padStart(2, '0');
+    registry[`detail-${bucket}`] = `detail-${bucket}.json`;
+    await writeFile(`${directory}/detail-${bucket}.json`, JSON.stringify(remaining(values)));
+  }
   const lines = Object.entries(registry).map(([scope, file]) => `  ${JSON.stringify(scope)}: () => import(${JSON.stringify(`./english-scopes/${file}`)}),`);
   await writeFile('src/data/generated/english-scope-loaders.ts', `// Generated by scripts/generate-english-scopes.ts; imports run only for requested content.\nexport const englishScopeLoaders = {\n${lines.join('\n')}\n};\n`);
   console.log(`English scopes gzip bytes: ${JSON.stringify(sizes)}; ${guides.length} separate article packs.`);
+  // 繁體's pruned phrase table reads every source file, the guide data written above included.
+  await generateTraditionalPhrases();
 }

@@ -1,13 +1,15 @@
-import { lazy, Suspense, useMemo, useState, type MouseEvent } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type MouseEvent } from 'react';
 import { Bookmark, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { guides, GUIDE_CATEGORY_TABS, type Guide, type GuideCategory } from '../data/guides';
+import type { Guide, GuideCategory } from '../data/guides';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } from '../data/guide-topics';
 import { searchGuides } from '../lib/guide-search';
+import guidesIndex from '../data/generated/guides-index.json';
+import type { GuideIndexCard, GuidesIndex } from '../features/guides/guide-records';
 import { createCoverPage, distinctNeighbourTones, type ResolvedCover } from '../lib/cover';
 import type { CoverTone } from '../lib/event-facts';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
-import { translateText } from '../i18n/locale';
+import { loadLocaleForFeature, translateText } from '../i18n/locale';
 import { useUiCopy } from './ui/ui-copy';
 import { PageHeader } from './ui/HeroCard';
 import { FilterChip, ChipRow } from './ui/Chip';
@@ -15,12 +17,12 @@ import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard, RowCard } from './ui/Card';
 import { Carousel } from './ui/Carousel';
 import { Button } from './ui/Button';
-import { EmptyState } from './ui/States';
+import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover } from '../features/guides/GuideCover';
-import { handleGuideLinkClick } from './GuideCard';
-import { GUIDE_REGIONS, guideCardMeta, guideCover, guideRegionsOf, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
+import { handleGuideLinkClick } from '../features/guides/guide-link';
+import { GUIDE_REGIONS, guideCardMeta, guideCover, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
 import { guideEditorialAnswer } from '../data/guide-editorial/answers';
 import '../features/guides/guide-library.css';
 
@@ -28,11 +30,41 @@ import '../features/guides/guide-library.css';
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: (question: string) => void; onSearch?: (query: string) => void };
-type Listed = { guide: Guide; snippet?: string; section?: string };
+type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
 const RAIL_SIZE = 6;
 const PREVIEW_SIZE = 4;
-const bySlug = (slug: string) => guides.find(guide => guide.slug === slug);
+// The generated slim index (WEB-DATA-SPLIT, ENGSEC-01): cards only, no article bodies. Full-text search loads the corpus.
+const INDEX = guidesIndex as GuidesIndex;
+const guides = INDEX.guides;
+const GUIDE_CATEGORY_TABS = INDEX.categoryTabs;
+const cardsBySlug = new Map(guides.map(guide => [guide.slug, guide]));
+const bySlug = (slug: string) => cardsBySlug.get(slug);
+
+/**
+ * The full guide corpus for full-text search: a chunk of its own, loaded on the first search. English also needs the guides'
+ * full-text pack ('guide-search') before it matches, in whichever language the reader searches first.
+ */
+let corpus: Guide[] | undefined;
+let corpusLoad: Promise<Guide[]> | undefined;
+const searchReady = new Set<string>();
+const loadCorpus = () => corpusLoad ||= import('../features/guides/guide-search-corpus').then(module => (corpus = module.guides))
+  .catch((error: unknown) => { corpusLoad = undefined; throw error; });
+const loadSearch = (locale: string) => Promise.all([loadCorpus(), locale === 'en' ? loadLocaleForFeature('en', 'guide-search').catch(() => undefined) : undefined])
+  .then(() => { searchReady.add(locale); });
+function useSearchCorpus(active: boolean, locale: string): { guides?: Guide[]; failed: boolean; retry: () => void } {
+  const [, setLoaded] = useState(0);
+  const [failed, setFailed] = useState(false);
+  const [attempt, setAttempt] = useState(0);
+  useEffect(() => {
+    if (!active || searchReady.has(locale)) return;
+    let live = true;
+    loadSearch(locale).then(() => { if (live) setLoaded(count => count + 1); }, () => { if (live) setFailed(true); });
+    return () => { live = false; };
+  }, [active, locale, attempt]);
+  const ready = searchReady.has(locale);
+  return { guides: ready ? corpus : undefined, failed: failed && !ready, retry: () => { setFailed(false); setAttempt(count => count + 1); } };
+}
 
 /**
  * 指南 (T2, design.md §4.7.4, 1007 §4.4): two-column 3:4 covers, the seven task topics with 长辈与家属 first (D22), a region
@@ -70,18 +102,23 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     return next;
   }, { replace: true, preventScrollReset: true });
 
+  const search = useSearchCorpus(searching, locale);
+  const searchLoading = searching && !search.guides;
   const listed = useMemo((): Listed[] => {
-    const inRegion = (guide: Guide) => !region || guideRegionsOf(guide).includes(region);
+    const inRegion = (guide: GuideIndexCard) => !region || (guide.regions ?? []).includes(region);
     // Search inside a topic keeps that topic's list: the 长辈与家属 hub gathers guides whose primary topic is elsewhere.
     const inTopic = topic ? new Set(guideSlugsForTopic(topic, guides)) : null;
-    if (searching) return searchGuides(guides, { query, category: category ?? 'all', locale }).filter(result => inRegion(result.guide) && (!inTopic || inTopic.has(result.guide.slug)));
-    let list: Guide[] = topic ? guideSlugsForTopic(topic, guides).map(bySlug).filter((guide): guide is Guide => !!guide) : guides;
+    if (searching) return (search.guides ? searchGuides(search.guides, { query, category: category ?? 'all', locale }) : []).flatMap(result => {
+      const card = bySlug(result.guide.slug);
+      return card && inRegion(card) && (!inTopic || inTopic.has(card.slug)) ? [{ guide: card, snippet: result.snippet, section: result.section }] : [];
+    });
+    let list: GuideIndexCard[] = topic ? guideSlugsForTopic(topic, guides).map(bySlug).filter((guide): guide is GuideIndexCard => !!guide) : guides;
     if (category) list = list.filter(guide => guide.category === category);
     return list.filter(inRegion).map(guide => ({ guide }));
-  }, [searching, query, topic, region, category, locale]);
+  }, [searching, query, topic, region, category, locale, search.guides]);
 
   const topicCounts = useMemo(() => Object.fromEntries(GUIDE_TOPICS.map(item => [item.id, guideSlugsForTopic(item.id, guides).length])) as Record<GuideTopicId, number>, []);
-  const elderRail = useMemo(() => guideSlugsForTopic('elders', guides).slice(0, RAIL_SIZE).map(bySlug).filter((guide): guide is Guide => !!guide), []);
+  const elderRail = useMemo(() => guideSlugsForTopic('elders', guides).slice(0, RAIL_SIZE).map(bySlug).filter((guide): guide is GuideIndexCard => !!guide), []);
   const sections = useMemo(() => {
     const shown = new Set(elderRail.map(guide => guide.slug));
     return GUIDE_TOPICS.filter(item => item.id !== 'elders').map(item => {
@@ -95,7 +132,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   // One cover page in reading order, so an image never appears twice and two coded covers side by side change colour.
   const covers = useMemo(() => {
     const coverPage = createCoverPage();
-    const order: Guide[] = browsing ? [...elderRail, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
+    const order: GuideIndexCard[] = browsing ? [...elderRail, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
     const resolved = new Map<string, { cover: ResolvedCover; tone?: CoverTone }>();
     const tones = distinctNeighbourTones(order.map(guide => {
       const cover = guideCover(guide, today, coverPage);
@@ -106,9 +143,9 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     return resolved;
   }, [browsing, elderRail, sections, listed, visibleCount, today]);
 
-  const guideTitle = (guide: Guide) => translateText(guide.title, locale);
-  const meta = (guide: Guide) => pick(guideCardMeta(guide));
-  const coverOf = (guide: Guide, options: { priority?: boolean; thumb?: boolean } = {}) => {
+  const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
+  const meta = (guide: GuideIndexCard) => pick(guideCardMeta(guide));
+  const coverOf = (guide: GuideIndexCard, options: { priority?: boolean; thumb?: boolean } = {}) => {
     const entry = covers.get(guide.slug);
     if (!entry) return null;
     return <GuideCover guide={guide} cover={entry.cover} tone={entry.tone} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
@@ -116,7 +153,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   };
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
-  const card = (guide: Guide, priority = false) => <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
+  const card = (guide: GuideIndexCard, priority = false) => <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
     onOpen={open(guide.slug)} cover={coverOf(guide, { priority })} meta={meta(guide)} />;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
@@ -167,9 +204,10 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       </> : <section className="gl-section" aria-labelledby="gl-results-title">
         <div className="gl-section__head">
           <div><h2 id="gl-results-title">{heading}</h2>{topic && !searching && <p>{summaryOf(topic)}</p>}</div>
-          <span className="gl-count" role="status" aria-live="polite">{t(`${listed.length} 篇`, `${listed.length} guide${listed.length === 1 ? '' : 's'}`)}</span>
+          <span className="gl-count" role="status" aria-live="polite">{searchLoading ? t('正在搜索…', 'Searching…') : t(`${listed.length} 篇`, `${listed.length} guide${listed.length === 1 ? '' : 's'}`)}</span>
         </div>
-        {listed.length === 0 ? <EmptyState icon={Search} title={t('还没有找到相关指南', 'No matching guides yet')} body={t('换个关键词或地区，也可以搜全站，或把问题交给 BayBay。', 'Try another word or region, search the whole site, or ask BayBay.')}
+        {searchLoading ? (search.failed ? <ErrorState headingLevel="h3" title={t('搜索暂时没能加载', 'Search didn’t load')} onRetry={search.retry} homeTo={null} /> : <SkeletonFeed count={4} rows />)
+          : listed.length === 0 ? <EmptyState icon={Search} title={t('还没有找到相关指南', 'No matching guides yet')} body={t('换个关键词或地区，也可以搜全站，或把问题交给 BayBay。', 'Try another word or region, search the whole site, or ask BayBay.')}
           actions={<>
             <Button variant="primary" onClick={() => update({ q: '', topic: null, region: null, category: null })}>{t('查看全部指南', 'Browse all guides')}</Button>
             {searching && onAsk ? <Button variant="text" onClick={() => onAsk(query)}>{t('问 BayBay', 'Ask BayBay')}</Button>

@@ -79,12 +79,17 @@ test('localized post routes retain original author text with request-scoped meta
   const en = await english.text(), hant = await traditional.text();
   assert.match(en, /<html lang="en"/);
   assert.match(en, /content="en_US"/);
-  assert.match(en, /rel="canonical" href="https:\/\/www.baylink.us\/en\/posts\/public-post"/);
+  // I18N-SEO-12: the copies point at the original post and are not indexed; no hreflang cluster for user text
+  assert.match(en, /rel="canonical" href="https:\/\/www.baylink.us\/posts\/public-post"/);
+  assert.match(en, /<meta name="robots" content="noindex, follow"/);
+  assert.match(english.headers.get('x-robots-tag')!, /noindex/);
+  assert.doesNotMatch(en + hant, /hreflang=/);
   assert.match(en, /Confirm availability before contacting/);
   assert.match(en, /公开房源介绍/);
   assert.match(hant, /<html lang="zh-Hant"/);
   assert.match(hant, /content="zh_TW"/);
-  assert.match(hant, /rel="canonical" href="https:\/\/www.baylink.us\/zh-Hant\/posts\/public-post"/);
+  assert.match(hant, /rel="canonical" href="https:\/\/www.baylink.us\/posts\/public-post"/);
+  assert.match(hant, /<meta name="robots" content="noindex, follow"/);
   assert.match(hant, /聯絡前請確認仍有效/);
   assert.doesNotMatch(en + hant, /PRIVATE_/);
 });

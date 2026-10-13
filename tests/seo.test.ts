@@ -9,26 +9,38 @@ import { guides, getGuidesForCategorySlug } from '../src/data/guides';
 import { GuideDetail } from '../src/components/GuideDetail';
 import { GuidesHome } from '../src/components/GuidesHome';
 import { SLUG_TO_CATEGORY } from '../src/routing';
-import { DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
+import { configureMetadataLanguage, DEFAULT_SOCIAL_IMAGE, renderHtmlDocument, setPageMetadata } from '../src/lib/seo';
 import { getGuideMetadata } from '../src/lib/guide-metadata';
-import { MONTHLY_METADATA } from '../src/lib/monthly-metadata';
+import { monthlyMetadata } from '../src/lib/monthly-metadata';
+import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
+import { listingEndedDaysAgo } from '../src/lib/listing-lifecycle';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { EVENTS_INDEX, INDEX_EVENTS } from '../src/features/events/events-model';
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { getDiscoveryMetadata } from '../src/lib/discovery-metadata';
 import { generateSitemap } from '../scripts/generate-sitemap';
+import guidePublished from '../src/data/first-published/guides.json';
+import { preloadAllGuideBlocks } from '../src/features/guides/guide-blocks';
+
+// The deals board and the city directory are chunks an article loads with its record (WEB-DATA-SPLIT); the page waits for
+// them, so does this test.
+await preloadAllGuideBlocks();
 
 const template = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const noop = () => {};
 
 test('monthly structured data links every live event of the edition to a readable canonical detail page beyond the first page', () => {
-  const html = renderHtmlDocument(template, MONTHLY_METADATA, '<main>Monthly edition</main>');
+  const day = '2026-10-12';
+  const html = renderHtmlDocument(template, monthlyMetadata(day), '<main>Monthly edition</main>');
   const dom = new JSDOM(html);
   const [collection] = JSON.parse(dom.window.document.querySelector('script[type="application/ld+json"]')!.textContent!);
   const entries: { url: string; name: string }[] = collection.mainEntity.itemListElement;
-  // The events column's slim index: every event that had not ended by the edition's check date (RC-33), in catalog order.
-  assert.deepEqual(entries.map(entry => entry.url), INDEX_EVENTS.map(event => `https://www.baylink.us/events/${event.id}`));
-  for (const event of MONTHLY_EVENTS.filter(item => item.endDate >= EVENTS_INDEX.edition.checkedAt)) assert.ok(entries.some(entry => entry.url.endsWith(`/events/${event.id}`)), `${event.id} is listed`);
+  // The events column's slim index (RC-33): what is still on that day, by the next day each event happens (I18N-SEO-10).
+  const live = INDEX_EVENTS.filter(event => nextOccurrence(event, day));
+  assert.deepEqual(new Set(entries.map(entry => entry.url)), new Set(live.map(event => `https://www.baylink.us/events/${event.id}`)));
+  const next = entries.map(entry => nextOccurrence(INDEX_EVENTS.find(event => entry.url.endsWith(`/events/${event.id}`))!, day)!);
+  assert.deepEqual(next, [...next].sort(), 'by the next day each event is on');
+  for (const event of MONTHLY_EVENTS.filter(item => item.endDate >= EVENTS_INDEX.edition.checkedAt && nextOccurrence(item, day))) assert.ok(entries.some(entry => entry.url.endsWith(`/events/${event.id}`)), `${event.id} is listed`);
   assert.ok(entries.length > 12, 'the list reaches beyond the first page of cards');
   for (const entry of entries) {
     const url = new URL(entry.url);
@@ -79,18 +91,53 @@ test('client navigation resets stale article image and noindex metadata', () => 
   }
 });
 
+test('I18N-SEO-12 after hydration: a user post keeps one canonical page, no hreflang, and its language copies noindex', () => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  const dom = new JSDOM(template);
+  Object.defineProperty(globalThis, 'document', { value: dom.window.document, configurable: true });
+  const head = () => ({
+    canonical: dom.window.document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+    robots: dom.window.document.querySelector('meta[name="robots"]')?.getAttribute('content'),
+    hreflang: dom.window.document.querySelectorAll('link[rel="alternate"][hreflang]').length,
+    url: dom.window.document.querySelector('meta[property="og:url"]')?.getAttribute('content'),
+  });
+  const same = (text: string) => text, data = (blocks: Record<string, unknown>[]) => blocks;
+  try {
+    // what AppLayout and PostDetailModal pass for /en/posts/:id and /zh-Hant/posts/:id (the path without the prefix)
+    configureMetadataLanguage('en_US', same, data);
+    setPageMetadata({ title: 'Room for rent｜BAYLINK', description: '近 BART', path: '/posts/p1', type: 'article', preserveText: true });
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/posts/p1', robots: 'noindex, follow', hreflang: 0, url: 'https://www.baylink.us/posts/p1' });
+    configureMetadataLanguage('zh_TW', same, data);
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/posts/p1', robots: 'noindex, follow', hreflang: 0, url: 'https://www.baylink.us/posts/p1' }, 'a language switch re-applies the policy');
+    // the original: indexed, its own canonical, still no cluster claiming translations
+    configureMetadataLanguage('zh_CN', same, data);
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/posts/p1', robots: 'index, follow', hreflang: 0, url: 'https://www.baylink.us/posts/p1' });
+    // a closed post stays noindex; other pages keep their language cluster
+    setPageMetadata({ title: '已结束｜BAYLINK', description: '已结束', path: '/en/posts/p2/', noindex: true });
+    assert.equal(head().canonical, 'https://www.baylink.us/posts/p2');
+    configureMetadataLanguage('en_US', same, data);
+    setPageMetadata({ title: 'Guides', description: 'Guides', path: '/guides' });
+    assert.deepEqual(head(), { canonical: 'https://www.baylink.us/en/guides', robots: 'index, follow', hreflang: 4, url: 'https://www.baylink.us/en/guides' });
+  } finally {
+    configureMetadataLanguage('zh_CN', same, data);
+    if (previous) Object.defineProperty(globalThis, 'document', previous);
+    else Reflect.deleteProperty(globalThis, 'document');
+  }
+});
+
 test('guide structured data uses real modification dates, escapes script delimiters and clears on navigation', () => {
   const guide = { ...guides[0], title: '指南 </script><script>alert(1)</script>' };
-  const metadata = getGuideMetadata(guide);
+  const metadata = getGuideMetadata(guide, (guidePublished as Record<string, string>)[guides[0].slug]);
   const html = renderHtmlDocument(template, metadata, '<article>指南正文</article>');
   const dom = new JSDOM(html);
   const scripts = dom.window.document.querySelectorAll('script[type="application/ld+json"]');
   assert.equal(scripts.length, 1);
   const [article, breadcrumbs] = JSON.parse(scripts[0].textContent || '[]');
   assert.equal(article.headline, guide.title);
-  assert.equal(article.dateModified, guide.updatedAt);
-  assert.equal(article.author, undefined, 'do not invent a personal author');
-  assert.equal(article.datePublished, undefined, 'modification time is not a known publication date');
+  assert.ok(article.dateModified >= guide.updatedAt);
+  assert.deepEqual(article.author, { '@type': 'Organization', name: 'BAYLINK', url: 'https://www.baylink.us/about' }, 'the editorial desk, never an invented person');
+  // the day the guide first shipped (data/first-published, from the history), never the modification time
+  assert.equal(article.datePublished, (guidePublished as Record<string, string>)[guides[0].slug], "the prerender passes the first-published day");
   assert.equal(breadcrumbs.itemListElement.at(-1).item, `https://www.baylink.us/guides/${guide.slug}`);
   assert.equal(dom.window.document.querySelectorAll('script:not([src]):not([type="application/ld+json"])').length, 0);
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
@@ -188,15 +235,18 @@ test('hosting config has explicit public routes, a real missing-page status and 
 });
 
 test('public and prerendered sitemaps share the complete current catalog and source dates', () => {
-  const { paths, xml } = generateSitemap();
+  const { paths, indexed, xml } = generateSitemap();
   assert.equal(readFileSync(new URL('../public/sitemap.xml', import.meta.url), 'utf8').replace(/\r\n/g, '\n'), xml);
   const dom = new JSDOM(xml, { contentType: 'application/xml' });
   const entries = [...dom.window.document.querySelectorAll('url')];
   const urls = entries.map(entry => entry.querySelector('loc')!.textContent!);
-  assert.equal(new Set(urls).size, paths.length, 'every public route appears exactly once');
+  assert.equal(new Set(urls).size, indexed.length, 'every indexed public route appears exactly once');
+  assert.ok(indexed.every(path => paths.includes(path)) && indexed.length < paths.length, 'ended listings leave the sitemap; their pages stay');
   for (const item of localDiscoveries) {
     const share = discoveryShare(item);
     const entry = entries.find(row => row.querySelector('loc')!.textContent === `https://www.baylink.us${share.path}`);
+    // I18N-SEO-10: an event or offer that ended more than a week ago is not in the sitemap
+    if ((listingEndedDaysAgo(item, getBayAreaToday()) ?? -1) > 7) { assert.equal(entry, undefined, share.path); continue; }
     assert.ok(entry, share.path);
     assert.equal(entry.querySelector('lastmod')?.textContent || undefined, share.checkedAt || undefined, share.path);
   }

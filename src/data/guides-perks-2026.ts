@@ -12,7 +12,7 @@ const drafts: Guide[] = [
     "category": "events",
     "categoryLabel": "生活活动",
     "emoji": "🎁",
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"
@@ -106,7 +106,7 @@ const drafts: Guide[] = [
     "category": "events",
     "categoryLabel": "生活活动",
     "emoji": "🎁",
-    "priority": "P0",
+    "priority": "P1",
     "featuredOnHome": true,
     "recommendedForCategories": [
       "other"
@@ -168,7 +168,7 @@ const drafts: Guide[] = [
       {
         "type": "link",
         "title": "AC Library：先分清实体卡、eCard 与影音入口",
-        "text": "2026-10-04 核对：AC Library 当前官方影音页列出 hoopla 等服务；本次未找到 AC 卡适用的 Kanopy 官方入口，不能套用 SFPL 或 SMCL 的 Kanopy 权益。在加州居住、工作或就学者可申请免费实体卡；Alameda County 居民 eCard 有效期为五年，其他加州居民的临时 eCard 须在 30 天内转实体卡。eCard 不含 Discover & Go，馆票还要求服务区居民及年满 15 岁。",
+        "text": "2026-10-04 核对：AC Library 当前官方影音页列出 hoopla 等服务；AC Library 官网没有列出 AC 卡可用的 Kanopy 入口，SFPL 或 SMCL 的 Kanopy 权益不能直接套用。在加州居住、工作或就学者可申请免费实体卡；Alameda County 居民 eCard 有效期为五年，其他加州居民的临时 eCard 须在 30 天内转实体卡。eCard 不含 Discover & Go，馆票还要求服务区居民及年满 15 岁。",
         "url": "https://aclibrary.org/movies-tv/"
       },
       {
