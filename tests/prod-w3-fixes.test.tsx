@@ -178,7 +178,16 @@ test('/ai-in-the-bay folds the ended sessions behind one button and shows a shar
   const view = render(<MemoryRouter initialEntries={['/ai-in-the-bay']}><AiLocalPage today="2026-10-12" /></MemoryRouter>);
   assert.equal(view.queryAllByRole('article').length, 0);
   assert.ok(view.getAllByRole('link', { name: '看本周末活动' }).some(link => link.closest('.ui-state')), 'the folded state points to this weekend');
-  fireEvent.click(view.getByRole('button', { name: /^看已结束的场次（\d+ 场）$/ }));
+  // The folded count follows the filters, and the button opens exactly that many.
+  fireEvent.click(view.getByRole('button', { name: '社区与公共议题' }));
+  fireEvent.change(view.getByRole('combobox'), { target: { value: 'tech-week' } });
+  const some = view.getByRole('button', { name: /^看已结束的场次（\d+ 场）$/ });
+  const count = Number(/（(\d+) 场）/u.exec(some.textContent!)![1]);
+  assert.ok(view.getByText(`往期 ${count} 场已收起，需要时可以展开回看。`));
+  fireEvent.click(some);
+  assert.equal(view.getAllByRole('article').length, count);
+  fireEvent.click(view.getByRole('button', { name: '所有场次' }));
+  fireEvent.change(view.getByRole('combobox'), { target: { value: 'all' } });
   const cards = view.getAllByRole('article');
   assert.ok(cards.length >= 8, `${cards.length} past sessions`);
   const srcs = [...view.container.querySelectorAll('.bl-ai-event-media img')].map(img => img.getAttribute('src'));

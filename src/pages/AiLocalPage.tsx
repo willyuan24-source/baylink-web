@@ -41,6 +41,8 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
   const seenImages = new Set<string>();
   const latestCheck = events.reduce((date, event) => event.verifiedAt > date ? event.verifiedAt : date, '');
   const reset = () => { setGoal('all'); setWeek('all'); };
+  // A filter with no past sessions folds to "none here" and offers the reset, never "往期 0 场已收起" with no way back.
+  const filtered = goal !== 'all' || week !== 'all';
   useEffect(() => {
     setPageMetadata({
       title: translateText('湾区 AI 现场｜BAYLINK', locale),
@@ -96,9 +98,11 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
       </div>
       <p className="bl-ai-scope">{t('场次按日期分组，不代表主办方合作关系。')} {t('时间均为湾区当地时间。活动周不是连续开放的展会通票。')}</p>
       {allEnded && !includeEnded ? <EmptyState headingLevel="h3" icon={CalendarDays} title={tt('两个活动周都已结束', 'Both weeks are over')}
-          body={tt(`往期 ${endedCount} 场已收起，需要时可以展开回看。`, `${endedCount} past sessions are folded away; open them any time.`)}
+          body={endedCount > 0 ? tt(`往期 ${endedCount} 场已收起，需要时可以展开回看。`, `${endedCount} past sessions are folded away; open them any time.`)
+            : tt('这个筛选下没有往期场次。', 'No past sessions match these filters.')}
           actions={[<Button key="weekend" variant="primary" to="/events">{tt('看本周末活动', 'See this weekend')}</Button>,
-            endedCount > 0 && <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{tt(`看已结束的场次（${endedCount} 场）`, `See past sessions (${endedCount})`)}</Button>]} />
+            endedCount > 0 ? <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{tt(`看已结束的场次（${endedCount} 场）`, `See past sessions (${endedCount})`)}</Button>
+              : filtered && <Button key="reset" variant="text" onClick={reset}>{t('重置筛选')}</Button>]} />
         : events.length === 0 ? <EmptyState headingLevel="h3" title={tt('这个筛选下没有场次', 'No sessions match these filters')} body={t('这个筛选下暂时没有尚未结束的场次。')}
           actions={[<Button key="reset" variant="primary" onClick={reset}>{t('重置筛选')}</Button>, !includeEnded && <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{t('显示已结束场次')}</Button>]} />
         : <div className="bl-ai-event-grid">{events.map(event => {
