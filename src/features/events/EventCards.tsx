@@ -31,7 +31,8 @@ export function EventMeta({ event }: { event: IndexEvent }) {
   const { pick, locale } = useUiCopy();
   const price = eventPriceChip(facts(event));
   const place = translateText(eventPlace(event), locale);
-  return <>{place}{price && <> · {price.tone === 'free' ? <strong>{pick(price.text)}</strong> : pick(price.text)}</>}</>;
+  // The place gives way (ellipsis) before the price does: "Old Courthouse Square · 部分免费", never "… · 部…".
+  return <><span className="ui-meta-place">{place}</span>{price && <span className="ui-meta-price"><span className="ui-meta-sep"> · </span>{price.tone === 'free' ? <strong>{pick(price.text)}</strong> : pick(price.text)}</span>}</>;
 }
 
 /**

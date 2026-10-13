@@ -163,6 +163,11 @@
 .ui-feed-card__meta,.ui-feed-card__trust { margin:0; overflow:hidden; font-size:var(--text-caption); line-height:1.385; white-space:nowrap; text-overflow:ellipsis; }
 .ui-feed-card__meta { color:var(--color-ink-2); }
 .ui-feed-card__meta strong { color:var(--color-brand); font-weight:600; }
+/* "place · price": the place takes the ellipsis, the price always shows whole. */
+.ui-feed-card__meta:has(>.ui-meta-place) { display:flex; min-width:0; }
+.ui-meta-place { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.ui-meta-price { flex:none; }
+.ui-meta-sep { white-space:pre; }
 .ui-feed-card__trust { display:flex; align-items:center; gap:4px; color:var(--color-ink-3); }
 .ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
 .ui-feed-card__save { position:absolute; top:4px; right:4px; z-index:3; }
