@@ -12,6 +12,8 @@
 /* Hero: full-bleed on a phone, square corners; the provenance badge and stickers come from ui.css. */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { width:100%; border-radius:0; }
+/* An offer or opening without an image: a band (DetailHero) with the value or the kind, not a 16:9 card repeating the header. */
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover { aspect-ratio:auto; height:7.5rem; }
 
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
 .local-discovery-detail .detail-head { padding-top:12px; }
@@ -38,7 +40,7 @@
 
 /* Body: summary, 出发前 checklist, offer conditions and steps, 一起去, source, share. */
 .local-discovery-detail .detail-body { padding-top:8px; }
-.local-discovery-detail .detail-body h2 { margin:28px 0 12px; font-size:1.25rem; font-weight:600; line-height:1.4; }
+.local-discovery-detail .detail-body h2 { margin:28px 0 12px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .local-discovery-detail .detail-summary { margin:20px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.8; }
 .local-discovery-detail .detail-body p { overflow-wrap:break-word; }
 /* The venue's archive photo (too old to be the cover): 3:2, r16, its badge, then its caption and credit. */
@@ -62,6 +64,9 @@
 .local-discovery-detail .outing-inspiration-link { margin-top:24px; border-radius:10px; }
 .local-discovery-detail .detail-source { margin-top:32px; padding-top:4px; border-top:1px solid var(--color-line); }
 .local-discovery-detail .detail-source h2 { margin-top:20px; }
+/* 这条信息有误？ sits under the source line, flush with the column: the shared row's own page padding (feedback-entry.css,
+   18px in and 32px under on a phone) indented it and left a gap above the share buttons. */
+.local-discovery-detail .detail-source .feedback-report-row { width:auto; margin:8px 0 0; padding:0; }
 .local-discovery-detail .detail-credit { display:flex; flex-wrap:wrap; gap:4px 10px; margin:12px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
 .local-discovery-detail .detail-credit__label { font-weight:600; color:var(--color-ink-2); }
 .local-discovery-detail .detail-credit a { color:var(--color-ink-2); text-decoration:underline; text-underline-offset:2px; }
@@ -74,7 +79,7 @@
 .local-discovery-detail .detail-rail { margin:20px 0 0; }
 .local-discovery-detail .detail-main>.detail-rail { margin-inline:16px; }
 .local-discovery-detail .detail-main--body>:not(.detail-body,.detail-note) { margin-inline:16px; }
-.local-discovery-detail .detail-rail h2 { margin:0 0 4px; font-size:1.25rem; font-weight:600; line-height:1.4; }
+.local-discovery-detail .detail-rail h2 { margin:0 0 4px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .local-discovery-detail .detail-rail__note { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 .local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:10.75rem; gap:12px; margin-inline:-16px; padding:4px 16px 8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; }
 .local-discovery-detail .detail-rail__track>.ui-feed-card { scroll-snap-align:start; }
@@ -115,9 +120,9 @@
 /* 大 / 特大 on a phone: the side cells give up a little padding and width so 加入这天计划 keeps one line (at 特大 on a 390 px
    phone it broke as 加入这天计 / 划); their labels keep the reading size. */
 @media(max-width:767px) {
-  html:is([data-reading=large],[data-reading=extra-large]) .local-discovery-detail .detail-actions { gap:4px; }
-  html:is([data-reading=large],[data-reading=extra-large]) .local-discovery-detail .detail-actions>* { min-width:3rem; }
-  html:is([data-reading=large],[data-reading=extra-large]) .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { padding:0 4px; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-actions { gap:4px; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-actions>* { min-width:3rem; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { padding:0 4px; }
 }
 
 @media(min-width:768px) {
@@ -143,6 +148,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail .detail-main--body { grid-area:body; }
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
   .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:24px; overflow:hidden; }
+  .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { height:9rem; }
   .local-discovery-detail .detail-head { padding-top:20px; }
   .local-discovery-detail .detail-head h1 { font-size:2rem; line-height:1.3125; }
   .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }
@@ -155,7 +161,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
 /* Page end: the next places to go. */
 .local-discovery-detail .discovery-return { margin:40px 16px 0; padding:24px 0 0; border:0; border-top:2px solid var(--color-brand-deep); border-radius:0; background:transparent; }
 .local-discovery-detail .discovery-return .discovery-eyebrow { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; letter-spacing:0; text-transform:none; }
-.local-discovery-detail .discovery-return h2 { margin:6px 0 8px; font-size:1.25rem; font-weight:600; line-height:1.4; }
+.local-discovery-detail .discovery-return h2 { margin:6px 0 8px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:4px 20px; }
 .local-discovery-detail .discovery-return a { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
 @media(min-width:1024px) { .local-discovery-detail .discovery-return { margin-inline:0; } }

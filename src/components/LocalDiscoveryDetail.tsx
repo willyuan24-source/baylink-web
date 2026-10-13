@@ -16,7 +16,7 @@ import { translateText } from '../i18n/locale';
 import { openingStatusNote } from '../lib/opening-status';
 import { discoveryContentReviewRecord } from '../lib/content-review';
 import { createCoverPage } from '../lib/cover';
-import { eventTone, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
+import { eventTone, isPublicBenefit, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
 import { detailShare, nextEventDay, railEvents, unconfirmedEvent, type DetailRecord } from '../features/detail/detail-record';
 import { DetailHero, DetailPlacePhoto, HeroCredit } from '../features/detail/DetailHero';
 import { heroCover, placePhoto } from '../features/detail/hero-cover';
@@ -163,7 +163,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             {summary && <p className="detail-summary"><ReaderText text={item.shop.summary} /></p>}
             {visitTip && <section aria-labelledby="detail-visit-title"><h2 id="detail-visit-title">{t('这一趟怎么安排', 'Planning the visit')}</h2><p><ReaderText text={item.shop.editorTip} name={item.shop.name} /></p></section>}
           </>}
-          {item.kind !== 'event' && !ended && !unconfirmedOffer && <OutingInspirationLink kind={item.kind} id={share.id} />}
+          {/* "想约人一起去？" fits a place to go, not a public benefit you apply for (free Muni for seniors). */}
+          {item.kind !== 'event' && !ended && !unconfirmedOffer && !(item.kind === 'offer' && isPublicBenefit(item.offer)) && <OutingInspirationLink kind={item.kind} id={share.id} />}
 
           <section className="detail-source" aria-labelledby="detail-source-title">
             <h2 id="detail-source-title">{t('来源与核对', 'Source and checks')}</h2>

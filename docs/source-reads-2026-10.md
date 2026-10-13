@@ -735,3 +735,12 @@ Scanned for end, sell-out, cancellation and date wording; the shown dates and te
 | offer | `auntie-annes-birthday-pretzel-2026` | https://www.auntieannes.com/offers | 200 | unchanged,unchanged! | no change found: no end, sell-out or date conflict with the published terms in the page text | BIRTHDAY OFFER Requires a minimum spend of $1 (excluding taxes and fees) in the past 365 days via Rewards Account to be eligible. Reward valid for one (1) Original, Sweet Almond or Cinnamon Sugar Pretzel (excluding taxes & fees) … |
 | offer | `shake-shack-scarygood-oct2026` | https://shakeshack.com/blog/our-food/scary-good-deals-are-back-this-october-at-shake-shack | 403 | unchanged,unchanged! | not machine-readable (HTTP 403); no change recorded |  |
 
+## WEB-FIX4 · overlay venue wording, 2026-10-12 (PT)
+
+No new facts and no source reads: three `venueShort` entries in `src/data/editorial-overlay/events.json` put the stored English venue line into Chinese for zh pages (the facts card showed English prose such as "waterfront" and "and other venues" on 在哪). Names stay as written; English for each is in `src/data/editorial-overlay-en.json`; `basis.json` recorded with `--write-basis`.
+
+| id | stored `venue` | overlay |
+|---|---|---|
+| `san-francisco-fleet-week-2026` | San Francisco waterfront · Fisherman's Wharf / Pier 27 and other venues | venueShort San Francisco 海滨（多处场地）; address Fisherman's Wharf / Pier 27 (map search) |
+| `tiburon-wine-festival-2026` | Downtown Tiburon · check ticket for event entrance | venueShort Downtown Tiburon（入口见门票）; address "" (no single address) |
+| `little-italy-san-jose-festival-2026` | Little Italy business district · 323 Sharks Way | venueShort Little Italy 街区 (the derived address 323 Sharks Way stays) |

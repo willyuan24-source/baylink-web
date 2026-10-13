@@ -1,4 +1,5 @@
-import { Cover, CoverImage, COVER_SIZES, EventTypeCover, OfferTypeCover, OpeningTypeCover } from '../../components/ui';
+import { Cover, CoverImage, COVER_SIZES, EventTypeCover, OfferTypeCover, OpeningTypeCover, TypeCover } from '../../components/ui';
+import { offerKindLabel, offerTone, offerValue } from '../../lib/event-facts';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
@@ -16,7 +17,18 @@ const webLink = (value: string | undefined): value is string => !!value && /^htt
  */
 export function DetailHero({ record, cover, today, ended }: { record: DetailRecord; cover: ResolvedCover; today: string; ended: boolean }) {
   const { item } = record;
-  const { locale } = useUiCopy();
+  const { locale, pick } = useUiCopy();
+  // An offer or an opening without a qualifying image: the chips, the H1 and the brand line right below already say its
+  // kind, title, brand and validity, so the coded cover shrinks to a band with what they do not (the value large, or the
+  // kind of shop) instead of a 16:9 card that repeats the header (PROD-W3 review).
+  if (cover.tier === 'type' && item.kind !== 'event') {
+    const band = item.kind === 'offer' ? (() => {
+      const value = offerValue(item.offer);
+      return <TypeCover family="offer" tone={offerTone(item.offer)} label={pick(offerKindLabel(item.offer))} value={value ? pick(value) : undefined}
+        valueSmall={value?.condition ? pick(value.condition) || undefined : undefined} icon={offerTone(item.offer) === 'free' ? 'free' : 'store'} />;
+    })() : <OpeningTypeCover opening={item.shop} today={today} compact />;
+    return <figure className="detail-hero" data-tier="type" data-compact="">{band}</figure>;
+  }
   const slot = { ratio: '16:9' as const, ratioLock: true };
   const fallback = item.kind === 'event' ? <EventTypeCover event={item.event as EventFactsInput} today={today} {...slot} />
     : item.kind === 'offer' ? <OfferTypeCover offer={{ ...item.offer, brand: offerBrand(item.offer.brand, locale) }} today={today} {...slot} />
