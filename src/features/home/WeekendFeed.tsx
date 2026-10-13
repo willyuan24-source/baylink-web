@@ -6,6 +6,7 @@ import type { ResolvedCover } from '../../lib/cover';
 import { eventPlace, eventPriceChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
 import type { HomeEvent } from '../../lib/home-catalog';
 import { monthDay } from './home-model';
+import { dateScope } from '../../lib/date-guard';
 
 export type FeedEntry = { event: HomeEvent; date: string };
 const facts = (event: HomeEvent) => event as unknown as EventFactsInput;
@@ -26,7 +27,7 @@ export function WeekendFeed({ feed, covers, tones, today, total }: { feed: reado
   const { t } = useUiCopy();
   const { layout } = useFeedLayout();
   if (!feed.length) return null;
-  return <section className="home-feed" aria-labelledby="home-feed-title">
+  return <section className="home-feed" aria-labelledby="home-feed-title" {...dateScope('weekend')}>
     <div className="home-section-head"><h2 id="home-feed-title">{t('本周末还有', 'More this weekend')}</h2></div>
     <FeedGrid label={t('本周末活动', 'Events this weekend')} layout={layout}>
       {feed.map(({ event, date }, index) => <FeedItem key={event.id}>

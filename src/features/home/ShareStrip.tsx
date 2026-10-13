@@ -6,6 +6,7 @@ import type { HomeWeekendPick } from '../../lib/home-weekend';
 import { eventShortTitle } from '../../lib/event-facts';
 import { translateText } from '../../i18n/locale';
 import { weekendRange } from './home-model';
+import { dateScope } from '../../lib/date-guard';
 
 const HAN = /[㐀-鿿]/;
 /** The short title in the reader's language, as the information cards print it (TypeCover shortTitleFor). */
@@ -23,7 +24,7 @@ export function ShareStrip({ picks, start, end, cardHref }: { picks: readonly Ho
   const { t, locale } = useUiCopy();
   if (!picks.length) return null;
   const range = weekendRange(start, end);
-  return <section className="home-share" aria-labelledby="home-share-title">
+  return <section className="home-share" aria-labelledby="home-share-title" {...dateScope('weekend')}>
     {/* An information card (data-cover="type"), not a picture: the card's headline and the picks' short titles as text. */}
     <div className="home-share__thumb" data-cover="type" aria-hidden="true">
       <p className="home-share__thumb-title">{t('湾区本周末', 'Bay Area weekend')}<span>{range}</span></p>

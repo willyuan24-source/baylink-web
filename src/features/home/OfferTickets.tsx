@@ -7,6 +7,7 @@ import type { ResolvedCover } from '../../lib/cover';
 import { brandCase, offerKindLabel, type OfferFactsInput } from '../../lib/event-facts';
 import type { HomeOffer } from '../../lib/home-offers';
 import { monthDay } from './home-model';
+import { dateScope } from '../../lib/date-guard';
 
 const TICKET_SIZES = '(max-width: 767px) 176px, 300px';
 
@@ -18,7 +19,7 @@ const TICKET_SIZES = '(max-width: 767px) 176px, 300px';
 export function OfferTickets({ offers, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
   const { t, pick } = useUiCopy();
   if (!offers.length) return null;
-  return <section className="home-offers" aria-labelledby="home-offers-title">
+  return <section className="home-offers" aria-labelledby="home-offers-title" {...dateScope('day')}>
     <div className="home-section-head">
       <h2 id="home-offers-title">{t('免费与优惠', 'Free & deals')}</h2>
       <Link to="/events?view=perks" className="home-section-head__more">{t('全部优惠', 'All deals')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>

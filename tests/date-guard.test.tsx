@@ -199,3 +199,16 @@ test('the home fallbacks reach WEB-HOME’s head: the dateline is a day block, t
     assert.ok(reduced.includes(unscoped), `reduced motion: ${unscoped}`);
   }
 });
+
+test('WEB-HOME marks its own date blocks with dateScope(), so home stays covered without the class fallbacks (W4 integration)', async () => {
+  const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
+  const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2026-10-12" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
+  const doc = new JSDOM(`<!doctype html><html><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
+  const scope = (selector: string) => [...doc.querySelectorAll(selector)].map(node => node.getAttribute('data-date-scope'));
+  for (const [selector, expected] of [['.home-picks', 'weekend'], ['.home-feed', 'weekend'], ['.home-share', 'weekend'], ['.home-head__lede', 'weekend'],
+    ['.home-head__dateline', 'day'], ['.home-offers', 'day']] as const) {
+    const scopes = scope(selector);
+    assert.ok(scopes.length >= 1, `${selector} is on the prerendered home`);
+    assert.deepEqual(scopes, scopes.map(() => expected), `${selector} is a ${expected} block`);
+  }
+});
