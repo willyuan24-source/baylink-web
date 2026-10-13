@@ -59,6 +59,11 @@
 /* Filters, past plans and account features: quiet disclosures. */
 .my-week__prefs { margin-top:16px; border-top:1px solid var(--color-line); }
 .my-week__prefs>summary { display:flex; align-items:center; gap:6px; min-height:var(--control-height); padding-block:8px; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; cursor:pointer; }
+/* The folds read as folds: a chevron at the end of the line (the flex summary drops the native marker), turned when open. */
+.my-week__prefs>summary { list-style:none; }
+.my-week__prefs>summary::-webkit-details-marker { display:none; }
+.my-week__prefs>summary>svg { flex:none; width:1.125rem; height:1.125rem; margin-left:auto; color:var(--color-ink-3); transition:transform 160ms ease; }
+.my-week__prefs[open]>summary>svg { transform:rotate(180deg); }
 .my-week__prefs .ui-chip-row { margin-block:8px; }
 .my-week__select { display:flex; flex-direction:column; gap:6px; max-width:16rem; margin:12px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .my-week__select select { min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }

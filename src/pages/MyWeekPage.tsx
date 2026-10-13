@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Trash2, WifiOff } from 'lucide-react';
+import { CalendarDays, ChevronDown, Trash2, WifiOff } from 'lucide-react';
 import { useApp } from '../app/context';
 import { ATTRACTION_REGIONS } from '../data/attractions';
 import { MONTHLY_EVENTS } from '../data/monthly-edition';
@@ -156,7 +156,7 @@ export default function MyWeekPage() {
       {thisWeek.length ? <WeekEvents events={thisWeek} today={today} coverPage={coverPage} english={english} />
         : <p className="my-week__empty-line">{t('未来七天暂无符合偏好的已收录活动，可以放宽地区或兴趣。', 'No listed events match your areas and interests in the next seven days. Try widening them.')}</p>}
       <details className="my-week__prefs">
-        <summary>{t('按我常去的地区和兴趣筛选', 'Filter by my areas and interests')}</summary>
+        <summary>{t('按我常去的地区和兴趣筛选', 'Filter by my areas and interests')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
         {!library.ready && library.error && <p className="my-week__note">{t('先重新读取资料，再调整出行偏好。', 'Reload your data before changing outing preferences.')}</p>}
         <ChipRow label={t('常去的地区', 'Areas I go to')}>{ATTRACTION_REGIONS.filter(region => region.id !== 'all').map(region => <FilterChip key={region.id} selected={preferences.regions.includes(region.id)} disabled={disabled} onClick={() => toggle('regions', region.id)}>{translateText(region.label, locale)}</FilterChip>)}</ChipRow>
         <ChipRow label={t('兴趣', 'Interests')}>{interests.map(interest => <FilterChip key={interest.id} selected={preferences.interests.includes(interest.id)} disabled={disabled} onClick={() => toggle('interests', interest.id)}>{t(interest.zh, interest.en)}</FilterChip>)}</ChipRow>
@@ -170,11 +170,11 @@ export default function MyWeekPage() {
     <div className="planner-page my-week__legacy"><ImportedEventsPanel userId={app?.user?.id} /></div>
 
     {pastPlans.length > 0 && <details className="my-week__prefs my-week__past">
-      <summary>{t('过去的计划', 'Past plans')} <span className="my-week__count">{pastPlans.length}</span></summary>
+      <summary>{t('过去的计划', 'Past plans')} <span className="my-week__count">{pastPlans.length}</span><ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
       <ul>{pastPlans.map(plan => <li key={plan.id}><span><time dateTime={plan.date}>{dayLabel(plan.date, english)}</time> · <PlanTitle title={plan.title} locale={locale} /></span><Button variant="text" disabled={disabled} onClick={() => void deletePlan(plan)}>{t('删除计划', 'Delete plan')}</Button></li>)}</ul>
     </details>}
     {!signedIn && <details className="my-week__prefs">
-      <summary>{t('账号功能：预约与小队', 'Account features: bookings and groups')}</summary>
+      <summary>{t('账号功能：预约与小队', 'Account features: bookings and groups')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
       <p className="my-week__note">{t('登录后可查看服务预约、待办与已参加的小队；本机计划和收藏无需登录也能使用。', 'Sign in to see your service bookings, tasks and groups. Browser plans and saved items work without signing in.')}</p>
       <Button variant="secondary" onClick={() => app?.setShowLogin(true)}>{t('登录查看预约与小队', 'Sign in for bookings and groups')}</Button>
     </details>}

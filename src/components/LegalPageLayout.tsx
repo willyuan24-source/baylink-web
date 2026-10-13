@@ -46,7 +46,8 @@ export const LegalSection = ({ title, children }: { title: string; children: Rea
   </section>
 );
 
-export const LegalP = ({ children }: { children: ReactNode }) => <p>{children}</p>;
+/** A paragraph; `lang="en"` marks the English policy text on a Chinese page. */
+export const LegalP = ({ children, lang }: { children: ReactNode; lang?: string }) => <p lang={lang}>{children}</p>;
 
 export const LegalUl = ({ items }: { items: ReactNode[] }) => (
   <ul>

@@ -31,10 +31,14 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
   const [goal, setGoal] = useState<AiLocalGoal>('all');
   const [week, setWeek] = useState('all');
   const today = suppliedToday || getBayAreaToday();
-  // Both AI weeks are over: the page keeps their sessions as past records and says so, instead of an empty filter result.
+  // Both AI weeks are over: the page says so and keeps their sessions as past records, folded behind one clear
+  // "看已结束的场次" button, so the column does not open on a page of 已结束 cards (PROD-W3 review).
   const allEnded = selectAiLocalEvents({ today, includeEnded: false }).length === 0;
-  const [includeEnded, setIncludeEnded] = useState(allEnded);
+  const [includeEnded, setIncludeEnded] = useState(false);
   const events = selectAiLocalEvents({ today, goal, week, includeEnded });
+  const endedCount = allEnded ? selectAiLocalEvents({ today, goal, week, includeEnded: true }).length : 0;
+  // A theme photo shared by several sessions (the CC0 laptop picture) shows once, on the first of them (same-page de-dup).
+  const seenImages = new Set<string>();
   const latestCheck = events.reduce((date, event) => event.verifiedAt > date ? event.verifiedAt : date, '');
   const reset = () => { setGoal('all'); setWeek('all'); };
   useEffect(() => {
@@ -59,7 +63,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         <span>{t('10 月 5 日—11 日')}</span><strong>SF Tech Week <ArrowUpRight size={19} aria-hidden="true" /></strong><small>{t('系列活动周 · 每场分别报名')}</small>
       </a>}
     </div>}
-    {allEnded && <p className="bl-ai-ended" role="note">{tt('AI Week SF（9/27–10/3）和 SF Tech Week（10/5–10/11）都已结束。下面保留往期场次，方便回看主办方和下次参加；新的活动请看本周末活动。', 'AI Week SF (9/27–10/3) and SF Tech Week (10/5–10/11) are over. Their sessions stay below as past records, so you can find the organizers next time; for new events, see this weekend.')} <Link to="/events">{tt('看本周末活动', 'See this weekend')}</Link></p>}
+    {allEnded && <p className="bl-ai-ended" role="note">{tt('AI Week SF（9/27–10/3）和 SF Tech Week（10/5–10/11）都已结束。往期场次收在下方，方便回看主办方和下次参加；新的活动请看本周末活动。', 'AI Week SF (9/27–10/3) and SF Tech Week (10/5–10/11) are over. Their sessions are kept below as past records, so you can find the organizers next time; for new events, see this weekend.')} <Link to="/events">{tt('看本周末活动', 'See this weekend')}</Link></p>}
 
     <section className="bl-ai-guide" aria-labelledby="ai-guide-title">
       <div>
@@ -91,11 +95,17 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         <label><input type="checkbox" checked={includeEnded} onChange={event => setIncludeEnded(event.target.checked)} />{t('显示已结束场次')}</label>
       </div>
       <p className="bl-ai-scope">{t('场次按日期分组，不代表主办方合作关系。')} {t('时间均为湾区当地时间。活动周不是连续开放的展会通票。')}</p>
-      {events.length === 0 ? <EmptyState headingLevel="h3" title={tt('这个筛选下没有场次', 'No sessions match these filters')} body={t('这个筛选下暂时没有尚未结束的场次。')}
+      {allEnded && !includeEnded ? <EmptyState headingLevel="h3" icon={CalendarDays} title={tt('两个活动周都已结束', 'Both weeks are over')}
+          body={tt(`往期 ${endedCount} 场已收起，需要时可以展开回看。`, `${endedCount} past sessions are folded away; open them any time.`)}
+          actions={[<Button key="weekend" variant="primary" to="/events">{tt('看本周末活动', 'See this weekend')}</Button>,
+            endedCount > 0 && <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{tt(`看已结束的场次（${endedCount} 场）`, `See past sessions (${endedCount})`)}</Button>]} />
+        : events.length === 0 ? <EmptyState headingLevel="h3" title={tt('这个筛选下没有场次', 'No sessions match these filters')} body={t('这个筛选下暂时没有尚未结束的场次。')}
           actions={[<Button key="reset" variant="primary" onClick={reset}>{t('重置筛选')}</Button>, !includeEnded && <Button key="ended" variant="text" onClick={() => setIncludeEnded(true)}>{t('显示已结束场次')}</Button>]} />
         : <div className="bl-ai-event-grid">{events.map(event => {
           const status = getEventStatus(event, today);
-          const image = getListingImage(event.imageKey);
+          const listed = getListingImage(event.imageKey);
+          const image = listed && !seenImages.has(listed.src) ? listed : undefined;
+          if (image) seenImages.add(image.src);
           return <article key={event.id} className={`bl-ai-event bl-ai-event--${status}`}>
             {image && <div className="bl-ai-event-media"><GuideFigure image={image} variant="preview" /></div>}
             <div className="bl-ai-event-top"><span>{event.city}</span><span>{t(statusLabels[status])}</span></div>

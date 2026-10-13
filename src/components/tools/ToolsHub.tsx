@@ -50,6 +50,6 @@ export function ToolsHub({ storageScope, onToast }: { storageScope: string; onTo
         </div>
       </section>
     </div>
-    <footer className="tools-footer"><p>计算和清单在本机处理；AI 沟通仅在你点击生成后提交内容。<br />关闭页面后，未保存的计算输入和沟通草稿不会保留。</p><Link to="/guides">{t('需要更完整的办事步骤？看湾区指南', 'Need the full steps? Read the Bay Area guides')}</Link></footer>
+    <footer className="tools-footer"><p>关闭页面后，未保存的计算输入和沟通草稿不会保留。</p><Link to="/guides">{t('需要更完整的办事步骤？看湾区指南', 'Need the full steps? Read the Bay Area guides')}</Link></footer>
   </PageContainer>;
 }
