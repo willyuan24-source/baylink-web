@@ -86,7 +86,7 @@ export function OfferFeedCard({ offer, cover, today, tone }: { offer: IndexOffer
   const brand = offerBrandLine(offer.brand, locale);
   return <FeedCard title={offer.title} to={`/offers/${offer.id}`} className="ev-card--action"
     cover={<OfferCover offer={offer} cover={cover} today={today} tone={tone} decorative />}
-    meta={<>{brand && <><span translate="no">{brand}</span> · </>}{pick(offerKindLabel(offer))}</>}
+    meta={<>{brand && <span translate="no">{brand}</span>}{brand && ' · '}{pick(offerKindLabel(offer))}</>}
     trust={<TrustLine day={offer.verifiedAt} />} save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />;
 }
 

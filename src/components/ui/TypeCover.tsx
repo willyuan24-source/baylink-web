@@ -9,7 +9,7 @@ import type { CoverRatio } from './CoverImage';
 import { translateText } from '../../i18n/locale';
 import { typeCoverProvenance } from '../../lib/image-provenance';
 import {
-  brandCase, eventDateChip, eventPlace, eventPriceChip, eventShortTitle, eventTone, formatDateChip, offerDeadline, offerKindLabel,
+  eventDateChip, eventPlace, eventPriceChip, eventShortTitle, eventTone, formatDateChip, offerDeadline, offerKindLabel,
   offerTone, offerValue, openingChip, toneLabel, type Copy, type CoverTone, type DateChipText, type EventFactsInput, type OfferFactsInput,
 } from '../../lib/event-facts';
 import type { SeptemberOpening } from '../../data/september-openings';

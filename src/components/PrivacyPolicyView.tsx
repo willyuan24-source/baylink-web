@@ -30,7 +30,7 @@ export const PrivacyPolicyView = () => {
 
     {/* English readers start with the policy's own opening; Chinese readers with the Chinese summary, then the policy (PROD-W3:
         a Chinese page opened on an English paragraph). */}
-    {english ? <>{intro}{summary}</> : <>{summary}{intro}</>}
+    {english ? intro : summary}{english ? summary : intro}
 
     <div translate="no">
       <LegalSection title={t('账号导出、注销与两步验证', 'Account export, deletion and two-step verification')}>

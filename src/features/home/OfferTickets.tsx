@@ -19,6 +19,7 @@ const TICKET_SIZES = '(max-width: 767px) 176px, 300px';
 export function OfferTickets({ offers, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
   const { t, pick, locale } = useUiCopy();
   if (!offers.length) return null;
+  const brands = offers.map(offer => offerBrandLine(offer.brand, locale));
   return <section className="home-offers" aria-labelledby="home-offers-title" {...dateScope('day')}>
     <div className="home-section-head">
       <h2 id="home-offers-title">{t('免费与优惠', 'Free & deals')}</h2>
@@ -28,7 +29,7 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
       {offers.map((offer, index) => <li key={offer.id}>
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
           cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} sizes={TICKET_SIZES} decorative />}
-          meta={<>{offerBrandLine(offer.brand, locale) && <><span translate="no">{offerBrandLine(offer.brand, locale)}</span> · </>}{pick(offerKindLabel(offer))}</>}
+          meta={<>{brands[index] && <span translate="no">{brands[index]}</span>}{brands[index] && ' · '}{pick(offerKindLabel(offer))}</>}
           trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}

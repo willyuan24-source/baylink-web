@@ -117,6 +117,13 @@
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { padding:0 8px; }
 }
 @media(max-width:359px) { .local-discovery-detail .detail-action--ask>span { display:none; } }
+/* The ask cell reads 问问 (English: Ask) where the primary needs the room, as the tab bar does: at 大 / 特大 and in 简洁显示,
+   and in English, on a phone. With it 加入这天计划 keeps one line in family-link mode (it broke as 加入这天计 / 划). */
+.local-discovery-detail .detail-action__ask-short { display:none; }
+@media(max-width:767px) {
+  :is(html:is([data-reading=large],[data-reading=extra-large],[data-simple]),html:lang(en)) .local-discovery-detail .detail-action__ask-label { display:none; }
+  :is(html:is([data-reading=large],[data-reading=extra-large],[data-simple]),html:lang(en)) .local-discovery-detail .detail-action__ask-short { display:inline; }
+}
 /* 大 / 特大 on a phone: the side cells give up a little padding and width so 加入这天计划 keeps one line (at 特大 on a 390 px
    phone it broke as 加入这天计 / 划); their labels keep the reading size. */
 @media(max-width:767px) {

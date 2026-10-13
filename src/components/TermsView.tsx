@@ -27,7 +27,7 @@ export const TermsView = () => {
   <LegalPageLayout title={{ zh: '服务条款', en: 'Terms of Service' }} updated="2026-10-12">
 
     {/* English readers start with the terms' own opening; Chinese readers with the Chinese summary, then the terms. */}
-    {english ? <>{intro}{summary}</> : <>{summary}{intro}</>}
+    {english ? intro : summary}{english ? summary : intro}
 
     <LegalSection title={legalTitle('Service Booking Requests', '服务预约申请', english)}>
       <LegalP>
