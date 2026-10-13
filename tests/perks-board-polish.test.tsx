@@ -17,11 +17,11 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { StaticRouter } = await import('react-router-dom');
 const { FreebieBoard, FREEBIE_SECTION_SIZE } = await import('../src/components/FreebieBoard');
-const { validThisWeek, weekEndOf } = await import('../src/lib/offer-week');
+const { addDays, validThisWeek, weekEndOf } = await import('../src/lib/offer-week');
 const { PerksGallery } = await import('../src/components/PerksGallery');
 const { GuideHeader } = await import('../src/features/guides/GuideHeader');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
-const { getGuideBySlug } = await import('../src/data/guides');
+const { getGuideBySlug, guides } = await import('../src/data/guides');
 const { perksPosters, perksPosterRung } = await import('../src/data/perks-posters');
 const { editorialStyleScopes } = await import('../scripts/check-editorial-styles.mjs');
 afterEach(() => { cleanup(); delete GUIDE_IMAGES['perks-test-photo']; });
@@ -81,6 +81,30 @@ test('a board with nothing valid this week opens on every date (a next-month boa
   const view = render(<FreebieBoard offers={[offer('nov', { availability: 'dated', startDate: '2026-11-07', endDate: '2026-11-07' })]} today={today} />);
   assert.equal(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '全部日期' }).getAttribute('aria-pressed'), 'true');
   assert.ok(view.getByRole('article', { name: '优惠 nov' }));
+});
+
+test('a sold-out batch (the overlay\'s sold_out) is 已售罄, not 限量供应 · 查询余票, and never counts as 本周有效', () => {
+  const soldOut = offer('opera', { availability: 'check-local', startDate: '2026-09-30', status: 'sold_out', dateLabel: '本批已售罄 · 下一批 2027/4/27 中午开售' });
+  assert.equal(validThisWeek(soldOut, today), false);
+  assert.equal(validThisWeek(offer('on-sale', { availability: 'check-local', startDate: '2026-10-08' }), today), true, 'a sale that opened and is not marked sold out still counts');
+  const view = render(<FreebieBoard offers={[soldOut, offer('daily')]} today={today} />);
+  const dates = within(view.getByRole('group', { name: '按日期筛选' }));
+  assert.equal(dates.getByRole('button', { name: '本周有效 1' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(view.queryByRole('article', { name: '优惠 opera' }), null);
+  fireEvent.click(dates.getByRole('button', { name: '全部日期' }));
+  const card = within(view.getByRole('article', { name: '优惠 opera' }));
+  assert.ok(card.getByText('已售罄'));
+  assert.equal(card.queryByText('限量供应 · 查询余票'), null);
+});
+
+test('no board offer that says it is sold out counts as 本周有效, on any day of October or November', () => {
+  const offers = guides.flatMap(guide => guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []));
+  assert.ok(offers.some(item => item.id === 'sf-opera-dolby-figaro-offer-2026'), 'the October board lists the sold-out opera batch');
+  const soldOut = offers.filter(item => item.status === 'sold_out' || /已售罄|已售完|sold out/i.test(`${item.title} ${item.dateLabel}`));
+  assert.ok(soldOut.length >= 1);
+  for (let day = '2026-10-01'; day <= '2026-11-30'; day = addDays(day, 1)) {
+    for (const item of soldOut) assert.equal(validThisWeek(item, day), false, `${item.id} on ${day}: ${item.dateLabel}`);
+  }
 });
 
 test('a picture shows once per page: the first card with it and never the guide cover again; the other cards keep their text', () => {

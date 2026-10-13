@@ -10,7 +10,7 @@ import { offerShare } from '../lib/editorial-share';
 import { SaveToWeek } from './SaveToWeek';
 import { PhoneText } from '../lib/phone-links';
 import { dateRange, validDate, validThisWeek, weekEndOf } from '../lib/offer-week';
-import type { MonthlyRegion } from '../data/monthly-types';
+import type { EditorialStatus, MonthlyRegion } from '../data/monthly-types';
 import { simplifySearch, translateText, useLocale } from '../i18n/locale';
 
 export type FreebieOffer = {
@@ -26,6 +26,8 @@ export type FreebieOffer = {
   weekdays?: (0 | 1 | 2 | 3 | 4 | 5 | 6)[];
   availability: 'dated' | 'ongoing' | 'check-local';
   verificationStatus?: 'needs-confirmation';
+  /** From the editorial overlay (`OfferEditorial.status`): `sold_out` means nothing is on sale right now. */
+  status?: EditorialStatus;
   kind: 'no-purchase' | 'reservation' | 'purchase' | 'check-terms';
   requirement: string;
   description: string;
@@ -60,8 +62,10 @@ const nextMonth = (today: string) => {
   return first.toISOString().slice(0, 7);
 };
 
-function offerStatus(offer: FreebieOffer, today: string) {
+function offerStatus(offer: FreebieOffer, today: string, english: boolean) {
   if (offer.verificationStatus === 'needs-confirmation') return { key: 'unverified', label: '当前优惠待确认' };
+  // The overlay's word wins over the source dates: a sold-out batch is not 限量供应 · 查询余票 (its date label says what is next).
+  if (offer.status === 'sold_out') return { key: 'ended', label: english ? 'Sold out' : '已售罄' };
   if (offer.availability === 'check-local' && offer.startDate && !offer.endDate) return { key: offer.startDate > today ? 'upcoming' : 'local', label: offer.startDate > today ? '即将开售' : '限量供应 · 查询余票' };
   if (offer.availability === 'check-local') return { key: 'local', label: '查本店场次' };
   if (offer.availability === 'ongoing') return { key: 'ongoing', label: '长期福利' };
@@ -92,7 +96,7 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
   const headingId = useId();
   const [imageFailed, setImageFailed] = useState(false);
   const image = imageFailed || !showImage ? undefined : getOfferImage(offer);
-  const status = offerStatus(offer, today);
+  const status = offerStatus(offer, today, locale === 'en');
   const pictureLabel = image ? getImageProvenance(image, locale === 'en') : '';
   return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
     <div className="bl-freebie-card-brand"><strong>{offer.brand}</strong><Ticket size={16} aria-hidden="true" /></div>

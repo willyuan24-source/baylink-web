@@ -23,10 +23,11 @@ export const weekEndOf = (today: string) => addDays(today, (7 - weekdayOf(today)
 /**
  * 本周有效 (G26): an offer a reader can still use between today and this Sunday. Ongoing perks count; a dated offer when
  * its dates (and published weekdays) touch the week; a 查本店 offer once it has started. Unconfirmed or undated offers do
- * not: the board cannot promise them for this week.
+ * not: the board cannot promise them for this week. Nor does an offer the editorial overlay marks (`sold_out`: a sale
+ * that started on its source date but has nothing left, the next batch months away).
  */
 export function validThisWeek(offer: FreebieOffer, today: string, weekEnd = weekEndOf(today)): boolean {
-  if (offer.verificationStatus === 'needs-confirmation') return false;
+  if (offer.verificationStatus === 'needs-confirmation' || offer.status) return false;
   if (offer.availability === 'ongoing') return true;
   if (offer.availability === 'check-local') return !offer.startDate || offer.startDate <= weekEnd;
   const range = dateRange(offer);
