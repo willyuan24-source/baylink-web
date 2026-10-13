@@ -15,7 +15,12 @@
 /* An offer or opening without an image: a band (DetailHero) with the value or the kind, not a 16:9 card repeating the header. */
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { aspect-ratio:auto; height:7.5rem; }
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value { font-size:2rem; }
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value:first-child { margin-top:auto; }
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__icon { top:calc(50% - 3.25rem); right:1.5rem; width:6.5rem; height:6.5rem; }
+/* An offer with no stated value: its header says everything, so the band is a slim strip in its tone, no words. */
+.local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:2.75rem; }
+.local-discovery-detail .detail-hero[data-slim] .ui-type-cover__icon { top:calc(50% - 1rem); width:2rem; height:2rem; }
+.local-discovery-detail .detail-hero[data-slim] .ui-provenance { display:none; }
 
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
 .local-discovery-detail .detail-head { padding-top:12px; }
@@ -158,6 +163,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
   .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:24px; overflow:hidden; }
   .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { height:9rem; }
+  .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:3.5rem; border-radius:16px; }
   .local-discovery-detail .detail-head { padding-top:20px; }
   .local-discovery-detail .detail-head h1 { font-size:2rem; line-height:1.3125; }
   .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }

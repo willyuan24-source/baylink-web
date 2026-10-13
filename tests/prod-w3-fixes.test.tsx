@@ -98,7 +98,7 @@ test('an offer cover carries the value and the brand, not the title its card cap
   assert.doesNotMatch(cover.textContent!, /Stamp Challenge|集章/);
 });
 
-test('an offer or opening without an image opens on a band, not a 16:9 card repeating the header', () => {
+test('an offer or opening without an image opens on a band, not a 16:9 card repeating the header', async () => {
   for (const key of ['offer:sfmta-free-muni-seniors', 'opening:old-post-office-burlingame']) {
     const doc = detail(key);
     const hero = doc.querySelector('.detail-hero')!;
@@ -111,6 +111,18 @@ test('an offer or opening without an image opens on a band, not a 16:9 card repe
   const muni = detail('offer:sfmta-free-muni-seniors');
   assert.equal(muni.querySelector('.detail-hero')!.getAttribute('data-compact'), '', 'SFMTA free Muni has no image');
   assert.equal(muni.querySelector('.detail-hero .ui-type-cover__value')!.textContent, '免费');
+  // The kind is the first chip right below, so the band does not say it again (PROD-W3 re-review: 免费福利 twice).
+  assert.equal(muni.querySelector('.detail-chips')!.textContent!.includes('免费福利'), true);
+  assert.equal(muni.querySelector('.detail-hero .ui-type-cover__label'), null);
+  assert.doesNotMatch(muni.querySelector('.detail-hero')!.textContent!, /免费福利/);
+  // An image-less offer with no stated value has nothing the header does not say: a slim band in its tone, no words.
+  const { heroCover } = await import('../src/features/detail/hero-cover');
+  const { offerValue } = await import('../src/lib/event-facts');
+  const bare = localDiscoveries.find(row => row.kind === 'offer' && !offerValue(row.offer) && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type');
+  assert.ok(bare, 'the catalog has an image-less offer without a value');
+  const band = detail(`offer:${discoveryShare(bare).id}`).querySelector('.detail-hero')!;
+  assert.equal(band.getAttribute('data-slim'), '');
+  assert.equal(band.querySelector('.ui-type-cover__label, .ui-type-cover__value, .ui-type-cover__brand, .ui-type-cover__title'), null);
   // "想约人一起去？" belongs to places to go, not to a public benefit you apply for.
   assert.equal(muni.querySelector('.outing-inspiration-link'), null);
   // Events keep their 16:9 cover.

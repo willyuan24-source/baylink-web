@@ -25,7 +25,7 @@ export type TypeCoverProps = {
   tone: CoverTone;
   /** `guide`: family C, a guide without a qualifying photo (topic palette, short title, source count). */
   family?: 'event' | 'offer' | 'opening' | 'guide';
-  /** The truthful category label, already localized ("亲子活动"). */
+  /** The truthful category label, already localized ("亲子活动"); '' when the page header already names it (a detail band). */
   label: string;
   date?: DateChipText;
   title?: string;
@@ -68,7 +68,7 @@ export function TypeCover({ tone, family = 'event', label, date, title, value, v
     {createElement(iconFor(tone, icon), { className: 'ui-type-cover__icon', 'aria-hidden': true, strokeWidth: 1.5 })}
     <ProvenanceBadge label={typeCoverProvenance(english)} />
     <div className="ui-type-cover__body">
-      <p className="ui-type-cover__label">{label}</p>
+      {label && <p className="ui-type-cover__label">{label}</p>}
       {dateParts}
       {value && <p className="ui-type-cover__value"><span>{value}</span>{valueSmall && <span className="ui-type-cover__value-small">{valueSmall}</span>}</p>}
       {brand && <p className="ui-type-cover__brand" lang={HAN.test(brand) ? undefined : 'en'} translate="no">{brand}</p>}
