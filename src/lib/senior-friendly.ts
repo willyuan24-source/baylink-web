@@ -31,6 +31,11 @@ const ADULTS_ONLY = /21\s*\+|21\s*岁以上|21\s*歲以上|21 and over|21 and up
 const CHILDREN = /儿童|兒童|幼儿|幼兒|少儿|少兒|学龄前|學齡前|婴儿|嬰兒|宝宝|寶寶|故事会|故事會|故事时间|岁及以下|歲及以下|\d+\s*[–-]\s*\d+\s*[岁歲]|toddler|bab(?:y|ies)|preschool|story ?time|\bkids?\b|\bteens?\b|青少年/i;
 const ADULTS = /成人|成年|全龄|全齡|全年龄|全年齡|所有年龄|所有年齡|老少|长者|長者|长辈|長輩|乐龄|樂齡|all ages|all-ages|adults?\b|senior/i;
 const ACCESSIBLE = /无障碍|無障礙|轮椅|輪椅|坐式|wheelchair|accessib|adaptive/i;
+/**
+ * In the audience line access counts only as a fact about the event (无障碍运动, wheelchair users), not as an interest:
+ * "关注无障碍创作的人" (people who follow accessible art) says who it is for, not that a parent can get around.
+ */
+const ACCESSIBLE_AUDIENCE = /(?:无障碍|無障礙)(?:运动|運動|体育|體育|场地|場地|设施|設施|座位|入口|通道)|轮椅|輪椅|坐式|wheelchair|adaptive/i;
 const CHINESE = /中文|华语|華語|普通话|普通話|国语|國語|粤语|粵語|广东话|廣東話|台语|台語|mandarin|cantonese|chinese-language|in chinese/i;
 const LIBRARY = /图书馆|圖書館|分馆|分館|librar/i;
 const EVERYONE = /全龄|全齡|全年龄|全年齡|所有年龄|所有年齡|老少|all ages|all-ages|everyone|社区居民|社區居民|邻里|鄰里/i;
@@ -61,6 +66,8 @@ export function isSeniorFriendly(event: SeniorFriendlyInput): boolean {
   if (forChildren(event.title, audience)) return false;
   const daytime = startsInDaytime(event);
   if (daytime === false) return false;
-  if (ACCESSIBLE.test(words) || CHINESE.test(words) || LIBRARY.test(`${event.venue ?? ''} ${event.title}`)) return true;
+  const named = [event.title, ...(event.aliases ?? [])].join(' ');
+  if (ACCESSIBLE.test(named) || ACCESSIBLE_AUDIENCE.test(audience)) return true;
+  if (CHINESE.test(words) || LIBRARY.test(`${event.venue ?? ''} ${event.title}`)) return true;
   return daytime === true && EVERYONE.test(audience) && isFreeToAttend(event);
 }

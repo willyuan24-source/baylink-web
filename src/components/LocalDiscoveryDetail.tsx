@@ -193,8 +193,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
           </section>
           <section className="detail-share" aria-label={t('分享与日历', 'Share and calendar')}>
             <EditorialShareActions item={share} />
-            {/* H33 / HOMEIA13-08: the same large-text family link as home and the guides. */}
-            <FamilyLinkButton path={share.path} title={translateText(heading, locale)} className="detail-family" />
+            {/* H33 / HOMEIA13-08: the same large-text family link as home and the guides — not for an ended event or offer. */}
+            {!eventOver && !(item.kind === 'offer' && ended) && <FamilyLinkButton path={share.path} title={translateText(heading, locale)} className="detail-family" />}
             {event && planDate && <button type="button" className="detail-calendar" onClick={() => downloadEventCalendar(event, planDate)}><CalendarDays size={17} aria-hidden="true" />{t('存入日历', 'Add to calendar')}</button>}
           </section>
           {event && !eventOver && <DetailRail id="detail-related-title" title={english ? 'More upcoming events nearby' : translateText('附近同类活动的下一场', locale)}

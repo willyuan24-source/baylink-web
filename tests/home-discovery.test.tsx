@@ -268,7 +268,7 @@ test('the first cover is fetched first; English has the question H1 and English 
     const view = render(<MemoryRouter basename="/en" initialEntries={['/en/']}><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
-    assert.match(view.container.querySelector('.home-head__lede')!.textContent!, /^\d+ events this weekend · \d+ guides · official sources, (?:most checked \d+\/\d+, latest \d+\/\d+|checked \d+\/\d+)$/);
+    assert.match(view.container.querySelector('.home-head__lede')!.textContent!, /^\d+ events this weekend · \d+ guides · official sources, (?:mostly checked \d+\/\d+, latest \d+\/\d+|checked \d+\/\d+)$/);
     view.unmount();
   } finally {
     await setLocale('zh-Hans', false);

@@ -63,6 +63,9 @@ test('H06: 长辈友好 is seniors named, or accessible, Chinese-language, libra
   assert.equal(isSeniorFriendly(event({ title: 'Point Reyes 免费万圣节服装交换：成人、儿童与宠物', audience: ['亲子家庭'], venue: 'Point Reyes Library' })), true);
   assert.equal(isSeniorFriendly(event({ title: 'Benicia Witching Wine Walk', audience: ['21岁以上品酒者'], venue: 'First Street' })), false);
   assert.equal(isSeniorFriendly(event({ title: '图书馆夜场放映', venue: 'Main Library', sessions: [{ date: '2026-10-17', start: '19:00' }] })), false);
+  // Access is a fact about the event, not an audience interest (review nit: NUMU's "关注无障碍创作的人"), and a paid event.
+  assert.equal(isSeniorFriendly(event({ title: 'NUMU Community Ignition', audience: ['艺术与社区文化爱好者', '关注无障碍创作的人'], cost: 'paid', sessions: [{ date: '2026-10-17', start: '14:00' }] })), false);
+  assert.equal(isSeniorFriendly(event({ title: '社区艺术开放日', audience: ['轮椅使用者与家人'], cost: 'paid', sessions: [{ date: '2026-10-17', start: '11:00' }] })), true);
   assert.equal(startsInDaytime(event({ planning: { schedule: { weekly: { 6: [{ open: '10:00', close: '14:00' }] } } } })), true);
   assert.equal(startsInDaytime(event({})), undefined);
 });
@@ -125,7 +128,7 @@ test('H02: list headers state when their items were checked — most of them, an
   const zh = (text: string) => text;
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, zh), '多数核对于 9/29 · 最近 10/12');
   assert.equal(checkLine({ mostly: '2026-10-12', latest: '2026-10-12' }, zh), '核对于 10/12');
-  assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'most checked 9/29 · latest 10/12');
+  assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked 9/29 · latest 10/12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!;
   assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+ · 最近 \d+\/\d+|核对于 \d+\/\d+)$/);
@@ -206,12 +209,14 @@ test('H57: a sold-out event leads with its official page, not 加入这天计划
   assert.match(bar.getByRole('link', { name: /官方页/ }).className, /detail-action--primary/);
 });
 
-test('H56: a past event with no confirmed day reads 已结束, not 日期待定', () => {
+test('H56: a past event with no confirmed day reads 已结束, not 日期待定, and sends no family link', () => {
   const view = detail('event', 'sf-ai-infra-scale-dinner-2026', '2026-10-13');
   const chips = view.container.querySelector('.detail-chips')!.textContent!;
   assert.match(chips, /已结束 · 10\/7/);
   assert.doesNotMatch(chips, /日期待定/);
   assert.equal(view.queryByText('暂无已确认场次，请查看主办方最新安排。'), null);
+  // An event that is over sends no large-text family link (review nit): a parent would open something already past.
+  assert.equal(view.queryByRole('button', { name: '发给家人（大字版）' }), null);
 });
 
 test('H33 + H27: event, offer and opening pages send a large-text family link; an opening adds 加入计划', () => {

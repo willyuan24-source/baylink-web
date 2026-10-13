@@ -10,7 +10,7 @@ export type AddToDayPlanProps = {
   /** The item's title (catalog source text), read with the button: "加入这天计划：…". */
   title?: string;
   compact?: boolean;
-  /** The detail action bar: in English the label is "Add to day" ("Add to plan" is BayBay's 加入行程; the button's name still says which day and what). */
+  /** The detail action bar: in English the label is "Add to day" ("Add to plan" is BayBay's 加入计划; the button's name still says which day and what). */
   short?: boolean;
   className?: string;
   /** The page's Pacific day, when it has one (calendar). */

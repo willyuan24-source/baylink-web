@@ -74,7 +74,7 @@ export type AppRoute = {
   /** prerendered page checked by scripts/verify-release.mjs in every language */
   release?: boolean;
   /**
-   * 'detail': a phone detail page whose own 64 px action bar (♡ 想去 · 加入行程 · 问 BayBay · 官方页 ↗) replaces the tab bar
+   * 'detail': a phone detail page whose own 64 px action bar (♡ 收藏 · 加入这天计划 · 问 BayBay · 官方页 ↗) replaces the tab bar
    * (D10). SiteChrome marks the page `data-chrome="detail"` and hides the tab bar once the page renders an element with the
    * class `site-detail-actions` (WEB-DETAIL), so the tab bar never disappears before the action bar exists.
    */

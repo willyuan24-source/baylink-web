@@ -22,5 +22,5 @@ export function checkSummary(dates: readonly (string | undefined)[], today: stri
 export function checkLine(summary: CheckSummary, t: (zh: string, en: string) => string): string {
   const { mostly, latest } = summary;
   return mostly === latest ? t(`核对于 ${monthDay(latest)}`, `checked ${monthDay(latest)}`)
-    : t(`多数核对于 ${monthDay(mostly)} · 最近 ${monthDay(latest)}`, `most checked ${monthDay(mostly)} · latest ${monthDay(latest)}`);
+    : t(`多数核对于 ${monthDay(mostly)} · 最近 ${monthDay(latest)}`, `mostly checked ${monthDay(mostly)} · latest ${monthDay(latest)}`);
 }

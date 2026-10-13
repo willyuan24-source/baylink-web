@@ -131,6 +131,8 @@ export const SELF_DEFENSIVE = /不把|不当作|不代表|不保证|不等于|�
 export const LOG_VOICE = /未核|未见|页面列|编辑建议/u;
 const HEDGES = /待核实|待确认|未核实|未确认|以[^，。；]{1,12}为准|出发前|复核|再查|另查|核对|可能/gu;
 const DATE_LINE = /^\d{4}-\d{2}-\d{2}$/u;
+/** Words that announce a shop rather than describe an open one (the `open-says-soon` rule). */
+const SOON = /预告|預告|即将|即將|将开|將開|coming soon|opening soon/iu;
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/u;
 const TITLE_SEPARATOR = /[：:｜|]| — | – /u;
 const HAN = /[㐀-鿿]/u;
@@ -282,6 +284,11 @@ export function lintEditorial(input: LintInput): LintIssue[] {
     const covered = Object.hasOwn(input.overlay.openings, shop.id);
     const entry: OpeningOverlayEntry = covered ? input.overlay.openings[shop.id] : {};
     reader(covered, 'opening', shop.id, { summary: shop.summary, editorTip: shop.editorTip, dateLabel: shop.dateLabel, category: shop.category, dek: shop.dek });
+    // H09 / EVT13-02: an open shop never says it is coming — not by a first day after today (the chip would read 预计 …
+    // 开业) and not by a type like 拉面新店预告 (Marufuku said both 已开业 and 预告).
+    if (shop.status === 'open' && ((shop.openedOn && shop.openedOn > input.from) || SOON.test(shop.category ?? ''))) {
+      add(covered, 'opening', shop.id, 'open-says-soon', `status open but ${shop.openedOn && shop.openedOn > input.from ? `openedOn ${shop.openedOn}` : `category ${shop.category}`}`);
+    }
     if (!covered) continue;
     short(true, 'opening', shop.id, entry, shop);
     fixKeys('opening', shop.id, entry.fix);
