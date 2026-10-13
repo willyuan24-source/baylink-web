@@ -162,11 +162,11 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const heading = searching ? t('搜索结果', 'Search results') : topic ? topicName(topic) : category ? categoryLabel : regionLabel;
 
   return <div className="gl-page" data-testid="guides-home">
-    <PageHeader className="gl-header" title={savedOnly ? t('我的指南收藏', 'Your saved guides') : t('湾区生活指南', 'Bay Area guides')}
+    <PageHeader className="gl-header" title={savedOnly ? t('我的指南收藏', 'Your saved guides') : topic && !searching ? `${topicName(topic)} · ${t('湾区生活指南', 'Bay Area guides')}` : t('湾区生活指南', 'Bay Area guides')}
       lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and the official way in. ${guides.length} guides, each with its official sources.`)} />
     <div className="gl-find">
       <label className="gl-search"><Search aria-hidden="true" strokeWidth={1.75} />
-        <input type="search" aria-label={t(`在 ${guides.length} 篇指南中搜索`, `Search ${guides.length} guides`)} placeholder={t('搜：看医生、学校、考驾照、租房防骗…', 'Doctors, schools, driving, rental scams…')}
+        <input type="search" aria-label={t(`在 ${guides.length} 篇指南中搜索`, `Search ${guides.length} guides`)} placeholder={t('搜：看医生、考驾照、防骗…', 'Doctors, driving, scams…')}
           value={query} maxLength={200} onChange={event => update({ q: event.target.value })} />
         {query && <button type="button" className="gl-search__clear" aria-label={t('清除指南搜索', 'Clear search')} onClick={() => update({ q: '' })}><X aria-hidden="true" strokeWidth={1.75} /></button>}
       </label>

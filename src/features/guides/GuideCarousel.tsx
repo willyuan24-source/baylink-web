@@ -1,6 +1,7 @@
 import { Check, Gift, HeartHandshake, House, Landmark, ShieldAlert, Stethoscope, TrainFront, Trees, type LucideIcon } from 'lucide-react';
 import { Carousel } from '../../components/ui/Carousel';
 import { useUiCopy } from '../../components/ui/ui-copy';
+import { SegmentedTitle } from '../../components/SegmentedTitle';
 import type { Guide } from '../../data/guides';
 import type { EditorialPhone, GuideEditorial, GuideSlide } from '../../data/guide-editorial';
 import { guideTopicOf, type GuideTopicId } from '../../data/guide-topics';
@@ -18,7 +19,7 @@ const TOPIC_MARKS: Record<GuideTopicId, LucideIcon> = { elders: HeartHandshake, 
  * are tel: buttons. Facts come only from the article (src/data/guide-editorial).
  */
 export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: GuideEditorial }) {
-  const { t, pick } = useUiCopy();
+  const { t, pick, english } = useUiCopy();
   const total = editorial.slides.length + 1;
   const sourceTitle = (index?: number) => index && guide.sources[index - 1] ? guide.sources[index - 1].title : undefined;
   const footer = (index?: number) => {
@@ -33,9 +34,14 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
   const { cover } = editorial;
   // The same count and date as the head meta line: de-duplicated source URLs, an English date, one source in the singular.
   const sources = guideSourceCount(guide), date = guideEnglishDate(guide.updatedAt);
+  // The date and 整理 / "updated" stay together on one line, so a wrapped kicker never leaves 理 alone (family link, 特大).
+  const dated = <span className="gd-nowrap">{t(`${guide.updatedAt} 整理`, `updated ${date}`)}</span>;
   const kicker = sources
-    ? t(`${sources} 个官方来源 · ${guide.updatedAt} 整理`, `${sources} official source${sources === 1 ? '' : 's'} · updated ${date}`)
-    : t(`${guide.updatedAt} 整理`, `Updated ${date}`);
+    ? <>{t(`${sources} 个官方来源`, `${sources} official source${sources === 1 ? '' : 's'}`)} · {dated}</>
+    : english ? `Updated ${date}` : dated;
+  // Headlines wrap between words (SegmentedTitle, src/lib/title-breaks.ts), not inside 长者 or 路径; the text is the
+  // source copy, translated once inside SegmentedTitle.
+  const headline = (copy: { zh: string; en: string }) => <SegmentedTitle text={english ? copy.en : copy.zh} />;
   const Mark = TOPIC_MARKS[guideTopicOf(guide)];
   return <div className="gd-carousel">
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
@@ -44,14 +50,14 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
         <div className="gd-slide__top"><span className="gd-slide__kicker">{kicker}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
-        <h2 className="gd-slide__cover-title">{pick(cover.title)}</h2>
+        <h2 className="gd-slide__cover-title">{headline(cover.title)}</h2>
         <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{keepNumbers(pick(cover.answer))}</a> : keepNumbers(pick(cover.answer))}</p>
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
         <p className="gd-slide__source">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
       {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="type">
         <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>
-        <h3 className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}{pick(slide.title)}</h3>
+        <h3 className="gd-slide__title">{slide.kind === 'safety' && <ShieldAlert aria-hidden="true" strokeWidth={1.75} />}<span>{headline(slide.title)}</span></h3>
         {slide.body && <p className="gd-slide__body">{pick(slide.body)}</p>}
         {slide.phones && <div className="gd-slide__phones" data-count={slide.phones.length > 2 ? 'many' : undefined}>{slide.phones.map(entry => <div key={entry.tel}>{phone(entry, slide.phones!.length <= 2)}</div>)}</div>}
         {slide.items && <ul className="gd-slide__items">{slide.items.map(item => <li key={item.zh}>{slide.kind === 'checklist' && <Check aria-hidden="true" strokeWidth={2} />}<span>{pick(item)}</span></li>)}</ul>}

@@ -29,6 +29,7 @@ import { linkifyPhones, PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
 import { createCoverPage, distinctNeighbourTones, type CoverPage } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
+import { SegmentedTitle } from './SegmentedTitle';
 import { CoverImage } from './ui/CoverImage';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
@@ -97,7 +98,7 @@ function StepSection({ number, heading, id, conclusion, children }: { number: nu
   return <section className="gd-step" aria-labelledby={id}>
     <div className="gd-step__head">
       <span className="gd-step__number" aria-hidden="true">{number}</span>
-      <div><h2 id={id}>{heading}</h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion))}</p>}</div>
+      <div><h2 id={id}><SegmentedTitle text={heading} /></h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion))}</p>}</div>
     </div>
     {conclusion ? <details className="gd-step__more"><summary>{t('展开原文与来源', 'Full text and sources')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary><div className="bl-guide-prose">{children}</div></details>
       : <div className="bl-guide-prose">{children}</div>}

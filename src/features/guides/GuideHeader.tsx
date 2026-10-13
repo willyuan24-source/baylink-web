@@ -3,6 +3,7 @@ import { ChevronLeft, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Sheet } from '../../components/ui/Sheet';
 import { useUiCopy } from '../../components/ui/ui-copy';
+import { SegmentedTitle } from '../../components/SegmentedTitle';
 import type { Guide } from '../../data/guides';
 import { guideTopicOf } from '../../data/guide-topics';
 import { translateText } from '../../i18n/locale';
@@ -30,7 +31,7 @@ export function GuideHeader({ guide, returnTo }: { guide: Guide; returnTo: strin
       <Link to={`/guides?topic=${topic}`}>{pick(topicCopy(topic))}</Link>
     </nav>
     <h1 className="gd-title" lang={english ? 'en' : undefined}>
-      <span className="gd-title__head">{head}</span>
+      <span className="gd-title__head"><SegmentedTitle text={head} /></span>
       {/* The separator stays in the heading's text (accessible name, SEO) but is not drawn: the rest sits on its own line. */}
       {rest && <><span className="gd-title__sep">{separator}</span><span className="gd-title__rest">{english ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest}</span></>}
     </h1>
