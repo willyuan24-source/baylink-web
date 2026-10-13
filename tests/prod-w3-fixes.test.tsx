@@ -222,3 +222,15 @@ test('small fixes: the offer page title in display case, the price never clipped
   assert.equal(tiles(false).querySelector('a[href="/messages"]')!.hasAttribute('data-primary'), false);
   assert.equal(tiles(true).querySelector('a[href="/messages"]')!.hasAttribute('data-primary'), true);
 });
+
+test('closing punctuation after a title unit stays inside it, so no line starts with ，or ：', async () => {
+  const { SegmentedTitle } = await import('../src/components/SegmentedTitle');
+  const html = renderToStaticMarkup(<h2><SegmentedTitle text="湾区中文长者服务，先打对一个电话" /></h2>);
+  const doc = JSDOM.fragment(html);
+  assert.equal(doc.textContent, '湾区中文长者服务，先打对一个电话', 'the text is unchanged');
+  for (const unit of doc.querySelectorAll('.title-keep')) assert.doesNotMatch(unit.nextSibling?.textContent ?? '', /^[，：]/, unit.outerHTML);
+  assert.ok([...doc.querySelectorAll('.title-keep')].some(unit => unit.textContent!.endsWith('，')), html);
+  const fleet = JSDOM.fragment(renderToStaticMarkup(<h1><SegmentedTitle text="San Francisco Fleet Week：海湾与城市活动周" /></h1>));
+  assert.ok([...fleet.querySelectorAll('.title-keep')].some(unit => unit.textContent === 'Fleet Week：'));
+  assert.ok(fleet.querySelector('.title-keep + wbr + .title-keep'), 'units still have a break between them');
+});

@@ -82,6 +82,9 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.plan
 /* The example questions wrap inside the card, 12px under the box: the shared chip row's phone bleed (margin 0 -16px, ui.css,
    same specificity and later) ran the first chip into the card edge, cut mid-word, and set the row flush on the textarea. */
 .ui-chip-row.planner-examples { flex-wrap:wrap; overflow:visible; margin:12px 0 0; padding:0; }
+/* Three lines for the example question (English needs them): tokens.css's 44px control floor (0-1-1, later) won over
+   planner.css's 5.5rem, leaving 74px and the third line cut through its glyphs. */
+.planner-page .planner-question textarea { min-height:6.5rem; }
 .planner-examples .ui-chip { flex:0 1 auto; max-width:100%; white-space:normal; text-align:left; line-height:1.4; padding-block:6px; }
 @media (min-width:768px) { .planner-overview-head { flex-direction:row; flex-wrap:wrap; align-items:center; column-gap:12px; } .planner-overview-head>p { flex-basis:100%; } .planner-overview-actions { flex-basis:100%; } }
 @media (max-width:767px) {

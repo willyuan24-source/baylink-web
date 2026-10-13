@@ -166,7 +166,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and the official way in. ${guides.length} guides, each with its official sources.`)} />
     <div className="gl-find">
       <label className="gl-search"><Search aria-hidden="true" strokeWidth={1.75} />
-        <input type="search" aria-label={t(`在 ${guides.length} 篇指南中搜索`, `Search ${guides.length} guides`)} placeholder={t('搜：看医生、考驾照、防骗…', 'Doctors, driving, scams…')}
+        <input type="search" aria-label={t(`在 ${guides.length} 篇指南中搜索`, `Search ${guides.length} guides`)} placeholder={t('看医生、考驾照、防骗…', 'Doctors, driving, scams…')}
           value={query} maxLength={200} onChange={event => update({ q: event.target.value })} />
         {query && <button type="button" className="gl-search__clear" aria-label={t('清除指南搜索', 'Clear search')} onClick={() => update({ q: '' })}><X aria-hidden="true" strokeWidth={1.75} /></button>}
       </label>
