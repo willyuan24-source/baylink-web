@@ -24,7 +24,7 @@ const { MemoryRouter, StaticRouter, useLocation } = await import('react-router-d
 const { isSeniorFriendly, startsInDaytime } = await import('../src/lib/senior-friendly');
 const { checkLine, checkSummary } = await import('../src/lib/check-dates');
 const { getReaderFreshness } = await import('../src/lib/content-review');
-const { coverPhoneBreaks } = await import('../src/lib/phone-numbers');
+const { coverPhoneKeep } = await import('../src/lib/phone-numbers');
 const { MoodCircles } = await import('../src/features/home/MoodCircles');
 const { EventsView } = await import('../src/components/EventsView');
 const model = await import('../src/features/events/events-model');
@@ -178,10 +178,12 @@ test('H35: each /events view has its own title; 本周末 keeps the page title',
   }
 });
 
-test('H21: a cover phone number breaks only after its area code', () => {
-  assert.equal(coverPhoneBreaks('免费 1-800-434-0222'), '免费 1‑800-​434‑0222');
-  assert.equal(coverPhoneBreaks('先打 800-510-2020'), '先打 800-​510‑2020');
-  assert.equal(coverPhoneBreaks('首次驾照申请费 $46'), '首次驾照申请费 $46');
+test('H21: a cover phone number stays whole, and its cover sets it a step smaller', () => {
+  const nb = String.fromCharCode(0x2011);
+  assert.deepEqual(coverPhoneKeep('免费 1-800-434-0222'), { text: `免费 1${nb}800${nb}434${nb}0222`, phone: true });
+  assert.deepEqual(coverPhoneKeep('先打 800-510-2020'), { text: `先打 800${nb}510${nb}2020`, phone: true });
+  assert.deepEqual(coverPhoneKeep('首次驾照申请费 $46'), { text: '首次驾照申请费 $46', phone: false });
+  assert.deepEqual(coverPhoneKeep('1-2-3 2026-10-13'), { text: '1-2-3 2026-10-13', phone: false });
 });
 
 const find = (kind: string, id: string) => {

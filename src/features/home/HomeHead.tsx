@@ -1,4 +1,4 @@
-import { useId, useState } from 'react';
+import { Fragment, useId, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -46,10 +46,18 @@ export function HomeHead({ today, weekendTotal, guideCount, checked, onAskBayBay
     t(`${guideCount} 篇办事指南`, `${guideCount} guides`),
     checked ? `${t('每条附官方来源，', 'official sources, ')}${checkLine(checked, t).replace(' · ', t('，', ', '))}` : t('每条附官方来源', 'official sources'),
   ];
+  // Each phrase keeps its line ("多数核对于 9/29，" never breaks as 多 / 数): units end after their own punctuation, and the
+  // breaks fall between them (the separators and, in English, the spaces stay outside the units).
+  const units = facts.flatMap((fact, index) => {
+    // No lookbehind: iOS Safari before 16.4 cannot parse it, and the home must load on a parent's older iPhone.
+    const mark = english ? ',' : '，';
+    const parts = fact.split(mark).map((part, at, all) => at < all.length - 1 ? part + mark : part).map(part => part.trim()).filter(Boolean);
+    return parts.map((part, at) => ({ part, before: at ? (english ? ' ' : '') : index ? ' · ' : '' }));
+  });
   return <header className="home-head">
     <p className="home-head__dateline" {...dateScope('day')}><span>{t('湾区', 'Bay Area')}</span> · <time dateTime={today}>{longDate(today, english)}</time></p>
     <h1 className="home-head__title">{t('这个周末，湾区去哪？', 'Where to go in the Bay this weekend?')}</h1>
-    <p className="home-head__lede" {...dateScope('weekend')}>{facts.join(' · ')}</p>
+    <p className="home-head__lede" {...dateScope('weekend')}>{units.map(({ part, before }, index) => <Fragment key={index}>{before}<span className="home-head__unit">{part}</span></Fragment>)}</p>
     <form className="home-ask" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
       <img className="home-ask__otter" src="/brand/otter.svg" alt="" width={28} height={28} decoding="async" />
