@@ -248,7 +248,7 @@
 .ui-state__icon>svg { width:2rem; height:2rem; }
 .ui-state[data-kind=error] .ui-state__icon { background:var(--color-danger-tint); color:var(--color-danger); }
 .ui-state__title { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
-.ui-state__body { max-width:28em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; text-wrap:pretty; }
+.ui-state__body { max-width:28em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; text-wrap:balance; }
 .ui-state__actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin-top:8px; }
 
 /* Keyboard focus on photos and dark surfaces: a white ring inside the brand ring. */
