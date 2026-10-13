@@ -38,7 +38,8 @@ const guestSaves = () => (JSON.parse(localStorage.getItem(savesKey()) || '{"item
  */
 const cardsWithHearts = (view: ReturnType<typeof render>) => view.getAllByRole('article').map(card => ({
   card,
-  title: within(card).getByRole('heading', { level: 3 }).textContent ?? '',
+  // A card's own title: h3 on the events boards, h4 under its kind's h3 on the guides' deals board (G26).
+  title: within(card).getAllByRole('heading')[0].textContent ?? '',
   hearts: within(card).queryAllByRole('button', { name: /^(已)?收藏：/ }) as HTMLButtonElement[],
 }));
 const assertOneNamedHeartPerCard = (view: ReturnType<typeof render>, what: string) => {

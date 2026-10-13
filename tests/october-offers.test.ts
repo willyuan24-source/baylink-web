@@ -23,8 +23,10 @@ const offer = (id: string) => {
   assert.ok(result, `Missing published offer: ${id}`);
   return result;
 };
+// These tests check which offers the board lists on a date (G26's 本周有效 and six-per-kind first screen are covered in
+// tests/perks-board-polish.test.tsx), so the board opens on every date with every card.
 const renderBoard = (today: string) => new JSDOM(renderToStaticMarkup(
-  React.createElement(FreebieBoard, { offers: currentFreebies, today }),
+  React.createElement(FreebieBoard, { offers: currentFreebies, today, initialDates: 'all', sectionSize: Infinity }),
 )).window.document;
 const hasCard = (document: Document, id: string) => Boolean(document.getElementById(`offer-${id}`));
 
@@ -204,6 +206,10 @@ test('benefit cards show sourced photos or posters and omit AI art while retaini
       assert.equal(card.querySelector('img'), null, `${item.id} must not display AI artwork as offer evidence`);
       assert.equal(card.querySelector('.bl-freebie-picture-open'), null);
       assert.equal(card.querySelector('figcaption'), null);
+    } else if (!card.querySelector('img')) {
+      // Same-page de-duplication (G26): an earlier card on the board already shows this picture, once.
+      assert.equal([...document.querySelectorAll('.bl-freebie-card img')].filter(img => img.getAttribute('src') === image.src).length, 1, `${item.id}: its picture is on the board once`);
+      assert.equal(card.querySelector('.bl-freebie-picture-open'), null);
     } else {
       assert.equal(card.querySelector('img')?.getAttribute('src'), image.src);
       assert.equal(card.querySelector('img')?.getAttribute('alt'), image.alt);
