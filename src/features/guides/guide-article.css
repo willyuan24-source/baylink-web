@@ -131,6 +131,8 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 /* Below 360 px (the family link on a small phone, iPhone Display Zoom) the step heading is a size smaller and the folded
    text uses the full column, so 特大 fits without cutting words. */
 @media (max-width:359px) {
+  .gd-step__head { gap:8px; }
+  .gd-step__number { width:2rem; height:2rem; }
   .gd-step__head h2 { font-size:1.125rem; }
   .gd-step__more, .gd-step>.bl-guide-prose { margin-left:0; }
 }
