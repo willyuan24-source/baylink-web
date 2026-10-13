@@ -9,6 +9,12 @@ import { MemoryRouter, StaticRouter } from 'react-router-dom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { dateScope, staleScopes, weekendKey } from '../src/lib/date-guard';
+import { HOME_GENERATED_AT } from '../src/lib/home-catalog';
+
+// The home tests render the page the prerender writes, on the day the home catalog was generated (prebuild generates it
+// and scripts/prerender.tsx renders on the same day). The catalog keeps weekend snapshots from that day on, so a fixed date
+// only matched a catalog generated on or before it (one generated on 10/13 has no 10/12 snapshot: no count, no share strip).
+const BUILD_DAY = HOME_GENERATED_AT;
 
 const SRC = fs.readFileSync('public/reading-init.js', 'utf8');
 
@@ -152,7 +158,7 @@ test('every event, offer, <time> and event count on the prerendered home sits in
   // last weekend's (or yesterday's) pick, count or dateline on a later day: this test turns red when a home redesign drops
   // the marks. WEB-HOME's head carries the build day (<time> in .home-head__dateline) and the weekend count
   // (.home-head__lede); checked against its tree (see PR.md): red without those two fallbacks, green with them.
-  const today = '2026-10-12';
+  const today = BUILD_DAY;
   const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
   const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
   const doc = new JSDOM(`<!doctype html><html data-date-stale="day weekend"><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
@@ -202,7 +208,7 @@ test('the home fallbacks reach WEB-HOME’s head: the dateline is a day block, t
 
 test('WEB-HOME marks its own date blocks with dateScope(), so home stays covered without the class fallbacks (W4 integration)', async () => {
   const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
-  const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2026-10-12" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
+  const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={BUILD_DAY} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
   const doc = new JSDOM(`<!doctype html><html><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
   const scope = (selector: string) => [...doc.querySelectorAll(selector)].map(node => node.getAttribute('data-date-scope'));
   for (const [selector, expected] of [['.home-picks', 'weekend'], ['.home-feed', 'weekend'], ['.home-share', 'weekend'], ['.home-head__lede', 'weekend'],
