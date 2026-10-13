@@ -32,7 +32,8 @@ export type GuideCoverProps = {
 export function GuideCover({ guide, cover, ratio, sizes, priority, tone, answer, mini }: GuideCoverProps) {
   const { pick } = useUiCopy();
   const topic = guideTopicOf(guide);
+  // The answer's phone number keeps one line (non-breaking hyphens): "1-800- / 434-0222" broke at a hyphen in English.
   const fallback = <TypeCover family="guide" tone={tone ?? TOPIC_COVER[topic].tone} icon={TOPIC_COVER[topic].icon} label={pick(topicCopy(topic))}
-    title={answer} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
+    title={answer?.replace(/(\d)-(?=\d)/g, '$1\u2011')} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
   return <Cover cover={cover} fallback={fallback} ratio={ratio} sizes={sizes} priority={priority} decorative />;
 }

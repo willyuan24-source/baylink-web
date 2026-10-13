@@ -70,7 +70,8 @@ test('a coded guide card does not repeat the caption: no title and no source cou
   const cover = JSDOM.fragment(html);
   assert.equal(cover.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'guide');
   assert.doesNotMatch(cover.textContent!, /官方来源|湾区中文长者服务/);
-  assert.equal(cover.querySelector('.ui-type-cover__title')!.textContent, '先打 800-510-2020', 'the pilot answer is the big line');
+  // The pilot answer is the big line, its number held together by non-breaking hyphens (U+2011).
+  assert.equal(cover.querySelector('.ui-type-cover__title')!.textContent, `先打 800${String.fromCharCode(0x2011)}510${String.fromCharCode(0x2011)}2020`);
   const plain = JSDOM.fragment(renderToStaticMarkup(<GuideCover guide={{ slug: 'x', category: 'family', title: '某篇指南：副标题', sourceCount: 3 }} cover={{ tier: 'type', reason: 'no-image' } as never} />));
   assert.equal(plain.querySelector('.ui-type-cover__title'), null);
   assert.equal(plain.querySelector('.ui-type-cover__place'), null);

@@ -165,8 +165,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .reading-simple-switch[aria-checked=true] .reading-simple-track>span { background:var(--color-surface); transform:translateX(1.125rem) scale(1.25); }
 @media(forced-colors:active) { .reading-simple-track>span { background:CanvasText; } }
 
-/* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. */
-:is(.bl-guides-page,.bl-guide-reader,.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation,.member-baybay-panel) :is(p,small,label,time,summary) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
+/* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. A TypeCover sets its own
+   type (ui.css): at 0-1-1 this rule outranked it, and a detail page's coded hero printed its value and date at 14px in ink-2. */
+:is(.bl-guides-page,.bl-guide-reader,.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation,.member-baybay-panel) :is(p,small,label,time,summary):not(:where(.ui-type-cover *)) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(button,a,select,input,textarea) { min-height:var(--control-height); font-size:var(--text-fact); }
 /* A title link is the heading, not a control: it keeps the heading's size (SYS-03, EVT-03). (0,1,2) outranks the (0,1,1) rule above. */
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(h1,h2,h3,h4,h5,h6) a { font-size:inherit; min-height:0; }

@@ -14,6 +14,8 @@
 .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { width:100%; border-radius:0; }
 /* An offer or opening without an image: a band (DetailHero) with the value or the kind, not a 16:9 card repeating the header. */
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { aspect-ratio:auto; height:7.5rem; }
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value { font-size:2rem; }
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__icon { top:calc(50% - 3.25rem); right:1.5rem; width:6.5rem; height:6.5rem; }
 
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
 .local-discovery-detail .detail-head { padding-top:12px; }

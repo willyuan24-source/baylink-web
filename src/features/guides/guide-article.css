@@ -57,12 +57,14 @@
 .gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
 .gd-slide__count { flex:none; color:inherit; font-size:var(--text-caption); line-height:1.385; font-weight:700; opacity:.7; font-variant-numeric:tabular-nums; }
 .gd-slide__question { margin:auto 0 0; color:var(--color-on-brand-muted); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.6cqw * var(--fluid-scale)), 1.25rem); line-height:1.5; font-weight:600; }
-.gd-slide__cover-title { margin:0; color:var(--color-surface); font-size:clamp(1.5rem, calc(9.5cqw * var(--fluid-scale)), 2.375rem); line-height:1.25; font-weight:600; text-wrap:balance; }
+.gd-slide__cover-title { margin:0; color:var(--color-surface); font-size:clamp(1.5rem, min(calc(9.5cqw * var(--fluid-scale)), 10.5cqw), 2.375rem); line-height:1.25; font-weight:600; text-wrap:balance; }
 .gd-answer { align-self:flex-start; margin:0; padding:2px 10px; border-radius:6px; background:var(--color-highlight); color:var(--color-brand-deep); font-size:clamp(1.0625rem, calc(6cqw * var(--fluid-scale)), 1.625rem); line-height:1.35; font-weight:700; font-variant-numeric:tabular-nums; }
 .gd-nowrap { white-space:nowrap; }
-/* Headline word units (SegmentedTitle): the H1, the cover title, the slide titles and the step H2s wrap between words, never inside
-   长者 or 路径. A unit wider than its line (8 characters at 特大 on a narrow slide) wraps inside itself instead of overflowing. */
-:is(.gd-title__head,.gd-slide__cover-title,.gd-slide__title,.gd-step__head h2) .title-keep { display:inline-block; max-width:100%; }
+/* Headline word units (SegmentedTitle): the H1, the cover title, the slide titles and the step H2s wrap between words,
+   never inside 长者 or 路径 (units are at most 8 Han characters; the cover title is capped at 10.5cqw so 8 fit its
+   88cqw line at 特大). Below 360px a unit may wrap, as on the detail H1. */
+:is(.gd-title__head,.gd-slide__cover-title,.gd-slide__title,.gd-step__head h2) .title-keep { white-space:nowrap; }
+@media (max-width:359px) { :is(.gd-title__head,.gd-slide__cover-title,.gd-slide__title,.gd-step__head h2) .title-keep { white-space:normal; } }
 .gd-answer a { display:inline-flex; flex-wrap:wrap; align-items:center; column-gap:.3em; min-height:3rem; color:inherit; text-decoration:none; }
 .gd-slide__line { margin:0; color:var(--color-surface); font-size:clamp(max(.875rem, var(--text-floor)), calc(4cqw * var(--fluid-scale)), 1.125rem); line-height:1.57; opacity:.92; }
 .gd-slide__title { display:flex; align-items:flex-start; gap:8px; margin:4px 0 0; color:var(--color-ink); font-size:clamp(1.25rem, calc(7cqw * var(--fluid-scale)), 1.875rem); line-height:1.3; font-weight:600; text-wrap:balance; }
