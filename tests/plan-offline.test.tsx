@@ -25,7 +25,7 @@ Object.defineProperty(dom.window.navigator, 'onLine', { configurable: true, get:
 const { render, act, fireEvent, cleanup, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
-const { isPlanCatalogInstalled } = await import('../src/lib/planner-source');
+const { isPlannerCatalogInstalled: isPlanCatalogInstalled } = await import('../src/lib/planner-source');
 afterEach(() => cleanup());
 
 test('without the catalog the header works, the workspace shows ErrorState and its retry loads the plan', async () => {

@@ -1,30 +1,40 @@
 import { chunkLoader } from '../../lib/chunk-recovery';
-import { installPlanCatalog, isPlanCatalogInstalled, type PlanCatalog } from '../../lib/planner-source';
-import { isLocaleReadyForFeature, loadLocaleForFeature, type Locale } from '../../i18n/locale';
+import { arePlanExtrasInstalled, installPlanCatalog, installPlanExtras, isPlannerCatalogInstalled, type PlanCatalog, type PlanExtras } from '../../lib/planner-source';
+import { isLocaleReadyForFeature, isLocaleReadyForPath, loadLocaleForFeature, type Locale } from '../../i18n/locale';
 import { pathLanguage } from '../../lib/language-path';
 import { routePathname } from '../../app/route-table';
 
 /**
  * 行程's catalog after the first paint (WEB-PLAN-DATA). The page's header renders at once; its workspace (saved days, the
  * matcher, the list and the editor) reads the planner catalog synchronously, so it waits here for the generated catalog
- * (scripts/generate-plan-catalog.ts, one chunk) and, in English, for that catalog's own text pack ('plan-catalog'), instead
- * of the route carrying every event record, every guide and three English packs before it can render.
- * Node installs the catalog when lib/planner-source.ts is evaluated, so the prerender and tests render in one pass.
+ * (scripts/generate-plan-catalog.ts: events and places, and 行程's extras) and, in English, for that catalog's own text
+ * pack ('plan-catalog'), instead of the route carrying every event record, every guide and three English packs before it
+ * can render.
+ *
+ * Arriving from a page that already holds the full catalog (My Week, 加入这天计划 on the calendar, BayBay), only the extras
+ * load; arriving from a page that holds the planning, discovery and guide-index packs (My Week, /together, /me), the English
+ * pack is not loaded again: it is a subset of theirs (tests/plan-catalog-split.test.ts).
+ * Node installs the generated files when lib/planner-source.ts is evaluated, so the prerender and tests render in one pass.
  */
 const loadCatalog = chunkLoader(() => import('../../data/generated/plan-catalog.json'), module => module.default as unknown as PlanCatalog);
+const loadExtras = chunkLoader(() => import('../../data/generated/plan-extras.json'), module => module.default as unknown as PlanExtras);
+
+/** The English the workspace shows: its own pack, or the packs My Week, /together and /me load (a superset of it). */
+const englishReady = () => isLocaleReadyForFeature('en', 'plan') || isLocaleReadyForPath('en', '/my-week');
 
 /** Whether the workspace can render in this language. The route's own gate has loaded the language and its search tables. */
-export const isPlanReady = (locale: Locale): boolean => isPlanCatalogInstalled() && (locale !== 'en' || isLocaleReadyForFeature('en', 'plan'));
+export const isPlanReady = (locale: Locale): boolean => isPlannerCatalogInstalled() && arePlanExtrasInstalled() && (locale !== 'en' || englishReady());
 
 const pending = new Map<Locale, Promise<void>>();
-/** Load the catalog and the language's text for it. A failed load rejects; the next call tries again. */
+/** Load what is missing of the catalog, the extras and the language's text for them. A failed load rejects; the next call tries again. */
 export function loadPlan(locale: Locale): Promise<void> {
   if (isPlanReady(locale)) return Promise.resolve();
   let promise = pending.get(locale);
   if (!promise) {
     promise = Promise.all([
-      isPlanCatalogInstalled() ? undefined : loadCatalog().then(installPlanCatalog),
-      locale === 'en' ? loadLocaleForFeature('en', 'plan') : undefined,
+      isPlannerCatalogInstalled() ? undefined : loadCatalog().then(installPlanCatalog),
+      arePlanExtrasInstalled() ? undefined : loadExtras().then(installPlanExtras),
+      locale === 'en' && !englishReady() ? loadLocaleForFeature('en', 'plan') : undefined,
     ]).then(() => undefined).finally(() => { pending.delete(locale); });
     pending.set(locale, promise);
   }

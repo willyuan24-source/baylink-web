@@ -8,16 +8,18 @@ import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../src/data/guide-
 import { SCENE3D_POSTCARD_FOR } from '../src/data/scene3d-postcards';
 import { stopCoverItem } from '../src/lib/plan-stop-cover';
 import type { Stop } from '../src/lib/planner-core';
-import type { PlanCatalog } from '../src/lib/planner-source';
+import type { PlanCatalog, PlanExtras } from '../src/lib/planner-source';
 
 /**
- * 行程's catalog (WEB-PLAN-DATA): /plan loads this file after its first paint instead of importing the planner catalog's
- * sources (every event record, every guide, the whole image registry, the offers), and lib/planner-source.ts installs it.
- * Everything here is what the page read from those modules, computed by the same code: the planner's events and places
- * (data/planner-catalog.ts), the image record behind every cover key a planner stop can ask for, the live offers linked to
- * a planner place and the region list. tests/plan-catalog-split.test.ts keeps the file equal to this build.
+ * 行程's catalog (WEB-PLAN-DATA): /plan loads these files after its first paint instead of importing the planner catalog's
+ * sources (every event record, every guide, the whole image registry, the offers), and lib/planner-source.ts installs them.
+ * Everything here is what the page read from those modules, computed by the same code: plan-catalog.json holds the
+ * planner's events and places (data/planner-catalog.ts; skipped when a page already loaded the full catalog), and
+ * plan-extras.json the image record behind every cover key a planner stop can ask for, the live offers linked to a planner
+ * place and the region list. tests/plan-catalog-split.test.ts keeps the files equal to this build.
  */
 export const PLAN_CATALOG_FILE = 'src/data/generated/plan-catalog.json';
+export const PLAN_EXTRAS_FILE = 'src/data/generated/plan-extras.json';
 
 /** The image a stop cover key names in the full registries (what plan-stop-cover.ts read before WEB-PLAN-DATA). */
 export function fullStopCoverImage(key: string): GuideImage | undefined {
@@ -29,7 +31,7 @@ export function fullStopCoverImage(key: string): GuideImage | undefined {
   return Object.hasOwn(GUIDE_IMAGES, key) ? GUIDE_IMAGES[key] : undefined;
 }
 
-export function buildPlanCatalog(): PlanCatalog {
+export function buildPlanCatalog(): PlanCatalog & PlanExtras {
   const stops: Stop[] = [...PLANNER_EVENTS.map(event => ({ kind: 'event' as const, id: event.id })), ...PLANNER_PLACES.map(place => ({ kind: 'place' as const, id: place.id }))];
   const keys = new Set<string>(Object.values(SCENE3D_POSTCARD_FOR));
   for (const stop of stops) {
@@ -52,9 +54,12 @@ export function buildPlanCatalog(): PlanCatalog {
   };
 }
 
-export async function writePlanCatalog(catalog: PlanCatalog = buildPlanCatalog()): Promise<void> {
+export async function writePlanCatalog(catalog: PlanCatalog & PlanExtras = buildPlanCatalog()): Promise<void> {
   await mkdir('src/data/generated', { recursive: true });
-  const json = JSON.stringify(catalog);
-  await writeFile(PLAN_CATALOG_FILE, json);
-  console.log(`Plan catalog: ${catalog.events.length} events, ${catalog.places.length} places, ${Object.keys(catalog.images).length} cover images, ${catalog.offers.length} offers; ${(gzipSync(json).length / 1024).toFixed(1)} KiB gzip.`);
+  const { events, places, images, offers, regions } = catalog;
+  const main = JSON.stringify({ events, places } satisfies PlanCatalog), extras = JSON.stringify({ images, offers, regions } satisfies PlanExtras);
+  await writeFile(PLAN_CATALOG_FILE, main);
+  await writeFile(PLAN_EXTRAS_FILE, extras);
+  const kib = (json: string) => (gzipSync(json).length / 1024).toFixed(1);
+  console.log(`Plan catalog: ${events.length} events, ${places.length} places (${kib(main)} KiB gzip); extras: ${Object.keys(images).length} cover images, ${offers.length} offers (${kib(extras)} KiB gzip).`);
 }
