@@ -46,8 +46,6 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-row__label { color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }
 .me-row__value { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-row[data-tone=danger] .me-row__label,.me-row[data-tone=danger]>svg:first-child { color:var(--color-danger); }
-.me-legal { display:flex; flex-wrap:wrap; justify-content:center; gap:4px 16px; margin:24px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); }
-.me-legal a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-ink-2); font-size:var(--text-caption); text-decoration:underline; text-underline-offset:3px; }
 .me-panel { padding:16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
 .me-panel+.me-panel { margin-top:12px; }
 .me-panel__title { display:flex; align-items:center; gap:8px; margin:0 0 8px; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }

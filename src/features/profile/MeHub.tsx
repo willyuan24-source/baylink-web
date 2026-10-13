@@ -16,7 +16,7 @@ import './me-hub.css';
 /** The site's positioning sentence (index.html title, manifest, About), shown under the name on /me (PROD-10). */
 export function MePositioning() {
   const { t } = useUiCopy();
-  return <p className="me-hub__positioning">{t('湾区去哪、怎么办——有来源的中文答案', 'Bay Area plans and practical answers, with sources')}</p>;
+  return <p className="me-hub__positioning">{t('湾区去哪、怎么办 · 有来源的中文答案', 'Bay Area plans and practical answers, with sources')}</p>;
 }
 
 type TileProps = { icon: LucideIcon; title: string; detail?: string; primary?: boolean; badge?: { count: number; label: string } };
@@ -46,7 +46,7 @@ export function MeTiles({ signedIn, messagesCount, savedCount, onMyPosts, onLogi
     : unread ? t(`${unread} 条未读`, `${unread} unread`) : t('私信与联系请求', 'Messages and contact requests');
   const weekDetail = savedCount === null ? t('收藏与计划', 'Saved items and plans') : t(`收藏 ${savedCount} 项`, `${savedCount} saved`);
   return <ul className="me-tiles" aria-label={t('我的常用', 'My shortcuts')}>
-    <li><Link to="/messages" className="me-tile" data-primary="" aria-label={unread ? t(`消息，${unread} 条未读`, `Messages, ${unread} unread`) : undefined}>
+    <li><Link to="/messages" className="me-tile" data-primary={signedIn ? '' : undefined} aria-label={unread ? t(`消息，${unread} 条未读`, `Messages, ${unread} unread`) : undefined}>
       <TileBody icon={MessageCircle} title={t('消息', 'Messages')} detail={messageDetail} badge={signedIn ? { count: unread, label: t(`${unread} 条未读`, `${unread} unread`) } : undefined} />
     </Link></li>
     <li><Link to="/my-week" className="me-tile"><TileBody icon={CalendarDays} title={t('我的这周', 'My Week')} detail={weekDetail} /></Link></li>
@@ -141,15 +141,6 @@ export function MeAccountRows({ onView }: { onView: (view: 'notifications' | 'pr
 export function MeAboutRow() {
   const { t } = useUiCopy();
   return <li><MeRow icon={Info} to="/about" label={t('关于与核验方法', 'About and how we verify')} /></li>;
-}
-
-export function MeLegal() {
-  const { t } = useUiCopy();
-  return <nav className="me-legal" aria-label={t('条款与隐私', 'Terms and privacy')}>
-    <a href="/terms">{t('服务条款', 'Terms of Service')}</a>
-    <a href="/privacy">{t('隐私政策', 'Privacy Policy')}</a>
-    <a href="/sms-consent">{t('短信条款', 'SMS terms')}</a>
-  </nav>;
 }
 
 /** Signed out: one honest invitation, then what still works on this device. */

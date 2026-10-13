@@ -71,7 +71,7 @@ test('/me opens on the hub: 消息 is the first tile, carries the header count a
   // The reading-size card is a settings row now, not the first screen.
   assert.equal(view.queryByRole('region', { name: '阅读字号' }), null);
   await waitFor(() => assert.match(tiles.getAllByRole('link')[1].textContent || '', /收藏 3 项/));
-  assert.ok(view.getByText('湾区去哪、怎么办——有来源的中文答案'));
+  assert.ok(view.getByText('湾区去哪、怎么办 · 有来源的中文答案'), 'the positioning line as the footer writes it');
   fireEvent.click(links[0]);
   assert.equal(view.getByTestId('where').textContent, '/messages');
   assert.ok(view.getByRole('heading', { level: 1, name: '消息' }));
