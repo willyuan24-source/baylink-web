@@ -48,6 +48,9 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // W4 integration: the lower of main's and CNT-SUPPLY's ceiling per cell (/calendar and /events zh-Hans take CNT-SUPPLY's).
 // Then every cell with more than 5% headroom on the integrated build (+ CNT-SUPPLY, WEB-FRESH2, WEB-COMMUNITY, WEB-BB-UI-2)
 // goes to measured + 5%. /plan zh-Hans and en are over their ceilings with CNT-SUPPLY's 50 events (not raised; see W4-INT).
+// WEB-PLAN-DATA: /plan renders its header at once and loads a generated planner catalog (and, in English, that catalog's own
+// pack) after its first paint, instead of importing every event record, every guide, the image registry and the planning,
+// discovery and guide-index packs: 1132.5 / 1176.1 / 2043.2 → 270.3 / 313.9 / 372.3 KiB, so its ceilings go to measured + 5%.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 241.9, en: 323.6 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 319.5, 'zh-Hant': 365.3, en: 528.3 } },
@@ -56,7 +59,8 @@ const ROUTE_JS_BUDGETS = [
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 219.2, 'zh-Hant': 264.9, en: 343.0 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 315.6, 'zh-Hant': 361.4, en: 524.4 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
-  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 1126.8, 'zh-Hant': 1212.3, en: 2011.6 } },
+  // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 283.9, 'zh-Hant': 329.6, en: 391.0 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
