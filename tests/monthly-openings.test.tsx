@@ -217,7 +217,9 @@ test('opening cards show only attributable photos or posters; synthetic shop art
   // 2026-10-12 (CNT-HOTFIX): open after the 10/11 grand opening, with the regular hours the store page lists from 10/12.
   assert.equal(marufuku.status, 'open');
   assert.match(marufuku.dateLabel, /10\/11.*Grand Opening.*10\/12.*11:00.*14:00.*17:00.*21:00/);
-  assert.equal(marufuku.openedOn, undefined, 'a grand-opening announcement does not establish first service');
+  // 2026-10-13 (WEB-FIX5, H09): the store page lists the 10/11 grand opening with its service hours, so 10/11 is the first
+  // day of public service (the location list still says Coming Soon; the store page is the more specific source).
+  assert.equal(marufuku.openedOn, '2026-10-11');
   assert.equal(marufuku.sourceUrl, 'https://www.marufukuramen.com/burlingame');
   assert.equal(marufuku.address, '225 Lorton Ave, Burlingame, CA 94010');
   assert.match(GUIDE_IMAGES[marufuku.imageKey].caption, /宣传图.*不是开业当天/);

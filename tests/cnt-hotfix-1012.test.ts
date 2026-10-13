@@ -48,7 +48,8 @@ test('opening facts follow the official pages: Old Post Office brunch from Sun 1
   assert.doesNotMatch(`${postOffice.dateLabel}${postOffice.editorTip}`, /10\/17 起/u);
   const marufuku = opening('marufuku-burlingame-announced');
   assert.equal(marufuku.status, 'open');
-  assert.equal(marufuku.openedOn, undefined, 'a grand-opening date is not a stated first day of service');
+  // WEB-FIX5 (H09, 2026-10-13 read): the 10/11 grand opening lists service hours, so it is the first day of service.
+  assert.equal(marufuku.openedOn, '2026-10-11');
   assert.match(marufuku.dateLabel, /周末 11:00–21:00/u);
   assert.equal(opening('albany-o2-sushi-opening-2026').status, 'open');
   assert.equal(opening('los-altos-coffeebar-announced-2026').status, 'announced');
