@@ -55,18 +55,17 @@ An "error" rule drawn in amber (its strongest warm colour has OKLab hue ≥ 70°
 notice and takes the warning family. White, greys, greens, blues and focus rings follow the ordinary rules, so a green
 retry link inside an error box stays green.
 
-Files not converted yet (their lanes were in flight when TOKENS-B landed; run the codemod on them after they merge):
-`discovery-community.css`, `src/features/outings/*.css`, `src/features/posts/posts-ui.css` (WEB-COMMUNITY),
-`src/features/source-monitor/source-monitor.css` (WEB-FRESH2), and the `.bay-category-*` rules in `src/design.css`.
-The Wave-3 integration (claude/w3-int) landed WEB-HOME, WEB-DETAIL, WEB-SECONDARY and WEB-PLAN, whose files were already
+Every stylesheet outside `tokens.css` is now converted. The Wave-4 integration (claude/w4-int) ran both codemods on
+WEB-COMMUNITY's `discovery-community.css` and `src/features/outings/*.css` (its `posts-ui.css` and `community.css` and
+WEB-FRESH2's `source-monitor.css` / `source-monitor-admin.css` were already token-only), after WEB-COMMUNITY deleted the
+`.bay-category-*` rules from `src/design.css`. The Wave-3 integration (claude/w3-int) landed WEB-HOME, WEB-DETAIL, WEB-SECONDARY and WEB-PLAN, whose files were already
 token-only, and ran the codemods on `outing-inspiration.css`, `discovery-workflow.css` (keeping `.google-maps-attribution`,
 Google's own attribution colour: `--skip-selector=google-maps-attribution`) and `src/i18n/languages.css`.
 
 Files converted here that lanes in flight may also edit. Resolve a conflict in them by taking the other lane's side and
 re-running both codemods (`hex-to-tokens.mjs`, then `heading-tracking.mjs`), not by merging colour values by hand:
 `src/features/baybay-conversation.css`, `src/features/baybay-actions.css`, `src/features/baybay/baybay-answer.css`
-(WEB-BB-UI-2), and `src/design.css`, whose one-line `@media (max-width:639px)` block also holds WEB-COMMUNITY's
-`.bay-category-*` rules (pass `--skip-selector=bay-category-` until that lane has deleted them).
+(WEB-BB-UI-2), and `src/design.css`.
 
 ## 2. Type scale (SV-06)
 
@@ -119,6 +118,6 @@ prose, dividers, checklists, sources) stops at `--container-reading` at ≥1024p
 - 旧文件的 hex：运行 `node scripts/codemods/hex-to-tokens.mjs <文件>`，再 `npm run ratchet:update`。标题里的强调字（如 `.about-hero h1 em` 的橄榄绿）会换成品牌绿，不会变灰；灰绿色的说明文字换成 ink-3。
 - 错误和提醒框保留原来的含义：选择器里有 error / danger / invalid / fail / destructive（或规则里已经用了 danger token）的，暖色换成 danger 系列（文字 danger，浅底 danger-tint，浅边框用半透明 danger）；warn / notice 换成 warning 系列。原本画成琥珀色的“错误”框按柔和提醒处理，用 warning 系列。
 - 合并冲突：本 lane 已转换、其他 lane 也在改的文件（BayBay 三个样式文件、`design.css`），冲突时取对方版本，再重跑两个 codemod，不要手工合并颜色值。
-- 还没转换的只剩 WEB-COMMUNITY（discovery-community、outings、posts-ui、`.bay-category-*`）和 WEB-FRESH2（source-monitor）的文件；Wave 3 集成已对 outing-inspiration、discovery-workflow（保留 Google 地图署名色）和 languages.css 跑过 codemod。
+- 除 `tokens.css` 外所有样式文件都已转换：Wave 4 集成对 WEB-COMMUNITY 的 discovery-community 和 outings 跑了两个 codemod（posts-ui、community.css 和 WEB-FRESH2 的 source-monitor 本来就只用 token），`design.css` 里的 `.bay-category-*` 已由 WEB-COMMUNITY 删除；Wave 3 集成已对 outing-inspiration、discovery-workflow（保留 Google 地图署名色）和 languages.css 跑过 codemod。
 - 标题：H1 用 `.type-title`（手机 26/34，桌面 32/42，600，字距 0）；首页和活动栏目用 `.type-display`；H2 用 `.type-section`。这些类目前还没有组件使用，现有页面是直接读 token。`tokens.css` 里归档页和详情页的 H1 规则是临时的，对应 lane 改用 `.type-title` 后删掉其中一份。
 - 页面宽度：`.site-container`（1216，左右边距 16/24/32），桌面上与页头 112–1328 对齐。正文保持 720 的阅读宽度（指南文章正文一栏统一在 720 处结束）。
