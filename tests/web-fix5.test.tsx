@@ -225,3 +225,17 @@ test('H33 + H27: event, offer and opening pages send a large-text family link; a
     cleanup();
   }
 });
+
+test('H57: on /en the age prefix comes off the translated title, so the H1 has no Chinese', async () => {
+  const { setLocale } = await import('../src/i18n/locale');
+  const { act } = await import('@testing-library/react');
+  await act(async () => { await setLocale('en', false); });
+  try {
+    const view = detail('event', 'napa-harvest-after-dark-2026', '2026-10-13');
+    const h1 = view.getByRole('heading', { level: 1 }).textContent!;
+    assert.doesNotMatch(h1, /[\u3400-\u9fff]/, h1);
+    assert.match(h1, /Napa Harvest After Dark/);
+  } finally {
+    await act(async () => { await setLocale('zh-Hans', false); });
+  }
+});

@@ -91,8 +91,11 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const venuePhoto = placePhoto(record, cover, today);
   if (venuePhoto) coverPage.claims.set(venuePhoto.image.src, `${item.kind}:${share.id}`);
   const title = item.kind === 'offer' ? item.offer.title : share.title;
-  // H57: the age chip already says 21+; the H1 drops the same prefix ("21+ · Napa Harvest After Dark").
-  const heading = event?.ageChip ? withoutAgePrefix(title, event.ageChip) : title;
+  // H57: the age chip already says 21+; the H1 drops the same prefix ("21+ · Napa Harvest After Dark"). The prefix comes off
+  // the translated title: the dictionary keys whole titles, so a shortened Chinese title would stay Chinese on /en.
+  const shownTitle = translateText(title, locale);
+  const stripped = event?.ageChip ? withoutAgePrefix(shownTitle, translateText(event.ageChip, locale)) : shownTitle;
+  const heading = stripped !== shownTitle ? stripped : title;
   // H57: sold out or cancelled — the official page (waitlist, refunds) is the primary action, not a day plan.
   const closed = event?.status === 'sold_out' || event?.status === 'cancelled';
   const back = BACK[item.kind];
