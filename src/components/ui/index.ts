@@ -10,6 +10,7 @@ export { SaveButton } from './SaveButton';
 export { CoverImage, type CoverImageProps, type CoverRatio } from './CoverImage';
 export { COVER_SIZES } from './cover-sizes';
 export { TypeCover, EventTypeCover, OfferTypeCover, OpeningTypeCover, type TypeCoverProps } from './TypeCover';
+export { offerBrandLine } from './offer-brand';
 export { Cover, EventCover, OfferCover, OpeningCover } from './Cover';
 export { FeedCard, RowCard, type FeedCardProps, type RowCardProps } from './Card';
 export { HeroCard, PageHeader, PageContainer, type HeroCardProps, type PageHeaderProps } from './HeroCard';

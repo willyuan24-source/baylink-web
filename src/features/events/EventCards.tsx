@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { translateText } from '../../i18n/locale';
-import { EventCover, FeedCard, HeroCard, OfferCover, OpeningCover, RowCard, TypeCover, Cover, COVER_SIZES } from '../../components/ui';
+import { EventCover, FeedCard, HeroCard, OfferCover, OpeningCover, RowCard, TypeCover, Cover, COVER_SIZES, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { ResolvedCover } from '../../lib/cover';
-import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, brandCase, offerKindLabel, openingChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
+import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerKindLabel, openingChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
 import type { IndexEvent, IndexOffer, IndexOpening } from './events-index-types';
 import { monthDay, regionLabel } from './events-model';
 import { SaveToWeek } from '../../components/SaveToWeek';
@@ -81,10 +81,11 @@ export function EventRowCard({ event, cover, today, day, action }: { event: Inde
  * the offer (the one save model, WEB-SAVES; the lazy `SaveToWeek` keeps the store off the route graph).
  */
 export function OfferFeedCard({ offer, cover, today, tone }: { offer: IndexOffer; cover: ResolvedCover; today: string; tone?: CoverTone }) {
-  const { pick } = useUiCopy();
+  const { pick, locale } = useUiCopy();
+  const brand = offerBrandLine(offer.brand, locale);
   return <FeedCard title={offer.title} to={`/offers/${offer.id}`} className="ev-card--action"
     cover={<OfferCover offer={offer} cover={cover} today={today} tone={tone} decorative />}
-    meta={<><span translate="no">{brandCase(offer.brand)}</span> · {pick(offerKindLabel(offer))}</>}
+    meta={<>{brand && <><span translate="no">{brand}</span> · </>}{pick(offerKindLabel(offer))}</>}
     trust={<TrustLine day={offer.verifiedAt} />} save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />;
 }
 
