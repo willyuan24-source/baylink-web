@@ -39,7 +39,8 @@ function PlanCatalogGate({ children }: { children: ReactNode }) {
   const online = useOnline();
   const [, setAttempt] = useState(0);
   const { failed } = readPlan(locale);
-  useEffect(() => { if (!failed) forgetBootSlot(); }, [failed]);
+  // The workspace or the error state is on screen: a later wait (a retry, a language switch) shows skeleton rows instead.
+  useEffect(forgetBootSlot, []);
   if (!failed) return children;
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   return <div className="planner-data-slot" data-plan-slot="">

@@ -50,7 +50,8 @@ test('without the catalog the header works, the workspace shows ErrorState and i
   fireEvent.click(view.getByRole('button', { name: '问 BayBay 排一天' }));
   assert.equal(calls.length, 2);
   catalogOffline = false;
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: '重试' })); });
+  fireEvent.click(view.getByRole('button', { name: '重试' }));
+  assert.ok(view.getByRole('status').textContent?.includes('正在加载'), 'the retry waits with skeleton rows');
   await waitFor(() => assert.ok(!!view.container.querySelector('.planner-plan-overview')), { timeout: 20000 });
   assert.equal(isPlanCatalogInstalled(), true);
   assert.equal(view.queryByRole('heading', { name: '行程暂时没能加载' }), null);
