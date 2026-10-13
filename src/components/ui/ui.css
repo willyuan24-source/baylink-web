@@ -305,7 +305,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
-.ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:6px; background:var(--color-badge-bg); }
+.ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:6px; background:var(--color-badge-bg); text-wrap:balance; }
 .ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.5rem; line-height:1.333; font-weight:600; }
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
 .ui-hero-card .ui-card-link::after { border-radius:24px; }
