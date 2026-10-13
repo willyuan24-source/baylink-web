@@ -116,6 +116,9 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 /* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源". */
 .gd-step { margin-top:28px; }
 .gd-step__head { display:flex; align-items:flex-start; gap:12px; }
+/* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width and the
+   heading and answer ran past a 320 px screen (clipped by the page's overflow-x:clip). */
+.gd-step__head>div { flex:1 1 auto; min-width:0; }
 .gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-card); line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
 .gd-step__head h2 { margin:6px 0 0; color:var(--color-ink); font-size:1.25rem; line-height:1.4; font-weight:600; text-wrap:balance; scroll-margin-top:64px; }
 .gd-step__conclusion { margin:6px 0 0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.765; }
@@ -125,6 +128,12 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-step__more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
 .gd-step__more[open]>summary>svg { transform:rotate(180deg); }
 .gd-step>.bl-guide-prose { margin-left:52px; }
+/* Below 360 px (the family link on a small phone, iPhone Display Zoom) the step heading is a size smaller and the folded
+   text uses the full column, so 特大 fits without cutting words. */
+@media (max-width:359px) {
+  .gd-step__head h2 { font-size:1.125rem; }
+  .gd-step__more, .gd-step>.bl-guide-prose { margin-left:0; }
+}
 
 /* Link cards inside the prose: their base rules live in monthly-deals.css (WEB-EVENTS' file; CSS-PRUNE moves them here). */
 .gd-article .bl-guide-source-link { border-color:var(--color-line); background:var(--color-surface-2); }

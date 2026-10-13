@@ -10,6 +10,8 @@
 .bl-guide-source-link:has(.phone-chip) > a { position:relative; z-index:1; }
 .phone-chip svg { flex:none; width:1em; height:1em; }
 .phone-chip-keep { white-space:nowrap; }
+/* H24: on a phone under 360 px the trailing 。or ， may go to the next line rather than push the chip off the screen. */
+@media (max-width:359px) { .phone-chip-keep { white-space:normal; } .phone-chip { max-width:100%; } }
 .phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; }
 .phone-chip:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .phone-chip--row { min-height:var(--control-height); padding:0 .75rem; font-size:var(--text-fact); }

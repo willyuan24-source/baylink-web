@@ -59,6 +59,8 @@ export const SITE_TAIWAN_TERMS: TaiwanTerms = {
     ['模板', '範本'], ['质量', '品質'], ['刷新', '重新整理'], ['点赞', '按讚'], ['头像', '大頭貼'], ['视频通话', '視訊通話'],
     ['视频会议', '視訊會議'], ['复印', '影印'], ['激活', '啟用'], ['服务器', '伺服器'], ['互联网', '網際網路'], ['退出登录', '登出'],
     ['打车', '叫車'], ['界面', '介面'],
+    // 计划 is 計畫 in Taiwan's standard usage (opencc keeps 計劃; I13-12 / H49: 46 on the plan, calendar and My Week pages)
+    ['计划', '計畫'],
     // the words above where a longer word around them means something else: 官网|上, 世界|面临, 可用|户外, 镜头|像素, 刷新|纪录
     ...guard('官网', '内网', '外网', '联网', '电网', '渔网', '球网', '铁丝网', '蜘蛛网', '防护网', '世界', '用户外', '头像素', '刷新纪录', '刷新记录'),
   ],

@@ -71,13 +71,15 @@ function CardActions({ model, onNavigate }: { model: BayBayCardModel; onNavigate
   const { t } = useBayBayCopy();
   if (model.ended) return <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
   const plan = model.kind === 'event' ? `/plan?${model.day ? `date=${model.day}&` : ''}stops=${encodeURIComponent(`event:${model.event.id}`)}` : null;
+  // H27: the site's one add verb — 加入这天计划 for a dated card, 加入计划 otherwise (行程 is the page it opens).
+  const addLabel = model.kind === 'event' && model.day ? t('加入这天计划', 'Add to this day’s plan') : t('加入计划', 'Add to a plan');
   return <div className="bb-card__actions">
     <CardSave model={model} />
-    {plan && <button type="button" onClick={() => onNavigate(plan)} aria-label={t(`加入行程：${model.title}`, `Add to a plan: ${model.title}`)}><CalendarPlus aria-hidden="true" size={18} />{t('加入行程', 'Add to plan')}</button>}
+    {plan && <button type="button" onClick={() => onNavigate(plan)} aria-label={`${addLabel}${t('：', ': ')}${model.title}`}><CalendarPlus aria-hidden="true" size={18} />{addLabel}</button>}
   </div>;
 }
 
-/** Horizontal image cards (264 wide, 16:10, provenance badge, title 16/600, one meta line, ♡ 收藏 / 加入行程). */
+/** Horizontal image cards (264 wide, 16:10, provenance badge, title 16/600, one meta line, ♡ 收藏 / 加入这天计划). */
 export function BayBayCardRailView({ cards, sources = [], today, onNavigate, label }: { cards: readonly BayBayQuickCard[]; sources?: Sources; today: string; onNavigate: Navigate; label?: string }) {
   const { t, english, pick } = useBayBayCopy();
   const models = useMemo(() => bayBayCardModels(cards, today), [cards, today]);

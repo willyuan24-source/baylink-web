@@ -4,6 +4,7 @@ import { getBayAreaToday } from '../lib/monthly';
 import { downloadEventCalendar } from '../lib/event-ics';
 import { EventParticipationActions, EventParticipationProvider } from './EventParticipation';
 import { EditorialShareActions } from './EditorialShareActions';
+import { FamilyLinkButton } from './FamilyLinkButton';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { TrustRow } from '../features/source-monitor/TrustRow';
 import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
@@ -55,6 +56,13 @@ const STATUS: Record<'postponed' | 'cancelled' | 'sold_out', { tone: StatusTone;
 };
 const DEADLINE_TONE: Record<string, StatusTone> = { danger: 'danger', warning: 'warning', success: 'success', neutral: 'neutral' };
 const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
+/** "21+ · Napa Harvest After Dark" → "Napa Harvest After Dark" when the age chip is 21+. */
+const withoutAgePrefix = (title: string, ageChip: string) => {
+  const chip = ageChip.trim();
+  if (!chip || !title.startsWith(chip)) return title;
+  const rest = title.slice(chip.length).replace(/^\s*[·•:：|｜–—-]\s*/u, '');
+  return rest && rest.length < title.length - chip.length ? rest : title;
+};
 
 function DiscoveryArticle({ record, today }: { record: DetailRecord; today: string }) {
   const { t, pick, locale, english } = useUiCopy();
@@ -62,7 +70,9 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const share = detailShare(item);
   const event = item.kind === 'event' ? item.event : undefined;
   const planDate = event ? nextEventDay(event, today) : null;
-  const unconfirmed = !!event && unconfirmedEvent(event);
+  // H56 / EVT13-05: "no confirmed day" is waiting only while the run has not ended (or the event is postponed); a past one is
+  // over: 已结束 · 9/26 and 接下来可以去, never 日期待定 beside the archive box.
+  const unconfirmed = !!event && unconfirmedEvent(event) && (event.endDate >= today || event.status === 'postponed');
   const ended = event ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
   // An event with no confirmed day is waiting for one, not over: it gets no "接下来可以去" in place of the page.
   const eventOver = !!event && ended && !unconfirmed;
@@ -81,6 +91,10 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const venuePhoto = placePhoto(record, cover, today);
   if (venuePhoto) coverPage.claims.set(venuePhoto.image.src, `${item.kind}:${share.id}`);
   const title = item.kind === 'offer' ? item.offer.title : share.title;
+  // H57: the age chip already says 21+; the H1 drops the same prefix ("21+ · Napa Harvest After Dark").
+  const heading = event?.ageChip ? withoutAgePrefix(title, event.ageChip) : title;
+  // H57: sold out or cancelled — the official page (waitlist, refunds) is the primary action, not a day plan.
+  const closed = event?.status === 'sold_out' || event?.status === 'cancelled';
   const back = BACK[item.kind];
   // Catalog prose blocks render only when reader text is left after the note filter (no heading or paragraph over nothing).
   const dek = event ? readerProse(event.dek, locale) : '';
@@ -110,7 +124,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
     title,
     official: { href: officialUrl, label: item.kind === 'offer' ? t('领取入口', 'How to claim') : item.kind === 'opening' ? t('商家官网', 'Official site') : t('官方页', 'Official') },
     ...(!ended && !unconfirmed ? { favorite } : {}),
-    ...(event && planDate ? { day: { stop: { kind: 'event' as const, id: event.id }, date: planDate, today } } : {}),
+    ...(event && planDate && !closed ? { day: { stop: { kind: 'event' as const, id: event.id }, date: planDate, today } } : {}),
     ...(item.kind === 'opening' && record.placeId ? { planPath: `/plan?stops=place:${record.placeId}` } : {}),
   };
   const facts = item.kind === 'event' ? <EventFacts event={item.event} today={today} /> : item.kind === 'offer' ? <OfferFacts offer={item.offer} /> : <OpeningFacts shop={item.shop} />;
@@ -125,7 +139,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
         <DetailHero record={record} cover={cover} today={today} ended={eventOver} />
         <header className="detail-head">
           <p className="detail-chips">{chips.map(chip => <StatusChip key={chip.key} tone={chip.tone}>{chip.text}</StatusChip>)}</p>
-          <h1><SegmentedTitle text={title} /></h1>
+          <h1><SegmentedTitle text={heading} /></h1>
           {brand && <p className="detail-brand">{brand}</p>}
           {dek && <p className="detail-dek"><ReaderText text={event?.dek} /></p>}
         </header>
@@ -168,7 +182,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
 
           <section className="detail-source" aria-labelledby="detail-source-title">
             <h2 id="detail-source-title">{t('来源与核对', 'Source and checks')}</h2>
-            <TrustRow contentId={review.id} item={review} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
+            <TrustRow contentId={review.id} item={liveReview} sourceUrl={sourceUrl} sourceLabel={sourceLabel} official={sourceUrl === officialUrl} today={today} />
             <SourceFreshness contentId={review.id} item={liveReview} officialUrl={officialUrl} include={['soft']} today={today} />
             <HeroCredit cover={cover} />
             {event?.relatedGuideSlug && <Link className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'Read a related local guide')}<ArrowRight size={17} aria-hidden="true" /></Link>}
@@ -176,6 +190,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
           </section>
           <section className="detail-share" aria-label={t('分享与日历', 'Share and calendar')}>
             <EditorialShareActions item={share} />
+            {/* H33 / HOMEIA13-08: the same large-text family link as home and the guides. */}
+            <FamilyLinkButton path={share.path} title={translateText(heading, locale)} className="detail-family" />
             {event && planDate && <button type="button" className="detail-calendar" onClick={() => downloadEventCalendar(event, planDate)}><CalendarDays size={17} aria-hidden="true" />{t('存入日历', 'Add to calendar')}</button>}
           </section>
           {event && !eventOver && <DetailRail id="detail-related-title" title={english ? 'More upcoming events nearby' : translateText('附近同类活动的下一场', locale)}

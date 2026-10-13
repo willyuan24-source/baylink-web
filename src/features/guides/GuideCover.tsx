@@ -7,6 +7,7 @@ import type { ResolvedCover } from '../../lib/cover';
 import type { CoverTone } from '../../lib/event-facts';
 import { TOPIC_COVER, topicCopy } from './guide-facts';
 import type { GuideCard } from './guide-records';
+import { coverPhoneBreaks } from '../../lib/phone-numbers';
 
 export type GuideCoverProps = {
   /** A guide card from the generated index or a record's "Read next" (guide-records.ts). */
@@ -32,8 +33,8 @@ export type GuideCoverProps = {
 export function GuideCover({ guide, cover, ratio, sizes, priority, tone, answer, mini }: GuideCoverProps) {
   const { pick } = useUiCopy();
   const topic = guideTopicOf(guide);
-  // The answer's phone number keeps one line (non-breaking hyphens): "1-800- / 434-0222" broke at a hyphen in English.
+  // The answer's phone number breaks at most once, after the area code (H21): never "1-800-434-022 / 2".
   const fallback = <TypeCover family="guide" tone={tone ?? TOPIC_COVER[topic].tone} icon={TOPIC_COVER[topic].icon} label={pick(topicCopy(topic))}
-    title={answer?.replace(/(\d)-(?=\d)/g, '$1\u2011')} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
+    title={answer && coverPhoneBreaks(answer)} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
   return <Cover cover={cover} fallback={fallback} ratio={ratio} sizes={sizes} priority={priority} decorative />;
 }

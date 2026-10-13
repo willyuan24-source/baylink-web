@@ -82,9 +82,9 @@ test('a v2 answer reads lead, then image cards, then points with [n], then follo
   assert.match(items[2].textContent || '', /\[3\]/);
   assert.equal(items[0].querySelector('.bb-card__n')?.getAttribute('aria-hidden'), 'true');
   assert.ok(within(items[0]).getByRole('link', { name: /^来源 1：Santa Clara/ }));
-  // Every card has the one ♡ 收藏 (SAVES' useSave); events also offer 加入行程, an offer card only the ♡.
+  // Every card has the one ♡ 收藏 (SAVES' useSave); a dated event also offers 加入这天计划 (H27), an offer card only the ♡.
   assert.ok(within(items[0]).getByRole('button', { name: /^收藏：Santa Clara/ }));
-  fireEvent.click(within(items[0]).getByRole('button', { name: /加入行程：/ }));
+  fireEvent.click(within(items[0]).getByRole('button', { name: /^加入这天计划：/ }));
   assert.equal(paths.at(-1), `/plan?date=2026-10-10&stops=${encodeURIComponent('event:santa-clara-library-comic-con-2026')}`);
   assert.deepEqual(within(items[2]).getAllByRole('button').map(button => button.getAttribute('aria-label')), ['收藏：免费亲子课：用 iPad 做地球主题漫画']);
   // [1] in a point opens the event page inside the app.
@@ -191,7 +191,7 @@ test('♡ 收藏 saves an event in the one save model for a guest in this browse
   assert.match(localStorage.getItem(savesKey()) || '', /santa-clara-library-comic-con-2026/);
   view.rerender(<BayBaySaveScope><BayBayCardRail cards={[{ ...card, date: undefined, temporalStatus: 'past' } as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
   assert.ok(view.getByText('已结束 · 仅供参考'));
-  assert.equal(view.queryByRole('button', { name: /加入行程/ }), null);
+  assert.equal(view.queryByRole('button', { name: /加入(这天)?计划/ }), null);
   fireEvent.click(view.getByRole('link', { name: /Santa Clara/ }));
   assert.deepEqual(paths, ['/events/santa-clara-library-comic-con-2026']);
 });

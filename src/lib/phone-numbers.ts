@@ -75,3 +75,13 @@ export function phoneDirectoryOf(items: string[], locale: Locale): PhoneDirector
   const lists = items.map(item => parsePhoneDirectory(translateText(item, locale)));
   return lists.length && lists.every(list => list) ? lists.flat() as PhoneDirectoryEntry[] : null;
 }
+
+/**
+ * A phone number on a coded cover breaks in one place only, after the area code: "1‑800-", a zero-width space, "434‑0222"
+ * (H21 / SV13-04, GR-05). With every hyphen non-breaking, "1‑800‑434‑0222" was one word wider than a 173 px guide card and
+ * the browser cut it before its last digit ("1-800-434-022 / 2"); plain hyphens let it break anywhere. Elders read and dial
+ * from these covers.
+ */
+export const coverPhoneBreaks = (text: string): string => text.replace(/(^|[^\d-])(?:(1)-)?(\d{3})-(\d{3})-(\d{4})(?![\d-])/g,
+  (_, before: string, one: string | undefined, area: string, exchange: string, line: string) =>
+    `${before}${one ? `${one}\u2011` : ''}${area}-\u200b${exchange}\u2011${line}`);
