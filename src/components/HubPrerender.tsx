@@ -30,7 +30,7 @@ export function CategoryHubPrerender({ slug }: { slug: string }) {
   if (!COMMUNITY_VISIBLE) return <section className="px-5 py-8">
     <h1 className="text-2xl font-bold">{t('邻里信息暂停中', 'The neighborhood board is paused')}</h1>
     <p className="mt-3">{t('邻里信息（测试中）暂时不显示，也暂停发布。已有的私信和联系请求照常在「消息」里。', 'The neighborhood board (beta) is hidden for now, and posting is paused. Your messages and contact requests are still in Messages.')}</p>
-    <p className="mt-5 flex flex-wrap gap-4"><a className="text-baylink-green underline" href="/events">{t('看本周末活动', 'This weekend’s events')}</a><a className="text-baylink-green underline" href="/guides">{t('办事与生活指南', 'How-to guides')}</a><a className="text-baylink-green underline" href="/messages">{t('消息', 'Messages')}</a></p>
+    <p className="mt-5 flex flex-wrap gap-4"><a className="underline" href="/events">{t('看本周末活动', 'This weekend’s events')}</a><a className="underline" href="/guides">{t('办事与生活指南', 'How-to guides')}</a><a className="underline" href="/messages">{t('消息', 'Messages')}</a></p>
   </section>;
   const label = categoryLabel(slug);
   return <section className="px-5 py-8">

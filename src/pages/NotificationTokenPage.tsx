@@ -8,11 +8,11 @@ type Kind = 'message' | 'contact_request' | 'outing_request' | 'comment';
 const KINDS: Kind[] = ['message', 'contact_request', 'outing_request', 'comment'];
 const isKind = (value: unknown): value is Kind => typeof value === 'string' && (KINDS as string[]).includes(value);
 /** The settings card's own words for each kind (NotificationPreferencesCard), so a link names what it turns off. */
-const KIND_NAMES: Record<Kind, [hans: string, english: string, traditional: string]> = {
-  message: ['新的私信', 'new private messages', '新的私訊'],
-  contact_request: ['新的联系请求', 'new contact requests', '新的聯絡請求'],
-  outing_request: ['新的小队申请', 'new team applications', '新的小隊申請'],
-  comment: ['我的帖子有新评论', 'new comments on my posts', '我的帖子有新留言'],
+const KIND_NAMES: Record<Kind, { zh: string; en: string; hant: string }> = {
+  message: { zh: '新的私信', en: 'new private messages', hant: '新的私訊' },
+  contact_request: { zh: '新的联系请求', en: 'new contact requests', hant: '新的聯絡請求' },
+  outing_request: { zh: '新的小队申请', en: 'new team applications', hant: '新的小隊申請' },
+  comment: { zh: '我的帖子有新评论', en: 'new comments on my posts', hant: '我的帖子有新留言' },
 };
 type Result = { purpose: 'verify'; defaultsApplied: boolean } | { purpose: 'unsubscribe'; channel: 'email' | 'sms' | null; topic: Kind | null };
 
@@ -55,7 +55,7 @@ export default function NotificationTokenPage({ purpose }: { purpose: 'verify' |
     } catch (err: any) { setError(err.error || text('链接无效或已过期，请重新请求。', 'This link is invalid or expired. Request a new one.', '連結無效或已過期，請重新請求。')); }
     finally { setBusy(false); }
   };
-  const name = (kind: Kind) => { const [hans, english, traditional] = KIND_NAMES[kind]; return text(`「${hans}」`, english, `「${traditional}」`); };
+  const name = (kind: Kind) => { const { zh, en: english, hant: traditional } = KIND_NAMES[kind]; return text(`「${zh}」`, english, `「${traditional}」`); };
   const done = !result ? '' : result.purpose === 'verify'
     ? result.defaultsApplied
       ? text(`邮箱已验证。已按默认开启${name('message')}${name('contact_request')}两类邮件提醒，可在「我的 › 通知」关闭。`, `Email verified. Email reminders for ${name('message')} and ${name('contact_request')} are now on by default; you can turn them off in Me › Notifications.`, `信箱已驗證。已按預設開啟${name('message')}${name('contact_request')}兩類郵件提醒，可在「我的 › 通知」關閉。`)

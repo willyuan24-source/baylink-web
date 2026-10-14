@@ -168,7 +168,7 @@ const ContactPanelSession = ({
   // public facts go with the question itself: title, board, area, price and posted date. The title stays as written.
   const title = post.title.trim().slice(0, 80);
   const facts = [pick(categoryName(post.category)), post.city ? pick(regionName(post.city)) : '', post.budget?.trim().slice(0, 40) || '', post.createdAt ? english ? postedOn(post.createdAt, true) : t(postedOn(post.createdAt, false), '') : ''].filter(Boolean).join(english ? ', ' : '，');
-  const aboutPost = (question: string) => english ? `About this neighborhood post “${title}” (${facts}): ${question}` : `${t('关于这条邻里信息', '')}「${title}」（${facts}）：${question}`;
+  const aboutPost = (question: string) => english ? `About this neighborhood post “${title}” (${facts}): ${question}` : `${t('关于这条邻里信息', 'About this neighborhood post')}「${title}」（${facts}）：${question}`;
 
   return (
     <div className="cm-contact">
