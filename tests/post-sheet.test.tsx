@@ -160,3 +160,13 @@ test('同区同类 names the area when all three are from it, and asks the categ
   await waitFor(() => assert.equal(related.querySelectorAll('.cm-card').length, 3));
   assert.equal(calls.filter(path => path.startsWith('/posts?')).length, 1);
 });
+
+test('H32: 问问 BayBay on a post sends the post with the question (BayBay has no page record for a post)', async () => {
+  stubApi();
+  const asked: string[] = [];
+  sheet(post('ask-1', { createdAt: Date.UTC(2026, 9, 1, 19) }), { onAskBayBay: question => { asked.push(question); } });
+  await settle();
+  fireEvent.click(screen.getByRole('button', { name: '帮我整理一段私信开场白' }));
+  assert.equal(asked.length, 1);
+  assert.match(asked[0], /^关于这条邻里信息「Fremont 主卧出租 ask-1」（租房，东湾，\$1500\/月，[^）]*发布）：帮我整理一段私信开场白$/);
+});
