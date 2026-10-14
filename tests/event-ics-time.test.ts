@@ -50,3 +50,23 @@ test('the reviewed planning schedule supplies times per day; a multi-day run sta
     for (const line of calendar.split('\r\n')) assert.ok(Buffer.byteLength(line, 'utf8') <= 75, event.id);
   }
 });
+
+// H78 (FCC-10): a timed entry is the event itself, not a 日期提醒 that "does not mean all-day"; an all-day entry still says so.
+test('H78: a day with a confirmed time drops the 日期提醒 suffix and the date-only disclaimer; an all-day day keeps both', () => {
+  const vevents = (file: string) => unfold(file).split('BEGIN:VEVENT').slice(1).map(block => block.split('\r\n'));
+  const field = (block: string[], name: string) => block.find(line => line.startsWith(`${name}:`))?.slice(name.length + 1) ?? '';
+  const timed = vevents(buildEventCalendar({ ...base(), sessions: [{ date: '2026-10-17', start: '17:00', end: '18:30' }] }))[0];
+  assert.ok(timed.some(line => line.startsWith('DTSTART;TZID=')));
+  assert.equal(field(timed, 'SUMMARY'), base().title);
+  assert.doesNotMatch(field(timed, 'DESCRIPTION'), /日期提醒|不代表全天开放/);
+  assert.match(field(timed, 'DESCRIPTION'), /官方详情/, 'the source line stays');
+  const allDay = vevents(buildEventCalendar(base()))[0];
+  assert.match(field(allDay, 'SUMMARY'), /（日期提醒）$/);
+  assert.match(field(allDay, 'DESCRIPTION'), /^这是活动日期提醒，不代表全天开放、预约或购票。/);
+  // One file, two kinds of day: each VEVENT says what it is.
+  const weekly: CalendarEventInput = { ...base(), startDate: '2026-10-10', endDate: '2026-10-31', occurrenceDates: ['2026-10-17', '2026-10-24'],
+    planning: { schedule: { sourceUrl: 'https://example.org', verifiedAt: '2026-10-01', validThrough: '2026-10-20', weekly: { 6: [{ open: '9:00', close: '13:00' }] } } } };
+  const [first, second] = vevents(buildEventCalendar(weekly));
+  assert.ok(first.some(line => line.startsWith('DTSTART;TZID=')) && !/日期提醒/.test(field(first, 'SUMMARY')));
+  assert.ok(second.some(line => line.startsWith('DTSTART;VALUE=DATE')) && /日期提醒/.test(field(second, 'SUMMARY')));
+});
