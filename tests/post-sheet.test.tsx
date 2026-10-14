@@ -168,5 +168,28 @@ test('H32: 问问 BayBay on a post sends the post with the question (BayBay has 
   await settle();
   fireEvent.click(screen.getByRole('button', { name: '帮我整理一段私信开场白' }));
   assert.equal(asked.length, 1);
-  assert.match(asked[0], /^关于这条邻里信息「Fremont 主卧出租 ask-1」（租房，东湾，\$1500\/月，[^）]*发布）：帮我整理一段私信开场白$/);
+  assert.equal(asked[0], '关于这条邻里信息「Fremont 主卧出租 ask-1」（租房，东湾，$1500/月）：帮我整理一段私信开场白');
+});
+
+test('H32: the post facts never give BayBay a date to search (no posted date in the question), in Chinese and English', async () => {
+  const { resolveBayBaySearchState } = await import('../src/lib/baybay-context');
+  for (const [locale, chip, expected] of [
+    ['zh-Hans', '这类帖子联系前要问什么？', /^关于这条邻里信息「Fremont 主卧出租 ask-2」（租房，东湾，\$1500\/月）：这类帖子联系前要问什么？$/],
+    ['en', 'What should I ask before contacting?', /^About this neighborhood post “Fremont 主卧出租 ask-2” \([^)]+\$1500\/月\): What should I ask before contacting\?$/],
+  ] as const) {
+    await setLocale(locale, false);
+    stubApi();
+    const asked: string[] = [];
+    // Posted on 6/16, like the real posts: that day must not become the day the question is about.
+    sheet(post('ask-2', { createdAt: Date.UTC(2026, 5, 16, 19) }), { onAskBayBay: question => { asked.push(question); } });
+    await settle();
+    fireEvent.click(screen.getByRole('button', { name: chip }));
+    assert.match(asked[0], expected);
+    assert.doesNotMatch(asked[0], /6\/16|Jun|发布|Posted/);
+    const state = resolveBayBaySearchState(asked[0], {}, {}, '2026-10-14');
+    assert.equal(state.requestContext.date, undefined, `${locale}: no date reaches /api/ai/guide-chat`);
+    assert.equal(state.searchContext.date, undefined);
+    assert.notEqual(state.searchOverrides.date, true);
+    cleanup();
+  }
 });

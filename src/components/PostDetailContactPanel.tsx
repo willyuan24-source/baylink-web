@@ -5,7 +5,7 @@ import { Button } from './ui/Button';
 import { useUiCopy } from './ui/ui-copy';
 import { friendlyErrorMessage } from '../lib/format';
 import { CategorySafetyNotice } from './CategorySafetyNotice';
-import { categoryName, postedOn, regionName } from '../features/posts/community-copy';
+import { categoryName, regionName } from '../features/posts/community-copy';
 
 type ContactPreference = {
   mode?: 'dm_first' | 'auto_send' | 'manual_approve';
@@ -19,7 +19,7 @@ type ContactRequestItem = {
 };
 
 type PostDetailContactPanelProps = {
-  post: { id: string; authorId: string; category: string; title: string; contactPreference?: ContactPreference; status?: 'active' | 'closed'; city?: string; budget?: string; createdAt?: number };
+  post: { id: string; authorId: string; category: string; title: string; contactPreference?: ContactPreference; status?: 'active' | 'closed'; city?: string; budget?: string };
   currentUser?: { id: string } | null;
   isOwner: boolean;
   onLoginNeeded: () => void;
@@ -165,9 +165,10 @@ const ContactPanelSession = ({
 
   const categoryPrompt = getBayBayCategoryPrompt(post.category);
   // H32 (FCC-06): BayBay has no page record for a post (the API reads guides, events, offers and openings), so the post's
-  // public facts go with the question itself: title, board, area, price and posted date. The title stays as written.
+  // public facts go with the question itself: title, board, area and price. The title stays as written (it is the poster's
+  // text). No posted date: BayBay reads any date in a question as the day being asked about (searchContext.date).
   const title = post.title.trim().slice(0, 80);
-  const facts = [pick(categoryName(post.category)), post.city ? pick(regionName(post.city)) : '', post.budget?.trim().slice(0, 40) || '', post.createdAt ? english ? postedOn(post.createdAt, true) : t(postedOn(post.createdAt, false), '') : ''].filter(Boolean).join(english ? ', ' : '，');
+  const facts = [pick(categoryName(post.category)), post.city ? pick(regionName(post.city)) : '', post.budget?.trim().slice(0, 40) || ''].filter(Boolean).join(english ? ', ' : '，');
   const aboutPost = (question: string) => english ? `About this neighborhood post “${title}” (${facts}): ${question}` : `${t('关于这条邻里信息', 'About this neighborhood post')}「${title}」（${facts}）：${question}`;
 
   return (
