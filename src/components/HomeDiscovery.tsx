@@ -51,7 +51,8 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
   const choose = (next: HomeIntentId) => { setIntent(next); try { window.localStorage.setItem(INTENT_KEY, next); } catch { /* the choice still applies on this visit */ } };
 
   const weekend = useMemo(() => getHomeWeekend(today), [today]);
-  const offers = useMemo(() => selectHomeOffers(HOME_OFFERS, today), [today]);
+  // H19: offers with their own image first, the same test as the generator's (only accepted images are shipped).
+  const offers = useMemo(() => selectHomeOffers(HOME_OFFERS, today, 6, offer => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type'), [today]);
   const guides = useMemo(() => HOME_INTENTS.find(item => item.id === intent)!.slugs.map(getGuideBySlug).filter((guide): guide is HomeGuide => !!guide), [intent]);
   // One page context in display order — picks, feed, guides, offers — so an image appears once (VISUAL-10) and the
   // ladder decides every label (SV-04: an AI illustration is never an event's cover).

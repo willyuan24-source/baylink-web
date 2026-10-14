@@ -38,3 +38,5 @@ export const HOME_OFFERS = catalog.offers as HomeOffer[];
 export const GUIDE_IMAGES = catalog.images as Record<string, GuideImage>;
 /** The 3D tile's key art: a postcard of BAYLINK's own 3D San Francisco (scene3d-postcards.ts), labelled 3D 场景插图. */
 export const HOME_SCENE3D = catalog.scene3d as GuideImage;
+/** The weekend feed's 3D strip (H36): another postcard of the same world, so the page never shows one image twice. */
+export const HOME_SCENE3D_STRIP = catalog.scene3dStrip as GuideImage;

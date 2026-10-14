@@ -9,7 +9,7 @@ import type { ResolvedCover } from '../../lib/cover';
 import type { HomeGuide } from '../../lib/home-catalog';
 import { guideTitleHead, TOPIC_LABELS } from './home-model';
 
-const RAIL_SIZES = '(max-width: 767px) 240px, 280px';
+const RAIL_SIZES = '280px';
 
 /** A guide's cover: its photo (provenance badge), or the topic's information card with the short title and source count. */
 function GuideCard({ guide, cover }: { guide: HomeGuide; cover: ResolvedCover }) {

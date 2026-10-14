@@ -17,10 +17,11 @@
 .home-ask input { flex:1; min-width:0; min-height:var(--control-height); border:0; padding:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); outline:none; }
 .home-ask input { text-overflow:ellipsis; }
 .home-ask input::placeholder { color:var(--color-ink-3); }
-.home-ask button { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); padding:0 14px; border-radius:12px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); font-weight:600; }
+.home-ask button { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-brand); border-radius:10px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); font-weight:600; }
 .home-ask button svg { width:1rem; height:1rem; }
-.home-ask button:not(:disabled):hover { background:var(--color-brand-hover); }
-.home-ask button:disabled { background:var(--color-surface-2); color:var(--color-ink-3); }
+.home-ask button:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
+/* Empty box: the primary button, faded (H29: no extra grey button look on the page). */
+.home-ask button:disabled { opacity:.45; cursor:default; }
 
 /* Section heads: one H2 per section, the date range as a kicker, one "all" link. */
 .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:4px 12px; margin-bottom:10px; }
@@ -28,6 +29,12 @@
 .home-section-head__kicker { color:var(--color-brand); font-size:var(--text-caption); line-height:1.385; font-weight:600; font-variant-numeric:tabular-nums; }
 .home-section-head__more { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .home-section-head__more svg { width:1rem; height:1rem; }
+/* H52 / SV13-11: at 大 / 特大 and in 简洁显示 on a phone or tablet, the section's "all" link sits under its heading, so the
+   heading and its date keep the full width instead of wrapping beside the link. */
+@media (max-width:1023px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-section-head { flex-direction:column; align-items:flex-start; gap:0; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-section-head__more { margin-left:-2px; }
+}
 
 /* ② picks: a 4:5 rail on phones (the next card peeks), the mosaic beside the headline on desktop. */
 .home-picks__list,.home-guides__rail,.home-offers__rail,.home-moods ul { display:flex; gap:12px; margin:0 -16px; padding:0 16px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:16px; list-style:none; scrollbar-width:none; }
@@ -60,6 +67,18 @@
 
 /* ④ weekend feed */
 .home-feed__all { margin-top:16px; }
+/* The 3D strip after the first four cards (H36): the postcard and two lines, one tap into the 3D world (a full page load). */
+.home-3d-strip { display:flex; align-items:center; gap:14px; padding:10px; border:1px solid var(--color-line); border-radius:20px; background:var(--color-surface); color:var(--color-ink); }
+.home-3d-strip__art { flex:none; width:9.5rem; }
+.home-3d-strip .ui-cover { border-radius:12px; }
+.home-3d-strip__text { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.home-3d-strip__text strong { font-size:var(--text-body); line-height:1.5; font-weight:600; text-wrap:pretty; }
+.home-3d-strip__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.home-3d-strip__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
+.home-3d-strip:hover strong { text-decoration:underline; text-underline-offset:4px; }
+@media (min-width:768px) and (max-width:1023px) { .home-feed .ui-feed-grid { grid-auto-flow:row dense; } }
+@media (min-width:768px) { .home-3d-strip__art { width:15rem; } .home-3d-strip { gap:24px; padding:12px; } .home-3d-strip__text strong { font-size:var(--text-card); } }
+@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip { flex-direction:column; align-items:stretch; } :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip__art { width:100%; } }
 
 /* ⑤ 问 BayBay */
 .home-baybay { padding:20px; border-radius:24px; background:var(--color-brand-tint); }
@@ -68,13 +87,13 @@
 .home-baybay h2 { color:var(--color-ink); font-size:1.125rem; line-height:1.444; font-weight:600; }
 .home-baybay__head p { margin-top:2px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .home-baybay__questions { display:flex; flex-direction:column; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
-.home-baybay__questions button { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line); border-radius:12px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.5; text-align:start; }
+.home-baybay__questions button { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.5; text-align:start; }
 .home-baybay__questions button:hover { border-color:var(--color-brand); }
 .home-baybay__questions svg { flex:none; width:1rem; height:1rem; color:var(--color-brand); }
 
 /* ⑥ guides: intent chips, a rail of 4:5 covers, the topic link and 发给家人（大字版）. */
 .home-guides__intents { margin-bottom:12px; }
-.home-guides__rail>li { flex:0 0 15rem; }
+.home-guides__rail>li { flex:0 0 17.5rem; }
 .home-guides__more { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin-top:12px; }
 .home-guides__more>a { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .home-guides__more>a svg { width:1rem; height:1rem; }
@@ -87,8 +106,20 @@
 
 /* ⑦ offers: 1:1 tickets, at least 11rem wide so the information card's badge, value, brand and deadline fit. The card's
    title under the cover already names the offer, so the cover drops its own title and condition line, which a ticket
-   this size could only show cut in half; a long brand keeps two lines. */
+   this size could only show cut in half; a long brand keeps two lines. H19: with a photo first, that ticket is wide (3:2,
+   the full width) and the others sit in a two-column grid on a phone, three columns on a tablet; with no photo first the
+   tickets stay a rail, as they do at 大 / 特大 and in 简洁显示 (one ticket per screen width). */
 .home-offers__rail>li { flex:0 0 11rem; }
+@media (max-width:1023px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide]) { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px 12px; margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li[data-wide] { grid-column:1 / -1; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li:nth-child(n+6) { display:none; }
+}
+@media (min-width:768px) and (max-width:1023px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide]) { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li[data-wide] { grid-column:span 2; }
+}
+.home-offers__rail>li[data-wide] :is(.ui-cover,.ui-type-cover) { border-radius:20px; }
 .home-offers :is(.ui-type-cover__title,.ui-type-cover__note) { display:none; }
 .home-offers .ui-type-cover__brand { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
 
@@ -164,10 +195,16 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
   .home-offers { container:home-offers / inline-size; }
   .home-offers__rail { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); overflow:visible; }
   .home-offers__rail>li:nth-child(n+5) { display:none; }
+  /* The wide photo ticket takes two columns, at the height of the 1:1 tickets beside it (one row). */
+  .home-offers__rail>li[data-wide] { grid-column:span 2; }
+  .home-offers .home-offers__rail>li[data-wide] :is(.ui-cover,.ui-type-cover) { --ui-cover-ratio:2.08 / 1; }
+  .home-offers__rail:has(>li[data-wide])>li:nth-child(n+4) { display:none; }
 }
 @container home-offers (min-width:74rem) {
   .home-offers__rail { grid-template-columns:repeat(6, minmax(0, 1fr)); }
   .home-offers__rail>li:nth-child(n+5) { display:block; }
+  .home-offers__rail:has(>li[data-wide])>li:nth-child(n+4) { display:block; }
+  .home-offers__rail:has(>li[data-wide])>li:nth-child(n+6) { display:none; }
 }
 /* 大/特大 and 简洁显示 on phones: one card per screen width in the rails, two-line chips. */
 @media (max-width:767px) {

@@ -31,10 +31,15 @@ const weekendHash = (text: string): number => {
   return hash;
 };
 
-/** Highest score first, then the most recently checked, then a per-weekend hash. Adult-only events go last. */
+/**
+ * Highest score first; within a score, an event with a real photo first (H19: the home and /events feeds lead with pictures
+ * without letting a photo outrank a better match); then the most recently checked, then a per-weekend hash. Adult-only
+ * events go last.
+ */
 export function rankWeekendFallback<T extends WeekendEntry>(entries: readonly T[], weekendStart: string, options: WeekendRankingOptions = {}): T[] {
-  const keyed = entries.map(entry => ({ entry, adult: isAdultOnly(entry.event), score: scoreWeekendEvent(entry.event, options), hash: weekendHash(`${weekendStart}:${entry.event.id}`) }));
-  return keyed.sort((a, b) => Number(a.adult) - Number(b.adult) || b.score - a.score
+  const photo = options.hasPhoto ?? (() => false);
+  const keyed = entries.map(entry => ({ entry, adult: isAdultOnly(entry.event), score: scoreWeekendEvent(entry.event, options), photo: photo(entry.event.imageKey), hash: weekendHash(`${weekendStart}:${entry.event.id}`) }));
+  return keyed.sort((a, b) => Number(a.adult) - Number(b.adult) || b.score - a.score || Number(b.photo) - Number(a.photo)
     || b.entry.event.verifiedAt.localeCompare(a.entry.event.verifiedAt) || a.hash - b.hash
     // Only a hash collision reaches the id; it keeps the order independent of input order.
     || a.entry.event.id.localeCompare(b.entry.event.id)).map(({ entry }) => entry);

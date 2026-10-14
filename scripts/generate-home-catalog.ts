@@ -28,7 +28,7 @@ import { WEEKEND_PICKS } from '../src/data/weekend-picks';
 // - guides: the intent rail's guides (topic, palette, source count, cover key), never their bodies;
 // - offers: only the offers some day's ticket rail selects (src/lib/home-offers.ts), with their image keys (HOME+3);
 // - images: every image those use, with the ladder's srcset and placeholder colour (the home renders CoverImage);
-// - scene3d: the 3D tile's postcard (labelled 3D 场景插图 through getImageProvenance).
+// - scene3d, scene3dStrip: the 3D tile's and the feed strip's postcards (labelled 3D 场景插图 through getImageProvenance).
 const homeSlugs = new Set<string>(HOME_INTENTS.flatMap(intent => [...intent.slugs]));
 // The stock laptop photo is off-topic on every guide (features/guides keepInlineImage); its guides show their information card.
 const OFF_TOPIC_COVERS = new Set(['/guides/coverage-2026/coverage-laptop.webp']);
@@ -66,6 +66,9 @@ const planning = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning])
   if ((weekday >= 4 || weekday === 0) && !WEEKEND_PICKS[saturday]?.length) console.warn(`Warning: no editor picks for the weekend of ${saturday} in src/data/weekend-picks.ts; /events and the home show the automatic ranking as 本周末先看.`);
 }
 const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation');
+// H19: the ticket rail leads with offers whose own image the ladder accepts; the page asks the same question of the shipped
+// images (src/components/HomeDiscovery.tsx), so both pass this test without the event-only venue approvals.
+const offerHasPhoto = (offer: (typeof liveOffers)[number]) => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type';
 const weekendDays = new Set<string>();
 for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   const weekend = getBuildWeekend(day, MONTHLY_EVENTS);
@@ -74,7 +77,7 @@ for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   const seniors = weekend.events.filter(({ event }) => isSeniorFriendly({ ...event, planning: planning.get(event.id) ?? undefined })).length;
   weekends[day] = { ids: weekend.picks.map(({ event }) => event.id), feed: weekend.feed.map(({ event }) => event.id), total: weekend.events.length, seniors,
     ...(() => { const checked = checkSummary(weekend.events.map(({ event }) => event.verifiedAt), day); return checked ? { checked } : {}; })() };
-  selectHomeOffers(liveOffers, day).forEach(offer => offerIds.add(offer.id));
+  selectHomeOffers(liveOffers, day, 6, offerHasPhoto).forEach(offer => offerIds.add(offer.id));
 }
 
 const present = <T extends object>(source: T, keys: readonly string[]) => Object.fromEntries(keys.flatMap(key => {
@@ -118,11 +121,13 @@ const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), rig
 const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, slimImage(GUIDE_IMAGES[key])] as const),
   ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, slimImage(image)] as const)]);
 const scene3d = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-golden-gate-fog']);
+// H36: the weekend feed's 3D strip, a different postcard from the tile's.
+const scene3dStrip = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-chinatown-lanterns']);
 
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/home-catalog.json', JSON.stringify({
   guides: homeGuides, guideCount: guides.length, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate,
-  edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d,
+  edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d, scene3dStrip,
 }));
 console.log(`Home catalog: ${homeGuides.length} guide summaries, ${events.length} event facts, ${offers.length} offers; no article bodies.`);
 // The cover resolver's venue/theme approvals (src/lib/cover.ts) as plain data, without the media registry they are built from.
