@@ -14,6 +14,7 @@ import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssis
 import './planner';
 import { stageBayBayRequirementsDraft, validBayBayDraftId } from './baybay-plan-handoff';
 import type { BayBayAnswerFields } from './baybay-answer';
+import { GUIDE_KIND_PROMPTS, guideKindOf, type GuideKind } from '../features/guides/guide-kind';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
 export type BayBayRetrieval = { requestedMode: BayBaySearchMode; effectiveMode?: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed' | 'auth_required'; webAccess?: { authenticated: boolean; allowed: boolean; reason?: 'auth_required' }; failureCode?: string; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
@@ -185,10 +186,18 @@ export function bayBayPageQuestions(path: string): { label: string; question: st
     { label: '先核对学区', question: '请根据当前这篇学校与学区指南，说明如何核对负责学区和入学入口；只问我地区与拟入读年级，不索取孩子实名、生日或完整住址，不凭城市保证分配学校，不做学校排名。' },
     { label: '整理入学步骤', question: '根据这篇学校与学区指南，帮我整理入学步骤、要到官网核实的时间和材料类别。只需了解地区与年级，不要让我在聊天中提交孩子个人资料或证件。' },
     { label: '读懂官方资料', question: '根据这篇学校与学区指南，解释如何阅读官方学校资料和数据的限制，比较课程与服务时该问什么；不生成分数排名，也不承诺学位或分配结果。' },
-  ] : [
-    { label: '整理行动清单', question: '根据我正在读的这篇攻略，帮我整理三个下一步，并区分已经说明的条件与仍需到官方来源核实的事项。' },
-    { label: '出发前核实什么', question: '根据这篇攻略，哪些日期、资格、费用或预约条件需要再到原文列出的来源核实？只说明已有资料，不把攻略更新时间当作实时查询。' },
-  ];
+  ] : guidePagePrompts(guide);
+}
+
+/**
+ * H75: the chips follow the guide's kind (task, outing, directory, deals), not 出发前核实什么 everywhere. English pages get the
+ * English pair; the panel converts zh-Hant itself.
+ */
+function guidePagePrompts(guide: Guide): { label: string; question: string }[] {
+  const kind = guideKindOf(guide);
+  const english = getLocale() === 'en';
+  return GUIDE_KIND_PROMPTS[kind === 'school' ? 'task' : kind as Exclude<GuideKind, 'school'>]
+    .map(prompt => ({ label: english ? prompt.label.en : prompt.label.zh, question: english ? prompt.question.en : prompt.question.zh }));
 }
 
 /** Resolve model references against the published catalog; never display invented titles or URLs. */

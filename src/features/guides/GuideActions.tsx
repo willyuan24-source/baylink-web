@@ -43,11 +43,16 @@ function GuideSaveError({ save }: { save: GuideSave }) {
     {error === 'read' && <> <button type="button" onClick={save.retry}>{t('重新读取收藏', 'Reload saved items')}</button></>}</p>;
 }
 
+/** Opens BayBay with a question; `draft` puts it in the box for the reader to edit and send (AppLayout.openBayBay). */
+export type GuideAsk = (question: string, options?: { mode?: 'send' | 'draft' }) => void;
+
 /**
  * The article's three actions in one 48px row (design.md §4.10, GUIDE-10): [收藏] tonal, [发给家人] (a link that opens at
- * 特大 with 简洁显示, product.md §5) and [问 BayBay] with a question about this guide.
+ * 特大 with 简洁显示, product.md §5) and [问 BayBay]. 问 BayBay opens the panel with this guide as its 正在看 capsule and a
+ * question for this kind of guide in the box (draft mode, H32 / FCC-05): nothing is sent, and no daily question is used,
+ * until the reader presses send.
  */
-export function GuideActions({ guide, onAsk }: { guide: Guide; onAsk?: (question: string) => void }) {
+export function GuideActions({ guide, onAsk }: { guide: Guide; onAsk?: GuideAsk }) {
   const { t, locale } = useUiCopy();
   const [status, setStatus] = useState('');
   const save = useSave('guide', guide.slug);
@@ -70,7 +75,7 @@ export function GuideActions({ guide, onAsk }: { guide: Guide; onAsk?: (question
     <div className="gd-actions" role="group" aria-label={t('文章操作', 'Article actions')}>
       <GuideSaveAction save={save} onStatus={setStatus} />
       <Button onClick={() => void sendToFamily()} icon={<Send aria-hidden="true" strokeWidth={1.75} />}>{t('发给家人', 'Send to family')}</Button>
-      {onAsk ? <Button onClick={() => onAsk(guideBayBayQuestion(guide, t, title))} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>
+      {onAsk ? <Button onClick={() => onAsk(guideBayBayQuestion(guide, t, title), { mode: 'draft' })} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>
         : <Button to={`/plan?q=${encodeURIComponent(guideBayBayQuestion(guide, t, title))}`} icon={<MessageCircle aria-hidden="true" strokeWidth={1.75} />}>{t('问 BayBay', 'Ask BayBay')}</Button>}
     </div>
     <GuideSaveError save={save} />
