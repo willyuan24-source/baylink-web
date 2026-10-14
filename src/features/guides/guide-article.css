@@ -90,6 +90,9 @@ html[data-simple] .gd-carousel .ui-carousel__track { flex-direction:column; gap:
 html[data-simple] .gd-carousel .ui-carousel__slide { flex:none; width:100%; }
 html[data-simple] .gd-carousel .ui-carousel__controls { display:none; }
 html[data-simple] .gd-carousel .gd-slide { min-height:0; }
+/* …and below the two-column lead the actions and 30 秒看懂 come before that list, so 收藏 / 发给家人 / 问 BayBay are not several
+   screens down (review 10-14). Only pilot pages have the carousel; a single cover keeps its place. */
+@media (max-width:1023px) { html[data-simple] .gd-page[data-pilot] .gd-lead__visual { order:1; } }
 
 /* 查: "30 秒看懂" and the contact cards. */
 .gd-keyfacts { padding:20px; border-left:4px solid var(--color-brand); border-radius:16px; background:var(--color-surface-2); }
