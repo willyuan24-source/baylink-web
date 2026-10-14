@@ -87,6 +87,7 @@
 .local-discovery-detail .detail-family { display:inline-flex; flex-direction:column; align-items:flex-start; gap:4px; }
 .local-discovery-detail .detail-family .family-link__status { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .local-discovery-detail .detail-family .family-link__status:empty { display:none; }
+.local-discovery-detail .detail-family .ui-button { min-height:var(--control-height); font-size:var(--text-body); }
 .local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 /* H29: the share, 公开想去 and 一起去 buttons (shared components) take the secondary button look here — white, the control border,
    ink text, radius 10 — so a detail page shows two button looks (primary, secondary), not six. A pressed 公开想去 is primary. */
@@ -196,7 +197,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail .detail-actions .detail-actions__primary { order:-1; }
   /* H29: one size for every secondary and primary button on the page (the shared <Button> desktop size: 44px and 15px; 48px and the 16px floor in 简洁显示), so
      分享, 公开想去, 存入日历, 收藏, 问 BayBay and 官方页 read as one look, not four. */
-  .local-discovery-detail :is(.detail-action,.detail-actions .saves-control .saves-toggle,.detail-actions__primary .saves-add-day,.detail-calendar,.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); font-size:max(.9375rem, var(--text-floor)); }
+  .local-discovery-detail :is(.detail-action,.detail-actions .saves-control .saves-toggle,.detail-actions__primary .saves-add-day,.detail-calendar,.detail-family .ui-button,.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); font-size:max(.9375rem, var(--text-floor)); }
 }
 
 /* Page end: the next places to go. */
