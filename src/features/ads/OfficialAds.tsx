@@ -10,6 +10,21 @@ import {
 } from '../../lib/format';
 import type { AdData, AdDetailItem } from '../../lib/types';
 import { adRelationshipDisclosure } from '../../lib/ad-disclosure';
+import { useUiCopy } from '../../components/ui/ui-copy';
+
+const HAN = /[㐀-鿿]/;
+/**
+ * H50 (I13-13): an ad is its advertiser's own words, in Chinese. On /en its title and text are marked as Chinese
+ * (lang="zh-Hans", and translate="no" like every other user-written text), and one short line says it is shown as written.
+ */
+const adLanguage = ({ english, t }: Pick<ReturnType<typeof useUiCopy>, 'english' | 't'>, ...texts: string[]) => {
+  const chinese = english && texts.some(text => HAN.test(text));
+  return {
+    marks: chinese ? { lang: 'zh-Hans', translate: 'no' as const } : {},
+    note: chinese ? <span className="block text-[0.8125rem] text-baylink-muted" data-ad-original>{t('广告原文', 'Shown in Chinese, as the advertiser wrote it')}</span> : null,
+  };
+};
+const useAdLanguage = (...texts: string[]) => adLanguage(useUiCopy(), ...texts);
 
 /** Existing ads only store title, content and image; use links actually supplied in that content. */
 const getContentLinks = (content: string): { url: string; host: string }[] => {
@@ -46,6 +61,7 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
   const imageUrl = getAdImageUrl(ad);
   const content = getAdContent(ad);
   const links = getContentLinks(content);
+  const language = useAdLanguage(getAdTitle(ad), content);
   const [copyMessage, setCopyMessage] = useState('');
   const copyInfo = async () => {
     try {
@@ -73,8 +89,9 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
             </span>
             {ad.isDemo && <span className="rounded-md bg-baylink-section px-2 py-0.5 text-[0.8125rem] text-baylink-muted">示例推广</span>}
           </div>
-          <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</h4>
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary">{content}</p>
+          <h4 className="mt-2 text-xl font-bold leading-snug text-baylink-text" {...language.marks}>{getAdTitle(ad)}</h4>
+          <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary" {...language.marks}>{content}</p>
+          {language.note}
           {adRelationshipDisclosure(ad.id) && <p className="mt-3 text-sm font-semibold text-baylink-text">{adRelationshipDisclosure(ad.id)}</p>}
           <p className="mt-3 text-[0.8125rem] leading-relaxed text-baylink-muted">此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
           {links.length > 0 && (
@@ -134,6 +151,7 @@ const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
   onDelete: (id: string) => void;
 }) => {
   const imageUrl = getAdImageUrl(ad);
+  const language = useAdLanguage(getAdTitle(ad), getAdContent(ad));
   return (
     <div
       role="button"
@@ -153,8 +171,9 @@ const OfficialAdListCard = ({ ad, isAdmin, onOpenDetail, onDelete }: {
         <span className="mb-1 inline-flex w-fit items-center gap-0.5 rounded-md bg-baylink-green-light px-1.5 py-0.5 text-[0.8125rem] font-semibold text-baylink-green">
           <Megaphone size={8} /> 推广信息
         </span>
-        <div className="line-clamp-2 text-[0.875rem] font-bold leading-snug text-baylink-text">{getAdTitle(ad)}</div>
-        <div className="mt-1 line-clamp-2 text-[0.8125rem] leading-relaxed text-baylink-muted">{getAdContent(ad)}</div>
+        <div className="line-clamp-2 text-[0.875rem] font-bold leading-snug text-baylink-text" {...language.marks}>{getAdTitle(ad)}</div>
+        <div className="mt-1 line-clamp-2 text-[0.8125rem] leading-relaxed text-baylink-muted" {...language.marks}>{getAdContent(ad)}</div>
+        {language.note}
         {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[0.875rem] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
       </div>
       {isAdmin && (
@@ -185,6 +204,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
   refreshKey?: number;
   layout?: 'carousel' | 'list';
 }) => {
+  const copy = useUiCopy();
   const [ads, setAds] = useState<AdData[]>(() => adsCache?.data || []);
   const [adsLoading, setAdsLoading] = useState(() => !adsCache);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -259,7 +279,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
           </div>
         ) : (
           <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar snap-x px-1">
-            {visibleAds.map((ad) => (
+            {visibleAds.map((ad) => { const language = adLanguage(copy, getAdTitle(ad), getAdContent(ad)); return (
               <div
                 key={ad.id}
                 role="button"
@@ -277,13 +297,14 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
                       <span className="inline-flex rounded-md bg-amber-50 px-1.5 py-0.5 text-[0.8125rem] font-semibold text-amber-700">未配图 · 仅管理员可见</span>
                     )}
                   </div>
-                  <div className="mb-0.5 line-clamp-1 text-sm font-semibold text-baylink-text">{getAdTitle(ad)}</div>
-                  <div className="line-clamp-1 text-[0.8125rem] text-baylink-muted">{getAdContent(ad)}</div>
+                  <div className="mb-0.5 line-clamp-1 text-sm font-semibold text-baylink-text" {...language.marks}>{getAdTitle(ad)}</div>
+                  <div className="line-clamp-1 text-[0.8125rem] text-baylink-muted" {...language.marks}>{getAdContent(ad)}</div>
+                  {language.note}
                   {adRelationshipDisclosure(ad.id) && <p className="mt-1 text-[0.875rem] text-baylink-text-secondary">{adRelationshipDisclosure(ad.id)}</p>}
                 </div>
                 {isAdmin && <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteAd(ad.id); }} className="absolute right-2 top-2 z-20 rounded-full bg-white p-1 text-red-500 shadow-sm"><Trash2 size={12} /></button>}
               </div>
-            ))}
+            ); })}
           </div>
         )
       ) : emptyState}
