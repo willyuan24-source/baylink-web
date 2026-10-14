@@ -141,7 +141,7 @@
     "dateLabel": "10/24–12/12 每周六 14:00–16:00",
     "city": "Pleasant Hill",
     "venue": "Pleasant Hill 图书馆创客空间 · 2 Monticello Avenue, Pleasant Hill, CA 94523",
-    "summary": "Contra Costa County Library Pleasant Hill 分馆每周六下午的乐高俱乐部，在创客空间里自由搭建；各年龄、各种能力的孩子都欢迎。",
+    "summary": "Contra Costa County Library Pleasant Hill 分馆每周六下午的乐高俱乐部，在创客空间里自由搭建，不论年龄和能力都欢迎。",
     "plan": [
       "两小时内随到随搭，11/28 感恩节周末照常开放。"
     ],
@@ -459,13 +459,14 @@
     "cost": "unknown",
     "costLabel": "随到随学；活动页没有写费用",
     "sourceLabel": "圣马刁县图书馆活动页（Millbrae 分馆）",
-    "title": "Millbrae 数字帮助中心学习小组：中文互助学手机、微信和 AI",
+    "title": "Millbrae 数字帮助学习小组：一起学手机、微信和 AI",
     "dateLabel": "10/24–12/12 每周六 12:30–15:30",
     "city": "Millbrae",
     "venue": "Millbrae Recreation Center · 477 Lincoln Cir, Millbrae, CA 94030",
     "summary": "圣马刁县图书馆 Millbrae 分馆办的互助学习小组，大家一起解决手机、电脑、微信、存储清理和 AI 等日常技术问题，讲清楚背后的原因；题目由到场的人每次自己选，问题再基础也可以问。活动介绍有中英文。",
     "plan": [
       "地点在 Millbrae 康乐中心，不在图书馆。",
+      "活动页标注的活动语言是英语。",
       "图书馆另有周三下午场次，日期看活动页。"
     ],
     "audience": [
@@ -597,7 +598,7 @@
     "venue": "Millbrae 图书馆 A、B 社区活动室 · 1 Library Avenue, Millbrae, CA 94030",
     "summary": "中华文化社在 Millbrae 图书馆办的讲座：加州州立大学东湾分校终身教授陈丽玲博士从日常需求出发，讲怎样用 ChatGPT、AI 图像工具整理信息、规划生活、设提醒，并现场示范健康饮食、运动、睡眠和服药提醒的用法，参加者会练习写提示词。",
     "plan": [
-      "讲座介绍以中文为主，附英文说明。"
+      "讲座用普通话；介绍以中文为主，附英文说明。"
     ],
     "audience": [
       "成人",
@@ -1051,7 +1052,7 @@
       "上午 10 点到下午 5:30，可以和 Armstrong Redwoods 的半日游放在一起。"
     ],
     "audience": [
-      "各年龄"
+      "成人"
     ],
     "officialUrl": "https://events.sonomalibrary.org/event/river-friends-winter-wreath-book-bake-sale-96191"
   },
@@ -1076,7 +1077,7 @@
     "venue": "Windsor 区域图书馆活动室 · 9291 Old Redwood Highway, Building 100, Windsor, CA 95492",
     "summary": "索诺马县图书馆 Windsor 分馆每年的儿童姜饼屋工作坊，孩子挑选节日糖果、全麦饼干和糖霜，做一座自己的姜饼屋带回家；分上午和下午两场。",
     "plan": [
-      "面向幼儿园到六年级，要在网上报名或打电话给分馆报名；上午场名额 19 个、下午场 24 个（10/13 时）。",
+      "面向幼儿园到六年级，要在网上报名或打电话给分馆报名；10/13 时上午场还剩 19 个名额、下午场还剩 24 个。",
       "8 岁及以下的孩子要有家长陪同。"
     ],
     "audience": [
