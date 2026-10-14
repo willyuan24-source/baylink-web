@@ -66,9 +66,10 @@ const mapLink = (query: string) => `https://www.google.com/maps/search/?api=1&qu
 function SessionLines({ event, today }: { event: MonthlyEvent; today: string }) {
   const { english, t } = useUiCopy();
   const { lines, more, moreDays } = sessionLines(event, today, english);
+  const plural = more === 1 ? 'date' : 'dates';
   return <>
     {lines.map(line => <span key={line} className="detail-fact__line">{line}</span>)}
-    {more > 0 && <span className="detail-fact__line">{t(moreDays ? `另有 ${more} 天` : `另有 ${more} 场`, `${more} more ${more === 1 ? 'date' : 'dates'}`)}</span>}
+    {more > 0 && <span className="detail-fact__line">{moreDays ? t(`另有 ${more} 天`, `${more} more ${plural}`) : t(`另有 ${more} 场`, `${more} more ${plural}`)}</span>}
   </>;
 }
 
