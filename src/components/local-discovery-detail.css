@@ -90,7 +90,7 @@
 .local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 /* H29: the share, 公开想去 and 一起去 buttons (shared components) take the secondary button look here — white, the control border,
    ink text, radius 10 — so a detail page shows two button looks (primary, secondary), not six. A pressed 公开想去 is primary. */
-.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); }
+.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button):hover { border-color:var(--color-ink-3); background:var(--color-surface); }
 .local-discovery-detail .detail-together .event-participation-buttons button:is(.is-selected,[aria-pressed=true]) { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
 .local-discovery-detail :is(.detail-share .editorial-share-buttons,.detail-together .event-participation-buttons) button>svg { color:var(--color-brand); }
@@ -194,7 +194,9 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
   .local-discovery-detail .detail-actions>*,.local-discovery-detail .detail-actions .saves-control .saves-toggle { width:100%; }
   .local-discovery-detail .detail-actions .detail-actions__primary { order:-1; }
-  .local-discovery-detail .detail-action { min-height:3rem; font-size:var(--text-body); }
+  /* H29: one size for every secondary and primary button on the page (the shared <Button> desktop size: 44px and 15px; 48px and the 16px floor in 简洁显示), so
+     分享, 公开想去, 存入日历, 收藏, 问 BayBay and 官方页 read as one look, not four. */
+  .local-discovery-detail :is(.detail-action,.detail-actions .saves-control .saves-toggle,.detail-actions__primary .saves-add-day,.detail-calendar,.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); font-size:max(.9375rem, var(--text-floor)); }
 }
 
 /* Page end: the next places to go. */
