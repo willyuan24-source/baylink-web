@@ -13,7 +13,7 @@ import {
 import type { SeptemberOpening } from '../../data/september-openings';
 
 /**
- * H12 / SV13-02: each tone has its own small set of drawn spot illustrations (public/covers/art/*.svg, drawn for BAYLINK as
+ * H12 / SV13-02: each tone has its own small set of drawn spot illustrations (public/default-covers/art/*.svg, drawn for BAYLINK as
  * vector shapes, no AI and no real venue), shown as an alpha mask in the tone's ink, instead of one faded UI icon on every
  * card. A tone has two or three drawings; the item picks one by a stable hash of its id, so neighbours of one tone rarely
  * match. A few item keys have their own drawings (a shop front, a shopping bag or a coffee punch card for offers and shops,

@@ -98,34 +98,34 @@
 /* Family C (guides): the topic shows in the pastel; text stays ink, so a page of guide covers reads in one text colour (the
    drawing keeps the tone's own ink). */
 .ui-type-cover[data-family=guide] { --tc-fg:var(--color-ink); }
-/* H12: the tone's spot drawing (TypeCover artFor; public/covers/art/*.svg, drawn as vector shapes in a few opacities), an
+/* H12: the tone's spot drawing (TypeCover artFor; public/default-covers/art/*.svg, drawn as vector shapes in a few opacities), an
    alpha mask filled with the tone's ink. It sits top right beside the label (which keeps to 48cqw), and its lower edge fades
    out (the second mask layer), so no fact at the bottom ever sits on it. */
 .ui-type-cover__art { position:absolute; top:calc(3cqw + max(var(--tc-badge-room, 0px), var(--tc-art-shift, 0px))); right:3cqw; width:var(--tc-art-width, 44cqw); aspect-ratio:3 / 4; background:var(--tc-art, var(--tc-fg)); pointer-events:none;
   -webkit-mask-image:var(--ui-art), linear-gradient(black 62%, transparent); mask-image:var(--ui-art), linear-gradient(black 62%, transparent);
   -webkit-mask-size:contain, 100% 100%; mask-size:contain, 100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
   -webkit-mask-position:center; mask-position:center; -webkit-mask-composite:source-in; mask-composite:intersect; }
-.ui-type-cover__art[data-art=family-1] { --ui-art:url(/covers/art/family-1.svg); }
-.ui-type-cover__art[data-art=family-2] { --ui-art:url(/covers/art/family-2.svg); }
-.ui-type-cover__art[data-art=family-3] { --ui-art:url(/covers/art/family-3.svg); }
-.ui-type-cover__art[data-art=culture-1] { --ui-art:url(/covers/art/culture-1.svg); }
-.ui-type-cover__art[data-art=culture-2] { --ui-art:url(/covers/art/culture-2.svg); }
-.ui-type-cover__art[data-art=culture-3] { --ui-art:url(/covers/art/culture-3.svg); }
-.ui-type-cover__art[data-art=outdoors-1] { --ui-art:url(/covers/art/outdoors-1.svg); }
-.ui-type-cover__art[data-art=outdoors-2] { --ui-art:url(/covers/art/outdoors-2.svg); }
-.ui-type-cover__art[data-art=food-1] { --ui-art:url(/covers/art/food-1.svg); }
-.ui-type-cover__art[data-art=food-2] { --ui-art:url(/covers/art/food-2.svg); }
-.ui-type-cover__art[data-art=seniors-1] { --ui-art:url(/covers/art/seniors-1.svg); }
-.ui-type-cover__art[data-art=seniors-2] { --ui-art:url(/covers/art/seniors-2.svg); }
-.ui-type-cover__art[data-art=free-1] { --ui-art:url(/covers/art/free-1.svg); }
-.ui-type-cover__art[data-art=free-2] { --ui-art:url(/covers/art/free-2.svg); }
-.ui-type-cover__art[data-art=store] { --ui-art:url(/covers/art/store.svg); }
-.ui-type-cover__art[data-art=store-2] { --ui-art:url(/covers/art/store-2.svg); }
-.ui-type-cover__art[data-art=store-3] { --ui-art:url(/covers/art/store-3.svg); }
-.ui-type-cover__art[data-art=clipboard] { --ui-art:url(/covers/art/clipboard.svg); }
-.ui-type-cover__art[data-art=idcard] { --ui-art:url(/covers/art/idcard.svg); }
-.ui-type-cover__art[data-art=bike] { --ui-art:url(/covers/art/bike.svg); }
-.ui-type-cover__art[data-art=home] { --ui-art:url(/covers/art/home.svg); }
+.ui-type-cover__art[data-art=family-1] { --ui-art:url(/default-covers/art/family-1.svg); }
+.ui-type-cover__art[data-art=family-2] { --ui-art:url(/default-covers/art/family-2.svg); }
+.ui-type-cover__art[data-art=family-3] { --ui-art:url(/default-covers/art/family-3.svg); }
+.ui-type-cover__art[data-art=culture-1] { --ui-art:url(/default-covers/art/culture-1.svg); }
+.ui-type-cover__art[data-art=culture-2] { --ui-art:url(/default-covers/art/culture-2.svg); }
+.ui-type-cover__art[data-art=culture-3] { --ui-art:url(/default-covers/art/culture-3.svg); }
+.ui-type-cover__art[data-art=outdoors-1] { --ui-art:url(/default-covers/art/outdoors-1.svg); }
+.ui-type-cover__art[data-art=outdoors-2] { --ui-art:url(/default-covers/art/outdoors-2.svg); }
+.ui-type-cover__art[data-art=food-1] { --ui-art:url(/default-covers/art/food-1.svg); }
+.ui-type-cover__art[data-art=food-2] { --ui-art:url(/default-covers/art/food-2.svg); }
+.ui-type-cover__art[data-art=seniors-1] { --ui-art:url(/default-covers/art/seniors-1.svg); }
+.ui-type-cover__art[data-art=seniors-2] { --ui-art:url(/default-covers/art/seniors-2.svg); }
+.ui-type-cover__art[data-art=free-1] { --ui-art:url(/default-covers/art/free-1.svg); }
+.ui-type-cover__art[data-art=free-2] { --ui-art:url(/default-covers/art/free-2.svg); }
+.ui-type-cover__art[data-art=store] { --ui-art:url(/default-covers/art/store.svg); }
+.ui-type-cover__art[data-art=store-2] { --ui-art:url(/default-covers/art/store-2.svg); }
+.ui-type-cover__art[data-art=store-3] { --ui-art:url(/default-covers/art/store-3.svg); }
+.ui-type-cover__art[data-art=clipboard] { --ui-art:url(/default-covers/art/clipboard.svg); }
+.ui-type-cover__art[data-art=idcard] { --ui-art:url(/default-covers/art/idcard.svg); }
+.ui-type-cover__art[data-art=bike] { --ui-art:url(/default-covers/art/bike.svg); }
+.ui-type-cover__art[data-art=home] { --ui-art:url(/default-covers/art/home.svg); }
 /* The drawing starts under the BAYLINK 信息卡 badge when the cover shows one (--tc-badge-room). On a card with ♡ on its cover
    (top right, 44px) it is smaller and clear of the heart: under it on a portrait card, beside it on a square or landscape one
    (ui-type-cover container rule), so the heart never sits on the drawing and the drawing never reaches the date. */

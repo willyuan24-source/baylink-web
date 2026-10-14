@@ -44,7 +44,7 @@ test('an event TypeCover is real DOM text with the honest label, category, big d
   assert.equal(root.querySelector('.ui-type-cover__title')?.textContent, 'Fleet Week 蓝天使航展');
   assert.equal(root.querySelector('.ui-type-cover__place')?.textContent, 'San Francisco');
   assert.equal(root.querySelector('.ui-sticker')?.textContent, '免费');
-  // H12: the tone's drawing is a decorative mask (public/covers/art), not a UI icon, and the item picks one by its id.
+  // H12: the tone's drawing is a decorative mask (public/default-covers/art), not a UI icon, and the item picks one by its id.
   const art = root.querySelector('.ui-type-cover__art');
   assert.equal(art?.getAttribute('aria-hidden'), 'true', 'the drawing is decorative');
   assert.match(art?.getAttribute('data-art') ?? '', /^family-[123]$/, 'a family event draws from the family set');
@@ -228,11 +228,11 @@ test('a photo hero card is one link from edge to edge: its text box never become
 test('every drawing a TypeCover can pick has its mask rule and its own small vector file (H12)', async () => {
   const { readdirSync } = await import('node:fs');
   const rules = new Set<string>();
-  for (const [, name, file] of css.matchAll(/\.ui-type-cover__art\[data-art=([\w-]+)\] \{ --ui-art:url\(\/covers\/art\/([\w-]+)\.svg\); \}/g)) { assert.equal(file, name); rules.add(name); }
-  const files = readdirSync('public/covers/art').filter(file => file.endsWith('.svg')).map(file => file.replace(/\.svg$/, ''));
+  for (const [, name, file] of css.matchAll(/\.ui-type-cover__art\[data-art=([\w-]+)\] \{ --ui-art:url\(\/default-covers\/art\/([\w-]+)\.svg\); \}/g)) { assert.equal(file, name); rules.add(name); }
+  const files = readdirSync('public/default-covers/art').filter(file => file.endsWith('.svg')).map(file => file.replace(/\.svg$/, ''));
   assert.deepEqual([...rules].sort(), files.sort(), 'one rule per drawing file');
   for (const file of files) {
-    const svg = readFileSync(`public/covers/art/${file}.svg`, 'utf8');
+    const svg = readFileSync(`public/default-covers/art/${file}.svg`, 'utf8');
     assert.ok(svg.length < 2048, `${file}: a small drawing`);
     assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 90 120">/, `${file}: the 3:4 drawing box`);
     assert.doesNotMatch(svg, /<(?:image|text|script|use|foreignObject)\b|href=|url\(/i, `${file}: shapes only, nothing embedded or linked`);
@@ -273,4 +273,37 @@ test('a list names the info card once: its cards that credit their source drop t
   cleanup(); await act(async () => { await setLocale('en', false); });
   const english = wrap(<FeedGrid label="Events"><FeedItem><FeedCard title="Talk" to="/events/a" cover={<EventTypeCover event={fleetWeek} today={today} />} trust="Source checked 10/7" /></FeedItem></FeedGrid>);
   assert.equal(english.container.querySelector('.ui-cover-credit')?.textContent, 'No photo: a BAYLINK info card; drawings are decorative.');
+});
+
+test('a home guide card draws the same art in every language: the rail seeds it with the slug, not the translated title', async () => {
+  const { GuideRail } = await import('../src/features/home/GuideRail');
+  const { guides } = await import('../src/lib/home-catalog');
+  const rail = guides.slice(0, 8);
+  const covers = rail.map(() => ({ tier: 'type' as const, label: { zh: 'BAYLINK 信息卡', en: 'Info card' }, reason: 'no-image' as const }));
+  const arts = (list: typeof rail) => {
+    const view = wrap(<GuideRail intent="weekend" onIntent={() => {}} guides={list} covers={covers} guideCount={141} />);
+    const found = [...view.container.querySelectorAll('.ui-type-cover__art')].map(node => node.getAttribute('data-art'));
+    cleanup();
+    return found;
+  };
+  const chinese = arts(rail);
+  assert.equal(chinese.length, rail.length);
+  assert.deepEqual(arts(rail.map(guide => ({ ...guide, title: `${guide.slug} in English` }))), chinese);
+});
+
+test('the offer rail names the info card only for tickets every layout shows (three after a wide ticket)', async () => {
+  const { OfferTickets } = await import('../src/features/home/OfferTickets');
+  const { HOME_OFFERS } = await import('../src/lib/home-catalog');
+  const offers = HOME_OFFERS.slice(0, 6);
+  const photo = { tier: 'official' as const, key: 'k', image: { src: '/x.webp', width: 1440, height: 900, alt: '', kind: 'photo' as const, credit: '官方' }, label: { zh: '官方图', en: 'Official' }, fit: 'cover' as const, focal: [50, 40] as const };
+  const typeCover = { tier: 'type' as const, label: { zh: 'BAYLINK 信息卡', en: 'Info card' }, reason: 'no-image' as const };
+  const rail = (typedAt: number) => {
+    const view = wrap(<OfferTickets offers={offers} covers={offers.map((_, index) => index === typedAt ? typeCover : photo)} today={today} />);
+    const section = view.container.querySelector('.home-offers')!;
+    const result = { wide: section.querySelector('li[data-wide]') !== null, credit: section.hasAttribute('data-cover-credit'), line: section.querySelector('.ui-cover-credit') !== null };
+    cleanup();
+    return result;
+  };
+  assert.deepEqual(rail(2), { wide: true, credit: true, line: true });
+  assert.deepEqual(rail(4), { wide: true, credit: false, line: false }, 'a narrow desktop hides the fifth ticket');
 });

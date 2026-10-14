@@ -27,7 +27,9 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
   if (!offers.length) return null;
   const brands = offers.map(offer => offerBrandLine(offer.brand, locale));
   const wide = offerRailOpensWide(offers, covers[0], today);
-  const typed = covers.some(cover => cover?.tier === 'type');
+  // The credit line speaks only for tickets every layout shows: a narrow desktop rail shows three after a wide ticket and
+  // four otherwise (home-discovery.css); one further back keeps its own badge instead.
+  const typed = covers.slice(0, wide ? 3 : 4).some(cover => cover?.tier === 'type');
   return <section className="home-offers" aria-labelledby="home-offers-title" data-cover-credit={typed ? '' : undefined} {...dateScope('day')}>
     <div className="home-section-head">
       <h2 id="home-offers-title">{t('免费与优惠', 'Free & deals')}</h2>

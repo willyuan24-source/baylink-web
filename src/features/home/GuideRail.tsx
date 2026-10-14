@@ -16,7 +16,7 @@ function GuideCard({ guide, cover }: { guide: HomeGuide; cover: ResolvedCover })
   const { t, pick, locale } = useUiCopy();
   const topic = TOPIC_LABELS[guide.topic];
   const sources = guide.sources ? t(`${guide.sources} 个官方来源`, `${guide.sources} official source${guide.sources === 1 ? '' : 's'}`) : '';
-  const fallback = <TypeCover family="guide" tone={guide.tone} icon={guide.icon} label={pick(topic)} ratio="4:5"
+  const fallback = <TypeCover family="guide" tone={guide.tone} icon={guide.icon} seed={guide.slug} label={pick(topic)} ratio="4:5"
     title={guideTitleHead(translateText(guide.title, locale))} place={sources || undefined} ariaHidden />;
   return <FeedCard title={guide.title} to={`/guides/${guide.slug}`} className="home-guide"
     cover={<Cover cover={cover} fallback={fallback} ratio="4:5" sizes={RAIL_SIZES} decorative />}
