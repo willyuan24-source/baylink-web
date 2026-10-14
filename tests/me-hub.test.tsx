@@ -111,6 +111,8 @@ test('signed out: one invitation, tiles that still work, and no account reads', 
   let logins = 0;
   const view = render(app(context({ user: null, messagesBadgeCount: 0, setShowLogin: () => { logins++; } })));
   assert.ok(view.getByRole('heading', { name: '登录后，BayBay 能帮你更多' }));
+  // H77: post saves stay on the device, so the pitch says which saves follow the account.
+  assert.ok(view.getByText('收藏（邻里信息除外）和计划跟着账号走，换手机也在'));
   fireEvent.click(view.getByRole('button', { name: '登录 / 注册' }));
   assert.equal(logins, 1);
   const tiles = within(view.getByRole('list', { name: '我的常用' }));
