@@ -14,10 +14,11 @@ test('an expanded catalog stays within API batch limits and shares its cancellat
     seen.push(batch);
     return { events: batch.map(eventId => ({ eventId, interestedCount: 0, buddyCount: 0, me: null })) };
   });
-  const entries = await getEventEngagement(ids, signal);
+  const { entries, unknown } = await getEventEngagement(ids, signal);
   assert.deepEqual(seen.map(batch => batch.length), [100, 100, 67]);
   assert.deepEqual(seen.flat(), ids);
   assert.deepEqual(entries.map(entry => entry.eventId), ids);
+  assert.deepEqual(unknown, []);
 });
 
 test('one incomplete batch rejects the entire read instead of displaying partial attendance as complete', async t => {

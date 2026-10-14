@@ -8,19 +8,35 @@ export function parseEventEngagement(value: unknown): EventEngagement {
   if (!item || typeof item.eventId !== 'string' || !Number.isSafeInteger(item.interestedCount) || item.interestedCount < 0 || !Number.isSafeInteger(item.buddyCount) || item.buddyCount < 0 || item.buddyCount > item.interestedCount || (item.me !== null && (!item.me || typeof item.me.interested !== 'boolean' || typeof item.me.lookingForBuddy !== 'boolean' || (item.me.lookingForBuddy && !item.me.interested)))) throw new Error('Invalid event participation response');
   return item;
 }
-export const getEventEngagement = async (ids: string[], signal?: AbortSignal): Promise<EventEngagement[]> => {
+/** Counts for the events the API knows, and the requested ids it does not know (yet). */
+export type EventEngagementRead = { entries: EventEngagement[]; unknown: string[] };
+/**
+ * The API knows the events it copied from the web's catalogs; until the API-SYNC that follows a content merge, a new event
+ * is unknown to it (H07). It lists those ids in `unknown` (from API-SYNC-3b); before that it answered the whole batch with
+ * 404, which names the id only for a one-id batch (a detail page asks for one). Every requested id must come back exactly
+ * once, as counts or as unknown; anything else rejects the read, so a partial answer never shows as complete.
+ */
+export const getEventEngagement = async (ids: string[], signal?: AbortSignal): Promise<EventEngagementRead> => {
   if (new Set(ids).size !== ids.length) throw new Error('Duplicate event participation IDs');
   // Stay below the API's 200-ID cap and keep encoded URLs manageable as the catalog grows.
   const batches: string[][] = [];
   for (let index = 0; index < ids.length; index += 100) batches.push(ids.slice(index, index + 100));
-  const results = await Promise.all(batches.map(async batch => {
-    const response = await api.request(`/events/engagement?ids=${encodeURIComponent(batch.join(','))}`, { signal });
-    if (!Array.isArray(response.events)) throw new Error('Invalid event participation response');
-    const entries = response.events.map(parseEventEngagement);
-    if (entries.length !== batch.length || new Set(entries.map((entry: EventEngagement) => entry.eventId)).size !== batch.length || entries.some((entry: EventEngagement) => !batch.includes(entry.eventId))) throw new Error('Incomplete event participation response');
-    return entries;
+  const results = await Promise.all(batches.map(async (batch): Promise<EventEngagementRead> => {
+    let response;
+    try {
+      response = await api.request(`/events/engagement?ids=${encodeURIComponent(batch.join(','))}`, { signal });
+    } catch (error) {
+      if (batch.length === 1 && (error as { status?: number } | null)?.status === 404) return { entries: [], unknown: [...batch] };
+      throw error;
+    }
+    if (!Array.isArray(response.events) || (response.unknown !== undefined && (!Array.isArray(response.unknown) || response.unknown.some((id: unknown) => typeof id !== 'string')))) throw new Error('Invalid event participation response');
+    const entries: EventEngagement[] = response.events.map(parseEventEngagement);
+    const unknown: string[] = response.unknown ?? [];
+    const answered = [...entries.map(entry => entry.eventId), ...unknown];
+    if (answered.length !== batch.length || new Set(answered).size !== batch.length || answered.some(id => !batch.includes(id))) throw new Error('Incomplete event participation response');
+    return { entries, unknown };
   }));
-  return results.flat();
+  return { entries: results.flatMap(result => result.entries), unknown: results.flatMap(result => result.unknown) };
 };
 export const setEventInterest = async (id: string, interest: EventInterest) => {
   const entry = parseEventEngagement(await api.request(`/events/${encodeURIComponent(id)}/interest`, { method: 'PUT', body: JSON.stringify(interest) }));
