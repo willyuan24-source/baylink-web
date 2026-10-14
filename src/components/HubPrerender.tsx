@@ -3,7 +3,6 @@ import { LIFE_TOOLS } from '../data/tool-catalog';
 import { categoryLabel } from '../lib/hub-metadata';
 import { useUiCopy } from './ui/ui-copy';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
-import { CommunityPaused } from '../features/posts/CommunityPaused';
 
 /**
  * The first paint of /tools and /category/:slug (scripts/prerender.tsx): what crawlers and share previews read before the
@@ -26,8 +25,13 @@ export function ToolsHubPrerender() {
 
 export function CategoryHubPrerender({ slug }: { slug: string }) {
   const { t } = useUiCopy();
-  // COMMUNITY_VISIBLE = false: the prerendered page is the paused notice too (seo.ts marks it noindex).
-  if (!COMMUNITY_VISIBLE) return <CommunityPaused />;
+  // COMMUNITY_VISIBLE = false: the prerendered page is the paused notice too (seo.ts marks it noindex). Plain markup with
+  // CommunityPaused's words: the prerender loads this file before its CSS hook, so it cannot import the WEB-UI primitives.
+  if (!COMMUNITY_VISIBLE) return <section className="px-5 py-8">
+    <h1 className="text-2xl font-bold">{t('邻里信息暂停中', 'The neighborhood board is paused')}</h1>
+    <p className="mt-3">{t('邻里信息（测试中）暂时不显示，也暂停发布。已有的私信和联系请求照常在「消息」里。', 'The neighborhood board (beta) is hidden for now, and posting is paused. Your messages and contact requests are still in Messages.')}</p>
+    <p className="mt-5 flex flex-wrap gap-4"><a className="text-baylink-green underline" href="/events">{t('看本周末活动', 'This weekend’s events')}</a><a className="text-baylink-green underline" href="/guides">{t('办事与生活指南', 'How-to guides')}</a><a className="text-baylink-green underline" href="/messages">{t('消息', 'Messages')}</a></p>
+  </section>;
   const label = categoryLabel(slug);
   return <section className="px-5 py-8">
     <h1 className="text-2xl font-bold">{t(`湾区${label.zh}信息`, label.en === 'Other' ? 'Other Bay Area listings' : `Bay Area listings: ${label.en.toLowerCase()}`)}</h1>
