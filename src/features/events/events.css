@@ -152,14 +152,15 @@
 .ev-week__day[aria-pressed=true] .ev-week__weekday { color:var(--color-ink); font-weight:600; }
 .ev-week__day:focus-visible,.ev-month__day:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .ev-week__range { display:none; }
-/* 大/特大 on phones: seven date circles do not fit between ‹ and ›, so the arrows move above the days around the week's
-   range and the days take the full width (each date keeps its own circle). */
+/* Phones: seven day buttons at least 44px wide (H62 / GR-07: they were 34px between ‹ and ›) do not fit beside the arrows,
+   so the arrows move above the days around the week's range and the days take the full width. At 大/特大 each date
+   circle is a little smaller so it keeps its own circle. */
 @media (max-width:767px) {
-  html:is([data-reading=large],[data-reading=extra-large]) .ev-week { grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; row-gap:.25rem; }
-  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__prev { grid-area:prev; }
-  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__next { grid-area:next; }
-  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__days { grid-area:days; gap:0; }
-  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__range { display:block; grid-area:range; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; text-align:center; font-variant-numeric:tabular-nums; }
+  .ev-week { grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; row-gap:.25rem; }
+  .ev-week__prev { grid-area:prev; }
+  .ev-week__next { grid-area:next; }
+  .ev-week__days { grid-area:days; gap:0; }
+  .ev-week__range { display:block; grid-area:range; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; text-align:center; font-variant-numeric:tabular-nums; }
   html:is([data-reading=large],[data-reading=extra-large]) .ev-week__date { min-width:2rem; height:2rem; padding:0; font-size:1.125rem; }
 }
 .ev-calendar__head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:.5rem .75rem; margin:.5rem 0 .75rem; }

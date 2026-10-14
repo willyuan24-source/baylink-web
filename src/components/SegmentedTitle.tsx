@@ -4,6 +4,8 @@ import { titleBreakPieces } from '../lib/title-breaks';
 
 /** CJK closing punctuation (and the full-width colon) that must not begin a line. */
 const CLOSING = /^[，。、；：！？）」』】〉》”’,.;:!?)]+/u;
+/** A Latin name group of two or more words (Día de los Muertos): narrow card titles may break it at its spaces (H55). */
+const LATIN_GROUP = /^(?=[^\p{Script=Han}]*$)(?=.*\p{Script=Latin}).*\S\s+\S/u;
 
 /**
  * A detail-page title that wraps between words, not inside them (REPORT-1007 §4.1 item 9). The text is translated
@@ -25,7 +27,7 @@ export function SegmentedTitle({ text }: { text: string }) {
       // Two units side by side (or with only carried punctuation between them) may break between them.
       if (afterUnit) children.push(createElement('wbr', { key: `${index}-wbr` }));
       carried = next && !next.keep ? CLOSING.exec(next.text)?.[0] ?? '' : '';
-      children.push(createElement('span', { key: index, className: 'title-keep' }, piece.text + carried));
+      children.push(createElement('span', { key: index, className: 'title-keep', 'data-latin': LATIN_GROUP.test(piece.text) ? '' : undefined }, piece.text + carried));
       afterUnit = true;
       return;
     }

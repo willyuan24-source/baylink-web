@@ -43,14 +43,15 @@
 @media (min-width:1024px) { .ui-button { min-height:var(--control-height); font-size:.9375rem; } }
 
 /* Filter chip: the only selected style site-wide is ink background, white text, 600. */
-.ui-chip { position:relative; display:inline-flex; align-items:center; gap:6px; flex:none; min-height:2.5rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:400; white-space:nowrap; cursor:pointer; }
+.ui-chip { position:relative; display:inline-flex; align-items:center; gap:6px; flex:none; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:400; white-space:nowrap; cursor:pointer; }
 .ui-chip::before { content:""; position:absolute; inset:-2px 0; }
 .ui-chip[aria-pressed=true],.ui-chip[aria-checked=true],.ui-chip[aria-current] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
 .ui-chip__count { font-size:var(--text-caption); opacity:.75; font-variant-numeric:tabular-nums; }
 .ui-chip>svg { width:1rem; height:1rem; flex:none; }
 .ui-chip-row { display:flex; gap:8px; overflow-x:auto; padding:2px 16px; margin:0 -16px; scroll-padding-inline:16px; scrollbar-width:none; }
 .ui-chip-row::-webkit-scrollbar { display:none; }
-@media (min-width:1024px) { .ui-chip { min-height:2.25rem; } .ui-chip::before { inset:-4px 0; } .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } }
+/* H62 / GR-07: the chip itself is 44px (48 in 简洁显示) on every screen, not a 36–40px pill with a stretched hit area. */
+@media (min-width:1024px) { .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } }
 
 /* Status chip: a fact about the item, not a control. */
 .ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:6px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; }
@@ -337,5 +338,17 @@ html[data-simple] .ui-save::before { inset:-8px; }
 
 /* Titles wrap between words (a2 SegmentedTitle; units are at most 8 Han / 14 Latin characters, which fit a 173px card). */
 :is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title,.ui-page-header__title) .title-keep { white-space:nowrap; }
+/* H55 / H63: in a card title a Latin name group of two or more words (SegmentedTitle data-latin) may break at its spaces,
+   so "免费 Día de los Muertos" does not leave 免费 alone on the first line, and "Santa Rosa" never runs past a narrow
+   card at 特大; Chinese units keep their line. Card titles avoid a one-word last line (text-wrap:pretty). */
+:is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep[data-latin] { white-space:normal; }
+:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
+/* H63: under 360px a page title scales with the width (cq units fall back to the viewport) instead of overflowing; at the
+   reading sizes it keeps the larger of the two (--fluid-scale). */
+.ui-page-header__title { max-width:100%; }
+@media (max-width:359px) {
+  .ui-page-header__title { font-size:min(var(--text-h1), calc(8.4cqw * var(--fluid-scale))); }
+  .ui-page-header[data-size=display] .ui-page-header__title { font-size:min(var(--text-display), calc(8.8cqw * var(--fluid-scale))); }
+}
 
 .ui-visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
