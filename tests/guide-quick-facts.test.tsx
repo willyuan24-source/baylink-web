@@ -15,7 +15,7 @@ const { GuideDetail } = await import('../src/components/GuideDetail');
 const { getGuideBySlug, guides } = await import('../src/data/guides');
 const { GUIDE_EDITORIAL } = await import('../src/data/guide-editorial');
 const { guideBlockText } = await import('../src/lib/guide-content');
-const { guideQuickFacts, quickFactsEligible, shortenSentence, englishSentences } = await import('../src/features/guides/guide-quick-facts');
+const { guideQuickFacts, quickFactsEligible, shortenSentence, englishSentences, sourceBodies } = await import('../src/features/guides/guide-quick-facts');
 const { setLocale } = await import('../src/i18n/locale');
 // The deals board and the city directory are chunks the article loads with its record; the page waits for them, so do the tests.
 await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
@@ -85,6 +85,25 @@ test('English and zh-Hant cards: translated rows only, no Chinese on /en', async
   await setLocale('zh-Hant', false);
   const hant = card(TYPES.help, '/zh-Hant');
   assert.match(hant!.textContent!, /從本文整理/);
+  await setLocale('zh-Hans', false);
+});
+
+test('without a figure, the first fact is the first sentence after the lede that names a body the guide cites', async () => {
+  await setLocale('zh-Hans', false);
+  const factOf = (slug: string) => guideQuickFacts(getGuideBySlug(slug)!).find(row => row.kind === 'fact');
+  assert.deepEqual(sourceBodies([{ title: 'Recology SF · Bulky Item Collection' }, { title: 'PG&E · Outages & Safety' }, { title: '加州法院：租房押金指南' }, { title: 'Oakland Public Library：办卡与身份核验' }, { title: 'San Francisco' }]),
+    ['Recology SF', 'Recology', 'PG&E', '加州法院', 'Oakland Public Library']);
+  assert.equal(factOf('bay-area-bulky-items-ewaste-hhw-guide')?.text, '旧金山：Recology 大件项目按有效住宅账户及住房类型核资格；危险废物另走 HHW 服务。');
+  assert.equal(factOf('bay-area-alerts-outages-first-day-checklist')?.text, '旧金山使用 AlertSF；Alameda County 使用 AC Alert。');
+  assert.match(card('bay-area-alerts-outages-first-day-checklist')!.textContent!, /AlertSF/);
+  // A sentence that opens with a condition or advice is not a fact: the only candidate on the Peninsula page starts with 如果.
+  assert.deepEqual(guideQuickFacts(getGuideBySlug('peninsula-living-guide')!), []);
+  // Labels before a colon do not hide advice: "Cupertino：…不能替代…" is a rule, "San José：不要…" is not.
+  assert.doesNotMatch(factOf('south-bay-school-district-enrollment-guide')!.text, /^[^：]+：不要/);
+  // On /en the row is the translated sentence that names the same body, or no row (never Chinese).
+  await setLocale('en', false, '/guides/bay-area-alerts-outages-first-day-checklist');
+  const english = card('bay-area-alerts-outages-first-day-checklist', '/en');
+  if (english) { assert.doesNotMatch(english.textContent!, /[㐀-鿿]/u); assert.match(english.textContent!, /San Francisco uses AlertSF\./); }
   await setLocale('zh-Hans', false);
 });
 

@@ -5,10 +5,10 @@ import { translateText, type Locale } from '../../i18n/locale';
 
 /**
  * H08 (GR-03): "30 秒看懂" for a guide without an editorial record — built only from sentences the article already prints,
- * never paraphrased: the first fact the article attributes to an official source (or the first sentence with a figure), the
- * first phone number (tap-to-call where the card renders it), and the first deadline or fee. Each row quotes its sentence
- * (a long one is cut at a clause boundary with …); a guide with none of the three gets no card. Seasonal outings,
- * directories and deals boards are left out: their first screen is a route, a directory or a board.
+ * never paraphrased: the first fact the article attributes to an official source (else the first sentence with a figure, else
+ * one naming a body the guide cites), the first phone number (tap-to-call where the card renders it), and the first deadline
+ * or fee. Each row quotes its sentence (a long one is cut at a clause boundary with …); a guide with none of the three gets
+ * no card. Seasonal outings, directories and deals boards are left out: their first screen is a route, a directory or a board.
  */
 export type QuickFactKind = 'fact' | 'phone' | 'deadline' | 'fee';
 export type QuickFact = {
@@ -68,6 +68,37 @@ const EDITORIAL = /编辑|示例|例如|比如|假设|演算|估算|经验/u;
 // A deadline or a date with a number in it; a fee as an amount, or a service the article says is free.
 const DEADLINE = /\d+\s*(?:个)?(?:天|日|周|个月|年)(?:之?内|以内|之?前)|截止(?:日期?)?(?:为|是)?\s*\d|(?:\d{4}\s*年\s*)?\d{1,2}\s*月\s*\d{1,2}\s*日|\b(?:1[0-2]|0?[1-9])\/(?:3[01]|[12]\d|0?[1-9])\b(?!\s*小时)/u;
 const FEE = /\$\s?\d[\d,.]*|免费(?:提供|咨询|参加|入场|服务|办理|报税|申请|使用|借|开放)|(?:咨询|服务|入场|参加|报名|办理|借阅|使用)(?:都|均|一律)?免费/u;
+// The bodies a guide cites, from its source titles ("Recology SF · Bulky Item Collection" → Recology, "PG&E · Outages" → PG&E,
+// "加州法院：租房押金指南" → 加州法院): acronyms of three letters or more, CamelCase names and other capitalised words that are not
+// places or generic words. A sentence that names one of them states what that body's page says (the guide's own source).
+const NOT_A_BODY = new Set(['San', 'Santa', 'Francisco', 'Mateo', 'Clara', 'Jose', 'José', 'County', 'City', 'Bay', 'Area', 'California', 'Oakland',
+  'Berkeley', 'Alameda', 'Marin', 'Sonoma', 'Napa', 'Solano', 'Contra', 'Costa', 'Palo', 'Alto', 'Novato', 'Health', 'Public', 'Library', 'District',
+  'Sanitary', 'Household', 'Hazardous', 'Waste', 'Facility', 'Sheriff', 'Silicon', 'Valley', 'Power', 'Utilities', 'Current', 'Quality', 'Spare', 'Build',
+  'Outages', 'Safety', 'Alerts', 'Your', 'Card', 'Collection', 'Bulky', 'Item', 'Recycling', 'Disposal', 'College', 'Department', 'Office', 'Center',
+  'Services', 'Service', 'Official', 'Guide', 'Help', 'Home', 'BAYLINK', 'USA', 'Google']);
+const PLACE = new Set(['San', 'Santa', 'Francisco', 'Mateo', 'Clara', 'Jose', 'José', 'Bay', 'Area', 'California', 'Oakland', 'Berkeley', 'Alameda',
+  'Marin', 'Sonoma', 'Napa', 'Solano', 'Contra', 'Costa', 'Palo', 'Alto', 'Novato', 'Silicon', 'Valley']);
+export function sourceBodies(sources: readonly { title: string }[]): string[] {
+  const found = new Set<string>();
+  for (const { title } of sources) {
+    const org = title.split(/[：:·|]| - /u)[0].trim();
+    if (/^[㐀-鿿]{2,8}$/u.test(org)) found.add(org);
+    // A name of several words counts as a whole ("Oakland Public Library"), even when each word alone is a place or generic.
+    if (/^[A-Z][A-Za-z&.]*(?: [A-Z][A-Za-z&.]*){1,4}$/u.test(org) && org.split(' ').some(word => !PLACE.has(word))) found.add(org);
+    for (const word of org.match(/[A-Za-z][A-Za-z&.]*[A-Za-z]/gu) ?? []) {
+      if (NOT_A_BODY.has(word)) continue;
+      if (/^[A-Z&]{3,}$/u.test(word) || /^[A-Z][a-z]+[A-Z]/u.test(word) || (word.length >= 5 && /^[A-Z]/u.test(word))) found.add(word);
+    }
+  }
+  return [...found];
+}
+const ADVICE = /^(?:[^：:]{1,24}[：:]\s*)?(?:如果|假如|若|想|要是|不要|别|先别|不能|不必|建议|记得)/u;
+const namesBody = (text: string, body: string) => {
+  for (let at = text.indexOf(body); at >= 0; at = text.indexOf(body, at + 1)) {
+    if (!/[A-Za-z]/u.test(text[at - 1] || '') && !/[A-Za-z]/u.test(text[at + body.length] || '')) return true;
+  }
+  return false;
+};
 /** The longest number in the matched words (\"9 月 22 日\" → 22, \"$46\" → 46): it must reappear in a translation. */
 const anchorOf = (sentence: string, pattern: RegExp) => {
   const numbers = pattern.exec(sentence)?.[0].match(/\d[\d,.]*\d|\d/gu) ?? [];
@@ -75,11 +106,16 @@ const anchorOf = (sentence: string, pattern: RegExp) => {
 };
 
 /** Up to three rows from the article's own sentences; [] when it has none of them. */
-export function guideQuickFacts(guide: Pick<Guide, 'blocks'>): QuickFact[] {
+export function guideQuickFacts(guide: Pick<Guide, 'blocks'> & { sources?: readonly { title: string }[] }): QuickFact[] {
   const sentences = guide.blocks.flatMap((block, index) => sentencesOf(block).map(text => ({ text, block: index })));
+  // The lede (the text before the first heading) sets the scene; a body's own rule is looked for after it, and not in a
+  // sentence that opens with a condition or a piece of advice ("如果…", "想…", "不要…", also after a "San José：" label).
+  const firstHeading = guide.blocks.findIndex(block => block.type === 'heading');
+  const bodies = sourceBodies(guide.sources ?? []);
+  const bodyIn = (text: string) => bodies.find(body => namesBody(text, body));
   const used = new Set<string>();
-  const take = (kind: QuickFactKind, match: (text: string) => boolean, anchor: (text: string) => string | undefined): QuickFact | null => {
-    const found = sentences.find(sentence => !used.has(sentence.text) && match(sentence.text) && shortenSentence(sentence.text));
+  const take = (kind: QuickFactKind, match: (text: string, block: number) => boolean, anchor: (text: string) => string | undefined): QuickFact | null => {
+    const found = sentences.find(sentence => !used.has(sentence.text) && match(sentence.text, sentence.block) && shortenSentence(sentence.text));
     if (!found) return null;
     used.add(found.text);
     const text = shortenSentence(found.text);
@@ -90,7 +126,9 @@ export function guideQuickFacts(guide: Pick<Guide, 'blocks'>): QuickFact[] {
   const deadline = take('deadline', text => DEADLINE.test(text) && !EDITORIAL.test(text), text => anchorOf(text, DEADLINE));
   const fee = deadline ? null : take('fee', text => FEE.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FEE));
   const fact = take('fact', text => SOURCED.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FIGURE))
-    ?? take('fact', text => FIGURE.test(text) && NAMED.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FIGURE));
+    ?? take('fact', text => FIGURE.test(text) && NAMED.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FIGURE))
+    // Otherwise the first sentence after the lede that names a body the guide cites ("旧金山：Recology 大件项目按…核资格").
+    ?? take('fact', (text, block) => block > firstHeading && !!bodyIn(text) && !EDITORIAL.test(text) && !ADVICE.test(text) && !/[？?]$/u.test(text), bodyIn);
   return [fact, phone, deadline ?? fee].filter((row): row is QuickFact => !!row);
 }
 
@@ -131,6 +169,8 @@ export function quickFactIn(fact: QuickFact, guide: Pick<Guide, 'blocks'>, local
   if (!translated || /[㐀-鿿]/u.test(translated)) return null;
   if (block.type === 'list' && source.trim() === fact.text) return shortenSentence(translated, 200);
   if (!fact.anchor) return null;
-  const piece = englishSentences(translated).find(part => hasNumber(part, fact.anchor!));
-  return piece ? shortenSentence(piece, 200) : null;
+  const anchor = fact.anchor;
+  const piece = englishSentences(translated).find(part => /\d/u.test(anchor) ? hasNumber(part, anchor) : namesBody(part, anchor));
+  // A clause cut at a semicolon reads as its own sentence.
+  return piece ? shortenSentence(piece.replace(/;$/u, '.'), 200) : null;
 }
