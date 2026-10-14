@@ -43,6 +43,11 @@ test('a browser that signed in before opens the same scene on 登录; English re
   sheet();
   assert.equal(dialogTitle(), 'Sign up to message 王小明');
   assert.ok(screen.getByText('Messaging needs an account, and signing up takes about a minute. Replies appear in Messages with an unread count.'));
+  cleanup();
+  // A member who signed out before the known-browser key shipped: a per-account key they left behind counts too.
+  localStorage.setItem('baylink.notice-optin.dismissed.v1.member-1', '1');
+  sheet();
+  assert.equal(dialogTitle(), 'Sign in to message 王小明');
 });
 
 test('any other way in keeps the generic sheet on 登录', () => {

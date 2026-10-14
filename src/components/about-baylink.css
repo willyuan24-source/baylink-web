@@ -26,4 +26,3 @@
 .about-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:4px}}
 @media(min-width:1024px){.about-page{padding-block:40px 72px}.about-section{margin-top:56px}.about-section>h2{font-size:var(--text-section);line-height:1.333}}
-/* The home footer (WEB-HOME's file) still reads these two rules; they move with that footer. */

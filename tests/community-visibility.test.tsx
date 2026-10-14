@@ -126,6 +126,10 @@ test('switched off: the paused page reads in English and Traditional Chinese', a
 test('switched off: /category/* and post pages are noindex in the prerender and on the server; other pages are not', async () => {
   flags.setCommunityVisibleForTests(false);
   assert.equal(robots(renderMetadataHtml(categoryHubMetadata('rent'))), 'noindex, follow');
+  // The tab title says what the H1 says, not the board's name.
+  assert.equal(categoryHubMetadata('rent').title, '邻里信息暂停中｜BAYLINK');
+  assert.equal(categoryHubMetadata('used').english?.title, 'The neighborhood board is paused | BAYLINK');
+  assert.match(renderMetadataHtml(categoryHubMetadata('rent')), /<title>邻里信息暂停中｜BAYLINK<\/title>/);
   assert.equal(robots(renderMetadataHtml({ title: 'x', description: 'x', path: '/posts/123' })), 'noindex, follow');
   assert.equal(robots(renderMetadataHtml({ title: 'x', description: 'x', path: '/en/category/used' })), 'noindex, follow');
   assert.equal(robots(renderMetadataHtml({ title: 'x', description: 'x', path: '/events' })), 'index, follow');
