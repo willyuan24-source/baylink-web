@@ -47,7 +47,7 @@ test('an event TypeCover is real DOM text with the honest label, category, big d
   // H12: the tone's drawing is a decorative mask (public/covers/art), not a UI icon, and the item picks one by its id.
   const art = root.querySelector('.ui-type-cover__art');
   assert.equal(art?.getAttribute('aria-hidden'), 'true', 'the drawing is decorative');
-  assert.match(art?.getAttribute('data-art') ?? '', /^family-[12]$/, 'a family event draws from the family set');
+  assert.match(art?.getAttribute('data-art') ?? '', /^family-[123]$/, 'a family event draws from the family set');
   assert.equal(root.querySelector('svg'), null, 'no UI icon inside a TypeCover');
   assert.equal(root.querySelector('img'), null, 'no picture inside a TypeCover');
 });
@@ -183,12 +183,12 @@ test('the palette lives in tokens.css: ui.css defines no global names, and every
   // once a primitive mounts; it may only set element-scoped layout variables.
   postcss.parse(css).walkRules(':root', rule => assert.fail(`ui.css has a :root block again (${rule.toString().slice(0, 60)}…): palette names belong in src/tokens.css`));
   postcss.parse(css).walkDecls(declaration => {
-    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|ui-art|tc-bg|tc-fg|tc-art|tc-art-shift|tc-art-width|tc-badge-room)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|ui-art|tc-bg|tc-fg|tc-art|tc-art-shift|tc-art-width|tc-art-inset|tc-art-square|tc-badge-room)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
   });
   const globalNames = new Set<string>();
   postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
   for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
-  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-art', '--tc-bg', '--tc-fg', '--tc-art', '--tc-art-shift', '--tc-art-width', '--tc-badge-room']);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-art', '--tc-bg', '--tc-fg', '--tc-art', '--tc-art-shift', '--tc-art-width', '--tc-art-inset', '--tc-art-square', '--tc-badge-room']);
   // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
   for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
   for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);
@@ -239,7 +239,7 @@ test('every drawing a TypeCover can pick has its mask rule and its own small vec
   }
   const seen = new Set<string>();
   const tones = ['family', 'culture', 'outdoors', 'food', 'seniors', 'free'] as const;
-  for (const tone of tones) for (const icon of [undefined, tone, 'store', 'book', 'landmark', 'bike', 'music', 'film', 'dog', 'plane']) for (const family of ['event', 'guide'] as const) for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
+  for (const tone of tones) for (const icon of [undefined, tone, 'store', 'book', 'landmark', 'bike', 'music', 'film', 'dog', 'plane']) for (const family of ['event', 'guide'] as const) for (const seed of Array.from({ length: 16 }, (_, index) => `item-${index}`)) {
     const view = wrap(<TypeCover tone={tone} family={family} label="标签" icon={icon} seed={seed} />);
     const art = view.container.querySelector('.ui-type-cover__art')!.getAttribute('data-art')!;
     assert.ok(rules.has(art), `${tone}/${icon}/${family}: ${art} has a rule`);

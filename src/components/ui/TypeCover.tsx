@@ -15,16 +15,16 @@ import type { SeptemberOpening } from '../../data/september-openings';
 /**
  * H12 / SV13-02: each tone has its own small set of drawn spot illustrations (public/covers/art/*.svg, drawn for BAYLINK as
  * vector shapes, no AI and no real venue), shown as an alpha mask in the tone's ink, instead of one faded UI icon on every
- * card. A tone has two drawings; the item picks one by a stable hash of its id, so neighbours of one tone rarely match. A
- * few item keys have their own drawings (a shop front or a shopping bag for offers and shops, a clipboard for health, an ID
- * card for documents, a bicycle for getting around, a house for housing guides).
+ * card. A tone has two or three drawings; the item picks one by a stable hash of its id, so neighbours of one tone rarely
+ * match. A few item keys have their own drawings (a shop front, a shopping bag or a coffee punch card for offers and shops,
+ * a clipboard for health, an ID card for documents, a bicycle for getting around, a house for housing guides).
  */
-const TONE_ART: Record<CoverTone, readonly [string, string]> = {
-  family: ['family-1', 'family-2'], culture: ['culture-1', 'culture-2'], outdoors: ['outdoors-1', 'outdoors-2'],
+const TONE_ART: Record<CoverTone, readonly string[]> = {
+  family: ['family-1', 'family-2', 'family-3'], culture: ['culture-1', 'culture-2', 'culture-3'], outdoors: ['outdoors-1', 'outdoors-2'],
   food: ['food-1', 'food-2'], seniors: ['seniors-1', 'seniors-2'], free: ['free-1', 'free-2'],
 };
 const KEY_ART: Readonly<Record<string, readonly string[]>> = {
-  store: ['store', 'store-2'], book: ['clipboard'], landmark: ['idcard'], bike: ['bike'], music: ['culture-2'], film: ['culture-2'], dog: ['outdoors-1'],
+  store: ['store', 'store-2', 'store-3'], book: ['clipboard'], landmark: ['idcard'], bike: ['bike'], music: ['culture-2'], film: ['culture-2'], dog: ['outdoors-1'],
 };
 /** FNV-1a: a stable number per item (its drawing), the same on the server and in the browser. */
 const variantOf = (seed: string) => { let hash = 0x811c9dc5; for (let index = 0; index < seed.length; index++) hash = Math.imul(hash ^ seed.charCodeAt(index), 0x01000193) >>> 0; return hash; };
