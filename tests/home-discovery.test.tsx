@@ -98,6 +98,24 @@ test('the feed holds the rest of the weekend: up to eight covers after the picks
   });
 });
 
+test('the 3D strip sits after the fourth feed card; it and the ⑨ tile both say 3D 旧金山 and 独立 3D 体验 (H36, OPUS contract)', async () => {
+  const doc = serverHome();
+  const items = [...doc.querySelector('.home-feed .ui-feed-card')!.closest('li')!.parentElement!.children];
+  const strip = items.findIndex(item => item.querySelector('.home-3d-strip'));
+  assert.equal(strip, 4, 'four cards, then the strip');
+  assert.equal(items.slice(0, 4).every(item => item.querySelector('.ui-feed-card')), true);
+  const links = [...doc.querySelectorAll('a[href="/opus-bay?from=home"]')];
+  assert.equal(links[0].classList.contains('home-3d-strip'), true, 'the first from=home link is now the feed strip');
+  const tile = doc.querySelector('.home-3d')!;
+  assert.ok(tile, 'the ⑨ tile is still rendered eagerly');
+  for (const text of [links[0].textContent!, tile.textContent!]) {
+    assert.match(text, /3D 旧金山/);
+    assert.match(text, /独立 3D 体验/);
+  }
+  const { WeekendFeed } = await import('../src/features/home/WeekendFeed');
+  assert.equal(renderToStaticMarkup(<StaticRouter location="/"><WeekendFeed feed={[]} covers={[]} tones={[]} today={today} total={0} /></StaticRouter>), '', 'no feed, no strip');
+});
+
 test('a compact home pool reports the entire weekend calendar count, including Sunday-only eligibility', () => {
   assert.ok(days.length > 0, 'the compact pool publishes calendar totals');
   assert.ok(days.some(day => new Date(`${day}T12:00:00Z`).getUTCDay() === 0), 'Sunday-only coverage is exercised');

@@ -40,6 +40,11 @@ test('buttons: one element per variant, router links for `to`, and icon buttons 
   assert.equal(view.getByRole('link', { name: '看全部' }).getAttribute('href'), '/events');
   assert.equal(view.getByRole('link', { name: '官方页' }).getAttribute('href'), 'https://example.org/official');
   assert.ok(view.getByRole('button', { name: '搜索' }).classList.contains('ui-icon-button'));
+  // H29: the legacy names fold into the three looks (tonal → secondary, text → quiet); no variant is secondary.
+  assert.equal(view.getByRole('link', { name: '看全部' }).getAttribute('data-variant'), 'quiet');
+  assert.equal(view.getByRole('link', { name: '官方页' }).getAttribute('data-variant'), 'secondary');
+  const tonal = wrap(<ui.Button variant="tonal" onClick={() => {}}>旧名</ui.Button>);
+  assert.equal(tonal.getByRole('button', { name: '旧名' }).getAttribute('data-variant'), 'secondary');
 });
 
 test('filter chips toggle with aria-pressed and show a count; status chips are not controls', () => {

@@ -96,6 +96,11 @@ test('the automatic ranking scores what readers value, not the end date or the a
   const ranked = rankWeekendFallback([paid, oneDay, longFestival, chinese, freeFamily], '2026-10-10', options);
   assert.deepEqual(ids(ranked), ['zz-free-family', 'mm-month-long', 'yy-mandarin', 'ab-one-day', 'aa-paid']);
   assert.deepEqual(ids(rankWeekendFallback([...ranked].reverse(), '2026-10-10', options)), ids(ranked), 'input order does not matter');
+  // H19: within one score a real photo goes first, ahead of a more recent source check.
+  const checkedLater = entry(event('aa-checked-later', { cost: 'free', verifiedAt: '2026-10-09' }));
+  const withPhoto = entry(event('zz-with-photo', { imageKey: 'photo', verifiedAt: '2026-10-01' }));
+  assert.deepEqual(ids(rankWeekendFallback([checkedLater, withPhoto], '2026-10-10', options)), ['zz-with-photo', 'aa-checked-later']);
+  assert.deepEqual(ids(rankWeekendFallback([checkedLater, withPhoto], '2026-10-10', { flagships: new Set<string>() })), ['aa-checked-later', 'zz-with-photo'], 'without the photo test the free event scores higher');
   // Flagship events listed by editors get a boost.
   assert.equal(rankWeekendFallback([freeFamily, paid], '2026-10-10', { ...options, flagships: new Set(['aa-paid']) })[0], freeFamily);
   assert.equal(rankWeekendFallback([paid, oneDay], '2026-10-10', { ...options, flagships: new Set(['aa-paid']) })[0], paid);

@@ -154,8 +154,33 @@ test('an offer or opening without an image opens on a band, not a 16:9 card repe
   assert.equal(band.querySelector('.ui-type-cover__label, .ui-type-cover__value, .ui-type-cover__brand, .ui-type-cover__title'), null);
   // "想约人一起去？" belongs to places to go, not to a public benefit you apply for.
   assert.equal(muni.querySelector('.outing-inspiration-link'), null);
-  // Events keep their 16:9 cover.
+  // Events with a photo keep their 16:9 cover.
   assert.equal(detail('event:san-francisco-fleet-week-2026').querySelector('.detail-hero')!.hasAttribute('data-compact'), false);
+  // H28: an image-less event opens on the same compact band: the big date and the tone's drawing, never the H1, the place
+  // or the price sticker that the header and 一眼看懂 say right below. Unknown dates: a slim band with only its badge.
+  const { eventDateChip, formatDateChip } = await import('../src/lib/event-facts');
+  const typeEvents = localDiscoveries.filter(row => row.kind === 'event' && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type');
+  const bigDate = (row: (typeof typeEvents)[number]) => formatDateChip(eventDateChip((row as { event: Parameters<typeof eventDateChip>[0] }).event, '2026-10-12'), false).big;
+  const dated = typeEvents.find(bigDate);
+  assert.ok(dated, 'the catalog has an image-less event with dates');
+  const page = detail(`event:${discoveryShare(dated).id}`);
+  const eventBand = page.querySelector('.detail-hero')!;
+  assert.equal(eventBand.getAttribute('data-compact'), '');
+  assert.equal(eventBand.getAttribute('data-kind'), 'event');
+  assert.equal(eventBand.hasAttribute('data-slim'), false);
+  assert.equal(eventBand.querySelector('.ui-type-cover__date')!.textContent!.includes(bigDate(dated)), true);
+  assert.equal(eventBand.querySelector('.ui-type-cover__title, .ui-type-cover__place, .ui-type-cover__sticker, .ui-type-cover__label'), null);
+  assert.equal(eventBand.textContent!.includes(page.querySelector('h1')!.textContent!), false);
+  const undated = typeEvents.find(row => !bigDate(row));
+  if (undated) {
+    const slim = detail(`event:${discoveryShare(undated).id}`).querySelector('.detail-hero')!;
+    assert.equal(slim.getAttribute('data-slim'), '');
+    assert.equal(slim.querySelector('.ui-type-cover__date, .ui-type-cover__title, .ui-type-cover__place, .ui-type-cover__label'), null);
+    assert.equal(slim.textContent!.replace('BAYLINK 信息卡', '').trim(), '', 'only the information-card badge');
+  }
+  const { TypeCover } = await import('../src/components/ui');
+  const unknown = JSDOM.fragment(renderToStaticMarkup(<figure className="detail-hero" data-compact="" data-kind="event" data-slim=""><TypeCover family="event" tone="outdoors" label="" date={formatDateChip({ kind: 'unknown' }, false)} /></figure>));
+  assert.equal(unknown.querySelector('.ui-type-cover__date'), null, 'unknown dates draw no date');
 });
 
 test('the Fleet Week facts card says where in Chinese on zh-Hans, keeping the place names', () => {
