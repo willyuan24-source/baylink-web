@@ -4,8 +4,9 @@ export const MONTHLY_EDITION = {
   label: '2026 年秋冬 · 收录至 12/31', checkedAt: '2026-10-07',
   // The latest content batch (CNT-SUPPLY-2, src/data/supply-2026-10-13-*; CNT-SUPPLY's is supply-2026-10-12-*): its items carry
   // their own verifiedAt. checkedAt stays the edition's check date, so the events header never claims the older items were
-  // re-checked that day. throughDate 12/31 (H25): the 2026-10-13 batch reaches the December weekends.
-  updatedAt: '2026-10-13',
+  // re-checked that day. throughDate 12/31 (H25): the 2026-10-13 batch reaches the December weekends; its three East Bay
+  // farmers' markets were read on 2026-10-14, so updatedAt is that day (no item may claim a later verifiedAt).
+  updatedAt: '2026-10-14',
   title: '这个秋天，把周末留给湾区。',
   intro: '从十月的周末到十一月底的假期，按地区挑选已公布的活动、优惠、新店与半日游。每条保留来源、核对日期和适用条件，预告与已确认安排分别标注。',
 };
