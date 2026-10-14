@@ -3,6 +3,7 @@ import test, { after, afterEach, beforeEach } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
 import { readFileSync } from 'node:fs';
+import postcss from 'postcss';
 
 /**
  * Mount guards (WEB-SAVES, plan D19): the offer cards and the new-shop cards carry the one save model's ♡, each saving
@@ -106,8 +107,17 @@ test('offer and new-shop cards put their ♡ in the cover\'s save slot, like eve
 });
 
 test('the cover ♡ is one 44px circle in every card save slot (reader-library.css), not the outlined 收藏 button', () => {
-  const css = readFileSync('src/components/reader-library.css', 'utf8');
-  assert.match(css, /:is\(\.ui-feed-card__save,\.ui-hero-card__save\) \.saves-control \.saves-toggle \{[^}]*width:var\(--control-height\); height:var\(--control-height\);[^}]*border-radius:50%; font-size:0; \}/);
+  // Any rule for the save toggle in both card save slots, whatever its selector's exact form or its declarations' order:
+  // the circle (control-height square, 50% radius) with the icon alone (size-0 word).
+  const declarations = new Map<string, string>();
+  postcss.parse(readFileSync('src/components/reader-library.css', 'utf8')).walkRules(rule => {
+    if (!['.ui-feed-card__save', '.ui-hero-card__save', '.saves-toggle'].every(part => rule.selector.includes(part))) return;
+    rule.walkDecls(decl => { declarations.set(decl.prop, decl.value); });
+  });
+  assert.ok(declarations.size, 'a global rule styles the ♡ in the FeedCard and HeroCard save slots');
+  for (const prop of ['width', 'height', 'min-height']) assert.equal(declarations.get(prop), 'var(--control-height)', `${prop}: the 44px control`);
+  assert.equal(declarations.get('border-radius'), '50%');
+  assert.equal(declarations.get('font-size'), '0', 'the icon alone; the name is the aria-label');
   assert.doesNotMatch(readFileSync('src/features/events/EventCards.tsx', 'utf8'), /className="ev-card--action"/, 'offers and openings keep the overlay placement');
 });
 

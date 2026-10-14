@@ -1,5 +1,7 @@
+import type { AppContextValue } from '../../app/context';
+
 /** The app's BayBay opener (AppLayout `openBayBay`, in the outlet context as `useApp().openBayBay`). */
-export type OpenBayBay = (question?: string, options?: { mode?: 'send' | 'draft' }) => void;
+export type OpenBayBay = AppContextValue['openBayBay'];
 
 /**
  * H32: open BayBay with a question the reader finishes and sends ("问 BayBay" on a guide, the calendar, the planner).
