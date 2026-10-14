@@ -66,9 +66,9 @@ const VISITOR_BUREAU = /visitors?\s+bureau|convention\s*(?:&|and)\s*visitors|tou
 /** A site's section, not its organisation: calendar.santaclaraca.gov is santaclaraca.gov's calendar. */
 const SECTION_HOST = /^(?:www|calendar|events?|admissions|members|tickets?|register|registration|apps?|portal)\./i;
 /**
- * H47: the organisation behind an official host, as other listings of the same site already name it (tests/structured-data
- * checks each name against the event data): a library page labelled only in Chinese ("旧金山公共图书馆活动页") or by its
- * domain still names its library. Venues' own sites (an arena's, a mall's) are not here: the venue is not the organizer.
+ * H47: the organisation behind an official host, as other listings of the same site already name it, in their label or
+ * its reviewed English (tests/structured-data checks each name against the event data): a library page labelled only in
+ * Chinese ("旧金山公共图书馆活动页") or by its domain still names its library. Venues' own sites (an arena's, a mall's) are not here: the venue is not the organizer.
  */
 export const ORGANIZER_BY_HOST: Readonly<Record<string, string>> = {
   'sfpl.org': 'San Francisco Public Library',
@@ -79,6 +79,8 @@ export const ORGANIZER_BY_HOST: Readonly<Record<string, string>> = {
   'foodwise.org': 'Foodwise',
   'marinlibrary.bibliocommons.com': 'Marin County Free Library',
   'events.sonomalibrary.org': 'Sonoma County Library',
+  'chsa.org': 'Chinese Historical Society of America',
+  'petalumavintage.com': 'Petaluma Vintage Market',
 };
 /** The organizer named by the listing's official source, or nothing when the source is a report or a platform. */
 export function eventOrganizer(event: Pick<MonthlyEvent, 'sourceLabel' | 'officialUrl'>): Record<string, unknown> | undefined {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import '../src/i18n/metadata';
-import { setLocale } from '../src/i18n/locale';
+import { loadLocale, setLocale, translateText } from '../src/i18n/locale';
 import { renderMetadataHtml } from '../src/lib/seo';
 import { guides } from '../src/data/guides';
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
@@ -138,10 +138,14 @@ test('H47: one-day listings state the time their date line gives; streets after 
   assert.deepEqual(venueParts('Ross Street, Downtown Santa Rosa'), { name: 'Ross Street, Downtown Santa Rosa' }, 'no house number, no street');
   // every name in the host table is how the event data already names that site's organisation (no new facts)
   const hostOf = (url: string) => new URL(url).hostname.replace(/^www\./, '');
+  await loadLocale('en');
   for (const [host, name] of Object.entries(ORGANIZER_BY_HOST)) {
     const labels = MONTHLY_EVENTS.filter(event => hostOf(event.officialUrl) === host).map(event => event.sourceLabel);
-    if (labels.length) assert.ok(labels.some(label => label.includes(name)), `${host}: ${name} is not a label of its listings`);
+    // the label or its reviewed English ("美国华人历史学会活动页" → "Chinese Historical Society of America event page")
+    if (labels.length) assert.ok(labels.some(label => label.includes(name) || translateText(label, 'en').includes(name)), `${host}: ${name} is not a label of its listings`);
   }
+  assert.equal(eventOrganizer({ sourceLabel: '美国华人历史学会活动页', officialUrl: 'https://chsa.org/event/x/' })?.name, 'Chinese Historical Society of America');
+  assert.equal(eventOrganizer({ sourceLabel: 'petalumavintage.com', officialUrl: 'https://www.petalumavintage.com/' })?.name, 'Petaluma Vintage Market');
   assert.equal(eventOrganizer({ sourceLabel: '旧金山公共图书馆活动页（列治文分馆）', officialUrl: 'https://sfpl.org/events/2026/11/14/film' })?.name, 'San Francisco Public Library');
   assert.equal(eventOrganizer({ sourceLabel: 'chasecenter.com', officialUrl: 'https://www.chasecenter.com/events/x' }), undefined, 'a venue’s site still names no organizer');
   // inLanguage: each language edition says its own language, on events and on offer/opening articles
