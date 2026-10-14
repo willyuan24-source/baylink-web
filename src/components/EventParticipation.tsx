@@ -98,7 +98,8 @@ export function EventParticipationActions({ event, today = getBayAreaToday(), av
   const locale = useLocale();
   const [buddiesOpen, setBuddiesOpen] = useState(false);
   // H07: the API cannot count, record or list 一起去 for an event it does not know yet; showing buttons that can only fail,
-  // or "人数暂时无法加载", would be wrong. The detail page drops its 想约人一起去？ block too (LocalDiscoveryDetail).
+  // or "人数暂时无法加载", would be wrong. The detail page drops its 想约人一起去？ block too, or keeps a one-line note for a
+  // reader who followed a link to #event-participation (LocalDiscoveryDetail).
   if (!participation || participation.unknown.includes(event.id)) return null;
   const entry = participation.entries[event.id];
   const ended = event.endDate < today;

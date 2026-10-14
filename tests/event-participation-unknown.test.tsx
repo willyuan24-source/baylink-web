@@ -35,7 +35,8 @@ const app = { user: null, setShowLogin: () => {}, showToast: () => {}, openChat:
 const HEADING = { name: '想约人一起去？' };
 const known = { eventId: ID, interestedCount: 0, buddyCount: 0, me: null };
 
-function detail(t: TestContext, engagement: () => unknown) {
+/** Mocks api.request once per test (a second t.mock.method on it would leave the first mock behind after the test). */
+function mockApi(t: TestContext, engagement: () => unknown) {
   let reads = 0;
   const request = async (path: string) => {
     if (path.startsWith('/events/engagement')) { reads++; return engagement(); }
@@ -43,10 +44,14 @@ function detail(t: TestContext, engagement: () => unknown) {
     throw new Error(`not used in this test: ${path}`);
   };
   t.mock.method(api, 'request', request);
-  const view = render(<MemoryRouter initialEntries={[`/events/${ID}`]}><Routes><Route element={<Outlet context={app} />}>
-    <Route path="/events/:id" element={<LocalDiscoveryDetail record={buildDetailRecord(item)} today={TODAY} />} />
-  </Route></Routes></MemoryRouter>);
-  return { view, reads: () => reads };
+  return () => reads;
+}
+const page = (hash = '') => render(<MemoryRouter initialEntries={[`/events/${ID}${hash}`]}><Routes><Route element={<Outlet context={app} />}>
+  <Route path="/events/:id" element={<LocalDiscoveryDetail record={buildDetailRecord(item)} today={TODAY} />} />
+</Route></Routes></MemoryRouter>);
+function detail(t: TestContext, engagement: () => unknown, hash = '') {
+  const reads = mockApi(t, engagement);
+  return { view: page(hash), reads };
 }
 /** Plain polling with cheap DOM checks: testing-library's waitFor re-runs its query on every DOM mutation, and on this full
  * page that took minutes while the first lazy chunks loaded. */
@@ -57,8 +62,8 @@ async function until(check: () => boolean, what: string) {
   }
   assert.fail(`timed out waiting for ${what}`);
 }
-const together = (view: ReturnType<typeof detail>['view']) => view.container.querySelector('#detail-together-title');
-const says = (view: ReturnType<typeof detail>['view'], text: string) => (view.container.textContent || '').includes(text);
+const together = (view: ReturnType<typeof page>) => view.container.querySelector('#detail-together-title');
+const says = (view: ReturnType<typeof page>, text: string) => (view.container.textContent || '').includes(text);
 
 test('a 404 from the API (an event it does not know yet) removes the 一起去 block without an error', async t => {
   assert.ok(item, `${ID} is a site event`);
@@ -77,18 +82,39 @@ test("the API's unknown list (API-SYNC-3b) removes the block the same way", asyn
   assert.equal(run.view.queryByText('人数暂时无法加载'), null);
 });
 
+test('a reader who followed a link to #event-participation keeps the heading and a one-line note, not an error', async t => {
+  // Little Bay's 想去 · 找搭子 links to the block; dropping it would leave the jump on the next section (a late layout shift).
+  const run = detail(t, () => { throw { status: 404, error: '活动不存在。' }; }, '#event-participation');
+  await until(() => run.reads() > 0 && says(run.view, '这场活动暂时还不能公开想去或约人一起去'), 'the note');
+  assert.ok(run.view.getByRole('heading', HEADING));
+  assert.ok(run.view.container.querySelector('#event-participation .event-participation-note'), 'the anchor still resolves');
+  assert.equal(run.view.queryByText('人数暂时无法加载'), null);
+  assert.equal(run.view.queryByRole('button', { name: /公开想去/ }), null);
+  assert.equal(run.view.queryByRole('button', { name: /^一起去/ }), null);
+});
+
 test('a known event keeps the block, and a real failure still offers 重试', async t => {
   let answer: () => unknown = () => ({ events: [known], unknown: [] });
-  const ok = detail(t, () => answer());
-  await until(() => says(ok.view, '意向不等于报名或购票。'), 'the counts line');
-  assert.ok(ok.view.getByRole('heading', HEADING));
-  assert.ok(ok.view.getByRole('button', { name: /公开想去/ }));
+  mockApi(t, () => answer());
+  const ok = page();
+  await until(() => says(ok, '意向不等于报名或购票。'), 'the counts line');
+  assert.ok(ok.getByRole('heading', HEADING));
+  assert.ok(ok.getByRole('button', { name: /公开想去/ }));
   cleanup();
   answer = () => { throw { status: 503, error: '活动报名暂不可用，请稍后重试。' }; };
-  const down = detail(t, () => answer());
-  await until(() => says(down.view, '人数暂时无法加载'), 'the failure line');
-  assert.ok(down.view.getByRole('heading', HEADING));
-  assert.ok(down.view.getByRole('button', { name: '重试' }));
+  const down = page();
+  await until(() => says(down, '人数暂时无法加载'), 'the failure line');
+  assert.ok(down.getByRole('heading', HEADING));
+  assert.ok(down.getByRole('button', { name: '重试' }));
+});
+
+test("only the API's own JSON 404 means unknown: an HTML 404 (a proxy or a missing route) stays a failure", async t => {
+  // Through the real api.request, which turns a body that is not JSON into its "invalid data" error.
+  let reply = () => new Response('<!doctype html><title>404 Not Found</title>', { status: 404, headers: { 'Content-Type': 'text/html' } });
+  t.mock.method(globalThis, 'fetch', async () => reply());
+  await assert.rejects(getEventEngagement([ID]), (error: { status?: number }) => error.status === 404);
+  reply = () => new Response(JSON.stringify({ error: '活动不存在。' }), { status: 404, headers: { 'Content-Type': 'application/json' } });
+  assert.deepEqual(await getEventEngagement([ID]), { entries: [], unknown: [ID] });
 });
 
 test('the engagement read separates unknown ids from counts and rejects answers that do not add up', async t => {

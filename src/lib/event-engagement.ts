@@ -10,10 +10,18 @@ export function parseEventEngagement(value: unknown): EventEngagement {
 }
 /** Counts for the events the API knows, and the requested ids it does not know (yet). */
 export type EventEngagementRead = { entries: EventEngagement[]; unknown: string[] };
+// api.request's error for a body that is not JSON (src/lib/api.ts): an HTML 404 from a proxy or a missing route is an
+// outage, not the API saying it does not know the event, so it stays a failure (重试).
+const NOT_JSON_ERROR = '服务返回了无效数据，请稍后重试。';
+/** The API's own 404 for an event it does not know: a JSON body with its error message ('活动不存在。'). */
+const unknownEventError = (error: unknown) => {
+  const { status, error: message } = (error ?? {}) as { status?: unknown; error?: unknown };
+  return status === 404 && typeof message === 'string' && message !== NOT_JSON_ERROR;
+};
 /**
  * The API knows the events it copied from the web's catalogs; until the API-SYNC that follows a content merge, a new event
  * is unknown to it (H07). It lists those ids in `unknown` (from API-SYNC-3b); before that it answered the whole batch with
- * 404, which names the id only for a one-id batch (a detail page asks for one). Every requested id must come back exactly
+ * a JSON 404, which names the id only for a one-id batch (a detail page asks for one). Every requested id must come back exactly
  * once, as counts or as unknown; anything else rejects the read, so a partial answer never shows as complete.
  */
 export const getEventEngagement = async (ids: string[], signal?: AbortSignal): Promise<EventEngagementRead> => {
@@ -26,7 +34,7 @@ export const getEventEngagement = async (ids: string[], signal?: AbortSignal): P
     try {
       response = await api.request(`/events/engagement?ids=${encodeURIComponent(batch.join(','))}`, { signal });
     } catch (error) {
-      if (batch.length === 1 && (error as { status?: number } | null)?.status === 404) return { entries: [], unknown: [...batch] };
+      if (batch.length === 1 && unknownEventError(error)) return { entries: [], unknown: [...batch] };
       throw error;
     }
     if (!Array.isArray(response.events) || (response.unknown !== undefined && (!Array.isArray(response.unknown) || response.unknown.some((id: unknown) => typeof id !== 'string')))) throw new Error('Invalid event participation response');
