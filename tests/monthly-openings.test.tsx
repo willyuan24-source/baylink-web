@@ -126,7 +126,7 @@ test('soft openings have their own filter and never inherit an open or announced
   }
   const fixture = { status: 'soft_open' as const, openedOn: undefined };
   assert.deepEqual(openingChip(fixture, '2026-11-01'), { zh: '试营业', en: 'Soft opening' }, 'time passing does not make a soft opening open');
-  assert.deepEqual(openingChip({ status: 'soft_open', openedOn: '2026-09-04' }, '2026-10-14'), { zh: '9/4 起试营业', en: 'Soft opening since Sep 4' }, 'a dated soft opening is not 已开业');
+  assert.deepEqual(openingChip({ status: 'soft_open', openedOn: '2026-09-04' }, '2026-10-14'), { zh: '9/4 起试营业', en: 'Soft open 9/4' }, 'a dated soft opening is not 已开业');
 });
 
 test('status and region narrow the board, and an empty combination offers a reset to every opening in the region', () => {

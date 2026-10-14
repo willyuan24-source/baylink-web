@@ -9,6 +9,8 @@ import { FILLER_SENTENCES } from '../src/data/editorial-overlay/apply';
 import { readerPlanLines } from '../src/features/detail/reader-text';
 import { loadLocale, translateText } from '../src/i18n/locale';
 import { discoveryCheckedAt } from '../scripts/export-discovery-context';
+import { openingChip } from '../src/lib/event-facts';
+import { fitSize, textWidth } from '../src/lib/share-card-svg';
 
 /** CNT-HOTFIX-2 (2026-10-13 source reads, docs/source-reads-2026-10.md "CNT-HOTFIX-2"). */
 const event = (id: string) => { const item = MONTHLY_EVENTS.find(row => row.id === id); assert.ok(item, id); return item; };
@@ -109,4 +111,18 @@ test('discovery context: checkedAt is the newest verifiedAt in the data, not the
   const newest = [...currentFreebies, ...currentOpenings].map(item => item.verifiedAt).filter(Boolean).sort().at(-1);
   assert.equal(discoveryCheckedAt([...currentFreebies, ...currentOpenings]), newest);
   assert.throws(() => discoveryCheckedAt([{}]));
+});
+
+test('opening chips fit the share card cover in every language (374 px at the 44 px floor)', async () => {
+  await loadLocale('en');
+  // renderShareCardSvg prints openingChip as the cover's big text: fitSize(text, coverWidth - 96, 128, 44), not clipped.
+  const fits = (text: string) => textWidth(text, fitSize(text, 374, 128, 44)) <= 374;
+  const chips = currentOpenings.map(shop => openingChip(shop, '2026-10-14'));
+  for (let month = 1; month <= 12; month++) for (const day of ['09', '28', '30']) {
+    if (month === 2 && day === '30') continue;
+    const openedOn = `2026-${String(month).padStart(2, '0')}-${day}`;
+    for (const status of ['open', 'soft_open'] as const) chips.push(openingChip({ status, openedOn }, '2026-12-31'));
+    chips.push(openingChip({ status: 'announced', openedOn }, '2026-01-01'));
+  }
+  for (const chip of chips) for (const text of [chip.zh, translateText(chip.zh, 'zh-Hant'), chip.en]) assert.ok(fits(text), `${text}: ${textWidth(text, fitSize(text, 374, 128, 44)).toFixed(0)} px`);
 });
