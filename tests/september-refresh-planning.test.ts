@@ -29,7 +29,9 @@ test('every refresh event has dated source-backed planning facts, without invent
 
 test('unknown entry prices and merchandise offers never become zero-dollar or five-dollar admission', () => {
   const unknown = events.filter(event => event.cost === 'unknown');
-  assert.equal(unknown.length, 5);
+  // CNT-HOTFIX-2 (H69): the three SFPL programs are free under SFPL's published "all programs and events are free".
+  assert.equal(unknown.length, 2);
+  for (const id of ['sf-main-halloween-costume-swap-oct15-2026', 'sf-halloween-broadside-printing-oct17-2026', 'sf-marina-library-open-house-oct17-2026']) assert.equal(facts[id].admissionUsd, 0, id);
   for (const event of unknown) assert.equal(facts[event.id].admissionUsd, null, event.id);
   assert.equal(facts['sonoma-valley-book-sale-free-child-book-2026'].admissionUsd, null);
   assert.equal(facts['santa-rosa-big-book-sale-discount-days-2026'].admissionUsd, null);
