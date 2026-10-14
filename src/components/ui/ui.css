@@ -347,12 +347,17 @@ html[data-simple] .ui-save::before { inset:-8px; }
    itself instead of running past the card; any unit that fits the line still moves to the next line whole. */
 :is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep:not([data-latin]) { display:inline-block; max-width:100%; white-space:normal; }
 :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
-/* H63: under 360px a page title scales with the width (cq units fall back to the viewport) instead of overflowing, between
-   20px and the phone H1 (26, display 28; rem, so Aa grows both ends; the width term carries --fluid-scale). */
+/* H63: under 360px a page title scales with the width (no container above it, so cq units are the viewport's) between
+   20px and the phone H1 (26, display 28; rem, so Aa grows both ends; the width term carries --fluid-scale): 24px at 320
+   (30 at 特大), the full size from about 347px. What keeps a long title inside the line is the title units' wrapping
+   (SegmentedTitle, GR-13); this only keeps fewer lines. */
 .ui-page-header__title { max-width:100%; }
 @media (max-width:359px) {
-  .ui-page-header__title { font-size:clamp(1.25rem, calc(8.4cqw * var(--fluid-scale)), 1.625rem); }
-  .ui-page-header[data-size=display] .ui-page-header__title { font-size:clamp(1.25rem, calc(8.8cqw * var(--fluid-scale)), 1.75rem); }
+  .ui-page-header__title { font-size:clamp(1.25rem, calc(7.5cqw * var(--fluid-scale)), 1.625rem); }
+  .ui-page-header[data-size=display] .ui-page-header__title { font-size:clamp(1.25rem, calc(8cqw * var(--fluid-scale)), 1.75rem); }
+  /* RV-14: one long Latin word ("Petaluma" at 特大) breaks inside a narrow card instead of running past it. */
+  :is(.ui-row-card__title,.ui-feed-card__title) { overflow-wrap:anywhere; }
+  :is(.ui-row-card__title,.ui-feed-card__title):lang(en) { hyphens:auto; }
 }
 
 .ui-visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
