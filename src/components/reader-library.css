@@ -50,6 +50,10 @@
 .saves-control .saves-toggle>svg,.saves-day .saves-add-day>svg { width:1.25rem; height:1.25rem; flex:none; color:var(--color-brand); }
 .saves-control .saves-toggle:disabled>svg,.saves-day .saves-add-day:disabled>svg { color:currentColor; }
 .saves-control .saves-toggle[aria-pressed=true]>svg { fill:currentColor; }
+/* ♡ on a card's cover (H31): every FeedCard / HeroCard save slot — home, /events and its offers and new shops — shows the
+   same 44px circle (48px in 简洁显示) with the icon alone. The visible word is set to size 0 rather than pushed out of the
+   box; the button's name (收藏：…) is its aria-label, so assistive tech reads the same. */
+:is(.ui-feed-card__save,.ui-hero-card__save) .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:50%; font-size:0; }
 .saves-control__link { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 .saves-control__note,.saves-control__error,.saves-day__error { flex-basis:100%; margin:0; font-size:var(--text-fact); line-height:1.571; }
 .saves-control__note { color:var(--color-ink-2); }

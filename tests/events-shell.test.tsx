@@ -67,7 +67,9 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     assert.equal(ids.some(id => WEEKEND_PICKS['2026-10-10'].some(pick => pick.id === id)), false);
     for (const card of page.querySelectorAll('.ui-feed-card')) {
       assert.ok(card.querySelector('[data-cover="image"], [data-cover="type"]'), 'every card has a cover');
-      assert.equal(card.querySelectorAll('a, button').length, 1, 'the whole card is one link with no other control');
+      // The whole card is one link; its only other control is the ♡ in the cover's save slot (H31).
+      assert.equal(card.querySelectorAll('a').length, 1, 'the whole card is one link');
+      assert.deepEqual([...card.querySelectorAll('button')].map(button => !!button.closest('.ui-feed-card__save') && /^收藏：/.test(button.getAttribute('aria-label') || '')), [true], 'and one ♡ on the cover');
     }
   }
 });

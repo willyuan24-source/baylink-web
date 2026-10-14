@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test, { after, afterEach, beforeEach } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
+import { readFileSync } from 'node:fs';
 
 /**
  * Mount guards (WEB-SAVES, plan D19): the offer cards and the new-shop cards carry the one save model's ♡, each saving
@@ -18,6 +19,7 @@ const { MemoryRouter } = await import('react-router-dom');
 const { FreebieBoard } = await import('../src/components/FreebieBoard');
 const { default: PerksView } = await import('../src/features/events/PerksView');
 const { default: OpeningsView } = await import('../src/features/events/OpeningsView');
+const { EventsShell } = await import('../src/features/events/EventsShell');
 const { currentFreebies } = await import('../src/data/october-offers');
 const { api } = await import('../src/lib/api');
 const { resetSaveStore, savesKey } = await import('../src/lib/saves');
@@ -65,6 +67,48 @@ test('every offer card on the freebie board has its ♡, named after the card, a
   await act(async () => { fireEvent.click(within(first.card).getByRole('button', { name: `收藏：${first.title}` })); });
   assert.deepEqual(guestSaves(), [`offer:${id}`]);
   assert.equal(within(first.card).getByRole('button', { name: `已收藏：${first.title}` }).getAttribute('aria-pressed'), 'true');
+});
+
+// H31 (EVT13-10, FCC-04, SV13-10): /events cards — the weekend feed and the picks' hero cards — carry the same ♡ in the
+// cover's save slot as the home feed, so a reader saves from the list in one tap; the offer and new-shop cards' ♡ sits on
+// the cover too (no outlined 收藏 button under the card, no `ev-card--action` placement).
+test('every event card on /events — feed and picks — has its ♡ on the cover, named after the card, and one tap saves the event', async () => {
+  const view = render(<MemoryRouter initialEntries={['/events']}><EventsShell today="2026-10-13" /></MemoryRouter>);
+  const cards = view.getAllByRole('article').filter(card => card.matches('.ui-feed-card,.ui-hero-card')).map(card => ({
+    card, title: within(card).getAllByRole('heading')[0].textContent ?? '',
+    hearts: within(card).queryAllByRole('button', { name: /^(已)?收藏：/ }) as HTMLButtonElement[],
+  }));
+  assert.ok(cards.some(({ card }) => card.matches('.ui-feed-card')) && cards.some(({ card }) => card.matches('.ui-hero-card')), 'feed and hero cards render');
+  for (const { card, title, hearts } of cards) {
+    assert.deepEqual(hearts.map(button => button.getAttribute('aria-label')), [`收藏：${title}`], `one ♡ on "${title}"`);
+    assert.ok(hearts[0].closest('.ui-feed-card__save,.ui-hero-card__save'), `"${title}": the ♡ is in the cover's save slot`);
+    assert.ok(!card.matches('.ev-card--action'), `"${title}": not the calendar's under-card placement`);
+  }
+  await allHeartsReady(view);
+  const first = cards.find(({ card }) => card.matches('.ui-feed-card'))!;
+  const eventId = within(first.card).getByRole('link', { name: first.title }).getAttribute('href')!.replace('/events/', '').split('?')[0];
+  await act(async () => { fireEvent.click(within(first.card).getByRole('button', { name: `收藏：${first.title}` })); });
+  assert.deepEqual(guestSaves(), [`event:${eventId}`]);
+  assert.equal(within(first.card).getByRole('button', { name: `已收藏：${first.title}` }).getAttribute('aria-pressed'), 'true');
+});
+
+test('offer and new-shop cards put their ♡ in the cover\'s save slot, like event cards', async () => {
+  for (const board of [<PerksView key="perks" today="2026-10-11" region="all" />, <OpeningsView key="openings" today="2026-10-11" region="all" />]) {
+    const view = render(<MemoryRouter>{board}</MemoryRouter>);
+    const cards = cardsWithHearts(view);
+    assert.ok(cards.length > 0);
+    for (const { card, hearts } of cards) {
+      assert.ok(!card.matches('.ev-card--action'));
+      assert.ok(hearts[0]?.closest('.ui-feed-card__save'));
+    }
+    cleanup();
+  }
+});
+
+test('the cover ♡ is one 44px circle in every card save slot (reader-library.css), not the outlined 收藏 button', () => {
+  const css = readFileSync('src/components/reader-library.css', 'utf8');
+  assert.match(css, /:is\(\.ui-feed-card__save,\.ui-hero-card__save\) \.saves-control \.saves-toggle \{[^}]*width:var\(--control-height\); height:var\(--control-height\);[^}]*border-radius:50%; font-size:0; \}/);
+  assert.doesNotMatch(readFileSync('src/features/events/EventCards.tsx', 'utf8'), /className="ev-card--action"/, 'offers and openings keep the overlay placement');
 });
 
 test('every offer card on the 免费与优惠 board has its ♡, named after the card, and it saves the offer', async () => {

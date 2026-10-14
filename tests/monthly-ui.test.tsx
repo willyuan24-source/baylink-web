@@ -94,8 +94,9 @@ test('/this-month lists every live activity through 再看 12 场, each card one
   assert.ok(ids.length > 100, 'the edition carries the whole autumn catalog');
   assertFeed(view, ids);
   for (const card of view.container.querySelectorAll('#monthly-events .ui-feed-card')) {
-    const links = card.querySelectorAll('a, button');
+    const links = card.querySelectorAll('a');
     assert.equal(links.length, 1, 'the whole card is one link');
+    assert.equal(card.querySelectorAll('.ui-feed-card__save button').length, card.querySelectorAll('button').length, 'its only button is the ♡ on the cover (H31)');
     assert.match(links[0].getAttribute('href')!, /^\/events\/[a-z0-9-]+$/);
     assert.ok(card.querySelector('[data-cover="image"], [data-cover="type"]'), 'every card has a cover');
   }
