@@ -16,6 +16,9 @@
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { aspect-ratio:auto; height:7.5rem; }
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value { font-size:2rem; }
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value:first-child { margin-top:auto; }
+/* An event's band (H28): the date large at the bottom left, as the offer's value. */
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__date { font-size:2rem; }
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__date:first-child { margin-top:auto; }
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__icon { top:calc(50% - 3.25rem); right:1.5rem; width:6.5rem; height:6.5rem; }
 /* An offer with no stated value: its header says everything, so the band is a slim strip in its tone, no words. */
 .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:2.75rem; }
@@ -25,7 +28,7 @@
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
 .local-discovery-detail .detail-head { padding-top:12px; }
 .local-discovery-detail .detail-chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 8px; }
-.local-discovery-detail .detail-head h1 { max-width:28ch; margin:0; font-size:1.625rem; font-weight:600; line-height:1.3077; letter-spacing:0; overflow-wrap:break-word; text-wrap:balance; }
+.local-discovery-detail .detail-head h1 { max-width:28ch; margin:0; font-size:var(--text-h1); font-weight:600; line-height:var(--lh-h1); letter-spacing:0; overflow-wrap:break-word; text-wrap:balance; }
 .local-discovery-detail .detail-head h1 .title-keep { white-space:nowrap; }
 .local-discovery-detail .detail-brand { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; }
 .local-discovery-detail .detail-dek { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.647; }
@@ -84,7 +87,14 @@
 .local-discovery-detail .detail-family { display:inline-flex; flex-direction:column; align-items:flex-start; gap:4px; }
 .local-discovery-detail .detail-family .family-link__status { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .local-discovery-detail .detail-family .family-link__status:empty { display:none; }
-.local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+/* H29: the share, 公开想去 and 一起去 buttons (shared components) take the secondary button look here — white, the control border,
+   ink text, radius 10 — so a detail page shows two button looks (primary, secondary), not six. A pressed 公开想去 is primary. */
+.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); }
+.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button):hover { border-color:var(--color-ink-3); background:var(--color-surface); }
+.local-discovery-detail .detail-together .event-participation-buttons button:is(.is-selected,[aria-pressed=true]) { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
+.local-discovery-detail :is(.detail-share .editorial-share-buttons,.detail-together .event-participation-buttons) button>svg { color:var(--color-brand); }
+.local-discovery-detail .detail-together .event-participation-buttons button:is(.is-selected,[aria-pressed=true])>svg { color:currentColor; }
 
 /* Rails: 172px feed cards in a scroller on a phone (the page itself never scrolls sideways), four in a row on a desktop. */
 .local-discovery-detail .detail-rail { margin:20px 0 0; }
@@ -100,11 +110,13 @@
    page) is the filled primary button that takes the rest of the row. */
 .local-discovery-detail .detail-actions { display:flex; align-items:stretch; gap:6px; }
 .local-discovery-detail .detail-actions :is(.saves-control,.saves-day) { margin:0; }
-.local-discovery-detail .detail-action { display:inline-flex; align-items:center; justify-content:center; gap:6px; min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; line-height:1.25; text-align:center; }
+/* The cells are <Button>s (ui.css: primary / secondary looks, radius 10); this sets only their size in the bar. */
+.local-discovery-detail .detail-action { gap:6px; min-height:var(--control-height); padding:0 12px; font-size:var(--text-fact); line-height:1.25; text-align:center; }
 .local-discovery-detail .detail-action svg { flex:none; width:1.125rem; height:1.125rem; }
 .local-discovery-detail .detail-action__otter { flex:none; width:1.75rem; height:1.75rem; }
 .local-discovery-detail .detail-actions__primary { flex:1 1 auto; min-width:0; }
-.local-discovery-detail .detail-actions .detail-action--primary,.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { width:100%; border-color:var(--color-brand-deep); background:var(--color-brand-deep); color:var(--color-surface); }
+.local-discovery-detail .detail-actions .detail-action--primary,.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { width:100%; border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
+.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
 .local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day>svg { color:currentColor; }
 .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { display:flex; width:100%; }
 @media(max-width:1023px) {
@@ -116,7 +128,7 @@
   .local-discovery-detail .detail-actions .detail-action--official>svg { order:-1; }
   .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
   .local-discovery-detail .detail-actions .saves-control { height:100%; }
-  .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:12px; font-size:var(--text-body); }
+  .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:10px; font-size:var(--text-body); }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { height:100%; }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day__error { display:none; }
   .local-discovery-detail .detail-actions .detail-actions__primary { container:detail-primary / inline-size; font-size:var(--text-body); }
@@ -165,10 +177,12 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
    actions). The card comes between the two blocks in the DOM, so a phone reads the facts right under the H1. */
 @media(min-width:1024px) {
   .local-discovery-detail .detail-aside .detail-facts { grid-template-columns:minmax(0,1fr); margin:0 0 16px; }
-  .local-discovery-detail { padding:16px 40px 72px; }
+  /* H30 / SV13-07: the page frame of every other template (tokens.css .site-container: 1216 + the 32px gutter), so the H1, the
+     hero and the back link start at the header logo (112 at 1440), not 40px inside it; the action card ends at the frame. */
+  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:16px var(--page-gutter) 72px; }
   .local-discovery-detail .detail-back { padding:0; margin-bottom:8px; }
   .local-discovery-detail .detail-back a { padding-left:0; }
-  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:minmax(0,50rem) 22.5rem; grid-template-areas:"top aside" "body aside"; grid-template-rows:auto 1fr; justify-content:center; align-items:start; gap:0 48px; }
+  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:minmax(0,50rem) 22.5rem; grid-template-areas:"top aside" "body aside"; grid-template-rows:auto 1fr; justify-content:space-between; align-items:start; gap:0 48px; }
   .local-discovery-detail .detail-main--top { grid-area:top; }
   .local-discovery-detail .detail-main--body { grid-area:body; }
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
@@ -176,7 +190,6 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { height:9rem; }
   .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:3.5rem; border-radius:16px; }
   .local-discovery-detail .detail-head { padding-top:20px; }
-  .local-discovery-detail .detail-head h1 { font-size:2rem; line-height:1.3125; }
   .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }
   .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
   .local-discovery-detail .detail-actions>*,.local-discovery-detail .detail-actions .saves-control .saves-toggle { width:100%; }

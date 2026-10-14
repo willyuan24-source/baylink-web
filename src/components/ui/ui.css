@@ -23,15 +23,17 @@
 .ui-stickers { position:absolute; left:8px; right:8px; bottom:8px; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; pointer-events:none; }
 .ui-stickers>:only-child[data-slot=end] { margin-left:auto; }
 
-/* Buttons: one primary per section; no arrows inside buttons. */
+/* Buttons: three looks site-wide (H29) — primary (brand fill, one per section), secondary (white, control border, ink) and
+   quiet (brand text, no fill or border). One radius (10px). No arrows inside buttons; an external link may end in ↗. */
 .ui-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:10px; font-size:var(--text-body); line-height:1.25; font-weight:600; text-decoration:none; cursor:pointer; transition:background-color 120ms ease, transform 120ms ease; }
 .ui-button:active { transform:scale(.98); }
-.ui-button[data-variant=primary] { background:var(--color-brand); color:var(--color-surface); }
-.ui-button[data-variant=primary]:hover { background:var(--color-brand-hover); }
+.ui-button[data-variant=primary] { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
+.ui-button[data-variant=primary]:hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
 .ui-button[data-variant=secondary] { background:var(--color-surface); border-color:var(--color-line-strong); color:var(--color-ink); }
-.ui-button[data-variant=tonal] { background:var(--color-brand-tint); color:var(--color-brand); }
-.ui-button[data-variant=text] { padding:0 8px; background:transparent; color:var(--color-brand); }
-.ui-button[data-variant=text]:hover { text-decoration:underline; }
+.ui-button[data-variant=secondary]:hover { border-color:var(--color-ink-3); }
+.ui-button[aria-pressed=true]>svg { color:var(--color-brand); fill:currentColor; }
+.ui-button[data-variant=quiet] { padding:0 8px; background:transparent; color:var(--color-brand); }
+.ui-button[data-variant=quiet]:hover { text-decoration:underline; }
 .ui-button:disabled,.ui-button[aria-disabled=true] { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); cursor:not-allowed; transform:none; }
 .ui-button[data-block] { width:100%; }
 .ui-icon-button { position:relative; display:inline-grid; place-items:center; flex:none; width:2.5rem; height:2.5rem; padding:0; border:1px solid var(--color-line-strong); border-radius:50%; background:var(--color-surface); color:var(--color-ink); cursor:pointer; }
@@ -320,7 +322,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 /* Page header and containers: one H1 spec, three widths, gutters 16/24/32. */
 .ui-page-header { display:flex; flex-direction:column; gap:8px; margin:0 0 24px; }
 .ui-page-header__crumbs { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
-.ui-page-header__title { margin:0; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; letter-spacing:0; text-wrap:balance; }
+.ui-page-header__title { margin:0; color:var(--color-ink); font-size:var(--text-h1); line-height:var(--lh-h1); font-weight:600; letter-spacing:0; text-wrap:balance; }
 .ui-page-header[data-size=display] .ui-page-header__title { font-size:var(--text-display); line-height:var(--lh-display); }
 .ui-page-header__lede { max-width:40em; margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
 .ui-page-header__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }

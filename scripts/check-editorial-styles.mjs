@@ -58,6 +58,8 @@ export const editorialStyleScopes = [
   // WEB-POLISH (G26): the deals board and the saved-poster gallery on the perks guides.
   { file: 'src/components/freebie-board.css' },
   { file: 'src/components/perks-gallery.css' },
+  // WEB-VISUAL-2: /together's page frame and its controls on the shared looks.
+  { file: 'src/pages/together-page.css' },
 ];
 
 const controlSelector = /(?:^|[\s>,(:])(?:a|button|input|select|textarea|summary)(?=$|[\s.#:[>)])/;

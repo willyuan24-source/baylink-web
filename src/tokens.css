@@ -68,6 +68,9 @@
        card     18/27                              card and row titles (H3) */
   --text-display:1.75rem; --lh-display:1.286;
   --text-title:1.625rem; --lh-title:1.308;
+  /* The page H1 (H30): every H1 except the display tier (home, the events column) reads these, so a page cannot drift to a
+     third H1 size. They follow --text-title (26/34 phone, 32/42 desktop). */
+  --text-h1:var(--text-title); --lh-h1:var(--lh-title);
   --text-section:1.375rem; --lh-section:1.364;
   --lh-card:1.5;
   /* Layout (SV-09, design.md §4.4): one page frame, aligned to the header (the logo and the content edge at 112–1328 in a
