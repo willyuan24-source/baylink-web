@@ -1,8 +1,9 @@
 import { ArrowRight, CalendarDays, Check, ChevronLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getBayAreaToday } from '../lib/monthly';
 import { downloadEventCalendar } from '../lib/event-ics';
 import { EventParticipationActions, EventParticipationProvider } from './EventParticipation';
+import { useEventParticipation } from '../lib/event-participation-context';
 import { EditorialShareActions } from './EditorialShareActions';
 import { FamilyLinkButton } from './FamilyLinkButton';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
@@ -76,6 +77,13 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const ended = event ? planDate === null : item.kind === 'offer' && !!item.offer.endDate && item.offer.endDate < today;
   // An event with no confirmed day is waiting for one, not over: it gets no "接下来可以去" in place of the page.
   const eventOver = !!event && ended && !unconfirmed;
+  // H07: 想约人一起去？ needs the API to know the event; until the API-SYNC after a content merge it may not. A reader who
+  // followed a link to the block (Little Bay's 想去 · 找搭子 → #event-participation) keeps its heading and a one-line note,
+  // so the jump lands on an explanation instead of the next section.
+  const participation = useEventParticipation();
+  const { hash } = useLocation();
+  const unknownToApi = !!event && !!participation?.unknown.includes(event.id);
+  const together = !!event && !eventOver && (!unknownToApi || hash === '#event-participation');
   const unconfirmedOffer = item.kind === 'offer' && item.offer.verificationStatus === 'needs-confirmation';
   const officialUrl = item.kind === 'event' ? item.event.officialUrl : item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl;
   const sourceUrl = item.kind === 'opening' ? item.shop.sourceUrl : officialUrl;
@@ -169,10 +177,12 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
               <h2 id="detail-plan-title">{t('出发前，做好这些安排', 'Before you go')}</h2>
               <ul className="detail-plan">{planLines.map(line => <li key={line}><Check aria-hidden="true" strokeWidth={2} /><p><ReaderText text={line} /></p></li>)}</ul>
             </section>}
-            {!eventOver && <section className="detail-together" aria-labelledby="detail-together-title">
+            {together && <section className="detail-together" aria-labelledby="detail-together-title">
               <h2 id="detail-together-title">{t('想约人一起去？', 'Going with others?')}</h2>
-              <div id="event-participation" className="discovery-participation-anchor"><EventParticipationActions event={event} today={today} available={!ended} /></div>
-              <SquadTeaser eventId={event.id} />
+              <div id="event-participation" className="discovery-participation-anchor">{unknownToApi
+                ? <p className="event-participation-note">{t('这场活动暂时还不能公开想去或约人一起去，请稍后再来看看。', 'Sharing interest and finding people to go with are not open for this event yet. Please check back later.')}</p>
+                : <EventParticipationActions event={event} today={today} available={!ended} />}</div>
+              {!unknownToApi && <SquadTeaser eventId={event.id} />}
             </section>}
           </>}
           {item.kind === 'offer' && <BenefitSteps offer={item.offer} />}

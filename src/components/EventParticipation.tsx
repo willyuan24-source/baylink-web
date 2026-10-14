@@ -17,6 +17,7 @@ export function EventParticipationProvider({ events, children }: { events: Month
 }
 function ParticipationSession({ events, app, children }: { events: MonthlyEvent[]; app?: AppContextValue; children: ReactNode }) {
   const [entries, setEntries] = useState<Record<string, EventEngagement>>({});
+  const [unknown, setUnknown] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [busy, setBusy] = useState<string[]>([]);
@@ -43,10 +44,13 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
       if (!alive.current || controller.signal.aborted || serial !== requestSerial.current) return;
       setEntries(previous => {
         const next = { ...previous };
-        for (const entry of response) if ((before[entry.eventId] || 0) === (revisions.current[entry.eventId] || 0)) next[entry.eventId] = entry;
+        for (const entry of response.entries) if ((before[entry.eventId] || 0) === (revisions.current[entry.eventId] || 0)) next[entry.eventId] = entry;
         return next;
       });
-      for (const entry of response) loadedIds.current.add(entry.eventId);
+      // H07: an event the API does not know yet (its catalog copy lags until the API-SYNC after a content merge) has no
+      // participation to show. It is not a failure, so no 重试; the next forced read (focus) asks again.
+      setUnknown(previous => [...previous.filter(id => !requested.includes(id)), ...response.unknown]);
+      for (const id of [...response.entries.map(entry => entry.eventId), ...response.unknown]) loadedIds.current.add(id);
       setFailed(false);
     } catch { if (alive.current && !controller.signal.aborted && serial === requestSerial.current) setFailed(true); }
     finally { if (alive.current && !controller.signal.aborted && serial === requestSerial.current) setLoading(false); }
@@ -85,15 +89,18 @@ function ParticipationSession({ events, app, children }: { events: MonthlyEvent[
   };
   // A newly expanded scope must not briefly look like a complete empty result
   // before its effect starts. Cached counts belong only to this account session.
-  const awaitingScope = enabled && !!ids && ids.split(',').some(id => !entries[id]);
-  return <EventParticipationContext.Provider value={{ entries, loading: loading || (awaitingScope && !failed), failed, busy, refresh, update, app }}>{children}</EventParticipationContext.Provider>;
+  const awaitingScope = enabled && !!ids && ids.split(',').some(id => !entries[id] && !unknown.includes(id));
+  return <EventParticipationContext.Provider value={{ entries, unknown, loading: loading || (awaitingScope && !failed), failed, busy, refresh, update, app }}>{children}</EventParticipationContext.Provider>;
 }
 
 export function EventParticipationActions({ event, today = getBayAreaToday(), available = true }: { event: MonthlyEvent; today?: string; available?: boolean }) {
   const participation = useEventParticipation();
   const locale = useLocale();
   const [buddiesOpen, setBuddiesOpen] = useState(false);
-  if (!participation) return null;
+  // H07: the API cannot count, record or list 一起去 for an event it does not know yet; showing buttons that can only fail,
+  // or "人数暂时无法加载", would be wrong. The detail page drops its 想约人一起去？ block too, or keeps a one-line note for a
+  // reader who followed a link to #event-participation (LocalDiscoveryDetail).
+  if (!participation || participation.unknown.includes(event.id)) return null;
   const entry = participation.entries[event.id];
   const ended = event.endDate < today;
   const unavailable = ended || !available;

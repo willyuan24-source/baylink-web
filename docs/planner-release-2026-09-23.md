@@ -28,7 +28,7 @@
 
 ## 导出、依赖与部署
 
-前端构建导出 `public/planner-catalog.json`。发布内容时另运行：
+前端构建导出 `public/planner-catalog.full.json`（给 API）和 `public/planner-catalog.json`（给 /opus-bay，见 `src/data/public-catalog-holdout.ts`）。发布内容时另运行（第一条把完整目录写给 API）：
 
 ```powershell
 npx tsx --tsconfig tsconfig.app.json scripts/export-planner-catalog.ts ../baylink-backend/data/planner-catalog.json
