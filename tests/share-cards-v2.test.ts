@@ -6,6 +6,7 @@ import { localDiscoveries } from '../src/data/local-discoveries';
 import { guides } from '../src/data/guides';
 import { GUIDE_IMAGES, type GuideImage } from '../src/data/guide-media';
 import { LIFE_TOOLS } from '../src/data/tool-catalog';
+import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { BAYLINK_TAGLINE, cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
 import { DEFAULT_TAGLINE, PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
 import { localizedSocialImage } from '../src/lib/seo';
@@ -127,4 +128,26 @@ test('H45: which photo a listing card may carry', () => {
   assert.equal(cardPhoto(event, { ...photo, kind: 'illustration', rights: { basis: 'owner', promoAllowed: true } }, '2026-10-12'), undefined, 'never AI art');
   assert.equal(cardPhoto(offer, { ...photo, rights: { basis: 'promo-editorial', scope: 'same-event coverage only' } }, '2026-10-12'), undefined, 'an offer’s brand image is not an event’s own image');
   if (!OFFICIAL_IMAGE_ON_OWN_EVENT_CARD) assert.equal(cardPhoto(event, { ...photo, rights: { basis: 'promo-editorial', scope: 'same-event coverage only' } }, '2026-10-12'), undefined, 'without the owner’s rule, coverage-only images stay off the card');
+});
+
+test('H45 (owner rule 10-08): an event’s own card carries the organiser’s image its page shows as the official cover', () => {
+  assert.equal(OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, true);
+  const today = '2026-10-12';
+  const events = localDiscoveries.filter(item => item.kind === 'event');
+  const official = events.filter(item => {
+    const rights = GUIDE_IMAGES[item.event.imageKey]?.rights;
+    return typeof rights === 'object' && rights?.basis === 'promo-editorial';
+  });
+  assert.ok(official.length >= 10, `${official.length} events with the organiser’s own image`);
+  for (const item of official) assert.equal(cardPhoto(item, GUIDE_IMAGES[item.event.imageKey], today), GUIDE_IMAGES[item.event.imageKey], item.event.id);
+  const photo: GuideImage = { src: '/x.webp', alt: '', caption: '2025', credit: 'Organiser', kind: 'photo', width: 1200, height: 800 };
+  const [first] = official;
+  assert.equal(cardPhoto(first, { ...photo, rights: { basis: 'press-kit' } }, today), undefined, 'a press kit is not the organiser’s image of this event');
+  assert.equal(cardPhoto(first, { ...photo, rights: { basis: 'promo-editorial', promoAllowed: false } }, today), undefined, 'a record that says no promotion');
+  assert.equal(cardPhoto(first, { ...photo, rights: { basis: 'public-domain' } }, today), undefined, 'a public-domain photo is coverage, not the organiser’s');
+  // a venue photo approved for an event is the venue, not the event's own image; a theme photo is never a cover
+  const [venueKey, venue] = Object.entries(EVENT_CONTEXT_PHOTOS).find(([, use]) => use.purpose === 'venue')!;
+  const venueEvent = events.find(item => venue.eventIds.includes(item.event.id));
+  if (venueEvent && GUIDE_IMAGES[venueKey]) assert.equal(cardPhoto({ kind: 'event', event: { ...venueEvent.event, imageKey: venueKey } }, GUIDE_IMAGES[venueKey], today), undefined, venueKey);
+  assert.equal(cardPhoto(first, GUIDE_IMAGES['dvids-blue-angels-sffw-2024'], today), undefined, 'the DVIDS Fleet Week photo stays off promotion');
 });

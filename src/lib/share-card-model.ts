@@ -41,7 +41,7 @@ export function promoPhoto(image: GuideImage | undefined): GuideImage | undefine
  * theme photo) — never a press kit, never a record that says no promotion, never AI art, and never on a hub or weekly
  * card, which promote BAYLINK and keep promoPhoto's rule. Turning this off leaves promotion-cleared photos only.
  */
-export const OFFICIAL_IMAGE_ON_OWN_EVENT_CARD: boolean = false;
+export const OFFICIAL_IMAGE_ON_OWN_EVENT_CARD: boolean = true;
 export function cardPhoto(item: LocalDiscovery, image: GuideImage | undefined, today: string): GuideImage | undefined {
   const cleared = promoPhoto(image);
   if (cleared || !OFFICIAL_IMAGE_ON_OWN_EVENT_CARD || !image || item.kind !== 'event') return cleared;
