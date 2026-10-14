@@ -101,7 +101,7 @@ html[data-simple] .gd-carousel .gd-slide { min-height:0; }
 .gd-keyfacts__value { color:var(--color-ink); font-size:1.0625rem; line-height:1.6; font-weight:600; }
 .gd-keyfacts h2 .gd-keyfacts__from { display:inline-block; margin-left:8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; vertical-align:middle; }
 /* H08: the fallback card quotes whole sentences, so its values read at body weight and size, not as one bold figure. */
-.gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--text-body); line-height:1.65; font-weight:400; }
+.gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--text-body); line-height:1.65; font-weight:400; overflow-wrap:break-word; }
 .gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:600; text-decoration:none; }
 /* The glyph stays caption size; the tap area around it is 44px (48px in 简洁显示), rule 5. */
