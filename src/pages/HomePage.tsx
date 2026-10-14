@@ -1,9 +1,8 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
-import { Link, useParams, useLocation } from 'react-router-dom';
-import { ChevronRight, Compass, RotateCw } from 'lucide-react';
+import { useParams, useLocation } from 'react-router-dom';
+import { Compass, RotateCw } from 'lucide-react';
 import { useApp } from '../app/context';
 import { HomeDiscovery } from '../components/HomeDiscovery';
-import { useUiCopy } from '../components/ui/ui-copy';
 import { loadSearchConversion } from '../i18n/locale';
 import type { CommunityBoardProps } from './CommunityBoard';
 import { communityBoardFailure, loadCommunityBoard, LoadedCommunityBoard } from './community-board-loader';
@@ -99,7 +98,6 @@ export default function HomePage() {
   const [communityExpanded, setCommunityExpanded] = useState(false);
   const [feedScrollRequest, setFeedScrollRequest] = useState(0);
   const { posts, keyword, openBayBay, openSearch } = useApp();
-  const { t } = useUiCopy();
   useWarmSearchDictionaries();
   const scrollToFeed = () => {
     // After the board's chunk failed to load, asking for the board imports it again and the slot suspends on that load:
@@ -122,8 +120,8 @@ export default function HomePage() {
     <div className={`bay-home${isDiscovery ? ' bay-home-editorial' : ''}`}>
       {isDiscovery && <HomeDiscovery onAskBayBay={openBayBay} onBrowseCommunity={scrollToFeed} onSearch={openSearch} />}
       {showBoard && <Suspense fallback={null}><CommunityBoardSlot required={!isDiscovery} asked={communityExpanded || location.hash === '#home-feed-section'} onScrollToFeed={scrollToFeed} scrollRequest={feedScrollRequest} /></Suspense>}
-      {/* The site footer (SiteChrome) closes the home page; the board views keep their community links. */}
-      {!isDiscovery && <footer className="bay-home-footer"><span>BAYLINK<span>{t('湾区去哪、怎么办 · 有来源的中文答案', 'Where to go and how to get it done in the Bay, with sources')}</span></span><nav aria-label="关于与帮助"><Link to="/about">认识 BAYLINK<ChevronRight size={14} /></Link><Link to="/guides/baylink-safety-guide">社区安全指南<ChevronRight size={14} /></Link><Link to="/archive">已发布内容目录<ChevronRight size={14} /></Link></nav></footer>}
+      {/* The site footer (SiteChrome) closes every page, the board views too (H53: their old small-print footer is gone;
+          the board's safety notes link the community safety guide). */}
     </div>
   );
 }

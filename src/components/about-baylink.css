@@ -27,5 +27,3 @@
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:4px}}
 @media(min-width:1024px){.about-page{padding-block:40px 72px}.about-section{margin-top:56px}.about-section>h2{font-size:var(--text-section);line-height:1.333}}
 /* The home footer (WEB-HOME's file) still reads these two rules; they move with that footer. */
-.bay-home-footer nav{display:flex;flex-wrap:wrap;gap:18px}.bay-home-footer nav a{display:inline-flex;align-items:center;gap:5px;font-size:.6875rem}
-@media(max-width:639px){.bay-home-footer nav{gap:16px}}
