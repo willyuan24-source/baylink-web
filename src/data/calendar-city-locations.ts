@@ -31,9 +31,12 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Castro Valley': { lat: 37.708, lng: -122.063, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Crockett': { lat: 38.052, lng: -122.220, precision: 'city', sourceUrl: CENSUS_PLACES },
   // Added 2026-10-13 (CNT-SUPPLY-2) from Census 2026 places (read that day): Forestville CDP 0624960 (38.482491, -122.889884),
-  // Guerneville CDP 0631470 (38.517165, -122.989897). City references for two Sonoma County Library branches without a pin.
+  // Guerneville CDP 0631470 (38.517165, -122.989897), Gilroy city 0629504 (37.006407, -121.585321), Saratoga city 0670280
+  // (37.268328, -122.026223). City references for the new batch's towns (every event city needs one, even with a venue pin).
   'Forestville': { lat: 38.482, lng: -122.890, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Guerneville': { lat: 38.517, lng: -122.990, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Gilroy': { lat: 37.006, lng: -121.585, precision: 'city', sourceUrl: CENSUS_PLACES },
+  'Saratoga': { lat: 37.268, lng: -122.026, precision: 'city', sourceUrl: CENSUS_PLACES },
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
   // Census 2026 GEOID 0600562; city reference only, never a venue entrance.
   'Alameda': { lat: 37.742, lng: -122.261, precision: 'city', sourceUrl: CENSUS_PLACES },
