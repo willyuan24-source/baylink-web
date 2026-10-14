@@ -4,7 +4,7 @@ import { Sheet } from './ui/Sheet';
 import { Button } from './ui/Button';
 import { BRAND } from '../brandAssets';
 import './site-dialogs.css';
-import { translateText, useLocale } from '../i18n/locale';
+import { getLocale, translateText, useLocale } from '../i18n/locale';
 import {
   buildPostShareUrl,
   canUseNativeShare,
@@ -50,7 +50,7 @@ const SharePreviewCard = ({ post }: { post: ShareablePost }) => {
         )}
       </div>
       <p className="mt-3 border-t border-black/[0.04] pt-2.5 text-center text-[0.8125rem] text-baylink-muted">
-        来自 BAYLINK｜湾区生活信息站
+        {getLocale() === 'en' ? 'From BAYLINK · Where to go and how to get it done in the Bay' : translateText('来自 BAYLINK · 湾区去哪、怎么办')}
       </p>
     </div>
   );
