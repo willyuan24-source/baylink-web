@@ -85,6 +85,6 @@ test('the naturalization guide links the current USCIS interview-and-test page; 
   const urls = JSON.stringify(guide);
   assert.doesNotMatch(urls, /find-study-materials-and-resources\/the-naturalization-interview-and-test/u);
   assert.match(urls, /learn-about-citizenship\/the-naturalization-interview-and-test/u);
-  assert.match(MONTHLY_METADATA.title, /11\/30 · 湾区/u);
+  assert.match(MONTHLY_METADATA.title, /12\/31 · 湾区/u);
   assert.doesNotMatch(translateText(MONTHLY_METADATA.title, 'en'), /[㐀-鿿]/u);
 });

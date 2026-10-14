@@ -86,8 +86,9 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('fall edition stays current through November 30, then archives', () => {
-  assert.equal(MONTHLY_EDITION.throughDate, '2026-11-30');
+test('fall edition stays current through December 31, then archives', () => {
+  // CNT-SUPPLY-2 (H25): the edition runs through 12/31 so the December weekends' events are listed.
+  assert.equal(MONTHLY_EDITION.throughDate, '2026-12-31');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
@@ -97,7 +98,9 @@ test('fall edition stays current through November 30, then archives', () => {
   assert.equal(isEditionCurrent('2026-11-15'), true);
   assert.equal(isEditionCurrent('2026-11-16'), true);
   assert.equal(isEditionCurrent('2026-11-30'), true);
-  assert.equal(isEditionCurrent('2026-12-01'), false);
+  assert.equal(isEditionCurrent('2026-12-01'), true);
+  assert.equal(isEditionCurrent('2026-12-31'), true);
+  assert.equal(isEditionCurrent('2027-01-01'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);
@@ -270,7 +273,7 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
-    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-11-30', `${item.id} overlaps the fall edition or its November previews`);
+    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= MONTHLY_EDITION.throughDate, `${item.id} overlaps the fall edition (through ${MONTHLY_EDITION.throughDate})`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     // The editorial overlay drops filler and label repeats, so a covered plan may be one to four steps (CNT-EVENTS);
@@ -354,7 +357,8 @@ test('late October dates retain community events while November previews respect
   for (const id of ['emeryville-art-exhibition-closing-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026']) {
     assert.ok(!november.includes(id), `${id} stays hidden after its final October date`);
   }
-  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-07'), []);
+  // CNT-SUPPLY-2: December weekends now have events (edition through 12/31); nothing is left after the edition.
+  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2027-01-01'), []);
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
     ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07'), [], 'archive permission cannot bypass the requested day');
