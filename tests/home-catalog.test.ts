@@ -10,7 +10,7 @@ import { getCover } from '../src/lib/cover';
 import { isPublicBenefit } from '../src/lib/event-facts';
 import { GUIDE_IMAGES, guides, HOME_OFFERS, HOME_SCENE3D, HOME_WEEKENDS, MONTHLY_EVENTS } from '../src/lib/home-catalog';
 import { GUIDE_IMAGES as FULL_IMAGES } from '../src/data/guide-media';
-import { canLeadOfferRail, offerHasPhoto, offerLeadsRail, selectHomeOffers } from '../src/lib/home-offers';
+import { canLeadOfferRail, offerHasPhoto, offerLeadsRail, offerRailOpensWide, selectHomeOffers } from '../src/lib/home-offers';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { TOPIC_LABELS } from '../src/features/home/home-model';
 
@@ -71,13 +71,25 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
   assert.deepEqual(selectHomeOffers(pool, '2026-10-12', 6, item => photos.has(item.id)).map(item => item.id), ['ikea-b', 'museum', 'later', 'shop-week', 'ikea-a']);
   // ... and only a photo that can be the wide ticket moves to the front; the offer ending today is second.
   assert.deepEqual(selectHomeOffers(pool, '2026-10-12', 6, item => photos.has(item.id), item => item.id === 'later').map(item => item.id), ['later', 'ikea-b', 'museum', 'shop-week', 'ikea-a']);
+  // A narrow desktop rail shows three tickets after a wide one: with three deadline offers a later landscape photo does not
+  // lead (the third would be hidden), one of the deadline offers does when it has a landscape photo, and with four none does.
+  const soon = [offer('a', 'Alpha', '2026-10-12'), offer('b', 'Bravo', '2026-10-13'), offer('c', 'Charlie', '2026-10-13'), offer('wide', 'Wide', '2026-10-20')];
+  const all = () => true;
+  assert.deepEqual(selectHomeOffers(soon, '2026-10-12', 6, all, item => item.id === 'wide').map(item => item.id), ['a', 'b', 'c', 'wide']);
+  assert.deepEqual(selectHomeOffers(soon, '2026-10-12', 6, all, item => item.id === 'b').map(item => item.id), ['b', 'a', 'c', 'wide']);
+  const four = [...soon, offer('d', 'Delta', '2026-10-13')];
+  assert.deepEqual(selectHomeOffers(four, '2026-10-12', 6, all, item => item.id === 'b').map(item => item.id), ['a', 'b', 'c', 'd', 'wide']);
+  const landscape = { tier: 'official' as const, key: 'k', image: { src: '/x.webp', width: 1440, height: 929, alt: '', kind: 'photo' }, label: { zh: '', en: '' }, fit: 'cover' as const, focal: [50, 40] as const };
+  assert.equal(offerRailOpensWide(selectHomeOffers(soon, '2026-10-12', 6, all, item => item.id === 'b'), landscape, '2026-10-12'), true);
+  assert.equal(offerRailOpensWide(selectHomeOffers(four, '2026-10-12', 6, all, item => ['a', 'b'].includes(item.id)), landscape, '2026-10-12'), false, 'a fourth deadline offer keeps the rail plain');
   // The published rail on every snapshot day: reviewed offers only, the page's selection (shipped images) equals the
-  // generator's (the full registry), the offers ending today or tomorrow come first after the wide ticket (a narrow
-  // desktop rail shows three tickets), and the first ticket is the wide one whenever any chosen photo can be.
+  // generator's (the full registry), the offers ending today or tomorrow come first (after the wide ticket) and never sit
+  // where a narrow desktop rail cuts off (three tickets after a wide one, four otherwise), and a landscape photo leads
+  // unless the deadline offers fill those three.
   const reviewed = currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation');
   const reviewedIds = new Set(reviewed.map(item => item.id));
   const shipped = new Set(HOME_OFFERS.map(item => item.id));
-  let urgentDays = 0;
+  let urgentDays = 0, wideDays = 0;
   for (const day of Object.keys(snapshots)) {
     const leads = offerLeadsRail(GUIDE_IMAGES, day);
     const rail = selectHomeOffers(HOME_OFFERS, day, 6, offerHasPhoto(GUIDE_IMAGES, day), leads);
@@ -91,10 +103,13 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
     const brand = (item: (typeof rail)[number]) => item.brand.split(/\s+[·・|]\s+/u)[0].trim().toLowerCase();
     const urgent = rail.flatMap((item, index) => item.endDate! <= tomorrow && !rail.slice(0, index).some(other => brand(other) === brand(item)) ? [index] : []);
     if (urgent.length) urgentDays++;
-    urgent.forEach((index, rank) => assert.ok(index <= rank + 1, `${day}: ${rail[index].id} ends by tomorrow and is ticket ${index + 1}`));
-    if (rail.some(leads)) assert.ok(leads(rail[0]), `${day}: a landscape photo leads`);
+    const wide = rail.length > 0 && offerRailOpensWide(rail, getCover({ kind: 'offer', id: rail[0].id, imageKey: rail[0].imageKey }, { images: GUIDE_IMAGES, today: day }), day);
+    if (wide) wideDays++;
+    urgent.forEach((index, rank) => assert.ok(index <= rank + 1 && index < (wide ? 3 : Math.max(4, urgent.length)), `${day}: ${rail[index].id} ends by tomorrow and is ticket ${index + 1}`));
+    if (rail.some(leads) && !wide) assert.ok(urgent.length >= 3, `${day}: a landscape photo leads`);
   }
   assert.ok(urgentDays > 0, 'some snapshot day has an offer ending by the next day');
+  assert.ok(wideDays > 0, 'some snapshot day opens with the wide ticket');
 });
 
 test('the wide offer ticket only takes a landscape image (no square or banner letterboxed on its blur)', () => {

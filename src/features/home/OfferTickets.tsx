@@ -8,7 +8,7 @@ import { offerKindLabel, type OfferFactsInput } from '../../lib/event-facts';
 import type { HomeOffer } from '../../lib/home-offers';
 import { monthDay } from './home-model';
 import { dateScope } from '../../lib/date-guard';
-import { canLeadOfferRail } from '../../lib/home-offers';
+import { offerRailOpensWide } from '../../lib/home-offers';
 
 const TICKET_SIZES = '(max-width: 767px) 176px, 300px';
 /** The first ticket when it is a photo: the full width of a phone, two columns on a desktop (H19). */
@@ -17,14 +17,14 @@ const WIDE_SIZES = '(max-width: 767px) calc(100vw - 32px), 600px';
 /**
  * ⑦ 免费与优惠 (1007 §4.2 ⑦, SV-03): 1:1 tickets — the brand's own image with its deadline, or the B information card with
  * the value large ("免费", "8 折") — what ends soonest first (H19, src/lib/home-offers.ts). When the first is a landscape
- * photo (`canLeadOfferRail`) it is the wide ticket (3:2, the full width on a phone, two columns on a desktop) and the rest sit in a two-column
+ * photo and the deadline offers still fit beside it (`offerRailOpensWide`) it is the wide ticket (3:2, the full width on a phone, two columns on a desktop) and the rest sit in a two-column
  * grid on a phone. Under each: the brand, the kind, the source check (as on the event cards) and ♡ (one save model).
  */
 export function OfferTickets({ offers, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
   const { t, pick, locale } = useUiCopy();
   if (!offers.length) return null;
   const brands = offers.map(offer => offerBrandLine(offer.brand, locale));
-  const wide = canLeadOfferRail(covers[0]);
+  const wide = offerRailOpensWide(offers, covers[0], today);
   return <section className="home-offers" aria-labelledby="home-offers-title" {...dateScope('day')}>
     <div className="home-section-head">
       <h2 id="home-offers-title">{t('免费与优惠', 'Free & deals')}</h2>
