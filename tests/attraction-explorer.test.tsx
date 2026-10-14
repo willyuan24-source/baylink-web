@@ -167,3 +167,19 @@ test('secondary destinations remain accessible in all languages and carry all si
     cleanup();
   }
 });
+
+// H36 (FCC-11): every link from /explore into the 3D city — the module, its rail and the place cards' 3D links — names
+// /explore as its source (from=explore), never the guide entry's from=guide; each card link keeps its own destination.
+test('every /explore link into 3D San Francisco says from=explore and keeps its own destination', async () => {
+  for (const locale of ['zh-Hans', 'en'] as const) {
+    await setLocale(locale, false);
+    const view = render(<MemoryRouter initialEntries={[locale === 'en' ? '/en/explore?region=sf' : '/explore?region=sf']}><AttractionExplorer /></MemoryRouter>);
+    const links = [...view.container.querySelectorAll('a')].map(anchor => new URL(anchor.getAttribute('href')!, 'https://www.baylink.us')).filter(url => /\/opus-bay$/.test(url.pathname));
+    assert.ok(links.length >= 8, `${locale}: the module, its rail and the SF cards (${links.length})`);
+    for (const url of links) assert.equal(url.searchParams.get('from'), 'explore', `${locale}: ${url.pathname}${url.search}`);
+    const cards = [...view.container.querySelectorAll('.xp-3d-link')].map(anchor => new URL(anchor.getAttribute('href')!, 'https://www.baylink.us'));
+    assert.ok(cards.length >= 5 && cards.every(url => url.searchParams.get('at') && url.searchParams.get('world') === 'city'), 'card links keep their city destination');
+    if (locale === 'en') assert.ok(cards.every(url => url.searchParams.get('lang') === 'en'), 'and their language');
+    cleanup();
+  }
+});
