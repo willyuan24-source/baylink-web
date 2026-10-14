@@ -345,7 +345,19 @@ test('after the edition, only confirmed cross-month activities remain and ended 
   const continuing = expected('2027-01-01');
   assert.deepEqual(continuing, [], 'no activity in the edition runs past 12/31');
   assert.deepEqual(feedIds(view.container), continuing, 'no ended card is listed');
-  assert.equal(feedIds(view.container).includes('pleasanton-pumpkins-after-dark-2026'), false, 'a broad season end does not extend confirmed October sessions');
+  cleanup();
+  // Mid-December, inside the edition: what still runs is listed and what has ended is not (the old 12/01 check's positive case).
+  const mid = render(edition('2026-12-14'));
+  assert.equal(rangeLine(mid.container), '全部日期 · 收录至 12/31');
+  const running = expected('2026-12-14');
+  assert.ok(running.length > 0, 'activities still run after the last supplied weekend');
+  assert.ok(running.includes('dickens-christmas-fair-2026'), 'the Dickens Fair runs to 12/20');
+  assert.deepEqual([...running].sort(), INDEX_EVENTS.filter(event => nextOccurrence(event, '2026-12-14')).map(event => event.id).sort(), 'exactly the activities with a day on or after 12/14');
+  for (const id of running) assert.ok(item(id).endDate >= '2026-12-14', `${id} has not ended`);
+  assertFeed(mid, running);
+  for (const id of ['pleasanton-pumpkins-after-dark-2026', 'livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-alum-rock-basic-english-2026']) {
+    assert.equal(feedIds(mid.container).includes(id), false, `${id} ended before 12/14 and is not listed`);
+  }
 });
 
 test('server HTML renders the first 12 real activities with the full count and never fetches', t => {

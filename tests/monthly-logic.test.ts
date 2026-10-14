@@ -359,6 +359,15 @@ test('late October dates retain community events while November previews respect
   }
   // CNT-SUPPLY-2: December weekends now have events (edition through 12/31); nothing is left after the edition.
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2027-01-01'), []);
+  // Inside the edition, mid-December: the still-running activities are listed and no ended one is.
+  const midDecember = filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-14');
+  assert.ok(midDecember.length > 0, 'something still runs on 12/14');
+  assert.ok(ids(midDecember).includes('dickens-christmas-fair-2026'), 'the Dickens Fair runs to 12/20');
+  for (const item of midDecember) assert.ok(item.endDate >= '2026-12-14' && nextOccurrence(item, '2026-12-14'), `${item.id} has a day on or after 12/14`);
+  assert.deepEqual(ids(midDecember), ids(MONTHLY_EVENTS.filter(item => nextOccurrence(item, '2026-12-14'))), 'every activity with a day left is listed');
+  for (const id of ['livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-alum-rock-basic-english-2026']) {
+    assert.ok(!ids(midDecember).includes(id), `${id} ended before 12/14`);
+  }
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
     ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07'), [], 'archive permission cannot bypass the requested day');
