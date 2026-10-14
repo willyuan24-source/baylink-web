@@ -41,7 +41,9 @@ Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLEle
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:dom.window.navigator});
 const {render,fireEvent,cleanup}=await import('@testing-library/react');
 const {default:BayCityGuide}=await import('../src/features/little-bay/BayCityGuide');
-const {setLocale}=await import('../src/i18n/locale');
+const {setLocale,enableUsEnglishTimes}=await import('../src/i18n/locale');
+// the site's English (i18n/metadata.ts switches it on): US-style dates, H41
+await enableUsEnglishTimes();
 afterEach(cleanup);
 test('city drawer separates previews, game routes, current/next month events and contextual AI',async()=>{
   await setLocale('en',false);const city=BAY_CITIES.find(c=>c.id==='cupertino')!,preview:string[]=[],route:string[]=[],asks:string[]=[];

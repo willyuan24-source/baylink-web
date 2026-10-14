@@ -1,5 +1,9 @@
 import { configureMetadataLanguage } from '../lib/seo';
-import { getLocale, subscribeLocale, translateText, translateEditorial, localizedUrl } from './locale';
+import { enableUsEnglishTimes, getLocale, subscribeLocale, translateText, translateEditorial, localizedUrl } from './locale';
+
+// H41: the site's English reads times and dates in US style ("Oct 18 · 2–4pm"). Switched on here, the site's i18n entry
+// (the app, the prerender and the page metadata import it), before any English loads; the Opus Bay game keeps its formats.
+void enableUsEnglishTimes();
 
 function localizeSchema(value: unknown, key = ''): unknown {
   // Page URLs take the page's language; files (the logo, images) keep their one address.

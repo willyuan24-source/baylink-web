@@ -1,9 +1,10 @@
 /**
  * H41 (I13-04): US-style times and dates in English text. Chinese editorial copy writes the 24-hour clock and ISO or M/D
  * dates ("10/18 · 14:00–16:00", "checked 2026-10-12"), and their English translations kept them; English readers get
- * "Oct 18 · 2–4pm" and "checked Oct 12, 2026". Applied when the English dictionary and its scopes are generated
- * (scripts/generate-english-scopes.ts), not at runtime; scripts/i18n-html-check.mjs fails a built /en page that still
- * shows a 24-hour time or an ISO date.
+ * "Oct 18 · 2–4pm" and "checked Oct 12, 2026". The site's English applies it to the dictionary as it loads and to the
+ * date lines and data tokens it shows (i18n/locale.ts, switched on by i18n/metadata.ts); the generator adds the English
+ * entries of neutral date lines (scripts/generate-english-scopes.ts). scripts/i18n-html-check.mjs fails a built /en page
+ * that still shows a 24-hour time or an ISO date.
  *
  * Reading rules: a range written without am/pm whose end hour is smaller than its start ("10:30–3:00") is a 12-hour
  * range across noon; any other time without am/pm is the 24-hour clock. Text already in am/pm is left as it is. URLs
@@ -29,23 +30,52 @@ const rangeText = (start: Clock, end: Clock, dash: string): string => {
   return `${clockText(start, !shared)}${dash}${clockText(end)}`;
 };
 
+/**
+ * The matches of a global pattern that do not follow a character of `before`: a look-behind written in code, because
+ * Safari before 16.4 cannot parse one and would fail the whole bundle (tests/opus-bay-w9-e-lookbehind). A match after
+ * such a character is skipped and the search goes on from the next character, as the look-behind would.
+ */
+function* matchesNotAfter(text: string, pattern: RegExp, before: RegExp): Generator<RegExpExecArray> {
+  pattern.lastIndex = 0;
+  for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
+    if (match.index > 0 && before.test(text[match.index - 1])) { pattern.lastIndex = match.index + 1; continue; }
+    yield match;
+    if (!match[0].length) pattern.lastIndex++;
+  }
+}
+const findNotAfter = (text: string, pattern: RegExp, before: RegExp): RegExpExecArray | undefined => {
+  for (const match of matchesNotAfter(text, pattern, before)) return match;
+  return undefined;
+};
+const replaceNotAfter = (text: string, pattern: RegExp, before: RegExp, replace: (match: RegExpExecArray) => string): string => {
+  let out = '';
+  let last = 0;
+  for (const match of matchesNotAfter(text, pattern, before)) {
+    out += text.slice(last, match.index) + replace(match);
+    last = match.index + match[0].length;
+  }
+  return out + text.slice(last);
+};
+
 const MERIDIEM = String.raw`\s?(?:[ap]\.?\s?m\b\.?)`;
 const TIME = String.raw`([01]?\d|2[0-4]):([0-5]\d)`;
-const RANGE = new RegExp(String.raw`(?<![\d:.$/])${TIME}(${MERIDIEM})?(\s*(?:–|—|-|~|to)\s*)([01]?\d|2[0-4])(?::([0-5]\d))?(${MERIDIEM})?(?!\d|:\d)`, 'gi');
+/** Not a time inside a longer number, a ratio, a price or a path: the character before a clock time. */
+const NOT_AFTER_CLOCK = /[\d:.$/]/;
+const RANGE = new RegExp(String.raw`${TIME}(${MERIDIEM})?(\s*(?:–|—|-|~|to)\s*)([01]?\d|2[0-4])(?::([0-5]\d))?(${MERIDIEM})?(?!\d|:\d)`, 'gi');
 // a time whose am/pm is on the end of its range ("4:30–6pm", "6:30–8:30pm") is already 12-hour
-const SINGLE = new RegExp(String.raw`(?<![\d:.$/])${TIME}(?!\d|:\d)(?!\s*[–—~-]\s*(?:\d{1,2}(?::\d\d)?${MERIDIEM}|noon|midnight))(${MERIDIEM})?`, 'gi');
+const SINGLE = new RegExp(String.raw`${TIME}(?!\d|:\d)(?!\s*[–—~-]\s*(?:\d{1,2}(?::\d\d)?${MERIDIEM}|noon|midnight))(${MERIDIEM})?`, 'gi');
 
 /** Text that writes the 12-hour clock: it has an am/pm and no time only the 24-hour clock writes (13:00, 08:30). */
 const TWELVE_HOUR_MARK = /\d\s?[ap]\.?\s?m\b/i;
-const ONLY_24_HOUR = /(?<![\d:.$/])(?:1[3-9]|2[0-3]|0\d):[0-5]\d/;
-const MARKS = /(?<![\d:])(\d{1,2})(?::[0-5]\d)?\s?([ap])\.?\s?m\b/gi;
+const ONLY_24_HOUR = /(?:1[3-9]|2[0-3]|0\d):[0-5]\d/g;
+const MARKS = /(\d{1,2})(?::[0-5]\d)?\s?([ap])\.?\s?m\b/gi;
 /**
  * In 12-hour text, a time written without its am/pm ("Gather 5:45, parade 6:00, contest 6:30 pm", "4:30–5:15, 5:15–6
  * and 6–6:45 pm") takes it from the next time that has one (or the earlier one, at the end of the text).
  */
 const twelveHourOf = (source: string, offset: number, hour: number): number => {
   const h = hour % 12;
-  const marks = [...source.matchAll(MARKS)].map(match => ({ at: match.index!, hour: Number(match[1]) % 12, pm: /p/i.test(match[2]) }));
+  const marks = [...matchesNotAfter(source, MARKS, /[\d:]/)].map(match => ({ at: match.index, hour: Number(match[1]) % 12, pm: /p/i.test(match[2]) }));
   const next = marks.find(mark => mark.at > offset);
   if (next) return next.pm && h <= next.hour ? h + 12 : h;
   const previous = [...marks].reverse().find(mark => mark.at < offset);
@@ -54,8 +84,9 @@ const twelveHourOf = (source: string, offset: number, hour: number): number => {
 };
 
 function convertTimes(text: string): string {
-  const twelveHour = TWELVE_HOUR_MARK.test(text) && !ONLY_24_HOUR.test(text);
-  const ranged = text.replace(RANGE, (whole, h1: string, m1: string, s1: string | undefined, dash: string, h2: string, m2: string | undefined, s2: string | undefined, offset: number, source: string) => {
+  const twelveHour = TWELVE_HOUR_MARK.test(text) && !findNotAfter(text, ONLY_24_HOUR, NOT_AFTER_CLOCK);
+  const ranged = replaceNotAfter(text, RANGE, NOT_AFTER_CLOCK, ({ 0: whole, 1: h1, 2: m1, 3: s1, 4: dash, 5: h2, 6: m2, 7: s2, index: offset }) => {
+    const source = text;
     // already 12-hour ("4:30–6pm", "10am–3:00 PM"), or an end that is not a clock time ("10:00-5")
     if (s1 || s2 || m2 === undefined) return whole;
     let start = { hour: Number(h1), minute: Number(m1) };
@@ -73,11 +104,11 @@ function convertTimes(text: string): string {
     }
     return rangeText(start, end, dash.trim() === 'to' ? ' to ' : '–');
   });
-  return ranged.replace(SINGLE, (whole, h: string, m: string, suffix: string | undefined, offset: number, source: string) => {
+  return replaceNotAfter(ranged, SINGLE, NOT_AFTER_CLOCK, ({ 0: whole, 1: h, 2: m, 3: suffix, index: offset }) => {
     if (suffix) return whole;
     const clock = { hour: Number(h), minute: Number(m) };
     if (clock.hour === 24 && clock.minute) return whole;
-    if (twelveHour && clock.hour >= 1 && clock.hour <= 12) clock.hour = twelveHourOf(source, offset, clock.hour);
+    if (twelveHour && clock.hour >= 1 && clock.hour <= 12) clock.hour = twelveHourOf(ranged, offset, clock.hour);
     return clockText(clock);
   });
 }
@@ -100,11 +131,11 @@ function convertDates(text: string): string {
     return `${monthDay(Number(mo1), Number(d1))}${mo2 ? `–${mo1 === mo2 ? Number(d2) : monthDay(Number(mo2), Number(d2))}` : ''}, ${year}`;
   });
   // M/D/YYYY → Sep 30, 2026
-  out = out.replace(/(?<![\d/.])\b(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])\/(20\d\d)\b/g, (whole, month: string, day: string, year: string) => validDay(Number(month), Number(day)) ? `${monthDay(Number(month), Number(day))}, ${year}` : whole);
+  out = replaceNotAfter(out, /\b(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])\/(20\d\d)\b/g, /[\d/.]/, ({ 0: whole, 1: month, 2: day, 3: year }) => validDay(Number(month), Number(day)) ? `${monthDay(Number(month), Number(day))}, ${year}` : whole);
   // M/D: not in text that pairs days ("6/7, 13/14") or writes fractions ("1/2 price")
-  if (/(?<![\d/])(?:1[3-9]|2\d|3[01])\/\d{1,2}(?![\d/])/.test(out)) return out;
-  return out.replace(/(?<![\d/.,$:])\b(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])\b(?![\d/%])(?:(\s*[–—-]\s*)(?:(1[0-2]|0?[1-9])\/)?(3[01]|[12]\d|0?[1-9])\b(?![\d/%]))?(?!\s*(?:cup|mile|inch|in\b|lb|pound|oz|price|off|hour|tsp|tbsp|of\b))/gi,
-    (whole, mo1: string, d1: string, dash: string | undefined, mo2: string | undefined, d2: string | undefined) => {
+  if (findNotAfter(out, /(?:1[3-9]|2\d|3[01])\/\d{1,2}(?![\d/])/g, /[\d/]/)) return out;
+  return replaceNotAfter(out, /\b(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])\b(?![\d/%])(?:(\s*[–—-]\s*)(?:(1[0-2]|0?[1-9])\/)?(3[01]|[12]\d|0?[1-9])\b(?![\d/%]))?(?!\s*(?:cup|mile|inch|in\b|lb|pound|oz|price|off|hour|tsp|tbsp|of\b))/gi, /[\d/.,$:]/,
+    ({ 0: whole, 1: mo1, 2: d1, 3: dash, 4: mo2, 5: d2 }) => {
       if (!validDay(Number(mo1), Number(d1))) return whole;
       if (!dash) return monthDay(Number(mo1), Number(d1));
       const endMonth = Number(mo2 ?? mo1);
@@ -130,5 +161,8 @@ export function englishTimes(text: string): string {
  * What the /en release check flags in visible text (scripts/i18n-html-check.mjs keeps its own copy of these patterns, as
  * plain JavaScript): a clock time with no am/pm on it or on the end of its range, and an ISO date.
  */
-export const TWENTY_FOUR_HOUR = /(?<![\d:.$/])\b([01]?\d|2[0-3]):[0-5]\d\b(?!\s?(?:[ap]\.?\s?m\b|[–—-]\s?\d{1,2}(?::\d\d)?\s?[ap]\.?\s?m\b))/i;
+const TWENTY_FOUR_HOUR = /\b([01]?\d|2[0-3]):[0-5]\d\b(?!\s?(?:[ap]\.?\s?m\b|[–—-]\s?\d{1,2}(?::\d\d)?\s?[ap]\.?\s?m\b))/gi;
+export const twentyFourHourTime = (text: string): string | undefined => findNotAfter(text, TWENTY_FOUR_HOUR, NOT_AFTER_CLOCK)?.[0];
 export const ISO_DATE = /\b20\d\d-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b/;
+/** A 24-hour time or an ISO date: text the English pages show in US style instead. */
+export const hasTwentyFourHourOrIso = (text: string): boolean => !!twentyFourHourTime(text) || ISO_DATE.test(text);

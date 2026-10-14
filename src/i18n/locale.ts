@@ -21,13 +21,38 @@ const notifyLocale = () => { dictionaryRevision++; listeners.forEach(listener =>
 let englishScopes: ReturnType<typeof createEnglishScopeLoader> | undefined;
 let englishScopeLoad: Promise<ReturnType<typeof createEnglishScopeLoader>> | undefined;
 // Registry is lazy too: generation can import media/locale before scoped files exist.
-const loadEnglishScopes = () => englishScopeLoad ||= Promise.all([import('../data/generated/english-scope-loaders'), loadEnglishTimes()]).then(([{ englishScopeLoaders }]) => {
-  return englishScopes = createEnglishScopeLoader(englishScopeLoaders, dictionary => { Object.assign(english, dictionary); notifyLocale(); });
+const loadEnglishScopes = () => englishScopeLoad ||= Promise.all([import('../data/generated/english-scope-loaders'), usEnglishTimes ? loadEnglishTimes() : undefined]).then(([{ englishScopeLoaders }]) => {
+  return englishScopes = createEnglishScopeLoader(englishScopeLoaders, dictionary => { Object.assign(english, usTimesIn(dictionary)); notifyLocale(); });
 }).catch(error => { englishScopeLoad = undefined; throw error; });
-/** H41: US-style times and dates for the date and time tokens pages render from data (englishNeutral); English only. */
+/**
+ * H41: US-style times and dates in the site's English ("Oct 18 · 2–4pm", "Checked Oct 12, 2026"; lib/english-times.ts).
+ * The site switches it on (enableUsEnglishTimes in i18n/metadata.ts, which the app, the prerender and the site's metadata
+ * import) before English loads; then every English value is converted as its dictionary loads, and the neutral date
+ * lines and data tokens a page shows as they are translated (englishNeutral). The Opus Bay game shares this module and
+ * keeps the dictionary's own formats (tests/opus-bay-w9-r-words.test.ts pins them).
+ */
+let usEnglishTimes = false;
 let englishTimesOf: ((text: string) => string) | undefined;
+let twentyFourHourOrIso: ((text: string) => boolean) | undefined;
 let englishTimesLoad: Promise<void> | undefined;
-const loadEnglishTimes = () => englishTimesLoad ||= import('../lib/english-times').then(module => { englishTimesOf = module.englishTimes; }).catch(error => { englishTimesLoad = undefined; throw error; });
+const loadEnglishTimes = () => englishTimesLoad ||= import('../lib/english-times').then(module => {
+  englishTimesOf = module.englishTimes;
+  twentyFourHourOrIso = module.hasTwentyFourHourOrIso;
+}).catch(error => { englishTimesLoad = undefined; throw error; });
+/** A loaded dictionary with its values in US style: a copy, so the imported JSON stays as generated. */
+const usTimesIn = (dictionary: Record<string, string>): Record<string, string> => {
+  if (!usEnglishTimes || !englishTimesOf) return dictionary;
+  const out: Record<string, string> = {};
+  for (const key of Object.keys(dictionary)) out[key] = englishTimesOf(dictionary[key]);
+  return out;
+};
+export function enableUsEnglishTimes(): Promise<void> {
+  if (usEnglishTimes) return Promise.resolve();
+  usEnglishTimes = true;
+  // English already loaded (switched on late): convert it once the module is in; otherwise each load converts its own
+  if (!Object.keys(english).length) return Promise.resolve();
+  return loadEnglishTimes().then(() => { english = usTimesIn(english); notifyLocale(); }).catch(() => undefined);
+}
 const escapePattern = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const englishPatterns = Object.entries(patterns).sort(([a], [b]) => b.replace(/\{\d+\}/g, '').length - a.replace(/\{\d+\}/g, '').length).map(([source, target]) => ({
   pattern: new RegExp('^' + source.split(/\{\d+\}/).map(escapePattern).join('(.*?)') + '$', 's'), target,
@@ -194,7 +219,7 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 
 /** Everything a language needs, search included (exports, SSR and scripts; zh-Hant's opencc build carries search). */
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') await Promise.all([englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadEnglishTimes(), loadSearchConversion().catch(() => undefined)]);
+  if (locale === 'en') await Promise.all([englishLoad ||= Promise.all([import('../data/generated/english.json'), usEnglishTimes ? loadEnglishTimes() : undefined]).then(([module]) => { english = usTimesIn(module.default); englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadSearchConversion().catch(() => undefined)]);
   else if (locale === 'zh-Hant') await Promise.all([loadChinese(), loadSearchConversion().catch(() => undefined)]);
   else await loadSearchConversion().catch(() => undefined);
 }
@@ -277,18 +302,17 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
  * its generated English entry (scripts/generate-english-scopes.ts), whole or by its " \u00b7 " parts. Text made only of date
  * and time tokens that has no entry (a page's <time>2026-10-05</time>, a session's "14:00\u201316:00", a date line a page
  * composes) is converted as it is shown, if it has a 24-hour time or an ISO date: those come from data fields and never
- * pass through the dictionary. Other text without Chinese stays as it is.
+ * pass through the dictionary. Other text without Chinese stays as it is. Only with the site's switch (enableUsEnglishTimes).
  */
 const NEUTRAL_DATE_OR_TIME = /\d[:/-]\d/;
 const DATE_TIME_TOKENS = /^[\d\s/:.,\u00b7\u2013\u2014~\uff1b\u3001\uff0c-]+$/u;
-const CLOCK_OR_ISO = /(?<![\d:.$/])(?:[01]?\d|2[0-3]):[0-5]\d|\b20\d\d-[01]\d-[0-3]\d\b/;
 /** Inside translateEditorial (structured data, catalog exports) a token is data: JSON-LD's startDate stays ISO. */
 let editorialData = 0;
-const englishTokens = (text: string): string => englishTimesOf && !editorialData && DATE_TIME_TOKENS.test(text) && CLOCK_OR_ISO.test(text)
+const englishTokens = (text: string): string => englishTimesOf && twentyFourHourOrIso && !editorialData && DATE_TIME_TOKENS.test(text) && twentyFourHourOrIso(text)
   ? englishTimesOf(text.replace(/\uff1b\s*/gu, '; ').replace(/[\u3001\uff0c]\s*/gu, ', '))
   : text;
 const englishNeutral = (text: string): string => {
-  if (!NEUTRAL_DATE_OR_TIME.test(text)) return text;
+  if (!usEnglishTimes || !NEUTRAL_DATE_OR_TIME.test(text)) return text;
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   const tokens = englishTokens(text);

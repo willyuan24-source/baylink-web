@@ -131,7 +131,17 @@ const clock = (hours: string, minutes: string, meridiem?: string): string | unde
   if (meridiem) { if (hour < 1 || hour > 12) return undefined; hour = hour % 12 + (/^p/i.test(meridiem) ? 12 : 0); }
   return hour <= 23 ? `${two(hour)}:${minutes}` : undefined;
 };
-const LABEL_TIME = /(?<![\d:/])([01]?\d|2[0-3]):([0-5]\d)(?:\s*([ap])\.?m\.?)?(?:\s*[–—~-]\s*([01]?\d|2[0-3])(?::([0-5]\d))?(?:\s*([ap])\.?m\.?)?)?(?!\s*(?:开门|開門|doors))/i;
+const LABEL_TIME = /([01]?\d|2[0-3]):([0-5]\d)(?:\s*([ap])\.?m\.?)?(?:\s*[–—~-]\s*([01]?\d|2[0-3])(?::([0-5]\d))?(?:\s*([ap])\.?m\.?)?)?(?!\s*(?:开门|開門|doors))/gi;
+/** The first clock time not inside a longer number, a time or a date. The character before it is checked in code: Safari
+ * before 16.4 cannot parse a regex look-behind (tests/opus-bay-w9-e-lookbehind). */
+const firstLabelTime = (line: string): RegExpExecArray | null => {
+  LABEL_TIME.lastIndex = 0;
+  for (let match = LABEL_TIME.exec(line); match; match = LABEL_TIME.exec(line)) {
+    if (match.index === 0 || !/[\d:/]/.test(line[match.index - 1])) return match;
+    LABEL_TIME.lastIndex = match.index + 1;
+  }
+  return null;
+};
 /**
  * H47: the stated times of a one-day listing without sessions, from its reviewed date line ("10/18 · 14:00–16:00",
  * "10 月 6 日 · 18:00–19:00", "10/10 · 10:30 开始"): the line the page shows, so the JSON-LD says what the page says. A
@@ -139,7 +149,7 @@ const LABEL_TIME = /(?<![\d:/])([01]?\d|2[0-3]):([0-5]\d)(?:\s*([ap])\.?m\.?)?(?
  */
 export function labelTimes(event: Pick<MonthlyEvent, 'startDate' | 'endDate' | 'occurrenceDates' | 'dateLabel' | 'sessions' | 'status'>): { start: string; end?: string } | undefined {
   if (event.startDate !== event.endDate || event.sessions?.length || (event.occurrenceDates?.length ?? 0) > 1 || event.status === 'postponed' || event.status === 'cancelled') return undefined;
-  const match = LABEL_TIME.exec(event.dateLabel || '');
+  const match = firstLabelTime(event.dateLabel || '');
   if (!match) return undefined;
   // "4:30–6pm": the end's am/pm also reads the start when the start has none
   const start = clock(match[1], match[2], match[3] || (match[6] && Number(match[1]) <= Number(match[4]) ? match[6] : undefined));

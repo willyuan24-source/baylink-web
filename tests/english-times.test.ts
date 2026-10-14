@@ -1,9 +1,25 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
-import { englishTimes, ISO_DATE, TWENTY_FOUR_HOUR } from '../src/lib/english-times';
+import { englishTimes, ISO_DATE, twentyFourHourTime } from '../src/lib/english-times';
 import { englishFormatProblems, englishTitleProblems } from '../scripts/i18n-html-check.mjs';
-import { addNeutralEntries, usEnglishTimes } from '../scripts/generate-english-scopes';
+import { addNeutralEntries } from '../scripts/generate-english-scopes';
+import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
+
+const OPUS_DATE_LINE = '9/29–10/4 · 9/29、10/2 19:30；10/4 14:00；节目页时长约 2 小时 51 分钟';
+const has24hOrIso = (text: string) => !!twentyFourHourTime(text.replace(/https?:\/\/\S+/g, '')) || ISO_DATE.test(text.replace(/https?:\/\/\S+/g, ''));
+
+// First, before the switch: the Opus Bay game shares the dictionary and keeps its reviewed formats (its own test pins them)
+test('H41: without the site switch, English keeps the dictionary as generated (the Opus Bay game)', async () => {
+  await loadLocale('en');
+  assert.match(translateText(OPUS_DATE_LINE, 'en'), /^9\/29–10\/4 · 9\/29 and 10\/2 at 19:30; 10\/4 at 14:00\. /);
+  assert.equal(translateText('14:00–16:00', 'en'), '14:00–16:00');
+  assert.equal(translateText('10/18 · 14:00–16:00', 'en'), '10/18 · 14:00–16:00');
+  // the site switches it on (i18n/metadata.ts); a dictionary already loaded converts then
+  await enableUsEnglishTimes();
+  assert.match(translateText(OPUS_DATE_LINE, 'en'), /^Sep 29–Oct 4 · Sep 29 and Oct 2 at 7:30pm; Oct 4 at 2pm\. /);
+  assert.match(translateText('10/18 · 14:00–16:00', 'en'), /^Oct 18 · 2–4\s?p\.?m\.?$/);
+});
 
 /** H41 (I13-04): English text uses the 12-hour clock and "Oct 13, 2026" / "Sep 25–Oct 31" dates. */
 test('H41: 24-hour times become am/pm, with one am/pm on a range that shares it', () => {
@@ -40,18 +56,26 @@ test('H41: ISO, year-first and M/D dates become "Oct 13, 2026" and "Sep 25–Oct
     ['A 16:9 screen, version 2.10', 'A 16:9 screen, version 2.10'],
   ];
   for (const [input, output] of cases) assert.equal(englishTimes(input), output, input);
-  for (const [, output] of cases.slice(0, 8)) { assert.doesNotMatch(output.replace(/https:\S+/, ''), TWENTY_FOUR_HOUR); assert.doesNotMatch(output.replace(/https:\S+/, ''), ISO_DATE); }
+  for (const [, output] of cases.slice(0, 8)) assert.equal(has24hOrIso(output), false, output);
 });
 
-test('H41: generation converts English values and adds entries for neutral date lines, never for bare data tokens', () => {
+test('H41: look-behind written in code skips a time inside a number, a ratio, a price or a path, and finds the next one', () => {
+  assert.equal(englishTimes('Bus 112:30 leaves at 14:00'), 'Bus 112:30 leaves at 2pm');
+  assert.equal(englishTimes('$12:30 or 14:00'), '$12:30 or 2pm');
+  assert.equal(englishTimes('v1.10:00, then 09:00–10:30'), 'v1.10:00, then 9–10:30am');
+  assert.equal(twentyFourHourTime('v2.14:30'), undefined);
+  assert.equal(twentyFourHourTime('v2.14:30 and 18:30'), '18:30');
+  assert.equal(englishTimes('9/1/2026 and 1/9/2026'), 'Sep 1, 2026 and Jan 9, 2026');
+});
+
+test('H41: generation adds entries for neutral date lines, never for bare data tokens; the reviewed values stay', () => {
   const dictionary: Record<string, string> = { '营业 10:00–17:00': 'Open 10:00–17:00', '已核对 2026-10-12': 'Checked 2026-10-12' };
-  assert.equal(usEnglishTimes(dictionary), 2);
-  assert.deepEqual(dictionary, { '营业 10:00–17:00': 'Open 10am–5pm', '已核对 2026-10-12': 'Checked Oct 12, 2026' });
   const added = addNeutralEntries(dictionary, [{ dateLabel: '10/18 · 14:00–16:00', startDate: '2026-10-18', sessions: [{ start: '14:00', end: '16:00' }], url: 'https://example.org/2026/10/18' }]);
   assert.equal(added, 1, 'only the date line: an ISO date, a session time and a URL are data');
   assert.equal(dictionary['10/18 · 14:00–16:00'], 'Oct 18 · 2–4pm');
   assert.equal(dictionary['2026-10-18'], undefined);
   assert.equal(dictionary['14:00'], undefined);
+  assert.equal(dictionary['营业 10:00–17:00'], 'Open 10:00–17:00', 'the site converts values as they load, not here');
 });
 
 test('H41: the /en release check fails on a planted 24-hour time or ISO date, and accepts 12-hour text', () => {
@@ -68,14 +92,16 @@ test('H46: the /en release check fails on a title over 60 characters', () => {
   assert.match(englishTitleProblems(`<html><head><title>${'A long title '.repeat(6)}| BAYLINK</title></head><body></body></html>`).join(' '), /characters/);
 });
 
-test('H41: the generated English dictionary carries no 24-hour time or ISO date (after npm run pretest)', { skip: !existsSync('src/data/generated/english.json') }, () => {
+test('H41: the site\'s English dictionary, as loaded, carries no 24-hour time or ISO date (after npm run pretest)', { skip: !existsSync('src/data/generated/english.json') }, async () => {
   const dictionary = JSON.parse(readFileSync('src/data/generated/english.json', 'utf8')) as Record<string, string>;
-  const left = Object.values(dictionary).filter(value => TWENTY_FOUR_HOUR.test(value.replace(/https?:\/\/\S+/g, '')) || ISO_DATE.test(value.replace(/https?:\/\/\S+/g, '')));
+  await enableUsEnglishTimes();
+  await loadLocale('en');
+  const left = Object.keys(dictionary).map(key => translateText(key, 'en')).filter(has24hOrIso);
   assert.ok(left.length <= 5, `${left.length} left: ${left.slice(0, 5).join(' | ')}`);
 });
 
 test('H41: on /en, date and time tokens a page renders from data read in US style; other text without Chinese stays', async () => {
-  const { loadLocale, translateText } = await import('../src/i18n/locale');
+  await enableUsEnglishTimes();
   await loadLocale('en');
   const cases: [string, string][] = [
     ['2026-10-05', 'Oct 5, 2026'],
@@ -96,6 +122,6 @@ test('H41: on /en, date and time tokens a page renders from data read in US styl
   assert.equal(translateText('14:00–16:00', 'zh-Hans'), '14:00–16:00');
   // a composed line keeps its translated parts and converts its date line ("10/18 · 14:00–16:00 ｜ Atherton ｜ …")
   const composed = translateText('10/18 · 14:00–16:00 ｜ Atherton ｜ 免费', 'en');
-  assert.doesNotMatch(composed, TWENTY_FOUR_HOUR);
+  assert.equal(twentyFourHourTime(composed), undefined, composed);
   assert.match(composed, /2–4\s?p\.?m\.? ｜ Atherton ｜ Free/);
 });
