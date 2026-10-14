@@ -127,7 +127,7 @@
      "Official site" never run into each other next to a long "Add to a plan". */
   .local-discovery-detail .detail-actions>:not(.detail-actions__primary) { flex-shrink:0; }
   .local-discovery-detail .detail-actions .detail-action--official>svg { order:-1; }
-  .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
+  .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-width:var(--control-height); min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
   .local-discovery-detail .detail-actions .saves-control { height:100%; }
   .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:10px; font-size:var(--text-body); }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { height:100%; }
