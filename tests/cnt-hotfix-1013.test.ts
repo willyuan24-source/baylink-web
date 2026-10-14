@@ -8,7 +8,7 @@ import { guides } from '../src/data/guides';
 import { FILLER_SENTENCES } from '../src/data/editorial-overlay/apply';
 import { readerPlanLines } from '../src/features/detail/reader-text';
 import { loadLocale, translateText } from '../src/i18n/locale';
-import { discoveryCheckedAt } from '../scripts/export-discovery-context';
+import { discoveryCheckedAt } from '../scripts/discovery-checked-at';
 import { openingChip } from '../src/lib/event-facts';
 import { fitSize, textWidth } from '../src/lib/share-card-svg';
 
