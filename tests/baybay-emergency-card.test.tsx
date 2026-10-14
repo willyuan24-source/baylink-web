@@ -44,6 +44,12 @@ test('an emergency answer is a red card with a 56px tel:911 button first, withou
     assert.equal(links[1].textContent, 'Poison Control 1-800-222-1222');
     assert.equal(links[0].querySelector('.bb-call__number')?.textContent, '911');
     assert.equal(links[2].querySelector('.bb-call__number'), null, 'a label that ends in words wraps normally');
+    // The card's text names numbers its buttons already dial: plain text, but each in one unbreakable piece (10-13 live
+    // check: "1-" ended one line and "800-222-1222" began the next), with the text around them kept as it was.
+    const body = card.querySelector('.bb-emergency__text')!;
+    assert.deepEqual([...body.querySelectorAll('.bb-phone-number')].map(number => number.textContent), ['911', '1-800-222-1222'], locale);
+    assert.equal(body.querySelector('a'), null, 'no second tel: link for a number a button already dials');
+    assert.equal(body.textContent, emergency(locale).answer);
     assert.match(card.textContent || '', locale === 'en' ? /Call 911 now/ : /911/);
     const answer = card.closest('.member-baybay-answer')!;
     assert.equal(answer.firstElementChild, card, 'nothing comes before the emergency card');

@@ -74,7 +74,7 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-emergency__text { margin:0; color:var(--color-surface); font-size:var(--text-reading); line-height:1.7; white-space:pre-line; }
 .baybay-conversation .bb-call-actions { display:flex; flex-wrap:wrap; gap:8px; }
 .baybay-conversation .bb-call { display:inline-flex; align-items:center; gap:8px; min-height:3rem; padding:0 16px; border:1px solid var(--color-danger); border-radius:10px; background:var(--color-surface); color:var(--color-danger); font-size:var(--text-body); line-height:1.3; font-weight:700; text-decoration:none; }
-.baybay-conversation .bb-call__number { white-space:nowrap; }
+.baybay-conversation :is(.bb-call__number,.bb-phone-number) { white-space:nowrap; }
 .baybay-conversation .bb-call[data-primary] { background:var(--color-danger); color:var(--color-surface); }
 .baybay-conversation .bb-call-actions--emergency .bb-call { border-color:var(--color-surface); background:transparent; color:var(--color-surface); }
 
@@ -99,6 +99,10 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 
 /* The AI cutoff ahead (api pauseScheduled, its last 7 days): a calm line, not a warning */
 .baybay-conversation .bb-scheduled { margin:0 0 12px; padding:10px 12px; border-radius:10px; background:var(--ui-info-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
+
+/* Few AI queries left today: one line by the question box; at 0 the calm daily-limit line (H37), never a warning colour */
+.baybay-conversation .bb-quota { margin:0 0 8px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
+.baybay-conversation .bb-quota[data-remaining="0"] { padding:8px 12px; border-radius:10px; background:var(--ui-info-tint); color:var(--color-ink); }
 
 /* Tap-to-call numbers in answers, notices, plan notes and safety cards (G27): ELDERS' chip at the text's own size */
 .baybay-conversation .phone-chip { min-width:0; min-height:0; font-size:inherit; }

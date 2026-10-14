@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BookOpen, ChevronDown, Globe2, Phone } from 'lucide-react';
 import './baybay-answer.css';
 import { useBayBayCopy } from './copy';
@@ -8,6 +8,7 @@ import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-
 import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeCalls, bayBayResumeLabel, bayBayResumeStyle, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 import { linkifyPhones } from '../../lib/phone-links';
+import { findPhoneNumbers } from '../../lib/phone-numbers';
 import { translateText } from '../../i18n/locale';
 
 type Navigate = (path: string) => void;
@@ -15,11 +16,23 @@ type Sources = PlannerWebResult['sources'];
 
 /**
  * Reader text with every phone number tap-to-call (G27, ELDERS' chips): translated first, then split (RC-11 i), so a
- * zh-Hant reader gets the converted sentence and an English answer is left as it is.
+ * zh-Hant reader gets the converted sentence and an English answer is left as it is. A number in `except` (one a big call
+ * button beside the text already dials) stays plain text, but in one piece: never "1-" at a line end and "800-…" below.
  */
 export function BayBayPhoneText({ text, except }: { text: string; except?: ReadonlySet<string> }) {
   const { locale } = useBayBayCopy();
-  return <>{linkifyPhones(translateText(text, locale), { except })}</>;
+  const translated = translateText(text, locale);
+  const kept = except?.size ? findPhoneNumbers(translated).filter(match => except.has(match.tel)) : [];
+  if (!kept.length) return <>{linkifyPhones(translated)}</>;
+  const parts: ReactNode[] = [];
+  let at = 0;
+  for (const match of kept) {
+    if (match.start > at) parts.push(<Fragment key={`text-${at}`}>{linkifyPhones(translated.slice(at, match.start))}</Fragment>);
+    parts.push(<span key={`number-${match.start}`} className="bb-phone-number">{match.text}</span>);
+    at = match.end;
+  }
+  if (at < translated.length) parts.push(<Fragment key={`text-${at}`}>{linkifyPhones(translated.slice(at))}</Fragment>);
+  return <>{parts}</>;
 }
 
 /** Answer text with its `[n]` citations as small links to the cited source and tap-to-call numbers. */
@@ -213,4 +226,20 @@ export function BayBayNoticeBanner({ kind, text, resumesAt, actions, healthFloor
  */
 export function BayBayScheduledNotice({ text }: { text: string }) {
   return <p className="bb-scheduled" data-notice="ai_pause_scheduled" role="note" translate="no">{linkifyPhones(text)}</p>;
+}
+
+/** The panel shows the day's remaining AI queries in a visible line once this few are left (else only in 检索、额度与对话说明). */
+export const BAYBAY_QUOTA_VISIBLE = 5;
+
+/**
+ * The day's remaining AI queries above the question box once few are left (≤ BAYBAY_QUOTA_VISIBLE, from `/ai/usage`), so
+ * the count is not only inside the collapsed 检索、额度与对话说明. At 0 it is the calm daily-limit line (H37): no call
+ * buttons; site information and emergency help keep working (an emergency question is answered without the model).
+ */
+export function BayBayQuotaLine({ remaining }: { remaining: number }) {
+  const { t } = useBayBayCopy();
+  if (remaining > BAYBAY_QUOTA_VISIBLE) return null;
+  return <p className="bb-quota" data-remaining={remaining} role="status" translate="no">{remaining > 0
+    ? t(`今日 AI 查询还剩 ${remaining} 次，湾区午夜重置。`, `${remaining} AI ${remaining === 1 ? 'query' : 'queries'} left today; resets at Bay Area midnight.`)
+    : t('今日 AI 额度已用完，湾区午夜重置；站内资料和紧急求助仍可用。', 'Today’s AI answers are used up and reset at Bay Area midnight. Site information and emergency help still work.')}</p>;
 }

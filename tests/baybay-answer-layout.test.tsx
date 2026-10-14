@@ -315,7 +315,7 @@ test('the answer stylesheet uses tokens and rem only, and every control is at le
   assert.match(css, /\.bb-points>li \{[^}]*font-size:var\(--text-reading\)/, 'points use the 17px reading size');
   assert.match(css, /\.bb-emergency__text \{[^}]*font-size:var\(--text-reading\)/, 'the 911 instructions use the reading size');
   assert.match(css, /\.bb-reference li>a \{[^}]*min-height:var\(--control-height\)/, 'source links are full-size targets (44px, 48 in 简洁显示)');
-  assert.match(css, /\.bb-call__number \{ white-space:nowrap; \}/, 'a phone number stays on one line');
+  assert.match(css, /:is\(\.bb-call__number,\.bb-phone-number\) \{ white-space:nowrap; \}/, 'a phone number stays on one line, in a call button or in the text of the 911 card');
 });
 
 test('the resume time is said once: none when the banner has a time, "即 …" after its own 恢复, else a sentence', () => {
