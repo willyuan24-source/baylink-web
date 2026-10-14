@@ -82,7 +82,7 @@ test('H68: paid events keep no copied cost line or filler; opening labels drop "
   assert.ok(!event('sf-potrero-hill-festival-oct17-2026').plan.some(line => line.includes('FAQ：')), 'no line that only pointed at a dropped link');
   for (const shop of currentOpenings) assert.doesNotMatch(shop.dateLabel, /未核实|非确认|首营业日未公布|仅为媒体报道的预计开业窗口/u, shop.id);
   const capriciano = currentOpenings.find(shop => shop.id === 'roundup-capriciano-santarosa-2026')!;
-  assert.equal(capriciano.dateLabel, '2026 年初秋开业');
+  assert.equal(capriciano.dateLabel, '2026 年初秋已开业', 'status-open shops keep 已: a season alone reads as a forecast');
 });
 
 test('driver-licence guide: the 10-day rule is not extended by booking, links the statute, and says how many proofs of address', async () => {
@@ -91,7 +91,7 @@ test('driver-licence guide: the 10-day rule is not extended by booking, links th
   const blocks = guide.blocks as { type: string; text?: string; title?: string; url?: string }[];
   const start = blocks.findIndex(block => block.type === 'heading' && block.text?.startsWith('新居民'));
   const section = blocks.slice(start, blocks.findIndex((block, index) => index > start && block.type === 'heading'));
-  assert.ok(section.some(block => block.type === 'paragraph' && block.text!.includes('12505(c)') && block.text!.includes('并不会延长这 10 天')));
+  assert.ok(section.some(block => block.type === 'paragraph' && block.text!.includes('12505(c)') && block.text!.includes('法条没有因递交申请或预约 DMV 而延长这 10 天的规定')));
   assert.ok(section.some(block => block.type === 'link' && block.url === 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505.'));
   assert.ok(section.some(block => block.type === 'paragraph' && /普通驾照至少一份.*REAL ID 要两份/u.test(block.text!)));
   assert.ok(section.some(block => block.type === 'paragraph' && block.text!.includes('材料一时不齐，也要按时递交申请和费用')));

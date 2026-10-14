@@ -850,3 +850,20 @@ All the policy-free items above also get planner `admissionUsd` 0 (the Almaden f
 | opening | `marufuku-burlingame-announced` | https://www.marufukuramen.com/burlingame | 2026-10-14, 200 | no data change (`openedOn` 2026-10-11 and status open stay as WEB-FIX5 set them); the opening chip now prints the day: 10/11 已开业 / Opened Oct 11 (was 10 月开业 / Opened Oct, which a 10-13 live check read as a forecast). The brand homepage (https://www.marufukuramen.com/) still shows "COMING SOON TO BURLINGAME" and the location list "BURLINGAME (COMING SOON)"; the store page is the more specific source, as before. No independent report of the first day was found (web search 2026-10-14) | "GRAND OPENING: OCT. 11 11am-2pm / 5pm-9pm 225 Lorton Ave, Burlingame, CA 94010 650-242-1523 Regular hours starting 10/12: MON–FRI 11am-2pm / 5pm-9pm SAT–SUN 11am-9pm" |
 
 Same chip, wording only: the two dated soft openings (`san-jose-bitterbuck-soft-opening-2026` 9/4, `game-parlour-oakland` 9/8) now read 9/4 起试营业 / Soft opening since Sep 4 instead of 9 月开业 / Opened Sep (a soft opening is not 已开业). Status, `openedOn` and `verifiedAt` unchanged.
+
+### 2026-10-14 (PT) review fixes · CNT-HOTFIX-2
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| opening | `old-post-office-burlingame` | https://www.oldpostofficeburlingame.com/ ; https://www.oldpostofficeburlingame.com/about | 2026-10-14, 200 / 200 | editorTip (overlay) no longer says 10/17 has no brunch: "brunch from 10/18" is credited to the site's earlier hours note (read 10-12: "Brunch: Sat–Sun, 11 a.m.–2 p.m. (10/18)"), 10/17 is marked unconfirmed, call 650-502-1000. dateLabel "早午餐 10/18 起" kept (brief) | home and /about: "Brunch: Sat–Sun, 11 a.m.–2 p.m." (no start-date note) |
+| opening | `palo-alto-auntea-jenny-announced-2026` | https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/ ; https://www.aunteajenny.us/ ; https://www.aunteajenny.us/stores.html | 2026-10-14, 200 / 200 / 200 | dateLabel → 媒体曾报道 9 月下旬开业，至 10/14 还没有开业消息 (the reported window has passed; the brand site's store list loads by script and shows no Palo Alto entry to a plain read; a web search found no opening report). Status stays announced, `verifiedAt` unchanged | RWC Pulse 9/15: "Auntea Jenny, Palo Alto: Late September … 328 University Ave., Palo Alto" |
+| opening | `palo-alto-bonbon-matcha-announced-2026` | same RWC Pulse article ; https://www.instagram.com/bonbon_matcha/ | 2026-10-14, 200 / 200 (profile metadata only) | dateLabel → 媒体曾报道 10 月上中旬开业，至 10/14 还没有开业消息 (no opening report found; Instagram shows only profile counts without login). Status stays announced, `verifiedAt` unchanged. Add both to the weekly recheck | RWC Pulse 9/15: "Bonbon Matcha, Palo Alto: Early to mid-October … 439 Waverley St., Palo Alto" |
+
+Wording only (no new read): the driver-licence guide now says the statute has no extension for applying or booking within the 10 days
+(法条没有因递交申请或预约 DMV 而延长这 10 天的规定) instead of stating it as the statute's words; the English dated soft-opening chip reads
+"Soft open 9/4" (was "Soft opening since Sep 4", too wide for a share card cover); status-open season labels keep 已
+(2026 年初秋已开业 / 2026 年夏季已开业).
+
+Independent re-fetch (two-lens review, 2026-10-14): a separate reviewer re-fetched the BORP schedule and FAQ (both times present), the SFPL,
+SMCL, SJPL, Marin, SCCLD and Sonoma library policy pages, the Marufuku Burlingame store page, the DMV new-to-California page and the Old Post
+Office pages with read-only GETs; every quote above was present. SSA answered 403 to plain GETs, so the 10-13 headless-Chrome read stands.

@@ -89,7 +89,7 @@ export const settlingInGuides: Guide[] = [
       { type: 'link', title: '加州驾驶手册（有中文版）', text: '选择语言“中文”下载 PDF。', url: 'https://www.dmv.ca.gov/portal/handbook/california-driver-handbook/' },
       { type: 'link', title: 'DMV 官方笔试练习题', text: 'C 类练习题，有中文版。', url: 'https://www.dmv.ca.gov/portal/driver-education-and-safety/educational-materials/sample-driver-license-dl-knowledge-tests/' },
       { type: 'heading', text: '新居民：驾照的 10 天和车辆登记的 20 天' },
-      { type: 'paragraph', text: '加州车辆法 12505(c) 规定：原本凭外州驾照合法开车的人，成为加州居民后，最多再用外州驾照开 10 天；成为居民后受雇开车的，要先拿到加州驾照。10 天内递交申请或约到 DMV，并不会延长这 10 天。“居民”看的是你是否已在加州定居，不是到达当天自动起算；拿不准就马上开始申请加州驾照。' },
+      { type: 'paragraph', text: '加州车辆法 12505(c) 规定：原本凭外州驾照合法开车的人，成为加州居民后，最多再用外州驾照开 10 天；成为居民后受雇开车的，要先拿到加州驾照。法条没有因递交申请或预约 DMV 而延长这 10 天的规定。“居民”看的是你是否已在加州定居，不是到达当天自动起算；拿不准就马上开始申请加州驾照。' },
       { type: 'link', title: '加州车辆法 12505(c)：新居民最多再开 10 天', text: '法条原文：成为居民后，凭外州驾照最多再开 10 天；受雇开车要先拿加州驾照。', url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505.' },
       { type: 'paragraph', text: '申请加州驾照要交住址证明：普通驾照至少一份 DMV 认可的住址文件，REAL ID 要两份不同的住址文件。' },
       { type: 'paragraph', text: 'DMV 新居民页面要求：把外州登记的自用车带进加州的新居民，在成为居民或把车带进加州后 20 天内办加州登记，不用等加州驾照寄到。准备车主签字的 REG 343 申请表、外州产权或登记证、由授权人员做的 REG 31 车辆核验，按规定做尾气检查（smog），车上随时带保险证明。登记费要在应缴之日起 20 天内交给 DMV；产权、smog 等材料一时不齐，也要按时递交申请和费用，以免罚款。' },
