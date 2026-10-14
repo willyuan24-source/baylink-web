@@ -120,7 +120,8 @@ html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'PingFang TC',
    Chinese still comes from JhengHei UI Bold. Where Segoe UI is not installed (macOS, iOS, Android) local() finds nothing
    and the usual stack applies, so PingFang TC and Noto are unchanged. A 400 face keeps regular runs regular. */
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI'), local('SegoeUI'); font-weight:400; unicode-range:U+0000-024F; }
-@font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:600 700; unicode-range:U+0000-024F; }
+@font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:600; unicode-range:U+0000-024F; }
+@font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:700; unicode-range:U+0000-024F; }
 html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-row-card__title,.ui-type-cover__title,.ui-type-cover__date,.ui-type-cover__value) { font-family:'BL Hant Latin',var(--font-sans); }
 /* Aa: 标准 100% / 大 112.5% / 特大 125% of the browser's own size, set before the first paint by public/reading-init.js.
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
