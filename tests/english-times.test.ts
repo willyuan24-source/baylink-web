@@ -89,6 +89,8 @@ test('H41: on /en, date and time tokens a page renders from data read in US styl
     ['Open 1–3pm', 'Open 1–3pm'],
   ];
   for (const [input, output] of cases) assert.equal(translateText(input, 'en'), output, input);
+  // a known label before a full-width colon keeps its value as data, read in US style
+  assert.equal(translateText('开业消息核对：2026-10-07', 'en'), 'Opening news checked: Oct 7, 2026');
   // 繁體 and 简体 keep the data as written
   assert.equal(translateText('2026-10-05', 'zh-Hant'), '2026-10-05');
   assert.equal(translateText('14:00–16:00', 'zh-Hans'), '14:00–16:00');

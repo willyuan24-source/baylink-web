@@ -320,7 +320,8 @@ export function translateText(text: string, locale: Locale = current, depth = 0)
     if (match) return text.slice(0, text.length - text.trimStart().length) + target.replace(/\{(\d+)\}/g, (_, index: string) => translateText(match[Number(index) + 1], locale, depth + 1)) + text.slice(text.trimEnd().length);
   }
   const colon = text.indexOf('：');
-  if (colon > 0 && english[normalizeText(text.slice(0, colon))]) return english[normalizeText(text.slice(0, colon))] + ': ' + text.slice(colon + 1);
+  // "开业消息核对：2026-10-07" → "Opening news checked: Oct 7, 2026" (the value after the label is a data token, H41)
+  if (colon > 0 && english[normalizeText(text.slice(0, colon))]) return english[normalizeText(text.slice(0, colon))] + ': ' + englishNeutral(text.slice(colon + 1));
   return text.split(/(\n| · | \/ |｜)/).map((part) => part !== text && depth < 3 ? translateText(part, locale, depth + 1) : english[normalizeText(part)] || part).join('');
 }
 
