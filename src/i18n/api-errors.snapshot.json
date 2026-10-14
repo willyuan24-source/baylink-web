@@ -1,7 +1,7 @@
 {
  "source": "baylink-backend",
- "commit": "d9bae34b65ff2da88cc6564d86c6c1bab0aec6e0",
- "files": 91,
+ "commit": "be6e18ac862d5cc609e6c81cca083c252d6b0bf6",
+ "files": 92,
  "messages": [
   {
    "text": "验证器密钥无效。",
@@ -165,15 +165,15 @@
   },
   {
    "text": "每页人数须为 1–20。",
-   "where": "lib/eventEngagement.js:152"
-  },
-  {
-   "text": "分页位置无效。",
    "where": "lib/eventEngagement.js:157"
   },
   {
+   "text": "分页位置无效。",
+   "where": "lib/eventEngagement.js:162"
+  },
+  {
    "text": "请明确选择是否想去、是否寻找搭子；找搭子需要同时选择想去。",
-   "where": "lib/eventEngagement.js:181"
+   "where": "lib/eventEngagement.js:186"
   },
   {
    "text": "仅管理员可查看反馈。",
@@ -229,83 +229,83 @@
   },
   {
    "text": "邮箱验证暂不可用。",
-   "where": "lib/notifications.js:99"
+   "where": "lib/notifications.js:159"
   },
   {
    "text": "通知设置暂不可用。",
-   "where": "lib/notifications.js:135"
+   "where": "lib/notifications.js:222"
   },
   {
    "text": "账号当前不可用。",
-   "where": "lib/notifications.js:136"
+   "where": "lib/notifications.js:223"
   },
   {
    "text": "通知设置格式无效。",
-   "where": "lib/notifications.js:139"
+   "where": "lib/notifications.js:226"
   },
   {
    "text": "通知渠道无效。",
-   "where": "lib/notifications.js:141"
+   "where": "lib/notifications.js:228"
   },
   {
    "text": "通知语言无效。",
-   "where": "lib/notifications.js:142"
+   "where": "lib/notifications.js:229"
   },
   {
    "text": "请选择明确的通知选项。",
-   "where": "lib/notifications.js:152"
+   "where": "lib/notifications.js:242"
   },
   {
    "text": "请先验证邮箱或手机号。",
-   "where": "lib/notifications.js:158"
+   "where": "lib/notifications.js:250"
   },
   {
    "text": "通知设置正在更新，请重试。",
-   "where": "lib/notifications.js:173"
+   "where": "lib/notifications.js:266"
   },
   {
    "text": "当前账号邮箱不可用。",
-   "where": "lib/notifications.js:182"
+   "where": "lib/notifications.js:278"
   },
   {
    "text": "验证邮件请求过于频繁，请稍后再试。",
-   "where": "lib/notifications.js:187"
+   "where": "lib/notifications.js:283"
   },
   {
    "text": "验证邮件正在准备，请稍后重试。",
-   "where": "lib/notifications.js:195"
+   "where": "lib/notifications.js:291"
   },
   {
    "text": "链接无效或已过期。",
-   "where": "lib/notifications.js:199"
+   "where": "lib/notifications.js:295"
   },
   {
    "text": "链接无效、已使用或已过期。",
-   "where": "lib/notifications.js:201"
+   "where": "lib/notifications.js:297"
   },
   {
    "text": "账号操作暂不可用。",
-   "where": "lib/notifications.js:205"
+   "where": "lib/notifications.js:301"
   },
   {
    "text": "链接无效或邮箱已更改。",
-   "where": "lib/notifications.js:207"
+   "where": "lib/notifications.js:303"
   },
   {
    "text": "链接已经使用。",
-   "where": "lib/notifications.js:209"
+   "where": "lib/notifications.js:305"
   },
   {
    "text": "链接无效。",
-   "where": "lib/notifications.js:221"
+   "where": "lib/notifications.js:322"
   },
   {
    "text": "操作过于频繁，请稍后再试。",
-   "where": "lib/notifications.js:413"
+   "where": "lib/notifications.js:564"
   },
   {
    "text": "通知服务暂不可用。",
-   "where": "lib/notifications.js:415"
+   "where": "lib/notifications.js:566"
   },
   {
    "text": "小队请求格式无效。",
@@ -1213,579 +1213,579 @@
   },
   {
    "text": "不允许此来源访问",
-   "where": "server.js:94"
+   "where": "server.js:95"
   },
   {
    "text": "内容不存在或已被移除。",
-   "where": "server.js:864"
+   "where": "server.js:869"
   },
   {
    "text": "消息类型无效",
-   "where": "server.js:872"
+   "where": "server.js:877"
   },
   {
    "text": "消息内容必须是文字",
-   "where": "server.js:880"
+   "where": "server.js:885"
   },
   {
    "text": "消息不能为空",
-   "where": "server.js:882"
+   "where": "server.js:887"
   },
   {
    "text": "消息内容太长，请控制在 2000 字以内",
-   "where": "server.js:884"
+   "where": "server.js:889"
   },
   {
    "text": "需要管理员权限",
-   "where": "server.js:915"
+   "where": "server.js:920"
   },
   {
    "text": "管理员操作需要验证器：请先在“隐私与安全”中开启验证器，再用验证器重新登录。",
-   "where": "server.js:917"
+   "where": "server.js:922"
   },
   {
    "text": "搜索关键词格式无效",
-   "where": "server.js:927"
+   "where": "server.js:932"
   },
   {
    "text": "搜索关键词过长",
-   "where": "server.js:930"
+   "where": "server.js:935"
   },
   {
    "text": "暂时无法向该用户发送消息。",
-   "where": "server.js:1085"
+   "where": "server.js:1090"
   },
   {
    "text": "你已屏蔽该用户，取消屏蔽后才能发送消息。",
-   "where": "server.js:1091"
+   "where": "server.js:1096"
   },
   {
    "text": "举报目标无效",
-   "where": "server.js:1114"
+   "where": "server.js:1119"
   },
   {
    "text": "帖子不存在或已删除",
-   "where": "server.js:1118"
-  },
-  {
-   "text": "用户不存在",
    "where": "server.js:1123"
   },
   {
-   "text": "消息不存在或不可举报",
+   "text": "用户不存在",
    "where": "server.js:1128"
   },
   {
+   "text": "消息不存在或不可举报",
+   "where": "server.js:1133"
+  },
+  {
    "text": "请填写有效链接，或留空。",
-   "where": "server.js:1320"
+   "where": "server.js:1325"
   },
   {
    "text": "短信服务正在完成注册，请稍后再试。",
-   "where": "server.js:1498"
-  },
-  {
-   "text": "短信服务配置错误，请稍后再试。",
-   "where": "server.js:1501"
-  },
-  {
-   "text": "短信发送失败，请稍后再试。",
    "where": "server.js:1503"
   },
   {
+   "text": "短信服务配置错误，请稍后再试。",
+   "where": "server.js:1506"
+  },
+  {
+   "text": "短信发送失败，请稍后再试。",
+   "where": "server.js:1508"
+  },
+  {
    "text": "这个手机号已在其他账号验证过，不能再用于验证新账号。如需帮助请联系我们。",
-   "where": "server.js:1530"
+   "where": "server.js:1535"
   },
   {
    "text": "请先验证邮箱，再验证手机号：在\"我的 → 通知设置\"里点\"验证邮箱\"，打开邮件里的链接后再回来。",
-   "where": "server.js:1544"
+   "where": "server.js:1549"
   },
   {
    "text": "请输入有效的美国手机号。",
-   "where": "server.js:1548"
+   "where": "server.js:1553"
   },
   {
    "text": "目前只能验证美国手机号（+1，美国区号）。",
-   "where": "server.js:1554"
+   "where": "server.js:1559"
   },
   {
    "text": "验证码发送太频繁，请稍后再试。",
-   "where": "server.js:1558"
+   "where": "server.js:1563"
   },
   {
    "text": "今日验证码发送次数已达上限。",
-   "where": "server.js:1562"
+   "where": "server.js:1567"
   },
   {
    "text": "短信服务暂时不可用，请稍后再试。",
-   "where": "server.js:1571"
+   "where": "server.js:1576"
   },
   {
    "text": "验证码已发送。",
-   "where": "server.js:1585"
+   "where": "server.js:1590"
   },
   {
    "text": "开发测试验证码已生成，未发送短信。",
-   "where": "server.js:1595"
-  },
-  {
-   "text": "验证码不正确或已过期",
    "where": "server.js:1600"
   },
   {
+   "text": "验证码不正确或已过期",
+   "where": "server.js:1605"
+  },
+  {
    "text": "手机号已验证。",
-   "where": "server.js:1634"
+   "where": "server.js:1639"
   },
   {
    "text": "请先登录",
-   "where": "server.js:1752"
+   "where": "server.js:1757"
   },
   {
    "text": "暂时无法撤销登录，请重试。",
-   "where": "server.js:1926"
+   "where": "server.js:1928"
   },
   {
    "text": "无效请求",
-   "where": "server.js:1943"
-  },
-  {
-   "text": "操作失败，请稍后再试",
    "where": "server.js:1945"
   },
   {
+   "text": "操作失败，请稍后再试",
+   "where": "server.js:1947"
+  },
+  {
    "text": "昵称须为1–30个字符。",
-   "where": "server.js:1969"
+   "where": "server.js:1971"
   },
   {
    "text": "账号不可用或已被限制",
-   "where": "server.js:2031"
+   "where": "server.js:2033"
   },
   {
    "text": "重设链接无效或已过期。",
-   "where": "server.js:2112"
+   "where": "server.js:2114"
   },
   {
    "text": "密码已更新，请重新登录。",
-   "where": "server.js:2136"
+   "where": "server.js:2138"
   },
   {
    "text": "新密码至少 8 位，包含大写字母、小写字母和数字（最多 128 位）。",
-   "where": "server.js:2152"
-  },
-  {
-   "text": "管理员新密码至少 12 位，包含大写字母、小写字母和数字（最多 128 位）。",
-   "where": "server.js:2153"
-  },
-  {
-   "text": "新密码不能和当前密码相同。",
    "where": "server.js:2154"
   },
   {
+   "text": "管理员新密码至少 12 位，包含大写字母、小写字母和数字（最多 128 位）。",
+   "where": "server.js:2155"
+  },
+  {
+   "text": "新密码不能和当前密码相同。",
+   "where": "server.js:2156"
+  },
+  {
    "text": "账号凭证已变化，请重新登录后再试。",
-   "where": "server.js:2163"
+   "where": "server.js:2165"
   },
   {
    "text": "获取屏蔽列表失败",
-   "where": "server.js:2213"
+   "where": "server.js:2215"
   },
   {
    "text": "请提供要屏蔽的用户",
-   "where": "server.js:2221"
+   "where": "server.js:2223"
   },
   {
    "text": "不能屏蔽自己",
-   "where": "server.js:2224"
+   "where": "server.js:2226"
   },
   {
    "text": "已屏蔽该用户。",
-   "where": "server.js:2239"
+   "where": "server.js:2241"
   },
   {
    "text": "屏蔽失败，请稍后再试",
-   "where": "server.js:2243"
+   "where": "server.js:2245"
   },
   {
    "text": "请提供要取消屏蔽的用户",
-   "where": "server.js:2251"
+   "where": "server.js:2253"
   },
   {
    "text": "已取消屏蔽。",
-   "where": "server.js:2254"
+   "where": "server.js:2256"
   },
   {
    "text": "取消屏蔽失败，请稍后再试",
-   "where": "server.js:2257"
+   "where": "server.js:2259"
   },
   {
    "text": "加载失败，请稍后再试",
-   "where": "server.js:2300"
+   "where": "server.js:2302"
   },
   {
    "text": "个人主页主题无效。",
-   "where": "server.js:2311"
-  },
-  {
-   "text": "状态签名最多 60 个字符。",
-   "where": "server.js:2312"
-  },
-  {
-   "text": "请选择最多 3 个不同的认识同好选项。",
    "where": "server.js:2313"
   },
   {
-   "text": "公开资料显示设置无效。",
+   "text": "状态签名最多 60 个字符。",
    "where": "server.js:2314"
   },
   {
+   "text": "请选择最多 3 个不同的认识同好选项。",
+   "where": "server.js:2315"
+  },
+  {
+   "text": "公开资料显示设置无效。",
+   "where": "server.js:2316"
+  },
+  {
    "text": "图片上传失败，请稍后重试。",
-   "where": "server.js:2354"
+   "where": "server.js:2356"
   },
   {
    "text": "更新失败，请稍后再试",
-   "where": "server.js:2364"
+   "where": "server.js:2366"
   },
   {
    "text": "请先登录。",
-   "where": "server.js:2393"
+   "where": "server.js:2395"
   },
   {
    "text": "用户不存在。",
-   "where": "server.js:2398"
+   "where": "server.js:2400"
   },
   {
    "text": "请选择有效的认证类型。",
-   "where": "server.js:2404"
+   "where": "server.js:2406"
   },
   {
    "text": "请填写更完整的认证说明。",
-   "where": "server.js:2409"
+   "where": "server.js:2411"
   },
   {
    "text": "已通过认证，无需重复申请",
-   "where": "server.js:2414"
+   "where": "server.js:2416"
   },
   {
    "text": "提交失败，请稍后再试。",
-   "where": "server.js:2450"
+   "where": "server.js:2452"
   },
   {
    "text": "评论不能为空",
-   "where": "server.js:2480"
+   "where": "server.js:2482"
   },
   {
    "text": "评论不能超过 500 字",
-   "where": "server.js:2481"
+   "where": "server.js:2483"
   },
   {
    "text": "无法加载你的发布，请重试。",
-   "where": "server.js:2656"
+   "where": "server.js:2658"
   },
   {
    "text": "今天发布次数已达到上限，请明天再试。",
-   "where": "server.js:2701"
+   "where": "server.js:2703"
   },
   {
    "text": "请不要重复发布相同内容。",
-   "where": "server.js:2717"
+   "where": "server.js:2719"
   },
   {
    "text": "最多上传 5 张照片",
-   "where": "server.js:2741"
+   "where": "server.js:2743"
   },
   {
    "text": "图片须为大小受限的 JPEG、PNG、WebP、GIF、AVIF，或本站 Cloudinary 图片。",
-   "where": "server.js:2756"
+   "where": "server.js:2758"
   },
   {
    "text": "图片上传失败，帖子尚未保存。请重试或重新选择图片。",
-   "where": "server.js:2762"
+   "where": "server.js:2764"
   },
   {
    "text": "发布失败，请稍后再试",
-   "where": "server.js:2830"
+   "where": "server.js:2832"
   },
   {
    "text": "推荐失败，请稍后再试",
-   "where": "server.js:2845"
+   "where": "server.js:2847"
   },
   {
    "text": "取消推荐失败，请稍后再试",
-   "where": "server.js:2859"
+   "where": "server.js:2861"
   },
   {
    "text": "请使用新版举报入口。",
-   "where": "server.js:2899"
+   "where": "server.js:2901"
   },
   {
    "text": "评论太频繁了，请稍后再试",
-   "where": "server.js:2950"
+   "where": "server.js:2952"
   },
   {
    "text": "回复的评论不存在",
-   "where": "server.js:2965"
-  },
-  {
-   "text": "无法回复已删除的评论",
-   "where": "server.js:2966"
-  },
-  {
-   "text": "不支持回复二级评论",
    "where": "server.js:2967"
   },
   {
+   "text": "无法回复已删除的评论",
+   "where": "server.js:2968"
+  },
+  {
+   "text": "不支持回复二级评论",
+   "where": "server.js:2969"
+  },
+  {
    "text": "评论失败，请稍后再试",
-   "where": "server.js:2986"
+   "where": "server.js:2988"
   },
   {
    "text": "评论不存在",
-   "where": "server.js:2997"
-  },
-  {
-   "text": "评论已删除，无法编辑",
    "where": "server.js:2999"
   },
   {
+   "text": "评论已删除，无法编辑",
+   "where": "server.js:3001"
+  },
+  {
    "text": "编辑失败，请稍后再试",
-   "where": "server.js:3013"
+   "where": "server.js:3015"
   },
   {
    "text": "评论已删除",
-   "where": "server.js:3026"
+   "where": "server.js:3028"
   },
   {
    "text": "删除失败，请稍后再试",
-   "where": "server.js:3045"
+   "where": "server.js:3047"
   },
   {
    "text": "这条信息已结束，不再接受新的联系请求。",
-   "where": "server.js:3057"
+   "where": "server.js:3059"
   },
   {
    "text": "不能请求自己帖子的联系方式。",
-   "where": "server.js:3058"
+   "where": "server.js:3060"
   },
   {
    "text": "请先验证手机号，再请求自动公开的联系方式。",
-   "where": "server.js:3068"
-  },
-  {
-   "text": "该帖子仅支持站内私信",
    "where": "server.js:3070"
   },
   {
+   "text": "该帖子仅支持站内私信",
+   "where": "server.js:3072"
+  },
+  {
    "text": "帖主暂未同意发送联系方式，请稍后再试或先使用站内私信。",
-   "where": "server.js:3092"
+   "where": "server.js:3094"
   },
   {
    "text": "你刚刚已经请求过，请稍后再试。",
-   "where": "server.js:3096"
+   "where": "server.js:3098"
   },
   {
    "text": "帖主尚未设置可分享的联系方式。",
-   "where": "server.js:3101"
+   "where": "server.js:3103"
   },
   {
    "text": "请求失败，请稍后再试",
-   "where": "server.js:3158"
+   "where": "server.js:3160"
   },
   {
    "text": "role 参数无效",
-   "where": "server.js:3173"
+   "where": "server.js:3175"
   },
   {
    "text": "请求不存在",
-   "where": "server.js:3215"
-  },
-  {
-   "text": "该请求已处理",
    "where": "server.js:3217"
   },
   {
+   "text": "该请求已处理",
+   "where": "server.js:3219"
+  },
+  {
    "text": "帖子不存在",
-   "where": "server.js:3226"
+   "where": "server.js:3228"
   },
   {
    "text": "帖子不存在或已被隐藏",
-   "where": "server.js:3233"
+   "where": "server.js:3235"
   },
   {
    "text": "暂无可用联系方式",
-   "where": "server.js:3242"
+   "where": "server.js:3244"
   },
   {
    "text": "创建推荐失败，请稍后再试",
-   "where": "server.js:3309"
+   "where": "server.js:3311"
   },
   {
    "text": "更新推荐失败，请稍后再试",
-   "where": "server.js:3326"
+   "where": "server.js:3328"
   },
   {
    "text": "无法与自己创建会话。",
-   "where": "server.js:3368"
+   "where": "server.js:3370"
   },
   {
    "text": "会话不存在。",
-   "where": "server.js:3415"
+   "where": "server.js:3417"
   },
   {
    "text": "会话不存在",
-   "where": "server.js:3428"
+   "where": "server.js:3430"
   },
   {
    "text": "发送太频繁了，请稍后再试",
-   "where": "server.js:3442"
+   "where": "server.js:3444"
   },
   {
    "text": "请选择本会话中的文字消息进行回复。",
-   "where": "server.js:3452"
+   "where": "server.js:3454"
   },
   {
    "text": "发送失败",
-   "where": "server.js:3481"
+   "where": "server.js:3483"
   },
   {
    "text": "请选择支持的表情回应。",
-   "where": "server.js:3496"
+   "where": "server.js:3498"
   },
   {
    "text": "消息不存在。",
-   "where": "server.js:3506"
+   "where": "server.js:3508"
   },
   {
    "text": "回应失败，请稍后重试。",
-   "where": "server.js:3511"
+   "where": "server.js:3513"
   },
   {
    "text": "请选择已经收到的消息。",
-   "where": "server.js:3520"
+   "where": "server.js:3522"
   },
   {
    "text": "更新未读状态失败，请稍后重试。",
-   "where": "server.js:3539"
+   "where": "server.js:3541"
   },
   {
    "text": "举报过于频繁，请稍后再试",
-   "where": "server.js:3547"
+   "where": "server.js:3549"
   },
   {
    "text": "举报类型无效",
-   "where": "server.js:3555"
+   "where": "server.js:3557"
   },
   {
    "text": "举报原因无效",
-   "where": "server.js:3558"
+   "where": "server.js:3560"
   },
   {
    "text": "不能举报自己的内容",
-   "where": "server.js:3567"
+   "where": "server.js:3569"
   },
   {
    "text": "你已经举报过该内容，我们会尽快处理。",
-   "where": "server.js:3580"
+   "where": "server.js:3582"
   },
   {
    "text": "举报已提交，感谢你的反馈。",
-   "where": "server.js:3604"
+   "where": "server.js:3606"
   },
   {
    "text": "举报提交失败，请稍后再试",
-   "where": "server.js:3608"
+   "where": "server.js:3610"
   },
   {
    "text": "账号状态无效",
-   "where": "server.js:3616"
+   "where": "server.js:3618"
   },
   {
    "text": "不能调整自己的账号状态",
-   "where": "server.js:3619"
+   "where": "server.js:3621"
   },
   {
    "text": "更新账号状态失败",
-   "where": "server.js:3664"
+   "where": "server.js:3666"
   },
   {
    "text": "获取认证申请失败",
-   "where": "server.js:3689"
+   "where": "server.js:3691"
   },
   {
    "text": "状态无效",
-   "where": "server.js:3697"
+   "where": "server.js:3699"
   },
   {
    "text": "审核失败，请稍后再试",
-   "where": "server.js:3745"
+   "where": "server.js:3747"
   },
   {
    "text": "获取举报列表失败",
-   "where": "server.js:3768"
+   "where": "server.js:3770"
   },
   {
    "text": "举报记录不存在",
-   "where": "server.js:3781"
+   "where": "server.js:3783"
   },
   {
    "text": "更新举报状态失败",
-   "where": "server.js:3822"
+   "where": "server.js:3824"
   },
   {
    "text": "隐藏帖子失败",
-   "where": "server.js:3852"
+   "where": "server.js:3854"
   },
   {
    "text": "恢复帖子失败",
-   "where": "server.js:3880"
+   "where": "server.js:3882"
   },
   {
    "text": "获取操作日志失败",
-   "where": "server.js:3907"
+   "where": "server.js:3909"
   },
   {
    "text": "登录已过期，请重新登录。",
-   "where": "server.js:3924"
+   "where": "server.js:3926"
   },
   {
    "text": "暂时无法撤销管理员登录，请重试。",
-   "where": "server.js:3930"
+   "where": "server.js:3932"
   },
   {
    "text": "AI 服务暂未配置，请稍后再试",
-   "where": "server.js:4273"
+   "where": "server.js:4275"
   },
   {
    "text": "请至少用 5 个字描述你的需求",
-   "where": "server.js:4278"
+   "where": "server.js:4280"
   },
   {
    "text": "需求描述不能超过 1000 字",
-   "where": "server.js:4281"
+   "where": "server.js:4283"
   },
   {
    "text": "请求过于频繁，请 60 秒后再试",
-   "where": "server.js:4286"
+   "where": "server.js:4288"
   },
   {
    "text": "请选择中文、英文或双语。",
-   "where": "server.js:4297"
+   "where": "server.js:4299"
   },
   {
    "text": "AI 整理失败，请稍后再试",
-   "where": "server.js:4330"
+   "where": "server.js:4332"
   },
   {
    "text": "请输入文字问题",
-   "where": "server.js:4440"
-  },
-  {
-   "text": "请输入你的问题",
    "where": "server.js:4442"
   },
   {
+   "text": "请输入你的问题",
+   "where": "server.js:4444"
+  },
+  {
    "text": "问题太短，请再补充一点",
-   "where": "server.js:4443"
+   "where": "server.js:4445"
   },
   {
    "text": "问题请控制在 500 字以内",
-   "where": "server.js:4445"
+   "where": "server.js:4447"
   }
  ],
  "codes": [
@@ -1803,7 +1803,7 @@
   },
   {
    "code": "ACCOUNT_GATE_UNAVAILABLE",
-   "where": "lib/notifications.js:205",
+   "where": "lib/notifications.js:301",
    "messages": [
     "账号操作暂不可用。"
    ]
@@ -1824,7 +1824,7 @@
   },
   {
    "code": "ADMIN_MFA_REQUIRED",
-   "where": "server.js:917",
+   "where": "server.js:922",
    "messages": [
     "管理员操作需要验证器：请先在“隐私与安全”中开启验证器，再用验证器重新登录。"
    ]
@@ -1843,7 +1843,7 @@
   },
   {
    "code": "AI_CONCURRENCY_LIMIT",
-   "where": "lib/aiBudget.js:32",
+   "where": "lib/aiBudget.js:33",
    "messages": [
     "BayBay 正忙，请稍后再试。"
    ],
@@ -1851,7 +1851,7 @@
   },
   {
    "code": "AI_DAILY_BUDGET",
-   "where": "lib/aiBudget.js:24",
+   "where": "lib/aiBudget.js:25",
    "messages": [
     "今日 AI 名额已满，明天会恢复；站内资料仍可浏览。"
    ],
@@ -1859,7 +1859,7 @@
   },
   {
    "code": "AI_DAILY_LIMIT",
-   "where": "lib/aiBudget.js:30",
+   "where": "lib/aiBudget.js:31",
    "messages": [
     "今日 AI 额度已用完，请明天再试；仍可浏览站内资料。"
    ],
@@ -1877,7 +1877,7 @@
   },
   {
    "code": "AI_QUOTA_UNAVAILABLE",
-   "where": "lib/aiBudget.js:33",
+   "where": "lib/aiBudget.js:34",
    "messages": [
     "AI 额度暂时无法确认，请稍后再试；站内资料仍可浏览。"
    ],
@@ -1885,12 +1885,12 @@
   },
   {
    "code": "AI_USAGE_RATE_LIMIT",
-   "where": "server.js:1851",
+   "where": "server.js:1852",
    "messages": []
   },
   {
    "code": "AI_WEB_BUDGET",
-   "where": "lib/aiBudget.js:26",
+   "where": "lib/aiBudget.js:27",
    "messages": [
     "今天 AI 用量较高，暂停联网查询；站内资料仍可使用。"
    ],
@@ -1911,7 +1911,7 @@
   },
   {
    "code": "EMAIL_VERIFICATION_REQUIRED",
-   "where": "server.js:1555",
+   "where": "server.js:1560",
    "messages": [
     "请先验证邮箱，再验证手机号：在\"我的 → 通知设置\"里点\"验证邮箱\"，打开邮件里的链接后再回来。"
    ]
@@ -1985,40 +1985,40 @@
   },
   {
    "code": "NOT_FOUND",
-   "where": "server.js:5160",
+   "where": "server.js:5162",
    "messages": []
   },
   {
    "code": "NOTIFICATION_VERIFICATION_REQUIRED",
-   "where": "lib/notifications.js:158",
+   "where": "lib/notifications.js:250",
    "messages": [
     "请先验证邮箱或手机号。"
    ]
   },
   {
    "code": "PHONE_INVALID",
-   "where": "server.js:1548",
+   "where": "server.js:1553",
    "messages": [
     "请输入有效的美国手机号。"
    ]
   },
   {
    "code": "PHONE_NOT_US",
-   "where": "server.js:1554",
+   "where": "server.js:1559",
    "messages": [
     "目前只能验证美国手机号（+1，美国区号）。"
    ]
   },
   {
    "code": "PHONE_SHARED_LIMIT",
-   "where": "server.js:1565",
+   "where": "server.js:1570",
    "messages": [
     "这个手机号已在其他账号验证过，不能再用于验证新账号。如需帮助请联系我们。"
    ]
   },
   {
    "code": "POST_IMAGE_UPLOAD_FAILED",
-   "where": "server.js:2829",
+   "where": "server.js:2831",
    "messages": []
   },
   {
@@ -2028,7 +2028,7 @@
   },
   {
    "code": "SAME_PASSWORD",
-   "where": "server.js:2154",
+   "where": "server.js:2156",
    "messages": [
     "新密码不能和当前密码相同。"
    ]
@@ -2082,14 +2082,14 @@
   },
   {
    "code": "VERIFIED_CONTACT_REQUIRED",
-   "where": "server.js:3068",
+   "where": "server.js:3070",
    "messages": [
     "请先验证手机号，再请求自动公开的联系方式。"
    ]
   },
   {
    "code": "WEAK_PASSWORD",
-   "where": "server.js:2152",
+   "where": "server.js:2154",
    "messages": [
     "新密码至少 8 位，包含大写字母、小写字母和数字（最多 128 位）。",
     "管理员新密码至少 12 位，包含大写字母、小写字母和数字（最多 128 位）。"

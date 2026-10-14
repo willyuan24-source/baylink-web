@@ -9,7 +9,9 @@
  * `notificationWarning:` fields, of `fail('…')` and `new Error('…')`, and of `const …_MSG = '…'`, in server.js, lib/*.js
  * and api/*.js; template literals whose `${NAME}` is a numeric constant of the same file are resolved; the `code:` values,
  * each with the literal message on the same line when there is one. NOT_USER_FACING lists the literals that never reach
- * a reader as an API answer (e-mail wording, logs), each with its reason.
+ * a reader as an API answer (e-mail wording, logs), each with its reason. A line keyed by a Chinese locale
+ * (`'zh-Hans': { message: '新的私信', … }`, lib/notifications.js SETTING_LABELS / LEADS) is wording the API writes in
+ * each language itself (its `en:` line is the English), so it is skipped too.
  */
 import { execFileSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
@@ -19,6 +21,9 @@ const NOT_USER_FACING = {
   '新的站内消息': 'e-mail wording, written per locale by the API',
   '新的站內訊息': 'e-mail wording, written per locale by the API',
 };
+
+/** `'zh-Hans': { … }` / `'zh-Hant': { … }`: a table the API keeps per language (e-mail subjects and labels). */
+const PER_LOCALE_LINE = /^\s*['"]?zh-Han[st]['"]?\s*:\s*\{/;
 
 const [repo, ref = 'origin/main'] = process.argv.slice(2);
 if (!repo) throw new Error('Usage: node scripts/snapshot-api-errors.mjs <api repo> [ref]');
@@ -54,6 +59,7 @@ for (const [file, source] of sources) {
     if (!entry.messages.includes(match[2])) entry.messages.push(match[2]);
   }
   source.split('\n').forEach((line, index) => {
+    if (PER_LOCALE_LINE.test(line)) return;
     const where = `${file}:${index + 1}`;
     const found = [];
     for (const match of line.matchAll(/\berror\s*:\s*([A-Z][A-Z0-9_]*_MSG)\b/g)) if (messageConstants.has(match[1])) found.push(messageConstants.get(match[1]));
