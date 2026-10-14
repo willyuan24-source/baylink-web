@@ -10,7 +10,7 @@ import {
 } from '../../lib/format';
 import type { AdData, AdDetailItem } from '../../lib/types';
 import { adRelationshipDisclosure } from '../../lib/ad-disclosure';
-import { useUiCopy } from '../../components/ui/ui-copy';
+import { translateText, useLocale } from '../../i18n/locale';
 
 const HAN = /[㐀-鿿]/;
 /** The small muted line the ads use for their notes and disclaimers. */
@@ -19,14 +19,23 @@ const NOTE_TEXT = 'text-[0.8125rem] leading-relaxed text-baylink-muted';
  * H50 (I13-13): an ad is its advertiser's own words, in Chinese. On /en its title and text are marked as Chinese
  * (lang="zh-Hans", and translate="no" like every other user-written text), and one short line says it is shown as written.
  */
-const adLanguage = ({ english, t }: Pick<ReturnType<typeof useUiCopy>, 'english' | 't'>, ...texts: string[]) => {
+type AdCopy = { english: boolean; t: (zh: string, en: string) => string };
+/**
+ * The reader's language, from i18n/locale directly: importing components/ui/ui-copy here changed how the build splits the
+ * shared UI chunk, and with it the order of the stylesheets on /events and /calendar (review 10-14).
+ */
+const useAdCopy = (): AdCopy => {
+  const locale = useLocale();
+  return { english: locale === 'en', t: (zh, en) => locale === 'en' ? en : translateText(zh, locale) };
+};
+const adLanguage = ({ english, t }: AdCopy, ...texts: string[]) => {
   const chinese = english && texts.some(text => HAN.test(text));
   return {
     marks: chinese ? { lang: 'zh-Hans', translate: 'no' as const } : {},
     note: chinese ? <span className={`block ${NOTE_TEXT}`} data-ad-original>{t('广告原文', 'Shown in Chinese, as the advertiser wrote it')}</span> : null,
   };
 };
-const useAdLanguage = (...texts: string[]) => adLanguage(useUiCopy(), ...texts);
+const useAdLanguage = (...texts: string[]) => adLanguage(useAdCopy(), ...texts);
 
 /** Existing ads only store title, content and image; use links actually supplied in that content. */
 const getContentLinks = (content: string): { url: string; host: string }[] => {
@@ -206,7 +215,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
   refreshKey?: number;
   layout?: 'carousel' | 'list';
 }) => {
-  const copy = useUiCopy();
+  const copy = useAdCopy();
   const [ads, setAds] = useState<AdData[]>(() => adsCache?.data || []);
   const [adsLoading, setAdsLoading] = useState(() => !adsCache);
   const [isFormOpen, setIsFormOpen] = useState(false);
