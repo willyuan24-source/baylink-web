@@ -113,10 +113,12 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   return (
     <Sheet open onClose={close} closeOnBackdrop={false} initialFocusRef={typeFirst ? emailRef : undefined} title={mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
       <div className="member-auth-dialog">
-        <AuthBrandHeader />
+        {/* H34 (HOMEIA13-06): the site's one positioning line, as in the footer and /me, in all three languages. */}
+        <AuthBrandHeader tagline={t('湾区去哪、怎么办 · 有来源的中文答案', 'Where to go and how to get it done in the Bay, with sources')} />
         <div className="member-auth-heading">
-          <h2>{mode === 'register' ? '你的湾区生活，从这里开始。' : '欢迎回来，邻居。'}</h2>
-          <p>{mode === 'register' ? '创建账号，发布信息，与附近的人建立联系。' : '登录后继续聊天、管理发布，发现身边的好生活。'}</p>
+          <h2>{mode === 'register' ? t('注册后，BayBay 能帮你更多', 'Create an account and BayBay can do more for you') : t('欢迎回来，邻居。', 'Welcome back, neighbor.')}</h2>
+          <p>{mode === 'register' ? t('收藏和行程跟着账号走，换手机也在；也可以发布信息、收发私信。', 'Your saved items and plans follow your account to any phone; you can also post and send messages.')
+            : t('登录后继续聊天、管理发布；收藏和行程跟着账号走。', 'Sign in to keep chatting and manage your posts; your saved items and plans follow your account.')}</p>
         </div>
         {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600"><AlertCircle size={14} />{error}</div>}
         <form onSubmit={handleSubmit} className="member-auth-form">

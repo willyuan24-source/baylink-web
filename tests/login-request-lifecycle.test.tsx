@@ -90,3 +90,23 @@ test('opening password recovery cancels a pending login before switching dialogs
   assert.equal(logins, 0);
   assert.equal(localStorage.getItem('currentUser'), null);
 });
+
+// H34 (HOMEIA13-06): the sign-in / sign-up dialog says the site's one positioning line (as the footer and /me do), not the
+// old 连接湾区真实生活信息 / 你的湾区生活，从这里开始, in all three languages.
+test('the sign-in and sign-up dialog carries the current positioning line in zh-Hans, zh-Hant and en', async () => {
+  const { setLocale } = await import('../src/i18n/locale');
+  const expected = { 'zh-Hans': ['湾区去哪、怎么办 · 有来源的中文答案', '注册后，BayBay 能帮你更多'], 'zh-Hant': ['灣區去哪、怎麼辦 · 有來源的中文答案', '註冊後，BayBay 能幫你更多'], en: ['Where to go and how to get it done in the Bay, with sources', 'Create an account and BayBay can do more for you'] } as const;
+  try {
+    for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
+      await setLocale(locale, false);
+      const view = render(<LoginModal onClose={() => {}} onLogin={() => {}} showToast={() => {}} onForgotPassword={() => {}} />);
+      const tagline = view.baseElement.querySelector('.member-auth-tagline')!;
+      assert.equal(tagline.textContent, expected[locale][0], locale);
+      fireEvent.click(view.baseElement.querySelector('.member-auth-switch')!);
+      assert.equal(view.baseElement.querySelector('.member-auth-heading h2')!.textContent, expected[locale][1], `${locale}: the register headline`);
+      assert.doesNotMatch(view.baseElement.textContent || '', /连接湾区真实生活信息|你的湾区生活|發現身邊的好生活|发现身边的好生活/);
+      if (locale === 'en') assert.doesNotMatch(view.baseElement.querySelector('.member-auth-brand')!.textContent || '', /[㐀-鿿]/);
+      cleanup();
+    }
+  } finally { await setLocale('zh-Hans', false); }
+});
