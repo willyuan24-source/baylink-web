@@ -15,13 +15,24 @@ export function cardLines(text: string, width: number, fontSize: number, maxLine
     const advance = textWidth(char, fontSize);
     // a closing mark never starts a line: it stays on the line it ends (slightly past the width)
     if (used + advance > width && line && !CLOSING.test(char)) {
-      if (result.length === maxLines - 1) { result.push(`${line.trimEnd()}…`); return result; }
+      // the cut never ends on a separator ("Lafayette · …")
+      if (result.length === maxLines - 1) { result.push(`${line.trimEnd().replace(/\s*[·•|｜/／,，、;；:：–—-]+$/u, '')}…`); return result; }
       result.push(line.trim()); line = ''; used = 0;
     }
     line += char; used += advance;
   }
   if (line.trim()) result.push(line.trim());
   return result;
+}
+/** One line of " · " parts ("Sat, Oct 17 · 9am–5pm · Lafayette"): the whole parts that fit; only a first part that does
+ * not fit alone is cut (…), so the line never ends on "· …". */
+export function partsLine(parts: readonly string[], width: number, fontSize: number): string[] {
+  const kept = parts.filter(Boolean);
+  for (let count = kept.length; count > 1; count--) {
+    const text = kept.slice(0, count).join(' · ');
+    if (textWidth(text.replace(/\s+/g, ' ').trim(), fontSize) <= width) return [text.replace(/\s+/g, ' ').trim()];
+  }
+  return kept.length ? cardLines(kept[0], width, fontSize, 1) : [];
 }
 /** The largest size up to `max` at which `text` fits `width` on one line. */
 export const fitSize = (text: string, width: number, max: number, min = 28) => Math.max(min, Math.min(max, Math.floor(width / Math.max(1, textWidth(text, 1)))));
@@ -97,7 +108,7 @@ function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQ
   const band = PHOTO_BAND.height, left = 48, right = 940;
   const title = cardLines(model.title, right - left, 42, 2);
   const titleY = 446, metaY = titleY + (title.length - 1) * 52 + 50;
-  const meta = cardLines(model.meta.filter(Boolean).join(' · '), right - left, 24, 1);
+  const meta = partsLine(model.meta, right - left, 24);
   const badgeWidth = Math.ceil(textWidth(model.provenance, 17)) + 28;
   // the pill under the brand line: logo and name (216), the tagline as brandRow sets it (Latin 15 + 2 spacing, CJK 17)
   const tagline = model.tagline ?? DEFAULT_TAGLINE;

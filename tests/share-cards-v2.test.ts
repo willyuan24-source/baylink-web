@@ -8,7 +8,7 @@ import { GUIDE_IMAGES, type GuideImage } from '../src/data/guide-media';
 import { LIFE_TOOLS } from '../src/data/tool-catalog';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { BAYLINK_TAGLINE, cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
-import { DEFAULT_TAGLINE, PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
+import { cardLines, DEFAULT_TAGLINE, partsLine, PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
 import { localizedSocialImage } from '../src/lib/seo';
 import { shareCardPath } from '../src/lib/editorial-share';
 import { simplifiedOnlyCharacters } from '../scripts/i18n-html-check.mjs';
@@ -150,4 +150,16 @@ test('H45 (owner rule 10-08): an event’s own card carries the organiser’s im
   const venueEvent = events.find(item => venue.eventIds.includes(item.event.id));
   if (venueEvent && GUIDE_IMAGES[venueKey]) assert.equal(cardPhoto({ kind: 'event', event: { ...venueEvent.event, imageKey: venueKey } }, GUIDE_IMAGES[venueKey], today), undefined, venueKey);
   assert.equal(cardPhoto(first, GUIDE_IMAGES['dvids-blue-angels-sffw-2024'], today), undefined, 'the DVIDS Fleet Week photo stays off promotion');
+});
+
+test('H45: a cut meta line never ends on a separator; the photo card keeps whole " · " parts', () => {
+  const cut = cardLines('Sat, Oct 17 · 9am–5pm · Lafayette Reservoir Run and Walk', 300, 24, 1)[0];
+  assert.ok(cut.endsWith('…') && !/[·,;:]\s*…$/u.test(cut), cut);
+  assert.ok(!/[·，、；]…$/u.test(cardLines('10月17日 · 上午9点 · 拉斐特水库环湖跑步与健走活动', 300, 24, 1)[0]));
+  const parts = ['Sat, Oct 17', '3:30–5:30pm', 'Berkeley Adaptive Recreation Center and Park'];
+  assert.deepEqual(partsLine(['Sat, Oct 17', '3:30–5:30pm', 'Berkeley'], 892, 24), ['Sat, Oct 17 · 3:30–5:30pm · Berkeley'], 'all of it when it fits');
+  assert.deepEqual(partsLine(parts, 892, 24), ['Sat, Oct 17 · 3:30–5:30pm'], 'the parts that fit, whole (the place does not)');
+  assert.ok(partsLine(['A very long first part that cannot fit on the line at all'], 200, 24)[0].endsWith('…'));
+  assert.deepEqual(partsLine(['', 'Oct 17', ''], 300, 24), ['Oct 17']);
+  assert.deepEqual(partsLine([], 300, 24), []);
 });
