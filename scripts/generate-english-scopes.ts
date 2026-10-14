@@ -28,19 +28,23 @@ import { CALENDAR_CITY_LOCATIONS } from '../src/data/calendar-city-locations';
 import { OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, VERIFIED_OFFER_PLACE_MEDIA_UPDATES, VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
 import { OCTNOV_EVENT_CONTEXT_PHOTOS, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_PHOTO_ALIASES } from '../src/data/octnov-2026-event-photo-aliases';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
+import { englishTimes } from '../src/lib/english-times';
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
 const chinese = /[\u3400-\u9fff]/u;
+/** Language-neutral text with a time or a numeric date ("10/18 · 14:00–16:00") can have an English entry (H41). */
+const timeOrDate = /\d[:/-]\d/u;
+const FRAGMENTS = /\n| · | \/ |｜|：/u;
 
 /** Select from the reviewed complete dictionary; never manufacture translations. */
 export function englishDictionaryForValues(dictionary: EnglishDictionary, values: unknown): EnglishDictionary {
   const selected: EnglishDictionary = {};
   const visit = (value: unknown) => {
     if (typeof value === 'string') {
-      if (!chinese.test(value)) return;
+      if (!chinese.test(value) && !timeOrDate.test(value)) return;
       const key = normalize(value);
       if (Object.hasOwn(dictionary, key)) selected[key] = dictionary[key];
-      for (const part of value.split(/\n| · | \/ |｜|：/u)) {
+      for (const part of value.split(FRAGMENTS)) {
         const fragment = normalize(part);
         if (fragment !== key && Object.hasOwn(dictionary, fragment)) selected[fragment] = dictionary[fragment];
       }
@@ -73,13 +77,49 @@ export function englishDictionaryForUiScope(dictionary: EnglishDictionary, sourc
   return ui;
 }
 
+/**
+ * H41 (I13-04): US-style times and dates in English (lib/english-times.ts). Every English value gets them, and every
+ * language-neutral display string of the content ("10/18 · 14:00–16:00", a date line with no Chinese, shown as it is on
+ * /en until now) gets an English entry of its own, which translateText looks up (i18n/locale.ts). A bare token (an ISO
+ * date, a session's "14:00") is data, never an entry: JSON-LD dates and catalog fields keep their format.
+ */
+export function usEnglishTimes(dictionary: EnglishDictionary): number {
+  let changed = 0;
+  for (const [key, value] of Object.entries(dictionary)) {
+    const converted = englishTimes(value);
+    if (converted !== value) { dictionary[key] = converted; changed++; }
+  }
+  return changed;
+}
+const BARE_TOKEN = /^[\d:/\-–—~ T+.]+$/u;
+export function addNeutralEntries(dictionary: EnglishDictionary, values: unknown): number {
+  let added = 0;
+  const add = (text: string) => {
+    const key = normalize(text);
+    if (!key || chinese.test(key) || !timeOrDate.test(key) || BARE_TOKEN.test(key) || Object.hasOwn(dictionary, key) || /^https?:|@/.test(key)) return;
+    const english = englishTimes(key);
+    if (english !== key) { dictionary[key] = english; added++; }
+  };
+  const visit = (value: unknown) => {
+    if (typeof value === 'string') {
+      if (chinese.test(value) || !timeOrDate.test(value)) return;
+      add(value);
+      for (const part of value.split(FRAGMENTS)) if (part !== value) add(part);
+    } else if (Array.isArray(value)) value.forEach(visit);
+    else if (value && typeof value === 'object') Object.values(value).forEach(visit);
+  };
+  visit(values);
+  return added;
+}
+
 async function uiStrings(directories = ['app', 'components', 'features', 'lib', 'pages', 'i18n', 'utils']): Promise<string[]> {
   const strings: string[] = [];
   const scan = async (directory: string) => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
       if (entry.isDirectory()) await scan(path);
-      else if (/\.tsx?$/u.test(entry.name)) {
+      // the API's messages carry their own English table, loaded only when an English page shows an API error (H48)
+      else if (/\.tsx?$/u.test(entry.name) && entry.name !== 'api-errors-en.ts') {
         const source = ts.createSourceFile(path, await readFile(path, 'utf8'), ts.ScriptTarget.Latest, true, path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
         const visit = (node: ts.Node) => {
           if (ts.isStringLiteralLike(node) || ts.isJsxText(node) || node.kind === ts.SyntaxKind.TemplateHead || node.kind === ts.SyntaxKind.TemplateMiddle || node.kind === ts.SyntaxKind.TemplateTail) {
@@ -101,6 +141,7 @@ async function uiStrings(directories = ['app', 'components', 'features', 'lib', 
 export async function generateEnglishScopes(dictionary: EnglishDictionary, dictionarySources: string[]) {
   const directory = 'src/data/generated/english-scopes';
   await mkdir(directory, { recursive: true });
+  const usTimes = usEnglishTimes(dictionary);
   const uiDictionaries = await Promise.all(dictionarySources.filter(path => /(?:-ui-en|audit-runtime-en|public-service-media-en)\.json$/u.test(path)).map(async path => JSON.parse(await readFile(path, 'utf8')) as EnglishDictionary));
   // These fields are already covered by the guide, discovery, planning and explore packs below.
   // Home selects any of them it actually displays from its own materialized catalog.
@@ -143,6 +184,10 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     'plan-catalog': [planCatalog, SCENE3D_POSTCARD_IMAGES],
     explore: [ATTRACTIONS, ATTRACTION_COSTS, ATTRACTION_REGIONS, ATTRACTION_THEMES, ATTRACTION_REGION_INTROS, ATTRACTIONS.map(place => { const guide = guides.find(item => item.slug === place.slug); return guide ? getGuideMedia(guide) : undefined; })],
   };
+  // the detail records and the article records are the other places the pages read neutral date lines from
+  const neutral = addNeutralEntries(dictionary, [Object.entries(scopeValues).filter(([scope]) => scope !== 'game').map(([, values]) => values), [...allDetailRecords().values()], guideData.records]);
+  // the full dictionary (loaded by exports and by /en pages without a scope) carries both changes
+  await writeFile('src/data/generated/english.json', JSON.stringify(dictionary));
   const registry: Record<string, string> = { ui: 'ui.json' };
   const sizes: Record<string, number> = { ui: gzipSync(JSON.stringify(ui)).length };
   await writeFile(`${directory}/ui.json`, JSON.stringify(ui));
@@ -181,7 +226,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   }
   const lines = Object.entries(registry).map(([scope, file]) => `  ${JSON.stringify(scope)}: () => import(${JSON.stringify(`./english-scopes/${file}`)}),`);
   await writeFile('src/data/generated/english-scope-loaders.ts', `// Generated by scripts/generate-english-scopes.ts; imports run only for requested content.\nexport const englishScopeLoaders = {\n${lines.join('\n')}\n};\n`);
-  console.log(`English scopes gzip bytes: ${JSON.stringify(sizes)}; ${guides.length} separate article packs.`);
+  console.log(`English scopes gzip bytes: ${JSON.stringify(sizes)}; ${guides.length} separate article packs; US-style times and dates in ${usTimes} entries, ${neutral} date lines added.`);
   // 繁體's pruned phrase table reads every source file, the guide data written above included.
   await generateTraditionalPhrases();
 }

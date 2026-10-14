@@ -267,9 +267,23 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
   return undefined;
 };
 
+/**
+ * H41: a language-neutral line with a time or a numeric date ("10/18 \u00b7 14:00\u201316:00") reads in US style on /en through
+ * its generated English entry (scripts/generate-english-scopes.ts), whole or by its " \u00b7 " parts; other text without
+ * Chinese stays as it is.
+ */
+const NEUTRAL_DATE_OR_TIME = /\d[:/-]\d/;
+const englishNeutral = (text: string): string => {
+  if (!NEUTRAL_DATE_OR_TIME.test(text)) return text;
+  const exact = english[normalizeText(text)];
+  if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
+  return text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => english[normalizeText(part)] || part).join('');
+};
+
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
 export function translateText(text: string, locale: Locale = current, depth = 0): string {
-  if (locale === 'zh-Hans' || !/[\u3400-\u9fff]/.test(text)) return text;
+  if (locale === 'zh-Hans') return text;
+  if (!/[\u3400-\u9fff]/.test(text)) return locale === 'en' ? englishNeutral(text) : text;
   if (locale === 'zh-Hant') {
     const converted = traditional?.(text, true) ?? text;
     if (siteCheck && traditional && siteCheck.convert(text, true) !== converted) siteCheck.mismatched.add(text);

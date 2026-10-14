@@ -137,7 +137,7 @@ for(const locale of ['', 'en/', 'zh-Hant/']) {
 // character outside markup that says so (translate="no", lang="zh…", the language switch), in the text and in the head;
 // every JSON-LD block passes the schema check (scripts/structured-data-check.ts).
 const { checkStructuredData, structuredDataOf } = await tsImport('./structured-data-check.ts', import.meta.url);
-const { englishProblems, traditionalProblems, simplifiedOnlyCharacters } = await import('./i18n-html-check.mjs');
+const { englishProblems, englishFormatProblems, englishTitleProblems, traditionalProblems, simplifiedOnlyCharacters } = await import('./i18n-html-check.mjs');
 const { createRequire } = await import('node:module');
 const { sep } = await import('node:path');
 const openccDictionary = createRequire(import.meta.url);
@@ -148,6 +148,9 @@ for (const file of builtPages) {
   const html = await readFile(`dist/${file}`, 'utf8');
   const language = /^en\//.test(file) ? 'en' : /^zh-Hant\//.test(file) ? 'zh-Hant' : 'zh-Hans';
   if (language === 'en') for (const problem of englishProblems(html)) languageProblems.push(`${file}: Chinese on /en: ${problem}`);
+  // H41 / H46: US-style times and dates, and titles that fit a search result
+  if (language === 'en') for (const problem of englishFormatProblems(html)) languageProblems.push(`${file}: 24-hour time or ISO date on /en: ${problem}`);
+  if (language === 'en') for (const problem of englishTitleProblems(html)) languageProblems.push(`${file}: English <title> over 60: ${problem}`);
   if (language === 'zh-Hant') for (const problem of traditionalProblems(html, simplifiedOnly)) languageProblems.push(`${file}: Simplified on /zh-Hant: ${problem}`);
   const { blocks, problems } = structuredDataOf(html);
   schemaProblems.push(...problems.map(problem => `${file}: ${problem}`), ...checkStructuredData(blocks, { english: language === 'en', where: file }));
