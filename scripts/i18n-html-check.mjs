@@ -64,8 +64,9 @@ export function englishProblems(html) {
 /**
  * H41 (I13-04): US-style times and dates on English pages. A clock time with no am/pm on it or on the end of its range
  * ("18:30", "14:00–16:00"; "4:30–6pm" is fine) and an ISO date ("2026-10-13") in the page text or head are problems.
- * The same patterns as src/lib/english-times.ts (TWENTY_FOUR_HOUR, ISO_DATE), which converts them when the English
- * dictionary is generated.
+ * The same patterns as src/lib/english-times.ts (TWENTY_FOUR_HOUR, ISO_DATE). The site converts them as it shows its
+ * English (the switch in src/i18n/metadata.ts; src/i18n/locale.ts englishEntry / englishNeutral); the generator adds
+ * the English entries of neutral date lines. This script runs in Node only, so it may use a look-behind.
  */
 const CLOCK = /(?<![\d:.$/])\b([01]?\d|2[0-3]):[0-5]\d\b(?!\s?(?:[ap]\.?\s?m\b|[–—-]\s?\d{1,2}(?::\d\d)?\s?[ap]\.?\s?m\b))/gi;
 const ISO_DATE = /\b20\d\d-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b/g;

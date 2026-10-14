@@ -1,9 +1,17 @@
 import { configureMetadataLanguage } from '../lib/seo';
+import { unprefixedPath } from '../lib/language-path';
 import { enableUsEnglishTimes, getLocale, subscribeLocale, translateText, translateEditorial, localizedUrl } from './locale';
 
+/**
+ * The Opus Bay game's own pages: /opus-bay (App.tsx) and /play, which opens it. The game reads the site's English
+ * dictionary through translateText and keeps the dictionary's formats there ("9/29 and 10/2 at 19:30";
+ * tests/opus-bay-w9-r-words.test.ts pins them), so US style stays off on these pages.
+ */
+export const isGamePage = (pathname: string): boolean => /^\/(?:opus-bay|play)(?:\.html)?(?:\/|$)/.test(unprefixedPath(pathname));
+
 // H41: the site's English reads times and dates in US style ("Oct 18 · 2–4pm"). Switched on here, the site's i18n entry
-// (the app, the prerender and the page metadata import it), before any English loads; the Opus Bay game keeps its formats.
-void enableUsEnglishTimes();
+// (main.tsx, the prerender and the page metadata import it), for every page but the game's (prerender: no window, site).
+void enableUsEnglishTimes(() => typeof window === 'undefined' || !window.location || !isGamePage(window.location.pathname));
 
 function localizeSchema(value: unknown, key = ''): unknown {
   // Page URLs take the page's language; files (the logo, images) keep their one address.

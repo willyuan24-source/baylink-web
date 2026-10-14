@@ -28,7 +28,7 @@ import { CALENDAR_CITY_LOCATIONS } from '../src/data/calendar-city-locations';
 import { OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, VERIFIED_OFFER_PLACE_MEDIA_UPDATES, VERIFIED_PLACE_PHOTO_ALIASES } from '../src/data/verified-place-media-updates';
 import { OCTNOV_EVENT_CONTEXT_PHOTOS, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_PHOTO_ALIASES } from '../src/data/octnov-2026-event-photo-aliases';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
-import { englishTimes } from '../src/lib/english-times';
+import { englishDateLine, englishTimes } from '../src/lib/english-times';
 
 const normalize = (text: string) => text.trim().replace(/\s+/gu, ' ');
 const chinese = /[\u3400-\u9fff]/u;
@@ -78,11 +78,12 @@ export function englishDictionaryForUiScope(dictionary: EnglishDictionary, sourc
 }
 
 /**
- * H41 (I13-04): US-style times and dates in English (lib/english-times.ts). The site converts the English values as they
- * load (i18n/locale.ts enableUsEnglishTimes; the dictionary keeps the reviewed text, which the Opus Bay game shows as it
- * is). Here every language-neutral display string of the content ("10/18 · 14:00–16:00", a date line with no Chinese,
- * shown as it is on /en until now) gets an English entry of its own, which the site's translateText looks up. A bare token
- * (an ISO date, a session's "14:00") is data, never an entry: JSON-LD dates and catalog fields keep their format.
+ * H41 (I13-04): US-style times and dates in English (lib/english-times.ts). The site reads the English values in US style
+ * as it shows them (i18n/locale.ts enableUsEnglishTimes; the dictionary keeps the reviewed text, which the Opus Bay game
+ * shows as it is). Here every language-neutral display string of the content ("10/18 · 14:00–16:00", a date line with no
+ * Chinese, shown as it is on /en until now) gets an English entry of its own (englishDateLine: its times, dates and
+ * punctuation), which the site's translateText looks up and the game's pages do not. A bare token (an ISO date, a
+ * session's "14:00") is data, never an entry: JSON-LD dates and catalog fields keep their format.
  */
 const BARE_TOKEN = /^[\d:/\-–—~ T+.]+$/u;
 export function addNeutralEntries(dictionary: EnglishDictionary, values: unknown): number {
@@ -90,8 +91,10 @@ export function addNeutralEntries(dictionary: EnglishDictionary, values: unknown
   const add = (text: string) => {
     const key = normalize(text);
     if (!key || chinese.test(key) || !timeOrDate.test(key) || BARE_TOKEN.test(key) || Object.hasOwn(dictionary, key) || /^https?:|@/.test(key)) return;
-    const english = englishTimes(key);
-    if (english !== key) { dictionary[key] = english; added++; }
+    // a line whose times or dates read differently in English; its Chinese punctuation goes too, as the site's tokens do
+    if (englishTimes(key) === key) return;
+    dictionary[key] = englishDateLine(key);
+    added++;
   };
   const visit = (value: unknown) => {
     if (typeof value === 'string') {

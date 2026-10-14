@@ -21,37 +21,54 @@ const notifyLocale = () => { dictionaryRevision++; listeners.forEach(listener =>
 let englishScopes: ReturnType<typeof createEnglishScopeLoader> | undefined;
 let englishScopeLoad: Promise<ReturnType<typeof createEnglishScopeLoader>> | undefined;
 // Registry is lazy too: generation can import media/locale before scoped files exist.
-const loadEnglishScopes = () => englishScopeLoad ||= Promise.all([import('../data/generated/english-scope-loaders'), usEnglishTimes ? loadEnglishTimes() : undefined]).then(([{ englishScopeLoaders }]) => {
-  return englishScopes = createEnglishScopeLoader(englishScopeLoaders, dictionary => { Object.assign(english, usTimesIn(dictionary)); notifyLocale(); });
+const loadEnglishScopes = () => englishScopeLoad ||= Promise.all([import('../data/generated/english-scope-loaders'), usEnglishTimesModule()]).then(([{ englishScopeLoaders }]) => {
+  return englishScopes = createEnglishScopeLoader(englishScopeLoaders, dictionary => { Object.assign(english, dictionary); notifyLocale(); });
 }).catch(error => { englishScopeLoad = undefined; throw error; });
 /**
  * H41: US-style times and dates in the site's English ("Oct 18 · 2–4pm", "Checked Oct 12, 2026"; lib/english-times.ts).
  * The site switches it on (enableUsEnglishTimes in i18n/metadata.ts, which the app, the prerender and the site's metadata
- * import) before English loads; then every English value is converted as its dictionary loads, and the neutral date
- * lines and data tokens a page shows as they are translated (englishNeutral). The Opus Bay game shares this module and
- * keeps the dictionary's own formats (tests/opus-bay-w9-r-words.test.ts pins them).
+ * import) and says where it applies. The dictionary keeps the reviewed text: a value is read in US style as it is looked
+ * up (englishEntry), and so are the neutral date lines and data tokens a page shows (englishNeutral). The Opus Bay game
+ * shares this module and keeps the dictionary's own formats on its own pages, which metadata.ts leaves out
+ * (tests/opus-bay-w9-r-words.test.ts pins the game's English; tests/english-times-game.test.ts checks it with the switch).
  */
-let usEnglishTimes = false;
+let usEnglishTimesWhere: (() => boolean) | undefined;
 let englishTimesOf: ((text: string) => string) | undefined;
+let englishDateLineOf: ((text: string) => string) | undefined;
 let twentyFourHourOrIso: ((text: string) => boolean) | undefined;
 let englishTimesLoad: Promise<void> | undefined;
 const loadEnglishTimes = () => englishTimesLoad ||= import('../lib/english-times').then(module => {
   englishTimesOf = module.englishTimes;
+  englishDateLineOf = module.englishDateLine;
   twentyFourHourOrIso = module.hasTwentyFourHourOrIso;
 }).catch(error => { englishTimesLoad = undefined; throw error; });
-/** A loaded dictionary with its values in US style: a copy, so the imported JSON stays as generated. */
-const usTimesIn = (dictionary: Record<string, string>): Record<string, string> => {
-  if (!usEnglishTimes || !englishTimesOf) return dictionary;
-  const out: Record<string, string> = {};
-  for (const key of Object.keys(dictionary)) out[key] = englishTimesOf(dictionary[key]);
-  return out;
+/** Loaded with the English dictionaries when the site has switched US style on. If it fails, English shows as reviewed. */
+const usEnglishTimesModule = () => usEnglishTimesWhere ? loadEnglishTimes().catch(() => undefined) : undefined;
+/** US style for what is shown now: the site's switch is on, its module is in, and the page is one it applies to. */
+const usTimes = () => !!englishTimesOf && !!usEnglishTimesWhere && usEnglishTimesWhere();
+const CHINESE = /[\u3400-\u9fff]/;
+const NEUTRAL_DATE_OR_TIME = /\d[:/-]\d/;
+const usValues = new Map<string, string>();
+/**
+ * A dictionary entry as it is shown. A value with a time or a date reads in US style where usTimes() holds (converted
+ * once per value). A language-neutral date line's own entry ("10/18 · 14:00–16:00" → "Oct 18 · 2–4pm") exists only for
+ * US style: where usTimes() does not hold (the game's pages) the line has no entry and stays as it is, as before H41.
+ */
+const englishEntry = (key: string): string | undefined => {
+  const value = english[key];
+  if (value === undefined || (!NEUTRAL_DATE_OR_TIME.test(key) && !NEUTRAL_DATE_OR_TIME.test(value))) return value;
+  if (!usTimes()) return CHINESE.test(key) ? value : undefined;
+  let shown = usValues.get(value);
+  if (shown === undefined) usValues.set(value, shown = englishTimesOf!(value));
+  return shown;
 };
-export function enableUsEnglishTimes(): Promise<void> {
-  if (usEnglishTimes) return Promise.resolve();
-  usEnglishTimes = true;
-  // English already loaded (switched on late): convert it once the module is in; otherwise each load converts its own
-  if (!Object.keys(english).length) return Promise.resolve();
-  return loadEnglishTimes().then(() => { english = usTimesIn(english); notifyLocale(); }).catch(() => undefined);
+/** The site's switch. `where` says which pages it applies to (default: all, for scripts and tests of the site's English). */
+export function enableUsEnglishTimes(where: () => boolean = () => true): Promise<void> {
+  const first = !usEnglishTimesWhere;
+  usEnglishTimesWhere = where;
+  // English already loaded (switched on late): load the module and show the pages again; otherwise it loads with English
+  if (!first || !Object.keys(english).length) return Promise.resolve();
+  return loadEnglishTimes().then(() => notifyLocale()).catch(() => undefined);
 }
 const escapePattern = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const englishPatterns = Object.entries(patterns).sort(([a], [b]) => b.replace(/\{\d+\}/g, '').length - a.replace(/\{\d+\}/g, '').length).map(([source, target]) => ({
@@ -219,7 +236,7 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 
 /** Everything a language needs, search included (exports, SSR and scripts; zh-Hant's opencc build carries search). */
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') await Promise.all([englishLoad ||= Promise.all([import('../data/generated/english.json'), usEnglishTimes ? loadEnglishTimes() : undefined]).then(([module]) => { english = usTimesIn(module.default); englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadSearchConversion().catch(() => undefined)]);
+  if (locale === 'en') await Promise.all([englishLoad ||= Promise.all([import('../data/generated/english.json'), usEnglishTimesModule()]).then(([module]) => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadSearchConversion().catch(() => undefined)]);
   else if (locale === 'zh-Hant') await Promise.all([loadChinese(), loadSearchConversion().catch(() => undefined)]);
   else await loadSearchConversion().catch(() => undefined);
 }
@@ -285,7 +302,7 @@ export async function initializeLocale(): Promise<void> {
 const translateKnownComposition = (text: string, depth = 0): string | undefined => {
   // a part without Chinese (the date line of "10/18 · 14:00–16:00 ｜ Atherton ｜ …") reads in US style too (H41)
   if (!/[\u3400-\u9fff]/.test(text)) return englishNeutral(text);
-  const exact = english[normalizeText(text)];
+  const exact = englishEntry(normalizeText(text));
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   if (depth >= 3) return undefined;
   for (const separator of ['｜', ' · ', ' / ', '\n', '：']) {
@@ -304,20 +321,20 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
  * composes) is converted as it is shown, if it has a 24-hour time or an ISO date: those come from data fields and never
  * pass through the dictionary. Other text without Chinese stays as it is. Only with the site's switch (enableUsEnglishTimes).
  */
-const NEUTRAL_DATE_OR_TIME = /\d[:/-]\d/;
 const DATE_TIME_TOKENS = /^[\d\s/:.,\u00b7\u2013\u2014~\uff1b\u3001\uff0c-]+$/u;
 /** Inside translateEditorial (structured data, catalog exports) a token is data: JSON-LD's startDate stays ISO. */
 let editorialData = 0;
-const englishTokens = (text: string): string => englishTimesOf && twentyFourHourOrIso && !editorialData && DATE_TIME_TOKENS.test(text) && twentyFourHourOrIso(text)
-  ? englishTimesOf(text.replace(/\uff1b\s*/gu, '; ').replace(/[\u3001\uff0c]\s*/gu, ', '))
+// the same reading as the generator's neutral entries: punctuation, times and dates (lib/english-times.ts englishDateLine)
+const englishTokens = (text: string): string => englishDateLineOf && twentyFourHourOrIso && !editorialData && DATE_TIME_TOKENS.test(text) && twentyFourHourOrIso(text)
+  ? englishDateLineOf(text)
   : text;
 const englishNeutral = (text: string): string => {
-  if (!usEnglishTimes || !NEUTRAL_DATE_OR_TIME.test(text)) return text;
-  const exact = english[normalizeText(text)];
+  if (!NEUTRAL_DATE_OR_TIME.test(text) || !usTimes()) return text;
+  const exact = englishEntry(normalizeText(text));
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   const tokens = englishTokens(text);
   if (tokens !== text) return tokens;
-  return text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => english[normalizeText(part)] || englishTokens(part)).join('');
+  return text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => englishEntry(normalizeText(part)) || englishTokens(part)).join('');
 };
 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
@@ -329,7 +346,7 @@ export function translateText(text: string, locale: Locale = current, depth = 0)
     if (siteCheck && traditional && siteCheck.convert(text, true) !== converted) siteCheck.mismatched.add(text);
     return converted.replaceAll('噹噹天', '當當天').replaceAll('別隻憑', '別只憑');
   }
-  const exact = english[normalizeText(text)];
+  const exact = englishEntry(normalizeText(text));
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   const numericDate = /^(?:(\d{4})\s*年\s*)?(\d{1,2})月\s*(\d{1,2})日$/.exec(text.trim());
   if (numericDate && Number(numericDate[2]) >= 1 && Number(numericDate[2]) <= 12 && Number(numericDate[3]) >= 1 && Number(numericDate[3]) <= 31) {
@@ -345,8 +362,9 @@ export function translateText(text: string, locale: Locale = current, depth = 0)
   }
   const colon = text.indexOf('：');
   // "开业消息核对：2026-10-07" → "Opening news checked: Oct 7, 2026" (the value after the label is a data token, H41)
-  if (colon > 0 && english[normalizeText(text.slice(0, colon))]) return english[normalizeText(text.slice(0, colon))] + ': ' + englishNeutral(text.slice(colon + 1));
-  return text.split(/(\n| · | \/ |｜)/).map((part) => part !== text && depth < 3 ? translateText(part, locale, depth + 1) : english[normalizeText(part)] || part).join('');
+  const label = colon > 0 ? englishEntry(normalizeText(text.slice(0, colon))) : undefined;
+  if (label) return label + ': ' + englishNeutral(text.slice(colon + 1));
+  return text.split(/(\n| · | \/ |｜)/).map((part) => part !== text && depth < 3 ? translateText(part, locale, depth + 1) : englishEntry(normalizeText(part)) || part).join('');
 }
 
 /** Search matches 繁體 and 简体 alike, independently of the display language, and stays synchronous: phrase exceptions

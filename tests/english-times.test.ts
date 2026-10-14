@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
-import { englishTimes, ISO_DATE, twentyFourHourTime } from '../src/lib/english-times';
+import { englishDateLine, englishPunctuation, englishTimes, ISO_DATE, twentyFourHourTime } from '../src/lib/english-times';
 import { englishFormatProblems, englishTitleProblems } from '../scripts/i18n-html-check.mjs';
 import { addNeutralEntries } from '../scripts/generate-english-scopes';
 import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
@@ -34,9 +34,12 @@ test('H41: 24-hour times become am/pm, with one am/pm on a range that shares it'
     ['Storytime is a fixed 11:00–11:30 session; the room opens at 10:50.', 'Storytime is a fixed 11–11:30am session; the room opens at 10:50am.'],
     ['The book sale runs 10:30–3:00 the same day.', 'The book sale runs 10:30am–3pm the same day.'],
     ['Oct 28 · 4:30–6pm', 'Oct 28 · 4:30–6pm'],
-    ['Gather 5:45, parade 6:00, dog contest 6:30 pm', 'Gather 5:45pm, parade 6pm, dog contest 6:30 pm'],
+    ['Gather 5:45, parade 6:00, dog contest 6:30 pm', 'Gather 5:45pm, parade 6pm, dog contest 6:30pm'],
     ['10 a.m.–3:30 p.m., with last admission at 1:30', '10 a.m.–3:30 p.m., with last admission at 1:30pm'],
-    ['Visit between 6:30 and 8 pm', 'Visit between 6:30pm and 8 pm'],
+    ['Visit between 6:30 and 8 pm', 'Visit between 6:30pm and 8pm'],
+    ['Shows at 15:00 or 5:30 pm; Sunday 13:00 or 3:00 pm', 'Shows at 3pm or 5:30pm; Sunday 1pm or 3pm'],
+    ['On sale September 30 at 12:00 noon; limited availability', 'On sale September 30 at noon; limited availability'],
+    ['Shows at 8:10 pm and 9:20 pm', 'Shows at 8:10 pm and 9:20 pm'],
   ];
   for (const [input, output] of cases) assert.equal(englishTimes(input), output, input);
 });
@@ -75,7 +78,23 @@ test('H41: generation adds entries for neutral date lines, never for bare data t
   assert.equal(dictionary['10/18 · 14:00–16:00'], 'Oct 18 · 2–4pm');
   assert.equal(dictionary['2026-10-18'], undefined);
   assert.equal(dictionary['14:00'], undefined);
-  assert.equal(dictionary['营业 10:00–17:00'], 'Open 10:00–17:00', 'the site converts values as they load, not here');
+  assert.equal(dictionary['营业 10:00–17:00'], 'Open 10:00–17:00', 'the site reads values in US style as it shows them, not here');
+});
+
+test('H41 (review 10-14): neutral date lines get English punctuation, as the site\'s tokens do; year-first day lists read whole', () => {
+  assert.equal(englishPunctuation('10/31、11/28；10/2。'), '10/31, 11/28; 10/2.');
+  assert.equal(englishPunctuation('Marin：415-473-4636；Sonoma：707-565-4636。'), 'Marin: 415-473-4636; Sonoma: 707-565-4636.');
+  assert.equal(englishDateLine('10/31、11/28 · 11:00–15:00'), 'Oct 31, Nov 28 · 11am–3pm');
+  assert.equal(englishDateLine('10/2 15:00–21:00；10/3 10:00–21:00；10/4 10:00–17:00。'), 'Oct 2 3–9pm; Oct 3 10am–9pm; Oct 4 10am–5pm.');
+  assert.equal(englishDateLine('2026/10/17 · 10:00、11:30'), 'Oct 17, 2026 · 10am, 11:30am');
+  assert.equal(englishTimes('2026/10/10、11、17、18'), 'Oct 10, 11, 17 and 18, 2026');
+  assert.equal(englishDateLine('2026/10/10、11、17、18 · 10:00–17:00'), 'Oct 10, 11, 17 and 18, 2026 · 10am–5pm');
+  assert.equal(englishTimes('2026/10/10、11'), 'Oct 10 and 11, 2026');
+  assert.equal(englishTimes('2026/10/17、10:00'), 'Oct 17, 2026、10am', 'a time after the date is not a day');
+  // the generator's entry and the site's runtime tokens read a line the same way
+  const dictionary: Record<string, string> = {};
+  addNeutralEntries(dictionary, ['10/22–10/25 · 10/22 19:00；10/23 11:00、15:00']);
+  assert.equal(dictionary['10/22–10/25 · 10/22 19:00；10/23 11:00、15:00'], 'Oct 22–25 · Oct 22 7pm; Oct 23 11am, 3pm');
 });
 
 test('H41: the /en release check fails on a planted 24-hour time or ISO date, and accepts 12-hour text', () => {

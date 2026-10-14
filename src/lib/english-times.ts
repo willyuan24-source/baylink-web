@@ -104,13 +104,17 @@ function convertTimes(text: string): string {
     }
     return rangeText(start, end, dash.trim() === 'to' ? ' to ' : '–');
   });
-  return replaceNotAfter(ranged, SINGLE, NOT_AFTER_CLOCK, ({ 0: whole, 1: h, 2: m, 3: suffix, index: offset }) => {
+  const out = replaceNotAfter(ranged, SINGLE, NOT_AFTER_CLOCK, ({ 0: whole, 1: h, 2: m, 3: suffix, index: offset }) => {
     if (suffix) return whole;
     const clock = { hour: Number(h), minute: Number(m) };
     if (clock.hour === 24 && clock.minute) return whole;
     if (twelveHour && clock.hour >= 1 && clock.hour <= 12) clock.hour = twelveHourOf(ranged, offset, clock.hour);
     return clockText(clock);
-  });
+  })
+    // "12:00 noon" reads "noon", not "noon noon"
+    .replace(/\b(noon|midnight)\s+\1\b/gi, '$1');
+  // a text that got an am/pm from here writes them all one way: "3pm or 5:30pm", not "3pm or 5:30 pm" ("3:00 pm" → "3pm")
+  return out !== text ? out.replace(/\b(\d{1,2})(:[0-5]\d)? ([ap]m)\b/gi, (_, hour: string, minutes: string | undefined, meridiem: string) => `${hour}${minutes === ':00' ? '' : minutes ?? ''}${meridiem}`) : out;
 }
 
 const monthDay = (month: number, day: number) => `${MONTHS[month - 1]} ${day}`;
@@ -124,6 +128,12 @@ function convertDates(text: string): string {
     if (!validDay(Number(mo2), Number(d2))) return whole;
     if (y1 !== y2) return `${monthDay(Number(mo1), Number(d1))}, ${y1}–${monthDay(Number(mo2), Number(d2))}, ${y2}`;
     return `${monthDay(Number(mo1), Number(d1))}–${mo1 === mo2 ? Number(d2) : monthDay(Number(mo2), Number(d2))}, ${y1}`;
+  });
+  // a year-first day list: 2026/10/10、11、17、18 → Oct 10, 11, 17 and 18, 2026 (not "Oct 10, 2026、11、17、18")
+  out = out.replace(/\b(20\d\d)\/(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])((?:\s*[、,，]\s*(?:3[01]|[12]\d|0?[1-9])\b(?![\d/:.]))+)/g, (whole, year: string, month: string, first: string, rest: string) => {
+    const days = [first, ...rest.split(/\s*[、,，]\s*/u).filter(Boolean)].map(Number);
+    if (days.some(day => !validDay(Number(month), day))) return whole;
+    return `${MONTHS[Number(month) - 1]} ${days.slice(0, -1).join(', ')} and ${days[days.length - 1]}, ${year}`;
   });
   // year first: 2026/9/1 (–10/30) → Sep 1(–Oct 30), 2026
   out = out.replace(/\b(20\d\d)\/(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])(?:\s*[–—-]\s*(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9]))?\b(?![\d/])/g, (whole, year: string, mo1: string, d1: string, mo2?: string, d2?: string) => {
@@ -145,6 +155,16 @@ function convertDates(text: string): string {
     // "Sat 9/12" → "Sat, Sep 12"
     .replace(/\b(Mon|Tue|Tues|Wed|Thu|Thur|Thurs|Fri|Sat|Sun)\.? (?=(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d)/g, '$1, ');
 }
+
+const PUNCTUATION: readonly [RegExp, string][] = [[/\s*；\s*/gu, ';'], [/\s*[、，]\s*/gu, ','], [/\s*：\s*/gu, ':'], [/\s*。\s*/gu, '.']];
+/** A language-neutral line's Chinese punctuation, written the English way: "；" → "; ", "、" / "，" → ", ", "：" → ": ", "。" → ". " (no space at the end). */
+export const englishPunctuation = (text: string): string => PUNCTUATION.reduce((out, [pattern, mark]) => out.replace(pattern, (match: string, offset: number) => offset + match.length < out.length ? `${mark} ` : mark), text);
+/**
+ * A language-neutral date line in English ("10/31、11/28 · 11:00–15:00" → "Oct 31, Nov 28 · 11am–3pm"): its punctuation and
+ * its times and dates. The generator's neutral entries (scripts/generate-english-scopes.ts) and the date and time tokens
+ * the site converts as it shows them (i18n/locale.ts) both use it, so the two read the same.
+ */
+export const englishDateLine = (text: string): string => englishTimes(englishPunctuation(text));
 
 /** English text with US-style times and dates; URLs, emails and text without digits are returned unchanged. */
 export function englishTimes(text: string): string {
