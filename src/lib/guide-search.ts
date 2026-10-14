@@ -1,7 +1,8 @@
 import type { Guide, GuideCategory } from '../data/guides';
 import { guideBlockText } from './guide-content';
 import { getLocale, translateEditorial, type Locale } from '../i18n/locale';
-import { normalizeSearchQuery, normalizeSearchText } from './search-synonyms';
+import { isElderSearchToken, isFareCardSearchToken, normalizeSearchQuery, normalizeSearchText, searchAlternativesOf } from './search-synonyms';
+import { ELDER_HUB_SLUGS, guideTopicOf } from '../data/guide-topics';
 
 /** Synonyms live in search-synonyms.ts (G17); this name stays for the callers that import it. */
 export const normalizeGuideQuery = (text: string): string => normalizeSearchText(text);
@@ -61,21 +62,33 @@ export const searchGuides = (
 ): GuideSearchResult[] => {
   // The query keeps each synonym a word of its own (normalizeSearchQuery): 老人送餐 = senior AND 送餐.
   const tokens = [...new Set(normalizeSearchQuery(query).split(/\s+/).filter(Boolean))];
+  const elder = tokens.some(isElderSearchToken);
+  const fareCard = tokens.some(isFareCardSearchToken);
   const scored = guides.filter((guide) => category === 'all' || guide.category === category).flatMap((guide) => {
     const published = indexed(guide);
     const translated = locale === 'zh-Hans' ? undefined : index(passagesFor(translateEditorial(guide, locale)));
     const fullText = translated ? `${translated.full} ${published.full}` : published.full;
-    if (!tokens.every((token) => fullText.includes(token))) return [];
+    // Each query word is met by the word itself or by every word of one of its alternatives (老人卡 = 长者 + Clipper, H65); a
+    // passage scores an alternative only where all its words stand together, at half weight.
+    const met = tokens.map((token) => fullText.includes(token) ? { words: [token], weight: 1 } : (({ words }) => words ? { words, weight: 0.5 } : null)({ words: searchAlternativesOf(token).find((words) => words.every((word) => fullText.includes(word))) }));
+    if (!met.every(Boolean)) return [];
+    const matchers = met as { words: string[]; weight: number }[];
+    const words = [...new Set(matchers.flatMap((matcher) => matcher.words))];
     const passages = translated ? [...translated.passages, ...published.passages] : published.passages;
     const keys = translated ? [...translated.keys, ...published.keys] : published.keys;
     const matches = passages.map((passage, at) => ({
       ...passage,
-      score: tokens.filter((token) => keys[at].includes(token)).length * passage.weight,
+      score: matchers.reduce((sum, matcher) => sum + (matcher.words.every((word) => keys[at].includes(word)) ? matcher.weight : 0), 0) * passage.weight,
     })).filter((passage) => passage.score > 0).sort((a, b) => b.score - a.score);
     const best = matches.find((passage) => passage.section && passage.weight === 2) || matches[0];
-    const sentence = best && splitAfterSentenceEnds(best.text).find((part) => tokens.some((token) => normalizeGuideQuery(part).includes(token))) || best?.text;
+    const sentence = best && splitAfterSentenceEnds(best.text).find((part) => words.some((token) => normalizeGuideQuery(part).includes(token))) || best?.text;
     const snippet = sentence ? sentence.trim().slice(0, 150) + (sentence.trim().length > 150 ? '…' : '') : undefined;
-    return [{ guide, score: matches.reduce((sum, passage) => sum + passage.score, 0), snippet, section: best?.section }];
+    // H65: words about an older reader lift the 长辈与家属 hub and the transit guides above pages that only mention them.
+    // A fare-card word (老人卡, RTC / Clipper Access, Free Muni) lifts the transit guides further: an apps directory or a ferry
+    // outing that names the card in passing is not where a reader learns to use it.
+    const transit = guideTopicOf(guide) === 'transport';
+    const lift = fareCard && transit ? 2.5 : elder && (transit || ELDER_HUB_SLUGS.includes(guide.slug)) ? 1.5 : 1;
+    return [{ guide, score: matches.reduce((sum, passage) => sum + passage.score, 0) * lift, snippet, section: best?.section }];
   });
   scored.sort((a, b) => b.score - a.score ||
     ({ P0: 0, P1: 1, P2: 2 })[a.guide.priority] - ({ P0: 0, P1: 1, P2: 2 })[b.guide.priority] ||

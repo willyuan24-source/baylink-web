@@ -16,8 +16,13 @@ export const SEARCH_SYNONYM_GROUPS: readonly (readonly string[])[] = [
   // Seniors and the benefits they ask about.
   // 爸妈 / 父母 on this site are the reader's own ageing parents (帮父母看医保, 爸妈来住): G89, GUIDE-K.
   ['长者', '长辈', '老人', '老年人', '年长者', '耆英', '爸妈', '父母', '老爸老妈', '爸爸妈妈', 'seniors', 'senior', 'elderly', 'older adults'],
-  // The reduced-fare card: 老人卡 is the Senior Clipper, not every senior page (G24).
-  ['老人卡', '长者卡', '老人交通卡', '长者交通卡', 'senior clipper card', 'senior clipper'],
+  // The reduced-fare card: 老人卡 is the Senior Clipper, not every senior page (G24). 长者 Clipper / 老人 Clipper written as
+  // two words are the same card (H65, GR-09).
+  ['老人卡', '长者卡', '老人交通卡', '长者交通卡', '长者 clipper', '老人 clipper', '长者clipper', '老人clipper', 'senior clipper card', 'senior clipper'],
+  // RTC is the old name of the disabled riders' discount card, now Clipper Access (the Muni / Clipper guide's word) (H65).
+  ['clipper access', 'rtc clipper', 'rtc 卡', 'rtc卡', 'regional transit connection', 'rtc'],
+  // SFMTA Free Muni for seniors (65+), as readers type it (H65).
+  ['free muni for seniors', 'free muni', '免费 muni', '免费muni', 'muni 免费'],
   // Meals brought to the door (Home Delivered Meals, Meals on Wheels): GUIDE-K 老人送餐.
   ['送餐', '上门送餐', '送餐服务', 'meals on wheels', 'home-delivered meals', 'home delivered meals'],
   // 老人看牙 asks where an older reader can see a dentist: the dental guide (Medicare / Medi-Cal dental) answers it, though
@@ -71,9 +76,37 @@ const SEARCH_PHRASES: readonly (readonly [string, string])[] = [
   ['会说中文的医生', '中文 医生'], ['说中文的医生', '中文 医生'], ['讲中文的医生', '中文 医生'],
   ['中文医生', '中文 医生'], ['华语医生', '中文 医生'], ['华人医生', '中文 医生'], ['中文家庭医生', '中文 家庭医生'],
   // SF Muni is free at 65+ (SFMTA Free Muni for Seniors); readers ask for it in their own words (G24).
-  ...['老人免费坐公交', '老人坐公交免费', '老人免费乘公交', '老人免费公交', '老人公交免费', '长者免费坐公交', '长者免费公交', '老人免费坐巴士', '长者免费坐巴士']
+  ...['老人免费坐公交', '老人坐公交免费', '老人免费乘公交', '老人免费公交', '老人公交免费', '长者免费坐公交', '长者免费公交', '老人免费坐巴士', '长者免费坐巴士',
+    '老人免费坐车', '长者免费坐车', '老人坐车免费', '长者坐车免费', '老人免费乘车', '长者免费乘车']
     .map(phrase => [phrase, '长者 免费 muni'] as const),
 ];
+
+/**
+ * Words a page may say instead of a group's name, for the guide search only (H65): the Muni / Clipper guide never says 老人卡
+ * or Free Muni, but it says 长者 and Clipper, and Muni. A query word from one of these groups also matches a guide that has
+ * every word of one alternative. Written as plain words; they go through the same rewrite as everything else.
+ */
+const SEARCH_ALTERNATIVES: readonly (readonly [string, readonly (readonly string[])[]])[] = [
+  ['老人卡', [['长者', 'clipper'], ['长者', 'muni']]],
+  ['free muni', [['muni']]],
+  ['clipper access', [['优惠', 'clipper']]],
+];
+let alternatives: Map<string, string[][]> | undefined;
+/** The alternative word sets (already rewritten) for a rewritten query word; [] when it has none. */
+export function searchAlternativesOf(token: string): string[][] {
+  alternatives ||= new Map(SEARCH_ALTERNATIVES.map(([member, sets]) => [normalizeSearchText(member), sets.map(words => words.map(word => normalizeSearchText(word)))]));
+  return alternatives.get(token) ?? [];
+}
+
+/** Query words that mean an older reader or their transit card: the guide search lifts elder and transit guides for them (H65). */
+export function isElderSearchToken(token: string): boolean {
+  return ['长者', '老人卡', 'free muni', 'clipper access'].some(word => normalizeSearchText(word) === token);
+}
+
+/** Query words that name a reduced-fare card or free ride (老人卡, RTC / Clipper Access, Free Muni): transit guides first (H65). */
+export function isFareCardSearchToken(token: string): boolean {
+  return ['老人卡', 'free muni', 'clipper access'].some(word => normalizeSearchText(word) === token);
+}
 
 // U+2063 INVISIBLE SEPARATOR: not whitespace to /\s/ or to the discovery tokenizer, so a key stays one token.
 const SEPARATOR = '⁣';
