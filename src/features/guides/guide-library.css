@@ -29,6 +29,10 @@
 .gl-section__head h2 { margin:0; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; text-wrap:balance; }
 .gl-section__head p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; text-wrap:pretty; }
 .gl-section__head .ui-button { flex:none; }
+/* H52 (SV13-11): at 大 / 特大 / 简洁 the 看全部 action sits under the heading and its line, so the subtitle keeps the full width
+   (beside the button it wrapped into a 170 px, four-line column). */
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-section__head { flex-direction:column; align-items:flex-start; gap:4px; }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-section__head .ui-button { margin-inline-start:-8px; }
 .gl-count { flex:none; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-variant-numeric:tabular-nums; }
 
 /* The 长辈与家属 rail: about two and a quarter cards on a phone, four across on a desktop. */

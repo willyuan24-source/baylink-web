@@ -83,6 +83,13 @@
 .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:clamp(1.5rem, calc(9cqw * var(--fluid-scale)), 2.375rem); line-height:1.15; }
 .gd-slide__source { margin:auto 0 0; padding-top:8px; color:var(--color-ink-2); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.45; }
 .gd-slide--cover .gd-slide__source { color:var(--color-on-brand-muted); }
+/* H67 (GR-12): the guide carousel shows 48px previous / next buttons on touch phones too, not only swipe; in 简洁显示 the slides
+   become one vertical list (no swiping, no 3:4 floor), so every card reads top to bottom. */
+.gd-carousel .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:inline-grid; width:3rem; height:3rem; }
+html[data-simple] .gd-carousel .ui-carousel__track { flex-direction:column; gap:12px; margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
+html[data-simple] .gd-carousel .ui-carousel__slide { flex:none; width:100%; }
+html[data-simple] .gd-carousel .ui-carousel__controls { display:none; }
+html[data-simple] .gd-carousel .gd-slide { min-height:0; }
 
 /* 查: "30 秒看懂" and the contact cards. */
 .gd-keyfacts { padding:20px; border-left:4px solid var(--color-brand); border-radius:16px; background:var(--color-surface-2); }
@@ -92,6 +99,10 @@
 .gd-keyfacts li:first-child { border-top:0; padding-top:2px; }
 .gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .gd-keyfacts__value { color:var(--color-ink); font-size:1.0625rem; line-height:1.6; font-weight:600; }
+.gd-keyfacts h2 .gd-keyfacts__from { display:inline-block; margin-left:8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; vertical-align:middle; }
+/* H08: the fallback card quotes whole sentences, so its values read at body weight and size, not as one bold figure. */
+.gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--text-body); line-height:1.65; font-weight:400; }
+.gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:600; text-decoration:none; }
 /* The glyph stays caption size; the tap area around it is 44px (48px in 简洁显示), rule 5. */
 .gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
@@ -112,6 +123,21 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contact__actions>.ui-button>svg { width:1.125rem; height:1.125rem; }
 .gd-contact__status { margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .gd-contact__status:empty { display:none; }
+
+/* H36: 在 3D 里先看看 — one row in the reading path of a San Francisco outing guide (a full-page link to the 3D city). */
+.gd-opus { display:flex; align-items:center; gap:12px; margin-top:16px; padding:10px 12px; min-height:3rem; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
+.gd-opus:hover { border-color:var(--color-brand); }
+.gd-opus:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+.gd-opus__art { flex:none; width:7.5rem; border-radius:10px; overflow:hidden; }
+.gd-opus__mark { display:grid; flex:none; place-items:center; width:3rem; height:3rem; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand); }
+.gd-opus__mark>svg { width:1.5rem; height:1.5rem; }
+.gd-opus__text { display:flex; flex:1 1 auto; flex-direction:column; gap:2px; min-width:0; }
+.gd-opus__text strong { color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
+.gd-opus__text span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
+.gd-opus__text small { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-opus__go { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
+@media (max-width:359px) { .gd-opus__art { width:5.5rem; } }
+@media (min-width:1024px) { .gd-opus { max-width:var(--container-reading); } }
 
 /* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源". */
 .gd-step { margin-top:28px; }
@@ -137,6 +163,92 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
   .gd-step__more, .gd-step>.bl-guide-prose { margin-left:0; }
 }
 
+/* H64 (GR-08): the county number grid. Each county reads in Chinese with its English name on a second line; below 420 px the
+   grid is one column (two 147 px cells held 158 px chips that ran past the screen), the name beside the number while both fit. */
+.gd-county { display:flex; flex-direction:column; gap:0; }
+.gd-county__zh { color:var(--color-ink); font-weight:600; }
+.gd-county__en { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+@media (max-width:419px) {
+  .gd-article .gd-phone-directory { grid-template-columns:minmax(0, 1fr); gap:8px; }
+  .gd-article .gd-phone-directory li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; }
+  .gd-article .gd-phone-directory .phone-directory-label { flex:1 1 7rem; min-width:0; }
+  .gd-article .gd-phone-directory .phone-chip--block { flex:0 1 auto; max-width:100%; }
+}
+
+/* H22 (SV13-03, GR-10): coded diagrams in the pilot guides (GuideDiagram.tsx), so a phone reader meets a picture slot at least
+   every two screens. One look for all four kinds: surface-2 panel, a 示意图 tag, brand marks; real text that grows with Aa. */
+.gd-diagram { margin:20px 0 0; padding:16px; border-radius:16px; background:var(--color-surface-2); color:var(--color-ink); container-type:inline-size; }
+.gd-step>.gd-diagram { margin-top:14px; }
+.gd-diagram__head { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin:0 0 12px; }
+.gd-diagram__head strong { color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
+.gd-diagram__tag { display:inline-block; padding:0 8px; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.6; font-weight:600; }
+.gd-diagram strong { overflow-wrap:break-word; }
+.gd-diagram__text { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.gd-diagram__tel { display:inline-flex; align-items:center; gap:6px; align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:1.0625rem; line-height:1.3; font-weight:700; font-variant-numeric:tabular-nums; text-decoration:none; white-space:nowrap; }
+.gd-diagram__tel>svg { flex:none; width:1.125rem; height:1.125rem; }
+html[data-simple] .gd-diagram__tel { min-height:3rem; }
+.gd-diagram__number { font-weight:700; font-variant-numeric:tabular-nums; }
+.gd-diagram__body { display:flex; flex-direction:column; gap:2px; min-width:0; }
+.gd-diagram__body strong { font-size:var(--text-body); line-height:1.5; font-weight:600; }
+.gd-diagram__footer { margin:12px 0 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+.gd-diagram__credit { display:flex; align-items:center; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+/* flow: numbered steps joined by a line */
+.gd-diagram__flow { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gd-diagram__flow>li { position:relative; display:flex; align-items:flex-start; gap:12px; padding-bottom:14px; }
+.gd-diagram__flow>li:last-child { padding-bottom:0; }
+.gd-diagram__flow>li:not(:last-child)::before { content:""; position:absolute; top:2rem; bottom:2px; left:calc(1rem - 1px); width:2px; border-radius:2px; background:var(--color-brand); opacity:.35; }
+.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); line-height:1; font-weight:700; }
+/* compare: side by side when there is room */
+.gd-diagram__compare { display:grid; grid-template-columns:repeat(var(--gd-cols, 2), minmax(0, 1fr)); gap:8px; margin:0; padding:0; list-style:none; }
+.gd-diagram__compare[data-count="3"] { --gd-cols:1; }
+.gd-diagram__compare>li { display:flex; flex-direction:column; gap:4px; min-width:0; padding:12px; border-top:4px solid var(--color-brand); border-radius:12px; background:var(--color-surface); }
+.gd-diagram__compare>li:nth-child(2) { border-top-color:var(--tc-family-fg); }
+.gd-diagram__compare>li:nth-child(3) { border-top-color:var(--color-ink-2); }
+.gd-diagram__compare>li>strong { font-size:var(--text-body); line-height:1.5; font-weight:600; }
+@container (max-width:19rem) { .gd-diagram__compare { --gd-cols:1; } }
+/* timeline scale: one cell per month, the birthday month marked */
+.gd-diagram__scale { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); gap:4px; margin:0 0 14px; }
+.gd-diagram__scale>span { display:grid; place-items:center; min-height:2rem; border-radius:6px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); font-weight:600; font-variant-numeric:tabular-nums; }
+.gd-diagram__scale>span[data-on] { background:var(--color-brand); color:var(--color-surface); }
+/* timeline: a line with a mark per stage (vertical on phones, across on wide screens) */
+.gd-diagram__timeline { position:relative; display:flex; flex-direction:column; gap:14px; margin:0; padding:0 0 0 22px; list-style:none; }
+.gd-diagram__timeline::before { content:""; position:absolute; top:6px; bottom:6px; left:6px; width:2px; border-radius:2px; background:var(--color-brand); opacity:.35; }
+.gd-diagram__timeline>li { position:relative; }
+.gd-diagram__dot { position:absolute; top:.35em; left:-22px; width:14px; height:14px; border:3px solid var(--color-brand); border-radius:999px; background:var(--color-surface); box-sizing:border-box; }
+/* map: county tiles west and east of the bay, north at the top (rough places, not to scale); one list at 大 / 特大 / 简洁 and on
+   very narrow screens */
+.gd-diagram__map { display:grid; grid-template-columns:minmax(0, 1fr) 1.75rem minmax(0, 1fr); grid-template-areas:"sonoma bay napa" "marin bay contra" "sf bay alameda" "smateo bay sclara"; gap:6px; margin:0; padding:0; list-style:none; }
+.gd-diagram__map>li { display:flex; flex-direction:column; justify-content:center; gap:0; min-width:0; padding:6px 10px; border-radius:10px; background:var(--color-surface); border:1px solid var(--color-line); }
+.gd-diagram__map>li>strong { font-size:var(--text-fact); line-height:1.4; font-weight:600; }
+.gd-diagram__map .gd-diagram__tel { min-height:2.75rem; font-size:var(--text-fact); }
+.gd-diagram__map>li[data-area=sonoma] { grid-area:sonoma; } .gd-diagram__map>li[data-area=napa] { grid-area:napa; }
+.gd-diagram__map>li[data-area=marin] { grid-area:marin; } .gd-diagram__map>li[data-area=contra] { grid-area:contra; }
+.gd-diagram__map>li[data-area=sf] { grid-area:sf; } .gd-diagram__map>li[data-area=alameda] { grid-area:alameda; }
+.gd-diagram__map>li[data-area=smateo] { grid-area:smateo; } .gd-diagram__map>li[data-area=sclara] { grid-area:sclara; }
+.gd-diagram__map>.gd-diagram__bay { grid-area:bay; align-items:center; padding:8px 0; border-color:transparent; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.2; font-weight:600; writing-mode:vertical-rl; }
+@container (max-width:17rem) {
+  .gd-diagram__map { grid-template-columns:minmax(0, 1fr); grid-template-areas:none; }
+  .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:12px; }
+  .gd-diagram__map>.gd-diagram__bay { display:none; }
+}
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map { grid-template-columns:minmax(0, 1fr); grid-template-areas:none; }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:12px; }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>.gd-diagram__bay { display:none; }
+.gd-diagram__tel:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+@media (min-width:768px) {
+  .gd-diagram { padding:20px; }
+  .gd-step>.gd-diagram { margin-left:52px; }
+  .gd-diagram__flow { flex-direction:row; gap:12px; }
+  .gd-diagram__flow>li { flex:1 1 0; flex-direction:column; padding-bottom:0; }
+  .gd-diagram__flow>li:not(:last-child)::before { top:calc(1rem - 1px); bottom:auto; left:2.5rem; right:-6px; width:auto; height:2px; }
+  .gd-diagram__compare[data-count="3"] { --gd-cols:3; }
+  .gd-diagram__timeline { flex-direction:row; gap:16px; padding:22px 0 0; }
+  .gd-diagram__timeline::before { top:6px; bottom:auto; left:6px; right:6px; width:auto; height:2px; }
+  .gd-diagram__timeline>li { flex:1 1 0; }
+  .gd-diagram__dot { top:-22px; left:0; }
+}
+@media (min-width:1024px) { .gd-article>.gd-diagram { max-width:var(--container-reading); } }
+
 /* Link cards inside the prose: their base rules live in monthly-deals.css (WEB-EVENTS' file; CSS-PRUNE moves them here). */
 .gd-article .bl-guide-source-link { border-color:var(--color-line); background:var(--color-surface-2); }
 .gd-article .bl-guide-source-link>a { color:var(--color-brand); font-size:var(--text-body); }
@@ -154,12 +266,22 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .bl-guide-sources li p .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:1em; }
 }
 
+/* H66: the folded rest of a long source list. */
+.gd-sources-more { margin-top:8px; }
+.gd-sources-more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:600; cursor:pointer; list-style:none; }
+.gd-sources-more>summary::-webkit-details-marker { display:none; }
+.gd-sources-more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
+.gd-sources-more[open]>summary>svg { transform:rotate(180deg); }
+.gd-sources-more>summary:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+
 /* The outing link's small line (outing-inspiration.css) reads at caption size inside an article. */
 .gd-article .outing-inspiration-link small { font-size:var(--text-caption); }
 
 /* Related covers and the page's image credits. */
 .gd-related { margin-top:40px; }
 .gd-related__head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+/* H52: at 大 / 特大 / 简洁 the section link sits under its heading instead of squeezing it. */
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-related__head { flex-direction:column; align-items:flex-start; gap:0; }
 .gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .gd-credits { margin-top:20px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
 .gd-credits>summary { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; cursor:pointer; }

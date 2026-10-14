@@ -7,11 +7,12 @@ import type { Guide } from '../../data/guides';
 import type { GuideContact, GuideKeyFact } from '../../data/guide-editorial';
 import { linkifyPhones } from '../../lib/phone-links';
 import { copyText } from '../../utils/postShare';
+import { quickFactIn, type QuickFact } from './guide-quick-facts';
 
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬'];
 
 /** A superscript ① that jumps to the article's source list (its anchor `guide-source-n`). */
-function SourceMark({ guide, index }: { guide: Guide; index?: number }) {
+export function SourceMark({ guide, index }: { guide: Guide; index?: number }) {
   const { t } = useUiCopy();
   if (!index || !guide.sources[index - 1]) return null;
   return <a className="gd-source-mark" href={`#guide-source-${index}`} aria-label={t(`来源 ${index}`, `Source ${index}`)}>{CIRCLED[index - 1] ?? `[${index}]`}</a>;
@@ -38,6 +39,26 @@ export function KeyFactsCard({ guide, facts }: { guide: Guide; facts: readonly G
       <span className="gd-keyfacts__label">{pick(fact.label)}</span>
       <span className="gd-keyfacts__value">{withMark(linkifyPhones(pick(fact.value), { variant: 'inline' }), fact.source && guide.sources[fact.source - 1] ? <SourceMark guide={guide} index={fact.source} /> : null)}</span>
     </li>)}</ol>
+  </section>;
+}
+
+/**
+ * H08 (GR-03): "30 秒看懂" for a guide without an editorial record — up to three of the article's own sentences (guide-quick-facts.ts):
+ * the first sourced fact, the first phone number as a tap-to-call chip, the first deadline or fee. Labelled 从本文整理; a row
+ * with no translation in the reader's language is left out, and the card is not shown when no row is left.
+ */
+export function QuickFactsCard({ guide, facts }: { guide: Guide; facts: readonly QuickFact[] }) {
+  const { t, locale } = useUiCopy();
+  const rows = facts.flatMap(fact => { const text = quickFactIn(fact, guide, locale); return text ? [{ fact, text }] : []; });
+  if (!rows.length) return null;
+  const label = { fact: t('先知道', 'Key fact'), phone: t('打电话', 'Call'), deadline: t('日期与期限', 'Dates and deadlines'), fee: t('费用', 'Cost') };
+  return <section className="gd-keyfacts" data-fallback="" aria-labelledby="gd-keyfacts-title">
+    <h2 id="gd-keyfacts-title">{t('30 秒看懂', 'In 30 seconds')}<span className="gd-keyfacts__from">{t('从本文整理', 'From this guide')}</span></h2>
+    <ol>{rows.map(({ fact, text }) => <li key={fact.kind}>
+      <span className="gd-keyfacts__label">{label[fact.kind]}</span>
+      <span className="gd-keyfacts__value">{linkifyPhones(text, { variant: 'inline' })}</span>
+    </li>)}</ol>
+    <a className="gd-keyfacts__sources" href="#guide-sources">{t('看文末官方来源', 'See the official sources')}</a>
   </section>;
 }
 

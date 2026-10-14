@@ -7,7 +7,10 @@ import { rankRelatedGuides } from '../../lib/guide-discovery';
 import { getGuideMetadata } from '../../lib/guide-metadata';
 import { getOfferImage } from '../../lib/offer-media';
 import { guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
-import type { GuideCard, GuideCovers, GuideIndexCard, GuideInlineImage, GuideRecord, GuidesIndex } from './guide-records';
+import type { GuideCard, GuideCovers, GuideIndexCard, GuideInlineImage, GuideOpusEntry, GuideRecord, GuidesIndex } from './guide-records';
+import { OPUS_BAY_ATTRACTION_ENTRIES } from '../../lib/opus-bay-attraction-entry';
+import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../../data/scene3d-postcards';
+import { GUIDE_DIAGRAMS } from './guide-diagrams';
 
 /**
  * Build side of the guide routes' data split (WEB-DATA-SPLIT): the functions that need the whole guide corpus, the media
@@ -89,9 +92,27 @@ export function rankedRelatedGuides(guide: Guide, count = 4): Guide[] {
 export const guideInlineImages = (guide: Guide): GuideInlineImage[] =>
   getGuideMedia(guide).inline.filter(item => keepInlineImage(item.image, guide, guides));
 
+const ATTRACTION_BY_SLUG = new Map<string, string>(ATTRACTIONS.map(item => [item.slug, item.id]));
+/**
+ * H36 (FCC-11): a San Francisco outing guide links into BAYLINK's 3D San Francisco. A guide about a place the game has an
+ * arrival for (OPUS_BAY_ATTRACTION_ENTRIES) opens there; the others open the city. The place's 3D postcard (RC-16) goes with
+ * it when one exists. Only guides about San Francisco alone; 办事 guides never.
+ */
+export function guideOpusEntryOf(guide: Pick<Guide, 'slug' | 'category'>): GuideOpusEntry | undefined {
+  const regions = guideRegionsOf(guide);
+  if (regions.length !== 1 || regions[0] !== 'sf' || guideTopicOf(guide) !== 'outings') return undefined;
+  const id = ATTRACTION_BY_SLUG.get(guide.slug);
+  const attraction = id && Object.hasOwn(OPUS_BAY_ATTRACTION_ENTRIES, id) ? id : undefined;
+  const key = SCENE3D_POSTCARD_FOR[guide.slug] ?? (id ? SCENE3D_POSTCARD_FOR[id] : undefined);
+  const postcard = key ? SCENE3D_POSTCARD_IMAGES[key] : undefined;
+  return { ...(attraction ? { attraction } : {}), ...(postcard ? { postcard } : {}) };
+}
+
 export function guideRecordOf(guide: Guide, coversOf: (guide: Guide) => GuideCovers): GuideRecord {
   const editorial = getGuideEditorial(guide.slug);
   const boardImages = guide.blocks.flatMap(block => block.type === 'freebies' ? block.offers : []).flatMap(offer => getOfferImage(offer)?.src ?? []);
+  const opus = guideOpusEntryOf(guide);
+  const diagrams = Object.hasOwn(GUIDE_DIAGRAMS, guide.slug) ? [...GUIDE_DIAGRAMS[guide.slug]] : undefined;
   return {
     guide,
     covers: coversOf(guide),
@@ -99,6 +120,8 @@ export function guideRecordOf(guide: Guide, coversOf: (guide: Guide) => GuideCov
     related: rankedRelatedGuides(guide).map(item => guideCardOf(item, coversOf(item))),
     ...(editorial ? { editorial } : {}),
     ...(boardImages.length ? { boardImages } : {}),
+    ...(diagrams ? { diagrams } : {}),
+    ...(opus ? { opus } : {}),
     metadata: getGuideMetadata(guide),
   };
 }

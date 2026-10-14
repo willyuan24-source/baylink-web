@@ -418,6 +418,13 @@
   font-size: .9375rem;
   line-height: 2;
 }
+/* H24 sweep (WEB-GUIDES-READ): a long e-mail address or URL in the text wraps inside the column at 320 px 特大 instead of
+   running past the screen (sfolostandfound@flysfo.com, enrollment@smuhsd.org). */
+.bl-guide-prose :is(p, li, dd),
+.bl-guide-tip p,
+.bl-guide-source-link p {
+  overflow-wrap: break-word;
+}
 .bl-guide-bullet-list {
   list-style: disc;
   padding-left: 21px;
