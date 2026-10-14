@@ -17,6 +17,13 @@
 .bl-freebie-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
 .bl-freebie-filters button { min-height:var(--control-height); padding:8px 16px; border:1px solid var(--color-line-strong); border-radius:999px; color:var(--color-ink-2); background:var(--color-surface); font-size:var(--text-fact); line-height:1.4; }
 .bl-freebie-filters button[aria-pressed="true"] { border-color:var(--color-brand-deep); background:var(--color-brand-deep); color:var(--color-surface); font-weight:600; }
+/* H66: the kind tabs stick under the site header while the cards scroll (one scrollable row on phones), with counts. */
+.bl-freebie-kinds { position:sticky; top:var(--chrome-header-height, 3.5rem); z-index:20; flex-wrap:nowrap; overflow-x:auto; margin-inline:calc(-1 * var(--page-gutter, 16px)); padding:8px var(--page-gutter, 16px); background:var(--color-bg); scrollbar-width:none; }
+.bl-freebie-kinds::-webkit-scrollbar { display:none; }
+.bl-freebie-kinds button { flex:none; display:inline-flex; align-items:center; gap:6px; }
+.bl-freebie-kinds__count { color:inherit; font-variant-numeric:tabular-nums; opacity:.75; }
+.bl-freebie-results { scroll-margin-top:calc(var(--chrome-header-height, 3.5rem) + 4.5rem); }
+@media (min-width:768px) { .bl-freebie-kinds { flex-wrap:wrap; margin-inline:0; padding-inline:0; } }
 .bl-freebie-search { display:grid; gap:8px; margin:14px 0; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 .bl-freebie-search input { width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font:inherit; font-weight:400; }
 .bl-freebie-search input:focus-visible { outline:3px solid var(--color-brand); outline-offset:3px; }
