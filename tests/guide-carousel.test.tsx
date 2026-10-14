@@ -17,6 +17,8 @@ const { getGuideEditorial } = await import('../src/data/guide-editorial');
 const { guideCover } = await import('../src/features/guides/guide-facts');
 const { peekGuide } = await import('../src/features/guides/guide-store');
 const { setLocale, loadLocale } = await import('../src/i18n/locale');
+// The SF outing guide below has a 3D link, a block renderer loaded with its record (guide-blocks.ts).
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 const SENIOR = 'bay-area-chinese-senior-services-referral-guide';

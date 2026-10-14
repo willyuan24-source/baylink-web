@@ -22,6 +22,15 @@ export function guideKindOf(guide: Pick<Guide, 'slug' | 'category' | 'tags' | 'b
   return guideTopicOf(guide) === 'outings' ? 'outing' : 'task';
 }
 
+/** H08: the first screens of outings, directories, deals boards and routes are those things, so they get no 30 秒看懂 card. */
+const NO_QUICK_FACTS: ReadonlySet<GuideBlock['type']> = new Set([...DIRECTORY, 'freebies', 'route']);
+
+/** Whether a guide gets the fallback 30 秒看懂 (guide-quick-facts.ts): no editorial record, not an outing, a directory or a deals board. */
+export function quickFactsEligible(guide: Pick<Guide, 'slug' | 'category' | 'blocks'>, hasEditorial: boolean): boolean {
+  if (hasEditorial || guideTopicOf(guide) === 'outings') return false;
+  return !guide.blocks.some(block => NO_QUICK_FACTS.has(block.type));
+}
+
 type Copy = { zh: string; en: string };
 /** The two page chips the BayBay panel shows on a guide of each kind (label, then the question it sends). */
 export const GUIDE_KIND_PROMPTS: Readonly<Record<Exclude<GuideKind, 'school'>, readonly { label: Copy; question: Copy }[]>> = {

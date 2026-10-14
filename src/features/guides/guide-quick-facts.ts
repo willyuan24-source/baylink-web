@@ -1,5 +1,4 @@
 import type { Guide, GuideBlock } from '../../data/guides';
-import { guideTopicOf } from '../../data/guide-topics';
 import { findPhoneNumbers } from '../../lib/phone-numbers';
 import { translateText, type Locale } from '../../i18n/locale';
 
@@ -26,13 +25,8 @@ export type QuickFact = {
   context?: string;
 };
 
-const DIRECTORY_BLOCKS: ReadonlySet<GuideBlock['type']> = new Set(['utility-directory', 'contact-directory', 'useful-platforms', 'city-exploration', 'shopping-directory', 'freebies', 'route']);
-
-/** Whether a guide gets the fallback card: no editorial record, not an outing, not a directory or a deals board. */
-export function quickFactsEligible(guide: Pick<Guide, 'slug' | 'category' | 'blocks'>, hasEditorial: boolean): boolean {
-  if (hasEditorial || guideTopicOf(guide) === 'outings') return false;
-  return !guide.blocks.some(block => DIRECTORY_BLOCKS.has(block.type));
-}
+/** Which guides get the card lives with the guide kinds (guide-kind.ts), so the page can tell without loading this module. */
+export { quickFactsEligible } from './guide-kind';
 
 const MAX = 96;
 /** The text cut after each mark, the mark kept at the end of its piece (no regex look-behind: Safari < 16.4, W9-E). */

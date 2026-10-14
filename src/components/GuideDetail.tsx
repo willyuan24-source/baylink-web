@@ -40,9 +40,8 @@ import { guideTopicOf } from '../data/guide-topics';
 import { GuideHeader } from '../features/guides/GuideHeader';
 import { GuideActions, type GuideAsk } from '../features/guides/GuideActions';
 import { GuideCarousel } from '../features/guides/GuideCarousel';
-import { ContactCards, KeyFactsCard, QuickFactsCard } from '../features/guides/GuideFactCards';
-import { guideQuickFacts, quickFactsEligible } from '../features/guides/guide-quick-facts';
-import { GuideOpusEntry } from '../features/guides/GuideOpusEntry';
+import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
+import { quickFactsEligible } from '../features/guides/guide-kind';
 import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
 import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
@@ -50,7 +49,7 @@ import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
 import { guideCardMeta, guideCover, TOPIC_COVER } from '../features/guides/guide-facts';
 import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
-import { CityExplorationBlock, FreebieBoardBlock } from '../features/guides/guide-blocks';
+import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import '../features/guides/guide-article.css';
 
@@ -144,9 +143,9 @@ const GuideDetailSession = ({
     // The 3D link's postcard (H36) shows only when the page does not already show it, and then claims it like the others.
     const opusArt = !!record.opus?.postcard && !coverPage.claims.has(record.opus.postcard.src);
     if (opusArt) coverPage.claims.set(record.opus!.postcard!.src, `page:${guide.slug}`);
-    // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories);
-    // a section headed by a date already past is not quoted.
-    const quickFacts = quickFactsEligible(guide, !!record.editorial) ? guideQuickFacts(guide, today) : [];
+    // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories;
+    // QuickFactsBlock, loaded with the record of those guides only).
+    const quickFacts = quickFactsEligible(guide, !!record.editorial);
     return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related, today) };
   }, [record, today]);
 
@@ -247,12 +246,12 @@ const GuideDetailSession = ({
             {guide.blocks.some(block => block.type === 'freebies') && <a className="bl-freebie-jump" href="#freebie-board-0">看免费领取图鉴<ArrowDownRight size={17} aria-hidden="true" /></a>}
             {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} startDate={guide.editionStartDate} throughDate={guide.editionThroughDate} checkedAt={guide.updatedAt} today={today} />}
             {/* H08: without an editorial record, the fallback 30 秒看懂 comes first (answer first), then the summary. */}
-            {!editorial && page.quickFacts.length > 0 && <QuickFactsCard guide={guide} facts={page.quickFacts} />}
+            {!editorial && page.quickFacts && <QuickFactsBlock guide={guide} today={today} />}
             {editorial ? <KeyFactsCard guide={guide} facts={editorial.keyFacts} />
               : <div className="gd-summary"><p>{guide.summary}</p>{guide.audience.length > 0 && <p className="gd-summary__audience"><span>{t('适合：', 'For: ')}</span>{guide.audience.map((audience, index) => <Fragment key={audience}>{index > 0 && '、'}<span>{audience}</span></Fragment>)}</p>}</div>}
           </div>
         </div>
-        {record?.opus && <GuideOpusEntry entry={record.opus} showArt={page.opusArt} />}
+        {record?.opus && <GuideOpusBlock entry={record.opus} showArt={page.opusArt} />}
         {diagramsAt('lead')}
         {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}

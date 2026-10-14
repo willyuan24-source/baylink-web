@@ -39,7 +39,7 @@ export function peekGuide(slug: string): GuideRecord | undefined {
 /** Whether the record and the article's block renderers are in, so the page renders in one pass. */
 export function isGuideReady(slug: string): boolean {
   const record = peekGuide(slug);
-  return !!record && guideBlocksReady(record.guide);
+  return !!record && guideBlocksReady(record);
 }
 
 /**
@@ -49,13 +49,13 @@ export function isGuideReady(slug: string): boolean {
 export function loadGuide(slug: string): Promise<GuideRecord | undefined> {
   if (!isGuideSlug(slug)) return Promise.resolve(undefined);
   const known = peekGuide(slug);
-  if (known && guideBlocksReady(known.guide)) return Promise.resolve(known);
+  if (known && guideBlocksReady(known)) return Promise.resolve(known);
   let promise = pending.get(slug);
   if (!promise) {
     // chunkLoader: one retry (a deploy swapping files, a brief network drop), then the failure is marked for the beacon.
     promise = (known ? Promise.resolve(known) : chunkLoader(guideLoaders[slug], module => module.default as GuideRecord)())
       .then(async record => {
-        await preloadGuideBlocks(record.guide);
+        await preloadGuideBlocks(record);
         records.set(slug, record);
         return record;
       })

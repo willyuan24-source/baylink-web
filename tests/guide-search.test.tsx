@@ -13,6 +13,8 @@ const { render, fireEvent, cleanup } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet, useLocation } = await import('react-router-dom');
 const { default: GuidesPage } = await import('../src/pages/GuidesPage');
 const { default: GuideDetailPage } = await import('../src/pages/GuideDetailPage');
+// The article’s block renderers (the fallback 30 秒看懂 among them) load with its record in the app (guide-blocks.ts).
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
 afterEach(() => cleanup());
 
 test('full-text search finds practical body and template content with readable matching passages', () => {
