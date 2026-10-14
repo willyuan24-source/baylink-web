@@ -94,10 +94,28 @@ const displayWidth = (value: string) => [...value].reduce((width, character) => 
 /** English <title>s fit a search result: at most 60 characters (H46, I13-09). */
 export const ENGLISH_TITLE_LIMIT = 60;
 const BRAND = ' | BAYLINK';
+/** A cut before one of these words leaves a whole phrase ("Begin birdwatching at Alviso Marina" | "without …"). */
+const PHRASE_BREAK = /^(?:with|without|for|on|in|at|after|before|from|during|near|via|while|that|which|when|until)$/i;
+/** A cut before one of these leaves a list that goes on ("Free California Art, History" | "and …"): it keeps its "…". */
+const LIST_GOES_ON = /^(?:and|or|&)$/i;
+const TRAILING_MARKS = /[\s,;:·|–—&-]+$/u;
+/**
+ * The longest head of `text` within `limit`: before the last phrase break past the middle when there is one (whole, no
+ * "…"; the full title stays in og:title and the H1), else before "and" / "or" with "…", else at a word with "…".
+ */
 const cutAtWord = (text: string, limit: number) => {
+  const words = text.split(' ');
+  let phrase = 0, list = 0;
+  for (let index = 1, length = words[0].length; index < words.length && length <= limit - 1; length += words[index].length + 1, index++) {
+    if (length < limit * 0.55) continue;
+    if (PHRASE_BREAK.test(words[index])) phrase = index;
+    else if (LIST_GOES_ON.test(words[index])) list = index;
+  }
+  if (phrase) return words.slice(0, phrase).join(' ').replace(TRAILING_MARKS, '');
+  if (list) return `${words.slice(0, list).join(' ').replace(TRAILING_MARKS, '')}…`;
   const head = text.slice(0, limit - 1);
   const space = head.lastIndexOf(' ');
-  return `${(space > limit / 2 ? head.slice(0, space) : head).replace(/[\s,;:·|–—&-]+$/u, '')}…`;
+  return `${(space > limit / 2 ? head.slice(0, space) : head).replace(TRAILING_MARKS, '')}…`;
 };
 /** The name before its first break ("Alameda Point Antiques Faire: Vintage Finds…" → "Alameda Point Antiques Faire"). */
 const titleHead = (name: string): string | undefined => {

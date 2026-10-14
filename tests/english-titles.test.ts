@@ -18,9 +18,16 @@ test('H46: the English search title gives way in order — short title, name alo
   assert.equal(englishDocumentTitle('October BART updates: Mission elevator delay, less West Oakland parking and Yellow Line work | BAYLINK'), 'October BART updates | BAYLINK');
   assert.equal(englishDocumentTitle('About BAYLINK | Where to go and how to get it done in the Bay, with sources'), 'About BAYLINK', 'the brand is not repeated');
   assert.equal(englishDocumentTitle('Bay Area events, deals and new openings · fall 2026, through 11/30 | BAYLINK'), 'Bay Area events, deals and new openings | BAYLINK');
-  const cut = englishDocumentTitle('Begin birdwatching at Alviso Marina without committing to a long salt-pond loop around the bay | BAYLINK');
-  assert.ok(cut.length <= ENGLISH_TITLE_LIMIT, cut);
-  assert.match(cut, /^Begin birdwatching at Alviso Marina[^…]*… \| BAYLINK$/);
+  // a cut ends a phrase where it can (review 10-14: "…Alviso Marina without… | BAYLINK"); the full title stays in og:title
+  assert.equal(englishDocumentTitle('Begin birdwatching at Alviso Marina without committing to a long salt-pond loop around the bay | BAYLINK'), 'Begin birdwatching at Alviso Marina | BAYLINK');
+  assert.equal(englishDocumentTitle('SFPL · Kanopy · Stream films at home for free with an SFPL library card | BAYLINK'), 'SFPL · Stream films at home for free | BAYLINK');
+  assert.equal(englishDocumentTitle('Crumbl · Birthday dessert reward for Silver members and above | BAYLINK'), 'Crumbl · Birthday dessert reward | BAYLINK');
+  assert.equal(englishDocumentTitle('How to write BAYLINK housing and service posts that build trust and get responses | BAYLINK'), 'How to write BAYLINK housing and service posts');
+  assert.equal(englishDocumentTitle('Setting Up Utilities, Internet, and Your Address After a Bay Area Move: From Handover to the First Bill | BAYLINK'), 'Setting Up Utilities, Internet, and Your Address | BAYLINK');
+  // a list that goes on keeps its "…"; without any break, a word cut with "…"
+  assert.equal(englishDocumentTitle('OMCA · Oakland · Oct 4: Free California Art, History, and Natural Science Galleries | BAYLINK'), 'OMCA · Oct 4: Free California Art, History… | BAYLINK');
+  const cut = englishDocumentTitle('Supercalifragilistic expialidocious extraordinarily unbelievable tremendously long words | BAYLINK');
+  assert.ok(cut.length <= ENGLISH_TITLE_LIMIT && cut.endsWith('… | BAYLINK'), cut);
 });
 
 test('H46: every event, offer, opening and guide has an English <title> of at most 60 characters, and og:title keeps the full one', async () => {
