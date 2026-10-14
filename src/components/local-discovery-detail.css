@@ -19,10 +19,10 @@
 /* An event's band (H28): the date large at the bottom left, as the offer's value. */
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__date { font-size:2rem; }
 .local-discovery-detail .detail-hero[data-compact] .ui-type-cover__date:first-child { margin-top:auto; }
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__icon { top:calc(50% - 3.25rem); right:1.5rem; width:6.5rem; height:6.5rem; }
+.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__art { top:6%; right:1.25rem; width:auto; height:88%; }
 /* An offer with no stated value: its header says everything, so the band is a slim strip in its tone, no words. */
 .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:2.75rem; }
-.local-discovery-detail .detail-hero[data-slim] .ui-type-cover__icon { top:calc(50% - 1rem); width:2rem; height:2rem; }
+.local-discovery-detail .detail-hero[data-slim] .ui-type-cover__art { top:8%; height:84%; }
 .local-discovery-detail .detail-hero[data-slim] .ui-provenance { display:none; }
 
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }

@@ -38,7 +38,7 @@ export function DetailHero({ record, cover, today, ended }: { record: DetailReco
     const event = item.event as EventFactsInput;
     const date = formatDateChip(eventDateChip(event, today), english);
     return <figure className="detail-hero" data-tier="type" data-compact="" data-kind="event" data-slim={date.big ? undefined : ''}>
-      <TypeCover family="event" tone={eventTone(event)} label="" date={date} icon={event.iconKey ?? eventTone(event)} />
+      <TypeCover family="event" tone={eventTone(event)} label="" date={date} icon={event.iconKey ?? eventTone(event)} seed={event.id} />
     </figure>;
   }
   const slot = { ratio: '16:9' as const, ratioLock: true };

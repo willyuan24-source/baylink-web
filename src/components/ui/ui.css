@@ -89,15 +89,43 @@
    --fluid-scale like the site's fluid headings, and the unscaled height term keeps the text inside the box, so the 3:2
    single-column cover at 大/特大 is not scaled twice. Floors under 1rem also take the 简洁显示 --text-floor. */
 .ui-type-cover { container-type:size; container-name:ui-type-cover; background:var(--tc-bg, var(--tc-outdoors-bg)); color:var(--tc-fg, var(--tc-outdoors-fg)); text-align:start; }
-.ui-type-cover[data-tone=family] { --tc-bg:var(--tc-family-bg); --tc-fg:var(--tc-family-fg); }
-.ui-type-cover[data-tone=culture] { --tc-bg:var(--tc-culture-bg); --tc-fg:var(--tc-culture-fg); }
-.ui-type-cover[data-tone=outdoors] { --tc-bg:var(--tc-outdoors-bg); --tc-fg:var(--tc-outdoors-fg); }
-.ui-type-cover[data-tone=food] { --tc-bg:var(--tc-food-bg); --tc-fg:var(--tc-food-fg); }
-.ui-type-cover[data-tone=seniors] { --tc-bg:var(--tc-seniors-bg); --tc-fg:var(--tc-seniors-fg); }
-.ui-type-cover[data-tone=free] { --tc-bg:var(--tc-free-bg); --tc-fg:var(--tc-free-fg); }
-/* Family C (guides): the topic shows in the pastel; text stays ink, so a page of guide covers reads in one text colour. */
+.ui-type-cover[data-tone=family] { --tc-bg:var(--tc-family-bg); --tc-fg:var(--tc-family-fg); --tc-art:var(--tc-family-fg); }
+.ui-type-cover[data-tone=culture] { --tc-bg:var(--tc-culture-bg); --tc-fg:var(--tc-culture-fg); --tc-art:var(--tc-culture-fg); }
+.ui-type-cover[data-tone=outdoors] { --tc-bg:var(--tc-outdoors-bg); --tc-fg:var(--tc-outdoors-fg); --tc-art:var(--tc-outdoors-fg); }
+.ui-type-cover[data-tone=food] { --tc-bg:var(--tc-food-bg); --tc-fg:var(--tc-food-fg); --tc-art:var(--tc-food-fg); }
+.ui-type-cover[data-tone=seniors] { --tc-bg:var(--tc-seniors-bg); --tc-fg:var(--tc-seniors-fg); --tc-art:var(--tc-seniors-fg); }
+.ui-type-cover[data-tone=free] { --tc-bg:var(--tc-free-bg); --tc-fg:var(--tc-free-fg); --tc-art:var(--tc-free-fg); }
+/* Family C (guides): the topic shows in the pastel; text stays ink, so a page of guide covers reads in one text colour (the
+   drawing keeps the tone's own ink). */
 .ui-type-cover[data-family=guide] { --tc-fg:var(--color-ink); }
-.ui-type-cover__icon { position:absolute; top:12cqw; right:-10cqw; width:60cqw; height:60cqw; opacity:.16; color:currentColor; pointer-events:none; }
+/* H12: the tone's spot drawing (TypeCover artFor; public/covers/art/*.svg, drawn as vector shapes in a few opacities), an
+   alpha mask filled with the tone's ink. It sits top right beside the label (which keeps to 48cqw), and its lower edge fades
+   out (the second mask layer), so no fact at the bottom ever sits on it. */
+.ui-type-cover__art { position:absolute; top:3cqw; right:3cqw; width:var(--tc-art-width, 48cqw); aspect-ratio:3 / 4; translate:0 var(--tc-art-shift, 0px); background:var(--tc-art, var(--tc-fg)); pointer-events:none;
+  -webkit-mask-image:var(--ui-art), linear-gradient(black 62%, transparent); mask-image:var(--ui-art), linear-gradient(black 62%, transparent);
+  -webkit-mask-size:contain, 100% 100%; mask-size:contain, 100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
+  -webkit-mask-position:center; mask-position:center; -webkit-mask-composite:source-in; mask-composite:intersect; }
+.ui-type-cover__art[data-art=family-1] { --ui-art:url(/covers/art/family-1.svg); }
+.ui-type-cover__art[data-art=family-2] { --ui-art:url(/covers/art/family-2.svg); }
+.ui-type-cover__art[data-art=culture-1] { --ui-art:url(/covers/art/culture-1.svg); }
+.ui-type-cover__art[data-art=culture-2] { --ui-art:url(/covers/art/culture-2.svg); }
+.ui-type-cover__art[data-art=outdoors-1] { --ui-art:url(/covers/art/outdoors-1.svg); }
+.ui-type-cover__art[data-art=outdoors-2] { --ui-art:url(/covers/art/outdoors-2.svg); }
+.ui-type-cover__art[data-art=food-1] { --ui-art:url(/covers/art/food-1.svg); }
+.ui-type-cover__art[data-art=food-2] { --ui-art:url(/covers/art/food-2.svg); }
+.ui-type-cover__art[data-art=seniors-1] { --ui-art:url(/covers/art/seniors-1.svg); }
+.ui-type-cover__art[data-art=seniors-2] { --ui-art:url(/covers/art/seniors-2.svg); }
+.ui-type-cover__art[data-art=free-1] { --ui-art:url(/covers/art/free-1.svg); }
+.ui-type-cover__art[data-art=free-2] { --ui-art:url(/covers/art/free-2.svg); }
+.ui-type-cover__art[data-art=store] { --ui-art:url(/covers/art/store.svg); }
+.ui-type-cover__art[data-art=store-2] { --ui-art:url(/covers/art/store-2.svg); }
+.ui-type-cover__art[data-art=clipboard] { --ui-art:url(/covers/art/clipboard.svg); }
+.ui-type-cover__art[data-art=idcard] { --ui-art:url(/covers/art/idcard.svg); }
+.ui-type-cover__art[data-art=bike] { --ui-art:url(/covers/art/bike.svg); }
+.ui-type-cover__art[data-art=home] { --ui-art:url(/covers/art/home.svg); }
+/* A portrait card with ♡ on its cover (top right): the drawing is a step smaller and starts under the heart, clear of the
+   date (a square or landscape cover keeps it in the corner, ui-type-cover container rule). */
+.ui-feed-card:has(>.ui-feed-card__save) .ui-type-cover { --tc-art-shift:1.75rem; --tc-art-width:40cqw; }
 .ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + 1.75rem); }
 .ui-type-cover__body>* { flex:none; margin:0; }
 .ui-type-cover__body>.ui-type-cover__title,.ui-type-cover__body>.ui-type-cover__note { flex:0 1 auto; min-height:0; }
@@ -107,10 +135,10 @@
 .ui-type-cover__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(10.5cqw * var(--fluid-scale)), 10cqh), 1.625rem); line-height:1.36; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
 .ui-type-cover__title:lang(en) { font-size:clamp(max(.875rem, var(--text-floor)), min(calc(9.5cqw * var(--fluid-scale)), 9cqh), 1.5rem); hyphens:auto; }
 .ui-type-cover__footer { display:flex; align-items:flex-end; justify-content:space-between; gap:6px; margin-top:min(2cqw, 2cqh); min-height:1.75rem; }
-/* The label stays under the badge; the facts sit at the bottom, leaving the texture icon room in between. */
+/* The label stays under the badge; the facts sit at the bottom, leaving the drawing room in between. */
 .ui-type-cover__label+* { margin-top:auto; }
-/* The label stays left of the watermark icon (which starts at 50cqw): a long English label ("Health & insurance") wraps instead of
-   running across the outline. Mini thumbnails centre their label and keep the full width. */
+/* The label stays left of the drawing (which starts at 49cqw): a long English label ("Health & insurance") wraps instead of
+   running across it. Mini thumbnails centre their label and keep the full width. */
 .ui-type-cover:not([data-size=mini]) .ui-type-cover__label { max-width:48cqw; }
 .ui-type-cover__place { min-width:0; overflow:hidden; color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
 .ui-type-cover__footer .ui-sticker { flex:none; margin-left:auto; }
@@ -122,6 +150,7 @@
 @container ui-type-cover (min-aspect-ratio:1/1) {
   .ui-type-cover__body { padding:5cqh 6cqw; padding-top:calc(5cqh + 1.75rem); }
   .ui-type-cover__title { -webkit-line-clamp:2; }
+  .ui-type-cover__art { top:5cqh; right:4cqw; width:auto; height:50cqh; translate:none; }
 }
 @container ui-type-cover (max-height:12rem) { .ui-type-cover__title,.ui-type-cover__note { -webkit-line-clamp:1; } }
 .ui-type-cover[data-size=mini] .ui-type-cover__body { gap:0; padding:8px; justify-content:center; align-items:center; text-align:center; }
@@ -130,7 +159,7 @@
 .ui-type-cover[data-size=mini] .ui-type-cover__date-small { flex-basis:100%; font-size:var(--text-caption); }
 @supports not (container-type:size) {
   .ui-type-cover__body { gap:4px; padding:14px; padding-top:42px; }
-  .ui-type-cover__icon { top:20px; right:-17px; width:104px; height:104px; }
+  .ui-type-cover__art { top:6px; right:6px; width:84px; height:112px; }
   .ui-type-cover__label,.ui-type-cover__place { font-size:var(--text-caption); }
   .ui-type-cover__date { font-size:1.8125rem; }
   .ui-type-cover__title { font-size:1.1875rem; }

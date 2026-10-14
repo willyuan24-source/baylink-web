@@ -44,7 +44,11 @@ test('an event TypeCover is real DOM text with the honest label, category, big d
   assert.equal(root.querySelector('.ui-type-cover__title')?.textContent, 'Fleet Week 蓝天使航展');
   assert.equal(root.querySelector('.ui-type-cover__place')?.textContent, 'San Francisco');
   assert.equal(root.querySelector('.ui-sticker')?.textContent, '免费');
-  assert.equal(root.querySelector('svg')?.getAttribute('aria-hidden'), 'true', 'the texture icon is decorative');
+  // H12: the tone's drawing is a decorative mask (public/covers/art), not a UI icon, and the item picks one by its id.
+  const art = root.querySelector('.ui-type-cover__art');
+  assert.equal(art?.getAttribute('aria-hidden'), 'true', 'the drawing is decorative');
+  assert.match(art?.getAttribute('data-art') ?? '', /^family-[12]$/, 'a family event draws from the family set');
+  assert.equal(root.querySelector('svg'), null, 'no UI icon inside a TypeCover');
   assert.equal(root.querySelector('img'), null, 'no picture inside a TypeCover');
 });
 
@@ -179,12 +183,12 @@ test('the palette lives in tokens.css: ui.css defines no global names, and every
   // once a primitive mounts; it may only set element-scoped layout variables.
   postcss.parse(css).walkRules(':root', rule => assert.fail(`ui.css has a :root block again (${rule.toString().slice(0, 60)}…): palette names belong in src/tokens.css`));
   postcss.parse(css).walkDecls(declaration => {
-    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|tc-bg|tc-fg)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|ui-art|tc-bg|tc-fg|tc-art|tc-art-shift|tc-art-width)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
   });
   const globalNames = new Set<string>();
   postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
   for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
-  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--tc-bg', '--tc-fg']);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-art', '--tc-bg', '--tc-fg', '--tc-art', '--tc-art-shift', '--tc-art-width']);
   // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
   for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
   for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);
@@ -219,4 +223,31 @@ test('a photo hero card is one link from edge to edge: its text box never become
   for (const prop of ['position', 'transform', 'filter', 'contain', 'will-change', 'container-type']) assert.equal(text.get(prop), undefined, prop);
   assert.equal(declarations('.ui-hero-card__media').get('position'), 'relative', 'the media box holds the stretched link');
   assert.equal(declarations('.ui-hero-card[data-overlay] .ui-hero-card__media').get('display'), 'grid');
+});
+
+test('every drawing a TypeCover can pick has its mask rule and its own small vector file (H12)', async () => {
+  const { readdirSync } = await import('node:fs');
+  const rules = new Set<string>();
+  for (const [, name, file] of css.matchAll(/\.ui-type-cover__art\[data-art=([\w-]+)\] \{ --ui-art:url\(\/covers\/art\/([\w-]+)\.svg\); \}/g)) { assert.equal(file, name); rules.add(name); }
+  const files = readdirSync('public/covers/art').filter(file => file.endsWith('.svg')).map(file => file.replace(/\.svg$/, ''));
+  assert.deepEqual([...rules].sort(), files.sort(), 'one rule per drawing file');
+  for (const file of files) {
+    const svg = readFileSync(`public/covers/art/${file}.svg`, 'utf8');
+    assert.ok(svg.length < 2048, `${file}: a small drawing`);
+    assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 90 120">/, `${file}: the 3:4 drawing box`);
+    assert.doesNotMatch(svg, /<(?:image|text|script|use|foreignObject)\b|href=|url\(/i, `${file}: shapes only, nothing embedded or linked`);
+  }
+  const seen = new Set<string>();
+  const tones = ['family', 'culture', 'outdoors', 'food', 'seniors', 'free'] as const;
+  for (const tone of tones) for (const icon of [undefined, tone, 'store', 'book', 'landmark', 'bike', 'music', 'film', 'dog', 'plane']) for (const family of ['event', 'guide'] as const) for (const seed of ['a', 'b', 'c', 'd', 'e', 'f']) {
+    const view = wrap(<TypeCover tone={tone} family={family} label="标签" icon={icon} seed={seed} />);
+    const art = view.container.querySelector('.ui-type-cover__art')!.getAttribute('data-art')!;
+    assert.ok(rules.has(art), `${tone}/${icon}/${family}: ${art} has a rule`);
+    seen.add(art); cleanup();
+  }
+  assert.deepEqual([...seen].sort(), files.sort(), 'every drawing is in use');
+  // The drawing belongs to the item: the same id draws the same picture in every language and on every page.
+  const first = wrap(<EventTypeCover event={fleetWeek} today={today} />).container.querySelector('.ui-type-cover__art')!.getAttribute('data-art');
+  cleanup(); await act(async () => { await setLocale('en', false); });
+  assert.equal(wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week' }} today={today} />).container.querySelector('.ui-type-cover__art')!.getAttribute('data-art'), first);
 });
