@@ -120,9 +120,10 @@ export function englishTimes(text: string): string {
   if (!/\d[:/-]\d/.test(text)) return text;
   // URLs and e-mail addresses keep their digits
   const kept: string[] = [];
-  const masked = text.replace(/\b(?:https?:\/\/|www\.)\S+|\S+@\S+\.\w+/g, match => { kept.push(match); return `\u0000${kept.length - 1}\u0000`; });
+  // a private-use character marks each kept span (no digit pattern can match across it)
+  const masked = text.replace(/\b(?:https?:\/\/|www\.)\S+|\S+@\S+\.\w+/g, match => { kept.push(match); return `${kept.length - 1}`; });
   const converted = convertTimes(convertDates(masked));
-  return converted.replace(/\u0000(\d+)\u0000/g, (_, index: string) => kept[Number(index)]);
+  return converted.replace(/(\d+)/g, (_, index: string) => kept[Number(index)]);
 }
 
 /**
