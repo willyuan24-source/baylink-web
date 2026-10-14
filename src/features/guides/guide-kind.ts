@@ -11,8 +11,12 @@ export type GuideKind = 'school' | 'deals' | 'directory' | 'outing' | 'task';
 
 const DIRECTORY: ReadonlySet<GuideBlock['type']> = new Set(['utility-directory', 'contact-directory', 'useful-platforms', 'city-exploration', 'shopping-directory']);
 
+/** A school or district guide, including K-12 transfers ("k12" slug, 学年中转入 tag): BayBay asks only for area and grade there. */
+export const isSchoolGuide = (guide: Pick<Guide, 'slug' | 'tags'>): boolean =>
+  guide.tags.includes('学校与学区') || guide.tags.includes('学年中转入') || /(?:^|-)(?:schools?|k12)(?:-|$)/.test(guide.slug);
+
 export function guideKindOf(guide: Pick<Guide, 'slug' | 'category' | 'tags' | 'blocks'>): GuideKind {
-  if (guide.category === 'education' || guide.tags.includes('学校与学区') || /(?:^|-)schools?(?:-|$)/.test(guide.slug)) return 'school';
+  if (guide.category === 'education' || isSchoolGuide(guide)) return 'school';
   if (guide.blocks.some(block => block.type === 'freebies') || /(?:^|-)(?:freebies|perks)(?:-|$)/.test(guide.slug)) return 'deals';
   if (guide.blocks.some(block => DIRECTORY.has(block.type))) return 'directory';
   return guideTopicOf(guide) === 'outings' ? 'outing' : 'task';

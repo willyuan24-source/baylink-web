@@ -14,7 +14,7 @@ import { parseBayBayAssistantFields, safeAssistantSessionToken, type BayBayAssis
 import './planner';
 import { stageBayBayRequirementsDraft, validBayBayDraftId } from './baybay-plan-handoff';
 import type { BayBayAnswerFields } from './baybay-answer';
-import { GUIDE_KIND_PROMPTS, guideKindOf, type GuideKind } from '../features/guides/guide-kind';
+import { GUIDE_KIND_PROMPTS, guideKindOf, isSchoolGuide, type GuideKind } from '../features/guides/guide-kind';
 
 export type BayBaySearchMode = 'smart' | 'web' | 'site';
 export type BayBayRetrieval = { requestedMode: BayBaySearchMode; effectiveMode?: BayBaySearchMode; scope: 'site' | 'web' | 'site+web' | 'none'; webStatus: 'not_requested' | 'completed' | 'unavailable' | 'not_applicable' | 'verification_failed' | 'auth_required'; webAccess?: { authenticated: boolean; allowed: boolean; reason?: 'auth_required' }; failureCode?: string; model?: string; configuredModel?: string; checkedAt?: string; catalogCheckedAt?: string; requestedDate?: string | null; cached?: boolean; sourceCount?: number };
@@ -169,8 +169,7 @@ export function currentBayBayGuide(path: string) {
   try { return guides.find((guide) => guide.slug === decodeURIComponent(match[1])); } catch { return undefined; }
 }
 
-export const isBayBaySchoolGuide = (guide?: Pick<Guide, 'slug' | 'tags'>): boolean =>
-  !!guide && (guide.tags.includes('学校与学区') || /(?:^|-)schools?(?:-|$)/.test(guide.slug));
+export const isBayBaySchoolGuide = (guide?: Pick<Guide, 'slug' | 'tags'>): boolean => !!guide && isSchoolGuide(guide);
 
 export const isBayBaySchoolRequest = (message: string): boolean =>
   /学校|学区|入学|择校|年级|\b(?:schools?|districts?|enrollment|enrolment|kindergarten|grades?|TK|IEP)\b/i.test(simplifySearch(message));

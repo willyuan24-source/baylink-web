@@ -58,6 +58,9 @@ test('H75: page chips and the drafted question follow the guide kind, not 出发
   assert.equal(guideKindOf(getGuideBySlug('bay-area-freebies-deals-2026-10')!), 'deals');
   assert.deepEqual(chips('bay-area-freebies-deals-2026-10'), ['这周还能用哪些？', '哪些不用消费？']);
   assert.deepEqual(chips('sf-school-district-enrollment-guide'), ['先核对学区', '整理入学步骤', '读懂官方资料'], 'school chips unchanged');
+  // The K-12 transfer guide (newcomer category, no 学校与学区 tag) is a school guide too: area and grade only, no child documents.
+  assert.equal(guideKindOf(getGuideBySlug('bay-area-k12-midyear-enrollment-guide')!), 'school');
+  assert.deepEqual(chips('bay-area-k12-midyear-enrollment-guide'), ['先核对学区', '整理入学步骤', '读懂官方资料']);
   for (const slug of ['bay-area-newcomer-first-month-checklist', 'bay-area-311-211-local-help-guide', 'california-driver-license-id-preparation-guide']) assert.ok(!chips(slug).includes('出发前核实什么'), slug);
   await setLocale('en', false);
   assert.deepEqual(chips('bay-area-newcomer-first-month-checklist'), ['What do I do first?', 'What should I bring?']);
