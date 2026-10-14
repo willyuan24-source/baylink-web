@@ -123,7 +123,7 @@ function QuickExploreDialog({ onClose, onSearch, onNavigate, onAsk, initialQuery
       { id: 'month', title: '这个周末有什么？', detail: '按日期、地区与费用挑选湾区活动', icon: CalendarDays, group: '快速前往', run: () => onNavigate('/this-month?when=weekend#monthly-events') },
       { id: 'explore', title: '按地区找景点', detail: '找到想去的地方，存进出游清单', icon: MapPin, group: '快速前往', run: () => onNavigate('/explore') },
       { id: 'tools', title: '生活工具箱', detail: '贷款计算、分账、换算与生活清单', icon: Wrench, group: '快速前往', run: () => onNavigate('/tools') },
-      { id: 'guides', title: '湾区生活指南', detail: '当月活动、免费福利和本地攻略', icon: BookOpen, group: '快速前往', run: () => onNavigate('/guides') },
+      { id: 'guides', title: copy('办事与生活指南', 'How-to guides'), detail: '当月活动、免费福利和本地攻略', icon: BookOpen, group: '快速前往', run: () => onNavigate('/guides') },
       { id: 'home', title: '发现湾区', detail: '浏览本地资源与需求', icon: Home, group: '快速前往', run: () => onNavigate('/') },
     ] : []),
   ];

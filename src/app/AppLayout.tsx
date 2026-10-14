@@ -229,7 +229,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (LEGAL_METADATA[path.replace(/\/$/, '')]) { setPageMetadata(LEGAL_METADATA[path.replace(/\/$/, '')]); return; }
     if (path.startsWith('/guides')) {
       // /guides/:slug 的具体标题由 GuideDetailPage 设置（guides 语料已懒加载，布局层不再 import）
-      if (!guideSlugParam) document.title = '湾区生活指南｜BAYLINK';
+      if (!guideSlugParam) document.title = GUIDES_METADATA.title;
     } else if (path.startsWith('/messages')) {
       document.title = '消息｜BAYLINK';
     } else if (/^\/me\/bookings\/?$/.test(path)) {
