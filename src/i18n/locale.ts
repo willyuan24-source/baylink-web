@@ -21,9 +21,13 @@ const notifyLocale = () => { dictionaryRevision++; listeners.forEach(listener =>
 let englishScopes: ReturnType<typeof createEnglishScopeLoader> | undefined;
 let englishScopeLoad: Promise<ReturnType<typeof createEnglishScopeLoader>> | undefined;
 // Registry is lazy too: generation can import media/locale before scoped files exist.
-const loadEnglishScopes = () => englishScopeLoad ||= import('../data/generated/english-scope-loaders').then(({ englishScopeLoaders }) => {
+const loadEnglishScopes = () => englishScopeLoad ||= Promise.all([import('../data/generated/english-scope-loaders'), loadEnglishTimes()]).then(([{ englishScopeLoaders }]) => {
   return englishScopes = createEnglishScopeLoader(englishScopeLoaders, dictionary => { Object.assign(english, dictionary); notifyLocale(); });
 }).catch(error => { englishScopeLoad = undefined; throw error; });
+/** H41: US-style times and dates for the date and time tokens pages render from data (englishNeutral); English only. */
+let englishTimesOf: ((text: string) => string) | undefined;
+let englishTimesLoad: Promise<void> | undefined;
+const loadEnglishTimes = () => englishTimesLoad ||= import('../lib/english-times').then(module => { englishTimesOf = module.englishTimes; }).catch(error => { englishTimesLoad = undefined; throw error; });
 const escapePattern = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const englishPatterns = Object.entries(patterns).sort(([a], [b]) => b.replace(/\{\d+\}/g, '').length - a.replace(/\{\d+\}/g, '').length).map(([source, target]) => ({
   pattern: new RegExp('^' + source.split(/\{\d+\}/).map(escapePattern).join('(.*?)') + '$', 's'), target,
@@ -190,7 +194,7 @@ export function taiwanConverter(O: Pick<typeof import('opencc-js'), 'Trie' | 'Lo
 
 /** Everything a language needs, search included (exports, SSR and scripts; zh-Hant's opencc build carries search). */
 export async function loadLocale(locale: Locale): Promise<void> {
-  if (locale === 'en') await Promise.all([englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadSearchConversion().catch(() => undefined)]);
+  if (locale === 'en') await Promise.all([englishLoad ||= import('../data/generated/english.json').then(module => { english = module.default; englishFullyLoaded = true; notifyLocale(); }).catch((error) => { englishLoad = undefined; throw error; }), loadEnglishTimes(), loadSearchConversion().catch(() => undefined)]);
   else if (locale === 'zh-Hant') await Promise.all([loadChinese(), loadSearchConversion().catch(() => undefined)]);
   else await loadSearchConversion().catch(() => undefined);
 }
@@ -254,7 +258,8 @@ export async function initializeLocale(): Promise<void> {
  * must still go through the normal dynamic templates below.
  */
 const translateKnownComposition = (text: string, depth = 0): string | undefined => {
-  if (!/[\u3400-\u9fff]/.test(text)) return text;
+  // a part without Chinese (the date line of "10/18 · 14:00–16:00 ｜ Atherton ｜ …") reads in US style too (H41)
+  if (!/[\u3400-\u9fff]/.test(text)) return englishNeutral(text);
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   if (depth >= 3) return undefined;
@@ -269,15 +274,26 @@ const translateKnownComposition = (text: string, depth = 0): string | undefined 
 
 /**
  * H41: a language-neutral line with a time or a numeric date ("10/18 \u00b7 14:00\u201316:00") reads in US style on /en through
- * its generated English entry (scripts/generate-english-scopes.ts), whole or by its " \u00b7 " parts; other text without
- * Chinese stays as it is.
+ * its generated English entry (scripts/generate-english-scopes.ts), whole or by its " \u00b7 " parts. Text made only of date
+ * and time tokens that has no entry (a page's <time>2026-10-05</time>, a session's "14:00\u201316:00", a date line a page
+ * composes) is converted as it is shown, if it has a 24-hour time or an ISO date: those come from data fields and never
+ * pass through the dictionary. Other text without Chinese stays as it is.
  */
 const NEUTRAL_DATE_OR_TIME = /\d[:/-]\d/;
+const DATE_TIME_TOKENS = /^[\d\s/:.,\u00b7\u2013\u2014~\uff1b\u3001\uff0c-]+$/u;
+const CLOCK_OR_ISO = /(?<![\d:.$/])(?:[01]?\d|2[0-3]):[0-5]\d|\b20\d\d-[01]\d-[0-3]\d\b/;
+/** Inside translateEditorial (structured data, catalog exports) a token is data: JSON-LD's startDate stays ISO. */
+let editorialData = 0;
+const englishTokens = (text: string): string => englishTimesOf && !editorialData && DATE_TIME_TOKENS.test(text) && CLOCK_OR_ISO.test(text)
+  ? englishTimesOf(text.replace(/\uff1b\s*/gu, '; ').replace(/[\u3001\uff0c]\s*/gu, ', '))
+  : text;
 const englishNeutral = (text: string): string => {
   if (!NEUTRAL_DATE_OR_TIME.test(text)) return text;
   const exact = english[normalizeText(text)];
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
-  return text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => english[normalizeText(part)] || part).join('');
+  const tokens = englishTokens(text);
+  if (tokens !== text) return tokens;
+  return text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => english[normalizeText(part)] || englishTokens(part)).join('');
 };
 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */
@@ -328,7 +344,10 @@ export function localizedUrl(value: string, locale: Locale = current): string {
 
 /** Public editorial data only; useful for search and exported copies. */
 export function translateEditorial<T>(value: T, locale: Locale = current): T {
-  if (typeof value === 'string') return translateText(value, locale) as T;
+  if (typeof value === 'string') {
+    editorialData++;
+    try { return translateText(value, locale) as T; } finally { editorialData--; }
+  }
   if (Array.isArray(value)) return value.map((item) => translateEditorial(item, locale)) as T;
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, translateEditorial(item, locale)])) as T;
   return value;

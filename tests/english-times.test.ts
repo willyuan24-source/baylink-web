@@ -73,3 +73,27 @@ test('H41: the generated English dictionary carries no 24-hour time or ISO date 
   const left = Object.values(dictionary).filter(value => TWENTY_FOUR_HOUR.test(value.replace(/https?:\/\/\S+/g, '')) || ISO_DATE.test(value.replace(/https?:\/\/\S+/g, '')));
   assert.ok(left.length <= 5, `${left.length} left: ${left.slice(0, 5).join(' | ')}`);
 });
+
+test('H41: on /en, date and time tokens a page renders from data read in US style; other text without Chinese stays', async () => {
+  const { loadLocale, translateText } = await import('../src/i18n/locale');
+  await loadLocale('en');
+  const cases: [string, string][] = [
+    ['2026-10-05', 'Oct 5, 2026'],
+    [' 2026-10-05 ', ' Oct 5, 2026 '],
+    ['14:00–16:00', '2–4pm'],
+    ['10/22–10/25 · 10/22 19:00；10/23 11:00、15:00', 'Oct 22–25 · Oct 22 7pm; Oct 23 11am, 3pm'],
+    ['10/18', '10/18'],
+    ['24/7', '24/7'],
+    ['510-555-1234', '510-555-1234'],
+    ['Route 1/2', 'Route 1/2'],
+    ['Open 1–3pm', 'Open 1–3pm'],
+  ];
+  for (const [input, output] of cases) assert.equal(translateText(input, 'en'), output, input);
+  // 繁體 and 简体 keep the data as written
+  assert.equal(translateText('2026-10-05', 'zh-Hant'), '2026-10-05');
+  assert.equal(translateText('14:00–16:00', 'zh-Hans'), '14:00–16:00');
+  // a composed line keeps its translated parts and converts its date line ("10/18 · 14:00–16:00 ｜ Atherton ｜ …")
+  const composed = translateText('10/18 · 14:00–16:00 ｜ Atherton ｜ 免费', 'en');
+  assert.doesNotMatch(composed, TWENTY_FOUR_HOUR);
+  assert.match(composed, /2–4\s?p\.?m\.? ｜ Atherton ｜ Free/);
+});
