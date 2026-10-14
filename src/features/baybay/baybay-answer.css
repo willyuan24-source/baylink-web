@@ -88,9 +88,9 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-resources__name>svg { flex:none; }
 .baybay-conversation .bb-resources .bb-call { border-color:var(--color-brand); color:var(--color-brand); }
 
-/* Pause, daily limit and reduced mode: 911 / 211 first, then the honest line */
+/* Pause, daily limit and reduced mode: the honest line; a provider pause or a health floor leads with 911 / 211 (H37) */
 .baybay-conversation .bb-notice { display:grid; gap:10px; margin:0 0 12px; padding:12px 14px; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-warning-tint); }
-.baybay-conversation .bb-notice[data-notice=ai_budget_reduced] { background:var(--color-info-tint); }
+.baybay-conversation .bb-notice:is([data-notice=ai_budget_reduced],[data-notice=ai_daily_budget]) { background:var(--color-info-tint); }
 .baybay-conversation .bb-notice>p { margin:0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
 .baybay-conversation .bb-notice .bb-call:not([data-primary]) { border-color:var(--color-brand); color:var(--color-brand); }
 .baybay-conversation .bb-notice__resume { display:block; color:var(--color-ink-2); font-size:var(--text-caption); }
@@ -106,9 +106,10 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .phone-chip-keep > .phone-chip { padding-inline-end:.15em; }
 .baybay-conversation .bb-emergency .phone-chip { background:var(--color-surface); color:var(--color-danger); }
 
-/* Today's AI answers are used up: the site's own pages instead of a retry that cannot work */
+/* Today's AI answers are used up: the site's own pages instead of a retry that cannot work (the error and the daily notice) */
 .baybay-conversation .bb-error-links { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 0; }
-.baybay-conversation .bb-error-links button { margin:0; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+.baybay-conversation .bb-notice__links { display:flex; flex-wrap:wrap; gap:8px; margin:0; }
+.baybay-conversation :is(.bb-error-links,.bb-notice__links) button { margin:0; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 
 /* One sources block per answer (BBL-14, G79): the retrieval line is its summary; opened, the cited sources and guides */
 .baybay-conversation .bb-sources { display:grid; gap:6px; margin-top:16px; padding-top:12px; border-top:1px solid var(--color-line); }

@@ -5,7 +5,7 @@ import { useBayBayCopy } from './copy';
 import { SmartLink } from './SmartLink';
 import { useBayBayCardsModule } from './cards-loader';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
-import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeIsPause, bayBayResumeLabel, bayBayResumeStyle, BAYBAY_HELP_ACTIONS, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
+import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeCalls, bayBayResumeLabel, bayBayResumeStyle, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 import { linkifyPhones } from '../../lib/phone-links';
 import { translateText } from '../../i18n/locale';
@@ -182,20 +182,28 @@ export function BayBayResourceCard({ safety, onNavigate }: { safety: BayBayProfe
 }
 
 /**
- * Pause / daily-limit / reduced-mode banner. Paused kinds lead with 911 / 211; never a dollar amount. `compact` is the
- * same notice on an earlier answer: its text only, because the full banner (and its call buttons) shows once.
+ * Pause / daily-limit / reduced-mode banner; never a dollar amount. Its call buttons follow bayBayNoticeCalls (H37): a
+ * provider pause and a health-worry answer's floor lead with them; a used-up daily share is one calm line with the site's
+ * own 看本周末活动 · 查办事指南 instead. `actions` are the pause's own (capabilities), `healthFloor` the answer's
+ * `fallbackHelp`. `compact` is the same notice on an earlier answer: its text only, because the full banner shows once.
  */
-export function BayBayNoticeBanner({ kind, text, resumesAt, actions, compact }: { kind: BayBayNoticeKind; text: string; resumesAt?: string; actions?: readonly BayBayCallAction[]; compact?: boolean }) {
+export function BayBayNoticeBanner({ kind, text, resumesAt, actions, healthFloor, compact, onNavigate }: {
+  kind: BayBayNoticeKind; text: string; resumesAt?: string; actions?: readonly BayBayCallAction[]; healthFloor?: readonly BayBayCallAction[]; compact?: boolean; onNavigate?: Navigate;
+}) {
   const { t, english } = useBayBayCopy();
   // The server writes notices in the reader's language (translate="no"); only their numbers become tap-to-call.
   if (compact) return <p className="bb-notice-label" data-notice={kind} translate="no">{linkifyPhones(text)}</p>;
-  const paused = bayBayNoticeIsPause(kind);
+  const calls = bayBayNoticeCalls(kind, { actions, healthFloor });
   // The resume time once: nothing when the server text already gives a time; "即 …" after its own "明天会恢复".
   const style = bayBayResumeStyle(text);
   const resume = resumesAt && style !== 'none' ? bayBayResumeLabel(resumesAt, english) : '';
   return <div className="bb-notice" data-notice={kind} role="status">
-    {paused && <BayBayCallActions actions={actions?.length ? actions : BAYBAY_HELP_ACTIONS} />}
+    {calls.length > 0 && <BayBayCallActions actions={calls} />}
     <p translate="no">{linkifyPhones(text)}{resume && <span className="bb-notice__resume">{style === 'time' ? t(`即 ${resume}（湾区时间）`, ` That is ${resume} (Bay Area time).`) : t(`预计 ${resume}（湾区时间）恢复`, ` Back around ${resume} (Bay Area time).`)}</span>}</p>
+    {kind === 'ai_daily_budget' && !calls.length && onNavigate && <p className="bb-notice__links">
+      <button type="button" onClick={() => onNavigate('/events')}>{t('看本周末活动', 'This weekend’s events')}</button>
+      <button type="button" onClick={() => onNavigate('/guides')}>{t('查办事指南', 'Browse guides')}</button>
+    </p>}
   </div>;
 }
 
