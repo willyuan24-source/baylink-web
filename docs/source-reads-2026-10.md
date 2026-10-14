@@ -842,3 +842,11 @@ All the policy-free items above also get planner `admissionUsd` 0 (the Almaden f
   `openedOn` and `verifiedAt` unchanged.
 - H68 events: overlay rows for `sf-young-miko-2026` and `sf-exploratorium-after-dark-15-oct2026` (short title; the plan drops the copied cost
   line and the generic 余票 sentence); `sf-potrero-hill-festival-oct17-2026` drops the plan line that only pointed at the organiser's FAQ link.
+
+### 2026-10-14 (PT) re-read · Marufuku Burlingame chip
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| opening | `marufuku-burlingame-announced` | https://www.marufukuramen.com/burlingame | 2026-10-14, 200 | no data change (`openedOn` 2026-10-11 and status open stay as WEB-FIX5 set them); the opening chip now prints the day: 10/11 已开业 / Opened Oct 11 (was 10 月开业 / Opened Oct, which a 10-13 live check read as a forecast). The brand homepage (https://www.marufukuramen.com/) still shows "COMING SOON TO BURLINGAME" and the location list "BURLINGAME (COMING SOON)"; the store page is the more specific source, as before. No independent report of the first day was found (web search 2026-10-14) | "GRAND OPENING: OCT. 11 11am-2pm / 5pm-9pm 225 Lorton Ave, Burlingame, CA 94010 650-242-1523 Regular hours starting 10/12: MON–FRI 11am-2pm / 5pm-9pm SAT–SUN 11am-9pm" |
+
+Same chip, wording only: the two dated soft openings (`san-jose-bitterbuck-soft-opening-2026` 9/4, `game-parlour-oakland` 9/8) now read 9/4 起试营业 / Soft opening since Sep 4 instead of 9 月开业 / Opened Sep (a soft opening is not 已开业). Status, `openedOn` and `verifiedAt` unchanged.

@@ -179,7 +179,7 @@ test('brand display case keeps the names their owners spell (offer titles, JSON-
 });
 
 test('opening chips and the weekend helper never guess a date', () => {
-  assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-10-02' }, TODAY), { zh: '10 月开业', en: 'Opened Oct' });
+  assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-10-02' }, TODAY), { zh: '10/2 已开业', en: 'Opened Oct 2' });
   assert.deepEqual(openingChip({ status: 'announced', openedOn: '2026-11-20' }, TODAY), { zh: '预计 11/20 开业', en: 'Opening 11/20' });
   assert.deepEqual(openingChip({ status: 'announced' }, TODAY), { zh: '即将开业', en: 'Opening soon' });
   assert.deepEqual(openingChip({ status: 'soft_open' }, TODAY), { zh: '试营业', en: 'Soft opening' });
