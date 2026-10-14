@@ -33,6 +33,7 @@ export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>
   food: { bg: '#FFF4DC', fg: '#8A5A00' }, seniors: { bg: '#EDE4F3', fg: '#5B3A7A' }, free: { bg: '#E6F2EA', fg: '#1E6B43' },
 };
 const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FBFAF6', LINE = '#D9E0DA';
+const WHITE = '#fff', BLACK = '#000', MINT = '#D7E9DF';
 
 export type CardText = { text: string; x: number; y: number; size: number; weight?: 400 | 600 | 700; fill: string; spacing?: number };
 /**
@@ -73,7 +74,7 @@ export type ShareCardModel = {
 };
 export type CardQr = { path: string; size: number };
 
-const qrBlock = (qr: CardQr, x: number, y: number, size: number) => `<rect x="${x - 12}" y="${y - 12}" width="${size + 24}" height="${size + 24}" rx="14" fill="#fff" stroke="${LINE}"/>
+const qrBlock = (qr: CardQr, x: number, y: number, size: number) => `<rect x="${x - 12}" y="${y - 12}" width="${size + 24}" height="${size + 24}" rx="14" fill="${WHITE}" stroke="${LINE}"/>
   <svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="-4 -4 ${qr.size + 8} ${qr.size + 8}" shape-rendering="crispEdges"><path fill="${BRAND_DEEP}" d="${escapeHtml(qr.path)}"/></svg>`;
 export const DEFAULT_TAGLINE = 'YOUR BAY. YOUR PEOPLE.';
 const brandRow = (draw: TextDrawer, logo: string, x: number, y: number, light = false, tagline = DEFAULT_TAGLINE, room = 420) => {
@@ -81,8 +82,8 @@ const brandRow = (draw: TextDrawer, logo: string, x: number, y: number, light = 
   const latin = !/[⺀-￿]/u.test(tagline);
   const size = latin ? 15 : Math.min(17, Math.floor(room / Math.max(1, textWidth(tagline, 1))));
   return `<image href="${escapeHtml(logo)}" x="${x}" y="${y}" width="52" height="52"/>
-  ${draw({ text: 'BAYLINK', x: x + 66, y: y + 36, size: 30, weight: 700, fill: light ? '#fff' : BRAND_DEEP })}
-  ${draw({ text: tagline, x: x + 216, y: y + 33, size, fill: light ? '#D7E9DF' : INK_3, ...(latin ? { spacing: 2 } : {}) })}`;
+  ${draw({ text: 'BAYLINK', x: x + 66, y: y + 36, size: 30, weight: 700, fill: light ? WHITE : BRAND_DEEP })}
+  ${draw({ text: tagline, x: x + 216, y: y + 33, size, fill: light ? MINT : INK_3, ...(latin ? { spacing: 2 } : {}) })}`;
 };
 
 /**
@@ -99,16 +100,16 @@ function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQ
   const badgeWidth = Math.ceil(textWidth(model.provenance, 17)) + 28;
   const sticker = model.sticker ? (() => {
     const size = 26, width = Math.ceil(textWidth(model.sticker, size)) + 40;
-    return `<rect x="${1200 - 40 - width}" y="${band - 76}" width="${width}" height="52" rx="26" fill="#fff"/>${draw({ text: model.sticker, x: 1200 - 20 - width, y: band - 41, size, weight: 700, fill: INK })}`;
+    return `<rect x="${1200 - 40 - width}" y="${band - 76}" width="${width}" height="52" rx="26" fill="${WHITE}"/>${draw({ text: model.sticker, x: 1200 - 20 - width, y: band - 41, size, weight: 700, fill: INK })}`;
   })() : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="${PAPER}"/>
   <clipPath id="band"><rect width="1200" height="${band}"/></clipPath><image href="${escapeHtml(model.photo)}" width="1200" height="${band}" preserveAspectRatio="xMidYMid slice" clip-path="url(#band)"/>
-  <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".62"/><stop offset=".42" stop-color="#000" stop-opacity="0"/><stop offset=".7" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".45"/></linearGradient><rect width="1200" height="${band}" fill="url(#shade)"/>
+  <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BLACK}" stop-opacity=".62"/><stop offset=".42" stop-color="${BLACK}" stop-opacity="0"/><stop offset=".7" stop-color="${BLACK}" stop-opacity="0"/><stop offset="1" stop-color="${BLACK}" stop-opacity=".45"/></linearGradient><rect width="1200" height="${band}" fill="url(#shade)"/>
   <g font-family="Noto Sans SC">
   ${brandRow(draw, logo, 40, 26, true, model.tagline)}
-  <rect x="40" y="${band - 64}" width="${badgeWidth}" height="34" rx="8" fill="#000" opacity=".55"/>
-  ${draw({ text: model.provenance, x: 54, y: band - 41, size: 17, fill: '#fff' })}
+  <rect x="40" y="${band - 64}" width="${badgeWidth}" height="34" rx="8" fill="${BLACK}" opacity=".55"/>
+  ${draw({ text: model.provenance, x: 54, y: band - 41, size: 17, fill: WHITE })}
   ${sticker}
   ${draw({ text: model.kindLabel, x: left, y: 392, size: 22, weight: 600, fill: BRAND })}
   ${lines(draw, title, left, titleY, 42, 52, 700, INK)}
@@ -134,13 +135,13 @@ export function renderShareCardSvg(model: ShareCardModel, qr: CardQr, logo: stri
   const cover = `<clipPath id="cover"><rect width="${coverWidth}" height="630"/></clipPath><rect width="${coverWidth}" height="630" fill="${palette.bg}"/><g clip-path="url(#cover)"><circle cx="${coverWidth - 40}" cy="120" r="190" fill="${palette.fg}" opacity=".07"/><circle cx="60" cy="600" r="120" fill="${palette.fg}" opacity=".05"/></g>`;
   const sticker = model.sticker ? (() => {
     const size = 26, width = Math.ceil(textWidth(model.sticker, size)) + 40;
-    return `<rect x="48" y="512" width="${width}" height="52" rx="26" fill="${palette.fg}"/>${draw({ text: model.sticker, x: 68, y: 547, size, weight: 700, fill: '#fff' })}`;
+    return `<rect x="48" y="512" width="${width}" height="52" rx="26" fill="${palette.fg}"/>${draw({ text: model.sticker, x: 68, y: 547, size, weight: 700, fill: WHITE })}`;
   })() : '';
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="${PAPER}"/>
   ${cover}
   <g font-family="Noto Sans SC">
-  <rect x="40" y="40" width="${Math.ceil(textWidth(model.provenance, 17)) + 28}" height="32" rx="8" fill="#fff" opacity=".82"/>
+  <rect x="40" y="40" width="${Math.ceil(textWidth(model.provenance, 17)) + 28}" height="32" rx="8" fill="${WHITE}" opacity=".82"/>
   ${draw({ text: model.provenance, x: 54, y: 62, size: 17, fill: INK_2 })}
   ${draw({ text: model.coverLabel, x: 48, y: 136, size: 30, weight: 700, fill: fg })}
   ${draw({ text: model.big, x: 44, y: 300, size: bigSize, weight: 700, fill: fg })}
@@ -182,13 +183,13 @@ export function renderHubCardSvg(model: HubCardModel, qr: CardQr, logo: string, 
   }).join('');
   return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
   <rect width="1200" height="630" fill="${PAPER}"/><rect width="${panel}" height="630" fill="${BRAND_DEEP}"/>
-  <clipPath id="panel"><rect width="${panel}" height="630"/></clipPath><g clip-path="url(#panel)"><circle cx="${panel - 30}" cy="90" r="210" fill="#fff" opacity=".05"/><circle cx="40" cy="610" r="150" fill="#fff" opacity=".04"/></g>
+  <clipPath id="panel"><rect width="${panel}" height="630"/></clipPath><g clip-path="url(#panel)"><circle cx="${panel - 30}" cy="90" r="210" fill="${WHITE}" opacity=".05"/><circle cx="40" cy="610" r="150" fill="${WHITE}" opacity=".04"/></g>
   <g font-family="Noto Sans SC">
   ${brandRow(draw, logo, 48, 40, true, model.tagline, 500 - 48 - 216 - 24)}
   ${draw({ text: model.eyebrow, x: 48, y: 170, size: 24, weight: 600, fill: '#BFE3CF' })}
-  ${lines(draw, title, 48, 240, 54, 66, 700, '#fff')}
-  ${lines(draw, subtitle, 50, 240 + title.length * 66 + 20, 24, 34, 400, '#D7E9DF')}
-  ${draw({ text: 'baylink.us', x: 48, y: 590, size: 30, weight: 700, fill: '#fff' })}
+  ${lines(draw, title, 48, 240, 54, 66, 700, WHITE)}
+  ${lines(draw, subtitle, 50, 240 + title.length * 66 + 20, 24, 34, 400, MINT)}
+  ${draw({ text: 'baylink.us', x: 48, y: 590, size: 30, weight: 700, fill: WHITE })}
   ${rows}
   <line x1="${left}" y1="440" x2="${right}" y2="440" stroke="${LINE}"/>
   ${qrBlock(qr, 994, 462, 146)}

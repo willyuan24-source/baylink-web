@@ -13,6 +13,8 @@ import { adRelationshipDisclosure } from '../../lib/ad-disclosure';
 import { useUiCopy } from '../../components/ui/ui-copy';
 
 const HAN = /[㐀-鿿]/;
+/** The small muted line the ads use for their notes and disclaimers. */
+const NOTE_TEXT = 'text-[0.8125rem] leading-relaxed text-baylink-muted';
 /**
  * H50 (I13-13): an ad is its advertiser's own words, in Chinese. On /en its title and text are marked as Chinese
  * (lang="zh-Hans", and translate="no" like every other user-written text), and one short line says it is shown as written.
@@ -21,7 +23,7 @@ const adLanguage = ({ english, t }: Pick<ReturnType<typeof useUiCopy>, 'english'
   const chinese = english && texts.some(text => HAN.test(text));
   return {
     marks: chinese ? { lang: 'zh-Hans', translate: 'no' as const } : {},
-    note: chinese ? <span className="block text-[0.8125rem] text-baylink-muted" data-ad-original>{t('广告原文', 'Shown in Chinese, as the advertiser wrote it')}</span> : null,
+    note: chinese ? <span className={`block ${NOTE_TEXT}`} data-ad-original>{t('广告原文', 'Shown in Chinese, as the advertiser wrote it')}</span> : null,
   };
 };
 const useAdLanguage = (...texts: string[]) => adLanguage(useUiCopy(), ...texts);
@@ -93,7 +95,7 @@ export const AdDetailModal = ({ ad, onClose, isAdmin, onDelete }: {
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-baylink-text-secondary" {...language.marks}>{content}</p>
           {language.note}
           {adRelationshipDisclosure(ad.id) && <p className="mt-3 text-sm font-semibold text-baylink-text">{adRelationshipDisclosure(ad.id)}</p>}
-          <p className="mt-3 text-[0.8125rem] leading-relaxed text-baylink-muted">此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
+          <p className={`mt-3 ${NOTE_TEXT}`}>此处为平台推广展示，可能包含平台关联业务。展示与资料审核不代表执照核验或交易担保；服务资格、费用与合同请向提供者确认。</p>
           {links.length > 0 && (
             <div className="mt-4 space-y-2">
               {links.map((link) => (
@@ -243,7 +245,7 @@ export const OfficialAds = ({ isAdmin, showToast, onOpenDetail, refreshKey, layo
         <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-baylink-green-light"><Megaphone size={16} className="text-baylink-green" /></span>
         <p className="text-[0.8125rem] font-semibold text-baylink-text">本地推广信息</p>
       </div>
-      <p className="mt-2 text-[0.8125rem] leading-relaxed text-baylink-muted">平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
+      <p className={`mt-2 ${NOTE_TEXT}`}>平台选择展示的本地信息会出现在这里。资料审核与推荐展示分别处理，审核通过不保证入选，也不代表平台担保交易。</p>
     </div>
   );
   const loadingState = (
