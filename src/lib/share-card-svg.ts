@@ -87,7 +87,8 @@ const brandRow = (draw: TextDrawer, logo: string, x: number, y: number, light = 
 };
 
 /**
- * H45: a card with a photo carries it as a band across the top 55% (1200 × 346): the brand line on its top edge, the
+ * H45: a card with a photo carries it as a band across the top 55% (1200 × 346): the brand line on its top edge (on a
+ * dark pill, so the tagline reads on a bright photo), the
  * photo's own label (官方图 · its source) on its bottom-left, the price sticker on its bottom-right; below, the kind, the
  * title (two lines), the date and place and the footnote, with the QR in the bottom-right corner as on every card.
  */
@@ -98,6 +99,9 @@ function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQ
   const titleY = 446, metaY = titleY + (title.length - 1) * 52 + 50;
   const meta = cardLines(model.meta.filter(Boolean).join(' · '), right - left, 24, 1);
   const badgeWidth = Math.ceil(textWidth(model.provenance, 17)) + 28;
+  // the pill under the brand line: logo and name (216), the tagline as brandRow sets it (Latin 15 + 2 spacing, CJK 17)
+  const tagline = model.tagline ?? DEFAULT_TAGLINE;
+  const brandPill = Math.ceil(216 + (/[⺀-￿]/u.test(tagline) ? textWidth(tagline, 17) : textWidth(tagline, 15) + 2 * tagline.length) + 36);
   const sticker = model.sticker ? (() => {
     const size = 26, width = Math.ceil(textWidth(model.sticker, size)) + 40;
     return `<rect x="${1200 - 40 - width}" y="${band - 76}" width="${width}" height="52" rx="26" fill="${WHITE}"/>${draw({ text: model.sticker, x: 1200 - 20 - width, y: band - 41, size, weight: 700, fill: INK })}`;
@@ -107,6 +111,7 @@ function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQ
   <clipPath id="band"><rect width="1200" height="${band}"/></clipPath><image href="${escapeHtml(model.photo)}" width="1200" height="${band}" preserveAspectRatio="xMidYMid slice" clip-path="url(#band)"/>
   <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${BLACK}" stop-opacity=".62"/><stop offset=".42" stop-color="${BLACK}" stop-opacity="0"/><stop offset=".7" stop-color="${BLACK}" stop-opacity="0"/><stop offset="1" stop-color="${BLACK}" stop-opacity=".45"/></linearGradient><rect width="1200" height="${band}" fill="url(#shade)"/>
   <g font-family="Noto Sans SC">
+  <rect x="28" y="16" width="${brandPill}" height="72" rx="16" fill="${BLACK}" opacity=".4"/>
   ${brandRow(draw, logo, 40, 26, true, model.tagline)}
   <rect x="40" y="${band - 64}" width="${badgeWidth}" height="34" rx="8" fill="${BLACK}" opacity=".55"/>
   ${draw({ text: model.provenance, x: 54, y: band - 41, size: 17, fill: WHITE })}
