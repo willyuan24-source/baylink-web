@@ -11,7 +11,7 @@ import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { guideReadMinutes, guideSourceCount, TOPIC_COVER } from '../src/features/guides/guide-facts';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
-import { selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
+import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
 import { isSeniorFriendly } from '../src/lib/senior-friendly';
@@ -66,9 +66,7 @@ const planning = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning])
   if ((weekday >= 4 || weekday === 0) && !WEEKEND_PICKS[saturday]?.length) console.warn(`Warning: no editor picks for the weekend of ${saturday} in src/data/weekend-picks.ts; /events and the home show the automatic ranking as 本周末先看.`);
 }
 const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation');
-// H19: the ticket rail leads with offers whose own image the ladder accepts; the page asks the same question of the shipped
-// images (src/components/HomeDiscovery.tsx), so both pass this test without the event-only venue approvals.
-const offerHasPhoto = (offer: (typeof liveOffers)[number]) => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today }).tier !== 'type';
+
 const weekendDays = new Set<string>();
 for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   const weekend = getBuildWeekend(day, MONTHLY_EVENTS);
@@ -77,7 +75,7 @@ for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   const seniors = weekend.events.filter(({ event }) => isSeniorFriendly({ ...event, planning: planning.get(event.id) ?? undefined })).length;
   weekends[day] = { ids: weekend.picks.map(({ event }) => event.id), feed: weekend.feed.map(({ event }) => event.id), total: weekend.events.length, seniors,
     ...(() => { const checked = checkSummary(weekend.events.map(({ event }) => event.verifiedAt), day); return checked ? { checked } : {}; })() };
-  selectHomeOffers(liveOffers, day, 6, offerHasPhoto).forEach(offer => offerIds.add(offer.id));
+  selectHomeOffers(liveOffers, day, 6, offerHasPhoto(GUIDE_IMAGES, day), offerLeadsRail(GUIDE_IMAGES, day)).forEach(offer => offerIds.add(offer.id));
 }
 
 const present = <T extends object>(source: T, keys: readonly string[]) => Object.fromEntries(keys.flatMap(key => {

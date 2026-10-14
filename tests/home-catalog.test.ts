@@ -9,7 +9,8 @@ import { currentFreebies } from '../src/data/october-offers';
 import { getCover } from '../src/lib/cover';
 import { isPublicBenefit } from '../src/lib/event-facts';
 import { GUIDE_IMAGES, guides, HOME_OFFERS, HOME_SCENE3D, HOME_WEEKENDS, MONTHLY_EVENTS } from '../src/lib/home-catalog';
-import { selectHomeOffers } from '../src/lib/home-offers';
+import { GUIDE_IMAGES as FULL_IMAGES } from '../src/data/guide-media';
+import { canLeadOfferRail, offerHasPhoto, offerLeadsRail, selectHomeOffers } from '../src/lib/home-offers';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { TOPIC_LABELS } from '../src/features/home/home-model';
 
@@ -53,7 +54,7 @@ test('intents: 长辈与家属 second, every guide published, topic names equal 
   for (const topic of GUIDE_TOPICS) assert.deepEqual(TOPIC_LABELS[topic.id], { zh: topic.zh, en: topic.en }, topic.id);
 });
 
-test('offer tickets: usable this week, ending soonest first, one public benefit, one per brand while others remain; photos first (H19)', () => {
+test('offer tickets: usable this week, ending soonest first, one public benefit, one per brand while others remain; a landscape photo leads (H19)', () => {
   const offer = (id: string, brand: string, endDate: string, extra: Record<string, unknown> = {}) => ({ id, brand, title: id, endDate, startDate: '2026-10-01', availability: 'dated' as const, ...extra });
   const pool = [
     offer('ikea-a', 'IKEA · Bay Area', '2026-10-12'), offer('ikea-b', 'IKEA · Emeryville', '2026-10-12'),
@@ -64,18 +65,46 @@ test('offer tickets: usable this week, ending soonest first, one public benefit,
   ];
   const chosen = selectHomeOffers(pool, '2026-10-12').map(item => item.id);
   assert.deepEqual(chosen, ['ikea-a', 'museum', 'shop-week', 'later', 'ikea-b']);
-  // H19: inside a step the offer with its own image wins (ikea-b over ikea-a), up to three with images join early, and the
-  // rail lists the chosen ones with images first.
+  // H19: inside a step the offer with its own image wins (ikea-b over ikea-a) and up to three with images join early; the
+  // rail keeps the steps' order, so what ends today stays in front ...
   const photos = new Set(['later', 'ikea-b']);
-  assert.deepEqual(selectHomeOffers(pool, '2026-10-12', 6, item => photos.has(item.id)).map(item => item.id), ['ikea-b', 'later', 'museum', 'shop-week', 'ikea-a']);
-  // The published rail on every snapshot day follows the same rule and only shows reviewed offers.
-  const reviewed = new Set(currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation').map(item => item.id));
+  assert.deepEqual(selectHomeOffers(pool, '2026-10-12', 6, item => photos.has(item.id)).map(item => item.id), ['ikea-b', 'museum', 'later', 'shop-week', 'ikea-a']);
+  // ... and only a photo that can be the wide ticket moves to the front; the offer ending today is second.
+  assert.deepEqual(selectHomeOffers(pool, '2026-10-12', 6, item => photos.has(item.id), item => item.id === 'later').map(item => item.id), ['later', 'ikea-b', 'museum', 'shop-week', 'ikea-a']);
+  // The published rail on every snapshot day: reviewed offers only, the page's selection (shipped images) equals the
+  // generator's (the full registry), the offers ending today or tomorrow come first after the wide ticket (a narrow
+  // desktop rail shows three tickets), and the first ticket is the wide one whenever any chosen photo can be.
+  const reviewed = currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation');
+  const reviewedIds = new Set(reviewed.map(item => item.id));
+  const shipped = new Set(HOME_OFFERS.map(item => item.id));
+  let urgentDays = 0;
   for (const day of Object.keys(snapshots)) {
-    const rail = selectHomeOffers(HOME_OFFERS, day);
+    const leads = offerLeadsRail(GUIDE_IMAGES, day);
+    const rail = selectHomeOffers(HOME_OFFERS, day, 6, offerHasPhoto(GUIDE_IMAGES, day), leads);
+    assert.deepEqual(rail.map(item => item.id), selectHomeOffers(reviewed, day, 6, offerHasPhoto(FULL_IMAGES, day), offerLeadsRail(FULL_IMAGES, day)).map(item => item.id), `${day}: page and generator agree`);
     assert.ok(rail.length <= 6, day);
     for (const item of rail) {
-      assert.ok(reviewed.has(item.id) && item.availability === 'dated' && item.endDate! >= day, `${day}: ${item.id}`);
+      assert.ok(shipped.has(item.id) && reviewedIds.has(item.id) && item.availability === 'dated' && item.endDate! >= day, `${day}: ${item.id}`);
       assert.ok(isPublicBenefit(item) || (item.startDate ?? day) <= new Date(Date.parse(`${day}T12:00:00Z`) + 6 * 86_400_000).toISOString().slice(0, 10), `${day}: ${item.id} is usable this week`);
     }
+    const tomorrow = new Date(Date.parse(`${day}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+    const brand = (item: (typeof rail)[number]) => item.brand.split(/\s+[·・|]\s+/u)[0].trim().toLowerCase();
+    const urgent = rail.flatMap((item, index) => item.endDate! <= tomorrow && !rail.slice(0, index).some(other => brand(other) === brand(item)) ? [index] : []);
+    if (urgent.length) urgentDays++;
+    urgent.forEach((index, rank) => assert.ok(index <= rank + 1, `${day}: ${rail[index].id} ends by tomorrow and is ticket ${index + 1}`));
+    if (rail.some(leads)) assert.ok(leads(rail[0]), `${day}: a landscape photo leads`);
   }
+  assert.ok(urgentDays > 0, 'some snapshot day has an offer ending by the next day');
+});
+
+test('the wide offer ticket only takes a landscape image (no square or banner letterboxed on its blur)', () => {
+  const photo = (width: number, height: number, fit: 'cover' | 'contain' = 'cover') => ({ tier: 'official' as const, key: 'k', image: { src: '/x.webp', width, height, alt: '', kind: 'photo' }, label: { zh: '', en: '' }, fit, focal: [50, 40] as const });
+  assert.equal(canLeadOfferRail(photo(1440, 929)), true);
+  assert.equal(canLeadOfferRail(photo(1440, 1440)), false);
+  assert.equal(canLeadOfferRail(photo(1440, 286)), false);
+  assert.equal(canLeadOfferRail(photo(1000, 750)), true);
+  assert.equal(canLeadOfferRail(photo(1440, 929, 'contain')), true);
+  assert.equal(canLeadOfferRail(photo(1000, 750, 'contain')), false);
+  assert.equal(canLeadOfferRail({ tier: 'type', label: { zh: '', en: '' }, reason: 'no-image' }), false);
+  assert.equal(canLeadOfferRail(undefined), false);
 });
