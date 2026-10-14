@@ -117,9 +117,8 @@ const ENDED = /已(?:经)?(?:结束|过期)/u;
 const EDITOR_NOTE = /^编辑(?:建议|提示|算例|说明)?[：:]/u;
 // Bay Area places: a sentence naming one says where it applies; a label made only of them ("San José：", "半岛 Peninsula：")
 // marks an instruction for that one place.
-const PLACE_ZH = '旧金山|奥克兰|圣何塞|伯克利|弗里蒙特|圣马特奥|圣克拉拉|阿拉米达|马林|索诺玛|纳帕|索拉诺|东湾|南湾|北湾|半岛';
-const PLACE_IN_TEXT = new RegExp(PLACE_ZH, 'u');
-const PLACE_ONLY = new RegExp(`^(?:${PLACE_ZH})$`, 'u');
+const PLACE_IN_TEXT = /旧金山|奥克兰|圣何塞|伯克利|弗里蒙特|圣马特奥|圣克拉拉|阿拉米达|马林|索诺玛|纳帕|索拉诺|东湾|南湾|北湾|半岛/u;
+const PLACE_ONLY = new RegExp(`^(?:${PLACE_IN_TEXT.source})$`, 'u');
 const PLACE_WORD = new Set([...PLACE, 'County', 'Cupertino', 'Sunnyvale', 'Fremont', 'Mt.', 'Diablo', 'Ramon', 'Hayward', 'Richmond', 'Milpitas', 'Peninsula', 'East', 'South', 'North']);
 const CITY_WORD = /\b(?:San Francisco|San Jos[eé]|San Mateo|Santa Clara|Oakland|Berkeley|Alameda|Marin|Sonoma|Napa|Solano|Contra Costa|Palo Alto|Cupertino|Sunnyvale|Fremont)\b/u;
 const labelOf = (text: string) => /^([^：:，。]{1,16})[：:]/u.exec(text)?.[1].trim();
