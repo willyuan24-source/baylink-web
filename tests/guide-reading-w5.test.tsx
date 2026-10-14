@@ -95,6 +95,13 @@ test('H36: San Francisco outing guides link into the 3D city with a source the g
   for (const href of [ggb.getAttribute('href')!, city.getAttribute('href')!, english.getAttribute('href')!]) {
     assert.ok((ENTRY_SOURCES as readonly string[]).includes(new URLSearchParams(href.split('?')[1]).get('from')!), href);
   }
+  // The postcard is a .ui-cover, and ui.css (width:100%, same weight, loaded later) once squeezed the text to 0 px: the
+  // column width must come from a heavier selector, and ui.css must not out-rank it (Chrome check: lanes/WEB-GUIDES-READ).
+  assert.ok(ggb.querySelector('.gd-opus__art.ui-cover'), 'the postcard is a CoverImage');
+  const guideCss = css('features/guides/guide-article.css');
+  assert.ok(guideCss.includes('.gd-opus>.gd-opus__art { flex:none; width:7.5rem;'), 'the 7.5rem column on the heavier selector');
+  assert.doesNotMatch(guideCss, /(?:^|[}\s])\.gd-opus__art \{[^}]*width/u, 'no width on the bare class, which .ui-cover overrides');
+  assert.ok(!css('components/ui/ui.css').includes('gd-opus'), 'ui.css never styles the 3D link');
 });
 
 test('H66: a deals board\'s long source list folds after eight; a pilot keeps every source its marks point at', async () => {

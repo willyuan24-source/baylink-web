@@ -128,7 +128,9 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-opus { display:flex; align-items:center; gap:12px; margin-top:16px; padding:10px 12px; min-height:3rem; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
 .gd-opus:hover { border-color:var(--color-brand); }
 .gd-opus:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
-.gd-opus__art { flex:none; width:7.5rem; border-radius:10px; overflow:hidden; }
+/* The postcard is a .ui-cover (width:100% in ui.css, which loads later): the child selector keeps its 7.5rem column, so the
+   text beside it is never squeezed to one character (review 10-14). */
+.gd-opus>.gd-opus__art { flex:none; width:7.5rem; border-radius:10px; overflow:hidden; }
 .gd-opus__mark { display:grid; flex:none; place-items:center; width:3rem; height:3rem; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand); }
 .gd-opus__mark>svg { width:1.5rem; height:1.5rem; }
 .gd-opus__text { display:flex; flex:1 1 auto; flex-direction:column; gap:2px; min-width:0; }
@@ -136,7 +138,7 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-opus__text span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
 .gd-opus__text small { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .gd-opus__go { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
-@media (max-width:359px) { .gd-opus__art { width:5.5rem; } }
+@media (max-width:359px) { .gd-opus>.gd-opus__art { width:5.5rem; } }
 @media (min-width:1024px) { .gd-opus { max-width:var(--container-reading); } }
 
 /* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源". */
