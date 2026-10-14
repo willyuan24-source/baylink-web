@@ -28,7 +28,7 @@ export const benefitsCitizenshipGuides: Guide[] = [
       { type: 'paragraph', text: 'Social Security 退休金看的是你缴社安税的工作记录；401(k)、IRA 和雇主退休计划是另外的账户。SSI 是另一项福利，给收入和资源有限、年满 65 岁或残障／失明的人。三样分开问。' },
       { type: 'link', title: '从 SSA 官方页面查看个人估算', text: '从这里进入 my Social Security，看工作记录和领取估算。', url: 'https://www.ssa.gov/prepare/get-benefits-estimate' },
       { type: 'heading', text: '第二步：先看自己的工作记录，别拿朋友的金额比' },
-      { type: 'paragraph', text: 'SSA 写明：按本人工作记录领退休金需要 40 个工作积分，每年最多 4 个。2026 年每有 $1,890 的受保收入记 1 个积分，全年收入达到 $7,560 就拿满 4 个。积分只决定能不能领；每月领多少按你工作年份的平均收入计算，多出的积分不会增加金额。' },
+      { type: 'paragraph', text: 'SSA 写明：按本人工作记录领退休金需要 40 个工作积分，每年最多 4 个；积分要靠缴社安税的工作挣，在美国住满十年不等于有了 40 个积分。2026 年每有 $1,890 的受保收入记 1 个积分，全年收入达到 $7,560 就拿满 4 个。积分只决定能不能领；每月领多少按你工作年份的平均收入计算，多出的积分不会增加金额。' },
       { type: 'checklist', items: [
         '把工作年份、雇主和自雇收入，逐年对照 my Social Security 里的工作记录；缺漏的年份记下来，问 SSA 怎样更正。',
         '本人退休金和配偶／前配偶或遗属福利分开问，条件和领取时间不同。',
