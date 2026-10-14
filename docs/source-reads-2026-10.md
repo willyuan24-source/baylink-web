@@ -893,7 +893,7 @@ Earlier weekends (10/24–11/15), re-checked the same evening: the 36 live items
 their library's feed and none is marked cancelled; the nine SFPL pages and two Sonoma County Library pages (GET 21:32 PT) show no
 cancellation (the Marina qigong page keeps its standing rain note).
 
-East Bay farmers' markets, read 2026-10-14 04:05–04:10 PT (the last three rows; `verifiedAt` 2026-10-14): the market operators' own
+East Bay farmers' markets, read 2026-10-14 04:05–04:10 PT (the three market rows; `verifiedAt` 2026-10-14): the market operators' own
 pages (Ecology Center for Berkeley, Agricultural Institute of Marin for Grand Lake, Pacific Coast Farmers' Market Association for
 Irvington). Each page gives the weekday and hours of a weekly market and lists no holiday closure, so the items list the nine market
 days from 10/17–18 to 12/12–13. Map pins are the operators' own markers: the Ecology Center page's map widget (Downtown Berkeley,
@@ -966,4 +966,4 @@ Programme policies, the basis for cost "free" on the items marked "free per …"
 | policy | Santa Clara County Library District program policy | https://sccld.org/program-policy/ | 200 | 2026-10-13 21:13 PT | cost "free" on `sccl-saratoga-fratello-marionettes-dec5-2026`, `sccl-cupertino-family-storytime-2026`, `sccl-milpitas-tiny-toots-dec12-2026` | In keeping with our mission that patrons belong, connect, and discover, the Santa Clara County Library District (SCCLD) staff develops and presents programs and events that provide information, education, and entertainment. Programs and events are free, open to the public, and designed to meet the diverse interests and needs of library users. |
 
 Edition: `MONTHLY_EDITION.throughDate` 2026-11-30 → 2026-12-31 and label 2026 年秋冬 · 收录至 12/31 (`src/data/monthly-settings.ts`), so the
-December items are listed; `updatedAt` 2026-10-13 names this batch. `checkedAt` stays 2026-10-07.
+December items are listed; `updatedAt` 2026-10-14 is the day of this batch's latest reads (the markets). `checkedAt` stays 2026-10-07.
