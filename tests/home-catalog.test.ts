@@ -53,7 +53,7 @@ test('intents: 长辈与家属 second, every guide published, topic names equal 
   for (const topic of GUIDE_TOPICS) assert.deepEqual(TOPIC_LABELS[topic.id], { zh: topic.zh, en: topic.en }, topic.id);
 });
 
-test('offer tickets: usable this week, ending soonest first, one per brand while others remain, then public benefits', () => {
+test('offer tickets: usable this week, ending soonest first, one public benefit, one per brand while others remain; photos first (H19)', () => {
   const offer = (id: string, brand: string, endDate: string, extra: Record<string, unknown> = {}) => ({ id, brand, title: id, endDate, startDate: '2026-10-01', availability: 'dated' as const, ...extra });
   const pool = [
     offer('ikea-a', 'IKEA · Bay Area', '2026-10-12'), offer('ikea-b', 'IKEA · Emeryville', '2026-10-12'),
@@ -63,7 +63,11 @@ test('offer tickets: usable this week, ending soonest first, one per brand while
     offer('next-month', 'Lakeshore', '2026-11-30', { startDate: '2026-11-20' }),
   ];
   const chosen = selectHomeOffers(pool, '2026-10-12').map(item => item.id);
-  assert.deepEqual(chosen, ['ikea-a', 'shop-week', 'museum', 'later', 'ikea-b']);
+  assert.deepEqual(chosen, ['ikea-a', 'museum', 'shop-week', 'later', 'ikea-b']);
+  // H19: inside a step the offer with its own image wins (ikea-b over ikea-a), up to three with images join early, and the
+  // rail lists the chosen ones with images first.
+  const photos = new Set(['later', 'ikea-b']);
+  assert.deepEqual(selectHomeOffers(pool, '2026-10-12', 6, item => photos.has(item.id)).map(item => item.id), ['ikea-b', 'later', 'museum', 'shop-week', 'ikea-a']);
   // The published rail on every snapshot day follows the same rule and only shows reviewed offers.
   const reviewed = new Set(currentFreebies.filter(item => item.verificationStatus !== 'needs-confirmation').map(item => item.id));
   for (const day of Object.keys(snapshots)) {

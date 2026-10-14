@@ -346,12 +346,12 @@ html[data-simple] .ui-save::before { inset:-8px; }
    itself instead of running past the card; any unit that fits the line still moves to the next line whole. */
 :is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep:not([data-latin]) { display:inline-block; max-width:100%; white-space:normal; }
 :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
-/* H63: under 360px a page title scales with the width (cq units fall back to the viewport) instead of overflowing; at the
-   reading sizes it keeps the larger of the two (--fluid-scale). */
+/* H63: under 360px a page title scales with the width (cq units fall back to the viewport) instead of overflowing, between
+   20px and the phone H1 (26, display 28; rem, so Aa grows both ends; the width term carries --fluid-scale). */
 .ui-page-header__title { max-width:100%; }
 @media (max-width:359px) {
-  .ui-page-header__title { font-size:min(var(--text-h1), calc(8.4cqw * var(--fluid-scale))); }
-  .ui-page-header[data-size=display] .ui-page-header__title { font-size:min(var(--text-display), calc(8.8cqw * var(--fluid-scale))); }
+  .ui-page-header__title { font-size:clamp(1.25rem, calc(8.4cqw * var(--fluid-scale)), 1.625rem); }
+  .ui-page-header[data-size=display] .ui-page-header__title { font-size:clamp(1.25rem, calc(8.8cqw * var(--fluid-scale)), 1.75rem); }
 }
 
 .ui-visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
