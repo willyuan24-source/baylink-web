@@ -3,8 +3,9 @@ import test from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
+import { readFileSync } from 'node:fs';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
-import { EventFacts } from '../src/features/detail/FactsGrid';
+import { EventFacts, NOTE_CLAMP_UNITS } from '../src/features/detail/FactsGrid';
 import { MAX_SESSION_LINES, sessionLines } from '../src/features/detail/session-lines';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 
@@ -29,6 +30,12 @@ test('sessions with one time collapse into one line: one weekday, a weekly serie
   assert.deepEqual(sessionLines(fall, '2026-10-13', true).lines, ['Thu–Sat 10/15–17 · 10:30am–7pm', 'Sun 10/18 · 11am–5pm']);
   // A run across a month end.
   assert.deepEqual(sessionLines(sessions([['2026-10-30', '18:30', '22:00'], ['2026-10-31', '18:30', '22:00'], ['2026-11-01', '18:30', '22:00']]), '2026-10-13', false).lines, ['周五至周日 10/30–11/1 · 18:30–22:00']);
+  // A week or more of days in a row is 每天, never "周四至周六 10/15–24" (which reads as three weekdays). Six days keep the range.
+  const run = (count: number) => sessions(Array.from({ length: count }, (_, index) => [`2026-10-${String(15 + index).padStart(2, '0')}`, '10:00', '17:00'] as [string, string, string]));
+  assert.deepEqual(sessionLines(run(10), '2026-10-13', false).lines, ['每天 10/15–24 · 10–17 点']);
+  assert.deepEqual(sessionLines(run(10), '2026-10-13', true).lines, ['Daily 10/15–24 · 10am–5pm']);
+  assert.deepEqual(sessionLines(run(7), '2026-10-13', false).lines, ['每天 10/15–21 · 10–17 点']);
+  assert.deepEqual(sessionLines(run(6), '2026-10-13', false).lines, ['周四至周二 10/15–20 · 10–17 点']);
 });
 
 test('mixed dates list what fits one phone line and count the rest; times beyond two lines become 另有 N 场', () => {
@@ -50,6 +57,20 @@ test('mixed dates list what fits one phone line and count the rest; times beyond
   assert.deepEqual(result, { lines: ['周六 10/17 · 10 点起', '周日 10/18 · 12 点起'], more: 2 });
 });
 
+test('counts are days: a line whose days have several times each says 等 N 天, and so does 另有 N 天', () => {
+  // The Fort Point talks: six days, three talks a day. "等 6 场" would undercount 18 talks.
+  const talks = sessions(['2026-11-20', '2026-11-21', '2026-11-22', '2026-11-27', '2026-11-28', '2026-11-29'].flatMap(day => [[day, '11:30'], [day, '13:30'], [day, '14:30']] as [string, string][]));
+  const result = sessionLines(talks, '2026-11-01', false);
+  assert.equal(result.lines.length, 1);
+  assert.match(result.lines[0], /^11\/20–22.* 等 6 天 · 11:30、13:30、14:30$/);
+  assert.doesNotMatch(result.lines[0], /场/);
+  // Three days of two shows, one more time beyond the two lines: 另有 N 天.
+  const shows = sessions([['2026-10-17', '11:00'], ['2026-10-17', '15:00'], ['2026-10-18', '12:00'], ['2026-10-24', '10:00'], ['2026-10-24', '14:00']]);
+  assert.deepEqual(sessionLines(shows, '2026-10-13', false), { lines: ['周六 10/17 · 11:00、15:00', '周日 10/18 · 12 点起'], more: 1, moreDays: true });
+  // One session a day keeps 场 and has no moreDays.
+  assert.equal(sessionLines(sessions([['2026-10-17', '10:00'], ['2026-10-18', '12:00'], ['2026-10-24', '15:00']]), '2026-10-13', false).moreDays, undefined);
+});
+
 test('past days drop out (all of them stay when none is left); a day without a time is a date alone', () => {
   const past = sessions([['2026-10-03', '09:00'], ['2026-10-10', '09:00'], ['2026-10-17', '09:00']]);
   assert.deepEqual(sessionLines(past, '2026-10-13', false).lines, ['周六 10/17 · 9 点起']);
@@ -58,10 +79,50 @@ test('past days drop out (all of them stay when none is left); a day without a t
   assert.deepEqual(sessionLines({}, '2026-10-13', false), { lines: [], more: 0 });
 });
 
+// Any catalog event serves as the base: the test sets the fields it reads (sessions, cost) itself.
+const baseEvent = (): MonthlyEvent => {
+  const base = MONTHLY_EVENTS[0];
+  assert.ok(base, 'the catalog has events');
+  return { ...base, planning: undefined, sessions: undefined };
+};
+const facts = (event: MonthlyEvent) => new JSDOM(renderToStaticMarkup(<EventFacts event={event} today="2026-10-13" />)).window.document;
+
 test('the facts card renders the merged lines and 另有 N 场 for an event with sessions', () => {
-  const base = MONTHLY_EVENTS.find(event => event.id === 'bark-in-the-park-san-jose-2026')!;
-  const event = { ...base, ...sessions([['2026-10-17', '10:00'], ['2026-10-18', '12:00'], ['2026-10-24', '15:00'], ['2026-10-25', '15:00']]) } as MonthlyEvent;
-  const doc = new JSDOM(renderToStaticMarkup(<EventFacts event={event} today="2026-10-13" />)).window.document;
+  const doc = facts({ ...baseEvent(), ...sessions([['2026-10-17', '10:00'], ['2026-10-18', '12:00'], ['2026-10-24', '15:00'], ['2026-10-25', '15:00']]) } as MonthlyEvent);
   const lines = [...doc.querySelectorAll('[data-fact="when"] dd > .detail-fact__line')].map(line => line.textContent);
   assert.deepEqual(lines, ['周六 10/17 · 10 点起', '周日 10/18 · 12 点起', '另有 2 场']);
+  const days = facts({ ...baseEvent(), ...sessions([['2026-10-17', '11:00'], ['2026-10-17', '15:00'], ['2026-10-18', '12:00'], ['2026-10-24', '10:00'], ['2026-10-24', '14:00']]) } as MonthlyEvent);
+  assert.equal([...days.querySelectorAll('[data-fact="when"] dd > .detail-fact__line')].at(-1)?.textContent, '另有 1 天');
+});
+
+// H58 rest (Pleasanton, Disney On Ice, Petaluma, Sausalito): a long cost note in the phone's half-width 多少钱 cell made the
+// card run under the action bar. It is clamped to two lines there, with 展开; the sentence stays whole in the markup.
+test('a long cost note is marked for the two-line clamp with a 展开 toggle; a short one is not', () => {
+  const long = '18 岁以上 $28.80、4–17 岁 $22.80，3 岁及以下免费；停车 $15（只收刷卡和手机支付）。';
+  const doc = facts({ ...baseEvent(), cost: 'paid', price: { min: 22.8, max: 28.8 }, costLabel: long } as MonthlyEvent);
+  const cell = doc.querySelector('[data-fact="cost"]')!;
+  assert.ok(cell.hasAttribute('data-clamp'), 'long note: clamped on a phone');
+  const note = cell.querySelector('dd > small')!;
+  assert.equal(note.textContent, long, 'the whole sentence is in the page');
+  const toggle = cell.querySelector('dd > button.detail-fact__toggle')!;
+  assert.equal(toggle.textContent, '展开');
+  assert.equal(toggle.getAttribute('aria-expanded'), 'false');
+  assert.equal(toggle.getAttribute('aria-controls'), note.id);
+  assert.equal(toggle.getAttribute('aria-label'), '展开：多少钱');
+  const short = facts({ ...baseEvent(), cost: 'paid', price: { min: 20 }, costLabel: '普通 $20；会员 $15。' } as MonthlyEvent);
+  assert.ok(!short.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'));
+  assert.equal(short.querySelectorAll('.detail-fact__toggle').length, 0);
+  assert.ok(NOTE_CLAMP_UNITS >= 20 && NOTE_CLAMP_UNITS <= 24, 'about two lines of a 155px cell at 14px');
+});
+
+test("the clamp applies only to a phone's two-column card; one column and the desktop list show the note whole", () => {
+  const css = readFileSync('src/features/detail/facts-grid.css', 'utf8');
+  const [outside, phone] = css.split('@media(max-width:767px)');
+  assert.match(outside, /\.detail-fact__toggle \{ display:none; \}/, 'no toggle by default');
+  assert.ok(phone, 'the clamp is inside the phone media query');
+  for (const rule of phone.split('\n').filter(line => line.includes('{') && line.trim() !== '{' && !line.trim().startsWith('/*'))) {
+    assert.match(rule, /^\s*html:not\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) /, `standard reading size only: ${rule.trim().slice(0, 60)}`);
+  }
+  assert.match(phone, /-webkit-line-clamp:2/);
+  assert.match(phone, /min-height:var\(--control-height\)/, 'a 44px target');
 });

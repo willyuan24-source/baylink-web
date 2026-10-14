@@ -1,0 +1,14 @@
+/* H58 (EVT13-12): a long cost note (FactsGrid NOTE_CLAMP_UNITS) in the phone's half-width 多少钱 cell shows two lines with
+   展开 over the end of the second, so the facts card ends above the fixed action bar. The whole sentence stays in the page
+   and is read out in full; 展开 opens it in place, 收起 closes it. In one column (大 / 特大 / 简洁显示) and in the desktop
+   list the note shows in full and the toggle is not there. The card's own layout: local-discovery-detail.css. */
+.local-discovery-detail .detail-fact__toggle { display:none; }
+@media(max-width:767px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp] dd { position:relative; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) dd>small { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle { display:inline-flex; align-items:center; min-width:var(--control-height); min-height:var(--control-height); padding:0; border:0; background:none; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; line-height:1.5; cursor:pointer; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle>span { text-decoration:underline; text-underline-offset:3px; }
+  /* Closed: the 44px target ends at the note's last line, its word over that line's end on the card's own background. */
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) .detail-fact__toggle { position:absolute; right:0; bottom:0; align-items:flex-end; justify-content:flex-end; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) .detail-fact__toggle>span { padding-left:1.5em; background:linear-gradient(90deg,transparent,var(--color-surface-2) 1.25em); }
+}

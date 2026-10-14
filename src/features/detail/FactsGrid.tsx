@@ -1,14 +1,15 @@
-import type { ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import { CalendarDays, Gift, MapPin, ShoppingBag, Store, Ticket, Users } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText, type Locale } from '../../i18n/locale';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { MonthlyEvent } from '../../data/monthly-types';
 import type { SeptemberOpening } from '../../data/september-openings';
-import { eventPriceChip, offerKindLabel, offerValue } from '../../lib/event-facts';
+import { displayUnits, eventPriceChip, offerKindLabel, offerValue } from '../../lib/event-facts';
 import { ReaderText } from './ReaderText';
 import { readerCost, readerProse } from './reader-text';
 import { sessionLines } from './session-lines';
+import './facts-grid.css';
 
 /**
  * "一眼看懂" (design.md §4.9 step 6): four facts in a 2×2 grid on a phone (one column at 大/特大 and in 简洁显示), a list in
@@ -17,19 +18,38 @@ import { sessionLines } from './session-lines';
  * fact the source does not state is left out rather than guessed. A cell whose text is all editor note (reader-text.ts) is
  * left out too: never an icon and a label over nothing.
  */
-type Cell = { key: string; icon: ReactNode; label: string; value: ReactNode; note?: ReactNode };
+type Cell = { key: string; icon: ReactNode; label: string; value: ReactNode; note?: ReactNode; clamp?: boolean };
+
+/**
+ * H58: display units (CJK 1, other ½) of two lines of note in a phone's half-width cell (about 155px at the 14px note size).
+ * A longer cost note is clamped to two lines there with 展开 over the end of the second (facts-grid.css), so the card ends
+ * above the fixed action bar; the sentence stays whole in the page, for a screen reader and in one column.
+ */
+export const NOTE_CLAMP_UNITS = 22;
 
 /** Catalog text as a cell value or note, or undefined when no reader text is left (readerProse). */
 function readerNode(text: string | undefined, locale: Locale): ReactNode {
   return readerProse(text, locale) ? <ReaderText text={text} /> : undefined;
 }
 
+/** One fact. A `clamp` note gets 展开 / 收起 (shown only where facts-grid.css clamps it: a phone's two-column card). */
+function Fact({ cell }: { cell: Cell }) {
+  const { t } = useUiCopy();
+  const noteId = useId();
+  const [open, setOpen] = useState(false);
+  const toggle = open ? t('收起', 'Less') : t('展开', 'More');
+  const toggleName = open ? t(`收起：${cell.label}`, `Less: ${cell.label}`) : t(`展开：${cell.label}`, `More: ${cell.label}`);
+  return <div className="detail-fact" data-fact={cell.key} data-clamp={cell.clamp ? '' : undefined} data-open={cell.clamp && open ? '' : undefined}>
+    <dt>{cell.icon}<span>{cell.label}</span></dt>
+    <dd>{cell.value}{cell.note && <small id={cell.clamp ? noteId : undefined}>{cell.note}</small>}
+      {cell.clamp && cell.note && <button type="button" className="detail-fact__toggle" aria-expanded={open} aria-controls={noteId} aria-label={toggleName}
+        onClick={() => setOpen(value => !value)}><span>{toggle}</span></button>}</dd>
+  </div>;
+}
+
 function Facts({ cells, label }: { cells: Cell[]; label: string }) {
   return <dl className="detail-facts" aria-label={label}>
-    {cells.filter(cell => cell.value !== undefined && cell.value !== null && cell.value !== '').map(cell => <div key={cell.key} className="detail-fact" data-fact={cell.key}>
-      <dt>{cell.icon}<span>{cell.label}</span></dt>
-      <dd>{cell.value}{cell.note && <small>{cell.note}</small>}</dd>
-    </div>)}
+    {cells.filter(cell => cell.value !== undefined && cell.value !== null && cell.value !== '').map(cell => <Fact key={cell.key} cell={cell} />)}
   </dl>;
 }
 
@@ -40,15 +60,15 @@ const mapLink = (query: string) => `https://www.google.com/maps/search/?api=1&qu
 
 /**
  * Session days, one line per time (H58, session-lines.ts): "周六 10/17、10/24、10/31 · 08:30–12:00", "周四至周日 10/15–18 ·
- * 18:45–22:00", "每周六 10/17–11/28 · 9–13 点". At most two lines, then "另有 N 场", so the card ends above the phone's
- * action bar.
+ * 18:45–22:00", "每周六 10/17–11/28 · 9–13 点". At most two lines, then "另有 N 场" (天 when those days have several
+ * sessions each), so the card ends above the phone's action bar.
  */
 function SessionLines({ event, today }: { event: MonthlyEvent; today: string }) {
   const { english, t } = useUiCopy();
-  const { lines, more } = sessionLines(event, today, english);
+  const { lines, more, moreDays } = sessionLines(event, today, english);
   return <>
     {lines.map(line => <span key={line} className="detail-fact__line">{line}</span>)}
-    {more > 0 && <span className="detail-fact__line">{t(`另有 ${more} 场`, `${more} more ${more === 1 ? 'date' : 'dates'}`)}</span>}
+    {more > 0 && <span className="detail-fact__line">{t(moreDays ? `另有 ${more} 天` : `另有 ${more} 场`, `${more} more ${more === 1 ? 'date' : 'dates'}`)}</span>}
   </>;
 }
 
@@ -59,6 +79,7 @@ export function EventFacts({ event, today }: { event: MonthlyEvent; today: strin
   const price = eventPriceChip(event);
   const cost = readerCost(event.costLabel, event.cost, locale);
   const audience = [event.ageChip, ...event.audience].filter((value): value is string => !!value);
+  const costNote = cost && cost !== (price ? pick(price.text) : '') ? (price ? cost : cost.replace(UNCONFIRMED_LEAD, '')) : undefined;
   const cells: Cell[] = [
     { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('何时', 'When'),
       value: event.sessions?.length ? <SessionLines event={event} today={today} /> : readerNode(event.dateLabel, locale),
@@ -72,7 +93,7 @@ export function EventFacts({ event, today }: { event: MonthlyEvent; today: strin
     // it, never a bold paragraph in the value slot. With no price at all the value says so instead of guessing.
     { key: 'cost', icon: <Ticket aria-hidden="true" />, label: t('多少钱', 'Cost'),
       value: <span className="detail-fact__line" data-tone={price?.tone}>{price ? pick(price.text) : cost ? t('费用待确认', 'Cost not confirmed') : t('票价见官网', 'See the official site')}</span>,
-      note: cost && cost !== (price ? pick(price.text) : '') ? (price ? cost : cost.replace(UNCONFIRMED_LEAD, '')) : undefined },
+      note: costNote, clamp: !!costNote && displayUnits(costNote) > NOTE_CLAMP_UNITS },
   ];
   if (audience.length) cells.push({ key: 'for', icon: <Users aria-hidden="true" />, label: t('适合', 'Good for'), value: audience.map(value => translateText(value, locale)).join(' / ') });
   return <Facts cells={cells} label={t('一眼看懂', 'At a glance')} />;
