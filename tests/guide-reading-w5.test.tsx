@@ -105,6 +105,8 @@ test('H36: San Francisco outing guides link into the 3D city with a source the g
   assert.ok(guideCss.includes('.gd-opus>.gd-opus__art { flex:none; width:7.5rem;'), 'the 7.5rem column on the heavier selector');
   assert.doesNotMatch(guideCss, /(?:^|[}\s])\.gd-opus__art \{[^}]*width/u, 'no width on the bare class, which .ui-cover overrides');
   assert.ok(!css('components/ui/ui.css').includes('gd-opus'), 'ui.css never styles the 3D link');
+  // …and at 大 / 特大 on a narrow phone the text moves under the postcard rather than shrinking below 8rem.
+  assert.ok(guideCss.includes('.gd-opus { display:flex; flex-wrap:wrap;') && guideCss.includes('.gd-opus__text { display:flex; flex:1 1 8rem;'), 'the text wraps under the postcard');
 });
 
 test('H66: a deals board\'s long source list folds after eight; a pilot keeps every source its marks point at', async () => {
