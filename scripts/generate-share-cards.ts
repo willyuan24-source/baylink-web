@@ -5,8 +5,9 @@ import { guides } from '../src/data/guides';
 import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../src/data/guide-media';
 import { loadLocale, translateText } from '../src/i18n/locale';
 import { guideShare, shareCardPath } from '../src/lib/editorial-share';
-import { renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
-import { discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_PATHS, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
+import { PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
+import { cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_PATHS, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
+import type { CoverAsset } from '../src/lib/cover';
 import { hubCardPath } from '../src/lib/hub-cards';
 import { SITE_URL } from '../src/lib/seo';
 import { languagePath } from '../src/lib/language-path';
@@ -17,8 +18,9 @@ import { hubCardData } from './share-card-data';
 /**
  * Share cards v2 (I18N-SEO-05) and hub cards (I18N-SEO-03), 1200 × 630, one per language: zh-Hans at the original
  * /share-cards/<kind>-<id>.png (links already shared keep working), zh-Hant and English under /share-cards/zh-Hant/ and
- * /share-cards/en/. Each card's QR opens the page in the card's language. A cover photo appears only when its rights
- * allow promotion (share-card-model.ts promoPhoto); otherwise the listing's TypeCover facts fill the cover.
+ * /share-cards/en/. Each card's QR opens the page in the card's language. A photo appears only when the card may carry
+ * it (share-card-model.ts cardPhoto / promoPhoto), as a band across the top 55% (H45); otherwise the listing's TypeCover
+ * facts fill the cover.
  */
 const LOCALES: CardLocale[] = ['zh-Hans', 'zh-Hant', 'en'];
 await Promise.all([loadLocale('en'), loadLocale('zh-Hant')]);
@@ -35,17 +37,37 @@ const qrFor = (url: string) => {
   return { path, size: qr.modules.size };
 };
 const photoData = new Map<string, Promise<string | undefined>>();
-/** A promotion-cleared photo as a JPEG data URI for the cover (resvg reads JPEG; the registry stores WebP). */
+const clamp = (value: number, max: number) => Math.min(Math.max(0, value), max);
+/**
+ * The photo band as a JPEG data URI (resvg reads JPEG; the registry stores WebP), cut as the site cuts the image: a
+ * photo fills the band around its focal point; a poster or full-frame artwork is shown whole on a blurred copy of itself.
+ */
 const photoFor = (image: GuideImage | undefined) => {
-  const photo = promoPhoto(image);
-  if (!photo) return Promise.resolve(undefined);
-  if (!photoData.has(photo.src)) photoData.set(photo.src, import('sharp').then(({ default: sharp }) => sharp(`public${photo.src}`).resize(940, 1260, { fit: 'cover' }).jpeg({ quality: 78 }).toBuffer())
-    .then(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).catch(() => undefined));
-  return photoData.get(photo.src)!;
+  if (!image) return Promise.resolve(undefined);
+  if (!photoData.has(image.src)) photoData.set(image.src, import('sharp').then(async ({ default: sharp }) => {
+    const file = `public${image.src}`, { width, height } = PHOTO_BAND, asset = image as CoverAsset;
+    let band: Buffer;
+    if (image.kind === 'poster' || image.fullFrame) {
+      const backdrop = await sharp(file).resize(width, height, { fit: 'cover' }).blur(28).modulate({ brightness: .78 }).toBuffer();
+      const whole = await sharp(file).resize(width, height, { fit: 'inside' }).toBuffer();
+      band = await sharp(backdrop).composite([{ input: whole, gravity: 'centre' }]).jpeg({ quality: 82 }).toBuffer();
+    } else {
+      const meta = await sharp(file).metadata();
+      const scale = Math.max(width / (meta.width || width), height / (meta.height || height));
+      const scaledWidth = Math.max(width, Math.round((meta.width || width) * scale)), scaledHeight = Math.max(height, Math.round((meta.height || height) * scale));
+      const [focalX, focalY] = asset.focal ?? [50, 40];
+      band = await sharp(file).resize(scaledWidth, scaledHeight).extract({
+        left: clamp(Math.round(scaledWidth * focalX / 100 - width / 2), scaledWidth - width),
+        top: clamp(Math.round(scaledHeight * focalY / 100 - height / 2), scaledHeight - height), width, height,
+      }).jpeg({ quality: 82 }).toBuffer();
+    }
+    return `data:image/jpeg;base64,${band.toString('base64')}`;
+  }).catch(error => { console.warn(`Share card photo ${image.src} not drawn: ${String(error)}`); return undefined; }));
+  return photoData.get(image.src)!;
 };
 
 const tasks = new Set<Promise<number>>();
-let cards = 0, bytes = 0;
+let cards = 0, bytes = 0, photoCards = 0;
 const queue = async (svg: string, out: string) => {
   const task = pool.run({ svg, out }).then(size => { bytes += size; cards++; return size; });
   tasks.add(task);
@@ -56,8 +78,9 @@ const queue = async (svg: string, out: string) => {
 for (const item of localDiscoveries) {
   const share = discoveryShare(item);
   const imageKey = item.kind === 'event' ? item.event.imageKey : item.kind === 'offer' ? item.offer.imageKey : item.shop.imageKey;
-  const image = GUIDE_IMAGES[imageKey];
+  const image = cardPhoto(item, GUIDE_IMAGES[imageKey], today);
   const photo = await photoFor(image);
+  if (photo) photoCards++;
   for (const locale of LOCALES) {
     const model = discoveryCardModel(item, locale, today, tr(locale), photo ? image : undefined);
     const { draw, finish } = outline();
@@ -67,8 +90,9 @@ for (const item of localDiscoveries) {
 }
 for (const guide of guides) {
   const share = guideShare(guide);
-  const image = getGuideMedia(guide).cover;
+  const image = promoPhoto(getGuideMedia(guide).cover);
   const photo = await photoFor(image);
+  if (photo) photoCards++;
   for (const locale of LOCALES) {
     const model = guideCardModel(guide, locale, tr(locale), photo ? image : undefined, today);
     const { draw, finish } = outline();
@@ -89,4 +113,4 @@ for (const locale of LOCALES) {
 }
 await Promise.all(tasks);
 await pool.close();
-console.log(`Generated ${cards} BAYLINK share and hub cards in three languages (${(bytes / 1048576).toFixed(1)} MiB) with direct-link QR codes.`);
+console.log(`Generated ${cards} BAYLINK share and hub cards in three languages (${(bytes / 1048576).toFixed(1)} MiB) with direct-link QR codes; ${photoCards} listings carry a photo.`);

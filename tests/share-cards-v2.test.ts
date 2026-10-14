@@ -6,8 +6,8 @@ import { localDiscoveries } from '../src/data/local-discoveries';
 import { guides } from '../src/data/guides';
 import { GUIDE_IMAGES, type GuideImage } from '../src/data/guide-media';
 import { LIFE_TOOLS } from '../src/data/tool-catalog';
-import { discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
-import { renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
+import { BAYLINK_TAGLINE, cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
+import { DEFAULT_TAGLINE, PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
 import { localizedSocialImage } from '../src/lib/seo';
 import { shareCardPath } from '../src/lib/editorial-share';
 import { simplifiedOnlyCharacters } from '../scripts/i18n-html-check.mjs';
@@ -77,4 +77,54 @@ test('share cards and hub cards are 1200 × 630 SVGs with the QR in the bottom-r
   assert.equal(localizedSocialImage(path, 'zh_TW'), 'https://www.baylink.us/share-cards/zh-Hant/event-a.png');
   assert.equal(shareCardPath({ kind: 'event', id: 'a' }, 'en'), '/share-cards/en/event-a.png');
   assert.equal(localizedSocialImage('https://www.baylink.us/opus-bay/og-key.jpg', 'en_US'), 'https://www.baylink.us/opus-bay/og-key.jpg', 'other images keep their address');
+});
+
+test('H45: Chinese cards carry the Chinese tagline, English cards the English one', async () => {
+  await Promise.all([loadLocale('en'), loadLocale('zh-Hant')]);
+  const [event] = localDiscoveries;
+  const [guide] = guides;
+  const data = { weekend: [], range: '', tools: [], guideCount: guides.length };
+  for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as CardLocale[]) {
+    const models = [discoveryCardModel(event, locale, '2026-10-12', tr(locale)), guideCardModel(guide, locale, tr(locale)), hubCardModel('home', locale, tr(locale), data)];
+    for (const model of models) {
+      if (locale === 'en') assert.equal(model.tagline, DEFAULT_TAGLINE);
+      else assert.ok(model.tagline && HAN.test(model.tagline) && model.tagline !== DEFAULT_TAGLINE, `${locale}: ${model.tagline}`);
+    }
+  }
+  assert.equal(discoveryCardModel(event, 'zh-Hans', '2026-10-12', tr('zh-Hans')).tagline, BAYLINK_TAGLINE.zh);
+  assert.equal(discoveryCardModel(event, 'zh-Hant', '2026-10-12', tr('zh-Hant')).tagline, '灣區去哪、怎麼辦 · 有來源的中文答案');
+  const svg = renderShareCardSvg(discoveryCardModel(event, 'zh-Hans', '2026-10-12', text => text), { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,');
+  assert.ok(svg.includes(BAYLINK_TAGLINE.zh) && !svg.includes(DEFAULT_TAGLINE), 'the zh card draws the Chinese tagline');
+  assert.doesNotMatch(svg, new RegExp(`letter-spacing="2">${BAYLINK_TAGLINE.zh}`), 'Chinese is set without letter spacing');
+});
+
+test('H45: a photo card puts the photo in the top 55% (1200 × 346) with its label, and keeps the title, date and QR below', () => {
+  const event = localDiscoveries.find(item => item.kind === 'event')!;
+  const photo: GuideImage = { src: '/x.webp', alt: '', caption: '2025 年活动官方照片', credit: 'Organiser 官方照片', creditUrl: 'https://www.example.org/expo/', kind: 'photo', width: 1280, height: 853, rights: { basis: 'promo-editorial', promoAllowed: true } };
+  const model = discoveryCardModel(event, 'zh-Hans', '2026-10-12', text => text, photo);
+  assert.equal(model.provenance, event.kind === 'event' && Number(event.event.startDate.slice(0, 4)) > 2025 ? '官方图 · 2025 · example.org' : '官方图 · example.org',
+    'an official image names its source, and an earlier edition its year, as the page caption does');
+  const english = discoveryCardModel(event, 'en', '2026-10-12', text => text, photo);
+  assert.match(english.provenance, /^Official image · (?:2025 · )?example\.org$/);
+  assert.equal(PHOTO_BAND.width, 1200);
+  assert.equal(PHOTO_BAND.height, Math.floor(630 * .55), 'the band is the top 55% of the card');
+  const svg = renderShareCardSvg({ ...model, photo: 'data:image/jpeg;base64,AAAA' }, { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,');
+  assert.match(svg, /<image href="data:image\/jpeg;base64,AAAA" width="1200" height="346"/);
+  const [, x, y] = /<svg x="(\d+)" y="(\d+)" width="\d+" height="\d+" viewBox="-4 -4 29 29"/.exec(svg)!;
+  assert.ok(Number(x) >= 900 && Number(y) >= 380, 'the QR stays where the verifier decodes it');
+  assert.ok(svg.includes('官方图 · '), 'the label is on the photo');
+  assert.ok(svg.includes(model.title.slice(0, 6)), 'the title is drawn under the photo');
+  // without a photo the card is the TypeCover layout
+  assert.doesNotMatch(renderShareCardSvg(model, { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,'), /<image href="data:image\/jpeg/);
+});
+
+test('H45: which photo a listing card may carry', () => {
+  const event = localDiscoveries.find(item => item.kind === 'event' && item.event.imageKey)!;
+  const offer = localDiscoveries.find(item => item.kind === 'offer')!;
+  const photo: GuideImage = { src: '/x.webp', alt: '', caption: '2025', credit: 'Organiser', kind: 'photo', width: 1200, height: 800 };
+  assert.ok(cardPhoto(event, { ...photo, rights: { basis: 'permission', promoAllowed: true } }, '2026-10-12'), 'a promotion-cleared photo');
+  assert.equal(cardPhoto(event, { ...photo, rights: { basis: 'press-kit', promoAllowed: false } }, '2026-10-12'), undefined);
+  assert.equal(cardPhoto(event, { ...photo, kind: 'illustration', rights: { basis: 'owner', promoAllowed: true } }, '2026-10-12'), undefined, 'never AI art');
+  assert.equal(cardPhoto(offer, { ...photo, rights: { basis: 'promo-editorial', scope: 'same-event coverage only' } }, '2026-10-12'), undefined, 'an offer’s brand image is not an event’s own image');
+  if (!OFFICIAL_IMAGE_ON_OWN_EVENT_CARD) assert.equal(cardPhoto(event, { ...photo, rights: { basis: 'promo-editorial', scope: 'same-event coverage only' } }, '2026-10-12'), undefined, 'without the owner’s rule, coverage-only images stay off the card');
 });
