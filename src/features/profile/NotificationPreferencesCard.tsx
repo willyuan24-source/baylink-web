@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api, getStoredUser } from '../../lib/api';
 import { useLocale } from '../../i18n/locale';
-import { allRemindersOn, channels, normalize, preferencePayload, record, verifiedChannels, type NotificationSettings, type Topic } from './notification-settings';
+import { allRemindersOn, channels, defaultEmailTopics, defaultsState, normalize, preferencePayload, record, verificationBody, verifiedChannels, type NotificationSettings, type Topic } from './notification-settings';
 
 type RequestSession = { cancelled: boolean; request: AbortController | null; locked: boolean };
 type RequestError = { kind: 'load' | 'save'; message?: string };
@@ -12,7 +12,10 @@ const serverError = (value: unknown): string | undefined => {
 };
 
 /**
- * Opt-in is always an explicit authenticated save; legacy accounts start with all switches off. Once a channel is
+ * Opt-in is an explicit authenticated save, except the server's H14 preset (api #44): while `defaultsActive`, a verified
+ * email gets 新的私信 and 新的联系请求 once, for an account that never chose. The lead sentence says which of the four
+ * states this account is in (defaultsState) and the email switches mark the preset; nothing here claims a default the
+ * server does not report. Once a channel is
  * verified, "开启全部提醒" turns on every topic for the verified channels in one tap (an explicit save of the same
  * PATCH the checkboxes use, so it works before and after the server's own enableAll field ships).
  */
@@ -52,7 +55,7 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
     try {
       const value = await api.request(mode === 'verify' ? '/notifications/email/start' : '/notifications/preferences', {
         method: mode === 'verify' ? 'POST' : 'PATCH', signal: controller.signal,
-        body: JSON.stringify(mode === 'verify' ? {} : { preferences: preferencePayload(draft), locale }),
+        body: mode === 'verify' ? verificationBody(locale) : JSON.stringify({ preferences: preferencePayload(draft), locale }),
       });
       if (controller.signal.aborted || !isCurrent()) return;
       setSettings(normalize(value));
@@ -64,19 +67,30 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
   const errorText = error?.message || (error?.kind === 'load'
     ? text('通知设置暂不可用。', 'Notification settings are unavailable.', '通知設定暫不可用。')
     : text('保存失败，请重试。', 'Could not save. Try again.', '儲存失敗，請重試。'));
-  const noticeText = notice === 'verified' ? text('邮箱已验证。', 'Email already verified.', '信箱已驗證。')
-    : notice === 'queued' ? text('验证请求已排队，请查收邮件并在30分钟内确认。', 'Verification is queued. Check your email and confirm within 30 minutes.', '驗證請求已排隊，請查收郵件並在30分鐘內確認。')
-      : notice === 'delivery_disabled' ? text('验证请求已保存；邮件发送暂未启用，请稍后重新请求。', 'The request was saved. Email delivery is not enabled yet; request a new link later.', '驗證請求已儲存；郵件發送暫未啟用，請稍後重新請求。')
-        : notice === 'all_on' ? text('已开启全部提醒。随时可以取消勾选并保存。', 'All reminders are on. You can turn any of them off and save.', '已開啟全部提醒。隨時可以取消勾選並儲存。')
-          : text('通知偏好已保存。', 'Notification preferences saved.', '通知偏好已儲存。');
   const topicLabel = (topic: Topic) => topic === 'message' ? text('新的私信', 'New private messages', '新的私訊')
     : topic === 'contact_request' ? text('新的联系请求', 'New contact requests', '新的聯絡請求')
       : topic === 'outing_request' ? text('新的小队申请', 'New team applications', '新的小隊申請')
         : text('我的帖子有新评论', 'New comments on my posts', '我的帖子有新留言');
   const canEnableAll = !!settings && verifiedChannels(settings).length > 0 && !allRemindersOn(settings);
+  // 「新的私信」「新的联系请求」 / "new private messages and new contact requests": the server's preset, in the switches' words.
+  function defaultNames(language: 'zh' | 'en') {
+    const names = settings ? defaultEmailTopics(settings).map(topic => language === 'en' ? topicLabel(topic).toLowerCase() : `「${topicLabel(topic)}」`) : [];
+    return language === 'en' ? names.join(' and ') : names.join('');
+  }
+  const state = settings ? defaultsState(settings) : 'off';
+  const lead = state === 'pending' ? text(`验证邮箱后，${defaultNames('zh')}会默认用邮件提醒你，可随时关闭。`, `Once your email is verified, ${defaultNames('en')} are emailed to you by default. You can turn them off any time.`, `驗證信箱後，${defaultNames('zh')}會預設用郵件提醒你，可隨時關閉。`)
+    : state === 'applied' ? text(`验证邮箱后，已按默认为你开启${defaultNames('zh')}邮件提醒，可随时关闭。`, `When your email was verified, ${defaultNames('en')} were turned on for email by default. You can turn them off any time.`, `驗證信箱後，已按預設為你開啟${defaultNames('zh')}郵件提醒，可隨時關閉。`)
+      : state === 'chosen' ? text('按你保存的选择接收，可随时更改。', 'You get the reminders you chose, and can change them any time.', '按你儲存的選擇接收，可隨時更改。')
+        : text('由你主动选择接收。', 'Choose which reminders to receive.', '由你主動選擇接收。');
+  const noticeText = notice === 'verified' ? text('邮箱已验证。', 'Email already verified.', '信箱已驗證。')
+    : notice === 'queued' ? text('验证请求已排队，请查收邮件并在30分钟内确认。', 'Verification is queued. Check your email and confirm within 30 minutes.', '驗證請求已排隊，請查收郵件並在30分鐘內確認。')
+      + (settings && defaultsState(settings) === 'pending' ? text(`确认后，${defaultNames('zh')}邮件提醒会默认开启。`, ` Once you confirm, ${defaultNames('en')} are emailed to you by default.`, `確認後，${defaultNames('zh')}郵件提醒會預設開啟。`) : '')
+      : notice === 'delivery_disabled' ? text('验证请求已保存；邮件发送暂未启用，请稍后重新请求。', 'The request was saved. Email delivery is not enabled yet; request a new link later.', '驗證請求已儲存；郵件發送暫未啟用，請稍後重新請求。')
+        : notice === 'all_on' ? text('已开启全部提醒。随时可以取消勾选并保存。', 'All reminders are on. You can turn any of them off and save.', '已開啟全部提醒。隨時可以取消勾選並儲存。')
+          : text('通知偏好已保存。', 'Notification preferences saved.', '通知偏好已儲存。');
   return <section className="me-notify" aria-labelledby="notification-settings-title">
     <h2 id="notification-settings-title">{text('站外通知', 'Email and SMS notifications', '站外通知')}</h2>
-    <p>{text('由你主动选择接收。提醒只包含安全的站内链接，不包含私信正文或联系方式。同一会话每30分钟最多提醒一次。', 'Choose which reminders to receive. They contain a secure site link, without private message text or contact details. At most one reminder per conversation every 30 minutes.', '由你主動選擇接收。提醒只包含安全的站內連結，不包含私訊正文或聯絡資料。同一對話每30分鐘最多提醒一次。')}</p>
+    <p>{lead}{text('提醒只包含安全的站内链接，不包含私信正文或联系方式。同一会话每30分钟最多提醒一次。', ' They contain a secure site link, without private message text or contact details. At most one reminder per conversation every 30 minutes.', '提醒只包含安全的站內連結，不包含私訊正文或聯絡資料。同一對話每30分鐘最多提醒一次。')}</p>
     {error && <p role="alert" className="me-notify__error">{errorText}</p>}
     {notice && <p role="status" className="me-notify__status">{noticeText}</p>}
     {!settings ? <button type="button" onClick={() => setRetry(value => value + 1)} className="me-notify__retry">{error ? text('重试加载', 'Retry loading', '重試載入') : text('正在加载通知设置…', 'Loading notification settings…', '正在載入通知設定…')}</button> : <>
@@ -92,13 +106,13 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
           <p>{verified ? text('已验证', 'Verified', '已驗證') : channel === 'email' ? text('请先验证当前邮箱', 'Verify your current email first', '請先驗證目前信箱') : text('请先在个人资料中验证当前手机号', 'Verify your current phone in your profile first', '請先在個人資料中驗證目前手機號碼')}</p>
           {settings.topics.map(topic => <label key={topic}><input type="checkbox" disabled={!verified || busy} checked={settings.preferences[channel][topic]}
             onChange={event => setSettings(previous => previous ? { ...previous, preferences: { ...previous.preferences, [channel]: { ...previous.preferences[channel], [topic]: event.target.checked } } } : previous)} />
-            <span>{topicLabel(topic)}</span>
+            <span>{topicLabel(topic)}{channel === 'email' && settings.defaultsActive && settings.defaults.email[topic] && <small className="me-notify__default">{text('验证后默认开启', 'on by default once verified', '驗證後預設開啟')}</small>}</span>
           </label>)}
           {channel === 'email' && !verified && <button type="button" disabled={busy} onClick={() => void submit('verify')}>{text('发送验证邮件', 'Request verification email', '發送驗證郵件')}</button>}
         </fieldset>;
       })}</div>
       <button type="button" className="me-notify__save" disabled={busy} onClick={() => void submit()}>{busy ? text('正在保存…', 'Saving…', '正在儲存…') : text('保存通知偏好', 'Save notification preferences', '儲存通知偏好')}</button>
-      <p className="me-notify__hint">{text('随时取消勾选并保存即可退订，也可使用提醒中的退订链接。', 'Turn a switch off and save to unsubscribe, or use the unsubscribe link in a reminder.', '隨時取消勾選並儲存即可退訂，也可使用提醒中的退訂連結。')}</p>
+      <p className="me-notify__hint">{text('随时取消勾选并保存即可关闭；每封提醒邮件里也有「关闭这类邮件」链接，只关闭那一类提醒。', 'Turn a switch off and save to stop it. Every reminder email also has a “Turn off these emails” link that stops that kind only.', '隨時取消勾選並儲存即可關閉；每封提醒郵件裡也有「關閉這類郵件」連結，只關閉那一類提醒。')}</p>
     </>}
   </section>;
 }

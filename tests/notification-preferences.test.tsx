@@ -84,14 +84,14 @@ test('late preference reads from a prior account cannot restore the old account 
   assert.ok(view.getAllByRole('checkbox').every(item => !(item as HTMLInputElement).checked));
 });
 
-test('verification and opt-out token pages require confirmation before a POST and never auto opt in', async () => {
+test('verification and opt-out token pages require confirmation before a POST; verification sends the page language (api #44)', async () => {
   for (const purpose of ['verify', 'unsubscribe'] as const) {
     const calls: { path: string; body: unknown }[] = [];
     api.request = async (path, options) => { calls.push({ path, body: JSON.parse(String(options?.body)) }); return { ok: true }; };
     const token = 'A'.repeat(43), view = render(<MemoryRouter initialEntries={[`/verify-email#token=${token}`]}><NotificationTokenPage purpose={purpose} /></MemoryRouter>);
     assert.equal(calls.length, 0);
     await act(async () => { fireEvent.click(view.getByRole('button', { name: 'Confirm' })); });
-    assert.deepEqual(calls, [{ path: purpose === 'verify' ? '/notifications/email/verify' : '/notifications/unsubscribe', body: { token } }]);
+    assert.deepEqual(calls, [purpose === 'verify' ? { path: '/notifications/email/verify', body: { token, locale: 'en' } } : { path: '/notifications/unsubscribe', body: { token } }]);
     assert.ok(view.getByRole('status')); assert.equal(view.queryByRole('button', { name: 'Confirm' }), null);
     cleanup();
   }

@@ -158,16 +158,27 @@ test('开启全部提醒 turns on every reported topic for verified channels onl
   }
 });
 
-test('/messages: three round entries, the reminders prompt and the contact requests opened from the first entry', async () => {
+test('/messages: the reminders prompt when nothing waits; with every reminder off', async () => {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  mockApi();
+  const view = render(app(context(), '/messages'));
+  const prompt = await view.findByRole('note');
+  assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications');
+});
+
+test('/messages: three round entries, the one-tap reminder offer for a member someone asked to contact (H14), and the contact requests opened from the first entry', async () => {
   localStorage.setItem('currentUser', JSON.stringify(user));
   mockApi(path => path.startsWith('/contact-requests') ? { requests: [{ id: 'r1', postId: 'p1', postTitle: '旧金山一房出租', status: 'pending', requester: { id: 'u2', nickname: '小王' } }] } : undefined);
   let pending = -1;
   const view = render(app(context({ setPendingContactRequestCount: ((count: number) => { pending = count; }) as AppContextValue['setPendingContactRequestCount'] }), '/messages'));
   const rounds = within(view.getByRole('list', { name: '消息分类' }));
   assert.deepEqual(rounds.getAllByRole('link').map(link => link.getAttribute('href')), ['/together?view=mine', '/me/bookings']);
-  const prompt = await view.findByRole('note');
-  assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications');
   await waitFor(() => assert.equal(pending, 1));
+  // The receiver gets the same offer the poster got (NoticeOptIn), instead of the generic 去开启 line.
+  const offer = await view.findByRole('region', { name: '站外提醒' });
+  assert.match(offer.textContent!, /下次有人私信你、或请求你的联系方式时/);
+  assert.ok(within(offer).getByRole('button', { name: '用邮件提醒我' }));
+  assert.equal(view.queryByRole('note'), null);
   assert.equal(rounds.getByLabelText('1 个待处理').textContent, '1');
   const requestsButton = rounds.getByRole('button', { name: /联系请求/ });
   assert.ok(document.getElementById(requestsButton.getAttribute('aria-controls') || '-'), 'aria-controls names the rendered panel');

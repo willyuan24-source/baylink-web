@@ -1,7 +1,7 @@
 // 消息 /messages: three round entries (联系请求 · 小队 · 预约), a notifications-off prompt, contact requests and the
 // conversation list. /messages/:threadId keeps the main area for the route states; the thread itself is the
 // layout's ChatView overlay.
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CalendarCheck, UserPlus, Users } from 'lucide-react';
 import { api } from '../lib/api';
@@ -15,6 +15,9 @@ import { useUiCopy } from '../components/ui/ui-copy';
 import { MessagesList } from '../features/messages/MessagesList';
 import { useAnyReminderOn } from '../features/profile/notification-settings';
 import '../features/messages/messages-hub.css';
+
+// Only a member with a pending contact request and every reminder off sees it: its chunk loads then, not with /messages.
+const NoticeOptIn = lazy(() => import('../features/posts/NoticeOptIn').then(module => ({ default: module.NoticeOptIn })));
 
 function ThreadRouteState() {
   const { t } = useUiCopy();
@@ -65,10 +68,11 @@ export default function MessagesPage() {
           <span className="msg-round__label">{t('预约', 'Bookings')}</span>
         </Link></li>
       </ul>}
-      {user && remindersOn === false && <div className="msg-prompt" role="note">
+      {/* H14 (web part): someone asked for this member's contact details: the same one-tap email offer a poster gets. */}
+      {user && remindersOn === false && (pending ? <Suspense fallback={null}><NoticeOptIn userId={user.id} context="received" /></Suspense> : <div className="msg-prompt" role="note">
         <p>{t('站外提醒未开启：有新私信时，不会收到邮件或短信。', 'Reminders are off: you will not get an email or text when a message arrives.')}</p>
         <Link to="/me?view=notifications">{t('去开启', 'Turn them on')}</Link>
-      </div>}
+      </div>)}
       {user && (
         <ContactRequestInboxPanel
           key={`${user.id}:${user.token}`}
