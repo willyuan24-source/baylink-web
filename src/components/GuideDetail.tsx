@@ -144,8 +144,9 @@ const GuideDetailSession = ({
     // The 3D link's postcard (H36) shows only when the page does not already show it, and then claims it like the others.
     const opusArt = !!record.opus?.postcard && !coverPage.claims.has(record.opus.postcard.src);
     if (opusArt) coverPage.claims.set(record.opus!.postcard!.src, `page:${guide.slug}`);
-    // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories).
-    const quickFacts = quickFactsEligible(guide, !!record.editorial) ? guideQuickFacts(guide) : [];
+    // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories);
+    // a section headed by a date already past is not quoted.
+    const quickFacts = quickFactsEligible(guide, !!record.editorial) ? guideQuickFacts(guide, today) : [];
     return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related, today) };
   }, [record, today]);
 

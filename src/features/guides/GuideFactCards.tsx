@@ -49,14 +49,15 @@ export function KeyFactsCard({ guide, facts }: { guide: Guide; facts: readonly G
  */
 export function QuickFactsCard({ guide, facts }: { guide: Guide; facts: readonly QuickFact[] }) {
   const { t, locale } = useUiCopy();
-  const rows = facts.flatMap(fact => { const text = quickFactIn(fact, guide, locale); return text ? [{ fact, text }] : []; });
+  const rows = facts.flatMap(fact => { const row = quickFactIn(fact, guide, locale); return row ? [{ fact, ...row }] : []; });
   if (!rows.length) return null;
   const label = { fact: t('先知道', 'Key fact'), phone: t('打电话', 'Call'), deadline: t('日期与期限', 'Dates and deadlines'), fee: t('费用', 'Cost') };
   return <section className="gd-keyfacts" data-fallback="" aria-labelledby="gd-keyfacts-title">
     <h2 id="gd-keyfacts-title">{t('30 秒看懂', 'In 30 seconds')}<span className="gd-keyfacts__from">{t('从本文整理', 'From this guide')}</span></h2>
-    <ol>{rows.map(({ fact, text }) => <li key={fact.kind}>
+    <ol>{rows.map(({ fact, label: context, text }) => <li key={fact.kind}>
       <span className="gd-keyfacts__label">{label[fact.kind]}</span>
-      <span className="gd-keyfacts__value">{linkifyPhones(text, { variant: 'inline' })}</span>
+      {/* Who the sentence is about when it does not say so itself ("SMUHSD："): the label or body its text opens with. */}
+      <span className="gd-keyfacts__value">{context && <span className="gd-keyfacts__context">{context}{t('：', ': ')}</span>}{linkifyPhones(text, { variant: 'inline' })}</span>
     </li>)}</ol>
     <a className="gd-keyfacts__sources" href="#guide-sources">{t('看文末官方来源', 'See the official sources')}</a>
   </section>;

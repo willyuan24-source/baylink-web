@@ -45,15 +45,19 @@ test('five guide types get a fallback 30 秒看懂 that quotes the article and c
     assert.ok(element!.querySelector('a[href="#guide-sources"]'), `${type}: the card points at the official sources`);
     const body = bodyOf(slug);
     for (const value of element!.querySelectorAll('.gd-keyfacts__value')) {
-      const quoted = value.textContent!.replace(/…$/u, '');
+      // A context label ("SMUHSD：") names who the sentence is about; the rest is the article's sentence.
+      const quoted = value.textContent!.replace(value.querySelector('.gd-keyfacts__context')?.textContent ?? '', '').replace(/…$/u, '');
       assert.ok(body.includes(quoted), `${type}: "${quoted.slice(0, 40)}" is the article's own sentence`);
     }
-    const rows = guideQuickFacts(getGuideBySlug(slug)!);
+    const rows = guideQuickFacts(getGuideBySlug(slug)!, '2026-10-13');
     if (rows.some(row => row.kind === 'phone')) assert.ok(element!.querySelector('a[href^="tel:"]'), `${type}: the phone row is tap-to-call`);
   }
   // The help-lines guide: a sourced fact, the 311 line (tap-to-call) and that 211 consultations are free.
-  const help = guideQuickFacts(getGuideBySlug(TYPES.help)!);
+  const help = guideQuickFacts(getGuideBySlug(TYPES.help)!, '2026-10-13');
   assert.deepEqual(help.map(row => row.kind), ['fact', 'phone', 'fee']);
+  // A Bay-wide guide leads with a fact for everyone, not the San José-only line; the fee sentence says whose consultation is free.
+  assert.equal(help[0].text, '各县：从 211 Bay Area 或县运营方按城市、邮编找援助。');
+  assert.equal(help[2].context, '211');
   assert.match(card(TYPES.help)!.querySelector('a[href^="tel:"]')!.getAttribute('href')!, /^tel:311$/);
 });
 
@@ -72,8 +76,31 @@ test('no fallback card on pilots, outings, directories and deals boards, nor on 
   for (const guide of guides) {
     if (!quickFactsEligible(guide, Object.hasOwn(GUIDE_EDITORIAL, guide.slug))) continue;
     const body = guide.blocks.map(guideBlockText).join('\n');
-    for (const row of guideQuickFacts(guide)) assert.ok(body.includes(row.text.replace(/…$/u, '')), `${guide.slug}: ${row.text}`);
+    for (const row of guideQuickFacts(guide, '2026-10-13')) {
+      assert.ok(body.includes(row.text.replace(/…$/u, '')), `${guide.slug}: ${row.text}`);
+      // Nothing that leans on the sentence before it, and nothing that has already ended.
+      assert.doesNotMatch(row.text, /另一个|^这|已经结束/u, `${guide.slug}: ${row.text}`);
+    }
   }
+});
+
+test('review 10-14: a row says whose number it is, and a section headed by a past date is not quoted', async () => {
+  await setLocale('zh-Hans', false);
+  // The K-12 guide is Bay-wide; its first number is San Mateo Union HSD's. The row names SMUHSD, in zh and on /en.
+  const school = guideQuickFacts(getGuideBySlug(TYPES.school)!, '2026-10-13').find(row => row.kind === 'phone')!;
+  assert.equal(school.context, 'SMUHSD');
+  assert.match(card(TYPES.school)!.textContent!, /打电话SMUHSD：Student Services 审核后/);
+  await setLocale('en', false, `/guides/${TYPES.school}`);
+  assert.match(card(TYPES.school, '/en')!.textContent!, /CallSMUHSD: Student Services .*650-558-2251/);
+  await setLocale('zh-Hans', false);
+  // BART: the 10 月 4 日黄线 section is over by 10-13 ("周日 18:00" would read as this Sunday); before the 4th it still counts.
+  const bart = getGuideBySlug(TYPES.transit)!;
+  assert.ok(!guideQuickFacts(bart, '2026-10-13').some(row => row.text.includes('Pleasant Hill')));
+  assert.doesNotMatch(card(TYPES.transit)!.textContent!, /Pleasant Hill/);
+  assert.ok(guideQuickFacts(bart, '2026-10-02').some(row => row.text.includes('Pleasant Hill')));
+  // "211 是另一个入口" (another than what?) and an editor's note about a story time that has ended are not quoted.
+  assert.ok(!guideQuickFacts(getGuideBySlug(TYPES.plan)!, '2026-10-13').some(row => row.text.includes('另一个入口')));
+  assert.ok(!guideQuickFacts(getGuideBySlug('sccld-sharks-library-card-september-2026')!, '2026-10-13').some(row => row.text.includes('故事会')));
 });
 
 test('English and zh-Hant cards: translated rows only, no Chinese on /en', async () => {
@@ -103,7 +130,7 @@ test('without a figure, the first fact is the first sentence after the lede that
   // On /en the row is the translated sentence that names the same body, or no row (never Chinese).
   await setLocale('en', false, '/guides/bay-area-alerts-outages-first-day-checklist');
   const english = card('bay-area-alerts-outages-first-day-checklist', '/en');
-  if (english) { assert.doesNotMatch(english.textContent!, /[㐀-鿿]/u); assert.match(english.textContent!, /San Francisco uses AlertSF\./); }
+  if (english) { assert.doesNotMatch(english.textContent!, /[㐀-鿿]/u); assert.match(english.textContent!, /San Francisco uses AlertSF; Alameda County uses AC Alert\./); }
   await setLocale('zh-Hans', false);
 });
 
