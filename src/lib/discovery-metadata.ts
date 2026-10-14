@@ -9,10 +9,11 @@ import { BAYLINK_EDITORIAL, BAYLINK_ORGANIZATION, eventOffers, eventOrganizer, e
 const OFFLINE = 'https://schema.org/OfflineEventAttendanceMode';
 
 /**
- * Event and Article JSON-LD for /events/:id, /offers/:id and /openings/:id (I18N-SEO-04, -13). Times come from the
- * overlay's sessions (Bay Area wall time with its offset), the address from the overlay or the venue's street line, the
- * price only when stated. `published` is the day an offer or opening first shipped (data/first-published, passed by the
- * prerender only, so the dates never ride in the page's bundle; the app keeps the prerendered JSON-LD, seo.ts).
+ * Event and Article JSON-LD for /events/:id, /offers/:id and /openings/:id (I18N-SEO-04, -13, H47). Times come from the
+ * overlay's sessions or a one-day listing's date line (Bay Area wall time with its offset), the address from the overlay
+ * or the venue's street line, the price only when stated, the page's language as inLanguage. `published` is the day an
+ * offer or opening first shipped (data/first-published, passed by the prerender only, so the dates never ride in the
+ * page's bundle; the app keeps the prerendered JSON-LD, seo.ts).
  */
 export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, today = getBayAreaToday()): PageMetadata {
   const share = discoveryShare(item);
@@ -36,7 +37,8 @@ export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, t
       : !times.sessions.length && event.occurrenceDates?.length ? event.occurrenceDates.map(date => ({ startDate: date, endDate: date })) : [];
     entity = {
       '@context': 'https://schema.org', '@type': 'Event', name: share.title,
-      description: share.summary, url, image,
+      // the page's own language (i18n/metadata.ts writes each edition's: zh-Hans, zh-Hant, en; H47)
+      description: share.summary, inLanguage: 'zh-Hans', url, image,
       startDate: times.startDate, endDate: times.endDate,
       eventStatus: status, eventAttendanceMode: OFFLINE,
       // Unknown start times and prices remain unknown; do not manufacture a midnight session or $0 ticket.
@@ -48,7 +50,7 @@ export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, t
     };
   } else {
     entity = {
-      '@context': 'https://schema.org', '@type': 'Article', headline: name, description: share.summary, url, mainEntityOfPage: url, image,
+      '@context': 'https://schema.org', '@type': 'Article', headline: name, description: share.summary, inLanguage: 'zh-Hans', url, mainEntityOfPage: url, image,
       ...publicationDates(published, share.checkedAt),
       author: BAYLINK_EDITORIAL, publisher: BAYLINK_ORGANIZATION,
     };

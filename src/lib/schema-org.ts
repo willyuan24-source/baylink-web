@@ -41,7 +41,14 @@ const STREET = /^\d+[A-Za-z]?(?:-\d+)?\s+\S/;
 export function venueParts(venue: string, address?: string): VenueParts {
   const parts = venue.split(' · ').map(part => part.trim()).filter(Boolean);
   const streetIndex = parts.findIndex(part => STREET.test(part));
-  const line = address?.trim() || (streetIndex >= 0 ? parts[streetIndex] : '');
+  let line = address?.trim() || (streetIndex >= 0 ? parts[streetIndex] : '');
+  // H47: a street line after a comma inside one part ("Healdsburg Regional Library 主阅览室，139 Piper Street",
+  // "Oakland Arena, 7000 Coliseum Way"): the pieces from the house number on; the venue name keeps the whole part.
+  if (!line) for (const part of parts) {
+    const pieces = part.split(/，|,\s+/).map(piece => piece.trim());
+    const first = pieces.findIndex((piece, index) => index > 0 && STREET.test(piece));
+    if (first > 0) { line = pieces.slice(first).join(', '); break; }
+  }
   const name = parts.filter((_, index) => index !== streetIndex).join(' · ') || venue;
   if (!line || !STREET.test(line)) return { name };
   const streetAddress = line.split(',')[0].trim();
@@ -58,6 +65,21 @@ const LISTING_SITE = /^(?:www\.)?(?:visit|see|explore|discover)[a-z-]*\.|tourism
 const VISITOR_BUREAU = /visitors?\s+bureau|convention\s*(?:&|and)\s*visitors|tourism|visitor\s+cent(?:er|re)/i;
 /** A site's section, not its organisation: calendar.santaclaraca.gov is santaclaraca.gov's calendar. */
 const SECTION_HOST = /^(?:www|calendar|events?|admissions|members|tickets?|register|registration|apps?|portal)\./i;
+/**
+ * H47: the organisation behind an official host, as other listings of the same site already name it (tests/structured-data
+ * checks each name against the event data): a library page labelled only in Chinese ("旧金山公共图书馆活动页") or by its
+ * domain still names its library. Venues' own sites (an arena's, a mall's) are not here: the venue is not the organizer.
+ */
+export const ORGANIZER_BY_HOST: Readonly<Record<string, string>> = {
+  'sfpl.org': 'San Francisco Public Library',
+  'cupertino.gov': 'City of Cupertino',
+  'ssfca.gov': 'City of South San Francisco',
+  'ebparks.org': 'East Bay Regional Park District',
+  'danville.ca.gov': 'Town of Danville',
+  'foodwise.org': 'Foodwise',
+  'marinlibrary.bibliocommons.com': 'Marin County Free Library',
+  'events.sonomalibrary.org': 'Sonoma County Library',
+};
 /** The organizer named by the listing's official source, or nothing when the source is a report or a platform. */
 export function eventOrganizer(event: Pick<MonthlyEvent, 'sourceLabel' | 'officialUrl'>): Record<string, unknown> | undefined {
   if (/媒体报道|新闻|报道|media|news/i.test(event.sourceLabel)) return undefined;
@@ -66,14 +88,17 @@ export function eventOrganizer(event: Pick<MonthlyEvent, 'sourceLabel' | 'offici
   let host = '';
   let origin = '';
   try { const url = new URL(event.officialUrl); host = url.hostname.replace(/^www\./, ''); origin = `${url.origin}/`; } catch { /* no organizer URL */ }
+  // the url only when the page is on the organizer's own site: never a ticket platform, a bureau or a listing site
+  const organization = (name: string) => ({ '@type': 'Organization', name, ...(origin && !PLATFORM.test(host) && !LISTING_SITE.test(host) ? { url: origin } : {}) });
+  const known = Object.hasOwn(ORGANIZER_BY_HOST, host) ? ORGANIZER_BY_HOST[host] : undefined;
   // A bare domain names the organizer only when it is an organisation's own site (a city, a library, a park district, a
   // museum), never a visitor bureau, a listing site or a ticket platform; a section host names its organisation.
-  if (DOMAIN.test(label) && (!ORGANISATION_SITE.test(label) || LISTING_SITE.test(label))) return undefined;
+  if (DOMAIN.test(label) && (!ORGANISATION_SITE.test(label) || LISTING_SITE.test(label))) return known ? organization(known) : undefined;
   // "Lambtown Festival 主办方", "Novato 市官方活动页": the Latin name before the Chinese description of the page
   const name = DOMAIN.test(label) ? label.replace(SECTION_HOST, '') : label.replace(/\s*\p{Script=Han}.*$/u, '').replace(/[\s·/,-]+$/, '').trim();
-  if (!name || name.length < 3 || PLATFORM.test(name) || /^visit[\s·]/i.test(name)) return undefined;
-  // the url only when the page is on the organizer's own site: never a ticket platform, a bureau or a listing site
-  return { '@type': 'Organization', name, ...(origin && !PLATFORM.test(host) && !LISTING_SITE.test(host) ? { url: origin } : {}) };
+  if (!name || name.length < 3 || PLATFORM.test(name) || /^visit[\s·]/i.test(name)) return known ? organization(known) : undefined;
+  // a bare domain label of a site whose organisation other listings name: that name
+  return organization(DOMAIN.test(label) && known ? known : name);
 }
 
 const STATUS: Record<string, string> = { cancelled: 'https://schema.org/EventCancelled', postponed: 'https://schema.org/EventPostponed' };
@@ -97,10 +122,40 @@ export function eventOffers(event: Pick<MonthlyEvent, 'cost' | 'price' | 'offici
 }
 
 type Session = NonNullable<MonthlyEvent['sessions']>[number];
-/** First start and last end: from the sessions when the overlay has them, else the listing's dates (date only). */
-export function eventTimes(event: Pick<MonthlyEvent, 'startDate' | 'endDate' | 'sessions' | 'status'>): { startDate: string; endDate: string; sessions: readonly Session[] } {
+const two = (value: number) => String(value).padStart(2, '0');
+/** "14:00", "7:30 p.m.": 24-hour HH:MM, or undefined for anything that is not a clock time. */
+const clock = (hours: string, minutes: string, meridiem?: string): string | undefined => {
+  let hour = Number(hours);
+  if (meridiem) { if (hour < 1 || hour > 12) return undefined; hour = hour % 12 + (/^p/i.test(meridiem) ? 12 : 0); }
+  return hour <= 23 ? `${two(hour)}:${minutes}` : undefined;
+};
+const LABEL_TIME = /(?<![\d:/])([01]?\d|2[0-3]):([0-5]\d)(?:\s*([ap])\.?m\.?)?(?:\s*[–—~-]\s*([01]?\d|2[0-3])(?::([0-5]\d))?(?:\s*([ap])\.?m\.?)?)?(?!\s*(?:开门|開門|doors))/i;
+/**
+ * H47: the stated times of a one-day listing without sessions, from its reviewed date line ("10/18 · 14:00–16:00",
+ * "10 月 6 日 · 18:00–19:00", "10/10 · 10:30 开始"): the line the page shows, so the JSON-LD says what the page says. A
+ * multi-day listing's line may give one day's hours only, so it states none; a doors time (19:00 开门) is not the start.
+ */
+export function labelTimes(event: Pick<MonthlyEvent, 'startDate' | 'endDate' | 'occurrenceDates' | 'dateLabel' | 'sessions' | 'status'>): { start: string; end?: string } | undefined {
+  if (event.startDate !== event.endDate || event.sessions?.length || (event.occurrenceDates?.length ?? 0) > 1 || event.status === 'postponed' || event.status === 'cancelled') return undefined;
+  const match = LABEL_TIME.exec(event.dateLabel || '');
+  if (!match) return undefined;
+  // "4:30–6pm": the end's am/pm also reads the start when the start has none
+  const start = clock(match[1], match[2], match[3] || (match[6] && Number(match[1]) <= Number(match[4]) ? match[6] : undefined));
+  // an end hour needs its minutes or its am/pm ("–16:00", "–6pm"); a bare "–6" is not read
+  const end = match[4] && (match[5] || match[6]) ? clock(match[4], match[5] || '00', match[6]) : undefined;
+  if (!start) return undefined;
+  return end && end > start ? { start, end } : { start };
+}
+/**
+ * First start and last end: from the sessions when the overlay has them, else the start and end a one-day listing's date
+ * line states (labelTimes), else the listing's dates (date only).
+ */
+export function eventTimes(event: Pick<MonthlyEvent, 'startDate' | 'endDate' | 'sessions' | 'status'> & Partial<Pick<MonthlyEvent, 'occurrenceDates' | 'dateLabel'>>): { startDate: string; endDate: string; sessions: readonly Session[] } {
   const sessions = event.status === 'postponed' || event.status === 'cancelled' ? [] : [...event.sessions || []].sort((a, b) => a.date.localeCompare(b.date) || (a.start || '').localeCompare(b.start || ''));
-  if (!sessions.length) return { startDate: event.startDate, endDate: event.endDate, sessions };
+  if (!sessions.length) {
+    const label = event.dateLabel ? labelTimes({ ...event, dateLabel: event.dateLabel }) : undefined;
+    return label ? { startDate: pacificDateTime(event.startDate, label.start), endDate: pacificDateTime(event.endDate, label.end), sessions } : { startDate: event.startDate, endDate: event.endDate, sessions };
+  }
   const first = sessions[0], last = sessions[sessions.length - 1];
   const lastEnd = [...sessions].reverse().find(session => session.date === last.date && session.end)?.end;
   return { startDate: pacificDateTime(first.date, first.start), endDate: pacificDateTime(last.date, lastEnd), sessions };
