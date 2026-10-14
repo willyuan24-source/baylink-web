@@ -32,7 +32,8 @@ export type FeedCardProps = CardLink & {
   cover: ReactNode;
   /** One line, ellipsis: "Berkeley · 免费". Wrap the free price in <strong>. */
   meta?: ReactNode;
-  /** "官网核对 10/7" — the check mark is added here. */
+  /** "官网核对 10/7" — the check mark is added here. A card with this line credits its source, so inside a list that names the
+   *  info card once (FeedGrid) its coded cover drops the BAYLINK 信息卡 badge (H12, ui.css). */
   trust?: ReactNode;
   /** `<SaveButton>`; rendered as a sibling above the stretched link, never inside it. */
   save?: ReactNode;
@@ -45,7 +46,7 @@ export type FeedCardProps = CardLink & {
  */
 export function FeedCard({ cover, meta, trust, save, className, heading = 'h3', ...link }: FeedCardProps) {
   const Title = heading;
-  return <article className={cx('ui-feed-card', className)}>
+  return <article className={cx('ui-feed-card', className)} data-credited={trust ? '' : undefined}>
     <Title className="ui-feed-card__title"><CardTitleLink {...link} /></Title>
     <div className="ui-feed-card__media">{cover}</div>
     {meta && <p className="ui-feed-card__meta">{meta}</p>}

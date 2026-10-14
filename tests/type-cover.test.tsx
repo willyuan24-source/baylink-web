@@ -183,12 +183,12 @@ test('the palette lives in tokens.css: ui.css defines no global names, and every
   // once a primitive mounts; it may only set element-scoped layout variables.
   postcss.parse(css).walkRules(':root', rule => assert.fail(`ui.css has a :root block again (${rule.toString().slice(0, 60)}…): palette names belong in src/tokens.css`));
   postcss.parse(css).walkDecls(declaration => {
-    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|ui-art|tc-bg|tc-fg|tc-art|tc-art-shift|tc-art-width)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|ui-art|tc-bg|tc-fg|tc-art|tc-art-shift|tc-art-width|tc-badge-room)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
   });
   const globalNames = new Set<string>();
   postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
   for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
-  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-art', '--tc-bg', '--tc-fg', '--tc-art', '--tc-art-shift', '--tc-art-width']);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-art', '--tc-bg', '--tc-fg', '--tc-art', '--tc-art-shift', '--tc-art-width', '--tc-badge-room']);
   // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
   for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
   for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);
@@ -250,4 +250,27 @@ test('every drawing a TypeCover can pick has its mask rule and its own small vec
   const first = wrap(<EventTypeCover event={fleetWeek} today={today} />).container.querySelector('.ui-type-cover__art')!.getAttribute('data-art');
   cleanup(); await act(async () => { await setLocale('en', false); });
   assert.equal(wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week' }} today={today} />).container.querySelector('.ui-type-cover__art')!.getAttribute('data-art'), first);
+});
+
+test('a list names the info card once: its cards that credit their source drop the drawn badge, never the DOM text (H12)', async () => {
+  const { FeedGrid, FeedItem, FeedCard } = await import('../src/components/ui');
+  const view = wrap(<FeedGrid label="本周末活动">
+    <FeedItem><FeedCard title="社区讲座" to="/events/a" cover={<EventTypeCover event={fleetWeek} today={today} />} trust="官网核对 10/7" /></FeedItem>
+    <FeedItem><FeedCard title="无来源行" to="/events/b" cover={<EventTypeCover event={{ ...fleetWeek, id: 'b' }} today={today} />} /></FeedItem>
+  </FeedGrid>);
+  const feed = view.container.querySelector('.ui-feed')!;
+  assert.equal(feed.getAttribute('data-cover-credit'), '');
+  assert.equal(feed.querySelector(':scope > .ui-cover-credit')?.textContent, '没有照片的条目用 BAYLINK 信息卡，插画仅作装饰。');
+  const [credited, plain] = feed.querySelectorAll('.ui-feed-card');
+  assert.equal(credited.getAttribute('data-credited'), '');
+  assert.equal(plain.hasAttribute('data-credited'), false, 'a card without a source line keeps its badge');
+  for (const card of [credited, plain]) assert.equal(card.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡', 'screen readers and probes still read the label');
+  // Only the credited card in a credited list hides the badge (visually) and gives its room to the label; the caption hides
+  // itself in a list without such a card.
+  assert.match(css, /\[data-cover-credit\] \.ui-feed-card\[data-credited\] \.ui-type-cover \.ui-provenance \{ width:1px; height:1px;[^}]*clip:rect\(0 0 0 0\)/);
+  assert.match(css, /\[data-cover-credit\] \.ui-feed-card\[data-credited\] \.ui-type-cover:not\(\[data-size=mini\]\) \{ --tc-badge-room:0px; \}/);
+  assert.match(css, /\.ui-feed:not\(:has\(\.ui-feed-card\[data-credited\] \[data-cover=type\]\)\)>\.ui-cover-credit \{ display:none; \}/);
+  cleanup(); await act(async () => { await setLocale('en', false); });
+  const english = wrap(<FeedGrid label="Events"><FeedItem><FeedCard title="Talk" to="/events/a" cover={<EventTypeCover event={fleetWeek} today={today} />} trust="Source checked 10/7" /></FeedItem></FeedGrid>);
+  assert.equal(english.container.querySelector('.ui-cover-credit')?.textContent, 'No photo: a BAYLINK info card; drawings are decorative.');
 });

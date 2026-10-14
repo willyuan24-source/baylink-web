@@ -88,7 +88,7 @@
    clamp(rem floor, min(width term, height term), rem cap): root Aa grows the floor and the cap, the width term carries
    --fluid-scale like the site's fluid headings, and the unscaled height term keeps the text inside the box, so the 3:2
    single-column cover at 大/特大 is not scaled twice. Floors under 1rem also take the 简洁显示 --text-floor. */
-.ui-type-cover { container-type:size; container-name:ui-type-cover; background:var(--tc-bg, var(--tc-outdoors-bg)); color:var(--tc-fg, var(--tc-outdoors-fg)); text-align:start; }
+.ui-type-cover { --tc-badge-room:1.75rem; container-type:size; container-name:ui-type-cover; background:var(--tc-bg, var(--tc-outdoors-bg)); color:var(--tc-fg, var(--tc-outdoors-fg)); text-align:start; }
 .ui-type-cover[data-tone=family] { --tc-bg:var(--tc-family-bg); --tc-fg:var(--tc-family-fg); --tc-art:var(--tc-family-fg); }
 .ui-type-cover[data-tone=culture] { --tc-bg:var(--tc-culture-bg); --tc-fg:var(--tc-culture-fg); --tc-art:var(--tc-culture-fg); }
 .ui-type-cover[data-tone=outdoors] { --tc-bg:var(--tc-outdoors-bg); --tc-fg:var(--tc-outdoors-fg); --tc-art:var(--tc-outdoors-fg); }
@@ -126,7 +126,7 @@
 /* A portrait card with ♡ on its cover (top right): the drawing is a step smaller and starts under the heart, clear of the
    date (a square or landscape cover keeps it in the corner, ui-type-cover container rule). */
 .ui-feed-card:has(>.ui-feed-card__save) .ui-type-cover { --tc-art-shift:1.75rem; --tc-art-width:40cqw; }
-.ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + 1.75rem); }
+.ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + var(--tc-badge-room)); }
 .ui-type-cover__body>* { flex:none; margin:0; }
 .ui-type-cover__body>.ui-type-cover__title,.ui-type-cover__body>.ui-type-cover__note { flex:0 1 auto; min-height:0; }
 .ui-type-cover__label { color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; }
@@ -148,7 +148,7 @@
 .ui-type-cover__note { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:var(--tc-fg); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
 /* Square and landscape covers (offers, 16:9 heroes, the 3:2 single-column feed): shorter text block. */
 @container ui-type-cover (min-aspect-ratio:1/1) {
-  .ui-type-cover__body { padding:5cqh 6cqw; padding-top:calc(5cqh + 1.75rem); }
+  .ui-type-cover__body { padding:5cqh 6cqw; padding-top:calc(5cqh + var(--tc-badge-room)); }
   .ui-type-cover__title { -webkit-line-clamp:2; }
   .ui-type-cover__art { top:5cqh; right:4cqw; width:auto; height:50cqh; translate:none; }
 }
@@ -158,7 +158,7 @@
 .ui-type-cover[data-size=mini] .ui-type-cover__date { justify-content:center; font-size:1.375rem; }
 .ui-type-cover[data-size=mini] .ui-type-cover__date-small { flex-basis:100%; font-size:var(--text-caption); }
 @supports not (container-type:size) {
-  .ui-type-cover__body { gap:4px; padding:14px; padding-top:42px; }
+  .ui-type-cover__body { gap:4px; padding:14px; padding-top:calc(14px + var(--tc-badge-room)); }
   .ui-type-cover__art { top:6px; right:6px; width:84px; height:112px; }
   .ui-type-cover__label,.ui-type-cover__place { font-size:var(--text-caption); }
   .ui-type-cover__date { font-size:1.8125rem; }
@@ -203,6 +203,13 @@
 .ui-meta-sep { white-space:pre; }
 .ui-feed-card__trust { display:flex; align-items:center; gap:4px; color:var(--color-ink-3); }
 .ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
+/* H12 / SV13-02: in a list that names the info card once (FeedGrid's caption, the home offers) a card that credits its source
+   (the ✓ 官网核对 line, FeedCard data-credited) drops the BAYLINK 信息卡 badge from its coded cover: still in the DOM for screen
+   readers and probes, not drawn, and the label takes its place. Elsewhere (heroes, detail bands, guide cards) the badge stays. */
+[data-cover-credit] .ui-feed-card[data-credited] .ui-type-cover:not([data-size=mini]) { --tc-badge-room:0px; }
+[data-cover-credit] .ui-feed-card[data-credited] .ui-type-cover .ui-provenance { width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+.ui-cover-credit { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.ui-feed:not(:has(.ui-feed-card[data-credited] [data-cover=type]))>.ui-cover-credit { display:none; }
 .ui-feed-card__save { position:absolute; top:4px; right:4px; z-index:3; }
 @media (min-width:1024px) { .ui-feed-card__title { font-size:var(--text-body); line-height:1.5; } }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
