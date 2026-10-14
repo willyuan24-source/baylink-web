@@ -396,7 +396,7 @@
   },
   "octnov-petaluma-ancestral-sounds-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -420,13 +420,13 @@
             "end": "12:00"
           }
         ],
-        "note": "固定11:00–12:00儿童音乐活动，官方年龄组为K–6年级；不把年级直接换算成数值最低/最高年龄。8岁及以下须成人陪同，这不是8岁最低年龄。地点为100 Fairgrounds Drive现馆；活动页未列费用或强制预约。"
+        "note": "固定11:00–12:00儿童音乐活动，官方年龄组为K–6年级；不把年级直接换算成数值最低/最高年龄。8岁及以下须成人陪同，这不是8岁最低年龄。地点为100 Fairgrounds Drive现馆；图书馆活动免费，活动页没有写要预约。"
       }
     }
   },
   "octnov-healdsburg-tech-help-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -450,7 +450,7 @@
             "end": "16:30"
           }
         ],
-        "note": "固定16:00–16:30成人一对一帮助，预约在11/28 15:00截止；名额以实时页面为准。官方标Adult但未给数字年龄，不凭此创造18岁入场门槛。报名需注明问题/设备；活动页未列费用。"
+        "note": "固定16:00–16:30成人一对一帮助，预约在11/28 15:00截止；名额以实时页面为准。官方标Adult但未给数字年龄，不凭此创造18岁入场门槛。报名需注明问题/设备；图书馆活动免费。"
       }
     }
   },

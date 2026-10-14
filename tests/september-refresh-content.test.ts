@@ -32,7 +32,9 @@ test('September refresh is discoverable once per canonical event or benefit, wit
 
 test('unknown entry costs and student-only admission do not appear as universally free', () => {
   const unknown = sfEast.filter(event => event.cost === 'unknown');
-  assert.equal(unknown.length, 5);
+  // CNT-HOTFIX-2: the three SFPL programmes are free by the library's published policy; the rest stay unknown.
+  assert.equal(unknown.length, 2);
+  for (const id of ['sf-main-halloween-costume-swap-oct15-2026', 'sf-halloween-broadside-printing-oct17-2026', 'sf-marina-library-open-house-oct17-2026']) assert.equal(sfEast.find(event => event.id === id)?.cost, 'free', id);
   const freeIds = new Set(filterMonthlyEvents(MONTHLY_EVENTS, { cost: 'free' }, '2026-09-29').map(event => event.id));
   for (const event of unknown) {
     assert.ok(!freeIds.has(event.id), event.id);

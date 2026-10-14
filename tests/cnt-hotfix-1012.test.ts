@@ -44,7 +44,10 @@ test('the Doja Cat show moved from Mon 10/19 to Sun 10/25 (Chase Center)', () =>
 test('opening facts follow the official pages: Old Post Office brunch from Sun 10/18, Marufuku and O2 Sushi open', () => {
   const postOffice = opening('old-post-office-burlingame');
   assert.match(postOffice.dateLabel, /早午餐 10\/18 起/u);
-  assert.match(postOffice.editorTip, /10\/18（周日）才开始/u);
+  // CNT-HOTFIX-2 review (10-14): the site no longer prints the 10/18 note, so 10/18 is credited to it and 10/17 is unconfirmed.
+  assert.match(postOffice.editorTip, /官网此前写早午餐 10\/18（周日）起/u);
+  assert.match(postOffice.editorTip, /10\/17 周六是否供应未能确认，去前先打 650-502-1000/u);
+  assert.doesNotMatch(postOffice.editorTip, /还没有早午餐/u, 'no current source says there is no brunch on 10/17');
   assert.doesNotMatch(`${postOffice.dateLabel}${postOffice.editorTip}`, /10\/17 起/u);
   const marufuku = opening('marufuku-burlingame-announced');
   assert.equal(marufuku.status, 'open');

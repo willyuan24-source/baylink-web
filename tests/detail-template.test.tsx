@@ -126,10 +126,15 @@ test('多少钱 is a short value (免费 / 部分免费 / $8–12 / 收费 / 费
     assert.ok(value, discoveryShare(item).id);
     assert.ok((value.textContent || '').length <= 12, `${discoveryShare(item).id}: "${value.textContent}" is not a sentence`);
   }
-  const swap = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'sf-main-halloween-costume-swap-oct15-2026')!;
-  const cost = page(swap).querySelector('[data-fact="cost"] dd')!;
+  const milagros = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'san-lorenzo-metal-milagros-oct10-2026')!;
+  const cost = page(milagros).querySelector('[data-fact="cost"] dd')!;
   assert.equal(cost.querySelector('.detail-fact__line')!.textContent, '费用待确认');
-  assert.match(cost.querySelector('small')!.textContent || '', /^官方活动页未列明收费/, 'the note starts at its reason, not a second 费用待核');
+  assert.match(cost.querySelector('small')!.textContent || '', /^官方未列明收费/, 'the note starts at its reason, not a second 费用待核');
+  // CNT-HOTFIX-2 (H69): the SFPL swap is free under SFPL's "all programs and events are free" listing policy.
+  const swap = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'sf-main-halloween-costume-swap-oct15-2026')!;
+  const swapCost = page(swap).querySelector('[data-fact="cost"] dd')!;
+  assert.equal(swapCost.querySelector('.detail-fact__line')!.textContent, '免费');
+  assert.match(swapCost.querySelector('small')!.textContent || '', /^图书馆活动免费/);
 });
 
 const findItem = (kind: string, id: string) => {

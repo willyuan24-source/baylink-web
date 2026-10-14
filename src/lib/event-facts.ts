@@ -306,16 +306,20 @@ export const offerKindLabel = (offer: Pick<OfferFactsInput, 'brand' | 'publicBen
 
 export type OpeningFactsInput = Pick<SeptemberOpening, 'status' | 'openedOn'>;
 /**
- * "10 月开业" for a shop with a recorded first day of service, "预计 11/20 开业" for an announced day, "试营业" for a soft
- * opening, and "已开业" for a shop its source calls open without naming the first day (EVT13-02: 33 open shops read
- * 即将开业). Only an announced shop is "即将开业". Never a guessed date. The opening cards, TypeCover, BayBay's cards and
- * the share cards all print this chip.
+ * "10/11 已开业" for a shop with a recorded first day of service (a month alone, "10 月开业", read as a forecast: 10-13
+ * live check on Marufuku Burlingame), "9/4 起试营业" / "Soft open 9/4" for a soft opening with a recorded first day
+ * (numeric in English as well: "Soft open Sep 28" is wider than a share card's cover at its 44 px floor), "预计 11/20
+ * 开业" for an announced day, "试营业" for a soft opening without a day, and "已开业" for a shop its source calls open
+ * without naming the first day (EVT13-02: 33 open shops read 即将开业). Only an announced shop is "即将开业". Never a
+ * guessed date. The opening cards, TypeCover, BayBay's cards and the share cards all print this chip, so every form
+ * must fit the share card's cover (tests/cnt-hotfix-1013.test.ts).
  */
 export function openingChip(opening: OpeningFactsInput, today: string): Copy {
   const opened = validDay(opening.openedOn) ? opening.openedOn : undefined;
   if (opened && opened <= today && opening.status !== 'announced') {
-    const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(`${opened}T12:00:00Z`));
-    return { zh: `${Number(opened.slice(5, 7))} 月开业`, en: `Opened ${month}` };
+    if (opening.status === 'soft_open') return { zh: `${monthDay(opened)} 起试营业`, en: `Soft open ${monthDay(opened)}` };
+    const day = `${new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(`${opened}T12:00:00Z`))} ${Number(opened.slice(8, 10))}`;
+    return { zh: `${monthDay(opened)} 已开业`, en: `Opened ${day}` };
   }
   if (opened && opened > today) return { zh: `预计 ${monthDay(opened)} 开业`, en: `Opening ${monthDay(opened)}` };
   if (opening.status === 'soft_open') return { zh: '试营业', en: 'Soft opening' };

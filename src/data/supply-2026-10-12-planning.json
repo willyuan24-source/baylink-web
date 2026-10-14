@@ -334,7 +334,7 @@
   },
   "sccl-campbell-friends-book-sale-nov14-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -355,7 +355,7 @@
   },
   "sjpl-almaden-sounds-of-south-asia-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -376,7 +376,7 @@
   },
   "sjpl-berryessa-diwali-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -438,7 +438,7 @@
   },
   "smcl-millbrae-chinese-storytime-oct-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -464,7 +464,7 @@
   },
   "smcl-portola-valley-mid-autumn-lantern-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -485,7 +485,7 @@
   },
   "smcl-san-carlos-ofrenda-musical-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -506,7 +506,7 @@
   },
   "smcl-brisbane-sugar-skull-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": 8,
       "reservation": "unknown",
       "setting": "indoor",
@@ -527,7 +527,7 @@
   },
   "smcl-foster-city-nidhi-chanani-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -548,7 +548,7 @@
   },
   "smcl-pacifica-robotics-team5940-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -569,7 +569,7 @@
   },
   "smcl-atherton-diwali-henna-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -590,7 +590,7 @@
   },
   "smcl-north-fair-oaks-diwali-henna-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -611,7 +611,7 @@
   },
   "smcl-portola-valley-nahuatl-prints-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -632,7 +632,7 @@
   },
   "smcl-brisbane-zuni-water-jar-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": 6,
       "maxAge": 11,
       "reservation": "unknown",
@@ -654,7 +654,7 @@
   },
   "smcl-brisbane-puzzle-swap-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -675,7 +675,7 @@
   },
   "smcl-belmont-friends-book-sale-nov-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -689,7 +689,7 @@
   },
   "smcl-san-carlos-friends-book-sale-nov15-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -710,7 +710,7 @@
   },
   "smcl-pacifica-ofrenda-musical-nov14-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -987,7 +987,7 @@
   },
   "marin-point-reyes-librito-concert-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1050,7 +1050,7 @@
   },
   "sjpl-village-square-thanksgiving-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1071,7 +1071,7 @@
   },
   "marin-bolinas-saturday-crafts-nov14-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1092,7 +1092,7 @@
   },
   "marin-corte-madera-quiltmaking-talk-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",

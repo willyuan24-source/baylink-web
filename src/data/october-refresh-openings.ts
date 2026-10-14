@@ -20,7 +20,7 @@ export const octoberRefreshOpenings: SeptemberOpening[] = [
     id: 'dead-letter-sonoma-new-restaurant-2026', name: 'Dead Letter',
     city: 'Sonoma', region: 'north-bay', category: '新餐厅 · 炭火加州料理',
     status: 'open', openingType: 'new-restaurant',
-    dateLabel: '初秋新店 · 9/1 旅游局已报道营业，首日未核实',
+    dateLabel: '初秋开业 · 9/1 旅游局报道已营业',
     summary: 'the girl & the fig 团队在 Sonoma Plaza 的历史邮局建筑开设新餐厅，以时令食材、炭火烹调和分享菜为主，也有数字艺术展陈。官网当前提供菜单、营业时间与订位入口。',
     editorTip: '目前官网列周三至周日 17:00 开门，周一、周二休息；先查菜单价格与可订时段。本文是新店资讯，非亲测食评；9/1 是旅游局文章日期，不作开业日，也没有已核实开业折扣。',
     address: '101 E Napa Street, Sonoma, CA 95476',

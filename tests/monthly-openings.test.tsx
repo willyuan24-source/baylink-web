@@ -111,7 +111,7 @@ test('an open shop never says 即将开业 / Opening soon on its chip, its card 
   assert.equal(marufuku.status, 'open');
   assert.equal(marufuku.openedOn, '2026-10-11', 'the store page names 10/11 as the grand opening with service hours');
   assert.equal(marufuku.category, '拉面');
-  assert.deepEqual(openingChip(marufuku, '2026-10-13'), { zh: '10 月开业', en: 'Opened Oct' });
+  assert.deepEqual(openingChip(marufuku, '2026-10-13'), { zh: '10/11 已开业', en: 'Opened Oct 11' }, 'opened, with the day: a month alone read as a forecast');
 });
 
 test('soft openings have their own filter and never inherit an open or announced label', () => {
@@ -121,11 +121,12 @@ test('soft openings have their own filter and never inherit an open or announced
   assert.deepEqual(names(view), softOpenShops.map(shop => shop.name));
   for (const shop of softOpenShops) {
     const meta = card(view, shop.name).querySelector('.ui-feed-card__meta')!.textContent!;
-    if (!shop.openedOn) assert.match(meta, /试营业$/, shop.id);
+    assert.match(meta, shop.openedOn ? /\d+\/\d+ 起试营业$/ : /试营业$/, shop.id);
     assert.doesNotMatch(meta, /即将开业/, shop.id);
   }
   const fixture = { status: 'soft_open' as const, openedOn: undefined };
   assert.deepEqual(openingChip(fixture, '2026-11-01'), { zh: '试营业', en: 'Soft opening' }, 'time passing does not make a soft opening open');
+  assert.deepEqual(openingChip({ status: 'soft_open', openedOn: '2026-09-04' }, '2026-10-14'), { zh: '9/4 起试营业', en: 'Soft open 9/4' }, 'a dated soft opening is not 已开业');
 });
 
 test('status and region narrow the board, and an empty combination offers a reset to every opening in the region', () => {
@@ -161,8 +162,8 @@ test('passing an announced date or month never silently promotes a forecast to o
     }
     cleanup();
   }
-  // A confirmed first day reads as the month it opened; a future one as the expected day.
-  assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-08-10' }, TODAY), { zh: '8 月开业', en: 'Opened Aug' });
+  // A confirmed first day reads as the day it opened; a future one as the expected day.
+  assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-08-10' }, TODAY), { zh: '8/10 已开业', en: 'Opened Aug 10' });
   assert.deepEqual(openingChip({ status: 'open', openedOn: '2026-10-20' }, TODAY), { zh: '预计 10/20 开业', en: 'Opening 10/20' });
   // An open shop whose source names no first day is open, not coming (EVT13-02 / H09); only an announcement is 即将开业.
   assert.deepEqual(openingChip({ status: 'open', openedOn: undefined }, TODAY), { zh: '已开业', en: 'Open now' });

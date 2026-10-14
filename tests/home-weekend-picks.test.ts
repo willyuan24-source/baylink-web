@@ -123,6 +123,23 @@ test('adult-only events wait until nothing else is left, and regions vary', () =
   assert.deepEqual(ids(selectWeekendFallback([sf[0], east], { weekendStart: '2026-10-10', count: 1, usedRegions: ['sf'] })), ['east-plain'], 'regions already shown by editor picks count');
 });
 
+test('without editor picks, the first pick has a real photo when any pick does; the rest keep their rank (CNT-HOTFIX-2)', () => {
+  const hasPhoto = (key: string) => key === 'photo';
+  // A free Chinese family storytime without a photo outranks two photo events, as the Millbrae storytime did on 10/14.
+  const catalog = [
+    event('storytime', { title: '国语故事会', cost: 'free', category: 'family', region: 'peninsula' }),
+    event('streets', { cost: 'free', category: 'family', imageKey: 'photo' }),
+    event('expo', { cost: 'free', imageKey: 'photo', region: 'east-bay' }),
+  ];
+  const weekend = getHomeWeekend('2026-10-08', catalog, { picks: {}, hasPhoto, flagships: new Set() });
+  assert.deepEqual(ids(weekend.picks), ['streets', 'storytime', 'expo'], 'the best photo pick leads, the storytime is second');
+  // No photo at all: rank order unchanged.
+  assert.deepEqual(ids(getHomeWeekend('2026-10-08', catalog, { picks: {}, hasPhoto: () => false, flagships: new Set() }).picks)[0], 'storytime');
+  // An editor pick keeps the lead even without a photo.
+  const edited = getHomeWeekend('2026-10-08', catalog, { picks: { '2026-10-10': [{ id: 'storytime', reason: { zh: '首选', en: 'First' } }] }, hasPhoto, flagships: new Set() });
+  assert.equal(ids(edited.picks)[0], 'storytime');
+});
+
 test('every home snapshot equals the build selection, so the home page and the share card agree', () => {
   const snapshots = HOME_WEEKENDS as Record<string, { ids: string[]; total: number }>;
   for (const day of Object.keys(snapshots)) assert.deepEqual(snapshots[day].ids, ids(getBuildWeekend(day, COMPLETE_EVENTS).picks), day);

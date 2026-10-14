@@ -96,7 +96,7 @@
     "occurrenceDates": [
       "2026-10-17"
     ],
-    "dateLabel": "10/17（六）主场 10:00–15:00；社区庆祝 15:30–17:30",
+    "dateLabel": "10/17（六）主场 10:00–15:00；社区庆祝 15:00 或 15:30 起，建议 15:00 前到",
     "region": "east-bay",
     "city": "Berkeley",
     "venue": "James Kenney Community Center · 1720 8th Street, Berkeley；另有两个分场地",
@@ -107,7 +107,7 @@
     "plan": [
       "主场 James Kenney Community Center（1720 8th Street）10:00–15:00；各项体育活动有独立时段，不能保证任何时间都能体验全部项目。 骑行与皮划艇在 BORP Adaptive Cycling Center（80 Bolivar Drive）10:00–13:00；攀岩在 Berkeley Ironworks（800 Potter Street）12:00–15:00，需另预留转场时间。",
       "提前报名强烈建议；交通和攀岩必须登记。无障碍免费接驳连接 North Berkeley BART 与三个场地，名额有限须预留；攀岩另需签免责文件。 其他体验可到场填简表；欢迎无残障社区成员参与或观看。官网未公布统一最低年龄，应按所选运动向主办方确认。",
-      "主场 15:30–17:30 有免费社区庆祝、食物、音乐和游戏；这是另一个时段，不代表白天午餐免费。"
+      "主场之后有免费社区庆祝，有食物、音乐和游戏：官网日程写 15:00–16:30，FAQ 写 15:30–17:30，两处不一致，建议 15:00 前到。白天午餐餐车另购。"
     ],
     "audience": [
       "无障碍运动",
@@ -194,8 +194,8 @@
     "city": "San Francisco",
     "venue": "Marina Branch Library · 1890 Chestnut Street, San Francisco, CA 94123",
     "category": "family",
-    "cost": "unknown",
-    "costLabel": "费用待核：官方活动页未列明入场费；赠书数量未公布。",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；赠书数量未公布。",
     "summary": "在分馆和院落听音乐、做书签与徽章，还可参加服装交换、宾果及社区资源活动。",
     "plan": [
       "面向家庭与所有年龄；按官网参加规则，可直接到场，无须预约。",
@@ -225,8 +225,8 @@
     "city": "San Francisco",
     "venue": "SF Main Library · Book Arts & Special Collections · 100 Larkin Street, San Francisco, CA 94102",
     "category": "culture",
-    "cost": "unknown",
-    "costLabel": "费用待核：官方活动页未列明入场费；纪念印张限前 100 位。",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；纪念印张限前 100 位。",
     "summary": "在印刷工作者协助下体验图书馆的 Albion 手压印刷机，制作万圣节纪念印张。",
     "plan": [
       "American Printing History Association 的 NorCal 分会提供印刷协助；按现场工作人员指导操作设备。",
@@ -256,8 +256,8 @@
     "city": "San Francisco",
     "venue": "SF Main Library · Children's Creative Center, 2nd Floor · 100 Larkin Street, San Francisco, CA 94102",
     "category": "family",
-    "cost": "unknown",
-    "costLabel": "费用待核：官方活动页未列明收费，也未要求必须先捐一件才能领取。",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；不要求先捐一件才能领。",
     "summary": "为孩子寻找新的万圣节造型，或带来洁净、轻度使用的服装交换；道具与配件也欢迎。",
     "plan": [
       "面向儿童及照顾者，活动在 Main Library 二楼儿童创意中心；不是 Marina 分馆或 San Leandro 的交换会。",

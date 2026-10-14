@@ -120,7 +120,7 @@ export const lateSeptemberNorthOpenings: SeptemberOpening[] = [
     "category": "新概念店 · 意式三明治与熟食",
     "status": "open",
     "openingType": "new-restaurant",
-    "dateLabel": "9 月商业区公告介绍 · 现已营业，首日未核实",
+    "dateLabel": "已营业 · 9 月商业区公告介绍",
     "summary": "主厨 Alexander Alioto 把原 The Kitchen Table 改成轻松的意式熟食店，主打佛卡夏三明治、pinsa 披萨，也提供鲜意面、酱料与面包外带。适合在 Fourth Street 办事或逛街时安排午餐。",
     "editorTip": "品牌官网分别列出 San Rafael 与 Reno 门店，点单时认准 San Rafael；现列每日 10:00–17:00，临行复查。9/1 是商业区文章日期，不当作开业首日。",
     "address": "1574 4th Street, San Rafael, CA 94901",

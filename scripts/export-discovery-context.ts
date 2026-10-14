@@ -4,10 +4,11 @@ import { fileURLToPath } from 'node:url';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { loadLocale, translateText, type Locale } from '../src/i18n/locale';
+import { discoveryCheckedAt } from './discovery-checked-at';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const targets = [resolve(root, 'public/discovery-context.json'), ...(process.argv[2] ? [resolve(root, process.argv[2])] : [])];
-const checkedAt = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const checkedAt = discoveryCheckedAt([...currentFreebies, ...currentOpenings]);
 const catalog = (locale: Locale) => {
   const t = (value: string) => translateText(value, locale);
   return { version: 1, checkedAt, items: [
@@ -24,4 +25,4 @@ for (const locale of ['zh-Hans', 'en'] as const) for (const target of targets) {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, JSON.stringify(catalog(locale), null, 2) + '\n', 'utf8');
 }
-process.stdout.write(`Exported ${currentFreebies.length} offers and ${currentOpenings.length} openings to ${targets.length} catalog locations (Chinese and English). Existing verification dates were preserved.\n`);
+process.stdout.write(`Exported ${currentFreebies.length} offers and ${currentOpenings.length} openings to ${targets.length} catalog locations (Chinese and English), checked ${checkedAt}. Existing verification dates were preserved.\n`);

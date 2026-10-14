@@ -362,8 +362,8 @@
     "city": "Petaluma",
     "venue": "Petaluma Regional Library 会议室，100 Fairgrounds Drive",
     "category": "family",
-    "cost": "unknown",
-    "costLabel": "活动页未列费用或预约要求",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；活动页没有写要预约",
     "summary": "Manos Mexicas 以手工制作的乐器介绍中美洲音乐传统；官网面向幼儿园至六年级儿童。",
     "plan": [
       "8岁及以下儿童须有成人陪同。",
@@ -392,8 +392,8 @@
     "city": "Healdsburg",
     "venue": "Healdsburg Regional Library 主阅览室，139 Piper Street",
     "category": "culture",
-    "cost": "unknown",
-    "costLabel": "需预约；活动页未列费用",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；需预约",
     "summary": "预约馆员的半小时个别指导，处理电子书借阅、电子邮件设置或设备使用疑问。",
     "plan": [
       "此条对应11/28 16:00这一场，预约于当日15:00截止。",

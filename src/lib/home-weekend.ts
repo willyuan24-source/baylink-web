@@ -68,9 +68,13 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
     const entry = events.find(item => item.event.id === id);
     if (entry && picks.length < limit && !picks.some(pick => pick.event.id === id)) picks.push({ ...entry, editorial: editorialFor(list, id) });
   }
-  picks.push(...selectWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), {
+  const fallback = selectWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), {
     weekendStart: range.start, count: limit - picks.length, usedRegions: picks.map(pick => pick.event.region), hasPhoto, flagships,
-  }));
+  });
+  // Image-led home: when no editor pick leads, the best-ranked pick with a real photo goes first (its cover is the page's
+  // LCP image and the only eager one); the others keep their rank order. A top-ranked pick without a photo moves to
+  // second instead of leaving the first slot to an information card.
+  picks.push(...(picks.length ? fallback : featurePhotos(fallback, entry => hasPhoto(entry.event.imageKey), [0])));
   // The feed: the rest of the weekend in the home ranking (Chinese-language, free, family, real photo, flagship), with
   // the best real photos on the grid's diagonal.
   const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), range.start, { hasPhoto, flagships });

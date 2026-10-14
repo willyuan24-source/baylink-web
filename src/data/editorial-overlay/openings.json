@@ -10,7 +10,7 @@
 "oakland-55-coffee-pop-up-2026": {"fix":{"editorTip":"快闪设在 The Saap Avenue 店内；也卖糕点。"}},
 "oakland-chez-maeju-soft-opening-2026": {"fix":{"editorTip":"只做晚餐，周二休息；官网可订位。"}},
 "oakland-delage-reopening-2026": {"fix":{"dateLabel":"官网写 Now open · 周一至周六 午餐 11:00–15:00、晚餐 17:00–21:00","editorTip":"电话 341-213-7494，可打电话或发短信。官网没有列周日营业时间。报道列八道 omakase $150，点单菜单另计；报道没写是否含税和小费。商家提供预约入口。"}},
-"old-post-office-burlingame": {"fix":{"dateLabel":"10/1 已开业 · 午餐 10/12、早午餐 10/18 起","editorTip":"10/12 起周一至周五午餐 11:30–14:00；周末早午餐 11:00–14:00，10/18（周日）才开始，10/17 周六还没有早午餐。午餐和早午餐都可在官网订位。"}},
+"old-post-office-burlingame": {"fix":{"dateLabel":"10/1 已开业 · 午餐 10/12、早午餐 10/18 起","editorTip":"10/12 起周一至周五午餐 11:30–14:00；周末早午餐 11:00–14:00。官网此前写早午餐 10/18（周日）起，现在已不写日期，10/17 周六是否供应未能确认，去前先打 650-502-1000。午餐和早午餐都可在官网订位。"}},
 "passdoor-santa-rosa-opening-2026": {"fix":{"editorTip":"官网首页列营业时间：周一至周六 11:00–17:30。"}},
 "pittsburg-nekter-opening-2026": {"fix":{"editorTip":"除果汁和 smoothie 也有果碗和华夫饼；Fremont、Danville 另有分店。"}},
 "san-jose-bitterbuck-soft-opening-2026": {"openedOn":"2026-09-04","fix":{"editorTip":"按单点菜单消费，价格见店内菜单。店方不接受预约；试营业阶段菜单和时段可能调整。试营业日期来自当地媒体报道。"}},

@@ -753,3 +753,117 @@ Two openings corrected through `src/data/editorial-overlay/openings.json` (H09 /
 |---|---|---|---|---|---|
 | opening | `marufuku-burlingame-announced` | https://www.marufukuramen.com/burlingame | 2026-10-13 | `openedOn` 2026-10-11 (the store page's grand opening, with its service hours, is the first day of public service); `fix.category` 拉面 (was 拉面新店预告). The site's location list still says "BURLINGAME (COMING SOON)"; the store page is the more specific source | "GRAND OPENING: OCT. 11 … 11am-2pm / 5pm-9pm … Regular hours starting 10/12" |
 | opening | `oakland-delage-reopening-2026` | https://www.delagesushi.com/ | 2026-10-13 | `fix.dateLabel` Now open · Mon–Sat lunch 11:00–15:00, dinner 17:00–21:00; `fix.editorTip` phone 341-213-7494 (call or text), no Sunday hours listed, the press omakase price kept with the record's own caveats (tax and tip: the report does not say whether they are included; 商家提供预约入口); dropped "试营业前核对" (the shop is open) | "Now open for lunch & Dinner … Open Monday - Saturday … Lunch • 11am - 3pm … Dinner • 5pm - 9pm … 341-213-7494" |
+
+## CNT-HOTFIX-2 · official-page reads, 2026-10-13 (PT)
+
+Read by the CNT-HOTFIX-2 lane agent on 2026-10-13 (PT, ~20:30–23:00) with read-only GETs (curl; headless Chrome for script pages);
+no forms, logins, bookings or posts. Library event descriptions come from each library's public Bibliocommons events feed
+(`gateway.bibliocommons.com/v2/libraries/<library>/events`, the data the event page renders). `verifiedAt` is unchanged everywhere (D12);
+these rows record what an agent read, not an editor check.
+
+### H69 · library programme policies (the basis for cost "free")
+
+| kind | library system | URL | read | used for | quote |
+|---|---|---|---|---|---|
+| policy | San Francisco Public Library | https://sfpl.org/events | 200 | cost "free" on `sf-main-halloween-costume-swap-oct15-2026`, `sf-halloween-broadside-printing-oct17-2026`, `sf-marina-library-open-house-oct17-2026` (re-read of the CNT-SUPPLY policy row) | "Unless otherwise noted all programs will be presented in English. All programs and events are free and open to the public." |
+| policy | San Mateo County Libraries | https://smcl.org/welcome-to-smcl/ | 200 | cost "free" on the 14 `smcl-` events below | "Everything at our libraries is free—with no late fees, ever." (same page: "Free Events for All Ages") |
+| policy | San José Public Library | https://www.sjpl.org/news/get-started/ | 200 | cost "free" on 3 `sjpl-` events, "mixed" on the Almaden festival | "It's Free! - Yes, you read that right. Check out books, eResources, and tech devices without spending a dime. Attend events, access the internet, and so much more for free." |
+| policy | Marin County Free Library | https://marinlibrary.org/program-policy/ | 200 | cost "free" on 3 `marin-` events | "All programs will be without charge and open to the general public." |
+| policy | Santa Clara County Library District | https://sccld.org/program-policy/ | 200 | cost "free" (free entry) on `sccl-campbell-friends-book-sale-nov14-2026` | "Programs and events are free, open to the public, and designed to meet the diverse interests and needs of library users." |
+| policy | Sonoma County Library | https://sonomalibrary.org/events/submit-a-program | 200 | cost "free" on `octnov-healdsburg-tech-help-2026`, `octnov-petaluma-ancestral-sounds-2026` | "Programs must be open to the public and free of charge." (the library's programming criteria) |
+| no policy found | Alameda County Library | https://aclibrary.org/faqs/ ; https://aclibrary.org/policies/ ; https://aclibrary.org/library-policies/fines-fees/ | 200 / 200 / 200 | 5 `acl-` events stay "unknown"; their feed descriptions say nothing about a fee | — |
+| no policy found | Contra Costa County Library | https://ccclib.org/faqs/ ; https://ccclib.org/policies/ | 200 / 200 | 5 `ccclib-` events stay "unknown"; no fee wording in their descriptions (the Martinez sale states "Fill your bag for $10.00") | — |
+| no policy found | Napa County Library | https://napalibrary.gov/faqs/ ; https://napalibrary.gov/policies/ ; event pages https://napalibrary.libnet.info/event/17353106 (and 17353346, 17353821, 17390000, 17354022, 17410706) | 200 | 6 `r2-` Napa library events stay "unknown"; the event pages say nothing about a fee (a "no cost to participate" line exists only in newspaper copy, not on the library's site) | — |
+| no policy found | San Leandro Public Library | https://www.sanleandro.org/Calendar.aspx?EID=7820 ; …EID=7857 | 200 (headless Chrome) | `san-leandro-trick-storytime-2026`, `san-leandro-family-not-spooky-2026` stay "unknown" | — |
+
+Per-event lines read the same evening (feed or event page). Cost label wording: 图书馆活动免费 / "Free library program"; book sales say 免费入场 (free entry; books priced).
+
+| kind | id | URL | change | quote |
+|---|---|---|---|---|
+| event | `smcl-millbrae-chinese-storytime-oct-2026` | https://smcl.bibliocommons.com/events/6ab6e6d208693b0f7374a99f | free; **age chip 0–5 岁 → 儿童（任何年龄）**, audience 0–5 岁儿童与家长 → 儿童与家长 (H70) | "Join us for stories and songs in Mandarin, Cantonese, and English! Children of all ages will enjoy listening, singing, and playing along." |
+| event | `smcl-portola-valley-mid-autumn-lantern-2026` | https://smcl.bibliocommons.com/events/6a92017e4cb69d003e242443 | free | "Registration is required to attend." |
+| event | `smcl-brisbane-sugar-skull-2026` | https://smcl.bibliocommons.com/events/6ab6e6fe3dd190003e749f25 | free | "THIS PROGRAM IS FOR TEENS AND KIDS AGES 8 & OLDER … While supplies last." |
+| event | `smcl-san-carlos-ofrenda-musical-2026` | https://smcl.bibliocommons.com/events/6aa8571f56fe62004a2fc09e | free | "La Ofrenda Musical is a bilingual and participatory performance" |
+| event | `smcl-foster-city-nidhi-chanani-2026` | https://smcl.bibliocommons.com/events/6ab5876708693b0f7374643a | free | "This event is intended for children and families." |
+| event | `smcl-pacifica-robotics-team5940-2026` | https://smcl.bibliocommons.com/events/6abadaa39abb62002c6ac8d1 | free | "This program is limited to the first 15 participants. Online Registration required." |
+| event | `smcl-atherton-diwali-henna-2026` | https://smcl.bibliocommons.com/events/6aa9bb61ab7a8e0037c21242 | free | "No registration required. This is a first-come, first-served program." |
+| event | `smcl-portola-valley-nahuatl-prints-2026` | https://smcl.bibliocommons.com/events/6a9204474cb69d003e2424d1 | free | "Please sign up for a single occurrence of this series" (registration cap 10) |
+| event | `smcl-brisbane-puzzle-swap-2026` | https://smcl.bibliocommons.com/events/6ac7ef9329c3d600332e9e65 | free | "Bring a puzzle you've finished and trade it for one that's new to you. Or just come and take a puzzle home!" |
+| event | `smcl-brisbane-zuni-water-jar-2026` | https://smcl.bibliocommons.com/events/6ab6e72008693b0f7374a9b3 | free | "Supplies are limited to the first 25 participants." |
+| event | `smcl-north-fair-oaks-diwali-henna-2026` | https://smcl.bibliocommons.com/events/6aaa33f04b3b0600308414d5 | free | "No registration required. This is a first-come, first-served program." |
+| event | `smcl-belmont-friends-book-sale-nov-2026` | https://smcl.bibliocommons.com/events/6941f5eb7ed7c62f00aad129 | free entry; books priced | "Support the library by buying gently used books at the Friends of the Library Book Sale." |
+| event | `smcl-pacifica-ofrenda-musical-nov14-2026` | https://smcl.bibliocommons.com/events/6aaa340cca248a0029162a85 | free | "La Ofrenda Musical is a bilingual and participatory performance" |
+| event | `smcl-san-carlos-friends-book-sale-nov15-2026` | https://smcl.bibliocommons.com/events/69375c607ed7c62f00a97cb8 | free entry; books $0.25–$2 | "at incredibly low prices—from 25 cents to $2" |
+| event | `sjpl-almaden-20th-harvest-festival-2026` | https://sjpl.bibliocommons.com/events/69cd448ae2a2952aed0bf2ba | **mixed**: free entry, ticketed extras | "A Haunted Hallway & Pumpkin Patch (ticket purchase required*) Games, face painting & crafts for all ages (ticket purchase required*) … *Ticket prices will vary. Pricing available at the event." |
+| event | `sjpl-almaden-sounds-of-south-asia-2026` | https://sjpl.bibliocommons.com/events/6ac02d38de300e004517d3f5 | free | "Program is for children 5 and up and family members interested in South Asian music." |
+| event | `sjpl-berryessa-diwali-2026` | https://sjpl.bibliocommons.com/events/6a7cfa34b204780029928736 | free | "Come celebrate Diwali with a story, informative presentation, arts, crafts, dance, and snacks!" |
+| event | `sjpl-village-square-thanksgiving-2026` | https://sjpl.bibliocommons.com/events/6a7a43adb3bdcec4a6676595 | free | "Walk-ins are welcome!" |
+| event | `marin-bolinas-saturday-crafts-nov14-2026` | https://marinlibrary.bibliocommons.com/events/6a84e038be148200298848cc | free | "Join us Saturday Mornings for crafts, community, playtime" |
+| event | `marin-corte-madera-quiltmaking-talk-2026` | https://marinlibrary.bibliocommons.com/events/6abc235a035faf0033d92f29 | free | "No registration required. Seating may be limited." |
+| event | `marin-point-reyes-librito-concert-2026` | https://marinlibrary.bibliocommons.com/events/6aca449ffee2d21deb225dba | free | "Join us for our first Librito Concert featuring Rositas Arribeñas!" |
+| event | `sccl-campbell-friends-book-sale-nov14-2026` | https://sccl.bibliocommons.com/events/6a4ec0bfc7e02e3d0067c3ea | free entry; items priced | "Pay cash, check, Zelle, card, or Venmo. Remember to bring a bag for your purchases!" |
+| event | `sf-main-halloween-costume-swap-oct15-2026` | https://sfpl.org/events/2026/10/15/activity-halloween-costume-swap | free (planner admission $0) | "Find a new Halloween look or bring in a clean, gently-used costume to swap." |
+| event | `sf-halloween-broadside-printing-oct17-2026` | https://sfpl.org/events/2026/10/17/activity-halloween-broadside-printing-event | free (planner admission $0) | "Everyone is invited, but broadsides will be limited to the first 100 people." |
+| event | `sf-marina-library-open-house-oct17-2026` | https://sfpl.org/events/2026/10/17/celebration-open-house | free (planner admission $0) | "Celebrate everything the San Francisco Public Library has to offer at the annual Marina Branch Open House." |
+| event | `octnov-healdsburg-tech-help-2026` | https://events.sonomalibrary.org/event/one-one-tech-help-110761 | free (planner admission $0) | "Registration is available … There is 1 seat remaining." |
+| event | `octnov-petaluma-ancestral-sounds-2026` | https://events.sonomalibrary.org/event/ancestral-sounds-mesoamerica-kids-117141 | free (planner admission $0) | "Join Jesus Bravo, of Manos Mexicas, for an exploration of hand carved instruments … Grades K-6." (no registration block on the page) |
+
+All the policy-free items above also get planner `admissionUsd` 0 (the Almaden festival keeps `null`: its extras are priced at the event).
+
+### H59 · BORP Adaptive Sports Expo after-party
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| event | `berkeley-borp-adaptive-sports-expo-oct17-2026` | https://www.borp.org/expo | 200 | date label, plan line (raw + overlay) and planning note now give both times and say to arrive by 15:00; en and zh-Hant follow | hero and schedule: "Community After-Party: Free for All to Attend … Saturday, October 17 3:00 – 4:30 PM" / "3:00 – to 4:30 PM : 50th Anniversary After-Party"; FAQ: "Stay at James Kenney from 3:30 – 5:30 PM for a community celebration marking 50 years of BORP" |
+
+### H70 · Old Post Office brunch on Sat 10/17 (no change)
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| opening | `old-post-office-burlingame` | https://www.oldpostofficeburlingame.com/ ; /about ; /menus ; /reservations | 200 | **none**: the 10/12 "(10/18)" note is gone from the hours block, but no page says brunch runs on Sat 10/17; the reservations page's OpenTable widget (restRef 1545886) answered "Access Denied" to a headless read, and no booking was attempted. The item keeps "brunch from 10/18" (brief: if 10/17 cannot be confirmed). Owner item: a call to (650) 502-1000 settles it | "Lunch: Mon–Fri, 11:30 a.m.–2 p.m. Brunch: Sat–Sun, 11 a.m.–2 p.m. Dinner: Nightly, 5–10 p.m." / "We welcome guests for dinner nightly, lunch on weekdays, and brunch on weekends. Reservations may be made online or by calling 650.502.1000." |
+
+### Guides (API-SYNC-2 follow-up 1)
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| guide | `california-driver-license-id-preparation-guide` | https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505. | 200 (headless Chrome) | 10-day paragraph: applying or booking within the 10 days does not extend them; inline 12505(c) link restored | "(c) A person entitled to an exemption under Section 12502, 12503, or 12504 may operate a motor vehicle in this state for not to exceed 10 days from the date the person establishes residence in this state, except that a person shall not operate a motor vehicle for employment in this state after establishing residency without first obtaining a license from the department." |
+| guide | `california-driver-license-id-preparation-guide` | https://www.dmv.ca.gov/portal/file/residency-documents-list-pdf/ ; https://www.dmv.ca.gov/portal/file/dl1010e-pdf/ | 200 / 200 | new-resident section: one proof of address for a standard licence, two for REAL ID | "DMV will not accept an application without one accompanying residency document." / DL 1010 E (REV. 8/2022): "Upload required documents (one proof of identity and two proofs of residency)" |
+| guide | `california-driver-license-id-preparation-guide` | https://www.dmv.ca.gov/portal/file/how-to-register-an-out-of-state-vehicle-htvr9/ ; https://www.dmv.ca.gov/portal/vehicle-registration/registration-fees/how-to-determine-residency-when-fees-are-due-on-out-of-state-vehicles/ | 200 / 200 | registration paragraph: fees within 20 days; file the application and fees on time even if the title or smog papers are not ready | HTVR 9 (REV. 3/2020): "Registration fees for nonresident vehicles must be paid to DMV within 20 days of the date they become due. … Note: To avoid penalties, submit your registration application and fees on time, even if you do not have all the requirements (title, smog, etc.) needed to register the vehicle in California." |
+| guide | `california-driver-license-id-preparation-guide` | https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california/ | 200 | unchanged facts re-read (20 days) | "you must register it within 20 days of becoming a resident or bringing it into the state." |
+| guide | `bay-area-social-security-retirement-preparation-guide` | https://www.ssa.gov/benefits/retirement/planner/credits.html | 200 (headless Chrome) | credits come from work that pays Social Security tax; ten years in the U.S. is not 40 credits | "You earn credits when you work and pay Social Security taxes." / "Credits are based on your total wages and self-employment income for the year." |
+
+### Wording only (no source read, no fact changed)
+
+- H68 openings: the date labels of `roundup-alesta-sebastopol-2026`, `roundup-bonnie-bagels-sebastopol-2026`, `roundup-capriciano-santarosa-2026`,
+  `eriks-delicafe-san-ramon-relocation`, `jean-dousset-valley-fair`, `thirdlove-valley-fair`, `plur-cafe-san-mateo-library`,
+  `dead-letter-sonoma-new-restaurant-2026`, `aliotos-focacceria-san-rafael`, `santa-clara-rhone-valley-fair-new-store-2026` (and its tip) drop
+  "first day not verified" tails; the four announced cafés (`palo-alto-auntea-jenny-announced-2026`, `palo-alto-bonbon-matcha-announced-2026`,
+  `millbrae-cafe-announced-2026`, `mountain-view-tong-sui-announced-2026`) keep their media-reported window with one attribution. Status,
+  `openedOn` and `verifiedAt` unchanged.
+- H68 events: overlay rows for `sf-young-miko-2026` and `sf-exploratorium-after-dark-15-oct2026` (short title; the plan drops the copied cost
+  line and the generic 余票 sentence); `sf-potrero-hill-festival-oct17-2026` drops the plan line that only pointed at the organiser's FAQ link.
+
+### 2026-10-14 (PT) re-read · Marufuku Burlingame chip
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| opening | `marufuku-burlingame-announced` | https://www.marufukuramen.com/burlingame | 2026-10-14, 200 | no data change (`openedOn` 2026-10-11 and status open stay as WEB-FIX5 set them); the opening chip now prints the day: 10/11 已开业 / Opened Oct 11 (was 10 月开业 / Opened Oct, which a 10-13 live check read as a forecast). The brand homepage (https://www.marufukuramen.com/) still shows "COMING SOON TO BURLINGAME" and the location list "BURLINGAME (COMING SOON)"; the store page is the more specific source, as before. No independent report of the first day was found (web search 2026-10-14) | "GRAND OPENING: OCT. 11 11am-2pm / 5pm-9pm 225 Lorton Ave, Burlingame, CA 94010 650-242-1523 Regular hours starting 10/12: MON–FRI 11am-2pm / 5pm-9pm SAT–SUN 11am-9pm" |
+
+Same chip, wording only: the two dated soft openings (`san-jose-bitterbuck-soft-opening-2026` 9/4, `game-parlour-oakland` 9/8) now read 9/4 起试营业 / Soft opening since Sep 4 instead of 9 月开业 / Opened Sep (a soft opening is not 已开业). Status, `openedOn` and `verifiedAt` unchanged.
+
+### 2026-10-14 (PT) review fixes · CNT-HOTFIX-2
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| opening | `old-post-office-burlingame` | https://www.oldpostofficeburlingame.com/ ; https://www.oldpostofficeburlingame.com/about | 2026-10-14, 200 / 200 | editorTip (overlay) no longer says 10/17 has no brunch: "brunch from 10/18" is credited to the site's earlier hours note (read 10-12: "Brunch: Sat–Sun, 11 a.m.–2 p.m. (10/18)"), 10/17 is marked unconfirmed, call 650-502-1000. dateLabel "早午餐 10/18 起" kept (brief) | home and /about: "Brunch: Sat–Sun, 11 a.m.–2 p.m." (no start-date note) |
+| opening | `palo-alto-auntea-jenny-announced-2026` | https://www.rwcpulse.com/food/roundup-food/2026/09/15/heres-when-these-10-highly-anticipated-cafes-and-bakeries-plan-to-open-along-the-peninsula/ ; https://www.aunteajenny.us/ ; https://www.aunteajenny.us/stores.html | 2026-10-14, 200 / 200 / 200 | dateLabel → 媒体曾报道 9 月下旬开业，至 10/14 还没有开业消息 (the reported window has passed; the brand site's store list loads by script and shows no Palo Alto entry to a plain read; a web search found no opening report). Status stays announced, `verifiedAt` unchanged | RWC Pulse 9/15: "Auntea Jenny, Palo Alto: Late September … 328 University Ave., Palo Alto" |
+| opening | `palo-alto-bonbon-matcha-announced-2026` | same RWC Pulse article ; https://www.instagram.com/bonbon_matcha/ | 2026-10-14, 200 / 200 (profile metadata only) | dateLabel → 媒体曾报道 10 月上中旬开业，至 10/14 还没有开业消息 (no opening report found; Instagram shows only profile counts without login). Status stays announced, `verifiedAt` unchanged. Add both to the weekly recheck | RWC Pulse 9/15: "Bonbon Matcha, Palo Alto: Early to mid-October … 439 Waverley St., Palo Alto" |
+
+Wording only (no new read): the driver-licence guide now says the statute has no extension for applying or booking within the 10 days
+(法条没有因递交申请或预约 DMV 而延长这 10 天的规定) instead of stating it as the statute's words; the English dated soft-opening chip reads
+"Soft open 9/4" (was "Soft opening since Sep 4", too wide for a share card cover); status-open season labels keep 已
+(2026 年初秋已开业 / 2026 年夏季已开业).
+
+Independent re-fetch (two-lens review, 2026-10-14): a separate reviewer re-fetched the BORP schedule and FAQ (both times present), the SFPL,
+SMCL, SJPL, Marin, SCCLD and Sonoma library policy pages, the Marufuku Burlingame store page, the DMV new-to-California page and the Old Post
+Office pages with read-only GETs; every quote above was present. SSA answered 403 to plain GETs, so the 10-13 headless-Chrome read stands.
