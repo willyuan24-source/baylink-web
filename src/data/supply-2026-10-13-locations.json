@@ -194,5 +194,26 @@
     "label": "Corte Madera · 707 Meadowsweet Dr, Corte Madera",
     "sourceUrl": "https://marinlibrary.org/locations/MM",
     "precision": "venue"
+  },
+  "berkeley-downtown-saturday-farmers-market-2026": {
+    "lat": 37.869692,
+    "lng": -122.272792,
+    "label": "Downtown Berkeley Farmers’ Market · Center St & Martin Luther King Jr. Way, Berkeley",
+    "sourceUrl": "https://ecologycenter.org/food-farming/berkeley-farmers-markets/",
+    "precision": "venue"
+  },
+  "oakland-grand-lake-farmers-market-2026": {
+    "lat": 37.810544,
+    "lng": -122.247841,
+    "label": "Grand Lake Farmers Market · Splash Pad Park, Oakland",
+    "sourceUrl": "https://www.agriculturalinstitute.org/grand-lake",
+    "precision": "venue"
+  },
+  "fremont-irvington-farmers-market-2026": {
+    "lat": 37.532776,
+    "lng": -121.96001,
+    "label": "Irvington Farmers’ Market · 4039 Bay St., Fremont",
+    "sourceUrl": "https://www.pcfma.org/index.php/market/irvington-farmers-market",
+    "precision": "venue"
   }
 }

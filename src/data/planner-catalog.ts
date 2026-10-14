@@ -75,7 +75,8 @@ const eventPlanning: Record<string, PlanningFacts> = {
   'fremont-trick-or-treat-2026': { minAge: 2, maxAge: 10, reservation: 'required' },
 };
 const eventLocations: Record<string, GeoPoint> = {
-  // Library branch pins from each library's own location record (CNT-SUPPLY 2026-10-12 and CNT-SUPPLY-2 2026-10-13 batches).
+  // Library branch pins from each library's own location record (CNT-SUPPLY 2026-10-12 and CNT-SUPPLY-2 2026-10-13 batches);
+  // the 2026-10-13 batch's three East Bay farmers' markets use the market operator's own map marker.
   ...supplyLocations1012 as Record<string, GeoPoint>,
   ...supplyLocations1013 as Record<string, GeoPoint>,
   ...OCTOBER_REFRESH_LOCATIONS,

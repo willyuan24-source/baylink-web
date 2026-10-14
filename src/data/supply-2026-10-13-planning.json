@@ -1549,5 +1549,188 @@
         ]
       }
     }
+  },
+  "berkeley-downtown-saturday-farmers-market-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://ecologycenter.org/food-farming/berkeley-farmers-markets/",
+        "verifiedAt": "2026-10-14",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-12-12",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-10-24",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:00",
+            "end": "14:30"
+          }
+        ]
+      }
+    }
+  },
+  "oakland-grand-lake-farmers-market-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.agriculturalinstitute.org/grand-lake",
+        "verifiedAt": "2026-10-14",
+        "validFrom": "2026-10-17",
+        "validThrough": "2026-12-12",
+        "sessions": [
+          {
+            "date": "2026-10-17",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-10-24",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "09:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "fremont-irvington-farmers-market-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.pcfma.org/index.php/market/irvington-farmers-market",
+        "verifiedAt": "2026-10-14",
+        "validFrom": "2026-10-18",
+        "validThrough": "2026-12-13",
+        "sessions": [
+          {
+            "date": "2026-10-18",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-10-25",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-01",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "09:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "09:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
   }
 }

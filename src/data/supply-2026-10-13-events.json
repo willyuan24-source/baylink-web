@@ -1,5 +1,121 @@
 [
   {
+    "id": "berkeley-downtown-saturday-farmers-market-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-12-12",
+    "occurrenceDates": [
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14",
+      "2026-11-21",
+      "2026-11-28",
+      "2026-12-05",
+      "2026-12-12"
+    ],
+    "verifiedAt": "2026-10-14",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "官网没有写入场费；蔬果和熟食在摊位付钱",
+    "sourceLabel": "Ecology Center 官网（Berkeley 农夫市集）",
+    "title": "Berkeley 市中心周六农夫市集：加州农场直卖，12 月加开手作礼物摊",
+    "dateLabel": "10/17–12/12 每周六 10:00–14:30",
+    "city": "Berkeley",
+    "venue": "Berkeley 市中心 · Center St 和 Martin Luther King Jr. Way 路口",
+    "summary": "Ecology Center 办的 Berkeley 农夫市集，周六场在市中心 Center St 和 Martin Luther King Jr. Way 路口，10:00–14:30。市集里的农产品都由种植它的加州农场自己来卖，还有坚果、烘焙、果酱、果汁、橄榄油、肉、奶酪、熟食、苗木和鲜花；12 月的冬季手作市集每周加开快闪摊，卖首饰、陶器、香皂等手工礼物。",
+    "plan": [
+      "可以用 CalFresh EBT 和 WIC 农夫市集券，每个市集都有 Market Match。",
+      "10 月中官网的当季清单里有小白菜、苦瓜、鲜枣和姜。",
+      "周二下午在 South Berkeley、周四下午在 North Berkeley 还有两个市集。"
+    ],
+    "audience": [
+      "全家",
+      "买菜的本地居民"
+    ],
+    "officialUrl": "https://ecologycenter.org/food-farming/berkeley-farmers-markets/"
+  },
+  {
+    "id": "oakland-grand-lake-farmers-market-2026",
+    "kind": "event",
+    "startDate": "2026-10-17",
+    "endDate": "2026-12-12",
+    "occurrenceDates": [
+      "2026-10-17",
+      "2026-10-24",
+      "2026-10-31",
+      "2026-11-07",
+      "2026-11-14",
+      "2026-11-21",
+      "2026-11-28",
+      "2026-12-05",
+      "2026-12-12"
+    ],
+    "verifiedAt": "2026-10-14",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "官网没有写入场费；蔬果和熟食在摊位付钱",
+    "sourceLabel": "Agricultural Institute of Marin 官网（Grand Lake 市集）",
+    "title": "Oakland Grand Lake 周六农夫市集：100 多个摊位，风雨无阻",
+    "dateLabel": "10/17–12/12 每周六 9:00–14:00",
+    "city": "Oakland",
+    "venue": "Splash Pad Park, Oakland",
+    "summary": "Agricultural Institute of Marin（AIM）办的 Grand Lake 农夫市集，每周六 9:00–14:00 在 Oakland 的 Splash Pad Park，风雨无阻。100 多个摊位、40 多家农场，有有机蔬果、鲜花、咖啡、糕点和点心等熟食，也有海鲜、肉类和奶制品摊；买完可以在公园草地上野餐。",
+    "plan": [
+      "可以用 CalFresh EBT、Market Match 和 WIC；很多摊位收信用卡，现场有 ATM。",
+      "买得多可以先寄放在 AIM 摊位，逛完再取。",
+      "市集不让带宠物；可以坐 AC Transit 公交来。"
+    ],
+    "audience": [
+      "全家",
+      "买菜的本地居民"
+    ],
+    "officialUrl": "https://www.agriculturalinstitute.org/grand-lake"
+  },
+  {
+    "id": "fremont-irvington-farmers-market-2026",
+    "kind": "event",
+    "startDate": "2026-10-18",
+    "endDate": "2026-12-13",
+    "occurrenceDates": [
+      "2026-10-18",
+      "2026-10-25",
+      "2026-11-01",
+      "2026-11-08",
+      "2026-11-15",
+      "2026-11-22",
+      "2026-11-29",
+      "2026-12-06",
+      "2026-12-13"
+    ],
+    "verifiedAt": "2026-10-14",
+    "imageKey": "",
+    "region": "east-bay",
+    "category": "food",
+    "cost": "unknown",
+    "costLabel": "官网没有写入场费；蔬果和熟食在摊位付钱",
+    "sourceLabel": "PCFMA 官网（Irvington 市集）",
+    "title": "Fremont Irvington 周日农夫市集：全年每周日开",
+    "dateLabel": "10/18–12/13 每周日 9:00–14:00",
+    "city": "Fremont",
+    "venue": "Irvington 农夫市集 · 4039 Bay St., Fremont, CA 94538",
+    "summary": "Pacific Coast Farmers’ Market Association（PCFMA）在 Fremont 办的 Irvington 农夫市集，全年每周日 9:00–14:00，地址 4039 Bay St.。摆摊的有 Fresno、Salinas、Hollister 等地的农场，也有面包店和海鲜摊；10 月中官网的当季推荐是葡萄。",
+    "plan": [
+      "市集的农场名单里，Fresno 的 Bright Farm 卖苦瓜、空心菜、丝瓜、节瓜、芥兰、小白菜和芋头。",
+      "停车：Trimboli、Bay St 和 Irvington 路边可以停；不要停在 Monument 购物中心的停车场。"
+    ],
+    "audience": [
+      "全家",
+      "买菜的本地居民"
+    ],
+    "officialUrl": "https://www.pcfma.org/index.php/market/irvington-farmers-market"
+  },
+  {
     "id": "ccclib-pleasant-hill-lego-club-2026",
     "kind": "event",
     "startDate": "2026-10-24",
