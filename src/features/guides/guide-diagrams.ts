@@ -30,6 +30,13 @@ export const GUIDE_DIAGRAMS: Readonly<Record<string, readonly PlacedDiagram[]>> 
       { title: c('要哪种帮助', 'What help'), text: c('活动、餐食、探访或白天照护', 'Activities, meals, visits or day care') },
       { title: c('再问机构能做什么', 'Then ask what they can do'), text: c('服务区域、条件、费用和候补', 'Area, eligibility, cost and waitlist') },
     ] } },
+    // Step 1's own sentence ("活动中心不提供医疗照护，餐食项目也不等于全天照护"), so the run from the lead diagram to the county
+    // map is not two screens of text (review 10-14).
+    { at: 1, diagram: { kind: 'compare', title: c('活动、餐食与照护是不同项目', 'Activities, meals and care are different programs'), columns: [
+      { title: c('活动中心', 'Activity center'), text: c('参加活动；不提供医疗照护', 'Activities; no medical care') },
+      { title: c('餐食项目', 'Meal program'), text: c('送餐等；不等于全天照护', 'Meals such as delivery; not all-day care') },
+      { title: c('日间照护', 'Day care'), text: c('白天有人照护', 'Someone looks after them during the day') },
+    ] } },
     { at: 2, diagram: { kind: 'map', title: c('各县 AAA 电话', 'County AAA phone lines'), source: 1, footer: c('全州信息线 800-510-2020 · 图中位置示意，不按比例', 'Statewide line 800-510-2020 · positions are rough, not to scale'), tiles: [
       { area: 'sonoma', title: c('索诺玛', 'Sonoma'), number: '707-565-4636', tel: '+17075654636' },
       { area: 'napa', title: c('纳帕／索拉诺', 'Napa/Solano'), number: '707-784-8960', tel: '+17077848960' },
