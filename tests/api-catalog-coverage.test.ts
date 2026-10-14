@@ -13,7 +13,10 @@ import { PUBLIC_CATALOG_FILES } from '../src/data/public-catalog-holdout';
  *
  * Event ids with a detail page that may stay out of the API's catalogs, each with its reason. Keep it empty unless an
  * event really must not take part (for example a listing kept only for an old shared link). An entry that is no longer a
- * detail page fails the test, so the list cannot go stale.
+ * detail page fails the test, so the list cannot go stale. An entry only relaxes this test: both exporters
+ * (scripts/export-event-catalog.ts, scripts/export-planner-catalog.ts) still write every site event, and
+ * tests/public-catalog-holdout.test.ts requires both API files to carry every one. Keeping an event out of the API also
+ * needs the exporters to filter it and the holdout test to allow it.
  */
 const API_CATALOG_EXCLUSIONS: Readonly<Record<string, string>> = {};
 
