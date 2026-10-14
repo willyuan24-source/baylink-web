@@ -15,6 +15,12 @@ const OFFLINE = 'https://schema.org/OfflineEventAttendanceMode';
  * offer or opening first shipped (data/first-published, passed by the prerender only, so the dates never ride in the
  * page's bundle; the app keeps the prerendered JSON-LD, seo.ts).
  */
+/** The reviewed short title: an event's shortens its titles in every language, an offer's or opening's the English one (H46). */
+const discoveryShortTitle = (item: LocalDiscovery): Pick<PageMetadata, 'shortTitle' | 'shortTitleScope'> => {
+  if (item.kind === 'event') return { shortTitle: item.event.shortTitle };
+  const short = (item.kind === 'offer' ? item.offer : item.shop) as { shortTitle?: string };
+  return short.shortTitle ? { shortTitle: short.shortTitle, shortTitleScope: 'en' } : {};
+};
 export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, today = getBayAreaToday()): PageMetadata {
   const share = discoveryShare(item);
   // An offer's page name shows its brand as the page does ("SFMTA · San Francisco"), not the catalog's capitals.
@@ -59,7 +65,7 @@ export function getDiscoveryMetadata(item: LocalDiscovery, published?: string, t
   // Keep each reviewed date/summary intact: date labels may already contain middle dots.
   // a month after its last day an ended listing asks not to be indexed (it left the sitemap after a week)
   const ended = (listingEndedDaysAgo(item, today) ?? -1) > NOINDEX_ENDED_DAYS;
-  return { title: `${name}｜BAYLINK`, ...(ended ? { noindex: true } : {}), shortTitle: item.kind === 'event' ? item.event.shortTitle : undefined, description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
+  return { title: `${name}｜BAYLINK`, ...(ended ? { noindex: true } : {}), ...discoveryShortTitle(item), description: `${share.date} ｜ ${share.area} ｜ ${share.summary}`, path: share.path, image: shareCardPath(share), type: 'article',
     structuredData: [entity, { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
       { '@type': 'ListItem', position: 1, name: localCopy('首页', 'Home'), item: `${SITE_URL}/` },
       { '@type': 'ListItem', position: 2, name: section, item: `${SITE_URL}/events` },
