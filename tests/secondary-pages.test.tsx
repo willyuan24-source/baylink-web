@@ -43,7 +43,7 @@ const englishLeaks = (document: Document) => {
 };
 afterEach(async () => { await setLocale('zh-Hans', false); });
 
-test('/explore: the 3D module shows labelled SF postcards that open /opus-bay?from=explore; place cards keep from=guide', async () => {
+test('/explore: the 3D module shows labelled SF postcards that open /opus-bay?from=explore; place cards say from=explore too', async () => {
   for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
     const document = await render(locale, '/explore?region=sf', createElement(AttractionExplorer));
     const module = page(document).getByRole('region', { name: /3D/ });
@@ -68,10 +68,11 @@ test('/explore: the 3D module shows labelled SF postcards that open /opus-bay?fr
       assert.ok(label, 'each card cover carries its provenance badge');
       assert.doesNotMatch(label, /AI/);
     }
-    // The cards' 3D links are the published guide entries, which the game already counts as from=guide (OPUS contract).
+    // The cards' 3D links open the published guide entries' destinations, but say where the reader came from (H36, FCC-11):
+    // from=explore like the module, not the guide page's from=guide (the entries themselves keep it; opus-bay-attraction-entry).
     const chips = cards.flatMap(card => within(card).getAllByRole('link')).filter(link => link.getAttribute('href')?.includes('/opus-bay?'));
     assert.equal(chips.length, 7);
-    for (const chip of chips) assert.equal(hrefOf(chip).searchParams.get('from'), 'guide');
+    for (const chip of chips) assert.equal(hrefOf(chip).searchParams.get('from'), 'explore');
     if (locale === 'en') assert.deepEqual(englishLeaks(document), []);
   }
   const north = await render('zh-Hans', '/explore?region=north-bay', createElement(AttractionExplorer));
