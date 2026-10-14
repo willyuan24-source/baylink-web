@@ -10,14 +10,16 @@ const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:
 
 /**
  * The home 免费与优惠 tickets (1007 §4.2 ⑦, HOME-13): up to `limit` offers a reader can use within the week, mixed as
- * the plan asks — ending today or tomorrow first, then one public benefit (museum free days, library and park programs) in
- * the next two weeks, then (H19) up to three with the brand's own image, then ending this week, then a second public
- * benefit, then the rest by end date; inside each step an offer with its own image comes first. The rail keeps that order,
- * with everything that ends today or tomorrow in front (a narrow rail hides its last tickets). The first of them whose image
- * can be the wide ticket (`canLead`, a landscape image: `canLeadOfferRail`) leads it, unless that would push an offer ending
- * today or tomorrow behind the third ticket (`offerRailOpensWide`). Only reviewed, dated offers: ongoing retail promotions
- * and "check your local store" offers stay on /events?view=perks. Pure, so the generator (which ships only the offers some
- * day selects) and the page agree for every day; both pass the same `offerHasPhoto` / `offerLeadsRail` predicates.
+ * the plan asks — up to four ending today or tomorrow first (by end date), then one public benefit (museum free days,
+ * library and park programs) in the next two weeks, then (H19) up to three with the brand's own image, then ending this
+ * week, then a second public benefit, then the rest by end date; inside each step an offer with its own image comes first
+ * (in the first step only between offers ending the same day, so no photo pushes out an offer ending sooner). The rail
+ * keeps that order, with everything that ends today or tomorrow in front (a narrow rail hides its last tickets). The first
+ * of them whose image can be the wide ticket (`canLead`, a landscape image: `canLeadOfferRail`) leads it, unless that would
+ * push an offer ending today or tomorrow behind the third ticket (`offerRailOpensWide`). Only reviewed, dated offers:
+ * ongoing retail promotions and "check your local store" offers stay on /events?view=perks. Pure, so the generator (which
+ * ships only the offers some day selects) and the page agree for every day; both pass the same `offerHasPhoto` /
+ * `offerLeadsRail` predicates.
  */
 export function selectHomeOffers<T extends Pick<HomeOffer, 'id' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'publicBenefit'> & { verificationStatus?: string }>(offers: readonly T[], today: string, limit = 6, hasPhoto: (offer: T) => boolean = () => false, canLead: (offer: T) => boolean = () => false): T[] {
   const week = addDays(today, 6);
@@ -37,7 +39,11 @@ export function selectHomeOffers<T extends Pick<HomeOffer, 'id' | 'brand' | 'sta
   };
   // A stable sort: the end-date order stays inside each group.
   const photoFirst = (list: readonly T[]) => [...list].sort((a, b) => Number(hasPhoto(b)) - Number(hasPhoto(a)));
-  take(photoFirst(usable.filter(offer => offer.endDate! <= addDays(today, 1))), 2);
+  // What ends today or tomorrow comes before any photo step, in end-date order (an offer ending today before a photo ending
+  // tomorrow; a photo first only between offers ending the same day), as many as a narrow desktop rail shows (four), as
+  // the rail did before H19.
+  take(usable.filter(offer => offer.endDate! <= addDays(today, 1))
+    .sort((a, b) => a.endDate!.localeCompare(b.endDate!) || Number(hasPhoto(b)) - Number(hasPhoto(a))), NARROW_RAIL_SHOWN);
   const benefits = photoFirst(dated.filter(offer => isPublicBenefit(offer) && (offer.startDate ?? today) <= fortnight));
   take(benefits, 1);
   take(usable.filter(hasPhoto), 3);
@@ -46,7 +52,7 @@ export function selectHomeOffers<T extends Pick<HomeOffer, 'id' | 'brand' | 'sta
   take(photoFirst(usable), limit);
   const varied = chosen.length;
   take(usable, limit, true);
-  // What ends today or tomorrow first (a third one can join in a later step), then the steps' order; a stable sort. A
+  // What ends today or tomorrow first (a fifth one can join in a later step), then the steps' order; a stable sort. A
   // second ticket of a brand (the last step) stays last.
   const later = (offer: T) => Number(offer.endDate! > addDays(today, 1) || chosen.indexOf(offer) >= varied);
   const ordered = [...chosen].sort((a, b) => later(a) - later(b));
@@ -59,7 +65,11 @@ export function selectHomeOffers<T extends Pick<HomeOffer, 'id' | 'brand' | 'sta
 /** "IKEA · Emeryville" and "IKEA · Bay Area" are one brand. */
 const brandKey = (brand: string) => brand.split(/\s+[·・|]\s+/u)[0].trim().toLowerCase();
 
-/** A narrow desktop rail (home-discovery.css, under 74rem: 1024-1183px, or 1440 at 特大) shows three tickets after a wide one. */
+/**
+ * A narrow desktop rail (home-discovery.css, under 74rem: 1024-1183px, or 1440 at 特大) shows four 1:1 tickets, or three
+ * when the first is the wide one.
+ */
+const NARROW_RAIL_SHOWN = 4;
 const WIDE_RAIL_SHOWN = 3;
 
 /** Whether an offer ending today or tomorrow (the first ticket of its brand) sits behind the first `shown` tickets. */
