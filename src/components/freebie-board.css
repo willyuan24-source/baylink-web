@@ -21,7 +21,7 @@
 .bl-freebie-kinds { position:sticky; top:var(--chrome-header-height, 3.5rem); z-index:20; flex-wrap:nowrap; overflow-x:auto; margin-inline:calc(-1 * var(--page-gutter, 16px)); padding:8px var(--page-gutter, 16px); background:var(--color-bg); scrollbar-width:none; }
 .bl-freebie-kinds::-webkit-scrollbar { display:none; }
 .bl-freebie-kinds button { flex:none; display:inline-flex; align-items:center; gap:6px; }
-.bl-freebie-kinds__count { color:inherit; font-variant-numeric:tabular-nums; opacity:.75; }
+.bl-freebie-kinds__count { color:inherit; font-variant-numeric:tabular-nums; }
 .bl-freebie-results { scroll-margin-top:calc(var(--chrome-header-height, 3.5rem) + 4.5rem); }
 @media (min-width:768px) { .bl-freebie-kinds { flex-wrap:wrap; margin-inline:0; padding-inline:0; } }
 .bl-freebie-search { display:grid; gap:8px; margin:14px 0; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }

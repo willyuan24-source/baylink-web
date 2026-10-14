@@ -20,6 +20,8 @@ const { guides, getGuideBySlug } = await import('../src/data/guides');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { getOfferImage } = await import('../src/lib/offer-media');
 const { searchQuickDestinations } = await import('../src/lib/quick-search');
+/** A kind tab is named with its count for the chosen dates, e.g. “无需购物，3 条” (H66). */
+const kindTab = (label: string) => new RegExp(`^${label}，[0-9]+ 条$`);
 const { loadLocale, setLocale, translateText } = await import('../src/i18n/locale');
 
 const reviewed = verifiedOffers20261005.map(offer => {
@@ -105,10 +107,10 @@ test('unconfirmed prize conditions cannot enter no-purchase filters or free-only
   const view = render(<FreebieBoard offers={reviewed} today={today} initialDates="all" sectionSize={Infinity} />);
   assert.ok(view.getByRole('article', { name: money.title }), 'the confirmed dated event remains discoverable');
   const filters = within(view.getByRole('group', { name: '按领取条件筛选' }));
-  fireEvent.click(filters.getByRole('button', { name: '无需购物', exact: true }));
+  fireEvent.click(filters.getByRole('button', { name: kindTab('无需购物') }));
   assert.equal(view.queryByRole('article', { name: money.title }), null);
   assert.equal(view.getAllByRole('article').length, 3, 'the three PetSmart sessions remain genuinely free');
-  fireEvent.click(filters.getByRole('button', { name: '条件待核对', exact: true }));
+  fireEvent.click(filters.getByRole('button', { name: kindTab('条件待核对') }));
   assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-' + moneyId]);
 
   assert.ok(searchQuickDestinations('Money Days', 'zh-Hans', today).offers.some(offer => offer.id === moneyId));

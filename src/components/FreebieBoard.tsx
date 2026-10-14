@@ -227,9 +227,10 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
       <button type="button" aria-pressed={window_ === 'week'} onClick={() => setWindow('week')}>{t(`本周有效 ${thisWeek}`, `Valid this week ${thisWeek}`)}</button>
       <button type="button" aria-pressed={window_ === 'all'} onClick={() => setWindow('all')}>{t('全部日期', 'All dates')}</button>
     </div>
-    {/* H66: the kind tabs stay under the site header while the cards scroll, each with its count for the chosen dates; picking
-        one brings the list's start back into view. */}
-    <div className="bl-freebie-filters bl-freebie-kinds" role="group" aria-label="按领取条件筛选">{FILTERS.map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => pickKind(item.value)}>
+    {/* H66: the kind tabs stay under the site header while the cards scroll, each with its count for the chosen dates (also in
+        its name, "无需购物，49 条"); picking one brings the list's start back into view. A kind with nothing in the chosen dates
+        is left out unless it is the one picked, so no tab leads to an empty list. */}
+    <div className="bl-freebie-filters bl-freebie-kinds" role="group" aria-label="按领取条件筛选">{FILTERS.filter(item => item.value === 'all' || kindCounts[item.value] > 0 || filter === item.value).map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} aria-label={t(`${item.label}，${kindCounts[item.value]} 条`, `${translateText(item.label, 'en')}, ${kindCounts[item.value]}`)} onClick={() => pickKind(item.value)}>
       {item.label}<span className="bl-freebie-kinds__count" aria-hidden="true">{kindCounts[item.value]}</span>
     </button>)}</div>
     <label className="bl-freebie-search"><span>搜索品牌、城市或福利</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="例如 Target、Lowe’s、手作、生日" /></label>
