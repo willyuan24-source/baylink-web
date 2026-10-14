@@ -136,6 +136,9 @@ test('H47: one-day listings state the time their date line gives; streets after 
   assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 19:00入场／20:00开演' }), { start: '20:00' });
   assert.deepEqual(labelTimes({ ...day, dateLabel: '9/29 · 18:30入場／19:30開演' }), { start: '19:30' });
   assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 09:00 登记；10:00 开幕' }), { start: '10:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/3 · 09:00 登记；10:00 开幕；10:35 开走；12:00 结束。' }), { start: '10:00', end: '12:00' }, 'a time the line ends at');
+  // an entry window is when the event runs; "供餐至13:00" is when it ends
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10月11日 9:00–12:30入场；供餐至13:00' }), { start: '09:00', end: '13:00' });
   // a line with two ranges runs until the later one ends
   assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 10:00–12:00 或 13:00–15:00' }), { start: '10:00', end: '15:00' });
   assert.deepEqual(labelTimes({ ...day, dateLabel: '10/24 · 蝴蝶手作11:00–14:00；乐团11:00–16:00；末节乐器体验16:00–16:30' }), { start: '11:00', end: '16:30' });
