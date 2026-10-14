@@ -45,6 +45,8 @@ test('the first HTML retains one canonical anchor for every discovery in each la
       for (const slug of Object.keys(SLUG_TO_CATEGORY)) assert.ok([...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath(`/category/${slug}`, locale)), slug);
       assert.ok([...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath('/events', locale)));
       assert.ok(![...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath('/recommend', locale)), '/recommend is a redirect to /events now');
+      assert.ok(![...document.querySelectorAll('a')].some(anchor => /\/this-month(?:[?#]|$)/.test(anchor.getAttribute('href') || '')), '/this-month is a 301 to /events?when=all now (H35)');
+      assert.ok([...document.querySelectorAll('a')].some(anchor => anchor.getAttribute('href') === languagePath('/events?when=all', locale)), 'all dates link the events column directly');
       if (locale === 'en') {
         assert.equal(document.querySelector('h1')?.textContent, 'Content directory and archives');
         const fleetWeek = [...document.querySelectorAll('a')].find(anchor => anchor.getAttribute('href') === '/en/events/san-francisco-fleet-week-2026');

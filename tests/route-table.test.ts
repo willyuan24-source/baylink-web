@@ -92,10 +92,23 @@ test('known paths, analytics templates, English scopes and BayBay context come f
 
 test('the sitemap lists the table\'s public pages in every language with x-default, and no redirect or game alias', () => {
   const { paths, indexed, xml } = generateSitemap();
-  for (const path of ['/events', '/en/events', '/zh-Hant/events', '/calendar', '/this-month', '/opus-bay']) assert.ok(paths.includes(path), path);
-  for (const path of ['/this-week', '/recommend', '/play', '/my-week', '/verify-email']) assert.ok(!paths.some(entry => entry.replace(/^\/(en|zh-Hant)/, '') === path), path);
+  for (const path of ['/events', '/en/events', '/zh-Hant/events', '/calendar', '/opus-bay']) assert.ok(paths.includes(path), path);
+  // H35: /this-month is a 301 to /events?when=all (still prerendered for the 3D game's site test), so it is not listed.
+  for (const path of ['/this-week', '/recommend', '/this-month', '/play', '/my-week', '/verify-email']) assert.ok(!paths.some(entry => entry.replace(/^\/(en|zh-Hant)/, '') === path), path);
+  for (const route of ROUTES.filter(entry => entry.redirect)) assert.ok(!paths.includes(route.path), `${route.path} redirects, so it is not in the sitemap`);
   for (const route of ROUTES.filter(entry => entry.sitemap && !entry.path.includes(':'))) assert.ok(paths.includes(route.path), route.path);
   assert.equal((xml.match(/hreflang="x-default"/g) || []).length, indexed.length, 'each URL names its default (Simplified) edition');
   assert.ok(xml.includes('<loc>https://www.baylink.us/en/events</loc>'));
   assert.match(xml, /<loc>https:\/\/www\.baylink\.us\/en\/events<\/loc>.*?hreflang="x-default" href="https:\/\/www\.baylink\.us\/events"/);
+});
+
+// H35: a client-side visit to a redirected path lands where the edge sends a direct load (App.tsx LegacyRedirect).
+test('redirectLocation: the target with the request query, the target\'s own parameters as defaults', async () => {
+  const { redirectLocation } = await import('../src/app/route-table');
+  assert.deepEqual(redirectLocation('/this-month', ''), { pathname: '/events', search: '?when=all' });
+  assert.deepEqual(redirectLocation('/this-month/', '?region=sf&from=opus'), { pathname: '/events', search: '?region=sf&from=opus&when=all' });
+  assert.deepEqual(redirectLocation('/this-month', '?when=november'), { pathname: '/events', search: '?when=november' });
+  assert.deepEqual(redirectLocation('/this-week', '?region=sf'), { pathname: '/events', search: '?region=sf' });
+  assert.deepEqual(redirectLocation('/recommend', ''), { pathname: '/events', search: '' });
+  assert.equal(redirectLocation('/events', ''), null);
 });

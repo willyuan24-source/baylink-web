@@ -28,6 +28,6 @@ export function CityCurrentCard({ update, today = getBayAreaToday() }: { update:
     <a href={update.sourceUrl} target="_blank" rel="noopener noreferrer">{t(update.sourceLabel)} <ArrowUpRight size={13} aria-hidden="true" /></a>
     <p className="city-current-date">{t('资讯核对日期')}：<time dateTime={update.checkedAt}>{update.checkedAt}</time></p>
     {events.length > 0 && <><h5>{t('本市接下来可查的活动')}</h5><ul>{events.slice(0, 3).map(({ event, date }) => <li key={event.id}><time dateTime={date}>{date}</time><Link to={`/events/${event.id}${locale === 'zh-Hans' ? '' : `?lang=${locale}`}`}>{t(event.title)}</Link><span>{t(event.costLabel)}</span></li>)}</ul>
-      <Link to={`/this-month?q=${encodeURIComponent(update.city)}${lang}#monthly-events`}>{t('继续查看这个城市的活动')} →</Link></>}
+      <Link to={`/events?when=all&q=${encodeURIComponent(update.city)}${lang}#monthly-events`}>{t('继续查看这个城市的活动')} →</Link></>}
   </section>;
 }

@@ -90,8 +90,20 @@ export function tableHostingRoutes() {
     { src: `^/${path}/?$`, status, headers: { Location: to, ...headers } },
     { src: `^/${LOCALE_PREFIX}/${path}/?$`, status, headers: { Location: `/$1${shiftCaptures(to)}`, ...headers } },
   ];
+  /**
+   * A route-table redirect. A query in its target is a default (H35: /this-month → /events?when=all): when the request
+   * already sets that parameter, a `has` route first sends it to the bare target with the request's own query
+   * (/this-month?when=november → /events?when=november); otherwise Vercel lets the target's value win.
+   */
+  const tableRedirect = (route: (typeof ROUTES)[number]): HostingRoute[] => {
+    const { to, status } = route.redirect!;
+    const [target, defaults = ''] = to.split('?');
+    const path = routeSource(route.path);
+    const kept = [...new URLSearchParams(defaults).keys()].flatMap(key => redirect(path, target, status).map(({ src, ...rest }) => ({ src, has: [{ type: 'query', key }], ...rest })));
+    return [...kept, ...redirect(path, to, status)];
+  };
   const legacy = [
-    ...ROUTES.filter(route => route.redirect).flatMap(route => redirect(routeSource(route.path), route.redirect!.to, route.redirect!.status)),
+    ...ROUTES.filter(route => route.hosting === 'redirect').flatMap(tableRedirect),
     // The weekly share card's QR (scripts/generate-weekly.ts) prints /n/{region}: a 302, so printed cards can be retargeted.
     ...redirect(`n/(${CARD_REGIONS.join('|')})`, '/events?region=$1&from=card-$1', 302, { 'Cache-Control': 'no-store' }),
   ];
@@ -106,13 +118,16 @@ export function tableHostingRoutes() {
     { src: '^/$', has: [{ type: 'query', key: 'lang', value: locale }], status: 301, headers: { Location: `/${locale}` } },
     { src: `^/(${langPaths.join('|')})/?$`, has: [{ type: 'query', key: 'lang', value: locale }], status: 301, headers: { Location: `/${locale}/$1` } },
   ]);
+  // A prerendered page that redirects (H35: /this-month): its redirect must come before the static-page group, which still
+  // lists the page, so these go first with the ?lang= redirects.
+  const pageRedirects = ROUTES.filter(route => route.hosting === 'page' && route.redirect).flatMap(tableRedirect);
   return {
     staticPages: { src: `^/(${pages.join('|')})/?$`, dest: '/$1.html' } as HostingRoute,
     spaShell: { src: `^/(?:${spa.join('|')})/?$`, dest: '/index.html' } as HostingRoute,
     // G70: the signed-in pages' neutral first paint (src/app/account-shell.ts), placed before spaShell, which still lists them.
     accountShell: { src: `^/(?:${ACCOUNT_SHELL_PATHS.map(routeSource).join('|')})/?$`, dest: `/${ACCOUNT_SHELL_FILE}` } as HostingRoute,
     spaHeaders: `^/(?:(?:en|zh-Hant)/)?(?:${spa.join('|')})/?$`,
-    legacy, langRedirects,
+    legacy, langRedirects, pageRedirects,
   };
 }
 
@@ -153,8 +168,8 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
     { src: '^/(verify-email|notifications/unsubscribe)/?$', dest: '/$1.html' });
   config.routes = config.routes.filter(route => route.src !== READING_INIT_SRC);
   config.routes.splice(1, 0, { src: READING_INIT_SRC, headers: { 'Cache-Control': READING_INIT_CACHE_CONTROL }, continue: true });
-  // The ?lang= redirects precede every page route: the first terminal match wins.
-  config.routes.splice(1, 0, ...table.langRedirects);
+  // The ?lang= redirects, then the redirects of prerendered pages, precede every page route: the first terminal match wins.
+  config.routes.splice(1, 0, ...table.langRedirects, ...table.pageRedirects);
   const localize = config.routes.filter(route => typeof route.dest === 'string' && route.dest.endsWith('.html') && route.src?.startsWith('^/') && route.status !== 404);
   const translated = (['en', 'zh-Hant'] as const).flatMap(locale => localize.map(route => ({ ...route, src: (route.src || '').replace('^/', '^/' + locale + '/'), dest: '/' + locale + route.dest })));
   const existing = config.routes.findIndex(route => route.handle === 'filesystem');

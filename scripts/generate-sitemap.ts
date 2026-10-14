@@ -30,7 +30,8 @@ export function generateSitemap(today = getBayAreaToday()) {
     ids[`/${path.split('/')[1]}/:id`].push(path);
     if ((listingEndedDaysAgo(item, today) ?? -1) > SITEMAP_ENDED_DAYS) ended.add(path);
   }
-  const basePaths = ROUTES.filter(route => route.sitemap).flatMap(route => {
+  // A redirected path (H35: /this-month, prerendered but always answered by its 301) is never listed.
+  const basePaths = ROUTES.filter(route => route.sitemap && !route.redirect).flatMap(route => {
     if (!route.path.includes(':')) return [route.path];
     if (!ids[route.path]) throw new Error(`The sitemap has no published ids for ${route.path}`);
     return ids[route.path];
@@ -43,7 +44,6 @@ export function generateSitemap(today = getBayAreaToday()) {
     const share = discoveryShare(item);
     if (share.checkedAt) dates.set(share.path, share.checkedAt);
   }
-  dates.set('/this-month', MONTHLY_EDITION.checkedAt);
   dates.set('/events', MONTHLY_EDITION.checkedAt);
   const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n${indexed.map(path => `  <url><loc>${escapeHtml(SITE_URL + path)}</loc>${dates.has(unprefixedPath(path)) ? `<lastmod>${escapeHtml(dates.get(unprefixedPath(path))!)}</lastmod>` : ''}${languages.map(locale => `<xhtml:link rel="alternate" hreflang="${locale}" href="${SITE_URL}${languagePath(path,locale)}"/>`).join('')}<xhtml:link rel="alternate" hreflang="x-default" href="${SITE_URL}${languagePath(path,'zh-Hans')}"/></url>`).join('\n')}\n</urlset>\n`;
   return { paths, indexed, xml };

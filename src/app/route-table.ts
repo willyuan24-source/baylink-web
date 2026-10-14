@@ -44,12 +44,15 @@ export type RouteSection = 'home' | 'events' | 'guides' | 'me' | 'more' | 'none'
 /**
  * How the host serves a direct load (scripts/sync-public-routes.ts):
  * - index: `/` → index.html
- * - page: prerendered `/<path>.html` in the static-page group, copied for /en and /zh-Hant
+ * - page: prerendered `/<path>.html` in the static-page group, copied for /en and /zh-Hant. A page with a `redirect` is still
+ *   prerendered, but an edge redirect placed before the static-page group answers every direct load first (H35: /this-month →
+ *   /events?when=all; its file stays because the 3D game's site test, tests/opus-bay-w8-s-site.test.ts, checks the route)
  * - ids: prerendered per published id (allowlists generated from the catalogs; categories from SLUG_TO_CATEGORY)
  * - token: prerendered noindex page with its own no-store / no-referrer route
  * - spa: the SPA shell (index.html), noindex and no-store
  * - function: a Vercel function writes the share head (posts)
- * - redirect: an edge redirect to `redirect.to`, which keeps the request's query (Vercel passes it through)
+ * - redirect: an edge redirect to `redirect.to`, which keeps the request's query (Vercel passes it through; parameters
+ *   in `redirect.to` win on the same name)
  */
 export type RouteHosting = 'index' | 'page' | 'ids' | 'token' | 'spa' | 'function' | 'redirect';
 
@@ -96,7 +99,8 @@ export const ROUTES: readonly AppRoute[] = [
   { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-list'], release: true },
   { path: '/guides/:slug', page: 'guide', section: 'guides', hosting: 'ids', sitemap: true },
   { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
-  { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', sitemap: true, english: DISCOVERY, baybay: true, release: true },
+  // H35 (HOMEIA13-07): the orphan 全部日期 page is a 301 to the events column on 全部日期 (query kept), out of the sitemap.
+  { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', redirect: { to: '/events?when=all', status: 301 }, english: DISCOVERY, baybay: true, release: true },
   { path: '/this-week', page: 'events', section: 'events', hosting: 'redirect', redirect: { to: '/events', status: 301 }, english: EVENTS_LIST, baybay: true },
   { path: '/calendar', page: 'calendar', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
   { path: '/events/:id', page: 'discovery', section: 'events', hosting: 'ids', sitemap: true, chrome: 'detail' },
@@ -139,5 +143,19 @@ export const matchRoute = (pathname: string): AppRoute | undefined => {
   const path = routePathname(pathname);
   return compiled.find(({ pattern }) => pattern.test(path))?.route;
 };
+/**
+ * Where a redirected path sends a client-side visit, as the edge does for a direct load (scripts/sync-public-routes.ts): the
+ * target with the request's query, the target's own parameters as defaults (/this-month?region=sf → /events?region=sf&when=all,
+ * /this-month?when=november → /events?when=november). Null when the path does not redirect.
+ */
+export function redirectLocation(pathname: string, search: string): { pathname: string; search: string } | null {
+  const to = matchRoute(pathname)?.redirect?.to;
+  if (!to) return null;
+  const [target, defaults = ''] = to.split('?');
+  const query = new URLSearchParams(search);
+  for (const [key, value] of new URLSearchParams(defaults)) if (!query.has(key)) query.set(key, value);
+  const merged = query.toString();
+  return { pathname: target, search: merged ? `?${merged}` : '' };
+}
 /** Analytics route template, e.g. '/events/:id'; 'other' when the path is not an app route. Never the raw URL. */
 export const routeTemplate = (pathname: string) => matchRoute(pathname)?.path ?? 'other';
