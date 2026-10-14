@@ -876,7 +876,10 @@ event facts come from each library's own Bibliocommons record of the event (the 
 feed the event page renders, pulled 20:55–20:59 PT), and the event pages themselves were fetched at 21:15 PT (HTTP column). Branch
 addresses and map pins come from the same library's location records (`…/locations`, read 21:09 PT); the FOPAL sale's pin is the Palo Alto
 feed's own place record for Cubberley Community Center (4000 Middlefield Road, 37.4184094, -122.1084361). Sonoma County Library items
-come from its LibraryCalendar event pages (21:03 PT); those pages give an address but no coordinates, so these items have no pin.
+come from its LibraryCalendar event pages (21:03 PT); those pages give an address but no coordinates, so these items have no pin and
+the calendar map places them at their city. Two city reference points were added from the Census 2026 places gazetteer (GET 21:39 PT,
+https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_gaz_place_06.txt): Forestville CDP 0624960 (38.482491,
+-122.889884) and Guerneville CDP 0631470 (38.517165, -122.989897), stored rounded to three decimals in src/data/calendar-city-locations.ts.
 SFPL event pages were read 21:00–21:10 PT; the organiser pages (Dickens Fair, Calistoga, Pleasanton) 21:07–21:08 PT. "feed" in the
 HTTP column means a further date of the same programme whose record was read in the feed, not fetched as a page.
 
