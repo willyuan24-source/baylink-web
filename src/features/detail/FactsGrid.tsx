@@ -5,9 +5,10 @@ import { translateText, type Locale } from '../../i18n/locale';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { MonthlyEvent } from '../../data/monthly-types';
 import type { SeptemberOpening } from '../../data/september-openings';
-import { eventPriceChip, eventTimeLabel, offerKindLabel, offerValue, weekdayOf } from '../../lib/event-facts';
+import { eventPriceChip, offerKindLabel, offerValue } from '../../lib/event-facts';
 import { ReaderText } from './ReaderText';
 import { readerCost, readerProse } from './reader-text';
+import { sessionLines } from './session-lines';
 
 /**
  * "一眼看懂" (design.md §4.9 step 6): four facts in a 2×2 grid on a phone (one column at 大/特大 and in 简洁显示), a list in
@@ -36,22 +37,17 @@ function Facts({ cells, label }: { cells: Cell[]; label: string }) {
 const UNCONFIRMED_LEAD = /^(?:费用待[核定确认]+|費用待[核定確認]+|Cost (?:to be confirmed|TBC|unconfirmed))[：:]\s*/i;
 
 const mapLink = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
-const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
-const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 
-/** Session days line by line: "周六 10/17 · 10–16 点". Up to four, then "另有 N 场". */
+/**
+ * Session days, one line per time (H58, session-lines.ts): "周六 10/17、10/24、10/31 · 08:30–12:00", "周四至周日 10/15–18 ·
+ * 18:45–22:00", "每周六 10/17–11/28 · 9–13 点". At most two lines, then "另有 N 场", so the card ends above the phone's
+ * action bar.
+ */
 function SessionLines({ event, today }: { event: MonthlyEvent; today: string }) {
   const { english, t } = useUiCopy();
-  const days = [...new Set((event.sessions ?? []).map(session => session.date))].sort();
-  const upcoming = days.filter(day => day >= today);
-  const shown = (upcoming.length ? upcoming : days).slice(0, 4);
-  const more = (upcoming.length ? upcoming : days).length - shown.length;
+  const { lines, more } = sessionLines(event, today, english);
   return <>
-    {shown.map(day => {
-      const time = eventTimeLabel(event, day, english);
-      return <span key={day} className="detail-fact__line">{(english ? WEEKDAYS_EN : WEEKDAYS_ZH)[weekdayOf(day)]} {monthDay(day)}{time && ` · ${time}`}</span>;
-    })}
+    {lines.map(line => <span key={line} className="detail-fact__line">{line}</span>)}
     {more > 0 && <span className="detail-fact__line">{t(`另有 ${more} 场`, `${more} more ${more === 1 ? 'date' : 'dates'}`)}</span>}
   </>;
 }
