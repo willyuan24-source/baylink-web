@@ -283,6 +283,10 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 /* H52: at 大 / 特大 / 简洁 the section link sits under its heading instead of squeezing it. */
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-related__head { flex-direction:column; align-items:flex-start; gap:0; }
 .gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+/* H24 sweep (/en at 390): in the two-up related covers the photo label (Archive photo · 2013) and the meta line (175 official
+   sources · 1 min) were cut off with an ellipsis; they wrap to a second line instead, so the year and the reading time stay. */
+.gd-related .ui-provenance { white-space:normal; text-overflow:clip; }
+.gd-related .ui-feed-card__meta { white-space:normal; }
 .gd-credits { margin-top:20px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
 .gd-credits>summary { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; cursor:pointer; }
 .gd-credits ul { display:flex; flex-direction:column; gap:10px; margin:4px 0 0; padding:0; list-style:none; }
