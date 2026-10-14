@@ -17,6 +17,7 @@ import { OfferTickets } from '../features/home/OfferTickets';
 import { ShareStrip } from '../features/home/ShareStrip';
 import { Home3DTile } from '../features/home/Home3DTile';
 import { HomeImageCredits } from '../features/home/HomeImageCredits';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
 
 const INTENT_KEY = 'baylink.home-intent.v1';
 const isIntent = (value: string | null): value is HomeIntentId => HOME_INTENTS.some(intent => intent.id === value);
@@ -85,7 +86,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       {cardHref && <ShareStrip picks={weekend.picks} start={weekend.start} end={weekend.end} cardHref={cardHref} />}
       <Home3DTile />
     </div>
-    <p className="home-community"><button type="button" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}</button></p>
+    {COMMUNITY_VISIBLE && <p className="home-community"><button type="button" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}</button></p>}
     <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers]} />
   </section>;
 }

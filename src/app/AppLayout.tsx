@@ -28,6 +28,7 @@ import { useCloseOverlay } from './overlay-close';
 import { getLocale } from '../i18n/locale';
 import { useSession } from './useSession';
 import { useCommunityFeed } from './useCommunityFeed';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
 import { OverlayHost } from './OverlayHost';
 import { BootMainSettled, bootMainFallback } from './boot-main';
 import { confirmDialog } from '../components/ui/confirm';
@@ -474,6 +475,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   };
 
   const openCreate = (type?: PostType, category?: string, initialIntent = '') => {
+    if (!COMMUNITY_VISIBLE) { showToast(getLocale() === 'en' ? 'The neighborhood board is paused, and so is posting.' : '邻里信息暂停中，暂时不能发布。', 'info'); return; }
     cancelPendingContact();
     setEditingPost(null);
     setCreateDefaultType(type);

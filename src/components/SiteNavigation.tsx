@@ -8,6 +8,7 @@ import type { UserData } from '../lib/types';
 import { unprefixedPath } from '../lib/language-path';
 import { useDisclosure } from './useDisclosure';
 import { openSiteFeedback } from './site-feedback';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
 
 type Props = {
   active: string; category: string; homeActive: boolean; user: UserData | null;
@@ -65,7 +66,7 @@ export function SiteNavigation({ user, notification, notificationCount, onAsk, o
           {/* G1: the inbox is two taps from any page (更多 → 消息) and carries the unread count. */}
           {user && <Link to="/messages" aria-current={pathname === '/messages' || pathname.startsWith('/messages/') ? 'page' : undefined}><MessageCircle size={18} aria-hidden="true" />{english ? 'Messages' : '消息'}{unread}</Link>}
           <Link to="/my-week" aria-current={here('/my-week')}><CalendarDays size={18} aria-hidden="true" />{english ? 'My week' : '我的这周'}</Link>
-          <Link to="/category/rent" aria-current={pathname.startsWith('/category/') ? 'page' : undefined}><Users size={18} aria-hidden="true" />{english ? 'Neighborhood board (beta)' : '邻里信息（测试中）'}</Link>
+          {COMMUNITY_VISIBLE && <Link to="/category/rent" aria-current={pathname.startsWith('/category/') ? 'page' : undefined}><Users size={18} aria-hidden="true" />{english ? 'Neighborhood board (beta)' : '邻里信息（测试中）'}</Link>}
           <Link to="/explore" aria-current={here('/explore')}><Compass size={18} aria-hidden="true" />{english ? 'Explore places' : '按地区找景点'}</Link>
           <Link to="/tools" aria-current={here('/tools')}><Wrench size={18} aria-hidden="true" />{english ? 'Everyday tools' : '生活工具箱'}</Link>
           <Link to="/opus-bay?from=nav" aria-current={pathname === '/opus-bay' || pathname === '/play' ? 'page' : undefined} reloadDocument><TramFront size={18} aria-hidden="true" />{english ? '3D San Francisco' : '3D 旧金山'}</Link>

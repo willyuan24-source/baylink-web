@@ -2,6 +2,8 @@ import { getGuidesForCategorySlug } from '../data/guides';
 import { LIFE_TOOLS } from '../data/tool-catalog';
 import { categoryLabel } from '../lib/hub-metadata';
 import { useUiCopy } from './ui/ui-copy';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
+import { CommunityPaused } from '../features/posts/CommunityPaused';
 
 /**
  * The first paint of /tools and /category/:slug (scripts/prerender.tsx): what crawlers and share previews read before the
@@ -24,6 +26,8 @@ export function ToolsHubPrerender() {
 
 export function CategoryHubPrerender({ slug }: { slug: string }) {
   const { t } = useUiCopy();
+  // COMMUNITY_VISIBLE = false: the prerendered page is the paused notice too (seo.ts marks it noindex).
+  if (!COMMUNITY_VISIBLE) return <CommunityPaused />;
   const label = categoryLabel(slug);
   return <section className="px-5 py-8">
     <h1 className="text-2xl font-bold">{t(`湾区${label.zh}信息`, label.en === 'Other' ? 'Other Bay Area listings' : `Bay Area listings: ${label.en.toLowerCase()}`)}</h1>

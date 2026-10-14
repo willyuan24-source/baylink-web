@@ -1,4 +1,6 @@
 // Keep this module dependency-free: the public post server also imports it in native Node ESM.
+// (site-flags.ts is a constant-only module with no imports; the .js path resolves in native ESM, Vite and tsx alike.)
+import { COMMUNITY_VISIBLE } from '../data/site-flags.js';
 let translateText = (text: string): string => text;
 let metadataLocale = 'zh_CN';
 let translateStructuredData = (data: Record<string, unknown>[]): Record<string, unknown>[] => data;
@@ -239,6 +241,8 @@ const USER_POST = /^\/(?:(?:en|zh-Hant)\/)?posts\/([^/]+)\/?$/;
 const withPagePolicy = (metadata: PageMetadata): PageMetadata => {
   let pathname: string;
   try { pathname = new URL(metadata.path, SITE_URL).pathname; } catch { return metadata; }
+  // COMMUNITY_VISIBLE = false (site-flags.ts, WEB-COMMUNITY-2): the board's pages and posts are a paused notice, not indexed.
+  if (!COMMUNITY_VISIBLE && /^\/(?:(?:en|zh-Hant)\/)?(?:category|posts)\//.test(pathname)) metadata = { ...metadata, noindex: true };
   const post = USER_POST.exec(pathname);
   if (!post) return metadata;
   const copy = (metadata.locale || metadataLocale) !== 'zh_CN';
