@@ -131,31 +131,39 @@ const clock = (hours: string, minutes: string, meridiem?: string): string | unde
   if (meridiem) { if (hour < 1 || hour > 12) return undefined; hour = hour % 12 + (/^p/i.test(meridiem) ? 12 : 0); }
   return hour <= 23 ? `${two(hour)}:${minutes}` : undefined;
 };
-const LABEL_TIME = /([01]?\d|2[0-3]):([0-5]\d)(?:\s*([ap])\.?m\.?)?(?:\s*[–—~-]\s*([01]?\d|2[0-3])(?::([0-5]\d))?(?:\s*([ap])\.?m\.?)?)?(?!\s*(?:开门|開門|doors))/gi;
-/** The first clock time not inside a longer number, a time or a date. The character before it is checked in code: Safari
- * before 16.4 cannot parse a regex look-behind (tests/opus-bay-w9-e-lookbehind). */
-const firstLabelTime = (line: string): RegExpExecArray | null => {
+// an hour reads its two digits first ("20:00", not "2"), and nothing reads into a longer number
+const LABEL_TIME = /(2[0-3]|[01]?\d):([0-5]\d)(?!\d)(?:\s*([ap])\.?m\.?)?(?:\s*[–—~-]\s*(2[0-3]|[01]?\d)(?!\d)(?::([0-5]\d)(?!\d))?(?:\s*([ap])\.?m\.?)?)?/gi;
+/** A time that is not when the event starts: doors, entry, registration or check-in ("19:00 开门", "18:30入场／19:30开演"). */
+const NOT_THE_START = /^\s*(?:开门|開門|入场|入場|进场|進場|登记|登記|签到|簽到|报到|報到|doors|check-in|registration)/i;
+/** The clock times of a line that are not inside a longer number, a time or a date. The character before each is checked
+ * in code: Safari before 16.4 cannot parse a regex look-behind (tests/opus-bay-w9-e-lookbehind). */
+const labelTimeMatches = (line: string): RegExpExecArray[] => {
+  const matches: RegExpExecArray[] = [];
   LABEL_TIME.lastIndex = 0;
   for (let match = LABEL_TIME.exec(line); match; match = LABEL_TIME.exec(line)) {
-    if (match.index === 0 || !/[\d:/]/.test(line[match.index - 1])) return match;
-    LABEL_TIME.lastIndex = match.index + 1;
+    if (match.index === 0 || !/[\d:/]/.test(line[match.index - 1])) matches.push(match);
+    else LABEL_TIME.lastIndex = match.index + 1;
   }
-  return null;
+  return matches;
 };
+/** A range's end: its hour needs its minutes or its am/pm ("–16:00", "–6pm"); a bare "–6" is not read. */
+const rangeEnd = (match: RegExpExecArray): string | undefined => match[4] && (match[5] || match[6]) ? clock(match[4], match[5] || '00', match[6]) : undefined;
 /**
  * H47: the stated times of a one-day listing without sessions, from its reviewed date line ("10/18 · 14:00–16:00",
  * "10 月 6 日 · 18:00–19:00", "10/10 · 10:30 开始"): the line the page shows, so the JSON-LD says what the page says. A
- * multi-day listing's line may give one day's hours only, so it states none; a doors time (19:00 开门) is not the start.
+ * multi-day listing's line may give one day's hours only, so it states none. A doors, entry or registration time
+ * ("19:00入场／20:00开演") is not the start. A line with several ranges ("10:00–12:00 或 13:00–15:00") ends with the latest.
  */
 export function labelTimes(event: Pick<MonthlyEvent, 'startDate' | 'endDate' | 'occurrenceDates' | 'dateLabel' | 'sessions' | 'status'>): { start: string; end?: string } | undefined {
   if (event.startDate !== event.endDate || event.sessions?.length || (event.occurrenceDates?.length ?? 0) > 1 || event.status === 'postponed' || event.status === 'cancelled') return undefined;
-  const match = firstLabelTime(event.dateLabel || '');
+  const line = event.dateLabel || '';
+  const matches = labelTimeMatches(line).filter(match => !NOT_THE_START.test(line.slice(match.index + match[0].length)));
+  const match = matches[0];
   if (!match) return undefined;
   // "4:30–6pm": the end's am/pm also reads the start when the start has none
   const start = clock(match[1], match[2], match[3] || (match[6] && Number(match[1]) <= Number(match[4]) ? match[6] : undefined));
-  // an end hour needs its minutes or its am/pm ("–16:00", "–6pm"); a bare "–6" is not read
-  const end = match[4] && (match[5] || match[6]) ? clock(match[4], match[5] || '00', match[6]) : undefined;
   if (!start) return undefined;
+  const end = matches.map(rangeEnd).filter((time): time is string => !!time).sort().at(-1);
   return end && end > start ? { start, end } : { start };
 }
 /**

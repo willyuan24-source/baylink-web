@@ -127,6 +127,18 @@ test('H47: one-day listings state the time their date line gives; streets after 
   assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 官方总时段 07:00–14:00；称重预计约 07:00–11:00' }), { start: '07:00', end: '14:00' });
   assert.deepEqual(labelTimes({ ...day, dateLabel: 'Oct 18 · 4:30–6pm' }), { start: '16:30', end: '18:00' }, 'the end’s pm reads the start');
   assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 19:00 开门；20:00 开演' }), { start: '20:00' }, 'doors are not the start');
+  // an end from 20:00 on reads both its digits (review 10-14: "–2" was read and dropped)
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/15 · 18:00–22:00' }), { start: '18:00', end: '22:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10:00–20:00' }), { start: '10:00', end: '20:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/2 · 20:00–23:30' }), { start: '20:00', end: '23:30' });
+  assert.equal(eventTimes({ ...day, dateLabel: '10/18 · 18:00–22:00' }).endDate, '2026-10-18T22:00:00-07:00');
+  // entry and registration times are not the start either
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 19:00入场／20:00开演' }), { start: '20:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '9/29 · 18:30入場／19:30開演' }), { start: '19:30' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 09:00 登记；10:00 开幕' }), { start: '10:00' });
+  // a line with two ranges runs until the later one ends
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 10:00–12:00 或 13:00–15:00' }), { start: '10:00', end: '15:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/24 · 蝴蝶手作11:00–14:00；乐团11:00–16:00；末节乐器体验16:00–16:30' }), { start: '11:00', end: '16:30' });
   assert.equal(labelTimes({ ...day, dateLabel: '10/18 · 全天' }), undefined, 'no time stated, none invented');
   assert.equal(labelTimes({ startDate: '2026-10-17', endDate: '2026-10-18', dateLabel: '10/17–10/18 · 10:00–17:00' }), undefined, 'a multi-day line may give one day’s hours');
   assert.equal(labelTimes({ ...day, dateLabel: '10/18 · 14:00–16:00', sessions: [{ date: '2026-10-18', start: '13:00' }] }), undefined, 'sessions win');
