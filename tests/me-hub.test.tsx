@@ -188,6 +188,27 @@ test('/messages: three round entries, the one-tap reminder offer for a member so
   assert.ok(view.getByRole('button', { name: '同意并发送' }));
   assert.equal(view.getByRole('button', { name: '收起' }).getAttribute('aria-controls'), 'msg-requests-list');
   assert.ok(await view.findByRole('heading', { name: '还没有消息' }));
+  assert.equal(reads.filter(path => path === '/notifications/preferences').length, 1, 'the offer reuses the page’s preferences read');
+});
+
+test('/messages with a request waiting: when the offer cannot show (以后再说 said, or a phone sign-up without an email), the 去开启 prompt stays', async () => {
+  const waiting = (path: string) => path.startsWith('/contact-requests') ? { requests: [{ id: 'r1', postId: 'p1', postTitle: '旧金山一房出租', status: 'pending', requester: { id: 'u2', nickname: '小王' } }] } : undefined;
+  const cases: [string, UserData, Record<string, unknown>][] = [
+    ['dismissed', user, offPreferences()],
+    ['phone sign-up', { ...user, email: '' }, offPreferences({ emailVerified: false, phoneVerified: true })],
+  ];
+  for (const [label, account, preferences] of cases) {
+    localStorage.setItem('currentUser', JSON.stringify(account));
+    if (label === 'dismissed') localStorage.setItem(`baylink.notice-optin.dismissed.v1.${account.id}`, '1');
+    mockApi(path => path === '/notifications/preferences' ? preferences : waiting(path));
+    let pending = -1;
+    const view = render(app(context({ user: account, setPendingContactRequestCount: ((count: number) => { pending = count; }) as AppContextValue['setPendingContactRequestCount'] }), '/messages'));
+    await waitFor(() => assert.equal(pending, 1));
+    const prompt = await view.findByRole('note');
+    assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications', label);
+    assert.equal(view.queryByRole('region', { name: '站外提醒' }), null, label);
+    cleanup(); localStorage.clear();
+  }
 });
 
 test('no reminders prompt when a reminder is on or the setting cannot be read', async () => {

@@ -261,6 +261,8 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
   const senderName = (id: string) => id === currentUser.id ? currentUser.nickname : other.nickname;
   // H14 (web part): the person who receives a first message gets the same email-reminder offer as the sender, until they
   // reply (NoticeOptIn still decides: nothing when a reminder is on, after 以后再说, or when the settings cannot be read).
+  // "Has not replied" is read from the messages this view loaded; if the API ever trims a long thread and the member's
+  // reply is outside it, the offer can show once more, and it still goes away for good with any reminder on or 以后再说.
   const receivedFirst = !loading && !loadError && messages.some(message => message.senderId === other.id && message.messageType !== 'system')
     && !messages.some(message => message.senderId === currentUser.id);
 

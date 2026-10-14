@@ -27,8 +27,8 @@ afterEach(async () => { cleanup(); api.request = original; localStorage.clear();
 const off = { message: false, contact_request: false, outing_request: false, comment: false };
 const preset = { email: { message: true, contact_request: true, outing_request: false, comment: false }, sms: off };
 /** The api #44 DTO. `active` is the server's preset switch (false until the captain's flip PR). */
-const dto = ({ active = true, verified = true, applied = false, customized = false, email = off } = {}) => ({
-  preferences: { email, sms: off }, emailVerified: verified, phoneVerified: false, deliveryEnabled: true, emailDeliveryAvailable: true, smsDeliveryAvailable: true,
+const dto = ({ active = true, verified = true, applied = false, customized = false, email = off, sms = off } = {}) => ({
+  preferences: { email, sms }, emailVerified: verified, phoneVerified: false, deliveryEnabled: true, emailDeliveryAvailable: true, smsDeliveryAvailable: true,
   topics: ['message', 'contact_request', 'outing_request', 'comment'], defaults: preset, defaultsActive: active, defaultsApplied: applied, customized,
 });
 const member = () => localStorage.setItem('currentUser', JSON.stringify({ id: 'owner', token: 'test-only', email: 'owner@example.test' }));
@@ -43,15 +43,27 @@ test('an older server without the H14 fields reads as "preset off": no default i
   assert.equal(defaultsState(normalize(dto({ applied: true, email: preset.email }))), 'applied');
   assert.equal(defaultsState(normalize(dto({ applied: true, customized: true }))), 'chosen', 'turned off since: their choice');
   assert.equal(defaultsState(normalize(dto({ active: false, verified: false }))), 'off');
+  // The owner's kill switch (NOTIFICATION_EMAIL_DEFAULTS=off) leaves accounts that already got the defaults as they are.
+  assert.equal(defaultsState(normalize(dto({ active: false, applied: true, email: preset.email }))), 'applied');
+  assert.equal(defaultsState(normalize(dto({ active: false, applied: true, customized: true }))), 'off');
+  // The API defaults only an untouched account: an unverified one that already has any reminder on keeps its choice.
+  assert.equal(defaultsState(normalize(dto({ verified: false, sms: { ...off, message: true } }))), 'chosen');
+  assert.equal(defaultsState(normalize(dto({ verified: false, email: { ...off, outing_request: true } }))), 'chosen');
+  assert.equal(defaultsState(normalize(dto({ verified: true }))), 'chosen', 'verified and never defaulted: the API kept an earlier choice');
 });
 
-test('the settings card says what is true in each state and marks the preset on the email switches only while it is on', async () => {
+test('the settings card says what is true in each state and marks the preset on the email switches only while verifying still turns it on', async () => {
   member();
+  const pending = /会默认用邮件提醒你/, applied = /已按默认为你开启/, chosen = /按你保存的选择接收/, plain = /由你主动选择接收/;
   const cases = [
     { answer: dto({ active: false }), lead: /^由你主动选择接收。/, tag: false },
     { answer: dto({ verified: false }), lead: /^验证邮箱后，「新的私信」「新的联系请求」会默认用邮件提醒你，可随时关闭。/, tag: true },
-    { answer: dto({ applied: true, email: preset.email }), lead: /^验证邮箱后，已按默认为你开启「新的私信」「新的联系请求」邮件提醒，可随时关闭。/, tag: true },
-    { answer: dto({ customized: true }), lead: /^按你保存的选择接收，可随时更改。/, tag: true },
+    { answer: dto({ applied: true, email: preset.email }), lead: /^已按默认为你开启「新的私信」「新的联系请求」邮件提醒，可随时关闭。/, tag: false },
+    { answer: dto({ customized: true }), lead: /^按你保存的选择接收，可随时更改。/, tag: false },
+    // Kill switch after the flip: an account defaulted earlier still has both on, and the card says so.
+    { answer: dto({ active: false, applied: true, email: preset.email }), lead: /^已按默认为你开启「新的私信」「新的联系请求」邮件提醒，可随时关闭。/, tag: false },
+    // Unverified with an SMS reminder already on: the API keeps that choice and turns nothing on when the email is verified.
+    { answer: dto({ verified: false, sms: { ...off, message: true } }), lead: /^按你保存的选择接收，可随时更改。/, tag: false },
   ];
   for (const { answer, lead, tag } of cases) {
     api.request = (async () => answer) as typeof api.request;
@@ -59,13 +71,21 @@ test('the settings card says what is true in each state and marks the preset on 
     await view.findByRole('button', { name: '保存通知偏好' });
     const intro = view.getByRole('heading', { name: '站外通知' }).nextElementSibling!.textContent!;
     assert.match(intro, lead);
-    assert.doesNotMatch(intro, answer.defaultsActive ? /由你主动选择接收/ : /默认/);
+    assert.equal([pending, applied, chosen, plain].filter(sentence => sentence.test(intro)).length, 1, 'one state sentence only');
     const email = within(view.getByRole('group', { name: '邮件提醒' }));
     assert.equal(email.queryAllByText('验证后默认开启').length, tag ? 2 : 0);
     assert.equal(within(view.getByRole('group', { name: '短信提醒' })).queryAllByText('验证后默认开启').length, 0, 'SMS stays opt-in');
     assert.match(view.container.querySelector('.me-notify__hint')!.textContent!, /每封提醒邮件里也有「关闭这类邮件」链接，只关闭那一类提醒/);
     cleanup();
   }
+  // English 'applied' sentence: true for an account defaulted when it verified and for one migrated on read.
+  await setLocale('en', false);
+  api.request = (async () => dto({ active: false, applied: true, email: preset.email })) as typeof api.request;
+  const view = render(<NotificationPreferencesCard userId="owner" />);
+  await view.findByRole('button', { name: 'Save notification preferences' });
+  assert.ok(view.getByRole('heading', { name: 'Email and SMS notifications' }).nextElementSibling!.textContent!
+    .startsWith('New private messages and new contact requests are on for email by default. You can turn them off any time.'));
+  assert.equal(view.queryAllByText('on by default once verified').length, 0);
 });
 
 test('requesting the verification email sends the page language and says what confirming will turn on', async () => {
@@ -112,7 +132,7 @@ test('verify page: nothing happens before the tap; it sends the language and say
   for (const applied of [true, false]) {
     api.request = (async (path: string, options?: RequestInit) => { calls.push({ path, body: JSON.parse(String(options!.body)) }); return { ok: true, emailVerified: true, defaultsApplied: applied }; }) as typeof api.request;
     const view = tokenPage('verify', `#token=${token}`);
-    assert.match(view.getByRole('main').textContent!, /确认后，这里会告诉你哪些邮件提醒已开启/);
+    assert.match(view.getByRole('main').textContent!, /确认后，这里会说明邮件提醒的情况/);
     assert.doesNotMatch(view.getByRole('main').textContent!, /不会自动开启/);
     assert.equal(calls.length, applied ? 0 : 1, 'the confirm tap stays');
     await act(async () => { fireEvent.click(view.getByRole('button', { name: '确认' })); });

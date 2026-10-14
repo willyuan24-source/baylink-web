@@ -14,8 +14,8 @@ const serverError = (value: unknown): string | undefined => {
 /**
  * Opt-in is an explicit authenticated save, except the server's H14 preset (api #44): while `defaultsActive`, a verified
  * email gets 新的私信 and 新的联系请求 once, for an account that never chose. The lead sentence says which of the four
- * states this account is in (defaultsState) and the email switches mark the preset; nothing here claims a default the
- * server does not report. Once a channel is
+ * states this account is in (defaultsState) and, only while verifying would still turn them on ('pending'), the email
+ * switches mark the preset; nothing here claims a default the server does not report. Once a channel is
  * verified, "开启全部提醒" turns on every topic for the verified channels in one tap (an explicit save of the same
  * PATCH the checkboxes use, so it works before and after the server's own enableAll field ships).
  */
@@ -79,7 +79,8 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
   }
   const state = settings ? defaultsState(settings) : 'off';
   const lead = state === 'pending' ? text(`验证邮箱后，${defaultNames('zh')}会默认用邮件提醒你，可随时关闭。`, `Once your email is verified, ${defaultNames('en')} are emailed to you by default. You can turn them off any time.`, `驗證信箱後，${defaultNames('zh')}會預設用郵件提醒你，可隨時關閉。`)
-    : state === 'applied' ? text(`验证邮箱后，已按默认为你开启${defaultNames('zh')}邮件提醒，可随时关闭。`, `When your email was verified, ${defaultNames('en')} were turned on for email by default. You can turn them off any time.`, `驗證信箱後，已按預設為你開啟${defaultNames('zh')}郵件提醒，可隨時關閉。`)
+    // True for an account defaulted when it verified and for one migrated on read (verified long before), preset on or off.
+    : state === 'applied' ? text(`已按默认为你开启${defaultNames('zh')}邮件提醒，可随时关闭。`, `${defaultNames('en').replace(/^./, first => first.toUpperCase())} are on for email by default. You can turn them off any time.`, `已按預設為你開啟${defaultNames('zh')}郵件提醒，可隨時關閉。`)
       : state === 'chosen' ? text('按你保存的选择接收，可随时更改。', 'You get the reminders you chose, and can change them any time.', '按你儲存的選擇接收，可隨時更改。')
         : text('由你主动选择接收。', 'Choose which reminders to receive.', '由你主動選擇接收。');
   const noticeText = notice === 'verified' ? text('邮箱已验证。', 'Email already verified.', '信箱已驗證。')
@@ -106,7 +107,7 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
           <p>{verified ? text('已验证', 'Verified', '已驗證') : channel === 'email' ? text('请先验证当前邮箱', 'Verify your current email first', '請先驗證目前信箱') : text('请先在个人资料中验证当前手机号', 'Verify your current phone in your profile first', '請先在個人資料中驗證目前手機號碼')}</p>
           {settings.topics.map(topic => <label key={topic}><input type="checkbox" disabled={!verified || busy} checked={settings.preferences[channel][topic]}
             onChange={event => setSettings(previous => previous ? { ...previous, preferences: { ...previous.preferences, [channel]: { ...previous.preferences[channel], [topic]: event.target.checked } } } : previous)} />
-            <span>{topicLabel(topic)}{channel === 'email' && settings.defaultsActive && settings.defaults.email[topic] && <small className="me-notify__default">{text('验证后默认开启', 'on by default once verified', '驗證後預設開啟')}</small>}</span>
+            <span>{topicLabel(topic)}{channel === 'email' && state === 'pending' && settings.defaults.email[topic] && <small className="me-notify__default">{text('验证后默认开启', 'on by default once verified', '驗證後預設開啟')}</small>}</span>
           </label>)}
           {channel === 'email' && !verified && <button type="button" disabled={busy} onClick={() => void submit('verify')}>{text('发送验证邮件', 'Request verification email', '發送驗證郵件')}</button>}
         </fieldset>;

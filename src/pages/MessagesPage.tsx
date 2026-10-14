@@ -1,7 +1,7 @@
 // 消息 /messages: three round entries (联系请求 · 小队 · 预约), a notifications-off prompt, contact requests and the
 // conversation list. /messages/:threadId keeps the main area for the route states; the thread itself is the
 // layout's ChatView overlay.
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { CalendarCheck, UserPlus, Users } from 'lucide-react';
 import { api } from '../lib/api';
@@ -13,11 +13,13 @@ import { EmptyState, ErrorState } from '../components/ui/States';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';
 import { useUiCopy } from '../components/ui/ui-copy';
 import { MessagesList } from '../features/messages/MessagesList';
-import { useAnyReminderOn } from '../features/profile/notification-settings';
+import { anyReminderOn, useReminderSettings } from '../features/profile/notification-settings';
 import '../features/messages/messages-hub.css';
 
-// Only a member with a pending contact request and every reminder off sees it: its chunk loads then, not with /messages.
-const NoticeOptIn = lazy(() => import('../features/posts/NoticeOptIn').then(module => ({ default: module.NoticeOptIn })));
+// Only a member with a pending contact request and every reminder off sees it: its chunk loads then, not with /messages
+// (fetched as soon as a request is known to be waiting, alongside the preferences read).
+const loadNoticeOptIn = () => import('../features/posts/NoticeOptIn');
+const NoticeOptIn = lazy(() => loadNoticeOptIn().then(module => ({ default: module.NoticeOptIn })));
 
 function ThreadRouteState() {
   const { t } = useUiCopy();
@@ -42,10 +44,16 @@ export default function MessagesPage() {
   } = useApp();
   const [pending, setPending] = useState<number | null>(null);
   const [requestsOpen, setRequestsOpen] = useState(false);
-  const remindersOn = useAnyReminderOn(threadId ? undefined : user?.id);
+  const reminders = useReminderSettings(threadId ? undefined : user?.id);
+  const remindersOff = !!reminders && !anyReminderOn(reminders);
+  useEffect(() => { if (pending) void loadNoticeOptIn().catch(() => { /* The lazy import retries when it renders. */ }); }, [pending]);
 
   if (threadId) return user && chatRouteStatus === 'ready' ? null : <ThreadRouteState />;
 
+  const offPrompt = <div className="msg-prompt" role="note">
+    <p>{t('站外提醒未开启：有新私信时，不会收到邮件或短信。', 'Reminders are off: you will not get an email or text when a message arrives.')}</p>
+    <Link to="/me?view=notifications">{t('去开启', 'Turn them on')}</Link>
+  </div>;
   const openRequests = () => {
     setRequestsOpen(true);
     window.requestAnimationFrame?.(() => document.getElementById('contact-requests')?.scrollIntoView?.({ block: 'start', behavior: 'auto' }));
@@ -68,11 +76,9 @@ export default function MessagesPage() {
           <span className="msg-round__label">{t('预约', 'Bookings')}</span>
         </Link></li>
       </ul>}
-      {/* H14 (web part): someone asked for this member's contact details: the same one-tap email offer a poster gets. */}
-      {user && remindersOn === false && (pending ? <Suspense fallback={null}><NoticeOptIn userId={user.id} context="received" /></Suspense> : <div className="msg-prompt" role="note">
-        <p>{t('站外提醒未开启：有新私信时，不会收到邮件或短信。', 'Reminders are off: you will not get an email or text when a message arrives.')}</p>
-        <Link to="/me?view=notifications">{t('去开启', 'Turn them on')}</Link>
-      </div>)}
+      {/* H14 (web part): someone asked for this member's contact details: the same one-tap email offer a poster gets. The
+          generic prompt stays whenever that offer does not show (以后再说 said, no usable email: a phone sign-up). */}
+      {user && remindersOff && (pending ? <Suspense fallback={null}><NoticeOptIn userId={user.id} context="received" settings={reminders} fallback={offPrompt} /></Suspense> : offPrompt)}
       {user && (
         <ContactRequestInboxPanel
           key={`${user.id}:${user.token}`}

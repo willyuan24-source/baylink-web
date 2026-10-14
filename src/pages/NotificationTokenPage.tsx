@@ -68,7 +68,7 @@ export default function NotificationTokenPage({ purpose }: { purpose: 'verify' |
         : result.channel === 'email' ? text('已关闭全部邮件提醒。可在「我的 › 通知」重新开启。', 'All email reminders are off. You can turn them back on in Me › Notifications.', '已關閉全部郵件提醒。可在「我的 › 通知」重新開啟。')
           : text('已关闭这条链接对应的提醒。', 'The reminders for this link are turned off.', '已關閉這條連結對應的提醒。');
   const intro = purpose === 'verify'
-    ? text('请确认这是你本人请求的邮箱验证。确认后，这里会告诉你哪些邮件提醒已开启。', 'Confirm that you requested this verification. Once you confirm, this page tells you which email reminders are on.', '請確認這是你本人請求的信箱驗證。確認後，這裡會告訴你哪些郵件提醒已開啟。')
+    ? text('请确认这是你本人请求的邮箱验证。确认后，这里会说明邮件提醒的情况。', 'Confirm that you requested this verification. Once you confirm, this page says what happens to your email reminders.', '請確認這是你本人請求的信箱驗證。確認後，這裡會說明郵件提醒的情況。')
     : linkKind ? text(`确认后，将关闭这条链接对应的${name(linkKind)}提醒；其他提醒不变。`, `Confirm to turn off reminders for ${name(linkKind)} from this link. Other reminders stay as they are.`, `確認後，將關閉這條連結對應的${name(linkKind)}提醒；其他提醒不變。`)
       : text('确认后将关闭此链接对应的邮件或短信提醒。', 'Confirm to turn off email or SMS reminders for this link.', '確認後將關閉此連結對應的郵件或簡訊提醒。');
   return <main className="mx-auto max-w-xl p-6">

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing } from 'lucide-react';
 import '../../components/ui/ui.css';
@@ -27,10 +27,25 @@ type State = { kind: 'loading' } | { kind: 'hidden' } | { kind: 'offer'; setting
   | { kind: 'on'; delivery: boolean } | { kind: 'verify-sent'; delivery: boolean; defaults: boolean } | { kind: 'error'; settings: NotificationSettings }
   | { kind: 'no-email' };
 
-/** `onShown` runs once, when the offer first appears (a chat scrolls it into view, as it does a new message). */
-export function NoticeOptIn({ userId, context, onShown }: { userId: string; context: 'post' | 'dm' | 'received'; onShown?: () => void }) {
+/** Not this browser's signed-in account (a stale view) or 以后再说 already said: no offer and no settings read. */
+const ruledOut = (userId: string) => readDismissed(userId) || getStoredUser()?.id !== userId;
+const decide = (settings: NotificationSettings): State => {
+  const anyOn = (['email', 'sms'] as const).some(channel => TRADE_TOPICS.some(topic => settings.preferences[channel][topic]));
+  // No offer the member cannot take: an unverified account without a usable email address (a phone sign-up).
+  const canVerify = settings.emailVerified || USABLE_EMAIL.test(getStoredUser()?.email || '');
+  return anyOn || !canVerify ? { kind: 'hidden' } : { kind: 'offer', settings };
+};
+
+/**
+ * `onShown` runs once, when the offer first appears (a chat scrolls it into view, as it does a new message).
+ * `settings`: the preferences the page already read (no second GET, and no blank first frame). `fallback`: what to show
+ * whenever the offer does not (以后再说 said, no usable email, unreadable settings), so a page's own prompt never disappears.
+ */
+export function NoticeOptIn({ userId, context, onShown, settings: preloaded, fallback = null }: {
+  userId: string; context: 'post' | 'dm' | 'received'; onShown?: () => void; settings?: NotificationSettings | null; fallback?: ReactNode;
+}) {
   const { t, locale } = useUiCopy();
-  const [state, setState] = useState<State>({ kind: 'loading' });
+  const [state, setState] = useState<State>(() => ruledOut(userId) ? { kind: 'hidden' } : preloaded ? decide(preloaded) : { kind: 'loading' });
   const shownOnce = useRef(false);
   const offered = state.kind === 'offer';
   useEffect(() => {
@@ -39,21 +54,18 @@ export function NoticeOptIn({ userId, context, onShown }: { userId: string; cont
     onShown?.();
   }, [offered, onShown]);
   useEffect(() => {
-    // Not this browser's signed-in account (a stale view) or 以后再说 already said: no offer and no settings read.
-    if (readDismissed(userId) || getStoredUser()?.id !== userId) { setState({ kind: 'hidden' }); return; }
+    if (ruledOut(userId)) { setState({ kind: 'hidden' }); return; }
+    if (preloaded) { setState(current => current.kind === 'offer' && current.settings === preloaded ? current : decide(preloaded)); return; }
     const controller = new AbortController();
     api.request('/notifications/preferences', { signal: controller.signal }).then(value => {
       if (controller.signal.aborted || getStoredUser()?.id !== userId) return;
-      const settings = normalize(value);
-      const anyOn = (['email', 'sms'] as const).some(channel => TRADE_TOPICS.some(topic => settings.preferences[channel][topic]));
-      // No offer the member cannot take: an unverified account without a usable email address (a phone sign-up).
-      const canVerify = settings.emailVerified || USABLE_EMAIL.test(getStoredUser()?.email || '');
-      setState(anyOn || !canVerify ? { kind: 'hidden' } : { kind: 'offer', settings });
+      setState(decide(normalize(value)));
     }).catch(() => { if (!controller.signal.aborted) setState({ kind: 'hidden' }); });
     return () => controller.abort();
-  }, [userId]);
+  }, [userId, preloaded]);
 
-  if (state.kind === 'loading' || state.kind === 'hidden') return null;
+  if (state.kind === 'loading') return null;
+  if (state.kind === 'hidden') return <>{fallback}</>;
   const dismiss = () => {
     try { window.localStorage.setItem(dismissKey(userId), '1'); } catch { /* It is offered again next time. */ }
     setState({ kind: 'hidden' });

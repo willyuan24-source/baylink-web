@@ -53,14 +53,23 @@ export const normalize = (value: unknown): NotificationSettings => {
 };
 /** The email topics a verified address gets by default (新的私信, 新的联系请求 today), in the server's topic order. */
 export const defaultEmailTopics = (settings: NotificationSettings): Topic[] => KNOWN_TOPICS.filter(topic => settings.defaults.email[topic]);
+/** Any reminder on, on any channel: the API's own test for an account that already made a choice (`anyPreferenceOn`). */
+export const anyReminderOn = (settings: NotificationSettings) => channels.some(channel => KNOWN_TOPICS.some(topic => settings.preferences[channel][topic]));
 /**
- * Which sentence about defaults is true for this account (H14): 'pending' — the preset is on and verifying this email will
- * turn the defaults on; 'applied' — they were turned on by default and the member has not chosen since; 'chosen' — the
- * preset is on but this account follows its own saved choice; 'off' — the preset is off, so nothing is on unless chosen.
+ * Which sentence about defaults is true for this account (H14), following the API's settleDefaults rules:
+ * 'applied' — the defaults were turned on for this account and the member has not chosen since (true even after the owner's
+ * kill switch NOTIFICATION_EMAIL_DEFAULTS=off, which leaves those accounts as they are); 'off' — the preset is off and this
+ * account never got it, so nothing is on unless chosen; 'pending' — the preset is on and verifying this email will turn
+ * the defaults on (an untouched, unverified account: never customized and no reminder on anywhere); 'chosen' — the preset
+ * is on but this account follows its own choice (saved settings, an unsubscribe link, or a reminder it already had on).
  */
 export type DefaultsState = 'off' | 'pending' | 'applied' | 'chosen';
-export const defaultsState = (settings: NotificationSettings): DefaultsState => !settings.defaultsActive || !defaultEmailTopics(settings).length ? 'off'
-  : settings.customized ? 'chosen' : settings.defaultsApplied ? 'applied' : settings.emailVerified ? 'chosen' : 'pending';
+export const defaultsState = (settings: NotificationSettings): DefaultsState => {
+  if (!defaultEmailTopics(settings).length) return 'off';
+  if (settings.defaultsApplied && !settings.customized) return 'applied';
+  if (!settings.defaultsActive) return 'off';
+  return settings.customized || settings.emailVerified || anyReminderOn(settings) ? 'chosen' : 'pending';
+};
 /** The page language for the API's optional `locale` (verification email and reminder language, api #44). */
 export const verificationBody = (locale: string) => JSON.stringify({ locale: locale === 'en' || locale === 'zh-Hant' ? locale : 'zh-Hans' });
 export const verifiedChannels = (settings: NotificationSettings) => channels.filter(channel => channel === 'email' ? settings.emailVerified : settings.phoneVerified);
@@ -71,18 +80,20 @@ export const allRemindersOn = (settings: NotificationSettings) => verifiedChanne
 export const preferencePayload = (settings: NotificationSettings) => Object.fromEntries(channels.map(channel => [channel,
   Object.fromEntries(settings.topics.map(topic => [topic, settings.preferences[channel][topic]]))]));
 
-/** Messages page prompt: null while unknown or unavailable (never nag on an error), false when every reminder is off. */
-export function useAnyReminderOn(userId: string | undefined): boolean | null {
-  const [state, setState] = useState<{ owner?: string; on: boolean | null }>({ on: null });
+/**
+ * Messages page: this account's settings, read once; null while unknown or unavailable (never nag on an error). The page
+ * passes them to its reminder offer, so /messages reads the preferences once.
+ */
+export function useReminderSettings(userId: string | undefined): NotificationSettings | null {
+  const [state, setState] = useState<{ owner?: string; settings: NotificationSettings | null }>({ settings: null });
   useEffect(() => {
     if (!userId) return;
     const controller = new AbortController();
     api.request('/notifications/preferences', { signal: controller.signal }).then(value => {
       if (controller.signal.aborted || getStoredUser()?.id !== userId) return;
-      const settings = normalize(value);
-      setState({ owner: userId, on: channels.some(channel => settings.topics.some(topic => settings.preferences[channel][topic])) });
+      setState({ owner: userId, settings: normalize(value) });
     }).catch(() => { /* Unknown: no prompt. */ });
     return () => controller.abort();
   }, [userId]);
-  return state.owner === userId ? state.on : null;
+  return state.owner === userId ? state.settings : null;
 }
