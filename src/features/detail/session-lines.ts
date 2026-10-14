@@ -1,4 +1,4 @@
-import { eventTimeLabel, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
+import { displayUnits, eventTimeLabel, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
 
 /**
  * H58 (EVT13-12): the 何时 cell of the facts card, short enough that the card ends above the phone's action bar. Sessions
@@ -6,12 +6,15 @@ import { eventTimeLabel, weekdayOf, type EventFactsInput } from '../../lib/event
  * "另有 N 场". Nothing is invented: every date shown is a session date, every time the record's own (eventTimeLabel).
  *
  * One line per time, in the order of its first date. Its dates, compact and never guessed:
- * - one weekday for all (≤3 dates): "周六 10/17、10/24、10/31"; strictly weekly and more: "每周六 10/17–11/28"
+ * - one weekday for all: "周六 10/17、10/24、10/31"; strictly weekly and four or more: "每周六 10/17–11/28"
  * - consecutive days: "周四至周日 10/15–18" (alone) or "10/22–25" (among others)
- * - otherwise up to three dates or runs, then "等 5 场" (en "+ 2 more") for the rest of that line
+ * - otherwise as many dates or runs as fit one phone line with the time (LINE_BUDGET); a later date in the same month drops
+ *   its month only when that lets more dates show ("10/15、21、24、27、30"); the rest of the line is "等 8 场" (en "+ 2 more")
  */
 export const MAX_SESSION_LINES = 2;
-const MAX_ITEMS = 3;
+/** Display units (CJK 1, other ½) of one line, dates and time: the 390px facts card's 326px at the 17px reading size. */
+const LINE_BUDGET = 19;
+const WEEKLY_MIN = 4;
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_MS = 86_400_000;
@@ -21,14 +24,13 @@ const dayIndex = (day: string) => Math.round(Date.parse(`${day}T12:00:00Z`) / DA
 /** "10/15–18" in one month, "10/30–11/1" across two. */
 const span = (start: string, end: string) => `${monthDay(start)}–${start.slice(0, 7) === end.slice(0, 7) ? Number(end.slice(8, 10)) : monthDay(end)}`;
 
-type Item = { days: string[] };
 /** Consecutive calendar days become one run. */
-function runs(days: readonly string[]): Item[] {
-  const items: Item[] = [];
+function runs(days: readonly string[]): string[][] {
+  const items: string[][] = [];
   for (const day of days) {
     const last = items.at(-1);
-    if (last && dayIndex(day) - dayIndex(last.days.at(-1)!) === 1) last.days.push(day);
-    else items.push({ days: [day] });
+    if (last && dayIndex(day) - dayIndex(last.at(-1)!) === 1) last.push(day);
+    else items.push([day]);
   }
   return items;
 }
@@ -47,26 +49,41 @@ export function sessionLines(event: Pick<EventFactsInput, 'sessions' | 'planning
     const time = eventTimeLabel(event, day, english) ?? '';
     groups.set(time, [...(groups.get(time) ?? []), day]);
   }
-  const join = (parts: string[]) => parts.join(english ? ', ' : '、');
-  const format = (group: string[]): string => {
-    const weekday = weekdayOf(group[0]);
-    const sameWeekday = group.every(day => weekdayOf(day) === weekday);
-    const weekly = group.length > MAX_ITEMS && group.every((day, index) => !index || dayIndex(day) - dayIndex(group[index - 1]) === 7);
-    if (weekly) return english ? `Every ${weekdays[weekday]} ${span(group[0], group.at(-1)!)}` : `每${weekdays[weekday]} ${span(group[0], group.at(-1)!)}`;
+  const separator = english ? ', ' : '、';
+  /** The first `count` items as text; `short` drops the month of a single date that follows one in the same month. */
+  const listed = (items: string[][], count: number, short: boolean) => items.slice(0, count).map((item, index) => {
+    if (item.length > 1) return span(item[0], item.at(-1)!);
+    const previous = items[index - 1]?.at(-1);
+    return short && previous && previous.slice(0, 7) === item[0].slice(0, 7) ? String(Number(item[0].slice(8, 10))) : monthDay(item[0]);
+  }).join(separator);
+  const format = (group: string[], time: string): string => {
+    const at = time ? ` · ${time}` : '';
+    const first = group[0], last = group.at(-1)!;
+    const weekday = weekdayOf(first);
+    if (group.length >= WEEKLY_MIN && group.every((day, index) => !index || dayIndex(day) - dayIndex(group[index - 1]) === 7)) {
+      return `${english ? `Every ${weekdays[weekday]}` : `每${weekdays[weekday]}`} ${span(first, last)}${at}`;
+    }
     const items = runs(group);
     if (items.length === 1 && group.length > 1) {
-      const range = english ? `${weekdays[weekday]}–${weekdays[weekdayOf(group.at(-1)!)]}` : `${weekdays[weekday]}至${weekdays[weekdayOf(group.at(-1)!)]}`;
-      return `${range} ${span(group[0], group.at(-1)!)}`;
+      return `${english ? `${weekdays[weekday]}–${weekdays[weekdayOf(last)]}` : `${weekdays[weekday]}至${weekdays[weekdayOf(last)]}`} ${span(first, last)}${at}`;
     }
-    const shown = items.slice(0, MAX_ITEMS);
-    const listed = shown.reduce((sum, item) => sum + item.days.length, 0);
-    const text = join(shown.map(item => item.days.length > 1 ? span(item.days[0], item.days.at(-1)!) : monthDay(item.days[0])));
-    const prefix = sameWeekday && items.every(item => item.days.length === 1) ? `${weekdays[weekday]} ` : '';
-    const rest = group.length - listed;
-    return `${prefix}${text}${rest > 0 ? english ? ` + ${rest} more` : ` 等 ${group.length} 场` : ''}`;
+    const prefix = items.every(item => item.length === 1) && group.every(day => weekdayOf(day) === weekday) ? `${weekdays[weekday]} ` : '';
+    const line = (count: number, short: boolean) => {
+      const rest = group.length - items.slice(0, count).reduce((sum, item) => sum + item.length, 0);
+      return `${prefix}${listed(items, count, short)}${rest > 0 ? english ? ` + ${rest} more` : ` 等 ${group.length} 场` : ''}${at}`;
+    };
+    /** The most items that fit one line (at least one); the full list has no count, so it can fit where a shorter one does not. */
+    const fitting = (short: boolean) => {
+      let count = items.length;
+      while (count > 1 && displayUnits(line(count, short)) > LINE_BUDGET) count--;
+      return count;
+    };
+    const full = fitting(false);
+    const short = full < items.length && fitting(true) > full;
+    return line(short ? fitting(true) : full, short);
   };
   const entries = [...groups.entries()];
-  const lines = entries.slice(0, MAX_SESSION_LINES).map(([time, group]) => time ? `${format(group)} · ${time}` : format(group));
+  const lines = entries.slice(0, MAX_SESSION_LINES).map(([time, group]) => format(group, time));
   const more = entries.slice(MAX_SESSION_LINES).reduce((sum, [, group]) => sum + group.length, 0);
   return { lines, more };
 }

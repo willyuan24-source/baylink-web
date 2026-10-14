@@ -31,11 +31,15 @@ test('sessions with one time collapse into one line: one weekday, a weekly serie
   assert.deepEqual(sessionLines(sessions([['2026-10-30', '18:30', '22:00'], ['2026-10-31', '18:30', '22:00'], ['2026-11-01', '18:30', '22:00']]), '2026-10-13', false).lines, ['周五至周日 10/30–11/1 · 18:30–22:00']);
 });
 
-test('mixed dates list up to three items and count the rest of the line; times beyond two lines become 另有 N 场', () => {
-  // The opera: 19:30 on five days, 14:00 on one.
+test('mixed dates list what fits one phone line and count the rest; times beyond two lines become 另有 N 场', () => {
+  // The opera: 19:30 on five days, 14:00 on one. Five full dates do not fit one line, so later October dates drop the month.
   const opera = sessions([['2026-10-15', '19:30'], ['2026-10-18', '14:00'], ['2026-10-21', '19:30'], ['2026-10-24', '19:30'], ['2026-10-27', '19:30'], ['2026-10-30', '19:30']]);
-  assert.deepEqual(sessionLines(opera, '2026-10-13', false), { lines: ['10/15、10/21、10/24 等 5 场 · 19:30 起', '周日 10/18 · 14 点起'], more: 0 });
-  assert.deepEqual(sessionLines(opera, '2026-10-13', true).lines, ['10/15, 10/21, 10/24 + 2 more · From 7:30pm', 'Sun 10/18 · From 2pm']);
+  assert.deepEqual(sessionLines(opera, '2026-10-13', false), { lines: ['10/15、21、24、27、30 · 19:30 起', '周日 10/18 · 14 点起'], more: 0 });
+  assert.deepEqual(sessionLines(opera, '2026-10-13', true).lines, ['10/15, 21, 24, 27, 30 · From 7:30pm', 'Sun 10/18 · From 2pm']);
+  // More dates than one line holds: what fits, then the line's own count.
+  const many = sessions(['2026-10-03', '2026-10-05', '2026-10-09', '2026-10-14', '2026-10-20', '2026-10-26', '2026-11-02', '2026-11-09'].map(day => [day, '10:00']));
+  assert.deepEqual(sessionLines(many, '2026-10-01', false).lines, ['10/3、5、9、14、20 等 8 场 · 10 点起']);
+  assert.deepEqual(sessionLines(many, '2026-10-01', true).lines, ['10/3, 5, 9, 14 + 4 more · From 10am']);
   // Weekend runs at one time: runs keep their own spans, no weekday for a mixed list.
   const goblin = sessions(['2026-10-17', '2026-10-18', '2026-10-24', '2026-10-25', '2026-10-31'].map(day => [day, '09:00']));
   assert.deepEqual(sessionLines(goblin, '2026-10-13', false).lines, ['10/17–18、10/24–25、10/31 · 9 点起']);
