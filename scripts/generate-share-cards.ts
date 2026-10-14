@@ -3,7 +3,7 @@ import QRCode from 'qrcode';
 import { localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
 import { guides } from '../src/data/guides';
 import { GUIDE_IMAGES, getGuideMedia, type GuideImage } from '../src/data/guide-media';
-import { loadLocale, translateText } from '../src/i18n/locale';
+import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
 import { guideShare, shareCardPath } from '../src/lib/editorial-share';
 import { PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
 import { cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_PATHS, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
@@ -23,6 +23,8 @@ import { hubCardData } from './share-card-data';
  * facts fill the cover.
  */
 const LOCALES: CardLocale[] = ['zh-Hans', 'zh-Hant', 'en'];
+// H41: English cards are the site's English, with US-style times and dates (as i18n/metadata.ts switches the site on)
+await enableUsEnglishTimes();
 await Promise.all([loadLocale('en'), loadLocale('zh-Hant')]);
 const tr = (locale: CardLocale) => (text: string) => locale === 'zh-Hans' ? text : translateText(text, locale);
 const today = getBayAreaToday();

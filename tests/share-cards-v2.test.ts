@@ -15,7 +15,8 @@ import { simplifiedOnlyCharacters } from '../scripts/i18n-html-check.mjs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { LocalizedHost } from '../src/i18n/host';
-import { setLocale } from '../src/i18n/locale';
+import { enableUsEnglishTimes, setLocale } from '../src/i18n/locale';
+import { hasTwentyFourHourOrIso } from '../src/lib/english-times';
 
 const require = createRequire(import.meta.url);
 const simplifiedOnly = simplifiedOnlyCharacters(require('opencc-js/dict/STCharacters').default, require('opencc-js/dict/TSCharacters').default);
@@ -162,4 +163,15 @@ test('H45: a cut meta line never ends on a separator; the photo card keeps whole
   assert.ok(partsLine(['A very long first part that cannot fit on the line at all'], 200, 24)[0].endsWith('…'));
   assert.deepEqual(partsLine(['', 'Oct 17', ''], 300, 24), ['Oct 17']);
   assert.deepEqual(partsLine([], 300, 24), []);
+});
+
+test('H41: English cards read times and dates in US style, as the site does (scripts/generate-share-cards.ts switches it on)', async () => {
+  await enableUsEnglishTimes();
+  await loadLocale('en');
+  const today = '2026-10-12';
+  const left: string[] = [];
+  for (const item of localDiscoveries) for (const text of texts(discoveryCardModel(item, 'en', today, tr('en')))) {
+    if (hasTwentyFourHourOrIso(text.replace(/https?:\/\/\S+/g, ''))) left.push(`${item.kind}: ${text.slice(0, 60)}`);
+  }
+  assert.deepEqual(left.slice(0, 10), [], `${left.length} English card texts with a 24-hour time or an ISO date`);
 });
