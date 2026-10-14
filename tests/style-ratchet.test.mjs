@@ -15,8 +15,24 @@ test('style counts cover CSS declarations, Tailwind classes, inline styles and t
   ]);
   assert.deepEqual(counts, {
     hexOccurrences: 4, hexDistinct: 4, fontSizePx: 4, fontSizePxUnder13: 2, fontSizeUnder13: 2, radiusKinds: 2, shadowKinds: 2,
-    fontWeightOutsideSet: 3, textArbitraryUnder13: 1, baylinkClasses: 2, arrowUpRight: 1,
+    fontWeightOutsideSet: 3, textArbitraryUnder13: 1, baylinkClasses: 2, arrowUpRight: 1, buttonLooks: 0,
   });
+});
+
+test('H29: button looks are counted once per fill, text and border, without hover, pressed or disabled states', () => {
+  const { counts, kinds } = measureStyle([
+    { file: 'src/a.css', text: [
+      '.ui-button[data-variant=primary]{background:var(--color-brand);color:var(--color-surface)}',
+      '.ui-button[data-variant=primary]:hover{background:var(--color-brand-hover)}',
+      '.outing-primary{background:var(--color-brand);color:var(--color-surface)}',
+      '.x .share-buttons button{background:var(--color-surface);color:var(--color-ink);border:1px solid var(--color-line-strong)}',
+      '.x .share-buttons button[aria-pressed=true]{background:var(--color-ink)}',
+      '.quiet-btn{background:transparent;color:var(--color-brand)}',
+      '.card{background:var(--color-surface)}',
+      'button:disabled{background:var(--color-surface-2)}',
+    ].join('\n') },
+  ]);
+  assert.equal(counts.buttonLooks, 2, [...kinds.button.keys()].join(' / '));
 });
 
 test('rem and em font sizes below 13px are counted once the site is in rem', () => {

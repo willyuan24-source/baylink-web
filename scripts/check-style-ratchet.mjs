@@ -29,6 +29,7 @@ export const STYLE_METRICS = {
   textArbitraryUnder13: 'Tailwind text-[…] sizes below 13px',
   baylinkClasses: 'Tailwind *-baylink-* colour classes',
   arrowUpRight: 'ArrowUpRight icon uses (↗ belongs to external links only)',
+  buttonLooks: 'distinct fill · text · border looks that CSS gives button-like selectors at rest (H29: primary, secondary, quiet)',
 };
 /** The two non-style counts. Both count distinct items, so reusing an already-listed one does not raise them. */
 export const OTHER_METRICS = {
@@ -74,7 +75,7 @@ const propertyName = node => node && (ts.isIdentifier(node) || ts.isStringLitera
 /** Style counts for in-memory sources ({ file, text }); values carry their first locations for messages. */
 export function measureStyle(sources) {
   const counts = Object.fromEntries(Object.keys(STYLE_METRICS).map(metric => [metric, 0]));
-  const kinds = { hex: new Map(), radius: new Map(), shadow: new Map() };
+  const kinds = { hex: new Map(), radius: new Map(), shadow: new Map(), button: new Map() };
   const files = {};
   const at = (file, line) => `${file}:${line}`;
   const add = (file, metric, amount = 1) => {
@@ -107,7 +108,12 @@ export function measureStyle(sources) {
   };
   for (const { file, text } of sources) {
     if (file.endsWith('.css')) {
-      postcss.parse(text, { from: file }).walkDecls(declaration => {
+      const css = postcss.parse(text, { from: file });
+      css.walkRules(rule => {
+        const look = buttonLook(rule);
+        if (look) kind(kinds.button, look, at(file, rule.source?.start?.line ?? 1));
+      });
+      css.walkDecls(declaration => {
         const prop = declaration.prop.toLowerCase();
         const value = declaration.value;
         const line = declaration.source?.start?.line ?? 1;
@@ -143,7 +149,31 @@ export function measureStyle(sources) {
   counts.hexDistinct = kinds.hex.size;
   counts.radiusKinds = kinds.radius.size;
   counts.shadowKinds = kinds.shadow.size;
+  counts.buttonLooks = kinds.button.size;
   return { counts, kinds, files };
+}
+
+/** A selector whose last compound is a button: <button>, .ui-button, or a class named like one (…-button, …btn, …-primary). */
+const BUTTON_SELECTOR = /(?:^|[\s>+~])(?:button\b|[\w-]*\.(?:ui-button|[\w-]*(?:button|btn|-primary|-secondary|-cta)[\w-]*))(?:[.[#][^\s>+~]*)?$/i;
+/** States and variants of a look (hover, pressed, disabled …) are not looks of their own. */
+const BUTTON_STATE = /:(?:hover|focus|focus-visible|focus-within|active|disabled|checked|visited)|\[(?:disabled|aria-pressed|aria-checked|aria-current|aria-selected|aria-disabled|data-on)|\.is-(?:selected|active|on)/i;
+/**
+ * The look one CSS rule gives a button at rest — background, text colour and border colour as written — or null when the
+ * rule sets no fill (layout and size rules, transparent text buttons). Distinct looks across the site only ratchet down.
+ */
+function buttonLook(rule) {
+  const selectors = rule.selectors ?? [];
+  if (!selectors.some(selector => BUTTON_SELECTOR.test(selector.trim()) && !BUTTON_STATE.test(selector))) return null;
+  let background = '', color = '', border = '';
+  rule.each(node => {
+    if (node.type !== 'decl') return;
+    const prop = node.prop.toLowerCase(), value = normalizeValue(node.value);
+    if (prop === 'background' || prop === 'background-color') background = value;
+    else if (prop === 'color') color = value;
+    else if (prop === 'border-color' || prop === 'border' || prop === 'border-top') border = value;
+  });
+  if (!background || /^(?:transparent|none|inherit|initial|unset)$/.test(background) || /gradient|url\(/.test(background)) return null;
+  return `${background} | ${color || '-'} | ${border || '-'}`;
 }
 
 /** Translation dictionary as the runtime keys it: whitespace-normalized Chinese. */
@@ -328,7 +358,7 @@ export function baselineFrom(measured) {
     counts: { ...measured.style.counts, englishUiUntranslated: measured.englishUi.count, lazyCssDuplicateSelectors: measured.lazyCss.duplicates.length },
     lazyCssDuplicates: measured.lazyCss.duplicates,
     englishUiUntranslated: measured.englishUi.strings,
-    styleValues: { hex: [...measured.style.kinds.hex.keys()].sort(), radius: [...measured.style.kinds.radius.keys()].sort(), shadow: [...measured.style.kinds.shadow.keys()].sort() },
+    styleValues: { hex: [...measured.style.kinds.hex.keys()].sort(), radius: [...measured.style.kinds.radius.keys()].sort(), shadow: [...measured.style.kinds.shadow.keys()].sort(), button: [...measured.style.kinds.button.keys()].sort() },
     styleFiles: sorted(Object.fromEntries(Object.entries(measured.style.files).map(([file, counts]) => [file, sorted(counts)]))),
   };
 }
@@ -344,8 +374,8 @@ export function compareWithBaseline(measured, baseline) {
     if (allowed === undefined) { problems.push(`${metric}: no committed baseline (run npm run ratchet:update)`); continue; }
     if (value <= allowed) continue;
     const details = [];
-    if (metric === 'hexDistinct' || metric === 'radiusKinds' || metric === 'shadowKinds') {
-      const key = metric === 'hexDistinct' ? 'hex' : metric === 'radiusKinds' ? 'radius' : 'shadow';
+    if (metric === 'hexDistinct' || metric === 'radiusKinds' || metric === 'shadowKinds' || metric === 'buttonLooks') {
+      const key = metric === 'hexDistinct' ? 'hex' : metric === 'radiusKinds' ? 'radius' : metric === 'shadowKinds' ? 'shadow' : 'button';
       const known = new Set(baseline.styleValues?.[key] || []);
       for (const [kind, where] of measured.style.kinds[key]) if (!known.has(kind)) details.push(`new ${key} value ${kind} at ${where}`);
     } else if (metric === 'englishUiUntranslated') {
