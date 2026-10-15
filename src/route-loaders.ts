@@ -1,5 +1,6 @@
 import { matchRoute, routePathname, type PageKey } from './app/route-table';
 import { settleChunk } from './lib/chunk-recovery';
+import { pathLanguage } from './lib/language-path';
 
 /** Shared promises let startup load the current page before replacing its prerendered content. settleChunk (WEB-SHELL2,
  * REG-15): a page chunk lost to a newer deploy waits for the recovery reload instead of reaching the error page. A loader
@@ -41,6 +42,14 @@ export const pageLoaders = {
 export function currentPageLoader(path: string) {
   const route = matchRoute(path);
   const page = pageLoaders[route?.page || 'notFound'];
+  // WEB-PERF-2: an events view past the route's own days waits for the rest of the catalog. The page module owns that step
+  // (`prepare`, features/events/events-later.ts): a dynamic import of events-later here would make it an entry of its own,
+  // and Rollup would split the events model and lib/senior-friendly.ts into extra chunks (more cold script requests, H44).
+  if ((route?.page === 'events' || route?.page === 'calendar') && typeof window !== 'undefined') {
+    const load = route.page === 'events' ? pageLoaders.events : pageLoaders.calendar;
+    const search = window.location.search, language = pathLanguage(window.location.pathname);
+    return () => load().then(module => module.prepare(search, language).then(() => module));
+  }
   if (route?.page !== 'guide') return page;
   let slug = routePathname(path).slice('/guides/'.length);
   try { slug = decodeURIComponent(slug); } catch { return page; }

@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import { registerHooks } from 'node:module';
 import '../src/i18n/router';
 import '../src/i18n/metadata';
@@ -9,6 +10,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { StaticRouter } from 'react-router';
 import React, { type ReactNode } from 'react';
 import { guides } from '../src/data/guides';
+import { quickFactsEligible } from '../src/features/guides/guide-kind';
 import { ABOUT_METADATA } from '../src/lib/about-metadata';
 import { ARCHIVE_METADATA } from '../src/lib/archive-metadata';
 import { SLUG_TO_CATEGORY } from '../src/routing';
@@ -88,7 +90,10 @@ const guideModules = (path: string) => {
   const guide = guides.find(item => `/guides/${item.slug}` === path);
   if (!guide) return [];
   const uses = (type: string) => guide.blocks.some(block => block.type === type);
-  return [`src/data/generated/guides/${guide.slug}.json`, ...(uses('freebies') ? ['src/components/FreebieBoard.tsx'] : []), ...(uses('city-exploration') ? ['src/components/CityExplorationDirectory.tsx'] : [])];
+  // WEB-PERF-2 (for WEB-GUIDES-READ): the 3D link and the 30 秒看懂 card are block chunks too (guide-blocks.tsx blocksOf)
+  const record = JSON.parse(readFileSync(`src/data/generated/guides/${guide.slug}.json`, 'utf8')) as { opus?: object; editorial?: object };
+  return [`src/data/generated/guides/${guide.slug}.json`, ...(uses('freebies') ? ['src/components/FreebieBoard.tsx'] : []), ...(uses('city-exploration') ? ['src/components/CityExplorationDirectory.tsx'] : []),
+    ...(record.opus ? ['src/features/guides/GuideOpusEntry.tsx'] : []), ...(quickFactsEligible(guide, !!record.editorial) ? ['src/features/guides/GuideQuickFacts.tsx'] : [])];
 };
 /** The page's static module graph: its JS files and every stylesheet the graph imports. */
 const routeGraph = (path: string) => {
@@ -118,6 +123,16 @@ const withRouteStylesheets = (html: string, path: string) => {
   return links && end >= 0 ? `${html.slice(0, end)}${links}\n${html.slice(end)}` : html;
 };
 
+/** H60 (WEB-PERF-2): /events names its first pick's cover (the page's one fetchpriority="high" image, its LCP) in the head,
+ * so a phone requests it with the stylesheets instead of after them. */
+const LCP_PRELOAD_PATHS = new Set(['/events']);
+const lcpImagePreload = (body: string): string => {
+  const img = /<img\b[^>]*\bfetchpriority="high"[^>]*>/.exec(body)?.[0];
+  const attr = (name: string) => img && new RegExp(`\\s${name}="([^"]*)"`, 'i').exec(img)?.[1];
+  const src = attr('src'), srcset = attr('srcSet'), sizes = attr('sizes');
+  return src ? `<link rel="preload" as="image" href="${src}"${srcset ? ` imagesrcset="${srcset}"` : ''}${sizes ? ` imagesizes="${sizes}"` : ''} fetchpriority="high" />\n` : '';
+};
+
 // CW-02 stale-date guard (src/lib/date-guard.ts): every page names the Pacific day it was built for; reading-init.js compares.
 const builtFor = getBayAreaToday();
 const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?: string) => {
@@ -129,7 +144,7 @@ const renderPage = async (metadata: PageMetadata, content: ReactNode, filename?:
     const destination = join(outputDir, languagePrefix(locale).slice(1), relative);
     if (!destination.startsWith(outputDir + '/') && !destination.startsWith(outputDir + '\\')) throw new Error('Invalid prerender destination');
     await mkdir(dirname(destination), { recursive: true });
-    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}" data-built-for="${builtFor}"`).replace('<!--baylink-meta-end-->', () => modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
+    const html = withRouteStylesheets(renderHtmlDocument(template, { ...metadata, path }, body).replace(/<html lang="[^"]+"/, `<html lang="${locale}" data-built-for="${builtFor}"`).replace('<!--baylink-meta-end-->', () => (LCP_PRELOAD_PATHS.has(metadata.path) ? lcpImagePreload(body) : '') + modulePreloads(metadata.path, locale) + '\n<!--baylink-meta-end-->'), metadata.path);
     await writeFile(destination, html);
   }
   await setLocale('zh-Hans', false);

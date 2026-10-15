@@ -63,6 +63,8 @@ test('the board links name every board in English on /en, with the board on scre
 
 test('actual calendar route scope translates every compact schedule note without loading the full dictionary', async () => {
   await setLocale('en', false, '/en/calendar');
+  // WEB-PERF-2: a note of an event past the route's own days comes with that event's pack, which the calendar loads with it
+  await loadLocaleForFeature('en', 'events-later');
   const full = JSON.parse(readFileSync(new URL('../src/data/generated/english.json', import.meta.url), 'utf8')) as Record<string, string>;
   for (const [id, note] of Object.entries(EVENT_SCHEDULE_NOTES)) {
     const translated = translateText(note);

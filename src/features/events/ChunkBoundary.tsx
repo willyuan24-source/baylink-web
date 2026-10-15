@@ -2,7 +2,8 @@ import { Component, type ReactNode } from 'react';
 import { ErrorState } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 
-function ChunkError({ onRetry }: { onRetry: () => void }) {
+/** The board's (or the rest of the catalog's, events-later.ts) failed-load state: offline or not, with a retry. */
+export function ChunkError({ onRetry }: { onRetry: () => void }) {
   const { t } = useUiCopy();
   const offline = typeof navigator !== 'undefined' && navigator.onLine === false;
   return <ErrorState headingLevel="h2" onRetry={onRetry} homeTo="/events"

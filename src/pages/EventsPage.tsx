@@ -4,6 +4,12 @@ import { EventsView } from '../components/EventsView';
 import { eventsViewMetadata, type EventsTitleView } from '../lib/monthly-metadata';
 import { setPageMetadata } from '../lib/seo';
 import { columnFor, resolveWhen } from '../features/events/events-model';
+import { loadForLocation } from '../features/events/events-later';
+import type { Locale } from '../i18n/locale';
+
+/** At boot (route-loaders.ts): a link to dates past the route's own (十二月, 全部日期) waits for the rest of the catalog. */
+// eslint-disable-next-line react-refresh/only-export-components
+export const prepare = (search: string, locale: Locale) => loadForLocation('events', search, locale);
 
 /**
  * /events (活动, 本周末 first). The prerender renders EventsView and links this chunk's stylesheet (features/events/events.css).

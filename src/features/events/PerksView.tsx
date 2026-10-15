@@ -5,7 +5,8 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { createCoverPage, distinctNeighbourTones, resolveCovers } from '../../lib/cover';
 import { offerTone } from '../../lib/event-facts';
 import { isFreeToAttend } from '../../lib/monthly';
-import { INDEX_EVENTS, INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, liveOffers, type OfferKind } from './events-model';
+import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffers, type OfferKind } from './events-model';
+import { useIndexEvents } from './events-later';
 import type { MonthlyRegion } from './events-index-types';
 import { getMonthlyDateRange } from '../../lib/monthly';
 import { OfferFeedCard } from './EventCards';
@@ -31,7 +32,10 @@ export default function PerksView({ today, region }: { today: string; region: Mo
   const covers = useMemo(() => resolveCovers(visible.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })), { ...coverContext(today), page: createCoverPage() }), [visible, today]);
   const tones = distinctNeighbourTones(visible.map((offer, index) => covers[index].tier === 'type' ? offerTone(offer) : null));
   const weekend = getMonthlyDateRange('weekend', today);
-  const freeEvents = INDEX_EVENTS.filter(event => inRange(event, weekend, today) && isFreeToAttend(event) && (region === 'all' || event.region === region)).length;
+  // The weekend is in the route's own events; on a build over two weeks old the link is left out instead of loading the rest (WEB-PERF-2).
+  const weekendDays = listWindow(weekend, today);
+  const { events } = useIndexEvents(weekendDays.start, weekendDays.end, false);
+  const freeEvents = (events ?? []).filter(event => inRange(event, weekend, today) && isFreeToAttend(event) && (region === 'all' || event.region === region)).length;
   const more = Math.min(PAGE, offers.length - visible.length);
   return <>
     <div className="ev-board-filters">

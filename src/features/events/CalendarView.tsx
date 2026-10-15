@@ -8,10 +8,11 @@ import { useApp } from '../../app/context';
 import { addCalendarDays, calendarCells, calendarPeriod, shiftCalendarPeriod, validCalendarDay } from '../../lib/calendar-days';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
-import { ALL_REGIONS, EVENTS_INDEX, INDEX_EVENTS, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion, weekdayIndex, WEEKDAYS } from './events-model';
+import { ALL_REGIONS, EVENTS_INDEX, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion, weekdayIndex, WEEKDAYS } from './events-model';
+import { useIndexEvents } from './events-later';
 import type { IndexEvent, MonthlyRegion } from './events-index-types';
 import { EventFeedCard, EventRowCard, PHONE_COVER_CAP } from './EventCards';
-import { ChunkBoundary } from './ChunkBoundary';
+import { ChunkBoundary, ChunkError } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
 import { AddToDayPlan } from '../../components/AddToDayPlan';
@@ -48,9 +49,17 @@ export default function CalendarView({ today }: { today: string }) {
     return next;
   }, { replace: !('date' in values), preventScrollReset: true });
 
-  const pool = useMemo(() => INDEX_EVENTS.filter(event => region === 'all' || event.region === region), [region]);
   const week = calendarPeriod(date, 'week').days;
+  // WEB-PERF-2: the week strip and the day's rows come from the route's own events while they cover the week; another week
+  // loads the rest of the catalog first, the rows showing a skeleton. The month grid in the Sheet reads its own weeks: it
+  // starts that load when the Sheet opens, and its dots appear once the rest is in, while the day's rows stay as they are.
+  const cells = calendarCells(date, 'month');
+  const { events, failed, retry } = useIndexEvents(week[0], week[6]);
+  const month = useIndexEvents(cells[0], cells[cells.length - 1], sheetOpen);
+  const pool = useMemo(() => (events ?? []).filter(event => region === 'all' || event.region === region), [region, events]);
+  const monthPool = useMemo(() => (month.events ?? []).filter(event => region === 'all' || event.region === region), [region, month.events]);
   const countOn = (day: string) => pool.filter(event => occursOn(event, day)).length;
+  const monthCountOn = (day: string) => monthPool.filter(event => occursOn(event, day)).length;
   // One-offs before long-running series, a real photo first within them.
   const dayEvents = orderByNextDay(pool.filter(event => occursOn(event, date)), date, event => hasRealCover('event', event, today));
   const scope = `${date}:${region}`;
@@ -62,7 +71,10 @@ export default function CalendarView({ today }: { today: string }) {
   const leadIndex = Math.max(0, filtered.findIndex(event => hasRealCover('event', event, today)));
   const shownEvents = filtered.length ? [filtered[leadIndex], ...filtered.filter((_, index) => index !== leadIndex)] : filtered;
   const covers = resolveCovers(shownEvents.map(event => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey })), { ...coverContext(today), page: createCoverPage() });
-  const nearest = pool.flatMap(event => { const day = nextOccurrence(event, date > today ? date : today); return day ? [day] : []; }).filter(day => day !== date).sort()[0];
+  // The nearest day with events after an empty one can be past the route's own days: it reads the whole catalog.
+  const after = useIndexEvents(date > today ? date : today, null, !!events && !dayEvents.length);
+  const nearest = after.events?.filter(event => region === 'all' || event.region === region)
+    .flatMap(event => { const day = nextOccurrence(event, date > today ? date : today); return day ? [day] : []; }).filter(day => day !== date).sort()[0];
   const past = date < today;
   // 加入这天计划 (WEB-SAVES, plan D19) on every listed event of today or a later day: saves into that day's plan at once.
   const addToDay = (event: IndexEvent) => past ? undefined : <AddToDayPlan stop={{ kind: 'event', id: event.id }} date={date} title={event.title} today={today} compact />;
@@ -89,8 +101,9 @@ export default function CalendarView({ today }: { today: string }) {
       <span className="ev-week__range" aria-hidden="true">{monthDay(week[0])}–{monthDay(week[6])}</span>
       <ol className="ev-week__days">{week.map(day => {
         const count = countOn(day);
+        // While another week's events load, a day names its date only (no "0 场" before the count is known).
         return <li key={day}><button type="button" className="ev-week__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined}
-          aria-label={`${longDate(day)} · ${t(`${count} 场`, `${count} ${count === 1 ? 'event' : 'events'}`)}`} onClick={() => update({ date: day })} data-past={day < today ? '' : undefined}>
+          aria-label={events ? `${longDate(day)} · ${t(`${count} 场`, `${count} ${count === 1 ? 'event' : 'events'}`)}` : longDate(day)} onClick={() => update({ date: day })} data-past={day < today ? '' : undefined}>
           <span className="ev-week__weekday" aria-hidden="true">{weekdayShort(day)}</span>
           <span className="ev-week__date" aria-hidden="true">{Number(day.slice(8, 10))}</span>
           <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
@@ -100,7 +113,7 @@ export default function CalendarView({ today }: { today: string }) {
     </div>
 
     <div className="ev-calendar__head">
-      <h2 id="ev-calendar-day" className="ev-section-title">{longDate(date)}<span className="ev-calendar__count">{t(`${dayEvents.length} 场`, `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`)}</span></h2>
+      <h2 id="ev-calendar-day" className="ev-section-title">{longDate(date)}{events && <span className="ev-calendar__count">{t(`${dayEvents.length} 场`, `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`)}</span>}</h2>
       <div className="ev-calendar__tools">
         <FilterChip selected={region !== 'all'} aria-haspopup="dialog" icon={<CalendarDays aria-hidden="true" strokeWidth={1.75} />} onClick={() => setSheetOpen(true)}>
           {t('选日期', 'Pick a date')} · {pick(regionLabel(region))}
@@ -126,7 +139,8 @@ export default function CalendarView({ today }: { today: string }) {
 
     {beforeIndex && <p className="ev-calendar__note ev-calendar__before">{t(`这一天在本期收录（${monthDay(EVENTS_INDEX.edition.checkedAt)} 起）之前，只列出当时还在进行、现在仍可去的活动。`, `This day is before this edition (from ${monthDay(EVENTS_INDEX.edition.checkedAt)}): only events still running now are listed.`)}</p>}
     <div className="ev-calendar__rows" aria-live="polite">
-      {shownEvents.length ? <>
+      {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={3} rows />
+      : shownEvents.length ? <>
         <FeedGrid single label={t('这一天的活动', 'Events this day')} className="ev-calendar__lead">
           <FeedItem><EventFeedCard event={shownEvents[0]} cover={covers[0]} today={today} days={[date]} day={date} sizes={LEAD_SIZES} priority action={addToDay(shownEvents[0])} /></FeedItem>
         </FeedGrid>
@@ -144,26 +158,33 @@ export default function CalendarView({ today }: { today: string }) {
     </div>
     <ImageCredits covers={covers} />
 
-    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('选日期和地区', 'Pick a date and region')} status={t(`${dayEvents.length} 场`, `${dayEvents.length} events`)}
-      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date)}`)}</Button>}>
+    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('选日期和地区', 'Pick a date and region')}
+      status={events ? t(`${dayEvents.length} 场`, `${dayEvents.length} events`) : failed ? t('这一天的活动没能加载', 'Events for this day did not load') : t('正在加载…', 'Loading…')}
+      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{events ? t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date)}`) : t(`看 ${monthDay(date)}`, `Show ${monthDay(date)}`)}</Button>}>
       <section className="ev-sheet-section">
         <div className="ev-month__nav">
           <IconButton label={t('上个月', 'Previous month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', -1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', -1) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
           <h3 aria-live="polite">{monthLabel}</h3>
           <IconButton label={t('下个月', 'Next month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', 1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', 1) })}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
         </div>
-        <div className="ev-month" role="group" aria-label={monthLabel}>
+        <div className="ev-month" role="group" aria-label={monthLabel} aria-busy={!month.events && !month.failed ? true : undefined}>
           {[1, 2, 3, 4, 5, 6, 0].map(weekday => <span key={weekday} className="ev-month__weekday" aria-hidden="true">{pick(WEEKDAYS[weekday].char)}</span>)}
-          {calendarCells(date, 'month').map(day => {
-            const count = countOn(day);
+          {cells.map(day => {
+            const count = monthCountOn(day);
             const outside = day < period.start || day > period.end;
             return <button key={day} type="button" className="ev-month__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined} data-outside={outside ? '' : undefined}
-              aria-label={`${longDate(day)} · ${t(`${count} 场`, `${count} events`)}`} onClick={() => update({ date: day })}>
+              aria-label={month.events ? `${longDate(day)} · ${t(`${count} 场`, `${count} events`)}` : longDate(day)} onClick={() => update({ date: day })}>
               <span className="ev-month__num" aria-hidden="true">{Number(day.slice(8, 10))}</span>
               <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
             </button>;
           })}
         </div>
+        {/* Until the month's weeks are in, the grid has no dots: say so, so an empty grid does not read as "no events". */}
+        {!month.events && <p className="ev-calendar__note" role="status">
+          {month.failed ? <>{t('这个月的活动没能加载，日期仍可以选。', "This month's events did not load; you can still pick a date.")}{' '}
+            <Button variant="text" onClick={month.retry}>{t('重试', 'Retry')}</Button></>
+          : t('正在加载这个月的活动…', "Loading this month's events…")}
+        </p>}
       </section>
       <section className="ev-sheet-section">
         <h3>{t('地区', 'Region')}</h3>

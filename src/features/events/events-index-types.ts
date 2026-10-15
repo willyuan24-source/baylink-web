@@ -56,6 +56,13 @@ export type IndexImage = GuideImage;
 
 export type EventsIndex = {
   edition: { label: string; checkedAt: string; throughDate: string; startMonth: string };
+  /**
+   * The days the route's own `events` list completely (WEB-PERF-2): every event with a day in [from, through] is in it.
+   * `from` is the Monday of the build's week (the calendar's week strip), `through` 8–21 days after the build day, as many
+   * as fit the first-screen cap (scripts/generate-events-index.ts). Every other event is in events-later.json.
+   */
+  near: { from: string; through: string };
+  /** The events of the `near` days, in catalog order; the rest load with events-later.json (events-model.ts). */
   events: IndexEvent[];
   offers: IndexOffer[];
   openings: IndexOpening[];
@@ -68,3 +75,14 @@ export type EventsIndex = {
 };
 
 export type { MonthlyRegion };
+
+/**
+ * The events outside the route's `near` days (events-later.json, WEB-PERF-2), loaded when a view reaches past them: each
+ * event's position in the whole catalog order (`at`, ascending), so the merged list is the catalog's own order, and the
+ * images only these events use.
+ */
+export type EventsLater = {
+  events: IndexEvent[];
+  at: number[];
+  images: Record<string, IndexImage>;
+};

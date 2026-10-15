@@ -4,13 +4,15 @@ import { SITE_URL, localCopy, type PageMetadata } from './seo';
 import { HUB_CARDS } from './hub-cards';
 
 // Read from the slim events index (RC-33), not the full catalog: the events column's pages load this module.
-const { edition, events } = EVENTS_INDEX;
+const { edition } = EVENTS_INDEX;
 
 /**
  * The hub's ItemList: what is still on, by the next day each event happens (I18N-SEO-10) — an event that ended since the
  * edition's check never leads it. The day is the build's in the prerender and the reader's in the app.
  */
-export const upcomingEventList = (today = getBayAreaToday()) => events
+// EVENTS_INDEX.events is read at each call: the whole catalog in Node (the prerender's JSON-LD), the route's own events in
+// the browser until a view loads the rest (WEB-PERF-2; a prerendered page keeps its own JSON-LD, seo.ts setPageMetadata).
+export const upcomingEventList = (today = getBayAreaToday()) => EVENTS_INDEX.events
   .map(event => ({ event, next: nextOccurrence(event, today) }))
   .filter((entry): entry is { event: typeof entry.event; next: string } => !!entry.next)
   .sort((a, b) => a.next.localeCompare(b.next) || a.event.startDate.localeCompare(b.event.startDate) || a.event.id.localeCompare(b.event.id))
