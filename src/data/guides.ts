@@ -3,6 +3,7 @@ import { visitorPersonaGuides } from './guides-persona-visitor';
 import { publicServiceGuides } from './guides-public-services';
 import { benefitsCitizenshipGuides } from './guides-benefits-citizenship';
 import { dentalSeniorServiceGuides } from './guides-dental-senior-services';
+import { elderGuides2026 } from './guides-elders-2026-10';
 import { archivedGuides } from './guides-archives';
 import { november2026Guides } from './november-2026-guides';
 import { octnov2026Guides } from './octnov-2026-refresh';
@@ -1397,8 +1398,11 @@ export const guides: Guide[] = [
     recommendedForCategories: ['ride', 'rent'],
     readMinutes: 8,
     updatedAt: '2026-10-14',
-    sources: [OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.samtrans, OFFICIAL_SOURCES.vta],
-    sourceNote: '2026-10-14 读取 BART、Caltrain、SamTrans 和 VTA 官方网页。票价、班次和临时改线以出发当天官网为准。',
+    sources: [
+      OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.samtrans, OFFICIAL_SOURCES.vta,
+      { title: 'Clipper：优惠卡（长者卡、Clipper Access、Clipper START）', url: 'https://www.clippercard.com/discounts.html', description: '65 岁以上可网上、邮寄、电邮、传真或到客服中心申请长者卡。' },
+    ],
+    sourceNote: '2026-10-14 读取 BART、Caltrain、SamTrans、VTA 和 Clipper 官方网页。票价、班次和临时改线以出发当天官网为准。',
     blocks: [
       {
         type: 'paragraph',
@@ -1431,6 +1435,10 @@ export const guides: Guide[] = [
       {
         type: 'paragraph',
         text: '很多人第一次做无车规划时，只看 BART 和 Caltrain，忽略了 Muni、VTA 和本地公交。现实里，真正影响你体感的，往往是离家最后这 10 分钟和晚上回家最后那一趟。',
+      },
+      {
+        type: 'paragraph',
+        text: '坐车可以更便宜：65 岁以上办长者 Clipper 卡，坐 BART 票价减 62.5%；19–64 岁、收入符合条件的湾区居民可以申请 Clipper START，单程票五折（Clipper 官网，2026-10-14）。',
       },
       { type: 'heading', text: '买菜、机场、搬东西和晚归，要提前想备用方案' },
       {
@@ -1904,6 +1912,7 @@ export const guides: Guide[] = [
   ...publicServiceGuides,
   ...benefitsCitizenshipGuides,
   ...dentalSeniorServiceGuides,
+  ...elderGuides2026,
   ...archivedGuides,
   ...perksGuides2026,
   ...retailPerksGuides2026,
