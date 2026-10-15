@@ -42,10 +42,13 @@ export const pageLoaders = {
 export function currentPageLoader(path: string) {
   const route = matchRoute(path);
   const page = pageLoaders[route?.page || 'notFound'];
-  // WEB-PERF-2: an events view past the route's own days waits for the rest of the catalog (features/events/events-later.ts).
+  // WEB-PERF-2: an events view past the route's own days waits for the rest of the catalog. The page module owns that step
+  // (`prepare`, features/events/events-later.ts): a dynamic import of events-later here would make it an entry of its own,
+  // and Rollup would split the events model and lib/senior-friendly.ts into extra chunks (more cold script requests, H44).
   if ((route?.page === 'events' || route?.page === 'calendar') && typeof window !== 'undefined') {
-    const kind = route.page, search = window.location.search, language = pathLanguage(window.location.pathname);
-    return () => Promise.all([page(), import('./features/events/events-later').then(settleChunk).then(module => module.loadForLocation(kind, search, language))]).then(([module]) => module);
+    const load = route.page === 'events' ? pageLoaders.events : pageLoaders.calendar;
+    const search = window.location.search, language = pathLanguage(window.location.pathname);
+    return () => load().then(module => module.prepare(search, language).then(() => module));
   }
   if (route?.page !== 'guide') return page;
   let slug = routePathname(path).slice('/guides/'.length);

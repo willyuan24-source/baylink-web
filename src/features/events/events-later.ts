@@ -65,9 +65,10 @@ export function useIndexEvents(start: string, end: string | null, enabled = true
 }
 
 /**
- * At boot (route-loaders.ts): a URL whose first view reaches past the route's own days (a shared 十二月 or 全部日期 link,
- * /calendar?date= another month) waits for the rest of the catalog too, so the app replaces the prerender in one pass
- * instead of with a skeleton. A failed load does not hold the page: the view shows its retry state.
+ * At boot (EventsPage / CalendarPage `prepare`, which route-loaders.ts awaits with the page chunk): a URL whose first
+ * view reaches past the route's own days (a shared 十二月 or 全部日期 link, /calendar?date= another month) waits for the
+ * rest of the catalog too, so the app replaces the prerender in one pass instead of with a skeleton. A failed load does
+ * not hold the page: the view shows its retry state.
  */
 export function loadForLocation(page: 'events' | 'calendar', search: string, locale: Locale, today = getBayAreaToday()): Promise<void> {
   const params = new URLSearchParams(search);
