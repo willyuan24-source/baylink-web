@@ -1732,5 +1732,73 @@
         ]
       }
     }
+  },
+  "sfpl-chinatown-creative-saturdays-late-nov-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/21/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu",
+        "verifiedAt": "2026-10-14",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-11-28",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "14:30",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-main-california-xiangqi-invitational-nov28-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/28/presentation-california-xiangqi-invitational-jiazhouxiangqiyaoqingsai",
+        "verifiedAt": "2026-10-14",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "10:00",
+            "end": "17:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-bernal-family-game-night-nov28-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/28/social-family-game-night",
+        "verifiedAt": "2026-10-14",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "16:00",
+            "end": "17:00"
+          }
+        ]
+      }
+    }
   }
 }

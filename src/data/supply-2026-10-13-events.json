@@ -762,6 +762,35 @@
     "officialUrl": "https://events.sonomalibrary.org/event/native-beat-native-american-music-sonoma-county"
   },
   {
+    "id": "sfpl-chinatown-creative-saturdays-late-nov-2026",
+    "kind": "event",
+    "startDate": "2026-11-21",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-21",
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-14",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（华埠分馆）",
+    "title": "华埠分馆周六午后（11 月下旬）：中文书法、填色与桌游",
+    "dateLabel": "11/21、11/28 · 周六 14:30–16:00",
+    "city": "San Francisco",
+    "venue": "华埠/麦礼谦分馆会议室 · 1135 Powell Street, San Francisco, CA 94108",
+    "summary": "旧金山公共图书馆华埠分馆周六下午开放会议室，成人可以自主练习中文书法、填色或玩桌游；活动以粤语和普通话进行。10 月到 11/14 的场次另列一条。",
+    "plan": [
+      "形式是自主练习，不是老师授课；11/28 感恩节周末照常有。"
+    ],
+    "audience": [
+      "成人"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/21/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu"
+  },
+  {
     "id": "sjpl-berryessa-mandarin-ell-club-winter-2026",
     "kind": "event",
     "startDate": "2026-11-21",
@@ -854,6 +883,63 @@
       "各年龄"
     ],
     "officialUrl": "https://aclibrary.bibliocommons.com/events/6ace5790fee2d21deb22f1c0"
+  },
+  {
+    "id": "sfpl-bernal-family-game-night-nov28-2026",
+    "kind": "event",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-14",
+    "imageKey": "",
+    "region": "sf",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（Bernal Heights 分馆）",
+    "title": "Bernal Heights 分馆感恩节周末亲子桌游夜",
+    "dateLabel": "11/28（周六）· 16:00–17:00",
+    "city": "San Francisco",
+    "venue": "Bernal Heights 分馆会议室 · 500 Cortland Avenue, San Francisco, CA 94110",
+    "summary": "旧金山公共图书馆 Bernal Heights 分馆的亲子游戏时间：和社区里的家庭一起玩桌游、巨型叠叠乐和其他游戏，面向孩子和照顾他们的大人。",
+    "plan": [
+      "一小时，孩子要有大人陪同。"
+    ],
+    "audience": [
+      "亲子家庭"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/28/social-family-game-night"
+  },
+  {
+    "id": "sfpl-main-california-xiangqi-invitational-nov28-2026",
+    "kind": "event",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-14",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（总馆中文中心）",
+    "title": "旧金山总馆加州象棋邀请赛：看国际大师对弈",
+    "dateLabel": "11/28（周六）· 10:00–17:30",
+    "city": "San Francisco",
+    "venue": "旧金山公共图书馆总馆 Latino/Hispanic 社区活动室 · 100 Larkin Street, San Francisco, CA 94102",
+    "summary": "北加州象棋协会和洛杉矶象棋协会与旧金山公共图书馆合办的七轮邀请赛，采用亚洲象棋规则，开放时段可以观看美国代表队成员、加拿大特邀棋手和南北加州棋手对弈；国际特级大师、前女子世界冠军黄玉莹担任裁判长。",
+    "plan": [
+      "首日 10:00 开幕，第一轮 10:45、第二轮 13:15、第三轮 15:00，16:30 首日总结。"
+    ],
+    "audience": [
+      "成人",
+      "亲子家庭"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/28/presentation-california-xiangqi-invitational-jiazhouxiangqiyaoqingsai"
   },
   {
     "id": "calistoga-lighted-tractor-parade-2026",
