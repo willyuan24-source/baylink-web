@@ -6,6 +6,7 @@ export const englishScopeLoaders = {
   "guide-index": () => import("./english-scopes/guide-index.json"),
   "guide-list": () => import("./english-scopes/guide-list.json"),
   "events-list": () => import("./english-scopes/events-list.json"),
+  "events-later": () => import("./english-scopes/events-later.json"),
   "guide-search": () => import("./english-scopes/guide-search.json"),
   "discovery": () => import("./english-scopes/discovery.json"),
   "planning": () => import("./english-scopes/planning.json"),
