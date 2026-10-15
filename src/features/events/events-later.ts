@@ -1,7 +1,9 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { chunkLoader } from '../../lib/chunk-recovery';
 import { isLocaleReadyForFeature, loadLocaleForFeature, useLocale, type Locale } from '../../i18n/locale';
-import { INDEX_EVENTS, installLaterEvents, isLaterInstalled, nearCovers, subscribeLater } from './events-model';
+import { getBayAreaToday, getMonthlyDateRange } from '../../lib/monthly';
+import { calendarPeriod, validCalendarDay } from '../../lib/calendar-days';
+import { INDEX_EVENTS, installLaterEvents, isLaterInstalled, listWindow, nearCovers, resolveWhen, subscribeLater } from './events-model';
 import type { EventsLater, IndexEvent } from './events-index-types';
 
 /**
@@ -60,4 +62,23 @@ export function useIndexEvents(start: string, end: string | null, enabled = true
     return () => { live = false; };
   }, [ready, enabled, locale, key]);
   return { events: ready ? INDEX_EVENTS : null, failed: !ready && failedAt === key, retry: () => setAttempt(count => count + 1) };
+}
+
+/**
+ * At boot (route-loaders.ts): a URL whose first view reaches past the route's own days (a shared 十二月 or 全部日期 link,
+ * /calendar?date= another month) waits for the rest of the catalog too, so the app replaces the prerender in one pass
+ * instead of with a skeleton. A failed load does not hold the page: the view shows its retry state.
+ */
+export function loadForLocation(page: 'events' | 'calendar', search: string, locale: Locale, today = getBayAreaToday()): Promise<void> {
+  const params = new URLSearchParams(search);
+  let days: { start: string; end: string | null };
+  if (page === 'calendar') {
+    const date = params.get('date') || '';
+    days = calendarPeriod(validCalendarDay(date) ? date : today, 'week');
+  } else {
+    const view = params.get('view');
+    if (view === 'perks' || view === 'openings') return Promise.resolve();
+    days = listWindow(getMonthlyDateRange(resolveWhen(params.get('when'), 'weekend'), today), today);
+  }
+  return nearCovers(days.start, days.end) ? Promise.resolve() : loadLaterEvents(locale).catch(() => undefined);
 }
