@@ -9,7 +9,7 @@ import { addCalendarDays, calendarCells, calendarPeriod, shiftCalendarPeriod, va
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
 import { ALL_REGIONS, EVENTS_INDEX, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion, weekdayIndex, WEEKDAYS } from './events-model';
-import { prefetchLaterEvents, useIndexEvents } from './events-later';
+import { useIndexEvents } from './events-later';
 import type { IndexEvent, MonthlyRegion } from './events-index-types';
 import { EventFeedCard, EventRowCard, PHONE_COVER_CAP } from './EventCards';
 import { ChunkBoundary, ChunkError } from './ChunkBoundary';
@@ -50,14 +50,16 @@ export default function CalendarView({ today }: { today: string }) {
   }, { replace: !('date' in values), preventScrollReset: true });
 
   const week = calendarPeriod(date, 'week').days;
-  // WEB-PERF-2: the week strip's days (and, with the Sheet open, the month grid's) come from the route's own events while
-  // they cover them; another week or month loads the rest of the catalog first, the day's rows showing a skeleton.
+  // WEB-PERF-2: the week strip and the day's rows come from the route's own events while they cover the week; another week
+  // loads the rest of the catalog first, the rows showing a skeleton. The month grid in the Sheet reads its own weeks: it
+  // starts that load when the Sheet opens, and its dots appear once the rest is in, while the day's rows stay as they are.
   const cells = calendarCells(date, 'month');
-  const span = sheetOpen ? { start: cells[0] < week[0] ? cells[0] : week[0], end: cells[cells.length - 1] > week[6] ? cells[cells.length - 1] : week[6] } : { start: week[0], end: week[6] };
-  const { events, failed, retry } = useIndexEvents(span.start, span.end);
-  useEffect(() => { if (sheetOpen) prefetchLaterEvents(locale); }, [sheetOpen, locale]);
+  const { events, failed, retry } = useIndexEvents(week[0], week[6]);
+  const month = useIndexEvents(cells[0], cells[cells.length - 1], sheetOpen);
   const pool = useMemo(() => (events ?? []).filter(event => region === 'all' || event.region === region), [region, events]);
+  const monthPool = useMemo(() => (month.events ?? []).filter(event => region === 'all' || event.region === region), [region, month.events]);
   const countOn = (day: string) => pool.filter(event => occursOn(event, day)).length;
+  const monthCountOn = (day: string) => monthPool.filter(event => occursOn(event, day)).length;
   // One-offs before long-running series, a real photo first within them.
   const dayEvents = orderByNextDay(pool.filter(event => occursOn(event, date)), date, event => hasRealCover('event', event, today));
   const scope = `${date}:${region}`;
@@ -166,10 +168,10 @@ export default function CalendarView({ today }: { today: string }) {
         <div className="ev-month" role="group" aria-label={monthLabel}>
           {[1, 2, 3, 4, 5, 6, 0].map(weekday => <span key={weekday} className="ev-month__weekday" aria-hidden="true">{pick(WEEKDAYS[weekday].char)}</span>)}
           {cells.map(day => {
-            const count = countOn(day);
+            const count = monthCountOn(day);
             const outside = day < period.start || day > period.end;
             return <button key={day} type="button" className="ev-month__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined} data-outside={outside ? '' : undefined}
-              aria-label={`${longDate(day)} · ${t(`${count} 场`, `${count} events`)}`} onClick={() => update({ date: day })}>
+              aria-label={month.events ? `${longDate(day)} · ${t(`${count} 场`, `${count} events`)}` : longDate(day)} onClick={() => update({ date: day })}>
               <span className="ev-month__num" aria-hidden="true">{Number(day.slice(8, 10))}</span>
               <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
             </button>;
