@@ -137,7 +137,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
     return <article key={item.id} className="attraction-card">
       <div className="xp-card__media">
         <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) calc(100vw - 32px), (max-width: 1023px) calc(50vw - 36px), 380px"
-          fallback={<TypeCover tone="outdoors" family="guide" label={translateText(regionLabel, locale)} title={translateText(item.title, locale)} ratio="3:2" ratioLock ariaHidden />} />
+          fallback={<TypeCover tone="outdoors" family="guide" label={translateText(regionLabel, locale)} title={translateText(item.title, locale)} seed={item.id} ratio="3:2" ratioLock ariaHidden />} />
         <div className="xp-card__caption"><h3><Link to={`/guides/${item.slug}`}>{item.title}</Link></h3><p><MapPin size={16} aria-hidden="true" /><span>{english && translateText(regionLabel, locale) === item.city ? item.city : `${item.city} · ${regionLabel}`}</span></p></div>
       </div>
       <div className="xp-card__body">
