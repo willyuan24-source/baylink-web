@@ -8,7 +8,9 @@ import { loadLocale, translateText } from '../src/i18n/locale';
  * H69 as a rule rather than a list (CNT-SUPPLY-2 review, 2026-10-14). These library systems publish that their programmes are
  * free (docs/source-reads-2026-10.md: CNT-HOTFIX-2 "H69 · library programme policies" and the CNT-SUPPLY-2 policy table), so an
  * event they host never says 费用待确认 while a sister event of the same system says 免费. A batch that leaves one at "unknown"
- * names it in EXEMPT with the reason; tests/cnt-hotfix-1013.test.ts keeps #41's own list.
+ * names it in EXEMPT with the reason; tests/cnt-hotfix-1013.test.ts keeps #41's own list. Alameda County Library, Contra Costa
+ * County Library and Palo Alto City Library publish no such policy (reads of 2026-10-13 and 2026-10-15 in the same ledger), so their
+ * events stay "unknown" unless the event's own page states the cost.
  */
 const POLICY_HOSTS: Readonly<Record<string, string>> = {
   'sfpl.org': 'San Francisco Public Library',
@@ -17,6 +19,8 @@ const POLICY_HOSTS: Readonly<Record<string, string>> = {
   'marinlibrary.bibliocommons.com': 'Marin County Free Library',
   'sccl.bibliocommons.com': 'Santa Clara County Library District',
   'events.sonomalibrary.org': 'Sonoma County Library',
+  // WEB-FIX6 review, read 2026-10-15: https://oaklandlibrary.org/library-program-proposals/ "Library programs are free, and open to all."
+  'oaklandlibrary.bibliocommons.com': 'Oakland Public Library',
 };
 const EXEMPT: Readonly<Record<string, string>> = {
   'sfpl-richmond-lego-oct7-2026': 'ended 10/7, before the 10/13 policy read; the archived card keeps the wording it was published with',
