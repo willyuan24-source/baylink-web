@@ -30,7 +30,7 @@ export const withoutCarEditorial: GuideEditorial = {
       },
       "value": {
         "zh": "工作日 5:00、周六 6:00、周日 8:00 开始，午夜 12:00 收车",
-        "en": "Starts 5:00 weekdays, 6:00 Saturdays, 8:00 Sundays; ends at midnight"
+        "en": "Starts 5 a.m. weekdays, 6 a.m. Saturdays, 8 a.m. Sundays; ends at midnight"
       },
       "source": 1
     },
