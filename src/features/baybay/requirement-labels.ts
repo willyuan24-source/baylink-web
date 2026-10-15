@@ -1,4 +1,5 @@
 import { translateText, type Locale } from '../../i18n/locale';
+import { readerMonthDay } from '../../lib/event-facts';
 
 /**
  * How the requirement card and the plan card name a region and a day (BBL-12, G79): "东湾 · 10/17 周六", never the
@@ -41,8 +42,9 @@ export function bayBayDayLabel(day: string | null | undefined, locale: Locale): 
   if (!match) return null;
   const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12));
   if (date.toISOString().slice(0, 10) !== day) return null;
-  const monthDay = `${Number(match[2])}/${Number(match[3])}`, weekday = pick(WEEKDAYS[date.getUTCDay()], locale);
-  return locale === 'en' ? `${weekday} ${monthDay}` : `${monthDay} ${weekday}`;
+  const weekday = pick(WEEKDAYS[date.getUTCDay()], locale);
+  // US English on /en: "Sat, Oct 17" (WEB-FIX6); Chinese "10/17 周六".
+  return locale === 'en' ? `${weekday}, ${readerMonthDay(day!, true)}` : `${readerMonthDay(day!)} ${weekday}`;
 }
 
 /** "10/17 周六 – 10/18 周日" for a weekend or other range; one day when both ends are the same; null when invalid. */

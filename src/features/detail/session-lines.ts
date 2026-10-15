@@ -1,4 +1,4 @@
-import { displayUnits, eventTimeLabel, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
+import { displayUnits, eventTimeLabel, readerDayRange, readerMonthDay, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
 
 /**
  * H58 (EVT13-12): the 何时 cell of the facts card, short enough that the card ends above the phone's action bar. Sessions
@@ -23,10 +23,7 @@ const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五',
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_MS = 86_400_000;
 
-const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 const dayIndex = (day: string) => Math.round(Date.parse(`${day}T12:00:00Z`) / DAY_MS);
-/** "10/15–18" in one month, "10/30–11/1" across two. */
-const span = (start: string, end: string) => `${monthDay(start)}–${start.slice(0, 7) === end.slice(0, 7) ? Number(end.slice(8, 10)) : monthDay(end)}`;
 
 /** Consecutive calendar days become one run. */
 function runs(days: readonly string[]): string[][] {
@@ -44,6 +41,9 @@ export type SessionLines = { lines: string[]; more: number; moreDays?: true };
 /** The 何时 lines for an event's session days on or after `today` (all of them when none is left), and the days not shown. */
 export function sessionLines(event: Pick<EventFactsInput, 'sessions' | 'planning'>, today: string, english: boolean): SessionLines {
   const weekdays = english ? WEEKDAYS_EN : WEEKDAYS_ZH;
+  // "10/15", "10/15–18", "10/30–11/1"; US English on /en: "Oct 15", "Oct 15–18", "Oct 30–Nov 1" (WEB-FIX6).
+  const monthDay = (day: string) => readerMonthDay(day, english);
+  const span = (start: string, end: string) => readerDayRange(start, end, english);
   const all = [...new Set((event.sessions ?? []).map(session => session.date))].sort();
   const upcoming = all.filter(day => day >= today);
   const days = upcoming.length ? upcoming : all;
