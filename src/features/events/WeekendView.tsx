@@ -131,8 +131,11 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const tones = distinctNeighbourTones(visible.map((event, index) => covers.feed[index].tier === 'type' ? eventTone(event) : null));
 
   // The Sheet announces what closing it shows: the chosen day's list (the status line's number), not the weekend's union.
-  const status = !events ? t('正在加载这些日期的活动…', 'Loading events for these dates…') : t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`);
-  const sheetCount = !events ? t('正在加载…', 'Loading…') : t(`显示 ${list.length} 场`, `Show ${list.length}`);
+  // While the dates load they say so; a failed load says that (the retry state sits right below), never "loading" over it.
+  const status = events ? t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`)
+    : failed ? t('这些日期的活动没能加载', 'Events for these dates did not load') : t('正在加载这些日期的活动…', 'Loading events for these dates…');
+  const sheetCount = events ? t(`显示 ${list.length} 场`, `Show ${list.length}`) : failed ? t('关闭', 'Close') : t('正在加载…', 'Loading…');
+  const sheetStatus = events || !failed ? sheetCount : t('这些日期的活动没能加载', 'Events for these dates did not load');
   const filterCount = activeFilterCount(filters, defaultWhen);
   // At 大 / 特大 and in 简洁显示 the three day buttons get short names (周六 · 周日 · 两天): with the date the labels wrapped
   // as 两天都开 / 放 and 周日 / 10/18. The weekend's dates stay in the page's range line right above.
@@ -188,7 +191,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         <p className="ev-count" role="status" aria-live="polite">{status}</p>
       </div>
 
-      {!events ? <div className="ev-feed-loading">{failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={4} />}</div>
+      {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={4} />
       : visible.length ? <>
         <FeedGrid label={weekend ? t('本周末活动', 'Events this weekend') : t('活动', 'Events')} layout={layout}>
           {visible.map((event, index) => <FeedItem key={event.id}>
@@ -227,7 +230,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     <EventsPageEnd region={filters.region} today={today} />
     <ImageCredits covers={[...covers.strip, ...covers.picks, ...covers.feed]} />
 
-    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('筛选活动', 'Filter events')} status={sheetCount}
+    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('筛选活动', 'Filter events')} status={sheetStatus}
       footer={<>
         <Button variant="text" onClick={clear}>{t('清除', 'Clear')}</Button>
         <Button variant="primary" onClick={() => setSheetOpen(false)}>{sheetCount}</Button>

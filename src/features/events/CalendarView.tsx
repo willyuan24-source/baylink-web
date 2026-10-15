@@ -101,8 +101,9 @@ export default function CalendarView({ today }: { today: string }) {
       <span className="ev-week__range" aria-hidden="true">{monthDay(week[0])}–{monthDay(week[6])}</span>
       <ol className="ev-week__days">{week.map(day => {
         const count = countOn(day);
+        // While another week's events load, a day names its date only (no "0 场" before the count is known).
         return <li key={day}><button type="button" className="ev-week__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined}
-          aria-label={`${longDate(day)} · ${t(`${count} 场`, `${count} ${count === 1 ? 'event' : 'events'}`)}`} onClick={() => update({ date: day })} data-past={day < today ? '' : undefined}>
+          aria-label={events ? `${longDate(day)} · ${t(`${count} 场`, `${count} ${count === 1 ? 'event' : 'events'}`)}` : longDate(day)} onClick={() => update({ date: day })} data-past={day < today ? '' : undefined}>
           <span className="ev-week__weekday" aria-hidden="true">{weekdayShort(day)}</span>
           <span className="ev-week__date" aria-hidden="true">{Number(day.slice(8, 10))}</span>
           <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
@@ -157,15 +158,16 @@ export default function CalendarView({ today }: { today: string }) {
     </div>
     <ImageCredits covers={covers} />
 
-    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('选日期和地区', 'Pick a date and region')} status={t(`${dayEvents.length} 场`, `${dayEvents.length} events`)}
-      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date)}`)}</Button>}>
+    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('选日期和地区', 'Pick a date and region')}
+      status={events ? t(`${dayEvents.length} 场`, `${dayEvents.length} events`) : failed ? t('这一天的活动没能加载', 'Events for this day did not load') : t('正在加载…', 'Loading…')}
+      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{events ? t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date)}`) : t(`看 ${monthDay(date)}`, `Show ${monthDay(date)}`)}</Button>}>
       <section className="ev-sheet-section">
         <div className="ev-month__nav">
           <IconButton label={t('上个月', 'Previous month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', -1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', -1) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
           <h3 aria-live="polite">{monthLabel}</h3>
           <IconButton label={t('下个月', 'Next month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', 1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', 1) })}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
         </div>
-        <div className="ev-month" role="group" aria-label={monthLabel}>
+        <div className="ev-month" role="group" aria-label={monthLabel} aria-busy={!month.events && !month.failed ? true : undefined}>
           {[1, 2, 3, 4, 5, 6, 0].map(weekday => <span key={weekday} className="ev-month__weekday" aria-hidden="true">{pick(WEEKDAYS[weekday].char)}</span>)}
           {cells.map(day => {
             const count = monthCountOn(day);
@@ -177,6 +179,12 @@ export default function CalendarView({ today }: { today: string }) {
             </button>;
           })}
         </div>
+        {/* Until the month's weeks are in, the grid has no dots: say so, so an empty grid does not read as "no events". */}
+        {!month.events && <p className="ev-calendar__note" role="status">
+          {month.failed ? <>{t('这个月的活动没能加载，日期仍可以选。', "This month's events did not load; you can still pick a date.")}{' '}
+            <Button variant="text" onClick={month.retry}>{t('重试', 'Retry')}</Button></>
+          : t('正在加载这个月的活动…', "Loading this month's events…")}
+        </p>}
       </section>
       <section className="ev-sheet-section">
         <h3>{t('地区', 'Region')}</h3>
