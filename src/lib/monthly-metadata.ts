@@ -62,12 +62,13 @@ export const eventsMetadata = (today?: string): PageMetadata => ({
 export const EVENTS_METADATA: PageMetadata = eventsMetadata();
 
 /** The /events views a title names (H35 / HOMEIA13-07): the browser tab and a shared link say which view it is. */
-export type EventsTitleView = 'weekend' | 'today' | 'next7' | 'october' | 'november' | 'all' | 'perks' | 'openings';
+export type EventsTitleView = 'weekend' | 'today' | 'next7' | 'october' | 'november' | 'december' | 'all' | 'perks' | 'openings';
 const VIEW_TITLES: Record<Exclude<EventsTitleView, 'weekend'>, { zh: string; en: string }> = {
   today: { zh: '今天湾区活动与官方来源｜BAYLINK', en: 'Bay Area events today, with official sources | BAYLINK' },
   next7: { zh: '未来 7 天湾区活动与官方来源｜BAYLINK', en: 'Bay Area events in the next 7 days, with official sources | BAYLINK' },
   october: { zh: '十月湾区活动与官方来源｜BAYLINK', en: 'Bay Area events in October, with official sources | BAYLINK' },
   november: { zh: '十一月湾区活动与官方来源｜BAYLINK', en: 'Bay Area events in November, with official sources | BAYLINK' },
+  december: { zh: '十二月湾区活动与官方来源｜BAYLINK', en: 'Bay Area events in December, with official sources | BAYLINK' },
   all: { zh: `湾区全部活动（收录至 ${through}）｜BAYLINK`, en: `All Bay Area events through ${through} | BAYLINK` },
   perks: { zh: '湾区免费与优惠｜BAYLINK', en: 'Free days and deals in the Bay Area | BAYLINK' },
   openings: { zh: '湾区新店与开业消息｜BAYLINK', en: 'New shops and openings in the Bay Area | BAYLINK' },
