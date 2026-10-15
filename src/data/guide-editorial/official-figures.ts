@@ -178,7 +178,7 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
   { slug: "bay-area-chinese-language-resource-map", figure: "(408) 975-2739", url: "https://aaci.org/", readOn: '2026-10-14',
     quote: "24/7 Domestic Violence Hotline: (408) 975-2739" },
   { slug: "bay-area-chinese-language-resource-map", figure: "(408) 287-9710", url: "https://asianlawalliance.org/", readOn: '2026-10-14',
-    quote: "991 W. Hedding Street #202San Jose, CA 95126Phone: (408) 287-9710" },
+    quote: "San Jose, CA 95126Phone: (408) 287-9710" },
   { slug: "bay-area-chinese-language-resource-map", figure: "415-896-1701", url: "https://www.asianlawcaucus.org/", readOn: '2026-10-14',
     quote: "55 Columbus AveSan Francisco, CA 94111Phone: 415-896-1701" },
   { slug: "bay-area-chinese-language-resource-map", figure: "(415) 984-1450", url: "https://www.chinatowncdc.org/", readOn: '2026-10-14',

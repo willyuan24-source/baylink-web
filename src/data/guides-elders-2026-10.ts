@@ -197,7 +197,7 @@ export const elderGuides2026: Guide[] = [
       {
         type: 'list',
         items: [
-          '南湾 · Asian Law Alliance：为低收入居民提供免费法律服务，范围包括移民、家事、家暴、住房、公共福利和民权；San Jose 991 W. Hedding Street #202，(408) 287-9710；网站有简体和繁体中文。',
+          '南湾 · Asian Law Alliance：为低收入居民提供免费法律服务，范围包括移民、家事、家暴、住房、公共福利和民权；San Jose 991 W. Hedding Street, Suite 202，(408) 287-9710；网站有简体和繁体中文。',
           '旧金山 · Asian Law Caucus：美国第一家专门服务低收入亚裔的法律援助机构，55 Columbus Ave，415-896-1701；网站有简体和繁体中文。',
           '南湾 · AACI 家暴 24 小时热线：(408) 975-2739。',
         ],

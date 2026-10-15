@@ -145,7 +145,7 @@ export const chineseResourceMapEditorial: GuideEditorial = {
       },
       "number": "(408) 287-9710",
       "tel": "+14082879710",
-      "address": "991 W. Hedding Street #202",
+      "address": "991 W. Hedding Street, Suite 202",
       "note": {
         "zh": "San Jose 免费法律服务",
         "en": "Free legal services in San Jose"
