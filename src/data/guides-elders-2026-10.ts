@@ -95,7 +95,7 @@ export const elderGuides2026: Guide[] = [
       { title: 'SFMTA：Muni 票价', url: 'https://www.sfmta.com/getting-around/muni/fares', description: '长者单程 $1.40（Clipper／MuniMobile），长者月票 $43。' },
       { title: 'SFMTA：65 岁以上免费坐 Muni', url: 'https://www.sfmta.com/fares/free-muni-seniors-ages-65', description: '旧金山居民，家庭收入不超过湾区收入中位数 100%；有中文申请表。' },
       { title: 'VTA：票价', url: 'https://www.vta.org/go/fares', description: '长者（65+）单程 $1、日票 $3、月票 $30。' },
-      { title: 'SamTrans：票价', url: 'https://www.samtrans.com/fares', description: '长者单程 Clipper $1.00、现金 $1.10，月票 $27。' },
+      { title: 'SamTrans：票价', url: 'https://www.samtrans.com/fares', description: '长者单程 Clipper $1.00、现金 $1.10，月票 $27.00。' },
       { title: 'AC Transit：票价', url: 'https://www.actransit.org/fares', description: '青少年、长者和残障乘客的车票和月票五折。' },
       { title: '511：Clipper Access 申请资格', url: 'https://511.org/travel/transit/clipper-access/eligibility', description: '基本资格和医疗资格两种途径。' },
       { title: 'SFMTA：SF Paratransit 辅助交通', url: 'https://www.sfmta.com/getting-around/accessibility/paratransit', description: '一般问题 415.351.7000；SF Access 预约 415.285.6945 按 2。' },

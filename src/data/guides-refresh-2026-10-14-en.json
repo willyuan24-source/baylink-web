@@ -158,7 +158,6 @@
   "长者单程 $1.40（Clipper／MuniMobile），长者月票 $43。": "Senior single ride $1.40 (Clipper/MuniMobile); senior monthly pass $43.",
   "旧金山居民，家庭收入不超过湾区收入中位数 100%；有中文申请表。": "San Francisco residents with family income at or below 100% of Bay Area median; application in Chinese available.",
   "长者（65+）单程 $1、日票 $3、月票 $30。": "Senior (65+) single ride $1, day pass $3, monthly pass $30.",
-  "长者单程 Clipper $1.00、现金 $1.10，月票 $27。": "Senior single ride $1.00 on Clipper, $1.10 cash; monthly pass $27.",
   "青少年、长者和残障乘客的车票和月票五折。": "Youth, seniors and riders with disabilities pay half on fares and passes.",
   "基本资格和医疗资格两种途径。": "Two paths: Basic eligibility and Medical eligibility.",
   "一般问题 415.351.7000；SF Access 预约 415.285.6945 按 2。": "General questions 415.351.7000; SF Access reservations 415.285.6945, option 2.",
@@ -322,5 +321,8 @@
   "Muni（旧金山）：单程 $1.40（Clipper 或 MuniMobile），120 分钟内有效；现金 $1.50；月票 $43；缆车在早上 7 点前或晚上 9 点后 $4。": "Muni (San Francisco): single ride $1.40 on Clipper or MuniMobile, good for 120 minutes; $1.50 cash; monthly pass $43; cable car $4 before 7 a.m. or after 9 p.m.",
   "VTA（南湾）：单程 $1，日票 $3，月票 $30；用 Clipper 付单程，2 小时内免费转车。": "VTA (South Bay): single ride $1, day pass $3, monthly pass $30; a single ride paid with Clipper includes 2 hours of free transfers.",
   "SamTrans（半岛）：单程 Clipper $1.00、现金 $1.10，日票 $2.00，月票 $27.00。": "SamTrans (Peninsula): single ride $1.00 on Clipper, $1.10 cash; day pass $2.00; monthly pass $27.00.",
-  "AC Transit（东湾）：车票和月票都是五折。": "AC Transit (East Bay): half price on fares and passes."
+  "AC Transit（东湾）：车票和月票都是五折。": "AC Transit (East Bay): half price on fares and passes.",
+  "长者单程 Clipper $1.00、现金 $1.10，月票 $27.00。": "Senior single ride $1.00 on Clipper, $1.10 cash; monthly pass $27.00.",
+  "如果是家具，提前问清尺寸、搬运方式、电梯或楼梯情况。": "For furniture, ask about dimensions, moving arrangements, and elevators or stairs in advance.",
+  "面交地点别随便选": "Choose the meeting place carefully"
 }

@@ -97,3 +97,35 @@ test('新手必看 is at most eight current settling-in and anti-scam guides', (
     assert.ok(['housing', 'documents', 'transport', 'health'].includes(guideTopicOf(guide)), `${guide.slug}: ${guideTopicOf(guide)}`);
   }
 });
+
+// CNT-GUIDES-2 (10-14): the 13 May/June guides re-read on official pages (H13), the 30-second records for every 长辈与家属,
+// 新手必看 and 日常办事 guide (H08), and three new elder guides (H71) whose numbers and phones are each registered with a read.
+const RE_DATED = [
+  'bay-area-roommate-guide', 'rental-lease-checklist-before-signing', 'bay-area-used-trading-safety-guide', 'move-in-move-out-checklist',
+  'local-service-safety-guide', 'bay-area-regions-explained', 'bay-area-where-to-live-first-month', 'baylink-safety-guide',
+  'bay-area-first-rental-process', 'bay-area-without-car-guide', 'bay-area-moving-checklist', 'bay-area-used-furniture-appliance-guide',
+  'baylink-posting-guide-for-trust',
+];
+const NEW_ELDER_GUIDES = ['bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide', 'bay-area-chinese-language-resource-map'];
+const PHONE = /(?:1-)?(?:\(\d{3}\) |\d{3}[-.])\d{3}[-.]\d{4}/gu;
+
+test('the 13 May/June guides are re-dated after a read and, with every 30-second guide added in October, stay at most 8 hedges per 1,000 characters', () => {
+  for (const slug of RE_DATED) assert.ok(getGuideBySlug(slug)!.updatedAt >= '2026-10-14', `${slug}: ${getGuideBySlug(slug)!.updatedAt}`);
+  assert.equal(guides.filter(guide => guide.updatedAt < '2026-07-01').length, 0, 'no published guide still shows a May/June date');
+  for (const slug of [...RE_DATED, ...Object.keys(GUIDE_EDITORIAL).filter(slug => !REWRITTEN.includes(slug))]) {
+    const perK = hedgesPerK(getGuideBySlug(slug)!);
+    assert.ok(perK <= 8, `${slug}: ${perK.toFixed(1)} hedges per 1,000 characters`);
+  }
+});
+
+test('the three new elder guides register every dollar amount and phone number with a dated official read', () => {
+  for (const slug of NEW_ELDER_GUIDES) {
+    const guide = getGuideBySlug(slug)!;
+    assert.ok(guide, slug);
+    assert.ok(GUIDE_EDITORIAL[slug], `${slug}: 30-second record`);
+    const article = articleText(guide);
+    const registered = (figure: string) => OFFICIAL_FIGURES.some(row => row.slug === slug && row.figure === figure && row.readOn === '2026-10-14');
+    for (const amount of article.match(/\$\s*[\d,.]*\d/gu) ?? []) assert.ok(registered(amount), `${slug}: ${amount} has no registered read`);
+    for (const phone of article.match(PHONE) ?? []) assert.ok(registered(phone), `${slug}: ${phone} has no registered read`);
+  }
+});
