@@ -5,12 +5,12 @@ import type { Guide } from './guides';
  * Chinese-language resource map. Every number, phone and rule was read on the agency's or organization's own page on
  * 2026-10-14 (ledger: docs/source-reads-2026-10.md, CNT-GUIDES-2 section; English: guides-refresh-2026-10-14-en.json).
  */
-const base = {
+const base: Pick<Guide, 'priority' | 'featuredOnHome' | 'recommendedForCategories' | 'updatedAt'> = {
   priority: 'P1',
   featuredOnHome: false,
   recommendedForCategories: ['other'],
   updatedAt: '2026-10-14',
-} as const;
+};
 
 export const elderGuides2026: Guide[] = [
   {
