@@ -286,7 +286,7 @@ test('a plan 加入这天计划 named reads in the page’s language; a title th
   localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ ...structuredClone(EMPTY_LIBRARY), plans: [plan('zh-auto', '10/17 计划', '2026-10-17'), plan('en-auto', 'Plan for 10/18', '2026-10-18'), plan('own', '周六 Santana Row 一日', '2026-10-17')] }));
   t.mock.method(api, 'request', async () => { throw new Error('Guest content must not request private account data'); });
   const { translateText } = await import('../src/i18n/locale');
-  for (const [locale, zhAuto, enAuto] of [['en', 'Plan for 10/17', 'Plan for 10/18'], ['zh-Hans', '10/17 计划', '10/18 计划'], ['zh-Hant', translateText('10/17 计划', 'zh-Hant'), translateText('10/18 计划', 'zh-Hant')]] as const) {
+  for (const [locale, zhAuto, enAuto] of [['en', 'Plan for Oct 17', 'Plan for Oct 18'], ['zh-Hans', '10/17 计划', '10/18 计划'], ['zh-Hant', translateText('10/17 计划', 'zh-Hant'), translateText('10/18 计划', 'zh-Hant')]] as const) {
     await setLocale(locale);
     const view = render(page(null));
     for (const title of [zhAuto, enAuto]) {

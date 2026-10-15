@@ -9,7 +9,7 @@ import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
 import { SITE_URL } from '../src/lib/seo';
 import { eventOccursOn, addCalendarDays } from '../src/lib/event-calendar';
-import { eventPriceChip, eventTone, formatDateChip, toneLabel } from '../src/lib/event-facts';
+import { eventPriceChip, eventTone, formatDateChip, readerDayRange, readerMonthDay, toneLabel } from '../src/lib/event-facts';
 import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
 import { promoPhoto, type CardLocale } from '../src/lib/share-card-model';
 import { renderWeeklyCardSvg, type WeeklyCardModel } from '../src/lib/weekly-card-svg';
@@ -48,7 +48,6 @@ const photoData = (src?: string) => {
   if (!photos.has(src)) photos.set(src, import('sharp').then(({ default: sharp }) => sharp(`public${src}`).resize(940, 760, { fit: 'cover' }).jpeg({ quality: 78 }).toBuffer()).then(buffer => `data:image/jpeg;base64,${buffer.toString('base64')}`).catch(() => undefined));
   return photos.get(src)!;
 };
-const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 const tasks: Promise<number>[] = [];
 
 const card = async (region: string, label: string, catalog: MonthlyEvent[], day: string, name: string) => {
@@ -71,14 +70,15 @@ const card = async (region: string, label: string, catalog: MonthlyEvent[], day:
     const prefix = locale === 'zh-Hans' ? '' : `/${locale}`;
     const model: WeeklyCardModel = {
       eyebrow: english ? `${regionsEn[region]} this weekend` : t(`${label}本周末`),
-      range: `${monthDay(range.start)}–${range.start.slice(5, 7) === range.end.slice(5, 7) ? Number(range.end.slice(8, 10)) : monthDay(range.end)}`,
+      // "10/17–18" / "10/31–11/1" in Chinese, "Oct 17–18" / "Oct 31–Nov 1" in English, like the tiles (WEB-FIX6).
+      range: readerDayRange(range.start, range.end, english),
       weekdays: english ? 'Sat–Sun' : t('周六–周日'),
       tiles,
       ...(more >= 3 ? { more: english ? { big: `+${more}`, text: `more events this weekend: scan for the full list` } : { big: t(`还有 ${more} 场`), text: t('本周末的其他活动，扫码看完整清单') } } : {}),
       empty: english ? 'No confirmed events this week yet. Scan for places that are always open.' : t('本周暂没有已确认活动，扫码查看常设去处。'),
       scan: english ? 'Scan for the full list with dates, terms and sources' : t('扫码看当期完整日期、条件与来源'),
       link: `baylink.us${prefix}/n/${region}`,
-      footnote: english ? `A snapshot made on ${today}; check the official page before you go. Unverified prices are never marked free.` : t(`这是 ${today} 生成的快照；行前再查官方。未验证票价不标免费。`),
+      footnote: english ? `A snapshot made on ${readerMonthDay(today, true)}, ${today.slice(0, 4)}; check the official page before you go. Unverified prices are never marked free.` : t(`这是 ${today} 生成的快照；行前再查官方。未验证票价不标免费。`),
     };
     const { draw, finish } = outline();
     const svg = finish(renderWeeklyCardSvg(model, qrFor(`${SITE_URL}${prefix}/n/${region}`), logo, draw));

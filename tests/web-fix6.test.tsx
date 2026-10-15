@@ -43,6 +43,27 @@ test('US English: the date helpers write "Oct 17" on /en and keep "10/17" in Chi
   assert.equal(weekendRange('2026-10-31', '2026-11-01', true), 'Oct 31–Nov 1');
 });
 
+test('US English: plan days, plan titles, My Week, the weekly card and the hub cards write "Sat, Oct 17" / "Oct 17–18"', async () => {
+  const { planDayLabel } = await import('../src/lib/plan-stop-cover');
+  const { planDisplayTitle } = await import('../src/features/saves/plan-title');
+  const { hubCardData } = await import('../scripts/share-card-data');
+  assert.equal(planDayLabel('2026-10-17', true), 'Sat, Oct 17');
+  assert.equal(planDayLabel('2026-10-17', false), '10/17 周六');
+  assert.deepEqual(planDisplayTitle('Plan for 10/18', 'en'), { text: 'Plan for Oct 18', auto: true });
+  assert.deepEqual(planDisplayTitle('10/17 计划', 'en'), { text: 'Plan for Oct 17', auto: true });
+  assert.deepEqual(planDisplayTitle('Plan for 10/18', 'zh-Hans'), { text: '10/18 计划', auto: true });
+  assert.deepEqual(planDisplayTitle('周六 Santana Row', 'en'), { text: '周六 Santana Row', auto: false });
+  const myWeek = readFileSync(new URL('../src/pages/MyWeekPage.tsx', import.meta.url), 'utf8');
+  assert.match(myWeek, /english \? `\$\{weekday\}, \$\{readerMonthDay\(date, true\)\}`/u);
+  const weekly = readFileSync(new URL('../scripts/generate-weekly.ts', import.meta.url), 'utf8');
+  assert.match(weekly, /range: readerDayRange\(range\.start, range\.end, english\)/u);
+  assert.match(weekly, /A snapshot made on \$\{readerMonthDay\(today, true\)\}, \$\{today\.slice\(0, 4\)\}/u);
+  const same = (text: string) => text;
+  assert.equal(hubCardData('en', same, '2026-10-15').range, 'Oct 17–18');
+  assert.equal(hubCardData('zh-Hans', same, '2026-10-15').range, '10/17–18');
+  assert.equal(hubCardData('en', same, '2026-10-29').range, 'Oct 31–Nov 1');
+});
+
 test('US English: date chips, deadlines and check lines read "Sat, Oct 10", "Until Nov 15", "mostly checked Sep 29"', () => {
   const today = '2026-10-08';
   const day = { startDate: '2026-10-10', endDate: '2026-10-10' };

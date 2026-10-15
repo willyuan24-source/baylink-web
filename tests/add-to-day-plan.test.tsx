@@ -121,9 +121,11 @@ test('English copy for the button and the confirmation', async () => {
   const view = render(<MemoryRouter><AddToDayPlan stop={event} date={DAY} today={TODAY} title={MONTHLY_EVENTS[0].title} /></MemoryRouter>);
   await waitFor(() => assert.equal(view.getByRole('button', { name: /^Add to this day’s plan: / }).hasAttribute('disabled'), false));
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /^Add to this day’s plan: / })); });
-  assert.match(view.getByTestId('save-toast').textContent!, /Added to your 12\/12 plan/);
+  // US English on /en (WEB-FIX6): "Dec 12"; the new plan's stored title keeps its numeric day (plan-title.ts reads it back).
+  assert.match(view.getByTestId('save-toast').textContent!, /Added to your Dec 12 plan/);
   assert.ok(within(view.getByTestId('save-toast')).getByRole('link', { name: 'View' }));
-  assert.match(view.getByRole('button', { name: /^In your 12\/12 plan: / }).textContent!, /In your 12\/12 plan/);
+  assert.match(view.getByRole('button', { name: /^In your Dec 12 plan: / }).textContent!, /In your Dec 12 plan/);
+  assert.deepEqual(loadGuestLibrary().plans.map(plan => plan.title), ['Plan for 12/12']);
 });
 
 test('a stop already in an older plan for the same day is not added again', async () => {

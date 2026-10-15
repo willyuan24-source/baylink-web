@@ -36,7 +36,7 @@ export function bayBayPlaceLabel(state: { city?: string | null; region?: string 
   return bayBayRegionLabel(state.region, locale);
 }
 
-/** "10/17 周六" (zh), "10/17 週六" (zh-Hant), "Sat 10/17" (en) for an ISO day; null for anything that is not a real day. */
+/** "10/17 周六" (zh), "10/17 週六" (zh-Hant), "Sat, Oct 17" (en) for an ISO day; null for anything that is not a real day. */
 export function bayBayDayLabel(day: string | null | undefined, locale: Locale): string | null {
   const match = ISO_DAY.exec(day || '');
   if (!match) return null;

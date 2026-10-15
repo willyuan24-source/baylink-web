@@ -11,6 +11,7 @@ import { downloadEventCalendar } from '../lib/monthly';
 import { recordProductEvent } from '../lib/product-events';
 import { setPageMetadata } from '../lib/seo';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
+import { readerMonthDay } from '../lib/event-facts';
 import { createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
 import { savedCoverImage } from '../lib/saved-items';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
@@ -35,12 +36,10 @@ import { EventTypeCover } from '../components/ui/TypeCover';
 import { confirmDialog } from '../components/ui/confirm';
 import '../features/saves/my-week.css';
 
-/** "10/10 周六" / "Sat 10/10" for a Pacific calendar day (zh-Hant converts the weekday at render). */
+/** "10/10 周六" / "Sat, Oct 10" (US English, WEB-FIX6) for a Pacific calendar day (zh-Hant converts the weekday at render). */
 function dayLabel(date: string, english: boolean) {
-  const day = new Date(`${date}T12:00:00Z`);
-  const md = `${day.getUTCMonth() + 1}/${day.getUTCDate()}`;
-  const weekday = new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { weekday: 'short', timeZone: 'UTC' }).format(day);
-  return english ? `${weekday} ${md}` : `${md} ${weekday}`;
+  const weekday = new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { weekday: 'short', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  return english ? `${weekday}, ${readerMonthDay(date, true)}` : `${readerMonthDay(date)} ${weekday}`;
 }
 
 function useOnline() {
