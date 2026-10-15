@@ -24,7 +24,6 @@ export const GUIDE_COVER_ANSWERS: Readonly<Record<string, EditorialCopy>> = {
   'bart-october-access-parking-update-2026': { zh: "电梯先打 510-834-5438", en: "Elevator: 510-834-5438" },
   'bay-area-commute-guide': { zh: "先试跑一次再定", en: "Do a trial run first" },
   'bay-area-useful-apps-platforms-guide': { zh: "先装这周会用的", en: "Install this week’s apps first" },
-  'bay-area-city-utilities-internet-phone-directory': { zh: "PG&E 877-660-6789", en: "PG&E 877-660-6789" },
   'bay-area-street-parking-first-time-guide': { zh: "先读路牌再付款", en: "Read the signs, then pay" },
   'bay-area-fastrak-bridge-express-lanes-guide': { zh: "桥费、快速车道分开算", en: "Bridges and lanes bill apart" },
   'bay-area-bulky-items-ewaste-hhw-guide': { zh: "分三类找入口", en: "Three kinds, three routes" },

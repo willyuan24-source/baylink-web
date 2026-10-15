@@ -15,7 +15,7 @@ const PILOTS = [
   'half-moon-bay-coastal-half-day-guide', 'bay-area-first-doctor-insurance-network-guide',
   // CNT-GUIDES-2 (H08, H71): every 长辈与家属, 新手必看 and 日常办事 guide, and the three new elder guides.
   'bay-area-311-211-local-help-guide', 'san-jose-digital-help-sj-access-update-2026', 'bart-october-access-parking-update-2026',
-  'bay-area-commute-guide', 'bay-area-useful-apps-platforms-guide', 'bay-area-city-utilities-internet-phone-directory',
+  'bay-area-commute-guide', 'bay-area-useful-apps-platforms-guide',
   'bay-area-street-parking-first-time-guide', 'bay-area-fastrak-bridge-express-lanes-guide', 'bay-area-bulky-items-ewaste-hhw-guide',
   'bay-area-alerts-outages-first-day-checklist', 'bay-area-free-esl-adult-learning-guide', 'bay-area-repair-request-guide',
   'bay-area-without-car-guide', 'bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide',

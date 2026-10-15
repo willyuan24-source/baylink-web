@@ -17,7 +17,6 @@ import { sjDigitalHelpEditorial } from './san-jose-digital-help-sj-access-update
 import { bartOctoberEditorial } from './bart-october-access-parking-update-2026';
 import { commuteEditorial } from './bay-area-commute-guide';
 import { usefulAppsEditorial } from './bay-area-useful-apps-platforms-guide';
-import { utilitiesEditorial } from './bay-area-city-utilities-internet-phone-directory';
 import { streetParkingEditorial } from './bay-area-street-parking-first-time-guide';
 import { fastrakEditorial } from './bay-area-fastrak-bridge-express-lanes-guide';
 import { bulkyItemsEditorial } from './bay-area-bulky-items-ewaste-hhw-guide';
@@ -40,8 +39,9 @@ export const GUIDE_EDITORIAL: Readonly<Record<string, GuideEditorial>> = Object.
   seniorServicesEditorial, medicareEditorial, dentalEditorial, socialSecurityEditorial,
   naturalizationEditorial, freeTaxHelpEditorial, tenantRightsEditorial, driverLicenseEditorial,
   newcomerFirstMonthEditorial, rentalScamEditorial, muniClipperEditorial, halfMoonBayEditorial, firstDoctorEditorial,
-  // CNT-GUIDES-2 (H08): every 长辈与家属, 新手必看 and 日常办事 guide, and the three new elder guides (H71).
-  localHelpEditorial, sjDigitalHelpEditorial, bartOctoberEditorial, commuteEditorial, usefulAppsEditorial, utilitiesEditorial,
+  // CNT-GUIDES-2 (H08): every 长辈与家属, 新手必看 and 日常办事 guide except directories (the utilities and 101-city
+  // directories, the outlets list), and the three new elder guides (H71).
+  localHelpEditorial, sjDigitalHelpEditorial, bartOctoberEditorial, commuteEditorial, usefulAppsEditorial,
   streetParkingEditorial, fastrakEditorial, bulkyItemsEditorial, alertsEditorial, freeEslEditorial, repairRequestEditorial,
   withoutCarEditorial, elderScamEditorial, seniorTransitEditorial, chineseResourceMapEditorial,
 ].map(editorial => [editorial.slug, editorial]));
