@@ -63,13 +63,16 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // the rest loads on demand (events-later.json + its English pack). Measured 280.0 / 323.8 / 459.4 and 283.6 / 327.4 / 463.0
 // KiB (from 315.2 / 359.0 / 523.0 and 318.4 / 362.3 / 526.3), so both rows go to measured + 2%. A batch of far-off events
 // now adds nothing here; one inside the next three weeks shrinks the window rather than growing the route.
+// W6 integration (CNT-GUIDES-2, WEB-FIX6, CNT-MEDIA-2): the events index keeps only the image fields listings read (CNT-MEDIA-2),
+// so /events measured 277.6 / 321.6 / 459.4 and /calendar 281.3 / 325.3 / 463.0 KiB on the integrated build of 10-15; the four
+// Chinese cells verify-release listed go to measured + 2%, the English cells keep theirs (unchanged measurement).
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 240.9, en: 321.1 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 289.3, 'zh-Hant': 334.0, en: 472.3 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 287.0, 'zh-Hant': 331.8, en: 472.3 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 221.0, 'zh-Hant': 265.5, en: 352.2 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 341.4 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 218.0, 'zh-Hant': 262.5, en: 337.9 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 285.6, 'zh-Hant': 330.3, en: 468.6 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 283.2, 'zh-Hant': 328.1, en: 468.6 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
   { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 276.6, 'zh-Hant': 321.2, en: 380.0 } },
