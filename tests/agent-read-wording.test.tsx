@@ -44,8 +44,19 @@ const SKIP = /^src[\\/](?:opus-bay|data[\\/]generated)(?:[\\/]|$)/u;
 const sources = (dir: string): string[] => readdirSync(join(root, dir), { withFileTypes: true }).flatMap(entry => {
   const path = join(dir, entry.name);
   if (SKIP.test(path)) return [];
-  return entry.isDirectory() ? sources(path) : /\.(?:ts|tsx|mts|mjs)$/u.test(entry.name) ? [path] : [];
+  return entry.isDirectory() ? sources(path) : /\.(?:ts|tsx|mts|mjs|js|cjs)$/u.test(entry.name) ? [path] : [];
 });
+/** Data that pages print (every .json under src/data: listings, overlay rows, the English dictionaries), generated output aside. */
+const dataFiles = (dir: string): string[] => readdirSync(join(root, dir), { withFileTypes: true }).flatMap(entry => {
+  const path = join(dir, entry.name);
+  if (SKIP.test(path)) return [];
+  return entry.isDirectory() ? dataFiles(path) : entry.name.endsWith('.json') ? [path] : [];
+});
+/**
+ * In data a human check is flagged only where it labels a date ("人工核对 9/29", "human-checked Sep 29"): data rows also say
+ * what a check is not or is still waiting for ("不代表人工事实复核", "最新规则待人工复核"), which is honest.
+ */
+const HUMAN_ON_A_DATE = /(?:人工核[对對]|人工复核|人工複核)\s*(?:于|於)?\s*\d{1,2}\/\d{1,2}|(?:human|person|editor)[- ]?(?:checked|reviewed)\s+(?:on\s+)?(?:[A-Z][a-z]{2}\s+)?\d/iu;
 /** Code lines only: comments may name the banned words to explain the rule. */
 const codeLines = (text: string) => text.split(/\r?\n/u).map((line, index) => ({ line, at: index + 1 })).filter(({ line }) => !/^\s*(?:\/\/|\/\*|\*)/u.test(line));
 
@@ -57,6 +68,24 @@ test('no page copy in src, api or scripts labels a check date as an editor\'s or
     }
   }
   assert.deepEqual(found, [], 'word it as the official page having been read/checked that day (官网核对 9/29 · Source checked Sep 29)');
+});
+
+test('no data row in src/data labels a check date as an editor\'s or a person\'s (WEB-FIX6 review)', () => {
+  const files = dataFiles('src/data');
+  assert.ok(files.length >= 30, `found ${files.length} data files`);
+  const found: string[] = [];
+  for (const file of files) {
+    readFileSync(join(root, file), 'utf8').split(/\r?\n/u).forEach((line, index) => {
+      if (DATE_LABEL.test(line) || HUMAN_ON_A_DATE.test(line)) found.push(`${relative(root, join(root, file))}:${index + 1}: ${line.trim().slice(0, 120)}`);
+    });
+  }
+  assert.deepEqual(found, [], 'a check date in data is 官网核对 9/29 / "Source checked Sep 29"');
+  for (const bad of ['"dateLabel": "编辑核对 9/29"', '"note": "人工核对 9/29"', '"en": "Human-checked Sep 29"', '"note": "editor reviewed on 10/2"']) {
+    assert.ok(DATE_LABEL.test(bad) || HUMAN_ON_A_DATE.test(bad), bad);
+  }
+  for (const honest of ['不代表人工事实复核。人工核对的范围与日期，以文中的具体说明为准。', 'FAMSF 官方 Free Saturdays 页面（最新规则待人工复核）', '官网核对 9/29']) {
+    assert.ok(!DATE_LABEL.test(honest) && !HUMAN_ON_A_DATE.test(honest), honest);
+  }
 });
 
 test('the scan would catch the old wording (the rule is not vacuous)', () => {
