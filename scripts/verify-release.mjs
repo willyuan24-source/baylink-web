@@ -58,13 +58,18 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // 315.9 / 374.0; its planner catalog loads after the first paint, so a batch adds ~0.2 KiB here), so /plan goes to measured + 2%.
 // /events and /calendar hold with 0.4–3.0 KiB left (zh-Hans 315.2 / 315.6, 318.5 / 319.5): the next event batch needs WEB-PERF-2's
 // split of the events list out of the route chunk first; these ceilings are not raised.
+// WEB-PERF-2: /events and /calendar carry only the events of their first screens (events-index.json `near`: the build's week
+// through 8–21 days after the build day, capped at 56 KiB gzip so a dense season shrinks the window instead of the budget);
+// the rest loads on demand (events-later.json + its English pack). Measured 280.8 / 324.6 / 460.2 and 284.2 / 328.0 / 463.6
+// KiB (from 315.2 / 359.0 / 523.0 and 318.4 / 362.3 / 526.3), so both rows go to measured + 2%. A batch of far-off events
+// now adds nothing here; one inside the next three weeks shrinks the window rather than growing the route.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 240.9, en: 321.1 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 319.5, 'zh-Hant': 365.3, en: 528.3 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 289.9, 'zh-Hant': 334.6, en: 472.9 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 221.0, 'zh-Hant': 265.5, en: 352.2 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 341.4 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 218.0, 'zh-Hant': 262.5, en: 337.9 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 315.6, 'zh-Hant': 361.4, en: 524.4 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 286.4, 'zh-Hant': 331.1, en: 469.4 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
   { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 276.6, 'zh-Hant': 321.2, en: 380.0 } },
@@ -139,6 +144,13 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
 for(const locale of ['', 'en/', 'zh-Hant/']) {
   const html=await readFile(`dist/${locale}index.html`,'utf8');
   if(!/<main\b[^>]*><div class="bay-home bay-home-editorial"><section class="home-discovery"/.test(html)) throw new Error(`The prerendered home is not wrapped as HomePage renders it: dist/${locale}index.html`);
+}
+// H60 (WEB-PERF-2): /events names its LCP cover (the page's one fetchpriority="high" image) in the head (scripts/prerender.tsx).
+for(const locale of ['', 'en/', 'zh-Hant/']) {
+  const html=await readFile(`dist/${locale}events.html`,'utf8');
+  const src=/<img\b[^>]*\bfetchpriority="high"[^>]*>/.exec(html)?.[0].match(/\ssrc="([^"]+)"/)?.[1];
+  const head=html.slice(0,html.indexOf('</head>'));
+  if(src&&!head.includes(`<link rel="preload" as="image" href="${src}"`)) throw new Error(`The first pick's cover is not preloaded: dist/${locale}events.html`);
 }
 // WEB-SEO-I18N (I18N-SEO-02/-04): every built page, in each language. /en carries no Chinese and /zh-Hant no Simplified-only
 // character outside markup that says so (translate="no", lang="zh…", the language switch), in the text and in the head;
