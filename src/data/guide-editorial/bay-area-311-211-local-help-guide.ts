@@ -1,4 +1,5 @@
 import type { GuideEditorial } from './types';
+// Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
 // Facts from the article (SF.gov, San José 311, OAK311 and the 211 operators, read 2026-09-27). A 日常办事 and 长辈与家属 guide.
 export const localHelpEditorial: GuideEditorial = {

@@ -1,4 +1,5 @@
 import type { GuideEditorial } from './types';
+// Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
 // Facts from the article (SSA, Medicare, FBI IC3, FTC, DOJ OVC and CDSS APS pages read 2026-10-14). 长辈与家属.
 export const elderScamEditorial: GuideEditorial = {

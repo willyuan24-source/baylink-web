@@ -1,4 +1,5 @@
 import type { GuideEditorial } from './types';
+// Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
 // Facts from the article (FasTrak, Golden Gate and 511 pages read 2026-09-27). A 日常办事 guide.
 export const fastrakEditorial: GuideEditorial = {

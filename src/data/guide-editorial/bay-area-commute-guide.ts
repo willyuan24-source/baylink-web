@@ -1,4 +1,5 @@
 import type { GuideEditorial } from './types';
+// Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
 // Facts from the article (BART, Caltrain and VTA instructions read 2026-10-07). A 新手必看 guide.
 export const commuteEditorial: GuideEditorial = {
