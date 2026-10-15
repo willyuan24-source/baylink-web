@@ -4,9 +4,12 @@ import test from 'node:test';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 import { eventPriceChip, eventTimeLabel, type EventFactsInput } from '../src/lib/event-facts';
 import { isFreeToAttend } from '../src/lib/monthly';
-import type { EventsIndex } from '../src/features/events/events-index-types';
+import type { EventsIndex, EventsLater } from '../src/features/events/events-index-types';
 
-const index = JSON.parse(readFileSync('src/data/generated/events-index.json', 'utf8')) as EventsIndex;
+// WEB-PERF-2: the route's own events and the rest (events-later.json) together are the listed catalog.
+const route = JSON.parse(readFileSync('src/data/generated/events-index.json', 'utf8')) as EventsIndex;
+const later = JSON.parse(readFileSync('src/data/generated/events-later.json', 'utf8')) as EventsLater;
+const index = { ...route, events: [...route.events, ...later.events] };
 const full = new Map(PLANNER_EVENTS.map(event => [event.id, event]));
 const facts = (event: unknown) => event as EventFactsInput;
 

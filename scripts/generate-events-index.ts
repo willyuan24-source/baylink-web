@@ -1,4 +1,5 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { gzipSync } from 'node:zlib';
 import { MONTHLY_EDITION } from '../src/data/monthly-edition';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 import { currentFreebies } from '../src/data/october-offers';
@@ -8,7 +9,9 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import cityAliases from '../src/data/city-search-aliases.json';
 import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from './data/event-calendar-schedule';
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
-import type { EventsIndex, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
+import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
+import { addCalendarDays, calendarPeriod } from '../src/lib/calendar-days';
+import type { EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
 import type { PlanningSchedule } from '../src/lib/planner';
 
 /**
@@ -22,8 +25,9 @@ import type { PlanningSchedule } from '../src/lib/planner';
  * sourceUrl / verifiedAt (listSchedule below), so each new batch of events costs the list routes as few bytes as possible
  * (CNT-SUPPLY, verify-release route budgets).
  *
- * Deterministic for a given catalog apart from `weeklyCardDays`: it keeps everything that had not ended by the edition's
- * check date; pages filter by the reader's own day. `weeklyCardDays` are the days this build writes a dated Bay Area share
+ * Deterministic for a given catalog apart from `weeklyCardDays` and the `near` split (both follow the build day): it keeps
+ * everything that had not ended by the edition's check date, split between the route (events-index.json) and
+ * events-later.json; pages filter by the reader's own day. `weeklyCardDays` are the days this build writes a dated Bay Area share
  * card for (/weekly/all-{day}.png, generate-weekly.ts), read from the home catalog written just before, so the page-end
  * "存成一张图" link opens the same card as the home page (RC-12). Run by `npm run generate:home` (prebuild and pretest).
  */
@@ -92,10 +96,37 @@ const bulletins = currentRegionalBulletins.filter(item => item.expiresAt >= cuto
 }));
 
 // Only images a listing can show: AI illustrations are never an event, offer or opening cover (cover.ts), so they stay out.
-const keys = new Set([...events.map(event => event.imageKey), ...offers.map(offer => offer.imageKey), ...openings.map(shop => shop.imageKey)]);
-const images: Record<string, IndexImage> = Object.fromEntries([...keys].sort()
+const imagesFor = (keys: Iterable<string>): Record<string, IndexImage> => Object.fromEntries([...new Set(keys)].sort()
   .filter(key => Object.hasOwn(GUIDE_IMAGES, key) && GUIDE_IMAGES[key].kind !== 'illustration')
   .map(key => [key, GUIDE_IMAGES[key] as IndexImage]));
+
+/**
+ * WEB-PERF-2: the route carries the events of the first screens only, so a batch of far-off events no longer grows /events
+ * and /calendar (verify-release budgets). `near` runs from the Monday of the build's week (the calendar's week strip) to
+ * 8–21 days after the build day: 本周末, 今天 and 未来 7 天 stay complete for a week or two after a build. The window
+ * shrinks a day at a time while its events and images pass NEAR_CAP gzip bytes, so a dense season cannot push the route
+ * over its ceiling; at 8 days (today's 未来 7 天) it stops shrinking. Every other event (later days, and days of the edition
+ * before this week) is in events-later.json, which a view loads when it reaches past `near` (events-model.ts). Like
+ * `weeklyCardDays`, the split follows the build day, as the home catalog does.
+ */
+const NEAR_MAX_DAYS = 21, NEAR_MIN_DAYS = 8, NEAR_CAP = 56 * 1024;
+const buildDay = getBayAreaToday();
+const occursIn = (event: IndexEvent, start: string, end: string) => { const day = nextOccurrence(event, start); return !!day && day <= end; };
+const nearFrom = calendarPeriod(buildDay, 'week').start;
+const nearFor = (through: string) => events.filter(event => occursIn(event, nearFrom, through));
+let nearThrough = addCalendarDays(buildDay, NEAR_MAX_DAYS - 1);
+const nearBytes = (list: IndexEvent[]) => gzipSync(JSON.stringify({ events: list, images: imagesFor(list.map(event => event.imageKey)) })).length;
+while (nearThrough > addCalendarDays(buildDay, NEAR_MIN_DAYS - 1) && nearBytes(nearFor(nearThrough)) > NEAR_CAP) nearThrough = addCalendarDays(nearThrough, -1);
+const nearIds = new Set(nearFor(nearThrough).map(event => event.id));
+const nearEvents = events.filter(event => nearIds.has(event.id));
+const images = imagesFor([...nearEvents.map(event => event.imageKey), ...offers.map(offer => offer.imageKey), ...openings.map(shop => shop.imageKey)]);
+const laterImages = Object.fromEntries(Object.entries(imagesFor(events.filter(event => !nearIds.has(event.id)).map(event => event.imageKey)))
+  .filter(([key]) => !Object.hasOwn(images, key)));
+const later: EventsLater = {
+  events: events.filter(event => !nearIds.has(event.id)),
+  at: events.flatMap((event, position) => nearIds.has(event.id) ? [] : [position]),
+  images: laterImages,
+};
 
 // Chinese city names for the calendar's bilingual chips (圣何塞 San Jose): the first Han alias the search uses.
 const HAN = /[\u3400-\u9fff]/;
@@ -110,11 +141,13 @@ const weeklyCardDays = getWeeklyCardDays(home.generatedAt, home.weekends);
 
 const index: EventsIndex = {
   edition: { label: MONTHLY_EDITION.label, checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate, startMonth: MONTHLY_EDITION.startMonth },
-  events, offers, openings, bulletins, images, cityNames, weeklyCardDays,
+  near: { from: nearFrom, through: nearThrough },
+  events: nearEvents, offers, openings, bulletins, images, cityNames, weeklyCardDays,
 };
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/events-index.json', JSON.stringify(index));
-console.log(`Events index: ${events.length} events, ${offers.length} offers, ${openings.length} openings, ${bulletins.length} bulletins, ${Object.keys(images).length} images; no articles or plan steps.`);
+await writeFile('src/data/generated/events-later.json', JSON.stringify(later));
+console.log(`Events index: ${events.length} events (${nearEvents.length} on ${nearFrom}…${nearThrough} in the route, ${later.events.length} in events-later.json), ${offers.length} offers, ${openings.length} openings, ${bulletins.length} bulletins, ${Object.keys(images).length} + ${Object.keys(laterImages).length} images; no articles or plan steps.`);
 
 // The event, offer and opening detail records (WEB-DETAIL, ENGSEC-01) come from the same catalogs, in the same step.
 await import('./generate-detail-records');

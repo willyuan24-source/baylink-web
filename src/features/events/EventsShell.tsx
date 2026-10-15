@@ -8,7 +8,8 @@ import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { dateScope } from '../../lib/date-guard';
 import { checkLine, checkSummary } from '../../lib/check-dates';
 import { getMonthlyDateRange, isFreeToAttend } from '../../lib/monthly';
-import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsWhen } from './events-model';
+import { EVENTS_INDEX, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsWhen } from './events-model';
+import { useIndexEvents } from './events-later';
 import { WeekendView } from './WeekendView';
 import { ChunkBoundary } from './ChunkBoundary';
 import { retryableLazy } from './lazy-view';
@@ -49,7 +50,10 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
     : filters.when === 'december' ? t('十二月', 'December')
     : `${t('全部日期', 'All dates')} · ${t(`收录至 ${md(EVENTS_INDEX.edition.throughDate)}`, `through ${md(EVENTS_INDEX.edition.throughDate)}`)}`;
   const region = filters.region === 'all' ? '' : ` · ${pick(regionLabel(filters.region))}`;
-  const inScope = INDEX_EVENTS.filter(event => inRange(event, range, today) && (filters.region === 'all' || event.region === filters.region));
+  // The counts read the same days as the list; past the route's own days they wait with it for the rest (WEB-PERF-2).
+  const days = listWindow(range, today);
+  const { events } = useIndexEvents(days.start, days.end, column === 'list');
+  const inScope = (events ?? []).filter(event => inRange(event, range, today) && (filters.region === 'all' || event.region === filters.region));
   const free = inScope.filter(event => isFreeToAttend(event)).length;
   const offerList = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region) : [];
   const offers = offerList.length;
@@ -66,6 +70,7 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   const counts = column === 'perks' ? t(`${offers} 条优惠与免费福利`, `${offers} offers and free perks`)
     : column === 'openings' ? t(`${INDEX_OPENINGS.length} 家新店与开业消息`, `${INDEX_OPENINGS.length} new shops and openings`)
     : column === 'calendar' ? t('按日期看全部活动，点开当天', 'Every event by date; open a day')
+    : !events ? ''
     : english ? `${inScope.length} ${inScope.length === 1 ? 'event' : 'events'} · ${free} free` : t(`${inScope.length} 场 · ${free} 场免费`, `${inScope.length} events · ${free} free`);
 
   const tabs = [

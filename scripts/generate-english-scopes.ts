@@ -161,11 +161,20 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   // ('events-list', WEB-DATA-SPLIT) instead of the whole discovery catalog and every guide. The index is generated here,
   // first: importing the generator runs it once (generate:home's own import of it afterwards is the same, cached module).
   await import('./generate-events-index');
-  const eventsList = [JSON.parse(await readFile('src/data/generated/events-index.json', 'utf8')), officialEventMedia, CALENDAR_CITY_LOCATIONS,
+  // WEB-PERF-2: the route's own events (events-index.json `near`) and the rest (events-later.json) each have their pack; a
+  // view that loads the rest loads 'events-later' with it (features/events/events-later.ts), so a batch of far-off events
+  // adds nothing to the English /events and /calendar either. Each event's compact schedule note goes with its event.
+  const eventsIndex = JSON.parse(await readFile('src/data/generated/events-index.json', 'utf8')) as { events: { id: string }[] };
+  const eventsLater = JSON.parse(await readFile('src/data/generated/events-later.json', 'utf8')) as { events: { id: string }[] };
+  const notesFor = (list: { id: string }[]) => list.flatMap(event => Object.hasOwn(EVENT_SCHEDULE_NOTES, event.id) ? [EVENT_SCHEDULE_NOTES[event.id]] : []);
+  const listed = new Set([...eventsIndex.events, ...eventsLater.events].map(event => event.id));
+  const eventsList = [eventsIndex, officialEventMedia, CALENDAR_CITY_LOCATIONS,
     VERIFIED_PLACE_PHOTO_ALIASES, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_OFFER_PLACE_MEDIA_UPDATES,
     OCTNOV_EVENT_PHOTO_ALIASES, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_CONTEXT_PHOTOS, EVENT_CONTEXT_PHOTOS,
-    // every compact schedule note: the calendar can show any of them (tests/octnov-metadata-i18n.test.tsx)
-    EVENT_SCHEDULE_NOTES];
+    // every compact schedule note the calendar can show with the route's events, and the notes of events no longer listed
+    // (tests/octnov-metadata-i18n.test.tsx)
+    notesFor(eventsIndex.events), Object.entries(EVENT_SCHEDULE_NOTES).filter(([id]) => !listed.has(id)).map(([, note]) => note)];
+  const eventsLaterValues = [eventsLater, notesFor(eventsLater.events)];
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),
@@ -173,6 +182,7 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
     // the cards, and what the saved shelf (/guides?view=saved, ReaderLibrary) adds to them: each guide's category label
     'guide-list': [guideData.index, guides.map(guide => guide.categoryLabel)],
     'events-list': eventsList,
+    'events-later': eventsLaterValues,
     'guide-search': [guides, guides.map(getGuideMedia), perksPosters],
     discovery: [MONTHLY_EDITION, MONTHLY_EVENTS, MONTHLY_PLACES, EVENT_SCHEDULE_NOTES, currentFreebies, currentOpenings, currentRegionalBulletins, GUIDE_IMAGES, perksPosters],
     planning: [PLANNER_CATALOG, ATTRACTION_REGION_INTROS],
@@ -186,9 +196,13 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   const registry: Record<string, string> = { ui: 'ui.json' };
   const sizes: Record<string, number> = { ui: gzipSync(JSON.stringify(ui)).length };
   await writeFile(`${directory}/ui.json`, JSON.stringify(ui));
+  // 'events-later' loads over 'events-list' (feature 'events-later'): it carries only what that pack does not.
+  const eventsListKeys = remaining(eventsList);
   for (const [scope, values] of Object.entries(scopeValues)) {
     registry[scope] = `${scope}.json`;
-    const serialized = JSON.stringify(remaining(values));
+    const pack = remaining(values);
+    if (scope === 'events-later') for (const key of Object.keys(eventsListKeys)) delete pack[key];
+    const serialized = JSON.stringify(pack);
     sizes[scope] = gzipSync(serialized).length;
     await writeFile(`${directory}/${scope}.json`, serialized);
   }

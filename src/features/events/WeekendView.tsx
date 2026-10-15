@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Baby, ChevronDown, Gift, HeartHandshake, Leaf, Music, SlidersHorizontal, Store, Trees, Umbrella, type LucideIcon } from 'lucide-react';
-import { Button, Carousel, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SegmentedControl, Sheet, useFeedLayout } from '../../components/ui';
+import { Button, Carousel, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SegmentedControl, Sheet, SkeletonFeed, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import { createCoverPage, distinctNeighbourTones, resolveCovers, type ResolvedCover } from '../../lib/cover';
@@ -12,9 +12,11 @@ import { dateScope } from '../../lib/date-guard';
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 import {
-  ALL_REGIONS, INDEX_EVENTS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
-  hasRealCover, inRange, listEvents, matchesFilters, monthDay, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
+  ALL_REGIONS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
+  hasRealCover, inRange, listEvents, listWindow, matchesFilters, monthDay, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
 } from './events-model';
+import { prefetchLaterEvents, useIndexEvents } from './events-later';
+import { ChunkError } from './ChunkBoundary';
 import type { IndexEvent } from './events-index-types';
 import { EventFeedCard, EventHeroCard } from './EventCards';
 import { ShareLandingStrip, type StripState } from './ShareLandingStrip';
@@ -73,11 +75,18 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const weekend = filters.when === 'weekend';
   const range = getMonthlyDateRange(filters.when, today);
   const weekendDays = weekend ? [range!.start, range!.end].filter(day => day >= today) : [];
+  // WEB-PERF-2: the days this view reads (and a share card's weekend); past the route's own events they load first, under a
+  // fixed-height skeleton. The filter Sheet starts that load when it opens, before a later date is picked.
+  const listDays = listWindow(range, today);
+  const cardDays = card ? listWindow(getMonthlyDateRange('weekend', today), today) : listDays;
+  const { events, failed, retry } = useIndexEvents(listDays.start < cardDays.start ? listDays.start : cardDays.start,
+    listDays.end === null || cardDays.end === null ? null : listDays.end > cardDays.end ? listDays.end : cardDays.end);
+  useEffect(() => { if (sheetOpen) prefetchLaterEvents(locale); }, [sheetOpen, locale]);
   // The date range and region: what the story chips count and the other filters narrow.
-  const base = useMemo(() => INDEX_EVENTS.filter(event => (filters.region === 'all' || event.region === filters.region)
+  const base = useMemo(() => (events ?? []).filter(event => (filters.region === 'all' || event.region === filters.region)
     && (weekend ? weekendDays.some(day => nextOccurrence(event, day) === day) : inRange(event, range, today))),
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  [filters.region, filters.when, today]);
+  [events, filters.region, filters.when, today]);
   const normalize = normalizeSearchText;
   const translate = (value: string) => translateText(value, locale);
   const matching = useMemo(() => base.filter(event => matchesFilters(event, { ...filters, region: 'all' }, normalize, translate)),
@@ -97,9 +106,10 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const cardIds = useMemo(() => {
     if (!card || strip.status === 'error') return [];
     if (strip.status === 'ready') return strip.ids;
-    return weekendPicks(card === 'all' ? INDEX_EVENTS : INDEX_EVENTS.filter(event => event.region === card), today, { limit: 3 }).map(item => item.event.id);
-  }, [card, strip, today]);
-  const stripEvents = cardIds.flatMap(id => INDEX_EVENTS.filter(event => event.id === id && nextOccurrence(event, today)));
+    const all = events ?? [];
+    return weekendPicks(card === 'all' ? all : all.filter(event => event.region === card), today, { limit: 3 }).map(item => item.event.id);
+  }, [card, strip, today, events]);
+  const stripEvents = cardIds.flatMap(id => (events ?? []).filter(event => event.id === id && nextOccurrence(event, today)));
   const excluded = new Set(listsCard ? cardIds : picks.map(item => item.event.id));
   // 本周末 is ranked, so its best real photos take the first screen's diagonal slots; the date lists stay in date order.
   const list = useMemo(() => weekend ? featurePhotos(tabs[day].filter(event => !excluded.has(event.id)), event => hasRealCover('event', event, today))
@@ -121,8 +131,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const tones = distinctNeighbourTones(visible.map((event, index) => covers.feed[index].tier === 'type' ? eventTone(event) : null));
 
   // The Sheet announces what closing it shows: the chosen day's list (the status line's number), not the weekend's union.
-  const status = t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`);
-  const sheetCount = t(`显示 ${list.length} 场`, `Show ${list.length}`);
+  const status = !events ? t('正在加载这些日期的活动…', 'Loading events for these dates…') : t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`);
+  const sheetCount = !events ? t('正在加载…', 'Loading…') : t(`显示 ${list.length} 场`, `Show ${list.length}`);
   const filterCount = activeFilterCount(filters, defaultWhen);
   // At 大 / 特大 and in 简洁显示 the three day buttons get short names (周六 · 周日 · 两天): with the date the labels wrapped
   // as 两天都开 / 放 and 周日 / 10/18. The weekend's dates stay in the page's range line right above.
@@ -133,7 +143,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const countFor = (next: Pick<EventsFilters, 'free' | 'tag'>) => base.filter(event => matchesFilters(event, { region: 'all', q: '', ...next }, normalize, translate)).length;
   const stories = [{ id: 'free' as const, label: { zh: '免费', en: 'Free' } }, ...TAGS]
     .map(story => ({ ...story, pressed: story.id === 'free' ? filters.free : filters.tag === story.id, count: countFor(story.id === 'free' ? { free: true } : { free: false, tag: story.id }) }))
-    .filter(story => story.count > 0 || story.pressed);
+    // while the dates load, every story keeps its place (no row that shrinks, then grows back)
+    .filter(story => !events || story.count > 0 || story.pressed);
   const more = Math.min(PAGE, list.length - visible.length);
 
   return <>
@@ -177,7 +188,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
         <p className="ev-count" role="status" aria-live="polite">{status}</p>
       </div>
 
-      {visible.length ? <>
+      {!events ? <div className="ev-feed-loading">{failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={4} />}</div>
+      : visible.length ? <>
         <FeedGrid label={weekend ? t('本周末活动', 'Events this weekend') : t('活动', 'Events')} layout={layout}>
           {visible.map((event, index) => <FeedItem key={event.id}>
             <EventFeedCard event={event} cover={covers.feed[index]} tone={tones[index] ?? undefined} today={today} days={feedDays}

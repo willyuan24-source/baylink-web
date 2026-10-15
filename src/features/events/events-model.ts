@@ -1,6 +1,6 @@
 import indexJson from '../../data/generated/events-index.json';
 import { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS, type WeekendPickEntry } from '../../data/weekend-picks';
-import type { EventsIndex, IndexEvent, IndexOffer, IndexOpening, MonthlyRegion } from './events-index-types';
+import type { EventsIndex, EventsLater, IndexEvent, IndexOffer, IndexOpening, MonthlyRegion } from './events-index-types';
 import type { Copy } from '../../lib/event-facts';
 import { getCover, type CoverContext } from '../../lib/cover';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs, type MonthlyDateFilter, type WeekendDayTab } from '../../lib/monthly';
@@ -14,7 +14,12 @@ import type { MonthlyEvent } from '../../data/monthly-types';
  * the prerender and the tests all read the same answers.
  */
 export const EVENTS_INDEX = indexJson as unknown as EventsIndex;
-export const INDEX_EVENTS: readonly IndexEvent[] = EVENTS_INDEX.events;
+/**
+ * The events the column can list now (WEB-PERF-2): the route's own `near` days at first, the whole catalog in its order
+ * once events-later.json is in (installLaterEvents; a live binding, so every reader sees the merged list). A view that
+ * reaches past `near` waits for it through useIndexEvents (events-later.ts); Node installs it at once (below).
+ */
+export let INDEX_EVENTS: readonly IndexEvent[] = EVENTS_INDEX.events;
 export const INDEX_OFFERS: readonly IndexOffer[] = EVENTS_INDEX.offers;
 export const INDEX_OPENINGS: readonly IndexOpening[] = EVENTS_INDEX.openings;
 
@@ -273,3 +278,50 @@ export const cardRegionOf = (from: string | null): CardRegion | undefined => {
   const region = /^card-(.+)$/.exec(from || '')?.[1];
   return CARD_REGIONS.find(item => item === region);
 };
+
+// The rest of the catalog (WEB-PERF-2) ---------------------------------------------------------------------------
+
+let laterInstalled = false;
+const laterListeners = new Set<() => void>();
+/** Whether events-later.json is merged in (INDEX_EVENTS is then the whole catalog). */
+export const isLaterInstalled = (): boolean => laterInstalled;
+export const subscribeLater = (listener: () => void): (() => void) => { laterListeners.add(listener); return () => { laterListeners.delete(listener); }; };
+/**
+ * Merge events-later.json into the catalog order: each later event goes back to its own position (`at`), the route's
+ * events fill the rest in their order, so every sort and tie reads as it did with one list. Its images join the cover
+ * registry (coverContext reads EVENTS_INDEX.images).
+ */
+export function installLaterEvents(later: EventsLater): void {
+  if (laterInstalled) return;
+  const near = EVENTS_INDEX.events;
+  const merged: IndexEvent[] = new Array(near.length + later.events.length);
+  later.at.forEach((position, index) => { merged[position] = later.events[index]; });
+  let next = 0;
+  for (let position = 0; position < merged.length; position++) if (!merged[position]) merged[position] = near[next++];
+  Object.assign(EVENTS_INDEX.images, later.images);
+  INDEX_EVENTS = EVENTS_INDEX.events = merged;
+  laterInstalled = true;
+  laterListeners.forEach(listener => listener());
+}
+/**
+ * Whether the route's own events list every event on [start, end] (`end` null: every day from `start` on, which only the
+ * whole catalog does). An empty range (end before start) needs nothing.
+ */
+export const nearCovers = (start: string, end: string | null): boolean =>
+  end !== null && (end < start || (start >= EVENTS_INDEX.near.from && end <= EVENTS_INDEX.near.through));
+/** The days a date list reads (inRange): from its start or today, whichever is later, to its end; 全部日期 has no end. */
+export const listWindow = (range: { start: string; end: string } | null, today: string): { start: string; end: string | null } =>
+  ({ start: range && range.start > today ? range.start : today, end: range ? range.end : null });
+
+// Node (the prerender, the generators and the tests) reads the whole catalog in one pass, so every prerendered list, its
+// JSON-LD and every test see what they saw with one file; BAYLINK_LAZY_EVENTS=1 makes Node take the browser's path.
+type NodeProcess = { env?: Record<string, string | undefined>; getBuiltinModule?: (id: string) => unknown };
+const nodeProcess = (globalThis as { process?: NodeProcess }).process;
+if (nodeProcess?.getBuiltinModule && nodeProcess.env?.BAYLINK_LAZY_EVENTS !== '1') {
+  const { createRequire } = nodeProcess.getBuiltinModule('node:module') as { createRequire: (from: string) => (id: string) => unknown };
+  const require = createRequire(import.meta.url);
+  // Before `npm run generate:home` has written it, only the generators run.
+  let later: EventsLater | undefined;
+  try { later = require('../../data/generated/events-later.json') as EventsLater; } catch (error) { if ((error as { code?: string }).code !== 'MODULE_NOT_FOUND') throw error; }
+  if (later) installLaterEvents(later);
+}

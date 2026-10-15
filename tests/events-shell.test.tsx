@@ -395,6 +395,8 @@ test('RC-33: the events pages never statically load the guides, the full discove
   for (const page of ['src/pages/EventsPage.tsx', 'src/pages/MonthlyPage.tsx', 'src/pages/CalendarPage.tsx']) {
     const files = graph(page);
     assert.ok(files.has('src/data/generated/events-index.json'), `${page} reads the slim index`);
+    // WEB-PERF-2: the events past the route's own days load on demand (features/events/events-later.ts)
+    assert.equal(files.has('src/data/generated/events-later.json'), false, `${page} statically imports the later events`);
     for (const heavy of ['src/data/guides.ts', 'src/data/local-discoveries.ts', 'src/data/monthly-edition.ts', 'src/data/guide-media.ts', 'src/data/planner-catalog.ts', 'src/data/event-calendar-dates.ts']) {
       assert.equal(files.has(heavy), false, `${page} statically imports ${heavy}`);
     }
