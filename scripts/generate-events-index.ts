@@ -5,7 +5,8 @@ import { PLANNER_EVENTS } from '../src/data/planner-catalog';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { currentRegionalBulletins } from '../src/data/october-2026-bulletins';
-import { GUIDE_IMAGES } from '../src/data/guide-media';
+// The image registry as listings read it, without download or audit fields (scripts/events-index-images.ts).
+import { LISTING_IMAGES as GUIDE_IMAGES } from './events-index-images';
 import cityAliases from '../src/data/city-search-aliases.json';
 import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from './data/event-calendar-schedule';
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
