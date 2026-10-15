@@ -1121,3 +1121,22 @@ without 11/7; the mug swap 12/12), and no fee wording in any description.
 Live events on 2026-10-15 with cost "unknown": 62 of 376 (16.5%) before, 59 of 376 (15.7%) after; library-hosted ones 29 before, 26 after
 (Alameda County 7, Contra Costa 8, Napa County 6, San Leandro 3, Palo Alto 2). `tests/library-cost-policy.test.ts` adds
 `oaklandlibrary.bibliocommons.com` to its policy hosts.
+
+## CNT-MEDIA-2 · official image captions and the CHSA roots-seminar flyer, 2026-10-14/15 (PT)
+
+Read by the CNT-MEDIA-2 lane agent with read-only GETs; no forms, logins, registrations or posts. The images themselves were downloaded
+2026-10-14 21:14–21:15 PT under the owner's approval of that evening (every file, URL and SHA-256 in
+[official-event-media-sources-2026-10-14.md](official-event-media-sources-2026-10-14.md)); the rows below are the facts the captions and
+the event data take from them. No `verifiedAt` changed; the CHSA price is an editorial-overlay `fix` (`src/data/editorial-overlay/events.json`).
+These are agent reads, not editor checks.
+
+| Kind | Id | URL | Read | Used for | Quote |
+|---|---|---|---|---|---|
+| image | `official-pleasanton-hometown-holiday-2026` | https://www.cityofpleasantonca.gov/wp-content/uploads/2025/12/ghMK6Qg-0sizeoriginal-1024x578.jpg | 2026-10-14 21:14 PT (GET 200) | caption 往届游行 … 2025 年 12 月上传，不是 2026 年现场 (the 2026 celebration is 12/5/2026, so a file uploaded 2025-12 shows an earlier year) | upload path `wp-content/uploads/2025/12/` |
+| image | `official-fremont-irvington-farmers-market-2026` | https://www.pcfma.org/sites/default/files/styles/xl_image/public/2019-11/Irvington.jpg | 2026-10-14 21:15 PT (GET 200) | caption 2019 年 11 月上传，不是近期现场 | upload path `public/2019-11/Irvington.jpg` |
+| image | `official-berkeley-downtown-saturday-farmers-market-2026` | https://ecologycenter.org/wp-content/uploads/2026/03/Berkeley-Farmers-Market.webp | 2026-10-14 21:15 PT (GET 200) | caption 不一定是周六市中心市集 (the Ecology Center runs more than one Berkeley market and the file name names none) | file name `Berkeley-Farmers-Market.webp` |
+| image | `official-acl-castro-valley-ohlone-tapestries-2026` | https://aclibrary.bibliocommons.com/events/uploads/images/full/e0d15c64a527bdfb8c556a5b051251c4/MuwekmaTapestriesBanner.jpg | 2026-10-14 21:14 PT (GET 200); text on the image | credit 照片 Kalie Granier | Photos courtesy of Kalie Granier |
+| image | `official-pacl-rinconada-tai-chi-2026` | https://paloalto.bibliocommons.com/events/uploads/images/full/95ab3486ac5e91192b3a788cb2e09a0a/taichi.jpg ; event row in the CNT-SUPPLY-2 table above | 2026-10-14 21:15 PT (GET 200) | caption 户外太极示范，不是室内课堂现场: the photo is outdoors among trees, the class meets in a library room | Tai Chi with Nelson Ng · Rinconada Library · Embarcadero Room |
+| flyer | `chsa-taiwanese-chinese-roots-seminar-2026` | https://chsa.org/wp-content/uploads/2026/08/FINAL-Taiwanese-and-Chinese-Roots-Seminar-Flyer-791x1024.png | 2026-10-14 21:14 PT (GET 200), looked at again 2026-10-15 00:15 PT | overlay `fix` cost `paid`, costLabel 早鸟 $35（10/30 前）· 一般 $50 · 现场 $65, price $35–65; plan line with the flyer's itinerary (dateLabel and sessions stay 14:00–17:00, the CHSA page's time) | Door Fees $35 Early Bird (thru 10/30) $50 General Admission $65 At the Door · Itinerary 2:00 – 3:00 PM Rooftop Meet and Greet · 3:00 – 5:00 PM Expert Genealogy Seminar · 5:00 – 5:30 PM Q&A and Audience Participation · 6:00 – 8:00 PM Group Dinner @ Warehouse Buffet (optional; attendees pay individually) · Register and go for more information: LoveBoatAlumni.org/roots2026 |
+| event | `chsa-taiwanese-chinese-roots-seminar-2026` | https://chsa.org/event/finding-your-taiwanese-and-chinese-roots-seminar/ | 2026-10-15 00:15 PT (re-read) | time stays 14:00–17:00; the page has no fee text (its 10-12 label 活动页没有写费用 was right for this page) | November 15 @ 2:00 pm - 5:00 pm … This is an in-person event only. Registration is open on October 15 |
+| event | `chsa-taiwanese-chinese-roots-seminar-2026` | https://loveboatalumni.org/roots2026 (redirects to https://www.loveboatalumni.org/p/findingyourroots.html; text read from the site's Blogger pages feed, entry updated 2026-10-14 17:25 PDT) | 2026-10-15 00:17 PT (GET 200) | the registration page the flyer names shows the same flyer as its image and a register link; it prints no fee or time of its own | (Click on the image to enlarge) … REGISTER HERE … Everyone is welcome! |
