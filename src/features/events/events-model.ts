@@ -7,6 +7,7 @@ import { getMonthlyDateRange, isFreeToAttend, nextOccurrence, orderByNextDay, re
 import { rankWeekendFallback, selectWeekendFallback } from '../../lib/weekend-ranking';
 import { isSeniorFriendly } from '../../lib/senior-friendly';
 import type { MonthlyEvent } from '../../data/monthly-types';
+import { readerMonthDay } from '../../lib/event-facts';
 
 /**
  * The events column's data and rules (plan WEB-EVENTS, design.md §4.11): one slim generated index (RC-33), the URL
@@ -29,8 +30,8 @@ export const coverContext = (today: string): CoverContext => ({ images: EVENTS_I
 export const hasRealCover = (kind: 'event' | 'offer' | 'opening', item: { id: string; imageKey?: string }, today: string) =>
   getCover({ kind, id: item.id, imageKey: item.imageKey }, coverContext(today)).tier !== 'type';
 
-/** M/D for trust rows and ranges ("官网核对 10/2", "10/10–11"). */
-export const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
+/** M/D for trust rows and ranges ("官网核对 10/2", "10/10–11"); `english`: "Oct 2" (US English on /en). */
+export const monthDay = (day: string, english = false) => readerMonthDay(day, english);
 
 export type EventsColumn = 'list' | 'perks' | 'openings' | 'calendar';
 /** The column a URL shows: /calendar, `?view=perks|openings`, or the old `#monthly-perks` / `#monthly-openings` anchors. */

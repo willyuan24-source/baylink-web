@@ -128,7 +128,7 @@ test('H02: list headers state when their items were checked — most of them, an
   const zh = (text: string) => text;
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, zh), '多数核对于 9/29 · 最近 10/12');
   assert.equal(checkLine({ mostly: '2026-10-12', latest: '2026-10-12' }, zh), '核对于 10/12');
-  assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked 9/29 · latest 10/12');
+  assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!;
   assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+ · 最近 \d+\/\d+|核对于 \d+\/\d+)$/);

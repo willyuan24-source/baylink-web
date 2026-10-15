@@ -15,21 +15,21 @@ const day = { startDate: '2026-10-10', endDate: '2026-10-10' };
 test('a card states one honest date: the shown day, the next session, or the open/close of a run', () => {
   assert.deepEqual(eventDateChip(day, TODAY), { kind: 'day', date: '2026-10-10', ended: false });
   assert.equal(formatDateChip(eventDateChip(day, TODAY), false).label, '周六 10/10');
-  assert.equal(formatDateChip(eventDateChip(day, TODAY), true).label, 'Sat 10/10');
+  assert.equal(formatDateChip(eventDateChip(day, TODAY), true).label, 'Sat, Oct 10');
   const series = { startDate: '2026-10-01', endDate: '2026-10-31', occurrenceDates: ['2026-10-04', '2026-10-11', '2026-10-18'] };
   assert.deepEqual(eventDateChip(series, TODAY), { kind: 'day', date: '2026-10-11', ended: false }, 'next confirmed session');
   assert.deepEqual(eventDateChip(series, TODAY, ['2026-10-17', '2026-10-18']), { kind: 'day', date: '2026-10-18', ended: false }, 'the weekend day it occurs on');
   assert.deepEqual(eventDateChip(series, '2026-11-01'), { kind: 'day', date: '2026-10-18', ended: true });
   const run = { startDate: '2026-10-12', endDate: '2026-11-15' };
   assert.equal(formatDateChip(eventDateChip(run, TODAY), false).label, '10/12 起');
-  assert.equal(formatDateChip(eventDateChip(run, TODAY), true).label, 'From 10/12');
+  assert.equal(formatDateChip(eventDateChip(run, TODAY), true).label, 'From Oct 12');
   assert.equal(formatDateChip(eventDateChip(run, '2026-10-20'), false).label, '至 11/15');
-  assert.equal(formatDateChip(eventDateChip(run, '2026-10-20'), true).label, 'Until 11/15');
+  assert.equal(formatDateChip(eventDateChip(run, '2026-10-20'), true).label, 'Until Nov 15');
   assert.deepEqual(eventDateChip(run, '2026-10-20', ['2026-10-24']), { kind: 'day', date: '2026-10-24', ended: false });
   const weekend = formatDateChip(eventDateChip({ startDate: '2026-10-10', endDate: '2026-10-11' }, TODAY), false);
   assert.deepEqual([weekend.big, weekend.small, weekend.label], ['10/10–11', '周六–周日', '10/10–11'], 'a run of up to a week prints both ends');
   assert.equal(formatDateChip(eventDateChip({ startDate: '2026-10-30', endDate: '2026-11-01' }, TODAY), true).small, 'Fri–Sun');
-  assert.equal(formatDateChip(eventDateChip({ startDate: '2026-10-30', endDate: '2026-11-01' }, TODAY), true).label, '10/30–11/1');
+  assert.equal(formatDateChip(eventDateChip({ startDate: '2026-10-30', endDate: '2026-11-01' }, TODAY), true).label, 'Oct 30–Nov 1');
 });
 
 test('unknown or unconfirmed dates read "日期见详情", never a guess', () => {
@@ -56,7 +56,7 @@ test('the price sticker says 免费 only when cost is free and shows nothing for
   assert.deepEqual(eventPriceChip({ cost: 'mixed' })?.text, { zh: '部分免费', en: 'Partly free' });
   assert.equal(eventPriceChip({ cost: 'unknown', planning: { admissionUsd: 0 } }), null);
   assert.deepEqual(eventPriceChip({ cost: 'paid', planning: { admissionUsd: 25 } })?.text, { zh: '$25', en: '$25' });
-  assert.deepEqual(eventPriceChip({ cost: 'paid', price: { min: 8, max: 12 } })?.text, { zh: '$8–12', en: '$8–12' });
+  assert.deepEqual(eventPriceChip({ cost: 'paid', price: { min: 8, max: 12 } })?.text, { zh: '$8–$12', en: '$8–$12' });
   assert.deepEqual(eventPriceChip({ cost: 'paid', planning: { admissionUsd: 0 } })?.text, { zh: '收费', en: 'Paid' }, 'a paid event never reads $0');
   for (const event of MONTHLY_EVENTS) {
     const chip = eventPriceChip(event);

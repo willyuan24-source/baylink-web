@@ -20,11 +20,11 @@ export const PHONE_COVER_CAP = '(max-width: 767px) 266px';
 const HERO_SIZES = `${PHONE_COVER_CAP}, 380px`;
 const HAN = /[\u3400-\u9fff]/;
 
-/** "官网核对 10/2" / "Source checked 10/2": the record's own check date, never a bumped one (D12). */
+/** "官网核对 10/2" / "Source checked Oct 2": the record's own check date, never a bumped one (D12). */
 export function TrustLine({ day }: { day?: string }) {
-  const { t } = useUiCopy();
+  const { t, english } = useUiCopy();
   if (!day) return null;
-  return <>{t('官网核对', 'Source checked')} {monthDay(day)}</>;
+  return <>{t('官网核对', 'Source checked')} {monthDay(day, english)}</>;
 }
 
 /** The place and price line under a card: "Berkeley · 免费" (free in brand 600), or the place alone when the cost is unknown. */

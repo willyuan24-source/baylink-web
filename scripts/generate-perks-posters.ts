@@ -4,6 +4,7 @@ import { create as createFont } from 'fontkit';
 import { JSDOM } from 'jsdom';
 import QRCode from 'qrcode';
 import sharp from 'sharp';
+import { enableUsEnglishTimes } from '../src/i18n/locale';
 import { PERKS_POSTER_CHECKED, PERKS_POSTER_RUNGS, perksPosterRung, perksPosters, type PerksPosterCard, type PerksPoster } from '../src/data/perks-posters';
 import { birthdayPerks2026, birthdayPerkUpdates2026 } from '../src/data/birthday-perks-2026';
 import { everydayPerks2026 } from '../src/data/everyday-perks-2026';
@@ -12,6 +13,8 @@ import { familyRetailOffers2026 } from '../src/data/retail-family-2026';
 
 // Original deterministic artwork, with every Chinese character outlined using
 // the repository's OFL-licensed font. No runtime/system-font dependency.
+// The posters draw Chinese only today; any English they draw later reads dates and times in US style, as /en does (H41).
+await enableUsEnglishTimes();
 const fonts = await Promise.all(['Regular', 'Bold'].map(async weight => createFont(await readFile(`scripts/fonts/NotoSansSC-${weight}.ttf`))));
 const logo = `data:image/png;base64,${(await readFile('public/brand/baylink-app-icon.png')).toString('base64')}`;
 const ink = '#173F36', coral = '#D36745', cream = '#F7F2E6', muted = '#5E7468';

@@ -1,5 +1,5 @@
 import type { MonthlyRegion } from '../../data/monthly-types';
-import type { Copy } from '../../lib/event-facts';
+import { readerDayRange, readerMonthDay, type Copy } from '../../lib/event-facts';
 
 /**
  * Small pure helpers for the home sections (plan WEB-HOME). The events column's equivalents live in
@@ -13,8 +13,8 @@ export const REGION_LABELS: Readonly<Record<MonthlyRegion, Copy>> = {
   'north-bay': { zh: '北湾', en: 'North Bay' },
 };
 
-/** M/D, as trust rows print it ("官网核对 10/2"). */
-export const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
+/** M/D, as trust rows print it ("官网核对 10/2"); `english`: "Oct 2" (US English on /en). */
+export const monthDay = (day: string, english = false) => readerMonthDay(day, english);
 
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 /** "10 月 12 日 周一" / "Mon, Oct 12": the home dateline. */
@@ -24,9 +24,9 @@ export function longDate(day: string, english: boolean): string {
   return `${Number(day.slice(5, 7))} 月 ${Number(day.slice(8, 10))} 日 ${WEEKDAYS_ZH[date.getUTCDay()]}`;
 }
 
-/** "10/17–18" / "10/31–11/1": a weekend's two days. */
-export function weekendRange(start: string, end: string): string {
-  return start.slice(0, 7) === end.slice(0, 7) ? `${monthDay(start)}–${Number(end.slice(8, 10))}` : `${monthDay(start)}–${monthDay(end)}`;
+/** "10/17–18" / "10/31–11/1": a weekend's two days; `english`: "Oct 17–18" / "Oct 31–Nov 1". */
+export function weekendRange(start: string, end: string, english = false): string {
+  return readerDayRange(start, end, english);
 }
 
 /**

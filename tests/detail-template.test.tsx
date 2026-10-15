@@ -124,7 +124,8 @@ test('多少钱 is a short value (免费 / 部分免费 / $8–12 / 收费 / 费
     const doc = page(item);
     const value = doc.querySelector('[data-fact="cost"] dd > .detail-fact__line')!;
     assert.ok(value, discoveryShare(item).id);
-    assert.ok((value.textContent || '').length <= 12, `${discoveryShare(item).id}: "${value.textContent}" is not a sentence`);
+    // A money range is two amounts, "$22.80–$28.80" (13 characters, WEB-FIX6), not a sentence.
+    assert.ok((value.textContent || '').length <= 12 || /^\$\d+(?:\.\d\d)?–\$\d+(?:\.\d\d)?$/u.test(value.textContent || ''), `${discoveryShare(item).id}: "${value.textContent}" is not a sentence`);
   }
   const milagros = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'san-lorenzo-metal-milagros-oct10-2026')!;
   const cost = page(milagros).querySelector('[data-fact="cost"] dd')!;

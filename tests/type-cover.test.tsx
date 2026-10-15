@@ -57,7 +57,7 @@ test('the TypeCover translates: English label, weekday and title; zh-Hant conver
   const english = wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week', shortTitle: undefined }} today={today} />);
   assert.equal(english.container.querySelector('[data-provenance]')?.textContent, 'Info card');
   assert.equal(english.container.querySelector('.ui-type-cover__label')?.textContent, 'Family');
-  assert.equal(english.container.querySelector('.ui-type-cover__date')?.textContent, '10/10–11Sat–Sun');
+  assert.equal(english.container.querySelector('.ui-type-cover__date')?.textContent, 'Oct 10–11Sat–Sun');
   assert.equal(english.container.querySelector('.ui-type-cover__title')?.getAttribute('lang'), 'en');
   assert.equal(english.container.querySelector('.ui-sticker')?.textContent, 'Free');
   cleanup();

@@ -18,7 +18,7 @@ import { translateText } from '../i18n/locale';
 import { openingStatusNote } from '../lib/opening-status';
 import { discoveryContentReviewRecord } from '../lib/content-review';
 import { createCoverPage } from '../lib/cover';
-import { eventTone, isPublicBenefit, offerDeadline, offerKindLabel, openingChip, toneLabel, type Copy } from '../lib/event-facts';
+import { eventTone, isPublicBenefit, offerDeadline, offerKindLabel, openingChip, readerMonthDay, toneLabel, type Copy } from '../lib/event-facts';
 import { detailShare, nextEventDay, railEvents, unconfirmedEvent, type DetailRecord } from '../features/detail/detail-record';
 import { DetailHero, DetailPlacePhoto, HeroCredit } from '../features/detail/DetailHero';
 import { heroCover, placePhoto } from '../features/detail/hero-cover';
@@ -117,7 +117,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   if (event) {
     chips.push({ key: 'tone', tone: 'neutral', text: pick(toneLabel(eventTone(event))) });
     if (event.status) chips.push({ key: 'status', tone: STATUS[event.status].tone, text: pick(STATUS[event.status].text) });
-    if (eventOver) chips.push({ key: 'ended', tone: 'ended', text: t(`已结束 · ${monthDay(event.endDate)}`, `Ended · ${monthDay(event.endDate)}`) });
+    if (eventOver) chips.push({ key: 'ended', tone: 'ended', text: t(`已结束 · ${monthDay(event.endDate)}`, `Ended · ${readerMonthDay(event.endDate, true)}`) });
     else if (unconfirmed && !event.status) chips.push({ key: 'tba', tone: 'warning', text: t('日期待定', 'Date TBA') });
     if (event.cost === 'free') chips.push({ key: 'free', tone: 'success', text: t('免费', 'Free') });
     if (event.ageChip) chips.push({ key: 'age', tone: 'info', text: translateText(event.ageChip, locale) });

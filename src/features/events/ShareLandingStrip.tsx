@@ -3,6 +3,7 @@ import { SkeletonRow } from '../../components/ui';
 import type { ResolvedCover } from '../../lib/cover';
 import type { IndexEvent } from './events-index-types';
 import { monthDay, regionLabel, type CardRegion } from './events-model';
+import { readerDayRange } from '../../lib/event-facts';
 import { EventRowCard } from './EventCards';
 import { nextOccurrence } from '../../lib/monthly';
 
@@ -16,9 +17,9 @@ export type StripState =
  * While the manifest loads the strip keeps its height (skeleton rows); if it cannot load, the strip says so in one line.
  */
 export function ShareLandingStrip({ region, state, events, covers, today }: { region: CardRegion; state: StripState; events: IndexEvent[]; covers: ResolvedCover[]; today: string }) {
-  const { t, pick } = useUiCopy();
+  const { t, pick, english } = useUiCopy();
   const place = region === 'all' ? t('湾区', 'Bay Area') : pick(regionLabel(region));
-  const range = state.status === 'ready' && state.range ? ` · ${monthDay(state.range.start)}–${monthDay(state.range.end)}` : '';
+  const range = state.status === 'ready' && state.range ? ` · ${english ? readerDayRange(state.range.start, state.range.end, true) : `${monthDay(state.range.start)}–${monthDay(state.range.end)}`}` : '';
   // A row shows the card's own day: the first day the event is on within the card's weekend (Fleet Week reads 周六, not today's 周五).
   const from = state.status === 'ready' && state.range && state.range.start > today ? state.range.start : today;
   return <section className="ev-strip" aria-labelledby="ev-strip-heading" data-testid="share-landing-strip" data-card-ids={state.status === 'ready' ? state.ids.join(' ') : undefined}>

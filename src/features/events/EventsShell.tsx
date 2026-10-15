@@ -38,10 +38,10 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
   const column = columnFor(params, hash, !!calendar);
   const filters = readFilters(params, defaultWhen, savedRegion);
 
-  const md = monthDay;
+  const md = (day: string) => monthDay(day, english);
   const weekday = (day: string) => pick(WEEKDAYS[weekdayIndex(day)].short);
   const range = getMonthlyDateRange(filters.when, today);
-  const span = (start: string, end: string) => start === end ? `${md(start)} ${weekday(start)}`
+  const span = (start: string, end: string) => start === end ? english ? `${weekday(start)}, ${md(start)}` : `${md(start)} ${weekday(start)}`
     : start.slice(0, 7) === end.slice(0, 7) ? `${md(start)}–${Number(end.slice(8, 10))}` : `${md(start)}–${md(end)}`;
   const whenLine = filters.when === 'weekend' ? `${t('本周末', 'This weekend')} · ${span(range!.start, range!.end)}`
     : filters.when === 'today' ? `${t('今天', 'Today')} · ${span(today, today)}`

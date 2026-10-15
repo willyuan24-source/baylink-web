@@ -10,7 +10,7 @@ import { getWeeklyCardDays } from '../src/lib/home-weekend';
 import { SITE_URL } from '../src/lib/seo';
 import { eventOccursOn, addCalendarDays } from '../src/lib/event-calendar';
 import { eventPriceChip, eventTone, formatDateChip, toneLabel } from '../src/lib/event-facts';
-import { loadLocale, translateText } from '../src/i18n/locale';
+import { enableUsEnglishTimes, loadLocale, translateText } from '../src/i18n/locale';
 import { promoPhoto, type CardLocale } from '../src/lib/share-card-model';
 import { renderWeeklyCardSvg, type WeeklyCardModel } from '../src/lib/weekly-card-svg';
 import { createGlyphOutliner, createRasterPool } from './card-glyphs';
@@ -19,6 +19,8 @@ const today = getBayAreaToday();
 const regions = { all: '湾区', sf: '旧金山', 'east-bay': '东湾', peninsula: '半岛', 'south-bay': '南湾', 'north-bay': '北湾' };
 const regionsEn: Record<string, string> = { all: 'Bay Area', sf: 'San Francisco', 'east-bay': 'East Bay', peninsula: 'Peninsula', 'south-bay': 'South Bay', 'north-bay': 'North Bay' };
 const LOCALES: CardLocale[] = ['zh-Hans', 'zh-Hant', 'en'];
+// US style in the English cards, as on the site's /en pages (H41: "Sat, Oct 17", "2–4pm"; i18n/metadata.ts switches the site).
+await enableUsEnglishTimes();
 await Promise.all([loadLocale('en'), loadLocale('zh-Hant')]);
 const tr = (locale: CardLocale) => (text: string) => locale === 'zh-Hans' ? text : translateText(text, locale);
 await mkdir('public/weekly', { recursive: true }); await mkdir('public/calendars', { recursive: true });

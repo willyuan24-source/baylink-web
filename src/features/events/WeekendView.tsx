@@ -53,7 +53,7 @@ function useCardIds(card: CardRegion | undefined): StripState {
  * two-column cover feed 12 at a time, the folded travel alerts, and one link each to the rest of the column.
  */
 export function WeekendView({ today, filters, defaultWhen }: { today: string; filters: EventsFilters; defaultWhen: EventsWhen }) {
-  const { t, pick, locale } = useUiCopy();
+  const { t, pick, locale, english } = useUiCopy();
   const [params, setParams] = useSearchParams();
   const [shown, setShown] = useState(PAGE);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -141,7 +141,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // as 两天都开 / 放 and 周日 / 10/18. The weekend's dates stay in the page's range line right above.
   const readingSize = useReadingSize(), simple = useSimpleDisplay();
   const roomy = readingSize !== 'standard' || simple;
-  const dayLabel = (value: string) => roomy ? pick(WEEKDAYS[weekdayIndex(value)].short) : `${pick(WEEKDAYS[weekdayIndex(value)].short)} ${monthDay(value)}`;
+  const dayLabel = (value: string) => roomy ? pick(WEEKDAYS[weekdayIndex(value)].short) : `${pick(WEEKDAYS[weekdayIndex(value)].short)}${english ? ',' : ''} ${monthDay(value, english)}`;
   const alerts = activeBulletins(today, filters.region);
   const countFor = (next: Pick<EventsFilters, 'free' | 'tag'>) => base.filter(event => matchesFilters(event, { region: 'all', q: '', ...next }, normalize, translate)).length;
   const stories = [{ id: 'free' as const, label: { zh: '免费', en: 'Free' } }, ...TAGS]

@@ -23,7 +23,7 @@ const WIDE_SIZES = '(max-width: 767px) calc(100vw - 32px), 600px';
  * ends with one line that says what it is (H12, as FeedGrid).
  */
 export function OfferTickets({ offers, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
-  const { t, pick, locale } = useUiCopy();
+  const { t, pick, locale, english } = useUiCopy();
   if (!offers.length) return null;
   const brands = offers.map(offer => offerBrandLine(offer.brand, locale));
   const wide = offerRailOpensWide(offers, covers[0], today);
@@ -40,7 +40,7 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
           cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} {...(wide && index === 0 ? { ratio: '3:2' as const, sizes: WIDE_SIZES } : { sizes: TICKET_SIZES })} decorative />}
           meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
-          trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt)}</> : undefined}
+          trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt, english)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}
     </ul>
