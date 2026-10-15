@@ -25,6 +25,8 @@ document.head.append(style);
 const { render, fireEvent, cleanup, within } = await import('@testing-library/react');
 const { FreebieBoard } = await import('../src/components/FreebieBoard');
 const { validThisWeek } = await import('../src/lib/offer-week');
+/** A kind tab is named with its count for the chosen dates, e.g. “无需购物，3 条” (H66). */
+const kindTab = (label: string) => new RegExp(`^${label}，[0-9]+ 条$`);
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { getGuideBySlug } = await import('../src/data/guides');
 const { guideBlockText } = await import('../src/lib/guide-content');
@@ -48,7 +50,9 @@ const base: FreebieOffer = {
 const offers: FreebieOffer[] = [
   base,
   { ...base, id: 'ended', brand: 'Bakery', title: '已过期蛋糕优惠', dateLabel: '9 月 1 日', startDate: '2026-09-01', endDate: '2026-09-01', kind: 'purchase' },
-  { ...base, id: 'birthday', brand: 'Beauty Shop', title: '会员生日礼', dateLabel: '生日窗口内', availability: 'ongoing', imageKey: 'freebie-test-photo' },
+  // An ongoing perk has no real end date (H66: a stated end date now ends any offer, also an ongoing or check-local one,
+  // CNT-SUPPLY freebie-guard; the 9/20 store sessions below end on 9/20).
+  { ...base, id: 'birthday', brand: 'Beauty Shop', title: '会员生日礼', dateLabel: '生日窗口内', startDate: undefined, endDate: undefined, availability: 'ongoing', imageKey: 'freebie-test-photo' },
   { ...base, id: 'local', brand: 'Craft Store', title: '本店手作场次', dateLabel: '查看本店活动日历', availability: 'check-local', kind: 'reservation', imageNote: '仅示意活动主题' },
   { ...base, id: 'next-month', brand: 'Tool Store', title: '下月儿童手作', dateLabel: '10 月 3 日', startDate: '2026-10-03', endDate: '2026-10-03', kind: 'reservation' },
   { ...base, id: 'single-date', brand: 'Book Store', title: '单日预约体验', dateLabel: '9 月 30 日', startDate: '2026-09-30', endDate: undefined, kind: 'reservation' },
@@ -82,9 +86,11 @@ test('condition filters select the matching offers without hiding requirements o
   assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-birthday']);
   fireEvent.click(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '全部日期' }));
   const filters = within(view.getByRole('group', { name: '按领取条件筛选' }));
-  for (const [label, kind] of [['无需购物', 'no-purchase'], ['需预约', 'reservation'], ['消费优惠', 'purchase']] as const) {
-    fireEvent.click(filters.getByRole('button', { name: label, exact: true }));
-    assert.equal(filters.getByRole('button', { name: label }).getAttribute('aria-pressed'), 'true');
+  // 消费优惠 has only an expired and an invalid-date offer here, so it has no tab (no tab leads to an empty list).
+  assert.equal(filters.queryByRole('button', { name: kindTab('消费优惠') }), null);
+  for (const [label, kind] of [['无需购物', 'no-purchase'], ['需预约', 'reservation']] as const) {
+    fireEvent.click(filters.getByRole('button', { name: kindTab(label) }));
+    assert.equal(filters.getByRole('button', { name: kindTab(label) }).getAttribute('aria-pressed'), 'true');
     const expected = offers.filter(offer => offer.kind === kind && !['ended', 'invalid-date'].includes(offer.id));
     assert.equal(view.queryAllByRole('article').length, expected.length);
     for (const offer of expected) {
@@ -98,14 +104,14 @@ test('condition filters select the matching offers without hiding requirements o
   assert.ok(view.getByText('这个条件下暂时没有条目，换个条件看看。'));
   fireEvent.click(view.getByRole('button', { name: '查看全部' }));
   assert.equal(view.getAllByRole('article').length, 1);
-  assert.equal(filters.getByRole('button', { name: '全部', exact: true }).getAttribute('aria-pressed'), 'true');
+  assert.equal(filters.getByRole('button', { name: kindTab('全部') }).getAttribute('aria-pressed'), 'true');
 });
 
 test('brand search combines with conditions, handles apostrophes and traditional Chinese, and clears empty results', () => {
   install();
   const records: FreebieOffer[] = [
-    { ...base, id: 'lowes', brand: 'Lowe’s', title: '免费儿童手作', availability: 'ongoing', kind: 'reservation' },
-    { ...base, id: 'target', brand: 'TARGET', title: '会员购物优惠', availability: 'ongoing', kind: 'purchase' },
+    { ...base, id: 'lowes', brand: 'Lowe’s', title: '免费儿童手作', startDate: undefined, endDate: undefined, availability: 'ongoing', kind: 'reservation' },
+    { ...base, id: 'target', brand: 'TARGET', title: '会员购物优惠', startDate: undefined, endDate: undefined, availability: 'ongoing', kind: 'purchase' },
     { ...base, id: 'past-target', brand: 'TARGET', title: '旧赠品', endDate: '2026-08-01', startDate: '2026-08-01' },
   ];
   const view = render(<FreebieBoard offers={records} today="2026-10-04" />);
@@ -116,7 +122,7 @@ test('brand search combines with conditions, handles apostrophes and traditional
   assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-lowes']);
   fireEvent.change(input, { target: { value: 'target' } });
   assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-target']);
-  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '需预约', exact: true }));
+  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: kindTab('需预约') }));
   assert.equal(view.queryAllByRole('article').length, 0);
   fireEvent.click(view.getByRole('button', { name: '查看全部' }));
   assert.equal((input as HTMLInputElement).value, '');
@@ -139,11 +145,12 @@ test('cards omit expired and invalid dated offers without mutating source order'
   assert.deepEqual(ids(), ['early-a', 'early-b', 'coffee', 'birthday', 'single-date', 'next-month', 'local', 'month-pass']);
   assert.deepEqual(input.map(offer => offer.id), originalIds, 'sorting must not reorder exported data used by source lists');
   assert.ok(document.getElementById('offer-early-a'), 'card anchors stay tied to offer IDs');
-  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '需预约', exact: true }));
+  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: kindTab('需预约') }));
   assert.deepEqual(ids(), ['single-date', 'next-month', 'local']);
-  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: '全部', exact: true }));
+  fireEvent.click(within(view.getByRole('group', { name: '按领取条件筛选' })).getByRole('button', { name: kindTab('全部') }));
   view.rerender(<FreebieBoard offers={input} today="2026-09-21" initialDates="all" />);
-  assert.deepEqual(ids(), ['birthday', 'single-date', 'next-month', 'local', 'month-pass']);
+  // The 查本店 sessions say they end 9/20: from 9/21 they are gone too (H66, a stated end date ends any offer).
+  assert.deepEqual(ids(), ['birthday', 'single-date', 'next-month', 'month-pass']);
   assert.deepEqual(input.map(offer => offer.id), originalIds);
 });
 
@@ -290,4 +297,35 @@ test('the cleaned September guide retains valid cards and factual media while om
   for (const query of ['Kids Profile', '前 100 名符合条件顾客']) {
     assert.deepEqual(searchGuides([guide], { query }).map(result => result.guide.slug), [slug], query);
   }
+});
+
+// H66 (GR-11): a stated end date ends any offer (also ongoing or 查本店; CNT-SUPPLY freebie-guard) while an ongoing perk without
+// one stays; the kind tabs carry their counts for the chosen dates and stay one sticky row (freebie-board.css).
+test('the deals board drops offers past their own end date and its sticky kind tabs count the cards', () => {
+  install();
+  const records: FreebieOffer[] = [
+    { ...base, id: 'dinner', brand: 'Poppy', title: '狗狗晚餐会', availability: 'check-local', startDate: undefined, endDate: '2026-10-30', kind: 'reservation' },
+    { ...base, id: 'gone', brand: 'Old', title: '已结束的长期福利', availability: 'ongoing', startDate: undefined, endDate: '2026-10-01', kind: 'no-purchase' },
+    { ...base, id: 'always', brand: 'Library', title: '长期免费借阅', availability: 'ongoing', startDate: undefined, endDate: undefined, kind: 'no-purchase' },
+  ];
+  const view = render(<FreebieBoard offers={records} today="2026-10-13" initialDates="all" />);
+  const ids = () => view.getAllByRole('article').map(card => card.id);
+  assert.deepEqual(ids().sort(), ['offer-always', 'offer-dinner']);
+  const tabs = view.getByRole('group', { name: '按领取条件筛选' });
+  assert.ok(tabs.classList.contains('bl-freebie-kinds'));
+  assert.deepEqual([...tabs.querySelectorAll('.bl-freebie-kinds__count')].map(count => count.textContent), ['2', '1', '1']);
+  // Review 10-14: screen readers hear the count, and a kind with nothing in the chosen dates (消费优惠 0, 条件待核对 0) is no tab.
+  const names = () => within(tabs).getAllByRole('button').map(tab => tab.getAttribute('aria-label'));
+  assert.deepEqual(names(), ['全部，2 条', '无需购物，1 条', '需预约，1 条']);
+  fireEvent.click(within(tabs).getByRole('button', { name: kindTab('无需购物') }));
+  assert.deepEqual(ids(), ['offer-always']);
+  fireEvent.click(within(tabs).getByRole('button', { name: kindTab('需预约') }));
+  view.rerender(<FreebieBoard offers={records} today="2026-10-31" initialDates="all" />);
+  assert.deepEqual(names(), ['全部，1 条', '无需购物，1 条', '需预约，0 条'], 'the picked kind keeps its tab when it empties');
+  fireEvent.click(within(tabs).getByRole('button', { name: kindTab('全部') }));
+  assert.deepEqual(ids(), ['offer-always'], 'the dinner series ended 10/30');
+  assert.deepEqual(names(), ['全部，1 条', '无需购物，1 条']);
+  const css = readFileSync(new URL('../src/components/freebie-board.css', import.meta.url), 'utf8');
+  assert.match(css, /\.bl-freebie-kinds \{ position:sticky; top:var\(--chrome-header-height/);
+  assert.doesNotMatch(css, /\.bl-freebie-kinds__count \{[^}]*opacity/, 'the count keeps the tab’s own colour (AA contrast)');
 });

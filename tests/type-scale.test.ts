@@ -54,7 +54,10 @@ test('one page frame: .site-container and the WEB-UI PageContainer read the same
   assert.equal((1440 - 1280) / 2 + 32, 112);
   const ui = readFileSync('src/components/ui/ui.css', 'utf8');
   assert.match(ui, /\.ui-container \{[^}]*max-width:var\(--container-wide\);[^}]*padding-inline:var\(--page-gutter\)/);
-  assert.match(ui, /\.ui-page-header__title \{[^}]*font-size:var\(--text-title\); line-height:var\(--lh-title\)/);
+  // H30: the page title reads the H1 token, which is the title tier (one H1 spec on every page but the display tier).
+  assert.match(ui, /\.ui-page-header__title \{[^}]*font-size:var\(--text-h1\); line-height:var\(--lh-h1\)/);
+  assert.equal(root.get('--text-h1'), 'var(--text-title)');
+  assert.equal(root.get('--lh-h1'), 'var(--lh-title)');
 });
 
 test('no negative letter-spacing on headings, except in the files of lanes still in flight', () => {

@@ -259,6 +259,12 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
     requestAnimationFrame(() => { if (active.current) { inputRef.current?.focus(); inputRef.current?.setSelectionRange(start + emoji.length, start + emoji.length); } });
   };
   const senderName = (id: string) => id === currentUser.id ? currentUser.nickname : other.nickname;
+  // H14 (web part): the person who receives a first message gets the same email-reminder offer as the sender, until they
+  // reply (NoticeOptIn still decides: nothing when a reminder is on, after 以后再说, or when the settings cannot be read).
+  // "Has not replied" is read from the messages this view loaded; if the API ever trims a long thread and the member's
+  // reply is outside it, the offer can show once more, and it still goes away for good with any reminder on or 以后再说.
+  const receivedFirst = !loading && !loadError && messages.some(message => message.senderId === other.id && message.messageType !== 'system')
+    && !messages.some(message => message.senderId === currentUser.id);
 
   return (
     <ModalShell onClose={onClose} closeOnBackdrop={false} labelledBy="modern-chat-title" className="modern-chat-overlay">
@@ -308,7 +314,7 @@ const ChatSession = ({ currentUser, conversation, onClose, socket, onViewProfile
               </article>}
             </div>;
           })}
-          {sentHere && <NoticeOptIn userId={currentUser.id} context="dm" onShown={revealOffer} />}
+          {(sentHere || receivedFirst) && <NoticeOptIn userId={currentUser.id} context={sentHere ? 'dm' : 'received'} onShown={revealOffer} />}
         </div>
         {(!atBottom || newMessages > 0) && <button type="button" className="modern-chat-jump" onClick={jumpToLatest}><ArrowDown size={15} />{newMessages ? <><span>{t('新消息', 'New messages')}</span><span translate="no">{newMessages}</span></> : <span>{t('回到最新消息', 'Jump to latest')}</span>}</button>}
         <div className="modern-chat-composer">

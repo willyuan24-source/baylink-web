@@ -189,8 +189,20 @@ export const BAYBAY_QUOTA_ERRORS: Record<string, { zh: string; en: string; daily
   AI_QUOTA_UNAVAILABLE: { zh: 'AI 额度暂时无法确认，请稍后再试；站内资料仍可浏览。', en: 'AI capacity cannot be checked right now. Please try again shortly; site information is still available.', daily: false },
 };
 
-/** A pause notice (daily budget or paused) leads with 911 · 211; a reduced-budget notice has no call buttons. */
+/** A pause notice (daily budget or paused) shows in full once (bayBayFullNoticeTurns); a reduced-budget notice is its own kind. */
 export const bayBayNoticeIsPause = (kind: BayBayNoticeKind): boolean => kind !== 'ai_budget_reduced';
+
+/**
+ * H37 (BB-1013-07): the call buttons a notice leads with. A health-worry answer's own floor (the api's `fallbackHelp`, H11)
+ * always keeps its buttons, whatever the notice. A provider pause (`ai_paused`) keeps 911 · 211: nothing can be asked then.
+ * A used-up daily share (`ai_daily_budget`) is not an emergency: no buttons, the notice links the site's own pages instead
+ * (emergency questions still get the 911 card, which the server routes without a model). A reduced budget has none.
+ */
+export function bayBayNoticeCalls(kind: BayBayNoticeKind, { actions, healthFloor }: { actions?: readonly BayBayCallAction[]; healthFloor?: readonly BayBayCallAction[] } = {}): readonly BayBayCallAction[] {
+  if (healthFloor?.length) return healthFloor;
+  if (kind === 'ai_paused') return actions?.length ? actions : BAYBAY_HELP_ACTIONS;
+  return [];
+}
 
 /**
  * The turn whose pause / reduced notice shows in full: the newest answer carrying one of that kind. Earlier answers show

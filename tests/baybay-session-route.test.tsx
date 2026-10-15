@@ -28,6 +28,9 @@ const { default: AppLayout } = await import('../src/app/AppLayout');
 const { useApp } = await import('../src/app/context');
 const { api } = await import('../src/lib/api');
 const { setLocale } = await import('../src/i18n/locale');
+// The panel and the sign-in sheet are lazy chunks: a cold import under a loaded machine (the full suite next to other gates)
+// can take longer than Testing Library's 1 s default. A longer wait only; every assertion is unchanged (W5-INT).
+const LAZY = { timeout: 10_000 };
 // AppLayout can import lazy overlays while the interaction is running.
 after(() => { styles.deregister(); dom.window.close(); });
 
@@ -64,7 +67,7 @@ test('cold BayBay restores its original trigger after the loading dialog and pre
     opener.focus(); fireEvent.click(opener, { detail: 0 });
     const loadingDialog = view.getByRole('dialog');
     assert.ok(loadingDialog.contains(document.activeElement), 'the actual lazy loading dialog receives focus first');
-    const input = await view.findByRole('textbox', { name: '向 BayBay 提問' });
+    const input = await view.findByRole('textbox', { name: '向 BayBay 提問' }, LAZY);
     assert.equal(loadingDialog.isConnected, false, 'the fallback was replaced by the actual assistant');
     fireEvent.keyDown(input, { key: 'Escape' });
     assert.equal(view.queryByRole('dialog'), null);
@@ -73,7 +76,7 @@ test('cold BayBay restores its original trigger after the loading dialog and pre
 
     const mobileOpener = view.container.querySelector<HTMLButtonElement>('.site-mobile-ask')!;
     mobileOpener.focus(); fireEvent.click(mobileOpener, { detail: 0 });
-    fireEvent.keyDown(await view.findByRole('textbox', { name: '向 BayBay 提問' }), { key: 'Escape' });
+    fireEvent.keyDown(await view.findByRole('textbox', { name: '向 BayBay 提問' }, LAZY), { key: 'Escape' });
     assert.ok(document.activeElement === mobileOpener, 'a warm reopening returns to its new trigger');
     assert.equal(view.getByTestId('fixture-location').textContent, '/this-month?sort=popular');
     assert.equal(modelRequests, 0);
@@ -97,7 +100,7 @@ test('changing account clears completed history, aborts pending work and discard
   }));
   const view = render(<MemoryRouter><Harness /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
-  await view.findByRole('textbox', { name: '向 BayBay 提问' });
+  await view.findByRole('textbox', { name: '向 BayBay 提问' }, LAZY);
   const ask = (value: string) => {
     fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value } });
     fireEvent.click(view.getByRole('button', { name: '问一下' }));
@@ -110,7 +113,7 @@ test('changing account clears completed history, aborts pending work and discard
   assert.equal(requests[1].signal.aborted, true);
   assert.equal(view.queryByRole('textbox', { name: '向 BayBay 提问' }), null);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
-  await view.findByRole('textbox', { name: '向 BayBay 提问' });
+  await view.findByRole('textbox', { name: '向 BayBay 提问' }, LAZY);
   assert.equal(requests.length, 2, 'the previous account queued question must not start under the new account');
   assert.equal(view.queryByText('前一个使用者的回答'), null);
   ask('新账号自己的问题');
@@ -133,18 +136,18 @@ test('the login modal can be cancelled or completed without losing an explicit g
   mockBayBayFetch(t, async () => Response.json({ ok: true, answer: '已保留访客的行程条件', assistantSessionToken: 'guest.public-context' }));
   const view = render(<MemoryRouter><Harness /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
-  await view.findByRole('textbox', { name: '向 BayBay 提问' });
+  await view.findByRole('textbox', { name: '向 BayBay 提问' }, LAZY);
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '11月7日两大一小去PIER39' } });
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '问一下' })); });
   fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value: '还没发送的追问' } });
   fireEvent.click(view.getByRole('button', { name: '登录 / 注册，开启联网' }));
-  await view.findByLabelText('邮箱或用户名');
+  await view.findByLabelText('邮箱或用户名', {}, LAZY);
   assert.equal(view.queryByRole('textbox', { name: '向 BayBay 提问' }), null);
   fireEvent.keyDown(document, { key: 'Escape' });
   assert.equal((view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement).value, '还没发送的追问');
   assert.ok(view.getByText('已保留访客的行程条件'));
   fireEvent.click(view.getByRole('button', { name: '登录 / 注册，开启联网' }));
-  await view.findByLabelText('邮箱或用户名');
+  await view.findByLabelText('邮箱或用户名', {}, LAZY);
   fireEvent.change(view.getByLabelText('邮箱或用户名'), { target: { value: 'fixture@example.com' } });
   fireEvent.change(view.getByLabelText('密码', { exact: true }), { target: { value: 'fixture-password' } });
   await act(async () => { fireEvent.submit(view.getByLabelText('密码', { exact: true }).closest('form')!); });
@@ -153,7 +156,7 @@ test('the login modal can be cancelled or completed without losing an explicit g
   assert.ok(view.getByText('已保留访客的行程条件'));
   await act(async () => changeAccount());
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
-  await view.findByRole('textbox', { name: '向 BayBay 提问' });
+  await view.findByRole('textbox', { name: '向 BayBay 提问' }, LAZY);
   assert.equal(view.queryByText('已保留访客的行程条件'), null);
   assert.equal((view.getByRole('textbox', { name: '向 BayBay 提问' }) as HTMLInputElement).value, '');
 });
@@ -174,7 +177,7 @@ test('a cross-tab token replacement for the same account aborts stale work and r
   }));
   const view = render(<MemoryRouter><Harness /></MemoryRouter>);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
-  await view.findByRole('textbox', { name: '向 BayBay 提问' });
+  await view.findByRole('textbox', { name: '向 BayBay 提问' }, LAZY);
   const ask = (value: string) => { fireEvent.change(view.getByRole('textbox', { name: '向 BayBay 提问' }), { target: { value } }); fireEvent.click(view.getByRole('button', { name: '问一下' })); };
   ask('请核实这周末的营业时间');
   await act(async () => calls[0].resolve(Response.json({ ok: true, answer: '这条旧会话未通过登录验证', retrieval: { requestedMode: 'smart', scope: 'site', webStatus: 'auth_required', webAccess: { authenticated: false, allowed: false, reason: 'auth_required' } } })));
@@ -186,7 +189,7 @@ test('a cross-tab token replacement for the same account aborts stale work and r
   assert.equal(calls[1].signal.aborted, true);
   assert.equal(view.queryByRole('textbox', { name: '向 BayBay 提问' }), null);
   fireEvent.click(view.getByRole('button', { name: 'fixture open assistant' }));
-  await view.findByRole('textbox', { name: '向 BayBay 提问' });
+  await view.findByRole('textbox', { name: '向 BayBay 提问' }, LAZY);
   assert.ok(view.getByRole('button', { name: '联网查', exact: true }));
   assert.equal(view.queryByText('登录需更新 · 仅站内'), null);
   assert.equal(view.queryByText('这条旧会话未通过登录验证'), null);

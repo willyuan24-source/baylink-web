@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket } from 'lucide-react';
 import { getOfferImage } from '../lib/offer-media';
@@ -76,6 +76,9 @@ function offerStatus(offer: FreebieOffer, today: string, english: boolean) {
   return range[0] > today ? { key: 'upcoming', label: '即将开始' } : { key: 'active', label: '有效期内' };
 }
 
+/** An offer whose own end date has passed, whatever its availability (dated, ongoing or check-local). */
+const endedBy = (offer: FreebieOffer, today: string) => validDate(offer.endDate) && offer.endDate < today;
+
 function orderedOffers(offers: FreebieOffer[], today: string) {
   const position = (offer: FreebieOffer): [number, string] => {
     if (offer.availability === 'ongoing') return [1, ''];
@@ -83,7 +86,9 @@ function orderedOffers(offers: FreebieOffer[], today: string) {
     if (!range) return [2, ''];
     return [range[1] < today ? 3 : 0, range[0]];
   };
-  return offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (offer.availability !== 'dated' || (dateRange(offer)?.[1] || '') >= today)).sort((left, right) => {
+  // A stated end date ends any offer, also a check-local or ongoing one (the last Poppy & Claro dog dinner is by 10/30;
+  // CNT-SUPPLY freebie-guard). Ongoing items without an end date stay listed.
+  return offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && (offer.availability !== 'dated' || (dateRange(offer)?.[1] || '') >= today) && !endedBy(offer, today)).sort((left, right) => {
     const [leftGroup, leftDate] = position(left);
     const [rightGroup, rightDate] = position(right);
     return leftGroup - rightGroup || leftDate.localeCompare(rightDate);
@@ -149,6 +154,7 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
   const [expanded, setExpanded] = useState<FreebieOffer['kind'][]>([]);
   const headingId = useId();
   const sectionId = useId();
+  const resultsRef = useRef<HTMLParagraphElement>(null);
   useEffect(() => {
     const refresh = () => setLocalToday(getBayAreaToday());
     const timer = window.setInterval(refresh, 60_000);
@@ -163,7 +169,7 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
   const today = suppliedToday || localToday;
   const weekEnd = weekEndOf(today);
   const month = today.slice(0, 7);
-  const reviewed = offers.filter(offer => offer.verificationStatus !== 'needs-confirmation');
+  const reviewed = offers.filter(offer => offer.verificationStatus !== 'needs-confirmation' && !endedBy(offer, today));
   const thisWeek = reviewed.filter(offer => validThisWeek(offer, today, weekEnd)).length;
   // Opens on 本周有效 unless nothing on the board is (a next-month board read early): then on every date.
   const [chosenWindow, setWindow] = useState<DateWindow | null>(null);
@@ -182,6 +188,13 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
     ...local ? [{ value: local, label: '需查本店' }] : [],
   ];
   const terms = searchText(query).split(/\s+/).filter(Boolean);
+  const inWindow = orderedOffers(offers, today).filter(offer => window_ !== 'week' || validThisWeek(offer, today, weekEnd));
+  const kindCounts = Object.fromEntries(FILTERS.map(item => [item.value, item.value === 'all' ? inWindow.length : inWindow.filter(offer => offer.kind === item.value).length])) as Record<OfferFilter, number>;
+  const pickKind = (value: OfferFilter) => {
+    setFilter(value);
+    const results = resultsRef.current;
+    if (results && typeof results.getBoundingClientRect === 'function' && results.getBoundingClientRect().top < 0) results.scrollIntoView({ block: 'start' });
+  };
   const visible = orderedOffers(offers, today).filter(offer => {
     if (window_ === 'week' && !validThisWeek(offer, today, weekEnd)) return false;
     if (filter !== 'all' && offer.kind !== filter) return false;
@@ -214,9 +227,14 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
       <button type="button" aria-pressed={window_ === 'week'} onClick={() => setWindow('week')}>{t(`本周有效 ${thisWeek}`, `Valid this week ${thisWeek}`)}</button>
       <button type="button" aria-pressed={window_ === 'all'} onClick={() => setWindow('all')}>{t('全部日期', 'All dates')}</button>
     </div>
-    <div className="bl-freebie-filters" role="group" aria-label="按领取条件筛选">{FILTERS.map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} onClick={() => setFilter(item.value)}>{item.label}</button>)}</div>
+    {/* H66: the kind tabs stay under the site header while the cards scroll, each with its count for the chosen dates (also in
+        its name, "无需购物，49 条"); picking one brings the list's start back into view. A kind with nothing in the chosen dates
+        is left out unless it is the one picked, so no tab leads to an empty list. */}
+    <div className="bl-freebie-filters bl-freebie-kinds" role="group" aria-label="按领取条件筛选">{FILTERS.filter(item => item.value === 'all' || kindCounts[item.value] > 0 || filter === item.value).map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} aria-label={t(`${item.label}，${kindCounts[item.value]} 条`, `${translateText(item.label, 'en')}, ${kindCounts[item.value]}`)} onClick={() => pickKind(item.value)}>
+      {item.label}<span className="bl-freebie-kinds__count" aria-hidden="true">{kindCounts[item.value]}</span>
+    </button>)}</div>
     <label className="bl-freebie-search"><span>搜索品牌、城市或福利</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="例如 Target、Lowe’s、手作、生日" /></label>
-    <p className="bl-freebie-results" role="status" aria-live="polite"><span>显示 {visible.length} 项 · 日期按湾区当地时间</span>{window_ === 'week' && <span> · {t(`本周有效至 ${weekEndLabel}`, `valid through ${weekEndLabel}`)}</span>}</p>
+    <p ref={resultsRef} className="bl-freebie-results" role="status" aria-live="polite"><span>显示 {visible.length} 项 · 日期按湾区当地时间</span>{window_ === 'week' && <span> · {t(`本周有效至 ${weekEndLabel}`, `valid through ${weekEndLabel}`)}</span>}</p>
     {visible.length ? sections.map((section, index) => {
       const id = `${sectionId}-${section.kind || 'search'}`;
       const more = section.kind && section.offers.length > sectionSize;

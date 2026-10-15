@@ -44,6 +44,12 @@ test('an emergency answer is a red card with a 56px tel:911 button first, withou
     assert.equal(links[1].textContent, 'Poison Control 1-800-222-1222');
     assert.equal(links[0].querySelector('.bb-call__number')?.textContent, '911');
     assert.equal(links[2].querySelector('.bb-call__number'), null, 'a label that ends in words wraps normally');
+    // The card's text names numbers its buttons already dial: plain text, but each in one unbreakable piece (10-13 live
+    // check: "1-" ended one line and "800-222-1222" began the next), with the text around them kept as it was.
+    const body = card.querySelector('.bb-emergency__text')!;
+    assert.deepEqual([...body.querySelectorAll('.bb-phone-number')].map(number => number.textContent), ['911', '1-800-222-1222'], locale);
+    assert.equal(body.querySelector('a'), null, 'no second tel: link for a number a button already dials');
+    assert.equal(body.textContent, emergency(locale).answer);
     assert.match(card.textContent || '', locale === 'en' ? /Call 911 now/ : /911/);
     const answer = card.closest('.member-baybay-answer')!;
     assert.equal(answer.firstElementChild, card, 'nothing comes before the emergency card');
@@ -87,19 +93,34 @@ test('a professional topic shows the official resource card with tap-to-call num
   assert.ok(lead.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING, 'the answer comes first, then the resource card');
 });
 
-test('an answer notice shows above the answer: paused kinds lead with 911 / 211, reduced mode does not', async t => {
-  for (const [notice, calls] of [
-    [{ kind: 'ai_daily_budget', text: '今日 AI 名额已满，以下为站内资料；明天会恢复。', resumesAt: '2026-10-10T07:00:00.000Z' }, ['tel:911', 'tel:211']],
-    [{ kind: 'ai_paused', text: 'AI 助手暂停，以下为站内资料。' }, ['tel:911', 'tel:211']],
-    [{ kind: 'ai_budget_reduced', text: '今天 AI 用量较高：先用站内资料快速回答，暂不联网查询。' }, []],
+// H37 (BB-1013-07): a used-up daily share is a calm line with the site's own pages, not red 911 / 211 buttons above an
+// ordinary answer. The buttons stay where they matter: a provider pause, and a health-worry answer's own floor
+// (the api's `fallbackHelp`, sent only with its 911 / 211 floor answer, H11), whatever the notice.
+test('an answer notice shows above the answer: 911 / 211 lead only a provider pause or a health-worry floor; a daily limit links the site', async t => {
+  const floor = { actions: [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }] };
+  const daily = { kind: 'ai_daily_budget', text: '今日 AI 名额已满，以下为站内资料；明天会恢复。', resumesAt: '2026-10-10T07:00:00.000Z' } as const;
+  const reduced = { kind: 'ai_budget_reduced', text: '今天 AI 用量较高：先用站内资料快速回答，暂不联网查询。' } as const;
+  for (const [notice, fallbackHelp, calls, siteLinks] of [
+    [daily, undefined, [], true],
+    [daily, floor, ['tel:911', 'tel:211'], false],
+    [{ kind: 'ai_paused', text: 'AI 助手暂停，以下为站内资料。' }, undefined, ['tel:911', 'tel:211'], false],
+    [reduced, undefined, [], false],
+    [reduced, floor, ['tel:911', 'tel:211'], false],
   ] as const) {
-    mockBayBayFetch(t, async () => Response.json({ ok: true, degraded: notice.kind !== 'ai_budget_reduced', answer: '以下是站内资料：Fleet Week 10 月 10–11 日有飞行表演。', notice,
-      fallbackHelp: { actions: [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }] } }));
-    const view = render(<BayBayAssistantEntry {...props} pendingQuestion="蓝天使这周末飞吗" pendingQuestionId={1} />);
+    const paths: string[] = [];
+    mockBayBayFetch(t, async () => Response.json({ ok: true, degraded: notice.kind !== 'ai_budget_reduced', answer: '以下是站内资料：Fleet Week 10 月 10–11 日有飞行表演。', notice, ...(fallbackHelp ? { fallbackHelp } : {}) }));
+    const view = render(<BayBayAssistantEntry {...props} onNavigate={path => paths.push(path)} pendingQuestion="蓝天使这周末飞吗" pendingQuestionId={1} />);
     const text = await view.findByText(notice.text);
-    const box = text.closest('[data-notice]')!;
+    const box = text.closest('[data-notice]')! as HTMLElement;
     assert.equal(box.getAttribute('data-notice'), notice.kind);
-    assert.deepEqual(within(box as HTMLElement).queryAllByRole('link').map(link => link.getAttribute('href')), calls);
+    assert.deepEqual(within(box).queryAllByRole('link').map(link => link.getAttribute('href')), calls, `${notice.kind}${fallbackHelp ? ' + floor' : ''}`);
+    const weekend = within(box).queryByRole('button', { name: '看本周末活动' });
+    assert.equal(!!weekend, siteLinks, `${notice.kind}: site links`);
+    if (weekend) {
+      weekend.click();
+      within(box).getByRole('button', { name: '查办事指南' }).click();
+      assert.deepEqual(paths, ['/events', '/guides']);
+    }
     const answer = view.getByText(/以下是站内资料：Fleet Week/);
     assert.ok(box.compareDocumentPosition(answer) & Node.DOCUMENT_POSITION_FOLLOWING, 'the notice sits above the answer');
     cleanup();

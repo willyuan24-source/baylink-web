@@ -1,6 +1,7 @@
 import type { Guide, GuideCategory } from '../../data/guides';
 import type { GuideImage } from '../../data/guide-media';
 import type { GuideEditorial } from '../../data/guide-editorial';
+import type { PlacedDiagram } from './guide-diagrams';
 import type { PageMetadata } from '../../lib/seo';
 import type { GuideRegionId } from './guide-facts';
 
@@ -43,6 +44,12 @@ export type GuidesIndex = {
 /** One inline picture of the article and where it goes (getGuideMedia's `inline`), already filtered by keepInlineImage. */
 export type GuideInlineImage = { afterHeading: number; image: GuideImage };
 
+/**
+ * A San Francisco outing guide's way into the 3D city (H36): the game's arrival point for this place when it has one
+ * (OPUS_BAY_ATTRACTION_ENTRIES), and the place's 3D postcard (labelled 3D 场景插图) when one exists.
+ */
+export type GuideOpusEntry = { attraction?: string; postcard?: GuideImage & { en?: { alt: string; caption: string; credit: string } } };
+
 /** Everything /guides/:slug renders for one guide. */
 export type GuideRecord = {
   guide: Guide;
@@ -53,6 +60,10 @@ export type GuideRecord = {
   editorial?: GuideEditorial;
   /** Pictures the article's deals boards show (getOfferImage per offer): the article does not repeat them inline. */
   boardImages?: string[];
+  /** The pilot guides' coded diagrams (H22, guide-diagrams.ts) and where each goes. */
+  diagrams?: PlacedDiagram[];
+  /** Set on San Francisco outing guides: the 在 3D 里先看看 link (guideOpusEntryOf). */
+  opus?: GuideOpusEntry;
   /** getGuideMetadata(guide), for the document head after client navigation. */
   metadata: PageMetadata;
 };

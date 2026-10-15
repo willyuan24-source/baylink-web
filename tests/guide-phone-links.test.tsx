@@ -43,7 +43,13 @@ for (const [locale, prefix] of [['zh-Hans', ''], ['zh-Hant', '/zh-Hant'], ['en',
     const grid = document.querySelector('.phone-directory')!;
     assert.ok(grid, 'the county list renders as a directory grid');
     assert.equal(grid.querySelectorAll('li').length, 8);
-    assert.deepEqual([...grid.querySelectorAll('.phone-directory-label')].map(label => label.textContent).slice(0, 3), ['San Francisco', 'San Mateo', 'Santa Clara']);
+    // H64: in Chinese the county reads in Chinese with its English name on a second line; English pages keep the English name.
+    if (locale === 'en') assert.deepEqual([...grid.querySelectorAll('.phone-directory-label')].map(label => label.textContent).slice(0, 3), ['San Francisco', 'San Mateo', 'Santa Clara']);
+    else {
+      assert.deepEqual([...grid.querySelectorAll('.gd-county__en')].map(label => label.textContent).slice(0, 3), ['San Francisco', 'San Mateo', 'Santa Clara']);
+      assert.deepEqual([...grid.querySelectorAll('.gd-county__zh')].map(label => label.textContent).slice(0, 3), locale === 'zh-Hans' ? ['旧金山', '圣马特奥', '圣克拉拉'] : ['舊金山', '聖馬特奧', '聖克拉拉']);
+      assert.equal(grid.querySelectorAll('.gd-county__zh').length, 8, 'every county line has its Chinese name (Napa/Solano included)');
+    }
     for (const link of grid.querySelectorAll('a')) assert.match(link.getAttribute('aria-label')!, locale === 'en' ? /^Call [A-Za-z /]+ \d{3}-\d{3}-\d{4}$/ : /^[拨撥]打 /);
   });
 }

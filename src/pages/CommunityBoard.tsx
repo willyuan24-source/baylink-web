@@ -26,6 +26,8 @@ import { BoardLinks } from '../features/posts/BoardLinks';
 import { categoryName, feedTypeNames, isNewPost, publishLabel, REGION_NAMES, showCount } from '../features/posts/community-copy';
 import { OfficialAds } from '../features/ads/OfficialAds';
 import { useOtherTypeHasPosts } from '../features/posts/useOtherTypeHasPosts';
+import { CommunityPaused } from '../features/posts/CommunityPaused';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
 const CategoryGuideStrip = lazy(() => import('../components/CategoryGuideStrip').then(m => ({ default: m.CategoryGuideStrip })));
 
 export interface CommunityBoardProps {
@@ -56,7 +58,15 @@ function TypeSwitch({ label, value, items, onChange }: { label: string; value: P
   </div>;
 }
 
-export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
+/** COMMUNITY_VISIBLE = false (H04 fallback): no board on the home page; a category or a board search shows the paused page. */
+export default function CommunityBoard(props: CommunityBoardProps) {
+  const { categorySlug } = useParams();
+  const { keyword } = useApp();
+  if (COMMUNITY_VISIBLE) return <CommunityBoardView {...props} />;
+  return categorySlug || keyword ? <CommunityPaused /> : null;
+}
+
+function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
   const { t, pick } = useUiCopy();
   const navigate = useNavigate();
   const location = useLocation();
@@ -210,6 +220,8 @@ export default function CommunityBoard({ scrollRequest }: CommunityBoardProps) {
         <h2 className="cm-board__subhead"><ShieldCheck aria-hidden="true" strokeWidth={1.75} />{t('联系和付款前', 'Before you contact or pay')}</h2>
         <CategorySafetyNotice category={categorySlug ? categoryFilter : null} />
         <p className="cm-board__fineprint">{t('手机号验证和资料审核不代表交易担保。看房、面交和付款前，请核实对方信息。', 'A verified phone or profile is not a guarantee. Check the other person before a viewing, a meetup or a payment.')}</p>
+        {/* H53: this link was in the board's own small-print footer; the site footer now closes the page. */}
+        <p className="cm-board__fineprint"><Link className="cm-board__guide-link" to="/guides/baylink-safety-guide">{t('社区安全指南', 'Community safety guide')}</Link></p>
       </section>
       <nav className="cm-board__boards" aria-label={t('其他分类', 'Other boards')}>
         <h2 className="cm-board__subhead">{t('其他分类', 'Other boards')}</h2>

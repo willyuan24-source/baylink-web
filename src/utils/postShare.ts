@@ -14,6 +14,9 @@ const RENT_CATEGORIES = new Set(['租屋', '租房']);
 const USED_CATEGORIES = new Set(['闲置', '二手']);
 const SERVICE_CATEGORIES = new Set(['搬家', '清洁', '维修', '接送', '翻译', '兼职', '其他']);
 
+/** H34: every shared post ends with the site's positioning line. */
+const footer = () => getLocale() === 'en' ? 'BAYLINK · Where to go and how to get it done in the Bay' : translateText('BAYLINK · 湾区去哪、怎么办');
+
 const line = (label: string, value?: string) => value?.trim()
   ? `${translateText(label)}${getLocale() === 'en' ? ': ' : '：'}${value.trim()}` : '';
 
@@ -39,7 +42,7 @@ export const buildPostShareText = (post: ShareablePost): string => {
       translateText('详情：'),
       url,
       '',
-      translateText('BAYLINK｜湾区生活信息站'),
+      footer(),
     ].join('\n');
   }
 
@@ -53,7 +56,7 @@ export const buildPostShareText = (post: ShareablePost): string => {
       translateText('详情：'),
       url,
       '',
-      translateText('BAYLINK｜湾区生活信息站'),
+      footer(),
     ].join('\n');
   }
 
@@ -67,7 +70,7 @@ export const buildPostShareText = (post: ShareablePost): string => {
       translateText('详情：'),
       url,
       '',
-      translateText('BAYLINK｜湾区生活信息站'),
+      footer(),
     ].join('\n');
   }
 
@@ -80,7 +83,7 @@ export const buildPostShareText = (post: ShareablePost): string => {
     translateText('详情：'),
     url,
     '',
-    translateText('BAYLINK｜湾区生活信息站'),
+    footer(),
   ].join('\n');
 };
 

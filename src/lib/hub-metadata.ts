@@ -1,6 +1,7 @@
 import { SLUG_TO_CATEGORY } from '../routing';
 import type { PageMetadata } from './seo';
 import { HUB_CARDS } from './hub-cards';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
 
 /**
  * Metadata of the hub pages whose copy is not editorial data: the ten community categories and the three legal pages
@@ -25,6 +26,15 @@ export const CATEGORY_LABELS: Readonly<Record<string, Copy>> = {
 export const categoryLabel = (slug: string): Copy => CATEGORY_LABELS[slug] ?? { zh: SLUG_TO_CATEGORY[slug] ?? '全部', en: 'All' };
 
 export const categoryHubMetadata = (slug: string): PageMetadata => {
+  // COMMUNITY_VISIBLE = false (site-flags.ts): the tab title matches the paused page's H1, in the app and the prerender.
+  if (!COMMUNITY_VISIBLE) return {
+    title: '邻里信息暂停中｜BAYLINK',
+    description: '邻里信息（测试中）暂时不显示，也暂停发布。已有的私信和联系请求照常在「消息」里。',
+    english: { title: 'The neighborhood board is paused | BAYLINK', description: 'The neighborhood board (beta) is hidden for now, and posting is paused. Your messages and contact requests are still in Messages.' },
+    path: `/category/${slug}`,
+    image: HUB_CARDS.brand,
+    noindex: true,
+  };
   const label = categoryLabel(slug);
   const lower = label.en === 'Other' ? 'other' : label.en.toLowerCase();
   return {

@@ -17,11 +17,10 @@ import { opusBayInHalloween } from './lib/opus-bay-metadata';
 import { PlayRedirect } from './components/PlayRedirect';
 import { LocaleContentGate } from './components/LocaleContentGate';
 import { useLocale } from './i18n/locale';
-import { matchRoute } from './app/route-table';
+import { redirectLocation } from './app/route-table';
 
 const GuidesPage = lazy(pageLoaders.guides);
 const EventsPage = lazy(pageLoaders.events);
-const MonthlyPage = lazy(pageLoaders.monthly);
 const CalendarPage = lazy(pageLoaders.calendar);
 const LocalDiscoveryPage = lazy(pageLoaders.discovery);
 const ToolsPage = lazy(pageLoaders.tools);
@@ -45,11 +44,11 @@ const TermsView = lazy(pageLoaders.terms);
 const SmsConsentView = lazy(pageLoaders.sms);
 const NotificationTokenPage = lazy(pageLoaders.notificationToken);
 
-/** Legacy URLs (/this-week, /recommend) inside the app: the route table's target, keeping the query and hash.
- * The host answers a direct load with the same redirect (vercel.json, generated from the table). */
+/** Legacy URLs (/this-week, /recommend, /this-month) inside the app: the route table's target, keeping the query and hash, its
+ * own parameters as defaults (redirectLocation). The host answers a direct load with the same redirect (vercel.json). */
 const LegacyRedirect = () => {
   const { pathname, search, hash } = useLocation();
-  return <Navigate replace to={{ pathname: matchRoute(pathname)?.redirect?.to || '/', search, hash }} />;
+  return <Navigate replace to={{ ...(redirectLocation(pathname, search) ?? { pathname: '/', search }), hash }} />;
 };
 
 const CategoryPage = () => {
@@ -83,7 +82,7 @@ export default function App() {
         <Route path="/reset-password" element={<HomePage />} />
         <Route path="/guides" element={<GuidesPage />} />
         <Route path="/events" element={<EventsPage />} />
-        <Route path="/this-month" element={<MonthlyPage />} />
+        <Route path="/this-month" element={<LegacyRedirect />} />
         <Route path="/this-week" element={<LegacyRedirect />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/events/:id" element={<LocalDiscoveryPage kind="event" />} />

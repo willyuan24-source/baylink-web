@@ -28,6 +28,8 @@ import { usePostTranslation } from './usePostTranslation';
 import { PostTranslationNotice } from './PostTranslationNotice';
 import { ServiceBookingPanel } from '../bookings/ServiceBookingPanel';
 import { categoryName, feedTypeNames, isFounderPost, postedOn, regionName, showCount } from './community-copy';
+import { CommunityPausedSheet } from './CommunityPaused';
+import { COMMUNITY_VISIBLE } from '../../data/site-flags';
 
 const extractQuickTagsFromDescription = (description: string): string[] => {
   const matches = String(description || '').match(/#([^\s#]+)/g) || [];
@@ -48,9 +50,10 @@ type PostDetailProps = {
   detailRefreshing?: boolean; onAskBayBay: (question: string) => void;
 };
 
-export const PostDetailModal = (props: PostDetailProps) => (
-  <PostDetailSession key={`${props.post.id}:${props.currentUser?.id || 'guest'}`} {...props} />
-);
+/** While the board is paused (COMMUNITY_VISIBLE = false) a post link opens the paused notice, never the post. */
+export const PostDetailModal = (props: PostDetailProps) => COMMUNITY_VISIBLE
+  ? <PostDetailSession key={`${props.post.id}:${props.currentUser?.id || 'guest'}`} {...props} />
+  : <CommunityPausedSheet postId={props.post.id} onClose={props.onClose} />;
 
 /**
  * 同区同类: three other open posts in the same category — the same area's first, then the rest of the category (closed

@@ -16,6 +16,8 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 const { render, fireEvent, cleanup, within, act } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { GuideDetail } = await import('../src/components/GuideDetail');
+// The article’s block renderers (the fallback 30 秒看懂 among them) load with its record in the app (guide-blocks.ts).
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
 const { getGuideBySlug } = await import('../src/data/guides');
 const { getGuideEditorial } = await import('../src/data/guide-editorial');
 const { READER_LIBRARY_KEY } = await import('../src/lib/reader-library');

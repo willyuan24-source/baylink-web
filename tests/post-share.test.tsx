@@ -29,10 +29,15 @@ test('post sharing preserves the selected language and only localizes labels, ne
   assert.match(text, /旧金山/);
   assert.match(text, /周末/);
   assert.match(text, /Budget \/ price/);
+  // H34: the shared text ends with the site's positioning line.
+  assert.ok(text.endsWith('\nBAYLINK · Where to go and how to get it done in the Bay'), text);
   const view = render(<PostShareSheet post={post} onClose={() => {}} showToast={() => {}} />);
   assert.equal(view.getByRole('heading', { level: 4 }).textContent, post.title);
   assert.match(view.baseElement.textContent!, /旧金山/);
+  assert.match(view.baseElement.textContent!, /From BAYLINK · Where to go and how to get it done in the Bay/);
   await act(async () => { await setLocale('zh-Hant', false); });
+  assert.ok(buildPostShareText(post).endsWith('\nBAYLINK · 灣區去哪、怎麼辦'), buildPostShareText(post));
+  assert.match(view.baseElement.textContent!, /來自 BAYLINK · 灣區去哪、怎麼辦/);
   assert.equal(view.getByRole('heading', { level: 4 }).textContent, post.title);
   const traditionalUrl = new URL(buildPostShareUrl(post));
   assert.equal(traditionalUrl.pathname, '/zh-Hant/posts/fixture');

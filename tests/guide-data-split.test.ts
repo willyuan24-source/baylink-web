@@ -92,3 +92,10 @@ test('neither guide page imports the guide corpus, the media registry, the attra
   // the walk does find the corpus where it is still imported
   assert.match(staticChain('src/features/guides/guide-data.ts', heavy) ?? '', /src\/data\/guides\.ts$/u);
 });
+
+// Review 10-14 (budget): the 3D link and the game’s arrival table load with the record of the SF outing guides that show it
+// (guide-blocks.ts GuideOpusBlock), not with every article.
+test('the guide page loads the 3D link only with the guides that show it', () => {
+  assert.equal(staticChain('src/pages/GuideDetailPage.tsx', /^src\/(?:features\/guides\/GuideOpusEntry\.tsx|lib\/opus-bay-attraction-entry\.ts)$/u), undefined);
+  assert.ok(staticChain('src/features/guides/GuideOpusEntry.tsx', /^src\/lib\/opus-bay-attraction-entry\.ts$/u), 'the walk finds it from the block itself');
+});

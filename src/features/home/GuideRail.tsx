@@ -9,14 +9,14 @@ import type { ResolvedCover } from '../../lib/cover';
 import type { HomeGuide } from '../../lib/home-catalog';
 import { guideTitleHead, TOPIC_LABELS } from './home-model';
 
-const RAIL_SIZES = '(max-width: 767px) 240px, 280px';
+const RAIL_SIZES = '280px';
 
 /** A guide's cover: its photo (provenance badge), or the topic's information card with the short title and source count. */
 function GuideCard({ guide, cover }: { guide: HomeGuide; cover: ResolvedCover }) {
   const { t, pick, locale } = useUiCopy();
   const topic = TOPIC_LABELS[guide.topic];
   const sources = guide.sources ? t(`${guide.sources} 个官方来源`, `${guide.sources} official source${guide.sources === 1 ? '' : 's'}`) : '';
-  const fallback = <TypeCover family="guide" tone={guide.tone} icon={guide.icon} label={pick(topic)} ratio="4:5"
+  const fallback = <TypeCover family="guide" tone={guide.tone} icon={guide.icon} seed={guide.slug} label={pick(topic)} ratio="4:5"
     title={guideTitleHead(translateText(guide.title, locale))} place={sources || undefined} ariaHidden />;
   return <FeedCard title={guide.title} to={`/guides/${guide.slug}`} className="home-guide"
     cover={<Cover cover={cover} fallback={fallback} ratio="4:5" sizes={RAIL_SIZES} decorative />}
@@ -45,7 +45,7 @@ export function GuideRail({ intent, onIntent, guides, covers, guideCount }: { in
     <div className="home-guides__more">
       {topic ? <Link to={`/guides?topic=${selected.topic}`}>{t(`看全部「${topic.zh}」指南`, `All ${topic.en} guides`)}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
         : <Link to="/guides">{t('看全部办事指南', 'All how-to guides')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>}
-      {intent === 'elders' && <FamilyLinkButton path="/guides?topic=elders" title={t('长辈与家属：湾区中文办事指南', 'Seniors & family: Bay Area guides')} variant="tonal" />}
+      {intent === 'elders' && <FamilyLinkButton path="/guides?topic=elders" title={t('长辈与家属：湾区中文办事指南', 'Seniors & family: Bay Area guides')} variant="secondary" />}
     </div>
   </section>;
 }

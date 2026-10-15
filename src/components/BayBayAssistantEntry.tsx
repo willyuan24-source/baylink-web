@@ -21,7 +21,7 @@ import { BAYBAY_STARTERS, BAYBAY_ENTITY_QUESTIONS, bayBayPageRef, type BayBaySta
 import { bayBayAssistantResult } from '../lib/baybay-assistant';
 import { BAYBAY_QUOTA_ERRORS, bayBayFullNoticeTurns, parseBayBayAnswerFields, parseBayBayCapabilities, type BayBayCapabilities } from '../lib/baybay-answer';
 import { getBayAreaToday } from '../lib/monthly';
-import { BayBayAnswerBody, BayBayCardRail, BayBayCallActions, BayBayDraftPreview, BayBayEmergencyCard, BayBayNoticeBanner, BayBayResourceCard, BayBayScheduledNotice } from '../features/baybay/BayBayAnswer';
+import { BayBayAnswerBody, BayBayCardRail, BayBayCallActions, BayBayDraftPreview, BayBayEmergencyCard, BayBayNoticeBanner, BayBayQuotaLine, BayBayResourceCard, BayBayScheduledNotice } from '../features/baybay/BayBayAnswer';
 import { BayBaySaveScope } from '../features/baybay/BayBaySaveScope';
 import { bayBayPageTitle } from '../features/baybay/page-title';
 import { loadBayBayCards } from '../features/baybay/cards-loader';
@@ -338,8 +338,9 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
           if (top < lastScrollTop.current - 2) followReply.current = false;
           lastScrollTop.current = top;
         }}>
-          {/* The pause banner (with 911 · 211) shows once: here until an answer carries the notice, then on the newest such answer. */}
-          {capabilities.pause ? fullNotice.pause === undefined && <BayBayNoticeBanner kind={capabilities.pause.kind} text={capabilities.pause.banner[locale]} resumesAt={capabilities.pause.resumesAt} actions={capabilities.pause.actions} />
+          {/* The pause banner shows once: here until an answer carries the notice, then on the newest such answer. A provider pause
+              leads with 911 · 211; a used-up daily share is a calm line with the site's own pages (H37, bayBayNoticeCalls). */}
+          {capabilities.pause ? fullNotice.pause === undefined && <BayBayNoticeBanner kind={capabilities.pause.kind} text={capabilities.pause.banner[locale]} resumesAt={capabilities.pause.resumesAt} actions={capabilities.pause.actions} onNavigate={navigate} />
             : capabilities.reduced && fullNotice.reduced === undefined && <BayBayNoticeBanner kind="ai_budget_reduced" text={capabilities.reduced.banner[locale]} resumesAt={capabilities.reduced.resumesAt} />}
           {/* The AI cutoff, in its last 7 days: a calm line, not an alarm (api #37 pauseScheduled / aiUntil). */}
           {capabilities.scheduled && <BayBayScheduledNotice text={capabilities.scheduled.banner[locale]} />}
@@ -390,6 +391,8 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
         </div>
         <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current) askBayBay(question); }}>
           <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{memberWebAccess ? <>{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={effectiveSearchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}</> : <><strong className="baybay-access-label">{ownerId ? copy('登录需更新 · 仅站内', 'Sign-in needs updating · Site only') : copy('访客 · 仅站内', 'Guest · Site only')}</strong>{onLoginNeeded && <button type="button" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</button>}</>}</div>
+          {/* Few AI queries left (≤5) or none: one visible line by the question box; a pause banner already says so. */}
+          {usage && !capabilities.pause && <BayBayQuotaLine remaining={usage.remaining} />}
           {pageRef && pageTitle && !pageOff && <div className="bb-capsule"><span className="bb-capsule__text">{copy('正在看：', 'Viewing: ')}<strong>{pageTitle}</strong></span>
             <button type="button" onClick={() => setPageOffPath(currentPath)} aria-label={copy('不再参考这一页', 'Stop using this page')}><X aria-hidden="true" size={18} /></button></div>}
           {/* A box that grows to four lines and always shows its whole example (READ-10, G79). Enter asks; Shift+Enter starts a new line. */}
@@ -432,7 +435,7 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
   const v2 = !!response.lead && !!response.points && response.outingSearch === undefined;
   if (safety?.kind === 'emergency') return <div className="member-baybay-answer" data-safety="emergency"><BayBayEmergencyCard safety={safety} answer={response.answer} /></div>;
   return <div className="member-baybay-answer" data-safety={safety?.kind}>
-    {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} actions={response.fallbackHelp?.actions} compact={!fullNotice} />}
+    {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} healthFloor={response.fallbackHelp?.actions} compact={!fullNotice} onNavigate={onNavigate} />}
     <div className="member-baybay-answer-label" translate={foodGap ? 'no' : undefined}><Sparkles size={12} />{foodGap ? locale === 'zh-Hant' ? '餐飲資訊待確認' : copy('餐饮信息待确认', 'Food information unconfirmed') : response.outingSearch ? copy('小队搜索', 'Outing search') : response.degraded ? '参考指引' : 'BayBay 建议'}</div>
     {response.degraded && !response.notice && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
     {v2 ? <BayBayAnswerBody fields={response} cards={cards} sources={sources} today={today} onNavigate={onNavigate} /> : <>

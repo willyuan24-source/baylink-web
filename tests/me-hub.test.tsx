@@ -111,6 +111,8 @@ test('signed out: one invitation, tiles that still work, and no account reads', 
   let logins = 0;
   const view = render(app(context({ user: null, messagesBadgeCount: 0, setShowLogin: () => { logins++; } })));
   assert.ok(view.getByRole('heading', { name: '登录后，BayBay 能帮你更多' }));
+  // H77: post saves stay on the device, so the pitch says which saves follow the account.
+  assert.ok(view.getByText('收藏（邻里信息除外）和计划跟着账号走，换手机也在'));
   fireEvent.click(view.getByRole('button', { name: '登录 / 注册' }));
   assert.equal(logins, 1);
   const tiles = within(view.getByRole('list', { name: '我的常用' }));
@@ -158,16 +160,27 @@ test('开启全部提醒 turns on every reported topic for verified channels onl
   }
 });
 
-test('/messages: three round entries, the reminders prompt and the contact requests opened from the first entry', async () => {
+test('/messages: the reminders prompt when nothing waits; with every reminder off', async () => {
+  localStorage.setItem('currentUser', JSON.stringify(user));
+  mockApi();
+  const view = render(app(context(), '/messages'));
+  const prompt = await view.findByRole('note');
+  assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications');
+});
+
+test('/messages: three round entries, the one-tap reminder offer for a member someone asked to contact (H14), and the contact requests opened from the first entry', async () => {
   localStorage.setItem('currentUser', JSON.stringify(user));
   mockApi(path => path.startsWith('/contact-requests') ? { requests: [{ id: 'r1', postId: 'p1', postTitle: '旧金山一房出租', status: 'pending', requester: { id: 'u2', nickname: '小王' } }] } : undefined);
   let pending = -1;
   const view = render(app(context({ setPendingContactRequestCount: ((count: number) => { pending = count; }) as AppContextValue['setPendingContactRequestCount'] }), '/messages'));
   const rounds = within(view.getByRole('list', { name: '消息分类' }));
   assert.deepEqual(rounds.getAllByRole('link').map(link => link.getAttribute('href')), ['/together?view=mine', '/me/bookings']);
-  const prompt = await view.findByRole('note');
-  assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications');
   await waitFor(() => assert.equal(pending, 1));
+  // The receiver gets the same offer the poster got (NoticeOptIn), instead of the generic 去开启 line.
+  const offer = await view.findByRole('region', { name: '站外提醒' });
+  assert.match(offer.textContent!, /下次有人私信你、或请求你的联系方式时/);
+  assert.ok(within(offer).getByRole('button', { name: '用邮件提醒我' }));
+  assert.equal(view.queryByRole('note'), null);
   assert.equal(rounds.getByLabelText('1 个待处理').textContent, '1');
   const requestsButton = rounds.getByRole('button', { name: /联系请求/ });
   assert.ok(document.getElementById(requestsButton.getAttribute('aria-controls') || '-'), 'aria-controls names the rendered panel');
@@ -175,6 +188,27 @@ test('/messages: three round entries, the reminders prompt and the contact reque
   assert.ok(view.getByRole('button', { name: '同意并发送' }));
   assert.equal(view.getByRole('button', { name: '收起' }).getAttribute('aria-controls'), 'msg-requests-list');
   assert.ok(await view.findByRole('heading', { name: '还没有消息' }));
+  assert.equal(reads.filter(path => path === '/notifications/preferences').length, 1, 'the offer reuses the page’s preferences read');
+});
+
+test('/messages with a request waiting: when the offer cannot show (以后再说 said, or a phone sign-up without an email), the 去开启 prompt stays', async () => {
+  const waiting = (path: string) => path.startsWith('/contact-requests') ? { requests: [{ id: 'r1', postId: 'p1', postTitle: '旧金山一房出租', status: 'pending', requester: { id: 'u2', nickname: '小王' } }] } : undefined;
+  const cases: [string, UserData, Record<string, unknown>][] = [
+    ['dismissed', user, offPreferences()],
+    ['phone sign-up', { ...user, email: '' }, offPreferences({ emailVerified: false, phoneVerified: true })],
+  ];
+  for (const [label, account, preferences] of cases) {
+    localStorage.setItem('currentUser', JSON.stringify(account));
+    if (label === 'dismissed') localStorage.setItem(`baylink.notice-optin.dismissed.v1.${account.id}`, '1');
+    mockApi(path => path === '/notifications/preferences' ? preferences : waiting(path));
+    let pending = -1;
+    const view = render(app(context({ user: account, setPendingContactRequestCount: ((count: number) => { pending = count; }) as AppContextValue['setPendingContactRequestCount'] }), '/messages'));
+    await waitFor(() => assert.equal(pending, 1));
+    const prompt = await view.findByRole('note');
+    assert.equal(within(prompt).getByRole('link', { name: '去开启' }).getAttribute('href'), '/me?view=notifications', label);
+    assert.equal(view.queryByRole('region', { name: '站外提醒' }), null, label);
+    cleanup(); localStorage.clear();
+  }
 });
 
 test('no reminders prompt when a reminder is on or the setting cannot be read', async () => {

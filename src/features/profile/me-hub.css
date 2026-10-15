@@ -87,6 +87,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-notify fieldset:disabled { opacity:.7; }
 .me-notify legend { padding:0 4px; color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .me-notify label { display:flex; align-items:center; gap:10px; min-height:var(--control-height); color:var(--color-ink); font-size:var(--text-body); }
+.me-notify__default { display:block; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.5; }
 .me-notify input[type=checkbox] { width:1.25rem; height:1.25rem; flex:none; accent-color:var(--color-brand); }
 .me-notify fieldset button,.me-notify__retry { display:inline-flex; align-items:center; min-height:var(--control-height); margin-top:4px; padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .me-notify button:disabled { background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }

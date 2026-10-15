@@ -1,5 +1,5 @@
 import { Cover, CoverImage, COVER_SIZES, EventTypeCover, OfferTypeCover, OpeningTypeCover, TypeCover } from '../../components/ui';
-import { offerTone, offerValue } from '../../lib/event-facts';
+import { eventDateChip, eventTone, formatDateChip, offerTone, offerValue } from '../../lib/event-facts';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
@@ -17,7 +17,7 @@ const webLink = (value: string | undefined): value is string => !!value && /^htt
  */
 export function DetailHero({ record, cover, today, ended }: { record: DetailRecord; cover: ResolvedCover; today: string; ended: boolean }) {
   const { item } = record;
-  const { locale, pick } = useUiCopy();
+  const { locale, pick, english } = useUiCopy();
   // An offer or an opening without a qualifying image: the chips, the H1 and the brand line right below already say its
   // kind, title, brand and validity, so the coded cover shrinks to a band with what they do not (the value large, or the
   // kind of shop) instead of a 16:9 card that repeats the header (PROD-W3 review). The offer's kind is its first chip, so
@@ -31,6 +31,16 @@ export function DetailHero({ record, cover, today, ended }: { record: DetailReco
     </figure>;
   }
   if (cover.tier === 'type' && item.kind === 'opening') return <figure className="detail-hero" data-tier="type" data-compact=""><OpeningTypeCover opening={item.shop} today={today} compact /></figure>;
+  // An event without a qualifying image (H28 / SV13-09): the same band. The chips, the H1 and 一眼看懂 right below already give
+  // its kind, title, place and price, so the band carries only the big date (and the tone's art), not a 16:9 card that
+  // repeated four of the first screen's six facts. A photo, a poster or a venue photo within 8 years keeps the 16:9 hero.
+  if (cover.tier === 'type' && item.kind === 'event') {
+    const event = item.event as EventFactsInput;
+    const date = formatDateChip(eventDateChip(event, today), english);
+    return <figure className="detail-hero" data-tier="type" data-compact="" data-kind="event" data-slim={date.big ? undefined : ''}>
+      <TypeCover family="event" tone={eventTone(event)} label="" date={date} icon={event.iconKey ?? eventTone(event)} seed={event.id} />
+    </figure>;
+  }
   const slot = { ratio: '16:9' as const, ratioLock: true };
   const fallback = item.kind === 'event' ? <EventTypeCover event={item.event as EventFactsInput} today={today} {...slot} />
     : item.kind === 'offer' ? <OfferTypeCover offer={{ ...item.offer, brand: offerBrand(item.offer.brand, locale) }} today={today} {...slot} />

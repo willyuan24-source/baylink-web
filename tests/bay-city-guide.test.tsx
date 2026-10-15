@@ -41,7 +41,9 @@ Object.assign(globalThis,{window:dom.window,document:dom.window.document,HTMLEle
 Object.defineProperty(globalThis,'navigator',{configurable:true,value:dom.window.navigator});
 const {render,fireEvent,cleanup}=await import('@testing-library/react');
 const {default:BayCityGuide}=await import('../src/features/little-bay/BayCityGuide');
-const {setLocale}=await import('../src/i18n/locale');
+const {setLocale,enableUsEnglishTimes}=await import('../src/i18n/locale');
+// the site's English (i18n/metadata.ts switches it on): US-style dates, H41
+await enableUsEnglishTimes();
 afterEach(cleanup);
 test('city drawer separates previews, game routes, current/next month events and contextual AI',async()=>{
   await setLocale('en',false);const city=BAY_CITIES.find(c=>c.id==='cupertino')!,preview:string[]=[],route:string[]=[],asks:string[]=[];
@@ -49,7 +51,7 @@ test('city drawer separates previews, game routes, current/next month events and
   fireEvent.click(view.getAllByRole('button',{name:'Preview',exact:true})[0]);assert.equal(preview.length,1);assert.equal(route.length,0);
   fireEvent.click(view.getAllByRole('button',{name:'Route here',exact:true})[0]);assert.equal(route.length,1);
   fireEvent.click(view.getByRole('button',{name:/September/}));
-  assert.ok(view.getByText('2026-09-26'));assert.ok(view.getByRole('link',{name:'Real directions'}));
+  assert.ok(view.getByText('Sep 26, 2026'),'H41: the English drawer reads its date in US style');assert.ok(view.getByRole('link',{name:'Real directions'}));
   assert.match(view.getByRole('link',{name:'Plan this day'}).getAttribute('href')||'',/date=2026-09-26/);
   fireEvent.click(view.getByRole('button',{name:/October/}));fireEvent.click(view.getByRole('button',{name:'Ask BAYBAY'}));
   assert.match(asks[0],/Cupertino.*2026-10/);

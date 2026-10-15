@@ -150,7 +150,8 @@ export function MeGuestCard({ onLogin }: { onLogin: () => void }) {
     <h2 id="me-guest-title">{t('登录后，BayBay 能帮你更多', 'Sign in and BayBay can do more for you')}</h2>
     <ul>
       <li>{t('收到私信和联系请求，一处查看', 'Messages and contact requests in one place')}</li>
-      <li>{t('收藏和计划跟着账号走，换手机也在', 'Saved items and plans follow your account')}</li>
+      {/* H77: neighborhood-post saves stay on this device (lib/saves.ts; the favorites API has no post kind). */}
+      <li>{t('收藏（邻里信息除外）和计划跟着账号走，换手机也在', 'Saved items (except neighborhood posts) and plans follow your account')}</li>
       <li>{t('参加小队、预约本地服务', 'Join groups and book local services')}</li>
     </ul>
     <Button variant="primary" onClick={onLogin}>{t('登录 / 注册', 'Log in / Sign up')}</Button>

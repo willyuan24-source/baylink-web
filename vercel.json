@@ -93,6 +93,46 @@
       }
     },
     {
+      "src": "^/this-month/?$",
+      "has": [
+        {
+          "type": "query",
+          "key": "when"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "/events"
+      }
+    },
+    {
+      "src": "^/(en|zh-Hant)/this-month/?$",
+      "has": [
+        {
+          "type": "query",
+          "key": "when"
+        }
+      ],
+      "status": 301,
+      "headers": {
+        "Location": "/$1/events"
+      }
+    },
+    {
+      "src": "^/this-month/?$",
+      "status": 301,
+      "headers": {
+        "Location": "/events?when=all"
+      }
+    },
+    {
+      "src": "^/(en|zh-Hant)/this-month/?$",
+      "status": 301,
+      "headers": {
+        "Location": "/$1/events?when=all"
+      }
+    },
+    {
       "src": "^/reading-init\\.js$",
       "headers": {
         "Cache-Control": "public, max-age=600, must-revalidate"

@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { escapeHtml, renderHtmlDocument, safeSocialImage, type PageMetadata } from '../src/lib/seo.js';
+import { COMMUNITY_VISIBLE } from '../src/data/site-flags.js';
 
 type PublicPost = {
   id: string;
@@ -63,18 +64,21 @@ export async function renderPublicPostPage(request: Request, dependencies: Depen
     unavailableDetail: 'The post service is temporarily unavailable. Please try again later.',
     browse: 'Browse local information', closed: 'Ended', confirm: 'Confirm availability before contacting',
     image: 'Post image', note: 'Confirm the location, price and dates with the author before contacting. Messaging and contact requests are available after the page loads.',
+    paused: 'The neighborhood board is paused', pausedDetail: 'The neighborhood board (beta) is hidden for now, and posting is paused. Your messages and contact requests are still in Messages.', messages: 'Messages',
   } : lang === 'zh-Hant' ? {
     missing: '貼文不存在', unavailable: '貼文暫時無法載入',
     missingDetail: '貼文可能已刪除或連結有誤。你可以繼續瀏覽其他本地資訊。',
     unavailableDetail: '貼文服務暫時無法連接，請稍後重試。',
     browse: '瀏覽本地資訊', closed: '已結束', confirm: '聯絡前請確認仍有效',
     image: '貼文配圖', note: '聯絡發布者前，請確認地點、價格和時間。私訊和聯絡方式請求可在頁面載入後使用。',
+    paused: '鄰里資訊暫停中', pausedDetail: '鄰里資訊（測試中）暫時不顯示，也暫停發布。已有的私訊和聯絡請求照常在「訊息」裡。', messages: '訊息',
   } : {
     missing: '帖子不存在', unavailable: '帖子暂时无法加载',
     missingDetail: '帖子可能已删除或链接有误。你可以继续浏览其他本地信息。',
     unavailableDetail: '帖子服务暂时无法连接，请稍后重试。',
     browse: '浏览本地信息', closed: '已结束', confirm: '联系前请确认仍有效',
     image: '帖子配图', note: '联系发布者前，请确认地点、价格和时间。私信和联系方式请求可在页面加载后使用。',
+    paused: '邻里信息暂停中', pausedDetail: '邻里信息（测试中）暂时不显示，也暂停发布。已有的私信和联系请求照常在「消息」里。', messages: '消息',
   };
   const pathId = route?.[2];
   const id = pathId || url.searchParams.get('postId') || '';
@@ -103,6 +107,13 @@ export async function renderPublicPostPage(request: Request, dependencies: Depen
   };
   if (!validId) return errorResponse(404);
   if (!['GET', 'HEAD'].includes(request.method)) return new Response('Method not allowed', { status: 405, headers: { ...responseHeaders(405), Allow: 'GET, HEAD' } });
+  // COMMUNITY_VISIBLE = false (src/data/site-flags.ts): the board is paused, so a post link gets the calm notice, not the post.
+  if (!COMMUNITY_VISIBLE) {
+    const paused = respond(200, { title: `${copy.paused}｜BAYLINK`, description: copy.pausedDetail, path, noindex: true, preserveText: true, locale },
+      `<h1 class="mt-6 text-2xl font-bold">${copy.paused}</h1><p class="mt-3">${copy.pausedDetail}</p><a href="${prefix}/messages" class="mt-5 inline-block underline">${copy.messages}</a>`);
+    paused.headers.set('X-Robots-Tag', 'noindex, follow');
+    return paused;
+  }
 
   try {
     const apiBase = (dependencies.apiBase || process.env.BAYLINK_PUBLIC_API_URL || process.env.VITE_API_BASE_URL || 'https://baylink-api.onrender.com/api').replace(/\/$/, '');

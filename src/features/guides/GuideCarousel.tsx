@@ -22,9 +22,10 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
   const { t, pick, english } = useUiCopy();
   const total = editorial.slides.length + 1;
   const sourceTitle = (index?: number) => index && guide.sources[index - 1] ? guide.sources[index - 1].title : undefined;
+  // H13: the caution 以机构确认为准 is said once, on the cover slide; each point slide names only its source.
   const footer = (index?: number) => {
     const title = sourceTitle(index);
-    return <p className="gd-slide__source">{title ? <>{t('来源：', 'Source: ')}<span>{title}</span>{t(' · 以机构确认为准', ' · confirm with the agency')}</> : t('出自本文整理 · 以机构确认为准', 'From this guide · confirm with the agency')}</p>;
+    return <p className="gd-slide__source">{title ? <>{t('来源：', 'Source: ')}<span>{title}</span></> : t('出自本文整理', 'From this guide')}</p>;
   };
   const counter = (position: number) => <span className="gd-slide__count" aria-hidden="true">{position}/{total}</span>;
   const phone = (entry: EditorialPhone, big = false) => <a className="gd-slide__phone" data-size={big ? 'big' : undefined} href={`tel:${entry.tel}`}
@@ -53,7 +54,7 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         <h2 className="gd-slide__cover-title">{headline(cover.title)}</h2>
         <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{keepNumbers(pick(cover.answer))}</a> : keepNumbers(pick(cover.answer))}</p>
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
-        <p className="gd-slide__source">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
+        <p className="gd-slide__source" data-template-note="">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
       </article>
       {editorial.slides.map((slide: GuideSlide, index) => <article key={index} className="gd-slide" data-kind={slide.kind} data-cover="type">
         <div className="gd-slide__top"><span className="gd-slide__kicker">{pick(slide.kicker)}</span>{counter(index + 2)}</div>

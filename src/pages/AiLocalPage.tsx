@@ -14,6 +14,7 @@ import { GuideFigure } from '../components/GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { Button } from '../components/ui/Button';
+import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/States';
 
 const goals = [
@@ -73,7 +74,7 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         <h2 id="ai-guide-title">{t('一份能照着准备的入门指南')}</h2>
         <p>{t('按兴趣选场、识别报名批准、安排跨城交通，再准备一句自然的自我介绍。')}</p>
       </div>
-      <Link to={`/guides/${aiWeekGuideSlug}`}>{t('阅读入门指南')} <ArrowRight size={18} aria-hidden="true" /></Link>
+      <Button variant="secondary" to={`/guides/${aiWeekGuideSlug}`}>{t('阅读入门指南')}</Button>
     </section>
 
     <section className="bl-ai-listing" aria-labelledby="ai-events-title">
@@ -81,9 +82,9 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         <div><h2 id="ai-events-title">{t('先选目标，再看场次')}</h2><p>{t('不用赶满整周。选一个能学到东西、认识同行或完成小作品的下午或晚上。')}</p></div>
       </div>
       <div className="bl-ai-filters">
-        <div className="bl-ai-goals" role="group" aria-label={t('先选目标，再看场次')}>
-          {goals.map(item => <button key={item.id} type="button" aria-pressed={goal === item.id} onClick={() => setGoal(item.id)}>{t(item.label)}</button>)}
-        </div>
+        <ChipRow className="bl-ai-goals" label={t('先选目标，再看场次')}>
+          {goals.map(item => <FilterChip key={item.id} selected={goal === item.id} onClick={() => setGoal(item.id)}>{t(item.label)}</FilterChip>)}
+        </ChipRow>
         <label className="bl-ai-select">{t('活动日期分组')}
           <select value={week} onChange={event => setWeek(event.target.value)}>
             <option value="all">{t('全部日期')}</option>
@@ -134,6 +135,6 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         ['03', '一次只排一个区域', '旧金山、Oakland、Menlo Park 分开安排；不要把地图上的邻近感当作晚高峰的通勤时间。'],
       ].map(([number, title, body]) => <div key={number}><span>{number}</span><h3>{t(title)}</h3><p>{t(body)}</p></div>)}
     </section>
-    <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/this-month">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
+    <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/events?when=all">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
   </PageContainer>;
 }

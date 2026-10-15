@@ -1,13 +1,14 @@
 import { BRAND } from '../brandAssets';
 
 type AuthBrandHeaderProps = {
-  tagline?: string;
+  /** The positioning line, already in the reader's language (LoginModal: 湾区去哪、怎么办 · 有来源的中文答案, H34). */
+  tagline: string;
   compact?: boolean;
 };
 
 /** Shared BAYLINK lockup for auth-related modals */
 export const AuthBrandHeader = ({
-  tagline = '连接湾区真实生活信息',
+  tagline,
   compact = false,
 }: AuthBrandHeaderProps) => (
   <div className={`member-auth-brand ${compact ? 'member-auth-brand--compact' : ''}`}>

@@ -148,7 +148,25 @@ test('elder searches put the page a reader means first (zh-Hans and zh-Hant)', a
   assert.equal(firstGuide('圣荷西'), 'san-jose-guide');
   // The words each phrase is made of reach the same key the single words do.
   assert.ok(normalizeSearchQuery('老人免费坐公交').split(' ').includes(normalizeSearchText('长者')));
-  assert.deepEqual(searchSynonymsOf('老人卡').filter(member => member.includes('clipper')), ['senior clipper card', 'senior clipper']);
+  assert.deepEqual(searchSynonymsOf('老人卡').filter(member => member.includes('clipper')), ['长者 clipper', '老人 clipper', '长者clipper', '老人clipper', 'senior clipper card', 'senior clipper']);
+});
+
+// H65 (GR-09): the senior fare card, Free Muni and RTC reach the Muni / Clipper guide first, although it never says 老人卡, Free
+// Muni or RTC: it says 长者 + Clipper, Muni and Clipper Access. Elder words lift elder and transit guides over pages that only
+// mention them (the deals boards list a Free Muni offer).
+test('elder transit searches put the Muni / Clipper guide first (H65)', async () => {
+  const muniGuide = 'bay-area-october-muni-clipper-payment-update-2026';
+  const first = (query: string, locale: 'zh-Hans' | 'zh-Hant' = 'zh-Hans') => searchGuides(guides, { query, locale })[0]?.guide.slug;
+  await setLocale('zh-Hans', false);
+  for (const query of ['老人卡', '长者卡', '长者 Clipper', '老人 clipper', 'RTC', 'Clipper Access', 'Free Muni', '老人免费坐车', '长者免费坐车', '老人免费坐公交']) assert.equal(first(query), muniGuide, query);
+  await setLocale('zh-Hant', false);
+  for (const query of ['老人卡', '長者 Clipper', '老人免費坐車']) assert.equal(first(query, 'zh-Hant'), muniGuide, query);
+  await setLocale('zh-Hans', false);
+  // An elder word still finds the page a reader means: 送餐 is the senior services guide, 看牙 the dental guide.
+  assert.equal(first('老人送餐'), 'bay-area-chinese-senior-services-referral-guide');
+  assert.equal(first('老人 看牙'), 'bay-area-dental-care-insurance-low-cost-guide');
+  // RTC is a whole word only: it is not inside another Latin word.
+  assert.equal(normalizeSearchText('artcenter').includes(normalizeSearchText('rtc')), false);
 });
 
 test('a district is not a school district and a network is not broadband (CW-05)', async () => {

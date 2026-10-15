@@ -27,6 +27,8 @@ Object.defineProperty(dom.window.navigator, 'clipboard', { configurable: true, v
 const { render, fireEvent, cleanup, act, within } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { GuideDetail } = await import('../src/components/GuideDetail');
+// The article’s block renderers (the fallback 30 秒看懂 among them) load with its record in the app (guide-blocks.ts).
+await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
 const { getGuideBySlug } = await import('../src/data/guides');
 
 afterEach(() => cleanup());

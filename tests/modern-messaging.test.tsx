@@ -291,4 +291,22 @@ test('storage denial does not block sending; memory backup survives closing unti
   } finally { Object.defineProperty(dom.window.Storage.prototype, 'setItem', descriptor); }
 });
 
+test('H14: whoever receives a first message gets the email-reminder offer before replying, and not once they have replied', async () => {
+  const member = { ...user(), token: 'fixture' };
+  localStorage.setItem('currentUser', JSON.stringify(member));
+  const off = { message: false, contact_request: false, outing_request: false, comment: false };
+  const settings = { preferences: { email: off, sms: off }, emailVerified: true, phoneVerified: false, deliveryEnabled: true, emailDeliveryAvailable: true, smsDeliveryAvailable: false };
+  let history = [message('one')];
+  api.request = async endpoint => endpoint.endsWith('/read') ? {} : endpoint === '/notifications/preferences' ? settings : history;
+  let view = render(viewChat({ currentUser: member }));
+  const offer = await view.findByRole('region', { name: '站外提醒' });
+  assert.match(offer.textContent!, /下次有人私信你、或请求你的联系方式时，要不要用邮件提醒你？/);
+  cleanup();
+  history = [message('one'), message('two', '可以的', { senderId: 'me' })];
+  view = render(viewChat({ currentUser: member }));
+  await view.findByText('可以的');
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+  assert.equal(view.queryByRole('region', { name: '站外提醒' }), null);
+});
+
 after(() => styles.deregister());

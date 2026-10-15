@@ -87,19 +87,17 @@ test('邻里信息（测试中）· 去看看 opens the board and scrolls to its
   assert.equal(view.container.querySelector('.cm-board h1'), null, 'on the homepage the board heading is an h2 (the page keeps its own H1)');
 });
 
-test('the board views keep their footer, with the positioning line in the reader’s language (rule 4: t(zh, en))', async () => {
+test('H53: the board views have no small-print footer of their own (the site footer closes them); the safety guide stays one tap away', async () => {
   const view = render(app('/category/rent', { categoryFilter: '租屋' }));
   await screen.findByRole('heading', { level: 1, name: '租房' });
-  assert.match(view.container.querySelector('.bay-home-footer')!.textContent!, /湾区去哪、怎么办 · 有来源的中文答案/);
+  assert.equal(view.container.querySelector('footer'), null, 'only SiteChrome renders a footer');
+  assert.equal(screen.getByRole('link', { name: '社区安全指南' }).getAttribute('href'), '/guides/baylink-safety-guide');
   view.unmount();
   const { setLocale } = await import('../src/i18n/locale');
   try {
     await setLocale('en', false);
-    const english = render(app('/category/rent', { categoryFilter: '租屋' }));
-    await waitFor(() => assert.ok(english.container.querySelector('.bay-home-footer')));
-    const footer = english.container.querySelector('.bay-home-footer')!.textContent!;
-    assert.match(footer, /Where to go and how to get it done in the Bay, with sources/);
-    assert.doesNotMatch(footer, /湾区去哪/);
+    render(app('/category/rent', { categoryFilter: '租屋' }));
+    assert.ok(await screen.findByRole('link', { name: 'Community safety guide' }));
   } finally {
     await setLocale('zh-Hans', false);
   }

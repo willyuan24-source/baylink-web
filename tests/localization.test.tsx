@@ -313,15 +313,16 @@ test('a dated guide title follows language changes in the browser and social met
   window.history.replaceState(null, '', sharedPath);
   setPageMetadata(metadata);
 
+  // H46: the English <title> fits a search result (≤60); the share titles keep the full one
   const titles = [
     ['zh-Hans', '2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票｜BAYLINK'],
-    ['en', 'October 2026 Bay Area savings: free museums, kids workshops and library passes | BAYLINK'],
+    ['en', 'October 2026 Bay Area savings: free museums, kids workshops and library passes | BAYLINK', 'October 2026 Bay Area savings | BAYLINK'],
     ['zh-Hant', '2026 年 10 月灣區省錢攻略：免費場館、親子手工與圖書館門票｜BAYLINK'],
     ['zh-Hans', '2026 年 10 月湾区省钱攻略：免费场馆、亲子手工与图书馆门票｜BAYLINK'],
   ] as const;
-  for (const [locale, title] of titles) {
+  for (const [locale, title, searchTitle] of titles) {
     await setLocale(locale, false);
-    assert.equal(document.title, title, locale);
+    assert.equal(document.title, searchTitle ?? title, locale);
     assert.equal(document.querySelector('meta[property="og:title"]')!.getAttribute('content'), title, locale);
     assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), title, locale);
     const prefix = locale === 'en' ? '/en' : locale === 'zh-Hant' ? '/zh-Hant' : '';
@@ -332,15 +333,16 @@ test('a dated guide title follows language changes in the browser and social met
 
 test('all published editorial metadata titles translate completely and restore their Chinese originals', async () => {
   const pages = [...guides.map(getGuideMetadata), ...localDiscoveries.map(getDiscoveryMetadata)];
-  // The <title> is the full title, or for a very long one the reviewed short title + brand (I18N-SEO-11); the share
-  // titles keep the full one. English titles separate the brand with " | ".
+  // The <title> is the full title, or for a long one a shorter form (I18N-SEO-11; English: at most 60 characters, H46);
+  // the share titles keep the full one. English titles separate the brand with " | ".
   await setLocale('en', false);
   for (const metadata of pages) {
     setPageMetadata(metadata);
     const ogTitle = document.querySelector('meta[property="og:title"]')!.getAttribute('content')!;
     assert.ok(!han.test(document.title), `${metadata.path}: ${document.title}`);
     assert.ok(!han.test(ogTitle), `${metadata.path}: ${ogTitle}`);
-    assert.ok(document.title === ogTitle || ogTitle.length > 72 && document.title.endsWith(' | BAYLINK'), `${metadata.path}: ${document.title}`);
+    assert.ok(document.title.length <= 60, `${metadata.path}: ${document.title}`);
+    assert.ok(document.title === ogTitle || ogTitle.length > 60, `${metadata.path}: ${document.title}`);
     assert.ok(!ogTitle.includes('｜'), `${metadata.path}: ${ogTitle}`);
     assert.equal(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content'), ogTitle, metadata.path);
   }

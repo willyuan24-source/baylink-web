@@ -239,40 +239,58 @@ test('starter chips ask, prefill or open the right tool, in each language', asyn
   }
 });
 
-test('a paused BayBay shows its banner with 911 and 211 first and never a dollar amount', async t => {
-  const banner = { 'zh-Hans': '今日 AI 名额已满，以下为站内资料；明天会恢复。', 'zh-Hant': '今日 AI 名額已滿，以下為站內資料；明天會恢復。', en: "Today's AI answers are used up. Here is information from the site; BayBay is back tomorrow." };
+// H37 (BB-1013-07): the daily share used up is a calm line, not an alarm — no red 911 / 211 above it, the site's own
+// pages instead. A provider pause (nothing can be asked) still leads with 911 · 211.
+test('a used-up daily share shows a calm banner with the site\'s pages; a provider pause leads with 911 and 211; never a dollar amount', async t => {
+  const actions = [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }];
+  const daily = { 'zh-Hans': '今日 AI 名额已满，以下为站内资料；明天会恢复。', 'zh-Hant': '今日 AI 名額已滿，以下為站內資料；明天會恢復。', en: "Today's AI answers are used up. Here is information from the site; BayBay is back tomorrow." };
+  const paused = { 'zh-Hans': 'AI 助手暂停，以下为站内资料。', 'zh-Hant': 'AI 助手暫停，以下為站內資料。', en: 'The AI assistant is paused. Here is information from the site.' };
+  let pause: Record<string, unknown> = {};
   mockBayBayFetch(t, async () => Response.json({ ok: true, answer: 'unused' }));
   const realFetch = globalThis.fetch;
   t.mock.method(globalThis, 'fetch', ((input: unknown, init?: RequestInit) => String(input).endsWith('/ai/baybay-capabilities')
-    ? Promise.resolve(Response.json({ engine: 'v2', enabled: false, pause: { reason: 'daily_budget', kind: 'ai_daily_budget', banner, resumesAt: '2026-10-10T07:00:00.000Z', actions: [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }] }, reduced: null }))
+    ? Promise.resolve(Response.json({ engine: 'v2', enabled: false, pause, reduced: null }))
     : realFetch(input as RequestInfo, init)) as typeof fetch);
   for (const locale of ['zh-Hans', 'en'] as const) {
     await setLocale(locale, false);
-    const view = render(<BayBayAssistantEntry {...props} />);
-    const notice = await view.findByText(new RegExp(locale === 'en' ? "Today's AI answers are used up" : '今日 AI 名额已满'));
-    const box = notice.closest('[data-notice]')!;
-    const calls = within(box as HTMLElement).getAllByRole('link');
-    assert.deepEqual(calls.map(link => link.getAttribute('href')), ['tel:911', 'tel:211']);
-    assert.ok(calls[0].compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING, '911 comes before the text');
+    // The api sends its 911 / 211 actions with every pause; a daily-share pause shows none of them.
+    pause = { reason: 'daily_budget', kind: 'ai_daily_budget', banner: daily, resumesAt: '2026-10-10T07:00:00.000Z', actions };
+    const paths: string[] = [];
+    let view = render(<BayBayAssistantEntry {...props} onNavigate={path => paths.push(path)} />);
+    let notice = await view.findByText(new RegExp(locale === 'en' ? "Today's AI answers are used up" : '今日 AI 名额已满'));
+    let box = notice.closest('[data-notice]')! as HTMLElement;
+    assert.deepEqual(within(box).queryAllByRole('link'), [], 'no call buttons for a used-up daily share');
     // The banner already says it is back tomorrow, so the time follows once, without a second "恢复".
-    assert.match(box.textContent || '', locale === 'en' ? /back tomorrow\. That is Oct 10, 12:00 AM \(Bay Area time\)\.$/ : /明天会恢复。即 10 月 10 日 0:00（湾区时间）$/);
+    assert.match(notice.textContent || '', locale === 'en' ? /back tomorrow\. That is Oct 10, 12:00 AM \(Bay Area time\)\.$/ : /明天会恢复。即 10 月 10 日 0:00（湾区时间）$/);
     assert.equal((box.textContent || '').match(/恢复|back/gi)?.length, 1);
     assert.doesNotMatch(box.textContent || '', /\$/);
+    within(box).getByRole('button', { name: locale === 'en' ? 'This weekend’s events' : '看本周末活动' }).click();
+    within(box).getByRole('button', { name: locale === 'en' ? 'Browse guides' : '查办事指南' }).click();
+    assert.deepEqual(paths, ['/events', '/guides']);
+    cleanup();
+    pause = { reason: 'provider_unavailable', kind: 'ai_paused', banner: paused, actions };
+    view = render(<BayBayAssistantEntry {...props} />);
+    notice = await view.findByText(new RegExp(locale === 'en' ? 'The AI assistant is paused' : 'AI 助手暂停'));
+    box = notice.closest('[data-notice]')! as HTMLElement;
+    const calls = within(box).getAllByRole('link');
+    assert.deepEqual(calls.map(link => link.getAttribute('href')), ['tel:911', 'tel:211']);
+    assert.ok(calls[0].compareDocumentPosition(notice) & Node.DOCUMENT_POSITION_FOLLOWING, '911 comes before the text');
+    assert.equal(within(box).queryByRole('button'), null, 'a provider pause has no site buttons');
     cleanup();
   }
 });
 
 test('while paused, 911 · 211 show once: at the top until an answer carries the notice, then on the newest answer only', async t => {
-  const banner = { 'zh-Hans': '今日 AI 名额已满，以下为站内资料；明天会恢复。', 'zh-Hant': '今日 AI 名額已滿，以下為站內資料；明天會恢復。', en: "Today's AI answers are used up. Here is information from the site; BayBay is back tomorrow." };
+  const banner = { 'zh-Hans': 'AI 助手暂停，以下为站内资料。', 'zh-Hant': 'AI 助手暫停，以下為站內資料。', en: 'The AI assistant is paused. Here is information from the site.' };
   const actions = [{ id: 'call-911', label: '911', href: 'tel:911' }, { id: 'call-211', label: '211', href: 'tel:211' }];
   let count = 0;
-  mockBayBayFetch(t, async () => Response.json({ ok: true, degraded: true, answer: `站内资料第 ${++count} 条`, notice: { kind: 'ai_daily_budget', text: banner['zh-Hans'], resumesAt: '2026-10-10T07:00:00.000Z' }, fallbackHelp: { actions } }));
+  mockBayBayFetch(t, async () => Response.json({ ok: true, degraded: true, answer: `站内资料第 ${++count} 条`, notice: { kind: 'ai_paused', text: banner['zh-Hans'] } }));
   const realFetch = globalThis.fetch;
   t.mock.method(globalThis, 'fetch', ((input: unknown, init?: RequestInit) => String(input).endsWith('/ai/baybay-capabilities')
-    ? Promise.resolve(Response.json({ engine: 'v2', enabled: false, pause: { reason: 'daily_budget', kind: 'ai_daily_budget', banner, resumesAt: '2026-10-10T07:00:00.000Z', actions }, reduced: null }))
+    ? Promise.resolve(Response.json({ engine: 'v2', enabled: false, pause: { reason: 'provider_unavailable', kind: 'ai_paused', banner, actions }, reduced: null }))
     : realFetch(input as RequestInfo, init)) as typeof fetch);
   const view = render(<BayBayAssistantEntry {...props} />);
-  await view.findByText(/今日 AI 名额已满/);
+  await view.findByText(/AI 助手暂停/);
   const calls = () => view.baseElement.querySelectorAll('a[href="tel:911"]');
   assert.equal(calls().length, 1, 'the top banner before any answer');
   for (const question of ['周末去哪', '下雨天去哪']) {
@@ -297,7 +315,7 @@ test('the answer stylesheet uses tokens and rem only, and every control is at le
   assert.match(css, /\.bb-points>li \{[^}]*font-size:var\(--text-reading\)/, 'points use the 17px reading size');
   assert.match(css, /\.bb-emergency__text \{[^}]*font-size:var\(--text-reading\)/, 'the 911 instructions use the reading size');
   assert.match(css, /\.bb-reference li>a \{[^}]*min-height:var\(--control-height\)/, 'source links are full-size targets (44px, 48 in 简洁显示)');
-  assert.match(css, /\.bb-call__number \{ white-space:nowrap; \}/, 'a phone number stays on one line');
+  assert.match(css, /:is\(\.bb-call__number,\.bb-phone-number\) \{ white-space:nowrap; \}/, 'a phone number stays on one line, in a call button or in the text of the 911 card');
 });
 
 test('the resume time is said once: none when the banner has a time, "即 …" after its own 恢复, else a sentence', () => {

@@ -1,4 +1,6 @@
 // Keep this module dependency-free: the public post server also imports it in native Node ESM.
+// (site-flags.ts is a constant-only module with no imports; the .js path resolves in native ESM, Vite and tsx alike.)
+import { COMMUNITY_VISIBLE } from '../data/site-flags.js';
 let translateText = (text: string): string => text;
 let metadataLocale = 'zh_CN';
 let translateStructuredData = (data: Record<string, unknown>[]): Record<string, unknown>[] => data;
@@ -31,6 +33,8 @@ export type PageMetadata = {
   english?: { title?: string; description?: string; imageAlt?: string };
   /** A shorter <title> for search results when the full title is long (og:title keeps the full one; I18N-SEO-11). */
   shortTitle?: string;
+  /** 'en': the short title shortens English titles only (offers and openings keep their whole Chinese titles; H46). */
+  shortTitleScope?: 'en';
   image?: string;
   imageAlt?: string;
   type?: 'website' | 'article';
@@ -89,17 +93,71 @@ const localizedField = (metadata: PageMetadata, field: 'title' | 'description' |
 };
 /** CJK counts as one, Latin as half (the overlay's display units). */
 const displayWidth = (value: string) => [...value].reduce((width, character) => width + (/[\u2e80-\uffff]/.test(character) ? 1 : 0.5), 0);
+/** English <title>s fit a search result: at most 60 characters (H46, I13-09). */
+export const ENGLISH_TITLE_LIMIT = 60;
+const BRAND = ' | BAYLINK';
+/** A cut before one of these words leaves a whole phrase ("Begin birdwatching at Alviso Marina" | "without …"). */
+const PHRASE_BREAK = /^(?:with|without|for|on|in|at|after|before|from|during|near|via|while|that|which|when|until)$/i;
+/** A cut before one of these leaves a list that goes on ("Free California Art, History" | "and …"): it keeps its "…". */
+const LIST_GOES_ON = /^(?:and|or|&)$/i;
+const TRAILING_MARKS = /[\s,;:·|–—&-]+$/u;
+/**
+ * The longest head of `text` within `limit`: before the last phrase break past the middle when there is one (whole, no
+ * "…"; the full title stays in og:title and the H1), else before "and" / "or" with "…", else at a word with "…".
+ */
+const cutAtWord = (text: string, limit: number) => {
+  const words = text.split(' ');
+  let phrase = 0, list = 0;
+  for (let index = 1, length = words[0].length; index < words.length && length <= limit - 1; length += words[index].length + 1, index++) {
+    if (length < limit * 0.55) continue;
+    if (PHRASE_BREAK.test(words[index])) phrase = index;
+    else if (LIST_GOES_ON.test(words[index])) list = index;
+  }
+  if (phrase) return words.slice(0, phrase).join(' ').replace(TRAILING_MARKS, '');
+  if (list) return `${words.slice(0, list).join(' ').replace(TRAILING_MARKS, '')}…`;
+  const head = text.slice(0, limit - 1);
+  const space = head.lastIndexOf(' ');
+  return `${(space > limit / 2 ? head.slice(0, space) : head).replace(TRAILING_MARKS, '')}…`;
+};
+/** The name before its first break ("Alameda Point Antiques Faire: Vintage Finds…" → "Alameda Point Antiques Faire"). */
+const titleHead = (name: string): string | undefined => {
+  const breaks = [': ', ' — ', ' – ', ' · ', ' | ', '? '].map(mark => [name.indexOf(mark), mark] as const).filter(([index]) => index > 0).sort((a, b) => a[0] - b[0]);
+  if (!breaks.length) return undefined;
+  const [index, mark] = breaks[0];
+  return name.slice(0, mark === '? ' ? index + 1 : index).trim();
+};
+/**
+ * H46: an English title longer than 60 characters gives way to, in order: the reviewed short title + " | BAYLINK"; the
+ * page name alone (without the brand) when that fits, or its first and last " · " parts; the name before its first break
+ * + brand; the name cut at a word.
+ * og:title, twitter:title and the H1 keep the full title.
+ */
+export function englishDocumentTitle(full: string, short?: string): string {
+  if (full.length <= ENGLISH_TITLE_LIMIT) return full;
+  const name = full.endsWith(BRAND) ? full.slice(0, -BRAND.length).trim() : full;
+  const branded = (text: string) => /\bBAYLINK\b/.test(text) ? text : `${text}${BRAND}`;
+  // a short title the dictionary cannot translate would put Chinese into an English <title>: it is skipped
+  if (short && !/[㐀-鿿]/.test(short) && branded(short.trim()).length <= ENGLISH_TITLE_LIMIT) return branded(short.trim());
+  if (name.length <= ENGLISH_TITLE_LIMIT) return name;
+  // "AMC · Bay Area · Half-price tickets…": the brand and the offer, without the place between them
+  const segments = name.split(' · ');
+  const condensed = segments.length > 2 ? `${segments[0]} · ${segments[segments.length - 1]}` : name;
+  if (condensed.length <= ENGLISH_TITLE_LIMIT) return condensed;
+  // the listing's own part before its break ("Brand · Restaurant Week: Special Menus…" → "Restaurant Week"), then the name's
+  const lastHead = segments.length > 1 ? titleHead(segments[segments.length - 1]) : undefined;
+  for (const head of [lastHead, titleHead(name)]) if (head && head.length >= 8 && branded(head).length <= ENGLISH_TITLE_LIMIT) return branded(head);
+  const head = titleHead(name);
+  if (head && head.length >= 8 && head.length <= ENGLISH_TITLE_LIMIT) return head;
+  return branded(cutAtWord(condensed, ENGLISH_TITLE_LIMIT - BRAND.length));
+}
 /** The search-result title: the full title when it fits, else the reviewed short title (+ brand). */
 const documentTitle = (metadata: PageMetadata): string => {
   const full = localizedField(metadata, 'title');
-  if (!metadata.shortTitle) return full;
-  const english = isEnglish(metadata);
-  // only a title well past what a result shows (~60 Latin / ~30 CJK) gives way: the full one carries the place and the name
-  if ((english ? full.length : displayWidth(full)) <= (english ? 72 : 38)) return full;
-  const short = metadata.preserveText ? metadata.shortTitle : translateText(metadata.shortTitle);
-  // a short title the dictionary cannot translate would put Chinese into an English <title>: keep the full one
-  if (english && /[\u3400-\u9fff]/.test(short)) return full;
-  return english ? `${short} | BAYLINK` : `${short}｜BAYLINK`;
+  const short = metadata.shortTitle && (metadata.preserveText ? metadata.shortTitle : translateText(metadata.shortTitle));
+  if (isEnglish(metadata)) return englishDocumentTitle(full, short);
+  // only a title well past what a result shows (~30 CJK) gives way: the full one carries the place and the name
+  if (!short || metadata.shortTitleScope === 'en' || displayWidth(full) <= 38) return full;
+  return `${short}｜BAYLINK`;
 };
 /** Search snippets: at most ~155 Latin / ~90 CJK characters, cut at a sentence or word boundary (I18N-SEO-11). */
 export const snippet = (value: string, english: boolean): string => {
@@ -183,6 +241,8 @@ const USER_POST = /^\/(?:(?:en|zh-Hant)\/)?posts\/([^/]+)\/?$/;
 const withPagePolicy = (metadata: PageMetadata): PageMetadata => {
   let pathname: string;
   try { pathname = new URL(metadata.path, SITE_URL).pathname; } catch { return metadata; }
+  // COMMUNITY_VISIBLE = false (site-flags.ts, WEB-COMMUNITY-2): the board's pages and posts are a paused notice, not indexed.
+  if (!COMMUNITY_VISIBLE && /^\/(?:(?:en|zh-Hant)\/)?(?:category|posts)\//.test(pathname)) metadata = { ...metadata, noindex: true };
   const post = USER_POST.exec(pathname);
   if (!post) return metadata;
   const copy = (metadata.locale || metadataLocale) !== 'zh_CN';

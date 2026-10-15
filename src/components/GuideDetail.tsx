@@ -25,7 +25,8 @@ import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
-import { linkifyPhones, PhoneDirectoryOr, PhoneText } from '../lib/phone-links';
+import { linkifyPhones, PhoneText } from '../lib/phone-links';
+import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
 import { createCoverPage, distinctNeighbourTones, type CoverPage } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
@@ -37,16 +38,18 @@ import { FeedCard } from './ui/Card';
 import type { EditorialCopy, GuideEditorial } from '../data/guide-editorial';
 import { guideTopicOf } from '../data/guide-topics';
 import { GuideHeader } from '../features/guides/GuideHeader';
-import { GuideActions } from '../features/guides/GuideActions';
+import { GuideActions, type GuideAsk } from '../features/guides/GuideActions';
 import { GuideCarousel } from '../features/guides/GuideCarousel';
 import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
+import { quickFactsEligible } from '../features/guides/guide-kind';
+import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
 import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
 import { guideCardMeta, guideCover, TOPIC_COVER } from '../features/guides/guide-facts';
 import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
-import { CityExplorationBlock, FreebieBoardBlock } from '../features/guides/guide-blocks';
+import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import '../features/guides/guide-article.css';
 
@@ -60,7 +63,7 @@ type GuideDetailProps = {
   onBack?: () => void;
   onOpenGuide: (slug: string) => void;
   onNavigate: (path: string) => void;
-  onAsk?: (question: string) => void;
+  onAsk?: GuideAsk;
   onOpenPost: (options: {
     type: "client" | "provider";
     categorySlug: string;
@@ -93,13 +96,15 @@ function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Gu
 
 /** A pilot guide's H2 as a step card: a numeral, the original heading (anchor kept) and a one-line conclusion; the original
  * prose and its links fold under "展开原文与来源" (design.md §4.10). Without a conclusion the prose stays open. */
-function StepSection({ number, heading, id, conclusion, children }: { number: number; heading: string; id: string; conclusion?: EditorialCopy; children: ReactNode }) {
+function StepSection({ number, heading, id, conclusion, figures, children }: { number: number; heading: string; id: string; conclusion?: EditorialCopy; figures?: ReactNode; children: ReactNode }) {
   const { t, pick } = useUiCopy();
   return <section className="gd-step" aria-labelledby={id}>
     <div className="gd-step__head">
       <span className="gd-step__number" aria-hidden="true">{number}</span>
       <div><h2 id={id}><SegmentedTitle text={heading} /></h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion))}</p>}</div>
     </div>
+    {/* H22: the step's diagram stays outside the fold, under its conclusion. */}
+    {figures}
     {conclusion ? <details className="gd-step__more"><summary>{t('展开原文与来源', 'Full text and sources')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary><div className="bl-guide-prose">{children}</div></details>
       : <div className="bl-guide-prose">{children}</div>}
   </section>;
@@ -135,7 +140,13 @@ const GuideDetailSession = ({
       && !boardImages.includes(item.image.src));
     const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
     for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
-    return { coverPage, cover, inline, poster, related: relatedForToday(record.related, today) };
+    // The 3D link's postcard (H36) shows only when the page does not already show it, and then claims it like the others.
+    const opusArt = !!record.opus?.postcard && !coverPage.claims.has(record.opus.postcard.src);
+    if (opusArt) coverPage.claims.set(record.opus!.postcard!.src, `page:${guide.slug}`);
+    // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories;
+    // QuickFactsBlock, loaded with the record of those guides only).
+    const quickFacts = quickFactsEligible(guide, !!record.editorial);
+    return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related, today) };
   }, [record, today]);
 
   if (!guide || !page)
@@ -150,6 +161,8 @@ const GuideDetailSession = ({
       </div>
     );
   const { cover, related, coverPage } = page;
+  // Only guides without source marks fold their list (a pilot's ①–⑬ must always land on a visible source).
+  const sourcesShown = !editorial && guide.sources.length >= SOURCES_FOLD_AT ? SOURCES_SHOWN : guide.sources.length;
   const prefaceLength = Math.max(0, guide.blocks.findIndex(block => block.type === 'freebies'));
   const headingIndexes = guide.blocks.flatMap((block, index) => block.type === 'heading' ? [index] : []);
   const inlineAfter = new Map<number, GuideImage[]>();
@@ -179,6 +192,11 @@ const GuideDetailSession = ({
       {inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
     </Fragment>
   );
+  // H22: the pilot guides' diagrams (record.diagrams): `lead` ones after 30 秒看懂, numbered ones inside that step card.
+  const diagramsAt = (at: 'lead' | number) => {
+    const placed = (record?.diagrams ?? []).filter(item => item.at === at);
+    return placed.length ? placed.map((item, index) => <GuideDiagramFigure key={`${at}-${index}`} guide={guide} diagram={item.diagram} />) : null;
+  };
   // Pilot guides: each H2 and the blocks under it become one step card.
   const bodyBlocks = guide.blocks.map((block, index) => ({ block, index })).filter(({ index }) => index >= prefaceLength);
   const stepHeadings = headingIndexes.filter(index => index >= prefaceLength);
@@ -187,7 +205,8 @@ const GuideDetailSession = ({
     {stepHeadings.map((headingIndex, order) => {
       const next = stepHeadings[order + 1] ?? guide.blocks.length;
       const heading = guide.blocks[headingIndex] as Extract<GuideBlock, { type: 'heading' }>;
-      return <StepSection key={headingIndex} number={order + 1} heading={heading.text} id={`guide-section-${headingIndex}`} conclusion={editorial.steps?.[headingIndexes.indexOf(headingIndex)]}>
+      return <StepSection key={headingIndex} number={order + 1} heading={heading.text} id={`guide-section-${headingIndex}`} conclusion={editorial.steps?.[headingIndexes.indexOf(headingIndex)]}
+        figures={diagramsAt(order + 1)}>
         {bodyBlocks.filter(({ index }) => index > headingIndex && index < next).map(({ block, index }) => renderBlock(block, index))}
       </StepSection>;
     })}
@@ -226,10 +245,14 @@ const GuideDetailSession = ({
             <GuideActions guide={guide} onAsk={onAsk} />
             {guide.blocks.some(block => block.type === 'freebies') && <a className="bl-freebie-jump" href="#freebie-board-0">看免费领取图鉴<ArrowDownRight size={17} aria-hidden="true" /></a>}
             {guide.editionMonth && <GuideEditionNotice offers={guide.slug.startsWith('bay-area-freebies-deals-') || guide.blocks.some(block => block.type === 'freebies')} editionMonth={guide.editionMonth} startDate={guide.editionStartDate} throughDate={guide.editionThroughDate} checkedAt={guide.updatedAt} today={today} />}
+            {/* H08: without an editorial record, the fallback 30 秒看懂 comes first (answer first), then the summary. */}
+            {!editorial && page.quickFacts && <QuickFactsBlock guide={guide} today={today} />}
             {editorial ? <KeyFactsCard guide={guide} facts={editorial.keyFacts} />
               : <div className="gd-summary"><p>{guide.summary}</p>{guide.audience.length > 0 && <p className="gd-summary__audience"><span>{t('适合：', 'For: ')}</span>{guide.audience.map((audience, index) => <Fragment key={audience}>{index > 0 && '、'}<span>{audience}</span></Fragment>)}</p>}</div>}
           </div>
         </div>
+        {record?.opus && <GuideOpusBlock entry={record.opus} showArt={page.opusArt} />}
+        {diagramsAt('lead')}
         {editorial?.contacts && <ContactCards guide={guide} contacts={editorial.contacts} />}
         {prefaceLength > 0 && <div className="bl-guide-prose">{guide.blocks.slice(0, prefaceLength).map(renderBlock)}</div>}
         {guide.slug in FREEBIE_GALLERIES && <PerksGallery topic={FREEBIE_GALLERIES[guide.slug]} />}
@@ -267,25 +290,18 @@ const GuideDetailSession = ({
                 <ShieldCheck size={22} strokeWidth={1.4} aria-hidden="true" />
               </span>
               <h2 id="guide-sources">官方参考资料与办事入口</h2>
-              <p>
+              {/* H13: the page's one template caution (data-template-note): the hedging lint and probes do not count it as the
+                  article's own wording (tests/guide-hedging.test.tsx). */}
+              <p data-template-note="">
                 按你的具体情况核对原始资料。票价、开放时间、法规和服务安排可能变化。
               </p>
-              <ul>
-                {guide.sources.map((source, index) => (
-                  <li key={source.url} id={`guide-source-${index + 1}`}>
-                    <a
-                      href={source.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {source.title}
-                      <ArrowUpRight size={15} aria-hidden="true" />
-                      <span className="sr-only">（在新标签页打开）</span>
-                    </a>
-                    <p><PhoneText text={source.description} /></p>
-                  </li>
-                ))}
-              </ul>
+              {/* H66: a long source list (a deals board cites one page per offer: 180+ on the October board, 33 phone screens)
+                  shows its first SOURCES_SHOWN and folds the rest under 看全部 N 个来源; pilot guides keep the whole list. */}
+              <ul>{guide.sources.slice(0, sourcesShown).map((source, index) => <SourceItem key={source.url} source={source} index={index} />)}</ul>
+              {guide.sources.length > sourcesShown && <details className="gd-sources-more">
+                <summary>{t(`看全部 ${guide.sources.length} 个官方来源`, `All ${guide.sources.length} official sources`)}<ChevronDown size={17} aria-hidden="true" /></summary>
+                <ul>{guide.sources.slice(sourcesShown).map((source, index) => <SourceItem key={source.url} source={source} index={sourcesShown + index} />)}</ul>
+              </details>}
               <LazyReportErrorLink key={`report-guide-${slug}`} className="feedback-report-row--guide" entity={{ kind: 'guide', id: slug }} title={guide.title} />
             </section>
             {guide.sourceNote && (
@@ -303,6 +319,21 @@ const GuideDetailSession = ({
     </div>
   );
 };
+
+/** A source list this long folds after SOURCES_SHOWN (H66), on guides without an editorial record. */
+const SOURCES_FOLD_AT = 14;
+const SOURCES_SHOWN = 8;
+
+function SourceItem({ source, index }: { source: { title: string; url: string; description: string }; index: number }) {
+  return <li id={`guide-source-${index + 1}`}>
+    <a href={source.url} target="_blank" rel="noopener noreferrer">
+      {source.title}
+      <ArrowUpRight size={15} aria-hidden="true" />
+      <span className="sr-only">（在新标签页打开）</span>
+    </a>
+    <p><PhoneText text={source.description} /></p>
+  </li>;
+}
 
 const Checklist = ({ items }: { items: string[] }) => {
   const [checked, setChecked] = useState<number[]>([]);
@@ -365,7 +396,7 @@ const GuideTemplate = ({ title, text }: { title: string; text: string }) => {
           {status === 'copying' ? '正在复制…' : status === 'copied' ? '已复制' : '复制模板'}
         </button>
       </div>
-      <p className="bl-guide-template-note">示例模板：请替换方括号中的内容，核对后再发送。</p>
+      <p className="bl-guide-template-note" data-template-note="">示例模板：请替换方括号中的内容，核对后再发送。</p>
       <pre tabIndex={0}>{text}</pre>
       <p className="bl-guide-template-status" role="status">
         {status === 'failed' ? '浏览器未允许复制，请选中上方文字手动复制。' : status === 'copied' ? '模板已复制。请填写你的真实情况。' : ''}
@@ -402,11 +433,11 @@ const BlockRenderer = ({
       return <p><PhoneText text={block.text} /></p>;
     case "list":
       return (
-        <PhoneDirectoryOr items={block.items}><ul className="bl-guide-bullet-list">
+        <GuidePhoneDirectoryOr items={block.items}><ul className="bl-guide-bullet-list">
           {block.items.map((item, i) => (
             <li key={i}><PhoneText text={item} /></li>
           ))}
-        </ul></PhoneDirectoryOr>
+        </ul></GuidePhoneDirectoryOr>
       );
     case "checklist":
       return <Checklist items={block.items} />;

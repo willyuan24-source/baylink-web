@@ -21,6 +21,7 @@ import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover } from '../features/guides/GuideCover';
+import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GUIDE_REGIONS, guideCardMeta, guideCover, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
 import { guideEditorialAnswer } from '../data/guide-editorial/answers';
@@ -29,7 +30,7 @@ import '../features/guides/guide-library.css';
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
 
-type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: (question: string) => void; onSearch?: (query: string) => void };
+type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: GuideAsk; onSearch?: (query: string) => void };
 type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
 const RAIL_SIZE = 6;
@@ -162,7 +163,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const heading = searching ? t('搜索结果', 'Search results') : topic ? topicName(topic) : category ? categoryLabel : regionLabel;
 
   return <div className="gl-page" data-testid="guides-home">
-    <PageHeader className="gl-header" title={savedOnly ? t('我的指南收藏', 'Your saved guides') : topic && !searching ? `${topicName(topic)} · ${t('湾区生活指南', 'Bay Area guides')}` : t('湾区生活指南', 'Bay Area guides')}
+    <PageHeader className="gl-header" title={savedOnly ? t('我的指南收藏', 'Your saved guides') : topic && !searching ? `${topicName(topic)} · ${t('办事与生活指南', 'How-to guides')}` : t('办事与生活指南', 'How-to guides for Bay Area life')}
       lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and the official way in. ${guides.length} guides, each with its official sources.`)} />
     <div className="gl-find">
       <label className="gl-search"><Search aria-hidden="true" strokeWidth={1.75} />
@@ -210,7 +211,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
           : listed.length === 0 ? <EmptyState icon={Search} title={t('还没有找到相关指南', 'No matching guides yet')} body={t('换个关键词或地区，也可以搜全站，或把问题交给 BayBay。', 'Try another word or region, search the whole site, or ask BayBay.')}
           actions={<>
             <Button variant="primary" onClick={() => update({ q: '', topic: null, region: null, category: null })}>{t('查看全部指南', 'Browse all guides')}</Button>
-            {searching && onAsk ? <Button variant="text" onClick={() => onAsk(query)}>{t('问 BayBay', 'Ask BayBay')}</Button>
+            {searching && onAsk ? <Button variant="text" onClick={() => onAsk(query, { mode: 'draft' })}>{t('问 BayBay', 'Ask BayBay')}</Button>
               : searching && onSearch ? <Button variant="text" onClick={() => onSearch(query)}>{t('搜全站', 'Search the whole site')}</Button> : null}
           </>} />
           : searching ? <ul className="gl-results" aria-label={heading}>{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>

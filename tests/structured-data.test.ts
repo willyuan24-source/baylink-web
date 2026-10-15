@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import '../src/i18n/metadata';
-import { setLocale } from '../src/i18n/locale';
+import { loadLocale, setLocale, translateText } from '../src/i18n/locale';
 import { renderMetadataHtml } from '../src/lib/seo';
 import { guides } from '../src/data/guides';
 import { getLocalDiscovery, localDiscoveries, discoveryShare } from '../src/data/local-discoveries';
@@ -10,7 +10,7 @@ import { getGuideMetadata } from '../src/lib/guide-metadata';
 import { eventsMetadata, upcomingEventList } from '../src/lib/monthly-metadata';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { languagePath, type SiteLanguage } from '../src/lib/language-path';
-import { eventOffers, eventOrganizer, eventTimes, pacificDateTime, pacificOffset, venueParts } from '../src/lib/schema-org';
+import { eventOffers, eventOrganizer, eventTimes, labelTimes, ORGANIZER_BY_HOST, pacificDateTime, pacificOffset, venueParts } from '../src/lib/schema-org';
 import { checkStructuredData, structuredDataOf } from '../scripts/structured-data-check';
 import guidePublished from '../src/data/first-published/guides.json';
 import listingPublished from '../src/data/first-published/listings.json';
@@ -54,6 +54,11 @@ test('Event JSON-LD: Bay Area times with their offset, status, attendance, organ
     if (event.sessions?.some(session => session.start) && event.status !== 'postponed' && event.status !== 'cancelled') {
       const first = [...event.sessions].sort((a, b) => a.date.localeCompare(b.date) || (a.start || '').localeCompare(b.start || ''))[0];
       if (first.start) { assert.match(entity.startDate, /T\d{2}:\d{2}:00-0[78]:00$/, event.id); timed++; }
+    } else if (labelTimes(event)) {
+      // H47: a one-day listing without sessions states its time in its date line, which the page shows
+      assert.equal(entity.startDate, pacificDateTime(event.startDate, labelTimes(event)!.start), event.id);
+      assert.ok(event.dateLabel.includes(`:${labelTimes(event)!.start.slice(3)}`), `${event.id}: the time is in the date line`);
+      timed++;
     } else assert.match(entity.startDate, /^\d{4}-\d{2}-\d{2}$/, `${event.id}: no stated time, no invented one`);
     assert.equal(entity.eventAttendanceMode, 'https://schema.org/OfflineEventAttendanceMode');
     assert.equal(entity.eventStatus, event.status === 'cancelled' ? 'https://schema.org/EventCancelled' : event.status === 'postponed' ? 'https://schema.org/EventPostponed' : 'https://schema.org/EventScheduled', event.id);
@@ -93,7 +98,8 @@ test('Event JSON-LD: Bay Area times with their offset, status, attendance, organ
   assert.equal(eventOrganizer({ sourceLabel: 'luma.com', officialUrl: 'https://luma.com/abc' }), undefined);
   assert.equal(eventOrganizer({ sourceLabel: 'visitpetaluma.com', officialUrl: 'https://www.visitpetaluma.com/event/x/' }), undefined, 'a visitor bureau lists, it does not organize');
   assert.equal(eventOrganizer({ sourceLabel: 'chasecenter.com', officialUrl: 'https://www.chasecenter.com/events/x' }), undefined, 'a bare commercial domain is not named as the organizer');
-  assert.deepEqual(eventOrganizer({ sourceLabel: 'sfpl.org', officialUrl: 'https://sfpl.org/events/x' }), { '@type': 'Organization', name: 'sfpl.org', url: 'https://sfpl.org/' });
+  assert.deepEqual(eventOrganizer({ sourceLabel: 'sfpl.org', officialUrl: 'https://sfpl.org/events/x' }), { '@type': 'Organization', name: 'San Francisco Public Library', url: 'https://sfpl.org/' }, 'H47: the name other listings of the site record');
+  assert.deepEqual(eventOrganizer({ sourceLabel: 'napalibrary.gov', officialUrl: 'https://napalibrary.gov/x' }), { '@type': 'Organization', name: 'napalibrary.gov', url: 'https://napalibrary.gov/' }, 'an organisation site nobody names keeps its domain');
   assert.deepEqual(eventOrganizer({ sourceLabel: 'Lambtown Festival 主办方', officialUrl: 'https://www.lambtown.org/schedule' }), { '@type': 'Organization', name: 'Lambtown Festival', url: 'https://www.lambtown.org/' });
   // a bureau's listing names the organizer after the slash, and its host is never the organizer's url
   assert.deepEqual(eventOrganizer({ sourceLabel: 'Marin Convention & Visitors Bureau / Point Reyes Open Studios', officialUrl: 'https://www.visitmarin.org/event-calendar/x/' }), { '@type': 'Organization', name: 'Point Reyes Open Studios' });
@@ -112,6 +118,62 @@ test('Event JSON-LD: Bay Area times with their offset, status, attendance, organ
     assert.ok(!/visitors?\s+bureau|^(?:calendar|events?)\./i.test(organizer.name), `${event.id}: ${organizer.name}`);
     if (organizer.url) assert.ok(!/visit[a-z-]*\.(?:com|org)|luma\.com|eventbrite/.test(organizer.url), `${event.id}: ${organizer.url} is a listing`);
   }
+});
+
+test('H47: one-day listings state the time their date line gives; streets after a comma; organizers by their site; inLanguage per edition', async () => {
+  const day = { startDate: '2026-10-18', endDate: '2026-10-18' } as const;
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 14:00–16:00' }), { start: '14:00', end: '16:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10 月 18 日 · 10:30 开始' }), { start: '10:30' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 官方总时段 07:00–14:00；称重预计约 07:00–11:00' }), { start: '07:00', end: '14:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: 'Oct 18 · 4:30–6pm' }), { start: '16:30', end: '18:00' }, 'the end’s pm reads the start');
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 19:00 开门；20:00 开演' }), { start: '20:00' }, 'doors are not the start');
+  // an end from 20:00 on reads both its digits (review 10-14: "–2" was read and dropped)
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/15 · 18:00–22:00' }), { start: '18:00', end: '22:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10:00–20:00' }), { start: '10:00', end: '20:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/2 · 20:00–23:30' }), { start: '20:00', end: '23:30' });
+  assert.equal(eventTimes({ ...day, dateLabel: '10/18 · 18:00–22:00' }).endDate, '2026-10-18T22:00:00-07:00');
+  // entry and registration times are not the start either
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 19:00入场／20:00开演' }), { start: '20:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '9/29 · 18:30入場／19:30開演' }), { start: '19:30' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 09:00 登记；10:00 开幕' }), { start: '10:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/3 · 09:00 登记；10:00 开幕；10:35 开走；12:00 结束。' }), { start: '10:00', end: '12:00' }, 'a time the line ends at');
+  // an entry window is when the event runs; "供餐至13:00" is when it ends
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10月11日 9:00–12:30入场；供餐至13:00' }), { start: '09:00', end: '13:00' });
+  // a line with two ranges runs until the later one ends
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/18 · 10:00–12:00 或 13:00–15:00' }), { start: '10:00', end: '15:00' });
+  assert.deepEqual(labelTimes({ ...day, dateLabel: '10/24 · 蝴蝶手作11:00–14:00；乐团11:00–16:00；末节乐器体验16:00–16:30' }), { start: '11:00', end: '16:30' });
+  assert.equal(labelTimes({ ...day, dateLabel: '10/18 · 全天' }), undefined, 'no time stated, none invented');
+  assert.equal(labelTimes({ startDate: '2026-10-17', endDate: '2026-10-18', dateLabel: '10/17–10/18 · 10:00–17:00' }), undefined, 'a multi-day line may give one day’s hours');
+  assert.equal(labelTimes({ ...day, dateLabel: '10/18 · 14:00–16:00', sessions: [{ date: '2026-10-18', start: '13:00' }] }), undefined, 'sessions win');
+  assert.equal(labelTimes({ ...day, dateLabel: '10/18 · 14:00–16:00', status: 'postponed' }), undefined);
+  assert.equal(eventTimes({ ...day, dateLabel: '10/18 · 14:00–16:00' }).startDate, '2026-10-18T14:00:00-07:00');
+  assert.equal(eventTimes({ ...day, dateLabel: '10/18 · 14:00–16:00' }).endDate, '2026-10-18T16:00:00-07:00');
+  assert.deepEqual(venueParts('Healdsburg Regional Library 主阅览室，139 Piper Street'), { name: 'Healdsburg Regional Library 主阅览室，139 Piper Street', streetAddress: '139 Piper Street' });
+  assert.deepEqual(venueParts('Oakland Arena, 7000 Coliseum Way'), { name: 'Oakland Arena, 7000 Coliseum Way', streetAddress: '7000 Coliseum Way' });
+  assert.deepEqual(venueParts('Ross Street, Downtown Santa Rosa'), { name: 'Ross Street, Downtown Santa Rosa' }, 'no house number, no street');
+  // every name in the host table is how the event data already names that site's organisation (no new facts)
+  const hostOf = (url: string) => new URL(url).hostname.replace(/^www\./, '');
+  await loadLocale('en');
+  for (const [host, name] of Object.entries(ORGANIZER_BY_HOST)) {
+    const labels = MONTHLY_EVENTS.filter(event => hostOf(event.officialUrl) === host).map(event => event.sourceLabel);
+    // the label or its reviewed English ("美国华人历史学会活动页" → "Chinese Historical Society of America event page")
+    if (labels.length) assert.ok(labels.some(label => label.includes(name) || translateText(label, 'en').includes(name)), `${host}: ${name} is not a label of its listings`);
+  }
+  assert.equal(eventOrganizer({ sourceLabel: '美国华人历史学会活动页', officialUrl: 'https://chsa.org/event/x/' })?.name, 'Chinese Historical Society of America');
+  assert.equal(eventOrganizer({ sourceLabel: 'petalumavintage.com', officialUrl: 'https://www.petalumavintage.com/' })?.name, 'Petaluma Vintage Market');
+  assert.equal(eventOrganizer({ sourceLabel: '旧金山公共图书馆活动页（列治文分馆）', officialUrl: 'https://sfpl.org/events/2026/11/14/film' })?.name, 'San Francisco Public Library');
+  assert.equal(eventOrganizer({ sourceLabel: 'chasecenter.com', officialUrl: 'https://www.chasecenter.com/events/x' }), undefined, 'a venue’s site still names no organizer');
+  // inLanguage: each language edition says its own language, on events and on offer/opening articles
+  const event = localDiscoveries.find(item => item.kind === 'event')!;
+  const offer = localDiscoveries.find(item => item.kind === 'offer')!;
+  for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as SiteLanguage[]) {
+    await setLocale(locale, false);
+    for (const item of [event, offer]) {
+      const [entity] = ldOf({ ...getDiscoveryMetadata(item), path: languagePath(discoveryShare(item).path, locale) });
+      assert.equal(entity.inLanguage, locale, `${item.kind} ${locale}`);
+    }
+  }
+  await setLocale('zh-Hans', false);
 });
 
 test('Article JSON-LD: the editorial desk as author, the first-published day, localized page URLs, files keep one address', async () => {

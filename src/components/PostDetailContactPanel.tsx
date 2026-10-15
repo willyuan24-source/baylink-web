@@ -5,6 +5,7 @@ import { Button } from './ui/Button';
 import { useUiCopy } from './ui/ui-copy';
 import { friendlyErrorMessage } from '../lib/format';
 import { CategorySafetyNotice } from './CategorySafetyNotice';
+import { categoryName, regionName } from '../features/posts/community-copy';
 
 type ContactPreference = {
   mode?: 'dm_first' | 'auto_send' | 'manual_approve';
@@ -18,7 +19,7 @@ type ContactRequestItem = {
 };
 
 type PostDetailContactPanelProps = {
-  post: { id: string; authorId: string; category: string; title: string; contactPreference?: ContactPreference; status?: 'active' | 'closed' };
+  post: { id: string; authorId: string; category: string; title: string; contactPreference?: ContactPreference; status?: 'active' | 'closed'; city?: string; budget?: string };
   currentUser?: { id: string } | null;
   isOwner: boolean;
   onLoginNeeded: () => void;
@@ -67,7 +68,7 @@ const ContactPanelSession = ({
   onShare,
   section = 'all',
 }: PostDetailContactPanelProps) => {
-  const { t } = useUiCopy();
+  const { t, pick, english } = useUiCopy();
   const [requestStatus, setRequestStatus] = useState<string | null>(null);
   const [verificationNeeded, setVerificationNeeded] = useState(false);
   const [loadingRequest, setLoadingRequest] = useState(false);
@@ -163,6 +164,12 @@ const ContactPanelSession = ({
   };
 
   const categoryPrompt = getBayBayCategoryPrompt(post.category);
+  // H32 (FCC-06): BayBay has no page record for a post (the API reads guides, events, offers and openings), so the post's
+  // public facts go with the question itself: title, board, area and price. The title stays as written (it is the poster's
+  // text). No posted date: BayBay reads any date in a question as the day being asked about (searchContext.date).
+  const title = post.title.trim().slice(0, 80);
+  const facts = [pick(categoryName(post.category)), post.city ? pick(regionName(post.city)) : '', post.budget?.trim().slice(0, 40) || ''].filter(Boolean).join(english ? ', ' : '，');
+  const aboutPost = (question: string) => english ? `About this neighborhood post “${title}” (${facts}): ${question}` : `${t('关于这条邻里信息', 'About this neighborhood post')}「${title}」（${facts}）：${question}`;
 
   return (
     <div className="cm-contact">
@@ -189,9 +196,9 @@ const ContactPanelSession = ({
         <p className="cm-contact__note">{t('不确定怎么联系？BayBay 可以帮你整理要问的问题和安全提醒。', 'Not sure what to ask? BayBay can list the questions and the safety checks.')}</p>
         <div className="cm-sheet__prompts">
           {[{ zh: '这类帖子联系前要问什么？', en: 'What should I ask before contacting?' }, { zh: '这条信息有什么需要注意？', en: 'What should I watch out for here?' }, { zh: '帮我整理一段私信开场白', en: 'Help me write a first message' }].map((q) => (
-            <button key={q.zh} type="button" className="ui-chip" onClick={() => onAskBayBay(t(q.zh, q.en))}>{t(q.zh, q.en)}</button>
+            <button key={q.zh} type="button" className="ui-chip" onClick={() => onAskBayBay(aboutPost(t(q.zh, q.en)))}>{t(q.zh, q.en)}</button>
           ))}
-          {categoryPrompt && <button type="button" className="ui-chip" onClick={() => onAskBayBay(categoryPrompt)}>{t(categoryPrompt, categoryPrompt)}</button>}
+          {categoryPrompt && <button type="button" className="ui-chip" onClick={() => onAskBayBay(aboutPost(categoryPrompt))}>{t(categoryPrompt, categoryPrompt)}</button>}
         </div>
       </section>}
 

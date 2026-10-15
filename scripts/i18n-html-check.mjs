@@ -62,6 +62,33 @@ export function englishProblems(html) {
 }
 
 /**
+ * H41 (I13-04): US-style times and dates on English pages. A clock time with no am/pm on it or on the end of its range
+ * ("18:30", "14:00–16:00"; "4:30–6pm" is fine) and an ISO date ("2026-10-13") in the page text or head are problems.
+ * The same patterns as src/lib/english-times.ts (TWENTY_FOUR_HOUR, ISO_DATE). The site converts them as it shows its
+ * English (the switch in src/i18n/metadata.ts; src/i18n/locale.ts englishEntry / englishNeutral); the generator adds
+ * the English entries of neutral date lines. This script runs in Node only, so it may use a look-behind.
+ */
+const CLOCK = /(?<![\d:.$/])\b([01]?\d|2[0-3]):[0-5]\d\b(?!\s?(?:[ap]\.?\s?m\b|[–—-]\s?\d{1,2}(?::\d\d)?\s?[ap]\.?\s?m\b))/gi;
+const ISO_DATE = /\b20\d\d-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])\b/g;
+export function englishFormatProblems(html) {
+  const problems = [];
+  for (const text of readableText(html)) {
+    const found = [...text.matchAll(CLOCK), ...text.matchAll(ISO_DATE)].map(match => match[0]);
+    if (found.length) problems.push(`${found.join(', ')} in "${text.replace(/\s+/g, ' ').trim().slice(0, 70)}"`);
+  }
+  return problems;
+}
+
+/** H46 (I13-09): an English <title> fits a search result, at most 60 characters. */
+export const ENGLISH_TITLE_LIMIT = 60;
+export function englishTitleProblems(html) {
+  const title = /<title>([^<]*)<\/title>/.exec(html.slice(0, Math.max(0, html.indexOf('<body')) || html.length))?.[1];
+  if (title === undefined) return [];
+  const text = decode(title);
+  return text.length > ENGLISH_TITLE_LIMIT ? [`${text.length} characters: ${text}`] : [];
+}
+
+/**
  * Characters Taiwan's standard writes as they are, which opencc's character table still maps (里 → 裏, 吃 → 喫,
  * 床 → 牀, 游 → 遊 …): Traditional text uses them, so they never mark an unconverted string.
  */

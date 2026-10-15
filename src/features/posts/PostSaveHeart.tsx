@@ -22,7 +22,8 @@ export function PostSaveHeart({ post, title, userId, labelled, className }: { po
     setToast('');
     prepareSaveAnnouncer();
     const result = await save.toggle();
-    if (result?.saved) setToast(t('已收藏', 'Saved'));
+    // H77: a post save is kept in this browser only (the account's favorites have no post kind), and the toast says so.
+    if (result?.saved) setToast(t('已收藏在这台设备', 'Saved on this device'));
   };
   const saved = !!save.saved;
   return <>

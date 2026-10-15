@@ -7,6 +7,7 @@ import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateCh
 import type { IndexEvent, IndexOffer, IndexOpening } from './events-index-types';
 import { monthDay, regionLabel } from './events-model';
 import { SaveToWeek } from '../../components/SaveToWeek';
+import type { Favorite } from '../../lib/planner';
 
 const facts = (event: IndexEvent) => event as unknown as EventFactsInput;
 
@@ -36,17 +37,24 @@ export function EventMeta({ event }: { event: IndexEvent }) {
 }
 
 /**
- * Two-column feed card (3:4): the cover from `resolveCovers`, title, place · price, and the source check. `day` (the
- * calendar's chosen day) goes into the link, so the detail page opens on it. `action` (the calendar's 加入这天计划,
- * WEB-SAVES) is a sibling of the card link under the meta lines; the weekend feed passes none (one link per card).
+ * ♡ on a card's cover (H31, EVT13-10 / FCC-04 / SV13-10): the one save control, in the card's save slot over the cover's
+ * top-right corner, the same heart as the home feed (reader-library.css styles it as a 44px circle). The lazy
+ * `SaveToWeek` keeps the save store off the route graph; its name reads "收藏：<title>".
+ */
+const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;
+
+/**
+ * Two-column feed card (3:4): the cover from `resolveCovers`, title, place · price, the source check and ♡ on the cover.
+ * `day` (the calendar's chosen day) goes into the link, so the detail page opens on it. `action` (the calendar's
+ * 加入这天计划, WEB-SAVES) takes the save slot instead, as a sibling of the card link under the meta lines.
  */
 export function EventFeedCard({ event, cover, tone, today, days, day, priority, sizes, heading = 'h3', action }: { event: IndexEvent; cover: ResolvedCover; tone?: CoverTone; today: string; days?: readonly string[]; day?: string; priority?: boolean; sizes?: string; heading?: 'h2' | 'h3'; action?: ReactNode }) {
   return <FeedCard title={event.title} to={day ? `/events/${event.id}?date=${day}` : `/events/${event.id}`} heading={heading} className={action ? 'ev-card--action' : undefined}
     cover={<EventCover event={facts(event)} cover={cover} tone={tone} today={today} days={days} priority={priority} sizes={sizes} decorative />}
-    meta={<EventMeta event={event} />} trust={<TrustLine day={event.verifiedAt} />} save={action} />;
+    meta={<EventMeta event={event} />} trust={<TrustLine day={event.verifiedAt} />} save={action ?? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
 }
 
-/** 4:5 editor's pick: photo with the title on the scrim, or the A2 TypeCover with the title below. */
+/** 4:5 editor's pick: photo with the title on the scrim, or the A2 TypeCover with the title below; ♡ on the cover. */
 export function EventHeroCard({ event, cover, today, date, reason, priority }: { event: IndexEvent; cover: ResolvedCover; today: string; date: string; reason?: { zh: string; en: string }; priority?: boolean }) {
   const { english, pick, t, locale } = useUiCopy();
   const chip = formatDateChip(eventDateChip(facts(event), today, [date]), english);
@@ -60,7 +68,7 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
     kicker={city === region || (event.city === 'San Francisco' && event.region === 'sf') ? region : `${city} · ${region}`}
     facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [pick(price.text)] : [])]}
     reason={reason ? { label: t('编辑推荐', 'Editor’s pick'), text: pick(reason) } : undefined}
-    trust={<TrustLine day={event.verifiedAt} />} />;
+    trust={<TrustLine day={event.verifiedAt} />} save={<CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
 }
 
 /**
@@ -78,24 +86,24 @@ export function EventRowCard({ event, cover, today, day, action }: { event: Inde
 }
 
 /**
- * Offer card (1:1): the brand's own image with a deadline sticker, or the B TypeCover with the value large. Its ♡ saves
- * the offer (the one save model, WEB-SAVES; the lazy `SaveToWeek` keeps the store off the route graph).
+ * Offer card (1:1): the brand's own image with a deadline sticker, or the B TypeCover with the value large. Its ♡ on the
+ * cover saves the offer (the one save model, WEB-SAVES), as on event cards.
  */
 export function OfferFeedCard({ offer, cover, today, tone }: { offer: IndexOffer; cover: ResolvedCover; today: string; tone?: CoverTone }) {
   const { pick, locale } = useUiCopy();
   const brand = offerBrandLine(offer.brand, locale);
-  return <FeedCard title={offer.title} to={`/offers/${offer.id}`} className="ev-card--action"
+  return <FeedCard title={offer.title} to={`/offers/${offer.id}`}
     cover={<OfferCover offer={offer} cover={cover} today={today} tone={tone} decorative />}
     meta={<OfferCardMeta brand={brand} kind={pick(offerKindLabel(offer))} onCover={cover.tier === 'type'} />}
-    trust={<TrustLine day={offer.verifiedAt} />} save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />;
+    trust={<TrustLine day={offer.verifiedAt} />} save={<CoverSave favorite={{ kind: 'offer', id: offer.id }} title={offer.title} />} />;
 }
 
-/** New shop card: the shop's own image, or the opening TypeCover ("10 月开业" / "即将开业"). Its ♡ saves the opening (WEB-SAVES). */
+/** New shop card: the shop's own image, or the opening TypeCover ("10 月开业" / "即将开业"). Its ♡ on the cover saves the opening. */
 export function OpeningFeedCard({ opening, cover, today, tone }: { opening: IndexOpening; cover: ResolvedCover; today: string; tone?: CoverTone }) {
   const { pick, locale } = useUiCopy();
-  return <FeedCard title={opening.name} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} className="ev-card--action"
+  return <FeedCard title={opening.name} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
     cover={<OpeningCover opening={opening} cover={cover} today={today} tone={tone} decorative />}
     meta={<>{translateText(opening.city, locale)} · {pick(openingChip(opening, today))}</>}
-    trust={<TrustLine day={opening.verifiedAt} />} save={<SaveToWeek favorite={{ kind: 'opening', id: opening.id }} compact title={opening.name} />} />;
+    trust={<TrustLine day={opening.verifiedAt} />} save={<CoverSave favorite={{ kind: 'opening', id: opening.id }} title={opening.name} />} />;
 }
 

@@ -28,6 +28,7 @@ import { useCloseOverlay } from './overlay-close';
 import { getLocale } from '../i18n/locale';
 import { useSession } from './useSession';
 import { useCommunityFeed } from './useCommunityFeed';
+import { COMMUNITY_VISIBLE } from '../data/site-flags';
 import { OverlayHost } from './OverlayHost';
 import { BootMainSettled, bootMainFallback } from './boot-main';
 import { confirmDialog } from '../components/ui/confirm';
@@ -229,7 +230,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     if (LEGAL_METADATA[path.replace(/\/$/, '')]) { setPageMetadata(LEGAL_METADATA[path.replace(/\/$/, '')]); return; }
     if (path.startsWith('/guides')) {
       // /guides/:slug 的具体标题由 GuideDetailPage 设置（guides 语料已懒加载，布局层不再 import）
-      if (!guideSlugParam) document.title = '湾区生活指南｜BAYLINK';
+      if (!guideSlugParam) document.title = GUIDES_METADATA.title;
     } else if (path.startsWith('/messages')) {
       document.title = '消息｜BAYLINK';
     } else if (/^\/me\/bookings\/?$/.test(path)) {
@@ -474,6 +475,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   };
 
   const openCreate = (type?: PostType, category?: string, initialIntent = '') => {
+    if (!COMMUNITY_VISIBLE) { showToast(getLocale() === 'en' ? 'The neighborhood board is paused, and so is posting.' : '邻里信息暂停中，暂时不能发布。', 'info'); return; }
     cancelPendingContact();
     setEditingPost(null);
     setCreateDefaultType(type);

@@ -30,6 +30,21 @@ test('/events is a prerendered page; /this-week and /recommend are 301s to it; /
   assert.equal(hosted('/n/sf?probe=1&from=x').location, '/events?probe=1&from=card-sf&region=sf');
 });
 
+// H35 (HOMEIA13-07): /this-month is no longer an orphan 全部日期 page with a seasonal title but a 301 to the events column on
+// 全部日期, its query kept; a `when` of its own wins over the default (/this-month?when=november stays November).
+test('/this-month is a 301 to /events?when=all in every language, query kept, its own when= first; its prerendered route stays behind it', () => {
+  for (const prefix of ['', '/en', '/zh-Hant']) {
+    for (const path of ['/this-month', '/this-month/']) assert.deepEqual([hosted(`${prefix}${path}`).status, hosted(`${prefix}${path}`).location], [301, `${prefix}/events?when=all`], `${prefix}${path}`);
+    assert.equal(hosted(`${prefix}/this-month?region=sf&from=opus`).location, `${prefix}/events?region=sf&from=opus&when=all`);
+    assert.equal(hosted(`${prefix}/this-month?when=november`).location, `${prefix}/events?when=november`);
+    assert.equal(hosted(hosted(`${prefix}/this-month`).location!).file, `${prefix}/events.html`, 'one hop to the events page');
+  }
+  // The 3D game's site test (tests/opus-bay-w8-s-site.test.ts) still finds a prerendered route for /this-month; the 301 precedes it.
+  const redirectAt = routes.findIndex(route => route.src === '^/this-month/?$' && route.status === 301 && !route.has);
+  const pageAt = routes.findIndex(route => route.dest === '/$1.html' && !route.has && new RegExp(route.src!).test('/this-month'));
+  assert.ok(redirectAt > 0 && pageAt > redirectAt, 'the redirect comes before the static-page group');
+});
+
 test('?lang= sends an unprefixed URL to its language, keeps date/region/from/stops, and never touches the game or loops', () => {
   const redirect = hosted('/calendar?date=2026-10-10&region=sf&from=opus-title&lang=en');
   assert.equal(redirect.status, 301);
@@ -51,7 +66,7 @@ test('hosting routes are generated from the route table: static pages, SPA shell
   const table = tableHostingRoutes();
   assert.ok(routes.some(route => route.src === table.staticPages.src && route.dest === '/$1.html'), 'the static-page group is the table\'s');
   assert.ok(routes.some(route => route.src === table.spaShell.src && route.dest === '/index.html'), 'the SPA shell is the table\'s');
-  for (const route of [...table.legacy, ...table.langRedirects]) assert.ok(routes.some(entry => JSON.stringify(entry) === JSON.stringify(route)), route.src);
+  for (const route of [...table.legacy, ...table.langRedirects, ...table.pageRedirects]) assert.ok(routes.some(entry => JSON.stringify(entry) === JSON.stringify(route)), route.src);
   for (const route of routes.filter(entry => typeof entry.status === 'number' && entry.status >= 300 && entry.status < 400)) {
     assert.match(String((route.headers as Record<string, string>).Location), /^\/(?!\/)/, `${route.src}: redirects stay on this site`);
   }
@@ -59,9 +74,9 @@ test('hosting routes are generated from the route table: static pages, SPA shell
     for (const prefix of ['', '/en', '/zh-Hant']) {
       const url = `${prefix}${route.path === '/' ? '/' : route.path.replace(/:[A-Za-z]+/g, 'sample-id-1')}`;
       const outcome = hosted(url);
-      if (route.hosting === 'page') assert.equal(outcome.file, `${prefix}${route.path}.html`, url);
+      if (route.hosting === 'page' && !route.redirect) assert.equal(outcome.file, `${prefix}${route.path}.html`, url);
       if (route.hosting === 'spa') assert.match(`${outcome.kind} ${outcome.file}`, /^page \/(en\/|zh-Hant\/)?(index|account-shell)\.html$|^function /, url);
-      if (route.hosting === 'redirect') assert.equal(outcome.location, `${prefix}${route.redirect!.to}`, url);
+      if (route.redirect) assert.equal(outcome.location, `${prefix}${route.redirect.to}`, url);
     }
   }
   for (const url of ['/', '/events', '/en/this-week', '/me', '/assets/app.js']) assert.equal(hosted(url).headers['Permissions-Policy'], PERMISSIONS_POLICY, url);

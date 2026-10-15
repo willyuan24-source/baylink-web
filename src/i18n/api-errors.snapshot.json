@@ -1,0 +1,2104 @@
+{
+ "source": "baylink-backend",
+ "commit": "abf2eb56ec845e3ca1903876ce34a3754818fd17",
+ "files": 103,
+ "messages": [
+  {
+   "text": "验证器密钥无效。",
+   "where": "lib/accountTotp.js:16"
+  },
+  {
+   "text": "验证器设置暂未配置，请保留当前登录方式。",
+   "where": "lib/accountTotp.js:45"
+  },
+  {
+   "text": "验证器服务暂不可用，请使用恢复码或联系支持。",
+   "where": "lib/accountTotp.js:52"
+  },
+  {
+   "text": "账号不可用，请重新登录。",
+   "where": "lib/accountTotp.js:85"
+  },
+  {
+   "text": "验证次数过多，请稍后重试。",
+   "where": "lib/accountTotp.js:98"
+  },
+  {
+   "text": "恢复码无效或已使用。",
+   "where": "lib/accountTotp.js:104"
+  },
+  {
+   "text": "验证器代码无效，请核对最新六位代码。",
+   "where": "lib/accountTotp.js:113"
+  },
+  {
+   "text": "这枚代码已使用，请等下一枚代码或使用未使用的恢复码。",
+   "where": "lib/accountTotp.js:118"
+  },
+  {
+   "text": "请填写当前密码确认操作。",
+   "where": "lib/accountTotp.js:121"
+  },
+  {
+   "text": "当前密码不正确，请重新确认。",
+   "where": "lib/accountTotp.js:123"
+  },
+  {
+   "text": "账号凭证已变化，请重新登录确认。",
+   "where": "lib/accountTotp.js:125"
+  },
+  {
+   "text": "登录验证已过期，请重新输入密码。",
+   "where": "lib/accountTotp.js:137"
+  },
+  {
+   "text": "登录验证无效。",
+   "where": "lib/accountTotp.js:138"
+  },
+  {
+   "text": "登录验证已过期或尝试过多，请重新输入密码。",
+   "where": "lib/accountTotp.js:142"
+  },
+  {
+   "text": "账号状态已变化，请重新登录。",
+   "where": "lib/accountTotp.js:144"
+  },
+  {
+   "text": "操作太频繁，请稍后再试。",
+   "where": "lib/accountTotp.js:145"
+  },
+  {
+   "text": "登录验证已使用，请重新登录。",
+   "where": "lib/accountTotp.js:152"
+  },
+  {
+   "text": "此验证器设置目前仅供管理员使用。",
+   "where": "lib/accountTotp.js:167"
+  },
+  {
+   "text": "验证器已启用。如需更换，请先通过凭证确认安全停用。",
+   "where": "lib/accountTotp.js:168"
+  },
+  {
+   "text": "服务尚未配置独立验证器加密密钥，当前登录方式保持可用。",
+   "where": "lib/accountTotp.js:169"
+  },
+  {
+   "text": "账号状态已变化，请重新开始设置。",
+   "where": "lib/accountTotp.js:174"
+  },
+  {
+   "text": "请先保存恢复码，并在十分钟内确认设置。",
+   "where": "lib/accountTotp.js:182"
+  },
+  {
+   "text": "验证器代码不正确，尚未启用。",
+   "where": "lib/accountTotp.js:184"
+  },
+  {
+   "text": "设置已变化，请重新开始。",
+   "where": "lib/accountTotp.js:189"
+  },
+  {
+   "text": "验证器尚未启用。",
+   "where": "lib/accountTotp.js:195"
+  },
+  {
+   "text": "账号状态已变化，请重新确认。",
+   "where": "lib/accountTotp.js:197"
+  },
+  {
+   "text": "账号状态已变化，请重试。",
+   "where": "lib/accountTotp.js:206"
+  },
+  {
+   "text": "会话条件已过期，请开启新对话后重试。",
+   "where": "lib/baybayEngine/router.js:25"
+  },
+  {
+   "text": "统计暂不可用，请稍后重试。",
+   "where": "lib/clientErrors.js:50"
+  },
+  {
+   "text": "仅管理员可访问错误统计。",
+   "where": "lib/clientErrors.js:52"
+  },
+  {
+   "text": "统计已达今日上限。",
+   "where": "lib/clientErrors.js:67"
+  },
+  {
+   "text": "错误统计格式无效。",
+   "where": "lib/clientErrors.js:74"
+  },
+  {
+   "text": "错误统计固定显示最近 30 天。",
+   "where": "lib/clientErrors.js:94"
+  },
+  {
+   "text": "错误统计暂不可用，请稍后重试。",
+   "where": "lib/clientErrors.js:114"
+  },
+  {
+   "text": "选中内容或偏好格式无效，请重新选择。",
+   "where": "lib/contentContextContract.js:8"
+  },
+  {
+   "text": "活动资料暂不可用，请稍后重试。",
+   "where": "lib/eventEngagement.js:93"
+  },
+  {
+   "text": "活动不存在。",
+   "where": "lib/eventEngagement.js:95"
+  },
+  {
+   "text": "活动报名暂不可用，请稍后重试。",
+   "where": "lib/eventEngagement.js:135"
+  },
+  {
+   "text": "请提供 1–200 个活动编号。",
+   "where": "lib/eventEngagement.js:139"
+  },
+  {
+   "text": "请提供 1–200 个有效活动编号。",
+   "where": "lib/eventEngagement.js:141"
+  },
+  {
+   "text": "每页人数须为 1–20。",
+   "where": "lib/eventEngagement.js:157"
+  },
+  {
+   "text": "分页位置无效。",
+   "where": "lib/eventEngagement.js:162"
+  },
+  {
+   "text": "请明确选择是否想去、是否寻找搭子；找搭子需要同时选择想去。",
+   "where": "lib/eventEngagement.js:186"
+  },
+  {
+   "text": "仅管理员可查看反馈。",
+   "where": "lib/feedback.js:114"
+  },
+  {
+   "text": "提交太频繁，请稍后再试。",
+   "where": "lib/feedback.js:130"
+  },
+  {
+   "text": "反馈格式无效。",
+   "where": "lib/feedback.js:133"
+  },
+  {
+   "text": "暂时无法提交反馈，请稍后重试。",
+   "where": "lib/feedback.js:156"
+  },
+  {
+   "text": "筛选条件无效。",
+   "where": "lib/feedback.js:175"
+  },
+  {
+   "text": "反馈暂不可用，请稍后重试。",
+   "where": "lib/feedback.js:182"
+  },
+  {
+   "text": "反馈编号无效。",
+   "where": "lib/feedback.js:189"
+  },
+  {
+   "text": "反馈不存在或已过期。",
+   "where": "lib/feedback.js:192"
+  },
+  {
+   "text": "暂时无法删除，请稍后重试。",
+   "where": "lib/feedback.js:194"
+  },
+  {
+   "text": "对话上下文最多保留最近 4 轮完整问答，请开启新对话后重试",
+   "where": "lib/guideConversation.js:111"
+  },
+  {
+   "text": "对话上下文格式无效，请开启新对话后重试",
+   "where": "lib/guideConversation.js:119"
+  },
+  {
+   "text": "搜索模式无效。",
+   "where": "lib/guideWebSearch.js:78"
+  },
+  {
+   "text": "搜索条件只接受日期、地区和城市。",
+   "where": "lib/guideWebSearch.js:83"
+  },
+  {
+   "text": "邮箱验证暂不可用。",
+   "where": "lib/notifications.js:159"
+  },
+  {
+   "text": "通知设置暂不可用。",
+   "where": "lib/notifications.js:222"
+  },
+  {
+   "text": "账号当前不可用。",
+   "where": "lib/notifications.js:223"
+  },
+  {
+   "text": "通知设置格式无效。",
+   "where": "lib/notifications.js:226"
+  },
+  {
+   "text": "通知渠道无效。",
+   "where": "lib/notifications.js:228"
+  },
+  {
+   "text": "通知语言无效。",
+   "where": "lib/notifications.js:229"
+  },
+  {
+   "text": "请选择明确的通知选项。",
+   "where": "lib/notifications.js:242"
+  },
+  {
+   "text": "请先验证邮箱或手机号。",
+   "where": "lib/notifications.js:250"
+  },
+  {
+   "text": "通知设置正在更新，请重试。",
+   "where": "lib/notifications.js:266"
+  },
+  {
+   "text": "当前账号邮箱不可用。",
+   "where": "lib/notifications.js:278"
+  },
+  {
+   "text": "验证邮件请求过于频繁，请稍后再试。",
+   "where": "lib/notifications.js:283"
+  },
+  {
+   "text": "验证邮件正在准备，请稍后重试。",
+   "where": "lib/notifications.js:291"
+  },
+  {
+   "text": "链接无效或已过期。",
+   "where": "lib/notifications.js:295"
+  },
+  {
+   "text": "链接无效、已使用或已过期。",
+   "where": "lib/notifications.js:297"
+  },
+  {
+   "text": "账号操作暂不可用。",
+   "where": "lib/notifications.js:301"
+  },
+  {
+   "text": "链接无效或邮箱已更改。",
+   "where": "lib/notifications.js:303"
+  },
+  {
+   "text": "链接已经使用。",
+   "where": "lib/notifications.js:305"
+  },
+  {
+   "text": "链接无效。",
+   "where": "lib/notifications.js:322"
+  },
+  {
+   "text": "操作过于频繁，请稍后再试。",
+   "where": "lib/notifications.js:564"
+  },
+  {
+   "text": "通知服务暂不可用。",
+   "where": "lib/notifications.js:566"
+  },
+  {
+   "text": "小队请求格式无效。",
+   "where": "lib/outings.js:19"
+  },
+  {
+   "text": "请检查文字长度和格式。",
+   "where": "lib/outings.js:21"
+  },
+  {
+   "text": "小队配图格式无效。",
+   "where": "lib/outings.js:34"
+  },
+  {
+   "text": "请选择有效的站内配图来源。",
+   "where": "lib/outings.js:41"
+  },
+  {
+   "text": "小队须为2–8人，包含队长。",
+   "where": "lib/outings.js:71"
+  },
+  {
+   "text": "请选择有效的交通和交流语言。",
+   "where": "lib/outings.js:72"
+  },
+  {
+   "text": "请选择未来180天内、同一天开始和结束的时间。",
+   "where": "lib/outings.js:74"
+  },
+  {
+   "text": "活动目录暂不可用，请稍后重试。",
+   "where": "lib/outings.js:76"
+  },
+  {
+   "text": "关联活动不存在。",
+   "where": "lib/outings.js:78"
+  },
+  {
+   "text": "这一天不是已确认的活动场次。",
+   "where": "lib/outings.js:81"
+  },
+  {
+   "text": "小队编号无效。",
+   "where": "lib/outings.js:118"
+  },
+  {
+   "text": "小队不存在。",
+   "where": "lib/outings.js:118"
+  },
+  {
+   "text": "账号当前不能参与小队。",
+   "where": "lib/outings.js:119"
+  },
+  {
+   "text": "请先完成当前手机号验证或平台资料审核，再参与小队。",
+   "where": "lib/outings.js:120"
+  },
+  {
+   "text": "当前无法与这支小队互动。",
+   "where": "lib/outings.js:121"
+  },
+  {
+   "text": "只有队长可以执行此操作。",
+   "where": "lib/outings.js:122"
+  },
+  {
+   "text": "小队已开始、结束或取消。",
+   "where": "lib/outings.js:123"
+  },
+  {
+   "text": "讨论仅向已确认成员开放。",
+   "where": "lib/outings.js:127"
+  },
+  {
+   "text": "请先确认最新安排；已结束或取消的小队不能继续发言。",
+   "where": "lib/outings.js:129"
+  },
+  {
+   "text": "请使用8至140位唯一请求编号。",
+   "where": "lib/outings.js:173"
+  },
+  {
+   "text": "请提供当前小队版本。",
+   "where": "lib/outings.js:185"
+  },
+  {
+   "text": "同一请求编号不能用于不同内容。",
+   "where": "lib/outings.js:197"
+  },
+  {
+   "text": "小队已更新，请刷新后重试。",
+   "where": "lib/outings.js:198"
+  },
+  {
+   "text": "候选时间已经开始，请重新协商。",
+   "where": "lib/outings.js:202"
+  },
+  {
+   "text": "小队已经结束或取消，不能继续发言。",
+   "where": "lib/outings.js:203"
+  },
+  {
+   "text": "小队通知待处理，请稍后重试。",
+   "where": "lib/outings.js:206"
+  },
+  {
+   "text": "小队通知待处理，请稍后再申请。",
+   "where": "lib/outings.js:207"
+  },
+  {
+   "text": "小队正在更新，请使用同一请求重试。",
+   "where": "lib/outings.js:213"
+  },
+  {
+   "text": "安排已保存，部分站内通知尚未送达；请在小队页面确认。",
+   "where": "lib/outings.js:260"
+  },
+  {
+   "text": "小队暂不可用。刚提交的操作请先刷新核对，再使用相同请求重试。",
+   "where": "lib/outings.js:262"
+  },
+  {
+   "text": "操作过于频繁，请稍后重试。",
+   "where": "lib/outings.js:268"
+  },
+  {
+   "text": "请本人声明年满18岁，并确认在公共场地集合。",
+   "where": "lib/outings.js:296"
+  },
+  {
+   "text": "最多同时组织10支未结束小队。",
+   "where": "lib/outings.js:301"
+  },
+  {
+   "text": "请求编号冲突。",
+   "where": "lib/outings.js:308"
+  },
+  {
+   "text": "小队当前不可用。",
+   "where": "lib/outings.js:313"
+  },
+  {
+   "text": "请提供要修改的安排。",
+   "where": "lib/outings.js:321"
+  },
+  {
+   "text": "更改地点时请确认仍在公共场地集合。",
+   "where": "lib/outings.js:322"
+  },
+  {
+   "text": "人数上限不能小于已确认人数。",
+   "where": "lib/outings.js:324"
+  },
+  {
+   "text": "小队操作无效。",
+   "where": "lib/outings.js:340"
+  },
+  {
+   "text": "候补选项只适用于加入申请，且须明确选择。",
+   "where": "lib/outings.js:341"
+  },
+  {
+   "text": "成员编号无效。",
+   "where": "lib/outings.js:342"
+  },
+  {
+   "text": "当前不能退出；队长请取消小队。",
+   "where": "lib/outings.js:356"
+  },
+  {
+   "text": "小队已经结束或取消。",
+   "where": "lib/outings.js:366"
+  },
+  {
+   "text": "请本人声明年满18岁。",
+   "where": "lib/outings.js:371"
+  },
+  {
+   "text": "你已申请，或这次申请已被队长处理。",
+   "where": "lib/outings.js:375"
+  },
+  {
+   "text": "小队已满员，可明确选择申请候补。",
+   "where": "lib/outings.js:378"
+  },
+  {
+   "text": "这支小队的申请已达上限。",
+   "where": "lib/outings.js:379"
+  },
+  {
+   "text": "只有已确认成员可以确认新安排，并须声明年满18岁。",
+   "where": "lib/outings.js:384"
+  },
+  {
+   "text": "成员状态已变化，请刷新。",
+   "where": "lib/outings.js:388"
+  },
+  {
+   "text": "最后一个名额已被使用。",
+   "where": "lib/outings.js:391"
+  },
+  {
+   "text": "时间投票操作无效。",
+   "where": "lib/outings.js:404"
+  },
+  {
+   "text": "请先结束当前投票，再提出新时间。",
+   "where": "lib/outings.js:416"
+  },
+  {
+   "text": "请提供2至3个候选时间。",
+   "where": "lib/outings.js:417"
+  },
+  {
+   "text": "每个候选时间都需要日期、开始和结束时间。",
+   "where": "lib/outings.js:420"
+  },
+  {
+   "text": "候选时间不能重复。",
+   "where": "lib/outings.js:424"
+  },
+  {
+   "text": "投票已结束或安排已变化，请刷新。",
+   "where": "lib/outings.js:429"
+  },
+  {
+   "text": "请为每个候选时间选择可以、待定或不行。",
+   "where": "lib/outings.js:432"
+  },
+  {
+   "text": "候选时间都已过去，请队长结束投票。",
+   "where": "lib/outings.js:433"
+  },
+  {
+   "text": "这个候选时间无效或已开始，请选择其他时间。",
+   "where": "lib/outings.js:439"
+  },
+  {
+   "text": "本次讨论已达500条上限；仍可查看、退出或取消小队。",
+   "where": "lib/outings.js:462"
+  },
+  {
+   "text": "举报原因无效。",
+   "where": "lib/outings.js:470"
+  },
+  {
+   "text": "消息编号无效。",
+   "where": "lib/outings.js:474"
+  },
+  {
+   "text": "无权举报这条讨论消息。",
+   "where": "lib/outings.js:479"
+  },
+  {
+   "text": "讨论消息不存在。",
+   "where": "lib/outings.js:480"
+  },
+  {
+   "text": "不能举报自己的内容。",
+   "where": "lib/outings.js:483"
+  },
+  {
+   "text": "小队已取消。",
+   "where": "lib/outings.js:498"
+  },
+  {
+   "text": "搜索条件格式或长度无效。",
+   "where": "lib/outingSearch.js:59"
+  },
+  {
+   "text": "分页暂不可用，请稍后重试。",
+   "where": "lib/outingSearch.js:63"
+  },
+  {
+   "text": "活动编号无效。",
+   "where": "lib/outingSearch.js:71"
+  },
+  {
+   "text": "指定日期不能与日期范围同时使用。",
+   "where": "lib/outingSearch.js:72"
+  },
+  {
+   "text": "日期无效。",
+   "where": "lib/outingSearch.js:73"
+  },
+  {
+   "text": "开始日期不能晚于结束日期。",
+   "where": "lib/outingSearch.js:74"
+  },
+  {
+   "text": "交流语言筛选无效。",
+   "where": "lib/outingSearch.js:82"
+  },
+  {
+   "text": "名额筛选无效。",
+   "where": "lib/outingSearch.js:83"
+  },
+  {
+   "text": "排序方式无效。",
+   "where": "lib/outingSearch.js:84"
+  },
+  {
+   "text": "分页位置无效，请重新搜索。",
+   "where": "lib/outingSearch.js:90"
+  },
+  {
+   "text": "分页条件已变化，请重新搜索。",
+   "where": "lib/outingSearch.js:102"
+  },
+  {
+   "text": "筛选条件格式无效。",
+   "where": "lib/planner.js:57"
+  },
+  {
+   "text": "请选择有效日期。",
+   "where": "lib/planner.js:59"
+  },
+  {
+   "text": "请选择湾区地区。",
+   "where": "lib/planner.js:60"
+  },
+  {
+   "text": "请选择一个有效的目的城市。",
+   "where": "lib/planner.js:61"
+  },
+  {
+   "text": "预算须为 0–10000 美元。",
+   "where": "lib/planner.js:62"
+  },
+  {
+   "text": "儿童年龄须为 0–17 岁。",
+   "where": "lib/planner.js:63"
+  },
+  {
+   "text": "请填写最多 10 名儿童的年龄（0–17 岁）。",
+   "where": "lib/planner.js:64"
+  },
+  {
+   "text": "同行总人数须为 1–50 人。",
+   "where": "lib/planner.js:65"
+  },
+  {
+   "text": "同行总人数不能少于已填写的儿童人数。",
+   "where": "lib/planner.js:66"
+  },
+  {
+   "text": "请选择每人预算或同行总预算。",
+   "where": "lib/planner.js:67"
+  },
+  {
+   "text": "免费筛选格式无效。",
+   "where": "lib/planner.js:68"
+  },
+  {
+   "text": "活动主题筛选无效。",
+   "where": "lib/planner.js:69"
+  },
+  {
+   "text": "场地筛选无效。",
+   "where": "lib/planner.js:70"
+  },
+  {
+   "text": "出行方式无效。",
+   "where": "lib/planner.js:71"
+  },
+  {
+   "text": "你排除了城市，请明确一个要去的目的城市。",
+   "where": "lib/planner.js:116"
+  },
+  {
+   "text": "请先选择一个目的城市，再生成方案。",
+   "where": "lib/planner.js:117"
+  },
+  {
+   "text": "文字中的日期无效，请重新选择日期。",
+   "where": "lib/planner.js:244"
+  },
+  {
+   "text": "行程请求格式无效。",
+   "where": "lib/planner.js:492"
+  },
+  {
+   "text": "请用 800 字以内描述行程。",
+   "where": "lib/planner.js:493"
+  },
+  {
+   "text": "语言格式无效。",
+   "where": "lib/planner.js:494"
+  },
+  {
+   "text": "待替换活动须为最多 200 个有效编号。",
+   "where": "lib/planner.js:496"
+  },
+  {
+   "text": "待替换地点须为最多 100 个有效编号。",
+   "where": "lib/planner.js:498"
+  },
+  {
+   "text": "计划设置需要同日的开始和结束时间、1–50 人、有效预算及出行方式。",
+   "where": "lib/plannerRoutes.js:35"
+  },
+  {
+   "text": "餐饮、交通与其他费用须为有效金额，且合计须等于额外费用。",
+   "where": "lib/plannerRoutes.js:42"
+  },
+  {
+   "text": "每站设置需要有效地点、5–720 分钟停留、0–360 分钟交通预留及 0–180 分钟用餐或休息预留。",
+   "where": "lib/plannerRoutes.js:52"
+  },
+  {
+   "text": "每站设置只能包含当前计划中的地点，且不能重复。",
+   "where": "lib/plannerRoutes.js:54"
+  },
+  {
+   "text": "行程资料暂不可用，请稍后重试。",
+   "where": "lib/plannerRoutes.js:101"
+  },
+  {
+   "text": "暂时无法保存或读取计划，请稍后重试。",
+   "where": "lib/plannerRoutes.js:105"
+  },
+  {
+   "text": "暂时无法读取账号计划。",
+   "where": "lib/plannerRoutes.js:115"
+  },
+  {
+   "text": "另一台设备刚刚修改了资料，请刷新后重试。",
+   "where": "lib/plannerRoutes.js:123"
+  },
+  {
+   "text": "收藏项目格式无效。",
+   "where": "lib/plannerRoutes.js:126"
+  },
+  {
+   "text": "这个项目尚未发布或已下架。",
+   "where": "lib/plannerRoutes.js:130"
+  },
+  {
+   "text": "计划需要名称、有效日期及 1–6 个地点。",
+   "where": "lib/plannerRoutes.js:137"
+  },
+  {
+   "text": "请选择今天或未来日期。",
+   "where": "lib/plannerRoutes.js:138"
+  },
+  {
+   "text": "计划地点格式无效。",
+   "where": "lib/plannerRoutes.js:141"
+  },
+  {
+   "text": "计划中不能重复添加同一地点。",
+   "where": "lib/plannerRoutes.js:144"
+  },
+  {
+   "text": "这个活动或地点已暂停。",
+   "where": "lib/plannerRoutes.js:152"
+  },
+  {
+   "text": "活动日期与计划日期不一致。",
+   "where": "lib/plannerRoutes.js:153"
+  },
+  {
+   "text": "最多保存 60 个私人活动，请刷新后重试。",
+   "where": "lib/plannerRoutes.js:173"
+  },
+  {
+   "text": "活动编号无效或重复。",
+   "where": "lib/plannerRoutes.js:176"
+  },
+  {
+   "text": "另一台设备已修改私人活动，请刷新后重试。",
+   "where": "lib/plannerRoutes.js:185"
+  },
+  {
+   "text": "偏好格式无效。",
+   "where": "lib/plannerRoutes.js:190"
+  },
+  {
+   "text": "地区偏好无效。",
+   "where": "lib/plannerRoutes.js:191"
+  },
+  {
+   "text": "兴趣最多 12 项，每项最多 40 字。",
+   "where": "lib/plannerRoutes.js:192"
+  },
+  {
+   "text": "常用门票预算须为 0–10000 美元，或清空。",
+   "where": "lib/plannerRoutes.js:194"
+  },
+  {
+   "text": "场地偏好无效。",
+   "where": "lib/plannerRoutes.js:195"
+  },
+  {
+   "text": "收藏请求格式无效。",
+   "where": "lib/plannerRoutes.js:201"
+  },
+  {
+   "text": "收藏最多 150 项，请先移除一些。",
+   "where": "lib/plannerRoutes.js:206"
+  },
+  {
+   "text": "最多保存 30 个计划，请先移除一些。",
+   "where": "lib/plannerRoutes.js:226"
+  },
+  {
+   "text": "计划编号无效。",
+   "where": "lib/plannerRoutes.js:232"
+  },
+  {
+   "text": "计划不存在。",
+   "where": "lib/plannerRoutes.js:236"
+  },
+  {
+   "text": "另一台设备已修改此计划，请刷新后重试。",
+   "where": "lib/plannerRoutes.js:238"
+  },
+  {
+   "text": "请提供计划的当前版本。",
+   "where": "lib/plannerRoutes.js:251"
+  },
+  {
+   "text": "请选择两个已收录地点和出行方式。",
+   "where": "lib/plannerTravel.js:9"
+  },
+  {
+   "text": "语言无效。",
+   "where": "lib/plannerTravel.js:10"
+  },
+  {
+   "text": "地点资料暂不可用。",
+   "where": "lib/plannerTravel.js:11"
+  },
+  {
+   "text": "地点格式无效。",
+   "where": "lib/plannerTravel.js:13"
+  },
+  {
+   "text": "此站尚无准确地点，请在地图中核对入口。",
+   "where": "lib/plannerTravel.js:21"
+  },
+  {
+   "text": "请选择不同的出发地和目的地。",
+   "where": "lib/plannerTravel.js:25"
+  },
+  {
+   "text": "路线查询支持未来 100 天内的出发时间；过去的时间请重新选择。",
+   "where": "lib/plannerTravel.js:27"
+  },
+  {
+   "text": "路程查询暂不可用，请打开地图核对。",
+   "where": "lib/plannerTravel.js:38"
+  },
+  {
+   "text": "路线查询超时，请打开地图核对。",
+   "where": "lib/plannerTravel.js:50"
+  },
+  {
+   "text": "没有取得可用路线，请在地图中核对。",
+   "where": "lib/plannerTravel.js:58"
+  },
+  {
+   "text": "站内路程查询尚未启用，请通过地图核对交通时间。",
+   "where": "lib/plannerTravel.js:88"
+  },
+  {
+   "text": "查询太频繁，请稍后再试。",
+   "where": "lib/plannerTravel.js:90"
+  },
+  {
+   "text": "今天的路线查询额度已用完，请打开地图核对。",
+   "where": "lib/plannerTravel.js:94"
+  },
+  {
+   "text": "最多保存 20 个站外候选。",
+   "where": "lib/plannerWebLibrary.js:8"
+  },
+  {
+   "text": "站外候选格式无效。",
+   "where": "lib/plannerWebLibrary.js:11"
+  },
+  {
+   "text": "站外候选文字无效。",
+   "where": "lib/plannerWebLibrary.js:15"
+  },
+  {
+   "text": "站外候选编号重复或无效。",
+   "where": "lib/plannerWebLibrary.js:18"
+  },
+  {
+   "text": "站外候选需要有效的公开网页来源。",
+   "where": "lib/plannerWebLibrary.js:20"
+  },
+  {
+   "text": "资料查询时间无效。",
+   "where": "lib/plannerWebLibrary.js:22"
+  },
+  {
+   "text": "候选日期无效。",
+   "where": "lib/plannerWebLibrary.js:23"
+  },
+  {
+   "text": "候选版本无效，请重新读取。",
+   "where": "lib/plannerWebLibrary.js:36"
+  },
+  {
+   "text": "另一台设备已修改候选，请重新读取后再保存。",
+   "where": "lib/plannerWebLibrary.js:42"
+  },
+  {
+   "text": "信息类型无效",
+   "where": "lib/postLifecycle.js:22"
+  },
+  {
+   "text": "有效状态无效",
+   "where": "lib/postLifecycle.js:25"
+  },
+  {
+   "text": "信息状态无效",
+   "where": "lib/postLifecycle.js:41"
+  },
+  {
+   "text": "有效确认格式无效",
+   "where": "lib/postLifecycle.js:42"
+  },
+  {
+   "text": "只有发布者可以确认信息仍然有效",
+   "where": "lib/postLifecycle.js:43"
+  },
+  {
+   "text": "已结束的信息不能同时确认有效",
+   "where": "lib/postLifecycle.js:44"
+  },
+  {
+   "text": "搜索关键词格式无效或过长",
+   "where": "lib/postSearch.js:24"
+  },
+  {
+   "text": "请精简到 8 个以内的搜索关键词",
+   "where": "lib/postSearch.js:44"
+  },
+  {
+   "text": "仅管理员可访问产品统计。",
+   "where": "lib/productMetrics.js:108"
+  },
+  {
+   "text": "统计事件格式无效。",
+   "where": "lib/productMetrics.js:123"
+  },
+  {
+   "text": "统计固定显示最近 30 天。",
+   "where": "lib/productMetrics.js:137"
+  },
+  {
+   "text": "请选择联系方式类型",
+   "where": "lib/security.js:4"
+  },
+  {
+   "text": "请填写联系方式",
+   "where": "lib/security.js:5"
+  },
+  {
+   "text": "联系方式格式无效",
+   "where": "lib/security.js:7"
+  },
+  {
+   "text": "请输入有效的联系邮箱",
+   "where": "lib/security.js:8"
+  },
+  {
+   "text": "请填写不含空格的微信号",
+   "where": "lib/security.js:9"
+  },
+  {
+   "text": "请输入有效的电话号码，可包含国家代码",
+   "where": "lib/security.js:12"
+  },
+  {
+   "text": "预约请求格式无效。",
+   "where": "lib/serviceBookings.js:13"
+  },
+  {
+   "text": "请填写有效的日期和24小时制时间。",
+   "where": "lib/serviceBookings.js:31"
+  },
+  {
+   "text": "这个洛杉矶时间位于夏令时切换的重复或缺失时段，请选择其他时间。",
+   "where": "lib/serviceBookings.js:39"
+  },
+  {
+   "text": "时段须为同一天的15分钟至12小时。",
+   "where": "lib/serviceBookings.js:45"
+  },
+  {
+   "text": "请选择未来180天内尚未开始的时段。",
+   "where": "lib/serviceBookings.js:46"
+  },
+  {
+   "text": "预约资料暂不可用，请稍后重试。",
+   "where": "lib/serviceBookings.js:90"
+  },
+  {
+   "text": "时段刚被其他操作更新，请使用同一请求重试。",
+   "where": "lib/serviceBookings.js:101"
+  },
+  {
+   "text": "服务编号无效。",
+   "where": "lib/serviceBookings.js:112"
+  },
+  {
+   "text": "服务不存在。",
+   "where": "lib/serviceBookings.js:114"
+  },
+  {
+   "text": "只有这条服务的发布者可以管理时段。",
+   "where": "lib/serviceBookings.js:119"
+  },
+  {
+   "text": "仅正常展示中的本地服务提供帖子可以开放预约。",
+   "where": "lib/serviceBookings.js:120"
+  },
+  {
+   "text": "服务者须先完成手机验证或通过官方认证，且账号状态正常。",
+   "where": "lib/serviceBookings.js:121"
+  },
+  {
+   "text": "不能预约自己的服务。",
+   "where": "lib/serviceBookings.js:124"
+  },
+  {
+   "text": "这项服务当前不开放预约。",
+   "where": "lib/serviceBookings.js:125"
+  },
+  {
+   "text": "当前无法向这位服务者预约。",
+   "where": "lib/serviceBookings.js:127"
+  },
+  {
+   "text": "请使用8至140位的唯一请求编号。",
+   "where": "lib/serviceBookings.js:146"
+  },
+  {
+   "text": "同一个请求编号不能用于不同内容。",
+   "where": "lib/serviceBookings.js:153"
+  },
+  {
+   "text": "预约暂不可用。若刚提交，请先查看我的预约，再使用相同请求重试。",
+   "where": "lib/serviceBookings.js:243"
+  },
+  {
+   "text": "预约操作过于频繁，请稍后重试。",
+   "where": "lib/serviceBookings.js:245"
+  },
+  {
+   "text": "预约设置无效。",
+   "where": "lib/serviceBookings.js:251"
+  },
+  {
+   "text": "最多管理100条服务的预约。",
+   "where": "lib/serviceBookings.js:255"
+  },
+  {
+   "text": "一次可添加1至30个时段。",
+   "where": "lib/serviceBookings.js:261"
+  },
+  {
+   "text": "同一服务者的可用时段不能重叠，包括其他服务帖子。",
+   "where": "lib/serviceBookings.js:267"
+  },
+  {
+   "text": "最多保留300个未来时段。",
+   "where": "lib/serviceBookings.js:269"
+  },
+  {
+   "text": "只有服务者可移除时段。",
+   "where": "lib/serviceBookings.js:277"
+  },
+  {
+   "text": "请先处理或取消这个时段的预约。",
+   "where": "lib/serviceBookings.js:279"
+  },
+  {
+   "text": "请选择时段，备注最多500字。",
+   "where": "lib/serviceBookings.js:286"
+  },
+  {
+   "text": "这个时段已移除，请重新选择。",
+   "where": "lib/serviceBookings.js:292"
+  },
+  {
+   "text": "你向这位服务者已有5个有效预约，请先处理后再添加。",
+   "where": "lib/serviceBookings.js:294"
+  },
+  {
+   "text": "服务者的预约历史已达到当前容量，请联系平台。",
+   "where": "lib/serviceBookings.js:295"
+  },
+  {
+   "text": "预约操作无效。",
+   "where": "lib/serviceBookings.js:308"
+  },
+  {
+   "text": "没有这份预约的访问权限。",
+   "where": "lib/serviceBookings.js:310"
+  },
+  {
+   "text": "只有服务者可以执行这个操作。",
+   "where": "lib/serviceBookings.js:314"
+  },
+  {
+   "text": "预约申请已过期，请刷新后重新选择时段。",
+   "where": "lib/serviceBookings.js:318"
+  },
+  {
+   "text": "预约状态已变化，或尚未结束，请刷新后再操作。",
+   "where": "lib/serviceBookings.js:321"
+  },
+  {
+   "text": "预约已开始，不能补确认。",
+   "where": "lib/serviceBookings.js:322"
+  },
+  {
+   "text": "预约编号无效。",
+   "where": "lib/serviceBookings.js:332"
+  },
+  {
+   "text": "只有尚未开始的已确认预约可以改期。",
+   "where": "lib/serviceBookings.js:340"
+  },
+  {
+   "text": "改期请求格式无效。",
+   "where": "lib/serviceBookings.js:350"
+  },
+  {
+   "text": "预约已开始，不能改期。",
+   "where": "lib/serviceBookings.js:362"
+  },
+  {
+   "text": "已有待回应的改期提议，请先处理或撤回。",
+   "where": "lib/serviceBookings.js:366"
+  },
+  {
+   "text": "这份预约的改期次数已达上限；仍可处理现有提议或取消预约。",
+   "where": "lib/serviceBookings.js:367"
+  },
+  {
+   "text": "请选择另一个已发布的时段。",
+   "where": "lib/serviceBookings.js:369"
+  },
+  {
+   "text": "改期提议已变化或过期，请刷新预约。",
+   "where": "lib/serviceBookings.js:376"
+  },
+  {
+   "text": "提议的时段已移除或改变，原预约仍保留。",
+   "where": "lib/serviceBookings.js:380"
+  },
+  {
+   "text": "短信设置无效。",
+   "where": "lib/serviceBookings.js:417"
+  },
+  {
+   "text": "先验证可接收短信的手机号，才能单独开启预约通知。",
+   "where": "lib/serviceBookings.js:419"
+  },
+  {
+   "text": "预约短信尚未配置完成；站内预约和私信通知仍可使用。",
+   "where": "lib/serviceBookings.js:420"
+  },
+  {
+   "text": "仅管理员可访问来源监测。",
+   "where": "lib/sourceMonitor.js:391"
+  },
+  {
+   "text": "来源监测暂不可用，请稍后重试。",
+   "where": "lib/sourceMonitor.js:392"
+  },
+  {
+   "text": "此操作只检查已登记的官方来源。",
+   "where": "lib/sourceMonitor.js:412"
+  },
+  {
+   "text": "检查已在进行或刚完成，请稍后刷新。",
+   "where": "lib/sourceMonitor.js:413"
+  },
+  {
+   "text": "请提供当前版本、复核结果及 500 字以内备注。",
+   "where": "lib/sourceMonitor.js:418"
+  },
+  {
+   "text": "来源不存在。",
+   "where": "lib/sourceMonitor.js:419"
+  },
+  {
+   "text": "来源内容已变化，请刷新后重新复核。",
+   "where": "lib/sourceMonitor.js:422"
+  },
+  {
+   "text": "查询过于频繁，请稍后重试。",
+   "where": "lib/sourceMonitor.js:427"
+  },
+  {
+   "text": "请提供 1–100 个有效内容编号。",
+   "where": "lib/sourceMonitor.js:429"
+  },
+  {
+   "text": "不允许此来源访问",
+   "where": "server.js:96"
+  },
+  {
+   "text": "内容不存在或已被移除。",
+   "where": "server.js:870"
+  },
+  {
+   "text": "消息类型无效",
+   "where": "server.js:878"
+  },
+  {
+   "text": "消息内容必须是文字",
+   "where": "server.js:886"
+  },
+  {
+   "text": "消息不能为空",
+   "where": "server.js:888"
+  },
+  {
+   "text": "消息内容太长，请控制在 2000 字以内",
+   "where": "server.js:890"
+  },
+  {
+   "text": "需要管理员权限",
+   "where": "server.js:921"
+  },
+  {
+   "text": "管理员操作需要验证器：请先在“隐私与安全”中开启验证器，再用验证器重新登录。",
+   "where": "server.js:923"
+  },
+  {
+   "text": "搜索关键词格式无效",
+   "where": "server.js:933"
+  },
+  {
+   "text": "搜索关键词过长",
+   "where": "server.js:936"
+  },
+  {
+   "text": "暂时无法向该用户发送消息。",
+   "where": "server.js:1091"
+  },
+  {
+   "text": "你已屏蔽该用户，取消屏蔽后才能发送消息。",
+   "where": "server.js:1097"
+  },
+  {
+   "text": "举报目标无效",
+   "where": "server.js:1120"
+  },
+  {
+   "text": "帖子不存在或已删除",
+   "where": "server.js:1124"
+  },
+  {
+   "text": "用户不存在",
+   "where": "server.js:1129"
+  },
+  {
+   "text": "消息不存在或不可举报",
+   "where": "server.js:1134"
+  },
+  {
+   "text": "请填写有效链接，或留空。",
+   "where": "server.js:1326"
+  },
+  {
+   "text": "短信服务正在完成注册，请稍后再试。",
+   "where": "server.js:1504"
+  },
+  {
+   "text": "短信服务配置错误，请稍后再试。",
+   "where": "server.js:1507"
+  },
+  {
+   "text": "短信发送失败，请稍后再试。",
+   "where": "server.js:1509"
+  },
+  {
+   "text": "这个手机号已在其他账号验证过，不能再用于验证新账号。如需帮助请联系我们。",
+   "where": "server.js:1536"
+  },
+  {
+   "text": "请先验证邮箱，再验证手机号：在\"我的 → 通知设置\"里点\"验证邮箱\"，打开邮件里的链接后再回来。",
+   "where": "server.js:1550"
+  },
+  {
+   "text": "请输入有效的美国手机号。",
+   "where": "server.js:1554"
+  },
+  {
+   "text": "目前只能验证美国手机号（+1，美国区号）。",
+   "where": "server.js:1560"
+  },
+  {
+   "text": "验证码发送太频繁，请稍后再试。",
+   "where": "server.js:1564"
+  },
+  {
+   "text": "今日验证码发送次数已达上限。",
+   "where": "server.js:1568"
+  },
+  {
+   "text": "短信服务暂时不可用，请稍后再试。",
+   "where": "server.js:1577"
+  },
+  {
+   "text": "验证码已发送。",
+   "where": "server.js:1591"
+  },
+  {
+   "text": "开发测试验证码已生成，未发送短信。",
+   "where": "server.js:1601"
+  },
+  {
+   "text": "验证码不正确或已过期",
+   "where": "server.js:1606"
+  },
+  {
+   "text": "手机号已验证。",
+   "where": "server.js:1640"
+  },
+  {
+   "text": "请先登录",
+   "where": "server.js:1758"
+  },
+  {
+   "text": "暂时无法撤销登录，请重试。",
+   "where": "server.js:1939"
+  },
+  {
+   "text": "无效请求",
+   "where": "server.js:1956"
+  },
+  {
+   "text": "操作失败，请稍后再试",
+   "where": "server.js:1958"
+  },
+  {
+   "text": "昵称须为1–30个字符。",
+   "where": "server.js:1982"
+  },
+  {
+   "text": "账号不可用或已被限制",
+   "where": "server.js:2044"
+  },
+  {
+   "text": "重设链接无效或已过期。",
+   "where": "server.js:2125"
+  },
+  {
+   "text": "密码已更新，请重新登录。",
+   "where": "server.js:2149"
+  },
+  {
+   "text": "新密码至少 8 位，包含大写字母、小写字母和数字（最多 128 位）。",
+   "where": "server.js:2165"
+  },
+  {
+   "text": "管理员新密码至少 12 位，包含大写字母、小写字母和数字（最多 128 位）。",
+   "where": "server.js:2166"
+  },
+  {
+   "text": "新密码不能和当前密码相同。",
+   "where": "server.js:2167"
+  },
+  {
+   "text": "账号凭证已变化，请重新登录后再试。",
+   "where": "server.js:2176"
+  },
+  {
+   "text": "获取屏蔽列表失败",
+   "where": "server.js:2226"
+  },
+  {
+   "text": "请提供要屏蔽的用户",
+   "where": "server.js:2234"
+  },
+  {
+   "text": "不能屏蔽自己",
+   "where": "server.js:2237"
+  },
+  {
+   "text": "已屏蔽该用户。",
+   "where": "server.js:2252"
+  },
+  {
+   "text": "屏蔽失败，请稍后再试",
+   "where": "server.js:2256"
+  },
+  {
+   "text": "请提供要取消屏蔽的用户",
+   "where": "server.js:2264"
+  },
+  {
+   "text": "已取消屏蔽。",
+   "where": "server.js:2267"
+  },
+  {
+   "text": "取消屏蔽失败，请稍后再试",
+   "where": "server.js:2270"
+  },
+  {
+   "text": "加载失败，请稍后再试",
+   "where": "server.js:2313"
+  },
+  {
+   "text": "个人主页主题无效。",
+   "where": "server.js:2324"
+  },
+  {
+   "text": "状态签名最多 60 个字符。",
+   "where": "server.js:2325"
+  },
+  {
+   "text": "请选择最多 3 个不同的认识同好选项。",
+   "where": "server.js:2326"
+  },
+  {
+   "text": "公开资料显示设置无效。",
+   "where": "server.js:2327"
+  },
+  {
+   "text": "图片上传失败，请稍后重试。",
+   "where": "server.js:2367"
+  },
+  {
+   "text": "更新失败，请稍后再试",
+   "where": "server.js:2377"
+  },
+  {
+   "text": "请先登录。",
+   "where": "server.js:2406"
+  },
+  {
+   "text": "用户不存在。",
+   "where": "server.js:2411"
+  },
+  {
+   "text": "请选择有效的认证类型。",
+   "where": "server.js:2417"
+  },
+  {
+   "text": "请填写更完整的认证说明。",
+   "where": "server.js:2422"
+  },
+  {
+   "text": "已通过认证，无需重复申请",
+   "where": "server.js:2427"
+  },
+  {
+   "text": "提交失败，请稍后再试。",
+   "where": "server.js:2463"
+  },
+  {
+   "text": "评论不能为空",
+   "where": "server.js:2493"
+  },
+  {
+   "text": "评论不能超过 500 字",
+   "where": "server.js:2494"
+  },
+  {
+   "text": "无法加载你的发布，请重试。",
+   "where": "server.js:2669"
+  },
+  {
+   "text": "今天发布次数已达到上限，请明天再试。",
+   "where": "server.js:2714"
+  },
+  {
+   "text": "请不要重复发布相同内容。",
+   "where": "server.js:2730"
+  },
+  {
+   "text": "最多上传 5 张照片",
+   "where": "server.js:2754"
+  },
+  {
+   "text": "图片须为大小受限的 JPEG、PNG、WebP、GIF、AVIF，或本站 Cloudinary 图片。",
+   "where": "server.js:2769"
+  },
+  {
+   "text": "图片上传失败，帖子尚未保存。请重试或重新选择图片。",
+   "where": "server.js:2775"
+  },
+  {
+   "text": "发布失败，请稍后再试",
+   "where": "server.js:2843"
+  },
+  {
+   "text": "推荐失败，请稍后再试",
+   "where": "server.js:2858"
+  },
+  {
+   "text": "取消推荐失败，请稍后再试",
+   "where": "server.js:2872"
+  },
+  {
+   "text": "请使用新版举报入口。",
+   "where": "server.js:2912"
+  },
+  {
+   "text": "评论太频繁了，请稍后再试",
+   "where": "server.js:2963"
+  },
+  {
+   "text": "回复的评论不存在",
+   "where": "server.js:2978"
+  },
+  {
+   "text": "无法回复已删除的评论",
+   "where": "server.js:2979"
+  },
+  {
+   "text": "不支持回复二级评论",
+   "where": "server.js:2980"
+  },
+  {
+   "text": "评论失败，请稍后再试",
+   "where": "server.js:2999"
+  },
+  {
+   "text": "评论不存在",
+   "where": "server.js:3010"
+  },
+  {
+   "text": "评论已删除，无法编辑",
+   "where": "server.js:3012"
+  },
+  {
+   "text": "编辑失败，请稍后再试",
+   "where": "server.js:3026"
+  },
+  {
+   "text": "评论已删除",
+   "where": "server.js:3039"
+  },
+  {
+   "text": "删除失败，请稍后再试",
+   "where": "server.js:3058"
+  },
+  {
+   "text": "这条信息已结束，不再接受新的联系请求。",
+   "where": "server.js:3070"
+  },
+  {
+   "text": "不能请求自己帖子的联系方式。",
+   "where": "server.js:3071"
+  },
+  {
+   "text": "请先验证手机号，再请求自动公开的联系方式。",
+   "where": "server.js:3081"
+  },
+  {
+   "text": "该帖子仅支持站内私信",
+   "where": "server.js:3083"
+  },
+  {
+   "text": "帖主暂未同意发送联系方式，请稍后再试或先使用站内私信。",
+   "where": "server.js:3105"
+  },
+  {
+   "text": "你刚刚已经请求过，请稍后再试。",
+   "where": "server.js:3109"
+  },
+  {
+   "text": "帖主尚未设置可分享的联系方式。",
+   "where": "server.js:3114"
+  },
+  {
+   "text": "请求失败，请稍后再试",
+   "where": "server.js:3171"
+  },
+  {
+   "text": "role 参数无效",
+   "where": "server.js:3186"
+  },
+  {
+   "text": "请求不存在",
+   "where": "server.js:3228"
+  },
+  {
+   "text": "该请求已处理",
+   "where": "server.js:3230"
+  },
+  {
+   "text": "帖子不存在",
+   "where": "server.js:3239"
+  },
+  {
+   "text": "帖子不存在或已被隐藏",
+   "where": "server.js:3246"
+  },
+  {
+   "text": "暂无可用联系方式",
+   "where": "server.js:3255"
+  },
+  {
+   "text": "创建推荐失败，请稍后再试",
+   "where": "server.js:3322"
+  },
+  {
+   "text": "更新推荐失败，请稍后再试",
+   "where": "server.js:3339"
+  },
+  {
+   "text": "无法与自己创建会话。",
+   "where": "server.js:3381"
+  },
+  {
+   "text": "会话不存在。",
+   "where": "server.js:3428"
+  },
+  {
+   "text": "会话不存在",
+   "where": "server.js:3441"
+  },
+  {
+   "text": "发送太频繁了，请稍后再试",
+   "where": "server.js:3455"
+  },
+  {
+   "text": "请选择本会话中的文字消息进行回复。",
+   "where": "server.js:3465"
+  },
+  {
+   "text": "发送失败",
+   "where": "server.js:3494"
+  },
+  {
+   "text": "请选择支持的表情回应。",
+   "where": "server.js:3509"
+  },
+  {
+   "text": "消息不存在。",
+   "where": "server.js:3519"
+  },
+  {
+   "text": "回应失败，请稍后重试。",
+   "where": "server.js:3524"
+  },
+  {
+   "text": "请选择已经收到的消息。",
+   "where": "server.js:3533"
+  },
+  {
+   "text": "更新未读状态失败，请稍后重试。",
+   "where": "server.js:3552"
+  },
+  {
+   "text": "举报过于频繁，请稍后再试",
+   "where": "server.js:3560"
+  },
+  {
+   "text": "举报类型无效",
+   "where": "server.js:3568"
+  },
+  {
+   "text": "举报原因无效",
+   "where": "server.js:3571"
+  },
+  {
+   "text": "不能举报自己的内容",
+   "where": "server.js:3580"
+  },
+  {
+   "text": "你已经举报过该内容，我们会尽快处理。",
+   "where": "server.js:3593"
+  },
+  {
+   "text": "举报已提交，感谢你的反馈。",
+   "where": "server.js:3617"
+  },
+  {
+   "text": "举报提交失败，请稍后再试",
+   "where": "server.js:3621"
+  },
+  {
+   "text": "账号状态无效",
+   "where": "server.js:3629"
+  },
+  {
+   "text": "不能调整自己的账号状态",
+   "where": "server.js:3632"
+  },
+  {
+   "text": "更新账号状态失败",
+   "where": "server.js:3677"
+  },
+  {
+   "text": "获取认证申请失败",
+   "where": "server.js:3702"
+  },
+  {
+   "text": "状态无效",
+   "where": "server.js:3710"
+  },
+  {
+   "text": "审核失败，请稍后再试",
+   "where": "server.js:3758"
+  },
+  {
+   "text": "获取举报列表失败",
+   "where": "server.js:3781"
+  },
+  {
+   "text": "举报记录不存在",
+   "where": "server.js:3794"
+  },
+  {
+   "text": "更新举报状态失败",
+   "where": "server.js:3835"
+  },
+  {
+   "text": "隐藏帖子失败",
+   "where": "server.js:3865"
+  },
+  {
+   "text": "恢复帖子失败",
+   "where": "server.js:3893"
+  },
+  {
+   "text": "获取操作日志失败",
+   "where": "server.js:3920"
+  },
+  {
+   "text": "登录已过期，请重新登录。",
+   "where": "server.js:3937"
+  },
+  {
+   "text": "暂时无法撤销管理员登录，请重试。",
+   "where": "server.js:3943"
+  },
+  {
+   "text": "AI 服务暂未配置，请稍后再试",
+   "where": "server.js:4286"
+  },
+  {
+   "text": "请至少用 5 个字描述你的需求",
+   "where": "server.js:4291"
+  },
+  {
+   "text": "需求描述不能超过 1000 字",
+   "where": "server.js:4294"
+  },
+  {
+   "text": "请求过于频繁，请 60 秒后再试",
+   "where": "server.js:4299"
+  },
+  {
+   "text": "请选择中文、英文或双语。",
+   "where": "server.js:4310"
+  },
+  {
+   "text": "AI 整理失败，请稍后再试",
+   "where": "server.js:4343"
+  },
+  {
+   "text": "请输入文字问题",
+   "where": "server.js:4453"
+  },
+  {
+   "text": "请输入你的问题",
+   "where": "server.js:4455"
+  },
+  {
+   "text": "问题太短，请再补充一点",
+   "where": "server.js:4456"
+  },
+  {
+   "text": "问题请控制在 500 字以内",
+   "where": "server.js:4458"
+  }
+ ],
+ "codes": [
+  {
+   "code": "ACCOUNT_CHANGED",
+   "where": "lib/accountTotp.js:125",
+   "messages": [
+    "账号凭证已变化，请重新登录确认。",
+    "账号状态已变化，请重新开始设置。",
+    "设置已变化，请重新开始。",
+    "账号状态已变化，请重新确认。",
+    "账号状态已变化，请重试。",
+    "账号凭证已变化，请重新登录后再试。"
+   ]
+  },
+  {
+   "code": "ACCOUNT_GATE_UNAVAILABLE",
+   "where": "lib/notifications.js:301",
+   "messages": [
+    "账号操作暂不可用。"
+   ]
+  },
+  {
+   "code": "ACCOUNT_RATE_LIMIT",
+   "where": "lib/accountTotp.js:98",
+   "messages": [
+    "验证次数过多，请稍后重试。"
+   ]
+  },
+  {
+   "code": "ACCOUNT_UNAVAILABLE",
+   "where": "lib/accountTotp.js:85",
+   "messages": [
+    "账号不可用，请重新登录。"
+   ]
+  },
+  {
+   "code": "ADMIN_MFA_REQUIRED",
+   "where": "server.js:923",
+   "messages": [
+    "管理员操作需要验证器：请先在“隐私与安全”中开启验证器，再用验证器重新登录。"
+   ]
+  },
+  {
+   "code": "ADMIN_REQUIRED",
+   "where": "lib/accountTotp.js:167",
+   "messages": [
+    "此验证器设置目前仅供管理员使用。"
+   ]
+  },
+  {
+   "code": "AI_CALL_LIMIT",
+   "where": "lib/aiGovernance.js:285",
+   "messages": []
+  },
+  {
+   "code": "AI_CONCURRENCY_LIMIT",
+   "where": "lib/aiBudget.js:33",
+   "messages": [
+    "BayBay 正忙，请稍后再试。"
+   ],
+   "english": "BayBay is busy. Please try again shortly."
+  },
+  {
+   "code": "AI_DAILY_BUDGET",
+   "where": "lib/aiBudget.js:25",
+   "messages": [
+    "今日 AI 名额已满，明天会恢复；站内资料仍可浏览。"
+   ],
+   "english": "Today's AI capacity is used up and resets tomorrow. Site information is still available."
+  },
+  {
+   "code": "AI_DAILY_LIMIT",
+   "where": "lib/aiBudget.js:31",
+   "messages": [
+    "今日 AI 额度已用完，请明天再试；仍可浏览站内资料。"
+   ],
+   "english": "You have used today's AI answers. Please try again tomorrow; site information is still available."
+  },
+  {
+   "code": "AI_PROVIDER_STREAM_ERROR",
+   "where": "lib/anthropicStream.js:21",
+   "messages": []
+  },
+  {
+   "code": "AI_PROVIDER_TIMEOUT",
+   "where": "lib/aiRequest.js:25",
+   "messages": []
+  },
+  {
+   "code": "AI_QUOTA_UNAVAILABLE",
+   "where": "lib/aiBudget.js:34",
+   "messages": [
+    "AI 额度暂时无法确认，请稍后再试；站内资料仍可浏览。"
+   ],
+   "english": "AI capacity cannot be checked right now. Please try again shortly; site information is still available."
+  },
+  {
+   "code": "AI_USAGE_RATE_LIMIT",
+   "where": "server.js:1853",
+   "messages": []
+  },
+  {
+   "code": "AI_WEB_BUDGET",
+   "where": "lib/aiBudget.js:27",
+   "messages": [
+    "今天 AI 用量较高，暂停联网查询；站内资料仍可使用。"
+   ],
+   "english": "Web lookups are paused for today because AI use is high. Site information is still available."
+  },
+  {
+   "code": "CLIENT_IP_DIAG_RATE_LIMIT",
+   "where": "lib/clientIp.js:306",
+   "messages": []
+  },
+  {
+   "code": "CREDENTIAL_CONFIRMATION_REQUIRED",
+   "where": "lib/accountTotp.js:121",
+   "messages": [
+    "请填写当前密码确认操作。",
+    "当前密码不正确，请重新确认。"
+   ]
+  },
+  {
+   "code": "EMAIL_VERIFICATION_REQUIRED",
+   "where": "server.js:1561",
+   "messages": [
+    "请先验证邮箱，再验证手机号：在\"我的 → 通知设置\"里点\"验证邮箱\"，打开邮件里的链接后再回来。"
+   ]
+  },
+  {
+   "code": "FEEDBACK_INVALID",
+   "where": "lib/feedback.js:133",
+   "messages": [
+    "反馈格式无效。"
+   ]
+  },
+  {
+   "code": "FEEDBACK_RATE_LIMIT",
+   "where": "lib/feedback.js:130",
+   "messages": [
+    "提交太频繁，请稍后再试。"
+   ]
+  },
+  {
+   "code": "FEEDBACK_UNAVAILABLE",
+   "where": "lib/feedback.js:156",
+   "messages": [
+    "暂时无法提交反馈，请稍后重试。"
+   ]
+  },
+  {
+   "code": "INVALID_ASSISTANT_SESSION",
+   "where": "lib/baybayEngine/router.js:25",
+   "messages": [
+    "会话条件已过期，请开启新对话后重试。"
+   ]
+  },
+  {
+   "code": "INVALID_OUTING_SEARCH_TOKEN",
+   "where": "lib/outingSearchToken.js:6",
+   "messages": []
+  },
+  {
+   "code": "LOGIN_RATE_LIMIT",
+   "where": "lib/accountTotp.js:145",
+   "messages": [
+    "操作太频繁，请稍后再试。"
+   ]
+  },
+  {
+   "code": "MFA_CHALLENGE_EXPIRED",
+   "where": "lib/accountTotp.js:137",
+   "messages": [
+    "登录验证已过期，请重新输入密码。",
+    "登录验证无效。",
+    "登录验证已过期或尝试过多，请重新输入密码。",
+    "账号状态已变化，请重新登录。",
+    "登录验证已使用，请重新登录。"
+   ]
+  },
+  {
+   "code": "MFA_INVALID",
+   "where": "lib/accountTotp.js:104",
+   "messages": [
+    "恢复码无效或已使用。",
+    "验证器代码无效，请核对最新六位代码。",
+    "验证器代码不正确，尚未启用。"
+   ]
+  },
+  {
+   "code": "MFA_REPLAY",
+   "where": "lib/accountTotp.js:118",
+   "messages": [
+    "这枚代码已使用，请等下一枚代码或使用未使用的恢复码。"
+   ]
+  },
+  {
+   "code": "NOT_FOUND",
+   "where": "server.js:5173",
+   "messages": []
+  },
+  {
+   "code": "NOTIFICATION_VERIFICATION_REQUIRED",
+   "where": "lib/notifications.js:250",
+   "messages": [
+    "请先验证邮箱或手机号。"
+   ]
+  },
+  {
+   "code": "PHONE_INVALID",
+   "where": "server.js:1554",
+   "messages": [
+    "请输入有效的美国手机号。"
+   ]
+  },
+  {
+   "code": "PHONE_NOT_US",
+   "where": "server.js:1560",
+   "messages": [
+    "目前只能验证美国手机号（+1，美国区号）。"
+   ]
+  },
+  {
+   "code": "PHONE_SHARED_LIMIT",
+   "where": "server.js:1571",
+   "messages": [
+    "这个手机号已在其他账号验证过，不能再用于验证新账号。如需帮助请联系我们。"
+   ]
+  },
+  {
+   "code": "POST_IMAGE_UPLOAD_FAILED",
+   "where": "server.js:2842",
+   "messages": []
+  },
+  {
+   "code": "REQUEST_CANCELLED",
+   "where": "lib/aiGovernance.js:10",
+   "messages": []
+  },
+  {
+   "code": "SAME_PASSWORD",
+   "where": "server.js:2167",
+   "messages": [
+    "新密码不能和当前密码相同。"
+   ]
+  },
+  {
+   "code": "SEARCH_VERIFICATION_FAILED",
+   "where": "lib/bayAreaSearchScope.js:51",
+   "messages": []
+  },
+  {
+   "code": "TOTP_ALREADY_ENABLED",
+   "where": "lib/accountTotp.js:168",
+   "messages": [
+    "验证器已启用。如需更换，请先通过凭证确认安全停用。"
+   ]
+  },
+  {
+   "code": "TOTP_NOT_ENABLED",
+   "where": "lib/accountTotp.js:195",
+   "messages": [
+    "验证器尚未启用。"
+   ]
+  },
+  {
+   "code": "TOTP_SETUP_EXPIRED",
+   "where": "lib/accountTotp.js:182",
+   "messages": [
+    "请先保存恢复码，并在十分钟内确认设置。"
+   ]
+  },
+  {
+   "code": "TOTP_SETUP_UNAVAILABLE",
+   "where": "lib/accountTotp.js:45",
+   "messages": [
+    "验证器设置暂未配置，请保留当前登录方式。",
+    "服务尚未配置独立验证器加密密钥，当前登录方式保持可用。"
+   ]
+  },
+  {
+   "code": "TOTP_UNAVAILABLE",
+   "where": "lib/accountTotp.js:16",
+   "messages": [
+    "验证器密钥无效。",
+    "验证器服务暂不可用，请使用恢复码或联系支持。"
+   ]
+  },
+  {
+   "code": "TRANSLATION_SIGN_IN",
+   "where": "lib/postTranslation.js:273",
+   "messages": []
+  },
+  {
+   "code": "VERIFIED_CONTACT_REQUIRED",
+   "where": "server.js:3081",
+   "messages": [
+    "请先验证手机号，再请求自动公开的联系方式。"
+   ]
+  },
+  {
+   "code": "WEAK_PASSWORD",
+   "where": "server.js:2165",
+   "messages": [
+    "新密码至少 8 位，包含大写字母、小写字母和数字（最多 128 位）。",
+    "管理员新密码至少 12 位，包含大写字母、小写字母和数字（最多 128 位）。"
+   ]
+  }
+ ],
+ "unresolvedTemplates": [
+  "lib/baybayEngine/research.js:70 The user chose site-only mode; answer from site snapshots or suggest ${copy(locale, locale === 'zh-Hant' ? '智能檢索 / 聯網查' : '智能检索 / 联网查', 'Smart / Web')} for current official verification.",
+  "lib/postLifecycle.js:14 ${name}格式无效",
+  "lib/serviceBookings.js:381 ${reason}原预约仍保留。"
+ ]
+}

@@ -3,19 +3,30 @@ import { Link } from 'react-router-dom';
 import './ui.css';
 import { cx } from './ui-copy';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'tonal' | 'text';
-type Common = { variant?: ButtonVariant; block?: boolean; icon?: ReactNode; children: ReactNode; className?: string };
+/**
+ * Three button looks site-wide (H29 / SV13-06): `primary` (brand fill, one per section), `secondary` (white with the control
+ * border, ink text) and `quiet` (no fill or border, brand text). `tonal` and `text` are the names callers used before; they
+ * render as `secondary` and `quiet`, so an older call site keeps working and still shows one of the three.
+ */
+export type ButtonVariant = 'primary' | 'secondary' | 'quiet';
+/** @deprecated Use `secondary` (was `tonal`) or `quiet` (was `text`). */
+export type LegacyButtonVariant = 'tonal' | 'text';
+const VISUAL: Record<ButtonVariant | LegacyButtonVariant, ButtonVariant> = { primary: 'primary', secondary: 'secondary', quiet: 'quiet', tonal: 'secondary', text: 'quiet' };
+/** The look a variant name renders (the legacy names fold into the three). */
+const buttonVisual = (variant: ButtonVariant | LegacyButtonVariant = 'secondary'): ButtonVariant => VISUAL[variant] ?? 'secondary';
+
+type Common = { variant?: ButtonVariant | LegacyButtonVariant; block?: boolean; icon?: ReactNode; children: ReactNode; className?: string };
 type AsButton = Common & Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children' | 'className'> & { to?: undefined; href?: undefined };
-type AsRoute = Common & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'children' | 'className' | 'href'> & { to: string; href?: undefined };
+type AsRoute = Common & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'children' | 'className' | 'href'> & { to: string; href?: undefined; reloadDocument?: boolean };
 type AsAnchor = Common & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'children' | 'className'> & { href: string; to?: undefined };
 export type ButtonProps = AsButton | AsRoute | AsAnchor;
 
 /**
- * Primary (one per section), secondary, tonal (save / add to plan) or text. Renders a <button>, a router
- * <Link> (`to`) or an <a> (`href`). Height 48 on phones, 44 on desktop; no arrows inside buttons.
+ * Renders a <button>, a router <Link> (`to`) or an <a> (`href`). Height 48 on phones, 44 on desktop; no arrows inside
+ * buttons (an external link may end in ↗).
  */
 export const Button = forwardRef<HTMLButtonElement | HTMLAnchorElement, ButtonProps>(function Button({ variant = 'secondary', block, icon, children, className, ...rest }, ref) {
-  const shared = { className: cx('ui-button', className), 'data-variant': variant, 'data-block': block ? '' : undefined };
+  const shared = { className: cx('ui-button', className), 'data-variant': buttonVisual(variant), 'data-block': block ? '' : undefined };
   if ('to' in rest && rest.to !== undefined) {
     const { to, ...anchor } = rest as AsRoute;
     return <Link ref={ref as Ref<HTMLAnchorElement>} to={to} {...anchor} {...shared}>{icon}{children}</Link>;

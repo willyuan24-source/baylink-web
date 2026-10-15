@@ -81,7 +81,7 @@ export const perksPosterCaption = (poster: PerksPoster, translate: (text: string
   '',
   ...poster.cards.map((card, index) => `${index + 1}. ${card.name} — ${translate(card.reward)}\n${card.details.map(translate).join('；')}`),
   '',
-  `${translate('图文静态快照，核验日期')}：${PERKS_POSTER_CHECKED}`,
+  `${translate('图文静态快照，核验日期')}：${translate(PERKS_POSTER_CHECKED)}`,
   translate('奖励、库存及适用条件可能调整，请通过攻略内官网链接复核。'),
   `https://www.baylink.us${poster.guidePath}`,
   hashtags(poster, translate),

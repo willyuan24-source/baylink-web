@@ -11,7 +11,7 @@ import { copyText } from '../../utils/postShare';
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬'];
 
 /** A superscript ① that jumps to the article's source list (its anchor `guide-source-n`). */
-function SourceMark({ guide, index }: { guide: Guide; index?: number }) {
+export function SourceMark({ guide, index }: { guide: Guide; index?: number }) {
   const { t } = useUiCopy();
   if (!index || !guide.sources[index - 1]) return null;
   return <a className="gd-source-mark" href={`#guide-source-${index}`} aria-label={t(`来源 ${index}`, `Source ${index}`)}>{CIRCLED[index - 1] ?? `[${index}]`}</a>;

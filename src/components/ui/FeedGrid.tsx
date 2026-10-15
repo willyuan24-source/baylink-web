@@ -24,9 +24,19 @@ export type FeedGridProps = {
  * breakpoint) or in a narrow container; 2 / 3 columns at 大/特大 on tablets / desktops. Children are <FeedItem>s.
  */
 export function FeedGrid({ label, layout = 'auto', single, ratio, children, className }: FeedGridProps) {
-  return <div className={cx('ui-feed', className)} data-ratio={ratio}>
+  return <div className={cx('ui-feed', className)} data-ratio={ratio} data-cover-credit="">
     <ul className="ui-feed-grid" aria-label={label} data-layout={layout} data-single={single ? '' : undefined}>{children}</ul>
+    <CoverCredit />
   </div>;
+}
+
+/**
+ * H12 / SV13-02: one line under a list says what a coded cover is, so its cards that credit their own source (the ✓ line)
+ * need no BAYLINK 信息卡 badge each. Drawn only when the list holds such a card (ui.css :has; without :has it always shows).
+ */
+export function CoverCredit() {
+  const { t } = useUiCopy();
+  return <p className="ui-cover-credit">{t('没有照片的条目用 BAYLINK 信息卡，插画仅作装饰。', 'No photo: a BAYLINK info card; drawings are decorative.')}</p>;
 }
 
 /** One feed cell. `wide` spans the row: a guide carousel, a BayBay prompt strip or an offers rail every 6–8 cards. */

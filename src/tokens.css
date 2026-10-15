@@ -68,6 +68,9 @@
        card     18/27                              card and row titles (H3) */
   --text-display:1.75rem; --lh-display:1.286;
   --text-title:1.625rem; --lh-title:1.308;
+  /* The page H1 (H30): every H1 except the display tier (home, the events column) reads these, so a page cannot drift to a
+     third H1 size. They follow --text-title (26/34 phone, 32/42 desktop). */
+  --text-h1:var(--text-title); --lh-h1:var(--lh-title);
   --text-section:1.375rem; --lh-section:1.364;
   --lh-card:1.5;
   /* Layout (SV-09, design.md §4.4): one page frame, aligned to the header (the logo and the content edge at 112–1328 in a
@@ -94,6 +97,8 @@
 /* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
    heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). */
 .type-display,.type-title,.type-section { font-weight:600; letter-spacing:0; text-wrap:balance; }
+/* H55: a heading never ends on one short word on its own line (an explicit balance on a component still wins). */
+:where(h1,h2,h3,h4) { text-wrap:pretty; }
 .type-display { font-size:var(--text-display); line-height:var(--lh-display); }
 .type-title { font-size:var(--text-title); line-height:var(--lh-title); }
 .type-section { font-size:var(--text-section); line-height:var(--lh-section); }
@@ -109,6 +114,15 @@
    Bold throughout, zh-Hant headings Microsoft JhengHei UI Bold (a real bold face, lighter in design than YaHei's). */
 html:lang(zh-Hans) { --font-sans:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei UI','Microsoft YaHei','Noto Sans SC','Noto Sans CJK SC','Segoe UI',sans-serif; }
 html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'PingFang TC','Microsoft JhengHei UI','Microsoft JhengHei','Noto Sans TC','Noto Sans CJK TC','Segoe UI',sans-serif; }
+/* H51 / SV13-05: JhengHei UI Bold is a light bold, and its Latin letters and digits read as regular weight next to the
+   Chinese, so a zh-Hant heading on Windows looked lighter than the same zh-Hans one. Headings and card titles in zh-Hant
+   take their Latin letters, digits and punctuation (U+0000-024F only) from Segoe UI Bold through a local() alias; the
+   Chinese still comes from JhengHei UI Bold. Where Segoe UI is not installed (macOS, iOS, Android) local() finds nothing
+   and the usual stack applies, so PingFang TC and Noto are unchanged. A 400 face keeps regular runs regular. */
+@font-face { font-family:'BL Hant Latin'; src:local('Segoe UI'), local('SegoeUI'); font-weight:400; unicode-range:U+0000-024F; }
+@font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:600; unicode-range:U+0000-024F; }
+@font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:700; unicode-range:U+0000-024F; }
+html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-row-card__title,.ui-type-cover__title,.ui-type-cover__date,.ui-type-cover__value) { font-family:'BL Hant Latin',var(--font-sans); }
 /* Aa: 标准 100% / 大 112.5% / 特大 125% of the browser's own size, set before the first paint by public/reading-init.js.
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
    carries the same factor into the vw middle of fluid headings (clamp(2rem, calc(4vw * var(--fluid-scale)), 3rem)). */

@@ -59,12 +59,20 @@ export function sessionTimes(event: CalendarEventInput, day: string): { start: s
   return { start: pad(start), ...(end && pad(end) > pad(start) ? { end: pad(end) } : {}) };
 }
 
+/**
+ * H78 (FCC-10): only an all-day entry is a date reminder. A day whose session time is confirmed is the event itself, so its
+ * SUMMARY is the plain title and its DESCRIPTION drops the "not all-day" disclaimer; each VEVENT says what it is.
+ */
+const DATE_ONLY_SUFFIX = '（日期提醒）';
+const DATE_ONLY_NOTE = '这是活动日期提醒，不代表全天开放、预约或购票。';
+
 export const buildEventCalendar = (event: CalendarEventInput, date?: string): string => {
   if (date !== undefined && !eventOccursOn(event, date)) throw new Error('This date is not a confirmed event occurrence.');
-  const description = `这是活动日期提醒，不代表全天开放、预约或购票。具体场次、年龄限制与最新变动请查看主办方。\n${event.costLabel}\n${event.summary}\n官方详情：${event.officialUrl}\nBAYLINK 核对日期：${event.verifiedAt}`;
+  const details = `具体场次、年龄限制与最新变动请查看主办方。\n${event.costLabel}\n${event.summary}\n官方详情：${event.officialUrl}\nBAYLINK 核对日期：${event.verifiedAt}`;
   const dates = date ? [{ start: date, end: date, uid: `${event.id}-${date}` }] : event.occurrenceDates === undefined ? [{ start: event.startDate, end: event.endDate, uid: event.id }]
     : [...new Set(event.occurrenceDates)].filter(day => day >= event.startDate && day <= event.endDate).sort().map(day => ({ start: day, end: day, uid: `${event.id}-${day}` }));
-  const title = translateText(`${event.title}（日期提醒）`);
+  const title = (timed: boolean) => translateText(timed ? event.title : `${event.title}${DATE_ONLY_SUFFIX}`);
+  const description = (timed: boolean) => translateText(timed ? details : `${DATE_ONLY_NOTE}${details}`);
   const alarm = (trigger: string, text: string) => ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${calendarText(translateText(text))}`, `TRIGGER:${trigger}`, 'END:VALARM'];
   // A single day with a confirmed time becomes a timed event; a multi-day run stays a date range.
   const timed = dates.map(({ start, end }) => start === end ? sessionTimes(event, start) : undefined);
@@ -78,8 +86,8 @@ export const buildEventCalendar = (event: CalendarEventInput, date?: string): st
         'BEGIN:VEVENT', `UID:${uid}@baylink.us`, `DTSTAMP:${event.verifiedAt.replace(/-/g, '')}T120000Z`,
         ...(time ? [`DTSTART;TZID=${CALENDAR_TIME_ZONE}:${day}T${time.start}`, ...(time.end ? [`DTEND;TZID=${CALENDAR_TIME_ZONE}:${day}T${time.end}`] : [])]
           : [`DTSTART;VALUE=DATE:${day}`, `DTEND;VALUE=DATE:${nextDate(end)}`]),
-        `SUMMARY:${calendarText(title)}`, `LOCATION:${calendarText(`${event.venue}, ${event.city}`)}`,
-        `DESCRIPTION:${calendarText(translateText(description))}`, `URL:${event.officialUrl}`, 'TRANSP:TRANSPARENT',
+        `SUMMARY:${calendarText(title(!!time))}`, `LOCATION:${calendarText(`${event.venue}, ${event.city}`)}`,
+        `DESCRIPTION:${calendarText(description(!!time))}`, `URL:${event.officialUrl}`, 'TRANSP:TRANSPARENT',
         ...(time ? [...alarm('-P1D', `明天：${event.title}`), ...alarm('-PT2H', `两小时后开始：${event.title}`)] : alarm('-PT15H', `明天：${event.title}`)),
         'END:VEVENT',
       ];

@@ -69,7 +69,7 @@ export function PublicContentDirectory({ today = getBayAreaToday(), items = loca
   const sections: readonly { path: string; zh: string; en: string }[] = [
     { path: '/', zh: '首页', en: 'Home' }, { path: '/events', zh: '本周末活动', en: 'This weekend' },
     { path: '/calendar', zh: '活动日历', en: 'Event calendar' }, { path: '/guides', zh: '办事指南', en: 'Guides' },
-    { path: '/this-month', zh: '当期发现', en: 'Current edition' }, { path: '/explore', zh: '按地区找景点', en: 'Places by area' },
+    { path: '/events?when=all', zh: '全部日期活动', en: 'Events on all dates' }, { path: '/explore', zh: '按地区找景点', en: 'Places by area' },
     { path: '/plan', zh: '行程', en: 'Plan' }, { path: '/opus-bay', zh: '3D 旧金山', en: '3D San Francisco' },
     { path: '/ai-in-the-bay', zh: '湾区 AI 现场', en: 'AI in the Bay' }, { path: '/tools', zh: '生活工具箱', en: 'Everyday tools' },
     { path: '/about', zh: '关于与核验方法', en: 'About and sources' },

@@ -10,9 +10,14 @@ import { AuthBrandHeader } from '../../components/AuthBrandHeader';
 import { MfaLoginChallenge } from './MfaLoginChallenge';
 import { useLocale, translateText } from '../../i18n/locale';
 import { recordProductEvent } from '../../lib/product-events';
+import { loginIntent, rememberSignedIn, signedInBefore } from './login-intent';
+import { COMMUNITY_VISIBLE } from '../../data/site-flags';
 
 export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { onClose: () => void; onLogin: (user: UserData) => void; showToast: (message: string, type?: 'success' | 'error' | 'info') => void; onForgotPassword: () => void }) => {
-  const [mode, setMode] = useState<'login'|'register'>('login');
+  // H76: opened by a guest's 私信 / 请求联系方式, the sheet names that scene and leads with 注册 (登录 for a browser that has
+  // signed in before); opened any other way it is the generic sheet, on 登录.
+  const [intent] = useState(loginIntent);
+  const [mode, setMode] = useState<'login'|'register'>(() => intent && !signedInBefore() ? 'register' : 'login');
   const [form, setForm] = useState({ email: '', password: '', nickname: '', contactType: 'wechat', contactValue: '' });
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -86,7 +91,7 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
       if (user.mfaRequired === true && typeof user.challengeToken === 'string') {
         setForm({ ...form, password: '' }); setChallengeToken(user.challengeToken); return;
       }
-      localStorage.setItem('currentUser', JSON.stringify(user));
+      localStorage.setItem('currentUser', JSON.stringify(user)); rememberSignedIn();
       onLogin(user);
       onClose();
       showToast(mode === 'register' ? '欢迎加入 BayLink!' : '欢迎回来', 'success');
@@ -99,26 +104,38 @@ export const LoginModal = ({ onClose, onLogin, showToast, onForgotPassword }: { 
   };
 
   const inputClass = 'member-auth-input';
+  // The poster's nickname is their own text: it is appended, never passed through the zh-Hant conversion.
+  const intentName = intent?.name?.trim().slice(0, 40);
+  const intentTitle = mode === 'register' ? (intentName ? `${t('注册后私信', 'Sign up to message')} ${intentName}` : t('注册后发私信', 'Sign up to send a message'))
+    : intentName ? `${t('登录后私信', 'Sign in to message')} ${intentName}` : t('登录后发私信', 'Sign in to send a message');
 
   // RC-24: the sign-in sheet (WEB-UI Sheet: bottom sheet on phones, drawer on desktop). The register form has five
   // required fields, so a stray tap outside never closes it: only ✕ and Esc do.
   if (challengeToken) return <Sheet open onClose={close} closeOnBackdrop={false} title={locale === 'en' ? 'Two-step verification' : translateText('两步验证', locale)}><div className="member-auth-dialog">
     <MfaLoginChallenge challengeToken={challengeToken} onClose={close} onRestart={() => { setChallengeToken(null); setError(''); }} onComplete={user => {
-      localStorage.setItem('currentUser', JSON.stringify(user)); onLogin(user); onClose();
+      localStorage.setItem('currentUser', JSON.stringify(user)); rememberSignedIn(); onLogin(user); onClose();
       showToast(locale === 'en' ? 'Welcome back' : translateText('欢迎回来', locale), 'success');
       showAccountStatusNotice(user, showToast);
     }} />
   </div></Sheet>;
 
   return (
-    <Sheet open onClose={close} closeOnBackdrop={false} initialFocusRef={typeFirst ? emailRef : undefined} title={mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
+    <Sheet open onClose={close} closeOnBackdrop={false} initialFocusRef={typeFirst ? emailRef : undefined} title={intent ? intentTitle : mode === 'register' ? t('注册', 'Create an account') : t('登录', 'Sign in')}>
       <div className="member-auth-dialog">
-        <AuthBrandHeader />
+        {/* H34 (HOMEIA13-06): the site's one positioning line, as in the footer and /me, in all three languages. */}
+        <AuthBrandHeader tagline={t('湾区去哪、怎么办 · 有来源的中文答案', 'Where to go and how to get it done in the Bay, with sources')} />
         <div className="member-auth-heading">
-          <h2>{mode === 'register' ? '你的湾区生活，从这里开始。' : '欢迎回来，邻居。'}</h2>
-          <p>{mode === 'register' ? '创建账号，发布信息，与附近的人建立联系。' : '登录后继续聊天、管理发布，发现身边的好生活。'}</p>
+          <h2>{mode === 'register' ? t('注册后，BayBay 能帮你更多', 'Create an account and BayBay can do more for you') : t('欢迎回来，邻居。', 'Welcome back, neighbor.')}</h2>
+          {/* H77: post saves stay on the device (the favorites API has no post kind). While the board is paused
+              (COMMUNITY_VISIBLE = false) the sheet promises no posting and names no posts. */}
+          <p>{COMMUNITY_VISIBLE
+            ? mode === 'register' ? t('收藏（邻里信息除外）和行程跟着账号走，换手机也在；也可以发布信息、收发私信。', 'Saved items (except neighborhood posts) and plans follow your account to any phone; you can also post and send messages.')
+              : t('登录后继续聊天、管理发布；收藏（邻里信息除外）和行程跟着账号走。', 'Sign in to keep chatting and manage your posts; saved items (except neighborhood posts) and plans follow your account.')
+            : mode === 'register' ? t('收藏和行程跟着账号走，换手机也在；也可以收发私信。', 'Your saved items and plans follow your account to any phone; you can also send messages.')
+              : t('登录后继续聊天；收藏和行程跟着账号走。', 'Sign in to keep chatting; your saved items and plans follow your account.')}</p>
         </div>
         {error && <div role="alert" className="mb-4 flex items-center gap-2 rounded-xl border border-red-100 bg-red-50 p-3 text-xs font-normal text-red-600"><AlertCircle size={14} />{error}</div>}
+        {intent && <p className="member-auth-intent">{mode === 'register' ? t('发私信需要账号，注册约 1 分钟。对方回复会出现在「消息」里，并显示未读数。', 'Messaging needs an account, and signing up takes about a minute. Replies appear in Messages with an unread count.') : t('登录后就能发私信。对方回复会出现在「消息」里，并显示未读数。', 'Sign in to send the message. Replies appear in Messages with an unread count.')}</p>}
         <form onSubmit={handleSubmit} className="member-auth-form">
             <label htmlFor="auth-email" className="block text-xs font-normal">{mode === 'register' ? '邮箱账号' : '邮箱或用户名'}</label>
             <input ref={emailRef} id="auth-email" required type={mode === 'register' ? 'email' : 'text'} autoComplete={mode === 'register' ? 'email' : 'username'} className={inputClass} value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} placeholder={mode === 'register' ? '邮箱地址' : '邮箱或用户名'} />

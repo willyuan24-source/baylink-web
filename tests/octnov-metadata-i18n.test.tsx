@@ -10,6 +10,7 @@ import '../src/i18n/router';
 import '../src/i18n/metadata';
 import { loadLocaleForFeature, setLocale, translateText, normalizeText, type Locale } from '../src/i18n/locale';
 import { languagePath, languagePrefix } from '../src/lib/language-path';
+import { englishTimes } from '../src/lib/english-times';
 import { renderHtmlDocument } from '../src/lib/seo';
 import { EVENTS_METADATA, MONTHLY_METADATA } from '../src/lib/monthly-metadata';
 import { MONTHLY_EDITION } from '../src/data/monthly-settings';
@@ -65,7 +66,8 @@ test('actual calendar route scope translates every compact schedule note without
   const full = JSON.parse(readFileSync(new URL('../src/data/generated/english.json', import.meta.url), 'utf8')) as Record<string, string>;
   for (const [id, note] of Object.entries(EVENT_SCHEDULE_NOTES)) {
     const translated = translateText(note);
-    assert.equal(translated, full[normalizeText(note)], id);
+    // the site's English reads the reviewed entry's times and dates in US style (H41, i18n/metadata.ts)
+    assert.equal(translated, englishTimes(full[normalizeText(note)]), id);
     assert.doesNotMatch(translated, /\p{Script=Han}/u, id);
   }
 });
