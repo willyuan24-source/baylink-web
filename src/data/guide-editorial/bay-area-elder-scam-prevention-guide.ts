@@ -43,8 +43,8 @@ export const elderScamEditorial: GuideEditorial = {
     },
     {
       "label": {
-        "zh": "一定是骗局",
-        "en": "Always a scam"
+        "zh": "来电要你这样付款，就是骗子",
+        "en": "A caller who demands these is a scammer"
       },
       "value": {
         "zh": "要你买礼品卡、金条、加密货币，或电汇、寄现金",
@@ -137,8 +137,8 @@ export const elderScamEditorial: GuideEditorial = {
           "en": "Call back on the number saved in your phone; if you can’t reach them, call other family"
         },
         {
-          "zh": "礼品卡、金条、加密货币、电汇、寄现金：都是骗局",
-          "en": "Gift cards, gold bars, crypto, wires, mailed cash: all scams"
+          "zh": "来电要你用礼品卡、金条、加密货币、电汇或寄现金付款：就是骗子",
+          "en": "A caller who demands gift cards, gold, crypto, wires or mailed cash is a scammer"
         }
       ],
       "source": 1

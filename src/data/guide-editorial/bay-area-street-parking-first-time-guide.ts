@@ -28,8 +28,8 @@ export const streetParkingEditorial: GuideEditorial = {
         "en": "No Bay-wide free hours"
       },
       "value": {
-        "zh": "同一城市不同街段、道路两侧和活动日期都会不同",
-        "en": "Rules differ by block, side of the street and event date, even within one city"
+        "zh": "同一城市不同街段、道路两侧和活动日期都可能不同",
+        "en": "Rules can differ by block, side of the street and event date, even within one city"
       }
     },
     {

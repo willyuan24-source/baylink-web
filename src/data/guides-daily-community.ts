@@ -28,7 +28,7 @@ export const dailyCommunityGuides: Guide[] = [
       {"type":"heading","text":"先分清免费、学分和资格"},
       {"type":"paragraph","text":"Noncredit 通常指非学分课程：也要报名，不是随到随上，也不会自动换成学位学分；credit 课程可用于学业衔接，能否计入具体项目要问辅导员。CCSF 免费非学分课有自己的居住与入学条件，和 Free City 的规则是两回事。其他学校的年龄、申请要求和资格也要单独问。"},
       {"type":"heading","text":"从所在地区开始找课"},
-      {"type":"list","items":["旧金山：CCSF Noncredit ESL，先完成入学申请与分级，再选校区或线上班。","东湾：Oakland Adult & Career Education，查当期现场登记日期和地点；家长专班条件另查。","半岛：San Mateo Adult & Career Education，从课程目录或办公室问起，问清当前 ESL 新生登记办法。","南湾：Santa Clara Adult Education 有免费英语课，注册时安排说明会与分级测试，书本需求另问。","北湾：College of Marin 有 noncredit 与 credit 路径；部分高阶非学分选项按余位候补，有的还收交通费。"]},
+      {"type":"list","items":["旧金山：CCSF Noncredit ESL，先完成入学申请与分级，再选校区或线上班。","东湾：Oakland Adult & Career Education，查当期现场登记日期和地点；家长专班条件另查。","半岛：San Mateo Adult & Career Education，从课程目录或办公室问起，问清当前 ESL 新生登记办法。","南湾：Santa Clara Adult Education 有免费英语课，注册时安排说明会与分级测试，书本需求另问。","北湾：College of Marin 有 noncredit 与 credit 路径；部分高阶非学分选项按余位候补，并可能有交通费。"]},
       {"type":"heading","text":"按顺序报名，再安排第一周"},
       {"type":"list","items":["先比较上课日、校区地址、单程交通和线上设备需求；学费免费仍要问书本、材料、停车及其他费用。","按学校入口申请，完成分级或说明会，再注册具体班级；收到账号或填完兴趣表，还不算拿到座位。","满班就问候补规则、下一轮招生和其他时段；问清是否须首日到场，以及缺席后座位如何处理。"]},
       {"type":"template","title":"发给学校的询课模板","text":"您好，我住在［城市］，希望提升［日常沟通／工作英语／升学英语］，可上课时间为［时段］。请问适合的班级、资格要求、分级与报名步骤、总费用和候补办法是什么？我需要［语言或学习便利支持］。"},
