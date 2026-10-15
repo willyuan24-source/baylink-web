@@ -6,6 +6,7 @@
  * - no 邻里 entry in the 更多 (•••) panel, on the home page or in search (QuickExplore);
  * - /category/* and post pages (the app, the prerendered pages and the server post page) show a calm
  *   「邻里信息暂停中」 page with noindex, and say where messages are;
+ * - the sign-in sheet's account line promises no posting (LoginModal, W5-INT);
  * - /messages and existing conversations keep working (nothing is deleted; flipping it back shows everything again).
  * The OPUS contract is untouched either way (npm run test:opus).
  */
