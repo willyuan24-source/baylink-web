@@ -51,12 +51,15 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // WEB-PLAN-DATA: /plan renders its header at once and loads a generated planner catalog (and, in English, that catalog's own
 // pack) after its first paint, instead of importing every event record, every guide, the image registry and the planning,
 // discovery and guide-index packs: 1132.5 / 1176.1 / 2043.2 → 270.3 / 313.9 / 372.3 KiB, so its ceilings go to measured + 5%.
+// W5 integration (GUIDES-READ + LINK-2 + SEO-3 + VISUAL-2 + COMMUNITY-2 on #41): the cells verify-release says can come down
+// go to measured + 2% on the integrated build: / en, /guides, the senior guide en and the Fleet Week detail. /events, /calendar
+// and /plan keep their ceilings (3.4–5.0% headroom) for the event batches in flight (CNT-SUPPLY-2; W4 note above).
 const ROUTE_JS_BUDGETS = [
-  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 241.9, en: 323.6 } },
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 241.9, en: 321.1 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 319.5, 'zh-Hant': 365.3, en: 528.3 } },
-  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 222.5, 'zh-Hant': 268.1, en: 358.1 } },
-  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 344.6 } },
-  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 219.2, 'zh-Hant': 264.9, en: 343.0 } },
+  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 221.0, 'zh-Hant': 265.5, en: 352.2 } },
+  { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 341.4 } },
+  { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 218.0, 'zh-Hant': 262.5, en: 337.9 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 315.6, 'zh-Hant': 361.4, en: 524.4 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
