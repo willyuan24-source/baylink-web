@@ -4,6 +4,7 @@
 // file (tests/agent-read-wording.test.tsx).
 import assert from 'node:assert/strict';
 import test, { afterEach } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 
@@ -21,6 +22,8 @@ const { monthDay: homeMonthDay, weekendRange } = await import('../src/features/h
 const { MONTHLY_EVENTS } = await import('../src/data/monthly-edition');
 const { fitSize, textWidth } = await import('../src/lib/share-card-svg');
 const { TrustLine, EventRowCard } = await import('../src/features/events/EventCards');
+const { TypeCover } = await import('../src/components/ui/TypeCover');
+const { NotificationPreferencesCard } = await import('../src/features/profile/NotificationPreferencesCard');
 const original = api.request;
 afterEach(async () => { cleanup(); api.request = original; localStorage.clear(); await setLocale('zh-Hans', false); });
 
@@ -94,4 +97,33 @@ test('a price range prints money on both ends with one precision: "$22.80–$28.
     const text = eventPriceChip(event)?.text.en ?? '';
     if (text.includes('–')) assert.match(text, /^\$\d+(?:\.\d\d)?–\$\d+(?:\.\d\d)?$/u, `${event.id}: ${text}`);
   }
+});
+
+test('/me 通知: while the preferences load, the lead claims no state (not the preset-off "由你主动选择接收。")', async () => {
+  localStorage.setItem('currentUser', JSON.stringify({ id: 'owner', token: 'test-only', email: 'owner@example.test' }));
+  api.request = () => new Promise(() => {});
+  const leads = { 'zh-Hans': '站外提醒发到你验证过的邮箱或手机。', 'zh-Hant': '站外提醒發到你驗證過的信箱或手機。', en: 'Reminders go to the email or phone you have verified.' } as const;
+  for (const locale of ['zh-Hans', 'zh-Hant', 'en'] as const) {
+    await setLocale(locale, false);
+    let view!: ReturnType<typeof render>;
+    await act(async () => { view = render(<NotificationPreferencesCard userId="owner" />); });
+    const lead = view.container.querySelector('.me-notify > p')?.textContent ?? '';
+    assert.ok(lead.startsWith(leads[locale]), `${locale}: ${lead}`);
+    assert.doesNotMatch(lead, /由你主动选择接收|由你主動選擇接收|Choose which reminders/u, locale);
+    assert.ok(view.getByRole('button', { name: locale === 'en' ? 'Loading notification settings…' : locale === 'zh-Hant' ? '正在載入通知設定…' : '正在加载通知设置…' }));
+    cleanup();
+  }
+});
+
+test('the attraction cards\' fallback drawing is seeded by the attraction id, so every language draws the same picture', async () => {
+  const source = readFileSync(new URL('../src/components/AttractionExplorer.tsx', import.meta.url), 'utf8');
+  assert.match(source, /<TypeCover tone="outdoors" family="guide"[^>]*\sseed=\{item\.id\}/u);
+  const art = (title: string) => {
+    const view = render(<TypeCover tone="outdoors" family="guide" label="" title={title} seed="golden-gate-park" ratio="3:2" ratioLock ariaHidden />);
+    const value = view.container.querySelector('[data-art]')?.getAttribute('data-art');
+    cleanup();
+    return value;
+  };
+  assert.ok(art('金门公园'));
+  assert.equal(art('金门公园'), art('Golden Gate Park'));
 });
