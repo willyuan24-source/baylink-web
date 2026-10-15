@@ -6,8 +6,9 @@
  *   node scripts/snapshot-api-errors.mjs <path to the api repo> [ref=origin/main]
  *
  * It writes src/i18n/api-errors.snapshot.json. What counts: the Chinese literals of `error:` / `message:` /
- * `notificationWarning:` fields, of `fail('…')` and `new Error('…')`, and of `const …_MSG = '…'`, in server.js, lib/*.js
- * and api/*.js; template literals whose `${NAME}` is a numeric constant of the same file are resolved; the `code:` values,
+ * `notificationWarning:` fields, of `fail('…')` and `new Error('…')`, and of `const …_MSG = '…'`, in server.js, every .js
+ * file under lib/ (subfolders too: api #48 moved the BayBay engine into lib/baybayEngine/) and api/*.js; template literals
+ * whose `${NAME}` is a numeric constant of the same file are resolved; the `code:` values,
  * each with the literal message on the same line when there is one. NOT_USER_FACING lists the literals that never reach
  * a reader as an API answer (e-mail wording, logs), each with its reason. A line keyed by a Chinese locale
  * (`'zh-Hans': { message: '新的私信', … }`, lib/notifications.js SETTING_LABELS / LEADS) is wording the API writes in
@@ -29,7 +30,7 @@ const [repo, ref = 'origin/main'] = process.argv.slice(2);
 if (!repo) throw new Error('Usage: node scripts/snapshot-api-errors.mjs <api repo> [ref]');
 const git = (...args) => execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8', maxBuffer: 64 << 20 });
 const commit = git('rev-parse', ref).trim();
-const files = git('ls-tree', '-r', '--name-only', ref).split('\n').filter(file => /^(?:server\.js|lib\/[^/]+\.js|api\/[^/]+\.js)$/.test(file)).sort();
+const files = git('ls-tree', '-r', '--name-only', ref).split('\n').filter(file => /^(?:server\.js|lib\/.+\.js|api\/[^/]+\.js)$/.test(file)).sort();
 const HAN = /[㐀-鿿]/;
 const QUOTED = String.raw`(['"\`])((?:(?!\1)[^\\]|\\.)*?)\1`;
 const PATTERNS = [

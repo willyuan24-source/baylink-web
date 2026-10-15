@@ -40,7 +40,8 @@ test('H48: every error code is covered — by its own English, by the English of
 });
 
 test('H48: a template the snapshot cannot resolve is known, so a new one is looked at', () => {
-  const known = [/^lib\/baybayAgent\.js:\d+ The user chose site-only mode/, /^lib\/postLifecycle\.js:\d+ \$\{name\}格式无效$/, /^lib\/serviceBookings\.js:\d+ \$\{reason\}原预约仍保留。$/];
+  // the site-only prompt line is an instruction to the model, not an answer; api #48 moved it into lib/baybayEngine/
+  const known = [/^lib\/baybayEngine\/research\.js:\d+ The user chose site-only mode/, /^lib\/postLifecycle\.js:\d+ \$\{name\}格式无效$/, /^lib\/serviceBookings\.js:\d+ \$\{reason\}原预约仍保留。$/];
   for (const template of snapshot.unresolvedTemplates) assert.ok(known.some(pattern => pattern.test(template)), template);
 });
 
