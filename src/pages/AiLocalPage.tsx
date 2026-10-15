@@ -135,6 +135,6 @@ export default function AiLocalPage({ today: suppliedToday }: { today?: string }
         ['03', '一次只排一个区域', '旧金山、Oakland、Menlo Park 分开安排；不要把地图上的邻近感当作晚高峰的通勤时间。'],
       ].map(([number, title, body]) => <div key={number}><span>{number}</span><h3>{t(title)}</h3><p>{t(body)}</p></div>)}
     </section>
-    <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/this-month">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
+    <footer className="bl-ai-footnote"><h2>{t('这份精选如何维护')}</h2><p>{t('只收录已找到公开主办方页面、具体日期与地点的场次。没有确认票价的活动不会标成免费；不展示实时余票、录取概率或保留席位。')}</p><div><Link to="/events?when=all">{t('返回本月活动')} <ArrowRight size={15} aria-hidden="true" /></Link><Link to="/explore">{t('继续探索湾区')} <ArrowRight size={15} aria-hidden="true" /></Link></div></footer>
   </PageContainer>;
 }
