@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import officialEventMedia from '../src/data/official-event-media.json';
+import officialEventDownloads from '../scripts/data/official-event-media-downloads.json';
 import octnovExtraImages from '../src/data/octnov-2026-extra-image-updates.json';
 import { OCTNOV_EVENT_MEDIA_UPDATES } from '../src/data/octnov-2026-event-photo-aliases';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
@@ -15,8 +16,13 @@ import { getListingImage } from '../src/lib/offer-media';
 
 type OfficialRecord = (typeof officialEventMedia)[number];
 const ARTWORK = new Set(['photo', 'poster', 'key-art', 'collage', 'graphic']);
-// Fields that document the download; pages and the home catalog do not need them.
-const DOWNLOAD_ONLY = ['eventId', 'artwork', 'originalUrl', 'retrievedAt', 'sha256'] as const;
+// Fields that document the image; pages and the home catalog do not need them.
+const DOWNLOAD_ONLY = ['eventId', 'artwork'] as const;
+// The download record (original URL, retrieval time, SHA-256) lives in scripts/data/official-event-media-downloads.json:
+// the registry ships in the site's JavaScript with the image registry, the download record is not (CNT-MEDIA-2).
+const DOWNLOAD_RECORD = ['originalUrl', 'retrievedAt', 'sha256'] as const;
+const downloads = officialEventDownloads as Record<string, { originalUrl: string; retrievedAt: string; sha256: string }>;
+const download = (record: OfficialRecord) => downloads[record.key];
 
 // Read the WebP container size without decoding (same rule as tests/guide-journal.test.tsx).
 const webpSize = (src: string) => {
@@ -62,8 +68,9 @@ const SKIPPED_1014 = [
 ];
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
-  const batch1008 = officialEventMedia.filter(record => record.retrievedAt.startsWith('2026-10-08'));
-  const batch1014 = officialEventMedia.filter(record => record.retrievedAt.startsWith('2026-10-14'));
+  assert.deepEqual(Object.keys(downloads), officialEventMedia.map(record => record.key), 'one download record per image, in registry order');
+  const batch1008 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-08'));
+  const batch1014 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-14'));
   assert.equal(batch1008.length, 43, 'the 2026-10-08 batch ships 43 of the 54 approved items (10 refused downloads, 1 kept a newer photo)');
   assert.deepEqual([batch1008.filter(record => record.kind === 'photo').length, batch1008.filter(record => record.kind === 'poster').length], [21, 22], '21 photos, 22 posters / key art / collages / graphics');
   assert.deepEqual(new Set(batch1014.map(record => record.eventId)), BATCH_1014, 'the 2026-10-14 batch is exactly the 15 images used');
@@ -73,7 +80,7 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.equal(new Set(officialEventMedia.map(record => record.key)).size, officialEventMedia.length);
   assert.equal(new Set(officialEventMedia.map(record => record.eventId)).size, officialEventMedia.length, 'one image per event');
   assert.equal(new Set(officialEventMedia.map(record => record.src)).size, officialEventMedia.length);
-  assert.equal(new Set(officialEventMedia.map(record => record.sha256)).size, officialEventMedia.length, 'no file was downloaded twice');
+  assert.equal(new Set(officialEventMedia.map(record => download(record).sha256)).size, officialEventMedia.length, 'no file was downloaded twice');
   for (const record of officialEventMedia) {
     assert.equal(record.key, `official-${record.eventId}`);
     assert.doesNotMatch(record.credit, /\bAI\b|原创插图/, `${record.key}: the credit names the organiser, not BAYLINK's own AI art`);
@@ -95,9 +102,10 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.ok(['promo-editorial', 'press-kit'].includes(record.rights.basis), record.key);
     assert.equal(new URL(record.rights.evidenceUrl).protocol, 'https:', record.key);
     assert.equal(record.rights.scope, 'same-event coverage only');
-    assert.match(new URL(record.originalUrl).protocol, /^https?:$/);
-    assert.match(record.retrievedAt, /^2026-10-(08|14)T\d{2}:\d{2}:\d{2}-07:00$/);
-    assert.match(record.sha256, /^[0-9a-f]{64}$/);
+    for (const field of DOWNLOAD_RECORD) assert.equal(Object.hasOwn(record, field), false, `${record.key}: ${field} belongs in the download record, not the bundled registry`);
+    assert.match(new URL(download(record).originalUrl).protocol, /^https?:$/);
+    assert.match(download(record).retrievedAt, /^2026-10-(08|14)T\d{2}:\d{2}:\d{2}-07:00$/);
+    assert.match(download(record).sha256, /^[0-9a-f]{64}$/);
     // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide. The record names
     // no srcset: pages get the D8 image ladder built from src and width (scripts/codemods/registry-srcset.mjs).
     assert.ok(record.width <= 1280 && record.width > 480, record.key);

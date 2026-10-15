@@ -126,8 +126,9 @@ for (const { key, ...asset } of [...octnovMedia, ...octnovExtraMedia, ...octnovE
 for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
 // Organisers' own event images (owner decision 2026-10-08), labelled 官方图 through their credit.
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
-// The download record (event, source URL, retrieval time, hash) stays in the JSON; pages get what they
-// render plus the crop focus and rights basis the cover resolver reads.
+// The JSON keeps the event id and artwork class; the download record (source URL, retrieval time, hash) is in
+// scripts/data/official-event-media-downloads.json, outside the bundle. Pages get what they render plus the crop
+// focus and rights basis the cover resolver reads.
 const officialEventImage = ({ src, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
   src, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const,
   ...(fullFrame ? { fullFrame } : { focal }), rights: rights as MediaRights,
