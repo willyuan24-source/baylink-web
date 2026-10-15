@@ -57,6 +57,18 @@ test('mixed dates list what fits one phone line and count the rest; times beyond
   assert.deepEqual(result, { lines: ['周六 10/17 · 10 点起', '周日 10/18 · 12 点起'], more: 2 });
 });
 
+test('US English drops a repeated month ("Oct 22–25, 29–31"); Chinese keeps "10/22–25、10/29–31"; a run into the next month keeps both', () => {
+  // Pleasanton Pumpkins After Dark from 10/15: the line that wrapped at 简洁显示 (WEB-FIX6 review).
+  const pumpkins = sessions([['2026-10-15', '18:45', '22:00'], ['2026-10-16', '18:45', '22:00'], ['2026-10-17', '18:45', '22:00'], ['2026-10-18', '18:45', '22:00'],
+    ...['2026-10-22', '2026-10-23', '2026-10-24', '2026-10-25', '2026-10-29', '2026-10-30', '2026-10-31'].map(day => [day, '18:30', '22:00'] as [string, string, string])]);
+  assert.deepEqual(sessionLines(pumpkins, '2026-10-15', true).lines, ['Thu–Sun Oct 15–18 · 6:45pm–10pm', 'Oct 22–25, 29–31 · 6:30pm–10pm']);
+  assert.deepEqual(sessionLines(pumpkins, '2026-10-15', false).lines, ['周四至周日 10/15–18 · 18:45–22:00', '10/22–25、10/29–31 · 18:30–22:00']);
+  const goblin = sessions(['2026-10-17', '2026-10-18', '2026-10-24', '2026-10-25', '2026-10-31'].map(day => [day, '09:00']));
+  assert.deepEqual(sessionLines(goblin, '2026-10-13', true).lines, ['Oct 17–18, 24–25, 31 · From 9am']);
+  const across = sessions(['2026-10-24', '2026-10-25', '2026-10-30', '2026-10-31', '2026-11-01'].map(day => [day, '09:00']));
+  assert.deepEqual(sessionLines(across, '2026-10-13', true).lines, ['Oct 24–25, Oct 30–Nov 1 · From 9am']);
+});
+
 test('counts are days: a line whose days have several times each says 等 N 天, and so does 另有 N 天', () => {
   // The Fort Point talks: six days, three talks a day. "等 6 场" would undercount 18 talks.
   const talks = sessions(['2026-11-20', '2026-11-21', '2026-11-22', '2026-11-27', '2026-11-28', '2026-11-29'].flatMap(day => [[day, '11:30'], [day, '13:30'], [day, '14:30']] as [string, string][]));
@@ -93,6 +105,18 @@ test('the facts card renders the merged lines and 另有 N 场 for an event with
   assert.deepEqual(lines, ['周六 10/17 · 10 点起', '周日 10/18 · 12 点起', '另有 2 场']);
   const days = facts({ ...baseEvent(), ...sessions([['2026-10-17', '11:00'], ['2026-10-17', '15:00'], ['2026-10-18', '12:00'], ['2026-10-24', '10:00'], ['2026-10-24', '14:00']]) } as MonthlyEvent);
   assert.equal([...days.querySelectorAll('[data-fact="when"] dd > .detail-fact__line')].at(-1)?.textContent, '另有 1 天');
+});
+
+test('a 何时 line wraps only between its pieces: dates, and the time after " · " (never inside "6:30pm–10pm")', () => {
+  const pumpkins = sessions([['2026-10-22', '18:30', '22:00'], ['2026-10-23', '18:30', '22:00'], ['2026-10-24', '18:30', '22:00'], ['2026-10-25', '18:30', '22:00'], ['2026-10-29', '18:30', '22:00'], ['2026-10-30', '18:30', '22:00'], ['2026-10-31', '18:30', '22:00']]);
+  const doc = facts({ ...baseEvent(), ...pumpkins } as MonthlyEvent);
+  const line = doc.querySelector('[data-fact="when"] dd > .detail-fact__line')!;
+  assert.equal(line.textContent, '10/22–25、10/29–31 · 18:30–22:00', 'the text is unchanged');
+  assert.deepEqual([...line.querySelectorAll('.detail-fact__keep')].map(piece => piece.textContent), ['10/22–25', '10/29–31 ·', '18:30–22:00']);
+  const css = readFileSync('src/features/detail/facts-grid.css', 'utf8');
+  assert.match(css.split('@media')[0], /\.detail-fact__keep \{ display:inline-block; max-width:100%; \}/, 'each piece moves to the next line whole, at every reading size');
+  const plain = facts({ ...baseEvent(), ...sessions([['2026-10-17'], ['2026-10-18']]) } as MonthlyEvent);
+  assert.deepEqual([...plain.querySelectorAll('[data-fact="when"] .detail-fact__keep')].map(piece => piece.textContent), ['周六至周日 10/17–18'], 'a line without a time is one piece');
 });
 
 // H58 rest (Pleasanton, Disney On Ice, Petaluma, Sausalito): a long cost note in the phone's half-width 多少钱 cell made the

@@ -3,6 +3,9 @@
    and is read out in full; 展开 opens it in place, 收起 closes it. In one column (大 / 特大 / 简洁显示) and in the desktop
    list the note shows in full and the toggle is not there. The card's own layout: local-discovery-detail.css. */
 .local-discovery-detail .detail-fact__toggle { display:none; }
+/* A 何时 line wraps between its dates or after " · ", not inside a run ("Oct 22–25") or a time ("6:30pm–10pm") (WEB-FIX6):
+   each piece moves to the next line whole, and only a piece wider than the card (none today) wraps inside itself. */
+.local-discovery-detail .detail-fact__keep { display:inline-block; max-width:100%; }
 @media(max-width:767px) {
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp] dd { position:relative; }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) dd>small { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; }

@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react';
+import { Fragment, useId, useState, type ReactNode } from 'react';
 import { CalendarDays, Gift, MapPin, ShoppingBag, Store, Ticket, Users } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText, type Locale } from '../../i18n/locale';
@@ -59,6 +59,19 @@ const UNCONFIRMED_LEAD = /^(?:费用待[核定确认]+|費用待[核定確認]+|
 const mapLink = (query: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 
 /**
+ * One 何时 line that may wrap between its dates or after " · ", never inside a date run ("Oct 22–25") or a time
+ * ("6:30pm–10pm"): at 特大 and in 简洁显示 a long line keeps its time whole on the next line (WEB-FIX6). Same text as before.
+ */
+function WhenLine({ line, separator }: { line: string; separator: string }) {
+  const at = line.lastIndexOf(' · ');
+  const items = (at < 0 ? line : line.slice(0, at)).split(separator);
+  return <>
+    {items.map((item, index) => <Fragment key={index}>{index > 0 && separator}<span className="detail-fact__keep">{item}{at >= 0 && index === items.length - 1 && ' ·'}</span></Fragment>)}
+    {at >= 0 && <> <span className="detail-fact__keep">{line.slice(at + 3)}</span></>}
+  </>;
+}
+
+/**
  * Session days, one line per time (H58, session-lines.ts): "周六 10/17、10/24、10/31 · 08:30–12:00", "周四至周日 10/15–18 ·
  * 18:45–22:00", "每周六 10/17–11/28 · 9–13 点". At most two lines, then "另有 N 场" (天 when those days have several
  * sessions each), so the card ends above the phone's action bar.
@@ -68,7 +81,7 @@ function SessionLines({ event, today }: { event: MonthlyEvent; today: string }) 
   const { lines, more, moreDays } = sessionLines(event, today, english);
   const plural = more === 1 ? 'date' : 'dates';
   return <>
-    {lines.map(line => <span key={line} className="detail-fact__line">{line}</span>)}
+    {lines.map(line => <span key={line} className="detail-fact__line"><WhenLine line={line} separator={english ? ', ' : '、'} /></span>)}
     {more > 0 && <span className="detail-fact__line">{moreDays ? t(`另有 ${more} 天`, `${more} more ${plural}`) : t(`另有 ${more} 场`, `${more} more ${plural}`)}</span>}
   </>;
 }
