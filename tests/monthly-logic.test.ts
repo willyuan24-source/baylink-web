@@ -172,7 +172,7 @@ test('next seven days means today plus six calendar dates across DST, leap days 
   }
   assert.equal(getMonthlyDateRange('all', '2026-09-09'), null);
   for (const value of [null, undefined, '', 'unknown', 'WEEKEND']) assert.equal(resolveMonthlyDateFilter(value), 'all');
-  for (const value of ['today', 'weekend', 'next7', 'september', 'october', 'november'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
+  for (const value of ['today', 'weekend', 'next7', 'september', 'october', 'november', 'december'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
 });
 
 test('date filtering includes overlapping events and both endpoints, and combines all other choices', () => {
@@ -323,6 +323,7 @@ test('explicit month filters include October 31 and remove September events from
 
 test('November previews include both month boundaries without reviving October or unconfirmed dates', () => {
   assert.deepEqual(getMonthlyDateRange('november', '2026-10-02'), { start: '2026-11-01', end: '2026-11-30' });
+  assert.deepEqual(getMonthlyDateRange('december', '2026-10-02'), { start: '2026-12-01', end: '2026-12-31' });
   const base = event('mountain-view-art-wine-2026');
   const make = (id: string, startDate: string, endDate = startDate, occurrenceDates?: string[]): MonthlyEvent => ({ ...base, id, startDate, endDate, occurrenceDates });
   const selected = [

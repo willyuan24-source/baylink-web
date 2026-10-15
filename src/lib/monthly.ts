@@ -18,15 +18,16 @@ export const getEventStatus = (event: MonthlyEvent, today = getBayAreaToday()): 
     :
   event.endDate < today ? 'ended' : event.startDate > today ? 'upcoming' : 'ongoing';
 
-export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7' | 'september' | 'october' | 'november';
+export type MonthlyDateFilter = 'all' | 'today' | 'weekend' | 'next7' | 'september' | 'october' | 'november' | 'december';
 export const resolveMonthlyDateFilter = (value: string | null | undefined): MonthlyDateFilter =>
-  value === 'today' || value === 'weekend' || value === 'next7' || value === 'september' || value === 'october' || value === 'november' ? value : 'all';
+  value === 'today' || value === 'weekend' || value === 'next7' || value === 'september' || value === 'october' || value === 'november' || value === 'december' ? value : 'all';
 
 export const getMonthlyDateRange = (filter: MonthlyDateFilter, today = getBayAreaToday()): { start: string; end: string } | null => {
   if (filter === 'all') return null;
   if (filter === 'september') return { start: '2026-09-01', end: '2026-09-30' };
   if (filter === 'october') return { start: '2026-10-01', end: '2026-10-31' };
   if (filter === 'november') return { start: '2026-11-01', end: '2026-11-30' };
+  if (filter === 'december') return { start: '2026-12-01', end: '2026-12-31' };
   if (filter === 'today') return { start: today, end: today };
   if (filter === 'next7') return { start: today, end: addCalendarDays(today, 6) };
   const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();

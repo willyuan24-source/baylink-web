@@ -72,11 +72,24 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
   }
 });
 
+test('十二月 is a date choice now that the edition runs to 12/31, and it lists only events with a December day', () => {
+  assert.deepEqual(model.WHEN_OPTIONS.map(option => option.id), ['today', 'weekend', 'next7', 'october', 'november', 'december', 'all']);
+  assert.deepEqual(model.WHEN_OPTIONS.find(option => option.id === 'december')!.label, { zh: '十二月', en: 'December' });
+  assert.equal(model.resolveWhen('december', 'weekend'), 'december');
+  assert.deepEqual(getMonthlyDateRange('december', today), { start: '2026-12-01', end: '2026-12-31' });
+  const december = model.listEvents(model.INDEX_EVENTS, 'december', today);
+  assert.ok(december.length >= 20, `${december.length} events with a December day`);
+  for (const event of december) { const next = nextOccurrence(event, '2026-12-01'); assert.ok(next && next <= '2026-12-31', event.id); }
+  assert.ok(december.some(event => event.id === 'dickens-christmas-fair-2026'));
+  assert.ok(!december.some(event => event.endDate < '2026-12-01'), 'nothing that ends in November');
+});
+
 test('the range line follows `when` and only the weekend list marks the 本周末 view current', () => {
   const line = (location: string) => ssr(location, <EventsView today={today} />).querySelector('.ev-range')?.textContent;
   assert.equal(line('/events?when=today'), '今天 · 10/9 周五');
   assert.equal(line('/events?when=next7'), '未来 7 天 · 10/9–15');
   assert.equal(line('/events?when=october'), '十月');
+  assert.equal(line('/events?when=december'), '十二月');
   assert.equal(line('/events?when=all&region=sf'), '全部日期 · 收录至 12/31 · 旧金山');
   assert.equal(line('/events?when=september'), '全部日期 · 收录至 12/31', 'the retired 九月回顾 reads as all dates');
   const current = (location: string) => ssr(location, <EventsView today={today} />).querySelector('nav[aria-label="活动分区"] a[href="/events"]')?.getAttribute('aria-current');
