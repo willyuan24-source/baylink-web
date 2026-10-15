@@ -129,3 +129,21 @@ test('the three new elder guides register every dollar amount and phone number w
     for (const phone of article.match(PHONE) ?? []) assert.ok(registered(phone), `${slug}: ${phone} has no registered read`);
   }
 });
+
+// H13 review (10-15): the rent and used-goods checklists say their don'ts once, in one 注意 list after the how-to sections;
+// the other sections stay affirmative ("能不能…" and "要不要…" questions are not directives).
+const WATCH_OUT_GUIDES = ['move-in-move-out-checklist', 'rental-lease-checklist-before-signing', 'bay-area-used-trading-safety-guide', 'bay-area-used-furniture-appliance-guide'];
+const DIRECTIVE = /(?<!能)不能|(?<!要)不要|不建议|(?<![特分区个告类级性派识辨鉴差])别(?![人墅的处])/u;
+
+test('the rent and used-goods checklists keep their don\'ts in one 注意 list', () => {
+  for (const slug of WATCH_OUT_GUIDES) {
+    const blocks = getGuideBySlug(slug)!.blocks;
+    const at = blocks.flatMap((block, index) => block.type === 'heading' && block.text === '注意' ? [index] : []);
+    assert.equal(at.length, 1, `${slug}: one 注意 heading`);
+    const list = blocks[at[0] + 1];
+    assert.equal(list?.type, 'checklist', `${slug}: the 注意 heading opens a checklist`);
+    assert.ok(list.type === 'checklist' && list.items.length >= 3 && list.items.every(item => DIRECTIVE.test(item)), `${slug}: every 注意 item is a don't`);
+    const elsewhere = blocks.filter((_, index) => index !== at[0] && index !== at[0] + 1).flatMap(block => bodyText(block).split('\n'));
+    assert.deepEqual(elsewhere.filter(line => DIRECTIVE.test(line)), [], `${slug}: no don'ts outside the 注意 list`);
+  }
+});
