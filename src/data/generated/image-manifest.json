@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "93f7d44f",
- "registryCount": 354,
+ "registryHash": "d1d0ff26",
+ "registryCount": 368,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -4952,7 +4952,7 @@
    "sha1": "b1edc3af23db6e5f",
    "lqip": "#986",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -4961,19 +4961,11 @@
      "width": 480,
      "height": 320,
      "bytes": 25818
-    },
-    {
-     "rung": 1200,
-     "file": "/guides/distinct/october-library-culture-1200.webp",
-     "width": 1200,
-     "height": 800,
-     "bytes": 58100,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/distinct/october-library-culture-small.webp 480w",
-    "/guides/distinct/october-library-culture-1200.webp 1200w"
+    "/guides/distinct/october-library-culture.webp 1536w"
    ]
   },
   "/guides/distinct/october-north-bay-culture.webp": {
@@ -7012,6 +7004,75 @@
     "/guides/octnov-events/octnov-windy-hill-context.webp 800w"
    ]
   },
+  "/guides/official-events/acl-castro-valley-ohlone-tapestries-2026.webp": {
+   "width": 1280,
+   "height": 387,
+   "bytes": 76908,
+   "sha1": "a23742520a66c55a",
+   "lqip": "#cba",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/acl-castro-valley-ohlone-tapestries-2026-small.webp",
+     "width": 480,
+     "height": 145,
+     "bytes": 10262
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/acl-castro-valley-ohlone-tapestries-2026-small.webp 480w",
+    "/guides/official-events/acl-castro-valley-ohlone-tapestries-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/acl-cherryland-chinese-storytimes-oct24-2026.webp": {
+   "width": 720,
+   "height": 240,
+   "bytes": 28086,
+   "sha1": "9208e12e88649cc3",
+   "lqip": "#ccb",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/acl-cherryland-chinese-storytimes-oct24-2026-small.webp",
+     "width": 480,
+     "height": 160,
+     "bytes": 11786
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/acl-cherryland-chinese-storytimes-oct24-2026-small.webp 480w",
+    "/guides/official-events/acl-cherryland-chinese-storytimes-oct24-2026.webp 720w"
+   ]
+  },
+  "/guides/official-events/acl-san-lorenzo-diwali-diya-2026.webp": {
+   "width": 760,
+   "height": 230,
+   "bytes": 11434,
+   "sha1": "68583837e80b99d3",
+   "lqip": "#b54",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/acl-san-lorenzo-diwali-diya-2026-small.webp",
+     "width": 480,
+     "height": 145,
+     "bytes": 4210
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/acl-san-lorenzo-diwali-diya-2026-small.webp 480w",
+    "/guides/official-events/acl-san-lorenzo-diwali-diya-2026.webp 760w"
+   ]
+  },
   "/guides/official-events/ameswell-barks-boos-2026.webp": {
    "width": 1280,
    "height": 640,
@@ -7130,6 +7191,46 @@
     "/guides/official-events/berkeley-borp-adaptive-sports-expo-oct17-2026-1200.webp 1200w"
    ]
   },
+  "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 183862,
+   "sha1": "d1011cc65d7f7e53",
+   "lqip": "#977",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 33728
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 60782,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026-1200.webp",
+     "width": 1200,
+     "height": 801,
+     "bytes": 98234,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026-small.webp 480w",
+    "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026-800.webp 800w",
+    "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026-1200.webp 1200w"
+   ]
+  },
   "/guides/official-events/burlingame-downtown-fall-fest-2026.webp": {
    "width": 1240,
    "height": 829,
@@ -7168,6 +7269,52 @@
     "/guides/official-events/burlingame-downtown-fall-fest-2026-small.webp 480w",
     "/guides/official-events/burlingame-downtown-fall-fest-2026-800.webp 800w",
     "/guides/official-events/burlingame-downtown-fall-fest-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-events/chsa-lily-qi-book-talk-nov8-2026.webp": {
+   "width": 1080,
+   "height": 1080,
+   "bytes": 81532,
+   "sha1": "581588574a284336",
+   "lqip": "#a98",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/chsa-lily-qi-book-talk-nov8-2026-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 22644
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/chsa-lily-qi-book-talk-nov8-2026-small.webp 480w",
+    "/guides/official-events/chsa-lily-qi-book-talk-nov8-2026.webp 1080w"
+   ]
+  },
+  "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026.webp": {
+   "width": 791,
+   "height": 1024,
+   "bytes": 146392,
+   "sha1": "7e816c19fe6696f2",
+   "lqip": "#bbb",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026-small.webp",
+     "width": 480,
+     "height": 621,
+     "bytes": 54906
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026-small.webp 480w",
+    "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026.webp 791w"
    ]
   },
   "/guides/official-events/daly-city-top-of-the-hill-festival-2026.webp": {
@@ -7355,6 +7502,29 @@
     "/guides/official-events/filoli-holidays-from-nov14-2026-1200.webp 1200w"
    ]
   },
+  "/guides/official-events/fopal-book-sale-dec-2026.webp": {
+   "width": 890,
+   "height": 445,
+   "bytes": 35466,
+   "sha1": "af154ae266eb43ee",
+   "lqip": "#885",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/fopal-book-sale-dec-2026-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 11210
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/fopal-book-sale-dec-2026-small.webp 480w",
+    "/guides/official-events/fopal-book-sale-dec-2026.webp 890w"
+   ]
+  },
   "/guides/official-events/fremont-fog-diwali-mela-2026.webp": {
    "width": 1121,
    "height": 1403,
@@ -7395,6 +7565,29 @@
     "/guides/official-events/fremont-fog-diwali-mela-2026-small.webp 480w",
     "/guides/official-events/fremont-fog-diwali-mela-2026-800.webp 800w",
     "/guides/official-events/fremont-fog-diwali-mela-2026-1200.webp 1121w"
+   ]
+  },
+  "/guides/official-events/fremont-irvington-farmers-market-2026.webp": {
+   "width": 940,
+   "height": 425,
+   "bytes": 82538,
+   "sha1": "4a0654161ccc843d",
+   "lqip": "#777",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/fremont-irvington-farmers-market-2026-small.webp",
+     "width": 480,
+     "height": 217,
+     "bytes": 20420
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/fremont-irvington-farmers-market-2026-small.webp 480w",
+    "/guides/official-events/fremont-irvington-farmers-market-2026.webp 940w"
    ]
   },
   "/guides/official-events/lafayette-res-run-2026.webp": {
@@ -7712,6 +7905,94 @@
     "/guides/official-events/octnov-pyt-wizard-oz-2026.webp 1080w"
    ]
   },
+  "/guides/official-events/opl-main-family-storytime-2026.webp": {
+   "width": 760,
+   "height": 230,
+   "bytes": 23158,
+   "sha1": "d979d2313527cbfe",
+   "lqip": "#568",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/opl-main-family-storytime-2026-small.webp",
+     "width": 480,
+     "height": 145,
+     "bytes": 8854
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/opl-main-family-storytime-2026-small.webp 480w",
+    "/guides/official-events/opl-main-family-storytime-2026.webp 760w"
+   ]
+  },
+  "/guides/official-events/opl-piedmont-ave-mug-swap-dec12-2026.webp": {
+   "width": 890,
+   "height": 445,
+   "bytes": 40120,
+   "sha1": "6a3f2502e4eea000",
+   "lqip": "#edd",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/opl-piedmont-ave-mug-swap-dec12-2026-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 13714
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/opl-piedmont-ave-mug-swap-dec12-2026-small.webp 480w",
+    "/guides/official-events/opl-piedmont-ave-mug-swap-dec12-2026.webp 890w"
+   ]
+  },
+  "/guides/official-events/pacl-rinconada-tai-chi-2026.webp": {
+   "width": 1280,
+   "height": 1119,
+   "bytes": 456402,
+   "sha1": "fe947c3516a7ce46",
+   "lqip": "#554",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/pacl-rinconada-tai-chi-2026-small.webp",
+     "width": 480,
+     "height": 420,
+     "bytes": 55578
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/pacl-rinconada-tai-chi-2026-800.webp",
+     "width": 800,
+     "height": 699,
+     "bytes": 93036,
+     "quality": 40,
+     "overBudget": true
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/pacl-rinconada-tai-chi-2026-1200.webp",
+     "width": 1200,
+     "height": 1049,
+     "bytes": 172656,
+     "quality": 40,
+     "overBudget": true
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/pacl-rinconada-tai-chi-2026-small.webp 480w",
+    "/guides/official-events/pacl-rinconada-tai-chi-2026-800.webp 800w",
+    "/guides/official-events/pacl-rinconada-tai-chi-2026-1200.webp 1200w"
+   ]
+  },
   "/guides/official-events/petaluma-witches-wizards-water-2026.webp": {
    "width": 1280,
    "height": 853,
@@ -7733,6 +8014,38 @@
    "srcset": [
     "/guides/official-events/petaluma-witches-wizards-water-2026-small.webp 480w",
     "/guides/official-events/petaluma-witches-wizards-water-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/pleasanton-hometown-holiday-2026.webp": {
+   "width": 1024,
+   "height": 578,
+   "bytes": 99840,
+   "sha1": "86d91f895b6385d6",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/pleasanton-hometown-holiday-2026-small.webp",
+     "width": 480,
+     "height": 271,
+     "bytes": 22872
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/pleasanton-hometown-holiday-2026-800.webp",
+     "width": 800,
+     "height": 452,
+     "bytes": 41570,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/pleasanton-hometown-holiday-2026-small.webp 480w",
+    "/guides/official-events/pleasanton-hometown-holiday-2026-800.webp 800w",
+    "/guides/official-events/pleasanton-hometown-holiday-2026.webp 1024w"
    ]
   },
   "/guides/official-events/r2-petaluma-cider-circus-2026.webp": {
@@ -8011,6 +8324,29 @@
    "srcset": [
     "/guides/official-events/sausalito-goblin-jamboree-2026-small.webp 480w",
     "/guides/official-events/sausalito-goblin-jamboree-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-events/sccl-gilroy-big-book-sale-dec12-2026.webp": {
+   "width": 940,
+   "height": 788,
+   "bytes": 59034,
+   "sha1": "de6fbbbcb62add70",
+   "lqip": "#8ba",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sccl-gilroy-big-book-sale-dec12-2026-small.webp",
+     "width": 480,
+     "height": 402,
+     "bytes": 17928
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sccl-gilroy-big-book-sale-dec12-2026-small.webp 480w",
+    "/guides/official-events/sccl-gilroy-big-book-sale-dec12-2026.webp 940w"
    ]
   },
   "/guides/official-events/sf-bay-area-science-festival-2026.webp": {
@@ -8365,6 +8701,46 @@
    "srcset": [
     "/guides/official-events/sj-symphonic-spooktacular-2026-small.webp 480w",
     "/guides/official-events/sj-symphonic-spooktacular-2026.webp 1080w"
+   ]
+  },
+  "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026.webp": {
+   "width": 1024,
+   "height": 768,
+   "bytes": 171246,
+   "sha1": "0aaac357ae307d59",
+   "lqip": "#764",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 37116
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 73906,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-1200.webp",
+     "width": 1024,
+     "height": 768,
+     "bytes": 124384,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-small.webp 480w",
+    "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-800.webp 800w",
+    "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-1200.webp 1024w"
    ]
   },
   "/guides/official-events/windsor-trick-or-treat-trail-2026.webp": {

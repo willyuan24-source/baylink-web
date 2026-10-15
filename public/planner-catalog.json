@@ -10143,7 +10143,7 @@
         "2026-12-12"
       ],
       "verifiedAt": "2026-10-14",
-      "imageKey": "",
+      "imageKey": "official-berkeley-downtown-saturday-farmers-market-2026",
       "region": "east-bay",
       "category": "food",
       "cost": "unknown",
@@ -13059,7 +13059,7 @@
         "2026-12-13"
       ],
       "verifiedAt": "2026-10-14",
-      "imageKey": "",
+      "imageKey": "official-fremont-irvington-farmers-market-2026",
       "region": "east-bay",
       "category": "food",
       "cost": "unknown",
@@ -14884,7 +14884,7 @@
         "2026-10-24"
       ],
       "verifiedAt": "2026-10-12",
-      "imageKey": "",
+      "imageKey": "official-acl-cherryland-chinese-storytimes-oct24-2026",
       "region": "east-bay",
       "category": "family",
       "cost": "unknown",
@@ -15860,8 +15860,8 @@
       "imageKey": "",
       "region": "east-bay",
       "category": "family",
-      "cost": "unknown",
-      "costLabel": "活动页没有写费用",
+      "cost": "free",
+      "costLabel": "图书馆活动免费",
       "sourceLabel": "奥克兰公共图书馆活动页（亚裔分馆）",
       "title": "奥克兰亚裔分馆周六合家欢：亲子游戏、玩具，有时讲故事",
       "dateLabel": "10/24–12/12 每周六 10:30–11:30",
@@ -15936,7 +15936,7 @@
         "precision": "venue"
       },
       "planning": {
-        "admissionUsd": null,
+        "admissionUsd": 0,
         "minAge": null,
         "reservation": "unknown",
         "setting": "indoor",
@@ -16005,11 +16005,11 @@
         "2026-12-12"
       ],
       "verifiedAt": "2026-10-13",
-      "imageKey": "",
+      "imageKey": "official-opl-main-family-storytime-2026",
       "region": "east-bay",
       "category": "family",
-      "cost": "unknown",
-      "costLabel": "活动页没有写费用",
+      "cost": "free",
+      "costLabel": "图书馆活动免费",
       "sourceLabel": "奥克兰公共图书馆活动页（总馆）",
       "title": "奥克兰总馆周六亲子故事时间：读书、唱歌，之后自由玩",
       "dateLabel": "10/24–12/12 周六 10:30–11:00（11/7 没有）",
@@ -16078,7 +16078,7 @@
         "precision": "venue"
       },
       "planning": {
-        "admissionUsd": null,
+        "admissionUsd": 0,
         "minAge": null,
         "reservation": "unknown",
         "setting": "indoor",
@@ -21761,7 +21761,7 @@
         "2026-12-13"
       ],
       "verifiedAt": "2026-10-13",
-      "imageKey": "",
+      "imageKey": "official-pacl-rinconada-tai-chi-2026",
       "region": "peninsula",
       "category": "culture",
       "cost": "free",
@@ -22603,7 +22603,7 @@
         "2026-11-08"
       ],
       "verifiedAt": "2026-10-12",
-      "imageKey": "",
+      "imageKey": "official-acl-castro-valley-ohlone-tapestries-2026",
       "region": "east-bay",
       "category": "culture",
       "cost": "unknown",
@@ -22684,7 +22684,7 @@
         "2026-11-07"
       ],
       "verifiedAt": "2026-10-12",
-      "imageKey": "",
+      "imageKey": "official-acl-san-lorenzo-diwali-diya-2026",
       "region": "east-bay",
       "category": "family",
       "cost": "unknown",
@@ -25815,7 +25815,7 @@
         "2026-11-14"
       ],
       "verifiedAt": "2026-10-12",
-      "imageKey": "",
+      "imageKey": "official-sjpl-almaden-sounds-of-south-asia-2026",
       "region": "south-bay",
       "category": "culture",
       "cost": "free",
@@ -26109,11 +26109,11 @@
         "2026-11-15"
       ],
       "verifiedAt": "2026-10-12",
-      "imageKey": "",
+      "imageKey": "official-chsa-taiwanese-chinese-roots-seminar-2026",
       "region": "peninsula",
       "category": "culture",
-      "cost": "unknown",
-      "costLabel": "10/15 开放报名；活动页没有写费用",
+      "cost": "paid",
+      "costLabel": "早鸟 $35（10/30 前）· 一般 $50 · 现场 $65",
       "sourceLabel": "美国华人历史学会活动页",
       "title": "台湾与中国寻根讲座：查家谱、找祖籍、规划回乡",
       "dateLabel": "11/15（周日）· 14:00–17:00",
@@ -26122,7 +26122,8 @@
       "summary": "美国华人历史学会的家谱讲座：通过档案、数据库和真实案例，讲怎样用美国、台湾和中国的资料找到祖籍村落、规划回乡，并为下一代保存家族故事；也欢迎当年参加过台湾“爱之船”项目的人。",
       "plan": [
         "只办现场活动，10/15 开始报名。",
-        "不论家族世代在台湾，还是 1949 年前后从大陆迁台，都适合。"
+        "不论家族世代在台湾，还是 1949 年前后从大陆迁台，都适合。",
+        "主办方传单的日程：14:00 见面会，15:00–17:00 讲座，17:00–17:30 问答；18:00–20:00 另有自愿参加的聚餐，费用自付。"
       ],
       "audience": [
         "成人",
@@ -26138,6 +26139,10 @@
           "end": "17:00"
         }
       ],
+      "price": {
+        "min": 35,
+        "max": 65
+      },
       "venueShort": "Foster City Community Center",
       "aliases": [
         "台湾与中国寻根讲座：查家谱、找祖籍、规划回乡",
@@ -30544,7 +30549,7 @@
         "2026-12-05"
       ],
       "verifiedAt": "2026-10-13",
-      "imageKey": "",
+      "imageKey": "official-pleasanton-hometown-holiday-2026",
       "region": "east-bay",
       "category": "family",
       "cost": "unknown",
@@ -31477,7 +31482,7 @@
         "2026-12-13"
       ],
       "verifiedAt": "2026-10-13",
-      "imageKey": "",
+      "imageKey": "official-fopal-book-sale-dec-2026",
       "region": "peninsula",
       "category": "culture",
       "cost": "unknown",
@@ -31557,11 +31562,11 @@
         "2026-12-12"
       ],
       "verifiedAt": "2026-10-13",
-      "imageKey": "",
+      "imageKey": "official-opl-piedmont-ave-mug-swap-dec12-2026",
       "region": "east-bay",
       "category": "family",
-      "cost": "unknown",
-      "costLabel": "活动页没有写费用",
+      "cost": "free",
+      "costLabel": "图书馆活动免费",
       "sourceLabel": "奥克兰公共图书馆活动页（Piedmont Avenue 分馆）",
       "title": "奥克兰 Piedmont Avenue 分馆冬日马克杯交换会",
       "dateLabel": "12/12（周六）· 11:00–12:30",
@@ -31600,7 +31605,7 @@
         "precision": "venue"
       },
       "planning": {
-        "admissionUsd": null,
+        "admissionUsd": 0,
         "minAge": null,
         "reservation": "unknown",
         "setting": "indoor",
@@ -31628,7 +31633,7 @@
         "2026-12-12"
       ],
       "verifiedAt": "2026-10-13",
-      "imageKey": "",
+      "imageKey": "official-sccl-gilroy-big-book-sale-dec12-2026",
       "region": "south-bay",
       "category": "culture",
       "cost": "free",
@@ -36212,6 +36217,18 @@
       "title": "湾区中文长者服务：餐食、日间照护、陪伴与县级转介"
     },
     {
+      "slug": "bay-area-elder-scam-prevention-guide",
+      "title": "帮长辈识破冒充官员和亲人急事的诈骗"
+    },
+    {
+      "slug": "bay-area-senior-transit-clipper-discounts-guide",
+      "title": "湾区长者坐车省钱指南"
+    },
+    {
+      "slug": "bay-area-chinese-language-resource-map",
+      "title": "湾区华人资源地图"
+    },
+    {
       "slug": "bay-area-coastal-cleanup-2026-guide",
       "title": "9 月 19 日，把海边散步变成一次净滩：湾区报名与出发攻略"
     },
@@ -36601,7 +36618,7 @@
     },
     {
       "slug": "bart-october-access-parking-update-2026",
-      "title": "十月搭 BART：Mission 电梯延期、West Oakland 停车减少，还有黄线施工"
+      "title": "十月搭 BART：Mission 电梯延期、West Oakland 停车减少"
     },
     {
       "slug": "san-jose-digital-help-sj-access-update-2026",
