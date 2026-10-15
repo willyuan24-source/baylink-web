@@ -430,15 +430,15 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['rent'],
     readMinutes: 7,
-    updatedAt: '2026-05-22',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取加州法院自助网站的租客与押金页面。押金和退租的具体权利以租约和法院页面为准。',
     blocks: [
       {
         type: 'paragraph',
         text: '这篇文章是给准备在湾区合租、找室友、接室友的人看的。找室友最怕的不是性格不一样，而是钱、作息、访客、清洁这些事一开始没讲清楚，后面越住越尴尬。',
       },
-      { type: 'heading', text: '先确认你找的是室友，不是临时搭伙' },
+      { type: 'heading', text: '先想清楚：你找的是室友，不是临时搭伙' },
       {
         type: 'paragraph',
         text: '合租不是只看预算合不合适，还要看生活方式能不能长期共处。有人希望家里安静、干净、规律，有人更在意地段和价格。如果一开始只聊房租，不聊生活习惯，后面冲突通常来得很快。',
@@ -471,7 +471,11 @@ export const guides: Guide[] = [
       { type: 'heading', text: '钱的事一定要留痕' },
       {
         type: 'paragraph',
-        text: '不管你是主租人还是后来加入的人，涉及房租、押金、转账和分账，都建议留书面记录。群聊里讲清楚比心里默认靠谱得多。涉及合同、押金归属和退租责任时，建议以租约内容和双方确认记录为准。',
+        text: '不管你是主租人还是后来加入的人，房租、押金、转账和分账都留书面记录：群聊里写清楚，比心里默认靠谱得多。合同、押金归属和退租责任，按租约和双方书面同意的内容办。',
+      },
+      {
+        type: 'paragraph',
+        text: '加州法院自助网站（2026-10-14 读取）写明：租客搬出后，房东有 21 天时间退还全部押金，或扣款后退还余额并附逐项清单；扣款超过 $125 要附发票或收据。合租时先约定押金退给谁、按什么比例分。',
       },
       { type: 'heading', text: '这些信号说明你要再想想' },
       {
@@ -519,9 +523,9 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['used'],
     readMinutes: 7,
-    updatedAt: '2026-05-22',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.marketplace, OFFICIAL_SOURCES.selling],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 FTC 关于网上买卖和卖家防骗的官方页面。各平台的付款保障以平台规则为准。',
     blocks: [
       {
         type: 'paragraph',
@@ -532,15 +536,15 @@ export const guides: Guide[] = [
         type: 'paragraph',
         text: '二手交易里最常见的问题不是假货有多高级，而是信息太少、节奏太急。价格特别低、描述特别模糊、对方一直催你先付定金，或者连基本照片和使用情况都不愿意说清楚，这种通常没必要硬聊。',
       },
-      { type: 'heading', text: '聊天阶段先确认什么' },
+      { type: 'heading', text: '聊天时先问清这几件事' },
       {
         type: 'checklist',
         items: [
-          '让对方补几张当前实拍，不要只看平台封面图。',
+          '让对方补几张当前实拍；FTC 提醒，看不到实物照片就没法判断成色，也没法确定卖家真有这件东西。',
           '问清楚成色、购买时间、有没有维修过、有没有缺件。',
           '如果是电子产品，提前问能不能现场开机、登录、测试主要功能。',
           '如果是家具，提前确认尺寸、搬运方式、电梯或楼梯情况。',
-          '如果是高价值物品，先确认有没有原包装、序列号、购买凭证或保修信息。',
+          '高价值物品，问有没有原包装、序列号、购买凭证或保修信息。',
         ],
       },
       { type: 'heading', text: '面交地点不要随便选' },
@@ -562,14 +566,18 @@ export const guides: Guide[] = [
         type: 'paragraph',
         text: '很多人面交时不好意思多看，怕显得不信任，结果回家才发现问题。其实二手交易最正常的事，就是当场确认。能开机的就开机，能试功能的就试功能，能对尺寸和配件的就对清楚。没有验货就先转账，后面通常很被动。',
       },
-      { type: 'heading', text: '这些情况建议直接终止交易' },
+      {
+        type: 'paragraph',
+        text: 'FTC 的付款建议（2026-10-14 读取）：尽量用有法律保护的信用卡；电汇（MoneyGram、Western Union）、礼品卡、现金充值卡和加密货币都等于付现金，钱转出去通常追不回；卖家要你绕开平台自带的付款方式，就别买。',
+      },
+      { type: 'heading', text: '出现这些情况，直接停止交易' },
       {
         type: 'list',
         items: [
           '对方临时改地点，改到很偏或很赶的地方。',
           '说好面交验货，到现场却一直催你先付款。',
           '实物状态和聊天描述差很多，还一直解释。',
-          '电子产品不让你开机、不让你检查账号锁定状态。',
+          '电子产品不让开机，也不让检查账号锁定状态。',
           '对方要求你先付定金保留，但没有足够信息让你确认物品真实性。',
         ],
       },
@@ -581,7 +589,7 @@ export const guides: Guide[] = [
       { type: 'heading', text: '卖东西的人也要保护自己' },
       {
         type: 'paragraph',
-        text: '如果你是卖家，也别为了快出手就什么都答应。提前说明物品情况、接受的付款方式和面交时间，能减少很多无效沟通。对方如果一直改时间、临时砍价、要求先拿走再付款，也要果断一些。',
+        text: '卖家也别为了快出手什么都答应。提前写明物品情况、收款方式和面交时间，能省掉很多来回；买家一直改时间、临时砍价、要先拿走再付款，就直接拒绝。FTC 给卖家的提醒：不存金额超过售价的支票；Google Voice 或任何验证码都不告诉陌生人；不接受陌生人的手机转账。很多平台建议找本地买家当面交易、只收现金。',
       },
       {
         type: 'cta',
@@ -607,9 +615,12 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['rent'],
     readMinutes: 7,
-    updatedAt: '2026-05-22',
-    sources: [OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit],
-    sourceNote: SOURCE_NOTE,
+    updatedAt: '2026-10-14',
+    sources: [
+      OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit,
+      { title: 'California DOJ：租客权益与押金上限', url: 'https://oag.ca.gov/news/press-releases/attorney-general-bonta-issues-consumer-alerts-guidance-protect-california', description: '2024 年 7 月 1 日后，多数房东押金最多一个月房租。' },
+    ],
+    sourceNote: '2026-10-14 读取加州法院自助网站和加州司法部的押金说明。合同条款以你实际签的租约为准。',
     blocks: [
       {
         type: 'paragraph',
@@ -618,7 +629,7 @@ export const guides: Guide[] = [
       { type: 'heading', text: '先看最核心的四项信息' },
       {
         type: 'paragraph',
-        text: '合同拿到手，先不要急着翻到签字页。第一步先确认地址、租期、月租、付款时间是不是都写清楚，和你之前谈好的内容是不是一致。只要这几项有任何含糊，后面越看越容易乱。',
+        text: '合同拿到手，先别翻到签字页。第一步对照四项：地址、租期、月租和付款日期都写清楚了吗？和之前谈好的一致吗？这几项含糊，后面的条款更难看懂。',
       },
       {
         type: 'checklist',
@@ -629,10 +640,10 @@ export const guides: Guide[] = [
           '押金、预留金、其他费用分别是什么性质，有没有写在同一份文件里。',
         ],
       },
-      { type: 'heading', text: '不要只看月租，还要看总成本' },
+      { type: 'heading', text: '除了月租，还要算总成本' },
       {
         type: 'paragraph',
-        text: '湾区不少房子看起来月租还能接受，但真正住进去才发现停车、水电网、垃圾、公共区域、洗衣、宠物、搬入搬出相关费用都不小。签约前最好把每个月可能固定发生的支出列出来，不要靠印象判断。涉及收费规则和可收取范围，建议以合同和官方信息为准。',
+        text: '湾区不少房子月租看起来还行，住进去才发现停车、水电网、垃圾、公共区域、洗衣、宠物和搬入搬出的费用都不小。签约前把每月固定会有的支出列成一张表，别靠印象估。押金有上限：加州司法部写明，2024 年 7 月 1 日以后，多数房东收的押金最多一个月房租。',
       },
       {
         type: 'list',
@@ -651,14 +662,14 @@ export const guides: Guide[] = [
       { type: 'heading', text: '维修责任和入住状态要问清楚' },
       {
         type: 'paragraph',
-        text: '如果合同里对维修、报修、清洁、家电责任写得很模糊，入住后最容易来回扯。签约前最好问清楚哪些问题由房东或物业处理，哪些可能需要租客自己负责，入住时房屋现状要不要做记录。',
+        text: '合同里维修、报修、清洁和家电责任写得模糊，入住后最容易扯皮。签约前问清哪些由房东或物业处理、哪些归租客，入住当天把房屋现状拍照记录。',
       },
       {
         type: 'tip',
         title: '一个很实用的做法',
         text: '把你最在意的三件事单独写下来，比如停车、提前搬走、能不能加室友。签字前只要这三件事还没讲清楚，就别让自己被“先签再说”推着走。',
       },
-      { type: 'heading', text: '合租用户要额外确认的事' },
+      { type: 'heading', text: '合租还要问清这几件事' },
       {
         type: 'list',
         items: [
@@ -692,9 +703,9 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['rent', 'moving'],
     readMinutes: 8,
-    updatedAt: '2026-05-22',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.deposit, OFFICIAL_SOURCES.movers],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取加州法院自助网站的押金指南和加州 BHGS 搬家指南。押金规则以法院页面和你的租约为准。',
     blocks: [
       {
         type: 'paragraph',
@@ -709,15 +720,15 @@ export const guides: Guide[] = [
         type: 'checklist',
         items: [
           '拍整屋照片和视频，尽量带上时间顺序，别只拍局部。',
-          '把现有划痕、污渍、松动、缺件和不能正常使用的地方单独记录。',
-          '钥匙、门禁、邮箱钥匙、车库遥控器数量要确认清楚。',
+          '把现有划痕、污渍、松动、缺件和坏掉的东西单独记录。',
+          '数清钥匙、门禁卡、邮箱钥匙和车库遥控器。',
           '把入住当天发现的问题尽快发给房东、物业或主租人留痕。',
         ],
       },
       { type: 'heading', text: '押金相关信息最好一开始就对清楚' },
       {
         type: 'paragraph',
-        text: '很多人直到搬出前才去翻当时交了什么钱、怎么退，已经晚了。入住时就要确认哪些属于押金、哪些是租金、哪些是其他费用，搬出后由谁对接、按什么方式退。具体规则、时限和扣款标准容易变化，建议以合同、官方信息或专业意见为准。',
+        text: '很多人到搬出前才去翻当时交了什么钱、怎么退，已经晚了。入住时就分清哪些是押金、哪些是租金、哪些是其他费用，搬出后找谁、怎么退。加州法院自助网站写明：租客搬出后，房东要在 21 天内退还全部押金，或扣款后退还余额并附逐项清单；扣款超过 $125 要附发票或收据。',
       },
       { type: 'heading', text: '住的过程中要把小问题养成记录习惯' },
       {
@@ -736,12 +747,12 @@ export const guides: Guide[] = [
       { type: 'heading', text: '搬出前别只想着打包' },
       {
         type: 'paragraph',
-        text: '真正影响交接顺不顺的，是你搬出前一周到最后一天做了什么。清洁、修补、拍照、钥匙归还、最后一次巡检，这些都比你想象中更重要。尤其是合租用户，谁负责公共区域、谁最后关电关网，也要提前安排。',
+        text: '真正影响交接顺不顺的，是你搬出前一周到最后一天做了什么：清洁、修补、拍照、钥匙归还和最后一次巡检。房东收到退租通知后，要书面告诉你可以申请搬出前检查（pre-inspection），趁这时把能修的修好。合租的话，谁负责公共区域、谁最后关电关网，也要提前排好。',
       },
       {
         type: 'checklist',
         items: [
-          '把自己的物品和垃圾彻底清空，不要留下“之后再回来拿”的模糊状态。',
+          '把自己的物品和垃圾清空，别留“之后再回来拿”的东西。',
           '基础清洁至少要做到厨房、浴室、地面、冰箱和垃圾处理清楚。',
           '搬出当天再拍一轮全屋照片和视频，尤其是原来有争议的位置。',
           '把钥匙、门禁、停车证、包裹柜权限等交接方式提前说好。',
@@ -751,7 +762,7 @@ export const guides: Guide[] = [
       { type: 'heading', text: '合租搬出时最容易卡住的地方' },
       {
         type: 'paragraph',
-        text: '如果你不是整套房一起搬走，而是中途退出合租，最容易出问题的是押金怎么结、房间由谁接、公共物品怎么分。不要默认主租人会自动处理好，也不要默认下一位室友进来就能顺利接上。',
+        text: '如果你不是整套房一起搬走，而是中途退出合租，最容易出问题的是押金怎么结、房间由谁接、公共物品怎么分。别指望主租人会自动处理好，也别假设下一位室友一进来就能接上。',
       },
       {
         type: 'tip',
@@ -782,9 +793,9 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['moving', 'cleaning', 'repair'],
     readMinutes: 7,
-    updatedAt: '2026-05-22',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.movers, OFFICIAL_SOURCES.contractors],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取加州 BHGS 搬家消费者指南和 CSLB 承包商执照查询页面。',
     blocks: [
       {
         type: 'paragraph',
@@ -804,6 +815,10 @@ export const guides: Guide[] = [
           '维修要说明问题发生在哪、多久了、是否影响正常使用，最好有照片或视频。',
           '确认报价是按小时、按次、按项目，还是到场后再评估。',
         ],
+      },
+      {
+        type: 'paragraph',
+        text: '搬家和维修各有官方查询：加州境内的住宅搬家公司要有 BHGS 执照；BHGS 指南写明，加州境内搬家的报价要先实地查看物品，并由搬家公司签字，100 英里以内可以按小时收费；交订金要拿收据。请承包商维修，可以在 CSLB 网站按执照号码或公司名称查执照状态和公开投诉信息。',
       },
       { type: 'heading', text: '怎么判断对方靠不靠谱' },
       {
@@ -828,6 +843,7 @@ export const guides: Guide[] = [
           '沟通里承诺很多，但不愿意留下任何文字记录。',
           '上门时间模糊，只说大概某天某个时段。',
           '别人已经反馈过临时放鸽子、迟到很久或做完不收尾。',
+          'BHGS 提醒小心这些搬家报价：没看现场就报价、比别家便宜很多、没有物品清单，或者地址只写邮政信箱（P.O. Box）。',
         ],
       },
       { type: 'heading', text: '上门当天也要留一点余地' },
@@ -1045,9 +1061,9 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['rent', 'ride'],
     readMinutes: 8,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.region, OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 MTC、BART 和 Caltrain 官方网页。五大片区是方便找房的生活划分，不是行政区划。',
     blocks: [
       {
         type: 'paragraph',
@@ -1064,6 +1080,10 @@ export const guides: Guide[] = [
         ],
       },
       { type: 'heading', text: '五大片区可以先这样理解' },
+      {
+        type: 'paragraph',
+        text: '官方口径的“湾区”是九个县：Alameda、Contra Costa、Marin、Napa、San Francisco、San Mateo、Santa Clara、Solano 和 Sonoma（湾区交通规划机构 MTC 的说明）。下面五大片区是找房时常用的生活划分。',
+      },
       {
         type: 'list',
         items: [
@@ -1124,9 +1144,9 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['rent', 'roommate'],
     readMinutes: 8,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 FTC 租房骗局页面、BART 和 Caltrain 官方网页。',
     blocks: [
       {
         type: 'paragraph',
@@ -1158,8 +1178,10 @@ export const guides: Guide[] = [
         items: [
           '预算紧但要去 South Bay：可以多看 North San Jose、Milpitas、Fremont 一带。',
           '没车：优先看离车站近、买菜方便、晚上回家不折腾的地方。',
+          'BART 平日 5:00、周六 6:00、周日 8:00 开始运营，每天午夜 12:00 收车（BART 官网，2026-10-14）；早班或夜班通勤要另备方案。',
           '有车：一定要把停车、保险、桥费和晚归找位一起算进去。',
           '想先落地：可优先考虑短租、转租、室友房。',
+          '远程订房先防骗：FTC 提醒，有人催你快点决定就走开；还没谈妥租房前，房东不需要你的社安号码或信用分数。',
         ],
       },
       {
@@ -1201,9 +1223,12 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['rent'],
     readMinutes: 9,
-    updatedAt: '2026-06-10',
-    sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit],
-    sourceNote: SOURCE_NOTE,
+    updatedAt: '2026-10-14',
+    sources: [
+      OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.tenants, OFFICIAL_SOURCES.deposit,
+      { title: 'California DOJ：租客权益与押金上限', url: 'https://oag.ca.gov/news/press-releases/attorney-general-bonta-issues-consumer-alerts-guidance-protect-california', description: '2024 年 7 月 1 日后，多数房东押金最多一个月房租。' },
+    ],
+    sourceNote: '2026-10-14 读取 FTC 租房骗局页面、加州法院押金指南和加州司法部押金上限说明。',
     blocks: [
       {
         type: 'paragraph',
@@ -1233,7 +1258,7 @@ export const guides: Guide[] = [
       {
         type: 'tip',
         title: '提醒',
-        text: '常见假房源的特征就是价格太好、看不到房、催你快点决定、要求非常规付款。越急着让你跳步骤，越要慢下来。',
+        text: '常见假房源：价格太好、看不到房、催你快点决定、要求非常规付款。FTC 写明，只肯收电汇、礼品卡或加密货币的，就是骗局；能看房就先看房，再签约付款。',
       },
       { type: 'heading', text: '看房时，别只看采光和面积' },
       {
@@ -1243,7 +1268,7 @@ export const guides: Guide[] = [
       { type: 'heading', text: '打钱前，先分清每一笔钱是什么' },
       {
         type: 'paragraph',
-        text: '申请费、holding deposit、security deposit、第一月房租，不是同一回事。你要搞清楚这笔钱为什么交、交给谁、有没有书面记录、没租成怎么办。',
+        text: '申请费、holding deposit、security deposit、第一月房租，不是同一回事。你要搞清楚这笔钱为什么交、交给谁、有没有书面记录、没租成怎么办。押金有上限：加州司法部写明，2024 年 7 月 1 日以后，多数房东收的押金最多一个月房租；租客搬出后，房东要在 21 天内退押金或附上扣款清单。',
       },
       {
         type: 'tip',
@@ -1288,9 +1313,9 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['rent', 'used', 'service', 'ride', 'safety'],
     readMinutes: 6,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.marketplace, OFFICIAL_SOURCES.selling],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 FTC 租房、网上买卖和卖家防骗页面，并对照 BAYLINK 当前的验证、举报和屏蔽功能。',
     blocks: [
       {
         type: 'paragraph',
@@ -1310,7 +1335,7 @@ export const guides: Guide[] = [
       {
         type: 'tip',
         title: '提醒',
-        text: '看到验证或认证标识，也不代表你可以跳过看房、验货、留合同、留聊天记录这些基本动作。',
+        text: '有验证或审核标识，也照样要看房、验货、留合同和聊天记录。',
       },
       { type: 'heading', text: '手机验证和资料审核，分别怎么用更实际' },
       {
@@ -1340,6 +1365,11 @@ export const guides: Guide[] = [
       },
       {
         type: 'tip',
+        title: '付款方式本身就是信号',
+        text: 'FTC 写明：有人坚持只能用电汇（Western Union、MoneyGram）、礼品卡或加密货币付款，就是骗局。遇到这种情况，在 BAYLINK 举报，也可以向 FTC 的 ReportFraud.ftc.gov 报告。',
+      },
+      {
+        type: 'tip',
         text: '如果你已经开始觉得“我是不是想太多了”，先别急着说服自己。大多数踩坑都不是因为用户太谨慎，而是为了省一步，把本来该确认的事情跳过去了。',
       },
       {
@@ -1366,9 +1396,9 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['ride', 'rent'],
     readMinutes: 8,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain, OFFICIAL_SOURCES.samtrans, OFFICIAL_SOURCES.vta],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 BART、Caltrain、SamTrans 和 VTA 官方网页。票价、班次和临时改线以出发当天官网为准。',
     blocks: [
       {
         type: 'paragraph',
@@ -1389,9 +1419,13 @@ export const guides: Guide[] = [
         text: 'BART 更适合旧金山、东湾、部分 Peninsula 和部分 South Bay 节点之间的主干通勤；Caltrain 更适合 San Francisco 到 Peninsula、Palo Alto、Mountain View、Sunnyvale、San Jose 这条纵向路线。它们都很好用，但都不负责帮你解决所有最后一公里。',
       },
       {
+        type: 'paragraph',
+        text: 'BART 官网（2026-10-14 读取）写明运营时间：工作日 5:00 到午夜 12:00，周六 6:00 到午夜，周日 8:00 到午夜。BART 全线只卖 Clipper 车票，实体卡开卡费 $3；也可以把 Clipper 放进 iPhone、Apple Watch 或 Android 手机。',
+      },
+      {
         type: 'tip',
         title: '提醒',
-        text: '票价、班次和中断信息会变化，尤其晚间和节假日服务更要出发前看官方信息。',
+        text: '晚上和周末更要看实时信息：Caltrain 时刻表页面列出实时晚点和服务中断，VTA 线路页面列出临时停站和改线。',
       },
       { type: 'heading', text: '公交和轻轨不一定是主角，但经常决定你累不累' },
       {
@@ -1443,9 +1477,9 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['moving', 'service', 'used', 'rent'],
     readMinutes: 8,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.movers, OFFICIAL_SOURCES.deposit],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取加州 BHGS 搬家消费者指南和加州法院押金指南。',
     blocks: [
       {
         type: 'paragraph',
@@ -1462,7 +1496,7 @@ export const guides: Guide[] = [
         ],
       },
       { type: 'heading', text: '先核对服务方，再比较报价' },
-      { type: 'paragraph', text: '加州境内住宅搬家可从文末 BHGS 官方入口核对搬家公司的授权状态，查看报价文件和投诉说明。请对照服务方名称与资料，保存书面报价；不要只凭平台徽章或聊天承诺判断。' },
+      { type: 'paragraph', text: '在加州境内搬家，搬家公司要有 BHGS 执照，可在文末 BHGS 入口查。BHGS 指南（2026-10-14 读取）写明：加州境内搬家的报价要先实地查看物品，并由搬家公司签字；100 英里以内可以按小时收费，超过 100 英里按重量和里程收费；交订金要拿收据。凭书面报价比较，别只看平台徽章或聊天里的承诺。' },
       { type: 'heading', text: '找搬家服务时，别只看“多少钱一小时”' },
       {
         type: 'checklist',
@@ -1530,15 +1564,15 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['used', 'service'],
     readMinutes: 7,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.recalls, OFFICIAL_SOURCES.marketplace],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 CPSC 召回页面和 FTC 网上买卖页面。',
     blocks: [
       {
         type: 'paragraph',
         text: '刚来湾区或者刚搬家，很多人都会先看二手。这个思路没问题，特别是桌子、椅子、书架这类，省钱又现实。真正容易踩坑的，是你把所有东西都按同一标准买：床和桌子不一样，冰箱和微波炉也不一样，洗衣机更不能只看照片。',
       },
-      { type: 'tip', title: '先按品牌和型号查安全警示', text: '家具和电器即使能正常使用，也应先通过文末 CPSC 入口查询是否有召回或安全警示。发现命中型号时，先核对官方处理说明，再决定是否交易。' },
+      { type: 'tip', title: '先按品牌和型号查安全警示', text: '家具和电器能正常用，也先在文末 CPSC 入口按品牌和型号查召回和安全警示；查到同型号，先看官方给的处理办法再决定买不买。CPSC 消费者热线 800-638-2772（美东时间 8:00–17:30）。' },
       { type: 'heading', text: '先分清哪些东西适合买二手，哪些要更谨慎' },
       {
         type: 'list',
@@ -1618,9 +1652,9 @@ export const guides: Guide[] = [
     featuredOnHome: false,
     recommendedForCategories: ['service', 'rent', 'used'],
     readMinutes: 7,
-    updatedAt: '2026-06-10',
+    updatedAt: '2026-10-14',
     sources: [OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.selling],
-    sourceNote: SOURCE_NOTE,
+    sourceNote: '2026-10-14 读取 FTC 租房和卖家防骗页面，并对照 BAYLINK 当前的发帖和联系方式设置。',
     blocks: [
       {
         type: 'paragraph',
@@ -1669,6 +1703,7 @@ export const guides: Guide[] = [
           '联系时段是否清楚；具体电话、微信、邮箱是否填写在「联系方式设置」中。',
           '是否说明限制条件和注意事项。',
           '图片是否真实且近期。',
+          '卖二手时，验证码一律不给买家：FTC 提醒，Google Voice 或任何验证码都不要告诉陌生人。',
         ],
       },
       {
