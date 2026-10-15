@@ -46,6 +46,7 @@ export function EventsShell({ today: suppliedToday, defaultWhen = 'weekend', cal
     : filters.when === 'today' ? `${t('今天', 'Today')} · ${span(today, today)}`
     : filters.when === 'next7' ? `${t('未来 7 天', 'Next 7 days')} · ${span(range!.start, range!.end)}`
     : filters.when === 'october' ? t('十月', 'October') : filters.when === 'november' ? t('十一月', 'November')
+    : filters.when === 'december' ? t('十二月', 'December')
     : `${t('全部日期', 'All dates')} · ${t(`收录至 ${md(EVENTS_INDEX.edition.throughDate)}`, `through ${md(EVENTS_INDEX.edition.throughDate)}`)}`;
   const region = filters.region === 'all' ? '' : ` · ${pick(regionLabel(filters.region))}`;
   const inScope = INDEX_EVENTS.filter(event => inRange(event, range, today) && (filters.region === 'all' || event.region === filters.region));

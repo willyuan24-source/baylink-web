@@ -9,7 +9,8 @@
  *
  * Why /opus-bay gets its own copy: every San Francisco event in the file it reads needs the Opus session's own placement
  * decision (tests/opus-bay-w6-s-venues.test.ts, W6-S1: a venue row, or a stated reason to stay out). The 2026-10-12 supply
- * batch's nine SF programmes wait for that decision, so they stay out of public/planner-catalog.json, and only that file.
+ * batch's nine SF programmes and the 2026-10-13 batch's three for 11/21-11/28 wait for that decision, so they stay out of
+ * public/planner-catalog.json, and only that file.
  * The two files the API copies are complete, so every event page's participation line, a member's saves and plans, and
  * BayBay know every event the site lists.
  *
@@ -24,9 +25,12 @@
 export const WORLD_IMPORT_PENDING: readonly string[] = [
   'chsa-lily-qi-book-talk-nov8-2026',
   'sfpl-bernal-dia-de-los-muertos-2026',
+  'sfpl-bernal-family-game-night-nov28-2026',
   'sfpl-chinatown-creative-saturdays-fall-2026',
+  'sfpl-chinatown-creative-saturdays-late-nov-2026',
   'sfpl-chinese-book-club-nov14-2026',
   'sfpl-excelsior-multilingual-tech-help-2026',
+  'sfpl-main-california-xiangqi-invitational-nov28-2026',
   'sfpl-marina-wild-goose-qigong-oct-2026',
   'sfpl-north-beach-open-house-oct31-2026',
   'sfpl-richmond-hk-film-hard-boiled-2026',

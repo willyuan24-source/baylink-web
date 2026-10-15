@@ -1,0 +1,219 @@
+{
+  "sjpl-alum-rock-basic-english-2026": {
+    "lat": 37.365386,
+    "lng": -121.828059,
+    "label": "Alum Rock · 3090 Alum Rock Ave, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/alum-rock/",
+    "precision": "venue"
+  },
+  "sjpl-berryessa-mandarin-ell-club-winter-2026": {
+    "lat": 37.393943,
+    "lng": -121.840738,
+    "label": "Berryessa · 3355 Noble Avenue, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/berryessa/",
+    "precision": "venue"
+  },
+  "opl-asian-branch-family-time-2026": {
+    "lat": 37.800738,
+    "lng": -122.271158,
+    "label": "Asian Branch · 388 Ninth Street, Suite 190, Oakland",
+    "sourceUrl": "https://oaklandlibrary.org/locations/ASA",
+    "precision": "venue"
+  },
+  "smcl-millbrae-chinese-culture-club-ai-nov7-2026": {
+    "lat": 37.602306,
+    "lng": -122.396952,
+    "label": "Millbrae · 1 Library Avenue, Millbrae",
+    "sourceUrl": "https://smcl.org/locations/1M",
+    "precision": "venue"
+  },
+  "sccl-campbell-scam-calls-workshop-2026": {
+    "lat": 37.288227,
+    "lng": -121.943248,
+    "label": "Campbell Library · 77 Harrison Ave., Campbell",
+    "sourceUrl": "https://sccld.org/locations/campbell",
+    "precision": "venue"
+  },
+  "sjpl-calabazas-chinese-tea-hour-nov21-2026": {
+    "lat": 37.302622,
+    "lng": -122.023454,
+    "label": "Calabazas · 1230 S Blaney Ave, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/calabazas/",
+    "precision": "venue"
+  },
+  "opl-main-family-storytime-2026": {
+    "lat": 37.800944,
+    "lng": -122.263675,
+    "label": "Main Library · 125 14th Street, Oakland",
+    "sourceUrl": "https://oaklandlibrary.org/locations/XXA",
+    "precision": "venue"
+  },
+  "ccclib-pleasant-hill-lego-club-2026": {
+    "lat": 37.934862,
+    "lng": -122.068386,
+    "label": "Pleasant Hill · 2 Monticello Avenue, Pleasant Hill",
+    "sourceUrl": "https://ccclib.org/locations/43",
+    "precision": "venue"
+  },
+  "ccclib-danville-friends-book-sale-dec5-2026": {
+    "lat": 37.820863,
+    "lng": -121.995608,
+    "label": "Danville · 400 Front Street, Danville",
+    "sourceUrl": "https://ccclib.org/locations/9",
+    "precision": "venue"
+  },
+  "ccclib-martinez-diy-gift-wrap-dec5-2026": {
+    "lat": 38.01795,
+    "lng": -122.134175,
+    "label": "Martinez · 740 Court Street, Martinez",
+    "sourceUrl": "https://ccclib.org/locations/16",
+    "precision": "venue"
+  },
+  "acl-dublin-winter-around-the-world-dec12-2026": {
+    "lat": 37.702777,
+    "lng": -121.918955,
+    "label": "Dublin · 200 Civic Plaza, Dublin",
+    "sourceUrl": "https://aclibrary.org/locations/DUB",
+    "precision": "venue"
+  },
+  "ccclib-walnut-creek-friends-book-sale-dec12-2026": {
+    "lat": 37.901316,
+    "lng": -122.060263,
+    "label": "Walnut Creek · 1644  N. Broadway, Walnut Creek",
+    "sourceUrl": "https://ccclib.org/locations/26",
+    "precision": "venue"
+  },
+  "opl-piedmont-ave-mug-swap-dec12-2026": {
+    "lat": 37.827844,
+    "lng": -122.248151,
+    "label": "Piedmont Avenue Branch · 80 Echo Avenue, Oakland",
+    "sourceUrl": "https://oaklandlibrary.org/locations/PMA",
+    "precision": "venue"
+  },
+  "acl-dublin-family-movies-thanksgiving-2026": {
+    "lat": 37.702777,
+    "lng": -121.918955,
+    "label": "Dublin · 200 Civic Plaza, Dublin",
+    "sourceUrl": "https://aclibrary.org/locations/DUB",
+    "precision": "venue"
+  },
+  "sccl-saratoga-fratello-marionettes-dec5-2026": {
+    "lat": 37.270116,
+    "lng": -122.015105,
+    "label": "Saratoga Library · 13650 Saratoga Avenue, Saratoga",
+    "sourceUrl": "https://sccld.org/locations/saratoga",
+    "precision": "venue"
+  },
+  "sjpl-east-carnegie-fratello-marionettes-dec13-2026": {
+    "lat": 37.346474,
+    "lng": -121.868224,
+    "label": "East SJ Carnegie · 1102 E Santa Clara St, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/east-branch",
+    "precision": "venue"
+  },
+  "sccl-cupertino-family-storytime-2026": {
+    "lat": 37.31779,
+    "lng": -122.028961,
+    "label": "Cupertino Library · 10800 Torre Avenue, Cupertino",
+    "sourceUrl": "https://sccld.org/locations/cupertino",
+    "precision": "venue"
+  },
+  "sccl-milpitas-tiny-toots-dec12-2026": {
+    "lat": 37.43245,
+    "lng": -121.906508,
+    "label": "Milpitas Library · 160 North Main Street, Milpitas",
+    "sourceUrl": "https://sccld.org/locations/milpitas",
+    "precision": "venue"
+  },
+  "sjpl-tully-friends-book-sale-dec5-2026": {
+    "lat": 37.311417,
+    "lng": -121.840916,
+    "label": "Tully · 880 Tully Rd, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/tully/",
+    "precision": "venue"
+  },
+  "sccl-gilroy-big-book-sale-dec12-2026": {
+    "lat": 37.005049,
+    "lng": -121.572806,
+    "label": "Gilroy Library · 350 W. Sixth Street, Gilroy",
+    "sourceUrl": "https://sccld.org/locations/gilroy",
+    "precision": "venue"
+  },
+  "smcl-atherton-maker-families-2026": {
+    "lat": 37.463224,
+    "lng": -122.196894,
+    "label": "Atherton · 2 Dinkelspiel Station Lane, Atherton",
+    "sourceUrl": "https://smcl.org/locations/1A",
+    "precision": "venue"
+  },
+  "pacl-mitchell-park-family-storytime-2026": {
+    "lat": 37.422314,
+    "lng": -122.112652,
+    "label": "Mitchell Park Library · 3700 Middlefield Rd, Palo Alto",
+    "sourceUrl": "https://library.cityofpaloalto.org/locations/M",
+    "precision": "venue"
+  },
+  "smcl-half-moon-bay-saturday-storytime-2026": {
+    "lat": 37.464788,
+    "lng": -122.432787,
+    "label": "Half Moon Bay · 620 Correas Street, Half Moon Bay",
+    "sourceUrl": "https://smcl.org/locations/1H",
+    "precision": "venue"
+  },
+  "pacl-rinconada-tai-chi-2026": {
+    "lat": 37.44497,
+    "lng": -122.13916,
+    "label": "Rinconada Library · 1213 Newell Rd., Palo Alto",
+    "sourceUrl": "https://library.cityofpaloalto.org/locations/R",
+    "precision": "venue"
+  },
+  "fopal-book-sale-dec-2026": {
+    "lat": 37.418409,
+    "lng": -122.108436,
+    "label": "Cubberley Community Center · 4000 Middlefield Road, Palo Alto",
+    "sourceUrl": "https://library.cityofpaloalto.org/",
+    "precision": "venue"
+  },
+  "marin-south-novato-storytime-2026": {
+    "lat": 38.057281,
+    "lng": -122.525389,
+    "label": "South Novato · 931 C St, Novato",
+    "sourceUrl": "https://marinlibrary.org/locations/MH",
+    "precision": "venue"
+  },
+  "marin-point-reyes-kids-swap-dec5-2026": {
+    "lat": 38.069612,
+    "lng": -122.80656,
+    "label": "Point Reyes · 11431 State Route One, Point Reyes Station",
+    "sourceUrl": "https://marinlibrary.org/locations/MP",
+    "precision": "venue"
+  },
+  "marin-corte-madera-read-to-dog-dec13-2026": {
+    "lat": 37.924153,
+    "lng": -122.518136,
+    "label": "Corte Madera · 707 Meadowsweet Dr, Corte Madera",
+    "sourceUrl": "https://marinlibrary.org/locations/MM",
+    "precision": "venue"
+  },
+  "berkeley-downtown-saturday-farmers-market-2026": {
+    "lat": 37.869692,
+    "lng": -122.272792,
+    "label": "Downtown Berkeley Farmers’ Market · Center St & Martin Luther King Jr. Way, Berkeley",
+    "sourceUrl": "https://ecologycenter.org/food-farming/berkeley-farmers-markets/",
+    "precision": "venue"
+  },
+  "oakland-grand-lake-farmers-market-2026": {
+    "lat": 37.810544,
+    "lng": -122.247841,
+    "label": "Grand Lake Farmers Market · Splash Pad Park, Oakland",
+    "sourceUrl": "https://www.agriculturalinstitute.org/grand-lake",
+    "precision": "venue"
+  },
+  "fremont-irvington-farmers-market-2026": {
+    "lat": 37.532776,
+    "lng": -121.96001,
+    "label": "Irvington Farmers’ Market · 4039 Bay St., Fremont",
+    "sourceUrl": "https://www.pcfma.org/index.php/market/irvington-farmers-market",
+    "precision": "venue"
+  }
+}

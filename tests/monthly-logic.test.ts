@@ -86,8 +86,9 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('fall edition stays current through November 30, then archives', () => {
-  assert.equal(MONTHLY_EDITION.throughDate, '2026-11-30');
+test('fall edition stays current through December 31, then archives', () => {
+  // CNT-SUPPLY-2 (H25): the edition runs through 12/31 so the December weekends' events are listed.
+  assert.equal(MONTHLY_EDITION.throughDate, '2026-12-31');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
@@ -97,7 +98,9 @@ test('fall edition stays current through November 30, then archives', () => {
   assert.equal(isEditionCurrent('2026-11-15'), true);
   assert.equal(isEditionCurrent('2026-11-16'), true);
   assert.equal(isEditionCurrent('2026-11-30'), true);
-  assert.equal(isEditionCurrent('2026-12-01'), false);
+  assert.equal(isEditionCurrent('2026-12-01'), true);
+  assert.equal(isEditionCurrent('2026-12-31'), true);
+  assert.equal(isEditionCurrent('2027-01-01'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);
@@ -169,7 +172,7 @@ test('next seven days means today plus six calendar dates across DST, leap days 
   }
   assert.equal(getMonthlyDateRange('all', '2026-09-09'), null);
   for (const value of [null, undefined, '', 'unknown', 'WEEKEND']) assert.equal(resolveMonthlyDateFilter(value), 'all');
-  for (const value of ['today', 'weekend', 'next7', 'september', 'october', 'november'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
+  for (const value of ['today', 'weekend', 'next7', 'september', 'october', 'november', 'december'] as const) assert.equal(resolveMonthlyDateFilter(value), value);
 });
 
 test('date filtering includes overlapping events and both endpoints, and combines all other choices', () => {
@@ -270,7 +273,7 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
     const source = new URL(item.officialUrl);
     assert.equal(source.protocol, 'https:');
     assert.ok(source.hostname.includes('.') && !source.hostname.endsWith('example.com'), item.id);
-    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= '2026-11-30', `${item.id} overlaps the fall edition or its November previews`);
+    assert.ok(item.endDate >= '2026-09-01' && item.startDate <= MONTHLY_EDITION.throughDate, `${item.id} overlaps the fall edition (through ${MONTHLY_EDITION.throughDate})`);
     assert.ok(item.sourceLabel.trim());
     assert.ok(item.title.trim() && item.summary.trim() && item.venue.trim() && item.city.trim());
     // The editorial overlay drops filler and label repeats, so a covered plan may be one to four steps (CNT-EVENTS);
@@ -320,6 +323,7 @@ test('explicit month filters include October 31 and remove September events from
 
 test('November previews include both month boundaries without reviving October or unconfirmed dates', () => {
   assert.deepEqual(getMonthlyDateRange('november', '2026-10-02'), { start: '2026-11-01', end: '2026-11-30' });
+  assert.deepEqual(getMonthlyDateRange('december', '2026-10-02'), { start: '2026-12-01', end: '2026-12-31' });
   const base = event('mountain-view-art-wine-2026');
   const make = (id: string, startDate: string, endDate = startDate, occurrenceDates?: string[]): MonthlyEvent => ({ ...base, id, startDate, endDate, occurrenceDates });
   const selected = [
@@ -354,7 +358,17 @@ test('late October dates retain community events while November previews respect
   for (const id of ['emeryville-art-exhibition-closing-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026']) {
     assert.ok(!november.includes(id), `${id} stays hidden after its final October date`);
   }
-  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-07'), []);
+  // CNT-SUPPLY-2: December weekends now have events (edition through 12/31); nothing is left after the edition.
+  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2027-01-01'), []);
+  // Inside the edition, mid-December: the still-running activities are listed and no ended one is.
+  const midDecember = filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-14');
+  assert.ok(midDecember.length > 0, 'something still runs on 12/14');
+  assert.ok(ids(midDecember).includes('dickens-christmas-fair-2026'), 'the Dickens Fair runs to 12/20');
+  for (const item of midDecember) assert.ok(item.endDate >= '2026-12-14' && nextOccurrence(item, '2026-12-14'), `${item.id} has a day on or after 12/14`);
+  assert.deepEqual(ids(midDecember), ids(MONTHLY_EVENTS.filter(item => nextOccurrence(item, '2026-12-14'))), 'every activity with a day left is listed');
+  for (const id of ['livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-alum-rock-basic-english-2026']) {
+    assert.ok(!ids(midDecember).includes(id), `${id} ended before 12/14`);
+  }
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
     ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));
   assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07'), [], 'archive permission cannot bypass the requested day');

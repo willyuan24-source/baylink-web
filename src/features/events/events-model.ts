@@ -80,6 +80,7 @@ export const WHEN_OPTIONS: readonly { id: EventsWhen; label: Copy }[] = [
   { id: 'next7', label: { zh: '未来 7 天', en: 'Next 7 days' } },
   { id: 'october', label: { zh: '十月', en: 'October' } },
   { id: 'november', label: { zh: '十一月', en: 'November' } },
+  { id: 'december', label: { zh: '十二月', en: 'December' } },
   { id: 'all', label: { zh: '全部日期', en: 'All dates' } },
 ];
 /** `?when=` with the page default; the retired 九月回顾 reads as 全部日期. */
