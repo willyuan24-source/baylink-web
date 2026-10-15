@@ -130,6 +130,8 @@
    (top right, 44px) it is smaller and clear of the heart: under it on a portrait card, beside it on a square or landscape one
    (ui-type-cover container rule), so the heart never sits on the drawing and the drawing never reaches the date. */
 .ui-feed-card:has(>.ui-feed-card__save) .ui-type-cover { --tc-art-shift:2.75rem; --tc-art-width:36cqw; --tc-art-inset:calc(4cqw + 2.75rem); --tc-art-square:38cqh; }
+/* HeroCard's ♡ (the /events and home picks) sits 8px in: the drawing starts below it at any control height (48px in 简洁显示; W5-INT). */
+.ui-hero-card__media:has(>.ui-hero-card__save) .ui-type-cover { --tc-art-shift:calc(var(--control-height) + .5rem); --tc-art-width:36cqw; --tc-art-inset:calc(4cqw + var(--control-height) + .5rem); --tc-art-square:38cqh; }
 .ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + var(--tc-badge-room)); }
 .ui-type-cover__body>* { flex:none; margin:0; }
 .ui-type-cover__body>.ui-type-cover__title,.ui-type-cover__body>.ui-type-cover__note { flex:0 1 auto; min-height:0; }

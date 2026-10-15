@@ -61,10 +61,6 @@
 .home-mood__label { font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 .home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
 
-/* ♡ on a cover: a 44px circle (48px in 简洁显示) with the icon alone. The visible word is set to size 0 rather than pushed
-   out of the box; the button's name (收藏：…) is its aria-label, so assistive tech reads the same. */
-.home-discovery :is(.ui-feed-card__save,.ui-hero-card__save) .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:50%; font-size:0; }
-
 /* ④ weekend feed */
 .home-feed__all { margin-top:16px; }
 /* The 3D strip after the first four cards (H36): the postcard and two lines, one tap into the 3D world (a full page load). */
