@@ -149,7 +149,7 @@
   },
   "smcl-millbrae-digital-help-hub-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -205,7 +205,7 @@
   },
   "smcl-millbrae-chinese-culture-club-ai-nov7-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -727,7 +727,7 @@
   },
   "sjpl-east-carnegie-fratello-marionettes-dec13-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -825,7 +825,7 @@
   },
   "sjpl-tully-friends-book-sale-dec5-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -846,7 +846,7 @@
   },
   "sccl-gilroy-big-book-sale-dec12-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -938,7 +938,7 @@
   },
   "smcl-atherton-maker-families-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1050,7 +1050,7 @@
   },
   "smcl-half-moon-bay-saturday-storytime-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1204,7 +1204,7 @@
   },
   "scl-healdsburg-muffin-man-puppets-nov21-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1225,7 +1225,7 @@
   },
   "scl-guerneville-mock-caldecott-nov21-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": 4,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1246,7 +1246,7 @@
   },
   "scl-sonoma-valley-native-beat-nov21-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -1267,7 +1267,7 @@
   },
   "scl-roseland-global-goodies-nov21-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -1288,7 +1288,7 @@
   },
   "scl-windsor-gingerbread-houses-dec5-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -1314,7 +1314,7 @@
   },
   "scl-guerneville-winter-wreath-sale-dec5-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1335,7 +1335,7 @@
   },
   "scl-forestville-saturday-storytime-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1376,7 +1376,7 @@
   },
   "scl-santa-rosa-friends-book-sale-dec-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1407,7 +1407,7 @@
   },
   "scl-windsor-rag-dolls-dec12-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "required",
       "setting": "indoor",
@@ -1428,7 +1428,7 @@
   },
   "scl-sonoma-valley-gingerbread-dec13-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": 3,
       "reservation": "required",
       "setting": "indoor",
@@ -1454,7 +1454,7 @@
   },
   "marin-south-novato-storytime-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1531,7 +1531,7 @@
   },
   "marin-corte-madera-read-to-dog-dec13-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
