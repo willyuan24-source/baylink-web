@@ -1009,25 +1009,6 @@
     }
   },
   {
-    "key": "official-sj-veterans-day-parade-2026",
-    "eventId": "sj-veterans-day-parade-2026",
-    "src": "/guides/official-events/sj-veterans-day-parade-2026.webp",
-    "width": 1200,
-    "height": 630,
-    "kind": "poster",
-    "artwork": "graphic",
-    "fullFrame": true,
-    "alt": "MOAA Silicon Valley Chapter 标志叠在老爷车和仪仗队两张照片上",
-    "caption": "游行官网的官方宣传图，不是 2026 年游行现场；路线以官方页面为准。",
-    "credit": "San Jose Veterans Day Parade 官网 官方宣传图",
-    "creditUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade",
-    "rights": {
-      "basis": "promo-editorial",
-      "evidenceUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade",
-      "scope": "same-event coverage only"
-    }
-  },
-  {
     "key": "official-chsa-taiwanese-chinese-roots-seminar-2026",
     "eventId": "chsa-taiwanese-chinese-roots-seminar-2026",
     "src": "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026.webp",

@@ -44,17 +44,18 @@ const webpSize = (src: string) => {
 const event = (record: OfficialRecord) => MONTHLY_EVENTS.find(item => item.id === record.eventId);
 const imageManifest = JSON.parse(readFileSync(new URL('../src/data/generated/image-manifest.json', import.meta.url), 'utf8')) as { images: Record<string, { srcset: string[] }> };
 
-// The 2026-10-14 batch (owner approval 10-14 21:15 PT of the CNT-SUPPLY and CNT-SUPPLY-2 image-candidates lists): 15 of the
+// The 2026-10-14 batch (owner approval 10-14 21:15 PT of the CNT-SUPPLY and CNT-SUPPLY-2 image-candidates lists): 14 of the
 // 38 approved files were used after looking at each one (CNT-MEDIA-2 PR lists every file and why the others were skipped).
 const BATCH_1014 = new Set([
   'sjpl-almaden-sounds-of-south-asia-2026', 'pleasanton-hometown-holiday-2026', 'pacl-rinconada-tai-chi-2026',
   'berkeley-downtown-saturday-farmers-market-2026', 'fremont-irvington-farmers-market-2026',
-  'chsa-lily-qi-book-talk-nov8-2026', 'sj-veterans-day-parade-2026', 'chsa-taiwanese-chinese-roots-seminar-2026',
+  'chsa-lily-qi-book-talk-nov8-2026', 'chsa-taiwanese-chinese-roots-seminar-2026',
   'acl-castro-valley-ohlone-tapestries-2026', 'acl-san-lorenzo-diwali-diya-2026', 'acl-cherryland-chinese-storytimes-oct24-2026',
   'opl-main-family-storytime-2026', 'opl-piedmont-ave-mug-swap-dec12-2026', 'sccl-gilroy-big-book-sale-dec12-2026', 'fopal-book-sale-dec-2026',
 ]);
 // Approved rows that were downloaded and looked at but not used: machine-made looking art, stock-style pictures, third-party
-// art or press photos, a child's face up close, logos, files too small for the 480 rung.
+// art or press photos, a child's face up close, logos (the Veterans Day parade file is the chapter's logo share card), files
+// too small for the 480 rung.
 const SKIPPED_1014 = [
   'sfpl-chinatown-creative-saturdays-fall-2026', 'sfpl-chinatown-creative-saturdays-late-nov-2026', 'sfpl-chinese-book-club-nov14-2026',
   'sjpl-joyce-ellington-halloween-2026', 'sjpl-berryessa-halloween-party-2026', 'sjpl-berryessa-diwali-2026', 'sv-turkey-trot-2026',
@@ -64,7 +65,7 @@ const SKIPPED_1014 = [
   'scl-guerneville-mock-caldecott-nov21-2026', 'scl-roseland-global-goodies-nov21-2026', 'scl-windsor-gingerbread-houses-dec5-2026',
   'scl-sonoma-valley-gingerbread-dec13-2026', 'marin-point-reyes-kids-swap-dec5-2026', 'marin-corte-madera-read-to-dog-dec13-2026',
   'sfpl-main-california-xiangqi-invitational-nov28-2026', 'sfpl-bernal-family-game-night-nov28-2026',
-  'sjpl-east-carnegie-fratello-marionettes-dec13-2026',
+  'sjpl-east-carnegie-fratello-marionettes-dec13-2026', 'sj-veterans-day-parade-2026',
 ];
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
@@ -73,8 +74,8 @@ test('the official event image registry keeps one complete, owner-approved recor
   const batch1014 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-14'));
   assert.equal(batch1008.length, 43, 'the 2026-10-08 batch ships 43 of the 54 approved items (10 refused downloads, 1 kept a newer photo)');
   assert.deepEqual([batch1008.filter(record => record.kind === 'photo').length, batch1008.filter(record => record.kind === 'poster').length], [21, 22], '21 photos, 22 posters / key art / collages / graphics');
-  assert.deepEqual(new Set(batch1014.map(record => record.eventId)), BATCH_1014, 'the 2026-10-14 batch is exactly the 15 images used');
-  assert.deepEqual([batch1014.filter(record => record.kind === 'photo').length, batch1014.filter(record => record.kind === 'poster').length], [5, 10], '5 photos, 10 posters / flyers / graphics');
+  assert.deepEqual(new Set(batch1014.map(record => record.eventId)), BATCH_1014, 'the 2026-10-14 batch is exactly the 14 images used');
+  assert.deepEqual([batch1014.filter(record => record.kind === 'photo').length, batch1014.filter(record => record.kind === 'poster').length], [5, 9], '5 photos, 9 posters / flyers / graphics');
   assert.equal(officialEventMedia.length, batch1008.length + batch1014.length);
   for (const id of SKIPPED_1014) assert.equal(officialEventMedia.some(record => record.eventId === id), false, `${id} was looked at and not used`);
   assert.equal(new Set(officialEventMedia.map(record => record.key)).size, officialEventMedia.length);
