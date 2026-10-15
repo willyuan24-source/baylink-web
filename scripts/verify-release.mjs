@@ -54,6 +54,10 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // W5 integration (GUIDES-READ + LINK-2 + SEO-3 + VISUAL-2 + COMMUNITY-2 on #41): the cells verify-release says can come down
 // go to measured + 2% on the integrated build: / zh-Hant and en, /guides, the senior guide en and the Fleet Week detail. /events, /calendar
 // and /plan keep their ceilings (3.4–5.0% headroom) for the event batches in flight (CNT-SUPPLY-2; W4 note above).
+// W5 integration restacked on CNT-SUPPLY-2 (#42, 56 events): /plan measured 271.1 / 314.9 / 372.5 KiB (CNT-SUPPLY-2 alone 272.1 /
+// 315.9 / 374.0; its planner catalog loads after the first paint, so a batch adds ~0.2 KiB here), so /plan goes to measured + 2%.
+// /events and /calendar hold with 0.4–3.0 KiB left (zh-Hans 315.2 / 315.6, 318.5 / 319.5): the next event batch needs WEB-PERF-2's
+// split of the events list out of the route chunk first; these ceilings are not raised.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 240.9, en: 321.1 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 319.5, 'zh-Hant': 365.3, en: 528.3 } },
@@ -63,7 +67,7 @@ const ROUTE_JS_BUDGETS = [
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 315.6, 'zh-Hant': 361.4, en: 524.4 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
-  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 283.9, 'zh-Hant': 329.6, en: 391.0 } },
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 276.6, 'zh-Hant': 321.2, en: 380.0 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
