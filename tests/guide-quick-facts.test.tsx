@@ -13,9 +13,11 @@ const { renderToStaticMarkup } = await import('react-dom/server');
 const { StaticRouter } = await import('react-router');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { getGuideBySlug, guides } = await import('../src/data/guides');
+type Guide = import('../src/data/guides').Guide;
 const { GUIDE_EDITORIAL } = await import('../src/data/guide-editorial');
 const { guideBlockText } = await import('../src/lib/guide-content');
 const { guideQuickFacts, quickFactsEligible, shortenSentence, englishSentences, sourceBodies } = await import('../src/features/guides/guide-quick-facts');
+const { GuideQuickFacts } = await import('../src/features/guides/GuideQuickFacts');
 const { setLocale } = await import('../src/i18n/locale');
 // The deals board and the city directory are chunks the article loads with its record; the page waits for them, so do the tests.
 await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
@@ -27,14 +29,16 @@ const card = (slug: string, prefix = '') => {
 };
 const bodyOf = (slug: string) => getGuideBySlug(slug)!.blocks.map(guideBlockText).join('\n');
 
-// One guide per type: help lines, a dated action plan, school enrollment, a library-pass edition and a transit update.
+// One guide per type: a hotline, a dated action plan, school enrollment, a library-pass edition and a transit plan. The 311 / 211
+// help-lines and BART October guides have their own 30-second records since CNT-GUIDES-2, so they are checked as data below.
 const TYPES = {
-  help: 'bay-area-311-211-local-help-guide',
+  help: 'bay-area-used-furniture-appliance-guide',
   plan: 'bay-area-first-7-30-days-action-plan-october-2026',
   school: 'bay-area-k12-midyear-enrollment-guide',
   pass: 'bay-area-october-library-museum-pass-guide-2026',
-  transit: 'bart-october-access-parking-update-2026',
+  transit: 'bay-area-cross-bay-commute-home-base-october-2026',
 } as const;
+const BART_OCTOBER = 'bart-october-access-parking-update-2026';
 
 test('five guide types get a fallback 30 秒看懂 that quotes the article and calls its first number', async () => {
   await setLocale('zh-Hans', false);
@@ -52,13 +56,15 @@ test('five guide types get a fallback 30 秒看懂 that quotes the article and c
     const rows = guideQuickFacts(getGuideBySlug(slug)!, '2026-10-13');
     if (rows.some(row => row.kind === 'phone')) assert.ok(element!.querySelector('a[href^="tel:"]'), `${type}: the phone row is tap-to-call`);
   }
-  // The help-lines guide: a sourced fact, the 311 line (tap-to-call) and that 211 consultations are free.
-  const help = guideQuickFacts(getGuideBySlug(TYPES.help)!, '2026-10-13');
+  // The help-lines guide (now with its own record): a sourced fact, the 311 line and that 211 consultations are free.
+  const help = guideQuickFacts(getGuideBySlug('bay-area-311-211-local-help-guide')!, '2026-10-13');
   assert.deepEqual(help.map(row => row.kind), ['fact', 'phone', 'fee']);
   // A Bay-wide guide leads with a fact for everyone, not the San José-only line; the fee sentence says whose consultation is free.
   assert.equal(help[0].text, '各县：从 211 Bay Area 或县运营方按城市、邮编找援助。');
   assert.equal(help[2].context, '211');
-  assert.match(card(TYPES.help)!.querySelector('a[href^="tel:"]')!.getAttribute('href')!, /^tel:311$/);
+  assert.equal(card('bay-area-311-211-local-help-guide'), null, 'the help-lines guide shows its editorial 30 秒看懂');
+  // The hotline guide's card calls the CPSC line.
+  assert.match(card(TYPES.help)!.querySelector('a[href^="tel:"]')!.getAttribute('href')!, /^tel:\+18006382772$/);
 });
 
 test('no fallback card on pilots, outings, directories and deals boards, nor on a guide with none of the three', async () => {
@@ -69,9 +75,9 @@ test('no fallback card on pilots, outings, directories and deals boards, nor on 
     assert.equal(quickFactsEligible(getGuideBySlug(slug)!, false), false, slug);
     assert.equal(card(slug), null, slug);
   }
-  // The roommate guide states no figure, number, deadline or fee: no card rather than an invented one.
-  assert.deepEqual(guideQuickFacts(getGuideBySlug('bay-area-roommate-guide')!), []);
-  assert.equal(card('bay-area-roommate-guide'), null);
+  // The South Bay living guide states no figure, number, deadline or fee: no card rather than an invented one.
+  assert.deepEqual(guideQuickFacts(getGuideBySlug('south-bay-living-guide')!), []);
+  assert.equal(card('south-bay-living-guide'), null);
   // Every eligible guide's rows are its own sentences, shortened only at a clause boundary.
   for (const guide of guides) {
     if (!quickFactsEligible(guide, Object.hasOwn(GUIDE_EDITORIAL, guide.slug))) continue;
@@ -93,11 +99,29 @@ test('review 10-14: a row says whose number it is, and a section headed by a pas
   await setLocale('en', false, `/guides/${TYPES.school}`);
   assert.match(card(TYPES.school, '/en')!.textContent!, /CallSMUHSD: Student Services .*650-558-2251/);
   await setLocale('zh-Hans', false);
-  // BART: the 10 月 4 日黄线 section is over by 10-13 ("周日 18:00" would read as this Sunday); before the 4th it still counts.
-  const bart = getGuideBySlug(TYPES.transit)!;
+  // BART: the 10 月 4 日黄线 section is over by 10-13 ("周日 18:00" would read as this Sunday); before the 4th it still counts. The
+  // BART October guide dropped that section and got its own 30-second record when CNT-GUIDES-2 re-read it on 10-14, so the guide
+  // as it read on 09-23 (its three sections, word for word) is the fixture, and its card is rendered by the fallback component.
+  const bart = { ...getGuideBySlug(BART_OCTOBER)!, sources: [
+    { title: 'BART：Mission 电梯最新延期', url: 'https://www.bart.gov/news/articles/2026/news20260702-0' },
+    { title: 'BART：West Oakland 施工与进出站调整', url: 'https://www.bart.gov/news/articles/2026/news20260901-0' },
+    { title: 'BART：Pleasant Hill 10 月 4 日单线运行', url: 'https://www.bart.gov/news/articles/2026/news20260818' },
+  ], blocks: [
+    { type: 'heading', text: 'Mission：预计恢复时间再次延后' },
+    { type: 'paragraph', text: 'BART 9 月 22 日把 24th St. Mission 街面至站厅电梯的预计恢复日期改为 10 月 23 日。站台至站厅电梯仍运行，但不能由此推断能从街面无障碍进站。需要电梯时可先查 16th St. Mission 或 Glen Park，并核对 Muni 14、14R、49 的接驳。恢复日期是预估，抵达前再查电梯状态。' },
+    { type: 'heading', text: 'West Oakland：重新约定接送位置' },
+    { type: 'paragraph', text: '9 月 14 日起的工程移除约 240 个停车位，剩约 200 个先到先停日租车位（含 11 个无障碍位）。普通接送改至 Chester 南向靠 7th，以及 7th 西向靠 Center；无障碍接送仍在站前原位置。骑车和转公交的人也应查看官方新图，不沿旧停车场路线找站。' },
+    { type: 'heading', text: '10 月 4 日黄线：为回程留出余量' },
+    { type: 'paragraph', text: 'Pleasant Hill 附近植被作业计划持续至周日 18:00，黄线乘客预计多等 10–15 分钟。编辑建议：去免费音乐节或市集时，把回程班次也存好；需要赶预约时，用当天行程查询结果安排，而不是照平日经验。' },
+  ] } as Guide;
+  const fallback = (today: string) => new JSDOM(renderToStaticMarkup(<GuideQuickFacts guide={bart} today={today} />)).window.document.querySelector('.gd-keyfacts[data-fallback]');
   assert.ok(!guideQuickFacts(bart, '2026-10-13').some(row => row.text.includes('Pleasant Hill')));
-  assert.doesNotMatch(card(TYPES.transit)!.textContent!, /Pleasant Hill/);
+  assert.ok(fallback('2026-10-13'), 'the other two sections still give a card');
+  assert.doesNotMatch(fallback('2026-10-13')!.textContent!, /Pleasant Hill/);
   assert.ok(guideQuickFacts(bart, '2026-10-02').some(row => row.text.includes('Pleasant Hill')));
+  // The guide on the site now: no 10/4 section, and its own record instead of the fallback card.
+  assert.ok(!bodyOf(BART_OCTOBER).includes('Pleasant Hill'));
+  assert.equal(card(BART_OCTOBER), null, 'the BART October guide shows its editorial 30 秒看懂');
   // "211 是另一个入口" (another than what?) and an editor's note about a story time that has ended are not quoted.
   assert.ok(!guideQuickFacts(getGuideBySlug(TYPES.plan)!, '2026-10-13').some(row => row.text.includes('另一个入口')));
   assert.ok(!guideQuickFacts(getGuideBySlug('sccld-sharks-library-card-september-2026')!, '2026-10-13').some(row => row.text.includes('故事会')));
@@ -106,7 +130,7 @@ test('review 10-14: a row says whose number it is, and a section headed by a pas
 test('English and zh-Hant cards: translated rows only, no Chinese on /en', async () => {
   await setLocale('en', false, `/guides/${TYPES.help}`);
   const english = card(TYPES.help, '/en');
-  assert.ok(english, 'the help-lines card has English rows');
+  assert.ok(english, 'the hotline card has English rows');
   assert.doesNotMatch(english!.textContent!, /[㐀-鿿]/u);
   assert.match(english!.querySelector('h2')!.textContent!, /In 30 seconds.*From this guide/);
   await setLocale('zh-Hant', false);
@@ -122,15 +146,22 @@ test('without a figure, the first fact is the first sentence after the lede that
     ['Recology SF', 'Recology', 'PG&E', '加州法院', 'Oakland Public Library']);
   assert.equal(factOf('bay-area-bulky-items-ewaste-hhw-guide')?.text, '旧金山：Recology 大件项目按有效住宅账户及住房类型核资格；危险废物另走 HHW 服务。');
   assert.equal(factOf('bay-area-alerts-outages-first-day-checklist')?.text, '旧金山使用 AlertSF；Alameda County 使用 AC Alert。');
-  assert.match(card('bay-area-alerts-outages-first-day-checklist')!.textContent!, /AlertSF/);
+  assert.equal(card('bay-area-alerts-outages-first-day-checklist'), null, 'the alerts guide shows its editorial 30 秒看懂 (CNT-GUIDES-2)');
+  // The alerts guide has its own record since CNT-GUIDES-2, so the rendered card is checked on the library starter guide: no figure,
+  // and its first fact names the body its source is titled after.
+  const LIBRARY = 'bay-area-library-starter-guide';
+  assert.equal(factOf(LIBRARY)?.text, 'Oakland Public Library 面向加州居民；线上申请后，借实体书前还需完成身份核验。');
+  assert.match(card(LIBRARY)!.textContent!, /Oakland Public Library 面向加州居民/);
   // A sentence that opens with a condition or advice is not a fact: the only candidate on the Peninsula page starts with 如果.
   assert.deepEqual(guideQuickFacts(getGuideBySlug('peninsula-living-guide')!), []);
   // Labels before a colon do not hide advice: "Cupertino：…不能替代…" is a rule, "San José：不要…" is not.
   assert.doesNotMatch(factOf('south-bay-school-district-enrollment-guide')!.text, /^[^：]+：不要/);
   // On /en the row is the translated sentence that names the same body, or no row (never Chinese).
-  await setLocale('en', false, '/guides/bay-area-alerts-outages-first-day-checklist');
-  const english = card('bay-area-alerts-outages-first-day-checklist', '/en');
-  if (english) { assert.doesNotMatch(english.textContent!, /[㐀-鿿]/u); assert.match(english.textContent!, /San Francisco uses AlertSF; Alameda County uses AC Alert\./); }
+  await setLocale('en', false, `/guides/${LIBRARY}`);
+  const english = card(LIBRARY, '/en');
+  assert.ok(english, 'the library starter card has its English row');
+  assert.doesNotMatch(english!.textContent!, /[㐀-鿿]/u);
+  assert.match(english!.textContent!, /Oakland Public Library serves California residents\./);
   await setLocale('zh-Hans', false);
 });
 
