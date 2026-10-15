@@ -241,6 +241,8 @@ const firstVisitCoverReuse = new Set([
   // Their original, dated social posters are separate downloadable artwork.
   'bay-area-birthday-perks',
   'bay-area-everyday-free-perks',
+  // CNT-GUIDES-2 (H71): the three new elder guides reuse credited photographs until owner-approved images arrive.
+  'bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide', 'bay-area-chinese-language-resource-map',
 ]);
 const officialPerksCoverReuse = new Set([
   'bay-area-retail-freebies-family-deals',

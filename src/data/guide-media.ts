@@ -360,6 +360,12 @@ bySlug['bay-area-social-security-retirement-preparation-guide'] = ['audit-social
 bySlug['bay-area-naturalization-official-path-guide'] = ['audit-naturalization-preparation', 'translation-documents'];
 bySlug['bay-area-dental-care-insurance-low-cost-guide'] = ['audit-dental-preparation', 'translation-documents'];
 bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-service-routes', 'everyday'];
+// CNT-GUIDES-2 (H71): the three new elder guides reuse already-credited photographs (no new downloads) until owner-approved
+// images arrive: San Francisco City Hall for official-impersonation scams, MTC's Clipper photo for senior fares, the Chinatown
+// Dragon Gate for the Chinese-language resource map. Each caption already says what the photo is and is not.
+bySlug['bay-area-elder-scam-prevention-guide'] = ['daily-city-hall', 'digital-safety'];
+bySlug['bay-area-senior-transit-clipper-discounts-guide'] = ['autumn-clipper', 'train'];
+bySlug['bay-area-chinese-language-resource-map'] = ['sf-chinatown', 'library'];
 
 Object.assign(bySlug, {
   "sf-autumn-art-half-day-2026": [

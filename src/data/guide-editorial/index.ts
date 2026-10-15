@@ -12,6 +12,22 @@ import { rentalScamEditorial } from './bay-area-rental-scam-guide';
 import { muniClipperEditorial } from './bay-area-october-muni-clipper-payment-update-2026';
 import { halfMoonBayEditorial } from './half-moon-bay-coastal-half-day-guide';
 import { firstDoctorEditorial } from './bay-area-first-doctor-insurance-network-guide';
+import { localHelpEditorial } from './bay-area-311-211-local-help-guide';
+import { sjDigitalHelpEditorial } from './san-jose-digital-help-sj-access-update-2026';
+import { bartOctoberEditorial } from './bart-october-access-parking-update-2026';
+import { commuteEditorial } from './bay-area-commute-guide';
+import { usefulAppsEditorial } from './bay-area-useful-apps-platforms-guide';
+import { utilitiesEditorial } from './bay-area-city-utilities-internet-phone-directory';
+import { streetParkingEditorial } from './bay-area-street-parking-first-time-guide';
+import { fastrakEditorial } from './bay-area-fastrak-bridge-express-lanes-guide';
+import { bulkyItemsEditorial } from './bay-area-bulky-items-ewaste-hhw-guide';
+import { alertsEditorial } from './bay-area-alerts-outages-first-day-checklist';
+import { freeEslEditorial } from './bay-area-free-esl-adult-learning-guide';
+import { repairRequestEditorial } from './bay-area-repair-request-guide';
+import { withoutCarEditorial } from './bay-area-without-car-guide';
+import { elderScamEditorial } from './bay-area-elder-scam-prevention-guide';
+import { seniorTransitEditorial } from './bay-area-senior-transit-clipper-discounts-guide';
+import { chineseResourceMapEditorial } from './bay-area-chinese-language-resource-map';
 
 export type { EditorialCopy, EditorialPhone, GuideContact, GuideEditorial, GuideKeyFact, GuideSlide } from './types';
 
@@ -24,6 +40,10 @@ export const GUIDE_EDITORIAL: Readonly<Record<string, GuideEditorial>> = Object.
   seniorServicesEditorial, medicareEditorial, dentalEditorial, socialSecurityEditorial,
   naturalizationEditorial, freeTaxHelpEditorial, tenantRightsEditorial, driverLicenseEditorial,
   newcomerFirstMonthEditorial, rentalScamEditorial, muniClipperEditorial, halfMoonBayEditorial, firstDoctorEditorial,
+  // CNT-GUIDES-2 (H08): every 长辈与家属, 新手必看 and 日常办事 guide, and the three new elder guides (H71).
+  localHelpEditorial, sjDigitalHelpEditorial, bartOctoberEditorial, commuteEditorial, usefulAppsEditorial, utilitiesEditorial,
+  streetParkingEditorial, fastrakEditorial, bulkyItemsEditorial, alertsEditorial, freeEslEditorial, repairRequestEditorial,
+  withoutCarEditorial, elderScamEditorial, seniorTransitEditorial, chineseResourceMapEditorial,
 ].map(editorial => [editorial.slug, editorial]));
 
 export const getGuideEditorial = (slug: string): GuideEditorial | undefined => Object.hasOwn(GUIDE_EDITORIAL, slug) ? GUIDE_EDITORIAL[slug] : undefined;
