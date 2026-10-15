@@ -1007,5 +1007,350 @@
     "originalUrl": "https://pytnet.org/uploads/wizard.jpg",
     "retrievedAt": "2026-10-08T10:03:57-07:00",
     "sha256": "4f22c1eeb8a38735195089e35b49ef7371c63f52c445ac226baca57becf751df"
+  },
+  {
+    "key": "official-sjpl-almaden-sounds-of-south-asia-2026",
+    "eventId": "sjpl-almaden-sounds-of-south-asia-2026",
+    "src": "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026.webp",
+    "width": 1024,
+    "height": 768,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      45
+    ],
+    "alt": "金色雕花背景的舞台上，二三十位乐手和学员站坐两排合影，前排地毯上摆着几只塔布拉鼓",
+    "caption": "圣何塞公共图书馆活动页上的活动官方照片：演出团体的合影，不是本场演出现场；演出者与曲目以活动页为准。",
+    "credit": "圣何塞公共图书馆 活动官方照片",
+    "creditUrl": "https://sjpl.bibliocommons.com/events/6ac02d38de300e004517d3f5",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://sjpl.bibliocommons.com/events/6ac02d38de300e004517d3f5",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://sjpl.bibliocommons.com/events/uploads/images/full/27ad8077824682619a3d9b724890b2c3/Path_Of_Raga.jpg",
+    "retrievedAt": "2026-10-14T21:14:55-07:00",
+    "sha256": "cb38227cd01cd7c9638d37aa242479d66256c8f07a83e0c61db909fdc90dc5a7"
+  },
+  {
+    "key": "official-pleasanton-hometown-holiday-2026",
+    "eventId": "pleasanton-hometown-holiday-2026",
+    "src": "/guides/official-events/pleasanton-hometown-holiday-2026.webp",
+    "width": 1024,
+    "height": 578,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "alt": "傍晚 Pleasanton 市中心的拱形招牌下，一辆挂着节日花环的红色老式消防车载着挥手的人驶过，路边站满观众",
+    "caption": "Pleasanton 市政府活动页上的往届 Hometown Holiday Celebration 游行活动官方照片（2025 年 12 月上传）；不是 2026 年活动现场，路线与时间以官方页面为准。",
+    "credit": "Pleasanton 市政府 活动官方照片",
+    "creditUrl": "https://www.cityofpleasantonca.gov/your-community/arts-theaters-events/hometown-holiday-celebration/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.cityofpleasantonca.gov/your-community/arts-theaters-events/hometown-holiday-celebration/",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://www.cityofpleasantonca.gov/wp-content/uploads/2025/12/ghMK6Qg-0sizeoriginal-1024x578.jpg",
+    "retrievedAt": "2026-10-14T21:14:59-07:00",
+    "sha256": "5f29d020bd7e8205dee39b56431e69ddad3ba897be60f4c3d6a07d652669f3e2"
+  },
+  {
+    "key": "official-pacl-rinconada-tai-chi-2026",
+    "eventId": "pacl-rinconada-tai-chi-2026",
+    "src": "/guides/official-events/pacl-rinconada-tai-chi-2026.webp",
+    "width": 1280,
+    "height": 1119,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      42,
+      40
+    ],
+    "alt": "红杉树下的庭院里，一位穿黑色运动服的男士摆出太极拳弓步推掌的姿势，旁边有一个镂空刻字的金属球雕塑",
+    "caption": "Palo Alto 市图书馆活动页上的活动官方照片：户外太极示范，不是 Rinconada 图书馆室内课堂现场；老师与课程安排以活动页为准。",
+    "credit": "Palo Alto 市图书馆 活动官方照片",
+    "creditUrl": "https://paloalto.bibliocommons.com/events/6948560c1e64afd01e50328f",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://paloalto.bibliocommons.com/events/6948560c1e64afd01e50328f",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://paloalto.bibliocommons.com/events/uploads/images/full/95ab3486ac5e91192b3a788cb2e09a0a/taichi.jpg",
+    "retrievedAt": "2026-10-14T21:15:00-07:00",
+    "sha256": "1ab70f301b789e2258284bf337676afba0434a73c3def709babad7f36a2afbfa"
+  },
+  {
+    "key": "official-berkeley-downtown-saturday-farmers-market-2026",
+    "eventId": "berkeley-downtown-saturday-farmers-market-2026",
+    "src": "/guides/official-events/berkeley-downtown-saturday-farmers-market-2026.webp",
+    "width": 1280,
+    "height": 854,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "alt": "农夫市集摊位上摆满紫甘蓝、生菜、草莓和豆角，几位顾客在白色帐篷下挑选",
+    "caption": "Ecology Center 在 Berkeley 农夫市集页面上的活动官方照片；可能是另一天的 Berkeley 市集，不一定是周六市中心市集，摊位以现场为准。",
+    "credit": "Ecology Center 活动官方照片",
+    "creditUrl": "https://ecologycenter.org/food-farming/berkeley-farmers-markets/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://ecologycenter.org/food-farming/berkeley-farmers-markets/",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://ecologycenter.org/wp-content/uploads/2026/03/Berkeley-Farmers-Market.webp",
+    "retrievedAt": "2026-10-14T21:15:02-07:00",
+    "sha256": "2b9c0e5a92259658a95fd56857d39022f8bd8beeed9e4865f25d6df06c0a9329"
+  },
+  {
+    "key": "official-fremont-irvington-farmers-market-2026",
+    "eventId": "fremont-irvington-farmers-market-2026",
+    "src": "/guides/official-events/fremont-irvington-farmers-market-2026.webp",
+    "width": 940,
+    "height": 425,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      60
+    ],
+    "alt": "街道两旁排满白色和蓝色帐篷，农夫市集里人潮拥挤",
+    "caption": "PCFMA 在 Irvington 农夫市集页面上的活动官方照片（2019 年 11 月上传）；不是近期现场，摊位以现场为准。",
+    "credit": "PCFMA 活动官方照片",
+    "creditUrl": "https://www.pcfma.org/index.php/market/irvington-farmers-market",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.pcfma.org/index.php/market/irvington-farmers-market",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://www.pcfma.org/sites/default/files/styles/xl_image/public/2019-11/Irvington.jpg",
+    "retrievedAt": "2026-10-14T21:15:02-07:00",
+    "sha256": "8bb78eeb6a07f2ab0a212e4730d0825ab1867b167e2aec07b2c3d690a930637c"
+  },
+  {
+    "key": "official-chsa-lily-qi-book-talk-nov8-2026",
+    "eventId": "chsa-lily-qi-book-talk-nov8-2026",
+    "src": "/guides/official-events/chsa-lily-qi-book-talk-nov8-2026.webp",
+    "width": 1080,
+    "height": 1080,
+    "kind": "poster",
+    "artwork": "poster",
+    "fullFrame": true,
+    "alt": "讲座海报：左边是戴眼镜、穿绿色上衣的 Lily Qi 照片，右边是新书 Elected American 封面，下方写着 BOOK TALK: LILY QI、Sunday Nov. 8 11AM 和 CHSA 博物馆地址",
+    "caption": "美国华人历史学会（CHSA）的官方宣传图；时间、票价与报名以官方页面为准。",
+    "credit": "美国华人历史学会 CHSA 官方宣传图",
+    "creditUrl": "https://chsa.org/event/book-talk-with-lily-qi-elected-american/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://chsa.org/event/book-talk-with-lily-qi-elected-american/",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://chsa.org/wp-content/uploads/2026/09/Lily-Qi.png",
+    "retrievedAt": "2026-10-14T21:14:54-07:00",
+    "sha256": "7e71dbab972a77b923273fed1ad0197abfd709b151f9e9530b19f9b5d49f1354"
+  },
+  {
+    "key": "official-sj-veterans-day-parade-2026",
+    "eventId": "sj-veterans-day-parade-2026",
+    "src": "/guides/official-events/sj-veterans-day-parade-2026.webp",
+    "width": 1200,
+    "height": 630,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "MOAA Silicon Valley Chapter Events 标志叠在两张照片上：左边是挂星条装饰的红色老爷车，右边是举旗行进的仪仗队",
+    "caption": "圣何塞退伍军人节游行官网使用的官方宣传图（社交分享图，印有 MOAA Silicon Valley Chapter 标志）；不是 2026 年游行现场，路线与时间以官方页面为准。",
+    "credit": "San Jose Veterans Day Parade 官网 官方宣传图",
+    "creditUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://sjveteransparade.org/san-jose-veterans-day-parade",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "http://static1.squarespace.com/static/679993261f78dd129b2a22c3/t/6a9617c297dace25b0b629de/1788221378920/MOAA-SVC+Events+Social+Share.png?format=1500w",
+    "retrievedAt": "2026-10-14T21:16:51-07:00",
+    "sha256": "2a589eff5320eb686981f883e8cc6e094136b6764f918a6063a97a42e371b078"
+  },
+  {
+    "key": "official-chsa-taiwanese-chinese-roots-seminar-2026",
+    "eventId": "chsa-taiwanese-chinese-roots-seminar-2026",
+    "src": "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026.webp",
+    "width": 791,
+    "height": 1024,
+    "kind": "poster",
+    "artwork": "poster",
+    "fullFrame": true,
+    "alt": "讲座海报：标题 Finding Your Taiwanese & Chinese Roots，写着 Sunday November 15, 2026 和 Foster City Community Center Wind Room，列出三位讲者、日程和门票价格，顶部是家族老照片和扫墓照片",
+    "caption": "美国华人历史学会（CHSA）活动页上的官方宣传图；票价、报名与日程以官方页面为准。",
+    "credit": "美国华人历史学会 CHSA 官方宣传图",
+    "creditUrl": "https://chsa.org/event/finding-your-taiwanese-and-chinese-roots-seminar/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://chsa.org/event/finding-your-taiwanese-and-chinese-roots-seminar/",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://chsa.org/wp-content/uploads/2026/08/FINAL-Taiwanese-and-Chinese-Roots-Seminar-Flyer-791x1024.png",
+    "retrievedAt": "2026-10-14T21:14:56-07:00",
+    "sha256": "deec1ca77f42ffbec0486132ddb76f369feef561e9882abdb289e711e79138b2"
+  },
+  {
+    "key": "official-acl-castro-valley-ohlone-tapestries-2026",
+    "eventId": "acl-castro-valley-ohlone-tapestries-2026",
+    "src": "/guides/official-events/acl-castro-valley-ohlone-tapestries-2026.webp",
+    "width": 1280,
+    "height": 387,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "横幅：左右两张照片是立在山坡草地上的挂毯，中间是 Muwekma Ohlone People 圆形徽标，右下角写着 Photos courtesy of Kalie Granier",
+    "caption": "阿拉米达县图书馆活动页上的官方宣传图（图中照片注明由 Kalie Granier 提供）；展期与地点以活动页为准。",
+    "credit": "阿拉米达县图书馆 官方宣传图 · 照片 Kalie Granier",
+    "creditUrl": "https://aclibrary.bibliocommons.com/events/6abef89debad2200454279ac",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://aclibrary.bibliocommons.com/events/6abef89debad2200454279ac",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://aclibrary.bibliocommons.com/events/uploads/images/full/e0d15c64a527bdfb8c556a5b051251c4/MuwekmaTapestriesBanner.jpg",
+    "retrievedAt": "2026-10-14T21:14:57-07:00",
+    "sha256": "2d5d1c22d1ee334be59c69602967de42c2ed374e35b570debd1aa9b76411bb77"
+  },
+  {
+    "key": "official-acl-san-lorenzo-diwali-diya-2026",
+    "eventId": "acl-san-lorenzo-diwali-diya-2026",
+    "src": "/guides/official-events/acl-san-lorenzo-diwali-diya-2026.webp",
+    "width": 760,
+    "height": 230,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "横幅：左边是三盏点亮的陶土小油灯，右边深红底上写着 Art History for Kids: Design a Diya",
+    "caption": "阿拉米达县图书馆活动页上的官方宣传图；材料与名额以活动页为准。",
+    "credit": "阿拉米达县图书馆 官方宣传图",
+    "creditUrl": "https://aclibrary.bibliocommons.com/events/6ac6a340295b3b0033cadefa",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://aclibrary.bibliocommons.com/events/6ac6a340295b3b0033cadefa",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://aclibrary.bibliocommons.com/events/uploads/images/full/aab4034dc5053f826afe6015b5b91e1c/ArtHistory(21).png",
+    "retrievedAt": "2026-10-14T21:14:57-07:00",
+    "sha256": "1cd705d2f2419c366c08f9f966ab50a67342e01b2776976d98d240400c57b226"
+  },
+  {
+    "key": "official-acl-cherryland-chinese-storytimes-oct24-2026",
+    "eventId": "acl-cherryland-chinese-storytimes-oct24-2026",
+    "src": "/guides/official-events/acl-cherryland-chinese-storytimes-oct24-2026.webp",
+    "width": 720,
+    "height": 240,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "横幅：手绘风的彩虹、太阳和云朵中间写着「廣東話故事會」和 STORYTIME IN CANTONESE",
+    "caption": "阿拉米达县图书馆活动页上的官方宣传图；国语、粤语场次与时间以活动页为准。",
+    "credit": "阿拉米达县图书馆 官方宣传图",
+    "creditUrl": "https://aclibrary.bibliocommons.com/events/6a174e9ec6a1dc3d00d67cec",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://aclibrary.bibliocommons.com/events/6a174e9ec6a1dc3d00d67cec",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://aclibrary.bibliocommons.com/events/uploads/images/full/d95bb9497b95d573fadf8ba48e71a757/StorytimeinCantonese(720x240px)(2).png",
+    "retrievedAt": "2026-10-14T21:14:57-07:00",
+    "sha256": "650114789a1751e6172ef04c4f056a1905523a7832c6d520f5a125afbfaa72d5"
+  },
+  {
+    "key": "official-opl-main-family-storytime-2026",
+    "eventId": "opl-main-family-storytime-2026",
+    "src": "/guides/official-events/opl-main-family-storytime-2026.webp",
+    "width": 760,
+    "height": 230,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "深蓝色横幅上写着 Family Storytime，两边画着在打开的书上看书、跳舞的小人，左上角是奥克兰公共图书馆标志",
+    "caption": "奥克兰公共图书馆活动页上的官方宣传图；时间与地点以活动页为准。",
+    "credit": "奥克兰公共图书馆 官方宣传图",
+    "creditUrl": "https://oaklandlibrary.bibliocommons.com/events/694b336a4be11d3d00d9a53a",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://oaklandlibrary.bibliocommons.com/events/694b336a4be11d3d00d9a53a",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://oaklandlibrary.bibliocommons.com/events/uploads/images/full/101aeebc1b96b7e9495f567d90dd2814/FamilyStorytime.png",
+    "retrievedAt": "2026-10-14T21:14:59-07:00",
+    "sha256": "0690d7080ec9fb84ed31ce6be6c41f2547120af799ee781b66f918a99126d0a5"
+  },
+  {
+    "key": "official-opl-piedmont-ave-mug-swap-dec12-2026",
+    "eventId": "opl-piedmont-ave-mug-swap-dec12-2026",
+    "src": "/guides/official-events/opl-piedmont-ave-mug-swap-dec12-2026.webp",
+    "width": 890,
+    "height": 445,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "白底宣传图：两只卡通热可可杯中间写着 Cozy Winter Mug Swap 和 Sip into something new this year!，顶部写着 Piedmont Branch、December 12、11 AM – 12:30 PM",
+    "caption": "奥克兰公共图书馆活动页上的官方宣传图；时间与交换规则以活动页为准。",
+    "credit": "奥克兰公共图书馆 官方宣传图",
+    "creditUrl": "https://oaklandlibrary.bibliocommons.com/events/69ed68ecc1cf6f9a7587de86",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://oaklandlibrary.bibliocommons.com/events/69ed68ecc1cf6f9a7587de86",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://oaklandlibrary.bibliocommons.com/events/uploads/images/full/1a8d580ad940855cbad5d9ed7d7e04c3/CozyWinterMugSwap(890x445px).png",
+    "retrievedAt": "2026-10-14T21:14:59-07:00",
+    "sha256": "18550dc387d38ca487dfc2b39e0549ea2b40cd2a89d53869b0bde35e7448dd2b"
+  },
+  {
+    "key": "official-sccl-gilroy-big-book-sale-dec12-2026",
+    "eventId": "sccl-gilroy-big-book-sale-dec12-2026",
+    "src": "/guides/official-events/sccl-gilroy-big-book-sale-dec12-2026.webp",
+    "width": 940,
+    "height": 788,
+    "kind": "poster",
+    "artwork": "poster",
+    "fullFrame": true,
+    "alt": "宣传图：书堆照片上的青绿色色块写着 Friends of the Gilroy Library、BIG SALE、THE SECOND SATURDAY OF EVERY MONTH 和会员、非会员的按袋价格",
+    "caption": "圣克拉拉县图书馆活动页上的官方宣传图（Gilroy 图书馆之友）；价格与时间以活动页为准。",
+    "credit": "Gilroy 图书馆之友 官方宣传图",
+    "creditUrl": "https://sccl.bibliocommons.com/events/694b56f47f0b8a3e004e22fa",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://sccl.bibliocommons.com/events/694b56f47f0b8a3e004e22fa",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://sccl.bibliocommons.com/events/uploads/images/full/1b831d3246b707eb0b1b9f48c9cc2fbc/GilroyFriendsSaturdayBookSale.png",
+    "retrievedAt": "2026-10-14T21:15:00-07:00",
+    "sha256": "7b5bafdfb4dcd981787bc0acad71176ec7c1ef9e99a378b9576be33647fc9de1"
+  },
+  {
+    "key": "official-fopal-book-sale-dec-2026",
+    "eventId": "fopal-book-sale-dec-2026",
+    "src": "/guides/official-events/fopal-book-sale-dec-2026.webp",
+    "width": 890,
+    "height": 445,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "左边是一只手从图书馆书架上抽出一本书的照片，右边绿底上是 Friends of the Palo Alto Library 手写体标志",
+    "caption": "Palo Alto 市图书馆活动页上的官方宣传图（Palo Alto 图书馆之友）；义卖时间与地点以活动页为准。",
+    "credit": "Palo Alto 图书馆之友 官方宣传图",
+    "creditUrl": "https://paloalto.bibliocommons.com/events/67919b1fb4127941006178b9",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://paloalto.bibliocommons.com/events/67919b1fb4127941006178b9",
+      "scope": "same-event coverage only"
+    },
+    "originalUrl": "https://paloalto.bibliocommons.com/events/uploads/images/full/b962e6794c18512cc4df61760225787c/fopal_sale.png",
+    "retrievedAt": "2026-10-14T21:15:01-07:00",
+    "sha256": "3883055606f1a9486cd2b90b9af6c2c9a2f6d0feed1f76e5035d47324918988e"
   }
 ]
