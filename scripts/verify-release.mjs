@@ -146,11 +146,17 @@ for(const locale of ['', 'en/', 'zh-Hant/']) {
   if(!/<main\b[^>]*><div class="bay-home bay-home-editorial"><section class="home-discovery"/.test(html)) throw new Error(`The prerendered home is not wrapped as HomePage renders it: dist/${locale}index.html`);
 }
 // H60 (WEB-PERF-2): /events names its LCP cover (the page's one fetchpriority="high" image) in the head (scripts/prerender.tsx).
+// A page that shows photo covers with none of them high priority is a regression of the lead card, not a pass.
 for(const locale of ['', 'en/', 'zh-Hant/']) {
   const html=await readFile(`dist/${locale}events.html`,'utf8');
   const src=/<img\b[^>]*\bfetchpriority="high"[^>]*>/.exec(html)?.[0].match(/\ssrc="([^"]+)"/)?.[1];
+  if(!src) {
+    if(/<img\b[^>]*\bclass="ui-cover__img"/.test(html)) throw new Error(`No fetchpriority="high" cover on /events although it shows photo covers: dist/${locale}events.html`);
+    console.log(`H60: dist/${locale}events.html shows no photo cover, so there is no cover to preload`);
+    continue;
+  }
   const head=html.slice(0,html.indexOf('</head>'));
-  if(src&&!head.includes(`<link rel="preload" as="image" href="${src}"`)) throw new Error(`The first pick's cover is not preloaded: dist/${locale}events.html`);
+  if(!head.includes(`<link rel="preload" as="image" href="${src}"`)) throw new Error(`The first pick's cover is not preloaded: dist/${locale}events.html`);
 }
 // WEB-SEO-I18N (I18N-SEO-02/-04): every built page, in each language. /en carries no Chinese and /zh-Hant no Simplified-only
 // character outside markup that says so (translate="no", lang="zh…", the language switch), in the text and in the head;
