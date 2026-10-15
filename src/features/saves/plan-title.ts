@@ -13,10 +13,9 @@ export function planDisplayTitle(title: string, locale: Locale): { text: string;
   const match = AUTO_TITLE.exec(title.trim());
   if (!match) return { text: title, auto: false };
   const day = match[1] ?? match[2];
-  if (locale === 'en') {
-    // US English on /en: "Plan for Oct 10" (WEB-FIX6); the stored title keeps its numeric day.
-    const [month, date] = day.split('/');
-    return { text: `Plan for ${readerMonthDay(`2000-${month.padStart(2, '0')}-${date.padStart(2, '0')}`, true)}`, auto: true };
-  }
-  return { text: translateText(`${day} 计划`, locale), auto: true };
+  const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
+  // US English on /en: "Plan for Oct 10" (WEB-FIX6); the stored title keeps its numeric day.
+  const [month, date] = day.split('/');
+  const english = readerMonthDay(`2000-${month.padStart(2, '0')}-${date.padStart(2, '0')}`, true);
+  return { text: t(`${day} 计划`, `Plan for ${english}`), auto: true };
 }
