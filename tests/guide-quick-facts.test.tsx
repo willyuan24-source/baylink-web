@@ -63,6 +63,9 @@ test('five guide types get a fallback 30 秒看懂 that quotes the article and c
   assert.equal(help[0].text, '各县：从 211 Bay Area 或县运营方按城市、邮编找援助。');
   assert.equal(help[2].context, '211');
   assert.equal(card('bay-area-311-211-local-help-guide'), null, 'the help-lines guide shows its editorial 30 秒看懂');
+  // The fallback card itself still dials a short code as typed: render it straight (GuideQuickFacts does not look for a record).
+  const short = new JSDOM(renderToStaticMarkup(<GuideQuickFacts guide={getGuideBySlug('bay-area-311-211-local-help-guide')!} today="2026-10-13" />)).window.document;
+  assert.match(short.querySelector('.gd-keyfacts[data-fallback] a[href^="tel:"]')!.getAttribute('href')!, /^tel:311$/);
   // The hotline guide's card calls the CPSC line.
   assert.match(card(TYPES.help)!.querySelector('a[href^="tel:"]')!.getAttribute('href')!, /^tel:\+18006382772$/);
 });

@@ -241,7 +241,8 @@ const firstVisitCoverReuse = new Set([
   // Their original, dated social posters are separate downloadable artwork.
   'bay-area-birthday-perks',
   'bay-area-everyday-free-perks',
-  // CNT-GUIDES-2 (H71): the three new elder guides reuse credited photographs until owner-approved images arrive.
+  // CNT-GUIDES-2 (H71): the three new elder guides have no cover photograph yet. Their cover is their category illustration,
+  // which lists render as a coded cover, so they claim no photo from the 311, Muni/Clipper or first-72-hours guides (test below).
   'bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide', 'bay-area-chinese-language-resource-map',
 ]);
 const officialPerksCoverReuse = new Set([
@@ -345,6 +346,27 @@ test('guide covers remain distinct except specifically reviewed reference photog
   const distinctCount = guides.filter(guide => !firstVisitCoverReuse.has(guide.slug) && !officialPerksCoverReuse.has(guide.slug) && !Object.hasOwn(factualReferenceCoverReuse, guide.slug) && !Object.hasOwn(novemberCoverReuse, guide.slug)).length;
   assert.equal(paths.size, distinctCount);
   assert.equal(fingerprints.size, distinctCount, 'renaming the same illustration must not satisfy the distinct-cover requirement');
+});
+
+test('the new elder guides take no photograph from the guides beside them on the 长辈与家属 hub (CNT-GUIDES-2 review)', async () => {
+  const { guideSlugsForTopic } = await import('../src/data/guide-topics');
+  const { guideCover } = await import('../src/features/guides/guide-facts');
+  const { createCoverPage } = await import('../src/lib/cover');
+  const added = ['bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide', 'bay-area-chinese-language-resource-map'];
+  // One cover page in the hub's reading order, as GuidesHome resolves it: an image is claimed once, the rest fall to TypeCover.
+  const page = createCoverPage();
+  const tiers = new Map(guideSlugsForTopic('elders', guides).map(slug => [slug, guideCover({ slug, covers: { 'zh-Hans': getGuideMedia(getGuideBySlug(slug)!).cover } }, '2026-10-15', page).tier]));
+  for (const slug of added) {
+    assert.equal(getGuideMedia(getGuideBySlug(slug)!).cover.kind, 'illustration', `${slug} must not reuse another guide's photograph`);
+    assert.equal(tiers.get(slug), 'type', slug);
+  }
+  for (const slug of ['bay-area-311-211-local-help-guide', 'bay-area-october-muni-clipper-payment-update-2026']) {
+    assert.ok(tiers.has(slug), `${slug} is on the hub`);
+    assert.notEqual(tiers.get(slug), 'type', `${slug} keeps its photograph`);
+  }
+  for (const key of ['daily-city-hall', 'autumn-clipper', 'sf-chinatown']) {
+    assert.equal(added.some(slug => getGuideMedia(getGuideBySlug(slug)!).inline.some(item => item.image === GUIDE_IMAGES[key])), false, key);
+  }
 });
 
 test('the visible credits retain every photograph and poster source without inventing license links', () => {

@@ -360,12 +360,14 @@ bySlug['bay-area-social-security-retirement-preparation-guide'] = ['audit-social
 bySlug['bay-area-naturalization-official-path-guide'] = ['audit-naturalization-preparation', 'translation-documents'];
 bySlug['bay-area-dental-care-insurance-low-cost-guide'] = ['audit-dental-preparation', 'translation-documents'];
 bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-service-routes', 'everyday'];
-// CNT-GUIDES-2 (H71): the three new elder guides reuse already-credited photographs (no new downloads) until owner-approved
-// images arrive: San Francisco City Hall for official-impersonation scams, MTC's Clipper photo for senior fares, the Chinatown
-// Dragon Gate for the Chinese-language resource map. Each caption already says what the photo is and is not.
-bySlug['bay-area-elder-scam-prevention-guide'] = ['daily-city-hall', 'digital-safety'];
-bySlug['bay-area-senior-transit-clipper-discounts-guide'] = ['autumn-clipper', 'train'];
-bySlug['bay-area-chinese-language-resource-map'] = ['sf-chinatown', 'library'];
+// CNT-GUIDES-2 (H71): the three new elder guides have no cover photograph until owner-approved images arrive (CNT-MEDIA-2).
+// Their cover is their category illustration, which every list and the page render as a coded cover with the guide's
+// one-line answer. Reusing City Hall, the Clipper photo or the Chinatown gate would take those photos away from the 311,
+// Muni/Clipper and first-72-hours guides on the one-image-per-page guides index, and City Hall on a 冒充官员 scam guide
+// could read as an endorsement. The inline pictures are the already-reviewed context photos.
+bySlug['bay-area-elder-scam-prevention-guide'] = ['everyday', 'digital-safety'];
+bySlug['bay-area-senior-transit-clipper-discounts-guide'] = ['weekend', 'train'];
+bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'library'];
 
 Object.assign(bySlug, {
   "sf-autumn-art-half-day-2026": [
