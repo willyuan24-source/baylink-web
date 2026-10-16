@@ -1,4 +1,5 @@
 import { translateText, type Locale } from '../../i18n/locale';
+import { readerMonthDay } from '../../lib/event-facts';
 
 /** The title 加入这天计划 gives a new plan, in the language it was created in ("10/10 计划", "10/10 計劃", "Plan for 10/10"). */
 const AUTO_TITLE = /^(?:(\d{1,2}\/\d{1,2}) (?:计划|計劃|計畫)|Plan for (\d{1,2}\/\d{1,2}))$/u;
@@ -13,5 +14,8 @@ export function planDisplayTitle(title: string, locale: Locale): { text: string;
   if (!match) return { text: title, auto: false };
   const day = match[1] ?? match[2];
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
-  return { text: t(`${day} 计划`, `Plan for ${day}`), auto: true };
+  // US English on /en: "Plan for Oct 10" (WEB-FIX6); the stored title keeps its numeric day.
+  const [month, date] = day.split('/');
+  const english = readerMonthDay(`2000-${month.padStart(2, '0')}-${date.padStart(2, '0')}`, true);
+  return { text: t(`${day} 计划`, `Plan for ${english}`), auto: true };
 }

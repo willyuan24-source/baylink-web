@@ -93,7 +93,7 @@
   },
   "opl-asian-branch-family-time-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -448,7 +448,7 @@
   },
   "opl-main-family-storytime-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -659,7 +659,7 @@
   },
   "opl-piedmont-ave-mug-swap-dec12-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",

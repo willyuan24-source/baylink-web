@@ -1,4 +1,5 @@
 import type { CoverItem, ResolvedCover } from './cover';
+import { readerMonthDay } from './event-facts';
 import { typeCoverProvenance } from './image-provenance';
 import { eventFor, placeFor, type SavedPlan, type Stop } from './planner-core';
 import { PLAN_COVER_IMAGES } from './planner-source';
@@ -29,12 +30,10 @@ export function stopCoverImage(key: string) {
   return Object.hasOwn(SCENE3D_POSTCARD_IMAGES, key) ? SCENE3D_POSTCARD_IMAGES[key] : undefined;
 }
 
-/** "10/17 周六" / "Sat 10/17" for a Pacific calendar day (zh-Hant converts the weekday at render). */
+/** "10/17 周六" / "Sat, Oct 17" (US English, WEB-FIX6) for a Pacific calendar day (zh-Hant converts the weekday at render). */
 export function planDayLabel(date: string, english: boolean) {
-  const day = new Date(`${date}T12:00:00Z`);
-  const md = `${day.getUTCMonth() + 1}/${day.getUTCDate()}`;
-  const weekday = new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { weekday: 'short', timeZone: 'UTC' }).format(day);
-  return english ? `${weekday} ${md}` : `${md} ${weekday}`;
+  const weekday = new Intl.DateTimeFormat(english ? 'en-US' : 'zh-CN', { weekday: 'short', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`));
+  return english ? `${weekday}, ${readerMonthDay(date, true)}` : `${readerMonthDay(date)} ${weekday}`;
 }
 
 /** 已排的日子 in display order: upcoming plans by day, the most recently changed first within a day. */

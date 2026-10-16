@@ -50,7 +50,7 @@ test('the requirement card names the region and the day in words, in three langu
   assert.equal(bayBayRegionLabel('all', 'en'), 'Anywhere in the Bay Area');
   assert.equal(bayBayDayLabel('2026-10-17', 'zh-Hans'), '10/17 周六');
   assert.equal(bayBayDayLabel('2026-10-17', 'zh-Hant'), '10/17 週六');
-  assert.equal(bayBayDayLabel('2026-10-17', 'en'), 'Sat 10/17');
+  assert.equal(bayBayDayLabel('2026-10-17', 'en'), 'Sat, Oct 17');
   assert.equal(bayBayDayLabel('2026-02-30', 'en'), null);
   assert.equal(bayBayDayRangeLabel({ start: '2026-10-17', end: '2026-10-18' }, 'zh-Hans'), '10/17 周六 – 10/18 周日');
   assert.equal(bayBayDayRangeLabel({ start: '2026-10-18', end: '2026-10-17' }, 'zh-Hans'), null);
@@ -65,7 +65,7 @@ test('the requirement card names the region and the day in words, in three langu
   assert.doesNotMatch(view.container.textContent || '', /east-bay|2026-10-17/);
   await act(async () => { await setLocale('en', false); });
   assert.ok(view.getByRole('button', { name: 'Destination East Bay' }));
-  assert.ok(view.getByRole('button', { name: 'Date Sat 10/17' }));
+  assert.ok(view.getByRole('button', { name: 'Date Sat, Oct 17' }));
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.ok(view.getByRole('button', { name: '目的地 東灣' }));
   assert.ok(view.getByRole('button', { name: '日期 10/17 週六' }));

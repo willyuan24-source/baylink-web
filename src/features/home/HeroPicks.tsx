@@ -31,7 +31,7 @@ function PickCard({ pick, cover, today, priority }: { pick: HomeWeekendPick; cov
       kicker={city === region || event.region === 'sf' && event.city === 'San Francisco' ? region : `${city} · ${region}`}
       facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [copy(price.text)] : [])]}
       reason={pick.editorial ? { label: t('编辑推荐', 'Editor’s pick'), text: copy(pick.editorial.reason) } : undefined}
-      trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt)}</>}
+      trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt, english)}</>}
       save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
     {/* FC3-01: the same control as /calendar and My Week, which saves into that day's plan at once. */}
     <AddToDayPlan stop={{ kind: 'event', id: event.id }} date={pick.date} title={event.title} today={today} compact className="home-pick__plan" />
@@ -45,11 +45,11 @@ function PickCard({ pick, cover, today, priority }: { pick: HomeWeekendPick; cov
  * this weekend" sentence, only the way to /events, which reads the whole catalog.
  */
 export function HeroPicks({ picks, covers, today, start, end, total }: { picks: readonly HomeWeekendPick[]; covers: readonly ResolvedCover[]; today: string; start: string; end: string; total: number | null }) {
-  const { t } = useUiCopy();
+  const { t, english } = useUiCopy();
   return <section className="home-picks" aria-labelledby="home-picks-title" {...dateScope('weekend')}>
     <div className="home-section-head">
       {/* The separator keeps the heading's name readable ("本周末先看这几件，10/17–18"); the date shows as a kicker. */}
-      <h2 id="home-picks-title">{t('本周末先看这几件', 'This weekend, start here')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{weekendRange(start, end)}</span></h2>
+      <h2 id="home-picks-title">{t('本周末先看这几件', 'This weekend, start here')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{weekendRange(start, end, english)}</span></h2>
       <Link to="/events" className="home-section-head__more">{total ? t(`全部 ${total} 场`, `All ${total}`) : t('全部活动', 'All events')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
     </div>
     {picks.length ? <ul className="home-picks__list" aria-label={t('本周末精选', 'This weekend’s picks')}>

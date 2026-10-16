@@ -390,7 +390,7 @@ test('the overview reads naturally in English: the day as on 已排的日子, on
   try {
     const view = await openPlanner('?date=2026-09-28&stops=place:chinatown');
     const head = within(view.getByRole('region', { name: 'Current plan overview' })).getByRole('heading', { name: 'This day at a glance' }).parentElement!;
-    assert.match(head.textContent || '', /Mon 9\/28 · 1 stop · 1 person/);
+    assert.match(head.textContent || '', /Mon, Sep 28 · 1 stop · 1 person/); // US English (WEB-FIX6)
     assert.doesNotMatch(view.getByRole('region', { name: 'Current plan overview' }).textContent || '', /\b1 (stops|people)\b|2026-09-28/);
   } finally {
     await act(async () => { await setLocale('zh-Hans', false); });

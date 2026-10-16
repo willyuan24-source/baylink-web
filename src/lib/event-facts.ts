@@ -33,7 +33,17 @@ const validDay = (day: string | undefined): day is string => !!day && ISO_DAY.te
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 export const weekdayOf = (day: string) => new Date(`${day}T12:00:00Z`).getUTCDay();
-const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/**
+ * A day as each reading language writes it: "10/17" in Chinese, "Oct 17" in US English (H41 follow-up, WEB-FIX6: the
+ * /en pages' editorial dates already read "Oct 17" through english-times.ts, and the UI's own dates now match).
+ */
+export const readerMonthDay = (day: string, english = false) => english
+  ? `${MONTHS_EN[Number(day.slice(5, 7)) - 1]} ${Number(day.slice(8, 10))}` : `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
+/** Two days: "10/17–18" and "10/31–11/1", or "Oct 17–18" and "Oct 31–Nov 1". */
+export const readerDayRange = (start: string, end: string, english = false) => start.slice(0, 7) === end.slice(0, 7)
+  ? `${readerMonthDay(start, english)}–${Number(end.slice(8, 10))}` : `${readerMonthDay(start, english)}–${readerMonthDay(end, english)}`;
+const monthDay = (day: string) => readerMonthDay(day);
 const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:00:00Z`) + amount * 86_400_000).toISOString().slice(0, 10);
 const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
 
@@ -85,15 +95,14 @@ export type DateChipText = { big: string; small: string; smallFirst: boolean; la
 export function formatDateChip(chip: DateChip, english: boolean): DateChipText {
   if (chip.kind === 'unknown') return { big: '', small: '', smallFirst: false, label: english ? 'See details for dates' : '日期见详情' };
   if (chip.kind === 'range') {
-    const sameMonth = chip.start.slice(0, 7) === chip.end.slice(0, 7);
-    const big = `${monthDay(chip.start)}–${sameMonth ? Number(chip.end.slice(8, 10)) : monthDay(chip.end)}`;
+    const big = readerDayRange(chip.start, chip.end, english);
     const names = english ? WEEKDAYS_EN : WEEKDAYS_ZH;
     return { big, small: `${names[weekdayOf(chip.start)]}–${names[weekdayOf(chip.end)]}`, smallFirst: false, label: big };
   }
-  const big = monthDay(chip.date);
+  const big = readerMonthDay(chip.date, english);
   if (chip.kind === 'day') {
     const small = (english ? WEEKDAYS_EN : WEEKDAYS_ZH)[weekdayOf(chip.date)];
-    return { big, small, smallFirst: false, label: `${small} ${big}` };
+    return { big, small, smallFirst: false, label: english ? `${small}, ${big}` : `${small} ${big}` };
   }
   if (chip.kind === 'from') return english ? { big, small: 'From', smallFirst: true, label: `From ${big}` } : { big, small: '起', smallFirst: false, label: `${big} 起` };
   return english ? { big, small: 'Until', smallFirst: true, label: `Until ${big}` } : { big, small: '截止', smallFirst: false, label: `至 ${big}` };
@@ -127,7 +136,7 @@ export function eventTimeLabel(event: Pick<EventFactsInput, 'sessions' | 'planni
 }
 
 export type PriceChip = { tone: 'free' | 'mixed' | 'price' | 'paid'; text: Copy };
-const usd = (value: number) => `$${Number.isInteger(value) ? value : value.toFixed(2)}`;
+const usd = (value: number, cents = !Number.isInteger(value)) => `$${cents ? value.toFixed(2) : value}`;
 /**
  * The price sticker. 免费 only when `cost` is free; 部分免费 when mixed; an amount only when a structured
  * price or the planning admission is known; an unknown cost shows nothing.
@@ -137,7 +146,11 @@ export function eventPriceChip(event: Pick<EventFactsInput, 'cost' | 'price' | '
   if (event.cost === 'mixed') return { tone: 'mixed', text: { zh: '部分免费', en: 'Partly free' } };
   if (event.cost !== 'paid') return null;
   const { min, max } = event.price ?? {};
-  if (typeof min === 'number' && min > 0 && typeof max === 'number' && max > min) return { tone: 'price', text: { zh: `${usd(min)}–${max}`, en: `${usd(min)}–${max}` } };
+  // Both ends are money with the same precision: "$22.80–$28.80" (it printed "$22.80–28.8"), "$8–$12".
+  if (typeof min === 'number' && min > 0 && typeof max === 'number' && max > min) {
+    const cents = !Number.isInteger(min) || !Number.isInteger(max), range = `${usd(min, cents)}–${usd(max, cents)}`;
+    return { tone: 'price', text: { zh: range, en: range } };
+  }
   const single = typeof min === 'number' && min > 0 ? min : event.planning?.admissionUsd;
   if (typeof single === 'number' && single > 0) return { tone: 'price', text: { zh: usd(single), en: usd(single) } };
   return { tone: 'paid', text: { zh: '收费', en: 'Paid' } };
@@ -257,7 +270,7 @@ export function offerDeadline(offer: Pick<OfferFactsInput, 'endDate' | 'availabi
     if (left === 0) return { tone: 'danger', text: { zh: '今天截止', en: 'Ends today' } };
     if (left === 1) return { tone: 'danger', text: { zh: '明天截止', en: 'Ends tomorrow' } };
     if (left <= 7) return { tone: 'warning', text: { zh: `还剩 ${left} 天`, en: `${left} days left` } };
-    return { tone: 'neutral', text: { zh: `至 ${monthDay(offer.endDate)}`, en: `Until ${monthDay(offer.endDate)}` } };
+    return { tone: 'neutral', text: { zh: `至 ${monthDay(offer.endDate)}`, en: `Until ${readerMonthDay(offer.endDate, true)}` } };
   }
   return offer.availability === 'ongoing' ? { tone: 'success', text: { zh: '长期有效', en: 'Ongoing' } } : null;
 }

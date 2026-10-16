@@ -9,15 +9,15 @@ export const communityDiscoveryGuides: Guide[] = [
       "other"
     ],
     "readMinutes": 3,
-    "updatedAt": "2026-09-23",
+    "updatedAt": "2026-10-14",
     "editionMonth": "2026-10",
-    "sourceNote": "资料核对于 2026 年 9 月 23 日。临时安排可能调整，出发前从文末官方入口复核；文中的安排建议由 BAYLINK 编辑整理。",
+    "sourceNote": "2026-10-14 读取 BART 的 Mission 电梯公告、电梯状态页和 West Oakland 施工公告。电梯恢复日期以 BART 当天状态为准。",
     "slug": "bart-october-access-parking-update-2026",
     "emoji": "🚉",
     "category": "commute",
-    "title": "十月搭 BART：Mission 电梯延期、West Oakland 停车减少，还有黄线施工",
+    "title": "十月搭 BART：Mission 电梯延期、West Oakland 停车减少",
     "subtitle": "带推车、用轮椅或开车接驳，出门前多查一步",
-    "summary": "24th St. Mission 街面电梯预计 10 月 23 日恢复；West Oakland 施工影响停车与接送；10 月 4 日 Pleasant Hill 附近黄线预计延误。附替代入口。",
+    "summary": "24th St. Mission 街面电梯：BART 公告写预计 10 月 23 日恢复，电梯状态页写 10 月 15 日，出发前打 510-834-5438 查；West Oakland 施工后剩约 200 个日租车位，普通接送移到 Chester 和 7th 街。附替代车站。",
     "categoryLabel": "本地交通提醒",
     "audience": [
       "使用轮椅或推车的乘客",
@@ -41,9 +41,9 @@ export const communityDiscoveryGuides: Guide[] = [
         "description": "9 月 14 日起停车、接送、自行车与公交站位变化。"
       },
       {
-        "title": "BART：Pleasant Hill 10 月 4 日单线运行",
-        "url": "https://www.bart.gov/news/articles/2026/news20260818",
-        "description": "黄线预计延误 10–15 分钟，作业计划持续至 18:00。"
+        "title": "BART：电梯状态",
+        "url": "https://www.bart.gov/stations/elevators",
+        "description": "各站电梯的当前状态和预计恢复日期。"
       }
     ],
     "blocks": [
@@ -53,7 +53,7 @@ export const communityDiscoveryGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "BART 9 月 22 日把 24th St. Mission 街面至站厅电梯的预计恢复日期改为 10 月 23 日。站台至站厅电梯仍运行，但不能由此推断能从街面无障碍进站。需要电梯时可先查 16th St. Mission 或 Glen Park，并核对 Muni 14、14R、49 的接驳。恢复日期是预估，抵达前再查电梯状态。"
+        "text": "BART 9 月 22 日的公告把 24th St. Mission 街面至站厅电梯的预计恢复日期改为 10 月 23 日；10 月 14 日 BART 电梯状态页显示的预计恢复日期是 10 月 15 日，两处不一致。站台至站厅电梯照常运行，但从街面进站仍要靠街面电梯。需要电梯时，BART 建议改用 16th St. Mission 或 Glen Park 站；Muni 14、14R、49 路沿 Mission Street 在 16th 和 24th 街之间与 BART 平行。出发前打 510-834-5438（510-834-LIFT）或 888-235-3828 查电梯是否运行。"
       },
       {
         "type": "heading",
@@ -64,17 +64,9 @@ export const communityDiscoveryGuides: Guide[] = [
         "text": "9 月 14 日起的工程移除约 240 个停车位，剩约 200 个先到先停日租车位（含 11 个无障碍位）。普通接送改至 Chester 南向靠 7th，以及 7th 西向靠 Center；无障碍接送仍在站前原位置。骑车和转公交的人也应查看官方新图，不沿旧停车场路线找站。"
       },
       {
-        "type": "heading",
-        "text": "10 月 4 日黄线：为回程留出余量"
-      },
-      {
-        "type": "paragraph",
-        "text": "Pleasant Hill 附近植被作业计划持续至周日 18:00，黄线乘客预计多等 10–15 分钟。编辑建议：去免费音乐节或市集时，把回程班次也存好；需要赶预约时，用当天行程查询结果安排，而不是照平日经验。"
-      },
-      {
         "type": "link",
         "title": "出发前查 BART 电梯状态",
-        "text": "使用实时状态确认当天可用的无障碍入口。",
+        "text": "用实时状态查当天能用的无障碍入口。",
         "url": "https://www.bart.gov/elevators"
       }
     ]
@@ -125,7 +117,7 @@ export const communityDiscoveryGuides: Guide[] = [
       },
       {
         "type": "paragraph",
-        "text": "SJ Access 的设备外借已在 2026 年 3 月 25 日停止，也不再接受新设备预约。旧攻略里的“去 SJPL 借电脑带回家”不能继续照用。已经借出的设备按本人账户到期日归还，并带齐充电线；有问题先联系分馆。"
+        "text": "SJ Access 的设备外借已在 2026 年 3 月 25 日停止，也不再接受新设备预约。旧攻略里的“去 SJPL 借电脑带回家”已经过时。已经借出的设备按本人账户到期日归还，并带齐充电线；有问题先联系分馆。"
       },
       {
         "type": "heading",
@@ -135,7 +127,7 @@ export const communityDiscoveryGuides: Guide[] = [
         "type": "list",
         "items": [
           "临时上网：查 SJ Access 的免费 Wi-Fi 页面，选择图书馆或明确列出的社区覆盖区，不假设全市每条街都有信号。",
-          "学手机、邮件或电脑基础：从课程和技术帮助入口找场次，先核对语言、报名要求和时间。",
+          "学手机、邮件或电脑基础：从课程和技术帮助入口找场次，先看语言、报名要求和时间。",
           "需要当面协助：Tech Hubs 由社区机构运营，提供电脑空间、课程及相关数码支持。各点的服务与双语人员不同，先查具体地点；不要把设备申请帮助当作免费赠机承诺。"
         ]
       },

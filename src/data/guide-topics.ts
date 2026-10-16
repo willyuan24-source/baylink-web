@@ -11,26 +11,30 @@ export type GuideTopic = { id: GuideTopicId; zh: string; en: string; summary: { 
 
 /** In display order: 长辈与家属 first. */
 export const GUIDE_TOPICS: readonly GuideTopic[] = [
-  { id: 'elders', zh: '长辈与家属', en: 'Seniors & family', summary: { zh: '长者服务、医保、退休金和看病，家属代办也能看懂', en: 'Senior services, Medicare, retirement benefits and doctors, for elders and the family who helps' } },
+  { id: 'elders', zh: '长辈与家属', en: 'Seniors & family', summary: { zh: '长者服务、医保、退休金、看病、坐车和防诈骗，家属代办也能看懂', en: 'Senior services, Medicare, retirement benefits, doctors, getting around and scam protection, for elders and the family who helps' } },
   { id: 'health', zh: '医疗保险', en: 'Health & insurance', summary: { zh: '找医生、看牙、Medicare 与 Medi-Cal', en: 'Finding a doctor, dental care, Medicare and Medi-Cal' } },
-  { id: 'documents', zh: '证件与移民', en: 'IDs & immigration', summary: { zh: '新来安顿：驾照、入籍、开户、报税与孩子入学', en: 'Settling in: driver licenses, citizenship, bank and phone, taxes and school enrollment' } },
+  { id: 'documents', zh: '证件与移民', en: 'IDs & immigration', summary: { zh: '新来安顿：驾照、入籍、开户与孩子入学', en: 'Settling in: driver licenses, citizenship, bank and phone, and school enrollment' } },
   { id: 'housing', zh: '住房', en: 'Housing', summary: { zh: '租房、押金、搬家、水电与维修', en: 'Renting, deposits, moving, utilities and repairs' } },
   { id: 'transport', zh: '出行', en: 'Getting around', summary: { zh: 'BART、Muni、机场、停车与过桥费', en: 'BART, Muni, airports, parking and bridge tolls' } },
-  { id: 'savings', zh: '省钱福利', en: 'Savings & benefits', summary: { zh: '免费福利、优惠、图书馆通行证与账单减免', en: 'Free benefits, deals, library passes and bill discounts' } },
+  { id: 'savings', zh: '省钱福利', en: 'Savings & benefits', summary: { zh: '免费报税、福利、优惠、图书馆通行证与账单减免', en: 'Free tax help, benefits, deals, library passes and bill discounts' } },
   { id: 'outings', zh: '周末出游', en: 'Weekend outings', summary: { zh: '半日路线、景点、市集与季节活动', en: 'Half-day routes, places, markets and seasonal events' } },
 ];
 
-/** Every published guide under its primary topic (141 on 2026-10-08); a slug appears once. */
+/**
+ * Every published guide under its primary topic (141 on 2026-10-08, 144 on 2026-10-14); a slug appears once. CNT-GUIDES-2 (H71):
+ * Social Security moved to 长辈与家属 and free tax help to 省钱福利 (the 10-13 audit, CNT-1013-09), plus three new elder guides.
+ */
 export const GUIDE_TOPIC_SLUGS: Readonly<Record<GuideTopicId, readonly string[]>> = {
   elders: [
-    'bay-area-chinese-senior-services-referral-guide',
+    'bay-area-chinese-senior-services-referral-guide', 'bay-area-social-security-retirement-preparation-guide',
+    'bay-area-elder-scam-prevention-guide', 'bay-area-chinese-language-resource-map', 'bay-area-senior-transit-clipper-discounts-guide',
   ],
   health: [
     'bay-area-medicare-hicap-medi-cal-guide', 'bay-area-dental-care-insurance-low-cost-guide', 'bay-area-first-doctor-insurance-network-guide',
   ],
   documents: [
     'bay-area-naturalization-official-path-guide', 'california-driver-license-id-preparation-guide', 'bay-area-newcomer-first-month-checklist',
-    'bay-area-first-7-30-days-action-plan-october-2026', 'bay-area-phone-bank-first-bill-guide', 'bay-area-free-tax-help-vita-calfile-guide',
+    'bay-area-first-7-30-days-action-plan-october-2026', 'bay-area-phone-bank-first-bill-guide',
     'bay-area-translation-service-guide', 'bay-area-library-starter-guide', 'bay-area-free-esl-adult-learning-guide', 'bay-area-useful-apps-platforms-guide',
     'bay-area-311-211-local-help-guide', 'bay-area-alerts-outages-first-day-checklist', 'bay-area-november-resident-dates-2026',
     'bay-area-part-time-job-safety-guide', 'bay-area-k12-midyear-enrollment-guide', 'sf-school-district-enrollment-guide',
@@ -51,7 +55,7 @@ export const GUIDE_TOPIC_SLUGS: Readonly<Record<GuideTopicId, readonly string[]>
     'bay-area-street-parking-first-time-guide', 'bay-area-fastrak-bridge-express-lanes-guide',
   ],
   savings: [
-    'bay-area-social-security-retirement-preparation-guide', 'bay-area-household-bills-annual-review-2026', 'san-jose-digital-help-sj-access-update-2026',
+    'bay-area-free-tax-help-vita-calfile-guide', 'bay-area-household-bills-annual-review-2026', 'san-jose-digital-help-sj-access-update-2026',
     'bay-area-birthday-perks', 'bay-area-everyday-free-perks', 'bay-area-retail-freebies-family-deals', 'bay-area-freebies-deals-2026-09',
     'bay-area-freebies-deals-2026-10', 'bay-area-freebies-deals-2026-11', 'sf-free-culture-eligibility-october-2026',
     'bay-area-october-library-museum-pass-guide-2026', 'sccld-sharks-library-card-september-2026',
@@ -89,15 +93,19 @@ export const GUIDE_TOPIC_BY_SLUG: Readonly<Record<string, GuideTopicId>> = Objec
 /**
  * The 长辈与家属 hub in reading order: whom to call first, then health cover, money, getting around and help at home,
  * then an outing that works with an older relative. Product brief §5: Medicare/HICAP, the senior-services referral
- * (AAA 800-510-2020 + county lines), dental, Social Security retirement, Muni and the 311/211 help lines.
+ * (AAA 800-510-2020 + county lines), dental, Social Security retirement, Muni and the 311/211 help lines; from CNT-GUIDES-2
+ * (H71) scam prevention and the Chinese-language resource map after the first three, senior transit before Muni.
  */
 export const ELDER_HUB_SLUGS: readonly string[] = [
   'bay-area-chinese-senior-services-referral-guide',
   'bay-area-medicare-hicap-medi-cal-guide',
   'bay-area-social-security-retirement-preparation-guide',
+  'bay-area-elder-scam-prevention-guide',
+  'bay-area-chinese-language-resource-map',
   'bay-area-first-doctor-insurance-network-guide',
   'bay-area-dental-care-insurance-low-cost-guide',
   'bay-area-311-211-local-help-guide',
+  'bay-area-senior-transit-clipper-discounts-guide',
   'bay-area-october-muni-clipper-payment-update-2026',
   'bay-area-free-tax-help-vita-calfile-guide',
   'san-jose-digital-help-sj-access-update-2026',

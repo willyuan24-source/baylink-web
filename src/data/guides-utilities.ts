@@ -186,8 +186,8 @@ export const utilityGuides: Guide[] = [{
     },
     {
       "type": "tip",
-      "title": "租客先确认：哪些由房东或物业统一开户",
-      "text": "水费、污水费或垃圾费可能包含在租金、HOA 或物业账单中。先看租约并问物业是否需要你单独开户；即使城市有服务商，也不表示租客一定能直接改账户。这里的水是住宅供水入口，污水收费可能由另一机构负责。"
+      "title": "租客先问：哪些由房东或物业统一开户",
+      "text": "水费、污水费或垃圾费有时含在租金、HOA 或物业账单里。先看租约并问物业是否需要你单独开户；即使城市有服务商，也不表示租客一定能直接改账户。这里的水是住宅供水入口，污水收费有时归另一机构。"
     },
     {
       "type": "heading",
@@ -205,7 +205,7 @@ export const utilityGuides: Guide[] = [{
     },
     {
       "type": "paragraph",
-      "text": "以下是可逐一查询的主要宽带公司，不表示每家公司覆盖全部城市或每栋楼。先查加州宽带地图，再把完整街道地址和房号输入公司官网。地图有数据时差；最终以公司确认能安装的产品、端口和预约为准。也要问物业是否已有楼宇统一网络或安装许可要求。"
+      "text": "以下是可逐一查询的主要宽带公司，不表示每家公司覆盖全部城市或每栋楼。先查加州宽带地图，再把完整街道地址和房号输入公司官网。地图有数据时差；最终能装什么产品、哪个端口、什么时候上门，听公司的答复。也要问物业是否已有楼宇统一网络或安装许可要求。"
     },
     {
       "type": "contact-directory",
@@ -232,12 +232,12 @@ export const utilityGuides: Guide[] = [{
     {
       "type": "checklist",
       "items": [
-        "核对新旧完整地址、房号、入住／交钥匙日期，以及水电垃圾分别由谁开户。",
+        "写好新旧完整地址、房号、入住／交钥匙日期，以及水电垃圾分别由谁开户。",
         "准备账户持有人姓名、联系电话、邮箱、旧账号和机构要求的身份或租住材料；仅在官方安全渠道提交。",
-        "向每家机构明确说 Start service、Stop service 或 Move/Transfer service，分别确认旧址停用日和新址启用日。",
-        "问清开户费／押金、是否需预约入户、房屋原来已断水断电时的恢复流程，以及确认编号。",
-        "垃圾服务确认住宅类型、收集日、垃圾桶是否随房保留，以及账单寄送地址。",
-        "入住后实测服务；迁出后核对最后账单、退款和自动扣款。网页显示申请已提交，还要保存机构确认的生效日期。"
+        "向每家机构明确说 Start service、Stop service 或 Move/Transfer service，分别问清旧址停用日和新址启用日。",
+        "问清开户费／押金、是否需预约入户、房屋原来已断水断电时的恢复流程，以及办理编号。",
+        "垃圾服务问清住宅类型、收集日、垃圾桶是否随房保留，以及账单寄送地址。",
+        "入住后实测服务；迁出后查最后账单、退款和自动扣款。网页显示申请已提交，还要保存机构给的生效日期。"
       ]
     },
     {
@@ -246,7 +246,7 @@ export const utilityGuides: Guide[] = [{
     },
     {
       "type": "paragraph",
-      "text": "多数城市的电力接入与搬家开户找 PG&E；Alameda、Palo Alto、Santa Clara 和 Healdsburg 则有市营电力，按城市卡片办理。PG&E 的住宅客服是 877-660-6789。若账单同时出现 Ava Community Energy、MCE、WestLight Energy（原 Peninsula Clean Energy）、San José Clean Energy、Silicon Valley Clean Energy、Sonoma Clean Power 或 CleanPowerSF，它们通常涉及发电供应方案；停送电、线路和开户应先找实际配电服务方。天然气服务也要单独确认，不能因为电力是市营就推断燃气相同。"
+      "text": "多数城市的电力接入与搬家开户找 PG&E；Alameda、Palo Alto、Santa Clara 和 Healdsburg 则有市营电力，按城市卡片办理。PG&E 的住宅客服是 877-660-6789。若账单同时出现 Ava Community Energy、MCE、WestLight Energy（原 Peninsula Clean Energy）、San José Clean Energy、Silicon Valley Clean Energy、Sonoma Clean Power 或 CleanPowerSF，它们通常涉及发电供应方案；停送电、线路和开户应先找实际配电服务方。天然气服务要单独问：电力是市营，燃气未必也是。"
     },
     {
       "type": "link",
@@ -260,7 +260,7 @@ export const utilityGuides: Guide[] = [{
     },
     {
       "type": "paragraph",
-      "text": "Castro Valley、San Lorenzo、Alamo、Kensington、El Sobrante、North Fair Oaks、Marin City 等社区不计入上面的 101 个建制城市。邮寄地址写某座城市，也不保证位于该市服务范围。先问房东／物业现有账单单位，再按所在县、供水区和垃圾特许服务区核对；不要直接套用最近城市的号码。私人水井、化粪池、特殊园区和商业物业不适用普通住宅分工。"
+      "text": "Castro Valley、San Lorenzo、Alamo、Kensington、El Sobrante、North Fair Oaks、Marin City 等社区不计入上面的 101 个建制城市。邮寄地址写某座城市，也未必在该市服务范围内。先问房东／物业现有账单单位，再按所在县、供水区和垃圾特许服务区查；别直接套用最近城市的号码。私人水井、化粪池、特殊园区和商业物业不适用普通住宅分工。"
     },
     {
       "type": "heading",
@@ -269,7 +269,7 @@ export const utilityGuides: Guide[] = [{
     {
       "type": "template",
       "title": "开户／搬家询问模板",
-      "text": "你好，我要在 [日期] 搬入／搬离 [完整地址及房号]。请确认该地址是否属于你们的住宅服务区，以及应由租客还是房东开户。\n我要办理 [开户／停用／搬家转移]，旧址是 [地址]。请确认生效日期、所需材料、费用或押金、是否需要到场，以及办理完成的确认编号。\n如你们不负责这处地址，请问应该联系哪个机构或查看哪张服务区地图？"
+      "text": "你好，我要在 [日期] 搬入／搬离 [完整地址及房号]。请问该地址是否属于你们的住宅服务区，应由租客还是房东开户？\n我要办理 [开户／停用／搬家转移]，旧址是 [地址]。请告知生效日期、所需材料、费用或押金、是否需要到场，以及办理编号。\n如你们不负责这处地址，请问应该联系哪个机构或查看哪张服务区地图？"
     },
     {
       "type": "link",

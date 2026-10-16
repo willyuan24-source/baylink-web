@@ -78,7 +78,9 @@ export function NotificationPreferencesCard({ userId }: { userId: string }) {
     return language === 'en' ? names.join(' and ') : names.join('');
   }
   const state = settings ? defaultsState(settings) : 'off';
-  const lead = state === 'pending' ? text(`验证邮箱后，${defaultNames('zh')}会默认用邮件提醒你，可随时关闭。`, `Once your email is verified, ${defaultNames('en')} are emailed to you by default. You can turn them off any time.`, `驗證信箱後，${defaultNames('zh')}會預設用郵件提醒你，可隨時關閉。`)
+  // While the preferences load (or failed to), a neutral lead: no state is claimed before the server reports one (WEB-FIX6).
+  const lead = !settings ? text('站外提醒发到你验证过的邮箱或手机。', 'Reminders go to the email or phone you have verified.', '站外提醒發到你驗證過的信箱或手機。')
+    : state === 'pending' ? text(`验证邮箱后，${defaultNames('zh')}会默认用邮件提醒你，可随时关闭。`, `Once your email is verified, ${defaultNames('en')} are emailed to you by default. You can turn them off any time.`, `驗證信箱後，${defaultNames('zh')}會預設用郵件提醒你，可隨時關閉。`)
     // True for an account defaulted when it verified and for one migrated on read (verified long before), preset on or off.
     : state === 'applied' ? text(`已按默认为你开启${defaultNames('zh')}邮件提醒，可随时关闭。`, `${defaultNames('en').replace(/^./, first => first.toUpperCase())} are on for email by default. You can turn them off any time.`, `已按預設為你開啟${defaultNames('zh')}郵件提醒，可隨時關閉。`)
       : state === 'chosen' ? text('按你保存的选择接收，可随时更改。', 'You get the reminders you chose, and can change them any time.', '按你儲存的選擇接收，可隨時更改。')

@@ -1,4 +1,4 @@
-import { displayUnits, eventTimeLabel, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
+import { displayUnits, eventTimeLabel, readerDayRange, readerMonthDay, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
 
 /**
  * H58 (EVT13-12): the 何时 cell of the facts card, short enough that the card ends above the phone's action bar. Sessions
@@ -9,7 +9,8 @@ import { displayUnits, eventTimeLabel, weekdayOf, type EventFactsInput } from '.
  * - one weekday for all: "周六 10/17、10/24、10/31"; strictly weekly and four or more: "每周六 10/17–11/28"
  * - consecutive days: "周四至周日 10/15–18" (alone; a week or more is "每天 10/15–24") or "10/22–25" (among others)
  * - otherwise as many dates or runs as fit one phone line with the time (LINE_BUDGET); a later date in the same month drops
- *   its month only when that lets more dates show ("10/15、21、24、27、30"); the rest of the line is "等 8 场" (en "+ 2 more")
+ *   its month only when that lets more dates show ("10/15、21、24、27、30"; US English always: "Oct 22–25, 29–31"); the rest
+ *   of the line is "等 8 场" (en "+ 2 more")
  * Counts are days: a line whose days each have several times ("11:30、13:30、14:30") says "等 6 天", not 场, and
  * `moreDays` tells the card to say "另有 N 天" for the same reason.
  */
@@ -23,10 +24,7 @@ const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五',
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_MS = 86_400_000;
 
-const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 const dayIndex = (day: string) => Math.round(Date.parse(`${day}T12:00:00Z`) / DAY_MS);
-/** "10/15–18" in one month, "10/30–11/1" across two. */
-const span = (start: string, end: string) => `${monthDay(start)}–${start.slice(0, 7) === end.slice(0, 7) ? Number(end.slice(8, 10)) : monthDay(end)}`;
 
 /** Consecutive calendar days become one run. */
 function runs(days: readonly string[]): string[][] {
@@ -44,6 +42,9 @@ export type SessionLines = { lines: string[]; more: number; moreDays?: true };
 /** The 何时 lines for an event's session days on or after `today` (all of them when none is left), and the days not shown. */
 export function sessionLines(event: Pick<EventFactsInput, 'sessions' | 'planning'>, today: string, english: boolean): SessionLines {
   const weekdays = english ? WEEKDAYS_EN : WEEKDAYS_ZH;
+  // "10/15", "10/15–18", "10/30–11/1"; US English on /en: "Oct 15", "Oct 15–18", "Oct 30–Nov 1" (WEB-FIX6).
+  const monthDay = (day: string) => readerMonthDay(day, english);
+  const span = (start: string, end: string) => readerDayRange(start, end, english);
   const all = [...new Set((event.sessions ?? []).map(session => session.date))].sort();
   const upcoming = all.filter(day => day >= today);
   const days = upcoming.length ? upcoming : all;
@@ -58,11 +59,19 @@ export function sessionLines(event: Pick<EventFactsInput, 'sessions' | 'planning
     groups.set(time, [...(groups.get(time) ?? []), day]);
   }
   const separator = english ? ', ' : '、';
-  /** The first `count` items as text; `short` drops the month of a single date that follows one in the same month. */
+  /**
+   * The first `count` items as text; `short` drops the month of a single date that follows one in the same month. US English
+   * always drops a repeated month, as US dates read ("Oct 22–25, 29–31", "Oct 15, 21, 24"; WEB-FIX6); Chinese keeps
+   * "10/22–25、10/29–31" and drops it only when that lets more dates show.
+   */
   const listed = (items: string[][], count: number, short: boolean) => items.slice(0, count).map((item, index) => {
-    if (item.length > 1) return span(item[0], item.at(-1)!);
     const previous = items[index - 1]?.at(-1);
-    return short && previous && previous.slice(0, 7) === item[0].slice(0, 7) ? String(Number(item[0].slice(8, 10))) : monthDay(item[0]);
+    const sameMonth = !!previous && previous.slice(0, 7) === item[0].slice(0, 7);
+    if (item.length > 1) {
+      const end = item.at(-1)!;
+      return english && sameMonth && end.slice(0, 7) === item[0].slice(0, 7) ? `${Number(item[0].slice(8, 10))}–${Number(end.slice(8, 10))}` : span(item[0], end);
+    }
+    return (short || english) && sameMonth ? String(Number(item[0].slice(8, 10))) : monthDay(item[0]);
   }).join(separator);
   const format = (group: string[], time: string): string => {
     const at = time ? ` · ${time}` : '';

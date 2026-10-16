@@ -51,29 +51,29 @@ test('a pending source change becomes one plain line under the facts, without pi
   assert.equal(line.textContent, '主办方页面有更新，出发前看一眼官方 ›', 'an undated change does not claim it was recent');
   assert.equal(view.getByRole('link', { name: '出发前看一眼官方 ›' }).getAttribute('href'), official);
   const trust = view.getByRole('note', { name: '来源与核对' });
-  assert.equal(trust.textContent, '官方来源 organizer.example\u00a0· 编辑核对 9/29', 'no "no change" claim while a change is pending');
+  assert.equal(trust.textContent, '官方来源 organizer.example\u00a0· 官网核对 9/29', 'no "no change" claim while a change is pending');
   assert.doesNotMatch(view.container.textContent || '', JARGON);
   assert.doesNotMatch(view.container.textContent || '', /已核实/);
 });
 
-test('an unchanged source shows the trust row only, with separate editor and automatic dates', async context => {
+test('an unchanged source shows the trust row only, with separate source-check and automatic dates', async context => {
   context.mock.timers.enable({ apis: ['Date'], now: new Date('2026-10-08T19:00:00Z') });
   api.request = async () => ({ sources: [unchanged, { ...unchanged, sourceId: 'gone', status: 'expired', needsReview: true }] });
   let view = await mount(reader());
   assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null);
   const trust = view.getByRole('note', { name: '来源与核对' });
-  assert.equal(trust.textContent, '官方来源 organizer.example\u00a0· 编辑核对 9/29\u00a0· 自动比对 10/7 无变化');
+  assert.equal(trust.textContent, '官方来源 organizer.example\u00a0· 官网核对 9/29\u00a0· 自动比对 10/7 无变化');
   assert.deepEqual([...trust.querySelectorAll('time')].map(time => time.getAttribute('datetime')), ['2026-09-29', '2026-10-07T18:00:00.000Z']);
   // The row wraps as text: the check mark shares an unbreakable item with its label, each
   // "label date" pair is one item, and every separator ends a line rather than starting one.
   const items = [...trust.querySelectorAll('.trust-row-item')];
-  assert.deepEqual(items.map(node => node.textContent), ['官方来源', '编辑核对 9/29', '自动比对 10/7 无变化']);
+  assert.deepEqual(items.map(node => node.textContent), ['官方来源', '官网核对 9/29', '自动比对 10/7 无变化']);
   assert.ok(items[0].querySelector('svg'), 'the check mark is never alone on a line');
   for (const node of items.slice(1)) assert.match(node.previousSibling?.textContent || '', /\u00a0· $/);
   view.unmount(); resetSourceFreshnessCache();
   await setLocale('en', false);
   view = await mount(reader('english-event'));
-  assert.equal(view.getByRole('note', { name: 'Source and checks' }).textContent, 'Official source organizer.example\u00a0· Editor checked Sep 29\u00a0· Auto-compared Oct 7, no change');
+  assert.equal(view.getByRole('note', { name: 'Source and checks' }).textContent, 'Official source organizer.example\u00a0· Source checked Sep 29\u00a0· Auto-compared Oct 7, no change');
   assert.doesNotMatch(view.container.textContent || '', /[㐀-鿿]/u);
 });
 
@@ -89,7 +89,7 @@ test('manual-required, error and unreachable sources stay off the reader page', 
     api.request = answer;
     const view = await mount(reader(`quiet-${index}`));
     assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null, String(index));
-    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example\u00a0· 编辑核对 9/29', String(index));
+    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example\u00a0· 官网核对 9/29', String(index));
     view.unmount();
   }
 });
@@ -108,7 +108,7 @@ test('pending changes nobody has judged material stay off the reader page (EVT11
     const view = await mount(reader(`unjudged-${index}`));
     assert.equal(view.queryByRole('note', { name: '官方页面提示' }), null, JSON.stringify(row));
     // Still no "no change" claim: the change is pending for an editor.
-    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example · 编辑核对 9/29', JSON.stringify(row));
+    assert.equal(view.getByRole('note', { name: '来源与核对' }).textContent, '官方来源 organizer.example · 官网核对 9/29', JSON.stringify(row));
     view.unmount();
   }
 });

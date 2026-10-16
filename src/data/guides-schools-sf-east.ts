@@ -27,8 +27,7 @@ export const schoolSfEastGuides: Guide[] = [
       "旧金山",
       "SFUSD",
       "入学申请",
-      "大学校园",
-      "日常办事"
+      "大学校园"
     ],
     "sources": [
       {
@@ -181,8 +180,7 @@ export const schoolSfEastGuides: Guide[] = [
       "东湾",
       "地址核验",
       "入学申请",
-      "大学校园",
-      "日常办事"
+      "大学校园"
     ],
     "sources": [
       {

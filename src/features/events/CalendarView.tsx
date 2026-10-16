@@ -98,7 +98,7 @@ export default function CalendarView({ today }: { today: string }) {
     <div className="ev-week" role="group" aria-label={t('这一周', 'This week')}>
       <IconButton className="ev-week__prev" label={t('上一周', 'Previous week')} onClick={() => update({ date: addCalendarDays(date, -7) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
       {/* Shown only at 大/特大 on phones, where ‹ › move above the days so each date keeps its circle (no overlap). */}
-      <span className="ev-week__range" aria-hidden="true">{monthDay(week[0])}–{monthDay(week[6])}</span>
+      <span className="ev-week__range" aria-hidden="true">{monthDay(week[0], english)}–{english && week[0].slice(0, 7) === week[6].slice(0, 7) ? Number(week[6].slice(8, 10)) : monthDay(week[6], english)}</span>
       <ol className="ev-week__days">{week.map(day => {
         const count = countOn(day);
         // While another week's events load, a day names its date only (no "0 场" before the count is known).
@@ -137,7 +137,7 @@ export default function CalendarView({ today }: { today: string }) {
       {pointIds && <Button variant="text" onClick={() => setFocus({ scope, city })}>{t('看这一天全部活动', 'Show every event that day')}</Button>}
     </div>}
 
-    {beforeIndex && <p className="ev-calendar__note ev-calendar__before">{t(`这一天在本期收录（${monthDay(EVENTS_INDEX.edition.checkedAt)} 起）之前，只列出当时还在进行、现在仍可去的活动。`, `This day is before this edition (from ${monthDay(EVENTS_INDEX.edition.checkedAt)}): only events still running now are listed.`)}</p>}
+    {beforeIndex && <p className="ev-calendar__note ev-calendar__before">{t(`这一天在本期收录（${monthDay(EVENTS_INDEX.edition.checkedAt)} 起）之前，只列出当时还在进行、现在仍可去的活动。`, `This day is before this edition (from ${monthDay(EVENTS_INDEX.edition.checkedAt, true)}): only events still running now are listed.`)}</p>}
     <div className="ev-calendar__rows" aria-live="polite">
       {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={3} rows />
       : shownEvents.length ? <>
@@ -149,7 +149,7 @@ export default function CalendarView({ today }: { today: string }) {
         : <EmptyState headingLevel="h3" icon={CalendarDays}
           title={beforeIndex ? t('这一天在本期收录之前', 'This day is before this edition') : past ? t('这一天没有收录的活动', 'No events recorded that day') : t('这一天暂未收录活动', 'No events listed that day yet')}
           body={t('没有标记不代表当地没有活动。可以看最近有活动的一天。', 'No listing does not mean nothing is on. Try the nearest day with events.')}
-          actions={nearest ? <Button variant="primary" onClick={() => update({ date: nearest })}>{t(`看 ${monthDay(nearest)}`, `See ${monthDay(nearest)}`)}</Button> : undefined} />}
+          actions={nearest ? <Button variant="primary" onClick={() => update({ date: nearest })}>{t(`看 ${monthDay(nearest)}`, `See ${monthDay(nearest, true)}`)}</Button> : undefined} />}
     </div>
 
     <div className="ev-calendar__foot">
@@ -160,7 +160,7 @@ export default function CalendarView({ today }: { today: string }) {
 
     <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('选日期和地区', 'Pick a date and region')}
       status={events ? t(`${dayEvents.length} 场`, `${dayEvents.length} events`) : failed ? t('这一天的活动没能加载', 'Events for this day did not load') : t('正在加载…', 'Loading…')}
-      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{events ? t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date)}`) : t(`看 ${monthDay(date)}`, `Show ${monthDay(date)}`)}</Button>}>
+      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{events ? t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date, true)}`) : t(`看 ${monthDay(date)}`, `Show ${monthDay(date, true)}`)}</Button>}>
       <section className="ev-sheet-section">
         <div className="ev-month__nav">
           <IconButton label={t('上个月', 'Previous month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', -1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', -1) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>

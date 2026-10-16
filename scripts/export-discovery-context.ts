@@ -3,7 +3,7 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
-import { loadLocale, translateText, type Locale } from '../src/i18n/locale';
+import { enableUsEnglishTimes, loadLocale, translateText, type Locale } from '../src/i18n/locale';
 import { discoveryCheckedAt } from './discovery-checked-at';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -19,6 +19,8 @@ const catalog = (locale: Locale) => {
       startDate: shop.openedOn, dateLabel: t(shop.dateLabel), status: shop.status, verifiedAt: shop.verifiedAt, sourceUrl: shop.officialUrl, sourceLabel: `${shop.name} · ${locale === 'en' ? 'Official website' : '官方入口'}` })),
   ] };
 };
+// BayBay's English context reads dates and times in US style, as the site's /en pages do (H41).
+await enableUsEnglishTimes();
 await loadLocale('en');
 for (const locale of ['zh-Hans', 'en'] as const) for (const target of targets) {
   const path = locale === 'en' ? target.replace(/\.json$/, '.en.json') : target;

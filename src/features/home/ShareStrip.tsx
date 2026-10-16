@@ -21,9 +21,9 @@ function shortTitle(event: HomeWeekendPick['event'], locale: string): string {
  * nothing is downloaded until the reader asks — the save-image button and the region calendar subscription.
  */
 export function ShareStrip({ picks, start, end, cardHref }: { picks: readonly HomeWeekendPick[]; start: string; end: string; cardHref: string }) {
-  const { t, locale } = useUiCopy();
+  const { t, locale, english } = useUiCopy();
   if (!picks.length) return null;
-  const range = weekendRange(start, end);
+  const range = weekendRange(start, end, english);
   return <section className="home-share" aria-labelledby="home-share-title" {...dateScope('weekend')}>
     {/* An information card (data-cover="type"), not a picture: the card's headline and the picks' short titles as text. */}
     <div className="home-share__thumb" data-cover="type" aria-hidden="true">
