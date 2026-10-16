@@ -85,8 +85,9 @@ test('guides without pilot data keep a photo cover or no picture, never a carous
   assert.ok(cover, 'the airport guide has a photo cover');
   assert.ok(cover.querySelector('[data-provenance]')?.textContent);
   assert.equal(cover.querySelector('img')?.getAttribute('loading'), 'eager');
-  // A paperwork guide whose cover is an AI illustration shows no picture at the top (D9: 办事 pages stay quiet).
-  const slug = 'bay-area-rental-scam-guide';
+  // A paperwork guide whose cover is an AI illustration shows no picture at the top (D9: 办事 pages stay quiet). (The rental
+  // scam guide, used here before, has an owner-approved Commons photo as its list cover since CNT-MEDIA-4.)
+  const slug = 'bay-area-social-security-retirement-preparation-guide';
   assert.equal(guideCover({ slug, covers: peekGuide(slug)!.covers }, '2026-10-10').tier, 'type');
   const scam = article(slug);
   assert.equal(scam.container.querySelector('.gd-lead img'), null);
