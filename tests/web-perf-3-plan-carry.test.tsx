@@ -5,15 +5,18 @@ import React from 'react';
 import type { AppContextValue } from '../src/app/context';
 
 /**
- * WEB-PERF-3 review (H20): the first use of 行程's form on a plain visit, before the workspace is in, is not lost. The
- * prerendered form takes the reader's text and an example tap (which fills the box at once); the live workspace that
- * replaces it keeps the text, the focus and the caret (src/features/plan/boot-carry.ts).
+ * WEB-PERF-3 review (H20): the first use of 行程's form on a plain visit, before the workspace is in, is not lost. Words
+ * typed into the HTML page before the app ran, words typed and an example tap (which fills the box at once) on the
+ * prerendered form the app shows meanwhile: the live workspace that replaces it keeps the text, the focus and the caret
+ * (src/features/plan/boot-carry.ts).
  */
 process.env.BAYLINK_LAZY_PLAN = '1';
 const EXAMPLE = '明天在旧金山找家餐厅，再去附近逛逛';
 const dom = new JSDOM(`<!doctype html><html><head></head><body><div id="root"><main data-prerender-path="/plan"><fieldset class="planner-interaction-scope"><div class="planner-data-slot" data-plan-slot=""><section id="plan-days">已排的日子</section><form class="planner-form"><label class="planner-question">这次想怎么过？<textarea maxlength="800"></textarea></label><div class="ui-chip-row planner-examples"><button type="button" class="ui-chip">${EXAMPLE}</button><button type="button" class="ui-chip">这个周末东湾有哪些新店？</button></div></form></div></fieldset></main></div></body></html>`, { url: 'https://www.baylink.us/', pretendToBeVisual: true });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+// Typed while the page was only HTML (before 行程's route code ran): the route code picks it up when it captures the page.
+dom.window.document.querySelector('textarea')!.value = '周日去海边';
 const { render, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
@@ -28,6 +31,7 @@ test('an example tap and the words typed on the prerendered form survive the swa
   });
   const boot = view.container.querySelector<HTMLTextAreaElement>('[aria-busy="true"] .planner-question textarea');
   assert.ok(boot, 'the prerendered form is on screen while the workspace loads');
+  assert.equal(boot!.value, '周日去海边', 'what was typed into the HTML page before the app ran is still in the box');
   // a tap on an example fills the box at once (and asks for the workspace)
   act(() => { boot!.parentElement!.parentElement!.querySelector<HTMLButtonElement>('.planner-examples button')!.click(); });
   assert.equal(boot!.value, EXAMPLE);

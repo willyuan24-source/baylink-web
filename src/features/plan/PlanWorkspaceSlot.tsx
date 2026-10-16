@@ -8,7 +8,7 @@ import { ErrorState } from '../../components/ui/States';
 import { SkeletonFeed } from '../../components/ui/SkeletonCard';
 import { isPlanReady, isPlanWanted, planWantedAtOnce, readPlan, retryPlan, subscribePlanWanted, wantPlan } from './plan-catalog';
 import { PlanDaysPreview } from './PlanDaysPreview';
-import { bootCarry, recordBootCarry } from './boot-carry';
+import { bootCarry, recordBootCarry, watchBootForm } from './boot-carry';
 import { useOnline } from './use-online';
 
 /**
@@ -35,45 +35,30 @@ function captureBootSlot(): { html: string; locale: Locale } | null {
   const copy = slot.cloneNode(true) as HTMLElement;
   copy.querySelector('#plan-days')?.remove();
   const html = copy.innerHTML.trim();
-  return html ? { html, locale: pathLanguage(window.location.pathname) } : null;
+  if (!html) return null;
+  // From now until the workspace mounts, what the reader types or taps on any copy of the form is kept (boot-carry.ts).
+  watchBootForm(document, wantPlan);
+  return { html, locale: pathLanguage(window.location.pathname) };
 }
 
 /** The prerendered workspace is shown once, while the first workspace of this page load is on its way. */
 const forgetBootSlot = () => { bootSlot = null; };
 
 /**
- * The prerendered workspace, live enough to keep what the reader does before the real one is in: the question typed (and
- * the caret), and a tap on an example question, which fills the box at once. Each time it is drawn again (the wait moves
- * from the reader to the chunk) it puts that back; the workspace takes it when it mounts (boot-carry.ts).
+ * The prerendered workspace, drawn again while the real one is on its way: it puts back what the reader typed or tapped
+ * on the form so far (the question, the focus and the caret; boot-carry.ts records it), and when it is replaced it notes
+ * where the focus and the caret are, for the next copy or the workspace.
  */
 function BootSlot({ html }: { html: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
-    const root = ref.current;
-    const field = root?.querySelector<HTMLTextAreaElement>('.planner-question textarea');
-    if (!root || !field) return;
+    const field = ref.current?.querySelector<HTMLTextAreaElement>('.planner-question textarea');
+    if (!field) return;
     const carried = bootCarry();
     if (carried.message != null) field.value = carried.message;
     if (carried.focused) { field.focus({ preventScroll: true }); if (carried.start != null) field.setSelectionRange(carried.start, carried.end ?? carried.start); }
-    const onInput = (event: Event) => { if (event.target === field) recordBootCarry({ message: field.value }); };
-    // An example question fills the box with the words on the chip, as the reader sees them (their language included).
-    const onClick = (event: Event) => {
-      const chip = (event.target as Element | null)?.closest?.('.planner-examples button');
-      if (!chip || !root.contains(chip)) return;
-      field.value = chip.textContent ?? '';
-      recordBootCarry({ message: field.value });
-      wantPlan();
-    };
-    // 帮我挑选方案 before the workspace is in: no native submit (it would reload the page and lose the words), just the load.
-    const onSubmit = (event: Event) => { event.preventDefault(); wantPlan(); };
-    root.addEventListener('input', onInput);
-    root.addEventListener('click', onClick);
-    root.addEventListener('submit', onSubmit);
     return () => {
-      root.removeEventListener('input', onInput);
-      root.removeEventListener('click', onClick);
-      root.removeEventListener('submit', onSubmit);
-      // Still in the document here (React runs this before it removes the node): where the reader's focus and caret are.
+      // Still in the document here (React runs this before it removes the node).
       const focused = document.activeElement === field;
       recordBootCarry(focused ? { focused, start: field.selectionStart, end: field.selectionEnd } : { focused });
     };
