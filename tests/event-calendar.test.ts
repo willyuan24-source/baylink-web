@@ -228,7 +228,7 @@ test('switching from a busy day to an empty or invalid date leaves no previous e
   const busy = eventsOnCalendarDay(PLANNER_EVENTS, '2026-10-03');
   assert.ok(busy.length > 0);
   assert.ok(groupCalendarMapEvents(busy).points.length > 0);
-  for (const day of ['2027-01-01', '', '2026-02-30']) {
+  for (const day of ['2027-03-01', '', '2026-02-30']) {
     const events = eventsOnCalendarDay(PLANNER_EVENTS, day);
     assert.deepEqual(events, []);
     assert.deepEqual(groupCalendarMapEvents(events), { points: [], unmapped: [] });

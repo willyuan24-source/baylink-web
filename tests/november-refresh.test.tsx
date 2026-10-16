@@ -23,9 +23,10 @@ test('dated city notices expire after their last Pacific day while calendars rem
   assert.equal(isEditionCurrent('2026-11-15'), true);
   assert.equal(isEditionCurrent('2026-11-16'), true);
   assert.equal(isEditionCurrent('2026-11-30'), true);
-  // CNT-SUPPLY-2: the edition runs through 12/31.
+  // CNT-SUPPLY-3: the edition runs through 1/3/2027.
   assert.equal(isEditionCurrent('2026-12-31'), true);
-  assert.equal(isEditionCurrent('2027-01-01'), false);
+  assert.equal(isEditionCurrent('2027-01-03'), true);
+  assert.equal(isEditionCurrent('2027-01-04'), false);
 });
 
 test('new adult programs, unknown fees and selected event dates retain planning constraints', () => {
@@ -38,8 +39,11 @@ test('new adult programs, unknown fees and selected event dates retain planning 
   assert.ok(matilda.planning?.schedule?.sessions?.length);
   assert.ok(matilda.planning?.schedule?.sessions?.every(session => !session.end));
   const filoli = MONTHLY_EVENTS.find(event => event.id === 'filoli-holidays-from-nov14-2026')!;
-  assert.deepEqual(filoli.occurrenceDates, ['2026-11-14','2026-11-15']);
-  assert.equal(getEventStatus(filoli, '2026-11-16'), 'ended');
+  // CNT-SUPPLY-3 adds the days Filoli's December and January calendars list (12/14–12/23, 12/26–1/3; closed 12/24–25).
+  assert.deepEqual(filoli.occurrenceDates?.slice(0, 3), ['2026-11-14','2026-11-15','2026-12-14']);
+  assert.equal(filoli.occurrenceDates?.at(-1), '2027-01-03');
+  assert.ok(!filoli.occurrenceDates?.includes('2026-12-24') && !filoli.occurrenceDates?.includes('2026-12-25'));
+  assert.equal(getEventStatus(filoli, '2026-11-16'), 'upcoming');
   assert.deepEqual(filterMonthlyEvents([filoli], {date:'today'}, '2026-12-25'), []);
 });
 

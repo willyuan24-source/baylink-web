@@ -89,7 +89,7 @@ const filterRow = (view: View) => within(view.container.querySelector<HTMLElemen
 
 test('/this-month lists every live activity through 再看 12 场, each card one link with a cover, never an ended one', () => {
   const view = render(edition());
-  assert.equal(rangeLine(view.container), '全部日期 · 收录至 12/31');
+  assert.equal(rangeLine(view.container), '全部日期 · 收录至 1/3');
   const ids = expected(TODAY);
   assert.ok(ids.length > 100, 'the edition carries the whole autumn catalog');
   assertFeed(view, ids);
@@ -214,7 +214,7 @@ test('URL filter choices survive unmounting and revisiting the resulting address
   localStorage.clear();
 
   const revisited = render(edition(TODAY, savedUrl));
-  assert.equal(rangeLine(revisited.container), '全部日期 · 收录至 12/31 · 东湾');
+  assert.equal(rangeLine(revisited.container), '全部日期 · 收录至 1/3 · 东湾');
   assert.equal(filterRow(revisited).getByRole('button', { name: '免费', exact: true }).getAttribute('aria-pressed'), 'true');
   assert.match(filterRow(revisited).getByRole('button', { name: /^筛选/ }).textContent!, /筛选 2$/, 'the 筛选 chip counts 免费 and the keyword');
   const again = await openFilters(revisited);
@@ -263,7 +263,7 @@ test('an empty result offers a working reset that keeps the language and the rem
 
 test('next seven days shows its inclusive range, and an invalid date parameter falls back to the page default', () => {
   const view = render(edition('2026-10-25', '/this-month?when=invalid'));
-  assert.equal(rangeLine(view.container), '全部日期 · 收录至 12/31');
+  assert.equal(rangeLine(view.container), '全部日期 · 收录至 1/3');
   assertFeed(view, expected('2026-10-25'));
   cleanup();
   const next7 = render(edition('2026-10-25', '/this-month?when=next7'));
@@ -340,23 +340,28 @@ test('every remaining October weekend including Halloween has a published activi
 });
 
 test('after the edition, only confirmed cross-month activities remain and ended ones are never listed', () => {
-  // CNT-SUPPLY-2: the edition runs through 12/31, so "after the edition" is 2027-01-01.
-  const view = render(edition('2027-01-01'));
-  assert.equal(rangeLine(view.container), '全部日期 · 收录至 12/31', 'the range line says the edition ended on 12/31');
-  const continuing = expected('2027-01-01');
-  assert.deepEqual(continuing, [], 'no activity in the edition runs past 12/31');
+  // CNT-SUPPLY-3: the edition runs through 1/3/2027, so "after the edition" is 2027-01-04. A few seasonal runs continue
+  // past it on their own published dates (Glowfari to 1/31, IlluminOdyssey to 1/24, and with the SF commit Glow and the
+  // Union Square rink); nothing else does.
+  const view = render(edition('2027-01-04'));
+  assert.equal(rangeLine(view.container), '全部日期 · 收录至 1/3', 'the range line says the edition ended on 1/3');
+  const continuing = expected('2027-01-04');
+  assert.ok(continuing.includes('oakland-zoo-glowfari-2026'), 'Glowfari runs to 1/31');
+  for (const id of continuing) assert.ok(item(id).endDate > '2027-01-03', `${id} runs past the edition`);
+  assert.deepEqual([...continuing].sort(), INDEX_EVENTS.filter(event => nextOccurrence(event, '2027-01-04')).map(event => event.id).sort(), 'exactly the activities with a day after the edition');
+  showAll(view);
   assert.deepEqual(feedIds(view.container), continuing, 'no ended card is listed');
   cleanup();
   // Mid-December, inside the edition: what still runs is listed and what has ended is not (the old 12/01 check's positive case).
   const mid = render(edition('2026-12-14'));
-  assert.equal(rangeLine(mid.container), '全部日期 · 收录至 12/31');
+  assert.equal(rangeLine(mid.container), '全部日期 · 收录至 1/3');
   const running = expected('2026-12-14');
   assert.ok(running.length > 0, 'activities still run after the last supplied weekend');
   assert.ok(running.includes('dickens-christmas-fair-2026'), 'the Dickens Fair runs to 12/20');
   assert.deepEqual([...running].sort(), INDEX_EVENTS.filter(event => nextOccurrence(event, '2026-12-14')).map(event => event.id).sort(), 'exactly the activities with a day on or after 12/14');
   for (const id of running) assert.ok(item(id).endDate >= '2026-12-14', `${id} has not ended`);
   assertFeed(mid, running);
-  for (const id of ['pleasanton-pumpkins-after-dark-2026', 'livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-alum-rock-basic-english-2026']) {
+  for (const id of ['pleasanton-pumpkins-after-dark-2026', 'livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-tully-friends-book-sale-dec5-2026']) {
     assert.equal(feedIds(mid.container).includes(id), false, `${id} ended before 12/14 and is not listed`);
   }
 });
@@ -397,7 +402,7 @@ test('再看 12 场 reveals twelve more without changing the total, and a new fi
 
 test('unknown filter and sort values fall back safely while preserving unrelated URL parameters', async () => {
   const view = render(edition(TODAY, '/this-month?region=unknown&cost=unknown&when=unknown&category=unknown&view=unknown&sort=unknown&lang=zh-Hant'));
-  assert.equal(rangeLine(view.container), '全部日期 · 收录至 12/31');
+  assert.equal(rangeLine(view.container), '全部日期 · 收录至 1/3');
   // H23: the region is a one-tap chip row; an unknown region reads as 整个湾区 (selected), not as a narrowed region.
   assert.equal(within(view.getByRole('group', { name: '地区' })).getByRole('button', { name: '整个湾区' }).getAttribute('aria-pressed'), 'true');
   assert.equal(filterRow(view).getByRole('button', { name: '免费', exact: true }).getAttribute('aria-pressed'), 'false');
