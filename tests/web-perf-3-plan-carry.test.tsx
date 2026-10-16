@@ -20,9 +20,12 @@ dom.window.document.querySelector('textarea')!.value = '周日去海边';
 const { render, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
+const { api } = await import('../src/lib/api');
 
 test('an example tap and the words typed on the prerendered form survive the swap, with the focus and the caret', async () => {
   localStorage.clear();
+  const sent: string[] = [];
+  api.request = (async (endpoint: string, options?: RequestInit) => { sent.push(`${endpoint} ${JSON.parse(String(options?.body)).message}`); return new Promise(() => {}); }) as typeof api.request;
   let view!: ReturnType<typeof render>;
   act(() => {
     view = render(<MemoryRouter initialEntries={['/plan']}><Routes><Route element={<Outlet context={{ openBayBay: () => {}, setShowLogin: () => {} } as unknown as AppContextValue} />}>
@@ -35,14 +38,21 @@ test('an example tap and the words typed on the prerendered form survive the swa
   // a tap on an example fills the box at once (and asks for the workspace)
   act(() => { boot!.parentElement!.parentElement!.querySelector<HTMLButtonElement>('.planner-examples button')!.click(); });
   assert.equal(boot!.value, EXAMPLE);
-  // the reader goes on typing in the box
+  // the reader goes on typing in the box, then taps 帮我挑选方案 before the workspace is in: no reload (it would lose the
+  // words); the request goes out once the workspace is in
+  let defaultPrevented = false;
   act(() => {
     boot!.focus();
     boot!.value = `${EXAMPLE}，周六带孩子去`;
     boot!.setSelectionRange(boot!.value.length, boot!.value.length);
     boot!.dispatchEvent(new window.Event('input', { bubbles: true }));
+    const submit = new window.Event('submit', { bubbles: true, cancelable: true });
+    boot!.closest('form')!.dispatchEvent(submit);
+    defaultPrevented = submit.defaultPrevented;
   });
+  assert.equal(defaultPrevented, true, 'the prerendered form never submits natively');
   await waitFor(() => assert.ok(view.container.querySelector('.planner-catalog')), { timeout: 20000 });
+  await waitFor(() => assert.deepEqual(sent, [`/planner/recommend ${EXAMPLE}，周六带孩子去`]), { timeout: 5000 });
   const live = view.container.querySelector<HTMLTextAreaElement>('.planner-form .planner-question textarea')!;
   assert.equal(view.container.querySelector('[aria-busy="true"] .planner-question'), null, 'the live workspace replaced the prerendered form');
   assert.equal(live.value, `${EXAMPLE}，周六带孩子去`, 'the words typed so far are still there');

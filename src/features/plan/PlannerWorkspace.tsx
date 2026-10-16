@@ -247,6 +247,15 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
     });
     return () => { cancelled = true; };
   }, [location.search, location.key, location.pathname, location.hash, queryMessage, shared.date, recommend, navigate]);
+  // 帮我挑选方案 tapped on the prerendered form before this workspace was in (boot-carry.ts): the request the reader asked
+  // for starts now, once (deferred past StrictMode's setup/cleanup replay, as the auto start above).
+  const heldSubmit = useRef(!!carried.submitted && !queryMessage && !!carried.message?.trim());
+  useEffect(() => {
+    if (!heldSubmit.current) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => { if (cancelled || !heldSubmit.current) return; heldSubmit.current = false; void recommend(); });
+    return () => { cancelled = true; };
+  }, [recommend]);
   const stopRequest = () => { request.current?.abort(); request.current = undefined; setRequesting(false); setError('已停止挑选。你的条件还在，可以修改后重试。'); };
   const appliedFilters = results ? [results.filters.date, results.filters.city, results.filters.region && results.filters.region !== 'all' ? PLAN_REGIONS.find(item => item.id === results.filters.region)?.label : undefined,
     results.filters.budget != null ? `${translateText(results.filters.budgetScope === 'total' ? '同行门票总预算' : '每人门票预算', locale)} $${results.filters.budget}` : undefined,

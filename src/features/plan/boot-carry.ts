@@ -6,9 +6,9 @@
  * boot copy (app/boot-main.ts) or the slot's (PlanWorkspaceSlot). Each copy the slot draws again puts it back; the
  * workspace reads it in its first render, then stops the listener and clears it, so the swap from the prerendered page
  * to the live one never erases a word or drops the focus. A native submit (帮我挑选方案) meanwhile would reload the page and
- * lose the words: it is held, and the workspace is asked for.
+ * lose the words: it is held, the workspace is asked for, and the workspace sends the reader's request once it is in.
  */
-export type BootCarry = { message?: string; focused?: boolean; start?: number | null; end?: number | null };
+export type BootCarry = { message?: string; focused?: boolean; start?: number | null; end?: number | null; submitted?: boolean };
 
 let carry: BootCarry = {};
 let stop: (() => void) | undefined;
@@ -45,7 +45,7 @@ export function watchBootForm(doc: Document, onAct: () => void): void {
     carry = { ...carry, message: field.value };
     onAct();
   };
-  const onSubmit = (event: Event) => { if ((event.target as Element | null)?.closest?.('.planner-form')) { event.preventDefault(); onAct(); } };
+  const onSubmit = (event: Event) => { if ((event.target as Element | null)?.closest?.('.planner-form')) { event.preventDefault(); carry = { ...carry, submitted: true }; onAct(); } };
   doc.addEventListener('input', onInput, true);
   doc.addEventListener('focusin', onFocus, true);
   doc.addEventListener('focusout', onBlur, true);
