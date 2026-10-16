@@ -1886,3 +1886,19 @@ offer the car-altar application that closed on 9/25.
 | event | `belmont-centennial-fest-2026` | https://www.active.com/belmont-ca/running/distance-running-classes/centennial-celebration-vendor-2026 | 2026-10-15 | GPT editor | authorised vendor sign-up page | "On October 24 we will be celebrating Belmont's 100th birthday in Twin Pines Park!" The 13:30 parade, 15:30 time capsule and 19:30 drone show only in the city page's search index; `verifiedAt` not moved. |
 | event | `mountain-view-monster-bash-2026` | https://adiradance.com/happenings | 2026-10-15 | GPT editor | performer's 2026 programme page | "Mountain View Monster Bash at Rengstorff Park … Saturday, October 24. Dance times: 11:00am and 11:45am." The cancelled show on that page is a different event (10/18). `verifiedAt` not moved. |
 | event | `roundup-novato-dia-muertos-2026` | https://www.novato.gov/Home/Components/Calendar/Event/24495/2527?selectview=1&toggle=all | 2026-10-15 | GPT editor | official search index only | "Date: 10/24/2026 3:00 PM - 6:00 PM … All ages are welcome!" `verifiedAt` not moved. |
+
+### CNT-WEEKEND-1021 · the 10/24–25 picks re-read, 2026-10-16 (PT)
+
+The five owner-approved 10/24 picks (GPT editor's draft `opus-qa/gpt/out-1016/weekend-picks-1024.md`) re-read by the lane agent
+on 2026-10-16 between 13:55 and 13:57 PT (direct GET; Menlo Park through a web reader because a direct GET answers 403). All
+five still run on 10/24 at the listed times, with no cancellation notice. One detail line changed: SJMA's plan and cost line
+now name the separately ticketed sugar-skull decorating (the pick's reason says 免费入馆, which is true of admission only).
+`verifiedAt` is not changed by these rows.
+
+| Kind | Id | URL | HTTP | Change | Quote |
+|---|---|---|---|---|---|
+| event | `san-jose-sjma-dia-muertos-community-2026` | https://sjmusart.org/programs-at-sjma/community-days/dia-de-los-muertos | 200 | plan: free registration, strongly recommended, walk-ins welcome; activities end 16:00, the museum is open to 18:00; sugar-skull decorating is a separate ticket bought at the museum that day. Cost line: 全天免费入场；糖骷髅装饰另购票；餐饮及商店消费另计 | "Saturday, October 24, 2026 11am–4pm Free admission all day" · "Advance registration is strongly recommended." · "Walk-ins are welcome." · "The Sugar Skull Decorating activity requires a separate ticket, available at the Museum on the day of the event." · "Activities end at 4pm but the Museum is open until 6pm." |
+| event | `r2-petaluma-lumafest-20261024` | https://lumafest.santarosa.edu/ | 200 | none (the entry already names it a Día de los Muertos festival) | "LumaFest is SRJC Petaluma’s Educational Open House and el Día de los Muertos celebration" · "Now held on Saturday, October 24, 2026!" · "11am-3pm" · "Rain or Shine!" · "FREE Parking & Admission" |
+| event | `menlo-park-halloween-hoopla-2026` | https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival | 403 direct; read via web reader | none | "Next date: Saturday, October 24, 2026 \| 11:00 AM to 02:00 PM" · "Free" · "Parade participants should arrive by 10:45 a.m. at the Maloney Street parking lot." |
+| event | `acl-cherryland-chinese-storytimes-oct24-2026` | https://aclibrary.bibliocommons.com/v2/events?startDate=2026-10-24&endDate=2026-10-25&page=1 | 200 | none | "廣東話故事會 / Storytime in Cantonese … Saturday, October 24 … 10:30am–11:00am … Cherryland" · "国语故事会/ Mandarin Storytime … Saturday, October 24 … 11:30am–12:00pm … Cherryland"; both event records `"isCancelled":false` |
+| event | `sfpl-chinatown-creative-saturdays-fall-2026` | https://sfpl.org/events/2026/10/24/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu | 200 | none | "Saturday, 10/24/2026 2:30 - 4:00" · "a creative and relaxing afternoon of self-guided practice in Chinese calligraphy, coloring and board games" |
