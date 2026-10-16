@@ -123,7 +123,7 @@ test('H06: an empty 长辈友好 list offers the 长辈与家属 guides and BayB
 });
 
 test('H02: list headers state when their items were checked — most of them, and the latest — never the edition date', () => {
-  assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12' });
+  assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12', earliest: '2026-09-28' });
   assert.equal(checkSummary([], '2026-10-13'), null);
   const zh = (text: string) => text;
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, zh), '多数核对于 9/29 · 最近 10/12');
@@ -131,7 +131,7 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!;
-  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+ · 最近 \d+\/\d+|核对于 \d+\/\d+)$/);
+  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+ · (?:最近|最早) \d+\/\d+|核对于 \d+\/\d+)$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
 });
