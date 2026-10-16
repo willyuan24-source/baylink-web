@@ -1,4 +1,5 @@
 import { useId, useState } from 'react';
+import './perks-gallery.css';
 import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, ChevronRight, Copy, Download, Images } from 'lucide-react';
 import { Link } from 'react-router-dom';

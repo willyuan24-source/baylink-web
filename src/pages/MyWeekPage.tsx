@@ -34,8 +34,6 @@ import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';
 import { EventTypeCover } from '../components/ui/TypeCover';
 import { confirmDialog } from '../components/ui/confirm';
-import '../styles/planner.css';
-import '../styles/event-import.css';
 import '../features/saves/my-week.css';
 
 /** "10/10 周六" / "Sat, Oct 10" (US English, WEB-FIX6) for a Pacific calendar day (zh-Hant converts the weekday at render). */

@@ -11,11 +11,8 @@ import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
 import { PlanWeekendPicks } from '../features/plan/PlanWeekendPicks';
 import { loadPlan, planLoadFailed, planWantedAtOnce, PlanWorkspace } from '../features/plan/plan-catalog';
-// What the prerendered workspace shows (its code is a lazy chunk, PlannerWorkspace.tsx): the planner's panels, the
-// screenshot import and the BayBay hand-off notes, then the page's own layout (the order they had in the global bundle).
-import '../styles/planner.css';
-import '../features/baybay-actions.css';
-import '../styles/event-import.css';
+// The page's own layout. The planner's panels, the screenshot import and the BayBay hand-off notes are global CSS
+// (main.tsx), before tokens.css's .planner-page reading scale, as the prerendered workspace needs them.
 import '../styles/plan-page.css';
 
 export default function PlannerPage() {
