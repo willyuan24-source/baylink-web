@@ -1,0 +1,4612 @@
+{
+  "acl-fremont-funday-family-board-games-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6a6bb1a53f18b57d52320cac",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "13:30",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "13:30",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "acl-newark-buds-storytime-dec20-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6a87516cd4b10d003007debe",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-20",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-12-20",
+            "start": "13:30",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "bay-area-discovery-museum-winter-wonderlab-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://bayareadiscoverymuseum.org/events/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "09:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "09:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "bayer-ballet-snow-queen-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.bayerballet.com/onstage",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "18:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "18:00"
+          }
+        ]
+      }
+    }
+  },
+  "berkeley-ballet-nutcracker-bird-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.berkeleyballet.org/nutcracker",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "17:00"
+          }
+        ]
+      }
+    }
+  },
+  "california-revels-midwinter-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://californiarevels.org/wheel-of-the-year/2026-midwinter-revels-american-crossroads",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-11",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-12-11",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "18:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "18:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "18:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "18:00"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-concord-mandarin-storytime-dec2-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6ac69298ebad22004543c17a",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-02",
+        "validThrough": "2026-12-02",
+        "sessions": [
+          {
+            "date": "2026-12-02",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-danville-noon-years-eve-storytime-dec26-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6aac8697607483003827bf95",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-26",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-26",
+            "start": "11:00",
+            "end": "11:45"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-dougherty-station-family-games-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6950638a7f0b8a3e004e5991",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "15:00",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-martinez-storytime-winter-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/6a4426b786636e3d0051c80c",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "10:00",
+            "end": "10:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:00",
+            "end": "10:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:00",
+            "end": "10:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:00",
+            "end": "10:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:00",
+            "end": "10:30"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "10:00",
+            "end": "10:30"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "10:00",
+            "end": "10:30"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-oakley-lego-club-winter-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/693b45024be11d3d00d7a427",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "15:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "15:00",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-pleasant-hill-lego-club-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/69f29713bd9a3c316a5662d2",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "ccclib-san-ramon-chess-hour-winter-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://ccclib.bibliocommons.com/events/68bf2a554d5cf93f10282874",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "christmas-in-the-park-san-jose-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://christmasinthepark.com/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-27",
+        "validThrough": "2027-01-01",
+        "weekly": {
+          "0": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ],
+          "1": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ],
+          "2": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "12:00",
+              "close": "22:00"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "circus-bella-bravura-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.circusbella.org/bigtop",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-11",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-12-11",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-28",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-30",
+            "start": "16:00"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "13:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "13:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "16:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "13:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "curiodyssey-illuminodyssey-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://curiodyssey.org/exhibits-events/illuminodyssey/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-14",
+        "validThrough": "2027-01-24",
+        "weekly": {
+          "0": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "1": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "elf-musical-golden-gate-theatre-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 5,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://us.atgtickets.com/events/elf-the-musical/golden-gate-theatre/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-15",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-12-15",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-12-16",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "fairyland-fairy-winterland-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://fairyland.org/winter-fun/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-12",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-12-12",
+            "start": "12:00",
+            "end": "19:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "12:00",
+            "end": "19:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "12:00",
+            "end": "19:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "12:00",
+            "end": "19:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "12:00",
+            "end": "19:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "12:00",
+            "end": "19:00"
+          }
+        ]
+      }
+    }
+  },
+  "filoli-holidays-from-nov14-2026": {
+    "planning": {
+      "setting": "mixed",
+      "reservation": "required",
+      "admissionUsd": null,
+      "schedule": {
+        "sourceUrl": "https://filoli.org/holidays",
+        "verifiedAt": "2026-10-05",
+        "validFrom": "2026-11-14",
+        "validThrough": "2027-01-10",
+        "dates": {
+          "2026-11-14": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-11-15": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-14": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-15": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-16": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-17": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-18": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-19": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-20": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-21": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-22": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-23": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-26": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-27": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-28": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-29": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-30": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2026-12-31": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2027-01-01": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2027-01-02": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ],
+          "2027-01-03": [
+            {
+              "open": "10:00",
+              "close": "15:30",
+              "lastEntry": "13:30"
+            },
+            {
+              "open": "16:00",
+              "close": "22:00",
+              "lastEntry": "20:00"
+            }
+          ]
+        },
+        "note": "此处仅列本轮覆盖到 11 月 15 日的两个开放日；整个官方季节到 2027 年 1 月 10 日，其他日期须查余票。日间与夜间是不同票种、按选定入场时段预约，不能在两个窗口间沿用同一张普通票。夜间末次入场 20:00，日间 13:30；金额与儿童票档未固定。特定会员免预约资格须另证实。"
+      }
+    }
+  },
+  "gilroy-gardens-north-pole-nights-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.gilroygardens.org/holiday/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-30",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-04",
+            "start": "17:00",
+            "end": "22:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-11",
+            "start": "17:00",
+            "end": "22:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "17:00",
+            "end": "22:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-28",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "13:00",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-30",
+            "start": "13:00",
+            "end": "21:00"
+          }
+        ]
+      }
+    }
+  },
+  "grace-cathedral-sing-merry-christmas-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://gracecathedral.org/series/sing-you-a-merry-christmas-2/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-12",
+        "validThrough": "2026-12-23",
+        "sessions": [
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "15:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "15:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "hacienda-hills-kids-trail-run-jan2-2027": {
+    "planning": {
+      "admissionUsd": 25,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://tctruns.com/hacienda-hills-trail-run-winter/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2027-01-02",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2027-01-02",
+            "start": "07:30"
+          }
+        ]
+      }
+    }
+  },
+  "hiller-aviation-holiday-week-programs-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.hiller.org/event/glider-discovery/2026-10-11/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-20",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-12-20",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "marin-city-russian-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/6aa45810ca248a0029152ed7",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "marin-south-novato-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://marinlibrary.bibliocommons.com/events/696547fa6724c63d00ebb268",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "meritage-building-with-ember-the-elf-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.meritageresort.com/experience/event-calendar/building-with-ember-the-elf/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-12-23",
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "11:00",
+            "end": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "meritage-gingerbread-house-workshop-2026": {
+    "planning": {
+      "admissionUsd": 60,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.meritageresort.com/experience/event-calendar/santas-gingerbread-house-workshop/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-19",
+        "validThrough": "2026-12-23",
+        "sessions": [
+          {
+            "date": "2026-11-19",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-03",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-04",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-11",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "16:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "11:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "11:00",
+            "end": "20:00"
+          }
+        ]
+      }
+    }
+  },
+  "meritage-holiday-ice-skating-2026": {
+    "planning": {
+      "admissionUsd": 20,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.meritageresort.com/experience/event-calendar/ice-skating/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-19",
+        "validThrough": "2027-01-03",
+        "weekly": {
+          "0": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "1": [
+            {
+              "open": "16:00",
+              "close": "22:00"
+            }
+          ],
+          "2": [
+            {
+              "open": "16:00",
+              "close": "22:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "16:00",
+              "close": "22:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "16:00",
+              "close": "22:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ]
+        },
+        "dates": {
+          "2026-11-26": [
+            {
+              "open": "14:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-21": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-22": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-23": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-24": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-28": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-29": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-30": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ],
+          "2026-12-31": [
+            {
+              "open": "11:00",
+              "close": "22:00"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "new-ballet-san-jose-nutcracker-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://newballet.com/nutcracker",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "11:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "11:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "11:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "14:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "19:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "11:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "oakland-ballet-nutcracker-paramount-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandballet.org/performances-events/graham-lustigs-the-nutcracker/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "13:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "oakland-zoo-glowfari-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.oaklandzoo.org/programs-and-events/glowfari-2026-27/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-06",
+        "validThrough": "2027-01-31",
+        "sessions": [
+          {
+            "date": "2026-11-06",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-11",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-12",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-13",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-18",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-19",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-20",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-23",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-24",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-25",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-11-30",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-01",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-02",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-03",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-04",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-07",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-08",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-09",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-11",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-14",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-15",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-16",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-28",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-30",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-01",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-06",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-07",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-08",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-09",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-10",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-13",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-14",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-15",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-16",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-17",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-20",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-21",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-22",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-23",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-24",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-27",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-28",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-29",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-30",
+            "start": "16:30",
+            "end": "21:00"
+          },
+          {
+            "date": "2027-01-31",
+            "start": "16:30",
+            "end": "21:00"
+          }
+        ]
+      }
+    }
+  },
+  "octnov-marin-holiday-lights-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://www.marincounty.gov/departments/cultural-services/department-sponsored-events/holiday-light-spectacular",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-27",
+        "validThrough": "2027-01-03",
+        "weekly": {
+          "0": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "1": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "2": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "17:00",
+              "close": "21:00"
+            }
+          ]
+        },
+        "note": "Daily including holidays; may close for lightning or high winds."
+      }
+    }
+  },
+  "opl-asian-branch-family-time-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandlibrary.bibliocommons.com/events/676ee5ccc4569f936cc737b5",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "opl-asian-branch-toddler-storytime-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "maxAge": 3,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandlibrary.bibliocommons.com/events/6488c97a5714a0bd276a7cf4",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-03",
+        "validThrough": "2026-12-17",
+        "sessions": [
+          {
+            "date": "2026-12-03",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "opl-dimond-kids-arts-crafts-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandlibrary.bibliocommons.com/events/6a889c2ebe14820029890d25",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "opl-lakeview-chess-club-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandlibrary.bibliocommons.com/events/695bf20c1f01fb76cec4d4a3",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "12:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "opl-main-family-storytime-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandlibrary.bibliocommons.com/events/694b336a4be11d3d00d9a53a",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "opl-mocha-family-art-workshops-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 5,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://oaklandlibrary.bibliocommons.com/events/6a837653bf1aec09082b3f3a",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "13:15",
+            "end": "14:45"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "11:00",
+            "end": "12:30"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "11:00",
+            "end": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "pacl-childrens-library-yalda-night-dec19-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 3,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://paloalto.bibliocommons.com/events/6abc44f5295b3b0033ca0dd7",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "15:30",
+            "end": "17:30"
+          }
+        ]
+      }
+    }
+  },
+  "pacl-mitchell-park-steam-snow-dec19-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 6,
+      "maxAge": 11,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://paloalto.bibliocommons.com/events/6a46e77fb96ccc750c590cc6",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "15:30",
+            "end": "16:30"
+          }
+        ]
+      }
+    }
+  },
+  "pacl-rinconada-tai-chi-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://paloalto.bibliocommons.com/events/6948560c1e64afd01e50328f",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-11-01",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-11-01",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "10:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "10:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "san-jose-holiday-lights-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.sanjoseholidaylights.com/tickets",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-13",
+        "validThrough": "2027-01-01",
+        "weekly": {
+          "0": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ],
+          "1": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ],
+          "2": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ],
+          "3": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ],
+          "4": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ],
+          "5": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ],
+          "6": [
+            {
+              "open": "16:30",
+              "close": "22:30"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "san-mateo-on-ice-public-skate-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": 4,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://onicerinks.com/activities/public-skate-sessions/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "12:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "17:30"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "12:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "17:30"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "12:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "17:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "12:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "17:30"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "12:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "17:00"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-cupertino-family-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6a08e108e13d3b4603b486ed",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-cupertino-mandarin-bilingual-storytime-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6ad110129dbc2b002c8ed272",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-04",
+        "validThrough": "2026-12-18",
+        "sessions": [
+          {
+            "date": "2026-12-04",
+            "start": "19:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "19:00",
+            "end": "20:00"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-los-altos-bay-area-games-day-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6961562d8b29ea2800c880a9",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "10:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:00",
+            "end": "20:00"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-los-altos-mandarin-bilingual-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6a56d18488e9bf280030f056",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-24",
+        "validThrough": "2026-12-29",
+        "sessions": [
+          {
+            "date": "2026-11-24",
+            "start": "13:00",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-01",
+            "start": "13:00",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-08",
+            "start": "13:00",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-15",
+            "start": "13:00",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "13:00",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "13:00",
+            "end": "13:30"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-milpitas-tiny-toots-dec19-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6a68e7d4e9de6536001ed06c",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "11:45"
+          }
+        ]
+      }
+    }
+  },
+  "sccl-saratoga-winter-magic-show-dec19-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sccl.bibliocommons.com/events/6a9615a569166f088b965900",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "11:45"
+          }
+        ]
+      }
+    }
+  },
+  "scl-central-santa-rosa-read-to-dog-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/read-dog-91171",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-20",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-12-20",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "14:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "scl-forestville-saturday-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/copy-saturday-storytime-119413",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "scl-muffin-man-puppets-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/muffin-man-117155",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "11:30",
+            "end": "12:15"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "11:00",
+            "end": "11:45"
+          }
+        ]
+      }
+    }
+  },
+  "scl-petaluma-spanish-music-movement-jan2-2027": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/spanish-music-and-movement-113575",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2027-01-02",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2027-01-02",
+            "start": "10:00",
+            "end": "10:30"
+          }
+        ]
+      }
+    }
+  },
+  "scl-roseland-global-goodies-dec19-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://events.sonomalibrary.org/event/global-goodies-117007",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "15:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-bernal-family-dance-party-dec26-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/26/social-family-dance-party",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-26",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-26",
+            "start": "16:00",
+            "end": "17:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-chinatown-creative-saturdays-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/19/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "14:30",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-chinatown-family-storytime-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/05/storytime-families-1",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-12-05",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "14:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "14:30"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "14:00",
+            "end": "14:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-glen-park-saturday-playtimes-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "maxAge": 5,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/05/early-learning-saturday-morning-playtimes",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-12-05",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "12:30"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "10:30",
+            "end": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-ingleside-chess-club-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 5,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/20/activity-chess-club",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-20",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-12-20",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "14:30",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-main-cantonese-storytime-dec31-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/31/storytime-families-bilingual-englishyueyukecheng-cantonese",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-31",
+        "validThrough": "2026-12-31",
+        "sessions": [
+          {
+            "date": "2026-12-31",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-main-family-storytime-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/19/storytime-families-2",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "11:30",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "11:30",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-main-nutcracker-chair-dance-dec19-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/19/activity-sf-ballets-nutcracker-oral-history-and-chair-dance-class",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "12:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-parkside-sunday-storytime-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/20/storytime-families",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-20",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-12-20",
+            "start": "13:30",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "13:30",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-portola-parol-workshop-dec19-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 7,
+      "maxAge": 18,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/19/workshop-2d-parol-decorating-ethel-mahara",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-sunset-mahjong-dec26-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/26/workshop-mahjong-beginners",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-26",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-26",
+            "start": "10:30",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "13:30",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-sunset-mandarin-tech-help-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/19/tutorial-tech-help-kejixiezhu",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-26",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "six-flags-discovery-kingdom-winterfest-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.sixflags.com/discoverykingdom/events/winterfest",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-27",
+        "validThrough": "2026-12-31",
+        "sessions": [
+          {
+            "date": "2026-11-27",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-28",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-30",
+            "start": "14:00",
+            "end": "20:00"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "14:00",
+            "end": "20:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-alum-rock-basic-english-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "optional",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a88a8afb20478002994849f",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-25",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-10-25",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-01",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-08",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-15",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "14:00",
+            "end": "15:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "14:00",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-alviso-stem-sundays-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 5,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/69c588e69057005337d09002",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-06",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-12-06",
+            "start": "15:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "15:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "15:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-berryessa-mandarin-ell-club-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a67cc6b7b79214226abb924",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-calabazas-mandarin-stories-songs-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "maxAge": 5,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a7e0aa9d4b10d003006460c",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-03",
+        "validThrough": "2026-12-31",
+        "sessions": [
+          {
+            "date": "2026-12-03",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-03",
+            "start": "11:15",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "11:15",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "11:15",
+            "end": "11:45"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "11:15",
+            "end": "11:45"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-calabazas-water-margin-kids-book-club-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a5fb68ac7e02e3d006aacd5",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-23",
+        "validThrough": "2026-12-14",
+        "sessions": [
+          {
+            "date": "2026-11-23",
+            "start": "16:30",
+            "end": "17:30"
+          },
+          {
+            "date": "2026-11-30",
+            "start": "16:30",
+            "end": "17:30"
+          },
+          {
+            "date": "2026-12-07",
+            "start": "16:30",
+            "end": "17:30"
+          },
+          {
+            "date": "2026-12-14",
+            "start": "16:30",
+            "end": "17:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-educational-park-lego-club-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6941d6d57ed7c62f00aaca65",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "13:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-evergreen-sunday-storytime-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a722151e30fe4845966cabf",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "15:15",
+            "end": "16:15"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "15:15",
+            "end": "16:15"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "15:15",
+            "end": "16:15"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "15:15",
+            "end": "16:15"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "15:15",
+            "end": "16:15"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "15:15",
+            "end": "16:15"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "15:15",
+            "end": "16:15"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-hillview-family-storytime-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/684dbac685662d08198690eb",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "12:30",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "12:30",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "12:30",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "12:30",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "12:30",
+            "end": "13:30"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "12:30",
+            "end": "13:30"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "12:30",
+            "end": "13:30"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-hillview-saturday-fun-crafts-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/69445123571fb4d550be6389",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "13:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-joyce-ellington-game-on-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6aa4453c65abe8002a787210",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "13:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "13:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-seven-trees-board-game-zone-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6944507e293fe254002a1f39",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-12-27",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-seven-trees-bollywood-dance-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a405c29c52cdc3600ed5ad8",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-05",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-12-05",
+            "start": "12:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "12:00",
+            "end": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-village-square-winter-celebration-dec19-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/6a765ac288e9bf28003653b4",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "12:00",
+            "end": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "sjpl-willow-glen-mandarin-tech-help-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sjpl.bibliocommons.com/events/68df10f9023ff328007ce8dd",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-03",
+        "validThrough": "2026-12-17",
+        "sessions": [
+          {
+            "date": "2026-12-03",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "11:00",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "11:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-atherton-maker-families-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a67c5bccca66c2f00a66751",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "13:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-belmont-family-storytime-winter-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a3b0cd7c134422d50e9e865",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-belmont-maker-hangout-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a5546ebc7e02e3d0068e100",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-belmont-mandarin-bilingual-storytime-dec-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a3b0dc596ee38a44a92a902",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-02",
+        "validThrough": "2026-12-16",
+        "sessions": [
+          {
+            "date": "2026-12-02",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-12-16",
+            "start": "10:30",
+            "end": "11:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-foster-city-maker-exploration-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6937502d6f9261360009f50d",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "12:00",
+            "end": "14:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "13:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "12:00",
+            "end": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-half-moon-bay-saturday-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/69542b19c967cb41207f2396",
+        "verifiedAt": "2026-10-13",
+        "validFrom": "2026-10-24",
+        "validThrough": "2026-12-19",
+        "sessions": [
+          {
+            "date": "2026-10-24",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-10-31",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-07",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-14",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-millbrae-phone-storage-mandarin-dec16-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 19,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a8e0295aafa6100295f1948",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-16",
+        "validThrough": "2026-12-16",
+        "sessions": [
+          {
+            "date": "2026-12-16",
+            "start": "12:30",
+            "end": "15:30"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-portola-valley-sewing-beginners-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 7,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a3c6a55cf21930366acade9",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-21",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-21",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  },
+  "smcl-san-carlos-playtime-storytime-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 2,
+      "maxAge": 5,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a595f307d9501df1a270949",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-22",
+        "validThrough": "2026-12-20",
+        "sessions": [
+          {
+            "date": "2026-11-22",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "10:30",
+            "end": "11:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "telegraph-holiday-street-fair-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.telegraphfair.com/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-12",
+        "validThrough": "2026-12-24",
+        "sessions": [
+          {
+            "date": "2026-12-12",
+            "start": "11:00",
+            "end": "18:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "11:00",
+            "end": "18:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "11:00",
+            "end": "18:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "11:00",
+            "end": "18:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "11:00",
+            "end": "18:00"
+          },
+          {
+            "date": "2026-12-24",
+            "start": "11:00",
+            "end": "18:00"
+          }
+        ]
+      }
+    }
+  }
+}

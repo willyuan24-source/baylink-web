@@ -1,0 +1,261 @@
+{
+  "acl-fremont-funday-family-board-games-2026": {
+    "lat": 37.550822,
+    "lng": -121.970979,
+    "label": "Fremont · 2400 Stevenson Blvd, Fremont",
+    "sourceUrl": "https://aclibrary.org/locations/FRM",
+    "precision": "venue"
+  },
+  "acl-newark-buds-storytime-dec20-2026": {
+    "lat": 37.536216,
+    "lng": -122.030382,
+    "label": "Newark · 37055 Newark Blvd., Newark",
+    "sourceUrl": "https://aclibrary.org/locations/NWK",
+    "precision": "venue"
+  },
+  "ccclib-concord-mandarin-storytime-dec2-2026": {
+    "lat": 37.981592,
+    "lng": -122.025186,
+    "label": "Concord · 2900 Salvio Street, Concord",
+    "sourceUrl": "https://ccclib.org/locations/7",
+    "precision": "venue"
+  },
+  "ccclib-danville-noon-years-eve-storytime-dec26-2026": {
+    "lat": 37.820863,
+    "lng": -121.995608,
+    "label": "Danville · 400 Front Street, Danville",
+    "sourceUrl": "https://ccclib.org/locations/9",
+    "precision": "venue"
+  },
+  "ccclib-dougherty-station-family-games-2026": {
+    "lat": 37.753907,
+    "lng": -121.909731,
+    "label": "Dougherty Station · 17017 Bollinger Canyon Road, San Ramon",
+    "sourceUrl": "https://ccclib.org/locations/60",
+    "precision": "venue"
+  },
+  "ccclib-martinez-storytime-winter-2026": {
+    "lat": 38.01795,
+    "lng": -122.134175,
+    "label": "Martinez · 740 Court Street, Martinez",
+    "sourceUrl": "https://ccclib.org/locations/16",
+    "precision": "venue"
+  },
+  "ccclib-oakley-lego-club-winter-2026": {
+    "lat": 37.970655,
+    "lng": -121.718026,
+    "label": "Oakley · 1050 Neroly Road, Oakley",
+    "sourceUrl": "https://ccclib.org/locations/17",
+    "precision": "venue"
+  },
+  "ccclib-san-ramon-chess-hour-winter-2026": {
+    "lat": 37.764327,
+    "lng": -121.953266,
+    "label": "San Ramon · 100 Montgomery Street, San Ramon",
+    "sourceUrl": "https://ccclib.org/locations/25",
+    "precision": "venue"
+  },
+  "marin-city-russian-storytime-2026": {
+    "lat": 37.873218,
+    "lng": -122.511567,
+    "label": "Marin City · 164 Donahue St, Marin City",
+    "sourceUrl": "https://marinlibrary.org/locations/MA",
+    "precision": "venue"
+  },
+  "opl-asian-branch-toddler-storytime-dec-2026": {
+    "lat": 37.800738,
+    "lng": -122.271158,
+    "label": "Asian Branch · 388 Ninth Street, Suite 190, Oakland",
+    "sourceUrl": "https://oaklandlibrary.org/locations/ASA",
+    "precision": "venue"
+  },
+  "opl-dimond-kids-arts-crafts-2026": {
+    "lat": 37.801459,
+    "lng": -122.216039,
+    "label": "Dimond Branch · 3565 Fruitvale Avenue, Oakland",
+    "sourceUrl": "https://oaklandlibrary.org/locations/DMA",
+    "precision": "venue"
+  },
+  "opl-lakeview-chess-club-winter-2026": {
+    "lat": 37.8092,
+    "lng": -122.248949,
+    "label": "Lakeview Branch · 550 El Embarcadero, Oakland",
+    "sourceUrl": "https://oaklandlibrary.org/locations/LVA",
+    "precision": "venue"
+  },
+  "pacl-childrens-library-yalda-night-dec19-2026": {
+    "lat": 37.444783,
+    "lng": -122.145013,
+    "label": "Children's Library · 1276  Harriet Street , Palo Alto",
+    "sourceUrl": "https://library.cityofpaloalto.org/locations/C",
+    "precision": "venue"
+  },
+  "pacl-mitchell-park-steam-snow-dec19-2026": {
+    "lat": 37.422314,
+    "lng": -122.112652,
+    "label": "Mitchell Park Library · 3700 Middlefield Rd, Palo Alto",
+    "sourceUrl": "https://library.cityofpaloalto.org/locations/M",
+    "precision": "venue"
+  },
+  "sccl-cupertino-mandarin-bilingual-storytime-dec-2026": {
+    "lat": 37.31779,
+    "lng": -122.028961,
+    "label": "Cupertino Library · 10800 Torre Avenue, Cupertino",
+    "sourceUrl": "https://sccld.org/locations/cupertino",
+    "precision": "venue"
+  },
+  "sccl-los-altos-bay-area-games-day-2026": {
+    "lat": 37.380878,
+    "lng": -122.1133,
+    "label": "Los Altos Library · 13 S. San Antonio Road, Los Altos",
+    "sourceUrl": "https://sccld.org/locations/losaltos",
+    "precision": "venue"
+  },
+  "sccl-los-altos-mandarin-bilingual-storytime-2026": {
+    "lat": 37.380878,
+    "lng": -122.1133,
+    "label": "Los Altos Library · 13 S. San Antonio Road, Los Altos",
+    "sourceUrl": "https://sccld.org/locations/losaltos",
+    "precision": "venue"
+  },
+  "sccl-milpitas-tiny-toots-dec19-2026": {
+    "lat": 37.43245,
+    "lng": -121.906508,
+    "label": "Milpitas Library · 160 North Main Street, Milpitas",
+    "sourceUrl": "https://sccld.org/locations/milpitas",
+    "precision": "venue"
+  },
+  "sccl-saratoga-winter-magic-show-dec19-2026": {
+    "lat": 37.270116,
+    "lng": -122.015105,
+    "label": "Saratoga Library · 13650 Saratoga Avenue, Saratoga",
+    "sourceUrl": "https://sccld.org/locations/saratoga",
+    "precision": "venue"
+  },
+  "sjpl-alviso-stem-sundays-2026": {
+    "lat": 37.424621,
+    "lng": -121.969165,
+    "label": "Alviso · 5050 North First St., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/alviso/",
+    "precision": "venue"
+  },
+  "sjpl-calabazas-mandarin-stories-songs-dec-2026": {
+    "lat": 37.302622,
+    "lng": -122.023454,
+    "label": "Calabazas · 1230 S Blaney Ave, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/calabazas/",
+    "precision": "venue"
+  },
+  "sjpl-calabazas-water-margin-kids-book-club-2026": {
+    "lat": 37.302622,
+    "lng": -122.023454,
+    "label": "Calabazas · 1230 S Blaney Ave, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/calabazas/",
+    "precision": "venue"
+  },
+  "sjpl-educational-park-lego-club-winter-2026": {
+    "lat": 37.365655,
+    "lng": -121.857773,
+    "label": "Educational Park · 1772 Educational Park Dr., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/educational-park/",
+    "precision": "venue"
+  },
+  "sjpl-evergreen-sunday-storytime-winter-2026": {
+    "lat": 37.314174,
+    "lng": -121.795829,
+    "label": "Evergreen · 2635 Aborn Rd, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/evergreen/",
+    "precision": "venue"
+  },
+  "sjpl-hillview-family-storytime-winter-2026": {
+    "lat": 37.337864,
+    "lng": -121.831085,
+    "label": "Hillview · 1600 Hopkins Dr, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/hillview/",
+    "precision": "venue"
+  },
+  "sjpl-hillview-saturday-fun-crafts-winter-2026": {
+    "lat": 37.337864,
+    "lng": -121.831085,
+    "label": "Hillview · 1600 Hopkins Dr, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/hillview/",
+    "precision": "venue"
+  },
+  "sjpl-joyce-ellington-game-on-winter-2026": {
+    "lat": 37.349841,
+    "lng": -121.886946,
+    "label": "Joyce Ellington · 491 E. Empire St, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/joyce-ellington/",
+    "precision": "venue"
+  },
+  "sjpl-seven-trees-board-game-zone-winter-2026": {
+    "lat": 37.284967,
+    "lng": -121.833264,
+    "label": "Seven Trees · 3590 Cas Dr., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/seven-trees/",
+    "precision": "venue"
+  },
+  "sjpl-seven-trees-bollywood-dance-2026": {
+    "lat": 37.284967,
+    "lng": -121.833264,
+    "label": "Seven Trees · 3590 Cas Dr., San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/seven-trees/",
+    "precision": "venue"
+  },
+  "sjpl-village-square-winter-celebration-dec19-2026": {
+    "lat": 37.313412,
+    "lng": -121.774483,
+    "label": "Village Square · 4001 Evergreen Village Square, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/village-square/",
+    "precision": "venue"
+  },
+  "sjpl-willow-glen-mandarin-tech-help-dec-2026": {
+    "lat": 37.302941,
+    "lng": -121.900062,
+    "label": "Willow Glen · 1157 Minnesota Ave, San Jose",
+    "sourceUrl": "https://www.sjpl.org/locations/willow-glen/",
+    "precision": "venue"
+  },
+  "smcl-belmont-family-storytime-winter-2026": {
+    "lat": 37.508798,
+    "lng": -122.293256,
+    "label": "Belmont · 1110 Alameda de las Pulgas, Belmont",
+    "sourceUrl": "https://smcl.org/locations/1B",
+    "precision": "venue"
+  },
+  "smcl-belmont-maker-hangout-2026": {
+    "lat": 37.508798,
+    "lng": -122.293256,
+    "label": "Belmont · 1110 Alameda de las Pulgas, Belmont",
+    "sourceUrl": "https://smcl.org/locations/1B",
+    "precision": "venue"
+  },
+  "smcl-belmont-mandarin-bilingual-storytime-dec-2026": {
+    "lat": 37.508798,
+    "lng": -122.293256,
+    "label": "Belmont · 1110 Alameda de las Pulgas, Belmont",
+    "sourceUrl": "https://smcl.org/locations/1B",
+    "precision": "venue"
+  },
+  "smcl-foster-city-maker-exploration-2026": {
+    "lat": 37.558591,
+    "lng": -122.270472,
+    "label": "Foster City · 1000 East Hillsdale Boulevard, Foster City",
+    "sourceUrl": "https://smcl.org/locations/1F",
+    "precision": "venue"
+  },
+  "smcl-portola-valley-sewing-beginners-2026": {
+    "lat": 37.381853,
+    "lng": -122.230293,
+    "label": "Portola Valley · 765 Portola Road, Portola Valley",
+    "sourceUrl": "https://smcl.org/locations/1V",
+    "precision": "venue"
+  },
+  "smcl-san-carlos-playtime-storytime-2026": {
+    "lat": 37.503624,
+    "lng": -122.262314,
+    "label": "San Carlos · 610 Elm Street, San Carlos",
+    "sourceUrl": "https://smcl.org/locations/1S",
+    "precision": "venue"
+  }
+}
