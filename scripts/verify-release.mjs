@@ -115,7 +115,7 @@ function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[
 // unstyled until its chunk loads. And 行程's prerendered pages carry the workspace (its form): Node imports it up front
 // (src/features/plan/plan-workspace-node.ts), and a prerender without it would ship /plan without the planner.
 {
-  const BLOCKS=[['src/components/FreebieBoard.tsx',/class="[^"]*bl-freebie-(?:board|jump)/],['src/components/CityExplorationDirectory.tsx',/class="[^"]*city-exploration/],['src/features/guides/GuideQuickFacts.tsx',/class="[^"]*gd-keyfacts/],['src/features/guides/GuideOpusEntry.tsx',/class="[^"]*gd-opus/]];
+  const BLOCKS=[['src/components/FreebieBoard.tsx',/class="[^"]*\bbl-freebie-(?:board|jump)\b/],['src/components/CityExplorationDirectory.tsx',/class="[^"]*\bcity-exploration\b/],['src/features/guides/GuideQuickFacts.tsx',/class="[^"]*\bgd-keyfacts\b/],['src/features/guides/GuideOpusEntry.tsx',/class="[^"]*\bgd-opus\b/]];
   let checked=0;
   for(const locale of ['', 'en/', 'zh-Hant/']) for(const name of await readdir(`dist/${locale}guides`).catch(()=>[])) {
     if(!name.endsWith('.html')) continue;
