@@ -2366,7 +2366,7 @@
       "officialUrl": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
       "sourceLabel": "alamedacountyfair.com",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-pleasanton-pumpkins-after-dark-2026",
       "shortTitle": "Pleasanton 南瓜灯夜游",
       "dek": "沿灯光步道看南瓜雕刻和主题装置",
       "sessions": [
@@ -4422,7 +4422,7 @@
       "officialUrl": "https://mareislandartstudios.com/events/step-into-wonder-the-letting-go-art-experience/",
       "sourceLabel": "mareislandartstudios.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-r2-vallejo-wonder-sundays-2026",
       "shortTitle": "Mare Island 周日共创",
       "dek": "各年龄都能画画，加入一幅共同作品",
       "sessions": [
@@ -7431,7 +7431,7 @@
       ],
       "officialUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
       "sourceLabel": "Sonoma Ecology Center / Sugarloaf 官方市集页",
-      "imageKey": "everyday",
+      "imageKey": "official-november-north-sonoma-harvest-market-2026",
       "dek": "花园旁买当季蔬果、花束和本地食物",
       "sessions": [
         {
@@ -7758,7 +7758,7 @@
       "officialUrl": "https://mareislandartstudios.com/events/step-into-wonder-deep-dive-workshop/",
       "sourceLabel": "mareislandartstudios.com",
       "verifiedAt": "2026-09-29",
-      "imageKey": "weekend",
+      "imageKey": "official-r2-vallejo-wonder-deep-dive-2026",
       "dek": "零基础也能参加的小组创作练习",
       "sessions": [
         {
@@ -9421,7 +9421,7 @@
       "officialUrl": "https://www.sfopera.com/operas/manon/",
       "sourceLabel": "sfopera.com",
       "verifiedAt": "2026-09-28",
-      "imageKey": "weekend",
+      "imageKey": "official-sf-opera-manon-2026",
       "dek": "马斯内的法语歌剧，配英文字幕",
       "sessions": [
         {
@@ -26113,7 +26113,7 @@
       "region": "peninsula",
       "category": "culture",
       "cost": "paid",
-      "costLabel": "早鸟 $35（10/30 前）· 一般 $50 · 现场 $65",
+      "costLabel": "早鸟 $35（截至 10/30）· 一般 $50 · 现场 $65",
       "sourceLabel": "美国华人历史学会活动页",
       "title": "台湾与中国寻根讲座：查家谱、找祖籍、规划回乡",
       "dateLabel": "11/15（周日）· 14:00–17:00",

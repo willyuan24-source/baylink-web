@@ -8,7 +8,7 @@ import { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS, type WeekendPickEntry } from '../s
 import { HOME_WEEKENDS, MONTHLY_EVENTS as COMPACT_EVENTS } from '../src/lib/home-catalog';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../src/lib/home-weekend';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
-import { isAdultOnly, rankWeekendFallback, selectWeekendFallback } from '../src/lib/weekend-ranking';
+import { isAdultOnly, isRealPhotoImage, rankWeekendFallback, selectWeekendFallback } from '../src/lib/weekend-ranking';
 import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
 
 const CJK = /[㐀-鿿]/;
@@ -143,6 +143,27 @@ test('without editor picks, the first pick has a real photo when any pick does; 
   // An editor pick keeps the lead even without a photo.
   const edited = getHomeWeekend('2026-10-08', catalog, { picks: { '2026-10-10': [{ id: 'storytime', reason: { zh: '首选', en: 'First' } }] }, hasPhoto, flagships: new Set() });
   assert.equal(ids(edited.picks)[0], 'storytime');
+});
+
+test('within a score a photo that fills the card ranks and leads ahead of a poster or a letterboxed banner (W6-INT)', () => {
+  assert.ok(isRealPhotoImage({ kind: 'photo' }));
+  assert.ok(!isRealPhotoImage({ kind: 'poster' }) && !isRealPhotoImage({ kind: 'photo', fullFrame: true }) && !isRealPhotoImage({ kind: 'illustration' }) && !isRealPhotoImage(undefined));
+  const hasPhoto = (key: string) => key === 'photo' || key === 'banner';
+  const hasRealPhoto = (key: string) => key === 'photo';
+  const options = { hasPhoto, hasRealPhoto, flagships: new Set<string>() };
+  const entry = (item: MonthlyEvent) => ({ event: item, date: '2026-10-10' });
+  // The Oakland storytime case on 10/31: a free family event with a 760×230 banner, checked later, against a free family photo.
+  const banner = event('banner-storytime', { cost: 'free', category: 'family', imageKey: 'banner', region: 'east-bay', verifiedAt: '2026-10-13' });
+  const photo = event('photo-tai-chi', { cost: 'free', category: 'family', imageKey: 'photo', region: 'peninsula', verifiedAt: '2026-10-01' });
+  const plain = event('plain-market', { cost: 'free', category: 'family', verifiedAt: '2026-10-13' });
+  assert.deepEqual(ids(rankWeekendFallback([banner, photo, plain].map(entry), '2026-10-10', options)), ['photo-tai-chi', 'banner-storytime', 'plain-market']);
+  assert.deepEqual(ids(rankWeekendFallback([banner, photo, plain].map(entry), '2026-10-10', { hasPhoto, flagships: new Set<string>() })), ['banner-storytime', 'photo-tai-chi', 'plain-market'],
+    'without the real-photo test any image ties, and the later check goes first');
+  assert.deepEqual(ids(getHomeWeekend('2026-10-08', [banner, photo, plain], { picks: {}, ...options }).picks), ['photo-tai-chi', 'banner-storytime', 'plain-market'], 'the photo leads the home');
+  // The 10/24 case: no pick has a photo that fills the card, so the banner still leads instead of a TypeCover.
+  const chinese = event('type-storytime', { title: '国语故事会', cost: 'free', category: 'family', region: 'peninsula' });
+  const poster = event('poster-open-house', { cost: 'free', category: 'family', imageKey: 'banner', verifiedAt: '2026-09-30' });
+  assert.deepEqual(ids(getHomeWeekend('2026-10-08', [chinese, banner, poster], { picks: {}, ...options }).picks), ['banner-storytime', 'type-storytime', 'poster-open-house']);
 });
 
 test('every home snapshot equals the build selection, so the home page and the share card agree', () => {

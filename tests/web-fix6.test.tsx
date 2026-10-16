@@ -53,6 +53,11 @@ test('US English: plan days, plan titles, My Week, the weekly card and the hub c
   assert.deepEqual(planDisplayTitle('10/17 计划', 'en'), { text: 'Plan for Oct 17', auto: true });
   assert.deepEqual(planDisplayTitle('Plan for 10/18', 'zh-Hans'), { text: '10/18 计划', auto: true });
   assert.deepEqual(planDisplayTitle('周六 Santana Row', 'en'), { text: '周六 Santana Row', auto: false });
+  // An impossible month or day is not an auto title: it stays as typed instead of reading "Plan for undefined 5".
+  assert.deepEqual(planDisplayTitle('Plan for 0/5', 'en'), { text: 'Plan for 0/5', auto: false });
+  assert.deepEqual(planDisplayTitle('13/2 计划', 'en'), { text: '13/2 计划', auto: false });
+  assert.deepEqual(planDisplayTitle('10/32 计划', 'en'), { text: '10/32 计划', auto: false });
+  assert.deepEqual(planDisplayTitle('12/31 计划', 'en'), { text: 'Plan for Dec 31', auto: true });
   const myWeek = readFileSync(new URL('../src/pages/MyWeekPage.tsx', import.meta.url), 'utf8');
   assert.match(myWeek, /english \? `\$\{weekday\}, \$\{readerMonthDay\(date, true\)\}`/u);
   const weekly = readFileSync(new URL('../scripts/generate-weekly.ts', import.meta.url), 'utf8');

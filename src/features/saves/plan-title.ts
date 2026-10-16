@@ -13,9 +13,11 @@ export function planDisplayTitle(title: string, locale: Locale): { text: string;
   const match = AUTO_TITLE.exec(title.trim());
   if (!match) return { text: title, auto: false };
   const day = match[1] ?? match[2];
+  const [month, date] = day.split('/');
+  // Only a real calendar day makes an auto title; a renamed "Plan for 0/5" or "13/2 计划" is the reader's own words.
+  if (Number(month) < 1 || Number(month) > 12 || Number(date) < 1 || Number(date) > 31) return { text: title, auto: false };
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   // US English on /en: "Plan for Oct 10" (WEB-FIX6); the stored title keeps its numeric day.
-  const [month, date] = day.split('/');
   const english = readerMonthDay(`2000-${month.padStart(2, '0')}-${date.padStart(2, '0')}`, true);
   return { text: t(`${day} 计划`, `Plan for ${english}`), auto: true };
 }

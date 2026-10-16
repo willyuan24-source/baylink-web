@@ -1159,5 +1159,103 @@
       "evidenceUrl": "https://paloalto.bibliocommons.com/events/67919b1fb4127941006178b9",
       "scope": "same-event coverage only"
     }
+  },
+  {
+    "key": "official-pleasanton-pumpkins-after-dark-2026",
+    "eventId": "pleasanton-pumpkins-after-dark-2026",
+    "src": "/guides/official-events/pleasanton-pumpkins-after-dark-2026.webp",
+    "width": 580,
+    "height": 350,
+    "kind": "poster",
+    "artwork": "graphic",
+    "fullFrame": true,
+    "alt": "宣传图：夜里点亮的南瓜灯拱形隧道，下方写着 PUMPKINS AFTER DARK",
+    "caption": "Alameda County Fairgrounds 官方宣传图；活动今年首次在此举办，图不是这里的现场；开放日与票价以官方页面为准。",
+    "credit": "Alameda County Fairgrounds 官方宣传图",
+    "creditUrl": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-r2-vallejo-wonder-sundays-2026",
+    "eventId": "r2-vallejo-wonder-sundays-2026",
+    "src": "/guides/official-events/r2-vallejo-wonder-sundays-2026.webp",
+    "width": 1102,
+    "height": 1427,
+    "kind": "poster",
+    "artwork": "poster",
+    "fullFrame": true,
+    "alt": "海报：黑底彩色羽毛面具插画，写着 Step Into Wonder、Wonder Sundays 10 月 4、11、18、25 日 12pm–4pm",
+    "caption": "Mare Island Art Studios 官方宣传图，也列出收费的 Deep Dive 和 After Dark 活动；本页只讲 Wonder Sundays，以官方页面为准。",
+    "credit": "Mare Island Art Studios 官方活动海报",
+    "creditUrl": "https://mareislandartstudios.com/events/step-into-wonder-the-letting-go-art-experience/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://mareislandartstudios.com/events/step-into-wonder-the-letting-go-art-experience/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-r2-vallejo-wonder-deep-dive-2026",
+    "eventId": "r2-vallejo-wonder-deep-dive-2026",
+    "src": "/guides/official-events/r2-vallejo-wonder-deep-dive-2026.webp",
+    "width": 1103,
+    "height": 1426,
+    "kind": "poster",
+    "artwork": "poster",
+    "fullFrame": true,
+    "alt": "海报：黑底一根彩色泼溅羽毛，写着 Deep Dive、10 月 10 日和 24 日 10 AM–1 PM、$45、18 岁以上、限 15 人",
+    "caption": "Mare Island Art Studios 官方宣传图；日期、费用与名额以官方页面为准。",
+    "credit": "Mare Island Art Studios 官方活动海报",
+    "creditUrl": "https://mareislandartstudios.com/events/step-into-wonder-deep-dive-workshop/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://mareislandartstudios.com/events/step-into-wonder-deep-dive-workshop/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-november-north-sonoma-harvest-market-2026",
+    "eventId": "november-north-sonoma-harvest-market-2026",
+    "src": "/guides/official-events/november-north-sonoma-harvest-market-2026.webp",
+    "width": 1280,
+    "height": 720,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      62,
+      45
+    ],
+    "alt": "花园市集棚下，穿背带裤的女士笑着拿着钞票，旁边摆着腌菜罐和写着 Homemade Pickle Veggies $12 的小黑板",
+    "caption": "周六丰收市集的活动官方照片，拍摄日期未注明，不代表本页列出的某个周六；商品以当天为准。",
+    "credit": "Sugarloaf Ridge State Park 活动官方照片 · 摄影 Melania Mahoney",
+    "creditUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-sf-opera-manon-2026",
+    "eventId": "sf-opera-manon-2026",
+    "src": "/guides/official-events/sf-opera-manon-2026.webp",
+    "width": 1280,
+    "height": 640,
+    "kind": "poster",
+    "artwork": "key-art",
+    "fullFrame": true,
+    "alt": "插画：穿蓝色长裙的女子向后仰身，身上缠着金色珠串，背后垂着珠帘",
+    "caption": "SF Opera 2026–27 演出季《曼侬》官方宣传图，是插画不是剧照；场次与票价以官方页面为准。",
+    "credit": "SF Opera 官方主视觉",
+    "creditUrl": "https://www.sfopera.com/operas/manon/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.sfopera.com/operas/manon/",
+      "scope": "same-event coverage only"
+    }
   }
 ]

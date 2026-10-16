@@ -1140,3 +1140,38 @@ These are agent reads, not editor checks.
 | flyer | `chsa-taiwanese-chinese-roots-seminar-2026` | https://chsa.org/wp-content/uploads/2026/08/FINAL-Taiwanese-and-Chinese-Roots-Seminar-Flyer-791x1024.png | 2026-10-14 21:14 PT (GET 200), looked at again 2026-10-15 00:15 PT | overlay `fix` cost `paid`, costLabel 早鸟 $35（10/30 前）· 一般 $50 · 现场 $65, price $35–65; plan line with the flyer's itinerary (dateLabel and sessions stay 14:00–17:00, the CHSA page's time) | Door Fees $35 Early Bird (thru 10/30) $50 General Admission $65 At the Door · Itinerary 2:00 – 3:00 PM Rooftop Meet and Greet · 3:00 – 5:00 PM Expert Genealogy Seminar · 5:00 – 5:30 PM Q&A and Audience Participation · 6:00 – 8:00 PM Group Dinner @ Warehouse Buffet (optional; attendees pay individually) · Register and go for more information: LoveBoatAlumni.org/roots2026 |
 | event | `chsa-taiwanese-chinese-roots-seminar-2026` | https://chsa.org/event/finding-your-taiwanese-and-chinese-roots-seminar/ | 2026-10-15 00:15 PT (re-read) | time stays 14:00–17:00; the page has no fee text (its 10-12 label 活动页没有写费用 was right for this page) | November 15 @ 2:00 pm - 5:00 pm … This is an in-person event only. Registration is open on October 15 |
 | event | `chsa-taiwanese-chinese-roots-seminar-2026` | https://loveboatalumni.org/roots2026 (redirects to https://www.loveboatalumni.org/p/findingyourroots.html; text read from the site's Blogger pages feed, entry updated 2026-10-14 17:25 PDT) | 2026-10-15 00:17 PT (GET 200) | the registration page the flyer names shows the same flyer as its image and a register link; it prints no fee or time of its own | (Click on the image to enlarge) … REGISTER HERE … Everyone is welcome! |
+
+## W6-INT · second-pass quotes for three guide clauses, 2026-10-14 reads (PT)
+
+The W6-INT integration review (2026-10-15) found three guide clauses whose ledger row above does not quote the sentence behind
+them. The sentences below come from the CNT-GUIDES-2 lane's saved headless-Chrome reads of the same official pages (read-only
+GETs, 2026-10-14 21:22–21:26 PT). They were already true on the page; no guide text, fact or `verifiedAt` changed. A numbers-only
+reverse pass over every sentence of the three new elder guides (each number must appear in some quote of this file) found no other
+untraced clause; its three hits were the same hours written as 16:45 / Pacific time. The last row is a wording change only.
+These are agent reads, not editor checks.
+
+| Guide | Fact written | URL | Quote (page text) |
+|---|---|---|---|
+| `bay-area-senior-transit-clipper-discounts-guide` | Clipper Access 卡（原名 RTC）给 65 岁以下、有符合条件残障的乘客，坐 BART 同样减 62.5% | https://www.bart.gov/tickets/discounts | The Clipper Access card (formerly known as RTC) is a version of Clipper created for passengers under 65 with qualifying disabilities to provide 62.5% off. |
+| `bay-area-chinese-language-resource-map` | Asian Health Services 网站有中文 | https://asianhealthservices.org/ | Choose Your Language: English \| 中文 \| … |
+| `bay-area-first-rental-process` | 押金上限一个月（上表本指南“押金上限一个月；21 天内……”一行的前半句，同一页） | https://oag.ca.gov/news/press-releases/attorney-general-bonta-issues-consumer-alerts-guidance-protect-california | After July 1, 2024, for most landlords, the security deposit is limited to one month’s rent. |
+| `chsa-taiwanese-chinese-roots-seminar-2026` (event overlay) | costLabel 改写为“早鸟 $35（截至 10/30）· 一般 $50 · 现场 $65”：传单写 “thru 10/30”，“10/30 前”可能被读成不含 10/30；价格不变 | https://chsa.org/wp-content/uploads/2026/08/FINAL-Taiwanese-and-Chinese-Roots-Seminar-Flyer-791x1024.png | $35 Early Bird (thru 10/30) |
+
+## CNT-MEDIA-3 · official image captions, 2026-10-15 (PT)
+
+Read by the CNT-MEDIA-3 lane agent with read-only GETs; no forms, logins, registrations or posts. The five images were downloaded
+2026-10-15 22:05 PT under the owner's approval of 18:45 PT that day (every file, URL and SHA-256 in
+[official-event-media-sources-2026-10-15.md](official-event-media-sources-2026-10-15.md)); the rows below are the facts the captions and
+credits take from the pages and the images. No event fact and no `verifiedAt` changed. The two Mare Island event pages answer a plain GET
+with a Cloudflare challenge (403) and were not re-read; their captions only repeat what the posters print. These are agent reads, not
+editor checks.
+
+| Kind | Id | URL | Read | Used for | Quote |
+|---|---|---|---|---|---|
+| event | `official-pleasanton-pumpkins-after-dark-2026` | https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/ | 2026-10-15 22:08 PT (GET 200); og:image = the downloaded `PAD_web.jpg` | caption 活动今年首次在此举办，图不是这里的现场 | Pumpkins After Dark is making its debut at Alameda County Fairgrounds this fall |
+| image | `official-r2-vallejo-wonder-sundays-2026` | https://mareislandartstudios.com/wp-content/uploads/2026/08/step-into-wonder-poster-05.png | 2026-10-15 22:05 PT (GET 200); text on the image | caption 也列出收费的 Deep Dive 和 After Dark 活动；本页只讲 Wonder Sundays | WONDER SUNDAYS October 4, 11, 18 & 25 12pm-4pm · DEEP DIVE SESSIONS October 10 & 24 10am-1pm · AFTER DARK PARTY October 17 7pm-11pm · MARE ISLAND ART STUDIOS |
+| image | `official-r2-vallejo-wonder-deep-dive-2026` | https://mareislandartstudios.com/wp-content/uploads/2026/09/step-into-wonder-poster-deep-dive.png | 2026-10-15 22:05 PT (GET 200); text on the image | alt (dates, time, price, age, size as printed) | Deep Dive WONDER EXPERIENCE · October 10 & 24 · 10 AM–1 PM · $45 • Ages 18+ · Limited to 15 participants |
+| event | `official-november-north-sonoma-harvest-market-2026` | https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/ | 2026-10-15 22:08 PT (GET 200); featured image = the downloaded `Events-Calendar-Template-1-NVoO0l.png` | credit 摄影 Melania Mahoney; caption 未注明拍摄日期 (the page gives none) | Harvest Markets take place every Saturday, 9:00 am-1:00 pm. … Photo by Melania Mahoney |
+| event | `official-sf-opera-manon-2026` | https://www.sfopera.com/operas/manon/ | 2026-10-15 22:08 PT (GET 200); the banner `manon_2627season_webbanner_2400x1200.png` | caption 2026–27 演出季官方宣传图，是插画不是剧照; credit SF Opera only (no illustrator is named; the Cory Weaver credit is for the production photos) | image description "Illustration of a woman in a blue dress" · 2026–27 Season Manon · Look Photos Credit: Cory Weaver |
+| event | `sf-opera-manon-2026` (not changed here) | https://www.sfopera.com/operas/manon/ | 2026-10-15 22:08 PT (GET 200) | follow-up for a content lane: the event's dates stop at 10/30, the page also lists a Sunday matinee on 11/1 | PERFORMANCES October 15, 18, 21, 24, 27, 30; November 1 · SUN, NOV 1, 2026 2:00PM |
+| image | `official-november-north-sonoma-harvest-market-2026` (caption revised 10-16) | https://sugarloafpark.org/wp-content/uploads/2026/04/Events-Calendar-Template-1-NVoO0l.png | 2026-10-15 22:05 PT (GET 200; the URL itself) | caption 拍摄日期未注明，不代表本页列出的某个周六 (the file was uploaded under 2026/04, before the first listed Saturday, 10/10) | upload path /wp-content/uploads/2026/04/ · event page: Harvest Markets take place every Saturday, 9:00 am-1:00 pm. … Photo by Melania Mahoney |

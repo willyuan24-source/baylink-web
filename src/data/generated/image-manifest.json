@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "d1d0ff26",
- "registryCount": 368,
+ "registryHash": "cd8806b1",
+ "registryCount": 373,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -7801,6 +7801,38 @@
     "/guides/official-events/nov2026-presidio-free-yoga-1200.webp 1200w"
    ]
   },
+  "/guides/official-events/november-north-sonoma-harvest-market-2026.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 128706,
+   "sha1": "da599b80e255ea46",
+   "lqip": "#655",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/november-north-sonoma-harvest-market-2026-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 19038
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/november-north-sonoma-harvest-market-2026-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 37094,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/november-north-sonoma-harvest-market-2026-small.webp 480w",
+    "/guides/official-events/november-north-sonoma-harvest-market-2026-800.webp 800w",
+    "/guides/official-events/november-north-sonoma-harvest-market-2026.webp 1280w"
+   ]
+  },
   "/guides/official-events/oakland-omca-dia-muertos-2026.webp": {
    "width": 1280,
    "height": 854,
@@ -8048,6 +8080,29 @@
     "/guides/official-events/pleasanton-hometown-holiday-2026.webp 1024w"
    ]
   },
+  "/guides/official-events/pleasanton-pumpkins-after-dark-2026.webp": {
+   "width": 580,
+   "height": 350,
+   "bytes": 65712,
+   "sha1": "d85d3b27cdbcbdbe",
+   "lqip": "#644",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/pleasanton-pumpkins-after-dark-2026-small.webp",
+     "width": 480,
+     "height": 290,
+     "bytes": 32100
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/pleasanton-pumpkins-after-dark-2026-small.webp 480w",
+    "/guides/official-events/pleasanton-pumpkins-after-dark-2026.webp 580w"
+   ]
+  },
   "/guides/official-events/r2-petaluma-cider-circus-2026.webp": {
    "width": 1280,
    "height": 854,
@@ -8158,6 +8213,88 @@
     "/guides/official-events/r2-santarosa-soco-halloween-2026-small.webp 480w",
     "/guides/official-events/r2-santarosa-soco-halloween-2026-800.webp 800w",
     "/guides/official-events/r2-santarosa-soco-halloween-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-events/r2-vallejo-wonder-deep-dive-2026.webp": {
+   "width": 1103,
+   "height": 1426,
+   "bytes": 238640,
+   "sha1": "618841eea73b69f4",
+   "lqip": "#212",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/r2-vallejo-wonder-deep-dive-2026-small.webp",
+     "width": 480,
+     "height": 621,
+     "bytes": 43944
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/r2-vallejo-wonder-deep-dive-2026-800.webp",
+     "width": 800,
+     "height": 1034,
+     "bytes": 86396,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/r2-vallejo-wonder-deep-dive-2026-1200.webp",
+     "width": 1103,
+     "height": 1426,
+     "bytes": 143710,
+     "quality": 58
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/r2-vallejo-wonder-deep-dive-2026-small.webp 480w",
+    "/guides/official-events/r2-vallejo-wonder-deep-dive-2026-800.webp 800w",
+    "/guides/official-events/r2-vallejo-wonder-deep-dive-2026-1200.webp 1103w"
+   ]
+  },
+  "/guides/official-events/r2-vallejo-wonder-sundays-2026.webp": {
+   "width": 1102,
+   "height": 1427,
+   "bytes": 277448,
+   "sha1": "0ebb22e68499e55e",
+   "lqip": "#213",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/r2-vallejo-wonder-sundays-2026-small.webp",
+     "width": 480,
+     "height": 622,
+     "bytes": 56090
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/r2-vallejo-wonder-sundays-2026-800.webp",
+     "width": 800,
+     "height": 1036,
+     "bytes": 93504,
+     "quality": 52,
+     "overBudget": true
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/r2-vallejo-wonder-sundays-2026-1200.webp",
+     "width": 1102,
+     "height": 1427,
+     "bytes": 155102,
+     "quality": 52,
+     "overBudget": true
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/r2-vallejo-wonder-sundays-2026-small.webp 480w",
+    "/guides/official-events/r2-vallejo-wonder-sundays-2026-800.webp 800w",
+    "/guides/official-events/r2-vallejo-wonder-sundays-2026-1200.webp 1102w"
    ]
   },
   "/guides/official-events/san-bruno-dia-de-los-muertos-2026.webp": {
@@ -8538,6 +8675,38 @@
     "/guides/official-events/sf-halloween-hoopla-2026-small.webp 480w",
     "/guides/official-events/sf-halloween-hoopla-2026-800.webp 800w",
     "/guides/official-events/sf-halloween-hoopla-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-events/sf-opera-manon-2026.webp": {
+   "width": 1280,
+   "height": 640,
+   "bytes": 122514,
+   "sha1": "016cd6d3c83e18a5",
+   "lqip": "#434",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sf-opera-manon-2026-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 17722
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/sf-opera-manon-2026-800.webp",
+     "width": 800,
+     "height": 400,
+     "bytes": 36662,
+     "quality": 72
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sf-opera-manon-2026-small.webp 480w",
+    "/guides/official-events/sf-opera-manon-2026-800.webp 800w",
+    "/guides/official-events/sf-opera-manon-2026.webp 1280w"
    ]
   },
   "/guides/official-events/sf-sunday-streets-excelsior-oct18-2026.webp": {
