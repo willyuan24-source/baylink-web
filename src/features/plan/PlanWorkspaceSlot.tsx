@@ -19,11 +19,11 @@ import { useOnline } from './use-online';
  * H20 (WEB-PERF-3): a plain visit does not load them at boot. 已排的日子 renders first from this device's saved plans
  * (PlanDaysPreview), and the rest of the page is, at boot, the prerendered workspace of this very page (captured before the
  * app replaces it, as boot-main.ts keeps the prerendered page: no blank frame and no skeleton over content that is already
- * on screen). The workspace then loads at idle once the page has loaded (its images first: the first pick's photo is the
- * page's LCP), sooner on the reader's first interaction with the page (a tap, a key, a scroll, the mouse), and at once for
- * a link that opens a plan or a draft (`planWantedAtOnce`) or a tap on 问 BayBay. What the reader typed or tapped on the
- * prerendered form meanwhile is carried into the workspace (boot-carry.ts). After an in-app navigation it loads at once,
- * with skeleton rows under the saved days meanwhile. A failed load shows the error state with 重试 (RC-25).
+ * on screen). The workspace then loads at the first idle moment after the app's first paint, sooner on the reader's
+ * first interaction with the page (a tap, a key, a scroll, the mouse), and at once for a link that opens a plan or a
+ * draft (`planWantedAtOnce`) or a tap on 问 BayBay. What the reader typed or tapped on the prerendered form meanwhile is
+ * carried into the workspace (boot-carry.ts). After an in-app navigation it loads at once, with skeleton rows under the
+ * saved days meanwhile. A failed load shows the error state with 重试 (RC-25).
  */
 let bootSlot: { html: string; locale: Locale } | null = captureBootSlot();
 
@@ -102,19 +102,15 @@ function DeferredSlot() {
   useEffect(() => {
     const options = { capture: true, passive: true } as const;
     for (const type of INTERACTIONS) window.addEventListener(type, wantPlan, options);
-    // Every plain visit loads the workspace at idle after the page's own load (its images, the LCP photo among them), so a
-    // reader who reads first and acts later finds the live form; a timer bounds the wait on a page whose load never ends.
+    // Every plain visit loads the workspace at the first idle moment after the app's first paint (at most 2 s later), so a
+    // reader who reads first and acts later finds the live form. The page's LCP photo is in the prerendered HTML and on
+    // its way long before (the browser's preload scanner finds it), so the download does not compete with it.
     const idleWindow = window as IdleWindow;
     const useIdle = !!idleWindow.requestIdleCallback && !!idleWindow.cancelIdleCallback;
-    let idle: number | undefined;
-    const atIdle = () => { if (idle === undefined) idle = useIdle ? idleWindow.requestIdleCallback!(wantPlan, { timeout: 2000 }) : window.setTimeout(wantPlan, 500); };
-    const bound = window.setTimeout(wantPlan, 8000);
-    if (document.readyState === 'complete') atIdle(); else window.addEventListener('load', atIdle, { once: true });
+    const idle = useIdle ? idleWindow.requestIdleCallback!(wantPlan, { timeout: 2000 }) : window.setTimeout(wantPlan, 500);
     return () => {
       for (const type of INTERACTIONS) window.removeEventListener(type, wantPlan, options);
-      window.removeEventListener('load', atIdle);
-      window.clearTimeout(bound);
-      if (idle !== undefined) { if (useIdle) idleWindow.cancelIdleCallback!(idle); else window.clearTimeout(idle); }
+      if (useIdle) idleWindow.cancelIdleCallback!(idle); else window.clearTimeout(idle);
     };
   }, []);
   return <SlotFallback />;

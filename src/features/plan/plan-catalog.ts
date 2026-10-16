@@ -21,8 +21,9 @@ import { nodeWorkspace } from './plan-workspace-node';
  *
  * H20 (WEB-PERF-3): the workspace's own code is a chunk too (PlannerWorkspace.tsx), loaded with the catalog, and a plain
  * visit no longer starts either at boot: 已排的日子 renders first from this device's saved plans (PlanDaysPreview) and the
- * rest loads at idle after the page's load, sooner on the reader's first interaction, or at once for a link that opens a
- * plan (`planWantedAtOnce`). The route itself is the header, the saved days and the prerendered workspace's styles.
+ * rest loads at the first idle moment after the first paint, sooner on the reader's first interaction, or at once for a
+ * link that opens a plan (`planWantedAtOnce`). The route itself is the header, the saved days and the prerendered
+ * workspace's styles.
  */
 const loadCatalog = chunkLoader(() => import('../../data/generated/plan-catalog.json'), module => module.default as unknown as PlanCatalog);
 const loadExtras = chunkLoader(() => import('../../data/generated/plan-extras.json'), module => module.default as unknown as PlanExtras);

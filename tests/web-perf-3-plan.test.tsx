@@ -9,7 +9,7 @@ import type { AppContextValue } from '../src/app/context';
 /**
  * WEB-PERF-3 on 行程, the browser's path (BAYLINK_LAZY_PLAN=1, as tests/plan-lazy-path.test.tsx):
  * - H20: a plain visit shows the header, this weekend's picks and the saved days from storage at once, and loads the
- *   planner catalog and the workspace only when the reader acts (or at idle, for saved days), never at boot;
+ *   planner catalog and the workspace at the first idle moment or when the reader acts, never at boot;
  * - H54: the page opens with this weekend's covers (the home page's snapshot), each opening its event;
  * - H79: a ♡ in the list confirms with the site's SaveToast;
  * - H44: the post and profile sheets are warmed by the community board, not by the app shell on every page.
@@ -43,7 +43,7 @@ const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 
 test('a plain visit: header, this weekend’s covers and the saved days at once; the catalog only after the reader acts', async () => {
   localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }, { kind: 'place', id: second.id }], version: 1, createdAt: '', updatedAt: '' }] }));
-  // the page's idle after its load: held here, to show that it is what starts the workspace when the reader does nothing
+  // the first idle moment after the first paint: held here, to show that it is what starts the workspace when the reader does nothing
   const idle: (() => void)[] = [];
   Object.assign(window, { requestIdleCallback: (callback: () => void) => idle.push(callback), cancelIdleCallback: () => {} });
   let view!: ReturnType<typeof open>;
@@ -73,7 +73,7 @@ test('a plain visit: header, this weekend’s covers and the saved days at once;
   assert.ok(view.container.querySelector('[data-plan-slot][aria-busy="true"] #prerendered-workspace'));
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 300)); });
   assert.equal(isPlanCatalogInstalled(), false, 'no catalog at boot');
-  assert.equal(idle.length, 1, 'every plain visit asks for it at idle once the page has loaded');
+  assert.equal(idle.length, 1, 'every plain visit asks for it at the first idle moment after the first paint');
   // the idle callback (or the reader's first move, sooner) starts it
   act(() => { idle[0](); });
   await waitFor(() => assert.ok(view.container.querySelector('.planner-catalog')), { timeout: 20000 });
