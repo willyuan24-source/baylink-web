@@ -153,9 +153,11 @@ test('without a figure, the first fact is the first sentence after the lede that
   // No sourced sentence and no figure next to a named body: the first sentence after the lede that names a cited body (PG&E).
   assert.equal(factOf('bay-area-first-7-30-days-action-plan-october-2026')?.text, '只有实际由 PG&E 服务且需要你开户的项目，才使用其 Start／Stop／Transfer 入口。');
   // The library starter guide has figures next to named bodies since CNT-GUIDES-3 (its museum and park passes), so its card
-  // leads with the first of them; its rendered card and the /en row are checked here.
+  // leads with the first of them; its rendered card and the /en row are checked here. That row's figure (2 个预约) falls after
+  // the cut, so the body it names (SFPL) is its anchor and the /en row is the English sentence naming SFPL.
   const LIBRARY = 'bay-area-library-starter-guide';
   assert.match(factOf(LIBRARY)!.text, /^旧金山 · SFPL Discover & Go：/);
+  assert.equal(factOf(LIBRARY)!.anchor, 'SFPL');
   assert.match(card(LIBRARY)!.textContent!, /SFPL Discover & Go/);
   // A sentence that opens with a condition or advice is not a fact: the only candidate on the Peninsula page starts with 如果.
   assert.deepEqual(guideQuickFacts(getGuideBySlug('peninsula-living-guide')!), []);
