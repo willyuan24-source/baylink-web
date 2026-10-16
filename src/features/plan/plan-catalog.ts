@@ -21,8 +21,8 @@ import { nodeWorkspace } from './plan-workspace-node';
  *
  * H20 (WEB-PERF-3): the workspace's own code is a chunk too (PlannerWorkspace.tsx), loaded with the catalog, and a plain
  * visit no longer starts either at boot: 已排的日子 renders first from this device's saved plans (PlanDaysPreview) and the
- * rest loads on the reader's first interaction, at idle when saved days need it, or at once for a link that opens a plan
- * (`planWantedAtOnce`). The route itself is the header, the saved days and the prerendered workspace's styles.
+ * rest loads at idle after the page's load, sooner on the reader's first interaction, or at once for a link that opens a
+ * plan (`planWantedAtOnce`). The route itself is the header, the saved days and the prerendered workspace's styles.
  */
 const loadCatalog = chunkLoader(() => import('../../data/generated/plan-catalog.json'), module => module.default as unknown as PlanCatalog);
 const loadExtras = chunkLoader(() => import('../../data/generated/plan-extras.json'), module => module.default as unknown as PlanExtras);
@@ -88,11 +88,11 @@ export function PlanWorkspace(props: PlannerWorkspaceProps) {
   return Workspace ? createElement(Workspace, props) : null;
 }
 
-/** A link that opens a plan or a draft (?edit=, ?stops=, ?places=, a BayBay plan or brief, a question) shows the workspace first. */
-export const planWantedAtOnce = (search: string): boolean => {
-  const query = new URLSearchParams(search);
-  return ['edit', 'stops', 'places', 'baybayDraft', 'baybayBrief', 'q'].some(key => query.has(key));
-};
+const has = (search: string, keys: readonly string[]) => { const query = new URLSearchParams(search); return keys.some(key => query.has(key)); };
+/** A link that opens a plan (?edit=, ?stops=, ?places=, a BayBay plan): 这一天的安排 comes first, without this weekend's picks. */
+export const opensPlan = (search: string): boolean => has(search, ['edit', 'stops', 'places', 'baybayDraft']);
+/** A link that opens a plan or a draft (those, a BayBay brief, a question) shows the workspace first. */
+export const planWantedAtOnce = (search: string): boolean => opensPlan(search) || has(search, ['baybayBrief', 'q']);
 
 // Such a link starts the workspace as soon as the route chunk runs on /plan, in the URL's language: at boot, while the
 // language and the app are still loading (bootApp waits for both), instead of after the header's first render.

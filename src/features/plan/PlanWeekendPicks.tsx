@@ -39,13 +39,16 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
   const picks = useMemo(() => {
     const day = PLAN_WEEKEND.days[today];
     if (!day) return null;
-    const context = { images: PLAN_WEEKEND.images, today, page: createCoverPage() };
+    // A photo the workspace below already shows (the strip coming back after a plan's last stop goes) is not shown again.
+    const page = createCoverPage();
+    if (coverPage) for (const [src, claimant] of coverPage.claims) if (claimant !== CLAIMANT) page.claims.set(src, 'plan-workspace');
+    const context = { images: PLAN_WEEKEND.images, today, page };
     const entries = day.entries.flatMap(({ id, date }) => {
       const event = PLAN_WEEKEND.events[id];
       return event ? [{ event, date, cover: getCover({ kind: 'event', id, imageKey: event.imageKey }, context) }] : [];
     });
     return entries.length ? { ...day, entries } : null;
-  }, [today]);
+  }, [today, coverPage]);
   // VISUAL-10: the picks come first on the page, so their photos are claimed before the workspace resolves its covers (in
   // the same render, as the workspace claims during render); the claims go when the picks do (a plan opened below).
   const photos = useMemo(() => picks?.entries.flatMap(({ cover }) => cover.tier === 'type' ? [] : [cover.image.src]) ?? [], [picks]);

@@ -43,6 +43,9 @@ const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 
 test('a plain visit: header, this weekend’s covers and the saved days at once; the catalog only after the reader acts', async () => {
   localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }, { kind: 'place', id: second.id }], version: 1, createdAt: '', updatedAt: '' }] }));
+  // the page's idle after its load: held here, to show that it is what starts the workspace when the reader does nothing
+  const idle: (() => void)[] = [];
+  Object.assign(window, { requestIdleCallback: (callback: () => void) => idle.push(callback), cancelIdleCallback: () => {} });
   let view!: ReturnType<typeof open>;
   act(() => { view = open(); });
   assert.ok(view.getByRole('heading', { level: 1, name: '行程' }));
@@ -70,8 +73,9 @@ test('a plain visit: header, this weekend’s covers and the saved days at once;
   assert.ok(view.container.querySelector('[data-plan-slot][aria-busy="true"] #prerendered-workspace'));
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 300)); });
   assert.equal(isPlanCatalogInstalled(), false, 'no catalog at boot');
-  // the reader's first move starts it (saved days would also start it at idle)
-  act(() => { window.dispatchEvent(new window.Event('pointerdown')); });
+  assert.equal(idle.length, 1, 'every plain visit asks for it at idle once the page has loaded');
+  // the idle callback (or the reader's first move, sooner) starts it
+  act(() => { idle[0](); });
   await waitFor(() => assert.ok(view.container.querySelector('.planner-catalog')), { timeout: 20000 });
   assert.equal(isPlanCatalogInstalled(), true);
   assert.equal(view.container.querySelector('#prerendered-workspace'), null, 'the app’s workspace replaced the prerendered one');
@@ -101,6 +105,32 @@ test('a link that opens a plan puts 这一天的安排 first: no weekend strip a
   await waitFor(() => assert.ok(view.container.querySelector('.planner-plan-overview')), { timeout: 20000 });
   assert.equal(view.container.querySelector('.planner-page section'), view.container.querySelector('.planner-plan-overview'));
   assert.equal(view.container.querySelector('.plan-weekend'), null);
+});
+
+test('a link that opens a saved plan (?edit=) never shows the weekend strip, also while the library is read', async () => {
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }], version: 1, createdAt: '', updatedAt: '' }] }));
+  let view!: ReturnType<typeof open>;
+  let seen = false;
+  const watch = new window.MutationObserver(() => { if (view?.container.querySelector('.plan-weekend')) seen = true; });
+  act(() => { view = open('?edit=p1'); });
+  watch.observe(view.container, { childList: true, subtree: true });
+  assert.equal(view.container.querySelector('.plan-weekend'), null, 'not in the first frame');
+  await waitFor(() => assert.ok(view.container.querySelector('.planner-plan-overview')), { timeout: 20000 });
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+  watch.disconnect();
+  assert.equal(seen, false, 'the strip was never inserted while the plan loaded');
+  assert.equal(view.container.querySelector('.plan-weekend'), null);
+});
+
+test('a question link (?q=) keeps this weekend’s picks from the first frame: the form opens, not a plan', async () => {
+  localStorage.clear();
+  const weekend = getHomeWeekend(getBayAreaToday());
+  if (![...weekend.picks, ...weekend.feed].length) return;
+  let view!: ReturnType<typeof open>;
+  act(() => { view = open('?q=' + encodeURIComponent('周六带孩子去博物馆')); });
+  assert.ok(view.container.querySelector('.plan-weekend'), 'in the first frame');
+  await waitFor(() => assert.equal(view.container.querySelector<HTMLTextAreaElement>('.planner-question textarea')?.value, '周六带孩子去博物馆'), { timeout: 20000 });
+  assert.ok(view.container.querySelector('.plan-weekend'), 'and still there with the prefilled form');
 });
 
 test('the post and profile sheets are warmed by the community board, not by the shell on every page (H44)', () => {

@@ -36,8 +36,11 @@ import { ChipRow, FilterChip } from '../../components/ui/Chip';
 import { useOnline } from './use-online';
 import { SaveToast } from '../saves/SaveToast';
 import { prepareSaveAnnouncer } from '../saves/save-announcer';
+import { bootCarry, clearBootCarry } from './boot-carry';
 
 /** Before paint in the browser; the prerender (no window) has nothing to report and React warns about layout effects there. */
+/** The example questions under the box. */
+const PLAN_EXAMPLES = ['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'];
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 /** The details as save() stores them, in one canonical form (key order included), for the overview's 已保存 claim. */
@@ -84,7 +87,11 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   // One cover page for the saved days, the list and the suggestions: the same photo never shows twice on the page.
   const ownCoverPage = useMemo(() => createCoverPage(), []);
   const coverPage = pageCoverPage ?? ownCoverPage;
-  const [message, setMessage] = useState(queryMessage);
+  // What the reader typed or tapped on the prerendered form before this workspace was in (H20, boot-carry.ts); a question
+  // link's own question comes first.
+  const [carried] = useState(bootCarry);
+  const carriedMessage = queryMessage ? undefined : carried.message?.slice(0, 800);
+  const [message, setMessage] = useState(carriedMessage ?? queryMessage);
   const [date, setDate] = useState(shared.date);
   const [searchDate, setSearchDate] = useState<string>();
   const requestedDate = searchDate ?? date;
@@ -112,6 +119,7 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   const excludedPlaces = useRef<string[]>([]);
   const request = useRef<AbortController>();
   const resultsHeading = useRef<HTMLHeadingElement>(null);
+  const questionField = useRef<HTMLTextAreaElement>(null);
   const editLoaded = useRef('');
   const prefsLoaded = useRef(false);
   const autoStarted = useRef(new Set<string>());
@@ -121,7 +129,9 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   const [saveFailed, setSaveFailed] = useState(false);
   useEffect(() => () => request.current?.abort(), []);
   useEffect(() => { if (results) resultsHeading.current?.scrollIntoView?.({ block: 'start', behavior: 'auto' }); }, [results]);
-  useEffect(() => { request.current?.abort(); setRequesting(false); setResults(null); setError(''); setMessage(queryMessage); }, [queryMessage]);
+  // A new question in the URL replaces the current one (the first render already holds it, or the carried words).
+  const shownQuery = useRef(queryMessage);
+  useEffect(() => { if (shownQuery.current === queryMessage) return; shownQuery.current = queryMessage; request.current?.abort(); setRequesting(false); setResults(null); setError(''); setMessage(queryMessage); }, [queryMessage]);
   useEffect(() => {
     const edit = new URLSearchParams(planSearch).get('edit');
     if (edit && edit === adoptedSave.current) { adoptedSave.current = ''; return; }
@@ -317,8 +327,20 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   // disabled in the same frame as the save starts); a tap that came while the catalog loaded opens BayBay now.
   useBrowserLayoutEffect(() => { onBusy(library.busy); }, [library.busy, onBusy]);
   useBrowserLayoutEffect(() => { registerAsk(askBayBay); });
-  const planOpen = stops.length > 0;
+  /** An example question replaces the question and its conditions. */
+  const chooseExample = (example: string) => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); };
+  // A link that opens a saved plan (?edit=) has its stops only once the library is read: until then it counts as open, so
+  // the page does not show this weekend's picks and then take them away.
+  const planOpen = stops.length > 0 || (params.has('edit') && !library.ready && !library.error);
   useBrowserLayoutEffect(() => { onPlanOpen?.(planOpen); }, [planOpen, onPlanOpen]);
+  // The prerendered form had the focus: the live box takes it, with the caret where it was (H20, boot-carry.ts).
+  useBrowserLayoutEffect(() => {
+    clearBootCarry();
+    const field = questionField.current;
+    if (!carried.focused || !field) return;
+    field.focus({ preventScroll: true });
+    if (carried.start != null) field.setSelectionRange(carried.start, carried.end ?? carried.start);
+  }, [carried]);
   useEffect(() => () => { registerAsk(undefined); onBusy(false); }, [registerAsk, onBusy]);
   return <div className="planner-data-slot" data-plan-slot="">
     {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{library.ready
@@ -331,8 +353,8 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
       <h2 id="planner-form-title">{t('按条件挑选', 'Find options by your conditions')}</h2>
       {Object.keys(persistedFilters).length > 0 && <p className="planner-note">{locale === 'en' ? 'Saved conditions are included: ' : '沿用这份计划的条件：'}{[persistedFilters.city, persistedFilters.partySize ? String(persistedFilters.partySize) + (locale === 'en' ? ' people' : '人') : '', persistedFilters.childAges?.length ? (locale === 'en' ? 'Child ages ' : '孩子年龄 ') + persistedFilters.childAges.join('、') : '', persistedFilters.budget != null ? (persistedFilters.budgetScope === 'total' ? (locale === 'en' ? 'Group admission budget ' : '门票总预算 ') : (locale === 'en' ? 'Per-person admission budget ' : '每人门票预算 ')) + '$' + persistedFilters.budget : '', persistedFilters.freeOnly ? (locale === 'en' ? 'Free only' : '仅免费') : ''].filter(Boolean).join(' · ')} <button type="button" onClick={() => { request.current?.abort(); request.current = undefined; setRequesting(false); setPersistedFilters({}); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setResults(null); }}>{locale === 'en' ? 'Clear saved conditions' : '清除沿用条件'}</button></p>}{queryMessage && <p className="planner-handoff-note"><Sparkles size={15} />已经带上你说的条件。修改后，点“帮我挑选方案”重新选择。</p>}
       {requirementsDraftId !== null && !requirementsDraft && <p className="planner-handoff-note" role="status" translate="no">{locale === 'en' ? 'Your requirement draft is unavailable. Please enter your requirements again.' : translateText('需求草稿暂不可读取，请重新输入条件。', locale)}</p>}
-      <label className="planner-question">这次想怎么过？<textarea maxLength={800} value={message} onChange={e => { setMessage(e.target.value); setPersistedFilters({}); }} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
-      <ChipRow label={t('试着这样问', 'Try asking')} className="planner-examples">{['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'].map(example => <FilterChip selected={false} key={example} onClick={() => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); }}>{example}</FilterChip>)}</ChipRow>
+      <label className="planner-question">这次想怎么过？<textarea ref={questionField} maxLength={800} value={message} onChange={e => { setMessage(e.target.value); setPersistedFilters({}); }} placeholder={translateText('例如：周六在东湾带孩子玩，门票每人不超过 30 美元', locale)} /></label>
+      <ChipRow label={t('试着这样问', 'Try asking')} className="planner-examples">{PLAN_EXAMPLES.map(example => <FilterChip selected={false} key={example} onClick={() => chooseExample(example)}>{example}</FilterChip>)}</ChipRow>
       <details className="planner-refinements"><summary><SlidersHorizontal size={16} aria-hidden="true" />日期、地区与预算（可选）<ChevronRight size={16} aria-hidden="true" /></summary><div className="planner-filters"><label>出游日期<input type="date" min={todayInBay()} value={requestedDate} onChange={e => { setSearchDate(e.target.value); }} /></label><label>地区<select value={region} onChange={e => { setRegion(e.target.value); setPersistedFilters(current => ({ ...current, region: e.target.value, city: undefined })); }}>{PLAN_REGIONS.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select></label><label>每人门票预算 $<input type="number" min="0" max="10000" step="0.01" value={budget} onChange={e => { setBudget(e.target.value); setPersistedFilters(current => ({ ...current, budget: undefined, budgetScope: 'person', freeOnly: undefined })); }} placeholder={translateText('不限', locale)} /></label><label>同行孩子年龄<input type="number" min="0" max="17" value={age} onChange={e => { setAge(e.target.value); setPersistedFilters(current => ({ ...current, childAge: undefined, childAges: undefined })); }} placeholder={translateText('不填写', locale)} /></label><label>场地<select value={setting} onChange={e => { setSetting(e.target.value); setPersistedFilters(current => ({ ...current, setting: e.target.value })); }}><option value="any">室内外皆可</option><option value="indoor">只看已确认室内</option><option value="outdoor">只看已确认户外</option><option value="mixed">已确认室内外结合</option></select></label><label>出行方式<select value={travel} onChange={e => { setTravel(e.target.value); setPersistedFilters(current => ({ ...current, travelMode: e.target.value })); }}><option value="any">暂未决定</option><option value="drive">开车</option><option value="transit">公共交通</option><option value="walk">步行</option></select></label></div></details>
       <div className="planner-form-actions"><Button type="submit" variant="secondary" disabled={requesting} icon={<Sparkles size={18} aria-hidden="true" />}>{requesting ? '正在挑选…' : '帮我挑选方案'}</Button>{requesting && <Button variant="text" onClick={stopRequest} icon={<Square size={14} aria-hidden="true" />}>停止</Button>}<span>门票预算不含餐饮、停车与交通。</span></div>
     </form>

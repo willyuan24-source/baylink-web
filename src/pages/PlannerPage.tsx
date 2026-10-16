@@ -10,7 +10,7 @@ import { Button } from '../components/ui/Button';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
 import { PlanWeekendPicks } from '../features/plan/PlanWeekendPicks';
-import { loadPlan, planLoadFailed, planWantedAtOnce, PlanWorkspace } from '../features/plan/plan-catalog';
+import { loadPlan, opensPlan, planLoadFailed, PlanWorkspace } from '../features/plan/plan-catalog';
 // The page's own layout. The planner's panels, the screenshot import and the BayBay hand-off notes are global CSS
 // (main.tsx), before tokens.css's .planner-page reading scale, as the prerendered workspace needs them.
 import '../styles/plan-page.css';
@@ -34,7 +34,9 @@ function PlannerShell() {
   // H54: this weekend's picks open a plain visit; a plan with stops (a link that opens one, or the first stop chosen) puts
   // 这一天的安排 first instead (FC3-01).
   const { search } = useLocation();
-  const [planOpen, setPlanOpen] = useState(() => planWantedAtOnce(search));
+  // The first frame already knows: a link with stops (or a saved plan or a BayBay plan to open) hides the strip at once; a
+  // question link (?q=, ?baybayBrief=) keeps it, as its workspace opens the form, not a plan.
+  const [planOpen, setPlanOpen] = useState(() => opensPlan(search));
   // One cover registry for the page: a photo the picks show is not shown again in the workspace below (VISUAL-10).
   const coverPage = useMemo(() => createCoverPage(), []);
   // 问 BayBay with the current plan, once the workspace is in; a tap before that waits for it.
