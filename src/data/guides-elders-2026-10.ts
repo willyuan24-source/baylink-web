@@ -178,7 +178,7 @@ export const elderGuides2026: Guide[] = [
       { title: 'Marin County Free Library：LOTE4Kids', url: 'https://marinlibrary.org/resource/lote4kids/', description: '3000 多本多语种有声电子绘本。' },
     ],
     blocks: [
-      { type: 'paragraph', text: '这张地图按需要列出湾区中文用户常找的入口：政府热线、长者服务、看病、法律和住房。每一项写的是机构自己网站上的服务和电话。打电话时第一句先说“我需要普通话（或粤语）”，再问资格、费用和要带什么材料。' },
+      { type: 'paragraph', text: '这张地图按需要列出湾区中文用户常找的入口：政府热线、长者服务、看病、法律和住房，还有中文书、寻根和孩子学中文的去处。每一项写的是机构自己网站上的服务和电话。打电话时第一句先说“我需要普通话（或粤语）”，再问资格、费用和要带什么材料。' },
       { type: 'heading', text: '先打这几个电话' },
       {
         type: 'list',
