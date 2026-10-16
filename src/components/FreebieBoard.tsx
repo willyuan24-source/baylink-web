@@ -1,4 +1,7 @@
 import { useEffect, useId, useRef, useState } from 'react';
+// The board's sheet, and the guide's 看免费领取图鉴 link above it, load with this chunk: GuideDetail shows that link only on
+// a guide with a freebies block, whose page loads this chunk first (features/guides/guide-blocks.tsx).
+import './freebie-board.css';
 import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket } from 'lucide-react';
 import { getOfferImage } from '../lib/offer-media';
