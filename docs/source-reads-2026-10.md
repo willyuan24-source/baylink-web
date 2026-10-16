@@ -1156,3 +1156,21 @@ These are agent reads, not editor checks.
 | `bay-area-chinese-language-resource-map` | Asian Health Services 网站有中文 | https://asianhealthservices.org/ | Choose Your Language: English \| 中文 \| … |
 | `bay-area-first-rental-process` | 押金上限一个月（上表本指南“押金上限一个月；21 天内……”一行的前半句，同一页） | https://oag.ca.gov/news/press-releases/attorney-general-bonta-issues-consumer-alerts-guidance-protect-california | After July 1, 2024, for most landlords, the security deposit is limited to one month’s rent. |
 | `chsa-taiwanese-chinese-roots-seminar-2026` (event overlay) | costLabel 改写为“早鸟 $35（截至 10/30）· 一般 $50 · 现场 $65”：传单写 “thru 10/30”，“10/30 前”可能被读成不含 10/30；价格不变 | https://chsa.org/wp-content/uploads/2026/08/FINAL-Taiwanese-and-Chinese-Roots-Seminar-Flyer-791x1024.png | $35 Early Bird (thru 10/30) |
+
+## CNT-MEDIA-3 · official image captions, 2026-10-15 (PT)
+
+Read by the CNT-MEDIA-3 lane agent with read-only GETs; no forms, logins, registrations or posts. The five images were downloaded
+2026-10-15 22:05 PT under the owner's approval of 18:45 PT that day (every file, URL and SHA-256 in
+[official-event-media-sources-2026-10-15.md](official-event-media-sources-2026-10-15.md)); the rows below are the facts the captions and
+credits take from the pages and the images. No event fact and no `verifiedAt` changed. The two Mare Island event pages answer a plain GET
+with a Cloudflare challenge (403) and were not re-read; their captions only repeat what the posters print. These are agent reads, not
+editor checks.
+
+| Kind | Id | URL | Read | Used for | Quote |
+|---|---|---|---|---|---|
+| event | `official-pleasanton-pumpkins-after-dark-2026` | https://alamedacountyfair.com/events/pumpkins-after-dark/var/ri-2.l-L1/ | 2026-10-15 22:08 PT (GET 200); og:image = the downloaded `PAD_web.jpg` | caption 活动今年首次在此举办，图不是这里的现场 | Pumpkins After Dark is making its debut at Alameda County Fairgrounds this fall |
+| image | `official-r2-vallejo-wonder-sundays-2026` | https://mareislandartstudios.com/wp-content/uploads/2026/08/step-into-wonder-poster-05.png | 2026-10-15 22:05 PT (GET 200); text on the image | caption 也列出收费的 Deep Dive 和 After Dark 活动；本页只讲 Wonder Sundays | WONDER SUNDAYS October 4, 11, 18 & 25 12pm-4pm · DEEP DIVE SESSIONS October 10 & 24 10am-1pm · AFTER DARK PARTY October 17 7pm-11pm · MARE ISLAND ART STUDIOS |
+| image | `official-r2-vallejo-wonder-deep-dive-2026` | https://mareislandartstudios.com/wp-content/uploads/2026/09/step-into-wonder-poster-deep-dive.png | 2026-10-15 22:05 PT (GET 200); text on the image | alt (dates, time, price, age, size as printed) | Deep Dive WONDER EXPERIENCE · October 10 & 24 · 10 AM–1 PM · $45 • Ages 18+ · Limited to 15 participants |
+| event | `official-november-north-sonoma-harvest-market-2026` | https://sugarloafpark.org/event/saturday-harvest-markets-at-sonoma-garden-park-75/ | 2026-10-15 22:08 PT (GET 200); featured image = the downloaded `Events-Calendar-Template-1-NVoO0l.png` | credit 摄影 Melania Mahoney; caption 未注明拍摄日期 (the page gives none) | Harvest Markets take place every Saturday, 9:00 am-1:00 pm. … Photo by Melania Mahoney |
+| event | `official-sf-opera-manon-2026` | https://www.sfopera.com/operas/manon/ | 2026-10-15 22:08 PT (GET 200); the banner `manon_2627season_webbanner_2400x1200.png` | caption 2026–27 演出季官方宣传图，是插画不是剧照; credit SF Opera only (no illustrator is named; the Cory Weaver credit is for the production photos) | image description "Illustration of a woman in a blue dress" · 2026–27 Season Manon · Look Photos Credit: Cory Weaver |
+| event | `sf-opera-manon-2026` (not changed here) | https://www.sfopera.com/operas/manon/ | 2026-10-15 22:08 PT (GET 200) | follow-up for a content lane: the event's dates stop at 10/30, the page also lists a Sunday matinee on 11/1 | PERFORMANCES October 15, 18, 21, 24, 27, 30; November 1 · SUN, NOV 1, 2026 2:00PM |
