@@ -311,7 +311,7 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['rent', 'other'],
     readMinutes: 6,
-    updatedAt: '2026-10-12',
+    updatedAt: '2026-10-16',
     sources: [
       { title: 'SSA：随移民签证申请社安卡', url: 'https://www.ssa.gov/ssnvisa/whatyou_need.htm', description: 'DS-260 上勾选申请；入境 3 周没收到卡，带证明去 SSA。' },
       { title: 'SSA：第一次申请社安号', url: 'https://www.ssa.gov/number-card/request-number-first-time', description: '网上申请后到 SSA 办公室交材料，5 到 10 个工作日寄卡。' },
