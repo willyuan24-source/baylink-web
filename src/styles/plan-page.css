@@ -33,6 +33,8 @@
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 3fr); grid-template-rows:auto 1fr; column-gap:12px; row-gap:4px; align-items:start; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__media { grid-column:1; grid-row:1 / span 2; margin:0; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend :is(.ui-feed-card__title,.ui-feed-card__meta) { grid-column:2; }
+  /* The square photo keeps the date; the price is in the line under the title. */
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-stickers>[data-slot=end] { display:none; }
 }
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
 @media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; } }
