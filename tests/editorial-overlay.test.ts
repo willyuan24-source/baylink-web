@@ -299,8 +299,10 @@ test('tips add information no shown field carries; status marks postponed and so
   assert.equal(currentFreebies.find(offer => offer.id === 'sf-opera-dolby-figaro-offer-2026')!.status, 'sold_out');
   const statuses = MONTHLY_EVENTS.filter(event => event.status).map(event => event.id).sort();
   // SJMA's waterways symposium: the official page read 2026-10-15 says "Sold Out!" (CNT-WEEKEND-1015).
+  // Jack London park's 11/15 author talk: the official page read 2026-10-16 says "This event is currently sold out." (CNT-WEEKEND-1107).
+  assert.equal(byId('november-north-jack-london-author-2026').status, 'sold_out');
   assert.equal(byId('san-jose-waterways-art-climate-2026').status, 'sold_out');
-  assert.deepEqual(statuses, ['napa-harvest-after-dark-2026', 'san-jose-waterways-art-climate-2026', 'south-sf-state-of-city-2026'], 'status only from a dated source read');
+  assert.deepEqual(statuses, ['napa-harvest-after-dark-2026', 'november-north-jack-london-author-2026', 'san-jose-waterways-art-climate-2026', 'south-sf-state-of-city-2026'], 'status only from a dated source read');
   const postponed = { ...southSf, occurrenceDates: ['2026-10-27'] };
   const issues = lintEditorial(input({ events: [postponed], offers: [], openings: [] })).filter(issue => issue.rule === 'status');
   assert.equal(issues[0]?.level, 'error', 'a postponed event cannot keep a confirmed day');
