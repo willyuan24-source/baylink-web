@@ -123,7 +123,7 @@ test('H06: an empty 长辈友好 list offers the 长辈与家属 guides and BayB
 });
 
 test('H02: list headers state when their items were checked — most of them, and the latest — never the edition date', () => {
-  assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12', earliest: '2026-09-28' });
+  assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12', earliest: '2026-09-28', all: false });
   assert.equal(checkSummary([], '2026-10-13'), null);
   const zh = (text: string) => text;
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, zh), '多数核对于 9/29 · 最近 10/12');
@@ -131,9 +131,20 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!;
-  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+ · (?:最近|最早) \d+\/\d+|核对于 \d+\/\d+)$/);
+  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|核对于 \d+\/\d+)$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
+  // One date only when every listed item carries it; most on the latest day with a few older ones is still 多数 (§3.9).
+  const mostlyLatest = checkSummary([...Array(71).fill('2026-10-15'), ...Array(5).fill('2026-09-29')], '2026-10-16')!;
+  // W6B-INT: with CNT-SUPPLY-3's earliest day the line also names it (多数核对于 10/15 · 最早 9/29).
+  assert.deepEqual(mostlyLatest, { mostly: '2026-10-15', latest: '2026-10-15', earliest: '2026-09-29', all: false });
+  assert.equal(checkLine(mostlyLatest, zh), '多数核对于 10/15 · 最早 9/29');
+  const en = (_: string, english: string) => english;
+  assert.equal(checkLine(mostlyLatest, en), 'mostly checked Oct 15 · earliest Sep 29');
+  assert.equal(checkLine(checkSummary(['2026-10-15', undefined], '2026-10-16')!, en), 'mostly checked Oct 15', 'English: every dated item on one day, one undated');
+  assert.equal(checkLine(checkSummary(['2026-10-15', '2026-10-15'], '2026-10-16')!, zh), '核对于 10/15');
+  assert.equal(checkLine(checkSummary(['2026-10-15', undefined], '2026-10-16')!, zh), '多数核对于 10/15', 'an item without a check date');
+  assert.equal(checkLine(checkSummary(['2026-10-15', '2026-10-20'], '2026-10-16')!, zh), '多数核对于 10/15', 'a date after today');
 });
 
 test('H02: an event within a week whose sources the monitor cannot read says 未能自动核对 in its trust row', () => {

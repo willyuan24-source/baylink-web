@@ -9,14 +9,14 @@ const en = (_: string, text: string) => text;
 
 test('one day for every item: 核对于 that day', () => {
   const summary = checkSummary(['2026-10-15', '2026-10-15', '2026-10-15'], '2026-10-15')!;
-  assert.deepEqual(summary, { mostly: '2026-10-15', latest: '2026-10-15', earliest: '2026-10-15' });
+  assert.deepEqual(summary, { mostly: '2026-10-15', latest: '2026-10-15', earliest: '2026-10-15', all: true });
   assert.equal(checkLine(summary, zh), '核对于 10/15');
   assert.equal(checkLine(summary, en), 'checked Oct 15');
 });
 
 test('most on the latest day but not all: 多数核对于 the latest day, with the earliest', () => {
   const summary = checkSummary(['2026-10-15', '2026-10-15', '2026-10-15', '2026-09-28', '2026-10-13', undefined], '2026-10-15')!;
-  assert.deepEqual(summary, { mostly: '2026-10-15', latest: '2026-10-15', earliest: '2026-09-28' });
+  assert.deepEqual(summary, { mostly: '2026-10-15', latest: '2026-10-15', earliest: '2026-09-28', all: false });
   assert.equal(checkLine(summary, zh), '多数核对于 10/15 · 最早 9/28');
   assert.equal(checkLine(summary, en), 'mostly checked Oct 15 · earliest Sep 28');
   assert.doesNotMatch(checkLine(summary, zh), /^核对于/);
