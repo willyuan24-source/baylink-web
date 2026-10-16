@@ -19,6 +19,16 @@
 .planner-offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:12px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-offline>svg { flex:none; margin-top:2px; }
 
+/* H54 本周末精选 above the planner (features/plan/PlanWeekendPicks.tsx): one row of feed cards — two on a phone, one at
+   大/特大 and in 简洁显示 (FeedGrid's one-column 3:2 layout there), four from 768px. */
+.plan-weekend { margin:0 0 24px; }
+.plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; }
+@media (min-width:768px) { .plan-weekend .ui-feed-grid { --ui-feed-cols:4; } .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:block; } }
+@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-grid>li:nth-child(n+2) { display:none; } }
+/* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
+@media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; } }
+@media (min-width:1024px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+4) { display:none; } }
+
 /* 这一天的安排: first whenever the plan has stops, with its save state (FC3-01). */
 .planner-plan-overview { margin:0 0 24px; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); scroll-margin-top:96px; }
 .planner-overview-head { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }

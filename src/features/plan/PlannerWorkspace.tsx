@@ -25,7 +25,7 @@ import { PlannerWebSearch } from '../../components/PlannerWebSearch';
 import { PlannerPlaceRecommendations } from '../../components/PlannerPlaceRecommendations';
 import type { CompleteOuting } from '../../lib/planner-outings';
 import { cleanPlanFilters, defaultPlanDetails, normalizePlanDetails, nearbyPlaces, placeMatchesFilters, factsForStop, planDetailsError } from '../../lib/planner-itinerary';
-import { createCoverPage, resolveCovers } from '../../lib/cover';
+import { createCoverPage, resolveCovers, type CoverPage } from '../../lib/cover';
 import { eventDateChip, formatDateChip } from '../../lib/event-facts';
 import { PlannerDayPlans } from '../../components/PlannerDayPlans';
 import { PlannerCatalogCard, type PlannerCatalogItem } from '../../components/PlannerCatalogCard';
@@ -46,14 +46,21 @@ const storedDetails = (value: unknown, stops: Stop[], date: string) => {
   return JSON.stringify(details.constraints ? { ...details, constraints: cleanPlanFilters({ ...details.constraints, date }) } : details);
 };
 
-export type PlannerWorkspaceProps = { onBusy: (busy: boolean) => void; registerAsk: (ask?: () => void) => void };
+export type PlannerWorkspaceProps = {
+  onBusy: (busy: boolean) => void; registerAsk: (ask?: () => void) => void;
+  /** Whether the plan has stops: 这一天的安排 is then the page's first section, so 行程's weekend picks give way (H54). */
+  onPlanOpen?: (open: boolean) => void;
+  /** The page's cover registry (VISUAL-10): the weekend picks above claim their photos first, so a pick listed here shows its
+   *  information card. Absent: the workspace's own. */
+  coverPage?: CoverPage;
+};
 
 /**
  * 行程's workspace (saved days, the matcher, the list and the editor): a chunk of its own that loads with the planner
  * catalog (features/plan/plan-catalog.ts), on the reader's first interaction, at once for a link that opens a plan, or when
  * the saved days need it (H20). Node renders it in one pass with the catalog (tests, the prerender).
  */
-export function PlannerWorkspace({ onBusy, registerAsk }: PlannerWorkspaceProps) {
+export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: pageCoverPage }: PlannerWorkspaceProps) {
   const app = useApp();
   const location = useLocation();
   const navigate = useNavigate();
@@ -75,7 +82,8 @@ export function PlannerWorkspace({ onBusy, registerAsk }: PlannerWorkspaceProps)
   const online = useOnline();
   const today = todayInBay();
   // One cover page for the saved days, the list and the suggestions: the same photo never shows twice on the page.
-  const coverPage = useMemo(() => createCoverPage(), []);
+  const ownCoverPage = useMemo(() => createCoverPage(), []);
+  const coverPage = pageCoverPage ?? ownCoverPage;
   const [message, setMessage] = useState(queryMessage);
   const [date, setDate] = useState(shared.date);
   const [searchDate, setSearchDate] = useState<string>();
@@ -309,6 +317,8 @@ export function PlannerWorkspace({ onBusy, registerAsk }: PlannerWorkspaceProps)
   // disabled in the same frame as the save starts); a tap that came while the catalog loaded opens BayBay now.
   useBrowserLayoutEffect(() => { onBusy(library.busy); }, [library.busy, onBusy]);
   useBrowserLayoutEffect(() => { registerAsk(askBayBay); });
+  const planOpen = stops.length > 0;
+  useBrowserLayoutEffect(() => { onPlanOpen?.(planOpen); }, [planOpen, onPlanOpen]);
   useEffect(() => () => { registerAsk(undefined); onBusy(false); }, [registerAsk, onBusy]);
   return <div className="planner-data-slot" data-plan-slot="">
     {!online && <p className="planner-offline" role="status"><WifiOff size={18} aria-hidden="true" />{library.ready

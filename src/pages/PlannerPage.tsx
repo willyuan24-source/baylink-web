@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
 import { useApp } from '../app/context';
 import { useLocale, translateText } from '../i18n/locale';
 import { setPageMetadata } from '../lib/seo';
 import { PLAN_METADATA } from '../lib/planner-core';
+import { createCoverPage } from '../lib/cover';
 import { Button } from '../components/ui/Button';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
-import { loadPlan, planLoadFailed, PlanWorkspace } from '../features/plan/plan-catalog';
+import { PlanWeekendPicks } from '../features/plan/PlanWeekendPicks';
+import { loadPlan, planLoadFailed, planWantedAtOnce, PlanWorkspace } from '../features/plan/plan-catalog';
 // What the prerendered workspace shows (its code is a lazy chunk, PlannerWorkspace.tsx): the planner's panels, the
 // screenshot import and the BayBay hand-off notes, then the page's own layout (the order they had in the global bundle).
 import '../styles/planner.css';
@@ -31,6 +34,12 @@ function PlannerShell() {
   const locale = useLocale();
   useEffect(() => { setPageMetadata(PLAN_METADATA); }, [locale]);
   const [busy, setBusy] = useState(false);
+  // H54: this weekend's picks open a plain visit; a plan with stops (a link that opens one, or the first stop chosen) puts
+  // 这一天的安排 first instead (FC3-01).
+  const { search } = useLocation();
+  const [planOpen, setPlanOpen] = useState(() => planWantedAtOnce(search));
+  // One cover registry for the page: a photo the picks show is not shown again in the workspace below (VISUAL-10).
+  const coverPage = useMemo(() => createCoverPage(), []);
   // 问 BayBay with the current plan, once the workspace is in; a tap before that waits for it.
   const askPlan = useRef<{ ask?: () => void; waiting: boolean }>({ waiting: false });
   const registerAsk = useCallback((ask?: () => void) => {
@@ -50,6 +59,7 @@ function PlannerShell() {
     <PageHeader title={t('行程', 'Plans')}
       lede={t('把想去的活动和地点排进一天：时间、门票和路线一起看，存好后发给家人。', 'Put the events and places you want into one day, with times, tickets and routes in view. Save it and send it to family.')}
       actions={<><Button variant="primary" icon={<Sparkles size={18} aria-hidden="true" />} onClick={ask}>{t('问 BayBay 排一天', 'Ask BayBay to plan a day')}</Button><Button variant="text" to="/my-week">{t('我的这周', 'My Week')}</Button></>} />
-    <PlanWorkspaceSlot><PlanWorkspace onBusy={setBusy} registerAsk={registerAsk} /></PlanWorkspaceSlot>
+    {!planOpen && <PlanWeekendPicks coverPage={coverPage} />}
+    <PlanWorkspaceSlot><PlanWorkspace onBusy={setBusy} registerAsk={registerAsk} onPlanOpen={setPlanOpen} coverPage={coverPage} /></PlanWorkspaceSlot>
   </fieldset></PageContainer>;
 }
