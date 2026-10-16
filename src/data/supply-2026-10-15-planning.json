@@ -816,6 +816,78 @@
       }
     }
   },
+  "exploratorium-glow-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.exploratorium.edu/visit/calendar/glow",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-19",
+        "validThrough": "2027-01-24",
+        "weekly": {
+          "0": [
+            {
+              "open": "12:00",
+              "close": "17:00"
+            }
+          ],
+          "2": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ]
+        },
+        "dates": {
+          "2026-12-21": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-12-28": [
+            {
+              "open": "10:00",
+              "close": "17:00"
+            }
+          ],
+          "2026-12-24": [
+            {
+              "open": "10:00",
+              "close": "15:00"
+            }
+          ]
+        }
+      }
+    }
+  },
   "fairyland-fairy-winterland-2026": {
     "planning": {
       "admissionUsd": null,
@@ -3113,6 +3185,178 @@
       }
     }
   },
+  "sf-botanical-lightscape-2026": {
+    "planning": {
+      "admissionUsd": 32,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://gggp.org/lightscape/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-20",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-11-20",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-21",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-22",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-24",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-25",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-27",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-01",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-02",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-03",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-04",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-06",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-08",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-09",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-10",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-11",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-13",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-15",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-16",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-17",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-18",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-19",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-25",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-26",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-27",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-28",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-30",
+            "start": "17:00"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "17:00"
+          },
+          {
+            "date": "2027-01-01",
+            "start": "17:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "17:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "17:00"
+          }
+        ]
+      }
+    }
+  },
   "sffmc-camp-harmony-2026-27": {
     "planning": {
       "admissionUsd": null,
@@ -3438,6 +3682,52 @@
             "end": "16:00"
           }
         ]
+      }
+    }
+  },
+  "sfzoo-zoolights-2026": {
+    "planning": {
+      "admissionUsd": 30,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://www.sfzoo.org/zoolights/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-06",
+        "validThrough": "2027-01-03",
+        "weekly": {
+          "0": [
+            {
+              "open": "17:30",
+              "close": "21:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "17:30",
+              "close": "21:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "17:30",
+              "close": "21:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "17:30",
+              "close": "21:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "17:30",
+              "close": "21:00"
+            }
+          ]
+        }
       }
     }
   },
@@ -4635,6 +4925,64 @@
             "end": "18:00"
           }
         ]
+      }
+    }
+  },
+  "union-square-holiday-ice-rink-2026": {
+    "planning": {
+      "admissionUsd": 22,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://unionsquareicerink.com/union-square-ice-skating/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-11-04",
+        "validThrough": "2027-01-18",
+        "weekly": {
+          "0": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ],
+          "1": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ],
+          "2": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ],
+          "3": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ],
+          "4": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ],
+          "5": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ],
+          "6": [
+            {
+              "open": "10:00",
+              "close": "23:00"
+            }
+          ]
+        }
       }
     }
   }
