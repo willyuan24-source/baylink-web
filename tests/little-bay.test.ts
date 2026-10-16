@@ -114,7 +114,9 @@ test('invalid dates return no cards and dates outside the edition offer places o
   for (const date of ['', '2026-02-30', '2026-10-32', '2026-1-3', '2026-10-03T00:00:00Z']) {
     assert.deepEqual(getLittleBayStops({ date, region: 'sf' }), []);
   }
-  for (const date of ['2026-01-01', '2027-01-01']) {
+  // CNT-SUPPLY-3: the edition runs through 1/3/2027 and SF's winter runs (the Union Square rink to 1/18, Glow to 1/24) have
+  // days in January, so the no-event date after the edition is 3/1/2027.
+  for (const date of ['2026-01-01', '2027-03-01']) {
     const stops = getLittleBayStops({ date, region: 'sf' });
     assert.equal(stops.length, 6);
     assert.ok(stops.every(stop => stop.kind === 'place'));
