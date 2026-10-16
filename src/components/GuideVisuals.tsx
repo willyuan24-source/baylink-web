@@ -42,10 +42,13 @@ export function GuideFigure(props: FigureProps) {
 
 function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
+  // A tall photo in the article is cut to 4:5 around its focus (guide-visuals.css), so it never fills more than a screen.
+  const portrait = variant === 'inline' && image.kind === 'photo' && !image.fullFrame && image.height > image.width;
+  const position = portrait && image.focal ? { objectPosition: `${image.focal[0]}% ${image.focal[1]}%` } : undefined;
   return <>
     <figure className={`guide-figure guide-figure--${variant}${image.kind === 'poster' ? ' guide-figure--official-poster' : ''}${image.fullFrame ? ' guide-figure--full-frame' : ''}`}>
       <button type="button" className="guide-figure-open" style={image.width < 480 ? { maxWidth: Math.max(280, image.width + 44), marginInline: 'auto' } : undefined} aria-label={`放大图片：${image.alt}`} aria-haspopup="dialog" onClick={() => setOpen(true)}>
-        <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? image.width < 480 ? `${image.width}px` : variant === 'preview' ? '(max-width: 600px) calc(100vw - 80px), 480px' : `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto' } : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
+        <img className="guide-figure-image" src={image.src} srcSet={image.srcSet} sizes={image.srcSet ? image.width < 480 ? `${image.width}px` : variant === 'preview' ? '(max-width: 600px) calc(100vw - 80px), 480px' : `(max-width: 900px) 100vw, ${variant === 'cover' ? 1040 : 760}px` : undefined} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto', ...position } : position} data-portrait={portrait ? '' : undefined} alt={image.alt} width={image.width} height={image.height} loading={variant === 'cover' ? 'eager' : 'lazy'} decoding="async" />
         <span className="guide-figure-zoom"><Expand size={15} aria-hidden="true" /><span>查看大图</span></span>
       </button>
       <GuideImageCaption image={image} poster={variant === 'poster'} />

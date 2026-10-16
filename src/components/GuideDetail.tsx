@@ -186,10 +186,10 @@ const GuideDetailSession = ({
       onNavigate(`/category/${block.categorySlug}`);
     else if (block.primaryAction === "guides") onNavigate("/guides");
   };
-  const renderBlock = (block: GuideBlock, index: number) => (
+  const renderBlock = (block: GuideBlock, index: number, pictures = true) => (
     <Fragment key={`${slug}-${index}`}>
       <BlockRenderer block={block} id={`guide-section-${index}`} onCta={handleCta} />
-      {inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
+      {pictures && inlineAfter.get(index)?.map(image => <GuideFigure key={image.src} image={image} />)}
     </Fragment>
   );
   // H22: the pilot guides' diagrams (record.diagrams): `lead` ones after 30 秒看懂, numbered ones inside that step card.
@@ -205,9 +205,12 @@ const GuideDetailSession = ({
     {stepHeadings.map((headingIndex, order) => {
       const next = stepHeadings[order + 1] ?? guide.blocks.length;
       const heading = guide.blocks[headingIndex] as Extract<GuideBlock, { type: 'heading' }>;
+      // H22 (CNT-MEDIA-4): the step's pictures stand with its diagram outside the fold, not inside 展开原文与来源.
+      const pictures = bodyBlocks.filter(({ index }) => index >= headingIndex && index < next).flatMap(({ index }) => inlineAfter.get(index) ?? []);
+      const diagrams = diagramsAt(order + 1);
       return <StepSection key={headingIndex} number={order + 1} heading={heading.text} id={`guide-section-${headingIndex}`} conclusion={editorial.steps?.[headingIndexes.indexOf(headingIndex)]}
-        figures={diagramsAt(order + 1)}>
-        {bodyBlocks.filter(({ index }) => index > headingIndex && index < next).map(({ block, index }) => renderBlock(block, index))}
+        figures={diagrams || pictures.length ? <>{diagrams}{pictures.map(image => <GuideFigure key={image.src} image={image} />)}</> : null}>
+        {bodyBlocks.filter(({ index }) => index > headingIndex && index < next).map(({ block, index }) => renderBlock(block, index, false))}
       </StepSection>;
     })}
   </>;

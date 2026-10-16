@@ -60,6 +60,15 @@ function diagramHeight(figure: Element): number {
   return height + 8 + 18;
 }
 
+/** A step's photo (CNT-MEDIA-4): full column width at its own ratio, a tall one cut to 4:5 and at most 72% of the screen. */
+function photoHeight(figure: Element): number {
+  const img = figure.querySelector('img');
+  const ratio = Number(img?.getAttribute('height')) / Number(img?.getAttribute('width')) || 2 / 3;
+  return img?.hasAttribute('data-portrait') ? Math.min(CONTENT * 1.25, PHONE.height * 0.72, 620) : CONTENT * ratio;
+}
+/** Its caption: the text at 13 px on 1.8 lines, then the label, credit and licence links (two lines on a phone). */
+const photoCaptionHeight = (figure: Element) => 13 + lineCount(textOf(figure.querySelector('.guide-image-caption p')), 13, CONTENT) * 23 + 8 + 2 * 23;
+
 export type Stretch = { from: number; to: number; screens: number };
 /**
  * Stretches without a picture slot in the article body, in px from the article top, on the model above. `slots` are the y
@@ -105,7 +114,11 @@ export function guideBodyStretches(article: Element): { stretches: Stretch[]; lo
           y += 28;
           const head = block.querySelector('.gd-step__head');
           y += Math.max(40, 6 + lineCount(textOf(head?.querySelector('h2')), 20, CONTENT - 52) * 28 + (head?.querySelector('.gd-step__conclusion') ? 6 + lineCount(textOf(head.querySelector('.gd-step__conclusion')), 17, CONTENT - 52) * 30 : 0));
-          for (const figure of block.querySelectorAll(':scope > figure.gd-diagram')) { y += 14; slot(diagramHeight(figure)); }
+          for (const figure of block.querySelectorAll(':scope > figure.gd-diagram, :scope > figure.guide-figure')) {
+            y += 14;
+            if (figure.matches('.gd-diagram')) slot(diagramHeight(figure));
+            else { slot(photoHeight(figure)); y += photoCaptionHeight(figure); }
+          }
           y += block.querySelector('.gd-step__more') ? 8 + 44 : 0;
         }
       }
