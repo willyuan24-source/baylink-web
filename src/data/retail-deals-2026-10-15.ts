@@ -10,7 +10,7 @@ export const dealsOffers20261015: FreebieOffer[] = [
     "id": "homedepot-dump-truck-nov7-2026",
     "brand": "THE HOME DEPOT",
     "region": "east-bay",
-    "title": "11/7 免费儿童工作坊：做翻斗车",
+    "title": "11/7 免费儿童工作坊：做自卸卡车",
     "dateLabel": "11/7 周六 · 09:00–12:00 · 门店当地时间",
     "startDate": "2026-11-07",
     "endDate": "2026-11-07",
