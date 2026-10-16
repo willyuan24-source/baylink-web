@@ -19,12 +19,21 @@
 .planner-offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:12px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-offline>svg { flex:none; margin-top:2px; }
 
-/* H54 本周末精选 above the planner (features/plan/PlanWeekendPicks.tsx): one row of feed cards — two on a phone, one at
-   大/特大 and in 简洁显示 (FeedGrid's one-column 3:2 layout there), four from 768px. */
+/* H54 本周末精选 above the planner (features/plan/PlanWeekendPicks.tsx): one short row of feed cards, so the planner stays
+   on the first screen — two on a phone, four 3:2 landscape covers from 768px, and at 大/特大 and in 简洁显示 on a phone
+   one compact row with its photo on the left (the readers those modes serve keep 已排的日子 in view). */
 .plan-weekend { margin:0 0 24px; }
 .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; }
-@media (min-width:768px) { .plan-weekend .ui-feed-grid { --ui-feed-cols:4; } .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:block; } }
-@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-grid>li:nth-child(n+2) { display:none; } }
+/* No ♡ on these cards: the provenance badge may use the photo's width and wrap ("Archive photo · 2025" in full). */
+.plan-weekend .ui-provenance { max-width:calc(100% - 16px); white-space:normal; }
+@media (min-width:768px) { .plan-weekend .ui-feed-grid { --ui-feed-cols:4; --ui-feed-ratio:3 / 2; } .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:block; } }
+@media (max-width:767px) {
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-grid>li:nth-child(n+2) { display:none; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-grid[data-layout] { --ui-feed-ratio:1 / 1; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 3fr); grid-template-rows:auto 1fr; column-gap:12px; row-gap:4px; align-items:start; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__media { grid-column:1; grid-row:1 / span 2; margin:0; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend :is(.ui-feed-card__title,.ui-feed-card__meta) { grid-column:2; }
+}
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
 @media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; } }
 @media (min-width:1024px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+4) { display:none; } }
