@@ -103,7 +103,7 @@ function DeferredSlot() {
     const options = { capture: true, passive: true } as const;
     for (const type of INTERACTIONS) window.addEventListener(type, wantPlan, options);
     // Every plain visit loads the workspace at the first idle moment after the app's first paint (at most 0.5 s later), so
-    // a reader who reads first and acts later finds the live form (sooner than on the base, which started it at boot). The
+    // a reader who reads first and acts later finds the live form; what they do before that is kept (boot-carry.ts). The
     // page's LCP photo is in the prerendered HTML and painted before the app renders, so the download does not compete.
     const idleWindow = window as IdleWindow;
     const useIdle = !!idleWindow.requestIdleCallback && !!idleWindow.cancelIdleCallback;
