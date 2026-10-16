@@ -1,7 +1,8 @@
 /**
  * Items whose verifiedAt the GPT editor's weekly source review set to 2026-10-15 (ROADMAP-8-9 §2.5 Wednesday review of the
  * 10/17–18 and 10/24–25 weekends; docs/source-reads-2026-10.md "GPT editor review 2026-10-15"). Batch tests that pin a
- * batch's verifiedAt accept this later editor date for these ids only.
+ * batch's verifiedAt accept this later editor date for these ids only. The last group comes from the editor's gap re-check
+ * ("GPT editor gap re-check 2026-10-15" in the same ledger).
  */
 export const EDITOR_REVIEW_DATE = '2026-10-15';
 export const EDITOR_REVIEWED_2026_10_15: ReadonlySet<string> = new Set([
@@ -118,6 +119,14 @@ export const EDITOR_REVIEWED_2026_10_15: ReadonlySet<string> = new Set([
   'stanford-football-elon-2026',
   'walnut-creek-diablo-improv-2026',
   'windsor-trick-or-treat-trail-2026',
+  // The editor's gap re-check of the same day (opus-qa/gpt/out-1016/gap-recheck.csv): 10/17–18 items unreadable in the
+  // first pass whose dates, times and places it then read on the official page or an official second source.
+  'cupertino-diwali-festival-2026',
+  'danville-scarecrow-stroll-2026',
+  'palo-alto-pet-palooza-oct17-2026',
+  'r2-benicia-witching-wine-walk-2026',
+  'r2-calistoga-ghost-stories-2026',
+  'san-leandro-sandlot-movie-2026',
 ]);
 /** The batch date, or the editor review date for a reviewed id. */
 export const batchVerifiedAt = (id: string, batchDate: string): string => EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;

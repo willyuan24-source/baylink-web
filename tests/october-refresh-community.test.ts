@@ -24,7 +24,8 @@ test('nine independently verified community events have exact occurrence dates, 
     assert.ok(!eventOccursOn(event, '2026-11-01'));
     if (!facts[event.id].programTimeUnconfirmed) assert.deepEqual(Object.keys(schedules[event.id].dates!), event.occurrenceDates);
     assert.equal(schedules[event.id].sourceUrl, event.officialUrl);
-    assert.equal(resolveTimeEvidence(schedules[event.id], event.startDate, '2026-09-30').status, facts[event.id].programTimeUnconfirmed ? 'unknown' : 'confirmed');
+    // Evidence is judged on the item's own check day (the batch date, or the 10/15 editor review).
+    assert.equal(resolveTimeEvidence(schedules[event.id], event.startDate, batchVerifiedAt(event.id, '2026-09-30')).status, facts[event.id].programTimeUnconfirmed ? 'unknown' : 'confirmed');
     assert.equal(facts[event.id].admissionUsd, event.cost === 'free' ? 0 : null);
   }
 });
