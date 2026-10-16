@@ -11,7 +11,8 @@
  * Why /opus-bay gets its own copy: every San Francisco event in the file it reads needs the Opus session's own placement
  * decision (tests/opus-bay-w6-s-venues.test.ts, W6-S1: a venue row, or a stated reason to stay out). The 2026-10-12 supply
  * batch's nine SF programmes, the 2026-10-13 batch's three for 11/21-11/28 and the 2026-10-15 batch's four seasonal SF items
- * that open before 12/1 (ZooLights, the Union Square rink, Glow, Lightscape) wait for that decision, so they stay out of
+ * that open before 12/1 (ZooLights, the Union Square rink, Glow, Lightscape) and the 2026-10-16 batch's two November SFPL items
+ * (Visitacion Valley calligraphy and games, Sunset mahjong) wait for that decision, so they stay out of
  * public/planner-catalog.json, and only that file.
  * The two files the API copies are complete, so every event page's participation line, a member's saves and plans, and
  * BayBay know every event the site lists.
@@ -39,6 +40,8 @@ export const WORLD_IMPORT_PENDING: readonly string[] = [
   'sfpl-north-beach-open-house-oct31-2026',
   'sfpl-richmond-hk-film-hard-boiled-2026',
   'sfpl-richmond-hk-film-the-killer-2026',
+  'sfpl-sunset-mahjong-nov28-2026',
+  'sfpl-visitacion-valley-calligraphy-chess-nov14-2026',
   'sfzoo-zoolights-2026',
   'union-square-holiday-ice-rink-2026',
 ];
