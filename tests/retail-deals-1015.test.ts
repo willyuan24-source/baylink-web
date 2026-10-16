@@ -7,7 +7,8 @@ import { retailPerksGuides2026 } from '../src/data/guides-retail-perks-2026';
 import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { offerValue } from '../src/lib/event-facts';
-import { validThisWeek } from '../src/lib/offer-week';
+import { addDays, validThisWeek } from '../src/lib/offer-week';
+import { offerMatchesDateRange } from '../src/lib/offer-calendar';
 import { loadLocale, translateText } from '../src/i18n/locale';
 
 // CNT-DEALS-2: store and restaurant perks from the 2026-10-15 batch (ledger: docs/source-reads-2026-10.md).
@@ -16,6 +17,7 @@ const offer = (id: string) => {
   assert.ok(found, id);
   return found;
 };
+const REI_RUNS = ['oct21', 'nov4', 'nov18', 'dec2', 'dec16'].map(day => `rei-berkeley-hella-bae-run-${day}-2026`);
 const stringsIn = (value: unknown): string[] => typeof value === 'string' ? [value]
   : value && typeof value === 'object' ? Object.values(value).flatMap(stringsIn) : [];
 
@@ -52,9 +54,10 @@ test('corrections land on the published records without touching their review da
   assert.match(offer('homedepot-monthly-kids-workshops').description, /11\/7 Dump Truck/);
 });
 
-test('nothing that needs a purchase, past spending or a paid membership is filed or headlined as free', () => {
+test('nothing that needs a purchase, past spending or a paid membership is filed or headlined as free', async () => {
+  await loadLocale('en');
   const free = new Set(['homedepot-dump-truck-nov7-2026', 'homedepot-christmas-car-ornament-nov21-2026', 'homedepot-holiday-train-dec5-2026',
-    'lego-ghost-street-stoneridge-oct25-2026', 'rei-berkeley-hella-bae-runs-2026', 'apple-union-square-free-sessions',
+    'lego-ghost-street-stoneridge-oct25-2026', ...REI_RUNS, 'apple-union-square-free-sessions',
     'sephora-berkeley-free-sampling', 'staples-ca-recycling-fee-waiver', 'michaels-free-online-tutorials']);
   const unpublishedTerms = new Set(['85c-new-member-sea-salt-coffee', 'bjs-new-member-pizookie', 'benjerry-flavor-fanatics-birthday',
     'benihana-fwb-welcome-starter', 'elpolloloco-loco-rewards-birthday']);
@@ -63,6 +66,9 @@ test('nothing that needs a purchase, past spending or a paid membership is filed
     assert.ok(expected.includes(item.kind), `${item.id} is ${item.kind}`);
     if (!free.has(item.id)) {
       assert.doesNotMatch(item.title, /免费|free/i, `${item.id}: the title of a conditional perk does not say free`);
+      assert.doesNotMatch(translateText(item.title, 'en'), /free/i, `${item.id}: nor does its English title`);
+      const short = offer(item.id).shortTitle;
+      assert.ok(short && !/免费/.test(short) && !/free/i.test(translateText(short, 'en')), `${item.id}: nor its short title`);
       assert.notEqual(offerValue(item)?.zh, '免费', item.id);
     }
   }
@@ -78,12 +84,38 @@ test('nothing that needs a purchase, past spending or a paid membership is filed
   assert.match(offer('ulta-alameda-million-fragrance-oct17-2026').requirement, /随购买/);
 });
 
-test('the Berkeley community run is listed on its first and third Wednesdays only through 12/16', () => {
-  const run = offer('rei-berkeley-hella-bae-runs-2026');
-  assert.deepEqual(run.weekdays, [3]);
-  assert.ok(validThisWeek(run, '2026-10-19'), 'the week of 10/21');
-  assert.ok(!validThisWeek(run, '2026-12-17'), 'nothing after 12/16');
-  for (const day of ['10/21', '11/4', '11/18', '12/2', '12/16']) assert.ok(run.dateLabel.includes(day), day);
+test('the Berkeley community run is one dated card per published Wednesday, never every Wednesday', () => {
+  const runs = REI_RUNS.map(offer);
+  assert.deepEqual(runs.map(run => run.startDate), ['2026-10-21', '2026-11-04', '2026-11-18', '2026-12-02', '2026-12-16']);
+  for (const run of runs) {
+    assert.equal(run.endDate, run.startDate, run.id);
+    assert.equal(run.weekdays, undefined, run.id);
+    assert.ok(validThisWeek(run, addDays(run.startDate!, -2)), `${run.id} is listed the week it happens`);
+  }
+  // 10/28, 11/11, 11/25 and 12/9 are Wednesdays with no run: the board's 本周有效 and the date search skip them.
+  for (const monday of ['2026-10-26', '2026-11-09', '2026-11-23', '2026-12-07']) assert.ok(runs.every(run => !validThisWeek(run, monday)), monday);
+  for (const wednesday of ['2026-10-28', '2026-11-11', '2026-11-25', '2026-12-09']) assert.ok(runs.every(run => !offerMatchesDateRange(run, wednesday, wednesday)), wednesday);
+  assert.ok(runs.every(run => !validThisWeek(run, '2026-12-17')), 'nothing after 12/16');
+  // the text names the series without a "next run" that goes stale
+  for (const run of runs) assert.doesNotMatch(run.description, /最近一场/, run.id);
+});
+
+test('a single-venue or online perk has no 参与门店 lookup', () => {
+  for (const id of ['lego-ghost-street-stoneridge-oct25-2026', ...REI_RUNS, 'apple-union-square-free-sessions', 'michaels-free-online-tutorials',
+    'sephora-berkeley-free-sampling']) assert.equal(offer(id).storeUrl, undefined, id);
+});
+
+test('each new perk has a short title, so English page titles name the perk and not just the brand', async () => {
+  await loadLocale('en');
+  const english = dealsOffers20261015.map(item => {
+    const short = offer(item.id).shortTitle;
+    assert.ok(short, item.id);
+    const translated = translateText(short, 'en');
+    assert.doesNotMatch(translated, /[㐀-鿿]/, `${item.id}: ${short}`);
+    assert.ok(`${translated} | BAYLINK`.length <= 60, translated);
+    return translated;
+  });
+  assert.equal(new Set(english).size, english.length);
 });
 
 test('the retail directory lists the new perks and birthday perks reach the birthday guide', () => {

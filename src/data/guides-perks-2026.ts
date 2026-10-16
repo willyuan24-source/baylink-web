@@ -17,7 +17,7 @@ const drafts: Guide[] = [
     "recommendedForCategories": [
       "other"
     ],
-    "updatedAt": "2026-10-04",
+    "updatedAt": "2026-10-15",
     "slug": "bay-area-birthday-perks",
     "title": "湾区生日福利图鉴：饮品、甜点、美妆与电影",
     "subtitle": "提前准备，生日月少一点扑空，多一点小惊喜",
@@ -37,7 +37,7 @@ const drafts: Guide[] = [
       "Panera"
     ],
     "readMinutes": 7,
-    "sourceNote": "2026-10-04 按品牌美国官网核对。会员条款、礼物库存与实际到账时间会变化；图文保留核对日期，不代表生日当天一定有货。",
+    "sourceNote": "2026-10-04 按品牌美国官网核对，2026-10-15 补充新条目。会员条款、礼物库存与实际到账时间会变化；图文保留核对日期，不代表生日当天一定有货。",
     "sources": [],
     "blocks": [
       {
