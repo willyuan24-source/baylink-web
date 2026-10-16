@@ -13,7 +13,7 @@ export const seniorServicesEditorial: GuideEditorial = {
   },
   keyFacts: [
     { label: { zh: '先打哪个电话', en: 'Who to call first' }, value: { zh: '所在县的 AAA；全州信息线 800-510-2020', en: "Your county's AAA; statewide line 800-510-2020" }, source: 1 },
-    { label: { zh: '旧金山白天照护', en: 'Day care in San Francisco' }, value: { zh: '安老自助处 415-677-7556，普通话、粤语、台山话', en: 'Self-Help for the Elderly 415-677-7556, Mandarin, Cantonese, Toisanese' }, source: 2 },
+    { label: { zh: '旧金山白天照护', en: 'Day care in San Francisco' }, value: { zh: '安老自助处 415-677-7556，有讲普通话、粤语、台山话的员工', en: 'Self-Help for the Elderly 415-677-7556, staff speak Mandarin, Cantonese and Toisanese' }, source: 2 },
     { label: { zh: '东湾中文探访', en: 'Chinese-speaking visits in the East Bay' }, value: { zh: 'Family Bridges 510-839-2022，60 岁及以上，免费', en: 'Family Bridges 510-839-2022, age 60 and up, free' }, source: 5 },
     { label: { zh: '打电话前准备', en: 'Before you call' }, value: { zh: '住在哪个市县、用什么语言、需要哪种帮助', en: 'City and county, language, and the kind of help needed' } },
   ],

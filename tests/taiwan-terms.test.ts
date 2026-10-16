@@ -7,6 +7,7 @@ import { loadLocale, taiwanConverter, translateText } from '../src/i18n/locale';
 import { SITE_TAIWAN_TERMS } from '../src/i18n/taiwan-terms';
 import { guides } from '../src/data/guides';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { simplifiedOnlyCharacters } from '../scripts/i18n-html-check.mjs';
 
 const O = await import('opencc-js');
@@ -31,6 +32,14 @@ test('WEB-I18N 繁體 terms: the 10-11 audit’s words read as Taiwan writes the
     ['用户名与头像', '使用者名稱與大頭貼'],
     ['需签免责文件；官方签书活动', '需簽免責文件；官方簽書活動'],
     ['不保证实时余位，显示实时余票', '不保證即時餘位，顯示即時餘票'],
+    // the 10-16 繁體 review's must-fix words (ZH-10, ZH-11, ZH-21)
+    ['搬出后 21 天内退款并列明扣款', '搬出後 21 天內退款並列明扣款'],
+    ['扣款超过 $125 附收据', '扣款超過 $125 附收據'],
+    ['先看房或视频看房，再弄清', '先看房或視訊看房，再弄清'],
+    ['要求实时视频看房，只有预录视频不够', '要求即時視訊看房，只有預錄影片不夠'],
+    ['再决定能不能松绳', '再決定能不能鬆繩'],
+    ['别人松着绳，不等于', '別人鬆著繩，不等於'],
+    ['放松一下，松开牵绳', '放鬆一下，鬆開牽繩'],
   ];
   for (const [zh, want] of cases) assert.equal(hant(zh), want, zh);
 });
@@ -119,4 +128,21 @@ test('WEB-I18N 繁體 terms: every guide and event title converts with no Simpli
   }
   assert.deepEqual(left, []);
   assert.ok(!guides.some(guide => hant(guide.title).includes('籤合同')), '簽合同, never 籤合同');
+});
+
+test('CNT-GUIDES-3 繁體: a 30-second fact reads the same when its ① mark keeps the last two characters apart (ZH-07, 臺山話)', () => {
+  // GuideFactCards withMark puts the value's last two characters and the ① mark in one no-wrap span, so the head and the
+  // tail are converted again as separate text: a word cut there converts differently (台|山话: a lone 台 is 臺)
+  const cut: string[] = [];
+  for (const record of Object.values(GUIDE_EDITORIAL)) {
+    for (const fact of record.keyFacts ?? []) {
+      if (!fact.source) continue;
+      const whole = hant(fact.value.zh);
+      const characters = Array.from(whole);
+      if (/\d/.test(characters.at(-1) ?? '')) continue;
+      const split = hant(characters.slice(0, -2).join('')) + hant(characters.slice(-2).join(''));
+      if (split !== whole) cut.push(`${record.slug}: ${whole} → ${split}`);
+    }
+  }
+  assert.deepEqual(cut, []);
 });

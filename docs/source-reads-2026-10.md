@@ -1627,3 +1627,19 @@ Re-read with no change needed: the five county AAA lines in the resource map and
 Mateo 844-868-0938 … Santa Clara 408-350-3200"); SF311's "160 多种语言" already has its 10-14 row above and reads the same today
 (https://www.sf.gov/departments--311-customer-service-center: "We offer assistance in over 160 languages over the phone and our mobile app
 is available in Chinese, Filipino, Spanish, and English").
+
+### New-resident license wording (GPT zh-hant-review ZH-16)
+
+| guide | fact written | URL | quote |
+|---|---|---|---|
+| `bay-area-newcomer-first-month-checklist` | 打算成为加州居民并在加州开车的，要申请加州驾照；外州车辆 20 天内登记（heading 第二周起 → 要开车的，驾照先办） | https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california/ | 3. Driving in California If you intend to become a California resident and drive in California, you must apply for a California DL. 4. Registering Your Vehicle … you must register it within 20 days of becoming a resident or bringing it into the state. |
+| `bay-area-newcomer-first-month-checklist` | 10 天是开车的期限：成为居民后最多再用外州驾照开 10 天；法条没有因预约或递交申请而延长的规定 | https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505. | the CNT-HOTFIX-2 row of 2026-10-13 above ("(c) A person entitled to an exemption … may operate a motor vehicle in this state for not to exceed 10 days from the date the person establishes residence in this state …"); on 2026-10-16 the page answered headless Chrome with a Cloudflare check (403), so the 10-13 quote stands and the guide links the section |
+
+The DMV pages do not give the 10 days themselves (the new-resident page, the driver's-license page and handbook section 1 were read for
+"10 days": not found); the guide takes them from the Vehicle Code, as the driver-license guide does.
+
+### 繁體 wording (GPT zh-hant-review ZH-07, ZH-10, ZH-11, ZH-21; no fact changed)
+
+`src/i18n/taiwan-terms.ts`: 视频看房 → 視訊看房 (a live call, as the rental guide's next line says), 松绳 / 松着绳 → 鬆繩 / 鬆著繩, and 釦款 → 扣款
+after opencc (it read 列明扣款 as 明扣 + 款). The senior-services guide's 30-second line for Self-Help's day care now ends on 员工, so its ①
+mark no longer cuts 台|山话 (a lone 台 converts to 臺). Tests: tests/taiwan-terms.test.ts.
