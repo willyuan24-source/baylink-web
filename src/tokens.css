@@ -94,8 +94,18 @@
   --text-title:2rem; --lh-title:1.3125;
   --text-display:clamp(2.5rem, calc(1.6rem + 1.25vw * var(--fluid-scale)), 3.25rem); --lh-display:1.2;
 } }
+/* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
+   heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). No page writes them today; they
+   stay as the design system's contract (tests/type-scale.test.ts). */
+.type-display,.type-title,.type-section { font-weight:600; letter-spacing:0; text-wrap:balance; }
 /* H55: a heading never ends on one short word on its own line (an explicit balance on a component still wins). */
 :where(h1,h2,h3,h4) { text-wrap:pretty; }
+.type-display { font-size:var(--text-display); line-height:var(--lh-display); }
+.type-title { font-size:var(--text-title); line-height:var(--lh-title); }
+.type-section { font-size:var(--text-section); line-height:var(--lh-section); }
+.site-container { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding-inline:var(--page-gutter); }
+.site-container[data-size=content] { max-width:var(--container-content); }
+.site-container[data-size=reading] { max-width:var(--container-reading); }
 /* Chinese pages name the Chinese system faces before Segoe UI. Their Latin letters are drawn to match Segoe UI, and on
    Windows they come in the same Bold as the Chinese: with Segoe UI first a 600 heading set "Medicare" in Segoe Semibold
    next to YaHei / JhengHei Bold, visibly lighter (PROD-W3 review). macOS and iOS keep the system font first and English
