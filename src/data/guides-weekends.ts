@@ -105,6 +105,7 @@ export const weekendGuides: Guide[] = [
     ],
     blocks: [
       { type: 'paragraph', text: '一场舒服的城市野餐，通常从“在哪里坐下”开始。Presidio Tunnel Tops 适合把交通、休息和一小段散步放在一起，但草坪开放不代表每张桌子都能占用。先选公共座位还是预订场地，再决定带多少食物和用品，比到了现场才搬着大包找地方轻松得多。' },
+      { type: 'tip', title: 'Tunnel Tops 免费，不用门票', text: 'Presidio Trust 官网（2026-10-16）写明：Tunnel Tops 免费、对所有人开放，不用门票也不用预约；Presidio 游客中心、Outpost 游乐场和 Field Station 各有开放时间，洗手间在 Presidio Transit Center 和 Outpost 游乐场旁边。' },
       { type: 'heading', text: '集合放在 Transit Center，返程也从这里算' },
       { type: 'paragraph', text: '无车可从 Presidio GO 官方页面查看 Downtown Route 到 Presidio Transit Center 的行程；它和园内 South Hills Route 不是同一条线，部分工作日通勤班次另有乘车资格限制。按自己的日期核对时刻与站点，不把一张旧截图当通用班表。自驾也用清楚的公共集合点会合，不让朋友在不同停车场互相寻找。' },
       { type: 'heading', text: '两种坐法，选一种就够' },

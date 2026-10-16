@@ -150,11 +150,13 @@ test('without a figure, the first fact is the first sentence after the lede that
   assert.equal(factOf('bay-area-bulky-items-ewaste-hhw-guide')?.text, '旧金山：Recology 大件项目按有效住宅账户及住房类型核资格；危险废物另走 HHW 服务。');
   assert.equal(factOf('bay-area-alerts-outages-first-day-checklist')?.text, '旧金山使用 AlertSF；Alameda County 使用 AC Alert。');
   assert.equal(card('bay-area-alerts-outages-first-day-checklist'), null, 'the alerts guide shows its editorial 30 秒看懂 (CNT-GUIDES-2)');
-  // The alerts guide has its own record since CNT-GUIDES-2, so the rendered card is checked on the library starter guide: no figure,
-  // and its first fact names the body its source is titled after.
+  // No sourced sentence and no figure next to a named body: the first sentence after the lede that names a cited body (PG&E).
+  assert.equal(factOf('bay-area-first-7-30-days-action-plan-october-2026')?.text, '只有实际由 PG&E 服务且需要你开户的项目，才使用其 Start／Stop／Transfer 入口。');
+  // The library starter guide has figures next to named bodies since CNT-GUIDES-3 (its museum and park passes), so its card
+  // leads with the first of them; its rendered card and the /en row are checked here.
   const LIBRARY = 'bay-area-library-starter-guide';
-  assert.equal(factOf(LIBRARY)?.text, 'Oakland Public Library 面向加州居民；线上申请后，借实体书前还需完成身份核验。');
-  assert.match(card(LIBRARY)!.textContent!, /Oakland Public Library 面向加州居民/);
+  assert.match(factOf(LIBRARY)!.text, /^旧金山 · SFPL Discover & Go：/);
+  assert.match(card(LIBRARY)!.textContent!, /SFPL Discover & Go/);
   // A sentence that opens with a condition or advice is not a fact: the only candidate on the Peninsula page starts with 如果.
   assert.deepEqual(guideQuickFacts(getGuideBySlug('peninsula-living-guide')!), []);
   // Labels before a colon do not hide advice: "Cupertino：…不能替代…" is a rule, "San José：不要…" is not.
@@ -164,7 +166,7 @@ test('without a figure, the first fact is the first sentence after the lede that
   const english = card(LIBRARY, '/en');
   assert.ok(english, 'the library starter card has its English row');
   assert.doesNotMatch(english!.textContent!, /[㐀-鿿]/u);
-  assert.match(english!.textContent!, /Oakland Public Library serves California residents\./);
+  assert.match(english!.textContent!, /SFPL Discover & Go/);
   await setLocale('zh-Hans', false);
 });
 
