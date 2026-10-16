@@ -37,7 +37,7 @@ export const seniorTransitEditorial: GuideEditorial = {
         "en": "Senior Clipper card"
       },
       "value": {
-        "zh": "65 岁以上可办；网上、邮寄、电邮、传真或到客服中心申请",
+        "zh": "65 岁及以上可办；网上、邮寄、电邮、传真或到客服中心申请",
         "en": "For 65+; apply online, by mail, email or fax, or at a Customer Service Center"
       },
       "source": 1
@@ -70,7 +70,7 @@ export const seniorTransitEditorial: GuideEditorial = {
         "en": "Free Muni in SF"
       },
       "value": {
-        "zh": "65 岁以上旧金山居民，家庭收入不超过湾区收入中位数 100%",
+        "zh": "65 岁及以上的旧金山居民，家庭收入不超过湾区收入中位数 100%",
         "en": "SF residents 65+ with family income at or below 100% of Bay Area median"
       },
       "source": 4
@@ -214,7 +214,7 @@ export const seniorTransitEditorial: GuideEditorial = {
   ],
   "steps": [
     {
-      "zh": "65 岁以上办长者 Clipper 卡，网上、邮寄或到客服中心申请。",
+      "zh": "年满 65 岁办长者 Clipper 卡，网上、邮寄或到客服中心申请。",
       "en": "At 65+, get a Senior Clipper card online, by mail or at a Customer Service Center."
     },
     {
@@ -226,7 +226,7 @@ export const seniorTransitEditorial: GuideEditorial = {
       "en": "Lower-income SF seniors apply online for free Muni; up to 4 weeks."
     },
     {
-      "zh": "65 岁以下有残障的，办 Clipper Access 卡。",
+      "zh": "未满 65 岁、有残障的，办 Clipper Access 卡。",
       "en": "Under 65 with a disability: get a Clipper Access card."
     },
     {

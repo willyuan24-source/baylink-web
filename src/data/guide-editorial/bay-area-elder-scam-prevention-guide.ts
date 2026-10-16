@@ -85,7 +85,7 @@ export const elderScamEditorial: GuideEditorial = {
       "number": "833-372-8311",
       "tel": "+18333728311",
       "note": {
-        "zh": "60 岁以上被骗；周一到周五美东时间 10:00–18:00",
+        "zh": "60 岁及以上的人被骗；周一到周五美东时间 10:00–18:00",
         "en": "Fraud against anyone 60+; Monday–Friday 10 a.m.–6 p.m. Eastern"
       },
       "source": 5
@@ -238,7 +238,7 @@ export const elderScamEditorial: GuideEditorial = {
       "en": "Fake Social Security, Chinese police, family emergencies and Medicare are the most common stories."
     },
     {
-      "zh": "打给银行；60 岁以上打 833-372-8311，再到 IC3 和 FTC 报告。",
+      "zh": "打给银行；60 岁及以上的人被骗，打 833-372-8311，再到 IC3 和 FTC 报告。",
       "en": "Call your bank; if 60 or older, call 833-372-8311, then report to IC3 and the FTC."
     },
     {

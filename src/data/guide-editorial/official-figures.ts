@@ -191,4 +191,9 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: "55 Columbus AveSan Francisco, CA 94111Phone: 415-896-1701" },
   { slug: "bay-area-chinese-language-resource-map", figure: "(415) 984-1450", url: "https://www.chinatowncdc.org/", readOn: '2026-10-14',
     quote: "Housing Counseling Drop-In Hours Privacy Policy (415) 984-1450 info@chinatowncdc.org" },
+  // CNT-GUIDES-3 (2026-10-16): GPT's 10-15 number review (AHS membership vs administration, CCDC's housing hotline), re-read.
+  { slug: "bay-area-chinese-language-resource-map", figure: "(510) 986-6880", url: "https://asianhealthservices.org/", readOn: '2026-10-16',
+    quote: "Dental Clinic: (510) 986-6888 Membership: (510) 986-6880 … NEW PATIENTS Become a member and access medical, dental, and mental health services." },
+  { slug: "bay-area-chinese-language-resource-map", figure: "(415) 984-2728", url: "https://www.chinatowncdc.org/about-us/contact-us", readOn: '2026-10-16',
+    quote: "Tel: (415) 984-1450 Fax: (415) 984-2724 Housing Counseling Hotline: (415) 984-2728" },
 ];

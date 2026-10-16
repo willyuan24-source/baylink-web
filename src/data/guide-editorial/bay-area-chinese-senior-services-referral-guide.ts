@@ -14,7 +14,7 @@ export const seniorServicesEditorial: GuideEditorial = {
   keyFacts: [
     { label: { zh: '先打哪个电话', en: 'Who to call first' }, value: { zh: '所在县的 AAA；全州信息线 800-510-2020', en: "Your county's AAA; statewide line 800-510-2020" }, source: 1 },
     { label: { zh: '旧金山白天照护', en: 'Day care in San Francisco' }, value: { zh: '安老自助处 415-677-7556，普通话、粤语、台山话', en: 'Self-Help for the Elderly 415-677-7556, Mandarin, Cantonese, Toisanese' }, source: 2 },
-    { label: { zh: '东湾中文探访', en: 'Chinese-speaking visits in the East Bay' }, value: { zh: 'Family Bridges 510-839-2022，60 岁以上，免费', en: 'Family Bridges 510-839-2022, age 60 and up, free' }, source: 5 },
+    { label: { zh: '东湾中文探访', en: 'Chinese-speaking visits in the East Bay' }, value: { zh: 'Family Bridges 510-839-2022，60 岁及以上，免费', en: 'Family Bridges 510-839-2022, age 60 and up, free' }, source: 5 },
     { label: { zh: '打电话前准备', en: 'Before you call' }, value: { zh: '住在哪个市县、用什么语言、需要哪种帮助', en: 'City and county, language, and the kind of help needed' } },
   ],
   contacts: [
@@ -62,7 +62,7 @@ export const seniorServicesEditorial: GuideEditorial = {
         { zh: '先问地址是否在覆盖区、要不要候补', en: 'Ask first whether the address is covered and if there is a waitlist' },
       ], source: 3 },
     { kind: 'contacts', kicker: { zh: '东湾 · 探访', en: 'East Bay · visits' }, title: { zh: 'Family Bridges 中文陪伴', en: 'Family Bridges companionship in Chinese' },
-      body: { zh: '免费。Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont，60 岁以上、出门不便或很少与人来往。', en: 'Free. Alameda, Albany, Berkeley, Emeryville, Oakland, Piedmont; age 60 and up, homebound or isolated.' },
+      body: { zh: '免费。Alameda、Albany、Berkeley、Emeryville、Oakland、Piedmont，60 岁及以上、出门不便或很少与人来往。', en: 'Free. Alameda, Albany, Berkeley, Emeryville, Oakland, Piedmont; age 60 and up, homebound or isolated.' },
       phones: [
         { label: { zh: '探访项目', en: 'Visiting Program' }, number: '510-839-2022', tel: '+15108392022' },
         { label: { zh: 'Hong Lok 长者中心', en: 'Hong Lok Senior Centers' }, number: '510-763-9017', tel: '+15107639017' },

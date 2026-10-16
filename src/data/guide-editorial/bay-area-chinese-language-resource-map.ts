@@ -108,7 +108,7 @@ export const chineseResourceMapEditorial: GuideEditorial = {
         }
       ],
       "note": {
-        "zh": "东湾 60 岁以上长者，免费",
+        "zh": "东湾 60 岁及以上长者，免费",
         "en": "East Bay seniors 60+, free"
       },
       "source": 6
@@ -131,11 +131,11 @@ export const chineseResourceMapEditorial: GuideEditorial = {
         "zh": "Asian Health Services",
         "en": "Asian Health Services"
       },
-      "number": "(510) 735-3100",
-      "tel": "+15107353100",
+      "number": "(510) 986-6880",
+      "tel": "+15109866880",
       "note": {
-        "zh": "行政电话",
-        "en": "Administration"
+        "zh": "新病人会员登记（Membership）；(510) 735-3100 是行政部门",
+        "en": "New-patient membership; (510) 735-3100 is the administration line"
       },
       "source": 8
     },
@@ -301,8 +301,8 @@ export const chineseResourceMapEditorial: GuideEditorial = {
       "en": "Legal and immigration: Asian Law Alliance, Asian Law Caucus; domestic violence line (408) 975-2739."
     },
     {
-      "zh": "住房：旧金山 CCDC 做住房咨询，(415) 984-1450。",
-      "en": "Housing: CCDC in San Francisco offers counseling, (415) 984-1450."
+      "zh": "住房：旧金山 CCDC 住房咨询热线 (415) 984-2728，总机 (415) 984-1450。",
+      "en": "Housing: CCDC in San Francisco, housing counseling hotline (415) 984-2728, main line (415) 984-1450."
     }
   ]
 };

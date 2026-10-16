@@ -234,7 +234,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "title": "Family Bridges：中文长者探访项目",
         "url": "https://familybridges.org/visiting-program/",
-        "description": "普通话、粤语探访，免费；60 岁以上，北 Alameda County 六个城市。"
+        "description": "普通话、粤语探访，免费；60 岁及以上，北 Alameda County 六个城市。"
       },
       {
         "title": "Family Bridges：Hong Lok 长者中心",

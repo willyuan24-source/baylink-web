@@ -1601,3 +1601,29 @@ rows (Belmont, Menlo Park, Mountain View, Novato Día de los Muertos; outside th
 | event | `r2-calistoga-ghost-stories-2026` | https://napalibrary.gov/blogs/post/calendar-notes-join-us-for-spooky-season/ | 2026-10-15 | GPT editor + lane | library blog (9/25/2026) | "Saturday, October 17 from 3 to 4 p.m. … local historian Rebecca Yerger … For adults. … Register". The event page itself is still an empty shell; fee not stated. |
 | event | `san-leandro-sandlot-movie-2026` | https://www.sanleandro.org/Calendar.aspx?EID=7777&calType=0&day=28&month=10&year=2026 | 2026-10-15 | GPT editor + lane | city calendar entry | "Outdoor Movie Night — FREE! … Saturday, October 17, 2026 … 6:30 PM - 9:30 PM … Floresta Park · 3750 Monterey Boulevard". The listed URL now opens the same entry (the day/month parameters only pick the calendar view). |
 | event | `sunnyvale-hands-on-arts-2026` | https://embed-rech-01.dialog.cm/sunnyvalelcs/docs/city_of_sunnyvale_activities_-_fall_2026 | 2026-10-15 | GPT editor | city fall 2026 activity guide | "Saturday, Oct. 17 10 a.m. – 3 p.m. Sunnyvale Community Center 550 E. Remington Drive". "FREE EVENT" is in the city's summer guide PDF, seen in the search index only; the event page still answers 403. `verifiedAt` not moved (fee and age not read). |
+
+## CNT-GUIDES-3 · guide and language corrections, 2026-10-16 (PT)
+
+Read by the CNT-GUIDES-3 lane agent on 2026-10-16 between about 00:55 and 02:30 PT with headless Chrome (read-only page loads); no
+forms, logins, registrations or posts. Purpose: GPT's 10-15/10-16 reviews of the three new elder guides, the 繁體 and English pages and
+20 standing resource cards (GPT's files are evidence only; every fact below was read again on its own official page). Guides carry
+`updatedAt` (content date), not `verifiedAt`; D12 is unaffected. These are agent reads, not editor checks.
+
+### Elder guides (GPT guide-numbers-review.csv, guide-gap-recheck.csv)
+
+| guide | fact written | URL | quote |
+|---|---|---|---|
+| `bay-area-elder-scam-prevention-guide` | 全国长者诈骗热线服务 60 岁及以上（不是“60 岁以上”） | https://ovc.ojp.gov/program/stop-elder-fraud/providing-help-restoring-hope | a free resource created by the U.S. Department of Justice (DOJ), Office for Victims of Crime for people to report fraud against anyone age 60 or older |
+| `bay-area-senior-transit-clipper-discounts-guide` | 长者 Clipper 卡：65 岁及以上 | https://www.clippercard.com/discounts.html | Senior Clipper Card Cardholder must be 65 or older |
+| `bay-area-senior-transit-clipper-discounts-guide` | BART 长者票：65 岁及以上；Clipper Access 给未满 65 岁的残障乘客 | https://www.bart.gov/tickets/discounts | Seniors 65 and over get 62.5% off with a Senior Clipper card. … The Clipper Access card (formerly known as RTC) is a version of Clipper created for passengers under 65 with qualifying disabilities to provide 62.5% off. |
+| `bay-area-senior-transit-clipper-discounts-guide` | 免费 Muni：65 岁及以上、收入不超过湾区中位数 100%；已有 Clipper 卡最长 3 周、需要新卡最长 4 周（两种情况分开写，未改） | https://www.sfmta.com/fares/free-muni-seniors-ages-65 | All San Francisco seniors, ages 65+, with a gross annual family income at or below 100 percent of Bay Area Median Income level are eligible … The approval process will take up to 3 weeks for existing Clipper card holders and up to 4 weeks if a new card is needed. |
+| `bay-area-chinese-language-resource-map` | Family Bridges 探访：60 岁及以上 | https://familybridges.org/visiting-program/ | Eligibility Seniors aged 60+ who are homebound or socially isolated in Alameda, Albany, Berkeley, Emeryville, Oakland, or Piedmont are eligible. |
+| `bay-area-chinese-language-resource-map` | Asian Health Services：(510) 735-3100 是行政部门电话；新病人先打会员登记 (510) 986-6880 | https://asianhealthservices.org/ | Administration: (510) 735-3100 … Dental Clinic: (510) 986-6888 Membership: (510) 986-6880 … NEW PATIENTS Become a member and access medical, dental, and mental health services. |
+| `bay-area-chinese-language-resource-map` | CCDC 总机 (415) 984-1450 与住房咨询热线 (415) 984-2728 分开写 | https://www.chinatowncdc.org/about-us/contact-us | Main Office 615 Grant Avenue San Francisco CA 94108 Tel: (415) 984-1450 … Tel: (415) 984-1450 Fax: (415) 984-2724 Housing Counseling Hotline: (415) 984-2728 |
+| `bay-area-chinese-senior-services-referral-guide` | Family Bridges：60 岁及以上（同一页） | https://familybridges.org/visiting-program/ | Seniors aged 60+ who are homebound or socially isolated |
+
+Re-read with no change needed: the five county AAA lines in the resource map and the senior-services guide match the state directory
+(https://aging.ca.gov/Find_Services_in_my_County/: "Alameda 510-577-1900 … Contra Costa 925-229-8434 … San Francisco 415-355-3555 … San
+Mateo 844-868-0938 … Santa Clara 408-350-3200"); SF311's "160 多种语言" already has its 10-14 row above and reads the same today
+(https://www.sf.gov/departments--311-customer-service-center: "We offer assistance in over 160 languages over the phone and our mobile app
+is available in Chinese, Filipino, Spanish, and English").
