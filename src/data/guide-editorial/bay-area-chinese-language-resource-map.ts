@@ -303,6 +303,14 @@ export const chineseResourceMapEditorial: GuideEditorial = {
     {
       "zh": "住房：旧金山 CCDC 住房咨询热线 (415) 984-2728，总机 (415) 984-1450。",
       "en": "Housing: CCDC in San Francisco, housing counseling hotline (415) 984-2728, main line (415) 984-1450."
+    },
+    {
+      "zh": "中文书和寻根：华埠图书馆、Oakland 亚洲分馆、CHSA 和 CCC 的唐人街导览；My China Roots 查祖籍村和姓氏。",
+      "en": "Chinese books and roots: the Chinatown and Oakland Asian Branch libraries, CHSA and CCC’s Chinatown tour; My China Roots for ancestral villages and surnames."
+    },
+    {
+      "zh": "孩子学中文：Millbrae 的普通话、粤语故事会，Pleasanton 的 CACC 中文学校，在家读 LOTE4Kids 电子绘本。",
+      "en": "Chinese for children: Millbrae’s Mandarin/Cantonese storytime, CACC Chinese School in Pleasanton, and LOTE4Kids picture books at home."
     }
   ]
 };

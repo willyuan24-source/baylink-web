@@ -87,6 +87,7 @@ export const seniorServicesEditorial: GuideEditorial = {
     { zh: '旧金山白天照护找安老自助处 415-677-7556，先问转介、语言、接送和费用。', en: 'For day care in San Francisco, call Self-Help for the Elderly at 415-677-7556 and ask about referral, language, rides and cost.' },
     { zh: '能出门的问中心用餐，难出门的问送餐；先问地址是否在覆盖区。', en: 'Shared meals if your relative can go out, meal delivery if not; ask first whether the address is covered.' },
     { zh: '东湾探访找 Family Bridges 510-839-2022；想参加活动可问 Hong Lok 中心 510-763-9017。', en: 'For visits in the East Bay call Family Bridges at 510-839-2022; for activities, Hong Lok at 510-763-9017.' },
+    { zh: '长者中心活动：On Lok 30th Street 先打电话问中文；南湾有 Edenvale 中英文电脑辅导、Berryessa 普通话英语会话和 Cupertino 长者中心。', en: 'Senior center activities: call On Lok 30th Street first about Chinese; in the South Bay, Edenvale’s tech help in English or Chinese, Berryessa’s English club for Mandarin speakers and the Cupertino Senior Center.' },
     { zh: '准备市县、语言和具体需要，逐项问服务区域、条件、费用和候补。', en: 'Have the city, county, language and needs ready; ask about area, conditions, cost and waitlist one by one.' },
   ],
 };
