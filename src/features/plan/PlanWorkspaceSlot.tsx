@@ -102,12 +102,12 @@ function DeferredSlot() {
   useEffect(() => {
     const options = { capture: true, passive: true } as const;
     for (const type of INTERACTIONS) window.addEventListener(type, wantPlan, options);
-    // Every plain visit loads the workspace at the first idle moment after the app's first paint (at most 2 s later), so a
-    // reader who reads first and acts later finds the live form. The page's LCP photo is in the prerendered HTML and on
-    // its way long before (the browser's preload scanner finds it), so the download does not compete with it.
+    // Every plain visit loads the workspace at the first idle moment after the app's first paint (at most 0.5 s later), so
+    // a reader who reads first and acts later finds the live form (sooner than on the base, which started it at boot). The
+    // page's LCP photo is in the prerendered HTML and painted before the app renders, so the download does not compete.
     const idleWindow = window as IdleWindow;
     const useIdle = !!idleWindow.requestIdleCallback && !!idleWindow.cancelIdleCallback;
-    const idle = useIdle ? idleWindow.requestIdleCallback!(wantPlan, { timeout: 2000 }) : window.setTimeout(wantPlan, 500);
+    const idle = useIdle ? idleWindow.requestIdleCallback!(wantPlan, { timeout: 500 }) : window.setTimeout(wantPlan, 200);
     return () => {
       for (const type of INTERACTIONS) window.removeEventListener(type, wantPlan, options);
       if (useIdle) idleWindow.cancelIdleCallback!(idle); else window.clearTimeout(idle);
