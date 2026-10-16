@@ -1,3 +1,5 @@
+import { EDITOR_REVIEW_DATE_2026_10_16, EDITOR_REVIEWED_2026_10_16 } from './editor-review-2026-10-16';
+
 /**
  * Items whose verifiedAt the GPT editor's weekly source review set to 2026-10-15 (ROADMAP-8-9 §2.5 Wednesday review of the
  * 10/17–18 and 10/24–25 weekends; docs/source-reads-2026-10.md "GPT editor review 2026-10-15"). Batch tests that pin a
@@ -160,5 +162,5 @@ export const EDITOR_REVIEWED_2026_10_15: ReadonlySet<string> = new Set([
   // Its gap re-check of a 10/24 item, read on the city's own page ("GPT editor gap re-check 2026-10-15 · second pass").
   'menlo-park-halloween-hoopla-2026',
 ]);
-/** The batch date, or the editor review date for a reviewed id. */
-export const batchVerifiedAt = (id: string, batchDate: string): string => EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;
+/** The batch date, or the latest editor review date for a reviewed id (the 10-16 third pass, then the 10-15 passes). */
+export const batchVerifiedAt = (id: string, batchDate: string): string => EDITOR_REVIEWED_2026_10_16.has(id) ? EDITOR_REVIEW_DATE_2026_10_16 : EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;
