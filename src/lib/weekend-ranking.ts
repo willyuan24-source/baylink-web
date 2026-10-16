@@ -4,7 +4,17 @@ import type { MonthlyEvent, MonthlyRegion } from '../data/monthly-types';
 // imports: callers pass the eligible entries and, at build time, a photo check
 // against the full image catalog.
 export type WeekendEntry = { event: MonthlyEvent; date: string };
-export type WeekendRankingOptions = { hasPhoto?: (imageKey: string) => boolean; flagships?: ReadonlySet<string> };
+export type WeekendRankingOptions = {
+  /** Any listing image: a photo, a poster or a letterboxed banner (the score's +2). */
+  hasPhoto?: (imageKey: string) => boolean;
+  /** A photo that fills its card: not a poster or a letterboxed (fullFrame) banner. Breaks ties ahead of hasPhoto; defaults to it. */
+  hasRealPhoto?: (imageKey: string) => boolean;
+  flagships?: ReadonlySet<string>;
+};
+
+/** A listing image that fills its card (cover.ts crops it): not an illustration, a poster or a letterboxed (fullFrame) banner. */
+export const isRealPhotoImage = (image: { kind?: string; fullFrame?: boolean } | undefined): boolean =>
+  !!image && image.kind !== 'illustration' && image.kind !== 'poster' && !image.fullFrame;
 
 const CHINESE = /中英|中文|华人|华裔|普通话|国语|粤语|中华|中秋|Chinese|Mandarin|Cantonese/i;
 const FAMILY = /亲子|家庭|全龄|全年龄|所有年龄|儿童|长者|长辈/;
@@ -32,14 +42,17 @@ const weekendHash = (text: string): number => {
 };
 
 /**
- * Highest score first; within a score, an event with a real photo first (H19: the home and /events feeds lead with pictures
- * without letting a photo outrank a better match); then the most recently checked, then a per-weekend hash. Adult-only
- * events go last.
+ * Highest score first; within a score, an event with a real photo first, then one with a poster or a letterboxed banner
+ * (H19: the home and /events feeds lead with pictures without letting a photo outrank a better match); then the most
+ * recently checked, then a per-weekend hash. Adult-only events go last.
  */
 export function rankWeekendFallback<T extends WeekendEntry>(entries: readonly T[], weekendStart: string, options: WeekendRankingOptions = {}): T[] {
-  const photo = options.hasPhoto ?? (() => false);
-  const keyed = entries.map(entry => ({ entry, adult: isAdultOnly(entry.event), score: scoreWeekendEvent(entry.event, options), photo: photo(entry.event.imageKey), hash: weekendHash(`${weekendStart}:${entry.event.id}`) }));
-  return keyed.sort((a, b) => Number(a.adult) - Number(b.adult) || b.score - a.score || Number(b.photo) - Number(a.photo)
+  const anyImage = options.hasPhoto ?? (() => false);
+  const realPhoto = options.hasRealPhoto ?? anyImage;
+  // 2 = a photo that fills the card, 1 = a poster or banner, 0 = a TypeCover.
+  const photoRank = (imageKey: string) => realPhoto(imageKey) ? 2 : anyImage(imageKey) ? 1 : 0;
+  const keyed = entries.map(entry => ({ entry, adult: isAdultOnly(entry.event), score: scoreWeekendEvent(entry.event, options), photo: photoRank(entry.event.imageKey), hash: weekendHash(`${weekendStart}:${entry.event.id}`) }));
+  return keyed.sort((a, b) => Number(a.adult) - Number(b.adult) || b.score - a.score || b.photo - a.photo
     || b.entry.event.verifiedAt.localeCompare(a.entry.event.verifiedAt) || a.hash - b.hash
     // Only a hash collision reaches the id; it keeps the order independent of input order.
     || a.entry.event.id.localeCompare(b.entry.event.id)).map(({ entry }) => entry);

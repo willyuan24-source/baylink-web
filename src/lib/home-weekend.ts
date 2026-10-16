@@ -3,7 +3,7 @@ import { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS, type WeekendPickEntry } from '../d
 import { MONTHLY_EVENTS, HOME_WEEKENDS, HOME_GENERATED_AT, GUIDE_IMAGES } from './home-catalog';
 import { featurePhotos, filterMonthlyEvents, getMonthlyDateRange } from './monthly';
 import { addCalendarDays, eventOccursOn } from './event-calendar';
-import { rankWeekendFallback, selectWeekendFallback } from './weekend-ranking';
+import { isRealPhotoImage, rankWeekendFallback, selectWeekendFallback } from './weekend-ranking';
 import { isSeniorFriendly } from './senior-friendly';
 import { checkSummary, type CheckSummary } from './check-dates';
 
@@ -12,6 +12,8 @@ export type HomeWeekendPick = { event: MonthlyEvent; date: string; editorial?: W
 export type HomeWeekendOptions = {
   picks?: Readonly<Record<string, readonly WeekendPickEntry[]>>;
   hasPhoto?: (imageKey: string) => boolean;
+  /** A photo that fills its card (weekend-ranking.ts isRealPhotoImage); defaults to hasPhoto when hasPhoto is given. */
+  hasRealPhoto?: (imageKey: string) => boolean;
   flagships?: ReadonlySet<string>;
   limit?: number;
   /** Cards in the home's two-column 本周末 feed after the picks (1007 §4.2 ④). */
@@ -31,6 +33,7 @@ const FEED_PHOTO_SLOTS = [0, 3, 4, 7] as const;
 // The client only holds the compact image subset. Builds pass a resolver over
 // the full image catalog instead (src/lib/home-weekend-build.ts).
 const compactPhoto = (imageKey: string) => Object.hasOwn(GUIDE_IMAGES, imageKey) && GUIDE_IMAGES[imageKey].kind !== 'illustration';
+const compactRealPhoto = (imageKey: string) => Object.hasOwn(GUIDE_IMAGES, imageKey) && isRealPhotoImage(GUIDE_IMAGES[imageKey]);
 const editorialFor = (list: readonly WeekendPickEntry[], id: string): WeekendEditorial | undefined => {
   const rank = list.findIndex(entry => entry.id === id);
   return rank < 0 ? undefined : { rank: rank + 1, reason: list[rank].reason };
@@ -38,6 +41,7 @@ const editorialFor = (list: readonly WeekendPickEntry[], id: string): WeekendEdi
 
 export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_EVENTS, options: HomeWeekendOptions = {}) {
   const { picks: editorialPicks = WEEKEND_PICKS, hasPhoto = compactPhoto, flagships = WEEKEND_FLAGSHIP_IDS, limit = 3, feedLimit = HOME_FEED_SIZE } = options;
+  const hasRealPhoto = options.hasRealPhoto ?? (options.hasPhoto ? hasPhoto : compactRealPhoto);
   const range = getMonthlyDateRange('weekend', today)!;
   const days = [range.start, range.end].filter(day => day >= today);
   const events = filterMonthlyEvents(catalog, { date: 'weekend' }, today).map(event => ({
@@ -69,15 +73,17 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
     if (entry && picks.length < limit && !picks.some(pick => pick.event.id === id)) picks.push({ ...entry, editorial: editorialFor(list, id) });
   }
   const fallback = selectWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), {
-    weekendStart: range.start, count: limit - picks.length, usedRegions: picks.map(pick => pick.event.region), hasPhoto, flagships,
+    weekendStart: range.start, count: limit - picks.length, usedRegions: picks.map(pick => pick.event.region), hasPhoto, hasRealPhoto, flagships,
   });
   // Image-led home: when no editor pick leads, the best-ranked pick with a real photo goes first (its cover is the page's
-  // LCP image and the only eager one); the others keep their rank order. A top-ranked pick without a photo moves to
-  // second instead of leaving the first slot to an information card.
-  picks.push(...(picks.length ? fallback : featurePhotos(fallback, entry => hasPhoto(entry.event.imageKey), [0])));
+  // LCP image and the only eager one); the others keep their rank order. A photo that fills the card leads before a poster
+  // or a letterboxed banner (W6-INT); with neither, a top-ranked pick without an image moves to second instead of leaving
+  // the first slot to an information card.
+  const lead = fallback.some(entry => hasRealPhoto(entry.event.imageKey)) ? hasRealPhoto : hasPhoto;
+  picks.push(...(picks.length ? fallback : featurePhotos(fallback, entry => lead(entry.event.imageKey), [0])));
   // The feed: the rest of the weekend in the home ranking (Chinese-language, free, family, real photo, flagship), with
   // the best real photos on the grid's diagonal.
-  const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), range.start, { hasPhoto, flagships });
+  const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), range.start, { hasPhoto, hasRealPhoto, flagships });
   const feed = featurePhotos(rest, entry => hasPhoto(entry.event.imageKey), FEED_PHOTO_SLOTS).slice(0, feedLimit);
   return { ...range, events, picks, feed, total, seniors, checked };
 }

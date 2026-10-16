@@ -4,7 +4,7 @@ import type { EventsIndex, EventsLater, IndexEvent, IndexOffer, IndexOpening, Mo
 import type { Copy } from '../../lib/event-facts';
 import { getCover, type CoverContext } from '../../lib/cover';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs, type MonthlyDateFilter, type WeekendDayTab } from '../../lib/monthly';
-import { rankWeekendFallback, selectWeekendFallback } from '../../lib/weekend-ranking';
+import { isRealPhotoImage, rankWeekendFallback, selectWeekendFallback } from '../../lib/weekend-ranking';
 import { isSeniorFriendly } from '../../lib/senior-friendly';
 import type { MonthlyEvent } from '../../data/monthly-types';
 import { readerMonthDay } from '../../lib/event-facts';
@@ -196,8 +196,9 @@ export function weekendPicks(events: readonly IndexEvent[], today: string, { lim
     if (entry && chosen.length < limit && !chosen.some(pick => pick.event.id === id)) chosen.push({ event: entry.event as unknown as IndexEvent, date: entry.date, reason });
   }
   const hasPhoto = (imageKey: string) => Object.hasOwn(EVENTS_INDEX.images, imageKey);
+  const hasRealPhoto = (imageKey: string) => hasPhoto(imageKey) && isRealPhotoImage(EVENTS_INDEX.images[imageKey]);
   const rest = selectWeekendFallback(entries.filter(entry => !chosen.some(pick => pick.event.id === entry.event.id)), {
-    weekendStart: range.start, count: limit - chosen.length, usedRegions: chosen.map(pick => pick.event.region), hasPhoto, flagships,
+    weekendStart: range.start, count: limit - chosen.length, usedRegions: chosen.map(pick => pick.event.region), hasPhoto, hasRealPhoto, flagships,
   });
   return [...chosen, ...rest.map(entry => ({ event: entry.event as unknown as IndexEvent, date: entry.date }))];
 }
@@ -214,7 +215,8 @@ export function weekendTabs(events: readonly IndexEvent[], today: string): { day
   for (const event of events) for (const tab of weekendDayTabs(event, days, today)) tabs[tab].push(event);
   const rank = (list: IndexEvent[], day: string) => {
     const hasPhoto = (imageKey: string) => Object.hasOwn(EVENTS_INDEX.images, imageKey);
-    const ranked = rankWeekendFallback(list.map(event => ({ event: event as unknown as MonthlyEvent, date: day })), range.start, { hasPhoto, flagships: WEEKEND_FLAGSHIP_IDS });
+    const hasRealPhoto = (imageKey: string) => hasPhoto(imageKey) && isRealPhotoImage(EVENTS_INDEX.images[imageKey]);
+    const ranked = rankWeekendFallback(list.map(event => ({ event: event as unknown as MonthlyEvent, date: day })), range.start, { hasPhoto, hasRealPhoto, flagships: WEEKEND_FLAGSHIP_IDS });
     return ranked.map(entry => entry.event as unknown as IndexEvent);
   };
   return { days, tabs: { sat: rank(tabs.sat, days[0]), sun: rank(tabs.sun, days[1]), open: rank(tabs.open, days[0]) } };
