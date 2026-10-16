@@ -5,6 +5,7 @@ import { isLocaleReadyForFeature, isLocaleReadyForPath, loadLocaleForFeature, ty
 import { pathLanguage } from '../../lib/language-path';
 import { routePathname } from '../../app/route-table';
 import type { PlannerWorkspaceProps } from './PlannerWorkspace';
+import { nodeWorkspace } from './plan-workspace-node';
 
 /**
  * 行程's catalog after the first paint (WEB-PLAN-DATA). The page's header renders at once; its workspace (saved days, the
@@ -26,7 +27,7 @@ import type { PlannerWorkspaceProps } from './PlannerWorkspace';
 const loadCatalog = chunkLoader(() => import('../../data/generated/plan-catalog.json'), module => module.default as unknown as PlanCatalog);
 const loadExtras = chunkLoader(() => import('../../data/generated/plan-extras.json'), module => module.default as unknown as PlanExtras);
 const loadWorkspace = chunkLoader(() => import('./PlannerWorkspace'), module => module.PlannerWorkspace);
-let Workspace: ComponentType<PlannerWorkspaceProps> | undefined;
+let Workspace: ComponentType<PlannerWorkspaceProps> | undefined = nodeWorkspace;
 const installWorkspace = (component: ComponentType<PlannerWorkspaceProps>) => { Workspace = component; };
 
 /** The English the workspace shows: its own pack, or the packs My Week, /together and /me load (a superset of it). */
@@ -96,9 +97,3 @@ export const planWantedAtOnce = (search: string): boolean => {
 // Such a link starts the workspace as soon as the route chunk runs on /plan, in the URL's language: at boot, while the
 // language and the app are still loading (bootApp waits for both), instead of after the header's first render.
 if (typeof window !== 'undefined' && routePathname(window.location.pathname) === '/plan' && planWantedAtOnce(window.location.search)) void loadPlan(pathLanguage(window.location.pathname)).catch(() => undefined);
-
-// Node renders 行程 in one pass (the prerender, tests), as lib/planner-source.ts installs the catalog there; BAYLINK_LAZY_PLAN=1
-// takes the browser's path.
-type NodeProcess = { env?: Record<string, string | undefined>; getBuiltinModule?: (id: string) => unknown };
-const nodeProcess = (globalThis as { process?: NodeProcess }).process;
-if (nodeProcess?.getBuiltinModule && nodeProcess.env?.BAYLINK_LAZY_PLAN !== '1') installWorkspace((await import('./PlannerWorkspace')).PlannerWorkspace);

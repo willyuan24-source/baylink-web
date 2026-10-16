@@ -2,7 +2,7 @@ import { readdir, readFile } from 'node:fs/promises';
 import { gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
 import { verifyPhoneLinks } from './verify-phone-links.mjs';
-import { formatRouteBudgets, measureRouteBudgets } from './route-budgets.mjs';
+import { formatRouteBudgets, measureRouteBudgets, pageModuleKey } from './route-budgets.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { checkLegacyUrls, LEGACY_URLS } from './hosting-routes.mjs';
 // The route table (src/app/route-table.ts) names the prerendered pages to check (`release`) and each page's module.
@@ -111,7 +111,8 @@ for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   const path=`dist/${locale}${page}.html`; const html=await readFile(path,'utf8');
   const route=matchRoute(page==='index'?'/':`/${page}`);
   // RC-6: a prerendered page links its route CSS, or <main> paints unstyled until the chunk loads.
-  if(!route?.bare) for(const css of routeStyles(PAGE_MODULES[route.page])) if(!html.includes(`href="/${css}"`)) throw new Error(`Route stylesheet /${css} is not linked: ${path}`);
+  // A page chunk without a facade (PlannerPage) is found by name (pageModuleKey), so its stylesheets are checked too.
+  if(!route?.bare) for(const css of routeStyles(pageModuleKey(manifest,PAGE_MODULES[route.page]))) if(!html.includes(`href="/${css}"`)) throw new Error(`Route stylesheet /${css} is not linked: ${path}`);
   // a page that asks not to be indexed (an ended event a month on, I18N-SEO-10) carries no language cluster
   const indexed=!/<meta name="robots" content="noindex/.test(html);
   if(!html.includes('rel="canonical"') || indexed && (!html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"'))) throw new Error(`Missing language metadata: ${path}`);

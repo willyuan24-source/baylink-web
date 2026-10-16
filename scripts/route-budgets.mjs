@@ -19,6 +19,18 @@ export function moduleGraph(manifest, keys) {
   return files;
 }
 
+/**
+ * A page module's manifest key. A page chunk that also exports modules a later chunk shares (PlannerPage and its lazy
+ * workspace, NotFoundPage for the detail pages) has no facade, so Vite keys it `_Name-hash.js`: find that dynamic entry by
+ * name, as scripts/prerender.tsx does. Anything else missing stays missing (moduleGraph then fails loudly).
+ */
+export function pageModuleKey(manifest, module) {
+  if (manifest[module]) return module;
+  const name = module.split('/').pop().replace(/\.tsx?$/, '');
+  const matches = Object.entries(manifest).filter(([key, item]) => key.startsWith('_') && item.isDynamicEntry && item.name === name);
+  return matches.length === 1 ? matches[0][0] : module;
+}
+
 /** Scope name → manifest key, from the generated English scope registry. */
 export function englishScopeModules(loaderSource) {
   return new Map([...loaderSource.matchAll(/"([^"]+)": \(\) => import\("\.\/(english-scopes\/[^"]+\.json)"\)/g)].map(match => [match[1], `src/data/generated/${match[2]}`]));
@@ -37,7 +49,7 @@ export const TRADITIONAL = 'src/i18n/traditional.ts';
  * (src/i18n/locale.ts loadLocaleForPath).
  */
 export function routeModules(manifest, { route, module, data = [] }, locale, { englishScopesForPath, scopeModules, searchFreePath = () => false }) {
-  const keys = ['index.html', module, ...data];
+  const keys = ['index.html', pageModuleKey(manifest, module), ...data];
   if (locale === 'zh-Hant') {
     if (!manifest[TRADITIONAL]?.isDynamicEntry) throw new Error(`The 繁體 converter (${TRADITIONAL}) is no longer a dynamic entry; update scripts/route-budgets.mjs`);
     keys.push(TRADITIONAL);

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { englishScopeModules, formatRouteBudgets, moduleGraph, routeModules, SEARCH_DICTIONARIES, TRADITIONAL } from '../scripts/route-budgets.mjs';
+import { englishScopeModules, formatRouteBudgets, moduleGraph, pageModuleKey, routeModules, SEARCH_DICTIONARIES, TRADITIONAL } from '../scripts/route-budgets.mjs';
 import { searchFreePath } from '../src/lib/english-loading.ts';
 
 const manifest = {
@@ -47,6 +47,18 @@ test('a page that loads its data before rendering counts that data chunk too (a 
 test('a missing page module or English scope fails loudly instead of measuring less', () => {
   assert.throws(() => moduleGraph(manifest, ['src/pages/Missing.tsx']), /Missing build module/);
   assert.throws(() => routeModules(manifest, budget, 'en', { englishScopesForPath: () => ['ui', 'planning'], scopeModules }), /planning/);
+});
+
+test('a page chunk without a facade (it exports modules its lazy part shares) is measured by name, never skipped', () => {
+  const plan = { route: '/plan', module: 'src/pages/PlannerPage.tsx' };
+  const withPlan = { ...manifest, '_PlannerPage-x1.js': { file: 'assets/plan-page.js', name: 'PlannerPage', isDynamicEntry: true, imports: ['_react.js'] }, '_Planner-x2.js': { file: 'assets/planner.js', name: 'Planner', isDynamicEntry: true } };
+  assert.equal(pageModuleKey(withPlan, 'src/pages/PlannerPage.tsx'), '_PlannerPage-x1.js');
+  assert.equal(pageModuleKey(withPlan, 'src/pages/GuidesPage.tsx'), 'src/pages/GuidesPage.tsx');
+  assert.ok([...moduleGraph(withPlan, routeModules(withPlan, plan, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath }))].includes('assets/plan-page.js'));
+  // Two chunks with the same name, or none: the key stays the source path and moduleGraph fails loudly.
+  const twice = { ...withPlan, '_PlannerPage-x3.js': { file: 'assets/plan-page-2.js', name: 'PlannerPage', isDynamicEntry: true } };
+  assert.throws(() => moduleGraph(twice, routeModules(twice, plan, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath })), /Missing build module src\/pages\/PlannerPage\.tsx/);
+  assert.throws(() => moduleGraph(manifest, routeModules(manifest, plan, 'zh-Hans', { englishScopesForPath: () => [], scopeModules, searchFreePath })), /Missing build module/);
 });
 
 test('the release table marks routes over their ceiling and shows how far others can ratchet down', () => {
