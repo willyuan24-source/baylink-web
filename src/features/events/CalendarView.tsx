@@ -154,7 +154,7 @@ export default function CalendarView({ today }: { today: string }) {
 
     <div className="ev-calendar__foot">
       {!past && <Button variant="secondary" onClick={askAboutDay}>{t('让 BayBay 帮我安排这一天', 'Ask BayBay to plan this day')}</Button>}
-      <p className="ev-calendar__note">{t('日期按湾区当地时间；多日活动按已公布的日期列出，具体时段以主办方为准。', 'Dates are Bay Area local; multi-day events list their published dates — check times with the organiser.')}</p>
+      <p className="ev-calendar__note">{t('日期按湾区当地时间；多日活动按已公布的日期列出，具体时段以主办方为准。', 'Dates are Bay Area local; multi-day events list their published dates — check times with the organizer.')}</p>
     </div>
     <ImageCredits covers={covers} />
 
