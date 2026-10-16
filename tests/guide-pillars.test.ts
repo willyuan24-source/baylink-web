@@ -118,13 +118,13 @@ test('the 13 May/June guides are re-dated after a read and, with every 30-second
   }
 });
 
-test('the three new elder guides register every dollar amount and phone number with a dated official read (10-14 or a later re-read)', () => {
+test('the three new elder guides register every dollar amount and phone number with a dated official read (10-14, or a re-read no later than the guide date)', () => {
   for (const slug of NEW_ELDER_GUIDES) {
     const guide = getGuideBySlug(slug)!;
     assert.ok(guide, slug);
     assert.ok(GUIDE_EDITORIAL[slug], `${slug}: 30-second record`);
     const article = articleText(guide);
-    const registered = (figure: string) => OFFICIAL_FIGURES.some(row => row.slug === slug && row.figure === figure && row.readOn >= '2026-10-14');
+    const registered = (figure: string) => OFFICIAL_FIGURES.some(row => row.slug === slug && row.figure === figure && row.readOn >= '2026-10-14' && row.readOn <= guide.updatedAt);
     for (const amount of article.match(/\$\s*[\d,.]*\d/gu) ?? []) assert.ok(registered(amount), `${slug}: ${amount} has no registered read`);
     for (const phone of article.match(PHONE) ?? []) assert.ok(registered(phone), `${slug}: ${phone} has no registered read`);
   }

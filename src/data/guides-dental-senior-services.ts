@@ -248,7 +248,7 @@ export const dentalSeniorServiceGuides: Guide[] = [
       },
       {
         "title": "San José Public Library：Edenvale 一对一电脑辅导",
-        "url": "https://sjpl.bibliocommons.com/events/6a07b6ef278f7c2f008d79e2",
+        "url": "https://sjpl.bibliocommons.com/v2/events?series=6a0792ea3246e7b84b4f6443",
         "description": "免费，英语或中文，不用预约。"
       },
       {

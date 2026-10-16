@@ -1683,3 +1683,12 @@ written into these standing entries; they point to the organization's calendar.
 Not added: C13 (Tully Tech Help for Seniors). GPT read its language field as English, Chinese and Vietnamese; the event page read on
 10-16 says "Tech help available in English and Vietnamese" (https://sjpl.bibliocommons.com/events/6a8e207f4cb69d003e2363ab), so it is
 not written as a Chinese-language resource.
+
+### Review round (10-16, about 06:10–06:30 PT): transit fares, Edenvale series, Crab Cove source
+
+| guide | fact written | URL | quote |
+|---|---|---|---|
+| senior transit | VTA 长者日票 $3 和月票 $30 只能用 Clipper（现金不能买）；Clipper 当天扣满日票价后不再多扣 | https://www.vta.org/go/fares ; https://www.vta.org/go/fares/clipper | Senior (65+) & Disabled … Day Pass $3 NO YES … *available through the Clipper Day Pass Accumulator feature. Monthly Pass $30 NO YES … VTA’s Clipper 2-hour Free Transfer and Day Pass Accumulator features ensures only the required eCash fare is deducted from your card’s balance. |
+| senior transit | AC Transit 长者本地单程 Clipper $1.37、现金 $1.50；Clipper 本地车一天最多 $3、一个月最多 $41.50；2026-07-01 起的票价（“车票和月票都是五折”改掉：成人月票上限 $99.00，长者 $41.50，不是正好一半） | https://www.actransit.org/fares | Current Fares Fares Effective July 1, 2026 … Discounted … Local Single Ride $1.37 $1.50 … Local Day Pass Fare maximum at $3.00 $3.25 … Local Monthly/31-day Pass Fare maximum at $41.50 … Day, Weekly, and Monthly passes will be automatically applied when spending reaches the cost of these passes within the calendar period. |
+| senior services | Edenvale 一对一电脑辅导的来源改成系列的“全部场次”页（单场页 C12 留作原文出处） | https://sjpl.bibliocommons.com/v2/events?series=6a0792ea3246e7b84b4f6443 | Event series: 1:1 Tech Mentor/ 1:1 技术导师 … Edenvale … Free. Offered in-person, in English or 中文. … No registration or appointment required. Just drop by and ask for assistance. |
+| Alameda day | Crab Cove 小贴士的出处（C10 那一页）加进这篇的来源列表 | https://www.ebparks.org/parks/visitor-centers/crab-cove | (quote as C10) |

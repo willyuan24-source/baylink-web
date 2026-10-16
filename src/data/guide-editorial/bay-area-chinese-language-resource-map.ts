@@ -1,7 +1,7 @@
 import type { GuideEditorial } from './types';
 // Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
-// Facts from the article (SF311, CDA, Self-Help, On Lok, Family Bridges, NEMS, AHS, AACI, ALA, ALC and CCDC pages read 2026-10-14). 长辈与家属.
+// Facts from the article (SF311, CDA, Self-Help, On Lok, Family Bridges, NEMS, AHS, AACI, ALA, ALC and CCDC pages read 2026-10-14; AHS membership and CCDC's housing hotline re-read 2026-10-16). 长辈与家属.
 export const chineseResourceMapEditorial: GuideEditorial = {
   "slug": "bay-area-chinese-language-resource-map",
   "cover": {

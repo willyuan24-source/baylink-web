@@ -209,4 +209,13 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: "Sunday Closed 388 Ninth Street, Suite 190 Oakland, California 94607 … Phone: (510) 238-3400" },
   { slug: SENIOR, figure: "415-550-2210", url: "https://www.onlok.org/senior-center/activities", readOn: '2026-10-16',
     quote: "If you would like additional information about the senior center and our programs … You can also call 415-550-2210." },
+  // CNT-GUIDES-3 (2026-10-16): GPT's number review on the transit guide (VTA's day pass is Clipper only; AC Transit's discount by product).
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$3", url: "https://www.vta.org/go/fares", readOn: '2026-10-16',
+    quote: "Senior (65+) & Disabled … Day Pass $3 NO YES … *available through the Clipper Day Pass Accumulator feature. Monthly Pass $30 NO YES" },
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$1.37", url: "https://www.actransit.org/fares", readOn: '2026-10-16',
+    quote: "Fares Effective July 1, 2026 … Discounted Fare Type Pay with Clipper Card/Clipper Mobile Pay with Cash Local Single Ride $1.37 $1.50" },
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$1.50", url: "https://www.actransit.org/fares", readOn: '2026-10-16',
+    quote: "Discounted Fare Type Pay with Clipper Card/Clipper Mobile Pay with Cash Local Single Ride $1.37 $1.50" },
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$41.50", url: "https://www.actransit.org/fares", readOn: '2026-10-16',
+    quote: "Local Day Pass Fare maximum at $3.00 $3.25 Local Weekly Pass Fare maximum at $13.75 -- Local Monthly/31-day Pass Fare maximum at $41.50" },
 ];

@@ -1,7 +1,7 @@
 import type { GuideEditorial } from './types';
 // Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
-// Facts from the article (Clipper, BART, SFMTA, VTA, SamTrans, AC Transit, 511 and East Bay Paratransit pages read 2026-10-14). 长辈与家属.
+// Facts from the article (Clipper, BART, SFMTA, VTA, SamTrans, AC Transit, 511 and East Bay Paratransit pages read 2026-10-14; VTA and AC Transit fares re-read 2026-10-16). 长辈与家属.
 export const seniorTransitEditorial: GuideEditorial = {
   "slug": "bay-area-senior-transit-clipper-discounts-guide",
   "cover": {
@@ -138,16 +138,16 @@ export const seniorTransitEditorial: GuideEditorial = {
           "en": "Muni: $1.40 single ride, $43 monthly"
         },
         {
-          "zh": "VTA：单程 $1，日票 $3，月票 $30",
-          "en": "VTA: $1 single ride, $3 day pass, $30 monthly"
+          "zh": "VTA：单程 $1；日票 $3、月票 $30 用 Clipper",
+          "en": "VTA: $1 single ride; $3 day and $30 monthly passes on Clipper"
         },
         {
           "zh": "SamTrans：Clipper 单程 $1.00，月票 $27.00",
           "en": "SamTrans: $1.00 single ride on Clipper, $27.00 monthly"
         },
         {
-          "zh": "AC Transit：车票和月票五折",
-          "en": "AC Transit: half fare and half-price passes"
+          "zh": "AC Transit：Clipper 单程 $1.37，一天最多 $3",
+          "en": "AC Transit: $1.37 single ride on Clipper, $3 a day at most"
         }
       ]
     },
