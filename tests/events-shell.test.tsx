@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { readFileSync } from 'node:fs';
-import { afterEach, test } from 'node:test';
+import { after, afterEach, test } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
@@ -31,6 +31,18 @@ const { isFreeToAttend, getMonthlyDateRange, nextOccurrence } = await import('..
 const { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS } = await import('../src/data/weekend-picks');
 const { isAdultOnly, isRealPhotoImage, scoreWeekendEvent } = await import('../src/lib/weekend-ranking');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
+// The shell is rendered on the weekend of 10/10 with this editor list of its own, so these tests do not depend on what
+// src/data/weekend-picks.ts holds for a passed weekend (the routine deletes those).
+const PICKS_1010 = [
+  { id: 'san-francisco-fleet-week-2026', reason: { zh: '蓝天使飞越海湾，岸边免费看', en: 'Blue Angels over the Bay, free from the shore' } },
+  { id: 'burlingame-mandarin-storytime-2026', reason: { zh: '普通话+英语讲故事，0–6岁', en: 'Mandarin and English stories for ages 0–6' } },
+  { id: 'fremont-ardenwood-harvest-2026', reason: { zh: '收玉米、榨苹果汁，东湾农场一日', en: 'Pick corn and press cider on an East Bay farm' } },
+  { id: 'sf-italian-heritage-parade-2026', reason: { zh: '从渔人码头走进 North Beach', en: "From Fisherman's Wharf into North Beach" } },
+];
+const editorPicks = WEEKEND_PICKS as Record<string, typeof PICKS_1010>;
+const publishedPicks = editorPicks['2026-10-10'];
+editorPicks['2026-10-10'] = PICKS_1010;
+after(() => { if (publishedPicks) editorPicks['2026-10-10'] = publishedPicks; else delete editorPicks['2026-10-10']; });
 const { checkLine, checkSummary } = await import('../src/lib/check-dates');
 
 const originalFetch = globalThis.fetch;
@@ -62,12 +74,12 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     assert.deepEqual(tabs.map(tab => tab.getAttribute('aria-current')), ['page', null, null, null]);
     // The editor's list for 10/10 leads the rail in its order (a3 picks); the rail comes before the feed.
     const picks = [...page.querySelectorAll('.ev-picks .ui-hero-card a.ui-card-link')].map(link => link.getAttribute('href'));
-    assert.deepEqual(picks, WEEKEND_PICKS['2026-10-10'].map(pick => `/events/${pick.id}`));
+    assert.deepEqual(picks, PICKS_1010.map(pick => `/events/${pick.id}`));
     assert.ok(page.querySelector('.ev-picks')!.compareDocumentPosition(page.querySelector('#monthly-events')!) & 4, 'picks come before the feed');
     // 12 feed cards, none of them a pick, each one link with a cover; never the free-text dateLabel.
     const ids = feedIds(page);
     assert.equal(ids.length, 12);
-    assert.equal(ids.some(id => WEEKEND_PICKS['2026-10-10'].some(pick => pick.id === id)), false);
+    assert.equal(ids.some(id => PICKS_1010.some(pick => pick.id === id)), false);
     for (const card of page.querySelectorAll('.ui-feed-card')) {
       assert.ok(card.querySelector('[data-cover="image"], [data-cover="type"]'), 'every card has a cover');
       // The whole card is one link; its only other control is the ♡ in the cover's save slot (H31).

@@ -4,6 +4,7 @@ import test, { after, afterEach } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
+import type { WeekendPickEntry } from '../src/data/weekend-picks';
 
 // WEB-FIX5 (Batch 5, audit-1013): the 长辈友好 circle and rule (H06), honest check dates (H02), one-tap region (H23), the
 // picks label (H26), naming (H27), family links on details (H33), view titles (H35), sold-out and past details (H57, H56),
@@ -34,6 +35,7 @@ const { getHomeWeekend } = await import('../src/lib/home-weekend');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
+const { WEEKEND_PICKS } = await import('../src/data/weekend-picks');
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 after(() => {
@@ -175,8 +177,23 @@ test('H23: the region is one tap on 本周末 — a chip row under the day tabs,
 
 test('H26: 编辑精选 only for an editor list; the automatic ranking is 本周末先看', () => {
   const ssr = (today: string) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today={today} /></StaticRouter>));
-  assert.equal(ssr('2026-10-09').querySelector('#ev-picks-heading')!.textContent, '编辑精选', '10/10 has an editor list');
-  assert.equal(ssr('2026-10-13').querySelector('#ev-picks-heading')!.textContent, '本周末先看', '10/17 has none');
+  const heading = (today: string) => ssr(today).querySelector('#ev-picks-heading')?.textContent;
+  const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:00:00Z`) + amount * 86_400_000).toISOString().slice(0, 10);
+  // A weekend no editor has picked yet, seen from its Tuesday: the first Saturday from 10/24 without a list (the weekly
+  // picks never need this test changed).
+  const editorPicks = WEEKEND_PICKS as Record<string, readonly WeekendPickEntry[]>;
+  const ranked = (saturday: string) => model.weekendPicks(model.INDEX_EVENTS, addDays(saturday, -4), { picks: {} });
+  let saturday = '2026-10-24';
+  while (editorPicks[saturday] || !ranked(saturday).length) { saturday = addDays(saturday, 7); assert.ok(saturday <= '2026-12-26', 'a weekend without a list'); }
+  const tuesday = addDays(saturday, -4);
+  assert.equal(heading(tuesday), '本周末先看', `${saturday} has no editor list`);
+  // The same weekend with an editor list (two of the ranking's own events) is 编辑精选.
+  editorPicks[saturday] = ranked(saturday).slice(0, 2).map(pick => ({ id: pick.event.id, reason: { zh: '测试理由', en: 'Test reason' } }));
+  try {
+    assert.equal(heading(tuesday), '编辑精选', `${saturday} with an editor list`);
+  } finally {
+    delete editorPicks[saturday];
+  }
 });
 
 test('H35: each /events view has its own title; 本周末 keeps the page title', () => {
