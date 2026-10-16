@@ -1301,5 +1301,49 @@
       "evidenceUrl": "https://fortmason.org/event/arion-press-public-tours-2026/2026-11-21/1/",
       "scope": "same-event coverage only"
     }
+  },
+  {
+    "key": "official-union-square-holiday-ice-rink-2026",
+    "eventId": "union-square-holiday-ice-rink-2026",
+    "src": "/guides/official-events/union-square-holiday-ice-rink-2026.webp",
+    "width": 1280,
+    "height": 320,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      54,
+      62
+    ],
+    "alt": "夜里从高处俯瞰联合广场：彩灯照亮的溜冰场、旁边的大圣诞树和纪念柱，四周是商店和街道",
+    "caption": "Union Square Ice Rink 活动官方照片，未注明拍摄年份，不是 2026–27 这一季的现场；场次与票价以官网为准。",
+    "credit": "Union Square Ice Rink 活动官方照片",
+    "creditUrl": "https://unionsquareicerink.com/union-square-ice-skating/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://unionsquareicerink.com/union-square-ice-skating/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-cupertino-baer-blacksmith-fall-2026",
+    "eventId": "cupertino-baer-blacksmith-fall-2026",
+    "src": "/guides/official-events/cupertino-baer-blacksmith-fall-2026.webp",
+    "width": 1280,
+    "height": 853,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      48,
+      55
+    ],
+    "alt": "草丛后面一间灰色旧木板小屋，门上方挂着 BLACKSMITH SHOP 的招牌，屋顶有烟囱",
+    "caption": "Cupertino 市政府活动官方照片：McClellan Ranch 铁匠铺的外观，不是示范当天的现场；开放日期以官网为准。",
+    "credit": "City of Cupertino 活动官方照片",
+    "creditUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+      "scope": "same-event coverage only"
+    }
   }
 ]
