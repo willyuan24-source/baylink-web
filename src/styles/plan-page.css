@@ -62,9 +62,10 @@
 .plan-days { margin:0 0 8px; scroll-margin-top:96px; }
 .plan-days .ui-state { margin-top:8px; border-radius:16px; background:var(--color-surface-2); }
 /* H20: a guest with saved plans in this browser (public/reading-init.js marks <html data-plans> before the first paint) never
-   sees the prerendered empty state: a loading block holds the place of one saved day until the app lists the days. */
-html[data-plans] main[data-prerender-path="/plan"] #plan-days .ui-state { display:none; }
-html[data-plans] main[data-prerender-path="/plan"] #plan-days::after { content:""; display:block; height:15rem; border-radius:16px; background:var(--color-surface-2); }
+   sees the prerendered empty state, on the prerendered page or its boot copy (app/boot-main.ts): a loading block holds
+   the place of one saved day with two stops (the preview's height for it) until the app lists the days. */
+html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days .ui-state { display:none; }
+html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days::after { content:""; display:block; height:24.5rem; border-radius:16px; background:var(--color-surface-2); }
 .plan-days__list { display:grid; gap:20px; margin:0; padding:0; list-style:none; }
 .plan-days__day { display:grid; gap:8px; }
 @media (min-width:768px) { .plan-days__day { grid-template-columns:7.5rem minmax(0, 1fr); gap:16px; } }

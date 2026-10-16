@@ -104,5 +104,5 @@ test('saved plans in this browser mark the page before it paints; none, an empty
   assert.equal(marked({}), false);
   assert.equal(marked({ [GUEST_PLANNER_KEY]: 'x' }, { blockStorage: true }), false);
   const css = fs.readFileSync('src/styles/plan-page.css', 'utf8');
-  assert.match(css, /html\[data-plans\] main\[data-prerender-path="\/plan"\] #plan-days \.ui-state \{ display:none; \}/, 'only the prerendered /plan page hides its empty state');
+  assert.match(css, /html\[data-plans\] :is\(main\[data-prerender-path="\/plan"\],\.site-boot-main\) #plan-days \.ui-state \{ display:none; \}/, 'only the prerendered /plan page (and its boot copy) hides its empty state');
 });
