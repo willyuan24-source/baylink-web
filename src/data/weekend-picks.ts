@@ -47,6 +47,17 @@ export const WEEKEND_PICKS: Readonly<Record<string, readonly WeekendPickEntry[]>
     { id: 'acl-cherryland-chinese-storytimes-oct24-2026', reason: { zh: '粤语国语分场，幼儿一起听故事', en: 'Cantonese and Mandarin storytimes for little ones' } },
     { id: 'san-jose-sjma-dia-muertos-community-2026', reason: { zh: '免费入馆，参加亡灵节艺术活动', en: 'Free museum entry and Día de los Muertos art' } },
   ],
+  // 10/31–11/1 (GPT editor's 10/16 draft, owner approved 10/16; every pick's official page re-read 10/16, all unchanged). The
+  // 长辈友好 pick (Chinatown library's self-guided calligraphy afternoon) is rank 3 so the home, the /weekly card and /events
+  // show it on Saturday. Marin, Chinatown and Avenida de Altares are Saturday-only; Fruitvale and Nidhi Chanani are Sunday-only,
+  // so Sunday shows those two and the ranking fills the third place.
+  '2026-10-31': [
+    { id: 'mcm-halloween-spectacular-20261031', reason: { zh: '白天装扮讨糖，适合带孩子', en: 'Daytime costumes and trick-or-treating for kids' } },
+    { id: 'nov2026-fruitvale-dia-muertos', reason: { zh: '看社区祭坛，听现场音乐', en: 'Community altars and live music' } },
+    { id: 'sfpl-chinatown-creative-saturdays-fall-2026', reason: { zh: '室内书法桌游，可按节奏参与', en: 'Indoor calligraphy and board games at your own pace' } },
+    { id: 'san-jose-avenida-altares-2026', reason: { zh: '逛社区祭坛，体验亡灵节艺术', en: 'Community altars and Día de los Muertos art' } },
+    { id: 'smcl-foster-city-nidhi-chanani-2026', reason: { zh: '跟绘本作家听故事、画画', en: 'Stories and drawing with a picture-book artist' } },
+  ],
 };
 
 // Large annual events the automatic ranking should favour on weekends nobody

@@ -2129,3 +2129,16 @@ table says which value the site shows.
 | `sfpl-chinatown-creative-saturdays-fall-2026`, `…-late-nov-2026`, `…-dec-2026` | summary | CNT-FRESH-1016 (馆方把活动语言标为粤语和普通话); CNT-WEEKEND-1107 (图书馆把它列在中文活动类别里: the 粵語/國語 line is the library's Chinese-programs category footer; each page says programs are in English unless noted) | 图书馆把它列在中文活动类别里 | the two lanes read the same line differently; the less-claiming summary |
 | 4 November items (`nov2026-big-break-nature-walk`, `nov2026-fort-mason-farmers-market`, `nov2026-presidio-free-yoga`, `pacl-rinconada-tai-chi-2026`) | verifiedAt | CNT-WEEKEND-1021 2026-10-15 (second pass); CNT-WEEKEND-1107 2026-10-16 (third pass) | 2026-10-16 | the newer official read (both reviews found them consistent) |
 
+## CNT-WEEKEND-1107 · the 10/31–11/1 picks re-read, 2026-10-16 (PT)
+
+The GPT editor's draft `opus-qa/gpt/out-1016d/weekend-picks-1031.md` (4 + 1 长辈友好, owner approved in chat 10-16). Each
+pick's official page was re-read by the lane agent on 2026-10-16 15:17–15:18 PT (GET 200, reads p60–p64); all five still list
+the same day and time, none shows a cancellation, so none was dropped. Agent reads; no event fact or `verifiedAt` changed.
+
+| Kind | Id | URL | HTTP | Quote |
+|---|---|---|---|---|
+| pick | `mcm-halloween-spectacular-20261031` | https://marincountrymart.com/events/0zog7elnls9d0aljsi62915xu1zww4 | 200 | "Saturday, October 31, 2026 11:00 AM 2:00 PM" · "Come in costume for a Costume Contest at 11:00 AM in the Courtyard … then trick-or-treat your way around the Mart from 11:00 AM–2:00 PM." |
+| pick | `nov2026-fruitvale-dia-muertos` | https://www.visitoakland.com/events/annual-events/dia-de-los-muertos-festival/ | 200 | "The 2026 Oakland Dia de los Muertos will take place on Sunday, November 1 from 10:00 AM to 5:00 PM at the Fruitvale Village." · "world-class live music … the stunning altares created by community members" · "This event is free and open to all." |
+| pick | `sfpl-chinatown-creative-saturdays-fall-2026` (长辈友好) | https://sfpl.org/events/2026/10/31/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu | 200 | "Saturday, 10/31/2026 2:30 - 4:00" · "self-guided practice in Chinese calligraphy, coloring and board games" |
+| pick | `san-jose-avenida-altares-2026` | https://mhplaza.org/allevents/avenida26 | 200 | "Saturday, October 31, 2026 5:30 PM 10:30 PM" · "explore a community altar gallery, participate in hands-on art activities for all ages" · "primarily take place outdoors, with select activities hosted indoors" |
+| pick | `smcl-foster-city-nidhi-chanani-2026` | https://smcl.bibliocommons.com/v2/events/6ab5876708693b0f7374643a | 200 | `"title":"Storytime & Drawing Demo With Nidhi Chanani"` · `"start":"2026-11-01T10:30"` · `"end":"2026-11-01T11:30"` · `"isCancelled":false` · `"locationDetails":"Children's Area"` |
