@@ -19,12 +19,14 @@ import { useOnline } from './use-online';
  * H20 (WEB-PERF-3): a plain visit does not load them at boot. 已排的日子 renders first from this device's saved plans
  * (PlanDaysPreview), and the rest of the page is, at boot, the prerendered workspace of this very page (captured before the
  * app replaces it, as boot-main.ts keeps the prerendered page: no blank frame and no skeleton over content that is already
- * on screen). The workspace then loads at the first idle moment after the app's first paint, sooner on the reader's
- * first interaction with the page (a tap, a key, a scroll, the mouse), and at once for a link that opens a plan or a
- * draft (`planWantedAtOnce`) or a tap on 问 BayBay. What the reader typed or tapped on the prerendered form meanwhile is
+ * on screen). The workspace then loads at the first idle moment once this code runs (after the page's first paint),
+ * sooner on the reader's first interaction with the page (a tap, a key, a scroll, the mouse), and at once for a link that
+ * opens a plan or a draft (`planWantedAtOnce`) or a tap on 问 BayBay. What the reader typed or tapped on the prerendered form meanwhile is
  * carried into the workspace (boot-carry.ts). After an in-app navigation it loads at once, with skeleton rows under the
  * saved days meanwhile. A failed load shows the error state with 重试 (RC-25).
  */
+type IdleWindow = Window & { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number };
+
 let bootSlot: { html: string; locale: Locale } | null = captureBootSlot();
 
 function captureBootSlot(): { html: string; locale: Locale } | null {
@@ -38,6 +40,11 @@ function captureBootSlot(): { html: string; locale: Locale } | null {
   if (!html) return null;
   // From now until the workspace mounts, what the reader types or taps on any copy of the form is kept (boot-carry.ts).
   watchBootForm(document, wantPlan);
+  // A plain visit asks for the workspace at the first idle moment from here (at most 0.5 s later), so a reader who reads
+  // first and acts later finds the live form. On a cold load this code runs after the page's first paint, and the LCP
+  // photo is in the prerendered HTML and on its way long before, so the download does not compete with it.
+  const idleWindow = window as IdleWindow;
+  if (idleWindow.requestIdleCallback) idleWindow.requestIdleCallback(wantPlan, { timeout: 500 }); else window.setTimeout(wantPlan, 200);
   return { html, locale: pathLanguage(window.location.pathname) };
 }
 
@@ -95,23 +102,12 @@ function PlanCatalogGate({ children }: { children: ReactNode }) {
 /** What starts the workspace on a plain visit: the reader's first move on the page. */
 const INTERACTIONS = ['pointerdown', 'pointermove', 'keydown', 'touchstart', 'wheel', 'scroll', 'focusin'] as const;
 
-type IdleWindow = Window & { requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
-
-/** Until then the slot shows the days-first preview and the prerendered workspace, and loads the rest when the reader acts or the page is idle. */
+/** Until then the slot shows the days-first preview and the prerendered workspace; the reader's first move asks for the rest sooner. */
 function DeferredSlot() {
   useEffect(() => {
     const options = { capture: true, passive: true } as const;
     for (const type of INTERACTIONS) window.addEventListener(type, wantPlan, options);
-    // Every plain visit loads the workspace at the first idle moment after the app's first paint (at most 0.5 s later), so
-    // a reader who reads first and acts later finds the live form; what they do before that is kept (boot-carry.ts). The
-    // page's LCP photo is in the prerendered HTML and painted before the app renders, so the download does not compete.
-    const idleWindow = window as IdleWindow;
-    const useIdle = !!idleWindow.requestIdleCallback && !!idleWindow.cancelIdleCallback;
-    const idle = useIdle ? idleWindow.requestIdleCallback!(wantPlan, { timeout: 500 }) : window.setTimeout(wantPlan, 200);
-    return () => {
-      for (const type of INTERACTIONS) window.removeEventListener(type, wantPlan, options);
-      if (useIdle) idleWindow.cancelIdleCallback!(idle); else window.clearTimeout(idle);
-    };
+    return () => { for (const type of INTERACTIONS) window.removeEventListener(type, wantPlan, options); };
   }, []);
   return <SlotFallback />;
 }

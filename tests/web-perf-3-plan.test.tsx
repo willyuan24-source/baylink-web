@@ -39,13 +39,14 @@ function open(search = '') {
     <Route path="/plan" element={<PlannerPage />} />
   </Route></Routes></MemoryRouter>);
 }
+// The first idle moment once 行程's route code runs (after the page's first paint): held here, to show that it is what
+// starts the workspace when the reader does nothing.
+const idle: (() => void)[] = [];
+Object.assign(window, { requestIdleCallback: (callback: () => void) => idle.push(callback) });
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 
-test('a plain visit: header, this weekend’s covers and the saved days at once; the catalog only after the reader acts', async () => {
+test('a plain visit: header, this weekend’s covers and the saved days at once; the catalog at the first idle moment', async () => {
   localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }, { kind: 'place', id: second.id }], version: 1, createdAt: '', updatedAt: '' }] }));
-  // the first idle moment after the first paint: held here, to show that it is what starts the workspace when the reader does nothing
-  const idle: (() => void)[] = [];
-  Object.assign(window, { requestIdleCallback: (callback: () => void) => idle.push(callback), cancelIdleCallback: () => {} });
   let view!: ReturnType<typeof open>;
   act(() => { view = open(); });
   assert.ok(view.getByRole('heading', { level: 1, name: '行程' }));
@@ -73,7 +74,7 @@ test('a plain visit: header, this weekend’s covers and the saved days at once;
   assert.ok(view.container.querySelector('[data-plan-slot][aria-busy="true"] #prerendered-workspace'));
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 300)); });
   assert.equal(isPlanCatalogInstalled(), false, 'no catalog at boot');
-  assert.equal(idle.length, 1, 'every plain visit asks for it at the first idle moment after the first paint');
+  assert.equal(idle.length, 1, 'every plain visit asks for it at the first idle moment once the route code runs');
   // the idle callback (or the reader's first move, sooner) starts it
   act(() => { idle[0](); });
   await waitFor(() => assert.ok(view.container.querySelector('.planner-catalog')), { timeout: 20000 });

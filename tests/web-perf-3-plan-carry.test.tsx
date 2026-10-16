@@ -19,6 +19,8 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.document.querySelector('textarea')!.value = '周日去海边';
 const { render, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
+// The idle request for the workspace is held (the example tap below asks for it), so the swap comes after the reader's moves.
+Object.assign(dom.window, { requestIdleCallback: () => 0 });
 const { default: PlannerPage } = await import('../src/pages/PlannerPage');
 const { api } = await import('../src/lib/api');
 
