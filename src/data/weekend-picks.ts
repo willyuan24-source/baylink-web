@@ -37,6 +37,16 @@ export const WEEKEND_PICKS: Readonly<Record<string, readonly WeekendPickEntry[]>
     { id: 'numu-community-ignition-oct17-2026', reason: { zh: '现场织艺互动，认识多元艺术', en: 'Weave into a shared tapestry at the opening' } },
     { id: 'r2-santarosa-soco-halloween-2026', reason: { zh: '带上宠物，与家人一起逛市集', en: 'A family market where pets are welcome' } },
   ],
+  // 10/24–25 (GPT editor's 10/15 draft, owner approved; every pick's official page re-read 10/16, all still on 10/24). The
+  // 长辈友好 pick (Chinatown library's self-guided calligraphy afternoon) is rank 3 so the home, the /weekly card and /events
+  // show it on Saturday; Cherryland and SJMA are the standbys. All five are Saturday-only, so the ranking fills Sunday 10/25.
+  '2026-10-24': [
+    { id: 'r2-petaluma-lumafest-20261024', reason: { zh: '免费逛校园，体验亡灵节文化', en: 'A free campus open house with Día de los Muertos' } },
+    { id: 'menlo-park-halloween-hoopla-2026', reason: { zh: '装扮游行加公园嘉年华', en: 'A costume parade, then a carnival in the park' } },
+    { id: 'sfpl-chinatown-creative-saturdays-fall-2026', reason: { zh: '室内书法桌游，可按节奏参与', en: 'Indoor calligraphy and board games at your own pace' } },
+    { id: 'acl-cherryland-chinese-storytimes-oct24-2026', reason: { zh: '粤语国语分场，幼儿一起听故事', en: 'Cantonese and Mandarin storytimes for little ones' } },
+    { id: 'san-jose-sjma-dia-muertos-community-2026', reason: { zh: '免费入馆，参加亡灵节艺术活动', en: 'Free museum entry and Día de los Muertos art' } },
+  ],
 };
 
 // Large annual events the automatic ranking should favour on weekends nobody
