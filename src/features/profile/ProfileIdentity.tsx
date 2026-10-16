@@ -6,6 +6,7 @@ import { formatProfileLocation, normalizeInstagramUrl } from '../../lib/format';
 import { translateText, useLocale } from '../../i18n/locale';
 import type { UserData } from '../../lib/types';
 import { resolveProfileTheme, safeProfileLink, profileShareUrl, SOCIAL_INTENTS, normalizeSocialIntents } from './profile-personality';
+import './profile-personality.css';
 
 export type ProfileIdentityData = Pick<UserData, 'nickname' | 'avatar' | 'bio' | 'city' | 'area' | 'profileTags' | 'interests' | 'website' | 'xiaohongshu' | 'socialLinks' | 'role' | 'isPhoneVerified' | 'isOfficialVerified' | 'officialVerification' | 'socialIntents' | 'profileVisibility'> & {
   profileTheme?: string; statusText?: string; coverImage?: string;

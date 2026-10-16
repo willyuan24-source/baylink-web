@@ -13,7 +13,7 @@
 .planner-page a:not(.ui-button,.ui-card-link,.planner-primary) { color:var(--color-brand); }
 .planner-page a:not(.ui-button,.ui-card-link,.planner-primary):hover { color:var(--color-brand-hover); }
 /* Small label above a panel title in the account panels My Week mounts (bookings, groups); not upper-case, not tracked. */
-.planner-eyebrow { display:flex; align-items:center; gap:8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.4; font-weight:600; }
+.planner-eyebrow { display:flex; align-items:center; gap:8px; line-height:1.4; font-weight:600; }
 
 /* Primary, secondary and chip controls in the planner panels share the UI primitive's geometry and colours. */
 .planner-page .planner-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:10px; background:var(--color-brand); color:var(--color-surface)!important; font-size:var(--text-body); line-height:1.25; font-weight:600; text-align:center; text-decoration:none; }
@@ -73,7 +73,7 @@
 .planner-option>a { font-size:var(--text-fact); text-decoration:underline; text-underline-offset:3px; }
 .planner-option small { color:var(--color-ink-2); font-size:var(--text-caption); }
 .planner-option .planner-primary { margin-top:auto; align-self:stretch; }
-.planner-meta { color:var(--color-ink-2)!important; font-size:var(--text-fact)!important; line-height:1.571; }
+.planner-meta { line-height:1.571; }
 .planner-cost { color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 .planner-unverified-price { padding:4px 10px; border-radius:6px; background:var(--ui-warning-tint, var(--color-surface-2)); color:var(--ui-warning, var(--color-ink)); font-size:var(--text-caption); font-weight:600; }
 
@@ -200,8 +200,6 @@
 .planner-edit-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px; }
 
 /* 站外搜索 (web search) */
-.planner-web-search { min-width:0; margin:32px 0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-web-search h2 { font-size:var(--text-card); line-height:1.444; }
 .planner-web-intro { margin-top:8px; color:var(--color-ink-2); }
 .planner-web-hint { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-caption); }
 .planner-web-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:16px; }
@@ -251,7 +249,6 @@
   .planner-filters { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
   .planner-map { height:20rem; }
   .planner-web-sources,.planner-web-candidates,.week-plan-grid { grid-template-columns:1fr; }
-  .planner-web-search { padding:16px; }
   .planner-outing-tabs button { flex:1; justify-content:center; }
 }
 @media (prefers-reduced-motion:reduce) { .planner-page * { scroll-behavior:auto!important; transition:none!important; } }

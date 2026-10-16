@@ -6,6 +6,7 @@ import { safeOutingUrl } from '../../lib/outings';
 import { useOutingCopy } from './outing-copy';
 import { outingCoverImage, resolveOutingCover, type OutingCoverInput } from './outing-cover';
 import { getBayAreaToday } from '../../lib/monthly';
+import './outing-cover.css';
 
 export function OutingCover({ outing, variant = 'card', source = true, to }: {
   outing: OutingCoverInput; variant?: 'card' | 'detail' | 'preview'; source?: boolean; to?: string;

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Map as LibreMap, Marker as LibreMarker } from 'maplibre-gl';
 import { MapPin, RefreshCw } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
+import './calendar-event-map.css';
 
 export type CalendarMapPoint = {
   id: string;

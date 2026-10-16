@@ -8,6 +8,11 @@ import { Button } from '../components/ui/Button';
 import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
 import { loadPlan, planLoadFailed, PlanWorkspace } from '../features/plan/plan-catalog';
+// What the prerendered workspace shows (its code is a lazy chunk, PlannerWorkspace.tsx): the planner's panels, the
+// screenshot import and the BayBay hand-off notes, then the page's own layout (the order they had in the global bundle).
+import '../styles/planner.css';
+import '../features/baybay-actions.css';
+import '../styles/event-import.css';
 import '../styles/plan-page.css';
 
 export default function PlannerPage() {

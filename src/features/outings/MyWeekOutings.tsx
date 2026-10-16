@@ -8,6 +8,7 @@ import { useOutingCopy, useOutingNow } from './outing-copy';
 import { outingError, outingSessionKey, useOutingSession } from './outing-session';
 import { selectMyWeekOutings } from './my-week-outings-model';
 import { OutingCover } from './OutingCover';
+import './my-week-outings.css';
 
 type Props = { user: UserData | null; onLoginNeeded: () => void };
 export function MyWeekOutings(props: Props) {

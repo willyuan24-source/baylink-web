@@ -4,6 +4,7 @@ import type { UserData } from '../../lib/types';
 import { translateText, useLocale } from '../../i18n/locale';
 import { useProfileSessionGuard } from './useProfileSessionGuard';
 import { DELETE_PHRASES, confirmsDeletion } from './account-deletion';
+import './privacy-security.css';
 
 type SecurityStatus = { totpEnabled: boolean; setupAvailable: boolean; recoveryCodesRemaining: number };
 
