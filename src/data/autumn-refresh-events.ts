@@ -540,7 +540,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://paplayers.org/show/the-addams-family/",
     "sourceLabel": "Palo Alto Players",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "coverage-stage"
   }
 ];

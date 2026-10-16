@@ -377,7 +377,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://mhplaza.org/allevents/avenida26",
     "sourceLabel": "School of Arts and Culture at Mexican Heritage Plaza",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   }
 ];

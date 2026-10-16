@@ -680,7 +680,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://ybgfestival.org/event/halloween-hoopla-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival / Circus Bella",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   }
 ];
