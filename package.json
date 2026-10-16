@@ -21,7 +21,7 @@
     "verify:share-cards": "tsx --tsconfig tsconfig.app.json scripts/verify-share-cards.ts",
     "export:discovery": "tsx --tsconfig tsconfig.app.json scripts/export-discovery-context.ts",
     "generate:perks-posters": "tsx --tsconfig tsconfig.app.json scripts/generate-perks-posters.ts",
-    "generate:home": "tsx --tsconfig tsconfig.app.json scripts/generate-home-catalog.ts",
+    "generate:home": "tsx --tsconfig tsconfig.app.json scripts/generate-home-catalog.ts && tsx --tsconfig tsconfig.app.json scripts/generate-plan-weekend.ts",
     "images:variants": "tsx --tsconfig tsconfig.app.json scripts/generate-image-variants.ts",
     "verify:images": "node scripts/verify-images.mjs",
     "release:build": "npm run lint && npm run verify:editorial-styles && npm run verify:ratchet && npm run verify:hosting-routes && npm test && npm audit --audit-level=high && npm run build && npm run verify:images && npm run verify:share-cards && npm run verify:weekly && npm run verify:release",
