@@ -1,5 +1,38 @@
 [
   {
+    "id": "smcl-belmont-mandarin-bilingual-storytime-2026",
+    "kind": "event",
+    "startDate": "2026-10-21",
+    "endDate": "2026-12-16",
+    "occurrenceDates": [
+      "2026-10-21",
+      "2026-11-04",
+      "2026-11-18",
+      "2026-12-02",
+      "2026-12-16"
+    ],
+    "verifiedAt": "2026-10-15",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；不用报名",
+    "sourceLabel": "圣马刁县图书馆活动页（Belmont 分馆）",
+    "title": "Belmont 图书馆中英双语故事时间，之后留下来玩",
+    "dateLabel": "10/21、11/4、11/18、12/2、12/16 · 周三 10:30–11:30",
+    "city": "Belmont",
+    "venue": "Belmont 图书馆 Taube 室 · 1110 Alameda de las Pulgas, Belmont, CA 94002",
+    "summary": "圣马刁县图书馆 Belmont 分馆的中英双语故事时间，用普通话和英语讲故事、唱歌，各年龄的孩子都可以一起听、一起唱、一起玩；之后是“留下来玩”，孩子和大人练习分享和交朋友。",
+    "plan": [
+      "隔周的周三上午，在馆内 Taube 室；先听故事、唱歌，再“留下来玩”。"
+    ],
+    "audience": [
+      "0–5 岁幼儿和家人",
+      "说普通话的家庭"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6a3b0dc596ee38a44a92a8fe"
+  },
+  {
     "id": "oakland-zoo-glowfari-2026",
     "kind": "event",
     "startDate": "2026-11-06",
@@ -1394,36 +1427,6 @@
     "officialUrl": "https://ccclib.bibliocommons.com/events/6ac69298ebad22004543c17a"
   },
   {
-    "id": "smcl-belmont-mandarin-bilingual-storytime-dec-2026",
-    "kind": "event",
-    "startDate": "2026-12-02",
-    "endDate": "2026-12-16",
-    "occurrenceDates": [
-      "2026-12-02",
-      "2026-12-16"
-    ],
-    "verifiedAt": "2026-10-15",
-    "imageKey": "",
-    "region": "peninsula",
-    "category": "family",
-    "cost": "free",
-    "costLabel": "图书馆活动免费；不用报名",
-    "sourceLabel": "圣马刁县图书馆活动页（Belmont 分馆）",
-    "title": "Belmont 图书馆中英双语故事时间，之后留下来玩",
-    "dateLabel": "12/2、12/16 · 周三 10:30–11:30",
-    "city": "Belmont",
-    "venue": "Belmont 图书馆 Taube 室 · 1110 Alameda de las Pulgas, Belmont, CA 94002",
-    "summary": "圣马刁县图书馆 Belmont 分馆的中英双语故事时间，用普通话和英语讲故事、唱歌，各年龄的孩子都可以一起听、一起唱、一起玩；之后是“留下来玩”，孩子和大人练习分享和交朋友。",
-    "plan": [
-      "两个周三上午：12/2 和 12/16。"
-    ],
-    "audience": [
-      "0–5 岁幼儿和家人",
-      "说普通话的家庭"
-    ],
-    "officialUrl": "https://smcl.bibliocommons.com/events/6a3b0dc596ee38a44a92a902"
-  },
-  {
     "id": "opl-asian-branch-toddler-storytime-dec-2026",
     "kind": "event",
     "startDate": "2026-12-03",
@@ -2611,6 +2614,43 @@
       "想学麻将的人"
     ],
     "officialUrl": "https://sfpl.org/events/2026/12/26/workshop-mahjong-beginners"
+  },
+  {
+    "id": "sffmc-camp-harmony-2026-27",
+    "kind": "event",
+    "startDate": "2026-12-29",
+    "endDate": "2027-01-03",
+    "occurrenceDates": [
+      "2026-12-29",
+      "2026-12-30",
+      "2026-12-31",
+      "2027-01-01",
+      "2027-01-02",
+      "2027-01-03"
+    ],
+    "verifiedAt": "2026-10-15",
+    "imageKey": "",
+    "region": "north-bay",
+    "category": "culture",
+    "cost": "paid",
+    "costLabel": "按人按营日收费，含住宿和三餐；3–12 岁 $65 起，成人 $130 起",
+    "sourceLabel": "旧金山民谣音乐俱乐部官网（Camp Harmony）",
+    "title": "Camp Harmony 跨年民谣音乐营：在 Sonoma 山里住几晚，唱歌、学乐器、跳民间舞",
+    "dateLabel": "12/29–2027/1/3 过夜营，可只住其中几晚；每个营日 14:00 到次日 14:00",
+    "city": "Santa Rosa",
+    "venue": "Camp Newman 营地 · 4088 Porter Creek Rd., Santa Rosa, CA 95404",
+    "summary": "旧金山民谣音乐俱乐部（SFFMC）的跨年营 Camp Harmony 2026–27 在 Santa Rosa 和 Calistoga 之间山里的 Camp Newman 举办，12/29 到 2027/1/3，可以只来其中几天。营员自己办：即兴合奏、学一样新乐器、集体唱歌、学民间舞、上台演出、林间徒步，晚上玩桌游。营费按营日计，包含住宿和一日三餐。",
+    "plan": [
+      "营地规定不接受随到或只来白天，每个营日从 14:00 到次日 14:00，要报名住宿；1/2–3 是营期最后一晚和散营日。",
+      "11/15 中午前报名：3–12 岁每营日 $65–$115、成人 $130–$230，按房型不同；之后到 12/13 中午截止前，各贵 $5–$15。13–30 岁有青年价。",
+      "3 岁以下怎么收费价目表没写，报名前先问主办方；住房按报名先后分配，到营时要出示新冠检测阴性证明。",
+      "今年的工作坊时间表还没公布，官网上的是 2025–26 的，别按它给孩子挑课。"
+    ],
+    "audience": [
+      "全家",
+      "喜欢唱歌、乐器和民间舞的人"
+    ],
+    "officialUrl": "https://www.sffmc.org/camp-harmony/"
   },
   {
     "id": "sfpl-main-cantonese-storytime-dec31-2026",

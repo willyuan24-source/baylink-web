@@ -3113,6 +3113,20 @@
       }
     }
   },
+  "sffmc-camp-harmony-2026-27": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "mixed",
+      "schedule": {
+        "sourceUrl": "https://www.sffmc.org/camp-harmony/",
+        "verifiedAt": "2026-10-15",
+        "validFrom": "2026-12-29",
+        "validThrough": "2027-01-03"
+      }
+    }
+  },
   "sfpl-bernal-family-dance-party-dec26-2026": {
     "planning": {
       "admissionUsd": 0,
@@ -4311,18 +4325,33 @@
       }
     }
   },
-  "smcl-belmont-mandarin-bilingual-storytime-dec-2026": {
+  "smcl-belmont-mandarin-bilingual-storytime-2026": {
     "planning": {
       "admissionUsd": 0,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
       "schedule": {
-        "sourceUrl": "https://smcl.bibliocommons.com/events/6a3b0dc596ee38a44a92a902",
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a3b0dc596ee38a44a92a8fe",
         "verifiedAt": "2026-10-15",
-        "validFrom": "2026-12-02",
+        "validFrom": "2026-10-21",
         "validThrough": "2026-12-16",
         "sessions": [
+          {
+            "date": "2026-10-21",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-04",
+            "start": "10:30",
+            "end": "11:30"
+          },
+          {
+            "date": "2026-11-18",
+            "start": "10:30",
+            "end": "11:30"
+          },
           {
             "date": "2026-12-02",
             "start": "10:30",
