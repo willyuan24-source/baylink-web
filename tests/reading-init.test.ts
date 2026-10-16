@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import { FAMILY_LINK_KEY, READING_SIZE_KEY, SIMPLE_DISPLAY_KEY } from '../src/lib/reading-preferences';
+import { GUEST_PLANNER_KEY } from '../src/lib/planner-storage-key';
 
 const SRC = fs.readFileSync('public/reading-init.js', 'utf8');
 
@@ -79,9 +80,9 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
   const code = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   // ~1 KB with the D17 language redirect (WEB-SHELL1), ~1.6 KB with the CW-02 stale-date check (WEB-FRESH2: 1,621 chars;
   // the US DST rule instead of Intl with a time zone, whose first use cost ~95 ms at 4x CPU before the first paint), ~2.1 KB
-  // with the G52 family-link hand-over (WEB-POLISH: 2,062 chars together); still one small blocking request, cached briefly
-  // (vercel.json).
-  assert.ok(code.length < 2075, `reading-init stays small on the critical path (${code.length} chars without comments)`);
+  // with the G52 family-link hand-over (WEB-POLISH: 2,062 chars together), ~2.2 KB with the H20 saved-plans mark (WEB-PERF-3:
+  // 2,159 chars); still one small blocking request, cached briefly (vercel.json).
+  assert.ok(code.length < 2170, `reading-init stays small on the critical path (${code.length} chars without comments)`);
   const html = fs.readFileSync('index.html', 'utf8');
   const head = html.slice(0, html.indexOf('</head>'));
   const tag = '<script src="/reading-init.js"></script>';
@@ -90,5 +91,18 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
     const at = html.indexOf(later);
     if (at >= 0) assert.ok(html.indexOf(tag) < at, `reading-init comes before ${later}`);
   }
-  for (const key of [READING_SIZE_KEY, SIMPLE_DISPLAY_KEY]) assert.ok(SRC.includes(`'${key}'`), `reading-init reads ${key}, the key the app saves`);
+  for (const key of [READING_SIZE_KEY, SIMPLE_DISPLAY_KEY, GUEST_PLANNER_KEY]) assert.ok(SRC.includes(`'${key}'`), `reading-init reads ${key}, the key the app saves`);
+});
+
+// H20 (WEB-PERF-3): a guest's saved plans mark <html data-plans> before the first paint, so 行程's prerendered 已排的日子
+// shows a loading block, not its empty state (src/styles/plan-page.css).
+test('saved plans in this browser mark the page before it paints; none, an empty list or blocked storage do not', () => {
+  const marked = (saved: Record<string, string>, options = {}) => load('https://www.baylink.us/plan', saved, options).window.document.documentElement.hasAttribute('data-plans');
+  const library = (plans: unknown[]) => JSON.stringify({ preferences: {}, favorites: [], plans });
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([{ id: 'p1', title: '周六', date: '2026-10-17', stops: [{ kind: 'place', id: 'x' }] }]) }), true);
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([]) }), false);
+  assert.equal(marked({}), false);
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: 'x' }, { blockStorage: true }), false);
+  const css = fs.readFileSync('src/styles/plan-page.css', 'utf8');
+  assert.match(css, /html\[data-plans\] main\[data-prerender-path="\/plan"\] #plan-days \.ui-state \{ display:none; \}/, 'only the prerendered /plan page hides its empty state');
 });

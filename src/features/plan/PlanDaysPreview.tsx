@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { CalendarCheck } from 'lucide-react';
 import { translateText, useLocale } from '../../i18n/locale';
-import type { SavedPlan } from '../../lib/planner-core';
+import { sharePlanUrl, type SavedPlan } from '../../lib/planner-core';
 import { planDayLabel } from '../../lib/plan-stop-cover';
 import { guestPlanDays } from './guest-plans';
 import { planDisplayTitle } from '../saves/plan-title';
@@ -51,7 +51,7 @@ export function PlanDaysPreviewBody({ signedIn, plans }: { signedIn: boolean; pl
         return <article key={plan.id} className="plan-days__plan" aria-label={title.text}>
           <div className="plan-days__plan-head"><h3 translate={title.auto ? undefined : 'no'}>{title.text}</h3></div>
           <ul className="plan-days__stops" aria-hidden="true">{plan.stops.map(stop => <li key={`${stop.kind}:${stop.id}`}><SkeletonRow /></li>)}</ul>
-          <div className="plan-days__actions"><Button variant="secondary" to={`/plan?edit=${encodeURIComponent(plan.id)}`}>{t('打开这一天', 'Open this day')}</Button></div>
+          <div className="plan-days__actions"><Button variant="secondary" to={`/plan?edit=${encodeURIComponent(plan.id)}`}>{t('打开这一天', 'Open this day')}</Button><Button variant="text" href={sharePlanUrl(plan)}>{t('分享版', 'Shareable version')}</Button></div>
         </article>;
       })}
     </li>)}</ol>

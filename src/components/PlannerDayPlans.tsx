@@ -12,6 +12,7 @@ import { ErrorState } from './ui/States';
 import { PlannerStopThumb } from './PlannerStopCover';
 import { planDayLabel } from '../lib/plan-stop-cover';
 import { PlanDaysEmpty, PlanDaysHead, PlanDaysPreviewBody } from '../features/plan/PlanDaysPreview';
+import { guestPlanDays } from '../features/plan/guest-plans';
 
 const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Dining'], cafe: ['咖啡与小食', 'Coffee'], shop: ['商店', 'Shop'] } as const;
 
@@ -29,7 +30,8 @@ export function PlannerDayPlans({ library, plans, moreDays = 0, covers, today, e
   const coverFor = (plan: SavedPlan, index: number) => covers[plans.slice(0, plans.indexOf(plan)).reduce((sum, item) => sum + item.stops.length, 0) + index];
   const days = [...new Set(plans.map(plan => plan.date))];
   return <section id="plan-days" className="plan-days" aria-labelledby="plan-days-title" data-testid="plan-days">
-    <PlanDaysHead planned={plans.length > 0} />
+    {/* while the library loads, the heading follows the preview's days (the guest's, from storage) */}
+    <PlanDaysHead planned={plans.length > 0 || (library.loading && !signedIn && guestPlanDays(today).length > 0)} />
     {/* H20: a guest's first frame is the days-first preview again (no skeleton flash between it and the list) */}
     {library.loading ? <PlanDaysPreviewBody signedIn={signedIn} />
       : !library.ready && library.error ? <ErrorState headingLevel="h3" homeTo={null} onRetry={() => void library.refresh()} title={t('暂时读不到已排的日子', 'Your planned days didn’t load')}

@@ -13,6 +13,9 @@
  * and is handed to the app for this tab as sessionStorage 'baylink.reading-link.v1' = "size|simple"; the app keeps it
  * for this visit only when the reader already has a saved choice, else saves it (src/lib/reading-preferences.ts). A reload
  * in the same tab reads the handed-over link before the saved choice.
+ * H20 (WEB-PERF-3): a guest's saved plans in this browser mark <html data-plans>, so 行程's prerendered 已排的日子 shows a
+ * loading block instead of its empty state until the app lists the days (src/styles/plan-page.css; key and format:
+ * src/lib/planner-storage-key.ts, planner-library.ts).
  * Keys and URL parameters match src/i18n/locale.ts (LOCALE_KEY) and src/lib/reading-preferences.ts. */
 (function (d, w) {
   var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, key = 'baylink.reading-link.v1', link = [], lang, size, simple, built, today, y;
@@ -35,6 +38,7 @@
   if (size === 'large' || size === 'extra-large') root.setAttribute('data-reading', size);
   simple = simple ? simple[1] : link[1] || saved('baylink.simple-display.v1');
   if (simple === '1') root.setAttribute('data-simple', '');
+  if (/"plans":\[\{/.test(saved('baylink.planner.guest.v1'))) root.setAttribute('data-plans', '');
   /* Days count from 1970-01-01, a Thursday. week(): the coming Saturday's number Monday to Friday, its own on the weekend.
      sunday(): the first Sunday on or after day n of month m, at h:00 UTC, in ms. today: hours, then the Pacific day number. */
   function week(n) { return n + ((n + 4) % 7 % 6 && 6 - (n + 4) % 7); }
