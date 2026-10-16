@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
-import { PUBLIC_CATALOG_FILES, WORLD_IMPORT_PENDING, inWorldPlannerCatalog } from '../src/data/public-catalog-holdout';
+import { PUBLIC_CATALOG_FILES, WORLD_HELD_FIELDS, WORLD_IMPORT_PENDING, inWorldPlannerCatalog, worldPlannerEvent } from '../src/data/public-catalog-holdout';
 
 type CatalogRow = { id: string; startDate: string; endDate: string; occurrenceDates?: string[] };
 type PlannerFile = { events: CatalogRow[] } & Record<string, unknown>;
@@ -38,7 +38,14 @@ test("/opus-bay's planner catalog is the full catalog without the held events, b
     assert.ok(site.has(id), `${id} is still a site event (an imported or removed event leaves the list)`);
     assert.equal(inWorldPlannerCatalog(id), false);
   }
-  // Everything else in the file /opus-bay reads (places, guides, every other event row) is exactly the API's copy.
-  const expected = { ...apiPlanner, events: apiPlanner.events.filter(row => inWorldPlannerCatalog(row.id)) };
+  // A held field set names a site event in the world copy and only fields that differ from the API's row (a held value
+  // equal to the current one is stale: drop the entry).
+  const full = new Map(apiPlanner.events.map(row => [row.id, row as CatalogRow & Record<string, unknown>]));
+  for (const [id, fields] of Object.entries(WORLD_HELD_FIELDS)) {
+    assert.ok(site.has(id) && inWorldPlannerCatalog(id), `${id} is a site event in the world copy`);
+    for (const [field, value] of Object.entries(fields)) assert.notEqual(full.get(id)![field], value, `${id}.${field} still differs from the API's row`);
+  }
+  // Everything else in the file /opus-bay reads (places, guides, every other event row and field) is exactly the API's copy.
+  const expected = { ...apiPlanner, events: apiPlanner.events.filter(row => inWorldPlannerCatalog(row.id)).map(worldPlannerEvent) };
   assert.equal(text(PUBLIC_CATALOG_FILES.worldPlanner), `${JSON.stringify(expected, null, 2)}\n`, 'public/planner-catalog.json is current (npm run export:planner)');
 });

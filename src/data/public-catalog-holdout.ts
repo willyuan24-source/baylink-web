@@ -6,6 +6,7 @@
  * | public/event-catalog.json (scripts/export-event-catalog.ts)    | every site event                | the API, copied as its data/event-catalog.json (公开想去 / 一起去 counts, outings) |
  * | public/planner-catalog.full.json (export-planner-catalog.ts)   | every site event, places, guides| the API, copied as its data/planner-catalog.json (saves, plans, BayBay) |
  * | public/planner-catalog.json (export-planner-catalog.ts)        | all but WORLD_IMPORT_PENDING    | /opus-bay at runtime (src/opus-bay/data/catalog.ts), scripts/opus-sf/*, tests/opus-bay-* |
+ * | (same file)                                                    | WORLD_HELD_FIELDS kept as pinned | the 3D world's label-based hours for an event whose newer hours an opus test does not know yet |
  *
  * Why /opus-bay gets its own copy: every San Francisco event in the file it reads needs the Opus session's own placement
  * decision (tests/opus-bay-w6-s-venues.test.ts, W6-S1: a venue row, or a stated reason to stay out). The 2026-10-12 supply
@@ -55,3 +56,21 @@ export const PUBLIC_CATALOG_FILES = {
 const pending = new Set(WORLD_IMPORT_PENDING);
 /** Whether an event goes into public/planner-catalog.json, the planner catalog /opus-bay reads. */
 export const inWorldPlannerCatalog = (id: string) => !pending.has(id);
+
+/**
+ * Fields /opus-bay's copy keeps at the value an opus test pins, while the site and both API files carry the newer,
+ * source-read value; this repository may not edit tests/opus-bay-* (MASTER-PLAN D26). Only the fields named here are
+ * held. For the Marina open house that is `dateLabel`, which the world's venue window, activeEventsAt and BAYBAY's lines
+ * read (src/opus-bay/realsf/events.ts, eventHours), so they close it at 15:00. `sessions` and `planning.schedule` stay
+ * current, and FreeWeekStrip, HowToGo and the .ics export read the schedule first (realsf/freeWeek.ts, eventDayHours), so
+ * those say 11:00–16:00. Until the entry goes, the two disagree inside /opus-bay. Drop an entry once the Opus session
+ * has moved its test to the new value, then re-export (`npm run export:planner`).
+ */
+export const WORLD_HELD_FIELDS: Readonly<Record<string, { readonly dateLabel: string }>> = {
+  // SFPL's event page, read 2026-10-15 (CNT-WEEKEND-1015): "11:00 - 4:00", with the SF Opera brass quintet at 3 p.m.
+  // tests/opus-bay-w7-s-venues.test.ts (W7-S1) pins the earlier 11:00–15:00.
+  'sf-marina-library-open-house-oct17-2026': { dateLabel: '10/17（六）11:00–15:00' },
+};
+/** An event row as public/planner-catalog.json carries it: the API's row with any held fields put back. */
+export const worldPlannerEvent = <T extends { id: string }>(event: T): T =>
+  Object.hasOwn(WORLD_HELD_FIELDS, event.id) ? { ...event, ...WORLD_HELD_FIELDS[event.id] } : event;
