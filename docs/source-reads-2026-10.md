@@ -1437,6 +1437,16 @@ the quotes below are from those reads (page texts kept in `opus-qa/overhaul/lane
 | event | `santa-rosa-halloween-howarth-2026` | https://www.srcity.org/2164/Halloween-at-Howarth | 200 | the 11:30–14:30 session becomes a start time only (11:30); the date note says these are six half-hour check-in slots and the city lists no end time; rain line from the same page | "Check-In Times (register for one time slot) 11:30am-12pm … 2-2:30pm" · "In the event of rainy weather, check our Facebook page or call 707-543-3425 the morning of the event for a status update." |
 | event | `sf-exploratorium-family-science-oct24-2026` | https://www.exploratorium.edu/visit/calendar/we-all-journey ; https://www.exploratorium.edu/visit/calendar/awesome-orchestra ; https://awesomeorchestra.org/events/session-118 | 200 | date note and plan give each programme's times. The GPT review could not find the 16:00–16:30 instrument session; the museum's own orchestra page lists it, so the date label stays. The orchestra's page lists its session as 13:00–16:00, which the plan states next to the museum's 11:00–16:00 | "Sat, Oct 24 2026 • 11am - 2pm" (We All Journey) · "Build a Better Butterfly … 10:00 am – 4:45 pm" · "Awesöme Orchestra … 11:00 am – 4:00 pm" · "Musical Instrument Petting Zoo … 12:30 – 1:00 pm , 2:00 – 2:20 pm , 3:00 – 3:15 pm , 4:00 – 4:30 pm" · "WHEN: 1:00-4:00pm Saturday October 24, 2026" |
 
+### CNT-WEEKEND-1015 · details behind the 10/17–18 picks, 2026-10-15 (PT)
+
+Added to the plan lines of two items the draft weekend picks name (the picks' reasons may only state what the entry says).
+Read by the lane agent with a read-only GET on 2026-10-15, about 18:05 PT. `verifiedAt` is not changed by these rows.
+
+| Kind | Id | URL | HTTP | Change | Quote |
+|---|---|---|---|---|---|
+| event | `berkeley-harvest-festival-2026` | https://berkeleyca.gov/community-recreation/events/harvest-festival-2026 | 200 | plan: the Senior Seating Area and the Sensory Tent; AC Transit 52 or a walk from North Berkeley BART | "The Senior Seating Area is a designated space to provide older adults with a comfortable place to sit, relax, and enjoy the festivities. The area will offer convenient seating in an accessible location" · "The Harvest Festival will feature a Sensory Tent, a quiet and calming space for children" · "Cedar Rose Park is accessible via AC Transit Route 52 and is just a short walk from North Berkeley BART." |
+| event | `numu-community-ignition-oct17-2026` | https://www.numulosgatos.org/events/community-ignition | 200 | plan: live weaving 14:00–16:00 into a shared memory tapestry, guide dog training 12:00–16:00, elevator, accessible restrooms, wheelchair to borrow | "2-4 PM: Live weaving with Anne Meade Paden" · "12 PM-4 PM: Guide dog training with Guide Dogs for the Blind" · "The museum has a publicly accessible elevator, ADA-compliant restrooms on both floors, and a wheelchair and fidget toys are available to borrow" |
+
 ## GPT editor review 2026-10-15 · weekend source review (10/17–18, 10/24–25)
 
 The weekly Wednesday source review that `ROADMAP-8-9.md` §2.5 assigns to the owner or the GPT editor. The GPT editor read the
