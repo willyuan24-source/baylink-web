@@ -110,6 +110,21 @@ const overBudget=routeBudgets.filter(row=>row.over);
 if(overBudget.length) throw new Error(`Route JS exceeds its budget: ${overBudget.map(row=>`${row.route} ${row.locale} ${row.kib.toFixed(1)} KiB > ${row.ceiling.toFixed(1)} KiB`).join('; ')}`);
 /** Stylesheets of a page module's static graph (what the app appends when the route chunk loads). */
 function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[key]; if(!item||seen.has(key)) return styles; seen.add(key); for(const css of item.css||[]) styles.add(css); for(const dependency of item.imports||[]) routeStyles(dependency,seen,styles); return styles; }
+// RC-6 for a guide's block chunks (WEB-PERF-3): a sheet that loads with a block (the freebie board's, its jump link above
+// the fold) is linked by every prerendered guide that renders the block (prerender guideModules), or the block paints
+// unstyled until its chunk loads. And 行程's prerendered pages carry the workspace (its form): Node imports it up front
+// (src/features/plan/plan-workspace-node.ts), and a prerender without it would ship /plan without the planner.
+{
+  const BLOCKS=[['src/components/FreebieBoard.tsx',/class="[^"]*bl-freebie-(?:board|jump)/],['src/components/CityExplorationDirectory.tsx',/class="[^"]*city-exploration/],['src/features/guides/GuideQuickFacts.tsx',/class="[^"]*gd-keyfacts/],['src/features/guides/GuideOpusEntry.tsx',/class="[^"]*gd-opus/]];
+  let checked=0;
+  for(const locale of ['', 'en/', 'zh-Hant/']) for(const name of await readdir(`dist/${locale}guides`).catch(()=>[])) {
+    if(!name.endsWith('.html')) continue;
+    const path=`dist/${locale}guides/${name}`; const html=await readFile(path,'utf8');
+    for(const [key,marker] of BLOCKS) if(marker.test(html)) for(const css of routeStyles(key)) { checked++; if(!html.includes(`href="/${css}"`)) throw new Error(`Block stylesheet /${css} (${key}) is not linked: ${path}`); }
+  }
+  if(!checked) throw new Error('No prerendered guide links a block stylesheet: the freebie board check found nothing to check');
+  for(const locale of ['', 'en/', 'zh-Hant/']) { const path=`dist/${locale}plan.html`; if(!(await readFile(path,'utf8')).includes('class="planner-form"')) throw new Error(`行程's prerendered page has no workspace (planner-form): ${path}`); }
+}
 for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   const path=`dist/${locale}${page}.html`; const html=await readFile(path,'utf8');
   const route=matchRoute(page==='index'?'/':`/${page}`);
