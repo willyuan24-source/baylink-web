@@ -134,13 +134,6 @@ const newVenuePhotos = [
     ]
   },
   {
-    "key": "octnov-fort-mason-context",
-    "eventIds": [
-      "nov2026-fort-mason-farmers-market",
-      "nov2026-arion-press-public-tours"
-    ]
-  },
-  {
     "key": "octnov-festival-pavilion-context",
     "eventIds": [
       "nov2026-sf-renegade-craft-winter"

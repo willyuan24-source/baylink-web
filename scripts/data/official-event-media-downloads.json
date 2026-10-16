@@ -308,5 +308,20 @@
     "originalUrl": "https://www.sfopera.com/globalassets/operas/manon/2026-27/manon_2627season_webbanner_2400x1200.png?width=1920&quality=80",
     "retrievedAt": "2026-10-15T22:05:20-07:00",
     "sha256": "df64efb55b1c6773bf06ac287e51cd86eda01c7f287f2c4bed8c532dbcbc02ba"
+  },
+  "official-november-north-healdsburg-market-2026": {
+    "originalUrl": "https://healdsburgfarmersmarket.org/wp-content/uploads/2026/03/salsa-sales.jpg",
+    "retrievedAt": "2026-10-16T14:55:18-07:00",
+    "sha256": "f5e4962e3ac6470d5ef090d731e9a9664b7da5ce81648b621dd93a74756027c2"
+  },
+  "official-nov2026-fort-mason-farmers-market": {
+    "originalUrl": "https://fortmason.org/wp-content/uploads/2015/09/farmers_market_peaches_bigslide.jpg",
+    "retrievedAt": "2026-10-16T14:55:18-07:00",
+    "sha256": "5246b435d8e7ce67c16db034e1cbabf97ae7716408dcacaaf02f737c3d809130"
+  },
+  "official-nov2026-arion-press-public-tours": {
+    "originalUrl": "https://fortmason.org/wp-content/uploads/2024/11/arion_press_entry_3840x2560.jpg",
+    "retrievedAt": "2026-10-16T14:55:18-07:00",
+    "sha256": "20c8ff4fd11c43bb8993a6877cdd42c7987d376f76bf4bef25c83978576063ab"
   }
 }

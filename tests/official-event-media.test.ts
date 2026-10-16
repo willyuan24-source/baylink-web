@@ -74,6 +74,13 @@ const BATCH_1015 = new Map([
   ['pleasanton-pumpkins-after-dark-2026', 'graphic'], ['r2-vallejo-wonder-sundays-2026', 'poster'],
   ['r2-vallejo-wonder-deep-dive-2026', 'poster'], ['november-north-sonoma-harvest-market-2026', 'photo'], ['sf-opera-manon-2026', 'key-art'],
 ]);
+// The 2026-10-16 batch (owner approval in chat 10-16 of three rows of gpt/out-1016c/image-candidates-nov-dec.md): three
+// photos, used after looking at each one (CNT-MEDIA-4). They replace a theme photo (Healdsburg: the same file, until now not
+// allowed as the cover) and a 2015 venue photo too old for a cover (both Fort Mason events). None is dated by its organiser,
+// so each caption says it does not show a listed session.
+const BATCH_1016 = new Map([
+  ['november-north-healdsburg-market-2026', 'photo'], ['nov2026-fort-mason-farmers-market', 'photo'], ['nov2026-arion-press-public-tours', 'photo'],
+]);
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.deepEqual(Object.keys(downloads), officialEventMedia.map(record => record.key), 'one download record per image, in registry order');
@@ -85,7 +92,10 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.deepEqual([batch1014.filter(record => record.kind === 'photo').length, batch1014.filter(record => record.kind === 'poster').length], [5, 9], '5 photos, 9 posters / flyers / graphics');
   const batch1015 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-15'));
   assert.deepEqual(new Map(batch1015.map(record => [record.eventId, record.artwork])), BATCH_1015, 'the 2026-10-15 batch is exactly the 5 approved images');
-  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length);
+  const batch1016 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-16'));
+  assert.deepEqual(new Map(batch1016.map(record => [record.eventId, record.artwork])), BATCH_1016, 'the 2026-10-16 batch is exactly the 3 approved photos');
+  for (const record of batch1016) assert.match(record.caption, /拍摄日期未注明，不是|拍摄日期未注明；/, `${record.key}: undated, never a listed session`);
+  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length);
   // SF Opera names no illustrator for its season artwork; the Cory Weaver credit on the same page is for production photos.
   assert.equal(officialEventMedia.find(record => record.eventId === 'sf-opera-manon-2026')?.credit, 'SF Opera 官方主视觉');
   assert.match(officialEventMedia.find(record => record.eventId === 'november-north-sonoma-harvest-market-2026')!.credit, /摄影 Melania Mahoney$/);
@@ -117,7 +127,7 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.equal(record.rights.scope, 'same-event coverage only');
     for (const field of DOWNLOAD_RECORD) assert.equal(Object.hasOwn(record, field), false, `${record.key}: ${field} belongs in the download record, not the bundled registry`);
     assert.match(new URL(download(record).originalUrl).protocol, /^https?:$/);
-    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15)T\d{2}:\d{2}:\d{2}-07:00$/);
+    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15|16)T\d{2}:\d{2}:\d{2}-07:00$/);
     assert.match(download(record).sha256, /^[0-9a-f]{64}$/);
     // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide. The record names
     // no srcset: pages get the D8 image ladder built from src and width (scripts/codemods/registry-srcset.mjs).
