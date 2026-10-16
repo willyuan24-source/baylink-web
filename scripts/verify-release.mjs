@@ -76,8 +76,9 @@ const ROUTE_JS_BUDGETS = [
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
   // WEB-PERF-3 (H20): the workspace is a chunk that loads with the catalog (features/plan/PlannerWorkspace.tsx); the route
-  // is the header, this weekend's picks and the saved days: measured 212.9 / 256.7 / 314.3 KiB, so measured + 2%.
-  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 217.2, 'zh-Hant': 261.9, en: 320.7 } },
+  // is the header, this weekend's picks (a generated snapshot, not the home catalog) and the saved days: measured
+  // 189.5 / 233.3 / 290.9 KiB, so measured + 2%.
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 193.3, 'zh-Hant': 238.0, en: 296.8 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
