@@ -356,18 +356,9 @@ test('the new elder guides take no photograph from the guides beside them on the
   // One cover page in the hub's reading order, as GuidesHome resolves it: an image is claimed once, the rest fall to TypeCover.
   const page = createCoverPage();
   const tiers = new Map(guideSlugsForTopic('elders', guides).map(slug => [slug, guideCover({ slug, covers: { 'zh-Hans': getGuideMedia(getGuideBySlug(slug)!).cover } }, '2026-10-15', page).tier]));
-  // CNT-MEDIA-4: the transit guide and the resource map now have owner-approved Commons photos of their own; the scam guide has none.
-  const own: Record<string, string> = { 'bay-area-senior-transit-clipper-discounts-guide': 'commons-clipper-embarcadero', 'bay-area-chinese-language-resource-map': 'commons-chinatown-ywca-chsa' };
   for (const slug of added) {
-    const cover = getGuideMedia(getGuideBySlug(slug)!).cover;
-    if (Object.hasOwn(own, slug)) {
-      assert.equal(cover, GUIDE_IMAGES[own[slug]], slug);
-      assert.deepEqual(guides.filter(guide => guide.slug !== slug && getGuideMedia(guide).cover.src === cover.src).map(guide => guide.slug), [], `${slug}: no other guide has this cover`);
-      assert.notEqual(tiers.get(slug), 'type', slug);
-    } else {
-      assert.equal(cover.kind, 'illustration', `${slug} must not reuse another guide's photograph`);
-      assert.equal(tiers.get(slug), 'type', slug);
-    }
+    assert.equal(getGuideMedia(getGuideBySlug(slug)!).cover.kind, 'illustration', `${slug} must not reuse another guide's photograph`);
+    assert.equal(tiers.get(slug), 'type', slug);
   }
   for (const slug of ['bay-area-311-211-local-help-guide', 'bay-area-october-muni-clipper-payment-update-2026']) {
     assert.ok(tiers.has(slug), `${slug} is on the hub`);

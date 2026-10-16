@@ -17,6 +17,7 @@ const { GuideDetail } = await import('../src/components/GuideDetail');
 const { getGuideBySlug, guides } = await import('../src/data/guides');
 const { GUIDE_EXTRA_INLINE, GUIDE_IMAGES, getGuideMedia } = await import('../src/data/guide-media');
 const { guideInlineImages } = await import('../src/features/guides/guide-data');
+const { guideEditorialAnswer } = await import('../src/data/guide-editorial/answers');
 const { peekGuide } = await import('../src/features/guides/guide-store');
 const { getCover } = await import('../src/lib/cover');
 const { getImageProvenance } = await import('../src/lib/image-provenance');
@@ -109,22 +110,16 @@ test('the SSA office in New York and HHS in Washington, D.C. are labelled 示意
   for (const key of ILLUSTRATIVE) assert.match(translateText(GUIDE_IMAGES[key].caption, 'zh-Hant'), /^示意圖：/);
 });
 
-test('their text is complete in English and the cover photos have no other guide', async () => {
+test('their text is complete in English, and no guide takes one as its list cover', async () => {
   await loadLocale('en');
   for (const record of records) {
     const translated = translateEditorial({ image: GUIDE_IMAGES[record.key] }, 'en').image;
     assert.doesNotMatch(JSON.stringify([translated.alt, translated.caption, translated.credit]), /\p{Script=Han}/u, record.key);
     assert.match(translated.credit, /resized and compressed; cropped to fit the layout$/);
   }
-  const covers = new Map<string, string[]>();
-  for (const guide of guides) {
-    const { src } = getGuideMedia(guide).cover;
-    if (src.startsWith('/guides/commons/')) covers.set(src, [...(covers.get(src) ?? []), guide.slug]);
-  }
-  for (const [src, slugs] of covers) assert.equal(slugs.length, 1, `${src}: ${slugs.join(', ')}`);
-  assert.equal(covers.size, 5, 'five guides take a Commons photo as their list cover');
-  // /guides shows the Medicare guide twice (the 长辈与家属 rail and 医疗保险), so it keeps its coded cover.
-  assert.equal(getGuideMedia(getGuideBySlug('bay-area-medicare-hicap-medi-cal-guide')!).cover.kind, 'illustration');
+  // These pilot guides' coded covers print the guide's first answer ("先打 800-510-2020"); a photo cover would drop it.
+  assert.deepEqual(guides.filter(guide => getGuideMedia(guide).cover.src.startsWith('/guides/commons/')).map(guide => guide.slug), []);
+  for (const slug of Object.keys(GUIDE_EXTRA_INLINE)) assert.ok(guideEditorialAnswer(slug, 'zh-Hans'), `${slug} keeps its answer cover`);
 });
 
 test('each guide shows its photos in the step they belong to, outside the step fold, with credit and licence link', async () => {

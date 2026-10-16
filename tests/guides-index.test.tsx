@@ -59,7 +59,7 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   assert.ok(images.length > 0);
   for (const image of images) assert.ok(!aiSources.has(image.getAttribute('src')!), `${image.getAttribute('src')} is an AI illustration`);
   const sources = images.map(image => image.getAttribute('src'));
-  assert.equal(new Set(sources).size, sources.length, `no picture appears twice on the page: ${sources.filter((src, index) => sources.indexOf(src) !== index).join(', ')}`);
+  assert.equal(new Set(sources).size, sources.length, 'no picture appears twice on the page');
   for (const card of view.container.querySelectorAll('.ui-feed-card')) {
     const cover = card.querySelector('.ui-cover, [data-cover="type"]');
     assert.ok(cover, 'every card has a cover');
@@ -69,8 +69,7 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   assert.ok(typed.length > 0);
   for (const cover of typed) assert.equal(cover.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
   // A pilot guide's coded cover prints its first answer (the number joined by non-breaking hyphens, U+2011, so it keeps one line).
-  // The senior services guide (800-510-2020) has a Commons photo as its cover since CNT-MEDIA-4; the Medicare guide keeps a coded one.
-  assert.ok([...typed].some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-434-0222')));
+  assert.ok([...typed].some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-510-2020')));
 });
 
 test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, and chips update the URL', () => {

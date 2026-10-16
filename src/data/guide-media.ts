@@ -374,22 +374,15 @@ bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-servi
 bySlug['bay-area-elder-scam-prevention-guide'] = ['everyday', 'digital-safety'];
 bySlug['bay-area-senior-transit-clipper-discounts-guide'] = ['weekend', 'train'];
 bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'library'];
-// CNT-MEDIA-4: the owner-approved Commons photos (10-16) become these guides' list covers. The two 示意图 photos (an SSA office
-// in New York, HHS in Washington, D.C.) are article pictures only: media-rights-overlay.json vetoes them as covers (coverOk false).
-// The Medicare guide keeps its coded cover: /guides lists it twice (长辈与家属 rail and 医疗保险), and a photo would repeat there.
-Object.assign(bySlug, {
-  'california-driver-license-id-preparation-guide': ['commons-dmv-sacramento-hq', 'translation-documents'],
-  'bay-area-senior-transit-clipper-discounts-guide': ['commons-clipper-embarcadero', 'train'],
-  'bay-area-rental-scam-guide': ['commons-nema-sf', 'rental-viewing'],
-  'bay-area-chinese-senior-services-referral-guide': ['commons-ggp-senior-center-front', 'everyday'],
-  // The senior centre photo stands in the 长者服务 section (heading 2) instead of the generic library photo.
-  'bay-area-chinese-language-resource-map': ['commons-chinatown-ywca-chsa', 'commons-ggp-senior-center-side'],
-});
+// CNT-MEDIA-4 (owner approval 10-16): the resource map's 长者服务 section (heading 2) shows the Commons senior centre photo
+// instead of the generic library photo.
+bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'commons-ggp-senior-center-side'];
 /**
- * CNT-MEDIA-4: further article pictures, as [afterHeading, image key]: the section each photo belongs to, so a long guide
- * gets a picture every step or two (H22). A list cover is repeated in its own article, where a pilot guide (which leads
- * with its card carousel, not the cover) would otherwise never show it. GuideDetail shows a pilot step's pictures outside
- * its 展开原文与来源 fold, with the step's diagram.
+ * CNT-MEDIA-4: the owner-approved Commons photos in the articles, as [afterHeading, image key]: the section each photo belongs
+ * to, so a long guide gets a picture every step or two (H22). GuideDetail shows a pilot step's pictures outside its
+ * 展开原文与来源 fold, with the step's diagram. They are not list covers: these pilot guides' coded covers print the guide's
+ * first answer ("先打 800-510-2020"), which a photo cover would drop (owner decision in the CNT-MEDIA-4 PR). The two 示意图
+ * photos (an SSA office in New York, HHS in Washington, D.C.) are vetoed as covers anyway (coverOk false).
  */
 export const GUIDE_EXTRA_INLINE: Readonly<Record<string, readonly (readonly [number, string])[]>> = {
   'california-driver-license-id-preparation-guide': [[3, 'commons-dmv-eureka-office'], [6, 'commons-dmv-sacramento-hq']],
