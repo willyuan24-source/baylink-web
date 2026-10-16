@@ -4,9 +4,10 @@ import { currentFreebies } from './october-offers';
 import { targetLowesOffers2026, targetLowesUpdates2026 } from './retail-target-lowes-2026';
 import { familyRetailOffers2026, familyRetailUpdates2026 } from './retail-family-2026';
 import { diningRetailOffers2026, diningRetailUpdates2026 } from './retail-dining-2026';
+import { dealsOffers20261015 } from './retail-deals-2026-10-15';
 
 const ids = new Set([
-  ...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026, ...verifiedOffers20261005,
+  ...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026, ...verifiedOffers20261005, ...dealsOffers20261015,
 ].map(offer => offer.id).concat(Object.keys({ ...targetLowesUpdates2026, ...familyRetailUpdates2026, ...diningRetailUpdates2026 })));
 // Include already-published chain perks so this brand directory is complete,
 // while keeping the existing canonical records and their original review dates.

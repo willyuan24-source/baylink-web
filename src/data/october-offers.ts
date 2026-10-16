@@ -19,6 +19,8 @@ import { lateSeptemberLocalOffers } from './late-september-local';
 import { lateSeptemberNorthOffers } from './late-september-north';
 import { octoberRefreshOffers } from './october-refresh-offers';
 import { applyOfferOverlay } from './editorial-overlay/apply';
+// CNT-DEALS-2 (2026-10-15): new store and restaurant perks, and corrections to existing ones (re-read that day).
+import { dealsOffers20261015, dealsUpdates20261015 } from './retail-deals-2026-10-15';
 
 // Official sources checked 2026-09-15. Monthly-rule dates are identified in the text.
 export const newOctoberOffers: FreebieOffer[] = [
@@ -138,11 +140,11 @@ const previousFreebies: FreebieOffer[] = mergeReviewedOffers([...new Map([...sep
   .filter(offer => !offer.endDate || offer.endDate >= '2026-09-23'));
 
 const refreshedOffers = [...birthdayPerks2026, ...everydayPerks2026, ...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026];
-const updatesByDate = [october2026OfferUpdates, Object.fromEntries(refreshedOffers.map(offer => [offer.id, offer])), birthdayPerkUpdates2026, targetLowesUpdates2026, familyRetailUpdates2026, diningRetailUpdates2026];
+const updatesByDate = [october2026OfferUpdates, Object.fromEntries(refreshedOffers.map(offer => [offer.id, offer])), birthdayPerkUpdates2026, targetLowesUpdates2026, familyRetailUpdates2026, diningRetailUpdates2026, dealsUpdates20261015];
 export const currentOfferUpdates: Record<string, Partial<FreebieOffer>> = {};
 for (const batch of updatesByDate) for (const [id, update] of Object.entries(batch)) currentOfferUpdates[id] = { ...currentOfferUpdates[id], ...update };
 const mergedOffers = new Map<string, FreebieOffer>();
-for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[]), ...verifiedOffers20261005, ...(octnovOffers as FreebieOffer[])]) {
+for (const offer of [...previousFreebies, ...october2026NewOffers, ...(chainOffers as FreebieOffer[]), ...refreshedOffers, ...(novemberOffers as FreebieOffer[]), ...verifiedOffers20261005, ...(octnovOffers as FreebieOffer[]), ...dealsOffers20261015]) {
   mergedOffers.set(offer.id, { ...mergedOffers.get(offer.id), ...offer });
 }
 // The editorial overlay goes last (src/data/editorial-overlay).
