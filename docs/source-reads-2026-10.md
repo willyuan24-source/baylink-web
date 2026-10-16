@@ -1296,14 +1296,24 @@ Not imported (seen in the lead list or the feeds, with the reason): Shen Yun 1/2
 "Saturday STEM" 12/26 and 1/2 and Santa Teresa "Community Game & Craft Day" 12/26 (cancelled in the feed); SJPL Tully "Tech Help for
 Seniors" (the feed's language list names Chinese, but its description says English and Vietnamese); Oakland Rockridge storytime
 (its description says Thursdays, its records are Saturdays); Alameda County "Music Hour" 12/26 (description says second Saturdays);
-SF Ballet Nutcracker (only a season PDF), Exploratorium Glow and Meritage "Santa's Reading Corner" (no day-by-day dates on the pages
-read); Niles Canyon Train of Lights (sold out for the season), Walnut Creek on Ice (old and new season pages disagree), SF Symphony
-holiday programmes, Six Flags WinterFest 1/2–3 (no hours published), and adult-only or teen-only feed rows.
+SF Ballet Nutcracker (only a season PDF) and Meritage "Santa's Reading Corner" (no day-by-day dates on the pages read); Niles
+Canyon Train of Lights (sold out for the season), Walnut Creek on Ice (old and new season pages disagree), SF Symphony holiday
+programmes, Six Flags WinterFest 1/2–3 (no hours published), and adult-only or teen-only feed rows.
+
+Four SF seasonal runs that open before 12/1 (ZooLights, the Union Square rink, Lightscape and Exploratorium Glow) are not
+imported: their first dates fall inside W6-S1's 9/29–11/30 window, so /opus-bay would have to place them first.
 
 Second lead file (GPT `opus-qa/gpt/out-1016/holiday-gap-1016.csv`, 3 rows, untrusted): Camp Harmony 12/29–1/3 is added as an
 overnight camp (Camp Newman allows no drop-in or day use; per-person per-camp-day rates with lodging and meals; never listed as free
 or as a day trip); the Belmont Mandarin bilingual storytime gains its 10/21, 11/4 and 11/18 sessions; the Millbrae Mandarin/Cantonese
 storytime is already on main with the same two October dates. Neither storytime meets on the 1/2–3 weekend.
+
+Review fixes (2026-10-16, no new reads; the quotes below are unchanged): Camp Harmony's plan line states the rate sheet's
+regular rates (3–12 $70–$120, adults $135–$240) instead of a derived "$5–$15 higher", and its cost line and price note name the
+11/15 early-bird floors as such; its title and short title say 过夜营 / "overnight"; the Belmont storytime's audience follows the
+SMCL record's "Children of all ages" (儿童（任何年龄）和家人), as H70 did for Millbrae; Filoli's date line says that its open days
+for 11/16–12/13 are on the official ticketing calendar (not read day by day, so not listed); the Marin holiday lights' planner
+note is in Chinese again, from the same county page.
 
 ### New items and updates (src/data/supply-2026-10-15-events.json, src/data/editorial-overlay/events.json)
 
