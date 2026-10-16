@@ -27,6 +27,7 @@ import { withoutCarEditorial } from './bay-area-without-car-guide';
 import { elderScamEditorial } from './bay-area-elder-scam-prevention-guide';
 import { seniorTransitEditorial } from './bay-area-senior-transit-clipper-discounts-guide';
 import { chineseResourceMapEditorial } from './bay-area-chinese-language-resource-map';
+import { libraryStarterEditorial } from './bay-area-library-starter-guide';
 
 export type { EditorialCopy, EditorialPhone, GuideContact, GuideEditorial, GuideKeyFact, GuideSlide } from './types';
 
@@ -44,6 +45,8 @@ export const GUIDE_EDITORIAL: Readonly<Record<string, GuideEditorial>> = Object.
   localHelpEditorial, sjDigitalHelpEditorial, bartOctoberEditorial, commuteEditorial, usefulAppsEditorial,
   streetParkingEditorial, fastrakEditorial, bulkyItemsEditorial, alertsEditorial, freeEslEditorial, repairRequestEditorial,
   withoutCarEditorial, elderScamEditorial, seniorTransitEditorial, chineseResourceMapEditorial,
+  // CNT-GUIDES-3 review: the library starter guide, so its card leads with getting a card rather than a museum-pass row.
+  libraryStarterEditorial,
 ].map(editorial => [editorial.slug, editorial]));
 
 export const getGuideEditorial = (slug: string): GuideEditorial | undefined => Object.hasOwn(GUIDE_EDITORIAL, slug) ? GUIDE_EDITORIAL[slug] : undefined;

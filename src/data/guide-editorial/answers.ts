@@ -34,6 +34,7 @@ export const GUIDE_COVER_ANSWERS: Readonly<Record<string, EditorialCopy>> = {
   'bay-area-elder-scam-prevention-guide': { zh: "长者诈骗 833-372-8311", en: "Elder fraud: 833-372-8311" },
   'bay-area-senior-transit-clipper-discounts-guide': { zh: "BART 长者减 62.5%", en: "BART: 62.5% off at 65+" },
   'bay-area-chinese-language-resource-map': { zh: "长者服务 800-510-2020", en: "Seniors: 800-510-2020" },
+  'bay-area-library-starter-guide': { zh: "先在顺路的馆办卡", en: "Get a card at a nearby branch" },
 };
 
 export function guideEditorialAnswer(slug: string, locale: Locale): string | undefined {
