@@ -9,13 +9,14 @@ import { eventOccursOn } from '../src/lib/event-calendar';
 import { resolveTimeEvidence } from '../src/lib/planner-hours';
 import { buildOutingOptions } from '../src/lib/planner-outings';
 import type { PlannerEvent, PlannerPlace } from '../src/lib/planner';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const events = records as MonthlyEvent[];
 test('nine independently verified community events have exact occurrence dates, source links and valid imagery', () => {
   assert.equal(events.length, 9);
   assert.equal(new Set(events.map(event => event.id)).size, 9);
   for (const event of events) {
-    assert.equal(event.verifiedAt, '2026-09-30');
+    assert.equal(event.verifiedAt, batchVerifiedAt(event.id, '2026-09-30'));
     assert.deepEqual(event.occurrenceDates, [event.startDate]);
     assert.equal(event.startDate, event.endDate);
     assert.ok(GUIDE_IMAGES[event.imageKey]);
@@ -23,7 +24,8 @@ test('nine independently verified community events have exact occurrence dates, 
     assert.ok(!eventOccursOn(event, '2026-11-01'));
     if (!facts[event.id].programTimeUnconfirmed) assert.deepEqual(Object.keys(schedules[event.id].dates!), event.occurrenceDates);
     assert.equal(schedules[event.id].sourceUrl, event.officialUrl);
-    assert.equal(resolveTimeEvidence(schedules[event.id], event.startDate, '2026-09-30').status, facts[event.id].programTimeUnconfirmed ? 'unknown' : 'confirmed');
+    // Evidence is judged on the item's own check day (the batch date, or the 10/15 editor review).
+    assert.equal(resolveTimeEvidence(schedules[event.id], event.startDate, batchVerifiedAt(event.id, '2026-09-30')).status, facts[event.id].programTimeUnconfirmed ? 'unknown' : 'confirmed');
     assert.equal(facts[event.id].admissionUsd, event.cost === 'free' ? 0 : null);
   }
 });

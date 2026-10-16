@@ -35,7 +35,7 @@ export const perksPosters: PerksPoster[] = [
       { sourceId: 'sephora-birthday', name: 'Sephora', reward: '生日月美妆小礼', details: ['加入 Beauty Insider', '店内领取无需购物', '网领需税前商品满 $25'], tag: '生日月 · 礼品依库存', icon: 'beauty' },
       { sourceId: 'roundup-ulta-birthday-gift-2026', name: 'Ulta Beauty', reward: '生日月专属赠礼', details: ['生日月前注册并填写生日', '开启营销通知；店领无需购物', '网购或自提需消费'], tag: 'Ulta Beauty Rewards · 需有效券', icon: 'beauty' },
       { sourceId: 'dutch-bros-birthday-2026', name: 'Dutch Bros', reward: '生日饮品一杯', details: ['App 入会并填写生日', '生日当天入会，次日到券', '饮品券有效期 30 天'], tag: '提前注册更从容', icon: 'cup' },
-      { sourceId: 'nothing-bundt-cakes-birthday-bundtlet', name: 'Nothing Bundt Cakes', reward: '单人份 Bundtlet', details: ['年满 18 岁 · Bundtastic 会员', '提前登记生日', '收到生日邮件至生日后 7 天'], tag: '带着生日券去领取', icon: 'cake' },
+      { sourceId: 'nothing-bundt-cakes-birthday-bundtlet', name: 'Nothing Bundt Cakes', reward: '单人份 Bundtlet', details: ['Bundtastic 会员 16 岁起，FAQ 写 18 岁', '提前登记生日', '收到生日邮件至生日后 7 天'], tag: '带着生日券去领取', icon: 'cake' },
     ],
   },
   {

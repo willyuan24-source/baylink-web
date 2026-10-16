@@ -9,6 +9,8 @@ import supplyPlanning1012 from './supply-2026-10-12-planning.json';
 import supplyLocations1012 from './supply-2026-10-12-locations.json';
 import supplyPlanning1013 from './supply-2026-10-13-planning.json';
 import supplyLocations1013 from './supply-2026-10-13-locations.json';
+import supplyPlanning1015 from './supply-2026-10-15-planning.json';
+import supplyLocations1015 from './supply-2026-10-15-locations.json';
 import { guides } from './guides';
 import type { GeoPoint, PlannerEvent, PlannerPlace, PlanningFacts } from '../lib/planner';
 import placeLocationData from './place-locations.json';
@@ -75,10 +77,12 @@ const eventPlanning: Record<string, PlanningFacts> = {
   'fremont-trick-or-treat-2026': { minAge: 2, maxAge: 10, reservation: 'required' },
 };
 const eventLocations: Record<string, GeoPoint> = {
-  // Library branch pins from each library's own location record (CNT-SUPPLY 2026-10-12 and CNT-SUPPLY-2 2026-10-13 batches);
+  // Library branch pins from each library's own location record (CNT-SUPPLY 2026-10-12, CNT-SUPPLY-2 2026-10-13 and CNT-SUPPLY-3
+  // 2026-10-15 batches);
   // the 2026-10-13 batch's three East Bay farmers' markets use the market operator's own map marker.
   ...supplyLocations1012 as Record<string, GeoPoint>,
   ...supplyLocations1013 as Record<string, GeoPoint>,
+  ...supplyLocations1015 as Record<string, GeoPoint>,
   ...OCTOBER_REFRESH_LOCATIONS,
   ...OCTOBER_REFRESH_COMMUNITY_LOCATIONS,
   ...aiEventLocations,
@@ -94,7 +98,7 @@ const eventLocations: Record<string, GeoPoint> = {
 
 // Coordinates are added only from individually checked public venue sources.
 const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
-const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning, ...supplyPlanning1012, ...supplyPlanning1013 } as Record<string, { planning: PlanningFacts }>;
+const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning, ...supplyPlanning1012, ...supplyPlanning1013, ...supplyPlanning1015 } as Record<string, { planning: PlanningFacts }>;
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, aliases: [...new Set([event.title, ...(event.aliases || []), ...(EVENT_ALIASES[event.id] || [])])], ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, aliases: [...new Set([place.title, ...(PLACE_ALIASES[place.id] || [])])], region: place.region, city: place.city, summary: place.note,

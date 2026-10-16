@@ -7,6 +7,7 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { eventOccursOn } from '../src/lib/event-calendar';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { OCTOBER_REFRESH_SCHEDULES as schedules } from '../src/data/october-refresh-planning';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 const events = records as MonthlyEvent[];
 const find = (id: string) => PLANNER_EVENTS.find(event => event.id === id)!;
 
@@ -15,7 +16,7 @@ test('October additions reach the shared planner once with sources and translate
   const strings = (value: unknown): string[] => typeof value === 'string' ? [value] : Array.isArray(value) ? value.flatMap(strings) : value && typeof value === 'object' ? Object.values(value).flatMap(strings) : [];
   for (const event of events) {
     assert.equal(PLANNER_EVENTS.filter(row => row.id === event.id).length, 1);
-    assert.equal(event.verifiedAt, '2026-09-30');
+    assert.equal(event.verifiedAt, batchVerifiedAt(event.id, '2026-09-30'));
     assert.ok(GUIDE_IMAGES[event.imageKey]);
     assert.equal(new URL(event.officialUrl).protocol, 'https:');
   }

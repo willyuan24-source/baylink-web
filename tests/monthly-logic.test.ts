@@ -18,6 +18,7 @@ import lateNorthEnglish from '../src/data/late-september-north-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { EVENT_OVERLAY } from '../src/data/editorial-overlay/apply';
 import { buildEventCalendar, featurePhotos, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, isLongRunning, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs } from '../src/lib/monthly';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 test('unknown admission remains searchable but never qualifies as a free event', () => {
   const item: MonthlyEvent = { ...MONTHLY_EVENTS[0], id: 'unknown-admission-fixture', kind: 'performance', startDate: '2026-10-03', endDate: '2026-10-03', occurrenceDates: ['2026-10-03'], cost: 'unknown', costLabel: '票价尚未公布，请查主办方。' };
@@ -86,9 +87,9 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('fall edition stays current through December 31, then archives', () => {
-  // CNT-SUPPLY-2 (H25): the edition runs through 12/31 so the December weekends' events are listed.
-  assert.equal(MONTHLY_EDITION.throughDate, '2026-12-31');
+test('fall edition stays current through January 3, then archives', () => {
+  // CNT-SUPPLY-2 (H25) ran it to 12/31; CNT-SUPPLY-3 runs it through 1/3 so the winter-break weekends' events are listed.
+  assert.equal(MONTHLY_EDITION.throughDate, '2027-01-03');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
@@ -100,7 +101,9 @@ test('fall edition stays current through December 31, then archives', () => {
   assert.equal(isEditionCurrent('2026-11-30'), true);
   assert.equal(isEditionCurrent('2026-12-01'), true);
   assert.equal(isEditionCurrent('2026-12-31'), true);
-  assert.equal(isEditionCurrent('2027-01-01'), false);
+  assert.equal(isEditionCurrent('2027-01-01'), true);
+  assert.equal(isEditionCurrent('2027-01-03'), true);
+  assert.equal(isEditionCurrent('2027-01-04'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);
@@ -358,20 +361,25 @@ test('late October dates retain community events while November previews respect
   for (const id of ['emeryville-art-exhibition-closing-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026']) {
     assert.ok(!november.includes(id), `${id} stays hidden after its final October date`);
   }
-  // CNT-SUPPLY-2: December weekends now have events (edition through 12/31); nothing is left after the edition.
-  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, {}, '2027-01-01'), []);
+  // CNT-SUPPLY-3: the edition runs through 1/3/2027; after it only seasonal runs with published later days remain.
+  const afterEdition = filterMonthlyEvents(MONTHLY_EVENTS, {}, '2027-01-04');
+  assert.ok(ids(afterEdition).includes('oakland-zoo-glowfari-2026'), 'Glowfari runs to 1/31');
+  for (const item of afterEdition) assert.ok(item.endDate > '2027-01-03' && nextOccurrence(item, '2027-01-04'), `${item.id} has a day after the edition`);
   // Inside the edition, mid-December: the still-running activities are listed and no ended one is.
   const midDecember = filterMonthlyEvents(MONTHLY_EVENTS, {}, '2026-12-14');
   assert.ok(midDecember.length > 0, 'something still runs on 12/14');
   assert.ok(ids(midDecember).includes('dickens-christmas-fair-2026'), 'the Dickens Fair runs to 12/20');
   for (const item of midDecember) assert.ok(item.endDate >= '2026-12-14' && nextOccurrence(item, '2026-12-14'), `${item.id} has a day on or after 12/14`);
   assert.deepEqual(ids(midDecember), ids(MONTHLY_EVENTS.filter(item => nextOccurrence(item, '2026-12-14'))), 'every activity with a day left is listed');
-  for (const id of ['livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-alum-rock-basic-english-2026']) {
+  for (const id of ['livermore-great-elephant-migration-2026', 'scl-sonoma-valley-gingerbread-dec13-2026', 'sjpl-tully-friends-book-sale-dec5-2026']) {
     assert.ok(!ids(midDecember).includes(id), `${id} ended before 12/14`);
   }
   assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'october' }, '2026-11-01')),
     ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'october' }, '2026-09-15')));
-  assert.deepEqual(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07'), [], 'archive permission cannot bypass the requested day');
+  // CNT-SUPPLY-3: Monday 12/7 now has the daily seasonal runs (rink, lights, Christmas in the Park); the archive permission still
+  // adds nothing that does not run that day.
+  assert.deepEqual(ids(filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07')), ids(filterMonthlyEvents(MONTHLY_EVENTS, { date: 'today' }, '2026-12-07')), 'archive permission cannot bypass the requested day');
+  for (const item of filterMonthlyEvents(MONTHLY_EVENTS, { includeEnded: true, date: 'today' }, '2026-12-07')) assert.ok(nextOccurrence(item, '2026-12-07') === '2026-12-07', `${item.id} runs on 12/7`);
 });
 
 test('new community listings retain complete English text and clearly identify any illustrative media', () => {
@@ -394,7 +402,7 @@ test('new community listings retain complete English text and clearly identify a
         assert.equal(new URL(image.creditUrl!).protocol, 'https:');
       }
     }
-    assert.equal(added.verifiedAt, newEvents.includes(added) ? '2026-09-27' : added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15');
+    assert.equal(added.verifiedAt, batchVerifiedAt(added.id, newEvents.includes(added) ? '2026-09-27' : added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15'));
     for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {
       const key = value.trim().replace(/\s+/g, ' ');
       assert.ok(mapping[key], 'English mapping exists: ' + key);

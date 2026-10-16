@@ -49,7 +49,8 @@ test('free street entry, paid tasting, member prices and unknown admission keep 
   assert.ok(!freeIds.has(flea.id));
   // The street fair itself is free to walk into (G17: 免费 means free to attend); the tasting wristband stays on the price line.
   assert.ok(freeIds.has(toast.id));
-  assert.match(toast.costLabel, /品饮手环 \$40/);
+  // The $40 early-bird tier ended 10/1 (official page read 2026-10-15); the line now gives the $45 / $55 tiers.
+  assert.match(toast.costLabel, /品饮手环 \$45，10\/17 当天 \$55/);
 });
 
 test('Fall Show respects shorter Sunday hours and excludes the separate gala', () => {

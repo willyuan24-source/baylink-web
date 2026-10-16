@@ -6,6 +6,7 @@ import newOffers from '../src/data/octnov-2026-offers.json';
 import newOpenings from '../src/data/octnov-2026-openings.json';
 import { MONTHLY_EVENTS, MONTHLY_EDITION } from '../src/data/monthly-edition';
 import { PLANNER_EVENTS } from '../src/data/planner-catalog';
+import { EVENT_OVERLAY } from '../src/data/editorial-overlay/apply';
 import { currentFreebies } from '../src/data/october-offers';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { getActiveRegionalBulletins } from '../src/data/october-2026-bulletins';
@@ -17,17 +18,20 @@ import { loadLocale, translateEditorial } from '../src/i18n/locale';
 const reviewedEvents = [...sfEast, ...regional];
 
 test('new programs enter the public calendar and planner with only explicitly reviewed days', () => {
-  assert.equal(MONTHLY_EDITION.throughDate, '2026-12-31');
+  assert.equal(MONTHLY_EDITION.throughDate, '2027-01-03');
   for (const reviewed of reviewedEvents) {
     const published = MONTHLY_EVENTS.filter(event => event.id === reviewed.id);
     assert.equal(published.length, 1, reviewed.id);
-    assert.deepEqual(published[0].occurrenceDates, reviewed.occurrenceDates);
+    // A later dated read may extend a run through the overlay's `fix` (CNT-SUPPLY-3: Marin's Holiday Light Spectacular to
+    // 1/3); then the overlay's reviewed days are the published ones.
+    const reviewedDates = EVENT_OVERLAY[reviewed.id]?.fix?.occurrenceDates ?? reviewed.occurrenceDates;
+    assert.deepEqual(published[0].occurrenceDates, reviewedDates);
     assert.equal(PLANNER_EVENTS.filter(event => event.id === reviewed.id).length, 1);
     const calendar = buildEventCalendar(published[0]).replace(/\r\n /g, '');
-    assert.equal(calendar.match(/BEGIN:VEVENT/g)?.length, new Set(reviewed.occurrenceDates).size);
+    assert.equal(calendar.match(/BEGIN:VEVENT/g)?.length, new Set(reviewedDates).size);
     // A day whose session time the CNT-EVENTS overlay confirms exports as a timed Pacific event (WEB-EVENTS E2E-13); the rest
     // stay all-day dates. Either way each reviewed day starts an event.
-    for (const date of reviewed.occurrenceDates) assert.match(calendar, new RegExp(`DTSTART(?:;VALUE=DATE:|;TZID=America/Los_Angeles:)${date.replaceAll('-', '')}(?:T[0-9]{6})?`));
+    for (const date of reviewedDates) assert.match(calendar, new RegExp(`DTSTART(?:;VALUE=DATE:|;TZID=America/Los_Angeles:)${date.replaceAll('-', '')}(?:T[0-9]{6})?`));
   }
   const yoga = MONTHLY_EVENTS.find(event => event.id === 'nov2026-presidio-free-yoga')!;
   assert.deepEqual(filterMonthlyEvents([yoga], { date: 'today' }, '2026-11-29'), []);

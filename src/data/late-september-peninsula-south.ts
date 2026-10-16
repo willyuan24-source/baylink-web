@@ -35,7 +35,7 @@ export const lateSeptemberPeninsulaSouthEvents: MonthlyEvent[] = [
     ],
     audience: ['亲子家庭', '航空爱好者'],
     officialUrl: 'https://www.hiller.org/event/paint-a-plane/2026-10-24/',
-    sourceLabel: 'Hiller Aviation Museum · 十月日历与 Paint-A-Plane', verifiedAt: '2026-09-27', imageKey: 'family-workshop',
+    sourceLabel: 'Hiller Aviation Museum · 十月日历与 Paint-A-Plane', verifiedAt: '2026-10-15', imageKey: 'family-workshop',
     relatedGuideSlug: 'san-carlos-hiller-aviation-half-day-guide',
   },
   {
@@ -69,7 +69,7 @@ export const lateSeptemberPeninsulaSouthEvents: MonthlyEvent[] = [
     ],
     audience: ['亲子家庭', '社区文化'],
     officialUrl: 'https://sjmusart.org/programs-at-sjma/community-days/dia-de-los-muertos',
-    sourceLabel: 'San José Museum of Art · 2026 社区日公告', verifiedAt: '2026-09-27', imageKey: 'culture-visit',
+    sourceLabel: 'San José Museum of Art · 2026 社区日公告', verifiedAt: '2026-10-15', imageKey: 'culture-visit',
   },
 ];
 

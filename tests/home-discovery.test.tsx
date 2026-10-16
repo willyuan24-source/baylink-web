@@ -35,8 +35,11 @@ test('the head asks the question and its subtitle states this weekend, the guide
   assert.ok(lede.includes(`${COMPLETE_GUIDES.length} 篇办事指南`), 'the whole guide library, not the home selection');
   // H02: when this weekend's events were checked (most of them, and the latest), not the edition's date.
   assert.ok(weekend.checked, 'the snapshot carries the check dates');
-  const { mostly, latest } = weekend.checked!;
-  assert.ok(lede.endsWith(mostly === latest ? `每条附官方来源，核对于 ${monthDay(latest)}` : `每条附官方来源，多数核对于 ${monthDay(mostly)}，最近 ${monthDay(latest)}`), lede);
+  const { mostly, latest, all } = weekend.checked!;
+  const earliest = weekend.checked!.earliest ?? mostly;
+  assert.ok(lede.endsWith(earliest === latest ? (all === false ? `每条附官方来源，多数核对于 ${monthDay(latest)}` : `每条附官方来源，核对于 ${monthDay(latest)}`)
+    : mostly === latest ? `每条附官方来源，多数核对于 ${monthDay(mostly)}，最早 ${monthDay(earliest)}`
+      : `每条附官方来源，多数核对于 ${monthDay(mostly)}，最近 ${monthDay(latest)}`), lede);
   assert.ok(!lede.includes(`${monthDay(MONTHLY_EDITION.checkedAt)} 核对`) || MONTHLY_EDITION.checkedAt === latest, lede);
   assert.equal(doc.querySelector('.home-head__dateline time')!.getAttribute('datetime'), today);
   assert.equal(guideCount, COMPLETE_GUIDES.length);
@@ -286,7 +289,7 @@ test('the first cover is fetched first; English has the question H1 and English 
     const view = render(<MemoryRouter basename="/en" initialEntries={['/en/']}><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
-    assert.match(view.container.querySelector('.home-head__lede')!.textContent!, /^\d+ events this weekend · \d+ guides · official sources, (?:mostly checked [A-Z][a-z]{2} \d+, latest [A-Z][a-z]{2} \d+|checked [A-Z][a-z]{2} \d+)$/);
+    assert.match(view.container.querySelector('.home-head__lede')!.textContent!, /^\d+ events this weekend · \d+ guides · official sources, (?:mostly checked [A-Z][a-z]{2} \d+(?:, (?:latest|earliest) [A-Z][a-z]{2} \d+)?|checked [A-Z][a-z]{2} \d+)$/);
     view.unmount();
   } finally {
     await setLocale('zh-Hans', false);

@@ -53,7 +53,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.srcity.org/Calendar.aspx?EID=2289&calType=0&day=23&month=10&year=2026",
     "sourceLabel": "City of Santa Rosa",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "garden-walk"
   },
   {
@@ -188,7 +188,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://campbelloktoberfest.com/",
     "sourceLabel": "Campbell Chamber of Commerce",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -215,7 +215,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://berkeleyca.gov/community-recreation/events/harvest-festival-1",
     "sourceLabel": "City of Berkeley",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -242,7 +242,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.emeryarts.org/",
     "sourceLabel": "Emeryville Celebration of the Arts",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "culture-visit"
   },
   {
@@ -296,7 +296,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.townofwindsor.com/trickortreat",
     "sourceLabel": "Town of Windsor Parks and Recreation",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "garden-walk"
   },
   {

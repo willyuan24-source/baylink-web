@@ -4,6 +4,7 @@ import test, { after, afterEach } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
+import type { WeekendPickEntry } from '../src/data/weekend-picks';
 
 // WEB-FIX5 (Batch 5, audit-1013): the 长辈友好 circle and rule (H06), honest check dates (H02), one-tap region (H23), the
 // picks label (H26), naming (H27), family links on details (H33), view titles (H35), sold-out and past details (H57, H56),
@@ -34,6 +35,7 @@ const { getHomeWeekend } = await import('../src/lib/home-weekend');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
+const { WEEKEND_PICKS } = await import('../src/data/weekend-picks');
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 after(() => {
@@ -123,7 +125,7 @@ test('H06: an empty 长辈友好 list offers the 长辈与家属 guides and BayB
 });
 
 test('H02: list headers state when their items were checked — most of them, and the latest — never the edition date', () => {
-  assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12' });
+  assert.deepEqual(checkSummary(['2026-09-29', '2026-09-29', '2026-10-12', '2026-09-28', undefined, 'x', '2026-10-20'], '2026-10-13'), { mostly: '2026-09-29', latest: '2026-10-12', earliest: '2026-09-28', all: false });
   assert.equal(checkSummary([], '2026-10-13'), null);
   const zh = (text: string) => text;
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, zh), '多数核对于 9/29 · 最近 10/12');
@@ -131,9 +133,20 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!;
-  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+ · 最近 \d+\/\d+|核对于 \d+\/\d+)$/);
+  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|核对于 \d+\/\d+)$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
+  // One date only when every listed item carries it; most on the latest day with a few older ones is still 多数 (§3.9).
+  const mostlyLatest = checkSummary([...Array(71).fill('2026-10-15'), ...Array(5).fill('2026-09-29')], '2026-10-16')!;
+  // W6B-INT: with CNT-SUPPLY-3's earliest day the line also names it (多数核对于 10/15 · 最早 9/29).
+  assert.deepEqual(mostlyLatest, { mostly: '2026-10-15', latest: '2026-10-15', earliest: '2026-09-29', all: false });
+  assert.equal(checkLine(mostlyLatest, zh), '多数核对于 10/15 · 最早 9/29');
+  const en = (_: string, english: string) => english;
+  assert.equal(checkLine(mostlyLatest, en), 'mostly checked Oct 15 · earliest Sep 29');
+  assert.equal(checkLine(checkSummary(['2026-10-15', undefined], '2026-10-16')!, en), 'mostly checked Oct 15', 'English: every dated item on one day, one undated');
+  assert.equal(checkLine(checkSummary(['2026-10-15', '2026-10-15'], '2026-10-16')!, zh), '核对于 10/15');
+  assert.equal(checkLine(checkSummary(['2026-10-15', undefined], '2026-10-16')!, zh), '多数核对于 10/15', 'an item without a check date');
+  assert.equal(checkLine(checkSummary(['2026-10-15', '2026-10-20'], '2026-10-16')!, zh), '多数核对于 10/15', 'a date after today');
 });
 
 test('H02: an event within a week whose sources the monitor cannot read says 未能自动核对 in its trust row', () => {
@@ -164,8 +177,23 @@ test('H23: the region is one tap on 本周末 — a chip row under the day tabs,
 
 test('H26: 编辑精选 only for an editor list; the automatic ranking is 本周末先看', () => {
   const ssr = (today: string) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today={today} /></StaticRouter>));
-  assert.equal(ssr('2026-10-09').querySelector('#ev-picks-heading')!.textContent, '编辑精选', '10/10 has an editor list');
-  assert.equal(ssr('2026-10-13').querySelector('#ev-picks-heading')!.textContent, '本周末先看', '10/17 has none');
+  const heading = (today: string) => ssr(today).querySelector('#ev-picks-heading')?.textContent;
+  const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:00:00Z`) + amount * 86_400_000).toISOString().slice(0, 10);
+  // A weekend no editor has picked yet, seen from its Tuesday: the first Saturday from 10/24 without a list (the weekly
+  // picks never need this test changed).
+  const editorPicks = WEEKEND_PICKS as Record<string, readonly WeekendPickEntry[]>;
+  const ranked = (saturday: string) => model.weekendPicks(model.INDEX_EVENTS, addDays(saturday, -4), { picks: {} });
+  let saturday = '2026-10-24';
+  while (editorPicks[saturday] || !ranked(saturday).length) { saturday = addDays(saturday, 7); assert.ok(saturday <= '2026-12-26', 'a weekend without a list'); }
+  const tuesday = addDays(saturday, -4);
+  assert.equal(heading(tuesday), '本周末先看', `${saturday} has no editor list`);
+  // The same weekend with an editor list (two of the ranking's own events) is 编辑精选.
+  editorPicks[saturday] = ranked(saturday).slice(0, 2).map(pick => ({ id: pick.event.id, reason: { zh: '测试理由', en: 'Test reason' } }));
+  try {
+    assert.equal(heading(tuesday), '编辑精选', `${saturday} with an editor list`);
+  } finally {
+    delete editorPicks[saturday];
+  }
 });
 
 test('H35: each /events view has its own title; 本周末 keeps the page title', () => {

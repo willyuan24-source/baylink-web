@@ -15,6 +15,7 @@ import { currentOpenings } from '../src/data/local-discoveries';
 import { loadLocale, translateText } from '../src/i18n/locale';
 import { addCalendarDays, eventOccursOn, eventsOnCalendarDay, validCalendarDay } from '../src/lib/event-calendar';
 import { buildEventCalendar, filterMonthlyEvents } from '../src/lib/monthly';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const cssHook = registerHooks({ load(url, context, nextLoad) {
   return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context);
@@ -49,7 +50,7 @@ test('late September publishes all five regions with unique IDs and usable sourc
     for (const item of added) {
       assert.equal(published.filter(candidate => candidate.id === item.id).length, 1, `${name}: ${item.id} must be published once`);
       const checkedDates: Record<string, string> = { 'history-smc-free-oct2': '2026-10-02', 'south-bay-wolfe-ramp-oct2': '2026-10-05' };
-      assert.equal(item.verifiedAt, checkedDates[item.id] || '2026-09-27', `${item.id}: preserves the actual batch or later source check`);
+      assert.equal(item.verifiedAt, batchVerifiedAt(item.id, checkedDates[item.id] || '2026-09-27'), `${item.id}: preserves the actual batch or later source check`);
     }
   }
   assert.equal(new Set(additions.map(item => item.id)).size, additions.length, 'new content IDs must not collide across types');

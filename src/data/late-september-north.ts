@@ -87,7 +87,7 @@ export const lateSeptemberNorthEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.srsymphony.org/event/boo-lets-dance/",
     "sourceLabel": "Santa Rosa Symphony · 官方场次与单票价格",
-    "verifiedAt": "2026-09-27",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   }
 ];
