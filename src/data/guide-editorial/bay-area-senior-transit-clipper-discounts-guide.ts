@@ -218,8 +218,8 @@ export const seniorTransitEditorial: GuideEditorial = {
       "en": "At 65+, get a Senior Clipper card online, by mail or at a Customer Service Center."
     },
     {
-      "zh": "BART 减 62.5%，Muni 长者单程 $1.40，VTA 和 SamTrans $1，AC Transit 五折。",
-      "en": "BART 62.5% off, Muni $1.40, VTA and SamTrans $1, AC Transit half fare."
+      "zh": "BART 减 62.5%，Muni 长者单程 $1.40，VTA 和 SamTrans $1，AC Transit 用 Clipper $1.37。",
+      "en": "BART 62.5% off, Muni $1.40, VTA and SamTrans $1, AC Transit $1.37 on Clipper."
     },
     {
       "zh": "旧金山低收入长者网上申请免费坐 Muni，最长 4 周。",

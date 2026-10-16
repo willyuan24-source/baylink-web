@@ -83,7 +83,7 @@ export const elderGuides2026: Guide[] = [
     slug: 'bay-area-senior-transit-clipper-discounts-guide',
     title: '湾区长者坐车省钱指南',
     subtitle: '65 岁办 Senior Clipper 卡；旧金山低收入居民 65 岁起可免费坐 Muni；出门困难可申请辅助交通',
-    summary: '年满 65 岁可以办长者 Clipper 卡：BART 票价减 62.5%，Muni 长者单程 $1.40，VTA 和 SamTrans 长者单程 $1，AC Transit 半价。旧金山 65 岁及以上、家庭收入不超过湾区收入中位数 100% 的居民，可申请免费坐 Muni。因残障或健康原因坐不了公交，可申请 ADA 辅助交通。',
+    summary: '年满 65 岁可以办长者 Clipper 卡：BART 票价减 62.5%，Muni 长者单程 $1.40，VTA 和 SamTrans 长者单程 $1，AC Transit 长者本地单程用 Clipper $1.37。旧金山 65 岁及以上、家庭收入不超过湾区收入中位数 100% 的居民，可申请免费坐 Muni。因残障或健康原因坐不了公交，可申请 ADA 辅助交通。',
     category: 'commute',
     categoryLabel: '出行',
     emoji: '🚌',
@@ -115,7 +115,7 @@ export const elderGuides2026: Guide[] = [
           'Muni 官网写明，直接刷信用卡或借记卡付的是成人单程票；要长者价，就刷长者 Clipper 卡。',
         ],
       },
-      { type: 'heading', text: '65 岁及以上的各家票价（2026-10-14 官网，VTA 和 AC Transit 10-16 重读）' },
+      { type: 'heading', text: '65 岁及以上的各家票价' },
       {
         type: 'list',
         items: [

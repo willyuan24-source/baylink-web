@@ -4,6 +4,7 @@ import { guides, getGuideBySlug, type Guide, type GuideBlock } from '../src/data
 import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { OFFICIAL_FIGURES } from '../src/data/guide-editorial/official-figures';
 import { GUIDE_TOPICS, guideTopicOf } from '../src/data/guide-topics';
+import elderEnglish from '../src/data/guides-refresh-2026-10-14-en.json';
 
 // CNT-GUIDES (Wave 3): every topic has a 30-second pillar, new official figures are registered with a read and still printed,
 // pillar prose stays plain (GUIDE-E), editor notes never reach readers, and 新手必看 is a short, current list (CNT-15).
@@ -128,6 +129,18 @@ test('the three new elder guides register every dollar amount and phone number w
     for (const amount of article.match(/\$\s*[\d,.]*\d/gu) ?? []) assert.ok(registered(amount), `${slug}: ${amount} has no registered read`);
     for (const phone of article.match(PHONE) ?? []) assert.ok(registered(phone), `${slug}: ${phone} has no registered read`);
   }
+});
+
+test('AC Transit senior fares are written as amounts, never as a flat half fare (10-16 re-read: the $41.50 monthly cap is not half)', () => {
+  const slug = 'bay-area-senior-transit-clipper-discounts-guide';
+  const english = elderEnglish as Record<string, string>;
+  const zh = [...strings(getGuideBySlug(slug)), ...strings(GUIDE_EDITORIAL[slug])].filter(text => /AC Transit/u.test(text));
+  const en = zh.flatMap(text => english[text] ?? []);
+  assert.ok(zh.length >= 8 && en.length >= 5, `${zh.length} zh and ${en.length} en lines name AC Transit`);
+  for (const text of [...zh, ...en]) assert.doesNotMatch(text, /AC Transit[^。；;.]*?(?:五折|半价|half[ -](?:fare|price))/iu, text);
+  // The 30-second step and the summary give the Clipper single ride the body gives.
+  assert.match(GUIDE_EDITORIAL[slug].steps![1]!.zh, /AC Transit 用 Clipper \$1\.37/u);
+  assert.match(getGuideBySlug(slug)!.summary, /AC Transit 长者本地单程用 Clipper \$1\.37/u);
 });
 
 // H13 review (10-15): the rent and used-goods checklists say their don'ts once, in one 注意 list after the how-to sections;
