@@ -26,7 +26,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://petalumapumpkinpatch.com/pricing-hours/",
     "sourceLabel": "Petaluma Pumpkin Patch",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -463,7 +463,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://gardensatlakemerritt.org/autumn-lights-festival-2026/",
     "sourceLabel": "Friends of the Gardens at Lake Merritt",
     "relatedGuideSlug": "oakland-lake-merritt-omca-half-day",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "region-lake-merritt"
   },
   {
@@ -491,7 +491,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     "officialUrl": "https://www.hmbpumpkinfest.com/",
     "sourceLabel": "Half Moon Bay Beautification Committee",
     "relatedGuideSlug": "half-moon-bay-pumpkin-season-2026-guide",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "fresh-pumpkin-parade"
   },
   {
@@ -518,7 +518,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://sjsff.com/tickets/",
     "sourceLabel": "San Jose International Short Film Festival",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "cinema-night"
   },
   {
@@ -545,7 +545,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://bayareamusicalimprov.com/festival",
     "sourceLabel": "Bay Area Musical Improv",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "coverage-stage"
   },
   {
@@ -626,7 +626,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.thefloathousepetaluma.org/events/witches-wizards-on-the-water-2026",
     "sourceLabel": "The Floathouse Petaluma",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "coverage-petaluma-river"
   },
   {

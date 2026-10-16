@@ -352,7 +352,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.parks.ca.gov/?page_id=479",
     "sourceLabel": "California State Parks",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -379,7 +379,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://thehubinsf.org/event/sunnydale-pumpkin-fest-2/",
     "sourceLabel": "The Hub San Francisco",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -406,7 +406,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://sfpl.org/events/2026/10/17/celebration-filipino-american-international-book-festival",
     "sourceLabel": "San Francisco Public Library / FilBookFest",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "culture-visit"
   },
   {
@@ -460,7 +460,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.pollyklaastheater.org/event/coco/",
     "sourceLabel": "Polly Klaas Community Theater",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -487,7 +487,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.cityofsanmateo.org/4740/Boos-and-Brews-on-B-Street",
     "sourceLabel": "City of San Mateo",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -514,7 +514,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.eventbrite.com/e/world-of-dumplings-2026-tickets-1997773482264",
     "sourceLabel": "Asians Are Strong",
-    "verifiedAt": "2026-09-23",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {

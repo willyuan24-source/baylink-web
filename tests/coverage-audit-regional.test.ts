@@ -7,10 +7,12 @@ import { GUIDE_IMAGES } from '../src/data/guide-media';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { filterMonthlyEvents } from '../src/lib/monthly';
 import { resolveStopTiming, resolveTimeEvidence } from '../src/lib/planner-hours';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const events = records as MonthlyEvent[];
 const asOf = '2026-09-29';
-const evidence = (id: string, date: string) => resolveTimeEvidence(schedules[id], date, asOf);
+// Evidence is judged on the day of the item's own check (the batch date, or the 10/15 editor review).
+const evidence = (id: string, date: string) => resolveTimeEvidence(schedules[id], date, batchVerifiedAt(id, asOf));
 
 test('four verified additions retain exact occurrences, source-backed times, and illustrative media', () => {
   assert.equal(events.length, 4);
@@ -18,12 +20,13 @@ test('four verified additions retain exact occurrences, source-backed times, and
   assert.deepEqual(Object.keys(facts).sort(), events.map(row => row.id).sort());
   assert.deepEqual(Object.keys(schedules).sort(), events.map(row => row.id).sort());
   for (const row of events) {
-    assert.equal(row.verifiedAt, asOf);
+    assert.equal(row.verifiedAt, batchVerifiedAt(row.id, asOf));
     assert.deepEqual(row.occurrenceDates, [row.startDate]);
     assert.equal(row.endDate, row.startDate);
     const schedule = schedules[row.id];
     assert.equal(schedule.sourceUrl, row.officialUrl);
-    assert.equal(schedule.verifiedAt, asOf);
+    // The schedule takes the event's own check date (coverage-audit-regional-planning.ts).
+    assert.equal(schedule.verifiedAt, row.verifiedAt);
     assert.equal(schedule.weekly, undefined);
     assert.equal(evidence(row.id, row.startDate).status, 'confirmed');
     assert.equal(evidence(row.id, '2026-11-01').status, 'out-of-range');

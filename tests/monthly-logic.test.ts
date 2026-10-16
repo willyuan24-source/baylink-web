@@ -18,6 +18,7 @@ import lateNorthEnglish from '../src/data/late-september-north-en.json';
 import type { MonthlyEvent } from '../src/data/monthly-types';
 import { EVENT_OVERLAY } from '../src/data/editorial-overlay/apply';
 import { buildEventCalendar, featurePhotos, filterMonthlyEvents, getBayAreaToday, getEventStatus, getMonthlyDateRange, isEditionCurrent, isLongRunning, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs } from '../src/lib/monthly';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 test('unknown admission remains searchable but never qualifies as a free event', () => {
   const item: MonthlyEvent = { ...MONTHLY_EVENTS[0], id: 'unknown-admission-fixture', kind: 'performance', startDate: '2026-10-03', endDate: '2026-10-03', occurrenceDates: ['2026-10-03'], cost: 'unknown', costLabel: '票价尚未公布，请查主办方。' };
@@ -401,7 +402,7 @@ test('new community listings retain complete English text and clearly identify a
         assert.equal(new URL(image.creditUrl!).protocol, 'https:');
       }
     }
-    assert.equal(added.verifiedAt, newEvents.includes(added) ? '2026-09-27' : added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15');
+    assert.equal(added.verifiedAt, batchVerifiedAt(added.id, newEvents.includes(added) ? '2026-09-27' : added.id === 'sf-family-connections-halloween-2026' ? '2026-09-23' : '2026-09-15'));
     for (const value of texts(added).filter(value => /[\u4e00-\u9fff]/.test(value))) {
       const key = value.trim().replace(/\s+/g, ' ');
       assert.ok(mapping[key], 'English mapping exists: ' + key);

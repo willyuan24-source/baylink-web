@@ -19,6 +19,7 @@ import { searchGuides } from '../src/lib/guide-search';
 import { eventOccursOn, validCalendarDay } from '../src/lib/event-calendar';
 import { buildEventCalendar } from '../src/lib/monthly';
 import { loadLocale, translateText } from '../src/i18n/locale';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const additions = [...october2026NewcomerGuides, ...october2026VisitGuides];
 const stringsIn = (value: unknown): string[] => typeof value === 'string' ? [value]
@@ -54,7 +55,7 @@ test('new catalog entries publish once, retain source metadata and apply targete
     assert.equal(new Set(catalog.map(item => item.id)).size, catalog.length);
     for (const item of added) {
       assert.equal(catalog.filter(candidate => candidate.id === item.id).length, 1, item.id);
-      assert.equal(item.verifiedAt, '2026-10-02');
+      assert.equal(item.verifiedAt, batchVerifiedAt(item.id, '2026-10-02'));
       assert.ok(GUIDE_IMAGES[item.imageKey], `${item.id}: image key`);
       const url = 'officialUrl' in item ? item.officialUrl : item.sourceUrl;
       assert.equal(new URL(url).protocol, 'https:');
