@@ -37,6 +37,9 @@ export const CALENDAR_CITY_LOCATIONS: Record<string, {
   'Guerneville': { lat: 38.517, lng: -122.990, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Gilroy': { lat: 37.006, lng: -121.585, precision: 'city', sourceUrl: CENSUS_PLACES },
   'Saratoga': { lat: 37.268, lng: -122.026, precision: 'city', sourceUrl: CENSUS_PLACES },
+  // Added 2026-10-15 (CNT-SUPPLY-3) from the same Census 2026 places file (CNT-SUPPLY-2's copy read 2026-10-13): Marin City CDP
+  // 0645820 (37.871156, -122.513736), the town of the 2026-10-15 batch's Marin City library item.
+  'Marin City': { lat: 37.871, lng: -122.514, precision: 'city', sourceUrl: CENSUS_PLACES },
   // Added 2026-09-27 from Census place GEOID 0601640 and 0662546.
   // Census 2026 GEOID 0600562; city reference only, never a venue entrance.
   'Alameda': { lat: 37.742, lng: -122.261, precision: 'city', sourceUrl: CENSUS_PLACES },
