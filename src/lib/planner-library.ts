@@ -5,9 +5,10 @@ import { favoriteKey, cleanStops, EMPTY_LIBRARY, errorText, eventFor, MAX_PLAN_S
 import { guideLoaders } from '../data/generated/guide-loaders';
 import { recordProductEvent } from './product-events';
 import { normalizePlanDetails } from './planner-itinerary';
-import { guestServerSaves, importGuestSaves, loadPlannerAccount, SAVE_ERROR_COPY, toggleSave, useSavedEntries } from './saves';
+import { guestServerSaves, importGuestSaves, loadPlannerAccount, SAVE_ERROR_COPY, toggleSave, useSavedEntries, type SaveOutcome } from './saves';
+import { GUEST_PLANNER_KEY } from './planner-storage-key';
 
-export const GUEST_PLANNER_KEY = 'baylink.planner.guest.v1';
+export { GUEST_PLANNER_KEY };
 /** Fired after a plan changes outside a mounted library ("加入这天计划"), so open plan lists read it again. */
 export const PLANNER_CHANGED_EVENT = 'baylink-planner-changed';
 export const loadGuestLibrary = (): Library => {
@@ -128,11 +129,11 @@ export function usePlannerLibrary(userId?: string) {
     if (userId) { dataRef.current = next; setState({ owner: userId, data: next }); } else commitGuest(next);
     return true;
   });
-  /** The same ♡ as every other save button (src/lib/saves.ts). */
-  const toggleFavorite = (favorite: Favorite) => run(async sequence => {
+  /** The same ♡ as every other save button (src/lib/saves.ts); resolves with the outcome the shared SaveToast reports (H79). */
+  const toggleFavorite = (favorite: Favorite) => run(async (sequence): Promise<SaveOutcome | undefined> => {
     const result = await toggleSave(userId, favorite);
     if ('error' in result) throw { error: SAVE_ERROR_COPY[result.error].zh };
-    return isCurrent(userId, sequence) ? true : undefined;
+    return isCurrent(userId, sequence) ? result : undefined;
   });
   const savePreferences = (preferences: Preferences) => run(async sequence => {
     if (userId) ({ preferences } = await api.request('/planner/preferences', { method: 'PATCH', body: JSON.stringify(preferences) }));

@@ -1,4 +1,3 @@
-import { CalendarCheck } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { eventFor, placeFor, sharePlanUrl, stopPath, stopTitle, type SavedPlan } from '../lib/planner-core';
 import type { usePlannerLibrary } from '../lib/planner-library';
@@ -9,10 +8,10 @@ import { planDisplayTitle } from '../features/saves/plan-title';
 import { Button } from './ui/Button';
 import { RowCard } from './ui/Card';
 import { StatusChip } from './ui/Badges';
-import { EmptyState, ErrorState } from './ui/States';
-import { SkeletonFeed } from './ui/SkeletonCard';
+import { ErrorState } from './ui/States';
 import { PlannerStopThumb } from './PlannerStopCover';
 import { planDayLabel } from '../lib/plan-stop-cover';
+import { PlanDaysEmpty, PlanDaysHead, PlanDaysPreviewBody } from '../features/plan/PlanDaysPreview';
 
 const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Dining'], cafe: ['咖啡与小食', 'Coffee'], shop: ['商店', 'Shop'] } as const;
 
@@ -23,20 +22,19 @@ const PLACE_KIND = { attraction: ['景点', 'Place'], restaurant: ['餐饮', 'Di
  * API failure and the empty state use the WEB-UI primitives (RC-25); the page shows the offline line above. The page
  * passes the next few days only (`moreDays` = how many later days are left to My Week).
  */
-export function PlannerDayPlans({ library, plans, moreDays = 0, covers, today, editingId }: { library: ReturnType<typeof usePlannerLibrary>; plans: readonly SavedPlan[]; moreDays?: number; covers: readonly ResolvedCover[]; today: string; editingId?: string }) {
+export function PlannerDayPlans({ library, plans, moreDays = 0, covers, today, editingId, signedIn = false }: { library: ReturnType<typeof usePlannerLibrary>; plans: readonly SavedPlan[]; moreDays?: number; covers: readonly ResolvedCover[]; today: string; editingId?: string; signedIn?: boolean }) {
   const locale = useLocale();
   const english = locale === 'en';
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
   const coverFor = (plan: SavedPlan, index: number) => covers[plans.slice(0, plans.indexOf(plan)).reduce((sum, item) => sum + item.stops.length, 0) + index];
   const days = [...new Set(plans.map(plan => plan.date))];
   return <section id="plan-days" className="plan-days" aria-labelledby="plan-days-title" data-testid="plan-days">
-    <div className="plan-section-head"><h2 id="plan-days-title">{t('已排的日子', 'Planned days')}</h2>{plans.length > 0 && <Button variant="text" to="/my-week#plans">{t('在我的这周查看', 'See them in My Week')}</Button>}</div>
-    {library.loading ? <SkeletonFeed rows count={2} />
+    <PlanDaysHead planned={plans.length > 0} />
+    {/* H20: a guest's first frame is the days-first preview again (no skeleton flash between it and the list) */}
+    {library.loading ? <PlanDaysPreviewBody signedIn={signedIn} />
       : !library.ready && library.error ? <ErrorState headingLevel="h3" homeTo={null} onRetry={() => void library.refresh()} title={t('暂时读不到已排的日子', 'Your planned days didn’t load')}
         body={t('可能是网络不稳或服务繁忙。已保存的行程不会因此消失。', 'The connection or our service may be busy. Your saved plans are not lost.')} />
-        : !plans.length ? <EmptyState headingLevel="h3" icon={CalendarCheck} title={t('还没有排好的日子', 'No days planned yet')}
-          body={t('把活动加入某一天的计划（比如在活动日历点「加入这天计划」），那一天就会出现在这里；也可以在下面挑一个地点开始。', 'Add an event to a day’s plan (for example with “Add to this day’s plan” on the events calendar) and that day appears here. Or start from a place below.')}
-          actions={<Button variant="tonal" to="/calendar">{t('打开活动日历', 'Open the events calendar')}</Button>} />
+        : !plans.length ? <PlanDaysEmpty />
           : <ol className="plan-days__list">{days.map(date => <li key={date} id={`plan-day-${date}`} className="plan-days__day">
             <p className="plan-days__date"><time dateTime={date}>{planDayLabel(date, english)}</time></p>
             {plans.filter(plan => plan.date === date).map(plan => {
