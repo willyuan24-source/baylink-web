@@ -36,9 +36,10 @@ test('every time record resolves to a public catalog entry and has finite source
     for (const [id, schedule] of Object.entries(schedules)) {
       assert.ok(entries.some(entry => entry.id === id), `${kind}:${id}`);
       assert.match(schedule.sourceUrl, /^https:\/\//);
-      // Sunnydale was checked against its organizer's event page on 10/2;
+      // Sunnydale was checked against its organizer's event page on 10/2, Delage's hours on 10/16 (CNT-FRESH-1016);
       // all other records still retain the original 9/29 review date.
-      const verifiedAt = kind === 'event' && id === 'sf-sunnydale-pumpkin-fest-2026' ? '2026-10-02' : '2026-09-29';
+      const verifiedAt = kind === 'event' && id === 'sf-sunnydale-pumpkin-fest-2026' ? '2026-10-02'
+        : kind === 'place' && id === 'opening-oakland-delage-reopening-2026' ? '2026-10-16' : '2026-09-29';
       assert.equal(schedule.verifiedAt, verifiedAt, `${kind}:${id}`);
       assert.ok(schedule.validFrom && schedule.validThrough && schedule.validFrom <= schedule.validThrough);
       for (const windows of [...Object.values(schedule.weekly || {}), ...Object.values(schedule.dates || {})]) {

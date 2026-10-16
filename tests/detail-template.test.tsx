@@ -190,7 +190,8 @@ test('English details: the facts and the visit tip keep their reader text, and a
     const asia = page(findItem('opening', 'asia-live-valley-fair'));
     assert.match(asia.querySelector('[data-fact="when"] dd')?.textContent || '', /^Open since June 2026/);
     const florecita = page(findItem('opening', 'florecita-mission'));
-    assert.match(florecita.querySelector('#detail-visit-title')?.parentElement?.querySelector('p')?.textContent || '', /Wait for the brand.s update before visiting 3349 23rd Street/);
+    // CNT-FRESH-1016: the bakery's site now gives the new address and hours; the tip points away from the old footer address.
+    assert.match(florecita.querySelector('#detail-visit-title')?.parentElement?.querySelector('p')?.textContent || '', /go to the new one at 3349 23rd Street/);
     const offers = localDiscoveries.filter(row => row.kind === 'offer');
     assert.ok(offers.length > 100);
     for (const item of offers) {
