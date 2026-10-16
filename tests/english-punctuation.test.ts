@@ -14,6 +14,12 @@ test('a line without Chinese drops its Chinese punctuation on /en: source titles
   assert.equal(translateText('Hiller Aviation Museum，601 Skyway Road', 'en'), 'Hiller Aviation Museum, 601 Skyway Road');
   assert.equal(translateText('Marin：415-473-4636；Sonoma：707-565-4636。', 'en'), 'Marin: 415-473-4636; Sonoma: 707-565-4636.');
   assert.equal(translateText('NUMU（Los Gatos）', 'en'), 'NUMU (Los Gatos)');
+  // a word after the closing bracket gets its space; a time or a thousands mark between digits gets none
+  assert.equal(translateText('NUMU（Los Gatos）Museum', 'en'), 'NUMU (Los Gatos) Museum');
+  assert.equal(translateText('Doors 10：30, Hall B', 'en'), 'Doors 10:30, Hall B');
+  assert.equal(translateText('1，000 seats，free', 'en'), '1,000 seats, free');
+  // a line that still has Chinese in it (the untranslated rest after a known label) keeps its full-width punctuation
+  assert.match(translateText('资讯核对日期：未定（待确认）', 'en'), /未定（待确认）$/u);
   // the 、 a guide's "For:" row puts between two English audience names is its own text node
   assert.equal(translateText('、', 'en'), ', ');
   // text without such punctuation, and the Chinese locales, are unchanged

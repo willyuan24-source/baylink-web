@@ -343,13 +343,15 @@ const englishNeutral = (text: string): string => {
  * CNT-GUIDES-3 (GPT en-review EN-04..06): Chinese punctuation left in a line without Chinese (a source title "SF Rec & Parks：JFK
  * Promenade", the 、 a list puts between two English audience names) reads as English punctuation on /en, the way a neutral date
  * line does (lib/english-times.ts englishPunctuation), brackets included. Site pages only, like the US times above; a line with
- * Chinese never reaches here, and 繁體 and 简体 are untouched.
+ * Chinese in it (the rest after a known label can be untranslated) keeps its punctuation, and 繁體 and 简体 are untouched.
  */
 const latinPunctuation = (text: string): string => {
-  if (!englishPunctuationOf || !/[、，：；。（）]/u.test(text)) return text;
+  if (!englishPunctuationOf || !/[、，：；。（）]/u.test(text) || /[㐀-鿿豈-﫿]/u.test(text)) return text;
   // a separator on its own (a list's 、 between two names) keeps the space after it
   if (/^[\s、，：；]+$/u.test(text)) return text.trim().replace(/[、，]/gu, ', ').replace(/：/gu, ': ').replace(/；/gu, '; ');
-  const out = englishPunctuationOf(text).replace(/\s*（/gu, ' (').replace(/）/gu, ')');
+  // between digits a full-width colon is a time (10：30) and a comma before three digits a thousands mark (1，000): no space
+  const digits = text.replace(/(\d)：(?=\d)/gu, '$1:').replace(/(\d)，(?=\d{3}(?!\d))/gu, '$1,');
+  const out = englishPunctuationOf(digits).replace(/\s*（/gu, ' (').replace(/）(?=[\p{L}\p{N}])/gu, ') ').replace(/）/gu, ')');
   return /^\s/.test(text) ? out : out.replace(/^ \(/, '(');
 };
 
