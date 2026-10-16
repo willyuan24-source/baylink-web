@@ -5,6 +5,7 @@ import { afterEach, test } from 'node:test';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
+import type { MonthlyEvent } from '../src/data/monthly-types';
 
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/events' });
 Object.assign(globalThis, {
@@ -27,7 +28,9 @@ const { ChunkBoundary } = await import('../src/features/events/ChunkBoundary');
 const { retryableLazy } = await import('../src/features/events/lazy-view');
 const model = await import('../src/features/events/events-model');
 const { isFreeToAttend, getMonthlyDateRange, nextOccurrence } = await import('../src/lib/monthly');
-const { WEEKEND_PICKS } = await import('../src/data/weekend-picks');
+const { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS } = await import('../src/data/weekend-picks');
+const { isAdultOnly, isRealPhotoImage, scoreWeekendEvent } = await import('../src/lib/weekend-ranking');
+const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { checkLine, checkSummary } = await import('../src/lib/check-dates');
 
 const originalFetch = globalThis.fetch;
@@ -119,6 +122,26 @@ test('本周末 splits into 周六 / 周日 / 两天都开放; long runs open bo
   const sunday = render(<MemoryRouter initialEntries={['/events']}><EventsView today="2026-10-11" /></MemoryRouter>);
   const sundayRadios = within(sunday.container.querySelector('.ev-days')!).getAllByRole('radio');
   assert.deepEqual(sundayRadios.map(radio => [radio.textContent, radio.getAttribute('aria-checked')]), [['周日 10/11', 'true'], ['两天都开放', 'false']]);
+});
+
+// W6-INT tie-break, client side: /events ranks with the slim index records (EVENTS_INDEX.images), so within a score a
+// photo that fills its card must still go ahead of a poster or a letterboxed banner exactly as the full registry says.
+test('within a score, the weekend tabs put a photo that fills its card ahead of a poster or banner, read from the slim index', () => {
+  const hasPhoto = (key: string) => Object.hasOwn(model.EVENTS_INDEX.images, key);
+  // kind / fullFrame from the full registry, not from the index copy
+  const photoRank = (key: string) => !hasPhoto(key) ? 0 : isRealPhotoImage(GUIDE_IMAGES[key]) ? 2 : 1;
+  const score = (event: MonthlyEvent) => scoreWeekendEvent(event, { hasPhoto, flagships: WEEKEND_FLAGSHIP_IDS });
+  let photoFirst = 0;
+  for (const day of ['2026-10-15', '2026-10-22', '2026-10-29']) {
+    const { tabs } = model.weekendTabs(model.INDEX_EVENTS, day);
+    for (const [tab, list] of Object.entries(tabs)) for (let index = 1; index < list.length; index++) {
+      const [a, b] = [list[index - 1], list[index]] as unknown as [MonthlyEvent, MonthlyEvent];
+      if (isAdultOnly(a) !== isAdultOnly(b) || score(a) !== score(b)) continue;
+      assert.ok(photoRank(a.imageKey) >= photoRank(b.imageKey), `${day} ${tab}: ${a.id} (${photoRank(a.imageKey)}) before ${b.id} (${photoRank(b.imageKey)})`);
+      if (photoRank(a.imageKey) === 2 && photoRank(b.imageKey) === 1) photoFirst++;
+    }
+  }
+  assert.ok(photoFirst > 0, 'the three weekends have a photo and a poster or banner on the same score');
 });
 
 test('the 免费 chip, a story chip and the filter Sheet narrow the feed, keep other parameters and announce the count', async () => {
