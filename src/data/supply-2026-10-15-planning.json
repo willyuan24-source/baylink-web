@@ -3401,9 +3401,19 @@
       "schedule": {
         "sourceUrl": "https://sfpl.org/events/2026/12/19/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu",
         "verifiedAt": "2026-10-15",
-        "validFrom": "2026-12-19",
+        "validFrom": "2026-12-05",
         "validThrough": "2026-12-26",
         "sessions": [
+          {
+            "date": "2026-12-05",
+            "start": "14:30",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "14:30",
+            "end": "16:00"
+          },
           {
             "date": "2026-12-19",
             "start": "14:30",
@@ -3668,9 +3678,19 @@
       "schedule": {
         "sourceUrl": "https://sfpl.org/events/2026/12/19/tutorial-tech-help-kejixiezhu",
         "verifiedAt": "2026-10-15",
-        "validFrom": "2026-12-19",
+        "validFrom": "2026-12-05",
         "validThrough": "2026-12-26",
         "sessions": [
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-12",
+            "start": "14:00",
+            "end": "16:00"
+          },
           {
             "date": "2026-12-19",
             "start": "14:00",
