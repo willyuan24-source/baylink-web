@@ -40,6 +40,13 @@ test('WEB-I18N 繁體 terms: the 10-11 audit’s words read as Taiwan writes the
     ['再决定能不能松绳', '再決定能不能鬆繩'],
     ['别人松着绳，不等于', '別人鬆著繩，不等於'],
     ['放松一下，松开牵绳', '放鬆一下，鬆開牽繩'],
+    // a count of weeks after a digit is 週, as opencc already writes 三週 and 20 週年; 周邊 stays
+    ['借期 3 周，可续借两次', '借期 3 週，可續借兩次'],
+    ['处理约 3–4 周，获批后', '處理約 3–4 週，獲批後'],
+    ['入境 3 周没收到社安卡', '入境 3 週沒收到社安卡'],
+    ['图书馆 20 周年派对', '圖書館 20 週年派對'],
+    ['停车场 3 周边的步道', '停車場 3 周邊的步道'],
+    ['10/17 周六 · 9:00', '10/17 週六 · 9:00'],
   ];
   for (const [zh, want] of cases) assert.equal(hant(zh), want, zh);
 });

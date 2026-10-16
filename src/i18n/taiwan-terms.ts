@@ -69,5 +69,7 @@ export const SITE_TAIWAN_TERMS: TaiwanTerms = {
   ],
   // "14 天后" is "14 days later" (後), not 天后 the goddess, which opencc's phrase table turns it into
   // 釦 is a button: opencc reads 列明扣款 as 明扣 (a visible button) + 款, so a deduction written after 明 became 明釦款 (ZH-10)
-  after: [[/(\d\s*)天后/g, '$1天後'], [/釦款/g, '扣款']],
+  // a count of weeks is 週 in Taiwan (借期 3 週): opencc writes 三週, 20 週年 and 3 週歲 but keeps 周 after a digit when
+  // no phrase follows; 周邊 / 周圍 / 周到 / 周全 / 周期 / 周轉 keep 周
+  after: [[/(\d\s*)天后/g, '$1天後'], [/釦款/g, '扣款'], [/(\d\s*)周(?![邊圍到全期轉])/g, '$1週']],
 };
