@@ -68,6 +68,6 @@ export function HeroCredit({ cover, label = true }: { cover: ResolvedCover; labe
     {label && <span className="detail-credit__label">{pick(cover.label)}</span>}
     {image.caption && <span>{translateText(image.caption, locale)}</span>}
     {webLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(image.credit, locale)}</a> : <span>{translateText(image.credit, locale)}</span>}
-    {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'Licence')}</a>}
+    {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'License')}</a>}
   </p>;
 }

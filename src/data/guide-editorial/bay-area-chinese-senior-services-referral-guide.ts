@@ -14,7 +14,7 @@ export const seniorServicesEditorial: GuideEditorial = {
   keyFacts: [
     { label: { zh: '先打哪个电话', en: 'Who to call first' }, value: { zh: '所在县的 AAA；全州信息线 800-510-2020', en: "Your county's AAA; statewide line 800-510-2020" }, source: 1 },
     { label: { zh: '旧金山白天照护', en: 'Day care in San Francisco' }, value: { zh: '安老自助处 415-677-7556，有讲普通话、粤语、台山话的员工', en: 'Self-Help for the Elderly 415-677-7556, staff speak Mandarin, Cantonese and Toisanese' }, source: 2 },
-    { label: { zh: '东湾中文探访', en: 'Chinese-speaking visits in the East Bay' }, value: { zh: 'Family Bridges 510-839-2022，60 岁及以上，免费', en: 'Family Bridges 510-839-2022, age 60 and up, free' }, source: 5 },
+    { label: { zh: '东湾中文探访', en: 'Visits in Cantonese and Mandarin (East Bay)' }, value: { zh: 'Family Bridges 510-839-2022，60 岁及以上，免费', en: 'Family Bridges 510-839-2022, age 60 and up, free' }, source: 5 },
     { label: { zh: '打电话前准备', en: 'Before you call' }, value: { zh: '住在哪个市县、用什么语言、需要哪种帮助', en: 'City and county, language, and the kind of help needed' } },
   ],
   contacts: [
@@ -71,7 +71,7 @@ export const seniorServicesEditorial: GuideEditorial = {
       items: [
         { zh: '长者住在哪个市、哪个县', en: 'The city and county where your relative lives' },
         { zh: '想用普通话、粤语还是其他语言', en: 'Mandarin, Cantonese or another language' },
-        { zh: '要哪种帮助：餐食、活动、探访或日间照护', en: 'Which help: meals, activities, visits or day care' },
+        { zh: '要哪种帮助：餐食、活动、探访或日间照护', en: 'What kind of help: meals, activities, visits or day care' },
       ] },
     { kind: 'safety', kicker: { zh: '保护长辈资料', en: "Protect your relative's data" }, title: { zh: '公开求助只写大致需要', en: 'In public posts, describe the need only' },
       items: [

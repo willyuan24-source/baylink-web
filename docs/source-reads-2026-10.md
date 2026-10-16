@@ -1643,3 +1643,11 @@ The DMV pages do not give the 10 days themselves (the new-resident page, the dri
 `src/i18n/taiwan-terms.ts`: 视频看房 → 視訊看房 (a live call, as the rental guide's next line says), 松绳 / 松着绳 → 鬆繩 / 鬆著繩, and 釦款 → 扣款
 after opencc (it read 列明扣款 as 明扣 + 款). The senior-services guide's 30-second line for Self-Help's day care now ends on 员工, so its ①
 mark no longer cuts 台|山话 (a lone 台 converts to 臺). Tests: tests/taiwan-terms.test.ts.
+
+### English wording (GPT en-review EN-01..09 and 13 of its suggestions; no fact changed)
+
+Wording only, no source read: the without-car checklist question, the regions guide's English title, "Delayed retirement credits", the
+"Good for" chip "Science lovers", "weighted shares" in the bill splitter, "Travel and local updates", the guides index lede, the elder
+topic line, the About page's information card, four 30-second records (senior services, Medicare, first doctor), "Children of all
+ages", "Within the listed dates", "add a paid activity", "Find someone for a short hike", "organizers’", and License (US spelling).
+Chinese punctuation in a line without Chinese reads as English punctuation on /en (src/i18n/locale.ts; tests/english-punctuation.test.ts).

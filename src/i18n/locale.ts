@@ -36,11 +36,13 @@ let usEnglishTimesWhere: (() => boolean) | undefined;
 let englishTimesOf: ((text: string) => string) | undefined;
 let englishDateLineOf: ((text: string) => string) | undefined;
 let twentyFourHourOrIso: ((text: string) => boolean) | undefined;
+let englishPunctuationOf: ((text: string) => string) | undefined;
 let englishTimesLoad: Promise<void> | undefined;
 const loadEnglishTimes = () => englishTimesLoad ||= import('../lib/english-times').then(module => {
   englishTimesOf = module.englishTimes;
   englishDateLineOf = module.englishDateLine;
   twentyFourHourOrIso = module.hasTwentyFourHourOrIso;
+  englishPunctuationOf = module.englishPunctuation;
 }).catch(error => { englishTimesLoad = undefined; throw error; });
 /** Loaded with the English dictionaries when the site has switched US style on. If it fails, English shows as reviewed. */
 const usEnglishTimesModule = () => usEnglishTimesWhere ? loadEnglishTimes().catch(() => undefined) : undefined;
@@ -329,12 +331,26 @@ const englishTokens = (text: string): string => englishDateLineOf && twentyFourH
   ? englishDateLineOf(text)
   : text;
 const englishNeutral = (text: string): string => {
-  if (!NEUTRAL_DATE_OR_TIME.test(text) || !usTimes()) return text;
+  if (!usTimes()) return text;
+  if (!NEUTRAL_DATE_OR_TIME.test(text)) return latinPunctuation(text);
   const exact = englishEntry(normalizeText(text));
   if (exact) return text.slice(0, text.length - text.trimStart().length) + exact + text.slice(text.trimEnd().length);
   const tokens = englishTokens(text);
-  if (tokens !== text) return tokens;
-  return text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => englishEntry(normalizeText(part)) || englishTokens(part)).join('');
+  if (tokens !== text) return latinPunctuation(tokens);
+  return latinPunctuation(text.split(/(\n| \u00b7 | \/ |\uff5c)/).map(part => englishEntry(normalizeText(part)) || englishTokens(part)).join(''));
+};
+/**
+ * CNT-GUIDES-3 (GPT en-review EN-04..06): Chinese punctuation left in a line without Chinese (a source title "SF Rec & Parks：JFK
+ * Promenade", the 、 a list puts between two English audience names) reads as English punctuation on /en, the way a neutral date
+ * line does (lib/english-times.ts englishPunctuation), brackets included. Site pages only, like the US times above; a line with
+ * Chinese never reaches here, and 繁體 and 简体 are untouched.
+ */
+const latinPunctuation = (text: string): string => {
+  if (!englishPunctuationOf || !/[、，：；。（）]/u.test(text)) return text;
+  // a separator on its own (a list's 、 between two names) keeps the space after it
+  if (/^[\s、，：；]+$/u.test(text)) return text.trim().replace(/[、，]/gu, ', ').replace(/：/gu, ': ').replace(/；/gu, '; ');
+  const out = englishPunctuationOf(text).replace(/\s*（/gu, ' (').replace(/）/gu, ')');
+  return /^\s/.test(text) ? out : out.replace(/^ \(/, '(');
 };
 
 /** Only visible strings go through this function. IDs, API enums and URLs stay canonical. */

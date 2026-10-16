@@ -11,7 +11,7 @@ export type GuideTopic = { id: GuideTopicId; zh: string; en: string; summary: { 
 
 /** In display order: 长辈与家属 first. */
 export const GUIDE_TOPICS: readonly GuideTopic[] = [
-  { id: 'elders', zh: '长辈与家属', en: 'Seniors & family', summary: { zh: '长者服务、医保、退休金、看病、坐车和防诈骗，家属代办也能看懂', en: 'Senior services, Medicare, retirement benefits, doctors, getting around and scam protection, for elders and the family who helps' } },
+  { id: 'elders', zh: '长辈与家属', en: 'Seniors & family', summary: { zh: '长者服务、医保、退休金、看病、坐车和防诈骗，家属代办也能看懂', en: 'Senior services, Medicare, retirement benefits, doctors, getting around and scam protection, for older adults and the family members who help them' } },
   { id: 'health', zh: '医疗保险', en: 'Health & insurance', summary: { zh: '找医生、看牙、Medicare 与 Medi-Cal', en: 'Finding a doctor, dental care, Medicare and Medi-Cal' } },
   { id: 'documents', zh: '证件与移民', en: 'IDs & immigration', summary: { zh: '新来安顿：驾照、入籍、开户与孩子入学', en: 'Settling in: driver licenses, citizenship, bank and phone, and school enrollment' } },
   { id: 'housing', zh: '住房', en: 'Housing', summary: { zh: '租房、押金、搬家、水电与维修', en: 'Renting, deposits, moving, utilities and repairs' } },

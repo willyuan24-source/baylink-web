@@ -90,7 +90,7 @@ test('ended and unconfirmed records remain readable without inventing current av
     assert.match(row('events/cancelled-fixture').closest('details')!.querySelector('summary')!.textContent!, /Ended records/);
     dom.window.close();
     const finalDay = renderDirectory('en', [fixtures[1]], '2026-10-05');
-    assert.match(finalDay.window.document.body.textContent!, /Within listed dates/);
+    assert.match(finalDay.window.document.body.textContent!, /Within the listed dates/);
     assert.doesNotMatch(finalDay.window.document.body.textContent!, /Ended · past record/);
     finalDay.window.close();
   } finally { await setLocale('zh-Hans', false); }

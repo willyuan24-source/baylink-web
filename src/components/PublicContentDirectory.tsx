@@ -23,7 +23,7 @@ function directoryRow(item: LocalDiscovery, today: string, locale: Locale): Dire
     const halted = item.event.status === 'postponed' || item.event.status === 'cancelled' ? item.event.status : undefined;
     const state = halted ?? getEventStatus(item.event, today);
     const labels = {
-      upcoming: ['尚有后续日期', 'Upcoming dates'], ongoing: ['列明日期内', 'Within listed dates'], ended: ['已结束 · 往期记录', 'Ended · past record'],
+      upcoming: ['尚有后续日期', 'Upcoming dates'], ongoing: ['列明日期内', 'Within the listed dates'], ended: ['已结束 · 往期记录', 'Ended · past record'],
       postponed: ['已延期 · 新日期待公布', 'Postponed · new date to be announced'], cancelled: ['已取消', 'Cancelled'],
     } as const;
     const tones = { upcoming: 'info', ongoing: 'success', ended: 'ended', postponed: 'warning', cancelled: 'danger' } as const;
@@ -44,7 +44,7 @@ function directoryRow(item: LocalDiscovery, today: string, locale: Locale): Dire
   else if (offer.availability === 'check-local') status = label(locale, '查询本店场次与供应', 'Check local sessions and availability');
   else if (!validDay(start) || !validDay(end) || start > end) { status = label(locale, '日期待核对', 'Dates unconfirmed'); tone = 'warning'; }
   else if (start > today) { status = label(locale, '尚未开始', 'Upcoming'); tone = 'info'; }
-  else { status = label(locale, '列明日期内', 'Within listed dates'); tone = 'success'; }
+  else { status = label(locale, '列明日期内', 'Within the listed dates'); tone = 'success'; }
   return { ...base, start: offer.startDate, end: offer.endDate, status, tone, archived: ended };
 }
 
