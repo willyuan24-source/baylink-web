@@ -283,5 +283,30 @@
     "originalUrl": "https://paloalto.bibliocommons.com/events/uploads/images/full/b962e6794c18512cc4df61760225787c/fopal_sale.png",
     "retrievedAt": "2026-10-14T21:15:01-07:00",
     "sha256": "3883055606f1a9486cd2b90b9af6c2c9a2f6d0feed1f76e5035d47324918988e"
+  },
+  "official-pleasanton-pumpkins-after-dark-2026": {
+    "originalUrl": "https://alamedacountyfair.com/wp-content/uploads/2026/08/PAD_web.jpg",
+    "retrievedAt": "2026-10-15T22:05:19-07:00",
+    "sha256": "51dd53cfd76593f11746cf3577bec40d9bc4dd1b32a65310a521ac33e93f3649"
+  },
+  "official-r2-vallejo-wonder-sundays-2026": {
+    "originalUrl": "https://mareislandartstudios.com/wp-content/uploads/2026/08/step-into-wonder-poster-05.png",
+    "retrievedAt": "2026-10-15T22:05:19-07:00",
+    "sha256": "11bfa3ab94800555aae3ed391dd8ae057628911cd7d9da6b4402dbb95861457a"
+  },
+  "official-r2-vallejo-wonder-deep-dive-2026": {
+    "originalUrl": "https://mareislandartstudios.com/wp-content/uploads/2026/09/step-into-wonder-poster-deep-dive.png",
+    "retrievedAt": "2026-10-15T22:05:19-07:00",
+    "sha256": "5c9e7a81379a16e99bc639222b1fdfe608f19cce6de351d74281854f86b66273"
+  },
+  "official-november-north-sonoma-harvest-market-2026": {
+    "originalUrl": "https://sugarloafpark.org/wp-content/uploads/2026/04/Events-Calendar-Template-1-NVoO0l.png",
+    "retrievedAt": "2026-10-15T22:05:19-07:00",
+    "sha256": "29dadc83a66200686c634fe835a5f35a0d308d15dbb5296e5caa908196365fce"
+  },
+  "official-sf-opera-manon-2026": {
+    "originalUrl": "https://www.sfopera.com/globalassets/operas/manon/2026-27/manon_2627season_webbanner_2400x1200.png?width=1920&quality=80",
+    "retrievedAt": "2026-10-15T22:05:20-07:00",
+    "sha256": "df64efb55b1c6773bf06ac287e51cd86eda01c7f287f2c4bed8c532dbcbc02ba"
   }
 }

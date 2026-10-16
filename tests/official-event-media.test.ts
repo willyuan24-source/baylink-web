@@ -67,6 +67,13 @@ const SKIPPED_1014 = [
   'sfpl-main-california-xiangqi-invitational-nov28-2026', 'sfpl-bernal-family-game-night-nov28-2026',
   'sjpl-east-carnegie-fratello-marionettes-dec13-2026', 'sj-veterans-day-parade-2026',
 ];
+// The 2026-10-15 batch (owner approval 10-15 18:45 PT of five rows of the 10/24–25 and 10/31–11/1 image-candidates list):
+// all five used after looking at each one (CNT-MEDIA-3). One photo; the Pumpkins After Dark photo carries the event name
+// edge to edge, so it is shown whole like a graphic; two posters; SF Opera's season illustration as key art.
+const BATCH_1015 = new Map([
+  ['pleasanton-pumpkins-after-dark-2026', 'graphic'], ['r2-vallejo-wonder-sundays-2026', 'poster'],
+  ['r2-vallejo-wonder-deep-dive-2026', 'poster'], ['november-north-sonoma-harvest-market-2026', 'photo'], ['sf-opera-manon-2026', 'key-art'],
+]);
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.deepEqual(Object.keys(downloads), officialEventMedia.map(record => record.key), 'one download record per image, in registry order');
@@ -76,7 +83,12 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.deepEqual([batch1008.filter(record => record.kind === 'photo').length, batch1008.filter(record => record.kind === 'poster').length], [21, 22], '21 photos, 22 posters / key art / collages / graphics');
   assert.deepEqual(new Set(batch1014.map(record => record.eventId)), BATCH_1014, 'the 2026-10-14 batch is exactly the 14 images used');
   assert.deepEqual([batch1014.filter(record => record.kind === 'photo').length, batch1014.filter(record => record.kind === 'poster').length], [5, 9], '5 photos, 9 posters / flyers / graphics');
-  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length);
+  const batch1015 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-15'));
+  assert.deepEqual(new Map(batch1015.map(record => [record.eventId, record.artwork])), BATCH_1015, 'the 2026-10-15 batch is exactly the 5 approved images');
+  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length);
+  // SF Opera names no illustrator for its season artwork; the Cory Weaver credit on the same page is for production photos.
+  assert.equal(officialEventMedia.find(record => record.eventId === 'sf-opera-manon-2026')?.credit, 'SF Opera 官方主视觉');
+  assert.match(officialEventMedia.find(record => record.eventId === 'november-north-sonoma-harvest-market-2026')!.credit, /摄影 Melania Mahoney$/);
   for (const id of SKIPPED_1014) assert.equal(officialEventMedia.some(record => record.eventId === id), false, `${id} was looked at and not used`);
   assert.equal(new Set(officialEventMedia.map(record => record.key)).size, officialEventMedia.length);
   assert.equal(new Set(officialEventMedia.map(record => record.eventId)).size, officialEventMedia.length, 'one image per event');
@@ -105,7 +117,7 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.equal(record.rights.scope, 'same-event coverage only');
     for (const field of DOWNLOAD_RECORD) assert.equal(Object.hasOwn(record, field), false, `${record.key}: ${field} belongs in the download record, not the bundled registry`);
     assert.match(new URL(download(record).originalUrl).protocol, /^https?:$/);
-    assert.match(download(record).retrievedAt, /^2026-10-(08|14)T\d{2}:\d{2}:\d{2}-07:00$/);
+    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15)T\d{2}:\d{2}:\d{2}-07:00$/);
     assert.match(download(record).sha256, /^[0-9a-f]{64}$/);
     // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide. The record names
     // no srcset: pages get the D8 image ladder built from src and width (scripts/codemods/registry-srcset.mjs).
