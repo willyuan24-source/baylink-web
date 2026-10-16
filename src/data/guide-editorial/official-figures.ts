@@ -209,6 +209,4 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: "Sunday Closed 388 Ninth Street, Suite 190 Oakland, California 94607 … Phone: (510) 238-3400" },
   { slug: SENIOR, figure: "415-550-2210", url: "https://www.onlok.org/senior-center/activities", readOn: '2026-10-16',
     quote: "If you would like additional information about the senior center and our programs … You can also call 415-550-2210." },
-  { slug: SENIOR, figure: "$5", url: "https://www.cupertino.gov/Parks-Recreation/Senior-Center/Socials", readOn: '2026-10-16',
-    quote: "Social activities are free for members unless otherwise noted. Non-members may participate by purchasing a $5 Visitor Pass at the front desk." },
 ];

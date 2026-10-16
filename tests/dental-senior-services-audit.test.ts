@@ -22,7 +22,7 @@ test('dental access failure remains manual and care eligibility is reviewed mont
     assert.equal(row.dateMeaning, 'content-updated');
     assert.equal(row.verifiedAt, getGuideBySlug(row.id)!.updatedAt);
   }
-  assert.equal(contentReviewQueue([senior], '2026-11-12')[0].status, 'due');
+  assert.equal(contentReviewQueue([senior], '2026-11-16')[0].status, 'due');
   assert.equal(contentReviewQueue([dental], '2026-11-05')[0].status, 'manual-review');
 });
 const textValues = (value: unknown): string[] => {
@@ -56,7 +56,8 @@ test('every reader-facing field has complete English copy and a bounded reviewed
     assert.doesNotMatch(dictionary[value], chinese, value);
   }
   for (const guide of dentalSeniorServiceGuides) {
-    assert.equal(guide.updatedAt, '2026-10-12');
+    // CNT-GUIDES-3 re-read the senior services guide's new senior-center sources on 10-16; the dental guide keeps 10-12
+    assert.equal(guide.updatedAt, guide.slug === seniorSlug ? '2026-10-16' : '2026-10-12');
     assert.equal(guide.editionMonth, undefined);
     assert.ok(guide.blocks.some(block => block.type === 'template'));
     assert.match(guide.sourceNote || '', /不.*(?:判断个人|诊断牙病)/u);
@@ -64,7 +65,7 @@ test('every reader-facing field has complete English copy and a bounded reviewed
     for (const source of guide.sources) {
       const url = new URL(source.url);
       assert.equal(url.protocol, 'https:');
-      assert.ok(['medicare.gov', 'dhcs.ca.gov', 'nems.org', 'ucsf.edu', 'aging.ca.gov', 'selfhelpelderly.org', 'familybridges.org'].some(domain => url.hostname === domain || url.hostname.endsWith(`.${domain}`)), source.url);
+      assert.ok(['medicare.gov', 'dhcs.ca.gov', 'nems.org', 'ucsf.edu', 'aging.ca.gov', 'selfhelpelderly.org', 'familybridges.org', 'onlok.org', 'sjpl.bibliocommons.com', 'cupertino.gov'].some(domain => url.hostname === domain || url.hostname.endsWith(`.${domain}`)), source.url);
     }
     assert.doesNotMatch(textValues(guide).join('\n'), /\$\s*\d|保证(?:免费|接诊|批准)/u);
   }

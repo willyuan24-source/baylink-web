@@ -35,7 +35,8 @@ for (const [locale, prefix] of [['zh-Hans', ''], ['zh-Hant', '/zh-Hant'], ['en',
     await setLocale(locale, false);
     const document = renderGuide(seniorSlug, prefix);
     const expected = proseTexts(seniorSlug).flatMap(text => tels(translateText(text, locale)));
-    assert.equal(expected.length, 12, 'AAA line, 8 county lines and 3 program numbers');
+    // CNT-GUIDES-3 added On Lok 30th Street's 415-550-2210 (长者中心活动) to the three program numbers.
+    assert.equal(expected.length, 13, 'AAA line, 8 county lines and 4 program numbers');
     // Every number in the prose is a tel: link there; the carousel, 30 秒看懂 and contact cards repeat article numbers only.
     const proseLinks = [...document.querySelectorAll('.bl-guide-prose a[href^="tel:"]')].map(link => link.getAttribute('href')!.slice(4));
     assert.deepEqual(proseLinks.sort(), [...expected].sort());

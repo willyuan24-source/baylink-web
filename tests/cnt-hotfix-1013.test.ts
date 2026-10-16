@@ -55,7 +55,7 @@ test('H70: the Millbrae storytime is for children of any age (SMCL: "Children of
   const storytime = event('smcl-millbrae-chinese-storytime-oct-2026');
   assert.equal(storytime.ageChip, '儿童（任何年龄）');
   assert.deepEqual(storytime.audience, ['儿童与家长']);
-  assert.equal(translateText(storytime.ageChip!, 'en'), 'Children (any age)');
+  assert.equal(translateText(storytime.ageChip!, 'en'), 'Children of all ages');
   assert.equal(translateText('儿童与家长', 'en'), 'Children and parents');
 });
 
