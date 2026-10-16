@@ -157,6 +157,8 @@ export const EDITOR_REVIEWED_2026_10_15: ReadonlySet<string> = new Set([
   'smcl-pacifica-robotics-team5940-2026',
   'smcl-san-carlos-ofrenda-musical-2026',
   'vacaville-candy-stroll-20261031',
+  // Its gap re-check of a 10/24 item, read on the city's own page ("GPT editor gap re-check 2026-10-15 · second pass").
+  'menlo-park-halloween-hoopla-2026',
 ]);
 /** The batch date, or the editor review date for a reviewed id. */
 export const batchVerifiedAt = (id: string, batchDate: string): string => EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;

@@ -1867,3 +1867,22 @@ derives them from it; schedules that carry their own read date keep it.
 | event | `sfpl-bernal-dia-de-los-muertos-2026` | https://sfpl.org/events/2026/11/01/social-bernal-community-dia-de-los-muertos | 2026-10-15 | official page text | "This event will be held outside" |
 | event | `smcl-foster-city-nidhi-chanani-2026` | https://smcl.bibliocommons.com/events/6ab5876708693b0f7374643a ; https://smcl.bibliocommons.com/v2/events?startDate=2026-10-31&endDate=2026-11-01&page=2 | 2026-10-15 | library's official v2 date list + its embedded event record | "2026-11-01T10:30" (start-time attribute; the record ends 11:30; isCancelled false) |
 | event | `smcl-pacifica-robotics-team5940-2026` | https://smcl.bibliocommons.com/events/6abadaa39abb62002c6ac8d1 ; https://smcl.bibliocommons.com/v2/events?startDate=2026-10-31&endDate=2026-11-01&page=2 | 2026-10-15 | library's official v2 date list + its embedded event record | "2026-11-01T11:00" (start-time attribute; the record ends 14:30; isCancelled false) |
+
+## GPT editor gap re-check 2026-10-15 · second pass (the 10/24 items the first pass could not read)
+
+The GPT editor's gap re-check (`opus-qa/gpt/out-1016/gap-recheck.csv`, read 2026-10-15 PT) also re-tried four 10/24 items its
+first pass could not read; the first gap re-check section above left them to this lane. Only Menlo Park's Halloween Hoopla now
+has its date, time, place and fee read on the city's own event page, and BAYLINK's fields match: it carries `verifiedAt`
+2026-10-15. The lane re-read the city page on 2026-10-16 13:57 PT through a web reader (a direct GET answers 403) and the
+partner page with a direct GET. Fields the sources do not state stay as they were (registration for special parts, live stock).
+Read but not dated 2026-10-15 (the rows stay as evidence): Belmont and Mountain View (the city pages answer 403; date and
+place come from an authorised vendor sign-up and a performer's page, the programme times only from the search index) and Novato
+Día de los Muertos (official search index only). Their site entries make no claim these rows contradict; Novato's plan does not
+offer the car-altar application that closed on 9/25.
+
+| Kind | Id | URL | Read | Reader | Evidence | Quote / fact |
+|---|---|---|---|---|---|---|
+| event | `menlo-park-halloween-hoopla-2026` | https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival ; https://menlochurch.churchcenter.com/registrations/events/3846571 | 2026-10-15 | GPT editor + lane (10/16) | city event page + partner's volunteer page | "Saturday, October 24, 2026 \| 11:00 AM - 02:00 PM … Cost Free" / "partnering with the City of Menlo Park to support the citywide downtown Halloween Hoopla on October 24th". Lane 10/16: "Next date: Saturday, October 24, 2026 \| 11:00 AM to 02:00 PM" · "Free" · "Parade participants should arrive by 10:45 a.m. at the Maloney Street parking lot." No cancellation notice. The paid Pumpkin Splash on 10/25 is a separate event. |
+| event | `belmont-centennial-fest-2026` | https://www.active.com/belmont-ca/running/distance-running-classes/centennial-celebration-vendor-2026 | 2026-10-15 | GPT editor | authorised vendor sign-up page | "On October 24 we will be celebrating Belmont's 100th birthday in Twin Pines Park!" The 13:30 parade, 15:30 time capsule and 19:30 drone show only in the city page's search index; `verifiedAt` not moved. |
+| event | `mountain-view-monster-bash-2026` | https://adiradance.com/happenings | 2026-10-15 | GPT editor | performer's 2026 programme page | "Mountain View Monster Bash at Rengstorff Park … Saturday, October 24. Dance times: 11:00am and 11:45am." The cancelled show on that page is a different event (10/18). `verifiedAt` not moved. |
+| event | `roundup-novato-dia-muertos-2026` | https://www.novato.gov/Home/Components/Calendar/Event/24495/2527?selectview=1&toggle=all | 2026-10-15 | GPT editor | official search index only | "Date: 10/24/2026 3:00 PM - 6:00 PM … All ages are welcome!" `verifiedAt` not moved. |
