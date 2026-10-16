@@ -87,6 +87,15 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
     const frame = requestAnimationFrame(() => document.getElementById('home-feed-section')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }));
     return () => cancelAnimationFrame(frame);
   }, [scrollRequest]);
+  // The post and profile sheets this board opens load 2.5 s after it shows, so a first tap opens at once (H44: only here,
+  // not on every page).
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      void import('../features/posts/PostDetailModal');
+      void import('../features/users/UserProfileModal');
+    }, 2500);
+    return () => window.clearTimeout(id);
+  }, []);
 
   // `?${query}` only when something is left. Not `query.size`: Safari before 17 (iOS 15/16, a build target) lacks it.
   const searchOf = (query: URLSearchParams) => { const text = query.toString(); return text ? `?${text}` : ''; };
