@@ -1968,6 +1968,16 @@ reviewer's (A = official page text, A1 = the official event page or the library'
 are the reviewer's short excerpts; ";" joins excerpts from the same page. Schedule dates (`planning.schedule.verifiedAt`) are
 not edited by hand.
 
+Correction (lane review, 2026-10-16): the first pass stamped the date one object too late in the two batches that list
+`verifiedAt` before `id` (`november-refresh-north-events.json`, `octnov-2026-sf-east-events.json`). Five items outside this
+list briefly carried 2026-10-16 and are back on their own dates (`november-north-sips-stars-2026` and
+`november-north-bale-old-mill-days-2026` 2026-10-05; `nov2026-big-break-accessible-winter-birding`,
+`nov2026-tilden-good-night-farm` and the partly read `nov2026-ardenwood-chestnut-treats` 2026-10-07). Five rows below were
+missed and now carry 2026-10-16 (`november-north-sugarloaf-public-star-party-2026`, `november-north-eames-exhibition-2026`,
+`nov2026-coyote-hills-tule-work-play`, `nov2026-fort-mason-farmers-market`, `nov2026-fort-point-history-talks`).
+`tests/editor-review-2026-10-16.test.ts` now checks both directions: every row here carries the date, and nothing else does
+except batches first published on 2026-10-16.
+
 | Kind | Id | URL | Read | Evidence | Quote |
 |---|---|---|---|---|---|
 | event | `ccclib-dougherty-station-family-games-2026` | https://ccclib.bibliocommons.com/v2/events/6950638a7f0b8a3e004e5991 ; https://ccclib.bibliocommons.com/v2/events?series=6950638a9e881bab98aef44c&startDate=2026-11-07&endDate=2026-11-22 ; https://ccclib.org/news/your-contra-costa-county-library-a-partner-in-health-wellness/ | 2026-10-16 | GPT editor | A1：图书馆官方活动页及公开日历具体场次（含页面内结构化数据） | "All Ages, All Moves: Chess and More" |
