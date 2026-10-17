@@ -120,7 +120,7 @@ export const novemberNorthGuides: Guide[] = [
         "items": [
           "Fairfax Library 的0–5岁西英双语故事会已列11/3与11/10。10:15系列日历至11:45，说明另有9:30场；每次只参加一场，陪同者先看当天条目，不把整段时段当作连续演出。",
           "The MAC 的 Eames & Eames 从10/17起展出，地址607 St Helena Highway，常规每日10:00–17:00。普通成人$25、6–17岁$15、5岁及以下免费；节假日与开幕特别活动另核。它不是 Yountville 的 Napa Valley Museum。",
-          "11/15 Jack London 公园作家会14:00–15:30讨论 The Second Mrs. London，需预约。讲座不另收费，但入园$15/车；二楼仅楼梯可达，需要无台阶通行者先向公园咨询。"
+          "11/15 Jack London 公园作家会14:00–15:30讨论 The Second Mrs. London，官网10/16显示已售罄，可联系公园登记补票。讲座不另收费，但入园$15/车；讲座在 House of Happy Walls 博物馆二楼，官网写只能走楼梯上去，通行问题先打 (707) 938-5216。"
         ]
       },
       {

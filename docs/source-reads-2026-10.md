@@ -1953,6 +1953,18 @@ resolved here.
 | event | `curiodyssey-illuminodyssey-2026` (部分核实) | https://curiodyssey.org/exhibits-events/illuminodyssey/ | 200 | none: the site already lists every day 10:00–17:00 with last entry 16:30 and no Monday closure; the 12/25 and 1/1 closures come from the 10-15 batch read and are not on this page | "Open every day for general admission 10 AM–5 PM." · "The last entry is at 4:30 PM." · "Catch the light: November 14, 2026–January 24, 2027" |
 | event | `nov2026-red-oak-fall-swing` (可核) | https://redoakvictory.us/events/ | 200 | none: times and prices match | "Nov 14, 2026 at 6:00 PM - 10:00 PM PT" · "$25 Advance Ticket ($10 for kids 12 and under)" · "only available through Saturday, November 7. After that, online tickets will be $30 for adults and $15 for children 12 and under. If we are not sold out, these prices also apply to tickets purchased at the door." · "7:00 Band First Set - 8:10 Band Second Set - 9:20 Band Third Set" |
 
+Follow-ups from the lane review (same reads, no new page fetch; `verifiedAt` unchanged):
+
+- `san-jose-matilda-nov2026`: the planner schedule (`november-refresh-peninsula-south-planning.json`) now cites CMT's show
+  page, like the item, and its note no longer says tickets go on sale 10/16.
+- `november-north-jack-london-author-2026`: the North Bay guide line and the planner schedule note say sold out with
+  back-order through the park; the guide gives the stairs-only note with the access phone and no step-free wording.
+- `sfpl-chinatown-creative-saturdays-fall-2026`, `sfpl-chinatown-creative-saturdays-late-nov-2026`: the summaries drop
+  "held in Cantonese and Mandarin", as the December item already did (the library's Chinese-programme category footer,
+  not a delivery-language statement); self-guided practice, listed in that category.
+- `sanleandro-main-mandarin-storytime-dec5-2026`: the plan line no longer says the whole session is in Mandarin; the page
+  says community educators present songs, books and poetry in Mandarin.
+
 ## GPT editor review 2026-10-16 · third pass (11/7–8, 11/14–15, 11/21–22)
 
 The third weekly Wednesday source review (`ROADMAP-8-9.md` §2.5). The GPT editor read the official page of every live item on
