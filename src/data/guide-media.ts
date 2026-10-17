@@ -390,7 +390,7 @@ export const GUIDE_EXTRA_INLINE: Readonly<Record<string, readonly (readonly [num
   'bay-area-senior-transit-clipper-discounts-guide': [[1, 'commons-clipper-embarcadero']],
   'bay-area-rental-scam-guide': [[2, 'commons-nema-sf']],
   'bay-area-chinese-senior-services-referral-guide': [[1, 'commons-ggp-senior-center-front']],
-  'bay-area-chinese-language-resource-map': [[1, 'commons-chinatown-ywca-chsa']],
+  'bay-area-chinese-language-resource-map': [[6, 'commons-chinatown-ywca-chsa']],
 };
 
 Object.assign(bySlug, {
