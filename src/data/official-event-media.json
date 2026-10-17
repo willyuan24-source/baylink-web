@@ -1259,28 +1259,6 @@
     }
   },
   {
-    "key": "official-november-north-healdsburg-market-2026",
-    "eventId": "november-north-healdsburg-market-2026",
-    "src": "/guides/official-events/november-north-healdsburg-market-2026.webp",
-    "width": 1000,
-    "height": 585,
-    "kind": "photo",
-    "artwork": "photo",
-    "focal": [
-      42,
-      40
-    ],
-    "alt": "市集摊位后，戴草帽和眼镜的摊主笑着招呼顾客，柜台上摆着一排莎莎酱罐",
-    "caption": "Healdsburg 农夫市集官网首页上的活动官方照片，拍摄日期未注明，不是本页列出的某个周六；摊位和商品以当天为准。",
-    "credit": "Healdsburg Certified Farmers Market 活动官方照片",
-    "creditUrl": "https://healdsburgfarmersmarket.org/",
-    "rights": {
-      "basis": "promo-editorial",
-      "evidenceUrl": "https://healdsburgfarmersmarket.org/",
-      "scope": "same-event coverage only"
-    }
-  },
-  {
     "key": "official-nov2026-fort-mason-farmers-market",
     "eventId": "nov2026-fort-mason-farmers-market",
     "src": "/guides/official-events/nov2026-fort-mason-farmers-market.webp",

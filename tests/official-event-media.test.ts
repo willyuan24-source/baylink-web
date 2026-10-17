@@ -75,14 +75,12 @@ const BATCH_1015 = new Map([
   ['r2-vallejo-wonder-deep-dive-2026', 'poster'], ['november-north-sonoma-harvest-market-2026', 'photo'], ['sf-opera-manon-2026', 'key-art'],
 ]);
 // CNT-MEDIA-4's rows of the 2026-10-16 batch (owner approval in chat 10-16 of three rows of
-// gpt/out-1016c/image-candidates-nov-dec.md): three photos, used after looking at each one. They replace a theme photo
-// (Healdsburg: the same file, until now not allowed as the cover) and a 2015 venue photo too old for a cover (both Fort Mason
-// events). None is dated by its organiser, so each caption says it does not show a listed session.
+// gpt/out-1016c/image-candidates-nov-dec.md). Two photos ship, after looking at each one. They replace a 2015 venue photo that is
+// too old for a cover (both Fort Mason events). The third, Healdsburg's salsa-sales.jpg, shows a stallholder's face close up, so it
+// waits for the owner's answer. Neither photo is dated on its page, so each caption says it does not show a listed session.
 // Other lanes add their own 10-16 rows (CNT-WEEKEND-1107: two), so this map checks only these event ids; the total below counts
 // every 10-16 download.
-const MEDIA_4_1016 = new Map([
-  ['november-north-healdsburg-market-2026', 'photo'], ['nov2026-fort-mason-farmers-market', 'photo'], ['nov2026-arion-press-public-tours', 'photo'],
-]);
+const MEDIA_4_1016 = new Map([['nov2026-fort-mason-farmers-market', 'photo'], ['nov2026-arion-press-public-tours', 'photo']]);
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.deepEqual(Object.keys(downloads), officialEventMedia.map(record => record.key), 'one download record per image, in registry order');
@@ -96,10 +94,11 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.deepEqual(new Map(batch1015.map(record => [record.eventId, record.artwork])), BATCH_1015, 'the 2026-10-15 batch is exactly the 5 approved images');
   const batch1016 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-16'));
   const media4 = batch1016.filter(record => MEDIA_4_1016.has(record.eventId));
-  assert.deepEqual(new Map(media4.map(record => [record.eventId, record.artwork])), MEDIA_4_1016, 'CNT-MEDIA-4 ships exactly its 3 photos');
+  assert.deepEqual(new Map(media4.map(record => [record.eventId, record.artwork])), MEDIA_4_1016, 'CNT-MEDIA-4 ships exactly its 2 photos');
   for (const record of media4) assert.match(record.caption, /拍摄日期未注明[，；]/, `${record.key}: undated, never a listed session`);
   // The Fort Mason market photo sits under /wp-content/uploads/2015/09/, so its caption gives the year it was already online.
   assert.match(media4.find(record => record.eventId === 'nov2026-fort-mason-farmers-market')!.caption, /2015 年就已上传到官网/);
+  assert.equal(officialEventMedia.some(record => record.eventId === 'november-north-healdsburg-market-2026'), false, 'Healdsburg waits for the owner');
   assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length);
   // SF Opera names no illustrator for its season artwork; the Cory Weaver credit on the same page is for production photos.
   assert.equal(officialEventMedia.find(record => record.eventId === 'sf-opera-manon-2026')?.credit, 'SF Opera 官方主视觉');
