@@ -1,5 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { gzipSync } from 'node:zlib';
+import { brotliCompressSync, constants as zlibConstants, gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
 import { verifyPhoneLinks } from './verify-phone-links.mjs';
 import { formatRouteBudgets, measureRouteBudgets, pageModuleKey } from './route-budgets.mjs';
@@ -77,7 +77,7 @@ const ROUTE_JS_BUDGETS = [
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
   // WEB-PERF-3 (H20): the workspace is a chunk that loads with the catalog (features/plan/PlannerWorkspace.tsx); the route
   // is the header, this weekend's picks (a generated snapshot, not the home catalog) and the saved days: measured
-  // 189.5 / 233.3 / 290.9 KiB, so measured + 2%.
+  // 189.3 / 233.6 / 291.0 KiB on main 531f6434 (the ceilings were set at measured + 2% on the lane's first base).
   { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 193.3, 'zh-Hant': 238.0, en: 296.8 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
@@ -116,6 +116,8 @@ function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[
 // (src/features/plan/plan-workspace-node.ts), and a prerender without it would ship /plan without the planner.
 {
   const BLOCKS=[['src/components/FreebieBoard.tsx',/class="[^"]*\bbl-freebie-(?:board|jump)\b/],['src/components/CityExplorationDirectory.tsx',/class="[^"]*\bcity-exploration\b/],['src/features/guides/GuideQuickFacts.tsx',/class="[^"]*\bgd-keyfacts\b/],['src/features/guides/GuideOpusEntry.tsx',/class="[^"]*\bgd-opus\b/]];
+  // A block module renamed or moved would leave its row checking nothing (routeStyles of a missing key is empty).
+  for(const [key] of BLOCKS) if(!manifest[key]) throw new Error(`Block module ${key} is not in the build manifest: update BLOCKS in verify-release`);
   let checked=0;
   for(const locale of ['', 'en/', 'zh-Hant/']) for(const name of await readdir(`dist/${locale}guides`).catch(()=>[])) {
     if(!name.endsWith('.html')) continue;
@@ -124,6 +126,17 @@ function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[
   }
   if(!checked) throw new Error('No prerendered guide links a block stylesheet: the freebie board check found nothing to check');
   for(const locale of ['', 'en/', 'zh-Hant/']) { const path=`dist/${locale}plan.html`; if(!(await readFile(path,'utf8')).includes('class="planner-form"')) throw new Error(`行程's prerendered page has no workspace (planner-form): ${path}`); }
+}
+// H43 (WEB-PERF-3): the stylesheets the home page links before its first paint (the shell's, which every page links),
+// brotli q11 as served: 58.2 KiB on 531f6434, 38.9 KiB after the dead-rule prune and the route moves; measured + 2%.
+const RENDER_BLOCKING_CSS_BR_KIB=39.7;
+for(const locale of ['', 'en/']) {
+  const path=`dist/${locale}index.html`; const html=await readFile(path,'utf8');
+  const sheets=[...new Set([...html.matchAll(/<link\b[^>]*>/g)].map(match=>match[0]).filter(tag=>/\brel="stylesheet"/.test(tag)&&!/\bmedia="print"/.test(tag)).map(tag=>/\bhref="\/([^"]+\.css)"/.exec(tag)?.[1]).filter(Boolean))];
+  if(!sheets.length) throw new Error(`No render-blocking stylesheet found: ${path}`);
+  const kib=(await Promise.all(sheets.map(async css=>brotliCompressSync(await readFile(`dist/${css}`),{params:{[zlibConstants.BROTLI_PARAM_QUALITY]:11}}).length))).reduce((sum,value)=>sum+value,0)/1024;
+  console.log(`Render-blocking CSS on ${path}: ${kib.toFixed(1)} KiB brotli in ${sheets.length} sheets (ceiling ${RENDER_BLOCKING_CSS_BR_KIB} KiB)`);
+  if(kib>RENDER_BLOCKING_CSS_BR_KIB) throw new Error(`Render-blocking CSS exceeds its budget: ${path} ${kib.toFixed(1)} KiB > ${RENDER_BLOCKING_CSS_BR_KIB} KiB brotli`);
 }
 for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   const path=`dist/${locale}${page}.html`; const html=await readFile(path,'utf8');
