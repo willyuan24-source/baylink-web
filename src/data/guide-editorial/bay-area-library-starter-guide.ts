@@ -59,12 +59,12 @@ export const libraryStarterEditorial: GuideEditorial = {
     },
     {
       "label": {
-        "zh": "公园通行证",
-        "en": "Park passes"
+        "zh": "Marin 公园通行证",
+        "en": "Marin park passes"
       },
       "value": {
-        "zh": "Marin 借期 1 周；San Mateo County 县图书馆借期 3 周",
-        "en": "Marin: 1 week; San Mateo County libraries: 3 weeks"
+        "zh": "借期 1 周，没人排队可续借两次",
+        "en": "1 week, renewable twice if no one is waiting"
       },
       "source": 7
     }
@@ -83,8 +83,7 @@ export const libraryStarterEditorial: GuideEditorial = {
       "body": {
         "zh": "申请、领卡、续期和数字权限各馆不一；按你要办的那一馆的办卡页准备材料。",
         "en": "Applying, pickup, renewal and digital access differ from library to library; prepare from the card page of the library you’re joining."
-      },
-      "source": 1
+      }
     },
     {
       "kind": "checklist",
@@ -113,8 +112,7 @@ export const libraryStarterEditorial: GuideEditorial = {
           "zh": "卡号、PIN 不发在公开帖子里",
           "en": "Never post your card number or PIN publicly"
         }
-      ],
-      "source": 1
+      ]
     },
     {
       "kind": "compare",
@@ -143,8 +141,7 @@ export const libraryStarterEditorial: GuideEditorial = {
           "zh": "San Mateo County：县公园通行证借期 3 周",
           "en": "San Mateo County: county park pass for 3 weeks"
         }
-      ],
-      "source": 5
+      ]
     },
     {
       "kind": "point",
