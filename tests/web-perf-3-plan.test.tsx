@@ -109,10 +109,12 @@ test('a link that opens a plan puts 这一天的安排 first: no weekend strip a
 });
 
 test('a link that opens a saved plan (?edit=) never shows the weekend strip, also while the library is read', async () => {
+  // A guest's library: ready in the workspace's first render, one commit before the plan's stops are in.
   localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }], version: 1, createdAt: '', updatedAt: '' }] }));
   let view!: ReturnType<typeof open>;
   let seen = false;
-  const watch = new window.MutationObserver(() => { if (view?.container.querySelector('.plan-weekend')) seen = true; });
+  // Every inserted node, not the page at callback time: a strip put in and taken out in one flush still counts.
+  const watch = new window.MutationObserver(records => { for (const record of records) for (const node of record.addedNodes) if (node instanceof window.Element && (node.matches('.plan-weekend') || node.querySelector('.plan-weekend'))) seen = true; });
   act(() => { view = open('?edit=p1'); });
   watch.observe(view.container, { childList: true, subtree: true });
   assert.equal(view.container.querySelector('.plan-weekend'), null, 'not in the first frame');
@@ -132,6 +134,22 @@ test('a question link (?q=) keeps this weekend’s picks from the first frame: t
   assert.ok(view.container.querySelector('.plan-weekend'), 'in the first frame');
   await waitFor(() => assert.equal(view.container.querySelector<HTMLTextAreaElement>('.planner-question textarea')?.value, '周六带孩子去博物馆'), { timeout: 20000 });
   assert.ok(view.container.querySelector('.plan-weekend'), 'and still there with the prefilled form');
+});
+
+test('on /en the strip’s heading writes its weekend as the cards do: "Oct 17–18", not "10/17–18" (#45 reader dates)', async () => {
+  const { setLocale } = await import('../src/i18n/locale');
+  const { readerDayRange, readerMonthDay } = await import('../src/lib/event-facts');
+  const { PlanWeekendPicks } = await import('../src/features/plan/PlanWeekendPicks');
+  const snapshot = JSON.parse(readFileSync('src/data/generated/plan-weekend.json', 'utf8')) as { days: Record<string, { start: string; end: string }> };
+  const picks = snapshot.days[getBayAreaToday()];
+  if (!picks) return;
+  await act(async () => { await setLocale('en', false); });
+  try {
+    const view = render(<MemoryRouter><PlanWeekendPicks /></MemoryRouter>);
+    const kicker = view.container.querySelector('.plan-weekend .home-section-head__kicker')?.textContent;
+    assert.equal(kicker, picks.start === picks.end ? readerMonthDay(picks.start, true) : readerDayRange(picks.start, picks.end, true));
+    assert.match(kicker ?? '', /^[A-Z][a-z]{2} \d/);
+  } finally { await act(async () => { await setLocale('zh-Hans', false); }); }
 });
 
 test('the post and profile sheets are warmed by the community board, not by the shell on every page (H44)', () => {

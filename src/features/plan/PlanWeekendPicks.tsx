@@ -7,7 +7,7 @@ import { FeedGrid, FeedItem } from '../../components/ui/FeedGrid';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import { createCoverPage, getCover, type CoverPage } from '../../lib/cover';
-import { eventPlace, eventPriceChip, type EventFactsInput } from '../../lib/event-facts';
+import { eventPlace, eventPriceChip, readerDayRange, readerMonthDay, type EventFactsInput } from '../../lib/event-facts';
 import { getBayAreaToday } from '../../lib/monthly';
 import snapshot from '../../data/generated/plan-weekend.json';
 import type { PlanWeekendEvent, PlanWeekendSnapshot } from './plan-weekend-snapshot';
@@ -15,7 +15,6 @@ import type { PlanWeekendEvent, PlanWeekendSnapshot } from './plan-weekend-snaps
 const PLAN_WEEKEND = snapshot as unknown as PlanWeekendSnapshot;
 /** The strip's cards are the feed card's width: half the phone, a quarter of the 1180px container. */
 const SIZES = '(max-width: 767px) calc(50vw - 22px), 286px';
-const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 /** The claimant the picks' photos carry in the page's cover registry: no item below matches it, so they show cards there. */
 const CLAIMANT = 'plan-weekend-picks';
 
@@ -55,9 +54,8 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
   if (coverPage) for (const src of photos) if (!coverPage.claims.has(src)) coverPage.claims.set(src, CLAIMANT);
   useEffect(() => () => { if (coverPage) for (const src of photos) if (coverPage.claims.get(src) === CLAIMANT) coverPage.claims.delete(src); }, [coverPage, photos]);
   if (!picks) return null;
-  // "10/17–18" / "10/31–11/1", as the home's weekend heading (features/home/home-model.ts weekendRange).
-  const range = picks.start === picks.end ? monthDay(picks.start)
-    : picks.start.slice(0, 7) === picks.end.slice(0, 7) ? `${monthDay(picks.start)}–${Number(picks.end.slice(8, 10))}` : `${monthDay(picks.start)}–${monthDay(picks.end)}`;
+  // "10/17–18" / "Oct 17–18", as the home's weekend heading (features/home/home-model.ts weekendRange) and the cards' stickers.
+  const range = picks.start === picks.end ? readerMonthDay(picks.start, english) : readerDayRange(picks.start, picks.end, english);
   return <section className="plan-weekend" aria-labelledby="plan-weekend-title" data-date-scope="weekend">
     <div className="home-section-head">
       <h2 id="plan-weekend-title">{t('本周末精选', 'This weekend’s picks')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{range}</span></h2>

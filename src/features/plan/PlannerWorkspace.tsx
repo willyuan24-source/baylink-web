@@ -38,9 +38,9 @@ import { SaveToast } from '../saves/SaveToast';
 import { prepareSaveAnnouncer } from '../saves/save-announcer';
 import { bootCarry, clearBootCarry } from './boot-carry';
 
-/** Before paint in the browser; the prerender (no window) has nothing to report and React warns about layout effects there. */
 /** The example questions under the box. */
 const PLAN_EXAMPLES = ['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'];
+/** Before paint in the browser; the prerender (no window) has nothing to report and React warns about layout effects there. */
 const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 
 /** The details as save() stores them, in one canonical form (key order included), for the overview's 已保存 claim. */
@@ -121,6 +121,8 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   const resultsHeading = useRef<HTMLHeadingElement>(null);
   const questionField = useRef<HTMLTextAreaElement>(null);
   const editLoaded = useRef('');
+  // The same `id:version` as state, for render: the saved plan a ?edit= link opens is in (planOpen below).
+  const [editApplied, setEditApplied] = useState('');
   const prefsLoaded = useRef(false);
   const autoStarted = useRef(new Set<string>());
   // The plan id a first save just put in the URL (?edit=): that URL change is this page's own, not a new link to load.
@@ -137,12 +139,12 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
     if (edit && edit === adoptedSave.current) { adoptedSave.current = ''; return; }
     setEditing(undefined); setSearchDate(undefined); setStops(importedDraft?.stops || shared.stops); setDate(importedDraft?.date || shared.date);
     setTitle(importedDraft?.title || translateText('我的湾区出游')); setDetails(importedDraft?.details || defaultPlanDetails()); setPersistedFilters(importedDraft?.details.constraints || {});
-    setUndo(undefined); setReplaceIndex(null); editLoaded.current = ''; prefsLoaded.current = !!importedDraft;
+    setUndo(undefined); setReplaceIndex(null); editLoaded.current = ''; setEditApplied(''); prefsLoaded.current = !!importedDraft;
     if (importedDraft) { const filters = importedDraft.details.constraints || {}; setRegion(filters.region || 'all'); setBudget(''); setAge(String(filters.childAge ?? '')); setSetting(filters.setting || 'any'); setTravel(importedDraft.details.travelMode); }
   }, [app?.user?.id, planSearch, importedDraft, shared]);
   useEffect(() => {
     if (new URLSearchParams(planSearch).has('edit')) return;
-    const next = importedDraft || parseSharedPlan(planSearch); setStops(next.stops); setDate(next.date); setEditing(undefined); editLoaded.current = '';
+    const next = importedDraft || parseSharedPlan(planSearch); setStops(next.stops); setDate(next.date); setEditing(undefined); editLoaded.current = ''; setEditApplied('');
   }, [planSearch, importedDraft]);
   useEffect(() => {
     if (!library.ready) return;
@@ -150,7 +152,7 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
     const id = new URLSearchParams(planSearch).get('edit') || editing?.id;
     if (id) {
       const plan = library.data.plans.find(plan => plan.id === id);
-      if (plan && editLoaded.current !== `${id}:${plan.version}`) { editLoaded.current = `${id}:${plan.version}`; setEditing(plan); setStops(cleanStops(plan.stops)); setDate(plan.date); setTitle(plan.title); const savedDetails = normalizePlanDetails(plan.details, cleanStops(plan.stops)); setDetails(savedDetails); const filters = savedDetails.constraints; setPersistedFilters(filters || {}); if (filters) { setRegion(filters.region || 'all'); setBudget(filters.budgetScope === 'total' ? '' : String(filters.budget ?? '')); setAge(String(filters.childAge ?? '')); setSetting(filters.setting || 'any'); setTravel(filters.travelMode || savedDetails.travelMode); } }
+      if (plan && editLoaded.current !== `${id}:${plan.version}`) { editLoaded.current = `${id}:${plan.version}`; setEditApplied(editLoaded.current); setEditing(plan); setStops(cleanStops(plan.stops)); setDate(plan.date); setTitle(plan.title); const savedDetails = normalizePlanDetails(plan.details, cleanStops(plan.stops)); setDetails(savedDetails); const filters = savedDetails.constraints; setPersistedFilters(filters || {}); if (filters) { setRegion(filters.region || 'all'); setBudget(filters.budgetScope === 'total' ? '' : String(filters.budget ?? '')); setAge(String(filters.childAge ?? '')); setSetting(filters.setting || 'any'); setTravel(filters.travelMode || savedDetails.travelMode); } }
     }
   }, [library.ready, library.data, planSearch, editing?.id, queryMessage]);
 
@@ -338,9 +340,13 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   useBrowserLayoutEffect(() => { registerAsk(askBayBay); });
   /** An example question replaces the question and its conditions, in the words the chip shows (/en: English). */
   const chooseExample = (example: string) => { request.current?.abort(); setRequesting(false); setResults(null); setMessage(example); setSearchDate(''); setRegion('all'); setBudget(''); setAge(''); setSetting('any'); setTravel('any'); setPersistedFilters({}); };
-  // A link that opens a saved plan (?edit=) has its stops only once the library is read: until then it counts as open, so
-  // the page does not show this weekend's picks and then take them away.
-  const planOpen = stops.length > 0 || (params.has('edit') && !library.ready && !library.error);
+  // A link that opens a saved plan (?edit=) has its stops only once the library is read and the effect above has put them
+  // in (a guest's library is ready in the first render, the stops come one commit later): until then it counts as open, so
+  // the page does not show this weekend's picks and then take them away. A plan the library does not have is not open.
+  const editId = params.get('edit');
+  const editPlan = editId && library.ready ? library.data.plans.find(plan => plan.id === editId) : undefined;
+  const editPending = !!editId && (library.ready ? !!editPlan && editApplied !== `${editId}:${editPlan.version}` : !library.error);
+  const planOpen = stops.length > 0 || editPending;
   useBrowserLayoutEffect(() => { onPlanOpen?.(planOpen); }, [planOpen, onPlanOpen]);
   // The prerendered form had the focus: the live box takes it, with the caret where it was (H20, boot-carry.ts).
   useBrowserLayoutEffect(() => {
