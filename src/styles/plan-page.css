@@ -33,8 +33,11 @@
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card { display:grid; grid-template-columns:minmax(0, 2fr) minmax(0, 3fr); grid-template-rows:auto 1fr; column-gap:12px; row-gap:4px; align-items:start; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__media { grid-column:1; grid-row:1 / span 2; margin:0; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend :is(.ui-feed-card__title,.ui-feed-card__meta) { grid-column:2; }
-  /* The square photo keeps the date; the price is in the line under the title. */
+  /* The square photo keeps the date; the price is in the lines under the title: the place, then the price on its own line
+     (at 特大 a long place wrapped around "· 免费"). */
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-stickers>[data-slot=end] { display:none; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__meta { flex-direction:column; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-sep { display:none; }
 }
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
 @media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; } }
@@ -63,11 +66,14 @@
 .plan-section-head>h2 { margin:0; }
 .plan-days { margin:0 0 8px; scroll-margin-top:96px; }
 .plan-days .ui-state { margin-top:8px; border-radius:16px; background:var(--color-surface-2); }
-/* H20: a guest with saved plans in this browser (public/reading-init.js marks <html data-plans> before the first paint) never
+/* H20: a guest with an upcoming saved day in this browser (public/reading-init.js marks <html data-plans> before the first paint) never
    sees the prerendered empty state, on the prerendered page or its boot copy (app/boot-main.ts): a loading block holds
    the place of one saved day with two stops (the preview's height for it) until the app lists the days. */
 html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days .ui-state { display:none; }
 html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days::after { content:""; display:block; height:24.5rem; border-radius:16px; background:var(--color-surface-2); }
+/* The prerendered page is built without a query, so it has this weekend's picks; a link that opens a plan (public/reading-init.js
+   marks <html data-plan-link>) shows the plan without them (PlannerPage renders no picks for it either). */
+html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .plan-weekend { display:none; }
 .plan-days__list { display:grid; gap:20px; margin:0; padding:0; list-style:none; }
 .plan-days__day { display:grid; gap:8px; }
 @media (min-width:768px) { .plan-days__day { grid-template-columns:7.5rem minmax(0, 1fr); gap:16px; } }
