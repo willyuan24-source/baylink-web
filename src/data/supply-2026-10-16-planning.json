@@ -3,7 +3,7 @@
     "planning": {
       "admissionUsd": 0,
       "minAge": null,
-      "reservation": "unknown",
+      "reservation": "optional",
       "setting": "indoor",
       "schedule": {
         "sourceUrl": "https://sfpl.org/events/2026/11/14/activity-chinese-calligraphy-and-chess-games",

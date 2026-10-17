@@ -175,7 +175,7 @@ export const everydayPerks2026: FreebieOffer[] = [
     "imageKey": "region-sausalito-waterfront",
     "imageNote": "Sausalito 海岸资料照片，非救护中心或在院动物",
     "sourceUrl": "https://www.marinemammalcenter.org/",
-    "sourceLabel": "海洋哺乳动物中心免费门票与票务迁移公告",
+    "sourceLabel": "海洋哺乳动物中心官网免费门票预约",
     "verifiedAt": "2026-10-04"
   }
 ];

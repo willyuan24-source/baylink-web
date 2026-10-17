@@ -44,9 +44,10 @@ test('the Doja Cat show moved from Mon 10/19 to Sun 10/25 (Chase Center)', () =>
 test('opening facts follow the official pages: Old Post Office brunch on weekends, Marufuku and O2 Sushi open', () => {
   const postOffice = opening('old-post-office-burlingame');
   // CNT-FRESH-1016 (read 2026-10-16, GPT editor review 2026-10-15): the hours block lists "Brunch: Sat–Sun, 11 a.m.–2 p.m."
-  // with no start date any more, so the card gives the regular week (the 10-14 "from 10/18" note had only the old site behind it).
+  // with no start date any more, so the card gives the regular week; the earlier "from Sunday 10/18" line is named as past
+  // wording, and a Saturday 10/17 brunch visit is a phone call first (no source says brunch is or is not served that day).
   assert.match(postOffice.dateLabel, /早午餐周六日/u);
-  assert.match(postOffice.editorTip, /早午餐周六、周日 11:00–14:00，官网已不再写早午餐从哪天开始/u);
+  assert.match(postOffice.editorTip, /早午餐周六、周日 11:00–14:00。官网此前写早午餐 10\/18（周日）起，现在不再写起始日/u);
   assert.match(postOffice.editorTip, /650-502-1000/u);
   assert.doesNotMatch(postOffice.editorTip, /还没有早午餐/u, 'no current source says there is no brunch on 10/17');
   assert.doesNotMatch(`${postOffice.dateLabel}${postOffice.editorTip}`, /10\/17 起/u);
