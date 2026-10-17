@@ -3,10 +3,12 @@
  * so far (a tap on an example question fills it with the chip's words) and whether the box had the focus (with the caret).
  * From the moment 行程's route code runs (PlanWorkspaceSlot captures the prerendered page) until the workspace mounts, one
  * listener on the document records it from whichever copy of the form is on screen: the prerendered page's own, the
- * boot copy (app/boot-main.ts) or the slot's (PlanWorkspaceSlot). Each copy the slot draws again puts it back; the
- * workspace reads it in its first render, then stops the listener and clears it, so the swap from the prerendered page
- * to the live one never erases a word or drops the focus. A native submit (帮我挑选方案) meanwhile would reload the page and
- * lose the words: it is held, the workspace is asked for, and the workspace sends the reader's request once it is in.
+ * boot copy (app/boot-main.ts) or the slot's (PlanWorkspaceSlot). Each copy drawn again puts it back (the slot's itself,
+ * the boot copy as it appears), and the workspace reads it in its first render, then stops the listener and clears it,
+ * so the swaps from the prerendered page to the live one keep the words and the focus. A native submit (帮我挑选方案)
+ * meanwhile would reload the page and lose the words: it is held, the workspace is asked for, and the workspace sends the
+ * reader's request once it is in. Not carried: a pinyin composition still open at a swap (the IME commits it as typed),
+ * and on iOS the keyboard, which a focus outside a tap does not open again.
  */
 export type BootCarry = { message?: string; focused?: boolean; start?: number | null; end?: number | null; submitted?: boolean };
 
@@ -36,7 +38,19 @@ export function watchBootForm(doc: Document, onAct: () => void): void {
   const onInput = (event: Event) => { const field = questionBox(event.target); if (field) carry = { ...carry, message: field.value, focused: true, start: field.selectionStart, end: field.selectionEnd }; };
   const onFocus = (event: Event) => { if (questionBox(event.target)) carry = { ...carry, focused: true }; };
   // A box taken out of the page (the next copy replaces it) keeps the focus for that copy; a blur in the page drops it.
-  const onBlur = (event: Event) => { const field = questionBox(event.target); if (field && field.isConnected) carry = { ...carry, focused: false }; };
+  // Chrome sends focusout to a focused box as it is removed, while it is still connected: decide once the swap is done.
+  const onBlur = (event: Event) => { const field = questionBox(event.target); if (field) void Promise.resolve().then(() => { if (field.isConnected) carry = { ...carry, focused: false }; }); };
+  // The boot copy (app/boot-main.ts, every page's) draws the prerendered page again as it was built: the words, the focus
+  // and the caret go back into its box as it appears, before it paints.
+  const restored = new WeakSet<HTMLTextAreaElement>();
+  const observer = typeof MutationObserver === 'undefined' ? undefined : new MutationObserver(() => {
+    const field = doc.querySelector<HTMLTextAreaElement>('.site-boot-main .planner-question textarea');
+    if (!field || restored.has(field)) return;
+    restored.add(field);
+    if (carry.message != null) field.value = carry.message;
+    if (carry.focused) { field.focus({ preventScroll: true }); if (carry.start != null) field.setSelectionRange(carry.start, carry.end ?? carry.start); }
+  });
+  observer?.observe(doc.querySelector('#root') ?? doc.documentElement, { childList: true, subtree: true });
   const onClick = (event: Event) => {
     const chip = (event.target as Element | null)?.closest?.('.planner-examples button');
     const field = chip?.closest('form')?.querySelector<HTMLTextAreaElement>('.planner-question textarea');
@@ -52,6 +66,7 @@ export function watchBootForm(doc: Document, onAct: () => void): void {
   doc.addEventListener('click', onClick, true);
   doc.addEventListener('submit', onSubmit, true);
   stop = () => {
+    observer?.disconnect();
     doc.removeEventListener('input', onInput, true);
     doc.removeEventListener('focusin', onFocus, true);
     doc.removeEventListener('focusout', onBlur, true);
