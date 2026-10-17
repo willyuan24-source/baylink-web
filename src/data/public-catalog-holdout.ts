@@ -7,6 +7,7 @@
  * | public/planner-catalog.full.json (export-planner-catalog.ts)   | every site event, places, guides| the API, copied as its data/planner-catalog.json (saves, plans, BayBay) |
  * | public/planner-catalog.json (export-planner-catalog.ts)        | all but WORLD_IMPORT_PENDING    | /opus-bay at runtime (src/opus-bay/data/catalog.ts), scripts/opus-sf/*, tests/opus-bay-* |
  * | (same file)                                                    | WORLD_HELD_FIELDS kept as pinned | the 3D world's label-based hours for an event whose newer hours an opus test does not know yet |
+ * | public/weekend-picks.json (scripts/export-weekend-picks.ts)    | the editor's weekend picks only | the API, for BayBay's weekend answers (src/lib/weekend-picks-export.ts says what goes in) |
  *
  * Why /opus-bay gets its own copy: every San Francisco event in the file it reads needs the Opus session's own placement
  * decision (tests/opus-bay-w6-s-venues.test.ts, W6-S1: a venue row, or a stated reason to stay out). The 2026-10-12 supply
@@ -52,6 +53,8 @@ export const PUBLIC_CATALOG_FILES = {
   apiEvents: 'public/event-catalog.json',
   /** Every site event, place and guide: the API's data/planner-catalog.json. */
   apiPlanner: 'public/planner-catalog.full.json',
+  /** The editor's weekend picks (src/data/weekend-picks.ts) for the API; its sync must copy it too. */
+  apiWeekendPicks: 'public/weekend-picks.json',
   /** The planner catalog /opus-bay reads: apiPlanner without WORLD_IMPORT_PENDING. */
   worldPlanner: 'public/planner-catalog.json',
 } as const;
