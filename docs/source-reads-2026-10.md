@@ -1902,3 +1902,22 @@ now name the separately ticketed sugar-skull decorating (the pick's reason says 
 | event | `menlo-park-halloween-hoopla-2026` | https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival | 403 direct; read via web reader | none | "Next date: Saturday, October 24, 2026 \| 11:00 AM to 02:00 PM" · "Free" · "Parade participants should arrive by 10:45 a.m. at the Maloney Street parking lot." |
 | event | `acl-cherryland-chinese-storytimes-oct24-2026` | https://aclibrary.bibliocommons.com/v2/events?startDate=2026-10-24&endDate=2026-10-25&page=1 | 200 | none | "廣東話故事會 / Storytime in Cantonese … Saturday, October 24 … 10:30am–11:00am … Cherryland" · "国语故事会/ Mandarin Storytime … Saturday, October 24 … 11:30am–12:00pm … Cherryland"; both event records `"isCancelled":false` |
 | event | `sfpl-chinatown-creative-saturdays-fall-2026` | https://sfpl.org/events/2026/10/24/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu | 200 | none | "Saturday, 10/24/2026 2:30 - 4:00" · "a creative and relaxing afternoon of self-guided practice in Chinese calligraphy, coloring and board games" |
+
+### CNT-WEEKEND-1021 · cost lines held to what the pages state, 2026-10-16 (PT)
+
+Review fix for the second pass above. The GPT editor's rows (`opus-qa/gpt/out-1016/weekend-review-1021.csv`) match these items on
+date, time and place but mark some cost or registration fields as not stated on the page; the site's cost lines still claimed
+them. Four cost lines now say only what a read source states (editorial overlay `fix.costLabel`, English added); their
+`verifiedAt` 2026-10-15 stays, because every remaining claim is backed by the editor's row or a ledgered policy page. Three
+lines the editor flagged stay as they are, with the source that backs them. Lane agent decision on 2026-10-16 from the
+editor's rows and the lane's 10/16 reads; `verifiedAt` is not changed by these rows.
+
+| Kind | Id | Source | Change | Evidence |
+|---|---|---|---|---|
+| event | `smcl-san-carlos-ofrenda-musical-2026` | GPT editor row (2026-10-15) + SMCL policy rows (CNT-HOTFIX-2, re-read 10/14 and 10/15) | 图书馆活动免费；不用报名 → 图书馆活动免费；活动页未列报名要求 | editor: "未核实：不可从没有报名按钮推断无需报名"; policy: "Everything at our libraries is free—with no late fees, ever." |
+| event | `smcl-foster-city-nidhi-chanani-2026` | GPT editor row (2026-10-15) + SMCL policy rows | 图书馆活动免费；不用报名 → 图书馆活动免费；活动页未列报名要求 | editor: "未核实：不可从没有报名按钮推断无需报名"; policy as above |
+| event | `acl-cherryland-chinese-storytimes-oct24-2026` | GPT editor row (2026-10-15); lane read 2026-10-16 13:55 PT (ACL v2 date list) | 不用报名；活动页没有写费用 → 活动页没有写费用，也未列报名要求 (ACL has no programme-fee policy page, so the cost stays unknown) | editor: "未核实：不可从没有报名按钮推断无需报名" · "空enabledMethods不等于已确认无需报名"; the 10/16 list shows no registration line for either storytime, while other ACL events on it say "Registration required" |
+| event | `nov2026-big-break-nature-walk` | GPT editor row (2026-10-15), park district's ACTIVE page | 活动和停车免费；无需报名 → 活动免费；无需报名 (free parking is not on the page the editor read) | "Drop-in program, no registration. Free program." · editor: "活动免费；停车免费未在报名页复证" |
+| event | `smcl-brisbane-sugar-skull-2026` | SMCL policy rows | none: 图书馆活动免费 comes from the library system's policy page, 材料用完即止 from the editor's row | "Everything at our libraries is free—with no late fees, ever." · editor: "材料用完即止" |
+| event | `smcl-pacifica-robotics-team5940-2026` | SMCL policy rows + GPT editor row | none: free per the policy page; 需网上报名，限 15 人 matches the editor's row | editor: "Online Registration required；最多15人" |
+| event | `sfpl-chinatown-creative-saturdays-fall-2026` | SFPL policy rows (CNT-SUPPLY, CNT-HOTFIX-2) + lane read 2026-10-16 13:56 PT | none: 免费；不用报名 is what SFPL states for its programmes | "All programs and events are free and open to the public." (sfpl.org/events) · "All programs are drop-in (no registration necessary) unless otherwise noted." (the 10/24 event page) |
