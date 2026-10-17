@@ -82,12 +82,17 @@ test('November Chinese-community supply: two new SFPL items, the Xiangqi second 
   }
 });
 
-test('CHSA roots seminar: no broken short link, the flyer’s registration page, no guessed Foster City address', () => {
+test('CHSA roots seminar: no broken short link, the flyer’s registration page and room, no geocoded Foster City address', () => {
   const roots = event('chsa-taiwanese-chinese-roots-seminar-2026');
   const text = strings(roots).join(' ');
   assert.doesNotMatch(text, /tinyurl/iu, 'the CHSA short link redirects to an unrelated page');
   assert.match(roots.plan.join(''), /LoveBoatAlumni\.org\/roots2026/u);
-  assert.equal(roots.address, undefined, 'the Foster City building is not named by the organizer');
+  // The organizers' flyer (the official image on the page) names the room and street; the CHSA page names only the center and
+  // the city's pages disagree on the center's buildings, so the flyer is quoted in the plan and no structured address is added.
+  assert.match(roots.plan[0], /Wind Room/u);
+  assert.match(roots.plan[0], /1000 E Hillsdale Blvd/u);
+  assert.doesNotMatch(text, /没写具体哪栋楼|no building or street number/u, 'the flyer does give the room and street');
+  assert.equal(roots.address, undefined, 'no structured address while the city pages conflict');
   assert.ok(roots.plan.length <= 4);
 });
 
