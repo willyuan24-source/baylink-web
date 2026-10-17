@@ -1,7 +1,7 @@
 import type { GuideEditorial } from './types';
 // Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
-// Facts from the article (SF311, CDA, Self-Help, On Lok, Family Bridges, NEMS, AHS, AACI, ALA, ALC and CCDC pages read 2026-10-14). 长辈与家属.
+// Facts from the article (SF311, CDA, Self-Help, On Lok, Family Bridges, NEMS, AHS, AACI, ALA, ALC and CCDC pages read 2026-10-14; AHS membership and CCDC's housing hotline re-read 2026-10-16). 长辈与家属.
 export const chineseResourceMapEditorial: GuideEditorial = {
   "slug": "bay-area-chinese-language-resource-map",
   "cover": {
@@ -108,7 +108,7 @@ export const chineseResourceMapEditorial: GuideEditorial = {
         }
       ],
       "note": {
-        "zh": "东湾 60 岁以上长者，免费",
+        "zh": "东湾 60 岁及以上长者，免费",
         "en": "East Bay seniors 60+, free"
       },
       "source": 6
@@ -131,11 +131,11 @@ export const chineseResourceMapEditorial: GuideEditorial = {
         "zh": "Asian Health Services",
         "en": "Asian Health Services"
       },
-      "number": "(510) 735-3100",
-      "tel": "+15107353100",
+      "number": "(510) 986-6880",
+      "tel": "+15109866880",
       "note": {
-        "zh": "行政电话",
-        "en": "Administration"
+        "zh": "新病人会员登记（Membership）；(510) 735-3100 是行政部门",
+        "en": "New-patient membership; (510) 735-3100 is the administration line"
       },
       "source": 8
     },
@@ -301,8 +301,16 @@ export const chineseResourceMapEditorial: GuideEditorial = {
       "en": "Legal and immigration: Asian Law Alliance, Asian Law Caucus; domestic violence line (408) 975-2739."
     },
     {
-      "zh": "住房：旧金山 CCDC 做住房咨询，(415) 984-1450。",
-      "en": "Housing: CCDC in San Francisco offers counseling, (415) 984-1450."
+      "zh": "住房：旧金山 CCDC 住房咨询热线 (415) 984-2728，总机 (415) 984-1450。",
+      "en": "Housing: CCDC in San Francisco, housing counseling hotline (415) 984-2728, main line (415) 984-1450."
+    },
+    {
+      "zh": "中文书和寻根：华埠图书馆、Oakland 亚洲分馆、CHSA 和 CCC 的唐人街导览；My China Roots 查祖籍村和姓氏。",
+      "en": "Chinese books and roots: the Chinatown and Oakland Asian Branch libraries, CHSA and CCC’s Chinatown tour; My China Roots for ancestral villages and surnames."
+    },
+    {
+      "zh": "孩子学中文：Millbrae 的普通话、粤语故事会，Pleasanton 的 CACC 中文学校，在家读 LOTE4Kids 电子绘本。",
+      "en": "Chinese for children: Millbrae’s Mandarin/Cantonese storytime, CACC Chinese School in Pleasanton, and LOTE4Kids picture books at home."
     }
   ]
 };

@@ -1,3 +1,5 @@
+import { EDITOR_REVIEW_DATE_2026_10_16, EDITOR_REVIEWED_2026_10_16 } from './editor-review-2026-10-16';
+
 /**
  * Items whose verifiedAt the GPT editor's weekly source review set to 2026-10-15 (ROADMAP-8-9 §2.5 Wednesday review of the
  * 10/17–18 and 10/24–25 weekends; docs/source-reads-2026-10.md "GPT editor review 2026-10-15"). Batch tests that pin a
@@ -127,6 +129,38 @@ export const EDITOR_REVIEWED_2026_10_15: ReadonlySet<string> = new Set([
   'r2-benicia-witching-wine-walk-2026',
   'r2-calistoga-ghost-stories-2026',
   'san-leandro-sandlot-movie-2026',
+  // The editor's second weekly review (opus-qa/gpt/out-1016/weekend-review-1021.csv, read 2026-10-15) of 10/24–25 and
+  // 10/31–11/1: consistent rows not already in the first pass (ledger "GPT editor review 2026-10-15 · second pass").
+  'acl-dublin-halloween-crafts-costume-2026',
+  'ccclib-crockett-halloween-hullabaloo-2026',
+  'mcm-halloween-spectacular-20261031',
+  'nov2026-big-break-nature-walk',
+  'nov2026-black-diamond-trails-challenge',
+  'nov2026-brushy-peak-heritage-hike',
+  'nov2026-fort-mason-farmers-market',
+  'nov2026-fruitvale-dia-muertos',
+  'nov2026-presidio-free-yoga',
+  'oct2026-foodwise-fall-fruit',
+  'pacl-rinconada-tai-chi-2026',
+  'palo-alto-addams-family-opening-2026',
+  'roundup-sausalito-halloween-2026',
+  'roundup-suisun-dia-muertos-2026',
+  'san-jose-365-night-market-october-2026',
+  'san-jose-avenida-altares-2026',
+  'sf-halloween-hoopla-2026',
+  'sf-opera-figaro-opening-2026',
+  'sfpl-bernal-dia-de-los-muertos-2026',
+  'sfpl-north-beach-open-house-oct31-2026',
+  'sj-sharks-senators-2026',
+  'sjpl-berryessa-halloween-party-2026',
+  'sjpl-joyce-ellington-halloween-2026',
+  'smcl-brisbane-sugar-skull-2026',
+  'smcl-foster-city-nidhi-chanani-2026',
+  'smcl-pacifica-robotics-team5940-2026',
+  'smcl-san-carlos-ofrenda-musical-2026',
+  'vacaville-candy-stroll-20261031',
+  // Its gap re-check of a 10/24 item, read on the city's own page ("GPT editor gap re-check 2026-10-15 · second pass").
+  'menlo-park-halloween-hoopla-2026',
 ]);
-/** The batch date, or the editor review date for a reviewed id. */
-export const batchVerifiedAt = (id: string, batchDate: string): string => EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;
+/** The batch date, or the latest editor review date for a reviewed id (the 10-16 third pass, then the 10-15 passes). */
+export const batchVerifiedAt = (id: string, batchDate: string): string => EDITOR_REVIEWED_2026_10_16.has(id) ? EDITOR_REVIEW_DATE_2026_10_16 : EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;

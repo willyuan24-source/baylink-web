@@ -20,6 +20,8 @@ const PILOTS = [
   'bay-area-alerts-outages-first-day-checklist', 'bay-area-free-esl-adult-learning-guide', 'bay-area-repair-request-guide',
   'bay-area-without-car-guide', 'bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide',
   'bay-area-chinese-language-resource-map',
+  // CNT-GUIDES-3 review: the library starter guide's card leads with getting a card.
+  'bay-area-library-starter-guide',
 ];
 
 const articleText = (guide: Guide) => JSON.stringify([guide.title, guide.subtitle, guide.summary, guide.audience, guide.blocks, guide.sources, guide.sourceNote ?? '']);

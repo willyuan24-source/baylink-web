@@ -17,7 +17,7 @@ export function ImageCredits({ covers }: { covers: readonly ResolvedCover[] }) {
     <ul>{images.map(cover => <li key={cover.image.src}>
       <span className="ev-credits__label">{pick(cover.label)}</span>
       {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(cover.image.credit, locale)}</a> : <span>{translateText(cover.image.credit, locale)}</span>}
-      {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'Licence')}</a>}
+      {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
     </li>)}</ul>
   </details>;
 }

@@ -186,6 +186,8 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
    every two screens. One look for all four kinds: surface-2 panel, a 示意图 tag, brand marks; real text that grows with Aa. */
 .gd-diagram { margin:20px 0 0; padding:16px; border-radius:16px; background:var(--color-surface-2); color:var(--color-ink); container-type:inline-size; }
 .gd-step>.gd-diagram { margin-top:14px; }
+/* CNT-MEDIA-4: a step's photo stands with its diagram, outside the fold (GuideDetail), lined up with it. */
+.gd-step>.guide-figure { margin:14px 0 0; }
 .gd-diagram__head { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin:0 0 12px; }
 .gd-diagram__head strong { color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
 .gd-diagram__tag { display:inline-block; padding:0 8px; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.6; font-weight:600; }
@@ -244,7 +246,7 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-diagram__tel:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 @media (min-width:768px) {
   .gd-diagram { padding:20px; }
-  .gd-step>.gd-diagram { margin-left:52px; }
+  .gd-step>.gd-diagram, .gd-step>.guide-figure { margin-left:52px; }
   .gd-diagram__flow { flex-direction:row; gap:12px; }
   .gd-diagram__flow>li { flex:1 1 0; flex-direction:column; padding-bottom:0; }
   .gd-diagram__flow>li:not(:last-child)::before { top:calc(1rem - 1px); bottom:auto; left:2.5rem; right:-6px; width:auto; height:2px; }

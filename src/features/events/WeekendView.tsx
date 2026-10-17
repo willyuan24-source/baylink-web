@@ -219,7 +219,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
 
     {/* CW-02: the alerts and the share card are keyed to the day, inside a 本周末 list that keeps all week (date-guard.ts). */}
     {alerts.length > 0 && <details className="ev-alerts" id="monthly-news" {...dateScope('day')}>
-      <summary>{t(`出行提醒 ${alerts.length} 条`, `Travel alerts · ${alerts.length}`)}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
+      <summary>{t(`出行提醒 ${alerts.length} 条`, `Travel and local updates · ${alerts.length}`)}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
       <ul>{alerts.map(item => <li key={item.id}>
         <strong>{item.title}</strong>
         <span>{item.label} · {item.dateLabel}</span>

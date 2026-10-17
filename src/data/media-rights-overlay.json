@@ -63,5 +63,47 @@
   },
   "official-sf-opera-manon-2026": {
     "coverOk": true
+  },
+  "official-nov2026-fort-mason-farmers-market": {
+    "coverOk": true
+  },
+  "official-nov2026-arion-press-public-tours": {
+    "coverOk": true
+  },
+  "commons-dmv-sacramento-hq": {
+    "coverOk": true
+  },
+  "commons-dmv-eureka-office": {
+    "coverOk": true
+  },
+  "commons-ssa-corning-ny": {
+    "coverOk": false
+  },
+  "commons-dhcs-sacramento": {
+    "coverOk": true
+  },
+  "commons-hhs-washington-dc": {
+    "coverOk": false
+  },
+  "commons-clipper-embarcadero": {
+    "coverOk": true
+  },
+  "commons-nema-sf": {
+    "coverOk": true
+  },
+  "commons-ggp-senior-center-front": {
+    "coverOk": true
+  },
+  "commons-ggp-senior-center-side": {
+    "coverOk": true
+  },
+  "commons-chinatown-ywca-chsa": {
+    "coverOk": true
+  },
+  "official-union-square-holiday-ice-rink-2026": {
+    "coverOk": true
+  },
+  "official-cupertino-baer-blacksmith-fall-2026": {
+    "coverOk": true
   }
 }

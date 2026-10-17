@@ -6,7 +6,7 @@ export const medicareEditorial: GuideEditorial = {
   slug: 'bay-area-medicare-hicap-medi-cal-guide',
   cover: {
     question: { zh: '快 65 岁，或在帮父母看医保？', en: 'Turning 65, or sorting out Medicare for a parent?' },
-    title: { zh: '先打免费 HICAP 咨询，再选保险', en: 'Call free HICAP counseling before choosing a plan' },
+    title: { zh: '先打免费 HICAP 咨询，再选保险', en: 'Call HICAP for free counseling before choosing a plan' },
     answer: { zh: 'HICAP 1-800-434-0222', en: 'HICAP 1-800-434-0222' },
     phone: { label: { zh: 'HICAP 免费咨询', en: 'HICAP free counseling' }, number: '1-800-434-0222', tel: '+18004340222' },
     line: { zh: '免费 · 保密 · 一对一 · 家属可一起准备', en: 'Free · confidential · one-on-one · family can help' },
@@ -50,7 +50,7 @@ export const medicareEditorial: GuideEditorial = {
         { zh: '2027 年 7 月 1 日起：一人 $21,000，两人 $31,000', en: 'From July 1, 2027: $21,000 for one, $31,000 for two' },
         { zh: '不计入：自住房、主要用车、家具衣物', en: 'Not counted: your main home, main vehicle, household items' },
       ], source: 7 },
-    { kind: 'point', kicker: { zh: '费用帮助', en: 'Help with costs' }, title: { zh: '保费和药费，分别申请帮助', en: 'Apply for each kind of cost help' },
+    { kind: 'point', kicker: { zh: '费用帮助', en: 'Help with costs' }, title: { zh: '保费和药费，分别申请帮助', en: 'Apply separately for each kind of help with costs' },
       items: [
         { zh: 'Medi-Cal：网上 BenefitsCal、电话、邮寄或到县办公室', en: 'Medi-Cal: online at BenefitsCal, by phone, by mail or at a county office' },
         { zh: 'Medicare Savings Programs：由州判断，觉得不符合也可申请', en: "Medicare Savings Programs: the state decides; apply even if you think you don't qualify" },

@@ -1769,11 +1769,16 @@
         "sourceUrl": "https://sfpl.org/events/2026/11/28/presentation-california-xiangqi-invitational-jiazhouxiangqiyaoqingsai",
         "verifiedAt": "2026-10-14",
         "validFrom": "2026-11-28",
-        "validThrough": "2026-11-28",
+        "validThrough": "2026-11-29",
         "sessions": [
           {
             "date": "2026-11-28",
             "start": "10:00",
+            "end": "17:30"
+          },
+          {
+            "date": "2026-11-29",
+            "start": "12:00",
             "end": "17:30"
           }
         ]

@@ -1,0 +1,189 @@
+{
+  "sanleandro-main-mandarin-storytime-dec5-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.sanleandro.org/Calendar.aspx?EID=7840&calType=0&day=16&month=10&year=2026",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-12-05",
+        "validThrough": "2026-12-05",
+        "sessions": [
+          {
+            "date": "2026-12-05",
+            "start": "10:30",
+            "end": "11:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-main-liu-zongkun-author-talk-dec12-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/12/zuojia-liuzongkun-yixiangguren",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-12-12",
+        "validThrough": "2026-12-12",
+        "sessions": [
+          {
+            "date": "2026-12-12",
+            "start": "10:00",
+            "end": "12:00"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-visitacion-calligraphy-chess-dec12-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/12/12/activity-chinese-calligraphy-and-chess-games",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-12-12",
+        "validThrough": "2026-12-12",
+        "sessions": [
+          {
+            "date": "2026-12-12",
+            "start": "14:00",
+            "end": "15:30"
+          }
+        ]
+      }
+    }
+  },
+  "sf-dharma-treasury-winter-foqi-talks-2026": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.chanpureland.org/foqi.html",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-12-19",
+        "validThrough": "2026-12-25",
+        "sessions": [
+          {
+            "date": "2026-12-19",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-20",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-21",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-22",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-23",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-24",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-25",
+            "start": "19:20"
+          }
+        ]
+      }
+    }
+  },
+  "sf-dharma-treasury-winter-chanqi-talks-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.chanpureland.org/chanqi.html",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-12-27",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-12-27",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-28",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-29",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-30",
+            "start": "19:20"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "19:20"
+          },
+          {
+            "date": "2027-01-01",
+            "start": "19:20"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "19:20"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "19:20"
+          }
+        ]
+      }
+    }
+  },
+  "sf-shen-yun-war-memorial-2026-27": {
+    "planning": {
+      "admissionUsd": 80,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://tickets.shenyun.com/event/schedule/shenyun-2027-san-francisco-2027-1-2-2pm",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-12-30",
+        "validThrough": "2027-01-03",
+        "sessions": [
+          {
+            "date": "2026-12-30",
+            "start": "19:30"
+          },
+          {
+            "date": "2026-12-31",
+            "start": "14:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "14:00"
+          },
+          {
+            "date": "2027-01-03",
+            "start": "14:00"
+          }
+        ]
+      }
+    }
+  }
+}

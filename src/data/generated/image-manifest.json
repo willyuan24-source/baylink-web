@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "cd8806b1",
- "registryCount": 373,
+ "registryHash": "38ca91b3",
+ "registryCount": 387,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -2847,6 +2847,337 @@
    "srcset": [
     "/guides/city-roundup/roundup-sap-center-small.webp 480w",
     "/guides/city-roundup/roundup-sap-center-1200.webp 1200w"
+   ]
+  },
+  "/guides/commons/commons-chinatown-ywca-chsa.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 242206,
+   "sha1": "21184072148a2921",
+   "lqip": "#888",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-chinatown-ywca-chsa-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 28470
+    },
+    {
+     "rung": 800,
+     "file": "/guides/commons/commons-chinatown-ywca-chsa-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 60176,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-chinatown-ywca-chsa-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 110384,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-chinatown-ywca-chsa-small.webp 480w",
+    "/guides/commons/commons-chinatown-ywca-chsa-800.webp 800w",
+    "/guides/commons/commons-chinatown-ywca-chsa-1200.webp 1200w"
+   ]
+  },
+  "/guides/commons/commons-clipper-embarcadero.webp": {
+   "width": 1280,
+   "height": 898,
+   "bytes": 123434,
+   "sha1": "d9366dd674185bd0",
+   "lqip": "#655",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-clipper-embarcadero-small.webp",
+     "width": 480,
+     "height": 337,
+     "bytes": 19302
+    },
+    {
+     "rung": 800,
+     "file": "/guides/commons/commons-clipper-embarcadero-800.webp",
+     "width": 800,
+     "height": 561,
+     "bytes": 37794,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-clipper-embarcadero-small.webp 480w",
+    "/guides/commons/commons-clipper-embarcadero-800.webp 800w",
+    "/guides/commons/commons-clipper-embarcadero.webp 1280w"
+   ]
+  },
+  "/guides/commons/commons-dhcs-sacramento.webp": {
+   "width": 1280,
+   "height": 914,
+   "bytes": 228100,
+   "sha1": "891cc3e700cd749b",
+   "lqip": "#789",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-dhcs-sacramento-small.webp",
+     "width": 480,
+     "height": 343,
+     "bytes": 26454
+    },
+    {
+     "rung": 800,
+     "file": "/guides/commons/commons-dhcs-sacramento-800.webp",
+     "width": 800,
+     "height": 571,
+     "bytes": 57864,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-dhcs-sacramento-1200.webp",
+     "width": 1200,
+     "height": 857,
+     "bytes": 107382,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-dhcs-sacramento-small.webp 480w",
+    "/guides/commons/commons-dhcs-sacramento-800.webp 800w",
+    "/guides/commons/commons-dhcs-sacramento-1200.webp 1200w"
+   ]
+  },
+  "/guides/commons/commons-dmv-eureka-office.webp": {
+   "width": 1280,
+   "height": 748,
+   "bytes": 72940,
+   "sha1": "6d5c9a489061f8da",
+   "lqip": "#68a",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-dmv-eureka-office-small.webp",
+     "width": 480,
+     "height": 280,
+     "bytes": 10450
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-dmv-eureka-office-small.webp 480w",
+    "/guides/commons/commons-dmv-eureka-office.webp 1280w"
+   ]
+  },
+  "/guides/commons/commons-dmv-sacramento-hq.webp": {
+   "width": 1280,
+   "height": 885,
+   "bytes": 215326,
+   "sha1": "19a51df53266a43b",
+   "lqip": "#689",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-dmv-sacramento-hq-small.webp",
+     "width": 480,
+     "height": 332,
+     "bytes": 31066
+    },
+    {
+     "rung": 800,
+     "file": "/guides/commons/commons-dmv-sacramento-hq-800.webp",
+     "width": 800,
+     "height": 553,
+     "bytes": 62560,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-dmv-sacramento-hq-1200.webp",
+     "width": 1200,
+     "height": 830,
+     "bytes": 106576,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-dmv-sacramento-hq-small.webp 480w",
+    "/guides/commons/commons-dmv-sacramento-hq-800.webp 800w",
+    "/guides/commons/commons-dmv-sacramento-hq-1200.webp 1200w"
+   ]
+  },
+  "/guides/commons/commons-ggp-senior-center-front.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 176902,
+   "sha1": "b4bae59d3bc5dbfd",
+   "lqip": "#887",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-ggp-senior-center-front-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 19690
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-ggp-senior-center-front-1200.webp",
+     "width": 1200,
+     "height": 675,
+     "bytes": 82606,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-ggp-senior-center-front-small.webp 480w",
+    "/guides/commons/commons-ggp-senior-center-front-1200.webp 1200w"
+   ]
+  },
+  "/guides/commons/commons-ggp-senior-center-side.webp": {
+   "width": 1280,
+   "height": 959,
+   "bytes": 189590,
+   "sha1": "4f42bd693fd81285",
+   "lqip": "#789",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-ggp-senior-center-side-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 17642
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-ggp-senior-center-side-1200.webp",
+     "width": 1200,
+     "height": 899,
+     "bytes": 83612,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-ggp-senior-center-side-small.webp 480w",
+    "/guides/commons/commons-ggp-senior-center-side-1200.webp 1200w"
+   ]
+  },
+  "/guides/commons/commons-hhs-washington-dc.webp": {
+   "width": 1280,
+   "height": 692,
+   "bytes": 56630,
+   "sha1": "ef9267d60b504ad1",
+   "lqip": "#a9a",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-hhs-washington-dc-small.webp",
+     "width": 480,
+     "height": 260,
+     "bytes": 8684
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-hhs-washington-dc-small.webp 480w",
+    "/guides/commons/commons-hhs-washington-dc.webp 1280w"
+   ]
+  },
+  "/guides/commons/commons-nema-sf.webp": {
+   "width": 800,
+   "height": 1422,
+   "bytes": 247374,
+   "sha1": "9890a527ae1283ba",
+   "lqip": "#788",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-nema-sf-small.webp",
+     "width": 480,
+     "height": 853,
+     "bytes": 75120
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-nema-sf-1200.webp",
+     "width": 800,
+     "height": 1422,
+     "bytes": 139662,
+     "quality": 46
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-nema-sf-small.webp 480w",
+    "/guides/commons/commons-nema-sf-1200.webp 800w"
+   ]
+  },
+  "/guides/commons/commons-ssa-corning-ny.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 213820,
+   "sha1": "d15de7980d370246",
+   "lqip": "#567",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/commons/commons-ssa-corning-ny-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 21230
+    },
+    {
+     "rung": 800,
+     "file": "/guides/commons/commons-ssa-corning-ny-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 49986,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/commons/commons-ssa-corning-ny-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 99064,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/commons/commons-ssa-corning-ny-small.webp 480w",
+    "/guides/commons/commons-ssa-corning-ny-800.webp 800w",
+    "/guides/commons/commons-ssa-corning-ny-1200.webp 1200w"
    ]
   },
   "/guides/community-2026/autumn-neighbors.webp": {
@@ -6689,7 +7020,7 @@
    "sha1": "c569be2167f6c080",
    "lqip": "#79a",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -6698,19 +7029,11 @@
      "width": 480,
      "height": 423,
      "bytes": 29242
-    },
-    {
-     "rung": 1200,
-     "file": "/guides/octnov-events/octnov-fort-mason-context-1200.webp",
-     "width": 1200,
-     "height": 1058,
-     "bytes": 80968,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/octnov-events/octnov-fort-mason-context-small.webp 480w",
-    "/guides/octnov-events/octnov-fort-mason-context-1200.webp 1200w"
+    "/guides/octnov-events/octnov-fort-mason-context.webp 1280w"
    ]
   },
   "/guides/octnov-events/octnov-lexington-context.webp": {
@@ -7317,6 +7640,46 @@
     "/guides/official-events/chsa-taiwanese-chinese-roots-seminar-2026.webp 791w"
    ]
   },
+  "/guides/official-events/cupertino-baer-blacksmith-fall-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 196486,
+   "sha1": "e32e9e427ff8f159",
+   "lqip": "#444",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/cupertino-baer-blacksmith-fall-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21844
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/cupertino-baer-blacksmith-fall-2026-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 48828,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/cupertino-baer-blacksmith-fall-2026-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 92060,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/cupertino-baer-blacksmith-fall-2026-small.webp 480w",
+    "/guides/official-events/cupertino-baer-blacksmith-fall-2026-800.webp 800w",
+    "/guides/official-events/cupertino-baer-blacksmith-fall-2026-1200.webp 1200w"
+   ]
+  },
   "/guides/official-events/daly-city-top-of-the-hill-festival-2026.webp": {
    "width": 1200,
    "height": 1800,
@@ -7737,6 +8100,69 @@
     "/guides/official-events/napa-tulocay-heritage-halloween-tour-2026-small.webp 480w",
     "/guides/official-events/napa-tulocay-heritage-halloween-tour-2026-800.webp 800w",
     "/guides/official-events/napa-tulocay-heritage-halloween-tour-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-events/nov2026-arion-press-public-tours.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 125642,
+   "sha1": "54b4d389de24f429",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/nov2026-arion-press-public-tours-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 20118
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/nov2026-arion-press-public-tours-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 37612,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/nov2026-arion-press-public-tours-small.webp 480w",
+    "/guides/official-events/nov2026-arion-press-public-tours-800.webp 800w",
+    "/guides/official-events/nov2026-arion-press-public-tours.webp 1280w"
+   ]
+  },
+  "/guides/official-events/nov2026-fort-mason-farmers-market.webp": {
+   "width": 1280,
+   "height": 823,
+   "bytes": 166884,
+   "sha1": "f17ae6a5bc0f7dbb",
+   "lqip": "#976",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/nov2026-fort-mason-farmers-market-small.webp",
+     "width": 480,
+     "height": 309,
+     "bytes": 26952
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/nov2026-fort-mason-farmers-market-1200.webp",
+     "width": 1200,
+     "height": 772,
+     "bytes": 83624,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/nov2026-fort-mason-farmers-market-small.webp 480w",
+    "/guides/official-events/nov2026-fort-mason-farmers-market-1200.webp 1200w"
    ]
   },
   "/guides/official-events/nov2026-presidio-dia-muertos-diwali.webp": {
@@ -8910,6 +9336,37 @@
     "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-small.webp 480w",
     "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-800.webp 800w",
     "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-1200.webp 1024w"
+   ]
+  },
+  "/guides/official-events/union-square-holiday-ice-rink-2026.webp": {
+   "width": 1280,
+   "height": 480,
+   "bytes": 151394,
+   "sha1": "1e1ba4d3a77897c4",
+   "lqip": "#653",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/union-square-holiday-ice-rink-2026-small.webp",
+     "width": 480,
+     "height": 180,
+     "bytes": 21246
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/union-square-holiday-ice-rink-2026-1200.webp",
+     "width": 1200,
+     "height": 450,
+     "bytes": 85196,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/union-square-holiday-ice-rink-2026-small.webp 480w",
+    "/guides/official-events/union-square-holiday-ice-rink-2026-1200.webp 1200w"
    ]
   },
   "/guides/official-events/windsor-trick-or-treat-trail-2026.webp": {

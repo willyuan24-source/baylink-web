@@ -1,0 +1,49 @@
+{
+  "sfpl-visitacion-valley-calligraphy-chess-nov14-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/14/activity-chinese-calligraphy-and-chess-games",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-11-14",
+        "validThrough": "2026-11-14",
+        "sessions": [
+          {
+            "date": "2026-11-14",
+            "start": "14:00",
+            "end": "15:30"
+          }
+        ]
+      }
+    }
+  },
+  "sfpl-sunset-mahjong-nov28-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 18,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://sfpl.org/events/2026/11/28/workshop-mahjong-beginners",
+        "verifiedAt": "2026-10-16",
+        "validFrom": "2026-11-28",
+        "validThrough": "2026-11-28",
+        "sessions": [
+          {
+            "date": "2026-11-28",
+            "start": "10:30",
+            "end": "12:00"
+          },
+          {
+            "date": "2026-11-28",
+            "start": "13:30",
+            "end": "15:00"
+          }
+        ]
+      }
+    }
+  }
+}

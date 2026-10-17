@@ -3,6 +3,7 @@ import octnovMedia from './octnov-2026-media.json';
 import octnovExtraMedia from './octnov-2026-extra-media.json';
 import octnovEventMedia from './octnov-2026-event-media.json';
 import federalPublicDomainMedia from './federal-pd-media.json';
+import guideCommonsPhotos from './guide-commons-photos-2026-10.json';
 import officialEventMedia from './official-event-media.json';
 import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
@@ -124,6 +125,10 @@ for (const { key, ...asset } of publicServiceMedia) GUIDE_IMAGES[key] = { ...ass
 for (const { key, ...asset } of [...octnovMedia, ...octnovExtraMedia, ...octnovEventMedia]) GUIDE_IMAGES[key] = { ...asset, kind: asset.kind as GuideImage['kind'] };
 // U.S. government photographs that DVIDS marks public domain; each record keeps its source page and VIRIN.
 for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { ...asset, kind: 'photo' };
+// CNT-MEDIA-4 (owner approval 2026-10-16): Wikimedia Commons photos for the 办事 and 长辈 guides, each with its author, licence
+// and licence link in the credit, and 示意图 at the start of the caption when the place is outside California. The download
+// record (original URL, retrieval time, SHA-256, SHA-1 matching Commons) is scripts/data/guide-commons-photos-downloads.json.
+for (const { key, ...asset } of guideCommonsPhotos) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', rights: asset.rights as MediaRights };
 // Organisers' own event images (owner decision 2026-10-08), labelled 官方图 through their credit.
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The JSON keeps the event id and artwork class; the download record (source URL, retrieval time, hash) is in
@@ -368,7 +373,25 @@ bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-servi
 // could read as an endorsement. The inline pictures are the already-reviewed context photos.
 bySlug['bay-area-elder-scam-prevention-guide'] = ['everyday', 'digital-safety'];
 bySlug['bay-area-senior-transit-clipper-discounts-guide'] = ['weekend', 'train'];
-bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'library'];
+// CNT-MEDIA-4 (owner approval 10-16): the resource map's 长者服务 section (heading 2) shows the Commons senior centre photo
+// instead of the generic library photo.
+bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'commons-ggp-senior-center-side'];
+/**
+ * CNT-MEDIA-4: the owner-approved Commons photos in the articles, as [afterHeading, image key]: the section each photo belongs
+ * to, so a long guide gets a picture every step or two (H22). GuideDetail shows a pilot step's pictures outside its
+ * 展开原文与来源 fold, with the step's diagram. They are not list covers: these pilot guides' coded covers print the guide's
+ * first answer ("先打 800-510-2020"), which a photo cover would drop (owner decision in the CNT-MEDIA-4 PR). The two 示意图
+ * photos (an SSA office in New York, HHS in Washington, D.C.) are vetoed as covers anyway (coverOk false).
+ */
+export const GUIDE_EXTRA_INLINE: Readonly<Record<string, readonly (readonly [number, string])[]>> = {
+  'california-driver-license-id-preparation-guide': [[3, 'commons-dmv-eureka-office'], [6, 'commons-dmv-sacramento-hq']],
+  'bay-area-social-security-retirement-preparation-guide': [[4, 'commons-ssa-corning-ny']],
+  'bay-area-medicare-hicap-medi-cal-guide': [[2, 'commons-hhs-washington-dc'], [3, 'commons-dhcs-sacramento']],
+  'bay-area-senior-transit-clipper-discounts-guide': [[1, 'commons-clipper-embarcadero']],
+  'bay-area-rental-scam-guide': [[2, 'commons-nema-sf']],
+  'bay-area-chinese-senior-services-referral-guide': [[1, 'commons-ggp-senior-center-front']],
+  'bay-area-chinese-language-resource-map': [[6, 'commons-chinatown-ywca-chsa']],
+};
 
 Object.assign(bySlug, {
   "sf-autumn-art-half-day-2026": [
@@ -420,5 +443,8 @@ export const getGuideMedia = (guide: Guide): { cover: GuideImage; inline: { afte
   const cover = localizedServiceImage(GUIDE_IMAGES[mapped?.[0] || categoryImages[guide.category]]);
   const inline = mapped ? GUIDE_IMAGES[mapped[1]] : undefined;
   const headingPosition = ['sf-school-district-enrollment-guide', 'east-bay-school-district-enrollment-guide'].includes(guide.slug) ? 3 : 2;
-  return { cover, inline: inline && inline !== cover ? [{ afterHeading: Math.min(headingPosition, guide.blocks.filter(block => block.type === 'heading').length), image: inline }] : [] };
+  const headings = guide.blocks.filter(block => block.type === 'heading').length;
+  const extra = (GUIDE_EXTRA_INLINE[guide.slug] ?? []).map(([afterHeading, key]) => ({ afterHeading: Math.min(afterHeading, headings), image: GUIDE_IMAGES[key] }));
+  return { cover, inline: [...(inline && inline !== cover ? [{ afterHeading: Math.min(headingPosition, headings), image: inline }] : []), ...extra]
+    .sort((a, b) => a.afterHeading - b.afterHeading) };
 };

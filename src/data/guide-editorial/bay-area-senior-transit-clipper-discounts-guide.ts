@@ -1,7 +1,7 @@
 import type { GuideEditorial } from './types';
 // Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
-// Facts from the article (Clipper, BART, SFMTA, VTA, SamTrans, AC Transit, 511 and East Bay Paratransit pages read 2026-10-14). 长辈与家属.
+// Facts from the article (Clipper, BART, SFMTA, VTA, SamTrans, AC Transit, 511 and East Bay Paratransit pages read 2026-10-14; VTA and AC Transit fares re-read 2026-10-16). 长辈与家属.
 export const seniorTransitEditorial: GuideEditorial = {
   "slug": "bay-area-senior-transit-clipper-discounts-guide",
   "cover": {
@@ -37,7 +37,7 @@ export const seniorTransitEditorial: GuideEditorial = {
         "en": "Senior Clipper card"
       },
       "value": {
-        "zh": "65 岁以上可办；网上、邮寄、电邮、传真或到客服中心申请",
+        "zh": "65 岁及以上可办；网上、邮寄、电邮、传真或到客服中心申请",
         "en": "For 65+; apply online, by mail, email or fax, or at a Customer Service Center"
       },
       "source": 1
@@ -70,7 +70,7 @@ export const seniorTransitEditorial: GuideEditorial = {
         "en": "Free Muni in SF"
       },
       "value": {
-        "zh": "65 岁以上旧金山居民，家庭收入不超过湾区收入中位数 100%",
+        "zh": "65 岁及以上的旧金山居民，家庭收入不超过湾区收入中位数 100%",
         "en": "SF residents 65+ with family income at or below 100% of Bay Area median"
       },
       "source": 4
@@ -138,16 +138,16 @@ export const seniorTransitEditorial: GuideEditorial = {
           "en": "Muni: $1.40 single ride, $43 monthly"
         },
         {
-          "zh": "VTA：单程 $1，日票 $3，月票 $30",
-          "en": "VTA: $1 single ride, $3 day pass, $30 monthly"
+          "zh": "VTA：单程 $1；日票 $3、月票 $30 用 Clipper",
+          "en": "VTA: $1 single ride; $3 day and $30 monthly passes on Clipper"
         },
         {
           "zh": "SamTrans：Clipper 单程 $1.00，月票 $27.00",
           "en": "SamTrans: $1.00 single ride on Clipper, $27.00 monthly"
         },
         {
-          "zh": "AC Transit：车票和月票五折",
-          "en": "AC Transit: half fare and half-price passes"
+          "zh": "AC Transit：Clipper 单程 $1.37，一天最多 $3",
+          "en": "AC Transit: $1.37 single ride on Clipper, $3 a day at most"
         }
       ]
     },
@@ -214,19 +214,19 @@ export const seniorTransitEditorial: GuideEditorial = {
   ],
   "steps": [
     {
-      "zh": "65 岁以上办长者 Clipper 卡，网上、邮寄或到客服中心申请。",
+      "zh": "年满 65 岁办长者 Clipper 卡，网上、邮寄或到客服中心申请。",
       "en": "At 65+, get a Senior Clipper card online, by mail or at a Customer Service Center."
     },
     {
-      "zh": "BART 减 62.5%，Muni 长者单程 $1.40，VTA 和 SamTrans $1，AC Transit 五折。",
-      "en": "BART 62.5% off, Muni $1.40, VTA and SamTrans $1, AC Transit half fare."
+      "zh": "BART 减 62.5%，Muni 长者单程 $1.40，VTA 和 SamTrans $1，AC Transit 用 Clipper $1.37。",
+      "en": "BART 62.5% off, Muni $1.40, VTA and SamTrans $1, AC Transit $1.37 on Clipper."
     },
     {
       "zh": "旧金山低收入长者网上申请免费坐 Muni，最长 4 周。",
       "en": "Lower-income SF seniors apply online for free Muni; up to 4 weeks."
     },
     {
-      "zh": "65 岁以下有残障的，办 Clipper Access 卡。",
+      "zh": "未满 65 岁、有残障的，办 Clipper Access 卡。",
       "en": "Under 65 with a disability: get a Clipper Access card."
     },
     {

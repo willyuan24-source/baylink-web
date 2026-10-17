@@ -1257,5 +1257,93 @@
       "evidenceUrl": "https://www.sfopera.com/operas/manon/",
       "scope": "same-event coverage only"
     }
+  },
+  {
+    "key": "official-nov2026-fort-mason-farmers-market",
+    "eventId": "nov2026-fort-mason-farmers-market",
+    "src": "/guides/official-events/nov2026-fort-mason-farmers-market.webp",
+    "width": 1280,
+    "height": 823,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      50,
+      62
+    ],
+    "alt": "市集棚下一箱箱桃子和樱桃，后面挂着 K & J Orchards 的招牌，摊主在整理水果",
+    "caption": "Fort Mason 周日农夫市集页面上的活动官方照片，2015 年就已上传到官网，拍摄日期未注明；桃子和樱桃是夏季水果，不代表 11 月各个周日的摊位和商品，以当天为准。",
+    "credit": "Fort Mason Center for Arts & Culture 活动官方照片",
+    "creditUrl": "https://fortmason.org/event/sunday-farmers-market/2026-11-29/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://fortmason.org/event/sunday-farmers-market/2026-11-29/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-nov2026-arion-press-public-tours",
+    "eventId": "nov2026-arion-press-public-tours",
+    "src": "/guides/official-events/nov2026-arion-press-public-tours.webp",
+    "width": 1280,
+    "height": 854,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      55,
+      45
+    ],
+    "alt": "Fort Mason 码头仓库的外廊，红色窗框里能看到 Arion Press 的印刷机和铅字柜，屋檐下挂着 ARION PRESS 招牌",
+    "caption": "Fort Mason 活动页上 Arion Press 工坊入口的活动官方照片，拍摄日期未注明，不是导览当天的现场；参观内容以工坊安排为准。",
+    "credit": "Fort Mason Center for Arts & Culture 活动官方照片",
+    "creditUrl": "https://fortmason.org/event/arion-press-public-tours-2026/2026-11-21/1/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://fortmason.org/event/arion-press-public-tours-2026/2026-11-21/1/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-union-square-holiday-ice-rink-2026",
+    "eventId": "union-square-holiday-ice-rink-2026",
+    "src": "/guides/official-events/union-square-holiday-ice-rink-2026.webp",
+    "width": 1280,
+    "height": 480,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      42,
+      62
+    ],
+    "alt": "夜里从高处俯瞰联合广场：彩灯照亮的溜冰场、旁边的大圣诞树和纪念柱，四周是商店和街道",
+    "caption": "Union Square Ice Rink 活动官方照片，未注明拍摄年份，不是 2026–27 这一季的现场；场次与票价以官网为准。",
+    "credit": "Union Square Ice Rink 活动官方照片",
+    "creditUrl": "https://unionsquareicerink.com/union-square-ice-skating/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://unionsquareicerink.com/union-square-ice-skating/",
+      "scope": "same-event coverage only"
+    }
+  },
+  {
+    "key": "official-cupertino-baer-blacksmith-fall-2026",
+    "eventId": "cupertino-baer-blacksmith-fall-2026",
+    "src": "/guides/official-events/cupertino-baer-blacksmith-fall-2026.webp",
+    "width": 1280,
+    "height": 853,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      48,
+      55
+    ],
+    "alt": "草丛后面一间灰色旧木板小屋，门上方挂着 BLACKSMITH SHOP 的招牌，屋顶有烟囱",
+    "caption": "Cupertino 市政府活动官方照片：McClellan Ranch 铁匠铺的外观，不是示范当天的现场；开放日期以官网为准。",
+    "credit": "City of Cupertino 活动官方照片",
+    "creditUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
+      "scope": "same-event coverage only"
+    }
   }
 ]

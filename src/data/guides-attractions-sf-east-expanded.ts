@@ -297,6 +297,11 @@ export const sfEastExpandedGuides: Guide[] = [
         "title": "EBRPD：Crown Beach 与 Crab Cove",
         "url": "https://www.ebparks.org/parks/crown-beach",
         "description": "海岸入口、铺装路径、停车、水质与海滩规定。"
+      },
+      {
+        "title": "EBRPD：Crab Cove 的 Doug Siden 游客中心",
+        "url": "https://www.ebparks.org/parks/visitor-centers/crab-cove",
+        "description": "开放日与时间、停车费、水族箱，以及暂停使用的无障碍设施。"
       }
     ],
     "blocks": [
@@ -346,6 +351,11 @@ export const sfEastExpandedGuides: Guide[] = [
       {
         "type": "heading",
         "text": "历史舰船与海滩，各有不同的通行条件"
+      },
+      {
+        "type": "tip",
+        "title": "Crab Cove 游客中心",
+        "text": "EBRPD 官网（2026-10-16）写明：Doug Siden Visitor Center 周三到周日开放（3–10 月 10:00–17:00，11–2 月 10:00–16:00），有 800 加仑的水族箱和互动展；停车亭有人时每车 $5；无障碍洗手间和饮水处暂时停用。"
       },
       {
         "type": "paragraph",

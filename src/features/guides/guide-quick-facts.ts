@@ -158,21 +158,25 @@ export function guideQuickFacts(guide: Pick<Guide, 'blocks'> & { slug?: string; 
   // sentence that opens with a condition or a piece of advice ("如果…", "想…", "不要…", also after a "San José：" label).
   const firstHeading = guide.blocks.findIndex(block => block.type === 'heading');
   const used = new Set<string>();
-  const take = (kind: QuickFactKind, match: (text: string, block: number) => boolean, anchor: (text: string) => string | undefined, from = candidates): QuickFact | null => {
+  // The anchor is the first key that is at least two characters long and still in the (possibly shortened) row.
+  const take = (kind: QuickFactKind, match: (text: string, block: number) => boolean, anchor: (text: string) => (string | undefined)[], from = candidates): QuickFact | null => {
     const found = from.find(item => !used.has(item.text) && match(item.text, item.block) && shortenSentence(item.text));
     if (!found) return null;
     used.add(found.text);
     const text = shortenSentence(found.text);
-    const key = anchor(found.text);
-    return { kind, text, block: found.block, ...(key && key.length >= 2 && text.includes(key) ? { anchor: key } : {}), ...(found.context ? { context: found.context } : {}) };
+    const key = anchor(found.text).find(key => !!key && key.length >= 2 && text.includes(key));
+    return { kind, text, block: found.block, ...(key ? { anchor: key } : {}), ...(found.context ? { context: found.context } : {}) };
   };
-  const phone = take('phone', text => findPhoneNumbers(text).length > 0, text => findPhoneNumbers(text)[0]?.text);
-  const deadline = take('deadline', text => DEADLINE.test(text) && !EDITORIAL.test(text), text => anchorOf(text, DEADLINE));
-  const fee = deadline ? null : take('fee', text => FEE.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FEE));
-  const fact = take('fact', text => SOURCED.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FIGURE), factOrder)
-    ?? take('fact', text => FIGURE.test(text) && NAMED.test(text) && !EDITORIAL.test(text), text => anchorOf(text, FIGURE), factOrder)
+  const phone = take('phone', text => findPhoneNumbers(text).length > 0, text => [findPhoneNumbers(text)[0]?.text]);
+  const deadline = take('deadline', text => DEADLINE.test(text) && !EDITORIAL.test(text), text => [anchorOf(text, DEADLINE)]);
+  const fee = deadline ? null : take('fee', text => FEE.test(text) && !EDITORIAL.test(text), text => [anchorOf(text, FEE)]);
+  // A fact's figure is its anchor; when the figure is a single digit or falls after the cut, the body the row names is
+  // (CNT-GUIDES-3: "SFPL Discover & Go：…最多 2 个预约" keeps its /en row through "SFPL").
+  const factAnchor = (text: string) => [anchorOf(text, FIGURE), bodyIn(text)];
+  const fact = take('fact', text => SOURCED.test(text) && !EDITORIAL.test(text), factAnchor, factOrder)
+    ?? take('fact', text => FIGURE.test(text) && NAMED.test(text) && !EDITORIAL.test(text), factAnchor, factOrder)
     // Otherwise the first sentence after the lede that names a body the guide cites ("旧金山：Recology 大件项目按…核资格").
-    ?? take('fact', (text, block) => block > firstHeading && !!bodyIn(text) && !EDITORIAL.test(text) && !ADVICE.test(text) && !/[？?]$/u.test(text), bodyIn, factOrder);
+    ?? take('fact', (text, block) => block > firstHeading && !!bodyIn(text) && !EDITORIAL.test(text) && !ADVICE.test(text) && !/[？?]$/u.test(text), text => [bodyIn(text)], factOrder);
   return [fact, phone, deadline ?? fee].filter((row): row is QuickFact => !!row);
 }
 

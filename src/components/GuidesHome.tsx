@@ -164,7 +164,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
 
   return <div className="gl-page" data-testid="guides-home">
     <PageHeader className="gl-header" title={savedOnly ? t('我的指南收藏', 'Your saved guides') : topic && !searching ? `${topicName(topic)} · ${t('办事与生活指南', 'How-to guides')}` : t('办事与生活指南', 'How-to guides for Bay Area life')}
-      lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and the official way in. ${guides.length} guides, each with its official sources.`)} />
+      lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and how to apply or get help through official channels. ${guides.length} guides, each with its official sources.`)} />
     <div className="gl-find">
       <label className="gl-search"><Search aria-hidden="true" strokeWidth={1.75} />
         <input type="search" aria-label={t(`在 ${guides.length} 篇指南中搜索`, `Search ${guides.length} guides`)} placeholder={t('看医生、考驾照、防骗…', 'Doctors, driving, scams…')}

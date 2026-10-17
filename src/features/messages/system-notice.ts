@@ -84,7 +84,7 @@ const ENGLISH = new Map<string, string>(([
   { zh: '时间投票已结束，保留当前安排', en: 'The time poll ended; current plans stay' },
   { zh: '管理员已取消小队', en: 'An administrator cancelled the group' },
   { zh: '这是时间安排记录，不含支付；价格、地点和服务范围请双方另行确认。', en: 'This is a scheduling record with no payment. Agree on price, place and scope with each other.' },
-  { zh: '组队不等于活动购票或主办方报名。', en: 'Joining a group is not a ticket purchase or an organiser registration.' },
+  { zh: '组队不等于活动购票或主办方报名。', en: 'Joining a group is not a ticket purchase or an organizer registration.' },
   { zh: '对方同意且新时段仍可约后才会改期，原预约在此之前保留。', en: 'The time changes only after the other side agrees and the new slot is still open; until then the original booking stands.' },
 ] satisfies Pair[]).map(pair => [pair.zh, pair.en]));
 const PACIFIC: Pair = { zh: '（洛杉矶时间）', en: ' (Pacific time)' };

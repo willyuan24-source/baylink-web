@@ -5,7 +5,7 @@ import type { GuideEditorial } from './types';
 export const firstDoctorEditorial: GuideEditorial = {
   slug: 'bay-area-first-doctor-insurance-network-guide',
   cover: {
-    question: { zh: '刚搬来，第一次找医生？', en: 'New here and need a first doctor?' },
+    question: { zh: '刚搬来，第一次找医生？', en: 'New to the area and need a primary care doctor?' },
     title: { zh: '先认准自己的保险计划，再约医生', en: 'Know your exact plan, then book' },
     answer: { zh: '急症打 911；非急诊先查网络', en: 'Emergency: 911; otherwise check your network' },
     line: { zh: '保险网络 · 新病人 · 转诊 · 账单', en: 'Network · new patients · referrals · bills' },
@@ -34,7 +34,7 @@ export const firstDoctorEditorial: GuideEditorial = {
       items: [
         { zh: '在不在你的网络', en: 'In your network?' },
         { zh: '收不收新病人', en: 'Taking new patients?' },
-        { zh: '最早实际能约哪天', en: 'Earliest real appointment?' },
+        { zh: '最早实际能约哪天', en: 'Earliest available appointment?' },
       ] },
     { kind: 'compare', kicker: { zh: '预约标准', en: 'Wait-time standards' }, title: { zh: 'DMHC 公布的时限', en: "DMHC's standards" },
       items: [

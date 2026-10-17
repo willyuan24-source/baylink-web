@@ -1,0 +1,61 @@
+[
+  {
+    "id": "sfpl-visitacion-valley-calligraphy-chess-nov14-2026",
+    "kind": "event",
+    "startDate": "2026-11-14",
+    "endDate": "2026-11-14",
+    "occurrenceDates": [
+      "2026-11-14"
+    ],
+    "verifiedAt": "2026-10-16",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；不用报名",
+    "sourceLabel": "旧金山公共图书馆活动页（Visitacion Valley 分馆）",
+    "title": "Visitacion Valley 分馆书法与棋类午后：练毛笔字，下象棋、围棋",
+    "dateLabel": "11/14（周六）· 14:00–15:30",
+    "city": "San Francisco",
+    "venue": "Visitacion Valley 分馆会议室 · 201 Leland Avenue, San Francisco, CA 94134",
+    "summary": "旧金山公共图书馆 Visitacion Valley 分馆的周六下午活动：自己练中文书法，或者下西洋棋、中国象棋、跳棋和围棋，各年龄都可以来，适合几代人一起参加。活动介绍有中英文；馆方没有另外注明语言的活动用英语进行。",
+    "plan": [
+      "直接去就行；形式是自己练字和下棋，不是老师授课。"
+    ],
+    "audience": [
+      "所有年龄",
+      "祖孙和亲子家庭"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/14/activity-chinese-calligraphy-and-chess-games"
+  },
+  {
+    "id": "sfpl-sunset-mahjong-nov28-2026",
+    "kind": "event",
+    "startDate": "2026-11-28",
+    "endDate": "2026-11-28",
+    "occurrenceDates": [
+      "2026-11-28"
+    ],
+    "verifiedAt": "2026-10-16",
+    "imageKey": "",
+    "region": "sf",
+    "category": "culture",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；要先打电话预约",
+    "sourceLabel": "旧金山公共图书馆活动页（Sunset 分馆）",
+    "title": "Sunset 分馆麻将：上午新手入门，下午麻将俱乐部",
+    "dateLabel": "11/28（周六）· 入门 10:30–12:00 · 俱乐部 13:30–15:00",
+    "city": "San Francisco",
+    "venue": "Sunset 分馆活动室 · 1305 18th Avenue, San Francisco, CA 94122",
+    "summary": "旧金山公共图书馆 Sunset 分馆 11/28 的两场麻将活动：上午是给从没玩过的人的入门课，下午的麻将俱乐部什么水平都可以来，一起玩、交朋友。馆方把它列在华裔社区主题活动里；没有另外注明语言，按馆方说明用英语进行。",
+    "plan": [
+      "11/14 起打 415-355-2808 预约，名额有限；每人先约一场，想再约要在下一场前一周打电话问有没有空位。",
+      "准时到：迟到 10 分钟算缺席，位子会让给候补的人。"
+    ],
+    "audience": [
+      "成人",
+      "想学麻将的新手"
+    ],
+    "officialUrl": "https://sfpl.org/events/2026/11/28/workshop-mahjong-beginners"
+  }
+]

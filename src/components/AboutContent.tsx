@@ -87,7 +87,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
           const label = getImageProvenance(sample, english, '2026-10-12');
           return <div key={label}><dt><ProvenanceBadge className="about-badge" label={label} /></dt><dd>{t(zh, en)}</dd></div>;
         })}
-        <div><dt><ProvenanceBadge className="about-badge" label={typeCoverProvenance(english)} /></dt><dd>{t('没有合适的图片时，用条目自己的日期、地点和费用排成的信息卡，不是照片。', 'When there is no suitable picture, a card set from the item’s own date, place and price. It is not a photo.')}</dd></div>
+        <div><dt><ProvenanceBadge className="about-badge" label={typeCoverProvenance(english)} /></dt><dd>{t('没有合适的图片时，用条目自己的日期、地点和费用排成的信息卡，不是照片。', 'When there is no suitable picture, an information card showing the listing’s own date, place and price. It is not a photo.')}</dd></div>
       </dl>
       <p data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={{ textDecoration: 'underline', textUnderlineOffset: '0.2em' }}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
     </section>

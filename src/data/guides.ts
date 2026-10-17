@@ -311,16 +311,17 @@ export const guides: Guide[] = [
     featuredOnHome: true,
     recommendedForCategories: ['rent', 'other'],
     readMinutes: 6,
-    updatedAt: '2026-10-12',
+    updatedAt: '2026-10-16',
     sources: [
       { title: 'SSA：随移民签证申请社安卡', url: 'https://www.ssa.gov/ssnvisa/whatyou_need.htm', description: 'DS-260 上勾选申请；入境 3 周没收到卡，带证明去 SSA。' },
       { title: 'SSA：第一次申请社安号', url: 'https://www.ssa.gov/number-card/request-number-first-time', description: '网上申请后到 SSA 办公室交材料，5 到 10 个工作日寄卡。' },
-      { title: 'California DMV：新居民', url: 'https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california/', description: '外州车辆 20 天内登记。' },
+      { title: 'California DMV：新居民', url: 'https://www.dmv.ca.gov/portal/driver-education-and-safety/special-interest-driver-guides/new-to-california/', description: '打算成为加州居民并在加州开车，要申请加州驾照；外州车辆 20 天内登记。' },
       { title: 'Covered California：开放报名', url: 'https://www.coveredca.com/enrollment/open-enrollment', description: '每年 11 月 1 日到 1 月 31 日；与 Medi-Cal 同一份申请。' },
       { title: 'Covered California：中文电话', url: 'https://www.coveredca.com/support/contact-us/', description: '国语 800-300-1533，粤语 800-339-8938。' },
       OFFICIAL_SOURCES.rentalScams, OFFICIAL_SOURCES.bart, OFFICIAL_SOURCES.caltrain,
+      { title: '加州车辆法 12505(c)：新居民最多再开 10 天', url: 'https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=VEH&sectionNum=12505.', description: '成为居民后，凭外州驾照最多再开 10 天。' },
     ],
-    sourceNote: '2026-10-12 读取 SSA、DMV 与 Covered California 官方页面，补充证件和医保部分；住房、交通和采购部分是 BAYLINK 的落地经验整理。',
+    sourceNote: '2026-10-12 读取 SSA、DMV 与 Covered California 官方页面，补充证件和医保部分；2026-10-16 重读 DMV 新居民页，写清驾照的 10 天；住房、交通和采购部分是 BAYLINK 的落地经验整理。',
     blocks: [
       {
         type: 'paragraph',
@@ -368,14 +369,14 @@ export const guides: Guide[] = [
           '第一个月先建立一个固定补货点，比如常去超市、药店和附近快递点。',
         ],
       },
-      { type: 'heading', text: '第二周起：SSN、驾照和医保' },
+      { type: 'heading', text: 'SSN、驾照和医保：要开车的，驾照先办' },
       {
         type: 'paragraph',
         text: '社安号（SSN）：办移民签证时在 DS-260 表上勾选申请社安卡的人，SSA 会把卡寄到你在美国的地址；入境满 3 周还没收到，带年龄、身份和工作许可证明，去最近的 SSA 办公室或社安卡中心。其他人在美国可以先在 SSA 网站网上申请，再到 SSA 办公室交材料，批准后 5 到 10 个工作日寄卡。非公民要有工作、上学或其他合理原因才能申请。SSA 电话 1-800-772-1213，可要求中文口译。',
       },
       {
         type: 'paragraph',
-        text: '驾照：成为加州居民后，外州驾照最多再开 10 天，外州车辆 20 天内要办加州登记；首次申请驾照要预约到 DMV 考笔试，DMV 有中文驾驶手册和中文练习题。',
+        text: '驾照：10 天是开车的期限，不是申请的期限。成为加州居民后，最多再用外州驾照开 10 天，法条没有因为预约或递交申请而延长这 10 天的规定；DMV 写明，打算成为加州居民并在加州开车的，要申请加州驾照。所以要开车的，第一周就预约 DMV。外州车辆 20 天内要办加州登记；首次申请驾照要预约到 DMV 考笔试，DMV 有中文驾驶手册和中文练习题。',
       },
       {
         type: 'link',

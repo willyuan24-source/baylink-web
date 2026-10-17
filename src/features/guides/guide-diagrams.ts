@@ -98,7 +98,7 @@ export const GUIDE_DIAGRAMS: Readonly<Record<string, readonly PlacedDiagram[]>> 
     { at: 3, diagram: { kind: 'timeline', title: c('什么时候开始领', 'When to start'), total: c('1960 年及以后出生的人适用', 'For people born in 1960 or later'), marks: [
       { title: c('62 岁', 'Age 62'), text: c('最早可领，每月金额降低', 'Earliest; smaller monthly amount') },
       { title: c('67 岁', 'Age 67'), text: c('完全退休年龄', 'Full retirement age') },
-      { title: c('70 岁', 'Age 70'), text: c('延后增额到此为止', 'Delay credits stop here') },
+      { title: c('70 岁', 'Age 70'), text: c('延后增额到此为止', 'Delayed retirement credits stop here') },
     ] } },
   ],
   'bay-area-naturalization-official-path-guide': [

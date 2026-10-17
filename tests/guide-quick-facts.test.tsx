@@ -16,7 +16,7 @@ const { getGuideBySlug, guides } = await import('../src/data/guides');
 type Guide = import('../src/data/guides').Guide;
 const { GUIDE_EDITORIAL } = await import('../src/data/guide-editorial');
 const { guideBlockText } = await import('../src/lib/guide-content');
-const { guideQuickFacts, quickFactsEligible, shortenSentence, englishSentences, sourceBodies } = await import('../src/features/guides/guide-quick-facts');
+const { guideQuickFacts, quickFactIn, quickFactsEligible, shortenSentence, englishSentences, sourceBodies } = await import('../src/features/guides/guide-quick-facts');
 const { GuideQuickFacts } = await import('../src/features/guides/GuideQuickFacts');
 const { setLocale } = await import('../src/i18n/locale');
 // The deals board and the city directory are chunks the article loads with its record; the page waits for them, so do the tests.
@@ -150,21 +150,32 @@ test('without a figure, the first fact is the first sentence after the lede that
   assert.equal(factOf('bay-area-bulky-items-ewaste-hhw-guide')?.text, '旧金山：Recology 大件项目按有效住宅账户及住房类型核资格；危险废物另走 HHW 服务。');
   assert.equal(factOf('bay-area-alerts-outages-first-day-checklist')?.text, '旧金山使用 AlertSF；Alameda County 使用 AC Alert。');
   assert.equal(card('bay-area-alerts-outages-first-day-checklist'), null, 'the alerts guide shows its editorial 30 秒看懂 (CNT-GUIDES-2)');
-  // The alerts guide has its own record since CNT-GUIDES-2, so the rendered card is checked on the library starter guide: no figure,
-  // and its first fact names the body its source is titled after.
+  // No sourced sentence and no figure next to a named body: the first sentence after the lede that names a cited body (PG&E).
+  assert.equal(factOf('bay-area-first-7-30-days-action-plan-october-2026')?.text, '只有实际由 PG&E 服务且需要你开户的项目，才使用其 Start／Stop／Transfer 入口。');
+  // The library starter guide has its own 30-second record since the CNT-GUIDES-3 review: the card leads with getting a card
+  // (Oakland's eligibility and ID check), not with the first museum-pass sentence the automatic card would quote.
   const LIBRARY = 'bay-area-library-starter-guide';
-  assert.equal(factOf(LIBRARY)?.text, 'Oakland Public Library 面向加州居民；线上申请后，借实体书前还需完成身份核验。');
-  assert.match(card(LIBRARY)!.textContent!, /Oakland Public Library 面向加州居民/);
+  assert.equal(card(LIBRARY), null, 'the library starter guide shows its editorial 30 秒看懂');
+  const editorialCard = (prefix = '') => new JSDOM(renderToStaticMarkup(<StaticRouter location={`${prefix}/guides/${LIBRARY}`}><GuideDetail slug={LIBRARY} today="2026-10-16" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} /></StaticRouter>))
+    .window.document.querySelector('.gd-keyfacts:not([data-fallback])');
+  assert.match(editorialCard()!.querySelector('.gd-keyfacts__value')!.textContent!, /面向加州居民；线上申请后，借实体书前还要完成身份核验/);
+  // The rule itself, on the article: the first figure next to a named body is the SFPL Discover & Go item, whose figure
+  // (2 个预约) falls after the cut, so the body it names (SFPL) is its anchor and its /en row is the English sentence naming SFPL.
+  assert.match(factOf(LIBRARY)!.text, /^旧金山 · SFPL Discover & Go：/);
+  assert.equal(factOf(LIBRARY)!.anchor, 'SFPL');
   // A sentence that opens with a condition or advice is not a fact: the only candidate on the Peninsula page starts with 如果.
   assert.deepEqual(guideQuickFacts(getGuideBySlug('peninsula-living-guide')!), []);
   // Labels before a colon do not hide advice: "Cupertino：…不能替代…" is a rule, "San José：不要…" is not.
   assert.doesNotMatch(factOf('south-bay-school-district-enrollment-guide')!.text, /^[^：]+：不要/);
   // On /en the row is the translated sentence that names the same body, or no row (never Chinese).
   await setLocale('en', false, `/guides/${LIBRARY}`);
-  const english = card(LIBRARY, '/en');
-  assert.ok(english, 'the library starter card has its English row');
+  const row = quickFactIn(factOf(LIBRARY)!, getGuideBySlug(LIBRARY)!, 'en');
+  assert.ok(row, 'the SFPL row has its English sentence');
+  assert.doesNotMatch(row!.text, /[㐀-鿿]/u);
+  assert.match(row!.text, /SFPL Discover & Go/);
+  const english = editorialCard('/en');
   assert.doesNotMatch(english!.textContent!, /[㐀-鿿]/u);
-  assert.match(english!.textContent!, /Oakland Public Library serves California residents\./);
+  assert.match(english!.textContent!, /Open to California residents/);
   await setLocale('zh-Hans', false);
 });
 

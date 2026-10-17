@@ -79,8 +79,9 @@ test('CI image-rhythm probe: no image-free stretch over 2.5 phone screens in the
     assert.ok(longest <= 2.5, `${slug}: ${longest} screens without a picture`);
   }
   console.log(rows.join('\n'));
-  // Without its diagrams the senior guide runs about five screens of contact cards and steps with no picture.
+  // Without its diagrams (and, since CNT-MEDIA-4, its step photo) the senior guide runs about five screens of contact cards and
+  // steps with no picture.
   const record = peekGuide(PILOTS[0])!;
-  const bare = guideBodyStretches(render(PILOTS[0], '', { ...record, diagrams: undefined }));
+  const bare = guideBodyStretches(render(PILOTS[0], '', { ...record, diagrams: undefined, inline: [] }));
   assert.ok(bare.longest > 2.5, `the probe flags the bare article (${bare.longest})`);
 });

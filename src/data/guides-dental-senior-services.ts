@@ -207,9 +207,9 @@ export const dentalSeniorServiceGuides: Guide[] = [
       "service",
       "newcomer"
     ],
-    "readMinutes": 4,
-    "updatedAt": "2026-10-12",
-    "sourceNote": "2026-10-12 读取加州老龄事务局、安老自助处与 Family Bridges 官方网页。本文是找服务的入口，不判断个人福利或照护资格；费用、覆盖区域和候补以机构答复为准。",
+    "readMinutes": 6,
+    "updatedAt": "2026-10-16",
+    "sourceNote": "2026-10-12 读取加州老龄事务局、安老自助处与 Family Bridges 官方网页，2026-10-16 补读 On Lok、San José Public Library 和 Cupertino 长者中心的官网。本文是找服务的入口，不判断个人福利或照护资格；费用、覆盖区域和候补以机构答复为准。",
     "sources": [
       {
         "title": "California Department of Aging：按县寻找服务",
@@ -234,12 +234,32 @@ export const dentalSeniorServiceGuides: Guide[] = [
       {
         "title": "Family Bridges：中文长者探访项目",
         "url": "https://familybridges.org/visiting-program/",
-        "description": "普通话、粤语探访，免费；60 岁以上，北 Alameda County 六个城市。"
+        "description": "普通话、粤语探访，免费；60 岁及以上，北 Alameda County 六个城市。"
       },
       {
         "title": "Family Bridges：Hong Lok 长者中心",
         "url": "https://familybridges.org/hong-lok-senior-centers/",
         "description": "Oakland 两处中心，电话 510-763-9017。"
+      },
+      {
+        "title": "On Lok：30th Street 长者中心活动",
+        "url": "https://www.onlok.org/senior-center/activities",
+        "description": "60 岁及以上；活动用英语和西班牙语；415-550-2210。"
+      },
+      {
+        "title": "San José Public Library：Edenvale 一对一电脑辅导",
+        "url": "https://sjpl.bibliocommons.com/v2/events?series=6a0792ea3246e7b84b4f6443",
+        "description": "免费，英语或中文，不用预约。"
+      },
+      {
+        "title": "San José Public Library：中文活动（含 Berryessa 英语会话俱乐部）",
+        "url": "https://sjpl.bibliocommons.com/v2/events?languages=5d65e5fbe6fec218adacff4d",
+        "description": "普通话使用者英语会话俱乐部：免费，不用报名。"
+      },
+      {
+        "title": "Cupertino：长者中心社交活动",
+        "url": "https://www.cupertino.gov/Parks-Recreation/Senior-Center/Socials",
+        "description": "会员免费；非会员可买访客通行证。"
       }
     ],
     "blocks": [
@@ -324,6 +344,19 @@ export const dentalSeniorServiceGuides: Guide[] = [
         "title": "查看 Hong Lok 中心当前地址与联系入口",
         "text": "先打电话再前往，说明需要中文协助。",
         "url": "https://familybridges.org/hong-lok-senior-centers/"
+      },
+      {
+        "type": "heading",
+        "text": "长者中心活动、电脑帮助和练英语"
+      },
+      {
+        "type": "list",
+        "items": [
+          "旧金山 · On Lok 30th Street 长者中心：50 多项运动、学习和创作活动，有电脑室，给 60 岁及以上独立生活的长者和成年残障人士；官网写明活动用英语和西班牙语进行，需要中文的先打 415-550-2210 问。",
+          "南湾 · Edenvale 图书馆（101 Branham Lane East, San Jose）一对一电脑辅导：免费，英语或中文，不用报名或预约，到馆直接找人帮忙；场次在 San José Public Library 的活动日历上。",
+          "南湾 · Berryessa 图书馆的普通话使用者英语会话俱乐部：给成人英语学习者练日常口语，主持人讲英语和普通话，任何程度都欢迎；免费，不用报名。",
+          "南湾 · Cupertino 长者中心社交活动：舞蹈、地滚球、打牌、高尔夫、卡拉 OK、网球等；会员免费（另有注明的除外），非会员可以在前台买访客通行证；很多活动随到随参加，有的要报名。"
+        ]
       },
       {
         "type": "heading",

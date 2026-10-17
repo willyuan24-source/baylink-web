@@ -272,7 +272,7 @@
       "admissionUsd": null,
       "programTimeUnconfirmed": true,
       "schedule": {
-        "sourceUrl": "https://sanjosetheaters.org/event/matilda-the-musical/",
+        "sourceUrl": "https://www.cmtsj.org/matilda-the-musical/",
         "verifiedAt": "2026-10-05",
         "validFrom": "2026-11-13",
         "validThrough": "2026-11-22",
@@ -314,7 +314,7 @@
             "start": "13:00"
           }
         ],
-        "note": "官方确认开演时刻但没有公布每场结束时间，因此只列 sessions.start，不编造结束时间或把全天日历占位当营业窗口。10 月 16 日开售；票价、适龄建议和儿童规则待正式售票页确认。"
+        "note": "官方确认开演时刻但没有公布每场结束时间，因此只列 sessions.start，不编造结束时间或把全天日历占位当营业窗口。票价、适龄建议和儿童规则以 CMT 节目页的售票入口为准。"
       }
     }
   }

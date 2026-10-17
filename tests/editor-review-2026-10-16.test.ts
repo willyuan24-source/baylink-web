@@ -1,0 +1,44 @@
+import assert from 'node:assert/strict';
+import { readdirSync, readFileSync } from 'node:fs';
+import test from 'node:test';
+import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { EDITOR_REVIEW_DATE_2026_10_16, EDITOR_REVIEWED_2026_10_16 } from './support/editor-review-2026-10-16';
+
+// verifiedAt 2026-10-16 is a claim that someone read the official page that day. Only two things may make it: the GPT editor's
+// third weekend review (its 可核 rows, listed in ./support/editor-review-2026-10-16.ts) or a batch first published that day
+// (src/data/*-2026-10-16-events.json, each item read from its official page). A stamp landing on a neighbouring object, or a
+// reviewed row keeping its old date, fails here (the batch-pin tests only cover some batches).
+const NEW_BATCH_IDS = new Set(
+  readdirSync('src/data')
+    .filter(name => name.endsWith('-2026-10-16-events.json'))
+    .flatMap(name => (JSON.parse(readFileSync(`src/data/${name}`, 'utf8')) as { id: string }[]).map(item => item.id)),
+);
+
+test('verifiedAt 2026-10-16 sits exactly on the reviewed rows and the batches first published that day', () => {
+  const stamped = MONTHLY_EVENTS.filter(event => event.verifiedAt === EDITOR_REVIEW_DATE_2026_10_16).map(event => event.id);
+  const unexplained = stamped.filter(id => !EDITOR_REVIEWED_2026_10_16.has(id) && !NEW_BATCH_IDS.has(id)).sort();
+  assert.deepEqual(unexplained, []);
+  assert.ok(NEW_BATCH_IDS.has('sanleandro-main-mandarin-storytime-dec5-2026'), 'the Dec–Jan Chinese batch is read');
+});
+
+test('every row the editor marked 可核 on 2026-10-16 exists and carries that date', () => {
+  const byId = new Map(MONTHLY_EVENTS.map(event => [event.id, event]));
+  const wrong = [...EDITOR_REVIEWED_2026_10_16]
+    .filter(id => byId.get(id)?.verifiedAt !== EDITOR_REVIEW_DATE_2026_10_16)
+    .map(id => `${id}: ${byId.get(id)?.verifiedAt ?? 'missing'}`)
+    .sort();
+  assert.deepEqual(wrong, []);
+  assert.equal(EDITOR_REVIEWED_2026_10_16.size, 84);
+});
+
+test('the review leaves partly read rows and items outside the reviewed weekends on their earlier dates', () => {
+  const byId = new Map(MONTHLY_EVENTS.map(event => [event.id, event]));
+  // 部分核实 in weekend-review-1107.csv, and neighbours of reviewed rows in the two batches whose objects list verifiedAt before id.
+  for (const [id, date] of [
+    ['nov2026-ardenwood-chestnut-treats', '2026-10-07'],
+    ['nov2026-big-break-accessible-winter-birding', '2026-10-07'],
+    ['nov2026-tilden-good-night-farm', '2026-10-07'],
+    ['november-north-sips-stars-2026', '2026-10-05'],
+    ['november-north-bale-old-mill-days-2026', '2026-10-05'],
+  ] as const) assert.equal(byId.get(id)?.verifiedAt, date, id);
+});

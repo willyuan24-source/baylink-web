@@ -4,6 +4,8 @@ import octnovRegionalEvents from './octnov-2026-regional-events.json';
 import supplyEvents1012 from './supply-2026-10-12-events.json';
 import supplyEvents1013 from './supply-2026-10-13-events.json';
 import supplyEvents1015 from './supply-2026-10-15-events.json';
+import supplyEvents1016 from './supply-2026-10-16-events.json';
+import chineseDecJanEvents1016 from './chinese-decjan-2026-10-16-events.json';
 import octnovExtraImages from './octnov-2026-extra-image-updates.json';
 import { OCTNOV_EVENT_MEDIA_UPDATES } from './octnov-2026-event-photo-aliases';
 const extraImageUpdates: Record<string, { imageKey: string }> = octnovExtraImages;
@@ -39,7 +41,7 @@ const previousMonthlyEvents = applyOctober2026Events(mergeReviewedEvents([...sfS
   ).sort((a, b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 // The editorial overlay goes last: short forms, cleaned plan lines and dated corrections (src/data/editorial-overlay).
-export const MONTHLY_EVENTS = applyEventOverlay([...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents, ...supplyEvents1012, ...supplyEvents1013, ...supplyEvents1015] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] }))).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
+export const MONTHLY_EVENTS = applyEventOverlay([...new Map([...previousMonthlyEvents, ...([...roundupEvents0, ...roundupEvents1, ...roundupEvents2, ...novemberNorthEvents, ...novemberSouthEvents, ...novemberEastEvents, ...octnovSfEastEvents, ...octnovRegionalEvents, ...supplyEvents1012, ...supplyEvents1013, ...supplyEvents1015, ...supplyEvents1016, ...chineseDecJanEvents1016] as MonthlyEvent[])].map(event => [event.id, event])).values()].map(event => ({ ...event, ...VERIFIED_EVENT_PLACE_MEDIA_UPDATES[event.id], ...OCTNOV_EVENT_MEDIA_UPDATES[event.id], ...extraImageUpdates[event.id] }))).sort((a,b) => a.startDate.localeCompare(b.startDate) || a.id.localeCompare(b.id));
 
 export const MONTHLY_PLACES: MonthlyPlace[] = [
   {

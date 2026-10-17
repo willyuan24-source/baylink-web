@@ -599,7 +599,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival",
     "sourceLabel": "City of Menlo Park",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -680,7 +680,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://ybgfestival.org/event/halloween-hoopla-2026/",
     "sourceLabel": "Yerba Buena Gardens Festival / Circus Bella",
-    "verifiedAt": "2026-09-15",
+    "verifiedAt": "2026-10-15",
     "imageKey": "autumn-neighbors"
   }
 ];
