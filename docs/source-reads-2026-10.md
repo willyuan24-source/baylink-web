@@ -2115,3 +2115,17 @@ The two owner-approved images of `gpt/out-1016d/image-candidates-dec.md` (owner 
 |---|---|---|---|---|---|
 | image | `official-union-square-holiday-ice-rink-2026` | https://unionsquareicerink.com/union-square-ice-skating/ (page) ; https://unionsquareicerink.com/wp-content/uploads/hero-2026-03.jpg (image) | 2026-10-16 15:10 PT page (GET 200), 15:11 PT image (GET 200) | caption 未注明拍摄年份，不是 2026–27 这一季的现场 (the season has not opened yet) | "Join us for festive, fun ice skating in Union Square from Wednesday, November 4, 2026 – Monday, January 18, 2027." · `alt="hero-2026-03"` (the page's hero image) |
 | image | `official-cupertino-baer-blacksmith-fall-2026` | https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations (page, 403 to scripts) ; image URL in the sources doc | 2026-10-16 15:11 PT image `w=480` (GET 200), 15:15 PT the same asset at `w=1280` (GET 200, the file shipped); page read in a browser by the GPT editor 2026-10-16 | caption 铁匠铺的外观，不是示范当天的现场 | image path `…/mcclellan-ranch-preserve/historic-buildings/blacksmith-shop-1.jpg`; the sign on the building reads "BLACKSMITH SHOP" |
+
+## W6C-INT · integration of CNT-GUIDES-3, CNT-FRESH-1016, CNT-MEDIA-4, CNT-WEEKEND-1021 and CNT-WEEKEND-1107, 2026-10-17 (PT)
+
+No new reads. Where two lanes of this integration wrote different values for the same field, the site keeps the newer official
+read, or the less-claiming value when they disagree on a fact. The rows of both lanes above stay as they were written; this
+table says which value the site shows.
+
+| Id | Field | Lanes | Site shows | Why |
+|---|---|---|---|---|
+| `chsa-taiwanese-chinese-roots-seminar-2026` | venue | CNT-FRESH-1016 (venue stays "Foster City Community Center"); CNT-WEEKEND-1107 (venue → "Foster City Community Center 顶楼 Wind Room · 1000 E Hillsdale Blvd, Foster City, CA 94404") | Foster City Community Center (no structured street address); the flyer's room and street are in plan line 1, quoted as the flyer's | less claiming: the CHSA page names only the center and the city's pages disagree on the center and its Annex |
+| `chsa-taiwanese-chinese-roots-seminar-2026` | plan | CNT-FRESH-1016 (flyer room/street; registration via LoveBoatAlumni.org/roots2026 and the broken CHSA short link); CNT-WEEKEND-1107 (registration; both the page's 14:00–17:00 and the flyer's schedule) | FRESH-1016's lines 1 and 4 + WEEKEND-1107's schedule line | both lanes' facts kept; WEEKEND-1107's registration line is the same fact as FRESH-1016's line 4 |
+| `sfpl-chinatown-creative-saturdays-fall-2026`, `…-late-nov-2026`, `…-dec-2026` | summary | CNT-FRESH-1016 (馆方把活动语言标为粤语和普通话); CNT-WEEKEND-1107 (图书馆把它列在中文活动类别里: the 粵語/國語 line is the library's Chinese-programs category footer; each page says programs are in English unless noted) | 图书馆把它列在中文活动类别里 | the two lanes read the same line differently; the less-claiming summary |
+| 4 November items (`nov2026-big-break-nature-walk`, `nov2026-fort-mason-farmers-market`, `nov2026-presidio-free-yoga`, `pacl-rinconada-tai-chi-2026`) | verifiedAt | CNT-WEEKEND-1021 2026-10-15 (second pass); CNT-WEEKEND-1107 2026-10-16 (third pass) | 2026-10-16 | the newer official read (both reviews found them consistent) |
+

@@ -80,9 +80,12 @@ test('November Chinese-community supply: two new SFPL items, the Xiangqi second 
   assert.deepEqual(PLANNER_EVENTS.find(row => row.id === xiangqi.id)?.planning?.schedule?.sessions?.map(session => session.date), ['2026-11-28', '2026-11-29']);
   // D12: the schedule keeps its 10-14 check date; the lane's 10-16 read of the second day is in the ledger.
   assert.equal(PLANNER_EVENTS.find(row => row.id === xiangqi.id)?.planning?.schedule?.verifiedAt, '2026-10-14');
-  // Chinatown Creative Saturdays: the library labels the languages; the practice is self-guided. One term on all three.
+  // Chinatown Creative Saturdays: the practice is self-guided and nobody teaches. W6C-INT: CNT-WEEKEND-1107 read the
+  // Cantonese/Mandarin line as the library's Chinese-programs category footer (each page says programs are in English unless
+  // noted), so all three summaries say only that the library lists it among its Chinese programs (the less-claiming wording).
   for (const id of ['sfpl-chinatown-creative-saturdays-fall-2026', 'sfpl-chinatown-creative-saturdays-late-nov-2026', 'sfpl-chinatown-creative-saturdays-dec-2026']) {
-    assert.match(event(id).summary, /馆方把活动语言标为粤语和普通话/u, id);
+    assert.match(event(id).summary, /图书馆把它列在中文活动类别里/u, id);
+    assert.doesNotMatch(event(id).summary, /以粤语和普通话进行|活动语言标为/u, id);
   }
 });
 
