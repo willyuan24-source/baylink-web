@@ -57,7 +57,7 @@ export const additionalOctoberOffers: VerifiedExtraOffer[] = [
     imageKey: 'furniture-inspection', imageNote: '验货主题插图，非 IKEA 门店或实际库存', sourceUrl: 'https://www.ikea.com/us/en/stores/emeryville/', sourceLabel: 'IKEA Emeryville As-is 周三条款', verifiedAt: '2026-09-15',
   },
   {
-    id: 'poppy-claro-doggie-dinners-fall', brand: 'POPPY & CLARO · SAN JOSÉ',
+    id: 'poppy-claro-doggie-dinners-fall', region: 'south-bay', brand: 'POPPY & CLARO · SAN JOSÉ',
     title: '周五带狗出门：$6 三道宠物晚餐延长至秋季', dateLabel: '秋季每周五 · 17:00–20:00 露台',
     availability: 'check-local', kind: 'purchase',
     requirement: '$6 套餐供宠物狗享用，仅周五 17:00–20:00 露台、天气允许时供应；成人餐饮另付，先向店家确认座位与当日供应。',

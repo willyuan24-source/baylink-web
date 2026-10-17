@@ -23,6 +23,7 @@ export const autumnRefreshOffers: (FreebieOffer & { verifiedAt: string })[] = [
   },
   {
     "id": "happy-hollow-senior-safari-oct22",
+    "region": "south-bay",
     "brand": "HAPPY HOLLOW · SAN JOSÉ",
     "startDate": "2026-10-22",
     "endDate": "2026-10-22",
@@ -72,6 +73,7 @@ export const autumnRefreshOffers: (FreebieOffer & { verifiedAt: string })[] = [
   },
   {
     "id": "randall-museum-free",
+    "region": "sf",
     "brand": "RANDALL MUSEUM · SAN FRANCISCO",
     "availability": "ongoing",
     "kind": "no-purchase",
@@ -239,6 +241,7 @@ export const autumnRefreshOffers: (FreebieOffer & { verifiedAt: string })[] = [
   },
   {
     "id": "cable-car-museum-free",
+    "region": "sf",
     "brand": "CABLE CAR MUSEUM · SAN FRANCISCO",
     "availability": "ongoing",
     "kind": "no-purchase",
