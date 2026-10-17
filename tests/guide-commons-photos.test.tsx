@@ -5,7 +5,7 @@ import { JSDOM } from 'jsdom';
 import React from 'react';
 
 // CNT-MEDIA-4 (owner approval in chat 2026-10-16): the ten Wikimedia Commons photos of gpt/out-1016c/guide-image-candidates.md
-// on eight 办事 / 长辈 guides. Each shows its author, licence and licence link; the two outside California (an SSA office in
+// on seven 办事 / 长辈 guides. Each shows its author, licence and licence link; the two outside California (an SSA office in
 // New York, HHS in Washington, D.C.) are labelled 示意图 and are never a list cover. In a pilot guide the photos stand outside
 // the step folds, so a reader sees them without opening 展开原文与来源.
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/guides', pretendToBeVisual: true });
@@ -157,7 +157,9 @@ test('a tall photo is cut to 4:5 around its focus in the article, and the guides
   assert.equal(img.hasAttribute('data-portrait'), true);
   assert.match(img.getAttribute('style') ?? '', /object-position:\s*50% 42%/);
   const css = readFileSync(new URL('../src/components/guide-visuals.css', import.meta.url), 'utf8');
-  assert.match(css, /\.guide-figure--inline \.guide-figure-image\[data-portrait\] \{ aspect-ratio:4\/5; max-height:min\(72vh,620px\); object-fit:cover; \}/);
+  assert.match(css, /^\.gd-step>\.guide-figure--inline \.guide-figure-image\[data-portrait\] \{ aspect-ratio:4\/5; max-height:min\(72vh,620px\); object-fit:cover; \}/m);
+  // Only in a step card: a prose article (local-service-safety-guide's tall repair photo) and the city cards keep their rules.
+  assert.doesNotMatch(css, /^\.guide-figure--inline \.guide-figure-image\[data-portrait\]/m);
   for (const slug of ['bay-area-social-security-retirement-preparation-guide', 'bay-area-medicare-hicap-medi-cal-guide', 'california-driver-license-id-preparation-guide', 'bay-area-chinese-senior-services-referral-guide']) {
     const { longest } = guideBodyStretches(render(slug));
     assert.ok(longest <= 2.5, `${slug}: ${longest} screens without a picture`);

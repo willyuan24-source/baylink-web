@@ -373,7 +373,6 @@ bySlug['bay-area-chinese-senior-services-referral-guide'] = ['audit-senior-servi
 // could read as an endorsement. The inline pictures are the already-reviewed context photos.
 bySlug['bay-area-elder-scam-prevention-guide'] = ['everyday', 'digital-safety'];
 bySlug['bay-area-senior-transit-clipper-discounts-guide'] = ['weekend', 'train'];
-bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'library'];
 // CNT-MEDIA-4 (owner approval 10-16): the resource map's 长者服务 section (heading 2) shows the Commons senior centre photo
 // instead of the generic library photo.
 bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'commons-ggp-senior-center-side'];

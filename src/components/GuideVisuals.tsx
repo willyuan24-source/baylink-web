@@ -42,7 +42,8 @@ export function GuideFigure(props: FigureProps) {
 
 function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
-  // A tall photo in the article is cut to 4:5 around its focus (guide-visuals.css), so it never fills more than a screen.
+  // A tall photo in a pilot guide's step card is cut to 4:5 around its focus (guide-visuals.css), so it never fills more than a
+  // screen. Only there: other articles and the city cards keep their own rules for the same figure.
   const portrait = variant === 'inline' && image.kind === 'photo' && !image.fullFrame && image.height > image.width;
   const position = portrait && image.focal ? { objectPosition: `${image.focal[0]}% ${image.focal[1]}%` } : undefined;
   return <>

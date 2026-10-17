@@ -1783,7 +1783,7 @@ never called free by a policy row.
 
 Read by the CNT-MEDIA-4 lane agent with read-only GETs; no forms, logins, registrations or posts. The 13 images were downloaded
 2026-10-16 14:55–14:56 PT under the owner's approval in chat that day (every file, URL and hash in
-[official-event-media-sources-2026-10-16.md](official-event-media-sources-2026-10-16.md) and
+[official-event-media-sources-2026-10-16-media-4.md](official-event-media-sources-2026-10-16-media-4.md) and
 [guide-commons-photos-2026-10-16.md](guide-commons-photos-2026-10-16.md)); the rows below are the facts the captions and credits take
 from the pages. No event fact and no `verifiedAt` changed. These are agent reads, not editor checks.
 
@@ -1791,7 +1791,7 @@ from the pages. No event fact and no `verifiedAt` changed. These are agent reads
 |---|---|---|---|---|---|
 | event | `official-november-north-healdsburg-market-2026` | https://healdsburgfarmersmarket.org/ | 2026-10-16 15:02 PT (GET 200); the page shows the downloaded `salsa-sales.jpg` | alt; caption 拍摄日期未注明 (the page gives no date) | image alt "A woman in a hat and glasses stands behind a market stall, smiling at three customers. Jars of salsa are displayed on the counter." · Saturdays April 11 - December 19 \| 8:30AM - 12PM |
 | event | `official-november-north-healdsburg-market-2026` | https://healdsburgfarmersmarket.org/site-credits/ | 2026-10-16 15:03 PT (GET 200) | credit names the market only (no per-photo credit) | PHOTOGRAPHY: Cynthia Glassell, Will Bucquoy and Healdsburg Farmers Market friends |
-| event | `official-nov2026-fort-mason-farmers-market` | https://fortmason.org/event/sunday-farmers-market/2026-11-29/ | 2026-10-16 15:02 PT (GET 200); og:image = the downloaded `farmers_market_peaches_bigslide.jpg` | caption 拍摄日期未注明; summer fruit, not the November Sundays | Date Every Sunday (Rain or Shine) Time 9:30 a.m. to 1:30 p.m. |
+| event | `official-nov2026-fort-mason-farmers-market` | https://fortmason.org/event/sunday-farmers-market/2026-11-29/ | 2026-10-16 15:02 PT (GET 200); og:image = the downloaded `farmers_market_peaches_bigslide.jpg` | caption: on the site since 2015 (file path `/wp-content/uploads/2015/09/`), 拍摄日期未注明; summer fruit, not the November Sundays | Date Every Sunday (Rain or Shine) Time 9:30 a.m. to 1:30 p.m. |
 | event | `official-nov2026-arion-press-public-tours` | https://fortmason.org/event/arion-press-public-tours-2026/2026-11-21/1/ | 2026-10-16 15:02 PT (GET 200); og:image = the downloaded `arion_press_entry_3840x2560.jpg` | caption 拍摄日期未注明，不是导览当天的现场 | Presented By Arion Press · Saturdays; September 19, November 21, and December 19, 2026 |
 | guide | `commons-*` (10 photos) | https://commons.wikimedia.org/w/api.php (prop=imageinfo, extmetadata) | 2026-10-16 15:05 PT (GET 200) | credit author + licence; licence link; caption year; SHA-1 check of the downloads | e.g. Artist = Coolcaesar · LicenseShortName = CC BY-SA 4.0 · DateTimeOriginal = 2016-09-03; Daderot · CC0 · 16 June 2026; Gary Stevens · CC BY 2.0 · 2013-02-11 (all ten in the sources doc) |
 | guide | `commons-chinatown-ywca-chsa` | https://chsa.org/about/ | 2026-10-16 15:05 PT (GET 200) | caption 原 Chinatown YWCA 历史建筑，现为 CHSA 博物馆所在地 | Visit our museum housed in the historically landmarked Julia Morgan-designed Chinatown YWCA building at 965 Clay Street, San Francisco. |

@@ -2,7 +2,7 @@
 .guide-figure-open { display:block; position:relative; width:100%; padding:0; overflow:hidden; border:1px solid var(--color-line); border-radius:20px; background:var(--color-brand-tint); text-align:left; cursor:zoom-in; }
 .guide-figure-image { display:block; width:100%; height:auto; transition:transform .4s ease; }
 .guide-figure-open:hover .guide-figure-image { transform:scale(1.015); }
-.guide-figure--inline .guide-figure-image[data-portrait] { aspect-ratio:4/5; max-height:min(72vh,620px); object-fit:cover; }
+.gd-step>.guide-figure--inline .guide-figure-image[data-portrait] { aspect-ratio:4/5; max-height:min(72vh,620px); object-fit:cover; }
 .guide-figure-open:focus-visible, .guide-route button:focus-visible, .guide-route a:focus-visible, .guide-route-stop:focus-visible, .guide-image-dialog a:focus-visible, .guide-image-close:focus-visible, .guide-poster-disclosure summary:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
 .guide-figure--cover { margin:30px 0 26px; }
 .guide-figure--cover .guide-figure-open { border-radius:24px; }

@@ -1,6 +1,6 @@
-# Official event images: sources and rights (2026-10-16)
+# Official event images: sources and rights (2026-10-16, CNT-MEDIA-4)
 
-Lane CNT-MEDIA-4. Same rule as the 2026-10-08, 2026-10-14 and 2026-10-15 batches ([sources 2026-10-15](official-event-media-sources-2026-10-15.md)): an organiser's own image may be shown beside coverage of **that same event**, labelled 官方图 with a link to the official page; the About page carries the takedown contact. On 2026-10-16 the owner approved, in chat, three rows of the November–December image-candidates list (GPT research, `gpt/out-1016c/image-candidates-nov-dec.md`, read 2026-10-15): the Healdsburg Saturday market (`salsa-sales.jpg`), the Fort Mason Sunday market and the Arion Press tours. The owner's condition: never present them as a photo of a future session. The other rows of that list were not downloaded.
+Lane CNT-MEDIA-4. Same rule as the 2026-10-08, 2026-10-14 and 2026-10-15 batches ([sources 2026-10-15](official-event-media-sources-2026-10-15.md)): an organiser's own image may be shown beside coverage of **that same event**, labelled 官方图 with a link to the official page; the About page carries the takedown contact. On 2026-10-16 the owner approved, in chat, three rows of the November–December image-candidates list (GPT research, `gpt/out-1016c/image-candidates-nov-dec.md`, read 2026-10-15): the Healdsburg Saturday market (`salsa-sales.jpg`), the Fort Mason Sunday market and the Arion Press tours. The owner's condition: never present them as a photo of a future session. The other rows of that list were not downloaded. (CNT-WEEKEND-1107 records its own 10-16 rows in `official-event-media-sources-2026-10-16.md`.)
 
 Result: **3 of 3 files downloaded, 3 shipped**, all as photos. No image was generated, and none was edited beyond resizing and re-encoding.
 
@@ -10,7 +10,7 @@ Same as 2026-10-15: one record per image in `src/data/official-event-media.json`
 
 What the images replace:
 - **Healdsburg**: the same `salsa-sales.jpg` was already registered as `octnov-healdsburg-market-context`, a *theme* photo (`event-image-usage.ts`), which the cover resolver never uses as a cover, so the event showed a text card. Its theme entry and its `octnov-2026-extra-image-updates.json` entry are removed; the old record stays registered but no event uses it.
-- **Fort Mason market and Arion Press**: both used `octnov-fort-mason-context`, a 2015 Commons photo of the Fort Mason piers, which the resolver rejects as a cover (older than eight years), so both showed text cards. The venue alias lost its two events and is removed from `octnov-2026-event-photo-aliases.ts`; the photo itself stays registered.
+- **Fort Mason market and Arion Press**: both used `octnov-fort-mason-context`, a 2015 Commons photo of the Fort Mason piers, which the resolver rejects as a cover (older than eight years), so both showed text cards. The venue alias lost its two events and is removed from `octnov-2026-event-photo-aliases.ts`. The photo itself stays registered on purpose: it is a correctly credited venue photo that a later Fort Mason listing can use through a venue alias, and the registered keys are pinned in `scripts/data/media-rights-baseline.json`.
 
 ## Rights
 
@@ -18,12 +18,12 @@ Every record uses `rights.basis: "promo-editorial"` with the official event page
 
 Notes per image:
 - **Healdsburg Certified Farmers Market**: the stall photo on the market's home page; its alt text there reads "A woman in a hat and glasses stands behind a market stall, smiling at three customers. Jars of salsa are displayed on the counter." The stallholder faces the camera (an adult, a medium shot, the market's own promotional photo); the customers are seen from behind or in profile. The site's credits page names its photographers as a group ("PHOTOGRAPHY: Cynthia Glassell, Will Bucquoy and Healdsburg Farmers Market friends") without saying who took which photo, so the credit is the market only. The photo is not dated (the file sits under `/wp-content/uploads/2026/03/`).
-- **Fort Mason Sunday farmers market**: the `og:image` of the Fort Mason market page. Crates of peaches and cherries under a K & J Orchards banner; the stallholder wears a mask. Not dated (the file sits under `/2015/09/`); peaches and cherries are summer fruit, so the caption says the photo does not show what the November Sundays will have.
+- **Fort Mason Sunday farmers market**: the `og:image` of the Fort Mason market page. Crates of peaches and cherries under a K & J Orchards banner; the stallholder wears a mask. Not dated, but the file sits under `/wp-content/uploads/2015/09/`, so it has been on the site since September 2015 and is at least that old. The caption says so (the official tier skips the cover age gate, so the caption is where a reader learns the age), and, because peaches and cherries are summer fruit, that it does not show what the November Sundays will have. On the 10/31 weekend it is the home page's #2 pick.
 - **Arion Press public tours**: the `og:image` of the Fort Mason event page for the 11/21 tour. The workshop's glass frontage on the pier, presses and type cabinets inside, a staff member blurred behind the glass and a passer-by seen from behind. Not dated (the file sits under `/2024/11/`); the caption says it is not from a tour day.
 
 Captions (all three say 活动官方照片, that the photo is not dated, and that it is not a listed session):
 - Healdsburg: 拍摄日期未注明，不是本页列出的某个周六；摊位和商品以当天为准。
-- Fort Mason market: 拍摄日期未注明；桃子和樱桃是夏季水果，不代表 11 月各个周日的摊位和商品，以当天为准。
+- Fort Mason market: 2015 年就已上传到官网，拍摄日期未注明；桃子和樱桃是夏季水果，不代表 11 月各个周日的摊位和商品，以当天为准。 (EN: "on the site since 2015; the shoot date is not given")
 - Arion Press: 拍摄日期未注明，不是导览当天的现场；参观内容以工坊安排为准。
 
 ## Download
