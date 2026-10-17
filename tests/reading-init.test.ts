@@ -80,10 +80,10 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
   const code = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   // ~1 KB with the D17 language redirect (WEB-SHELL1), ~1.6 KB with the CW-02 stale-date check (WEB-FRESH2: 1,621 chars;
   // the US DST rule instead of Intl with a time zone, whose first use cost ~95 ms at 4x CPU before the first paint), ~2.1 KB
-  // with the G52 family-link hand-over (WEB-POLISH: 2,062 chars together), ~2.4 KB with the H20 marks for 行程's prerendered
-  // page, upcoming saved days and plan links (WEB-PERF-3: 2,378 chars); still one small blocking request, cached briefly
-  // (vercel.json).
-  assert.ok(code.length < 2400, `reading-init stays small on the critical path (${code.length} chars without comments)`);
+  // with the G52 family-link hand-over (WEB-POLISH: 2,062 chars together); the H20 marks for 行程's prerendered page (plan
+  // links, upcoming saved days: WEB-PERF-3) fit under the same cap because the code is written without optional spaces
+  // (2,058 chars); still one small blocking request, cached briefly (vercel.json). Budgets only go down: trim, never raise.
+  assert.ok(code.length < 2075, `reading-init stays small on the critical path (${code.length} chars without comments)`);
   const html = fs.readFileSync('index.html', 'utf8');
   const head = html.slice(0, html.indexOf('</head>'));
   const tag = '<script src="/reading-init.js"></script>';
@@ -111,6 +111,10 @@ test('upcoming saved plans in this browser mark the page before it paints; past 
   assert.equal(marked({ [GUEST_PLANNER_KEY]: library([]) }), false);
   assert.equal(marked({}), false);
   assert.equal(marked({ [GUEST_PLANNER_KEY]: 'x' }, { blockStorage: true }), false);
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: '{"plans":[{"date":' }), false, 'a broken library');
+  for (const url of ['https://www.baylink.us/en/plan', 'https://www.baylink.us/zh-Hant/plan/?q=x'])
+    assert.equal(load(url, { [GUEST_PLANNER_KEY]: library([plan('p1', shift(2))]) }).window.document.documentElement.hasAttribute('data-plans'), true, url);
+  assert.equal(load('https://www.baylink.us/my-week', { [GUEST_PLANNER_KEY]: library([plan('p1', shift(2))]) }).window.document.documentElement.hasAttribute('data-plans'), false, 'other pages never read the planner library before their first paint');
   const css = fs.readFileSync('src/styles/plan-page.css', 'utf8');
   assert.match(css, /html\[data-plans\] :is\(main\[data-prerender-path="\/plan"\],\.site-boot-main\) #plan-days \.ui-state \{ display:none; \}/, 'only the prerendered /plan page (and its boot copy) hides its empty state');
 });
@@ -123,6 +127,8 @@ test('a link that opens a plan marks the page before it paints, so the prerender
     assert.equal(linked(`https://www.baylink.us/plan${query}`), true, query);
   for (const query of ['', '?q=museum', '?editor=1', '?date=2026-10-17', '?baybayBrief=x'])
     assert.equal(linked(`https://www.baylink.us/plan${query}`), false, query);
+  assert.equal(linked('https://www.baylink.us/en/plan?stops=place%3Ax'), true, '/en/plan');
+  assert.equal(linked('https://www.baylink.us/my-week?edit=p1'), false, 'only 行程 is marked');
   const css = fs.readFileSync('src/styles/plan-page.css', 'utf8');
   assert.match(css, /html\[data-plan-link\] :is\(main\[data-prerender-path="\/plan"\],\.site-boot-main\) \.plan-weekend \{ display:none; \}/, 'only the prerendered /plan page (and its boot copy) hides the picks');
 });
