@@ -125,10 +125,17 @@ test('openings: status and first day only where a page says so; conflicts stay v
   const millbrae = opening('millbrae-cafe-announced-2026');
   assert.equal(millbrae.status, 'open');
   assert.equal(millbrae.openedOn, undefined, 'the site lists hours, not a first day');
-  // Bruma and Florecita are open by their own pages; the status flip waits for the 3D city's opening signs
-  // (tests/opus-bay-w6-s-openings.test.ts: every open San Francisco opening has a sign). The text already says so.
-  assert.match(opening('bruma-ritz-carlton-sf').dateLabel, /newly opened/u);
-  assert.match(opening('florecita-mission').dateLabel, /3349 23rd Street · 周四至周一 8:00–14:00/u);
+  // Bruma and Florecita: the 10-16 reads stay in the ledger, but the status flip waits for the 3D city's opening signs
+  // (tests/opus-bay-w6-s-openings.test.ts: every open San Francisco opening has a sign). Owner decision 2026-10-17: until
+  // then the text is worded as announced, so it agrees with the 即将开业 chip, and names the 10/16 check date.
+  for (const id of ['bruma-ritz-carlton-sf', 'florecita-mission']) {
+    const shop = opening(id);
+    assert.equal(shop.status, 'announced', id);
+    assert.match(shop.dateLabel, /以(?:酒店)?官网为准（10\/16 核对）/u, id);
+    assert.doesNotMatch(`${shop.dateLabel}${shop.summary}${shop.editorTip}`, /newly opened|已迁到|去新址|已开业|周四至周一 8:00–14:00|11:30–23:00/u, id);
+  }
+  assert.match(opening('bruma-ritz-carlton-sf').summary, /计划开门日是 10\/12/u);
+  assert.match(opening('florecita-mission').summary, /3349 23rd Street/u);
   for (const id of ['bruma-ritz-carlton-sf', 'florecita-mission', 'shinka-the-jay-announced', 'marufuku-burlingame-announced', 'millbrae-cafe-announced-2026']) {
     assert.equal(OPENING_OVERLAY[id]?.openedOn ?? undefined, id === 'marufuku-burlingame-announced' ? '2026-10-11' : undefined, `${id}: no invented first day`);
   }
