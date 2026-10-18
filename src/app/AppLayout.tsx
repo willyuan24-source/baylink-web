@@ -35,18 +35,8 @@ import type { ToastAction } from '../components/Toast';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
-import { pageLoaders } from '../route-loaders';
-import { matchRoute } from './route-table';
-import { unprefixedPath } from '../lib/language-path';
-
-/** Route feedback (UI9-F): a pointer or finger resting on an in-site link starts its page chunk, so the tap lands sooner.
- *  The loaders are cached promises; the 3D world (a full page load) is never warmed. */
-const warmLink = (event: Event) => {
-  const link = (event.target as Element | null)?.closest?.('a[href^="/"]') as HTMLAnchorElement | null;
-  if (!link || link.target === '_blank') return;
-  const page = matchRoute(unprefixedPath(link.pathname))?.page;
-  if (page && page !== 'opus') void pageLoaders[page]().catch(() => undefined);
-};
+import { installRouteWarm } from './route-warm';
+import { RouteProgress, RouteSettled } from './RouteProgress';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -59,12 +49,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const tab = tabFromPathname(location.pathname);
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
-  useEffect(() => {
-    const options = { passive: true, capture: true };
-    document.addEventListener('pointerover', warmLink, options);
-    document.addEventListener('touchstart', warmLink, options);
-    return () => { document.removeEventListener('pointerover', warmLink, options); document.removeEventListener('touchstart', warmLink, options); };
-  }, []);
+  // Route feedback (UI9-F): warm a page chunk on hover intent or press, quietly (route-warm.ts).
+  useEffect(installRouteWarm, []);
 
   // ✨ Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; action?: ToastAction; id: number } | null>(null);
@@ -678,9 +664,12 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       overlays={overlays}
     >
       {/* The first route keeps the prerendered page on screen while its chunk settles (boot-main.ts): no blank frame. */}
-      {/* Later routes: the page keeps its height and a top bar appears after 150ms (site-chrome.css), never a spinner. */}
+      {/* Later routes: the old page stays during the router's transition and RouteProgress draws a top bar after 150ms; a
+          suspension outside a transition keeps the page height with the same bar (site-chrome.css), never a spinner. */}
+      <RouteProgress />
       <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="site-route-wait" aria-busy="true"><span className="site-route-progress" /></div>}>
         <BootMainSettled />
+        <RouteSettled pathname={location.pathname} search={location.search} />
         <Outlet context={ctx} />
       </Suspense>
     </SiteChrome>

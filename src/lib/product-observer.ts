@@ -1,6 +1,7 @@
 import { recordIcsDownload, recordProductEvent } from './product-events';
 import { preloadErrorBeacon, reportClientError } from './error-beacon';
 import { matchRoute } from '../app/route-table';
+import { routeActivity } from './route-activity';
 import { bootTesterMode } from '../features/feedback/tester-boot';
 
 /** A calendar file or subscription link: `download="….ics"` (the generated files), an .ics URL or webcal:. */
@@ -26,7 +27,8 @@ export function installProductObserver() {
   // from ErrorBoundary. The beacon module itself loads once the browser is idle, outside the boot graph.
   window.addEventListener('error', event => reportClientError('error', event.error ?? event.message));
   window.addEventListener('unhandledrejection', event => reportClientError('rejection', event.reason));
-  window.addEventListener('vite:preloadError', event => reportClientError('chunk', (event as Event & { payload?: unknown }).payload ?? 'preload'));
+  // A chunk only a hover warm wanted (app/route-warm.ts) fails quietly: no beacon.
+  window.addEventListener('vite:preloadError', event => { if (!routeActivity.quietFailure()) reportClientError('chunk', (event as Event & { payload?: unknown }).payload ?? 'preload'); });
   if ('requestIdleCallback' in window) window.requestIdleCallback(preloadErrorBeacon, { timeout: 8_000 });
   else setTimeout(preloadErrorBeacon, 4_000);
   bootTesterMode(!!matchRoute(window.location.pathname)?.bare);

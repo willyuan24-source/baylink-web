@@ -37,8 +37,9 @@ export function HomeHead({ today, weekendTotal, guideCount, checked, onAskBayBay
   const roomy = readingSize !== 'standard' || simple;
   const submit = () => {
     const value = query.trim();
-    // The button is never disabled (N09): an empty submit focuses the box and offers the example question to send.
-    if (!value) { setQuery(t('这周末带爸妈去哪？', 'Free fun with kids this weekend?')); inputRef.current?.focus(); return; }
+    // The button is never disabled (N09): an empty submit focuses the box and offers the example question to send (the
+    // short one at 大 / 特大 and in 简洁显示, where the box holds about eight characters).
+    if (!value) { setQuery(roomy ? t('周末带爸妈去哪？', 'Free fun with kids?') : t('这周末带爸妈去哪？', 'Free fun with kids this weekend?')); inputRef.current?.focus(); return; }
     if (isHomeQuestion(value)) onAskBayBay(value);
     else if (onSearch) onSearch(value);
     else navigate(`/guides?q=${encodeURIComponent(value)}`);

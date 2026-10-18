@@ -29,7 +29,7 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 .site-app .site-header-brand img { display:block; width:140px; height:auto; object-fit:contain; }
 .site-app .site-header-primary.site-nav { display:flex; flex-direction:row; align-items:center; gap:4px; margin:0; }
 .site-app .site-header-primary .site-nav-link { position:relative; display:flex; align-items:center; gap:6px; min-height:44px; padding:10px 12px; border-radius:var(--r-sm); background:transparent; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; white-space:nowrap; }
-.site-app .site-header-primary .site-nav-link:hover { background:var(--color-surface-2); color:var(--color-ink); }
+.site-app .site-header-primary .site-nav-link:hover,.site-app .site-header-primary .site-nav-link:active { background:var(--color-surface-2); color:var(--color-ink); }
 .site-app .site-header-primary .site-nav-link.is-active { color:var(--color-ink); font-weight:600; }
 .site-app .site-header-primary .site-nav-link.is-active::after,.site-app .site-navigation-more>summary.is-active::after { content:''; position:absolute; left:12px; right:12px; bottom:2px; height:2px; border-radius:var(--r-sm); background:var(--color-brand); }
 .site-app .site-header-primary .site-nav-ask { color:var(--color-brand); }
@@ -145,7 +145,7 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
   /* Labels never break inside a word ("Guide/s" at 320 px, 特大 + 简洁显示): one line, centred on the tab. */
   .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:none; min-height:1.25em; white-space:nowrap; }
   .site-app .site-mobile-nav .site-mobile-item.is-active { background:transparent; color:var(--color-brand-deep); font-weight:600; }
-  .site-app .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon { background:var(--color-selected); }
+  .site-app .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon,.site-app .site-mobile-nav .site-mobile-item:active .site-mobile-icon { background:var(--color-selected); }
   .site-app .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand-deep); }
   .site-app .site-mobile-nav .site-mobile-ask .site-otter { width:2rem; height:2rem; }
   .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { min-height:1.25em; overflow-wrap:normal; white-space:nowrap; }
