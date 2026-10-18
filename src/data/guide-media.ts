@@ -166,6 +166,8 @@ const bySlug: Record<string, [string, string]> = {
   'bay-area-freebies-deals-2026-11': ['official-lowes-firefighting-plane-2026', 'official-target-eos-2026'],
   'bay-area-november-first-half-planner-2026': ['weekend', 'november-community'],
   'bay-area-november-resident-dates-2026': ['everyday', 'train'],
+  // CNT-YEAREND: the holiday hours guide keeps its category illustration as cover; the DMV office photo stands in the DMV / SSA step.
+  'bay-area-holiday-hours-thanksgiving-new-year-2026': ['everyday', 'commons-dmv-eureka-office'],
   'bay-area-birthday-perks': ['freebie-sephora-birthday', 'freebie-sephora-birthday'],
   'bay-area-retail-freebies-family-deals': ['official-lowes-firefighting-plane-2026', 'freebie-ikea-coffee'],
   'bay-area-everyday-free-perks': ['library', 'community-tilden-little-farm'],
@@ -385,7 +387,8 @@ bySlug['bay-area-chinese-language-resource-map'] = ['everyday', 'commons-ggp-sen
  */
 export const GUIDE_EXTRA_INLINE: Readonly<Record<string, readonly (readonly [number, string])[]>> = {
   'california-driver-license-id-preparation-guide': [[3, 'commons-dmv-eureka-office'], [6, 'commons-dmv-sacramento-hq']],
-  'bay-area-social-security-retirement-preparation-guide': [[4, 'commons-ssa-corning-ny']],
+  // CNT-YEAREND: a 2026/2027 figures section now comes before 第四步, so the SSA office photo moves with that step (heading 5).
+  'bay-area-social-security-retirement-preparation-guide': [[5, 'commons-ssa-corning-ny']],
   'bay-area-medicare-hicap-medi-cal-guide': [[2, 'commons-hhs-washington-dc'], [3, 'commons-dhcs-sacramento']],
   'bay-area-senior-transit-clipper-discounts-guide': [[1, 'commons-clipper-embarcadero']],
   'bay-area-rental-scam-guide': [[2, 'commons-nema-sf']],

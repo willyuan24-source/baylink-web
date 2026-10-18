@@ -99,7 +99,7 @@ test('Muni, Lifeline and Caltrain dates stay separate, and the retired MuniMobil
 
 test('minimum wage and CalFresh: one sourced line each, CalFresh presented as current since 10/1/2026', () => {
   const job = guide('bay-area-part-time-job-safety-guide');
-  assert.match(body(job.slug), /2027 年 1 月 1 日起是每小时 \$17\.40/u);
+  assert.match(body(job.slug), /全州最低工资从 2027 年 1 月 1 日起是每小时 \$17\.40/u);
   assert.ok(job.sources.some(source => source.url.includes('dir.ca.gov')));
   const help = guide('bay-area-311-211-local-help-guide');
   assert.match(body(help.slug), /从 2026 年 10 月起、到 2027 年 9 月底的这一年度，每月最高额是 1 人 \$306.*已经在用/u);

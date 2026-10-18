@@ -60,7 +60,8 @@ test('five guide types get a fallback 30 秒看懂 that quotes the article and c
   const help = guideQuickFacts(getGuideBySlug('bay-area-311-211-local-help-guide')!, '2026-10-13');
   assert.deepEqual(help.map(row => row.kind), ['fact', 'phone', 'fee']);
   // A Bay-wide guide leads with a fact for everyone, not the San José-only line; the fee sentence says whose consultation is free.
-  assert.equal(help[0].text, '各县：从 211 Bay Area 或县运营方按城市、邮编找援助。');
+  // CNT-YEAREND: the guide's first figure is now the statewide CalFresh line (a cited body with a number), still a fact for everyone.
+  assert.match(help[0].text, /^加州社会服务部 .*CalFresh/u);
   assert.equal(help[2].context, '211');
   assert.equal(card('bay-area-311-211-local-help-guide'), null, 'the help-lines guide shows its editorial 30 秒看懂');
   // The fallback card itself still dials a short code as typed: render it straight (GuideQuickFacts does not look for a record).

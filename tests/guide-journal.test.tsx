@@ -244,6 +244,8 @@ const firstVisitCoverReuse = new Set([
   // CNT-GUIDES-2 (H71): the three new elder guides have no cover photograph yet. Their cover is their category illustration,
   // which lists render as a coded cover, so they claim no photo from the 311, Muni/Clipper or first-72-hours guides (test below).
   'bay-area-elder-scam-prevention-guide', 'bay-area-senior-transit-clipper-discounts-guide', 'bay-area-chinese-language-resource-map',
+  // CNT-YEAREND: the holiday hours guide has no cover photograph either; its cover is the service category illustration.
+  'bay-area-holiday-hours-thanksgiving-new-year-2026',
 ]);
 const officialPerksCoverReuse = new Set([
   'bay-area-retail-freebies-family-deals',
