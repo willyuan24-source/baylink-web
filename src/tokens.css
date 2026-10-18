@@ -191,11 +191,14 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
    can hover (inline text links underline, buttons darken a step), a press answer at once (scale composes with any
    transform), and the focus ring in lime on the deep brand surfaces. The underline is for inline text links only (0,2,0,
    so a page's `a { text-decoration:none }` reset does not hide it): a link that wraps a block (a card, a postcard, a tile,
-   a nav item) is not underlined as a whole, its own rule underlines its title. The darker hover and the press scale sit in
-   :where() at (0,1,0), so a primitive's own rule (ui.css .96) wins. Inputs, selects and text areas draw their edge in
-   line-control (≥3:1). */
+   a nav item, the logo) is not underlined as a whole, its own rule underlines its title; a card's title link is an inline
+   link and underlines with its title. Checked on the built pages (lanes/UI9-F/tools/scan-block-links.mjs): no anchor this
+   selector matches wraps a div, p, heading or image. ('3d' is quoted: unquoted, an attribute value cannot start with a
+   digit, and the whole selector would be dropped.) The darker hover and the press scale sit in :where() at (0,1,0), so a
+   primitive's own rule (ui.css .96) wins. Inputs, selects and text areas draw their edge in line-control (≥3:1). */
 @media (hover:hover) and (pointer:fine) {
-  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=3d]):not(:has(div,p,h2,h3,h4,img,picture))):hover { text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=card],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=brand],[class*='3d'])):hover,
+  .site-app .ui-card-link:hover { text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
   .site-app :where(:is(button,[role=button],summary,a[class*=button],a[class*=btn]):not(:disabled,.ui-button,.ui-chip,.ui-icon-button):hover) { filter:brightness(.94); }
 }
 .site-app :where(:is(button,[role=button],a[class*=button],a[class*=btn]):not(:disabled):active) { scale:.97; }
