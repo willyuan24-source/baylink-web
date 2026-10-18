@@ -41,9 +41,9 @@ export const fitSize = (text: string, width: number, max: number, min = 28) => M
 export type CardTone = 'family' | 'culture' | 'outdoors' | 'food' | 'seniors' | 'free';
 export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>> = {
   family: { bg: '#FBE5DA', fg: '#8C3A20' }, culture: { bg: '#E4E7F4', fg: '#3B4F8E' }, outdoors: { bg: '#E6EDD9', fg: '#4A6A2A' },
-  food: { bg: '#FBEBD2', fg: '#7E4408' }, seniors: { bg: '#E3EFE7', fg: '#096B54' }, free: { bg: '#E6F2EA', fg: '#123C31' },
+  food: { bg: '#FBEBD2', fg: '#7E4408' }, seniors: { bg: '#E3EFE7', fg: '#075440' }, free: { bg: '#E8F3EC', fg: '#276B44' },
 };
-const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FAF6EF', LINE = '#D9E0DA';
+const INK = '#1E2B26', INK_2 = '#47534E', INK_3 = '#5C645F', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FAF6EF', LINE = '#D9E0DA';
 const WHITE = '#fff', BLACK = '#000', MINT = '#D7E9DF';
 
 export type CardText = { text: string; x: number; y: number; size: number; weight?: 400 | 600 | 700; fill: string; spacing?: number };

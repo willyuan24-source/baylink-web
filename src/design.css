@@ -1,5 +1,4 @@
 /* BAYLINK / Local life, better connected. Shared application design system. */
-:root { --bay-forest:var(--color-brand-deep); --bay-green:var(--color-brand); --bay-lime:var(--color-highlight); --bay-paper:var(--color-surface-2); --bay-line:var(--color-line); --bay-muted:var(--color-ink-3); }
 html { scroll-padding-top:110px; overflow-x:clip; }
 body { background:var(--color-bg); overflow-x:clip; height:auto; min-height:100%; }
 #root { overflow:visible; height:auto; min-height:100dvh; }

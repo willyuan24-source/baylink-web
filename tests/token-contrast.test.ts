@@ -210,3 +210,21 @@ test('简洁显示 only raises: every --fs-* step is at least the standard step,
     for (const [name, size] of standard) assert.ok((simple.get(name) ?? 0) >= size, `${desktop ? 'desktop' : 'phone'} ${name}: simple ${simple.get(name)}rem < standard ${size}rem`);
   }
 });
+
+test('share cards read the category map and the inks of the token sheet (--tc-* pairs, --color-ink*)', async () => {
+  const { CARD_PALETTE } = await import('../src/lib/share-card-svg');
+  const hex = (rgb: number[]) => `#${rgb.map(value => value.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+  const tc = new Map<string, string>();
+  postcss.parse(tokensCss).walkDecls(/^--tc-[a-z]+-(bg|fg)$/, declaration => { if ((declaration.parent as postcss.Rule).selector === ':root') tc.set(declaration.prop, declaration.value.trim()); });
+  for (const [tone, pair] of Object.entries(CARD_PALETTE)) for (const side of ['bg', 'fg'] as const) {
+    const token = /^var\(--color-([a-z0-9-]+)\)$/.exec(tc.get(`--tc-${tone}-${side}`) ?? '')?.[1];
+    assert.ok(token, `--tc-${tone}-${side} reads a palette colour`);
+    assert.equal(pair[side].toUpperCase(), hex(rgbOf(token)), `${tone} ${side}`);
+  }
+  for (const file of ['src/lib/share-card-svg.ts', 'src/lib/weekly-card-svg.ts']) {
+    const source = readFileSync(file, 'utf8');
+    for (const [name, token] of [['INK', 'ink'], ['INK_2', 'ink-2'], ['INK_3', 'ink-3'], ['BRAND', 'brand']]) {
+      assert.equal(new RegExp(`(?:const |, )${name} = '(#[0-9A-Fa-f]{6})'`).exec(source)?.[1].toUpperCase(), hex(rgbOf(token)), `${file} ${name}`);
+    }
+  }
+});

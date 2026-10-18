@@ -98,6 +98,9 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 /* Toast (design.md §4.5): bottom, above the tab bar, so it never covers the header's ••• or search on a phone. */
 .site-toast { position:fixed; z-index:10000; left:0; right:0; bottom:calc(24px + env(safe-area-inset-bottom,0px)); display:flex; justify-content:center; padding:0 16px; pointer-events:none; }
 .site-toast-box { display:flex; align-items:center; gap:10px; max-width:min(36rem,100%); padding:6px 6px 6px 16px; border-radius:var(--r-md); background:var(--color-ink); color:var(--color-surface); box-shadow:var(--chrome-shadow-pop); pointer-events:auto; animation:site-toast-in .2s ease-out; }
+/* The app toast and the save confirmation share this look from two portals: a second one shown at the same time sits one
+   toast higher instead of on top of the first. */
+.site-toast ~ .site-toast { translate:0 calc(-1 * (var(--control-height) + 20px)); }
 .site-toast-box>svg { flex:none; }
 .site-toast-message { flex:1; min-width:0; padding-block:8px; font-size:var(--text-fact); font-weight:400; line-height:1.5; }
 .site-toast-action { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); padding:0 14px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
