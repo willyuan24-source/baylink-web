@@ -26,6 +26,12 @@ const EXEMPT: Readonly<Record<string, string>> = {
   'sfpl-richmond-lego-oct7-2026': 'ended 10/7, before the 10/13 policy read; the archived card keeps the wording it was published with',
   'sfpl-ocean-view-stem-oct8-2026': 'ended 10/8, before the 10/13 policy read; the archived card keeps the wording it was published with',
   'sfpl-garden-green-bin-oct10-2026': 'ended 10/10, before the 10/13 policy read; the archived card keeps the wording it was published with',
+  // CNT-WEEKEND-1128 (GPT editor review of 11/28–12/13, 2026-10-16; pages re-read 2026-10-17): a Friends-of-the-library sale is
+  // not a library programme, the policy says nothing about it, and these sale pages state no entry rule.
+  'sjpl-tully-friends-book-sale-dec5-2026': 'Friends of the Tully Branch sale: the page states no admission rule and the library programme policy does not cover sales',
+  'sccl-gilroy-big-book-sale-dec12-2026': 'Friends of the Gilroy Library sale: the page prices the books but states no admission rule; the programme policy does not cover sales',
+  'scl-santa-rosa-friends-book-sale-dec-2026': 'Friends of the Santa Rosa Libraries sale: the page says "Open to the Public", which is not a statement about an entry fee',
+  'scl-guerneville-winter-wreath-sale-dec5-2026': 'River Friends wreath, book and bake sale: the page states no admission rule; the programme policy does not cover sales',
 };
 const HAN = /[㐀-鿿]/u;
 const host = (url: string | undefined) => { try { return new URL(url ?? '').hostname.replace(/^www\./u, ''); } catch { return ''; } };
@@ -53,8 +59,10 @@ test('H69 rule: free programmes of those systems are $0 for the planner', () => 
 
 test('H69 rule: the labels #41 introduced read the same in English wherever this batch uses them', async () => {
   await loadLocale('en');
+  // CNT-WEEKEND-1128: the 2026-10-13 batch's Friends sales now read 活动页没有写入场费 (EXEMPT above), so the sale label is
+  // looked for from the 2026-10-12 batch on, where #41 first used it.
   for (const label of ['图书馆活动免费', '图书馆活动免费；需在图书馆网站报名', '图书馆活动免费；随到随参加', '免费入场；书按价购买']) {
-    assert.ok(policyEvents.some(event => event.costLabel === label && /^(?:smcl|sjpl|sccl|marin|scl)-/u.test(event.id) && event.verifiedAt >= '2026-10-13'), label);
+    assert.ok(policyEvents.some(event => event.costLabel === label && /^(?:smcl|sjpl|sccl|marin|scl)-/u.test(event.id) && event.verifiedAt >= '2026-10-12'), label);
     assert.doesNotMatch(translateText(label, 'en'), HAN, label);
   }
 });

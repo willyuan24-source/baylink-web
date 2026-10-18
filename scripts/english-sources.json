@@ -143,5 +143,6 @@
   "src/data/supply-2026-10-15-en.json",
   "src/data/supply-2026-10-16-en.json",
   "src/data/chinese-decjan-2026-10-16-en.json",
-  "src/data/holiday-hours-2026-en.json"
+  "src/data/holiday-hours-2026-en.json",
+  "src/data/weekend-1128-2026-10-17-en.json"
 ]

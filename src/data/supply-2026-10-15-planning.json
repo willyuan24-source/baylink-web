@@ -890,7 +890,7 @@
   },
   "fairyland-fairy-winterland-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 23,
       "minAge": null,
       "reservation": "required",
       "setting": "outdoor",
@@ -1330,9 +1330,9 @@
   },
   "grace-cathedral-sing-merry-christmas-2026": {
     "planning": {
-      "admissionUsd": null,
+      "admissionUsd": 18,
       "minAge": null,
-      "reservation": "unknown",
+      "reservation": "required",
       "setting": "indoor",
       "schedule": {
         "sourceUrl": "https://gracecathedral.org/series/sing-you-a-merry-christmas-2/",
@@ -4834,7 +4834,7 @@
         "sourceUrl": "https://smcl.bibliocommons.com/events/6a3c6a55cf21930366acade9",
         "verifiedAt": "2026-10-15",
         "validFrom": "2026-11-21",
-        "validThrough": "2027-01-02",
+        "validThrough": "2026-12-19",
         "sessions": [
           {
             "date": "2026-11-21",
@@ -4842,17 +4842,7 @@
             "end": "16:00"
           },
           {
-            "date": "2026-12-05",
-            "start": "14:00",
-            "end": "16:00"
-          },
-          {
             "date": "2026-12-19",
-            "start": "14:00",
-            "end": "16:00"
-          },
-          {
-            "date": "2027-01-02",
             "start": "14:00",
             "end": "16:00"
           }
