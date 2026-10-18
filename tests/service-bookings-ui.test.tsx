@@ -17,9 +17,9 @@ const { ServiceBookingsDashboard } = await import('../src/features/bookings/Serv
 const { MyWeekBookings } = await import('../src/features/bookings/MyWeekBookings');
 const { BookingReceipt } = await import('../src/features/bookings/booking-shared');
 const { bayAreaBookingDate, bookingDisplayStatus, parseAvailability, parseBooking, serviceBookings } = await import('../src/lib/service-bookings');
-// The provider panel refuses to draft a day before today in the Bay Area (by the real clock: `new Date()`, which the Date.now mock
-// below does not change), so the drafting tests pick days counted from that today; fixed dates such as 2026-10-17 started
-// failing once that day had passed.
+// The provider panel and the schedule-text preview (draftServiceAvailability → serviceToday()) refuse a day before today in the
+// Bay Area by the real clock (`new Date()`, which the Date.now mock below does not change), so the drafting tests pick days
+// counted from that today; fixed dates such as 2026-10-17 or 2026-10-20 start failing once that day has passed.
 const draftDay = (daysAhead: number) => bayAreaBookingDate(new Date(new Date().getTime() + daysAhead * 86_400_000));
 const { setLocale } = await import('../src/i18n/locale');
 const { api } = await import('../src/lib/api');
@@ -202,10 +202,10 @@ test('schedule text is previewed and applied to the provider draft without publi
   t.mock.method(api, 'request', async (_path: string, options: RequestInit = {}) => { if (options.method) mutations++; return availability; });
   const view = render(panel(provider)); await view.findByText('批量添加可约时间');
   const details = view.getByText('快速生成排期草稿').closest('details')!; details.open = true;
-  fireEvent.change(view.getByLabelText('输入排期'), { target: { value: '2026-10-20 09:00-12:00' } });
+  fireEvent.change(view.getByLabelText('输入排期'), { target: { value: `${draftDay(2)} 09:00-12:00` } });
   fireEvent.click(view.getByRole('button', { name: '预览具体日期' }));
   fireEvent.click(view.getByRole('button', { name: '加入待发布时段' }));
-  assert.equal(mutations, 0); assert.ok(view.getByText('2026-10-20 · 09:00–12:00'));
+  assert.equal(mutations, 0); assert.ok(view.getByText(`${draftDay(2)} · 09:00–12:00`));
   assert.ok(view.getByRole('button', { name: '发布这些时段' }));
 });
 
