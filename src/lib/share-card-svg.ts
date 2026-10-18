@@ -41,7 +41,7 @@ export const fitSize = (text: string, width: number, max: number, min = 28) => M
 export type CardTone = 'family' | 'culture' | 'outdoors' | 'food' | 'seniors' | 'free';
 export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>> = {
   family: { bg: '#FBE5DA', fg: '#8C3A20' }, culture: { bg: '#E4E7F4', fg: '#3B4F8E' }, outdoors: { bg: '#E6EDD9', fg: '#4A6A2A' },
-  food: { bg: '#FBEBD2', fg: '#7E4408' }, seniors: { bg: '#E3EFE7', fg: '#075440' }, free: { bg: '#E6F2EA', fg: '#1E6B43' },
+  food: { bg: '#FBEBD2', fg: '#7E4408' }, seniors: { bg: '#E3EFE7', fg: '#096B54' }, free: { bg: '#E6F2EA', fg: '#123C31' },
 };
 const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FAF6EF', LINE = '#D9E0DA';
 const WHITE = '#fff', BLACK = '#000', MINT = '#D7E9DF';
@@ -192,7 +192,7 @@ export function renderHubCardSvg(model: HubCardModel, qr: CardQr, logo: string, 
     const badgeWidth = row.badge ? Math.ceil(textWidth(row.badge, 20)) + 28 : 0;
     const text = cardLines(row.text, right - left - (badgeWidth ? badgeWidth + 16 : 26), 26, 2);
     if (y + (text.length - 1) * 34 > 420) return '';
-    const markup = `${row.badge ? `<rect x="${left}" y="${y - 26}" width="${badgeWidth}" height="36" rx="10" fill="#EAF5EF"/>${draw({ text: row.badge, x: left + 14, y: y - 1, size: 20, weight: 700, fill: BRAND })}` : `<circle cx="${left + 8}" cy="${y - 9}" r="6" fill="${BRAND}"/>`}
+    const markup = `${row.badge ? `<rect x="${left}" y="${y - 26}" width="${badgeWidth}" height="36" rx="10" fill="#E3EFE7"/>${draw({ text: row.badge, x: left + 14, y: y - 1, size: 20, weight: 700, fill: BRAND })}` : `<circle cx="${left + 8}" cy="${y - 9}" r="6" fill="${BRAND}"/>`}
     ${lines(draw, text, left + (badgeWidth ? badgeWidth + 16 : 26), y, 26, 34, 600, INK)}`;
     y += text.length * 34 + 30;
     return markup;

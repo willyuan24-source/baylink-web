@@ -11,10 +11,10 @@
  */
 
 /* Provenance badge: top-left on every cover, text only from getImageProvenance(). */
-.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:6px; background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
+.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
 
 /* Stickers sit on images: date bottom-left, price bottom-right. */
-.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:4px 8px; border-radius:6px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:4px 8px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .ui-sticker[data-tone=free] { background:var(--color-highlight); color:var(--color-brand-deep); }
 .ui-sticker[data-tone=mixed] { background:var(--tc-free-bg); color:var(--tc-free-fg); }
 .ui-sticker[data-tone=danger] { background:var(--color-danger-tint); color:var(--color-danger); }
@@ -40,7 +40,7 @@
 .ui-button[data-block] { width:100%; }
 /* H62: an icon button is a full 44px target (48 in 简洁显示), not a 40px circle with a stretched hit area. */
 .ui-icon-button { position:relative; display:inline-grid; place-items:center; flex:none; width:var(--control-height); height:var(--control-height); padding:0; border:1px solid var(--color-line-control); border-radius:var(--r-circle); background:var(--color-surface); color:var(--color-ink); cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.ui-icon-button::before { content:""; position:absolute; inset:-2px; border-radius:50%; }
+.ui-icon-button::before { content:""; position:absolute; inset:-2px; border-radius:var(--r-circle); }
 .ui-icon-button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); }
 .ui-icon-button>svg { width:1.25rem; height:1.25rem; }
 @media (min-width:1024px) { .ui-button { min-height:var(--control-height); } }
@@ -57,7 +57,7 @@
 @media (min-width:1024px) { .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } }
 
 /* Status chip: a fact about the item, not a control. */
-.ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:6px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; }
+.ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; }
 .ui-status[data-tone=success] { background:var(--color-success-tint); color:var(--color-success); }
 .ui-status[data-tone=info] { background:var(--color-info-tint); color:var(--color-info); }
 .ui-status[data-tone=warning] { background:var(--color-warning-tint); color:var(--color-warning); }
@@ -65,8 +65,8 @@
 .ui-status[data-tone=ended] { background:var(--color-surface-2); color:var(--color-ink-3); }
 
 /* ♡ save: a separate button stacked above the card link, never nested inside it. */
-.ui-save { position:relative; display:inline-grid; place-items:center; width:2rem; height:2rem; padding:0; border:0; border-radius:50%; background:rgb(255 255 255 / .9); color:var(--color-ink); cursor:pointer; }
-.ui-save::before { content:""; position:absolute; inset:-6px; border-radius:50%; }
+.ui-save { position:relative; display:inline-grid; place-items:center; width:2rem; height:2rem; padding:0; border:0; border-radius:var(--r-circle); background:rgb(255 255 255 / .9); color:var(--color-ink); cursor:pointer; }
+.ui-save::before { content:""; position:absolute; inset:-6px; border-radius:var(--r-circle); }
 .ui-save>svg { width:1.25rem; height:1.25rem; }
 .ui-save[aria-pressed=true] { color:var(--color-brand); }
 .ui-save[aria-pressed=true]>svg { fill:currentColor; animation:ui-save-pulse var(--dur-4) var(--ease-out); }
@@ -83,7 +83,7 @@
 }
 
 /* Covers. One ratio per feed; a single-column feed switches every cover to 3:2. */
-.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:16px; }
+.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:var(--r-lg); }
 :is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
@@ -173,7 +173,7 @@
 }
 @container ui-type-cover (max-height:12rem) { .ui-type-cover__title,.ui-type-cover__note { -webkit-line-clamp:1; } }
 .ui-type-cover[data-size=mini] .ui-type-cover__body { gap:0; padding:8px; justify-content:center; align-items:center; text-align:center; }
-.ui-type-cover[data-size=mini],.ui-row-card__thumb :is(.ui-cover,.ui-type-cover) { border-radius:10px; }
+.ui-type-cover[data-size=mini],.ui-row-card__thumb :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-md); }
 .ui-type-cover[data-size=mini] .ui-type-cover__date { justify-content:center; font-size:1.375rem; }
 .ui-type-cover[data-size=mini] .ui-type-cover__date-small { flex-basis:100%; font-size:var(--text-caption); }
 @supports not (container-type:size) {
@@ -207,10 +207,10 @@
 
 /* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
 .ui-feed-card { position:relative; display:flex; flex-direction:column; gap:4px; min-width:0; }
-.ui-feed-card__media { position:relative; order:-1; margin-bottom:4px; border-radius:16px; }
+.ui-feed-card__media { position:relative; order:-1; margin-bottom:4px; border-radius:var(--r-lg); }
 .ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; padding-block:2px; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
 .ui-card-link { color:inherit; text-decoration:none; }
-.ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:16px; }
+.ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:var(--r-lg); }
 .ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .ui-feed-card__meta,.ui-feed-card__trust { margin:0; font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ui-feed-card__meta { color:var(--color-ink-2); }
@@ -241,10 +241,10 @@
 
 /* Row card: lists, calendar, search, saved items. One trailing action only. */
 .ui-row-card { position:relative; display:grid; grid-template-columns:5.5rem minmax(0, 1fr) auto; grid-template-areas:"thumb body trailing"; gap:12px; align-items:start; min-height:7rem; padding:12px 0; border-bottom:1px solid var(--color-line); }
-.ui-row-card__thumb { grid-area:thumb; width:5.5rem; height:5.5rem; overflow:hidden; border-radius:10px; }
+.ui-row-card__thumb { grid-area:thumb; width:5.5rem; height:5.5rem; overflow:hidden; border-radius:var(--r-md); }
 .ui-row-card__thumb>* { height:100%; }
 .ui-row-card__body { grid-area:body; display:flex; flex-direction:column; gap:2px; min-width:0; }
-.ui-row-card .ui-card-link::after { border-radius:10px; }
+.ui-row-card .ui-card-link::after { border-radius:var(--r-md); }
 .ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:600; font-variant-numeric:tabular-nums; }
 .ui-row-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.0625rem; line-height:1.412; font-weight:600; }
 .ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -260,11 +260,11 @@
 .ui-tabs[data-sticky] { position:sticky; top:var(--header-height, 0px); z-index:40; background:rgb(255 255 255 / .96); }
 .ui-tabs__item { position:relative; display:inline-flex; align-items:center; flex:none; min-height:var(--control-height); padding:0 12px; border:0; background:transparent; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; cursor:pointer; }
 .ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:600; }
-.ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:2px; background:var(--color-brand); }
-.ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:999px; background:var(--color-surface-2); }
+.ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:var(--r-sm); background:var(--color-brand); }
+.ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:var(--r-pill); background:var(--color-surface-2); }
 /* The thumb is drawn 4px inside the track; ::before gives each radio the track's full height (44px, 48 in simple mode)
    and half of each 4px gap, so no tap on the control lands between radios. No overflow on the item: it would clip it. */
-.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:999px; background:transparent; color:var(--color-ink-2); font-size:.9375rem; line-height:1.25; font-weight:400; cursor:pointer; }
+.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:.9375rem; line-height:1.25; font-weight:400; cursor:pointer; }
 .ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .ui-segmented__item[aria-checked=true] { border-color:var(--color-line-strong); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
@@ -275,7 +275,7 @@
 /* Exit (Sheet.tsx adds .is-closing and unmounts when the exit ends): the panel slides back and the scrim fades. */
 .ui-sheet-backdrop.is-closing { animation:ui-fade-out var(--dur-3) var(--ease-in) forwards; }
 .ui-sheet-backdrop.is-closing .ui-sheet { animation:ui-sheet-down var(--dur-3) var(--ease-in) forwards; }
-.ui-sheet__handle { flex:none; width:36px; height:4px; margin:8px auto 0; border-radius:999px; background:var(--color-line-strong); }
+.ui-sheet__handle { flex:none; width:36px; height:4px; margin:8px auto 0; border-radius:var(--r-pill); background:var(--color-line-strong); }
 .ui-sheet__header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 16px 8px 20px; }
 .ui-sheet__title { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.5; font-weight:600; }
 .ui-sheet__body { flex:1 1 auto; overflow-y:auto; padding:4px 20px 20px; overscroll-behavior:contain; }
@@ -298,9 +298,9 @@
 
 /* Skeleton: same geometry as the card it stands in for. */
 .ui-skeleton-card { display:flex; flex-direction:column; gap:8px; }
-.ui-skeleton { display:block; border-radius:6px; background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer 1.2s linear infinite; }
-.ui-skeleton[data-shape=cover] { aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:16px; }
-.ui-skeleton[data-shape=thumb] { width:5.5rem; height:5.5rem; border-radius:10px; }
+.ui-skeleton { display:block; border-radius:var(--r-sm); background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer 1.2s linear infinite; }
+.ui-skeleton[data-shape=cover] { aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:var(--r-lg); }
+.ui-skeleton[data-shape=thumb] { width:5.5rem; height:5.5rem; border-radius:var(--r-md); }
 .ui-skeleton[data-shape=line] { height:calc(.9375rem * var(--reading-scale)); }
 .ui-skeleton[data-shape=line][data-width=short] { width:60%; }
 .ui-skeleton[data-shape=meta] { width:45%; height:var(--text-caption); }
@@ -308,7 +308,7 @@
 
 /* Empty and error states: one next step, no dashed boxes. */
 .ui-state { display:flex; flex-direction:column; align-items:center; gap:8px; padding:24px; text-align:center; }
-.ui-state__icon { display:grid; place-items:center; width:4.5rem; height:4.5rem; margin-bottom:8px; border-radius:50%; background:var(--color-brand-tint); color:var(--color-brand); }
+.ui-state__icon { display:grid; place-items:center; width:4.5rem; height:4.5rem; margin-bottom:8px; border-radius:var(--r-circle); background:var(--color-brand-tint); color:var(--color-brand); }
 .ui-state__icon>svg { width:2rem; height:2rem; }
 .ui-state[data-kind=error] .ui-state__icon { background:var(--color-danger-tint); color:var(--color-danger); }
 .ui-state__title { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
@@ -342,7 +342,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc(100% - 16px); }
 .ui-carousel__controls { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px; }
 .ui-carousel__dots { display:inline-flex; align-items:center; gap:6px; }
-.ui-carousel__dots>span { width:6px; height:6px; border-radius:999px; background:var(--color-line-strong); }
+.ui-carousel__dots>span { width:6px; height:6px; border-radius:var(--r-pill); background:var(--color-line-strong); }
 .ui-carousel__dots>span[data-active] { width:18px; background:var(--color-brand); }
 .ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; }
 .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:none; }
@@ -356,8 +356,8 @@ html[data-simple] .ui-save::before { inset:-8px; }
 
 /* Hero card 4:5 (本周封面 / 编辑精选): text on the photo only on the bottom scrim. */
 .ui-hero-card { position:relative; display:flex; flex-direction:column; gap:8px; min-width:0; }
-.ui-hero-card__media { position:relative; overflow:hidden; border-radius:24px; }
-.ui-hero-card__media :is(.ui-cover,.ui-type-cover) { border-radius:24px; }
+.ui-hero-card__media { position:relative; overflow:hidden; border-radius:var(--r-xl); }
+.ui-hero-card__media :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); }
 .ui-hero-card__scrim { position:absolute; inset:0; z-index:1; background:var(--scrim-photo); pointer-events:none; }
 .ui-hero-card[data-overlay] .ui-stickers { display:none; }
 .ui-hero-card__text { display:flex; flex-direction:column; gap:8px; padding-top:8px; }
@@ -369,12 +369,12 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
-.ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:6px; background:var(--color-badge-bg); text-wrap:balance; }
+.ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); text-wrap:balance; }
 .ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.5rem; line-height:1.333; font-weight:600; }
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
-.ui-hero-card .ui-card-link::after { border-radius:24px; }
+.ui-hero-card .ui-card-link::after { border-radius:var(--r-xl); }
 .ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
-.ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:999px; background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:1.429; font-variant-numeric:tabular-nums; }
+.ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:var(--r-pill); background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:1.429; font-variant-numeric:tabular-nums; }
 .ui-hero-card__save { position:absolute; top:8px; right:8px; z-index:3; }
 .ui-hero-card__reason { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; }

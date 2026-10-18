@@ -8,7 +8,7 @@
 .reader-freshness-line p{margin:0}
 .reader-freshness-line a,.content-review-notice.reader-freshness-hard a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-weight:600;text-decoration:underline;text-underline-offset:.1875rem}
 .reader-freshness-line.is-hard>svg{color:var(--color-danger)}
-.content-review-notice.reader-freshness-hard{margin:1.25rem 0;padding:1rem;border:.0625rem solid var(--color-danger);border-radius:12px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);line-height:1.7}
+.content-review-notice.reader-freshness-hard{margin:1.25rem 0;padding:1rem;border:.0625rem solid var(--color-danger);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-body);line-height:1.7}
 .content-review-notice.reader-freshness-hard h2{margin:0 0 .25rem;font-size:var(--text-body);font-weight:700;color:var(--color-danger)}
 .content-review-notice.reader-freshness-hard p{margin:0}
 .guide-date-meta{display:flex;flex-wrap:wrap;align-items:center;column-gap:1.25rem;margin:.5rem 0 0;font-size:var(--text-fact);line-height:1.6;color:var(--color-ink-2)}
@@ -63,7 +63,7 @@ html[data-date-stale~="day"] .site-boot-main [data-date-scope="day"]::before,
 html[data-date-stale~="day"] main[data-prerender-path] .home-head__dateline::before,
 html[data-date-stale~="day"] .site-boot-main .home-head__dateline::before,
 html[data-date-stale~="day"] main[data-prerender-path] .home-offers::before,
-html[data-date-stale~="day"] .site-boot-main .home-offers::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:12px;background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
+html[data-date-stale~="day"] .site-boot-main .home-offers::before{content:"";position:absolute;inset:0;z-index:1;visibility:visible;border-radius:var(--r-md);background:linear-gradient(90deg,transparent 0%,var(--color-line) 50%,transparent 100%) 0 0/200% 100%,repeating-linear-gradient(180deg,var(--color-surface-2) 0 12rem,transparent 12rem 13rem);animation:date-guard-shimmer 1.2s linear infinite,date-guard-clear 0s 15s forwards}
 html[data-date-stale~="weekend"] main[data-prerender-path] [data-date-scope] [data-date-scope]::before,
 html[data-date-stale~="weekend"] .site-boot-main [data-date-scope] [data-date-scope]::before,
 html[data-date-stale~="day"] main[data-prerender-path] [data-date-scope="day"] [data-date-scope]::before,

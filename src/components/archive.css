@@ -7,7 +7,7 @@
 .archive-jump a:hover,.archive-links a:hover{text-decoration-color:currentColor}
 .archive-group{margin-top:32px;scroll-margin-top:80px}
 .archive-group>h2{margin:0 0 8px;color:var(--color-ink);font-size:1.375rem;line-height:1.364;font-weight:600}
-.archive-group details{margin-top:8px;border:1px solid var(--color-line);border-radius:12px;background:var(--color-surface)}
+.archive-group details{margin-top:8px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface)}
 .archive-group summary{display:list-item;min-height:var(--control-height);padding:10px 16px;cursor:pointer;color:var(--color-ink);font-size:var(--text-fact);font-weight:600}
 .archive-list{margin:0;padding:0 16px;list-style:none}
 .archive-list>li{display:grid;gap:4px;padding:12px 0;border-top:1px solid var(--color-line)}

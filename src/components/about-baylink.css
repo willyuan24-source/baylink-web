@@ -9,7 +9,7 @@
 .about-list>li:last-child{border-bottom:1px solid var(--color-line)}
 .about-list h3{margin:0;color:var(--color-ink);font-size:var(--text-card);line-height:1.5;font-weight:600}
 .about-list p{margin:4px 0 0;color:var(--color-ink-2);font-size:var(--text-body);line-height:1.625}
-.about-icon{display:grid;place-items:center;width:2.75rem;height:2.75rem;border-radius:50%;background:var(--color-brand-tint);color:var(--color-brand)}
+.about-icon{display:grid;place-items:center;width:2.75rem;height:2.75rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .about-icon>svg{width:1.375rem;height:1.375rem}
 .about-icon>img{width:1.75rem;height:1.75rem}
 .about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--text-fact);line-height:1.5;font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em;cursor:pointer}

@@ -7,9 +7,9 @@
 .planner-handoff-note svg { flex-shrink:0; margin-top:2px; }
 .planner-applied-filters { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin:0 0 15px; font-size:.6875rem; }
 .planner-applied-filters>span { color:var(--color-ink-3); margin-right:2px; }
-.planner-applied-filters>strong { font-weight:400; border:1px solid var(--color-line-strong); padding:5px 9px; border-radius:16px; color:var(--color-ink-3); background:var(--color-brand-tint); }
-.planner-stop-request { padding:9px 12px; border:1px solid var(--color-line-strong); border-radius:8px; font-size:.75rem; color:var(--color-ink-3); }
-.planner-result-notes { margin-bottom:18px; border:1px solid var(--color-line); border-radius:12px; padding:0 14px; background:var(--color-brand-tint); }
+.planner-applied-filters>strong { font-weight:400; border:1px solid var(--color-line-strong); padding:5px 9px; border-radius:var(--r-lg); color:var(--color-ink-3); background:var(--color-brand-tint); }
+.planner-stop-request { padding:9px 12px; border:1px solid var(--color-line-strong); border-radius:var(--r-sm); font-size:.75rem; color:var(--color-ink-3); }
+.planner-result-notes { margin-bottom:18px; border:1px solid var(--color-line); border-radius:var(--r-md); padding:0 14px; background:var(--color-brand-tint); }
 .planner-result-notes summary { min-height:44px; align-content:center; cursor:pointer; color:var(--color-ink-3); font-size:.75rem; font-weight:600; }
 .planner-result-notes .planner-note { margin:0 0 10px; padding:8px 0; background:transparent; }
 .planner-editor .planner-account { margin-top:16px; padding:12px; font-size:.6875rem; }

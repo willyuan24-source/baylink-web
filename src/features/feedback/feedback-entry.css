@@ -8,7 +8,7 @@
 @media(max-width:767px){.feedback-report-row{padding:0 1.125rem 2rem}}
 .baybay-downvote{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.5rem;font-size:var(--text-fact);color:var(--color-ink-2)}
 .baybay-downvote>span{flex-basis:100%;font-weight:600;color:var(--color-ink)}
-.baybay-downvote button{min-height:var(--control-height);padding:.375rem .875rem;border:1px solid var(--color-line-strong);border-radius:999px;background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
+.baybay-downvote button{min-height:var(--control-height);padding:.375rem .875rem;border:1px solid var(--color-line-control);border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
 .baybay-downvote button[disabled]{opacity:.6}
 .baybay-downvote-failed{flex-basis:100%;margin:0;font-size:var(--text-fact);color:var(--color-danger)}
 .baybay-downvote-done{margin:.5rem 0 0;font-size:var(--text-fact);color:var(--color-ink-2)}

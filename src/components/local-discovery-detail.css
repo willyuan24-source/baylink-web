@@ -32,10 +32,10 @@
 .local-discovery-detail .detail-head h1 .title-keep { white-space:nowrap; }
 .local-discovery-detail .detail-brand { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; }
 .local-discovery-detail .detail-dek { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.647; }
-.local-discovery-detail .detail-note { margin-block:12px 0; padding:12px 14px; border-radius:10px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+.local-discovery-detail .detail-note { margin-block:12px 0; padding:12px 14px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 
 /* 一眼看懂: "when" and "where" across the card (dates and venues run long), then two columns (one at 大/特大 and in 简洁显示 on a phone). */
-.local-discovery-detail .detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px; margin-block:16px 0; padding:16px; border-radius:16px; background:var(--color-surface-2); }
+.local-discovery-detail .detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px; margin-block:16px 0; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); }
 .local-discovery-detail .detail-fact { min-width:0; }
 .local-discovery-detail .detail-fact:is([data-fact=when],[data-fact=where]) { grid-column:1 / -1; }
 .local-discovery-detail .detail-fact dt { display:flex; align-items:center; gap:6px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.4; }
@@ -55,23 +55,23 @@
 .local-discovery-detail .detail-body p { overflow-wrap:break-word; }
 /* The venue's archive photo (too old to be the cover): 3:2, r16, its badge, then its caption and credit. */
 .local-discovery-detail .detail-photo { margin:20px 0 0; }
-.local-discovery-detail .detail-photo .ui-cover { width:100%; border-radius:16px; overflow:hidden; }
+.local-discovery-detail .detail-photo .ui-cover { width:100%; border-radius:var(--r-lg); overflow:hidden; }
 .local-discovery-detail .detail-photo .detail-credit { margin-top:8px; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul)>li { display:flex; align-items:flex-start; gap:12px; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul)>li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.25rem; color:var(--color-brand); }
-.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:700; }
+.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:700; }
 /* An unnumbered "怎么领 · 怎么用" line: a dot centred on the first line of its text. */
-.local-discovery-detail .detail-steps ul>li::before { content:""; flex:none; width:.4375rem; height:.4375rem; margin:calc(var(--text-reading) * .875 - .21875rem) .40625rem 0; border-radius:999px; background:var(--color-brand); }
+.local-discovery-detail .detail-steps ul>li::before { content:""; flex:none; width:.4375rem; height:.4375rem; margin:calc(var(--text-reading) * .875 - .21875rem) .40625rem 0; border-radius:var(--r-pill); background:var(--color-brand); }
 .local-discovery-detail .detail-steps__note { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) p { margin:0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.75; }
 .local-discovery-detail .detail-together .event-participation { margin:0; padding:0; border:0; }
-.local-discovery-detail .detail-together .event-participation-buttons button { min-height:var(--control-height); padding:0 16px; border-radius:10px; font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-together .event-participation-buttons button { min-height:var(--control-height); padding:0 16px; border-radius:var(--r-md); font-size:var(--text-body); font-weight:600; }
 .local-discovery-detail .detail-together .event-participation-note { margin-top:8px; color:var(--color-ink-3); font-size:var(--text-caption); }
-.local-discovery-detail .detail-squad { display:flex; align-items:center; gap:10px; min-height:3rem; margin-top:12px; padding:0 14px; border-radius:10px; background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-squad { display:flex; align-items:center; gap:10px; min-height:3rem; margin-top:12px; padding:0 14px; border-radius:var(--r-md); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
 .local-discovery-detail .detail-squad span { flex:1; min-width:0; }
 .local-discovery-detail .detail-squad svg { flex:none; width:1.25rem; height:1.25rem; }
-.local-discovery-detail .outing-inspiration-link { margin-top:24px; border-radius:10px; }
+.local-discovery-detail .outing-inspiration-link { margin-top:24px; border-radius:var(--r-md); }
 .local-discovery-detail .detail-source { margin-top:32px; padding-top:4px; border-top:1px solid var(--color-line); }
 .local-discovery-detail .detail-source h2 { margin-top:20px; }
 /* 这条信息有误？ sits under the source line, flush with the column: the shared row's own page padding (feedback-entry.css,
@@ -88,10 +88,10 @@
 .local-discovery-detail .detail-family .family-link__status { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .local-discovery-detail .detail-family .family-link__status:empty { display:none; }
 .local-discovery-detail .detail-family .ui-button { min-height:var(--control-height); font-size:var(--text-body); }
-.local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 /* H29: the share, 公开想去 and 一起去 buttons (shared components) take the secondary button look here — white, the control border,
    ink text, radius 10 — so a detail page shows two button looks (primary, secondary), not six. A pressed 公开想去 is primary. */
-.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
 .local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button):hover { border-color:var(--color-ink-3); background:var(--color-surface); }
 .local-discovery-detail .detail-together .event-participation-buttons button:is(.is-selected,[aria-pressed=true]) { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
 .local-discovery-detail :is(.detail-share .editorial-share-buttons,.detail-together .event-participation-buttons) button>svg { color:var(--color-brand); }
@@ -129,7 +129,7 @@
   .local-discovery-detail .detail-actions .detail-action--official>svg { order:-1; }
   .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-width:var(--control-height); min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
   .local-discovery-detail .detail-actions .saves-control { height:100%; }
-  .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:10px; font-size:var(--text-body); }
+  .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:var(--r-md); font-size:var(--text-body); }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { height:100%; }
   .local-discovery-detail .detail-actions .detail-actions__primary .saves-day__error { display:none; }
   .local-discovery-detail .detail-actions .detail-actions__primary { container:detail-primary / inline-size; font-size:var(--text-body); }
@@ -187,12 +187,12 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail .detail-main--top { grid-area:top; }
   .local-discovery-detail .detail-main--body { grid-area:body; }
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
-  .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:24px; overflow:hidden; }
+  .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); overflow:hidden; }
   .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { height:9rem; }
-  .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:3.5rem; border-radius:16px; }
+  .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:3.5rem; border-radius:var(--r-lg); }
   .local-discovery-detail .detail-head { padding-top:20px; }
   .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }
-  .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+  .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
   .local-discovery-detail .detail-actions>*,.local-discovery-detail .detail-actions .saves-control .saves-toggle { width:100%; }
   .local-discovery-detail .detail-actions .detail-actions__primary { order:-1; }
   /* H29: one size for every secondary and primary button on the page (the shared <Button> desktop size: 44px and 15px; 48px and the 16px floor in 简洁显示), so

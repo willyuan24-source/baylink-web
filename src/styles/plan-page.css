@@ -10,13 +10,13 @@
 .planner-page .event-import-entry { border:0; background:var(--color-surface-2); color:var(--color-ink); }
 .planner-page .event-import-entry p { color:var(--color-ink-2); font-size:var(--text-fact); }
 .planner-page .event-import-entry .event-import-icon { color:var(--color-brand); }
-.planner-page .event-import-entry>button { min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
+.planner-page .event-import-entry>button { min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
 /* Desktop: every button on the page, the import entry's included, at the UI's 15/44 (after the rules above, same specificity). */
 @media (min-width:1024px) { .planner-page :is(.ui-button,.event-import-entry>button) { min-height:var(--control-height); font-size:.9375rem; } }
 .planner-page .ui-page-header { margin-bottom:20px; }
 /* Everything below the header, in one slot that adds no box: the workspace renders once the planner catalog is in (WEB-PLAN-DATA). */
 .planner-data-slot { display:contents; }
-.planner-offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:12px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-offline { display:flex; align-items:flex-start; gap:8px; margin:0 0 16px; padding:12px 16px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-offline>svg { flex:none; margin-top:2px; }
 
 /* H54 本周末精选 above the planner (features/plan/PlanWeekendPicks.tsx): one short row of feed cards, so the planner stays
@@ -44,7 +44,7 @@
 @media (min-width:1024px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+4) { display:none; } }
 
 /* 这一天的安排: first whenever the plan has stops, with its save state (FC3-01). */
-.planner-plan-overview { margin:0 0 24px; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); scroll-margin-top:96px; }
+.planner-plan-overview { margin:0 0 24px; padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); scroll-margin-top:96px; }
 .planner-overview-head { display:flex; flex-direction:column; align-items:flex-start; gap:8px; }
 .planner-overview-head>h2 { margin:0; }
 .planner-overview-head>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -54,7 +54,7 @@
 .planner-plan-overview .planner-overview-error { margin:0; }
 .planner-plan-overview>p { margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-plan-overview dl { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin:16px 0; }
-.planner-plan-overview dl>div { min-width:0; padding:12px; border-radius:12px; background:var(--color-surface-2); }
+.planner-plan-overview dl>div { min-width:0; padding:12px; border-radius:var(--r-md); background:var(--color-surface-2); }
 .planner-plan-overview dt { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
 .planner-plan-overview dd { margin:4px 0 0; color:var(--color-ink); font-size:var(--text-card); line-height:1.4; font-weight:700; font-variant-numeric:tabular-nums; }
 .planner-plan-overview ol { display:flex; flex-wrap:wrap; gap:4px 16px; margin:12px 0 0; padding:0; list-style:decimal inside; color:var(--color-ink); font-size:var(--text-fact); line-height:1.75; }
@@ -65,13 +65,13 @@
 .plan-section-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:8px; }
 .plan-section-head>h2 { margin:0; }
 .plan-days { margin:0 0 8px; scroll-margin-top:96px; }
-.plan-days .ui-state { margin-top:8px; border-radius:16px; background:var(--color-surface-2); }
+.plan-days .ui-state { margin-top:8px; border-radius:var(--r-lg); background:var(--color-surface-2); }
 /* H20: a guest with an upcoming saved day in this browser (a stored plan dated today or later, what plan-stop-cover.ts upcomingPlans
    lists; public/reading-init.js marks <html data-plans> on /plan before the first paint) never
    sees the prerendered empty state, on the prerendered page or its boot copy (app/boot-main.ts): a loading block holds
    the place of one saved day with two stops (the preview's height for it) until the app lists the days. */
 html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days .ui-state { display:none; }
-html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days::after { content:""; display:block; height:24.5rem; border-radius:16px; background:var(--color-surface-2); }
+html[data-plans] :is(main[data-prerender-path="/plan"],.site-boot-main) #plan-days::after { content:""; display:block; height:24.5rem; border-radius:var(--r-lg); background:var(--color-surface-2); }
 /* The prerendered page is built without a query, so it has this weekend's picks; a link that opens a plan (?edit=, ?stops=,
    ?places=, ?baybayDraft=: plan-catalog.ts opensPlan; public/reading-init.js marks <html data-plan-link> on /plan) shows the
    plan without them (PlannerPage renders no picks for it either). */
@@ -80,7 +80,7 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 .plan-days__day { display:grid; gap:8px; }
 @media (min-width:768px) { .plan-days__day { grid-template-columns:7.5rem minmax(0, 1fr); gap:16px; } }
 .plan-days__date { margin:0; color:var(--color-brand); font-size:var(--text-body); line-height:1.5; font-weight:700; font-variant-numeric:tabular-nums; }
-.plan-days__plan { min-width:0; padding:4px 16px 16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+.plan-days__plan { min-width:0; padding:4px 16px 16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .plan-days__plan+.plan-days__plan { margin-top:12px; }
 @media (min-width:768px) { .plan-days__plan { grid-column:2; } }
 .plan-days__plan-head { display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding-top:12px; }
@@ -95,8 +95,8 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 .planner-place { scroll-margin-top:96px; border-bottom:1px solid var(--color-line); padding-bottom:12px; }
 .planner-place .ui-row-card { border-bottom:0; padding-bottom:4px; }
 .planner-place.is-selected .ui-row-card__thumb { outline:3px solid var(--color-brand); outline-offset:2px; }
-.planner-pin-no { display:inline-grid; place-items:center; min-width:1.5rem; height:1.5rem; margin-right:8px; padding:0 4px; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-caption); line-height:1; vertical-align:1px; }
-.planner-heart { display:grid; place-items:center; width:2.75rem; height:2.75rem; border:1px solid var(--color-line-strong); border-radius:50%; background:var(--color-surface); color:var(--color-brand); cursor:pointer; }
+.planner-pin-no { display:inline-grid; place-items:center; min-width:1.5rem; height:1.5rem; margin-right:8px; padding:0 4px; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-caption); line-height:1; vertical-align:1px; }
+.planner-heart { display:grid; place-items:center; width:2.75rem; height:2.75rem; border:1px solid var(--color-line-strong); border-radius:var(--r-circle); background:var(--color-surface); color:var(--color-brand); cursor:pointer; }
 .planner-heart[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); }
 .planner-heart:disabled { color:var(--color-ink-3); cursor:not-allowed; }
 .planner-place-when { margin:0 0 4px 6.25rem; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }

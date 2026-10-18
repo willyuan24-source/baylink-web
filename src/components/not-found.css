@@ -2,27 +2,27 @@
 /* The page is rendered inside the detail pages' budgeted graphs too, so it repeats the ui.css container (content, 960) and
    button specs here instead of importing the primitives. */
 .nf-page{box-sizing:content-box;max-width:960px;margin-inline:auto;padding:32px 16px 56px;color:var(--color-ink)}
-.nf-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:max(var(--control-height),3rem);padding:0 20px;border:1px solid transparent;border-radius:10px;font-size:var(--text-body);line-height:1.25;font-weight:600;text-decoration:none;cursor:pointer}
+.nf-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:max(var(--control-height),3rem);padding:0 20px;border:1px solid transparent;border-radius:var(--r-md);font-size:var(--text-body);line-height:1.25;font-weight:600;text-decoration:none;cursor:pointer}
 .nf-button[data-variant=primary]{background:var(--color-brand);color:var(--color-surface)}
 .nf-button[data-variant=primary]:hover{background:var(--color-brand-hover)}
-.nf-button[data-variant=secondary]{border-color:var(--color-line-strong);background:var(--color-surface);color:var(--color-ink)}
+.nf-button[data-variant=secondary]{border-color:var(--color-line-control);background:var(--color-surface);color:var(--color-ink)}
 .nf-hero{display:flex;flex-direction:column;align-items:center;max-width:40rem;margin:0 auto;text-align:center}
-.nf-icon{display:grid;place-items:center;width:4.5rem;height:4.5rem;border-radius:50%;background:var(--color-brand-tint);color:var(--color-brand)}
+.nf-icon{display:grid;place-items:center;width:4.5rem;height:4.5rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .nf-icon>svg{width:2rem;height:2rem}
 .nf-code{margin:16px 0 0;color:var(--color-ink-2);font-size:var(--text-fact);font-weight:600;font-variant-numeric:tabular-nums}
 .nf-hero h1{margin:4px 0 0;color:var(--color-ink);font-size:1.625rem;line-height:1.308;font-weight:600;letter-spacing:0;text-wrap:balance}
 .nf-body{margin:8px 0 0;color:var(--color-ink-2);font-size:var(--text-body);line-height:1.625}
 .nf-search{display:flex;gap:8px;width:100%;margin-top:24px}
-.nf-search-field{display:flex;flex:1;align-items:center;gap:8px;min-width:0;min-height:max(var(--control-height),3rem);padding:0 12px;border:1px solid var(--color-line-strong);border-radius:10px;background:var(--color-surface);color:var(--color-ink-3)}
+.nf-search-field{display:flex;flex:1;align-items:center;gap:8px;min-width:0;min-height:max(var(--control-height),3rem);padding:0 12px;border:1px solid var(--color-line-strong);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink-3)}
 .nf-search-field>svg{flex:none;width:1.125rem;height:1.125rem}
 .nf-search-field input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--color-ink);font-size:var(--text-body)}
 .nf-search-field input::placeholder{color:var(--color-ink-3)}
 .nf-search-field:focus-within{outline:2px solid var(--color-brand);outline-offset:2px}
 .nf-links{margin-top:40px}
 .nf-links ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
-.nf-links a{display:flex;align-items:center;gap:12px;min-height:4.5rem;padding:12px 16px;border:1px solid var(--color-line);border-radius:16px;background:var(--color-surface);color:var(--color-ink);text-decoration:none}
+.nf-links a{display:flex;align-items:center;gap:12px;min-height:4.5rem;padding:12px 16px;border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
 .nf-links a:hover{border-color:var(--color-line-strong);background:var(--color-surface-2)}
-.nf-link-icon{display:grid;place-items:center;flex:none;width:2.75rem;height:2.75rem;border-radius:50%;background:var(--color-brand-tint);color:var(--color-brand)}
+.nf-link-icon{display:grid;place-items:center;flex:none;width:2.75rem;height:2.75rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .nf-link-icon>svg{width:1.375rem;height:1.375rem}
 .nf-links strong{display:block;font-size:var(--text-body);line-height:1.5;font-weight:600}
 .nf-links small{display:block;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.5}

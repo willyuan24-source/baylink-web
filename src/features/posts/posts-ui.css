@@ -3,4 +3,4 @@
 .post-translation { display: flex; flex-wrap: wrap; align-items: center; gap: 3px 10px; margin: 6px 0; color: var(--color-ink-3); font-size: var(--text-caption); line-height: 1.6; }
 .post-translation > span { display: inline-flex; align-items: center; gap: 5px; }
 .post-translation button { min-height: var(--control-height); padding: 8px 0; color: var(--color-brand); font-size: var(--text-fact); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; }
-.post-translation button:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 4px; border-radius: 3px; }
+.post-translation button:focus-visible { outline: 2px solid var(--color-brand); outline-offset: 4px; border-radius: var(--r-sm); }

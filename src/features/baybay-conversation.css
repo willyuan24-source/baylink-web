@@ -1,5 +1,5 @@
 .baybay-conversation { max-width: 730px; }
-.baybay-coverage { margin:12px 0; padding:11px 13px; border:1px solid var(--color-line); border-radius:10px; background:var(--color-surface-2); font-size:.75rem; line-height:1.7; overflow-wrap:anywhere; }
+.baybay-coverage { margin:12px 0; padding:11px 13px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface-2); font-size:.75rem; line-height:1.7; overflow-wrap:anywhere; }
 .baybay-coverage summary { cursor:pointer; font-weight:600; }
 .baybay-coverage>p { margin:8px 0; color:var(--color-ink-3); }
 .baybay-coverage ul { display:grid; gap:10px; margin-top:10px; }
@@ -11,33 +11,33 @@
 .baybay-coverage a small { margin-left:6px; }
 .baybay-plan-key-unknowns { margin-top:10px; padding-top:9px; border-top:1px solid var(--color-line-strong); }
 .baybay-plan-risk { color:var(--color-warm); }
-.baybay-imported-requirements { padding:14px; margin:16px 0; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-surface-2); font-size:.75rem; line-height:1.7; overflow-wrap:anywhere; }
+.baybay-imported-requirements { padding:14px; margin:16px 0; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface-2); font-size:.75rem; line-height:1.7; overflow-wrap:anywhere; }
 .baybay-imported-requirements h3 { font-size:.875rem; font-weight:600; }
 .baybay-imported-requirements dl { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px 12px; margin:12px 0; }
 .baybay-imported-requirements dt { color:var(--color-ink-3); font-size:.6875rem; }
 .baybay-imported-requirements dd { margin:0; font-weight:600; }
 .baybay-imported-requirements p { margin:9px 0 0; }
 .baybay-imported-requirements summary { min-height:40px; padding:10px 0 0; cursor:pointer; font-weight:600; }
-.baybay-requirements,.baybay-assistant-plan { margin:18px 0; padding:16px; border:1px solid var(--color-line); border-radius:15px; background:var(--color-surface); color:var(--color-brand-deep); overflow-wrap:anywhere; }
+.baybay-requirements,.baybay-assistant-plan { margin:18px 0; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-brand-deep); overflow-wrap:anywhere; }
 .baybay-requirements>header,.baybay-assistant-plan>header { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
 .baybay-requirements strong,.baybay-assistant-plan h4 { font-size:.8125rem; font-weight:600; }
 .baybay-requirements small,.baybay-assistant-plan small { color:var(--color-ink-3); font-size:.6875rem; line-height:1.6; }
 .baybay-requirement-chips { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
-.baybay-requirement-chips button { display:flex; align-items:center; gap:6px; max-width:100%; min-height:var(--control-height); padding:7px 10px; border:1px solid var(--color-line); border-radius:9px; background:white; text-align:left; font-size:.6875rem; }
+.baybay-requirement-chips button { display:flex; align-items:center; gap:6px; max-width:100%; min-height:var(--control-height); padding:7px 10px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:white; text-align:left; font-size:.6875rem; }
 .baybay-requirement-chips button strong { min-width:0; font-size:inherit; }
 .baybay-requirement-editor { padding-top:12px; }
 .baybay-requirement-editor label { display:block; margin-bottom:6px; font-size:.75rem; }
-.baybay-requirement-editor input { width:100%; min-height:var(--control-height); border:1px solid var(--color-line-control); border-radius:8px; padding:8px 10px; font-size:.8125rem; background:white; }
+.baybay-requirement-editor input { width:100%; min-height:var(--control-height); border:1px solid var(--color-line-control); border-radius:var(--r-sm); padding:8px 10px; font-size:.8125rem; background:white; }
 .baybay-requirement-editor>div { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-top:8px; }
-.baybay-requirement-editor button,.baybay-plan-followups button { min-height:var(--control-height); border:1px solid var(--color-line-strong); border-radius:8px; padding:7px 10px; font-size:.75rem; background:white; }
+.baybay-requirement-editor button,.baybay-plan-followups button { min-height:var(--control-height); border:1px solid var(--color-line-control); border-radius:var(--r-sm); padding:7px 10px; font-size:.75rem; background:white; }
 .baybay-assistant-plan h3 { margin-top:4px; font-size:1.0625rem; line-height:1.5; font-weight:600; }
-.baybay-plan-status { flex-shrink:0; max-width:40%; padding:5px 8px; border-radius:7px; font-size:.625rem; background:var(--color-line); }
+.baybay-plan-status { flex-shrink:0; max-width:40%; padding:5px 8px; border-radius:var(--r-sm); font-size:.625rem; background:var(--color-line); }
 .baybay-plan-status--needs_verification,.baybay-plan-status--needs_details { background:var(--color-warning-tint); color:var(--color-warning); }
 .baybay-plan-summary { margin:10px 0; font-size:.75rem; line-height:1.8; white-space:pre-wrap; }
 .baybay-plan-stops { display:grid; gap:12px; margin:15px 0; padding:0; list-style:none; }
-.baybay-plan-stops>li { padding:13px; border:1px solid var(--color-line); border-radius:11px; background:white; }
+.baybay-plan-stops>li { padding:13px; border:1px solid var(--color-line); border-radius:var(--r-md); background:white; }
 .baybay-plan-stop-heading { display:flex; align-items:flex-start; gap:9px; }
-.baybay-plan-stop-number { display:grid; place-items:center; flex-shrink:0; width:25px; height:25px; border-radius:50%; background:var(--color-brand-tint); font-size:.6875rem; }
+.baybay-plan-stop-number { display:grid; place-items:center; flex-shrink:0; width:25px; height:25px; border-radius:var(--r-circle); background:var(--color-brand-tint); font-size:.6875rem; }
 /* A stop's own page (WEB-BB-PLAN). Inline padding gives the link a 44px tap area without moving the heading. */
 .baybay-plan-stop-link { padding-block:.875rem; text-decoration:underline; text-underline-offset:.1875rem; }
 /* 简洁显示 keeps its 48px targets (tokens.css --control-height:3rem). */
@@ -51,8 +51,8 @@ html[data-simple] .baybay-plan-stop-link { padding-block:1rem; }
 .baybay-plan-notes,.baybay-plan-budget ul { margin:8px 0; padding-left:18px; list-style:disc; font-size:.75rem; line-height:1.8; }
 .baybay-plan-citations { display:flex; flex-wrap:wrap; gap:8px; margin:10px 0; }
 .baybay-plan-citations a { display:inline-flex; flex-wrap:wrap; align-items:center; gap:4px; font-size:.6875rem; text-decoration:underline; text-underline-offset:3px; }
-.baybay-plan-swap { display:inline-flex; align-items:center; gap:5px; min-height:38px; padding:6px 9px; border-radius:7px; background:var(--color-brand-tint); font-size:.75rem; }
-.baybay-plan-budget { padding:12px; border-radius:10px; background:var(--color-brand-tint); }
+.baybay-plan-swap { display:inline-flex; align-items:center; gap:5px; min-height:38px; padding:6px 9px; border-radius:var(--r-sm); background:var(--color-brand-tint); font-size:.75rem; }
+.baybay-plan-budget { padding:12px; border-radius:var(--r-md); background:var(--color-brand-tint); }
 .baybay-plan-budget p { margin:7px 0; font-size:.75rem; }
 .baybay-plan-checks { margin-top:14px; font-size:.75rem; }
 .baybay-plan-checks summary { cursor:pointer; font-weight:600; }
@@ -61,7 +61,7 @@ html[data-simple] .baybay-plan-stop-link { padding-block:1rem; }
 .baybay-plan-checks li svg { flex-shrink:0; margin-top:3px; }
 .baybay-plan-checks li[data-status=fail] { color:var(--color-danger); }
 .baybay-plan-import { margin-top:16px; }
-.baybay-plan-import button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; padding:10px; border-radius:9px; background:var(--color-brand); color:white; font-size:.8125rem; }
+.baybay-plan-import button { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; min-height:44px; padding:10px; border-radius:var(--r-md); background:var(--color-brand); color:white; font-size:.8125rem; }
 .baybay-plan-import small { display:block; margin-top:7px; }
 .baybay-plan-followups { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
 .baybay-assistant-plan button:disabled,.baybay-requirements button:disabled { opacity:.5; cursor:default; }
@@ -70,9 +70,9 @@ html[data-simple] .baybay-plan-stop-link { padding-block:1rem; }
 .baybay-outing-eyebrow { color:var(--color-ink-3); font-size:.625rem; letter-spacing:.08em; }
 .baybay-outing-results h3 { margin:4px 0 0; font-size:1.0625rem; font-weight:600; }
 .baybay-outing-filters { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
-.baybay-outing-filters span { background:var(--color-brand-tint); border-radius:6px; padding:4px 8px; font-size:.75rem; overflow-wrap:anywhere; }
+.baybay-outing-filters span { background:var(--color-brand-tint); border-radius:var(--r-sm); padding:4px 8px; font-size:.75rem; overflow-wrap:anywhere; }
 .baybay-outing-cards { display:grid; gap:9px; }
-.baybay-outing-card { display:block; padding:14px; border:1px solid var(--color-line); border-radius:13px; background:var(--color-surface); transition:border-color .15s,background .15s; }
+.baybay-outing-card { display:block; padding:14px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); transition:border-color .15s,background .15s; }
 .baybay-outing-card:hover { border-color:var(--color-line-control); background:var(--color-surface-2); }
 .baybay-outing-card-top { display:flex; align-items:flex-start; gap:12px; justify-content:space-between; }
 .baybay-outing-card-top h4 { margin:0; font-size:.875rem; font-weight:600; line-height:1.6; overflow-wrap:anywhere; }
@@ -86,7 +86,7 @@ html[data-simple] .baybay-plan-stop-link { padding-block:1rem; }
 .baybay-outing-state { margin:12px 0; font-size:.8125rem; line-height:1.8; color:var(--color-ink-3); }
 p.baybay-outing-state { display:flex; gap:8px; align-items:center; }
 .baybay-outing-note { margin:3px 0 0; color:var(--color-ink-3); font-size:.6875rem; line-height:1.8; }
-.baybay-outing-clarify { display:flex; gap:10px; margin-top:16px; padding:13px; border-radius:12px; background:var(--color-surface-2); color:var(--color-ink-2); }
+.baybay-outing-clarify { display:flex; gap:10px; margin-top:16px; padding:13px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); }
 .baybay-outing-clarify>svg { flex-shrink:0; margin-top:3px; }
 .baybay-outing-clarify>div { min-width:0; flex:1; }
 .baybay-outing-clarify strong { font-size:.8125rem; font-weight:600; }
@@ -95,25 +95,25 @@ p.baybay-outing-state { display:flex; gap:8px; align-items:center; }
 .baybay-outing-quick-replies { margin-top:13px; }
 .baybay-outing-quick-replies>span { display:block; font-size:.6875rem; color:var(--color-ink-3); margin-bottom:6px; }
 .baybay-outing-quick-replies>div { display:flex; flex-wrap:wrap; gap:7px; }
-.baybay-outing-quick-replies button { min-height:44px; max-width:100%; padding:9px 13px; border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); color:var(--color-brand-hover); font-size:.8125rem; line-height:1.5; text-align:left; overflow-wrap:anywhere; }
+.baybay-outing-quick-replies button { min-height:44px; max-width:100%; padding:9px 13px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand-hover); font-size:.8125rem; line-height:1.5; text-align:left; overflow-wrap:anywhere; }
 .baybay-outing-quick-replies button:hover { background:var(--color-brand-tint); border-color:var(--color-line-control); }
 .baybay-conversation .member-baybay-body { padding: 18px 25px 22px; }
 .baybay-context-line { display:flex; align-items:center; justify-content:space-between; gap:12px; color:var(--color-ink-3); font-size:.6875rem; margin-bottom:17px; }
 .baybay-context-line button { display:flex; align-items:center; gap:6px; color:var(--color-brand); font-weight:600; }
-.baybay-context-line button { padding:6px 9px; border:1px solid var(--color-line-strong); border-radius:8px; background:white; }
+.baybay-context-line button { padding:6px 9px; border:1px solid var(--color-line-control); border-radius:var(--r-sm); background:white; }
 .baybay-turn+.baybay-turn { margin-top:28px; }
 .baybay-user-question { margin-left:35px; display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
 .baybay-user-question>span { font-size:var(--text-caption); color:var(--color-ink-3); }
-.baybay-user-question>p { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--color-line); color:var(--color-ink-2); padding:12px 15px; border-radius:15px 15px 3px 15px; font-size:.8125rem; line-height:1.85; }
+.baybay-user-question>p { white-space:pre-wrap; overflow-wrap:anywhere; background:var(--color-line); color:var(--color-ink-2); padding:12px 15px; border-radius:var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg); font-size:.8125rem; line-height:1.85; }
 .baybay-conversation .member-baybay-answer { margin-top:13px; background:white; border-color:var(--color-line); }
 .baybay-conversation .member-baybay-answer-text { white-space:pre-wrap; line-height:1.95; overflow-wrap:anywhere; }
 .baybay-thinking { display:flex; align-items:center; gap:9px; padding:20px 6px; color:var(--color-ink-3); font-size:var(--text-caption); }
-.baybay-degraded { margin:10px 0; background:var(--color-surface-2); border-radius:8px; padding:10px; font-size:.6875rem; line-height:1.75; color:var(--color-ink-3); }
-.baybay-request-error { margin-top:13px; padding:14px; border-radius:11px; background:var(--color-warning-tint); color:var(--color-warning); font-size:.75rem; line-height:1.8; }
+.baybay-degraded { margin:10px 0; background:var(--color-surface-2); border-radius:var(--r-sm); padding:10px; font-size:.6875rem; line-height:1.75; color:var(--color-ink-3); }
+.baybay-request-error { margin-top:13px; padding:14px; border-radius:var(--r-md); background:var(--color-warning-tint); color:var(--color-warning); font-size:.75rem; line-height:1.8; }
 .baybay-request-error button { display:flex; align-items:center; gap:7px; font-weight:600; color:var(--color-ink-2); margin-top:8px; }
 .baybay-followups { display:flex; flex-wrap:wrap; gap:7px; margin-top:18px; }
 .baybay-followups>span { flex-basis:100%; color:var(--color-ink-3); font-size:.625rem; margin-bottom:1px; }
-.baybay-followups button { display:flex; align-items:center; justify-content:space-between; gap:9px; border:1px solid var(--color-line); border-radius:10px; padding:9px 11px; text-align:left; background:var(--color-surface); font-size:.75rem; color:var(--color-ink-3); line-height:1.65; }
+.baybay-followups button { display:flex; align-items:center; justify-content:space-between; gap:9px; border:1px solid var(--color-line-control); border-radius:var(--r-md); padding:9px 11px; text-align:left; background:var(--color-surface); font-size:.75rem; color:var(--color-ink-3); line-height:1.65; }
 .baybay-followups button>svg { flex-shrink:0; }
 .baybay-composer-footer { flex-shrink:0; padding:16px 24px 14px; border-top:1px solid var(--color-line); background:var(--color-surface-2); }
 .baybay-composer-footer .member-baybay-composer { margin:0; align-items:flex-end; }

@@ -2,9 +2,9 @@
 .loan-down-input select { padding-left:10px; padding-right:8px; }
 /* The term chips look like the mode toggle above them (.tool-choice-row: the FilterChip look), not a third button style. */
 .loan-term-shortcuts { display:flex; flex-wrap:wrap; gap:8px; }
-.loan-term-shortcuts button { min-height:var(--control-height); flex:1; padding:0 12px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); white-space:nowrap; }
+.loan-term-shortcuts button { min-height:var(--control-height); flex:1; padding:0 12px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); white-space:nowrap; }
 .loan-term-shortcuts button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
-.loan-options { border:1px solid var(--color-line); padding:0 16px; border-radius:12px; }
+.loan-options { border:1px solid var(--color-line); padding:0 16px; border-radius:var(--r-md); }
 .loan-options summary { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:15px 0; font-size:.8125rem; color:var(--color-ink-2); font-weight:600; cursor:pointer; list-style:none; }
 .loan-options summary::-webkit-details-marker { display:none; }
 .loan-options[open] { padding-bottom:18px; }
@@ -23,13 +23,13 @@
 .loan-summary-grid strong { font-size:1.0625rem; line-height:1.6; color:var(--color-ink-2); overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
 .loan-final-payment { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.8; }
 .loan-final-payment strong { color:var(--color-ink-2); }
-.loan-extra-result { border:1px solid var(--color-line-strong); background:var(--color-brand-tint); border-radius:13px; padding:20px; }
+.loan-extra-result { border:1px solid var(--color-line-strong); background:var(--color-brand-tint); border-radius:var(--r-md); padding:20px; }
 .loan-extra-result p { font-size:var(--text-caption); color:var(--color-ink-3); }
 .loan-extra-result p strong { margin-left:12px; color:var(--color-ink-2); font-size:1.375rem; }
 .loan-extra-result p small { display:block; margin:6px 0 17px; font-size:var(--text-caption); line-height:1.7; }
 .loan-extra-result>div { display:flex; gap:20px; justify-content:space-between; flex-wrap:wrap; color:var(--color-ink-3); font-size:var(--text-caption); }
 .loan-extra-result b { display:block; margin-top:7px; font-size:1.0625rem; color:var(--color-ink-2); }
-.loan-chart-section { padding:20px 20px 17px; border:1px solid var(--color-line); border-radius:14px; background:var(--color-surface); }
+.loan-chart-section { padding:20px 20px 17px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .loan-chart-section h3 { font-size:.8125rem; font-weight:600; color:var(--color-ink-3); }
 .loan-balance-chart { width:100%; height:auto; margin:14px 0 8px; }
 .loan-year-slider { display:flex; flex-direction:column; gap:13px; font-size:var(--text-caption); color:var(--color-ink-3); }
@@ -37,7 +37,7 @@
 .loan-year-facts { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:14px; }
 .loan-year-facts>span { font-size:var(--text-caption); color:var(--color-ink-3); }
 .loan-year-facts b { display:block; font-size:.8125rem; font-weight:600; color:var(--color-ink-3); margin-top:6px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
-.loan-table-scroll { overflow-x:auto; width:100%; border-radius:8px; }
+.loan-table-scroll { overflow-x:auto; width:100%; border-radius:var(--r-sm); }
 .loan-table-scroll table { width:100%; border-collapse:collapse; font-size:var(--text-caption); font-variant-numeric:tabular-nums; color:var(--color-ink-3); }
 .loan-table-scroll caption { text-align:left; padding:5px 0 15px; font-size:var(--text-caption); color:var(--color-ink-3); }
 .loan-table-scroll th,.loan-table-scroll td { padding:11px 10px; text-align:right; white-space:nowrap; border-bottom:1px solid var(--color-line); }

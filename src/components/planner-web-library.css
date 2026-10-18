@@ -1,12 +1,12 @@
 /* Saved web-search results in the planner (PlannerWebSearch): the card, the headings, the source list and the save notice.
    Global because BayBay's answers use the same card on every page (WEB-PERF-3: the card moved here from
    src/styles/planner.css, which now loads with 行程 and My Week only; its buttons stay there). Tokens and rem only. */
-.planner-web-search { min-width:0; margin:32px 0; padding:20px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-web-search { min-width:0; margin:32px 0; padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-web-search h2 { font-size:var(--text-card); line-height:1.444; }
 @media (max-width:767px) { .planner-web-search { padding:16px; } }
 .planner-web-search h3,.planner-web-saved>h3 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
 .planner-web-candidate .planner-web-city { display:flex; align-items:center; gap:6px; color:var(--color-ink-2); font-size:var(--text-fact); }
 .planner-web-candidate-links a { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); max-width:100%; overflow-wrap:anywhere; }
 .planner-web-coverage { margin:10px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-web-save-notice { margin:12px 0; padding:10px 14px; border-left:3px solid var(--color-brand); border-radius:4px; background:var(--color-brand-tint); color:var(--color-ink); font-size:var(--text-fact); }
+.planner-web-save-notice { margin:12px 0; padding:10px 14px; border-left:3px solid var(--color-brand); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-ink); font-size:var(--text-fact); }
 @media(max-width:520px) { .planner-web-candidate>button { width:100%; } }
