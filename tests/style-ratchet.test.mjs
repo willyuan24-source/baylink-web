@@ -16,7 +16,25 @@ test('style counts cover CSS declarations, Tailwind classes, inline styles and t
   assert.deepEqual(counts, {
     hexOccurrences: 4, hexDistinct: 4, fontSizePx: 4, fontSizePxUnder13: 2, fontSizeUnder13: 2, radiusKinds: 2, shadowKinds: 2,
     fontWeightOutsideSet: 3, textArbitraryUnder13: 1, baylinkClasses: 2, arrowUpRight: 1, buttonLooks: 0,
+    fontSizeOffLadder: 2, fontSizeLiteral: 3, fontWeightBold: 1, durationOffScale: 0, durationLiteral: 0,
   });
+});
+
+test('UI9-F: sizes off the ladder, raw sizes, weights above 600 and durations off the motion scale are counted', () => {
+  const { counts } = measureStyle([
+    { file: 'src/a.css', text: [
+      '.a{font-size:.9375rem}.b{font-size:.875rem}.c{font-size:1.375rem!important}.d{font-size:var(--fs-meta)}.e{font-size:clamp(1rem,2vw,1.5rem)}',
+      '.f{font-weight:bold}.g{font-weight:600}.h{font:800 1rem/1.4 serif}',
+      '.i{transition:color .15s,background .2s .3s}.j{transition:transform var(--dur-2) var(--ease-out)}.k{animation:spin 1s linear infinite}',
+      '@media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important}}',
+    ].join('\n') },
+    { file: 'src/tokens.css', text: ':root{--fs-meta:.875rem}.x{font-size:.875rem}' },
+  ]);
+  assert.equal(counts.fontSizeOffLadder, 2, '.9375rem (15px) and 1.375rem (22px); .875rem is 14px');
+  assert.equal(counts.fontSizeLiteral, 5, 'a, b, c, e (clamp of lengths) and the font shorthand; tokens.css and var() are free');
+  assert.equal(counts.fontWeightBold, 2, 'bold and 800');
+  assert.equal(counts.durationLiteral, 3, '.15s, .2s (its .3s is a delay) and the 1s loop; .01ms resets and tokens are free');
+  assert.equal(counts.durationOffScale, 1, '.15s; .2s is on the scale and 1s is a loop');
 });
 
 test('H29: button looks are counted once per fill, text and border, without hover, pressed or disabled states', () => {
