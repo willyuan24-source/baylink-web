@@ -17,10 +17,15 @@ export type BayBayTaskState = {
   preferences?: BayBayDurationPreference[];
 };
 export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; verification?: 'catalog' | 'page-read' | 'api' | 'search-result'; text?: string };
+/** A stop's own page: a BAYLINK path opened in the app, or another site's page (an official site) opened in a new tab. */
+export type BayBayPlanStopLink = { href: string; external: boolean };
+/** The record's own hours for the plan's day (api `openingWindows`): when the place or event is open, not a booked time. */
+export type BayBayOpeningWindow = { open: string; close: string };
 export type BayBayPlanStop = {
   id: string; kind: string; entityId?: string; title: string; city?: string; date?: string; startTime?: string; endTime?: string;
   durationMinutes?: number; travelMinutes?: number; timeStatus?: string; admissionUsd?: number; sourceIds: string[]; notes: string[];
   admissionFacts?: BayBayAdmissionFacts;
+  link?: BayBayPlanStopLink; openingWindows?: BayBayOpeningWindow[]; suggestedDurationMinutes?: number;
 };
 export type BayBayAdmissionFacts = {
   status: 'complete' | 'partial' | 'unknown'; basis: 'catalog-snapshot' | 'page-read' | 'catalog'; knownTotalUsd?: number;
@@ -73,6 +78,47 @@ const safeEvidenceUrl = (value: unknown) => typeof value === 'string' && guidePa
 // Keep the offset so display can use Bay Area time instead of slicing the UTC day.
 const evidenceCheckedAt = (value: unknown): string | undefined => typeof value === 'string' &&
   (validPlannerWebDate(value) || /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) && plannerWebCheckedDate(value)) ? value : undefined;
+
+const SITE_PATH = /^\/[a-z0-9-]{1,40}(?:\/[A-Za-z0-9_-]{1,160}){0,3}$/;
+/** A BAYLINK page path the app can open: guides and events only when the site has that page, so a stop never links to a 404. */
+function sitePath(path: string): string | undefined {
+  const clean = path.length > 1 ? path.replace(/\/$/, '') : path;
+  if (!SITE_PATH.test(clean)) return;
+  const [, section, id, ...rest] = clean.split('/');
+  if (section === 'guides') return guidePaths.has(clean) ? clean : undefined;
+  if (section === 'events') return id && !rest.length && eventFor(id) ? clean : undefined;
+  return clean;
+}
+
+/**
+ * api-bb-7 `stop.path`: "/events/<id>" or "/guides/<slug>" opens in the app; another site's page (Ferry Building's
+ * official visit page, sent with `external: true`) is an external link. The URL decides, not the flag, so a forged flag
+ * cannot turn a site path into an outside link or the reverse. Unsafe or unknown links are dropped.
+ */
+function stopLink(value: unknown): BayBayPlanStopLink | undefined {
+  if (typeof value !== 'string' || !value || value.length > 2048) return;
+  if (value.startsWith('/') && !value.startsWith('//')) { const path = sitePath(value); return path ? { href: path, external: false } : undefined; }
+  const url = safePlannerWebUrl(value);
+  if (!url) return;
+  const parsed = new URL(url);
+  if (['www.baylink.us', 'baylink.us'].includes(parsed.hostname.toLowerCase())) {
+    const path = parsed.protocol === 'https:' && !parsed.search && !parsed.hash ? sitePath(parsed.pathname) : undefined;
+    return path ? { href: path, external: false } : undefined;
+  }
+  return { href: url, external: true };
+}
+
+/** api-bb-7 `stop.openingWindows`: [{open:"08:00", close:"14:00"}], each a real span on one day, at most six, no repeats. */
+function openingWindows(value: unknown): BayBayOpeningWindow[] | undefined {
+  if (!Array.isArray(value)) return;
+  const windows: BayBayOpeningWindow[] = [];
+  for (const item of value.slice(0, 12)) {
+    if (!record(item)) continue;
+    const open = clock(item.open), close = clock(item.close);
+    if (open && close && open < close && !windows.some(window => window.open === open && window.close === close)) windows.push({ open, close });
+  }
+  return windows.length ? windows.sort((a, b) => a.open.localeCompare(b.open)).slice(0, 6) : undefined;
+}
 
 function admissionFacts(input: unknown, ids: Set<string>): BayBayAdmissionFacts | undefined {
   if (!record(input)) return;
@@ -161,7 +207,8 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
       if (!record(stop) || !text(stop.id, 160) || !text(stop.title) || !text(stop.kind, 40) || stops.some(item => item.id === text(stop.id, 160))) return result;
       stops.push({ id: text(stop.id, 160)!, title: text(stop.title)!, kind: text(stop.kind, 40)!, entityId: text(stop.entityId, 160), city: text(stop.city, 120), date: validPlannerWebDate(stop.date) || undefined,
         startTime: clock(stop.startTime), endTime: clock(stop.endTime), durationMinutes: number(stop.durationMinutes, 1440), travelMinutes: travelMinutes(stop.travelMinutes), timeStatus: option(stop.timeStatus, ['verified', 'suggested', 'unknown']) || 'unknown', admissionUsd: number(stop.admissionUsd),
-        sourceIds: [...new Set(strings(stop.sourceIds, 30, 160))].filter(id => ids.has(id)), notes: strings(stop.notes), admissionFacts: admissionFacts(stop.admissionFacts, ids) });
+        sourceIds: [...new Set(strings(stop.sourceIds, 30, 160))].filter(id => ids.has(id)), notes: strings(stop.notes), admissionFacts: admissionFacts(stop.admissionFacts, ids),
+        link: stopLink(stop.path), openingWindows: openingWindows(stop.openingWindows), suggestedDurationMinutes: Number.isInteger(stop.suggestedDurationMinutes) && Number(stop.suggestedDurationMinutes) > 0 ? number(stop.suggestedDurationMinutes, 720) : undefined });
     }
     const stopIds = stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
     const pairs = new Set(stopIds.map((id, index) => `${index ? stopIds[index - 1] : 'origin'}:${id}`));
