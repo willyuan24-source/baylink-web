@@ -80,7 +80,7 @@ const evidenceCheckedAt = (value: unknown): string | undefined => typeof value =
   (validPlannerWebDate(value) || /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) && plannerWebCheckedDate(value)) ? value : undefined;
 
 const SITE_PATH = /^\/[a-z0-9-]{1,40}(?:\/[A-Za-z0-9_-]{1,160}){0,3}$/;
-/** A BAYLINK page path the app can open: guides and events only when the site has that page, so a stop never links to a 404. */
+/** A BAYLINK page path the app can open. Guide and event paths (what api-bb-7 sends) must name a page the site has, so those never link to a 404. */
 function sitePath(path: string): string | undefined {
   const clean = path.length > 1 ? path.replace(/\/$/, '') : path;
   if (!SITE_PATH.test(clean)) return;
