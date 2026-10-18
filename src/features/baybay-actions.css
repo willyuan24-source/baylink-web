@@ -17,7 +17,7 @@
 .planner-refinements summary { min-height:44px; }
 @media(max-width:760px) {
   .planner-hero { padding-top:12px; padding-bottom:20px; }
-  .planner-hero h1 { font-size:1.75rem; line-height:1.25; margin:14px 0; }
+  .planner-hero h1 { font-size:var(--fs-keep-28); line-height:1.25; margin:14px 0; }
   .planner-hero>p { line-height:1.65; }
   .planner-hero nav { margin-top:16px; gap:12px; }
 }

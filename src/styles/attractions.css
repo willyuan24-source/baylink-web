@@ -60,7 +60,7 @@
 .xp-3d{grid-column:1/-1;padding:20px;border-radius:var(--r-lg);background:var(--color-surface-2)}
 .xp-3d__head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px}
 .xp-3d__head>div{flex:1 1 20rem;min-width:0}
-.xp-3d h2{margin:0;color:var(--color-ink);font-size:1.25rem;line-height:1.364;font-weight:600}
+.xp-3d h2{margin:0;color:var(--color-ink);font-size:var(--fs-keep-20);line-height:1.364;font-weight:600}
 .xp-3d__head p{margin:6px 0 0;max-width:40em;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}
 .xp-3d__rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0 0;padding:0;list-style:none}
 .xp-3d__item{display:flex;flex-direction:column;gap:2px;color:var(--color-ink);text-decoration:none}

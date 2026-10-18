@@ -115,13 +115,9 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contacts__list { display:grid; grid-template-columns:minmax(0, 1fr); gap:12px; }
 .gd-contact { display:flex; flex-direction:column; gap:6px; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .gd-contact h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
-.gd-contact__number { margin:0; color:var(--color-ink); font-size:1.25rem; line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-contact__number { margin:0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-contact__languages { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 0; }
-.gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:.875rem; line-height:1.6; }
-/* Elder modes (UI9-F-M): the phone number and its note never get smaller than before tokens v2 (22 / 15px x the Aa factor):
-   --fs-section is 22 at 大 / 特大 on a phone (tokens.css) and 24 in 简洁 and on a desktop. */
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .gd-contact__number { font-size:var(--fs-section); }
-html:is([data-reading=large],[data-reading=extra-large]) :is(.gd-contact__note,.gd-contact__address) { font-size:var(--fs-body); }
+.gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:1.6; }
 .gd-contact__places { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
 .gd-contact__places a { display:inline-flex; align-items:center; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:1rem; line-height:1.6; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 .gd-contact__places svg { flex:none; width:1.125rem; height:1.125rem; }
@@ -331,6 +327,5 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
   .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }
   .gd-lead:not([data-visual]) { max-width:780px; }
   .gd-lead .gd-cover { border-radius:var(--r-xl); }
-  .gd-step__head h2 { font-size:1.25rem; line-height:1.364; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .gd-step__head h2 { font-size:var(--fs-section); }
+  .gd-step__head h2 { font-size:var(--fs-keep-20); line-height:1.364; }
 }

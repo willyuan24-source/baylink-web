@@ -2,7 +2,7 @@
    table style also dresses ProductMetrics' page-views-by-route table on the same page. */
 .feedback-admin{margin:1.5rem 0;padding:1.25rem;border:1px solid var(--color-line-strong);border-radius:var(--r-lg);background:var(--color-surface);color:var(--color-ink)}
 .feedback-admin-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.feedback-admin-heading h2{margin-top:.375rem;font-size:1.125rem;font-weight:600}
+.feedback-admin-heading h2{margin-top:.375rem;font-size:var(--fs-keep-18);font-weight:600}
 .feedback-admin-heading button,.feedback-admin-filters button,.feedback-admin-more,.feedback-admin-delete{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--control-height);padding:.375rem .875rem;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
 .feedback-admin-filters{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
 .feedback-admin-filters button[aria-pressed=true]{border-color:var(--color-brand);background:var(--color-brand-tint);font-weight:600}

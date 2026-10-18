@@ -152,8 +152,9 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
     // Root Aa (html[data-reading], WEB-TOKENS-A) scales every rem: a second --reading-scale would double-scale, px never grows.
     assert.doesNotMatch(declaration.value, /--reading-scale|\d(?:\.\d+)?px\b/, where);
     // A bare .47em under a 22px value floor was 10.3px; the small date/value part now keeps the caption size as its floor.
-    // Tokens v2 (UI9-F): the --fs-* ladder steps are text tokens too (the --text-* names alias them).
-    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|h1|display)\)|var\(--fs-(?:badge|meta|body|reading|card|card-lg|section|title|display)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
+    // Tokens v2 (UI9-F): the --fs-* ladder steps are text tokens too (the --text-* names alias them), and so are the kept
+    // steps (--fs-keep-<px>: the ladder step at 标准, the pre-v2 size in the elder modes).
+    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|h1|display)\)|var\(--fs-(?:badge|meta|body|reading|card|card-lg|section|title|display|keep-\d+)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
     if (declaration.value.startsWith('clamp(')) {
       const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)), (.*), [\d.]+rem\)$/.exec(declaration.value);
       assert.ok(clamp, `${where}: clamp(rem floor, …, rem cap)`);

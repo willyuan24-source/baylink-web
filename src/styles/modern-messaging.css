@@ -46,7 +46,7 @@
 .modern-chat-reactions button span+span{font-size:.8125rem}
 .modern-chat-reactions button[aria-pressed=true]{background:var(--color-brand-tint);border-color:var(--color-line-control);color:var(--color-brand-hover)}
 .modern-chat-reaction-picker{display:flex;gap:3px;flex-wrap:wrap;max-width:290px;padding:6px;margin:4px 0 8px;background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--r-lg);box-shadow:var(--e2)}
-.modern-chat-reaction-picker button{display:grid;place-items:center;min-width:32px;min-height:35px;border-radius:var(--r-md);font-size:1.125rem}
+.modern-chat-reaction-picker button{display:grid;place-items:center;min-width:32px;min-height:35px;border-radius:var(--r-md);font-size:var(--fs-keep-18)}
 .modern-chat-reaction-picker button:hover{background:var(--color-brand-tint)}
 .modern-chat-delivery{font-size:.8125rem;line-height:1.7;opacity:.85;margin-top:5px}
 .modern-chat-delivery button{text-decoration:underline;text-underline-offset:3px;margin-right:12px;margin-top:4px}
@@ -95,7 +95,7 @@
 .modern-chat-message{gap:6px}.modern-chat-message-content{max-width:81%}.modern-chat-avatar{width:28px}.modern-chat-avatar>img,.modern-chat-avatar>div{width:28px!important;height:28px!important}
 .modern-chat-bubble{padding:10px 13px;font-size:.875rem}.modern-chat-message-actions button{width:33px;height:28px}.modern-chat-message-footer{height:29px}
 .modern-chat-composer{padding:11px 12px calc(7px + env(safe-area-inset-bottom))}.modern-chat-compose-row{border-radius:var(--r-lg);padding:4px;gap:2px}.modern-chat-key-hint{display:none}.modern-chat-compose-meta{font-size:.8125rem}.modern-chat-input{font-size:1rem;padding:9px 5px}.modern-chat-draft-note{font-size:.8125rem}
-.modern-chat-jump{right:20px;bottom:155px}.modern-chat-emoji-picker{left:12px}.modern-chat-welcome{margin:32px auto}.modern-chat-welcome h2{font-size:1.125rem}
+.modern-chat-jump{right:20px;bottom:155px}.modern-chat-emoji-picker{left:12px}.modern-chat-welcome{margin:32px auto}.modern-chat-welcome h2{font-size:var(--fs-keep-18)}
 }
 @media(prefers-reduced-motion:reduce){.modern-chat *{scroll-behavior:auto!important;transition:none!important}}
 /* Unconfirmed sends inside a conversation. */

@@ -1,6 +1,6 @@
 .dining-intro { display:flex; align-items:flex-start; gap:13px; color:var(--color-ink-2); }
 .dining-intro>svg { flex-shrink:0; margin-top:3px; }
-.dining-intro strong { font-size:1.125rem; font-weight:600; }
+.dining-intro strong { font-size:var(--fs-keep-18); font-weight:600; }
 .dining-intro p { margin:7px 0 0; font-size:.8125rem; line-height:1.8; color:var(--color-ink-3); }
 .dining-example { background:var(--color-warning-tint); border-radius:var(--r-md); padding:10px 13px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
 .dining-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); align-items:start; gap:28px; }
@@ -43,7 +43,7 @@
 .dining-total>strong { font-size:1.75rem; letter-spacing:-1px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .dining-per-person { display:flex; flex-direction:column; gap:8px; border-radius:var(--r-md); padding:17px; background:var(--color-brand-tint); color:var(--color-ink-2); }
 .dining-per-person>span { font-size:var(--text-caption); }
-.dining-per-person>strong { font-size:1.25rem; line-height:1.5; letter-spacing:-.5px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.dining-per-person>strong { font-size:var(--fs-keep-20); line-height:1.5; letter-spacing:-.5px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .dining-per-person>small { color:var(--color-ink-3); font-size:var(--text-caption); }
 .dining-split { margin-top:18px; }
 .dining-split>p { font-size:var(--text-caption); color:var(--color-ink-3); line-height:1.7; }
@@ -55,4 +55,4 @@
 .dining-empty p { font-size:var(--text-caption); line-height:1.9; margin:0; }
 .dining-manual-copy textarea { min-height:210px; font-variant-numeric:tabular-nums; }
 @media (max-width:1000px) { .dining-layout { grid-template-columns:minmax(0,1fr); gap:24px; } .dining-empty { min-height:170px; } }
-@media (max-width:560px) { .dining-intro strong { font-size:1.0625rem; } .dining-calculator>.tool-inline-heading { flex-direction:column; gap:5px; } .dining-money-grid { grid-template-columns:minmax(0,1fr); } .dining-receipt { padding:20px; } .dining-per-person>strong { font-size:1.25rem; } }
+@media (max-width:560px) { .dining-intro strong { font-size:1.0625rem; } .dining-calculator>.tool-inline-heading { flex-direction:column; gap:5px; } .dining-money-grid { grid-template-columns:minmax(0,1fr); } .dining-receipt { padding:20px; } .dining-per-person>strong { font-size:var(--fs-keep-20); } }

@@ -6,7 +6,7 @@
 .archive-jump a,.archive-links a{display:inline-flex;align-items:center;min-height:var(--control-height);color:var(--color-brand);font-size:var(--text-fact);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em}
 .archive-jump a:hover,.archive-links a:hover{text-decoration-color:currentColor}
 .archive-group{margin-top:32px;scroll-margin-top:80px}
-.archive-group>h2{margin:0 0 8px;color:var(--color-ink);font-size:1.25rem;line-height:1.364;font-weight:600}
+.archive-group>h2{margin:0 0 8px;color:var(--color-ink);font-size:var(--fs-keep-20);line-height:1.364;font-weight:600}
 .archive-group details{margin-top:8px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface)}
 .archive-group summary{display:list-item;min-height:var(--control-height);padding:10px 16px;cursor:pointer;color:var(--color-ink);font-size:var(--text-fact);font-weight:400}
 .archive-list{margin:0;padding:0 16px;list-style:none}

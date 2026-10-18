@@ -8,7 +8,7 @@
 .reader-shelf { margin: 26px 0; padding: 24px; background: var(--color-surface-2); border: 1px solid var(--color-line); border-radius: var(--r-xl); color: var(--color-brand-deep); }
 .reader-shelf-heading { display: flex; gap: 12px; justify-content: space-between; align-items: end; }
 .reader-eyebrow { color: var(--color-ink-3); font-size: .8125rem; font-weight: 400; letter-spacing: .15em; }
-.reader-shelf-heading h2 { font-size: 1.25rem; line-height: 1.4; margin: 6px 0 0; font-weight: 600; letter-spacing: 0; }
+.reader-shelf-heading h2 { font-size: var(--fs-keep-20); line-height: 1.4; margin: 6px 0 0; font-weight: 600; letter-spacing: 0; }
 .reader-shelf-heading>a { display: flex; align-items: center; white-space: nowrap; font-size: .8125rem; }
 .reader-shelf-tabs { display: flex; align-items: center; gap: 10px; margin: 16px 0; flex-wrap: wrap; }
 .reader-shelf-tabs button { display: inline-flex; align-items: center; gap: 5px; min-height: 36px; padding: 7px 11px; border: 1px solid transparent; border-radius: var(--r-sm); font-size: .8125rem; color: var(--color-ink-3); }
@@ -27,7 +27,7 @@
 .reader-more { margin-top: 12px; font-size: .8125rem; text-decoration: underline; padding: 6px 0; }
 .reader-actions :is(button,a):focus-visible,.reader-shelf :is(button,a):focus-visible { outline: 2px solid var(--color-brand); outline-offset: 3px; }
 @media(max-width:900px) { .reader-shelf-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .reader-shelf--compact .reader-shelf-grid { grid-template-columns: 1fr; } }
-@media(max-width:600px) { .reader-shelf { padding: 18px 14px; border-radius: var(--r-lg); } .reader-shelf-grid { grid-template-columns: 1fr; } .reader-shelf-heading h2 { font-size: 1.125rem; } .reader-actions { gap: 7px; } .reader-actions button,.reader-actions a { padding: 8px 11px; font-size: .8125rem; } .reader-actions a { margin-left: 0; } .reader-shelf-item img { width: 80px; flex-basis: 80px; } }
+@media(max-width:600px) { .reader-shelf { padding: 18px 14px; border-radius: var(--r-lg); } .reader-shelf-grid { grid-template-columns: 1fr; } .reader-shelf-heading h2 { font-size: var(--fs-keep-18); } .reader-actions { gap: 7px; } .reader-actions button,.reader-actions a { padding: 8px 11px; font-size: .8125rem; } .reader-actions a { margin-left: 0; } .reader-shelf-item img { width: 80px; flex-basis: 80px; } }
 
 /* WEB-SAVES: the one save model's controls (♡ 收藏, 加入这天计划 and their confirmation toast). They appear on
    prerendered pages (guides, events, calendar), which cannot import a component stylesheet yet, so they live in this

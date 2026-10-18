@@ -25,7 +25,7 @@
 .loan-final-payment strong { color:var(--color-ink-2); }
 .loan-extra-result { border:1px solid var(--color-line-strong); background:var(--color-brand-tint); border-radius:var(--r-md); padding:20px; }
 .loan-extra-result p { font-size:var(--text-caption); color:var(--color-ink-3); }
-.loan-extra-result p strong { margin-left:12px; color:var(--color-ink-2); font-size:1.25rem; }
+.loan-extra-result p strong { margin-left:12px; color:var(--color-ink-2); font-size:var(--fs-keep-20); }
 .loan-extra-result p small { display:block; margin:6px 0 17px; font-size:var(--text-caption); line-height:1.7; }
 .loan-extra-result>div { display:flex; gap:20px; justify-content:space-between; flex-wrap:wrap; color:var(--color-ink-3); font-size:var(--text-caption); }
 .loan-extra-result b { display:block; margin-top:7px; font-size:1.0625rem; color:var(--color-ink-2); }

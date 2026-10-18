@@ -101,7 +101,7 @@
 .planner-map-pin[aria-pressed=true] { background:var(--color-brand-deep); outline:3px solid var(--color-brand-tint); }
 .planner-map-disclosure>summary { display:flex; align-items:center; gap:10px; min-height:3rem; padding:10px 0; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; cursor:pointer; list-style:none; }
 .planner-map-disclosure>summary::-webkit-details-marker { display:none; }
-.planner-map-disclosure>summary::after { content:'+'; margin-left:auto; font-size:1.25rem; font-weight:400; }
+.planner-map-disclosure>summary::after { content:'+'; margin-left:auto; font-size:var(--fs-keep-20); font-weight:400; }
 .planner-map-disclosure[open]>summary::after { content:'−'; }
 .planner-nearby { margin-top:16px; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); }
 .planner-nearby h3 { margin:0; font-size:var(--text-body); }
@@ -253,6 +253,5 @@
 }
 @media (prefers-reduced-motion:reduce) { .planner-page * { scroll-behavior:auto!important; transition:none!important; } }
 @media (min-width:1024px) {
-  .planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { min-height:var(--control-height); font-size:.875rem; }
-  html:is([data-reading=large],[data-reading=extra-large]) :is(.planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button)) { font-size:var(--fs-body); }
+  .planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { min-height:var(--control-height); font-size:var(--fs-keep-14); }
 }

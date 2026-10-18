@@ -78,7 +78,7 @@
 .cm-safety a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 
 /* ---------- Post card (.ui-feed-card) ---------- */
-.cm-card .ui-sticker[data-tone=price] { font-size:.875rem; }
+.cm-card .ui-sticker[data-tone=price] { font-size:var(--fs-keep-14); }
 .cm-sticker-icon { width:.875rem; height:.875rem; margin-right:3px; }
 .cm-cover { --ui-cover-ratio:1 / 1; }
 .cm-cover[data-fit=contain] { background:var(--color-surface-2); }
@@ -154,8 +154,8 @@ html[data-post-sheet] #root main { visibility:hidden; }
 .cm-sheet__photo .cm-sheet__count { position:absolute; right:8px; bottom:8px; z-index:1; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); font-weight:400; }
 .cm-sheet__eyebrow { display:flex; flex-wrap:wrap; align-items:center; gap:.375rem .75rem; margin:0 0 .5rem; color:var(--color-ink-2); font-size:var(--text-fact); }
 .cm-sheet h1:focus { outline:none; }
-.cm-sheet h1 { margin:0 0 .5rem; color:var(--color-ink); font-size:1.5rem; line-height:1.308; font-weight:600; overflow-wrap:anywhere; }
-.cm-sheet__price { margin:0 0 .75rem; color:var(--color-brand); font-size:1.25rem; line-height:1.4; font-weight:600; overflow-wrap:anywhere; }
+.cm-sheet h1 { margin:0 0 .5rem; color:var(--color-ink); font-size:var(--fs-keep-24); line-height:1.308; font-weight:600; overflow-wrap:anywhere; }
+.cm-sheet__price { margin:0 0 .75rem; color:var(--color-brand); font-size:var(--fs-keep-20); line-height:1.4; font-weight:600; overflow-wrap:anywhere; }
 .cm-sheet__availability { margin:0 0 1rem; }
 .cm-sheet__availability p { margin:.375rem 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .cm-sheet__columns { display:grid; grid-template-columns:minmax(0, 1fr); gap:1.5rem; }

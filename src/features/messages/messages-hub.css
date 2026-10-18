@@ -38,7 +38,7 @@
 .msg-requests__error button { min-height:var(--control-height); margin-left:8px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; }
 
 /* Conversation list */
-.msg-list__title { margin:0 0 8px; color:var(--color-ink); font-size:1.25rem; line-height:1.364; font-weight:600; }
+.msg-list__title { margin:0 0 8px; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:1.364; font-weight:600; }
 .msg-controls { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 8px; }
 .msg-search { display:flex; flex:1 1 14rem; align-items:center; gap:8px; min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-3); }
 .msg-search input { flex:1; min-width:0; border:0; outline:none; background:transparent; color:var(--color-ink); font-size:var(--text-body); }
