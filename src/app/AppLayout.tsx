@@ -3,7 +3,6 @@
 // background-location 模式覆盖在来源页之上。
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, useNavigate, type Location } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
 import type { HOME_CHANNELS } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
@@ -36,6 +35,18 @@ import type { ToastAction } from '../components/Toast';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
+import { pageLoaders } from '../route-loaders';
+import { matchRoute } from './route-table';
+import { unprefixedPath } from '../lib/language-path';
+
+/** Route feedback (UI9-F): a pointer or finger resting on an in-site link starts its page chunk, so the tap lands sooner.
+ *  The loaders are cached promises; the 3D world (a full page load) is never warmed. */
+const warmLink = (event: Event) => {
+  const link = (event.target as Element | null)?.closest?.('a[href^="/"]') as HTMLAnchorElement | null;
+  if (!link || link.target === '_blank') return;
+  const page = matchRoute(unprefixedPath(link.pathname))?.page;
+  if (page && page !== 'opus') void pageLoaders[page]().catch(() => undefined);
+};
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -48,6 +59,12 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const tab = tabFromPathname(location.pathname);
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
+  useEffect(() => {
+    const options = { passive: true, capture: true };
+    document.addEventListener('pointerover', warmLink, options);
+    document.addEventListener('touchstart', warmLink, options);
+    return () => { document.removeEventListener('pointerover', warmLink, options); document.removeEventListener('touchstart', warmLink, options); };
+  }, []);
 
   // ✨ Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; action?: ToastAction; id: number } | null>(null);
@@ -661,7 +678,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       overlays={overlays}
     >
       {/* The first route keeps the prerendered page on screen while its chunk settles (boot-main.ts): no blank frame. */}
-      <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
+      {/* Later routes: the page keeps its height and a top bar appears after 150ms (site-chrome.css), never a spinner. */}
+      <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="site-route-wait" aria-busy="true"><span className="site-route-progress" /></div>}>
         <BootMainSettled />
         <Outlet context={ctx} />
       </Suspense>

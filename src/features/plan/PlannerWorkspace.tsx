@@ -37,6 +37,7 @@ import { useOnline } from './use-online';
 import { SaveToast } from '../saves/SaveToast';
 import { prepareSaveAnnouncer } from '../saves/save-announcer';
 import { bootCarry, clearBootCarry } from './boot-carry';
+import { scrollBehavior } from '../../lib/motion';
 
 /** The example questions under the box. */
 const PLAN_EXAMPLES = ['明天在旧金山找家餐厅，再去附近逛逛', '这个周末东湾有哪些新店？', '后天东湾，带5岁和12岁的孩子，不开车'];
@@ -165,7 +166,7 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
   const anchor = points.find(point => point.key === selected) || points.find(point => stops.some(stop => favoriteKey(stop) === point.key));
   const anchorRecord = anchor ? factsForStop({ kind: anchor.key.startsWith('event:') ? 'event' : 'place', id: anchor.key.split(':')[1] }) : undefined;
   const nearby = anchorRecord ? nearbyPlaces(anchorRecord, filteredPlaces, effectiveFilters) : [];
-  const choose = (key: string) => { setCatalogLimit(10000); setSelected(key); document.getElementById(`catalog-${key}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); };
+  const choose = (key: string) => { setCatalogLimit(10000); setSelected(key); document.getElementById(`catalog-${key}`)?.scrollIntoView({ behavior: scrollBehavior(), block: 'nearest' }); };
   const remember = () => setUndo({ stops, date, searchDate, title, details, editing, filters: persistedFilters, region, budget, age, setting, travel });
   const restoreUndo = () => {
     if (!undo) return;
@@ -190,7 +191,7 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
     setAge(String(filters.childAge ?? '')); setSetting(filters.setting || 'any'); setTravel(filters.travelMode || outing.details.travelMode);
     setPersistedFilters(filters); setSelected(`${outing.stops[0].kind}:${outing.stops[0].id}`);
     setStatus(locale === 'en' ? 'Your outing is ready to edit. Check reservations and fill in meal and transport allowances.' : '完整方案已放入行程。请确认预约，并补充餐饮与交通预算。');
-    document.getElementById('outing-plan')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    document.getElementById('outing-plan')?.scrollIntoView?.({ behavior: scrollBehavior(), block: 'start' });
   };
   const beginPlan = (nextStops: Stop[], nextDate: string, name: string, filters: PlanFilters) => {
     remember(); setReplaceIndex(null); setEditing(undefined);
@@ -203,7 +204,7 @@ export function PlannerWorkspace({ onBusy, registerAsk, onPlanOpen, coverPage: p
     setDetails({ ...defaultPlanDetails(), partySize: filters.partySize || 1, travelMode: ['drive', 'transit', 'walk'].includes(filters.travelMode || '') ? filters.travelMode as PlanDetails['travelMode'] : 'any', constraints });
     setSelected(`${nextStops[0].kind}:${nextStops[0].id}`);
     setStatus(locale === 'en' ? 'Your starting point is set. Review the visit time, then add another stop or choose a complete outing.' : '已设为行程起点。请安排到访时间，再加一站或选择完整方案。');
-    document.getElementById('outing-plan')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+    document.getElementById('outing-plan')?.scrollIntoView?.({ behavior: scrollBehavior(), block: 'start' });
   };
   const applyPlanEdit = (next: { title: string; date: string; stops: Stop[]; details: PlanDetails }) => {
     remember(); request.current?.abort(); request.current = undefined; setRequesting(false); setResults(null); setReplaceIndex(null);

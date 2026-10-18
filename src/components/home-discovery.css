@@ -19,9 +19,8 @@
 .home-ask input::placeholder { color:var(--color-ink-3); }
 .home-ask button { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-brand); border-radius:10px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); font-weight:600; }
 .home-ask button svg { width:1rem; height:1rem; }
-.home-ask button:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
+.home-ask button:hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
 /* Empty box: the primary button, faded (H29: no extra grey button look on the page). */
-.home-ask button:disabled { opacity:.45; cursor:default; }
 
 /* Section heads: one H2 per section, the date range as a kicker, one "all" link. */
 .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:4px 12px; margin-bottom:10px; }

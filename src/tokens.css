@@ -192,6 +192,16 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 }
 .site-app { font-family:var(--font-sans); }
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+/* Interaction states for every control (N23), including the ones the primitives do not own yet: hover only where a pointer
+   can hover (links underline, buttons darken a step), a press answer at once (scale composes with any transform), and the
+   focus ring in lime on the deep brand surfaces. Inputs, selects and text areas draw their edge in line-control (≥3:1). */
+@media (hover:hover) and (pointer:fine) {
+  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab])):hover { text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+  .site-app :where(button,[role=button],summary,a[class*=button],a[class*=btn]):not(:disabled,.ui-button,.ui-chip,.ui-icon-button):hover { filter:brightness(.94); }
+}
+.site-app :where(button,[role=button],a[class*=button],a[class*=btn]):not(:disabled):active { scale:.97; }
+.site-app :where(.site-footer,.ui-hero-card[data-overlay],[data-surface=deep]) :focus-visible { outline-color:var(--color-highlight); }
+.site-app :where(input:not([type=checkbox],[type=radio],[type=range],[type=color]),select,textarea) { border-color:var(--color-line-control); }
 .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; min-width:44px; min-height:44px; color:var(--color-ink); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); font-size:var(--text-fact); }
 .site-reading-button>svg { display:none; }
 .reading-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:16px; background:rgb(var(--color-ink-rgb) / .44); }

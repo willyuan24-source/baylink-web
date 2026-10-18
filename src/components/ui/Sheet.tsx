@@ -1,4 +1,4 @@
-import { useId, type ReactNode, type RefObject } from 'react';
+import { useEffect, useId, useState, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 import './ui.css';
 import { ModalShell } from './Modal';
@@ -25,11 +25,23 @@ export type SheetProps = {
  * Bottom sheet on phones (r24 top, 85dvh), 480px right drawer on desktop. Built on ModalShell, so the focus
  * trap, Esc, backdrop close, scroll lock and focus return are the site's existing, tested behaviour.
  */
+/** The exit lasts --dur-3 (200ms); none with reduced motion, in 简洁显示 or without matchMedia (tests, old browsers). */
+const exitMs = () => typeof window === 'undefined' || typeof window.matchMedia !== 'function' || window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.hasAttribute('data-simple') ? 0 : 200;
+
 export function Sheet({ open, onClose, title, children, footer, status, initialFocusRef, closeOnBackdrop = true, restoreFocusRef }: SheetProps) {
   const titleId = useId();
   const { t } = useUiCopy();
-  if (!open) return null;
-  return <ModalShell onClose={onClose} className="ui-sheet-backdrop" labelledBy={titleId} initialFocusRef={initialFocusRef} closeOnBackdrop={closeOnBackdrop} restoreFocusRef={restoreFocusRef}>
+  // One overlay primitive with an enter and an exit: after open turns false the sheet stays for its exit animation.
+  const [mounted, setMounted] = useState(open);
+  useEffect(() => {
+    if (open) { setMounted(true); return; }
+    const ms = exitMs();
+    if (!ms) { setMounted(false); return; }
+    const timer = window.setTimeout(() => setMounted(false), ms);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+  if (!open && !mounted) return null;
+  return <ModalShell onClose={onClose} className={open ? 'ui-sheet-backdrop' : 'ui-sheet-backdrop is-closing'} labelledBy={titleId} initialFocusRef={initialFocusRef} closeOnBackdrop={closeOnBackdrop} restoreFocusRef={restoreFocusRef}>
     <div className="ui-sheet">
       <div className="ui-sheet__handle" aria-hidden="true" />
       <div className="ui-sheet__header">

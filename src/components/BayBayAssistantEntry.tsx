@@ -389,7 +389,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
           {lastComplete && planHandoffContext && !loading && !schoolContext && !outingContext && !lastComplete.response?.assistantPlan && <BayBayTaskHandoff key={lastComplete.id} brief={bayBayTaskBrief(turns)} ownerId={ownerId} onNavigate={navigate} />}
           {lastComplete && !loading && !emergencyLast && !lastComplete.response?.assistantPlan && !turns[turns.length - 1]?.restartRequired && (!hasUnconfirmedFoodEvidence(lastComplete.response) || !!lastComplete.response?.followups?.length) && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><span>接着聊</span>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath)), lastComplete.response?.followups).slice(0, 2).map((followup) => <button type="button" key={followup} onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}<ArrowUp size={12} /></button>)}</div>)}
         </div>
-        <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current) askBayBay(question); }}>
+        <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current && !askBayBay(question)) inputRef.current?.focus(); }}>
           <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{memberWebAccess ? <>{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={effectiveSearchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}</> : <><strong className="baybay-access-label">{ownerId ? copy('登录需更新 · 仅站内', 'Sign-in needs updating · Site only') : copy('访客 · 仅站内', 'Guest · Site only')}</strong>{onLoginNeeded && <button type="button" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</button>}</>}</div>
           {/* Few AI queries left (≤5) or none: one visible line by the question box; a pause banner already says so. */}
           {usage && !capabilities.pause && <BayBayQuotaLine remaining={usage.remaining} />}
@@ -406,7 +406,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
               event.preventDefault();
               askBayBay(question);
             }} placeholder={placeholder} className="member-baybay-question-input" />
-            {loading ? <button type="button" onClick={stop} className="member-baybay-ask"><Square size={13} />停止</button> : <button type="submit" disabled={question.trim().length < 2} className="member-baybay-ask"><span>问一下</span><ArrowUp size={15} /></button>}
+            {loading ? <button type="button" onClick={stop} className="member-baybay-ask"><Square size={13} />停止</button> : <button type="submit" className="member-baybay-ask"><span>问一下</span><ArrowUp size={15} /></button>}
           </div>
         </form>
       </div>
