@@ -11,7 +11,9 @@ import { routeActivity, routeKey } from '../lib/route-activity';
  */
 export function RouteSettled({ pathname, search }: { pathname: string; search: string }): null {
   const key = routeKey(pathname, search);
-  useEffect(() => routeActivity.listen(), []);
+  // Unmounted (a link out of the layout to the 3D world, or the root error page after a page's code failed to load):
+  // nothing of the layout is loading any more, so <html data-route-wait> goes with it.
+  useEffect(() => { const stop = routeActivity.listen(); return () => { stop(); routeActivity.reset(); }; }, []);
   useEffect(() => { routeActivity.settle(key); }, [key]);
   return null;
 }

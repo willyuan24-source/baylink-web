@@ -135,8 +135,13 @@ test('the route bar shows while the address bar asks for a page that is not on s
   assert.equal(waiting(), true);
   view.rerender(<RouteSettled pathname="/guides" search="?q=%E7%A7%9F" />);
   assert.equal(waiting(), false);
-  // Unmounted, it stops listening.
+  // Unmounted while a page is loading (a link out of the layout to the 3D world, or the root error page after a chunk
+  // failed offline): the wait state goes with it, and it stops listening.
+  dom.window.history.pushState(null, '', '/explore');
+  fireEvent.click(document.body);
+  assert.equal(waiting(), true);
   view.unmount();
+  assert.equal(waiting(), false, 'no html[data-route-wait] left behind after the layout unmounts');
   dom.window.history.pushState(null, '', '/tools');
   fireEvent.click(document.body);
   assert.equal(waiting(), false);

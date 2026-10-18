@@ -40,6 +40,6 @@ export const routeActivity = {
   },
   /** A page is on screen and the address bar asks for another one: the next page is loading. */
   navigating(): boolean { return shown !== null && requested !== null && requested !== shown; },
-  /** Tests only. */
+  /** Forget both routes and clear <html data-route-wait> (RouteSettled unmounted; tests). */
   reset(): void { shown = null; requested = null; paint(); },
 };
