@@ -98,7 +98,7 @@
 .cm-card__translation .post-translation { margin:0; }
 .cm-card[data-closed] .ui-cover__img { filter:saturate(.5); }
 .cm-status { display:flex; flex-wrap:wrap; align-items:center; gap:4px 8px; margin:2px 0 0; font-size:var(--text-caption); line-height:1.385; }
-.cm-status .ui-status { max-width:100%; overflow:hidden; text-overflow:ellipsis; }
+.cm-status .ui-status { max-width:100%; white-space:normal; overflow-wrap:anywhere; }
 .cm-status__founder { color:var(--color-brand); font-weight:400; }
 .cm-card__menu { position:absolute; top:4px; left:4px; z-index:3; }
 .cm-menu-trigger { display:grid; place-items:center; width:2.75rem; height:2.75rem; border-radius:var(--r-circle); color:var(--color-ink); }

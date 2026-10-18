@@ -56,7 +56,8 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-card__link::after { content:""; position:absolute; inset:0; border-radius:var(--r-lg); }
 .baybay-conversation .bb-card__link:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; border-radius:var(--r-sm); }
 .baybay-conversation .bb-card__n { margin-right:4px; color:var(--color-brand); font-variant-numeric:tabular-nums; }
-.baybay-conversation .bb-card__meta { order:3; margin:0; overflow:hidden; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; white-space:nowrap; text-overflow:ellipsis; }
+/* date · venue · price wraps instead of ending in an ellipsis (status and venue are never cut). */
+.baybay-conversation .bb-card__meta { order:3; margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; overflow-wrap:anywhere; }
 .baybay-conversation .bb-card__actions { position:relative; z-index:1; display:flex; flex-wrap:wrap; order:4; gap:8px; }
 .baybay-conversation .bb-card__actions button { display:inline-flex; flex:1; align-items:center; justify-content:center; gap:6px; min-height:var(--control-height); padding:0 10px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; white-space:nowrap; }
 .baybay-conversation .bb-card__actions button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand); }

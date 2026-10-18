@@ -208,7 +208,7 @@
 /* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
 .ui-feed-card { position:relative; display:flex; flex-direction:column; gap:4px; min-width:0; }
 .ui-feed-card__media { position:relative; order:-1; margin-bottom:4px; border-radius:var(--r-lg); }
-.ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; padding-block:2px; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
+.ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
 .ui-card-link { color:inherit; text-decoration:none; }
 .ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:var(--r-lg); }
 .ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
@@ -228,15 +228,14 @@
 .ui-cover-credit { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .ui-feed:not(:has(.ui-feed-card[data-credited] [data-cover=type]))>.ui-cover-credit { display:none; }
 .ui-feed-card__save { position:absolute; top:4px; right:4px; z-index:3; }
-@media (min-width:1024px) { .ui-feed-card__title { font-size:var(--text-body); line-height:1.5; } }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:.875rem; white-space:normal; }
+:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
 @container ui-feed (max-width:339px) {
   .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
 }
 @media (max-width:767px) {
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:.875rem; white-space:normal; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
 }
 
 /* Row card: lists, calendar, search, saved items. One trailing action only. */
@@ -267,13 +266,14 @@
 .ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:.875rem; line-height:1.25; font-weight:400; cursor:pointer; }
 .ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-strong); background:var(--color-surface); color:var(--color-ink); font-weight:400; }
+/* The checked segment keeps a cue that is not only colour: a control edge (3.26:1 on the sunken track, WCAG 1.4.11) and 600. */
+.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-control); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
 
 /* Sheet: bottom sheet on phones, right drawer on desktop; focus and Esc come from ModalShell. */
 .ui-sheet-backdrop { position:fixed; inset:0; display:flex; align-items:flex-end; justify-content:center; background:var(--scrim); animation:ui-fade var(--dur-3) var(--ease-out); }
 .ui-sheet { display:flex; flex-direction:column; width:100%; max-height:85vh; max-height:85dvh; border-top-left-radius:var(--r-xl); border-top-right-radius:var(--r-xl); background:var(--color-surface); color:var(--color-ink); box-shadow:var(--e2); animation:ui-sheet-up var(--dur-5) var(--ease-out); }
 /* Exit (Sheet.tsx adds .is-closing and unmounts when the exit ends): the panel slides back and the scrim fades. */
-.ui-sheet-backdrop.is-closing { animation:ui-fade-out var(--dur-3) var(--ease-in) forwards; }
+.ui-sheet-backdrop.is-closing { animation:ui-fade-out var(--dur-3) var(--ease-in) forwards; pointer-events:none; }
 .ui-sheet-backdrop.is-closing .ui-sheet { animation:ui-sheet-down var(--dur-3) var(--ease-in) forwards; }
 .ui-sheet__handle { flex:none; width:36px; height:4px; margin:8px auto 0; border-radius:var(--r-pill); background:var(--color-line-strong); }
 .ui-sheet__header { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 16px 8px 20px; }
@@ -407,6 +407,9 @@ html[data-simple] .ui-save::before { inset:-8px; }
    itself instead of running past the card; any unit that fits the line still moves to the next line whole. */
 :is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep:not([data-latin]) { display:inline-block; max-width:100%; white-space:normal; }
 :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
+/* P07: a clamped title clips at its padding box, which cut a first glyph's side bearing ("Berkeley" at 1440) and the top of
+   tall glyphs: 2px of room on every side, given back with a negative inline margin so the text stays on the grid. */
+:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { padding:2px; margin-inline:-2px; }
 /* H63: under 360px a page title scales with the width (no container above it, so cq units are the viewport's) between
    20px and the phone H1 (26, display 28; rem, so Aa grows both ends; the width term carries --fluid-scale): 24px at 320
    (30 at 特大), the full size from about 347px. What keeps a long title inside the line is the title units' wrapping
