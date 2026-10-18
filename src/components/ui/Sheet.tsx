@@ -2,6 +2,7 @@ import { useId, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 import './ui.css';
 import { ModalShell } from './Modal';
+import { useExit } from '../../lib/reading-preferences';
 import { IconButton } from './Button';
 import { useUiCopy } from './ui-copy';
 
@@ -28,8 +29,11 @@ export type SheetProps = {
 export function Sheet({ open, onClose, title, children, footer, status, initialFocusRef, closeOnBackdrop = true, restoreFocusRef }: SheetProps) {
   const titleId = useId();
   const { t } = useUiCopy();
-  if (!open) return null;
-  return <ModalShell onClose={onClose} className="ui-sheet-backdrop" labelledBy={titleId} initialFocusRef={initialFocusRef} closeOnBackdrop={closeOnBackdrop} restoreFocusRef={restoreFocusRef}>
+  // One overlay primitive with an enter and an exit: after open turns false the sheet stays for its exit animation
+  // (useExit, lib/reading-preferences.ts).
+  const shown = useExit(open);
+  if (!shown) return null;
+  return <ModalShell onClose={onClose} className={open ? 'ui-sheet-backdrop' : 'ui-sheet-backdrop is-closing'} labelledBy={titleId} initialFocusRef={initialFocusRef} closeOnBackdrop={closeOnBackdrop} restoreFocusRef={restoreFocusRef}>
     <div className="ui-sheet">
       <div className="ui-sheet__handle" aria-hidden="true" />
       <div className="ui-sheet__header">

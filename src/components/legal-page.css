@@ -18,11 +18,11 @@
 .legal-related a{display:inline-flex;align-items:center;min-height:var(--control-height);font-size:var(--text-fact)}
 /* SMS consent: the opt-in flow screenshots and the disclosure shown beside the verification button. */
 .legal-steps{display:grid;gap:16px;margin:16px 0 0;padding:0;list-style:none}
-.legal-step{overflow:hidden;border:1px solid var(--color-line);border-radius:16px;background:var(--color-surface)}
+.legal-step{overflow:hidden;border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface)}
 .legal-step>h3{margin:0;padding:12px 16px;border-bottom:1px solid var(--color-line);color:var(--color-ink);font-size:var(--text-fact);line-height:1.5;font-weight:600}
 .legal-step>img{display:block;width:100%;height:auto;padding:12px;background:var(--color-surface-2);object-fit:contain}
 .legal-step>p{padding:12px 16px;font-size:var(--text-fact)}
-.legal-callout{margin-top:16px;padding:16px;border-radius:16px;background:var(--color-brand-tint)}
+.legal-callout{margin-top:16px;padding:16px;border-radius:var(--r-lg);background:var(--color-brand-tint)}
 .legal-callout>p:first-child{color:var(--color-ink);font-size:var(--text-fact);font-weight:600}
 .legal-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(min-width:1024px){.legal-page{padding-block:40px 72px}}

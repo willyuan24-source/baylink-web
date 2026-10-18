@@ -30,6 +30,11 @@ export const STYLE_METRICS = {
   baylinkClasses: 'Tailwind *-baylink-* colour classes',
   arrowUpRight: 'ArrowUpRight icon uses (↗ belongs to external links only)',
   buttonLooks: 'distinct fill · text · border looks that CSS gives button-like selectors at rest (H29: primary, secondary, quiet)',
+  fontSizeOffLadder: 'plain px/rem font sizes off the tokens v2 ladder (13 · 14 · 16 · 17 · 18 · 20 · 24 · 28 · 32 · 44px; UI9-F, N01)',
+  fontSizeLiteral: 'font sizes written as a length instead of a --fs-* / --text-* token, outside src/tokens.css (N01)',
+  fontWeightBold: 'font weights above the 600 budget (700, 800, 900, bold, bolder; N03)',
+  durationOffScale: 'transition / animation durations of 50–360ms off the motion scale (120 · 160 · 200 · 240 · 280ms; N24)',
+  durationLiteral: 'transition / animation durations written as a literal (≥50ms) instead of a --dur-* token (N24)',
 };
 /** The two non-style counts. Both count distinct items, so reusing an already-listed one does not raise them. */
 export const OTHER_METRICS = {
@@ -44,6 +49,9 @@ const pxNumbers = value => [...value.matchAll(/(-?\d*\.?\d+)px\b/g)].map(match =
 const sizeNumbers = value => [...value.matchAll(/(\d*\.?\d+)(px|rem|em)\b/g)].map(match => Number(match[1]) * (match[2] === 'px' ? 1 : 16));
 const HEX = /#(?:[\da-f]{8}|[\da-f]{6}|[\da-f]{3,4})(?![\w-])/gi;
 const allowedWeights = new Set(['400', '600', '700', 'normal', 'bold', 'inherit', 'initial', 'unset', 'revert']);
+/** The tokens v2 type ladder and motion scale (src/tokens.css). */
+const LADDER_PX = new Set([13, 14, 16, 17, 18, 20, 24, 28, 32, 44]);
+const MOTION_MS = new Set([120, 160, 200, 240, 280]);
 const prefix = '(?<![\\w-])(?:[a-z0-9-]+:)*!?';
 const twTextSize = new RegExp(`${prefix}text-\\[(\\d*\\.?\\d+)(px|rem|em)\\]`, 'g');
 const twRounded = new RegExp(`${prefix}rounded(?:-(?:t|r|b|l|tl|tr|br|bl|s|e|ss|se|es|ee))?(?:-(none|sm|md|lg|xl|2xl|3xl|full|card|card-lg|\\[[^\\]\\s]+\\]))?(?![\\w-])`, 'g');
@@ -92,8 +100,25 @@ export function measureStyle(sources) {
     }
     const sizes = sizeNumbers(value);
     if (sizes.length && Math.min(...sizes) < 13) add(file, 'fontSizeUnder13');
+    const plain = /^(\d*\.?\d+)(px|rem)$/.exec(value.replace(/\s*!important\s*$/i, '').trim());
+    if (plain && !LADDER_PX.has(Number(plain[1]) * (plain[2] === 'px' ? 1 : 16))) add(file, 'fontSizeOffLadder');
+    if (file !== 'src/tokens.css' && sizes.length && !value.includes('var(')) add(file, 'fontSizeLiteral');
   };
-  const weight = (file, value) => { if (!allowedWeights.has(value) && !value.startsWith('var(')) add(file, 'fontWeightOutsideSet'); };
+  const weight = (file, value) => {
+    if (!allowedWeights.has(value) && !value.startsWith('var(')) add(file, 'fontWeightOutsideSet');
+    if (/^(?:700|800|900|bold|bolder)$/.test(value)) add(file, 'fontWeightBold');
+  };
+  /** Each layer's duration (its first time value); delays and sub-50ms resets are not durations. */
+  const durations = (file, value) => {
+    for (const layer of value.split(/,(?![^(]*\))/)) {
+      const time = /(?<![\w.-])(\d*\.?\d+)(ms|s)\b(?![^(]*\))/.exec(layer);
+      if (!time) continue;
+      const ms = Number(time[1]) * (time[2] === 's' ? 1000 : 1);
+      if (ms < 50) continue;
+      add(file, 'durationLiteral');
+      if (ms <= 360 && !MOTION_MS.has(ms)) add(file, 'durationOffScale');
+    }
+  };
   const strings = (file, text, line) => {
     if (file !== 'src/tokens.css') for (const match of text.matchAll(HEX)) { add(file, 'hexOccurrences'); kind(kinds.hex, match[0].toLowerCase(), at(file, line)); }
     for (const match of text.matchAll(twTextSize)) if (Number(match[1]) * (match[2] === 'px' ? 1 : 16) < 13) add(file, 'textArbitraryUnder13');
@@ -125,6 +150,7 @@ export function measureStyle(sources) {
           for (const token of value.split(/\s+/)) if (/^(?:[1-9]00|bolder|lighter)$/.test(token)) weight(file, token);
         }
         if (prop === 'font-weight') weight(file, normalizeValue(value));
+        if (/^(?:transition|transition-duration|animation|animation-duration)$/.test(prop)) durations(file, value);
         if (/^border(?:-[a-z]+)*-radius$/.test(prop)) kind(kinds.radius, normalizeValue(value), at(file, line));
         if (prop === 'box-shadow') kind(kinds.shadow, normalizeValue(value), at(file, line));
       });

@@ -1,20 +1,20 @@
 .dining-intro { display:flex; align-items:flex-start; gap:13px; color:var(--color-ink-2); }
 .dining-intro>svg { flex-shrink:0; margin-top:3px; }
-.dining-intro strong { font-size:1.1875rem; font-weight:700; }
+.dining-intro strong { font-size:var(--fs-keep-18); font-weight:600; }
 .dining-intro p { margin:7px 0 0; font-size:.8125rem; line-height:1.8; color:var(--color-ink-3); }
-.dining-example { background:var(--ui-warning-tint); border-radius:9px; padding:10px 13px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
+.dining-example { background:var(--color-warning-tint); border-radius:var(--r-md); padding:10px 13px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
 .dining-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); align-items:start; gap:28px; }
 .dining-inputs { display:flex; flex-direction:column; gap:21px; min-width:0; }
 .dining-money-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .dining-field-serviceCharge { grid-column:1/-1; }
-.dining-service-note { display:flex; gap:9px; background:var(--ui-warning-tint); border:1px solid var(--color-line-strong); border-radius:11px; padding:12px; }
+.dining-service-note { display:flex; gap:9px; background:var(--color-warning-tint); border:1px solid var(--color-line-strong); border-radius:var(--r-md); padding:12px; }
 .dining-service-note svg { flex-shrink:0; color:var(--color-ink-3); margin-top:2px; }
 .dining-service-note p { margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.8; }
 .dining-tip,.dining-basis { border:0; margin:0; padding:0; min-width:0; }
-.dining-tip>legend,.dining-basis>legend { margin-bottom:10px; color:var(--color-ink); font-size:.8125rem; font-weight:600; }
+.dining-tip>legend,.dining-basis>legend { margin-bottom:10px; color:var(--color-ink); font-size:.8125rem; font-weight:400; }
 .dining-tip-presets { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; }
 /* The tip chips are FilterChips too (the loan tool's mode toggle and term chips): ink when chosen. */
-.dining-tip-presets button { min-height:var(--control-height); padding:0 8px; border:1px solid var(--color-line-strong); border-radius:999px; color:var(--color-ink); background:var(--color-surface); font-size:var(--text-fact); white-space:nowrap; }
+.dining-tip-presets button { min-height:var(--control-height); padding:0 8px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); color:var(--color-ink); background:var(--color-surface); font-size:var(--text-fact); white-space:nowrap; }
 .dining-tip-presets button[aria-pressed="true"] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
 .dining-percent-field { display:flex; flex-direction:row; align-items:center; justify-content:space-between; margin-top:12px; }
 .dining-percent-field>div { position:relative; width:112px; }
@@ -26,11 +26,11 @@
 .dining-basis input { accent-color:var(--color-brand); width:16px; height:16px; }
 .dining-people>div { display:flex; align-items:center; gap:10px; }
 .dining-people input { text-align:center; width:95px; font-variant-numeric:tabular-nums; }
-.dining-people button { width:46px; height:46px; display:grid; place-items:center; border-radius:10px; border:1px solid var(--color-line-strong); background:var(--color-surface); color:var(--color-brand); }
+.dining-people button { width:46px; height:46px; display:grid; place-items:center; border-radius:var(--r-md); border:1px solid var(--color-line-control); background:var(--color-surface); color:var(--color-brand); }
 .dining-people button:disabled { opacity:.4; cursor:default; }
 .dining-calculator button:focus-visible { outline:3px solid var(--color-brand); outline-offset:3px; }
 .dining-calculator input[aria-invalid="true"] { border-color:var(--color-danger); }
-.dining-receipt { min-width:0; background:var(--color-surface-2); border:1px solid var(--color-line-strong); border-radius:15px; padding:23px; box-shadow:none; }
+.dining-receipt { min-width:0; background:var(--color-surface-2); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); padding:23px; box-shadow:none; }
 .dining-receipt-heading { display:flex; justify-content:space-between; align-items:center; color:var(--color-ink-3); padding-bottom:20px; border-bottom:1px dashed var(--color-line-strong); }
 .dining-receipt-heading>span { font-size:var(--text-fact); font-weight:600; }
 .dining-breakdown { margin:20px 0 12px; display:flex; flex-direction:column; gap:13px; }
@@ -41,9 +41,9 @@
 .dining-total { margin-top:20px; padding:19px 0; border-top:1px dashed var(--color-line-strong); display:flex; align-items:baseline; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--color-ink-2); }
 .dining-total>span { font-size:.8125rem; font-weight:600; }
 .dining-total>strong { font-size:1.75rem; letter-spacing:-1px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.dining-per-person { display:flex; flex-direction:column; gap:8px; border-radius:11px; padding:17px; background:var(--color-brand-tint); color:var(--color-ink-2); }
+.dining-per-person { display:flex; flex-direction:column; gap:8px; border-radius:var(--r-md); padding:17px; background:var(--color-brand-tint); color:var(--color-ink-2); }
 .dining-per-person>span { font-size:var(--text-caption); }
-.dining-per-person>strong { font-size:1.375rem; line-height:1.5; letter-spacing:-.5px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.dining-per-person>strong { font-size:var(--fs-keep-20); line-height:1.5; letter-spacing:-.5px; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .dining-per-person>small { color:var(--color-ink-3); font-size:var(--text-caption); }
 .dining-split { margin-top:18px; }
 .dining-split>p { font-size:var(--text-caption); color:var(--color-ink-3); line-height:1.7; }
@@ -51,8 +51,8 @@
 .dining-split li { color:var(--color-ink-2); font-size:.8125rem; font-variant-numeric:tabular-nums; }
 .dining-split small { display:block; font-size:var(--text-caption); line-height:1.8; color:var(--color-ink-3); }
 .dining-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; min-height:285px; padding:25px 2px; gap:18px; color:var(--color-ink-3); }
-.dining-empty strong { font-size:.9375rem; line-height:1.7; color:var(--color-ink-3); }
+.dining-empty strong { font-size:1rem; line-height:1.7; color:var(--color-ink-3); }
 .dining-empty p { font-size:var(--text-caption); line-height:1.9; margin:0; }
 .dining-manual-copy textarea { min-height:210px; font-variant-numeric:tabular-nums; }
 @media (max-width:1000px) { .dining-layout { grid-template-columns:minmax(0,1fr); gap:24px; } .dining-empty { min-height:170px; } }
-@media (max-width:560px) { .dining-intro strong { font-size:1.0625rem; } .dining-calculator>.tool-inline-heading { flex-direction:column; gap:5px; } .dining-money-grid { grid-template-columns:minmax(0,1fr); } .dining-receipt { padding:20px; } .dining-per-person>strong { font-size:1.375rem; } }
+@media (max-width:560px) { .dining-intro strong { font-size:1.0625rem; } .dining-calculator>.tool-inline-heading { flex-direction:column; gap:5px; } .dining-money-grid { grid-template-columns:minmax(0,1fr); } .dining-receipt { padding:20px; } .dining-per-person>strong { font-size:var(--fs-keep-20); } }

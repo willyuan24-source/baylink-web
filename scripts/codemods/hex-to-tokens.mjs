@@ -43,7 +43,7 @@ export const HEX = /#(?:[\da-f]{8}|[\da-f]{6}|[\da-f]{3,4})(?![\w-])/gi;
 const excluded = path => /^src\/(?:opus-bay\/|features\/little-bay\/|data\/generated\/)|little-bay\.css$|^src\/tokens\.css$/.test(path);
 
 /** Text tokens that pass AA on every light surface token, and the light ones that pass on brand-deep. */
-export const TEXT_DARK = ['ink', 'ink-2', 'ink-3', 'brand', 'brand-hover', 'brand-deep', 'warm', 'success', 'warning', 'danger', 'info', 'plum'];
+export const TEXT_DARK = ['ink', 'ink-2', 'ink-3', 'brand', 'brand-hover', 'brand-deep', 'warm', 'success', 'warning', 'danger', 'info'];
 export const TEXT_LIGHT = ['surface', 'on-brand-muted', 'highlight', 'brand-tint'];
 const TEXT_NEUTRAL = ['ink', 'ink-2', 'ink-3'];
 /** A heading compound: h1–h3, or a class ending in "title" / "title__head" (`.gd-title__head`, `.baylink-hero-title`). */

@@ -5,6 +5,7 @@ import { buildItinerary, clockLabel, planBudget, stopKey, planDetailsError } fro
 import { stopTitle, type PlanDetails, type Stop } from '../lib/planner-core';
 import type { BayBayAdmissionOverride } from '../lib/baybay-plan-handoff';
 import { planDayLabel } from '../lib/plan-stop-cover';
+import { scrollBehavior } from '../lib/motion';
 
 /** `unsaved`: a draft (a shared link, a list pick, a BayBay plan); `changed`: a saved plan with edits; `saved`: as stored. */
 export type PlanDraftState = 'none' | 'unsaved' | 'changed' | 'saved';
@@ -29,7 +30,7 @@ export function PlannerPlanOverview({ stops, date, details, admissionOverride, s
   const saved = state === 'saved';
   return <section className="planner-plan-overview" aria-label={text('当前计划概览', 'Current plan overview')} data-state={state}>
     <div className="planner-overview-head"><StatusChip tone={saved ? 'success' : 'warning'}>{saved ? text('已保存到行程', 'Saved to your plans') : state === 'changed' ? text('有修改还没保存', 'Changes not saved yet') : text('草稿 · 还没保存', 'Draft · not saved yet')}</StatusChip><h2>{text('这一天的安排', 'This day at a glance')}</h2><p>{date ? <time dateTime={date}>{english ? planDayLabel(date, true) : translateText(planDayLabel(date, false), locale)}</time> : text('日期待选', 'Choose a date')} · {stopCount(stops.length)} · {details.partySize === 1 ? text('1 人', '1 person') : text(`${details.partySize} 人`, `${details.partySize} people`)}</p>
-      <div className="planner-overview-actions">{!saved && onSave && <Button variant="primary" disabled={!canSave} onClick={onSave}>{saving ? text('保存中…', 'Saving…') : state === 'changed' ? text('更新行程', 'Update my plan') : text('保存到行程', 'Save to my plans')}</Button>}<Button variant="text" className="planner-overview-open" onClick={() => document.getElementById('outing-plan')?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })}>{text('查看与修改这一天', 'View and edit this day')}</Button></div>
+      <div className="planner-overview-actions">{!saved && onSave && <Button variant="primary" disabled={!canSave} onClick={onSave}>{saving ? text('保存中…', 'Saving…') : state === 'changed' ? text('更新行程', 'Update my plan') : text('保存到行程', 'Save to my plans')}</Button>}<Button variant="text" className="planner-overview-open" onClick={() => document.getElementById('outing-plan')?.scrollIntoView?.({ behavior: scrollBehavior(), block: 'start' })}>{text('查看与修改这一天', 'View and edit this day')}</Button></div>
       {saveError && <p className="planner-error planner-overview-error" role="alert">{saveError}</p>}
       {status && !saved && !saveError && <p className="planner-overview-status">{translateText(status, locale)}</p>}</div>
     <dl><div><dt>{text('时间草稿', 'Draft schedule')}</dt><dd>{invalid ? text('请修正输入', 'Check your inputs') : `${details.startTime}–${clockLabel(timeline.end)}`}</dd></div><div><dt>{text('已知金额与预留小计', 'Known costs + allowances')}</dt><dd>{invalid ? '—' : reference && !budget.subtotal && budget.unknown.length && !reference.allAdmissionAmountsKnown ? text('费用待核算', 'Cost not yet calculated') : !reference && !budget.subtotal && budget.unknown.length ? text('费用待确认', 'Cost to be confirmed') : `$${budget.subtotal.toFixed(2)}`}</dd></div><div><dt>{text('费用待确认', 'Unpriced stops')}</dt><dd>{stopCount(budget.unknown.length)}</dd></div></dl>

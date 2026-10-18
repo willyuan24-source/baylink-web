@@ -1,5 +1,5 @@
 import { escapeHtml } from './seo';
-import { CARD_PALETTE, cardLines, fitSize, plainText, textWidth, type CardQr, type CardTone, type TextDrawer } from './share-card-svg';
+import { CARD_INK, CARD_PALETTE, cardLines, fitSize, plainText, textWidth, type CardQr, type CardTone, type TextDrawer } from './share-card-svg';
 
 /**
  * The weekly card v2 (WEB-SHARE-SEO, I18N-SEO-05): 1080 × 1440 (3:4), the weekend's picks — the same the home page
@@ -16,7 +16,8 @@ export type WeeklyCardModel = {
   scan: string; link: string; footnote: string;
 };
 
-const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FBFAF6', LINE = '#D9E0DA';
+const { ink: INK, ink2: INK_2, ink3: INK_3, brand: BRAND, brandDeep: BRAND_DEEP, paper: PAPER } = CARD_INK;
+const LINE = '#D9E0DA';
 const lines = (draw: TextDrawer, texts: string[], x: number, y: number, size: number, lineHeight: number, weight: 400 | 600 | 700, fill: string) =>
   texts.map((text, index) => draw({ text, x, y: y + index * lineHeight, size, weight, fill })).join('');
 const pill = (draw: TextDrawer, text: string, x: number, y: number, size: number, background: string, color: string) => {

@@ -38,12 +38,46 @@ test('palette matrix: dark text tokens on every light surface, light text tokens
     const value = ratio(rgbOf(tint), rgbOf(surface));
     if (value < 4.5) failures.push(`${tint} on ${surface} ${value.toFixed(2)}:1`);
   }
-  // White on the brand button and the plum TypeCover pair.
-  for (const [text, surface] of [['surface', 'brand'], ['plum', 'plum-tint']]) {
+  // White on the brand button, and the category map (tokens v2): each category's text on its own tint, and on paper and
+  // white where a category word is printed outside its cover (chips, share cards).
+  const categories = [['warm', 'warm-tint'], ['info', 'info-tint'], ['moss', 'moss-tint'], ['warning', 'warning-tint'], ['brand-hover', 'brand-tint'], ['success', 'success-tint']];
+  for (const [text, surface] of [['surface', 'brand'], ...categories, ...categories.flatMap(([text]) => [[text, 'bg'], [text, 'surface']])]) {
     const value = ratio(rgbOf(text), rgbOf(surface));
     if (value < 4.5) failures.push(`${text} on ${surface} ${value.toFixed(2)}:1`);
   }
   assert.deepEqual(failures, []);
+});
+
+test('control borders (inputs, secondary buttons, chips) are at least 3:1 on every surface a control sits on (WCAG 1.4.11)', () => {
+  const failures: string[] = [];
+  for (const surface of ['bg', 'surface', 'surface-2']) {
+    const value = ratio(rgbOf('line-control'), rgbOf(surface));
+    if (value < 3) failures.push(`line-control on ${surface} ${value.toFixed(2)}:1`);
+  }
+  // The focus ring: brand on the light surfaces, lime (highlight) on the deep ones.
+  for (const surface of ['bg', 'surface', 'surface-2']) if (ratio(rgbOf('brand'), rgbOf(surface)) < 3) failures.push(`focus ring on ${surface}`);
+  for (const surface of DARK_SURFACES) if (ratio(rgbOf('highlight'), rgbOf(surface)) < 3) failures.push(`focus ring on ${surface}`);
+  assert.deepEqual(failures, []);
+});
+
+test('tokens v2: the ladder has at most 9 steps per viewport, motion and shadows are tokens, and no fifth accent hue', () => {
+  const root = new Map<string, string>(); const desktop = new Map<string, string>();
+  postcss.parse(tokensCss).walkDecls(/^--/, declaration => {
+    const rule = declaration.parent as postcss.Rule;
+    if (rule.selector !== ':root') return;
+    const media = rule.parent?.type === 'atrule' ? (rule.parent as postcss.AtRule).params : '';
+    if (!media) root.set(declaration.prop, declaration.value.trim());
+    else if (/min-width:\s*1024px/.test(media)) desktop.set(declaration.prop, declaration.value.trim());
+  });
+  const ladder = ['--fs-badge', '--fs-meta', '--fs-body', '--fs-reading', '--fs-card', '--fs-card-lg', '--fs-section', '--fs-title', '--fs-display'];
+  const phoneSizes = new Set(ladder.map(name => root.get(name)));
+  const desktopSizes = new Set(ladder.map(name => desktop.get(name) ?? root.get(name)));
+  assert.ok(!phoneSizes.has(undefined), 'every ladder step is defined');
+  assert.ok(phoneSizes.size <= 9 && desktopSizes.size <= 9, `${phoneSizes.size} phone / ${desktopSizes.size} desktop steps`);
+  for (const name of ['--dur-1', '--dur-2', '--dur-3', '--dur-4', '--dur-5']) assert.ok(Number.parseInt(root.get(name) ?? '999', 10) <= 280, name);
+  for (const name of ['--e1', '--e2', '--scrim', '--ease-out', '--ease-in', '--ease-std', '--r-sm', '--r-md', '--r-lg', '--r-xl', '--r-pill', '--r-circle']) assert.ok(root.has(name), name);
+  assert.ok(!palette.has('plum') && !palette.has('plum-tint'), 'no plum: 长辈 reads the brand family');
+  assert.match(tokensCss, /color-scheme:\s*only light/);
 });
 
 test('the colour tokens read their channels: --color-x is rgb(var(--color-x-rgb)), one value per colour', () => {
@@ -111,4 +145,87 @@ test('Tailwind: every class string pairing a baylink text colour with a baylink 
   }
   assert.ok(pairs > 5, `${pairs} Tailwind pairs measured`);
   assert.deepEqual(failures, []);
+});
+
+test('every focus ring recoloured for a container reaches 3:1 on that container\'s own background (WCAG 2.4.7 / 1.4.11)', () => {
+  // A rule like `.x :focus-visible { outline-color: var(--color-highlight) }` promises that .x is a surface lime reads on.
+  // Each class named before :focus-visible is looked up in every stylesheet: where a rule for it sets an opaque token
+  // background, the ring must reach 3:1 on it (UI9-F review: the footer is surface-2, where lime is 1.01:1).
+  const ringFailures = (sources: postcss.Root[]) => {
+  const backgrounds = new Map<string, number[][]>();
+  for (const root of sources) root.walkRules(rule => {
+    const last = /\.([a-z0-9_-]+)$/i.exec(rule.selector.trim())?.[1];
+    if (!last) return;
+    rule.walkDecls(/^background(-color)?$/, declaration => {
+      const alpha = /\/ (\d*\.?\d+)\)$/.exec(declaration.value.trim());
+      const rgb = alpha && Number(alpha[1]) < .95 ? null : resolve(declaration.value);
+      if (rgb) backgrounds.set(last, [...(backgrounds.get(last) ?? []), rgb]);
+    });
+  });
+  const failures: string[] = [];
+  for (const root of sources) root.walkRules(/:focus-visible/, rule => {
+    rule.walkDecls(/^outline(-color)?$/, declaration => {
+      const ring = /var\(--color-([a-z0-9-]+)\)/.exec(declaration.value)?.[1];
+      if (!ring || ring === 'brand' || !palette.has(ring)) return;
+      for (const selector of rule.selectors) {
+        // The ancestors only: drop the focused element's own compound (the ring is drawn around it, on what is under it).
+        const head = selector.split(':focus-visible')[0];
+        let depth = 0, cut = -1;
+        for (let index = 0; index < head.length; index++) {
+          if (head[index] === '(') depth++;
+          else if (head[index] === ')') depth--;
+          else if (depth === 0 && /[\s>+~]/.test(head[index])) cut = index;
+        }
+        const containers = [...head.slice(0, Math.max(cut, 0)).matchAll(/\.([a-z0-9_-]+)/gi)].map(match => match[1]).filter(name => name !== 'site-app');
+        for (const name of containers) for (const bg of backgrounds.get(name) ?? []) {
+          const value = ratio(rgbOf(ring), bg);
+          if (value < 3) failures.push(`${selector}: ${ring} ring on .${name}'s background ${value.toFixed(2)}:1`);
+        }
+      }
+    });
+  });
+  return failures;
+  };
+  const sources = (listSources('.', { extensions: /\.css$/ }) as string[]).map(file => postcss.parse(readFileSync(file, 'utf8')));
+  assert.deepEqual(ringFailures(sources), []);
+  // The check itself: the rule this branch first shipped (lime in the footer) fails it.
+  const footer = postcss.parse('.site-app .site-footer{background:var(--color-surface-2)} .site-app :where(.site-footer,[data-surface=deep]) :focus-visible{outline-color:var(--color-highlight)}');
+  assert.equal(ringFailures([footer]).length, 1);
+});
+
+test('简洁显示 only raises: every --fs-* step is at least the standard step, on a phone and on a desktop', () => {
+  const steps = (selector: string, desktop: boolean) => {
+    const found = new Map<string, number>();
+    postcss.parse(tokensCss).walkDecls(/^--fs-/, declaration => {
+      const rule = declaration.parent as postcss.Rule;
+      const media = rule.parent?.type === 'atrule' ? (rule.parent as postcss.AtRule).params : '';
+      if (rule.selector !== selector || (media && !(desktop && /min-width:\s*1024px/.test(media)))) return;
+      found.set(declaration.prop, Number.parseFloat(declaration.value));
+    });
+    return found;
+  };
+  for (const desktop of [false, true]) {
+    const standard = new Map([...steps(':root', false), ...(desktop ? steps(':root', true) : [])]);
+    const simple = new Map([...standard, ...steps('html[data-simple]', false), ...(desktop ? steps('html[data-simple]', true) : [])]);
+    for (const [name, size] of standard) assert.ok((simple.get(name) ?? 0) >= size, `${desktop ? 'desktop' : 'phone'} ${name}: simple ${simple.get(name)}rem < standard ${size}rem`);
+  }
+});
+
+test('share cards read the category map and the inks of the token sheet (--tc-* pairs, --color-ink*)', async () => {
+  const { CARD_CHANNELS, CARD_INK, CARD_PALETTE } = await import('../src/lib/share-card-svg');
+  // Every channel the cards carry is the sheet's own.
+  for (const [name, channels] of Object.entries(CARD_CHANNELS)) assert.equal(channels, rgbOf(name).join(' '), `--color-${name}-rgb`);
+  const hex = (rgb: number[]) => `#${rgb.map(value => value.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
+  const tc = new Map<string, string>();
+  postcss.parse(tokensCss).walkDecls(/^--tc-[a-z]+-(bg|fg)$/, declaration => { if ((declaration.parent as postcss.Rule).selector === ':root') tc.set(declaration.prop, declaration.value.trim()); });
+  for (const [tone, pair] of Object.entries(CARD_PALETTE)) for (const side of ['bg', 'fg'] as const) {
+    const token = /^var\(--color-([a-z0-9-]+)\)$/.exec(tc.get(`--tc-${tone}-${side}`) ?? '')?.[1];
+    assert.ok(token, `--tc-${tone}-${side} reads a palette colour`);
+    assert.equal(pair[side].toUpperCase(), hex(rgbOf(token)), `${tone} ${side}`);
+  }
+  for (const [key, token] of [['ink', 'ink'], ['ink2', 'ink-2'], ['ink3', 'ink-3'], ['brand', 'brand'], ['brandDeep', 'brand-deep'], ['paper', 'bg']] as const) {
+    assert.equal(CARD_INK[key], hex(rgbOf(token)), `CARD_INK.${key}`);
+  }
+  // Both card renderers take their inks from CARD_INK rather than hex literals of their own.
+  for (const file of ['src/lib/share-card-svg.ts', 'src/lib/weekly-card-svg.ts']) assert.doesNotMatch(readFileSync(file, 'utf8'), /\bINK(?:_2|_3)? = '#/, file);
 });

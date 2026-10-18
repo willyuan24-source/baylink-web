@@ -37,13 +37,28 @@ export function partsLine(parts: readonly string[], width: number, fontSize: num
 /** The largest size up to `max` at which `text` fits `width` on one line. */
 export const fitSize = (text: string, width: number, max: number, min = 28) => Math.max(min, Math.min(max, Math.floor(width / Math.max(1, textWidth(text, 1)))));
 
-/** TypeCover palettes (src/components/ui/ui.css --tc-*), so a card reads like the listing's own cover. */
+/**
+ * The cards' colours are the token sheet's own channels (src/tokens.css --color-*-rgb, "R G B"): the renderer runs in Node
+ * and cannot read CSS variables, so it carries the same channels, and tests/token-contrast.test.ts holds each one equal to
+ * the sheet (a palette change there fails the test until the cards follow).
+ */
+export const CARD_CHANNELS = {
+  ink: '30 43 38', 'ink-2': '71 83 78', 'ink-3': '92 100 95', bg: '250 246 239',
+  brand: '9 107 84', 'brand-hover': '7 84 64', 'brand-deep': '18 60 49', 'brand-tint': '227 239 231',
+  warm: '140 58 32', 'warm-tint': '251 229 218', info: '59 79 142', 'info-tint': '228 231 244', moss: '74 106 42', 'moss-tint': '230 237 217',
+  warning: '126 68 8', 'warning-tint': '251 235 210', success: '39 107 68', 'success-tint': '232 243 236',
+} as const;
+const token = (name: keyof typeof CARD_CHANNELS) => `#${CARD_CHANNELS[name].split(' ').map(value => Number(value).toString(16).padStart(2, '0')).join('').toUpperCase()}`;
+/** The category map (src/tokens.css --tc-*, tokens v2), so a card reads like the listing's own cover. */
 export type CardTone = 'family' | 'culture' | 'outdoors' | 'food' | 'seniors' | 'free';
 export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>> = {
-  family: { bg: '#FBF1E6', fg: '#A0562E' }, culture: { bg: '#EAF1F8', fg: '#2F5F8A' }, outdoors: { bg: '#EAF5EF', fg: '#096B54' },
-  food: { bg: '#FFF4DC', fg: '#8A5A00' }, seniors: { bg: '#EDE4F3', fg: '#5B3A7A' }, free: { bg: '#E6F2EA', fg: '#1E6B43' },
+  family: { bg: token('warm-tint'), fg: token('warm') }, culture: { bg: token('info-tint'), fg: token('info') }, outdoors: { bg: token('moss-tint'), fg: token('moss') },
+  food: { bg: token('warning-tint'), fg: token('warning') }, seniors: { bg: token('brand-tint'), fg: token('brand-hover') }, free: { bg: token('success-tint'), fg: token('success') },
 };
-const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FBFAF6', LINE = '#D9E0DA';
+/** The inks, the brand and the paper of the token sheet (the share card and the weekly card). */
+export const CARD_INK = { ink: token('ink'), ink2: token('ink-2'), ink3: token('ink-3'), brand: token('brand'), brandDeep: token('brand-deep'), brandTint: token('brand-tint'), paper: token('bg') } as const;
+const { ink: INK, ink2: INK_2, ink3: INK_3, brand: BRAND, brandDeep: BRAND_DEEP, paper: PAPER } = CARD_INK;
+const LINE = '#D9E0DA';
 const WHITE = '#fff', BLACK = '#000', MINT = '#D7E9DF';
 
 export type CardText = { text: string; x: number; y: number; size: number; weight?: 400 | 600 | 700; fill: string; spacing?: number };
@@ -93,7 +108,7 @@ const brandRow = (draw: TextDrawer, logo: string, x: number, y: number, light = 
   const latin = !/[⺀-￿]/u.test(tagline);
   const size = latin ? 15 : Math.min(17, Math.floor(room / Math.max(1, textWidth(tagline, 1))));
   return `<image href="${escapeHtml(logo)}" x="${x}" y="${y}" width="52" height="52"/>
-  ${draw({ text: 'BAYLINK', x: x + 66, y: y + 36, size: 30, weight: 700, fill: light ? WHITE : BRAND_DEEP })}
+  ${draw({ text: 'BAYLINK', x: x + 66, y: y + 36, size: 30, weight: 700, fill: light ? WHITE : BRAND })}
   ${draw({ text: tagline, x: x + 216, y: y + 33, size, fill: light ? MINT : INK_3, ...(latin ? { spacing: 2 } : {}) })}`;
 };
 
@@ -192,7 +207,7 @@ export function renderHubCardSvg(model: HubCardModel, qr: CardQr, logo: string, 
     const badgeWidth = row.badge ? Math.ceil(textWidth(row.badge, 20)) + 28 : 0;
     const text = cardLines(row.text, right - left - (badgeWidth ? badgeWidth + 16 : 26), 26, 2);
     if (y + (text.length - 1) * 34 > 420) return '';
-    const markup = `${row.badge ? `<rect x="${left}" y="${y - 26}" width="${badgeWidth}" height="36" rx="10" fill="#EAF5EF"/>${draw({ text: row.badge, x: left + 14, y: y - 1, size: 20, weight: 700, fill: BRAND })}` : `<circle cx="${left + 8}" cy="${y - 9}" r="6" fill="${BRAND}"/>`}
+    const markup = `${row.badge ? `<rect x="${left}" y="${y - 26}" width="${badgeWidth}" height="36" rx="10" fill="${CARD_INK.brandTint}"/>${draw({ text: row.badge, x: left + 14, y: y - 1, size: 20, weight: 700, fill: BRAND })}` : `<circle cx="${left + 8}" cy="${y - 9}" r="6" fill="${BRAND}"/>`}
     ${lines(draw, text, left + (badgeWidth ? badgeWidth + 16 : 26), y, 26, 34, 600, INK)}`;
     y += text.length * 34 + 30;
     return markup;

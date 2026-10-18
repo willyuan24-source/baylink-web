@@ -13,12 +13,12 @@
 .gd-article .gd-title { display:flex; flex-direction:column; gap:6px; max-width:36em; margin:0; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; }
 .gd-title__head { font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
 .gd-title__sep { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-.gd-title__rest { color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; font-weight:400; }
+.gd-title__rest { color:var(--color-ink-2); font-size:1rem; line-height:1.6; font-weight:400; }
 .gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .gd-meta a { color:var(--color-brand); font-weight:600; text-decoration:none; }
 .gd-meta a:hover { text-decoration:underline; }
 .gd-meta__last { display:inline-flex; align-items:center; gap:0 4px; white-space:nowrap; }
-.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin:-8px -8px -8px -4px; border:0; border-radius:999px; background:transparent; color:var(--color-ink-2); cursor:pointer; }
+.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin:-8px -8px -8px -4px; border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
 .gd-meta__info>svg { width:1.125rem; height:1.125rem; }
 .gd-about p { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
 .gd-about a { color:var(--color-brand); font-weight:600; }
@@ -43,7 +43,7 @@
    3:4 instead of clipping its source line (min-height = 4/3 of the slide width; 100cqw is the slide's own width). The
    track stretches every slide to the tallest one, so the cards stay one height while you swipe. */
 .gd-carousel .ui-carousel__slide { container-type:inline-size; }
-.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:min(3cqw, 14px); min-height:calc(100cqw * 4 / 3); height:100%; padding:6cqw; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
+.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:min(3cqw, 14px); min-height:calc(100cqw * 4 / 3); height:100%; padding:6cqw; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
 /* Three card looks on an article (SYS ≤3): white with a line (points, contacts), surface-2 (compare, checklist, safety, 30 秒看懂,
    tips, templates) and brand-deep (the cover). */
 .gd-slide:is([data-kind=compare],[data-kind=checklist],[data-kind=safety]) { border-color:transparent; background:var(--color-surface-2); }
@@ -53,12 +53,12 @@
 .gd-slide__mark { position:absolute; top:-10cqw; right:-10cqw; width:46cqw; height:46cqw; color:var(--color-surface); opacity:.12; pointer-events:none; clip-path:inset(10cqw 10cqw 0 0 round 0 16px 0 0); }
 .gd-slide--cover>:not(.gd-slide__mark) { position:relative; }
 .gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
-.gd-slide__kicker { color:var(--color-brand); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.4; font-weight:600; }
+.gd-slide__kicker { color:var(--color-brand); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.4; font-weight:400; }
 .gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
-.gd-slide__count { flex:none; color:inherit; font-size:var(--text-caption); line-height:1.385; font-weight:700; opacity:.7; font-variant-numeric:tabular-nums; }
+.gd-slide__count { flex:none; color:inherit; font-size:var(--text-caption); line-height:1.385; font-weight:400; opacity:.7; font-variant-numeric:tabular-nums; }
 .gd-slide__question { margin:auto 0 0; color:var(--color-on-brand-muted); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.6cqw * var(--fluid-scale)), 1.25rem); line-height:1.5; font-weight:600; }
 .gd-slide__cover-title { margin:0; color:var(--color-surface); font-size:clamp(1.5rem, min(calc(9.5cqw * var(--fluid-scale)), 10.5cqw), 2.375rem); line-height:1.25; font-weight:600; text-wrap:balance; }
-.gd-answer { align-self:flex-start; margin:0; padding:2px 10px; border-radius:6px; background:var(--color-highlight); color:var(--color-brand-deep); font-size:clamp(1.0625rem, calc(6cqw * var(--fluid-scale)), 1.625rem); line-height:1.35; font-weight:700; font-variant-numeric:tabular-nums; }
+.gd-answer { align-self:flex-start; margin:0; padding:2px 10px; border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-size:clamp(1.0625rem, calc(6cqw * var(--fluid-scale)), 1.625rem); line-height:1.35; font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-nowrap { white-space:nowrap; }
 /* Headline word units (SegmentedTitle): the H1, the cover title, the slide titles and the step H2s wrap between words,
    never inside 长者 or 路径 (units are at most 8 Han characters; the cover title is capped at 10.5cqw so 8 fit its
@@ -72,14 +72,14 @@
 .gd-slide__body { margin:0; color:var(--color-ink); font-size:clamp(1rem, calc(4.4cqw * var(--fluid-scale)), 1.25rem); line-height:1.6; }
 .gd-slide__items { display:flex; flex-direction:column; gap:min(2.4cqw, 10px); margin:0; padding:0; list-style:none; }
 .gd-slide__items li { display:flex; align-items:flex-start; gap:8px; color:var(--color-ink); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.2cqw * var(--fluid-scale)), 1.1875rem); line-height:1.5; }
-.gd-slide__items li::before { content:""; flex:none; width:6px; height:6px; margin-top:.65em; border-radius:999px; background:currentColor; opacity:.6; }
+.gd-slide__items li::before { content:""; flex:none; width:6px; height:6px; margin-top:.65em; border-radius:var(--r-pill); background:currentColor; opacity:.6; }
 .gd-slide[data-kind=checklist] .gd-slide__items li::before { display:none; }
 .gd-slide__items li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.15em; color:var(--color-brand); }
 .gd-slide__phones { display:flex; flex-direction:column; gap:8px; }
 .gd-slide__phones[data-count=many] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px 12px; }
 .gd-slide__phone { display:flex; flex-direction:column; justify-content:center; min-height:3rem; color:var(--color-brand); text-decoration:none; }
-.gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
-.gd-slide__phone-number { font-size:clamp(1.0625rem, calc(5.2cqw * var(--fluid-scale)), 1.375rem); line-height:1.25; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
+.gd-slide__phone-number { font-size:clamp(1.0625rem, calc(5.2cqw * var(--fluid-scale)), 1.375rem); line-height:1.25; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:clamp(1.5rem, calc(9cqw * var(--fluid-scale)), 2.375rem); line-height:1.15; }
 .gd-slide__source { margin:auto 0 0; padding-top:8px; color:var(--color-ink-2); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.45; }
 .gd-slide--cover .gd-slide__source { color:var(--color-on-brand-muted); }
@@ -95,31 +95,31 @@ html[data-simple] .gd-carousel .gd-slide { min-height:0; }
 @media (max-width:1023px) { html[data-simple] .gd-page[data-pilot] .gd-lead__visual { order:1; } }
 
 /* 查: "30 秒看懂" and the contact cards. */
-.gd-keyfacts { padding:20px; border-left:4px solid var(--color-brand); border-radius:16px; background:var(--color-surface-2); }
+.gd-keyfacts { padding:20px; border-left:4px solid var(--color-brand); border-radius:var(--r-lg); background:var(--color-surface-2); }
 .gd-keyfacts h2 { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
 .gd-keyfacts ol { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
 .gd-keyfacts li { display:flex; flex-direction:column; gap:2px; padding:10px 0; border-top:1px solid var(--color-line); }
 .gd-keyfacts li:first-child { border-top:0; padding-top:2px; }
-.gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
 .gd-keyfacts__value { color:var(--color-ink); font-size:1.0625rem; line-height:1.6; font-weight:600; }
 .gd-keyfacts h2 .gd-keyfacts__from { display:inline-block; margin-left:8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; vertical-align:middle; }
 /* H08: the fallback card quotes whole sentences, so its values read at body weight and size, not as one bold figure. */
 .gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--text-body); line-height:1.65; font-weight:400; overflow-wrap:break-word; }
-.gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:600; text-decoration:none; }
+.gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; }
+.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:400; text-decoration:none; }
 /* The glyph stays caption size; the tap area around it is 44px (48px in 简洁显示), rule 5. */
 .gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
 html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contacts { margin-top:24px; }
 .gd-contacts>h2,.gd-related__head h2 { margin:0 0 12px; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .gd-contacts__list { display:grid; grid-template-columns:minmax(0, 1fr); gap:12px; }
-.gd-contact { display:flex; flex-direction:column; gap:6px; padding:16px; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface); }
+.gd-contact { display:flex; flex-direction:column; gap:6px; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .gd-contact h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
-.gd-contact__number { margin:0; color:var(--color-ink); font-size:1.375rem; line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-contact__number { margin:0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-contact__languages { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 0; }
-.gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:.9375rem; line-height:1.6; }
+.gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:1.6; }
 .gd-contact__places { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
-.gd-contact__places a { display:inline-flex; align-items:center; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:.9375rem; line-height:1.6; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.gd-contact__places a { display:inline-flex; align-items:center; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:1rem; line-height:1.6; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
 .gd-contact__places svg { flex:none; width:1.125rem; height:1.125rem; }
 .gd-contact__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
 .gd-contact__actions>.ui-button { flex:1 1 7rem; }
@@ -128,13 +128,14 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 .gd-contact__status:empty { display:none; }
 
 /* H36: 在 3D 里先看看 — one row in the reading path of a San Francisco outing guide (a full-page link to the 3D city). */
-.gd-opus { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:16px; padding:10px 12px; min-height:3rem; border:1px solid var(--color-line); border-radius:16px; background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
+.gd-opus { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:16px; padding:10px 12px; min-height:3rem; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
 .gd-opus:hover { border-color:var(--color-brand); }
+.gd-opus:hover .gd-opus__text strong { text-decoration:underline; text-underline-offset:4px; }
 .gd-opus:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 /* The postcard is a .ui-cover (width:100% in ui.css, which loads later): the child selector keeps its 7.5rem column, so the
    text beside it is never squeezed to one character (review 10-14). */
-.gd-opus>.gd-opus__art { flex:none; width:7.5rem; border-radius:10px; overflow:hidden; }
-.gd-opus__mark { display:grid; flex:none; place-items:center; width:3rem; height:3rem; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand); }
+.gd-opus>.gd-opus__art { flex:none; width:7.5rem; border-radius:var(--r-md); overflow:hidden; }
+.gd-opus__mark { display:grid; flex:none; place-items:center; width:3rem; height:3rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand); }
 .gd-opus__mark>svg { width:1.5rem; height:1.5rem; }
 /* The text needs 8rem beside the postcard; at 大 / 特大 on a narrow phone it moves under the postcard instead of becoming a
    100 px column (review 10-14: 103 px and a 472 px tall card at 320 特大 on /en). */
@@ -152,11 +153,11 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 /* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width and the
    heading and answer ran past a 320 px screen (clipped by the page's overflow-x:clip). */
 .gd-step__head>div { flex:1 1 auto; min-width:0; }
-.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-card); line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
+.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-card); line-height:1; font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-step__head h2 { margin:6px 0 0; color:var(--color-ink); font-size:1.25rem; line-height:1.4; font-weight:600; text-wrap:balance; scroll-margin-top:64px; }
 .gd-step__conclusion { margin:6px 0 0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.765; }
 .gd-step__more { margin:8px 0 0 52px; }
-.gd-step__more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:600; cursor:pointer; list-style:none; }
+.gd-step__more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:400; cursor:pointer; list-style:none; }
 .gd-step__more>summary::-webkit-details-marker { display:none; }
 .gd-step__more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
 .gd-step__more[open]>summary>svg { transform:rotate(180deg); }
@@ -184,19 +185,19 @@ html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 
 /* H22 (SV13-03, GR-10): coded diagrams in the pilot guides (GuideDiagram.tsx), so a phone reader meets a picture slot at least
    every two screens. One look for all four kinds: surface-2 panel, a 示意图 tag, brand marks; real text that grows with Aa. */
-.gd-diagram { margin:20px 0 0; padding:16px; border-radius:16px; background:var(--color-surface-2); color:var(--color-ink); container-type:inline-size; }
+.gd-diagram { margin:20px 0 0; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); container-type:inline-size; }
 .gd-step>.gd-diagram { margin-top:14px; }
 /* CNT-MEDIA-4: a step's photo stands with its diagram, outside the fold (GuideDetail), lined up with it. */
 .gd-step>.guide-figure { margin:14px 0 0; }
 .gd-diagram__head { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin:0 0 12px; }
 .gd-diagram__head strong { color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
-.gd-diagram__tag { display:inline-block; padding:0 8px; border-radius:999px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.6; font-weight:600; }
+.gd-diagram__tag { display:inline-block; padding:0 8px; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.6; font-weight:400; }
 .gd-diagram strong { overflow-wrap:break-word; }
 .gd-diagram__text { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.gd-diagram__tel { display:inline-flex; align-items:center; gap:6px; align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:1.0625rem; line-height:1.3; font-weight:700; font-variant-numeric:tabular-nums; text-decoration:none; white-space:nowrap; }
+.gd-diagram__tel { display:inline-flex; align-items:center; gap:6px; align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:1.0625rem; line-height:1.3; font-weight:600; font-variant-numeric:tabular-nums; text-decoration:none; white-space:nowrap; }
 .gd-diagram__tel>svg { flex:none; width:1.125rem; height:1.125rem; }
 html[data-simple] .gd-diagram__tel { min-height:3rem; }
-.gd-diagram__number { font-weight:700; font-variant-numeric:tabular-nums; }
+.gd-diagram__number { font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-diagram__body { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .gd-diagram__body strong { font-size:var(--text-body); line-height:1.5; font-weight:600; }
 .gd-diagram__footer { margin:12px 0 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
@@ -205,29 +206,29 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-diagram__flow { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
 .gd-diagram__flow>li { position:relative; display:flex; align-items:flex-start; gap:12px; padding-bottom:14px; }
 .gd-diagram__flow>li:last-child { padding-bottom:0; }
-.gd-diagram__flow>li:not(:last-child)::before { content:""; position:absolute; top:2rem; bottom:2px; left:calc(1rem - 1px); width:2px; border-radius:2px; background:var(--color-brand); opacity:.35; }
-.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:999px; background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); line-height:1; font-weight:700; }
+.gd-diagram__flow>li:not(:last-child)::before { content:""; position:absolute; top:2rem; bottom:2px; left:calc(1rem - 1px); width:2px; border-radius:var(--r-sm); background:var(--color-brand); opacity:.35; }
+.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); line-height:1; font-weight:600; }
 /* compare: side by side when there is room */
 .gd-diagram__compare { display:grid; grid-template-columns:repeat(var(--gd-cols, 2), minmax(0, 1fr)); gap:8px; margin:0; padding:0; list-style:none; }
 .gd-diagram__compare[data-count="3"] { --gd-cols:1; }
-.gd-diagram__compare>li { display:flex; flex-direction:column; gap:4px; min-width:0; padding:12px; border-top:4px solid var(--color-brand); border-radius:12px; background:var(--color-surface); }
+.gd-diagram__compare>li { display:flex; flex-direction:column; gap:4px; min-width:0; padding:12px; border-top:4px solid var(--color-brand); border-radius:var(--r-md); background:var(--color-surface); }
 .gd-diagram__compare>li:nth-child(2) { border-top-color:var(--tc-family-fg); }
 .gd-diagram__compare>li:nth-child(3) { border-top-color:var(--color-ink-2); }
 .gd-diagram__compare>li>strong { font-size:var(--text-body); line-height:1.5; font-weight:600; }
 @container (max-width:19rem) { .gd-diagram__compare { --gd-cols:1; } }
 /* timeline scale: one cell per month, the birthday month marked */
 .gd-diagram__scale { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); gap:4px; margin:0 0 14px; }
-.gd-diagram__scale>span { display:grid; place-items:center; min-height:2rem; border-radius:6px; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); font-weight:600; font-variant-numeric:tabular-nums; }
+.gd-diagram__scale>span { display:grid; place-items:center; min-height:2rem; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-diagram__scale>span[data-on] { background:var(--color-brand); color:var(--color-surface); }
 /* timeline: a line with a mark per stage (vertical on phones, across on wide screens) */
 .gd-diagram__timeline { position:relative; display:flex; flex-direction:column; gap:14px; margin:0; padding:0 0 0 22px; list-style:none; }
-.gd-diagram__timeline::before { content:""; position:absolute; top:6px; bottom:6px; left:6px; width:2px; border-radius:2px; background:var(--color-brand); opacity:.35; }
+.gd-diagram__timeline::before { content:""; position:absolute; top:6px; bottom:6px; left:6px; width:2px; border-radius:var(--r-sm); background:var(--color-brand); opacity:.35; }
 .gd-diagram__timeline>li { position:relative; }
-.gd-diagram__dot { position:absolute; top:.35em; left:-22px; width:14px; height:14px; border:3px solid var(--color-brand); border-radius:999px; background:var(--color-surface); box-sizing:border-box; }
+.gd-diagram__dot { position:absolute; top:.35em; left:-22px; width:14px; height:14px; border:3px solid var(--color-brand); border-radius:var(--r-pill); background:var(--color-surface); box-sizing:border-box; }
 /* map: county tiles west and east of the bay, north at the top (rough places, not to scale); one list at 大 / 特大 / 简洁 and on
    very narrow screens */
 .gd-diagram__map { display:grid; grid-template-columns:minmax(0, 1fr) 1.75rem minmax(0, 1fr); grid-template-areas:"sonoma bay napa" "marin bay contra" "sf bay alameda" "smateo bay sclara"; gap:6px; margin:0; padding:0; list-style:none; }
-.gd-diagram__map>li { display:flex; flex-direction:column; justify-content:center; gap:0; min-width:0; padding:6px 10px; border-radius:10px; background:var(--color-surface); border:1px solid var(--color-line); }
+.gd-diagram__map>li { display:flex; flex-direction:column; justify-content:center; gap:0; min-width:0; padding:6px 10px; border-radius:var(--r-md); background:var(--color-surface); border:1px solid var(--color-line); }
 .gd-diagram__map>li>strong { font-size:var(--text-fact); line-height:1.4; font-weight:600; }
 .gd-diagram__map .gd-diagram__tel { min-height:2.75rem; font-size:var(--text-fact); }
 .gd-diagram__map>li[data-area=sonoma] { grid-area:sonoma; } .gd-diagram__map>li[data-area=napa] { grid-area:napa; }
@@ -277,7 +278,7 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 
 /* H66: the folded rest of a long source list. */
 .gd-sources-more { margin-top:8px; }
-.gd-sources-more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:600; cursor:pointer; list-style:none; }
+.gd-sources-more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:400; cursor:pointer; list-style:none; }
 .gd-sources-more>summary::-webkit-details-marker { display:none; }
 .gd-sources-more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
 .gd-sources-more[open]>summary>svg { transform:rotate(180deg); }
@@ -297,10 +298,10 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-related .ui-provenance { white-space:normal; text-overflow:clip; }
 .gd-related .ui-feed-card__meta { white-space:normal; }
 .gd-credits { margin-top:20px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
-.gd-credits>summary { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; cursor:pointer; }
+.gd-credits>summary { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; cursor:pointer; }
 .gd-credits ul { display:flex; flex-direction:column; gap:10px; margin:4px 0 0; padding:0; list-style:none; }
 .gd-credits li { display:flex; flex-wrap:wrap; gap:2px 10px; }
-.gd-credits__kind { color:var(--color-ink); font-weight:600; }
+.gd-credits__kind { color:var(--color-ink); font-weight:400; }
 .gd-credits__caption { flex-basis:100%; }
 .gd-credits a { display:inline-flex; align-items:center; gap:2px; color:var(--color-brand); }
 .gd-credits a>svg { width:.875rem; height:.875rem; }
@@ -325,6 +326,6 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
   .gd-lead { margin-top:20px; }
   .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }
   .gd-lead:not([data-visual]) { max-width:780px; }
-  .gd-lead .gd-cover { border-radius:24px; }
-  .gd-step__head h2 { font-size:1.375rem; line-height:1.364; }
+  .gd-lead .gd-cover { border-radius:var(--r-xl); }
+  .gd-step__head h2 { font-size:var(--fs-keep-20); line-height:1.364; }
 }

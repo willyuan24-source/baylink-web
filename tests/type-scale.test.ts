@@ -17,17 +17,17 @@ const declared = (selector: string, media?: string) => {
   return found;
 };
 
-test('the scale: phone values in :root, desktop at 1024px; display grows with Aa through --fluid-scale', () => {
+test('the scale (tokens v2): the heading tiers are the top steps of the ladder; phone in :root, desktop at 1024px', () => {
   const phone = declared(':root');
-  assert.equal(phone.get('--text-display'), '1.75rem'); assert.equal(phone.get('--lh-display'), '1.286');   // 28/36
-  assert.equal(phone.get('--text-title'), '1.625rem'); assert.equal(phone.get('--lh-title'), '1.308');       // 26/34
-  assert.equal(phone.get('--text-section'), '1.375rem'); assert.equal(phone.get('--lh-section'), '1.364');   // 22/30
+  assert.equal(phone.get('--text-display'), 'var(--fs-display)'); assert.equal(phone.get('--fs-display'), '1.75rem'); // 28
+  assert.equal(phone.get('--text-title'), 'var(--fs-title)'); assert.equal(phone.get('--fs-title'), '1.5rem');         // 24
+  assert.equal(phone.get('--text-section'), 'var(--fs-section)'); assert.equal(phone.get('--fs-section'), '1.25rem');  // 20
+  for (const level of ['display', 'title', 'section']) assert.equal(phone.get(`--lh-${level}`), 'var(--lh-tight)');
+  assert.equal(phone.get('--lh-tight'), '1.3');
   const desktop = declared(':root', '(min-width:1024px)');
-  assert.equal(desktop.get('--text-title'), '2rem'); assert.equal(desktop.get('--lh-title'), '1.3125');      // 32/42
-  assert.equal(desktop.get('--text-section'), '1.5rem'); assert.equal(desktop.get('--lh-section'), '1.333'); // 24/32
-  assert.match(desktop.get('--text-display') ?? '', /^clamp\(2\.5rem, calc\(1\.6rem \+ 1\.25vw \* var\(--fluid-scale\)\), 3\.25rem\)$/); // 40–52, ≈44 at 1440
-  const at1440 = 1.6 * 16 + 1.25 * 14.4;
-  assert.ok(at1440 > 43 && at1440 < 45, `${at1440}px at 1440`);
+  assert.equal(desktop.get('--fs-title'), '2rem');      // 32
+  assert.equal(desktop.get('--fs-section'), '1.5rem');  // 24
+  assert.equal(desktop.get('--fs-display'), '2.75rem'); // 44: one fixed step (no vw middle), so the ladder stays at 9 steps
 });
 
 test('the heading classes: 600, letter-spacing 0, the scale tokens', () => {

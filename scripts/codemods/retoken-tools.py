@@ -26,7 +26,7 @@ def bg_color(h):
     L, (r, g, b) = lum(h)
     if L > .93: return 'var(--color-surface)'
     if L < .25: return 'var(--color-brand)' if L > .05 else 'var(--color-brand-deep)'
-    if r > b + .04 and r >= g - .01: return 'var(--ui-warning-tint)'
+    if r > b + .04 and r >= g - .01: return 'var(--color-warning-tint)'
     if g >= r and g >= b: return 'var(--color-brand-tint)'
     return 'var(--color-surface-2)'
 def border_color(h):

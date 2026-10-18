@@ -61,7 +61,9 @@ test('tokens: the root carries Aa (100 / 112.5 / 125%), --reading-scale is pinne
   assert.equal(declarations('html[data-reading=extra-large]').get('font-size'), '125%');
   const root = declarations(':root');
   assert.equal(root.get('--reading-scale'), '1');
-  for (const token of ['--text-caption', '--text-fact', '--text-body', '--text-reading', '--text-card', '--text-section']) assert.match(root.get(token) || '', /^[\d.]+rem$/, token);
+  // Tokens v2 (UI9-F): the --text-* names alias the --fs-* ladder steps, and every step is a plain rem.
+  const step = (token: string) => { const value = root.get(token) || ''; const alias = /^var\((--fs-[\w-]+)\)$/.exec(value)?.[1]; return alias ? root.get(alias) || '' : value; };
+  for (const token of ['--text-caption', '--text-fact', '--text-body', '--text-reading', '--text-card', '--text-section']) assert.match(step(token), /^[\d.]+rem$/, token);
   tokens.walkDecls('--reading-scale', declaration => assert.equal(declaration.value, '1', `${(declaration.parent as postcss.Rule).selector} must not re-scale (125% x 1.25 = 156%)`));
   assert.equal(declarations('html:has(.ob-page,#opus-bay-shell)').get('font-size'), '100%', 'the 3D world keeps its HUD at every size');
 });
@@ -96,7 +98,9 @@ test('简洁显示 text floor: relative sizes below 1rem get max(size, var(--tex
   assert.equal(declarations(':root').get('--text-floor'), '0px');
   const simple = declarations('html[data-simple]');
   assert.equal(simple.get('--text-floor'), '1rem');
-  for (const token of ['--text-caption', '--text-fact']) assert.equal(simple.get(token), '1rem', token);
+  // --text-caption / --text-fact read the --fs-badge / --fs-meta steps, which 简洁显示 raises to 16px.
+  for (const token of ['--fs-badge', '--fs-meta']) assert.equal(simple.get(token), '1rem', token);
+  for (const [alias, step] of [['--text-caption', '--fs-badge'], ['--text-fact', '--fs-meta']]) assert.equal(declarations(':root').get(alias), `var(${step})`, alias);
   assert.equal(simple.get('--control-height'), '3rem', '48px targets');
   assert.match(simple.get('--site-mobile-nav-height') || '', /^calc\(4\.75rem/, '76px tab bar');
 });

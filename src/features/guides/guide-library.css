@@ -5,14 +5,14 @@
 .gl-header .ui-page-header__lede { font-size:var(--text-body); }
 
 .gl-find { display:flex; align-items:center; gap:8px; }
-.gl-search { position:relative; display:flex; flex:1 1 auto; align-items:center; gap:8px; min-width:0; min-height:3rem; padding:0 4px 0 16px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink-2); }
+.gl-search { position:relative; display:flex; flex:1 1 auto; align-items:center; gap:8px; min-width:0; min-height:3rem; padding:0 4px 0 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink-2); }
 .gl-search:focus-within { border-color:var(--color-brand); box-shadow:0 0 0 2px var(--color-brand-tint); }
 .gl-search>svg { flex:none; width:1.25rem; height:1.25rem; }
 .gl-search input { flex:1 1 auto; min-width:0; min-height:2.75rem; padding:0; border:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; outline:none; }
 .gl-search input::-webkit-search-cancel-button { display:none; }
-.gl-search__clear { display:inline-grid; place-items:center; flex:none; width:2.75rem; height:2.75rem; border:0; border-radius:999px; background:transparent; color:var(--color-ink-2); cursor:pointer; }
+.gl-search__clear { display:inline-grid; place-items:center; flex:none; width:2.75rem; height:2.75rem; border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
 .gl-search__clear>svg { width:1.25rem; height:1.25rem; }
-.gl-saved-link { display:inline-flex; align-items:center; gap:6px; flex:none; min-height:3rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:999px; background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:600; text-decoration:none; }
+.gl-saved-link { display:inline-flex; align-items:center; gap:6px; flex:none; min-height:3rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:600; text-decoration:none; }
 .gl-saved-link>svg { width:1.125rem; height:1.125rem; color:var(--color-brand); }
 /* At 大 / 特大 / 简洁 on a phone, and below 360 px, the search field keeps the full width and 我的指南收藏 takes its own row
    (WEB-FIX5 review: beside the longer link the placeholder showed only 看医). */

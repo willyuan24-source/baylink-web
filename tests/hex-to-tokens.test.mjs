@@ -2,14 +2,25 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { TEXT_DARK, TEXT_LIGHT, isHeadingAccent, isHeadingSubject, readPalette, remainingHex, rewriteCss } from '../scripts/codemods/hex-to-tokens.mjs';
 
-// The hex → token codemod (TOKENS-B): role-aware snapping onto the palette in src/tokens.css.
-const palette = readPalette();
+// The hex → token codemod (TOKENS-B): role-aware snapping onto the palette in src/tokens.css. The codemod ran against the
+// TOKENS-B palette; tokens v2 (UI9-F) moved the surfaces and accents, so the snapping cases below pin the palette they
+// were written for, and the live palette is checked to hold every name the codemod may write.
+const TOKENS_B_PALETTE = `:root{--color-bg-rgb:255 255 255;--color-surface-rgb:255 255 255;--color-surface-2-rgb:244 247 245;--color-selected-rgb:234 245 239;
+--color-ink-rgb:22 46 41;--color-ink-2-rgb:62 85 77;--color-ink-3-rgb:84 100 94;--color-brand-rgb:9 107 84;--color-brand-hover-rgb:7 84 64;
+--color-brand-deep-rgb:18 60 49;--color-brand-tint-rgb:234 245 239;--color-on-brand-muted-rgb:182 203 185;--color-highlight-rgb:223 243 166;
+--color-line-rgb:231 235 232;--color-line-strong-rgb:203 214 208;--color-line-control-rgb:127 143 136;--color-warm-rgb:160 86 46;
+--color-warm-tint-rgb:251 241 230;--color-success-rgb:39 107 68;--color-success-tint-rgb:232 243 236;--color-warning-rgb:138 90 0;
+--color-warning-tint-rgb:255 244 220;--color-danger-rgb:179 38 30;--color-danger-tint-rgb:253 236 234;--color-info-rgb:47 95 138;
+--color-info-tint-rgb:234 241 248;--color-plum-rgb:91 58 122;--color-plum-tint-rgb:237 228 243;--color-scrim-rgb:8 24 18}`;
+const palette = readPalette(TOKENS_B_PALETTE);
 const run = (css, options = {}) => rewriteCss(css, { palette, defined: new Set(['--color-bg', '--color-ink']), ...options });
 
 test('the palette comes from the channel tokens in src/tokens.css, and the codemod text sets are all in it', () => {
   assert.deepEqual(palette.get('brand'), [9, 107, 84]);
   assert.deepEqual(palette.get('ink-3'), [84, 100, 94]);
-  for (const name of [...TEXT_DARK, ...TEXT_LIGHT]) assert.ok(palette.has(name), name);
+  const live = readPalette();
+  assert.deepEqual(live.get('brand'), [9, 107, 84]);
+  for (const name of [...TEXT_DARK, ...TEXT_LIGHT]) assert.ok(palette.has(name) && live.has(name), name);
 });
 
 test('exact and near colours become the token; alpha survives as rgb(var(--…-rgb) / a)', () => {

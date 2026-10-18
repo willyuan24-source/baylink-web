@@ -3,7 +3,6 @@
 // background-location 模式覆盖在来源页之上。
 import { Suspense, useState, useEffect, useRef, useCallback } from 'react';
 import { Outlet, useNavigate, type Location } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
 import { api } from '../lib/api';
 import type { HOME_CHANNELS } from '../lib/constants';
 import { filterPostsByBlockedUsers, friendlyErrorMessage } from '../lib/format';
@@ -36,6 +35,7 @@ import type { ToastAction } from '../components/Toast';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
+import { RouteSettled } from './RouteProgress';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -661,8 +661,13 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       overlays={overlays}
     >
       {/* The first route keeps the prerendered page on screen while its chunk settles (boot-main.ts): no blank frame. */}
-      <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="flex flex-1 items-center justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-baylink-green" /></div>}>
+      {/* Later routes: the old page stays during the router's transition and this bar shows at the top after 150ms while
+          <html data-route-wait> is set (RouteSettled, lib/route-activity.ts); a suspension outside a transition keeps the
+          page height with the same bar (site-chrome.css), never a spinner. */}
+      <div className="site-route-progress site-route-bar" aria-hidden="true" />
+      <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="site-route-wait" aria-busy="true"><span className="site-route-progress" /></div>}>
         <BootMainSettled />
+        <RouteSettled pathname={location.pathname} search={location.search} />
         <Outlet context={ctx} />
       </Suspense>
     </SiteChrome>

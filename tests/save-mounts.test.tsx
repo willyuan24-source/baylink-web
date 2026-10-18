@@ -116,7 +116,7 @@ test('the cover ♡ is one 44px circle in every card save slot (reader-library.c
   });
   assert.ok(declarations.size, 'a global rule styles the ♡ in the FeedCard and HeroCard save slots');
   for (const prop of ['width', 'height', 'min-height']) assert.equal(declarations.get(prop), 'var(--control-height)', `${prop}: the 44px control`);
-  assert.equal(declarations.get('border-radius'), '50%');
+  assert.equal(declarations.get('border-radius'), 'var(--r-circle)'); // tokens v2: 50%
   assert.equal(declarations.get('font-size'), '0', 'the icon alone; the name is the aria-label');
   assert.doesNotMatch(readFileSync('src/features/events/EventCards.tsx', 'utf8'), /className="ev-card--action"/, 'offers and openings keep the overlay placement');
 });

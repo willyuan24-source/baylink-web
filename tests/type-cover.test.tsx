@@ -152,7 +152,9 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
     // Root Aa (html[data-reading], WEB-TOKENS-A) scales every rem: a second --reading-scale would double-scale, px never grows.
     assert.doesNotMatch(declaration.value, /--reading-scale|\d(?:\.\d+)?px\b/, where);
     // A bare .47em under a 22px value floor was 10.3px; the small date/value part now keeps the caption size as its floor.
-    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|h1|display)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
+    // Tokens v2 (UI9-F): the --fs-* ladder steps are text tokens too (the --text-* names alias them), and so are the kept
+    // steps (--fs-keep-<px>: the ladder step at 标准, the pre-v2 size in the elder modes).
+    assert.match(declaration.value, /^(?:var\(--text-(?:caption|fact|body|reading|card|section|title|h1|display)\)|var\(--fs-(?:badge|meta|body|reading|card|card-lg|section|title|display|keep-\d+)\)|[\d.]+rem|max\(var\(--text-caption\), \d+%\)|clamp\(.*\))$/, where);
     if (declaration.value.startsWith('clamp(')) {
       const clamp = /^clamp\((?:([\d.]+)rem|max\([\d.]+rem, var\(--text-floor\)\)), (.*), [\d.]+rem\)$/.exec(declaration.value);
       assert.ok(clamp, `${where}: clamp(rem floor, …, rem cap)`);
@@ -162,7 +164,8 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
     const rem = [...declaration.value.matchAll(/([\d.]+)rem/g)].map(match => Number(match[1]));
     if (rem.length) assert.ok(Math.min(...rem) >= .8125, `${(declaration.parent as postcss.Rule).selector}: never below 13px`);
   });
-  postcss.parse(css).walkDecls('font-weight', declaration => assert.ok(['400', '600', '700'].includes(declaration.value), declaration.value));
+  // The weight budget (N03): 400 and 600 only, written or as --fw-regular / --fw-strong.
+  postcss.parse(css).walkDecls('font-weight', declaration => assert.ok(['400', '600', 'var(--fw-regular)', 'var(--fw-strong)'].includes(declaration.value), declaration.value));
   const outsideTokens = css.replace(/:root\s*\{[^}]*\}/, '');
   assert.doesNotMatch(outsideTokens, /#[\da-f]{3,8}\b/i, 'colours outside the token block come from tokens');
 });
