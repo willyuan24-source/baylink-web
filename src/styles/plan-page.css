@@ -34,9 +34,10 @@
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__media { grid-column:1; grid-row:1 / span 2; margin:0; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend :is(.ui-feed-card__title,.ui-feed-card__meta) { grid-column:2; }
   /* The square photo keeps the date; the price is in the lines under the title: the place, then the price on its own line
-     (at 特大 a long place wrapped around "· 免费"). */
+     (at 特大 a long place wrapped around "· 免费"). The meta is a wrapping text line since tokens v2 (not a flex row), so
+     the price is a block of its own; with the dot hidden it never runs into the place ("Main Street部分免费"). */
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-stickers>[data-slot=end] { display:none; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-card__meta { flex-direction:column; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-price { display:block; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-sep { display:none; }
 }
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */

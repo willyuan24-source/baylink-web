@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import postcss from 'postcss';
@@ -300,6 +300,35 @@ test('small fixes: the offer page title in display case, the price never clipped
   const tiles = (signedIn: boolean) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/me"><MeTiles signedIn={signedIn} messagesCount={0} savedCount={null} onMyPosts={() => {}} onLogin={() => {}} /></StaticRouter>));
   assert.equal(tiles(false).querySelector('a[href="/messages"]')!.hasAttribute('data-primary'), false);
   assert.equal(tiles(true).querySelector('a[href="/messages"]')!.hasAttribute('data-primary'), true);
+});
+
+test('a card meta that hides the " · " before the price puts the price on its own line (/plan 本周末精选 at 大 / 特大 / 简洁)', () => {
+  // The dot lives inside the price (<span class="ui-meta-place"/><span class="ui-meta-price"><span class="ui-meta-sep"> · </span>…),
+  // and the meta is a wrapping text line since tokens v2, not a flex row: hiding the dot alone glued "Main Street部分免费".
+  assert.match(readFileSync('src/features/plan/PlanWeekendPicks.tsx', 'utf8'), /<span className="ui-meta-place">.*<span className="ui-meta-price"><span className="ui-meta-sep"> · <\/span>/);
+  const normal = (text: string) => text.replace(/\s*([>+~,])\s*/g, '$1').replace(/\s+/g, ' ').trim();
+  const checked: string[] = [];
+  const walk = (directory: string) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const path = `${directory}/${entry.name}`;
+      if (entry.isDirectory()) { if (!/^src\/(?:opus-bay|data)$/.test(path)) walk(path); continue; }
+      if (!entry.name.endsWith('.css')) continue;
+      const display = new Map<string, string>();
+      postcss.parse(readFileSync(path, 'utf8')).walkDecls('display', declaration => {
+        const rule = declaration.parent as postcss.Rule;
+        const media = rule.parent?.type === 'atrule' ? normal((rule.parent as postcss.AtRule).params) : '';
+        for (const selector of rule.selectors ?? []) display.set(`${media}|${normal(selector)}`, declaration.value.trim());
+      });
+      for (const [key, value] of display) {
+        if (!key.endsWith('.ui-meta-sep') || value !== 'none') continue;
+        checked.push(`${path} ${key}`);
+        const price = key.replace(/\.ui-meta-sep$/, '.ui-meta-price');
+        assert.equal(display.get(price), 'block', `${path}: ${key} hides the dot, so ${price} must be a block of its own`);
+      }
+    }
+  };
+  walk('src');
+  assert.ok(checked.some(entry => entry.includes('src/styles/plan-page.css') && entry.includes('max-width:767px')), checked.join('\n'));
 });
 
 test('closing punctuation after a title unit stays inside it, so no line starts with ，or ：', async () => {
