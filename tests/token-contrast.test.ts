@@ -38,12 +38,46 @@ test('palette matrix: dark text tokens on every light surface, light text tokens
     const value = ratio(rgbOf(tint), rgbOf(surface));
     if (value < 4.5) failures.push(`${tint} on ${surface} ${value.toFixed(2)}:1`);
   }
-  // White on the brand button and the plum TypeCover pair.
-  for (const [text, surface] of [['surface', 'brand'], ['plum', 'plum-tint']]) {
+  // White on the brand button, and the category map (tokens v2): each category's text on its own tint, and on paper and
+  // white where a category word is printed outside its cover (chips, share cards).
+  const categories = [['warm', 'warm-tint'], ['info', 'info-tint'], ['moss', 'moss-tint'], ['warning', 'warning-tint'], ['brand-hover', 'brand-tint'], ['success', 'success-tint']];
+  for (const [text, surface] of [['surface', 'brand'], ...categories, ...categories.flatMap(([text]) => [[text, 'bg'], [text, 'surface']])]) {
     const value = ratio(rgbOf(text), rgbOf(surface));
     if (value < 4.5) failures.push(`${text} on ${surface} ${value.toFixed(2)}:1`);
   }
   assert.deepEqual(failures, []);
+});
+
+test('control borders (inputs, secondary buttons, chips) are at least 3:1 on every surface a control sits on (WCAG 1.4.11)', () => {
+  const failures: string[] = [];
+  for (const surface of ['bg', 'surface', 'surface-2']) {
+    const value = ratio(rgbOf('line-control'), rgbOf(surface));
+    if (value < 3) failures.push(`line-control on ${surface} ${value.toFixed(2)}:1`);
+  }
+  // The focus ring: brand on the light surfaces, lime (highlight) on the deep ones.
+  for (const surface of ['bg', 'surface', 'surface-2']) if (ratio(rgbOf('brand'), rgbOf(surface)) < 3) failures.push(`focus ring on ${surface}`);
+  for (const surface of DARK_SURFACES) if (ratio(rgbOf('highlight'), rgbOf(surface)) < 3) failures.push(`focus ring on ${surface}`);
+  assert.deepEqual(failures, []);
+});
+
+test('tokens v2: the ladder has at most 9 steps per viewport, motion and shadows are tokens, and no fifth accent hue', () => {
+  const root = new Map<string, string>(); const desktop = new Map<string, string>();
+  postcss.parse(tokensCss).walkDecls(/^--/, declaration => {
+    const rule = declaration.parent as postcss.Rule;
+    if (rule.selector !== ':root') return;
+    const media = rule.parent?.type === 'atrule' ? (rule.parent as postcss.AtRule).params : '';
+    if (!media) root.set(declaration.prop, declaration.value.trim());
+    else if (/min-width:\s*1024px/.test(media)) desktop.set(declaration.prop, declaration.value.trim());
+  });
+  const ladder = ['--fs-badge', '--fs-meta', '--fs-body', '--fs-reading', '--fs-card', '--fs-card-lg', '--fs-section', '--fs-title', '--fs-display'];
+  const phoneSizes = new Set(ladder.map(name => root.get(name)));
+  const desktopSizes = new Set(ladder.map(name => desktop.get(name) ?? root.get(name)));
+  assert.ok(!phoneSizes.has(undefined), 'every ladder step is defined');
+  assert.ok(phoneSizes.size <= 9 && desktopSizes.size <= 9, `${phoneSizes.size} phone / ${desktopSizes.size} desktop steps`);
+  for (const name of ['--dur-1', '--dur-2', '--dur-3', '--dur-4', '--dur-5']) assert.ok(Number.parseInt(root.get(name) ?? '999', 10) <= 280, name);
+  for (const name of ['--e1', '--e2', '--scrim', '--ease-out', '--ease-in', '--ease-std', '--r-sm', '--r-md', '--r-lg', '--r-xl', '--r-pill', '--r-circle']) assert.ok(root.has(name), name);
+  assert.ok(!palette.has('plum') && !palette.has('plum-tint'), 'no plum: 长辈 reads the brand family');
+  assert.match(tokensCss, /color-scheme:\s*only light/);
 });
 
 test('the colour tokens read their channels: --color-x is rgb(var(--color-x-rgb)), one value per colour', () => {

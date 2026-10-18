@@ -1,27 +1,34 @@
-/* Shared values; older component variables remain aliases during migration. */
+/* Shared values; older component variables remain aliases during migration.
+   Tokens v2 (UI9-F): direction D2 温暖社区感 with the D1/D3 grafts (opus-qa lanes/UI-9/directions/SYNTHESIS.md). Warm paper
+   ground, white cards, sunken fills, brand deep green + lime; one hue per category (no fifth accent: 长辈 reads the brand
+   family); one type ladder, one 4px spacing scale, four radii + pill + circle, two shadows + a scrim, five durations and
+   three easings. Light theme only: color-scheme is pinned so a forced or automatic dark mode cannot repaint the brand. */
 :root {
-  color-scheme:light;
+  color-scheme:only light;
   /* Palette (TOKENS-B, RC-9). Each colour is an "R G B" channel token, and the colour token reads it, so one value drives
      plain uses (var(--color-ink-3)), translucent ones (rgb(var(--color-brand-rgb) / .12)) and Tailwind's baylink.*
      utilities with their /NN modifiers (tailwind.config.js, tests/tailwind-tokens.test.ts). This is the only stylesheet
      with colour literals: the rest reads these names (scripts/codemods/hex-to-tokens.mjs; the style ratchet counts hex).
      Contrast is a test, not a comment: tests/token-contrast.test.ts holds every text token to WCAG AA (4.5:1) on every
      surface it may sit on, and checks each CSS rule and Tailwind class string that pairs a text and a background token.
-     On white: ink 14.41, ink-2 8.04, ink-3 6.25, brand 6.48, warm 5.43, warning 5.93, danger 6.54, info 6.72 :1. */
-  --color-bg-rgb:255 255 255; --color-surface-rgb:255 255 255; --color-surface-2-rgb:244 247 245; --color-selected-rgb:234 245 239;
-  --color-ink-rgb:22 46 41; --color-ink-2-rgb:62 85 77; --color-ink-3-rgb:84 100 94;
-  --color-brand-rgb:9 107 84; --color-brand-hover-rgb:7 84 64; --color-brand-deep-rgb:18 60 49; --color-brand-tint-rgb:234 245 239;
+     Surfaces: bg = warm paper (the page ground), surface = white card (inputs, panels, sheets), surface-2 = sunken fills.
+     On paper: ink 13.6, ink-2 7.45, ink-3 5.66, brand 6.01 :1; on white: ink 14.7, ink-2 8.03, ink-3 6.10, brand 6.48 :1.
+     Categories (one hue each, one map for covers, chips and share cards): 亲子 coral = warm, 文化 indigo = info,
+     户外 moss, 市集美食 apricot = warning, 长辈 the brand family, 办事指南 brand-deep. */
+  --color-bg-rgb:250 246 239; --color-surface-rgb:255 255 255; --color-surface-2-rgb:242 235 223; --color-selected-rgb:227 239 231;
+  --color-ink-rgb:30 43 38; --color-ink-2-rgb:71 83 78; --color-ink-3-rgb:92 100 95;
+  --color-brand-rgb:9 107 84; --color-brand-hover-rgb:7 84 64; --color-brand-deep-rgb:18 60 49; --color-brand-tint-rgb:227 239 231;
   --color-on-brand-muted-rgb:182 203 185;   /* text on brand-deep only (7.13:1) */
-  --color-highlight-rgb:223 243 166;        /* with brand-deep text (10.2:1) */
-  --color-line-rgb:231 235 232; --color-line-strong-rgb:203 214 208;   /* decorative dividers */
-  --color-line-control-rgb:127 143 136;     /* input and control borders, 3.39:1 (WCAG 1.4.11); never text */
-  --color-warm-rgb:160 86 46; --color-warm-tint-rgb:251 241 230;       /* offers and the family TypeCover */
+  --color-highlight-rgb:223 243 166;        /* lime: with brand-deep text (10.2:1) */
+  --color-line-rgb:230 221 205; --color-line-strong-rgb:214 203 185;   /* decorative dividers, never a control's edge */
+  --color-line-control-rgb:139 129 116;     /* every input and control border: white 3.83, paper 3.55, sunken 3.26 (WCAG 1.4.11); never text */
+  --color-warm-rgb:140 58 32; --color-warm-tint-rgb:251 229 218;       /* coral: offers and 亲子 */
   --color-success-rgb:39 107 68; --color-success-tint-rgb:232 243 236;
-  --color-warning-rgb:138 90 0; --color-warning-tint-rgb:255 244 220;
-  --color-danger-rgb:179 38 30; --color-danger-tint-rgb:253 236 234;
-  --color-info-rgb:47 95 138; --color-info-tint-rgb:234 241 248;
-  --color-plum-rgb:91 58 122; --color-plum-tint-rgb:237 228 243;       /* the seniors TypeCover */
-  --color-scrim-rgb:8 24 18;                /* photo scrims, lightboxes and dark overlays */
+  --color-warning-rgb:126 68 8; --color-warning-tint-rgb:251 235 210;  /* apricot: 市集美食 and the warning status */
+  --color-danger-rgb:179 38 30; --color-danger-tint-rgb:252 233 231;
+  --color-info-rgb:59 79 142; --color-info-tint-rgb:228 231 244;       /* indigo: 文化演出 and the info status */
+  --color-moss-rgb:74 106 42; --color-moss-tint-rgb:230 237 217;       /* moss: 户外 */
+  --color-scrim-rgb:30 24 16;               /* photo scrims, lightboxes and dark overlays (warm, like the paper) */
   --color-bg:rgb(var(--color-bg-rgb)); --color-surface:rgb(var(--color-surface-rgb)); --color-surface-2:rgb(var(--color-surface-2-rgb)); --color-selected:rgb(var(--color-selected-rgb));
   --color-ink:rgb(var(--color-ink-rgb)); --color-ink-2:rgb(var(--color-ink-2-rgb)); --color-ink-3:rgb(var(--color-ink-3-rgb));
   --color-brand:rgb(var(--color-brand-rgb)); --color-brand-hover:rgb(var(--color-brand-hover-rgb)); --color-brand-deep:rgb(var(--color-brand-deep-rgb)); --color-brand-tint:rgb(var(--color-brand-tint-rgb));
@@ -32,21 +39,47 @@
   --color-warning:rgb(var(--color-warning-rgb)); --color-warning-tint:rgb(var(--color-warning-tint-rgb));
   --color-danger:rgb(var(--color-danger-rgb)); --color-danger-tint:rgb(var(--color-danger-tint-rgb));
   --color-info:rgb(var(--color-info-rgb)); --color-info-tint:rgb(var(--color-info-tint-rgb));
-  --color-plum:rgb(var(--color-plum-rgb)); --color-plum-tint:rgb(var(--color-plum-tint-rgb));
+  --color-moss:rgb(var(--color-moss-rgb)); --color-moss-tint:rgb(var(--color-moss-tint-rgb));
   --color-scrim:rgb(var(--color-scrim-rgb));
   /* Overlays (design.md §4.2): the provenance badge (white text ≥6.25:1 over any pixel), the sheet backdrop, and the photo
      scrim (text only below 62% of the height: white ≥5.52:1, highlight ≥4.6:1). */
   --color-badge-bg:rgb(var(--color-brand-deep-rgb) / .78);
-  --color-backdrop:rgb(var(--color-ink-rgb) / .48);
+  --color-backdrop:var(--scrim);
   --scrim-photo:linear-gradient(180deg, rgb(var(--color-scrim-rgb) / 0) 40%, rgb(var(--color-scrim-rgb) / .64) 62%, rgb(var(--color-scrim-rgb) / .82) 100%);
-  /* TypeCover pairs, fg on bg (moved here from components/ui/ui.css): family 4.87, culture 5.90, outdoors 5.80, food 5.43,
-     seniors 7.29, free 5.64 :1. */
+  /* TypeCover pairs = the category map, fg on bg (tests/token-contrast.test.ts holds each to AA). 长辈 takes the brand
+     family instead of a fifth accent hue; the cover system (UI9-C) builds its deep blocks on these same hues. */
   --tc-family-bg:var(--color-warm-tint); --tc-family-fg:var(--color-warm);
   --tc-culture-bg:var(--color-info-tint); --tc-culture-fg:var(--color-info);
-  --tc-outdoors-bg:var(--color-brand-tint); --tc-outdoors-fg:var(--color-brand);
+  --tc-outdoors-bg:var(--color-moss-tint); --tc-outdoors-fg:var(--color-moss);
   --tc-food-bg:var(--color-warning-tint); --tc-food-fg:var(--color-warning);
-  --tc-seniors-bg:var(--color-plum-tint); --tc-seniors-fg:var(--color-plum);
+  --tc-seniors-bg:var(--color-brand-tint); --tc-seniors-fg:var(--color-brand-hover);
   --tc-free-bg:var(--color-success-tint); --tc-free-fg:var(--color-success);
+  /* Type ladder (N01): at most 9 steps per viewport. Phone 13 · 14 · 16 · 17 · 18 · 20 · 24 · 28; desktop (≥1024)
+     13 · 14 · 16 · 17 · 18 · 20 · 24 · 32 · 44. 13 is for photo provenance badges and legal credits only. rem, so Aa
+     grows them; 简洁显示 raises the floor (html[data-simple] below). No font-size literal belongs outside this file. */
+  --fs-badge:.8125rem; --fs-meta:.875rem; --fs-body:1rem; --fs-reading:1.0625rem; --fs-card:1.125rem; --fs-card-lg:1.125rem;
+  --fs-section:1.25rem; --fs-title:1.5rem; --fs-display:1.75rem;
+  /* Weight budget (N03): 400 everywhere; 600 only for H1/H2, card titles (feed, lead, pick, row), the primary button and
+     the one key value of a fact block. */
+  --fw-regular:400; --fw-strong:600;
+  /* Line height and measure per script (N05): CJK here, Latin under :lang(en) below. */
+  --lh-tight:1.3; --lh-snug:1.4; --lh-ui:1.6; --lh-read:1.75; --measure:36em;
+  /* Space: a 4px grid in 9 steps. Sections sit 40 apart on a phone and 64 on a desktop; inside a section the largest gap
+     is 16 (phone) / 24 (desktop). */
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px; --sp-7:48px; --sp-8:64px; --sp-9:96px;
+  --section-gap:40px; --stack-head:var(--sp-3); --inset-card:var(--sp-4); --inset-panel:var(--sp-5);
+  /* Grid: 12 columns, one gutter per viewport (12 phone, 24 desktop); the frame puts content at x = 112 in a 1440 window. */
+  --grid-cols:12; --grid-gutter:12px;
+  /* Radius: four steps + pill + circle (N11). Inputs and buttons are pills; cards and covers 16; sheets 24. */
+  --r-sm:6px; --r-md:10px; --r-lg:16px; --r-xl:24px; --r-pill:999px; --r-circle:50%;
+  /* Elevation: two warm shadows + one scrim (N10). e1 = small raised things (♡ on a cover, the scrolled header, toasts);
+     e2 = drawers, sheets, popovers; the scrim sits behind every sheet, drawer and dialog. */
+  --e1:0 1px 2px rgb(58 42 20 / .1), 0 2px 6px rgb(58 42 20 / .06);
+  --e2:0 12px 32px rgb(40 28 12 / .16), 0 2px 8px rgb(40 28 12 / .08);
+  --scrim:rgb(var(--color-scrim-rgb) / .44);
+  /* Motion (N24): five durations, all ≤280ms, and three easings. Reduced motion and 简洁显示 set every duration to 0. */
+  --dur-1:120ms; --dur-2:160ms; --dur-3:200ms; --dur-4:240ms; --dur-5:280ms;
+  --ease-out:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.4,0,1,1); --ease-std:cubic-bezier(.4,0,.2,1);
   /* The names the WEB-UI block used before the move, kept so stylesheets written against them keep their colours. New
      code reads the --color-* names; WEB-CSS-PRUNE deletes these once nothing reads them. */
   --ui-success:var(--color-success); --ui-success-tint:var(--color-success-tint); --ui-warning:var(--color-warning); --ui-warning-tint:var(--color-warning-tint);
@@ -56,23 +89,24 @@
   /* Aa scales the root (html[data-reading] below), so every rem grows together. --reading-scale stays pinned at 1 for
      older calc() forms: multiplying a rem by it again would turn 特大 into 125% x 1.25 = 156%. */
   --reading-scale:1; --fluid-scale:1; --text-floor:0px; --control-height:2.75rem;
-  --text-caption:.8125rem; --text-fact:.875rem;
-  --text-body:1rem; --text-reading:1.0625rem;
-  --text-card:1.125rem;
+  --text-caption:var(--fs-badge); --text-fact:var(--fs-meta);
+  --text-body:var(--fs-body); --text-reading:var(--fs-reading);
+  --text-card:var(--fs-card);
   /* Type scale (SV-06, design.md §4.3): one spec per heading level on every page, weight 600 and letter-spacing 0 (CJK
      titles take no negative tracking), in rem so Aa grows them. Phone values here, desktop (≥1024px) below the block.
      Mark a heading with .type-display / .type-title / .type-section, or read the tokens in a component's heading rule.
-       display  28/36 · 40–52 (about 44 at 1440)   the home H1 and the events column header; one per page at most
-       title    26/34 · 32/42                      every other page H1: detail, guide, list, account, legal, 404
-       section  22/30 · 24/32                      H2 section heads
-       card     18/27                              card and row titles (H3) */
-  --text-display:1.75rem; --lh-display:1.286;
-  --text-title:1.625rem; --lh-title:1.308;
+     They are the ladder's top steps (tokens v2):
+       display  28 · 44     the home H1 and the events column header; one per page at most
+       title    24 · 32     every other page H1: detail, guide, list, account, legal, 404
+       section  20 · 24     H2 section heads
+       card     18          card and row titles (H3) */
+  --text-display:var(--fs-display); --lh-display:var(--lh-tight);
+  --text-title:var(--fs-title); --lh-title:var(--lh-tight);
   /* The page H1 (H30): every H1 except the display tier (home, the events column) reads these, so a page cannot drift to a
      third H1 size. They follow --text-title (26/34 phone, 32/42 desktop). */
   --text-h1:var(--text-title); --lh-h1:var(--lh-title);
-  --text-section:1.375rem; --lh-section:1.364;
-  --lh-card:1.5;
+  --text-section:var(--fs-section); --lh-section:var(--lh-tight);
+  --lh-card:var(--lh-snug);
   /* Layout (SV-09, design.md §4.4): one page frame, aligned to the header (the logo and the content edge at 112–1328 in a
      1440 window). .site-container (below) and the WEB-UI PageContainer read these; gutters are px and do not grow with Aa. */
   --container-wide:1216px; --container-content:960px; --container-reading:720px; --page-gutter:16px;
@@ -89,11 +123,11 @@
 .profile-theme-lavender{--profile-sky:#ddd5f4;--profile-horizon:#aaa1ce;--profile-land:#7b7ea9;--profile-ink:#5b5686;--profile-tint:#f5f1fc}
 @media(min-width:768px) { :root { --page-gutter:24px; } }
 @media(min-width:1024px) { :root {
-  --page-gutter:32px;
-  --text-section:1.5rem; --lh-section:1.333;
-  --text-title:2rem; --lh-title:1.3125;
-  --text-display:clamp(2.5rem, calc(1.6rem + 1.25vw * var(--fluid-scale)), 3.25rem); --lh-display:1.2;
+  --page-gutter:32px; --grid-gutter:24px; --section-gap:var(--sp-8);
+  --fs-card-lg:1.25rem; --fs-section:1.5rem; --fs-title:2rem; --fs-display:2.75rem;
 } }
+/* Latin line heights and measure on English pages (N05). */
+:root:lang(en) { --lh-ui:1.45; --lh-read:1.55; --measure:66ch; }
 /* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
    heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). No page writes them today; they
    stay as the design system's contract (tests/type-scale.test.ts). */
@@ -134,9 +168,17 @@ html[data-reading=extra-large] { font-size:125%; --fluid-scale:1.25; }
    max(size, var(--text-floor)), scripts/postcss-text-floor.mjs — body copy 18/20px, 48px targets and a 76px tab bar
    with 16px labels. Nothing here applies until html[data-simple] is set. */
 html[data-simple] {
-  --text-floor:1rem; --text-caption:1rem; --text-fact:1rem; --text-body:1.125rem; --text-reading:1.25rem;
+  --text-floor:1rem; --fs-badge:1rem; --fs-meta:1rem; --fs-body:1.125rem; --fs-reading:1.25rem; --fs-card:1.25rem; --fs-card-lg:1.25rem;
+  --fs-section:1.5rem; --fs-title:1.75rem; --fs-display:1.75rem;
   --control-height:3rem; --site-mobile-nav-height:calc(4.75rem + env(safe-area-inset-bottom,0px));
+  --dur-1:0ms; --dur-2:0ms; --dur-3:0ms; --dur-4:0ms; --dur-5:0ms;
 }
+@media(prefers-reduced-motion:reduce) { :root { --dur-1:0ms; --dur-2:0ms; --dur-3:0ms; --dur-4:0ms; --dur-5:0ms; } }
+/* Quick wins from the UI-9 analysis: one icon stroke (N13), no orphan last words in prose (N06), and CJK headings break
+   at phrases where the browser can (word-break:auto-phrase) and never before closing punctuation (line-break:strict). */
+svg.lucide { stroke-width:1.75; }
+:where(p,li,dd) { text-wrap:pretty; }
+:where(h1,h2,h3,h4) { line-break:strict; word-break:auto-phrase; }
 /* The 3D world keeps its own HUD geometry at every text size (D26). reading-init.js already skips /opus-bay and /play;
    this covers a stale attribute. */
 html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-floor:0px; }
