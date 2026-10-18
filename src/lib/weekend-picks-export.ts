@@ -5,11 +5,14 @@ import { isSeniorFriendly, type SeniorFriendlyInput } from './senior-friendly';
 
 /**
  * public/weekend-picks.json (scripts/export-weekend-picks.ts): the editor's weekend picks from src/data/weekend-picks.ts,
- * for the API, which cannot read the site's TypeScript (BayBay's 周末去哪 answers; lanes/API-SYNC-3G review). Only what the
- * site itself publishes goes in:
+ * for the API, which cannot read the site's TypeScript (BayBay's 周末去哪 answers; lanes/API-SYNC-3G review). It is the
+ * editor's full ranked list per weekend, standbys included, minus what the site would never show:
  * - weekends whose Sunday is on or after the build day (passed weekends are not offered again);
  * - picks whose event is in the catalog and occurs on that Saturday or Sunday (the home, /weekly and /events skip the
- *   others at runtime), in the editor's order, which is the rank (ranks 1–3 show, 4–5 are standbys);
+ *   others at runtime), in the editor's order. Ranks 1–3 are what the home and the card show; 4–5 are standbys that move
+ *   up on a day a higher pick does not run.
+ * - rank is the position among the exported picks of that weekend (what the API sorts by). The site's own editorial rank
+ *   (lib/home-weekend.ts editorialFor) counts the editor's list as written, so the two differ only after a dropped pick.
  * - the editor's reason as written (zh-Hans and en; zh-Hant is converted on the site), the days of that weekend the
  *   event runs, and 长辈友好 by the site's shared rule (lib/senior-friendly.ts, the /events chip and the home circle).
  * Nothing is added that the picks file or the event entry does not state. Regenerate with `npm run export:picks`.

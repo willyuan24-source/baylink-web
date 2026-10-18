@@ -3,6 +3,9 @@
 // Weekly routine (Thursday 18:00 PT): add next weekend under its Saturday date
 // and delete weekends that have passed. A merge plus a production deploy is
 // required; the home snapshot and the share card are both built at deploy time.
+// BayBay reads the picks only from public/weekend-picks.json (npm run export:picks,
+// run by the build) through the API's sync-editorial-catalogs copy, so an API sync
+// and an API deploy must follow the web deploy, or BayBay has no picks that weekend.
 //
 // - Array order is the rank. Ranks 1–3 show on the home page and the card;
 //   up to two more are standbys that move up when a pick does not occur that
