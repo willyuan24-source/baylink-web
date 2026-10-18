@@ -128,7 +128,8 @@ test('rights basis reads today’s registry fields', () => {
 test('the live catalog: no AI or theme photo on any event, offer or opening; Fleet Week keeps its DVIDS photo', () => {
   const live = MONTHLY_EVENTS.filter(item => item.endDate >= today);
   const covers = resolveCovers(live.map(item => ({ kind: 'event' as const, id: item.id, imageKey: item.imageKey })), { images: GUIDE_IMAGES, today });
-  const vocabulary = /^(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?$/;
+  // 官方图 · 2025 往届: an official photo whose caption names the earlier edition it shows (the 2027 parade's 2025 photo).
+  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届)$/;
   covers.forEach((cover, index) => {
     if (cover.tier !== 'type') assert.notEqual(cover.image.kind, 'illustration', live[index].id);
     assert.match(cover.label.zh, vocabulary, live[index].id);
