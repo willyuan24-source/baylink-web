@@ -2,7 +2,7 @@
    table style also dresses ProductMetrics' page-views-by-route table on the same page. */
 .feedback-admin{margin:1.5rem 0;padding:1.25rem;border:1px solid var(--color-line-strong);border-radius:var(--r-lg);background:var(--color-surface);color:var(--color-ink)}
 .feedback-admin-heading{display:flex;align-items:center;justify-content:space-between;gap:1rem}
-.feedback-admin-heading h2{margin-top:.375rem;font-size:1.1875rem;font-weight:700}
+.feedback-admin-heading h2{margin-top:.375rem;font-size:1.125rem;font-weight:600}
 .feedback-admin-heading button,.feedback-admin-filters button,.feedback-admin-more,.feedback-admin-delete{display:inline-flex;align-items:center;gap:.375rem;min-height:var(--control-height);padding:.375rem .875rem;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
 .feedback-admin-filters{display:flex;flex-wrap:wrap;gap:.5rem;margin:1rem 0}
 .feedback-admin-filters button[aria-pressed=true]{border-color:var(--color-brand);background:var(--color-brand-tint);font-weight:600}
@@ -18,7 +18,7 @@
 .feedback-admin-delete{justify-self:start;color:var(--color-danger)}
 .feedback-admin-more{margin-top:1rem}
 .feedback-admin-table{width:100%;margin:1rem 0;border-collapse:collapse;font-size:var(--text-fact)}
-.feedback-admin-table caption{margin-bottom:.5rem;text-align:left;font-weight:600;color:var(--color-ink)}
+.feedback-admin-table caption{margin-bottom:.5rem;text-align:left;font-weight:400;color:var(--color-ink)}
 .feedback-admin-table :is(th,td){padding:.5rem;border-bottom:1px solid var(--color-line);text-align:left;vertical-align:top;overflow-wrap:anywhere}
 .feedback-admin-table th{font-weight:600;color:var(--color-ink-2)}
 .feedback-admin :is(button,a):focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}

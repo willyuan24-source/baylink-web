@@ -48,7 +48,7 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 .site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button),.site-app .site-navigation-account button,.site-app .site-account-panel>button { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--control-height); padding:10px 12px; border-radius:var(--r-sm); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; text-align:left; }
 .site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button)>svg,.site-app .site-navigation-account button>svg,.site-app .site-account-panel>button>svg { flex:none; }
 .site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button):hover,.site-app .site-secondary-nav a[aria-current=page],.site-app .site-navigation-account button:hover,.site-app .site-account-panel>button:hover { background:var(--color-surface-2); color:var(--color-brand); }
-.site-app .site-unread,.site-app .site-header-notification,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); font-weight:700; line-height:1.5; text-align:center; }
+.site-app .site-unread,.site-app .site-header-notification,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); font-weight:600; line-height:1.5; text-align:center; }
 .site-app :is(.site-secondary-nav,.site-account-panel nav) .site-unread { margin-left:auto; }
 .site-app .site-navigation-account { margin-top:8px; padding-top:8px; border-top:1px solid var(--color-line); }
 .site-app .site-navigation-account p { padding:4px 12px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
@@ -67,7 +67,7 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 .site-app .site-reading-label { font-size:var(--text-fact); }
 .site-app .site-language { position:relative; flex:none; display:block; min-height:0; padding:0; border:0; background:transparent; }
 .site-app .site-language-trigger { display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:0 10px; border-radius:var(--r-sm); list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-fact); }
-.site-app .site-language-short { display:none; font-size:.9375rem; font-weight:600; }
+.site-app .site-language-short { display:none; font-size:1rem; font-weight:600; }
 .site-app .site-language-menu { width:14rem; }
 .site-app .site-language-title { padding:6px 12px 4px; color:var(--color-ink-3); font-size:var(--text-caption); }
 .site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:var(--control-height); padding:10px 12px; border-radius:var(--r-sm); color:var(--color-ink); font-size:var(--text-body); text-align:left; }
@@ -87,7 +87,7 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 .site-app .site-footer { margin-top:3rem; border-top:1px solid var(--color-line); background:var(--color-surface-2); }
 .site-app .site-footer-inner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 24px; max-width:1280px; margin-inline:auto; padding:16px 32px 24px; }
 .site-app .site-footer-brand { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.site-app .site-footer-brand strong { color:var(--color-brand); font-size:var(--text-fact); font-weight:700; }
+.site-app .site-footer-brand strong { color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .site-app .site-footer nav { display:flex; flex-wrap:wrap; gap:0 4px; margin-inline:-10px; }
 .site-app .site-footer nav>:is(a,button) { display:inline-flex; align-items:center; min-height:44px; padding:0 10px; border-radius:var(--r-sm); color:var(--color-ink-2); font-size:var(--text-caption); }
 .site-app .site-footer nav>:is(a,button):hover { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; }

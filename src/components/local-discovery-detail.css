@@ -46,7 +46,7 @@
 .local-discovery-detail .detail-fact__line[data-tone=free] { color:var(--color-brand); }
 .local-discovery-detail .detail-fact dd small { display:block; margin-top:2px; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:1.5; }
 .local-discovery-detail .detail-map-link { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
-.local-discovery-detail .detail-fact .phone-chip { font-weight:600; }
+.local-discovery-detail .detail-fact .phone-chip { font-weight:400; }
 
 /* Body: summary, 出发前 checklist, offer conditions and steps, 一起去, source, share. */
 .local-discovery-detail .detail-body { padding-top:8px; }
@@ -60,7 +60,7 @@
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul)>li { display:flex; align-items:flex-start; gap:12px; }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul)>li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.25rem; color:var(--color-brand); }
-.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:700; }
+.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
 /* An unnumbered "怎么领 · 怎么用" line: a dot centred on the first line of its text. */
 .local-discovery-detail .detail-steps ul>li::before { content:""; flex:none; width:.4375rem; height:.4375rem; margin:calc(var(--text-reading) * .875 - .21875rem) .40625rem 0; border-radius:var(--r-pill); background:var(--color-brand); }
 .local-discovery-detail .detail-steps__note { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
@@ -78,7 +78,7 @@
    18px in and 32px under on a phone) indented it and left a gap above the share buttons. */
 .local-discovery-detail .detail-source .feedback-report-row { width:auto; margin:8px 0 0; padding:0; }
 .local-discovery-detail .detail-credit { display:flex; flex-wrap:wrap; gap:4px 10px; margin:12px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.local-discovery-detail .detail-credit__label { font-weight:600; color:var(--color-ink-2); }
+.local-discovery-detail .detail-credit__label { font-weight:400; color:var(--color-ink-2); }
 .local-discovery-detail .detail-credit a { color:var(--color-ink-2); text-decoration:underline; text-underline-offset:2px; }
 .local-discovery-detail .discovery-related { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); margin-top:8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
 .local-discovery-detail .detail-share { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px 12px; margin-top:24px; }
@@ -202,7 +202,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
 
 /* Page end: the next places to go. */
 .local-discovery-detail .discovery-return { margin:40px 16px 0; padding:24px 0 0; border:0; border-top:2px solid var(--color-brand-deep); border-radius:0; background:transparent; }
-.local-discovery-detail .discovery-return .discovery-eyebrow { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; letter-spacing:0; text-transform:none; }
+.local-discovery-detail .discovery-return .discovery-eyebrow { color:var(--color-brand); font-size:var(--text-caption); font-weight:400; letter-spacing:0; text-transform:none; }
 .local-discovery-detail .discovery-return h2 { margin:6px 0 8px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:4px 20px; }
 .local-discovery-detail .discovery-return a { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-body); font-weight:600; }

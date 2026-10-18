@@ -47,7 +47,8 @@ test('title links in event and calendar cards take the heading size while card a
   const eventsRules = sheetRules('../src/features/events/events.css');
   // Pseudo-element and :focus-visible selectors never match an element at rest, and jsdom may not parse them.
   const matches = (list: Rule[], element: Element) => list.filter(rule => { try { return element.matches(rule.selector); } catch { return false; } });
-  const CARD_TITLE_SIZES: Record<string, string> = { 'ui-feed-card__title': '.9375rem', 'ui-row-card__title': '1.0625rem' };
+  // Tokens v2 (UI9-F): the feed card title reads the ladder's reading step (17px phone; 16px desktop below).
+  const CARD_TITLE_SIZES: Record<string, string> = { 'ui-feed-card__title': 'var(--fs-reading)', 'ui-row-card__title': '1.0625rem' };
   for (const title of titles) {
     const linkRules = matches(uiRules, title);
     assert.ok(linkRules.some(rule => rule.selector === '.ui-card-link'), `${title.textContent}: the title is the card link`);

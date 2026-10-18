@@ -11,10 +11,10 @@
  */
 
 /* Provenance badge: top-left on every cover, text only from getImageProvenance(). */
-.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
+.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
 
-/* Stickers sit on images: date bottom-left, price bottom-right. */
-.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:4px 8px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+/* Stickers sit on images: date bottom-left, price bottom-right. A date or a price is never cut: it wraps. */
+.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:4px 8px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .ui-sticker[data-tone=free] { background:var(--color-highlight); color:var(--color-brand-deep); }
 .ui-sticker[data-tone=mixed] { background:var(--tc-free-bg); color:var(--tc-free-fg); }
 .ui-sticker[data-tone=danger] { background:var(--color-danger-tint); color:var(--color-danger); }
@@ -45,10 +45,10 @@
 .ui-icon-button>svg { width:1.25rem; height:1.25rem; }
 @media (min-width:1024px) { .ui-button { min-height:var(--control-height); } }
 
-/* Filter chip: the only selected style site-wide is ink background, white text, 600. */
+/* Filter chip: the only selected style site-wide is ink background and white text (400: the fill carries the state). */
 .ui-chip { position:relative; display:inline-flex; align-items:center; gap:6px; flex:none; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-meta); line-height:1.25; font-weight:var(--fw-regular); white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .ui-chip::before { content:""; position:absolute; inset:-2px 0; }
-.ui-chip[aria-pressed=true],.ui-chip[aria-checked=true],.ui-chip[aria-current] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
+.ui-chip[aria-pressed=true],.ui-chip[aria-checked=true],.ui-chip[aria-current] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:400; }
 .ui-chip__count { font-size:var(--text-caption); opacity:.75; font-variant-numeric:tabular-nums; }
 .ui-chip>svg { width:1rem; height:1rem; flex:none; }
 .ui-chip-row { display:flex; gap:8px; overflow-x:auto; padding:2px 16px; margin:0 -16px; scroll-padding-inline:16px; scrollbar-width:none; }
@@ -57,7 +57,7 @@
 @media (min-width:1024px) { .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } }
 
 /* Status chip: a fact about the item, not a control. */
-.ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; white-space:nowrap; }
+.ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; }
 .ui-status[data-tone=success] { background:var(--color-success-tint); color:var(--color-success); }
 .ui-status[data-tone=info] { background:var(--color-info-tint); color:var(--color-info); }
 .ui-status[data-tone=warning] { background:var(--color-warning-tint); color:var(--color-warning); }
@@ -149,7 +149,7 @@
 .ui-type-cover__body>* { flex:none; margin:0; }
 .ui-type-cover__body>.ui-type-cover__title,.ui-type-cover__body>.ui-type-cover__note { flex:0 1 auto; min-height:0; }
 .ui-type-cover__label { color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; }
-.ui-type-cover__date { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.2em; color:var(--tc-fg); font-size:clamp(1.75rem, min(calc(17cqw * var(--fluid-scale)), 20cqh), 3.75rem); line-height:1.05; font-weight:700; font-variant-numeric:tabular-nums; }
+.ui-type-cover__date { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.2em; color:var(--tc-fg); font-size:clamp(1.75rem, min(calc(17cqw * var(--fluid-scale)), 20cqh), 3.75rem); line-height:1.05; font-weight:600; font-variant-numeric:tabular-nums; }
 .ui-type-cover__date-small { font-size:max(var(--text-caption), 47%); line-height:1.2; font-weight:600; }
 .ui-type-cover__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(10.5cqw * var(--fluid-scale)), 10cqh), 1.625rem); line-height:1.36; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
 .ui-type-cover__title:lang(en) { font-size:clamp(max(.875rem, var(--text-floor)), min(calc(9.5cqw * var(--fluid-scale)), 9cqh), 1.5rem); hyphens:auto; }
@@ -161,7 +161,7 @@
 .ui-type-cover:not([data-size=mini]) .ui-type-cover__label { max-width:48cqw; }
 .ui-type-cover__place { min-width:0; overflow:hidden; color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
 .ui-type-cover__footer .ui-sticker { flex:none; margin-left:auto; }
-.ui-type-cover__value { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.25em; color:var(--tc-fg); font-size:clamp(1.375rem, min(calc(16cqw * var(--fluid-scale)), 18cqh), 2.125rem); line-height:1.1; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
+.ui-type-cover__value { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.25em; color:var(--tc-fg); font-size:clamp(1.375rem, min(calc(16cqw * var(--fluid-scale)), 18cqh), 2.125rem); line-height:1.1; font-weight:600; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .ui-type-cover__value-small { font-size:max(var(--text-caption), 47%); line-height:1.2; font-weight:600; }
 .ui-type-cover__brand { color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(8.5cqw * var(--fluid-scale)), 8cqh), 1.125rem); line-height:1.4; font-weight:600; overflow-wrap:break-word; }
 .ui-type-cover__note { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:var(--tc-fg); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
@@ -230,13 +230,13 @@
 .ui-feed-card__save { position:absolute; top:4px; right:4px; z-index:3; }
 @media (min-width:1024px) { .ui-feed-card__title { font-size:var(--text-body); line-height:1.5; } }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:.9375rem; white-space:normal; }
+:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:.875rem; white-space:normal; }
 @container ui-feed (max-width:339px) {
   .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
 }
 @media (max-width:767px) {
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:.9375rem; white-space:normal; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:.875rem; white-space:normal; }
 }
 
 /* Row card: lists, calendar, search, saved items. One trailing action only. */
@@ -245,7 +245,7 @@
 .ui-row-card__thumb>* { height:100%; }
 .ui-row-card__body { grid-area:body; display:flex; flex-direction:column; gap:2px; min-width:0; }
 .ui-row-card .ui-card-link::after { border-radius:var(--r-md); }
-.ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:600; font-variant-numeric:tabular-nums; }
+.ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:400; font-variant-numeric:tabular-nums; }
 .ui-row-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.0625rem; line-height:1.412; font-weight:600; }
 .ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
@@ -259,15 +259,15 @@
 .ui-tabs::-webkit-scrollbar { display:none; }
 .ui-tabs[data-sticky] { position:sticky; top:var(--header-height, 0px); z-index:40; background:rgb(255 255 255 / .96); }
 .ui-tabs__item { position:relative; display:inline-flex; align-items:center; flex:none; min-height:var(--control-height); padding:0 12px; border:0; background:transparent; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; cursor:pointer; }
-.ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:600; }
+.ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:400; }
 .ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:var(--r-sm); background:var(--color-brand); }
 .ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:var(--r-pill); background:var(--color-surface-2); }
 /* The thumb is drawn 4px inside the track; ::before gives each radio the track's full height (44px, 48 in simple mode)
    and half of each 4px gap, so no tap on the control lands between radios. No overflow on the item: it would clip it. */
-.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:.9375rem; line-height:1.25; font-weight:400; cursor:pointer; }
+.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:.875rem; line-height:1.25; font-weight:400; cursor:pointer; }
 .ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-strong); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
+.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-strong); background:var(--color-surface); color:var(--color-ink); font-weight:400; }
 
 /* Sheet: bottom sheet on phones, right drawer on desktop; focus and Esc come from ModalShell. */
 .ui-sheet-backdrop { position:fixed; inset:0; display:flex; align-items:flex-end; justify-content:center; background:var(--scrim); animation:ui-fade var(--dur-3) var(--ease-out); }
@@ -344,7 +344,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-carousel__dots { display:inline-flex; align-items:center; gap:6px; }
 .ui-carousel__dots>span { width:6px; height:6px; border-radius:var(--r-pill); background:var(--color-line-strong); }
 .ui-carousel__dots>span[data-active] { width:18px; background:var(--color-brand); }
-.ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:700; font-variant-numeric:tabular-nums; }
+.ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; }
 .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:none; }
 @media (min-width:1024px) {
   .ui-carousel__track { margin:0; padding:0; scroll-padding-inline:0; }
@@ -366,7 +366,7 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-hero-card[data-overlay] .ui-hero-card__media { display:grid; grid-template-columns:minmax(0, 1fr); }
 .ui-hero-card[data-overlay] .ui-hero-card__media>* { grid-area:1 / 1; }
 .ui-hero-card[data-overlay] .ui-hero-card__text { align-self:end; z-index:1; margin:18px; padding:0; }
-.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
+.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
 .ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); text-wrap:balance; }

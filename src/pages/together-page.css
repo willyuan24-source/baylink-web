@@ -21,6 +21,6 @@
 .together-page.ui-container :is(.outing-error,.outing-notice) { border-radius:var(--r-md); }
 @media (min-width:1024px) {
   .together-page.ui-container { padding-top:32px; }
-  .together-page.ui-container :is(.outing-primary,.outing-secondary) { min-height:var(--control-height); font-size:.9375rem; }
+  .together-page.ui-container :is(.outing-primary,.outing-secondary) { min-height:var(--control-height); font-size:1rem; }
 }
 html[data-simple] .together-page.ui-container :is(.outing-primary,.outing-secondary,.outing-tabs>button,.outing-date-shortcuts>button) { min-height:3rem; }

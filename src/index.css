@@ -163,7 +163,7 @@ html, body, #root {
 
 .baylink-hero-title {
   font-size: 1.25rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.22;
   letter-spacing: 0;
   color: var(--color-ink);
@@ -171,7 +171,7 @@ html, body, #root {
 
 @media (min-width: 640px) {
   .baylink-hero-title {
-    font-size: 1.875rem;
+    font-size: 1.75rem;
   }
 }
 
@@ -183,7 +183,7 @@ html, body, #root {
 
 .baylink-hero-subtitle {
   margin-top: 8px;
-  font-size: 0.6875rem;
+  font-size: .8125rem;
   line-height: 1.5;
   color: var(--color-ink-3);
   max-width: 28rem;
@@ -217,7 +217,7 @@ html, body, #root {
   @apply rounded-xl bg-baylink-green font-semibold text-white shadow-rest transition;
   @apply hover:bg-baylink-green-hover active:scale-[0.98];
   padding: 10px 12px;
-  font-size: 0.75rem;
+  font-size: .8125rem;
 }
 
 @media (min-width: 640px) {
@@ -232,7 +232,7 @@ html, body, #root {
   @apply rounded-xl border border-baylink-green/25 bg-white/90 font-semibold text-baylink-green backdrop-blur-sm transition;
   @apply hover:bg-baylink-green-light/50 active:scale-[0.98];
   padding: 10px 12px;
-  font-size: 0.75rem;
+  font-size: .8125rem;
 }
 
 @media (min-width: 640px) {
@@ -265,7 +265,7 @@ html, body, #root {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: .8125rem;
   color: var(--color-ink-3);
 }
 

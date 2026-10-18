@@ -13,7 +13,7 @@
 .me-hub__actions :is(a,button) { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.3; font-weight:600; text-decoration:none; }
 .me-hub__actions .profile-share { display:contents; }
 .me-hub__actions .profile-share>p,.me-hub__actions .profile-share>label { flex-basis:100%; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); }
-.me-hub__actions .profile-share input { width:100%; min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); font-size:var(--text-fact); }
+.me-hub__actions .profile-share input { width:100%; min-height:var(--control-height); padding:0 12px; border:1px solid var(--color-line-control); border-radius:var(--r-md); font-size:var(--text-fact); }
 .me-hub__notice { margin:16px 0 0; padding:12px 16px; border-radius:var(--r-md); background:var(--color-warning-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
 .me-hub__notice[data-tone=danger] { background:var(--color-surface-2); color:var(--color-danger); }
 
@@ -28,13 +28,13 @@ a.me-tile:hover,button.me-tile:hover { border-color:var(--color-line-control); b
 .me-tile__icon>svg { width:1.25rem; height:1.25rem; }
 .me-tile__title { color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }
 .me-tile__detail { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-variant-numeric:tabular-nums; }
-.me-tile__badge { position:absolute; top:12px; right:12px; display:grid; place-items:center; min-width:1.5rem; height:1.5rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); line-height:1; font-weight:700; font-variant-numeric:tabular-nums; }
+.me-tile__badge { position:absolute; top:12px; right:12px; display:grid; place-items:center; min-width:1.5rem; height:1.5rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); line-height:1; font-weight:400; font-variant-numeric:tabular-nums; }
 .me-tile__links { display:flex; flex-direction:column; align-self:stretch; margin-top:2px; }
 .me-tile__links a { display:flex; align-items:center; justify-content:space-between; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); line-height:1.3; font-weight:600; text-decoration:none; }
 
 /* Sections: 设置, 我的探索, 资料与认证, 账号 */
 .me-section { margin-top:40px; }
-.me-section__title { margin:0 0 12px; color:var(--color-ink); font-size:1.375rem; line-height:1.364; font-weight:600; }
+.me-section__title { margin:0 0 12px; color:var(--color-ink); font-size:1.25rem; line-height:1.364; font-weight:600; }
 .me-section__lede { margin:-4px 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-list { margin:0; padding:0; list-style:none; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); overflow:hidden; }
 .me-list>li+li { border-top:1px solid var(--color-line); }
@@ -43,7 +43,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-row>svg:first-child { width:1.25rem; height:1.25rem; color:var(--color-brand); }
 .me-row>svg:last-child { width:1rem; height:1rem; color:var(--color-ink-3); }
 .me-row__text { display:flex; flex-direction:column; min-width:0; }
-.me-row__label { color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }
+.me-row__label { color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:400; }
 .me-row__value { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-row[data-tone=danger] .me-row__label,.me-row[data-tone=danger]>svg:first-child { color:var(--color-danger); }
 .me-panel { padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
@@ -52,7 +52,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-panel__title>svg { width:1.25rem; height:1.25rem; color:var(--color-brand); }
 .me-panel p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-panel__row { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; }
-.me-panel__status { display:inline-flex; align-items:center; min-height:2rem; padding:0 10px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--text-caption); font-weight:600; }
+.me-panel__status { display:inline-flex; align-items:center; min-height:2rem; padding:0 10px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--text-caption); font-weight:400; }
 .me-panel button { display:inline-flex; align-items:center; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
 
 /* Signed out: one invitation card, then the tiles that still work locally. */
@@ -77,7 +77,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-notify h2 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.5; font-weight:600; }
 .me-notify p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .me-notify .me-notify__error { color:var(--color-danger); }
-.me-notify .me-notify__status { color:var(--color-brand); font-weight:600; }
+.me-notify .me-notify__status { color:var(--color-brand); font-weight:400; }
 .me-notify .me-notify__warning { padding:8px 12px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink); }
 .me-notify__all { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px; border-radius:var(--r-md); background:var(--color-brand-tint); }
 .me-notify__all button,.me-notify__save { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); padding:0 20px; border:0; border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-body); font-weight:600; }
@@ -85,7 +85,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-notify__channels { display:grid; gap:12px; }
 .me-notify fieldset { min-width:0; margin:0; padding:12px 16px; border:1px solid var(--color-line); border-radius:var(--r-md); }
 .me-notify fieldset:disabled { opacity:.7; }
-.me-notify legend { padding:0 4px; color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
+.me-notify legend { padding:0 4px; color:var(--color-ink); font-size:var(--text-body); font-weight:400; }
 .me-notify label { display:flex; align-items:center; gap:10px; min-height:var(--control-height); color:var(--color-ink); font-size:var(--text-body); }
 .me-notify__default { display:block; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.5; }
 .me-notify input[type=checkbox] { width:1.25rem; height:1.25rem; flex:none; accent-color:var(--color-brand); }

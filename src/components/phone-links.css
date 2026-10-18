@@ -2,7 +2,7 @@
    gets a 48px hit area; a directory cell is a full-width 48px button. Text sizes follow Aa through rem tokens. */
 .phone-chip {
   position:relative; display:inline-flex; align-items:center; gap:.25em; padding:0 .5em; border-radius:var(--r-pill);
-  background:var(--color-brand-tint); color:var(--color-brand); font-weight:600; font-variant-numeric:tabular-nums;
+  background:var(--color-brand-tint); color:var(--color-brand); font-weight:400; font-variant-numeric:tabular-nums;
   line-height:1.6; white-space:nowrap; text-decoration:none; vertical-align:baseline;
 }
 .phone-chip::after { content:""; position:absolute; left:-.25rem; right:-.25rem; top:50%; height:3rem; transform:translateY(-50%); }

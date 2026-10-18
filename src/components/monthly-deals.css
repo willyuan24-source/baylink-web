@@ -8,7 +8,7 @@
 .bl-guide-source-link>a { display:inline-flex; align-items:center; gap:8px; min-height:30px; color:var(--color-brand); font-size:.875rem; font-weight:600; line-height:1.65; text-decoration:underline; text-underline-offset:4px; }
 .bl-guide-source-link>a>svg { flex-shrink:0; }
 .bl-guide-source-link>a:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
-.bl-guide-source-link>p { margin:7px 0 0; color:var(--color-ink-3); font-size:.75rem; line-height:1.9; }
+.bl-guide-source-link>p { margin:7px 0 0; color:var(--color-ink-3); font-size:.8125rem; line-height:1.9; }
 @media(max-width:639px) {
  .bl-guide-edition-notice { gap:10px; padding:15px; margin-top:18px; }
  .bl-guide-source-link { padding:14px 15px; }
