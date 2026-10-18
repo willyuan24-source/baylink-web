@@ -39,7 +39,7 @@
 .baybay-plan-stop-heading { display:flex; align-items:flex-start; gap:9px; }
 .baybay-plan-stop-number { display:grid; place-items:center; flex-shrink:0; width:25px; height:25px; border-radius:50%; background:var(--color-brand-tint); font-size:.6875rem; }
 /* A stop's own page (WEB-BB-PLAN). Inline padding gives the link a 44px tap area without moving the heading. */
-.baybay-plan-stop-link { padding-block:.75rem; text-decoration:underline; text-underline-offset:.1875rem; }
+.baybay-plan-stop-link { padding-block:.875rem; text-decoration:underline; text-underline-offset:.1875rem; }
 .baybay-plan-stop-official { display:inline-flex; align-items:center; gap:.25rem; margin-inline-start:.375rem; color:var(--color-ink-3); font-weight:400; }
 .baybay-plan-stops dl { margin:10px 0; font-size:.75rem; }
 .baybay-plan-stops dl>div { display:flex; gap:12px; margin:6px 0; }
