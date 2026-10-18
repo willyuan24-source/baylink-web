@@ -24,7 +24,7 @@
 .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:4px 12px; margin-bottom:10px; }
 .home-section-head h2 { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 8px; min-width:0; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .home-section-head__kicker { color:var(--color-brand); font-size:var(--text-caption); line-height:1.385; font-weight:600; font-variant-numeric:tabular-nums; }
-.home-section-head__more { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
+.home-section-head__more { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:400; }
 .home-section-head__more svg { width:1rem; height:1rem; }
 /* H52 / SV13-11: at 大 / 特大 and in 简洁显示 on a phone or tablet, the section's "all" link sits under its heading, so the
    heading and its date keep the full width instead of wrapping beside the link. */
