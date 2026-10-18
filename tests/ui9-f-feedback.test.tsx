@@ -26,7 +26,7 @@ const { HomeHead } = await import('../src/features/home/HomeHead');
 const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistantEntry');
 const { Sheet } = await import('../src/components/ui/Sheet');
 const { READING_SIZE_KEY } = await import('../src/lib/reading-preferences');
-const { routeActivity, routeKey } = await import('../src/lib/route-activity');
+const { routeActivity } = await import('../src/lib/route-activity');
 const { RouteSettled } = await import('../src/app/RouteProgress');
 
 afterEach(() => { cleanup(); localStorage.clear(); document.documentElement.removeAttribute('data-simple'); reducedMotion = false; routeActivity.reset(); });
