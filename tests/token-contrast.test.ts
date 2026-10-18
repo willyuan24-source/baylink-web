@@ -146,3 +146,67 @@ test('Tailwind: every class string pairing a baylink text colour with a baylink 
   assert.ok(pairs > 5, `${pairs} Tailwind pairs measured`);
   assert.deepEqual(failures, []);
 });
+
+test('every focus ring recoloured for a container reaches 3:1 on that container\'s own background (WCAG 2.4.7 / 1.4.11)', () => {
+  // A rule like `.x :focus-visible { outline-color: var(--color-highlight) }` promises that .x is a surface lime reads on.
+  // Each class named before :focus-visible is looked up in every stylesheet: where a rule for it sets an opaque token
+  // background, the ring must reach 3:1 on it (UI9-F review: the footer is surface-2, where lime is 1.01:1).
+  const ringFailures = (sources: postcss.Root[]) => {
+  const backgrounds = new Map<string, number[][]>();
+  for (const root of sources) root.walkRules(rule => {
+    const last = /\.([a-z0-9_-]+)$/i.exec(rule.selector.trim())?.[1];
+    if (!last) return;
+    rule.walkDecls(/^background(-color)?$/, declaration => {
+      const alpha = /\/ (\d*\.?\d+)\)$/.exec(declaration.value.trim());
+      const rgb = alpha && Number(alpha[1]) < .95 ? null : resolve(declaration.value);
+      if (rgb) backgrounds.set(last, [...(backgrounds.get(last) ?? []), rgb]);
+    });
+  });
+  const failures: string[] = [];
+  for (const root of sources) root.walkRules(/:focus-visible/, rule => {
+    rule.walkDecls(/^outline(-color)?$/, declaration => {
+      const ring = /var\(--color-([a-z0-9-]+)\)/.exec(declaration.value)?.[1];
+      if (!ring || ring === 'brand' || !palette.has(ring)) return;
+      for (const selector of rule.selectors) {
+        // The ancestors only: drop the focused element's own compound (the ring is drawn around it, on what is under it).
+        const head = selector.split(':focus-visible')[0];
+        let depth = 0, cut = -1;
+        for (let index = 0; index < head.length; index++) {
+          if (head[index] === '(') depth++;
+          else if (head[index] === ')') depth--;
+          else if (depth === 0 && /[\s>+~]/.test(head[index])) cut = index;
+        }
+        const containers = [...head.slice(0, Math.max(cut, 0)).matchAll(/\.([a-z0-9_-]+)/gi)].map(match => match[1]).filter(name => name !== 'site-app');
+        for (const name of containers) for (const bg of backgrounds.get(name) ?? []) {
+          const value = ratio(rgbOf(ring), bg);
+          if (value < 3) failures.push(`${selector}: ${ring} ring on .${name}'s background ${value.toFixed(2)}:1`);
+        }
+      }
+    });
+  });
+  return failures;
+  };
+  const sources = (listSources('.', { extensions: /\.css$/ }) as string[]).map(file => postcss.parse(readFileSync(file, 'utf8')));
+  assert.deepEqual(ringFailures(sources), []);
+  // The check itself: the rule this branch first shipped (lime in the footer) fails it.
+  const footer = postcss.parse('.site-app .site-footer{background:var(--color-surface-2)} .site-app :where(.site-footer,[data-surface=deep]) :focus-visible{outline-color:var(--color-highlight)}');
+  assert.equal(ringFailures([footer]).length, 1);
+});
+
+test('简洁显示 only raises: every --fs-* step is at least the standard step, on a phone and on a desktop', () => {
+  const steps = (selector: string, desktop: boolean) => {
+    const found = new Map<string, number>();
+    postcss.parse(tokensCss).walkDecls(/^--fs-/, declaration => {
+      const rule = declaration.parent as postcss.Rule;
+      const media = rule.parent?.type === 'atrule' ? (rule.parent as postcss.AtRule).params : '';
+      if (rule.selector !== selector || (media && !(desktop && /min-width:\s*1024px/.test(media)))) return;
+      found.set(declaration.prop, Number.parseFloat(declaration.value));
+    });
+    return found;
+  };
+  for (const desktop of [false, true]) {
+    const standard = new Map([...steps(':root', false), ...(desktop ? steps(':root', true) : [])]);
+    const simple = new Map([...standard, ...steps('html[data-simple]', false), ...(desktop ? steps('html[data-simple]', true) : [])]);
+    for (const [name, size] of standard) assert.ok((simple.get(name) ?? 0) >= size, `${desktop ? 'desktop' : 'phone'} ${name}: simple ${simple.get(name)}rem < standard ${size}rem`);
+  }
+});

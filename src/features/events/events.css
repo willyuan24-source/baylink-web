@@ -15,7 +15,7 @@
 .ev-lede-facts { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 
 /* The four views: one sticky row under the site header; full-bleed white bar, one line at 390 in every language. */
-.ev-tabs-bar { position:sticky; top:var(--ev-header); z-index:40; background:var(--color-surface); border-bottom:1px solid var(--color-line); }
+.ev-tabs-bar { position:sticky; top:var(--ev-header); z-index:40; background:rgb(var(--color-bg-rgb) / .96); border-bottom:1px solid var(--color-line); }
 .ev-tabs-bar .ui-tabs { border-bottom:0; gap:0; }
 .ev-tabs-bar .ui-tabs__item { padding:0 .75rem; }
 @media (max-width:420px) { .ev-tabs-bar .ui-tabs__item { padding:0 .5rem; font-size:var(--text-fact); } }

@@ -257,7 +257,7 @@
 /* Segmented tabs (column switch) and the segmented control (DayToggle). */
 .ui-tabs { display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--color-line); scrollbar-width:none; }
 .ui-tabs::-webkit-scrollbar { display:none; }
-.ui-tabs[data-sticky] { position:sticky; top:var(--header-height, 0px); z-index:40; background:rgb(255 255 255 / .96); }
+.ui-tabs[data-sticky] { position:sticky; top:var(--header-height, 0px); z-index:40; background:rgb(var(--color-bg-rgb) / .96); }
 .ui-tabs__item { position:relative; display:inline-flex; align-items:center; flex:none; min-height:var(--control-height); padding:0 12px; border:0; background:transparent; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; cursor:pointer; }
 .ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:400; }
 .ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:var(--r-sm); background:var(--color-brand); }
