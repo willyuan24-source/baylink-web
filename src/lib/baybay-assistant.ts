@@ -1,5 +1,6 @@
 import { plannerWebCheckedDate, safePlannerWebUrl, validPlannerWebDate, type PlannerWebResult } from './planner-web-search';
 import { cleanStops, eventFor, sharePlanUrl } from './planner-core';
+import { PLANNER_PLACES } from './planner-source';
 import { eventOccursOn } from './event-calendar';
 // The published guides' slugs (one record each, WEB-DATA-SPLIT), without every guide's text.
 import { guideLoaders } from '../data/generated/guide-loaders';
@@ -17,8 +18,8 @@ export type BayBayTaskState = {
   preferences?: BayBayDurationPreference[];
 };
 export type BayBayEvidence = { id: string; title: string; url: string; kind: 'guide' | 'event' | 'place' | 'web'; checkedAt?: string; verification?: 'catalog' | 'page-read' | 'api' | 'search-result'; text?: string };
-/** A stop's own page: a BAYLINK path opened in the app, or another site's page (an official site) opened in a new tab. */
-export type BayBayPlanStopLink = { href: string; external: boolean };
+/** A stop's own page: a BAYLINK path opened in the app, or another site's page opened in a new tab (`official` when the api marked it the place's own site). */
+export type BayBayPlanStopLink = { href: string; external: boolean; official: boolean };
 /** The record's own hours for the plan's day (api `openingWindows`): when the place or event is open, not a booked time. */
 export type BayBayOpeningWindow = { open: string; close: string };
 export type BayBayPlanStop = {
@@ -79,33 +80,39 @@ const safeEvidenceUrl = (value: unknown) => typeof value === 'string' && guidePa
 const evidenceCheckedAt = (value: unknown): string | undefined => typeof value === 'string' &&
   (validPlannerWebDate(value) || /^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,3})?(?:Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.test(value) && plannerWebCheckedDate(value)) ? value : undefined;
 
-const SITE_PATH = /^\/[a-z0-9-]{1,40}(?:\/[A-Za-z0-9_-]{1,160}){0,3}$/;
-/** A BAYLINK page path the app can open. Guide and event paths (what api-bb-7 sends) must name a page the site has, so those never link to a 404. */
+/**
+ * A BAYLINK page a plan stop can open in the app: an event, guide or opening page the site has (what api-bb-7 sends;
+ * an opening is a page when the planner catalog lists it), so a stop never links to a 404. Every other section, a
+ * locale-prefixed path (SmartLink adds the reader's own locale) and extra segments are dropped.
+ */
+const STOP_PAGE = /^\/(events|guides|openings)\/([A-Za-z0-9_-]{1,160})$/;
 function sitePath(path: string): string | undefined {
-  const clean = path.length > 1 ? path.replace(/\/$/, '') : path;
-  if (!SITE_PATH.test(clean)) return;
-  const [, section, id, ...rest] = clean.split('/');
+  const match = STOP_PAGE.exec(path.length > 1 ? path.replace(/\/$/, '') : path);
+  if (!match) return;
+  const [clean, section, id] = match;
   if (section === 'guides') return guidePaths.has(clean) ? clean : undefined;
-  if (section === 'events') return id && !rest.length && eventFor(id) ? clean : undefined;
-  return clean;
+  if (section === 'events') return eventFor(id) ? clean : undefined;
+  return PLANNER_PLACES.some(place => place.path === clean) ? clean : undefined;
 }
 
 /**
- * api-bb-7 `stop.path`: "/events/<id>" or "/guides/<slug>" opens in the app; another site's page (Ferry Building's
- * official visit page, sent with `external: true`) is an external link. The URL decides, not the flag, so a forged flag
- * cannot turn a site path into an outside link or the reverse. Unsafe or unknown links are dropped.
+ * api-bb-7 `stop.path`: "/events/<id>", "/guides/<slug>" or "/openings/<id>" opens in the app; another site's page
+ * (Ferry Building's visit page) is an external link. The URL decides in-app or external, not the flag, so a forged flag
+ * cannot turn a site path into an outside link or the reverse. Only the api's `external: true` (a catalog place's own
+ * official page) lets the card call an outside page 官方网站; any other outside page is a plain external page. Unsafe or
+ * unknown links are dropped.
  */
-function stopLink(value: unknown): BayBayPlanStopLink | undefined {
+function stopLink(value: unknown, flaggedExternal: unknown): BayBayPlanStopLink | undefined {
   if (typeof value !== 'string' || !value || value.length > 2048) return;
-  if (value.startsWith('/') && !value.startsWith('//')) { const path = sitePath(value); return path ? { href: path, external: false } : undefined; }
+  if (value.startsWith('/') && !value.startsWith('//')) { const path = sitePath(value); return path ? { href: path, external: false, official: false } : undefined; }
   const url = safePlannerWebUrl(value);
   if (!url) return;
   const parsed = new URL(url);
   if (['www.baylink.us', 'baylink.us'].includes(parsed.hostname.toLowerCase())) {
     const path = parsed.protocol === 'https:' && !parsed.search && !parsed.hash ? sitePath(parsed.pathname) : undefined;
-    return path ? { href: path, external: false } : undefined;
+    return path ? { href: path, external: false, official: false } : undefined;
   }
-  return { href: url, external: true };
+  return { href: url, external: true, official: flaggedExternal === true };
 }
 
 /** api-bb-7 `stop.openingWindows`: [{open:"08:00", close:"14:00"}], each a real span on one day, at most six, no repeats. */
@@ -208,7 +215,7 @@ export function parseBayBayAssistantFields(input: unknown): BayBayAssistantField
       stops.push({ id: text(stop.id, 160)!, title: text(stop.title)!, kind: text(stop.kind, 40)!, entityId: text(stop.entityId, 160), city: text(stop.city, 120), date: validPlannerWebDate(stop.date) || undefined,
         startTime: clock(stop.startTime), endTime: clock(stop.endTime), durationMinutes: number(stop.durationMinutes, 1440), travelMinutes: travelMinutes(stop.travelMinutes), timeStatus: option(stop.timeStatus, ['verified', 'suggested', 'unknown']) || 'unknown', admissionUsd: number(stop.admissionUsd),
         sourceIds: [...new Set(strings(stop.sourceIds, 30, 160))].filter(id => ids.has(id)), notes: strings(stop.notes), admissionFacts: admissionFacts(stop.admissionFacts, ids),
-        link: stopLink(stop.path), openingWindows: openingWindows(stop.openingWindows), suggestedDurationMinutes: Number.isInteger(stop.suggestedDurationMinutes) && Number(stop.suggestedDurationMinutes) > 0 ? number(stop.suggestedDurationMinutes, 720) : undefined });
+        link: stopLink(stop.path, stop.external), openingWindows: openingWindows(stop.openingWindows), suggestedDurationMinutes: Number.isInteger(stop.suggestedDurationMinutes) && Number(stop.suggestedDurationMinutes) > 0 ? number(stop.suggestedDurationMinutes, 720) : undefined });
     }
     const stopIds = stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
     const pairs = new Set(stopIds.map((id, index) => `${index ? stopIds[index - 1] : 'origin'}:${id}`));

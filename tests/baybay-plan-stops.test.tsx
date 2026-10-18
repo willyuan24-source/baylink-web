@@ -1,7 +1,7 @@
 import { mockBayBayFetch } from './baybay-test-transport';
 import test, { afterEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 
@@ -19,13 +19,13 @@ const { BayBayCardRailView } = await import('../src/features/baybay/BayBayCards'
 const { BayBaySaveScope } = await import('../src/features/baybay/BayBaySaveScope');
 const { parseBayBayAssistantFields } = await import('../src/lib/baybay-assistant');
 const { bayBayClock, bayBayOpeningWindowsLabel, bayBayPlanTitle, spaceMixedScript } = await import('../src/features/baybay/requirement-labels');
-const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
-const { guides } = await import('../src/data/guides');
+const { PLANNER_EVENTS, PLANNER_PLACES } = await import('../src/data/planner-catalog');
+const { guides, GUIDE_CATEGORY_TABS } = await import('../src/data/guides');
 const { setLocale } = await import('../src/i18n/locale');
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 const noop = () => {};
 
-/** The api's own result for L07 (周六想带爸妈在旧金山玩半天，坐公交，帮我排个行程), copied unchanged from the 10-17 live check. */
+/** The api's own result for L07 (周六想带爸妈在旧金山玩半天，坐公交，帮我排个行程) from the 10-17 live check: api payload unchanged, _source/question/locale metadata added. */
 const live = JSON.parse(readFileSync(new URL('./support/baybay-l07-plan.json', import.meta.url), 'utf8'));
 const MARKET = '/events/ferry-plaza-farmers-market-2026-autumn', FERRY = 'https://www.ferrybuildingmarketplace.com/visit/', CHINATOWN = '/guides/sf-chinatown-north-beach-walk-guide';
 type Stop = Record<string, unknown>;
@@ -39,7 +39,7 @@ const timeOf = (item: HTMLElement) => item.querySelector('dd')!.textContent || '
 
 test('the live L07 stops keep their own page, record hours and suggested stay', () => {
   const plan = parseBayBayAssistantFields(live).assistantPlan!;
-  assert.deepEqual(plan.stops.map(stop => stop.link), [{ href: MARKET, external: false }, { href: FERRY, external: true }, { href: CHINATOWN, external: false }]);
+  assert.deepEqual(plan.stops.map(stop => stop.link), [{ href: MARKET, external: false, official: false }, { href: FERRY, external: true, official: true }, { href: CHINATOWN, external: false, official: false }]);
   assert.deepEqual(plan.stops.map(stop => stop.openingWindows), [[{ open: '08:00', close: '14:00' }], undefined, undefined]);
   assert.deepEqual(plan.stops.map(stop => stop.suggestedDurationMinutes), [60, 60, 60]);
   // Model and catalog text that the card never shows still does not cross the boundary.
@@ -47,13 +47,21 @@ test('the live L07 stops keep their own page, record hours and suggested stay', 
   assert.equal(Object.hasOwn(plan.stops[0], 'path'), false);
 });
 
-test('stop links: the URL decides in-app or official, and unsafe or missing pages are dropped', () => {
-  const event = PLANNER_EVENTS[0].id, guide = guides[0].slug;
-  assert.deepEqual(withStop({ path: `/events/${event}`, external: true })?.link, { href: `/events/${event}`, external: false }, 'a forged flag cannot send a site path off-site');
-  assert.deepEqual(withStop({ path: `https://www.baylink.us/guides/${guide}/` })?.link, { href: `/guides/${guide}`, external: false });
-  assert.deepEqual(withStop({ path: 'https://museum.example.org/visit?lang=en', external: false })?.link, { href: 'https://museum.example.org/visit?lang=en', external: true });
+test('stop links: the URL decides in-app or external, and unsafe, unlisted or missing pages are dropped', () => {
+  const event = PLANNER_EVENTS[0].id, guide = guides[0].slug, opening = PLANNER_PLACES.find(place => place.path?.startsWith('/openings/'))!.path!;
+  assert.deepEqual(withStop({ path: `/events/${event}`, external: true })?.link, { href: `/events/${event}`, external: false, official: false }, 'a forged flag cannot send a site path off-site');
+  assert.deepEqual(withStop({ path: `https://www.baylink.us/guides/${guide}/` })?.link, { href: `/guides/${guide}`, external: false, official: false });
+  assert.deepEqual(withStop({ path: opening, external: false })?.link, { href: opening, external: false, official: false }, 'an opening the planner catalog lists');
+  // Only the api's external:true makes an outside page "official"; otherwise it is a plain external page.
+  assert.deepEqual(withStop({ path: 'https://museum.example.org/visit?lang=en', external: false })?.link, { href: 'https://museum.example.org/visit?lang=en', external: true, official: false });
+  assert.deepEqual(withStop({ path: 'https://museum.example.org/visit', external: undefined })?.link, { href: 'https://museum.example.org/visit', external: true, official: false });
+  assert.deepEqual(withStop({ path: 'https://museum.example.org/visit', external: 'true' })?.link, { href: 'https://museum.example.org/visit', external: true, official: false });
+  assert.deepEqual(withStop({ path: 'https://museum.example.org/visit', external: true })?.link, { href: 'https://museum.example.org/visit', external: true, official: true });
   for (const path of ['javascript:alert(1)', '//evil.example/x', '/events/not-a-real-event-2099', '/guides/not-published', '/events/../admin', '/plan?stops=event:x',
-    'http://127.0.0.1/', 'https://evil.invalid/x', 'https://www.baylink.us/events/not-a-real-event-2099', 'http://www.baylink.us' + MARKET, 42, null, '']) {
+    'http://127.0.0.1/', 'https://evil.invalid/x', 'https://www.baylink.us/events/not-a-real-event-2099', 'http://www.baylink.us' + MARKET, 42, null, '',
+    // Sections a stop never links to, a stale opening, and locale-prefixed paths (SmartLink adds the reader's locale).
+    '/plan', '/api/product-events', '/my-week', '/offers/some-offer', '/openings/not-a-real-opening-2099', `/events/${event}/extra`,
+    `/en${MARKET}`, `/zh-Hant${CHINATOWN}`, `https://www.baylink.us/en${MARKET}`]) {
     assert.equal(withStop({ path })?.link, undefined, String(path));
   }
 });
@@ -107,7 +115,7 @@ test('the L07 card shows the market hours, keeps 待安排 only where no window 
   assert.equal(marketLink.hasAttribute('target'), false);
   fireEvent.click(marketLink);
   assert.deepEqual(paths, [MARKET], 'an in-app link navigates inside the app');
-  const official = within(ferry).getByRole('link', { name: /^Ferry Building · 公共大厅与外部会合点\s*官方网站$/ });
+  const official = within(ferry).getByRole('link', { name: /^Ferry Building · 公共大厅与外部会合点\s*官方网站（在新标签页打开）$/ });
   assert.equal(official.getAttribute('href'), FERRY);
   assert.equal(official.getAttribute('target'), '_blank');
   assert.equal(official.getAttribute('rel'), 'noopener noreferrer');
@@ -115,6 +123,19 @@ test('the L07 card shows the market hours, keeps 待安排 only where no window 
   fireEvent.click(official);
   assert.deepEqual(paths, [MARKET], 'the official site is not opened as an app route');
   assert.equal(within(chinatown).getByRole('link', { name: '唐人街与 North Beach' }).getAttribute('href'), CHINATOWN);
+});
+
+test('an outside page the api did not mark as official reads 外部网页, never 官方网站', async () => {
+  const payload = structuredClone(live);
+  payload.assistantPlan.stops[1].external = false;
+  const parsed = parseBayBayAssistantFields(payload);
+  const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} taskState={parsed.taskState} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  const ferry = stopItems(view.container)[1];
+  const link = within(ferry).getByRole('link', { name: /^Ferry Building · 公共大厅与外部会合点\s*外部网页（在新标签页打开）$/ });
+  assert.equal(link.getAttribute('target'), '_blank');
+  assert.doesNotMatch(ferry.textContent || '', /官方网站/);
+  await act(async () => { await setLocale('en', false); });
+  assert.ok(within(stopItems(view.container)[1]).getByRole('link', { name: /External page\s*\(opens in a new tab\)$/ }));
 });
 
 test('English and Traditional Chinese plan cards localize the title, hours and official link', async () => {
@@ -127,12 +148,12 @@ test('English and Traditional Chinese plan cards localize the title, hours and o
   assert.match(timeOf(ferry), /^Unscheduled/);
   const stopLink = (item: HTMLElement) => item.querySelector('h4 a')!;
   assert.equal(stopLink(market).getAttribute('href'), `/en${MARKET}`);
-  assert.ok(within(ferry).getByRole('link', { name: /Official site$/ }));
+  assert.ok(within(ferry).getByRole('link', { name: /Official site\s*\(opens in a new tab\)$/ }));
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, '舊金山一日安排');
   assert.match(timeOf(stopItems(view.container)[0]), /^開放 08:00–14:00/);
   assert.equal(stopLink(stopItems(view.container)[0]).getAttribute('href'), `/zh-Hant${MARKET}`);
-  assert.ok(within(stopItems(view.container)[1]).getByRole('link', { name: /官方網站$/ }));
+  assert.ok(within(stopItems(view.container)[1]).getByRole('link', { name: /官方網站（.+）$/ }));
 });
 
 test('a scheduled stop keeps its time and adds the record hours; English times are 12-hour', async () => {
@@ -154,14 +175,29 @@ test('the importer carries the localized title into the planner draft', async ()
   assert.equal(readBayBayPlanDraft(id)?.title, '旧金山一日安排');
 });
 
-test('guide cards name their own category: city guides are 城市指南, paperwork stays 办事指南', async () => {
-  const city = guides.find(guide => guide.slug === 'sf-chinatown-north-beach-walk-guide')!, howTo = guides.find(guide => guide.category === 'newcomer')!, events = guides.find(guide => guide.category === 'events')!;
-  const cards = [city, howTo, events].map(guide => ({ kind: 'guide' as const, id: guide.slug, title: guide.title, url: `/guides/${guide.slug}`, summary: '' }));
-  const view = render(<BayBaySaveScope><BayBayCardRailView cards={cards} today="2026-10-17" onNavigate={noop} /></BayBaySaveScope>);
-  const meta = () => [...view.container.querySelectorAll('.bb-card__meta')].map(node => node.textContent);
-  assert.deepEqual(meta(), ['城市指南', '办事指南', '生活活动']);
+/** The site's English dictionary (every generated scope), to check card labels against what /guides shows. */
+const englishDictionary = (() => {
+  const dir = new URL('../src/data/generated/english-scopes/', import.meta.url), merged: Record<string, string> = {};
+  for (const file of readdirSync(dir)) if (file.endsWith('.json')) Object.assign(merged, JSON.parse(readFileSync(new URL(file, dir), 'utf8')));
+  return merged;
+})();
+
+test('guide cards name their own category the way the /guides tabs do; practical guides stay 办事指南', async () => {
+  const city = guides.find(guide => guide.slug === 'sf-chinatown-north-beach-walk-guide')!;
+  const [howTo, events, commute, education, safety] = (['newcomer', 'events', 'commute', 'education', 'safety'] as const).map(category => guides.find(guide => guide.category === category)!);
+  const picked = [city, howTo, events, commute, education, safety];
+  assert.ok(picked.every(Boolean), 'one guide in each category');
+  // An answer shows at most five cards, so the six guides go into two rails.
+  const rails = [picked.slice(0, 3), picked.slice(3)].map(list => render(<BayBaySaveScope><BayBayCardRailView today="2026-10-17" onNavigate={noop}
+    cards={list.map(guide => ({ kind: 'guide' as const, id: guide.slug, title: guide.title, url: `/guides/${guide.slug}`, summary: '' }))} /></BayBaySaveScope>));
+  const meta = () => rails.flatMap(view => [...view.container.querySelectorAll('.bb-card__meta')].map(node => node.textContent));
+  assert.deepEqual(meta(), ['城市指南', '办事指南', '生活活动', '通勤', '学校与学区', '安全与防骗']);
+  const tab = (id: string) => GUIDE_CATEGORY_TABS.find(item => item.id === id)!.label;
+  const leisure = ['city', 'events', 'commute', 'education', 'safety'];
+  assert.deepEqual(meta().filter(label => label !== '办事指南'), leisure.map(tab), 'the same words as the /guides tabs');
   await act(async () => { await setLocale('en', false); });
-  assert.deepEqual(meta(), ['City guide', 'How-to guide', 'Events guide']);
+  assert.deepEqual(meta(), ['City guides', 'How-to guide', 'Local activities', 'Commuting', 'Schools & districts', 'Safety and scam prevention']);
+  assert.deepEqual(meta().filter(label => label !== 'How-to guide'), leisure.map(id => englishDictionary[tab(id)]), 'the dictionary English that /guides shows');
 });
 
 test('end to end: the live L07 reply renders the plan card with hours, links, title and a 城市指南 card', async t => {
@@ -177,11 +213,11 @@ test('end to end: the live L07 reply renders the plan card with hours, links, ti
   assert.match(timeOf(market), /^开放 08:00–14:00/);
   assert.match(timeOf(ferry), /^待安排/);
   assert.match(timeOf(chinatown), /^待安排/);
-  assert.equal(within(ferry).getByRole('link', { name: /官方网站$/ }).getAttribute('href'), FERRY);
+  assert.equal(within(ferry).getByRole('link', { name: /官方网站（在新标签页打开）$/ }).getAttribute('href'), FERRY);
   fireEvent.click(within(chinatown).getByRole('link', { name: '唐人街与 North Beach' }));
   assert.deepEqual(paths, [CHINATOWN]);
-  // The answer's card rail is its own chunk: wait for the guide card, then read its type.
-  const guideCard = await waitFor(() => { const node = view.baseElement.querySelector<HTMLElement>('[data-card-key="guide:sf-chinatown-north-beach-walk-guide"]'); if (!node) throw new Error('waiting for the card rail'); return node; }, { timeout: 5000 });
+  // The answer's card rail is its own chunk: wait for the guide card (generously: a loaded shared machine is slow), then read its type.
+  const guideCard = await waitFor(() => { const node = view.baseElement.querySelector<HTMLElement>('[data-card-key="guide:sf-chinatown-north-beach-walk-guide"]'); if (!node) throw new Error('waiting for the card rail'); return node; }, { timeout: 15000 });
   assert.equal(guideCard.querySelector('.bb-card__meta')?.textContent, '城市指南');
   assert.doesNotMatch(view.baseElement.querySelector('.bb-cards')?.textContent || '', /办事指南/);
 });

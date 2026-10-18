@@ -14,11 +14,14 @@ function useCopy() {
   const locale = useLocale();
   return (zh: string, en: string) => locale === 'en' && zh !== en ? en : translateText(zh, locale);
 }
-/** The stop's title, linked to its own page: a BAYLINK page opens in the app, an official site in a new tab with its label. */
+/**
+ * The stop's title, linked to its own page: a BAYLINK page opens in the app; another site opens in a new tab, labelled
+ * 官方网站 only when the api marked it the place's official page (else 外部网页), and says so to screen readers.
+ */
 function StopTitle({ stop, title, onNavigate }: { stop: BayBayPlanStop; title: string; onNavigate: (path: string) => void }) {
   const t = useCopy();
   if (!stop.link) return <>{title}</>;
-  return <SmartLink className="baybay-plan-stop-link" href={stop.link.href} onNavigate={onNavigate}>{title}{stop.link.external && <span className="baybay-plan-stop-official"><ExternalLink aria-hidden="true" size={13} />{t('官方网站', 'Official site')}</span>}</SmartLink>;
+  return <SmartLink className="baybay-plan-stop-link" href={stop.link.href} onNavigate={onNavigate}>{title}{stop.link.external && <span className="baybay-plan-stop-official"><ExternalLink aria-hidden="true" size={13} />{stop.link.official ? t('官方网站', 'Official site') : t('外部网页', 'External page')}<span className="sr-only">{t('（在新标签页打开）', ' (opens in a new tab)')}</span></span>}</SmartLink>;
 }
 type Requirement = { key: string; label: string; value: string; prompt: string; clear: string };
 const sameSourcePage = (left: string | undefined, right: string) => {
