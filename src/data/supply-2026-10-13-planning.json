@@ -685,7 +685,7 @@
       "reservation": "unknown",
       "setting": "indoor",
       "schedule": {
-        "sourceUrl": "https://aclibrary.bibliocommons.com/v2/events?q=Hotel%20Transylvania&locations=DUB",
+        "sourceUrl": "https://aclibrary.bibliocommons.com/events/6ace5790fee2d21deb22f1c0",
         "verifiedAt": "2026-10-13",
         "validFrom": "2026-11-22",
         "validThrough": "2026-11-29",

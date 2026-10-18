@@ -2409,3 +2409,14 @@ The owner approved one row of `opus-qa/gpt/out-1016e/image-candidates-lny.md` in
 | Kind | Id | URL | HTTP | Change | Quote |
 |---|---|---|---|---|---|
 | image | `sf-chinese-new-year-parade-2027` | https://chineseparade.com/ (photo in the About section) ; https://chineseparade.com/wp-content/uploads/2026/02/IMG_0504.jpg | 200 | organiser photo shown on the 2027 parade's page, labelled 官方图 with a source link; caption: the camera record dates it 2025-02-15 (the 2025 parade), not the 2027 parade | `data-image-title="IMG_0504"` · `data-orig-size="6136,4090"` · EXIF DateTimeOriginal "2025:02:15 18:41:07" |
+
+## CNT-WEEKEND-1128 · review fixes, 2026-10-17 (PT)
+
+The lane's reviewers checked the pages above against the same reads (`lanes/CNT-WEEKEND-1128/reads/`, 2026-10-17). No new
+facts were added; each row removes a claim the official page does not make or points a link back at a stable page.
+`verifiedAt` is unchanged on every row.
+
+| Kind | Id | URL | HTTP | Change | Quote |
+|---|---|---|---|---|---|
+| event | `smcl-portola-valley-sewing-machine-basics-2026` | https://smcl.bibliocommons.com/v2/events/6a3eee270e851028002d771d | 200 | title and dek say 设置和使用 (the page's "setup and use"), no longer 穿线 (threading is not on the page) | "Basic sewing machine setup and use instructions for those with zero to very little experience!" |
+| event | `acl-dublin-family-movies-thanksgiving-2026` | https://aclibrary.bibliocommons.com/v2/events/6ace5790fee2d21deb22f1c0 (11/22) ; https://aclibrary.bibliocommons.com/v2/events/6ace576afee2d21deb22f1bc (11/29, `officialUrl`) | 200 | planner time source back to the 11/22 single-event page, as on main (the search listing empties after 11/29), so its stored check date 2026-10-13 still describes a page; dek names both films (《精灵旅社》一、二) | 11/22: "Hotel Transylvania" `"start":"2026-11-22T14:00"` · 11/29: "Hotel Transylvania 2" `"start":"2026-11-29T14:00"` |
