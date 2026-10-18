@@ -35,8 +35,8 @@ import type { ToastAction } from '../components/Toast';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
-import { installRouteWarm } from './route-warm';
 import { RouteProgress, RouteSettled } from './RouteProgress';
+import { routeActivity } from '../lib/route-activity';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -49,8 +49,20 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
   const tab = tabFromPathname(location.pathname);
   const tabRef = useRef(tab);
   useEffect(() => { tabRef.current = tab; }, [tab]);
-  // Route feedback (UI9-F): warm a page chunk on hover intent or press, quietly (route-warm.ts).
-  useEffect(installRouteWarm, []);
+  // Route feedback (UI9-F): warm a page chunk on hover intent or press, quietly (route-warm.ts). The warm code itself loads
+  // when the browser is idle, outside every route's JS budget (/events sat at its ceiling), and that load is a quiet warm
+  // too: a chunk lost to a newer deploy neither reloads the page nor reports (lib/route-activity.ts).
+  useEffect(() => {
+    let uninstall: (() => void) | undefined;
+    let live = true;
+    const load = () => {
+      routeActivity.beginQuietWarm();
+      import('./route-warm').then(module => { if (live) uninstall = module.installRouteWarm(); }, () => {}).finally(() => routeActivity.endQuietWarm());
+    };
+    const idle = 'requestIdleCallback' in window;
+    const handle = idle ? window.requestIdleCallback(load, { timeout: 3000 }) : window.setTimeout(load, 1500);
+    return () => { live = false; if (idle) window.cancelIdleCallback(handle); else window.clearTimeout(handle); uninstall?.(); };
+  }, []);
 
   // ✨ Toast
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' | 'info'; action?: ToastAction; id: number } | null>(null);
