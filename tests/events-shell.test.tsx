@@ -107,14 +107,14 @@ test('the range line follows `when` and only the weekend list marks the 本周�
   assert.equal(line('/events?when=next7'), '未来 7 天 · 10/9–15');
   assert.equal(line('/events?when=october'), '十月');
   assert.equal(line('/events?when=december'), '十二月');
-  assert.equal(line('/events?when=all&region=sf'), '全部日期 · 收录至 1/3 · 旧金山');
-  assert.equal(line('/events?when=september'), '全部日期 · 收录至 1/3', 'the retired 九月回顾 reads as all dates');
+  assert.equal(line('/events?when=all&region=sf'), '全部日期 · 收录至 2/28 · 旧金山');
+  assert.equal(line('/events?when=september'), '全部日期 · 收录至 2/28', 'the retired 九月回顾 reads as all dates');
   const current = (location: string) => ssr(location, <EventsView today={today} />).querySelector('nav[aria-label="活动分区"] a[href="/events"]')?.getAttribute('aria-current');
   for (const location of ['/events', '/events?region=sf&from=card-sf', '/events?cost=free']) assert.equal(current(location), 'page', location);
   for (const location of ['/events?when=today', '/events?when=all', '/events?when=unknown-value']) assert.equal(current(location), null, location);
   // /this-month is the same column on 全部日期: no picks or day tabs, every event in next-day order.
   const monthly = ssr('/this-month', <MonthlyEdition today={today} defaultDateFilter="all" />);
-  assert.equal(monthly.querySelector('.ev-range')?.textContent, '全部日期 · 收录至 1/3');
+  assert.equal(monthly.querySelector('.ev-range')?.textContent, '全部日期 · 收录至 2/28');
   assert.equal(monthly.querySelector('.ev-picks'), null);
   assert.equal(monthly.querySelector('.ev-days'), null);
   assert.deepEqual(feedIds(monthly), model.listEvents(model.INDEX_EVENTS, 'all', today).map(event => event.id).slice(0, 12));

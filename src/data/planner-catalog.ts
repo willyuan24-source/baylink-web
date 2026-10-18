@@ -14,6 +14,7 @@ import supplyLocations1015 from './supply-2026-10-15-locations.json';
 import supplyPlanning1016 from './supply-2026-10-16-planning.json';
 import chineseDecJanPlanning1016 from './chinese-decjan-2026-10-16-planning.json';
 import weekendPlanning1128 from './weekend-1128-2026-10-17-planning.json';
+import lunarNewYearPlanning2027 from './lny-2027-2026-10-17-planning.json';
 import { guides } from './guides';
 import type { GeoPoint, PlannerEvent, PlannerPlace, PlanningFacts } from '../lib/planner';
 import placeLocationData from './place-locations.json';
@@ -101,7 +102,7 @@ const eventLocations: Record<string, GeoPoint> = {
 
 // Coordinates are added only from individually checked public venue sources.
 const eventSchedules = { ...VERIFIED_EVENT_SCHEDULES, ...SEPTEMBER_REFRESH_SCHEDULES, ...COVERAGE_AUDIT_REGIONAL_SCHEDULES, ...COVERAGE_AUDIT_SF_NORTH_SCHEDULES, ...OCTOBER_REFRESH_SCHEDULES, ...OCTOBER_REFRESH_COMMUNITY_SCHEDULES };
-const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning, ...supplyPlanning1012, ...supplyPlanning1013, ...supplyPlanning1015, ...supplyPlanning1016, ...chineseDecJanPlanning1016, ...weekendPlanning1128 } as Record<string, { planning: PlanningFacts }>;
+const novemberPlanning = { ...novemberNorthPlanning, ...novemberSouthPlanning, ...novemberEastPlanning, ...octnovSfEastPlanning, ...octnovRegionalPlanning, ...supplyPlanning1012, ...supplyPlanning1013, ...supplyPlanning1015, ...supplyPlanning1016, ...chineseDecJanPlanning1016, ...weekendPlanning1128, ...lunarNewYearPlanning2027 } as Record<string, { planning: PlanningFacts }>;
 export const PLANNER_EVENTS: PlannerEvent[] = MONTHLY_EVENTS.map(event => ({ ...event, aliases: [...new Set([event.title, ...(event.aliases || []), ...(EVENT_ALIASES[event.id] || [])])], ...(eventLocations[event.id] ? { location: eventLocations[event.id] } : {}), planning: { admissionUsd: event.cost === 'free' ? 0 : null, ...eventPlanning[event.id], ...(eventSchedules[event.id] ? { schedule: eventSchedules[event.id] } : {}), ...novemberPlanning[event.id]?.planning, ...(event.cost === 'unknown' ? { admissionUsd: null } : {}) } }));
 export const PLANNER_PLACES: PlannerPlace[] = [...ATTRACTIONS.map((place): PlannerPlace => ({
   id: place.id, title: place.title, aliases: [...new Set([place.title, ...(PLACE_ALIASES[place.id] || [])])], region: place.region, city: place.city, summary: place.note,
