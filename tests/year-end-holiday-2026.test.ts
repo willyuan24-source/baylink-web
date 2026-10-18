@@ -52,7 +52,12 @@ test('every agency line covers the six dates and names the evidence behind each'
   const text = body(HOLIDAY);
   assert.match(text, /不是每个窗口的营业公告/u);
   assert.match(text, /没有说网上服务停止/u);
-  assert.match(text, /不包括跨年夜加开的班次或免费乘车/u);
+  assert.match(text, /本身不保证跨年夜加班或免费乘车/u);
+  // Muni's New Year's Eve free-fare item belongs to the fare changes that start January 4, 2027, so 2026 stays unannounced.
+  const muniEve = holiday.blocks.flatMap(block => (block.type === 'list' ? block.items : [])).find(item => item.startsWith('Muni 跨年夜'));
+  assert.ok(muniEve && muniEve.includes('2027 年 1 月 4 日起生效') && muniEve.includes('【未公布】'), 'Muni New Year’s Eve line');
+  assert.doesNotMatch(muniEve ?? '', /【常设规则】/u);
+  assert.equal(holiday.editionMonth, '2027-01', 'edition month follows editionThroughDate so related cards and BayBay keep the guide through January 1');
   // Nothing unannounced is presented as open as usual.
   assert.doesNotMatch(text, /照常|正常开放|正常营业/u);
 });
@@ -86,7 +91,7 @@ test('figures that are not published stay unpublished, in the agency’s words, 
 
 test('Muni, Lifeline and Caltrain dates stay separate, and the retired MuniMobile single ride is gone', () => {
   const muni = body('bay-area-october-muni-clipper-payment-update-2026');
-  for (const line of ['1 月 1 日：Lifeline', '1 月 3 日：MuniMobile', '1 月 4 日：Muni 新票价']) assert.ok(muni.includes(line), line);
+  for (const line of ['1 月 1 日：Lifeline', '1 月 3 日：按 SFMTA 公布的退场计划，MuniMobile', '1 月 4 日：Muni 新票价']) assert.ok(muni.includes(line), line);
   assert.doesNotMatch(muni, /停售的只是单程票/u);
   const transit = body('bay-area-senior-transit-clipper-discounts-guide');
   assert.doesNotMatch(transit, /Clipper 或 MuniMobile/u);

@@ -257,6 +257,7 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: "Off-Peak Cable Car Fare (Seniors/People with Disabilities) from 9:00 p.m. to 7:00 a.m. On-Board $4.00 $6.00 $6.00" },
   { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$1.50", url: "https://www.sfmta.com/media/44859/download?inline=", readOn: '2026-10-17',
     quote: "Senior/People with Disabilities Single Ride Clipper/MuniMobile $1.40 1.50 1.55 … Farebox/Limited Use Ticket $1.50 1.50 1.55" },
-  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$31,920", url: "https://www.sfmta.com/ar/node/45643", readOn: '2026-10-17',
-    quote: "Your household adjusted gross income must be at or below 200% of the federal poverty level to qualify for the program. … 2026 income limits: … People in the household 1 Income up to $31,920" },
+  // The 2026 label for this table comes from SFMTA's Clipper START page ("2026 income limits"), read the same day.
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "$31,920", url: "https://www.clipperstartcard.com/s/", readOn: '2026-10-17',
+    quote: "Meet the gross income (before taxes) requirements … CalFresh participants qualify automatically … PEOPLE IN HOUSEHOLD INCOME UP TO 1 $31,920" },
 ];

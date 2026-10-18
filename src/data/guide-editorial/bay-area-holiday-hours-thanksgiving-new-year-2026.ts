@@ -48,7 +48,7 @@ export const holidayHoursEditorial: GuideEditorial = {
         { zh: 'BART：11/26、12/25、1/1 周日班表', en: 'BART: Sunday service Nov 26, Dec 25, Jan 1' },
         { zh: 'Caltrain：11/27、12/24 调整班表，节前几周公布', en: 'Caltrain: modified schedules Nov 27 and Dec 24, posted a few weeks ahead' },
         { zh: 'AC Transit、VTA：感恩节、圣诞、元旦按周日班表', en: 'AC Transit, VTA: Sunday schedules on Thanksgiving, Christmas and New Year’s Day' },
-        { zh: 'Muni 跨年夜 20:00 到元旦 5:00 免费（票价文件）；当晚班次未公布', en: 'Muni: free from 8 p.m. New Year’s Eve to 5 a.m. New Year’s Day (fare policy); that night’s service not published' },
+        { zh: 'Muni 跨年夜：2026 年是否免费、当晚班次都未公布', en: 'Muni on New Year’s Eve: free rides and that night’s service in 2026 not published' },
       ] },
   ],
   steps: [

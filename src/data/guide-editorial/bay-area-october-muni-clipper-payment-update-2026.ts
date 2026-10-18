@@ -16,7 +16,7 @@ export const muniClipperEditorial: GuideEditorial = {
     { label: { zh: '普通成人', en: 'Adults' }, value: { zh: '感应银行卡、手机钱包或 Clipper 都可以', en: 'A contactless bank card, a phone wallet or Clipper' }, source: 2 },
     { label: { zh: '长者、青年', en: 'Seniors and youth' }, value: { zh: '要用对应的优惠 Clipper；直接拍银行卡按成人票', en: 'Use the matching discount Clipper; a tapped bank card pays the adult fare' }, source: 4 },
     { label: { zh: '换乘', en: 'Transfers' }, value: { zh: '两小时跨机构换乘，最高优惠 $2.85', en: 'Two-hour transfers between agencies, up to $2.85 off' }, source: 3 },
-    { label: { zh: '2027 年 1 月', en: 'January 2027' }, value: { zh: '1 月 1 日 Lifeline 并入 Clipper START；1 月 3 日 App 停卖一日票', en: 'January 1: Lifeline moves to Clipper START; January 3: the app stops selling day passes' }, source: 1 },
+    { label: { zh: '2027 年 1 月', en: 'January 2027' }, value: { zh: '1 月 1 日 Lifeline 并入 Clipper START；按退场计划，1 月 3 日 App 停卖一日票', en: 'January 1: Lifeline moves to Clipper START; January 3: under SFMTA’s proposed schedule, the app stops selling day passes' }, source: 1 },
   ],
   slides: [
     { kind: 'compare', kicker: { zh: '按乘客选', en: 'By rider' }, title: { zh: '谁用什么付款', en: 'Who pays with what' },
@@ -44,6 +44,6 @@ export const muniClipperEditorial: GuideEditorial = {
   steps: [
     { zh: '长者、青年要用对应的优惠 Clipper；直接拍银行卡按成人票收费。', en: 'Seniors and youth need the matching discount Clipper; a tapped bank card pays the adult fare.' },
     { zh: '两小时内跨机构换乘最高优惠 $2.85，旧卡先查升级状态。', en: 'Transfers within two hours get up to $2.85 off; check whether an old card has been upgraded.' },
-    { zh: '三个日期分开记：1 月 1 日 Lifeline 并入 Clipper START，1 月 3 日 App 停卖一日票，1 月 4 日新票价生效。', en: 'Keep three dates apart: Lifeline moves to Clipper START on January 1, the app stops selling day passes on January 3, new fares start January 4.' },
+    { zh: '三个日期分开记：1 月 1 日 Lifeline 并入 Clipper START，1 月 3 日 App 按 SFMTA 公布的退场计划停卖一日票，1 月 4 日新票价生效。', en: 'Keep three dates apart: Lifeline moves to Clipper START on January 1, the app stops selling day passes on January 3 under SFMTA’s proposed schedule, new fares start January 4.' },
   ],
 };

@@ -71,7 +71,7 @@ export const autumnRefreshGuides: Guide[] = [
     "blocks": [
       {
         "type": "paragraph",
-        "text": "从 2026 年 9 月 1 日起，MuniMobile 已停止销售新的单程票。十月乘车可改用 Clipper，或用带感应支付标志的银行卡支付成人票。2026 年内，App 还卖 Muni-only Day Pass、缆车票、Lifeline 月票和 1 日、3 日、7 日 Visitor Passport。SFMTA 正在分阶段关掉这个 App，预计 2027 年年中完全停用；已公布的下一步见下面“2027 年 1 月”一节。"
+        "text": "从 2026 年 9 月 1 日起，MuniMobile 已停止销售新的单程票。十月乘车可改用 Clipper，或用带感应支付标志的银行卡支付成人票。2026 年内，App 还卖 Muni-only Day Pass、缆车票、Lifeline 月票和 1 日、3 日、7 日 Visitor Passport。SFMTA 正在分阶段关掉这个 App，预计 2027 年年中完全停用；它公布的退场计划见下面“2027 年 1 月”一节。"
       },
       {
         "type": "heading",
@@ -106,7 +106,7 @@ export const autumnRefreshGuides: Guide[] = [
         "type": "list",
         "items": [
           "1 月 1 日：Lifeline 月票并入 Clipper START。最后一期实体 Lifeline 月贴 11 月下旬开卖，用于 12 月；SFMTA 请要继续用 Lifeline 的人在 2026 年 12 月 1 日或之前申请 Clipper START 卡（处理最长 30 天），拿到卡后再买 Lifeline 月票。",
-          "1 月 3 日：MuniMobile 停卖不含缆车的一日票（Single Day Pass），停卖前买的票 30 天内有效。之后的一日票用 Clipper、Muni Metro 售票机买，或上车在投币箱买（投钱前先告诉司机）。",
+          "1 月 3 日：按 SFMTA 公布的退场计划，MuniMobile 停卖不含缆车的一日票（Single Day Pass），停卖前买的票 30 天内有效。之后的一日票用 Clipper、Muni Metro 售票机买，或上车在投币箱买（投钱前先告诉司机）。",
           "1 月 4 日：Muni 新票价生效。成人单程用 Clipper 从 $2.85 调到 $3.00（取消 Clipper 单程优惠，现金仍是 $3.00）；成人 M 月票 $86 → $90，含旧金山市内 BART 的 A 月票 $104 → $108；长者、残障和 Clipper START 单程 $1.40 → $1.50；长者／残障月票和 Lifeline 月票 $43 → $45；Muni 一日票（不含缆车）$5.70 → $6.00。",
           "同样从 1 月 4 日起：缆车单程 $9 → $12；新增 Cable Car Plus 一日票 $18，1 名成人加最多 2 名 18 岁及以下的青少年，当天不限次坐缆车和其他 Muni；1 日、3 日、7 日 Visitor Passport 停用。"
         ]
