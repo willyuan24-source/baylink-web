@@ -16,7 +16,11 @@ const { ServiceBookingPanel } = await import('../src/features/bookings/ServiceBo
 const { ServiceBookingsDashboard } = await import('../src/features/bookings/ServiceBookingsDashboard');
 const { MyWeekBookings } = await import('../src/features/bookings/MyWeekBookings');
 const { BookingReceipt } = await import('../src/features/bookings/booking-shared');
-const { bookingDisplayStatus, parseAvailability, parseBooking, serviceBookings } = await import('../src/lib/service-bookings');
+const { bayAreaBookingDate, bookingDisplayStatus, parseAvailability, parseBooking, serviceBookings } = await import('../src/lib/service-bookings');
+// The provider panel refuses to draft a day before today in the Bay Area (by the real clock: `new Date()`, which the Date.now mock
+// below does not change), so the drafting tests pick days counted from that today; fixed dates such as 2026-10-17 started
+// failing once that day had passed.
+const draftDay = (daysAhead: number) => bayAreaBookingDate(new Date(new Date().getTime() + daysAhead * 86_400_000));
 const { setLocale } = await import('../src/i18n/locale');
 const { api } = await import('../src/lib/api');
 const now = Date.parse('2026-09-30T18:00:00Z');
@@ -179,9 +183,9 @@ test('provider bulk scheduling requires explicit publication, handles unavailabl
   fireEvent.change(view.getByLabelText('预约间缓冲'), { target: { value: '60' } });
   fireEvent.click(view.getByRole('button', { name: '保存预约设置' })); await view.findByText('预约设置已保存。');
   assert.equal(writes[0].body.minNoticeMinutes, 1440); assert.equal(writes[0].body.bufferMinutes, 60);
-  fireEvent.change(view.getByLabelText('日期'), { target: { value: '2026-10-18' } });
+  fireEvent.change(view.getByLabelText('日期'), { target: { value: draftDay(1) } });
   fireEvent.click(view.getByRole('button', { name: '加入待发布清单' }));
-  fireEvent.change(view.getByLabelText('日期'), { target: { value: '2026-10-19' } });
+  fireEvent.change(view.getByLabelText('日期'), { target: { value: draftDay(2) } });
   fireEvent.click(view.getByRole('button', { name: '加入待发布清单' }));
   assert.equal(writes.length, 1, 'drafting has no API side effect');
   fireEvent.click(view.getByRole('button', { name: '发布这些时段' })); await act(async () => {});
@@ -345,7 +349,7 @@ test('a first provider saves times before opening and recovers an opening failur
   });
   const view = render(panel(provider)); await view.findByText('预约尚未开放');
   assert.equal(view.getByText('预约规则（可选）').closest('details')!.open, false);
-  fireEvent.change(view.getByLabelText('日期'), { target: { value: '2026-10-17' } });
+  fireEvent.change(view.getByLabelText('日期'), { target: { value: draftDay(1) } });
   fireEvent.change(view.getByLabelText('结束时间'), { target: { value: '12:00' } });
   fireEvent.click(view.getByRole('button', { name: '加入待发布清单' })); fireEvent.click(view.getByRole('button', { name: '保存这些时段' }));
   await view.findByText('时段已保存，预约尚未开放。');
