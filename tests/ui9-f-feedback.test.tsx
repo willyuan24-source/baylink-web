@@ -1,5 +1,6 @@
-// UI9-F review: the behaviours this lane added — the never-disabled home search and BayBay send, the sheet's exit, the
-// route feedback bar, and quiet chunk warming (a failed warm neither reloads the page nor beacons).
+// UI9-F review: the behaviours this lane added — the never-disabled home search and BayBay send, the sheet's exit and the
+// route feedback bar. (Hover / press chunk warming was dropped on the replay onto main: its quiet-failure code did not fit
+// the /events and /calendar route JS budgets.)
 import { mockBayBayFetch } from './baybay-test-transport';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -26,11 +27,9 @@ const { BayBayAssistantEntry } = await import('../src/components/BayBayAssistant
 const { Sheet } = await import('../src/components/ui/Sheet');
 const { READING_SIZE_KEY } = await import('../src/lib/reading-preferences');
 const { routeActivity, routeKey } = await import('../src/lib/route-activity');
-const { warmablePage, warmPage, forgetFailedWarms } = await import('../src/app/route-warm');
-const { RouteProgress } = await import('../src/app/RouteProgress');
-const { installChunkRecovery } = await import('../src/lib/chunk-recovery');
+const { RouteSettled } = await import('../src/app/RouteProgress');
 
-afterEach(() => { cleanup(); localStorage.clear(); document.documentElement.removeAttribute('data-simple'); reducedMotion = false; routeActivity.reset(); forgetFailedWarms(); });
+afterEach(() => { cleanup(); localStorage.clear(); document.documentElement.removeAttribute('data-simple'); reducedMotion = false; routeActivity.reset(); });
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 test('home search is never disabled: an empty submit offers the example question and focuses the box, and sends nothing', () => {
@@ -116,66 +115,35 @@ test('Sheet plays its exit: open → closed keeps it 200ms with .is-closing, the
   }
 });
 
-test('warming: only same-tab in-site links that are not the 3D world or a download', () => {
-  const link = (attrs: string) => { document.body.innerHTML = `<a ${attrs}><span>x</span></a>`; return document.querySelector('span')!; };
-  assert.equal(warmablePage(link('href="/events"')), 'events');
-  assert.equal(warmablePage(link('href="/en/guides"')), 'guides');
-  assert.equal(warmablePage(link('href="/opus-bay"')), null);
-  assert.equal(warmablePage(link('href="/events" target="_blank"')), null);
-  assert.equal(warmablePage(link('href="https://example.com/events"')), null);
-  assert.equal(warmablePage(link('href="/calendar.ics" download="a.ics"')), null);
-  document.body.innerHTML = '';
-});
-
-test('a failed warm is quiet: chunk recovery does not reload, no beacon is sent, and that page is not warmed again; a navigation still recovers', async () => {
-  installChunkRecovery();
-  routeActivity.settle('/', '/');
-  const preloadError = () => { const event = new dom.window.Event('vite:preloadError', { cancelable: true }); dom.window.dispatchEvent(event); return event.defaultPrevented; };
-  let loads = 0; let prevented: boolean | undefined;
-  // Vite's __vitePreload dispatches vite:preloadError before the import's promise rejects.
-  const load = () => { loads++; return Promise.resolve().then(() => { prevented = preloadError(); throw new Error('chunk 404'); }); };
-  warmPage('tools', load);
-  await sleep(0);
-  assert.equal(prevented, false, 'no reload for a warm');
-  assert.equal(routeActivity.quietFailure(), false, 'the warm has ended');
-  warmPage('tools', load);
-  assert.equal(loads, 1, 'a page whose warm failed is not warmed again in this tab');
-  // The beacon listener asks the same question before it reports.
-  assert.match(readFileSync('src/lib/product-observer.ts', 'utf8'), /vite:preloadError', event => \{ if \(!routeActivity\.quietFailure\(\)\) reportClientError\('chunk'/);
-  // A programmatic navigate() (a pushState no click, submit or popstate listener saw) waiting for its page is not quiet.
-  routeActivity.beginQuietWarm();
-  assert.equal(routeActivity.quietFailure(), true, 'a warm in flight on a settled page');
-  dom.window.history.pushState(null, '', '/guides');
-  assert.equal(routeActivity.quietFailure(), false, 'the address bar asks for another page');
-  routeActivity.endQuietWarm();
-  // A navigation waiting for its page: the same failure reloads (the recovery prevents Vite's throw and reloads once).
-  dom.window.history.pushState(null, '', '/tools');
-  routeActivity.request();
-  routeActivity.beginQuietWarm();
-  assert.equal(routeActivity.quietFailure(), false);
-  const consoleError = console.error; console.error = () => {};
-  try { assert.equal(preloadError(), true, 'a navigation recovers with a reload'); } finally { console.error = consoleError; routeActivity.endQuietWarm(); }
-  dom.window.history.pushState(null, '', '/');
-});
-
 test('the route bar shows while the address bar asks for a page that is not on screen yet, and goes when it commits', async () => {
-  routeActivity.settle(routeKey('/'), routeKey('/'));
-  const view = render(<RouteProgress />);
-  assert.equal(view.queryByTestId('route-progress'), null);
+  const waiting = () => document.documentElement.hasAttribute('data-route-wait');
+  // RouteSettled marks the committed route and, once the first one is up, listens for clicks, submits and history steps.
+  const view = render(<RouteSettled pathname="/" search="" />);
+  assert.equal(waiting(), false);
   // A click that changes nothing (a button) does not draw the bar.
   fireEvent.click(document.body);
-  assert.equal(view.queryByTestId('route-progress'), null);
+  assert.equal(waiting(), false);
   // A link click: React Router pushes the URL at once and renders the next page in a transition.
   dom.window.history.pushState(null, '', '/en/events/');
   fireEvent.click(document.body);
-  assert.ok(view.getByTestId('route-progress'), 'the bar is drawn (its CSS shows it after 150ms)');
-  await act(async () => { routeActivity.settle(routeKey('/events')); });
-  assert.equal(view.queryByTestId('route-progress'), null);
+  assert.equal(waiting(), true, 'html[data-route-wait]: the bar is drawn (its CSS shows it after 150ms)');
+  view.rerender(<RouteSettled pathname="/events" search="" />);
+  assert.equal(waiting(), false, 'the next page committed');
   // A history step back.
   dom.window.history.pushState(null, '', '/guides?q=%E7%A7%9F');
   await act(async () => { dom.window.dispatchEvent(new dom.window.PopStateEvent('popstate')); });
-  assert.ok(view.getByTestId('route-progress'));
-  await act(async () => { routeActivity.settle(routeKey('/guides', '?q=%E7%A7%9F')); });
-  assert.equal(view.queryByTestId('route-progress'), null);
+  assert.equal(waiting(), true);
+  view.rerender(<RouteSettled pathname="/guides" search="?q=%E7%A7%9F" />);
+  assert.equal(waiting(), false);
+  // Unmounted, it stops listening.
+  view.unmount();
+  dom.window.history.pushState(null, '', '/tools');
+  fireEvent.click(document.body);
+  assert.equal(waiting(), false);
+  // The layout renders the bar once; the CSS shows it only while html[data-route-wait] is set, 150ms late and 15s at most.
+  assert.ok(readFileSync('src/app/AppLayout.tsx', 'utf8').includes('<div className="site-route-progress site-route-bar" aria-hidden="true" />'));
+  const css = readFileSync('src/components/site-chrome.css', 'utf8');
+  assert.ok(css.includes('html:not([data-route-wait]) .site-route-bar { display:none; }'));
+  assert.ok(css.includes('animation:site-route-show 1ms linear 150ms forwards,site-route-stale 1ms 15s forwards;'));
   dom.window.history.pushState(null, '', '/');
 });

@@ -1,16 +1,14 @@
 import { createElement, lazy, useState, type ComponentProps, type ComponentType } from 'react';
-import { routeActivity } from './route-activity';
 
 /**
  * Recover from an outdated deployment's missing module (old chunks return 404 after a deploy) with one reload per page
  * per 5 minutes, without reload loops. Offline readers are not reloaded (their import fails as usual and the page shows
- * its own retry), and neither is a page whose failed chunk only a hover warm wanted (app/route-warm.ts): that fails
- * quietly, and the navigation, if it comes, recovers.
+ * its own retry).
  */
 export function installChunkRecovery(): void {
   if (typeof window === 'undefined') return;
   window.addEventListener('vite:preloadError', event => {
-    if (!navigator.onLine || routeActivity.quietFailure()) return;
+    if (!navigator.onLine) return;
     const key = `baylink.chunk-reload:${location.pathname}`;
     try {
       const previous = Number(sessionStorage.getItem(key));

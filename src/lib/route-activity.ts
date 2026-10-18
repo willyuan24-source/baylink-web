@@ -1,18 +1,13 @@
 import { unprefixedPath } from './language-path';
 
 /**
- * Route feedback state (UI9-F): the route on screen, the route the address bar asks for, and the quiet chunk warms in
- * flight (app/route-warm.ts). React Router runs navigations in a transition, so once a page is up a lazy page never shows
- * the layout's Suspense fallback: the old page stays until the new one commits. RouteProgress draws the top bar from
- * `navigating()`; chunk recovery and the error beacon ask `quietFailure()`, so a warm that fails (a chunk lost to a newer
- * deploy, a dropped connection) neither reloads the page nor reports an error. A real navigation still does both.
+ * Route feedback state (UI9-F): the route on screen and the route the address bar asks for. React Router runs navigations
+ * in a transition, so once a page is up a lazy page never shows the layout's Suspense fallback: the old page stays until
+ * the new one commits. While a page is on screen and the address bar asks for another one, <html data-route-wait> is set
+ * and the layout's bar shows (site-chrome.css: 150ms later, 15s at most); no React state is involved.
  */
-type Listener = () => void;
 let shown: string | null = null;     // the route on screen (router path + search); null until the first route commits
 let requested: string | null = null; // the address bar's route after the last click, submit, history step or commit
-let quiet = 0;
-const listeners = new Set<Listener>();
-const emit = () => { for (const listener of listeners) listener(); };
 
 /** One form for both sides: the path without its language prefix, decoded where possible, no trailing slash, + search. */
 export const routeKey = (pathname: string, search = ''): string => {
@@ -24,31 +19,27 @@ export const routeKey = (pathname: string, search = ''): string => {
 /** The route the address bar asks for now (pushState runs before React Router's transition renders the page). */
 export const addressKey = (): string => typeof window === 'undefined' ? '/' : routeKey(window.location.pathname, window.location.search);
 
+const paint = () => { if (typeof document !== 'undefined') document.documentElement.toggleAttribute('data-route-wait', routeActivity.navigating()); };
+
 export const routeActivity = {
-  subscribe(listener: Listener): () => void { listeners.add(listener); return () => { listeners.delete(listener); }; },
   /** A route committed (RouteSettled, inside the layout's Suspense): `key` is on screen, the address bar asks for `address`. */
-  settle(key: string, address: string = addressKey()): void {
-    if (shown === key && requested === address) return;
-    shown = key; requested = address; emit();
-  },
+  settle(key: string, address: string = addressKey()): void { shown = key; requested = address; paint(); },
   /** A click, a submit or a history step just ran: the address bar may now ask for another route. */
-  request(address: string = addressKey()): void {
-    if (requested === address) return;
-    requested = address; emit();
+  request(address: string = addressKey()): void { requested = address; paint(); },
+  /**
+   * The document listeners that ask again (RouteSettled installs them once the first route is up). A click or a submit is
+   * read after the router's own handler (React listens on the root, below document); the capture fallback covers a handler
+   * that stops propagation. Returns the cleanup.
+   */
+  listen(): () => void {
+    const request = () => routeActivity.request();
+    const later = () => { window.setTimeout(request, 0); };
+    const listeners: Array<[EventTarget, string, () => void, boolean]> = [[document, 'click', request, false], [document, 'submit', request, false], [window, 'click', later, true], [window, 'popstate', request, false]];
+    for (const [target, type, listener, capture] of listeners) target.addEventListener(type, listener, capture);
+    return () => { for (const [target, type, listener, capture] of listeners) target.removeEventListener(type, listener, capture); };
   },
   /** A page is on screen and the address bar asks for another one: the next page is loading. */
   navigating(): boolean { return shown !== null && requested !== null && requested !== shown; },
-  beginQuietWarm(): void { quiet++; },
-  endQuietWarm(): void { quiet = Math.max(0, quiet - 1); },
-  /**
-   * A chunk failed while only a warm wanted it: a warm is in flight, the first route is up, and no navigation is waiting —
-   * neither one a click, submit or history step announced nor a programmatic navigate() (the address bar is read here, so
-   * a pushState that no listener saw still counts). Boundary (review 10-18): the failing chunk is not named in the event
-   * Vite sends for every case (Safari's import error carries no URL), so another lazy chunk (a dialog's) that fails while
-   * a warm is in flight — at most the warm's own load time, after an 80ms rest on a link — is quiet too; the next try,
-   * after the warm, reloads and reports as before.
-   */
-  quietFailure(): boolean { return quiet > 0 && shown !== null && !this.navigating() && addressKey() === shown; },
   /** Tests only. */
-  reset(): void { shown = null; requested = null; quiet = 0; emit(); },
+  reset(): void { shown = null; requested = null; paint(); },
 };

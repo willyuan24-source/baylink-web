@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
 
 // public/reading-init.js applies the same keys and URL parameters before the first paint; keep the two in step.
 export type ReadingSize = 'standard' | 'large' | 'extra-large';
@@ -65,6 +65,21 @@ function subscribe(listener: () => void) {
 
 export const useReadingSize = () => useSyncExternalStore(subscribe, getReadingSize, () => 'standard' as ReadingSize);
 export const useSimpleDisplay = () => useSyncExternalStore(subscribe, getSimpleDisplay, () => false);
+
+/**
+ * UI9-F: an overlay that animates out (ui/Sheet.tsx) stays mounted for --dur-3 (200ms) after `open` turns false, then
+ * unmounts; at once in 简洁显示, with reduced motion or without matchMedia (tests, old browsers), where the CSS durations
+ * are 0 too. Returns whether to render. It lives in the shell, beside the other display preferences.
+ */
+export function useExit(open: boolean): boolean {
+  const [mounted, setMounted] = useState(open);
+  useEffect(() => {
+    if (open || !window.matchMedia || window.matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.hasAttribute('data-simple')) return setMounted(open);
+    const timer = window.setTimeout(setMounted, 200, false);
+    return () => window.clearTimeout(timer);
+  }, [open]);
+  return open || mounted;
+}
 
 /**
  * G52 / CW-06: a family link (?reading=large|extra-large, ?simple=1|0). public/reading-init.js removes it from the address
