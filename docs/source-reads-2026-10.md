@@ -2142,3 +2142,18 @@ the same day and time, none shows a cancellation, so none was dropped. Agent rea
 | pick | `sfpl-chinatown-creative-saturdays-fall-2026` (长辈友好) | https://sfpl.org/events/2026/10/31/activity-creative-saturday-afternoons-chuangyiwuxianzhouliuwu | 200 | "Saturday, 10/31/2026 2:30 - 4:00" · "self-guided practice in Chinese calligraphy, coloring and board games" |
 | pick | `san-jose-avenida-altares-2026` | https://mhplaza.org/allevents/avenida26 | 200 | "Saturday, October 31, 2026 5:30 PM 10:30 PM" · "explore a community altar gallery, participate in hands-on art activities for all ages" · "primarily take place outdoors, with select activities hosted indoors" |
 | pick | `smcl-foster-city-nidhi-chanani-2026` | https://smcl.bibliocommons.com/v2/events/6ab5876708693b0f7374643a | 200 | `"title":"Storytime & Drawing Demo With Nidhi Chanani"` · `"start":"2026-11-01T10:30"` · `"end":"2026-11-01T11:30"` · `"isCancelled":false` · `"locationDetails":"Children's Area"` |
+
+## CNT-REGION-4 · region for four one-venue offers, 2026-10-17 (PT)
+
+api PR #57 (API-BB-8) owner decision 1: a one-venue offer that gives a street address but no region is left out of every
+city ask, so four offers get the region of their own official address. The lane agent read each venue's official page on
+2026-10-17 at about 11:08 PDT and again at 18:17 PDT with read-only GETs (curl; HTTP 200 each time, same quotes); no forms,
+logins, bookings or posts. Agent reads; `verifiedAt` is unchanged on all four (D12). `region` is the only field changed: each
+description already gave the street address and each brand line the city. Guarded in `tests/offer-regions-cnt-region-4.test.ts`.
+
+| kind | id | URL | read | change | quote |
+|---|---|---|---|---|---|
+| offer | `randall-museum-free` | https://randallmuseum.org/faqs/ | 2026-10-17, 200 | region `sf` (`src/data/autumn-refresh-offers.ts`) | "The Randall Museum is located at 199 Museum Way, San Francisco, CA 94114" |
+| offer | `cable-car-museum-free` | https://www.cablecarmuseum.org/info.html | 2026-10-17, 200 | region `sf` (`src/data/autumn-refresh-offers.ts`) | "Cable Car Museum - 1201 Mason Street - San Francisco" · address block "1201 Mason Street" / "San Francisco, CA 94108" |
+| offer | `happy-hollow-senior-safari-oct22` | https://happyhollow.org/seniorsafari/ | 2026-10-17, 200 | region `south-bay` (`src/data/autumn-refresh-offers.ts`) | "San Jose’s iconic Happy Hollow Park & Zoo" · "Parking is free for Senior Safari participants at 748 Story Road" |
+| offer | `poppy-claro-doggie-dinners-fall` | https://www.poppyandclaro.com/ | 2026-10-17, 200 | region `south-bay` (`src/data/october-offers-extra.ts`) | JSON-LD `"streetAddress": "50 West San Fernando St"` · `"addressLocality": "San Jose"` |
