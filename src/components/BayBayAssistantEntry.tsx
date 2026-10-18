@@ -110,9 +110,14 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     if (onPanelOpenChange) onPanelOpenChange(value); else setInternalOpen(value);
   }, [onPanelOpenChange]);
   const [question, setQuestion] = useState(initialConversation?.question || '');
-  // 问一下 with fewer than two characters: the hint shows until the question is long enough.
+  // 问一下 with fewer than two characters: the hint shows until the question is long enough, a question is sent or a new
+  // conversation starts (both empty the box, which must not bring the hint back).
   const [tooShort, setTooShort] = useState(false);
   const shortHint = tooShort && question.trim().length < 2;
+  // Read out through a region that is always in the page (some screen readers skip a region mounted with its text, and the
+  // focus is already in the box), emptied first so a second short try is read again.
+  const [shortNotice, setShortNotice] = useState('');
+  const shortNoticeTimer = useRef(0);
   const [searchMode, setSearchMode] = useState<BayBaySearchMode>('smart');
   const [turns, setTurns] = useState<BayBayTurn[]>(initialConversation?.turns || []);
   const turnsRef = useRef<BayBayTurn[]>(initialConversation?.turns || []);
@@ -134,6 +139,11 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   const currentGuide = currentBayBayGuide(contextPath);
   const copy = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const today = getBayAreaToday();
+  const flagTooShort = () => {
+    setTooShort(true); setShortNotice(''); window.clearTimeout(shortNoticeTimer.current);
+    shortNoticeTimer.current = window.setTimeout(() => setShortNotice(copy('请至少输入 2 个字', 'Type at least 2 characters')), 150);
+  };
+  useEffect(() => () => window.clearTimeout(shortNoticeTimer.current), []);
 
   const updateTurns = useCallback((update: (previous: BayBayTurn[]) => BayBayTurn[]) => {
     turnsRef.current = update(turnsRef.current);
@@ -194,6 +204,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     recordProductEvent('baybay_ask');
     updateTurns((previous) => [...previous, { id, question: message, state: 'pending', currentPath: requestPath, searchContext: userContext, searchOverrides }]);
     setQuestion('');
+    setTooShort(false);
     void fetchBayBayReply(message, { currentPath: requestPath, searchMode: mode, ...(assistantSessionToken ? { assistantSessionToken } : {}), ...(Object.keys(searchContext).length ? { searchContext } : {}), ...(categoryHint ? { categoryHint } : {}), ...(outingSearchToken ? { outingSearchToken } : {}) }, history, controller.signal, 100_000, progress => {
       if (activeRequest.current?.id === id) updateTurns(previous => previous.map(turn => turn.id === id && turn.state === 'pending' ? { ...turn, progress } : turn));
     }, {
@@ -347,7 +358,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
             : capabilities.reduced && fullNotice.reduced === undefined && <BayBayNoticeBanner kind="ai_budget_reduced" text={capabilities.reduced.banner[locale]} resumesAt={capabilities.reduced.resumesAt} />}
           {/* The AI cutoff, in its last 7 days: a calm line, not an alarm (api #37 pauseScheduled / aiUntil). */}
           {capabilities.scheduled && <BayBayScheduledNotice text={capabilities.scheduled.banner[locale]} />}
-          <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); setCompletionNotice(null); updateTurns(() => []); setQuestion(''); }}><Plus size={13} />新对话</button>}</div>
+          <div className="baybay-context-line"><span translate="no">{copy('查资料 · 比较选择 · 接着安排', 'Discover · Compare · Make a plan')}</span>{turns.length > 0 && <button type="button" onClick={() => { stop(); setCompletionNotice(null); updateTurns(() => []); setQuestion(''); setTooShort(false); }}><Plus size={13} />新对话</button>}</div>
           <details className="baybay-conversation-details" translate="no">
             <summary>{copy('检索、额度与对话说明', 'Search, limits and conversation details')}</summary>
             <p className="baybay-composer-note">{memberWebAccess
@@ -392,7 +403,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
           {lastComplete && planHandoffContext && !loading && !schoolContext && !outingContext && !lastComplete.response?.assistantPlan && <BayBayTaskHandoff key={lastComplete.id} brief={bayBayTaskBrief(turns)} ownerId={ownerId} onNavigate={navigate} />}
           {lastComplete && !loading && !emergencyLast && !lastComplete.response?.assistantPlan && !turns[turns.length - 1]?.restartRequired && (!hasUnconfirmedFoodEvidence(lastComplete.response) || !!lastComplete.response?.followups?.length) && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><span>接着聊</span>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath)), lastComplete.response?.followups).slice(0, 2).map((followup) => <button type="button" key={followup} onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}<ArrowUp size={12} /></button>)}</div>)}
         </div>
-        <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current && !askBayBay(question)) { inputRef.current?.focus(); if (question.trim().length < 2) setTooShort(true); } }}>
+        <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current && !askBayBay(question)) { inputRef.current?.focus(); if (question.trim().length < 2) flagTooShort(); } }}>
           <div className="baybay-search-modes" role="group" aria-label={copy('检索范围', 'Search scope')} translate="no">{memberWebAccess ? <>{([['smart', '智能检索', 'Smart'], ['web', '联网查', 'Web'], ['site', '仅站内', 'Site only']] as const).map(([mode, zh, en]) => <button type="button" key={mode} aria-pressed={effectiveSearchMode === mode} disabled={loading} onClick={() => setSearchMode(mode)}>{copy(zh, en)}</button>)}</> : <><strong className="baybay-access-label">{ownerId ? copy('登录需更新 · 仅站内', 'Sign-in needs updating · Site only') : copy('访客 · 仅站内', 'Guest · Site only')}</strong>{onLoginNeeded && <button type="button" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</button>}</>}</div>
           {/* Few AI queries left (≤5) or none: one visible line by the question box; a pause banner already says so. */}
           {usage && !capabilities.pause && <BayBayQuotaLine remaining={usage.remaining} />}
@@ -400,16 +411,17 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
             <button type="button" onClick={() => setPageOffPath(currentPath)} aria-label={copy('不再参考这一页', 'Stop using this page')}><X aria-hidden="true" size={18} /></button></div>}
           {/* A box that grows to four lines and always shows its whole example (READ-10, G79). Enter asks; Shift+Enter starts a new line. */}
           {/* 问一下 is never disabled (N09): a question under two characters keeps the focus in the box and says why. */}
-          {shortHint && <p className="baybay-composer-note" id="baybay-short-hint" role="status">{copy('请至少输入 2 个字', 'Type at least 2 characters')}</p>}
+          {shortHint && <p className="baybay-composer-note" id="baybay-short-hint">{copy('请至少输入 2 个字', 'Type at least 2 characters')}</p>}
+          <p className="sr-only" role="status" aria-live="polite" aria-atomic="true" data-baybay-short-notice>{shortHint ? shortNotice : ''}</p>
           <div className="member-baybay-composer"><textarea ref={inputRef} rows={1} aria-label="向 BayBay 提问" value={question} maxLength={500}
             aria-describedby={[schoolContext && 'baybay-school-privacy', shortHint && 'baybay-short-hint'].filter(Boolean).join(' ') || undefined}
-            onChange={(event) => setQuestion(event.target.value)} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
+            onChange={(event) => { setQuestion(event.target.value); if (event.target.value.trim().length >= 2) setTooShort(false); }} onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
             onKeyDown={(event) => {
               if (event.key !== 'Enter' || event.shiftKey) return;
               // Enter inside an input method confirms the candidate; it is neither a question nor a new line.
               if (composing.current || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
               event.preventDefault();
-              if (!askBayBay(question) && question.trim().length < 2) setTooShort(true);
+              if (!askBayBay(question) && question.trim().length < 2) flagTooShort();
             }} placeholder={placeholder} className="member-baybay-question-input" />
             {loading ? <button type="button" onClick={stop} className="member-baybay-ask"><Square size={13} />停止</button> : <button type="submit" className="member-baybay-ask"><span>问一下</span><ArrowUp size={15} /></button>}
           </div>

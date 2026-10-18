@@ -68,8 +68,32 @@ test('BayBay 问一下 is never disabled: a one-character question sends nothing
   const hint = view.getByText(/至少输入 2 个字/);
   assert.match(hint.textContent ?? '', /至少输入 2 个字/);
   assert.match(input.getAttribute('aria-describedby') ?? '', /baybay-short-hint/);
+  // Read out by a region that was in the page before the hint (the visible hint is not itself a live region).
+  const live = document.querySelector('[data-baybay-short-notice]')!;
+  assert.equal(live.getAttribute('role'), 'status');
+  assert.equal(hint.getAttribute('role'), null);
+  await act(() => sleep(200));
+  assert.match(live.textContent ?? '', /至少输入 2 个字/);
   fireEvent.change(input, { target: { value: '租房' } });
   assert.equal(view.queryByText(/至少输入 2 个字/), null, 'the hint goes once the question is long enough');
+  assert.equal(live.textContent, '');
+  // Short again, then a real question goes out without typing (a 找本地服务 starter fills the box): the send empties the
+  // box, and the hint must not come back with it (review 10-18: it did, under every later question).
+  fireEvent.change(input, { target: { value: '租' } });
+  fireEvent.click(send);
+  assert.ok(view.getByText(/至少输入 2 个字/));
+  fireEvent.click(view.getByRole('button', { name: '找本地服务' }));
+  assert.ok(!document.getElementById('baybay-short-hint'), 'a starter that fills the box clears it');
+  fireEvent.click(view.getByRole('button', { name: /问一下/ }));
+  await act(() => sleep(0));
+  assert.equal(requests.length, 1);
+  assert.equal(input.value, '');
+  assert.ok(!document.getElementById('baybay-short-hint'), 'a sent question clears the hint');
+  assert.doesNotMatch(input.getAttribute('aria-describedby') ?? '', /baybay-short-hint/);
+  // And a later empty 问一下 still says why (the reset is not a mute).
+  await act(() => sleep(20));
+  fireEvent.submit(input.closest('form')!);
+  assert.ok(view.getByText(/至少输入 2 个字/));
 });
 
 test('Sheet plays its exit: open → closed keeps it 200ms with .is-closing, then unmounts; at once with reduced motion or in 简洁显示', async () => {
@@ -118,6 +142,12 @@ test('a failed warm is quiet: chunk recovery does not reload, no beacon is sent,
   assert.equal(loads, 1, 'a page whose warm failed is not warmed again in this tab');
   // The beacon listener asks the same question before it reports.
   assert.match(readFileSync('src/lib/product-observer.ts', 'utf8'), /vite:preloadError', event => \{ if \(!routeActivity\.quietFailure\(\)\) reportClientError\('chunk'/);
+  // A programmatic navigate() (a pushState no click, submit or popstate listener saw) waiting for its page is not quiet.
+  routeActivity.beginQuietWarm();
+  assert.equal(routeActivity.quietFailure(), true, 'a warm in flight on a settled page');
+  dom.window.history.pushState(null, '', '/guides');
+  assert.equal(routeActivity.quietFailure(), false, 'the address bar asks for another page');
+  routeActivity.endQuietWarm();
   // A navigation waiting for its page: the same failure reloads (the recovery prevents Vite's throw and reloads once).
   dom.window.history.pushState(null, '', '/tools');
   routeActivity.request();

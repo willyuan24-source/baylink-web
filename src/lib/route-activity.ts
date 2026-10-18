@@ -40,8 +40,15 @@ export const routeActivity = {
   navigating(): boolean { return shown !== null && requested !== null && requested !== shown; },
   beginQuietWarm(): void { quiet++; },
   endQuietWarm(): void { quiet = Math.max(0, quiet - 1); },
-  /** A chunk failed while only a warm wanted it: no navigation is waiting and the first route is up. */
-  quietFailure(): boolean { return quiet > 0 && shown !== null && !this.navigating(); },
+  /**
+   * A chunk failed while only a warm wanted it: a warm is in flight, the first route is up, and no navigation is waiting —
+   * neither one a click, submit or history step announced nor a programmatic navigate() (the address bar is read here, so
+   * a pushState that no listener saw still counts). Boundary (review 10-18): the failing chunk is not named in the event
+   * Vite sends for every case (Safari's import error carries no URL), so another lazy chunk (a dialog's) that fails while
+   * a warm is in flight — at most the warm's own load time, after an 80ms rest on a link — is quiet too; the next try,
+   * after the warm, reloads and reports as before.
+   */
+  quietFailure(): boolean { return quiet > 0 && shown !== null && !this.navigating() && addressKey() === shown; },
   /** Tests only. */
   reset(): void { shown = null; requested = null; quiet = 0; emit(); },
 };
