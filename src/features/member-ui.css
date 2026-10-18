@@ -25,7 +25,7 @@
 .member-auth-brand { display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 26px; }
 .member-auth-lockup { display: flex; align-items: center; gap: 10px; }
 .member-auth-mascot { width: 39px; height: 39px; object-fit: cover; border-radius: 13px; border: 1px solid rgb(var(--color-brand-rgb) / .1); }
-.member-auth-wordmark { color: var(--color-brand-deep); font-size: 1.1875rem; font-weight: 700; letter-spacing: -.045em; }
+.member-auth-wordmark { color: var(--color-brand); font-size: 1.1875rem; font-weight: 700; letter-spacing: -.045em; }
 .member-auth-tagline { max-width: 260px; margin-top: 8px; color: var(--color-ink-3); font-size: .6875rem; line-height: 1.6; }
 .member-auth-brand--compact { margin-bottom: 16px; }
 .member-auth-brand--compact .member-auth-mascot { width: 32px; height: 32px; border-radius: 10px; }

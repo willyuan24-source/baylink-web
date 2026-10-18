@@ -37,13 +37,13 @@ export function partsLine(parts: readonly string[], width: number, fontSize: num
 /** The largest size up to `max` at which `text` fits `width` on one line. */
 export const fitSize = (text: string, width: number, max: number, min = 28) => Math.max(min, Math.min(max, Math.floor(width / Math.max(1, textWidth(text, 1)))));
 
-/** TypeCover palettes (src/components/ui/ui.css --tc-*), so a card reads like the listing's own cover. */
+/** The category map (src/tokens.css --tc-*, tokens v2), so a card reads like the listing's own cover. */
 export type CardTone = 'family' | 'culture' | 'outdoors' | 'food' | 'seniors' | 'free';
 export const CARD_PALETTE: Readonly<Record<CardTone, { bg: string; fg: string }>> = {
-  family: { bg: '#FBF1E6', fg: '#A0562E' }, culture: { bg: '#EAF1F8', fg: '#2F5F8A' }, outdoors: { bg: '#EAF5EF', fg: '#096B54' },
-  food: { bg: '#FFF4DC', fg: '#8A5A00' }, seniors: { bg: '#EDE4F3', fg: '#5B3A7A' }, free: { bg: '#E6F2EA', fg: '#1E6B43' },
+  family: { bg: '#FBE5DA', fg: '#8C3A20' }, culture: { bg: '#E4E7F4', fg: '#3B4F8E' }, outdoors: { bg: '#E6EDD9', fg: '#4A6A2A' },
+  food: { bg: '#FBEBD2', fg: '#7E4408' }, seniors: { bg: '#E3EFE7', fg: '#075440' }, free: { bg: '#E6F2EA', fg: '#1E6B43' },
 };
-const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FBFAF6', LINE = '#D9E0DA';
+const INK = '#162E29', INK_2 = '#3E554D', INK_3 = '#54645E', BRAND = '#096B54', BRAND_DEEP = '#123C31', PAPER = '#FAF6EF', LINE = '#D9E0DA';
 const WHITE = '#fff', BLACK = '#000', MINT = '#D7E9DF';
 
 export type CardText = { text: string; x: number; y: number; size: number; weight?: 400 | 600 | 700; fill: string; spacing?: number };
@@ -93,7 +93,7 @@ const brandRow = (draw: TextDrawer, logo: string, x: number, y: number, light = 
   const latin = !/[⺀-￿]/u.test(tagline);
   const size = latin ? 15 : Math.min(17, Math.floor(room / Math.max(1, textWidth(tagline, 1))));
   return `<image href="${escapeHtml(logo)}" x="${x}" y="${y}" width="52" height="52"/>
-  ${draw({ text: 'BAYLINK', x: x + 66, y: y + 36, size: 30, weight: 700, fill: light ? WHITE : BRAND_DEEP })}
+  ${draw({ text: 'BAYLINK', x: x + 66, y: y + 36, size: 30, weight: 700, fill: light ? WHITE : BRAND })}
   ${draw({ text: tagline, x: x + 216, y: y + 33, size, fill: light ? MINT : INK_3, ...(latin ? { spacing: 2 } : {}) })}`;
 };
 

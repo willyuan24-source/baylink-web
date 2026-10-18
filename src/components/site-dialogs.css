@@ -2,7 +2,7 @@
    desktop): sign-in, password reset, report, blocked users, share and search. Imported by those lazily loaded dialogs.
    Tokens and rem only; 13px is the smallest text; 44px targets (48 in 简洁显示 through --control-height). */
 .site-dialog-intro { margin:0 0 16px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
-.site-dialog-brand { display:flex; align-items:center; gap:8px; margin:4px 0 12px; color:var(--color-ink); font-size:var(--text-fact); font-weight:700; }
+.site-dialog-brand { display:flex; align-items:center; gap:8px; margin:4px 0 12px; color:var(--color-brand); font-size:var(--text-fact); font-weight:700; }
 .site-dialog-brand img { width:2rem; height:2rem; border-radius:8px; object-fit:cover; }
 .site-dialog-choices { display:grid; gap:8px; margin:0; padding:0; border:0; }
 .site-dialog-choices>legend { margin-bottom:8px; padding:0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; }
