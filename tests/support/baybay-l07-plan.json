@@ -1,0 +1,1254 @@
+{
+ "_source": "BAYLINK api bc0ee27 (#56) live result for L07, guest, 2026-10-17 08:15 PDT (lanes/API-BB-7/live-check/transcripts.json asks.L07.api); unchanged",
+ "question": "周六想带爸妈在旧金山玩半天，坐公交，帮我排个行程",
+ "locale": "zh-Hans",
+ "event": "result",
+ "ok": true,
+ "answer": "周六半天可以逛渡轮大厦、农夫市集，再去唐人街，全程搭公交。\n\n1. 先到 Ferry Plaza 农夫市集逛约 1 小时，逛市集免费，吃的买的另付；周六有市集，具体摊位以官方为准。\n2. 再进 Ferry Building 大厅休息、约 1 小时，入场费用未确认，餐饮购物另计；在外会合请约定具体入口。[1]\n3. 最后去唐人街与 North Beach 约 1 小时，把午饭和小店安排在这里，步行逛街不收费。[2]\n4. 爸妈若是 SF 居民且 65 岁以上，可申请免费 Muni，含缆车，但审批要数周，不含 BART；本周六多半赶不上。[3]\n\n出发地和出发时间还没定，各段公交路线和时间请先用 Transit 或 Muni 官方查询确认，本行程还不是完整时间表。",
+ "sources": [
+  {
+   "title": "Ferry Building · 公共大厅与外部会合点",
+   "url": "https://www.ferrybuildingmarketplace.com/visit"
+  },
+  {
+   "title": "唐人街与 North Beach",
+   "url": "https://www.baylink.us/guides/sf-chinatown-north-beach-walk-guide"
+  },
+  {
+   "title": "合资格 SF 65+ 居民可申请免费 Muni，含缆车",
+   "url": "https://www.baylink.us/offers/sfmta-free-muni-seniors"
+  }
+ ],
+ "responseMode": "assistant",
+ "degraded": false,
+ "taskState": {
+  "version": 1,
+  "revision": 1,
+  "goal": "day-plan",
+  "city": "San Francisco",
+  "region": "sf",
+  "date": "2026-10-17",
+  "origin": null,
+  "originCandidateId": null,
+  "travelMode": "transit",
+  "partySize": null,
+  "childAges": [],
+  "budget": null,
+  "budgetScope": null,
+  "freeOnly": null,
+  "setting": null,
+  "startTime": null,
+  "finishBy": null,
+  "topic": null,
+  "excludedCities": [],
+  "excludedCandidateIds": [],
+  "selectedCandidateIds": [
+   "ferry-plaza-farmers-market-2026-autumn",
+   "venue-ferry-building",
+   "chinatown"
+  ],
+  "preferences": [
+   "outing-duration:half-day"
+  ],
+  "clearedFields": []
+ },
+ "assistantPlan": {
+  "id": "baybay-e8ed3df863453b320f25",
+  "date": "2026-10-17",
+  "title": "San Francisco一日安排",
+  "status": "needs_verification",
+  "stops": [
+   {
+    "id": "event:ferry-plaza-farmers-market-2026-autumn",
+    "kind": "event",
+    "entityId": "ferry-plaza-farmers-market-2026-autumn",
+    "title": "Ferry Plaza 农夫市集：海边逛一圈",
+    "city": "San Francisco",
+    "date": "2026-10-17",
+    "timeStatus": "unknown",
+    "sourceIds": [
+     "s-555bc7e1639f6616"
+    ],
+    "sourceUrls": [
+     "https://foodwise.org/markets/ferry-plaza-farmers-market/",
+     "https://foodwise.org/markets/ferry-plaza-farmers-market/visitor-info/"
+    ],
+    "notes": [
+     "市集每周二、四、六举行，风雨照常；此时间不代表 Ferry Building 内所有商家营业时间。购物与餐饮另付费。",
+     "逛市集免费；食品、购物、交通另付"
+    ],
+    "venue": "Ferry Building 外 · Ferry Plaza",
+    "path": "/events/ferry-plaza-farmers-market-2026-autumn",
+    "location": {
+     "lat": 37.7953186,
+     "lng": -122.3936029,
+     "label": "Ferry Plaza Farmers Market",
+     "sourceUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/visitor-info/",
+     "precision": "venue"
+    },
+    "external": false,
+    "suggestedDurationMinutes": 60,
+    "scheduleCheckedAt": "2026-09-29",
+    "openingWindows": [
+     {
+      "open": "08:00",
+      "close": "14:00"
+     }
+    ],
+    "admissionUsd": 0,
+    "knownAdmissionTotalUsd": 0,
+    "admissionStatus": "recorded",
+    "admissionFacts": {
+     "status": "complete",
+     "basis": "catalog",
+     "knownTotalUsd": 0,
+     "knownPerPersonUsd": 0,
+     "partySize": null,
+     "childAges": [],
+     "breakdown": [],
+     "sourceUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/",
+     "checkedAt": "2026-10-15",
+     "sourceIds": [
+      "s-555bc7e1639f6616"
+     ],
+     "applicability": {
+      "date": "2026-10-17",
+      "dateStatus": "unconfirmed",
+      "feesIncluded": null
+     },
+     "unknowns": []
+    }
+   },
+   {
+    "id": "place:venue-ferry-building",
+    "kind": "place",
+    "entityId": "venue-ferry-building",
+    "title": "Ferry Building · 公共大厅与外部会合点",
+    "city": "San Francisco",
+    "date": "2026-10-17",
+    "timeStatus": "unknown",
+    "sourceIds": [
+     "s-3e4a941c966769d9"
+    ],
+    "sourceUrls": [
+     "https://www.ferrybuildingmarketplace.com/visit/"
+    ],
+    "notes": [
+     "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。"
+    ],
+    "path": "https://www.ferrybuildingmarketplace.com/visit/",
+    "location": {
+     "lat": 37.7954425,
+     "lng": -122.3936136,
+     "label": "Ferry Building · One Ferry Building",
+     "sourceUrl": "https://www.ferrybuildingmarketplace.com/visit/",
+     "precision": "venue"
+    },
+    "external": true,
+    "suggestedDurationMinutes": 60,
+    "knownAdmissionTotalUsd": 0,
+    "admissionStatus": "incomplete",
+    "admissionFacts": {
+     "status": "unknown",
+     "basis": "catalog",
+     "knownTotalUsd": null,
+     "knownPerPersonUsd": null,
+     "partySize": null,
+     "childAges": [],
+     "breakdown": [],
+     "sourceUrl": "https://www.ferrybuildingmarketplace.com/visit/",
+     "sourceIds": [
+      "s-3e4a941c966769d9"
+     ],
+     "applicability": {
+      "date": "2026-10-17",
+      "dateStatus": "unconfirmed",
+      "feesIncluded": null
+     },
+     "unknowns": [
+      "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。"
+     ]
+    }
+   },
+   {
+    "id": "place:chinatown",
+    "kind": "place",
+    "entityId": "chinatown",
+    "title": "唐人街与 North Beach",
+    "city": "San Francisco",
+    "date": "2026-10-17",
+    "timeStatus": "unknown",
+    "sourceIds": [
+     "s-728d68346351bfd3",
+     "s-3f7053b5d2ef86de"
+    ],
+    "sourceUrls": [
+     "https://www.sftravel.com/neighborhoods/visit-chinatown"
+    ],
+    "notes": [],
+    "path": "/guides/sf-chinatown-north-beach-walk-guide",
+    "guideSlug": "sf-chinatown-north-beach-walk-guide",
+    "location": {
+     "lat": 37.790685,
+     "lng": -122.405585,
+     "label": "Dragon Gate",
+     "sourceUrl": "https://www.wikidata.org/wiki/Q40729318",
+     "precision": "venue"
+    },
+    "external": false,
+    "suggestedDurationMinutes": 60,
+    "admissionUsd": 0,
+    "knownAdmissionTotalUsd": 0,
+    "admissionStatus": "recorded",
+    "admissionFacts": {
+     "status": "complete",
+     "basis": "catalog",
+     "knownTotalUsd": 0,
+     "knownPerPersonUsd": 0,
+     "partySize": null,
+     "childAges": [],
+     "breakdown": [],
+     "sourceUrl": "https://www.sftravel.com/neighborhoods/visit-chinatown",
+     "sourceIds": [
+      "s-728d68346351bfd3",
+      "s-3f7053b5d2ef86de"
+     ],
+     "applicability": {
+      "date": "2026-10-17",
+      "dateStatus": "unconfirmed",
+      "feesIncluded": null
+     },
+     "unknowns": []
+    }
+   }
+  ],
+  "budget": {
+   "knownTotalUsd": 0,
+   "knownPerPersonUsd": 0,
+   "unknownItems": [
+    "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。",
+    "已知金额尚未包括未核实的餐饮、交通、停车及可选消费。"
+   ],
+   "scope": "person",
+   "admissionFacts": [
+    {
+     "stopId": "event:ferry-plaza-farmers-market-2026-autumn",
+     "status": "complete",
+     "basis": "catalog",
+     "knownTotalUsd": 0,
+     "knownPerPersonUsd": 0,
+     "partySize": null,
+     "childAges": [],
+     "breakdown": [],
+     "sourceUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/",
+     "checkedAt": "2026-10-15",
+     "sourceIds": [
+      "s-555bc7e1639f6616"
+     ],
+     "applicability": {
+      "date": "2026-10-17",
+      "dateStatus": "unconfirmed",
+      "feesIncluded": null
+     },
+     "unknowns": []
+    },
+    {
+     "stopId": "place:venue-ferry-building",
+     "status": "unknown",
+     "basis": "catalog",
+     "knownTotalUsd": null,
+     "knownPerPersonUsd": null,
+     "partySize": null,
+     "childAges": [],
+     "breakdown": [],
+     "sourceUrl": "https://www.ferrybuildingmarketplace.com/visit/",
+     "sourceIds": [
+      "s-3e4a941c966769d9"
+     ],
+     "applicability": {
+      "date": "2026-10-17",
+      "dateStatus": "unconfirmed",
+      "feesIncluded": null
+     },
+     "unknowns": [
+      "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。"
+     ]
+    },
+    {
+     "stopId": "place:chinatown",
+     "status": "complete",
+     "basis": "catalog",
+     "knownTotalUsd": 0,
+     "knownPerPersonUsd": 0,
+     "partySize": null,
+     "childAges": [],
+     "breakdown": [],
+     "sourceUrl": "https://www.sftravel.com/neighborhoods/visit-chinatown",
+     "sourceIds": [
+      "s-728d68346351bfd3",
+      "s-3f7053b5d2ef86de"
+     ],
+     "applicability": {
+      "date": "2026-10-17",
+      "dateStatus": "unconfirmed",
+      "feesIncluded": null
+     },
+     "unknowns": []
+    }
+   ],
+   "priceBasis": "catalog"
+  },
+  "checks": [
+   {
+    "code": "date",
+    "status": "pass",
+    "message": "日期：2026-10-17（湾区时间）。"
+   },
+   {
+    "code": "origin",
+    "status": "unknown",
+    "message": "出发及返回地点未确定，尚不能确认全程可行性。"
+   },
+   {
+    "code": "start_time",
+    "status": "unknown",
+    "message": "出发时间未确定；以下为建议顺序，尚不是完整时间表。"
+   },
+   {
+    "code": "date_opening",
+    "status": "unknown",
+    "message": "「Ferry Plaza 农夫市集：海边逛一圈」有常规开放时间，所选日期临时调整仍待核实。",
+    "stopId": "event:ferry-plaza-farmers-market-2026-autumn"
+   },
+   {
+    "code": "reservation",
+    "status": "unknown",
+    "message": "「Ferry Plaza 农夫市集：海边逛一圈」的预约要求或剩余名额仍待确认。",
+    "stopId": "event:ferry-plaza-farmers-market-2026-autumn"
+   },
+   {
+    "code": "travel_time",
+    "status": "unknown",
+    "message": "前往「Ferry Building · 公共大厅与外部会合点」的这段交通时间尚待查询。",
+    "stopId": "place:venue-ferry-building"
+   },
+   {
+    "code": "opening_hours",
+    "status": "unknown",
+    "message": "「Ferry Building · 公共大厅与外部会合点」缺少可用于安排这一天的开放或场次时间。",
+    "stopId": "place:venue-ferry-building"
+   },
+   {
+    "code": "reservation",
+    "status": "unknown",
+    "message": "「Ferry Building · 公共大厅与外部会合点」的预约要求或剩余名额仍待确认。",
+    "stopId": "place:venue-ferry-building"
+   },
+   {
+    "code": "travel_time",
+    "status": "unknown",
+    "message": "前往「唐人街与 North Beach」的这段交通时间尚待查询。",
+    "stopId": "place:chinatown"
+   },
+   {
+    "code": "opening_hours",
+    "status": "unknown",
+    "message": "「唐人街与 North Beach」缺少可用于安排这一天的开放或场次时间。",
+    "stopId": "place:chinatown"
+   },
+   {
+    "code": "reservation",
+    "status": "unknown",
+    "message": "「唐人街与 North Beach」的预约要求或剩余名额仍待确认。",
+    "stopId": "place:chinatown"
+   }
+  ],
+  "alternatives": [
+   {
+    "id": "baybay-59881b368c5182880c55",
+    "date": "2026-10-17",
+    "title": "备选安排",
+    "status": "needs_verification",
+    "stops": [
+     {
+      "id": "event:ferry-plaza-farmers-market-2026-autumn",
+      "kind": "event",
+      "entityId": "ferry-plaza-farmers-market-2026-autumn",
+      "title": "Ferry Plaza 农夫市集：海边逛一圈",
+      "city": "San Francisco",
+      "date": "2026-10-17",
+      "timeStatus": "unknown",
+      "sourceIds": [
+       "s-555bc7e1639f6616"
+      ],
+      "sourceUrls": [
+       "https://foodwise.org/markets/ferry-plaza-farmers-market/",
+       "https://foodwise.org/markets/ferry-plaza-farmers-market/visitor-info/"
+      ],
+      "notes": [
+       "市集每周二、四、六举行，风雨照常；此时间不代表 Ferry Building 内所有商家营业时间。购物与餐饮另付费。",
+       "逛市集免费；食品、购物、交通另付"
+      ],
+      "venue": "Ferry Building 外 · Ferry Plaza",
+      "path": "/events/ferry-plaza-farmers-market-2026-autumn",
+      "location": {
+       "lat": 37.7953186,
+       "lng": -122.3936029,
+       "label": "Ferry Plaza Farmers Market",
+       "sourceUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/visitor-info/",
+       "precision": "venue"
+      },
+      "external": false,
+      "suggestedDurationMinutes": 60,
+      "scheduleCheckedAt": "2026-09-29",
+      "openingWindows": [
+       {
+        "open": "08:00",
+        "close": "14:00"
+       }
+      ],
+      "admissionUsd": 0,
+      "knownAdmissionTotalUsd": 0,
+      "admissionStatus": "recorded",
+      "admissionFacts": {
+       "status": "complete",
+       "basis": "catalog",
+       "knownTotalUsd": 0,
+       "knownPerPersonUsd": 0,
+       "partySize": null,
+       "childAges": [],
+       "breakdown": [],
+       "sourceUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/",
+       "checkedAt": "2026-10-15",
+       "sourceIds": [
+        "s-555bc7e1639f6616"
+       ],
+       "applicability": {
+        "date": "2026-10-17",
+        "dateStatus": "unconfirmed",
+        "feesIncluded": null
+       },
+       "unknowns": []
+      }
+     },
+     {
+      "id": "place:venue-ferry-building",
+      "kind": "place",
+      "entityId": "venue-ferry-building",
+      "title": "Ferry Building · 公共大厅与外部会合点",
+      "city": "San Francisco",
+      "date": "2026-10-17",
+      "timeStatus": "unknown",
+      "sourceIds": [
+       "s-3e4a941c966769d9"
+      ],
+      "sourceUrls": [
+       "https://www.ferrybuildingmarketplace.com/visit/"
+      ],
+      "notes": [
+       "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。"
+      ],
+      "path": "https://www.ferrybuildingmarketplace.com/visit/",
+      "location": {
+       "lat": 37.7954425,
+       "lng": -122.3936136,
+       "label": "Ferry Building · One Ferry Building",
+       "sourceUrl": "https://www.ferrybuildingmarketplace.com/visit/",
+       "precision": "venue"
+      },
+      "external": true,
+      "suggestedDurationMinutes": 60,
+      "knownAdmissionTotalUsd": 0,
+      "admissionStatus": "incomplete",
+      "admissionFacts": {
+       "status": "unknown",
+       "basis": "catalog",
+       "knownTotalUsd": null,
+       "knownPerPersonUsd": null,
+       "partySize": null,
+       "childAges": [],
+       "breakdown": [],
+       "sourceUrl": "https://www.ferrybuildingmarketplace.com/visit/",
+       "sourceIds": [
+        "s-3e4a941c966769d9"
+       ],
+       "applicability": {
+        "date": "2026-10-17",
+        "dateStatus": "unconfirmed",
+        "feesIncluded": null
+       },
+       "unknowns": [
+        "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。"
+       ]
+      }
+     },
+     {
+      "id": "event:sf-bay-area-science-festival-2026",
+      "kind": "event",
+      "entityId": "sf-bay-area-science-festival-2026",
+      "title": "湾区科学节：到 UCSF 动手做实验",
+      "city": "San Francisco",
+      "date": "2026-10-17",
+      "timeStatus": "unknown",
+      "sourceIds": [
+       "s-9b2c2e4052533e9e",
+       "s-68c288f7e7dff0d6"
+      ],
+      "sourceUrls": [
+       "https://bayareasciencefestival.org/"
+      ],
+      "notes": [
+       "免费科学节；分项目名额和预约见官方安排"
+      ],
+      "venue": "UCSF Mission Bay Campus · Koret Quad",
+      "path": "/events/sf-bay-area-science-festival-2026",
+      "external": false,
+      "suggestedDurationMinutes": 60,
+      "scheduleCheckedAt": "2026-10-15",
+      "openingWindows": [
+       {
+        "open": "11:00",
+        "close": "16:00"
+       }
+      ],
+      "admissionUsd": 0,
+      "knownAdmissionTotalUsd": 0,
+      "admissionStatus": "recorded",
+      "admissionFacts": {
+       "status": "complete",
+       "basis": "catalog",
+       "knownTotalUsd": 0,
+       "knownPerPersonUsd": 0,
+       "partySize": null,
+       "childAges": [],
+       "breakdown": [],
+       "sourceUrl": "https://bayareasciencefestival.org/",
+       "checkedAt": "2026-10-15",
+       "sourceIds": [
+        "s-9b2c2e4052533e9e",
+        "s-68c288f7e7dff0d6"
+       ],
+       "applicability": {
+        "date": "2026-10-17",
+        "dateStatus": "unconfirmed",
+        "feesIncluded": null
+       },
+       "unknowns": []
+      }
+     }
+    ],
+    "budget": {
+     "knownTotalUsd": 0,
+     "knownPerPersonUsd": 0,
+     "unknownItems": [
+      "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。",
+      "已知金额尚未包括未核实的餐饮、交通、停车及可选消费。"
+     ],
+     "scope": "person",
+     "admissionFacts": [
+      {
+       "stopId": "event:ferry-plaza-farmers-market-2026-autumn",
+       "status": "complete",
+       "basis": "catalog",
+       "knownTotalUsd": 0,
+       "knownPerPersonUsd": 0,
+       "partySize": null,
+       "childAges": [],
+       "breakdown": [],
+       "sourceUrl": "https://foodwise.org/markets/ferry-plaza-farmers-market/",
+       "checkedAt": "2026-10-15",
+       "sourceIds": [
+        "s-555bc7e1639f6616"
+       ],
+       "applicability": {
+        "date": "2026-10-17",
+        "dateStatus": "unconfirmed",
+        "feesIncluded": null
+       },
+       "unknowns": []
+      },
+      {
+       "stopId": "place:venue-ferry-building",
+       "status": "unknown",
+       "basis": "catalog",
+       "knownTotalUsd": null,
+       "knownPerPersonUsd": null,
+       "partySize": null,
+       "childAges": [],
+       "breakdown": [],
+       "sourceUrl": "https://www.ferrybuildingmarketplace.com/visit/",
+       "sourceIds": [
+        "s-3e4a941c966769d9"
+       ],
+       "applicability": {
+        "date": "2026-10-17",
+        "dateStatus": "unconfirmed",
+        "feesIncluded": null
+       },
+       "unknowns": [
+        "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。"
+       ]
+      },
+      {
+       "stopId": "event:sf-bay-area-science-festival-2026",
+       "status": "complete",
+       "basis": "catalog",
+       "knownTotalUsd": 0,
+       "knownPerPersonUsd": 0,
+       "partySize": null,
+       "childAges": [],
+       "breakdown": [],
+       "sourceUrl": "https://bayareasciencefestival.org/",
+       "checkedAt": "2026-10-15",
+       "sourceIds": [
+        "s-9b2c2e4052533e9e",
+        "s-68c288f7e7dff0d6"
+       ],
+       "applicability": {
+        "date": "2026-10-17",
+        "dateStatus": "unconfirmed",
+        "feesIncluded": null
+       },
+       "unknowns": []
+      }
+     ],
+     "priceBasis": "catalog"
+    },
+    "checks": [
+     {
+      "code": "date",
+      "status": "pass",
+      "message": "日期：2026-10-17（湾区时间）。"
+     },
+     {
+      "code": "origin",
+      "status": "unknown",
+      "message": "出发及返回地点未确定，尚不能确认全程可行性。"
+     },
+     {
+      "code": "start_time",
+      "status": "unknown",
+      "message": "出发时间未确定；以下为建议顺序，尚不是完整时间表。"
+     },
+     {
+      "code": "date_opening",
+      "status": "unknown",
+      "message": "「Ferry Plaza 农夫市集：海边逛一圈」有常规开放时间，所选日期临时调整仍待核实。",
+      "stopId": "event:ferry-plaza-farmers-market-2026-autumn"
+     },
+     {
+      "code": "reservation",
+      "status": "unknown",
+      "message": "「Ferry Plaza 农夫市集：海边逛一圈」的预约要求或剩余名额仍待确认。",
+      "stopId": "event:ferry-plaza-farmers-market-2026-autumn"
+     },
+     {
+      "code": "travel_time",
+      "status": "unknown",
+      "message": "前往「Ferry Building · 公共大厅与外部会合点」的这段交通时间尚待查询。",
+      "stopId": "place:venue-ferry-building"
+     },
+     {
+      "code": "opening_hours",
+      "status": "unknown",
+      "message": "「Ferry Building · 公共大厅与外部会合点」缺少可用于安排这一天的开放或场次时间。",
+      "stopId": "place:venue-ferry-building"
+     },
+     {
+      "code": "reservation",
+      "status": "unknown",
+      "message": "「Ferry Building · 公共大厅与外部会合点」的预约要求或剩余名额仍待确认。",
+      "stopId": "place:venue-ferry-building"
+     },
+     {
+      "code": "travel_time",
+      "status": "unknown",
+      "message": "前往「湾区科学节：到 UCSF 动手做实验」的这段交通时间尚待查询。",
+      "stopId": "event:sf-bay-area-science-festival-2026"
+     },
+     {
+      "code": "reservation",
+      "status": "unknown",
+      "message": "「湾区科学节：到 UCSF 动手做实验」的预约要求或剩余名额仍待确认。",
+      "stopId": "event:sf-bay-area-science-festival-2026"
+     }
+    ],
+    "alternatives": [],
+    "unknowns": [
+     "出发及返回地点未确定，尚不能确认全程可行性。",
+     "出发时间未确定；以下为建议顺序，尚不是完整时间表。",
+     "「Ferry Plaza 农夫市集：海边逛一圈」有常规开放时间，所选日期临时调整仍待核实。",
+     "「Ferry Plaza 农夫市集：海边逛一圈」的预约要求或剩余名额仍待确认。",
+     "前往「Ferry Building · 公共大厅与外部会合点」的这段交通时间尚待查询。",
+     "「Ferry Building · 公共大厅与外部会合点」缺少可用于安排这一天的开放或场次时间。",
+     "「Ferry Building · 公共大厅与外部会合点」的预约要求或剩余名额仍待确认。",
+     "前往「湾区科学节：到 UCSF 动手做实验」的这段交通时间尚待查询。",
+     "「湾区科学节：到 UCSF 动手做实验」的预约要求或剩余名额仍待确认。",
+     "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。",
+     "已知金额尚未包括未核实的餐饮、交通、停车及可选消费。"
+    ],
+    "notes": [],
+    "rejectedCandidates": [],
+    "constraints": {
+     "city": "San Francisco",
+     "origin": null,
+     "startTime": null,
+     "finishBy": null,
+     "partySize": null,
+     "childAges": [],
+     "travelMode": "transit",
+     "excludedCities": [],
+     "freeOnly": false
+    },
+    "travelLegs": [],
+    "summary": "已按条件列出有来源的建议顺序；缺少的时段、交通、资格与费用仍待核实。",
+    "handoff": {
+     "title": "备选安排",
+     "date": "2026-10-17",
+     "stops": [
+      {
+       "kind": "event",
+       "id": "ferry-plaza-farmers-market-2026-autumn"
+      },
+      {
+       "kind": "place",
+       "id": "venue-ferry-building"
+      },
+      {
+       "kind": "event",
+       "id": "sf-bay-area-science-festival-2026"
+      }
+     ]
+    }
+   }
+  ],
+  "unknowns": [
+   "出发及返回地点未确定，尚不能确认全程可行性。",
+   "出发时间未确定；以下为建议顺序，尚不是完整时间表。",
+   "「Ferry Plaza 农夫市集：海边逛一圈」有常规开放时间，所选日期临时调整仍待核实。",
+   "「Ferry Plaza 农夫市集：海边逛一圈」的预约要求或剩余名额仍待确认。",
+   "前往「Ferry Building · 公共大厅与外部会合点」的这段交通时间尚待查询。",
+   "「Ferry Building · 公共大厅与外部会合点」缺少可用于安排这一天的开放或场次时间。",
+   "「Ferry Building · 公共大厅与外部会合点」的预约要求或剩余名额仍待确认。",
+   "前往「唐人街与 North Beach」的这段交通时间尚待查询。",
+   "「唐人街与 North Beach」缺少可用于安排这一天的开放或场次时间。",
+   "「唐人街与 North Beach」的预约要求或剩余名额仍待确认。",
+   "Ferry Building · 公共大厅与外部会合点: 入场费用或适用资格未确认，不能当作免费。",
+   "已知金额尚未包括未核实的餐饮、交通、停车及可选消费。"
+  ],
+  "notes": [],
+  "rejectedCandidates": [],
+  "constraints": {
+   "city": "San Francisco",
+   "origin": null,
+   "startTime": null,
+   "finishBy": null,
+   "partySize": null,
+   "childAges": [],
+   "travelMode": "transit",
+   "excludedCities": [],
+   "freeOnly": false
+  },
+  "travelLegs": [],
+  "summary": "已按条件列出有来源的建议顺序；缺少的时段、交通、资格与费用仍待核实。",
+  "handoff": {
+   "title": "San Francisco一日安排",
+   "date": "2026-10-17",
+   "stops": [
+    {
+     "kind": "event",
+     "id": "ferry-plaza-farmers-market-2026-autumn"
+    },
+    {
+     "kind": "place",
+     "id": "venue-ferry-building"
+    },
+    {
+     "kind": "place",
+     "id": "chinatown"
+    }
+   ]
+  }
+ },
+ "assistantSessionToken": "[removed]",
+ "evidence": [
+  {
+   "id": "s-3f7053b5d2ef86de",
+   "title": "唐人街与 North Beach",
+   "url": "https://www.sftravel.com/neighborhoods/visit-chinatown",
+   "kind": "place",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-3e4a941c966769d9",
+   "title": "Ferry Building · 公共大厅与外部会合点",
+   "url": "https://www.ferrybuildingmarketplace.com/visit",
+   "kind": "place",
+   "verification": "site-record"
+  },
+  {
+   "id": "s-555bc7e1639f6616",
+   "title": "Ferry Plaza 农夫市集：海边逛一圈",
+   "url": "https://foodwise.org/markets/ferry-plaza-farmers-market",
+   "kind": "event",
+   "checkedAt": "2026-10-15",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-728d68346351bfd3",
+   "title": "唐人街与 North Beach",
+   "url": "https://www.baylink.us/guides/sf-chinatown-north-beach-walk-guide",
+   "kind": "place",
+   "verification": "site-record"
+  },
+  {
+   "id": "s-be70cd6bb8d9f439",
+   "title": "合资格 SF 65+ 居民可申请免费 Muni，含缆车",
+   "url": "https://www.baylink.us/offers/sfmta-free-muni-seniors",
+   "kind": "place",
+   "checkedAt": "2026-09-29",
+   "verification": "site-record"
+  },
+  {
+   "id": "s-ae1a53767b0030e7",
+   "title": "湾区长者坐车省钱指南",
+   "url": "/guides/bay-area-senior-transit-clipper-discounts-guide",
+   "kind": "guide",
+   "checkedAt": "2026-10-14",
+   "verification": "site-record"
+  },
+  {
+   "id": "s-1d1355da54027d67",
+   "title": "湾区常用 App 与网站攻略：出行、外卖、找房、省钱和本地生活",
+   "url": "/guides/bay-area-useful-apps-platforms-guide",
+   "kind": "guide",
+   "checkedAt": "2026-10-02",
+   "verification": "site-record"
+  },
+  {
+   "id": "s-f20aede3b7b8d8f1",
+   "title": "湾区没有车怎么生活：BART、Caltrain、公交、接送和买菜怎么安排",
+   "url": "/guides/bay-area-without-car-guide",
+   "kind": "guide",
+   "checkedAt": "2026-10-14",
+   "verification": "site-record"
+  },
+  {
+   "id": "s-c0a76f57c541b088",
+   "title": "选住处前先跑一次：湾区跨湾通勤与生活半径实测指南",
+   "url": "/guides/bay-area-cross-bay-commute-home-base-october-2026",
+   "kind": "guide",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-84b47faedea19423",
+   "title": "湾区通勤方式全对比：BART、Caltrain、开车、拼车怎么选",
+   "url": "/guides/bay-area-commute-guide",
+   "kind": "guide",
+   "checkedAt": "2026-10-07",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-195dad0434aac441",
+   "title": "恶魔岛 Alcatraz 实用攻略：先认官方船票，再安排岛上半天",
+   "url": "/guides/sf-alcatraz-booking-day-guide",
+   "kind": "guide",
+   "checkedAt": "2026-09-09",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-68c288f7e7dff0d6",
+   "title": "湾区科学节：到 UCSF 动手做实验",
+   "url": "https://bayareasciencefestival.org",
+   "kind": "event",
+   "checkedAt": "2026-10-15",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-52e7173d873de0cc",
+   "title": "Dolores Park 与 Mission 壁画",
+   "url": "https://sfrecpark.org/892/Mission-Dolores-Park",
+   "kind": "place",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-04962ecc6ab6a605",
+   "title": "SFMOMA · San Francisco Museum of Modern Art",
+   "url": "https://www.sfmoma.org/visit",
+   "kind": "place",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-c606439cb54da6d3",
+   "title": "AC Transit：票价",
+   "url": "https://www.actransit.org/fares",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-a2d075a7c27b0450",
+   "title": "BART：票价优惠",
+   "url": "https://www.bart.gov/tickets/discounts",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-0634fc8942f0c650",
+   "title": "SFMTA：SF Paratransit 辅助交通",
+   "url": "https://www.sfmta.com/getting-around/accessibility/paratransit",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-cf6cf348177191cb",
+   "title": "SFMTA：Muni 票价",
+   "url": "https://www.sfmta.com/getting-around/muni/fares",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-b6475d672346c1f8",
+   "title": "SFMTA：65 岁以上免费坐 Muni",
+   "url": "https://www.sfmta.com/fares/free-muni-seniors-ages-65",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-5e4bc9561ace4fc7",
+   "title": "511：Clipper Access 申请资格",
+   "url": "https://511.org/travel/transit/clipper-access/eligibility",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-365747567bb9f3b3",
+   "title": "East Bay Paratransit",
+   "url": "https://eastbayparatransit.org",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-ff502b50952528a2",
+   "title": "Clipper：优惠卡（长者卡、Clipper Access、Clipper START）",
+   "url": "https://www.clippercard.com/discounts.html",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-48e58a31d38171b2",
+   "title": "湾区常用 App 与网站攻略：出行、外卖、找房、省钱和本地生活",
+   "url": "https://transitapp.com/en/region/sf-bay-area",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-9d296e0d1a464226",
+   "title": "湾区常用 App 与网站攻略：出行、外卖、找房、省钱和本地生活",
+   "url": "https://help.transitapp.com/article/362-royale-faq",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-f505e86709b78177",
+   "title": "SFMTA: MuniMobile transition",
+   "url": "https://www.sfmta.com/getting-around/muni/fares/munimobile",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-7b318384e4de87ad",
+   "title": "SFPL: Mobile resources",
+   "url": "https://sfpl.org/services/mobile-resources",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-61610096ec8a4e7d",
+   "title": "SFMTA: Phone parking payments",
+   "url": "https://www.sfmta.com/getting-around/drive-park/parking-meters/use-your-phone-pay-parking",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-0d50e05b488b51bc",
+   "title": "SamTrans：半岛公交线路",
+   "url": "https://www.samtrans.com/routes",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-fa3b9d945cf9d8f4",
+   "title": "VTA：南湾公交与轻轨线路",
+   "url": "https://www.vta.org/go/routes",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-df9193f9f1369587",
+   "title": "BART：乘车与路线指南",
+   "url": "https://www.bart.gov/guide",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-b9663505343431eb",
+   "title": "Caltrain：现行时刻表与临时调整",
+   "url": "https://www.caltrain.com/schedules/pdfs",
+   "kind": "web",
+   "checkedAt": "2026-10-14",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-273b572352aa410d",
+   "title": "511：深夜公共交通",
+   "url": "https://511.org/travel/transit/all-nighter",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-35c3bef86a2104c4",
+   "title": "BART：行程规划",
+   "url": "https://www.bart.gov/planner",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-7f6a0f8f55c96704",
+   "title": "AC Transit：跨湾巴士",
+   "url": "https://www.actransit.org/transbay",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-c89982f1ee0e93f9",
+   "title": "Caltrain：当前时刻与停站",
+   "url": "https://www.caltrain.com/schedules",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-426175b221c609c2",
+   "title": "BART：当前系统图与站点",
+   "url": "https://www.bart.gov/system-map",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-fde2cb5ae5af504e",
+   "title": "Golden Gate Ferry：北湾渡轮",
+   "url": "https://www.goldengate.org/ferry/schedules-maps",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-5a032f5229d43fb5",
+   "title": "SF Bay Ferry：线路与时刻表",
+   "url": "https://www.sfbayferry.com/routes-schedules",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  },
+  {
+   "id": "s-3c4ba152af050024",
+   "title": "VTA：南湾系统图",
+   "url": "https://www.vta.org/go/maps",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog",
+   "needsReview": true
+  },
+  {
+   "id": "s-2512cb7e1eab1f3b",
+   "title": "湾区常用 App 与网站攻略：出行、外卖、找房、省钱和本地生活",
+   "url": "https://511.org",
+   "kind": "web",
+   "checkedAt": "2026-10-02",
+   "verification": "catalog"
+  }
+ ],
+ "answerCoverage": {
+  "status": "unassessed",
+  "items": []
+ },
+ "suggestedGuides": [],
+ "suggestedActions": [],
+ "matchingPosts": [],
+ "interactiveCards": [],
+ "followups": [
+  "从哪个区出发坐公交比较方便？",
+  "下午想去唐人街的图书馆活动，怎么安排？"
+ ],
+ "contextReferences": [],
+ "contextUsed": {
+  "references": [],
+  "notices": []
+ },
+ "engine": "v2",
+ "route": {
+  "path": "agent",
+  "reason": "day_plan"
+ },
+ "lead": "周六半天可以逛渡轮大厦、农夫市集，再去唐人街，全程搭公交。",
+ "points": [
+  {
+   "text": "先到 Ferry Plaza 农夫市集逛约 1 小时，逛市集免费，吃的买的另付；周六有市集，具体摊位以官方为准。",
+   "cardIds": []
+  },
+  {
+   "text": "再进 Ferry Building 大厅休息、约 1 小时，入场费用未确认，餐饮购物另计；在外会合请约定具体入口。[1]",
+   "cardIds": []
+  },
+  {
+   "text": "最后去唐人街与 North Beach 约 1 小时，把午饭和小店安排在这里，步行逛街不收费。[2]",
+   "cardIds": []
+  },
+  {
+   "text": "爸妈若是 SF 居民且 65 岁以上，可申请免费 Muni，含缆车，但审批要数周，不含 BART；本周六多半赶不上。[3]",
+   "cardIds": []
+  }
+ ],
+ "gap": "出发地和出发时间还没定，各段公交路线和时间请先用 Transit 或 Muni 官方查询确认，本行程还不是完整时间表。",
+ "pageEntity": null,
+ "corrected": false,
+ "localMatches": [
+  {
+   "kind": "event",
+   "id": "ferry-plaza-farmers-market-2026-autumn",
+   "title": "Ferry Plaza 农夫市集：海边逛一圈",
+   "url": "/events/ferry-plaza-farmers-market-2026-autumn",
+   "summary": "沿海滨逛当季农产与熟食摊，按每周实际开市日期安排。",
+   "startDate": "2026-09-26",
+   "endDate": "2026-10-31",
+   "date": "2026-10-17",
+   "temporalStatus": "current"
+  },
+  {
+   "kind": "guide",
+   "id": "sf-chinatown-north-beach-walk-guide",
+   "title": "唐人街与 North Beach",
+   "url": "/guides/sf-chinatown-north-beach-walk-guide",
+   "summary": "从牌楼走进街巷，把吃饭和小店停留留在行程里。",
+   "temporalStatus": "current"
+  }
+ ],
+ "nextSteps": [],
+ "research": {
+  "steps": [
+   {
+    "tool": "search_site",
+    "status": "completed",
+    "label": "已检索站内攻略与候选地点"
+   },
+   {
+    "tool": "create_plan",
+    "status": "completed",
+    "label": "create_plan"
+   }
+  ],
+  "model": "claude-sonnet-5-5",
+  "warnings": [
+   "day_plan_single_call"
+  ],
+  "modelResponses": [
+   {
+    "round": 1,
+    "phase": "final",
+    "model": "claude-sonnet-5-5",
+    "status": "completed",
+    "outputTypes": [
+     "message"
+    ],
+    "outputTextChars": 689,
+    "outputTokens": 528,
+    "reasoningTokens": 0,
+    "inputTokens": 7233,
+    "cachedInputTokens": 3252,
+    "elapsedMs": 11208,
+    "route": "baybay_agent",
+    "cacheReadTokens": 3252,
+    "cacheWriteTokens": 0,
+    "systemRole": "native"
+   }
+  ],
+  "drafts": {
+   "events": 2,
+   "chars": 29
+  },
+  "usage": {
+   "inputTokens": 7233,
+   "outputTokens": 528
+  },
+  "elapsedMs": 11953,
+  "timings": {
+   "stateMs": 51,
+   "siteMs": 294,
+   "monitorMs": 0,
+   "quotaMs": 17,
+   "searchMs": 0,
+   "readMs": 0,
+   "modelMs": 0,
+   "finalMs": 11208,
+   "routeMs": 0,
+   "weatherMs": 0,
+   "planMs": 173,
+   "otherMs": 210,
+   "totalMs": 11953,
+   "preparationMs": 14,
+   "assistantMs": 11955,
+   "requestMs": 11969
+  }
+ },
+ "retrieval": {
+  "requestedMode": "site",
+  "scope": "site",
+  "webStatus": "not_requested",
+  "requestedDate": "2026-10-17",
+  "city": "San Francisco",
+  "area": "San Francisco Bay Area, California, United States",
+  "cached": false,
+  "model": "claude-sonnet-5-5",
+  "configuredModel": "claude-sonnet-5-5",
+  "sourceCount": 3,
+  "effectiveMode": "site",
+  "webAccess": {
+   "authenticated": false,
+   "allowed": false,
+   "reason": "guest"
+  }
+ },
+ "quota": {
+  "remaining": 11,
+  "limit": 15,
+  "resetAt": "2026-10-18T07:00:00.000Z"
+ }
+}
