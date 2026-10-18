@@ -1345,5 +1345,27 @@
       "evidenceUrl": "https://www.cupertino.gov/Parks-Recreation/Events/McClellan-Events/Baer-Blacksmith-Shop-Demonstrations",
       "scope": "same-event coverage only"
     }
+  },
+  {
+    "key": "official-sf-chinese-new-year-parade-2027",
+    "eventId": "sf-chinese-new-year-parade-2027",
+    "src": "/guides/official-events/sf-chinese-new-year-parade-2027.webp",
+    "width": 1280,
+    "height": 853,
+    "kind": "photo",
+    "artwork": "photo",
+    "focal": [
+      52,
+      40
+    ],
+    "alt": "夜里的旧金山春节游行：穿紫色和绿色衣服的舞龙队举着金银色的长龙走过街口，路边观众坐着看，上方挂着红色的「新春大吉」旗",
+    "caption": "旧金山春节游行主办方活动官方照片，相机记录拍摄于 2025 年 2 月 15 日（2025 往届游行），不是 2027 年的现场；路线和时间以官网为准。",
+    "credit": "Chinese New Year Festival & Parade 活动官方照片",
+    "creditUrl": "https://chineseparade.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://chineseparade.com/",
+      "scope": "same-event coverage only"
+    }
   }
 ]

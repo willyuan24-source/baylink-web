@@ -2400,3 +2400,12 @@ Not added, with the reason:
   calendar) and C-class (3: Oakland Chinatown bazaar, OACC, San José Museum of Art, last held in 2026): no organiser-published 2027
   day and time for the public, so no event and no invented date. The optional one-line "往届在 X 月举行" note was not written:
   there is no guide page for it in this lane, and the events list has no place for undated items.
+
+## CNT-WEEKEND-1128 · official image (owner approved), 2026-10-17 (PT)
+
+The owner approved one row of `opus-qa/gpt/out-1016e/image-candidates-lny.md` in chat on 2026-10-16 (details in
+`docs/official-event-media-sources-2026-10-17.md`). The page that shows the photo was re-read with a GET on 2026-10-17 17:12 PT.
+
+| Kind | Id | URL | HTTP | Change | Quote |
+|---|---|---|---|---|---|
+| image | `sf-chinese-new-year-parade-2027` | https://chineseparade.com/ (photo in the About section) ; https://chineseparade.com/wp-content/uploads/2026/02/IMG_0504.jpg | 200 | organiser photo shown on the 2027 parade's page, labelled 官方图 with a source link; caption: the camera record dates it 2025-02-15 (the 2025 parade), not the 2027 parade | `data-image-title="IMG_0504"` · `data-orig-size="6136,4090"` · EXIF DateTimeOriginal "2025:02:15 18:41:07" |
