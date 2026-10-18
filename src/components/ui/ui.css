@@ -358,6 +358,9 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-hero-card { position:relative; display:flex; flex-direction:column; gap:8px; min-width:0; }
 .ui-hero-card__media { position:relative; overflow:hidden; border-radius:var(--r-xl); }
 .ui-hero-card__media :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); }
+/* P07: without a photo overlay the title sits below the cover inside this box, and its rounded clip cut the title's first
+   glyph at the bottom-left corner ("Berkeley" on the home pick at 1440). The cover rounds and clips itself (.ui-cover). */
+.ui-hero-card:not([data-overlay]) .ui-hero-card__media { overflow:visible; }
 .ui-hero-card__scrim { position:absolute; inset:0; z-index:1; background:var(--scrim-photo); pointer-events:none; }
 .ui-hero-card[data-overlay] .ui-stickers { display:none; }
 .ui-hero-card__text { display:flex; flex-direction:column; gap:8px; padding-top:8px; }
