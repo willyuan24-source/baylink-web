@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { MONTHLY_EDITION } from '../src/data/monthly-settings';
 import { currentOpenings } from '../src/data/local-discoveries';
 import { PLANNER_CATALOG } from '../src/data/planner-catalog';
 import { guides } from '../src/data/guides';
@@ -87,6 +88,8 @@ test('the naturalization guide links the current USCIS interview-and-test page; 
   const urls = JSON.stringify(guide);
   assert.doesNotMatch(urls, /find-study-materials-and-resources\/the-naturalization-interview-and-test/u);
   assert.match(urls, /learn-about-citizenship\/the-naturalization-interview-and-test/u);
-  assert.match(MONTHLY_METADATA.title, /2027\/1\/3 · 湾区/u);
+  // The label names the edition's last day (CNT-WEEKEND-1128 moved it from 1/3 to 2/28), so the check reads it from the data.
+  const [year, month, day] = MONTHLY_EDITION.throughDate.split('-').map(Number);
+  assert.ok(MONTHLY_METADATA.title.includes(`${year}/${month}/${day} · 湾区`), MONTHLY_METADATA.title);
   assert.doesNotMatch(translateText(MONTHLY_METADATA.title, 'en'), /[㐀-鿿]/u);
 });
