@@ -80,11 +80,6 @@
   /* Motion (N24): five durations, all ≤280ms, and three easings. Reduced motion and 简洁显示 set every duration to 0. */
   --dur-1:120ms; --dur-2:160ms; --dur-3:200ms; --dur-4:240ms; --dur-5:280ms;
   --ease-out:cubic-bezier(.2,.8,.2,1); --ease-in:cubic-bezier(.4,0,1,1); --ease-std:cubic-bezier(.4,0,.2,1);
-  /* The names the WEB-UI block used before the move, kept so stylesheets written against them keep their colours. New
-     code reads the --color-* names; WEB-CSS-PRUNE deletes these once nothing reads them. */
-  --ui-success:var(--color-success); --ui-success-tint:var(--color-success-tint); --ui-warning:var(--color-warning); --ui-warning-tint:var(--color-warning-tint);
-  --ui-danger-tint:var(--color-danger-tint); --ui-info:var(--color-info); --ui-info-tint:var(--color-info-tint); --ui-highlight:var(--color-highlight);
-  --ui-badge-bg:var(--color-badge-bg); --ui-scrim:var(--color-backdrop); --ui-scrim-photo:var(--scrim-photo);
   --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei','Noto Sans CJK SC','Noto Sans SC',sans-serif;
   /* Aa scales the root (html[data-reading] below), so every rem grows together. --reading-scale stays pinned at 1 for
      older calc() forms: multiplying a rem by it again would turn 特大 into 125% x 1.25 = 156%. */
@@ -110,9 +105,6 @@
   /* Layout (SV-09, design.md §4.4): one page frame, aligned to the header (the logo and the content edge at 112–1328 in a
      1440 window). .site-container (below) and the WEB-UI PageContainer read these; gutters are px and do not grow with Aa. */
   --container-wide:1216px; --container-content:960px; --container-reading:720px; --page-gutter:16px;
-  --baylink-bg:var(--color-bg); --baylink-green:var(--color-brand); --baylink-green-hover:var(--color-brand-hover);
-  --baylink-text:var(--color-ink); --baylink-border:var(--color-line); --baylink-green-light:var(--color-brand-tint);
-  --bay-paper:var(--color-bg); --bay-forest:var(--color-brand-deep); --bay-green:var(--color-brand); --bay-line:var(--color-line); --bay-muted:var(--color-ink-3);
   --site-mobile-nav-height:calc(4.5rem + env(safe-area-inset-bottom,0px));
 }
 /* Profile card themes (ProfileIdentity, EditProfileModal): the four palettes a member picks for their card. They are the

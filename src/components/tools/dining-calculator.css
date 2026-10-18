@@ -2,12 +2,12 @@
 .dining-intro>svg { flex-shrink:0; margin-top:3px; }
 .dining-intro strong { font-size:1.1875rem; font-weight:700; }
 .dining-intro p { margin:7px 0 0; font-size:.8125rem; line-height:1.8; color:var(--color-ink-3); }
-.dining-example { background:var(--ui-warning-tint); border-radius:var(--r-md); padding:10px 13px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
+.dining-example { background:var(--color-warning-tint); border-radius:var(--r-md); padding:10px 13px; font-size:var(--text-caption); line-height:1.7; color:var(--color-ink-3); }
 .dining-layout { display:grid; grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr); align-items:start; gap:28px; }
 .dining-inputs { display:flex; flex-direction:column; gap:21px; min-width:0; }
 .dining-money-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
 .dining-field-serviceCharge { grid-column:1/-1; }
-.dining-service-note { display:flex; gap:9px; background:var(--ui-warning-tint); border:1px solid var(--color-line-strong); border-radius:var(--r-md); padding:12px; }
+.dining-service-note { display:flex; gap:9px; background:var(--color-warning-tint); border:1px solid var(--color-line-strong); border-radius:var(--r-md); padding:12px; }
 .dining-service-note svg { flex-shrink:0; color:var(--color-ink-3); margin-top:2px; }
 .dining-service-note p { margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.8; }
 .dining-tip,.dining-basis { border:0; margin:0; padding:0; min-width:0; }

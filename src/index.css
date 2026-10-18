@@ -4,12 +4,6 @@
 
 :root {
   background-color: var(--color-bg);
-  --baylink-bg: var(--color-surface-2);
-  --baylink-green: var(--color-brand);
-  --baylink-green-hover: var(--color-brand-hover);
-  --baylink-green-light: var(--color-brand-tint);
-  --baylink-border: var(--color-line);
-  --baylink-text: var(--color-ink);
 }
 
 html, body, #root {

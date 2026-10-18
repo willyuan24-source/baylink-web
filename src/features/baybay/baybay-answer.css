@@ -98,11 +98,11 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .bb-notice-label { margin:0 0 10px; padding-left:10px; border-left:3px solid var(--color-line-strong); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 
 /* The AI cutoff ahead (api pauseScheduled, its last 7 days): a calm line, not a warning */
-.baybay-conversation .bb-scheduled { margin:0 0 12px; padding:10px 12px; border-radius:var(--r-md); background:var(--ui-info-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
+.baybay-conversation .bb-scheduled { margin:0 0 12px; padding:10px 12px; border-radius:var(--r-md); background:var(--color-info-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
 
 /* Few AI queries left today: one line by the question box; at 0 the calm daily-limit line (H37), never a warning colour */
 .baybay-conversation .bb-quota { margin:0 0 8px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
-.baybay-conversation .bb-quota[data-remaining="0"] { padding:8px 12px; border-radius:var(--r-md); background:var(--ui-info-tint); color:var(--color-ink); }
+.baybay-conversation .bb-quota[data-remaining="0"] { padding:8px 12px; border-radius:var(--r-md); background:var(--color-info-tint); color:var(--color-ink); }
 
 /* Tap-to-call numbers in answers, notices, plan notes and safety cards (G27): ELDERS' chip at the text's own size */
 .baybay-conversation .phone-chip { min-width:0; min-height:0; font-size:inherit; }

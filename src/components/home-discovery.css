@@ -1,7 +1,5 @@
 /* Home page (plan WEB-HOME, 1007 §4.2, design.md §4.12): nine sections in one 1216 container. Tokens and rem only; the
    covers, cards, chips and buttons are the WEB-UI primitives (src/components/ui/ui.css). */
-.bay-home-editorial .bay-home-columns { grid-template-columns:1fr; }
-.bay-home-editorial .bay-home-rail { display:none; }
 .bay-home.bay-home-editorial { max-width:1280px; padding:16px 16px 40px; }
 .home-discovery { display:flex; flex-direction:column; gap:40px; max-width:1216px; margin-inline:auto; color:var(--color-ink); }
 
@@ -122,7 +120,7 @@
 .home-share { display:flex; align-items:center; gap:16px; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .home-share__thumb { display:flex; flex:none; flex-direction:column; gap:6px; width:7.5rem; aspect-ratio:3 / 4; padding:10px; overflow:hidden; border-radius:var(--r-md); background:var(--color-brand-deep); color:var(--color-surface); }
 .home-share__thumb-title { font-size:var(--text-caption); line-height:1.385; font-weight:700; }
-.home-share__thumb-title>span { display:block; color:var(--ui-highlight); font-variant-numeric:tabular-nums; }
+.home-share__thumb-title>span { display:block; color:var(--color-highlight); font-variant-numeric:tabular-nums; }
 .home-share__thumb ol { display:flex; flex-direction:column; gap:2px; margin:0; padding:0 0 0 1.1em; font-size:var(--text-caption); line-height:1.385; }
 .home-share__thumb li { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .home-share__thumb-foot { margin-top:auto; color:var(--color-on-brand-muted); font-size:var(--text-caption); line-height:1.385; }

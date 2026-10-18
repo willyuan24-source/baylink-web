@@ -5,19 +5,19 @@
 .unit-price-intro p{margin:5px 0 0;font-size:var(--text-caption);line-height:1.8;color:var(--unit-price-muted)}
 .unit-price-editor-actions{display:flex;align-items:center;justify-content:space-between;gap:14px;color:var(--color-ink-3);font-size:var(--text-caption)}
 .unit-price-editor-actions button{min-height:44px;white-space:normal;text-align:right}
-.unit-price-example{padding:11px 14px;border-radius:var(--r-md);background:var(--ui-warning-tint);color:var(--color-ink-3);font-size:var(--text-caption);line-height:1.7}
+.unit-price-example{padding:11px 14px;border-radius:var(--r-md);background:var(--color-warning-tint);color:var(--color-ink-3);font-size:var(--text-caption);line-height:1.7}
 .unit-price-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .unit-price-product{position:relative;min-width:0;display:flex;flex-direction:column;gap:15px;padding:17px;border:1px solid var(--color-line-strong);border-radius:var(--r-lg);background:var(--color-surface)}
 .unit-price-product legend{padding:0 7px;margin-left:5px;font-size:.8125rem;font-weight:700;color:var(--unit-price-ink)}
 .unit-price-product-top{display:flex;justify-content:space-between;align-items:center;min-height:36px}
 .unit-price-product-number{font-size:1.4375rem;color:var(--color-ink-3);font-weight:600;letter-spacing:-1px}
 .unit-price-remove{display:grid;place-items:center;width:44px;height:44px;margin:-5px -7px -5px 0;border-radius:var(--r-md);color:var(--color-ink-3)}
-.unit-price-remove:hover:not(:disabled){background:var(--ui-warning-tint);color:var(--color-danger)}
+.unit-price-remove:hover:not(:disabled){background:var(--color-warning-tint);color:var(--color-danger)}
 .unit-price-remove:disabled{opacity:.3;cursor:not-allowed}
 .unit-price-amount-row{display:grid;grid-template-columns:minmax(65px,.65fr) minmax(0,1.35fr);gap:11px}
 .unit-price-product .tool-field{gap:7px;font-size:var(--text-caption)}
 .unit-price-product input,.unit-price-product select{background:var(--color-surface)}
-.unit-price-product input[aria-invalid=true],.unit-price-product select[aria-invalid=true]{border-color:var(--color-danger);box-shadow:0 0 0 3px var(--ui-danger-tint)}
+.unit-price-product input[aria-invalid=true],.unit-price-product select[aria-invalid=true]{border-color:var(--color-danger);box-shadow:0 0 0 3px var(--color-danger-tint)}
 .unit-price-add-row{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
 .unit-price-results{overflow:hidden;border:1px solid var(--color-line-strong);border-radius:var(--r-lg);background:var(--color-surface)}
 .unit-price-results-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px;background:var(--color-brand-tint)}
