@@ -64,7 +64,8 @@ function photoLabel(item: LocalDiscovery, photo: GuideImage, english: boolean, t
   const label = getImageProvenance(photo, english, today);
   if (!OFFICIAL_LABEL.test(label)) return label;
   const year = captureYear(photo as CoverAsset);
-  const earlier = year && item.kind === 'event' && year < Number(item.event.startDate.slice(0, 4)) ? year : undefined;
+  // A badge that already names the edition (官方图 · 2025 往届) does not repeat the year.
+  const earlier = year && !label.includes(String(year)) && item.kind === 'event' && year < Number(item.event.startDate.slice(0, 4)) ? year : undefined;
   const host = sourceHost(photo.creditUrl, item.kind === 'event' ? item.event.officialUrl : undefined);
   return [label, earlier, host].filter(Boolean).join(' · ');
 }

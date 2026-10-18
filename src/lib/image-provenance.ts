@@ -29,16 +29,27 @@ function shotDate(shotAt: string | undefined, english: boolean, today?: string):
 }
 
 /**
+ * An official photo whose caption names the edition it shows ("2025 往届") carries that year on its badge, because cards
+ * and the detail hero show no caption. A year the caption gives for publication ("主办方网站 2024 年发布") is not the
+ * edition, so those photos stay plain 官方图.
+ */
+const officialEdition = (caption: string) => caption.match(/((?:19|20)\d{2}) ?年?往[届屆]/)?.[1];
+
+/**
  * Provenance describes the asset, never whether the depicted event is current. The labels are one closed
- * vocabulary (plan D7): 官方图 · 照片 · 年份 · 资料图 · 年份 · BAYLINK 实拍 · 日期 · AI 插图 · 3D 场景插图,
- * plus BAYLINK 信息卡 for coded covers (`typeCoverProvenance`).
+ * vocabulary (plan D7): 官方图 (官方图 · 年份 往届 for a dated earlier edition) · 照片 · 年份 · 资料图 · 年份 ·
+ * BAYLINK 实拍 · 日期 · AI 插图 · 3D 场景插图, plus BAYLINK 信息卡 for coded covers (`typeCoverProvenance`).
  */
 export function getImageProvenance(image: ProvenanceInput, english = false, today?: string): string {
   if (image.scene3d) return english ? '3D scene illustration' : '3D 场景插图';
   if (image.kind === 'illustration') return english ? 'AI illustration' : 'AI 插图';
   if (image.ownShot) return `${english ? 'BAYLINK photo' : 'BAYLINK 实拍'}${shotDate(image.shotAt, english, today)}`;
   const basis = rightsBasis(image);
-  if (image.kind === 'poster' || (basis && OFFICIAL_BASES.has(basis)) || /官方|official/i.test(image.credit)) return english ? 'Official image' : '官方图';
+  if (image.kind === 'poster' || (basis && OFFICIAL_BASES.has(basis)) || /官方|official/i.test(image.credit)) {
+    const edition = officialEdition(image.caption);
+    if (edition) return english ? `Official image · ${edition}` : `官方图 · ${edition} 往届`;
+    return english ? 'Official image' : '官方图';
+  }
   // The capture year comes from the caption only: credits carry usernames and licences ("Runner1928 · CC BY-SA 3.0").
   const year = image.caption.match(/(?:19|20)\d{2}/)?.[0];
   const withYear = (label: string) => `${label}${year ? ` · ${year}` : ''}`;

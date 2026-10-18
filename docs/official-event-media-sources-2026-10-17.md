@@ -6,7 +6,7 @@ Result: **1 of 1 file downloaded, 1 shipped.** No image was generated, and none 
 
 ## How it is wired
 
-Same as 2026-10-16: one record in `src/data/official-event-media.json` (English in `official-event-media-en.json`), `OFFICIAL_EVENT_IMAGE_UPDATES` gives the event its `official-<event id>` key, and `getImageProvenance` labels it 官方图 / Official image / 官方圖 because both credits say 官方 / official. The download record (original URL, retrieval time, SHA-256) is in `scripts/data/official-event-media-downloads.json`, outside the bundle. The key has `coverOk: true` in `src/data/media-rights-overlay.json`; the rungs come from `npm run images:variants`. It is a photo (`kind: "photo"`) with a crop focus.
+Same as 2026-10-16: one record in `src/data/official-event-media.json` (English in `official-event-media-en.json`), `OFFICIAL_EVENT_IMAGE_UPDATES` gives the event its `official-<event id>` key, and `getImageProvenance` labels it 官方图 · 2025 往届 / Official image · 2025 / 官方圖 · 2025 往屆: official because both credits say 官方 / official, and with the edition year because the caption names it ("2025 往届"); cards and the detail hero show no caption, so the badge carries the owner's 往届 condition there too. The download record (original URL, retrieval time, SHA-256) is in `scripts/data/official-event-media-downloads.json`, outside the bundle. The key has `coverOk: true` in `src/data/media-rights-overlay.json`; the rungs come from `npm run images:variants`. It is a photo (`kind: "photo"`) with a crop focus.
 
 ## Rights
 

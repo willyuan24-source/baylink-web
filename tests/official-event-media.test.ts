@@ -110,7 +110,11 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.deepEqual(new Map(batch1017.map(record => [record.eventId, record.artwork])), BATCH_1017, 'the 2026-10-17 batch is exactly the 1 approved image');
   assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length + batch1017.length);
   // A past parade's photo on the 2027 parade: the caption names its year and says it is not the 2027 parade.
-  assert.match(officialEventMedia.find(record => record.eventId === 'sf-chinese-new-year-parade-2027')!.caption, /2025 往届.*不是 2027 年的现场/);
+  const parade = officialEventMedia.find(record => record.eventId === 'sf-chinese-new-year-parade-2027')!;
+  assert.match(parade.caption, /2025 往届.*不是 2027 年的现场/);
+  // Cards and the hero show no caption, so the badge names the edition too (owner's approval: 往届 · 官方图).
+  assert.equal(getImageProvenance(GUIDE_IMAGES[parade.key]), '官方图 · 2025 往届');
+  assert.equal(getImageProvenance(GUIDE_IMAGES[parade.key], true), 'Official image · 2025');
   // SF Opera names no illustrator for its season artwork; the Cory Weaver credit on the same page is for production photos.
   assert.equal(officialEventMedia.find(record => record.eventId === 'sf-opera-manon-2026')?.credit, 'SF Opera 官方主视觉');
   assert.match(officialEventMedia.find(record => record.eventId === 'november-north-sonoma-harvest-market-2026')!.credit, /摄影 Melania Mahoney$/);
@@ -165,8 +169,10 @@ test('every event in the set resolves to its official image, labelled 官方图,
     const image = getListingImage(record.key);
     assert.ok(image, `${record.key}: cards and the detail page resolve it`);
     assert.equal(image.kind, record.kind, `${record.key}: pages read the registry kind`);
-    assert.equal(getImageProvenance(image), '官方图');
-    assert.equal(getImageProvenance(image, true), 'Official image');
+    // A caption that names the edition ("2025 往届") puts its year on the badge; every other official image reads 官方图.
+    const edition = record.caption.match(/((?:19|20)\d{2}) ?年?往[届屆]/)?.[1];
+    assert.equal(getImageProvenance(image), edition ? `官方图 · ${edition} 往届` : '官方图', record.key);
+    assert.equal(getImageProvenance(image, true), edition ? `Official image · ${edition}` : 'Official image', record.key);
     for (const field of ['src', 'width', 'height', 'alt', 'caption', 'credit', 'creditUrl', 'fullFrame', 'focal', 'rights'] as const) {
       assert.deepEqual((image as Record<string, unknown>)[field], (record as Record<string, unknown>)[field], `${record.key}: ${field}`);
     }
@@ -212,7 +218,8 @@ test('official image text is complete in English, in the scoped dictionaries and
   await loadLocale('zh-Hant');
   for (const record of officialEventMedia) {
     const image = GUIDE_IMAGES[record.key];
-    assert.equal(translateText(getImageProvenance(image), 'zh-Hant'), '官方圖');
+    const edition = image.caption.match(/((?:19|20)\d{2}) ?年?往[届屆]/)?.[1];
+    assert.equal(translateText(getImageProvenance(image), 'zh-Hant'), edition ? `官方圖 · ${edition} 往屆` : '官方圖', record.key);
     assert.match(translateText(image.caption, 'zh-Hant'), /官方宣傳圖|活動官方照片/, record.key);
   }
 });
