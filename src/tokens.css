@@ -156,6 +156,11 @@ html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-ro
 html { font-size:100%; }
 html[data-reading=large] { font-size:112.5%; --fluid-scale:1.125; }
 html[data-reading=extra-large] { font-size:125%; --fluid-scale:1.25; }
+/* 大 / 特大 below a desktop keep the heading steps they had before tokens v2 (title 26, section 22px x the Aa factor:
+   32.5 / 27.5px at 特大), so an elder's headings never get smaller than on the old ladder (24 / 20 would give 30 / 25).
+   The two values replace the ladder's 24 / 20 at these sizes, so the step count stays the same. 简洁显示 sets its own,
+   larger steps below. */
+@media(max-width:1023px) { html:is([data-reading=large],[data-reading=extra-large]):not([data-simple]) { --fs-section:1.375rem; --fs-title:1.625rem; } }
 /* 简洁显示 (适合长辈, design.md §4.16): every line of text at least 16px — the build turns each smaller relative size into
    max(size, var(--text-floor)), scripts/postcss-text-floor.mjs — body copy 18/20px, 48px targets and a 76px tab bar
    with 16px labels. Nothing here applies until html[data-simple] is set. */
