@@ -84,6 +84,7 @@ export const publicServiceGuides: Guide[] = [
       { type: 'paragraph', text: '2026 年 1 月 1 日起，Medi-Cal 重新计算资产，只适用于这几类人：65 岁及以上、有残障、住护理院，或家庭收入按联邦税务规则算太高、要走其他资格规则的人；收入规则没有变。到 2027 年 6 月 30 日为止，上限是一人 $130,000，家里每多一人加 $65,000；2027 年 7 月 1 日起降为一人 $21,000、两人 $31,000，之后每多一人加 $1,550。两个时段都最多按 10 人计算，同住的成年子女不算在家庭人数里。自住房、一辆主要用车和家具衣物不计入。' },
       { type: 'paragraph', text: 'Medicare Savings Programs 由州判断资格，可帮付 Medicare 保费，有时也帮付自付额和共付额。Medicare.gov 建议：就算觉得自己不符合，也去申请。药费 Extra Help 请 HICAP 咨询员一起看。' },
       { type: 'link', title: '从 DHCS 申请 Medi-Cal', text: '网上、电话、邮寄或到县办公室。', url: 'https://www.dhcs.ca.gov/medi-cal/apply/' },
+      { type: 'link', title: '假日去县福利办公室之前', text: '感恩节到元旦，九个县的社会服务办公室和社安局开不开门。', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026' },
       { type: 'template', title: '给 HICAP 的预约说明', text: '我住在___县，正在为自己／父母办 Medicare。生日月份是___，现在的保险是___，预计___结束。想问报名期限、医生和药物覆盖，以及保费帮助。可以安排中文或口译吗？需要带哪些材料？' },
       { type: 'tip', title: '咨询前保护自己的资料', text: '电话号码从官方页面查。Medicare 号码、证件、完整生日、收入证明和保险卡照片只交给官方机构，别发到公开帖子。' },
     ],

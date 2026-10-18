@@ -55,6 +55,7 @@ export const benefitsCitizenshipGuides: Guide[] = [
       { type: 'heading', text: '第四步：带着清单联系 SSA，可以要求口译' },
       { type: 'paragraph', text: 'SSA 的电话和办公室都提供免费口译。拨打 1-800-772-1213，跟接线员说需要中文口译；要不要预约、带哪些证明，按 SSA 给你的说明准备。家属可以帮忙整理问题，账号和申请资料由本人或获授权的人保管。' },
       { type: 'link', title: '查看 SSA 免费口译与联系说明', text: '官方联系方式和预约安排。', url: 'https://www.ssa.gov/multilanguage/interpreter.html' },
+      { type: 'link', title: '感恩节到元旦，社安局哪天关门', text: '社安局、DMV、县福利窗口、图书馆和公交在六个假日的安排。', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026' },
       { type: 'template', title: '咨询退休福利时这样问', text: '我希望从___月开始领取，出生年份是___，目前工作情况是___。请问工作记录是否完整、可以查看哪些个人估算？本人福利和家庭福利分别要看什么？继续工作、Medicare 报名或境外居住会影响哪些步骤？需要什么材料，能否安排中文口译？' },
       { type: 'tip', title: '资料只交给 SSA', text: '社安号码、完整生日、银行账号和福利通知只交给 SSA，别发到公开帖子。网上的“统一月领金额”和“保证申请成功”都不算数，金额和资格由 SSA 对你本人决定。' },
     ],

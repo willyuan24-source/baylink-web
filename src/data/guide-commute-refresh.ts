@@ -55,6 +55,7 @@ export const commuteGuide: Guide = {
       'BART：2026 年 6 月通过的 2026–27 财年预算（2026 年 7 月 1 日到 2027 年 6 月 30 日）不涨票价，长者、青少年、低收入和残障乘客的优惠都保留。',
       'BART 另有一份资金不足时的应急方案（2026 年 2 月董事会初步通过）：没有新资金时，2027 年 1 月起票价和停车费涨 30%，之后最多累计涨 50%，并大幅减少班次。执不执行要看 11 月的交通筹资提案和董事会之后的决定，现在不是已定的票价。',
     ] },
+    { type: 'link', title: '感恩节到元旦怎么坐车', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026', text: 'BART、Muni、Caltrain、AC Transit、VTA 在六个假日按哪种班表。' },
     { type: 'cta', title: '继续找本地通勤信息', text: '带着起终点、出行时段和试跑结果，再浏览或发布拼车、接送需求，更容易说明你真正需要的安排。', primaryLabel: '浏览通勤分类', primaryAction: 'category', categorySlug: 'ride' },
   ],
 };

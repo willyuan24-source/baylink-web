@@ -13,17 +13,24 @@ test('refreshed commute article keeps its existing route and supplies practical 
   assert.equal(guides.filter(guide => guide.slug === commuteGuide.slug).length, 1);
   assert.equal(guides.find(guide => guide.slug === commuteGuide.slug), commuteGuide);
   assert.equal(commuteGuide.priority, 'P0');
-  assert.equal(commuteGuide.updatedAt, '2026-10-07');
+  // CNT-YEAREND (2026-10-17): section 6 (2027 fares) re-dated the article; a fourth link points to the holiday hours guide.
+  assert.equal(commuteGuide.updatedAt, '2026-10-17');
   const body = texts(commuteGuide.blocks).join('\n');
   assert.match(body, /去程和回程/);
   assert.match(body, /错过一班/);
   assert.match(body, /有效车票/);
   assert.match(body, /下车刷卡/);
   assert.ok(commuteGuide.blocks.some(block => block.type === 'template' && block.text.includes('实际去程／回程总时间')));
-  assert.equal(commuteGuide.blocks.filter(block => block.type === 'link').length, 3);
-  for (const source of commuteGuide.sources) assert.ok(['www.bart.gov', 'www.caltrain.com', 'www.vta.org'].includes(new URL(source.url).hostname));
+  assert.equal(commuteGuide.blocks.filter(block => block.type === 'link').length, 4);
+  for (const source of commuteGuide.sources) assert.ok(['www.bart.gov', 'www.caltrain.com', 'www.vta.org', 'www.sfmta.com'].includes(new URL(source.url).hostname));
   assert.match(commuteGuide.sourceNote!, /没有实测你的路线/);
   assert.match(commuteGuide.sourceNote!, /只代表本篇内容更新/);
+  // 2027 fares: Caltrain's 1/1 table and tap rule, Muni's 1/4 date, and BART's budget kept apart from the conditional plan.
+  assert.match(body, /Caltrain（2027 年 1 月 1 日起）/u);
+  assert.match(body, /每次乘车都要上车刷卡、下车刷卡/u);
+  assert.match(body, /Muni（2027 年 1 月 4 日起）/u);
+  assert.match(body, /不涨票价/u);
+  assert.match(body, /现在不是已定的票价/u);
 });
 
 test('all commute copy has registered English and converts to traditional Chinese', async () => {

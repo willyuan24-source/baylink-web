@@ -63,6 +63,7 @@ export const localLifeGuides: Guide[] = [
       { type: 'paragraph', text: '需要自习、线上面试或小组讨论时，先问安静区、说话区以及房间预约规则；有座位不等于可以长时间开会。打印是否收费、电脑怎样预约，也按到访馆说明办理。Berkeley 的工具借用另有年龄及本市居住或房产条件；官网通票说明也面向 Berkeley 居民持卡者，不能由“能办卡”推出“所有权益都能用”。' },
       { type: 'heading', text: '让它变成可持续的小习惯' },
       { type: 'paragraph', text: '试着留一个固定的到馆窗口：归还一本书、查一次活动、完成一个学习任务就回家。带孩子时让孩子自己选一个小目标；找学习搭子则先约公共区域短时见面，说明希望安静共读还是交流练习。不要把私人约定写成图书馆主办活动，也不要占用未预约的房间。' },
+      { type: 'link', title: '感恩节到元旦，图书馆哪天闭馆', text: '八个图书馆系统的闭馆和提前关门日。', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026' },
       { type: 'cta', title: '找一个节奏相近的学习搭子', text: '写清希望见面的城市或图书馆、可约时间、学习主题和交流方式；具体场地先自己问清楚。', primaryLabel: '发布学习搭子需求', primaryAction: 'post', postType: 'client', postCategorySlug: 'other' },
     ],
   },

@@ -140,6 +140,7 @@ export const elderGuides2026: Guide[] = [
       { type: 'paragraph', text: '因为残障或健康原因没法自己坐公交、地铁的人，可以申请 ADA 辅助交通：预约厢型车或出租车接送。旧金山是 SF Paratransit：一般问题打 415.351.7000（周一到周五 9:00–16:45），SF Access 预约打 415.285.6945 按 2（每天 7:00–18:00）。东湾是 AC Transit 和 BART 合办的 East Bay Paratransit：(510) 287-5000，服务时间跟公交和 BART 运营时间一致，范围在公交线路或 BART 站 3/4 英里以内，官网有中文乘客指南。其他县问当地公交公司的辅助交通部门。' },
       { type: 'tip', title: '家里 19–64 岁的成员', text: 'Clipper START 坐湾区公共交通单程五折，三个条件一起看：住在湾区、19–64 岁、家庭税前收入不超过上限（领 CalFresh 的人自动符合）。2026 年的上限是一人家庭 $31,920，按联邦贫困线 200% 计算；2027 年的上限还没公布。网上申请，上传身份和收入证明，处理最长要 30 天。旧金山的 Lifeline 月票 2027 年 1 月 1 日起并入 Clipper START。' },
       { type: 'template', title: '替父母询问辅助交通资格', text: '您好，我替父亲／母亲询问 ADA 辅助交通。他／她住在___市，___岁，因为___没法自己坐公交。请问怎样申请资格评估？要填什么表、要不要医生证明？可以安排普通话／粤语翻译吗？' },
+      { type: 'link', title: '感恩节到元旦怎么坐车', text: 'BART、Muni、Caltrain、AC Transit、VTA 在六个假日按哪种班表。', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026' },
       { type: 'link', title: '没有车怎么在湾区生活', url: '/guides/bay-area-without-car-guide', text: 'BART 运营时间、Clipper 和晚归、买菜的安排。' },
       { type: 'cta', title: '帮长辈把卡办好', text: '再看长者服务和防诈骗指南，把常用电话存进长辈手机。', primaryLabel: '查看更多长辈指南', primaryAction: 'guides' },
     ],

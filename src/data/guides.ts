@@ -6,6 +6,7 @@ import { dentalSeniorServiceGuides } from './guides-dental-senior-services';
 import { elderGuides2026 } from './guides-elders-2026-10';
 import { archivedGuides } from './guides-archives';
 import { november2026Guides } from './november-2026-guides';
+import { holidayHoursGuides2026 } from './holiday-hours-2026-guide';
 import { octnov2026Guides } from './octnov-2026-refresh';
 import { novemberNorthGuides } from './november-refresh-north-guides';
 import { novemberPeninsulaSouthGuides } from './november-refresh-peninsula-south-guides';
@@ -1952,6 +1953,7 @@ export const guides: Guide[] = [
   ...shoppingGuides,
   ...cityExplorationGuides,
   ...november2026Guides,
+  ...holidayHoursGuides2026,
   ...octnov2026Guides,
   ...novemberNorthGuides,
   ...novemberPeninsulaSouthGuides,

@@ -19,7 +19,9 @@ test('benefits and citizenship advice retains official sources and consultation 
     for (const source of guide.sources) {
       const url = new URL(source.url);
       assert.equal(url.protocol, 'https:');
-      assert.ok(url.hostname === expectedDomain || url.hostname.endsWith(`.${expectedDomain}`), source.url);
+      // CNT-YEAREND: California's own SSI/SSP page (CDSS) explains the state supplement that SSA pays with SSI.
+      const stateSupplement = !guide.slug.includes('naturalization') && url.hostname === 'www.cdss.ca.gov' && url.pathname === '/inforesources/ssi-ssp';
+      assert.ok(stateSupplement || url.hostname === expectedDomain || url.hostname.endsWith(`.${expectedDomain}`), source.url);
     }
     assert.match(guide.sourceNote || '', /不.*(?:判断资格|资格结论)/u);
     assert.ok(guide.blocks.some(block => block.type === 'template'));
