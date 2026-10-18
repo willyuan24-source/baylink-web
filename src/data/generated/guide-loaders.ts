@@ -52,6 +52,7 @@ export const guideLoaders: Record<string, () => Promise<{ default: unknown }>> =
   "bay-area-freebies-deals-2026-11": () => import("./guides/bay-area-freebies-deals-2026-11.json"),
   "bay-area-november-first-half-planner-2026": () => import("./guides/bay-area-november-first-half-planner-2026.json"),
   "bay-area-november-resident-dates-2026": () => import("./guides/bay-area-november-resident-dates-2026.json"),
+  "bay-area-holiday-hours-thanksgiving-new-year-2026": () => import("./guides/bay-area-holiday-hours-thanksgiving-new-year-2026.json"),
   "sf-autumn-art-half-day-2026": () => import("./guides/sf-autumn-art-half-day-2026.json"),
   "east-bay-redwoods-green-friday-2026": () => import("./guides/east-bay-redwoods-green-friday-2026.json"),
   "half-moon-bay-autumn-coast-2026": () => import("./guides/half-moon-bay-autumn-coast-2026.json"),

@@ -64,6 +64,7 @@ export const englishScopeLoaders = {
   "guide:bay-area-freebies-deals-2026-11": () => import("./english-scopes/guide-bay-area-freebies-deals-2026-11.json"),
   "guide:bay-area-november-first-half-planner-2026": () => import("./english-scopes/guide-bay-area-november-first-half-planner-2026.json"),
   "guide:bay-area-november-resident-dates-2026": () => import("./english-scopes/guide-bay-area-november-resident-dates-2026.json"),
+  "guide:bay-area-holiday-hours-thanksgiving-new-year-2026": () => import("./english-scopes/guide-bay-area-holiday-hours-thanksgiving-new-year-2026.json"),
   "guide:sf-autumn-art-half-day-2026": () => import("./english-scopes/guide-sf-autumn-art-half-day-2026.json"),
   "guide:east-bay-redwoods-green-friday-2026": () => import("./english-scopes/guide-east-bay-redwoods-green-friday-2026.json"),
   "guide:half-moon-bay-autumn-coast-2026": () => import("./english-scopes/guide-half-moon-bay-autumn-coast-2026.json"),

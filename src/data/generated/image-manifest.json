@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "38ca91b3",
- "registryCount": 387,
+ "registryHash": "de7046a2",
+ "registryCount": 388,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -8992,6 +8992,46 @@
     "/guides/official-events/sf-bay-beats-bandshell-oct24-2026-small.webp 480w",
     "/guides/official-events/sf-bay-beats-bandshell-oct24-2026-800.webp 800w",
     "/guides/official-events/sf-bay-beats-bandshell-oct24-2026-1200.webp 1080w"
+   ]
+  },
+  "/guides/official-events/sf-chinese-new-year-parade-2027.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 199792,
+   "sha1": "8857570b6f4d93e3",
+   "lqip": "#544",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sf-chinese-new-year-parade-2027-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 28360
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/sf-chinese-new-year-parade-2027-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 56056,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/sf-chinese-new-year-parade-2027-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 95880,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sf-chinese-new-year-parade-2027-small.webp 480w",
+    "/guides/official-events/sf-chinese-new-year-parade-2027-800.webp 800w",
+    "/guides/official-events/sf-chinese-new-year-parade-2027-1200.webp 1200w"
    ]
   },
   "/guides/official-events/sf-fall-show-oct15-18-2026.webp": {
