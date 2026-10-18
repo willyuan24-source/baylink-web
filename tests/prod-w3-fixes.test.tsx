@@ -294,7 +294,8 @@ test('small fixes: the offer page title in display case, the price never clipped
   const meta = JSDOM.fragment(renderToStaticMarkup(<p className="ui-feed-card__meta"><EventMeta event={priced} /></p>));
   assert.ok(meta.querySelector('.ui-meta-place') && meta.querySelector('.ui-meta-price strong'), 'place and price are separate pieces');
   assert.match(meta.textContent!, / · 免费$/);
-  assert.equal(declarations('src/components/ui/ui.css', '.ui-meta-price').flex, 'none', 'the price never shrinks');
+  // The meta is a wrapping line now (UI9-F: no flex parent, so flex:none is gone): the price moves down whole, never split.
+  assert.equal(declarations('src/components/ui/ui.css', '.ui-meta-price')['white-space'], 'nowrap', 'the price is never split');
   const { MeTiles } = await import('../src/features/profile/MeHub');
   const tiles = (signedIn: boolean) => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/me"><MeTiles signedIn={signedIn} messagesCount={0} savedCount={null} onMyPosts={() => {}} onLogin={() => {}} /></StaticRouter>));
   assert.equal(tiles(false).querySelector('a[href="/messages"]')!.hasAttribute('data-primary'), false);

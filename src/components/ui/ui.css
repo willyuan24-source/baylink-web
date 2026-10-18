@@ -216,7 +216,7 @@
 .ui-feed-card__meta { color:var(--color-ink-2); }
 .ui-feed-card__meta strong { color:var(--color-brand); font-weight:600; }
 /* "place · price": status and venue are never cut; the meta wraps to a second line and the price stays whole. */
-.ui-meta-price { flex:none; white-space:nowrap; }
+.ui-meta-price { white-space:nowrap; }
 .ui-meta-sep { white-space:pre; }
 .ui-feed-card__trust { display:flex; align-items:center; gap:4px; color:var(--color-ink-3); }
 .ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
