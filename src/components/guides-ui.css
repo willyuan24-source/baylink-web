@@ -499,6 +499,9 @@
   .bl-guide-cta h3 {
     font-size: 1.125rem;
   }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .bl-guide-cta h3 {
+    font-size: var(--fs-section);
+  }
   .bl-guide-cta-choices {
     grid-template-columns: 1fr;
   }

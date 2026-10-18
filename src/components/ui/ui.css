@@ -264,6 +264,8 @@
 /* The thumb is drawn 4px inside the track; ::before gives each radio the track's full height (44px, 48 in simple mode)
    and half of each 4px gap, so no tap on the control lands between radios. No overflow on the item: it would clip it. */
 .ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:.875rem; line-height:1.25; font-weight:400; cursor:pointer; }
+/* 大 / 特大 (elder rule, UI9-F-M): the segment labels never get smaller than before tokens v2 (15px x the Aa factor). */
+html:is([data-reading=large],[data-reading=extra-large]) .ui-segmented__item { font-size:var(--fs-body); }
 .ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
 .ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 /* The checked segment keeps a cue that is not only colour: a control edge (3.26:1 on the sunken track, WCAG 1.4.11) and 600. */

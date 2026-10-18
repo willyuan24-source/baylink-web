@@ -254,4 +254,5 @@
 @media (prefers-reduced-motion:reduce) { .planner-page * { scroll-behavior:auto!important; transition:none!important; } }
 @media (min-width:1024px) {
   .planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { min-height:var(--control-height); font-size:.875rem; }
+  html:is([data-reading=large],[data-reading=extra-large]) :is(.planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button)) { font-size:var(--fs-body); }
 }
