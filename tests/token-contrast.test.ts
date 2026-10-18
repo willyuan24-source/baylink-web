@@ -212,7 +212,9 @@ test('简洁显示 only raises: every --fs-* step is at least the standard step,
 });
 
 test('share cards read the category map and the inks of the token sheet (--tc-* pairs, --color-ink*)', async () => {
-  const { CARD_PALETTE } = await import('../src/lib/share-card-svg');
+  const { CARD_CHANNELS, CARD_INK, CARD_PALETTE } = await import('../src/lib/share-card-svg');
+  // Every channel the cards carry is the sheet's own.
+  for (const [name, channels] of Object.entries(CARD_CHANNELS)) assert.equal(channels, rgbOf(name).join(' '), `--color-${name}-rgb`);
   const hex = (rgb: number[]) => `#${rgb.map(value => value.toString(16).padStart(2, '0')).join('')}`.toUpperCase();
   const tc = new Map<string, string>();
   postcss.parse(tokensCss).walkDecls(/^--tc-[a-z]+-(bg|fg)$/, declaration => { if ((declaration.parent as postcss.Rule).selector === ':root') tc.set(declaration.prop, declaration.value.trim()); });
@@ -221,10 +223,9 @@ test('share cards read the category map and the inks of the token sheet (--tc-* 
     assert.ok(token, `--tc-${tone}-${side} reads a palette colour`);
     assert.equal(pair[side].toUpperCase(), hex(rgbOf(token)), `${tone} ${side}`);
   }
-  for (const file of ['src/lib/share-card-svg.ts', 'src/lib/weekly-card-svg.ts']) {
-    const source = readFileSync(file, 'utf8');
-    for (const [name, token] of [['INK', 'ink'], ['INK_2', 'ink-2'], ['INK_3', 'ink-3'], ['BRAND', 'brand']]) {
-      assert.equal(new RegExp(`(?:const |, )${name} = '(#[0-9A-Fa-f]{6})'`).exec(source)?.[1].toUpperCase(), hex(rgbOf(token)), `${file} ${name}`);
-    }
+  for (const [key, token] of [['ink', 'ink'], ['ink2', 'ink-2'], ['ink3', 'ink-3'], ['brand', 'brand'], ['brandDeep', 'brand-deep'], ['paper', 'bg']] as const) {
+    assert.equal(CARD_INK[key], hex(rgbOf(token)), `CARD_INK.${key}`);
   }
+  // Both card renderers take their inks from CARD_INK rather than hex literals of their own.
+  for (const file of ['src/lib/share-card-svg.ts', 'src/lib/weekly-card-svg.ts']) assert.doesNotMatch(readFileSync(file, 'utf8'), /\bINK(?:_2|_3)? = '#/, file);
 });
