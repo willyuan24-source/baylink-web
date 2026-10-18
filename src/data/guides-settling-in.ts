@@ -108,6 +108,7 @@ export const settlingInGuides: Guide[] = [
         '路考另外预约；考试用车要通过 DMV 的车辆安全检查。',
         '需要语言或无障碍协助，提前问 DMV。',
       ] },
+      { type: 'link', title: '感恩节到元旦，DMV 哪天关门', text: 'DMV、社安局、县福利窗口、图书馆和公交在六个假日的安排。', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026' },
       { type: 'template', title: '向 DMV 核对办理材料的问题清单', text: '我的办理目的：[驾照／普通 ID／REAL ID]\n现有驾照情况：[无／美国其他州／其他国家／已有加州证件]\n准备办理的业务：[首次申请／续期／补卡／信息更新]\n想确认的问题：\n1. 我应选择哪个申请和预约入口？\n2. [描述文件类型，不写证件号码] 是否符合所选卡种的材料要求？\n3. 姓名／地址存在 [简述差异]，需要什么衔接文件？\n4. 到场还需带哪些原件？考试或语言协助是否需要另约？\n此清单用于整理向 DMV 的问题，不作为申请表或资格证明。' },
       { type: 'cta', title: '需要安排办事当天的交通？', text: '确认预约后，可按城市、日期、人数和往返需求发布接送信息。平台接送不替代 DMV 路考车辆、保险或陪同资格要求。', primaryLabel: '发布办事接送需求', primaryAction: 'post', postType: 'client', postCategorySlug: 'ride' },
     ],

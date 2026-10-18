@@ -1,0 +1,34 @@
+[
+  {
+    "id": "smcl-portola-valley-sewing-machine-basics-2026",
+    "kind": "event",
+    "startDate": "2026-11-07",
+    "endDate": "2027-01-02",
+    "occurrenceDates": [
+      "2026-11-07",
+      "2026-12-05",
+      "2027-01-02"
+    ],
+    "verifiedAt": "2026-10-17",
+    "imageKey": "",
+    "region": "peninsula",
+    "category": "family",
+    "cost": "free",
+    "costLabel": "图书馆活动免费；要报名",
+    "sourceLabel": "圣马刁县图书馆活动页（Portola Valley 分馆，12/5 场）",
+    "title": "Portola Valley 图书馆缝纫机基础课：零基础学设置和使用",
+    "dateLabel": "11/7、12/5、1/2 · 周六 14:00–16:00，分两段各一小时",
+    "city": "Portola Valley",
+    "venue": "Portola Valley 图书馆 · 765 Portola Road, Portola Valley, CA 94028",
+    "summary": "圣马刁县图书馆 Portola Valley 分馆的缝纫机基础课，教完全没用过或很少用过缝纫机的人怎么设置和使用机器；7 岁以上的孩子可以在负责照顾的大人陪同下参加。",
+    "plan": [
+      "两个小时分成两段，每段一小时，每人只报一段；机器有限，一家报一个名、合用一台。",
+      "报名：11/7 那场 10/17 起、12/5 那场 11/14 起，到 Portola Valley 图书馆现场报名；1/2 那场用活动页上的网上表格报名。"
+    ],
+    "audience": [
+      "大人和由大人陪同的孩子",
+      "想学用缝纫机的初学者"
+    ],
+    "officialUrl": "https://smcl.bibliocommons.com/events/6a3eee270e851028002d771d"
+  }
+]

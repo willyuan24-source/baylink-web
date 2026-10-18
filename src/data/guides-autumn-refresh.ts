@@ -7,7 +7,7 @@ export const autumnRefreshGuides: Guide[] = [
     "emoji": "💳",
     "title": "十月坐 Muni 怎么付款：单程票已退出 MuniMobile，换乘先选对卡",
     "subtitle": "银行卡可付成人票，青年与长者优惠仍要使用对应 Clipper",
-    "summary": "9 月 1 日起的新变化直接影响十月出行：MuniMobile 不再销售单程票，日票等仍在。整理银行卡感应支付、两小时跨机构换乘和优惠卡的区别。",
+    "summary": "9 月 1 日起的新变化直接影响十月出行：MuniMobile 不再销售单程票，日票等仍在。整理银行卡感应支付、两小时跨机构换乘和优惠卡的区别，以及 2027 年 1 月 1 日、3 日、4 日三个分开的变化。",
     "category": "commute",
     "categoryLabel": "十月交通更新",
     "audience": [
@@ -28,9 +28,9 @@ export const autumnRefreshGuides: Guide[] = [
       "other"
     ],
     "readMinutes": 4,
-    "updatedAt": "2026-09-23",
+    "updatedAt": "2026-10-17",
     "editionMonth": "2026-10",
-    "sourceNote": "交通付款规则核对于 2026 年 9 月 23 日。以下区分已生效变化与仍在销售的票种；行程和选卡顺序为 BAYLINK 编辑建议，票价与资格以运营方现行页面为准。",
+    "sourceNote": "交通付款规则核对于 2026 年 9 月 23 日；2026 年 10 月 17 日读取 SFMTA 的 MuniMobile、Lifeline 页面和 2027 年 1 月 4 日起的票价表。以下区分已生效变化与仍在销售的票种；行程和选卡顺序为 BAYLINK 编辑建议，票价与资格以运营方现行页面为准。",
     "sources": [
       {
         "title": "SFMTA：MuniMobile 退场安排",
@@ -56,12 +56,22 @@ export const autumnRefreshGuides: Guide[] = [
         "title": "MTC：2026 年 9 月 Clipper 迁移进展",
         "url": "https://mtc.ca.gov/news/report-commission-september-23-2026",
         "description": "确认既有卡仍在迁移，不能假设所有旧卡已具有新系统优惠。"
+      },
+      {
+        "title": "SFMTA：2027 年 1 月 4 日起的票价表",
+        "url": "https://www.sfmta.com/media/44859/download?inline=",
+        "description": "董事会 2026 年 4 月 21 日通过（议程文件第 38 页）：成人、长者、月票、一日票和缆车的新票价。"
+      },
+      {
+        "title": "SFMTA：Lifeline 月票并入 Clipper START",
+        "url": "https://www.sfmta.com/fares/lifeline-pass",
+        "description": "2027 年 1 月 1 日起改用 Clipper START；12 月 1 日或之前申请。"
       }
     ],
     "blocks": [
       {
         "type": "paragraph",
-        "text": "从 2026 年 9 月 1 日起，MuniMobile 已停止销售新的单程票。十月乘车可改用 Clipper，或用带感应支付标志的银行卡支付成人票。App 在 2026 年仍销售 Muni-only Day Pass、缆车票和 Visitor Passport；停售的只是单程票，App 本身照常使用。"
+        "text": "从 2026 年 9 月 1 日起，MuniMobile 已停止销售新的单程票。十月乘车可改用 Clipper，或用带感应支付标志的银行卡支付成人票。2026 年内，App 还卖 Muni-only Day Pass、缆车票、Lifeline 月票和 1 日、3 日、7 日 Visitor Passport。SFMTA 正在分阶段关掉这个 App，预计 2027 年年中完全停用；它公布的退场计划见下面“2027 年 1 月”一节。"
       },
       {
         "type": "heading",
@@ -87,6 +97,29 @@ export const autumnRefreshGuides: Guide[] = [
         "type": "tip",
         "title": "编辑建议：出发前只做三件事",
         "text": "先给每位同行者选定付款媒介；再把去程与返程分别查好，不为追换乘优惠赶车；最后记住 Muni-only Day Pass 不含缆车，而 Visitor Passport 的适用范围不同。已有月票的人先看原有覆盖，别重复买票。"
+      },
+      {
+        "type": "heading",
+        "text": "2027 年 1 月的三个日期，分开记"
+      },
+      {
+        "type": "list",
+        "items": [
+          "1 月 1 日：Lifeline 月票并入 Clipper START。最后一期实体 Lifeline 月贴 11 月下旬开卖，用于 12 月；SFMTA 请要继续用 Lifeline 的人在 2026 年 12 月 1 日或之前申请 Clipper START 卡（处理最长 30 天），拿到卡后再买 Lifeline 月票。",
+          "1 月 3 日：按 SFMTA 公布的退场计划，MuniMobile 停卖不含缆车的一日票（Single Day Pass），停卖前买的票 30 天内有效。之后的一日票用 Clipper、Muni Metro 售票机买，或上车在投币箱买（投钱前先告诉司机）。",
+          "1 月 4 日：Muni 新票价生效。成人单程用 Clipper 从 $2.85 调到 $3.00（取消 Clipper 单程优惠，现金仍是 $3.00）；成人 M 月票 $86 → $90，含旧金山市内 BART 的 A 月票 $104 → $108；长者、残障和 Clipper START 单程 $1.40 → $1.50；长者／残障月票和 Lifeline 月票 $43 → $45；Muni 一日票（不含缆车）$5.70 → $6.00。",
+          "同样从 1 月 4 日起：缆车单程 $9 → $12；新增 Cable Car Plus 一日票 $18，1 名成人加最多 2 名 18 岁及以下的青少年，当天不限次坐缆车和其他 Muni；1 日、3 日、7 日 Visitor Passport 停用。"
+        ]
+      },
+      {
+        "type": "paragraph",
+        "text": "这些票价出自 SFMTA 董事会 2026 年 4 月 21 日通过的票价表。表里还有 2028 年 1 月 3 日的一栏，那是下一次调整；2027 年按 1 月 4 日这一栏。"
+      },
+      {
+        "type": "link",
+        "title": "Lifeline 乘客：先办 Clipper START",
+        "text": "SFMTA 的 Lifeline 页面列出申请方式和 12 月 1 日的建议期限。",
+        "url": "https://www.sfmta.com/fares/lifeline-pass"
       },
       {
         "type": "link",

@@ -18,7 +18,7 @@ import { loadLocale, translateEditorial } from '../src/i18n/locale';
 const reviewedEvents = [...sfEast, ...regional];
 
 test('new programs enter the public calendar and planner with only explicitly reviewed days', () => {
-  assert.equal(MONTHLY_EDITION.throughDate, '2027-01-03');
+  assert.equal(MONTHLY_EDITION.throughDate, '2027-02-28');
   for (const reviewed of reviewedEvents) {
     const published = MONTHLY_EVENTS.filter(event => event.id === reviewed.id);
     assert.equal(published.length, 1, reviewed.id);

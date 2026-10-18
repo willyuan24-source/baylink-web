@@ -2,6 +2,7 @@ import type { GuideEditorial } from './types';
 
 // Facts from the article (fares checked 2026-09-23 against SFMTA, Clipper and MTC pages in its sources). The 出行 topic pillar,
 // also on the 长辈与家属 hub: seniors need the discount Clipper card, a tapped bank card pays the adult fare.
+// CNT-YEAREND (2026-10-17): the three January 2027 dates (MuniMobile and Lifeline pages, the fare table effective 1/4/2027).
 export const muniClipperEditorial: GuideEditorial = {
   slug: 'bay-area-october-muni-clipper-payment-update-2026',
   cover: {
@@ -15,6 +16,7 @@ export const muniClipperEditorial: GuideEditorial = {
     { label: { zh: '普通成人', en: 'Adults' }, value: { zh: '感应银行卡、手机钱包或 Clipper 都可以', en: 'A contactless bank card, a phone wallet or Clipper' }, source: 2 },
     { label: { zh: '长者、青年', en: 'Seniors and youth' }, value: { zh: '要用对应的优惠 Clipper；直接拍银行卡按成人票', en: 'Use the matching discount Clipper; a tapped bank card pays the adult fare' }, source: 4 },
     { label: { zh: '换乘', en: 'Transfers' }, value: { zh: '两小时跨机构换乘，最高优惠 $2.85', en: 'Two-hour transfers between agencies, up to $2.85 off' }, source: 3 },
+    { label: { zh: '2027 年 1 月', en: 'January 2027' }, value: { zh: '1 月 1 日 Lifeline 并入 Clipper START；按退场计划，1 月 3 日 App 停卖一日票', en: 'January 1: Lifeline moves to Clipper START; January 3: under SFMTA’s proposed schedule, the app stops selling day passes' }, source: 1 },
   ],
   slides: [
     { kind: 'compare', kicker: { zh: '按乘客选', en: 'By rider' }, title: { zh: '谁用什么付款', en: 'Who pays with what' },
@@ -25,6 +27,13 @@ export const muniClipperEditorial: GuideEditorial = {
       ], source: 4 },
     { kind: 'point', kicker: { zh: '换乘', en: 'Transfers' }, title: { zh: '两小时内换乘有优惠', en: 'A discount within two hours' },
       body: { zh: '新一代 Clipper 和感应银行卡都可参与，最高优惠 $2.85；不是每次固定返还，也不是整天免费。旧卡先查升级状态。', en: 'New Clipper and contactless bank cards both count, up to $2.85 off; not a fixed refund every time, and not free all day. Check whether an old card has been upgraded.' }, source: 3 },
+    { kind: 'compare', kicker: { zh: '1 月 4 日起', en: 'From January 4' }, title: { zh: '2027 年 Muni 新票价', en: 'New Muni fares in 2027' },
+      items: [
+        { zh: '成人单程（Clipper）：$2.85 → $3.00；现金仍 $3.00', en: 'Adult single ride (Clipper): $2.85 → $3.00; cash stays $3.00' },
+        { zh: '长者、残障、Clipper START 单程：$1.40 → $1.50', en: 'Senior, disabled, Clipper START single ride: $1.40 → $1.50' },
+        { zh: '成人 M 月票 $86 → $90；长者／Lifeline 月票 $43 → $45', en: 'Adult M pass $86 → $90; senior / Lifeline pass $43 → $45' },
+        { zh: '缆车单程 $9 → $12；新 Cable Car Plus 一日票 $18；Visitor Passport 停用', en: 'Cable car single $9 → $12; new $18 Cable Car Plus day pass; Visitor Passports end' },
+      ], source: 6 },
     { kind: 'checklist', kicker: { zh: '出发前', en: 'Before you go' }, title: { zh: '只做三件事', en: 'Just three things' },
       items: [
         { zh: '给每位同行者选定付款卡', en: 'Pick a payment card for each rider' },
@@ -35,5 +44,6 @@ export const muniClipperEditorial: GuideEditorial = {
   steps: [
     { zh: '长者、青年要用对应的优惠 Clipper；直接拍银行卡按成人票收费。', en: 'Seniors and youth need the matching discount Clipper; a tapped bank card pays the adult fare.' },
     { zh: '两小时内跨机构换乘最高优惠 $2.85，旧卡先查升级状态。', en: 'Transfers within two hours get up to $2.85 off; check whether an old card has been upgraded.' },
+    { zh: '三个日期分开记：1 月 1 日 Lifeline 并入 Clipper START，1 月 3 日 App 按 SFMTA 公布的退场计划停卖一日票，1 月 4 日新票价生效。', en: 'Keep three dates apart: Lifeline moves to Clipper START on January 1, the app stops selling day passes on January 3 under SFMTA’s proposed schedule, new fares start January 4.' },
   ],
 };

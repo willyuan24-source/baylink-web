@@ -108,6 +108,9 @@ test('H45: a photo card puts the photo in the top 55% (1200 × 346) with its lab
     'an official image names its source, and an earlier edition its year, as the page caption does');
   const english = discoveryCardModel(event, 'en', '2026-10-12', text => text, photo);
   assert.match(english.provenance, /^Official image · (?:2025 · )?example\.org$/);
+  const edition = { ...photo, caption: '主办方活动官方照片（2025 往届游行），不是今年的现场' };
+  assert.equal(discoveryCardModel(event, 'zh-Hans', '2026-10-12', text => text, edition).provenance, '官方图 · 2025 往届 · example.org', 'a badge that names the edition does not repeat the year');
+  assert.equal(discoveryCardModel(event, 'en', '2026-10-12', text => text, edition).provenance, 'Official image · 2025 · example.org');
   assert.equal(PHOTO_BAND.width, 1200);
   assert.equal(PHOTO_BAND.height, Math.floor(630 * .55), 'the band is the top 55% of the card');
   const svg = renderShareCardSvg({ ...model, photo: 'data:image/jpeg;base64,AAAA' }, { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,');

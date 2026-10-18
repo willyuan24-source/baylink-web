@@ -1,0 +1,239 @@
+{
+  "sf-chinese-new-year-parade-2027": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "optional",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://chineseparade.com/faq/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-20",
+        "validThrough": "2027-02-20",
+        "sessions": [
+          {
+            "date": "2027-02-20",
+            "start": "17:15"
+          }
+        ]
+      }
+    }
+  },
+  "sf-chinese-new-year-flower-market-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://chineseparade.com/flowermarketfair/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-01-30",
+        "validThrough": "2027-01-31",
+        "sessions": [
+          {
+            "date": "2027-01-30",
+            "start": "10:00",
+            "end": "18:00"
+          },
+          {
+            "date": "2027-01-31",
+            "start": "09:00",
+            "end": "18:00"
+          }
+        ]
+      }
+    }
+  },
+  "sf-chinese-new-year-community-fair-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "schedule": {
+        "sourceUrl": "https://chineseparade.com/communityfair/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-20",
+        "validThrough": "2027-02-21",
+        "sessions": [
+          {
+            "date": "2027-02-20",
+            "start": "10:00",
+            "end": "16:30"
+          },
+          {
+            "date": "2027-02-21",
+            "start": "09:00",
+            "end": "17:00"
+          }
+        ]
+      }
+    }
+  },
+  "sf-choy-sun-doe-day-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "outdoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://chineseparade.com/choysundoe/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-06",
+        "validThrough": "2027-02-06"
+      }
+    }
+  },
+  "sf-lunar-new-year-basketball-jamboree-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://chineseparade.com/basketballjamboree/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-13",
+        "validThrough": "2027-02-13"
+      }
+    }
+  },
+  "sf-miss-chinatown-usa-pageant-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "programTimeUnconfirmed": true,
+      "schedule": {
+        "sourceUrl": "https://chineseparade.com/misschinatownpageant/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-19",
+        "validThrough": "2027-02-19"
+      }
+    }
+  },
+  "sf-symphony-lunar-new-year-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.sfsymphony.org/Buy-Tickets/2026-27/Lunar-New-Year",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-06",
+        "validThrough": "2027-02-06",
+        "sessions": [
+          {
+            "date": "2027-02-06",
+            "start": "17:00"
+          }
+        ]
+      }
+    }
+  },
+  "sj-cpaa-spring-festival-gala-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://www.cpaasv.org/",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-14",
+        "validThrough": "2027-02-14",
+        "sessions": [
+          {
+            "date": "2027-02-14",
+            "start": "19:00"
+          }
+        ]
+      }
+    }
+  },
+  "sunnyvale-library-aimusic-lunar-new-year-2027": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aimusic.us/upcoming.php",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-01-23",
+        "validThrough": "2027-01-23",
+        "sessions": [
+          {
+            "date": "2027-01-23",
+            "start": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "milpitas-civic-center-aimusic-lunar-new-year-2027": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "schedule": {
+        "sourceUrl": "https://aimusic.us/upcoming.php",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-01-29",
+        "validThrough": "2027-01-29",
+        "sessions": [
+          {
+            "date": "2027-01-29",
+            "start": "18:00"
+          }
+        ]
+      }
+    }
+  },
+  "sunnyvale-lakewood-aimusic-lunar-new-year-2027": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": null,
+      "reservation": "unknown",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://aimusic.us/upcoming.php",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-13",
+        "validThrough": "2027-02-13",
+        "sessions": [
+          {
+            "date": "2027-02-13",
+            "start": "14:00"
+          }
+        ]
+      }
+    }
+  },
+  "paloalto-community-threads-felt-goat-2027": {
+    "planning": {
+      "admissionUsd": null,
+      "minAge": null,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://paloalto.bibliocommons.com/events/6aceffd4ebad220045453a87",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2027-02-13",
+        "validThrough": "2027-02-13",
+        "sessions": [
+          {
+            "date": "2027-02-13",
+            "start": "15:00",
+            "end": "17:00"
+          }
+        ]
+      }
+    }
+  }
+}

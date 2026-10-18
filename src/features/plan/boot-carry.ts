@@ -1,0 +1,79 @@
+/**
+ * What the reader did on 行程's prerendered form before the workspace was in (H20, WEB-PERF-3 review): the question typed
+ * so far (a tap on an example question fills it with the chip's words) and whether the box had the focus (with the caret).
+ * From the moment 行程's route code runs (PlanWorkspaceSlot captures the prerendered page) until the workspace mounts, one
+ * listener on the document records it from whichever copy of the form is on screen: the prerendered page's own, the
+ * boot copy (app/boot-main.ts) or the slot's (PlanWorkspaceSlot). Each copy drawn again puts it back (the slot's itself,
+ * the boot copy as it appears), and the workspace reads it in its first render, then stops the listener and clears it,
+ * so the swaps from the prerendered page to the live one keep the words and the focus. A native submit (帮我挑选方案)
+ * meanwhile would reload the page and lose the words: it is held, the workspace is asked for, and the workspace sends the
+ * reader's request once it is in. Not carried: a pinyin composition still open at a swap (the IME commits it as typed),
+ * and on iOS the keyboard, which a focus outside a tap does not open again.
+ */
+export type BootCarry = { message?: string; focused?: boolean; start?: number | null; end?: number | null; submitted?: boolean };
+
+let carry: BootCarry = {};
+let stop: (() => void) | undefined;
+
+/** What the prerendered form holds so far. */
+export const bootCarry = (): BootCarry => carry;
+/** Record a change on the prerendered form. */
+export const recordBootCarry = (next: BootCarry): void => { carry = { ...carry, ...next }; };
+
+const questionBox = (target: EventTarget | null) => {
+  const element = target as HTMLTextAreaElement | null;
+  return element?.tagName === 'TEXTAREA' && element.closest('.planner-question') ? element : null;
+};
+
+/**
+ * Start recording (PlanWorkspaceSlot, when it captures the prerendered page). `onAct` is the reader's tap on an example or
+ * on 帮我挑选方案: the workspace is wanted now.
+ */
+export function watchBootForm(doc: Document, onAct: () => void): void {
+  if (stop) return;
+  const box = doc.querySelector<HTMLTextAreaElement>('.planner-question textarea');
+  // Typed before this code ran (the page was only HTML then).
+  if (box && box.value !== box.defaultValue) carry = { ...carry, message: box.value };
+  if (box && doc.activeElement === box) carry = { ...carry, focused: true, start: box.selectionStart, end: box.selectionEnd };
+  const onInput = (event: Event) => { const field = questionBox(event.target); if (field) carry = { ...carry, message: field.value, focused: true, start: field.selectionStart, end: field.selectionEnd }; };
+  const onFocus = (event: Event) => { if (questionBox(event.target)) carry = { ...carry, focused: true }; };
+  // A box taken out of the page (the next copy replaces it) keeps the focus for that copy; a blur in the page drops it.
+  // Chrome sends focusout to a focused box as it is removed, while it is still connected: decide once the swap is done.
+  const onBlur = (event: Event) => { const field = questionBox(event.target); if (field) void Promise.resolve().then(() => { if (field.isConnected) carry = { ...carry, focused: false }; }); };
+  // The boot copy (app/boot-main.ts, every page's) draws the prerendered page again as it was built: the words, the focus
+  // and the caret go back into its box as it appears, before it paints.
+  const restored = new WeakSet<HTMLTextAreaElement>();
+  const observer = typeof MutationObserver === 'undefined' ? undefined : new MutationObserver(() => {
+    const field = doc.querySelector<HTMLTextAreaElement>('.site-boot-main .planner-question textarea');
+    if (!field || restored.has(field)) return;
+    restored.add(field);
+    if (carry.message != null) field.value = carry.message;
+    if (carry.focused) { field.focus({ preventScroll: true }); if (carry.start != null) field.setSelectionRange(carry.start, carry.end ?? carry.start); }
+  });
+  observer?.observe(doc.querySelector('#root') ?? doc.documentElement, { childList: true, subtree: true });
+  const onClick = (event: Event) => {
+    const chip = (event.target as Element | null)?.closest?.('.planner-examples button');
+    const field = chip?.closest('form')?.querySelector<HTMLTextAreaElement>('.planner-question textarea');
+    if (!chip || !field) return;
+    field.value = chip.textContent ?? '';
+    carry = { ...carry, message: field.value };
+    onAct();
+  };
+  const onSubmit = (event: Event) => { if ((event.target as Element | null)?.closest?.('.planner-form')) { event.preventDefault(); carry = { ...carry, submitted: true }; onAct(); } };
+  doc.addEventListener('input', onInput, true);
+  doc.addEventListener('focusin', onFocus, true);
+  doc.addEventListener('focusout', onBlur, true);
+  doc.addEventListener('click', onClick, true);
+  doc.addEventListener('submit', onSubmit, true);
+  stop = () => {
+    observer?.disconnect();
+    doc.removeEventListener('input', onInput, true);
+    doc.removeEventListener('focusin', onFocus, true);
+    doc.removeEventListener('focusout', onBlur, true);
+    doc.removeEventListener('click', onClick, true);
+    doc.removeEventListener('submit', onSubmit, true);
+  };
+}
+
+/** The workspace has read it (its first render) and taken the focus: stop recording and forget it. */
+export const clearBootCarry = (): void => { stop?.(); stop = undefined; carry = {}; };

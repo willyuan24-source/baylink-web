@@ -6,6 +6,7 @@ import type { Preferences } from '../../lib/planner';
 import type { UserData } from '../../lib/types';
 import { translateText, useLocale } from '../../i18n/locale';
 import { profileExplorationSteps } from './profile-exploration';
+import './profile-personal-space.css';
 
 const REGIONS = [{ id: 'sf', label: '旧金山' }, { id: 'east-bay', label: '东湾' }, { id: 'peninsula', label: '半岛' }, { id: 'south-bay', label: '南湾' }, { id: 'north-bay', label: '北湾' }];
 const INTERESTS = [{ id: 'food', label: '美食' }, { id: 'outdoors', label: '户外' }, { id: 'culture', label: '文化' }, { id: 'family', label: '亲子' }];

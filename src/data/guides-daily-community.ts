@@ -56,6 +56,7 @@ export const dailyCommunityGuides: Guide[] = [
       {"title":"United Way Bay Area：获取援助","url":"https://uwba.org/get-help/","description":"解释 211 的信息转介与区域查询入口。"},
       {"title":"211 Alameda County：服务与 911 的区别","url":"https://211alamedacounty.org/about-us/what-211-does/","description":"说明非紧急资源转介、保密咨询与需求信息。"},
       {"title":"211 Alameda County：联系与接通问题","url":"https://211alamedacounty.org/find-help-information/contact-211/","description":"电话、短信和其他渠道的服务安排不同。"},
+      {"title":"加州社会服务部：CalFresh 2026–27 年度金额通知","url":"https://cdss.ca.gov/Portals/9/Additional-Resources/Letters-and-Notices/ACINs/2026/I-40_26.pdf?ver=H4zUIA8n2Aca6xBYlObOUg%3D%3D","description":"2026 年 10 月 1 日到 2027 年 9 月 30 日的最高额、收入标准和扣除额（ACIN I-40-26）。"},
     ],
     blocks: [
       {"type":"paragraph","text":"路灯不亮、找食物援助、有人突然受伤，需要的是不同入口。先判断有没有即时人身危险，再弄清问题发生在哪座城市、哪个县；你的家庭住址不一定决定负责部门。把需求说清，能少走几次转接，也便于保存后续结果。"},
@@ -67,6 +68,7 @@ export const dailyCommunityGuides: Guide[] = [
       {"type":"paragraph","text":"报修写问题地址、最近路口、道路哪一侧、发现时间和实际影响。照片只拍安全位置能看见的公共设施或现象，避开人脸、车内物品与私人文件。公开描述栏不放证件、账户或医疗信息，联系方式只填官方指定字段。保存编号，按原记录补充变化，避免重复报同一件事；收到“已转交”也继续跟进处理结果。"},
       {"type":"template","title":"城市报修说明模板","text":"问题位于［城市／地址或路口／道路一侧］。我在［日期时间］发现［具体问题］，目前影响［步行／照明／其他］。照片显示［公共设施或现象］。请确认是否由贵部门处理；若需转交，请告知正确入口及查询方式。"},
       {"type":"paragraph","text":"向 211 咨询时，先报所在县或邮编、最急的一项需求和语言；拿到转介后，再向实际机构确认预约、材料、费用与等候时间。"},
+      {"type":"tip","title":"CalFresh 食物补助的金额","text":"加州社会服务部 2026 年 9 月的通知（官网，2026-10-17）写明：CalFresh（加州的食物补助）从 2026 年 10 月起、到 2027 年 9 月底的这一年度，每月最高额是 1 人 $306、2 人 $562、3 人 $808、4 人 $1,023，已经在用。这是上限，实际金额按家庭收入和扣除额计算，由所在县的社会服务部门审核。"},
       {"type":"checklist","items":["已区分紧急危险、城市报修和生活援助。","已查清问题所在地及受理范围。","公开文字与照片不含私人敏感资料。","已保存编号或转介机构，安排后续查询。"]},
       {"type":"link","title":"按县找 211 社区资源","url":"https://211bayarea.org/","text":"选择所在县；接通或网站使用有困难，可查县运营机构。"},
       {"type":"link","title":"查看 OAK311 当前报修入口","url":"https://www.oaklandca.gov/My-Household/Report-an-Issue-OAK-311","text":"其他城市使用下方来源里的相应服务页面。"},

@@ -1,13 +1,2 @@
-@import './features/profile/privacy-security.css';
-.attraction-plan-disclosure { margin: 1rem 0; border: 1px solid var(--color-line); border-radius: 1rem; }
-.attraction-plan-disclosure > summary { min-height: 44px; display: flex; align-items: center; padding: .75rem 1rem; cursor: pointer; font-weight: 600; }
-.attraction-plan-disclosure .outing-plan { margin: 0; border: 0; }
 .baybay-feedback { display:flex; gap:.75rem; flex-wrap:wrap; align-items:center; margin-top:.75rem; }
 .baybay-feedback button { min-height:2.75rem; padding:.5rem .75rem; border:1px solid var(--color-line-strong); border-radius:.625rem; display:flex; gap:.5rem; align-items:center; }
-.home-weekly-share { margin-block:2rem; padding:1rem; border:1px solid var(--color-line-strong); border-radius:1rem; background:var(--color-surface-2); }
-.home-weekly-share a { display:inline-flex; min-height:2.75rem; align-items:center; margin-right:1rem; color:var(--color-brand); font-weight:600; text-decoration:underline; }
-.home-weekly-share p { max-width:52em; margin-top:.75rem; font-size:.875rem; color:var(--color-ink-2); }
-/* Inventory confirmation stays visible with a readable, touch-sized control. */
-.bay-confirmation-filter { display:flex; align-items:center; gap:.65rem; min-height:44px; margin:.5rem 0; font-size:1rem; }
-.bay-confirmation-filter input { width:20px; height:20px; accent-color:var(--color-baylink-green,var(--color-brand-hover)); }
-.bay-confirmation-note { font-size:.875rem; line-height:1.65; color:var(--color-ink-3); margin:0 0 .75rem; }

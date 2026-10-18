@@ -37,6 +37,7 @@ export const GUIDE_TOPIC_SLUGS: Readonly<Record<GuideTopicId, readonly string[]>
     'bay-area-first-7-30-days-action-plan-october-2026', 'bay-area-phone-bank-first-bill-guide',
     'bay-area-translation-service-guide', 'bay-area-library-starter-guide', 'bay-area-free-esl-adult-learning-guide', 'bay-area-useful-apps-platforms-guide',
     'bay-area-311-211-local-help-guide', 'bay-area-alerts-outages-first-day-checklist', 'bay-area-november-resident-dates-2026',
+    'bay-area-holiday-hours-thanksgiving-new-year-2026',
     'bay-area-part-time-job-safety-guide', 'bay-area-k12-midyear-enrollment-guide', 'sf-school-district-enrollment-guide',
     'peninsula-school-district-enrollment-guide', 'south-bay-school-district-enrollment-guide', 'east-bay-school-district-enrollment-guide',
     'north-bay-school-district-enrollment-guide',

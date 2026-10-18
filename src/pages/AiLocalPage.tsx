@@ -16,6 +16,7 @@ import { PageContainer, PageHeader } from '../components/ui/HeroCard';
 import { Button } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/States';
+import '../components/ai-local.css';
 
 const goals = [
   { id: 'all', label: '所有场次' },

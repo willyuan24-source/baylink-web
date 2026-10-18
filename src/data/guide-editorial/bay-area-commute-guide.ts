@@ -163,6 +163,10 @@ export const commuteEditorial: GuideEditorial = {
     {
       "zh": "出门前再看服务提醒，备好车票或交通卡。",
       "en": "Before leaving, recheck service alerts and have your ticket or card ready."
+    },
+    {
+      "zh": "Caltrain 1 月 1 日、Muni 1 月 4 日调价；BART 2026–27 财年不涨价，资金不足的应急方案还没决定。",
+      "en": "Caltrain fares change January 1 and Muni fares January 4; BART has no increase in fiscal 2026–27, and its shortfall plan is not decided."
     }
   ]
 };

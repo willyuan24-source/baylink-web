@@ -1,0 +1,162 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import test, { afterEach } from 'node:test';
+import { JSDOM } from 'jsdom';
+import React from 'react';
+import type { PlanCatalog } from '../src/lib/planner-source';
+import type { AppContextValue } from '../src/app/context';
+
+/**
+ * WEB-PERF-3 on 行程, the browser's path (BAYLINK_LAZY_PLAN=1, as tests/plan-lazy-path.test.tsx):
+ * - H20: a plain visit shows the header, this weekend's picks and the saved days from storage at once, and loads the
+ *   planner catalog and the workspace at the first idle moment or when the reader acts, never at boot;
+ * - H54: the page opens with this weekend's covers (the home page's snapshot), each opening its event;
+ * - H79: a ♡ in the list confirms with the site's SaveToast;
+ * - H44: the post and profile sheets are warmed by the community board, not by the app shell on every page.
+ */
+process.env.BAYLINK_LAZY_PLAN = '1';
+const dom = new JSDOM('<!doctype html><html><head></head><body><div id="root"><main data-prerender-path="/plan"><fieldset class="planner-interaction-scope"><div class="planner-data-slot" data-plan-slot=""><section id="plan-days">已排的日子</section><p id="prerendered-workspace">挑地点和活动</p></div></fieldset></main></div></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
+Object.assign(globalThis, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
+Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+const { render, act, fireEvent, cleanup, waitFor } = await import('@testing-library/react');
+const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
+const { arePlanExtrasInstalled, isPlannerCatalogInstalled } = await import('../src/lib/planner-source');
+const isPlanCatalogInstalled = () => isPlannerCatalogInstalled() && arePlanExtrasInstalled();
+const { GUEST_PLANNER_KEY } = await import('../src/lib/planner-storage-key');
+const { todayInBay } = await import('../src/lib/planner-core');
+const { getHomeWeekend } = await import('../src/lib/home-weekend');
+const { getBayAreaToday } = await import('../src/lib/monthly');
+afterEach(() => cleanup());
+
+const catalog = JSON.parse(readFileSync('src/data/generated/plan-catalog.json', 'utf8')) as PlanCatalog;
+const addDays = (day: string, days: number) => new Date(Date.parse(`${day}T12:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
+const place = catalog.places.find(item => item.id === 'golden-gate')!;
+const second = catalog.places.find(item => item.id !== place.id)!;
+const day = addDays(todayInBay(), 2);
+
+function open(search = '') {
+  return render(<MemoryRouter initialEntries={['/plan' + search]}><Routes><Route element={<Outlet context={{ openBayBay: () => {}, setShowLogin: () => {} } as unknown as AppContextValue} />}>
+    <Route path="/plan" element={<PlannerPage />} />
+  </Route></Routes></MemoryRouter>);
+}
+// The first idle moment once 行程's route code runs (after the page's first paint): held here, to show that it is what
+// starts the workspace when the reader does nothing.
+const idle: (() => void)[] = [];
+Object.assign(window, { requestIdleCallback: (callback: () => void) => idle.push(callback) });
+const { default: PlannerPage } = await import('../src/pages/PlannerPage');
+
+test('a plain visit: header, this weekend’s covers and the saved days at once; the catalog at the first idle moment', async () => {
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }, { kind: 'place', id: second.id }], version: 1, createdAt: '', updatedAt: '' }] }));
+  let view!: ReturnType<typeof open>;
+  act(() => { view = open(); });
+  assert.ok(view.getByRole('heading', { level: 1, name: '行程' }));
+  // H54: the home page's weekend snapshot, picks first, up to four cards, each a link to its event on its day.
+  const weekend = getHomeWeekend(getBayAreaToday());
+  const expected = [...weekend.picks, ...weekend.feed].slice(0, 4);
+  const strip = view.container.querySelector('.plan-weekend');
+  if (!expected.length) assert.equal(strip, null, 'no weekend events: no strip');
+  else {
+    assert.ok(strip, 'the weekend strip renders with the header');
+    assert.equal(strip!.compareDocumentPosition(view.container.querySelector('#plan-days')!) & dom.window.Node.DOCUMENT_POSITION_FOLLOWING, dom.window.Node.DOCUMENT_POSITION_FOLLOWING, 'above 已排的日子 and the planner');
+    const links = [...strip!.querySelectorAll<HTMLAnchorElement>('.ui-card-link')].map(link => link.getAttribute('href'));
+    assert.deepEqual(links, expected.map(entry => `/events/${entry.event.id}?date=${entry.date}`));
+    assert.equal(strip!.querySelector('h2')?.textContent?.startsWith('本周末精选'), true);
+    assert.ok(strip!.querySelector('a[href="/events"]'), 'and a way to every event');
+    const photos = strip!.querySelectorAll('img');
+    if (photos.length) assert.equal(photos[0].getAttribute('fetchpriority'), 'high', 'the first cover is the page’s one eager image');
+  }
+  // H20: 已排的日子 renders from storage before the catalog: the day, its title, one placeholder row per stop.
+  const days = view.getByTestId('plan-days');
+  assert.ok(days.textContent?.includes('周六金门'), days.textContent ?? '');
+  assert.equal(days.querySelectorAll('.plan-days__stops > li').length, 2);
+  assert.ok(view.getByRole('link', { name: '打开这一天' }).getAttribute('href')?.endsWith('/plan?edit=p1'));
+  // the rest of the slot is still the prerendered workspace, and nothing asked for the catalog yet
+  assert.ok(view.container.querySelector('[data-plan-slot][aria-busy="true"] #prerendered-workspace'));
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 300)); });
+  assert.equal(isPlanCatalogInstalled(), false, 'no catalog at boot');
+  assert.equal(idle.length, 1, 'every plain visit asks for it at the first idle moment once the route code runs');
+  // the idle callback (or the reader's first move, sooner) starts it
+  act(() => { idle[0](); });
+  await waitFor(() => assert.ok(view.container.querySelector('.planner-catalog')), { timeout: 20000 });
+  assert.equal(isPlanCatalogInstalled(), true);
+  assert.equal(view.container.querySelector('#prerendered-workspace'), null, 'the app’s workspace replaced the prerendered one');
+  // the full 已排的日子 now names the stops
+  await waitFor(() => assert.ok(view.getByTestId('plan-days').textContent?.includes(place.title)));
+});
+
+test('a ♡ in the list confirms with the SaveToast and its link to the saved list (H79)', async () => {
+  localStorage.clear();
+  let view!: ReturnType<typeof open>;
+  act(() => { view = open(); });
+  await waitFor(() => assert.ok(view.container.querySelector('.planner-catalog .planner-heart:not([disabled])')), { timeout: 20000 });
+  const heart = view.container.querySelector<HTMLButtonElement>('.planner-catalog .planner-heart:not([disabled])')!;
+  assert.equal(heart.getAttribute('aria-pressed'), 'false');
+  await act(async () => { fireEvent.click(heart); });
+  await waitFor(() => assert.equal(heart.getAttribute('aria-pressed'), 'true'));
+  const toast = await waitFor(() => { const found = view.getByRole('link', { name: '查看' }); return found; });
+  assert.equal(toast.getAttribute('href'), '/my-week#saved');
+  assert.ok(document.body.textContent?.includes('已收藏'));
+});
+
+test('a link that opens a plan puts 这一天的安排 first: no weekend strip above it (FC3-01)', async () => {
+  localStorage.clear();
+  let view!: ReturnType<typeof open>;
+  act(() => { view = open(`?date=${day}&stops=place:${place.id}`); });
+  assert.equal(view.container.querySelector('.plan-weekend'), null);
+  await waitFor(() => assert.ok(view.container.querySelector('.planner-plan-overview')), { timeout: 20000 });
+  assert.equal(view.container.querySelector('.planner-page section'), view.container.querySelector('.planner-plan-overview'));
+  assert.equal(view.container.querySelector('.plan-weekend'), null);
+});
+
+test('a link that opens a saved plan (?edit=) never shows the weekend strip, also while the library is read', async () => {
+  // A guest's library: ready in the workspace's first render, one commit before the plan's stops are in.
+  localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify({ preferences: {}, favorites: [], plans: [{ id: 'p1', title: '周六金门', date: day, stops: [{ kind: 'place', id: place.id }], version: 1, createdAt: '', updatedAt: '' }] }));
+  let view!: ReturnType<typeof open>;
+  let seen = false;
+  // Every inserted node, not the page at callback time: a strip put in and taken out in one flush still counts.
+  const watch = new window.MutationObserver(records => { for (const record of records) for (const node of record.addedNodes) if (node instanceof window.Element && (node.matches('.plan-weekend') || node.querySelector('.plan-weekend'))) seen = true; });
+  act(() => { view = open('?edit=p1'); });
+  watch.observe(view.container, { childList: true, subtree: true });
+  assert.equal(view.container.querySelector('.plan-weekend'), null, 'not in the first frame');
+  await waitFor(() => assert.ok(view.container.querySelector('.planner-plan-overview')), { timeout: 20000 });
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 50)); });
+  watch.disconnect();
+  assert.equal(seen, false, 'the strip was never inserted while the plan loaded');
+  assert.equal(view.container.querySelector('.plan-weekend'), null);
+});
+
+test('a question link (?q=) keeps this weekend’s picks from the first frame: the form opens, not a plan', async () => {
+  localStorage.clear();
+  const weekend = getHomeWeekend(getBayAreaToday());
+  if (![...weekend.picks, ...weekend.feed].length) return;
+  let view!: ReturnType<typeof open>;
+  act(() => { view = open('?q=' + encodeURIComponent('周六带孩子去博物馆')); });
+  assert.ok(view.container.querySelector('.plan-weekend'), 'in the first frame');
+  await waitFor(() => assert.equal(view.container.querySelector<HTMLTextAreaElement>('.planner-question textarea')?.value, '周六带孩子去博物馆'), { timeout: 20000 });
+  assert.ok(view.container.querySelector('.plan-weekend'), 'and still there with the prefilled form');
+});
+
+test('on /en the strip’s heading writes its weekend as the cards do: "Oct 17–18", not "10/17–18" (#45 reader dates)', async () => {
+  const { setLocale } = await import('../src/i18n/locale');
+  const { readerDayRange, readerMonthDay } = await import('../src/lib/event-facts');
+  const { PlanWeekendPicks } = await import('../src/features/plan/PlanWeekendPicks');
+  const snapshot = JSON.parse(readFileSync('src/data/generated/plan-weekend.json', 'utf8')) as { days: Record<string, { start: string; end: string }> };
+  const picks = snapshot.days[getBayAreaToday()];
+  if (!picks) return;
+  await act(async () => { await setLocale('en', false); });
+  try {
+    const view = render(<MemoryRouter><PlanWeekendPicks /></MemoryRouter>);
+    const kicker = view.container.querySelector('.plan-weekend .home-section-head__kicker')?.textContent;
+    assert.equal(kicker, picks.start === picks.end ? readerMonthDay(picks.start, true) : readerDayRange(picks.start, picks.end, true));
+    assert.match(kicker ?? '', /^[A-Z][a-z]{2} \d/);
+  } finally { await act(async () => { await setLocale('zh-Hans', false); }); }
+});
+
+test('the post and profile sheets are warmed by the community board, not by the shell on every page (H44)', () => {
+  const shell = readFileSync('src/app/AppLayout.tsx', 'utf8').replace(/\/\/.*$/gm, '');
+  assert.doesNotMatch(shell, /import\(['"]\.\.\/features\/posts\/PostDetailModal['"]\)/);
+  assert.doesNotMatch(shell, /import\(['"]\.\.\/features\/users\/UserProfileModal['"]\)/);
+  const board = readFileSync('src/pages/CommunityBoard.tsx', 'utf8');
+  assert.match(board, /void import\('\.\.\/features\/posts\/PostDetailModal'\)/);
+  assert.match(board, /void import\('\.\.\/features\/users\/UserProfileModal'\)/);
+});

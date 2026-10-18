@@ -1,0 +1,33 @@
+{
+  "smcl-portola-valley-sewing-machine-basics-2026": {
+    "planning": {
+      "admissionUsd": 0,
+      "minAge": 7,
+      "reservation": "required",
+      "setting": "indoor",
+      "schedule": {
+        "sourceUrl": "https://smcl.bibliocommons.com/events/6a3eee270e851028002d771d",
+        "verifiedAt": "2026-10-17",
+        "validFrom": "2026-11-07",
+        "validThrough": "2027-01-02",
+        "sessions": [
+          {
+            "date": "2026-11-07",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2026-12-05",
+            "start": "14:00",
+            "end": "16:00"
+          },
+          {
+            "date": "2027-01-02",
+            "start": "14:00",
+            "end": "16:00"
+          }
+        ]
+      }
+    }
+  }
+}

@@ -328,5 +328,10 @@
     "originalUrl": "https://www.cupertino.gov/files/assets/city/v/1/parks-and-recreation/images/mcclellan-ranch-preserve/historic-buildings/blacksmith-shop-1.jpg?dimension=pageimage&w=1280",
     "retrievedAt": "2026-10-16T15:15:25-07:00",
     "sha256": "46dbbd551ba43d3b413f1c197894b1d53292d635bc8fbc9f341d66f0aea2da7c"
+  },
+  "official-sf-chinese-new-year-parade-2027": {
+    "originalUrl": "https://chineseparade.com/wp-content/uploads/2026/02/IMG_0504.jpg",
+    "retrievedAt": "2026-10-17T17:18:35-07:00",
+    "sha256": "acd7fa2bb4ed83e5624e21409fee74e38b4b92819ba2e764e07453f8c21ad82c"
   }
 }

@@ -9,6 +9,7 @@ import { useBookingCopy } from './booking-copy';
 import { bookingError, bookingSessionKey, useBookingSession } from './booking-session';
 import { BookingStatusLabel } from './booking-shared';
 import { bookingConflicts, myBookingNeedsReply, selectMyWeekBookings } from './my-week-bookings-model';
+import './my-week-bookings.css';
 
 type Props = { user: UserData | null; onLoginNeeded: () => void; plans: SavedPlan[]; plansReady: boolean };
 export function MyWeekBookings(props: Props) { return <MyWeekBookingsSession key={bookingSessionKey(props.user)} {...props} />; }

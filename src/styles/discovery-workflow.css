@@ -3,8 +3,6 @@
 .baybay-search-modes button[aria-pressed=true] { color:white; background:var(--color-ink-2); border-color:var(--color-ink-2); }
 .baybay-search-modes>span { width:100%; color:var(--color-ink-3); font-size:.6875rem; line-height:1.7; }
 .baybay-access-label { font-size:.75rem; color:var(--color-ink-2); padding:6px 2px; }
-.baybay-retrieval { display:flex; gap:7px; align-items:flex-start; margin:10px 0 14px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.65; }
-.baybay-retrieval svg { flex-shrink:0; margin-top:2px; }
 .baybay-inline-citation { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; padding:2px 4px; border-radius:4px; background:var(--color-brand-tint); }
 .baybay-discovery { margin-top:20px; }
 .baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:7px; margin-bottom:12px; color:var(--color-ink-2); font-size:.875rem; font-weight:600; }
@@ -22,12 +20,6 @@
 .baybay-discovery-content>a,.baybay-discovery-content>button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; gap:5px; font-size:.75rem; color:var(--color-brand-hover); margin-right:8px; }
 .baybay-discovery-content>button { padding:5px 10px; border:1px solid var(--color-line-strong); border-radius:8px; }
 .baybay-discovery-note { font-size:.6875rem; color:var(--color-ink-3); line-height:1.8; margin:10px 0; }
-.baybay-web-sources { margin-top:14px; font-size:.75rem; color:var(--color-brand); }
-.baybay-web-sources summary { cursor:pointer; min-height:40px; padding:10px 0; }
-.baybay-web-sources ol { padding-left:23px; }
-.baybay-web-sources li { padding:6px 0; overflow-wrap:anywhere; }
-.baybay-web-sources a { text-decoration:underline; text-underline-offset:3px; }
-.baybay-web-sources small { display:block; font-size:var(--text-caption); color:var(--color-ink-3); text-decoration:none; }
 .baybay-task-handoff { margin-top:20px; padding:14px 16px; background:var(--color-brand-tint); border:1px solid var(--color-line); border-radius:14px; }
 .baybay-task-handoff summary { cursor:pointer; font-size:.8125rem; line-height:1.8; font-weight:600; color:var(--color-ink-2); }
 .baybay-task-handoff summary svg { display:inline; margin-left:9px; }

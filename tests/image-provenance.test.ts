@@ -30,6 +30,13 @@ test('BAYLINK 实拍 needs an own shot; 3D postcards and coded covers have their
   assert.equal(getImageProvenance({ kind: 'illustration', credit: 'BAYLINK', caption: '3D', scene3d: true }, true), '3D scene illustration');
   assert.equal(getImageProvenance({ kind: 'photo', credit: 'Organiser', caption: '2025 年活动现场', rights: { basis: 'press-kit' } }), '官方图');
   assert.equal(getImageProvenance({ kind: 'photo', credit: 'Organiser', caption: '2025 年', rights: 'CC BY 4.0 as stated' }), '照片 · 2025', 'prose rights never make an image official');
+  const edition = { kind: 'photo' as const, credit: 'Organiser 活动官方照片', caption: '主办方活动官方照片，相机记录拍摄于 2025 年 2 月 15 日（2025 往届游行），不是 2027 年的现场。', rights: { basis: 'promo-editorial' } };
+  assert.equal(getImageProvenance(edition), '官方图 · 2025 往届', 'an official photo whose caption names its edition says so on the badge');
+  assert.equal(getImageProvenance(edition, true), 'Official image · 2025');
+  assert.equal(getImageProvenance({ ...edition, caption: '2024 年往届市集的活动官方照片。' }), '官方图 · 2024 往届');
+  assert.equal(getImageProvenance({ ...edition, caption: '往届 Sunnydale 社区南瓜活动的活动官方照片（主办方网站 2024 年发布）；不是 2026 年南瓜节现场。' }), '官方图', 'a publication year is not the edition');
+  assert.equal(getImageProvenance({ ...edition, caption: '官网首页的活动官方照片（往届市集，拍摄年份未注明）；不是 2026 年 10 月 17 日现场。' }), '官方图', 'the current event’s year is not the edition');
+  assert.equal(getImageProvenance({ kind: 'photo', credit: 'Example photographer · CC BY-SA', caption: '2018 往届活动的资料照片。' }), '资料图 · 2018', 'only official images take the edition form');
   assert.equal(typeCoverProvenance(), 'BAYLINK 信息卡');
   assert.equal(typeCoverProvenance(true), 'Info card');
 });

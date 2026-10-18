@@ -22,6 +22,8 @@ const PILOTS = [
   'bay-area-chinese-language-resource-map',
   // CNT-GUIDES-3 review: the library starter guide's card leads with getting a card.
   'bay-area-library-starter-guide',
+  // CNT-YEAREND: the Thanksgiving-to-New-Year holiday hours guide.
+  'bay-area-holiday-hours-thanksgiving-new-year-2026',
 ];
 
 const articleText = (guide: Guide) => JSON.stringify([guide.title, guide.subtitle, guide.summary, guide.audience, guide.blocks, guide.sources, guide.sourceNote ?? '']);

@@ -346,14 +346,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     return () => { cancelled = true; };
   }, [threadIdParam, user, chatRetry, chatPostTitle, chatPostId]);
 
-  // 首屏空闲后预热高频弹层 chunk，让首次点击基本即开
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      void import('../features/posts/PostDetailModal');
-      void import('../features/users/UserProfileModal');
-    }, 2500);
-    return () => window.clearTimeout(id);
-  }, []);
+  // H44: the post and profile sheets are warmed by the community board (CommunityBoard.tsx), the one page that lists posts;
+  // warming them here cost every page ~31 script requests after the first paint.
 
   // G78 (api #38 contract): a reset e-mail carries its token in the fragment (#token=…), which no server log or Referer
   // sees; links already sent with ?token= keep working until the owner sets PASSWORD_RESET_LINK_STYLE=fragment (at least

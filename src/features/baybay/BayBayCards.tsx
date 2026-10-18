@@ -11,9 +11,26 @@ import { useBayBayOwner } from './save-context';
 import { SAVE_ERROR_COPY, useSave, type ServerSaveKind } from '../../lib/saves';
 import type { PlannerWebResult } from '../../lib/planner-web-search';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
+import { GUIDE_CATEGORY_TABS, type GuideCategory } from '../../data/guides';
 
 type Navigate = (path: string) => void;
 type Sources = PlannerWebResult['sources'];
+type Copy = { zh: string; en: string };
+
+/**
+ * A guide card's type is the guide's own category as the /guides tabs name it (api-bb-8 handoff): a walk or city guide
+ * reads 城市指南, never 办事指南 (API-BB-7 live check: Coyote Hills and Chinatown read 办事指南). The api's card
+ * `typeLabel` covers only place-guide cards; the site's own category covers every guide card. Chinese is the tab label
+ * itself; English is the site dictionary's entry for that label, written here so the card never waits for a guide
+ * scope (tests/baybay-plan-stops keeps both equal to /guides). Practical categories stay 办事指南.
+ */
+const GUIDE_TYPE_EN: Partial<Record<GuideCategory, string>> = {
+  city: 'City guides', events: 'Local activities', commute: 'Commuting', education: 'Schools & districts', safety: 'Safety and scam prevention',
+};
+function guideTypeLabel(category: GuideCategory): Copy {
+  const tab = GUIDE_CATEGORY_TABS.find(item => item.id === category), en = GUIDE_TYPE_EN[category];
+  return tab && en ? { zh: tab.label, en } : { zh: '办事指南', en: 'How-to guide' };
+}
 
 /** One 13px meta line: 日期 · 时段 · 费用 · 城市 (events), deadline · brand (offers), opening chip · city (openings). */
 function cardMeta(model: BayBayCardModel, today: string, english: boolean, pick: (copy: { zh: string; en: string }) => string): string {
@@ -28,7 +45,7 @@ function cardMeta(model: BayBayCardModel, today: string, english: boolean, pick:
     return [deadline ? pick(deadline.text) : undefined, brandCase(model.offer.brand)].filter(Boolean).join(' · ');
   }
   if (model.kind === 'opening') return [pick(openingChip(model.shop, today)), model.shop.city].filter(Boolean).join(' · ');
-  return pick({ zh: '办事指南', en: 'Guide' });
+  return pick(guideTypeLabel(model.guide.category));
 }
 
 function CardCover({ model, today }: { model: BayBayCardModel; today: string }) {
@@ -37,7 +54,7 @@ function CardCover({ model, today }: { model: BayBayCardModel; today: string }) 
   if (model.kind === 'event') return <EventCover {...slot} event={model.event} today={today} days={model.day ? [model.day] : []} />;
   if (model.kind === 'offer') return <OfferCover {...slot} offer={model.offer} today={today} />;
   if (model.kind === 'opening') return <OpeningCover {...slot} opening={model.shop} today={today} />;
-  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick({ zh: '办事指南', en: 'Guide' })} title={model.title} ratio="16:10" ratioLock ariaHidden />} />;
+  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} ratio="16:10" ratioLock ariaHidden />} />;
 }
 
 /** The listing a card saves, in the one save model's kinds (D19): events, offers, openings and guides. */

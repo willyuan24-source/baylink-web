@@ -67,6 +67,8 @@ export const practicalGuides: Guide[] = [
       { title: 'FTC：任务骗局如何制造赚钱假象', url: 'https://consumer.ftc.gov/consumer-alerts/2024/11/task-scams-create-illusion-making-money', description: '了解小额回款后诱导充值、解锁任务与提现的套路。' },
       { title: 'FTC：如何识别和报告假支票骗局', url: 'https://consumer.ftc.gov/articles/how-spot-avoid-and-report-fake-check-scams', description: '理解账户显示入账与支票真实有效之间的区别。' },
       { title: 'FTC：受骗后的付款与个人信息处理', url: 'https://consumer.ftc.gov/articles/what-do-if-you-were-scammed', description: '按付款方式和泄露的信息采取保护措施，找到身份盗用恢复入口。' },
+      { title: '加州劳工关系部：2027 年最低工资', url: 'https://www.dir.ca.gov/DIRNews/2026/2026-66.html', description: '2027 年 1 月 1 日起全州每小时 $17.40；本地标准更高时按本地。' },
+      { title: '加州劳工关系部：最低工资常见问题', url: 'https://www.dir.ca.gov/dlse/faq_minimumwage.htm', description: '2026 年 1 月 1 日起全州每小时 $16.90。' },
     ],
     blocks: [
       { type: 'paragraph', text: '“时间灵活、中文沟通、收入不错”可以吸引注意，却不能说明这份工作适不适合你。先把工作内容、地点、时段和报酬问具体，再决定是否约谈。信息完整不等于招聘真实，但长期回避基本问题，是继续核验或停止联系的理由。' },
@@ -81,6 +83,7 @@ export const practicalGuides: Guide[] = [
         '工具、材料、交通与其他费用由谁承担，是否要求先支付任何款项。',
         '面试或试做的内容、时长与报酬安排，开始前取得书面说明。',
       ] },
+      { type: 'tip', title: '雇员的报酬，对照最低工资', text: '加州劳工关系部官网（2026-10-17）写明：2026 年全州最低工资是每小时 $16.90；8 月 13 日的公告写明，全州最低工资从 2027 年 1 月 1 日起是每小时 $17.40。有的城市和县的本地最低工资更高，适用时雇主要按更高的标准付。' },
       { type: 'heading', text: '三种需要停下来的资金要求' },
       { type: 'list', items: [
         '先交钱才能拿到工作：招聘方以入职名额、保证金等名义收款。FTC 将付费获得工作的要求列为重要骗局信号；不要因为对方展示公司标识就继续付款。',

@@ -660,13 +660,18 @@
       "minAge": null,
       "reservation": "unknown",
       "setting": "outdoor",
-      "programTimeUnconfirmed": true,
       "schedule": {
         "sourceUrl": "https://www.losaltosparade.org/welcome",
-        "verifiedAt": "2026-10-07",
+        "verifiedAt": "2026-10-17",
         "validFrom": "2026-11-29",
         "validThrough": "2026-11-29",
-        "note": "只确认2026年11月29日日期；2026开始/结束时间、票价、预约要求均未明确，不能套用2025的时间或队列。暂无可排入时间轴的已核实时段；如预报有雨，主办方当日中午前宣布是否举行，取消不设补办日。"
+        "sessions": [
+          {
+            "date": "2026-11-29",
+            "start": "18:00"
+          }
+        ],
+        "note": "主办方 welcome 页写 18:00 从 First St 与 State St 路口出发；整张时间表标明是估计，最后一辆花车约 19:20–19:45 到终点。如预报有雨，主办方当日中午前宣布是否举行，取消不设补办日。"
       }
     }
   },

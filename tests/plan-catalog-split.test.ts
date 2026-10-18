@@ -125,8 +125,9 @@ test('every other page and lazy feature that reads the planner catalog also load
   const dynamicTargets = new Map<string, string[]>();
   for (const file of files) for (const target of edges(file).dynamic) dynamicTargets.set(target, [...(dynamicTargets.get(target) || []), file]);
   const roots = new Set<string>(['src/main.tsx', ...Object.values(PAGE_MODULES), ...dynamicTargets.keys()]);
-  // 行程 waits for the generated catalog (features/plan/plan-catalog.ts) before its workspace reads it.
-  const generated = new Set(['src/pages/PlannerPage.tsx']);
+  // 行程 waits for the generated catalog (features/plan/plan-catalog.ts) before its workspace reads it; the workspace's own
+  // chunk (H20) is loaded by plan-catalog.ts in the same Promise.all as the generated catalog.
+  const generated = new Set(['src/pages/PlannerPage.tsx', 'src/features/plan/PlannerWorkspace.tsx']);
   // Loaded on demand next to lib/planner (Promise.all): the caller loads the installer too.
   const loadedWithInstaller = new Set(['src/lib/planner-library.ts']);
   const missing: string[] = [];

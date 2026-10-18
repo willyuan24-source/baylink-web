@@ -1,17 +1,10 @@
 .reader-actions-wrap { margin: 18px 0 25px; }
-.reader-library-find { display: flex; gap: 12px; margin: 24px 0; align-items: stretch; }
-.reader-library-find label { display: flex; flex: 1; gap: 10px; align-items: center; min-width: 0; padding: 13px 16px; background: var(--color-surface); border: 1px solid var(--color-line-strong); border-radius: 12px; color: var(--color-ink-3); box-shadow: 0 3px 15px rgb(var(--color-brand-deep-rgb) / .02); }
-.reader-library-find input { min-width: 0; width: 100%; font-size: .8125rem; background: transparent; outline-offset: 4px; }
-.reader-library-find a { display: flex; align-items: center; gap: 6px; padding: 12px; color: var(--color-brand-hover); font-size: .75rem; white-space: nowrap; }
-@media(max-width:600px) { .reader-library-find { flex-wrap: wrap; gap: 4px; } .reader-library-find label { flex-basis: 100%; } .reader-library-find a { margin-left: auto; padding: 8px 2px; } }
 .reader-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
 .reader-actions button,.reader-actions a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; border: 1px solid var(--color-line); border-radius: 99px; padding: 9px 14px; background: var(--color-surface); color: var(--color-brand-hover); font-size: .75rem; font-weight: 600; }
 .reader-actions button[aria-pressed=true] { background: var(--color-brand-tint); border-color: var(--color-line-control); color: var(--color-brand-hover); }
 .reader-actions a { margin-left: auto; border-color: transparent; background: transparent; }
 .reader-actions button:hover,.reader-actions a:hover { background: var(--color-brand-tint); }
 .reader-status { margin-top: 9px; color: var(--color-ink-3); font-size: .75rem; line-height: 1.7; }
-.reader-share-fallback { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
-.reader-share-fallback input { width: 100%; min-width: 0; border: 1px solid var(--color-line-strong); border-radius: 8px; padding: 8px; font-size: .75rem; }
 .reader-shelf { margin: 26px 0; padding: 24px; background: var(--color-surface-2); border: 1px solid var(--color-line); border-radius: 22px; color: var(--color-brand-deep); }
 .reader-shelf-heading { display: flex; gap: 12px; justify-content: space-between; align-items: end; }
 .reader-eyebrow { color: var(--color-ink-3); font-size: .5625rem; font-weight: 700; letter-spacing: .15em; }

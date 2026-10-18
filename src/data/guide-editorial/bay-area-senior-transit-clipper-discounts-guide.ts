@@ -1,7 +1,8 @@
 import type { GuideEditorial } from './types';
 // Hand-maintained from here on: first drafted from the article text by a lane tool (CNT-GUIDES-2, 10-14); edit this file.
 
-// Facts from the article (Clipper, BART, SFMTA, VTA, SamTrans, AC Transit, 511 and East Bay Paratransit pages read 2026-10-14; VTA and AC Transit fares re-read 2026-10-16). 长辈与家属.
+// Facts from the article (Clipper, BART, SFMTA, VTA, SamTrans, AC Transit, 511 and East Bay Paratransit pages read 2026-10-14; VTA and AC Transit fares re-read 2026-10-16;
+// SFMTA's January 4, 2027 fare table read 2026-10-17, CNT-YEAREND). 长辈与家属.
 export const seniorTransitEditorial: GuideEditorial = {
   "slug": "bay-area-senior-transit-clipper-discounts-guide",
   "cover": {
@@ -59,8 +60,8 @@ export const seniorTransitEditorial: GuideEditorial = {
         "en": "Muni senior single ride"
       },
       "value": {
-        "zh": "$1.40（Clipper 或 MuniMobile），120 分钟内有效",
-        "en": "$1.40 on Clipper or MuniMobile, good for 120 minutes"
+        "zh": "$1.40 用 Clipper，120 分钟内有效；2027 年 1 月 4 日起 $1.50",
+        "en": "$1.40 with Clipper, good for 120 minutes; $1.50 from January 4, 2027"
       },
       "source": 3
     },
@@ -134,8 +135,8 @@ export const seniorTransitEditorial: GuideEditorial = {
           "en": "BART: 62.5% off"
         },
         {
-          "zh": "Muni：单程 $1.40，月票 $43",
-          "en": "Muni: $1.40 single ride, $43 monthly"
+          "zh": "Muni：单程 $1.40，月票 $43（2027 年 1 月 4 日起 $1.50、$45）",
+          "en": "Muni: $1.40 single ride, $43 monthly ($1.50 and $45 from January 4, 2027)"
         },
         {
           "zh": "VTA：单程 $1；日票 $3、月票 $30 用 Clipper",

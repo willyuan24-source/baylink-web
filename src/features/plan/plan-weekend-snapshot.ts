@@ -1,0 +1,41 @@
+import type { GuideImage } from '../../data/guide-media';
+import { translateText } from '../../i18n/locale';
+import { eventPlace, type EventFactsInput } from '../../lib/event-facts';
+import { GUIDE_IMAGES, HOME_WEEKENDS, type HomeEvent } from '../../lib/home-catalog';
+import { getHomeWeekend } from '../../lib/home-weekend';
+
+/**
+ * 行程's 本周末精选 (H54), generated with the home catalog (scripts/generate-plan-weekend.ts → src/data/generated/
+ * plan-weekend.json): for each day the home has a weekend snapshot, the cards 行程 shows that day — the home's picks, then
+ * its weekend list, the same order as on the home page (getHomeWeekend) — with those events, their English (the page loads
+ * only the UI pack at first, never the home's) and their images. A few KB, so /plan does not load the home catalog and the
+ * home page keeps its catalog in its own chunk.
+ */
+export const PLAN_WEEKEND_SHOWN = 4;
+
+export type PlanWeekendEvent = HomeEvent & { en: { title: string; shortTitle?: string; place: string } };
+export type PlanWeekendDay = { start: string; end: string; entries: { id: string; date: string }[] };
+export type PlanWeekendSnapshot = { days: Record<string, PlanWeekendDay>; events: Record<string, PlanWeekendEvent>; images: Record<string, GuideImage> };
+
+const HAN = /[㐀-鿿]/u;
+
+/** Builds the snapshot from the home catalog. The caller has loaded the English dictionary (loadLocale('en')). */
+export function buildPlanWeekend(): PlanWeekendSnapshot {
+  const days: Record<string, PlanWeekendDay> = {};
+  const events: Record<string, PlanWeekendEvent> = {};
+  const images: Record<string, GuideImage> = {};
+  for (const day of Object.keys(HOME_WEEKENDS).sort()) {
+    const weekend = getHomeWeekend(day);
+    const entries = [...weekend.picks, ...weekend.feed].slice(0, PLAN_WEEKEND_SHOWN);
+    days[day] = { start: weekend.start, end: weekend.end, entries: entries.map(entry => ({ id: entry.event.id, date: entry.date })) };
+    for (const { event: item } of entries) {
+      const event = item as HomeEvent;
+      if (!events[event.id]) {
+        const shortTitle = event.shortTitle ? translateText(event.shortTitle, 'en') : '';
+        events[event.id] = { ...event, en: { title: translateText(event.title, 'en'), ...(shortTitle && !HAN.test(shortTitle) ? { shortTitle } : {}), place: translateText(eventPlace(event as unknown as EventFactsInput), 'en') } };
+      }
+      if (event.imageKey && GUIDE_IMAGES[event.imageKey]) images[event.imageKey] = GUIDE_IMAGES[event.imageKey];
+    }
+  }
+  return { days, events, images };
+}

@@ -107,5 +107,12 @@ test('/en loads the UI pack with the route and the catalog’s pack with the wor
   assert.deepEqual(take(), ['discovery', 'guide-index', 'planning'], 'the packs /plan loaded before');
   const before = await chinese();
   assert.deepEqual(scoped, before, 'Chinese left on /en/plan with the catalog’s pack vs with the planning, discovery and guide-index packs');
+  // WEB-PERF-3 review: an example question fills the box in the words its chip shows (English here), not in Chinese.
+  let view!: ReturnType<typeof open>;
+  act(() => { view = open(draft); });
+  await waitFor(() => assert.ok(view.container.querySelector('.planner-examples button')), { timeout: 20000 });
+  act(() => { fireEvent.click(view.container.querySelector<HTMLButtonElement>('.planner-examples button')!); });
+  assert.equal(view.container.querySelector<HTMLTextAreaElement>('.planner-question textarea')?.value, 'Find a restaurant in San Francisco tomorrow, then explore nearby');
+  cleanup();
   await setLocale('zh-Hans', false);
 });

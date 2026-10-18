@@ -5,14 +5,14 @@
     "hexDistinct": 48,
     "fontSizePx": 0,
     "fontSizePxUnder13": 0,
-    "fontSizeUnder13": 383,
-    "radiusKinds": 66,
-    "shadowKinds": 63,
+    "fontSizeUnder13": 280,
+    "radiusKinds": 58,
+    "shadowKinds": 48,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 64,
     "baylinkClasses": 426,
     "arrowUpRight": 31,
-    "buttonLooks": 46,
+    "buttonLooks": 43,
     "englishUiUntranslated": 105,
     "lazyCssDuplicateSelectors": 0
   },
@@ -178,12 +178,9 @@
     "radius": [
       ".625rem",
       "0",
-      "0 0 9px 9px",
       "1.25rem",
-      "1.35rem",
       "100px",
       "10px",
-      "10px 10px 4px 4px",
       "11px",
       "11px 11px 0 0",
       "12px",
@@ -196,11 +193,9 @@
       "16px",
       "17px",
       "18px",
-      "18px 18px 0 0",
       "18px 18px 18px 4px",
       "18px 4px 18px 18px",
       "19px",
-      "1px",
       "1rem",
       "20px",
       "21px",
@@ -218,17 +213,14 @@
       "3px 9px 9px 3px",
       "4px",
       "4px 18px 18px 18px",
-      "4px 4px 6px 6px",
       "50%",
       "50% 65% 0 0",
       "5px",
       "5px 20px 20px",
       "6px",
       "6px 15px 15px 15px",
-      "6px 6px 2px 2px",
       "7px",
       "8px",
-      "8px 8px 2px 2px",
       "9999px",
       "999px",
       "99px",
@@ -247,27 +239,21 @@
       "0 0 0 18px rgb(var(--color-surface-rgb) / .07)",
       "0 0 0 1px var(--color-brand)",
       "0 0 0 1px var(--profile-ink)",
-      "0 0 0 22px rgb(var(--color-line-control-rgb) / .03),0 0 0 44px rgb(var(--color-line-control-rgb) / .02)",
       "0 0 0 2px var(--color-brand-tint)",
       "0 0 0 3px rgb(var(--color-brand-rgb) / .05)",
       "0 0 0 3px rgb(var(--color-brand-rgb) / .06)",
       "0 0 0 3px rgb(var(--color-brand-rgb) / .07)",
       "0 0 0 3px rgb(var(--color-line-control-rgb) / .09)",
-      "0 0 0 3px rgb(var(--color-line-strong-rgb) / .13)",
       "0 0 0 3px var(--color-brand-tint)",
       "0 0 0 3px var(--color-highlight),0 4px 12px rgb(var(--color-brand-deep-rgb) / .22)",
       "0 0 0 3px var(--ui-danger-tint)",
       "0 0 0 4px var(--color-surface)",
-      "0 0 0 5px rgb(var(--color-brand-rgb) / .15)",
-      "0 1px 3px rgb(var(--color-ink-rgb) / .05)",
       "0 1px 6px rgb(var(--color-brand-deep-rgb) / .15)",
       "0 24px 100px rgb(var(--color-ink-rgb) / .29)",
       "0 24px 90px rgb(var(--color-ink-rgb) / .25)",
       "0 25px 90px rgb(var(--color-ink-rgb) / .25)",
-      "0 2px 16px -4px rgba(23,32,42,0.05)",
       "0 2px 3px rgb(var(--color-brand-deep-rgb) / .01)",
       "0 2px 4px rgb(var(--color-brand-deep-rgb) / .02)",
-      "0 2px 4px rgba(0,0,0,0.06)",
       "0 2px 5px rgb(var(--color-brand-deep-rgb) / .04)",
       "0 2px 5px rgba(0,0,0,0.08)",
       "0 2px 8px rgb(var(--color-brand-deep-rgb) / .06)",
@@ -277,23 +263,14 @@
       "0 3px 10px rgb(var(--color-brand-deep-rgb) / .02)",
       "0 3px 12px rgb(var(--color-brand-deep-rgb) / .25)",
       "0 3px 14px rgb(var(--color-brand-deep-rgb) / .1)",
-      "0 3px 15px rgb(var(--color-brand-deep-rgb) / .02)",
-      "0 3px 8px rgba(80,60,40,0.12)",
       "0 4px 13px rgb(var(--color-ink-rgb) / .07)",
       "0 4px 14px rgb(var(--color-brand-deep-rgb) / .07)",
       "0 4px 15px rgb(var(--color-brand-deep-rgb) / .02)",
-      "0 4px 24px -6px rgba(23,32,42,0.08),0 2px 8px -2px rgba(22,166,106,0.06)",
       "0 5px 14px rgb(var(--color-brand-deep-rgb) / .03)",
-      "0 5px 18px rgb(var(--color-brand-deep-rgb) / .09)",
-      "0 5px 18px rgb(var(--color-brand-deep-rgb) / .13)",
-      "0 6px 24px rgb(var(--color-brand-hover-rgb) / .06)",
       "0 7px 20px rgb(var(--color-brand-deep-rgb) / .07)",
       "0 8px 25px rgb(var(--color-brand-deep-rgb) / .02)",
       "0 8px 30px rgb(var(--color-brand-deep-rgb) / .09)",
-      "0 9px 20px rgb(var(--color-brand-deep-rgb) / .06)",
-      "0 9px 28px rgb(var(--color-brand-deep-rgb) / .06)",
       "inset 0 0 0 1px var(--color-brand)",
-      "inset 0 0 12px rgba(255,255,255,0.6)",
       "inset 4px 0 0 var(--ui-warning,var(--color-line-strong))",
       "none",
       "tw:shadow-2xl",
@@ -310,7 +287,6 @@
     ],
     "button": [
       "var(--bay-forest) | var(--color-surface) | -",
-      "var(--color-brand) | - | -",
       "var(--color-brand) | var(--color-surface) | -",
       "var(--color-brand) | var(--color-surface) | 0",
       "var(--color-brand) | var(--color-surface) | 1px solid transparent",
@@ -327,8 +303,6 @@
       "var(--color-brand-tint) | var(--color-brand) | -",
       "var(--color-brand-tint) | var(--color-brand) | 1px solid var(--color-brand)",
       "var(--color-brand-tint) | var(--color-brand) | 1px solid var(--color-line-strong)",
-      "var(--color-brand-tint) | var(--color-ink-3) | -",
-      "var(--color-highlight) | var(--color-brand-hover) | -",
       "var(--color-info-tint) | - | -",
       "var(--color-ink-2) | white | 1px solid var(--color-ink-2)",
       "var(--color-line) | var(--color-brand) | -",
@@ -414,16 +388,10 @@
       "textArbitraryUnder13": 2
     },
     "src/components/discovery-community.css": {
-      "fontSizeUnder13": 15
-    },
-    "src/components/editorial-content.css": {
-      "fontSizeUnder13": 4
+      "fontSizeUnder13": 11
     },
     "src/components/FreebieBoard.tsx": {
       "arrowUpRight": 1
-    },
-    "src/components/guide-journal.css": {
-      "fontSizeUnder13": 9
     },
     "src/components/GuideDetail.tsx": {
       "arrowUpRight": 2
@@ -432,7 +400,7 @@
       "arrowUpRight": 1
     },
     "src/components/guides-ui.css": {
-      "fontSizeUnder13": 32
+      "fontSizeUnder13": 15
     },
     "src/components/GuideVisuals.tsx": {
       "arrowUpRight": 1
@@ -468,14 +436,8 @@
     "src/components/PostShareSheet.tsx": {
       "baylinkClasses": 11
     },
-    "src/components/product-improvements.css": {
-      "fontSizeUnder13": 8
-    },
     "src/components/reader-library.css": {
-      "fontSizeUnder13": 14
-    },
-    "src/components/school-guide-topics.css": {
-      "fontSizeUnder13": 2
+      "fontSizeUnder13": 12
     },
     "src/components/ServiceAvailabilityDraft.tsx": {
       "fontSizeUnder13": 2
@@ -519,7 +481,7 @@
       "hexOccurrences": 2
     },
     "src/design.css": {
-      "fontSizeUnder13": 55
+      "fontSizeUnder13": 10
     },
     "src/features/admin/AdminViews.tsx": {
       "baylinkClasses": 78,
@@ -539,13 +501,13 @@
       "fontSizeUnder13": 32
     },
     "src/features/bookings/my-week-bookings.css": {
-      "fontSizeUnder13": 10
+      "fontSizeUnder13": 8
     },
     "src/features/detail/DetailActionBar.tsx": {
       "arrowUpRight": 1
     },
     "src/features/member-ui.css": {
-      "fontSizeUnder13": 27
+      "fontSizeUnder13": 18
     },
     "src/features/messages/chat-ai.css": {
       "fontSizeUnder13": 13
@@ -613,7 +575,7 @@
       "arrowUpRight": 6
     },
     "src/styles/discovery-workflow.css": {
-      "fontSizeUnder13": 12,
+      "fontSizeUnder13": 11,
       "hexOccurrences": 1
     },
     "src/styles/event-import.css": {

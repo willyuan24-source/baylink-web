@@ -1,8 +1,8 @@
 import { readdir, readFile } from 'node:fs/promises';
-import { gzipSync } from 'node:zlib';
+import { brotliCompressSync, constants as zlibConstants, gzipSync } from 'node:zlib';
 import { verifyStaticLinks } from './verify-static-links.mjs';
 import { verifyPhoneLinks } from './verify-phone-links.mjs';
-import { formatRouteBudgets, measureRouteBudgets } from './route-budgets.mjs';
+import { formatRouteBudgets, measureRouteBudgets, pageModuleKey } from './route-budgets.mjs';
 import { tsImport } from 'tsx/esm/api';
 import { checkLegacyUrls, LEGACY_URLS } from './hosting-routes.mjs';
 // The route table (src/app/route-table.ts) names the prerendered pages to check (`release`) and each page's module.
@@ -75,7 +75,10 @@ const ROUTE_JS_BUDGETS = [
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 283.2, 'zh-Hant': 328.1, en: 468.6 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
-  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 276.6, 'zh-Hant': 321.2, en: 380.0 } },
+  // WEB-PERF-3 (H20): the workspace is a chunk that loads with the catalog (features/plan/PlannerWorkspace.tsx); the route
+  // is the header, this weekend's picks (a generated snapshot, not the home catalog) and the saved days: measured
+  // 189.3 / 233.6 / 291.0 KiB on main 531f6434 (the ceilings were set at measured + 2% on the lane's first base).
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 193.3, 'zh-Hant': 238.0, en: 296.8 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
@@ -107,11 +110,40 @@ const overBudget=routeBudgets.filter(row=>row.over);
 if(overBudget.length) throw new Error(`Route JS exceeds its budget: ${overBudget.map(row=>`${row.route} ${row.locale} ${row.kib.toFixed(1)} KiB > ${row.ceiling.toFixed(1)} KiB`).join('; ')}`);
 /** Stylesheets of a page module's static graph (what the app appends when the route chunk loads). */
 function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[key]; if(!item||seen.has(key)) return styles; seen.add(key); for(const css of item.css||[]) styles.add(css); for(const dependency of item.imports||[]) routeStyles(dependency,seen,styles); return styles; }
+// RC-6 for a guide's block chunks (WEB-PERF-3): a sheet that loads with a block (the freebie board's, its jump link above
+// the fold) is linked by every prerendered guide that renders the block (prerender guideModules), or the block paints
+// unstyled until its chunk loads. And 行程's prerendered pages carry the workspace (its form): Node imports it up front
+// (src/features/plan/plan-workspace-node.ts), and a prerender without it would ship /plan without the planner.
+{
+  const BLOCKS=[['src/components/FreebieBoard.tsx',/class="[^"]*\bbl-freebie-(?:board|jump)\b/],['src/components/CityExplorationDirectory.tsx',/class="[^"]*\bcity-exploration\b/],['src/features/guides/GuideQuickFacts.tsx',/class="[^"]*\bgd-keyfacts\b/],['src/features/guides/GuideOpusEntry.tsx',/class="[^"]*\bgd-opus\b/]];
+  // A block module renamed or moved would leave its row checking nothing (routeStyles of a missing key is empty).
+  for(const [key] of BLOCKS) if(!manifest[key]) throw new Error(`Block module ${key} is not in the build manifest: update BLOCKS in verify-release`);
+  let checked=0;
+  for(const locale of ['', 'en/', 'zh-Hant/']) for(const name of await readdir(`dist/${locale}guides`).catch(()=>[])) {
+    if(!name.endsWith('.html')) continue;
+    const path=`dist/${locale}guides/${name}`; const html=await readFile(path,'utf8');
+    for(const [key,marker] of BLOCKS) if(marker.test(html)) for(const css of routeStyles(key)) { checked++; if(!html.includes(`href="/${css}"`)) throw new Error(`Block stylesheet /${css} (${key}) is not linked: ${path}`); }
+  }
+  if(!checked) throw new Error('No prerendered guide links a block stylesheet: the freebie board check found nothing to check');
+  for(const locale of ['', 'en/', 'zh-Hant/']) { const path=`dist/${locale}plan.html`; if(!(await readFile(path,'utf8')).includes('class="planner-form"')) throw new Error(`行程's prerendered page has no workspace (planner-form): ${path}`); }
+}
+// H43 (WEB-PERF-3): the stylesheets the home page links before its first paint (the shell's, which every page links),
+// brotli q11 as served: 58.2 KiB on 531f6434, 38.9 KiB after the dead-rule prune and the route moves; measured + 2%.
+const RENDER_BLOCKING_CSS_BR_KIB=39.7;
+for(const locale of ['', 'en/']) {
+  const path=`dist/${locale}index.html`; const html=await readFile(path,'utf8');
+  const sheets=[...new Set([...html.matchAll(/<link\b[^>]*>/g)].map(match=>match[0]).filter(tag=>/\brel="stylesheet"/.test(tag)&&!/\bmedia="print"/.test(tag)).map(tag=>/\bhref="\/([^"]+\.css)"/.exec(tag)?.[1]).filter(Boolean))];
+  if(!sheets.length) throw new Error(`No render-blocking stylesheet found: ${path}`);
+  const kib=(await Promise.all(sheets.map(async css=>brotliCompressSync(await readFile(`dist/${css}`),{params:{[zlibConstants.BROTLI_PARAM_QUALITY]:11}}).length))).reduce((sum,value)=>sum+value,0)/1024;
+  console.log(`Render-blocking CSS on ${path}: ${kib.toFixed(1)} KiB brotli in ${sheets.length} sheets (ceiling ${RENDER_BLOCKING_CSS_BR_KIB} KiB)`);
+  if(kib>RENDER_BLOCKING_CSS_BR_KIB) throw new Error(`Render-blocking CSS exceeds its budget: ${path} ${kib.toFixed(1)} KiB > ${RENDER_BLOCKING_CSS_BR_KIB} KiB brotli`);
+}
 for(const locale of ['', 'en/', 'zh-Hant/']) for(const page of RELEASE_PAGES) {
   const path=`dist/${locale}${page}.html`; const html=await readFile(path,'utf8');
   const route=matchRoute(page==='index'?'/':`/${page}`);
   // RC-6: a prerendered page links its route CSS, or <main> paints unstyled until the chunk loads.
-  if(!route?.bare) for(const css of routeStyles(PAGE_MODULES[route.page])) if(!html.includes(`href="/${css}"`)) throw new Error(`Route stylesheet /${css} is not linked: ${path}`);
+  // A page chunk without a facade (PlannerPage) is found by name (pageModuleKey), so its stylesheets are checked too.
+  if(!route?.bare) for(const css of routeStyles(pageModuleKey(manifest,PAGE_MODULES[route.page]))) if(!html.includes(`href="/${css}"`)) throw new Error(`Route stylesheet /${css} is not linked: ${path}`);
   // a page that asks not to be indexed (an ended event a month on, I18N-SEO-10) carries no language cluster
   const indexed=!/<meta name="robots" content="noindex/.test(html);
   if(!html.includes('rel="canonical"') || indexed && (!html.includes('hreflang="zh-Hans"') || !html.includes('hreflang="en"'))) throw new Error(`Missing language metadata: ${path}`);

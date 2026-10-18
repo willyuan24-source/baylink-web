@@ -23,10 +23,11 @@ test('dated city notices expire after their last Pacific day while calendars rem
   assert.equal(isEditionCurrent('2026-11-15'), true);
   assert.equal(isEditionCurrent('2026-11-16'), true);
   assert.equal(isEditionCurrent('2026-11-30'), true);
-  // CNT-SUPPLY-3: the edition runs through 1/3/2027.
+  // CNT-SUPPLY-3 ran the edition through 1/3/2027; CNT-WEEKEND-1128 through 2/28 (2027 Lunar New Year).
   assert.equal(isEditionCurrent('2026-12-31'), true);
   assert.equal(isEditionCurrent('2027-01-03'), true);
-  assert.equal(isEditionCurrent('2027-01-04'), false);
+  assert.equal(isEditionCurrent('2027-02-28'), true);
+  assert.equal(isEditionCurrent('2027-03-01'), false);
 });
 
 test('new adult programs, unknown fees and selected event dates retain planning constraints', () => {

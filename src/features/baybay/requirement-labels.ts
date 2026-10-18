@@ -36,6 +36,41 @@ export function bayBayPlaceLabel(state: { city?: string | null; region?: string 
   return bayBayRegionLabel(state.region, locale);
 }
 
+/** "14:00" → "2pm", "10:30" → "10:30am": English answers and cards use 12-hour times (api-bb-7); Chinese keeps "14:00". */
+export function bayBayClock(time: string, english: boolean): string {
+  if (!english) return time;
+  const [hour, minute] = time.split(':').map(Number);
+  return `${hour % 12 || 12}${minute ? `:${String(minute).padStart(2, '0')}` : ''}${hour >= 12 ? 'pm' : 'am'}`;
+}
+
+/** "08:00–14:00" (zh) / "8am–2pm" (en) for a plan stop's opening windows; several windows in one day are listed in order. */
+export function bayBayOpeningWindowsLabel(windows: readonly { open: string; close: string }[], english: boolean): string {
+  return windows.map(window => `${bayBayClock(window.open, english)}–${bayBayClock(window.close, english)}`).join(english ? ', ' : '、');
+}
+
+const BAY_AREA: Names = { zh: '湾区', hant: '灣區', en: 'Bay Area' };
+const DAY_PLAN: Names = { zh: '一日安排', hant: '一日安排', en: 'day plan' };
+const PLAN_PLACES: Record<string, Names> = { 'bay area': BAY_AREA, 湾区: BAY_AREA, 灣區: BAY_AREA, 'san francisco': REGIONS.sf, 旧金山: REGIONS.sf, 舊金山: REGIONS.sf };
+const CJK = '\\u3400-\\u9fff\\uf900-\\ufaff';
+/** Chinese text next to a Latin word gets one space ("Fremont 一日安排"), the way the site writes mixed names. Digits are left alone ("10月"). */
+export function spaceMixedScript(text: string): string {
+  return text.replace(new RegExp(`([A-Za-z])([${CJK}])`, 'gu'), '$1 $2').replace(new RegExp(`([${CJK}])([A-Za-z])`, 'gu'), '$1 $2');
+}
+
+/**
+ * The plan card's title in the reader's language. The api titles a plan "<city>一日安排" / "<city> day plan" with its
+ * own city value, so a Chinese plan read "San Francisco一日安排" (API-BB-7 live check). San Francisco and the Bay Area take
+ * their Chinese names (旧金山一日安排); another city keeps its English name with a space (Fremont 一日安排). Other
+ * titles are translated as they are, with the same spacing rule.
+ */
+export function bayBayPlanTitle(title: string, locale: Locale): string {
+  const match = /^(.+?)\s*(?:一日安排| day plan)$/iu.exec(title.trim());
+  if (!match) return spaceMixedScript(translateText(title, locale));
+  const place = match[1].trim(), known = PLAN_PLACES[place.toLowerCase()];
+  const name = known ? pick(known, locale) : translateText(place, locale);
+  return locale === 'en' ? `${name} ${DAY_PLAN.en}` : spaceMixedScript(name + pick(DAY_PLAN, locale));
+}
+
 /** "10/17 周六" (zh), "10/17 週六" (zh-Hant), "Sat, Oct 17" (en) for an ISO day; null for anything that is not a real day. */
 export function bayBayDayLabel(day: string | null | undefined, locale: Locale): string | null {
   const match = ISO_DAY.exec(day || '');

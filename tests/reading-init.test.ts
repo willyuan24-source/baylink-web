@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 import { JSDOM } from 'jsdom';
 import { FAMILY_LINK_KEY, READING_SIZE_KEY, SIMPLE_DISPLAY_KEY } from '../src/lib/reading-preferences';
+import { GUEST_PLANNER_KEY } from '../src/lib/planner-storage-key';
 
 const SRC = fs.readFileSync('public/reading-init.js', 'utf8');
 
@@ -79,8 +80,9 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
   const code = SRC.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   // ~1 KB with the D17 language redirect (WEB-SHELL1), ~1.6 KB with the CW-02 stale-date check (WEB-FRESH2: 1,621 chars;
   // the US DST rule instead of Intl with a time zone, whose first use cost ~95 ms at 4x CPU before the first paint), ~2.1 KB
-  // with the G52 family-link hand-over (WEB-POLISH: 2,062 chars together); still one small blocking request, cached briefly
-  // (vercel.json).
+  // with the G52 family-link hand-over (WEB-POLISH: 2,062 chars together); the H20 marks for 行程's prerendered page (plan
+  // links, upcoming saved days: WEB-PERF-3) fit under the same cap because the code is written without optional spaces
+  // (2,058 chars); still one small blocking request, cached briefly (vercel.json). Budgets only go down: trim, never raise.
   assert.ok(code.length < 2075, `reading-init stays small on the critical path (${code.length} chars without comments)`);
   const html = fs.readFileSync('index.html', 'utf8');
   const head = html.slice(0, html.indexOf('</head>'));
@@ -90,5 +92,43 @@ test('reading-init is ES5, tiny, and loads synchronously in <head> before every 
     const at = html.indexOf(later);
     if (at >= 0) assert.ok(html.indexOf(tag) < at, `reading-init comes before ${later}`);
   }
-  for (const key of [READING_SIZE_KEY, SIMPLE_DISPLAY_KEY]) assert.ok(SRC.includes(`'${key}'`), `reading-init reads ${key}, the key the app saves`);
+  for (const key of [READING_SIZE_KEY, SIMPLE_DISPLAY_KEY, GUEST_PLANNER_KEY]) assert.ok(SRC.includes(`'${key}'`), `reading-init reads ${key}, the key the app saves`);
+});
+
+// H20 (WEB-PERF-3): a guest's saved plan for today or later marks <html data-plans> before the first paint, so 行程's
+// prerendered 已排的日子 shows a loading block, not its empty state (src/styles/plan-page.css). Past days are not listed
+// (plan-stop-cover.ts upcomingPlans), so a library of past plans keeps the empty state from the first frame.
+test('upcoming saved plans in this browser mark the page before it paints; past ones, none, an empty list or blocked storage do not', () => {
+  const marked = (saved: Record<string, string>, options = {}) => load('https://www.baylink.us/plan', saved, options).window.document.documentElement.hasAttribute('data-plans');
+  const library = (plans: unknown[]) => JSON.stringify({ preferences: {}, favorites: [{ kind: 'event', id: 'e1', date: '2099-01-01' }], plans });
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles' }).format(new Date());
+  const shift = (days: number) => new Date(Date.parse(`${today}T12:00:00Z`) + days * 864e5).toISOString().slice(0, 10);
+  const plan = (id: string, date: string) => ({ id, title: '周六', date, stops: [{ kind: 'place', id: 'x' }], version: 1 });
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([plan('p1', shift(2))]) }), true, 'an upcoming day');
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([plan('p1', today)]) }), true, 'today');
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([plan('p1', shift(-3)), plan('p2', shift(1))]) }), true, 'a past day and an upcoming one');
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([plan('p1', shift(-1)), plan('p2', shift(-30))]) }), false, 'only past days (a date before "plans" does not count)');
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: library([]) }), false);
+  assert.equal(marked({}), false);
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: 'x' }, { blockStorage: true }), false);
+  assert.equal(marked({ [GUEST_PLANNER_KEY]: '{"plans":[{"date":' }), false, 'a broken library');
+  for (const url of ['https://www.baylink.us/en/plan', 'https://www.baylink.us/zh-Hant/plan/?q=x'])
+    assert.equal(load(url, { [GUEST_PLANNER_KEY]: library([plan('p1', shift(2))]) }).window.document.documentElement.hasAttribute('data-plans'), true, url);
+  assert.equal(load('https://www.baylink.us/my-week', { [GUEST_PLANNER_KEY]: library([plan('p1', shift(2))]) }).window.document.documentElement.hasAttribute('data-plans'), false, 'other pages never read the planner library before their first paint');
+  const css = fs.readFileSync('src/styles/plan-page.css', 'utf8');
+  assert.match(css, /html\[data-plans\] :is\(main\[data-prerender-path="\/plan"\],\.site-boot-main\) #plan-days \.ui-state \{ display:none; \}/, 'only the prerendered /plan page (and its boot copy) hides its empty state');
+});
+
+// H20 (WEB-PERF-3 review): the prerendered /plan page is built without a query, so it carries this weekend's picks; a link
+// that opens a plan (the 分享版 link, ?edit= from My Week) marks <html data-plan-link> and the picks never paint above it.
+test('a link that opens a plan marks the page before it paints, so the prerendered picks stay hidden', () => {
+  const linked = (url: string) => load(url).window.document.documentElement.hasAttribute('data-plan-link');
+  for (const query of ['?date=2026-10-17&stops=place%3Agolden-gate', '?edit=p1', '?places=a,b', '?baybayDraft=x', '?reading=large&edit=p1', '?edit'])
+    assert.equal(linked(`https://www.baylink.us/plan${query}`), true, query);
+  for (const query of ['', '?q=museum', '?editor=1', '?date=2026-10-17', '?baybayBrief=x'])
+    assert.equal(linked(`https://www.baylink.us/plan${query}`), false, query);
+  assert.equal(linked('https://www.baylink.us/en/plan?stops=place%3Ax'), true, '/en/plan');
+  assert.equal(linked('https://www.baylink.us/my-week?edit=p1'), false, 'only 行程 is marked');
+  const css = fs.readFileSync('src/styles/plan-page.css', 'utf8');
+  assert.match(css, /html\[data-plan-link\] :is\(main\[data-prerender-path="\/plan"\],\.site-boot-main\) \.plan-weekend \{ display:none; \}/, 'only the prerendered /plan page (and its boot copy) hides the picks');
 });

@@ -95,7 +95,8 @@
   --text-display:clamp(2.5rem, calc(1.6rem + 1.25vw * var(--fluid-scale)), 3.25rem); --lh-display:1.2;
 } }
 /* The heading classes and the page frame (SV-06, SV-09). A class beats a bare tag rule; a component rule that sets its own
-   heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). */
+   heading size must be deleted when it adopts these (lanes: see docs/design-tokens.md). No page writes them today; they
+   stay as the design system's contract (tests/type-scale.test.ts). */
 .type-display,.type-title,.type-section { font-weight:600; letter-spacing:0; text-wrap:balance; }
 /* H55: a heading never ends on one short word on its own line (an explicit balance on a component still wins). */
 :where(h1,h2,h3,h4) { text-wrap:pretty; }
@@ -147,12 +148,6 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) { --feed-cols:1; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.home-destinations,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
 }
-.public-content-directory { font-size:var(--text-body); line-height:1.8; }
-.public-content-directory :is(p,time,.text-xs,.text-sm) { font-size:var(--text-fact); color:var(--color-ink-2); }
-.public-content-directory a { display:inline-flex; align-items:center; min-height:var(--control-height); font-size:var(--text-fact); }
-.public-content-directory summary { min-height:var(--control-height); padding-block:.5rem; font-size:var(--text-fact); }
-.public-content-directory h1 { font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; letter-spacing:0; overflow-wrap:anywhere; }
-.public-content-directory h2 { font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .site-app { font-family:var(--font-sans); }
 .site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; min-width:44px; min-height:44px; color:var(--color-ink); border:1px solid var(--color-line-strong); border-radius:10px; background:var(--color-surface); font-size:var(--text-fact); }
@@ -185,36 +180,13 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(button,a,select,input,textarea) { min-height:var(--control-height); font-size:var(--text-fact); }
 /* A title link is the heading, not a control: it keeps the heading's size (SYS-03, EVT-03). (0,1,2) outranks the (0,1,1) rule above. */
 :is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(h1,h2,h3,h4,h5,h6) a { font-size:inherit; min-height:0; }
-.ec-event-meta,.ec-event-cost,.ec-schedule-note,.planner-meta,.bl-monthly-event-meta,.bl-monthly-event-date,.bl-monthly-event-cost { color:var(--color-ink-2)!important; font-size:var(--text-fact)!important; line-height:1.8!important; }
-.ec-event-actions a,.ec-event-actions button,.planner-place-actions a,.planner-place-actions button { min-height:var(--control-height); font-size:var(--text-fact); padding:8px 6px; }
-.ec-day:focus-visible,.ec-toolbar button:focus-visible,.ec-city-filter button:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
-.ec-day-count,.ec-weekdays span,.ec-period-summary,.ec-legend span,.ec-data-note,.planner-place small,.planner-eyebrow,.bl-monthly-eyebrow { font-size:var(--text-caption); color:var(--color-ink-3); }
-.ec-event-card h3,.planner-place h3,.bl-monthly-event-card h3 { font-size:var(--text-card); line-height:1.5; text-wrap:balance; }
-.bl-guide-prose>p,.bl-guide-bullet-list,.bl-guide-checklist,.bl-guide-abstract>p { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
+.planner-meta { color:var(--color-ink-2)!important; font-size:var(--text-fact)!important; line-height:1.8!important; }
+.planner-place-actions a,.planner-place-actions button { min-height:var(--control-height); font-size:var(--text-fact); padding:8px 6px; }
+.planner-place small,.planner-eyebrow { font-size:var(--text-caption); color:var(--color-ink-3); }
+.planner-place h3 { font-size:var(--text-card); line-height:1.5; text-wrap:balance; }
+.bl-guide-prose>p,.bl-guide-bullet-list,.bl-guide-checklist { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
 .bl-guide-prose h2 { font-size:var(--text-section); color:var(--color-ink); }
-.bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-source-card p,.bl-guide-source-card small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; }
-.bl-guide-byline small,.bl-guide-reading-time,.bl-guide-article-kicker,.bl-guide-reader-progress { font-size:var(--text-caption); }
-.bl-guide-article-header h1 { font-size:var(--text-title); line-height:var(--lh-title); text-wrap:balance; letter-spacing:0; }
-.bl-guide-reader-label { display:none; }
-.bl-guides-page--compact { max-width:1100px; margin-inline:auto; }
-.bl-guides-page--compact .bl-guides-intro { padding-bottom:16px; }
-.bl-guides-page--compact .bl-guides-intro h1 { font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; font-weight:600; text-wrap:balance; }
-.bl-guides-page--compact .bl-guides-intro p { font-size:var(--text-body); max-width:640px; }
-.bl-guides-page--compact .bl-guides-controls { margin:16px 0 28px; }
-.bl-guides-page--compact .bl-guide-tabs { display:flex; flex-wrap:wrap; gap:8px; }
-.bl-guides-page--compact .bl-guide-tabs button { min-height:var(--control-height); padding:8px 14px; font-size:var(--text-fact); color:var(--color-ink-2); border:1px solid var(--color-line-strong); border-radius:999px; }
-.bl-guides-page--compact .bl-guide-tabs button.is-active { background:var(--color-brand-deep); color:white; }
-.bl-guides-page--compact .bl-guides-library h2 { font-size:var(--text-section); letter-spacing:0; }
-.bl-guides-page--compact .bl-guide-category-group { margin:24px 0; }
-.bl-guides-page--compact .bl-guide-group-title { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px; margin-bottom:12px; }
-.bl-guides-page--compact .bl-guide-group-title h3 { font-size:var(--text-card); font-weight:600; }
-.bl-guides-page--compact .bl-guide-group-title button { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); font-size:var(--text-fact); color:var(--color-brand); }
-.bl-guides-page--compact .bl-guide-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-.bl-guides-page--compact .bl-guide-card { background:var(--color-surface); border:1px solid var(--color-line); border-radius:16px; box-shadow:none; }
-.bl-guides-page--compact .bl-guide-card-body { padding:18px; }
-.bl-guides-page--compact .bl-guide-card h3 { font-size:var(--text-card); line-height:1.6; letter-spacing:0; font-weight:600; }
-.bl-guides-page--compact .bl-guide-card-kicker,.bl-guides-page--compact .bl-guide-card-kicker span,.bl-guides-page--compact .bl-guide-card-meta,.bl-guides-page--compact .bl-guide-card-meta span { font-size:var(--text-caption); color:var(--color-ink-3); }
-.bl-guides-page--compact .bl-guide-card-summary,.bl-guides-page--compact .bl-guide-search-section { font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; }
+.bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; }
 .guide-load-more,.guide-empty-actions :is(a,button) { display:inline-flex; align-items:center; justify-content:center; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-strong); border-radius:10px; color:var(--color-brand); font-size:var(--text-fact); margin:8px 8px 8px 0; }
 .guide-paths-details { border-top:1px solid var(--color-line); margin-top:32px; padding-top:12px; }
 .guide-paths-details>summary { min-height:var(--control-height); display:flex; align-items:center; cursor:pointer; font-size:var(--text-body); color:var(--color-brand); }
@@ -232,9 +204,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .baybay-conversation-details>summary { min-height:var(--control-height); padding-block:8px; cursor:pointer; overflow-wrap:anywhere; }
 .baybay-conversation .baybay-school-privacy { margin:0 0 16px; }
 .baybay-conversation .baybay-access-label { font-size:var(--text-fact); }
-.baybay-user-question>p,.baybay-welcome>p { font-size:var(--text-body); color:var(--color-ink-2); }
-.baybay-composer-note,.baybay-context-line,.baybay-degraded,.baybay-references>p,.baybay-followups>span,.baybay-reading-context small { font-size:var(--text-caption); color:var(--color-ink-3); }
-.baybay-followups button,.baybay-scenarios button { min-height:var(--control-height); font-size:var(--text-fact); }
+.baybay-user-question>p { font-size:var(--text-body); color:var(--color-ink-2); }
+.baybay-composer-note,.baybay-context-line,.baybay-degraded,.baybay-references>p,.baybay-followups>span { font-size:var(--text-caption); color:var(--color-ink-3); }
+.baybay-followups button { min-height:var(--control-height); font-size:var(--text-fact); }
 .baybay-conversation button { min-width:var(--control-height); }
 .baybay-conversation .member-compose-close { width:var(--control-height); height:var(--control-height); }
 /* The mobile input:not(...):not(...) floor has specificity 0,2,1, even in a portal. */
@@ -249,12 +221,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:1.8; }
 .site-app :is(.attraction-page,.life-tools) button { min-width:var(--control-height); min-height:var(--control-height); font-size:var(--text-fact); }
 .site-app :is(.attraction-page,.life-tools) :is(input,select,textarea) { font-size:var(--text-body); }
-.attraction-page :is(.attraction-facts,.attraction-city,.attraction-results-heading>span,.outing-stop-text small,.outing-local-note) { font-size:var(--text-fact); line-height:1.8; color:var(--color-ink-2); }
-.attraction-page :is(.attraction-card-actions>a,.outing-stop-text>a,.attraction-next>a,.attraction-credit>summary) { min-height:var(--control-height); font-size:var(--text-fact); }
-.attraction-page .attraction-card-actions { flex-wrap:wrap; gap:8px; }
-.attraction-page .outing-stop-buttons button { width:var(--control-height); height:var(--control-height); }
 .life-tools :is(.tools-picker-card small,.tool-field small,.tool-note,.tools-footer p,.tool-budget-results small,.tool-budget-results span,.tool-converter-row .tool-field>span) { font-size:var(--text-fact); line-height:1.8; color:var(--color-ink-2); }
-.life-tools .tools-picker-card strong { font-size:var(--text-fact); line-height:1.6; overflow-wrap:anywhere; hyphens:auto; }
 .life-tools :is(.tool-related-link,.tools-footer>a) { min-height:var(--control-height); font-size:var(--text-fact); }
 .life-tools :is(.tool-swap,.tool-icon-button) { width:var(--control-height); height:var(--control-height); }
 .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 95px var(--control-height); }
@@ -288,43 +255,15 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
   .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
-  .bl-guides-page--compact .bl-guide-grid { grid-template-columns:1fr; }
 }
-@media(prefers-reduced-motion:reduce) { .reading-dialog,.home-discovery--focused *,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
-.discovery-detail-main-actions { display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
-.local-discovery-detail .discovery-detail-header h1 { font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; }
-.local-discovery-detail .discovery-detail-summary,.local-discovery-detail .discovery-detail-body>p,.local-discovery-detail .discovery-plan p { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
-.local-discovery-detail .discovery-detail-facts span { font-size:var(--text-fact); color:var(--color-ink-2); }
-.local-discovery-detail .discovery-source { font-size:var(--text-fact)!important; color:var(--color-ink-2); }
-.discovery-secondary { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:var(--control-height); padding:12px 17px; border:1px solid var(--color-line-strong); border-radius:11px; background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.discovery-detail-main-actions .discovery-primary { min-height:var(--control-height); font-size:var(--text-fact); background:var(--color-brand); }
-.discovery-detail-more-actions { margin-top:16px; border-top:1px solid var(--color-line-strong); }
-.discovery-detail-more-actions>summary { display:flex; align-items:center; min-height:var(--control-height); cursor:pointer; font-size:var(--text-fact); color:var(--color-brand); text-decoration:underline; text-underline-offset:4px; }
-.discovery-detail-more-actions .planner-launch-links { margin:8px 0 16px; }
-.discovery-detail-more-actions .planner-primary { background:var(--color-surface); color:var(--color-brand)!important; border:1px solid var(--color-line-strong); }
+@media(prefers-reduced-motion:reduce) { .reading-dialog,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .event-participation-note,.editorial-share-actions>p { font-size:var(--text-caption); color:var(--color-ink-3); }
-.discovery-next-events { margin-top:32px; padding-top:24px; border-top:1px solid var(--color-line-strong); }
-.discovery-next-events>p,.discovery-next-event p { font-size:var(--text-fact); line-height:1.7; color:var(--color-ink-2); }
-.discovery-next-event-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:16px; }
-.discovery-next-event { min-width:0; padding:16px; border:1px solid var(--color-line-strong); border-radius:14px; background:var(--color-surface); }
-.discovery-next-event h3 { margin:0 0 12px; font-size:var(--text-body); line-height:1.6; }
-.discovery-next-event h3 a { display:flex; align-items:center; gap:8px; min-height:var(--control-height); color:var(--color-brand); }
-.discovery-next-event h3 svg { flex-shrink:0; }
-.discovery-next-event p { margin:8px 0; }
-.discovery-next-event>a { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); font-size:var(--text-fact); color:var(--color-brand); overflow-wrap:anywhere; }
-.discovery-next-event small { display:block; font-size:var(--text-caption); color:var(--color-ink-3); }
 .event-participation-buttons button,.editorial-share-buttons button { min-height:var(--control-height); font-size:var(--text-fact); }
-.guide-image-kind,.bl-monthly-picture-kind,.bl-freebie-picture>figcaption,.bl-opening-photo button>span { font-size:var(--text-caption); }
-.lb-stop-photo-provenance { position:absolute; left:10px; top:10px; padding:5px 8px; border-radius:8px; background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
+.guide-image-kind,.bl-freebie-picture>figcaption { font-size:var(--text-caption); }
 .planner-page .planner-editor.is-empty { align-self:start; }
 .planner-page .planner-empty p { font-size:var(--text-body); color:var(--color-ink-2); }
 .planner-page .planner-empty .planner-primary { min-height:var(--control-height); gap:8px; }
 @media(max-width:760px) {
   .planner-workspace>.planner-editor.is-empty { order:1; }
   .planner-workspace>.planner-editor.has-stops { order:-1; }
-  .discovery-detail-main-actions { flex-direction:column; }
-  .discovery-detail-main-actions :is(a,button) { width:100%; }
-  .discovery-next-event-grid { grid-template-columns:1fr; }
 }
-/* Search is portalled to body, outside the .site-app focus selector. */
-.quick-explore-overlay :is(input,button,a):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }

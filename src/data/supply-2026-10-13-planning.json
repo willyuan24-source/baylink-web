@@ -825,7 +825,7 @@
   },
   "sjpl-tully-friends-book-sale-dec5-2026": {
     "planning": {
-      "admissionUsd": 0,
+      "admissionUsd": null,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -846,7 +846,7 @@
   },
   "sccl-gilroy-big-book-sale-dec12-2026": {
     "planning": {
-      "admissionUsd": 0,
+      "admissionUsd": null,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1314,7 +1314,7 @@
   },
   "scl-guerneville-winter-wreath-sale-dec5-2026": {
     "planning": {
-      "admissionUsd": 0,
+      "admissionUsd": null,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",
@@ -1376,7 +1376,7 @@
   },
   "scl-santa-rosa-friends-book-sale-dec-2026": {
     "planning": {
-      "admissionUsd": 0,
+      "admissionUsd": null,
       "minAge": null,
       "reservation": "unknown",
       "setting": "indoor",

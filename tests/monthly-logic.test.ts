@@ -87,9 +87,10 @@ test('Bay Area date conversion follows the daylight saving transitions', () => {
   for (const [instant, expected] of cases) assert.equal(getBayAreaToday(new Date(instant)), expected, instant);
 });
 
-test('fall edition stays current through January 3, then archives', () => {
-  // CNT-SUPPLY-2 (H25) ran it to 12/31; CNT-SUPPLY-3 runs it through 1/3 so the winter-break weekends' events are listed.
-  assert.equal(MONTHLY_EDITION.throughDate, '2027-01-03');
+test('fall edition stays current through February 28, then archives', () => {
+  // CNT-SUPPLY-2 (H25) ran it to 12/31; CNT-SUPPLY-3 through 1/3 for the winter-break weekends; CNT-WEEKEND-1128 through 2/28 so
+  // the dated 2027 Lunar New Year programmes are listed.
+  assert.equal(MONTHLY_EDITION.throughDate, '2027-02-28');
   assert.equal(isEditionCurrent('2026-09-01'), true);
   assert.equal(isEditionCurrent('2026-09-30'), true);
   assert.equal(isEditionCurrent('2026-08-31'), false);
@@ -103,7 +104,9 @@ test('fall edition stays current through January 3, then archives', () => {
   assert.equal(isEditionCurrent('2026-12-31'), true);
   assert.equal(isEditionCurrent('2027-01-01'), true);
   assert.equal(isEditionCurrent('2027-01-03'), true);
-  assert.equal(isEditionCurrent('2027-01-04'), false);
+  assert.equal(isEditionCurrent('2027-01-04'), true);
+  assert.equal(isEditionCurrent('2027-02-28'), true);
+  assert.equal(isEditionCurrent('2027-03-01'), false);
   assert.equal(isEditionCurrent('2027-09-08'), false);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T06:59:59Z'))), true);
   assert.equal(isEditionCurrent(getBayAreaToday(new Date('2026-10-01T07:00:00Z'))), true);
@@ -265,7 +268,8 @@ test('published activities have unique IDs, valid fall dates and traceable sourc
   for (const item of MONTHLY_EVENTS) {
     assert.match(item.id, /^[a-z0-9-]+$/);
     for (const date of [item.startDate, item.endDate]) {
-      assert.match(date, /^(2026-(09|10|11|12)|2027-01)-\d{2}$/);
+      // Glowfari and the seasonal runs reach January; the 2027 Lunar New Year programmes February (edition through 2/28).
+      assert.match(date, /^(2026-(09|10|11|12)|2027-0[12])-\d{2}$/);
       assert.equal(new Date(`${date}T12:00:00Z`).toISOString().slice(0, 10), date, `valid date: ${item.id}`);
     }
     assert.ok(item.startDate <= item.endDate, item.id);
@@ -361,8 +365,10 @@ test('late October dates retain community events while November previews respect
   for (const id of ['emeryville-art-exhibition-closing-2026', 'san-jose-avenida-altares-2026', 'sf-halloween-hoopla-2026']) {
     assert.ok(!november.includes(id), `${id} stays hidden after its final October date`);
   }
-  // CNT-SUPPLY-3: the edition runs through 1/3/2027; after it only seasonal runs with published later days remain.
+  // CNT-SUPPLY-3: after the 1/2–3 weekend only seasonal runs with published later days remain, and (CNT-WEEKEND-1128, edition
+  // through 2/28) the dated 2027 Lunar New Year programmes.
   const afterEdition = filterMonthlyEvents(MONTHLY_EVENTS, {}, '2027-01-04');
+  assert.ok(ids(afterEdition).includes('sf-chinese-new-year-parade-2027'), 'the 2/20 parade is listed');
   assert.ok(ids(afterEdition).includes('oakland-zoo-glowfari-2026'), 'Glowfari runs to 1/31');
   for (const item of afterEdition) assert.ok(item.endDate > '2027-01-03' && nextOccurrence(item, '2027-01-04'), `${item.id} has a day after the edition`);
   // Inside the edition, mid-December: the still-running activities are listed and no ended one is.

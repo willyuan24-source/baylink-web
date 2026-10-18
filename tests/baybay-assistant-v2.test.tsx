@@ -229,7 +229,7 @@ test('matching Google route legs display approximate inbound travel and the actu
   assert.ok(view.getByText('预计 12:35 返回出发地 · Google Maps 估算，实际路况可能变化。'));
   await act(async () => { await setLocale('en', false); });
   assert.ok(view.getByText('About 5 min to this stop · Google Maps estimate'));
-  assert.ok(view.getByText('Estimated return to your starting point at 12:35 · Google Maps estimate; actual travel conditions may change.'));
+  assert.ok(view.getByText('Estimated return to your starting point at 12:35pm · Google Maps estimate; actual travel conditions may change.'));
 });
 
 test('unknown, mismatched or malformed travel data never becomes a Google estimate or a confirmed return', () => {

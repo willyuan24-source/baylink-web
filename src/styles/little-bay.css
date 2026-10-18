@@ -123,6 +123,8 @@
 .lb-stop-photo-open:focus-visible{outline:3px solid #387569;outline-offset:-4px}
 .lb-stop-photo-open:disabled{cursor:default}
 .lb-stop-photo-zoom{position:absolute;right:12px;bottom:12px;display:flex;align-items:center;gap:5px;padding:6px 9px;border-radius:20px;background:#fffbeded;color:#315f50;font-size:11px}
+/* The photo's provenance label (LittleBayStopPicture; moved from tokens.css by WEB-PERF-3 with its siblings). */
+.lb-stop-photo-provenance{position:absolute;left:10px;top:10px;padding:5px 8px;border-radius:8px;background:var(--color-surface);color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.5}
 .lb-stop-photo-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;width:100%;height:100%;color:#668171}
 .lb-stop-photo-empty>button{display:flex;align-items:center;gap:5px;min-height:44px;padding:8px 12px;border:1px solid #bacab8;border-radius:9px;background:#fffbed;color:#315f50;font-size:12px}
 .lb-stop-image .lb-image-badge{pointer-events:none}

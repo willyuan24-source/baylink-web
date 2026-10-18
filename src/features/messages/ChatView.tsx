@@ -17,6 +17,8 @@ import { ChatAiComposer, ChatAiTranslation } from './ChatAiTools';
 import { CategorySafetyNotice } from '../../components/CategorySafetyNotice';
 import { SystemNoticeCard } from './SystemNoticeCard';
 import { NoticeOptIn } from '../posts/NoticeOptIn';
+import '../../styles/modern-messaging.css';
+import './chat-ai.css';
 
 type ChatViewProps = {
   currentUser: UserData;

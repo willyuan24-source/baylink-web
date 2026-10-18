@@ -2,6 +2,7 @@ import type { GuideEditorial } from './types';
 
 // Facts from the article. CNT-GUIDES read the SSA credits page ($1,890 per credit in 2026, $7,560 for four) and the 2026 COLA
 // page (2.8%) on 2026-10-12; quotes in docs/source-reads-2026-10.md. Earlier facts: SSA pages read 2026-10-06.
+// CNT-YEAREND (2026-10-17): SSA's COLA page (3.6% for 2027) and 2027 fact sheet ($1,970 per credit, SSI $1,029 / $1,544), read 2026-10-17.
 export const socialSecurityEditorial: GuideEditorial = {
   slug: 'bay-area-social-security-retirement-preparation-guide',
   cover: {
@@ -16,7 +17,7 @@ export const socialSecurityEditorial: GuideEditorial = {
     { label: { zh: '领取年龄', en: 'Claiming age' }, value: { zh: '最早 62 岁；1960 年及以后出生者完全退休年龄 67 岁；延后增额到 70 岁为止', en: 'From 62; full retirement age 67 if born 1960 or later; delayed increases stop at 70' }, source: 4 },
     { label: { zh: '何时申请', en: 'When to apply' }, value: { zh: '最早在领取月份前四个月；首笔一般在下一个月到达', en: 'Up to four months before the start month; the first payment usually comes the month after' }, source: 5 },
     { label: { zh: '联系 SSA', en: 'Contact SSA' }, value: { zh: '1-800-772-1213，可要求免费中文口译', en: '1-800-772-1213; ask for a free Chinese interpreter' }, source: 7 },
-    { label: { zh: '2026 年调整', en: '2026 adjustment' }, value: { zh: '社安金和 SSI 上调 2.8%（COLA）', en: 'Social Security and SSI up 2.8% (COLA)' }, source: 8 },
+    { label: { zh: '生活费调整（COLA）', en: 'Cost-of-living adjustment' }, value: { zh: '2026 年 2.8%；2027 年 3.6%，社安金从 2027 年 1 月的福利开始', en: '2.8% in 2026; 3.6% in 2027, for Social Security from benefits for January 2027' }, source: 8 },
   ],
   contacts: [
     { name: { zh: '社会保障局 SSA', en: 'Social Security Administration' }, number: '1-800-772-1213', tel: '+18007721213',
@@ -44,6 +45,13 @@ export const socialSecurityEditorial: GuideEditorial = {
         { zh: '首笔一般在所选领取月份的下一个月到达', en: 'The first payment usually arrives the month after' },
         { zh: '延后退休金不等于可以延后 Medicare 报名', en: 'Delaying your benefit does not delay Medicare sign-up' },
       ], source: 5 },
+    { kind: 'compare', kicker: { zh: '2027 年', en: '2027' }, title: { zh: '2026 和 2027 的数字分开记', en: 'Keep 2026 and 2027 figures apart' },
+      items: [
+        { zh: '工作积分：2026 年每 $1,890，2027 年每 $1,970 记 1 个', en: 'Work credits: one per $1,890 in 2026, per $1,970 in 2027' },
+        { zh: 'SSI 联邦标准 2026 年：个人 $994、夫妻 $1,491（每月最多）', en: 'SSI federal standard in 2026: $994 for an individual, $1,491 for a couple (monthly maximum)' },
+        { zh: 'SSI 联邦标准 2027 年：个人 $1,029、夫妻 $1,544，从 2026 年 12 月 31 日发放的款项开始', en: 'SSI federal standard in 2027: $1,029 for an individual, $1,544 for a couple, from the payment on December 31, 2026' },
+        { zh: '加州的 SSP 是另加的州补助，金额不在联邦标准里', en: "California's SSP is an added state payment, not part of the federal standard" },
+      ] },
     { kind: 'contacts', kicker: { zh: '联系 SSA', en: 'Contact SSA' }, title: { zh: '可以要求免费中文口译', en: 'Ask for a free Chinese interpreter' },
       phones: [{ label: { zh: '社会保障局', en: 'Social Security' }, number: '1-800-772-1213', tel: '+18007721213' }],
       items: [
@@ -53,8 +61,9 @@ export const socialSecurityEditorial: GuideEditorial = {
   ],
   steps: [
     { zh: '退休福利看工作记录，SSI 看收入和资源，401(k)／IRA 另有规则；先分清问哪一项。', en: 'Retirement benefits follow your work record, SSI your income and resources, a 401(k) or IRA its own rules; know which one you mean.' },
-    { zh: '需要 40 个工作积分（2026 年每 $1,890 收入记 1 个）；在官方账号逐年对照工作收入，缺漏问 SSA 怎样更正。', en: 'You need 40 work credits (one per $1,890 of earnings in 2026); check each year of earnings in your official account and ask SSA how to correct gaps.' },
-    { zh: '最早 62 岁领取；1960 年及以后出生者 67 岁为完全退休年龄，延后增额到 70 岁为止。2026 年 COLA 为 2.8%。', en: 'Benefits can start at 62; full retirement age is 67 if born 1960 or later; delayed increases stop at 70. The 2026 COLA is 2.8%.' },
+    { zh: '需要 40 个工作积分（2026 年每 $1,890、2027 年每 $1,970 收入记 1 个）；在官方账号逐年对照工作收入，缺漏问 SSA 怎样更正。', en: 'You need 40 work credits (one per $1,890 of earnings in 2026, per $1,970 in 2027); check each year of earnings in your official account and ask SSA how to correct gaps.' },
+    { zh: '最早 62 岁领取；1960 年及以后出生者 67 岁为完全退休年龄，延后增额到 70 岁为止。COLA：2026 年 2.8%，2027 年 3.6%。', en: 'Benefits can start at 62; full retirement age is 67 if born 1960 or later; delayed increases stop at 70. The COLA is 2.8% for 2026 and 3.6% for 2027.' },
+    { zh: '2026 和 2027 年的积分、SSI 和收入限制分开记；SSI 联邦标准 2027 年个人 $1,029，加州 SSP 另加。', en: 'Keep the 2026 and 2027 credits, SSI and earnings limits apart; the 2027 SSI federal standard is $1,029 for an individual, with California’s SSP on top.' },
     { zh: '打 1-800-772-1213，可要求免费中文口译。', en: 'Call 1-800-772-1213 and ask for a free Chinese interpreter.' },
   ],
 };

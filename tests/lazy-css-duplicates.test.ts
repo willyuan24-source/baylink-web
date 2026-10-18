@@ -19,8 +19,9 @@ test('a selector in two separately loaded CSS files is a load-order dependency; 
 
 test('global CSS is everything src/main.tsx loads at boot; route CSS arrives with its lazy chunk', () => {
   const graph = cssLoadGraph();
-  for (const file of ['src/index.css', 'src/design.css', 'src/tokens.css', 'src/features/profile/privacy-security.css']) assert.ok(graph.global.includes(file), file);
-  for (const file of ['src/styles/attractions.css', 'src/features/outings/outings.css', 'src/components/tools/tools.css']) assert.ok(graph.lazy.includes(file), file);
+  for (const file of ['src/index.css', 'src/design.css', 'src/tokens.css', 'src/features/member-ui.css', 'src/styles/planner.css']) assert.ok(graph.global.includes(file), file);
+  // WEB-PERF-3 (H43): the profile, messages, AI-week, perks-gallery and freebie-board stylesheets load with their pages, not at boot.
+  for (const file of ['src/styles/attractions.css', 'src/features/outings/outings.css', 'src/components/tools/tools.css', 'src/components/perks-gallery.css', 'src/components/freebie-board.css', 'src/features/profile/privacy-security.css', 'src/styles/modern-messaging.css', 'src/components/ai-local.css']) assert.ok(graph.lazy.includes(file), file);
   assert.equal(graph.global.filter(file => graph.lazy.includes(file)).length, 0);
   assert.ok(graph.lazy.every(file => !file.startsWith('src/opus-bay/') && !file.includes('little-bay')), 'the 3D worlds are out of scope');
 });

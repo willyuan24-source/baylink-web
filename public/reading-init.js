@@ -13,35 +13,42 @@
  * and is handed to the app for this tab as sessionStorage 'baylink.reading-link.v1' = "size|simple"; the app keeps it
  * for this visit only when the reader already has a saved choice, else saves it (src/lib/reading-preferences.ts). A reload
  * in the same tab reads the handed-over link before the saved choice.
- * Keys and URL parameters match src/i18n/locale.ts (LOCALE_KEY) and src/lib/reading-preferences.ts. */
-(function (d, w) {
-  var root = d.documentElement, loc = w.location, path = loc.pathname, query = loc.search, key = 'baylink.reading-link.v1', link = [], lang, size, simple, built, today, y;
-  if (/^\/(?:en\/|zh-Hant\/)?(?:opus-bay|play)(?:[/.]|$)/.test(path)) return;
-  function saved(key) { try { return w.localStorage.getItem(key); } catch (e) { return null; } }
-  lang = saved('baylink.reading-language.v1');
-  if ((lang === 'en' || lang === 'zh-Hant') && !/^\/(?:en|zh-Hant)(?:\/|$)|^\/(?:verify-email|notifications\/unsubscribe)\/?$|\.\w+$/.test(path) && !/[?&]lang=/.test(query)) {
-    try { loc.replace('/' + lang + path + query + loc.hash); root.style.visibility = 'hidden'; return; } catch (e) { /* stay on this page */ }
+ * H20 (WEB-PERF-3): /plan's data-plan-link and data-plans (src/styles/plan-page.css says when and why).
+ * Keys and URL parameters match src/i18n/locale.ts (LOCALE_KEY) and src/lib/reading-preferences.ts.
+ * No optional spaces: the code's size is capped (tests/reading-init.test.ts). */
+(function(d,w){
+  var root=d.documentElement,loc=w.location,path=loc.pathname,query=loc.search,key='baylink.reading-link.v1',link=[],lang,size,simple,built,today,y;
+  if(/^\/(?:en\/|zh-Hant\/)?(?:opus-bay|play)(?:[/.]|$)/.test(path))return;
+  function saved(key){try{return w.localStorage.getItem(key)}catch(e){}}
+  lang=saved('baylink.reading-language.v1');
+  if(/^(en|zh-Hant)$/.test(lang)&&!/^\/(?:en|zh-Hant)(?:\/|$)|^\/(?:verify-email|notifications\/unsubscribe)\/?$|\.\w+$/.test(path)&&!/[?&]lang=/.test(query)){
+    try{loc.replace('/'+lang+path+query+loc.hash);root.style.visibility='hidden';return}catch(e){/* stay on this page */}
   }
-  size = /[?&]reading=(large|extra-large)(?:&|#|$)/.exec(query);
-  simple = /[?&]simple=([01])(?:&|#|$)/.exec(query);
-  try {
-    if (size || simple) {
-      w.sessionStorage.setItem(key, (size ? size[1] : '') + '|' + (simple ? simple[1] : ''));
-      query = query.slice(1).replace(/(^|&)(?:reading|simple)=[^&]*/g, '').replace(/^&/, '');
-      w.history.replaceState(w.history.state, '', path + (query ? '?' + query : '') + loc.hash);
-    } else link = (w.sessionStorage.getItem(key) || '').split('|');
-  } catch (e) { /* the link still applies to this page */ }
-  size = size ? size[1] : link[0] || saved('baylink.reading-size.v1');
-  if (size === 'large' || size === 'extra-large') root.setAttribute('data-reading', size);
-  simple = simple ? simple[1] : link[1] || saved('baylink.simple-display.v1');
-  if (simple === '1') root.setAttribute('data-simple', '');
+  size=/[?&]reading=(large|extra-large)(?:&|$)/.exec(query);
+  simple=/[?&]simple=([01])(?:&|$)/.exec(query);
+  try{
+    if(size||simple){
+      w.sessionStorage.setItem(key,(size?size[1]:'')+'|'+(simple?simple[1]:''));
+      query=query.slice(1).replace(/(^|&)(?:reading|simple)=[^&]*/g,'').replace(/^&/,'');
+      w.history.replaceState(w.history.state,'',path+(query?'?'+query:'')+loc.hash);
+    }else link=(w.sessionStorage.getItem(key)||'').split('|');
+  }catch(e){/* the link still applies to this page */}
+  size=size?size[1]:link[0]||saved('baylink.reading-size.v1');
+  if(/^(extra-)?large$/.test(size))root.setAttribute('data-reading',size);
+  simple=simple?simple[1]:link[1]||saved('baylink.simple-display.v1');
+  if(simple==='1')root.setAttribute('data-simple','');
   /* Days count from 1970-01-01, a Thursday. week(): the coming Saturday's number Monday to Friday, its own on the weekend.
-     sunday(): the first Sunday on or after day n of month m, at h:00 UTC, in ms. today: hours, then the Pacific day number. */
-  function week(n) { return n + ((n + 4) % 7 % 6 && 6 - (n + 4) % 7); }
-  function sunday(m, n, h) { var t = Date.UTC(y, m, n, h); return t + (7 - (t / 864e5 + 4 | 0) % 7) % 7 * 864e5; }
-  try {
-    built = Date.parse(root.getAttribute('data-built-for') + 'T00:00Z') / 864e5; y = new Date(today = Date.now()).getUTCFullYear();
-    today = (today / 36e5 - (today >= sunday(2, 8, 10) && today < sunday(10, 1, 9) ? 7 : 8)) / 24 | 0;
-    if (built % 1 === 0 && built - today) root.setAttribute('data-date-stale', week(built) === week(today) ? 'day' : 'day weekend');
-  } catch (e) { /* no date support: the page stays as built */ }
-})(document, window);
+     sunday(): the first Sunday on or after day n of month m, at h:00 UTC, in ms. today: hours, then the Pacific day number.
+     A plan's date (YYYY-MM-DD) parses as UTC midnight: its day number. */
+  function week(n){return n+((n+4)%7%6&&6-(n+4)%7)}
+  function sunday(m,n,h){var t=Date.UTC(y,m,n,h);return t+(7-(t/864e5+4|0)%7)%7*864e5}
+  try{
+    built=Date.parse(root.getAttribute('data-built-for')+'T00:00Z')/864e5;y=new Date(today=Date.now()).getUTCFullYear();
+    today=(today/36e5-(today>=sunday(2,8,10)&&today<sunday(10,1,9)?7:8))/24|0;
+    if(built%1===0&&built-today)root.setAttribute('data-date-stale',week(built)===week(today)?'day':'day weekend');
+    if(/\/plan\/?$/.test(path)){
+      if(/[?&](edit|stops|places|baybayDraft)\b/.test(loc.search))root.setAttribute('data-plan-link','');
+      if(JSON.parse(saved('baylink.planner.guest.v1')).plans.some(function(p){return Date.parse(p.date)/864e5>=today}))root.setAttribute('data-plans','');
+    }
+  }catch(e){/* no date support, or no saved plans: the page stays as built */}
+})(document,window);
