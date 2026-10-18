@@ -170,8 +170,11 @@ html[data-simple] {
 @media(prefers-reduced-motion:reduce) { :root { --dur-1:0ms; --dur-2:0ms; --dur-3:0ms; --dur-4:0ms; --dur-5:0ms; } }
 /* Quick wins from the UI-9 analysis: one icon stroke (N13), no orphan last words in prose (N06), and CJK headings break
    at phrases where the browser can (word-break:auto-phrase) and never before closing punctuation (line-break:strict). */
-/* Site icons only, and only lucide's default 2: an explicit strokeWidth prop keeps its value, and the 3D world (outside .site-app) keeps its own. */
-.site-app svg.lucide[stroke-width="2"] { stroke-width:1.75; }
+/* Site icons only, and only lucide's default 2: an explicit strokeWidth prop keeps its value, and the 3D world (outside .site-app) keeps its own.
+   Dialogs, sheets and toasts are portalled to <body> (ui/Modal.tsx, Toast.tsx, SaveToast.tsx), outside .site-app, so they
+   are named; the 3D world portals none of these. */
+.site-app svg.lucide[stroke-width="2"],
+:where(body>[role=dialog],body>.site-toast) svg.lucide[stroke-width="2"] { stroke-width:1.75; }
 :where(p,li,dd) { text-wrap:pretty; }
 :where(h1,h2,h3,h4) { line-break:strict; word-break:auto-phrase; }
 /* The 3D world keeps its own HUD geometry at every text size (D26). reading-init.js already skips /opus-bay and /play;
@@ -191,13 +194,16 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
    can hover (inline text links underline, buttons darken a step), a press answer at once (scale composes with any
    transform), and the focus ring in lime on the deep brand surfaces. The underline is for inline text links only (0,2,0,
    so a page's `a { text-decoration:none }` reset does not hide it): a link that wraps a block (a card, a postcard, a tile,
-   a nav item, the logo) is not underlined as a whole, its own rule underlines its title; a card's title link is an inline
-   link and underlines with its title. Checked on the built pages (lanes/UI9-F/tools/scan-block-links.mjs): no anchor this
-   selector matches wraps a div, p, heading or image. ('3d' is quoted: unquoted, an attribute value cannot start with a
-   digit, and the whole selector would be dropped.) The darker hover and the press scale sit in :where() at (0,1,0), so a
-   primitive's own rule (ui.css .96) wins. Inputs, selects and text areas draw their edge in line-control (≥3:1). */
+   a nav item, the logo, the 3D entry, the outing invite, a /me row) is not underlined as a whole, its own rule underlines
+   its title; a card's title link is an inline link and underlines with its title. Class-less block links switch it off in
+   their own :hover rule, which outranks this one (not-found.css .nf-links, guides-ui.css .bl-guide-toc). Checked on the
+   built pages by computed display (lanes/UI9-F/tools/scan-block-links2.mjs, 40 routes incl. 404 and the guide / offer /
+   opening details): no anchor this selector matches has its text in two block boxes. ('3d' is quoted: unquoted, an
+   attribute value cannot start with a digit, and the whole selector would be dropped.) The darker hover and the press
+   scale sit in :where() at (0,1,0), so a primitive's own rule (ui.css .96) wins. Inputs, selects and text areas draw
+   their edge in line-control (≥3:1). */
 @media (hover:hover) and (pointer:fine) {
-  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=card],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=brand],[class*='3d'])):hover,
+  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=card],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=brand],[class*='3d'],[class*=opus],[class*=inspiration],[class*='-row'])):hover,
   .site-app .ui-card-link:hover { text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
   .site-app :where(:is(button,[role=button],summary,a[class*=button],a[class*=btn]):not(:disabled,.ui-button,.ui-chip,.ui-icon-button):hover) { filter:brightness(.94); }
 }

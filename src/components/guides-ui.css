@@ -122,6 +122,8 @@
 .bl-guide-toc a:hover {
   color: var(--color-ink);
   background: var(--color-surface-2);
+  /* The number and the heading are two flex items: the tint is the hover cue, not an underline under both. */
+  text-decoration-line: none;
 }
 .bl-guide-toc a > span {
   flex: 0 0 16px;
