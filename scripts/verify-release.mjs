@@ -129,7 +129,8 @@ function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[
 }
 // H43 (WEB-PERF-3): the stylesheets the home page links before its first paint (the shell's, which every page links),
 // brotli q11 as served: 58.2 KiB on 531f6434, 38.9 KiB after the dead-rule prune and the route moves; measured + 2%.
-// UI9-F (tokens v2, the legacy aliases and the second toast deleted): 39.3 KiB measured, so the ceiling comes down to 39.5.
+// UI9-F (tokens v2, the legacy aliases and the second toast deleted): 39.3 KiB measured on WEB-PERF-3, so the ceiling came
+// down to 39.5; on main 58a9c05 with UI9-F (and its dead-CSS deletion) the home page measures 39.2 KiB.
 const RENDER_BLOCKING_CSS_BR_KIB=39.5;
 for(const locale of ['', 'en/']) {
   const path=`dist/${locale}index.html`; const html=await readFile(path,'utf8');
