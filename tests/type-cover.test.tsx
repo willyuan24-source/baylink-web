@@ -204,7 +204,7 @@ test('the palette lives in tokens.css: ui.css defines no global names, and every
   const globalNames = new Set<string>();
   postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
   for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
-  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--tc-fg', '--tc-deep', '--tc-badge-room', '--tb-from', '--tb-span']);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-img-ratio', '--tc-fg', '--tc-deep', '--tc-badge-room', '--tb-from', '--tb-span']);
   // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
   for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
   for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);

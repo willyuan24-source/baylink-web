@@ -47,8 +47,9 @@ export type CoverImageProps = {
  * 88 px thumb (N22: 0 truncated badges).
  */
 export function CoverImage({ image, label, fit = 'cover', focal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, children, className }: CoverImageProps) {
-  const style = { ...(image.lqip ? { '--ui-lqip': image.lqip } : {}) } as CSSProperties;
-  const imgStyle: CSSProperties | undefined = fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : undefined;
+  const style = { '--ui-lqip': image.lqip } as CSSProperties;
+  // A poster's own shape (--ui-img-ratio, covers.css) lets the flyer fill its board however narrow `sizes` says the slot is.
+  const imgStyle = (fit === 'cover' ? { objectPosition: `${focal[0]}% ${focal[1]}%` } : { '--ui-img-ratio': image.width / image.height }) as CSSProperties;
   const loading = priority ? { loading: 'eager' as const, fetchpriority: 'high' } : { loading: 'lazy' as const };
   const choice = kind && !image.scene3d ? chooseCover(kind, { tier: 'photo', fit }, { id: '' }) : undefined;
   return <div className={cx('ui-cover', className)} data-cover="image" data-fit={fit} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-ended={ended ? '' : undefined}

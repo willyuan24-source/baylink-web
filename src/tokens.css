@@ -153,11 +153,12 @@ html:lang(zh-Hant) { --font-sans:-apple-system,BlinkMacSystemFont,'PingFang TC',
    Chinese, so a zh-Hant heading on Windows looked lighter than the same zh-Hans one. Headings and card titles in zh-Hant
    take their Latin letters, digits and punctuation (U+0000-024F only) from Segoe UI Bold through a local() alias; the
    Chinese still comes from JhengHei UI Bold. Where Segoe UI is not installed (macOS, iOS, Android) local() finds nothing
-   and the usual stack applies, so PingFang TC and Noto are unchanged. A 400 face keeps regular runs regular. */
+   and the usual stack applies, so PingFang TC and Noto are unchanged. A 400 face keeps regular runs regular. A type cover's
+   facts (the day, value, hook, number, sign; UI9-C) take it as a whole. */
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI'), local('SegoeUI'); font-weight:400; unicode-range:U+0000-024F; }
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:600; unicode-range:U+0000-024F; }
 @font-face { font-family:'BL Hant Latin'; src:local('Segoe UI Bold'), local('SegoeUI-Bold'); font-weight:700; unicode-range:U+0000-024F; }
-html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-row-card__title,.tc-cal__day,.tc-ticket__value,.tc-hook,.tc-plate,.tc-sign__sells,.tc-thumb) { font-family:'BL Hant Latin',var(--font-sans); }
+html:lang(zh-Hant) :is(h1,h2,h3,.ui-feed-card__title,.ui-hero-card__title,.ui-row-card__title,.ui-type-cover) { font-family:'BL Hant Latin',var(--font-sans); }
 /* Aa: 标准 100% / 大 112.5% / 特大 125% of the browser's own size, set before the first paint by public/reading-init.js.
    Text, line heights and rem controls grow together (44 -> 49.5 -> 55px targets); px gutters stay put. --fluid-scale
    carries the same factor into the vw middle of fluid headings (clamp(2rem, calc(4vw * var(--fluid-scale)), 3rem)). */

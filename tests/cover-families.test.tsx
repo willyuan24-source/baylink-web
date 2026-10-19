@@ -325,9 +325,20 @@ test('review fixes: the stated close past midnight, families after the page draw
   assert.equal(plain.container.querySelector('.tc-hook em'), null);
   assert.equal(plain.container.querySelector('.tc-hook')?.textContent, '合租前先讲清楚这些事');
   cleanup();
-  // A poster keeps its own shape on the board: the image is sized by max-width / max-height, so the mat is even.
+  // A poster keeps its own shape on the board and fills it, whatever `sizes` says (review 10-19: the flyer was drawn at its
+  // srcset size, half a single-column board): the board is a size container, the width is the smaller of the board's width
+  // and its height times the flyer's shape (+ the mat), the height follows the shape, so the mat is even.
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
-  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*width:auto; height:auto; max-width:100%; max-height:100%/);
+  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \{ container-type:size;/);
+  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; padding:var\(--sp-1\)/);
+  const flyer = wrap(<CoverImage image={{ src: '/f.webp', alt: '', width: 1200, height: 400 }} label="官方图" fit="contain" kind="event" />);
+  assert.equal(flyer.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '3');
+  cleanup();
+  const still = wrap(<CoverImage image={{ src: '/p.webp', alt: '', width: 1200, height: 900 }} label="官方图" kind="event" />);
+  assert.equal(still.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '', 'a photo has no flyer shape');
+  // zh-Hant on Windows: a type cover's Latin letters and digits come from Segoe UI like the titles (tokens.css H51).
+  assert.match(readFileSync('src/tokens.css', 'utf8'), /html:lang\(zh-Hant\) :is\([^)]*\.ui-type-cover\) \{ font-family:'BL Hant Latin'/);
+  cleanup();
   assert.match(sheet, /aspect-ratio:var\(--ui-feed-ratio, var\(--ui-cover-ratio, 3 \/ 2\)\)/, 'the feed default is 3:2 (decision 20)');
 });
 
@@ -346,9 +357,9 @@ test('review fixes 2: thumbnails without a kind wrap their provenance, 简洁 ro
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
   const rules = new Map<string, string>();
   postcss.parse(sheet).walkRules(rule => { if (rule.parent?.type === 'root') rules.set(rule.selector, rule.nodes.map(node => node.toString()).join('; ')); });
-  // 简洁 / 家人版 (both set html[data-simple]): a list row's ♡ is hidden (decision 16); only the save controls, so the calendar
-  // rows' 加入这天计划 stays.
-  assert.equal(rules.get('[data-simple] .ui-row-card__trailing :is(.ui-save,.planner-heart)'), 'display:none');
+  // 简洁 / 家人版 (both set html[data-simple]): a discovery list row's ♡ is hidden (decision 16); only the save controls, so the
+  // calendar rows' 加入这天计划 stays, and not in 我的收藏 (#saved), where the ♡ is the only way to remove a saved item.
+  assert.equal(rules.get('[data-simple] .ui-row-card__trailing:not(#saved *) :is(.ui-save,.planner-heart)'), 'display:none');
   // The loading card's cover is the 3:2 the card draws (ui.css's skeleton still says 3:4; this rule has its specificity and
   // covers.css loads after ui.css).
   assert.equal(rules.get('.ui-skeleton-card>[data-shape=cover]'), 'aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2))');
