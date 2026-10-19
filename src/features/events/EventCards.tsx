@@ -37,7 +37,7 @@ export function EventMeta({ event }: { event: IndexEvent }) {
 
 /**
  * ♡ on a card's cover (H31, EVT13-10 / FCC-04 / SV13-10): the one save control, in the card's save slot over the cover's
- * top-right corner, the same heart as the home feed (reader-library.css styles it as a 44px circle). The lazy
+ * top-right corner, the same heart as the home feed (saves.css styles it as a 44px circle). The lazy
  * `SaveToWeek` keeps the save store off the route graph; its name reads "收藏：<title>".
  */
 const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;

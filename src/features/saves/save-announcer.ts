@@ -1,5 +1,5 @@
 // Save and plan confirmations for screen readers (the visible toast is `SaveToast`). Styles: `.saves-live` in
-// src/components/reader-library.css (visually hidden).
+// src/features/saves/saves.css (visually hidden).
 let region: HTMLElement | null = null;
 
 /**

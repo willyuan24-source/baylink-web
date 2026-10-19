@@ -30,7 +30,8 @@ export const editorialStyleScopes = [
   // WEB-SAVES: the one save model's controls and My Week.
   // WEB-SAVES: the one save model's controls (global, for prerendered pages), the /me row and My Week.
   // WEB-SAVES: the one save model's controls (global, for prerendered pages) and My Week.
-  { file: 'src/components/reader-library.css', after: '/* WEB-SAVES: the one save model' },
+  // UI9-PREP: the save controls' rules moved out of reader-library.css (the reader shelf stays there, outside the guard).
+  { file: 'src/features/saves/saves.css' },
   { file: 'src/features/saves/my-week.css' },
   // WEB-GUIDES: the guide index and article templates.
   { file: 'src/features/guides/guide-library.css' },

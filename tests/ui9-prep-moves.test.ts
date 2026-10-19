@@ -29,3 +29,16 @@ test('the offer and new-shop cards live in events/BoardCards.tsx (UI9-FREE), the
   assert.match(readFileSync('src/features/events/PerksView.tsx', 'utf8'), /import \{ OfferFeedCard \} from '\.\/BoardCards';/);
   assert.match(readFileSync('src/features/events/OpeningsView.tsx', 'utf8'), /import \{ OpeningFeedCard \} from '\.\/BoardCards';/);
 });
+
+test('the save controls\' CSS lives in saves/saves.css, global and right after reader-library.css; the reader shelf stays', async () => {
+  const reader = readFileSync('src/components/reader-library.css', 'utf8');
+  const saves = readFileSync('src/features/saves/saves.css', 'utf8');
+  assert.doesNotMatch(reader, /\.saves-/, 'no save-control rule left in the reader sheet');
+  assert.match(reader, /\.reader-shelf \{/);
+  assert.match(saves, /\.saves-control \{/);
+  const main = readFileSync('src/main.tsx', 'utf8').split(/\r?\n/);
+  const at = main.indexOf("import './components/reader-library.css'");
+  assert.ok(at > 0 && main[at + 1] === "import './features/saves/saves.css'", 'the same place in the global cascade');
+  const { cssLoadGraph } = await import('../scripts/check-style-ratchet.mjs');
+  assert.ok(cssLoadGraph().global.includes('src/features/saves/saves.css'), 'loaded at boot, for the prerendered pages');
+});

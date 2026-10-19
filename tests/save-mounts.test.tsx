@@ -106,11 +106,11 @@ test('offer and new-shop cards put their ♡ in the cover\'s save slot, like eve
   }
 });
 
-test('the cover ♡ is one 44px circle in every card save slot (reader-library.css), not the outlined 收藏 button', () => {
+test('the cover ♡ is one 44px circle in every card save slot (saves.css), not the outlined 收藏 button', () => {
   // Any rule for the save toggle in both card save slots, whatever its selector's exact form or its declarations' order:
   // the circle (control-height square, 50% radius) with the icon alone (size-0 word).
   const declarations = new Map<string, string>();
-  postcss.parse(readFileSync('src/components/reader-library.css', 'utf8')).walkRules(rule => {
+  postcss.parse(readFileSync('src/features/saves/saves.css', 'utf8')).walkRules(rule => {
     if (!['.ui-feed-card__save', '.ui-hero-card__save', '.saves-toggle'].every(part => rule.selector.includes(part))) return;
     rule.walkDecls(decl => { declarations.set(decl.prop, decl.value); });
   });
