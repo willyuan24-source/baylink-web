@@ -53,7 +53,7 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
   .home-discovery .tc-cal__day { font-size:var(--fs-card); }
 }
 .home-picks__all { align-self:flex-start; }
-.home-trust a { color:var(--color-brand); }
+.home-trust a { color:var(--color-brand); white-space:nowrap; }
 @media (max-width:767px) {
   .home-picks>.home-section-head { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
@@ -138,8 +138,8 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
 html[data-reading$=large]:not([data-simple]) .home-discovery .ui-feed-card__title { padding-right:48px; }
-html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); }
-html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
+html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
+html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
 html[data-simple] .home-picks :is(.ui-feed-card__save,.home-pick__reason) { display:none; }
 html[data-simple] .home-picks__all { justify-content:center; align-self:stretch; min-height:3rem; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
 @media (max-width:1023px) {
@@ -164,11 +164,11 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   .home-offers__rail>li[data-wide] { grid-column:span 2; --ui-feed-ratio:16 / 9; }
   .home-picks li:first-child .ui-feed-card__title { font-size:var(--text-section); line-height:var(--lh-section); }
   .home-picks li:first-child .home-pick__reason { display:block; }
-  .home-head { gap:var(--sp-3); }
+  .home-head { gap:var(--sp-4); }
   :is(.home-head__identity,.home-trust) { font-size:var(--text-body); }
   .home-ask { margin-top:var(--sp-3); }
   .home-moods ul { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); }
-  .home-moods .home-mood { flex-direction:column; justify-content:center; gap:var(--sp-1); width:100%; min-height:5rem; border-radius:var(--r-lg); }
+  .home-moods .home-mood { flex-direction:column; justify-content:center; gap:var(--sp-1); width:100%; min-height:5.5rem; border-radius:var(--r-lg); }
   /* The masthead in columns 1–5 beside the lead (6–12); picks 2–3 in 1–6 and the share card in 7–12 below, all on one
      12-column grid: the picks section and its list are display:contents here, so their children are the grid's items. */
   .home-top { display:grid; grid-template:repeat(3, auto) 1fr auto / repeat(12, minmax(0, 1fr)); gap:var(--sp-5) var(--grid-gutter); }

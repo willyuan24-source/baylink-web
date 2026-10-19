@@ -9,14 +9,11 @@ import { offerKindLabel, type OfferFactsInput } from '../../lib/event-facts';
 import type { HomeOffer } from '../../lib/home-offers';
 import { monthDay } from './home-model';
 import { dateScope } from '../../lib/date-guard';
-import { offerRailOpensWide } from '../../lib/home-offers';
+import { homeOfferCount } from '../../lib/home-offers';
 
 const TICKET_SIZES = '(max-width: 767px) 50vw, 290px';
 /** The first ticket when it is a photo: the full width of a phone, two columns on a desktop (H19). */
 const WIDE_SIZES = '(max-width: 767px) 100vw, 600px';
-
-/** How many tickets the home shows: the wide one and two more, or four (UI9-HOME); HomeImageCredits credits only these. */
-export const homeOfferCount = (offers: readonly HomeOffer[], covers: readonly ResolvedCover[], today: string) => offerRailOpensWide(offers, covers[0], today) ? 3 : 4;
 
 /**
  * ⑦ 免费与优惠 (1007 §4.2 ⑦, SV-03): 1:1 tickets — the brand's own image with its deadline, or the B information card with
@@ -29,8 +26,9 @@ export const homeOfferCount = (offers: readonly HomeOffer[], covers: readonly Re
 export function OfferTickets({ offers: selected, covers, today }: { offers: readonly HomeOffer[]; covers: readonly ResolvedCover[]; today: string }) {
   const { t, pick, locale, english } = useUiCopy();
   if (!selected.length) return null;
-  const wide = offerRailOpensWide(selected, covers[0], today);
-  const offers = selected.slice(0, wide ? 3 : 4);
+  const count = homeOfferCount(selected, covers, today);
+  const wide = count === 3;
+  const offers = selected.slice(0, count);
   const brands = offers.map(offer => offerBrandLine(offer.brand, locale));
   // A credited ticket drops the info-card badge: the line under the tickets says what it is (on the home it is printed
   // once, in the credits line; home-discovery.css hides this one).

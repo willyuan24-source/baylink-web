@@ -4,7 +4,7 @@ import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref, HOME_FEED_SIZE } from '../src/lib/home-weekend';
-import { GUIDE_IMAGES, guideCount, HOME_WEEKENDS, MONTHLY_EDITION, MONTHLY_EVENTS } from '../src/lib/home-catalog';
+import { GUIDE_IMAGES, guideCount, HOME_WEEKENDS, MONTHLY_EVENTS } from '../src/lib/home-catalog';
 import { WEEKEND_PICKS, type WeekendPickEntry } from '../src/data/weekend-picks';
 import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';

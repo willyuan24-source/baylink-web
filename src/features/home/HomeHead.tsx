@@ -44,10 +44,10 @@ export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: Ho
     else navigate(`/guides?q=${encodeURIComponent(value)}`);
   };
   return <header className="home-head">
-    {known ? <p className="home-head__dateline" {...dateScope('weekend')}>{t('湾区本周末', 'Bay Area weekend')} · <time dateTime={start}>{weekendRange(start, end, english)}</time></p>
-      : <p className="home-head__dateline" {...dateScope('day')}>{t('湾区', 'Bay Area')} · <time dateTime={today}>{longDate(today, english)}</time></p>}
+    {known ? <p className="home-head__dateline" data-simple="hide" {...dateScope('weekend')}>{t('湾区本周末', 'Bay Area weekend')} · <time dateTime={start}>{weekendRange(start, end, english)}</time></p>
+      : <p className="home-head__dateline" data-simple="hide" {...dateScope('day')}>{t('湾区', 'Bay Area')} · <time dateTime={today}>{longDate(today, english)}</time></p>}
     <h1 className="home-head__title">{t('这个周末，湾区去哪？', 'Where to go in the Bay this weekend?')}</h1>
-    <p className="home-head__identity">{pick(SITE_IDENTITY)} · {pick(FREE_NO_SIGN_IN)}</p>
+    <p className="home-head__identity" data-simple="hide">{pick(SITE_IDENTITY)} · {pick(FREE_NO_SIGN_IN)}</p>
     <form className="home-ask" role="search" onSubmit={event => { event.preventDefault(); submit(); }}>
       <label htmlFor={`${id}-ask`} className="sr-only">{t('搜索活动、指南，或问 BayBay', 'Search events and guides, or ask BayBay')}</label>
       <img className="home-ask__otter" src="/brand/otter.svg" alt="" width={28} height={28} decoding="async" />
@@ -57,7 +57,7 @@ export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: Ho
       <button type="submit" className="ui-button" data-variant="primary">{asking ? t('问 BayBay', 'Ask BayBay') : <><Search aria-hidden="true" strokeWidth={1.75} />{t('搜索', 'Search')}</>}</button>
     </form>
     <button type="button" className="ui-button home-ask-baybay" data-variant="secondary" onClick={() => onAskBayBay()}>
-      <img src="/brand/otter.svg" alt="" width={24} height={24} decoding="async" />{t('问 BayBay', 'Ask BayBay')}<span className="home-ai">{t('AI 助手', 'AI assistant')}</span>
+      <img src="/brand/otter.svg" alt="" width={24} height={24} decoding="async" />{t('问 BayBay', 'Ask BayBay')} <span className="home-ai">{t('AI 助手', 'AI assistant')}</span>
     </button>
   </header>;
 }

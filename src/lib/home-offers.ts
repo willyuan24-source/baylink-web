@@ -88,6 +88,10 @@ export function offerRailOpensWide(rail: readonly Pick<HomeOffer, 'brand' | 'end
   return canLeadOfferRail(first) && !endsSoonHidden(rail, today, WIDE_RAIL_SHOWN);
 }
 
+/** How many tickets the home shows (UI9-HOME): the wide one and two more, or four; the credits line credits only these. */
+export const homeOfferCount = (offers: readonly Pick<HomeOffer, 'brand' | 'endDate'>[], covers: readonly (ResolvedCover | undefined)[], today: string) =>
+  offerRailOpensWide(offers, covers[0], today) ? 3 : 4;
+
 /** The offer's cover on the home rail, from the images the page ships (the generator passes the full registry). */
 const offerCover = (offer: Pick<HomeOffer, 'id' | 'imageKey'>, images: CoverContext['images'], today: string) =>
   getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images, today });

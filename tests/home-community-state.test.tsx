@@ -24,7 +24,7 @@ const recentPosts = (count: number) => Array.from({ length: count }, (_, index) 
 test('until the board has four fresh posts, the home shows one quiet line instead of counts (1007 §4.2 ⑨, HOMEIA-02)', () => {
   for (const [label, html] of [['empty', home(false)], ['failed', home(true)], ['loading', home(false, '/', { isInitialLoading: true })], ['three fresh', home(false, '/', { posts: recentPosts(3) })]] as const) {
     const doc = JSDOM.fragment(html);
-    assert.equal(doc.querySelector('.home-community button')?.textContent, '邻里信息（测试中）· 去看看', label);
+    assert.equal(doc.querySelector('button.home-community')?.textContent, '邻里信息（测试中）· 去看看', label);
     assert.equal(doc.querySelector('#home-feed-section'), null, `${label}: the board stays folded`);
     for (const text of ['筛选结果', '近 30 天发布', '这里还在起步', '发布需求', '邻里信息暂时无法读取']) assert.ok(!html.includes(text), `${label}: no "${text}" on the home`);
   }
@@ -40,7 +40,7 @@ test('the published neighborhood anchor opens the board (four fresh posts open i
 
 test('English: the neighborhood line is English', async () => {
   await setLocale('en', false);
-  const line = JSDOM.fragment(home(false)).querySelector('.home-community button')!.textContent!;
+  const line = JSDOM.fragment(home(false)).querySelector('button.home-community')!.textContent!;
   assert.equal(line, 'Neighborhood board (beta) · Take a look');
   assert.doesNotMatch(line, /[㐀-鿿]/);
 });
