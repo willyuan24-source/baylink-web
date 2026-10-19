@@ -77,6 +77,7 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 /* 来源与核对, then 想约人一起去？ with the share row under a 1 px rule (one shell on every kind). */
 .local-discovery-detail .detail-source { padding-top:var(--sp-5); border-top:1px solid var(--color-line); }
 .local-discovery-detail .detail-source .trust-row { margin:0; }
+.local-discovery-detail .detail-source>.ui-more { display:flex; width:max-content; max-width:100%; }
 /* 这条信息有误？ sits flush with the column (the shared row's own page padding would indent it). */
 .local-discovery-detail .detail-source .feedback-report-row { width:auto; margin:0; padding:0; }
 .local-discovery-detail .detail-caption { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -95,6 +96,9 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 .local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:10.75rem; gap:var(--sp-3); margin-inline:calc(-1 * var(--page-gutter)); padding:var(--sp-1) var(--page-gutter) var(--sp-2); overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scroll-padding-inline:var(--page-gutter); }
 .local-discovery-detail .detail-rail__track>* { scroll-snap-align:start; }
 .local-discovery-detail .detail-rail__rows { display:none; }
+/* Rail titles: up to three lines on a feed card, never cut in a row (owner decision 20). */
+.local-discovery-detail .detail-rail .ui-feed-card__title { -webkit-line-clamp:3; }
+.local-discovery-detail .detail-rail .ui-row-card__title { display:block; overflow:visible; }
 html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__track { display:none; }
 html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__rows { display:grid; gap:var(--sp-3); }
 .local-discovery-detail .detail-main>.detail-rail { margin-top:var(--sp-5); }
@@ -121,6 +125,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):hover { background:var(--color-surface-2); }
   .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day:not(:disabled):hover { background:var(--color-brand-hover); }
   .local-discovery-detail :is(.detail-back a,.detail-page-credits summary):hover { text-decoration:underline 1px; text-underline-offset:.2em; }
+  .local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended,.trust-row) a:hover { text-decoration-thickness:2px; }
 }
 /* The primary never wraps: where its cell is narrower than icon + label, the icon goes. em = the cell's --fs-body. */
 @container detail-primary (max-width:9.5em) {
