@@ -37,12 +37,12 @@ test('one stylesheet draws the cover ♡ circle: reader-library.css', () => {
 
 test('a TypeCover drawing starts below the ♡ on FeedCard and HeroCard covers', () => {
   const shifts = new Map<string, string>();
-  postcss.parse(readFileSync('src/components/ui/ui.css', 'utf8')).walkRules(rule => {
+  postcss.parse(readFileSync('src/components/ui/covers.css', 'utf8')).walkRules(rule => {
     if (!rule.selector.endsWith('.ui-type-cover')) return;
     rule.walkDecls('--tc-art-shift', declaration => { shifts.set(rule.selector, declaration.value); });
   });
   assert.equal(shifts.get('.ui-feed-card:has(>.ui-feed-card__save) .ui-type-cover'), '2.75rem', 'FeedCard: ♡ at 4px, 44px');
   // HeroCard's ♡ sits at 8px; the drawing's top is 3cqw + this shift, so the shift covers the ♡'s full height plus its inset.
   assert.equal(shifts.get('.ui-hero-card__media:has(>.ui-hero-card__save) .ui-type-cover'), 'calc(var(--control-height) + .5rem)');
-  assert.match(readFileSync('src/components/ui/ui.css', 'utf8'), /\.ui-hero-card__save \{ position:absolute; top:8px; right:8px;/);
+  assert.match(readFileSync('src/components/ui/cards.css', 'utf8'), /\.ui-hero-card__save \{ position:absolute; top:8px; right:8px;/);
 });

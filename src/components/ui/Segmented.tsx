@@ -1,6 +1,8 @@
 import { useRef, type KeyboardEvent } from 'react';
 import { Link } from 'react-router-dom';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { cx } from './ui-copy';
 
 export type SegmentItem = { id: string; label: string; to?: string };

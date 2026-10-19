@@ -1,5 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { cx } from './ui-copy';
 
 export type FilterChipProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {

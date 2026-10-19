@@ -1,6 +1,8 @@
 import { useEffect } from 'react';
 import { ChevronLeft } from 'lucide-react';
 import '../../components/ui/ui.css';
+import '../../components/ui/covers.css';
+import '../../components/ui/cards.css';
 import './community.css';
 import { Button } from '../../components/ui/Button';
 import { PageHeader } from '../../components/ui/HeroCard';

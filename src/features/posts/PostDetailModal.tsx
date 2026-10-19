@@ -4,6 +4,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ChevronLeft, Edit, Flag, Loader2, MessageCircle, MessageSquare, MoreHorizontal, Send, Share2, Star, Trash2, UserX } from 'lucide-react';
 import '../../components/ui/ui.css';
+import '../../components/ui/covers.css';
+import '../../components/ui/cards.css';
 import './community.css';
 import { api } from '../../lib/api';
 import Avatar from '../../components/Avatar';

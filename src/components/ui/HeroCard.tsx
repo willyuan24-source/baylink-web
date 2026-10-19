@@ -2,6 +2,8 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { cx, useUiCopy } from './ui-copy';
 import { SegmentedTitle } from '../SegmentedTitle';
 

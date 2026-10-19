@@ -1,6 +1,8 @@
 import { useId, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { ModalShell } from './Modal';
 import { useExit } from '../../lib/reading-preferences';
 import { IconButton } from './Button';

@@ -8,6 +8,8 @@ import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Loader2, Plus, RotateCw, Search, ShieldCheck } from 'lucide-react';
 import '../components/ui/ui.css';
+import '../components/ui/covers.css';
+import '../components/ui/cards.css';
 import '../features/posts/community.css';
 import { useApp } from '../app/context';
 import { Button } from '../components/ui/Button';

@@ -20,6 +20,9 @@ export const editorialStyleScopes = [
   { file: 'src/features/events/events.css' },
   // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
   { file: 'src/components/ui/ui.css' },
+  // UI9-PREP split ui.css in three (same rules): the covers, badges, stickers and statuses (UI9-C) and the cards (UI9-EVENTS).
+  { file: 'src/components/ui/covers.css' },
+  { file: 'src/components/ui/cards.css' },
   { file: 'src/features/feedback/feedback.css' },
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },

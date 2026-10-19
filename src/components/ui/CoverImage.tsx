@@ -1,5 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { ProvenanceBadge } from './Badges';
 import { cx } from './ui-copy';
 import { COVER_SIZES } from './cover-sizes';

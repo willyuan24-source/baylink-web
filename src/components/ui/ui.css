@@ -8,20 +8,14 @@
  * highlight there); this file defines no palette names, only element-scoped layout variables (--ui-cover-ratio,
  * --ui-feed-*, --tc-bg/--tc-fg per tone). Every fg/bg pair is checked ≥4.5:1 by
  * tests/token-contrast.test.ts and scripts/check-editorial-styles.mjs.
+ *
+ * UI9-PREP split the one sheet in three without changing a rule: this file holds the base controls (buttons, chips, ♡,
+ * press, sheet, skeleton base, states, focus, 简洁显示, page header and containers, title units); covers.css the covers,
+ * provenance badge, stickers and status chips (UI9-C); cards.css the feed grid and cards, row and hero cards, carousel,
+ * segmented control, card skeleton and the .ui-meta-* line (UI9-EVENTS). Every module that imports ui.css imports
+ * covers.css and cards.css right after it, in that order, so the three arrive in one CSS chunk and cascade as the one
+ * file did (tests/ui9-prep-split.test.ts).
  */
-
-/* Provenance badge: top-left on every cover, text only from getImageProvenance(). */
-.ui-provenance { position:absolute; top:8px; left:8px; z-index:1; max-width:calc(100% - 56px); overflow:hidden; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); color:var(--color-surface); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; text-overflow:ellipsis; pointer-events:none; }
-
-/* Stickers sit on images: date bottom-left, price bottom-right. A date or a price is never cut: it wraps. */
-.ui-sticker { display:inline-flex; align-items:center; max-width:100%; padding:4px 8px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.ui-sticker[data-tone=free] { background:var(--color-highlight); color:var(--color-brand-deep); }
-.ui-sticker[data-tone=mixed] { background:var(--tc-free-bg); color:var(--tc-free-fg); }
-.ui-sticker[data-tone=danger] { background:var(--color-danger-tint); color:var(--color-danger); }
-.ui-sticker[data-tone=warning] { background:var(--color-warning-tint); color:var(--color-warning); }
-.ui-sticker[data-tone=success] { background:var(--color-success-tint); color:var(--color-success); }
-.ui-stickers { position:absolute; left:8px; right:8px; bottom:8px; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:6px; pointer-events:none; }
-.ui-stickers>:only-child[data-slot=end] { margin-left:auto; }
 
 /* Buttons: three looks site-wide (H29) — primary (brand fill, white 600 label, one per section), secondary (white, control
    border 3.8:1, ink 400) and quiet (brand text, no fill or border); plus the icon button and the chip. Pills (tokens v2).
@@ -56,14 +50,6 @@
 /* H62 / GR-07: the chip itself is 44px (48 in 简洁显示) on every screen, not a 36–40px pill with a stretched hit area. */
 @media (min-width:1024px) { .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } }
 
-/* Status chip: a fact about the item, not a control. */
-.ui-status { display:inline-flex; align-items:center; gap:4px; min-height:1.5rem; padding:0 8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; white-space:nowrap; }
-.ui-status[data-tone=success] { background:var(--color-success-tint); color:var(--color-success); }
-.ui-status[data-tone=info] { background:var(--color-info-tint); color:var(--color-info); }
-.ui-status[data-tone=warning] { background:var(--color-warning-tint); color:var(--color-warning); }
-.ui-status[data-tone=danger] { background:var(--color-danger-tint); color:var(--color-danger); }
-.ui-status[data-tone=ended] { background:var(--color-surface-2); color:var(--color-ink-3); }
-
 /* ♡ save: a separate button stacked above the card link, never nested inside it. */
 .ui-save { position:relative; display:inline-grid; place-items:center; width:2rem; height:2rem; padding:0; border:0; border-radius:var(--r-circle); background:rgb(255 255 255 / .9); color:var(--color-ink); cursor:pointer; }
 .ui-save::before { content:""; position:absolute; inset:-6px; border-radius:var(--r-circle); }
@@ -73,201 +59,8 @@
 @keyframes ui-save-pulse { 50% { scale:1.2; } }
 .ui-save { box-shadow:var(--e1); transition:scale var(--dur-1) var(--ease-out); }
 
-/* Press (N23): buttons, chips, ♡ and icon buttons scale to .96; cards and rows to .985 (the whole card is one link). */
+/* Press (N23): buttons, chips, ♡ and icon buttons scale to .96 (cards and rows: cards.css). */
 :is(.ui-button,.ui-icon-button,.ui-chip,.ui-save,.ui-segmented label):active:not(:disabled,[aria-disabled=true]) { scale:.96; }
-:is(.ui-feed-card,.ui-row-card,.ui-hero-card):has(.ui-card-link:active) { scale:.985; }
-:is(.ui-feed-card,.ui-row-card,.ui-hero-card) { transition:scale var(--dur-1) var(--ease-out); }
-@media (hover:hover) and (pointer:fine) {
-  :is(.ui-feed-card,.ui-row-card,.ui-hero-card):has(.ui-card-link:hover) :is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
-  :is(.ui-feed-card,.ui-row-card,.ui-hero-card):has(.ui-card-link:hover) .ui-cover__img { filter:brightness(1.04); }
-}
-
-/* Covers. One ratio per feed; a single-column feed switches every cover to 3:2. */
-.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:var(--r-lg); }
-:is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="16:10"] { --ui-cover-ratio:16 / 10; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="3:2"] { --ui-cover-ratio:3 / 2; }
-:is(.ui-cover,.ui-type-cover)[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 3 / 4); }
-.ui-cover { background:var(--ui-lqip, var(--color-surface-2)); }
-.ui-cover__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.ui-cover[data-fit=contain] .ui-cover__img { object-fit:contain; }
-.ui-cover__backdrop { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform:scale(1.2); filter:blur(24px) brightness(.9); }
-.ui-cover[data-ended] .ui-cover__img { filter:saturate(.7); }
-
-/* TypeCover (1007 §5.3 A2/B): real DOM text on a pastel pair, sized by its own box. The cover is a size container;
-   its text sits in __body, so every cq unit below measures the cover itself (not the feed around it). Each size is
-   clamp(rem floor, min(width term, height term), rem cap): root Aa grows the floor and the cap, the width term carries
-   --fluid-scale like the site's fluid headings, and the unscaled height term keeps the text inside the box, so the 3:2
-   single-column cover at 大/特大 is not scaled twice. Floors under 1rem also take the 简洁显示 --text-floor. */
-.ui-type-cover { --tc-badge-room:1.75rem; container-type:size; container-name:ui-type-cover; background:var(--tc-bg, var(--tc-outdoors-bg)); color:var(--tc-fg, var(--tc-outdoors-fg)); text-align:start; }
-.ui-type-cover[data-tone=family] { --tc-bg:var(--tc-family-bg); --tc-fg:var(--tc-family-fg); --tc-art:var(--tc-family-fg); }
-.ui-type-cover[data-tone=culture] { --tc-bg:var(--tc-culture-bg); --tc-fg:var(--tc-culture-fg); --tc-art:var(--tc-culture-fg); }
-.ui-type-cover[data-tone=outdoors] { --tc-bg:var(--tc-outdoors-bg); --tc-fg:var(--tc-outdoors-fg); --tc-art:var(--tc-outdoors-fg); }
-.ui-type-cover[data-tone=food] { --tc-bg:var(--tc-food-bg); --tc-fg:var(--tc-food-fg); --tc-art:var(--tc-food-fg); }
-.ui-type-cover[data-tone=seniors] { --tc-bg:var(--tc-seniors-bg); --tc-fg:var(--tc-seniors-fg); --tc-art:var(--tc-seniors-fg); }
-.ui-type-cover[data-tone=free] { --tc-bg:var(--tc-free-bg); --tc-fg:var(--tc-free-fg); --tc-art:var(--tc-free-fg); }
-/* Family C (guides): the topic shows in the pastel; text stays ink, so a page of guide covers reads in one text colour (the
-   drawing keeps the tone's own ink). */
-.ui-type-cover[data-family=guide] { --tc-fg:var(--color-ink); }
-/* H12: the tone's spot drawing (TypeCover artFor; public/default-covers/art/*.svg, drawn as vector shapes in a few opacities), an
-   alpha mask filled with the tone's ink. It sits top right beside the label (which keeps to 48cqw), and its lower edge fades
-   out (the second mask layer), so no fact at the bottom ever sits on it. */
-.ui-type-cover__art { position:absolute; top:calc(3cqw + max(var(--tc-badge-room, 0px), var(--tc-art-shift, 0px))); right:3cqw; width:var(--tc-art-width, 44cqw); aspect-ratio:3 / 4; background:var(--tc-art, var(--tc-fg)); pointer-events:none;
-  -webkit-mask-image:var(--ui-art), linear-gradient(black 62%, transparent); mask-image:var(--ui-art), linear-gradient(black 62%, transparent);
-  -webkit-mask-size:contain, 100% 100%; mask-size:contain, 100% 100%; -webkit-mask-repeat:no-repeat; mask-repeat:no-repeat;
-  -webkit-mask-position:center; mask-position:center; -webkit-mask-composite:source-in; mask-composite:intersect; }
-.ui-type-cover__art[data-art=family-1] { --ui-art:url(/default-covers/art/family-1.svg); }
-.ui-type-cover__art[data-art=family-2] { --ui-art:url(/default-covers/art/family-2.svg); }
-.ui-type-cover__art[data-art=family-3] { --ui-art:url(/default-covers/art/family-3.svg); }
-.ui-type-cover__art[data-art=culture-1] { --ui-art:url(/default-covers/art/culture-1.svg); }
-.ui-type-cover__art[data-art=culture-2] { --ui-art:url(/default-covers/art/culture-2.svg); }
-.ui-type-cover__art[data-art=culture-3] { --ui-art:url(/default-covers/art/culture-3.svg); }
-.ui-type-cover__art[data-art=outdoors-1] { --ui-art:url(/default-covers/art/outdoors-1.svg); }
-.ui-type-cover__art[data-art=outdoors-2] { --ui-art:url(/default-covers/art/outdoors-2.svg); }
-.ui-type-cover__art[data-art=food-1] { --ui-art:url(/default-covers/art/food-1.svg); }
-.ui-type-cover__art[data-art=food-2] { --ui-art:url(/default-covers/art/food-2.svg); }
-.ui-type-cover__art[data-art=seniors-1] { --ui-art:url(/default-covers/art/seniors-1.svg); }
-.ui-type-cover__art[data-art=seniors-2] { --ui-art:url(/default-covers/art/seniors-2.svg); }
-.ui-type-cover__art[data-art=free-1] { --ui-art:url(/default-covers/art/free-1.svg); }
-.ui-type-cover__art[data-art=free-2] { --ui-art:url(/default-covers/art/free-2.svg); }
-.ui-type-cover__art[data-art=store] { --ui-art:url(/default-covers/art/store.svg); }
-.ui-type-cover__art[data-art=store-2] { --ui-art:url(/default-covers/art/store-2.svg); }
-.ui-type-cover__art[data-art=store-3] { --ui-art:url(/default-covers/art/store-3.svg); }
-.ui-type-cover__art[data-art=clipboard] { --ui-art:url(/default-covers/art/clipboard.svg); }
-.ui-type-cover__art[data-art=idcard] { --ui-art:url(/default-covers/art/idcard.svg); }
-.ui-type-cover__art[data-art=bike] { --ui-art:url(/default-covers/art/bike.svg); }
-.ui-type-cover__art[data-art=home] { --ui-art:url(/default-covers/art/home.svg); }
-/* The drawing starts under the BAYLINK 信息卡 badge when the cover shows one (--tc-badge-room). On a card with ♡ on its cover
-   (top right, 44px) it is smaller and clear of the heart: under it on a portrait card, beside it on a square or landscape one
-   (ui-type-cover container rule), so the heart never sits on the drawing and the drawing never reaches the date. */
-.ui-feed-card:has(>.ui-feed-card__save) .ui-type-cover { --tc-art-shift:2.75rem; --tc-art-width:36cqw; --tc-art-inset:calc(4cqw + 2.75rem); --tc-art-square:38cqh; }
-/* HeroCard's ♡ (the /events and home picks) sits 8px in: the drawing starts below it at any control height (48px in 简洁显示; W5-INT). */
-.ui-hero-card__media:has(>.ui-hero-card__save) .ui-type-cover { --tc-art-shift:calc(var(--control-height) + .5rem); --tc-art-width:36cqw; --tc-art-inset:calc(4cqw + var(--control-height) + .5rem); --tc-art-square:38cqh; }
-.ui-type-cover__body { position:absolute; inset:0; display:flex; flex-direction:column; gap:min(1.5cqw, 1.5cqh); padding:min(8cqw, 8cqh); padding-top:calc(min(8cqw, 8cqh) + var(--tc-badge-room)); }
-.ui-type-cover__body>* { flex:none; margin:0; }
-.ui-type-cover__body>.ui-type-cover__title,.ui-type-cover__body>.ui-type-cover__note { flex:0 1 auto; min-height:0; }
-.ui-type-cover__label { color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; }
-.ui-type-cover__date { display:flex; align-items:baseline; flex-wrap:wrap; column-gap:.2em; color:var(--tc-fg); font-size:clamp(1.75rem, min(calc(17cqw * var(--fluid-scale)), 20cqh), 3.75rem); line-height:1.05; font-weight:600; font-variant-numeric:tabular-nums; }
-.ui-type-cover__date-small { font-size:max(var(--text-caption), 47%); line-height:1.2; font-weight:600; }
-.ui-type-cover__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:3; color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(10.5cqw * var(--fluid-scale)), 10cqh), 1.625rem); line-height:1.36; font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
-.ui-type-cover__title:lang(en) { font-size:clamp(max(.875rem, var(--text-floor)), min(calc(9.5cqw * var(--fluid-scale)), 9cqh), 1.5rem); hyphens:auto; }
-.ui-type-cover__footer { display:flex; align-items:flex-end; justify-content:space-between; gap:6px; margin-top:min(2cqw, 2cqh); min-height:1.75rem; }
-/* The label stays under the badge; the facts sit at the bottom, leaving the drawing room in between. */
-.ui-type-cover__label+* { margin-top:auto; }
-/* The label stays left of the drawing (which starts at 53cqw): a long English label ("Health & insurance") wraps instead of
-   running across it. Mini thumbnails centre their label and keep the full width. */
-.ui-type-cover:not([data-size=mini]) .ui-type-cover__label { max-width:48cqw; }
-.ui-type-cover__place { min-width:0; overflow:hidden; color:var(--tc-fg); font-size:clamp(max(.8125rem, var(--text-floor)), min(calc(7.5cqw * var(--fluid-scale)), 7cqh), 1.125rem); line-height:1.385; font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
-.ui-type-cover__footer .ui-sticker { flex:none; margin-left:auto; }
-.ui-type-cover__value { display:flex; flex-wrap:wrap; align-items:baseline; column-gap:.25em; color:var(--tc-fg); font-size:clamp(1.375rem, min(calc(16cqw * var(--fluid-scale)), 18cqh), 2.125rem); line-height:1.1; font-weight:600; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
-.ui-type-cover__value-small { font-size:max(var(--text-caption), 47%); line-height:1.2; font-weight:600; }
-.ui-type-cover__brand { color:var(--tc-fg); font-size:clamp(max(.9375rem, var(--text-floor)), min(calc(8.5cqw * var(--fluid-scale)), 8cqh), 1.125rem); line-height:1.4; font-weight:600; overflow-wrap:break-word; }
-.ui-type-cover__note { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:var(--tc-fg); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
-/* Square and landscape covers (offers, 16:9 heroes, the 3:2 single-column feed): shorter text block. */
-@container ui-type-cover (min-aspect-ratio:1/1) {
-  .ui-type-cover__body { padding:5cqh 6cqw; padding-top:calc(5cqh + var(--tc-badge-room)); }
-  .ui-type-cover__title { -webkit-line-clamp:2; }
-  .ui-type-cover__art { top:calc(5cqh + var(--tc-badge-room, 0px)); right:var(--tc-art-inset, 4cqw); width:auto; height:calc(var(--tc-art-square, 50cqh) - var(--tc-badge-room, 0px)); }
-}
-@container ui-type-cover (max-height:12rem) { .ui-type-cover__title,.ui-type-cover__note { -webkit-line-clamp:1; } }
-.ui-type-cover[data-size=mini] .ui-type-cover__body { gap:0; padding:8px; justify-content:center; align-items:center; text-align:center; }
-.ui-type-cover[data-size=mini],.ui-row-card__thumb :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-md); }
-.ui-type-cover[data-size=mini] .ui-type-cover__date { justify-content:center; font-size:1.375rem; }
-.ui-type-cover[data-size=mini] .ui-type-cover__date-small { flex-basis:100%; font-size:var(--text-caption); }
-@supports not (container-type:size) {
-  .ui-type-cover__body { gap:4px; padding:14px; padding-top:calc(14px + var(--tc-badge-room)); }
-  .ui-type-cover__art { top:6px; right:6px; width:84px; height:112px; }
-  .ui-type-cover__label,.ui-type-cover__place { font-size:var(--text-caption); }
-  .ui-type-cover__date { font-size:1.8125rem; }
-  .ui-type-cover__title { font-size:1.1875rem; }
-  .ui-type-cover__title:lang(en) { font-size:1.0625rem; }
-  .ui-type-cover__value { font-size:1.75rem; }
-  .ui-type-cover__brand { font-size:.9375rem; }
-}
-
-/* Feed grid: CSS grid in DOM order; 2 / 3 / 4 columns; one column at 大/特大 text or in 简洁显示 on phones (≤767px, the
-   same breakpoint as tokens.css --feed-cols, WEB-TOKENS-A) or below 340px; 2 / 3 columns at 大/特大 on tablets / desktops. */
-.ui-feed { container-type:inline-size; container-name:ui-feed; }
-.ui-feed-grid { --ui-feed-cols:2; display:grid; grid-template-columns:repeat(var(--ui-feed-cols), minmax(0, 1fr)); gap:16px 12px; margin:0; padding:0; list-style:none; }
-.ui-feed-grid>li { min-width:0; }
-.ui-feed-grid>.ui-feed-grid__wide { grid-column:1 / -1; }
-.ui-feed[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
-@media (min-width:768px) { .ui-feed-grid { --ui-feed-cols:3; } }
-@media (min-width:1024px) { .ui-feed-grid { --ui-feed-cols:4; gap:24px; } }
-.ui-feed-grid[data-single] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; }
-@container ui-feed (max-width:339px) { .ui-feed-grid:not([data-layout=grid]) { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; } }
-@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; } }
-@media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:2; } }
-@media (min-width:1024px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-feed-grid[data-layout=auto] { --ui-feed-cols:3; } }
-.ui-feed-grid[data-layout=list] { --ui-feed-cols:1; --ui-feed-ratio:3 / 2; }
-.ui-feed-head { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px; }
-.ui-layout-toggle { display:inline-flex; gap:4px; }
-
-/* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
-.ui-feed-card { position:relative; display:flex; flex-direction:column; gap:4px; min-width:0; }
-.ui-feed-card__media { position:relative; order:-1; margin-bottom:4px; border-radius:var(--r-lg); }
-.ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
-.ui-card-link { color:inherit; text-decoration:none; }
-.ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:var(--r-lg); }
-.ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
-.ui-feed-card__meta,.ui-feed-card__trust { margin:0; font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.ui-feed-card__meta { color:var(--color-ink-2); }
-.ui-feed-card__meta strong { color:var(--color-brand); font-weight:600; }
-/* "place · price": status and venue are never cut; the meta wraps to a second line and the price stays whole. */
-.ui-meta-price { white-space:nowrap; }
-.ui-meta-sep { white-space:pre; }
-.ui-feed-card__trust { display:flex; align-items:center; gap:4px; color:var(--color-ink-3); }
-.ui-feed-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
-/* H12 / SV13-02: in a list that names the info card once (FeedGrid's caption, the home offers) a card that credits its source
-   (the ✓ 官网核对 line, FeedCard data-credited) drops the BAYLINK 信息卡 badge from its coded cover: still in the DOM for screen
-   readers and probes, not drawn, and the label takes its place. Elsewhere (heroes, detail bands, guide cards) the badge stays. */
-[data-cover-credit] .ui-feed-card[data-credited] .ui-type-cover:not([data-size=mini]) { --tc-badge-room:0px; }
-[data-cover-credit] .ui-feed-card[data-credited] .ui-type-cover .ui-provenance { width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
-.ui-cover-credit { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
-.ui-feed:not(:has(.ui-feed-card[data-credited] [data-cover=type]))>.ui-cover-credit { display:none; }
-.ui-feed-card__save { position:absolute; top:4px; right:4px; z-index:3; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
-@container ui-feed (max-width:339px) {
-  .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-}
-@media (max-width:767px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { -webkit-line-clamp:3; font-size:var(--text-card); line-height:1.444; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
-}
-
-/* Row card: lists, calendar, search, saved items. One trailing action only. */
-.ui-row-card { position:relative; display:grid; grid-template-columns:5.5rem minmax(0, 1fr) auto; grid-template-areas:"thumb body trailing"; gap:12px; align-items:start; min-height:7rem; padding:12px 0; border-bottom:1px solid var(--color-line); }
-.ui-row-card__thumb { grid-area:thumb; width:5.5rem; height:5.5rem; overflow:hidden; border-radius:var(--r-md); }
-.ui-row-card__thumb>* { height:100%; }
-.ui-row-card__body { grid-area:body; display:flex; flex-direction:column; gap:2px; min-width:0; }
-.ui-row-card .ui-card-link::after { border-radius:var(--r-md); }
-.ui-row-card__date { order:-1; margin:0; color:var(--color-brand); font-size:var(--text-fact); line-height:1.571; font-weight:400; font-variant-numeric:tabular-nums; }
-.ui-row-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.0625rem; line-height:1.412; font-weight:600; }
-.ui-row-card__meta { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.ui-row-card__trailing { grid-area:trailing; position:relative; z-index:3; align-self:center; }
-/* An 88px thumbnail keeps its provenance (bottom-left, compact); the date and price are already in the row. */
-.ui-row-card__thumb .ui-stickers { display:none; }
-.ui-row-card__thumb .ui-provenance { top:auto; right:0; bottom:0; left:0; max-width:none; padding:2px 4px; border-radius:0; text-align:center; }
-:is(.ui-row-card__meta,.ui-feed-card__meta)>svg { display:inline-block; vertical-align:-2px; }
-
-/* Segmented tabs (column switch) and the segmented control (DayToggle). */
-.ui-tabs { display:flex; gap:4px; overflow-x:auto; border-bottom:1px solid var(--color-line); scrollbar-width:none; }
-.ui-tabs::-webkit-scrollbar { display:none; }
-.ui-tabs[data-sticky] { position:sticky; top:var(--header-height, 0px); z-index:40; background:rgb(var(--color-bg-rgb) / .96); }
-.ui-tabs__item { position:relative; display:inline-flex; align-items:center; flex:none; min-height:var(--control-height); padding:0 12px; border:0; background:transparent; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; cursor:pointer; }
-.ui-tabs__item:is([aria-current],[aria-selected=true]) { color:var(--color-ink); font-weight:400; }
-.ui-tabs__item:is([aria-current],[aria-selected=true])::after { content:""; position:absolute; left:12px; right:12px; bottom:0; height:2px; border-radius:var(--r-sm); background:var(--color-brand); }
-.ui-segmented { display:flex; gap:4px; min-height:var(--control-height); padding:4px; border-radius:var(--r-pill); background:var(--color-surface-2); }
-/* The thumb is drawn 4px inside the track; ::before gives each radio the track's full height (44px, 48 in simple mode)
-   and half of each 4px gap, so no tap on the control lands between radios. No overflow on the item: it would clip it. */
-.ui-segmented__item { position:relative; flex:1 1 0; min-width:0; min-height:calc(var(--control-height) - 8px); padding:0 12px; border:1px solid transparent; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:1.25; font-weight:400; cursor:pointer; }
-.ui-segmented__item::before { content:""; position:absolute; inset:-5px -3px; }
-.ui-segmented__label { display:block; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-/* The checked segment keeps a cue that is not only colour: a control edge (3.26:1 on the sunken track, WCAG 1.4.11) and 600. */
-.ui-segmented__item[aria-checked=true] { border-color:var(--color-line-control); background:var(--color-surface); color:var(--color-ink); font-weight:600; }
 
 /* Sheet: bottom sheet on phones, right drawer on desktop; focus and Esc come from ModalShell. */
 .ui-sheet-backdrop { position:fixed; inset:0; display:flex; align-items:flex-end; justify-content:center; background:var(--scrim); animation:ui-fade var(--dur-3) var(--ease-out); }
@@ -296,8 +89,7 @@
 @keyframes ui-sheet-up { from { transform:translateY(100%); } }
 @keyframes ui-sheet-left { from { transform:translateX(100%); } }
 
-/* Skeleton: same geometry as the card it stands in for. */
-.ui-skeleton-card { display:flex; flex-direction:column; gap:8px; }
+/* Skeleton: same geometry as the card it stands in for (the card skeleton's frame is in cards.css). */
 .ui-skeleton { display:block; border-radius:var(--r-sm); background:linear-gradient(90deg, var(--color-surface-2) 0%, var(--color-line) 50%, var(--color-surface-2) 100%) 0 0 / 200% 100%; animation:ui-shimmer 1.2s linear infinite; }
 .ui-skeleton[data-shape=cover] { aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 4)); border-radius:var(--r-lg); }
 .ui-skeleton[data-shape=thumb] { width:5.5rem; height:5.5rem; border-radius:var(--r-md); }
@@ -334,56 +126,6 @@ html[data-simple] .ui-save::before { inset:-8px; }
   .ui-button:active { transform:none; }
 }
 
-/* Carousel / rail: scroll-snap, a peek of the next slide, no autoplay. Bleeds to the screen edge on phones. */
-.ui-carousel { position:relative; }
-.ui-carousel__track { position:relative; display:flex; gap:12px; margin:0 -16px; padding:0 16px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:16px; list-style:none; scrollbar-width:none; }
-.ui-carousel__track::-webkit-scrollbar { display:none; }
-.ui-carousel__slide { flex:0 0 calc(100% - 20px); min-width:0; scroll-snap-align:start; }
-.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc(100% - 16px); }
-.ui-carousel__controls { display:flex; align-items:center; justify-content:center; gap:12px; margin-top:12px; }
-.ui-carousel__dots { display:inline-flex; align-items:center; gap:6px; }
-.ui-carousel__dots>span { width:6px; height:6px; border-radius:var(--r-pill); background:var(--color-line-strong); }
-.ui-carousel__dots>span[data-active] { width:18px; background:var(--color-brand); }
-.ui-carousel__counter { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; font-variant-numeric:tabular-nums; }
-.ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:none; }
-@media (min-width:1024px) {
-  .ui-carousel__track { margin:0; padding:0; scroll-padding-inline:0; }
-  .ui-carousel__slide { flex-basis:420px; }
-  .ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 24px) / 3); }
-  .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:inline-grid; }
-}
-@media (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .ui-carousel__slide { flex-basis:calc(100% - 8px); } }
-
-/* Hero card 4:5 (本周封面 / 编辑精选): text on the photo only on the bottom scrim. */
-.ui-hero-card { position:relative; display:flex; flex-direction:column; gap:8px; min-width:0; }
-.ui-hero-card__media { position:relative; overflow:hidden; border-radius:var(--r-xl); }
-.ui-hero-card__media :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); }
-/* P07: without a photo overlay the title sits below the cover inside this box, and its rounded clip cut the title's first
-   glyph at the bottom-left corner ("Berkeley" on the home pick at 1440). The cover rounds and clips itself (.ui-cover). */
-.ui-hero-card:not([data-overlay]) .ui-hero-card__media { overflow:visible; }
-.ui-hero-card__scrim { position:absolute; inset:0; z-index:1; background:var(--scrim-photo); pointer-events:none; }
-.ui-hero-card[data-overlay] .ui-stickers { display:none; }
-.ui-hero-card__text { display:flex; flex-direction:column; gap:8px; padding-top:8px; }
-/* On a photo the text sits on the cover in the same grid cell instead of being absolutely positioned, so the media box
-   (not the text box) is the containing block of the stretched link: a tap anywhere on the photo opens the story. */
-.ui-hero-card[data-overlay] .ui-hero-card__media { display:grid; grid-template-columns:minmax(0, 1fr); }
-.ui-hero-card[data-overlay] .ui-hero-card__media>* { grid-area:1 / 1; }
-.ui-hero-card[data-overlay] .ui-hero-card__text { align-self:end; z-index:1; margin:18px; padding:0; }
-.ui-hero-card__kicker { margin:0; color:var(--color-highlight); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
-/* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
-   it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
-.ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); text-wrap:balance; }
-.ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.5rem; line-height:1.333; font-weight:600; }
-.ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
-.ui-hero-card .ui-card-link::after { border-radius:var(--r-xl); }
-.ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
-.ui-hero-card__facts>li { padding:4px 10px; border:1px solid rgb(255 255 255 / .28); border-radius:var(--r-pill); background:rgb(255 255 255 / .16); color:var(--color-surface); font-size:var(--text-fact); line-height:1.429; font-variant-numeric:tabular-nums; }
-.ui-hero-card__save { position:absolute; top:8px; right:8px; z-index:3; }
-.ui-hero-card__reason { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.ui-hero-card__reason>strong { color:var(--color-brand); font-size:var(--text-caption); font-weight:600; }
-.ui-hero-card__trust { display:flex; align-items:center; gap:4px; margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
-.ui-hero-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
-
 /* Page header and containers: one H1 spec, three widths, gutters 16/24/32. */
 .ui-page-header { display:flex; flex-direction:column; gap:8px; margin:0 0 24px; }
 .ui-page-header__crumbs { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
@@ -396,9 +138,6 @@ html[data-simple] .ui-save::before { inset:-8px; }
 .ui-container { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding-inline:var(--page-gutter); }
 .ui-container[data-size=content] { max-width:var(--container-content); }
 .ui-container[data-size=reading] { max-width:var(--container-reading); }
-@media (min-width:1024px) {
-  .ui-hero-card__title { font-size:1.75rem; line-height:1.286; }
-}
 
 /* Titles wrap between words (a2 SegmentedTitle; units are at most 8 Han / 14 Latin characters, which fit a 173px card). */
 :is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title,.ui-page-header__title) .title-keep { white-space:nowrap; }
@@ -409,10 +148,6 @@ html[data-simple] .ui-save::before { inset:-8px; }
 /* GR-13: a Chinese unit wider than a narrow card's whole line (320px at 特大: "农夫市集：" in a 237px /plan card) wraps inside
    itself instead of running past the card; any unit that fits the line still moves to the next line whole. */
 :is(.ui-type-cover__title,.ui-feed-card__title,.ui-row-card__title) .title-keep:not([data-latin]) { display:inline-block; max-width:100%; white-space:normal; }
-:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { text-wrap:pretty; }
-/* P07: a clamped title clips at its padding box, which cut a first glyph's side bearing ("Berkeley" at 1440) and the top of
-   tall glyphs: 2px of room on every side, given back with a negative inline margin so the text stays on the grid. */
-:is(.ui-feed-card__title,.ui-row-card__title,.ui-hero-card__title) { padding:2px; margin-inline:-2px; }
 /* H63: under 360px a page title scales with the width (no container above it, so cq units are the viewport's) between
    20px and the phone H1 (26, display 28; rem, so Aa grows both ends; the width term carries --fluid-scale): 24px at 320
    (30 at 特大), the full size from about 347px. What keeps a long title inside the line is the title units' wrapping
@@ -421,9 +156,6 @@ html[data-simple] .ui-save::before { inset:-8px; }
 @media (max-width:359px) {
   .ui-page-header__title { font-size:clamp(1.25rem, calc(7.5cqw * var(--fluid-scale)), 1.625rem); }
   .ui-page-header[data-size=display] .ui-page-header__title { font-size:clamp(1.25rem, calc(8cqw * var(--fluid-scale)), 1.75rem); }
-  /* RV-14: one long Latin word ("Petaluma" at 特大) breaks inside a narrow card instead of running past it. */
-  :is(.ui-row-card__title,.ui-feed-card__title) { overflow-wrap:anywhere; }
-  :is(.ui-row-card__title,.ui-feed-card__title):lang(en) { hyphens:auto; }
 }
 
 .ui-visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
