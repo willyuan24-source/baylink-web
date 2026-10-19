@@ -33,7 +33,7 @@ function timeText(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: st
   if (english || !label) return label;
   const window = eventTimeWindow(event, day);
   if (window) return [window.open, window.close].map(value => `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`).join('–');
-  return label.replace(/^(\d+)–(\d+) 点$/, '$1:00–$2:00').replace(/^(\d+) 点起$/, '$1:00 起').replace(/(^|[、–])0(\d:)/g, '$1$2');
+  return label.replace(/^(\d+)–(\d+) 点$/, '$1:00–$2:00').replace(/^(\d+) 点(起)$/, '$1:00 $2').replace(/(^|[、–])0(\d:)/g, '$1$2');
 }
 
 /** Consecutive calendar days become one run. */
