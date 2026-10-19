@@ -142,6 +142,8 @@ const BLOCK_LINKS: { name: string; classes: string; title: string }[] = [
   { name: '/explore 3D rail item (AI postcard)', classes: 'xp-3d__item', title: '.xp-3d__item:hover .xp-3d__name' },
   { name: 'guide 3D entry (GuideOpusEntry)', classes: 'gd-opus', title: '.gd-opus:hover .gd-opus__text strong' },
   { name: 'outing invite', classes: 'outing-inspiration-link', title: '.outing-inspiration-link:hover strong' },
+  // The icon and the label are one link; before UI9-F2 the label got the link's underline and its own, 0.2px apart.
+  { name: 'home mood circle', classes: 'home-mood', title: '.home-mood:hover .home-mood__label' },
 ];
 
 test('block links are excluded from the inline underline and underline only their title', () => {
