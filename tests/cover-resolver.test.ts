@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCoverPage, distinctNeighbourTones, getCover, resolveCovers, rightsBasisOf, type CoverAsset, type CoverItem } from '../src/lib/cover';
+import { createCoverPage, getCover, resolveCovers, rightsBasisOf, type CoverAsset, type CoverItem } from '../src/lib/cover';
+import * as coverModule from '../src/lib/cover';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -111,10 +112,8 @@ test('the same image appears once per page; the second item falls back to a Type
   assert.equal(getCover(event('b', 'recent'), { ...ctx, images: (key: string) => images[key] }).tier, 'photo', 'no page: no de-duplication; a lookup function works too');
 });
 
-test('adjacent TypeCovers never share a colour; labels are untouched', () => {
-  assert.deepEqual(distinctNeighbourTones(['family', 'family', 'family', null, 'family']), ['family', 'food', 'family', null, 'family']);
-  assert.deepEqual(distinctNeighbourTones(['culture', 'seniors', 'seniors']), ['culture', 'seniors', 'culture']);
-  assert.deepEqual(distinctNeighbourTones(['outdoors', 'outdoors']), ['outdoors', 'free']);
+test('no positional colour rotation: the neighbour palette is gone, each cover keeps its own category colour (UI9-C, N08)', () => {
+  assert.equal('distinctNeighbourTones' in coverModule, false);
 });
 
 test('rights basis reads today’s registry fields', () => {

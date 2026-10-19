@@ -12,18 +12,6 @@
 /* Hero: full-bleed on a phone, square corners; the provenance badge and stickers come from ui.css. */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { width:100%; border-radius:0; }
-/* An offer or opening without an image: a band (DetailHero) with the value or the kind, not a 16:9 card repeating the header. */
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover { aspect-ratio:auto; height:7.5rem; }
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value { font-size:2rem; }
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__value:first-child { margin-top:auto; }
-/* An event's band (H28): the date large at the bottom left, as the offer's value. */
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__date { font-size:2rem; }
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__date:first-child { margin-top:auto; }
-.local-discovery-detail .detail-hero[data-compact] .ui-type-cover__art { top:6%; right:1.25rem; width:auto; height:88%; }
-/* An offer with no stated value: its header says everything, so the band is a slim strip in its tone, no words. */
-.local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:2.75rem; }
-.local-discovery-detail .detail-hero[data-slim] .ui-type-cover__art { top:8%; height:84%; }
-.local-discovery-detail .detail-hero[data-slim] .ui-provenance { display:none; }
 
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
 .local-discovery-detail .detail-head { padding-top:12px; }
@@ -169,10 +157,6 @@
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-fact=where] { position:relative; }
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-fact=where] dd>small:has(>.detail-map-link) { position:absolute; top:calc((1.4 * var(--text-caption) - 2.75rem) / 2); right:0; margin:0; }
 }
-/* RC-26: at 大 / 特大 and in 简洁显示 the 16:9 hero TypeCover has no room for its title or note line, which the H1 right
-   below repeats; it keeps the label, the big date or value, one brand line and the place, so nothing is cut mid-line. */
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-hero :is(.ui-type-cover__title,.ui-type-cover__note) { display:none; }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-hero .ui-type-cover__brand { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:1; }
 
 /* Desktop: the column (top: hero and title; body: the rest) and the sticky card beside both (facts as a list, then the
    actions). The card comes between the two blocks in the DOM, so a phone reads the facts right under the H1. */
@@ -188,8 +172,6 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-di
   .local-discovery-detail .detail-main--body { grid-area:body; }
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
   .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); overflow:hidden; }
-  .local-discovery-detail .detail-hero[data-compact] .ui-type-cover { height:9rem; }
-  .local-discovery-detail .detail-hero[data-slim] .ui-type-cover { height:3.5rem; border-radius:var(--r-lg); }
   .local-discovery-detail .detail-head { padding-top:20px; }
   .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }
   .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }

@@ -54,7 +54,7 @@ test('the index shows the seven task topics with 长辈与家属 first, a region
 
 test('covers are honest: photos carry their provenance badge, other guides get a coded cover, never an AI illustration', () => {
   const view = open('/guides');
-  // Posters letterbox on a blurred copy of themselves (one picture, two <img>); count the picture once.
+  // Posters sit whole on a board (UI9-C: one <img>, no blurred copy).
   const images = [...view.container.querySelectorAll('img:not(.ui-cover__backdrop)')];
   assert.ok(images.length > 0);
   for (const image of images) assert.ok(!aiSources.has(image.getAttribute('src')!), `${image.getAttribute('src')} is an AI illustration`);
@@ -65,7 +65,7 @@ test('covers are honest: photos carry their provenance badge, other guides get a
     assert.ok(cover, 'every card has a cover');
     assert.ok(cover.querySelector('[data-provenance]'), 'every cover is labelled');
   }
-  const typed = view.container.querySelectorAll('[data-cover="type"][data-family="guide"]');
+  const typed = view.container.querySelectorAll('[data-cover="type"][data-kind="guide"]');
   assert.ok(typed.length > 0);
   for (const cover of typed) assert.equal(cover.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
   // A pilot guide's coded cover prints its first answer (the number joined by non-breaking hyphens, U+2011, so it keeps one line).

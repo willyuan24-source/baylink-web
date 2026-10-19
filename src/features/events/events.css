@@ -21,8 +21,6 @@
 @media (max-width:420px) { .ev-tabs-bar .ui-tabs__item { padding:0 .5rem; font-size:var(--text-fact); } }
 .ev-body { padding-top:1rem; }
 
-/* 部分免费 keeps its own green tint but takes the 免费 sticker's ink, so the column stays within ten text colours (SYS §5.2). */
-.ev-page .ui-sticker[data-tone=mixed] { color:var(--color-brand-deep); }
 
 .ev-section-title { margin:1.5rem 0 .75rem; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .ev-section-title:first-child { margin-top:.5rem; }

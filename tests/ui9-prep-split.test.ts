@@ -51,7 +51,7 @@ test('each sheet holds its own part, and no selector is defined in two of them',
   assert.equal(where('.ui-provenance'), 'covers');
   assert.equal(where('.ui-sticker'), 'covers');
   assert.equal(where('.ui-status'), 'covers');
-  assert.equal(where('.ui-type-cover__art'), 'covers');
+  assert.equal(where('.tc-cal'), 'covers');
   assert.equal(where('.ui-feed-grid'), 'cards');
   assert.equal(where('.ui-meta-price'), 'cards');
   assert.equal(where('.ui-row-card'), 'cards');

@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react';
 import { translateText } from '../../i18n/locale';
-import { EventCover, FeedCard, HeroCard, RowCard, TypeCover, Cover, COVER_SIZES } from '../../components/ui';
+import { EventCover, EventTypeCover, EventWhen, FeedCard, HeroCard, RowCard, Cover, COVER_SIZES } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { ResolvedCover } from '../../lib/cover';
-import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
+import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, type EventFactsInput } from '../../lib/event-facts';
 import type { IndexEvent } from './events-index-types';
 import { monthDay, regionLabel } from './events-model';
 import { SaveToWeek } from '../../components/SaveToWeek';
@@ -47,10 +47,10 @@ const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) =
  * `day` (the calendar's chosen day) goes into the link, so the detail page opens on it. `action` (the calendar's
  * 加入这天计划, WEB-SAVES) takes the save slot instead, as a sibling of the card link under the meta lines.
  */
-export function EventFeedCard({ event, cover, tone, today, days, day, priority, sizes, heading = 'h3', action }: { event: IndexEvent; cover: ResolvedCover; tone?: CoverTone; today: string; days?: readonly string[]; day?: string; priority?: boolean; sizes?: string; heading?: 'h2' | 'h3'; action?: ReactNode }) {
+export function EventFeedCard({ event, cover, today, days, day, priority, sizes, heading = 'h3', action }: { event: IndexEvent; cover: ResolvedCover; today: string; days?: readonly string[]; day?: string; priority?: boolean; sizes?: string; heading?: 'h2' | 'h3'; action?: ReactNode }) {
   return <FeedCard title={event.title} to={day ? `/events/${event.id}?date=${day}` : `/events/${event.id}`} heading={heading} className={action ? 'ev-card--action' : undefined}
-    cover={<EventCover event={facts(event)} cover={cover} tone={tone} today={today} days={days} priority={priority} sizes={sizes} decorative />}
-    meta={<EventMeta event={event} />} trust={<TrustLine day={event.verifiedAt} />} save={action ?? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
+    cover={<EventCover event={facts(event)} cover={cover} today={today} days={days} priority={priority} sizes={sizes} decorative />}
+    when={<EventWhen event={facts(event)} today={today} days={day ? [day] : days} />} meta={<EventMeta event={event} />} trust={<TrustLine day={event.verifiedAt} />} save={action ?? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
 }
 
 /** 4:5 editor's pick: photo with the title on the scrim, or the A2 TypeCover with the title below; ♡ on the cover. */
@@ -65,7 +65,7 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
   return <HeroCard title={translateText(event.title, locale)} to={`/events/${event.id}`} heading="h3" overlay={photo}
     cover={<EventCover event={facts(event)} cover={cover} today={today} days={[date]} ratio="4:5" ratioLock priority={priority} sizes={HERO_SIZES} decorative />}
     kicker={city === region || (event.city === 'San Francisco' && event.region === 'sf') ? region : `${city} · ${region}`}
-    facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [pick(price.text)] : [])]}
+    facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [pick(price.text)] : [])]} when={<EventWhen event={facts(event)} today={today} days={[date]} />} meta={<EventMeta event={event} />}
     reason={reason ? { label: t('编辑推荐', 'Editor’s pick'), text: pick(reason) } : undefined}
     trust={<TrustLine day={event.verifiedAt} />} save={<CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
 }
@@ -75,13 +75,11 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
  * (the calendar's 加入这天计划, WEB-SAVES) is the row's one trailing control, under the text.
  */
 export function EventRowCard({ event, cover, today, day, action }: { event: IndexEvent; cover: ResolvedCover; today: string; day: string; action?: ReactNode }) {
-  const { english } = useUiCopy();
-  const chip = formatDateChip(eventDateChip(facts(event), today, [day]), english);
-  const time = eventTimeLabel(facts(event), day, english);
-  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative
-    fallback={<TypeCover size="mini" tone={event.category} label="" date={chip} ariaHidden />} />;
+  const { pick } = useUiCopy();
+  const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="event"
+    fallback={<EventTypeCover event={facts(event)} today={today} days={[day]} size="mini" ariaHidden />} />;
   return <RowCard title={event.title} to={`/events/${event.id}?date=${day}`} thumb={thumb} className={action ? 'ev-card--action' : undefined}
-    date={[chip.label, time].filter(Boolean).join(' · ')} meta={<EventMeta event={event} />} trailing={action} />;
+    when={<EventWhen event={facts(event)} today={today} days={[day]} />} meta={<EventMeta event={event} />} credit={cover.tier === 'type' ? undefined : pick(cover.label)} trailing={action} />;
 }
 
 // The offer and new-shop cards (OfferFeedCard, OpeningFeedCard) are in BoardCards.tsx (UI9-PREP).

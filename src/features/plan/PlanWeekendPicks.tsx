@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import { EventCover } from '../../components/ui/Cover';
+import { EventCover, EventWhen } from '../../components/ui/cover-date';
 import { FeedCard } from '../../components/ui/Card';
 import { FeedGrid, FeedItem } from '../../components/ui/FeedGrid';
 import { useUiCopy } from '../../components/ui/ui-copy';
@@ -68,7 +68,7 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
         return <FeedItem key={event.id}>
           <FeedCard title={facts.title} to={`/events/${event.id}?date=${date}`}
             cover={<EventCover event={facts} cover={cover} today={today} days={[date]} sizes={SIZES} priority={index === 0} decorative />}
-            meta={<><span className="ui-meta-place">{translateText(eventPlace(facts), locale)}</span>{price && <span className="ui-meta-price"><span className="ui-meta-sep"> · </span>{price.tone === 'free' ? <strong>{pick(price.text)}</strong> : pick(price.text)}</span>}</>} />
+            when={<EventWhen event={facts} today={today} days={[date]} />} meta={<><span className="ui-meta-place">{translateText(eventPlace(facts), locale)}</span>{price && <span className="ui-meta-price"><span className="ui-meta-sep"> · </span>{price.tone === 'free' ? <strong>{pick(price.text)}</strong> : pick(price.text)}</span>}</>} />
         </FeedItem>;
       })}
     </FeedGrid>

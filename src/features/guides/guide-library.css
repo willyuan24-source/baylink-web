@@ -62,6 +62,3 @@
   .gl-find { max-width:720px; }
   .gl-section { margin-top:40px; }
 }
-/* H21: a coded cover whose answer is a phone number sets it a step smaller (9 instead of 10.5 cqw), so the whole number
-   (non-breaking hyphens, phone-numbers.ts coverPhoneKeep) fits a 173 px card and at 特大 without being cut. */
-.ui-type-cover.gd-cover-phone .ui-type-cover__title { font-size:clamp(max(.875rem, var(--text-floor)), min(calc(9cqw * var(--fluid-scale)), 10cqh), 1.5rem); overflow-wrap:normal; }

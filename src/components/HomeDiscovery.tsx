@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useUiCopy } from './ui/ui-copy';
 import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
-import { createCoverPage, distinctNeighbourTones, getCover, type CoverContext } from '../lib/cover';
-import { eventTone } from '../lib/event-facts';
+import { createCoverPage, getCover, type CoverContext } from '../lib/cover';
 import { getBayAreaToday } from '../lib/monthly';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
 import { getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
@@ -70,7 +69,6 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
   // ⑧ offers the share card only on days the build wrote a card for (the week after it): on a later day the undated card is
   // an earlier weekend's, so saving it would send the family the wrong three until the next build.
   const cardHref = getWeeklyCardDays().includes(today) ? getWeeklyCardHref(today) : null;
-  const feedTones = distinctNeighbourTones(weekend.feed.map((entry, index) => covers.feed[index].tier === 'type' ? eventTone(entry.event) : null));
 
   return <section className="home-discovery" aria-label={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}>
     <div className="home-top">
@@ -78,7 +76,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       <HeroPicks picks={weekend.picks} covers={covers.picks} today={today} start={weekend.start} end={weekend.end} total={weekend.total} />
       <MoodCircles seniors={weekend.seniors} />
     </div>
-    <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} tones={feedTones} today={today} total={weekend.total} />
+    <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} today={today} total={weekend.total} />
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />
     <GuideRail intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
     <OfferTickets offers={offers} covers={covers.offers} today={today} />

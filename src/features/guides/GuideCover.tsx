@@ -1,44 +1,40 @@
-import { Cover } from '../../components/ui/Cover';
-import { TypeCover } from '../../components/ui/TypeCover';
+import { Cover } from '../../components/ui/CoverImage';
+import { GuideTypeCover } from '../../components/ui/cover-guide';
 import type { CoverRatio } from '../../components/ui/CoverImage';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { guideTopicOf } from '../../data/guide-topics';
+import { translateText } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
-import type { CoverTone } from '../../lib/event-facts';
-import { TOPIC_COVER, topicCopy } from './guide-facts';
+import { guideCardHook, type GuideHookFields } from '../../lib/guide-hook-highlight';
+import { topicCopy } from './guide-facts';
 import type { GuideCard } from './guide-records';
-import { coverPhoneKeep } from '../../lib/phone-numbers';
 
 export type GuideCoverProps = {
-  /** A guide card from the generated index or a record's "Read next" (guide-records.ts). */
-  guide: Pick<GuideCard, 'slug' | 'category' | 'title' | 'sourceCount'>;
-  /** From `guideCover()` (the honesty ladder); a `type` result renders the guide's family C TypeCover. */
+  /** A guide card from the generated index or a record's "Read next" (guide-records.ts), with its answered hook when it has one. */
+  guide: Pick<GuideCard, 'slug' | 'category' | 'title' | 'sourceCount'> & GuideHookFields;
+  /** From `guideCover()` (the honesty ladder); a `type` result renders the guide's headline or number cover. */
   cover: ResolvedCover;
   ratio?: CoverRatio;
   sizes?: string;
   priority?: boolean;
-  /** Palette from `distinctNeighbourTones`, so two coded covers side by side never share a colour. */
-  tone?: CoverTone;
-  /** A one-line answer printed on a coded cover (pilot guides: "先打 800-510-2020"). */
-  answer?: string;
-  /** 88px row thumbnail: a coded cover shows its palette and topic only. */
+  /** Row thumbnail (≤ 140 px): a type cover shows its topic mark only, never a phone number. */
   mini?: boolean;
 };
 
 /**
- * A guide's cover: its photo with the provenance badge, or a coded cover with the topic and, on a pilot guide, its one-line
- * answer set large ("先打 800-510-2020"). The card's caption right under it already carries the title and the source count,
- * so the coded cover does not repeat them (PROD-W3 review: every coded guide card said both twice).
+ * A guide's cover: its photo with the provenance chip, or (UI9-C, G19) the deep-green slide with the guide's hook and one
+ * lime phrase, or the number plate when the hook is a phone number. The hook is the pilot guide's one-line answer (carried
+ * into the card at generate time), else the title after its colon; the card's caption then shows the head only
+ * (guideCardHook), so the cover never repeats the caption.
  */
-export function GuideCover({ guide, cover, ratio, sizes, priority, tone, answer, mini }: GuideCoverProps) {
-  const { pick } = useUiCopy();
+export function GuideCover({ guide, cover, ratio, sizes, priority, mini }: GuideCoverProps) {
+  const { pick, locale } = useUiCopy();
   const topic = guideTopicOf(guide);
-  // The answer's phone number stays whole and, on a cover that prints one, a step smaller so it fits the card (H21):
-  // never "1-800-434-022 / 2" or "800- / 510-2020".
-  const kept = answer ? coverPhoneKeep(answer) : undefined;
-  // The drawing belongs to the guide (seeded by its slug, as the home GuideRail does): the same picture in every language,
-  // and guides of one topic do not all draw the same one (WEB-VISUAL-2 H12 item 4, W5-INT).
-  const fallback = <TypeCover family="guide" tone={tone ?? TOPIC_COVER[topic].tone} icon={TOPIC_COVER[topic].icon} seed={guide.slug} label={pick(topicCopy(topic))}
-    title={kept?.text} ratio={ratio} size={mini ? 'mini' : undefined} className={kept?.phone ? 'gd-cover-phone' : undefined} ariaHidden />;
-  return <Cover cover={cover} fallback={fallback} ratio={ratio} sizes={sizes} priority={priority} decorative />;
+  const { hook, hi } = guideCardHook(guide, translateText(guide.title, locale), locale, zh => translateText(zh, locale));
+  const fallback = <GuideTypeCover slug={guide.slug} topic={topic} topicLabel={pick(topicCopy(topic))} hook={hook} hi={hi} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
+  return <Cover cover={cover} kind="guide" fallback={fallback} ratio={ratio} sizes={sizes} priority={priority} decorative />;
 }
+
+/** The caption a guide card shows beside its cover (FeedCard `titleShown`): the head, '' for none, undefined for the title. */
+export const guideCaption = (guide: GuideHookFields & { title: string }, locale: 'zh-Hans' | 'zh-Hant' | 'en', cover: ResolvedCover) =>
+  cover.tier === 'type' ? guideCardHook(guide, translateText(guide.title, locale), locale, zh => translateText(zh, locale)).caption : undefined;

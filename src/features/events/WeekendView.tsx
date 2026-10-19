@@ -4,8 +4,7 @@ import { Baby, ChevronDown, Gift, HeartHandshake, Leaf, Music, SlidersHorizontal
 import { Button, Carousel, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SegmentedControl, Sheet, SkeletonFeed, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
-import { createCoverPage, distinctNeighbourTones, resolveCovers, type ResolvedCover } from '../../lib/cover';
-import { eventTone } from '../../lib/event-facts';
+import { createCoverPage, resolveCovers, type ResolvedCover } from '../../lib/cover';
 import { normalizeSearchText } from '../../lib/search-synonyms';
 import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
 import { dateScope } from '../../lib/date-guard';
@@ -128,7 +127,6 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     return { strip: stripCovers, picks: pickCovers, feed: feedCovers };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card, strip, picks, visible, today]);
-  const tones = distinctNeighbourTones(visible.map((event, index) => covers.feed[index].tier === 'type' ? eventTone(event) : null));
 
   // The Sheet announces what closing it shows: the chosen day's list (the status line's number), not the weekend's union.
   // While the dates load they say so; a failed load says that (the retry state sits right below), never "loading" over it.
@@ -195,7 +193,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
       : visible.length ? <>
         <FeedGrid label={weekend ? t('本周末活动', 'Events this weekend') : t('活动', 'Events')} layout={layout}>
           {visible.map((event, index) => <FeedItem key={event.id}>
-            <EventFeedCard event={event} cover={covers.feed[index]} tone={tones[index] ?? undefined} today={today} days={feedDays}
+            <EventFeedCard event={event} cover={covers.feed[index]} today={today} days={feedDays}
               priority={!picks.length && !listsCard && index === 0} />
           </FeedItem>)}
         </FeedGrid>

@@ -115,8 +115,6 @@
   html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li[data-wide] { grid-column:span 2; }
 }
 .home-offers__rail>li[data-wide] :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-lg); }
-.home-offers :is(.ui-type-cover__title,.ui-type-cover__note) { display:none; }
-.home-offers .ui-type-cover__brand { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
 
 /* ⑧ share card and ⑨ 3D tile, side by side on desktop */
 .home-end { display:flex; flex-direction:column; gap:24px; }

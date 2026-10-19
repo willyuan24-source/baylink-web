@@ -33,94 +33,107 @@ const fleetWeek = {
 };
 const wrap = (node: React.ReactNode) => render(<MemoryRouter>{node}</MemoryRouter>);
 
-test('an event TypeCover is real DOM text with the honest label, category, big date, title, city and price', () => {
+test('an event type cover is the date family: real DOM text, the honest label, the day and weekday, the venue; never the title', () => {
   const view = wrap(<EventTypeCover event={fleetWeek} today={today} />);
   const root = view.container.querySelector('[data-cover="type"]');
   assert.ok(root, 'the root carries data-cover="type" for the image-area probe (RC-31)');
-  assert.equal(root.getAttribute('data-tone'), 'family');
+  assert.deepEqual(['data-family', 'data-kind', 'data-mark', 'data-tone'].map(name => root.getAttribute(name)), ['date', 'event', 'calendar', 'family']);
+  assert.equal(root.getAttribute('data-key'), '10/10–11');
   assert.equal(root.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
-  assert.equal(root.querySelector('.ui-type-cover__label')?.textContent, '亲子活动');
-  assert.equal(root.querySelector('.ui-type-cover__date')?.textContent, '10/10–11周六–周日');
-  assert.equal(root.querySelector('.ui-type-cover__title')?.textContent, 'Fleet Week 蓝天使航展');
-  assert.equal(root.querySelector('.ui-type-cover__place')?.textContent, 'San Francisco');
-  assert.equal(root.querySelector('.ui-sticker')?.textContent, '免费');
-  // H12: the tone's drawing is a decorative mask (public/default-covers/art), not a UI icon, and the item picks one by its id.
-  const art = root.querySelector('.ui-type-cover__art');
-  assert.equal(art?.getAttribute('aria-hidden'), 'true', 'the drawing is decorative');
-  assert.match(art?.getAttribute('data-art') ?? '', /^family-[123]$/, 'a family event draws from the family set');
-  assert.equal(root.querySelector('svg'), null, 'no UI icon inside a TypeCover');
-  assert.equal(root.querySelector('img'), null, 'no picture inside a TypeCover');
+  assert.equal(root.querySelector('.tc-cal__top')?.textContent, '周六–周日');
+  assert.equal(root.querySelector('.tc-cal__day')?.textContent, '10/10–11');
+  assert.equal(root.querySelector('.tc-eyebrow')?.textContent, 'San Francisco');
+  assert.doesNotMatch(root.textContent ?? '', /Fleet Week|蓝天使/, 'the caption prints the title; the cover never repeats it (N19)');
+  assert.equal(root.querySelector('.ui-sticker'), null, 'no stickers on a cover (N22)');
+  assert.equal(root.querySelector('.tc-bar'), null, 'a two-day run draws no time bar');
+  assert.equal(root.hasAttribute('data-art'), false, 'no drawings (G3)');
+  assert.equal(root.querySelector('img'), null, 'no picture inside a type cover');
 });
 
-test('the TypeCover translates: English label, weekday and title; zh-Hant converts the Chinese', async () => {
+test('the type cover translates: English weekday, day and venue; zh-Hant converts the Chinese', async () => {
   await act(async () => { await setLocale('en', false); });
   const english = wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week', shortTitle: undefined }} today={today} />);
   assert.equal(english.container.querySelector('[data-provenance]')?.textContent, 'Info card');
-  assert.equal(english.container.querySelector('.ui-type-cover__label')?.textContent, 'Family');
-  assert.equal(english.container.querySelector('.ui-type-cover__date')?.textContent, 'Oct 10–11Sat–Sun');
-  assert.equal(english.container.querySelector('.ui-type-cover__title')?.getAttribute('lang'), 'en');
-  assert.equal(english.container.querySelector('.ui-sticker')?.textContent, 'Free');
+  assert.equal(english.container.querySelector('.tc-cal__top')?.textContent, 'Sat–Sun');
+  assert.equal(english.container.querySelector('.tc-cal__day')?.textContent, 'Oct 10–11');
+  assert.equal(english.container.querySelector('.tc-eyebrow')?.getAttribute('lang'), 'en');
   cleanup();
   await act(async () => { await setLocale('zh-Hant', false); });
-  const traditional = wrap(<EventTypeCover event={{ ...fleetWeek, title: '长者太极与健康讲座', audience: ['长者'] }} today={today} />);
-  assert.equal(traditional.container.querySelector('.ui-type-cover__label')?.textContent, '長者與社區');
-  assert.equal(traditional.container.querySelector('.ui-type-cover__title')?.textContent, '長者太極與健康講座');
+  const traditional = wrap(<EventTypeCover event={{ ...fleetWeek, city: '长者中心', audience: ['长者'] }} today={today} />);
+  assert.equal(traditional.container.querySelector('.tc-cal__top')?.textContent, '週六–週日');
+  assert.equal(traditional.container.querySelector('.tc-eyebrow')?.textContent, '長者中心');
 });
 
-test('unknown cost shows no price; an unknown date says so instead of printing dateLabel', () => {
+test('an unknown date says so instead of printing dateLabel; a thumbnail shows the time, else the place, else the price', () => {
   const view = wrap(<EventTypeCover event={{ ...fleetWeek, cost: 'unknown', occurrenceDates: [] }} today={today} />);
+  assert.equal(view.container.querySelector('.tc-cal__day')?.textContent, '日期见详情');
   assert.equal(view.container.querySelector('.ui-sticker'), null);
-  assert.equal(view.container.querySelector('.ui-type-cover__date'), null);
+  cleanup();
   const mini = wrap(<EventTypeCover event={fleetWeek} today={today} size="mini" />);
-  const thumb = mini.container.querySelectorAll('[data-cover="type"]')[0];
+  const thumb = mini.container.querySelector('[data-cover="type"]')!;
   assert.equal(thumb.getAttribute('data-size'), 'mini');
-  assert.equal(thumb.textContent, '10/10–11周六–周日', 'a row thumbnail keeps only palette and date');
+  assert.equal(thumb.textContent, 'San Francisco', 'no time: the place; never the date the row already prints, and not a row of 免费');
+  cleanup();
+  const timed = wrap(<EventTypeCover event={{ ...fleetWeek, endDate: '2026-10-10', sessions: [{ date: '2026-10-10', start: '11:00', end: '16:00' }] }} today={today} size="mini" />);
+  assert.equal(timed.container.querySelector('[data-cover="type"]')!.textContent, '11:00–16:00');
 });
 
-test('offer and opening TypeCovers: value, normal-case brand, deadline; honest opening chip', async () => {
+test('offer and opening type covers: the ticket (value, condition, brand as written, deadline stub) and the shop sign', async () => {
   const offer = wrap(<OfferTypeCover offer={{ brand: 'SAN FRANCISCO PUBLIC LIBRARY', title: '借书证免费参观博物馆', endDate: '2026-10-09', availability: 'dated' }} today={today} />);
   const root = offer.container.querySelector('[data-cover="type"]')!;
-  assert.equal(root.getAttribute('data-family'), 'offer');
-  assert.equal(root.getAttribute('data-ratio'), '1:1');
-  assert.equal(root.getAttribute('data-tone'), 'free');
-  assert.equal(root.querySelector('.ui-type-cover__label')?.textContent, '免费福利');
-  assert.equal(root.querySelector('.ui-type-cover__value')?.textContent, '免费');
-  assert.equal(root.querySelector('.ui-type-cover__brand')?.textContent, 'San Francisco Public Library');
-  assert.equal(root.querySelector('.ui-sticker')?.getAttribute('data-tone'), 'danger');
-  assert.equal(root.querySelector('.ui-sticker')?.textContent, '明天截止');
+  assert.deepEqual(['data-family', 'data-kind', 'data-ratio', 'data-tone'].map(name => root.getAttribute(name)), ['ticket', 'offer', '1:1', 'free']);
+  assert.equal(root.querySelector('.tc-ticket__value')?.textContent, '免费');
+  assert.equal(root.querySelector('.tc-eyebrow')?.textContent, 'San Francisco Public Library');
+  assert.equal(root.querySelector('.tc-ticket__stub')?.textContent, '10/9截止');
+  assert.equal(root.querySelector('.ui-sticker'), null);
+  cleanup();
   const retail = wrap(<OfferTypeCover offer={{ brand: 'YOGURTLAND', title: '会员生日礼', availability: 'ongoing' }} today={today} />);
-  assert.equal(retail.container.querySelector('.ui-type-cover__label')?.textContent, '商家活动');
-  // The card's caption carries the title, so the cover does not repeat it, value or not (PROD-W3: "Concord Taco Tra…").
-  assert.equal(retail.container.querySelector('.ui-type-cover__title'), null, 'without a value the cover shows the brand, not the title');
-  assert.equal(retail.container.querySelector('.ui-type-cover__brand')?.textContent, 'Yogurtland');
+  // No value: the deadline leads; the caption carries the title, so the cover never repeats it (PROD-W3: "Concord Taco Tra…").
+  assert.equal(retail.container.querySelector('.tc-ticket__value')?.textContent, '长期有效');
+  assert.equal(retail.container.querySelector('.tc-ticket__stub'), null);
+  assert.equal(retail.container.querySelector('.tc-eyebrow')?.textContent, 'Yogurtland');
+  assert.doesNotMatch(retail.container.textContent ?? '', /会员生日礼/);
+  cleanup();
   const withOrder = { brand: 'SMASHBURGER', title: '周三买完整成人套餐，12 岁及以下儿童餐免费', availability: 'ongoing', kind: 'purchase' } as const;
   const zhOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
-  assert.equal(zhOrder.container.querySelector('.ui-type-cover__value')?.textContent, '随单免费');
-  assert.equal(zhOrder.container.querySelector('.ui-type-cover__value-small'), null);
+  assert.equal(zhOrder.container.querySelector('.tc-ticket__value')?.textContent, '随单免费');
+  cleanup();
   await act(async () => { await setLocale('en', false); });
   const enOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
-  assert.equal(enOrder.container.querySelector('.ui-type-cover__value')?.textContent, 'Freewith purchase');
-  assert.equal(enOrder.container.querySelector('.ui-type-cover__value-small')?.textContent, 'with purchase', 'the condition stays on the cover, set small');
+  assert.equal(enOrder.container.querySelector('.tc-ticket__value')?.textContent, 'Free');
+  assert.equal(enOrder.container.querySelector('.tc-ticket__cond')?.textContent, 'with purchase', 'the condition stays on the cover');
+  cleanup();
   await act(async () => { await setLocale('zh-Hans', false); });
   const opening = wrap(<OpeningTypeCover opening={{ name: 'Sergeant Ma', city: 'San Francisco', status: 'announced', openingType: 'new-restaurant' }} today={today} />);
-  assert.equal(opening.container.querySelector('.ui-sticker')?.textContent, '即将开业');
-  assert.equal(opening.container.querySelector('[data-cover="type"]')?.getAttribute('data-tone'), 'food');
+  const shop = opening.container.querySelector('[data-cover="type"]')!;
+  assert.deepEqual(['data-family', 'data-mark', 'data-tone'].map(name => shop.getAttribute(name)), ['shop', 'shopfront', 'food']);
+  assert.equal(shop.querySelector('.tc-sign')?.textContent, '新开餐厅即将开业');
+  assert.doesNotMatch(shop.textContent ?? '', /Sergeant Ma/, 'the sign says what it sells, not the name the caption prints (G4)');
+  cleanup();
+  const dated = wrap(<OpeningTypeCover opening={{ name: 'Marufuku', city: 'Burlingame', status: 'open', openedOn: '2026-10-01', openingType: 'new-restaurant', category: '拉面' }} today={today} />);
+  assert.equal(dated.container.querySelector('.tc-sign')?.textContent, '拉面10/1 开业');
 });
 
-test('EventCover shows the resolved photo with its provenance and stickers, or falls back to the TypeCover', () => {
+test('EventCover shows the resolved photo with its provenance chip and nothing else, or falls back to the date family', () => {
   const photo = getCover({ kind: 'event', id: 'fleet', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today });
   const withPhoto = wrap(<EventCover event={fleetWeek} today={today} cover={photo} priority />);
   const img = withPhoto.container.querySelector('img.ui-cover__img')!;
   assert.equal(img.getAttribute('loading'), 'eager');
   assert.equal(img.getAttribute('fetchpriority'), 'high');
   assert.ok(img.getAttribute('srcset')?.includes('480w'));
-  assert.equal(withPhoto.container.querySelector('[data-provenance]')?.textContent, '资料图 · 2024');
-  assert.deepEqual([...withPhoto.container.querySelectorAll('.ui-sticker')].map(node => node.textContent), ['10/10–11', '免费']);
+  const chip = withPhoto.container.querySelector('[data-provenance]')!;
+  assert.equal(chip.textContent, '资料图 · 2024');
+  assert.equal(chip.hasAttribute('data-chip'), true);
+  assert.equal(withPhoto.container.querySelectorAll('.ui-sticker').length, 0, 'the date and price live in the caption (N22)');
+  assert.equal(withPhoto.container.querySelector('[data-cover="image"]')?.getAttribute('data-family'), 'photo');
+  assert.equal(withPhoto.container.querySelectorAll('img').length, 1, 'one image: no blurred duplicate');
+  cleanup();
   const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'weekend' }, { images: GUIDE_IMAGES, today })} />);
-  assert.ok(typed.container.querySelector('[data-cover="type"]'), 'an AI illustration is replaced by the TypeCover');
+  assert.equal(typed.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date', 'an AI illustration is replaced by the date family');
   assert.equal(typed.container.querySelector('img'), null);
+  cleanup();
   const offer = wrap(<OfferCover offer={{ brand: 'IKEA', title: '免费咖啡', availability: 'ongoing' }} today={today} cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } }} />);
-  assert.equal(offer.container.querySelector('.ui-type-cover__brand')?.textContent, 'IKEA');
+  assert.equal(offer.container.querySelector('.tc-eyebrow')?.textContent, 'IKEA');
 });
 
 // The primitives' three sheets in load order (UI9-PREP split ui.css; the cover rules are in covers.css).
@@ -171,14 +184,13 @@ test('TypeCover text scales with Aa once: every size is a text token, a rem, a c
   assert.doesNotMatch(outsideTokens, /#[\da-f]{3,8}\b/i, 'colours outside the token block come from tokens');
 });
 
-test('a neighbour palette changes only the colour: the label stays the item’s own category', () => {
+test('a cover keeps its own category colour: no neighbour rotation (N08)', () => {
   const view = wrap(<><EventTypeCover event={fleetWeek} today={today} /><EventTypeCover event={fleetWeek} today={today} tone="food" /></>);
   const [first, second] = view.container.querySelectorAll('[data-cover="type"]');
-  assert.deepEqual([first.getAttribute('data-tone'), second.getAttribute('data-tone')], ['family', 'food']);
-  assert.equal(second.querySelector('.ui-type-cover__label')?.textContent, '亲子活动');
+  assert.deepEqual([first.getAttribute('data-tone'), second.getAttribute('data-tone')], ['family', 'family']);
+  cleanup();
   const bare = wrap(<TypeCover tone="culture" label="文化活动" title="社区讲座" ratio="16:9" />);
   assert.equal(bare.container.querySelector('[data-cover="type"]')?.getAttribute('data-ratio'), '16:9');
-  assert.equal(bare.container.querySelector('.ui-type-cover__footer'), null, 'no empty footer');
 });
 
 test('the palette lives in tokens.css: ui.css defines no global names, and every name it reads exists', () => {
@@ -187,12 +199,12 @@ test('the palette lives in tokens.css: ui.css defines no global names, and every
   // once a primitive mounts; it may only set element-scoped layout variables.
   postcss.parse(css).walkRules(':root', rule => assert.fail(`ui.css has a :root block again (${rule.toString().slice(0, 60)}…): palette names belong in src/tokens.css`));
   postcss.parse(css).walkDecls(declaration => {
-    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|ui-art|tc-bg|tc-fg|tc-art|tc-art-shift|tc-art-width|tc-art-inset|tc-art-square|tc-badge-room)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
+    if (declaration.prop.startsWith('--')) assert.match(declaration.prop, /^--(?:ui-cover-ratio|ui-feed-cols|ui-feed-ratio|tc-fg|tc-deep|tc-badge-room)$/, `${declaration.prop} (${(declaration.parent as postcss.Rule).selector})`);
   });
   const globalNames = new Set<string>();
   postcss.parse(tokens).walkRules(':root', rule => rule.walkDecls(declaration => { globalNames.add(declaration.prop); }));
   for (const name of ['--tc-family-bg', '--tc-free-fg', '--color-success', '--color-highlight', '--color-badge-bg', '--color-backdrop', '--scrim-photo']) assert.ok(globalNames.has(name), `tokens.css defines ${name}`);
-  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--ui-art', '--tc-bg', '--tc-fg', '--tc-art', '--tc-art-shift', '--tc-art-width', '--tc-art-inset', '--tc-art-square', '--tc-badge-room']);
+  const local = new Set(['--ui-cover-ratio', '--ui-feed-cols', '--ui-feed-ratio', '--ui-lqip', '--tc-fg', '--tc-deep', '--tc-badge-room', '--tb-from', '--tb-span']);
   // A read with a fallback (var(--header-height, 0px)) is fine without a definition.
   for (const [, name, fallback] of css.matchAll(/var\((--[\w-]+)\s*(,)?/g)) assert.ok(fallback || local.has(name) || globalNames.has(name), `ui.css reads ${name}, which tokens.css does not define`);
   for (const [, name] of css.matchAll(/var\((--ui-(?:success|warning|danger|info|highlight|badge|scrim)[\w-]*)/g)) assert.fail(`ui.css reads the old stand-in ${name}; read the --color-* name`);
@@ -229,31 +241,15 @@ test('a photo hero card is one link from edge to edge: its text box never become
   assert.equal(declarations('.ui-hero-card[data-overlay] .ui-hero-card__media').get('display'), 'grid');
 });
 
-test('every drawing a TypeCover can pick has its mask rule and its own small vector file (H12)', async () => {
-  const { readdirSync } = await import('node:fs');
-  const rules = new Set<string>();
-  for (const [, name, file] of css.matchAll(/\.ui-type-cover__art\[data-art=([\w-]+)\] \{ --ui-art:url\(\/default-covers\/art\/([\w-]+)\.svg\); \}/g)) { assert.equal(file, name); rules.add(name); }
-  const files = readdirSync('public/default-covers/art').filter(file => file.endsWith('.svg')).map(file => file.replace(/\.svg$/, ''));
-  assert.deepEqual([...rules].sort(), files.sort(), 'one rule per drawing file');
-  for (const file of files) {
-    const svg = readFileSync(`public/default-covers/art/${file}.svg`, 'utf8');
-    assert.ok(svg.length < 2048, `${file}: a small drawing`);
-    assert.match(svg, /^<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" viewBox="0 0 90 120">/, `${file}: the 3:4 drawing box`);
-    assert.doesNotMatch(svg, /<(?:image|text|script|use|foreignObject)\b|href=|url\(/i, `${file}: shapes only, nothing embedded or linked`);
+test('no cover drawings: the 21 art files and their mask rules are gone, and a cover loads no image of its own (G3)', async () => {
+  const { existsSync } = await import('node:fs');
+  assert.equal(existsSync('public/default-covers/art'), false);
+  assert.doesNotMatch(css, /default-covers\/art|data-art|url\(/, 'the cover sheets draw with CSS only');
+  for (const family of ['event', 'offer', 'opening', 'guide'] as const) {
+    const view = wrap(<TypeCover tone="family" family={family} label="标签" title="先打 800-510-2020" value={family === 'offer' ? '免费' : undefined} seed="x" />);
+    assert.equal(view.container.querySelector('img,[data-art]'), null, family);
+    cleanup();
   }
-  const seen = new Set<string>();
-  const tones = ['family', 'culture', 'outdoors', 'food', 'seniors', 'free'] as const;
-  for (const tone of tones) for (const icon of [undefined, tone, 'store', 'book', 'landmark', 'bike', 'music', 'film', 'dog', 'plane']) for (const family of ['event', 'guide'] as const) for (const seed of Array.from({ length: 16 }, (_, index) => `item-${index}`)) {
-    const view = wrap(<TypeCover tone={tone} family={family} label="标签" icon={icon} seed={seed} />);
-    const art = view.container.querySelector('.ui-type-cover__art')!.getAttribute('data-art')!;
-    assert.ok(rules.has(art), `${tone}/${icon}/${family}: ${art} has a rule`);
-    seen.add(art); cleanup();
-  }
-  assert.deepEqual([...seen].sort(), files.sort(), 'every drawing is in use');
-  // The drawing belongs to the item: the same id draws the same picture in every language and on every page.
-  const first = wrap(<EventTypeCover event={fleetWeek} today={today} />).container.querySelector('.ui-type-cover__art')!.getAttribute('data-art');
-  cleanup(); await act(async () => { await setLocale('en', false); });
-  assert.equal(wrap(<EventTypeCover event={{ ...fleetWeek, title: 'Fleet Week' }} today={today} />).container.querySelector('.ui-type-cover__art')!.getAttribute('data-art'), first);
 });
 
 test('a list names the info card once: its cards that credit their source drop the drawn badge, never the DOM text (H12)', async () => {
@@ -279,20 +275,20 @@ test('a list names the info card once: its cards that credit their source drop t
   assert.equal(english.container.querySelector('.ui-cover-credit')?.textContent, 'No photo: a BAYLINK info card; drawings are decorative.');
 });
 
-test('a home guide card draws the same art in every language: the rail seeds it with the slug, not the translated title', async () => {
+test('a home guide card keeps its family and mark in every language: the rail keys them by the slug and topic, not the title', async () => {
   const { GuideRail } = await import('../src/features/home/GuideRail');
   const { guides } = await import('../src/lib/home-catalog');
   const rail = guides.slice(0, 8);
   const covers = rail.map(() => ({ tier: 'type' as const, label: { zh: 'BAYLINK 信息卡', en: 'Info card' }, reason: 'no-image' as const }));
-  const arts = (list: typeof rail) => {
+  const marks = (list: typeof rail) => {
     const view = wrap(<GuideRail intent="weekend" onIntent={() => {}} guides={list} covers={covers} guideCount={141} />);
-    const found = [...view.container.querySelectorAll('.ui-type-cover__art')].map(node => node.getAttribute('data-art'));
+    const found = [...view.container.querySelectorAll('[data-cover="type"]')].map(node => `${node.getAttribute('data-family')}/${node.getAttribute('data-mark')}`);
     cleanup();
     return found;
   };
-  const chinese = arts(rail);
+  const chinese = marks(rail);
   assert.equal(chinese.length, rail.length);
-  assert.deepEqual(arts(rail.map(guide => ({ ...guide, title: `${guide.slug} in English` }))), chinese);
+  assert.deepEqual(marks(rail.map(guide => ({ ...guide, title: `${guide.slug} in English` }))), chinese);
 });
 
 test('the offer rail names the info card only for tickets every layout shows (three after a wide ticket)', async () => {

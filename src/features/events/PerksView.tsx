@@ -2,8 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { createCoverPage, distinctNeighbourTones, resolveCovers } from '../../lib/cover';
-import { offerTone } from '../../lib/event-facts';
+import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { isFreeToAttend } from '../../lib/monthly';
 import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffers, type OfferKind } from './events-model';
 import { useIndexEvents } from './events-later';
@@ -31,7 +30,6 @@ export default function PerksView({ today, region }: { today: string; region: Mo
   const offers = useMemo(() => liveOffers(INDEX_OFFERS, today, kind, region), [today, kind, region]);
   const visible = offers.slice(0, shown);
   const covers = useMemo(() => resolveCovers(visible.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })), { ...coverContext(today), page: createCoverPage() }), [visible, today]);
-  const tones = distinctNeighbourTones(visible.map((offer, index) => covers[index].tier === 'type' ? offerTone(offer) : null));
   const weekend = getMonthlyDateRange('weekend', today);
   // The weekend is in the route's own events; on a build over two weeks old the link is left out instead of loading the rest (WEB-PERF-2).
   const weekendDays = listWindow(weekend, today);
@@ -49,7 +47,7 @@ export default function PerksView({ today, region }: { today: string; region: Mo
     {freeEvents > 0 && <Link className="ev-inline-link" to="/events?cost=free">{t(`本周末还有 ${freeEvents} 场免费活动`, `${freeEvents} free events this weekend`)}</Link>}
     {visible.length ? <>
       <FeedGrid label={t('免费与优惠', 'Free & deals')} ratio="1:1" layout={layout}>
-        {visible.map((offer, index) => <FeedItem key={offer.id}><OfferFeedCard offer={offer} cover={covers[index]} today={today} tone={tones[index] ?? undefined} /></FeedItem>)}
+        {visible.map((offer, index) => <FeedItem key={offer.id}><OfferFeedCard offer={offer} cover={covers[index]} today={today} /></FeedItem>)}
       </FeedGrid>
       {more > 0 && <div className="ev-more"><Button variant="secondary" block onClick={() => setShown(count => count + PAGE)}>{t(`再看 ${more} 条`, `Show ${more} more`)}</Button></div>}
     </> : <EmptyState headingLevel="h3" title={t('这个条件下暂时没有优惠', 'No offers match this yet')} body={t('换个条件或地区再看看。', 'Try another condition or region.')}

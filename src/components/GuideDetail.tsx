@@ -27,7 +27,7 @@ import { ShoppingDirectory } from './ShoppingDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
 import { linkifyPhones, PhoneText } from '../lib/phone-links';
 import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
-import { createCoverPage, distinctNeighbourTones, type CoverPage } from '../lib/cover';
+import { createCoverPage, type CoverPage } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
 import { SegmentedTitle } from './SegmentedTitle';
@@ -36,17 +36,16 @@ import { COVER_SIZES } from './ui/cover-sizes';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard } from './ui/Card';
 import type { EditorialCopy, GuideEditorial } from '../data/guide-editorial';
-import { guideTopicOf } from '../data/guide-topics';
 import { GuideHeader } from '../features/guides/GuideHeader';
 import { GuideActions, type GuideAsk } from '../features/guides/GuideActions';
 import { GuideCarousel } from '../features/guides/GuideCarousel';
 import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { quickFactsEligible } from '../features/guides/guide-kind';
 import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
-import { GuideCover } from '../features/guides/GuideCover';
+import { GuideCover, guideCaption } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
-import { guideCardMeta, guideCover, TOPIC_COVER } from '../features/guides/guide-facts';
+import { guideCardMeta, guideCover } from '../features/guides/guide-facts';
 import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
 import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
@@ -80,15 +79,14 @@ const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | und
 function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: GuideCard[]; coverPage: CoverPage; today: string; onOpenGuide: (slug: string) => void }) {
   const { t, pick, english, locale } = useUiCopy();
   const covers = related.map(guide => guideCover(guide, today, coverPage));
-  const tones = distinctNeighbourTones(covers.map((cover, index) => cover.tier === 'type' ? TOPIC_COVER[guideTopicOf(related[index])].tone : null));
   return <section className="bl-guide-related gd-related" aria-labelledby="gd-related-title">
     <div className="gd-related__head">
       <h2 id="gd-related-title">{t('接下来，你可能想看', 'Read next')}</h2>
       <Link to="/guides">{t('全部指南', 'All guides')}</Link>
     </div>
     <FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
-      <FeedCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={(event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(guide.slug)) : onOpenGuide(guide.slug)}
-        cover={<GuideCover guide={guide} cover={covers[index]} tone={tones[index] ?? undefined} sizes={COVER_SIZES.feed} />}
+      <FeedCard title={translateText(guide.title, locale)} titleShown={guideCaption(guide, locale, covers[index])} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={(event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(guide.slug)) : onOpenGuide(guide.slug)}
+        cover={<GuideCover guide={guide} cover={covers[index]} sizes={COVER_SIZES.feed} />}
         meta={pick(guideCardMeta(guide))} />
     </FeedItem>)}</FeedGrid>
   </section>;

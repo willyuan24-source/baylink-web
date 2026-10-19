@@ -141,12 +141,13 @@ test('/me 通知: while the preferences load, the lead claims no state (not the 
   }
 });
 
-test('the attraction cards\' fallback drawing is seeded by the attraction id, so every language draws the same picture', async () => {
+test('the attraction cards\' fallback cover is keyed by the attraction id, so every language draws the same family and mark', async () => {
   const source = readFileSync(new URL('../src/components/AttractionExplorer.tsx', import.meta.url), 'utf8');
   assert.match(source, /<TypeCover tone="outdoors" family="guide"[^>]*\sseed=\{item\.id\}/u);
   const art = (title: string) => {
     const view = render(<TypeCover tone="outdoors" family="guide" label="" title={title} seed="golden-gate-park" ratio="3:2" ratioLock ariaHidden />);
-    const value = view.container.querySelector('[data-art]')?.getAttribute('data-art');
+    const cover = view.container.querySelector('[data-cover="type"]');
+    const value = cover ? `${cover.getAttribute('data-family')}/${cover.getAttribute('data-mark')}` : undefined;
     cleanup();
     return value;
   };

@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CoverCredit, FeedCard, OfferCardMeta, OfferCover, offerBrandLine } from '../../components/ui';
+import { CoverCredit, FeedCard, OfferCardMeta, OfferCover, OfferWhen, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import type { ResolvedCover } from '../../lib/cover';
@@ -39,7 +39,7 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
       {offers.map((offer, index) => <li key={offer.id} data-wide={wide && index === 0 ? '' : undefined}>
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
           cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} {...(wide && index === 0 ? { ratio: '3:2' as const, sizes: WIDE_SIZES } : { sizes: TICKET_SIZES })} decorative />}
-          meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
+          when={<OfferWhen offer={offer} today={today} />} meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
           trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt, english)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}

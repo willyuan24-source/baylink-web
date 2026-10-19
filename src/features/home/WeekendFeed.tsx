@@ -3,7 +3,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import { translateText } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
-import { eventPlace, eventPriceChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
+import { eventPlace, eventPriceChip, eventWhenLine, type EventFactsInput } from '../../lib/event-facts';
 import type { HomeEvent } from '../../lib/home-catalog';
 import { monthDay } from './home-model';
 import { Home3DStrip } from './Home3DStrip';
@@ -28,8 +28,8 @@ function EventMeta({ event }: { event: HomeEvent }) {
  * on phones (FeedGrid). After the first four cards, the 3D San Francisco strip (H36: the 3D entry at about a third of the
  * page, not only at its end). Ends with one button to the whole weekend (without a number when the home cannot count it).
  */
-export function WeekendFeed({ feed, covers, tones, today, total }: { feed: readonly FeedEntry[]; covers: readonly ResolvedCover[]; tones: readonly (CoverTone | null)[]; today: string; total: number | null }) {
-  const { t, english } = useUiCopy();
+export function WeekendFeed({ feed, covers, today, total }: { feed: readonly FeedEntry[]; covers: readonly ResolvedCover[]; today: string; total: number | null }) {
+  const { t, english, pick } = useUiCopy();
   const { layout } = useFeedLayout();
   if (!feed.length) return null;
   return <section className="home-feed" aria-labelledby="home-feed-title" {...dateScope('weekend')}>
@@ -37,8 +37,8 @@ export function WeekendFeed({ feed, covers, tones, today, total }: { feed: reado
     <FeedGrid label={t('本周末活动', 'Events this weekend')} layout={layout}>
       {feed.flatMap(({ event, date }, index) => [<FeedItem key={event.id}>
         <FeedCard title={event.title} to={`/events/${event.id}?date=${date}`}
-          cover={<EventCover event={facts(event)} cover={covers[index]} tone={tones[index] ?? undefined} today={today} days={[date]} decorative />}
-          meta={<EventMeta event={event} />} trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt, english)}</>}
+          cover={<EventCover event={facts(event)} cover={covers[index]} today={today} days={[date]} decorative />}
+          when={pick(eventWhenLine(facts(event), today, [date]))} meta={<EventMeta event={event} />} trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt, english)}</>}
           save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
       </FeedItem>, ...(index === Math.min(STRIP_AFTER, feed.length) - 1 ? [<FeedItem key="home-3d-strip" wide><Home3DStrip /></FeedItem>] : [])])}
     </FeedGrid>
