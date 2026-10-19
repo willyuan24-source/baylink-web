@@ -1,6 +1,6 @@
 /* The deals board on the freebies guides (FreebieBoard.tsx), G26 / UI-9 (UI9-FREE): text on the ink tokens (AA ≥ 4.5 on its
-   card), titles 600 and every other line 400, controls from the primitives (SegmentedControl, FilterChip, Button, TextLink;
-   no bespoke button looks here), the status chip from C's one map, spacing on the 4 px token steps, hover only where a
+   card), titles 600 and every other line 400, controls in the primitives' looks (.ui-button secondary / quiet,
+   .ui-chip, set directly in FreebieBoard.tsx; no bespoke button looks here), the status chip from C's one map, spacing on the 4 px token steps, hover only where a
    pointer can hover. */
 .bl-freebie-board { --fb-between:calc(var(--sp-6) + var(--sp-2)); margin:var(--sp-6) 0; min-width:0; color:var(--color-ink); }
 @media (min-width:1024px) { .bl-freebie-board { --fb-between:var(--sp-8); } }
@@ -23,7 +23,7 @@
 .bl-freebie-board-stats strong { color:var(--color-brand-deep); font-size:var(--text-section); font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums; }
 .bl-freebie-board-count-note { margin:0 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 
-/* Controls: 本周有效 | 全部日期 (SegmentedControl), the kind chips with counts (FilterChip), the search field. */
+/* Controls: 本周有效 | 全部日期 (a radio group of chips), the kind chips with counts, the search field. */
 .bl-freebie-dates { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0 0 var(--sp-3); }
 /* H66: the kind chips stick under the site header while the cards scroll (one scrollable row on a phone). At 特大 and in
    简洁显示 they wrap and stay in place, so the pinned chrome never covers the cards. */

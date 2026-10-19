@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Button, EmptyState, FeedGrid, FeedItem, useFeedLayout } from '../../components/ui';
+import { Button, CoverCredit, EmptyState, FeedGrid, FeedItem, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { INDEX_OPENINGS, coverContext, filterOpenings } from './events-model';
@@ -8,7 +8,8 @@ import type { IndexOpening, MonthlyRegion } from './events-index-types';
 import { OpeningFeedCard } from './BoardCards';
 import { openingSections, type OpeningSectionId } from './board-status';
 import { ImageCredits } from './ImageCredits';
-import { RegionFilter, useBoardMode, useSetRegion } from './RegionFilter';
+import { RegionFilter } from './RegionFilter';
+import { useBoardMode, useSetRegion } from './board-mode';
 import './boards.css';
 
 /** "再看 N 家" adds this many to a section. */
@@ -51,7 +52,7 @@ export default function OpeningsView({ today, region }: { today: string; region:
       const more = Math.min(MORE, section.openings.length - shown[index].length);
       const head = `fb-openings-${section.id}`;
       return <section key={section.id} className="fb-section" aria-labelledby={head}>
-        <h2 id={head} className="fb-section__head">{pick(section.label)} · {count(section.openings.length)}</h2>
+        <h2 id={head} className="fb-section__head">{pick(section.label)}<span className="fb-section__count"> · {count(section.openings.length)}</span></h2>
         {mode.rows
           ? <ul className="fb-rows" aria-label={pick(section.label)}>{shown[index].map(shop => <li key={shop.id}>{card(shop)}</li>)}</ul>
           : <FeedGrid label={pick(section.label)} ratio="1:1" layout={layout}>{shown[index].map(shop => <FeedItem key={shop.id}>{card(shop)}</FeedItem>)}</FeedGrid>}
@@ -59,6 +60,8 @@ export default function OpeningsView({ today, region }: { today: string; region:
       </section>;
     })}</div> : <EmptyState headingLevel="h3" title={t('这个地区暂时没有新店', 'No new shops here yet')} body={t('换个地区再看看。', 'Try another region.')}
       actions={<Button variant="primary" onClick={() => setRegion('all')}>{t(`看整个湾区的新店（${INDEX_OPENINGS.length}）`, `Show the whole Bay Area (${INDEX_OPENINGS.length})`)}</Button>} />}
+    {/* The coded-cover note once for the board (see PerksView). */}
+    {[...covers.values()].some(cover => cover.tier === 'type') && <CoverCredit />}
     <nav className="ev-end" aria-label={t('新店指南', 'New shop guide')}>
       <Link className="ev-end__item" to={OPENINGS_GUIDE}>{t('新店手册：去之前先确认开门', 'New shop guide: check they are open first')}</Link>
     </nav>

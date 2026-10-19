@@ -7,7 +7,7 @@ import { readerMonthDay } from '../../lib/event-facts';
 import type { Favorite } from '../../lib/planner';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import { TrustLine } from './EventCards';
-import { OPENING_TYPES, offerChip, offerCondition, offerWhen, openingSells, openingStatus, pressSourced } from './board-status';
+import { OPENING_TYPES, SEP, glueSeparators, offerChip, offerCondition, offerWhen, openingSells, openingStatus, pressSourced } from './board-status';
 import type { IndexOffer, IndexOpening } from './events-index-types';
 
 /**
@@ -16,12 +16,7 @@ import type { IndexOffer, IndexOpening } from './events-index-types';
  * line 2 `meta` (offer: [status] · condition · brand; opening: city · what it sells), then the source line. On a phone at
  * 大 / 特大 and in 简洁显示 the boards list the same cards as rows (`*RowCard`).
  */
-const HAN = /[㐀-鿿]/;
-/**
- * Joins the parts of a meta line. The no-break space glues the dot to the word before it, so a wrapped line ends on
- * "无需购物 ·" and the next one never starts with "·" (N06); the ordinary space after it is where the line may break.
- */
-const SEP = '\u00a0· ';
+const HAN = /[\u3400-\u9fff]/;
 
 /** ♡: the one save control, the same heart as the event cards (reader's name "收藏：<title>"). */
 const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;
@@ -39,7 +34,7 @@ export function BoardTrust({ day, sourceLabel }: { day?: string; sourceLabel?: s
 /** A row has no trust slot: its source line goes in the 13 px line under the meta, after the photo's provenance words. */
 function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?: string; sourceLabel?: string }) {
   if (!day && !provenance) return null;
-  return <>{provenance && <>{provenance}{day && SEP}</>}{day && <span className="fb-row-trust"><Check aria-hidden="true" strokeWidth={1.75} /><BoardTrust day={day} sourceLabel={sourceLabel} /></span>}</>;
+  return <>{provenance && <>{glueSeparators(provenance)}{day && SEP}</>}{day && <span className="fb-row-trust"><Check aria-hidden="true" strokeWidth={1.75} /><BoardTrust day={day} sourceLabel={sourceLabel} /></span>}</>;
 }
 
 /**
@@ -49,7 +44,8 @@ function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?
  */
 function OfferMeta({ offer, today, brandOnCover }: { offer: IndexOffer; today: string; brandOnCover: boolean }) {
   const { pick, locale } = useUiCopy();
-  const brand = offerBrandLine(offer.brand, locale);
+  // The brand's own " · " ("Muir Woods · Marin") is glued too, so no wrapped line starts with "·" (N06).
+  const brand = glueSeparators(offerBrandLine(offer.brand, locale));
   const chip = offerChip(offer, today);
   return <>
     {chip && <><StatusChip tone={chip.tone}>{pick(chip.text)}</StatusChip>{SEP}</>}
@@ -92,7 +88,7 @@ function OpeningMeta({ opening }: { opening: IndexOpening }) {
   // English drops the leading word after translation, so "新餐厅 · 日式晚餐" reads "Japanese dinner", not the opening type.
   const sells = english ? openingSells(translateText(opening.category, locale)) : translateText(openingSells(opening.category), locale);
   const what = sells && !(english && HAN.test(sells)) ? sells : pick(OPENING_TYPES[opening.openingType]);
-  return <>{translateText(opening.city, locale)}{SEP}{what}</>;
+  return <>{glueSeparators(translateText(opening.city, locale))}{SEP}{glueSeparators(what)}</>;
 }
 /** Line 1 of an opening card: openingChip unchanged ("10/11 已开业", "9/4 起试营业", "即将开业"), as the one status chip. */
 function OpeningWhen({ opening, today }: { opening: IndexOpening; today: string }) {

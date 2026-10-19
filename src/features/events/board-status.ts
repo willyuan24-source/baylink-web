@@ -17,29 +17,40 @@ const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:
 const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T12:00:00Z`) - Date.parse(`${from}T12:00:00Z`)) / 86_400_000);
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+/**
+ * Joins the parts of a meta line. The no-break space glues the dot to the word before it, so a wrapped line ends on
+ * "无需购物 ·" and the next one never starts with "·" (N06); the ordinary space after it is where the line may break.
+ */
+export const SEP = '\u00a0· ';
+/** A record's own " · " ("Muir Woods · Marin", "Poppy & Claro · San José") glued the same way, at display time only. */
+export const glueSeparators = (text: string): string => text.replace(/\s+·\s+/g, SEP);
 
 type OfferDates = Pick<IndexOffer, 'availability' | 'startDate' | 'endDate' | 'weekdays'>;
 
 /**
  * Line 1 of an offer card: when it can be used, in the same M/D pattern as the event cards' eventWhenLine. "周日 10/25"
- * (one day), "10/24–31" (a run that has not started), "至 11/11" (a run under way), "每周三" (published weekdays),
- * "长期有效" (no end date), "日期以官网为准" (a 查本店 offer without dates: the 16 check-local offers). Never the free-text
- * dateLabel and never an ISO date.
+ * (one day), "10/24–31" (a run that has not started), "至 11/11" (a run under way), "每周三" (published weekdays; "每周三 ·
+ * 11/4 起" before its first day), "长期有效" (no end date), "11/4 起" (no end date, not started yet), "日期以官网为准" (a
+ * 查本店 offer without dates: the 16 check-local offers). Never the free-text dateLabel and never an ISO date.
  */
 export function offerWhen(offer: OfferDates, today: string): Copy {
   const end = validDay(offer.endDate) ? offer.endDate : undefined;
   const start = validDay(offer.startDate) ? offer.startDate : undefined;
+  const ahead = start && start > today ? start : undefined;
   if (offer.weekdays?.length) {
     const days = [...offer.weekdays].sort((a, b) => a - b);
     const every: Copy = { zh: `每${days.map(day => WEEKDAYS_ZH[day]).join('、')}`, en: `Every ${days.map(day => WEEKDAYS_EN[day]).join(' & ')}` };
-    return end ? { zh: `${every.zh} · 至 ${readerMonthDay(end)}`, en: `${every.en} · until ${readerMonthDay(end, true)}` } : every;
+    // Before its first day a weekly offer says when it starts, so "每周三" never reads as usable this week.
+    if (ahead) return { zh: `${every.zh}${SEP}${readerMonthDay(ahead)} 起`, en: `${every.en}${SEP}from ${readerMonthDay(ahead, true)}` };
+    return end ? { zh: `${every.zh}${SEP}至 ${readerMonthDay(end)}`, en: `${every.en}${SEP}until ${readerMonthDay(end, true)}` } : every;
   }
   if (!end) {
-    if (offer.availability === 'ongoing') return start && start > today ? { zh: `${readerMonthDay(start)} 起`, en: `From ${readerMonthDay(start, true)}` } : { zh: '长期有效', en: 'Ongoing' };
-    return { zh: '日期以官网为准', en: 'Dates on the official site' };
+    // No end date and not started yet (ongoing or 查本店 alike): its first day, as the deals board's 即将开售 does.
+    if (ahead) return { zh: `${readerMonthDay(ahead)} 起`, en: `From ${readerMonthDay(ahead, true)}` };
+    return offer.availability === 'ongoing' ? { zh: '长期有效', en: 'Ongoing' } : { zh: '日期以官网为准', en: 'Dates on the official site' };
   }
   if (start === end) return { zh: `${WEEKDAYS_ZH[weekdayOf(end)]} ${readerMonthDay(end)}`, en: `${WEEKDAYS_EN[weekdayOf(end)]}, ${readerMonthDay(end, true)}` };
-  if (start && start > today) return { zh: readerDayRange(start, end), en: readerDayRange(start, end, true) };
+  if (ahead) return { zh: readerDayRange(ahead, end), en: readerDayRange(ahead, end, true) };
   return { zh: `至 ${readerMonthDay(end)}`, en: `Until ${readerMonthDay(end, true)}` };
 }
 
@@ -147,8 +158,11 @@ export const OPENING_TYPES: Readonly<Record<IndexOpening['openingType'], Copy>> 
 
 // Sources ------------------------------------------------------------------------------------------------------------
 
-/** Outlets that report on openings; a label naming one of them and no official page of the place is a press source. */
-const PRESS = /^媒体报道|eater|sfgate|sfist|chronicle|san francisco standard|sf standard|patch\.com|bizjournals|nosh\b|报道/i;
+/**
+ * Outlets that report on openings, matched as whole words or hosts: "Eater SF" and "sf.eater.com", never "Polly Klaas
+ * Community Theater" or "petalumapumpkinpatch.com". A label naming one of them and no official page of the place is press.
+ */
+const PRESS = /\beater\b|\bsfgate\b|\bsfist\b|\b(?:sf)?chronicle\b|san francisco standard|\bsf standard\b|(?:^|[\s·/.])patch\.com\b|\bbizjournals\b|\bnosh\b/i;
 /** A label that also names the place's own page or announcement ("官网", "官方", "品牌门店页", "公告") is official. */
 const OFFICIAL = /官方|官网|门店页|品牌|公告|市府/;
 /**

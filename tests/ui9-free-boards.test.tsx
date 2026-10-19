@@ -31,6 +31,9 @@ const { statusLook } = await import('../src/components/ui/Status');
 const { openingChip } = await import('../src/lib/event-facts');
 const { FreebieBoard } = await import('../src/components/FreebieBoard');
 const { checkEditorialStyles } = await import('../scripts/check-editorial-styles.mjs');
+const { createCoverPage, resolveCovers } = await import('../src/lib/cover');
+type IndexOffer = import('../src/features/events/events-index-types').IndexOffer;
+type IndexOpening = import('../src/features/events/events-index-types').IndexOpening;
 const { cssLoadGraph } = await import('../scripts/check-style-ratchet.mjs');
 
 const originalFetch = globalThis.fetch;
@@ -48,9 +51,13 @@ test('line 1 of an offer says when in one M/D pattern; never the free-text label
   assert.deepEqual(when({ startDate: '2026-10-01', endDate: '2026-11-11' }), { zh: '至 11/11', en: 'Until Nov 11' }, 'a run under way: its end');
   assert.deepEqual(when({ endDate: '2026-11-11' }), { zh: '至 11/11', en: 'Until Nov 11' });
   assert.deepEqual(when({ availability: 'ongoing', weekdays: [3] }), { zh: '每周三', en: 'Every Wed' });
-  assert.deepEqual(when({ availability: 'dated', startDate: '2026-10-05', endDate: '2026-10-26', weekdays: [1] }), { zh: '每周一 · 至 10/26', en: 'Every Mon · until Oct 26' });
+  assert.deepEqual(when({ availability: 'dated', startDate: '2026-10-05', endDate: '2026-10-26', weekdays: [1] }), { zh: '每周一\u00a0· 至 10/26', en: 'Every Mon\u00a0· until Oct 26' });
   assert.deepEqual(when({ availability: 'ongoing' }), { zh: '长期有效', en: 'Ongoing' });
   assert.deepEqual(when({ availability: 'check-local' }), { zh: '日期以官网为准', en: 'Dates on the official site' });
+  // Not started yet: a weekly offer says from when (so "每周三" never reads as usable this week); so does an undated one.
+  assert.deepEqual(when({ availability: 'ongoing', weekdays: [3], startDate: '2026-11-04' }), { zh: '每周三\u00a0· 11/4 起', en: 'Every Wed\u00a0· from Nov 4' });
+  assert.deepEqual(when({ availability: 'check-local', startDate: '2026-11-04' }), { zh: '11/4 起', en: 'From Nov 4' });
+  assert.deepEqual(when({ availability: 'ongoing', startDate: '2026-11-04' }), { zh: '11/4 起', en: 'From Nov 4' });
   for (const item of model.liveOffers(model.INDEX_OFFERS, today)) {
     const line = boards.offerWhen(item, today);
     assert.doesNotMatch(`${line.zh} ${line.en}`, /\d{4}-\d{2}-\d{2}/, item.id);
@@ -128,6 +135,11 @@ test('the source line: a press label without the shop\'s own page is press; data
   assert.equal(boards.pressSourced('SFist 9/21 开门报道 · 品牌门店页交叉核对'), false);
   assert.equal(boards.pressSourced('Marufuku Burlingame 官方开业日期与地址'), false);
   assert.equal(boards.pressSourced('Westfield Valley Fair'), false);
+  // Outlets match as whole words or hosts: labels that merely contain the letters ("theater", "pumpkinpatch") stay official.
+  for (const label of ['Polly Klaas Community Theater', 'pollyklaastheater.org', 'petalumapumpkinpatch.com', 'magicalglasspumpkinpatch.com', 'Greater Bay Area']) {
+    assert.equal(boards.pressSourced(label), false, label);
+  }
+  for (const label of ['sf.eater.com', 'https://patch.com/california/x', 'San Francisco Chronicle', 'sfchronicle.com']) assert.equal(boards.pressSourced(label), true, label);
   assert.equal(boards.openingSells('开业预告 · 社区餐酒馆'), '社区餐酒馆');
   assert.equal(boards.openingSells('已营业 · 澳式寿司卷'), '澳式寿司卷');
   assert.equal(boards.openingSells('拉面'), '拉面');
@@ -164,10 +176,20 @@ test('简洁显示: rows without ♡, at most 3 per section, no sold-out offer, 
   assert.deepEqual(chips.map(chip => chip.getAttribute('aria-haspopup')), ['dialog', 'dialog']);
   assert.deepEqual(chips.map(chip => chip.textContent), ['整个湾区', '全部条件']);
   assert.equal(board.querySelectorAll('nav.ev-end a').length, 1, 'one guide link');
+  // Every count is taken from the list the sections show (no sold-out offers in 简洁): the Sheet footers and the status line.
+  const listed = () => [...board.querySelectorAll('.fb-section__count')].reduce((sum, head) => sum + Number(head.textContent!.match(/\d+/)![0]), 0);
+  fireEvent.click(chips[0]);
+  const regions = await view.findByRole('dialog', { name: '选择地区' });
+  fireEvent.click(within(regions).getByRole('button', { name: `显示 ${listed()} 条` }));
   fireEvent.click(chips[1]);
   const sheet = await view.findByRole('dialog', { name: '按领取条件筛选' });
   fireEvent.click(within(sheet).getByRole('button', { name: '需预约', exact: true }));
   await waitFor(() => assert.match(board.querySelector('.fb-status')!.textContent!, /^需预约 · \d+ 条$/));
+  // The one sold-out offer asks for a purchase: 消费优惠 is where a count that included it would be one too many.
+  fireEvent.click(within(sheet).getByRole('button', { name: '消费优惠', exact: true }));
+  await waitFor(() => assert.match(board.querySelector('.fb-status')!.textContent!, /^消费优惠 · \d+ 条$/));
+  assert.equal(board.querySelector('.fb-status')!.textContent, `消费优惠 · ${listed()} 条`);
+  assert.ok(within(sheet).getByRole('button', { name: `显示 ${listed()} 条` }));
 });
 
 test('the boards\' stylesheet: fb- names only, no ellipsis or faded :disabled, editorial guard with contrast, loaded lazily', () => {
@@ -190,7 +212,7 @@ test('the deals board prints 官网核对 M/D (媒体报道 for a press source),
   const html = renderToStaticMarkup(<FreebieBoard offers={[base, { ...base, id: 'b', title: '报道里的优惠', sourceLabel: '媒体报道 · sfgate.com' }]} today={today} />);
   const doc = new JSDOM(html).window.document;
   assert.equal(doc.querySelector('#offer-a .bl-freebie-verified')!.textContent, '官网核对 10/7');
-  assert.equal(doc.querySelector('#offer-b .bl-freebie-verified')!.textContent, '媒体报道 · 10/7 核对');
+  assert.equal(doc.querySelector('#offer-b .bl-freebie-verified')!.textContent, '媒体报道\u00a0· 10/7 核对');
   assert.doesNotMatch(html, /人工核对|核对 2026-|LITTLE PERKS|SAVE &amp; SHARE/);
   assert.equal(doc.querySelector('.bl-freebie-card-brand')!.textContent, 'Brand', 'the brand in normal case (400)');
   assert.equal(doc.querySelectorAll('[role="radiogroup"][aria-label="按日期筛选"] .ui-chip[role="radio"]').length, 2, '本周有效 | 全部日期 is one radio group of F’s chips');
@@ -212,4 +234,99 @@ test('line 2 of an English opening card keeps what the shop sells after the lead
     assert.match(meta, /· Japanese dinner$/);
     assert.equal(boards.openingSells('Upcoming · Neighborhood pub and restaurant'), 'Neighborhood pub and restaurant');
   } finally { await setLocale('zh-Hans', false); }
+});
+
+test('the coded-cover note prints once per board, under the last section, on cards and on rows (H12 / SV13-02)', async () => {
+  const css = readFileSync('src/features/events/boards.css', 'utf8');
+  assert.match(css, /\.fb-board \.ui-feed>\.ui-cover-credit \{ display:none; \}/, 'each grid\'s own copy is hidden');
+  assert.doesNotMatch(css, /:not\(:last-child\)/);
+  for (const simple of [false, true]) {
+    if (simple) {
+      localStorage.setItem('baylink.simple-display.v1', '1');
+      dom.window.document.documentElement.setAttribute('data-simple', '');
+    }
+    for (const view of ['perks', 'openings']) {
+      const page = render(<MemoryRouter initialEntries={[`/events?view=${view}`]}><EventsView today={today} /></MemoryRouter>);
+      await waitFor(() => assert.ok(page.container.querySelector('.fb-section')));
+      const board = page.container.querySelector('.fb-board')!;
+      assert.ok(board.querySelector(simple ? '.fb-rows' : '.ui-feed'), `${view}: ${simple ? 'rows' : 'cards'}`);
+      const notes = [...board.querySelectorAll('.ui-cover-credit')].filter(note => !note.closest('.ui-feed'));
+      assert.equal(notes.length, 1, `${view} (简洁 ${simple}): one note for the board`);
+      assert.equal(notes[0].previousElementSibling?.className, 'fb-sections', 'under the last section');
+      assert.match(notes[0].textContent!, /^没有照片的条目用 BAYLINK 信息卡/);
+      page.unmount();
+    }
+  }
+});
+
+test('no wrapped meta, row or credit line starts with "·": every " · " is glued to the word before it (N06)', async () => {
+  // An ordinary space before the dot is where a line may break; the boards glue it with a no-break space instead.
+  const loose = / ·/;
+  const lines = '.ui-feed-card__when, .ui-feed-card__meta, .ui-feed-card__trust, .ui-row-card__date, .ui-row-card__meta, .ui-row-card__credit';
+  const photo = (kind: 'offer' | 'opening', item: { id: string; imageKey?: string }) => resolveCovers([{ kind, id: item.id, imageKey: item.imageKey }], { ...model.coverContext(today), page: createCoverPage() })[0];
+  for (const item of model.liveOffers(model.INDEX_OFFERS, today)) {
+    for (const row of [false, true]) {
+      for (const line of card(<OfferFeedCard offer={item} cover={photo('offer', item)} today={today} row={row} />).querySelectorAll(lines)) {
+        assert.doesNotMatch(line.textContent!, loose, `${item.id}: ${line.textContent}`);
+      }
+    }
+  }
+  for (const shop of model.INDEX_OPENINGS) {
+    for (const row of [false, true]) {
+      for (const line of card(<OpeningFeedCard opening={shop} cover={photo('opening', shop)} today={today} row={row} />).querySelectorAll(lines)) {
+        assert.doesNotMatch(line.textContent!, loose, `${shop.id}: ${line.textContent}`);
+      }
+    }
+  }
+  // The deals board: brand, the record's date words, the status line, the source line and the picture's credit line.
+  const { getGuideBySlug } = await import('../src/data/guides');
+  await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
+  for (const slug of ['bay-area-freebies-deals-2026-11', 'bay-area-retail-freebies-family-deals']) {
+    for (const block of getGuideBySlug(slug)!.blocks.filter(item => item.type === 'freebies')) {
+      const offers = (block as unknown as { offers: Parameters<typeof FreebieBoard>[0]['offers'] }).offers;
+      const doc = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today={today} initialDates="all" sectionSize={Infinity} />)).window.document;
+      const parts = doc.querySelectorAll('.bl-freebie-card-brand, .bl-freebie-card-date, .bl-freebie-card-tags, .bl-freebie-verified, .bl-freebie-credit');
+      assert.ok(parts.length > 20, slug);
+      for (const part of parts) assert.doesNotMatch(part.textContent!, loose, `${slug}: ${part.textContent}`);
+      for (const credit of doc.querySelectorAll('.bl-freebie-credit')) assert.match(credit.textContent!, /^(官方图|资料图|照片|BAYLINK 实拍)[^·]*(\u00a0· \d{4}( 往届)?)?$/, `${slug}: the credit line says what the picture is (G13): ${credit.textContent}`);
+    }
+  }
+});
+
+test('an empty filter offers one primary that widens the narrower filter, with its count, and no empty section head', async () => {
+  const offers = model.INDEX_OFFERS as IndexOffer[];
+  const openings = model.INDEX_OPENINGS as IndexOpening[];
+  const savedOffers = offers.splice(0), savedOpenings = openings.splice(0);
+  const primary = (root: Element) => [...root.querySelectorAll('.ui-button[data-variant="primary"]')];
+  try {
+    // A region with nothing in it widens the region (only San Francisco's offers and shops are left).
+    offers.push(...savedOffers.filter(item => item.region === 'sf'));
+    openings.push(...savedOpenings.filter(item => item.region === 'sf'));
+    const sf = model.liveOffers(offers, today).length;
+    for (const [view, words] of [['perks', `看整个湾区的优惠（${sf}）`], ['openings', `看整个湾区的新店（${openings.length}）`]] as const) {
+      const page = render(<MemoryRouter initialEntries={[`/events?view=${view}&region=south-bay`]}><EventsView today={today} /></MemoryRouter>);
+      await waitFor(() => assert.equal(primary(page.container.querySelector('.fb-board') ?? page.container).length, 1, view));
+      const board = page.container.querySelector('.fb-board')!;
+      assert.equal(board.querySelector('.fb-section__head'), null, `${view}: no empty section head`);
+      assert.deepEqual(primary(board).map(button => button.textContent), [words], view);
+      fireEvent.click(primary(board)[0]);
+      await waitFor(() => assert.ok(board.querySelector('.fb-section__head'), `${view}: widened to the whole Bay Area`));
+      page.unmount();
+    }
+    // A condition with nothing in it widens the condition (no 需预约 offer is left).
+    offers.splice(0, offers.length, ...savedOffers.filter(item => item.kind !== 'reservation'));
+    const all = model.liveOffers(offers, today).length;
+    const page = render(<MemoryRouter initialEntries={['/events?view=perks&region=all']}><EventsView today={today} /></MemoryRouter>);
+    await waitFor(() => assert.ok(page.container.querySelector('.fb-section')));
+    const board = page.container.querySelector('.fb-board')!;
+    fireEvent.click(within(board.querySelector('.fb-kinds') as HTMLElement).getByRole('button', { name: '需预约' }));
+    await waitFor(() => assert.equal(board.querySelector('.fb-section__head'), null));
+    assert.deepEqual(primary(board).map(button => button.textContent), [`看整个湾区的全部优惠（${all}）`]);
+    fireEvent.click(primary(board)[0]);
+    await waitFor(() => assert.ok(board.querySelector('.fb-section__head')));
+    assert.equal(board.querySelector('.fb-kinds [aria-pressed="true"]')!.textContent, '全部');
+  } finally {
+    offers.splice(0, offers.length, ...savedOffers);
+    openings.splice(0, openings.length, ...savedOpenings);
+  }
 });

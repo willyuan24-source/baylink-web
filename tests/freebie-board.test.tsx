@@ -61,6 +61,9 @@ const offers: FreebieOffer[] = [
 function install() { GUIDE_IMAGES['freebie-test-poster'] = picture; GUIDE_IMAGES['freebie-test-photo'] = photo; }
 afterEach(() => { cleanup(); delete GUIDE_IMAGES['freebie-test-poster']; delete GUIDE_IMAGES['freebie-test-photo']; });
 
+/** A card's text with the no-break spaces that glue " · " to the word before (UI9-FREE, N06) read as spaces: the words are verbatim. */
+const spaced = (node: Element | null | undefined) => (node?.textContent ?? '').replace(/\u00a0/g, ' ');
+
 test('board counts only dated, unexpired current-month offers and separates ongoing and local-check items', () => {
   install();
   const view = render(<FreebieBoard offers={offers} today="2026-09-09" title="九月领取清单" description="先按条件选。" initialDates="all" />);
@@ -196,10 +199,10 @@ test('only valid unexpired offers and their conditions appear in server HTML', (
   for (const offer of offers.filter(offer => !['ended', 'invalid-date'].includes(offer.id))) {
     const card = document.getElementById(`offer-${offer.id}`);
     assert.ok(card);
-    assert.ok(card.textContent?.includes(offer.brand));
-    assert.ok(card.textContent?.includes(offer.dateLabel));
-    assert.ok(card.textContent?.includes(offer.requirement));
-    assert.ok(card.textContent?.includes(offer.description));
+    assert.ok(spaced(card).includes(offer.brand));
+    assert.ok(spaced(card).includes(offer.dateLabel));
+    assert.ok(spaced(card).includes(offer.requirement));
+    assert.ok(spaced(card).includes(offer.description));
     assert.equal(card.hasAttribute('hidden'), false);
     assert.ok(card.querySelector(`a[href="${offer.sourceUrl}"]`));
   }
@@ -262,9 +265,9 @@ test('the cleaned September guide retains valid cards and factual media while om
   for (const [index, offer] of block.offers.entries()) {
     const card = full.getElementById(`offer-${offer.id}`);
     assert.ok(card);
-    assert.ok(card.textContent?.includes(offer.title));
-    assert.ok(card.textContent?.includes(offer.requirement));
-    assert.ok(card.textContent?.includes(offer.dateLabel));
+    assert.ok(spaced(card).includes(offer.title));
+    assert.ok(spaced(card).includes(offer.requirement));
+    assert.ok(spaced(card).includes(offer.dateLabel));
     assert.equal(card.querySelector('.bl-freebie-card-actions a')?.getAttribute('href'), offer.sourceUrl);
     const image = images[index];
     if (image) {
@@ -288,7 +291,7 @@ test('the cleaned September guide retains valid cards and factual media while om
   const preview = cards.find(element => element.querySelector('h4')?.textContent === october.title);
   assert.equal(preview?.querySelector('.bl-freebie-status')?.textContent, '下月预告');
   assert.match(october.startDate!, /^2026-10-/);
-  assert.ok(preview?.textContent?.includes(october.dateLabel));
+  assert.ok(spaced(preview).includes(october.dateLabel));
 
   const text = guideBlockText(block);
   const lowes = block.offers.find(offer => offer.id === 'lowes-kids-lollipop');

@@ -1,5 +1,5 @@
 /* The saved-poster gallery on the perks guides (PerksGallery.tsx), G26 / UI-9 (UI9-FREE): text on the ink tokens, every
-   label at least 13px (--text-caption), buttons from the primitives (Button secondary, MoreLink), hover only where a pointer
+   label at least 13px (--text-caption), buttons from the primitives (Button secondary and quiet), hover only where a pointer
    can hover and no image zoom. The posters are original BAYLINK artwork shown whole (contain). */
 .perks-gallery { margin:var(--sp-6) 0; padding:var(--sp-5); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
 .perks-gallery-guide { margin-bottom:var(--sp-3); }

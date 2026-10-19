@@ -31,7 +31,7 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
   return <section className={`perks-gallery${compact ? ' perks-gallery--compact' : ''}`} aria-labelledby={headingId}>
     <Button variant="quiet" className="perks-gallery-guide" to="/guides/bay-area-retail-freebies-family-deals">按品牌查门店赠品与优惠</Button>
     <div className="perks-gallery-heading">
-      <div><EnglishOnly><span className="perks-gallery-eyebrow"><Images aria-hidden="true" strokeWidth={1.75} />Save and share</span></EnglishOnly><h2 id={headingId}>把有用的福利，存成一张图</h2><p>原创中文图文 · 1080 × 1350 · 可查看大图、下载和复制贴文</p></div>
+      <div><EnglishOnly><span className="perks-gallery-eyebrow"><Images aria-hidden="true" />Save and share</span></EnglishOnly><h2 id={headingId}>把有用的福利，存成一张图</h2><p>原创中文图文 · 1080 × 1350 · 可查看大图、下载和复制贴文</p></div>
       <span className="perks-gallery-date">{t('静态快照')}<time dateTime={PERKS_POSTER_CHECKED}>{readerMonthDay(PERKS_POSTER_CHECKED, locale === 'en')}</time></span>
     </div>
     <div className="perks-gallery-grid">
@@ -39,12 +39,12 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
         <a href={poster.path} target="_blank" rel="noreferrer" className="perks-gallery-art" aria-label={`${t('查看图文大图')}：${t(poster.title)}`}>
           {/* G72: the 480 / 800 WebP rungs (≤ 60 KB on a phone); the link and the download keep the full PNG. */}
           <img src={perksPosterRung(poster, 800)} srcSet={perksPosterSrcSet(poster)} sizes="(max-width: 560px) 88vw, (max-width: 760px) 45vw, 300px" width={1080} height={1350} loading="lazy" decoding="async" alt={`${t('BAYLINK 中文福利图文')}：${t(poster.title)}`} />
-          <span><ArrowUpRight aria-hidden="true" strokeWidth={1.75} />{t('查看大图')}</span>
+          <span><ArrowUpRight aria-hidden="true" />{t('查看大图')}</span>
         </a>
         <div className="perks-gallery-body"><span className="perks-gallery-number">{String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}</span><h3>{poster.title}</h3>
           <div className="perks-gallery-actions">
-            <Button variant="secondary" href={poster.path} download={`BAYLINK-${poster.id}-2026-10.png`} icon={<Download aria-hidden="true" strokeWidth={1.75} />}>下载 PNG</Button>
-            <Button variant="secondary" onClick={() => void copy(poster.id)} aria-label={`${t('复制贴文')}：${t(poster.title)}`} icon={<Copy aria-hidden="true" strokeWidth={1.75} />}>复制贴文</Button>
+            <Button variant="secondary" href={poster.path} download={`BAYLINK-${poster.id}-2026-10.png`} icon={<Download aria-hidden="true" />}>下载 PNG</Button>
+            <Button variant="secondary" onClick={() => void copy(poster.id)} aria-label={`${t('复制贴文')}：${t(poster.title)}`} icon={<Copy aria-hidden="true" />}>复制贴文</Button>
           </div>
           <Button variant="quiet" to={poster.guidePath} className="perks-gallery-source">领取规则与官网来源</Button>
           {(!compact || manualId === poster.id) && <details className="perks-gallery-caption" open={manualId === poster.id || undefined}><summary>查看或手动复制贴文</summary><textarea aria-label={`${t('可复制贴文')}：${t(poster.title)}`} readOnly value={perksPosterCaption(poster, t)} onFocus={event => event.currentTarget.select()} rows={7} /></details>}
