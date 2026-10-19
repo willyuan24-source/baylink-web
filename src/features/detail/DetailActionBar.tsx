@@ -3,7 +3,7 @@ import { ArrowUpRight, CalendarPlus, Send } from 'lucide-react';
 import { useApp, type AppContextValue } from '../../app/context';
 import { AddToDayPlan } from '../../components/AddToDayPlan';
 import { SaveToWeek } from '../../components/SaveToWeek';
-import { useFamilySend } from '../../components/FamilyLinkButton';
+import { useFamilySend } from '../../components/family-send';
 import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { recordProductEvent } from '../../lib/product-events';

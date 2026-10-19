@@ -1,7 +1,7 @@
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
-import { webLink } from './DetailHero';
+import { webLink } from './hero-cover';
 
 /** The hero photo's long caption, in the source section; 简洁显示 leaves it out. */
 export function HeroCaption({ cover }: { cover: ResolvedCover }) {

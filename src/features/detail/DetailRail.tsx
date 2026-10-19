@@ -2,22 +2,15 @@ import { EventCover, EventWhen, FeedCard, RowCard } from '../../components/ui';
 import { MoreLink } from '../../components/ui/TextLink';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
-import { getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
+import type { ResolvedCover } from '../../lib/cover';
 import { eventPlace, eventPriceChip, type EventFactsInput } from '../../lib/event-facts';
-import { checkedText, pressSource } from '../source-monitor/TrustRow';
-import type { RailEvent } from './detail-record';
+import { checkedText, pressSource } from '../source-monitor/checked-line';
+import type { RailCard, RailEvent } from './detail-record';
 
 /** A rail card is 172 wide on a phone (the feed card's width) and a third (a quarter on an ended page) of the column on a desktop. */
 const RAIL_SIZES = '(max-width: 767px) 172px, 260px';
 /** At 特大 and in 简洁显示 the rail is a vertical list of at most this many rows, then 看全部活动 →. */
 const ROWS = 3;
-
-export type RailCard = { event: RailEvent; date: string };
-
-/** Each card's cover, claimed on the page (the hero's photo is never repeated, VISUAL-10); the page credits list them too. */
-export function railCovers(cards: readonly RailCard[], today: string, page: CoverPage): ResolvedCover[] {
-  return cards.map(({ event }) => getCover({ kind: 'event', id: event.id, imageKey: event.imageKey }, { images: key => key === event.imageKey ? event.image : undefined, today, page }));
-}
 
 /** Line 2 (G18): the status and the place, "免费 · Berkeley"; it wraps and is never cut. */
 function RailMeta({ event }: { event: RailEvent }) {

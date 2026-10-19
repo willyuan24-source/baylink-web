@@ -1,6 +1,9 @@
-import { getCover, type ImageCover, type ResolvedCover } from '../../lib/cover';
+import { getCover, type CoverPage, type ImageCover, type ResolvedCover } from '../../lib/cover';
 import { getImageProvenance } from '../../lib/image-provenance';
-import type { DetailRecord } from './detail-record';
+import type { DetailRecord, RailCard } from './detail-record';
+
+/** A credit or licence URL the page may link: https only (DetailHero's credit line and PageCredits). */
+export const webLink = (value: string | undefined): value is string => !!value && /^https:\/\//.test(value);
 
 /** The listing's cover: its own image through the honesty ladder (lib/cover.ts), or a TypeCover. */
 export function heroCover({ item, image }: DetailRecord, today: string): ResolvedCover {
@@ -26,4 +29,9 @@ export function placePhoto({ item, image }: DetailRecord, cover: ResolvedCover, 
     fit: image.fullFrame ? 'contain' : 'cover',
     focal: image.focal ?? DEFAULT_FOCAL,
   };
+}
+
+/** Each rail card's cover, claimed on the page (the hero's photo is never repeated, VISUAL-10); the page credits list them too. */
+export function railCovers(cards: readonly RailCard[], today: string, page: CoverPage): ResolvedCover[] {
+  return cards.map(({ event }) => getCover({ kind: 'event', id: event.id, imageKey: event.imageKey }, { images: key => key === event.imageKey ? event.image : undefined, today, page }));
 }

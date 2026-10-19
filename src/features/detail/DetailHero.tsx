@@ -8,9 +8,8 @@ import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
 import type { EventFactsInput } from '../../lib/event-facts';
 import type { DetailRecord } from './detail-record';
+import { webLink } from './hero-cover';
 import { offerBrand } from './reader-text';
-
-export const webLink = (value: string | undefined): value is string => !!value && /^https:\/\//.test(value);
 
 // This route also serves offers and new shops: their families load with the record (the page module asks for the record
 // before React renders, and this module asks for the family of the page it boots on beside it), not in the route's own JS,

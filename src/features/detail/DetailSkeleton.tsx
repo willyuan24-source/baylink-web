@@ -1,15 +1,9 @@
 import { ChevronLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import type { Copy } from '../../lib/event-facts';
+import { DETAIL_BACK } from './detail-record';
 import type { DetailKind } from './load-detail';
 import './detail-skeleton.css';
-
-export const DETAIL_BACK: Record<DetailKind, { to: string; label: Copy }> = {
-  event: { to: '/events', label: { zh: '活动', en: 'Events' } },
-  offer: { to: '/events?view=perks', label: { zh: '免费与优惠', en: 'Free & deals' } },
-  opening: { to: '/events?view=openings', label: { zh: '新店', en: 'New shops' } },
-};
 
 /** "‹ 活动": the page's way back, the same on the page, its skeleton and its error state. */
 export function DetailBack({ kind }: { kind: DetailKind }) {
