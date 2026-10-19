@@ -16,7 +16,7 @@ test('style counts cover CSS declarations, Tailwind classes, inline styles and t
   assert.deepEqual(counts, {
     hexOccurrences: 4, hexDistinct: 4, fontSizePx: 4, fontSizePxUnder13: 2, fontSizeUnder13: 2, radiusKinds: 2, shadowKinds: 2,
     fontWeightOutsideSet: 3, textArbitraryUnder13: 1, baylinkClasses: 2, arrowUpRight: 1, buttonLooks: 0,
-    fontSizeOffLadder: 2, fontSizeLiteral: 3, fontWeightBold: 1, durationOffScale: 0, durationLiteral: 0,
+    fontSizeOffLadder: 2, fontSizeLiteral: 3, fontWeightBold: 1, durationOffScale: 0, durationLiteral: 0, spacingOffScale: 0,
   });
 });
 
