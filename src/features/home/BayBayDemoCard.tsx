@@ -18,7 +18,7 @@ export function BayBayDemoCard({ onAsk }: { onAsk: (question: string) => void })
   return <section className="home-baybay" aria-labelledby="home-baybay-title" data-simple="hide">
     <div className="home-baybay__head">
       <img src="/brand/otter.svg" alt="" width={48} height={48} decoding="async" loading="lazy" />
-      <h2 id="home-baybay-title">{t('问 BayBay', 'Ask BayBay')}</h2><span className="home-ai">{t('AI 助手', 'AI assistant')}</span>
+      <h2 id="home-baybay-title">{t('问 BayBay', 'Ask BayBay')}</h2><span className="ui-status" data-tone="free">{t('AI 助手', 'AI assistant')}</span>
     </div>
     <p>{t('先给一句结论，再附站内来源和核对日期', 'A short answer first, then the sources on BAYLINK and when they were checked')}</p>
     <ul aria-label={t('可以这样问', 'Try asking')}>

@@ -20,7 +20,6 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 .home-ask input::placeholder { color:var(--color-ink-3); }
 .home-discovery :is(.home-ask,.home-section-head__more,.home-credits summary,.home-baybay) svg { width:1rem; height:1rem; }
 .home-head .home-ask-baybay { display:none; align-self:flex-start; }
-.home-ai { padding:0 var(--sp-2); border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-size:var(--text-caption); line-height:var(--lh-ui); }
 
 /* Section heads: one H2, the date as a kicker, one "all" link (the /plan picks reuse these three). */
 .home-section-head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin-bottom:var(--stack-head); }
@@ -40,8 +39,9 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 :is(.home-picks__list,.home-offers__rail,.home-guides__rail) { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3) var(--grid-gutter); margin:0; padding:0; list-style:none; }
 :is(.home-picks__list,.home-offers__rail,.home-guides__rail)>li { min-width:0; }
 :is(.home-picks__list>li:first-child,.home-offers__rail>li[data-wide]) { grid-column:1 / -1; }
+.home-guides__rail { margin-top:var(--stack-head); }
 .home-picks__list>li:first-child { --ui-feed-ratio:16 / 9; }
-.home-discovery .ui-feed-card__title { display:block; -webkit-line-clamp:unset; }
+.home-discovery :is(.ui-feed-card__title,.ui-row-card__title) { display:block; -webkit-line-clamp:unset; }
 .home-picks .ui-feed-card__title { line-height:var(--lh-tight); }
 .home-pick__reason { display:none; margin-top:var(--sp-1); color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
 /* A two-up date page drops its time line (line 1 under it prints the whole window), so the cover keeps its 3:2 box. */
@@ -98,7 +98,7 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 .home-baybay svg { flex:none; }
 
 /* ⑥ guides: wrapped intent chips, four 3:2 covers, the topic link and 发给家人（大字版）. */
-.home-guides__intents.ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0 0 var(--stack-head); padding:0; }
+.home-guides .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
 .home-guides__more { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-4); margin-top:var(--sp-3); }
 
 /* 发给家人（大字版） (shared: FamilyLinkButton) */
@@ -140,7 +140,7 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 html[data-reading$=large]:not([data-simple]) .home-discovery .ui-feed-card__title { padding-right:48px; }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
 html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
-html[data-simple] .home-picks :is(.ui-feed-card__save,.home-pick__reason) { display:none; }
+html[data-simple] .home-picks .ui-feed-card__save { display:none; }
 html[data-simple] .home-picks__all { justify-content:center; align-self:stretch; min-height:3rem; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
 @media (max-width:1023px) {
   html[data-reading$=large] .home-picks__list>li:first-child { --ui-feed-ratio:3 / 2; }

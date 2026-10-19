@@ -57,7 +57,7 @@ export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: Ho
       <button type="submit" className="ui-button" data-variant="primary">{asking ? t('问 BayBay', 'Ask BayBay') : <><Search aria-hidden="true" strokeWidth={1.75} />{t('搜索', 'Search')}</>}</button>
     </form>
     <button type="button" className="ui-button home-ask-baybay" data-variant="secondary" onClick={() => onAskBayBay()}>
-      <img src="/brand/otter.svg" alt="" width={24} height={24} decoding="async" />{t('问 BayBay', 'Ask BayBay')} <span className="home-ai">{t('AI 助手', 'AI assistant')}</span>
+      <img src="/brand/otter.svg" alt="" width={24} height={24} decoding="async" />{t('问 BayBay', 'Ask BayBay')} <span className="ui-status" data-tone="free">{t('AI 助手', 'AI assistant')}</span>
     </button>
   </header>;
 }
