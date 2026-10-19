@@ -27,4 +27,4 @@ export { EmptyState, ErrorState, type EmptyStateProps, type ErrorStateProps } fr
 // or not a page uses them; only their types are re-exported.
 export type { DisclosureProps } from './Disclosure';
 export type { CloseButtonProps } from './CloseButton';
-export type { TextLinkProps } from './TextLink';
+export type { TextLinkProps, MoreLinkProps } from './TextLink';

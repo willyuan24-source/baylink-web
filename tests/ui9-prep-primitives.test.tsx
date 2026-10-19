@@ -6,6 +6,7 @@ import { JSDOM } from 'jsdom';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import postcss from 'postcss';
+import type { TextLinkProps } from '../src/components/ui/TextLink';
 
 // UI9-F2 primitives added by UI9-PREP: Disclosure (one expander), CloseButton (one ✕) and TextLink / MoreLink (two link
 // looks, one underline offset). No call site uses them yet; the area lanes migrate to them.
@@ -135,6 +136,33 @@ test('TextLink and MoreLink: router links for `to`, anchors for `href`, two look
   assert.equal(declarations(':is(.ui-link[data-standalone],.ui-more)').get('min-height'), 'var(--control-height)');
   assert.equal(declarations('.ui-link').get('text-decoration'), 'underline 1px', 'underlined at rest');
   assert.equal(declarations('.ui-more').get('text-decoration'), undefined, 'underlined on hover only');
+});
+
+test('TextLink `hit`: an in-text link with a 44px target (48 in 简洁显示) that leaves the line and the look alone', () => {
+  // `standalone` and `hit` are part of TextLinkProps, so a wrapper typed with it passes them through.
+  const Wrapped = (props: TextLinkProps) => <ui.TextLink {...props} />;
+  const view = render(<MemoryRouter>
+    <p>名额有限，先去 <Wrapped to="/events/sfpl" hit>官网</Wrapped> 报名。</p>
+    <Wrapped href="https://www.sfpl.org/" standalone>SFPL 官网</Wrapped>
+  </MemoryRouter>);
+  const inText = view.getByRole('link', { name: '官网' });
+  assert.equal(inText.className, 'ui-link');
+  assert.equal(inText.getAttribute('data-hit'), '');
+  assert.equal(inText.hasAttribute('data-standalone'), false);
+  assert.equal(inText.hasAttribute('hit'), false, 'the prop does not reach the DOM');
+  assert.equal(view.getByRole('link', { name: 'SFPL 官网' }).getAttribute('data-standalone'), '');
+  assert.equal(view.getByRole('link', { name: 'SFPL 官网' }).hasAttribute('data-hit'), false);
+  // The target is a transparent box on the link (--control-height tall, at least as wide, centred), not padding or a
+  // display change, so the line box and the focus ring are unchanged; --control-height is 3rem in 简洁显示 (tokens.css).
+  assert.equal(declarations('.ui-link[data-hit]').get('position'), 'relative');
+  const box = declarations('.ui-link[data-hit]::before');
+  assert.equal(box.get('content'), '""');
+  assert.equal(box.get('position'), 'absolute');
+  assert.equal(box.get('height'), 'var(--control-height)');
+  assert.equal(box.get('top'), 'calc(50% - var(--control-height) / 2)');
+  assert.equal(box.get('inset-inline'), 'min(0px, (100% - var(--control-height)) / 2)');
+  for (const prop of ['padding', 'padding-block', 'margin', 'display', 'line-height']) assert.equal(declarations('.ui-link[data-hit]').get(prop), undefined, prop);
+  assert.match(readFileSync('src/tokens.css', 'utf8'), /html\[data-simple\] \{[^}]*--control-height:3rem/);
 });
 
 test('the links render on the server too (prerendered pages)', () => {
