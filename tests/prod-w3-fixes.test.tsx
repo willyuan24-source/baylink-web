@@ -111,7 +111,7 @@ test('an offer cover carries the value and the brand, not the title its card cap
   assert.equal(cover.querySelector('.ui-type-cover__note'), null);
   assert.doesNotMatch(cover.textContent!, /Stamp Challenge|集章/);
   // On the card, the TypeCover prints the brand; the meta line under it keeps the brand for screen readers only.
-  const { OfferFeedCard } = await import('../src/features/events/EventCards');
+  const { OfferFeedCard } = await import('../src/features/events/BoardCards');
   const card = (tier: 'type' | 'image') => JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events">
     <OfferFeedCard offer={taco.offer as never} cover={(tier === 'type' ? { tier, reason: 'no-image' } : { tier, image: { src: '/x.jpg', alt: '', credit: 'x' }, label: { zh: '图', en: 'Photo' } }) as never} today="2026-10-12" />
   </StaticRouter>));
