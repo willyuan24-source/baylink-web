@@ -57,25 +57,34 @@ test('T6: the hero opens every sampled detail, then the chips, the H1 and the at
     assert.ok(facts.querySelectorAll('.detail-fact').length >= 3, `${id}: at least three facts`);
     assert.ok(head.compareDocumentPosition(facts) & FOLLOWING, `${id}: facts follow the H1`);
     assert.ok(facts.compareDocumentPosition(doc.querySelector('.detail-body')!) & FOLLOWING, `${id}: the body follows the facts`);
-    assert.equal(doc.querySelector('.discovery-detail-brand, .discovery-detail-more-actions, details'), null, `${id}: no masthead and no tucked-away actions`);
+    // The one <details> is 本页图片来源 (#page-credits, collapsed at the end of the source section); nothing else is tucked away.
+    assert.equal(doc.querySelector('.discovery-detail-brand, .discovery-detail-more-actions, details:not(#page-credits)'), null, `${id}: no masthead and no tucked-away actions`);
     assert.ok(!/湾区生活手记/.test(doc.textContent || ''), id);
   }
 });
 
-test('D10: one action bar per detail with the ♡, the plan, 问 BayBay and the official page', () => {
+test('D10 / N18: one action bar per detail: 收藏 · 发家人 · 问 BayBay, then the one primary, always last', () => {
   for (const item of sample) {
     const doc = page(item);
     const id = discoveryShare(item).id;
     const bars = doc.querySelectorAll('.site-detail-actions');
     assert.equal(bars.length, 1, `${id}: SiteChrome hides the tab bar once this bar is on the page`);
     const bar = bars[0];
-    assert.ok(bar.querySelector('button.detail-action--ask'), `${id}: 问 BayBay`);
-    const official = bar.querySelector<HTMLAnchorElement>('a[target="_blank"]')!;
-    assert.match(official.getAttribute('rel') || '', /noopener/);
-    assert.ok(/^https?:\/\//.test(official.getAttribute('href') || ''), id);
+    assert.ok(bar.matches('.site-detail-actions.detail-actions'), id);
+    const children = [...bar.children];
+    assert.ok(children.at(-1)!.matches('.detail-actions__primary'), `${id}: the primary is the last control`);
+    assert.equal(bar.querySelectorAll('.detail-actions__primary').length, 1, `${id}: exactly one primary`);
+    for (const cell of children.slice(0, -1)) assert.ok(cell.matches('.detail-actions__cell'), `${id}: only cells before the primary`);
+    assert.ok(bar.querySelector('button[data-cell="ask"]'), `${id}: 问 BayBay`);
+    assert.equal(bar.querySelector('[disabled]:not(.saves-toggle):not(.saves-add-day)'), null, `${id}: a cell that does not apply is left out, never disabled`);
     const live = !doc.querySelector('.ui-status[data-tone="ended"]') && !/已过期|暂无已确认场次|待确认/.test(doc.querySelector('.detail-main')!.textContent || '');
     if (live) assert.ok(bar.querySelector('.saves-toggle'), `${id}: ♡ 收藏 (FC3-02, FC3-03)`);
-    if (item.kind === 'event' && live) assert.ok(bar.querySelector('[data-day] .saves-add-day'), `${id}: 加入这天计划`);
+    if (item.kind === 'event' && live) assert.ok(bar.querySelector('.detail-actions__primary[data-day] .saves-add-day'), `${id}: 加入这天计划`);
+    // The official page is reachable once on the first screen: as the primary, or in the facts card's 何时 / 开业 slot.
+    const official = bar.querySelector<HTMLAnchorElement>('a.detail-action--primary[target="_blank"]') ?? doc.querySelector<HTMLAnchorElement>('[data-fact="when"] dt a.detail-fact__aside');
+    assert.ok(official, `${id}: the official link`);
+    assert.match(official.getAttribute('rel') || '', /noopener/);
+    assert.ok(/^https?:\/\//.test(official.getAttribute('href') || ''), id);
   }
 });
 
@@ -122,19 +131,19 @@ test('多少钱 is a short value (免费 / 部分免费 / $8–12 / 收费 / 费
   assert.ok(events.length > 100);
   for (const item of events) {
     const doc = page(item);
-    const value = doc.querySelector('[data-fact="cost"] dd > .detail-fact__line')!;
+    const value = doc.querySelector('[data-fact="cost"] dd > .detail-fact__key')!;
     assert.ok(value, discoveryShare(item).id);
     // A money range is two amounts, "$22.80–$28.80" (13 characters, WEB-FIX6), not a sentence.
     assert.ok((value.textContent || '').length <= 12 || /^\$\d+(?:\.\d\d)?–\$\d+(?:\.\d\d)?$/u.test(value.textContent || ''), `${discoveryShare(item).id}: "${value.textContent}" is not a sentence`);
   }
   const milagros = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'san-lorenzo-metal-milagros-oct10-2026')!;
   const cost = page(milagros).querySelector('[data-fact="cost"] dd')!;
-  assert.equal(cost.querySelector('.detail-fact__line')!.textContent, '费用待确认');
+  assert.equal(cost.querySelector('.detail-fact__key')!.textContent, '费用待确认');
   assert.match(cost.querySelector('small')!.textContent || '', /^官方未列明收费/, 'the note starts at its reason, not a second 费用待核');
   // CNT-HOTFIX-2 (H69): the SFPL swap is free under SFPL's "all programs and events are free" listing policy.
   const swap = localDiscoveries.find(row => row.kind === 'event' && row.event.id === 'sf-main-halloween-costume-swap-oct15-2026')!;
   const swapCost = page(swap).querySelector('[data-fact="cost"] dd')!;
-  assert.equal(swapCost.querySelector('.detail-fact__line')!.textContent, '免费');
+  assert.equal(swapCost.querySelector('.detail-fact__key')!.textContent, '免费');
   assert.match(swapCost.querySelector('small')!.textContent || '', /^图书馆活动免费/);
 });
 
@@ -151,23 +160,31 @@ test('a fact or a section whose text is all editor note is left out: no label or
   assert.equal(record.item.kind, 'opening');
   if (record.item.kind !== 'opening') return;
   const doc = render0({ ...record, item: { ...record.item, shop: { ...record.item.shop, dateLabel: '本包只录入九月场', summary: '核对时尚未到开业日，保留预告状态。', editorTip: '本条只收录 10/5 场。' } } });
-  assert.equal(doc.querySelector('[data-fact="when"]'), null, 'no 开业 cell without a date');
+  // 开业's key is openingChip (structured status and date); the editor-note date line under it is left out.
+  assert.equal(doc.querySelector('[data-fact="when"] .detail-fact__key')?.textContent, '10/11 已开业');
+  assert.ok(!/本包只录入/.test(doc.querySelector('[data-fact="when"]')?.textContent || ''), 'no editor note as the note');
   assert.ok(doc.querySelector('[data-fact="where"]'), 'the other facts stay');
   assert.equal(doc.querySelector('#detail-visit-title'), null, 'no 这一趟怎么安排 without a tip');
   assert.equal(doc.querySelector('.detail-summary'), null, 'no empty summary paragraph');
   for (const cell of doc.querySelectorAll('.detail-fact dd')) assert.ok((cell.textContent || '').trim(), 'every fact has a value');
 });
 
-test('an ended event promises the 接下来可以去 rail only when it has cards', () => {
+test('an ended event has one notice under its head, then 接下来可以去 when it has cards, else a way to the events list', () => {
   const record = buildDetailRecord(findItem('event', 'vallejo-brewing-artwalk-2026'));
   const withRail = render0(record);
   assert.ok(withRail.querySelector('#detail-next-title'), 'the fixture still has upcoming events nearby');
-  assert.match(withRail.textContent || '', /下面是附近接下来可以去的活动/);
+  const notices = withRail.querySelectorAll('.content-review-notice');
+  assert.equal(notices.length, 1, 'one notice, no second 往期内容 box');
+  assert.match(notices[0].textContent || '', /^已结束（\d+\/\d+） 所列覆盖日期已结束/);
+  assert.ok(withRail.querySelector('.detail-head')!.compareDocumentPosition(notices[0]) & FOLLOWING, 'under the head');
+  assert.ok(notices[0].compareDocumentPosition(withRail.querySelector('#detail-next-title')!) & FOLLOWING, 'then 接下来可以去');
+  assert.ok(withRail.querySelector('#detail-next-title')!.compareDocumentPosition(withRail.querySelector('dl.detail-facts')!) & FOLLOWING, 'then the facts');
+  assert.equal(withRail.querySelector('#detail-plan-title'), null, 'no 出发前 on an ended page');
+  assert.equal(withRail.querySelector('#detail-together-title'), null, 'no 一起去 on an ended page');
+  assert.equal(withRail.querySelector('button[aria-label^="分享卡片"]'), null, 'the share row keeps only 分享');
   const alone = render0({ ...record, rail: [] });
   assert.equal(alone.querySelector('#detail-next-title'), null);
-  assert.ok(!/下面是附近接下来可以去的活动/.test(alone.textContent || ''), 'no promise of a list that is not there');
-  const note = [...alone.querySelectorAll('.detail-note')].find(node => /这场活动已结束/.test(node.textContent || ''));
-  assert.ok(note?.querySelector('a[href="/events"]'), 'a way to the events list instead');
+  assert.ok(alone.querySelector('.detail-main--top a.detail-next-link[href="/events"]'), 'a way to the events list instead');
 });
 
 test('怎么领 · 怎么用 numbers only the steps a listing numbers itself; hedges about the listing follow as a note', () => {
@@ -188,7 +205,8 @@ test('English details: the facts and the visit tip keep their reader text, and a
   await setLocale('en', false);
   try {
     const asia = page(findItem('opening', 'asia-live-valley-fair'));
-    assert.match(asia.querySelector('[data-fact="when"] dd')?.textContent || '', /^Open since June 2026/);
+    assert.equal(asia.querySelector('[data-fact="when"] .detail-fact__key')?.textContent, 'Open now');
+    assert.match(asia.querySelector('[data-fact="when"] dd small')?.textContent || '', /^Open since June 2026/);
     const florecita = page(findItem('opening', 'florecita-mission'));
     // CNT-FRESH-1016: the tip names the old footer address and the new one. Owner decision 2026-10-17: the shop stays announced
     // until its 3D city sign, so the tip names the new address without sending the reader there as if it were open.

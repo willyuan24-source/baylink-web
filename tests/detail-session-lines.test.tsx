@@ -12,49 +12,50 @@ import type { MonthlyEvent } from '../src/data/monthly-types';
 /**
  * H58 (EVT13-12): the facts card's 何时 cell collapses sessions that share a time into one line, shows at most two lines
  * and then 另有 N 场, so the card ends above the phone's fixed action bar. Every date is a session date and every time
- * the record's own; nothing is invented.
+ * the record's own; nothing is invented. UI9-DETAIL: the lines are the note under the key (eventWhenLine), and their
+ * Chinese times use eventWhenLine's one style ("8:30–12:00", "10:00 起"), never "10–17 点" beside "08:30–12:00".
  */
 const sessions = (rows: [string, string?, string?][]) => ({ sessions: rows.map(([date, start, end]) => ({ date, ...(start ? { start } : {}), ...(end ? { end } : {}) })) });
 const saturdays = ['2026-10-17', '2026-10-24', '2026-10-31', '2026-11-07', '2026-11-14', '2026-11-21', '2026-11-28'];
 
 test('sessions with one time collapse into one line: one weekday, a weekly series, or a run of days', () => {
   assert.deepEqual(sessionLines(sessions(saturdays.slice(0, 3).map(day => [day, '08:30', '12:00'])), '2026-10-13', false),
-    { lines: ['周六 10/17、10/24、10/31 · 08:30–12:00'], more: 0 }, 'the brief\'s example');
+    { lines: ['周六 10/17、10/24、10/31 · 8:30–12:00'], more: 0 }, 'the brief\'s example');
   assert.deepEqual(sessionLines(sessions(saturdays.map(day => [day, '08:30', '12:00'])), '2026-10-13', false),
-    { lines: ['每周六 10/17–11/28 · 08:30–12:00'], more: 0 }, 'strictly weekly: the whole series in one line');
+    { lines: ['每周六 10/17–11/28 · 8:30–12:00'], more: 0 }, 'strictly weekly: the whole series in one line');
   assert.deepEqual(sessionLines(sessions(saturdays.map(day => [day, '08:30', '12:00'])), '2026-10-13', true),
     { lines: ['Every Sat Oct 17–Nov 28 · 8:30am–12pm'], more: 0 }, 'US English dates on /en (WEB-FIX6)');
   // The Fall Show: three days at one time, the Sunday at another.
   const fall = sessions([['2026-10-15', '10:30', '19:00'], ['2026-10-16', '10:30', '19:00'], ['2026-10-17', '10:30', '19:00'], ['2026-10-18', '11:00', '17:00']]);
-  assert.deepEqual(sessionLines(fall, '2026-10-13', false), { lines: ['周四至周六 10/15–17 · 10:30–19:00', '周日 10/18 · 11–17 点'], more: 0 });
+  assert.deepEqual(sessionLines(fall, '2026-10-13', false), { lines: ['周四至周六 10/15–17 · 10:30–19:00', '周日 10/18 · 11:00–17:00'], more: 0 });
   assert.deepEqual(sessionLines(fall, '2026-10-13', true).lines, ['Thu–Sat Oct 15–17 · 10:30am–7pm', 'Sun Oct 18 · 11am–5pm']);
   // A run across a month end.
   assert.deepEqual(sessionLines(sessions([['2026-10-30', '18:30', '22:00'], ['2026-10-31', '18:30', '22:00'], ['2026-11-01', '18:30', '22:00']]), '2026-10-13', false).lines, ['周五至周日 10/30–11/1 · 18:30–22:00']);
   // A week or more of days in a row is 每天, never "周四至周六 10/15–24" (which reads as three weekdays). Six days keep the range.
   const run = (count: number) => sessions(Array.from({ length: count }, (_, index) => [`2026-10-${String(15 + index).padStart(2, '0')}`, '10:00', '17:00'] as [string, string, string]));
-  assert.deepEqual(sessionLines(run(10), '2026-10-13', false).lines, ['每天 10/15–24 · 10–17 点']);
+  assert.deepEqual(sessionLines(run(10), '2026-10-13', false).lines, ['每天 10/15–24 · 10:00–17:00']);
   assert.deepEqual(sessionLines(run(10), '2026-10-13', true).lines, ['Daily Oct 15–24 · 10am–5pm']);
-  assert.deepEqual(sessionLines(run(7), '2026-10-13', false).lines, ['每天 10/15–21 · 10–17 点']);
-  assert.deepEqual(sessionLines(run(6), '2026-10-13', false).lines, ['周四至周二 10/15–20 · 10–17 点']);
+  assert.deepEqual(sessionLines(run(7), '2026-10-13', false).lines, ['每天 10/15–21 · 10:00–17:00']);
+  assert.deepEqual(sessionLines(run(6), '2026-10-13', false).lines, ['周四至周二 10/15–20 · 10:00–17:00']);
 });
 
 test('mixed dates list what fits one phone line and count the rest; times beyond two lines become 另有 N 场', () => {
   // The opera: 19:30 on five days, 14:00 on one. Five full dates do not fit one line, so later October dates drop the month.
   const opera = sessions([['2026-10-15', '19:30'], ['2026-10-18', '14:00'], ['2026-10-21', '19:30'], ['2026-10-24', '19:30'], ['2026-10-27', '19:30'], ['2026-10-30', '19:30']]);
-  assert.deepEqual(sessionLines(opera, '2026-10-13', false), { lines: ['10/15、21、24、27、30 · 19:30 起', '周日 10/18 · 14 点起'], more: 0 });
+  assert.deepEqual(sessionLines(opera, '2026-10-13', false), { lines: ['10/15、21、24、27、30 · 19:30 起', '周日 10/18 · 14:00 起'], more: 0 });
   assert.deepEqual(sessionLines(opera, '2026-10-13', true).lines, ['Oct 15, 21, 24, 27, 30 · From 7:30pm', 'Sun Oct 18 · From 2pm']);
   // More dates than one line holds: what fits, then the line's own count.
   const many = sessions(['2026-10-03', '2026-10-05', '2026-10-09', '2026-10-14', '2026-10-20', '2026-10-26', '2026-11-02', '2026-11-09'].map(day => [day, '10:00']));
-  assert.deepEqual(sessionLines(many, '2026-10-01', false).lines, ['10/3、5、9、14、20 等 8 场 · 10 点起']);
+  assert.deepEqual(sessionLines(many, '2026-10-01', false).lines, ['10/3、5、9、14、20 等 8 场 · 10:00 起']);
   assert.deepEqual(sessionLines(many, '2026-10-01', true).lines, ['Oct 3, 5, 9, 14 + 4 more · From 10am']);
   // Weekend runs at one time: runs keep their own spans, no weekday for a mixed list.
   const goblin = sessions(['2026-10-17', '2026-10-18', '2026-10-24', '2026-10-25', '2026-10-31'].map(day => [day, '09:00']));
-  assert.deepEqual(sessionLines(goblin, '2026-10-13', false).lines, ['10/17–18、10/24–25、10/31 · 9 点起']);
+  assert.deepEqual(sessionLines(goblin, '2026-10-13', false).lines, ['10/17–18、10/24–25、10/31 · 9:00 起']);
   // Three times: two lines, then the third time's days are counted.
   const three = sessions([['2026-10-17', '10:00'], ['2026-10-18', '12:00'], ['2026-10-24', '15:00'], ['2026-10-25', '15:00']]);
   const result = sessionLines(three, '2026-10-13', false);
   assert.equal(result.lines.length, MAX_SESSION_LINES);
-  assert.deepEqual(result, { lines: ['周六 10/17 · 10 点起', '周日 10/18 · 12 点起'], more: 2 });
+  assert.deepEqual(result, { lines: ['周六 10/17 · 10:00 起', '周日 10/18 · 12:00 起'], more: 2 });
 });
 
 test('US English drops a repeated month ("Oct 22–25, 29–31"); Chinese keeps "10/22–25、10/29–31"; a run into the next month keeps both', () => {
@@ -78,15 +79,15 @@ test('counts are days: a line whose days have several times each says 等 N 天,
   assert.doesNotMatch(result.lines[0], /场/);
   // Three days of two shows, one more time beyond the two lines: 另有 N 天.
   const shows = sessions([['2026-10-17', '11:00'], ['2026-10-17', '15:00'], ['2026-10-18', '12:00'], ['2026-10-24', '10:00'], ['2026-10-24', '14:00']]);
-  assert.deepEqual(sessionLines(shows, '2026-10-13', false), { lines: ['周六 10/17 · 11:00、15:00', '周日 10/18 · 12 点起'], more: 1, moreDays: true });
+  assert.deepEqual(sessionLines(shows, '2026-10-13', false), { lines: ['周六 10/17 · 11:00、15:00', '周日 10/18 · 12:00 起'], more: 1, moreDays: true });
   // One session a day keeps 场 and has no moreDays.
   assert.equal(sessionLines(sessions([['2026-10-17', '10:00'], ['2026-10-18', '12:00'], ['2026-10-24', '15:00']]), '2026-10-13', false).moreDays, undefined);
 });
 
 test('past days drop out (all of them stay when none is left); a day without a time is a date alone', () => {
   const past = sessions([['2026-10-03', '09:00'], ['2026-10-10', '09:00'], ['2026-10-17', '09:00']]);
-  assert.deepEqual(sessionLines(past, '2026-10-13', false).lines, ['周六 10/17 · 9 点起']);
-  assert.deepEqual(sessionLines(past, '2026-11-01', false).lines, ['周六 10/3、10/10、10/17 · 9 点起'], 'an ended event keeps its dates');
+  assert.deepEqual(sessionLines(past, '2026-10-13', false).lines, ['周六 10/17 · 9:00 起']);
+  assert.deepEqual(sessionLines(past, '2026-11-01', false).lines, ['周六 10/3、10/10、10/17 · 9:00 起'], 'an ended event keeps its dates');
   assert.deepEqual(sessionLines(sessions([['2026-10-17'], ['2026-10-18']]), '2026-10-13', false).lines, ['周六至周日 10/17–18']);
   assert.deepEqual(sessionLines({}, '2026-10-13', false), { lines: [], more: 0 });
 });
@@ -95,28 +96,28 @@ test('past days drop out (all of them stay when none is left); a day without a t
 const baseEvent = (): MonthlyEvent => {
   const base = MONTHLY_EVENTS[0];
   assert.ok(base, 'the catalog has events');
-  return { ...base, planning: undefined, sessions: undefined };
+  return { ...base, planning: undefined, sessions: undefined, dateNote: undefined };
 };
 const facts = (event: MonthlyEvent) => new JSDOM(renderToStaticMarkup(<EventFacts event={event} today="2026-10-13" />)).window.document;
 
 test('the facts card renders the merged lines and 另有 N 场 for an event with sessions', () => {
   const doc = facts({ ...baseEvent(), ...sessions([['2026-10-17', '10:00'], ['2026-10-18', '12:00'], ['2026-10-24', '15:00'], ['2026-10-25', '15:00']]) } as MonthlyEvent);
-  const lines = [...doc.querySelectorAll('[data-fact="when"] dd > .detail-fact__line')].map(line => line.textContent);
-  assert.deepEqual(lines, ['周六 10/17 · 10 点起', '周日 10/18 · 12 点起', '另有 2 场']);
+  const lines = [...doc.querySelectorAll('[data-fact="when"] dd small > .detail-fact__line')].map(line => line.textContent);
+  assert.deepEqual(lines, ['周六 10/17 · 10:00 起', '周日 10/18 · 12:00 起', '另有 2 场']);
   const days = facts({ ...baseEvent(), ...sessions([['2026-10-17', '11:00'], ['2026-10-17', '15:00'], ['2026-10-18', '12:00'], ['2026-10-24', '10:00'], ['2026-10-24', '14:00']]) } as MonthlyEvent);
-  assert.equal([...days.querySelectorAll('[data-fact="when"] dd > .detail-fact__line')].at(-1)?.textContent, '另有 1 天');
+  assert.equal([...days.querySelectorAll('[data-fact="when"] dd small > .detail-fact__line')].at(-1)?.textContent, '另有 1 天');
 });
 
 test('a 何时 line wraps only between its pieces: dates, and the time after " · " (never inside "6:30pm–10pm")', () => {
   const pumpkins = sessions([['2026-10-22', '18:30', '22:00'], ['2026-10-23', '18:30', '22:00'], ['2026-10-24', '18:30', '22:00'], ['2026-10-25', '18:30', '22:00'], ['2026-10-29', '18:30', '22:00'], ['2026-10-30', '18:30', '22:00'], ['2026-10-31', '18:30', '22:00']]);
   const doc = facts({ ...baseEvent(), ...pumpkins } as MonthlyEvent);
-  const line = doc.querySelector('[data-fact="when"] dd > .detail-fact__line')!;
+  const line = doc.querySelector('[data-fact="when"] dd small > .detail-fact__line')!;
   assert.equal(line.textContent, '10/22–25、10/29–31 · 18:30–22:00', 'the text is unchanged');
   assert.deepEqual([...line.querySelectorAll('.detail-fact__keep')].map(piece => piece.textContent), ['10/22–25', '10/29–31 ·', '18:30–22:00']);
   const css = readFileSync('src/features/detail/facts-grid.css', 'utf8');
   assert.match(css.split('@media')[0], /\.detail-fact__keep \{ display:inline-block; max-width:100%; \}/, 'each piece moves to the next line whole, at every reading size');
   const plain = facts({ ...baseEvent(), ...sessions([['2026-10-17'], ['2026-10-18']]) } as MonthlyEvent);
-  assert.deepEqual([...plain.querySelectorAll('[data-fact="when"] .detail-fact__keep')].map(piece => piece.textContent), ['周六至周日 10/17–18'], 'a line without a time is one piece');
+  assert.deepEqual([...plain.querySelectorAll('[data-fact="when"] small .detail-fact__keep')].map(piece => piece.textContent), ['周六至周日 10/17–18'], 'a line without a time is one piece');
 });
 
 // H58 rest (Pleasanton, Disney On Ice, Petaluma, Sausalito): a long cost note in the phone's half-width 多少钱 cell made the

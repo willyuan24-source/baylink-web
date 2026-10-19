@@ -89,7 +89,7 @@ test('ended events show what is on next nearby on the first screen, before the f
   const fragment = page(ended, '2026-10-06', [ended, ...next]);
   const rail = fragment.querySelector('section[aria-labelledby="detail-next-title"]')!;
   assert.equal(rail.querySelector('h2')?.textContent, '接下来可以去');
-  assert.deepEqual([...rail.querySelectorAll('a.ui-card-link')].map(link => link.getAttribute('href')), ['/events/audit-next-a?date=2026-10-12', '/events/audit-next-b?date=2026-10-09'], 'same city first, any category');
+  assert.deepEqual([...rail.querySelectorAll('.detail-rail__track a.ui-card-link')].map(link => link.getAttribute('href')), ['/events/audit-next-a?date=2026-10-12', '/events/audit-next-b?date=2026-10-09'], 'same city first, any category');
   assert.ok(rail.compareDocumentPosition(fragment.querySelector('.detail-facts')!) & 4, 'the rail comes before the facts');
   assert.ok(fragment.querySelector('.detail-hero')!.compareDocumentPosition(rail) & 4, 'after the hero');
 });
@@ -111,7 +111,7 @@ test('related cards are real sessions with their own date in the link, and the p
   assert.ok(selected, 'the published catalog supplies genuine related sessions');
   const cards = related(selected, '2026-10-06');
   const fragment = JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord({ kind: 'event', event: selected })} today="2026-10-06" /></StaticRouter>));
-  const links = [...fragment.querySelectorAll('section[aria-labelledby="detail-related-title"] a.ui-card-link')];
+  const links = [...fragment.querySelectorAll('section[aria-labelledby="detail-related-title"] .detail-rail__track a.ui-card-link')];
   assert.deepEqual(links.map(link => link.getAttribute('href')), cards.map(({ event, date }) => `/events/${event.id}?date=${date}`));
   for (const { event, date } of cards) assert.ok(eventOccursOn(event as unknown as MonthlyEvent, date));
   assert.ok(fragment.querySelector('.discovery-return a[href="/events"]'));

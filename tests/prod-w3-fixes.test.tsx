@@ -255,7 +255,8 @@ test('the home ask box gets a shorter example at 大 / 特大 and in 简洁显�
 test('one heading scale: section heads on home, events and details read the section tokens; Chinese pages name Chinese faces first', () => {
   const heads: [string, string][] = [
     ['src/components/home-discovery.css', '.home-section-head h2'], ['src/features/events/events.css', '.ev-section-title'],
-    ...['.detail-body h2', '.detail-rail h2', '.discovery-return h2'].map(head => ['src/components/local-discovery-detail.css', `.local-discovery-detail ${head}`] as [string, string]),
+    // UI9-DETAIL: the body's, the top rail's and the page end's H2 share one rule.
+    ['src/components/local-discovery-detail.css', '.local-discovery-detail :is(.detail-body,.detail-main>.detail-rail) h2,.local-discovery-detail .discovery-return h2'],
   ];
   for (const [file, selector] of heads) assert.equal(declarations(file, selector)['font-size'], 'var(--text-section)', selector);
   const stack = (lang: string) => declarations('src/tokens.css', `html:lang(${lang})`)['--font-sans'] ?? '';

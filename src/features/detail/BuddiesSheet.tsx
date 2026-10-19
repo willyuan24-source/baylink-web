@@ -42,10 +42,12 @@ export default function BuddiesSheet({ event, ended, open, onClose }: { event: M
     } catch { if (current()) setFailed(true); }
     finally { if (current()) { readController.current = null; setLoading(false); } }
   }, [event.id]);
+  // The list is read while the sheet is open; closing it aborts the read (the sheet stays mounted for its exit motion).
   useEffect(() => {
+    if (!open) return;
     alive.current = true; void load();
     return () => { alive.current = false; readController.current?.abort(); };
-  }, [load]);
+  }, [load, open]);
   const updateMembership = async (value: EventInterest) => {
     if (await participation.update(event.id, value) && alive.current) void load();
   };

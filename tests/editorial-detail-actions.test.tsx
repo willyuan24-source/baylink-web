@@ -32,16 +32,17 @@ assert.ok(opening?.kind === 'opening');
 const page = (item: LocalDiscovery, today = '2026-10-01') => JSDOM.fragment(renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord(item)} today={today} /></StaticRouter>));
 const FOLLOWING = 4;
 
-test('offer and opening pages open on the hero; the official page is in the action bar and sharing is not hidden', () => {
+test('offer and opening pages open on the hero; the official page is on the first screen and sharing is not hidden', () => {
   for (const item of [offer, opening]) {
     const doc = page(item);
     const main = doc.querySelector('.detail-main')!;
     assert.ok(main.firstElementChild?.classList.contains('detail-hero'), 'the hero is the first thing in the column (EVT11-03, SV-05)');
     assert.equal(doc.querySelector('.discovery-detail-brand'), null, 'no BAYLINK masthead');
-    const official = doc.querySelector<HTMLAnchorElement>('.site-detail-actions a[target="_blank"]')!;
+    // The official page: the bar's primary (an offer), or the 开业 line's 商家官网 ↗ when the primary is 加入计划 (UI9-DETAIL).
+    const official = doc.querySelector<HTMLAnchorElement>('.site-detail-actions a[target="_blank"], [data-fact="when"] dt a[target="_blank"]')!;
     assert.equal(official.getAttribute('href'), item.kind === 'offer' ? item.offer.sourceUrl : item.shop.officialUrl);
     assert.match(official.rel, /noopener/);
-    assert.equal(doc.querySelector('details'), null, 'no action is tucked into a disclosure');
+    assert.equal(doc.querySelector('details:not(#page-credits)'), null, 'no action is tucked into a disclosure (本页图片来源 is the one list)');
     assert.ok(doc.querySelector('.detail-share .editorial-share-actions button'), 'the listing can be shared');
     assert.ok(doc.querySelector('.detail-hero')!.compareDocumentPosition(doc.querySelector('h1')!) & FOLLOWING);
   }
@@ -81,10 +82,10 @@ test('expired or unconfirmed offers keep official access and their conditions wi
     { ...offer, offer: { ...offer.offer, endDate: '2026-10-31', verificationStatus: 'needs-confirmation' as const } },
   ]) {
     const doc = page(item);
-    assert.equal(doc.querySelector('.outing-inspiration-link'), null);
+    assert.equal(doc.querySelector('.outing-inspiration-link, .detail-together__go'), null, 'no 一起去');
     assert.equal(doc.querySelector('.site-detail-actions a[target="_blank"]')?.getAttribute('href'), item.offer.sourceUrl);
     assert.ok(doc.querySelector('section[aria-labelledby="offer-conditions-title"] li'));
-    assert.ok(doc.querySelector('.detail-note'));
+    assert.ok(doc.querySelector('.detail-note, .content-review-ended'), 'the ended notice or the 待确认 note');
   }
   assert.equal(page({ ...offer, offer: { ...offer.offer, endDate: '2026-09-30' } }).querySelector('.saves-toggle'), null);
   assert.ok(page(offer, offer.offer.endDate).querySelector('.site-detail-actions .saves-toggle'), 'a live offer has the ♡ (FC3-03)');
