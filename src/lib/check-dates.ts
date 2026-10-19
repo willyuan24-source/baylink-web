@@ -46,3 +46,22 @@ export function checkLine(summary: CheckSummary, t: (zh: string, en: string) => 
   if (mostly === latest) return t(`多数核对于 ${monthDay(mostly)} · 最早 ${monthDay(earliest)}`, `mostly checked ${usDay(mostly)} · earliest ${usDay(earliest)}`);
   return t(`多数核对于 ${monthDay(mostly)} · 最近 ${monthDay(latest)}`, `mostly checked ${usDay(mostly)} · latest ${usDay(latest)}`);
 }
+
+/**
+ * The same dates said as checks against the official pages (UI9-PREP; HOME's trust line, EVENTS' lede): 官网核对, never
+ * 人工核对. `order: 'lead'` (the default) leads with it, like a card's "官网核对 10/2": "官网核对 10/15" (every item that day),
+ * "官网核对 多数 10/15" (one dated day, some item undated), "官网核对 多数 10/15 · 最早 9/28", "官网核对 多数 9/29 · 最近 10/12".
+ * `order: 'trail'` puts it after the main date: "10/15 官网核对", "多数 10/15 官网核对 · 最早 9/28". English reads the same
+ * either way, in US style: "Source checked Oct 15", "Source checked: mostly Sep 29 · latest Oct 12".
+ */
+export function officialCheckLine(summary: CheckSummary, t: (zh: string, en: string) => string, { order = 'lead' }: { order?: 'lead' | 'trail' } = {}): string {
+  const { mostly, latest } = summary;
+  const earliest = summary.earliest ?? mostly;
+  const zh = (main: string, extra = '') => order === 'trail' ? `${main} 官网核对${extra}` : `官网核对 ${main}${extra}`;
+  if (earliest === latest) {
+    return summary.all === false ? t(zh(`多数 ${monthDay(latest)}`), `Source checked: mostly ${usDay(latest)}`)
+      : t(zh(monthDay(latest)), `Source checked ${usDay(latest)}`);
+  }
+  if (mostly === latest) return t(zh(`多数 ${monthDay(mostly)}`, ` · 最早 ${monthDay(earliest)}`), `Source checked: mostly ${usDay(mostly)} · earliest ${usDay(earliest)}`);
+  return t(zh(`多数 ${monthDay(mostly)}`, ` · 最近 ${monthDay(latest)}`), `Source checked: mostly ${usDay(mostly)} · latest ${usDay(latest)}`);
+}
