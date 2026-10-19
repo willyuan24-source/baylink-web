@@ -1,9 +1,7 @@
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import './ui.css';
-import './covers.css';
-import './cards.css';
+import './links.css';
 import { cx } from './ui-copy';
 
 type Target = { to: string; href?: undefined; reloadDocument?: boolean } | { href: string; to?: undefined; reloadDocument?: undefined };

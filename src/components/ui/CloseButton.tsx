@@ -1,8 +1,5 @@
 import type { ButtonHTMLAttributes, Ref } from 'react';
 import { X } from 'lucide-react';
-import './ui.css';
-import './covers.css';
-import './cards.css';
 import { IconButton } from './Button';
 import { cx, useUiCopy } from './ui-copy';
 

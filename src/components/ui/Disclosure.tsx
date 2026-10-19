@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
-import './ui.css';
-import './covers.css';
-import './cards.css';
+import './disclosure.css';
 import { cx } from './ui-copy';
 
 export type DisclosureProps = {

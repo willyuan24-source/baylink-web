@@ -18,11 +18,11 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
 const { render, cleanup, fireEvent, act } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
-const ui = await import('../src/components/ui');
+const ui = { ...await import('../src/components/ui/Disclosure'), ...await import('../src/components/ui/CloseButton'), ...await import('../src/components/ui/TextLink') };
 const { setLocale } = await import('../src/i18n/locale');
 
 afterEach(async () => { cleanup(); document.body.innerHTML = ''; await setLocale('zh-Hans', false); });
-const css = postcss.parse(readFileSync('src/components/ui/ui.css', 'utf8'));
+const css = postcss.parse(['ui', 'disclosure', 'links'].map(name => readFileSync(`src/components/ui/${name}.css`, 'utf8')).join('\n'));
 const declarations = (selector: string) => {
   const found = new Map<string, string>();
   css.walkRules(rule => { if (rule.selector === selector) rule.walkDecls(decl => { found.set(decl.prop, decl.value); }); });
@@ -66,7 +66,8 @@ test('Disclosure CSS: no native marker, a 44px summary (48 in 简洁显示), the
   assert.equal(declarations('.ui-disclosure__summary::marker').get('content'), '""');
   assert.match(declarations('.ui-disclosure__chevron').get('transition')!, /^rotate var\(--dur-\d\) var\(--ease-/);
   assert.equal(declarations('.ui-disclosure[open]>.ui-disclosure__summary>.ui-disclosure__chevron').get('rotate'), '180deg');
-  assert.equal(declarations('html[data-simple] :is(.ui-disclosure__summary,.ui-more,.ui-link[data-standalone])').get('min-height'), '3rem');
+  assert.equal(declarations('html[data-simple] .ui-disclosure__summary').get('min-height'), '3rem');
+  assert.equal(declarations('html[data-simple] :is(.ui-link[data-standalone],.ui-more)').get('min-height'), '3rem');
 });
 
 test('CloseButton: one look (the 44px icon button), named 关闭 / 關閉 / Close, or a given name', async () => {
@@ -113,9 +114,9 @@ test('TextLink and MoreLink: router links for `to`, anchors for `href`, two look
   css.walkDecls('text-underline-offset', decl => { if (/\.ui-(?:link|more)\b/.test((decl.parent as postcss.Rule).selector)) offsets.add(decl.value); });
   assert.deepEqual([...offsets], ['.2em']);
   assert.match(readFileSync('src/tokens.css', 'utf8'), /text-underline-offset:\.2em/);
-  assert.equal(declarations('.ui-more').get('min-height'), 'var(--control-height)');
-  assert.equal(declarations('.ui-link').get('text-decoration-line'), 'underline');
-  assert.equal(declarations('.ui-more').get('text-decoration-line'), 'none');
+  assert.equal(declarations(':is(.ui-link[data-standalone],.ui-more)').get('min-height'), 'var(--control-height)');
+  assert.equal(declarations('.ui-link').get('text-decoration'), 'underline 1px', 'underlined at rest');
+  assert.equal(declarations('.ui-more').get('text-decoration'), undefined, 'underlined on hover only');
 });
 
 test('the links render on the server too (prerendered pages)', () => {

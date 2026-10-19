@@ -25,6 +25,9 @@ export const editorialStyleScopes = [
   // UI9-PREP split ui.css in three (same rules): the covers, badges, stickers and statuses (UI9-C) and the cards (UI9-EVENTS).
   { file: 'src/components/ui/covers.css' },
   { file: 'src/components/ui/cards.css' },
+  // UI9-PREP: the UI9-F2 primitives' own sheets (imported by Disclosure.tsx and TextLink.tsx only).
+  { file: 'src/components/ui/disclosure.css' },
+  { file: 'src/components/ui/links.css' },
   { file: 'src/features/feedback/feedback.css' },
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },

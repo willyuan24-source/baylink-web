@@ -1,0 +1,14 @@
+/* Links (UI9-F2, added by UI9-PREP): two looks, one underline offset (.2em, as the hover underline in tokens.css).
+   .ui-link sits in text, underlined at rest (standalone, on a line of its own: a 44px target, 48 in 简洁显示); .ui-more is
+   "看全部 →", underlined on hover, a 44px target. Imported by TextLink.tsx only, so it ships with the pages that use it. */
+.ui-link { color:var(--color-brand); text-decoration:underline 1px; text-underline-offset:.2em; }
+:is(.ui-link[data-standalone],.ui-more) { display:inline-flex; align-items:center; min-height:var(--control-height); }
+.ui-more { gap:var(--sp-1); color:var(--color-brand); font-weight:var(--fw-regular); text-underline-offset:.2em; }
+.ui-more__arrow { flex:none; width:1em; height:1em; }
+@media (hover:hover) and (pointer:fine) {
+  .ui-link:hover { color:var(--color-brand-hover); }
+  .ui-more:hover { text-decoration:underline 1px; }
+}
+.ui-more:active { scale:.96; }
+:is(.ui-link,.ui-more):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+html[data-simple] :is(.ui-link[data-standalone],.ui-more) { min-height:3rem; }
