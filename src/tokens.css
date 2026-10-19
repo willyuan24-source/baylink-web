@@ -214,8 +214,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
    transform), and the focus ring in lime on the deep brand surfaces. The underline is for inline text links only (0,2,0,
    so a page's `a { text-decoration:none }` reset does not hide it): a link that wraps a block (a card, a postcard, a tile,
    a nav item, the logo, the 3D entry, the outing invite, a /me row, a home mood circle) is not underlined as a whole,
-   its own rule underlines its title; a card's title link is an inline link and underlines with its title. Class-less block links switch it off in
-   their own :hover rule, which outranks this one (not-found.css .nf-links, guides-ui.css .bl-guide-toc). Checked on the
+   its own rule underlines its title; a card's title link is an inline link and underlines with its title. Class-less
+   block links switch it off in their own :hover rule, which outranks this one (not-found.css .nf-links, guides-ui.css
+   .bl-guide-toc); tests/ui9-f2-hover-underline.test.ts pins all of this. Checked on the
    built pages by computed display (lanes/UI9-F/tools/scan-block-links2.mjs, 40 routes incl. 404 and the guide / offer /
    opening details): no anchor this selector matches has its text in two block boxes. ('3d' is quoted: unquoted, an
    attribute value cannot start with a digit, and the whole selector would be dropped.) The darker hover and the press
