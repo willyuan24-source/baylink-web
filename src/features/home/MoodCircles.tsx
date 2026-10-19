@@ -28,8 +28,7 @@ const MOODS: readonly Mood[] = [
  */
 export function MoodCircles({ seniors }: { /** 长辈友好 events this weekend; null when the build did not count this day. */ seniors?: number | null }) {
   const { t } = useUiCopy();
-  return <nav className="home-moods" aria-labelledby="home-moods-title" data-simple="hide">
-    <h2 id="home-moods-title">{t('按需要找', 'Browse by need')}</h2>
+  return <nav className="home-moods" aria-label={t('按需要找', 'Browse by need')} data-simple="hide">
     <ul>{MOODS.map(({ zh, en, to, icon: Icon }) => <li key={zh}>
       <Link to={to === SENIORS && !seniors ? SENIOR_GUIDES : to} className="ui-chip home-mood">
         <Icon aria-hidden="true" strokeWidth={1.75} /><span className="home-mood__label">{t(zh, en)}</span>

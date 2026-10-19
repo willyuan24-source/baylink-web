@@ -40,8 +40,8 @@ test('the masthead asks the question under the weekend dateline; one identity li
   const { mostly, latest, all } = weekend.checked!;
   const earliest = weekend.checked!.earliest ?? mostly;
   const trust = doc.querySelector('.home-picks .home-trust')!;
-  assert.equal(trust.textContent, `每条附官方链接 · ${earliest === latest ? (all === false ? `多数 ${monthDay(latest)} 官网核对` : `${monthDay(latest)} 官网核对`)
-    : mostly === latest ? `多数 ${monthDay(mostly)} 官网核对 · 最早 ${monthDay(earliest)}` : `多数 ${monthDay(mostly)} 官网核对 · 最近 ${monthDay(latest)}`} · 我们怎么核对`);
+  assert.equal(trust.textContent, `✓ 每条附官方链接 · ✓ ${earliest === latest ? (all === false ? `多数 ${monthDay(latest)} 官网核对` : `${monthDay(latest)} 官网核对`)
+    : mostly === latest ? `多数 ${monthDay(mostly)} 官网核对 · 最早 ${monthDay(earliest)}` : `多数 ${monthDay(mostly)} 官网核对 · 最近 ${monthDay(latest)}`} · 我们怎么核对 →`);
   assert.equal(trust.querySelector('a')!.getAttribute('href'), '/about#about-method-title', 'the only 我们怎么核对 anchor');
   assert.doesNotMatch(doc.body.textContent!, /人工核对|编辑核对/);
   assert.equal(guideCount, COMPLETE_GUIDES.length);
@@ -58,8 +58,8 @@ test('the picks are the weekly share card’s three in order, each a cover, the 
     assert.equal(card.querySelector('h3 a')!.getAttribute('href'), `/events/${event.id}?date=${date}`, 'the detail opens on the occurrence the card shows');
     assert.ok(date >= today && eventOccursOn(event, date));
     assert.ok(card.querySelector('.ui-card-when')!.textContent!.includes(monthDay(date)), `${event.id}: line 1 is the date and time`);
-    assert.equal(card.querySelector('.ui-hero-card__trust')!.textContent, `官网核对 ${monthDay(event.verifiedAt)}`);
-    assert.equal(card.querySelector('.ui-hero-card')!.hasAttribute('data-overlay'), false, 'the caption layout: no text on the photo');
+    assert.equal(card.querySelector('.ui-feed-card__trust')!.textContent, `官网核对 ${monthDay(event.verifiedAt)}`);
+    assert.equal(card.querySelector('.ui-hero-card'), null, 'one card anatomy: the caption under the cover, no text on the photo');
     assert.equal(card.querySelector('.saves-toggle')!.getAttribute('aria-label'), `收藏：${event.title}`);
     assert.equal(card.querySelector('.saves-add-day'), null, 'home picks drop 加入这天计划 (decision 16)');
     assert.equal(card.querySelector('a[href^="/plan"]'), null);
@@ -143,17 +143,17 @@ test('an editor pick shows its reason under its cover, in Chinese and in English
   const second = snapshots[today].ids[1];
   editorPicks[saturday] = [{ id: second, reason: { zh: '测试理由', en: 'Test reason' } }];
   const reasonOf = (container: ParentNode, href: string) => [...container.querySelectorAll('.home-picks__list > li')]
-    .find(item => item.querySelector(`a[href^="${href}?date="]`))?.querySelector('.ui-hero-card__reason')?.textContent;
+    .find(item => item.querySelector(`a[href^="${href}?date="]`))?.querySelector('.home-pick__reason')?.textContent;
   const { setLocale } = await import('../src/i18n/locale');
   try {
     // The published snapshot keeps its ids; the reason is looked up from the editor list when the home renders.
     assert.equal(getHomeWeekend(today, MONTHLY_EVENTS, { picks: editorPicks }).picks[0].event.id, second);
     const view = render(<MemoryRouter><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
-    assert.equal(reasonOf(view.container, `/events/${second}`), '编辑推荐 测试理由');
+    assert.equal(reasonOf(view.container, `/events/${second}`), '编辑推荐：测试理由');
     view.unmount();
     await setLocale('en', false);
     const english = render(<MemoryRouter basename="/en" initialEntries={['/en/']}><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
-    assert.equal(reasonOf(english.container, `/en/events/${second}`), 'Editor’s pick Test reason');
+    assert.equal(reasonOf(english.container, `/en/events/${second}`), 'Editor’s pick: Test reason');
     english.unmount();
   } finally {
     await setLocale('zh-Hans', false);
@@ -296,7 +296,7 @@ test('the first cover is fetched first; English has the question H1 and English 
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
     assert.equal(view.container.querySelector('.home-head__identity')!.textContent, 'Weekend outings and how-to guides for Chinese families in the Bay Area · Free · no sign-in');
-    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^An official link on every item · Source checked(?::)? (?:mostly )?[A-Z][a-z]{2} \d+(?: · (?:latest|earliest) [A-Z][a-z]{2} \d+)? · How we check$/);
+    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^✓ An official link on every item · ✓ Source checked(?::)? (?:mostly )?[A-Z][a-z]{2} \d+(?: · (?:latest|earliest) [A-Z][a-z]{2} \d+)? · How we check →$/);
     view.unmount();
   } finally {
     await setLocale('zh-Hans', false);

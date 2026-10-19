@@ -1,4 +1,4 @@
-import { Button, EventCover, FeedCard, FeedGrid, FeedItem, StatusChip, useFeedLayout } from '../../components/ui';
+import { Button, EventCover, FeedCard, FeedGrid, FeedItem, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import { translateText } from '../../i18n/locale';
@@ -16,8 +16,9 @@ const FEED_SIZES = '(max-width: 767px) 50vw, (max-width: 1023px) 33vw, 290px';
 const facts = (event: HomeEvent) => event as unknown as EventFactsInput;
 
 /**
- * Line 2 of a home event card (G18): the status in the one status look (StatusChip: 免费, 部分免费) or the price, then the
- * place. It wraps and is never cut.
+ * Line 2 of a home event card (G18): the status in the one status look (C's .ui-status[data-tone]: 免费, 部分免费) or the
+ * price, then the place. It wraps and is never cut. The look is drawn with the status map's classes, not StatusChip, which
+ * would add its module to the home's JS (+0.6 KiB gzip); UI9-INT may switch it once it allocates the room.
  */
 export function EventMeta({ event }: { event: HomeEvent }) {
   const { pick, locale } = useUiCopy();
@@ -25,7 +26,7 @@ export function EventMeta({ event }: { event: HomeEvent }) {
   const place = translateText(eventPlace(facts(event)), locale);
   if (!price) return <>{place}</>;
   const text = pick(price.text);
-  return <>{price.tone === 'free' || price.tone === 'mixed' ? <StatusChip>{text}</StatusChip> : text} · {place}</>;
+  return <>{price.tone === 'free' || price.tone === 'mixed' ? <span className="ui-status" data-tone={price.tone === 'free' ? 'free' : 'partial'}>{text}</span> : text} · {place}</>;
 }
 
 /**
@@ -39,7 +40,7 @@ export function WeekendFeed({ feed, covers, today, total }: { feed: readonly Fee
   const { layout } = useFeedLayout();
   if (!feed.length) return null;
   return <section className="home-feed" aria-labelledby="home-feed-title" {...dateScope('weekend')}>
-    <div className="home-section-head"><h2 id="home-feed-title">{t('本周末还有', 'More this weekend')}</h2></div>
+    <div className="home-section-head" data-simple="hide"><h2 id="home-feed-title">{t('本周末还有', 'More this weekend')}</h2></div>
     <FeedGrid label={t('本周末活动', 'Events this weekend')} layout={layout}>
       {feed.flatMap(({ event, date }, index) => [<FeedItem key={event.id}>
         <FeedCard title={event.title} to={`/events/${event.id}?date=${date}`}
@@ -48,7 +49,7 @@ export function WeekendFeed({ feed, covers, today, total }: { feed: readonly Fee
           save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
       </FeedItem>, ...(index === Math.min(STRIP_AFTER, feed.length) - 1 ? [<FeedItem key="home-3d-strip" wide><Home3DStrip /></FeedItem>] : [])])}
     </FeedGrid>
-    {(total === null || total > feed.length) && <Button variant="secondary" block to="/events" className="home-feed__all">
+    {(total === null || total > feed.length) && <Button variant="secondary" block to="/events" className="home-feed__all" data-simple="hide">
       {total === null ? t('看本周末全部活动', 'See all events this weekend') : t(`看本周末全部 ${total} 场`, `See all ${total} events this weekend`)}
     </Button>}
   </section>;

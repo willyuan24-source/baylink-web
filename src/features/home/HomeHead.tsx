@@ -54,7 +54,7 @@ export function HomeHead({ today, start, end, known, onAskBayBay, onSearch }: Ho
       <input ref={inputRef} id={`${id}-ask`} value={query} maxLength={500} enterKeyHint={asking ? 'send' : 'search'}
         placeholder={roomy ? example : t('比如：这周末带爸妈去哪？', 'e.g. Free fun with kids?')}
         onChange={event => setQuery(event.target.value)} onKeyDown={event => { if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault(); }} />
-      <button type="submit">{asking ? t('问 BayBay', 'Ask BayBay') : <><Search aria-hidden="true" strokeWidth={1.75} />{t('搜索', 'Search')}</>}</button>
+      <button type="submit" className="ui-button" data-variant="primary">{asking ? t('问 BayBay', 'Ask BayBay') : <><Search aria-hidden="true" strokeWidth={1.75} />{t('搜索', 'Search')}</>}</button>
     </form>
     <button type="button" className="ui-button home-ask-baybay" data-variant="secondary" onClick={() => onAskBayBay()}>
       <img src="/brand/otter.svg" alt="" width={24} height={24} decoding="async" />{t('问 BayBay', 'Ask BayBay')}<span className="home-ai">{t('AI 助手', 'AI assistant')}</span>

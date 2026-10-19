@@ -89,7 +89,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       <Home3DTile />
     </div>
     <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers.slice(0, homeOfferCount(offers, covers.offers, today))]}>
-      {COMMUNITY_VISIBLE && <button type="button" className="home-community" data-simple="hide" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></button>}
+      {COMMUNITY_VISIBLE && <button type="button" className="home-section-head__more home-community" data-simple="hide" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></button>}
     </HomeImageCredits>
   </section>;
 }
