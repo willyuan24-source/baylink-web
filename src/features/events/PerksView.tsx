@@ -12,6 +12,7 @@ import { getMonthlyDateRange } from '../../lib/monthly';
 import { OfferFeedCard } from './BoardCards';
 import { ImageCredits } from './ImageCredits';
 import { RegionFilter } from './RegionFilter';
+import './boards.css';
 
 const PAGE = 12;
 const DEALS_GUIDE = '/guides/bay-area-freebies-deals-2026-11';

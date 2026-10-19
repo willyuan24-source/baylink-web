@@ -8,6 +8,7 @@ import type { MonthlyRegion } from './events-index-types';
 import { OpeningFeedCard } from './BoardCards';
 import { ImageCredits } from './ImageCredits';
 import { RegionFilter } from './RegionFilter';
+import './boards.css';
 
 const PAGE = 12;
 const OPENINGS_GUIDE = '/guides/bay-area-new-openings-2026-09';

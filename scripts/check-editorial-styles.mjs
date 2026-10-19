@@ -18,6 +18,8 @@ export const editorialStyleScopes = [
   { file: 'src/features/profile/me-hub.css' },
   { file: 'src/features/messages/messages-hub.css' },
   { file: 'src/features/events/events.css' },
+  // UI9-PREP: the 免费与优惠 / 新店 boards' own sheet (UI9-FREE; empty until FREE fills it).
+  { file: 'src/features/events/boards.css' },
   // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
   { file: 'src/components/ui/ui.css' },
   // UI9-PREP split ui.css in three (same rules): the covers, badges, stickers and statuses (UI9-C) and the cards (UI9-EVENTS).

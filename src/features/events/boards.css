@@ -1,0 +1,3 @@
+/* The 免费与优惠 and 新店 boards' own sheet (UI9-FREE): PerksView, OpeningsView, RegionFilter and BoardCards, in the fb-
+   namespace so no selector is shared with events.css. Imported by PerksView and OpeningsView, so it loads with their lazy
+   chunk. UI9-PREP created it empty and registered it with the editorial style guard (scripts/check-editorial-styles.mjs). */
