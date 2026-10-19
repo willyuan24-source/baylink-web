@@ -193,10 +193,23 @@ test('the deals board prints 官网核对 M/D (媒体报道 for a press source),
   assert.equal(doc.querySelector('#offer-b .bl-freebie-verified')!.textContent, '媒体报道 · 10/7 核对');
   assert.doesNotMatch(html, /人工核对|核对 2026-|LITTLE PERKS|SAVE &amp; SHARE/);
   assert.equal(doc.querySelector('.bl-freebie-card-brand')!.textContent, 'Brand', 'the brand in normal case (400)');
-  assert.ok(doc.querySelector('[role="radiogroup"][aria-label="按日期筛选"]'), '本周有效 | 全部日期 is a SegmentedControl');
+  assert.equal(doc.querySelectorAll('[role="radiogroup"][aria-label="按日期筛选"] .ui-chip[role="radio"]').length, 2, '本周有效 | 全部日期 is one radio group of F’s chips');
   const rules = (file: string) => readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   const css = rules('src/components/freebie-board.css');
   assert.doesNotMatch(css, /letter-spacing/);
   assert.doesNotMatch(css.replace(/@media \(hover:hover\) and \(pointer:fine\) \{[\s\S]*?\n\}/g, ''), /:hover/, 'every :hover is gated');
   assert.doesNotMatch(rules('src/components/perks-gallery.css'), /letter-spacing|scale\(1\.0/);
+});
+
+test('line 2 of an English opening card keeps what the shop sells after the leading word is dropped', async () => {
+  const { loadLocale, setLocale } = await import('../src/i18n/locale');
+  await loadLocale('en');
+  await setLocale('en', false);
+  try {
+    const yutori = model.INDEX_OPENINGS.find(shop => shop.category === '新餐厅 · 日式晚餐');
+    assert.ok(yutori);
+    const meta = card(<OpeningFeedCard opening={yutori} cover={typeCover} today={today} />).querySelector('.ui-feed-card__meta')!.textContent!;
+    assert.match(meta, /· Japanese dinner$/);
+    assert.equal(boards.openingSells('Upcoming · Neighborhood pub and restaurant'), 'Neighborhood pub and restaurant');
+  } finally { await setLocale('zh-Hans', false); }
 });

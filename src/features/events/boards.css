@@ -39,3 +39,8 @@
 .fb-rows .ui-row-card__trailing .saves-toggle { gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-radius:var(--r-circle); font-size:0; }
 /* A thumbnail's key fact keeps its words whole ("10/20" / "截止", never "截" / "止"); UI9-INT may move this into covers.css. */
 .fb-rows .tc-thumb { word-break:keep-all; }
+/* A row of cards ends on one line: each card fills its grid cell and its source line sits at the bottom, so a title that
+   wraps once more does not leave the row's ✓ lines at different heights. */
+.fb-board .ui-feed-grid>li { display:flex; }
+.fb-board .ui-feed-grid>li>.ui-feed-card { flex:1 1 auto; }
+.fb-board .ui-feed-card__trust { margin-top:auto; }

@@ -131,7 +131,8 @@ export function openingStatus(opening: Pick<IndexOpening, 'status' | 'openedOn'>
  * The status word a few categories start with ("开业预告 · 社区餐酒馆", "已营业 · 澳式寿司卷", "新餐厅 · 日式晚餐"): line 1
  * already says the status, so line 2 drops it at display time (12 of 60; the data is untouched).
  */
-const LEADING_STATUS = /^(?:已营业|已开业|开业预告|迁址预告|重开预告|重新开业|长期快闪预告|快闪预告|新餐厅|新概念店|新店)\s*·\s*/;
+const LEADING_STATUS = /^(?:已营业|已开业|开业预告|迁址预告|重开预告|重新开业|长期快闪预告|快闪预告|新餐厅|新概念店|新店|New restaurant|New concept|Upcoming|Open|Opening soon|Relocation preview|Reopening preview|Extended pop-up preview|Pop-up preview|Reopening|Reopened)\s*·\s*/;
+/** The Chinese record or its English translation ("New restaurant · Japanese dinner" → "Japanese dinner"). */
 export const openingSells = (category: string | undefined): string => (category ?? '').replace(LEADING_STATUS, '').trim();
 
 /** When the category has no English, the opening type says what the place is. */

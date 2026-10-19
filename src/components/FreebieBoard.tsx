@@ -6,7 +6,7 @@ import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, Check, ChevronDown, Expand, Gift } from 'lucide-react';
 import { Button } from './ui/Button';
 import { ChipRow, FilterChip } from './ui/Chip';
-import { StatusChip, type StatusLook } from './ui/Status';
+import type { StatusLook } from './ui/Status';
 // Only modules this chunk's pages already load (Button, Chip, Status, event-facts): importing Segmented, TextLink or
 // offer-brand here would split each into a chunk of its own and add bytes to every route (UI9-FREE budgets).
 import { brandCase, offerDeadline, readerMonthDay } from '../lib/event-facts';
@@ -155,7 +155,8 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
       <p className="bl-freebie-card-brand" translate="no">{brand}</p>
       <h4 id={headingId}><a href={`/offers/${offer.id}`}>{offer.title}</a></h4>
       <p className="bl-freebie-card-date">{offer.dateLabel}</p>
-      <p className="bl-freebie-card-tags"><StatusChip tone={chip.tone} className={`bl-freebie-status bl-freebie-status--${status.key}`}>{chip.text}</StatusChip>{SEP}<span className="bl-freebie-kind">{translateText(KIND_LABELS[offer.kind], locale)}</span></p>
+      {/* C's status map (covers.css .ui-status[data-tone]) set directly, as OfferWhen does: no Status chunk in the guide's preload list. */}
+      <p className="bl-freebie-card-tags"><span className={`ui-status bl-freebie-status bl-freebie-status--${status.key}`} data-tone={chip.tone}>{chip.text}</span>{SEP}<span className="bl-freebie-kind">{translateText(KIND_LABELS[offer.kind], locale)}</span></p>
       {/* Tap-to-call on any number in the merchant's own words (translated first, then split: RC-11 i). */}
       <p className="bl-freebie-requirement"><strong>领取条件</strong><PhoneText text={offer.requirement} /></p>
       <p className="bl-freebie-description"><PhoneText text={offer.description} /></p>

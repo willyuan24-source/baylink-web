@@ -89,7 +89,8 @@ export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffe
 /** "Burlingame · 拉面": where the shop is and what it sells (`category` without a leading status word), else its type. */
 function OpeningMeta({ opening }: { opening: IndexOpening }) {
   const { pick, locale, english } = useUiCopy();
-  const sells = translateText(openingSells(opening.category), locale);
+  // English drops the leading word after translation, so "新餐厅 · 日式晚餐" reads "Japanese dinner", not the opening type.
+  const sells = english ? openingSells(translateText(opening.category, locale)) : translateText(openingSells(opening.category), locale);
   const what = sells && !(english && HAN.test(sells)) ? sells : pick(OPENING_TYPES[opening.openingType]);
   return <>{translateText(opening.city, locale)}{SEP}{what}</>;
 }
