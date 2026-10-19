@@ -253,7 +253,8 @@ test('H56: a past event with no confirmed day reads 已结束, not 日期待定,
 test('H33 + H27: event, offer and opening pages send a large-text family link; an opening adds 加入计划', () => {
   for (const [kind, id] of [['event', 'sf-sunday-streets-excelsior-oct18-2026'], ['offer', 'sfmta-free-muni-seniors'], ['opening', 'marufuku-burlingame-announced']] as const) {
     const view = detail(kind, id, '2026-10-13');
-    assert.ok(within(view.container.querySelector('.detail-share') as HTMLElement).getByRole('button', { name: '发给家人（大字版）' }), id);
+    // UI9-DETAIL (content arrangement 10-19): the family link is the action bar's 发家人 cell, no longer in the share row.
+    assert.ok(within(view.getByRole('group', { name: '这一页的操作' })).getByRole('button', { name: '发给家人（大字版）' }), id);
     if (kind === 'opening') {
       const bar = within(view.getByRole('group', { name: '这一页的操作' }));
       assert.equal(bar.queryByText('加入行程'), null);
