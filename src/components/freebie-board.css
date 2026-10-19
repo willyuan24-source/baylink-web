@@ -24,7 +24,7 @@
 .bl-freebie-board-count-note { margin:0 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
 
 /* Controls: 本周有效 | 全部日期 (SegmentedControl), the kind chips with counts (FilterChip), the search field. */
-.bl-freebie-dates { max-width:min(100%, 26rem); margin:0 0 var(--sp-3); }
+.bl-freebie-dates { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0 0 var(--sp-3); }
 /* H66: the kind chips stick under the site header while the cards scroll (one scrollable row on a phone). At 特大 and in
    简洁显示 they wrap and stay in place, so the pinned chrome never covers the cards. */
 .bl-freebie-kinds { position:sticky; top:var(--chrome-header-height, 3.5rem); z-index:20; padding-block:var(--sp-2); background:var(--color-bg); }

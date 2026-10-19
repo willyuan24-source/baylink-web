@@ -1,7 +1,7 @@
 import { useState, useSyncExternalStore, type ReactNode } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { ChevronDown } from 'lucide-react';
-import { Button, ChipRow, FilterChip, PHONE_QUERY, Sheet, readFeedLayout } from '../../components/ui';
+import { Button, ChipRow, FilterChip, Sheet } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 import { ALL_REGIONS, REGIONS, regionLabel, saveRegion } from './events-model';
@@ -20,6 +20,9 @@ export function useSetRegion() {
   };
 }
 
+/** The feed grid's phone breakpoint (feed-layout.ts PHONE_QUERY, tokens.css --feed-cols); written here so the boards' lazy
+ * chunk does not make the shared feed-layout chunk export it. */
+const PHONE_QUERY = '(max-width: 767px)';
 const subscribePhone = (listener: () => void) => {
   const media = typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(PHONE_QUERY) : undefined;
   media?.addEventListener?.('change', listener);
@@ -33,17 +36,15 @@ const phoneNow = () => typeof window === 'undefined' || typeof window.matchMedia
  * - `phone`: ≤ 767 px (the feed grid's breakpoint): 4 cards per section instead of 8.
  * - `roomy`: a phone at 大 / 特大 or in 简洁显示: the filter row becomes two Sheet chips ([整个湾区 ▾] [全部条件 ▾]), so no
  *   chip row scrolls sideways (N25).
- * - `rows`: the cards are rows (88 px thumbnail and text), where the feed would be one column: a 1:1 cover at 特大 cannot
- *   finish above the tab bar (N18). A reader's own 单列 choice (baylink.feed-layout.v1) also gives rows on a phone.
+ * - `rows`: the cards are rows (88 px thumbnail and text) where the feed would be one column: a 1:1 cover at 特大 cannot
+ *   finish above the tab bar (N18).
  * - `simple`: 简洁显示 (and 家人版): 3 cards per section, no sold-out cards, no ♡ or provenance words (DECISIONS 16).
  */
 export function useBoardMode() {
   const reading = useReadingSize(), simple = useSimpleDisplay();
   const phone = useSyncExternalStore(subscribePhone, phoneNow, () => true);
   const roomy = phone && (reading !== 'standard' || simple);
-  const saved = readFeedLayout();
-  const rows = phone && (saved === 'list' || (saved === 'auto' && (reading !== 'standard' || simple)));
-  return { phone, roomy, rows, simple };
+  return { phone, roomy, rows: roomy, simple };
 }
 
 /** A chip that opens a Sheet ("整个湾区 ▾", "全部条件 ▾"): selected when it narrows the board. */

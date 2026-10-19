@@ -3,6 +3,8 @@
    can hover and no image zoom. The posters are original BAYLINK artwork shown whole (contain). */
 .perks-gallery { margin:var(--sp-6) 0; padding:var(--sp-5); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
 .perks-gallery-guide { margin-bottom:var(--sp-3); }
+/* The two guide links are quiet buttons; they line up with the text (no inline padding). */
+:is(.perks-gallery-guide,.perks-gallery-source) { padding-inline:0; }
 .perks-gallery-heading { display:flex; justify-content:space-between; gap:var(--sp-5); align-items:flex-start; margin-bottom:var(--sp-5); }
 /* G6: "Save and share" in normal case, 400, no letter-spacing. */
 .perks-gallery-eyebrow { display:inline-flex; align-items:center; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }

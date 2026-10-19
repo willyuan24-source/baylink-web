@@ -3,7 +3,6 @@ import './perks-gallery.css';
 import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, Copy, Download, Images } from 'lucide-react';
 import { Button } from './ui/Button';
-import { MoreLink } from './ui/TextLink';
 import { translateText, useLocale } from '../i18n/locale';
 import { readerMonthDay } from '../lib/event-facts';
 import { copyText } from '../utils/postShare';
@@ -11,7 +10,7 @@ import { PERKS_POSTER_CHECKED, perksPosterRung, perksPosterSrcSet, perksPosters,
 
 /**
  * The saved-poster gallery on the perks guides (UI-9: UI9-FREE). "Save and share" in normal case (G6), the snapshot date as
- * "静态快照 10/4", 下载 PNG / 复制贴文 as secondary buttons, the guide links in the one "看全部 →" look. At 特大 and in
+ * "静态快照 10/4", 下载 PNG / 复制贴文 as secondary buttons, the guide links as quiet buttons (brand text). At 特大 and in
  * 简洁显示 the phone scroller becomes a vertical list (N25).
  */
 export function PerksGallery({ compact = false, topic }: { compact?: boolean; topic?: PerksPoster['topic'] }) {
@@ -30,7 +29,7 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
     setManualId(copied ? null : id);
   };
   return <section className={`perks-gallery${compact ? ' perks-gallery--compact' : ''}`} aria-labelledby={headingId}>
-    <MoreLink className="perks-gallery-guide" to="/guides/bay-area-retail-freebies-family-deals">按品牌查门店赠品与优惠</MoreLink>
+    <Button variant="quiet" className="perks-gallery-guide" to="/guides/bay-area-retail-freebies-family-deals">按品牌查门店赠品与优惠</Button>
     <div className="perks-gallery-heading">
       <div><EnglishOnly><span className="perks-gallery-eyebrow"><Images aria-hidden="true" strokeWidth={1.75} />Save and share</span></EnglishOnly><h2 id={headingId}>把有用的福利，存成一张图</h2><p>原创中文图文 · 1080 × 1350 · 可查看大图、下载和复制贴文</p></div>
       <span className="perks-gallery-date">{t('静态快照')}<time dateTime={PERKS_POSTER_CHECKED}>{readerMonthDay(PERKS_POSTER_CHECKED, locale === 'en')}</time></span>
@@ -47,7 +46,7 @@ export function PerksGallery({ compact = false, topic }: { compact?: boolean; to
             <Button variant="secondary" href={poster.path} download={`BAYLINK-${poster.id}-2026-10.png`} icon={<Download aria-hidden="true" strokeWidth={1.75} />}>下载 PNG</Button>
             <Button variant="secondary" onClick={() => void copy(poster.id)} aria-label={`${t('复制贴文')}：${t(poster.title)}`} icon={<Copy aria-hidden="true" strokeWidth={1.75} />}>复制贴文</Button>
           </div>
-          <MoreLink to={poster.guidePath} className="perks-gallery-source">领取规则与官网来源</MoreLink>
+          <Button variant="quiet" to={poster.guidePath} className="perks-gallery-source">领取规则与官网来源</Button>
           {(!compact || manualId === poster.id) && <details className="perks-gallery-caption" open={manualId === poster.id || undefined}><summary>查看或手动复制贴文</summary><textarea aria-label={`${t('可复制贴文')}：${t(poster.title)}`} readOnly value={perksPosterCaption(poster, t)} onFocus={event => event.currentTarget.select()} rows={7} /></details>}
         </div>
       </article>)}

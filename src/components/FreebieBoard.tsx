@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 // The board's sheet, and the guide's 看免费领取图鉴 link above it, load with this chunk: GuideDetail shows that link only on
 // a guide with a freebies block, whose page loads this chunk first (features/guides/guide-blocks.tsx).
 import './freebie-board.css';
@@ -6,12 +6,11 @@ import { EnglishOnly } from './EnglishOnly';
 import { ArrowUpRight, Check, ChevronDown, Expand, Gift } from 'lucide-react';
 import { Button } from './ui/Button';
 import { ChipRow, FilterChip } from './ui/Chip';
-import { SegmentedControl } from './ui/Segmented';
 import { StatusChip, type StatusLook } from './ui/Status';
-import { TextLink } from './ui/TextLink';
-import { offerBrandLine } from './ui/offer-brand';
-import { readerMonthDay } from '../lib/event-facts';
-import { offerChip, pressSourced } from '../features/events/board-status';
+// Only modules this chunk's pages already load (Button, Chip, Status, event-facts): importing Segmented, TextLink or
+// offer-brand here would split each into a chunk of its own and add bytes to every route (UI9-FREE budgets).
+import { brandCase, offerDeadline, readerMonthDay } from '../lib/event-facts';
+import { pressSourced } from '../features/events/board-status';
 import { getOfferImage } from '../lib/offer-media';
 import { getBayAreaToday } from '../lib/monthly';
 import { GuideImageLightbox } from './GuideVisuals';
@@ -114,8 +113,10 @@ function orderedOffers(offers: FreebieOffer[], today: string) {
 function cardStatus(offer: FreebieOffer, status: ReturnType<typeof offerStatus>, today: string, english: boolean): { tone: StatusLook; text: string } {
   if (offer.status === 'sold_out') return { tone: 'urgent', text: english ? 'Sold out' : '已售罄' };
   if (status.key === 'ended') return { tone: 'ended', text: status.label };
-  const soon = status.key === 'active' ? offerChip(offer, today) : null;
-  return soon ? { tone: soon.tone, text: english ? soon.text.en : soon.text.zh } : { tone: 'neutral', text: status.label };
+  // Under way (有效期内): ≤ 1 day left is 今天/明天截止 (solid red), ≤ 7 days 还剩 N 天 (red outline), as on the 免费与优惠 board.
+  const deadline = status.key === 'active' ? offerDeadline(offer, today) : null;
+  const tone: StatusLook | null = deadline?.tone === 'danger' ? 'urgent' : deadline?.tone === 'warning' ? 'soon' : null;
+  return deadline && tone ? { tone, text: english ? deadline.text.en : deadline.text.zh } : { tone: 'neutral', text: status.label };
 }
 
 /** Joins a meta line; the no-break space keeps the dot on the word before it, so no line starts with "·". */
@@ -140,7 +141,7 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
   // A credit line only under a real picture: never on a 3D postcard or an AI illustration (none is on this board).
   const credited = !!image && !(image as { scene3d?: boolean }).scene3d && image.kind !== 'illustration';
   const pictureLabel = image ? getImageProvenance(image, english) : '';
-  const brand = offerBrandLine(offer.brand, locale) || offer.brand;
+  const brand = translateText(brandCase(offer.brand), locale);
   const checked = validDate(offer.verifiedAt) ? readerMonthDay(offer.verifiedAt, english) : '';
   return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
     {image ? <figure className="bl-freebie-picture">
@@ -162,13 +163,34 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
       <EditorialShareActions item={offerShare(offer)} />
       <div className="bl-freebie-card-actions">
         {safeUrl(offer.sourceUrl) && <Button variant="secondary" href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${translateText(offer.sourceLabel, locale)}`}>{t('官方入口', 'Official page')}<ArrowUpRight aria-hidden="true" strokeWidth={1.75} /></Button>}
-        {safeUrl(offer.storeUrl) && <TextLink standalone href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}>{t('本地门店', 'Local stores')}</TextLink>}
+        {safeUrl(offer.storeUrl) && <Button variant="quiet" href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}>{t('本地门店', 'Local stores')}</Button>}
       </div>
       <SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />
       {image && <details className="bl-freebie-image-source"><summary>图片说明与来源<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary><p>{image.caption}</p>{safeUrl(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}{safeUrl(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权</a>}</details>}
     </div>
     {zoomed && image && <GuideImageLightbox image={image} onClose={() => setZoomed(false)} />}
   </article>;
+}
+
+/**
+ * 本周有效 | 全部日期: one choice of two, a radio group of F's chips (`.ui-chip[aria-checked]` is their selected look) with
+ * the SegmentedControl's keys (←/→/Home/End move and select). SegmentedControl itself lives in the events shell's chunk.
+ */
+function DateChoice({ label, value, items, onChange }: { label: string; value: DateWindow; items: { id: DateWindow; label: string }[]; onChange: (value: DateWindow) => void }) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const onKeyDown = (event: KeyboardEvent, index: number) => {
+    const next = event.key === 'ArrowRight' || event.key === 'ArrowDown' ? (index + 1) % items.length
+      : event.key === 'ArrowLeft' || event.key === 'ArrowUp' ? (index - 1 + items.length) % items.length
+      : event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : -1;
+    if (next < 0) return;
+    event.preventDefault();
+    refs.current[next]?.focus();
+    onChange(items[next].id);
+  };
+  return <div role="radiogroup" aria-label={label} className="bl-freebie-dates">
+    {items.map((item, index) => <button key={item.id} ref={element => { refs.current[index] = element; }} type="button" role="radio" className="ui-chip"
+      aria-checked={item.id === value} tabIndex={item.id === value ? 0 : -1} onClick={() => onChange(item.id)} onKeyDown={event => onKeyDown(event, index)}>{item.label}</button>)}
+  </div>;
 }
 
 /**
@@ -262,7 +284,7 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
     <header className="bl-freebie-board-heading"><EnglishOnly><span><Gift aria-hidden="true" strokeWidth={1.75} />Little perks</span></EnglishOnly><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="bl-freebie-board-stats" aria-label="领取信息概况">{stats.map(item => <span key={item.label}><strong>{item.value}</strong>{item.label}</span>)}</div>
     <p className="bl-freebie-board-count-note">本月已确认仅计入有效期明确、尚未结束的条目；下月预告与待查场次分列。</p>
-    <SegmentedControl className="bl-freebie-dates" label={t('按日期筛选', 'Filter by date')} value={window_} onChange={value => setWindow(value as DateWindow)}
+    <DateChoice label={t('按日期筛选', 'Filter by date')} value={window_} onChange={setWindow}
       items={[{ id: 'week', label: t(`本周有效 ${thisWeek}`, `Valid this week ${thisWeek}`) }, { id: 'all', label: t('全部日期', 'All dates') }]} />
     {/* H66: the kind tabs stay under the site header while the cards scroll, each with its count for the chosen dates (also in
         its name, "无需购物，49 条"); picking one brings the list's start back into view. A kind with nothing in the chosen dates
