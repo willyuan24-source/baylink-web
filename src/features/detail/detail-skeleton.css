@@ -1,0 +1,9 @@
+/* The detail's loading state (DetailSkeleton.tsx): the page's own frame (local-discovery-detail.css) with F's .ui-skeleton
+   blocks in the final geometry. Loaded with the detail route, not on every page. */
+.detail-skeleton .detail-skeleton__hero { display:block; aspect-ratio:16 / 9; border-radius:0; }
+.detail-skeleton .detail-skeleton__chip { display:block; width:5rem; height:1.75rem; margin-bottom:var(--sp-2); }
+.detail-skeleton .detail-skeleton__title { display:block; height:calc(var(--text-h1) * var(--lh-h1)); margin-top:var(--sp-1); }
+.detail-skeleton .detail-skeleton__title[data-width=short] { width:60%; }
+.detail-skeleton .detail-skeleton__fact { display:block; height:2.75rem; }
+.detail-skeleton .detail-skeleton__fact + .detail-skeleton__fact { margin-top:var(--sp-3); }
+@media (min-width:1024px) { .detail-skeleton .detail-skeleton__hero { border-radius:var(--r-lg); } }

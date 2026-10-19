@@ -1,0 +1,26 @@
+/* The share-card and 一起去 sheets on F's Sheet (UI9-DETAIL): loaded with the sheets themselves, never before a reader opens
+   one. Tokens only; 400 / 600; F's buttons. */
+.detail-sheet>.ui-sheet__body>* + * { margin-top:var(--sp-4); }
+.detail-sheet :is(.detail-sheet__lede,.detail-sheet__small,.detail-sheet__note,.detail-sheet__copy) { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.detail-sheet .detail-sheet__lede { font-size:var(--fs-body); }
+.detail-sheet h3 { margin:0; font-size:var(--fs-card); font-weight:600; line-height:var(--lh-snug); }
+.detail-sheet h3 + .detail-sheet__small { margin-top:var(--sp-1); }
+.detail-sheet .editorial-share-preview { display:block; width:100%; height:auto; border:1px solid var(--color-line); border-radius:var(--r-md); }
+.detail-sheet .detail-sheet__actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.detail-sheet .detail-sheet__note { display:grid; gap:var(--sp-2); padding:var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); }
+.detail-sheet .detail-sheet__note strong { color:var(--color-ink); font-weight:600; }
+.detail-sheet .detail-sheet__note p { margin:0; }
+.detail-sheet .detail-sheet__note .ui-button { justify-self:start; }
+.detail-sheet .detail-sheet__copy { display:grid; gap:var(--sp-1); }
+.detail-sheet .detail-sheet__copy input { width:100%; min-height:var(--control-height); padding:0 var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-meta); }
+.buddy-sheet .buddy-list-heading { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); }
+.buddy-sheet .buddy-list-heading h3 { font-size:var(--fs-body); }
+.buddy-sheet .buddy-list { margin:0; padding:0; list-style:none; }
+.buddy-sheet .buddy-list li { display:flex; justify-content:space-between; align-items:center; gap:var(--sp-2); padding:var(--sp-3) 0; border-top:1px solid var(--color-line); }
+.buddy-sheet .buddy-person { display:flex; align-items:center; gap:var(--sp-3); min-width:0; min-height:var(--control-height); text-align:left; }
+.buddy-sheet .buddy-person>span:last-child { display:flex; flex-direction:column; min-width:0; }
+.buddy-sheet .buddy-person strong { color:var(--color-ink); font-size:var(--fs-meta); font-weight:600; overflow-wrap:anywhere; }
+.buddy-sheet .buddy-person>span>span { margin-top:var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.buddy-sheet .buddy-avatar { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; overflow:hidden; border-radius:var(--r-circle); background:var(--color-surface-2); color:var(--color-brand); }
+.buddy-sheet .buddy-avatar img { width:100%; height:100%; object-fit:cover; }
+.buddy-sheet .buddy-empty { padding:var(--sp-5) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); text-align:center; }

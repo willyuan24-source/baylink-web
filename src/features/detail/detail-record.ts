@@ -15,6 +15,7 @@ import { nextConfirmedEventDate } from '../../lib/event-occurrences';
 
 /** An upcoming event a detail's rails can show: what its card prints, without plan steps or summaries. */
 export type RailEvent = Pick<MonthlyEvent, 'id' | 'title' | 'startDate' | 'endDate' | 'occurrenceDates' | 'city' | 'category' | 'cost' | 'audience' | 'imageKey'>
+  & Partial<Pick<MonthlyEvent, 'verifiedAt' | 'sourceLabel'>>
   & Pick<EventEditorial, 'shortTitle' | 'venueShort' | 'price' | 'sessions' | 'iconKey'> & {
     /** The listing image when it can be a cover candidate (never an AI illustration); `getCover` still judges it. */
     image?: CoverAsset;

@@ -1,4 +1,4 @@
-import { displayUnits, eventTimeLabel, readerDayRange, readerMonthDay, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
+import { displayUnits, eventTimeLabel, eventTimeWindow, readerDayRange, readerMonthDay, weekdayOf, type EventFactsInput } from '../../lib/event-facts';
 
 /**
  * H58 (EVT13-12): the 何时 cell of the facts card, short enough that the card ends above the phone's action bar. Sessions
@@ -25,6 +25,16 @@ const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const DAY_MS = 86_400_000;
 
 const dayIndex = (day: string) => Math.round(Date.parse(`${day}T12:00:00Z`) / DAY_MS);
+
+/** The shown day's time in eventWhenLine's style: one structured window as "9:00–13:00" / "9am–1pm", else eventTimeLabel's
+ *  text with its Chinese hours as clock times ("10 点起" → "10:00 起", "09:00" → "9:00"). English is eventTimeLabel's already. */
+function timeText(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: string, english: boolean): string | undefined {
+  const label = eventTimeLabel(event, day, english);
+  if (english || !label) return label;
+  const window = eventTimeWindow(event, day);
+  if (window) return [window.open, window.close].map(value => `${Math.floor(value / 60)}:${String(value % 60).padStart(2, '0')}`).join('–');
+  return label.replace(/^(\d+)–(\d+) 点$/, '$1:00–$2:00').replace(/^(\d+) 点起$/, '$1:00 起').replace(/(^|[、–])0(\d:)/g, '$1$2');
+}
 
 /** Consecutive calendar days become one run. */
 function runs(days: readonly string[]): string[][] {
@@ -55,7 +65,7 @@ export function sessionLines(event: Pick<EventFactsInput, 'sessions' | 'planning
   // One group per time, in the order of its first date (the days are sorted).
   const groups = new Map<string, string[]>();
   for (const day of days) {
-    const time = eventTimeLabel(event, day, english) ?? '';
+    const time = timeText(event, day, english) ?? '';
     groups.set(time, [...(groups.get(time) ?? []), day]);
   }
   const separator = english ? ', ' : '、';

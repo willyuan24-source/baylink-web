@@ -1,14 +1,15 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { EnglishOnly } from './EnglishOnly';
-import { Check, Hand, MessageCircle, RefreshCw, Users, X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Check, Hand, RefreshCw, Users } from 'lucide-react';
 import { useApp, type AppContextValue } from '../app/context';
 import type { MonthlyEvent } from '../data/monthly-types';
-import { getEventBuddies, getEventEngagement, setEventInterest, type EventBuddy, type EventEngagement, type EventInterest } from '../lib/event-engagement';
+import { getEventEngagement, setEventInterest, type EventEngagement, type EventInterest } from '../lib/event-engagement';
 import { getBayAreaToday } from '../lib/monthly';
 import { translateText, useLocale } from '../i18n/locale';
-import { ModalShell } from './ui/Modal';
+import { Button } from './ui/Button';
 import { EventParticipationContext, useEventParticipation } from '../lib/event-participation-context';
+
+// The 一起去 sheet (the public buddy list) loads when a reader opens it (route JS budgets).
+const BuddiesSheet = lazy(() => import('../features/detail/BuddiesSheet'));
 
 export function EventParticipationProvider({ events, children }: { events: MonthlyEvent[]; children: ReactNode }) {
   const app = useApp() as AppContextValue | undefined;
@@ -97,6 +98,7 @@ export function EventParticipationActions({ event, today = getBayAreaToday(), av
   const participation = useEventParticipation();
   const locale = useLocale();
   const [buddiesOpen, setBuddiesOpen] = useState(false);
+  const [opened, setOpened] = useState(false);
   // H07: the API cannot count, record or list 一起去 for an event it does not know yet; showing buttons that can only fail,
   // or "人数暂时无法加载", would be wrong. The detail page drops its 想约人一起去？ block too, or keeps a one-line note for a
   // reader who followed a link to #event-participation (LocalDiscoveryDetail).
@@ -111,73 +113,14 @@ export function EventParticipationActions({ event, today = getBayAreaToday(), av
   // so it has its own name and a hand, not a heart.
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
   const label = unavailable && !isInterested ? ended ? t('活动已结束', 'Event ended') : t('暂无已确认场次', 'No confirmed date') : isInterested ? t('已公开想去', 'Interest shared') : t('公开想去', 'Share interest');
+  // F's secondary look for both; a pressed 公开想去 shows the selected state (discovery-community.css).
   return <div className="event-participation">
     <div className="event-participation-buttons">
-      <button type="button" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (unavailable && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? t('取消公开想去', 'Withdraw interest') : t('公开想去', 'Share interest')}：${translateText(event.title, locale)}`}>
-        {isInterested ? <Check size={17} aria-hidden="true" /> : <Hand size={17} aria-hidden="true" />}{label}{count !== null && count >= 3 && <span>{count}</span>}
-      </button>
-      <button type="button" className="event-buddy-button" onClick={() => setBuddiesOpen(true)}><Users size={17} />{unavailable ? '查看出行意向' : '一起去'}{entry && !participation.failed && entry.buddyCount >= 3 && <span>{entry.buddyCount}</span>}</button>
+      <Button variant="secondary" className={isInterested ? 'event-interest is-selected' : 'event-interest'} aria-pressed={isInterested} disabled={pending || (unavailable && !isInterested) || (!!participation.app?.user && !entry)} onClick={() => { void participation.update(event.id, { interested: !isInterested, lookingForBuddy: false }); }} aria-label={`${isInterested ? t('取消公开想去', 'Withdraw interest') : t('公开想去', 'Share interest')}：${translateText(event.title, locale)}`}
+        icon={isInterested ? <Check aria-hidden="true" strokeWidth={1.75} /> : <Hand aria-hidden="true" strokeWidth={1.75} />}>{label}{count !== null && count >= 3 && <span>{count}</span>}</Button>
+      <Button variant="secondary" className="event-buddy-button" onClick={() => { setOpened(true); setBuddiesOpen(true); }} icon={<Users aria-hidden="true" strokeWidth={1.75} />}>{unavailable ? t('查看出行意向', 'See who is going') : t('一起去', 'Go together')}{entry && !participation.failed && entry.buddyCount >= 3 && <span>{entry.buddyCount}</span>}</Button>
     </div>
     <p className="event-participation-note">{participation.failed ? <><span>人数暂时无法加载</span><button type="button" onClick={participation.refresh}><RefreshCw size={12} />重试</button></> : count === null ? '正在读取大家的出行意向…' : locale === 'en' ? `${count >= 3 ? `${count} interested · ` : ''}Interest is not a ticket or booking.` : `${count >= 3 ? `${count} 人想去 · ` : ''}意向不等于报名或购票。`}</p>
-    {buddiesOpen && <EventBuddies key={event.id} event={event} ended={unavailable} onClose={() => setBuddiesOpen(false)} />}
+    {opened && <Suspense fallback={null}><BuddiesSheet key={event.id} event={event} ended={unavailable} open={buddiesOpen} onClose={() => setBuddiesOpen(false)} /></Suspense>}
   </div>;
-}
-
-function EventBuddies({ event, ended, onClose }: { event: MonthlyEvent; ended: boolean; onClose: () => void }) {
-  const participation = useEventParticipation()!;
-  const { app } = participation;
-  const locale = useLocale();
-  const [buddies, setBuddies] = useState<EventBuddy[]>([]);
-  const [cursor, setCursor] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [failed, setFailed] = useState(false);
-  const alive = useRef(false);
-  const requestSerial = useRef(0);
-  const readController = useRef<AbortController | null>(null);
-  const me = participation.entries[event.id]?.me;
-  const busy = participation.busy.includes(event.id);
-  const load = useCallback(async (next?: string) => {
-    if (!alive.current || (next && readController.current)) return;
-    // A refresh supersedes any initial read or pagination that started before a membership change.
-    readController.current?.abort();
-    const controller = new AbortController();
-    readController.current = controller;
-    const serial = ++requestSerial.current;
-    const current = () => alive.current && !controller.signal.aborted && serial === requestSerial.current;
-    setLoading(true); setFailed(false);
-    try {
-      const result = await getEventBuddies(event.id, next, controller.signal);
-      if (!current()) return;
-      setBuddies(previous => next ? [...new Map([...previous, ...result.buddies].map(buddy => [buddy.id, buddy])).values()] : result.buddies); setCursor(result.nextCursor);
-    } catch { if (current()) setFailed(true); }
-    finally { if (current()) { readController.current = null; setLoading(false); } }
-  }, [event.id]);
-  useEffect(() => {
-    alive.current = true; void load();
-    return () => { alive.current = false; readController.current?.abort(); };
-  }, [load]);
-  const updateMembership = async (value: EventInterest) => {
-    if (await participation.update(event.id, value) && alive.current) void load();
-  };
-  const join = async () => {
-    if (!app?.user) { onClose(); app?.setShowLogin(true); return; }
-    await updateMembership({ interested: true, lookingForBuddy: !me?.lookingForBuddy });
-  };
-  return <ModalShell onClose={onClose} label="一起去 · 活动搭子" className="discovery-modal-backdrop">
-    <div className="discovery-modal buddy-sheet" onClick={action => action.stopPropagation()}>
-      <button type="button" className="discovery-modal-close" onClick={onClose} aria-label="关闭一起去"><X size={20} /></button>
-      <EnglishOnly><span className="discovery-eyebrow">BAYLINK · GO TOGETHER</span></EnglishOnly><h2>有个搭子，出门更容易。</h2><h3>{event.title}</h3><p>{event.dateLabel} · {event.city}</p>
-      {!ended && <div className="discovery-inline-note"><strong>{locale === 'en' ? 'Make a concrete plan together' : locale === 'zh-Hant' ? '選好日期，約一支小隊' : '选好日期，约一支小队'}</strong><p>{locale === 'en' ? '2–8 adults, including the host. Choose a date, request a place and wait for confirmation.' : locale === 'zh-Hant' ? '2–8 位成年人，包含隊長。選具體場次、申請加入，確認後在小隊內溝通。' : '2–8 位成年人，包含队长。选具体场次、申请加入，确认后在小队内沟通。'}</p><Link className="discovery-primary" onClick={onClose} to={`/together?event=${encodeURIComponent(event.id)}`}><Users size={17} />{locale === 'en' ? 'Find or start a small group' : locale === 'zh-Hant' ? '查看或發起小隊' : '查看或发起小队'}</Link></div>}
-      <div className="discovery-inline-note"><strong>{locale === 'en' ? 'Only sharing an interest?' : locale === 'zh-Hant' ? '還沒定日期？可以先公開找搭子意向' : '还没定日期？可以先公开找搭子意向'}</strong><p>“想去”只计入人数；加入“一起去”才会在这里显示你的昵称、头像与城市，其他用户可以通过站内私信联系你。随时退出即可从列表移除。</p><p>{locale === 'en' ? 'This public list is an interest signal; it does not reserve a place in a group.' : locale === 'zh-Hant' ? '此名單只表示意向，不代表已加入小隊或保留名額。' : '此名单只表示意向，不代表已加入小队或保留名额。'}</p></div>
-      {!ended ? <button type="button" className="discovery-primary" disabled={busy || (!!app?.user && !me)} onClick={join}><Users size={17} />{me?.lookingForBuddy ? '退出一起去' : app?.user ? '公开加入一起去' : '登录后加入一起去'}</button> : me?.lookingForBuddy ? <button type="button" disabled={busy} onClick={() => { void updateMembership({ interested: false, lookingForBuddy: false }); }}>退出已结束活动</button> : <p>活动已结束，不再接受新的出行意向。</p>}
-      <div className="buddy-list-heading"><h3>正在找搭子的人</h3><button type="button" disabled={loading} onClick={() => { void load(); }}><RefreshCw size={14} />刷新</button></div>
-      {failed ? <p role="alert">搭子列表暂时无法加载，请点刷新重试。</p> : !loading && buddies.length === 0 ? <p className="buddy-empty">还没有人公开加入。你可以先记下想去，或把活动分享给朋友。</p> : null}
-      <ul className="buddy-list">{buddies.map(buddy => <li key={buddy.id}>
-        <button type="button" className="buddy-person" onClick={() => { onClose(); app?.openUserProfile(buddy.id); }} aria-label={`${translateText('查看个人主页')}：${buddy.nickname}`}><span className="buddy-avatar">{buddy.avatar && /^(https:\/\/|\/(?!\/))/.test(buddy.avatar) ? <img src={buddy.avatar} alt="" width={40} height={40} /> : <Users size={20} />}</span><span><strong translate="no">{buddy.nickname}</strong>{buddy.city && <span translate="no">{buddy.city}</span>}</span></button>
-        {app?.user?.id === buddy.id ? <span className="discovery-small">我</span> : <button type="button" onClick={() => { onClose(); app?.openChat(buddy.id, buddy.nickname, event.title); }}><MessageCircle size={15} />私信聊聊</button>}
-      </li>)}</ul>
-      {loading && <p role="status">正在加载搭子…</p>}{cursor && !loading && <button type="button" onClick={() => { void load(cursor); }}>查看更多搭子</button>}
-      <p className="discovery-small">这里是出行意向交流，不是主办方报名。先在站内沟通，在公共场所碰面；对方的个人主页提供举报与屏蔽入口。</p>
-    </div>
-  </ModalShell>;
 }
