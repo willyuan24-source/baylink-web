@@ -120,7 +120,7 @@
   .ui-type-cover[data-family=number] .tc-mark { color:var(--color-surface); opacity:1; }
   .tc-thumb { font-size:var(--fs-meta); line-height:var(--lh-tight); font-weight:600; overflow-wrap:anywhere; }
 }
-.ui-type-cover[data-size=mini] { padding:var(--sp-2); justify-content:center; align-items:center; text-align:center; }
+.ui-type-cover[data-size=mini] { padding:var(--sp-2) var(--sp-1); justify-content:center; align-items:center; text-align:center; }
 .ui-type-cover[data-size=mini][data-family=date] .tc-thumb { color:var(--tc-deep); }
 .ui-type-cover[data-size=mini][data-family=number] { background:var(--color-brand); }
 .ui-type-cover[data-size=mini][data-family=shop] { padding-top:calc(22% + var(--sp-2)); }

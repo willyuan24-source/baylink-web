@@ -43,10 +43,11 @@ export function EventTypeCover({ event, today, days, ...layout }: CoverLayout & 
   const [, time] = chip.kind === 'day' ? pick(eventWhenLine(event, today, days)).split(' · ') : [];
   const place = translateText(eventPlace(event), locale);
   const price = eventPriceChip(event);
-  // A thumbnail's key fact: the time (the row prints the date), else a short venue or the city (an 88 px tile never clips it at
-  // 特大 or 家人版; "Library / Parks and Recreation Center" is too long), else the price (a row of free events must not repeat
-  // "免费" when it has a time or a place).
-  const thumb = time || (displayUnits(place) <= 8 ? place : translateText(event.city, locale)) || (price ? pick(price.text) : '');
+  // A thumbnail's key fact: the time (the row prints the date), else the venue or the city when it fits the tile at 特大 /
+  // 家人版 (short, and no Latin word over 9 letters: "Library / Parks and Recreation Center" would clip, "Pleasanton" would break
+  // mid-word), else the price, else the date label (DateFace). A row of free events must not repeat "免费" when it has a place.
+  const fits = (text: string) => !!text && displayUnits(text) <= 8 && !/[A-Za-z]{10}/.test(text);
+  const thumb = time || [place, translateText(event.city, locale)].find(fits) || (price ? pick(price.text) : '');
   const choice = chooseCover('event', { tier: 'type' }, { id: event.id, date: day.label, time, place });
   return <TypeFrame {...layout} {...choice} keyFact={layout.size === 'mini' ? thumb : choice.keyFact} kind="event" tone={eventTone(event)}>
     <DateFace day={day} time={time} bar={chip.kind === 'day' ? eventTimeWindow(event, chip.date) : undefined} eyebrow={place} thumb={thumb} mini={layout.size === 'mini'} />

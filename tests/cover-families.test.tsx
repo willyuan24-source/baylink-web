@@ -295,6 +295,19 @@ test('review fixes: the stated close past midnight, families after the page draw
   const shortVenue = wrap(<EventTypeCover event={{ ...noTime, venueShort: 'SFMOMA' } as never} today={today} days={['2026-10-24']} size="mini" />);
   assert.equal(shortVenue.container.querySelector('.tc-thumb')?.textContent, 'SFMOMA');
   cleanup();
+  // A place or city with a Latin word over 9 letters would break mid-word in the tile at 家人版: the price leads instead, else
+  // the date label. Up to 9 letters fit ("San Francisco", "Petaluma"; the mini tile keeps a 4 px side padding).
+  const longCity = { ...noTime, city: 'Pleasanton', venueShort: 'Alameda County Fairgrounds' };
+  const priced = wrap(<EventTypeCover event={longCity as never} today={today} days={['2026-10-24']} size="mini" />);
+  assert.equal(priced.container.querySelector('.tc-thumb')?.textContent, '免费');
+  cleanup();
+  const unpriced = wrap(<EventTypeCover event={{ ...longCity, cost: undefined } as never} today={today} days={['2026-10-24']} size="mini" />);
+  assert.match(unpriced.container.querySelector('.tc-thumb')?.textContent ?? '', /10\/24/);
+  cleanup();
+  const petaluma = wrap(<EventTypeCover event={{ ...longCity, city: 'Petaluma' } as never} today={today} days={['2026-10-24']} size="mini" />);
+  assert.equal(petaluma.container.querySelector('.tc-thumb')?.textContent, 'Petaluma');
+  cleanup();
+  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /\.ui-type-cover\[data-size=mini\] \{ padding:var\(--sp-2\) var\(--sp-1\);/);
   // The families a page draws after its first screen render in one pass in Node, so the prerendered HTML carries them.
   const { DeferredGuideTypeCover, DeferredOfferTypeCover } = await import('../src/components/ui/cover-defer');
   const guide = wrap(<DeferredGuideTypeCover slug="california-tenant-deposit-rights-help-guide" topic="housing" topicLabel="住房" hook="押金：搬出后 21 天" />);
