@@ -9,8 +9,9 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { dateScope } from '../../lib/date-guard';
 import { checkSummary, officialCheckLine } from '../../lib/check-dates';
-import { getMonthlyDateRange, isFreeToAttend } from '../../lib/monthly';
-import { EVENTS_INDEX, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsColumn, type EventsWhen } from './events-model';
+import { getMonthlyDateRange, isFreeToAttend, nextOccurrence } from '../../lib/monthly';
+import { isPressSource } from './source-kind';
+import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsColumn, type EventsWhen } from './events-model';
 import { useIndexEvents } from './events-later';
 import type { EventsFilters } from './events-model';
 import { ChunkBoundary } from './ChunkBoundary';
@@ -26,6 +27,8 @@ const openingsView = retryableLazy(() => import('./OpeningsView'));
  * then the four views as D3's segmented control (not sticky): 本周末 | 日历·地图 | 免费与优惠 | 新店. /events opens on 本周末,
  * /this-month on 全部日期, /calendar on its day view. A switch keeps the previous body, dimmed, until the next view is in.
  */
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
 export type EventsFrameProps = {
   today?: string; defaultWhen?: EventsWhen;
   /** /calendar passes its view (imported by CalendarPage, so the prerender renders it and /events does not load it). */
@@ -38,7 +41,7 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   const { t, pick, english } = useUiCopy();
   const today = useBayAreaToday(suppliedToday);
   const [params] = useSearchParams();
-  const { hash } = useLocation();
+  const { hash, key: locationKey } = useLocation();
   // The saved region applies after mount, so the prerendered page and the first render agree.
   const [savedRegion, setSavedRegion] = useState<ReturnType<typeof readSavedRegion>>();
   useEffect(() => setSavedRegion(readSavedRegion()), []);
@@ -65,12 +68,18 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   const free = inScope.filter(event => isFreeToAttend(event)).length;
   const offerList = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region) : [];
   const offers = offerList.length;
-  // H02: the check dates of what this view lists, said as checks against the official pages (PREP's 官网核对 line).
-  const listed = column === 'perks' ? offerList : column === 'openings' ? INDEX_OPENINGS : column === 'calendar' ? [] : inScope;
-  const summary = checkSummary(listed.map(item => item.verifiedAt), today);
+  // H02: the check dates of what this view lists (/calendar: the chosen day's events), said as checks against the official
+  // pages (PREP's 官网核对 line). DECISIONS 17: an item from a press report is never said to be checked on an official page —
+  // the line then summarises the others and counts the reports instead of saying 逐条附官方来源.
+  const calendarDay = DAY.exec(params.get('date') ?? '')?.[0] ?? today;
+  const listed: readonly { verifiedAt?: string; press?: true; sourceLabel?: string }[] = column === 'perks' ? offerList : column === 'openings' ? INDEX_OPENINGS
+    : column === 'calendar' ? INDEX_EVENTS.filter(event => nextOccurrence(event, calendarDay) === calendarDay && (filters.region === 'all' || event.region === filters.region)) : inScope;
+  const official = listed.filter(item => !item.press && !isPressSource(item.sourceLabel));
+  const press = listed.length - official.length;
+  const summary = checkSummary(official.map(item => item.verifiedAt), today);
   const checked = summary ? officialCheckLine(summary, t) : '';
   // The listing card is one link to the detail page, which links the official source.
-  const promise = t('逐条附官方来源', 'every listing has an official source');
+  const promise = press ? t(`${press} 条来自媒体报道`, `${press} from news reports`) : t('逐条附官方来源', 'official sources');
 
   const rangeLine = column === 'perks' ? t('免费与优惠', 'Free & deals') + region
     : column === 'openings' ? t('新店', 'New shops') + region
@@ -97,7 +106,9 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   // useDeferredValue covers a switch that is not a transition the same way.
   const [pending, setPending] = useState<string>();
   const shown: EventsColumn = useDeferredValue(column);
-  useEffect(() => { setPending(undefined); }, [column]);
+  // A switch that lands (the column or the location changes) ends it; a tap on the view already shown, or a new-tab click
+  // (SegmentedTabs does not report it), never starts one.
+  useEffect(() => { setPending(undefined); }, [column, locationKey]);
   const bodyRef = useRef<HTMLDivElement>(null);
   const hold = useViewHold(shown !== column || (pending !== undefined && pending !== column), bodyRef);
   let body: ReactNode;
@@ -117,12 +128,13 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
           <p className="ev-range" {...scope}>{rangeLine}</p>
         </div>
         <p className="ev-lede-facts" {...scope}>
-          {/* a no-break space before each "·", so a wrapped line never starts with one (N06) */}
-          {[counts, promise, checked].filter(Boolean).join('\u00a0· ')}
+          {/* a no-break space before each "·", so a wrapped line never starts with one (N06), and in English one inside a date
+              ("Oct 16"), so a wrap never splits it */}
+          {[counts, promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2')}
           <span className="ev-lede-facts__how"><span aria-hidden="true">{'\u00a0· '}</span><MoreLink to="/about#about-method-title">{t('我们怎么核对', 'How we check')}</MoreLink></span>
         </p>
       </header>
-      <div className="ev-tabs-bar"><SegmentedTabs className="ev-tabs" label={t('活动分区', 'Event views')} items={tabs} value={current} onChange={id => { if (id !== column) setPending(id); }} /></div>
+      <div className="ev-tabs-bar"><SegmentedTabs className="ev-tabs" label={t('活动分区', 'Event views')} items={tabs} value={current} onChange={id => setPending(id === column ? undefined : id)} /></div>
     </PageContainer>
     <PageContainer className="ev-body">
       <div {...scope} ref={bodyRef} className="ev-view" data-hold={hold.phase === 'idle' ? undefined : hold.phase} aria-busy={hold.phase === 'idle' ? undefined : true}

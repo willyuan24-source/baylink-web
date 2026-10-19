@@ -133,7 +133,7 @@
 /* On a photo the kicker is the highest line of text, where the scrim is still thin (1.9–2.5:1 on bright photos, PROD-W3):
    it sits on the badge's ink chip, lime on brand-deep .78 is ≥5.2:1 over any pixel, like the provenance badge's white. */
 .ui-hero-card[data-overlay] .ui-hero-card__kicker { align-self:flex-start; max-width:100%; padding:1px 8px; border-radius:var(--r-sm); background:var(--color-badge-bg); text-wrap:balance; }
-.ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:var(--fs-keep-24); line-height:1.333; font-weight:600; }
+.ui-hero-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:1.5rem; line-height:1.333; font-weight:600; }
 .ui-hero-card[data-overlay] .ui-hero-card__title { color:var(--color-surface); }
 .ui-hero-card .ui-card-link::after { border-radius:var(--r-xl); }
 .ui-hero-card__facts { display:flex; flex-wrap:wrap; gap:6px; margin:0; padding:0; list-style:none; }
@@ -144,7 +144,7 @@
 .ui-hero-card__trust { display:flex; align-items:center; gap:var(--sp-1); margin:0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
 .ui-hero-card__trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
 @media (min-width:1024px) {
-  .ui-hero-card__title { font-size:var(--fs-keep-28); line-height:1.286; }
+  .ui-hero-card__title { font-size:1.75rem; line-height:1.286; }
 }
 
 /* Card titles (after the card rules above, which they refine): no one-word last line, and room for the hero's clamped glyphs. */

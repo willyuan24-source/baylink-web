@@ -24,6 +24,6 @@ export function ImageCredits({ covers }: { covers: readonly ResolvedCover[] }) {
         {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
       </li>)}</ul>
     </Disclosure>}
-    {coded && <p className="ev-credits__note">{t('没有照片的条目用 BAYLINK 信息卡。', 'No photo: a BAYLINK info card.')}</p>}
+    {coded && <p className="ev-credits__note">{t('没有照片的条目用 BAYLINK 信息卡，插画仅作装饰。', 'No photo: a BAYLINK info card; drawings are decorative.')}</p>}
   </section>;
 }

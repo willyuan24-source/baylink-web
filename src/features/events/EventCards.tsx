@@ -22,11 +22,16 @@ const HERO_SIZES = `${PHONE_COVER_CAP}, 380px`;
 /** The /events lead: the phone width (capped as above), the 8-column span on desktop (803px at 1440), full width between. */
 const LEAD_SIZES = `${PHONE_COVER_CAP}, (max-width: 1023px) calc(100vw - 48px), 803px`;
 
-/** "官网核对 10/2" / "Source checked Oct 2": the record's own check date, never a bumped one (D12). */
-export function TrustLine({ day }: { day?: string }) {
+/**
+ * "官网核对 10/2" / "Source checked Oct 2": the record's own check date, never a bumped one (D12). `press` (the source is a
+ * press report, not the organiser's page: IndexEvent.press, or isPressSource(sourceLabel) for offers and openings) reads
+ * 「媒体报道 · 10/2 核对」 / "News report · checked Oct 2" instead (UI-9 DECISIONS 17, owner confirmed 10-19).
+ */
+export function TrustLine({ day, press }: { day?: string; press?: boolean }) {
   const { t, english } = useUiCopy();
   if (!day) return null;
-  return <>{t('官网核对', 'Source checked')} {monthDay(day, english)}</>;
+  const date = monthDay(day, english);
+  return <>{press ? t(`媒体报道 · ${date} 核对`, `News report · checked ${date}`) : `${t('官网核对', 'Source checked')} ${date}`}</>;
 }
 
 /**
@@ -82,7 +87,7 @@ const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) =
 export function EventFeedCard({ event, cover, today, days, day, oneDay, priority, sizes, ratio, heading = 'h3', action, save = true, className }: { event: IndexEvent; cover: ResolvedCover; today: string; days?: readonly string[]; day?: string; oneDay?: string; priority?: boolean; sizes?: string; ratio?: '3:2' | '16:9'; heading?: 'h2' | 'h3' | 'h4'; action?: ReactNode; save?: boolean; className?: string }) {
   return <FeedCard title={event.title} to={day ? `/events/${event.id}?date=${day}` : `/events/${event.id}`} heading={heading} className={[action ? 'ev-card--action' : '', className ?? ''].filter(Boolean).join(' ') || undefined}
     cover={<EventCover event={facts(event)} cover={cover} today={today} days={days} priority={priority} sizes={sizes} ratio={ratio} ratioLock={!!ratio} decorative />}
-    when={<WhenLine event={event} today={today} days={day ? [day] : days} oneDay={oneDay} />} meta={<EventStatusLine event={event} />} trust={<TrustLine day={event.verifiedAt} />}
+    when={<WhenLine event={event} today={today} days={day ? [day] : days} oneDay={oneDay} />} meta={<EventStatusLine event={event} />} trust={<TrustLine day={event.verifiedAt} press={event.press} />}
     save={action ?? (save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined)} />;
 }
 
@@ -99,7 +104,7 @@ export function EventLeadCard({ event, cover, today, days, kicker, reason, save 
     cover={<EventCover event={facts(event)} cover={cover} today={today} days={days} ratio="16:9" ratioLock priority sizes={LEAD_SIZES} decorative />}
     when={<EventWhen event={facts(event)} today={today} days={days} />} meta={<EventStatusLine event={event} />}
     reason={{ label: reason ? `${kicker} ·` : kicker, text: reason ?? '' }}
-    trust={<TrustLine day={event.verifiedAt} />} save={save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined} />;
+    trust={<TrustLine day={event.verifiedAt} press={event.press} />} save={save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined} />;
 }
 
 /** 4:5 editor's pick: photo with the title on the scrim, or the A2 TypeCover with the title below; ♡ on the cover. (Kept as
@@ -115,7 +120,7 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
     kicker={city === region || (event.city === 'San Francisco' && event.region === 'sf') ? region : `${city} · ${region}`}
     facts={[pick(eventWhenLine(facts(event), today, [date])), ...(price ? [pick(price.text)] : [])]} when={<EventWhen event={facts(event)} today={today} days={[date]} />} meta={<EventMeta event={event} />}
     reason={reason ? { label: t('编辑推荐', 'Editor’s pick'), text: pick(reason) } : undefined}
-    trust={<TrustLine day={event.verifiedAt} />} save={<CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
+    trust={<TrustLine day={event.verifiedAt} press={event.press} />} save={<CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
 }
 
 /**
@@ -130,7 +135,7 @@ export function EventRowCard({ event, cover, today, day, oneDay, action, save = 
     fallback={<EventTypeCover event={facts(event)} today={today} days={[day]} size="mini" ariaHidden />} />;
   return <RowCard title={event.title} to={`/events/${event.id}?date=${day}`} thumb={thumb} className={action ? 'ev-row ev-card--action' : 'ev-row'}
     when={<WhenLine event={event} today={today} days={[day]} oneDay={oneDay ? day : undefined} />} meta={<EventStatusLine event={event} />}
-    trust={<TrustLine day={event.verifiedAt} />} credit={cover.tier === 'type' ? undefined : pick(cover.label)}
+    trust={<TrustLine day={event.verifiedAt} press={event.press} />} credit={cover.tier === 'type' ? undefined : pick(cover.label)}
     trailing={action ?? (save ? <CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} /> : undefined)} />;
 }
 

@@ -25,21 +25,29 @@ const { ImageCredits } = await import('../src/features/events/ImageCredits');
 const { FeedGrid } = await import('../src/components/ui/FeedGrid');
 const { DayChips } = await import('../src/components/ui/Segmented');
 const { getMonthlyDateRange, nextOccurrence } = await import('../src/lib/monthly');
+const { addCalendarDays } = await import('../src/lib/calendar-days');
 const { READING_SIZE_KEY, SIMPLE_DISPLAY_KEY } = await import('../src/lib/reading-preferences');
+const { TrustLine, EventFeedCard } = await import('../src/features/events/EventCards');
+const { isPressSource } = await import('../src/features/events/source-kind');
+const { PLANNER_EVENTS } = await import('../src/data/planner-catalog');
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 
-const today = '2026-10-19'; // Monday: the weekend is 10/24–25
-const homeCatalog = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8')) as { weekends: Record<string, { ids: string[] }> };
+// The generated data's own day (`npm test` regenerates the home catalog and the events index on the run day in pretest), so
+// the day the test reads is always one the catalog has; the weekend and its labels follow from it.
+const homeCatalog = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8')) as { generatedAt: string; weekends: Record<string, { ids: string[] }> };
+const today = homeCatalog.generatedAt;
+const weekend = getMonthlyDateRange('weekend', today)!;
+const md = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
+const weekday = (day: string) => `周${'日一二三四五六'[new Date(`${day}T12:00:00Z`).getUTCDay()]}`;
 const page = (location: string) => render(<MemoryRouter initialEntries={[location]}><EventsView today={today} /></MemoryRouter>);
 const titles = (root: ParentNode, selector: string) => [...root.querySelectorAll(`${selector} a.ui-card-link`)].map(link => link.getAttribute('href')!.replace(/^\/events\/|\?.*$/g, ''));
 
 test('the index carries home\'s lead per day, and the /events lead and pick rows never repeat it', () => {
   const leads = model.EVENTS_INDEX.homeLeads ?? {};
   for (const [day, id] of Object.entries(leads)) assert.equal(id, homeCatalog.weekends[day]?.ids[0], day);
-  const range = getMonthlyDateRange('weekend', today)!;
-  const weekend = model.INDEX_EVENTS.filter(event => [range.start, range.end].some(day => nextOccurrence(event, day) === day));
-  const picks = model.weekendPicks(weekend, today, { limit: 5 });
+  const weekendEvents = model.INDEX_EVENTS.filter(event => [weekend.start, weekend.end].some(day => nextOccurrence(event, day) === day));
+  const picks = model.weekendPicks(weekendEvents, today, { limit: 5 });
   const home = homeLeadFor(today, picks);
   const { lead, rows } = arrangePicks(picks, today, home);
   assert.ok(lead, 'a lead');
@@ -72,27 +80,49 @@ test('the /events first screen never holds home\'s lead or all three of home\'s 
   for (const id of shown) assert.ok(!feed.includes(id), `${id} once`);
 });
 
-test('rail 1: the date scopes, the day chips (none checked = the whole weekend), 免费 · 亲子 · 长辈友好 and 筛选 counting only sheet choices', () => {
+test('rail 1: one radio group of dates (本周末 = the whole weekend, checked on arrival; radios never uncheck), 免费 · 亲子 · 长辈友好 and 筛选 counting only sheet choices', () => {
   const view = page('/events');
   const rail = view.container.querySelector('.ev-rail')!;
-  const pressed = [...rail.querySelectorAll('button[aria-pressed]')].map(button => [button.textContent, button.getAttribute('aria-pressed')]);
-  assert.deepEqual(pressed.slice(0, 3), [['本周末', 'true'], ['未来 7 天', 'false'], ['全部日期', 'false']]);
-  const days = within(rail.querySelector('.ev-days') as HTMLElement).getAllByRole('radio');
-  assert.deepEqual(days.map(day => day.getAttribute('aria-checked')), ['false', 'false', 'false'], 'the whole weekend on arrival');
-  assert.equal(days[0].getAttribute('tabindex'), '0');
-  assert.deepEqual(days.map(day => day.textContent), ['周六 10/24', '周日 10/25', '两天都开放']);
-  for (const label of ['免费', '亲子', '长辈友好']) assert.ok(within(rail as HTMLElement).getByRole('button', { name: label }));
-  for (const label of ['户外', '演出', '市集', '南瓜季', '下雨也行']) assert.equal(within(rail as HTMLElement).queryByRole('button', { name: label }), null, `${label} is in the sheet`);
+  const radios = () => within(within(rail as HTMLElement).getByRole('radiogroup', { name: '选择日期' })).getAllByRole('radio');
+  const days = [...(weekend.start >= today ? [weekend.start] : []), weekend.end];
+  const dayLabel = (day: string) => day === today ? `今天 · ${weekday(day)} ${md(day)}` : `${weekday(day)} ${md(day)}`;
+  const state = () => radios().map(radio => [radio.textContent, radio.getAttribute('aria-checked')]);
+  assert.deepEqual(state(), [['本周末', 'true'], ['未来 7 天', 'false'], ['全部日期', 'false'], ...days.map(day => [dayLabel(day), 'false']), ['两天都开放', 'false']]);
+  assert.deepEqual(radios().map(radio => radio.getAttribute('tabindex')).filter(index => index === '0').length, 1);
+  assert.equal(radios()[0].getAttribute('tabindex'), '0', 'the checked radio takes the tab stop');
+  // The weekend's days sit in .ev-days (tests/prod-w3-fixes.test.tsx reads it), inside the same group.
+  assert.equal(within(rail.querySelector('.ev-days') as HTMLElement).getAllByRole('radio').length, days.length + 1);
+  // A day checks; a second click keeps it checked (a radio, not a toggle); 本周末 is the whole weekend again.
+  fireEvent.click(radios()[3]);
+  assert.equal(radios()[3].getAttribute('aria-checked'), 'true');
+  assert.equal(radios()[0].getAttribute('aria-checked'), 'false');
+  fireEvent.click(radios()[3]);
+  assert.equal(radios()[3].getAttribute('aria-checked'), 'true', 'a click never unchecks');
+  fireEvent.keyDown(radios()[3], { key: 'ArrowLeft' });
+  assert.equal(radios()[2].getAttribute('aria-checked'), 'true', 'arrow keys move and select, across the scopes too');
+  cleanup();
+  const again = page('/events?day=sun');
+  const back = within(again.container.querySelector('.ev-rail') as HTMLElement).getByRole('radio', { name: '本周末' });
+  fireEvent.click(back);
+  assert.equal(back.getAttribute('aria-checked'), 'true');
+  assert.equal(again.container.querySelectorAll('.ev-days [aria-checked=true]').length, 0);
+  cleanup();
+  page('/events');
+  const rail1 = document.querySelector('.ev-rail')!;
+  for (const label of ['免费', '亲子', '长辈友好']) assert.ok(within(rail1 as HTMLElement).getByRole('button', { name: label }));
+  for (const label of ['户外', '演出', '市集', '南瓜季', '下雨也行']) assert.equal(within(rail1 as HTMLElement).queryByRole('button', { name: label }), null, `${label} is in the sheet`);
   // No counts on the need chips (DECISIONS 19); 筛选 has no count when nothing was chosen in the sheet.
-  assert.equal(rail.querySelectorAll('.ui-chip__count').length, 0);
+  assert.equal(rail1.querySelectorAll('.ui-chip__count').length, 0);
   // The list names the whole weekend: its count matches the facts line's.
-  const facts = view.container.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
-  const status = view.container.querySelector('.ev-count')!.textContent!;
+  const facts = document.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
+  const status = document.querySelector('.ev-count')!.textContent!;
   assert.equal(/^(\d+) 场/.exec(facts)![1], /找到 (\d+) 场/.exec(status)![1]);
   for (const when of ['next7', 'all']) {
     cleanup();
     const list = page(`/events?when=${when}`);
     assert.equal(list.container.querySelectorAll('.ev-rail .ui-chip__count').length, 0, `${when}: no 筛选 1 when nothing is chosen`);
+    assert.equal(within(list.container.querySelector('.ev-rail') as HTMLElement).getByRole('radio', { checked: true }).textContent, when === 'next7' ? '未来 7 天' : '全部日期');
+    assert.equal(list.container.querySelector('.ev-days'), null, 'the days are the weekend\'s only');
     assert.equal(model.sheetFilterCount(model.readFilters(new URLSearchParams(`when=${when}`), 'weekend')), 0);
   }
 });
@@ -129,7 +159,8 @@ test('the two meta lines: line 1 one pattern, line 2 status · place in the one 
     assert.equal(meta.querySelector('strong'), null, 'the free price is a status chip, not <strong>');
     const status = meta.querySelector('.ui-status');
     if (status) assert.ok(['free', 'partial'].includes(status.getAttribute('data-tone')!));
-    assert.ok(card.querySelector('.ui-feed-card__trust')!.textContent!.startsWith('官网核对'), 'the per-card check stays');
+    // The per-card check stays; a press-sourced event says so instead of 官网核对 (DECISIONS 17).
+    assert.match(card.querySelector('.ui-feed-card__trust')!.textContent!, /^(官网核对 \d+\/\d+|媒体报道 · \d+\/\d+ 核对)$/);
   }
 });
 
@@ -145,12 +176,62 @@ test('one-day lists print the time window; a long run reads 至 M/D', () => {
 });
 
 test('the list end says what is shown and how it is sorted, with one secondary 再看 N 场 and the next day', () => {
-  const view = page('/events?day=sat');
+  const saturday = weekend.start >= today;
+  const view = page(`/events?day=${saturday ? 'sat' : 'sun'}`);
   const end = view.container.querySelector('.ev-list-end')!;
   assert.match(end.querySelector('.ev-list-end__count')!.textContent!, /^已显示 \d+ \/ \d+ 场 · 按推荐排列$/);
   const more = within(end as HTMLElement).queryByRole('button', { name: /^再看 \d+ 场$/ });
   if (more) assert.equal(more.getAttribute('data-variant'), 'secondary');
-  assert.ok(within(end as HTMLElement).getByRole('link', { name: /周日 10\/25 的活动/ }));
+  assert.ok(within(end as HTMLElement).getByRole('link', { name: saturday ? `${weekday(weekend.end)} ${md(weekend.end)} 的活动` : '下周末' }));
+});
+
+test('every event of the weekend list is on the page once — the lead, the picks the layout shows, the feed — and 已显示 counts what is there (standard phone and desktop, 简洁)', () => {
+  for (const simple of [false, true]) {
+    if (simple) { localStorage.setItem(SIMPLE_DISPLAY_KEY, '1'); document.documentElement.setAttribute('data-simple', ''); }
+    try {
+      const view = page('/events');
+      const total = Number(/找到 (\d+) 场/.exec(view.container.querySelector('.ev-count')!.textContent!)![1]);
+      for (let guard = 0; guard < 60 && view.container.querySelector('.ev-list-end__more'); guard++) fireEvent.click(view.container.querySelector('.ev-list-end__more')!);
+      const lead = titles(view.container, '.ev-lead');
+      const cards = titles(view.container, '.ev-picks__cards');
+      const rows = titles(view.container, '.ev-picks__rows');
+      const feed = titles(view.container, '.ev-feed');
+      // A standard phone shows the 2-up cards and the third pick row (events.css); desktop and 大 / 特大 show the rows.
+      const layouts = simple ? { simple: [...lead, ...feed] } : { phone: [...lead, ...cards, ...rows.slice(2), ...feed], desktop: [...lead, ...rows, ...feed] };
+      for (const [name, shown] of Object.entries(layouts)) {
+        assert.equal(new Set(shown).size, shown.length, `${name}: each event once`);
+        assert.equal(shown.length, total, `${name}: ${shown.length} on the page, ${total} found`);
+      }
+      if (simple) assert.equal(view.container.querySelector('.ev-picks__more'), null, 'no pick rows to hide in 简洁显示');
+      assert.match(view.container.querySelector('.ev-list-end__count')!.textContent!, new RegExp(`^已显示 ${total} / ${total} 场`));
+    } finally { cleanup(); localStorage.clear(); document.documentElement.removeAttribute('data-simple'); }
+  }
+  const css = readFileSync('src/features/events/events.css', 'utf8');
+  assert.match(css, /html:not\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) \.ev-picks__rows>:nth-child\(-n\+2\) \{ display:none; \}/, 'a standard phone hides only the rows the cards repeat');
+});
+
+test('a press report never says 官网核对: the index flags it from the source label, its card reads 媒体报道 · M/D 核对, a list head counts it (DECISIONS 17)', () => {
+  for (const event of model.EVENTS_INDEX.events) {
+    const source = PLANNER_EVENTS.find(item => item.id === event.id)!;
+    assert.equal(!!event.press, isPressSource(source.sourceLabel), event.id);
+  }
+  assert.equal(render(<TrustLine day="2026-09-29" press />).container.textContent, '媒体报道 · 9/29 核对');
+  cleanup();
+  assert.equal(render(<TrustLine day="2026-09-29" />).container.textContent, '官网核对 9/29');
+  cleanup();
+  const report = model.INDEX_EVENTS.find(event => event.press);
+  if (report) {
+    const card = render(<MemoryRouter><EventFeedCard event={report} cover={{ tier: 'type' } as never} today={today} /></MemoryRouter>);
+    assert.match(card.container.querySelector('.ui-feed-card__trust')!.textContent!, /^媒体报道 · \d+\/\d+ 核对$/);
+    cleanup();
+  }
+  // 新店: some openings come from press reports — the head counts them and makes no 逐条附官方来源 promise.
+  const reports = model.INDEX_OPENINGS.filter(shop => isPressSource(shop.sourceLabel)).length;
+  const facts = page('/events?view=openings').container.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
+  if (reports) {
+    assert.doesNotMatch(facts, /逐条附官方来源/);
+    assert.match(facts, new RegExp(`${reports} 条来自媒体报道`));
+  } else assert.match(facts, /逐条附官方来源/);
 });
 
 test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook and the coded-cover note', () => {
@@ -178,13 +259,19 @@ test('ImageCredits and FeedGrid: the note is said once, and FeedGrid can leave i
   assert.ok(render(<FeedGrid label="x"><li>a</li></FeedGrid>).container.querySelector('.ui-cover-credit'), 'the default stays');
 });
 
-test('DayChips: a radio group on the chip look, none checked gives the first the tab stop, arrows select', () => {
+test('DayChips: a radio group on the chip look, none checked gives the first the tab stop, arrows select, a click never unchecks; `part` wraps the later radios in the same group', () => {
   const chosen: string[] = [];
   const view = render(<DayChips label="day" value="" items={[{ id: 'sat', label: '周六' }, { id: 'sun', label: '周日' }]} onChange={id => chosen.push(id)} />);
   const radios = view.getAllByRole('radio');
   assert.deepEqual(radios.map(radio => [radio.className, radio.getAttribute('tabindex')]), [['ui-chip', '0'], ['ui-chip', '-1']]);
   fireEvent.keyDown(radios[0], { key: 'ArrowRight' });
   assert.deepEqual(chosen, ['sun']);
+  cleanup();
+  const parted = render(<DayChips label="d" value="b" items={[{ id: 'a', label: 'A' }, { id: 'b', label: 'B' }, { id: 'c', label: 'C' }]} onChange={id => chosen.push(id)} part={{ from: 1, className: 'later' }} />);
+  assert.equal(parted.getAllByRole('radiogroup').length, 1);
+  assert.deepEqual([...parted.container.querySelectorAll('.later [role=radio]')].map(radio => radio.textContent), ['B', 'C']);
+  fireEvent.click(parted.getByRole('radio', { name: 'B' }));
+  assert.deepEqual(chosen, ['sun'], 'clicking the checked radio changes nothing');
 });
 
 test('简洁显示 and 家人版 show fewer cards per page (6 and 4) and mark what they hide', () => {
@@ -195,7 +282,16 @@ test('简洁显示 and 家人版 show fewer cards per page (6 and 4) and mark wh
     // rows (a 112px 4:3 thumbnail), no ♡ on them (DECISIONS 16)
     assert.equal(simple.container.querySelectorAll('.ev-feed .ui-row-card').length, 6);
     assert.equal(simple.container.querySelectorAll('.ev-feed .ui-row-card button').length, 0);
-    assert.ok(simple.container.querySelector('.ev-picks__more[data-simple=hide]'));
+    // The date radios keep 本周末 (the whole weekend) and the days; the other scopes stay in the sheet.
+    const dates = within(simple.container.querySelector('.ev-rail') as HTMLElement).getAllByRole('radio').map(radio => radio.textContent);
+    assert.equal(dates[0], '本周末');
+    assert.ok(!dates.includes('未来 7 天') && !dates.includes('全部日期'), dates.join(' | '));
+    cleanup();
+    // A tag that is on stays on the rail in 简洁显示 (home's 亲子 / 长辈友好 links), so it shows and can be cleared.
+    const kids = page('/events?tag=kids');
+    const kidsChip = within(kids.container.querySelector('.ev-rail') as HTMLElement).getByRole('button', { name: '亲子' });
+    assert.equal(kidsChip.getAttribute('data-simple'), null);
+    assert.equal(within(kids.container.querySelector('.ev-rail') as HTMLElement).getByRole('button', { name: '长辈友好' }).getAttribute('data-simple'), 'hide');
     cleanup();
     localStorage.setItem(READING_SIZE_KEY, 'extra-large');
     const family = page('/events');
@@ -205,10 +301,11 @@ test('简洁显示 and 家人版 show fewer cards per page (6 and 4) and mark wh
 });
 
 test('/calendar: the week range opens the sheet, the day head carries 列表 | 地图, a city rail of the top 4 + 更多城市, rows 12 at a time', () => {
-  const view = render(<MemoryRouter initialEntries={['/calendar?date=2026-10-24']}><CalendarPage today={today} /></MemoryRouter>);
+  const day = addCalendarDays(today, 5);
+  const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
   assert.match(view.container.querySelector('.ev-range')!.textContent!, /^按日期看 · 收录至 /);
   const head = view.container.querySelector('.ev-calendar__head')!;
-  assert.match(head.querySelector('h2')!.textContent!, /^10月24日 周六 · \d+ 场$/);
+  assert.equal(head.querySelector('h2')!.textContent!.replace(/ · \d+ 场$/, ''), `${Number(day.slice(5, 7))}月${Number(day.slice(8, 10))}日 ${weekday(day)}`);
   assert.ok(head.querySelector('.ev-calendar__mode'));
   const cities = view.container.querySelector('.ev-cities');
   if (cities) {
@@ -220,12 +317,22 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
   const rows = view.container.querySelectorAll('.ev-calendar__rows .ui-row-card');
   assert.ok(rows.length <= 12);
   for (const row of rows) assert.ok(row.querySelector('.ui-row-card__trust'), 'each row keeps ✓ 官网核对');
-  const end = view.container.querySelector('.ev-calendar__end')!;
-  assert.match(end.textContent!, /已显示 \d+ \/ \d+ 场/);
-  assert.ok(within(end as HTMLElement).getByRole('link', { name: /明天 10\/25/ }));
-  assert.ok(within(end as HTMLElement).getByRole('button', { name: '让 BayBay 帮我安排这一天' }));
+  // The facts line keeps the day's check dates (H02).
+  if (rows.length) assert.match(view.container.querySelector('.ev-lede-facts')!.textContent!, /官网核对/);
+  const end = view.container.querySelector('.ev-calendar__end');
+  const next = addCalendarDays(day, 1);
+  if (end) {
+    assert.match(end.textContent!, /已显示 \d+ \/ \d+ 场/);
+    // Another day's next day goes by its date; 明天 is said only from today's list.
+    assert.ok(within(end as HTMLElement).getByRole('link', { name: `${md(next)} ${weekday(next)}` }));
+    assert.equal(within(end as HTMLElement).queryByRole('link', { name: /明天/ }), null);
+    assert.ok(within(end as HTMLElement).getByRole('button', { name: '让 BayBay 帮我安排这一天' }));
+  }
   fireEvent.click(view.container.querySelector('.ev-week__range')!);
   assert.ok(view.getByRole('dialog'));
+  cleanup();
+  const todayEnd = render(<MemoryRouter initialEntries={['/calendar']}><CalendarPage today={today} /></MemoryRouter>).container.querySelector('.ev-calendar__end');
+  if (todayEnd) assert.ok(within(todayEnd as HTMLElement).getByRole('link', { name: `明天 ${md(addCalendarDays(today, 1))}` }));
 });
 
 test('events.css and cards.css: hover gated, no font-size literals, spacing on the --sp-* steps, no clamped card title', () => {

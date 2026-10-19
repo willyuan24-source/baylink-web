@@ -12,6 +12,7 @@ import { EVENT_DATE_OVERRIDES, EVENT_SCHEDULE_NOTES } from './data/event-calenda
 import { getWeeklyCardDays } from '../src/lib/home-weekend';
 import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
 import { addCalendarDays, calendarPeriod } from '../src/lib/calendar-days';
+import { isPressSource } from '../src/features/events/source-kind';
 import type { EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
 import type { PlanningSchedule } from '../src/lib/planner';
 
@@ -21,7 +22,8 @@ import type { PlanningSchedule } from '../src/lib/planner';
  * dates, prices and source checks cannot drift. The CNT editorial overlay fields a listing shows or searches (shortTitle, dek,
  * sessions, price, venueShort, iconKey) are copied when an event carries them; address, ageChip, tips and dateNote stay
  * on the detail page, so the overlay adds as little as possible to /events. Fields no listing reads stay out too: the
- * sourceLabel (a card's trust line reads verifiedAt), the free-text costLabel except on mixed-cost events (the 免费 filter's
+ * sourceLabel (a card's trust line reads verifiedAt, and `press: true` when the source is a press report, so it never says
+ * 官网核对 for one: UI-9 DECISIONS 17), the free-text costLabel except on mixed-cost events (the 免费 filter's
  * isFreeToAttend reads it only there; a card's price comes from cost / price / admission) and the schedule's own
  * sourceUrl / verifiedAt (listSchedule below), so each new batch of events costs the list routes as few bytes as possible
  * (CNT-SUPPLY, verify-release route budgets).
@@ -70,6 +72,7 @@ const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cut
     region: event.region, city: event.city, venue: event.venue, category: event.category,
     cost: event.cost, ...(event.cost === 'mixed' ? { costLabel: event.costLabel } : {}),
     audience: event.audience, verifiedAt: event.verifiedAt, imageKey: event.imageKey,
+    ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(planning && Object.keys(planning).length ? { planning } : {}),
     ...(event.location ? { location: { lat: event.location.lat, lng: event.location.lng, precision: event.location.precision, sourceUrl: event.location.sourceUrl } } : {}),
     ...(EVENT_SCHEDULE_NOTES[event.id] ? { note: EVENT_SCHEDULE_NOTES[event.id] } : {}),

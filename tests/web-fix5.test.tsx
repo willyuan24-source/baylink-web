@@ -134,8 +134,9 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
   const facts = page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
-  // UI9-EVENTS (G12): said as checks against the official pages, then the quiet 我们怎么核对 link.
-  assert.match(facts, /逐条附官方来源 · 官网核对 (?:多数 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|\d+\/\d+) · 我们怎么核对$/);
+  // UI9-EVENTS (G12): said as checks against the official pages, then the quiet 我们怎么核对 link; press reports (DECISIONS 17)
+  // are counted, not promised an official source.
+  assert.match(facts, /(?:逐条附官方来源|\d+ 条来自媒体报道) · 官网核对 (?:多数 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|\d+\/\d+) · 我们怎么核对$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
   // One date only when every listed item carries it; most on the latest day with a few older ones is still 多数 (§3.9).

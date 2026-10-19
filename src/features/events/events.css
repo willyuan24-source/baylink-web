@@ -1,8 +1,8 @@
 /*
  * The events column (plan WEB-EVENTS; design.md §4.11; UI9-EVENTS G10 / G12 / G15 / G17 / G18): /events, /this-month,
  * /calendar. Loaded with the route chunk (EventsShell imports it) and linked by the prerender (RC-6). Composes the WEB-UI
- * primitives (ui.css, cards.css); every class here is `ev-` prefixed, except the view row's .ui-tabs look, which only this
- * column uses (moved here from cards.css, so home's render-blocking CSS does not carry it). Text sizes are type tokens,
+ * primitives (ui.css, cards.css); every class here is `ev-` prefixed, and the view row's .ui-tabs look is scoped under .ev-tabs
+ * (moved here from cards.css, so home's render-blocking CSS does not carry it; Segmented.tsx says so). Text sizes are type tokens,
  * spacing is on the --sp-* steps, colours are tokens, weights 400/600 (600 only on H1/H2, card titles and primary buttons).
  * Rhythm: --section-gap between sections (40 phone / 64 desktop), --stack-head from a heading to its content, 16 px (phone)
  * / 32 px (desktop) between the view row and the first section; every block starts on the page frame (x=112 at 1440).
@@ -16,23 +16,25 @@
 .ev-range { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:400; }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-range { flex-basis:100%; }
 .ev-lede-facts { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
-.ev-lede-facts .ui-more { min-height:0; }
+/* 我们怎么核对 →: inline, so its 44 / 48 px target (padding) never makes the line taller (it did in 简洁 / 家人版). */
+html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:var(--sp-3); white-space:nowrap; }
+.ev-lede-facts .ui-more__arrow { display:inline-block; margin-inline-start:var(--sp-1); vertical-align:-.125em; }
 @media (max-width:767px) { .ev-page[data-view=list] .ev-lede-facts { min-height:calc(2em * 1.6); } }
 
 /* The view row: D3's segmented control (a pill track on the sunken surface, the current view an ink fill with paper text,
    44px items, 48 in 简洁显示), not sticky; one line at 390 in every language, a 2×2 grid at 大 / 特大 and in 简洁显示. */
 .ev-tabs-bar { margin:0 0 var(--sp-4); }
-.ui-tabs { display:flex; gap:var(--sp-1); width:max-content; max-width:100%; padding:var(--sp-1); border-radius:var(--r-pill); background:var(--color-surface-2); }
-.ui-tabs__item { display:inline-flex; align-items:center; justify-content:center; flex:none; min-height:var(--control-height); padding:0 var(--sp-4); border-radius:var(--r-pill); color:var(--color-ink-2); font-size:var(--fs-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.ui-tabs__item[aria-current] { background:var(--color-ink); color:var(--color-surface); }
-.ui-tabs__item:active { scale:.96; }
-@media (hover:hover) and (pointer:fine) { .ui-tabs__item:not([aria-current]):hover { background:var(--color-surface); color:var(--color-ink); } }
+.ev-tabs { display:flex; gap:var(--sp-1); width:max-content; max-width:100%; padding:var(--sp-1); border-radius:var(--r-pill); background:var(--color-surface-2); }
+.ev-tabs .ui-tabs__item { display:inline-flex; align-items:center; justify-content:center; flex:none; min-height:var(--control-height); padding:0 var(--sp-4); border-radius:var(--r-pill); color:var(--color-ink-2); font-size:var(--fs-body); line-height:1.25; font-weight:400; text-decoration:none; white-space:nowrap; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.ev-tabs .ui-tabs__item[aria-current] { background:var(--color-ink); color:var(--color-surface); }
+.ev-tabs .ui-tabs__item:active { scale:.96; }
+@media (hover:hover) and (pointer:fine) { .ev-tabs .ui-tabs__item:not([aria-current]):hover { background:var(--color-surface); color:var(--color-ink); } }
 @media (max-width:767px) {
-  .ui-tabs { width:100%; }
-  .ui-tabs__item { flex:1 1 auto; padding:0 var(--sp-2); font-size:var(--fs-keep-14); }
+  .ev-tabs { width:100%; }
+  .ev-tabs .ui-tabs__item { flex:1 1 auto; padding:0 var(--sp-2); font-size:var(--fs-keep-14); }
 }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ui-tabs { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); width:100%; max-width:40rem; border-radius:var(--r-lg); }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ui-tabs__item { border-radius:var(--r-md); white-space:normal; text-align:center; }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); width:100%; max-width:40rem; border-radius:var(--r-lg); }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs .ui-tabs__item { border-radius:var(--r-md); white-space:normal; text-align:center; }
 @media (min-width:1024px) { .ev-tabs-bar { margin-bottom:var(--sp-6); } }
 
 /* A view switch (P28 / N24, EventsShell useViewHold): the previous body stays at .55 with its height; after 300 ms a
@@ -48,14 +50,17 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ui-tabs_
    and the pick rows share the 12-column grid on desktop (span 8 + 4, the rows spread to the lead's bottom). */
 .ev-picks { margin:0 0 var(--section-gap); }
 @media (max-width:1023px) { .ev-picks__title { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; } }
-.ev-picks__grid { display:grid; gap:var(--sp-4) var(--grid-gutter); }
-/* The other picks: one 2-up row of cards on a standard phone; rows in the span-4 column on desktop (spread to the lead's
-   bottom) and at 大 / 特大 / 简洁显示. */
-.ev-picks__cards { --ui-feed-ratio:3 / 2; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-4) var(--grid-gutter); margin:0; padding:0; list-style:none; }
+.ev-picks__grid { display:grid; gap:var(--sp-3) var(--grid-gutter); }
+/* The other picks: on a standard phone picks 1–2 as one 2-up row of cards and the third as a row under them (the rows' first
+   two repeat the cards there, so they step aside); rows in the span-4 column on desktop (spread to the lead's bottom) and
+   at 大 / 特大. The feed leaves out exactly the picks shown here (WeekendView). */
+.ev-picks__cards { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-4) var(--grid-gutter); margin:0; padding:0; list-style:none; }
 .ev-picks__cards>li { min-width:0; }
-.ev-picks__rows { display:none; }
 .ev-picks__rows>:last-child>.ui-row-card { border-bottom:0; }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__rows { display:block; }
+@media (max-width:1023px) {
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks__rows>:nth-child(-n+2) { display:none; }
+  .ev-picks__cards+.ev-picks__rows:has(>:nth-child(3)) { margin-top:var(--sp-2); }
+}
 @media (min-width:1024px) {
   .ev-picks__grid { grid-template-columns:repeat(12, minmax(0, 1fr)); align-items:stretch; }
   .ev-picks__grid>.ev-lead { grid-column:span 8; }
@@ -65,8 +70,8 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks
 }
 
 /* The lead (EventLeadCard on HeroCard, no photo overlay): HeroCard's parts are laid out here as one column — cover, then
-   编辑推荐 · reason, the title, line 1, line 2 and ✓ 官网核对 — 2:1 inset on phones, 16:9 on desktop, 3:2 at 大 / 特大
-   and in 简洁显示. HeroCard's own rules (home) are unchanged. */
+   编辑推荐 · reason, the title, line 1, line 2 and ✓ 官网核对 — 2:1 inset on phones in every mode (DECISIONS 20; at 3:2 the
+   lead never fit the first screen at 特大 / 简洁 / 家人版, N18), 16:9 on desktop. HeroCard's own rules (home) are unchanged. */
 .ev-lead { gap:var(--sp-1); }
 .ev-lead :is(.ui-hero-card__media,.ui-hero-card__text) { display:contents; }
 .ev-picks .ev-lead :is(.ui-cover,.ui-type-cover) { order:0; aspect-ratio:2 / 1; margin-bottom:var(--sp-2); border-radius:var(--r-lg); }
@@ -77,7 +82,6 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks
 .ev-lead .ui-hero-card__meta { order:4; margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ev-lead .ui-hero-card__trust { order:5; font-size:var(--fs-meta); }
 @media (min-width:1024px) { .ev-picks .ev-lead :is(.ui-cover,.ui-type-cover) { aspect-ratio:16 / 9; } }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks .ev-lead :is(.ui-cover,.ui-type-cover) { aspect-ratio:3 / 2; }
 
 /* Rows on every events template (the calendar, the share strip, the pick rows, the elder-mode feeds): one 112px 4:3
    thumbnail; two columns of rows from 768px at 大 / 特大 and in 简洁显示. */
@@ -86,6 +90,11 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks
 /* Card anatomy (G18): the title, then line 1 (RowCard prints its date line first elsewhere). */
 .ev-page .ui-row-card__date { order:0; color:var(--color-ink); }
 @media (min-width:768px) { .ev-rows { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--grid-gutter); } }
+/* ♡ on a row (the 大 / 特大 feed, the desktop pick rows): the cards' 44 px icon circle, under the thumbnail, so the title and
+   both meta lines keep the row's whole width. */
+.ev-page .ui-row-card:has(>.ui-row-card__trailing .saves-control) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body" "trailing body"; }
+.ev-page .ui-row-card__trailing:has(.saves-control) { align-self:start; justify-self:start; }
+.ev-page .ui-row-card__trailing .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
 
 /* B · 本周末全部活动: the H2 and "找到 n 场" on one line, then the rails. */
 .ev-feed__head { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin:0 0 var(--stack-head); }
@@ -99,7 +108,9 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-picks
 .ev-rail__group { display:flex; flex:none; align-items:center; gap:var(--sp-2); }
 .ev-rail__group+.ev-rail__group { padding-inline-start:var(--sp-2); border-inline-start:1px solid rgb(var(--color-line-control-rgb) / .4); }
 .ev-rail .ui-chip>svg:last-child:not(:first-child) { margin-inline-start:calc(-1 * var(--sp-1)); }
+/* The date radios: the scopes, then the weekend's days after a separator (one radio group). */
 .ev-days { display:flex; gap:var(--sp-2); }
+.ev-rail__dates>.ev-days { padding-inline-start:var(--sp-2); border-inline-start:1px solid rgb(var(--color-line-control-rgb) / .4); }
 /* The day chips once stuck under the tabs on phones; they scroll with the list now. The rule stays for 大 / 特大 / 简洁显示
    (tests/prod-w3-fixes.test.tsx reads it). */
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-days-bar { position:static; }
@@ -107,18 +118,23 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-days-
 @media (min-width:1024px) { .ev-rail { flex-wrap:wrap; overflow:visible; margin:0; padding:0; } .ev-rail__group { flex-wrap:wrap; } }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-rail { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-rail__group { flex:0 1 auto; flex-wrap:wrap; max-width:100%; }
-html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-rail__group+.ev-rail__group { padding-inline-start:0; border-inline-start:0; }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.ev-rail__group+.ev-rail__group,.ev-rail__dates>.ev-days) { padding-inline-start:0; border-inline-start:0; }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-days { flex-wrap:wrap; }
 /* Rail 2, the one-tap regions (H23); at 大 / 特大 and in 简洁显示 the 整个湾区 ▾ chip on rail 1 opens them in the sheet. */
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-region-chip { display:inline-flex; }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.ev-regions,.ev-cities) { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-regions { display:none; }
-/* 简洁显示 shows less (content arrangement §6): the scopes, the tags but 免费, the pick rows, the city rail, the map toggle and
-   four of the six end links step aside (all of them stay in the sheet or a tap away). */
+/* 简洁显示 shows less (content arrangement §6): the tags but 免费 (and one that is on), the pick rows, the city rail, the map
+   toggle and four of the six end links step aside (all of them stay in the sheet or a tap away); WeekendView leaves out the
+   scopes other than 本周末 (the whole weekend) and the checked one. */
 html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev-cities,.ev-calendar__mode) { display:none; }
 
 /* The feed: 3:2 covers on /events and /calendar, 3-up at span 4 on desktop (FeedGrid's defaults stay for other pages);
    the date lists group the cards under day subheads. The boards' own "没有照片的条目…" line is said once in 本页图片来源. */
 .ev-cards { --ui-feed-ratio:3 / 2; }
+/* The phone 2-up rows (the feed and the picks): 4:3, the height C's date tile with its time bar needs at that width, so a
+   photo and a tile in one row share one cover height and their titles line up. */
+@media (max-width:767px) { :is(.ev-cards,.ev-picks__cards) { --ui-feed-ratio:4 / 3; } }
 @media (min-width:1024px) { .ev-cards .ui-feed-grid { --ui-feed-cols:3; } }
 .ev-page .ui-cover-credit { display:none; }
 .ev-day+.ev-day { margin-top:var(--sp-6); }
@@ -179,7 +195,7 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 
 /* 日历·地图: the week strip (‹ 10/19–25 › — the range opens the month grid and the region — then the 7 days), the day
    head (H2 · n 场 with 列表 | 地图 on one line), the city rail, the lead and the rows. */
-.ev-week { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; align-items:center; gap:var(--sp-1); margin:0 0 var(--sp-4); }
+.ev-week { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"prev range next" "days days days"; align-items:center; gap:var(--sp-1); margin:0 0 var(--sp-3); }
 .ev-week__prev { grid-area:prev; }
 .ev-week__next { grid-area:next; }
 .ev-week__range { grid-area:range; justify-self:center; display:inline-flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); padding:0 var(--sp-3); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink); font-size:var(--fs-body); font-variant-numeric:tabular-nums; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
@@ -211,7 +227,7 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-calendar__mode { flex:none; }
 .ev-calendar__mode .ui-segmented__item { padding:0 var(--sp-4); }
 .ev-calendar__mode .ui-segmented__item[aria-checked=true] { border-color:transparent; background:var(--color-ink); color:var(--color-surface); font-weight:400; }
-.ev-cities { margin:0 0 var(--sp-4); }
+.ev-cities { margin:0 0 var(--sp-3); }
 html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([aria-pressed=true]) { display:none; }
 .ev-calendar__map { display:grid; gap:var(--sp-2); margin:0 0 var(--sp-4); }
 .ev-calendar__note { margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -227,6 +243,14 @@ html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([ar
 /* The day's lead: 2:1 on a standard phone so it is complete on screen 1, 3:2 elsewhere; on desktop span 6 with the first
    four rows beside it. Rows (a 112px 4:3 thumbnail) come 12 at a time, each with one + 计划 control. */
 .ev-calendar__lead { margin:0 0 var(--sp-2); }
+/* Its + 计划 sits at the caption's trailing end, beside the title and line 1, so the card ends on the first screen (N18). */
+.ev-calendar__lead .ui-feed-card.ev-card--action { display:grid; grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"media media" "title add" "when add" "meta meta" "trust trust"; column-gap:var(--sp-3); align-items:start; }
+.ev-calendar__lead .ev-card--action>.ui-feed-card__media { grid-area:media; }
+.ev-calendar__lead .ev-card--action>.ui-feed-card__title { grid-area:title; }
+.ev-calendar__lead .ev-card--action>.ui-card-when { grid-area:when; }
+.ev-calendar__lead .ev-card--action>.ui-feed-card__meta { grid-area:meta; }
+.ev-calendar__lead .ev-card--action>.ui-feed-card__trust { grid-area:trust; }
+.ev-calendar__lead .ev-card--action>.ui-feed-card__save { grid-area:add; align-self:center; }
 @media (max-width:767px) { html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-calendar__lead .ui-feed-grid { --ui-feed-ratio:2 / 1; } }
 .ev-calendar__rows .ui-row-card.ev-card--action { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body" "thumb trailing"; }
 .ev-calendar__rows .ev-card--action .ui-row-card__trailing { align-self:start; }

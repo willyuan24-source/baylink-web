@@ -67,9 +67,11 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     const total = weekendEvents().length;
     const free = weekendEvents().filter(event => isFreeToAttend(event)).length;
     // H02: the check dates of the listed events (most of them, and the latest), not the edition's 10/7, said as checks
-    // against the official pages (UI9-EVENTS G12), then the quiet 我们怎么核对 → link to /about#about-method-title.
-    const checked = officialCheckLine(checkSummary(weekendEvents().map(event => event.verifiedAt), today)!, zh => zh);
-    assert.equal(page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' '), `${total} 场 · ${free} 场免费 · 逐条附官方来源 · ${checked} · 我们怎么核对`);
+    // against the official pages (UI9-EVENTS G12), then the quiet 我们怎么核对 → link to /about#about-method-title. A press
+    // report (DECISIONS 17) is left out of the 官网核对 dates and counted instead of the 逐条附官方来源 promise.
+    const reports = weekendEvents().filter(event => event.press).length;
+    const checked = officialCheckLine(checkSummary(weekendEvents().filter(event => !event.press).map(event => event.verifiedAt), today)!, zh => zh);
+    assert.equal(page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' '), `${total} 场 · ${free} 场免费 · ${reports ? `${reports} 条来自媒体报道` : '逐条附官方来源'} · ${checked} · 我们怎么核对`);
     assert.equal(page.querySelector('.ev-lede-facts a')!.getAttribute('href'), '/about#about-method-title');
     const tabs = [...page.querySelectorAll('nav[aria-label="活动分区"] a')];
     assert.deepEqual(tabs.map(tab => [tab.textContent, tab.getAttribute('href')]), [['本周末', '/events'], ['日历·地图', '/calendar'], ['免费与优惠', '/events?view=perks'], ['新店', '/events?view=openings']]);

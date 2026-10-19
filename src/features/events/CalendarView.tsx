@@ -168,7 +168,8 @@ export default function CalendarView({ today }: { today: string }) {
         <div className="ev-list-end ev-calendar__end">
           <p className="ev-list-end__count">{t(`已显示 ${shownEvents.length} / ${ordered.length} 场`, `Showing ${shownEvents.length} of ${ordered.length}`)}</p>
           {more > 0 && <Button variant="secondary" className="ev-list-end__more" onClick={() => setPages(current => ({ scope: `${scope}:${city}`, count: (current.scope === `${scope}:${city}` ? current.count : 1) + 1 }))}>{t(`再看 ${more} 场`, `Show ${more} more`)}</Button>}
-          <MoreLink to={`/calendar?date=${tomorrow}`} onClick={event => { event.preventDefault(); update({ date: tomorrow }); }}>{t(`明天 ${monthDay(tomorrow)}`, `Next day, ${monthDay(tomorrow, true)}`)}</MoreLink>
+          {/* 明天 only from today's list; from another day the next one by its date ("10/26 周一"). */}
+          <MoreLink to={`/calendar?date=${tomorrow}`} onClick={event => { event.preventDefault(); update({ date: tomorrow }); }}>{date === today ? t(`明天 ${monthDay(tomorrow)}`, `Tomorrow, ${monthDay(tomorrow, true)}`) : shortDate(tomorrow)}</MoreLink>
           {!past && <button type="button" className="ui-more ev-calendar__ask" onClick={askAboutDay}>{t('让 BayBay 帮我安排这一天', 'Ask BayBay to plan this day')}</button>}
         </div>
       </>

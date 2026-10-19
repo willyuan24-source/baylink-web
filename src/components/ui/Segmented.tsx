@@ -31,14 +31,19 @@ export type SegmentedTabsProps = {
 
 /**
  * Column switch (本周末 | 日历·地图 | 免费与优惠 | 新店). Route items render a <nav> of links with `aria-current`;
- * in-page items render an ARIA tablist with roving focus and arrow keys.
+ * in-page items render an ARIA tablist with roving focus and arrow keys. Its look (D3's segmented pill, UI9-EVENTS) is
+ * scoped in src/features/events/events.css under the caller's `.ev-tabs` class, so it stays off home's render-blocking CSS;
+ * another caller brings its own look (or asks UI9-INT to move the rules back here).
  */
 export function SegmentedTabs({ label, items, value, onChange, panelId, sticky, className }: SegmentedTabsProps) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const sharedClass = cx('ui-tabs', className);
   if (items.some(item => item.to)) {
+    // onChange only for a click the router handles here (a plain primary click): ⌘ / Ctrl / Shift / Alt-click opens a new
+    // tab or window and leaves this page where it is.
     return <nav aria-label={label} className={sharedClass} data-sticky={sticky ? '' : undefined}>
-      {items.map(item => <Link key={item.id} to={item.to || '#'} className="ui-tabs__item" aria-current={item.id === value ? 'page' : undefined} onClick={() => onChange?.(item.id)}>{item.label}</Link>)}
+      {items.map(item => <Link key={item.id} to={item.to || '#'} className="ui-tabs__item" aria-current={item.id === value ? 'page' : undefined}
+        onClick={event => { if (!event.defaultPrevented && event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) onChange?.(item.id); }}>{item.label}</Link>)}
     </nav>;
   }
   const onKeyDown = (event: KeyboardEvent, index: number) => {
@@ -69,30 +74,36 @@ export type SegmentedControlProps = {
 export type DayChipsProps = {
   label: string;
   items: SegmentItem[];
-  /** The checked day, or '' when none is (the whole weekend: the scope chip before the group says so). */
+  /** The checked item's id ('' checks none: the first radio then takes the tab stop). */
   value: string;
   onChange: (id: string) => void;
   className?: string;
+  /** The items from `from` on sit in their own wrapper (`className`), e.g. a weekend's days after the date scopes: still one
+   *  radio group, one checked radio. */
+  part?: { from: number; className: string };
 };
 
 /**
- * Day chips (UI9-EVENTS, G17: 周六 10/24 | 周日 10/25 | 两天都开放): one radio group on F's .ui-chip look, so the 本周末 rail
- * is one row of chips (the checked one takes the chip's ink fill). No radio need be checked: the first one then takes the
- * tab stop. Arrow keys move and select, as in SegmentedControl. Import it from './ui/Segmented' (not the barrel).
+ * Date chips (UI9-EVENTS, G17: 本周末 · 未来 7 天 · 全部日期 | 周六 10/24 · 周日 10/25 · 两天都开放): one radio group on F's
+ * .ui-chip look, so the rail is one row of chips (the checked one takes the chip's ink fill). They behave as radios: a click
+ * checks (never unchecks), arrow keys move and select as in SegmentedControl. Import it from './ui/Segmented' (not the barrel).
  */
-export function DayChips({ label, items, value, onChange, className }: DayChipsProps) {
+export function DayChips({ label, items, value, onChange, className, part }: DayChipsProps) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);
   const stop = Math.max(0, items.findIndex(item => item.id === value));
+  const radio = (item: SegmentItem, index: number) => <button key={item.id} ref={element => { refs.current[index] = element; }} type="button" role="radio" className="ui-chip"
+    aria-checked={item.id === value} tabIndex={index === stop ? 0 : -1} onClick={() => { if (item.id !== value) onChange(item.id); }}
+    onKeyDown={event => {
+      const next = arrowTarget(event, index, items.length);
+      if (next < 0) return;
+      event.preventDefault();
+      refs.current[next]?.focus();
+      if (items[next].id !== value) onChange(items[next].id);
+    }}>{item.label}</button>;
+  const head = part ? items.slice(0, part.from) : items;
   return <div role="radiogroup" aria-label={label} className={cx('ui-day-chips', className)}>
-    {items.map((item, index) => <button key={item.id} ref={element => { refs.current[index] = element; }} type="button" role="radio" className="ui-chip"
-      aria-checked={item.id === value} tabIndex={index === stop ? 0 : -1} onClick={() => onChange(item.id)}
-      onKeyDown={event => {
-        const next = arrowTarget(event, index, items.length);
-        if (next < 0) return;
-        event.preventDefault();
-        refs.current[next]?.focus();
-        onChange(items[next].id);
-      }}>{item.label}</button>)}
+    {head.map(radio)}
+    {part && items.length > part.from && <span className={part.className}>{items.slice(part.from).map((item, index) => radio(item, part.from + index))}</span>}
   </div>;
 }
 
