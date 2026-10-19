@@ -25,28 +25,30 @@ const today = days.find(day => snapshots[day].ids.length === 3 && snapshots[day]
 const serverHome = (day = today) => new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={day} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>)).window.document;
 const monthDay = (day: string) => `${Number(day.slice(5, 7))}/${Number(day.slice(8, 10))}`;
 
-test('the head asks the question and its subtitle states this weekend, the guide library and the check date (D21, HOMEIA-01)', () => {
+test('the masthead asks the question under the weekend dateline; one identity line; the trust line names how dates are checked (UI9-HOME, G12)', () => {
   const doc = serverHome();
   const weekend = getHomeWeekend(today);
   assert.equal(doc.querySelectorAll('h1').length, 1);
   assert.equal(doc.querySelector('h1')!.textContent, '这个周末，湾区去哪？');
-  const lede = doc.querySelector('.home-head__lede')!.textContent!;
-  assert.ok(lede.includes(`本周末 ${weekend.total} 场活动`), lede);
-  assert.ok(lede.includes(`${COMPLETE_GUIDES.length} 篇办事指南`), 'the whole guide library, not the home selection');
-  // H02: when this weekend's events were checked (most of them, and the latest), not the edition's date.
+  const range = weekend.start.slice(0, 7) === weekend.end.slice(0, 7) ? `${monthDay(weekend.start)}–${Number(weekend.end.slice(8))}` : `${monthDay(weekend.start)}–${monthDay(weekend.end)}`;
+  assert.equal(doc.querySelector('.home-head__dateline')!.textContent, `湾区本周末 · ${range}`);
+  assert.equal(doc.querySelector('.home-head__dateline time')!.getAttribute('datetime'), weekend.start);
+  assert.equal(doc.querySelector('.home-head__identity')!.textContent, '湾区华人家庭的周末活动与办事指南 · 免费 · 不用登录');
+  assert.equal(doc.querySelector('.home-head__lede'), null, 'the dense lede is gone');
+  // H02: when this weekend's events were checked (most of them, and the latest), as checks against the official pages.
   assert.ok(weekend.checked, 'the snapshot carries the check dates');
   const { mostly, latest, all } = weekend.checked!;
   const earliest = weekend.checked!.earliest ?? mostly;
-  assert.ok(lede.endsWith(earliest === latest ? (all === false ? `每条附官方来源，多数核对于 ${monthDay(latest)}` : `每条附官方来源，核对于 ${monthDay(latest)}`)
-    : mostly === latest ? `每条附官方来源，多数核对于 ${monthDay(mostly)}，最早 ${monthDay(earliest)}`
-      : `每条附官方来源，多数核对于 ${monthDay(mostly)}，最近 ${monthDay(latest)}`), lede);
-  assert.ok(!lede.includes(`${monthDay(MONTHLY_EDITION.checkedAt)} 核对`) || MONTHLY_EDITION.checkedAt === latest, lede);
-  assert.equal(doc.querySelector('.home-head__dateline time')!.getAttribute('datetime'), today);
+  const trust = doc.querySelector('.home-picks .home-trust')!;
+  assert.equal(trust.textContent, `每条附官方链接 · ${earliest === latest ? (all === false ? `多数 ${monthDay(latest)} 官网核对` : `${monthDay(latest)} 官网核对`)
+    : mostly === latest ? `多数 ${monthDay(mostly)} 官网核对 · 最早 ${monthDay(earliest)}` : `多数 ${monthDay(mostly)} 官网核对 · 最近 ${monthDay(latest)}`} · 我们怎么核对`);
+  assert.equal(trust.querySelector('a')!.getAttribute('href'), '/about#about-method-title', 'the only 我们怎么核对 anchor');
+  assert.doesNotMatch(doc.body.textContent!, /人工核对|编辑核对/);
   assert.equal(guideCount, COMPLETE_GUIDES.length);
   assert.doesNotMatch(doc.querySelector('.home-head')!.textContent!, /San Francisco Bay Area/, 'no English eyebrow on the Chinese home');
 });
 
-test('the picks are the weekly share card\'s three, each a cover with its date, ♡ 收藏 and 加入这天计划 (FC3-01, FC3-02)', () => {
+test('the picks are the weekly share card’s three in order, each a cover, the time window, status · place, ✓ and ♡, never 加入这天计划 (FC3-02, decision 16)', () => {
   const doc = serverHome();
   const weekend = getHomeWeekend(today);
   const picks = [...doc.querySelectorAll('.home-picks__list > li')];
@@ -55,14 +57,16 @@ test('the picks are the weekly share card\'s three, each a cover with its date, 
     const { event, date } = weekend.picks[index];
     assert.equal(card.querySelector('h3 a')!.getAttribute('href'), `/events/${event.id}?date=${date}`, 'the detail opens on the occurrence the card shows');
     assert.ok(date >= today && eventOccursOn(event, date));
-    assert.ok(card.querySelector('.ui-hero-card__media')!.textContent!.includes(monthDay(date)), `${event.id}: the date on the cover`);
-    // One save model: the ♡ is the save control, and 加入这天计划 is the saving control (a button), never a link to /plan.
+    assert.ok(card.querySelector('.ui-card-when')!.textContent!.includes(monthDay(date)), `${event.id}: line 1 is the date and time`);
+    assert.equal(card.querySelector('.ui-hero-card__trust')!.textContent, `官网核对 ${monthDay(event.verifiedAt)}`);
+    assert.equal(card.querySelector('.ui-hero-card')!.hasAttribute('data-overlay'), false, 'the caption layout: no text on the photo');
     assert.equal(card.querySelector('.saves-toggle')!.getAttribute('aria-label'), `收藏：${event.title}`);
-    assert.equal(card.querySelector('.saves-add-day')!.getAttribute('aria-label'), `加入这天计划：${event.title}`);
+    assert.equal(card.querySelector('.saves-add-day'), null, 'home picks drop 加入这天计划 (decision 16)');
     assert.equal(card.querySelector('a[href^="/plan"]'), null);
   });
-  assert.equal(doc.querySelector('.home-picks .home-section-head__more')!.getAttribute('href'), '/events');
-  assert.equal(doc.querySelector('.home-picks .home-section-head__more')!.textContent, `全部 ${weekend.total} 场`);
+  const all = doc.querySelector('.home-picks .home-picks__all')!;
+  assert.equal(all.getAttribute('href'), '/events');
+  assert.equal(all.textContent, `看本周末全部 ${weekend.total} 场`);
   // The date kicker sits inside the heading; a hidden separator keeps the heading's name from running together.
   const range = weekend.start.slice(0, 7) === weekend.end.slice(0, 7) ? `${monthDay(weekend.start)}–${Number(weekend.end.slice(8))}` : `${monthDay(weekend.start)}–${monthDay(weekend.end)}`;
   assert.equal(doc.querySelector('#home-picks-title')!.textContent, `本周末先看这几件，${range}`);
@@ -222,7 +226,8 @@ test('a Sunday never recommends yesterday and a published weekend without events
     assert.equal(view.container.querySelectorAll('.home-picks__list').length, 0);
     assert.ok(view.getByText('这个周末暂没有已确认的活动，先看常设去处或换个日期。'));
     assert.equal(view.getByRole('link', { name: '按地区找景点' }).getAttribute('href'), '/explore');
-    assert.equal(view.container.querySelector('.home-picks .home-section-head__more')!.textContent, '全部活动', 'never "全部 0 场"');
+    assert.equal(view.container.querySelector('.home-picks__all')!.textContent, '看本周末全部活动', 'never "全部 0 场"');
+    assert.equal(view.getByRole('link', { name: '看日历' }).getAttribute('href'), '/calendar');
     assert.equal(view.container.querySelector('.home-feed'), null);
     assert.equal(view.container.querySelector('.home-offers'), null, 'expired offers never look current');
   } finally {
@@ -236,16 +241,17 @@ test('past the published snapshots the home claims no count and no empty weekend
   const after = addCalendarDays(days.at(-1)!, 1);
   assert.equal(getHomeWeekend(after).total, null);
   const doc = serverHome(after);
-  assert.doesNotMatch(doc.querySelector('.home-head__lede')!.textContent!, /场活动/);
-  assert.equal(doc.querySelector('.home-picks .home-section-head__more')!.textContent, '全部活动');
+  assert.doesNotMatch(doc.querySelector('.home-head')!.textContent!, /场/);
+  assert.equal(doc.querySelector('.home-head__dateline time')!.getAttribute('datetime'), after, 'an unknown weekend: today’s date');
+  assert.equal(doc.querySelector('.home-picks__all')!.textContent, '看本周末全部活动');
   const all = doc.querySelector('.home-feed__all');
   if (all) assert.equal(all.textContent, '看本周末全部活动');
   assert.doesNotMatch(doc.body.textContent!, /暂没有已确认的活动|全部 \d+ 场|看本周末全部 \d+ 场/);
   // Far past the edition: nothing in the pool, and still no claim, only the way to the whole catalog.
   const later = serverHome('2099-01-05');
   assert.equal(later.querySelector('.home-picks__list'), null);
-  assert.equal(later.querySelector('.home-empty a')!.getAttribute('href'), '/events');
-  assert.equal(later.querySelector('.home-empty a')!.textContent, '看本周末全部活动');
+  assert.equal(later.querySelector('.home-picks__all')!.getAttribute('href'), '/events');
+  assert.equal(later.querySelector('.home-picks__all')!.textContent, '看本周末全部活动');
   assert.doesNotMatch(later.body.textContent!, /暂没有已确认的活动/);
   // A snapshot day keeps its count.
   assert.equal(getHomeWeekend(today).total, snapshots[today].total);
@@ -289,7 +295,8 @@ test('the first cover is fetched first; English has the question H1 and English 
     const view = render(<MemoryRouter basename="/en" initialEntries={['/en/']}><HomeDiscovery today={today} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></MemoryRouter>);
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
-    assert.match(view.container.querySelector('.home-head__lede')!.textContent!, /^\d+ events this weekend · \d+ guides · official sources, (?:mostly checked [A-Z][a-z]{2} \d+(?:, (?:latest|earliest) [A-Z][a-z]{2} \d+)?|checked [A-Z][a-z]{2} \d+)$/);
+    assert.equal(view.container.querySelector('.home-head__identity')!.textContent, 'Weekend outings and how-to guides for Chinese families in the Bay Area · Free · no sign-in');
+    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^An official link on every item · Source checked(?::)? (?:mostly )?[A-Z][a-z]{2} \d+(?: · (?:latest|earliest) [A-Z][a-z]{2} \d+)? · How we check$/);
     view.unmount();
   } finally {
     await setLocale('zh-Hans', false);

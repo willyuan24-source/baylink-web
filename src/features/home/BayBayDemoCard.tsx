@@ -9,20 +9,19 @@ const QUESTIONS = [
 ] as const;
 
 /**
- * ⑤ 问 BayBay (1007 §4.2 ⑤, HOME-07): what the assistant is for and how it answers, with three one-tap questions that open
- * the panel and send. No sample answer is shown: an answer is only real when BayBay gives it, with its sources.
+ * ⑤ 问 BayBay (G14, P06): a brand-deep band with the otter, the H2 and its AI 助手 tag, how it answers, and three one-tap
+ * questions that open the panel and send. No sample answer: an answer is only real when BayBay gives it, with its sources.
+ * Hidden in 简洁 (the tab bar's 问问 stays).
  */
 export function BayBayDemoCard({ onAsk }: { onAsk: (question: string) => void }) {
   const { t } = useUiCopy();
-  return <section className="home-baybay" aria-labelledby="home-baybay-title">
+  return <section className="home-baybay" aria-labelledby="home-baybay-title" data-simple="hide">
     <div className="home-baybay__head">
-      <img src="/brand/otter.svg" alt="" width={40} height={40} decoding="async" loading="lazy" />
-      <div>
-        <h2 id="home-baybay-title">{t('问 BayBay', 'Ask BayBay')}</h2>
-        <p>{t('先给一句结论，再附站内来源和核对日期', 'A short answer first, then the sources on BAYLINK and when they were checked')}</p>
-      </div>
+      <img src="/brand/otter.svg" alt="" width={48} height={48} decoding="async" loading="lazy" />
+      <h2 id="home-baybay-title">{t('问 BayBay', 'Ask BayBay')}</h2><span className="home-ai">{t('AI 助手', 'AI assistant')}</span>
     </div>
-    <ul className="home-baybay__questions" aria-label={t('可以这样问', 'Try asking')}>
+    <p>{t('先给一句结论，再附站内来源和核对日期', 'A short answer first, then the sources on BAYLINK and when they were checked')}</p>
+    <ul aria-label={t('可以这样问', 'Try asking')}>
       {QUESTIONS.map(question => <li key={question.zh}>
         <button type="button" onClick={() => onAsk(t(question.zh, question.en))}>{t(question.zh, question.en)}<ArrowUp aria-hidden="true" strokeWidth={1.75} /></button>
       </li>)}

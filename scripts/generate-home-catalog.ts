@@ -9,6 +9,7 @@ import { guideTopicOf } from '../src/data/guide-topics';
 import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
+import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
@@ -53,6 +54,12 @@ const homeGuides = guides.filter(guide => homeSlugs.has(guide.slug)).map(guide =
     // ≤ base, captain decision 9); /guides and a guide's 接下来 rail print them (generate-guide-data.ts).
     sources: guideSourceCount(guide), readMinutes: guideReadMinutes(guide), ...(usable ? { imageKey: cover.src } : {}),
   };
+});
+// UI9-HOME: 长辈常用电话 — the 长辈与家属 intent's guides that carry a cover phone (the number the guide's own call button
+// dials), in the intent's order: the guide's slug and cover question, the phone's label, the number as written and its tel.
+const elderCalls = (HOME_INTENTS.find(intent => intent.id === 'elders')?.slugs ?? []).flatMap(slug => {
+  const cover = GUIDE_EDITORIAL[slug]?.cover;
+  return cover?.phone ? [{ slug, title: cover.question, label: cover.phone.label, number: cover.phone.number, tel: cover.phone.tel }] : [];
 });
 const missing = [...homeSlugs].filter(slug => !homeGuides.some(guide => guide.slug === slug));
 if (missing.length) throw new Error(`Home intent guides not in the catalog: ${missing.join(', ')}`);
@@ -127,7 +134,7 @@ const scene3dStrip = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-chinatown-lan
 
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/home-catalog.json', JSON.stringify({
-  guides: homeGuides, guideCount: guides.length, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate,
+  guides: homeGuides, guideCount: guides.length, elderCalls, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate,
   edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d, scene3dStrip,
 }));
 console.log(`Home catalog: ${homeGuides.length} guide summaries, ${events.length} event facts, ${offers.length} offers; no article bodies.`);

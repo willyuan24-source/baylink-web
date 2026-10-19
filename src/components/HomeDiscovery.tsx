@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight } from 'lucide-react';
 import { useUiCopy } from './ui/ui-copy';
 import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
 import { createCoverPage, getCover, type CoverContext } from '../lib/cover';
 import { getBayAreaToday } from '../lib/monthly';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
-import { getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
+import { ELDER_CALLS, getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers } from '../lib/home-offers';
 import { HomeHead } from '../features/home/HomeHead';
 import { HeroPicks } from '../features/home/HeroPicks';
@@ -12,8 +13,9 @@ import { MoodCircles } from '../features/home/MoodCircles';
 import { WeekendFeed } from '../features/home/WeekendFeed';
 import { BayBayDemoCard } from '../features/home/BayBayDemoCard';
 import { GuideRail } from '../features/home/GuideRail';
-import { OfferTickets } from '../features/home/OfferTickets';
+import { homeOfferCount, OfferTickets } from '../features/home/OfferTickets';
 import { ShareStrip } from '../features/home/ShareStrip';
+import { ElderCalls } from '../features/home/ElderCalls';
 import { Home3DTile } from '../features/home/Home3DTile';
 import { HomeImageCredits } from '../features/home/HomeImageCredits';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
@@ -25,12 +27,13 @@ function readSavedIntent(): HomeIntentId | undefined {
 }
 
 /**
- * The home page (plan WEB-HOME, 1007 §4.2): nine sections in one 1216 container — ① the question headline with the ask
- * box, ② this weekend's picks (a 4:5 rail on phones, the cover mosaic beside the headline on desktop), ③ 按心情找,
- * ④ the weekend's two-column feed, ⑤ 问 BayBay, ⑥ the guide intents with 长辈与家属, ⑦ free days and deals, ⑧ the
- * family-chat share card and ⑨ the neighborhood line and the 3D tile. Every cover comes from getCover on one page context
- * (no image twice, no AI art on a listing); every section renders eagerly, so the prerendered page carries all of it
- * (OPUS contract: the /opus-bay?from=home tile and the client-side 按日历看 link). Props are the OPUS contract's.
+ * The home page (UI9-HOME content arrangement): ① the masthead and ② this weekend's picks (the lead beside the masthead on
+ * a desktop), the trust line, ③ 按需要找 and the family-chat card; ④ the weekend's feed with the 3D strip; ⑤ free days and
+ * deals; ⑥ 问 BayBay; ⑦ the guide intents; ⑧ 长辈常用电话 beside the 3D tile; ⑨ the credits line. Events (去哪) first, then
+ * the band, then help (怎么办). Every cover comes from getCover on one page context in the order picks, feed, guides,
+ * offers (no image twice, no AI art on a listing); every section renders eagerly, so the prerendered page carries all of
+ * it (OPUS contract: the /opus-bay?from=home tile and strip, the client-side 按日历看 link). 简洁 and 家人版 are CSS only
+ * (`data-simple="hide" | "only"`, home-discovery.css). Props are the OPUS contract's.
  */
 export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today: suppliedToday }: {
   onAskBayBay: (question?: string) => void; onBrowseCommunity: () => void;
@@ -66,25 +69,27 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       offers: offers.map(offer => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, context)),
     };
   }, [weekend, guides, offers, today]);
-  // ⑧ offers the share card only on days the build wrote a card for (the week after it): on a later day the undated card is
+  // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is
   // an earlier weekend's, so saving it would send the family the wrong three until the next build.
   const cardHref = getWeeklyCardDays().includes(today) ? getWeeklyCardHref(today) : null;
 
   return <section className="home-discovery" aria-label={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}>
     <div className="home-top">
-      <HomeHead today={today} weekendTotal={weekend.total} guideCount={guideCount} checked={weekend.checked} onAskBayBay={onAskBayBay} onSearch={onSearch} />
-      <HeroPicks picks={weekend.picks} covers={covers.picks} today={today} start={weekend.start} end={weekend.end} total={weekend.total} />
+      <HomeHead today={today} start={weekend.start} end={weekend.end} known={weekend.total !== null} onAskBayBay={onAskBayBay} onSearch={onSearch} />
+      <HeroPicks picks={weekend.picks} covers={covers.picks} today={today} start={weekend.start} end={weekend.end} total={weekend.total} checked={weekend.checked} />
       <MoodCircles seniors={weekend.seniors} />
+      {cardHref && <ShareStrip count={weekend.picks.length} cardHref={cardHref} />}
     </div>
     <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} today={today} total={weekend.total} />
+    <OfferTickets offers={offers} covers={covers.offers} today={today} />
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />
     <GuideRail intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
-    <OfferTickets offers={offers} covers={covers.offers} today={today} />
     <div className="home-end">
-      {cardHref && <ShareStrip picks={weekend.picks} start={weekend.start} end={weekend.end} cardHref={cardHref} />}
+      <ElderCalls calls={ELDER_CALLS} />
       <Home3DTile />
     </div>
-    {COMMUNITY_VISIBLE && <p className="home-community"><button type="button" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}</button></p>}
-    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers]} />
+    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers.slice(0, homeOfferCount(offers, covers.offers, today))]}>
+      {COMMUNITY_VISIBLE && <button type="button" className="home-community" data-simple="hide" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></button>}
+    </HomeImageCredits>
   </section>;
 }

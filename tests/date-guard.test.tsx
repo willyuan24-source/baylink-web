@@ -211,10 +211,18 @@ test('WEB-HOME marks its own date blocks with dateScope(), so home stays covered
   const markup = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today={BUILD_DAY} onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
   const doc = new JSDOM(`<!doctype html><html><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
   const scope = (selector: string) => [...doc.querySelectorAll(selector)].map(node => node.getAttribute('data-date-scope'));
-  for (const [selector, expected] of [['.home-picks', 'weekend'], ['.home-feed', 'weekend'], ['.home-share', 'weekend'], ['.home-head__lede', 'weekend'],
-    ['.home-head__dateline', 'day'], ['.home-offers', 'day']] as const) {
+  // UI9-HOME: the dateline shows the weekend ("湾区本周末 · 10/24–25"); the count and the check dates sit in the picks.
+  for (const [selector, expected] of [['.home-picks', 'weekend'], ['.home-feed', 'weekend'], ['.home-share', 'weekend'],
+    ['.home-head__dateline', 'weekend'], ['.home-offers', 'day']] as const) {
     const scopes = scope(selector);
     assert.ok(scopes.length >= 1, `${selector} is on the prerendered home`);
     assert.deepEqual(scopes, scopes.map(() => expected), `${selector} is a ${expected} block`);
   }
+  assert.ok(doc.querySelector('.home-picks .home-trust') && doc.querySelector('.home-picks .home-picks__all'), 'the trust line and the weekend count are weekend blocks');
+  assert.equal(doc.querySelector('.home-head__identity')?.hasAttribute('data-date-scope'), false, 'the identity line carries no date');
+  // A day past the snapshots: the weekend is unknown, so the dateline shows today's date, keyed to the day.
+  const after = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery today="2099-01-05" onAskBayBay={() => {}} onBrowseCommunity={() => {}} /></StaticRouter>);
+  const later = new JSDOM(`<!doctype html><html><body>${after}</body></html>`).window.document;
+  assert.equal(later.querySelector('.home-head__dateline')!.getAttribute('data-date-scope'), 'day');
+  assert.equal(later.querySelector('.home-head__dateline time')!.getAttribute('datetime'), '2099-01-05');
 });
