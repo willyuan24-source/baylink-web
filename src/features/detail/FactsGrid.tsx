@@ -151,14 +151,15 @@ export function OfferFacts({ offer, official }: { offer: FreebieOffer; official?
 
 /**
  * The 开业 key is openingChip's own text (10/11 已开业 / 预计 11/20 开业), the string the opening boards print on line 1; the
- * listing's date line (hours, soft-open notes) and the status note follow at 400. Presentation only, no data edit.
+ * listing's date line (hours, soft-open notes) and the status note follow at 400 (简洁显示 keeps the hours, the key already
+ * says whether it is open). Presentation only, no data edit.
  */
 export function OpeningFacts({ shop, today, official }: { shop: SeptemberOpening; today: string; official?: FactsLink }) {
   const { t, pick, locale } = useUiCopy();
   const dateLine = readerNode(shop.dateLabel, locale);
   const cells: Cell[] = [
     { key: 'when', icon: <CalendarDays aria-hidden="true" />, label: t('开业', 'Opening'), value: pick(openingChip(shop, today)), aside: official && outLink(official),
-      note: <>{dateLine && <span className="detail-fact__line">{dateLine}</span>}<span className="detail-fact__line">{translateText(openingStatusNote(shop.status), locale)}</span></> },
+      note: <>{dateLine && <span className="detail-fact__line">{dateLine}</span>}<span className="detail-fact__line" data-simple="hide">{translateText(openingStatusNote(shop.status), locale)}</span></> },
     { key: 'where', icon: <MapPin aria-hidden="true" />, label: t('在哪', 'Where'), value: shop.address || translateText(shop.city, locale),
       aside: outLink({ href: mapLink(`${shop.name}, ${shop.address || shop.city}`), label: t('地图', 'Map') }, true) },
     { key: 'what', icon: <Store aria-hidden="true" />, label: t('类型', 'Type'), value: translateText(shop.category, locale) },
