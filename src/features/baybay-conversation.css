@@ -1,3 +1,43 @@
+/* The BayBay panel's frame (BayBayAssistantEntry's .member-baybay-* classes), moved here from src/features/member-ui.css by
+   UI9-PREP with every declaration unchanged. The overlay and focus rules it shared with the publishing dialog are split per
+   dialog (same declarations, same specificity). They open this sheet, so they still come before its own .baybay-* rules, as
+   they did when member-ui.css loaded first. */
+.member-baybay-overlay { position: fixed; inset: 0; z-index: 105; display: flex; align-items: center; justify-content: center; padding: 24px; background: rgb(var(--color-ink-rgb) / .5); backdrop-filter: blur(9px); }
+.member-baybay-overlay :is(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--color-brand); outline-offset: 3px; }
+
+/* BayBay blends a warm conversational frame with honest, existing shortcuts. */
+.member-baybay-dialog { display: flex; flex-direction: column; width: 100%; max-width: 650px; max-height: min(87vh, 820px); max-height: min(87dvh, 820px); overflow: hidden; border: 1px solid rgb(var(--color-surface-rgb) / .32); border-radius: var(--r-xl); background: var(--color-surface-2); box-shadow: var(--e2); }
+.member-baybay-header { display: flex; flex-shrink: 0; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 28px; background: var(--color-brand-deep); }
+.member-baybay-avatar { width: 55px; height: 55px; flex-shrink: 0; object-fit: cover; border: 1px solid rgb(var(--color-highlight-rgb) / .29); border-radius: var(--r-lg); }
+.member-baybay-header h2 { display: flex; align-items: center; gap: 6px; margin-top: 6px; color: var(--color-brand-tint); font-size: 1.125rem; line-height: 1.5; font-weight: 600; letter-spacing: 0; }
+.member-baybay-header h2 > svg { color: var(--color-highlight); }
+.member-baybay-header p { max-width: 385px; margin-top: 7px; color: var(--color-on-brand-muted); font-size: .8125rem; line-height: 1.8; }
+.member-baybay-body { min-height: 0; flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 27px 28px 25px; }
+.member-baybay-composer { display: flex; align-items: stretch; gap: 8px; margin-top: 18px; padding: 6px; border: 1px solid var(--color-line-strong); border-radius: var(--r-lg); background: white; box-shadow: var(--e1); }
+.member-baybay-composer:focus-within { border-color: var(--color-brand); box-shadow: 0 0 0 3px rgb(var(--color-brand-rgb) / .05); }
+.member-baybay-question-input { min-width: 0; flex: 1; padding: 10px 8px; border: 0; outline: none; border-radius: var(--r-sm); background: transparent; color: var(--color-brand-deep); font-size: .8125rem; }
+.member-baybay-question-input::placeholder { color: var(--color-ink-3); }
+.member-baybay-ask { display: flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; min-height: 42px; padding: 11px 14px; border-radius: var(--r-md); background: var(--color-brand); color: white; font-size: .8125rem; font-weight: 600; transition: background-color .16s; }
+.member-baybay-ask:hover { background: var(--color-brand-deep); }
+.member-baybay-answer { margin-top: 20px; padding: 21px; border: 1px solid var(--color-line); border-radius: var(--r-sm) var(--r-lg) var(--r-lg); background: white; }
+.member-baybay-answer-label { display: flex; align-items: center; gap: 6px; margin-bottom: 13px; font-size: var(--text-caption); font-weight: 400; color: var(--color-brand); }
+.member-baybay-answer-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .8125rem; line-height: 1.9; color: var(--color-ink-3); }
+.member-baybay-action { padding: 9px 13px; border-radius: var(--r-md); font-size: .8125rem; font-weight: 600; }
+@media (max-width: 639px) {
+  .member-baybay-overlay { align-items: flex-end; padding: 0; }
+  .member-baybay-dialog { max-height: 93vh; max-height: 93dvh; border: 0; border-radius: var(--r-xl) var(--r-xl) 0 0; }
+  .member-baybay-header { gap: 11px; padding: 24px 20px; }
+  .member-baybay-avatar { width: 44px; height: 44px; border-radius: var(--r-lg); }
+  .member-baybay-header h2 { gap: 4px; font-size: 1rem; }
+  .member-baybay-header p { font-size: .8125rem; }
+  .member-baybay-body { padding: 24px 20px calc(env(safe-area-inset-bottom, 0px) + 24px); }
+  .member-baybay-question-input { font-size: 1rem; padding-left: 5px; }
+  .member-baybay-ask { padding-right: 10px; padding-left: 10px; font-size: .8125rem; }
+  .member-baybay-answer { padding: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .member-baybay-ask { transition: none; }
+}
 .baybay-conversation { max-width: 730px; }
 .baybay-coverage { margin:12px 0; padding:11px 13px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface-2); font-size:.8125rem; line-height:1.7; overflow-wrap:anywhere; }
 .baybay-coverage summary { cursor:pointer; font-weight:400; }
