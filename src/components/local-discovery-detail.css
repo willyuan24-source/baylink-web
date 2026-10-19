@@ -109,7 +109,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 .site-detail-actions.detail-actions { display:flex; align-items:center; gap:var(--sp-1); }
 .site-detail-actions.detail-actions>.detail-actions__cell { flex:none; }
 .site-detail-actions.detail-actions>.detail-actions__primary { flex:1; min-width:0; container:detail-primary / inline-size; }
-.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:3.5rem; height:3.5rem; min-height:0; padding:0 var(--sp-2); border:0; border-radius:var(--r-md); background:none; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:1.2; white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
+.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:56px; height:56px; min-height:0; padding:0 var(--sp-2); border:0; border-radius:var(--r-md); background:none; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:1.2; white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
 .site-detail-actions.detail-actions :is(.detail-actions__cell svg,.detail-actions__cell img) { flex:none; width:1.5rem; height:1.5rem; }
 .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):active { scale:.94; background:var(--color-surface-2); }
 .site-detail-actions.detail-actions :is([data-label=desk],[data-label=tight]) { display:none; }
@@ -131,10 +131,14 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions { position:fixed; z-index:50; inset:auto 0 0; height:var(--site-mobile-nav-height); padding:var(--sp-1) var(--sp-3) calc(var(--sp-1) + env(safe-area-inset-bottom,0px)) var(--sp-2); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); box-shadow:var(--e1); }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
 }
-/* Below 360 px at 特大 / 简洁显示 the ask cell reads BayBay beside the otter; its name stays 问 BayBay 这一页. */
+/* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
+   labels keep the caption step they had, and a primary wider than its cell breaks in balance (加入这 / 天计划) until the
+   shorter 加入计划 label exists (UI9-INT, AddToDayPlan). */
 @media (max-width:359px) {
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions [data-label=long] { display:none; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
+  .site-detail-actions.detail-actions [data-label=long] { display:none; }
+  .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { font-size:var(--fs-badge); }
+  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-wrap:balance; }
   .local-discovery-detail .detail-head h1 .title-keep { white-space:normal; }
 }
 

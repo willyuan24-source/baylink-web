@@ -178,7 +178,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             {chips.slice(0, 2).map(chip => <StatusChip key={chip.key} tone={chip.tone}>{chip.text}</StatusChip>)}
           </p>
           <h1><SegmentedTitle text={heading} /></h1>
-          {sub && <p className={item.kind === 'offer' ? 'detail-sub detail-brand' : 'detail-sub'}>{sub}</p>}
+          {/* The offer's brand stays in 简洁显示 (the H1 drops it); an opening's city is in its address too. */}
+          {sub && (item.kind === 'offer' ? <p className="detail-sub detail-brand">{sub}</p> : <p className="detail-sub" data-simple="hide">{sub}</p>)}
           {dek && <p className="detail-dek" data-simple="hide"><ReaderText text={event?.dek} /></p>}
         </header>
         {/* Ended: one notice under the head (the date, the archive sentence and the official link), then what is on next. */}
