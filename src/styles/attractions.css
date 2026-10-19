@@ -64,7 +64,9 @@
 .xp-3d__head p{margin:6px 0 0;max-width:40em;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.571}
 .xp-3d__rail{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin:16px 0 0;padding:0;list-style:none}
 .xp-3d__item{display:flex;flex-direction:column;gap:2px;color:var(--color-ink);text-decoration:none}
-.xp-3d__item .ui-cover{border-radius:var(--r-md);margin-bottom:6px}
+/* The AI 3D postcards keep their own corners and 600 badge (captain decision 1; --r-postcard-sm in tokens.css). */
+.xp-3d__item .ui-cover{border-radius:var(--r-postcard-sm);margin-bottom:6px}
+.xp-3d__item .ui-provenance{font-weight:600}
 .xp-3d__name{font-size:var(--text-fact);line-height:1.429;font-weight:600}
 .xp-3d__go{color:var(--color-brand);font-size:var(--text-caption);line-height:1.385;font-weight:600}
 .xp-3d__item:hover .xp-3d__name{text-decoration:underline}

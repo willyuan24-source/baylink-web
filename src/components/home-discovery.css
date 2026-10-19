@@ -61,8 +61,11 @@
 /* ④ weekend feed */
 .home-feed__all { margin-top:16px; }
 /* The 3D strip after the first four cards (H36): the postcard and two lines, one tap into the 3D world (a full page load). */
-.home-3d-strip { display:flex; align-items:center; gap:14px; padding:10px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); }
-.home-3d-strip .home-3d-strip__art { flex:none; width:9.5rem; border-radius:var(--r-md); }
+/* The AI 3D postcards stay as they were before tokens v2 (captain decision 1): their own corners (--r-postcard*) and a
+   600 provenance badge, here and on the ⑨ tile below. */
+.home-3d-strip { display:flex; align-items:center; gap:14px; padding:10px; border:1px solid var(--color-line); border-radius:var(--r-postcard); background:var(--color-surface); color:var(--color-ink); }
+.home-3d-strip .home-3d-strip__art { flex:none; width:9.5rem; border-radius:var(--r-postcard-sm); }
+:is(.home-3d,.home-3d-strip) .ui-provenance { font-weight:600; }
 .home-3d-strip__text { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .home-3d-strip__text strong { font-size:var(--text-body); line-height:1.5; font-weight:600; text-wrap:pretty; }
 .home-3d-strip__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -130,7 +133,7 @@
 .home-share__calendar { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .home-share__calendar svg { width:1rem; height:1rem; }
 .home-3d { display:flex; flex-direction:column; gap:10px; color:var(--color-ink); }
-.home-3d .ui-cover { border-radius:var(--r-lg); }
+.home-3d .ui-cover { border-radius:var(--r-postcard); }
 .home-3d__text { display:flex; flex-direction:column; gap:2px; }
 .home-3d__text strong { font-size:var(--text-card); line-height:1.444; font-weight:600; }
 .home-3d__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
