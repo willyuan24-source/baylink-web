@@ -8,7 +8,7 @@ import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffer
 import { useIndexEvents } from './events-later';
 import type { IndexOffer, MonthlyRegion } from './events-index-types';
 import { getMonthlyDateRange } from '../../lib/monthly';
-import { OfferFeedCard, OfferRowCard } from './BoardCards';
+import { OfferFeedCard } from './BoardCards';
 import { offerSections, type OfferSectionId } from './board-status';
 import { ImageCredits } from './ImageCredits';
 import { OptionSheetFilter, RegionFilter, useBoardMode, useSetRegion } from './RegionFilter';
@@ -58,9 +58,7 @@ export default function PerksView({ today, region }: { today: string; region: Mo
   const count = (n: number) => t(`${n} 条`, `${n} ${n === 1 ? 'offer' : 'offers'}`);
   const sheetStatus = t(`显示 ${offers.length} 条`, `Show ${offers.length}`);
   const pickKind = (id: OfferKind) => { setKind(id); setExtra(NO_EXTRA); };
-  const card = (offer: IndexOffer) => mode.rows
-    ? <OfferRowCard offer={offer} cover={covers.get(offer.id)!} today={today} simple={mode.simple} />
-    : <OfferFeedCard offer={offer} cover={covers.get(offer.id)!} today={today} />;
+  const card = (offer: IndexOffer) => <OfferFeedCard offer={offer} cover={covers.get(offer.id)!} today={today} row={mode.rows} simple={mode.simple} />;
 
   // Empty: one primary that widens the narrower filter, with what it would show.
   const wideRegion = region !== 'all' ? liveOffers(INDEX_OFFERS, today, kind, 'all').length : 0;

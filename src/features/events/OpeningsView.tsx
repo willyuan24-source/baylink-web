@@ -5,7 +5,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { INDEX_OPENINGS, coverContext, filterOpenings } from './events-model';
 import type { IndexOpening, MonthlyRegion } from './events-index-types';
-import { OpeningFeedCard, OpeningRowCard } from './BoardCards';
+import { OpeningFeedCard } from './BoardCards';
 import { openingSections, type OpeningSectionId } from './board-status';
 import { ImageCredits } from './ImageCredits';
 import { RegionFilter, useBoardMode, useSetRegion } from './RegionFilter';
@@ -41,9 +41,7 @@ export default function OpeningsView({ today, region }: { today: string; region:
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by the ids shown
   }, [shownKey, today]);
   const count = (n: number) => t(`${n} 家`, `${n} ${n === 1 ? 'shop' : 'shops'}`);
-  const card = (shop: IndexOpening) => mode.rows
-    ? <OpeningRowCard opening={shop} cover={covers.get(shop.id)!} today={today} simple={mode.simple} />
-    : <OpeningFeedCard opening={shop} cover={covers.get(shop.id)!} today={today} />;
+  const card = (shop: IndexOpening) => <OpeningFeedCard opening={shop} cover={covers.get(shop.id)!} today={today} row={mode.rows} simple={mode.simple} />;
   return <div className="fb-board">
     <div className="fb-filters">
       <RegionFilter region={region} status={t(`显示 ${openings.length} 家`, `Show ${openings.length}`)} />

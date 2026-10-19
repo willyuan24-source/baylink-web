@@ -31,9 +31,8 @@ export function offerWhen(offer: OfferDates, today: string): Copy {
   const start = validDay(offer.startDate) ? offer.startDate : undefined;
   if (offer.weekdays?.length) {
     const days = [...offer.weekdays].sort((a, b) => a - b);
-    const zh = `每${days.map(day => WEEKDAYS_ZH[day]).join('、')}`;
-    const en = `Every ${days.map(day => WEEKDAYS_EN[day]).join(' & ')}`;
-    return end ? { zh: `${zh} · 至 ${readerMonthDay(end)}`, en: `${en} · until ${readerMonthDay(end, true)}` } : { zh, en };
+    const every: Copy = { zh: `每${days.map(day => WEEKDAYS_ZH[day]).join('、')}`, en: `Every ${days.map(day => WEEKDAYS_EN[day]).join(' & ')}` };
+    return end ? { zh: `${every.zh} · 至 ${readerMonthDay(end)}`, en: `${every.en} · until ${readerMonthDay(end, true)}` } : every;
   }
   if (!end) {
     if (offer.availability === 'ongoing') return start && start > today ? { zh: `${readerMonthDay(start)} 起`, en: `From ${readerMonthDay(start, true)}` } : { zh: '长期有效', en: 'Ongoing' };
@@ -49,7 +48,7 @@ export function offerWhen(offer: OfferDates, today: string): Copy {
  * Urgency applies only once the offer has started: a 10/25-only offer read on 10/19 shows no chip (line 1 carries its day),
  * not "还剩 6 天". Otherwise none: the value (免费, 半价) is the cover's key fact, so no 免费 chip is printed here.
  */
-export function offerChip(offer: Pick<IndexOffer, 'status' | 'startDate' | 'endDate'>, today: string): BoardStatus | null {
+export function offerChip(offer: { status?: string; startDate?: string; endDate?: string }, today: string): BoardStatus | null {
   if (offer.status === 'sold_out') return { tone: 'urgent', text: { zh: '已售罄', en: 'Sold out' } };
   if (!validDay(offer.endDate) || (validDay(offer.startDate) && offer.startDate > today)) return null;
   const left = daysBetween(today, offer.endDate);

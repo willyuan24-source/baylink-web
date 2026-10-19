@@ -1,96 +1,100 @@
-/* The deals board on the freebies guides (FreebieBoard.tsx), G26: text on the ink tokens (AA ≥ 4.5 on its card), every
-   label at least 13px (--text-caption), controls 44px (48 in 简洁显示 through --control-height). The kind chips use the
-   TypeCover pairs from ui.css (each ≥ 4.5:1, scripts/check-editorial-styles.mjs), with plain fallbacks. */
-.bl-freebie-board { margin:32px 0; min-width:0; color:var(--color-ink); }
+/* The deals board on the freebies guides (FreebieBoard.tsx), G26 / UI-9 (UI9-FREE): text on the ink tokens (AA ≥ 4.5 on its
+   card), titles 600 and every other line 400, controls from the primitives (SegmentedControl, FilterChip, Button, TextLink;
+   no bespoke button looks here), the status chip from C's one map, spacing on the 4 px token steps, hover only where a
+   pointer can hover. */
+.bl-freebie-board { --fb-between:calc(var(--sp-6) + var(--sp-2)); margin:var(--sp-6) 0; min-width:0; color:var(--color-ink); }
+@media (min-width:1024px) { .bl-freebie-board { --fb-between:var(--sp-8); } }
 [id^="freebie-board-"] { scroll-margin-top:130px; }
-.bl-freebie-jump { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:var(--control-height); margin-top:15px; padding:10px 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; line-height:1.5; text-decoration:none; }
-.bl-freebie-jump:hover { border-color:var(--color-brand); background:var(--color-brand-tint); }
+/* A card linked by its anchor (#offer-…) stops below the sticky header (moved from monthly-discoveries.css). */
+.bl-freebie-card[id] { scroll-margin-top:110px; }
+/* GuideDetail's 看免费领取图鉴 link (GUIDES may move it onto Button secondary). */
+.bl-freebie-jump { display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-2); min-height:var(--control-height); margin-top:var(--sp-4); padding:var(--sp-2) var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:400; line-height:1.5; text-decoration:none; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .bl-freebie-jump>svg { flex-shrink:0; }
-.bl-freebie-jump:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
-.bl-freebie-board-heading>span { display:flex; align-items:center; gap:7px; color:var(--color-ink-3); font-size:var(--text-caption); font-weight:600; letter-spacing:.08em; }
-.bl-freebie-board-heading h2 { margin:12px 0 8px; color:var(--color-ink); font-size:var(--text-section); line-height:1.4; font-weight:600; }
+.bl-freebie-jump:active { scale:.96; }
+.bl-freebie-jump:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+
+/* Head: "Little perks" (G6: no capitals, no letter-spacing), the h2, the stats (numerals ≤ the h2, labels 400). */
+.bl-freebie-board-heading>span { display:flex; align-items:center; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }
+.bl-freebie-board-heading>span>svg { width:1rem; height:1rem; }
+.bl-freebie-board-heading h2 { margin:var(--sp-3) 0 var(--sp-2); color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 .bl-freebie-board-heading>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
-.bl-freebie-board-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(8rem,40%),1fr)); gap:1px; margin:20px 0 8px; overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-line); }
-.bl-freebie-board-stats>span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; min-width:0; padding:12px 8px; color:var(--color-ink-2); font-size:var(--text-caption); background:var(--color-surface-2); text-align:center; }
-.bl-freebie-board-stats strong { color:var(--color-brand-deep); font-size:var(--text-section); font-weight:600; line-height:1.1; }
-.bl-freebie-board-count-note { margin:0 0 16px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.bl-freebie-filters { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px; }
-.bl-freebie-filters button { min-height:var(--control-height); padding:8px 16px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); color:var(--color-ink-2); background:var(--color-surface); font-size:var(--text-fact); line-height:1.4; }
-.bl-freebie-filters button[aria-pressed="true"] { border-color:var(--color-brand-deep); background:var(--color-brand-deep); color:var(--color-surface); font-weight:600; }
-/* H66: the kind tabs stick under the site header while the cards scroll (one scrollable row on phones), with counts. */
-.bl-freebie-kinds { position:sticky; top:var(--chrome-header-height, 3.5rem); z-index:20; flex-wrap:nowrap; overflow-x:auto; margin-inline:calc(-1 * var(--page-gutter, 16px)); padding:8px var(--page-gutter, 16px); background:var(--color-bg); scrollbar-width:none; }
-.bl-freebie-kinds::-webkit-scrollbar { display:none; }
-.bl-freebie-kinds button { flex:none; display:inline-flex; align-items:center; gap:6px; }
-.bl-freebie-kinds__count { color:inherit; font-variant-numeric:tabular-nums; }
-.bl-freebie-results { scroll-margin-top:calc(var(--chrome-header-height, 3.5rem) + 4.5rem); }
-@media (min-width:768px) { .bl-freebie-kinds { flex-wrap:wrap; margin-inline:0; padding-inline:0; } }
-.bl-freebie-search { display:grid; gap:8px; margin:14px 0; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
-.bl-freebie-search input { width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font:inherit; font-weight:400; }
-.bl-freebie-search input:focus-visible { outline:3px solid var(--color-brand); outline-offset:3px; }
-.bl-freebie-results { margin:10px 0 16px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.bl-freebie-section+.bl-freebie-section { margin-top:28px; }
-.bl-freebie-section-heading { margin:0 0 12px; color:var(--color-ink); font-size:var(--text-card); font-weight:600; line-height:1.4; }
-.bl-freebie-section-heading>span { color:var(--color-ink-3); font-weight:400; }
-.bl-freebie-more { display:flex; align-items:center; justify-content:center; gap:6px; width:100%; min-height:var(--control-height); margin-top:12px; padding:8px 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
-.bl-freebie-more:hover { background:var(--color-brand-tint); }
-.bl-freebie-more[aria-expanded="true"]>svg { transform:rotate(180deg); }
-.bl-freebie-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; align-items:start; }
+.bl-freebie-board-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(8rem,40%),1fr)); gap:1px; margin:var(--sp-5) 0 var(--sp-2); overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-line); }
+.bl-freebie-board-stats>span { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-1); min-width:0; padding:var(--sp-3) var(--sp-2); color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; background:var(--color-surface-2); text-align:center; }
+.bl-freebie-board-stats strong { color:var(--color-brand-deep); font-size:var(--text-section); font-weight:600; line-height:1.1; font-variant-numeric:tabular-nums; }
+.bl-freebie-board-count-note { margin:0 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+
+/* Controls: 本周有效 | 全部日期 (SegmentedControl), the kind chips with counts (FilterChip), the search field. */
+.bl-freebie-dates { margin:0 0 var(--sp-3); }
+/* H66: the kind chips stick under the site header while the cards scroll (one scrollable row on a phone). At 特大 and in
+   简洁显示 they wrap and stay in place, so the pinned chrome never covers the cards. */
+.bl-freebie-kinds { position:sticky; top:var(--chrome-header-height, 3.5rem); z-index:20; padding-block:var(--sp-2); background:var(--color-bg); }
+:is(html[data-reading=extra-large],html[data-simple]) .bl-freebie-kinds { position:static; flex-wrap:wrap; overflow:visible; margin-inline:0; padding-inline:0; }
+.bl-freebie-search { display:grid; gap:var(--sp-2); margin:var(--sp-3) 0; color:var(--color-ink); font-size:var(--text-fact); font-weight:400; }
+.bl-freebie-search input { width:100%; min-height:var(--control-height); padding:0 var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font:inherit; font-size:var(--text-body); }
+.bl-freebie-search input::placeholder { color:var(--color-ink-3); }
+.bl-freebie-search input:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+.bl-freebie-results { margin:var(--sp-3) 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; scroll-margin-top:calc(var(--chrome-header-height, 3.5rem) + 4.5rem); }
+
+/* Sections: one ladder step above the card titles (h3 20 / h4 18), 40 / 64 px apart. */
+.bl-freebie-section+.bl-freebie-section { margin-top:var(--fb-between); }
+.bl-freebie-section-heading { margin:0 0 var(--sp-3); color:var(--color-ink); font-size:var(--fs-keep-20); font-weight:600; line-height:1.4; }
+.bl-freebie-section-heading>span { color:var(--color-ink-2); font-weight:400; }
+.bl-freebie-more { margin-top:var(--sp-3); }
+/* Gutters 24 (desktop) / 12 (phone). */
+.bl-freebie-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-5); align-items:start; }
+
+/* A card: the picture and its credit line, then brand, title, line 1 (when), line 2 (status · condition), the conditions,
+   the description, the source line and the actions. */
 .bl-freebie-card { min-width:0; border:1px solid var(--color-line); border-radius:var(--r-md); overflow:hidden; background:var(--color-surface); }
-.bl-freebie-card-brand { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 16px; border-bottom:1px solid var(--color-line); background:var(--color-surface-2); color:var(--color-ink); }
-.bl-freebie-card-brand strong { min-width:0; font-size:var(--text-body); line-height:1.35; font-weight:600; overflow-wrap:anywhere; }
-.bl-freebie-card-brand>svg { flex-shrink:0; color:var(--color-ink-3); }
 .bl-freebie-picture { margin:0; }
-.bl-freebie-picture-open { display:block; position:relative; width:100%; padding:0; border:0; aspect-ratio:1.35; overflow:hidden; background:var(--color-surface-2); cursor:zoom-in; }
+.bl-freebie-picture-open { display:block; position:relative; width:100%; padding:0; border:0; aspect-ratio:1.35; overflow:hidden; background:var(--color-surface-2); cursor:zoom-in; transition:scale var(--dur-1) var(--ease-out); }
+.bl-freebie-picture-open:active { scale:.985; }
 .bl-freebie-picture-open img { display:block; position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.bl-freebie-picture-open--contain img { inset:10px 10px 32px; width:calc(100% - 20px); height:calc(100% - 42px); object-fit:contain; }
+/* Posters stay whole (contain), never blurred; the zoom glyph is the only overlay. */
+.bl-freebie-picture-open--contain img { inset:var(--sp-2) var(--sp-2) var(--sp-6); width:calc(100% - var(--sp-4)); height:calc(100% - var(--sp-2) - var(--sp-6)); object-fit:contain; }
 .bl-freebie-picture-open--full-photo img { inset:0; width:100%; height:100%; }
-.bl-freebie-picture-zoom { position:absolute; right:8px; bottom:7px; display:grid; place-items:center; width:28px; height:28px; border:1px solid var(--color-line); border-radius:var(--r-circle); color:var(--color-ink-2); background:var(--color-surface); }
-.bl-freebie-picture figcaption { padding:8px 16px 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.5; }
-.bl-freebie-card-body { padding:14px 16px 16px; }
-.bl-freebie-card-date { display:flex; align-items:flex-start; gap:7px; padding-bottom:10px; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; line-height:1.5; }
-.bl-freebie-card-date>svg { flex-shrink:0; margin-top:4px; }
-.bl-freebie-card-tags { display:flex; flex-wrap:wrap; align-items:flex-start; gap:6px; }
-.bl-freebie-kind,.bl-freebie-status { padding:2px 8px; border-radius:var(--r-sm); font-size:var(--text-caption); line-height:1.6; color:var(--color-ink-2); background:var(--color-surface-2); }
-.bl-freebie-kind--no-purchase { color:var(--tc-free-fg, var(--color-brand-deep)); background:var(--tc-free-bg, var(--color-brand-tint)); }
-.bl-freebie-kind--reservation { color:var(--tc-culture-fg, var(--color-ink)); background:var(--tc-culture-bg, var(--color-surface-2)); }
-.bl-freebie-kind--purchase { color:var(--tc-food-fg, var(--color-ink)); background:var(--tc-food-bg, var(--color-surface-2)); }
-.bl-freebie-status--active { color:var(--color-brand-deep); background:var(--color-brand-tint); }
-.bl-freebie-status--local,.bl-freebie-status--unverified { color:var(--tc-family-fg, var(--color-ink)); background:var(--tc-family-bg, var(--color-surface-2)); }
-.bl-freebie-status--preview,.bl-freebie-status--upcoming { color:var(--tc-culture-fg, var(--color-ink)); background:var(--tc-culture-bg, var(--color-surface-2)); }
-.bl-freebie-status--ended { color:var(--color-ink-3); }
-.bl-freebie-card h4 { margin:12px 0 10px; color:var(--color-ink); font-size:var(--text-card); font-weight:600; line-height:1.5; overflow-wrap:anywhere; }
+.bl-freebie-picture-zoom { position:absolute; right:var(--sp-2); bottom:var(--sp-2); display:grid; place-items:center; width:1.75rem; height:1.75rem; border:1px solid var(--color-line); border-radius:var(--r-circle); color:var(--color-ink-2); background:var(--color-surface); }
+.bl-freebie-picture-zoom>svg { width:.875rem; height:.875rem; }
+/* G13: one 13 px credit line under the photo ("官方图 · <source>"); caption and licence stay in the details below. */
+.bl-freebie-credit { padding:var(--sp-2) var(--sp-4) 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.5; overflow-wrap:anywhere; }
+.bl-freebie-card-body { padding:var(--sp-3) var(--sp-4) var(--sp-4); }
+.bl-freebie-card-brand { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:1.5; overflow-wrap:anywhere; }
+.bl-freebie-card h4 { margin:var(--sp-1) 0 var(--sp-2); color:var(--color-ink); font-size:var(--text-card); font-weight:600; line-height:1.5; overflow-wrap:anywhere; }
 .bl-freebie-card h4 a { color:inherit; text-decoration:none; }
-.bl-freebie-card h4 a:hover { text-decoration:underline; text-underline-offset:3px; }
-.bl-freebie-requirement { margin:0; padding:10px 12px; border-left:3px solid var(--color-brand); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; overflow-wrap:anywhere; }
-.bl-freebie-requirement>strong { display:block; margin-bottom:2px; color:var(--color-ink); font-size:var(--text-caption); font-weight:600; }
-.bl-freebie-description { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; overflow-wrap:anywhere; }
-.bl-freebie-verified { margin:12px 0; color:var(--color-ink-3); font-size:var(--text-caption); }
-.bl-freebie-card-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px 12px; margin-top:12px; }
-.bl-freebie-card-actions a { display:inline-flex; align-items:center; gap:5px; min-height:var(--control-height); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
-.bl-freebie-card-actions a:first-child { padding:8px 14px; border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); }
-.bl-freebie-card-actions a:first-child:hover { background:var(--color-brand-hover); }
-.bl-freebie-image-source { margin-top:12px; border-top:1px dashed var(--color-line-strong); }
-.bl-freebie-image-source summary { display:flex; align-items:center; justify-content:space-between; min-height:var(--control-height); gap:7px; color:var(--color-ink-3); font-size:var(--text-caption); cursor:pointer; list-style:none; }
+.bl-freebie-card-date { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:1.5; }
+.bl-freebie-card-tags { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+.bl-freebie-requirement { margin:var(--sp-3) 0 0; padding:var(--sp-2) var(--sp-3); border-left:3px solid var(--color-brand); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; overflow-wrap:anywhere; }
+.bl-freebie-requirement>strong { display:block; margin-bottom:2px; color:var(--color-ink); font-size:var(--text-fact); font-weight:400; }
+.bl-freebie-description { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; overflow-wrap:anywhere; }
+.bl-freebie-verified { display:flex; align-items:center; gap:var(--sp-1); margin:var(--sp-3) 0; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.5; }
+.bl-freebie-verified>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
+.bl-freebie-card-actions { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-4); margin-top:var(--sp-3); }
+.bl-freebie-card-actions .ui-button>svg { width:1rem; height:1rem; }
+.bl-freebie-image-source { margin-top:var(--sp-3); border-top:1px dashed var(--color-line-strong); }
+.bl-freebie-image-source summary { display:flex; align-items:center; justify-content:space-between; min-height:var(--control-height); gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--text-fact); cursor:pointer; list-style:none; }
 .bl-freebie-image-source summary::-webkit-details-marker { display:none; }
+.bl-freebie-image-source summary>svg { width:1rem; height:1rem; }
 .bl-freebie-image-source[open] summary>svg { transform:rotate(180deg); }
-.bl-freebie-image-source p,.bl-freebie-image-source>span,.bl-freebie-image-source>a { display:block; margin:6px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; overflow-wrap:anywhere; }
-.bl-freebie-image-source a { text-decoration:underline; text-underline-offset:3px; }
-.bl-freebie-card--ended .bl-freebie-card-brand { background:var(--color-surface); }
-.bl-freebie-card--ended .bl-freebie-card-date { color:var(--color-ink-3); }
-.bl-freebie-empty { display:grid; justify-items:center; gap:10px; padding:32px 20px; border:1px dashed var(--color-line-strong); border-radius:var(--r-md); color:var(--color-ink-2); text-align:center; }
+.bl-freebie-image-source p,.bl-freebie-image-source>span,.bl-freebie-image-source>a { display:block; margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; overflow-wrap:anywhere; }
+.bl-freebie-image-source a { text-decoration:underline; text-underline-offset:.2em; }
+.bl-freebie-empty { display:grid; justify-items:center; gap:var(--sp-3); padding:var(--sp-6) var(--sp-5); border:1px dashed var(--color-line-strong); border-radius:var(--r-md); color:var(--color-ink-2); text-align:center; }
+.bl-freebie-empty>svg { width:1.5rem; height:1.5rem; }
 .bl-freebie-empty p { margin:0; font-size:var(--text-fact); line-height:1.7; }
-.bl-freebie-empty button { min-height:var(--control-height); padding:8px 16px; border:1px solid var(--color-line-control); border-radius:var(--r-md); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; background:var(--color-surface); }
-.bl-freebie-board :is(a,button,summary):focus-visible { outline:3px solid var(--color-brand); outline-offset:3px; }
-.bl-freebie-picture-open:focus-visible { outline-offset:-4px; }
+.bl-freebie-board :is(a,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+.bl-freebie-picture-open:focus-visible { outline:2px solid var(--color-brand); outline-offset:-4px; }
+@media (hover:hover) and (pointer:fine) {
+  .bl-freebie-jump:hover { border-color:var(--color-ink-3); background:var(--color-surface-2); }
+  .bl-freebie-card h4 a:hover { text-decoration:underline 1px; text-underline-offset:.2em; }
+  .bl-freebie-image-source summary:hover { color:var(--color-ink); }
+}
 @media(min-width:1280px) { .bl-freebie-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media(max-width:639px) {
  [id^="freebie-board-"] { scroll-margin-top:100px; }
- .bl-freebie-board { margin:24px 0; }
- .bl-freebie-grid { grid-template-columns:minmax(0,1fr); gap:12px; }
+ .bl-freebie-board { margin:var(--sp-5) 0; }
+ .bl-freebie-grid { grid-template-columns:minmax(0,1fr); gap:var(--sp-3); }
  .bl-freebie-picture-open { aspect-ratio:1.65; }
- .bl-freebie-filters { gap:6px; }
  .bl-freebie-board-stats>span:last-child:nth-child(odd) { grid-column:1/-1; }
- .bl-freebie-filters button { padding:8px 12px; }
 }
 /* 特大 and 简洁显示: one column at every width (D9), so the larger text never squeezes two cards. */
 html[data-reading="extra-large"] .bl-freebie-grid,html[data-simple] .bl-freebie-grid { grid-template-columns:minmax(0,1fr); }
+@media (prefers-reduced-motion:reduce) { .bl-freebie-jump,.bl-freebie-picture-open { transition:none; } }

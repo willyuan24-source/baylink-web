@@ -3,7 +3,15 @@ import { useEffect, useId, useRef, useState } from 'react';
 // a guide with a freebies block, whose page loads this chunk first (features/guides/guide-blocks.tsx).
 import './freebie-board.css';
 import { EnglishOnly } from './EnglishOnly';
-import { ArrowUpRight, CalendarDays, ChevronDown, Expand, Gift, MapPin, Ticket } from 'lucide-react';
+import { ArrowUpRight, Check, ChevronDown, Expand, Gift } from 'lucide-react';
+import { Button } from './ui/Button';
+import { ChipRow, FilterChip } from './ui/Chip';
+import { SegmentedControl } from './ui/Segmented';
+import { StatusChip, type StatusLook } from './ui/Status';
+import { TextLink } from './ui/TextLink';
+import { offerBrandLine } from './ui/offer-brand';
+import { readerMonthDay } from '../lib/event-facts';
+import { offerChip, pressSourced } from '../features/events/board-status';
 import { getOfferImage } from '../lib/offer-media';
 import { getBayAreaToday } from '../lib/monthly';
 import { GuideImageLightbox } from './GuideVisuals';
@@ -98,38 +106,66 @@ function orderedOffers(offers: FreebieOffer[], today: string) {
   });
 }
 
+/**
+ * The card's one status (UI9-FREE, N08): C's status map through board-status.ts, so a sold-out or ending offer looks the same
+ * here as on the 免费与优惠 board. 已售罄 and 今天/明天截止 solid red, 还剩 N 天 a red outline, 已结束 sunken; the board's
+ * other states (有效期内, 长期福利, 下月预告, 查本店场次 …) are neutral.
+ */
+function cardStatus(offer: FreebieOffer, status: ReturnType<typeof offerStatus>, today: string, english: boolean): { tone: StatusLook; text: string } {
+  if (offer.status === 'sold_out') return { tone: 'urgent', text: english ? 'Sold out' : '已售罄' };
+  if (status.key === 'ended') return { tone: 'ended', text: status.label };
+  const soon = status.key === 'active' ? offerChip(offer, today) : null;
+  return soon ? { tone: soon.tone, text: english ? soon.text.en : soon.text.zh } : { tone: 'neutral', text: status.label };
+}
+
+/** Joins a meta line; the no-break space keeps the dot on the word before it, so no line starts with "·". */
+const SEP = '\u00a0· ';
+
+/**
+ * One deals card (UI9-FREE): the picture with one 13 px credit line under it ("官方图 · <source>", G13), then the brand (400),
+ * the title (600), line 1 the record's own date words, line 2 the one status chip · what it asks, the conditions, the
+ * description and the source line ("官网核对 10/7"; "媒体报道 · 10/7 核对" for a press source, DECISIONS 17). 官方入口 is a
+ * secondary button (≤ 1 primary per section), 本地门店 a quiet link.
+ */
 function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: string; showImage: boolean }) {
   const locale = useLocale();
+  const english = locale === 'en';
+  const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
   const [zoomed, setZoomed] = useState(false);
   const headingId = useId();
   const [imageFailed, setImageFailed] = useState(false);
   const image = imageFailed || !showImage ? undefined : getOfferImage(offer);
-  const status = offerStatus(offer, today, locale === 'en');
-  const pictureLabel = image ? getImageProvenance(image, locale === 'en') : '';
+  const status = offerStatus(offer, today, english);
+  const chip = cardStatus(offer, status, today, english);
+  // A credit line only under a real picture: never on a 3D postcard or an AI illustration (none is on this board).
+  const credited = !!image && !(image as { scene3d?: boolean }).scene3d && image.kind !== 'illustration';
+  const pictureLabel = image ? getImageProvenance(image, english) : '';
+  const brand = offerBrandLine(offer.brand, locale) || offer.brand;
+  const checked = validDate(offer.verifiedAt) ? readerMonthDay(offer.verifiedAt, english) : '';
   return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
-    <div className="bl-freebie-card-brand"><strong>{offer.brand}</strong><Ticket size={16} aria-hidden="true" /></div>
     {image ? <figure className="bl-freebie-picture">
       <button type="button" className={`bl-freebie-picture-open${image.kind === 'poster' || image.fullFrame ? ' bl-freebie-picture-open--contain' : ''}${image.kind === 'photo' && image.fullFrame ? ' bl-freebie-picture-open--full-photo' : ''}`} style={image.kind === 'photo' && image.fullFrame ? { aspectRatio: `${image.width} / ${image.height}` } : undefined} onClick={() => setZoomed(true)} aria-label={`放大${offer.brand}配图：${image.alt}`} aria-haspopup="dialog">
         <img src={image.src} srcSet={image.srcSet} sizes="(max-width: 479px) calc(100vw - 40px), (max-width: 639px) calc((100vw - 54px) / 2), (min-width: 1280px) 260px, 360px" alt={image.alt} width={image.width} height={image.height} loading="lazy" decoding="async" onError={() => setImageFailed(true)} />
-        <span className="bl-freebie-picture-zoom"><Expand size={13} aria-hidden="true" /><span className="sr-only">查看大图</span></span>
+        <span className="bl-freebie-picture-zoom"><Expand aria-hidden="true" strokeWidth={1.75} /><span className="sr-only">查看大图</span></span>
       </button>
-      <figcaption>{pictureLabel}{offer.imageNote && <span> · {offer.imageNote}</span>}</figcaption>
+      {credited && <figcaption className="bl-freebie-credit"><span>{pictureLabel}</span>{SEP}<span>{translateText(image.credit, locale)}</span>{offer.imageNote && <span>{SEP}{offer.imageNote}</span>}</figcaption>}
     </figure> : null}
     <div className="bl-freebie-card-body">
-      <div className="bl-freebie-card-date"><CalendarDays size={14} aria-hidden="true" /><span>{offer.dateLabel}</span></div>
-      <div className="bl-freebie-card-tags"><span className={`bl-freebie-kind bl-freebie-kind--${offer.kind}`}>{KIND_LABELS[offer.kind]}</span><span className={`bl-freebie-status bl-freebie-status--${status.key}`}>{status.label}</span></div>
+      <p className="bl-freebie-card-brand" translate="no">{brand}</p>
       <h4 id={headingId}><a href={`/offers/${offer.id}`}>{offer.title}</a></h4>
+      <p className="bl-freebie-card-date">{offer.dateLabel}</p>
+      <p className="bl-freebie-card-tags"><StatusChip tone={chip.tone} className={`bl-freebie-status bl-freebie-status--${status.key}`}>{chip.text}</StatusChip>{SEP}<span className="bl-freebie-kind">{translateText(KIND_LABELS[offer.kind], locale)}</span></p>
       {/* Tap-to-call on any number in the merchant's own words (translated first, then split: RC-11 i). */}
       <p className="bl-freebie-requirement"><strong>领取条件</strong><PhoneText text={offer.requirement} /></p>
       <p className="bl-freebie-description"><PhoneText text={offer.description} /></p>
-      {validDate(offer.verifiedAt) && <p className="bl-freebie-verified">核对 <time dateTime={offer.verifiedAt}>{offer.verifiedAt}</time></p>}
+      {checked && <p className="bl-freebie-verified"><Check aria-hidden="true" strokeWidth={1.75} /><time dateTime={offer.verifiedAt}>{pressSourced(offer.sourceLabel) ? t(`媒体报道 · ${checked} 核对`, `News report · checked ${checked}`) : t(`官网核对 ${checked}`, `Source checked ${checked}`)}</time></p>}
       <EditorialShareActions item={offerShare(offer)} />
       <div className="bl-freebie-card-actions">
-        {safeUrl(offer.sourceUrl) && <a href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${translateText(offer.sourceLabel, locale)}`}>官方入口<ArrowUpRight size={15} aria-hidden="true" /></a>}
-        {safeUrl(offer.storeUrl) && <a href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}><MapPin size={13} aria-hidden="true" />本地门店</a>}
+        {safeUrl(offer.sourceUrl) && <Button variant="secondary" href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${translateText(offer.sourceLabel, locale)}`}>{t('官方入口', 'Official page')}<ArrowUpRight aria-hidden="true" strokeWidth={1.75} /></Button>}
+        {safeUrl(offer.storeUrl) && <TextLink standalone href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}>{t('本地门店', 'Local stores')}</TextLink>}
       </div>
       <SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />
-      {image && <details className="bl-freebie-image-source"><summary>图片说明与来源<ChevronDown size={12} aria-hidden="true" /></summary><p>{image.caption}</p>{safeUrl(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}{safeUrl(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权</a>}</details>}
+      {image && <details className="bl-freebie-image-source"><summary>图片说明与来源<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary><p>{image.caption}</p>{safeUrl(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}{safeUrl(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权</a>}</details>}
     </div>
     {zoomed && image && <GuideImageLightbox image={image} onClose={() => setZoomed(false)} />}
   </article>;
@@ -223,19 +259,17 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
   const weekEndLabel = t(`${weekEndMonth}/${weekEndDay} 周日`, `Sun ${weekEndMonth}/${weekEndDay}`);
   const reset = () => { setFilter('all'); setQuery(''); setWindow('all'); };
   return <section className="bl-freebie-board" aria-labelledby={headingId}>
-    <header className="bl-freebie-board-heading"><EnglishOnly><span><Gift size={16} aria-hidden="true" />BAYLINK · LITTLE PERKS</span></EnglishOnly><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
+    <header className="bl-freebie-board-heading"><EnglishOnly><span><Gift aria-hidden="true" strokeWidth={1.75} />Little perks</span></EnglishOnly><h2 id={headingId}>{title}</h2>{description && <p>{description}</p>}</header>
     <div className="bl-freebie-board-stats" aria-label="领取信息概况">{stats.map(item => <span key={item.label}><strong>{item.value}</strong>{item.label}</span>)}</div>
     <p className="bl-freebie-board-count-note">本月已确认仅计入有效期明确、尚未结束的条目；下月预告与待查场次分列。</p>
-    <div className="bl-freebie-filters" role="group" aria-label={t('按日期筛选', 'Filter by date')}>
-      <button type="button" aria-pressed={window_ === 'week'} onClick={() => setWindow('week')}>{t(`本周有效 ${thisWeek}`, `Valid this week ${thisWeek}`)}</button>
-      <button type="button" aria-pressed={window_ === 'all'} onClick={() => setWindow('all')}>{t('全部日期', 'All dates')}</button>
-    </div>
+    <SegmentedControl className="bl-freebie-dates" label={t('按日期筛选', 'Filter by date')} value={window_} onChange={value => setWindow(value as DateWindow)}
+      items={[{ id: 'week', label: t(`本周有效 ${thisWeek}`, `Valid this week ${thisWeek}`) }, { id: 'all', label: t('全部日期', 'All dates') }]} />
     {/* H66: the kind tabs stay under the site header while the cards scroll, each with its count for the chosen dates (also in
         its name, "无需购物，49 条"); picking one brings the list's start back into view. A kind with nothing in the chosen dates
-        is left out unless it is the one picked, so no tab leads to an empty list. */}
-    <div className="bl-freebie-filters bl-freebie-kinds" role="group" aria-label="按领取条件筛选">{FILTERS.filter(item => item.value === 'all' || kindCounts[item.value] > 0 || filter === item.value).map(item => <button key={item.value} type="button" aria-pressed={filter === item.value} aria-label={t(`${item.label}，${kindCounts[item.value]} 条`, `${translateText(item.label, 'en')}, ${kindCounts[item.value]}`)} onClick={() => pickKind(item.value)}>
-      {item.label}<span className="bl-freebie-kinds__count" aria-hidden="true">{kindCounts[item.value]}</span>
-    </button>)}</div>
+        is left out unless it is the one picked, so no tab leads to an empty list. At 特大 / 简洁 they wrap and do not stick. */}
+    <ChipRow label="按领取条件筛选" className="bl-freebie-kinds">{FILTERS.filter(item => item.value === 'all' || kindCounts[item.value] > 0 || filter === item.value).map(item => <FilterChip key={item.value} selected={filter === item.value} count={kindCounts[item.value]} aria-label={t(`${item.label}，${kindCounts[item.value]} 条`, `${translateText(item.label, 'en')}, ${kindCounts[item.value]}`)} onClick={() => pickKind(item.value)}>
+      {item.label}
+    </FilterChip>)}</ChipRow>
     <label className="bl-freebie-search"><span>搜索品牌、城市或福利</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="例如 Target、Lowe’s、手作、生日" /></label>
     <p ref={resultsRef} className="bl-freebie-results" role="status" aria-live="polite"><span>显示 {visible.length} 项 · 日期按湾区当地时间</span>{window_ === 'week' && <span> · {t(`本周有效至 ${weekEndLabel}`, `valid through ${weekEndLabel}`)}</span>}</p>
     {visible.length ? sections.map((section, index) => {
@@ -245,10 +279,10 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
       return <section key={section.kind || 'search'} className="bl-freebie-section" aria-labelledby={`${id}-heading`}>
         <h3 id={`${id}-heading`} className="bl-freebie-section-heading">{section.label}{section.kind && <span> · {t(`${section.offers.length} 条`, `${section.offers.length}`)}</span>}</h3>
         <div id={`${id}-grid`} className="bl-freebie-grid">{shown[index].map(offer => <FreebieCard key={`${offer.id}:${offer.imageKey}`} offer={offer} today={today} showImage={pictured.has(offer.id)} />)}</div>
-        {more && <button type="button" className="bl-freebie-more" aria-expanded={open} aria-controls={`${id}-grid`} onClick={() => setExpanded(open ? expanded.filter(kind => kind !== section.kind) : [...expanded, section.kind!])}>
-          {open ? t('收起', 'Show fewer') : t(`看全部 ${section.offers.length} 条`, `See all ${section.offers.length}`)}<ChevronDown size={16} aria-hidden="true" />
-        </button>}
+        {more && <Button variant="secondary" block className="bl-freebie-more" aria-expanded={open} aria-controls={`${id}-grid`} onClick={() => setExpanded(open ? expanded.filter(kind => kind !== section.kind) : [...expanded, section.kind!])}>
+          {open ? t('收起', 'Show fewer') : t(`看全部 ${section.offers.length} 条`, `See all ${section.offers.length}`)}
+        </Button>}
       </section>;
-    }) : <div className="bl-freebie-empty"><Gift size={24} aria-hidden="true" /><p>{offers.length ? window_ === 'week' && !query && filter === 'all' ? t('本周没有可用的条目，看看全部日期。', 'Nothing on this board is valid this week; see all dates.') : '这个条件下暂时没有条目，换个条件看看。' : '这期领取信息正在整理。'}</p>{(filter !== 'all' || query || window_ === 'week') && <button type="button" onClick={reset}>查看全部</button>}</div>}
+    }) : <div className="bl-freebie-empty"><Gift aria-hidden="true" strokeWidth={1.75} /><p>{offers.length ? window_ === 'week' && !query && filter === 'all' ? t('本周没有可用的条目，看看全部日期。', 'Nothing on this board is valid this week; see all dates.') : '这个条件下暂时没有条目，换个条件看看。' : '这期领取信息正在整理。'}</p>{(filter !== 'all' || query || window_ === 'week') && <Button variant="secondary" onClick={reset}>{t('查看全部', 'Show all')}</Button>}</div>}
   </section>;
 }

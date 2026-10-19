@@ -117,14 +117,16 @@ test('an offer cover carries the value and the brand, not the title its card cap
   </StaticRouter>));
   const typed = card('type');
   const brand = offerBrandLine(taco.offer.brand, 'zh-Hans');
+  // UI9-FREE: line 2 is [status] · condition · brand (the condition replaces 商家活动 / 免费福利); one brand per card.
   const meta = typed.querySelector('.ui-feed-card__meta')!;
-  assert.equal(meta.querySelector('.sr-only')!.textContent, `${brand} · `);
+  assert.equal(meta.querySelector('.sr-only')!.textContent, `\u00a0· ${brand}`);
   meta.querySelector('.sr-only')!.remove();
-  assert.equal(meta.textContent, '商家活动', 'the visible meta is the kind only');
+  assert.ok(!meta.textContent!.includes(brand), 'the visible meta has no brand');
+  assert.doesNotMatch(meta.textContent!, /商家活动|免费福利/);
   assert.equal(typed.querySelector('.tc-eyebrow')!.textContent, brand, 'the brand shows once, on the cover');
   const photo = card('image').querySelector('.ui-feed-card__meta')!;
   assert.equal(photo.querySelector('.sr-only'), null);
-  assert.equal(photo.textContent, `${brand} · 商家活动`, 'a photo cover keeps the brand in the meta');
+  assert.ok(photo.textContent!.endsWith(`\u00a0· ${brand}`), 'a photo cover keeps the brand in the meta');
 });
 
 test('an offer, opening or event without an image opens on its family cover, which never repeats the header (UI9-C)', async () => {

@@ -82,9 +82,9 @@ test('condition filters select the matching offers without hiding requirements o
   install();
   const view = render(<FreebieBoard offers={offers} today="2026-09-09" />);
   // G26: the board opens on 本周有效 (through Sunday 9/13: only the ongoing birthday perk; the 查本店 sessions start 9/20).
-  assert.equal(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '本周有效 1' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(within(view.getByRole('radiogroup', { name: '按日期筛选' })).getByRole('radio', { name: '本周有效 1' }).getAttribute('aria-checked'), 'true');
   assert.deepEqual(view.getAllByRole('article').map(card => card.id), ['offer-birthday']);
-  fireEvent.click(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '全部日期' }));
+  fireEvent.click(within(view.getByRole('radiogroup', { name: '按日期筛选' })).getByRole('radio', { name: '全部日期' }));
   const filters = within(view.getByRole('group', { name: '按领取条件筛选' }));
   // 消费优惠 has only an expired and an invalid-date offer here, so it has no tab (no tab leads to an empty list).
   assert.equal(filters.queryByRole('button', { name: kindTab('消费优惠') }), null);
@@ -203,7 +203,8 @@ test('only valid unexpired offers and their conditions appear in server HTML', (
     assert.equal(card.hasAttribute('hidden'), false);
     assert.ok(card.querySelector(`a[href="${offer.sourceUrl}"]`));
   }
-  assert.equal(document.querySelectorAll('[aria-pressed="true"]').length, 2, 'one date choice and one condition choice');
+  assert.equal(document.querySelectorAll('[role="radio"][aria-checked="true"]').length, 1, 'one date choice (a radio group, UI9-FREE)');
+  assert.equal(document.querySelectorAll('[aria-pressed="true"]').length, 1, 'one condition choice');
 });
 
 test('invalid source protocols and missing media do not create unsafe links or unrelated fallback images', () => {
@@ -252,7 +253,7 @@ test('the cleaned September guide retains valid cards and factual media while om
   assert.deepEqual([...board.querySelectorAll('.bl-freebie-board-stats>span')].map(item => item.textContent), ['6本月已确认', '4长期福利', '1下月预告']);
   // G26: the guide opens the board on 本周有效 (when anything is) with at most six cards per kind; the rest is one tap away.
   const thisWeek = block.offers.some(offer => validThisWeek(offer, '2026-09-11'));
-  assert.equal(board.querySelector('[aria-label="按日期筛选"] [aria-pressed="true"]')?.textContent?.startsWith(thisWeek ? '本周有效' : '全部日期'), true);
+  assert.equal(board.querySelector('[aria-label="按日期筛选"] [aria-checked="true"]')?.textContent?.startsWith(thisWeek ? '本周有效' : '全部日期'), true);
   for (const section of board.querySelectorAll('.bl-freebie-section')) assert.ok(section.querySelectorAll('.bl-freebie-card').length <= 6);
   // Every valid offer, its conditions and its own picture: the same board on every date with every card.
   const full = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={block.offers} today="2026-09-11" initialDates="all" sectionSize={Infinity} />)).window.document;
@@ -313,7 +314,7 @@ test('the deals board drops offers past their own end date and its sticky kind t
   assert.deepEqual(ids().sort(), ['offer-always', 'offer-dinner']);
   const tabs = view.getByRole('group', { name: '按领取条件筛选' });
   assert.ok(tabs.classList.contains('bl-freebie-kinds'));
-  assert.deepEqual([...tabs.querySelectorAll('.bl-freebie-kinds__count')].map(count => count.textContent), ['2', '1', '1']);
+  assert.deepEqual([...tabs.querySelectorAll('.ui-chip__count')].map(count => count.textContent), ['2', '1', '1']);
   // Review 10-14: screen readers hear the count, and a kind with nothing in the chosen dates (消费优惠 0, 条件待核对 0) is no tab.
   const names = () => within(tabs).getAllByRole('button').map(tab => tab.getAttribute('aria-label'));
   assert.deepEqual(names(), ['全部，2 条', '无需购物，1 条', '需预约，1 条']);
@@ -327,5 +328,5 @@ test('the deals board drops offers past their own end date and its sticky kind t
   assert.deepEqual(names(), ['全部，1 条', '无需购物，1 条']);
   const css = readFileSync(new URL('../src/components/freebie-board.css', import.meta.url), 'utf8');
   assert.match(css, /\.bl-freebie-kinds \{ position:sticky; top:var\(--chrome-header-height/);
-  assert.doesNotMatch(css, /\.bl-freebie-kinds__count \{[^}]*opacity/, 'the count keeps the tab’s own colour (AA contrast)');
+  assert.doesNotMatch(css, /\.bl-freebie-kinds[^{]*\{[^}]*opacity/, 'the count keeps the tab’s own colour (AA contrast)');
 });

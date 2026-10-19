@@ -21,7 +21,7 @@ const HAN = /[㐀-鿿]/;
  * Joins the parts of a meta line. The no-break space glues the dot to the word before it, so a wrapped line ends on
  * "无需购物 ·" and the next one never starts with "·" (N06); the ordinary space after it is where the line may break.
  */
-const SEP = ' · ';
+const SEP = '\u00a0· ';
 
 /** ♡: the one save control, the same heart as the event cards (reader's name "收藏：<title>"). */
 const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;
@@ -58,9 +58,13 @@ function OfferMeta({ offer, today, brandOnCover }: { offer: IndexOffer; today: s
   </>;
 }
 
-/** Offer card (1:1): the brand's own image, or C's ticket with the value large. ♡ on the cover saves the offer. */
-export function OfferFeedCard({ offer, cover, today, save = true }: { offer: IndexOffer; cover: ResolvedCover; today: string; save?: boolean }) {
+/**
+ * Offer card (1:1): the brand's own image, or C's ticket with the value large. ♡ on the cover saves the offer. `row` lists
+ * it as a row instead (phone at 大 / 特大, 简洁显示); `simple` (简洁) drops ♡ and the provenance words there.
+ */
+export function OfferFeedCard({ offer, cover, today, save = true, row, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
   const { pick } = useUiCopy();
+  if (row) return <OfferRowCard offer={offer} cover={cover} today={today} simple={simple} />;
   return <FeedCard title={offer.title} to={`/offers/${offer.id}`}
     cover={<OfferCover offer={offer} cover={cover} today={today} decorative />}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={cover.tier === 'type'} />}
@@ -96,8 +100,12 @@ function OpeningWhen({ opening, today }: { opening: IndexOpening; today: string 
   return <StatusChip tone={status.tone}>{pick(status.text)}</StatusChip>;
 }
 
-/** New shop card (1:1): the shop's own image, or C's shopfront (what it sells and the opening day, never the name). */
-export function OpeningFeedCard({ opening, cover, today, save = true }: { opening: IndexOpening; cover: ResolvedCover; today: string; save?: boolean }) {
+/**
+ * New shop card (1:1): the shop's own image, or C's shopfront (what it sells and the opening day, never the name). `row` and
+ * `simple` as on the offer card.
+ */
+export function OpeningFeedCard({ opening, cover, today, save = true, row, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
+  if (row) return <OpeningRowCard opening={opening} cover={cover} today={today} simple={simple} />;
   return <FeedCard title={opening.name} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
     cover={<OpeningCover opening={opening} cover={cover} today={today} ratio="1:1" decorative />}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}

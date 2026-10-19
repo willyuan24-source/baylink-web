@@ -30,12 +30,13 @@ for (const [key, value] of Object.entries(browserGlobals)) {
 }
 // The board imports its stylesheets; here CSS loads as an empty module (the prerender does the same).
 registerHooks({ load: (url, context, nextLoad) => url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {};' } : nextLoad(url, context) });
-const { render, fireEvent, within, cleanup } = await import('@testing-library/react');
+const { render, fireEvent, cleanup } = await import('@testing-library/react');
 const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { default: OpeningsView } = await import('../src/features/events/OpeningsView');
 const { INDEX_OPENINGS, coverContext } = await import('../src/features/events/events-model');
 const { getCover } = await import('../src/lib/cover');
 const { openingChip } = await import('../src/lib/event-facts');
+const { openingSections, pressSourced } = await import('../src/features/events/board-status');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { setLocale } = await import('../src/i18n/locale');
 
@@ -65,34 +66,42 @@ const card = (view: View, name: string) => {
   assert.ok(article, `${name} has a card`);
   return article as HTMLElement;
 };
-const statusFilters = (view: View) => within(view.getByRole('group', { name: '按开业状态筛选' }));
-const showAll = (view: View) => { for (let more = view.queryByRole('button', { name: /^再看 \d+ 家$/ }); more; more = view.queryByRole('button', { name: /^再看 \d+ 家$/ })) fireEvent.click(more); };
+/** UI9-FREE: the two sections (已开业, 即将开业) replace the status chips; each has its own 再看 N 家. */
+const heads = (view: View) => [...view.container.querySelectorAll('h2.fb-section__head')].map(head => head.textContent);
+const section = (view: View, label: string) => [...view.container.querySelectorAll('section.fb-section')].find(item => item.querySelector('h2')!.textContent!.startsWith(label)) as HTMLElement;
+const showAll = (view: View) => { for (let more = view.queryAllByRole('button', { name: /^再看 \d+ 家$/ })[0]; more; more = view.queryAllByRole('button', { name: /^再看 \d+ 家$/ })[0]) fireEvent.click(more); };
 const lateSeptemberOpenings = [...lateSeptemberSfEastOpenings, ...lateSeptemberPeninsulaSouthOpenings, ...lateSeptemberNorthOpenings];
 const openShops = currentOpenings.filter(shop => shop.status === 'open');
 const announcedShops = currentOpenings.filter(shop => shop.status === 'announced');
 const softOpenShops = currentOpenings.filter(shop => shop.status === 'soft_open');
+/** 即将开业 on `today`: announcements, and an open shop whose recorded first day is still ahead (Marufuku before 10/11). */
+const comingOn = (today: string) => currentOpenings.filter(shop => shop.status === 'announced' || (shop.openedOn ?? '') > today);
 const canonicalOpening = (id: string) => {
   const shop = currentOpenings.find(item => item.id === id);
   assert.ok(shop, `${id} remains in the canonical catalog`);
   return shop;
 };
 
-test('the board reads the whole canonical catalog: each shop once, every status counted on its chip', () => {
+test('the board reads the whole canonical catalog: each shop once, every status in its section (已开业 · 即将开业)', () => {
   assert.deepEqual(INDEX_OPENINGS.map(shop => shop.id), currentOpenings.map(shop => shop.id), 'the slim index keeps the catalog order');
   assert.equal(new Set(currentOpenings.map(shop => shop.id)).size, currentOpenings.length);
   for (const shop of lateSeptemberOpenings) assert.equal(currentOpenings.filter(item => item.id === shop.id).length, 1, `${shop.id} is registered once`);
   assert.equal(openShops.length + softOpenShops.length + announcedShops.length, currentOpenings.length);
   const view = render(board());
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部/ }).textContent, `全部 ${currentOpenings.length}`);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^已开业/ }).textContent, `已开业 ${openShops.length}`);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^试营业/ }).textContent, `试营业 ${softOpenShops.length}`);
-  assert.equal(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }).textContent, `预告与庆典 ${announcedShops.length}`);
-  assert.match(view.container.querySelector('.ev-count')!.textContent!, new RegExp(`^${currentOpenings.length} 家 · .*未实地探店`));
-  assert.deepEqual(names(view), currentOpenings.slice(0, 12).map(shop => shop.name));
+  const coming = comingOn(TODAY);
+  assert.deepEqual(heads(view), [`已开业 · ${currentOpenings.length - coming.length} 家`, `即将开业 · ${coming.length} 家`]);
+  assert.equal(view.container.querySelector('.fb-note')!.textContent, '整理自公开资料，未实地探店');
+  assert.equal(view.queryByRole('group', { name: '按开业状态筛选' }), null, 'no status chips');
+  const sections = openingSections(INDEX_OPENINGS, TODAY);
+  // jsdom has no matchMedia: the phone layout, 6 open shops and 4 coming soon.
+  assert.deepEqual(names(view), sections.flatMap(item => item.openings.slice(0, item.id === 'open' ? 6 : 4).map(shop => shop.name)));
   showAll(view);
-  assert.deepEqual(names(view), currentOpenings.map(shop => shop.name));
-  assert.deepEqual(names(view).slice(-announcedShops.length), announcedShops.map(shop => shop.name), 'confirmed full and trial operation precede announcements');
+  assert.deepEqual(names(view), sections.flatMap(item => item.openings.map(shop => shop.name)));
+  assert.deepEqual([...names(view)].sort(), currentOpenings.map(shop => shop.name).sort(), 'every shop once');
+  assert.deepEqual(new Set(names(view).slice(-coming.length)), new Set(coming.map(shop => shop.name)), 'confirmed full and trial operation precede announcements');
   for (const shop of currentOpenings) assert.equal(view.getByRole('link', { name: shop.name, exact: true }).getAttribute('href'), `/openings/${shop.id}`);
+  cleanup();
+  assert.equal(render(board('2026-10-19')).container.querySelector('.ui-feed-card__title a')!.textContent, 'Marufuku Ramen · Burlingame', 'from 10/11 the newest dated first day leads');
 });
 
 test('an open shop never says 即将开业 / Opening soon on its chip, its card or in English (EVT13-02 / H09)', () => {
@@ -104,9 +113,13 @@ test('an open shop never says 即将开业 / Opening soon on its chip, its card 
     }
   }
   const view = render(board());
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^已开业/ }));
   showAll(view);
-  for (const shop of openShops) assert.doesNotMatch(card(view, shop.name).textContent!, /即将开业/, shop.id);
+  const open = section(view, '已开业');
+  for (const shop of openShops) {
+    const article = card(view, shop.name);
+    if (!comingOn(TODAY).includes(shop)) assert.ok(open.contains(article), `${shop.id} is under 已开业`);
+    assert.doesNotMatch(article.textContent!, /即将开业/, shop.id);
+  }
   const marufuku = canonicalOpening('marufuku-burlingame-announced');
   assert.equal(marufuku.status, 'open');
   assert.equal(marufuku.openedOn, '2026-10-11', 'the store page names 10/11 as the grand opening with service hours');
@@ -114,51 +127,46 @@ test('an open shop never says 即将开业 / Opening soon on its chip, its card 
   assert.deepEqual(openingChip(marufuku, '2026-10-13'), { zh: '10/11 已开业', en: 'Opened Oct 11' }, 'opened, with the day: a month alone read as a forecast');
 });
 
-test('soft openings have their own filter and never inherit an open or announced label', () => {
+test('soft openings sit under 已开业 with their own words and never inherit an open or announced label', () => {
   assert.ok(softOpenShops.length > 0);
   const view = render(board());
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^试营业/ }));
-  assert.deepEqual(names(view), softOpenShops.map(shop => shop.name));
+  showAll(view);
+  const open = section(view, '已开业');
   for (const shop of softOpenShops) {
-    const meta = card(view, shop.name).querySelector('.ui-feed-card__meta')!.textContent!;
-    assert.match(meta, shop.openedOn ? /\d+\/\d+ 起试营业$/ : /试营业$/, shop.id);
-    assert.doesNotMatch(meta, /即将开业/, shop.id);
+    const article = card(view, shop.name);
+    assert.ok(open.contains(article), shop.id);
+    const when = article.querySelector('.ui-feed-card__when')!;
+    assert.match(when.textContent!, shop.openedOn ? /^\d+\/\d+ 起试营业$/ : /^试营业$/, shop.id);
+    assert.equal(when.querySelector('.ui-status')!.getAttribute('data-tone'), 'neutral', `${shop.id}: not the 已开业 look`);
+    assert.doesNotMatch(article.textContent!, /即将开业/, shop.id);
   }
   const fixture = { status: 'soft_open' as const, openedOn: undefined };
   assert.deepEqual(openingChip(fixture, '2026-11-01'), { zh: '试营业', en: 'Soft opening' }, 'time passing does not make a soft opening open');
   assert.deepEqual(openingChip({ status: 'soft_open', openedOn: '2026-09-04' }, '2026-10-14'), { zh: '9/4 起试营业', en: 'Soft open 9/4' }, 'a dated soft opening is not 已开业');
 });
 
-test('status and region narrow the board, and an empty combination offers a reset to every opening in the region', () => {
-  const emptyRegion = (['sf', 'peninsula', 'north-bay'] as const).find(region => !softOpenShops.some(shop => shop.region === region))!;
-  assert.ok(emptyRegion, 'the catalog has a region without confirmed trial operation');
-  const view = render(board(TODAY, emptyRegion));
-  const inRegion = currentOpenings.filter(shop => shop.region === emptyRegion);
-  showAll(view);
-  assert.deepEqual(names(view), inRegion.map(shop => shop.name));
-  assert.equal(statusFilters(view).getByRole('button', { name: /^试营业/ }).textContent, '试营业 0');
-  fireEvent.click(statusFilters(view).getByRole('button', { name: /^试营业/ }));
-  assert.deepEqual(names(view), []);
-  assert.ok(view.getByRole('heading', { name: '这个地区暂时没有符合条件的新店' }));
-  fireEvent.click(view.getByRole('button', { name: '看全部新店' }));
-  assert.equal(statusFilters(view).getByRole('button', { name: /^全部/ }).getAttribute('aria-pressed'), 'true');
-  showAll(view);
-  assert.deepEqual(names(view), inRegion.map(shop => shop.name));
-  cleanup();
-  const announcedSf = render(board(TODAY, 'sf'));
-  fireEvent.click(statusFilters(announcedSf).getByRole('button', { name: /^预告与庆典/ }));
-  assert.deepEqual(names(announcedSf), announcedShops.filter(shop => shop.region === 'sf').map(shop => shop.name));
+test('the region narrows both sections; a region is never empty here, and 即将开业 lists that region\'s announcements', () => {
+  for (const region of ['sf', 'peninsula', 'north-bay', 'east-bay', 'south-bay'] as const) {
+    const view = render(board(TODAY, region));
+    showAll(view);
+    const inRegion = currentOpenings.filter(shop => shop.region === region);
+    assert.deepEqual([...names(view)].sort(), inRegion.map(shop => shop.name).sort(), region);
+    const soon = section(view, '即将开业');
+    const announced = comingOn(TODAY).filter(shop => shop.region === region).map(shop => shop.name);
+    assert.deepEqual(soon ? [...soon.querySelectorAll('.ui-feed-card__title a')].map(link => link.textContent).sort() : [], [...announced].sort(), region);
+    cleanup();
+  }
 });
 
 test('passing an announced date or month never silently promotes a forecast to open', () => {
   for (const today of ['2026-10-09', '2026-10-31', '2026-11-15', '2027-01-05']) {
     const view = render(board(today));
-    fireEvent.click(statusFilters(view).getByRole('button', { name: /^预告与庆典/ }));
     showAll(view);
-    assert.deepEqual(names(view), announcedShops.map(shop => shop.name), today);
+    const soon = section(view, '即将开业');
+    assert.deepEqual([...soon.querySelectorAll('.ui-feed-card__title a')].map(link => link.textContent).sort(), comingOn(today).map(shop => shop.name).sort(), today);
     for (const shop of announcedShops) {
       assert.equal(shop.openedOn, undefined, 'an announcement cannot claim a first-service date');
-      assert.match(card(view, shop.name).querySelector('.ui-feed-card__meta')!.textContent!, /即将开业$/, `${today}: ${shop.id}`);
+      assert.match(card(view, shop.name).querySelector('.ui-feed-card__when')!.textContent!, /即将开业$/, `${today}: ${shop.id}`);
     }
     cleanup();
   }
@@ -204,7 +212,8 @@ test('opening cards show only attributable photos or posters; synthetic shop art
       assert.ok(article.querySelector('[data-cover="type"]'), `${shop.id} gets the information card`);
       if (registered?.kind === 'illustration') assert.equal(article.textContent!.includes(registered.caption), false, 'hidden synthetic artwork leaves no picture caption');
     }
-    assert.match(article.querySelector('.ui-feed-card__trust')!.textContent!, /^官网核对 \d+\/\d+$/);
+    // DECISIONS 17: a press source reads 媒体报道 · M/D 核对, never 官网核对.
+    assert.match(article.querySelector('.ui-feed-card__trust')!.textContent!, pressSourced(shop.sourceLabel) ? /^媒体报道\u00a0· \d+\/\d+ 核对$/ : /^官网核对 \d+\/\d+$/, shop.id);
   }
   for (const id of ['kaiyo-handroll-union', 'marufuku-burlingame-announced', 'broken-dreams-oakland']) {
     const image = GUIDE_IMAGES[canonicalOpening(id).imageKey];
