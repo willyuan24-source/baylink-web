@@ -30,8 +30,9 @@ type OfferDates = Pick<IndexOffer, 'availability' | 'startDate' | 'endDate' | 'w
 /**
  * Line 1 of an offer card: when it can be used, in the same M/D pattern as the event cards' eventWhenLine. "周日 10/25"
  * (one day), "10/24–31" (a run that has not started), "至 11/11" (a run under way), "每周三" (published weekdays; "每周三 ·
- * 11/4 起" before its first day), "长期有效" (no end date), "11/4 起" (no end date, not started yet), "日期以官网为准" (a
- * 查本店 offer without dates: the 16 check-local offers). Never the free-text dateLabel and never an ISO date.
+ * 11/4 起" before its first day, "每周三 · 11/4–25" when it also ends), "长期有效" (no end date), "11/4 起" (no end date,
+ * not started yet), "日期以官网为准" (a 查本店 offer without dates: the 16 check-local offers). Never the free-text
+ * dateLabel and never an ISO date.
  */
 export function offerWhen(offer: OfferDates, today: string): Copy {
   const end = validDay(offer.endDate) ? offer.endDate : undefined;
@@ -40,7 +41,9 @@ export function offerWhen(offer: OfferDates, today: string): Copy {
   if (offer.weekdays?.length) {
     const days = [...offer.weekdays].sort((a, b) => a - b);
     const every: Copy = { zh: `每${days.map(day => WEEKDAYS_ZH[day]).join('、')}`, en: `Every ${days.map(day => WEEKDAYS_EN[day]).join(' & ')}` };
-    // Before its first day a weekly offer says when it starts, so "每周三" never reads as usable this week.
+    // Before its first day a weekly offer says when it starts, so "每周三" never reads as usable this week; with an end
+    // date it prints the whole run ("每周三 · 11/4–25"), so the reader also sees when it stops.
+    if (ahead && end) return { zh: `${every.zh}${SEP}${readerDayRange(ahead, end)}`, en: `${every.en}${SEP}${readerDayRange(ahead, end, true)}` };
     if (ahead) return { zh: `${every.zh}${SEP}${readerMonthDay(ahead)} 起`, en: `${every.en}${SEP}from ${readerMonthDay(ahead, true)}` };
     return end ? { zh: `${every.zh}${SEP}至 ${readerMonthDay(end)}`, en: `${every.en}${SEP}until ${readerMonthDay(end, true)}` } : every;
   }
@@ -160,9 +163,10 @@ export const OPENING_TYPES: Readonly<Record<IndexOpening['openingType'], Copy>> 
 
 /**
  * Outlets that report on openings, matched as whole words or hosts: "Eater SF" and "sf.eater.com", never "Polly Klaas
- * Community Theater" or "petalumapumpkinpatch.com". A label naming one of them and no official page of the place is press.
+ * Community Theater" or "petalumapumpkinpatch.com". The word 报道 ("KQED 报道", "Hoodline 报道") is press too, so an
+ * outlet not listed here never prints 「官网核对」. A label naming one of them and no official page of the place is press.
  */
-const PRESS = /\beater\b|\bsfgate\b|\bsfist\b|\b(?:sf)?chronicle\b|san francisco standard|\bsf standard\b|(?:^|[\s·/.])patch\.com\b|\bbizjournals\b|\bnosh\b/i;
+const PRESS = /\beater\b|\bsfgate\b|\bsfist\b|\b(?:sf)?chronicle\b|san francisco standard|\bsf standard\b|(?:^|[\s·/.])patch\.com\b|\bbizjournals\b|\bnosh\b|报道/i;
 /** A label that also names the place's own page or announcement ("官网", "官方", "品牌门店页", "公告") is official. */
 const OFFICIAL = /官方|官网|门店页|品牌|公告|市府/;
 /**

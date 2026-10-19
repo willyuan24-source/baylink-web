@@ -56,6 +56,9 @@ test('line 1 of an offer says when in one M/D pattern; never the free-text label
   assert.deepEqual(when({ availability: 'check-local' }), { zh: '日期以官网为准', en: 'Dates on the official site' });
   // Not started yet: a weekly offer says from when (so "每周三" never reads as usable this week); so does an undated one.
   assert.deepEqual(when({ availability: 'ongoing', weekdays: [3], startDate: '2026-11-04' }), { zh: '每周三\u00a0· 11/4 起', en: 'Every Wed\u00a0· from Nov 4' });
+  // ...and when it also ends, the whole run, so the reader sees that it stops.
+  assert.deepEqual(when({ availability: 'dated', weekdays: [3], startDate: '2026-11-04', endDate: '2026-11-25' }), { zh: '每周三\u00a0· 11/4–25', en: 'Every Wed\u00a0· Nov 4–25' });
+  assert.deepEqual(when({ availability: 'dated', weekdays: [3], startDate: '2026-10-28', endDate: '2026-11-25' }), { zh: '每周三\u00a0· 10/28–11/25', en: 'Every Wed\u00a0· Oct 28–Nov 25' });
   assert.deepEqual(when({ availability: 'check-local', startDate: '2026-11-04' }), { zh: '11/4 起', en: 'From Nov 4' });
   assert.deepEqual(when({ availability: 'ongoing', startDate: '2026-11-04' }), { zh: '11/4 起', en: 'From Nov 4' });
   for (const item of model.liveOffers(model.INDEX_OFFERS, today)) {
@@ -135,6 +138,9 @@ test('the source line: a press label without the shop\'s own page is press; data
   assert.equal(boards.pressSourced('SFist 9/21 开门报道 · 品牌门店页交叉核对'), false);
   assert.equal(boards.pressSourced('Marufuku Burlingame 官方开业日期与地址'), false);
   assert.equal(boards.pressSourced('Westfield Valley Fair'), false);
+  // A bare 报道 is press: an outlet that is not listed never prints 「官网核对」; the official words still win.
+  for (const label of ['KQED 报道', 'Hoodline 报道', 'Mission Local 10/9 开业报道']) assert.equal(boards.pressSourced(label), true, label);
+  assert.equal(boards.pressSourced('Nosh 9/8 试营业报道 · The Game Parlour 官网'), false);
   // Outlets match as whole words or hosts: labels that merely contain the letters ("theater", "pumpkinpatch") stay official.
   for (const label of ['Polly Klaas Community Theater', 'pollyklaastheater.org', 'petalumapumpkinpatch.com', 'magicalglasspumpkinpatch.com', 'Greater Bay Area']) {
     assert.equal(boards.pressSourced(label), false, label);
