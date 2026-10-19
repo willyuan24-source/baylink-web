@@ -13,7 +13,7 @@ import type { IndexOffer, IndexOpening } from './events-index-types';
  * so the boards (UI9-FREE) and the event cards (UI9-EVENTS) live in different files. The source check line is the
  * event cards' TrustLine.
  */
-const HAN = /[㐀-鿿]/;
+const HAN = /[\u3400-\u9fff]/;
 
 /** ♡ on the card's cover: the one save control, the same heart as the event cards (reader's name "收藏：<title>"). */
 const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;
