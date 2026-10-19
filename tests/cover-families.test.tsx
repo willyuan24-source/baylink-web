@@ -162,9 +162,11 @@ test('the status map: each status has exactly one look, 14 px, wrapping; none is
   // The words decide the look, whatever tone a caller passes; the old tone names still map.
   const cases: [string, string][] = [['免费', 'free'], ['免費', 'free'], ['Free', 'free'], ['部分免费', 'partial'], ['Partly free', 'partial'], ['还剩 3 天', 'soon'], ['3 days left', 'soon'],
     ['今天截止', 'urgent'], ['明天截止', 'urgent'], ['售罄', 'urgent'], ['已售罄', 'urgent'], ['Sold out', 'urgent'], ['已开业', 'open'], ['10/11 已开业', 'open'], ['Opened Oct 11', 'open'],
-    ['已结束', 'ended'], ['已结束 · 10/18', 'ended'], ['Ended', 'ended'], ['安排草案', 'neutral'], ['待核实', 'neutral'], ['还需补充', 'neutral'], ['日期待定', 'neutral']];
-  for (const [words, look] of cases) for (const tone of look === 'neutral' ? ['neutral', 'warning', 'info'] as const : ['neutral', 'success', 'warning', 'info', 'danger'] as const) assert.equal(statusLook(tone, words), look, `${words} (${tone})`);
-  assert.deepEqual(LEGACY_STATUS_TONES, { success: 'open', info: 'neutral', warning: 'neutral', danger: 'urgent' });
+    ['已结束', 'ended'], ['已结束 · 10/18', 'ended'], ['Ended', 'ended'], ['安排草案', 'neutral'], ['待核实', 'neutral'], ['还需补充', 'neutral'], ['日期待定', 'neutral'],
+    // The old success tone was given to more than 已开业: an offer that runs on, a soft opening, a saved plan stay neutral.
+    ['长期有效', 'neutral'], ['Ongoing', 'neutral'], ['9/4 起试营业', 'neutral'], ['Soft open', 'neutral'], ['已保存到行程', 'neutral']];
+  for (const [words, look] of cases) for (const tone of look === 'neutral' ? ['neutral', 'success', 'warning', 'info'] as const : ['neutral', 'success', 'warning', 'info', 'danger'] as const) assert.equal(statusLook(tone, words), look, `${words} (${tone})`);
+  assert.deepEqual(LEGACY_STATUS_TONES, { success: 'neutral', info: 'neutral', warning: 'neutral', danger: 'urgent' });
   const view = wrap(<StatusChip tone="warning">日期待定</StatusChip>);
   assert.equal(view.container.querySelector('.ui-status')?.getAttribute('data-tone'), 'neutral', 'no amber for a pending fact');
 });
@@ -269,4 +271,49 @@ test('a number plate prints the number on one line in every mode, and a thumbnai
   const thumb = wrap(<GuideTypeCover slug="bay-area-medicare-hicap-medi-cal-guide" topic="health" topicLabel="医疗保险" hook="免费 1-800-434-0222" size="mini" />);
   assert.doesNotMatch(thumb.container.textContent ?? '', /\d{3}/, 'a thumb never prints a phone number');
   assert.ok(thumb.container.querySelector('.tc-mark svg'), 'it shows the topic mark');
+});
+
+test('review fixes: the stated close past midnight, families after the page drawn in one pass in Node, legacy thumbnails, short thumbnail facts, terms on a value-less ticket, one-clause hooks', async () => {
+  const late = { id: 'l', title: '夜市', startDate: '2026-10-24', endDate: '2026-10-24', city: 'Fremont', category: 'food', cost: 'free', audience: [], sessions: [{ date: '2026-10-24', start: '19:00', end: '01:00' }] };
+  // The card's line prints the record's own close; only the bar runs to 24:00.
+  assert.deepEqual(eventWhenLine(late as never, today), { zh: '周六 10/24 · 19:00–1:00', en: 'Sat, Oct 24 · 7pm–1am' });
+  assert.deepEqual(eventTimeWindow(late as never, '2026-10-24'), { open: 1140, close: 1440 });
+  // A label-only legacy thumbnail (a plan stop, a saved place) prints its words, never an empty tile.
+  const { TypeCover } = await import('../src/components/ui');
+  const legacy = wrap(<TypeCover tone="outdoors" label="景点" size="mini" />);
+  assert.equal(legacy.container.querySelector('.tc-thumb')?.textContent, '景点');
+  cleanup();
+  // A BayBay guide card's legacy cover prints the title after its colon, not the caption's title.
+  const baybay = wrap(<TypeCover tone="culture" label="指南" title="湾区新手第一个月：先办这 3 件事" />);
+  assert.equal(baybay.container.querySelector('.tc-hook')?.textContent, '先办这 3 件事');
+  cleanup();
+  // A date thumbnail without a time prints a short venue, else the city (never a long venue that clips at 特大).
+  const noTime = { ...late, sessions: undefined, venueShort: 'Library / Parks and Recreation Center' };
+  const thumb = wrap(<EventTypeCover event={noTime as never} today={today} days={['2026-10-24']} size="mini" />);
+  assert.equal(thumb.container.querySelector('.tc-thumb')?.textContent, translateText('Fremont', 'zh-Hans'));
+  cleanup();
+  const shortVenue = wrap(<EventTypeCover event={{ ...noTime, venueShort: 'SFMOMA' } as never} today={today} days={['2026-10-24']} size="mini" />);
+  assert.equal(shortVenue.container.querySelector('.tc-thumb')?.textContent, 'SFMOMA');
+  cleanup();
+  // The families a page draws after its first screen render in one pass in Node, so the prerendered HTML carries them.
+  const { DeferredGuideTypeCover, DeferredOfferCover } = await import('../src/components/ui/cover-defer');
+  const guide = wrap(<DeferredGuideTypeCover slug="california-tenant-deposit-rights-help-guide" topic="housing" topicLabel="住房" hook="押金：搬出后 21 天" />);
+  assert.equal(guide.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'headline');
+  assert.equal(guide.container.querySelector('.tc-hook em')?.textContent, '21 天');
+  cleanup();
+  // An offer without a stated value leads with what it asks of you; the stub keeps the deadline day.
+  const terms = wrap(<DeferredOfferCover offer={{ id: 'o', brand: 'IKEA', title: '会员咖啡', kind: 'purchase', endDate: '2026-10-26', availability: 'dated' } as never} cover={typeCover as never} today={today} />);
+  const ticket = terms.container.querySelector('[data-cover="type"]')!;
+  assert.deepEqual([ticket.getAttribute('data-family'), ticket.querySelector('.tc-ticket__value')?.textContent, ticket.querySelector('.tc-ticket__stub')?.textContent], ['ticket', '需消费', '10/26截止']);
+  cleanup();
+  // A hook that is one clause gets no lime phrase rather than a lime hook from end to end.
+  assert.equal(hookHighlight('合租前先讲清楚这些事'), '');
+  const plain = wrap(<GuideTypeCover slug="x" topic="housing" topicLabel="住房" hook="合租前先讲清楚这些事" />);
+  assert.equal(plain.container.querySelector('.tc-hook em'), null);
+  assert.equal(plain.container.querySelector('.tc-hook')?.textContent, '合租前先讲清楚这些事');
+  cleanup();
+  // A poster keeps its own shape on the board: the image is sized by max-width / max-height, so the mat is even.
+  const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
+  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*width:auto; height:auto; max-width:100%; max-height:100%/);
+  assert.match(sheet, /aspect-ratio:var\(--ui-feed-ratio, var\(--ui-cover-ratio, 3 \/ 2\)\)/, 'the feed default is 3:2 (decision 20)');
 });

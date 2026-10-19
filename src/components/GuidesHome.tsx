@@ -20,6 +20,7 @@ import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover, guideCaption } from '../features/guides/GuideCover';
+import { GuideTypeCover } from './ui/cover-guide';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GUIDE_REGIONS, guideCardMeta, guideCover, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
@@ -136,11 +137,13 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   }, [browsing, elderRail, sections, listed, visibleCount, today]);
 
   const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
+  // A photo thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard keeps its own badge.
+  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'type' && cover.tier !== 'scene3d' ? pick(cover.label) : undefined;
   const meta = (guide: GuideIndexCard) => pick(guideCardMeta(guide));
   const coverOf = (guide: GuideIndexCard, options: { priority?: boolean; thumb?: boolean } = {}) => {
     const entry = covers.get(guide.slug);
     if (!entry) return null;
-    return <GuideCover guide={guide} cover={entry.cover} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
+    return <GuideCover guide={guide} cover={entry.cover} face={GuideTypeCover} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
       sizes={options.thumb ? COVER_SIZES.thumb : COVER_SIZES.feed} />;
   };
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
@@ -207,7 +210,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
           </>} />
           : searching ? <ul className="gl-results" aria-label={heading}>{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>
             <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-              thumb={coverOf(guide, { thumb: true })} date={section ? t(`文内匹配 · ${section}`, `Match in · ${section}`) : topicName(guideTopicOf(guide))} meta={snippet || meta(guide)} />
+              thumb={coverOf(guide, { thumb: true })} date={section ? t(`文内匹配 · ${section}`, `Match in · ${section}`) : topicName(guideTopicOf(guide))} meta={snippet || meta(guide)}
+              credit={rowCredit(covers.get(guide.slug)?.cover)} />
           </li>)}</ul>
             : <FeedGrid label={heading}>{listed.slice(0, visibleCount).map(({ guide }, index) => <FeedItem key={guide.slug}>{card(guide, index === 0)}</FeedItem>)}</FeedGrid>}
         {listed.length > visibleCount && <div className="gl-more"><Button onClick={() => setPage({ key: resultKey, count: visibleCount + PAGE_SIZE })}>{t(`继续查看（${visibleCount}/${listed.length}）`, `Show more (${visibleCount}/${listed.length})`)}</Button></div>}

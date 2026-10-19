@@ -12,10 +12,10 @@ export { Cover, CoverImage, type CoverImageProps, type CoverRatio } from './Cove
 export { COVER_SIZES } from './cover-sizes';
 export { TypeCover, type TypeCoverProps } from './TypeCover';
 export { EventCover, EventTypeCover, EventWhen } from './cover-date';
-export { OfferCardMeta, OfferCover, OfferTypeCover, OfferWhen } from './cover-ticket';
+export { OfferCover, OfferTypeCover } from './cover-ticket';
 export { GuideTypeCover } from './cover-guide';
 export { OpeningCover, OpeningTypeCover } from './cover-shop';
-export { offerBrandLine } from './offer-brand';
+export { OfferCardMeta, OfferWhen, offerBrandLine } from './cover-defer';
 export { FeedCard, RowCard, type FeedCardProps, type RowCardProps } from './Card';
 export { HeroCard, type HeroCardProps } from './HeroCard';
 export { PageHeader, PageContainer, type PageHeaderProps } from './PageHeader';

@@ -1,5 +1,4 @@
 import type { ReactNode } from 'react';
-import { cx } from './ui-copy';
 
 /**
  * The one status map (UI9-C, N08 / G8; D2 tokens.md §2). Each status has exactly one look, 14 px, wrapping, never cut:
@@ -10,13 +9,16 @@ import { cx } from './ui-copy';
  *   open     已开业                  brand tint and a ✓
  *   ended    已结束                  sunken, ink-3
  *   neutral  everything else (安排草案, 待核实, 还需补充, 日期待定 …)
- * No status is amber or indigo (the 市集美食 and 文化 hues). The old tone names still compile (LEGACY_STATUS_TONES), and a
- * chip whose words are one of the statuses above takes that status's look whatever tone it was given.
+ * No status is amber or indigo (the 市集美食 and 文化 hues). The old tone names still compile (LEGACY_STATUS_TONES: success,
+ * info and warning are neutral, danger is urgent), and a chip whose words are one of the statuses above takes that status's
+ * look whatever tone it was given.
  */
 export type StatusLook = 'free' | 'partial' | 'soon' | 'urgent' | 'open' | 'ended' | 'neutral';
 export type LegacyStatusTone = 'success' | 'info' | 'warning' | 'danger';
 export type StatusTone = StatusLook | LegacyStatusTone;
-export const LEGACY_STATUS_TONES: Readonly<Record<LegacyStatusTone, StatusLook>> = { success: 'open', info: 'neutral', warning: 'neutral', danger: 'urgent' };
+// `success` was the old 已开业 green, but callers also gave it to 长期有效, 试营业 and 已保存到行程: only the words 已开业 / Opened
+// take the open look (STATUS_WORDS), so success itself is neutral.
+export const LEGACY_STATUS_TONES: Readonly<Record<LegacyStatusTone, StatusLook>> = { success: 'neutral', info: 'neutral', warning: 'neutral', danger: 'urgent' };
 const STATUS_WORDS: readonly (readonly [RegExp, StatusLook])[] = [
   [/^(部分免[费費]|Partly free)$/i, 'partial'],
   [/^(免[费費]|Free)$/i, 'free'],
@@ -29,9 +31,9 @@ const STATUS_WORDS: readonly (readonly [RegExp, StatusLook])[] = [
 export function statusLook(tone: StatusTone = 'neutral', text?: string): StatusLook {
   const words = text?.trim();
   if (words) for (const [pattern, look] of STATUS_WORDS) if (pattern.test(words)) return look;
-  return Object.hasOwn(LEGACY_STATUS_TONES, tone) ? LEGACY_STATUS_TONES[tone as LegacyStatusTone] : tone as StatusLook;
+  return (LEGACY_STATUS_TONES as Partial<Record<string, StatusLook>>)[tone] ?? tone as StatusLook;
 }
 /** A fact about the item (免费, 还剩 3 天, 已开业, 已结束, 待确认). Not a control. */
 export function StatusChip({ tone = 'neutral', icon, children, className }: { tone?: StatusTone; icon?: ReactNode; children: ReactNode; className?: string }) {
-  return <span className={cx('ui-status', className)} data-tone={statusLook(tone, typeof children === 'string' ? children : undefined)}>{icon}{children}</span>;
+  return <span className={className ? `ui-status ${className}` : 'ui-status'} data-tone={statusLook(tone, typeof children === 'string' ? children : undefined)}>{icon}{children}</span>;
 }

@@ -14,6 +14,7 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 registerHooks({ load(url, context, next) { return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context); } });
 const { render, cleanup, act } = await import('@testing-library/react');
 const { GuideCover } = await import('../src/features/guides/GuideCover');
+const { GuideTypeCover } = await import('../src/components/ui/cover-guide');
 const { guideTopicOf } = await import('../src/data/guide-topics');
 const { setLocale } = await import('../src/i18n/locale');
 afterEach(async () => { cleanup(); await act(async () => { await setLocale('zh-Hans', false); }); });
@@ -23,7 +24,7 @@ const index = JSON.parse(readFileSync('src/data/generated/guides-index.json', 'u
 const cards = (Array.isArray(index) ? index : index.guides).map(({ slug, category, title, sourceCount, hook, hi }) => ({ slug, category, title, sourceCount, hook, hi }));
 const typeCover = { tier: 'type', reason: 'no-image' } as never;
 const covers = (list: Card[]) => list.map(guide => {
-  const view = render(<GuideCover guide={guide} cover={typeCover} ratio="4:5" />);
+  const view = render(<GuideCover guide={guide} cover={typeCover} ratio="4:5" face={GuideTypeCover} />);
   const root = view.container.querySelector('[data-cover="type"]')!;
   const found = { family: root.getAttribute('data-family')!, mark: root.getAttribute('data-mark')!, key: root.getAttribute('data-key')! };
   cleanup();

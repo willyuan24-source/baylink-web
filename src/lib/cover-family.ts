@@ -43,14 +43,12 @@ export type CoverFacts = {
 };
 export type CoverChoice = { family: CoverFamily; keyFact: string; mark: string };
 
-const join = (...parts: (string | undefined)[]) => parts.map(part => part?.trim()).filter(Boolean).join(' · ');
-
 export function chooseCover(kind: CoverListingKind, cover: Pick<ResolvedCover, 'tier'> & { fit?: 'cover' | 'contain' }, facts: CoverFacts): CoverChoice {
   if (cover.tier !== 'type') return cover.fit === 'contain' ? { family: 'poster', keyFact: '', mark: 'mat' } : { family: 'photo', keyFact: '', mark: 'focal' };
-  const fallback = facts.place?.trim() ?? '';
-  if (kind === 'event' || kind === 'bulletin') return { family: 'date', keyFact: join(facts.date, facts.time) || fallback, mark: 'calendar' };
-  if (kind === 'offer') return { family: 'ticket', keyFact: join(facts.value || facts.condition || facts.deadline) || fallback, mark: 'ticket' };
-  if (kind === 'opening') return { family: 'shop', keyFact: join(facts.sells, facts.opened) || fallback, mark: 'shopfront' };
-  if (facts.phone && facts.hook) return { family: 'number', keyFact: facts.hook, mark: 'plate' };
-  return { family: 'headline', keyFact: facts.hook?.trim() || fallback, mark: facts.mark || 'slide' };
+  const [family, mark, ...printed]: [CoverFamily, string, ...(string | undefined)[]] = kind === 'event' || kind === 'bulletin' ? ['date', 'calendar', facts.date, facts.time]
+    : kind === 'offer' ? ['ticket', 'ticket', facts.value || facts.condition || facts.deadline]
+    : kind === 'opening' ? ['shop', 'shopfront', facts.sells, facts.opened]
+    : facts.phone && facts.hook ? ['number', 'plate', facts.hook] : ['headline', facts.mark || 'slide', facts.hook];
+  // The key fact as the cover prints it ("10/17 周六 · 11:00–16:00"); with none of its own facts, the place (never the category).
+  return { family, mark, keyFact: printed.map(part => part?.trim()).filter(Boolean).join(' · ') || facts.place?.trim() || '' };
 }

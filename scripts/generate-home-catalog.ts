@@ -9,8 +9,6 @@ import { guideTopicOf } from '../src/data/guide-topics';
 import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
-import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
-import { answeredHookFields } from '../src/lib/guide-hook-highlight';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
@@ -51,9 +49,9 @@ const homeGuides = guides.filter(guide => homeSlugs.has(guide.slug)).map(guide =
   return {
     // UI9-C: no palette or texture icon any more (the cover family follows the topic and the hook).
     slug: guide.slug, title: guide.title, topic,
+    // The home rail's covers print the title after its colon (GuideRail): the answered hooks stay off the home's JS (route JS
+    // ≤ base, captain decision 9); /guides and a guide's 接下来 rail print them (generate-guide-data.ts).
     sources: guideSourceCount(guide), readMinutes: guideReadMinutes(guide), ...(usable ? { imageKey: cover.src } : {}),
-    // UI9-C (G19): an answered guide's cover hook and lime phrase.
-    ...answeredHookFields(guide.slug, GUIDE_COVER_ANSWERS),
   };
 });
 const missing = [...homeSlugs].filter(slug => !homeGuides.some(guide => guide.slug === slug));

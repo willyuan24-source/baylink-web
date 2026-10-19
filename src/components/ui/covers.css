@@ -26,21 +26,20 @@
 .ui-status[data-tone=open]::before { content:"✓"; color:var(--color-brand); }
 .ui-status[data-tone=ended] { color:var(--color-ink-3); }
 
-/* Covers. One ratio per feed: 5:4 by default (D2), a ratio a caller sets stays; a single-column feed sets 3:2. */
-.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 5 / 4)); border-radius:var(--r-lg); }
+/* Covers. One ratio per feed: 3:2 by default (captain decision 20), a ratio a caller sets stays. */
+.ui-cover,.ui-type-cover { position:relative; display:block; width:100%; overflow:hidden; aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2)); border-radius:var(--r-lg); }
 :is(.ui-cover,.ui-type-cover)[data-ratio="4:5"] { --ui-cover-ratio:4 / 5; }
-:is(.ui-cover,.ui-type-cover)[data-ratio="5:4"] { --ui-cover-ratio:5 / 4; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="1:1"] { --ui-cover-ratio:1 / 1; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="16:9"] { --ui-cover-ratio:16 / 9; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="16:10"] { --ui-cover-ratio:16 / 10; }
 :is(.ui-cover,.ui-type-cover)[data-ratio="3:2"] { --ui-cover-ratio:3 / 2; }
-:is(.ui-cover,.ui-type-cover)[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 5 / 4); }
+:is(.ui-cover,.ui-type-cover)[data-ratio-lock] { aspect-ratio:var(--ui-cover-ratio, 3 / 2); }
 .ui-cover { background:var(--ui-lqip, var(--color-surface-2)); }
 .ui-cover__img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
 .ui-cover[data-ended] .ui-cover__img { filter:saturate(.7); }
-/* Poster: the whole flyer on a solid board, a white mat and e1; never blurred, never cropped. */
+/* Poster: the whole flyer at its own shape on a solid board, an even white mat and e1; never blurred, never cropped. */
 .ui-cover[data-fit=contain] { display:grid; grid-template:minmax(0, 1fr) / minmax(0, 1fr); place-items:center; padding:var(--sp-3) var(--sp-3) var(--sp-6); background:var(--color-surface-2); }
-.ui-cover[data-fit=contain] .ui-cover__img { position:static; width:100%; height:100%; object-fit:contain; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
+.ui-cover[data-fit=contain] .ui-cover__img { position:static; width:auto; height:auto; max-width:100%; max-height:100%; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
 
 /* Type covers: DOM text in flow (the cover grows rather than clip at 特大 / 简洁); --tc-deep = the category's deep shade. */
 .ui-type-cover { --tc-deep:var(--tc-fg, var(--color-brand)); --tc-badge-room:calc(var(--fs-badge) * var(--lh-snug) + var(--sp-3)); container:tc / inline-size; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--sp-2); padding:var(--sp-3); padding-top:calc(var(--sp-3) + var(--tc-badge-room)); overflow:clip; background:var(--color-surface-2); color:var(--color-ink); text-align:start; font-weight:400; }
@@ -119,6 +118,8 @@
   .tc-cal>span { padding-inline:var(--sp-6); }
   .tc-ticket,.tc-plate { width:70%; }
 }
+/* A 320 px phone: the key numeral stays below the page H1 at 特大 / 家人版 (N02). */
+@media (max-width:340px) { .tc-cal__day,.tc-ticket__value { font-size:var(--fs-section); } }
 /* Thumbnails (≤ 140 px): the key fact only (Card.tsx moves the chip's words into the row meta). */
 @container tc (max-width:140px) {
   .tc-mark { position:static; width:var(--sp-7); height:var(--sp-7); opacity:1; color:var(--color-highlight); }
@@ -139,5 +140,3 @@
 /* A row's thumbnail drops its chip; the same words sit in the row as a 13 px line. */
 .ui-row-card__credit { margin:0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-snug); }
 .ui-row-card:has(.ui-row-card__credit) .ui-row-card__thumb .ui-provenance[data-chip] { display:none; }
-/* 简洁显示: rows drop the ♡ and the chip from their thumbnails. */
-html[data-simple] .ui-row-card__thumb :is(.ui-provenance[data-chip],.ui-feed-card__save) { display:none; }

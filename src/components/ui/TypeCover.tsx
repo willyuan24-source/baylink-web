@@ -1,4 +1,4 @@
-import { TypeFrame, type CoverLayout } from './cover-frame';
+import { TypeFrame, type CoverLayout } from './CoverImage';
 import { DateFace } from './cover-date';
 import { TicketFace } from './cover-ticket';
 import { HeadlineFace, NumberFace, hookPhone, topicMark } from './cover-guide';
@@ -56,7 +56,9 @@ export function TypeCover({ tone, family = 'event', label, date, title, value, v
     const choice = chooseCover('opening', { tier: 'type' }, { id, sells: label, place: title });
     return <TypeFrame {...layout} {...choice} kind="opening" tone={tone}><ShopFace sells={label} mini={mini} /></TypeFrame>;
   }
-  const hook = title || label;
+  // A title prints after its colon (a BayBay guide card's caption carries the whole title), as the guide covers do
+  // (guide-hook-highlight.ts splitTitleHook's rule, kept here so the older callers' pages do not load that module).
+  const hook = title ? /^.{4,}?\s*[：:｜|]\s*(.+)$/su.exec(title.trim())?.[1] ?? title : label;
   const phone = !!hookPhone(hook);
   const kind = family === 'guide' ? 'guide' : 'place';
   const choice = chooseCover(kind, { tier: 'type' }, { id, hook, phone, mark: topicMark(icon) });

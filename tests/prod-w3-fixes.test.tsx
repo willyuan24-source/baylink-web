@@ -22,6 +22,7 @@ const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { setLocale, loadLocale } = await import('../src/i18n/locale');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuideCover } = await import('../src/features/guides/GuideCover');
+const { GuideTypeCover } = await import('../src/components/ui/cover-guide');
 const { offerBrandLine, OfferTypeCover } = await import('../src/components/ui');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
@@ -80,14 +81,14 @@ test('pillar-guide headlines wrap between words: H1, cover title, slide titles a
 
 test('a coded guide card does not repeat the caption: no title and no source count on the cover', () => {
   const html = renderToStaticMarkup(<GuideCover guide={{ slug: SENIOR, category: 'family', title: '湾区中文长者服务：餐食、日间照护', sourceCount: 6, hook: { zh: '先打 800-510-2020', en: 'Call 800-510-2020' } }}
-    cover={{ tier: 'type', reason: 'no-image' } as never} />);
+    cover={{ tier: 'type', reason: 'no-image' } as never} face={GuideTypeCover} />);
   const cover = JSDOM.fragment(html);
   // UI9-C: the pilot answer is a phone number, so it prints on the number plate, held together by non-breaking hyphens (U+2011).
   assert.equal(cover.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'number');
   assert.doesNotMatch(cover.textContent!, /官方来源|湾区中文长者服务/);
   assert.equal(cover.querySelector('[data-phone]')!.textContent, `800${String.fromCharCode(0x2011)}510${String.fromCharCode(0x2011)}2020`);
   // Without an answer the cover prints the title after its colon; the head stays in the caption.
-  const plain = JSDOM.fragment(renderToStaticMarkup(<GuideCover guide={{ slug: 'x', category: 'family', title: '某篇指南：副标题', sourceCount: 3 }} cover={{ tier: 'type', reason: 'no-image' } as never} />));
+  const plain = JSDOM.fragment(renderToStaticMarkup(<GuideCover guide={{ slug: 'x', category: 'family', title: '某篇指南：副标题', sourceCount: 3 }} cover={{ tier: 'type', reason: 'no-image' } as never} face={GuideTypeCover} />));
   assert.equal(plain.querySelector('[data-cover="type"]')?.getAttribute('data-key'), '副标题');
   assert.doesNotMatch(plain.textContent!, /某篇指南|官方来源/);
 });

@@ -1,7 +1,7 @@
 import { Compass, Earth, Gift, House, ShieldCheck, TramFront, Users, type LucideIcon } from 'lucide-react';
-import { TypeFrame, latinLang, type CoverLayout } from './cover-frame';
+import { TypeFrame, latinLang, type CoverLayout } from './CoverImage';
 import { chooseCover, type CoverListingKind } from '../../lib/cover-family';
-import { hookHighlight, splitHook } from '../../lib/guide-hook-highlight';
+import { hookHighlight, splitHook } from '../../lib/guide-hook-phrase';
 import { displayUnits } from '../../lib/event-facts';
 
 /** Each guide topic's mark (data-mark), one per topic (G3). */
@@ -45,9 +45,12 @@ export function NumberFace({ hook, eyebrow, mark, mini }: { hook: string; eyebro
   </>;
 }
 
-/** Family headline (G19): the hook with exactly one lime phrase on the deep-green slide, and the cropped topic mark. */
+/**
+ * Family headline (G19): the hook with exactly one lime phrase on the deep-green slide, and the cropped topic mark. A
+ * thumbnail shows the topic mark, or, with no topic (a place or a saved item from an older caller), its words.
+ */
 export function HeadlineFace({ hook, hi, eyebrow, mark, mini }: { hook: string; hi?: string; eyebrow?: string; mark: string; mini: boolean }) {
-  if (mini) return <TopicMark mark={mark} />;
+  if (mini) return mark === 'slide' ? <p className="tc-thumb">{eyebrow || hook}</p> : <TopicMark mark={mark} />;
   const parts = splitHook(hook, hi ?? hookHighlight(hook));
   return <>
     {eyebrow && <p className="tc-eyebrow">{eyebrow}</p>}
@@ -61,7 +64,8 @@ export function HeadlineFace({ hook, hi, eyebrow, mark, mini }: { hook: string; 
  * A guide's coded cover (G19): the hook (its one-line answer, else the title after the colon) with one lime phrase on the
  * deep-green slide, or the number plate when the hook is a phone number. Thumbnails show the topic mark and never a number.
  */
-export function GuideTypeCover({ slug, topic, topicLabel, hook, hi, kind = 'guide', ...layout }: CoverLayout & { slug: string; topic: string; topicLabel: string; hook: string; hi?: string; kind?: CoverListingKind }) {
+export type GuideTypeCoverProps = CoverLayout & { slug: string; topic: string; topicLabel: string; hook: string; hi?: string; kind?: CoverListingKind };
+export function GuideTypeCover({ slug, topic, topicLabel, hook, hi, kind = 'guide', ...layout }: GuideTypeCoverProps) {
   const choice = chooseCover(kind, { tier: 'type' }, { id: slug, hook, phone: !!hookPhone(hook), mark: topicMark(topic) });
   const mini = layout.size === 'mini';
   return <TypeFrame {...layout} {...choice} kind={kind}>

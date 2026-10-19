@@ -137,13 +137,11 @@ export function eventTimeLabel(event: Pick<EventFactsInput, 'sessions' | 'planni
 
 /** A structured window in minutes after midnight ("11:00–16:00" → 660–960). */
 export type EventWindow = { open: number; close: number };
-const minutes = (match: RegExpExecArray | null) => match ? Number(match[1]) * 60 + Number(match[2]) : undefined;
 /**
- * The one window of `day` from structured sessions or the verified schedule (eventTimeLabel's sources), with both ends
- * stated: undefined for a day with several sessions or windows, an open end, or nothing structured. The date cover's 6–24 h
- * bar (UI9-C, G20) draws exactly this window; a close at or before the open (past midnight) runs to 24:00.
+ * The shown day's one window from structured sessions or the verified schedule (eventTimeLabel's sources), as the stated
+ * "HH:MM" of both ends: undefined for a day with several sessions or windows, an open end, or nothing structured.
  */
-export function eventTimeWindow(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: string): EventWindow | undefined {
+function dayWindow(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: string): RegExpExecArray[] | undefined {
   const sessions = (event.sessions ?? []).filter(item => item.date === day);
   if (sessions.length > 1) return undefined;
   const schedule = event.planning?.schedule;
@@ -152,31 +150,34 @@ export function eventTimeWindow(event: Pick<EventFactsInput, 'sessions' | 'plann
   const window: TimeSpan | undefined = span(sessions[0])
     ?? (dated ? dated.length === 1 ? dated[0] : undefined
       : span(schedule?.sessions?.find(item => item.date === day)) ?? (weekly?.length === 1 ? weekly[0] : undefined));
-  const open = minutes(hour(window?.open)), close = minutes(hour(window?.close));
-  if (open === undefined || close === undefined) return undefined;
-  return { open, close: close > open ? close : 24 * 60 };
+  const ends = [hour(window?.open), hour(window?.close)];
+  return ends[0] && ends[1] ? ends as RegExpExecArray[] : undefined;
+}
+/**
+ * The window the date cover's 6–24 h bar (UI9-C, G20) draws, in minutes: dayWindow's two ends, a close at or before the
+ * open (past midnight) drawn to 24:00. The card's line prints the stated close (eventWhenLine).
+ */
+export function eventTimeWindow(event: Pick<EventFactsInput, 'sessions' | 'planning'>, day: string): EventWindow | undefined {
+  const [open, close] = dayWindow(event, day)?.map(match => Number(match[1]) * 60 + Number(match[2])) ?? [];
+  return open === undefined ? undefined : { open, close: close > open ? close : 24 * 60 };
 }
 
-const clock = (value: number, english: boolean) => {
-  const h = Math.floor(value / 60), m = value % 60;
-  if (!english) return `${h}:${String(m).padStart(2, '0')}`;
-  return `${h % 12 || 12}${m ? `:${String(m).padStart(2, '0')}` : ''}${h % 24 >= 12 ? 'pm' : 'am'}`;
-};
 /**
  * Line 1 of every event card (UI9-C, G18 / N06): one date pattern and one time pattern, "周六 10/17 · 11:00–16:00" /
  * "Sat, Oct 17 · 11am–4pm". A run reads "10/17–18 周六–周日" / "Oct 17–18 · Sat–Sun", a long run "10/10 起" / "From Oct 10";
- * the time is the shown day's one structured window, else eventTimeLabel's (several sessions list their starts). zh-Hant
- * is the runtime conversion of zh.
+ * the time is the shown day's one structured window as stated (a close past midnight reads "19:00–1:00" / "7pm–1am"), else
+ * eventTimeLabel's (several sessions list their starts). zh-Hant is the runtime conversion of zh.
  */
 export function eventWhenLine(event: Pick<EventFactsInput, 'startDate' | 'endDate' | 'occurrenceDates' | 'sessions' | 'planning'>, today: string, days: readonly string[] = []): Copy {
   const chip = eventDateChip(event, today, days);
-  const zh = formatDateChip(chip, false), en = formatDateChip(chip, true);
-  const dateZh = chip.kind === 'range' ? `${zh.big} ${zh.small}` : zh.label, dateEn = chip.kind === 'range' ? `${en.big} · ${en.small}` : en.label;
-  if (chip.kind !== 'day') return { zh: dateZh, en: dateEn };
-  const window = eventTimeWindow(event, chip.date);
-  const timeZh = window ? `${clock(window.open, false)}–${clock(window.close, false)}` : eventTimeLabel(event, chip.date, false);
-  const timeEn = window ? `${clock(window.open, true)}–${clock(window.close, true)}` : eventTimeLabel(event, chip.date, true);
-  return { zh: timeZh ? `${dateZh} · ${timeZh}` : dateZh, en: timeEn ? `${dateEn} · ${timeEn}` : dateEn };
+  const window = chip.kind === 'day' ? dayWindow(event, chip.date) : undefined;
+  const line = (english: boolean) => {
+    const parts = formatDateChip(chip, english);
+    const date = chip.kind === 'range' ? `${parts.big}${english ? ' · ' : ' '}${parts.small}` : parts.label;
+    const time = chip.kind !== 'day' ? undefined : window ? window.map(match => english ? twelve(match) : `${Number(match[1])}:${match[2]}`).join('–') : eventTimeLabel(event, chip.date, english);
+    return time ? `${date} · ${time}` : date;
+  };
+  return { zh: line(false), en: line(true) };
 }
 
 export type PriceChip = { tone: 'free' | 'mixed' | 'price' | 'paid'; text: Copy };

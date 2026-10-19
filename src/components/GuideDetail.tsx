@@ -43,6 +43,7 @@ import { ContactCards, KeyFactsCard } from '../features/guides/GuideFactCards';
 import { quickFactsEligible } from '../features/guides/guide-kind';
 import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
 import { GuideCover, guideCaption } from '../features/guides/GuideCover';
+import { DeferredGuideTypeCover } from './ui/cover-defer';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuidePageImageCredits } from '../features/guides/GuidePageParts';
 import { guideCardMeta, guideCover } from '../features/guides/guide-facts';
@@ -86,7 +87,7 @@ function RelatedGuides({ related, coverPage, today, onOpenGuide }: { related: Gu
     </div>
     <FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
       <FeedCard title={translateText(guide.title, locale)} titleShown={guideCaption(guide, locale, covers[index])} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={(event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(guide.slug)) : onOpenGuide(guide.slug)}
-        cover={<GuideCover guide={guide} cover={covers[index]} sizes={COVER_SIZES.feed} />}
+        cover={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} sizes={COVER_SIZES.feed} />}
         meta={pick(guideCardMeta(guide))} />
     </FeedItem>)}</FeedGrid>
   </section>;

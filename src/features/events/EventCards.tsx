@@ -3,7 +3,7 @@ import { translateText } from '../../i18n/locale';
 import { EventCover, EventTypeCover, EventWhen, FeedCard, HeroCard, RowCard, Cover, COVER_SIZES } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { ResolvedCover } from '../../lib/cover';
-import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, type EventFactsInput } from '../../lib/event-facts';
+import { eventPlace, eventPriceChip, eventWhenLine, type EventFactsInput } from '../../lib/event-facts';
 import type { IndexEvent } from './events-index-types';
 import { monthDay, regionLabel } from './events-model';
 import { SaveToWeek } from '../../components/SaveToWeek';
@@ -55,9 +55,7 @@ export function EventFeedCard({ event, cover, today, days, day, priority, sizes,
 
 /** 4:5 editor's pick: photo with the title on the scrim, or the A2 TypeCover with the title below; ♡ on the cover. */
 export function EventHeroCard({ event, cover, today, date, reason, priority }: { event: IndexEvent; cover: ResolvedCover; today: string; date: string; reason?: { zh: string; en: string }; priority?: boolean }) {
-  const { english, pick, t, locale } = useUiCopy();
-  const chip = formatDateChip(eventDateChip(facts(event), today, [date]), english);
-  const time = eventTimeLabel(facts(event), date, english);
+  const { pick, t, locale } = useUiCopy();
   const price = eventPriceChip(facts(event));
   const photo = cover.tier !== 'type';
   const region = pick(regionLabel(event.region));
@@ -65,7 +63,7 @@ export function EventHeroCard({ event, cover, today, date, reason, priority }: {
   return <HeroCard title={translateText(event.title, locale)} to={`/events/${event.id}`} heading="h3" overlay={photo}
     cover={<EventCover event={facts(event)} cover={cover} today={today} days={[date]} ratio="4:5" ratioLock priority={priority} sizes={HERO_SIZES} decorative />}
     kicker={city === region || (event.city === 'San Francisco' && event.region === 'sf') ? region : `${city} · ${region}`}
-    facts={[[chip.label, time].filter(Boolean).join(' · '), ...(price ? [pick(price.text)] : [])]} when={<EventWhen event={facts(event)} today={today} days={[date]} />} meta={<EventMeta event={event} />}
+    facts={[pick(eventWhenLine(facts(event), today, [date])), ...(price ? [pick(price.text)] : [])]} when={<EventWhen event={facts(event)} today={today} days={[date]} />} meta={<EventMeta event={event} />}
     reason={reason ? { label: t('编辑推荐', 'Editor’s pick'), text: pick(reason) } : undefined}
     trust={<TrustLine day={event.verifiedAt} />} save={<CoverSave favorite={{ kind: 'event', id: event.id }} title={event.title} />} />;
 }

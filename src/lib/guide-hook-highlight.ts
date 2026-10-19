@@ -10,6 +10,8 @@
  * scripts/generate-guide-data.ts and scripts/generate-home-catalog.ts carry the answered hooks into the generated cards, so
  * the /guides index and home read them without loading answers.ts.
  */
+import { hookHighlight } from './guide-hook-phrase';
+
 export type HookCopy = { zh: string; en: string };
 
 export const GUIDE_HOOK_HIGHLIGHTS: Readonly<Record<string, HookCopy>> = {
@@ -38,28 +40,9 @@ export const GUIDE_HOOK_HIGHLIGHTS: Readonly<Record<string, HookCopy>> = {
   'bay-area-holiday-hours-thanksgiving-new-year-2026': { zh: '11/26–27', en: 'Nov 26–27' },
 };
 
-// A fee ($46, $6.50), a phone number (800-510-2020, 1‑800‑434‑0222 with kept hyphens), a share (62.5%) or a number with its
-// unit (21 天, 40 个工作积分, 5 years, 10/26–27). The unit is one CJK word or one English word, so the phrase stays short.
-const NUMBER_RUN = /\$\s?\d[\d,.]*|(?:1[-‑])?\d{3}[-‑]\d{3}[-‑]\d{4}|\d+(?:[.,/:–-]\d+)*\s?(?:%|[个項项条條次天周週月年岁歲小时分钟元人张張份步]+|(?:days?|weeks?|months?|years?|hours?|minutes?|steps?|people|credits?|percent)\b)?/i;
-const CLAUSE = /[，、,;；：:。.!?！？（(]/;
-
-/** The lime phrase of a hook without a listed one: its first number, fee or phone run, else its first clause. */
-export function hookHighlight(hook: string): string {
-  const text = hook.trim();
-  const run = NUMBER_RUN.exec(text)?.[0].trim();
-  if (run && /\d/.test(run)) return run;
-  return text.split(CLAUSE)[0].trim() || text;
-}
-
-/**
- * The hook split at its lime phrase (the first occurrence), for <em>: [before, phrase, after]. A phrase that is not in the
- * hook (a conversion that changed it) gives no highlight rather than a wrong one.
- */
-export function splitHook(hook: string, phrase: string | undefined): [string, string, string] | null {
-  if (!phrase) return null;
-  const at = hook.indexOf(phrase);
-  return at < 0 ? null : [hook.slice(0, at), phrase, hook.slice(at + phrase.length)];
-}
+// The phrase helpers the cover itself runs live in guide-hook-phrase.ts, so a page that only splits a title for its caption
+// (guideCardHook) does not load them; their names stay importable from here.
+export { hookHighlight, splitHook } from './guide-hook-phrase';
 
 /** The hook fields scripts/generate-guide-data.ts and generate-home-catalog.ts add to an answered guide's card. */
 export type GuideHookFields = { hook?: HookCopy; hi?: Partial<HookCopy> };

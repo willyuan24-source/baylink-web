@@ -1,5 +1,6 @@
+import type { ComponentType } from 'react';
 import { Cover } from '../../components/ui/CoverImage';
-import { GuideTypeCover } from '../../components/ui/cover-guide';
+import type { GuideTypeCoverProps } from '../../components/ui/cover-guide';
 import type { CoverRatio } from '../../components/ui/CoverImage';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { guideTopicOf } from '../../data/guide-topics';
@@ -19,6 +20,11 @@ export type GuideCoverProps = {
   priority?: boolean;
   /** Row thumbnail (≤ 140 px): a type cover shows its topic mark only, never a phone number. */
   mini?: boolean;
+  /**
+   * The headline / number family: GuideTypeCover (cover-guide.tsx) where guide covers are on the first screen (/guides), or
+   * DeferredGuideTypeCover (cover-defer.tsx) where they load after the page (a guide's 接下来 rail).
+   */
+  face: ComponentType<GuideTypeCoverProps>;
 };
 
 /**
@@ -27,11 +33,11 @@ export type GuideCoverProps = {
  * into the card at generate time), else the title after its colon; the card's caption then shows the head only
  * (guideCardHook), so the cover never repeats the caption.
  */
-export function GuideCover({ guide, cover, ratio, sizes, priority, mini }: GuideCoverProps) {
+export function GuideCover({ guide, cover, ratio, sizes, priority, mini, face: Face }: GuideCoverProps) {
   const { pick, locale } = useUiCopy();
   const topic = guideTopicOf(guide);
   const { hook, hi } = guideCardHook(guide, translateText(guide.title, locale), locale, zh => translateText(zh, locale));
-  const fallback = <GuideTypeCover slug={guide.slug} topic={topic} topicLabel={pick(topicCopy(topic))} hook={hook} hi={hi} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
+  const fallback = <Face slug={guide.slug} topic={topic} topicLabel={pick(topicCopy(topic))} hook={hook} hi={hi} ratio={ratio} size={mini ? 'mini' : undefined} ariaHidden />;
   return <Cover cover={cover} kind="guide" fallback={fallback} ratio={ratio} sizes={sizes} priority={priority} decorative />;
 }
 

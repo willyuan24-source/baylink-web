@@ -1,5 +1,9 @@
-import { Cover, CoverImage, COVER_SIZES, EventTypeCover, OfferTypeCover, OpeningTypeCover } from '../../components/ui';
+import { lazy } from 'react';
+import { Cover, CoverImage, COVER_SIZES, EventTypeCover } from '../../components/ui';
+import { OfferTypeCover } from '../../components/ui/cover-ticket';
+import { OpeningTypeCover } from '../../components/ui/cover-shop';
 import { useUiCopy } from '../../components/ui/ui-copy';
+import { routePathname } from '../../app/route-table';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
 import type { EventFactsInput } from '../../lib/event-facts';
@@ -7,6 +11,20 @@ import type { DetailRecord } from './detail-record';
 import { offerBrand } from './reader-text';
 
 const webLink = (value: string | undefined): value is string => !!value && /^https:\/\//.test(value);
+
+// This route also serves offers and new shops: their families load with the record (the page module asks for the record
+// before React renders, and this module asks for the family of the page it boots on beside it), not in the route's own JS,
+// so an event page carries only the calendar page it draws. The hero has no boundary of its own: the page waits for the
+// family as it waits for the record. A failed load leaves the empty frame. Node (the prerender, the tests) and the dev
+// server use the families as they are (cover-defer.tsx).
+const loadTicket = () => import('../../components/ui/cover-ticket'), loadShop = () => import('../../components/ui/cover-shop');
+const emptyHero = () => ({ default: () => <div className="ui-type-cover" data-cover="type" data-ratio="16:9" data-ratio-lock="" aria-hidden="true" /> });
+const Ticket = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => loadTicket().then(module => ({ default: module.OfferTypeCover }), emptyHero)) : OfferTypeCover;
+const Shop = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => loadShop().then(module => ({ default: module.OpeningTypeCover }), emptyHero)) : OpeningTypeCover;
+if (typeof window !== 'undefined') {
+  const boot = /^\/(offers|openings)\//.exec(routePathname(window.location.pathname))?.[1];
+  if (boot) (boot === 'offers' ? loadTicket : loadShop)().catch(() => { /* the hero shows its empty frame */ });
+}
 
 /**
  * The detail hero (EVT11-03, SV-05; design.md §4.9): the first thing on the page, 16:9 full-bleed on a phone and 800×450 on
@@ -21,8 +39,8 @@ export function DetailHero({ record, cover, today, ended }: { record: DetailReco
   const { locale } = useUiCopy();
   const slot = { ratio: '16:9' as const, ratioLock: true };
   const fallback = item.kind === 'event' ? <EventTypeCover event={item.event as EventFactsInput} today={today} {...slot} />
-    : item.kind === 'offer' ? <OfferTypeCover offer={{ ...item.offer, brand: offerBrand(item.offer.brand, locale) }} today={today} {...slot} />
-    : <OpeningTypeCover opening={item.shop} today={today} {...slot} />;
+    : item.kind === 'offer' ? <Ticket offer={{ ...item.offer, brand: offerBrand(item.offer.brand, locale) }} today={today} {...slot} />
+    : <Shop opening={item.shop} today={today} {...slot} />;
   return <figure className="detail-hero" data-tier={cover.tier}>
     <Cover cover={cover} {...slot} kind={item.kind} sizes={COVER_SIZES.detail} priority ended={ended} fallback={fallback} />
   </figure>;
