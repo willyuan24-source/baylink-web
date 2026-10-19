@@ -4,59 +4,101 @@ import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLay
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { isFreeToAttend } from '../../lib/monthly';
-import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffers, type OfferKind } from './events-model';
+import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffers, regionLabel, type OfferKind } from './events-model';
 import { useIndexEvents } from './events-later';
-import type { MonthlyRegion } from './events-index-types';
+import type { IndexOffer, MonthlyRegion } from './events-index-types';
 import { getMonthlyDateRange } from '../../lib/monthly';
-import { OfferFeedCard } from './BoardCards';
+import { OfferFeedCard, OfferRowCard } from './BoardCards';
+import { offerSections, type OfferSectionId } from './board-status';
 import { ImageCredits } from './ImageCredits';
-import { RegionFilter } from './RegionFilter';
+import { OptionSheetFilter, RegionFilter, useBoardMode, useSetRegion } from './RegionFilter';
 import './boards.css';
 
-const PAGE = 12;
+/** "再看 N 条" adds this many to a section. */
+const MORE = 12;
 const DEALS_GUIDE = '/guides/bay-area-freebies-deals-2026-11';
 const RETAIL_GUIDE = '/guides/bay-area-retail-freebies-family-deals';
 const EVERYDAY_GUIDE = '/guides/bay-area-everyday-free-perks';
+const NO_EXTRA: Readonly<Record<OfferSectionId, number>> = { week: 0, later: 0, ongoing: 0 };
 
 /**
- * 免费与优惠 (design.md §4.7.5 family B): 1:1 offer covers — the brand's own image, or the value large ("免费", "7 折") on
- * the B TypeCover with the brand in normal case and a deadline sticker — ending soonest first, filtered by condition.
+ * 免费与优惠 (content arrangement 10-19): the filter row, then three sections by end date — 这 7 天 · 7 天以后 · 长期有效,
+ * each an h2 with its count and its own 再看 N 条 — ending soonest first, photo first within a day, sold-out offers last.
+ * Cards: C's 1:1 ticket or the brand's image, line 1 when, line 2 [status] · condition · brand, the source line. The weekend's
+ * free events and the three guides close the page. On a phone at 大 / 特大 / 简洁 the filter row is two Sheet chips and the
+ * cards are rows; 简洁 shows 3 per section, hides sold-out offers and keeps one guide link.
  */
 export default function PerksView({ today, region }: { today: string; region: MonthlyRegion | 'all' }) {
   const { t, pick } = useUiCopy();
   const [kind, setKind] = useState<OfferKind>('all');
-  const [shown, setShown] = useState(PAGE);
+  const [extra, setExtra] = useState<Readonly<Record<OfferSectionId, number>>>(NO_EXTRA);
   const { layout } = useFeedLayout();
+  const mode = useBoardMode();
+  const setRegion = useSetRegion();
   const offers = useMemo(() => liveOffers(INDEX_OFFERS, today, kind, region), [today, kind, region]);
-  const visible = offers.slice(0, shown);
-  const covers = useMemo(() => resolveCovers(visible.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })), { ...coverContext(today), page: createCoverPage() }), [visible, today]);
+  const listed = useMemo(() => mode.simple ? offers.filter(offer => offer.status !== 'sold_out') : offers, [offers, mode.simple]);
+  const sections = useMemo(() => offerSections(listed, today), [listed, today]);
+  // Phone 4 / 4 / 4, desktop 8 / 4 / 4, 简洁 3 / 3 / 3 (one row of four on desktop, two 2-up rows on a phone).
+  const firstSize = (id: OfferSectionId) => mode.simple ? 3 : !mode.phone && id === 'week' ? 8 : 4;
+  const shown = sections.map(section => section.offers.slice(0, firstSize(section.id) + extra[section.id]));
+  const shownKey = shown.map(list => list.map(offer => offer.id).join()).join('|');
+  // One cover page for the whole board, so a picture is never shown twice across the sections.
+  const covers = useMemo(() => {
+    const flat = shown.flat();
+    const resolved = resolveCovers(flat.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })), { ...coverContext(today), page: createCoverPage() });
+    return new Map(flat.map((offer, index) => [offer.id, resolved[index]]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by the ids shown
+  }, [shownKey, today]);
   const weekend = getMonthlyDateRange('weekend', today);
   // The weekend is in the route's own events; on a build over two weeks old the link is left out instead of loading the rest (WEB-PERF-2).
   const weekendDays = listWindow(weekend, today);
   const { events } = useIndexEvents(weekendDays.start, weekendDays.end, false);
   const freeEvents = (events ?? []).filter(event => inRange(event, weekend, today) && isFreeToAttend(event) && (region === 'all' || event.region === region)).length;
-  const more = Math.min(PAGE, offers.length - visible.length);
-  return <>
-    <div className="ev-board-filters">
-      <RegionFilter region={region} status={t(`显示 ${offers.length} 条`, `Show ${offers.length}`)} />
-      <ChipRow label={t('按领取条件筛选', 'Filter by condition')} className="ev-perks-kinds">
-        {OFFER_KINDS.map(option => <FilterChip key={option.id} selected={kind === option.id} onClick={() => { setKind(option.id); setShown(PAGE); }}>{pick(option.label)}</FilterChip>)}
-      </ChipRow>
+  const kindLabel = (id: OfferKind) => pick(OFFER_KINDS.find(option => option.id === id)!.label);
+  const count = (n: number) => t(`${n} 条`, `${n} ${n === 1 ? 'offer' : 'offers'}`);
+  const sheetStatus = t(`显示 ${offers.length} 条`, `Show ${offers.length}`);
+  const pickKind = (id: OfferKind) => { setKind(id); setExtra(NO_EXTRA); };
+  const card = (offer: IndexOffer) => mode.rows
+    ? <OfferRowCard offer={offer} cover={covers.get(offer.id)!} today={today} simple={mode.simple} />
+    : <OfferFeedCard offer={offer} cover={covers.get(offer.id)!} today={today} />;
+
+  // Empty: one primary that widens the narrower filter, with what it would show.
+  const wideRegion = region !== 'all' ? liveOffers(INDEX_OFFERS, today, kind, 'all').length : 0;
+  const wideKind = kind !== 'all' ? liveOffers(INDEX_OFFERS, today, 'all', region).length : 0;
+  const widen = wideRegion && wideRegion >= wideKind
+    ? <Button variant="primary" onClick={() => setRegion('all')}>{kind === 'all' ? t(`看整个湾区的优惠（${wideRegion}）`, `Show the whole Bay Area (${wideRegion})`) : t(`看整个湾区的${kindLabel(kind)}（${wideRegion}）`, `Show ${kindLabel(kind)} across the Bay Area (${wideRegion})`)}</Button>
+    : wideKind ? <Button variant="primary" onClick={() => pickKind('all')}>{t(`看${pick(regionLabel(region))}的全部优惠（${wideKind}）`, `Show every offer in ${pick(regionLabel(region))} (${wideKind})`)}</Button>
+    : undefined;
+
+  return <div className="fb-board">
+    <div className="fb-filters" data-pair={mode.roomy ? '' : undefined}>
+      <RegionFilter region={region} status={sheetStatus} />
+      {mode.roomy
+        ? <OptionSheetFilter label={t('全部条件', 'All conditions')} title={t('按领取条件筛选', 'Filter by condition')} value={kind} status={sheetStatus}
+          options={OFFER_KINDS.map(option => ({ id: option.id, label: pick(option.label) }))} onChange={pickKind} />
+        : <ChipRow label={t('按领取条件筛选', 'Filter by condition')} className="fb-kinds">
+          {OFFER_KINDS.map(option => <FilterChip key={option.id} selected={kind === option.id} onClick={() => pickKind(option.id)}>{pick(option.label)}</FilterChip>)}
+        </ChipRow>}
     </div>
-    <p className="ev-count" role="status" aria-live="polite">{t(`${offers.length} 条，快截止的排在前面`, `${offers.length} offers, ending soonest first`)}</p>
-    {freeEvents > 0 && <Link className="ev-inline-link" to="/events?cost=free">{t(`本周末还有 ${freeEvents} 场免费活动`, `${freeEvents} free events this weekend`)}</Link>}
-    {visible.length ? <>
-      <FeedGrid label={t('免费与优惠', 'Free & deals')} ratio="1:1" layout={layout}>
-        {visible.map((offer, index) => <FeedItem key={offer.id}><OfferFeedCard offer={offer} cover={covers[index]} today={today} /></FeedItem>)}
-      </FeedGrid>
-      {more > 0 && <div className="ev-more"><Button variant="secondary" block onClick={() => setShown(count => count + PAGE)}>{t(`再看 ${more} 条`, `Show ${more} more`)}</Button></div>}
-    </> : <EmptyState headingLevel="h3" title={t('这个条件下暂时没有优惠', 'No offers match this yet')} body={t('换个条件或地区再看看。', 'Try another condition or region.')}
-      actions={<Button variant="primary" onClick={() => setKind('all')}>{t('看全部优惠', 'See all offers')}</Button>} />}
+    {/* Only while a condition narrows the board (the shell's facts line already gives the whole count). */}
+    <p className="fb-status" role="status" aria-live="polite">{kind !== 'all' ? `${kindLabel(kind)} · ${count(offers.length)}` : ''}</p>
+    {sections.length ? <div className="fb-sections">{sections.map((section, index) => {
+      const more = Math.min(MORE, section.offers.length - shown[index].length);
+      const head = `fb-perks-${section.id}`;
+      return <section key={section.id} className="fb-section" aria-labelledby={head}>
+        <h2 id={head} className="fb-section__head">{pick(section.label)} · {count(section.offers.length)}</h2>
+        {mode.rows
+          ? <ul className="fb-rows" aria-label={pick(section.label)}>{shown[index].map(offer => <li key={offer.id}>{card(offer)}</li>)}</ul>
+          : <FeedGrid label={pick(section.label)} ratio="1:1" layout={layout}>{shown[index].map(offer => <FeedItem key={offer.id}>{card(offer)}</FeedItem>)}</FeedGrid>}
+        {more > 0 && <div className="ev-more"><Button variant="secondary" block onClick={() => setExtra(previous => ({ ...previous, [section.id]: previous[section.id] + MORE }))}>{t(`再看 ${more} 条`, `Show ${more} more`)}</Button></div>}
+      </section>;
+    })}</div> : <EmptyState headingLevel="h3" title={t('这个条件下暂时没有优惠', 'No offers match this yet')} body={t('换个条件或地区再看看。', 'Try another condition or region.')} actions={widen} />}
     <nav className="ev-end" aria-label={t('优惠指南', 'Offer guides')}>
+      {!mode.simple && freeEvents > 0 && <Link className="ev-end__item" to="/events?cost=free">{t(`本周末 ${freeEvents} 场免费活动`, `${freeEvents} free ${freeEvents === 1 ? 'event' : 'events'} this weekend`)}</Link>}
       <Link className="ev-end__item" to={DEALS_GUIDE}>{t('这一期的优惠怎么领', 'How to claim this month’s offers')}</Link>
-      <Link className="ev-end__item" to={RETAIL_GUIDE}>{t('按品牌查门店赠品', 'Store freebies by brand')}</Link>
-      <Link className="ev-end__item" to={EVERYDAY_GUIDE}>{t('长期有效的免费福利', 'Free perks that last')}</Link>
+      {!mode.simple && <Link className="ev-end__item" to={RETAIL_GUIDE}>{t('按品牌查门店赠品', 'Store freebies by brand')}</Link>}
+      {!mode.simple && <Link className="ev-end__item" to={EVERYDAY_GUIDE}>{t('长期有效的免费福利', 'Free perks that last')}</Link>}
     </nav>
-    <ImageCredits covers={covers} />
-  </>;
+    <ImageCredits covers={[...covers.values()]} />
+  </div>;
 }
