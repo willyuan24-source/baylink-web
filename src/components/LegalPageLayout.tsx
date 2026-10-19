@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { translateText, useLocale } from '../i18n/locale';
 import { useLegalCopy } from './legal-copy';
-import { PageContainer, PageHeader } from './ui/HeroCard';
+import { PageContainer, PageHeader } from './ui/PageHeader';
 import './legal-page.css';
 
 type Copy = { zh: string; en: string };

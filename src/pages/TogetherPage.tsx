@@ -4,7 +4,7 @@ import { useApp } from '../app/context';
 import { OutingsHub } from '../features/outings/OutingsHub';
 import { useOutingCopy } from '../features/outings/outing-copy';
 import { setPageMetadata } from '../lib/seo';
-import { PageContainer } from '../components/ui/HeroCard';
+import { PageContainer } from '../components/ui/PageHeader';
 import './together-page.css';
 
 /** /together in the site's page frame (PageContainer, H30); together-page.css maps the hub's controls onto the shared looks. */

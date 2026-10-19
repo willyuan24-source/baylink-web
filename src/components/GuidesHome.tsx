@@ -11,7 +11,7 @@ import type { CoverTone } from '../lib/event-facts';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
 import { useUiCopy } from './ui/ui-copy';
-import { PageHeader } from './ui/HeroCard';
+import { PageHeader } from './ui/PageHeader';
 import { FilterChip, ChipRow } from './ui/Chip';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard, RowCard } from './ui/Card';

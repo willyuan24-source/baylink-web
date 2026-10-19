@@ -30,7 +30,7 @@ import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { Cover } from '../components/ui/Cover';
 import { COVER_SIZES } from '../components/ui/cover-sizes';
 import { ErrorState } from '../components/ui/States';
-import { PageContainer, PageHeader } from '../components/ui/HeroCard';
+import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';
 import { EventTypeCover } from '../components/ui/TypeCover';
 import { confirmDialog } from '../components/ui/confirm';

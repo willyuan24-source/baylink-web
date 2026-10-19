@@ -12,7 +12,7 @@ import { HUB_CARDS } from '../lib/hub-cards';
 import { getListingImage } from '../lib/offer-media';
 import { GuideFigure } from '../components/GuideVisuals';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
-import { PageContainer, PageHeader } from '../components/ui/HeroCard';
+import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { ChipRow, FilterChip } from '../components/ui/Chip';
 import { EmptyState } from '../components/ui/States';

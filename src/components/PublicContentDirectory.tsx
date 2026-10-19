@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { PageContainer, PageHeader } from './ui/HeroCard';
+import { PageContainer, PageHeader } from './ui/PageHeader';
 import { StatusChip, type StatusTone } from './ui/Badges';
 import './archive.css';
 import { discoveryShare, localDiscoveries, type LocalDiscovery } from '../data/local-discoveries';

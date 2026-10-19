@@ -5,7 +5,7 @@ import '../../components/ui/covers.css';
 import '../../components/ui/cards.css';
 import './community.css';
 import { Button } from '../../components/ui/Button';
-import { PageHeader } from '../../components/ui/HeroCard';
+import { PageHeader } from '../../components/ui/PageHeader';
 import { ModalShell } from '../../components/ui/Modal';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { setPageMetadata } from '../../lib/seo';

@@ -3,7 +3,7 @@ import { Calculator, CheckCheck, Landmark, ReceiptText, Ruler, ShoppingBasket, S
 import { LIFE_TOOLS, resolveLifeTool } from '../../data/tool-catalog';
 import { translateText, useLocale } from '../../i18n/locale';
 import type { ShowToast } from '../../app/context';
-import { PageContainer, PageHeader } from '../ui/HeroCard';
+import { PageContainer, PageHeader } from '../ui/PageHeader';
 import { AiCommunicationTool } from './AiCommunicationTool';
 import { UnitConverterTool } from './UnitConverterTool';
 import { RentalBudgetTool, SharedBillTool } from './BudgetTools';
