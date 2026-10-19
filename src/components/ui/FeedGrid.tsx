@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
-import { LayoutGrid, List } from 'lucide-react';
 import './ui.css';
 import './covers.css';
 import './cards.css';
-import { IconButton } from './Button';
 import { cx, useUiCopy } from './ui-copy';
 import type { FeedLayout } from './feed-layout';
+
+/** The grid / one-column switch lives in its own module (only the community board shows it); re-exported for its importers. */
+export { FeedLayoutToggle } from './FeedLayoutToggle';
 
 export type FeedGridProps = {
   /** Accessible name of the list ("本周末活动"). */
@@ -49,16 +50,4 @@ export function CoverCredit() {
 /** One feed cell. `wide` spans the row: a guide carousel, a BayBay prompt strip or an offers rail every 6–8 cards. */
 export function FeedItem({ wide, children }: { wide?: boolean; children: ReactNode }) {
   return <li className={wide ? 'ui-feed-grid__wide' : undefined}>{children}</li>;
-}
-
-/**
- * Two 44px buttons that override the automatic column choice; the choice is remembered (baylink.feed-layout.v1).
- * Pressing the layout the automatic switch would pick clears the saved choice (`useFeedLayout().setLayout`).
- */
-export function FeedLayoutToggle({ effective, onChange }: { effective: Exclude<FeedLayout, 'auto'>; onChange: (layout: FeedLayout) => void }) {
-  const { t } = useUiCopy();
-  return <div className="ui-layout-toggle" role="group" aria-label={t('排列方式', 'Layout')}>
-    <IconButton label={t('多列', 'Grid', '多欄')} aria-pressed={effective === 'grid'} onClick={() => onChange('grid')}><LayoutGrid aria-hidden="true" strokeWidth={1.75} /></IconButton>
-    <IconButton label={t('单列', 'One column', '單欄')} aria-pressed={effective === 'list'} onClick={() => onChange('list')}><List aria-hidden="true" strokeWidth={1.75} /></IconButton>
-  </div>;
 }
