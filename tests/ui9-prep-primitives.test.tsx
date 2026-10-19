@@ -49,6 +49,24 @@ test('Disclosure: a native details / summary with one chevron, closed by default
   assert.deepEqual(toggles, [true, false]);
 });
 
+test('Disclosure: a client render with defaultOpen does not report a toggle the reader did not make', async () => {
+  // Setting `open` queues a toggle event; the mount's one carries no change and must not reach onToggle.
+  const toggles: boolean[] = [];
+  const view = render(<ui.Disclosure summary="开放时间" defaultOpen onToggle={open => toggles.push(open)}><p>9–5</p></ui.Disclosure>);
+  const details = view.container.querySelector('details')!;
+  const summary = details.querySelector(':scope > summary')!;
+  const tick = () => new Promise(resolve => setTimeout(resolve, 0));
+  await act(async () => { await tick(); await tick(); });
+  assert.equal(details.open, true);
+  assert.equal(summary.getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(toggles, [], 'no toggle on mount');
+  await act(async () => { details.open = false; await tick(); });
+  assert.equal(summary.getAttribute('aria-expanded'), 'false');
+  await act(async () => { details.open = true; await tick(); });
+  assert.equal(summary.getAttribute('aria-expanded'), 'true');
+  assert.deepEqual(toggles, [false, true], 'the reader closing and reopening it');
+});
+
 test('Disclosure: defaultOpen is open in the prerendered HTML, and the panel is in the DOM either way', () => {
   const open = JSDOM.fragment(renderToStaticMarkup(<ui.Disclosure summary="Hours" defaultOpen><p>9–5</p></ui.Disclosure>));
   assert.ok(open.querySelector('details[open]'));

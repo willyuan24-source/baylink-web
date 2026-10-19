@@ -9,7 +9,7 @@ export type DisclosureProps = {
   children: ReactNode;
   /** Open in the first render, and so in the prerendered page. */
   defaultOpen?: boolean;
-  /** After the reader opens or closes it. */
+  /** After the reader opens or closes it; not for the open state it was rendered with (defaultOpen). */
   onToggle?: (open: boolean) => void;
   id?: string;
   className?: string;
@@ -25,10 +25,20 @@ export type DisclosureProps = {
 export function Disclosure({ summary, children, defaultOpen = false, onToggle, id, className, summaryClassName, panelClassName }: DisclosureProps) {
   const details = useRef<HTMLDetailsElement>(null);
   const [open, setOpen] = useState(defaultOpen);
+  // The last open state seen. Setting `open` queues a toggle event, so a client render with defaultOpen fires one on
+  // mount with nothing changed (a prerendered page's fires at parse time, before hydration, and is lost): only a change
+  // from this state is the reader's.
+  const known = useRef(defaultOpen);
   // A tap before the app hydrated opened or closed the element natively: read its state once mounted.
-  useEffect(() => { if (details.current) setOpen(details.current.open); }, []);
+  useEffect(() => { if (details.current) { known.current = details.current.open; setOpen(details.current.open); } }, []);
   return <details ref={details} id={id} className={cx('ui-disclosure', className)} open={defaultOpen || undefined}
-    onToggle={event => { const next = event.currentTarget.open; setOpen(next); onToggle?.(next); }}>
+    onToggle={event => {
+      const next = event.currentTarget.open;
+      if (next === known.current) return;
+      known.current = next;
+      setOpen(next);
+      onToggle?.(next);
+    }}>
     <summary className={cx('ui-disclosure__summary', summaryClassName)} aria-expanded={open}>
       <span className="ui-disclosure__label">{summary}</span>
       <ChevronDown className="ui-disclosure__chevron" aria-hidden="true" strokeWidth={1.75} />
