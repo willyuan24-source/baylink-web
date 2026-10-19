@@ -220,15 +220,14 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
 
           {/* 想约人一起去？: one shell on every kind; the share row (分享 · 分享卡片 · 存入日历) under its rule. No primary here. */}
           <section className="detail-together" data-simple="hide" {...together ? { 'aria-labelledby': 'detail-together-title' } : { 'aria-label': t('分享与日历', 'Share and calendar') }}>
-            {together && <>
-              <h2 id="detail-together-title">{t('想约人一起去？', 'Going with others?')}</h2>
-              {event ? <>
-                <div id="event-participation" className="discovery-participation-anchor">{unknownToApi
-                  ? <p className="event-participation-note">{t('这场活动暂时还不能公开想去或约人一起去，请稍后再来看看。', 'Sharing interest and finding people to go with are not open for this event yet. Please check back later.')}</p>
-                  : <EventParticipationActions event={event} today={today} available={!ended} />}</div>
-                {!unknownToApi && <SquadTeaser eventId={event.id} />}
-              </> : <Button variant="secondary" className="detail-together__go" to={`/together?${new URLSearchParams({ coverKind: item.kind, coverId: share.id })}`} icon={<Users aria-hidden="true" strokeWidth={1.75} />}>{t('一起去', 'Go together')}</Button>}
-            </>}
+            {/* Flat children, no nested fragments: LocalizedHost clones a fragment child, and a cloned fragment inside another
+                one loses its key validation (the SSR "unique key" warning). */}
+            {together && <h2 id="detail-together-title">{t('想约人一起去？', 'Going with others?')}</h2>}
+            {together && event && <div id="event-participation" className="discovery-participation-anchor">{unknownToApi
+              ? <p className="event-participation-note">{t('这场活动暂时还不能公开想去或约人一起去，请稍后再来看看。', 'Sharing interest and finding people to go with are not open for this event yet. Please check back later.')}</p>
+              : <EventParticipationActions event={event} today={today} available={!ended} />}</div>}
+            {together && event && !unknownToApi && <SquadTeaser eventId={event.id} />}
+            {together && !event && <Button variant="secondary" className="detail-together__go" to={`/together?${new URLSearchParams({ coverKind: item.kind, coverId: share.id })}`} icon={<Users aria-hidden="true" strokeWidth={1.75} />}>{t('一起去', 'Go together')}</Button>}
             <div className="detail-share"><EditorialShareActions item={share} card={!eventOver && !offerOver}>
               {event && planDate && <Button variant="quiet" className="detail-calendar" onClick={() => downloadEventCalendar(event, planDate)} icon={<CalendarDays aria-hidden="true" strokeWidth={1.75} />}>{t('存入日历', 'Add to calendar')}</Button>}
             </EditorialShareActions></div>
