@@ -76,5 +76,5 @@ test('全部日期 that does not load says so above the retry state (no "loading
   await waitFor(() => assert.match(statusLine(view.container) ?? '', /^找到 \d+ 场活动$/), { timeout: 10000 });
   assert.equal(view.queryByRole('alert'), null);
   assert.equal(model.isLaterInstalled(), true);
-  assert.match(view.container.querySelector('.ev-lede-facts')?.textContent ?? '', /\d+ 场 · \d+ 场免费/);
+  assert.match(view.container.querySelector('.ev-lede-facts')?.textContent ?? '', /\d+ 场\s·\s\d+ 场免费/);
 });

@@ -16,6 +16,11 @@ export type FeedGridProps = {
   single?: boolean;
   /** Offers and posts use 1:1 covers; everything else 3:4. */
   ratio?: '3:4' | '1:1';
+  /**
+   * false: no 没有照片的条目… line under this list. The page says it once instead (the events column's 本页图片来源,
+   * UI9-EVENTS; HOME and FREE can drop their scoped CSS hides). Default true.
+   */
+  coverCredit?: boolean;
   children: ReactNode;
   className?: string;
 };
@@ -25,10 +30,10 @@ export type FeedGridProps = {
  * ≥1024; one column with 3:2 covers at 大/特大 text or in 简洁显示 on a phone (≤767px, the tokens.css `--feed-cols`
  * breakpoint) or in a narrow container; 2 / 3 columns at 大/特大 on tablets / desktops. Children are <FeedItem>s.
  */
-export function FeedGrid({ label, layout = 'auto', single, ratio, children, className }: FeedGridProps) {
+export function FeedGrid({ label, layout = 'auto', single, ratio, coverCredit = true, children, className }: FeedGridProps) {
   return <div className={cx('ui-feed', className)} data-ratio={ratio} data-cover-credit="">
     <ul className="ui-feed-grid" aria-label={label} data-layout={layout} data-single={single ? '' : undefined}>{children}</ul>
-    <CoverCredit />
+    {coverCredit && <CoverCredit />}
   </div>;
 }
 

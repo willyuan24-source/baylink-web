@@ -35,7 +35,7 @@ test('the /events SSR (活动, 本周末) starts on the real Bay Area weekend ac
   for (const path of ['/events', '/events/', '/en/events', '/zh-Hant/events/']) {
     const page = ssr(path, <EventsView today={today} />);
     assert.equal(rangeLine(page), '本周末 · 10/10–11', path);
-    assert.match(page.querySelector('.ev-lede-facts')!.textContent!, new RegExp(`^${count} 场 · `), path);
+    assert.match(page.querySelector('.ev-lede-facts')!.textContent!, new RegExp(`^${count} 场\\s· `), path);
     // Every card in the weekend feed is on Saturday or Sunday, never earlier in the week.
     for (const link of page.querySelectorAll('#monthly-events .ui-feed-card a.ui-card-link')) {
       const event = INDEX_EVENTS.find(item => `/events/${item.id}` === link.getAttribute('href'))!;

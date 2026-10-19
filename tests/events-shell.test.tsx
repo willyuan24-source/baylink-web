@@ -43,7 +43,7 @@ const editorPicks = WEEKEND_PICKS as Record<string, typeof PICKS_1010>;
 const publishedPicks = editorPicks['2026-10-10'];
 editorPicks['2026-10-10'] = PICKS_1010;
 after(() => { if (publishedPicks) editorPicks['2026-10-10'] = publishedPicks; else delete editorPicks['2026-10-10']; });
-const { checkLine, checkSummary } = await import('../src/lib/check-dates');
+const { officialCheckLine, checkSummary } = await import('../src/lib/check-dates');
 
 const originalFetch = globalThis.fetch;
 afterEach(() => { cleanup(); localStorage.clear(); globalThis.fetch = originalFetch; });
@@ -66,21 +66,30 @@ test('/events opens on 本周末: H1 活动, a range line from `when`, counts, f
     assert.equal(page.querySelector('.ev-range')?.textContent, '本周末 · 10/10–11');
     const total = weekendEvents().length;
     const free = weekendEvents().filter(event => isFreeToAttend(event)).length;
-    // H02: the check dates of the listed events (most of them, and the latest), not the edition's 10/7.
-    const checked = checkLine(checkSummary(weekendEvents().map(event => event.verifiedAt), today)!, zh => zh);
-    assert.equal(page.querySelector('.ev-lede-facts')!.textContent, `${total} 场 · ${free} 场免费 · 逐条附官方来源 · ${checked}`);
+    // H02: the check dates of the listed events (most of them, and the latest), not the edition's 10/7, said as checks
+    // against the official pages (UI9-EVENTS G12), then the quiet 我们怎么核对 → link to /about#about-method-title.
+    const checked = officialCheckLine(checkSummary(weekendEvents().map(event => event.verifiedAt), today)!, zh => zh);
+    assert.equal(page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' '), `${total} 场 · ${free} 场免费 · 逐条附官方来源 · ${checked} · 我们怎么核对`);
+    assert.equal(page.querySelector('.ev-lede-facts a')!.getAttribute('href'), '/about#about-method-title');
     const tabs = [...page.querySelectorAll('nav[aria-label="活动分区"] a')];
     assert.deepEqual(tabs.map(tab => [tab.textContent, tab.getAttribute('href')]), [['本周末', '/events'], ['日历·地图', '/calendar'], ['免费与优惠', '/events?view=perks'], ['新店', '/events?view=openings']]);
     assert.deepEqual(tabs.map(tab => tab.getAttribute('aria-current')), ['page', null, null, null]);
-    // The editor's list for 10/10 leads the rail in its order (a3 picks); the rail comes before the feed.
-    const picks = [...page.querySelectorAll('.ev-picks .ui-hero-card a.ui-card-link')].map(link => link.getAttribute('href'));
-    assert.deepEqual(picks, PICKS_1010.map(pick => `/events/${pick.id}`));
+    // G15: the editor's list for 10/10 without home's lead (no homeLeads entry for 10/9: the first pick), which returns
+    // to the feed; one lead (a real picture), then the pick rows; the block comes before the feed.
+    // (the pick rows render as phone cards and as desktop rows; CSS shows one of them)
+    const shown = [...new Set([...page.querySelectorAll('.ev-picks a.ui-card-link')].map(link => link.getAttribute('href')!.replace(/^\/events\/|\?.*$/g, '')))];
+    const rest = PICKS_1010.slice(1).map(pick => pick.id);
+    for (const id of rest) assert.ok(shown.includes(id), `${id} is shown`);
+    assert.ok(shown.length <= 4, 'the lead and up to three rows');
+    assert.equal(page.querySelectorAll('.ev-picks .ev-lead').length, 1);
+    assert.ok(model.hasRealCover('event', model.INDEX_EVENTS.find(event => event.id === shown[0])!, today), 'the lead has a real picture');
     assert.ok(page.querySelector('.ev-picks')!.compareDocumentPosition(page.querySelector('#monthly-events')!) & 4, 'picks come before the feed');
-    // 12 feed cards, none of them a pick, each one link with a cover; never the free-text dateLabel.
-    const ids = feedIds(page);
+    // 12 feed cards, none of them a shown pick, each one link with a cover; home's lead is among them.
+    const ids = feedIds(page.querySelector('#monthly-events')!);
     assert.equal(ids.length, 12);
-    assert.equal(ids.some(id => PICKS_1010.some(pick => pick.id === id)), false);
-    for (const card of page.querySelectorAll('.ui-feed-card')) {
+    assert.equal(ids.some(id => shown.includes(id)), false);
+    assert.ok(ids.includes(PICKS_1010[0].id), "home's lead returns to the feed");
+    for (const card of page.querySelectorAll('#monthly-events .ui-feed-card')) {
       assert.ok(card.querySelector('[data-cover="image"], [data-cover="type"]'), 'every card has a cover');
       // The whole card is one link; its only other control is the ♡ in the cover's save slot (H31).
       assert.equal(card.querySelectorAll('a').length, 1, 'the whole card is one link');
@@ -127,13 +136,16 @@ test('本周末 splits into 周六 / 周日 / 两天都开放; long runs open bo
   const fleetWeek = model.INDEX_EVENTS.find(event => event.id === 'san-francisco-fleet-week-2026')!;
   assert.ok(tabs.open.includes(fleetWeek), 'a week-long run on both days is 两天都开放');
   const page = render(<MemoryRouter initialEntries={['/events']}><EventsView today={today} /></MemoryRouter>);
+  // None is checked on arrival: the list is the whole weekend (the 本周末 scope chip says so); a chip narrows it.
   const radios = within(page.container.querySelector('.ev-days')!).getAllByRole('radio');
-  assert.deepEqual(radios.map(radio => [radio.textContent, radio.getAttribute('aria-checked')]), [['周六 10/10', 'true'], ['周日 10/11', 'false'], ['两天都开放', 'false']]);
+  assert.deepEqual(radios.map(radio => [radio.textContent, radio.getAttribute('aria-checked')]), [['周六 10/10', 'false'], ['周日 10/11', 'false'], ['两天都开放', 'false']]);
+  fireEvent.click(radios[0]);
+  assert.equal(within(page.container.querySelector('.ev-days')!).getByRole('radio', { checked: true }).textContent, '周六 10/10');
   cleanup();
-  // On Sunday, Saturday is over: its tab is gone and Sunday is chosen.
+  // On Sunday, Saturday is over: its chip is gone, and Sunday reads 今天.
   const sunday = render(<MemoryRouter initialEntries={['/events']}><EventsView today="2026-10-11" /></MemoryRouter>);
   const sundayRadios = within(sunday.container.querySelector('.ev-days')!).getAllByRole('radio');
-  assert.deepEqual(sundayRadios.map(radio => [radio.textContent, radio.getAttribute('aria-checked')]), [['周日 10/11', 'true'], ['两天都开放', 'false']]);
+  assert.deepEqual(sundayRadios.map(radio => [radio.textContent, radio.getAttribute('aria-checked')]), [['今天 · 周日 10/11', 'false'], ['两天都开放', 'false']]);
 });
 
 // W6-INT tie-break, client side: /events ranks with the slim index records (EVENTS_INDEX.images), so within a score a
@@ -158,13 +170,13 @@ test('within a score, the weekend tabs put a photo that fills its card ahead of 
 
 test('the 免费 chip, a story chip and the filter Sheet narrow the feed, keep other parameters and announce the count', async () => {
   const view = routed('/events?tracking=kept', <EventsView today={today} />);
-  fireEvent.click(within(view.container.querySelector('.ev-filter-row')!).getByRole('button', { name: '免费', exact: true }));
+  fireEvent.click(within(view.container.querySelector('.ev-rail')!).getByRole('button', { name: '免费', exact: true }));
   assert.equal(query(view).get('cost'), 'free');
   assert.equal(query(view).get('tracking'), 'kept');
   for (const id of feedIds(view.container)) assert.ok(isFreeToAttend(model.INDEX_EVENTS.find(event => event.id === id)!), id);
   assert.equal(view.container.querySelector('.ev-picks'), null, 'a narrowed list shows no picks rail');
-  // Story chips are toggles over facts the record states.
-  fireEvent.click(within(view.container.querySelector('.ev-stories')!).getByRole('button', { name: '亲子' }));
+  // The rail's tags are toggles over facts the record states.
+  fireEvent.click(within(view.container.querySelector('.ev-rail')!).getByRole('button', { name: '亲子' }));
   assert.equal(query(view).get('tag'), 'kids');
   const kids = model.TAGS.find(tag => tag.id === 'kids')!;
   for (const id of feedIds(view.container)) assert.ok(kids.test(model.INDEX_EVENTS.find(event => event.id === id)!), id);
@@ -196,13 +208,19 @@ test('the filter Sheet announces the number the page shows once it closes: the c
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
   const sheet = await view.findByRole('dialog');
   const all = announced(sheet);
-  // 10/9 is a Friday: closing shows the 周六 tab, which is not the union of the three day tabs.
+  // On arrival the list is the whole weekend: the Sheet, the status line and the facts line say the same number.
   const union = weekendEvents().length;
-  assert.ok(all < union, `the Sheet says ${all}, not the weekend's ${union}`);
+  assert.equal(all, union, `the Sheet says ${all}, the weekend has ${union}`);
   await close(sheet, all);
-  assert.equal(within(view.container.querySelector('.ev-days')!).getByRole('radio', { checked: true }).textContent, '周六 10/10');
+  assert.equal(within(view.container.querySelector('.ev-days')!).queryByRole('radio', { checked: true }), null);
   assert.equal(view.container.querySelector('.ev-count')!.textContent, `找到 ${all} 场活动`);
-  assert.equal(view.container.querySelector('.ev-more__note')!.textContent, `已显示 12 / ${all} 场`);
+  assert.match(view.container.querySelector('.ev-list-end__count')!.textContent!, new RegExp(`^已显示 \\d+ / ${all} 场 · 按推荐排列$`));
+  // A day chip narrows it, and the Sheet then announces the day's number.
+  fireEvent.click(within(view.container.querySelector('.ev-days')!).getByRole('radio', { name: '周六 10/10' }));
+  fireEvent.click(view.getByRole('button', { name: /筛选/ }));
+  const saturday = announced(await view.findByRole('dialog'));
+  assert.ok(saturday < union, `周六 ${saturday} of ${union}`);
+  await close(view.getByRole('dialog'), saturday);
   // A filter chosen inside the Sheet updates the number to the narrowed list, and the page then shows that many.
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
   const again = await view.findByRole('dialog');
@@ -211,7 +229,10 @@ test('the filter Sheet announces the number the page shows once it closes: the c
   assert.ok(sf > 0 && sf < all, `${sf} of ${all}`);
   await close(again, sf);
   assert.equal(view.container.querySelector('.ev-count')!.textContent, `找到 ${sf} 场活动`);
-  assert.equal(feedIds(view.container).length, Math.min(12, sf));
+  // The editor's picks stay (the day chips narrow the list, not the picks); the list end counts the chosen list.
+  const end = view.container.querySelector('.ev-list-end__count');
+  if (end) assert.match(end.textContent!, new RegExp(` / ${sf} 场`));
+  else assert.equal(feedIds(view.container.querySelector('#monthly-events')!).length, 0);
 });
 
 test('what left the listing stays on the detail page: 公开想去, 一起去 and 存入日历 on a live weekend event', async () => {
@@ -236,12 +257,15 @@ test('再看 12 场 reveals the next cards; an empty search offers a reset and B
   assert.equal(feedIds(view.container).length, 12);
   fireEvent.click(view.getByRole('button', { name: '再看 12 场' }));
   assert.equal(feedIds(view.container).length, 24);
-  assert.match(view.container.querySelector('.ev-more__note')!.textContent!, /^已显示 24 \/ \d+ 场$/);
+  assert.match(view.container.querySelector('.ev-list-end__count')!.textContent!, /^已显示 24 \/ \d+ 场 · 按日期排列$/);
   cleanup();
+  // An empty search names the query, offers 清除搜索 and BayBay, and keeps the toolbar; no page-end list.
   const empty = routed('/events?q=zzzz-no-such-event', <EventsView today={today} />);
-  assert.ok(empty.getByRole('heading', { name: '这组条件下暂时没有活动' }));
+  assert.ok(empty.getByRole('heading', { name: '没有找到「zzzz-no-such-event」' }));
   assert.equal(empty.getByRole('link', { name: '问 BayBay' }).getAttribute('href'), '/plan?q=zzzz-no-such-event');
-  fireEvent.click(empty.getByRole('button', { name: '清除筛选' }));
+  assert.ok(empty.container.querySelector('.ev-rail'));
+  assert.equal(empty.container.querySelector('nav.ev-end'), null);
+  fireEvent.click(empty.getByRole('button', { name: '清除搜索' }));
   assert.equal(query(empty).get('q'), null);
   assert.ok(feedIds(empty.container).length > 0);
 });
@@ -327,16 +351,21 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   assert.equal(days.find(day => day.getAttribute('aria-current') === 'date')?.querySelector('.ev-week__date')?.textContent, '9');
   assert.equal(days.find(day => day.getAttribute('aria-pressed') === 'true')?.querySelector('.ev-week__date')?.textContent, '10');
   const onDay = model.INDEX_EVENTS.filter(event => nextOccurrence(event, '2026-10-10') === '2026-10-10');
-  // One wide lead cover (one-offs first, a real photo first), then a row for every other event of the day.
+  // One wide lead cover (one-offs first, a real picture first), then rows 12 at a time, with 再看 for the rest.
   assert.equal(view.container.querySelectorAll('.ev-calendar__lead .ui-feed-card').length, 1);
-  assert.equal(view.container.querySelectorAll('.ui-row-card').length, onDay.length - 1);
+  assert.equal(view.container.querySelectorAll('.ui-row-card').length, Math.min(12, onDay.length - 1));
+  if (onDay.length > 13) {
+    fireEvent.click(view.getByRole('button', { name: `再看 ${Math.min(12, onDay.length - 13)} 场` }));
+    assert.equal(view.container.querySelectorAll('.ui-row-card').length, Math.min(24, onDay.length - 1));
+  }
   const leadHref = view.container.querySelector('.ev-calendar__lead a.ui-card-link')!.getAttribute('href')!;
   const lead = model.INDEX_EVENTS.find(event => leadHref.startsWith(`/events/${event.id}?`))!;
   assert.ok(model.hasRealCover('event', lead, today) || !onDay.some(event => model.hasRealCover('event', event, today)), 'a real photo leads the day when one exists');
-  assert.match(view.container.querySelector('#ev-calendar-day')!.textContent!, new RegExp(`10月10日 周六${onDay.length} 场`));
-  // Cities in one row, the Chinese name first ("圣何塞 San Jose").
+  assert.match(view.container.querySelector('#ev-calendar-day')!.textContent!, new RegExp(`10月10日 周六 · ${onDay.length} 场`));
+  // Cities in one row: the rail prints the Chinese name and is named in both ("圣何塞 San Jose"); the sheet prints both.
   const cityChip = within(view.container.querySelector('.ev-cities')!).getAllByRole('button')[1];
-  assert.match(cityChip.textContent!, /^\p{Script=Han}+ [A-Z]/u);
+  assert.match(cityChip.textContent!, /^\p{Script=Han}+$/u);
+  assert.match(cityChip.getAttribute('aria-label')!, /^\p{Script=Han}+ [A-Z]/u);
   fireEvent.click(view.getByRole('button', { name: /选日期/ }));
   const sheet = await view.findByRole('dialog');
   fireEvent.click(within(sheet).getByRole('button', { name: /10月17日 周六/ }));
@@ -389,7 +418,8 @@ test('covers come from the ladder: no image twice on a page, information cards a
     const sources = [...page.querySelectorAll('.ui-cover__img')].map(img => img.getAttribute('src'));
     assert.equal(new Set(sources).size, sources.length, `${location}: an image appears once`);
     assert.ok(page.querySelectorAll('[data-cover="type"]').length > 0);
-    for (const cover of page.querySelectorAll('[data-cover="type"]')) assert.match(cover.textContent!, /BAYLINK 信息卡/);
+    // A row thumbnail (≤ 140 px) carries no chip (UI9-C): its words move into the row; every other coded cover is marked.
+    for (const cover of page.querySelectorAll('[data-cover="type"]:not([data-size="mini"])')) assert.match(cover.textContent!, /BAYLINK 信息卡/);
     for (const badge of page.querySelectorAll('[data-cover="image"] .ui-provenance')) assert.doesNotMatch(badge.textContent!, /AI/);
   }
 });

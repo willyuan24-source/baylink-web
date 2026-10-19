@@ -140,11 +140,15 @@ const cityNames: Record<string, string> = Object.fromEntries([...new Set(events.
 // The same days generate-weekly.ts writes all-{day}.png for (the home catalog's snapshot days in the week after the build).
 const home = JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')) as { generatedAt: string; weekends: Record<string, unknown> };
 const weeklyCardDays = getWeeklyCardDays(home.generatedAt, home.weekends);
+// Home's lead per day (UI9-EVENTS, G15: /events never leads with what home led with), for the days this build's /events can
+// be read on (the build day through the end of `near`); only the id, so the home catalog stays out of the events chunk.
+const homeLeads: Record<string, string> = Object.fromEntries(Object.entries(home.weekends as Record<string, { ids?: string[] }>)
+  .flatMap(([day, weekend]) => day >= buildDay && day <= nearThrough && weekend.ids?.[0] ? [[day, weekend.ids[0]]] : []));
 
 const index: EventsIndex = {
   edition: { label: MONTHLY_EDITION.label, checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate, startMonth: MONTHLY_EDITION.startMonth },
   near: { from: nearFrom, through: nearThrough },
-  events: nearEvents, offers, openings, bulletins, images, cityNames, weeklyCardDays,
+  events: nearEvents, offers, openings, bulletins, images, cityNames, weeklyCardDays, homeLeads,
 };
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/events-index.json', JSON.stringify(index));

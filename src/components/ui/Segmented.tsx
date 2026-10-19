@@ -66,6 +66,36 @@ export type SegmentedControlProps = {
   className?: string;
 };
 
+export type DayChipsProps = {
+  label: string;
+  items: SegmentItem[];
+  /** The checked day, or '' when none is (the whole weekend: the scope chip before the group says so). */
+  value: string;
+  onChange: (id: string) => void;
+  className?: string;
+};
+
+/**
+ * Day chips (UI9-EVENTS, G17: 周六 10/24 | 周日 10/25 | 两天都开放): one radio group on F's .ui-chip look, so the 本周末 rail
+ * is one row of chips (the checked one takes the chip's ink fill). No radio need be checked: the first one then takes the
+ * tab stop. Arrow keys move and select, as in SegmentedControl. Import it from './ui/Segmented' (not the barrel).
+ */
+export function DayChips({ label, items, value, onChange, className }: DayChipsProps) {
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const stop = Math.max(0, items.findIndex(item => item.id === value));
+  return <div role="radiogroup" aria-label={label} className={cx('ui-day-chips', className)}>
+    {items.map((item, index) => <button key={item.id} ref={element => { refs.current[index] = element; }} type="button" role="radio" className="ui-chip"
+      aria-checked={item.id === value} tabIndex={index === stop ? 0 : -1} onClick={() => onChange(item.id)}
+      onKeyDown={event => {
+        const next = arrowTarget(event, index, items.length);
+        if (next < 0) return;
+        event.preventDefault();
+        refs.current[next]?.focus();
+        onChange(items[next].id);
+      }}>{item.label}</button>)}
+  </div>;
+}
+
 /** DayToggle (周六 10/10 | 周日 10/11 | 整个周末): a radio group with a white thumb; each radio's hit area is the full 44px track height (48 in simple mode); arrow keys select. */
 export function SegmentedControl({ label, items, value, onChange, className }: SegmentedControlProps) {
   const refs = useRef<(HTMLButtonElement | null)[]>([]);

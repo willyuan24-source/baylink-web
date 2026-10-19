@@ -74,6 +74,12 @@ export type EventsIndex = {
   cityNames: Record<string, string>;
   /** Days this build wrote a dated Bay Area share card for (/weekly/all-{day}.png), as the home page links it. */
   weeklyCardDays: string[];
+  /**
+   * Home's lead pick per day (home-catalog.json weekends[day].ids[0]) for the days this build's /events can be read on
+   * (UI9-EVENTS, G15): /events never opens on the event home just led with. A day without an entry falls back to the first
+   * weekend pick (weekend-lead.ts). The home catalog itself is never imported into the events chunk.
+   */
+  homeLeads?: Record<string, string>;
 };
 
 export type { MonthlyRegion };

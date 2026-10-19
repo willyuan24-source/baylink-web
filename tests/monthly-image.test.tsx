@@ -78,7 +78,8 @@ test('unknown media becomes the information card, never an unrelated illustratio
   assert.equal(cover.tier, 'type');
   assert.equal(view.container.querySelector('img'), null);
   assert.ok(view.container.querySelector('[data-cover="type"]'));
-  assert.equal(view.container.querySelector('.ev-credits'), null, 'no credit list without a photo');
+  // UI9-EVENTS: 本页图片来源 then only says what an information card is (no credit list).
+  assert.equal(view.container.querySelector('.ev-credits li, .ev-credits__list'), null, 'no credit list without a photo');
 });
 
 test('image credits scope includes each used poster and photo once without leaking unrelated credits', () => {

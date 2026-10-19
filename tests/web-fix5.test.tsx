@@ -83,7 +83,8 @@ test('H06: this weekend (10/17–18, read on Tue 10/13) has 长辈友好 events,
   }
   assert.ok(!seniors.some(item => item.id === 'smcl-millbrae-chinese-storytime-oct-2026'), 'a 0–5 storytime is not for seniors');
   const view = routed('/events', <EventsView today={today} />);
-  const stories = within(view.container.querySelector('.ev-stories')!);
+  // UI9-EVENTS: 长辈友好 and 亲子 sit on rail 1 beside 免费 (the story circles are gone).
+  const stories = within(view.container.querySelector('.ev-rail')!);
   assert.ok(stories.getByRole('button', { name: '长辈友好' }));
   assert.ok(stories.getByRole('button', { name: '亲子' }));
   assert.equal(stories.queryByRole('button', { name: /长者友好|带娃/ }), null, 'one label per story (H27)');
@@ -132,8 +133,9 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-10-12', latest: '2026-10-12' }, zh), '核对于 10/12');
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
-  const facts = page.querySelector('.ev-lede-facts')!.textContent!;
-  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|核对于 \d+\/\d+)$/);
+  const facts = page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
+  // UI9-EVENTS (G12): said as checks against the official pages, then the quiet 我们怎么核对 link.
+  assert.match(facts, /逐条附官方来源 · 官网核对 (?:多数 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|\d+\/\d+) · 我们怎么核对$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
   // One date only when every listed item carries it; most on the latest day with a few older ones is still 多数 (§3.9).
