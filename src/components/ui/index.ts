@@ -22,3 +22,6 @@ export { Sheet, type SheetProps } from './Sheet';
 export { SegmentedTabs, SegmentedControl, type SegmentItem, type SegmentedTabsProps, type SegmentedControlProps } from './Segmented';
 export { SkeletonCard, SkeletonRow, SkeletonFeed } from './SkeletonCard';
 export { EmptyState, ErrorState, type EmptyStateProps, type ErrorStateProps } from './States';
+export { Disclosure, type DisclosureProps } from './Disclosure';
+export { CloseButton, type CloseButtonProps } from './CloseButton';
+export { TextLink, MoreLink, type TextLinkProps } from './TextLink';

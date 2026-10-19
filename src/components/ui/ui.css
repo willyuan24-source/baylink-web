@@ -159,3 +159,29 @@ html[data-simple] .ui-save::before { inset:-8px; }
 }
 
 .ui-visually-hidden { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+
+/* UI9-F2 primitives (UI9-PREP). Disclosure: one expander look — no native ▶ marker, one chevron that turns on --dur-2, the
+   summary a 44px target (48 in 简洁显示). */
+.ui-disclosure { min-width:0; }
+.ui-disclosure__summary { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); min-height:var(--control-height); color:var(--color-ink); font-size:var(--fs-body); line-height:1.5; font-weight:var(--fw-regular); list-style:none; cursor:pointer; }
+.ui-disclosure__summary::-webkit-details-marker { display:none; }
+.ui-disclosure__summary::marker { content:""; }
+.ui-disclosure__label { min-width:0; }
+.ui-disclosure__chevron { flex:none; width:1.25rem; height:1.25rem; color:var(--color-ink-2); transition:rotate var(--dur-2) var(--ease-std); }
+.ui-disclosure[open]>.ui-disclosure__summary>.ui-disclosure__chevron { rotate:180deg; }
+.ui-disclosure__panel { padding-block:var(--sp-2) var(--sp-4); }
+/* Links: two looks, one underline offset (.2em, the hover underline's in tokens.css). .ui-link sits in text, underlined at
+   rest (a standalone one is a 44px target); .ui-more is "看全部 →", underlined on hover, a 44px target. */
+.ui-link { color:var(--color-brand); text-decoration-line:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.ui-link[data-standalone] { display:inline-flex; align-items:center; min-height:var(--control-height); }
+.ui-more { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); color:var(--color-brand); font-weight:var(--fw-regular); text-decoration-line:none; text-decoration-thickness:1px; text-underline-offset:.2em; transition:scale var(--dur-1) var(--ease-out); }
+.ui-more__arrow { flex:none; width:1em; height:1em; transition:translate var(--dur-2) var(--ease-std); }
+@media (hover:hover) and (pointer:fine) {
+  .ui-disclosure__summary:hover { color:var(--color-brand); }
+  .ui-link:hover { color:var(--color-brand-hover); }
+  .ui-more:hover { text-decoration-line:underline; }
+  .ui-more:hover>.ui-more__arrow { translate:2px 0; }
+}
+.ui-more:active { scale:.96; }
+:is(.ui-disclosure__summary,.ui-link,.ui-more):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+html[data-simple] :is(.ui-disclosure__summary,.ui-more,.ui-link[data-standalone]) { min-height:3rem; }
