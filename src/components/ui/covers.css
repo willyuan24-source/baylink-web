@@ -54,11 +54,10 @@
 .tc-num { font-variant-numeric:lining-nums tabular-nums; }
 
 /* date: an upright calendar page (weekday band in the deep shade, the day, the time) and the 6–24 h bar. */
-.tc-cal { display:inline-flex; flex-direction:column; align-self:flex-start; min-width:min(100%, 40%); max-width:100%; overflow:hidden; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); text-align:center; }
+.tc-cal { display:inline-flex; flex-direction:column; align-self:flex-start; padding-bottom:var(--sp-2); min-width:min(100%, 40%); max-width:100%; overflow:hidden; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); text-align:center; }
 .tc-cal__top { padding:var(--sp-1) var(--sp-3); background:var(--tc-deep); color:var(--color-surface); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .tc-cal__day { padding:var(--sp-1) var(--sp-3) 0; font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; white-space:nowrap; }
-.tc-cal__time { padding:0 var(--sp-3) var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.tc-cal__day:last-child { padding-bottom:var(--sp-2); }
+.tc-cal__time { padding:0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .tc-bar { position:relative; height:var(--sp-3); border-radius:var(--r-sm); background:var(--color-line); }
 .tc-bar>b { position:absolute; top:0; bottom:0; left:var(--tb-from); width:var(--tb-span); min-width:var(--sp-1); border-radius:var(--r-sm); background:var(--tc-deep); }
 .tc-bar__ticks { display:flex; justify-content:space-between; margin-top:calc(-1 * var(--sp-1)); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
@@ -98,17 +97,12 @@
 
 /* Two-up phone cards (≤ 240 px): the facts anchor to the bottom, the ♡ keeps the top right. */
 @container tc (max-width:240px) {
-  .ui-type-cover:not([data-family=ticket]) .tc-eyebrow,.tc-bar__ticks { display:none; }
+  .ui-type-cover:not([data-family=ticket]) .tc-eyebrow,.tc-bar__ticks,.tc-ticket__cond { display:none; }
   .tc-cal__day,.tc-ticket__value { font-size:var(--fs-section); }
-  .tc-ticket__main { padding:var(--sp-2); }
-  .tc-ticket__cond { display:none; }
-  .tc-ticket__stub { padding:var(--sp-2); }
-  .tc-hook { font-size:var(--fs-body); }
-  .tc-plate [data-phone] { font-size:var(--fs-body); }
-  .tc-plate { padding:var(--sp-2); }
+  .tc-ticket__main,.tc-ticket__stub,.tc-plate { padding:var(--sp-2); }
+  .tc-hook,.tc-plate [data-phone],.tc-sign__sells { font-size:var(--fs-body); }
   .tc-mark { width:var(--sp-8); height:var(--sp-8); }
   .tc-sign { padding:var(--sp-2) var(--sp-3); }
-  .tc-sign__sells { font-size:var(--fs-body); }
 }
 /* Desktop cards and single-column phone feeds (≥ 260 px): a short hook a step larger. */
 @container tc (min-width:260px) { .tc-hook:not([data-long]) { font-size:var(--fs-section); } }
@@ -140,3 +134,7 @@
 /* A row's thumbnail drops its chip; the same words sit in the row as a 13 px line. */
 .ui-row-card__credit { margin:0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-snug); }
 .ui-row-card:has(.ui-row-card__credit) .ui-row-card__thumb .ui-provenance[data-chip] { display:none; }
+/* 简洁 / 家人版: list rows drop the ♡, saving is on the detail page (decision 16); calendar rows keep 加入这天计划. */
+[data-simple] .ui-row-card__trailing :is(.ui-save,.planner-heart) { display:none; }
+/* A loading card reserves the cover it stands in for (3:2). */
+.ui-skeleton-card>[data-shape=cover] { aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2)); }

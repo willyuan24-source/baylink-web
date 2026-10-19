@@ -1,8 +1,5 @@
 import { lazy, Suspense, type ComponentProps } from 'react';
-import './ui.css';
-import './covers.css';
-import './cards.css';
-import { Cover, type CoverLayout, type CoverSlot } from './CoverImage';
+import type { CoverLayout } from './CoverImage';
 import { cx, useUiCopy } from './ui-copy';
 import { OfferTypeCover } from './cover-ticket';
 import { GuideTypeCover } from './cover-guide';
@@ -36,12 +33,6 @@ const Guide = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover
 export const DeferredOfferTypeCover = (props: ComponentProps<typeof OfferTypeCover>) => <Suspense fallback={<TicketFrame {...props} />}><Ticket {...props} /></Suspense>;
 /** The headline / number family, loaded after the page (home's guide rail, a guide's 接下来 rail). */
 export const DeferredGuideTypeCover = (props: ComponentProps<typeof GuideTypeCover>) => <Suspense fallback={<GuideFrame {...props} />}><Guide {...props} /></Suspense>;
-
-/** OfferCover with the ticket family loaded after the page (home's 免费与优惠). */
-export function DeferredOfferCover({ offer, today, ...slot }: CoverSlot & { offer: OfferFactsInput & { id?: string }; today: string }) {
-  const ratio = slot.ratio ?? '1:1';
-  return <Cover {...slot} kind="offer" ratio={ratio} fallback={<DeferredOfferTypeCover offer={offer} today={today} ratio={ratio} ratioLock={slot.ratioLock} ariaHidden={slot.decorative} />} />;
-}
 
 const HAN = /[㐀-鿿]/;
 /**

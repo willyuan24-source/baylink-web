@@ -41,8 +41,10 @@ export type CoverImageProps = {
  * One photo or poster cover: srcset/sizes, a dominant-colour placeholder, the focal-point crop (photo family) or the whole
  * flyer on its board (poster family), and the provenance chip. Render through `getCover()`; never pick images here.
  * A listing cover (`kind`, set by EventCover, OfferCover, OpeningCover and the guide covers) is the photo or poster family
- * with the chip; the AI 3D postcards (`image.scene3d`) and the pictures without a kind (/explore, plan stops, saved items) keep
- * their frame and badge exactly as before: no family attributes, no chip look.
+ * with the chip; the AI 3D postcards (`image.scene3d`) and the pictures without a kind (/explore, guide and detail photos) keep
+ * their frame and badge exactly as before: no family attributes, no chip look. A thumbnail without a kind (plan stops, saved
+ * items, My Week) takes the chip look too: the plain badge keeps 56 px for a ♡ and would cut its words to two characters on an
+ * 88 px thumb (N22: 0 truncated badges).
  */
 export function CoverImage({ image, label, fit = 'cover', focal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, children, className }: CoverImageProps) {
   const style = { ...(image.lqip ? { '--ui-lqip': image.lqip } : {}) } as CSSProperties;
@@ -52,7 +54,7 @@ export function CoverImage({ image, label, fit = 'cover', focal = [50, 40], rati
   return <div className={cx('ui-cover', className)} data-cover="image" data-fit={fit} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-ended={ended ? '' : undefined}
     data-family={choice?.family} data-kind={choice && kind} data-mark={choice?.mark} style={style}>
     <img className="ui-cover__img" src={image.src} srcSet={image.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async" style={imgStyle} {...loading} />
-    {label && <ProvenanceBadge label={label} plain={!choice} />}
+    {label && <ProvenanceBadge label={label} plain={!choice && (!!image.scene3d || sizes !== COVER_SIZES.thumb)} />}
     {children}
   </div>;
 }

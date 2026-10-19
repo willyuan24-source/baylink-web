@@ -296,13 +296,13 @@ test('review fixes: the stated close past midnight, families after the page draw
   assert.equal(shortVenue.container.querySelector('.tc-thumb')?.textContent, 'SFMOMA');
   cleanup();
   // The families a page draws after its first screen render in one pass in Node, so the prerendered HTML carries them.
-  const { DeferredGuideTypeCover, DeferredOfferCover } = await import('../src/components/ui/cover-defer');
+  const { DeferredGuideTypeCover, DeferredOfferTypeCover } = await import('../src/components/ui/cover-defer');
   const guide = wrap(<DeferredGuideTypeCover slug="california-tenant-deposit-rights-help-guide" topic="housing" topicLabel="住房" hook="押金：搬出后 21 天" />);
   assert.equal(guide.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'headline');
   assert.equal(guide.container.querySelector('.tc-hook em')?.textContent, '21 天');
   cleanup();
   // An offer without a stated value leads with what it asks of you; the stub keeps the deadline day.
-  const terms = wrap(<DeferredOfferCover offer={{ id: 'o', brand: 'IKEA', title: '会员咖啡', kind: 'purchase', endDate: '2026-10-26', availability: 'dated' } as never} cover={typeCover as never} today={today} />);
+  const terms = wrap(<DeferredOfferTypeCover offer={{ id: 'o', brand: 'IKEA', title: '会员咖啡', kind: 'purchase', endDate: '2026-10-26', availability: 'dated' } as never} today={today} />);
   const ticket = terms.container.querySelector('[data-cover="type"]')!;
   assert.deepEqual([ticket.getAttribute('data-family'), ticket.querySelector('.tc-ticket__value')?.textContent, ticket.querySelector('.tc-ticket__stub')?.textContent], ['ticket', '需消费', '10/26截止']);
   cleanup();
@@ -316,4 +316,31 @@ test('review fixes: the stated close past midnight, families after the page draw
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*width:auto; height:auto; max-width:100%; max-height:100%/);
   assert.match(sheet, /aspect-ratio:var\(--ui-feed-ratio, var\(--ui-cover-ratio, 3 \/ 2\)\)/, 'the feed default is 3:2 (decision 20)');
+});
+
+test('review fixes 2: thumbnails without a kind wrap their provenance, 简洁 rows drop the ♡, skeletons reserve the 3:2 cover', async () => {
+  const { COVER_SIZES } = await import('../src/components/ui');
+  const photo = { src: '/p.webp', alt: '', width: 1200, height: 900 };
+  // A plan stop's or a saved item's 88 px thumb (no listing kind): the chip look, which wraps, never the plain badge that keeps
+  // 56 px for a ♡ and cuts the words (N22). Bigger pictures without a kind and the 3D postcards keep the plain badge.
+  const thumb = wrap(<CoverImage image={photo} label="官方图 · 照片" sizes={COVER_SIZES.thumb} />);
+  assert.equal(thumb.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), true);
+  assert.equal(thumb.container.querySelector('[data-cover="image"]')?.hasAttribute('data-family'), false, 'no family: not a listing cover');
+  cleanup();
+  const postcardThumb = wrap(<CoverImage image={{ ...photo, scene3d: true }} label="3D 场景插图" sizes={COVER_SIZES.thumb} />);
+  assert.equal(postcardThumb.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), false);
+  cleanup();
+  const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
+  const rules = new Map<string, string>();
+  postcss.parse(sheet).walkRules(rule => { if (rule.parent?.type === 'root') rules.set(rule.selector, rule.nodes.map(node => node.toString()).join('; ')); });
+  // 简洁 / 家人版 (both set html[data-simple]): a list row's ♡ is hidden (decision 16); only the save controls, so the calendar
+  // rows' 加入这天计划 stays.
+  assert.equal(rules.get('[data-simple] .ui-row-card__trailing :is(.ui-save,.planner-heart)'), 'display:none');
+  // The loading card's cover is the 3:2 the card draws (ui.css's skeleton still says 3:4; this rule has its specificity and
+  // covers.css loads after ui.css).
+  assert.equal(rules.get('.ui-skeleton-card>[data-shape=cover]'), 'aspect-ratio:var(--ui-feed-ratio, var(--ui-cover-ratio, 3 / 2))');
+  assert.ok(sheet.indexOf('.ui-skeleton-card>[data-shape=cover]') > sheet.indexOf('.ui-cover,.ui-type-cover {'));
+  // The calendar page keeps its bottom room with or without a time line (one rule on the page instead of two).
+  assert.match(rules.get('.tc-cal') ?? '', /padding-bottom:var\(--sp-2\)/);
+  assert.equal(rules.has('.tc-cal__day:last-child'), false);
 });
