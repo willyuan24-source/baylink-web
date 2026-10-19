@@ -83,6 +83,7 @@ const offers: IndexOffer[] = currentFreebies
     id: offer.id, brand: offer.brand, title: offer.title, ...pick(offer, ['region', 'startDate', 'endDate', 'weekdays'] as const),
     availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
     sourceLabel: offer.sourceLabel, ...(offer.verifiedAt ? { verifiedAt: offer.verifiedAt } : {}),
+    ...(offer.status === 'sold_out' ? { status: 'sold_out' as const } : {}),
   }));
 
 const openings: IndexOpening[] = currentOpenings.map(shop => ({
