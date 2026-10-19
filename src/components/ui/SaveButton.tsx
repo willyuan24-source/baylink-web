@@ -1,5 +1,7 @@
 import { Heart } from 'lucide-react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { cx, useUiCopy } from './ui-copy';
 
 /**

@@ -1,6 +1,8 @@
 import { Children, useCallback, useEffect, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { IconButton } from './Button';
 import { cx, useUiCopy } from './ui-copy';
 

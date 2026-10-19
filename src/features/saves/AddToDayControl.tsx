@@ -8,7 +8,7 @@ import { addToDayName, shortDay } from './add-to-day-name';
 import { SaveToast } from './SaveToast';
 import { prepareSaveAnnouncer } from './save-announcer';
 
-// Styles: src/components/reader-library.css (global; this appears on prerendered pages).
+// Styles: src/features/saves/saves.css (global; this appears on prerendered pages).
 
 /**
  * "加入这天计划": saves the stop into that day's plan right away (a new plan when there is none yet) and confirms with

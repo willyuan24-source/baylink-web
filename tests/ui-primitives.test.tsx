@@ -15,7 +15,7 @@ dom.window.HTMLElement.prototype.getClientRects = function () {
   return (this.isConnected && !this.hidden ? [{ width: 1, height: 1 }] : []) as unknown as DOMRectList;
 };
 const cssHook = registerHooks({ load(url, context, nextLoad) {
-  if (url.endsWith('/components/ui/ui.css')) return { format: 'module', shortCircuit: true, source: 'export {};' };
+  if (/\/components\/ui\/(?:ui|covers|cards)\.css$/.test(url)) return { format: 'module', shortCircuit: true, source: 'export {};' };
   return nextLoad(url, context);
 } });
 const { render, cleanup, fireEvent, act, within } = await import('@testing-library/react');

@@ -18,8 +18,16 @@ export const editorialStyleScopes = [
   { file: 'src/features/profile/me-hub.css' },
   { file: 'src/features/messages/messages-hub.css' },
   { file: 'src/features/events/events.css' },
+  // UI9-PREP: the 免费与优惠 / 新店 boards' own sheet (UI9-FREE; empty until FREE fills it).
+  { file: 'src/features/events/boards.css' },
   // WEB-UI primitives. Their :root block defines the TypeCover and status pairs checked in paletteIssues().
   { file: 'src/components/ui/ui.css' },
+  // UI9-PREP split ui.css in three (same rules): the covers, badges, stickers and statuses (UI9-C) and the cards (UI9-EVENTS).
+  { file: 'src/components/ui/covers.css' },
+  { file: 'src/components/ui/cards.css' },
+  // UI9-PREP: the UI9-F2 primitives' own sheets (imported by Disclosure.tsx and TextLink.tsx only).
+  { file: 'src/components/ui/disclosure.css' },
+  { file: 'src/components/ui/links.css' },
   { file: 'src/features/feedback/feedback.css' },
   { file: 'src/features/feedback/feedback-entry.css' },
   { file: 'src/features/feedback/feedback-admin.css' },
@@ -27,13 +35,16 @@ export const editorialStyleScopes = [
   // WEB-SAVES: the one save model's controls and My Week.
   // WEB-SAVES: the one save model's controls (global, for prerendered pages), the /me row and My Week.
   // WEB-SAVES: the one save model's controls (global, for prerendered pages) and My Week.
-  { file: 'src/components/reader-library.css', after: '/* WEB-SAVES: the one save model' },
+  // UI9-PREP: the save controls' rules moved out of reader-library.css (the reader shelf stays there, outside the guard).
+  { file: 'src/features/saves/saves.css' },
   { file: 'src/features/saves/my-week.css' },
   // WEB-GUIDES: the guide index and article templates.
   { file: 'src/features/guides/guide-library.css' },
   { file: 'src/features/guides/guide-article.css' },
   // WEB-BB-UI: the BayBay answer layout.
   { file: 'src/features/baybay/baybay-answer.css' },
+  // UI9-PREP: the BayBay panel's own sheet (UI9-BB), with the 👎 reasons moved in from feedback-entry.css.
+  { file: 'src/features/baybay/baybay-panel.css' },
   // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast).
   // WEB-SHELL2: the site chrome (header, menus, footer, tab bar, toast) and the account / community dialogs on the Sheet.
   { file: 'src/components/site-chrome.css' },

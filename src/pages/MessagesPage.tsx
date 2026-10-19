@@ -7,7 +7,7 @@ import { CalendarCheck, UserPlus, Users } from 'lucide-react';
 import { api } from '../lib/api';
 import { useApp } from '../app/context';
 import { ContactRequestInboxPanel } from '../components/ContactRequestInboxPanel';
-import { PageHeader } from '../components/ui/HeroCard';
+import { PageHeader } from '../components/ui/PageHeader';
 import { Button } from '../components/ui/Button';
 import { EmptyState, ErrorState } from '../components/ui/States';
 import { SkeletonFeed } from '../components/ui/SkeletonCard';

@@ -5,9 +5,10 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { createCoverPage, distinctNeighbourTones, resolveCovers } from '../../lib/cover';
 import { INDEX_OPENINGS, OPENING_STATUSES, coverContext, filterOpenings, type OpeningStatus } from './events-model';
 import type { MonthlyRegion } from './events-index-types';
-import { OpeningFeedCard } from './EventCards';
+import { OpeningFeedCard } from './BoardCards';
 import { ImageCredits } from './ImageCredits';
 import { RegionFilter } from './RegionFilter';
+import './boards.css';
 
 const PAGE = 12;
 const OPENINGS_GUIDE = '/guides/bay-area-new-openings-2026-09';

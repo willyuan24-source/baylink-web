@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react';
 import { translateText } from '../../i18n/locale';
-import { EventCover, FeedCard, HeroCard, OfferCardMeta, OfferCover, OpeningCover, RowCard, TypeCover, Cover, COVER_SIZES, offerBrandLine } from '../../components/ui';
+import { EventCover, FeedCard, HeroCard, RowCard, TypeCover, Cover, COVER_SIZES } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { ResolvedCover } from '../../lib/cover';
-import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerKindLabel, openingChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
-import type { IndexEvent, IndexOffer, IndexOpening } from './events-index-types';
+import { eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, type CoverTone, type EventFactsInput } from '../../lib/event-facts';
+import type { IndexEvent } from './events-index-types';
 import { monthDay, regionLabel } from './events-model';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import type { Favorite } from '../../lib/planner';
@@ -18,7 +18,6 @@ const facts = (event: IndexEvent) => event as unknown as EventFactsInput;
  */
 export const PHONE_COVER_CAP = '(max-width: 767px) 266px';
 const HERO_SIZES = `${PHONE_COVER_CAP}, 380px`;
-const HAN = /[\u3400-\u9fff]/;
 
 /** "官网核对 10/2" / "Source checked Oct 2": the record's own check date, never a bumped one (D12). */
 export function TrustLine({ day }: { day?: string }) {
@@ -38,7 +37,7 @@ export function EventMeta({ event }: { event: IndexEvent }) {
 
 /**
  * ♡ on a card's cover (H31, EVT13-10 / FCC-04 / SV13-10): the one save control, in the card's save slot over the cover's
- * top-right corner, the same heart as the home feed (reader-library.css styles it as a 44px circle). The lazy
+ * top-right corner, the same heart as the home feed (saves.css styles it as a 44px circle). The lazy
  * `SaveToWeek` keeps the save store off the route graph; its name reads "收藏：<title>".
  */
 const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;
@@ -85,25 +84,4 @@ export function EventRowCard({ event, cover, today, day, action }: { event: Inde
     date={[chip.label, time].filter(Boolean).join(' · ')} meta={<EventMeta event={event} />} trailing={action} />;
 }
 
-/**
- * Offer card (1:1): the brand's own image with a deadline sticker, or the B TypeCover with the value large. Its ♡ on the
- * cover saves the offer (the one save model, WEB-SAVES), as on event cards.
- */
-export function OfferFeedCard({ offer, cover, today, tone }: { offer: IndexOffer; cover: ResolvedCover; today: string; tone?: CoverTone }) {
-  const { pick, locale } = useUiCopy();
-  const brand = offerBrandLine(offer.brand, locale);
-  return <FeedCard title={offer.title} to={`/offers/${offer.id}`}
-    cover={<OfferCover offer={offer} cover={cover} today={today} tone={tone} decorative />}
-    meta={<OfferCardMeta brand={brand} kind={pick(offerKindLabel(offer))} onCover={cover.tier === 'type'} />}
-    trust={<TrustLine day={offer.verifiedAt} />} save={<CoverSave favorite={{ kind: 'offer', id: offer.id }} title={offer.title} />} />;
-}
-
-/** New shop card: the shop's own image, or the opening TypeCover ("10 月开业" / "即将开业"). Its ♡ on the cover saves the opening. */
-export function OpeningFeedCard({ opening, cover, today, tone }: { opening: IndexOpening; cover: ResolvedCover; today: string; tone?: CoverTone }) {
-  const { pick, locale } = useUiCopy();
-  return <FeedCard title={opening.name} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
-    cover={<OpeningCover opening={opening} cover={cover} today={today} tone={tone} decorative />}
-    meta={<>{translateText(opening.city, locale)} · {pick(openingChip(opening, today))}</>}
-    trust={<TrustLine day={opening.verifiedAt} />} save={<CoverSave favorite={{ kind: 'opening', id: opening.id }} title={opening.name} />} />;
-}
-
+// The offer and new-shop cards (OfferFeedCard, OpeningFeedCard) are in BoardCards.tsx (UI9-PREP).

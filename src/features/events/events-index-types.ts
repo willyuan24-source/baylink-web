@@ -49,7 +49,9 @@ export type IndexEvent = Pick<MonthlyEvent, 'id' | 'title' | 'aliases' | 'kind' 
   note?: string;
 };
 
-export type IndexOffer = Pick<FreebieOffer, 'id' | 'brand' | 'title' | 'region' | 'startDate' | 'endDate' | 'weekdays' | 'availability' | 'kind' | 'imageKey' | 'sourceLabel' | 'verifiedAt'>;
+/** `status` comes from the editorial overlay and is only ever `sold_out` (已售罄, for the 免费与优惠 board's status chip;
+ * UI9-PREP); an offer that is on sale has none. */
+export type IndexOffer = Pick<FreebieOffer, 'id' | 'brand' | 'title' | 'region' | 'startDate' | 'endDate' | 'weekdays' | 'availability' | 'kind' | 'imageKey' | 'sourceLabel' | 'verifiedAt'> & { status?: 'sold_out' };
 export type IndexOpening = Pick<SeptemberOpening, 'id' | 'name' | 'city' | 'region' | 'category' | 'status' | 'openingType' | 'openedOn' | 'imageKey' | 'sourceLabel' | 'verifiedAt'>;
 export type IndexBulletin = Pick<RegionalBulletin, 'id' | 'region' | 'label' | 'title' | 'dateLabel' | 'sourceLabel' | 'sourceUrl' | 'verifiedAt' | 'expiresAt'>;
 export type IndexImage = GuideImage;

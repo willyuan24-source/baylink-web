@@ -5,17 +5,16 @@ import { currentRouteTemplate } from '../../lib/route-template';
 import { buildFeedbackPayload, submitFeedback } from './feedback-api';
 import { REASON_LABELS, say } from './feedback-copy';
 import { openFeedback } from './open-feedback';
-import { useFeedbackEntryStyles } from './entry-styles';
 
 const QUICK = ['wrong-answer', 'too-slow', 'not-answered'] as const;
 
 /**
  * BayBay 👎 reasons (G9): one tap sends the reason as a 'baybay' feedback row with the page template only; the question,
- * answer and conversation are never attached. 其他 opens the sheet so the reader can say what went wrong.
+ * answer and conversation are never attached. 其他 opens the sheet so the reader can say what went wrong. Styles:
+ * src/features/baybay/baybay-panel.css, which loads with the panel (UI9-PREP; feedback-entry.css until then).
  */
 export function BayBayDownvoteReasons({ send = submitFeedback }: { send?: typeof submitFeedback }) {
   const locale = useLocale();
-  useFeedbackEntryStyles();
   const [state, setState] = useState<'choosing' | 'sending' | 'sent' | 'failed'>('choosing');
   const quick = async (reason: string) => {
     setState('sending');

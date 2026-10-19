@@ -1,0 +1,13 @@
+/* Disclosure (UI9-F2, added by UI9-PREP): one expander look. No native ▶ marker, one chevron that turns on --dur-2, the
+   summary a 44px target (48 in 简洁显示). Imported by Disclosure.tsx only, so it ships with the pages that use it (the ui
+   barrel does not re-export the component: its importers include the home page, where this would be render-blocking). The
+   summary's hover answer and the .site-app focus ring also come from tokens.css; the ring here covers sheets and dialogs. */
+.ui-disclosure__summary { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); min-height:var(--control-height); color:var(--color-ink); font-size:var(--fs-body); line-height:1.5; font-weight:var(--fw-regular); list-style:none; cursor:pointer; }
+.ui-disclosure__summary::-webkit-details-marker { display:none; }
+.ui-disclosure__summary::marker { content:""; }
+.ui-disclosure__label { min-width:0; }
+.ui-disclosure__chevron { flex:none; width:1.25rem; height:1.25rem; color:var(--color-ink-2); transition:rotate var(--dur-2) var(--ease-std); }
+.ui-disclosure[open]>.ui-disclosure__summary>.ui-disclosure__chevron { rotate:180deg; }
+.ui-disclosure__panel { padding-block:var(--sp-2) var(--sp-4); }
+.ui-disclosure__summary:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+html[data-simple] .ui-disclosure__summary { min-height:3rem; }

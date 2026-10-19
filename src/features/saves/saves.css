@@ -1,0 +1,33 @@
+/* The one save model's controls (♡ 收藏, 加入这天计划 and their confirmation toast): src/features/saves/ (SaveControl,
+   SaveHeart, SaveToast, AddToDayControl). UI9-PREP moved these rules here from src/components/reader-library.css unchanged;
+   src/main.tsx imports this sheet right after reader-library.css, so the global CSS keeps its order. */
+/* WEB-SAVES: the one save model's controls (♡ 收藏, 加入这天计划 and their confirmation toast). They appear on
+   prerendered pages (guides, events, calendar), which cannot import a component stylesheet yet, so they live in this
+   global sheet. Tokens and rem only; targets are at least 44px (48 in 简洁显示). Both buttons take exactly the look of
+   the UI secondary button (ui.css .ui-button[data-variant=secondary], phone and desktop), so a page that shows them
+   adds no button style of its own (SYS bar: at most 5 button styles per template). */
+.saves-control { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin:8px 0 16px; }
+.saves-control[data-compact] { margin:8px 0 0; }
+.saves-control .saves-toggle,.saves-day .saves-add-day { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:400; cursor:pointer; }
+.saves-control .saves-toggle[data-compact],.saves-day .saves-add-day[data-compact] { padding:0 16px; }
+.saves-control .saves-toggle:disabled,.saves-day .saves-add-day:disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); cursor:default; }
+@media (min-width:1024px) { .saves-control .saves-toggle,.saves-day .saves-add-day { min-height:var(--control-height); font-size:1rem; } }
+.saves-control .saves-toggle>svg,.saves-day .saves-add-day>svg { width:1.25rem; height:1.25rem; flex:none; color:var(--color-brand); }
+.saves-control .saves-toggle:disabled>svg,.saves-day .saves-add-day:disabled>svg { color:currentColor; }
+.saves-control .saves-toggle[aria-pressed=true]>svg { fill:currentColor; }
+/* ♡ on a card's cover (H31): every FeedCard / HeroCard save slot — home, /events and its offers and new shops — shows the
+   same 44px circle (48px in 简洁显示) with the icon alone. The visible word is set to size 0 rather than pushed out of the
+   box; the button's name (收藏：…) is its aria-label, so assistive tech reads the same. */
+/* The circle sits at the slot's own corner (4px / 8px in): the compact control's in-flow top margin would push it 8px lower,
+   onto the top of a TypeCover drawing (W5-INT). The calendar's 加入这天计划 in a save slot is not a .saves-control. */
+:is(.ui-feed-card__save,.ui-hero-card__save) .saves-control { margin:0; }
+:is(.ui-feed-card__save,.ui-hero-card__save) .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
+.saves-control__link { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.saves-control__note,.saves-control__error,.saves-day__error { flex-basis:100%; margin:0; font-size:var(--text-fact); line-height:1.571; }
+.saves-control__note { color:var(--color-ink-2); }
+.saves-control__error,.saves-day__error { color:var(--color-danger); }
+.saves-control__error button { min-height:var(--control-height); margin-left:8px; color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.saves-day { display:inline-flex; flex-direction:column; align-items:flex-start; }
+.saves-live { position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
+:is(.saves-control .saves-toggle,.saves-day .saves-add-day,.saves-control__link,.saves-control__error button):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+html[data-simple] :is(.saves-control .saves-toggle,.saves-day .saves-add-day,.saves-control__link) { min-height:3rem; }

@@ -1,68 +1,6 @@
 {
-  "generatedAt": "2026-10-17",
+  "generatedAt": "2026-10-19",
   "weekends": [
-    {
-      "start": "2026-10-17",
-      "end": "2026-10-18",
-      "picks": [
-        {
-          "id": "sf-bay-area-science-festival-2026",
-          "kind": "event",
-          "rank": 1,
-          "dates": [
-            "2026-10-17"
-          ],
-          "reason_zh": "免费动手实验，亲子一起玩",
-          "reason_en": "Free hands-on science for the whole family",
-          "elderFriendly": false
-        },
-        {
-          "id": "half-moon-bay-pumpkin-festival-2026",
-          "kind": "event",
-          "rank": 2,
-          "dates": [
-            "2026-10-17",
-            "2026-10-18"
-          ],
-          "reason_zh": "两天南瓜展，周六有游行",
-          "reason_en": "Pumpkin displays both days, a parade on Saturday",
-          "elderFriendly": false
-        },
-        {
-          "id": "berkeley-harvest-festival-2026",
-          "kind": "event",
-          "rank": 3,
-          "dates": [
-            "2026-10-17"
-          ],
-          "reason_zh": "设有长者座位区，逛累可歇脚",
-          "reason_en": "A seating area where elders can rest",
-          "elderFriendly": true
-        },
-        {
-          "id": "numu-community-ignition-oct17-2026",
-          "kind": "event",
-          "rank": 4,
-          "dates": [
-            "2026-10-17"
-          ],
-          "reason_zh": "现场织艺互动，认识多元艺术",
-          "reason_en": "Weave into a shared tapestry at the opening",
-          "elderFriendly": false
-        },
-        {
-          "id": "r2-santarosa-soco-halloween-2026",
-          "kind": "event",
-          "rank": 5,
-          "dates": [
-            "2026-10-17"
-          ],
-          "reason_zh": "带上宠物，与家人一起逛市集",
-          "reason_en": "A family market where pets are welcome",
-          "elderFriendly": false
-        }
-      ]
-    },
     {
       "start": "2026-10-24",
       "end": "2026-10-25",

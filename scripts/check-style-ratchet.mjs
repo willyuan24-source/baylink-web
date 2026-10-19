@@ -35,6 +35,7 @@ export const STYLE_METRICS = {
   fontWeightBold: 'font weights above the 600 budget (700, 800, 900, bold, bolder; N03)',
   durationOffScale: 'transition / animation durations of 50–360ms off the motion scale (120 · 160 · 200 · 240 · 280ms; N24)',
   durationLiteral: 'transition / animation durations written as a literal (≥50ms) instead of a --dur-* token (N24)',
+  spacingOffScale: 'padding / margin / gap lengths (px, rem, em at 16px) off the 4px token steps (0 · 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96px; UI9-PREP, N14)',
 };
 /** The two non-style counts. Both count distinct items, so reusing an already-listed one does not raise them. */
 export const OTHER_METRICS = {
@@ -52,6 +53,11 @@ const allowedWeights = new Set(['400', '600', '700', 'normal', 'bold', 'inherit'
 /** The tokens v2 type ladder and motion scale (src/tokens.css). */
 const LADDER_PX = new Set([13, 14, 16, 17, 18, 20, 24, 28, 32, 44]);
 const MOTION_MS = new Set([120, 160, 200, 240, 280]);
+/** The spacing token steps (--sp-1 … --sp-9 in src/tokens.css) and 0. */
+const SPACING_PX = new Set([0, 4, 8, 12, 16, 24, 32, 48, 64, 96]);
+const SPACING_PROP = /^(?:padding|margin|gap|row-gap|column-gap|grid-gap|grid-row-gap|grid-column-gap)(?:-[a-z-]+)?$/;
+/** A value without its var(…) groups (a token, or a token with a fallback, is on the scale by definition). */
+const withoutVars = value => { let rest = value, before; do { before = rest; rest = rest.replace(/var\([^()]*\)/g, ''); } while (rest !== before); return rest; };
 const prefix = '(?<![\\w-])(?:[a-z0-9-]+:)*!?';
 const twTextSize = new RegExp(`${prefix}text-\\[(\\d*\\.?\\d+)(px|rem|em)\\]`, 'g');
 const twRounded = new RegExp(`${prefix}rounded(?:-(?:t|r|b|l|tl|tr|br|bl|s|e|ss|se|es|ee))?(?:-(none|sm|md|lg|xl|2xl|3xl|full|card|card-lg|\\[[^\\]\\s]+\\]))?(?![\\w-])`, 'g');
@@ -119,6 +125,12 @@ export function measureStyle(sources) {
       if (ms <= 360 && !MOTION_MS.has(ms)) add(file, 'durationOffScale');
     }
   };
+  /** Each px / rem / em length in a padding, margin or gap value off the token steps (sign ignored; %, vw and cq are layout). */
+  const spacing = (file, value) => {
+    for (const match of withoutVars(value).matchAll(/(?<![\w.-])-?(\d*\.?\d+)(px|rem|em)\b/g)) {
+      if (!SPACING_PX.has(Number(match[1]) * (match[2] === 'px' ? 1 : 16))) add(file, 'spacingOffScale');
+    }
+  };
   const strings = (file, text, line) => {
     if (file !== 'src/tokens.css') for (const match of text.matchAll(HEX)) { add(file, 'hexOccurrences'); kind(kinds.hex, match[0].toLowerCase(), at(file, line)); }
     for (const match of text.matchAll(twTextSize)) if (Number(match[1]) * (match[2] === 'px' ? 1 : 16) < 13) add(file, 'textArbitraryUnder13');
@@ -151,6 +163,7 @@ export function measureStyle(sources) {
         }
         if (prop === 'font-weight') weight(file, normalizeValue(value));
         if (/^(?:transition|transition-duration|animation|animation-duration)$/.test(prop)) durations(file, value);
+        if (SPACING_PROP.test(prop)) spacing(file, value);
         if (/^border(?:-[a-z]+)*-radius$/.test(prop)) kind(kinds.radius, normalizeValue(value), at(file, line));
         if (prop === 'box-shadow') kind(kinds.shadow, normalizeValue(value), at(file, line));
       });

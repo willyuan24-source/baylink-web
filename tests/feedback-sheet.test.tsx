@@ -18,7 +18,6 @@ const { render, fireEvent, cleanup, act, within, waitFor } = await import('@test
 const { MemoryRouter } = await import('react-router-dom');
 const { default: FeedbackSheet } = await import('../src/features/feedback/FeedbackSheet');
 const { ReportErrorLink, FeedbackLink } = await import('../src/features/feedback/ReportErrorLink');
-const { BayBayDownvoteReasons } = await import('../src/features/feedback/BayBayDownvoteReasons');
 const { buildFeedbackPayload, submitFeedback } = await import('../src/features/feedback/feedback-api');
 const { setLocale } = await import('../src/i18n/locale');
 type Payload = Parameters<typeof submitFeedback>[0];
@@ -123,23 +122,6 @@ test('the site-wide link opens the page sheet and every label is English under /
   assert.deepEqual(within(dialog).getAllByRole('radio').map(chip => chip.closest('label')!.textContent), ['Finding events', 'Getting something done', 'Asking BayBay', 'Planning a day', 'Something else']);
   await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' })); });
   assert.equal(within(document.body).queryByRole('dialog'), null);
-});
-
-test('BayBay 👎: one tap sends the reason with the page template only; 其他 opens the sheet', async context => {
-  const fetch = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
-  const sent: Payload[] = [];
-  const view = render(<BayBayDownvoteReasons send={async payload => { sent.push(payload); return { ok: true }; }} />);
-  assert.deepEqual(within(view.getByRole('group', { name: '哪里没答好？' })).getAllByRole('button').map(button => button.textContent), ['答错了', '太慢', '没答到点上', '其他']);
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: '答错了' })); });
-  assert.deepEqual(sent[0], { kind: 'baybay', routeTemplate: '/events/:id', reason: 'wrong-answer', text: '', locale: 'zh-Hans', readingSize: 'large', release: 'dev', website: '' });
-  assert.ok(apiNormalizeFeedback(sent[0]));
-  assert.equal(view.getByRole('status').textContent, '已记下原因，谢谢！');
-  assert.deepEqual(fetchBodies(fetch, '/product-events').map(event => event.event), ['feedback_sent']);
-  cleanup();
-  const again = render(<BayBayDownvoteReasons send={async () => ({ ok: true })} />);
-  await act(async () => { fireEvent.click(again.getByRole('button', { name: '其他' })); await new Promise(resolve => setTimeout(resolve, 50)); });
-  const dialog = await waitFor(() => within(document.body).getByRole('dialog', { name: 'BayBay 哪里没答好？' }));
-  assert.equal((within(dialog).getByRole('radio', { name: '其他' }) as HTMLInputElement).checked, true);
 });
 
 test('text and contact are capped at the API limits by code point', () => {

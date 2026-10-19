@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { Sticker, StickerRow } from './Badges';
 import { CoverImage, type CoverRatio } from './CoverImage';
 import { COVER_SIZES } from './cover-sizes';

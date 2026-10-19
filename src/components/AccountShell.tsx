@@ -1,4 +1,4 @@
-import { PageContainer } from './ui/HeroCard';
+import { PageContainer } from './ui/PageHeader';
 import { SkeletonFeed } from './ui/SkeletonCard';
 
 /**

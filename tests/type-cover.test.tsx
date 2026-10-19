@@ -14,7 +14,7 @@ Object.assign(globalThis, {
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 // Node does not load browser stylesheets; the primitives' own ui.css is checked as text below.
 const cssHook = registerHooks({ load(url, context, nextLoad) {
-  if (url.endsWith('/components/ui/ui.css')) return { format: 'module', shortCircuit: true, source: 'export {};' };
+  if (/\/components\/ui\/(?:ui|covers|cards)\.css$/.test(url)) return { format: 'module', shortCircuit: true, source: 'export {};' };
   return nextLoad(url, context);
 } });
 const { render, cleanup, act } = await import('@testing-library/react');
@@ -123,7 +123,8 @@ test('EventCover shows the resolved photo with its provenance and stickers, or f
   assert.equal(offer.container.querySelector('.ui-type-cover__brand')?.textContent, 'IKEA');
 });
 
-const css = readFileSync('src/components/ui/ui.css', 'utf8');
+// The primitives' three sheets in load order (UI9-PREP split ui.css; the cover rules are in covers.css).
+const css = ['ui', 'covers', 'cards'].map(name => readFileSync(`src/components/ui/${name}.css`, 'utf8')).join('\n');
 const rootTokens = new Map<string, string>();
 postcss.parse(css).walkRules(':root', rule => rule.walkDecls(declaration => { rootTokens.set(declaration.prop, declaration.value); }));
 const tokens = readFileSync('src/tokens.css', 'utf8');

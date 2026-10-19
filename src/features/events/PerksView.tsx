@@ -9,9 +9,10 @@ import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffer
 import { useIndexEvents } from './events-later';
 import type { MonthlyRegion } from './events-index-types';
 import { getMonthlyDateRange } from '../../lib/monthly';
-import { OfferFeedCard } from './EventCards';
+import { OfferFeedCard } from './BoardCards';
 import { ImageCredits } from './ImageCredits';
 import { RegionFilter } from './RegionFilter';
+import './boards.css';
 
 const PAGE = 12;
 const DEALS_GUIDE = '/guides/bay-area-freebies-deals-2026-11';

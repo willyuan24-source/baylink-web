@@ -7,7 +7,7 @@ import { setPageMetadata } from '../lib/seo';
 import { PLAN_METADATA } from '../lib/planner-core';
 import { createCoverPage } from '../lib/cover';
 import { Button } from '../components/ui/Button';
-import { PageContainer, PageHeader } from '../components/ui/HeroCard';
+import { PageContainer, PageHeader } from '../components/ui/PageHeader';
 import { PlanWorkspaceSlot } from '../features/plan/PlanWorkspaceSlot';
 import { PlanWeekendPicks } from '../features/plan/PlanWeekendPicks';
 import { loadPlan, opensPlan, planLoadFailed, PlanWorkspace } from '../features/plan/plan-catalog';

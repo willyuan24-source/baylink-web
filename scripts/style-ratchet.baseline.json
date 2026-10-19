@@ -18,6 +18,7 @@
     "fontWeightBold": 3,
     "durationOffScale": 0,
     "durationLiteral": 47,
+    "spacingOffScale": 2000,
     "englishUiUntranslated": 105,
     "lazyCssDuplicateSelectors": 0
   },
@@ -270,8 +271,15 @@
     "src/app/OverlayHost.tsx": {
       "baylinkClasses": 6
     },
+    "src/components/about-baylink.css": {
+      "spacingOffScale": 5
+    },
     "src/components/ai-local.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 43
+    },
+    "src/components/archive.css": {
+      "spacingOffScale": 5
     },
     "src/components/Avatar.tsx": {
       "hexOccurrences": 8
@@ -303,7 +311,8 @@
       "baylinkClasses": 1
     },
     "src/components/calendar-event-map.css": {
-      "fontSizeLiteral": 10
+      "fontSizeLiteral": 10,
+      "spacingOffScale": 21
     },
     "src/components/CityCurrentCard.tsx": {
       "arrowUpRight": 1
@@ -324,18 +333,23 @@
     },
     "src/components/discovery-community.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 24
+      "fontSizeLiteral": 24,
+      "spacingOffScale": 50
     },
     "src/components/ErrorBoundary.tsx": {
       "fontSizeLiteral": 4,
       "fontSizeOffLadder": 2
+    },
+    "src/components/freebie-board.css": {
+      "spacingOffScale": 29
     },
     "src/components/FreebieBoard.tsx": {
       "arrowUpRight": 1
     },
     "src/components/guide-visuals.css": {
       "durationLiteral": 1,
-      "fontSizeLiteral": 5
+      "fontSizeLiteral": 5,
+      "spacingOffScale": 46
     },
     "src/components/GuideDetail.tsx": {
       "arrowUpRight": 2
@@ -345,25 +359,33 @@
     },
     "src/components/guides-ui.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 60
+      "fontSizeLiteral": 60,
+      "spacingOffScale": 161
     },
     "src/components/GuideVisuals.tsx": {
       "arrowUpRight": 1
     },
     "src/components/home-discovery.css": {
-      "fontSizeLiteral": 3
+      "fontSizeLiteral": 3,
+      "spacingOffScale": 30
     },
     "src/components/HubPrerender.tsx": {
       "baylinkClasses": 4
     },
+    "src/components/legal-page.css": {
+      "spacingOffScale": 5
+    },
     "src/components/local-discovery-detail.css": {
-      "fontSizeLiteral": 2
+      "fontSizeLiteral": 2,
+      "spacingOffScale": 31
     },
     "src/components/monthly-deals.css": {
-      "fontSizeLiteral": 3
+      "fontSizeLiteral": 3,
+      "spacingOffScale": 13
     },
     "src/components/not-found.css": {
-      "fontSizeLiteral": 2
+      "fontSizeLiteral": 2,
+      "spacingOffScale": 3
     },
     "src/components/OfficialVerificationModal.tsx": {
       "baylinkClasses": 15,
@@ -374,16 +396,22 @@
     },
     "src/components/outing-inspiration.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 2
+      "fontSizeLiteral": 2,
+      "spacingOffScale": 5
     },
     "src/components/perks-gallery.css": {
-      "durationLiteral": 1
+      "durationLiteral": 1,
+      "spacingOffScale": 18
     },
     "src/components/PerksGallery.tsx": {
       "arrowUpRight": 1
     },
     "src/components/phone-links.css": {
-      "fontSizeLiteral": 2
+      "fontSizeLiteral": 2,
+      "spacingOffScale": 4
+    },
+    "src/components/planner-web-library.css": {
+      "spacingOffScale": 5
     },
     "src/components/PlannerWebSearch.tsx": {
       "arrowUpRight": 1
@@ -397,8 +425,15 @@
     "src/components/PostShareSheet.tsx": {
       "baylinkClasses": 11
     },
+    "src/components/product-improvements.css": {
+      "spacingOffScale": 1
+    },
     "src/components/reader-library.css": {
-      "fontSizeLiteral": 13
+      "fontSizeLiteral": 12,
+      "spacingOffScale": 20
+    },
+    "src/components/school-guide-topics.css": {
+      "spacingOffScale": 3
     },
     "src/components/ServiceAvailabilityDraft.tsx": {
       "fontSizeLiteral": 3,
@@ -410,37 +445,53 @@
     },
     "src/components/site-chrome.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 38
+    },
+    "src/components/site-dialogs.css": {
+      "spacingOffScale": 13
     },
     "src/components/TagPills.tsx": {
       "baylinkClasses": 4,
       "textArbitraryUnder13": 1
     },
     "src/components/tools/dining-calculator.css": {
-      "fontSizeLiteral": 7
+      "fontSizeLiteral": 7,
+      "spacingOffScale": 32
     },
     "src/components/tools/loan-calculator.css": {
-      "fontSizeLiteral": 7
+      "fontSizeLiteral": 7,
+      "spacingOffScale": 33
     },
     "src/components/tools/LoanCalculatorTool.tsx": {
       "arrowUpRight": 2
     },
     "src/components/tools/tools.css": {
-      "fontSizeLiteral": 2
+      "fontSizeLiteral": 2,
+      "spacingOffScale": 29
     },
     "src/components/tools/unit-price.css": {
-      "fontSizeLiteral": 6
+      "fontSizeLiteral": 6,
+      "spacingOffScale": 40
+    },
+    "src/components/ui/cards.css": {
+      "fontSizeLiteral": 3,
+      "spacingOffScale": 10
     },
     "src/components/ui/confirm.tsx": {
       "baylinkClasses": 11
+    },
+    "src/components/ui/covers.css": {
+      "fontSizeLiteral": 6,
+      "fontSizeOffLadder": 4,
+      "spacingOffScale": 6
     },
     "src/components/ui/Skeleton.tsx": {
       "baylinkClasses": 3
     },
     "src/components/ui/ui.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 9,
-      "fontSizeOffLadder": 4
+      "spacingOffScale": 9
     },
     "src/components/UsefulPlatformsDirectory.tsx": {
       "arrowUpRight": 2
@@ -466,7 +517,11 @@
     },
     "src/design.css": {
       "durationLiteral": 4,
-      "fontSizeLiteral": 21
+      "fontSizeLiteral": 21,
+      "spacingOffScale": 63
+    },
+    "src/editorial-refinement.css": {
+      "spacingOffScale": 5
     },
     "src/features/admin/AdminViews.tsx": {
       "baylinkClasses": 78,
@@ -481,98 +536,138 @@
     },
     "src/features/baybay-actions.css": {
       "durationLiteral": 1,
-      "fontSizeLiteral": 7
+      "fontSizeLiteral": 7,
+      "spacingOffScale": 15
     },
     "src/features/baybay-conversation.css": {
-      "durationLiteral": 2,
-      "fontSizeLiteral": 45
+      "durationLiteral": 3,
+      "fontSizeLiteral": 55,
+      "spacingOffScale": 123
     },
     "src/features/baybay/baybay-answer.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 27
+    },
+    "src/features/baybay/baybay-panel.css": {
+      "spacingOffScale": 2
     },
     "src/features/bookings/bookings.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 37
+      "fontSizeLiteral": 37,
+      "spacingOffScale": 105
     },
     "src/features/bookings/my-week-bookings.css": {
-      "fontSizeLiteral": 14
+      "fontSizeLiteral": 14,
+      "spacingOffScale": 28
     },
     "src/features/detail/DetailActionBar.tsx": {
       "arrowUpRight": 1
     },
     "src/features/events/events.css": {
-      "fontSizeLiteral": 2
+      "fontSizeLiteral": 2,
+      "spacingOffScale": 10
+    },
+    "src/features/feedback/feedback-admin.css": {
+      "spacingOffScale": 5
+    },
+    "src/features/feedback/feedback-entry.css": {
+      "spacingOffScale": 2
     },
     "src/features/feedback/feedback.css": {
       "durationLiteral": 1,
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 10
     },
     "src/features/guides/guide-article.css": {
       "durationLiteral": 2,
-      "fontSizeLiteral": 7
+      "fontSizeLiteral": 7,
+      "spacingOffScale": 54
+    },
+    "src/features/guides/guide-library.css": {
+      "spacingOffScale": 8
     },
     "src/features/member-ui.css": {
-      "durationLiteral": 11,
-      "fontSizeLiteral": 33
+      "durationLiteral": 10,
+      "fontSizeLiteral": 23,
+      "spacingOffScale": 63
     },
     "src/features/messages/chat-ai.css": {
-      "fontSizeLiteral": 17
+      "fontSizeLiteral": 17,
+      "spacingOffScale": 24
     },
     "src/features/messages/ChatView.tsx": {
       "baylinkClasses": 1
     },
     "src/features/messages/messages-hub.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 10
     },
     "src/features/outings/my-week-outings.css": {
       "fontSizeLiteral": 4,
       "fontSizeOffLadder": 2,
-      "fontSizeUnder13": 1
+      "fontSizeUnder13": 1,
+      "spacingOffScale": 21
     },
     "src/features/outings/outing-cover.css": {
       "fontSizeLiteral": 24,
       "fontSizeOffLadder": 18,
-      "fontSizeUnder13": 14
+      "fontSizeUnder13": 14,
+      "spacingOffScale": 34
     },
     "src/features/outings/outing-time-poll.css": {
-      "fontSizeLiteral": 15
+      "fontSizeLiteral": 15,
+      "spacingOffScale": 31
     },
     "src/features/outings/OutingCover.tsx": {
       "arrowUpRight": 1
     },
     "src/features/outings/outings.css": {
       "fontSizeLiteral": 49,
-      "fontSizeOffLadder": 2
+      "fontSizeOffLadder": 2,
+      "spacingOffScale": 118
     },
     "src/features/posts/community.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 26
     },
     "src/features/posts/CreatePostModal.tsx": {
       "baylinkClasses": 53
+    },
+    "src/features/posts/posts-ui.css": {
+      "spacingOffScale": 4
     },
     "src/features/profile/EditProfileModal.tsx": {
       "baylinkClasses": 13,
       "textArbitraryUnder13": 9
     },
     "src/features/profile/me-hub.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 15
     },
     "src/features/profile/privacy-security.css": {
-      "fontSizeLiteral": 4
+      "fontSizeLiteral": 4,
+      "spacingOffScale": 7
     },
     "src/features/profile/profile-personal-space.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 24
     },
     "src/features/profile/profile-personality.css": {
       "fontSizeLiteral": 54,
       "fontSizeOffLadder": 1,
-      "fontSizeUnder13": 1
+      "fontSizeUnder13": 1,
+      "spacingOffScale": 99
     },
     "src/features/profile/ProfileSubViews.tsx": {
       "baylinkClasses": 7
     },
     "src/features/saves/my-week.css": {
-      "durationLiteral": 1
+      "durationLiteral": 1,
+      "spacingOffScale": 11
+    },
+    "src/features/saves/saves.css": {
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 2
     },
     "src/features/source-monitor/content-review-copy.ts": {
       "hexOccurrences": 1
@@ -585,8 +680,12 @@
       "baylinkClasses": 4,
       "fontWeightBold": 1
     },
+    "src/features/source-monitor/source-monitor-admin.css": {
+      "spacingOffScale": 36
+    },
     "src/features/source-monitor/source-monitor.css": {
-      "durationLiteral": 1
+      "durationLiteral": 1,
+      "spacingOffScale": 8
     },
     "src/features/users/UserProfileModal.tsx": {
       "baylinkClasses": 32,
@@ -611,36 +710,44 @@
       "arrowUpRight": 6
     },
     "src/pages/together-page.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 3
     },
     "src/styles/attractions.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 19
     },
     "src/styles/discovery-workflow.css": {
       "fontSizeLiteral": 16,
       "fontSizeOffLadder": 1,
       "fontSizeUnder13": 1,
-      "hexOccurrences": 1
+      "hexOccurrences": 1,
+      "spacingOffScale": 30
     },
     "src/styles/event-import.css": {
       "durationLiteral": 1,
-      "fontSizeLiteral": 33
+      "fontSizeLiteral": 33,
+      "spacingOffScale": 65
     },
     "src/styles/modern-messaging.css": {
       "durationLiteral": 5,
-      "fontSizeLiteral": 33
+      "fontSizeLiteral": 33,
+      "spacingOffScale": 81
     },
     "src/styles/plan-page.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 20
     },
     "src/styles/planner.css": {
-      "fontSizeLiteral": 1
+      "fontSizeLiteral": 1,
+      "spacingOffScale": 72
     },
     "src/tokens.css": {
       "durationLiteral": 4,
       "fontSizeOffLadder": 1,
       "fontSizeUnder13": 1,
-      "fontWeightBold": 1
+      "fontWeightBold": 1,
+      "spacingOffScale": 12
     }
   }
 }

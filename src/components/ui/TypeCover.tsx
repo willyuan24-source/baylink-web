@@ -1,4 +1,6 @@
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { ProvenanceBadge, Sticker, type StickerTone } from './Badges';
 import { cx, useUiCopy } from './ui-copy';
 import { offerBrandLine } from './offer-brand';

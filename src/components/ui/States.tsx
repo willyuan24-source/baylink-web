@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
 import { AlertTriangle, Inbox, type LucideIcon } from 'lucide-react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { Button } from './Button';
 import { useUiCopy } from './ui-copy';
 

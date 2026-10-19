@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing } from 'lucide-react';
 import '../../components/ui/ui.css';
+import '../../components/ui/covers.css';
+import '../../components/ui/cards.css';
 import './community.css';
 import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';

@@ -3,7 +3,7 @@ import { BadgeCheck, BookOpen, CalendarDays, Eye, FileSearch, Mail, RefreshCcw }
 import { translateText, useLocale } from '../i18n/locale';
 import { FeedbackLink } from '../features/feedback/ReportErrorLink';
 import { Button } from './ui/Button';
-import { PageContainer, PageHeader } from './ui/HeroCard';
+import { PageContainer, PageHeader } from './ui/PageHeader';
 import { ProvenanceBadge } from './ui/Badges';
 import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from '../lib/image-provenance';
 

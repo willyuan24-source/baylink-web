@@ -29,6 +29,8 @@ import { translateText, useLocale } from '../i18n/locale';
 import { useReadingSize, useSimpleDisplay } from '../lib/reading-preferences';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
 import { LocaleFeatureGate } from './LocaleContentGate';
+// The panel's own sheet (after the stylesheets its imports bring), lazily loaded with the panel chunk.
+import '../features/baybay/baybay-panel.css';
 
 type CreatePostOptions = { postType?: 'client' | 'provider'; category?: string; initialIntent?: string };
 /** An explicit guest sign-in carries only this tab's in-memory draft, never account history. */

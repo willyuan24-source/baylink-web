@@ -13,7 +13,8 @@ export { TypeCover, EventTypeCover, OfferTypeCover, OpeningTypeCover, type TypeC
 export { offerBrandLine } from './offer-brand';
 export { Cover, EventCover, OfferCardMeta, OfferCover, OpeningCover } from './Cover';
 export { FeedCard, RowCard, type FeedCardProps, type RowCardProps } from './Card';
-export { HeroCard, PageHeader, PageContainer, type HeroCardProps, type PageHeaderProps } from './HeroCard';
+export { HeroCard, type HeroCardProps } from './HeroCard';
+export { PageHeader, PageContainer, type PageHeaderProps } from './PageHeader';
 export { Carousel, type CarouselProps } from './Carousel';
 export { CoverCredit, FeedGrid, FeedItem, FeedLayoutToggle, type FeedGridProps } from './FeedGrid';
 export { useFeedLayout, readFeedLayout, writeFeedLayout, automaticLayout, FEED_LAYOUT_KEY, PHONE_QUERY, type FeedLayout } from './feed-layout';
@@ -21,3 +22,9 @@ export { Sheet, type SheetProps } from './Sheet';
 export { SegmentedTabs, SegmentedControl, type SegmentItem, type SegmentedTabsProps, type SegmentedControlProps } from './Segmented';
 export { SkeletonCard, SkeletonRow, SkeletonFeed } from './SkeletonCard';
 export { EmptyState, ErrorState, type EmptyStateProps, type ErrorStateProps } from './States';
+// UI9-F2 primitives: import them from their own files (./ui/Disclosure, ./ui/CloseButton, ./ui/TextLink). This barrel is
+// imported on the home page, and a runtime re-export here would put their stylesheets into its render-blocking CSS whether
+// or not a page uses them; only their types are re-exported.
+export type { DisclosureProps } from './Disclosure';
+export type { CloseButtonProps } from './CloseButton';
+export type { TextLinkProps, MoreLinkProps } from './TextLink';

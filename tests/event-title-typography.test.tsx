@@ -43,7 +43,8 @@ test('title links in event and calendar cards take the heading size while card a
   const titles = [...calendar.container.querySelectorAll('.ui-row-card__title a'), ...monthly.container.querySelectorAll('.ui-feed-card__title a')];
   assert.ok(calendar.container.querySelector('.ui-row-card__title a') && monthly.container.querySelector('.ui-feed-card__title a'), 'both card kinds render a title link');
   const sheetRules = (path: string) => { const list: Rule[] = []; postcss.parse(readFileSync(new URL(path, import.meta.url), 'utf8')).each(node => { if (node.type === 'rule') list.push(node); }); return list; };
-  const uiRules = sheetRules('../src/components/ui/ui.css');
+  // The primitives' three sheets (UI9-PREP split ui.css into ui / covers / cards; they load together, in this order).
+  const uiRules = ['ui', 'covers', 'cards'].flatMap(name => sheetRules(`../src/components/ui/${name}.css`));
   const eventsRules = sheetRules('../src/features/events/events.css');
   // Pseudo-element and :focus-visible selectors never match an element at rest, and jsdom may not parse them.
   const matches = (list: Rule[], element: Element) => list.filter(rule => { try { return element.matches(rule.selector); } catch { return false; } });

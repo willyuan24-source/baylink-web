@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
 import './ui.css';
+import './covers.css';
+import './cards.css';
 import { cx } from './ui-copy';
 
 /** Top-left provenance badge. The text must come from getImageProvenance() / typeCoverProvenance(). */

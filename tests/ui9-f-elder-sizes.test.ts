@@ -179,7 +179,7 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
     ['@media (max-width:639px)', '.unit-price-intro strong', 15, 14],
     ['@media (max-width:639px)', '.unit-price-result-value>strong', 21, 20],
   ]],
-  ['src/components/ui/ui.css', [
+  ['src/components/ui/cards.css', [
     ['', '.ui-segmented__item', 15, 14],
   ]],
   ['src/features/baybay-actions.css', [
