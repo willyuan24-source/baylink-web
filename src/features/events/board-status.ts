@@ -61,7 +61,7 @@ export function offerChip(offer: { status?: string; startDate?: string; endDate?
 /** What an offer asks of you, from the record's `kind` (line 2; the deals board's kind label). */
 export const OFFER_CONDITIONS: Readonly<Record<IndexOffer['kind'], Copy>> = {
   'no-purchase': { zh: '无需购物', en: 'No purchase needed' },
-  reservation: { zh: '需预约', en: 'Reservation needed' },
+  reservation: { zh: '需预约', en: 'Sign-up needed' },
   purchase: { zh: '需消费', en: 'Purchase required' },
   'check-terms': { zh: '条件待核对', en: 'Terms to confirm' },
 };
