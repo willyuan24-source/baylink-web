@@ -2,7 +2,7 @@
 // phone language label (A4), the pending tab (aria-current unchanged), the BayBay launcher warm-up, the one account tool
 // and the /about#about-method-title landing. CSS facts are read from the stylesheets themselves.
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import test, { afterEach } from 'node:test';
 import React from 'react';
 import { JSDOM } from 'jsdom';
@@ -17,7 +17,7 @@ Object.assign(globalThis, {
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 dom.window.HTMLElement.prototype.scrollIntoView = function () {};
 const { render, fireEvent, cleanup, act, waitFor, within } = await import('@testing-library/react');
-const { MemoryRouter, Routes, Route, Outlet } = await import('react-router-dom');
+const { MemoryRouter, Routes, Route, Outlet, useLocation } = await import('react-router-dom');
 const { SiteChrome, SiteFooter } = await import('../src/components/SiteChrome');
 const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
 const { LanguageSwitcher } = await import('../src/components/LanguageSwitcher');
@@ -26,6 +26,7 @@ const { isBayBayWarm } = await import('../src/app/baybay-preload');
 const { savesKey } = await import('../src/lib/saves');
 const { setLocale } = await import('../src/i18n/locale');
 const { default: AboutPage } = await import('../src/pages/AboutPage');
+const { usePageScroll } = await import('../src/app/usePageScroll');
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
 
 const noop = () => {};
@@ -99,6 +100,11 @@ test('G21: a tapped tab looks current at once (data-pending) while aria-current 
   // A press dragged away (still pressed) lets go.
   fireEvent.pointerLeave(events, { buttons: 1 });
   assert.equal(events.hasAttribute('data-pending'), false);
+  // ctrl / ⌘ / shift / alt opens a new tab or window: this page does not change, so no pending look.
+  for (const modifier of ['ctrlKey', 'metaKey', 'shiftKey', 'altKey'] as const) {
+    fireEvent.pointerDown(events, { button: 0, [modifier]: true });
+    assert.equal(events.hasAttribute('data-pending'), false, modifier);
+  }
   fireEvent.pointerDown(events, { button: 0 });
   view.rerender(<MemoryRouter><SiteMobileNavigation pathname="/events" notificationCount={0} onAsk={noop} /></MemoryRouter>);
   assert.equal(view.getByRole('link', { name: '活动' }).hasAttribute('data-pending'), false);
@@ -114,14 +120,22 @@ test('BB launcher (d): pointing at 问 BayBay starts loading the panel; A6: the 
   const overlay = readFileSync('src/app/OverlayHost.tsx', 'utf8');
   assert.match(overlay, /lazyChunk\(\(\) => import\('\.\.\/components\/BayBayAssistantEntry'\), m => m\.BayBayAssistantEntry\)/);
   assert.match(readFileSync('src/app/baybay-preload.ts', 'utf8'), /import\('\.\.\/components\/BayBayAssistantEntry'\)/, 'the warm-up loads the dialog’s own chunk');
-  // (e) the 正在打开 BayBay… fallback draws F's sheet frame, without a desktop scrim (decision 7).
-  assert.match(overlay, /className=\{`ui-sheet-backdrop site-chunk-sheet\$\{drawer \? ' site-chunk-sheet--drawer' : ''\}`\}/);
-  assert.match(overlay, /<DismissibleChunkFallback drawer label=\{t\('正在打开 BayBay…'/);
+  // (e) the 正在打开 BayBay… fallback draws F's sheet frame at the panel's size, without a desktop scrim (decision 7).
+  const fallbacks = readFileSync('src/components/ChunkFallbacks.tsx', 'utf8');
+  assert.match(fallbacks, /className=\{`ui-sheet-backdrop site-chunk-sheet\$\{drawer \? ' site-chunk-sheet--drawer' : ''\}/);
+  assert.match(overlay, /<SheetChunkFallback drawer title=\{t\('问 BayBay', 'Ask BayBay'\)\} label=\{t\('正在打开 BayBay…'/);
+  assert.match(overlay, /<SheetChunkFallback className="site-chunk-sheet--search" title=\{t\('搜索', 'Search'\)\}/);
+  const css = readFileSync('src/components/site-chrome.css', 'utf8');
+  // The scrim rule must outrank ui.css's .ui-sheet-backdrop (one class, loaded later): two classes.
+  assert.match(css, /@media \(min-width:1024px\) \{\s*\.ui-sheet-backdrop\.site-chunk-sheet--drawer \{ background:transparent; \}/);
+  assert.match(css, /\.ui-sheet-backdrop\.site-chunk-sheet--drawer \.ui-sheet \{ width:440px;/, 'BayBay’s drawer width');
+  assert.match(css, /\.ui-sheet-backdrop\.site-chunk-sheet--drawer \.ui-sheet \{ height:min\(43rem,93dvh\);/, 'BayBay’s phone panel height');
+  assert.match(css, /\.ui-sheet-backdrop\.site-chunk-sheet--search \.ui-sheet \{ height:min\(42rem,85dvh\); \}/, 'the empty search sheet’s height');
 });
 
 test('one account tool: 我的 for a guest (the page on /me, the section on its sub-pages); no separate 登录 in the header', () => {
   for (const [pathname, current] of [['/me', 'page'], ['/my-week', 'true'], ['/me/bookings', 'true'], ['/guides', null]] as const) {
-    const view = render(<MemoryRouter initialEntries={[pathname]}><SiteChrome pathname={pathname} user={null} messagesCount={0} onAsk={noop} onSearch={noop} onLogin={noop} onAccount={noop} onCreate={noop} onLogout={noop}><p>page</p></SiteChrome></MemoryRouter>);
+    const view = render(<MemoryRouter initialEntries={[pathname]}><SiteChrome pathname={pathname} user={null} messagesCount={0} onAsk={noop} onSearch={noop} onAccount={noop} onCreate={noop} onLogout={noop}><p>page</p></SiteChrome></MemoryRouter>);
     const header = within(view.container.querySelector('header')!);
     const mine = header.getByRole('link', { name: '我的' });
     assert.equal(mine.getAttribute('href'), '/me');
@@ -145,17 +159,30 @@ test('the chrome CSS: no blur, no ad-hoc shadows, no transition: all, every :hov
       assert.ok(gated, `${file}: ungated ${rule.selector}`);
     });
   }
+  // N10: no stylesheet reads a --chrome-shadow-* token nobody defines (an undefined var() drops the shadow, and a fallback
+  // brings back an ad-hoc one).
+  const sources = (dir: string): string[] => readdirSync(dir, { withFileTypes: true }).flatMap(entry => entry.isDirectory() ? sources(`${dir}/${entry.name}`) : entry.name.endsWith('.css') ? [`${dir}/${entry.name}`] : []);
+  const all = sources('src').filter(file => !file.startsWith('src/opus-bay')).map(file => readFileSync(file, 'utf8')).join('\n');
+  const defined = new Set([...all.matchAll(/(--chrome-shadow-[\w-]+)\s*:/g)].map(match => match[1]));
+  for (const [, token] of all.matchAll(/var\((--chrome-shadow-[\w-]+)/g)) assert.ok(defined.has(token), `${token} is used but never defined`);
+  assert.doesNotMatch(readFileSync('src/features/posts/community.css', 'utf8'), /chrome-shadow-pop/, 'the post menu uses e2');
   const chrome = readFileSync('src/components/site-chrome.css', 'utf8');
   assert.match(chrome, /html:root \{ --site-mobile-nav-height:calc\(64px \+ env\(safe-area-inset-bottom,0px\)\); \}/);
   assert.match(chrome, /html:root\[data-simple\] \{ --site-mobile-nav-height:calc\(76px \+ env\(safe-area-inset-bottom,0px\)\); \}/);
   assert.match(chrome, /\.site-app \.site-mobile-nav \.site-mobile-item>span \{ font-size:var\(--fs-meta\)!important; \}/);
 });
 
-test('/about#about-method-title: 我们怎么核对 follows the H1 block, is the only anchor, and the page scrolls to it after render', async () => {
+test('/about#about-method-title: 我们怎么核对 follows the H1 block, is the only anchor, and the layout’s scroll lands it', async () => {
   const scrolled: string[] = [];
   dom.window.HTMLElement.prototype.scrollIntoView = function (this: HTMLElement) { scrolled.push(this.id); };
   const app = { openBayBay: noop };
-  const view = render(<MemoryRouter initialEntries={['/about#about-method-title']}><Routes><Route element={<Outlet context={app} />}><Route path="/about" element={<AboutPage />} /></Route></Routes></MemoryRouter>);
+  // The page itself never scrolls, so Back restores the reader's own place: the layout's usePageScroll lands the hash.
+  const alone = render(<MemoryRouter initialEntries={['/about#about-method-title']}><Routes><Route element={<Outlet context={app} />}><Route path="/about" element={<AboutPage />} /></Route></Routes></MemoryRouter>);
+  await act(async () => { await new Promise(resolve => setTimeout(resolve, 20)); });
+  assert.deepEqual(scrolled, [], 'AboutPage has no scroll of its own');
+  alone.unmount();
+  const Layout = () => { usePageScroll(useLocation()); return <Outlet context={app} />; };
+  const view = render(<MemoryRouter initialEntries={['/about#about-method-title']}><Routes><Route element={<Layout />}><Route path="/about" element={<AboutPage />} /></Route></Routes></MemoryRouter>);
   await waitFor(() => assert.deepEqual(scrolled, ['about-method-title']));
   const ids = [...view.container.querySelectorAll('[id]')].map(node => node.id);
   assert.equal(ids.filter(id => id === 'about-method-title').length, 1);

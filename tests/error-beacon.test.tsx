@@ -69,28 +69,37 @@ test('Do Not Track sends nothing', context => {
 
 function Broken(): React.ReactElement { throw new Error('render failed for event fleet-week-2026'); }
 
-test('the error page reports a render beacon and speaks the reader\'s language at 16px with a feedback action', async context => {
+test('the error page (the chunk-error state) reports a render beacon and speaks the reader\'s language: 这一页没打开 · 重试 · 回到首页 · 反馈', async context => {
   const fetch = context.mock.method(globalThis, 'fetch', async () => new Response('{}'));
   context.mock.method(console, 'error', () => {});
   const view = render(<ErrorBoundary><Broken /></ErrorBoundary>);
-  assert.equal(view.getByRole('heading', { level: 1 }).textContent, '页面出了点小问题');
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, '这一页没打开');
   await waitFor(() => assert.equal(beacons(fetch).length, 1));
   const [{ body }] = beacons(fetch);
   assert.equal(body.kind, 'render');
   assert.doesNotMatch(JSON.stringify(body), /fleet/);
-  const reload = view.getByRole('button', { name: '刷新页面' });
-  const tell = view.getByRole('button', { name: '告诉我们' });
-  for (const button of [reload, tell]) assert.equal(button.style.fontSize, '1rem');
-  assert.equal(button(view, '告诉我们').style.minHeight, '3rem');
+  // UI9-NAV content arrangement: 重试 is the one primary (it reloads), 回到首页 a plain link to this language's home (the
+  // boundary sits above the router), 反馈 the quiet third.
+  const retry = button(view, '重试');
+  const home = view.getByRole('link', { name: '回到首页' });
+  const tell = button(view, '反馈');
+  assert.deepEqual([...view.container.querySelectorAll('button, a')].map(node => node.textContent), ['重试', '回到首页', '反馈']);
+  assert.equal(home.getAttribute('href'), '/');
+  for (const control of [retry, home, tell]) { assert.equal(control.style.fontSize, '1rem'); assert.equal(control.style.minHeight, '3rem'); }
+  assert.equal(retry.style.background, 'var(--color-brand)', 'the primary');
+  assert.equal(tell.style.background, 'transparent');
   assert.doesNotMatch(view.container.innerHTML, /#[0-9a-f]{3,8}\b/i, 'colours come from tokens');
   await act(async () => { await setLocale('en', false); });
   view.rerender(<ErrorBoundary><Broken /></ErrorBoundary>);
-  assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Something went wrong on this page');
-  assert.ok(view.getByRole('button', { name: 'Tell us' }));
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'This page did not open');
+  assert.ok(view.getByRole('button', { name: 'Try again' }));
+  assert.equal(view.getByRole('link', { name: 'Back to home' }).getAttribute('href'), '/en/');
+  assert.ok(view.getByRole('button', { name: 'Feedback' }));
   assert.doesNotMatch(view.container.textContent!, /[㐀-鿿]/);
   await act(async () => { await setLocale('zh-Hant', false); });
   view.rerender(<ErrorBoundary><Broken /></ErrorBoundary>);
-  assert.equal(view.getByRole('heading', { level: 1 }).textContent, '頁面出了點小問題');
+  assert.equal(view.getByRole('heading', { level: 1 }).textContent, '這一頁沒打開');
+  assert.equal(view.getByRole('link', { name: '回到首頁' }).getAttribute('href'), '/zh-Hant/');
 });
 
 const button = (view: ReturnType<typeof render>, name: string) => view.getByRole('button', { name }) as HTMLButtonElement;

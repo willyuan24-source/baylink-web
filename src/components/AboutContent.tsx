@@ -5,13 +5,15 @@ import { translateText, useLocale } from '../i18n/locale';
 import { FeedbackLink } from '../features/feedback/ReportErrorLink';
 import { Button } from './ui/Button';
 import { lazyChunk } from '../lib/chunk-recovery';
+import { ChunkBoundary } from './ChunkFallbacks';
 import { PageContainer, PageHeader } from './ui/PageHeader';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { ProvenanceBadge } from './ui/Badges';
 import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from '../lib/image-provenance';
 
 const CONTACT_EMAIL = 'Baylink.us@gmail.com';
-// F's Disclosure folds 图片怎么标 in 简洁显示 only, so it loads with that mode instead of with every /about.
+// F's Disclosure folds 图片怎么标 in 简洁显示 only, so it loads with that mode instead of with every /about. Until it
+// arrives, or if it cannot load, the notes stay open as the prerender drew them (one change, and never a lost page).
 const Disclosure = lazyChunk(() => import('./ui/Disclosure'), m => m.Disclosure);
 
 /**
@@ -106,7 +108,7 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
 
     <section className="about-section" aria-labelledby="about-images-title">
       <h2 id="about-images-title">{t('图片怎么标', 'How images are labelled')}</h2>
-      {simple ? <Suspense fallback={null}><Disclosure className="about-images-more" summary={t('看图片标签的说明', 'See what the image labels mean')}>{imageNotes}</Disclosure></Suspense> : imageNotes}
+      {simple ? <ChunkBoundary fallback={imageNotes}><Suspense fallback={imageNotes}><Disclosure className="about-images-more" summary={t('看图片标签的说明', 'See what the image labels mean')}>{imageNotes}</Disclosure></Suspense></ChunkBoundary> : imageNotes}
     </section>
 
     </div>

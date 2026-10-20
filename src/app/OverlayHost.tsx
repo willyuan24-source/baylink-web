@@ -2,8 +2,8 @@
 // the sign-in / password / report / block / share dialogs, the post, chat and profile overlays. Every dialog loads on first
 // use (its chunk is not in the shell graph every page downloads) and sits behind a boundary: if its chunk cannot load,
 // the dialog closes with a message instead of taking the page down, and the next time it is opened it loads again.
-import { Component, Suspense, useEffect, useState, type ComponentProps, type ReactNode, type RefObject } from 'react';
-import { Loader2, X } from 'lucide-react';
+import { Suspense, useEffect, useState, type ComponentProps, type ReactNode, type RefObject } from 'react';
+import { Loader2 } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import type { NavigateFunction } from 'react-router-dom';
 import { ConfirmHost } from '../components/ui/confirm';
@@ -12,8 +12,8 @@ import { Toast, type ToastAction } from '../components/Toast';
 import { LocaleContentGate } from '../components/LocaleContentGate';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
-import { forgetLostChunks, isChunkLoadFailure, lazyChunk } from '../lib/chunk-recovery';
-import { reportClientError } from '../lib/error-beacon';
+import { lazyChunk } from '../lib/chunk-recovery';
+import { ChunkBoundary, SheetChunkFallback } from '../components/ChunkFallbacks';
 import { api } from '../lib/api';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import type { AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData } from '../lib/types';
@@ -43,42 +43,11 @@ const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : 
 /** A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link). */
 const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>;
 /**
- * "正在打开搜索… / 正在打开 BayBay…" while the dialog's chunk loads (BB launcher item e): drawn in F's Sheet frame (the
- * .ui-sheet classes of ui.css, without importing the Sheet into the shell), so the real sheet replaces it in place
- * instead of jumping in from a centred card. `drawer` drops the desktop scrim, like BayBay's drawer (captain decision 7).
- */
-const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef, drawer }: { label: string; onClose: () => void; restoreFocusRef?: RefObject<HTMLElement>; drawer?: boolean }) => {
-  const locale = useLocale();
-  return <ModalShell onClose={onClose} className={`ui-sheet-backdrop site-chunk-sheet${drawer ? ' site-chunk-sheet--drawer' : ''}`} label={label} restoreFocusRef={restoreFocusRef}>
-    <div className="ui-sheet">
-      <div className="ui-sheet__handle" aria-hidden="true" />
-      <div className="ui-sheet__header">
-        <p className="ui-sheet__title">{label}</p>
-        <button type="button" className="ui-icon-button ui-close" aria-label={copy(locale, '关闭', 'Close')} onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></button>
-      </div>
-      <div className="ui-sheet__body site-chunk-sheet__body"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /><p role="status">{label}</p></div>
-    </div>
-  </ModalShell>;
-};
-
-/**
  * Contains a dialog whose chunk failed twice (offline, a stale deploy) or that crashed: close it and say so, keep the
- * page. Reported like the root boundary (`chunk` for code that did not load, anything else `render`; the beacon also
- * files a crash whose message is a chunk failure as `chunk`). The lost chunk is forgotten here, so opening the dialog
- * again loads it again (React.lazy alone keeps the failure until the page reloads). The host unmounts the boundary (or
- * changes its key) to try again; a failed boundary renders nothing.
+ * page (ChunkBoundary, shared with the header's lazy pieces). The host unmounts the boundary (or changes its key) to try
+ * again; a failed boundary renders nothing.
  */
-export class OverlayBoundary extends Component<{ onFail: (lostChunk: boolean) => void; children: ReactNode }, { failed: boolean }> {
-  state = { failed: false };
-  static getDerivedStateFromError() { return { failed: true }; }
-  componentDidCatch(error: Error) {
-    const lostChunk = isChunkLoadFailure(error);
-    reportClientError(lostChunk ? 'chunk' : 'render', error);
-    forgetLostChunks();
-    this.props.onFail(lostChunk);
-  }
-  render() { return this.state.failed ? null : this.props.children; }
-}
+export const OverlayBoundary = ChunkBoundary;
 
 export type OverlayHostProps = {
   locationKey: string;
@@ -144,7 +113,7 @@ export function OverlayHost(props: OverlayHostProps) {
     {props.toast && <Toast key={props.toast.id} message={props.toast.message} type={props.toast.type} action={props.toast.action} onClose={props.closeToast} />}
     {props.ad.item && lazyDialog(props.ad.close, <AdDetailModal ad={props.ad.item} onClose={props.ad.close} isAdmin={props.ad.isAdmin} onDelete={props.ad.onDelete} />)}
     {searchShown && lazyDialog(search.close, <LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore open={search.open} initialQuery={search.query} restoreFocusRef={search.openerRef} onClose={search.close} onNavigate={props.navigate} onSearch={search.onSearch} onAsk={search.onAsk} /></LocaleContentGate>,
-      <DismissibleChunkFallback label={t('正在打开搜索…', 'Opening search…')} onClose={search.close} restoreFocusRef={search.openerRef} />)}
+      <SheetChunkFallback className="site-chunk-sheet--search" title={t('搜索', 'Search')} label={t('正在打开搜索…', 'Opening search…')} onClose={search.close} restoreFocusRef={search.openerRef} />)}
 
     {(baybay.open || (baybay.loaded && !baybayAttempt.failed)) && lazyDialog(() => baybay.onOpenChange(false), <LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
       key={baybay.scope}
@@ -165,7 +134,7 @@ export function OverlayHost(props: OverlayHostProps) {
       blockedUserIds={blockedUserIds}
       onNavigate={props.navigate}
       onCreatePostClick={baybay.onCreatePost}
-    /></LocaleContentGate>, baybay.open ? <DismissibleChunkFallback drawer label={t('正在打开 BayBay…', 'Opening BayBay…')} onClose={() => baybay.onOpenChange(false)} restoreFocusRef={baybay.openerRef} /> : null,
+    /></LocaleContentGate>, baybay.open ? <SheetChunkFallback drawer title={t('问 BayBay', 'Ask BayBay')} label={t('正在打开 BayBay…', 'Opening BayBay…')} onClose={() => baybay.onOpenChange(false)} restoreFocusRef={baybay.openerRef} /> : null,
     { key: baybayAttempt.key, onFail: baybayAttempt.fail })}
 
     {props.login.open && lazyDialog(props.login.close, <LoginModal onClose={props.login.close} onLogin={props.login.onLogin} showToast={showToast} onForgotPassword={props.login.onForgotPassword} />)}

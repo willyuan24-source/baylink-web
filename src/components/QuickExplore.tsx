@@ -195,7 +195,7 @@ function QuickExploreDialog({ open = true, onClose, onSearch, onNavigate, onAsk,
             {notices.map(notice => <p className="quick-empty" key={notice}>{notice}</p>)}
             {!noMatch ? <p className="quick-empty" role="status">{found ? copy('以下是站内匹配与相关攻略；参考条目的条件仍需核实。', 'Local matches and related guides follow. Conditions on reference items still need checking.') : copy('没有已核实的匹配结果。可调整条件，或让 BayBay 继续安排；不相关活动不会补入结果。', 'No verified matches. Adjust the conditions or continue with BayBay; unrelated events are not used as substitutes.')}</p>
               : <div className="quick-no-match"><EmptyState headingLevel="h3" icon={Search} title={copy(`没找到「${term}」`, `Nothing found for “${term}”`)} body={copy('没有已核实的匹配结果。可调整条件，或让 BayBay 继续安排；不相关活动不会补入结果。', 'No verified matches. Adjust the conditions or continue with BayBay; unrelated events are not used as substitutes.')}
-                actions={<Button variant="primary" onClick={() => run(() => onNavigate('/events'))}>{copy('看本周末全部活动', 'See all of this weekend')}</Button>} /></div>}
+                actions={<Button variant="primary" onClick={() => run(() => onNavigate('/events'))}>{copy('看本周末全部活动', 'See all events this weekend')}</Button>} /></div>}
           </div>}
           {/* No match keeps the list: under the EmptyState's recovery, 继续探索 offers the 邻里 search and BayBay (second). */}
           <div id="quick-explore-results" role="listbox" aria-label={copy('搜索结果', 'Search results')}>

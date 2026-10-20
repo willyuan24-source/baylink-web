@@ -11,6 +11,8 @@ html:root { --site-mobile-nav-height:calc(64px + env(safe-area-inset-bottom,0px)
 html:root[data-simple] { --site-mobile-nav-height:calc(76px + env(safe-area-inset-bottom,0px)); }
 .site-app {
   --chrome-header-height:64px; --tool-size:44px;
+  /* Alias only for local-discovery-detail.css (DETAIL drops it; UI9-INT deletes this line): the chrome itself uses e1 / e2. */
+  --chrome-shadow-bar:var(--e1);
   display:block; max-width:none; min-height:100dvh; background:var(--color-bg); color:var(--color-ink);
 }
 html[data-simple] .site-app { --tool-size:48px; }
@@ -162,12 +164,27 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
 @media(min-width:1024px) { .site-boot-retry { bottom:24px; } }
 @media(prefers-reduced-motion:reduce) { .site-toast-box { animation:none; } }
 
-/* 正在打开搜索… / 正在打开 BayBay… (OverlayHost): F's sheet frame from ui.css with a spinner in the body; BayBay's keeps
-   the page in view on desktop (no scrim, captain decision 7). */
-.site-chunk-sheet__body { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3); min-height:40dvh; color:var(--color-ink-2); font-size:var(--fs-body); }
+/* 正在打开搜索… / 正在打开 BayBay… / 正在打开字号… (ChunkFallbacks.tsx): F's sheet frame from ui.css with a spinner, at the
+   size of the sheet that replaces it, so it arrives in place. Search: the empty search sheet's height on a phone (about
+   42rem, never over ui.css's 85dvh). BayBay: its panel's frame (baybay-conversation.css): the deep-green header (about 80px
+   on a phone, 112 on a desktop), the warm body, its outlined close, about 43rem tall on a phone (93dvh at most), and on a desktop the 440px drawer with the page still in view, no scrim (captain
+   decision 7; the selector outranks ui.css's .ui-sheet-backdrop, which loads after this file). */
+.site-chunk-sheet__body { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3); min-height:40dvh; color:var(--color-ink-2); font-size:var(--fs-body); }
 .site-chunk-spinner { width:32px; height:32px; color:var(--color-brand); animation:site-chunk-spin 1s linear infinite; }
 @keyframes site-chunk-spin { to { rotate:360deg; } }
-@media (min-width:1024px) { .site-chunk-sheet--drawer { background:transparent; } }
+.ui-sheet-backdrop.site-chunk-sheet--search .ui-sheet { height:min(42rem,85dvh); }
+.ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet { overflow:hidden; background:var(--color-surface-2); }
+.ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet__handle { display:none; }
+.ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet__header { align-items:flex-start; min-height:5rem; padding:var(--sp-4) var(--sp-4) var(--sp-4) var(--sp-5); background:var(--color-brand-deep); }
+.ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet__title { color:var(--color-brand-tint); }
+.ui-sheet-backdrop.site-chunk-sheet--drawer .ui-close { border:1px solid rgb(var(--color-surface-rgb) / .24); background:transparent; color:var(--color-on-brand-muted); }
+@media (max-width:1023px) { .ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet { height:min(43rem,93dvh); max-height:93dvh; } }
+@media (min-width:1024px) {
+  .ui-sheet-backdrop.site-chunk-sheet--drawer { background:transparent; }
+  .ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet { width:440px; border-left:1px solid var(--color-line-strong); }
+  .ui-sheet-backdrop.site-chunk-sheet--drawer .ui-sheet__header { min-height:7rem; padding-block:var(--sp-5); }
+  .ui-sheet-backdrop.site-chunk-sheet--search .ui-sheet { height:auto; }
+}
 
 /* The tab bar is for phones and tablets only. */
 .site-app .site-mobile-nav { display:none; }
@@ -217,7 +234,8 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
 /* 问 BayBay never wraps: the bar is a size container in the label's own em (--fs-meta), so the swap to "BayBay" follows
    大, 特大 and 简洁显示 as well as the screen width. Five equal tabs share the bar's content box less 4 x 2px gaps and 2 x 4px
    padding, so a tab is (width - 16px) / 5. The full label shows only while a tab is wider than it with room for wider
-   phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for Ask BayBay): 25.4em and 26.9em. */
+   phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for Ask BayBay; iOS SF Pro is wider): 25.4em and 27.5em,
+   so a 390px iPhone shows "BayBay" in English. */
 @media(max-width:359px) {
   .site-app .site-mobile-nav .site-mobile-nav-items { gap:0; padding-inline:2px; }
 }
@@ -225,7 +243,7 @@ html[data-simple] .site-app .site-footer-archive { display:none; }
   .site-mobile-ask-label { display:none; }
   .site-mobile-ask-short { display:inline; }
 }
-@container site-mobile-bar (max-width:26.9em) {
+@container site-mobile-bar (max-width:27.5em) {
   html:lang(en) .site-mobile-ask-label { display:none; }
   html:lang(en) .site-mobile-ask-short { display:inline; }
 }

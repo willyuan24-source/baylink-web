@@ -24,7 +24,7 @@ import { useContactIntent } from './useContactIntent';
 import { useConversationOpener } from './useConversationOpener';
 import { withConversationContext } from '../lib/conversation-context';
 import { useCloseOverlay } from './overlay-close';
-import { getLocale } from '../i18n/locale';
+import { getLocale, translateText } from '../i18n/locale';
 import { useSession } from './useSession';
 import { useCommunityFeed } from './useCommunityFeed';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
@@ -648,6 +648,8 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     share={{ post: sharingPost, close: () => setSharingPost(null) }}
   />;
 
+  // A header control's chunk (the Aa sheet) could not load: the same message as OverlayHost's dialogs.
+  const t = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh);
   return (
     <SiteChrome
       pathname={location.pathname}
@@ -655,10 +657,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       messagesCount={messagesBadgeCount}
       onAsk={() => openBayBay()}
       onSearch={() => openSearch()}
-      onLogin={() => setShowLogin(true)}
       onAccount={() => user ? navigate('/me') : setShowLogin(true)}
       onCreate={() => openCreate()}
       onLogout={handleLogout}
+      onUnavailable={() => showToast(t('暂时打不开，请检查网络后重试。', 'This could not open. Check your connection and try again.'), 'error')}
       realLocation={realLocation}
       overlays={overlays}
     >

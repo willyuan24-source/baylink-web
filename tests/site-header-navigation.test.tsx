@@ -165,15 +165,16 @@ test('the 问 BayBay label never wraps: 大, 特大, 简洁显示 and English sw
   const zh = em(/@container site-mobile-bar \(max-width:([\d.]+)em\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
   const en = em(/@container site-mobile-bar \(max-width:([\d.]+)em\) \{ html:lang\(en\) \.site-mobile-ask-label \{ display:none; \} html:lang\(en\) \.site-mobile-ask-short \{ display:inline; \} \}/);
   // One tab is (content width - 4 x 2px gaps - 2 x 4px padding) / 5. Measured one-line widths (Segoe UI / YaHei): 问 BayBay
-  // 4.41em, Ask BayBay 4.97em; the Chinese threshold leaves a tab ~10% wider than its label, the English one ~3% (the
-  // English label otherwise never fit a 390px phone at 14px).
+  // 4.41em, Ask BayBay 4.97em; the Chinese threshold leaves a tab ~10% wider than its label, the English one ~5%, room for
+  // iOS's SF Pro, which sets Ask BayBay wider than Segoe UI (UI9-NAV review).
   const tabAt = (threshold: number, fontPx: number) => (threshold * fontPx - 16) / 5 / fontPx;
   for (const fontPx of [14, 15.75, 17.5, 16, 18, 20]) {
     assert.ok(tabAt(zh, fontPx) >= 4.41 * 1.1 - 1e-3, `问 BayBay at ${fontPx}px`);
-    assert.ok(tabAt(en, fontPx) >= 4.97 * 1.03, `Ask BayBay at ${fontPx}px`);
+    assert.ok(tabAt(en, fontPx) >= 4.97 * 1.05, `Ask BayBay at ${fontPx}px`);
   }
-  // Standard size (14px labels) at 390 px keeps the full name in every language (bar content width 382px).
-  assert.ok(382 > zh * 14 && 382 > en * 14);
+  // Standard size (14px labels) at 390 px (bar content width 382px): the full 问 BayBay in Chinese; English shows BayBay
+  // there, since a full Ask BayBay would touch its neighbours on an iPhone.
+  assert.ok(382 > zh * 14 && 382 <= en * 14);
   // Without container queries (Safari 15, Firefox < 110) every phone gets the short label.
   assert.match(css, /@supports not \(container-type:inline-size\) \{ @media\(max-width:599px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \} \}/);
 });

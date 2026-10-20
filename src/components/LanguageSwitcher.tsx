@@ -6,7 +6,8 @@ import { navigateSiteLanguage } from './LanguageRouter';
 import { useDisclosure } from './useDisclosure';
 
 // Each choice is named in its own script (the reader may not read the current one); `en` is the name an English page reads.
-// The phone trigger (A4) reads `short / other`: the current script and the way out of it, 简 / EN, 繁 / EN, EN / 中文.
+// The phone trigger (A4) reads `short / other`: the current script and the way out of it, 简 / EN, 繁 / EN, EN / 中文. The
+// accessible name ends with the same pair, so a speech user can say what they see (label in name).
 const LANGUAGES: ReadonlyArray<{ id: Locale; short: string; label: string; en: string; other: readonly [text: string, lang: string] }> = [
   { id: 'zh-Hans', short: '简', label: '简体中文', en: 'Simplified Chinese', other: ['EN', 'en'] },
   { id: 'zh-Hant', short: '繁', label: '繁體中文', en: 'Traditional Chinese', other: ['EN', 'en'] },
@@ -44,7 +45,7 @@ export function LanguageSwitcher({ realLocation }: { realLocation?: Location } =
     finally { setBusy(false); }
   };
   return <details className="site-language" data-lang-switch="" translate="no" ref={details}>
-    <summary ref={summary} className="site-language-trigger site-tool" aria-label={`${TITLE}: ${locale === 'en' ? current.en : current.label}`}>
+    <summary ref={summary} className="site-language-trigger site-tool" aria-label={`${TITLE}: ${locale === 'en' ? current.en : current.label} (${current.short} / ${current.other[0]})`}>
       <Globe2 size={20} aria-hidden="true" strokeWidth={1.75} />
       <span className="site-language-short" lang={current.id}>{current.short}</span>
       <span className="site-language-pair" aria-hidden="true"><span lang={current.id}>{current.short}</span> / <span lang={current.other[1]}>{current.other[0]}</span></span>
