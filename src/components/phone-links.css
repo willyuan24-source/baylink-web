@@ -3,7 +3,7 @@
 .phone-chip {
   position:relative; display:inline-flex; align-items:center; gap:.25em; padding:0 .5em; border-radius:var(--r-pill);
   background:var(--color-brand-tint); color:var(--color-brand); font-weight:400; font-variant-numeric:tabular-nums;
-  line-height:1.6; white-space:nowrap; text-decoration:none; vertical-align:baseline;
+  line-height:var(--lh-ui); white-space:nowrap; text-decoration:none; vertical-align:baseline;
 }
 .phone-chip::after { content:""; position:absolute; left:-.25rem; right:-.25rem; top:50%; height:3rem; transform:translateY(-50%); }
 /* That box reaches ~9px past the prose line; a source-link title right above a chip keeps its own tap area. */
@@ -28,7 +28,7 @@
 }
 .phone-directory li { display:grid; align-content:start; gap:.5rem; min-width:0; margin:0; padding:.75rem; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); }
 .phone-directory li::before { content:none; }
-.phone-directory-label { font-size:var(--text-fact); line-height:1.5; color:var(--color-ink-2); overflow-wrap:anywhere; }
+.phone-directory-label { font-size:var(--text-fact); line-height:var(--lh-snug); color:var(--color-ink-2); overflow-wrap:anywhere; }
 @media (min-width:768px) {
   .phone-directory { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }

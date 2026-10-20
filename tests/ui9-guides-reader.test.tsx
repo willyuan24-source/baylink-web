@@ -136,7 +136,8 @@ test('3D postcards keep their own label: no credit line on a scene3d picture, Gu
 
 const css = (file: string) => postcss.parse(readFileSync(file, 'utf8'));
 const LANE_SHEETS = ['src/features/guides/guide-article.css', 'src/features/guides/guide-library.css'];
-/** Every sheet this lane touched (DECISIONS #13: no font-size literal in them; every hover behind a fine pointer, N23). */
+/** Every sheet this lane touched (DECISIONS #13: no font-size literal in them; line heights on --lh-*; every hover behind a
+ *  fine pointer, N23). */
 const TOUCHED_SHEETS = [...LANE_SHEETS, 'src/components/guides-ui.css', 'src/components/monthly-deals.css', 'src/components/reader-library.css', 'src/components/guide-visuals.css', 'src/components/phone-links.css'];
 const inMedia = (rule: Rule, pattern: RegExp) => { for (let node = rule.parent; node && node.type !== 'root'; node = node.parent) if (node.type === 'atrule' && pattern.test((node as AtRule).params)) return true; return false; };
 
@@ -156,6 +157,7 @@ test('the lane\'s sheets are token-only: sizes, line heights, radii and shadows;
       const ratio = file.endsWith('phone-links.css') && /^\.\d+em$/.test(declaration.value);
       if (!ratio) assert.match(declaration.value, /^(?:var\(--(?:fs|text)-[\w-]+\)|inherit|1em)$/, `${file} ${(declaration.parent as Rule).selector}`);
     });
+    css(file).walkDecls('line-height', declaration => assert.match(declaration.value, /^(?:var\(--lh-[\w-]+\)|1|normal|inherit)$/, `${file} ${(declaration.parent as Rule).selector}`));
     css(file).walkRules(rule => {
       if (/:hover/.test(rule.selector)) assert.ok(inMedia(rule, /\(hover:hover\) and \(pointer:fine\)/), `${file}: ${rule.selector}`);
     });
