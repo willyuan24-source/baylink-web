@@ -12,8 +12,9 @@ import { HeroPicks } from '../features/home/HeroPicks';
 import { MoodCircles } from '../features/home/MoodCircles';
 import { WeekendFeed } from '../features/home/WeekendFeed';
 import { BayBayDemoCard } from '../features/home/BayBayDemoCard';
-import { GuideRail as GuideRailNow } from '../features/home/GuideRail';
-import { OfferTickets as OfferTicketsNow } from '../features/home/OfferTickets';
+import { GuideRailView as GuideRailNow } from '../features/home/GuideRailView';
+import { OfferTicketsView as OfferTicketsNow } from '../features/home/OfferTicketsView';
+import { TOPIC_LABELS } from '../features/home/home-model';
 import { ShareStrip } from '../features/home/ShareStrip';
 import { ElderCalls } from '../features/home/ElderCalls';
 import { Home3DTile } from '../features/home/Home3DTile';
@@ -26,12 +27,14 @@ import { chunkLoader } from '../lib/chunk-recovery';
 // boundary keeps the prerendered page (boot-main.ts) on screen until they are in, so the page commits once, box for box, and
 // nothing below the fold reserves or shifts. Node (the prerender and the tests) and the dev server render them as they are
 // (`import.meta.env?.PROD`, as cover-defer does), so the prerendered page carries both sections. A load that still fails
-// after chunkLoader's retry leaves the section out rather than the page.
+// after chunkLoader's retry leaves the section out rather than the page. The views take the home's intents, topic names
+// and ticket count as props and import nothing from the home's own modules, so the home's chunk exports nothing to them and
+// keeps its manifest entry (src/pages/HomePage.tsx, which scripts/verify-release.mjs reads).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- React.lazy's own constraint
 const afterPage = <C extends ComponentType<any>>(load: () => Promise<C>) =>
   lazy(() => load().then(component => ({ default: component }), () => ({ default: (() => null) as unknown as C })));
-const GuideRail = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/GuideRail'), module => module.GuideRail)) : GuideRailNow;
-const OfferTickets = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/OfferTickets'), module => module.OfferTickets)) : OfferTicketsNow;
+const GuideRail = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/GuideRailView'), module => module.GuideRailView)) : GuideRailNow;
+const OfferTickets = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/OfferTicketsView'), module => module.OfferTicketsView)) : OfferTicketsNow;
 
 const INTENT_KEY = 'baylink.home-intent.v1';
 const isIntent = (value: string | null): value is HomeIntentId => HOME_INTENTS.some(intent => intent.id === value);
@@ -86,6 +89,8 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
   // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is
   // an earlier weekend's, so saving it would send the family the wrong three until the next build.
   const cardHref = getWeeklyCardDays().includes(today) ? getWeeklyCardHref(today) : null;
+  // The tickets shown (three after a wide one, else four): the rail draws them and the credits line credits only these.
+  const offerCount = offers.length ? homeOfferCount(offers, covers.offers, today) : 0;
 
   return <section className="home-discovery" aria-label={t('湾区去哪、怎么办', 'Where to go and how to get it done in the Bay')}>
     <div className="home-top">
@@ -95,14 +100,14 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       {cardHref && <ShareStrip count={weekend.picks.length} cardHref={cardHref} />}
     </div>
     <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} today={today} total={weekend.total} />
-    <OfferTickets offers={offers} covers={covers.offers} today={today} />
+    {offers.length > 0 && <OfferTickets offers={offers} covers={covers.offers} today={today} count={offerCount} />}
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />
-    <GuideRail intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
+    <GuideRail intents={HOME_INTENTS} topicLabels={TOPIC_LABELS} intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
     <div className="home-end">
       <ElderCalls calls={ELDER_CALLS} />
       <Home3DTile />
     </div>
-    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers.slice(0, homeOfferCount(offers, covers.offers, today))]}>
+    <HomeImageCredits covers={[...covers.picks, ...covers.feed, ...covers.guides, ...covers.offers.slice(0, offerCount)]}>
       {COMMUNITY_VISIBLE && <button type="button" className="home-section-head__more home-community" data-simple="hide" onClick={onBrowseCommunity}>{t('邻里信息（测试中）· 去看看', 'Neighborhood board (beta) · Take a look')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></button>}
     </HomeImageCredits>
   </section>;

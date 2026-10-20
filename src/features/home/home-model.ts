@@ -30,14 +30,6 @@ export function weekendRange(start: string, end: string, english = false): strin
 }
 
 /**
- * A guide title's head before its first colon (≥4 characters), from the already-translated title — the same rule as the
- * guide pages' splitGuideTitle (features/guides/guide-facts.ts, which loads the guide catalog, so it is not imported here).
- */
-export function guideTitleHead(title: string): string {
-  return /^(.{4,}?)\s*[：:｜|]\s*.+$/su.exec(title.trim())?.[1] ?? title.trim();
-}
-
-/**
  * Guide topic names (D22) for the intent rail. The same words as src/data/guide-topics.ts GUIDE_TOPICS (a test keeps them
  * equal); that module also carries every guide's slug, which the home does not load.
  */

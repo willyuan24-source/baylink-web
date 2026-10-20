@@ -118,7 +118,12 @@ test('free days and deals and the guide intents load after the page in productio
   // as they are, so the prerendered home and the tests see the whole page.
   const source = fs.readFileSync('src/components/HomeDiscovery.tsx', 'utf8');
   for (const name of ['GuideRail', 'OfferTickets']) {
-    assert.ok(source.includes(`const ${name} = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/${name}'), module => module.${name})) : ${name}Now;`), `${name} loads after the page`);
+    assert.ok(source.includes(`const ${name} = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/${name}View'), module => module.${name}View)) : ${name}Now;`), `${name} loads after the page`);
+    // The view imports nothing from the home's own modules: the home's chunk then exports nothing to it and keeps its
+    // manifest entry, src/pages/HomePage.tsx (verify-release).
+    const view = fs.readFileSync(`src/features/home/${name}View.tsx`, 'utf8');
+    const imports = [...view.matchAll(/^import (?!type )[^;]* from '([^']+)';$/gm)].map(match => match[1]);
+    for (const own of ['home-pathways', 'home-model', 'home-offers', 'home-catalog', 'home-weekend']) assert.ok(!imports.some(path => path.endsWith(own)), `${name}View must not import ${own}`);
   }
   assert.doesNotMatch(source, /<Suspense\b/, 'no boundary of their own: the page commits once');
   const doc = home();
