@@ -28,7 +28,7 @@ html[data-simple] .site-app { --tool-size:48px; }
 /* The 1px line is part of the header's height (56 / 64 in all). */
 .site-app .site-topbar-inner { display:flex; align-items:center; gap:var(--sp-5); width:100%; max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); height:calc(var(--chrome-header-height) - 1px); margin-inline:auto; padding:0 var(--page-gutter); }
 .site-app .site-header-navigation { display:flex; flex:1; align-items:stretch; gap:var(--sp-6); min-width:0; height:100%; }
-.site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:44px; }
+.site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:var(--tool-size); }
 /* The BAYLINK lockup (G1) is a fixed size: it never grows with Aa. */
 .site-app .site-header-brand img { display:block; width:140px; height:auto; }
 .site-app .site-otter { display:block; flex:none; }
