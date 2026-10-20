@@ -17,7 +17,7 @@ import { EventFeedCard, EventRowCard, PHONE_COVER_CAP } from './EventCards';
 import { ChunkBoundary, ChunkError } from './ChunkBoundary';
 import { loadWhenIdle, parts, retryableLazy, useOnDemand } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
-import { canLead } from './weekend-lead';
+import { canLead, leadImageKey } from './weekend-lead';
 import { AddToDayPlan } from '../../components/AddToDayPlan';
 
 const calendarMap = retryableLazy(() => import('./CalendarMap'));
@@ -84,7 +84,8 @@ export default function CalendarView({ today }: { today: string }) {
   const shownCount = pageSize * (pages.scope === `${scope}:${city}` ? pages.count : 1);
   const shownEvents = ordered.slice(0, shownCount + 1);
   const more = Math.min(pageSize, ordered.length - shownEvents.length);
-  const covers = resolveCovers(shownEvents.map(event => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey })), { ...coverContext(today), page: createCoverPage() });
+  // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
+  const covers = resolveCovers(shownEvents.map((event, index) => ({ kind: 'event' as const, id: event.id, imageKey: index ? event.imageKey : leadImageKey(event.imageKey) })), { ...coverContext(today), page: createCoverPage() });
   // The nearest days with events after an empty one can be past the route's own days: they read the whole catalog.
   const after = useIndexEvents(date > today ? date : today, null, !!events && !dayEvents.length);
   const counts = new Map<string, number>();

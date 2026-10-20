@@ -26,7 +26,7 @@ import type { IndexEvent } from './events-index-types';
 import { EventFeedCard, EventLeadCard, EventRowCard } from './EventCards';
 import type { StripProps, StripState } from './ShareLandingStrip';
 import { ImageCredits } from './ImageCredits';
-import { arrangePicks, homeLeadFor } from './weekend-lead';
+import { arrangePicks, homeLeadFor, leadImageKey } from './weekend-lead';
 import { useViewHold } from './view-hold';
 
 /** Cards per page: 12; in 简洁显示 6 and in 家人版 (简洁 + 特大) 4 (content arrangement §6). */
@@ -179,7 +179,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const context = { ...coverContext(today), page: createCoverPage() };
   const covers = {
     strip: card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [],
-    lead: arranged.lead ? resolveCovers([eventItem(arranged.lead.event)], context) : [],
+    // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
+    lead: arranged.lead ? resolveCovers([{ ...eventItem(arranged.lead.event), imageKey: leadImageKey(arranged.lead.event.imageKey) }], context) : [],
     rows: resolveCovers(rows.map(eventItem), context),
     feed: resolveCovers(visible.map(eventItem), context),
   };

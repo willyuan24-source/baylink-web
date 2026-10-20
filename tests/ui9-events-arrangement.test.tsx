@@ -19,7 +19,7 @@ const { MemoryRouter } = await import('react-router-dom');
 const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const model = await import('../src/features/events/events-model');
-const { arrangePicks, homeLeadFor, canLead, CLOSE_UP_FACE_IMAGES } = await import('../src/features/events/weekend-lead');
+const { arrangePicks, homeLeadFor, canLead, CLOSE_UP_FACE_IMAGES, leadImageKey } = await import('../src/features/events/weekend-lead');
 const { dayWhenLine } = await import('../src/features/events/event-lines');
 const { ImageCredits } = await import('../src/features/events/ImageCredits');
 const { FeedGrid } = await import('../src/components/ui/FeedGrid');
@@ -333,6 +333,30 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
   cleanup();
   const todayEnd = render(<MemoryRouter initialEntries={['/calendar']}><CalendarPage today={today} /></MemoryRouter>).container.querySelector('.ev-calendar__end');
   if (todayEnd) assert.ok(within(todayEnd as HTMLElement).getByRole('link', { name: `明天 ${md(addCalendarDays(today, 1))}` }));
+});
+
+test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferry Plaza vendor led 10/20, 10/22, 10/27, 10/29)', () => {
+  assert.ok(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'));
+  const byId = new Map(model.INDEX_EVENTS.map(event => [event.id, event]));
+  let faceDays = 0;
+  for (let offset = 0; offset < 7; offset++) {
+    const day = addCalendarDays(today, offset);
+    if (model.INDEX_EVENTS.some(event => CLOSE_UP_FACE_IMAGES.has(event.imageKey) && nextOccurrence(event, day) === day)) faceDays++;
+    const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
+    const card = view.container.querySelector('.ev-calendar__lead');
+    const href = card?.querySelector('a.ui-card-link')?.getAttribute('href');
+    const lead = href && byId.get(href.replace(/^\/events\/|\?.*$/g, ''));
+    // The day's lead is an event whose picture can lead (Ferry Plaza never, on 10/20 or after), or, when the day has none,
+    // the first one in its type cover: never a face photo.
+    const canLeadThatDay = model.INDEX_EVENTS.some(event => nextOccurrence(event, day) === day && canLead(event, today));
+    if (lead && canLeadThatDay) assert.ok(!CLOSE_UP_FACE_IMAGES.has(lead.imageKey), `${day}: ${lead.id} leads with a close-up face photo`);
+    if (lead && CLOSE_UP_FACE_IMAGES.has(lead.imageKey)) assert.equal(card!.querySelector('img'), null, `${day}: ${lead.id} leads with its face photo`);
+    cleanup();
+  }
+  // Ferry Plaza runs Tuesday, Thursday and Saturday through the autumn, so the week from the gate day holds face days.
+  if (today <= '2026-10-29') assert.ok(faceDays > 0, 'the week tested has a day with a face photo on it');
+  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), undefined, 'a face photo leads as the type cover');
+  assert.equal(leadImageKey('official-danville-scarecrow-stroll-2026'), 'official-danville-scarecrow-stroll-2026');
 });
 
 test('events.css and cards.css: hover gated, no font-size literals, spacing on the --sp-* steps, no clamped card title', () => {

@@ -1,9 +1,12 @@
 import { EVENTS_INDEX, hasRealCover, type WeekendPick } from './events-model';
 import type { IndexEvent } from './events-index-types';
-import { CLOSE_UP_FACE_IMAGES } from '../../lib/close-up-faces';
+import { CLOSE_UP_FACE_IMAGES, leadImageKey } from '../../lib/close-up-faces';
 
-/** Photos that never lead (DECISIONS 15): one list for /events, /calendar and the home lead (lib/close-up-faces.ts). */
-export { CLOSE_UP_FACE_IMAGES };
+/**
+ * Photos that never lead (DECISIONS 15): one list for /events, /calendar and the home lead (lib/close-up-faces.ts). A lead
+ * that has no other candidate keeps its slot in its type cover (`leadImageKey`).
+ */
+export { CLOSE_UP_FACE_IMAGES, leadImageKey };
 
 /** Whether an event's own picture can lead a page: a real photo or poster, not a close-up of faces. */
 export const canLead = (event: Pick<IndexEvent, 'id' | 'imageKey'>, today: string) =>
