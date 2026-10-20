@@ -64,10 +64,11 @@
 .tc-bar>b { position:absolute; top:0; bottom:0; left:var(--tb-from); width:var(--tb-span); min-width:var(--sp-1); border-radius:var(--r-sm); background:var(--tc-deep); }
 .tc-bar__ticks { display:flex; justify-content:space-between; margin-top:calc(-1 * var(--sp-1)); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 
-/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right. */
+/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right. The value breaks between
+   words, hyphenated in English ("Pur-chase re-quired"), and inside a word only when the word alone cannot fit. */
 .tc-ticket { position:relative; display:flex; align-items:stretch; margin-block:auto; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); }
 .tc-ticket__main { display:flex; flex:1; flex-direction:column; justify-content:center; gap:var(--sp-1); min-width:0; padding:var(--sp-3); }
-.tc-ticket__value { color:var(--tc-deep); font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; overflow-wrap:anywhere; }
+.tc-ticket__value { color:var(--tc-deep); font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; overflow-wrap:break-word; hyphens:auto; }
 .tc-ticket__cond { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .tc-ticket__stub { position:relative; display:flex; flex:none; flex-direction:column; justify-content:center; align-items:center; padding:var(--sp-2) var(--sp-3); border-left:2px dashed var(--color-line-strong); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); text-align:center; }
 .tc-ticket__day { color:var(--color-ink); font-size:var(--fs-card-lg); line-height:var(--lh-tight); }
