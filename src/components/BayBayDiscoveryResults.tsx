@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, BookOpen, Bookmark, Check, ChevronDown, ChevronRight, Globe2, MapPin } from 'lucide-react';
+import { BookOpen, Check, ChevronRight, Heart, MapPin } from 'lucide-react';
+import { Button } from './ui/Button';
+import { Disclosure } from './ui/Disclosure';
 import { useLocale, translateText } from '../i18n/locale';
 import { bayBayCatalogResult, bayBayCatalogWebReferences, bayBayGuideSources, bayBayPlanPath, bayBayReferenceGuides, bayBayWebResult, currentBayBayGuide, type GuideChatResponse } from '../lib/baybay-conversation';
 import { GUEST_WEB_CANDIDATES_KEY, loadGuestWebCandidates, plannerWebMapSearchUrl, plannerWebAnswerParts, plannerWebCheckedDate, validPlannerWebDate, saveAccountWebCandidate, type PlannerWebResult, type SavedWebCandidate } from '../lib/planner-web-search';
@@ -100,10 +102,13 @@ export function BayBaySources({ response, guest = false, currentPath, onNavigate
   const lists = !!assistant || !!catalog || supplements.length > 0 || !!web?.sources.length || guides.length > 0;
   if (!line && !notes.length && !lists) return null;
   const guideCount = guides.length ? t(`相关攻略 ${guides.length} 篇`, `${guides.length} related ${guides.length === 1 ? 'guide' : 'guides'}`) : '';
+  // "来源 · n 条" (content arrangement 10-19): the count of listed sources; how they were found opens with the list.
+  const count = (assistant?.sources.length || 0) + (web?.sources.length || 0) + (catalog?.sources.length || 0) + supplements.length;
+  const summary = [t('来源', 'Sources'), count ? t(`${count} 条`, `${count}`) : '', guideCount].filter(Boolean).join(' · ');
   return <section className="bb-sources" aria-label={t('来源', 'Sources')} translate="no">
     {notes.map(note => <p key={note.text} className="bb-sources__note" role={note.status ? 'status' : undefined}>{note.text}</p>)}
-    {lists ? <details className="bb-sources__details" open={!!web && !web.candidates.length}>
-      <summary><Globe2 aria-hidden="true" size={16} /><span>{[t('来源', 'Sources'), line, guideCount].filter(Boolean).join(' · ')}</span><ChevronDown aria-hidden="true" className="bb-sources__chevron" size={16} /></summary>
+    {lists ? <Disclosure className="bb-sources__details" defaultOpen={!!web && !web.candidates.length} summary={summary}>
+      {line && <p className="bb-sources__line">{line}</p>}
       {assistant && <SourceList sources={assistant.sources} response={response} onNavigate={onNavigate} siteLabel={t('站内攻略', 'Site guide')} />}
       {web && web.sources.length > 0 && <SourceList sources={web.sources} />}
       {catalog && <section aria-label={t('站内收录官方来源', 'Official sources in the site catalog')}><h4>{t('站内收录官方来源', 'Official sources in the site catalog')}</h4><SourceList sources={catalog.sources} /></section>}
@@ -115,10 +120,10 @@ export function BayBaySources({ response, guest = false, currentPath, onNavigate
       {guides.length > 0 && <div className="baybay-references"><h4>{t('相关攻略', 'Related guides')}</h4><small className="bb-references-note">{t('以下是站内指南列出的参考资料，不表示已实时核验。', 'These are the references the site guides list; they have not been checked live.')}</small>
         {guides.map(guide => <div key={guide.slug} className="bb-reference">
           {guide.slug === reading?.slug && <small>{t('提问时阅读的指南', 'The guide you were reading')}</small>}
-          <button type="button" onClick={() => onNavigate?.(`/guides/${guide.slug}`)}><span className="bb-reference__mark" aria-hidden="true"><BookOpen size={18} /></span><span>{translateText(guide.title, locale)}</span><ChevronRight size={16} /></button>
-          {bayBayGuideSources(guide).length > 0 && <details><summary>{t('查看原文来源', 'Original sources')}</summary><ul>{bayBayGuideSources(guide).map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{translateText(source.title, locale)}</a></li>)}</ul></details>}
+          <button type="button" onClick={() => onNavigate?.(`/guides/${guide.slug}`)}><span className="bb-reference__mark" aria-hidden="true"><BookOpen size={20} /></span><span>{translateText(guide.title, locale)}</span><ChevronRight aria-hidden="true" size={20} /></button>
+          {bayBayGuideSources(guide).length > 0 && <Disclosure summary={t('查看原文来源', 'Original sources')}><ul>{bayBayGuideSources(guide).map(source => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{translateText(source.title, locale)}</a></li>)}</ul></Disclosure>}
         </div>)}</div>}
-    </details> : line && <p className="bb-sources__line"><Globe2 aria-hidden="true" size={16} /><span>{line}</span></p>}
+    </Disclosure> : line && <p className="bb-sources__line">{line}</p>}
   </section>;
 }
 
@@ -140,10 +145,10 @@ export function BayBayCoverageSummary({ response }: { response: GuideChatRespons
   const unknown = coverage.items.filter(item => item.status === 'unknown').length;
   const needsInput = coverage.items.filter(item => item.status === 'needs_user_input').length;
   const sources = new Map((response.evidence || []).map(source => [source.id, source]));
-  return <details className="baybay-coverage" translate="no"><summary>{t(`答复概览 · ${coverage.items.length} 项`, `Response overview · ${coverage.items.length} ${coverage.items.length === 1 ? 'topic' : 'topics'}`)}{unknown > 0 && t(` · ${unknown} 项待确认`, ` · ${unknown} unconfirmed`)}{needsInput > 0 && t(` · ${needsInput} 项需你补充`, ` · ${needsInput} need your input`)}</summary>
+  return <Disclosure className="baybay-coverage" summary={<>{t(`答复概览 · ${coverage.items.length} 项`, `Response overview · ${coverage.items.length} ${coverage.items.length === 1 ? 'topic' : 'topics'}`)}{unknown > 0 && t(` · ${unknown} 项待确认`, ` · ${unknown} unconfirmed`)}{needsInput > 0 && t(` · ${needsInput} 项需你补充`, ` · ${needsInput} need your input`)}</>}>
     <p>{t('这里显示已识别需求的回应情况，不代表各项事实均已核实。', 'This tracks responses to identified needs, not verification of every fact.')}</p>
-    <ul>{coverage.items.map(item => <li key={item.id} data-status={item.status}><strong>{t(item.label, item.label)}</strong><small>{item.status === 'answered' ? t('已回应', 'Addressed') : item.status === 'unknown' ? t('仍待确认', 'Unconfirmed') : t('需要补充条件', 'Needs your input')}</small>{item.summary && <p>{t(item.summary, item.summary)}</p>}{item.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer">{t(source.title, source.title)}<BayBayEvidenceStamp source={source} /></a>] : []; })}</li>)}</ul>
-  </details>;
+    <ul>{coverage.items.map(item => <li key={item.id} data-status={item.status}><strong>{t(item.label, item.label)}</strong><small>{item.status === 'answered' ? t('已回应', 'Addressed') : item.status === 'unknown' ? t('仍待确认', 'Unconfirmed') : t('需要补充条件', 'Needs your input')}</small>{item.summary && <p>{t(item.summary, item.summary)}</p>}{item.sourceIds.flatMap(id => { const source = sources.get(id); return source ? [<a key={id} href={source.url} target={source.url.startsWith('/') ? undefined : '_blank'} rel="noopener noreferrer">{t(source.title, source.title)}</a>, <BayBayEvidenceStamp key={`${id}:stamp`} source={source} />] : []; })}</li>)}</ul>
+  </Disclosure>;
 }
 
 /** Web candidates found for this reply (web answers only); their sources are in the answer's one sources block. */
@@ -177,11 +182,11 @@ function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; 
   if (!result?.candidates.length) return null;
   return <section className="baybay-discovery" aria-label={t('站外发现', 'Web discoveries')} translate="no">
     <div className="baybay-discovery-heading"><span>{t('值得再看一眼', 'A closer look')}</span><small>{t('站外候选 · 待确认', 'Web shortlist · Unconfirmed')}</small></div><div className="baybay-discovery-cards">{result.candidates.map((candidate, index) => <article key={candidate.id}>
-      <div className="baybay-discovery-cover" aria-hidden="true"><MapPin size={32} /><span>{String(index + 1).padStart(2, '0')}</span></div>
+      <span className="bb-reference__mark baybay-discovery-mark" aria-hidden="true"><MapPin size={20} /></span><span className="ui-plate baybay-discovery-n" aria-hidden="true">{index + 1}</span>
       <div className="baybay-discovery-content"><small>{candidate.city || t('城市待确认', 'City unconfirmed')}</small><h4>{candidate.name}</h4>{candidate.summary && <p>{candidate.summary}</p>}
         <dl><div><dt>{t('时间', 'When')}</dt><dd>{candidate.timeSummary || t('请查看来源确认', 'Check the source')}</dd></div><div><dt>{t('费用', 'Cost')}</dt><dd>{candidate.priceSummary || t('待确认', 'Unconfirmed')}</dd></div></dl>
-        <a href={plannerWebMapSearchUrl(candidate)} target="_blank" rel="noopener noreferrer"><MapPin size={13} />{t('地图查找', 'Find on map')}</a>
-        <button type="button" disabled={!!busy || saved.includes(candidate.id)} onClick={() => void save({ ...candidate, checkedAt: result.checkedAt, requestedDate: validPlannerWebDate(response.retrieval?.requestedDate) })}>{saved.includes(candidate.id) ? <Check size={14} /> : <Bookmark size={14} />}{saved.includes(candidate.id) ? t('已存入候选', 'Saved') : busy === candidate.id ? t('保存中…', 'Saving…') : t('存入候选', 'Save to shortlist')}</button>
+        <p className="baybay-discovery-actions"><a href={plannerWebMapSearchUrl(candidate)} target="_blank" rel="noopener noreferrer"><MapPin aria-hidden="true" size={16} />{t('地图查找', 'Find on map')}</a>
+        <Button variant="secondary" aria-pressed={saved.includes(candidate.id)} disabled={!!busy || saved.includes(candidate.id)} onClick={() => void save({ ...candidate, checkedAt: result.checkedAt, requestedDate: validPlannerWebDate(response.retrieval?.requestedDate) })} icon={saved.includes(candidate.id) ? <Check aria-hidden="true" size={16} /> : <Heart aria-hidden="true" size={16} />}>{saved.includes(candidate.id) ? t('已存入候选', 'Saved') : busy === candidate.id ? t('保存中…', 'Saving…') : t('存入候选', 'Save to shortlist')}</Button></p>
       </div></article>)}</div><p className="baybay-discovery-note">{ownerId ? t('保存到你的私人候选清单，在计划页继续查看。', 'Saved to your private shortlist. Continue on the planner page.') : t('游客候选保存在这个浏览器，可在计划页继续查看。', 'Guest candidates stay in this browser. Continue on the planner page.')}{t('具体位置、所选日期时段与预约仍需核实。', ' Exact location, date-specific hours and reservations still need checking.')}</p>
     {error && <p role="alert">{error}</p>}
   </section>;
@@ -190,5 +195,5 @@ function DiscoverySession({ response, ownerId }: { response: GuideChatResponse; 
 export function BayBayTaskHandoff({ brief, ownerId, onNavigate }: { brief: string; ownerId?: string; onNavigate: (path: string) => void }) {
   const t = useCopy(), [draft, setDraft] = useState(brief);
   if (!brief) return null;
-  return <details className="baybay-task-handoff" translate="no"><summary>{t('带着这些需求，继续做计划', 'Continue to a plan with your needs')}<ArrowRight size={15} /></summary><label>{t('已经说过的条件，可以再修改', 'Your requirements — edit before continuing')}<textarea value={draft} maxLength={800} onChange={event => setDraft(event.target.value)} /></label><button type="button" disabled={draft.trim().length < 2} onClick={() => onNavigate(bayBayPlanPath(draft, ownerId))}>{t('带入计划', 'Continue to planner')}<ArrowRight size={14} /></button></details>;
+  return <Disclosure className="baybay-task-handoff" summary={t('带着这些需求，继续做计划', 'Continue to a plan with your needs')}><label>{t('已经说过的条件，可以再修改', 'Your requirements, edit before continuing')}<textarea value={draft} maxLength={800} onChange={event => setDraft(event.target.value)} /></label><Button variant="primary" block disabled={draft.trim().length < 2} onClick={() => onNavigate(bayBayPlanPath(draft, ownerId))}>{t('带入计划', 'Continue to planner')}</Button></Disclosure>;
 }

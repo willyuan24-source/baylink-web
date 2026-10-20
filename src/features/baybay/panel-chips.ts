@@ -1,17 +1,19 @@
 /* Panel-only data for the BayBay welcome (lazy with the panel; guide pages never load it). */
 
 /**
- * Starter chips (plan WEB-BB-UI): one tap asks, fills the box for the reader to finish, or opens the tool.
- * `send` questions are complete; `draft` ones end where the reader adds their own detail.
+ * Starter prompt cards (plan WEB-BB-UI; order and hints from the 10-19 content arrangement): one tap asks, fills the box for
+ * the reader to finish, or opens the tool. `send` questions are complete; `draft` ones end where the reader adds their own
+ * detail. The hint says what the card does and states no fact. 简洁显示 shows the four `send` / `draft` cards only.
  */
-export type BayBayStarter = { id: string; zh: string; en: string } & ({ action: 'send' | 'draft'; zhQuestion: string; enQuestion: string } | { action: 'screenshot' | 'plan' });
+type Copy = { zh: string; en: string };
+export type BayBayStarter = { id: string; zh: string; en: string; hint: Copy } & ({ action: 'send' | 'draft'; zhQuestion: string; enQuestion: string } | { action: 'screenshot' | 'plan' });
 export const BAYBAY_STARTERS: readonly BayBayStarter[] = [
-  { id: 'weekend', zh: '本周末去哪', en: 'This weekend', action: 'send', zhQuestion: '这个周末湾区有什么值得去的活动？', enQuestion: 'What is worth doing in the Bay Area this weekend?' },
-  { id: 'paperwork', zh: '办事怎么准备', en: 'Getting things done', action: 'draft', zhQuestion: '我想了解怎么办：', enQuestion: 'How do I get this done: ' },
-  { id: 'letter', zh: '帮我看懂英文信', en: 'Explain an English letter', action: 'draft', zhQuestion: '帮我看看这封英文信说了什么：', enQuestion: 'Help me understand this letter: ' },
-  { id: 'seniors', zh: '长辈福利与医保', en: 'Senior benefits and health care', action: 'send', zhQuestion: '家里长辈 65 岁以上住在湾区，有哪些福利和医保可以先了解？', enQuestion: 'My parents are over 65 and live in the Bay Area. Which benefits and health coverage should we look into first?' },
-  { id: 'screenshot', zh: '读活动截图', en: 'Read an event screenshot', action: 'screenshot' },
-  { id: 'plan', zh: '安排一天', en: 'Plan a day', action: 'plan' },
+  { id: 'weekend', zh: '本周末去哪', en: 'This weekend', hint: { zh: '按日期和城市挑活动', en: 'Events by day and city' }, action: 'send', zhQuestion: '这个周末湾区有什么值得去的活动？', enQuestion: 'What is worth doing in the Bay Area this weekend?' },
+  { id: 'seniors', zh: '长辈福利与医保', en: 'Senior benefits and health care', hint: { zh: '福利、医保和电话', en: 'Benefits, coverage, phone numbers' }, action: 'send', zhQuestion: '家里长辈 65 岁以上住在湾区，有哪些福利和医保可以先了解？', enQuestion: 'My parents are over 65 and live in the Bay Area. Which benefits and health coverage should we look into first?' },
+  { id: 'letter', zh: '帮我看懂英文信', en: 'Explain an English letter', hint: { zh: '贴上信的文字，逐段解释', en: 'Paste the text, read it in plain words' }, action: 'draft', zhQuestion: '帮我看看这封英文信说了什么：', enQuestion: 'Help me understand this letter: ' },
+  { id: 'paperwork', zh: '办事怎么准备', en: 'Getting things done', hint: { zh: '步骤、材料、电话', en: 'Steps, documents, phone numbers' }, action: 'draft', zhQuestion: '我想了解怎么办：', enQuestion: 'How do I get this done: ' },
+  { id: 'plan', zh: '安排一天', en: 'Plan a day', hint: { zh: '打开计划页排路线', en: 'Opens the day planner' }, action: 'plan' },
+  { id: 'screenshot', zh: '读活动截图', en: 'Read an event screenshot', hint: { zh: '上传截图，整理成活动', en: 'Turn a screenshot into an event' }, action: 'screenshot' },
 ];
 
 export type BayBayPageRef = { kind: 'event' | 'offer' | 'opening' | 'guide'; id: string };

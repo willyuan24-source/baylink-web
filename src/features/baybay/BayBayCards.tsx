@@ -1,11 +1,14 @@
-import { useMemo, useState } from 'react';
-import { CalendarPlus, Heart } from 'lucide-react';
-import { EventCover, OfferCover, OpeningCover, Cover } from '../../components/ui/Cover';
+import { useMemo, useState, type MouseEvent } from 'react';
+import { Heart } from 'lucide-react';
+import { EventCover, OfferCover, OpeningCover, Cover, EventWhen, OfferWhen } from '../../components/ui/Cover';
+import { FeedCard, RowCard } from '../../components/ui/Card';
+import { StatusChip } from '../../components/ui/Status';
 import { TypeCover } from '../../components/ui/TypeCover';
+import { COVER_SIZES } from '../../components/ui/cover-sizes';
 import { useBayBayCopy } from './copy';
 import { translateText } from '../../i18n/locale';
-import { SmartLink } from './SmartLink';
-import { brandCase, eventDateChip, eventPlace, eventPriceChip, eventTimeLabel, formatDateChip, offerDeadline, openingChip } from '../../lib/event-facts';
+import { brandCase, eventPlace, eventPriceChip, openingChip, readerMonthDay } from '../../lib/event-facts';
+import { useSimpleDisplay } from '../../lib/reading-preferences';
 import { bayBayCardCitations, bayBayCardModels, type BayBayCardModel } from './answer-cards';
 import { useBayBayOwner } from './save-context';
 import { SAVE_ERROR_COPY, useSave, type ServerSaveKind } from '../../lib/saves';
@@ -32,29 +35,47 @@ function guideTypeLabel(category: GuideCategory): Copy {
   return tab && en ? { zh: tab.label, en } : { zh: '办事指南', en: 'How-to guide' };
 }
 
-/** One 13px meta line: 日期 · 时段 · 费用 · 城市 (events), deadline · brand (offers), opening chip · city (openings). */
-function cardMeta(model: BayBayCardModel, today: string, english: boolean, pick: (copy: { zh: string; en: string }) => string): string {
+/**
+ * The card's two meta lines (G18, one card anatomy site-wide): line 1 is C's `eventWhenLine` (the date and the whole
+ * start–end time) or an offer's deadline; line 2 is the status · the place (an event's 免费 / 部分免费 from C's status
+ * table, its venue or city), an offer's brand, an opening's chip · city, a guide's type. Neither line is cut.
+ */
+function CardWhen({ model, today }: { model: BayBayCardModel; today: string }) {
+  if (model.kind === 'event') return <EventWhen event={model.event} today={today} days={model.day ? [model.day] : []} />;
+  if (model.kind === 'offer') return <OfferWhen offer={model.offer} today={today} />;
+  return null;
+}
+function CardMeta({ model, today }: { model: BayBayCardModel; today: string }) {
+  const { pick, locale } = useBayBayCopy();
   if (model.kind === 'event') {
-    const chip = eventDateChip(model.event, today, model.day ? [model.day] : []);
-    const time = chip.kind === 'day' ? eventTimeLabel(model.event, chip.date, english) : undefined;
-    const price = eventPriceChip(model.event);
-    return [formatDateChip(chip, english).label, time, price ? pick(price.text) : undefined, eventPlace(model.event)].filter(Boolean).join(' · ');
+    const price = eventPriceChip(model.event), place = translateText(eventPlace(model.event), locale);
+    const status = price && (price.tone === 'free' || price.tone === 'mixed') ? pick(price.text) : null;
+    return <span className="bb-card__meta">{status && <><StatusChip>{status}</StatusChip>{place && ' · '}</>}{place}</span>;
   }
-  if (model.kind === 'offer') {
-    const deadline = offerDeadline(model.offer, today);
-    return [deadline ? pick(deadline.text) : undefined, brandCase(model.offer.brand)].filter(Boolean).join(' · ');
-  }
-  if (model.kind === 'opening') return [pick(openingChip(model.shop, today)), model.shop.city].filter(Boolean).join(' · ');
-  return pick(guideTypeLabel(model.guide.category));
+  if (model.kind === 'offer') return <span className="bb-card__meta" translate="no">{brandCase(model.offer.brand)}</span>;
+  if (model.kind === 'opening') return <span className="bb-card__meta">{[pick(openingChip(model.shop, today)), translateText(model.shop.city, locale)].filter(Boolean).join(' · ')}</span>;
+  return <span className="bb-card__meta">{pick(guideTypeLabel(model.guide.category))}</span>;
 }
 
-function CardCover({ model, today }: { model: BayBayCardModel; today: string }) {
+/**
+ * The ✓ line every event, offer and opening card carries (captain decisions 3 and 17): 官网核对 M/D, or 媒体报道 · M/D 核对
+ * when the record's source is a press report (an opening's source label names the report), never 人工核对. Guides: none.
+ */
+function cardCheck(model: BayBayCardModel, t: (zh: string, en: string) => string, english: boolean): string | null {
+  const day = model.kind === 'event' ? model.event.verifiedAt : model.kind === 'offer' ? model.offer.verifiedAt : model.kind === 'opening' ? model.shop.verifiedAt : undefined;
+  if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  const date = readerMonthDay(day, english);
+  const press = model.kind === 'opening' && /报道|報導|report/i.test(model.shop.sourceLabel || '');
+  return press ? t(`媒体报道 · ${date} 核对`, `News report · checked ${date}`) : t(`官网核对 ${date}`, `Source checked ${date}`);
+}
+
+function CardCover({ model, today, ratio }: { model: BayBayCardModel; today: string; ratio: '3:2' | '1:1' }) {
   const { pick } = useBayBayCopy();
-  const slot = { cover: model.cover, ratio: '16:10' as const, ratioLock: true, decorative: true, sizes: '264px' };
+  const slot = { cover: model.cover, ratio, ratioLock: true, decorative: true, sizes: ratio === '1:1' ? COVER_SIZES.thumb : '264px' };
   if (model.kind === 'event') return <EventCover {...slot} event={model.event} today={today} days={model.day ? [model.day] : []} />;
   if (model.kind === 'offer') return <OfferCover {...slot} offer={model.offer} today={today} />;
   if (model.kind === 'opening') return <OpeningCover {...slot} opening={model.shop} today={today} />;
-  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} ratio="16:10" ratioLock ariaHidden />} />;
+  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} ratio={ratio} ratioLock ariaHidden />} />;
 }
 
 /** The listing a card saves, in the one save model's kinds (D19): events, offers, openings and guides. */
@@ -63,9 +84,9 @@ const saveRef = (model: BayBayCardModel): { kind: ServerSaveKind; id: string } =
     : model.kind === 'opening' ? { kind: 'opening', id: model.shop.id } : { kind: 'guide', id: model.guide.slug };
 
 /**
- * ♡ 收藏 through SAVES' `useSave` (src/lib/saves.ts): the same heart, store and names as every card on the site
- * ("收藏：…" / "已收藏：…", as features/saves/save-name.ts words them; written out here so the save button's module stays
- * inside SaveToWeek's chunk), so a save here is the row My Week shows. Disabled while a signed-in list is still unknown; a failed write says so here.
+ * ♡ on the card's cover through SAVES' `useSave` (src/lib/saves.ts): the same heart (F's .ui-save), store and names as
+ * every card on the site ("收藏：…" / "已收藏：…"), so a save here is the row My Week shows. Disabled while a signed-in list
+ * is still unknown; a failed write says so under the card.
  */
 function CardSave({ model }: { model: BayBayCardModel }) {
   const { t, english, locale } = useBayBayCopy();
@@ -76,40 +97,51 @@ function CardSave({ model }: { model: BayBayCardModel }) {
   const saved = !!save.saved, unknown = save.saved === null;
   const error = tapped ? save.error : null;
   return <>
-    <button type="button" className="bb-card__save" aria-pressed={unknown ? undefined : saved} disabled={unknown || save.busy} onClick={() => { setTapped(true); void save.toggle(); }}
+    <button type="button" className="ui-save bb-card__save" aria-pressed={unknown ? undefined : saved} disabled={unknown || save.busy} onClick={() => { setTapped(true); void save.toggle(); }}
       aria-label={`${saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}${english ? ': ' : '：'}${translateText(model.title, locale)}`}>
-      <Heart aria-hidden="true" size={18} fill={saved ? 'currentColor' : 'none'} />{saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}
+      <Heart aria-hidden="true" strokeWidth={1.75} />
     </button>
     {error && <p className="bb-card__error" role="alert">{t(SAVE_ERROR_COPY[error].zh, SAVE_ERROR_COPY[error].en)}</p>}
   </>;
 }
 
-function CardActions({ model, onNavigate }: { model: BayBayCardModel; onNavigate: Navigate }) {
-  const { t } = useBayBayCopy();
-  if (model.ended) return <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
-  const plan = model.kind === 'event' ? `/plan?${model.day ? `date=${model.day}&` : ''}stops=${encodeURIComponent(`event:${model.event.id}`)}` : null;
-  // H27: the site's one add verb — 加入这天计划 for a dated card, 加入计划 otherwise (行程 is the page it opens).
-  const addLabel = model.kind === 'event' && model.day ? t('加入这天计划', 'Add to this day’s plan') : t('加入计划', 'Add to a plan');
-  return <div className="bb-card__actions">
-    <CardSave model={model} />
-    {plan && <button type="button" onClick={() => onNavigate(plan)} aria-label={`${addLabel}${t('：', ': ')}${model.title}`}><CalendarPlus aria-hidden="true" size={18} />{addLabel}</button>}
-  </div>;
-}
-
-/** Horizontal image cards (264 wide, 16:10, provenance badge, title 16/600, one meta line, ♡ 收藏 / 加入这天计划). */
+/**
+ * The answer's cards on the shared Card (one card anatomy, captain decision 20): a 3:2 cover with C's provenance label and
+ * ♡ on it, the title (card size, 600, never cut), line 1 · line 2 and the ✓ line. A rail on a phone at 标准 / 大; the cards
+ * stack at 特大 (no sideways scroller); in 简洁显示 they are row cards (a 1:1 thumbnail, no ♡: saving is on the detail page),
+ * at most 2. BayBay cards carry no 加入这天计划 (captain decision 16): it stays on the detail bar and the calendar rows.
+ */
 export function BayBayCardRailView({ cards, sources = [], today, onNavigate, label }: { cards: readonly BayBayQuickCard[]; sources?: Sources; today: string; onNavigate: Navigate; label?: string }) {
-  const { t, english, pick } = useBayBayCopy();
+  const { t, english, locale } = useBayBayCopy();
+  const simple = useSimpleDisplay();
   const models = useMemo(() => bayBayCardModels(cards, today), [cards, today]);
   const citations = useMemo(() => bayBayCardCitations(models, sources), [models, sources]);
   if (!models.length) return null;
-  return <ul className="bb-cards" data-count={models.length} aria-label={label || t('相关活动与去处', 'Related events and places')}>
-    {models.map(model => {
+  const shown = simple ? models.slice(0, 2) : models;
+  return <ul className="bb-cards" data-count={shown.length} data-layout={simple ? 'rows' : 'rail'} aria-label={label || t('相关活动与去处', 'Related events and places')}>
+    {shown.map(model => {
       const cited = citations.get(model.key);
+      const href = `${locale === 'zh-Hans' ? '' : `/${locale}`}${model.url}`;
+      const open = (event?: MouseEvent<HTMLAnchorElement>) => {
+        if (!event || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
+        event.preventDefault();
+        onNavigate(model.url);
+      };
+      const title = translateText(model.title, locale);
+      // The [n] of the source that is this card's own page, on C's number plate at the start of line 1 (the cover's corner
+      // carries its provenance label).
+      const plate = cited !== undefined && <><span className="ui-plate bb-card__n" aria-hidden="true">{cited}</span><span className="sr-only">{t(`来源 ${cited}：`, `Source ${cited}: `)}</span></>;
+      const when = model.kind === 'event' || model.kind === 'offer' ? <>{plate}<CardWhen model={model} today={today} /></> : undefined;
+      const meta = <>{!when && plate}<CardMeta model={model} today={today} /></>;
+      const check = cardCheck(model, t, english);
+      const ended = model.ended && <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
       return <li key={model.key} className="bb-card" data-kind={model.kind} data-card-key={model.key}>
-        <h4 className="bb-card__title"><SmartLink className="bb-card__link" href={model.url} onNavigate={onNavigate}>{cited !== undefined && <span className="bb-card__n" aria-hidden="true">[{cited}]</span>}{cited !== undefined && <span className="sr-only">{t(`来源 ${cited}：`, `Source ${cited}: `)}</span>}{model.title}</SmartLink></h4>
-        <div className="bb-card__media"><CardCover model={model} today={today} /></div>
-        <p className="bb-card__meta">{cardMeta(model, today, english, pick)}</p>
-        <CardActions model={model} onNavigate={onNavigate} />
+        {simple ? <RowCard title={title} href={href} onOpen={open} heading="h4" titleLang={english ? 'en' : undefined}
+          thumb={<CardCover model={model} today={today} ratio="1:1" />} when={when} meta={meta} />
+          : <FeedCard title={title} href={href} onOpen={open} heading="h4" titleLang={english ? 'en' : undefined}
+            cover={<CardCover model={model} today={today} ratio="3:2" />} when={when} meta={meta}
+            trust={check || undefined} save={model.ended ? undefined : <CardSave model={model} />} />}
+        {ended}
       </li>;
     })}
   </ul>;

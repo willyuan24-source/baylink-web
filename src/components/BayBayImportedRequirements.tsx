@@ -1,6 +1,7 @@
 import { translateText, useLocale } from '../i18n/locale';
 import type { BayBayPlanDraft } from '../lib/baybay-plan-handoff';
 import { bayBayDayLabel, bayBayPlaceLabel } from '../features/baybay/requirement-labels';
+import '../features/baybay/baybay-imported.css';
 
 export function BayBayImportedRequirements({ draft, requested }: { draft: BayBayPlanDraft | null; requested: boolean }) {
   const locale = useLocale(), t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);

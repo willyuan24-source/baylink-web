@@ -1,109 +1,79 @@
 /*
- * WEB-BB-UI: the BayBay panel's answer layout (design.md §4.7.7, 1007 §6.5) — header line, page capsule, starter and
- * page chips, lead → image cards → points → sources, the 911 card, the professional resource card, the pause / reduced
- * banner and 朗读 in 简洁显示. Loaded only with the lazy BayBay panel (D6). Rules sit under .baybay-conversation so they
- * win over the shared .baybay-conversation control rule in tokens.css; text sizes are tokens or rem, colours tokens.
+ * The BayBay answer (WEB-BB-UI, UI9-BB): lead → ≤3 points → image cards → 更多 (content arrangement 10-19), the 911 card,
+ * the professional resource card, the pause / reduced notices and the one sources block. Loaded only with the lazy
+ * BayBay panel (D6). Rules sit under .baybay-conversation; every size, space, radius and duration is a token.
  */
 
-/* Header: 问 BayBay · 有来源的中文答案 */
-.baybay-conversation .member-baybay-header .bb-header-sub { grid-column:auto; margin:4px 0 0; color:var(--color-on-brand-muted); font-size:var(--text-fact); line-height:1.5; }
-
-/* Page capsule: 正在看：xx ✕ */
-.baybay-conversation .bb-capsule { display:flex; align-items:center; gap:4px; max-width:100%; width:fit-content; min-height:var(--control-height); margin:0 0 8px; padding:0 0 0 12px; border:1px solid var(--color-line-strong); border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-ink); }
-.baybay-conversation .bb-capsule__text { min-width:0; overflow:hidden; font-size:var(--text-fact); line-height:1.4; white-space:nowrap; text-overflow:ellipsis; }
-.baybay-conversation .bb-capsule__text>strong { font-weight:600; }
-.baybay-conversation .bb-capsule button { display:grid; flex:none; place-items:center; width:var(--control-height); min-width:var(--control-height); height:var(--control-height); border-radius:var(--r-pill); color:var(--color-ink-2); }
-
-/* Welcome, starter chips and page chips */
-.baybay-conversation .bb-welcome { display:grid; gap:12px; }
-.baybay-conversation .bb-welcome h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.4; font-weight:600; }
-.baybay-conversation .bb-chip-group { display:grid; gap:8px; }
-.baybay-conversation .bb-chip-group>p { margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
-.baybay-conversation .bb-chips { display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
-.baybay-conversation .bb-chips button { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.4; font-weight:600; text-align:start; }
-.baybay-conversation .bb-chips button:hover { border-color:var(--color-brand); background:var(--color-brand-tint); }
-.baybay-conversation .bb-chips button>svg { flex:none; color:var(--color-brand); }
-.baybay-conversation .bb-chips--page button { border-color:var(--color-brand); color:var(--color-brand); }
-.baybay-conversation .bb-also { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:0; color:var(--color-ink-2); font-size:var(--text-caption); }
-.baybay-conversation .bb-also button { min-height:var(--control-height); padding:0 8px; color:var(--color-brand); font-size:var(--text-fact); text-decoration:underline; text-underline-offset:3px; }
-.baybay-conversation .bb-guest-note { margin:0 0 12px; padding:10px 12px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
-
-/* The answer: lead 17/600, points 17/30 (20 in 简洁显示; design.md §4.7.7), [n] citations */
-.baybay-conversation .bb-answer { display:grid; gap:12px; min-width:0; }
-.baybay-conversation .bb-lead { margin:0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.65; font-weight:600; overflow-wrap:anywhere; }
-.baybay-conversation .bb-points { display:grid; gap:8px; margin:0; padding:0; list-style:none; }
-.baybay-conversation .bb-points>li { position:relative; padding-left:1.125rem; color:var(--color-ink); font-size:var(--text-reading); line-height:1.75; overflow-wrap:anywhere; }
-.baybay-conversation .bb-points>li::before { content:""; position:absolute; left:.25rem; top:.75em; width:.375rem; height:.375rem; border-radius:var(--r-pill); background:var(--color-brand); }
+/* The answer: the lead at the reading size and weight 400 (it stands out by size and space), points 17 (20 in 简洁显示) */
+.baybay-conversation .bb-answer { display:grid; gap:var(--sp-3); min-width:0; }
+.baybay-conversation .bb-lead { margin:0; color:var(--color-ink); font-size:var(--text-reading); line-height:var(--lh-read); font-weight:400; overflow-wrap:anywhere; }
+.baybay-conversation .bb-points { display:grid; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.baybay-conversation .bb-points>li { position:relative; padding-left:var(--sp-4); color:var(--color-ink); font-size:var(--text-reading); line-height:var(--lh-read); overflow-wrap:anywhere; }
+.baybay-conversation .bb-points>li::before { content:""; position:absolute; left:var(--sp-1); top:.75em; width:6px; height:6px; border-radius:var(--r-circle); background:var(--color-brand); }
 /* The rest of a first point cut at a sentence end reads on from it, without a bullet of its own */
 .baybay-conversation .bb-points>li[data-continued]::before { content:none; }
-.baybay-conversation .bb-gap,.baybay-conversation .bb-corrected { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; overflow-wrap:anywhere; }
+.baybay-conversation :is(.bb-gap,.bb-corrected) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
 html[data-simple] .baybay-conversation :is(.bb-points>li,.bb-gap) { font-size:var(--text-reading); }
 .baybay-conversation .bb-answer--draft :is(.bb-lead,.bb-points>li) { color:var(--color-ink-2); white-space:pre-line; }
-.baybay-conversation .bb-cite { display:inline-block; min-height:0; margin:0 2px; padding:0 5px; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.5; font-weight:600; text-decoration:none; vertical-align:baseline; }
-.baybay-conversation .bb-inline-link { min-height:0; color:var(--color-brand); font-size:inherit; text-decoration:underline; text-underline-offset:3px; }
-.baybay-conversation .bb-more { display:inline-flex; align-items:center; gap:6px; width:fit-content; min-height:var(--control-height); padding:0 4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.baybay-conversation .bb-read-aloud { display:none; }
-html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; align-items:center; gap:8px; width:fit-content; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-brand); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
+/* [n]: C's number plate (brand fill, white tabular numeral, one line in every mode), sized to sit in the text */
+.baybay-conversation .bb-cite.ui-plate { display:inline-flex; margin-inline:var(--sp-1) 0; padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-snug); font-weight:600; text-decoration:none; vertical-align:.1em; white-space:nowrap; }
+.baybay-conversation .bb-inline-link { color:var(--color-brand); font-size:inherit; text-decoration:underline; text-underline-offset:.2em; }
+.baybay-conversation .bb-more { justify-self:start; padding-inline:0; }
+.baybay-conversation .bb-read-aloud { flex:none; padding-inline:var(--sp-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-more-details .ui-disclosure__panel { display:grid; gap:var(--sp-3); }
 
-/* Image cards: 264 wide, 16:10, title 16/600, one 13px meta line, two 44px buttons; a horizontal rail */
-.baybay-conversation .bb-cards { display:flex; gap:12px; margin:0; padding:2px 2px 8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; list-style:none; }
-.baybay-conversation .bb-cards--loading>span { flex:0 0 min(16.5rem, 85%); aspect-ratio:16 / 10; border-radius:var(--r-lg); background:var(--color-surface-2); }
-.baybay-conversation .bb-card { position:relative; display:flex; flex:0 0 min(16.5rem, 85%); flex-direction:column; gap:6px; min-width:0; scroll-snap-align:start; }
+/* Image cards (the shared FeedCard, 3:2): a rail at 标准 and 大, stacked at 特大, row cards in 简洁显示; titles never cut */
+.baybay-conversation .bb-cards { display:flex; gap:var(--sp-3); margin:0; padding:0 0 var(--sp-2); overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; list-style:none; }
+.baybay-conversation .bb-cards--loading>span { flex:0 0 min(16.5rem, 85%); aspect-ratio:3 / 2; border-radius:var(--r-lg); background:var(--color-surface-2); }
+.baybay-conversation .bb-card { display:grid; flex:0 0 min(16.5rem, 85%); gap:var(--sp-1); min-width:0; scroll-snap-align:start; }
 .baybay-conversation .bb-cards[data-count="1"] .bb-card { flex-basis:min(22rem, 100%); }
-.baybay-conversation .bb-card__media { order:1; }
-.baybay-conversation .bb-card__title { display:-webkit-box; order:2; margin:0; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }
-.baybay-conversation .bb-card__link { color:inherit; text-decoration:none; }
-.baybay-conversation .bb-card__link::after { content:""; position:absolute; inset:0; border-radius:var(--r-lg); }
-.baybay-conversation .bb-card__link:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; border-radius:var(--r-sm); }
-.baybay-conversation .bb-card__n { margin-right:4px; color:var(--color-brand); font-variant-numeric:tabular-nums; }
-/* date · venue · price wraps instead of ending in an ellipsis (status and venue are never cut). */
-.baybay-conversation .bb-card__meta { order:3; margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; overflow-wrap:anywhere; }
-.baybay-conversation .bb-card__actions { position:relative; z-index:1; display:flex; flex-wrap:wrap; order:4; gap:8px; }
-.baybay-conversation .bb-card__actions button { display:inline-flex; flex:1; align-items:center; justify-content:center; gap:6px; min-height:var(--control-height); padding:0 10px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); font-weight:600; white-space:nowrap; }
-.baybay-conversation .bb-card__actions button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand); }
-.baybay-conversation .bb-card__actions button:disabled { opacity:.6; }
-.baybay-conversation .bb-card__ended { order:4; margin:0; color:var(--color-ink-3); font-size:var(--text-caption); }
-.baybay-conversation .bb-card__error { flex-basis:100%; margin:0; color:var(--color-danger); font-size:var(--text-caption); line-height:1.5; }
+.baybay-conversation .bb-card :is(.ui-feed-card__title,.ui-row-card__title) { display:block; overflow:visible; font-size:var(--fs-card); line-height:var(--lh-snug); }
+.baybay-conversation .bb-card__n.ui-plate { display:inline-flex; margin-inline-end:var(--sp-2); padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-snug); font-weight:600; vertical-align:.1em; white-space:nowrap; }
+.baybay-conversation .bb-card__meta { overflow-wrap:anywhere; }
+.baybay-conversation .bb-card .ui-save { min-width:0; }
+.baybay-conversation .bb-card__ended { margin:0; color:var(--color-ink-3); font-size:var(--fs-meta); }
+.baybay-conversation .bb-card__error { margin:0; color:var(--color-danger); font-size:var(--fs-meta); }
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-cards,.baybay-conversation .bb-cards[data-layout=rows] { flex-direction:column; overflow:visible; scroll-snap-type:none; }
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-card { flex-basis:auto; }
+.baybay-conversation .bb-cards[data-layout=rows] .ui-row-card { grid-template-columns:7rem minmax(0, 1fr); min-height:0; }
+.baybay-conversation .bb-cards[data-layout=rows] .ui-row-card__thumb { width:7rem; height:7rem; }
 /* The cards' chunk could not load (offline, or a new deploy renamed it): the same listings as plain links */
 .baybay-conversation .bb-card-links { display:grid; margin:0; padding:0; list-style:none; }
-.baybay-conversation .bb-card-links a { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); line-height:1.4; font-weight:600; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
+.baybay-conversation .bb-card-links a { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-snug); font-weight:600; text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
 
-/* 911 first: the red emergency card (BBLIVE-09) */
-.baybay-conversation .bb-emergency { display:grid; gap:12px; padding:16px; border-radius:var(--r-lg); background:var(--color-danger); color:var(--color-surface); }
-.baybay-conversation .bb-emergency__title { margin:0; color:var(--color-surface); font-size:1.25rem; line-height:1.4; font-weight:600; }
-.baybay-conversation .bb-emergency__call { display:flex; align-items:center; justify-content:center; gap:10px; min-height:3.5rem; border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--fs-keep-20); line-height:1.2; font-weight:600; text-decoration:none; }
-.baybay-conversation .bb-emergency__text { margin:0; color:var(--color-surface); font-size:var(--text-reading); line-height:1.7; white-space:pre-line; }
-.baybay-conversation .bb-call-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.baybay-conversation .bb-call { display:inline-flex; align-items:center; gap:8px; min-height:3rem; padding:0 16px; border:1px solid var(--color-danger); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--text-body); line-height:1.3; font-weight:600; text-decoration:none; }
+/* 911 first: the red emergency card (BBLIVE-09), its place, its red and its 56px call button unchanged; token values only */
+.baybay-conversation .bb-emergency { display:grid; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-danger); color:var(--color-surface); }
+.baybay-conversation .bb-emergency__title { margin:0; color:var(--color-surface); font-size:var(--fs-section); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-emergency__call { display:flex; align-items:center; justify-content:center; gap:var(--sp-3); min-height:3.5rem; border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--fs-keep-20); line-height:var(--lh-tight); font-weight:600; text-decoration:none; }
+.baybay-conversation .bb-emergency__text { margin:0; color:var(--color-surface); font-size:var(--text-reading); line-height:var(--lh-read); white-space:pre-line; }
+.baybay-conversation .bb-call-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.baybay-conversation .bb-call { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:3rem; padding:0 var(--sp-4); border:1px solid var(--color-danger); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; text-decoration:none; transition:scale var(--dur-1) var(--ease-out); }
 .baybay-conversation :is(.bb-call__number,.bb-phone-number) { white-space:nowrap; }
 .baybay-conversation .bb-call[data-primary] { background:var(--color-danger); color:var(--color-surface); }
 .baybay-conversation .bb-call-actions--emergency .bb-call { border-color:var(--color-surface); background:transparent; color:var(--color-surface); }
 
 /* Professional topics: official numbers and the pillar guide */
-.baybay-conversation .bb-resources { padding:14px 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface-2); }
-.baybay-conversation .bb-resources h4 { margin:0; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }
-.baybay-conversation .bb-resources__note { margin:4px 0 8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
-.baybay-conversation .bb-resources ul { display:grid; gap:4px; margin:0; padding:0; list-style:none; }
-.baybay-conversation .bb-resources li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:4px 8px; }
-.baybay-conversation .bb-resources__name { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.baybay-conversation .bb-resources { display:grid; gap:var(--sp-2); padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); }
+.baybay-conversation .bb-resources h4 { margin:0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-resources__note { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-resources ul { display:grid; gap:var(--sp-1); margin:0; padding:0; list-style:none; }
+.baybay-conversation .bb-resources li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-1) var(--sp-2); }
+.baybay-conversation .bb-resources__name { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); font-weight:600; text-decoration:underline; text-underline-offset:.2em; }
 .baybay-conversation .bb-resources__name>svg { flex:none; }
 .baybay-conversation .bb-resources .bb-call { border-color:var(--color-brand); color:var(--color-brand); }
 
-/* Pause, daily limit and reduced mode: the honest line; a provider pause or a health floor leads with 911 / 211 (H37) */
-.baybay-conversation .bb-notice { display:grid; gap:10px; margin:0 0 12px; padding:12px 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-warning-tint); }
-.baybay-conversation .bb-notice:is([data-notice=ai_budget_reduced],[data-notice=ai_daily_budget]) { background:var(--color-info-tint); }
-.baybay-conversation .bb-notice>p { margin:0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
+/* Pause, daily limit, reduced mode and the cutoff ahead: one calm neutral box (no amber, no indigo; DECISIONS 5); a provider
+   pause or a health floor leads with 911 / 211 (H37) */
+.baybay-conversation :is(.bb-notice,.bb-scheduled) { display:grid; gap:var(--sp-3); margin:0; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-meta); }
+.baybay-conversation .bb-notice>p { margin:0; }
 .baybay-conversation .bb-notice .bb-call:not([data-primary]) { border-color:var(--color-brand); color:var(--color-brand); }
-.baybay-conversation .bb-notice__resume { display:block; color:var(--color-ink-2); font-size:var(--text-caption); }
+.baybay-conversation .bb-notice__resume { display:block; color:var(--color-ink-2); }
 /* The same notice on an earlier answer: its line only (the full banner and its call buttons show once) */
-.baybay-conversation .bb-notice-label { margin:0 0 10px; padding-left:10px; border-left:3px solid var(--color-line-strong); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
-
-/* The AI cutoff ahead (api pauseScheduled, its last 7 days): a calm line, not a warning */
-.baybay-conversation .bb-scheduled { margin:0 0 12px; padding:10px 12px; border-radius:var(--r-md); background:var(--color-info-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.6; }
+.baybay-conversation .bb-notice-label { margin:0; padding-left:var(--sp-3); border-left:3px solid var(--color-line-strong); color:var(--color-ink-2); font-size:var(--fs-meta); }
 
 /* Few AI queries left today: one line by the question box; at 0 the calm daily-limit line (H37), never a warning colour */
-.baybay-conversation .bb-quota { margin:0 0 8px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
-.baybay-conversation .bb-quota[data-remaining="0"] { padding:8px 12px; border-radius:var(--r-md); background:var(--color-info-tint); color:var(--color-ink); }
+.baybay-conversation .bb-quota { margin:0 0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-quota[data-remaining="0"] { padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink); }
 
 /* Tap-to-call numbers in answers, notices, plan notes and safety cards (G27): ELDERS' chip at the text's own size */
 .baybay-conversation .phone-chip { min-width:0; min-height:0; font-size:inherit; }
@@ -111,36 +81,29 @@ html[data-simple] .baybay-conversation .bb-read-aloud { display:inline-flex; ali
 .baybay-conversation .phone-chip-keep > .phone-chip { padding-inline-end:.15em; }
 .baybay-conversation .bb-emergency .phone-chip { background:var(--color-surface); color:var(--color-danger); }
 
-/* Today's AI answers are used up: the site's own pages instead of a retry that cannot work (the error and the daily notice) */
-.baybay-conversation .bb-error-links { display:flex; flex-wrap:wrap; gap:8px; margin:8px 0 0; }
-.baybay-conversation .bb-notice__links { display:flex; flex-wrap:wrap; gap:8px; margin:0; }
-.baybay-conversation :is(.bb-error-links,.bb-notice__links) button { margin:0; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-
-/* One sources block per answer (BBL-14, G79): the retrieval line is its summary; opened, the cited sources and guides */
-.baybay-conversation .bb-sources { display:grid; gap:6px; margin-top:16px; padding-top:12px; border-top:1px solid var(--color-line); }
-.baybay-conversation .bb-sources__note { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
-.baybay-conversation :is(.bb-sources__line,.bb-sources__details>summary) { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
-.baybay-conversation .bb-sources__details>summary { min-height:var(--control-height); cursor:pointer; list-style:none; }
-.baybay-conversation .bb-sources__details>summary::-webkit-details-marker { display:none; }
-.baybay-conversation :is(.bb-sources__line,.bb-sources__details>summary)>span { flex:1; min-width:0; overflow-wrap:anywhere; }
-.baybay-conversation :is(.bb-sources__line,.bb-sources__details>summary)>svg { flex:none; color:var(--color-ink-3); }
-.baybay-conversation .bb-sources__details[open] .bb-sources__chevron { transform:rotate(180deg); }
-.baybay-conversation .bb-sources__details h4 { margin:12px 0 4px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; font-weight:600; }
-.baybay-conversation .bb-sources__list { display:grid; gap:2px; margin:4px 0 8px; padding-left:1.5rem; list-style:decimal; color:var(--color-ink-3); font-size:var(--text-caption); }
+/* One sources block per answer (BBL-14, G79): "来源 · n 条"; opened, how they were found, the cited sources and guides */
+.baybay-conversation .bb-sources { display:grid; gap:var(--sp-2); padding-top:var(--sp-3); border-top:1px solid var(--color-line); }
+.baybay-conversation :is(.bb-sources__note,.bb-sources__line) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-sources__details h4 { margin:var(--sp-3) 0 var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-sources__list { display:grid; gap:var(--sp-1); margin:var(--sp-1) 0 var(--sp-2); padding-left:var(--sp-5); list-style:decimal; color:var(--color-ink-3); font-size:var(--fs-meta); }
 .baybay-conversation ul.bb-sources__list { list-style:disc; }
-.baybay-conversation .bb-sources__list a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:4px; color:var(--color-brand); font-size:var(--text-fact); line-height:1.5; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
-.baybay-conversation .bb-sources__list small { color:var(--color-ink-3); font-size:var(--text-caption); text-decoration:none; }
+.baybay-conversation .bb-sources__list a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-snug); text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
 
-/* Related guides inside the sources block: one compact row each (BBLIVE-13), no large cover; their own sources one tap away */
-.baybay-conversation .baybay-references { display:grid; gap:4px; margin-top:4px; }
-.baybay-conversation .bb-references-note { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.5; }
-.baybay-conversation .bb-reference>small { display:block; margin-top:4px; color:var(--color-ink-3); font-size:var(--text-caption); }
-.baybay-conversation .bb-reference>button { display:flex; align-items:center; gap:10px; width:100%; min-height:3rem; padding:4px 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.4; text-align:start; }
+/* Related guides inside the sources block: one compact row each (BBLIVE-13) with the 40px mark tile */
+.baybay-conversation .baybay-references { display:grid; gap:var(--sp-1); margin-top:var(--sp-1); }
+.baybay-conversation .baybay-references>h4 { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:600; }
+.baybay-conversation .bb-references-note { color:var(--color-ink-3); font-size:var(--fs-meta); }
+.baybay-conversation .bb-reference>small { display:block; margin-top:var(--sp-1); color:var(--color-ink-3); font-size:var(--fs-meta); }
+.baybay-conversation .bb-reference>button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:3rem; padding:var(--sp-1) 0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-snug); text-align:start; transition:scale var(--dur-1) var(--ease-out); }
 .baybay-conversation .bb-reference>button>span:nth-child(2) { flex:1; min-width:0; }
 .baybay-conversation .bb-reference>button>svg { flex:none; color:var(--color-ink-3); }
 .baybay-conversation .bb-reference__mark { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-brand); }
-.baybay-conversation .bb-reference summary { min-height:var(--control-height); padding-block:10px; color:var(--color-ink-2); font-size:var(--text-caption); cursor:pointer; }
-.baybay-conversation .bb-reference ul { display:grid; gap:4px; margin:0 0 8px; padding-left:1.25rem; list-style:disc; }
-.baybay-conversation .bb-reference li>a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-caption); line-height:1.6; text-decoration:underline; text-underline-offset:3px; overflow-wrap:anywhere; }
+.baybay-conversation .bb-reference ul { display:grid; gap:var(--sp-1); margin:0 0 var(--sp-2); padding-left:var(--sp-5); list-style:disc; }
+.baybay-conversation .bb-reference li>a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-snug); text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
 
+@media (hover:hover) and (pointer:fine) {
+  .baybay-conversation .bb-reference>button:hover { color:var(--color-brand); }
+  .baybay-conversation :is(.bb-sources__list a,.bb-reference li>a,.bb-resources__name,.bb-inline-link):hover { text-decoration-thickness:2px; }
+}
+.baybay-conversation :is(.bb-call,.bb-emergency__call,.bb-reference>button,.bb-cite):active { scale:.97; }
 @media (prefers-reduced-motion:reduce) { .baybay-conversation .bb-cards { scroll-behavior:auto; } }

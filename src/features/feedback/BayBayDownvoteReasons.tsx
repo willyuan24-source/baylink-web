@@ -26,8 +26,8 @@ export function BayBayDownvoteReasons({ send = submitFeedback }: { send?: typeof
   if (state === 'sent') return <p className="baybay-downvote-done" role="status">{say({ zh: '已记下原因，谢谢！', en: 'Noted, thank you.' }, locale)}</p>;
   return <div className="baybay-downvote" role="group" aria-label={say({ zh: '哪里没答好？', en: 'What went wrong?' }, locale)}>
     <span>{say({ zh: '哪里没答好？', en: 'What went wrong?' }, locale)}</span>
-    {QUICK.map(reason => <button key={reason} type="button" disabled={state === 'sending'} onClick={() => void quick(reason)}>{say(REASON_LABELS[reason], locale)}</button>)}
-    <button type="button" disabled={state === 'sending'} onClick={() => void openFeedback({ kind: 'baybay', reason: 'other' })}>{say(REASON_LABELS.other, locale)}</button>
+    {QUICK.map(reason => <button key={reason} type="button" className="ui-chip" disabled={state === 'sending'} onClick={() => void quick(reason)}>{say(REASON_LABELS[reason], locale)}</button>)}
+    <button type="button" className="ui-chip" disabled={state === 'sending'} onClick={() => void openFeedback({ kind: 'baybay', reason: 'other' })}>{say(REASON_LABELS.other, locale)}</button>
     {state === 'failed' && <p className="baybay-downvote-failed" role="alert">{say({ zh: '没发出去，请稍后再点一次。', en: 'That did not go through. Please try again shortly.' }, locale)}</p>}
   </div>;
 }

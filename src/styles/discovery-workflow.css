@@ -1,31 +1,3 @@
-.baybay-search-modes { display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:12px; }
-.baybay-search-modes button { min-height:40px; padding:8px 13px; font-size:.8125rem; border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink-2); }
-.baybay-search-modes button[aria-pressed=true] { color:white; background:var(--color-ink-2); border-color:var(--color-ink-2); }
-.baybay-search-modes>span { width:100%; color:var(--color-ink-3); font-size:.8125rem; line-height:1.7; }
-.baybay-access-label { font-size:.8125rem; color:var(--color-ink-2); padding:6px 2px; }
-.baybay-inline-citation { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; padding:2px 4px; border-radius:var(--r-sm); background:var(--color-brand-tint); }
-.baybay-discovery { margin-top:20px; }
-.baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:7px; margin-bottom:12px; color:var(--color-ink-2); font-size:.875rem; font-weight:600; }
-.baybay-discovery-heading small { font-size:.8125rem; font-weight:400; color:var(--color-ink-3); }
-.baybay-discovery-cards { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-.baybay-discovery-cards article { min-width:0; overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
-.baybay-discovery-cover { height:86px; display:flex; align-items:center; justify-content:space-between; padding:20px; background:linear-gradient(125deg,var(--color-line),var(--color-warm-tint)); color:var(--color-ink-3); }
-.baybay-discovery-cover span { font-size:2rem; font-family:Georgia,serif; color:var(--color-ink-3); }
-.baybay-discovery-content { padding:14px; overflow-wrap:anywhere; }
-.baybay-discovery-content>small { font-size:.8125rem; color:var(--color-ink-3); }
-.baybay-discovery-content h4 { margin:5px 0 8px; font-size:1rem; line-height:1.5; font-weight:600; }
-.baybay-discovery-content p,.baybay-discovery-content dd { font-size:.8125rem; line-height:1.8; color:var(--color-ink-3); margin:0; }
-.baybay-discovery-content dl { display:grid; gap:8px; margin:12px 0; }
-.baybay-discovery-content dt { font-size:.8125rem; color:var(--color-ink-3); }
-.baybay-discovery-content>a,.baybay-discovery-content>button { display:inline-flex; align-items:center; justify-content:center; min-height:44px; gap:5px; font-size:.8125rem; color:var(--color-brand-hover); margin-right:8px; }
-.baybay-discovery-content>button { padding:5px 10px; border:1px solid var(--color-line-control); border-radius:var(--r-sm); }
-.baybay-discovery-note { font-size:.8125rem; color:var(--color-ink-3); line-height:1.8; margin:10px 0; }
-.baybay-task-handoff { margin-top:20px; padding:14px 16px; background:var(--color-brand-tint); border:1px solid var(--color-line); border-radius:var(--r-lg); }
-.baybay-task-handoff summary { cursor:pointer; font-size:.8125rem; line-height:1.8; font-weight:400; color:var(--color-ink-2); }
-.baybay-task-handoff summary svg { display:inline; margin-left:9px; }
-.baybay-task-handoff label { display:block; margin-top:15px; font-size:.8125rem; color:var(--color-ink-3); }
-.baybay-task-handoff textarea { width:100%; min-height:95px; display:block; resize:vertical; padding:10px; border:1px solid var(--color-line-control); border-radius:var(--r-sm); background:white; line-height:1.8; margin-top:6px; }
-.baybay-task-handoff button { display:flex; align-items:center; gap:8px; min-height:44px; margin-top:12px; font-size:.8125rem; font-weight:600; color:var(--color-brand-hover); }
 /* Planner panels (WEB-PLAN): private preference memory (My Week) and the travel-time check (行程 editor). Tokens and
    rem only, text ≥ --text-caption, the UI secondary look for their buttons. */
 .planner-preference-memory { margin:16px 0; padding:20px; border-radius:var(--r-lg); background:var(--color-surface-2); }
@@ -48,10 +20,3 @@ summary.planner-travel-actions { align-items:center; min-height:var(--control-he
 .planner-travel-estimate { margin-top:12px; padding:12px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface-2); }
 /* Google's own attribution style, as its terms require. */
 .google-maps-attribution { display:inline-block; color:#5e5e5e; font:400 .75rem/1.5 Arial,sans-serif; letter-spacing:normal; white-space:nowrap; padding:3px 0; }
-@media(max-width:520px) {
-  .baybay-discovery-cards { grid-template-columns:minmax(0,1fr); }
-  .baybay-discovery-cards article { display:grid; grid-template-columns:74px minmax(0,1fr); }
-  .baybay-discovery-cover { height:100%; padding:13px 8px; flex-direction:column; justify-content:flex-start; gap:14px; }
-  .baybay-search-modes button { min-height:44px; }
-}
-@media(prefers-reduced-motion:reduce) { .baybay-discovery * { scroll-behavior:auto; } }
