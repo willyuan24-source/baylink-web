@@ -1,15 +1,16 @@
 import { useMemo, useState, type MouseEvent } from 'react';
-import { Heart } from 'lucide-react';
+import { Check, Heart } from 'lucide-react';
 import { EventCover, OfferCover, OpeningCover, Cover, EventWhen, OfferWhen } from '../../components/ui/Cover';
 import { FeedCard, RowCard } from '../../components/ui/Card';
 import { StatusChip } from '../../components/ui/Status';
-import { TypeCover } from '../../components/ui/TypeCover';
+import { EventTypeCover, OfferTypeCover, OpeningTypeCover, TypeCover } from '../../components/ui/TypeCover';
 import { COVER_SIZES } from '../../components/ui/cover-sizes';
 import { useBayBayCopy } from './copy';
 import { translateText } from '../../i18n/locale';
-import { brandCase, eventPlace, eventPriceChip, openingChip, readerMonthDay } from '../../lib/event-facts';
+import { brandCase, eventPlace, eventPriceChip, openingChip } from '../../lib/event-facts';
 import { useSimpleDisplay } from '../../lib/reading-preferences';
 import { bayBayCardCitations, bayBayCardModels, type BayBayCardModel } from './answer-cards';
+import { cardCheck } from './card-check';
 import { useBayBayOwner } from './save-context';
 import { SAVE_ERROR_COPY, useSave, type ServerSaveKind } from '../../lib/saves';
 import type { PlannerWebResult } from '../../lib/planner-web-search';
@@ -57,25 +58,27 @@ function CardMeta({ model, today }: { model: BayBayCardModel; today: string }) {
   return <span className="bb-card__meta">{pick(guideTypeLabel(model.guide.category))}</span>;
 }
 
-/**
- * The ✓ line every event, offer and opening card carries (captain decisions 3 and 17): 官网核对 M/D, or 媒体报道 · M/D 核对
- * when the record's source is a press report (an opening's source label names the report), never 人工核对. Guides: none.
- */
-function cardCheck(model: BayBayCardModel, t: (zh: string, en: string) => string, english: boolean): string | null {
-  const day = model.kind === 'event' ? model.event.verifiedAt : model.kind === 'offer' ? model.offer.verifiedAt : model.kind === 'opening' ? model.shop.verifiedAt : undefined;
-  if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
-  const date = readerMonthDay(day, english);
-  const press = model.kind === 'opening' && /报道|報導|report/i.test(model.shop.sourceLabel || '');
-  return press ? t(`媒体报道 · ${date} 核对`, `News report · checked ${date}`) : t(`官网核对 ${date}`, `Source checked ${date}`);
-}
-
-function CardCover({ model, today, ratio }: { model: BayBayCardModel; today: string; ratio: '3:2' | '1:1' }) {
+function CardCover({ model, today }: { model: BayBayCardModel; today: string }) {
   const { pick } = useBayBayCopy();
-  const slot = { cover: model.cover, ratio, ratioLock: true, decorative: true, sizes: ratio === '1:1' ? COVER_SIZES.thumb : '264px' };
+  const slot = { cover: model.cover, ratio: '3:2' as const, ratioLock: true, decorative: true, sizes: '264px' };
   if (model.kind === 'event') return <EventCover {...slot} event={model.event} today={today} days={model.day ? [model.day] : []} />;
   if (model.kind === 'offer') return <OfferCover {...slot} offer={model.offer} today={today} />;
   if (model.kind === 'opening') return <OpeningCover {...slot} opening={model.shop} today={today} />;
-  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} ratio={ratio} ratioLock ariaHidden />} />;
+  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} ratio="3:2" ratioLock ariaHidden />} />;
+}
+
+/**
+ * A row card's 112px thumbnail, as EVENTS' EventRowCard builds it: the photo (its provenance moves to the row's credit
+ * line), else the family's mini cover, which prints the one key fact a thumbnail has room for (never a full-size cover
+ * cropped into the square).
+ */
+function RowThumb({ model, today }: { model: BayBayCardModel; today: string }) {
+  const { pick } = useBayBayCopy();
+  const slot = { cover: model.cover, ratio: '1:1' as const, sizes: COVER_SIZES.thumb, decorative: true };
+  if (model.kind === 'event') return <Cover {...slot} kind="event" fallback={<EventTypeCover event={model.event} today={today} days={model.day ? [model.day] : []} size="mini" ariaHidden />} />;
+  if (model.kind === 'offer') return <Cover {...slot} kind="offer" fallback={<OfferTypeCover offer={model.offer} today={today} size="mini" ariaHidden />} />;
+  if (model.kind === 'opening') return <Cover {...slot} kind="opening" fallback={<OpeningTypeCover opening={model.shop} today={today} size="mini" ariaHidden />} />;
+  return <Cover {...slot} fallback={<TypeCover tone="culture" label={pick(guideTypeLabel(model.guide.category))} title={model.title} size="mini" ariaHidden />} />;
 }
 
 /** The listing a card saves, in the one save model's kinds (D19): events, offers, openings and guides. */
@@ -112,7 +115,7 @@ function CardSave({ model }: { model: BayBayCardModel }) {
  * at most 2. BayBay cards carry no 加入这天计划 (captain decision 16): it stays on the detail bar and the calendar rows.
  */
 export function BayBayCardRailView({ cards, sources = [], today, onNavigate, label }: { cards: readonly BayBayQuickCard[]; sources?: Sources; today: string; onNavigate: Navigate; label?: string }) {
-  const { t, english, locale } = useBayBayCopy();
+  const { t, english, locale, pick } = useBayBayCopy();
   const simple = useSimpleDisplay();
   const models = useMemo(() => bayBayCardModels(cards, today), [cards, today]);
   const citations = useMemo(() => bayBayCardCitations(models, sources), [models, sources]);
@@ -122,6 +125,9 @@ export function BayBayCardRailView({ cards, sources = [], today, onNavigate, lab
     {shown.map(model => {
       const cited = citations.get(model.key);
       const href = `${locale === 'zh-Hans' ? '' : `/${locale}`}${model.url}`;
+      // The shared Card hands its click event to `onOpen` (CardTitleLink's onClick): BayBay keeps the reader in the app and
+      // closes the panel through onNavigate instead of a full page load; a modified click opens a new tab as usual
+      // (tests/ui9-bb-panel pins it). Without an event (a future Card that drops it) the link simply loads.
       const open = (event?: MouseEvent<HTMLAnchorElement>) => {
         if (!event || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || event.button !== 0) return;
         event.preventDefault();
@@ -135,11 +141,14 @@ export function BayBayCardRailView({ cards, sources = [], today, onNavigate, lab
       const meta = <span className="bb-card__line">{!when && plate}<CardMeta model={model} today={today} /></span>;
       const check = cardCheck(model, t, english);
       const ended = model.ended && <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
+      // 简洁显示's row card has no trust slot (C's RowCard): the ✓ line closes the meta paragraph as its own line, and the
+      // photo's provenance is the row's credit line, as on every row card (covers.css hides the thumbnail's chip there).
+      const rowMeta = <>{meta}{check && <span className="bb-card__check"><Check aria-hidden="true" strokeWidth={1.75} />{check}</span>}</>;
       return <li key={model.key} className="bb-card" data-kind={model.kind} data-card-key={model.key}>
         {simple ? <RowCard title={title} href={href} onOpen={open} heading="h4" titleLang={english ? 'en' : undefined}
-          thumb={<CardCover model={model} today={today} ratio="1:1" />} when={when} meta={meta} />
+          thumb={<RowThumb model={model} today={today} />} when={when} meta={rowMeta} credit={model.cover.tier === 'type' ? undefined : pick(model.cover.label)} />
           : <FeedCard title={title} href={href} onOpen={open} heading="h4" titleLang={english ? 'en' : undefined}
-            cover={<CardCover model={model} today={today} ratio="3:2" />} when={when} meta={meta}
+            cover={<CardCover model={model} today={today} />} when={when} meta={meta}
             trust={check || undefined} save={model.ended ? undefined : <CardSave model={model} />} />}
         {ended}
       </li>;

@@ -9,4 +9,8 @@
 .baybay-imported-requirements dt { color:var(--color-ink-3); }
 .baybay-imported-requirements dd { margin:0; color:var(--color-ink); font-weight:600; }
 .baybay-imported-requirements details { display:grid; gap:var(--sp-2); }
-.baybay-imported-requirements summary { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); cursor:pointer; }
+.baybay-imported-requirements summary { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); min-height:var(--control-height); color:var(--color-brand); list-style:none; cursor:pointer; }
+.baybay-imported-requirements summary::-webkit-details-marker { display:none; }
+/* The shared Disclosure's chevron (ink-2, down when closed, up when open), drawn here so /plan loads no extra script. */
+.baybay-imported-requirements summary::after { content:""; flex:none; width:.5rem; height:.5rem; margin-inline-end:var(--sp-2); border-right:1.75px solid var(--color-ink-2); border-bottom:1.75px solid var(--color-ink-2); rotate:45deg; translate:0 -25%; transition:rotate var(--dur-2) var(--ease-std); }
+.baybay-imported-requirements details[open]>summary::after { rotate:225deg; translate:0 25%; }

@@ -27,7 +27,9 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 
 /* Frame (P14, N10): one sheet per screen class on F's Sheet. Phone: a bottom sheet over F's scrim, the same height in every
    state (the site header stays in view above it). ≥768px: a 480px drawer, 8px from the edges, e2, over a transparent
-   backdrop that still closes on a tap (FC3-08, captain decision 7); 768–1023px reuse F's drawer keyframes. */
+   backdrop that still closes on a tap (FC3-08, captain decision 7); 768–1023px reuse F's drawer keyframes. The sheet is
+   portaled to <body>, outside .site-app where --chrome-header-height lives, so today the 3.5rem fallback always applies
+   (56px at 标准; it scales with rem at 特大). UI9-INT: expose the header height on :root, then drop the fallback. */
 .baybay-sheet { height:calc(100dvh - var(--chrome-header-height, 3.5rem)); max-height:none; }
 .baybay-sheet .baybay-body { display:flex; flex-direction:column; gap:var(--sp-4); padding:var(--sp-4); }
 .baybay-sheet .ui-sheet__footer { display:block; padding:var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); background:var(--color-surface); }
@@ -44,18 +46,28 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .bb-otter { flex:none; display:block; }
 .bb-otter[data-size="44"] { width:2.75rem; height:2.75rem; }
 .bb-otter[data-size="20"] { width:1.25rem; height:1.25rem; }
-.baybay-conversation .bb-head { display:grid; flex:none; grid-template-columns:auto minmax(0, 1fr) auto auto; grid-template-areas:"otter text new close"; align-items:center; gap:0 var(--sp-3); padding:var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-bottom:1px solid var(--color-line); }
+.baybay-conversation .bb-head { display:grid; flex:none; grid-template-columns:auto minmax(0, 1fr) auto auto; grid-template-areas:"otter text new close"; align-items:center; gap:0 var(--sp-3); padding:var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-4); border-bottom:1px solid var(--color-line); }
 .baybay-conversation .bb-head>.bb-otter { grid-area:otter; }
 .baybay-conversation .bb-head>.ui-close { grid-area:close; }
 .baybay-conversation .bb-head__text { grid-area:text; min-width:0; }
-.baybay-conversation .bb-head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .bb-head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; white-space:nowrap; }
 .baybay-conversation .bb-head__sub { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .bb-head__new { grid-area:new; padding-inline:var(--sp-3); }
+.baybay-conversation .bb-head__new>svg { display:none; }
 @media (min-width:768px) { .baybay-conversation .bb-head { padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-5); } }
-/* 特大 and 简洁显示 on a phone: 新对话 moves under the title, so the h2 stays on one line and ✕ keeps its corner. */
+/* English, 特大 and 简洁显示 on a phone, and any phone below 360px: 新对话 is a 44px icon named by its hidden words, so the
+   header stays one row in a conversation (it grew to 122–158px when the words took a second row). */
 @media (max-width:767px) {
-  html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-head { grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"otter text close" "otter new close"; }
-  html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-head__new { justify-self:start; padding-inline:0; }
+  .baybay-conversation .bb-head[data-compact] { gap:0 var(--sp-2); }
+  .baybay-conversation .bb-head[data-compact] .bb-head__new { width:var(--control-height); padding:0; }
+  .baybay-conversation .bb-head[data-compact] .bb-head__new>svg { display:block; }
+  .baybay-conversation .bb-head[data-compact] .bb-head__new-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+}
+@media (max-width:359px) {
+  .baybay-conversation .bb-head { gap:0 var(--sp-2); }
+  .baybay-conversation .bb-head__new { width:var(--control-height); padding:0; }
+  .baybay-conversation .bb-head__new>svg { display:block; }
+  .baybay-conversation .bb-head__new-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 }
 
 /* Welcome: one line, the page in view, six prompt cards (2 columns, ≥88px), 也可以, the details, the guest line. */
@@ -167,14 +179,16 @@ html[data-simple] .baybay-conversation .baybay-plan-stop-link { padding-block:va
 .baybay-conversation .baybay-plan-stop-when>dd { font-variant-numeric:tabular-nums; }
 /* One 待核实 line: the label runs into its list. */
 .baybay-conversation .baybay-plan-stops dl>div.baybay-plan-stop-unknown { display:block; }
-.baybay-conversation .baybay-plan-stop-unknown>:is(dt,dd) { display:inline; margin-inline-end:var(--sp-2); }
+.baybay-conversation .baybay-plan-stop-unknown>:is(dt,dd) { display:inline; margin-inline-end:var(--sp-1); }
 .baybay-conversation .baybay-plan-stops dd small { display:block; color:var(--color-ink-2); font-size:var(--fs-meta); }
 html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { grid-template-columns:minmax(0, 1fr); }
 @media (max-width:399px) { .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { grid-template-columns:minmax(0, 1fr); } }
 .baybay-conversation .baybay-plan-notes { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); list-style:disc; }
 .baybay-conversation .baybay-plan-citations { display:grid; gap:var(--sp-1); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:none; }
-.baybay-conversation .baybay-plan-citations a>span { display:inline-flex; align-items:center; gap:var(--sp-1); text-decoration:underline; text-underline-offset:.2em; }
+.baybay-conversation .baybay-plan-citations a>span { display:inline-flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1); }
+.baybay-conversation .baybay-plan-citation-title { text-decoration:underline; text-underline-offset:.2em; }
+.baybay-conversation .baybay-plan-citation-host { color:var(--color-ink-2); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-ui); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations-none { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-swap { justify-self:start; padding-inline:0; }

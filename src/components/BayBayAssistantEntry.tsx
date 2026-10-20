@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, X, Square, RotateCcw } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, X, Square, RotateCcw, SquarePen } from 'lucide-react';
 import { recordProductEvent } from '../lib/product-events';
 import { recordBayBayLatency } from '../lib/baybay-latency';
 import { BayBayDownvoteReasons } from '../features/feedback/BayBayDownvoteReasons';
@@ -29,6 +29,7 @@ import { BayBaySaveScope } from '../features/baybay/BayBaySaveScope';
 import { BayBayOtter, BayBayPending } from '../features/baybay/BayBayMarks';
 import { bayBayPageTitle } from '../features/baybay/page-title';
 import { loadBayBayCards } from '../features/baybay/cards-loader';
+import { bayBayPageKey } from '../features/baybay/site-path';
 import { translateText, useLocale } from '../i18n/locale';
 import { useReadingSize, useSimpleDisplay } from '../lib/reading-preferences';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
@@ -347,11 +348,14 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   // 简洁显示 subtracts (content arrangement 10-19): four starters, no 也可以 group, 当前条件 hidden.
   const starters = simpleDisplay ? BAYBAY_STARTERS.filter(starter => starter.action === 'send' || starter.action === 'draft') : BAYBAY_STARTERS;
   const signInButton = onLoginNeeded && <Button variant="quiet" className="bb-signin" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</Button>;
-  const header = <div className="bb-head">
+  // 新对话 keeps its words where they fit beside the title; in English, at 特大 and in 简洁显示 on a phone (and below
+  // 360px, in CSS) it is a 44px icon whose name is the same words, so the header stays one row (≤72px at 标准).
+  const compactHeader = locale === 'en' || readingSize === 'extra-large' || simpleDisplay;
+  const header = <div className="bb-head" data-compact={compactHeader ? '' : undefined}>
     <BayBayOtter size={44} />
     <div className="bb-head__text"><h2 id="baybay-panel-title">{copy('问 BayBay', 'Ask BayBay')}</h2>
       <p className="bb-head__sub">{copy('AI 助手 · 回答附来源', 'AI helper · Answers list their sources')}</p></div>
-    {turns.length > 0 && <Button variant="quiet" className="bb-head__new" onClick={newConversation}>{copy('新对话', 'New chat')}</Button>}
+    {turns.length > 0 && <Button variant="quiet" className="bb-head__new" onClick={newConversation} title={copy('新对话', 'New chat')} icon={<SquarePen aria-hidden="true" size={20} strokeWidth={1.75} />}><span className="bb-head__new-label">{copy('新对话', 'New chat')}</span></Button>}
     <CloseButton onClick={close} />
   </div>;
   const composer = <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current && !askBayBay(question)) { inputRef.current?.focus(); if (question.trim().length < 2) flagTooShort(); } }}>
@@ -421,7 +425,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
       </Disclosure>
       {!ownerId && <p className="bb-guest-line" translate="no"><span className="baybay-access-label">{copy('访客 · 仅站内', 'Guest · Site only')}</span>{signInButton}</p>}
     </section>}
-    {!ownerId && turns.some(turn => turn.state === 'complete') && <p className="bb-guest-note" translate="no"><span>{copy('访客模式：BayBay 只用 BAYLINK 站内已收录的资料回答。', 'Guest mode: BayBay answers from information already on BAYLINK.')}</span>{signInButton}</p>}
+    {!ownerId && !emergencyLast && turns.some(turn => turn.state === 'complete') && <p className="bb-guest-note" translate="no"><span>{copy('访客模式：BayBay 只用 BAYLINK 站内已收录的资料回答。', 'Guest mode: BayBay answers from information already on BAYLINK.')}</span>{signInButton}</p>}
     <BayBaySaveScope ownerId={ownerId}><div ref={threadRef} className="baybay-thread" aria-label="本次对话">
       {turns.map((turn) => <section className="baybay-turn" key={turn.id} data-turn-id={turn.id} aria-label={`问题：${turn.question}`}>
         <div className="baybay-user-question"><span className="sr-only">{copy('你', 'You')}</span><p translate="no">{turn.question}</p></div>
@@ -479,13 +483,13 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
   ];
   const plan = response.assistantPlan && <BayBayAssistantPlanCard plan={response.assistantPlan} taskState={response.taskState} ownerId={ownerId} evidence={response.evidence || []} disabled={loading || turn.id !== lastCompleteId} onAsk={message => onAsk(message, turn.currentPath, true)} onNavigate={onNavigate} />;
   // A plan's stops already link their own pages: the answer's cards repeat only the places that are not a stop (render only).
-  const stopLinks = new Set(response.assistantPlan?.stops.flatMap(stop => stop.link ? [stop.link.href] : []) || []);
+  const stopLinks = new Set(response.assistantPlan?.stops.flatMap(stop => stop.link ? [bayBayPageKey(stop.link.href)] : []) || []);
   const planInBody = v2 && !!plan;
   return <div className="member-baybay-answer" data-safety={safety?.kind}>
     {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} healthFloor={response.fallbackHelp?.actions} compact={!fullNotice} onNavigate={onNavigate} />}
     <div className="member-baybay-answer-label" translate={foodGap ? 'no' : undefined}><BayBayOtter size={20} /><span>{foodGap ? locale === 'zh-Hant' ? '餐飲資訊待確認' : copy('餐饮信息待确认', 'Food information unconfirmed') : response.outingSearch ? copy('小队搜索', 'Outing search') : response.degraded ? copy('参考指引', 'Reference guide') : copy('BayBay 建议', 'BayBay suggests')}</span>{spoken && <BayBayReadAloud text={spoken} />}</div>
     {response.degraded && !response.notice && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
-    {v2 ? <BayBayAnswerBody fields={response} cards={planInBody ? cards.filter(card => !stopLinks.has(card.url)) : cards} sources={sources} today={today} onNavigate={onNavigate} before={planInBody ? calls : undefined} plan={planInBody ? plan : undefined} /> : <>
+    {v2 ? <BayBayAnswerBody fields={response} cards={planInBody ? cards.filter(card => !stopLinks.has(bayBayPageKey(card.url))) : cards} sources={sources} today={today} onNavigate={onNavigate} before={planInBody ? calls : undefined} plan={planInBody ? plan : undefined} /> : <>
       {response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={response} onNavigate={onNavigate} />}
       <BayBayCardRail cards={cards} sources={sources} today={today} onNavigate={onNavigate} />
     </>}

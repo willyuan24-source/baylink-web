@@ -105,7 +105,7 @@ test('plan renders safe evidence, schedule and unknown costs; explicit import on
   const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} evidence={parsed.evidence!} disabled={false} onAsk={value => asks.push(value)} onNavigate={value => paths.push(value)} />);
   assert.match(view.container.textContent || '', /10:00–11:30/);
   // UI9-BB: a stop's unknowns merge into one 待核实 line (content arrangement 10-19).
-  assert.match(view.container.textContent || '', /待核实前往本站交通时间、门票费用/);
+  assert.match(view.container.textContent || '', /待核实：前往本站交通时间、门票费用/);
   assert.match(view.container.textContent || '', /Transit and food remain unknown/);
   assert.equal(view.getByRole('link', { name: /Museum visitor information/ }).getAttribute('href'), 'https://www.sanjoseca.gov/parks');
   assert.equal(view.queryByRole('link', { name: /Unsafe/ }), null);
@@ -199,9 +199,12 @@ test('party totals and per-person limits have separate labels and critical unkno
   assert.deepEqual(paragraphs, ['Known costs subtotal for the whole group $60', 'Budget limit $30 · per person']);
   assert.doesNotMatch(paragraphs[0] || '', /per person/);
   assert.match(budget.textContent || '', /unknown costs are not counted as zero/);
-  // 先确认这些 is its own block after the costs (UI9-BB), still before the stops and never folded.
+  // 先确认这些 is its own block after the costs (UI9-BB), still before the stops and never folded. It lists two items;
+  // the third waits in 出发前检查, and the block says so.
   const unknowns = view.container.querySelector('.baybay-plan-key-unknowns')!;
-  assert.match(unknowns.textContent || '', /Opening hours need checking/);
+  assert.deepEqual([...unknowns.querySelectorAll('li')].map(item => item.textContent), ['Transit is still unpriced.', 'Exact journey time is unknown.']);
+  assert.match(unknowns.textContent || '', /1 more items in “Before you go” below/);
+  assert.match(view.container.querySelector('.baybay-plan-checks')?.textContent || '', /Opening hours need checking/);
   assert.ok(budget.compareDocumentPosition(unknowns) & Node.DOCUMENT_POSITION_FOLLOWING);
   assert.equal(budget.closest('details'), null);
   assert.equal(unknowns.closest('details'), null);
@@ -366,7 +369,10 @@ test('only a matching admission source uses the newer price-fact date and basis,
   const view = render(<BayBayAssistantPlanCard plan={fields.assistantPlan!} evidence={fields.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
   assert.match(view.getByRole('link', { name: /^PIER FAQ/ }).textContent || '', /Admission evidence: Catalog snapshot · 2026-10-04/);
   assert.match(view.getByRole('link', { name: /^Other venue hours/ }).textContent || '', /Page read · 2026-10-02/);
-  assert.match(view.getByRole('link', { name: /^Other facts on the same page/ }).textContent || '', /Catalog snapshot · 2026-10-02/);
+  // "Other facts on the same page" is the FAQ page again (a trailing slash apart): one citation per page, and the one kept
+  // is the admission source, so its stamp survives; the other record's own date is left as it was.
+  assert.equal(view.queryByRole('link', { name: /^Other facts on the same page/ }), null);
+  assert.equal(view.getAllByRole('link', { name: /^PIER FAQ/ }).length, 1);
   assert.ok(fields.evidence!.every(source => source.checkedAt === '2026-10-02'));
   const plan = fields.assistantPlan!;
   view.rerender(<BayBayAssistantPlanCard plan={{ ...plan, stops: [{ ...plan.stops[0], admissionFacts: { ...plan.stops[0].admissionFacts!, basis: 'page-read', checkedAt: '2026-10-05T03:00:00Z' } }] }} evidence={fields.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
@@ -400,8 +406,7 @@ test('source-backed family subtotal and budget shortage lead the card; repeated 
   assert.equal(view.getAllByText(unknown).length, 1);
   assert.match(view.container.textContent || '', /Adult 2 × \$39.95 = \$79.90/);
   assert.match(view.container.textContent || '', /Child age 5 1 × \$29.95 = \$29.95/);
-  assert.match(view.container.textContent || '', /Catalog snapshot price · 2026-10-04/);
-  assert.match(view.container.textContent || '', /Eligibility on your chosen date is unconfirmed/);
+  assert.match(view.container.textContent || '', /Catalog snapshot price · 2026-10-04 · Eligibility on your chosen date and extra fees are unconfirmed/);
   const budget = view.container.querySelector('.baybay-plan-budget')!;
   assert.ok(budget.compareDocumentPosition(view.container.querySelector('.baybay-plan-stops')!) & Node.DOCUMENT_POSITION_FOLLOWING);
   view.rerender(<BayBayAssistantPlanCard plan={{ ...parsed.assistantPlan!, budget: { ...parsed.assistantPlan!.budget, knownTotalUsd: 0 } }} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);

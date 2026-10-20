@@ -32,6 +32,9 @@ html[data-simple] .baybay-conversation :is(.bb-points>li,.bb-gap) { font-size:va
 .baybay-conversation .bb-card__meta { overflow-wrap:anywhere; }
 .baybay-conversation .bb-card .ui-save { min-width:0; }
 .baybay-conversation .bb-card__ended { margin:0; color:var(--color-ink-3); font-size:var(--fs-meta); }
+/* 简洁显示's row card: the ✓ line closes the meta paragraph on its own line, in the feed card's trust look. */
+.baybay-conversation .bb-card__check { display:flex; align-items:center; gap:var(--sp-1); color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.baybay-conversation .bb-card__check>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
 .baybay-conversation .bb-card__error { margin:0; color:var(--color-danger); font-size:var(--fs-meta); }
 html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-cards,.baybay-conversation .bb-cards[data-layout=rows] { flex-direction:column; overflow:visible; scroll-snap-type:none; }
 html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-card { flex-basis:auto; }

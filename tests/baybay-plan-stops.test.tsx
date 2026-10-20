@@ -90,11 +90,13 @@ test('plan titles use the reader language and a space between Latin and Chinese'
   assert.equal(spaceMixedScript('10月17日 BART站'), '10月17日 BART 站');
 });
 
-test('opening windows read 08:00–14:00 in Chinese and 8am–2pm in English', () => {
-  assert.equal(bayBayOpeningWindowsLabel([{ open: '08:00', close: '14:00' }], false), '08:00–14:00');
+test('opening windows read 8:00–14:00 in Chinese (the eventWhenLine pattern, N06) and 8am–2pm in English', () => {
+  assert.equal(bayBayOpeningWindowsLabel([{ open: '08:00', close: '14:00' }], false), '8:00–14:00');
   assert.equal(bayBayOpeningWindowsLabel([{ open: '08:00', close: '14:00' }], true), '8am–2pm');
   assert.equal(bayBayOpeningWindowsLabel([{ open: '10:30', close: '12:00' }, { open: '13:00', close: '23:45' }], true), '10:30am–12pm, 1pm–11:45pm');
-  assert.equal(bayBayOpeningWindowsLabel([{ open: '00:15', close: '11:00' }, { open: '13:00', close: '17:00' }], false), '00:15–11:00、13:00–17:00');
+  assert.equal(bayBayOpeningWindowsLabel([{ open: '00:15', close: '11:00' }, { open: '13:00', close: '17:00' }], false), '0:15–11:00、13:00–17:00');
+  assert.equal(bayBayClock('09:30', false), '9:30');
+  assert.equal(bayBayClock('上午', false), '上午');
   assert.equal(bayBayClock('00:15', true), '12:15am');
   assert.equal(bayBayClock('12:00', true), '12pm');
 });
@@ -104,11 +106,11 @@ test('the L07 card shows the market hours, keeps 待安排 only where no window 
   const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} taskState={parsed.taskState} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={path => paths.push(path)} />);
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, '旧金山一日安排');
   const [market, ferry, chinatown] = stopItems(view.container);
-  assert.match(timeOf(market), /^开放 08:00–14:00 · 建议停留约 60 分钟/);
+  assert.match(timeOf(market), /^开放 8:00–14:00 · 停留约 60 分钟/);
   // Line 2 is the time status · the city (UI9-BB, content arrangement 10-19).
   assert.match(timeOf(market), /资料所列开放时段，到达时间待安排 · San Francisco$/);
   assert.doesNotMatch(timeOf(market), /^待安排 ·|时段待核实/);
-  for (const item of [ferry, chinatown]) assert.match(timeOf(item), /^待安排 · 建议停留约 60 分钟时段待核实 · San Francisco$/);
+  for (const item of [ferry, chinatown]) assert.match(timeOf(item), /^待安排 · 停留约 60 分钟时段待核实 · San Francisco$/);
   assert.equal(view.getAllByText((_, node) => node?.tagName === 'DD' && /^待安排/.test(node.textContent || '')).length, 2);
 
   const marketLink = within(market).getByRole('link', { name: 'Ferry Plaza 农夫市集：海边逛一圈' });
@@ -145,14 +147,14 @@ test('English and Traditional Chinese plan cards localize the title, hours and o
   const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} taskState={parsed.taskState} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, 'San Francisco day plan');
   const [market, ferry] = stopItems(view.container);
-  assert.match(timeOf(market), /^Open 8am–2pm · Suggested stay about 60 min/);
+  assert.match(timeOf(market), /^Open 8am–2pm · Stay about 60 min/);
   assert.match(timeOf(ferry), /^Unscheduled/);
   const stopLink = (item: HTMLElement) => item.querySelector('h4 a')!;
   assert.equal(stopLink(market).getAttribute('href'), `/en${MARKET}`);
   assert.ok(within(ferry).getByRole('link', { name: /Official site\s*\(opens in a new tab\)$/ }));
   await act(async () => { await setLocale('zh-Hant', false); });
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, '舊金山一日安排');
-  assert.match(timeOf(stopItems(view.container)[0]), /^開放 08:00–14:00/);
+  assert.match(timeOf(stopItems(view.container)[0]), /^開放 8:00–14:00/);
   assert.equal(stopLink(stopItems(view.container)[0]).getAttribute('href'), `/zh-Hant${MARKET}`);
   assert.ok(within(stopItems(view.container)[1]).getByRole('link', { name: /官方網站（.+）$/ }));
 });
@@ -162,9 +164,9 @@ test('a scheduled stop keeps its time and adds the record hours; English times a
   Object.assign(payload.assistantPlan.stops[0], { startTime: '09:30', endTime: '10:30', timeStatus: 'suggested' });
   const plan = parseBayBayAssistantFields(payload).assistantPlan!;
   const view = render(<BayBayAssistantPlanCard plan={plan} evidence={parseBayBayAssistantFields(payload).evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
-  assert.match(timeOf(stopItems(view.container)[0]), /^09:30–10:30 · 建议停留约 60 分钟建议时段，开放与预约待核实 · San Francisco开放时段 08:00–14:00$/);
+  assert.match(timeOf(stopItems(view.container)[0]), /^9:30–10:30 · 停留约 60 分钟建议时段，开放与预约待核实 · San Francisco开放时段 8:00–14:00$/);
   await act(async () => { await setLocale('en', false); });
-  assert.match(timeOf(stopItems(view.container)[0]), /^9:30am–10:30am · Suggested stay about 60 min.*Open 8am–2pm$/);
+  assert.match(timeOf(stopItems(view.container)[0]), /^9:30am–10:30am · Stay about 60 min.*Open 8am–2pm$/);
 });
 
 test('the importer carries the localized title into the planner draft', async () => {
@@ -213,7 +215,7 @@ test('end to end: the live L07 reply renders the plan card with hours, links and
   assert.equal(within(card).getByRole('heading', { level: 3 }).textContent, '旧金山一日安排');
   assert.doesNotMatch(card.textContent || '', /San Francisco一日安排/);
   const [market, ferry, chinatown] = stopItems(card);
-  assert.match(timeOf(market), /^开放 08:00–14:00/);
+  assert.match(timeOf(market), /^开放 8:00–14:00/);
   assert.match(timeOf(ferry), /^待安排/);
   assert.match(timeOf(chinatown), /^待安排/);
   assert.equal(within(ferry).getByRole('link', { name: /官方网站（在新标签页打开）$/ }).getAttribute('href'), FERRY);
