@@ -110,7 +110,7 @@ test('an open shop never says 即将开业 / Opening soon on its chip, its card 
   const marufuku = canonicalOpening('marufuku-burlingame-announced');
   assert.equal(marufuku.status, 'open');
   assert.equal(marufuku.openedOn, '2026-10-11', 'the store page names 10/11 as the grand opening with service hours');
-  assert.equal(marufuku.category, '拉面');
+  assert.equal(marufuku.category, '博多豚骨拉面', 'the sign says what it sells (CNT-SIGNBOARD: "authentic Hakata-style Tonkotsu ramen")');
   assert.deepEqual(openingChip(marufuku, '2026-10-13'), { zh: '10/11 已开业', en: 'Opened Oct 11' }, 'opened, with the day: a month alone read as a forecast');
 });
 

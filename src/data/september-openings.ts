@@ -76,7 +76,7 @@ export const septemberOpenings: SeptemberOpening[] = [
     address: '2847 Taylor Street, San Francisco, CA 94133',
     officialUrl: 'https://www.woodsbeer.com/',
     sourceUrl: 'https://sfstandard.com/2026/08/31/new-sf-restaurants-bakeries/',
-    sourceLabel: 'The San Francisco Standard · 8 月 31 日', verifiedAt: '2026-09-11', imageKey: 'sep26-open-woods-wharf',
+    sourceLabel: '媒体报道 · The San Francisco Standard · 8 月 31 日', verifiedAt: '2026-09-11', imageKey: 'sep26-open-woods-wharf',
   },
   {
     id: 'hedley-club', name: 'The Hedley Club & Palm Court', city: 'San Jose', region: 'south-bay',
@@ -87,6 +87,6 @@ export const septemberOpenings: SeptemberOpening[] = [
     address: '233 W Santa Clara Street, San Jose, CA 95113',
     officialUrl: 'https://www.hoteldeanza.com/',
     sourceUrl: 'https://sf.eater.com/restaurant-news/213458/hedley-club-palm-court-hotel-de-anza-opening-san-jose',
-    sourceLabel: 'Eater SF · Hotel De Anza 餐饮预告', verifiedAt: '2026-09-11', imageKey: 'sep26-open-hedley-club',
+    sourceLabel: '媒体报道 · Eater SF · Hotel De Anza 餐饮预告', verifiedAt: '2026-09-11', imageKey: 'sep26-open-hedley-club',
   },
 ];
