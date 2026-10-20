@@ -145,6 +145,11 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: "SF Access Reservations: 415.285.6945, option 2 Hours: 7:00am - 6:00pm, everyday" },
   { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "(510) 287-5000", url: "https://eastbayparatransit.org/", readOn: '2026-10-14',
     quote: "Call (510) 287-5000 for information about specific times and locations." },
+  // CNT-SIGNBOARD (GPT batch G lead; the lane read vta.org itself): VTA ACCESS eligibility and trip booking lines.
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "(408) 321-2381", url: "https://www.vta.org/programs/access", readOn: '2026-10-20',
+    quote: "To request a Data Card by mail call eligibility at (408) 321-2381." },
+  { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "(408) 321-2380", url: "https://www.vta.org/programs/access", readOn: '2026-10-20',
+    quote: "Reservations & Trip Information Call us one to three days in advance at (408) 321-2380 between 8 am and before 5 pm." },
   { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "100%", url: "https://www.sfmta.com/fares/free-muni-seniors-ages-65", readOn: '2026-10-14',
     quote: "All San Francisco seniors, ages 65+, with a gross annual family income at or below 100 percent of Bay Area Median Income level are eligible for the program." },
   { slug: "bay-area-senior-transit-clipper-discounts-guide", figure: "3 周", url: "https://www.sfmta.com/fares/free-muni-seniors-ages-65", readOn: '2026-10-14',
@@ -161,6 +166,9 @@ export const OFFICIAL_FIGURES: readonly OfficialFigure[] = [
     quote: "San Francisco 415-355-3555" },
   { slug: "bay-area-chinese-language-resource-map", figure: "510-577-1900", url: "https://aging.ca.gov/Find_Services_in_my_County/", readOn: '2026-10-14',
     quote: "Alameda 510-577-1900" },
+  // CNT-SIGNBOARD: Alameda County's own hotlines page lists this line for seniors who do not know where to start.
+  { slug: "bay-area-chinese-language-resource-map", figure: "510-577-3530", url: "https://socialservices.alamedacountyca.gov/contact-us/hotlines", readOn: '2026-10-19',
+    quote: "Senior Information & Assistance 1-800-510-2020 510-577-3530" },
   { slug: "bay-area-chinese-language-resource-map", figure: "408-350-3200", url: "https://aging.ca.gov/Find_Services_in_my_County/", readOn: '2026-10-14',
     quote: "Santa Clara 408-350-3200" },
   { slug: "bay-area-chinese-language-resource-map", figure: "844-868-0938", url: "https://aging.ca.gov/Find_Services_in_my_County/", readOn: '2026-10-14',
