@@ -234,6 +234,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .site-reading-button>svg { display:none; }
 .reading-preferences p { font-size:var(--text-body); line-height:1.8; color:var(--color-ink-2); }
 .reading-preferences>[role=group] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:20px 0; }
+.reading-preferences button { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:5px; min-height:64px; border:1px solid var(--color-line-control); border-radius:12px; padding:12px 6px; color:var(--color-ink); background:var(--color-surface); font-size:var(--text-body); }
+.reading-preferences button small { display:block; flex-basis:100%; font-size:var(--text-caption); }
+.reading-preferences button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); font-weight:600; }
 .reading-preferences .reading-simple-switch { display:flex; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:16px; width:100%; min-height:max(48px,var(--control-height)); margin:0 0 20px; padding:12px 16px; text-align:left; }
 .reading-preferences .reading-simple-switch>span:first-child { display:grid; gap:4px; min-width:0; }
 .reading-preferences .reading-simple-switch strong { font-size:var(--text-body); font-weight:600; }
@@ -256,6 +259,8 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .planner-place-actions a,.planner-place-actions button { min-height:var(--control-height); font-size:var(--text-fact); padding:8px 6px; }
 .planner-place small,.planner-eyebrow { font-size:var(--text-caption); color:var(--color-ink-3); }
 .planner-place h3 { font-size:var(--text-card); line-height:1.5; text-wrap:balance; }
+.bl-guide-checklist { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
+.bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; }
 /* Extend the same reading preferences to practical tools and publishing. */
 .site-app :is(.attraction-page,.life-tools) p { font-size:var(--text-body); line-height:1.8; }
 .site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:1.8; }
@@ -286,6 +291,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
+  .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
 }
 @media(prefers-reduced-motion:reduce) { .reading-dialog,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .event-participation-note,.editorial-share-actions>p { font-size:var(--text-caption); color:var(--color-ink-3); }
