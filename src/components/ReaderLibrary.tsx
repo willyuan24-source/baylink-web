@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { EnglishOnly } from './EnglishOnly';
-import { Bookmark, ChevronRight, Clock3, Sparkles, X } from 'lucide-react';
+import { ChevronRight, Clock3, Heart, Sparkles, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide } from '../data/guides';
 import { getGuideBySlug } from '../data/guides';
@@ -26,7 +26,7 @@ export function GuideReaderActions({ guide, onAsk }: { guide: Guide; onAsk?: (qu
   useEffect(() => { rememberGuide(guide.slug); }, [guide.slug]);
   return <div className="reader-actions-wrap">
     <div className="reader-actions" aria-label={t('文章操作', 'Article actions')}>
-      <Suspense fallback={<button type="button" disabled><Bookmark size={16} />{t('收藏', 'Save')}</button>}><GuideSaveButton slug={guide.slug} onStatus={setStatus} onError={setError} /></Suspense>
+      <Suspense fallback={<button type="button" disabled><Heart size={16} />{t('收藏', 'Save')}</button>}><GuideSaveButton slug={guide.slug} onStatus={setStatus} onError={setError} /></Suspense>
       <EditorialShareActions item={guideShare(guide)} />
       {onAsk && <button type="button" onClick={() => onAsk(guide.category === 'education' ? bayBayPageQuestions(`/guides/${guide.slug}`)[1].question : `我正在读《${guide.title}》。请结合这篇指南，帮我整理最值得做的三件事和出发前需要确认的事项。`)}><Sparkles size={16} />{guide.category === 'education' ? '让 BayBay 整理入学步骤' : '让 BayBay 帮我整理'}</button>}
       <Link to="/my-week#saved">{t('我的收藏', 'My saved items')}<ChevronRight size={14} /></Link>
@@ -63,9 +63,9 @@ export function ReadingShelfView({ compact = false, saved: savedList }: { compac
     if (forcedSaved && next !== 'saved') setParams(current => { const values = new URLSearchParams(current); values.delete('view'); return values; }, { replace: true, preventScrollReset: true });
   };
   return <section className={`reader-shelf${compact ? ' reader-shelf--compact' : ''}`} aria-labelledby="reader-shelf-title">
-    <div className="reader-shelf-heading"><div><EnglishOnly><span className="reader-eyebrow">YOUR LITTLE CORNER</span></EnglishOnly><h2 id="reader-shelf-title">{compact ? '把喜欢的湾区，留给下次。' : '你的阅读角落'}</h2></div>{compact && <Link to="/my-week#saved">我的收藏<ChevronRight size={15} /></Link>}</div>
+    <div className="reader-shelf-heading"><div><EnglishOnly><span className="reader-eyebrow">Your little corner</span></EnglishOnly><h2 id="reader-shelf-title">{compact ? '把喜欢的湾区，留给下次。' : '你的阅读角落'}</h2></div>{compact && <Link to="/my-week#saved">我的收藏<ChevronRight size={15} /></Link>}</div>
     <div className="reader-shelf-tabs" role="group" aria-label="阅读记录">
-      <button type="button" aria-pressed={active === 'saved'} onClick={() => switchTab('saved')}><Bookmark size={15} />我的收藏 {savedList?.known ? saved.length : '—'}</button>
+      <button type="button" aria-pressed={active === 'saved'} onClick={() => switchTab('saved')}><Heart size={15} />我的收藏 {savedList?.known ? saved.length : '—'}</button>
       <button type="button" aria-pressed={active === 'recent'} onClick={() => switchTab('recent')}><Clock3 size={15} />最近读过</button>
       {!compact && recent.length > 0 && active === 'recent' && <button type="button" className="reader-clear" onClick={() => { const persisted = clearReadingHistory(); setNotice(persisted ? '阅读记录已清除，收藏仍保留。' : '浏览器未允许修改阅读记录。'); }}>清除阅读记录</button>}
     </div>

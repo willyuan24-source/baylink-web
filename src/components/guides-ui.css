@@ -17,7 +17,7 @@
   color: var(--color-ink-3);
   font-size: .8125rem;
   font-weight: 400;
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
   line-height: 1.5;
 }
 .bl-guide-eyebrow > span {
@@ -46,102 +46,7 @@
 .bl-guide-empty p {
   font-size: var(--text-fact);
 }
-.bl-guide-empty button {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  margin-top: 8px;
-  border-radius: var(--r-md);
-  background: var(--color-brand-deep);
-  padding: 11px 16px;
-  color: var(--color-surface);
-  font-size: var(--text-fact);
-}
 /* A quiet, readable article with a real table of contents and session checklist. */
-.bl-guide-detail {
-  --guide-shell-offset: 0px;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 90px);
-}
-.site-main .bl-guide-detail {
-  --guide-shell-offset: 82px;
-}
-.site-main .bl-guide-prose > h2,
-.site-main .bl-guide-sources h2 {
-  /* The app already adds scroll padding for its top navigation. */
-  scroll-margin-top: 64px;
-}
-.bl-guide-article {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 42px 40px 28px;
-}
-.bl-guide-article h1 {
-  margin-top: 21px;
-  font-size: clamp(1.75rem, calc(3.5vw * var(--fluid-scale)), 2.625rem);
-  font-weight: 600;
-  line-height: 1.45;
-  letter-spacing: 0;
-}
-.bl-guide-reading-layout {
-  display: grid;
-  grid-template-columns: 190px minmax(0, 1fr);
-  gap: 40px;
-  margin-top: 40px;
-}
-.bl-guide-toc {
-  min-width: 0;
-}
-.bl-guide-toc-desktop {
-  position: sticky;
-  top: calc(var(--guide-shell-offset) + 89px);
-  padding-right: 17px;
-  border-right: 1px solid var(--color-line);
-}
-.bl-guide-toc h2 {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--text-fact);
-  font-weight: 600;
-}
-.bl-guide-toc ol {
-  display: grid;
-  gap: 4px;
-  margin-top: 15px;
-}
-.bl-guide-toc a {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  border-radius: var(--r-sm);
-  padding: 8px 5px;
-  color: var(--color-ink-2);
-  font-size: var(--text-caption);
-  line-height: 1.65;
-}
-.bl-guide-toc a:hover {
-  color: var(--color-ink);
-  background: var(--color-surface-2);
-  /* The number and the heading are two flex items: the tint is the hover cue, not an underline under both. */
-  text-decoration-line: none;
-}
-.bl-guide-toc a > span {
-  flex: 0 0 16px;
-  color: var(--color-ink-2);
-  font-variant-numeric: tabular-nums;
-  font-size: var(--text-caption);
-}
-.bl-guide-toc-desktop > p {
-  margin-top: 21px;
-  color: var(--color-ink-2);
-  font-size: var(--text-caption);
-}
-.bl-guide-toc-mobile {
-  display: none;
-}
-.bl-guide-reading-main {
-  min-width: 0;
-}
 .bl-guide-prose > * + * {
   margin-top: 20px;
 }
@@ -291,36 +196,11 @@
   font-size: var(--text-fact);
   line-height: 1.85;
 }
-.bl-guide-cta button,
-.bl-guide-cta > a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 3rem;
-  margin-top: 20px;
-  border-radius: var(--r-md);
-  background: var(--color-brand-tint);
-  padding: 0 20px;
-  color: var(--color-brand);
-  font-size: var(--text-body);
-  font-weight: 600;
-  transition: background 0.2s;
-}
-.bl-guide-cta button:hover,
-.bl-guide-cta > a:hover {
-  background: var(--color-selected);
-}
 .bl-guide-cta-choices {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-top: 18px;
-}
-.bl-guide-cta-choices button {
-  margin-top: 0;
-  gap: 7px;
-  padding: 10px 12px;
 }
 .bl-guide-sources {
   position: relative;
@@ -329,11 +209,6 @@
   border: 1px solid var(--color-line);
   border-radius: var(--r-lg);
   background: var(--color-surface);
-}
-.bl-guide-source-icon {
-  display: block;
-  margin-bottom: 11px;
-  color: var(--color-brand);
 }
 .bl-guide-sources h2 {
   scroll-margin-top: calc(var(--guide-shell-offset) + 90px);
@@ -394,93 +269,15 @@
   font-size: 1.25rem;
   font-weight: 600;
 }
-.bl-guide-return {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-top: 28px;
-  min-height: 3rem;
-  border: 1px solid var(--color-line-strong);
-  border-radius: var(--r-md);
-  background: var(--color-surface);
-  color: var(--color-ink);
-  font-size: var(--text-body);
-  font-weight: 600;
-}
-.bl-guide-return:hover {
-  background: var(--color-surface-2);
-}
 /* Shared home-page journal teaser. */
 .bl-guide-detail a:focus-visible,
 .bl-guide-detail button:focus-visible {
   outline: 3px solid var(--color-brand);
   outline-offset: 4px;
 }
-@media (max-width: 1250px) {
-  .bl-guide-article {
-    padding: 36px 28px 26px;
-  }
-  .bl-guide-reading-layout {
-    grid-template-columns: 155px minmax(0, 1fr);
-    gap: 24px;
-  }
-}
-@media (max-width: 760px) {
-  .bl-guide-reading-layout {
-    grid-template-columns: 1fr;
-    gap: 25px;
-    margin-top: 26px;
-  }
-  .bl-guide-toc-desktop {
-    display: none;
-  }
-  .bl-guide-toc-mobile {
-    display: block;
-    padding: 14px 16px;
-    border: 1px solid var(--color-line);
-    border-radius: var(--r-md);
-    background: var(--color-surface);
-  }
-  .bl-guide-toc-mobile summary {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: var(--text-fact);
-    font-weight: 400;
-    cursor: pointer;
-    list-style: none;
-  }
-  .bl-guide-toc-mobile summary::-webkit-details-marker {
-    display: none;
-  }
-  .bl-guide-toc-mobile summary > span {
-    margin-left: auto;
-    color: var(--color-ink-2);
-    font-size: var(--text-caption);
-    font-weight: 400;
-  }
-  .bl-guide-toc-mobile summary::after {
-    content: "+";
-    margin-left: 6px;
-    font-size: 1rem;
-    font-weight: 400;
-    color: var(--color-ink-2);
-  }
-  .bl-guide-toc-mobile[open] summary::after {
-    content: "−";
-  }
-}
 @media (max-width: 540px) {
   .bl-guide-eyebrow {
     font-size: .8125rem;
-  }
-  .bl-guide-article {
-    padding: 27px 20px 20px;
-  }
-  .bl-guide-article h1 {
-    font-size: 1.75rem;
-    margin-top: 17px;
   }
   .bl-guide-prose > h2 {
     font-size: 1.25rem;
@@ -499,9 +296,6 @@
   .bl-guide-cta h3 {
     font-size: var(--fs-keep-18);
   }
-  .bl-guide-cta-choices {
-    grid-template-columns: 1fr;
-  }
   .bl-guide-sources {
     padding: 21px;
   }
@@ -509,19 +303,9 @@
     font-size: 1.125rem;
   }
 }
-@media (max-width: 1023px) {
-  .site-main .bl-guide-detail { --guide-shell-offset: 73px; }
-}
-@media (max-width: 639px) {
-  .site-main .bl-guide-detail { --guide-shell-offset: 67px; }
-  .site-main .bl-guide-prose > h2, .site-main .bl-guide-sources h2 { scroll-margin-top: 64px; }
-}
 .bl-guide-template { margin:28px 0; border:0; border-radius:var(--r-lg); background:var(--color-surface-2); padding:22px; }
 .bl-guide-template-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .bl-guide-template-heading h3 { font-size:1.0625rem; font-weight:600; color:var(--color-ink); margin:0; }
-.bl-guide-template-heading button { display:inline-flex; align-items:center; gap:7px; padding:0 16px; min-height:3rem; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
-.bl-guide-template-heading button:disabled { opacity:.7; cursor:wait; }
-.bl-guide-template-heading button:hover:not(:disabled) { background:var(--color-surface-2); }
 .bl-guide-template-note,.bl-guide-template-status { font-size:var(--text-fact); line-height:1.8; color:var(--color-ink-2); }
 .bl-guide-template-note { margin:12px 0; }
 .bl-guide-template pre { white-space:pre-wrap; overflow-wrap:anywhere; font-family:inherit; font-size:.875rem; line-height:1.95; background:var(--color-surface); border:1px solid var(--color-line); border-radius:var(--r-md); padding:18px; margin:0; user-select:text; }

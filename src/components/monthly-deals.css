@@ -1,16 +1,17 @@
-.bl-guide-edition-notice { display:flex; align-items:flex-start; gap:12px; padding:18px 20px; margin:22px 0 0; border:1px solid rgb(var(--color-warning-rgb) / .3); border-radius:var(--r-md); background:var(--color-warning-tint); color:var(--color-warning); }
-.bl-guide-edition-notice>svg { flex-shrink:0; margin-top:2px; }
-.bl-guide-edition-notice strong { font-size:var(--text-fact); font-weight:600; line-height:1.8; }
-.bl-guide-edition-notice p { margin:7px 0; max-width:780px; font-size:var(--text-fact); line-height:1.8; color:var(--color-warning); }
-.bl-guide-edition-notice div>span { font-size:var(--text-caption); line-height:1.6; color:var(--color-warning); }
-.bl-guide-edition-notice--archive { background:var(--color-warning-tint); border-color:rgb(var(--color-warning-rgb) / .45); }
+/* The 往期 notice (a past monthly edition): neutral, not amber (DECISIONS #5: no amber status look); the current edition says
+   本期 in the guide head's meta line instead (UI9-GUIDES). */
+.bl-guide-edition-notice { display:flex; align-items:flex-start; gap:var(--sp-3); padding:var(--inset-card); margin:0; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
+.bl-guide-edition-notice>svg { flex-shrink:0; margin-top:var(--sp-1); color:var(--color-ink-2); }
+.bl-guide-edition-notice strong { font-size:var(--fs-body); font-weight:600; line-height:var(--lh-ui); }
+.bl-guide-edition-notice p { margin:var(--sp-1) 0; max-width:var(--measure); font-size:var(--fs-meta); line-height:var(--lh-ui); color:var(--color-ink); }
+.bl-guide-edition-notice div>span { font-size:var(--fs-meta); line-height:var(--lh-ui); color:var(--color-ink-2); }
+.bl-guide-edition-notice--archive { background:var(--color-surface-2); border-color:var(--color-line-strong); }
 .bl-guide-source-link { margin:18px 0 24px; padding:16px 18px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface-2); }
 .bl-guide-source-link>a { display:inline-flex; align-items:center; gap:8px; min-height:30px; color:var(--color-brand); font-size:.875rem; font-weight:600; line-height:1.65; text-decoration:underline; text-underline-offset:4px; }
 .bl-guide-source-link>a>svg { flex-shrink:0; }
 .bl-guide-source-link>a:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
 .bl-guide-source-link>p { margin:7px 0 0; color:var(--color-ink-3); font-size:.8125rem; line-height:1.9; }
 @media(max-width:639px) {
- .bl-guide-edition-notice { gap:10px; padding:15px; margin-top:18px; }
  .bl-guide-source-link { padding:14px 15px; }
  .bl-guide-source-link>a { font-size:.8125rem; }
  .bl-guide-source-link>p { font-size:var(--text-caption); }

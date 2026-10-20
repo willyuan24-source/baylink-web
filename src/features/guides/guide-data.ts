@@ -6,7 +6,7 @@ import { guideTopicOf } from '../../data/guide-topics';
 import { rankRelatedGuides } from '../../lib/guide-discovery';
 import { getGuideMetadata } from '../../lib/guide-metadata';
 import { getOfferImage } from '../../lib/offer-media';
-import { guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
+import { guideCallOf, guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
 import type { GuideCard, GuideCovers, GuideIndexCard, GuideInlineImage, GuideOpusEntry, GuideRecord, GuidesIndex } from './guide-records';
 import { OPUS_BAY_ATTRACTION_ENTRIES } from '../../lib/opus-bay-attraction-entry';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../../data/scene3d-postcards';
@@ -130,7 +130,8 @@ export function guidesIndexOf(coversOf: (guide: Guide) => GuideCovers): GuidesIn
   return {
     guides: guides.map((guide): GuideIndexCard => {
       const regions = guideRegionsOf(guide);
-      return { ...guideCardOf(guide, coversOf(guide)), ...(regions.length ? { regions } : {}) };
+      const call = guideCallOf(getGuideEditorial(guide.slug));
+      return { ...guideCardOf(guide, coversOf(guide)), ...(regions.length ? { regions } : {}), ...(call ? { call } : {}) };
     }),
     categoryTabs: GUIDE_CATEGORY_TABS,
   };

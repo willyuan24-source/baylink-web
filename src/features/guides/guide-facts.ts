@@ -3,7 +3,7 @@ import { GUIDE_TOPICS, type GuideTopicId } from '../../data/guide-topics';
 import { getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import type { Copy, CoverTone } from '../../lib/event-facts';
 import { getLocale } from '../../i18n/locale';
-import { coverFor, type GuideCard } from './guide-records';
+import { coverFor, type GuideCall, type GuideCard } from './guide-records';
 import { guideKindOf } from './guide-kind';
 
 /**
@@ -72,6 +72,48 @@ export function guideCardMeta(card: Pick<GuideCard, 'sourceCount' | 'readMinutes
   return sources
     ? { zh: `${sources} 个官方来源 · 约 ${minutes} 分钟`, en: `${sources} official source${sources === 1 ? '' : 's'} · ${minutes} min read` }
     : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
+}
+
+/**
+ * The one number a guide's 拨打 calls (UI9-GUIDES): the cover slide's phone, else the first contact card's. The reader's bar
+ * (from the record's editorial) and the index's 简洁 elder rows (the generated card's `call`, guide-data.ts) read the same
+ * fields through this function, so both print the same number.
+ */
+export function guideCallOf(editorial: { cover: { phone?: { number: string; tel: string; label: Copy } }; contacts?: readonly { number: string; tel: string; name: Copy }[] } | undefined): GuideCall | undefined {
+  const phone = editorial?.cover.phone;
+  if (phone) return { number: phone.number, tel: phone.tel, label: { zh: phone.label.zh, en: phone.label.en } };
+  const contact = editorial?.contacts?.[0];
+  return contact ? { number: contact.number, tel: contact.tel, label: { zh: contact.name.zh, en: contact.name.en } } : undefined;
+}
+
+/**
+ * The 2-line guide card meta (UI9-GUIDES, the index rows and "Read next"): line 1 the time, "[10 月本期 · ]约 4 分钟" (a current
+ * monthly edition says so first); line 2 the sources, "10 个官方来源[ · 东湾]" (the region only when the guide names one).
+ * `guideCardMeta` (one line) stays for the cards that still print one (home's GuideRail, C).
+ */
+export function guideCardLines(card: Pick<GuideCard, 'sourceCount' | 'readMinutes' | 'editionMonth'> & { regions?: readonly GuideRegionId[] }, today: string): { when: Copy; meta?: Copy } {
+  const minutes = card.readMinutes, month = card.editionMonth;
+  const current = !!month && month === today.slice(0, 7);
+  const monthNumber = month ? Number(month.slice(5, 7)) : 0;
+  const monthEn = month ? new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, monthNumber - 1, 15))) : '';
+  const when: Copy = current ? { zh: `${monthNumber} 月本期 · 约 ${minutes} 分钟`, en: `${monthEn} edition · ${minutes} min read` } : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
+  const sources = card.sourceCount;
+  const regions = (card.regions ?? []).map(id => GUIDE_REGIONS.find(region => region.id === id)!).filter(Boolean);
+  const place = regions.length ? { zh: regions.map(region => region.zh).join('、'), en: regions.map(region => region.en).join(', ') } : undefined;
+  if (!sources && !place) return { when };
+  const count: Copy | undefined = sources ? { zh: `${sources} 个官方来源`, en: `${sources} official source${sources === 1 ? '' : 's'}` } : undefined;
+  const meta: Copy = count && place ? { zh: `${count.zh} · ${place.zh}`, en: `${count.en} · ${place.en}` } : (count ?? place)!;
+  return { when, meta };
+}
+
+/**
+ * Index previews in season (UI9-GUIDES): guides whose monthly edition is the current Bay Area month come first, a past
+ * edition never shows in a preview (it stays in its topic's full list), the rest keep their order.
+ */
+export function inSeason<T extends Pick<GuideCard, 'editionMonth'>>(cards: readonly T[], today: string): T[] {
+  const month = today.slice(0, 7);
+  const live = cards.filter(card => !card.editionMonth || card.editionMonth >= month);
+  return [...live.filter(card => card.editionMonth === month), ...live.filter(card => card.editionMonth !== month)];
 }
 
 /** A guide date for English readers: '2026-10-06' → 'Oct 6, 2026' (the head meta line and the carousel cover). */

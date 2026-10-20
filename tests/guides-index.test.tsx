@@ -19,6 +19,8 @@ const { guides } = await import('../src/data/guides');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { ELDER_HUB_SLUGS, GUIDE_TOPICS, guideSlugsForTopic } = await import('../src/data/guide-topics');
 const { guideRegionsOf } = await import('../src/features/guides/guide-data');
+const { inSeason } = await import('../src/features/guides/guide-facts');
+const { getBayAreaToday } = await import('../src/lib/monthly');
 const { setLocale } = await import('../src/i18n/locale');
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
@@ -29,26 +31,34 @@ function Harness() {
 }
 const open = (url: string) => render(<MemoryRouter initialEntries={[url]}><Harness /></MemoryRouter>);
 const aiSources = new Set(Object.values(GUIDE_IMAGES).filter(image => image.kind === 'illustration' && !image.scene3d).map(image => image.src));
+/** The guide links of a container, once each (a list renders rows for a phone and covers for a desktop). */
+const guideLinks = (element: HTMLElement) => [...new Set([...element.querySelectorAll('a[href^="/guides/"]')].map(link => link.getAttribute('href')!.replace('/guides/', '')))];
+const bySlug = new Map(guides.map(guide => [guide.slug, guide]));
 
-test('the index shows the seven task topics with 长辈与家属 first, a region row and the 长辈与家属先看 rail', () => {
+test('the index shows one chip row (全部, the seven topics with 长辈与家属 first, 地区 ▾), the 长辈与家属先看 band and six topic previews', () => {
   const view = open('/guides');
   const topics = within(view.getByRole('group', { name: '指南主题' })).getAllByRole('button');
-  assert.deepEqual(topics.map(chip => chip.textContent?.replace(/\s*\d+$/, '')), ['全部', ...GUIDE_TOPICS.map(topic => topic.zh)]);
+  // No counts on the chips (owner, 10-19); 地区 shows its current value and opens a sheet.
+  assert.deepEqual(topics.map(chip => chip.textContent), ['全部', ...GUIDE_TOPICS.map(topic => topic.zh), '整个湾区']);
   assert.equal(topics[0].getAttribute('aria-pressed'), 'true');
-  assert.equal(topics[1].textContent?.startsWith('长辈与家属'), true);
-  const regions = within(view.getByRole('group', { name: '地区' })).getAllByRole('button');
-  assert.deepEqual(regions.map(chip => chip.textContent), ['全湾区', '旧金山', '东湾', '半岛', '南湾', '北湾']);
-  const rail = view.getByRole('region', { name: '长辈与家属先看' });
-  const slides = within(rail).getAllByRole('group', { name: /^\d+ \/ \d+$/ });
-  assert.equal(slides.length, 6);
-  assert.deepEqual(within(rail).getAllByRole('link').map(link => link.getAttribute('href')), ELDER_HUB_SLUGS.slice(0, 6).map(slug => `/guides/${slug}`));
-  // Every other topic previews up to four covers; a topic with enough guides of its own does not repeat a rail guide.
+  assert.equal(topics.at(-1)!.getAttribute('aria-haspopup'), 'dialog');
+  fireEvent.click(topics.at(-1)!);
+  const sheet = view.getByRole('dialog', { name: '地区' });
+  assert.deepEqual(within(sheet).getAllByRole('button').filter(button => button.classList.contains('gl-regions__option')).map(option => option.textContent), ['整个湾区', '旧金山', '东湾', '半岛', '南湾', '北湾']);
+  // The band: three rows, this month's editions first and no past edition.
+  const today = getBayAreaToday();
+  const band = view.getByRole('region', { name: '长辈与家属先看' });
+  const season = inSeason(ELDER_HUB_SLUGS.map(slug => bySlug.get(slug)!), today).map(guide => guide.slug);
+  assert.deepEqual(guideLinks(band), season.slice(0, 3));
+  assert.ok(within(band).getByRole('button', { name: `看全部 ${guideSlugsForTopic('elders', guides).length} 篇` }));
+  // Every other topic previews up to four guides in season; a topic with enough guides of its own does not repeat a band guide.
   for (const topic of GUIDE_TOPICS.filter(item => item.id !== 'elders')) {
     const section = view.getByRole('region', { name: topic.zh, exact: true });
-    const links = within(section).getAllByRole('link').map(link => link.getAttribute('href')!.replace('/guides/', ''));
     const all = guideSlugsForTopic(topic.id, guides);
-    const others = all.filter(slug => !ELDER_HUB_SLUGS.slice(0, 6).includes(slug));
-    assert.deepEqual(links, (others.length >= 2 ? others : all).slice(0, 4), topic.zh);
+    const others = all.filter(slug => !season.slice(0, 3).includes(slug));
+    const expected = inSeason((others.length >= 2 ? others : all).map(slug => bySlug.get(slug)!), today).slice(0, 4).map(guide => guide.slug);
+    assert.deepEqual(guideLinks(section), expected, topic.zh);
+    for (const slug of expected) assert.ok(!bySlug.get(slug)!.editionMonth || bySlug.get(slug)!.editionMonth! >= today.slice(0, 7), `${slug}: no past edition in a preview`);
   }
 });
 
@@ -58,8 +68,11 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   const images = [...view.container.querySelectorAll('img:not(.ui-cover__backdrop)')];
   assert.ok(images.length > 0);
   for (const image of images) assert.ok(!aiSources.has(image.getAttribute('src')!), `${image.getAttribute('src')} is an AI illustration`);
-  const sources = images.map(image => image.getAttribute('src'));
-  assert.equal(new Set(sources).size, sources.length, 'no picture appears twice on the page');
+  // A phone shows the rows, a desktop the covers (CSS shows one of the two): neither shows a picture twice.
+  for (const hidden of ['desk', 'phone']) {
+    const sources = images.filter(image => !image.closest(`[data-view=${hidden}]`)).map(image => image.getAttribute('src'));
+    assert.equal(new Set(sources).size, sources.length, `no picture appears twice on the page (without the ${hidden} view)`);
+  }
   for (const card of view.container.querySelectorAll('.ui-feed-card')) {
     const cover = card.querySelector('.ui-cover, [data-cover="type"]');
     assert.ok(cover, 'every card has a cover');
@@ -67,19 +80,27 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   }
   const typed = view.container.querySelectorAll('[data-cover="type"][data-kind="guide"]');
   assert.ok(typed.length > 0);
-  for (const cover of typed) assert.equal(cover.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
-  // A pilot guide's coded cover prints its first answer (the number joined by non-breaking hyphens, U+2011, so it keeps one line).
-  assert.ok([...typed].some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-510-2020')));
+  // A row's mini cover (≤ 140 px) shows its topic mark only (UI9-C); every full-size coded cover names itself.
+  for (const cover of typed) if (!cover.closest('.ui-row-card__thumb')) assert.equal(cover.querySelector('[data-provenance]')?.textContent, 'BAYLINK 信息卡');
+  // A pilot guide's coded cover prints its first answer (the number joined by non-breaking hyphens, U+2011, so it keeps one
+  // line): on the 长辈与家属 list's desktop covers (a row's mini cover shows the topic mark only).
+  cleanup();
+  const hub = open('/guides?topic=elders');
+  const desk = [...hub.container.querySelectorAll('[data-view=desk] [data-cover="type"][data-kind="guide"]')];
+  assert.ok(desk.some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-510-2020')));
 });
 
 test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, and chips update the URL', () => {
   const view = open('/guides?topic=elders');
   assert.equal(view.getByRole('button', { name: /^长辈与家属/ }).getAttribute('aria-pressed'), 'true');
-  const list = view.getByRole('list', { name: '长辈与家属' });
+  const list = view.getAllByRole('list', { name: '长辈与家属' })[0];
   const hub = guideSlugsForTopic('elders', guides);
-  assert.deepEqual(within(list).getAllByRole('link').map(link => link.getAttribute('href')), hub.map(slug => `/guides/${slug}`));
+  assert.deepEqual(guideLinks(list), hub);
   assert.equal(view.container.querySelector('.gl-count')?.textContent, `${hub.length} 篇`);
-  fireEvent.click(view.getByRole('button', { name: '东湾' }));
+  // G16: a row whose guide has a number carries its 48 px 拨打 (shown in 简洁显示), the number the reader's bar calls.
+  assert.ok(list.querySelector('a.gl-call[href^="tel:"]'));
+  fireEvent.click(view.getByRole('button', { name: '地区：整个湾区' }));
+  fireEvent.click(within(view.getByRole('dialog', { name: '地区' })).getByRole('button', { name: '东湾' }));
   const url = new URL(view.getByTestId('location').textContent!, 'http://localhost');
   assert.equal(url.searchParams.get('topic'), 'elders');
   assert.equal(url.searchParams.get('region'), 'east-bay');
@@ -104,8 +125,8 @@ test('searching inside a topic searches that topic’s own list, so the 长辈�
 
 test('a region chip lists only that region’s guides', () => {
   const view = open('/guides?region=sf');
-  assert.equal(view.getByRole('button', { name: '旧金山' }).getAttribute('aria-pressed'), 'true');
-  const hrefs = within(view.getByRole('list', { name: '旧金山' })).getAllByRole('link').map(link => link.getAttribute('href')!.replace('/guides/', ''));
+  assert.equal(view.getByRole('button', { name: '地区：旧金山' }).getAttribute('aria-pressed'), 'true');
+  const hrefs = guideLinks(view.getAllByRole('list', { name: '旧金山' })[0]);
   const expected = guides.filter(guide => guideRegionsOf(guide).includes('sf')).map(guide => guide.slug);
   assert.ok(expected.length >= 10);
   assert.deepEqual(hrefs.sort(), expected.slice(0, 24).sort());

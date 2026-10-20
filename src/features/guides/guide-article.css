@@ -1,331 +1,472 @@
-/* Guide article (T7, WEB-GUIDES; design.md §4.10): head, lead (carousel or cover + actions + 30 秒看懂), contact cards, step
-   cards, related covers and credits. Loaded with GuideDetail only (route CSS, RC-6). Tokens and rem only; the body prose keeps
-   its reviewed reading styles in guides-ui.css. Reviewed by scripts/check-editorial-styles.mjs. */
-/* The article sits in the shared page frame (SV-09): content box --container-wide, side padding --page-gutter, so its text
-   starts on the header's edge (112 in a 1440 window), like /guides. */
-.gd-article.bl-guide-article { box-sizing:content-box; max-width:var(--container-wide); padding:12px var(--page-gutter) 24px; }
+/* Guide article (T7, WEB-GUIDES; design.md §4.10; UI9-GUIDES): head, lead (carousel or cover + 30 秒看懂), the rail with the action
+   bar, 目录, contacts, step cards, sources, related guides and credits. Loaded with GuideDetail only (route CSS, RC-6). Tokens
+   only: sizes on --fs-*, line heights on --lh-*, spacing on --sp-* / --section-gap / --stack-head, radii on --r-*, shadows on
+   --e1 / --e2. The action bar's frame, cells and primary are DETAIL's (.site-detail-actions.detail-actions,
+   lanes/UI9-DETAIL/BAR-CONTRACT.md); here only the call's number. Reviewed by scripts/check-editorial-styles.mjs. */
 
-/* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → meta line. */
-.gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
-.gd-crumbs a { display:inline-flex; align-items:center; gap:2px; min-height:2.75rem; color:var(--color-ink-2); font-weight:600; text-decoration:none; }
-.gd-crumbs a:hover { color:var(--color-brand); text-decoration:underline; }
+/* Frame. A phone reads one column (CSS order rearranges it in 简洁显示); a desktop is F's 12 columns: head and lead on 1–9,
+   the rail on 10–12 (sticky to the end of the sources), 目录 on 1–3 beside the body on 4–9, related and credits on 1–12.
+   1024–1199 px: body 1–8 and rail 9–12, 目录 folded above the body as on a phone. At 1440 the columns are 112–398, 422–1018 and
+   1042–1328. */
+.gd-article.bl-guide-article { box-sizing:content-box; display:flex; flex-direction:column; max-width:var(--container-wide); margin:0 auto; padding:var(--sp-3) var(--page-gutter) var(--sp-6); }
+.gd-article>* { min-width:0; }
+.gd-page.bl-guide-detail { padding-bottom:0; }
+
+/* Head: breadcrumb → H1 (short part at title size, the rest of the title as one quieter line) → two meta lines. */
+.gd-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-crumbs a { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:2.75rem; color:var(--color-ink-2); font-weight:400; text-decoration:none; }
 .gd-crumbs a>svg { width:1rem; height:1rem; }
-.gd-article .gd-title { display:flex; flex-direction:column; gap:6px; max-width:36em; margin:0; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); letter-spacing:0; }
-.gd-title__head { font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
+.gd-article .gd-title { display:flex; flex-direction:column; gap:var(--sp-1); max-width:var(--measure); margin:0; color:var(--color-ink); font-size:var(--fs-title); line-height:var(--lh-tight); letter-spacing:0; }
+.gd-title__head { font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; overflow-wrap:break-word; }
 .gd-title__sep { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-.gd-title__rest { color:var(--color-ink-2); font-size:1rem; line-height:1.6; font-weight:400; }
-.gd-meta { display:flex; flex-wrap:wrap; align-items:center; gap:0 4px; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.gd-meta a { color:var(--color-brand); font-weight:600; text-decoration:none; }
-.gd-meta a:hover { text-decoration:underline; }
-.gd-meta__last { display:inline-flex; align-items:center; gap:0 4px; white-space:nowrap; }
-.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin:-8px -8px -8px -4px; border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
+.gd-title__rest { color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; }
+/* Each meta item keeps its words on one line; the "·" belongs to the item after it, so a wrapped line never starts with one. */
+.gd-meta { display:flex; flex-wrap:wrap; align-items:center; margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-meta+.gd-meta { margin-top:0; }
+.gd-meta__item { white-space:nowrap; }
+.gd-meta__item+.gd-meta__item::before { content:"·"; padding-inline:var(--sp-2); color:var(--color-ink-3); }
+.gd-meta__item[data-edition] { color:var(--color-ink); }
+.gd-meta a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin-inline:calc(var(--sp-2) * -1); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
 .gd-meta__info>svg { width:1.125rem; height:1.125rem; }
-.gd-about p { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
-.gd-about a { color:var(--color-brand); font-weight:600; }
+.gd-about p { margin:0 0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); }
+.gd-about a { color:var(--color-brand); }
 
-/* Lead: the carousel (pilot guides) or the cover photo, then the three actions and the quick answer. */
-.gd-lead { display:flex; flex-direction:column; gap:16px; margin-top:12px; }
-.gd-lead__side { display:flex; flex-direction:column; gap:16px; min-width:0; }
+/* Lead: the carousel (pilot guides) or the cover photo with its credit line, then 30 秒看懂 or the summary. */
+.gd-lead { display:flex; flex-direction:column; gap:var(--sp-4); margin-top:var(--sp-4); }
+.gd-lead__side { display:flex; flex-direction:column; gap:var(--sp-4); min-width:0; }
 .gd-lead__visual { min-width:0; }
 .gd-lead .bl-freebie-jump { align-self:flex-start; }
-.gd-actions { display:flex; flex-wrap:wrap; gap:8px; }
-.gd-actions>.ui-button { flex:1 1 auto; padding:0 12px; gap:6px; white-space:nowrap; }
-.gd-actions>.ui-button>svg { flex:none; width:1.125rem; height:1.125rem; }
-.gd-actions__status { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
-.gd-actions__status:empty { display:none; }
-.gd-actions__error { margin:4px 0 0; color:var(--color-danger); font-size:var(--text-caption); line-height:1.385; }
-.gd-actions__error button { min-height:2.75rem; border:0; background:transparent; color:var(--color-brand); font-weight:600; text-decoration:underline; cursor:pointer; }
-.gd-summary p { margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.75; }
-.gd-summary .gd-summary__audience { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-cover-figure { margin:0; }
+/* G13: one 13 px credit line under a guide photo — kind · credit · licence (never on a 3D postcard). */
+.gd-credit { display:flex; flex-wrap:wrap; margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-ui); }
+.gd-credit>span+span::before { content:"·"; padding-inline:var(--sp-1); }
+.gd-credit a { color:inherit; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-summary p { margin:0; max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-read); }
+.gd-summary .gd-summary__audience { margin-top:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 
-/* The 3:4 slides (1007 §5.5). Sizes follow the slide width (cqw), never below 13px, and grow with Aa (--fluid-scale).
-   3:4 is the floor, not a cap: at 大/特大, in 简洁显示 and in English the text can need more room, so a slide grows past
-   3:4 instead of clipping its source line (min-height = 4/3 of the slide width; 100cqw is the slide's own width). The
-   track stretches every slide to the tallest one, so the cards stay one height while you swipe. */
+/* The rail: on a phone only the bar, which DETAIL fixes at the bottom; the 官方来源 link shows on a desktop. */
+.gd-rail__sources { display:none; }
+/* The bar's call: the number never breaks or shortens; where the primary is narrow the verb goes first, then the icon. */
+.gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
+@container detail-primary (max-width:12.5em) { .gd-bar__verb { display:none; } }
+/* 家人版 (特大 + 简洁): icon + number. */
+html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
+.gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-actions__status:empty { display:none; }
+
+/* The 3:4 slides (1007 §5.5): sizes on --fs-* in two container steps (the slide's own width), so they grow with Aa through the
+   tokens and never pass the H1. A phone caps the slide at 360 px (22.5rem) so the head, the cover and the first 30 秒看懂 row
+   share the first screen; a wider slide keeps 3:4. The track stretches every slide to the tallest one. */
 .gd-carousel .ui-carousel__slide { container-type:inline-size; }
-.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:min(3cqw, 14px); min-height:calc(100cqw * 4 / 3); height:100%; padding:6cqw; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
-/* Three card looks on an article (SYS ≤3): white with a line (points, contacts), surface-2 (compare, checklist, safety, 30 秒看懂,
-   tips, templates) and brand-deep (the cover). */
+.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:var(--sp-3); min-height:min(calc(100cqw * 4 / 3), 22.5rem); height:100%; padding:var(--sp-5) var(--sp-5) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
+@container (min-width:23rem) { .gd-slide { min-height:calc(100cqw * 4 / 3); padding:var(--sp-6) var(--sp-6) var(--sp-5); } }
+/* Three card looks on an article (SYS ≤3): white with a line (points, contacts), surface-2 (compare, checklist, safety) and
+   brand-deep (the cover). */
 .gd-slide:is([data-kind=compare],[data-kind=checklist],[data-kind=safety]) { border-color:transparent; background:var(--color-surface-2); }
 .gd-slide--cover { border-color:transparent; background:var(--color-brand-deep); color:var(--color-surface); }
-/* The topic mark is a corner decoration, cropped by the card's top-right corner and clear of the question and the title (in
-   English those run long and sat on the heart, PROD-W3). The slide itself never clips (tests/guide-carousel.test.tsx). */
-.gd-slide__mark { position:absolute; top:-10cqw; right:-10cqw; width:46cqw; height:46cqw; color:var(--color-surface); opacity:.12; pointer-events:none; clip-path:inset(10cqw 10cqw 0 0 round 0 16px 0 0); }
+/* The topic mark is a corner decoration, cropped by the card's top-right corner and clear of the question and the title. */
+.gd-slide__mark { position:absolute; top:-10cqw; right:-10cqw; width:46cqw; height:46cqw; color:var(--color-surface); opacity:.12; pointer-events:none; clip-path:inset(10cqw 10cqw 0 0 round 0 var(--r-lg) 0 0); }
 .gd-slide--cover>:not(.gd-slide__mark) { position:relative; }
-.gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:8px; }
-.gd-slide__kicker { color:var(--color-brand); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.4; font-weight:400; }
+.gd-slide__top { display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-2); }
+.gd-slide__kicker { color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide--cover .gd-slide__kicker { color:var(--color-on-brand-muted); }
-.gd-slide__count { flex:none; color:inherit; font-size:var(--text-caption); line-height:1.385; font-weight:400; opacity:.7; font-variant-numeric:tabular-nums; }
-.gd-slide__question { margin:auto 0 0; color:var(--color-on-brand-muted); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.6cqw * var(--fluid-scale)), 1.25rem); line-height:1.5; font-weight:600; }
-.gd-slide__cover-title { margin:0; color:var(--color-surface); font-size:clamp(1.5rem, min(calc(9.5cqw * var(--fluid-scale)), 10.5cqw), 2.375rem); line-height:1.25; font-weight:600; text-wrap:balance; }
-.gd-answer { align-self:flex-start; margin:0; padding:2px 10px; border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-size:clamp(1.0625rem, calc(6cqw * var(--fluid-scale)), 1.625rem); line-height:1.35; font-weight:600; font-variant-numeric:tabular-nums; }
+.gd-slide__count { flex:none; color:inherit; font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; opacity:.7; font-variant-numeric:tabular-nums; }
+.gd-slide__question { margin:auto 0 0; color:var(--color-on-brand-muted); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; }
+.gd-slide__cover-title { margin:0; color:var(--color-surface); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; }
+.gd-answer { align-self:flex-start; margin:0; padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-nowrap { white-space:nowrap; }
-/* Headline word units (SegmentedTitle): the H1, the cover title, the slide titles and the step H2s wrap between words,
-   never inside 长者 or 路径 (units are at most 8 Han characters; the cover title is capped at 10.5cqw so 8 fit its
-   88cqw line at 特大). Below 360px a unit may wrap, as on the detail H1. */
+/* Headline word units (SegmentedTitle): the H1, the cover title, the slide titles and the step H2s wrap between words, never
+   inside 长者 or 路径. Below 360px a unit may wrap, as on the detail H1. */
 :is(.gd-title__head,.gd-slide__cover-title,.gd-slide__title,.gd-step__head h2) .title-keep { white-space:nowrap; }
 @media (max-width:359px) { :is(.gd-title__head,.gd-slide__cover-title,.gd-slide__title,.gd-step__head h2) .title-keep { white-space:normal; } }
 .gd-answer a { display:inline-flex; flex-wrap:wrap; align-items:center; column-gap:.3em; min-height:3rem; color:inherit; text-decoration:none; }
-.gd-slide__line { margin:0; color:var(--color-surface); font-size:clamp(max(.875rem, var(--text-floor)), calc(4cqw * var(--fluid-scale)), 1.125rem); line-height:1.57; opacity:.92; }
-.gd-slide__title { display:flex; align-items:flex-start; gap:8px; margin:4px 0 0; color:var(--color-ink); font-size:clamp(1.25rem, calc(7cqw * var(--fluid-scale)), 1.875rem); line-height:1.3; font-weight:600; text-wrap:balance; }
-.gd-slide__title>svg { flex:none; width:1.5rem; height:1.5rem; margin-top:.15em; color:var(--tc-family-fg); }
-.gd-slide__body { margin:0; color:var(--color-ink); font-size:clamp(1rem, calc(4.4cqw * var(--fluid-scale)), 1.25rem); line-height:1.6; }
-.gd-slide__items { display:flex; flex-direction:column; gap:min(2.4cqw, 10px); margin:0; padding:0; list-style:none; }
-.gd-slide__items li { display:flex; align-items:flex-start; gap:8px; color:var(--color-ink); font-size:clamp(max(.9375rem, var(--text-floor)), calc(4.2cqw * var(--fluid-scale)), 1.1875rem); line-height:1.5; }
-.gd-slide__items li::before { content:""; flex:none; width:6px; height:6px; margin-top:.65em; border-radius:var(--r-pill); background:currentColor; opacity:.6; }
+.gd-slide__line { margin:0; color:var(--color-surface); font-size:var(--fs-meta); line-height:var(--lh-ui); opacity:.92; }
+.gd-slide__title { display:flex; align-items:flex-start; gap:var(--sp-2); margin:var(--sp-1) 0 0; color:var(--color-ink); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; text-wrap:balance; }
+.gd-slide__title>svg { flex:none; width:1.5rem; height:1.5rem; margin-top:.1em; color:var(--tc-family-fg); }
+.gd-slide__body { margin:0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
+.gd-slide__items { display:flex; flex-direction:column; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.gd-slide__items li { display:flex; align-items:flex-start; gap:var(--sp-2); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
+.gd-slide__items li::before { content:""; flex:none; width:6px; height:6px; margin-top:.7em; border-radius:var(--r-pill); background:currentColor; opacity:.6; }
 .gd-slide[data-kind=checklist] .gd-slide__items li::before { display:none; }
 .gd-slide__items li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.15em; color:var(--color-brand); }
-.gd-slide__phones { display:flex; flex-direction:column; gap:8px; }
-.gd-slide__phones[data-count=many] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:4px 12px; }
+.gd-slide__phones { display:flex; flex-direction:column; gap:var(--sp-2); }
+.gd-slide__phones[data-count=many] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-1) var(--sp-3); }
 .gd-slide__phone { display:flex; flex-direction:column; justify-content:center; min-height:3rem; color:var(--color-brand); text-decoration:none; }
-.gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
-.gd-slide__phone-number { font-size:clamp(1.0625rem, calc(5.2cqw * var(--fluid-scale)), 1.375rem); line-height:1.25; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:clamp(1.5rem, calc(9cqw * var(--fluid-scale)), 2.375rem); line-height:1.15; }
-.gd-slide__source { margin:auto 0 0; padding-top:8px; color:var(--color-ink-2); font-size:clamp(max(.8125rem, var(--text-floor)), calc(3.7cqw * var(--fluid-scale)), 1rem); line-height:1.45; }
+.gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
+.gd-slide__phone-number { font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-section); }
+.gd-slide__source { margin:auto 0 0; padding-top:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-slide--cover .gd-slide__source { color:var(--color-on-brand-muted); }
-/* H67 (GR-12): the guide carousel shows 48px previous / next buttons on touch phones too, not only swipe; in 简洁显示 the slides
-   become one vertical list (no swiping, no 3:4 floor), so every card reads top to bottom. */
+@container (min-width:23rem) {
+  .gd-slide__cover-title { font-size:var(--fs-title); }
+  .gd-answer { font-size:var(--fs-section); }
+  .gd-slide__title { font-size:var(--fs-section); }
+  .gd-slide__body { font-size:var(--fs-reading); }
+  .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-title); }
+}
+/* H67 (GR-12): 48px previous / next buttons on touch phones too, not only swipe. */
 .gd-carousel .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:inline-grid; width:3rem; height:3rem; }
-html[data-simple] .gd-carousel .ui-carousel__track { flex-direction:column; gap:12px; margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
-html[data-simple] .gd-carousel .ui-carousel__slide { flex:none; width:100%; }
-html[data-simple] .gd-carousel .ui-carousel__controls { display:none; }
-html[data-simple] .gd-carousel .gd-slide { min-height:0; }
-/* …and below the two-column lead the actions and 30 秒看懂 come before that list, so 收藏 / 发给家人 / 问 BayBay are not several
-   screens down (review 10-14). Only pilot pages have the carousel; a single cover keeps its place. */
+.gd-carousel .ui-carousel__controls { margin-top:var(--sp-2); }
+/* 看全部 N 张卡片 shows in 特大 only (below). */
+.gd-carousel__all { display:none; align-items:center; justify-content:center; gap:var(--sp-2); width:100%; min-height:3rem; margin-top:var(--sp-3); padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); cursor:pointer; }
+.gd-carousel__all>svg { width:1.25rem; height:1.25rem; transition:transform var(--dur-2) var(--ease-std); }
+.gd-carousel__all[aria-expanded=true]>svg { transform:rotate(180deg); }
+.gd-carousel__all:active { scale:.98; }
+/* 特大 (not 简洁): the cover slide only, the rest one list behind 看全部 N 张卡片 — no sideways scroller (N25). */
+html[data-reading=extra-large]:not([data-simple]) .gd-carousel .ui-carousel__track { flex-direction:column; gap:var(--sp-3); margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
+html[data-reading=extra-large]:not([data-simple]) .gd-carousel .ui-carousel__slide { flex:none; width:100%; }
+html[data-reading=extra-large]:not([data-simple]) .gd-carousel:not([data-all]) .ui-carousel__slide:not(:first-child) { display:none; }
+html[data-reading=extra-large]:not([data-simple]) .gd-carousel .ui-carousel__controls { display:none; }
+html[data-reading=extra-large]:not([data-simple]) .gd-carousel .gd-slide { min-height:0; }
+html[data-reading=extra-large]:not([data-simple]) .gd-carousel__all { display:flex; }
+/* 简洁显示 (and 家人版): no carousel; its facts are in 30 秒看懂, which comes first (UI9-GUIDES arrangement). */
+html[data-simple] .gd-carousel .ui-carousel__track { flex-direction:column; gap:var(--sp-3); margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
+html[data-simple] .gd-page[data-pilot] .gd-lead__visual { display:none; }
 @media (max-width:1023px) { html[data-simple] .gd-page[data-pilot] .gd-lead__visual { order:1; } }
 
-/* 查: "30 秒看懂" and the contact cards. */
-.gd-keyfacts { padding:20px; border-left:4px solid var(--color-brand); border-radius:var(--r-lg); background:var(--color-surface-2); }
-.gd-keyfacts h2 { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
+/* 查: "30 秒看懂". Labels at --fs-meta, values at reading size; weight 600 only on a number or an action in a value. */
+.gd-keyfacts { padding:var(--inset-panel); border-radius:var(--r-lg); background:var(--color-surface-2); }
+.gd-keyfacts h2 { margin:0 0 var(--stack-head); color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; }
 .gd-keyfacts ol { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
-.gd-keyfacts li { display:flex; flex-direction:column; gap:2px; padding:10px 0; border-top:1px solid var(--color-line); }
-.gd-keyfacts li:first-child { border-top:0; padding-top:2px; }
-.gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:400; }
-.gd-keyfacts__value { color:var(--color-ink); font-size:1.0625rem; line-height:1.6; font-weight:600; }
-.gd-keyfacts h2 .gd-keyfacts__from { display:inline-block; margin-left:8px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; font-weight:600; vertical-align:middle; }
-/* H08: the fallback card quotes whole sentences, so its values read at body weight and size, not as one bold figure. */
-.gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--text-body); line-height:1.65; font-weight:400; overflow-wrap:break-word; }
-.gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; }
-.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:2px; vertical-align:super; color:var(--color-brand); font-size:var(--text-caption); line-height:1; font-weight:400; text-decoration:none; }
-/* The glyph stays caption size; the tap area around it is 44px (48px in 简洁显示), rule 5. */
+.gd-keyfacts li { display:flex; flex-direction:column; gap:var(--sp-1); padding:var(--sp-3) 0; border-top:1px solid var(--color-line); }
+.gd-keyfacts li:first-child { border-top:0; padding-top:0; }
+.gd-keyfacts__label { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
+.gd-keyfacts__value { color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-ui); font-weight:400; }
+.gd-keyfacts__value :is(a,.phone-chip) { font-weight:600; }
+.gd-keyfacts h2 .gd-keyfacts__from { display:inline-block; margin-left:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; vertical-align:middle; }
+/* H08: the fallback card quotes whole sentences, so its values read at body weight and size. */
+.gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--fs-body); line-height:var(--lh-read); font-weight:400; overflow-wrap:break-word; }
+.gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); font-weight:400; }
+/* The ① mark: caption glyph, ≥ .5rem from the text before it, a 44px tap area (48px in 简洁显示, rule 5). */
+.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:var(--sp-2); vertical-align:super; color:var(--color-brand); font-size:var(--fs-badge); line-height:1; font-weight:400; text-decoration:none; }
 .gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
 html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
-.gd-contacts { margin-top:24px; }
-.gd-contacts>h2,.gd-related__head h2 { margin:0 0 12px; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
-.gd-contacts__list { display:grid; grid-template-columns:minmax(0, 1fr); gap:12px; }
-.gd-contact { display:flex; flex-direction:column; gap:6px; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
-.gd-contact h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
-.gd-contact__number { margin:0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:1.273; font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
-.gd-contact__languages { display:flex; flex-wrap:wrap; gap:6px; margin:2px 0 0; }
-.gd-contact__note,.gd-contact__address { margin:0; color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:1.6; }
+
+/* 目录: a Disclosure on a phone (after 30 秒看懂), a sticky list on a desktop. */
+.gd-toc { margin-top:var(--sp-5); }
+.gd-toc__desk { display:none; }
+.gd-toc__phone { border-block:1px solid var(--color-line); }
+.gd-toc__phone .ui-disclosure__summary { font-size:var(--fs-body); font-weight:600; }
+.gd-toc__count { margin-left:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:400; }
+.gd-toc__list { display:flex; flex-direction:column; margin:0; padding:0 0 var(--sp-2); list-style:none; }
+.gd-toc .gd-toc__list a { display:flex; align-items:baseline; gap:var(--sp-3); min-height:2.75rem; padding:var(--sp-2) var(--sp-1); border-radius:var(--r-sm); color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:none; }
+.gd-toc .gd-toc__list a>span { flex:0 0 1.5rem; color:var(--color-ink-2); font-size:var(--fs-meta); font-variant-numeric:tabular-nums; }
+.gd-toc .gd-toc__list a>span>svg { width:1rem; height:1rem; vertical-align:-.15em; }
+.gd-toc__desk h2 { margin:0 0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:600; }
+/* A class-less block link: the tint is the hover cue, not an underline under the number and the heading (UI9-F2). */
+@media (hover:hover) and (pointer:fine) { .bl-guide-toc a:hover { color:var(--color-ink); background:var(--color-surface-2); text-decoration-line:none; } }
+.gd-toc .gd-toc__list a:active { background:var(--color-surface-2); }
+
+/* 联系电话: one row per agency, name and number on the left, 拨打 (secondary, the brand phone glyph) and 复制 (quiet). */
+.gd-contacts { margin-top:var(--section-gap); }
+.gd-contacts>h2,.gd-related__head h2 { margin:0 0 var(--stack-head); color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
+.gd-contacts__list { display:flex; flex-direction:column; border-top:1px solid var(--color-line); }
+.gd-contact { display:flex; flex-direction:column; gap:var(--sp-1); padding:var(--sp-4) 0; border-bottom:1px solid var(--color-line); }
+.gd-contact h3 { margin:0; color:var(--color-ink); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
+.gd-contact__number { margin:0; color:var(--color-ink); font-size:var(--fs-keep-20); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-contact__languages { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:var(--sp-1) 0 0; }
+.gd-contact__note,.gd-contact__address { margin:0; max-width:var(--measure); color:var(--color-ink-2); font-size:var(--fs-keep-14); line-height:var(--lh-ui); }
 .gd-contact__places { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
-.gd-contact__places a { display:inline-flex; align-items:center; gap:6px; min-height:2.75rem; color:var(--color-brand); font-size:1rem; line-height:1.6; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.gd-contact__places a { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
 .gd-contact__places svg { flex:none; width:1.125rem; height:1.125rem; }
-.gd-contact__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:6px; }
-.gd-contact__actions>.ui-button { flex:1 1 7rem; }
+.gd-contact__actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-2); }
 .gd-contact__actions>.ui-button>svg { width:1.125rem; height:1.125rem; }
-.gd-contact__status { margin:0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-contact__call>svg { color:var(--color-brand); }
+.gd-contact__call-number { display:none; font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gd-contact__status { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-contact__status:empty { display:none; }
+/* 简洁显示: the 48 px 拨打 prints the number, and the number line above it goes (one tap target per number here). */
+html[data-simple] .gd-contact__call-number { display:inline; }
+html[data-simple] .gd-contact__number { display:none; }
+html[data-simple] .gd-contact__call { width:100%; }
 
 /* H36: 在 3D 里先看看 — one row in the reading path of a San Francisco outing guide (a full-page link to the 3D city). */
-.gd-opus { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:16px; padding:10px 12px; min-height:3rem; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
-.gd-opus:hover { border-color:var(--color-brand); }
-.gd-opus:hover .gd-opus__text strong { text-decoration:underline; text-underline-offset:4px; }
+.gd-opus { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-3); margin-top:var(--sp-4); padding:var(--sp-2) var(--sp-3); min-height:3rem; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); text-decoration:none; }
+@media (hover:hover) and (pointer:fine) {
+  .gd-opus:hover { border-color:var(--color-brand); }
+  .gd-opus:hover .gd-opus__text strong { text-decoration:underline; text-underline-offset:4px; }
+}
 .gd-opus:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
-/* The postcard is a .ui-cover (width:100% in ui.css, which loads later): the child selector keeps its 7.5rem column, so the
-   text beside it is never squeezed to one character (review 10-14). */
+/* The postcard is a .ui-cover (width:100% in ui.css, which loads later): the child selector keeps its 7.5rem column. */
 .gd-opus>.gd-opus__art { flex:none; width:7.5rem; border-radius:var(--r-md); overflow:hidden; }
 .gd-opus__mark { display:grid; flex:none; place-items:center; width:3rem; height:3rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand); }
 .gd-opus__mark>svg { width:1.5rem; height:1.5rem; }
-/* The text needs 8rem beside the postcard; at 大 / 特大 on a narrow phone it moves under the postcard instead of becoming a
-   100 px column (review 10-14: 103 px and a 472 px tall card at 320 特大 on /en). */
-.gd-opus__text { display:flex; flex:1 1 8rem; flex-direction:column; gap:2px; min-width:0; }
-.gd-opus__text strong { color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
-.gd-opus__text span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; }
-.gd-opus__text small { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-opus__text { display:flex; flex:1 1 8rem; flex-direction:column; gap:var(--sp-1); min-width:0; }
+.gd-opus__text strong { color:var(--color-ink); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
+.gd-opus__text span { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-opus__text small { color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-ui); }
 .gd-opus__go { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
 @media (max-width:359px) { .gd-opus>.gd-opus__art { width:5.5rem; } }
-@media (min-width:1024px) { .gd-opus { max-width:var(--container-reading); } }
 
-/* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源". */
-.gd-step { margin-top:28px; }
-.gd-step__head { display:flex; align-items:flex-start; gap:12px; }
-/* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width and the
-   heading and answer ran past a 320 px screen (clipped by the page's overflow-x:clip). */
+/* The deals boards (a board guide): full width, above the body. */
+.gd-boards { margin-top:var(--section-gap); }
+
+/* 读: the body. Reading text at --fs-reading / --lh-read inside --measure; headings on --fs-section; block gaps on the tokens. */
+.gd-main { margin-top:var(--section-gap); }
+.gd-article .bl-guide-prose>* { margin:0; }
+.gd-article .bl-guide-prose>*+* { margin-top:var(--sp-4); }
+.gd-article .bl-guide-prose>h2 { margin-top:var(--section-gap); color:var(--color-ink); line-height:var(--lh-tight); scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
+.gd-article .bl-guide-prose>h2:first-child { margin-top:0; }
+.gd-article .bl-guide-prose>h2+* { margin-top:var(--stack-head); }
+.gd-article .bl-guide-prose>p,.gd-article .bl-guide-bullet-list,.gd-article .bl-guide-tip p { max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-read); }
+.gd-article .bl-guide-bullet-list li+li { margin-top:var(--sp-2); }
+.gd-article .bl-guide-tip { max-width:var(--measure); padding:var(--inset-card) var(--inset-panel); border-radius:var(--r-lg); background:var(--color-surface-2); }
+.gd-article .bl-guide-tip>span { color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:600; }
+.gd-article .bl-guide-tip p { margin-top:var(--sp-2); }
+.gd-article .bl-guide-checklist { max-width:var(--measure); padding:var(--inset-card) var(--inset-panel); border-radius:var(--r-lg); }
+.gd-article .bl-guide-checklist label { font-size:var(--fs-body); line-height:var(--lh-ui); }
+.gd-article .bl-guide-checklist-heading,.gd-article .bl-guide-checklist>p { font-size:var(--fs-meta); line-height:var(--lh-ui); }
+/* The CTA card: one primary (F's Button), the choices secondary. G6: the English kicker is sentence case, no tracking. */
+.gd-article .bl-guide-cta { max-width:var(--measure); padding:var(--inset-panel); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
+.gd-article .bl-guide-cta .bl-guide-eyebrow { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); letter-spacing:0; }
+.gd-article .bl-guide-cta h3 { margin:var(--sp-1) 0 0; color:var(--color-ink); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
+.gd-article .bl-guide-cta p { margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); }
+.gd-article .bl-guide-cta>.ui-button { margin-top:var(--sp-4); }
+.gd-article .bl-guide-cta-choices { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin-top:var(--sp-4); }
+/* The copy template: F's secondary Button. */
+.gd-article .bl-guide-template-heading { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); }
+.gd-article .bl-guide-template-heading h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
+.gd-article .bl-guide-template-heading>.ui-button>svg { width:1.125rem; height:1.125rem; }
+
+/* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源" (F2's Disclosure). */
+.gd-step { margin-top:var(--section-gap); }
+.gd-step:first-child,.gd-main>.bl-guide-prose+.gd-step { margin-top:var(--sp-6); }
+.gd-step__head { display:flex; align-items:flex-start; gap:var(--sp-3); }
+/* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width. */
 .gd-step__head>div { flex:1 1 auto; min-width:0; }
-.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-card); line-height:1; font-weight:600; font-variant-numeric:tabular-nums; }
-.gd-step__head h2 { margin:6px 0 0; color:var(--color-ink); font-size:1.25rem; line-height:1.4; font-weight:600; text-wrap:balance; scroll-margin-top:64px; }
-.gd-step__conclusion { margin:6px 0 0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.765; }
-.gd-step__more { margin:8px 0 0 52px; }
-.gd-step__more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:400; cursor:pointer; list-style:none; }
-.gd-step__more>summary::-webkit-details-marker { display:none; }
-.gd-step__more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
-.gd-step__more[open]>summary>svg { transform:rotate(180deg); }
-.gd-step>.bl-guide-prose { margin-left:52px; }
-/* Below 360 px (the family link on a small phone, iPhone Display Zoom) the step heading is a size smaller and the folded
-   text uses the full column, so 特大 fits without cutting words. */
+.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-card); line-height:1; font-weight:600; font-variant-numeric:tabular-nums; }
+.gd-step__head h2 { margin:var(--sp-1) 0 0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
+.gd-step__conclusion { margin:var(--sp-2) 0 0; max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-read); }
+.gd-step__more { margin:var(--sp-2) 0 0 3.25rem; }
+.gd-step__more .ui-disclosure__summary { color:var(--color-brand); font-size:var(--fs-body); }
+.gd-step__more .bl-guide-prose { padding-bottom:var(--sp-2); }
+.gd-step>.bl-guide-prose { margin-left:3.25rem; }
+/* Below 360 px (the family link on a small phone) the step number is smaller and the folded text uses the full column. */
 @media (max-width:359px) {
-  .gd-step__head { gap:8px; }
+  .gd-step__head { gap:var(--sp-2); }
   .gd-step__number { width:2rem; height:2rem; }
-  .gd-step__head h2 { font-size:1.125rem; }
   .gd-step__more, .gd-step>.bl-guide-prose { margin-left:0; }
 }
 
 /* H64 (GR-08): the county number grid. Each county reads in Chinese with its English name on a second line; below 420 px the
-   grid is one column (two 147 px cells held 158 px chips that ran past the screen), the name beside the number while both fit. */
+   grid is one column, the name beside the number while both fit. */
 .gd-county { display:flex; flex-direction:column; gap:0; }
 .gd-county__zh { color:var(--color-ink); font-weight:600; }
-.gd-county__en { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-county__en { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 @media (max-width:419px) {
   .gd-article .gd-phone-directory { grid-template-columns:minmax(0, 1fr); gap:8px; }
-  .gd-article .gd-phone-directory li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 12px; }
+  .gd-article .gd-phone-directory li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); }
   .gd-article .gd-phone-directory .phone-directory-label { flex:1 1 7rem; min-width:0; }
   .gd-article .gd-phone-directory .phone-chip--block { flex:0 1 auto; max-width:100%; }
 }
 
-/* H22 (SV13-03, GR-10): coded diagrams in the pilot guides (GuideDiagram.tsx), so a phone reader meets a picture slot at least
-   every two screens. One look for all four kinds: surface-2 panel, a 示意图 tag, brand marks; real text that grows with Aa. */
-.gd-diagram { margin:20px 0 0; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); container-type:inline-size; }
-.gd-step>.gd-diagram { margin-top:14px; }
+/* H22 (SV13-03, GR-10): coded diagrams in the pilot guides (GuideDiagram.tsx). One look for all four kinds: surface-2 panel, a
+   示意图 tag, brand marks; real text that grows with Aa. */
+.gd-lead-diagrams { margin-top:var(--sp-5); }
+.gd-diagram { margin:var(--sp-5) 0 0; padding:var(--inset-card); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); container-type:inline-size; }
+.gd-lead-diagrams>.gd-diagram:first-child { margin-top:0; }
+.gd-step>.gd-diagram { margin-top:var(--sp-4); }
 /* CNT-MEDIA-4: a step's photo stands with its diagram, outside the fold (GuideDetail), lined up with it. */
-.gd-step>.guide-figure { margin:14px 0 0; }
-.gd-diagram__head { display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin:0 0 12px; }
-.gd-diagram__head strong { color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; text-wrap:balance; }
-.gd-diagram__tag { display:inline-block; padding:0 8px; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.6; font-weight:400; }
+.gd-step>.guide-figure { margin:var(--sp-4) 0 0; }
+.gd-diagram__head { display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-1); margin:0 0 var(--sp-3); }
+.gd-diagram__head strong { color:var(--color-ink); font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; text-wrap:balance; }
+.gd-diagram__tag { display:inline-block; padding:0 var(--sp-2); border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--fs-badge); line-height:var(--lh-ui); font-weight:400; }
 .gd-diagram strong { overflow-wrap:break-word; }
-.gd-diagram__text { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.gd-diagram__tel { display:inline-flex; align-items:center; gap:6px; align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:1.0625rem; line-height:1.3; font-weight:600; font-variant-numeric:tabular-nums; text-decoration:none; white-space:nowrap; }
+.gd-diagram__text { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-diagram__tel { display:inline-flex; align-items:center; gap:var(--sp-2); align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; text-decoration:none; white-space:nowrap; }
 .gd-diagram__tel>svg { flex:none; width:1.125rem; height:1.125rem; }
 html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-diagram__number { font-weight:600; font-variant-numeric:tabular-nums; }
-.gd-diagram__body { display:flex; flex-direction:column; gap:2px; min-width:0; }
-.gd-diagram__body strong { font-size:var(--text-body); line-height:1.5; font-weight:600; }
-.gd-diagram__footer { margin:12px 0 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
-.gd-diagram__credit { display:flex; align-items:center; margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gd-diagram__body { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+.gd-diagram__body strong { font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:600; }
+.gd-diagram__footer { margin:var(--sp-3) 0 0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-diagram__credit { display:flex; align-items:center; margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-ui); }
 /* flow: numbered steps joined by a line */
 .gd-diagram__flow { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
-.gd-diagram__flow>li { position:relative; display:flex; align-items:flex-start; gap:12px; padding-bottom:14px; }
+.gd-diagram__flow>li { position:relative; display:flex; align-items:flex-start; gap:var(--sp-3); padding-bottom:var(--sp-4); }
 .gd-diagram__flow>li:last-child { padding-bottom:0; }
 .gd-diagram__flow>li:not(:last-child)::before { content:""; position:absolute; top:2rem; bottom:2px; left:calc(1rem - 1px); width:2px; border-radius:var(--r-sm); background:var(--color-brand); opacity:.35; }
-.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); line-height:1; font-weight:600; }
+.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-meta); line-height:1; font-weight:600; }
 /* compare: side by side when there is room */
-.gd-diagram__compare { display:grid; grid-template-columns:repeat(var(--gd-cols, 2), minmax(0, 1fr)); gap:8px; margin:0; padding:0; list-style:none; }
+.gd-diagram__compare { display:grid; grid-template-columns:repeat(var(--gd-cols, 2), minmax(0, 1fr)); gap:var(--sp-2); margin:0; padding:0; list-style:none; }
 .gd-diagram__compare[data-count="3"] { --gd-cols:1; }
-.gd-diagram__compare>li { display:flex; flex-direction:column; gap:4px; min-width:0; padding:12px; border-top:4px solid var(--color-brand); border-radius:var(--r-md); background:var(--color-surface); }
+.gd-diagram__compare>li { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; padding:var(--sp-3); border-top:4px solid var(--color-brand); border-radius:var(--r-md); background:var(--color-surface); }
 .gd-diagram__compare>li:nth-child(2) { border-top-color:var(--tc-family-fg); }
 .gd-diagram__compare>li:nth-child(3) { border-top-color:var(--color-ink-2); }
-.gd-diagram__compare>li>strong { font-size:var(--text-body); line-height:1.5; font-weight:600; }
+.gd-diagram__compare>li>strong { font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:600; }
 @container (max-width:19rem) { .gd-diagram__compare { --gd-cols:1; } }
 /* timeline scale: one cell per month, the birthday month marked */
-.gd-diagram__scale { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); gap:4px; margin:0 0 14px; }
-.gd-diagram__scale>span { display:grid; place-items:center; min-height:2rem; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); font-weight:600; font-variant-numeric:tabular-nums; }
+.gd-diagram__scale { display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0, 1fr); gap:var(--sp-1); margin:0 0 var(--sp-4); }
+.gd-diagram__scale>span { display:grid; place-items:center; min-height:2rem; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--fs-badge); font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-diagram__scale>span[data-on] { background:var(--color-brand); color:var(--color-surface); }
 /* timeline: a line with a mark per stage (vertical on phones, across on wide screens) */
-.gd-diagram__timeline { position:relative; display:flex; flex-direction:column; gap:14px; margin:0; padding:0 0 0 22px; list-style:none; }
+.gd-diagram__timeline { position:relative; display:flex; flex-direction:column; gap:var(--sp-4); margin:0; padding:0 0 0 var(--sp-5); list-style:none; }
 .gd-diagram__timeline::before { content:""; position:absolute; top:6px; bottom:6px; left:6px; width:2px; border-radius:var(--r-sm); background:var(--color-brand); opacity:.35; }
 .gd-diagram__timeline>li { position:relative; }
-.gd-diagram__dot { position:absolute; top:.35em; left:-22px; width:14px; height:14px; border:3px solid var(--color-brand); border-radius:var(--r-pill); background:var(--color-surface); box-sizing:border-box; }
+.gd-diagram__dot { position:absolute; top:.35em; left:calc(var(--sp-5) * -1); width:14px; height:14px; border:3px solid var(--color-brand); border-radius:var(--r-pill); background:var(--color-surface); box-sizing:border-box; }
 /* map: county tiles west and east of the bay, north at the top (rough places, not to scale); one list at 大 / 特大 / 简洁 and on
    very narrow screens */
-.gd-diagram__map { display:grid; grid-template-columns:minmax(0, 1fr) 1.75rem minmax(0, 1fr); grid-template-areas:"sonoma bay napa" "marin bay contra" "sf bay alameda" "smateo bay sclara"; gap:6px; margin:0; padding:0; list-style:none; }
-.gd-diagram__map>li { display:flex; flex-direction:column; justify-content:center; gap:0; min-width:0; padding:6px 10px; border-radius:var(--r-md); background:var(--color-surface); border:1px solid var(--color-line); }
-.gd-diagram__map>li>strong { font-size:var(--text-fact); line-height:1.4; font-weight:600; }
-.gd-diagram__map .gd-diagram__tel { min-height:2.75rem; font-size:var(--text-fact); }
+.gd-diagram__map { display:grid; grid-template-columns:minmax(0, 1fr) 1.75rem minmax(0, 1fr); grid-template-areas:"sonoma bay napa" "marin bay contra" "sf bay alameda" "smateo bay sclara"; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.gd-diagram__map>li { display:flex; flex-direction:column; justify-content:center; gap:0; min-width:0; padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface); border:1px solid var(--color-line); }
+.gd-diagram__map>li>strong { font-size:var(--fs-meta); line-height:var(--lh-snug); font-weight:600; }
+.gd-diagram__map .gd-diagram__tel { min-height:2.75rem; font-size:var(--fs-meta); }
 .gd-diagram__map>li[data-area=sonoma] { grid-area:sonoma; } .gd-diagram__map>li[data-area=napa] { grid-area:napa; }
 .gd-diagram__map>li[data-area=marin] { grid-area:marin; } .gd-diagram__map>li[data-area=contra] { grid-area:contra; }
 .gd-diagram__map>li[data-area=sf] { grid-area:sf; } .gd-diagram__map>li[data-area=alameda] { grid-area:alameda; }
 .gd-diagram__map>li[data-area=smateo] { grid-area:smateo; } .gd-diagram__map>li[data-area=sclara] { grid-area:sclara; }
-.gd-diagram__map>.gd-diagram__bay { grid-area:bay; align-items:center; padding:8px 0; border-color:transparent; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); line-height:1.2; font-weight:600; writing-mode:vertical-rl; }
+.gd-diagram__map>.gd-diagram__bay { grid-area:bay; align-items:center; padding:var(--sp-2) 0; border-color:transparent; background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--fs-badge); line-height:var(--lh-tight); font-weight:600; writing-mode:vertical-rl; }
 @container (max-width:17rem) {
   .gd-diagram__map { grid-template-columns:minmax(0, 1fr); grid-template-areas:none; }
-  .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:12px; }
+  .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:var(--sp-3); }
   .gd-diagram__map>.gd-diagram__bay { display:none; }
 }
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map { grid-template-columns:minmax(0, 1fr); grid-template-areas:none; }
-:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:12px; }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>li[data-area] { grid-area:auto; flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:space-between; column-gap:var(--sp-3); }
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-diagram__map>.gd-diagram__bay { display:none; }
 .gd-diagram__tel:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 @media (min-width:768px) {
-  .gd-diagram { padding:20px; }
-  .gd-step>.gd-diagram, .gd-step>.guide-figure { margin-left:52px; }
-  .gd-diagram__flow { flex-direction:row; gap:12px; }
+  .gd-diagram { padding:var(--inset-panel); }
+  .gd-step>.gd-diagram, .gd-step>.guide-figure { margin-left:3.25rem; }
+  .gd-diagram__flow { flex-direction:row; gap:var(--sp-3); }
   .gd-diagram__flow>li { flex:1 1 0; flex-direction:column; padding-bottom:0; }
   .gd-diagram__flow>li:not(:last-child)::before { top:calc(1rem - 1px); bottom:auto; left:2.5rem; right:-6px; width:auto; height:2px; }
   .gd-diagram__compare[data-count="3"] { --gd-cols:3; }
-  .gd-diagram__timeline { flex-direction:row; gap:16px; padding:22px 0 0; }
+  .gd-diagram__timeline { flex-direction:row; gap:var(--sp-4); padding:var(--sp-5) 0 0; }
   .gd-diagram__timeline::before { top:6px; bottom:auto; left:6px; right:6px; width:auto; height:2px; }
   .gd-diagram__timeline>li { flex:1 1 0; }
-  .gd-diagram__dot { top:-22px; left:0; }
+  .gd-diagram__dot { top:calc(var(--sp-5) * -1); left:0; }
 }
-@media (min-width:1024px) { .gd-article>.gd-diagram { max-width:var(--container-reading); } }
 
-/* Link cards inside the prose: their base rules live in monthly-deals.css (WEB-EVENTS' file; CSS-PRUNE moves them here). */
-.gd-article .bl-guide-source-link { border-color:var(--color-line); background:var(--color-surface-2); }
-.gd-article .bl-guide-source-link>a { color:var(--color-brand); font-size:var(--text-body); }
-.gd-article .bl-guide-source-link>p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
+/* Link cards inside the prose: their base rules live in monthly-deals.css. */
+.gd-article .bl-guide-source-link { max-width:var(--measure); border-color:var(--color-line); background:var(--color-surface-2); }
+.gd-article .bl-guide-source-link>a { color:var(--color-brand); font-size:var(--fs-body); }
+.gd-article .bl-guide-source-link>p { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 
-/* A number in an official source description (PhoneText) keeps the prose chip: the legacy `.bl-guide-sources a` rules meant for
-   the source title (a flex row in guides-ui.css, ink-2 in tokens.css) would stretch it across the line and grey it out. The
-   title keeps its own tap area above the chip's 48px box, as in phone-links.css. */
-.gd-article .bl-guide-sources li p .phone-chip { display:inline-flex; align-items:center; justify-content:normal; gap:.25em; color:var(--color-brand); font-size:var(--text-reading); line-height:1.6; }
-.gd-article .bl-guide-sources li p .phone-chip>svg { margin-top:0; }
-.gd-article .bl-guide-sources li:has(.phone-chip)>a { position:relative; z-index:1; }
-/* Under 360 px at 大 / 特大 / 简洁 a source chip followed by 。or ， takes the description's size, so the two fit the line
-   together (phone-links.css keeps them on one line): 1-800-434-0222。 ran 25 px past the column at 320 px 特大. */
+/* 官方来源: ≤ 8 then 看全部 N (pilots keep the whole list for their ① marks); the content date; 这条信息有误. */
+.gd-article .gd-sources { position:static; margin-top:var(--section-gap); padding:0; border:0; border-radius:0; background:none; }
+.gd-article .gd-sources h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
+.gd-article .gd-sources>p { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-article .gd-sources ul { margin:var(--stack-head) 0 0; padding:0; list-style:none; border-top:1px solid var(--color-line); }
+.gd-article .gd-sources li { margin:0; padding:var(--sp-3) 0; border-top:0; border-bottom:1px solid var(--color-line); }
+.gd-article .gd-sources li+li { margin-top:0; padding-top:var(--sp-3); border-top:0; }
+.gd-article .gd-sources li>a { display:inline-flex; align-items:flex-start; justify-content:flex-start; gap:var(--sp-1); min-height:2.75rem; padding-block:var(--sp-2); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-article .gd-sources li>a>svg { flex:none; width:1rem; height:1rem; margin-top:.3em; }
+.gd-article .gd-sources li p { max-width:var(--measure); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-sources__date { color:var(--color-ink-2); }
+/* A number in a source description (PhoneText) keeps the prose chip; the title keeps its tap area above the chip's box. */
+.gd-article .gd-sources li p .phone-chip { display:inline-flex; align-items:center; justify-content:normal; gap:.25em; color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-article .gd-sources li p .phone-chip>svg { margin-top:0; }
+.gd-article .gd-sources li:has(.phone-chip)>a { position:relative; z-index:1; }
 @media (max-width:359px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .bl-guide-sources li p .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:1em; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .gd-sources li p .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:1em; }
 }
+.gd-sources-more { margin-top:var(--sp-2); }
+.gd-sources-more .ui-disclosure__summary { color:var(--color-brand); font-size:var(--fs-body); }
+.gd-article .bl-guide-source-note { max-width:var(--measure); margin:var(--sp-4) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+/* The outing link's small line (outing-inspiration.css) reads at meta size inside an article. */
+.gd-article .outing-inspiration-link small { font-size:var(--fs-meta); }
 
-/* H66: the folded rest of a long source list. */
-.gd-sources-more { margin-top:8px; }
-.gd-sources-more>summary { display:inline-flex; align-items:center; gap:4px; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:400; cursor:pointer; list-style:none; }
-.gd-sources-more>summary::-webkit-details-marker { display:none; }
-.gd-sources-more>summary>svg { width:1rem; height:1rem; transition:transform 160ms ease; }
-.gd-sources-more[open]>summary>svg { transform:rotate(180deg); }
-.gd-sources-more>summary:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+/* The legacy poster and the step folds: F2's Disclosure. */
+.gd-article .guide-poster-disclosure { margin-bottom:var(--sp-4); }
 
-/* The outing link's small line (outing-inspiration.css) reads at caption size inside an article. */
-.gd-article .outing-inspiration-link small { font-size:var(--text-caption); }
-
-/* Related covers and the page's image credits. */
-.gd-related { margin-top:40px; }
-.gd-related__head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; }
+/* 接下来: three rows on a phone and a tablet, four 3:2 covers on a desktop, one topic link in 简洁显示. */
+.gd-article .gd-related { margin-top:var(--section-gap); padding-top:var(--sp-5); border-top:1px solid var(--color-line); }
+.gd-related__head { display:flex; align-items:baseline; justify-content:space-between; gap:var(--sp-3); }
 /* H52: at 大 / 特大 / 简洁 the section link sits under its heading instead of squeezing it. */
 :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-related__head { flex-direction:column; align-items:flex-start; gap:0; }
-.gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-/* H24 sweep (/en at 390): in the two-up related covers the photo label (Archive photo · 2013) and the meta line (175 official
-   sources · 1 min) were cut off with an ellipsis; they wrap to a second line instead, so the year and the reading time stay. */
+.gd-related__head a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-body); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-related__rows { margin:0; padding:0; list-style:none; }
+.gd-related .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; }
+.gd-related__grid { display:none; }
 .gd-related .ui-provenance { white-space:normal; text-overflow:clip; }
 .gd-related .ui-feed-card__meta { white-space:normal; }
-.gd-credits { margin-top:20px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
-.gd-credits>summary { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; cursor:pointer; }
-.gd-credits ul { display:flex; flex-direction:column; gap:10px; margin:4px 0 0; padding:0; list-style:none; }
-.gd-credits li { display:flex; flex-wrap:wrap; gap:2px 10px; }
+.gd-related__topic { display:none; margin:0; }
+.gd-related__topic a { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:3rem; color:var(--color-brand); font-size:var(--fs-body); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+.gd-related__topic a>svg { width:1.25rem; height:1.25rem; }
+
+/* 本页图片来源 (#page-credits), last. */
+.gd-credits { margin-top:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.gd-credits .ui-disclosure__summary { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.gd-credits ul { display:flex; flex-direction:column; gap:var(--sp-3); margin:0; padding:0 0 var(--sp-2); list-style:none; }
+.gd-credits li { display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-3); font-size:var(--fs-badge); }
 .gd-credits__kind { color:var(--color-ink); font-weight:400; }
 .gd-credits__caption { flex-basis:100%; }
-.gd-credits a { display:inline-flex; align-items:center; gap:2px; color:var(--color-brand); }
-.gd-credits a>svg { width:.875rem; height:.875rem; }
-:is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-step__more>summary,.gd-related__head a,.gd-credits>summary,.gd-credits a,.gd-about a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+.gd-credits a { display:inline-flex; align-items:center; gap:var(--sp-1); color:var(--color-brand); }
+.gd-article>.bl-guide-return { align-self:flex-start; margin-top:var(--sp-4); }
 
-/* Large text and 简洁显示: the step text drops its indent; the carousel keeps one slide at full width. */
+/* 回到顶部 (P38): 48 px, after two screens; above the bar on a phone, bottom-right on a desktop. */
+.gd-to-top { position:fixed; z-index:40; right:var(--page-gutter); bottom:calc(var(--site-mobile-nav-height, 4rem) + var(--sp-3)); display:grid; place-items:center; width:3rem; height:3rem; padding:0; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); box-shadow:var(--e1); cursor:pointer; transition:scale var(--dur-1) var(--ease-out); }
+.gd-to-top[hidden] { display:none; }
+.gd-to-top>svg { width:1.5rem; height:1.5rem; }
+.gd-to-top:active { scale:.94; }
+
+:is(.gd-crumbs a,.gd-contact__places a,.gd-meta a,.gd-meta__info,.gd-answer a,.gd-slide__phone,.gd-source-mark,.gd-related__head a,.gd-related__topic a,.gd-credits a,.gd-about a,.gd-toc__list a,.gd-rail__sources,.gd-to-top,.gd-carousel__all,.gd-credit a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+@media (hover:hover) and (pointer:fine) {
+  :is(.gd-crumbs a,.gd-related__head a,.gd-related__topic a,.gd-credit a,.gd-about a):hover { color:var(--color-brand); text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.2em; }
+  :is(.gd-meta a,.gd-contact__places a,.gd-credits a,.gd-article .gd-sources li>a):hover { text-decoration-thickness:2px; }
+  :is(.gd-meta__info,.gd-carousel__all,.gd-to-top):hover { background:var(--color-surface-2); }
+  .gd-rail__sources:hover { text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.2em; }
+  .gd-step__more .ui-disclosure__summary:hover,.gd-sources-more .ui-disclosure__summary:hover { text-decoration:underline; text-underline-offset:.2em; }
+}
+
+/* 简洁显示: one column in reading order — head → 30 秒看懂 → 联系电话 (48 px 拨打 with the number) → the lead diagram → 目录 → steps →
+   sources → credits; related becomes one topic link. Lane-scoped hide / show hooks (data-simple). */
+html[data-simple] .gd-page [data-simple=hide] { display:none; }
+html:not([data-simple]) .gd-page [data-simple=show] { display:none; }
+html[data-simple] .gd-related__topic { display:block; }
+@media (max-width:1023px) {
+  html[data-simple] .gd-article :is(.gd-toc,.gd-main,.gd-related,.gd-credits,.bl-guide-return) { order:1; }
+}
+/* 家人版 (特大 + 简洁): no subtitle and no second meta line. */
+html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--sources) { display:none; }
+
+/* Large text and 简洁显示: the step text drops its indent. */
 @media (max-width:767px) {
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) :is(.gd-step__more,.gd-step>.bl-guide-prose) { margin-left:0; }
 }
 
 @media (min-width:768px) {
-  .gd-article.bl-guide-article { padding-block:24px 28px; }
-  .gd-contacts__list { grid-template-columns:repeat(2, minmax(0, 1fr)); }
+  .gd-article.bl-guide-article { padding-block:var(--sp-5) var(--sp-6); }
+  .gd-to-top { bottom:var(--sp-5); }
+}
+@media (max-width:1023px) {
+  .gd-to-top { bottom:calc(var(--site-mobile-nav-height, 4rem) + var(--sp-3)); }
 }
 @media (min-width:1024px) {
-  .gd-article.bl-guide-article { padding-block:32px; }
-  /* The frame is wide; the article body keeps one reading measure (--container-reading). The column beside the contents
-     list (step cards, prose, dividers, checklists, sources) and any prose above the boards end on one right edge; the
-     crumbs, H1, lead, contact cards and related guides stay on the frame. */
-  .gd-article .bl-guide-reading-main,.gd-article>.bl-guide-prose { max-width:var(--container-reading); }
-.gd-title__rest { font-size:var(--text-body); }
-  .gd-lead { margin-top:20px; }
-  .gd-lead[data-visual] { display:grid; grid-template-columns:420px minmax(0, 1fr); align-items:start; gap:32px; }
-  .gd-lead:not([data-visual]) { max-width:780px; }
-  .gd-lead .gd-cover { border-radius:var(--r-xl); }
-  .gd-step__head h2 { font-size:var(--fs-keep-20); line-height:1.364; }
+  .gd-article.bl-guide-article { --gd-main:1 / span 8; --gd-rail:9 / span 4; --gd-body:1 / span 8;
+    display:grid; grid-template-columns:repeat(12, minmax(0, 1fr)); column-gap:var(--grid-gutter); align-items:start; padding-block:var(--sp-6); }
+  .gd-article>* { grid-column:var(--gd-main); }
+  .gd-article>:is(.gd-contacts,.gd-lead-diagrams,.gd-main) { grid-column:var(--gd-body); }
+  .gd-article>:is(.gd-related,.gd-credits) { grid-column:1 / -1; }
+  .gd-article>.gd-rail { grid-column:var(--gd-rail); grid-row:span 6; align-self:stretch; margin-top:var(--sp-4); }
+  .gd-page[data-board] .gd-article>.gd-rail { grid-row:span 1; }
+  .gd-page[data-board] .gd-article>.gd-boards { grid-column:1 / -1; }
+  .gd-rail__inner { position:sticky; top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); display:flex; flex-direction:column; gap:var(--sp-2); }
+  .gd-rail .site-detail-actions.detail-actions { margin-top:0; }
+  .gd-rail__sources { display:inline-flex; align-items:center; gap:var(--sp-1); align-self:flex-start; min-height:2.75rem; color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+  .gd-rail__sources>svg { width:1rem; height:1rem; }
+  .gd-title__rest { font-size:var(--fs-body); }
+  .gd-lead { display:grid; grid-template-columns:repeat(8, minmax(0, 1fr)); column-gap:var(--grid-gutter); row-gap:var(--sp-4); align-items:stretch; margin-top:var(--sp-5); }
+  .gd-lead__visual { grid-column:1 / span 4; }
+  .gd-lead__side { grid-column:5 / -1; }
+  .gd-lead:not([data-visual]) .gd-lead__side,html[data-simple] .gd-page[data-pilot] .gd-lead__side { grid-column:1 / -1; }
+  .gd-lead__side>.gd-keyfacts { flex:1 1 auto; }
+  .gd-carousel .ui-carousel__track { margin:0; padding:0; }
+  .gd-carousel .ui-carousel__slide { flex-basis:100%; }
+  .gd-lead .gd-cover { border-radius:var(--r-lg); }
+  .gd-step__head h2 { font-size:var(--fs-keep-20); line-height:var(--lh-tight); }
+  .gd-related__rows { display:none; }
+  .gd-related__grid { display:block; margin-top:var(--sp-2); }
+  html[data-simple] .gd-related__grid { display:none; }
+  .gd-related__grid .ui-feed-grid { --ui-feed-ratio:3 / 2; }
+  .gd-to-top { right:var(--sp-6); bottom:var(--sp-6); }
+}
+@media (min-width:1200px) {
+  .gd-article.bl-guide-article { --gd-main:1 / span 9; --gd-rail:10 / span 3; --gd-body:4 / span 6; }
+  .gd-lead { grid-template-columns:repeat(9, minmax(0, 1fr)); }
+  .gd-article>.gd-toc { grid-column:1 / span 3; grid-row:span 3; align-self:stretch; margin-top:var(--section-gap); }
+  .gd-toc__phone { display:none; }
+  .gd-toc__desk { display:block; position:sticky; top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); max-height:calc(100vh - var(--chrome-header-height, 4rem) - var(--sp-6)); overflow:auto; }
+  .gd-article>.gd-toc+:is(.gd-contacts,.gd-lead-diagrams,.gd-main) { margin-top:var(--section-gap); }
 }

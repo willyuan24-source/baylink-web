@@ -29,10 +29,15 @@ export type GuideCard = {
   editionMonth?: string;
 };
 
+/** The number a guide's 拨打 button calls (UI9-GUIDES): its cover slide's phone, else its first contact (guideCallOf). */
+export type GuideCall = { number: string; tel: string; label: { zh: string; en: string } };
+
 /** An index card: the card plus what the index filters on. */
 export type GuideIndexCard = GuideCard & {
   /** The regions a guide is about (guideRegionsOf); absent = the whole Bay Area. */
   regions?: GuideRegionId[];
+  /** The number the reader's bar calls, on guides that have one: the 简洁 elder rows print it as a 48 px 拨打 button (G16). */
+  call?: GuideCall;
 };
 
 export type GuidesIndex = {

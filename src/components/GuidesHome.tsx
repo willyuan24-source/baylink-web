@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type MouseEvent } from 'react';
-import { Bookmark, Search, X } from 'lucide-react';
+import { ChevronDown, ChevronRight, Heart, Phone, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide, GuideCategory } from '../data/guides';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } from '../data/guide-topics';
@@ -14,8 +14,9 @@ import { PageHeader } from './ui/PageHeader';
 import { FilterChip, ChipRow } from './ui/Chip';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard, RowCard } from './ui/Card';
-import { Carousel } from './ui/Carousel';
 import { Button } from './ui/Button';
+import { Disclosure } from './ui/Disclosure';
+import { Sheet } from './ui/Sheet';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
@@ -23,7 +24,7 @@ import { GuideCover, guideCaption } from '../features/guides/GuideCover';
 import { GuideTypeCover } from './ui/cover-guide';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
-import { GUIDE_REGIONS, guideCardMeta, guideCover, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
+import { GUIDE_REGIONS, guideCardLines, guideCover, inSeason, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
 
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
@@ -32,7 +33,8 @@ const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ defa
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: GuideAsk; onSearch?: (query: string) => void };
 type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
 const PAGE_SIZE = 24;
-const RAIL_SIZE = 6;
+/** The 长辈与家属先看 band: three rows on every screen (a D2 .band, three across on a desktop). */
+const BAND_SIZE = 3;
 const PREVIEW_SIZE = 4;
 // The generated slim index (WEB-DATA-SPLIT, ENGSEC-01): cards only, no article bodies. Full-text search loads the corpus.
 const INDEX = guidesIndex as GuidesIndex;
@@ -40,6 +42,7 @@ const guides = INDEX.guides;
 const GUIDE_CATEGORY_TABS = INDEX.categoryTabs;
 const cardsBySlug = new Map(guides.map(guide => [guide.slug, guide]));
 const bySlug = (slug: string) => cardsBySlug.get(slug);
+const isCard = (guide: GuideIndexCard | undefined): guide is GuideIndexCard => !!guide;
 
 /**
  * The full guide corpus for full-text search: a chunk of its own, loaded on the first search. English also needs the guides'
@@ -67,9 +70,12 @@ function useSearchCorpus(active: boolean, locale: string): { guides?: Guide[]; f
 }
 
 /**
- * 指南 (T2, design.md §4.7.4, 1007 §4.4): two-column 3:4 covers, the seven task topics with 长辈与家属 first (D22), a region
- * row, the "长辈与家属先看" rail and shareable topic URLs (/guides?topic=elders). Covers follow the honesty ladder: a photo
- * with its provenance badge, else a coded cover; never an AI illustration.
+ * 指南 (T2, design.md §4.7.4; UI9-GUIDES content arrangement): H1 with ♡ 我的指南收藏 → search → one chip row (全部, the seven
+ * topics, 地区 ▾ in a sheet) → the 长辈与家属先看 band (three rows, D22) → six topic sections of at most four guides each, current
+ * monthly editions first and past ones left out of the previews → the complete directory → how we check. Row cards on a phone
+ * (C's mini cover, the full title, two meta lines); 3:2 covers four across on a desktop; 2-up photo cards when a section's
+ * preview is mostly photos. 简洁显示 keeps the H1, the search, the band (its rows print a 48 px 拨打 <number> when the guide has
+ * one) and one row per topic. Covers follow the honesty ladder: a photo with its provenance badge, else a coded cover.
  */
 export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) => {
   const { t, pick, english, locale } = useUiCopy();
@@ -88,7 +94,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const [page, setPage] = useState({ key: '', count: PAGE_SIZE });
   const resultKey = `${topic}:${region}:${category}:${query}`;
   const visibleCount = page.key === resultKey ? page.count : PAGE_SIZE;
-  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const [regionsOpen, setRegionsOpen] = useState(false);
 
   const update = (values: { topic?: GuideTopicId | null; region?: GuideRegionId | null; q?: string; category?: null }) => setParams(previous => {
     const next = new URLSearchParams(previous);
@@ -112,114 +118,146 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       const card = bySlug(result.guide.slug);
       return card && inRegion(card) && (!inTopic || inTopic.has(card.slug)) ? [{ guide: card, snippet: result.snippet, section: result.section }] : [];
     });
-    let list: GuideIndexCard[] = topic ? guideSlugsForTopic(topic, guides).map(bySlug).filter((guide): guide is GuideIndexCard => !!guide) : guides;
+    let list: GuideIndexCard[] = topic ? guideSlugsForTopic(topic, guides).map(bySlug).filter(isCard) : guides;
     if (category) list = list.filter(guide => guide.category === category);
     return list.filter(inRegion).map(guide => ({ guide }));
   }, [searching, query, topic, region, category, locale, search.guides]);
 
   const topicCounts = useMemo(() => Object.fromEntries(GUIDE_TOPICS.map(item => [item.id, guideSlugsForTopic(item.id, guides).length])) as Record<GuideTopicId, number>, []);
-  const elderRail = useMemo(() => guideSlugsForTopic('elders', guides).slice(0, RAIL_SIZE).map(bySlug).filter((guide): guide is GuideIndexCard => !!guide), []);
+  // Season (UI9-GUIDES): this month's editions first, past editions out of every preview (they stay in their topic's list).
+  const elderBand = useMemo(() => inSeason(guideSlugsForTopic('elders', guides).map(bySlug).filter(isCard), today).slice(0, BAND_SIZE), [today]);
   const sections = useMemo(() => {
-    const shown = new Set(elderRail.map(guide => guide.slug));
+    const shown = new Set(elderBand.map(guide => guide.slug));
     return GUIDE_TOPICS.filter(item => item.id !== 'elders').map(item => {
       const all = guides.filter(guide => guideTopicOf(guide) === item.id);
-      // Skip guides the rail already shows, unless that would leave the topic with fewer than two covers (医疗保险 has three).
+      // Skip guides the band already shows, unless that would leave the topic with fewer than two (医疗保险 has three).
       const others = all.filter(guide => !shown.has(guide.slug));
-      return { topic: item, total: all.length, preview: (others.length >= 2 ? others : all).slice(0, PREVIEW_SIZE) };
+      return { topic: item, total: all.length, preview: inSeason(others.length >= 2 ? others : all, today).slice(0, PREVIEW_SIZE) };
     });
-  }, [elderRail]);
+  }, [elderBand, today]);
 
   // One cover page in reading order, so an image never appears twice; each coded cover keeps its own family (cover-family.ts).
   const covers = useMemo(() => {
     const coverPage = createCoverPage();
-    const order: GuideIndexCard[] = browsing ? [...elderRail, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
-    return new Map<string, { cover: ResolvedCover }>(order.map(guide => [guide.slug, { cover: guideCover(guide, today, coverPage) }]));
-  }, [browsing, elderRail, sections, listed, visibleCount, today]);
+    const order: GuideIndexCard[] = browsing ? [...elderBand, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
+    return new Map<string, ResolvedCover>(order.map(guide => [guide.slug, guideCover(guide, today, coverPage)]));
+  }, [browsing, elderBand, sections, listed, visibleCount, today]);
+  const photo = (guide: GuideIndexCard) => { const cover = covers.get(guide.slug); return !!cover && cover.tier !== 'type'; };
 
   const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
-  // A photo thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard keeps its own badge.
-  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'type' && cover.tier !== 'scene3d' ? pick(cover.label) : undefined;
-  const meta = (guide: GuideIndexCard) => pick(guideCardMeta(guide));
-  const coverOf = (guide: GuideIndexCard, options: { priority?: boolean; thumb?: boolean } = {}) => {
-    const entry = covers.get(guide.slug);
-    if (!entry) return null;
-    return <GuideCover guide={guide} cover={entry.cover} face={GuideTypeCover} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
-      sizes={options.thumb ? COVER_SIZES.thumb : COVER_SIZES.feed} />;
-  };
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
-  const card = (guide: GuideIndexCard, priority = false) => <FeedCard title={guideTitle(guide)} titleShown={covers.has(guide.slug) ? guideCaption(guide, locale, covers.get(guide.slug)!.cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-    onOpen={open(guide.slug)} cover={coverOf(guide, { priority })} meta={meta(guide)} />;
+  const lines = (guide: GuideIndexCard) => { const { when, meta } = guideCardLines(guide, today); return { when: pick(when), meta: meta && pick(meta) }; };
+  /** A row: C's mini cover (its key fact only), the full title (never clamped), the time line and the sources line. */
+  const row = (guide: GuideIndexCard, options: { snippet?: string; section?: string; call?: boolean } = {}) => {
+    const cover = covers.get(guide.slug);
+    const { when, meta } = lines(guide);
+    return <>
+      <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
+        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
+        when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} />
+      {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
+      {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${guide.call.tel}`} data-simple="show"
+        aria-label={t(`拨打 ${guide.call.label.zh} ${guide.call.number}`, `Call ${guide.call.label.en} ${guide.call.number}`)} icon={<Phone aria-hidden="true" strokeWidth={1.75} />}>
+        {t('拨打', 'Call')} <span className="gl-call__number">{guide.call.number}</span></Button>}
+    </>;
+  };
+  /** A cover card (desktop, and 2-up photo cards on a phone): 3:2, C's hook sentence on a coded cover. */
+  const feed = (guide: GuideIndexCard, priority = false) => {
+    const cover = covers.get(guide.slug);
+    const { when, meta } = lines(guide);
+    return <FeedCard title={guideTitle(guide)} titleShown={cover ? guideCaption(guide, locale, cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
+  };
+  const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string } = {}) =>
+    <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;
+  /** A list: rows on a phone and 3:2 covers on a desktop, or 2-up photo cards everywhere when most of it is photos (3 of a
+   *  4-guide preview; three quarters of a longer list). */
+  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
+    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}</FeedGrid>
+    : <>
+      <div className="gl-view" data-view="phone">{rows(items, label, { call: topic === 'elders' })}</div>
+      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}</FeedGrid></div>
+    </>;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
   const categoryLabel = category ? translateText(GUIDE_CATEGORY_TABS.find(item => item.id === category)!.label, locale) : '';
   const regionLabel = region ? pick(GUIDE_REGIONS.find(item => item.id === region)!) : '';
   const heading = searching ? t('搜索结果', 'Search results') : topic ? topicName(topic) : category ? categoryLabel : regionLabel;
+  const band = <section className="gl-band" aria-labelledby="gl-elders-title">
+    <div className="gl-section__head">
+      <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p data-simple="hide">{summaryOf('elders')}</p></div>
+    </div>
+    {rows(elderBand, t('长辈与家属先看', 'Start here for seniors and family'), { call: true, className: 'gl-band__rows' })}
+    <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides for seniors and family`)}</Button>
+  </section>;
 
   return <div className="gl-page" data-testid="guides-home">
     <PageHeader className="gl-header" title={savedOnly ? t('我的指南收藏', 'Your saved guides') : topic && !searching ? `${topicName(topic)} · ${t('办事与生活指南', 'How-to guides')}` : t('办事与生活指南', 'How-to guides for Bay Area life')}
-      lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and how to apply or get help through official channels. ${guides.length} guides, each with its official sources.`)} />
+      lede={t(`办事步骤、适用条件与官方入口。${guides.length} 篇指南，每篇附官方来源。`, `Steps, eligibility and how to apply or get help through official channels. ${guides.length} guides, each with its official sources.`)}
+      actions={<Button className="gl-saved-link" to={savedOnly ? '/guides' : '/guides?view=saved'} icon={<Heart aria-hidden="true" strokeWidth={1.75} />}>{savedOnly ? t('继续发现', 'Discover guides') : t('我的指南收藏', 'Saved guides')}</Button>} />
     <div className="gl-find">
       <label className="gl-search"><Search aria-hidden="true" strokeWidth={1.75} />
         <input type="search" aria-label={t(`在 ${guides.length} 篇指南中搜索`, `Search ${guides.length} guides`)} placeholder={t('看医生、考驾照、防骗…', 'Doctors, driving, scams…')}
           value={query} maxLength={200} onChange={event => update({ q: event.target.value })} />
         {query && <button type="button" className="gl-search__clear" aria-label={t('清除指南搜索', 'Clear search')} onClick={() => update({ q: '' })}><X aria-hidden="true" strokeWidth={1.75} /></button>}
       </label>
-      <Link className="gl-saved-link" to={savedOnly ? '/guides' : '/guides?view=saved'}><Bookmark aria-hidden="true" strokeWidth={1.75} />{savedOnly ? t('继续发现', 'Discover guides') : t('我的指南收藏', 'Saved guides')}</Link>
     </div>
-    {!savedOnly && <nav className="gl-filters" aria-label={t('指南筛选', 'Guide filters')}>
+    {!savedOnly && <nav className="gl-filters" aria-label={t('指南筛选', 'Guide filters')} data-simple={topic ? undefined : 'hide'}>
       <ChipRow className="gl-topics" label={t('指南主题', 'Guide topics')}>
         <FilterChip selected={!topic && !category} onClick={() => update({ topic: null, category: null })}>{t('全部', 'All')}</FilterChip>
-        {GUIDE_TOPICS.map(item => <FilterChip key={item.id} selected={topic === item.id} count={topicCounts[item.id]} onClick={() => update({ topic: topic === item.id ? null : item.id })}>{pick(item)}</FilterChip>)}
+        {GUIDE_TOPICS.map(item => <FilterChip key={item.id} selected={topic === item.id} onClick={() => update({ topic: topic === item.id ? null : item.id })}>{pick(item)}</FilterChip>)}
         {category && <FilterChip selected onClick={() => update({ category: null })} aria-label={t(`取消筛选：${categoryLabel}`, `Clear filter: ${categoryLabel}`)}>{categoryLabel}<X aria-hidden="true" strokeWidth={1.75} /></FilterChip>}
-      </ChipRow>
-      <ChipRow className="gl-regions" label={t('地区', 'Region')}>
-        <FilterChip selected={!region} onClick={() => update({ region: null })}>{t('全湾区', 'All Bay Area')}</FilterChip>
-        {GUIDE_REGIONS.map(item => <FilterChip key={item.id} selected={region === item.id} onClick={() => update({ region: region === item.id ? null : item.id })}>{pick(item)}</FilterChip>)}
+        {/* 地区 shows its current value, like the deals board's ("整个湾区 ▾" / "东湾 ▾"), and opens F's sheet. */}
+        <FilterChip selected={!!region} className="gl-region-chip" aria-haspopup="dialog" aria-label={t(`地区：${region ? regionLabel : '整个湾区'}`, `Region: ${region ? regionLabel : 'whole Bay Area'}`)}
+          onClick={() => setRegionsOpen(true)}>{region ? regionLabel : t('整个湾区', 'Whole Bay Area')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
       </ChipRow>
     </nav>}
-    {savedOnly ? <Suspense fallback={<SkeletonFeed count={4} rows />}><ReadingShelf /></Suspense>
+    <Sheet open={regionsOpen} onClose={() => setRegionsOpen(false)} title={t('地区', 'Region')} bodyClassName="gl-regions">
+      <ul className="gl-regions__list">{[{ id: null, label: t('整个湾区', 'Whole Bay Area') }, ...GUIDE_REGIONS.map(item => ({ id: item.id, label: pick(item) }))].map(item => <li key={item.id ?? 'all'}>
+        <button type="button" className="gl-regions__option" aria-pressed={region === item.id} onClick={() => { update({ region: item.id }); setRegionsOpen(false); }}>{item.label}</button>
+      </li>)}</ul>
+    </Sheet>
+    {savedOnly ? <Suspense fallback={<SkeletonFeed count={3} rows />}><ReadingShelf /></Suspense>
       : browsing ? <>
-        <section className="gl-section gl-section--rail" aria-labelledby="gl-elders-title">
-          <div className="gl-section__head">
-            <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p>{summaryOf('elders')}</p></div>
-            <Button variant="text" onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders}`)}</Button>
-          </div>
-          <Carousel className="gl-rail" variant="rail" label={t(`长辈与家属先看：${elderRail.length} 篇，左右滑动`, `Seniors and family: ${elderRail.length} guides, swipe for more`)}>
-            {elderRail.map((guide, index) => <div key={guide.slug}>{card(guide, index === 0)}</div>)}
-          </Carousel>
-        </section>
-        {sections.map(({ topic: item, total, preview }) => <section key={item.id} className="gl-section" aria-labelledby={`gl-topic-${item.id}`}>
+        {band}
+        {sections.map(({ topic: item, total, preview }) => <section key={item.id} className="gl-section" data-simple="hide" aria-labelledby={`gl-topic-${item.id}`}>
           <div className="gl-section__head">
             <div><h2 id={`gl-topic-${item.id}`}>{pick(item)}</h2><p>{pick(item.summary)}</p></div>
-            <Button variant="text" onClick={() => update({ topic: item.id })}>{t(`看全部 ${total} 篇`, `All ${total}`)}</Button>
+            <Button variant="quiet" onClick={() => update({ topic: item.id })}>{t(`看全部 ${total} 篇`, `All ${total}`)}</Button>
           </div>
-          <FeedGrid label={pick(item)}>{preview.map(guide => <FeedItem key={guide.slug}>{card(guide)}</FeedItem>)}</FeedGrid>
+          {list(preview, pick(item))}
         </section>)}
+        {/* 简洁显示: one row per topic instead of the six sections. */}
+        <nav className="gl-section gl-topic-rows" data-simple="show" aria-labelledby="gl-topic-rows-title">
+          <h2 id="gl-topic-rows-title">{t('按主题找', 'Browse by topic')}</h2>
+          <ul>{GUIDE_TOPICS.filter(item => item.id !== 'elders').map(item => <li key={item.id}>
+            <Link to={`/guides?topic=${item.id}`} onClick={event => { if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return; event.preventDefault(); update({ topic: item.id }); }}>
+              <span>{pick(item)}</span><span className="gl-topic-rows__count">{t(`${topicCounts[item.id]} 篇`, `${topicCounts[item.id]}`)}</span><ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link>
+          </li>)}</ul>
+        </nav>
       </> : <section className="gl-section" aria-labelledby="gl-results-title">
         <div className="gl-section__head">
           <div><h2 id="gl-results-title">{heading}</h2>{topic && !searching && <p>{summaryOf(topic)}</p>}</div>
           <span className="gl-count" role="status" aria-live="polite">{searchLoading ? t('正在搜索…', 'Searching…') : t(`${listed.length} 篇`, `${listed.length} guide${listed.length === 1 ? '' : 's'}`)}</span>
         </div>
-        {searchLoading ? (search.failed ? <ErrorState headingLevel="h3" title={t('搜索暂时没能加载', 'Search didn’t load')} onRetry={search.retry} homeTo={null} /> : <SkeletonFeed count={4} rows />)
-          : listed.length === 0 ? <EmptyState icon={Search} title={t('还没有找到相关指南', 'No matching guides yet')} body={t('换个关键词或地区，也可以搜全站，或把问题交给 BayBay。', 'Try another word or region, search the whole site, or ask BayBay.')}
-          actions={<>
-            <Button variant="primary" onClick={() => update({ q: '', topic: null, region: null, category: null })}>{t('查看全部指南', 'Browse all guides')}</Button>
-            {searching && onAsk ? <Button variant="text" onClick={() => onAsk(query, { mode: 'draft' })}>{t('问 BayBay', 'Ask BayBay')}</Button>
-              : searching && onSearch ? <Button variant="text" onClick={() => onSearch(query)}>{t('搜全站', 'Search the whole site')}</Button> : null}
-          </>} />
-          : searching ? <ul className="gl-results" aria-label={heading}>{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>
-            <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-              thumb={coverOf(guide, { thumb: true })} date={section ? t(`文内匹配 · ${section}`, `Match in · ${section}`) : topicName(guideTopicOf(guide))} meta={snippet || meta(guide)}
-              credit={rowCredit(covers.get(guide.slug)?.cover)} />
-          </li>)}</ul>
-            : <FeedGrid label={heading}>{listed.slice(0, visibleCount).map(({ guide }, index) => <FeedItem key={guide.slug}>{card(guide, index === 0)}</FeedItem>)}</FeedGrid>}
+        {searchLoading ? (search.failed ? <ErrorState headingLevel="h3" title={t('搜索暂时没能加载', 'Search didn’t load')} onRetry={search.retry} homeTo={null} /> : <SkeletonFeed count={3} rows />)
+          : listed.length === 0 ? <>
+            <EmptyState icon={Search} title={t('还没有找到相关指南', 'No matching guides yet')} body={t('换个关键词或地区，也可以把问题交给 BayBay。', 'Try another word or region, or ask BayBay.')}
+              actions={<>
+                <Button variant="primary" onClick={() => update({ q: '', topic: null, region: null, category: null })}>{t('查看全部指南', 'Browse all guides')}</Button>
+                {searching && onAsk ? <Button variant="secondary" onClick={() => onAsk(query, { mode: 'draft' })}>{t('问 BayBay', 'Ask BayBay')}</Button>
+                  : searching && onSearch ? <Button variant="secondary" onClick={() => onSearch(query)}>{t('搜全站', 'Search the whole site')}</Button> : null}
+              </>} />
+            {band}
+          </>
+          : searching ? <ul className="gl-rows gl-results" aria-label={heading}>{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>{row(guide, { snippet, section })}</li>)}</ul>
+            : list(listed.slice(0, visibleCount).map(({ guide }) => guide), heading, true)}
         {listed.length > visibleCount && <div className="gl-more"><Button onClick={() => setPage({ key: resultKey, count: visibleCount + PAGE_SIZE })}>{t(`继续查看（${visibleCount}/${listed.length}）`, `Show more (${visibleCount}/${listed.length})`)}</Button></div>}
       </section>}
-    {!savedOnly && <div className="gl-directory">
-      <button type="button" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}</button>
-      <nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
-    </div>}
-    <footer className="gl-footer"><p>{t('每篇指南保留官方来源、核对日期与图片授权。', 'Each guide keeps its official sources, check dates and image credits.')}</p><Link to="/about">{t('了解核验方法', 'How we check sources')}</Link></footer>
+    {!savedOnly && <Disclosure className="gl-directory" summary={t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}>
+      <nav id="guide-complete-directory" aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
+    </Disclosure>}
+    <footer className="gl-footer"><p>{t('每篇指南保留官方来源、核对日期与图片授权。', 'Each guide keeps its official sources, check dates and image credits.')}</p><Link to="/about#about-method-title">{t('了解核验方法', 'How we check sources')}</Link></footer>
   </div>;
 };

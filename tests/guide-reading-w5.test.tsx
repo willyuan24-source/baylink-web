@@ -39,7 +39,7 @@ test('H32: the guide\'s 问 BayBay opens the panel as a draft (nothing is sent) 
   const view = render(<MemoryRouter initialEntries={['/guides/bay-area-newcomer-first-month-checklist']}>
     <GuideDetail slug="bay-area-newcomer-first-month-checklist" today="2026-10-13" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} onAsk={(question, options) => asks.push([question, options])} />
   </MemoryRouter>);
-  fireEvent.click(view.getByRole('button', { name: '问 BayBay' }));
+  fireEvent.click(view.getByRole('button', { name: '问 BayBay 这一页' }));
   assert.equal(asks.length, 1);
   assert.deepEqual(asks[0][1], { mode: 'draft' });
   assert.match(asks[0][0], /第一步做什么、该联系谁、要准备什么/);

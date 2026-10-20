@@ -1,4 +1,5 @@
-import { Check, Gift, HeartHandshake, House, Landmark, ShieldAlert, Stethoscope, TrainFront, Trees, type LucideIcon } from 'lucide-react';
+import { useState } from 'react';
+import { Check, ChevronDown, Gift, HeartHandshake, House, Landmark, ShieldAlert, Stethoscope, TrainFront, Trees, type LucideIcon } from 'lucide-react';
 import { Carousel } from '../../components/ui/Carousel';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { SegmentedTitle } from '../../components/SegmentedTitle';
@@ -20,6 +21,9 @@ const TOPIC_MARKS: Record<GuideTopicId, LucideIcon> = { elders: HeartHandshake, 
  */
 export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: GuideEditorial }) {
   const { t, pick, english } = useUiCopy();
+  // 特大 (UI9-GUIDES): the cover slide only, then 看全部 N 张卡片 opens the rest as one list (no sideways scroller, N25). The
+  // button shows in 特大 only (guide-article.css); 简洁显示 hides the whole carousel, whose facts are in 30 秒看懂.
+  const [all, setAll] = useState(false);
   const total = editorial.slides.length + 1;
   const sourceTitle = (index?: number) => index && guide.sources[index - 1] ? guide.sources[index - 1].title : undefined;
   // H13: the caution 以机构确认为准 is said once, on the cover slide; each point slide names only its source.
@@ -44,14 +48,15 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
   // source copy, translated once inside SegmentedTitle.
   const headline = (copy: { zh: string; en: string }) => <SegmentedTitle text={english ? copy.en : copy.zh} />;
   const Mark = TOPIC_MARKS[guideTopicOf(guide)];
-  return <div className="gd-carousel">
+  return <div className="gd-carousel" data-all={all ? '' : undefined}>
     <Carousel label={t(`${pick(cover.title)}：${total} 张图解`, `${pick(cover.title)}: ${total} cards`)}>
       {/* data-cover="type": a coded card, counted as cover area and never as photo area (RC-31). */}
       <article className="gd-slide gd-slide--cover" data-kind="cover" data-cover="type">
         <Mark className="gd-slide__mark" aria-hidden="true" strokeWidth={1.25} />
         <div className="gd-slide__top"><span className="gd-slide__kicker">{kicker}</span>{counter(1)}</div>
         <p className="gd-slide__question">{pick(cover.question)}</p>
-        <h2 className="gd-slide__cover-title">{headline(cover.title)}</h2>
+        {/* A styled line, not a heading: nothing on the page outranks the H1 (P12). */}
+        <p className="gd-slide__cover-title">{headline(cover.title)}</p>
         <p className="gd-answer">{cover.phone ? <a href={`tel:${cover.phone.tel}`} aria-label={t(`拨打 ${pick(cover.phone.label)} ${cover.phone.number}`, `Call ${pick(cover.phone.label)} ${cover.phone.number}`)}>{keepNumbers(pick(cover.answer))}</a> : keepNumbers(pick(cover.answer))}</p>
         {cover.line && <p className="gd-slide__line">{pick(cover.line)}</p>}
         <p className="gd-slide__source" data-template-note="">{t('BAYLINK 整理 · 以机构确认为准', 'Compiled by BAYLINK · confirm with the agency')}</p>
@@ -65,5 +70,8 @@ export function GuideCarousel({ guide, editorial }: { guide: Guide; editorial: G
         {footer(slide.source)}
       </article>)}
     </Carousel>
+    <button type="button" className="gd-carousel__all" aria-expanded={all} onClick={() => setAll(open => !open)}>
+      <span>{all ? t('收起卡片', 'Show fewer cards') : t(`看全部 ${total} 张卡片`, `See all ${total} cards`)}</span><ChevronDown aria-hidden="true" strokeWidth={1.75} />
+    </button>
   </div>;
 }
