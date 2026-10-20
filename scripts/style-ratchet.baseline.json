@@ -13,12 +13,12 @@
     "baylinkClasses": 425,
     "arrowUpRight": 31,
     "buttonLooks": 36,
-    "fontSizeOffLadder": 33,
-    "fontSizeLiteral": 593,
+    "fontSizeOffLadder": 29,
+    "fontSizeLiteral": 585,
     "fontWeightBold": 3,
     "durationOffScale": 0,
     "durationLiteral": 47,
-    "spacingOffScale": 2000,
+    "spacingOffScale": 1995,
     "englishUiUntranslated": 105,
     "lazyCssDuplicateSelectors": 0
   },
@@ -376,7 +376,6 @@
       "spacingOffScale": 5
     },
     "src/components/local-discovery-detail.css": {
-      "fontSizeLiteral": 2,
       "spacingOffScale": 31
     },
     "src/components/monthly-deals.css": {
@@ -482,9 +481,7 @@
       "baylinkClasses": 11
     },
     "src/components/ui/covers.css": {
-      "fontSizeLiteral": 6,
-      "fontSizeOffLadder": 4,
-      "spacingOffScale": 6
+      "spacingOffScale": 1
     },
     "src/components/ui/Skeleton.tsx": {
       "baylinkClasses": 3
