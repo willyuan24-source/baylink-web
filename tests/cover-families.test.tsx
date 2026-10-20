@@ -328,12 +328,13 @@ test('review fixes: the stated close past midnight, families after the page draw
   cleanup();
   // A poster keeps its own shape on the board and fills it, whatever `sizes` says (review 10-19: the flyer was drawn at its
   // srcset size, half a single-column board): the board is a size container, the width is the smaller of the board's width
-  // and its height times the flyer's shape (+ the mat), the height follows the shape, so the mat is even. `width:auto` comes
-  // first (review 10-19 re-verify): a browser without cq units (iOS 15, a build target) drops the min() and must not fall
-  // back to the generic width:100% + object-fit:cover, which crops the flyer to a band.
+  // and its height times the flyer's shape (+ the mat), the height follows the shape, so the mat is even. `width:100%` comes
+  // first with object-fit:contain (UI9-C carry-over, applied in UI9-INT): a browser without cq units (iOS 15, a build target)
+  // drops the min() and the flyer fills the board's width whole (0.94–0.98 of the board in 特大 / 家人版, not 0.52), letterboxed
+  // where max-height caps it; never the generic object-fit:cover, which crops the flyer to a band.
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.match(sheet, /\.ui-cover\[data-fit=contain\] \{ container-type:size;/);
-  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*position:static; width:auto; width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; padding:var\(--sp-1\)/);
+  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*position:static; width:100%; width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var\(--sp-1\)/);
   const flyer = wrap(<CoverImage image={{ src: '/f.webp', alt: '', width: 1200, height: 400 }} label="官方图" fit="contain" kind="event" />);
   assert.equal(flyer.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '3');
   cleanup();
