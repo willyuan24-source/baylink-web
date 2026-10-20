@@ -4,7 +4,7 @@ import { getCover, type CoverContext, type ResolvedCover } from './cover';
 
 /** An offer as the home ticket rail needs it (scripts/generate-home-catalog.ts): no requirement text, no source URL. */
 export type HomeOffer = Pick<FreebieOffer, 'id' | 'title' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'kind' | 'imageKey' | 'verifiedAt' | 'region'>
-  & { valueText?: string; publicBenefit?: boolean };
+  & { valueText?: string; publicBenefit?: boolean; press?: true };
 
 const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:00:00Z`) + amount * 86_400_000).toISOString().slice(0, 10);
 

@@ -47,7 +47,8 @@ export function OfferTicketsView({ offers: selected, covers, today, count }: Off
           cover={<Cover cover={covers[index]} kind="offer" decorative {...(wide && index === 0 ? { ratio: '3:2' as const, sizes: WIDE_SIZES } : { ratio: '1:1' as const, sizes: TICKET_SIZES })}
             fallback={<DeferredOfferTypeCover offer={offer as OfferFactsInput} today={today} ratio={wide && index === 0 ? '3:2' : '1:1'} ariaHidden />} />}
           when={<OfferWhen offer={offer} today={today} />} meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
-          trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {readerMonthDay(offer.verifiedAt, english)}</> : undefined}
+          trust={offer.verifiedAt ? (offer.press ? t(`媒体报道 · ${readerMonthDay(offer.verifiedAt)} 核对`, `News report · checked ${readerMonthDay(offer.verifiedAt, true)}`)
+            : `${t('官网核对', 'Source checked')} ${readerMonthDay(offer.verifiedAt, english)}`) : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}
     </ul>

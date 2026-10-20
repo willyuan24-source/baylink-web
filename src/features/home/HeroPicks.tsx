@@ -8,7 +8,7 @@ import { eventWhenLine, type EventFactsInput } from '../../lib/event-facts';
 import type { HomeEvent } from '../../lib/home-catalog';
 import type { HomeWeekendPick } from '../../lib/home-weekend';
 import { METHOD_HREF, OFFICIAL_LINKS, officialCheckLine, type CheckSummary } from '../../lib/check-dates';
-import { monthDay, weekendRange } from './home-model';
+import { checkedLine, weekendRange } from './home-model';
 import { EventMeta } from './WeekendFeed';
 import { dateScope } from '../../lib/date-guard';
 
@@ -34,7 +34,7 @@ function PickCard({ pick, cover, today, lead }: { pick: HomeWeekendPick; cover: 
     <FeedCard title={event.title} to={`/events/${event.id}?date=${pick.date}`}
       cover={<EventCover event={facts(event)} cover={cover} today={today} days={[pick.date]} ratio="3:2" priority={lead} sizes={lead ? LEAD_SIZES : PICK_SIZES} decorative />}
       when={copy(eventWhenLine(facts(event), today, [pick.date]))} meta={<EventMeta event={event} />}
-      trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt, english)}</>}
+      trust={checkedLine(event.verifiedAt, event.press, t, english)}
       save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
     {/* The editor's reason shows under the lead on a desktop (home-discovery.css). */}
     {pick.editorial && <p className="home-pick__reason">{t('编辑推荐：', 'Editor’s pick: ')}{copy(pick.editorial.reason)}</p>}

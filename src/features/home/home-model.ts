@@ -15,6 +15,9 @@ export const REGION_LABELS: Readonly<Record<MonthlyRegion, Copy>> = {
 
 /** M/D, as trust rows print it ("官网核对 10/2"); `english`: "Oct 2" (US English on /en). */
 export const monthDay = (day: string, english = false) => readerMonthDay(day, english);
+/** A card's ✓ line (DECISIONS 3 / 17): 官网核对 10/15, or 媒体报道 · 10/15 核对 for a press-sourced item (`press` from the catalog). */
+export const checkedLine = (day: string, press: boolean | undefined, t: (zh: string, en: string) => string, english: boolean) =>
+  press ? t(`媒体报道 · ${monthDay(day, english)} 核对`, `News report · checked ${monthDay(day, true)}`) : `${t('官网核对', 'Source checked')} ${monthDay(day, english)}`;
 
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 /** "10 月 12 日 周一" / "Mon, Oct 12": the home dateline. */

@@ -58,6 +58,21 @@ test('on the live data every press record starts with the prefix, and the five r
   assert.ok(press > 0, 'the data has press-only records (CNT-SIGNBOARD gave them the prefix)');
 });
 
+test('home: the catalog flags press-sourced picks, feed events and offers, and their ✓ line says 媒体报道 (HOME request 10)', async () => {
+  const { checkedLine } = await import('../src/features/home/home-model');
+  const zh = (text: string) => text, en = (_zh: string, text: string) => text;
+  assert.equal(checkedLine('2026-09-29', true, zh, false), '媒体报道 · 9/29 核对');
+  assert.equal(checkedLine('2026-09-29', true, en, true), 'News report · checked Sep 29');
+  assert.equal(checkedLine('2026-09-29', undefined, zh, false), '官网核对 9/29');
+  assert.equal(checkedLine('2026-09-29', undefined, en, true), 'Source checked Sep 29');
+  const catalog = JSON.parse(readFileSync('src/data/generated/home-catalog.json', 'utf8')) as { events: { id: string; press?: true }[]; offers: { id: string; press?: true }[] };
+  const sources = new Map<string, string | undefined>([...PLANNER_EVENTS.map(event => [event.id, event.sourceLabel] as const), ...currentFreebies.map(offer => [offer.id, offer.sourceLabel] as const)]);
+  for (const item of [...catalog.events, ...catalog.offers]) assert.equal(item.press === true, isPressSource(sources.get(item.id)), item.id);
+  for (const file of ['src/features/home/HeroPicks.tsx', 'src/features/home/WeekendFeed.tsx', 'src/features/home/OfferTicketsView.tsx']) {
+    assert.match(readFileSync(file, 'utf8'), /press/, `${file} prints 媒体报道 for a press source`);
+  }
+});
+
 test('no card module keeps its own press regex', () => {
   for (const file of ['src/features/events/source-kind.ts', 'src/features/events/board-status.ts', 'src/features/source-monitor/checked-line.ts', 'src/features/baybay/card-check.ts']) {
     const source = readFileSync(file, 'utf8');

@@ -5,7 +5,7 @@ import { translateText } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
 import { eventPlace, eventPriceChip, eventWhenLine, type EventFactsInput } from '../../lib/event-facts';
 import type { HomeEvent } from '../../lib/home-catalog';
-import { monthDay } from './home-model';
+import { checkedLine } from './home-model';
 import { Home3DStrip } from './Home3DStrip';
 import { dateScope } from '../../lib/date-guard';
 
@@ -45,7 +45,7 @@ export function WeekendFeed({ feed, covers, today, total }: { feed: readonly Fee
       {feed.flatMap(({ event, date }, index) => [<FeedItem key={event.id}>
         <FeedCard title={event.title} to={`/events/${event.id}?date=${date}`}
           cover={<EventCover event={facts(event)} cover={covers[index]} today={today} days={[date]} ratio="3:2" sizes={FEED_SIZES} decorative />}
-          when={pick(eventWhenLine(facts(event), today, [date]))} meta={<EventMeta event={event} />} trust={<>{t('官网核对', 'Source checked')} {monthDay(event.verifiedAt, english)}</>}
+          when={pick(eventWhenLine(facts(event), today, [date]))} meta={<EventMeta event={event} />} trust={checkedLine(event.verifiedAt, event.press, t, english)}
           save={<SaveToWeek favorite={{ kind: 'event', id: event.id }} compact title={event.title} />} />
       </FeedItem>, ...(index === Math.min(STRIP_AFTER, feed.length) - 1 ? [<FeedItem key="home-3d-strip" wide><Home3DStrip /></FeedItem>] : [])])}
     </FeedGrid>

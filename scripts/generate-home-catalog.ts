@@ -17,6 +17,7 @@ import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
 import { isSeniorFriendly } from '../src/lib/senior-friendly';
 import { checkSummary } from '../src/lib/check-dates';
+import { isPressSource } from '../src/lib/event-facts';
 import type { HomeWeekendSnapshot } from '../src/lib/home-weekend';
 import { WEEKEND_PICKS } from '../src/data/weekend-picks';
 
@@ -111,6 +112,8 @@ const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(eve
   return {
     id, title, ...(aliases?.length ? { aliases } : {}), startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}), region, city, category, cost,
     verifiedAt, imageKey, audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
+    // DECISIONS 17: a press-sourced card says 媒体报道 · M/D 核对 (the one prefix rule); only such an event carries the flag.
+    ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(Object.keys(plan).length ? { planning: plan } : {}),
   };
 });
@@ -119,6 +122,7 @@ const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).m
   return {
     id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
     ...present(offer, ['region', 'startDate', 'endDate', 'verifiedAt', 'valueText', 'publicBenefit']),
+    ...(isPressSource(offer.sourceLabel) ? { press: true } : {}),
   } as HomeOffer;
 });
 // Only images the cover ladder accepts for their item are shipped (an AI illustration, a theme photo, an undated or old
