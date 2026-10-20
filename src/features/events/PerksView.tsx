@@ -27,7 +27,7 @@ const NO_EXTRA: Readonly<Record<OfferSectionId, number>> = { week: 0, later: 0, 
  * each an h2 with its count and its own 再看 N 条 — ending soonest first, photo first within a day, sold-out offers last.
  * Cards: C's 1:1 ticket or the brand's image, line 1 when, line 2 [status] · condition · brand, the source line. The weekend's
  * free events and the three guides close the page. On a phone at 大 / 特大 / 简洁 the filter row is two Sheet chips and the
- * cards are rows; 简洁 shows 3 per section, hides sold-out offers and keeps one guide link.
+ * cards are rows; 简洁 shows 3 per section (家人版 2), hides sold-out offers and keeps one guide link.
  */
 export default function PerksView({ today, region }: { today: string; region: MonthlyRegion | 'all' }) {
   const { t, pick } = useUiCopy();
@@ -43,8 +43,8 @@ export default function PerksView({ today, region }: { today: string; region: Mo
     // eslint-disable-next-line react-hooks/exhaustive-deps -- usable reads mode.simple
     [today, kind, region, mode.simple]);
   const sections = useMemo(() => offerSections(listed, today), [listed, today]);
-  // Phone 4 / 4 / 4, desktop 8 / 4 / 4, 简洁 3 / 3 / 3 (one row of four on desktop, two 2-up rows on a phone).
-  const firstSize = (id: OfferSectionId) => mode.simple ? 3 : !mode.phone && id === 'week' ? 8 : 4;
+  // Phone 4 / 4 / 4, desktop 8 / 4 / 4, 简洁 3 / 3 / 3, 家人版 2 / 2 / 2 (one row of four on desktop, two 2-up rows on a phone).
+  const firstSize = (id: OfferSectionId) => mode.simple ? mode.simpleSize : !mode.phone && id === 'week' ? 8 : 4;
   const shown = sections.map(section => section.offers.slice(0, firstSize(section.id) + extra[section.id]));
   const shownKey = shown.map(list => list.map(offer => offer.id).join()).join('|');
   // One cover page for the whole board, so a picture is never shown twice across the sections.

@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import { COVER_SIZES, Cover, FeedCard, OfferCover, OfferTypeCover, OpeningCover, OpeningTypeCover, RowCard, StatusChip, offerBrandLine } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { translateText } from '../../i18n/locale';
+import { translateText, type Locale } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
 import { readerMonthDay } from '../../lib/event-facts';
 import type { Favorite } from '../../lib/planner';
@@ -17,8 +17,13 @@ import type { IndexOffer, IndexOpening } from './events-index-types';
  * 大 / 特大 and in 简洁显示 the boards list the same cards as rows (`*RowCard`).
  */
 const HAN = /[\u3400-\u9fff]/;
+/**
+ * A record's words as a card prints them: translated first, then its own " \u00b7 " glued (SEP). The JSX layer translates a
+ * Chinese string child again and would print the dictionary's ordinary-space " \u00b7 ", so the glue goes on last (N06).
+ */
+const shown = (text: string, locale: Locale) => glueSeparators(translateText(text, locale));
 
-/** ♡: the one save control, the same heart as the event cards (reader's name "收藏：<title>"). */
+/** ♡: the one save control, the same heart as the event cards, named after the card's own title ("收藏：<title>"). */
 const CoverSave = ({ favorite, title }: { favorite: Favorite; title: string }) => <SaveToWeek favorite={favorite} compact title={title} />;
 
 /**
@@ -59,13 +64,13 @@ function OfferMeta({ offer, today, brandOnCover }: { offer: IndexOffer; today: s
  * it as a row instead (phone at 大 / 特大, 简洁显示); `simple` (简洁) drops ♡ and the provenance words there.
  */
 export function OfferFeedCard({ offer, cover, today, save = true, row, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
-  const { pick } = useUiCopy();
+  const { pick, locale } = useUiCopy();
   if (row) return <OfferRowCard offer={offer} cover={cover} today={today} simple={simple} />;
-  return <FeedCard title={offer.title} to={`/offers/${offer.id}`}
+  return <FeedCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`}
     cover={<OfferCover offer={offer} cover={cover} today={today} decorative />}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={cover.tier === 'type'} />}
     trust={<BoardTrust day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
-    save={save ? <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={offer.title} /> : undefined} />;
+    save={save ? <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} /> : undefined} />;
 }
 
 /**
@@ -73,13 +78,13 @@ export function OfferFeedCard({ offer, cover, today, save = true, row, simple }:
  * source line. 简洁 (`simple`) drops ♡ and the photo's provenance words: saving happens on the detail page (DECISIONS 16).
  */
 export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; simple?: boolean }) {
-  const { pick } = useUiCopy();
+  const { pick, locale } = useUiCopy();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="offer"
     fallback={<OfferTypeCover offer={offer} today={today} size="mini" ratio="1:1" ariaHidden />} />;
-  return <RowCard title={offer.title} to={`/offers/${offer.id}`} thumb={thumb}
+  return <RowCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`} thumb={thumb}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={false} />}
     credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
-    trailing={simple ? undefined : <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={offer.title} />} />;
+    trailing={simple ? undefined : <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} />} />;
 }
 
 /** "Burlingame · 拉面": where the shop is and what it sells (`category` without a leading status word), else its type. */
@@ -88,7 +93,7 @@ function OpeningMeta({ opening }: { opening: IndexOpening }) {
   // English drops the leading word after translation, so "新餐厅 · 日式晚餐" reads "Japanese dinner", not the opening type.
   const sells = english ? openingSells(translateText(opening.category, locale)) : translateText(openingSells(opening.category), locale);
   const what = sells && !(english && HAN.test(sells)) ? sells : pick(OPENING_TYPES[opening.openingType]);
-  return <>{glueSeparators(translateText(opening.city, locale))}{SEP}{glueSeparators(what)}</>;
+  return <>{shown(opening.city, locale)}{SEP}{glueSeparators(what)}</>;
 }
 /** Line 1 of an opening card: openingChip unchanged ("10/11 已开业", "9/4 起试营业", "即将开业"), as the one status chip. */
 function OpeningWhen({ opening, today }: { opening: IndexOpening; today: string }) {
@@ -102,21 +107,22 @@ function OpeningWhen({ opening, today }: { opening: IndexOpening; today: string 
  * `simple` as on the offer card.
  */
 export function OpeningFeedCard({ opening, cover, today, save = true, row, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; save?: boolean; row?: boolean; simple?: boolean }) {
+  const { locale } = useUiCopy();
   if (row) return <OpeningRowCard opening={opening} cover={cover} today={today} simple={simple} />;
-  return <FeedCard title={opening.name} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
+  return <FeedCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
     cover={<OpeningCover opening={opening} cover={cover} today={today} ratio="1:1" decorative />}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
     trust={<BoardTrust day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
-    save={save ? <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={opening.name} /> : undefined} />;
+    save={save ? <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} /> : undefined} />;
 }
 
 /** The new shop as a row (phone at 大 / 特大, 简洁显示); 简洁 drops ♡ and the provenance words. */
 export function OpeningRowCard({ opening, cover, today, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; simple?: boolean }) {
-  const { pick } = useUiCopy();
+  const { pick, locale } = useUiCopy();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="opening"
     fallback={<OpeningTypeCover opening={opening} today={today} size="mini" ratio="1:1" ariaHidden />} />;
-  return <RowCard title={opening.name} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} thumb={thumb}
+  return <RowCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} thumb={thumb}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
     credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
-    trailing={simple ? undefined : <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={opening.name} />} />;
+    trailing={simple ? undefined : <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} />} />;
 }

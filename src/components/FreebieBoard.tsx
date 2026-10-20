@@ -137,8 +137,10 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
   // A credit line only under a real picture: never on a 3D postcard or an AI illustration (none is on this board).
   const credited = !!image && !(image as { scene3d?: boolean }).scene3d && image.kind !== 'illustration';
   const pictureLabel = image ? getImageProvenance(image, english) : '';
-  // The record's own " · " in the brand, the date words and a status are glued (SEP), so no wrapped line starts with "·".
-  const brand = glueSeparators(translateText(brandCase(offer.brand), locale));
+  // The record's own " · " in the brand, the title, the date words and a status are glued (SEP), so no wrapped line starts
+  // with "·" (N06). Translated first: the JSX layer would translate a glued Chinese string again, with ordinary spaces.
+  const shown = (text: string) => glueSeparators(translateText(text, locale));
+  const brand = shown(brandCase(offer.brand));
   const checked = validDate(offer.verifiedAt) ? readerMonthDay(offer.verifiedAt, english) : '';
   return <article id={`offer-${offer.id}`} className={`bl-freebie-card bl-freebie-card--${status.key}`} aria-labelledby={headingId}>
     {image ? <figure className="bl-freebie-picture">
@@ -152,10 +154,10 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
     </figure> : null}
     <div className="bl-freebie-card-body">
       <p className="bl-freebie-card-brand" translate="no">{brand}</p>
-      <h4 id={headingId}><a href={`/offers/${offer.id}`}>{offer.title}</a></h4>
-      <p className="bl-freebie-card-date">{glueSeparators(offer.dateLabel)}</p>
+      <h4 id={headingId}><a href={`/offers/${offer.id}`}>{shown(offer.title)}</a></h4>
+      <p className="bl-freebie-card-date">{shown(offer.dateLabel)}</p>
       {/* C's status map (covers.css .ui-status[data-tone]) set directly, as OfferWhen does: no Status chunk in the guide's preload list. */}
-      <p className="bl-freebie-card-tags"><span className={`ui-status bl-freebie-status bl-freebie-status--${status.key}`} data-tone={chip.tone}>{glueSeparators(chip.text)}</span>{SEP}<span className="bl-freebie-kind">{translateText(KIND_LABELS[offer.kind], locale)}</span></p>
+      <p className="bl-freebie-card-tags"><span className={`ui-status bl-freebie-status bl-freebie-status--${status.key}`} data-tone={chip.tone}>{shown(chip.text)}</span>{SEP}<span className="bl-freebie-kind">{translateText(KIND_LABELS[offer.kind], locale)}</span></p>
       {/* Tap-to-call on any number in the merchant's own words (translated first, then split: RC-11 i). */}
       <p className="bl-freebie-requirement"><strong>领取条件</strong><PhoneText text={offer.requirement} /></p>
       <p className="bl-freebie-description"><PhoneText text={offer.description} /></p>
@@ -165,7 +167,7 @@ function FreebieCard({ offer, today, showImage }: { offer: FreebieOffer; today: 
         {safeUrl(offer.sourceUrl) && <a className="ui-button" data-variant="secondary" href={offer.sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：${translateText(offer.sourceLabel, locale)}`}>{t('官方入口', 'Official page')}<ArrowUpRight aria-hidden="true" /></a>}
         {safeUrl(offer.storeUrl) && <a className="ui-button" data-variant="quiet" href={offer.storeUrl} target="_blank" rel="noopener noreferrer" aria-label={`${offer.brand}：查询本地门店`}>{t('本地门店', 'Local stores')}</a>}
       </div>
-      <SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />
+      <SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={shown(offer.title)} />
       {image && <details className="bl-freebie-image-source"><summary>图片说明与来源<ChevronDown aria-hidden="true" /></summary><p>{image.caption}</p>{offer.imageNote && <p>{offer.imageNote}</p>}{safeUrl(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{image.credit}</a> : <span>{image.credit}</span>}{safeUrl(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">查看图片授权</a>}</details>}
     </div>
     {zoomed && image && <GuideImageLightbox image={image} onClose={() => setZoomed(false)} />}

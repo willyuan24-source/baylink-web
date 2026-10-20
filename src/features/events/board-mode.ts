@@ -38,11 +38,13 @@ const phoneNow = () => typeof window === 'undefined' || typeof window.matchMedia
  *   chip row scrolls sideways (N25).
  * - `rows`: the cards are rows (88 px thumbnail and text) where the feed would be one column: a 1:1 cover at 特大 cannot
  *   finish above the tab bar (N18).
- * - `simple`: 简洁显示 (and 家人版): 3 cards per section, no sold-out cards, no ♡ or provenance words (DECISIONS 16).
+ * - `simple`: 简洁显示 (and 家人版): `simpleSize` cards per section, no sold-out cards, no ♡ or provenance words (DECISIONS 16).
+ * - `simpleSize`: 3 in 简洁; 2 in 家人版 (简洁 at 特大), where a row is 160–280 px tall: nine rows made the 免费与优惠 page
+ *   1.11× standard's height, six keep it under 1.0× (the critic's 家人版 target). Each section's 再看 N 条 lists the rest.
  */
 export function useBoardMode() {
   const reading = useReadingSize(), simple = useSimpleDisplay();
   const phone = useSyncExternalStore(subscribePhone, phoneNow, () => true);
   const roomy = phone && (reading !== 'standard' || simple);
-  return { phone, roomy, rows: roomy, simple };
+  return { phone, roomy, rows: roomy, simple, simpleSize: reading === 'extra-large' ? 2 : 3 };
 }

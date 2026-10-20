@@ -31,8 +31,8 @@ export default function OpeningsView({ today, region }: { today: string; region:
   const setRegion = useSetRegion();
   const openings = useMemo(() => filterOpenings(INDEX_OPENINGS, 'all', region), [region]);
   const sections = useMemo(() => openingSections(openings, today), [openings, today]);
-  // 已开业: phone 6, desktop 8; 即将开业: 4; 简洁 3 each.
-  const firstSize = (id: OpeningSectionId) => mode.simple ? 3 : id === 'open' ? mode.phone ? 6 : 8 : 4;
+  // 已开业: phone 6, desktop 8; 即将开业: 4; 简洁 3 each, 家人版 2 (board-mode.ts simpleSize).
+  const firstSize = (id: OpeningSectionId) => mode.simple ? mode.simpleSize : id === 'open' ? mode.phone ? 6 : 8 : 4;
   const shown = sections.map(section => section.openings.slice(0, firstSize(section.id) + extra[section.id]));
   const shownKey = shown.map(list => list.map(shop => shop.id).join()).join('|');
   const covers = useMemo(() => {

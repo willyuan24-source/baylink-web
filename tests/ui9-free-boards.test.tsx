@@ -198,6 +198,25 @@ test('简洁显示: rows without ♡, at most 3 per section, no sold-out offer, 
   assert.ok(within(sheet).getByRole('button', { name: `显示 ${listed()} 条` }));
 });
 
+test('家人版 (简洁 at 特大): 2 rows per section on both boards; each section\'s 再看 N 条 lists the rest (page ≤ 1.0× standard)', async () => {
+  localStorage.setItem('baylink.simple-display.v1', '1');
+  localStorage.setItem('baylink.reading-size.v1', 'extra-large');
+  dom.window.document.documentElement.setAttribute('data-simple', '');
+  for (const view of ['perks', 'openings']) {
+    const page = render(<MemoryRouter initialEntries={[`/events?view=${view}`]}><EventsView today={today} /></MemoryRouter>);
+    await waitFor(() => assert.ok(page.container.querySelector('.fb-rows .ui-row-card')));
+    const sections = [...page.container.querySelectorAll('.fb-section')];
+    assert.ok(sections.length >= 2, view);
+    for (const section of sections) {
+      const rows = section.querySelectorAll('.ui-row-card').length;
+      const total = Number(section.querySelector('.fb-section__count')!.textContent!.match(/\d+/)![0]);
+      assert.equal(rows, Math.min(2, total), `${view}: ${section.querySelector('h2')!.textContent}`);
+      assert.equal(section.querySelector('.ev-more button')?.textContent, total > 2 ? `再看 ${Math.min(12, total - 2)} ${view === 'perks' ? '条' : '家'}` : undefined);
+    }
+    page.unmount();
+  }
+});
+
 test('the boards\' stylesheet: fb- names only, no ellipsis or faded :disabled, editorial guard with contrast, loaded lazily', () => {
   const css = readFileSync('src/features/events/boards.css', 'utf8');
   const tokens = readFileSync('src/tokens.css', 'utf8');
@@ -265,38 +284,50 @@ test('the coded-cover note prints once per board, under the last section, on car
   }
 });
 
-test('no wrapped meta, row or credit line starts with "·": every " · " is glued to the word before it (N06)', async () => {
-  // An ordinary space before the dot is where a line may break; the boards glue it with a no-break space instead.
+test('no wrapped title, meta, row or credit line starts with "·", in zh and in English: every " · " is glued (N06)', async () => {
+  // An ordinary space before the dot is where a line may break; the boards glue it with a no-break space instead. In English
+  // the words are translated first and glued after, so the dictionary's own " · " ("… · through October 31, 2026") is glued too.
   const loose = / ·/;
-  const lines = '.ui-feed-card__when, .ui-feed-card__meta, .ui-feed-card__trust, .ui-row-card__date, .ui-row-card__meta, .ui-row-card__credit';
+  const lines = '.ui-feed-card__title, .ui-feed-card__when, .ui-feed-card__meta, .ui-feed-card__trust, .ui-row-card__title, .ui-row-card__date, .ui-row-card__meta, .ui-row-card__credit';
   const photo = (kind: 'offer' | 'opening', item: { id: string; imageKey?: string }) => resolveCovers([{ kind, id: item.id, imageKey: item.imageKey }], { ...model.coverContext(today), page: createCoverPage() })[0];
-  for (const item of model.liveOffers(model.INDEX_OFFERS, today)) {
-    for (const row of [false, true]) {
-      for (const line of card(<OfferFeedCard offer={item} cover={photo('offer', item)} today={today} row={row} />).querySelectorAll(lines)) {
-        assert.doesNotMatch(line.textContent!, loose, `${item.id}: ${line.textContent}`);
-      }
-    }
-  }
-  for (const shop of model.INDEX_OPENINGS) {
-    for (const row of [false, true]) {
-      for (const line of card(<OpeningFeedCard opening={shop} cover={photo('opening', shop)} today={today} row={row} />).querySelectorAll(lines)) {
-        assert.doesNotMatch(line.textContent!, loose, `${shop.id}: ${line.textContent}`);
-      }
-    }
-  }
-  // The deals board: brand, the record's date words, the status line, the source line and the picture's credit line.
   const { getGuideBySlug } = await import('../src/data/guides');
   await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
-  for (const slug of ['bay-area-freebies-deals-2026-11', 'bay-area-retail-freebies-family-deals']) {
-    for (const block of getGuideBySlug(slug)!.blocks.filter(item => item.type === 'freebies')) {
-      const offers = (block as unknown as { offers: Parameters<typeof FreebieBoard>[0]['offers'] }).offers;
-      const doc = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today={today} initialDates="all" sectionSize={Infinity} />)).window.document;
-      const parts = doc.querySelectorAll('.bl-freebie-card-brand, .bl-freebie-card-date, .bl-freebie-card-tags, .bl-freebie-verified, .bl-freebie-credit');
-      assert.ok(parts.length > 20, slug);
-      for (const part of parts) assert.doesNotMatch(part.textContent!, loose, `${slug}: ${part.textContent}`);
-      for (const credit of doc.querySelectorAll('.bl-freebie-credit')) assert.match(credit.textContent!, /^(官方图|资料图|照片|BAYLINK 实拍)[^·]*(\u00a0· \d{4}( 往届)?)?$/, `${slug}: the credit line says what the picture is (G13): ${credit.textContent}`);
+  const { loadLocale, setLocale } = await import('../src/i18n/locale');
+  await loadLocale('en');
+  let glued = 0;
+  try {
+    for (const locale of ['zh-Hans', 'en'] as const) {
+      await setLocale(locale, false);
+      for (const item of model.liveOffers(model.INDEX_OFFERS, today)) {
+        for (const row of [false, true]) {
+          for (const line of card(<OfferFeedCard offer={item} cover={photo('offer', item)} today={today} row={row} />).querySelectorAll(lines)) {
+            assert.doesNotMatch(line.textContent!, loose, `${locale} ${item.id}: ${line.textContent}`);
+          }
+        }
+      }
+      for (const shop of model.INDEX_OPENINGS) {
+        for (const row of [false, true]) {
+          const title = card(<OpeningFeedCard opening={shop} cover={photo('opening', shop)} today={today} row={row} />);
+          for (const line of title.querySelectorAll(lines)) assert.doesNotMatch(line.textContent!, loose, `${locale} ${shop.id}: ${line.textContent}`);
+          if (shop.name.includes(' · ')) glued += title.querySelector(row ? '.ui-row-card__title' : '.ui-feed-card__title')!.textContent!.includes('\u00a0· ') ? 1 : 0;
+        }
+      }
+      // The deals board: brand, title, the record's date words, the status line, the source line and the picture's credit line.
+      for (const slug of ['bay-area-freebies-deals-2026-11', 'bay-area-retail-freebies-family-deals']) {
+        for (const block of getGuideBySlug(slug)!.blocks.filter(item => item.type === 'freebies')) {
+          const offers = (block as unknown as { offers: Parameters<typeof FreebieBoard>[0]['offers'] }).offers;
+          const doc = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today={today} initialDates="all" sectionSize={Infinity} />)).window.document;
+          const parts = doc.querySelectorAll('.bl-freebie-card-brand, .bl-freebie-card h4, .bl-freebie-card-date, .bl-freebie-card-tags, .bl-freebie-verified, .bl-freebie-credit');
+          assert.ok(parts.length > 20, slug);
+          for (const part of parts) assert.doesNotMatch(part.textContent!, loose, `${locale} ${slug}: ${part.textContent}`);
+          if (locale === 'zh-Hans') for (const credit of doc.querySelectorAll('.bl-freebie-credit')) assert.match(credit.textContent!, /^(官方图|资料图|照片|BAYLINK 实拍)[^·]*(\u00a0· \d{4}( 往届)?)?$/, `${slug}: the credit line says what the picture is (G13): ${credit.textContent}`);
+          if (locale === 'en') assert.ok([...doc.querySelectorAll('.bl-freebie-card-date')].some(date => /[a-z]\u00a0· through /.test(date.textContent!)), `${slug}: the translated date words keep the glue`);
+        }
+      }
     }
-  }
+  } finally { await setLocale('zh-Hans', false); }
+  // Openings whose own name carries " · " ("Marufuku Ramen · Burlingame"): the title keeps the glue on cards and rows, both locales.
+  assert.ok(glued >= 4 * 2 * 2, `glued titles: ${glued}`);
 });
 
 test('an empty filter offers one primary that widens the narrower filter, with its count, and no empty section head', async () => {

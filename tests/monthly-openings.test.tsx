@@ -60,9 +60,11 @@ const TODAY = '2026-10-09';
 type Region = import('../src/features/events/events-index-types').MonthlyRegion | 'all';
 const board = (today = TODAY, region: Region = 'all') => <MemoryRouter><OpeningsView today={today} region={region} /></MemoryRouter>;
 type View = ReturnType<typeof render>;
-const names = (view: View) => [...view.container.querySelectorAll('.ui-feed-card .ui-feed-card__title a')].map(link => link.textContent);
+/** A card title as written in the catalog: the card glues the name's own " · " with a no-break space (UI9-FREE, N06). */
+const named = (link: Element) => link.textContent!.replace(/\u00a0/g, ' ');
+const names = (view: View) => [...view.container.querySelectorAll('.ui-feed-card .ui-feed-card__title a')].map(named);
 const card = (view: View, name: string) => {
-  const article = view.getByRole('link', { name, exact: true }).closest('article');
+  const article = view.getByRole('link', { name: accessible => accessible.replace(/\u00a0/g, ' ') === name }).closest('article');
   assert.ok(article, `${name} has a card`);
   return article as HTMLElement;
 };
@@ -99,9 +101,9 @@ test('the board reads the whole canonical catalog: each shop once, every status 
   assert.deepEqual(names(view), sections.flatMap(item => item.openings.map(shop => shop.name)));
   assert.deepEqual([...names(view)].sort(), currentOpenings.map(shop => shop.name).sort(), 'every shop once');
   assert.deepEqual(new Set(names(view).slice(-coming.length)), new Set(coming.map(shop => shop.name)), 'confirmed full and trial operation precede announcements');
-  for (const shop of currentOpenings) assert.equal(view.getByRole('link', { name: shop.name, exact: true }).getAttribute('href'), `/openings/${shop.id}`);
+  for (const shop of currentOpenings) assert.equal(card(view, shop.name).querySelector('.ui-feed-card__title a')!.getAttribute('href'), `/openings/${shop.id}`);
   cleanup();
-  assert.equal(render(board('2026-10-19')).container.querySelector('.ui-feed-card__title a')!.textContent, 'Marufuku Ramen · Burlingame', 'from 10/11 the newest dated first day leads');
+  assert.equal(render(board('2026-10-19')).container.querySelector('.ui-feed-card__title a')!.textContent, 'Marufuku Ramen\u00a0· Burlingame', 'from 10/11 the newest dated first day leads');
 });
 
 test('an open shop never says 即将开业 / Opening soon on its chip, its card or in English (EVT13-02 / H09)', () => {
@@ -153,7 +155,7 @@ test('the region narrows both sections; a region is never empty here, and 即将
     assert.deepEqual([...names(view)].sort(), inRegion.map(shop => shop.name).sort(), region);
     const soon = section(view, '即将开业');
     const announced = comingOn(TODAY).filter(shop => shop.region === region).map(shop => shop.name);
-    assert.deepEqual(soon ? [...soon.querySelectorAll('.ui-feed-card__title a')].map(link => link.textContent).sort() : [], [...announced].sort(), region);
+    assert.deepEqual(soon ? [...soon.querySelectorAll('.ui-feed-card__title a')].map(named).sort() : [], [...announced].sort(), region);
     cleanup();
   }
 });
@@ -163,7 +165,7 @@ test('passing an announced date or month never silently promotes a forecast to o
     const view = render(board(today));
     showAll(view);
     const soon = section(view, '即将开业');
-    assert.deepEqual([...soon.querySelectorAll('.ui-feed-card__title a')].map(link => link.textContent).sort(), comingOn(today).map(shop => shop.name).sort(), today);
+    assert.deepEqual([...soon.querySelectorAll('.ui-feed-card__title a')].map(named).sort(), comingOn(today).map(shop => shop.name).sort(), today);
     for (const shop of announcedShops) {
       assert.equal(shop.openedOn, undefined, 'an announcement cannot claim a first-service date');
       assert.match(card(view, shop.name).querySelector('.ui-feed-card__when')!.textContent!, /即将开业$/, `${today}: ${shop.id}`);
