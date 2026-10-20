@@ -16,8 +16,10 @@
 .ev-range { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:400; }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-range { flex-basis:100%; }
 .ev-lede-facts { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
-/* 我们怎么核对 →: inline, so its 44 / 48 px target (padding) never makes the line taller (it did in 简洁 / 家人版). */
-html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:var(--sp-3); white-space:nowrap; }
+/* 我们怎么核对 →: inline, so its 44 / 48 px target (padding) never makes the line taller (it did in 简洁 / 家人版). The padding
+   is half of the control height less the text's 1em: the inline box (the glyphs' own height, about 1.3em, plus the padding)
+   measured 42–43 px with 12 px. */
+html .ev-lede-facts .ui-more { display:inline; min-height:0; padding-block:calc((var(--control-height) - 1em) / 2); white-space:nowrap; }
 .ev-lede-facts .ui-more__arrow { display:inline-block; margin-inline-start:var(--sp-1); vertical-align:-.125em; }
 @media (max-width:767px) { .ev-page[data-view=list] .ev-lede-facts { min-height:calc(2em * 1.6); } }
 
