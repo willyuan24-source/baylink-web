@@ -2557,8 +2557,8 @@ Alliance and Caucus, Chinatown CDC, SFPL and OPL branches, CHSA, 311) were not r
 ## CNT-MEDIA-5 · official images (owner approved), 2026-10-19 (PT)
 
 The owner approved the default-checked rows of `opus-qa/gpt/out-1020/image-review-1020.html` in chat on 2026-10-19 (details in
-`docs/official-media-sources-2026-10-19.md`). Each page that shows an image was re-read with one GET on 2026-10-19 ~23:15 PT; every
-page names the image file. The quote is the page title. `verifiedAt` is unchanged on every item.
+`docs/official-media-sources-2026-10-19.md`). Each page that shows an image was re-read with one GET on 2026-10-19 between 23:51 and 23:59 PT (after the
+downloads, 23:41–23:48 PT); every page names the image file. The quote is the page title. `verifiedAt` is unchanged on every item.
 
 | Kind | Id | URL | HTTP | Change | Quote |
 |---|---|---|---|---|---|
@@ -2602,6 +2602,6 @@ page names the image file. The quote is the page title. `verifiedAt` is unchange
 | event image | `sjpl-berryessa-diwali-2026` | https://sjpl.bibliocommons.com/events/6a7cfa34b204780029928736 | 200 | `official-sjpl-berryessa-diwali-2026` shown, labelled 官方图; image https://sjpl.bibliocommons.com/events/uploads/images/full/25547e58cb4cac5bad6052416bcef790/Diwali.jpg | "Diwali Celebration · San José Public Library · BiblioCommons" |
 | event image | `acl-fremont-funday-family-board-games-2026` | https://aclibrary.bibliocommons.com/events/6a6bb1a53f18b57d52320cac | 200 | `official-acl-fremont-funday-family-board-games-2026` shown, labelled 官方图; image https://aclibrary.bibliocommons.com/events/uploads/images/full/b90dcfa8fc3d4da73a9704717bcb9171/FundayFamilyBoardGames(3).jpg | "Funday Family Board Games" |
 | event image | `november-north-healdsburg-market-2026` | https://healdsburgfarmersmarket.org/ | 200 | `official-november-north-healdsburg-market-2026` shown, labelled 官方图; image https://healdsburgfarmersmarket.org/wp-content/uploads/2026/04/pi-square.jpg | "Healdsburg Farmers Market" |
-| guide image | `bay-area-senior-transit-clipper-discounts-guide` | https://www.sfmta.com/ja/node/29961 | 200 | `official-sfmta-kirkland-yard-2023` shown, labelled 官方图; image https://www.sfmta.com/files/styles/constrain/public/imce-images/2023/modern_image.jpg?itok=-uG-af3N | "Then and Now at Kirkland Division, Muni’s Oldest Motor Bus Yard · SFMTA" |
+| guide image | `bay-area-senior-transit-clipper-discounts-guide` | https://www.sfmta.com/ja/node/29961 (the approval row's URL, read 10-19) ; https://www.sfmta.com/blog/then-and-now-kirkland-division-munis-oldest-motor-bus-yard (its canonical, hreflang=en URL, read 10-20 03:15 PT; the credit and evidence link) | 200 | `official-sfmta-kirkland-yard-2023` shown, labelled 官方图; image https://www.sfmta.com/files/styles/constrain/public/imce-images/2023/modern_image.jpg?itok=-uG-af3N | "Then and Now at Kirkland Division, Muni’s Oldest Motor Bus Yard · SFMTA" |
 | guide image | `bay-area-library-starter-guide` | https://sfpl.org/locations/main-library | 200 | `official-sfpl-main-library-skylight` shown, labelled 官方图; image https://sfpl.org/sites/default/files/2020-01/Homepage_Main%20Library.jpg | "Main Library · San Francisco Public Library" |
 | guide image | `bay-area-medicare-hicap-medi-cal-guide` | https://commons.wikimedia.org/wiki/File:Hubert_H._Humphrey_Building,_located_at_the_foot_of_Capitol_Hill,_Washington,_D.C_LCCN2013634632.jpg | 200 | `loc-highsmith-hhs-humphrey-building-2012` shown, labelled 资料图 · 2012（示意图）; image https://upload.wikimedia.org/wikipedia/commons/e/ea/Hubert_H._Humphrey_Building%2C_located_at_the_foot_of_Capitol_Hill%2C_Washington%2C_D.C_LCCN2013634632.jpg | "File:Hubert H. Humphrey Building, located at the foot of Capitol Hill, Washington, D.C LCCN2013634632.jpg - Wi" |

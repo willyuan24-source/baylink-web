@@ -4,7 +4,7 @@ Lane CNT-MEDIA-5. Same rule as the earlier official-image batches ([2026-10-08](
 
 **Owner approval** (chat, 2026-10-19 ~23:10 PDT): 「按审批页的默认勾选批准（建议批准 + 可以用的 43 张），橙框的 6 张不用。」 That is the default-checked rows of the GPT image review page (`gpt/out-1020/image-review-1020.html`, rows in `image-candidates-1020.rows.json`): 23 new shops, 17 events and 3 guide photos. The 6 orange-flagged rows were not downloaded and are not used (list at the end).
 
-Result: **43 of 43 files downloaded, 43 shipped.** No image was generated, and none was edited beyond resizing, flattening transparency onto white and re-encoding.
+Result: **43 of 43 files downloaded, 43 shipped.** No image was generated, and none was edited beyond resizing, re-encoding and flattening transparency onto white (Gilroy Gardens' round graphic keeps its transparency).
 
 ## How it is wired
 
@@ -15,13 +15,13 @@ Result: **43 of 43 files downloaded, 43 shipped.** No image was generated, and n
 
 ## Labels and captions
 
-- The badge is 官方图 / Official image / 官方圖 (the credit says 官方 / official). CuriOdyssey's camera dates its photo 2025-11-12, the 2025 exhibition, so its badge reads **官方图 · 2025 往届**. Gilroy Gardens' file has been on the site since January 2025 (`/uploads/2025/01/`), an earlier season whose year is not stated: the caption says 往季照片 and the badge stays 官方图.
+- The badge is 官方图 / Official image / 官方圖 (the credit says 官方 / official). CuriOdyssey's camera dates its photo 2025-11-12, the 2025 exhibition, so its badge reads **官方图 · 2025 往届**. Gilroy Gardens' file has been on the site since January 2025 (`/uploads/2025/01/`), an earlier season whose year is not stated: the caption says 往季图片 (an image: the record is a round graphic, kind `poster`, never called a photo) and the badge stays 官方图.
 - **Product images** (Erik's DeliCafé, ThirdLove, Anya's Gifting Agency, Margaux, Nékter, Raising Cane's, VIVAIA, Ceré Tea): the caption names the brand's 产品图 / 陈列宣传图 and says it is not the shop (不是 … 实景 / 不能确认是 … 这家店的实景) and not its stock; the credit reads 官方产品图 or 官方商户页图片.
 - Every caption says what the image is not (not the 2026 session, not the shop, not the day's menu) and gives a date only where the file or page states one.
 - **Jean Dousset**: the boutique page does not say whether its interior image is a photo or a design rendering; the caption says exactly that.
 - **Hijau Coffee**: the graphic comes from the official page of Pusaka Sunda, the gamelan group that played the 9/5 opening; the caption says the celebration is over. Shown whole (graphic).
 - **The Mess Hall · Breadwinner**: the Presidio Trust's page credits the photo to Erin Ng (file EXIF: Erin Ng, 2026-07-27); credit 「Presidio Trust 官方照片 · 摄影 Erin Ng」. A government site showing it does not make it public domain.
-- **Stock-looking library images** (Calabazas tea still life, Berryessa Diwali, Village Square Thanksgiving, whose file name follows a stock-library pattern): CNT-MEDIA-2 skipped the first two in October for that reason; the owner has now approved them. They are labelled as the library's official promotional image (官方宣传图) with a caption that says they are theme pictures, not the session.
+- **Stock-looking library images** (Calabazas tea still life, Berryessa Diwali, Village Square Thanksgiving, whose file name follows a stock-library pattern): CNT-MEDIA-2 skipped the first two in October for that reason; the owner has now approved them. Each caption says it is the official promotional image on the library's event page and a theme picture (活动页上的官方宣传图，是主题图), not the session; the credit reads 圣何塞公共图书馆官方活动页主题图 / "San José Public Library official event page theme image", so it does not suggest the library made the picture.
 
 ## Guides
 
@@ -36,11 +36,18 @@ Result: **43 of 43 files downloaded, 43 shipped.** No image was generated, and n
 
 ## Download
 
-One plain GET of each approved image URL (no other client, no page scraping), into a folder outside the repository (`opus-qa/overhaul/lanes/CNT-MEDIA-5/downloads/`), on 2026-10-19 23:04–23:12 PDT; the response status, final URL and headers are kept in the lane's `downloads.json`. Two retries of the same URL: Erik's DeliCafé (Node's fetch was reset twice; one curl GET) and The Meritage's tree photo (reset with a custom User-Agent; a default GET). Several CDNs answered the `Accept: image/avif,image/webp` header with a WebP or AVIF rendition of the same image at the same pixel size. Every official page was re-read with one GET the same evening; all 43 pages name the image file (ledger: `source-reads-2026-10.md`, CNT-MEDIA-5).
+The owner approved the list at about 23:10 PDT on 2026-10-19; every download came after that. The files went into a folder outside the repository (`opus-qa/overhaul/lanes/CNT-MEDIA-5/downloads/`), and the response status, final URL, headers, bytes and SHA-256 of each are kept in the lane's `downloads.json` (the `retrievedAt` times below are the same as in `scripts/data/*-downloads.json`). Only the 43 approved image URLs were requested; no page was scraped for other images.
+
+- **First pass, 2026-10-19 23:41:12–23:41:20 PDT:** one GET per approved URL with Node's `fetch`, a browser-like `User-Agent` and `Accept: image/avif,image/webp,image/png,image/jpeg,image/*;q=0.8`. 41 files came back. Several CDNs answered that `Accept` header with a WebP or AVIF rendition of the same image at the same pixel size.
+- **Retries of the two that failed** (the connection failed before any response), each asking for the same approved URL with Node's default headers:
+  - The Meritage's tree photo (EG-02): the first retry (23:43) failed the same way; the second (23:45) came back.
+  - Erik's DeliCafé (OP-05): both Node retries (23:43, 23:45) failed; one GET with `curl` at 23:48:02 came back.
+
+Every official page that shows an image was re-read with one GET on 2026-10-19 between 23:51 and 23:59 PDT; all 43 pages name the image file (ledger: `source-reads-2026-10.md`, CNT-MEDIA-5). On 2026-10-20 03:15 PDT the SFMTA article was read once more at its canonical English URL (see the ledger).
 
 ## Processing
 
-Main file: at most 1280 px wide (800 for a portrait), never upscaled, sRGB, transparency flattened onto white, WebP q82, metadata stripped (camera dates live in this document and the captions). No crop, colour edit or AI step; cards crop photos at the recorded focus, and graphics and the collage are shown whole.
+Main file: at most 1280 px wide (800 for a portrait), never upscaled, sRGB, transparency flattened onto white (except Gilroy Gardens' round graphic, which keeps it, like the earlier Danville and Western Addition posters, so the page surface shows around the circle), WebP q82, metadata stripped (camera dates live in this document and the captions). No crop, colour edit or AI step; cards crop photos at the recorded focus, and graphics and the collage are shown whole.
 
 ## Every approved row
 
@@ -77,13 +84,13 @@ Main file: at most 1280 px wide (800 for a portrait), never upscaled, sRGB, tran
 | EG-09 | event | `curiodyssey-illuminodyssey-2026` | https://curiodyssey.org/wp-content/uploads/2026/10/Inside-IlluminOdyssey-24-of-43-Large.jpeg | 92015 | image/jpeg | 1280×853 | `b830831cc5a8ebf2…` | `official-curiodyssey-illuminodyssey-2026` | photo, focus 50/50; main 1280×853, 49734 B | CuriOdyssey 官方活动照片 |
 | EG-12 | event | `nov2026-sf-renegade-craft-winter` | https://www.renegadecraft.com/wp-content/uploads/2026/10/annegatesstudio1.avif | 170805 | image/avif | 1000×1000 | `9e6e04b0009a86e5…` | `official-nov2026-sf-renegade-craft-winter` | photo, focus 50/60; main 1000×1000, 138846 B | Renegade Craft 官方活动页 · 参展商 Anne Gates Studio |
 | EG-13 | event | `sf-financial-planning-day-oct24-2026` | https://sfpl.org/sites/default/files/2026-08/31305.png | 1772939 | image/png | 1440×720 | `c3000de91e4b1b3c…` | `official-sf-financial-planning-day-oct24-2026` | graphic, shown whole; main 1280×640, 101128 B | 旧金山公共图书馆官方活动图片 |
-| EG-15 | event | `gilroy-gardens-north-pole-nights-2026` | https://www.gilroygardens.org/wp-content/uploads/2025/01/holiday-img-2.png | 431948 | image/webp | 1211×1211 | `1ed4204735c135fc…` | `official-gilroy-gardens-north-pole-nights-2026` | graphic, shown whole; main 1211×1211, 152396 B | Gilroy Gardens 官方活动图片 |
+| EG-15 | event | `gilroy-gardens-north-pole-nights-2026` | https://www.gilroygardens.org/wp-content/uploads/2025/01/holiday-img-2.png | 431948 | image/webp | 1211×1211 | `1ed4204735c135fc…` | `official-gilroy-gardens-north-pole-nights-2026` | graphic, shown whole, transparency kept; main 1211×1211, 154950 B | Gilroy Gardens 官方活动图片 |
 | EG-16 | event | `sjpl-educational-park-lego-club-winter-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/b52c1b648cea7b76de293c7fa686c7f0/LegoClub.jpg | 112986 | image/jpeg | 1920×1080 | `9c7098aa000417e5…` | `official-sjpl-educational-park-lego-club-winter-2026` | graphic, shown whole; main 1280×720, 27564 B | 圣何塞公共图书馆官方活动图片 |
 | EG-17 | event | `sjpl-joyce-ellington-game-on-winter-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/c2afe158acdcaf2aebc02b5cbf4142e0/BoardGames.jpg | 160966 | image/jpeg | 1920×1080 | `cc93074150569c33…` | `official-sjpl-joyce-ellington-game-on-winter-2026` | photo, focus 45/50; main 1280×720, 66260 B | 圣何塞公共图书馆官方活动图片 |
 | EG-18 | event | `sjpl-seven-trees-board-game-zone-winter-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/0f207db903d6bf3402aba77433f4068e/boardgames.jpg | 204851 | image/jpeg | 1920×1176 | `63aa22d35a6ea9b3…` | `official-sjpl-seven-trees-board-game-zone-winter-2026` | photo, focus 50/50; main 1280×784, 60196 B | 圣何塞公共图书馆官方活动图片 |
-| EG-19 | event | `sjpl-calabazas-chinese-tea-hour-nov21-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/5e261e963c2a17148034d878b35eb17e/2025tea.png | 1303919 | image/png | 1010×636 | `a02949cb8e468143…` | `official-sjpl-calabazas-chinese-tea-hour-nov21-2026` | photo, focus 55/50; main 1010×636, 117854 B | 圣何塞公共图书馆官方活动图片 |
-| EG-20 | event | `sjpl-village-square-thanksgiving-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/cbab02f5f75ff3060ebebe52023b8576/thanksgiving-3719247_1920.jpg | 324220 | image/jpeg | 1920×1280 | `b57a811c6b008c7a…` | `official-sjpl-village-square-thanksgiving-2026` | photo, focus 50/55; main 1280×853, 122710 B | 圣何塞公共图书馆官方活动图片 |
-| EG-21 | event | `sjpl-berryessa-diwali-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/25547e58cb4cac5bad6052416bcef790/Diwali.jpg | 104657 | image/jpeg | 927×504 | `1af4eb5a26519f30…` | `official-sjpl-berryessa-diwali-2026` | photo, focus 45/50; main 927×504, 89468 B | 圣何塞公共图书馆官方活动图片 |
+| EG-19 | event | `sjpl-calabazas-chinese-tea-hour-nov21-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/5e261e963c2a17148034d878b35eb17e/2025tea.png | 1303919 | image/png | 1010×636 | `a02949cb8e468143…` | `official-sjpl-calabazas-chinese-tea-hour-nov21-2026` | photo, focus 55/50; main 1010×636, 117854 B | 圣何塞公共图书馆官方活动页主题图 |
+| EG-20 | event | `sjpl-village-square-thanksgiving-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/cbab02f5f75ff3060ebebe52023b8576/thanksgiving-3719247_1920.jpg | 324220 | image/jpeg | 1920×1280 | `b57a811c6b008c7a…` | `official-sjpl-village-square-thanksgiving-2026` | photo, focus 50/55; main 1280×853, 122710 B | 圣何塞公共图书馆官方活动页主题图 |
+| EG-21 | event | `sjpl-berryessa-diwali-2026` | https://sjpl.bibliocommons.com/events/uploads/images/full/25547e58cb4cac5bad6052416bcef790/Diwali.jpg | 104657 | image/jpeg | 927×504 | `1af4eb5a26519f30…` | `official-sjpl-berryessa-diwali-2026` | photo, focus 45/50; main 927×504, 89468 B | 圣何塞公共图书馆官方活动页主题图 |
 | EG-22 | event | `acl-fremont-funday-family-board-games-2026` | https://aclibrary.bibliocommons.com/events/uploads/images/full/b90dcfa8fc3d4da73a9704717bcb9171/FundayFamilyBoardGames(3).jpg | 1171711 | image/jpeg | 4500×2250 | `0cef1fac6c78b52a…` | `official-acl-fremont-funday-family-board-games-2026` | photo, focus 50/50; main 1280×640, 124040 B | Alameda County Library 官方活动图片 |
 | EG-23 | event | `november-north-healdsburg-market-2026` | https://healdsburgfarmersmarket.org/wp-content/uploads/2026/04/pi-square.jpg | 202905 | image/jpeg | 800×800 | `3f9dba88da6a6543…` | `official-november-north-healdsburg-market-2026` | photo, focus 50/50; main 800×800, 184682 B | Healdsburg Farmers’ Market 官方活动图片 |
 | EG-24 | guide | `bay-area-senior-transit-clipper-discounts-guide` | https://www.sfmta.com/files/styles/constrain/public/imce-images/2023/modern_image.jpg?itok=-uG-af3N | 130302 | image/jpeg | 1000×668 | `bf0b521e051e50fc…` | `official-sfmta-kirkland-yard-2023` | photo, focus 50/55; main 1000×668, 123580 B | SFMTA 官方照片 |
