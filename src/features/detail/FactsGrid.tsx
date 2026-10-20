@@ -101,10 +101,13 @@ export function EventFacts({ event, today, official }: { event: MonthlyEvent; to
   const audience = [event.ageChip, ...event.audience].filter((value): value is string => !!value);
   const costNote = cost && cost !== (price ? pick(price.text) : '') ? (price ? cost : cost.replace(UNCONFIRMED_LEAD, '')) : undefined;
   // The key is C's eventWhenLine as written (one date and one time style site-wide, N06). Several upcoming session days
-  // follow as the note; a listing without sessions keeps its own date line as the note while the key names no time.
-  const when = pick(eventWhenLine(event, today));
-  const sessionDays = new Set((event.sessions ?? []).map(session => session.date).filter(day => day >= today)).size;
-  const dateLine = !event.sessions?.length && !when.includes(' · ') ? readerNode(event.dateLabel, locale) : undefined;
+  // follow as the note (on an ended page, all of them, so its archive keeps the whole run); a listing without sessions keeps
+  // its own date line as the note while the key names no time. Whether it does is read from the zh line in every locale:
+  // only a time follows " · " there (the en range chip joins its weekdays with " · " too, "Oct 22–25 · Thu–Sun").
+  const whenLine = eventWhenLine(event, today), when = pick(whenLine);
+  const allDays = new Set((event.sessions ?? []).map(session => session.date));
+  const sessionDays = [...allDays].filter(day => day >= today).length || allDays.size;
+  const dateLine = !event.sessions?.length && !whenLine.zh.includes(' · ') ? readerNode(event.dateLabel, locale) : undefined;
   const dateNote = readerNode(event.dateNote, locale);
   const whenNote = sessionDays > 1 || dateLine || dateNote ? <>
     {sessionDays > 1 && <SessionLines event={event} today={today} />}

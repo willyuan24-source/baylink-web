@@ -58,8 +58,34 @@ export function retryDetailRecord(kind: DetailKind, id: string): void {
   if (buckets.get(name)?.error) buckets.delete(name);
 }
 
-/** Tests only: start from an empty cache (and, optionally, a shorter pause before the quiet retry). */
+/**
+ * EVENTS' loading rule for an in-app tap (the page's useDetailRecord): nothing for the first 300 ms (the old page and NAV's
+ * route bar stay), then the detail skeleton for at least 400 ms, so it never flickers. A hold starts only when the load is
+ * still pending at 300 ms: a fast load leaves no hold behind that could put the skeleton over a page already on screen.
+ */
+const SKELETON_AFTER = 300, SKELETON_FOR = 400;
+/** A skeleton on show; `held` settles (and `done` turns true) once it has shown for SKELETON_FOR. */
+export type SkeletonHold = { done: boolean; held: Promise<void> };
+const holds = new Map<string, SkeletonHold>();
+const wait = (ms: number) => new Promise<void>(resolve => { setTimeout(resolve, ms); });
+
+export const skeletonHold = (key: string): SkeletonHold | undefined => holds.get(key);
+export const endSkeletonHold = (key: string): void => { holds.delete(key); };
+
+/** What a tap's suspended first render throws: the load, or the 300 ms mark, where the hold starts if the load is still pending. */
+export function skeletonDelay(key: string, pending: Promise<unknown>): Promise<unknown> {
+  let settled = false;
+  const load = pending.then(() => { settled = true; }, () => { settled = true; });
+  return Promise.race([load, wait(SKELETON_AFTER).then(() => {
+    if (settled || holds.has(key)) return;
+    const hold: SkeletonHold = { done: false, held: wait(SKELETON_FOR).then(() => { hold.done = true; }) };
+    holds.set(key, hold);
+  })]);
+}
+
+/** Tests only: start from an empty cache and no skeleton holds (and, optionally, a shorter pause before the quiet retry). */
 export function resetDetailRecords(options: { retryMs?: number } = {}): void {
   buckets.clear();
+  holds.clear();
   retryMs = options.retryMs ?? 1000;
 }

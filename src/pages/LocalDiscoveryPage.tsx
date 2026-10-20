@@ -6,7 +6,7 @@ import { LocalDiscoveryDetail } from '../components/LocalDiscoveryDetail';
 import { ErrorState } from '../components/ui';
 import { MoreLink } from '../components/ui/TextLink';
 import { useUiCopy } from '../components/ui/ui-copy';
-import { preloadDetailRecord, readDetailRecord, retryDetailRecord, type DetailKind } from '../features/detail/load-detail';
+import { endSkeletonHold, preloadDetailRecord, readDetailRecord, retryDetailRecord, skeletonDelay, skeletonHold, type DetailKind } from '../features/detail/load-detail';
 import { DETAIL_BACK, type DetailRecord } from '../features/detail/detail-record';
 import { DetailBack, DetailSkeleton } from '../features/detail/DetailSkeleton';
 import { routePathname } from '../app/route-table';
@@ -21,14 +21,6 @@ if (typeof window !== 'undefined') {
   const boot = /^\/(events|offers|openings)\/([^/]+)$/.exec(routePathname(window.location.pathname));
   if (boot) { try { const kind = KINDS[boot[1] as keyof typeof KINDS], id = decodeURIComponent(boot[2]); bootKey = `${kind}:${id}`; preloadDetailRecord(kind, id); } catch { /* A malformed URL renders 404. */ } }
 }
-
-/** EVENTS' loading rule: nothing for the first 300 ms (the old page and NAV's route bar stay), then the skeleton for at least 400 ms. */
-const SKELETON_AFTER = 300, SKELETON_FOR = 400;
-type Hold = { done: boolean; held: Promise<void> };
-/** Details whose skeleton is showing; `held` settles once it has shown for SKELETON_FOR. */
-const holds = new Map<string, Hold>();
-const wait = (ms: number) => new Promise<void>(resolve => { setTimeout(resolve, ms); });
-const startHold = (key: string) => { const hold: Hold = { done: false, held: wait(SKELETON_FOR).then(() => { hold.done = true; }) }; holds.set(key, hold); };
 
 /**
  * /events/:id, /offers/:id, /openings/:id. The page reads one generated record (features/detail/load-detail.ts) and
@@ -54,16 +46,16 @@ function useDetailRecord(kind: DetailKind, id: string): DetailRecord | null | 'w
     if (!(thrown instanceof Promise) || key === bootKey) throw thrown;
     pending = thrown;
   }
-  const hold = holds.get(key);
+  const hold = skeletonHold(key);
   const waiting = !!hold && (!!pending || !hold.done);
   useEffect(() => {
     if (!hold) return;
-    if (!waiting) { holds.delete(key); return; }
+    if (!waiting) { endSkeletonHold(key); return; }
     let live = true;
     void Promise.all([Promise.resolve(pending).catch(() => {}), hold.held]).then(() => { if (live) rerender(value => value + 1); });
     return () => { live = false; };
   });
-  if (pending && !hold) throw Promise.race([pending, wait(SKELETON_AFTER).then(() => startHold(key))]);
+  if (pending && !hold) throw skeletonDelay(key, pending);
   return waiting ? 'wait' : record ?? null;
 }
 

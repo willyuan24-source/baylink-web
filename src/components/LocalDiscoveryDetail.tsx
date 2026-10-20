@@ -7,7 +7,6 @@ import { useEventParticipation } from '../lib/event-participation-context';
 import { EditorialShareActions } from './EditorialShareActions';
 import { SourceFreshness } from '../features/source-monitor/SourceFreshness';
 import { CheckedLine, TrustRow } from '../features/source-monitor/TrustRow';
-import { pressSource } from '../features/source-monitor/checked-line';
 import { ContentReviewNotice } from '../features/source-monitor/ContentReviewNotice';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
 import { SegmentedTitle } from './SegmentedTitle';
@@ -193,7 +192,7 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
       {/* The facts and the actions: in the flow under the H1 on a phone (the bar itself is fixed), the sticky aside on a
           desktop. One copy, so the reading order is the same everywhere. */}
       <aside className="detail-aside">
-        <div className="detail-facts-card">{facts}<CheckedLine verifiedAt={review.verifiedAt} press={sourceUrl !== officialUrl || pressSource(sourceLabel)} today={today} /></div>
+        <div className="detail-facts-card">{facts}<CheckedLine verifiedAt={review.verifiedAt} sourceLabel={sourceLabel} today={today} /></div>
         <DetailActionBar cells={cells} primary={<PrimaryAction primary={primary} title={title} />} />
       </aside>
       <div className="detail-main detail-main--body">

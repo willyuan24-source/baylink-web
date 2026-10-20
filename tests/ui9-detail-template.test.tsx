@@ -103,6 +103,52 @@ test('the event 何时 key is eventWhenLine as written: weekday first, 24 h cloc
   for (const id of DETAILS.filter(key => key.startsWith('event:'))) assert.doesNotMatch(page(id).querySelector('[data-fact="when"]')!.textContent || '', /\d+–\d+ 点|\d+ 点起/, id);
 });
 
+test('decision 17: the facts check line and the trust row read one source type (press by its label only) and say the same', () => {
+  const lines = (key: string) => {
+    const doc = page(key);
+    const check = doc.querySelector('.detail-facts-check')?.textContent || '';
+    const row = doc.querySelector('.trust-row');
+    const dated = [...(row?.querySelectorAll('.trust-row-item') ?? [])].find(item => item.querySelector('time'));
+    return { check, dated: dated?.textContent || '', label: row?.querySelector('.trust-row-item')?.textContent || '' };
+  };
+  // An official page reached by another URL (the mall's shop page) is still the official page: 官网核对 on both lines.
+  const mall = lines('opening:jean-dousset-valley-fair');
+  assert.match(mall.check, /^官网核对 \d+\/\d+$/, 'jean-dousset-valley-fair');
+  assert.equal(mall.dated, mall.check);
+  // A press source: 媒体报道 · M/D 核对 on both lines, and the row never calls a press report 官方来源.
+  for (const key of ['opening:albany-o2-sushi-opening-2026', 'event:r2-santarosa-ross-street-sundays-2026', 'offer:pacific-catch-aloha-corte-madera-20261005', 'opening:old-post-office-burlingame']) {
+    const { check, dated, label } = lines(key);
+    assert.match(check, /^媒体报道 · \d+\/\d+ 核对$/, key);
+    assert.equal(dated, check, `${key}: the trust row says what the facts card says`);
+    assert.equal(label, '来源', key);
+  }
+});
+
+test('何时 notes: one time style with the key (N06), the listing date note in every locale, an ended run kept whole', async () => {
+  // The session notes print each day's time as the key does (C's eventWhenLine), "9 点起" beside "9 点起", never "9:00 起".
+  for (const key of ['event:sausalito-goblin-jamboree-2026', 'event:concord-sidegate-trivia-october-2026']) {
+    const when = page(key).querySelector('[data-fact="when"]')!;
+    const keyTime = (when.querySelector('.detail-fact__key')!.textContent || '').split(' · ')[1];
+    assert.ok(keyTime, key);
+    const notes = [...when.querySelectorAll('.detail-fact__line')].map(line => line.textContent || '');
+    assert.ok(notes.length && notes.every(line => !/ · /.test(line) || line.endsWith(` · ${keyTime}`)), `${key}: ${keyTime} | ${notes.join(' / ')}`);
+  }
+  // A multi-day listing without sessions keeps its date note in zh and en alike (the en range chip has a " · " too).
+  const { setLocale } = await import('../src/i18n/locale');
+  const notes = () => [...page('event:bay-area-musical-improv-festival-2026').querySelectorAll('[data-fact="when"] .detail-fact__line')].map(line => line.textContent);
+  const zh = notes();
+  await setLocale('en', false);
+  try {
+    const en = notes();
+    assert.ok(zh.length >= 1 && en.length === zh.length, `zh ${zh.join(' / ')} | en ${en.join(' / ')}`);
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
+  // An ended two-day festival keeps both days in its archive note, not just the last one in the key.
+  const ended = page('event:half-moon-bay-pumpkin-festival-2026').querySelector('[data-fact="when"]')!;
+  assert.match([...ended.querySelectorAll('.detail-fact__line')].map(line => line.textContent).join(' / '), /10\/17–18/);
+});
+
 test('#page-credits lists every photo on the page, last in the source section; a type cover has no credit', () => {
   for (const key of DETAILS) {
     const doc = page(key);
@@ -207,6 +253,45 @@ test('in-app loading: the old view for 300 ms, then the detail skeleton, kept at
     assert.ok(Date.now() - shownAt >= 380, `the skeleton stayed ${Date.now() - shownAt} ms`);
     assert.equal(view.container.querySelector('.detail-skeleton'), null);
   } finally {
+    detailLoaders[BUCKET] = original;
+    resetDetailRecords();
+  }
+});
+
+test('in-app loading, fast path: a record in under 300 ms never shows the skeleton, even when the route re-renders after 300 ms', async () => {
+  const ID = 'oakland-tool-library';
+  const BUCKET = detailBucket('offer', ID);
+  const original = detailLoaders[BUCKET];
+  await original(); // the bucket module is cached, so the load below takes microtasks, not a fetch
+  let loadedAt = 0;
+  detailLoaders[BUCKET] = () => original().then(module => { loadedAt = Date.now(); return module; });
+  resetDetailRecords();
+  let bump!: () => void;
+  function Shell() {
+    const [count, setCount] = React.useState(0);
+    bump = () => setCount(value => value + 1);
+    return <MemoryRouter initialEntries={[`/offers/${ID}`]}><Suspense fallback={<p>loading</p>}><Routes>
+      <Route path="/offers/:id" element={<LocalDiscoveryPage kind="offer" />} />
+    </Routes></Suspense><output data-count={count} /></MemoryRouter>;
+  }
+  const { act } = await import('@testing-library/react');
+  let skeletons = 0;
+  const observer = new dom.window.MutationObserver(() => { if (document.querySelector('.detail-skeleton')) skeletons++; });
+  observer.observe(document.body, { childList: true, subtree: true });
+  try {
+    const mountedAt = Date.now();
+    const view = render(<Shell />);
+    const heading = await view.findByRole('heading', { level: 1 }, { timeout: 15_000 });
+    if (loadedAt - mountedAt >= 250) return; // a loaded machine: the fast path was not exercised (the slow path has its own test)
+    await new Promise(resolve => { setTimeout(resolve, Math.max(0, mountedAt + 420 - Date.now())); });
+    await act(async () => { bump(); });
+    await new Promise(resolve => { setTimeout(resolve, 400); });
+    await act(async () => { bump(); });
+    assert.equal(skeletons, 0, 'no skeleton over a page already on screen');
+    assert.equal(view.container.querySelector('.detail-skeleton'), null);
+    assert.equal(view.getByRole('heading', { level: 1 }), heading, 'the page was not remounted');
+  } finally {
+    observer.disconnect();
     detailLoaders[BUCKET] = original;
     resetDetailRecords();
   }
