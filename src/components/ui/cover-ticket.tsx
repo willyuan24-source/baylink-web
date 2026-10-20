@@ -12,7 +12,9 @@ export function TicketFace({ value, condition, brand, stub, mini }: TicketFacePr
   return <>
     {/* N06: the brand's own " · " ("Poppy & Claro · San José") stays with the word before it (UI9-INT, FREE's request). */}
     {brand && <p className="tc-eyebrow" lang={latinLang(brand)} translate="no">{brand.replace(/\s+·\s+/g, '\u00a0· ')}</p>}
-    <div className="tc-ticket">
+    {/* A long English word ("Purchase required") needs the ticket's whole width on a 2-up card: covers.css drops the stub
+        there (the card's own status line prints the deadline). */}
+    <div className="tc-ticket" data-long={/[A-Za-z]{7,}/.test(main) ? '' : undefined}>
       <p className="tc-ticket__main"><span className="tc-ticket__value tc-num">{main}</span>{value && condition && <span className="tc-ticket__cond">{condition}</span>}</p>
       {stub && <p className="tc-ticket__stub">{stub.first && stub.small && <span>{stub.small}</span>}<span className="tc-ticket__day tc-num">{stub.big}</span>{!stub.first && stub.small && <span>{stub.small}</span>}</p>}
     </div>

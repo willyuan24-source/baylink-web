@@ -64,8 +64,8 @@
 .tc-bar>b { position:absolute; top:0; bottom:0; left:var(--tb-from); width:var(--tb-span); min-width:var(--sp-1); border-radius:var(--r-sm); background:var(--tc-deep); }
 .tc-bar__ticks { display:flex; justify-content:space-between; margin-top:calc(-1 * var(--sp-1)); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 
-/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right. The value breaks between
-   words, hyphenated in English ("Pur-chase re-quired"), and inside a word only when the word alone cannot fit. */
+/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right; the value breaks between
+   words (hyphenated in English). */
 .tc-ticket { position:relative; display:flex; align-items:stretch; margin-block:auto; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); }
 .tc-ticket__main { display:flex; flex:1; flex-direction:column; justify-content:center; gap:var(--sp-1); min-width:0; padding:var(--sp-3); }
 .tc-ticket__value { color:var(--tc-deep); font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; overflow-wrap:break-word; hyphens:auto; }
@@ -103,6 +103,7 @@
   .ui-type-cover:not([data-family=ticket]) .tc-eyebrow,.tc-bar__ticks,.tc-ticket__cond { display:none; }
   .tc-cal__day,.tc-ticket__value { font-size:var(--fs-section); }
   .tc-ticket__main,.tc-ticket__stub,.tc-plate { padding:var(--sp-2); }
+  .tc-ticket[data-long] .tc-ticket__stub { display:none; }
   .tc-hook,.tc-plate [data-phone],.tc-sign__sells { font-size:var(--fs-body); }
   .tc-mark { width:var(--sp-8); height:var(--sp-8); }
   .tc-sign { padding:var(--sp-2) var(--sp-3); }
