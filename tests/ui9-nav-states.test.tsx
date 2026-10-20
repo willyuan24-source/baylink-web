@@ -13,23 +13,22 @@ Object.assign(globalThis, {
   Element: dom.window.Element, Node: dom.window.Node, MutationObserver: dom.window.MutationObserver, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-// A desktop that plays motion: no reduced motion, wide enough for the header's account tool.
+// A screen that plays motion (no reduced motion).
 let reduced = false;
-let wide = true;
 dom.window.matchMedia = ((query: string) => ({
-  matches: query.includes('reduced-motion') ? reduced : query.includes('min-width: 1024px') ? wide : false,
+  matches: query.includes('reduced-motion') ? reduced : false,
   media: query, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false,
 })) as unknown as typeof dom.window.matchMedia;
 const animated: { node: HTMLElement; keyframes: Keyframe[] }[] = [];
 (dom.window.HTMLElement.prototype as unknown as { animate: unknown }).animate = function (this: HTMLElement, keyframes: Keyframe[]) { animated.push({ node: this, keyframes }); return {}; };
 const { render, fireEvent, cleanup, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter, Routes, Route, useNavigate } = await import('react-router-dom');
-const { ChunkBoundary } = await import('../src/components/ChunkFallbacks');
+const { ChunkBoundary } = await import('../src/components/ChunkBoundary');
 const { RouteArrival } = await import('../src/app/route-arrival');
 const { Toast, TOAST_EXIT_MS } = await import('../src/components/Toast');
 const { useExit } = await import('../src/lib/reading-preferences');
 const { SiteChrome } = await import('../src/components/SiteChrome');
-afterEach(() => { cleanup(); animated.length = 0; reduced = false; wide = true; document.documentElement.removeAttribute('data-simple'); });
+afterEach(() => { cleanup(); animated.length = 0; reduced = false; document.documentElement.removeAttribute('data-simple'); });
 
 const noop = () => {};
 const lost = () => { throw new TypeError('Failed to fetch dynamically imported module: https://www.baylink.us/assets/AccountMenu-x1.js'); };
@@ -48,26 +47,23 @@ test('a lazy chrome piece that cannot load shows its fallback and tells its owne
 });
 
 test('the header’s lazy pieces sit behind ChunkBoundary: account menu (its box), Aa (closes, toast), /about notes (open)', () => {
+  // The account menu's own rules travel with its chunk (account-menu.css); the shell keeps the shared menu frame.
+  assert.match(readFileSync('src/components/AccountMenu.tsx', 'utf8'), /import '\.\/account-menu\.css';/);
   const chrome = readFileSync('src/components/SiteChrome.tsx', 'utf8');
   assert.match(chrome, /<ChunkBoundary key=\{user\.id\} fallback=\{accountBox\}><Suspense fallback=\{accountBox\}><AccountMenu /);
   const reading = readFileSync('src/components/ReadingPreferences.tsx', 'utf8');
-  assert.match(reading, /<ChunkBoundary onFail=\{\(\) => \{ setOpen\(false\); onUnavailable\?\.\(\); \}\}><Suspense fallback=\{open \? <SheetChunkFallback /);
-  assert.match(readFileSync('src/app/AppLayout.tsx', 'utf8'), /onUnavailable=\{\(\) => showToast\(/);
+  assert.match(reading, /<ChunkBoundary onFail=\{lostChunk => \{ setOpen\(false\); onUnavailable\?\.\(lostChunk\); \}\}><Suspense fallback=\{null\}><ReadingSheet /);
+  assert.match(readFileSync('src/app/AppLayout.tsx', 'utf8'), /onUnavailable=\{lostChunk => showUnavailable\(showToast, lostChunk\)\}/, 'the overlays’ own 暂时打不开 toast');
   const about = readFileSync('src/components/AboutContent.tsx', 'utf8');
   assert.match(about, /<ChunkBoundary fallback=\{imageNotes\}><Suspense fallback=\{imageNotes\}><Disclosure /);
   assert.doesNotMatch(chrome, /onLogin/, 'the unused sign-in prop is gone (我的 → /me is the guest tool)');
 });
 
-test('the signed-in account tool loads its menu on a desktop only; a phone keeps the same-size box and no chunk', async () => {
+test('a signed-in reader’s account tool: the same-size box until the menu’s chunk arrives, then 账号菜单', async () => {
   const user = { id: 'u1', token: 't', nickname: '小湾' } as never;
-  wide = false;
-  const phone = render(<MemoryRouter initialEntries={['/guides']}><SiteChrome pathname="/guides" user={user} messagesCount={0} onAsk={noop} onSearch={noop} onAccount={noop} onCreate={noop} onLogout={noop}><p>page</p></SiteChrome></MemoryRouter>);
-  assert.ok(phone.container.querySelector('header .site-topbar-actions > .site-topbar-account[aria-hidden="true"]'), 'the box');
-  assert.equal(phone.container.querySelector('header details.site-account-menu'), null, 'no menu chunk on a phone');
-  phone.unmount();
-  wide = true;
-  const desktop = render(<MemoryRouter initialEntries={['/guides']}><SiteChrome pathname="/guides" user={user} messagesCount={0} onAsk={noop} onSearch={noop} onAccount={noop} onCreate={noop} onLogout={noop}><p>page</p></SiteChrome></MemoryRouter>);
-  await waitFor(() => assert.ok(desktop.getByLabelText('账号菜单')));
+  const view = render(<MemoryRouter initialEntries={['/guides']}><SiteChrome pathname="/guides" user={user} messagesCount={0} onAsk={noop} onSearch={noop} onAccount={noop} onCreate={noop} onLogout={noop}><p>page</p></SiteChrome></MemoryRouter>);
+  assert.ok(view.container.querySelector('header .site-topbar-actions > .site-topbar-account[aria-hidden="true"]'), 'the box while it loads');
+  await waitFor(() => assert.ok(view.getByLabelText('账号菜单')));
 });
 
 function Pages({ go }: { go: (navigate: ReturnType<typeof useNavigate>) => void }) {

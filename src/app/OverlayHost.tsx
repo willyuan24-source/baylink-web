@@ -3,7 +3,7 @@
 // use (its chunk is not in the shell graph every page downloads) and sits behind a boundary: if its chunk cannot load,
 // the dialog closes with a message instead of taking the page down, and the next time it is opened it loads again.
 import { Suspense, useEffect, useState, type ComponentProps, type ReactNode, type RefObject } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import type { NavigateFunction } from 'react-router-dom';
 import { ConfirmHost } from '../components/ui/confirm';
@@ -13,9 +13,10 @@ import { LocaleContentGate } from '../components/LocaleContentGate';
 import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry';
 import type { ReportReason } from '../components/ReportModal';
 import { lazyChunk } from '../lib/chunk-recovery';
-import { ChunkBoundary, SheetChunkFallback } from '../components/ChunkFallbacks';
+import { ChunkBoundary } from '../components/ChunkBoundary';
 import { api } from '../lib/api';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
+import { showUnavailable } from './chunk-unavailable';
 import type { AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData } from '../lib/types';
 import type { AppContextValue, ShowToast } from './context';
 import { useReopenAfterFailure } from './useReopenAfterFailure';
@@ -42,6 +43,26 @@ const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : 
 
 /** A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link). */
 const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>;
+/**
+ * "正在打开搜索… / 正在打开 BayBay…" while the dialog's chunk loads (BB launcher item e): F's Sheet frame (the .ui-sheet
+ * classes of ui.css, without importing the Sheet into the shell) titled like the sheet that replaces it and at its size
+ * (site-chrome.css), so it arrives in place. `drawer` is BayBay's 440px drawer with no desktop scrim (captain decision 7).
+ * The close has F's CloseButton look and name (the component would bring Button.tsx and its card sheets into the shell).
+ */
+const SheetChunkFallback = ({ title, label, onClose, restoreFocusRef, drawer }: { title: string; label: string; onClose: () => void; restoreFocusRef?: RefObject<HTMLElement>; drawer?: boolean }) => {
+  const close = copy(useLocale(), '关闭', 'Close');
+  return <ModalShell onClose={onClose} className={`ui-sheet-backdrop site-chunk-sheet site-chunk-sheet--${drawer ? 'drawer' : 'search'}`} label={label} restoreFocusRef={restoreFocusRef}>
+    <div className="ui-sheet">
+      <div className="ui-sheet__handle" aria-hidden="true" />
+      <div className="ui-sheet__header">
+        <p className="ui-sheet__title">{title}</p>
+        <button type="button" className="ui-icon-button ui-close" aria-label={close} title={close} onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></button>
+      </div>
+      <div className="ui-sheet__body site-chunk-sheet__body"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /><p role="status">{label}</p></div>
+    </div>
+  </ModalShell>;
+};
+
 /**
  * Contains a dialog whose chunk failed twice (offline, a stale deploy) or that crashed: close it and say so, keep the
  * page (ChunkBoundary, shared with the header's lazy pieces). The host unmounts the boundary (or changes its key) to try
@@ -88,13 +109,7 @@ export function OverlayHost(props: OverlayHostProps) {
   const { user, showToast, blockedUserIds, post, chat, profile, baybay, search } = props;
   const locale = useLocale();
   const t = (zh: string, en: string) => copy(locale, zh, en);
-  // Opening it again loads it again (OverlayBoundary forgets the lost chunk). Online, code that would not load is most
-  // likely from an older deploy, so the toast also offers a reload.
-  const unavailable = (close: () => void) => (lostChunk: boolean) => {
-    close();
-    showToast(t('暂时打不开，请检查网络后重试。', 'This could not open. Check your connection and try again.'), 'error',
-      lostChunk && navigator.onLine ? { label: t('重新加载', 'Reload'), onClick: () => window.location.reload() } : undefined);
-  };
+  const unavailable = (close: () => void) => (lostChunk: boolean) => { close(); showUnavailable(showToast, lostChunk); };
   const lazyDialog = (close: () => void, node: ReactNode, fallback: ReactNode = <OverlayChunkFallback />, options: { key?: string; onFail?: () => void } = {}) =>
     <OverlayBoundary key={options.key} onFail={lostChunk => { options.onFail?.(); unavailable(close)(lostChunk); }}><Suspense fallback={fallback}>{node}</Suspense></OverlayBoundary>;
   const baybayAttempt = useReopenAfterFailure(baybay.open);
@@ -113,7 +128,7 @@ export function OverlayHost(props: OverlayHostProps) {
     {props.toast && <Toast key={props.toast.id} message={props.toast.message} type={props.toast.type} action={props.toast.action} onClose={props.closeToast} />}
     {props.ad.item && lazyDialog(props.ad.close, <AdDetailModal ad={props.ad.item} onClose={props.ad.close} isAdmin={props.ad.isAdmin} onDelete={props.ad.onDelete} />)}
     {searchShown && lazyDialog(search.close, <LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore open={search.open} initialQuery={search.query} restoreFocusRef={search.openerRef} onClose={search.close} onNavigate={props.navigate} onSearch={search.onSearch} onAsk={search.onAsk} /></LocaleContentGate>,
-      <SheetChunkFallback className="site-chunk-sheet--search" title={t('搜索', 'Search')} label={t('正在打开搜索…', 'Opening search…')} onClose={search.close} restoreFocusRef={search.openerRef} />)}
+      <SheetChunkFallback title={t('搜索', 'Search')} label={t('正在打开搜索…', 'Opening search…')} onClose={search.close} restoreFocusRef={search.openerRef} />)}
 
     {(baybay.open || (baybay.loaded && !baybayAttempt.failed)) && lazyDialog(() => baybay.onOpenChange(false), <LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
       key={baybay.scope}

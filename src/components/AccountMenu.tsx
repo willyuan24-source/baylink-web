@@ -4,6 +4,7 @@ import Avatar from './Avatar';
 import { useDisclosure } from './useDisclosure';
 import { translateText, useLocale } from '../i18n/locale';
 import type { UserData } from '../lib/types';
+import './account-menu.css';
 
 /** Desktop account menu (design.md §4.13): 消息 n · 我的这周 · 设置 · 退出. On phones the 我的 tab stands in for it. */
 export function AccountMenu({ user, messagesCount, current, onLogout }: { user: UserData; messagesCount: number; current?: 'page' | 'true'; onLogout: () => void }) {

@@ -1,5 +1,5 @@
 // Chrome behaviour shared by the header (SiteNavigation) and the phone tab bar (SiteMobileNavigation), UI9-NAV.
-import { useEffect, useState, useSyncExternalStore, type PointerEvent } from 'react';
+import { useEffect, useState, type PointerEvent } from 'react';
 import { preloadBayBay } from '../app/baybay-preload';
 
 /** Warm the BayBay panel's chunk as soon as a pointer or the keyboard reaches a 问 BayBay trigger (BB launcher item d). */
@@ -27,12 +27,3 @@ export function usePendingLink(pathname: string) {
     onPointerLeave: (event: PointerEvent) => { if (event.buttons) release(href); },
   };
 }
-
-const WIDE = '(min-width: 1024px)';
-const watchWide = (notify: () => void) => {
-  const query = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(WIDE) : null;
-  query?.addEventListener?.('change', notify);
-  return () => query?.removeEventListener?.('change', notify);
-};
-/** The desktop header (≥ 1024px), where the account tool shows; true where there is no matchMedia (the prerender). */
-export const useWideScreen = () => useSyncExternalStore(watchWide, () => !window.matchMedia || window.matchMedia(WIDE).matches, () => true);

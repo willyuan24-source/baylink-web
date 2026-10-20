@@ -9,8 +9,7 @@ import { SiteMobileNavigation } from './SiteMobileNavigation';
 import { ReadingPreferencesButton } from './ReadingPreferences';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { lazyChunk } from '../lib/chunk-recovery';
-import { ChunkBoundary } from './ChunkFallbacks';
-import { useWideScreen } from './site-chrome-hooks';
+import { ChunkBoundary } from './ChunkBoundary';
 import { openSiteFeedback } from './site-feedback';
 import { translateText, useLocale } from '../i18n/locale';
 import { matchRoute } from '../app/route-table';
@@ -21,8 +20,8 @@ import type { UserData } from '../lib/types';
 import './site-chrome.css';
 
 // The signed-in account menu (avatar, 消息, 我的这周, 设置, 退出) is its own chunk: a guest never needs it, and the shell
-// every page downloads stays at its budget. It loads on desktop only (phones hide the header's account tool; the 我的 tab
-// stands in), and a same-size placeholder holds its box while it loads, or if it cannot load (ChunkBoundary).
+// every page downloads stays at its budget. A same-size placeholder holds its box while it loads, or if it cannot load
+// (ChunkBoundary).
 const loadAccountMenu = () => import('./AccountMenu');
 const AccountMenu = lazyChunk(loadAccountMenu, m => m.AccountMenu);
 
@@ -35,7 +34,7 @@ export type SiteChromeProps = {
   onAsk: () => void;
   onSearch: () => void;
   /** A header control's own chunk (the Aa sheet) could not load: AppLayout says so in a toast; the page stays. */
-  onUnavailable?: () => void;
+  onUnavailable?: (lostChunk: boolean) => void;
   /** 更多 → 账号设置 / 登录 (SiteNavigation's OPUS-contract prop). */
   onAccount: () => void;
   /** SiteNavigation's OPUS-contract prop; 发布 lives inside 邻里 only (G16). */
@@ -62,7 +61,6 @@ export function SiteChrome({ pathname, user, messagesCount, onAsk, onSearch, onA
   // The one account tool (content arrangement §2): 我的 for a guest, the avatar menu once signed in. On /me it is the page;
   // on its sub-pages (/my-week, /me/bookings, /messages) it marks the section.
   const mine = primaryNavigationPath(path) === '/me' ? path === '/me' ? 'page' : 'true' : undefined;
-  const wide = useWideScreen();
   const accountBox = <span className="site-topbar-actions"><span className="site-topbar-account site-tool" aria-hidden="true" /></span>;
   return <div className="site-app font-sans" data-chrome={route?.chrome}>
     <a href="#scroll-container" className="site-skip-link">{t('跳到主要内容', 'Skip to main content')}</a>
@@ -76,7 +74,7 @@ export function SiteChrome({ pathname, user, messagesCount, onAsk, onSearch, onA
             </button>
             <ReadingPreferencesButton onUnavailable={onUnavailable} />
             <LanguageSwitcher realLocation={realLocation} />
-            {user ? wide ? <ChunkBoundary key={user.id} fallback={accountBox}><Suspense fallback={accountBox}><AccountMenu user={user} messagesCount={messagesCount} current={mine} onLogout={onLogout} /></Suspense></ChunkBoundary> : accountBox : <div className="site-topbar-actions"><Link to="/me" className="site-topbar-account site-tool" aria-current={mine}><UserRound size={20} aria-hidden="true" strokeWidth={1.75} /><span>{t('我的', 'Me')}</span></Link></div>}
+            {user ? <ChunkBoundary key={user.id} fallback={accountBox}><Suspense fallback={accountBox}><AccountMenu user={user} messagesCount={messagesCount} current={mine} onLogout={onLogout} /></Suspense></ChunkBoundary> : <div className="site-topbar-actions"><Link to="/me" className="site-topbar-account site-tool" aria-current={mine}><UserRound size={20} aria-hidden="true" strokeWidth={1.75} /><span>{t('我的', 'Me')}</span></Link></div>}
           </div>
         </div>
       </header>

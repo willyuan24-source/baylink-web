@@ -121,16 +121,14 @@ test('BB launcher (d): pointing at 问 BayBay starts loading the panel; A6: the 
   assert.match(overlay, /lazyChunk\(\(\) => import\('\.\.\/components\/BayBayAssistantEntry'\), m => m\.BayBayAssistantEntry\)/);
   assert.match(readFileSync('src/app/baybay-preload.ts', 'utf8'), /import\('\.\.\/components\/BayBayAssistantEntry'\)/, 'the warm-up loads the dialog’s own chunk');
   // (e) the 正在打开 BayBay… fallback draws F's sheet frame at the panel's size, without a desktop scrim (decision 7).
-  const fallbacks = readFileSync('src/components/ChunkFallbacks.tsx', 'utf8');
-  assert.match(fallbacks, /className=\{`ui-sheet-backdrop site-chunk-sheet\$\{drawer \? ' site-chunk-sheet--drawer' : ''\}/);
+  assert.match(overlay, /className=\{`ui-sheet-backdrop site-chunk-sheet site-chunk-sheet--\$\{drawer \? 'drawer' : 'search'\}`\}/);
   assert.match(overlay, /<SheetChunkFallback drawer title=\{t\('问 BayBay', 'Ask BayBay'\)\} label=\{t\('正在打开 BayBay…'/);
-  assert.match(overlay, /<SheetChunkFallback className="site-chunk-sheet--search" title=\{t\('搜索', 'Search'\)\}/);
+  assert.match(overlay, /<SheetChunkFallback title=\{t\('搜索', 'Search'\)\} label=\{t\('正在打开搜索…'/);
   const css = readFileSync('src/components/site-chrome.css', 'utf8');
   // The scrim rule must outrank ui.css's .ui-sheet-backdrop (one class, loaded later): two classes.
-  assert.match(css, /@media \(min-width:1024px\) \{\s*\.ui-sheet-backdrop\.site-chunk-sheet--drawer \{ background:transparent; \}/);
-  assert.match(css, /\.ui-sheet-backdrop\.site-chunk-sheet--drawer \.ui-sheet \{ width:440px;/, 'BayBay’s drawer width');
-  assert.match(css, /\.ui-sheet-backdrop\.site-chunk-sheet--drawer \.ui-sheet \{ height:min\(43rem,93dvh\);/, 'BayBay’s phone panel height');
-  assert.match(css, /\.ui-sheet-backdrop\.site-chunk-sheet--search \.ui-sheet \{ height:min\(42rem,85dvh\); \}/, 'the empty search sheet’s height');
+  assert.match(css, /@media \(min-width:1024px\) \{\s*\.ui-sheet-backdrop\.site-chunk-sheet--drawer \{ background:transparent; \}\s*\.site-chunk-sheet--drawer \.ui-sheet \{ width:440px; \}/, 'BayBay’s 440px drawer');
+  // On a phone each fallback is as tall as the sheet that replaces it: the empty search sheet, BayBay's panel.
+  assert.match(css, /@media \(max-width:1023px\) \{\s*\.site-chunk-sheet--search \.ui-sheet \{ height:min\(42rem,85dvh\); \}\s*\.site-chunk-sheet--drawer \.ui-sheet \{ height:min\(43rem,85dvh\); \}/);
 });
 
 test('one account tool: 我的 for a guest (the page on /me, the section on its sub-pages); no separate 登录 in the header', () => {

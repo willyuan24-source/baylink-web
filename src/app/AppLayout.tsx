@@ -24,11 +24,12 @@ import { useContactIntent } from './useContactIntent';
 import { useConversationOpener } from './useConversationOpener';
 import { withConversationContext } from '../lib/conversation-context';
 import { useCloseOverlay } from './overlay-close';
-import { getLocale, translateText } from '../i18n/locale';
+import { getLocale } from '../i18n/locale';
 import { useSession } from './useSession';
 import { useCommunityFeed } from './useCommunityFeed';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
 import { OverlayHost } from './OverlayHost';
+import { showUnavailable } from './chunk-unavailable';
 import { BootMainSettled, bootMainFallback } from './boot-main';
 import { confirmDialog } from '../components/ui/confirm';
 import type { ToastAction } from '../components/Toast';
@@ -648,8 +649,6 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     share={{ post: sharingPost, close: () => setSharingPost(null) }}
   />;
 
-  // A header control's chunk (the Aa sheet) could not load: the same message as OverlayHost's dialogs.
-  const t = (zh: string, en: string) => getLocale() === 'en' ? en : translateText(zh);
   return (
     <SiteChrome
       pathname={location.pathname}
@@ -660,7 +659,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       onAccount={() => user ? navigate('/me') : setShowLogin(true)}
       onCreate={() => openCreate()}
       onLogout={handleLogout}
-      onUnavailable={() => showToast(t('暂时打不开，请检查网络后重试。', 'This could not open. Check your connection and try again.'), 'error')}
+      onUnavailable={lostChunk => showUnavailable(showToast, lostChunk)}
       realLocation={realLocation}
       overlays={overlays}
     >

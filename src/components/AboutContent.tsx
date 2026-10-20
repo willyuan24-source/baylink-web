@@ -5,7 +5,7 @@ import { translateText, useLocale } from '../i18n/locale';
 import { FeedbackLink } from '../features/feedback/ReportErrorLink';
 import { Button } from './ui/Button';
 import { lazyChunk } from '../lib/chunk-recovery';
-import { ChunkBoundary } from './ChunkFallbacks';
+import { ChunkBoundary } from './ChunkBoundary';
 import { PageContainer, PageHeader } from './ui/PageHeader';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { ProvenanceBadge } from './ui/Badges';
