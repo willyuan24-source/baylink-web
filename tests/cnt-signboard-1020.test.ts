@@ -17,20 +17,20 @@ const UNREAD = new Set(['santa-clara-rhone-valley-fair-new-store-2026']);
 /** Words that belong to the status chip or the date, not to "what it sells". */
 const STATUS_WORDS = /预告|開業|开业|已营业|营业|新店|新餐厅|新概念|迁址|重开|快闪|零售|餐饮新店/u;
 
-test('every opening the sign can show says what the shop sells, in at most 12 字 and 8 English words', () => {
+test('every opening the sign can show says what the shop sells, in at most 7 字 (one line on a phone sign) and 8 English words', () => {
   assert.equal(currentOpenings.length, 60);
   for (const shop of currentOpenings) {
     if (UNREAD.has(shop.id)) continue;
     assert.equal(OPENING_OVERLAY[shop.id]?.fix?.category, shop.category, `${shop.id}: the reviewed category is the one shown`);
-    assert.ok([...shop.category].length <= 12, `${shop.id}: ${shop.category}`);
+    assert.ok([...shop.category].length <= 7, `${shop.id}: ${shop.category} (the brief allows 12 字; 7 keeps the 390px sign on one line)`);
     assert.doesNotMatch(shop.category, STATUS_WORDS, `${shop.id}: ${shop.category} is a status, not what it sells`);
     const en = english[shop.category];
     assert.ok(en, `${shop.id}: no English for ${shop.category}`);
     assert.ok(en.split(/\s+/u).length <= 8 && !/[㐀-鿿]/u.test(en), `${shop.id}: ${en}`);
   }
   assert.equal(opening('marufuku-burlingame-announced').category, '博多豚骨拉面');
-  assert.equal(english['博多豚骨拉面'], 'Hakata-style tonkotsu ramen');
-  assert.equal(opening('mess-hall-presidio-breadwinner').category, '汉堡、三明治与沙拉');
+  assert.equal(english['博多豚骨拉面'], 'Hakata tonkotsu ramen');
+  assert.equal(opening('mess-hall-presidio-breadwinner').category, '汉堡与三明治');
 });
 
 test('a record whose only source is a press report says 媒体报道 in its source label; official pages are not called press', () => {
