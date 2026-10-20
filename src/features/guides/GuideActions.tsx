@@ -58,7 +58,7 @@ export function GuideActions({ guide, call, official, onAsk }: { guide: Guide; c
       : <a className="detail-actions__cell" data-cell="ask" aria-label={askLabel} href={`/plan?q=${encodeURIComponent(question)}`}>{ask}</a>}
     {call ? <Button variant="primary" className={`${primary} gd-bar__call`} href={`tel:${call.tel}`} aria-label={t(`拨打 ${call.label.zh} ${call.number}`, `Call ${call.label.en} ${call.number}`)}
       icon={<Phone aria-hidden="true" strokeWidth={1.75} />}><span className="gd-bar__verb">{t('拨打', 'Call')} </span><span className="gd-bar__number">{call.number}</span></Button>
-      : official ? <Button variant="primary" className={primary} href={official.url} target="_blank" rel="noopener noreferrer" aria-label={t(`官方入口：${official.title}（在新标签页打开）`, `Official site: ${official.title} (opens in a new tab)`)}>
+      : official ? <Button variant="primary" className={primary} href={official.url} target="_blank" rel="noopener noreferrer" aria-label={t('官方入口（在新标签页打开）', 'Official site (opens in a new tab)')}>
         <span>{t('官方入口', 'Official site')}</span><span aria-hidden="true">↗</span></Button> : null}
   </div>
   {status && <p className="gd-actions__status" role="status">{status}</p>}</>;

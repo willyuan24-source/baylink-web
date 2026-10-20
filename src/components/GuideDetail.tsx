@@ -47,7 +47,7 @@ import { GuideCover, guideCaption } from '../features/guides/GuideCover';
 import { DeferredGuideTypeCover } from './ui/cover-defer';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuideCoverCredit, GuidePageImageCredits, GuideToTop } from '../features/guides/GuidePageParts';
-import { guideCallOf, guideCardLines, guideCover, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
+import { guideCallOf, guideCardLines, guideCover, guideEnglishDate, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
 import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
 import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
@@ -326,7 +326,7 @@ const GuideDetailSession = ({
             {guide.sources.length > sourcesShown && <Disclosure className="gd-sources-more" summary={t(`看全部 ${guide.sources.length} 个官方来源`, `All ${guide.sources.length} official sources`)}>
               <ul>{guide.sources.slice(sourcesShown).map((source, index) => <SourceItem key={source.url} source={source} index={sourcesShown + index} />)}</ul>
             </Disclosure>}
-            <p className="gd-sources__date">{t(`内容更新 ${guide.updatedAt}`, `Content updated ${guide.updatedAt}`)}</p>
+            <p className="gd-sources__date">{t(`内容更新 ${guide.updatedAt}`, `Content updated ${guideEnglishDate(guide.updatedAt)}`)}</p>
             <LazyReportErrorLink key={`report-guide-${slug}`} className="feedback-report-row--guide" entity={{ kind: 'guide', id: slug }} title={guide.title} />
           </section>
           {guide.sourceNote && (

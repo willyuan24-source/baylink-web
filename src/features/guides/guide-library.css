@@ -68,6 +68,16 @@ html[data-simple] .gl-page .gl-call { display:inline-flex; min-height:3rem; }
 
 .gl-more { display:flex; justify-content:center; margin-top:var(--sp-5); }
 
+/* 特大 / 简洁 on a phone: the first screen keeps the H1, the search and a whole elder row — the lede goes, ♡ 我的指南收藏 keeps its
+   heart (its name stays; 简洁 saves on the detail page, decision 16), and the band's rows give the title the full width. */
+@media (max-width:767px) {
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-header .ui-page-header__lede { display:none; }
+  html[data-reading=extra-large] .gl-saved-link { width:3rem; padding:0; justify-content:center; }
+  html[data-reading=extra-large] .gl-saved-link__label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  html[data-simple] .gl-header .ui-page-header__actions { display:none; }
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card { grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"body trailing"; }
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card__thumb { display:none; }
+}
 /* 简洁显示: no lede and no chip row (except in a topic, for 地区); one row per topic instead of the six sections. */
 html[data-simple] .gl-page [data-simple=hide],html[data-simple] .gl-header .ui-page-header__lede { display:none; }
 html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
