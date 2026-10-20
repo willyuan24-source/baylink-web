@@ -11,8 +11,10 @@
 .nf-code{margin:0;color:var(--color-ink-2);font-size:var(--fs-meta);font-variant-numeric:tabular-nums}
 .nf-hero h1{margin:var(--sp-1) 0 0;color:var(--color-ink);font-size:var(--fs-keep-24);line-height:var(--lh-tight);font-weight:var(--fw-strong);letter-spacing:0;text-wrap:balance}
 .nf-body{max-width:var(--measure);margin:var(--sp-2) 0 0;color:var(--color-ink-2);font-size:var(--fs-body);line-height:var(--lh-ui)}
-.nf-search{display:flex;gap:var(--sp-2);width:100%;max-width:36rem;margin-top:var(--sp-4)}
-.nf-search-field{display:flex;flex:1;align-items:center;gap:var(--sp-2);min-width:0;min-height:max(var(--control-height),3rem);padding:0 var(--sp-4);border:1px solid var(--color-line-control);border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-ink-3)}
+.nf-search{display:flex;flex-wrap:wrap;gap:var(--sp-2);width:100%;max-width:36rem;margin-top:var(--sp-4)}
+/* The field keeps room for its whole placeholder (eight characters at the input's size, and the search clear button): at
+   家人版 sizes 搜索 moves under it instead of cutting the placeholder's last character. */
+.nf-search-field{display:flex;flex:1 1 calc(var(--fs-body) * 12);align-items:center;gap:var(--sp-2);min-width:0;min-height:max(var(--control-height),3rem);padding:0 var(--sp-4);border:1px solid var(--color-line-control);border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-ink-3)}
 .nf-search-field>svg{flex:none;width:1.125rem;height:1.125rem}
 .nf-search-field input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--color-ink);font-size:var(--fs-body)}
 .nf-search-field input::placeholder{color:var(--color-ink-3);opacity:1}
