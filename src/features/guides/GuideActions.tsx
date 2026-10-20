@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowUpRight, Phone, Send } from 'lucide-react';
 import { useApp, type AppContextValue } from '../../app/context';
 import { SaveToWeek } from '../../components/SaveToWeek';
@@ -28,6 +28,9 @@ export type GuideAsk = (question: string, options?: { mode?: 'send' | 'draft' })
 export function GuideActions({ guide, call, official, onAsk }: { guide: Guide; call?: GuideCall; official?: { title: string; url: string }; onAsk?: GuideAsk }) {
   const { t, locale } = useUiCopy();
   const app = useApp() as AppContextValue | undefined;
+  // Outside the app shell (tests, an embed) there is no toast: the message shows under the bar instead.
+  const [status, setStatus] = useState('');
+  const say = (message: string, kind: 'success' | 'info') => { if (app?.showToast) app.showToast(message, kind); else setStatus(message); };
   // The reading history ("最近读过" on /guides?view=saved) stays in this browser.
   useEffect(() => { rememberGuide(guide.slug); }, [guide.slug]);
   const title = translateText(guide.title, locale);
@@ -40,13 +43,13 @@ export function GuideActions({ guide, call, official, onAsk }: { guide: Guide; c
       catch (error) { if (error instanceof Error && error.name === 'AbortError') return; }
     }
     const copied = await copyText(`${text}\n${url}`);
-    app?.showToast(copied ? t('链接已复制，发到家庭群就好；家人打开是大字、简洁显示。', 'Link copied. Paste it to your family; it opens in large text and simple view.')
+    say(copied ? t('链接已复制，发到家庭群就好；家人打开是大字、简洁显示。', 'Link copied. Paste it to your family; it opens in large text and simple view.')
       : t('浏览器未允许复制，请长按地址栏复制链接。', 'Copy was blocked; copy the link from the address bar.'), copied ? 'success' : 'info');
   };
   const askLabel = t('问 BayBay 这一页', 'Ask BayBay about this page');
   const ask = <><img src="/brand/otter.svg" alt="" width={24} height={24} aria-hidden="true" /><span data-label="long">{t('问 BayBay', 'Ask BayBay')}</span><span data-label="tight">BayBay</span></>;
   const primary = 'detail-actions__primary detail-action detail-action--primary';
-  return <div className="site-detail-actions detail-actions gd-bar" role="group" aria-label={t('这一页的操作', 'Actions for this page')}>
+  return <><div className="site-detail-actions detail-actions gd-bar" role="group" aria-label={t('这一页的操作', 'Actions for this page')}>
     <div className="detail-actions__cell" data-cell="save"><SaveToWeek favorite={{ kind: 'guide', id: guide.slug }} title={guide.title} compact /></div>
     <button type="button" className="detail-actions__cell" data-cell="family" onClick={() => void sendToFamily()}>
       <Send aria-hidden="true" strokeWidth={1.75} /><span data-label="phone">{t('发家人', 'Family')}</span><span data-label="desk">{t('发给家人', 'Send to family')}</span><span className="ui-visually-hidden">{t('（大字版）', ' (large text)')}</span>
@@ -57,5 +60,6 @@ export function GuideActions({ guide, call, official, onAsk }: { guide: Guide; c
       icon={<Phone aria-hidden="true" strokeWidth={1.75} />}><span className="gd-bar__verb">{t('拨打', 'Call')} </span><span className="gd-bar__number">{call.number}</span></Button>
       : official ? <Button variant="primary" className={primary} href={official.url} target="_blank" rel="noopener noreferrer" aria-label={t(`官方入口：${official.title}（在新标签页打开）`, `Official site: ${official.title} (opens in a new tab)`)}>
         <span>{t('官方入口', 'Official site')}</span><ArrowUpRight aria-hidden="true" strokeWidth={1.75} /></Button> : null}
-  </div>;
+  </div>
+  {status && <p className="gd-actions__status" role="status">{status}</p>}</>;
 }

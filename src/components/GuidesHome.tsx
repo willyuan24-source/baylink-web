@@ -95,6 +95,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const resultKey = `${topic}:${region}:${category}:${query}`;
   const visibleCount = page.key === resultKey ? page.count : PAGE_SIZE;
   const [regionsOpen, setRegionsOpen] = useState(false);
+  const [directoryOpen, setDirectoryOpen] = useState(false);
 
   const update = (values: { topic?: GuideTopicId | null; region?: GuideRegionId | null; q?: string; category?: null }) => setParams(previous => {
     const next = new URLSearchParams(previous);
@@ -255,8 +256,9 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
             : list(listed.slice(0, visibleCount).map(({ guide }) => guide), heading, true)}
         {listed.length > visibleCount && <div className="gl-more"><Button onClick={() => setPage({ key: resultKey, count: visibleCount + PAGE_SIZE })}>{t(`继续查看（${visibleCount}/${listed.length}）`, `Show more (${visibleCount}/${listed.length})`)}</Button></div>}
       </section>}
-    {!savedOnly && <Disclosure className="gl-directory" summary={t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}>
-      <nav id="guide-complete-directory" aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
+    {/* Every guide is linked in the prerendered page; closed, the list is out of the accessibility tree as well as the view. */}
+    {!savedOnly && <Disclosure className="gl-directory" onToggle={setDirectoryOpen} summary={t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}>
+      <nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
     </Disclosure>}
     <footer className="gl-footer"><p>{t('每篇指南保留官方来源、核对日期与图片授权。', 'Each guide keeps its official sources, check dates and image credits.')}</p><Link to="/about#about-method-title">{t('了解核验方法', 'How we check sources')}</Link></footer>
   </div>;

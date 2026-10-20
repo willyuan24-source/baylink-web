@@ -150,8 +150,9 @@ const unrelatedPromos = '.guide-attraction-entry, .daily-guide-topics:not(.reade
 
 function assertEducationView(view: ReturnType<typeof render>) {
   assert.equal(view.getByRole('button', { name: '取消筛选：学校与学区' }).getAttribute('aria-pressed'), 'true');
-  const library = view.getByRole('list', { name: '学校与学区' });
-  const cards = within(library).getAllByRole('link');
+  // A list renders rows for a phone and covers for a desktop (UI9-GUIDES); the first is the phone's.
+  const library = view.getAllByRole('list', { name: '学校与学区' })[0];
+  const cards = within(library).getAllByRole('link').filter(card => card.getAttribute('href')?.startsWith('/guides/'));
   assert.deepEqual(cards.map(card => card.getAttribute('href')?.replace('/guides/', '')).sort(), schoolSlugs);
   for (const guide of schoolGuides) assert.ok(within(library).getByRole('heading', { name: guide.title }));
   assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0, 'an education filter must not promote unrelated activities, deals or attractions');
@@ -162,11 +163,11 @@ test('the guide overview files schools under 证件与移民 (D22) and the topic
   const topics = view.getByRole('group', { name: '指南主题' });
   const documents = view.getByRole('region', { name: '证件与移民', exact: true });
   assert.ok(topics.compareDocumentPosition(documents) & Node.DOCUMENT_POSITION_FOLLOWING, 'topic chips must precede the library');
-  assert.equal(within(documents).getAllByRole('link').length, 4, 'each topic previews four covers');
+  assert.equal(new Set(within(documents).getAllByRole('link').map(link => link.getAttribute('href'))).size, 4, 'each topic previews four guides');
   assert.equal(view.container.querySelectorAll(unrelatedPromos).length, 0, 'the compact overview has no unrelated promotional modules');
   fireEvent.click(within(topics).getByRole('button', { name: /^证件与移民/ }));
   assert.match(view.getByTestId('location').textContent || '', /topic=documents/);
-  const library = view.getByRole('list', { name: '证件与移民' });
+  const library = view.getAllByRole('list', { name: '证件与移民' })[0];
   const hrefs = within(library).getAllByRole('link').map(card => card.getAttribute('href')?.replace('/guides/', ''));
   for (const slug of schoolSlugs) assert.ok(hrefs.includes(slug), slug);
 });
