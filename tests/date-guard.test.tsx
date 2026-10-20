@@ -212,7 +212,10 @@ test('WEB-HOME marks its own date blocks with dateScope(), so home stays covered
   const doc = new JSDOM(`<!doctype html><html><body><main data-prerender-path="/">${markup}</main></body></html>`).window.document;
   const scope = (selector: string) => [...doc.querySelectorAll(selector)].map(node => node.getAttribute('data-date-scope'));
   // UI9-HOME: the dateline shows the weekend ("湾区本周末 · 10/24–25"); the count and the check dates sit in the picks.
-  for (const [selector, expected] of [['.home-picks', 'weekend'], ['.home-feed', 'weekend'], ['.home-share', 'weekend'],
+  // The picks mark each block, not the section (display:contents from 1024: its skeleton would cover the masthead).
+  assert.equal(doc.querySelector('.home-picks')!.hasAttribute('data-date-scope'), false);
+  for (const [selector, expected] of [['.home-picks>.home-section-head', 'weekend'], ['.home-picks__list>li', 'weekend'], ['.home-picks__all', 'weekend'],
+    ['.home-trust', 'weekend'], ['.home-feed', 'weekend'], ['.home-share', 'weekend'],
     ['.home-head__dateline', 'weekend'], ['.home-offers', 'day']] as const) {
     const scopes = scope(selector);
     assert.ok(scopes.length >= 1, `${selector} is on the prerendered home`);

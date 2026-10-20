@@ -87,7 +87,8 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     };
   }, [weekend, guides, offers, today]);
   // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is
-  // an earlier weekend's, so saving it would send the family the wrong three until the next build.
+  // an earlier weekend's, so saving it would send the family the wrong three until the next build. Without one, the card's
+  // place holds 看本周末全部 and 订阅日历 (ShareStrip), so the desktop row beside picks 2–3 is never blank.
   const cardHref = getWeeklyCardDays().includes(today) ? getWeeklyCardHref(today) : null;
   // The tickets shown (three after a wide one, else four): the rail draws them and the credits line credits only these.
   const offerCount = offers.length ? homeOfferCount(offers, covers.offers, today) : 0;
@@ -97,7 +98,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       <HomeHead today={today} start={weekend.start} end={weekend.end} known={weekend.total !== null} onAskBayBay={onAskBayBay} onSearch={onSearch} />
       <HeroPicks picks={weekend.picks} covers={covers.picks} today={today} start={weekend.start} end={weekend.end} total={weekend.total} checked={weekend.checked} />
       <MoodCircles seniors={weekend.seniors} />
-      {cardHref && <ShareStrip count={weekend.picks.length} cardHref={cardHref} />}
+      <ShareStrip count={weekend.picks.length} cardHref={cardHref} total={weekend.total} />
     </div>
     <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} today={today} total={weekend.total} />
     {offers.length > 0 && <OfferTickets offers={offers} covers={covers.offers} today={today} count={offerCount} />}

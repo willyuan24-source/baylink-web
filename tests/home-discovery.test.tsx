@@ -35,13 +35,14 @@ test('the masthead asks the question under the weekend dateline; one identity li
   assert.equal(doc.querySelector('.home-head__dateline time')!.getAttribute('datetime'), weekend.start);
   assert.equal(doc.querySelector('.home-head__identity')!.textContent, '湾区华人家庭的周末活动与办事指南 · 免费 · 不用登录');
   assert.equal(doc.querySelector('.home-head__lede'), null, 'the dense lede is gone');
-  // H02: when this weekend's events were checked (most of them, and the latest), as checks against the official pages.
+  // H02: when this weekend's events were checked, as checks against the official pages. The trust line names one day (UI9-HOME
+  // arrangement: "✓ 多数 10/15 官网核对"): the day most were checked, or the day all were; the separator before
+  // 我们怎么核对 is glued to the phrase before it (a no-break space), so a wrapped line never starts with "·".
   assert.ok(weekend.checked, 'the snapshot carries the check dates');
-  const { mostly, latest, all } = weekend.checked!;
-  const earliest = weekend.checked!.earliest ?? mostly;
+  const { mostly, all } = weekend.checked!;
   const trust = doc.querySelector('.home-picks .home-trust')!;
-  assert.equal(trust.textContent, `✓ 每条附官方链接 · ✓ ${earliest === latest ? (all === false ? `多数 ${monthDay(latest)} 官网核对` : `${monthDay(latest)} 官网核对`)
-    : mostly === latest ? `多数 ${monthDay(mostly)} 官网核对 · 最早 ${monthDay(earliest)}` : `多数 ${monthDay(mostly)} 官网核对 · 最近 ${monthDay(latest)}`} · 我们怎么核对 →`);
+  assert.equal(trust.textContent, `✓ 每条附官方链接 · ✓ ${all === true ? '' : '多数 '}${monthDay(mostly)} 官网核对\u00a0· 我们怎么核对 →`);
+  assert.doesNotMatch(trust.textContent!, /最近|最早/);
   assert.equal(trust.querySelector('a')!.getAttribute('href'), '/about#about-method-title', 'the only 我们怎么核对 anchor');
   assert.doesNotMatch(doc.body.textContent!, /人工核对|编辑核对/);
   assert.equal(guideCount, COMPLETE_GUIDES.length);
@@ -253,6 +254,9 @@ test('past the published snapshots the home claims no count and no empty weekend
   assert.equal(later.querySelector('.home-picks__all')!.getAttribute('href'), '/events');
   assert.equal(later.querySelector('.home-picks__all')!.textContent, '看本周末全部活动');
   assert.doesNotMatch(later.body.textContent!, /暂没有已确认的活动/);
+  // The lead's slot is a text panel then (no blank columns beside the masthead on a desktop), with 看日历 and 按地区找景点.
+  assert.deepEqual([...later.querySelectorAll('.home-empty a')].map(link => link.getAttribute('href')), ['/calendar', '/explore']);
+  assert.equal(later.querySelector('.home-empty')!.getAttribute('data-date-scope'), 'weekend');
   // A snapshot day keeps its count.
   assert.equal(getHomeWeekend(today).total, snapshots[today].total);
 });
@@ -266,9 +270,15 @@ test('the family-chat card is offered only on days the build wrote it for, never
   if (late) {
     const doc = serverHome(late);
     assert.ok(doc.querySelector('.home-picks__list'), `${late}: the picks still show`);
-    assert.equal(doc.querySelector('.home-share'), null, `${late}: no card for another weekend`);
+    assert.equal(doc.querySelector('.home-share a[download]'), null, `${late}: no card for another weekend`);
+    // UI9-HOME: the card's place holds 看本周末全部 and 订阅日历 instead, so the desktop row beside picks 2–3 is never blank.
+    const fallback = doc.querySelector('.home-share')!;
+    assert.equal(fallback.getAttribute('data-simple'), 'hide');
+    assert.equal(fallback.getAttribute('data-date-scope'), 'weekend');
+    assert.deepEqual([...fallback.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/events', 'webcal://www.baylink.us/calendars/all.ics']);
+    assert.match(fallback.querySelector('a[href="/events"]')!.textContent!, /^看本周末全部(?: \d+ 场|活动)$/);
   }
-  assert.equal(serverHome(addCalendarDays(days.at(-1)!, 1)).querySelector('.home-share'), null);
+  assert.equal(serverHome(addCalendarDays(days.at(-1)!, 1)).querySelector('.home-share a[download]'), null);
 });
 
 test('every offer ticket names its brand and kind, its source check and a ♡ that saves it (FC3-03)', () => {
@@ -296,7 +306,7 @@ test('the first cover is fetched first; English has the question H1 and English 
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
     assert.equal(view.container.querySelector('.home-head__identity')!.textContent, 'Weekend outings and how-to guides for Chinese families in the Bay Area · Free · no sign-in');
-    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^✓ An official link on every item · ✓ Source checked(?::)? (?:mostly )?[A-Z][a-z]{2} \d+(?: · (?:latest|earliest) [A-Z][a-z]{2} \d+)? · How we check →$/);
+    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^✓ An official link on every item · ✓ Source checked(?::)? (?:mostly )?[A-Z][a-z]{2} \d+\u00a0· How we check →$/);
     view.unmount();
   } finally {
     await setLocale('zh-Hans', false);

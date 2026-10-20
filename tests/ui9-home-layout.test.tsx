@@ -14,6 +14,9 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, H
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { StaticRouter } = await import('react-router-dom');
 const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
+const { HomeImageCredits } = await import('../src/features/home/HomeImageCredits');
+const { ElderCalls } = await import('../src/features/home/ElderCalls');
+const { HeroPicks } = await import('../src/features/home/HeroPicks');
 
 /** UI9-HOME: the home's content arrangement, its 简洁 tags, 长辈常用电话, the trust line and the credits line. */
 const snapshots = HOME_WEEKENDS as Record<string, { ids: string[]; feed: string[] }>;
@@ -43,6 +46,9 @@ test('简洁 is CSS only: the browse sections are tagged hide, the 3D strip and 
   for (const postcard of doc.querySelectorAll('.home-3d, .home-3d-strip')) {
     for (let node: Element | null = postcard; node; node = node.parentElement) assert.notEqual(node.getAttribute('data-simple'), 'hide', `${postcard.className} sits in a hidden block`);
   }
+  // The grandparent path keeps "免费": the identity line shows in 简洁 too; 问 BayBay · AI 助手 does not.
+  assert.equal(doc.querySelector('.home-head__identity')!.hasAttribute('data-simple'), false);
+  assert.equal(doc.querySelector('.home-ask-baybay')!.getAttribute('data-simple'), 'hide');
   // The feed's cards, heading and button are hidden by a home rule that skips the strip's wide item.
   const rule = CSS.split('\n').find(line => line.includes('html[data-simple] .home-feed'))!;
   assert.match(rule, /\.ui-feed-grid>li:not\(\.ui-feed-grid__wide\)/);
@@ -74,7 +80,7 @@ test('长辈常用电话: each row links its guide and dials the number the guid
 test('the trust line says 官网核对, never 人工核对, and links the one method anchor; the identity line is the shared wording', async () => {
   const doc = home();
   const trust = doc.querySelector('.home-trust')!;
-  assert.match(trust.textContent!, /^✓ 每条附官方链接 · ✓ .*官网核对.* · 我们怎么核对 →$/);
+  assert.match(trust.textContent!, /^✓ 每条附官方链接 · ✓ (?:多数 )?\d+\/\d+ 官网核对\u00a0· 我们怎么核对 →$/);
   assert.deepEqual([...doc.querySelectorAll('a[href*="#"]')].map(link => link.getAttribute('href')), ['/about#about-method-title']);
   assert.doesNotMatch(doc.body.innerHTML, /人工核对|编辑核对|how-we-check/);
   const { SITE_IDENTITY, OFFICIAL_LINKS, FREE_NO_SIGN_IN, METHOD_HREF } = await import('../src/lib/check-dates');
@@ -91,7 +97,6 @@ test('the credits line is #page-credits with its photo count, last in the home, 
   const items = credits.querySelectorAll('details li').length;
   assert.equal(Number(credits.getAttribute('data-count')), items);
   assert.match(credits.querySelector('summary')?.textContent ?? '', new RegExp(`本页图片来源（${items}）`));
-  assert.equal(doc.querySelectorAll('.ui-cover-credit').length, credits.querySelector('.ui-cover-credit') ? doc.querySelectorAll('.home-feed .ui-cover-credit, .home-offers .ui-cover-credit').length + 1 : doc.querySelectorAll('.ui-cover-credit').length);
   assert.match(CSS, /\.home-discovery :is\(\.ui-feed,\.home-offers\)>\.ui-cover-credit \{ display:none; \}/, 'the lists\' own notes are hidden on the home');
   // Every credited image is shown on the page.
   const shown = new Set([...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')));
@@ -111,6 +116,57 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
 });
 
 const POSTCARD_RULES_SHA = '71c2b5cfeeb61ad0';
+
+test('the coded-cover note is printed once, in the credits line, exactly when the page shows a coded cover', () => {
+  const typeCover = { tier: 'type', reason: 'no-image', label: { zh: '信息卡', en: 'Info card' } } as const;
+  const photo = { tier: 'photo', key: 'test-photo', image: { src: '/images/test.webp', credit: 'A. Photographer' }, label: { zh: '实拍', en: 'Photo' }, fit: 'cover', focal: [0.5, 0.5] } as unknown as Parameters<typeof HomeImageCredits>[0]['covers'][number];
+  const credits = (covers: Parameters<typeof HomeImageCredits>[0]['covers']) => new JSDOM(renderToStaticMarkup(<HomeImageCredits covers={covers} />)).window.document;
+  // A coded cover on the page: the line names it once, beside the photo credits.
+  const mixed = credits([photo, typeCover, typeCover]);
+  assert.equal(mixed.querySelectorAll('.ui-cover-credit').length, 1);
+  assert.equal(mixed.querySelector('#page-credits')!.getAttribute('data-count'), '1');
+  // Photos only: no note at all.
+  const photos = credits([photo]);
+  assert.equal(photos.querySelectorAll('.ui-cover-credit').length, 0);
+  assert.equal(photos.querySelector('#page-credits')!.getAttribute('data-count'), '1');
+  // On the home the lists' own notes are hidden (home-discovery.css), so the reader sees the credits line's one.
+  const doc = home();
+  assert.equal(doc.querySelectorAll('#page-credits .ui-cover-credit').length, 1, 'the home shows coded covers today');
+});
+
+test('长辈常用电话 with no numbers: nothing in standard, 长辈与家属指南 → in 简洁 only', () => {
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><ElderCalls calls={[]} /></StaticRouter>)).window.document;
+  assert.equal(doc.querySelector('.home-elder .ui-row-card'), null);
+  const fallback = doc.querySelector('.home-elder')!;
+  assert.equal(fallback.getAttribute('data-simple'), 'only');
+  assert.equal(fallback.querySelector('a')!.getAttribute('href'), '/guides?topic=elders');
+});
+
+test('the date guard covers the picks block by block: from 1024 the section is display:contents and draws no skeleton', () => {
+  // A skeleton on a display:contents box is positioned against the page, not the section (it covered the masthead).
+  assert.match(CSS, /@media \(min-width:1024px\) \{[^@]*\.home-picks,\.home-picks__list \{ display:contents; \}/);
+  assert.ok(CSS.includes('html[data-date-stale] .home-discovery>.home-top>.home-picks::before { content:none; }'));
+  const doc = home();
+  assert.equal(doc.querySelector('.home-picks')!.hasAttribute('data-date-scope'), false);
+  for (const block of doc.querySelectorAll('.home-picks>.home-section-head, .home-picks__list>li, .home-picks__all, .home-trust')) {
+    assert.equal(block.getAttribute('data-date-scope'), 'weekend', block.className || block.tagName);
+  }
+});
+
+test('an unknown weekend with no picks: a text panel holds the lead\'s place (no blank columns beside the masthead)', () => {
+  const doc = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><HeroPicks picks={[]} covers={[]} today="2099-01-05" start="2099-01-10" end="2099-01-11" total={null} checked={null} /></StaticRouter>)).window.document;
+  const empty = doc.querySelector('.home-picks .home-empty')!;
+  assert.doesNotMatch(empty.textContent!, /\d+ 场|暂没有已确认/);
+  assert.deepEqual([...empty.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/calendar', '/explore']);
+  assert.equal(doc.querySelector('.home-picks__all')!.textContent, '看本周末全部活动');
+});
+
+test('phone: the lead asks for the 800w rung (the site\'s 266px phone cap), the share card is one row of its buttons', () => {
+  const doc = home();
+  const lead = doc.querySelector('.home-picks__list>li:first-child img');
+  if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) 266px, /);
+  assert.ok(CSS.includes('@media (max-width:767px) {\n  :is(.home-picks>.home-section-head,.home-share>:is(h2,p)) { position:absolute;'), 'below 768 the share card\'s heading and sentence are for screen readers only');
+});
 
 test('free days and deals and the guide intents load after the page in production, and the prerender still carries both', () => {
   // Captain 10-19 15:15 (home route JS ≤ the 200dfb4 base): a production build imports the two below-the-fold sections
