@@ -1,4 +1,4 @@
-import { lazy, useEffect, useMemo, useState, type ComponentType } from 'react';
+import { createElement, lazy, Suspense, useEffect, useMemo, useState, type ComponentType } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useUiCopy } from './ui/ui-copy';
 import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
@@ -23,9 +23,10 @@ import { COMMUNITY_VISIBLE } from '../data/site-flags';
 import { chunkLoader } from '../lib/chunk-recovery';
 
 // The two sections below the fold (free days and deals, the guide intents) load after the page in a production build
-// (captain 10-19 15:15: home route JS ≤ the 200dfb4 base). They have no Suspense boundary of their own: at boot the layout's
-// boundary keeps the prerendered page (boot-main.ts) on screen until they are in, so the page commits once, box for box, and
-// nothing below the fold reserves or shifts. Node (the prerender and the tests) and the dev server render them as they are
+// (captain 10-19 15:15: home route JS ≤ the 200dfb4 base). Each has its own Suspense boundary (captain 10-20), so the page
+// commits without waiting for them (UI9-HOME measured +0.97 s to the first commit when the layout's boundary waited); the
+// fallback is the prerendered copy of the same section (SectionHold), so its box keeps its height and nothing shifts (CLS
+// 0) until the real one replaces it. Node (the prerender and the tests) and the dev server render them as they are
 // (`import.meta.env?.PROD`, as cover-defer does), so the prerendered page carries both sections. A load that still fails
 // after chunkLoader's retry leaves the section out rather than the page. The views take the home's intents, topic names
 // and ticket count as props and import nothing from the home's own modules, so the home's chunk exports nothing to them and
@@ -35,6 +36,22 @@ const afterPage = <C extends ComponentType<any>>(load: () => Promise<C>) =>
   lazy(() => load().then(component => ({ default: component }), () => ({ default: (() => null) as unknown as C })));
 const GuideRail = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/GuideRailView'), module => module.GuideRailView)) : GuideRailNow;
 const OfferTickets = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/OfferTicketsView'), module => module.OfferTicketsView)) : OfferTicketsNow;
+
+/**
+ * An after-page section's place while its chunk loads: at boot, the prerendered section itself (same element, attributes and
+ * markup, read once from the page before React's first commit replaces it), so the box and what it shows stay put; after a
+ * client navigation (nothing prerendered to copy) an empty box that holds about a screen.
+ */
+function SectionHold({ selector }: { selector: string }) {
+  const [copy] = useState(() => {
+    const section = typeof document === 'undefined' ? null : document.querySelector<HTMLElement>(`#root ${selector}`);
+    if (!section) return null;
+    const props: Record<string, unknown> = { dangerouslySetInnerHTML: { __html: section.innerHTML } };
+    for (const { name, value } of section.attributes) if (name !== 'style') props[name === 'class' ? 'className' : name] = value;
+    return createElement(section.localName, props);
+  });
+  return copy ?? <div className="home-rail-hold" style={{ minHeight: '60vh' }} aria-busy="true" />;
+}
 
 const INTENT_KEY = 'baylink.home-intent.v1';
 const isIntent = (value: string | null): value is HomeIntentId => HOME_INTENTS.some(intent => intent.id === value);
@@ -101,9 +118,9 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
       <ShareStrip count={weekend.picks.length} cardHref={cardHref} total={weekend.total} />
     </div>
     <WeekendFeed feed={weekend.feed as { event: HomeEvent; date: string }[]} covers={covers.feed} today={today} total={weekend.total} />
-    {offers.length > 0 && <OfferTickets offers={offers} covers={covers.offers} today={today} count={offerCount} />}
+    {offers.length > 0 && <Suspense fallback={<SectionHold selector="section.home-offers" />}><OfferTickets offers={offers} covers={covers.offers} today={today} count={offerCount} /></Suspense>}
     <BayBayDemoCard onAsk={question => onAskBayBay(question)} />
-    <GuideRail intents={HOME_INTENTS} topicLabels={TOPIC_LABELS} intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} />
+    <Suspense fallback={<SectionHold selector="section.home-guides" />}><GuideRail intents={HOME_INTENTS} topicLabels={TOPIC_LABELS} intent={intent} onIntent={choose} guides={guides} covers={covers.guides} guideCount={guideCount} /></Suspense>
     <div className="home-end">
       <ElderCalls calls={ELDER_CALLS} />
       <Home3DTile />

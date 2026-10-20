@@ -194,8 +194,9 @@ test('no share card: the cell holds 看本周末全部 and 订阅日历 from 102
 
 test('free days and deals and the guide intents load after the page in production, and the prerender still carries both', () => {
   // Captain 10-19 15:15 (home route JS ≤ the 200dfb4 base): a production build imports the two below-the-fold sections
-  // through import(), with no Suspense boundary of their own (the boot snapshot stays until they are in); Node renders them
-  // as they are, so the prerendered home and the tests see the whole page.
+  // through import(); captain 10-20: each in its own Suspense boundary whose fallback is the prerendered copy of the same
+  // section (SectionHold: same box, CLS 0), so the page's first commit does not wait for them. Node renders them as they
+  // are, so the prerendered home and the tests see the whole page.
   const source = fs.readFileSync('src/components/HomeDiscovery.tsx', 'utf8');
   for (const name of ['GuideRail', 'OfferTickets']) {
     assert.ok(source.includes(`const ${name} = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/${name}View'), module => module.${name}View)) : ${name}Now;`), `${name} loads after the page`);
@@ -205,7 +206,7 @@ test('free days and deals and the guide intents load after the page in productio
     const imports = [...view.matchAll(/^import (?!type )[^;]* from '([^']+)';$/gm)].map(match => match[1]);
     for (const own of ['home-pathways', 'home-model', 'home-offers', 'home-catalog', 'home-weekend']) assert.ok(!imports.some(path => path.endsWith(own)), `${name}View must not import ${own}`);
   }
-  assert.doesNotMatch(source, /<Suspense\b/, 'no boundary of their own: the page commits once');
+  assert.equal(source.match(/<Suspense fallback=\{<SectionHold selector="section\.home-(?:offers|guides)" \/>\}>/g)?.length, 2, 'each section has its own boundary, held by its prerendered copy');
   const doc = home();
   assert.ok(doc.querySelector('section.home-offers .home-offers__rail li'), 'the prerender carries 免费与优惠');
   assert.ok(doc.querySelector('section.home-guides .home-guides__rail li'), 'the prerender carries the guide intents');
