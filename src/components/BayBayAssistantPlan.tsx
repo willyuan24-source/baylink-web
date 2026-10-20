@@ -44,6 +44,8 @@ type AdmissionFacts = NonNullable<BayBayPlanStop['admissionFacts']>;
  * Under a stop's 门票 subtotal, at most two small lines: where the price came from and what is still open ("资料快照参考价 ·
  * 2026-10-15 · 日期适用性、附加费待确认"), then the per-person breakdown on one line ("成人 2 × $10.00 = $20.00 · 儿童 7 岁 …").
  */
+const plainTitle = (title: string) => title.normalize('NFKC').replace(/\s+/gu, ' ').trim().toLowerCase();
+
 function AdmissionDetails({ facts, t, stamped = false }: { facts: AdmissionFacts; t: Translate; stamped?: boolean }) {
   const basis = facts.basis === 'page-read' ? t('来源页面参考价', 'Source-page price reference') : t('资料快照参考价', 'Catalog snapshot price');
   const day = facts.checkedAt ? plannerWebCheckedDate(facts.checkedAt) : '';
@@ -157,7 +159,10 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
         const host = bayBaySourceHost(source.url), site = bayBaySitePath(source.url);
         // Each line says whose page it is (sftravel.com, BAYLINK 指南), so two sources with one title never read as one.
         const owner = host ?? (site?.startsWith('/guides/') ? t('BAYLINK 指南', 'BAYLINK guide') : 'BAYLINK');
-        return <li key={id}><a href={source.url} target="_blank" rel="noopener noreferrer"><span><ExternalLink aria-hidden="true" size={16} /><span className="baybay-plan-citation-title">{t(source.title, source.title)}</span><span className="baybay-plan-citation-host" translate="no">{` · ${owner}`}</span></span><BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></a></li>;
+        // A source titled like the stop itself names only its owner: the title is already the line above.
+        const sameTitle = plainTitle(source.title) === plainTitle(stop.title);
+        return <li key={id}><a href={source.url} target="_blank" rel="noopener noreferrer"><span><ExternalLink aria-hidden="true" size={16} />{sameTitle ? <span className="baybay-plan-citation-title" translate="no">{owner}</span>
+          : <><span className="baybay-plan-citation-title">{t(source.title, source.title)}</span><span className="baybay-plan-citation-host" translate="no">{` · ${owner}`}</span></>}</span><BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></a></li>;
       });
       const notes = unique(stop.notes).filter(note => !allConcerns.has(note)).slice(0, 2);
       const place = [sharedCity ? '' : stop.city, stop.date && stop.date !== plan.date ? bayBayDayLabel(stop.date, locale) || stop.date : ''].filter(Boolean).join(' · ');

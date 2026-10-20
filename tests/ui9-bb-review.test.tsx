@@ -143,12 +143,16 @@ test('plan citations: the stop\'s own page is not repeated under it while anothe
   const view = render(<BayBayAssistantPlanCard plan={alone.assistantPlan!} evidence={alone.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
   assert.equal(view.container.querySelector('.baybay-plan-stops > li:first-child .baybay-plan-citation-host')?.textContent, ' · BAYLINK 指南');
   cleanup();
-  // The live L07 reply: stop 3's guide page and sftravel.com share one title; the reader now sees one line, with its host.
+  // The live L07 reply: stop 3's guide page and sftravel.com share one title; the reader now sees one line, and as that
+  // title is the stop's own (the line above), the line names only its owner (review 2).
   const l07 = parseBayBayAssistantFields(live);
   const card = render(<BayBayAssistantPlanCard plan={l07.assistantPlan!} evidence={l07.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
   const third = card.container.querySelectorAll('.baybay-plan-stops > li')[2];
   const lines = [...third.querySelectorAll('.baybay-plan-citations a')].map(link => link.querySelector('span')?.textContent);
-  assert.deepEqual(lines, ['唐人街与 North Beach · sftravel.com']);
+  assert.deepEqual(lines, ['sftravel.com']);
+  // Stop 1's foodwise.org page shares the stop's title too: owner only, with its admission stamp.
+  const first = card.container.querySelector('.baybay-plan-stops > li')!;
+  assert.match(first.querySelector('.baybay-plan-citations a')?.textContent || '', /^foodwise\.org门票依据：资料快照/);
   // Same title, different hosts: both stay, told apart by their host.
   const twin = planWith({ sourceIds: ['x', 'y'], admissionFacts: undefined }, [evidence('x', 'https://a.example.org/p', 'Same title'), evidence('y', 'https://b.example.org/p', 'Same title')]);
   cleanup();
