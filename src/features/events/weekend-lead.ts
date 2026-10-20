@@ -1,14 +1,9 @@
 import { EVENTS_INDEX, hasRealCover, type WeekendPick } from './events-model';
 import type { IndexEvent } from './events-index-types';
+import { CLOSE_UP_FACE_IMAGES } from '../../lib/close-up-faces';
 
-/**
- * Photos whose subject is a close-up of identifiable faces (owner rule, UI-9 DECISIONS 15: such a photo never leads a page).
- * Checked by eye on the weekend picks' images; an image here can still be a feed or row cover, it only never takes a lead
- * slot (the /events lead, the calendar day's lead).
- */
-export const CLOSE_UP_FACE_IMAGES: ReadonlySet<string> = new Set([
-  'official-r2-petaluma-lumafest-20261024', // LumaFest 10/24: four volunteers posing at a booth
-]);
+/** Photos that never lead (DECISIONS 15): one list for /events, /calendar and the home lead (lib/close-up-faces.ts). */
+export { CLOSE_UP_FACE_IMAGES };
 
 /** Whether an event's own picture can lead a page: a real photo or poster, not a close-up of faces. */
 export const canLead = (event: Pick<IndexEvent, 'id' | 'imageKey'>, today: string) =>

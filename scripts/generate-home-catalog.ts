@@ -18,6 +18,7 @@ import { addCalendarDays } from '../src/lib/event-calendar';
 import { isSeniorFriendly } from '../src/lib/senior-friendly';
 import { checkSummary } from '../src/lib/check-dates';
 import { isPressSource } from '../src/lib/event-facts';
+import { CLOSE_UP_FACE_IMAGES } from '../src/lib/close-up-faces';
 import type { HomeWeekendSnapshot } from '../src/lib/home-weekend';
 import { WEEKEND_PICKS } from '../src/data/weekend-picks';
 
@@ -102,13 +103,17 @@ const weekendSchedule = (schedule: NonNullable<NonNullable<(typeof PLANNER_EVENT
 };
 // What a home card and the weekend selection read (src/lib/home-weekend.ts, src/lib/event-facts.ts): no venue line, long date
 // label, cost sentence, summary or official URL — the detail page has them.
+// DECISIONS 15 (captain 10-20): a photo of close-up faces never leads. An event that leads a day (the first pick) with such
+// a photo ships without it, so the home's 16:9 lead frame shows its type cover (the feed and /events keep the photo).
+const leadIds = new Set(Object.values(weekends).map(weekend => weekend.ids[0]).filter(Boolean));
 const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(event => {
   const facts = planning.get(event.id);
   const schedule = facts?.schedule && weekendSchedule(facts.schedule);
   const plan = facts ? present({ admissionUsd: facts.admissionUsd, schedule }, ['admissionUsd', 'schedule']) : {};
   const sessions = event.sessions?.filter(session => weekendDays.has(session.date));
   const { id, title, aliases, startDate, endDate, occurrenceDates, region, city, category, cost, verifiedAt, imageKey, audience } = event;
-  if (getCover({ kind: 'event', id, imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(imageKey);
+  const faceLead = leadIds.has(id) && CLOSE_UP_FACE_IMAGES.has(imageKey);
+  if (!faceLead && getCover({ kind: 'event', id, imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(imageKey);
   return {
     id, title, ...(aliases?.length ? { aliases } : {}), startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}), region, city, category, cost,
     verifiedAt, imageKey, audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
