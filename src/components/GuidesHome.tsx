@@ -23,6 +23,7 @@ import { GuideTypeCover } from './ui/cover-guide';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { regionSheet } from '../features/guides/region-sheet';
+import { settleChunk } from '../lib/chunk-recovery';
 import { editionState, GUIDE_REGIONS, guideCardLines, guideCover, inSeason, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
 
@@ -36,7 +37,8 @@ function GuideRegionChips({ open, region, onPick }: RegionPicker) {
   return open ? <ChipRow className="gl-regions-inline" label={t('地区', 'Region')}>{[{ id: null, label: t('整个湾区', 'Whole Bay Area') }, ...GUIDE_REGIONS.map(item => ({ id: item.id, label: pick(item) }))]
     .map(item => <FilterChip key={item.id ?? 'all'} selected={region === item.id} onClick={() => onPick(item.id)}>{item.label}</FilterChip>)}</ChipRow> : null;
 }
-const GuideRegionSheet = lazy(() => regionSheet.load().catch(() => ({ default: GuideRegionChips })));
+// REG-15: a stale deploy's reload resolves the import with undefined (chunk-recovery); settleChunk keeps lazy() waiting for it.
+const GuideRegionSheet = lazy(() => regionSheet.load().then(settleChunk).catch(() => ({ default: GuideRegionChips })));
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: GuideAsk; onSearch?: (query: string) => void };
 type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };

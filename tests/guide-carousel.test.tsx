@@ -116,7 +116,7 @@ test('English "Read next" cards say "1 official source" in the singular, like th
   const grid = related.querySelector('.gd-related__grid')!;
   const whens = [...grid.querySelectorAll('.ui-feed-card__when')].map(line => line.textContent!);
   assert.equal(whens.length, grid.querySelectorAll('article').length, 'every card has a time line');
-  assert.ok(whens.every(text => /^(?:\w{3} edition · )?\d+ min read$/.test(text)), whens.join(' | '));
+  assert.ok(whens.every(text => /^(?:(?:\w{3}|\w{3} \d+–\w{3} \d+) edition · )?\d+ min read$/.test(text)), whens.join(' | '));
   const metas = [...grid.querySelectorAll('.ui-feed-card__meta')].map(meta => meta.textContent!);
   assert.ok(metas.some(text => /^1 official source(?: · .+)?$/.test(text)), metas.join(' | '));
   assert.ok(metas.every(text => /^(?:1 official source|(?:[02-9]|\d{2,}) official sources)(?: · .+)?$|^[A-Z][\w ,]+$/.test(text)), metas.join(' | '));

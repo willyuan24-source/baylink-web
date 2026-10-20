@@ -157,7 +157,10 @@ test('the lane\'s sheets are token-only: sizes, line heights, radii and shadows;
       const ratio = file.endsWith('phone-links.css') && /^\.\d+em$/.test(declaration.value);
       if (!ratio) assert.match(declaration.value, /^(?:var\(--(?:fs|text)-[\w-]+\)|inherit|1em)$/, `${file} ${(declaration.parent as Rule).selector}`);
     });
-    css(file).walkDecls('line-height', declaration => assert.match(declaration.value, /^(?:var\(--lh-[\w-]+\)|1|normal|inherit)$/, `${file} ${(declaration.parent as Rule).selector}`));
+    // phone-links.css is shared site-wide (HOME, DETAIL, BayBay): its chip keeps 1.6 and its directory label 1.5 in every locale
+    // (--lh-ui is 1.45 in English, and no token is 1.5), so the chips outside the guides do not move.
+    const shared = file.endsWith('phone-links.css');
+    css(file).walkDecls('line-height', declaration => { if (!(shared && /^1\.[56]$/.test(declaration.value))) assert.match(declaration.value, /^(?:var\(--lh-[\w-]+\)|1|normal|inherit)$/, `${file} ${(declaration.parent as Rule).selector}`); });
     css(file).walkRules(rule => {
       if (/:hover/.test(rule.selector)) assert.ok(inMedia(rule, /\(hover:hover\) and \(pointer:fine\)/), `${file}: ${rule.selector}`);
     });
@@ -171,6 +174,21 @@ test('简洁显示 hooks: the lane-scoped hide / show rules, no carousel in 简�
   assert.match(article, /html\[data-reading=extra-large\]:not\(\[data-simple\]\) \.gd-carousel:not\(\[data-all\]\) \.ui-carousel__slide:not\(:first-child\) \{ display:none; \}/);
   const library = readFileSync('src/features/guides/guide-library.css', 'utf8');
   assert.match(library, /html\[data-simple\] \.gl-page \[data-simple=hide\]/);
+});
+
+test('the bar\'s call never shows a bare number on a phone: two rows below 390 px and at 大 / 特大 / 简洁; short cell labels in the rail', () => {
+  const rules = new Map<string, string[]>();
+  css('src/features/guides/guide-article.css').walkRules(rule => {
+    const media = rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : '';
+    rules.set(media, [...(rules.get(media) ?? []), rule.selector]);
+  });
+  const twoRow = (media: string) => (rules.get(media) ?? []).some(selector => selector.endsWith('.gd-bar>.detail-actions__primary'));
+  assert.ok(twoRow('(max-width:389px)'), 'two rows below 390 px (360–389 px standard hid the glyph and the verb)');
+  const modes = (rules.get('(max-width:479px)') ?? []).find(selector => selector.endsWith('.gd-bar>.detail-actions__primary'));
+  for (const mode of ['data-reading=large', 'data-reading=extra-large', 'data-simple']) assert.ok(modes?.includes(mode), `${mode} on a phone: two rows`);
+  // The rail's 72–85 px cells: DETAIL's desktop 发给家人 / "Send to family" overflowed at 特大 and in English.
+  assert.ok((rules.get('') ?? []).includes('.site-detail-actions.detail-actions.gd-bar [data-label=desk]'));
+  assert.ok((rules.get('') ?? []).includes('.site-detail-actions.detail-actions.gd-bar [data-label=phone]'));
 });
 
 test('G6 and one save glyph: no all-caps English labels and no bookmark on the guide surfaces', () => {
@@ -212,7 +230,13 @@ test('guideCardLines: the current edition first on line 1, the sources and the r
   // An edition says 本期 only while it is current: not before its month, not after its last day.
   assert.equal(guideCardLines({ ...card, editionMonth: '2026-11' }, '2026-10-20').when.zh, '约 4 分钟');
   assert.equal(guideCardLines({ ...card, editionMonth: '2026-11', editionThroughDate: '2026-11-15' }, '2026-11-20').when.zh, '约 4 分钟');
-  assert.equal(guideCardLines({ ...card, editionMonth: '2026-11', editionThroughDate: '2026-11-15' }, '2026-11-10').when.zh, '11 月本期 · 约 4 分钟');
+  assert.deepEqual(guideCardLines({ ...card, editionMonth: '2026-11', editionThroughDate: '2026-11-15' }, '2026-11-10').when, { zh: '11/1–11/15 本期 · 约 4 分钟', en: 'Nov 1–Nov 15 edition · 4 min read' });
+  // The label follows the coverage, not the file month (lib/edition-label): an "11 月" edition that starts on 10-07 is current
+  // on 10-20 and says its days, never "11 月本期" beside October's own edition.
+  assert.deepEqual(guideCardLines({ ...card, editionMonth: '2026-11', editionStartDate: '2026-10-07', editionThroughDate: '2026-11-30' }, '2026-10-20').when, { zh: '10/7–11/30 本期 · 约 4 分钟', en: 'Oct 7–Nov 30 edition · 4 min read' });
+  assert.equal(guideCardLines({ ...card, editionMonth: '2026-11', editionStartDate: '2026-10-05' }, '2026-10-20').when.zh, '10/5–11/30 本期 · 约 4 分钟');
+  assert.equal(guideCardLines({ ...card, editionMonth: '2027-01', editionStartDate: '2026-11-26', editionThroughDate: '2027-01-01' }, '2026-12-01').when.zh, '11/26–1/1 本期 · 约 4 分钟');
+  assert.equal(guideCardLines({ ...card, editionMonth: '2026-11', editionStartDate: '2026-11-01', editionThroughDate: '2026-11-30' }, '2026-11-02').when.zh, '11 月本期 · 约 4 分钟');
 });
 
 test('one edition rule for the head, the 往期 notice, the rows and the previews (today 2026-11-20)', async () => {

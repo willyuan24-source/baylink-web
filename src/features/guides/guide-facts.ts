@@ -101,17 +101,32 @@ export function editionState(edition: GuideEdition, today: string): 'current' | 
   return 'current';
 }
 
+const monthShort = (month: number) => new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, month - 1, 15)));
+
+/** A current edition's card label: "10 月本期" for a whole month, else its days, "10/7–11/30 本期" / "Oct 7–Nov 30 edition". */
+function editionCardLabel(edition: GuideEdition): Copy {
+  const month = edition.editionMonth!;
+  const [year, monthNumber] = [Number(month.slice(0, 4)), Number(month.slice(5, 7))];
+  const lastDay = new Date(Date.UTC(year, monthNumber, 0)).toISOString().slice(0, 10);
+  const first = edition.editionStartDate ?? `${month}-01`, last = edition.editionThroughDate ?? lastDay;
+  if (first === `${month}-01` && last === lastDay) return { zh: `${monthNumber} 月本期`, en: `${monthShort(monthNumber)} edition` };
+  const day = (date: string) => ({ month: Number(date.slice(5, 7)), day: Number(date.slice(8, 10)) });
+  const [a, b] = [day(first), day(last)];
+  return { zh: `${a.month}/${a.day}–${b.month}/${b.day} 本期`, en: `${monthShort(a.month)} ${a.day}–${monthShort(b.month)} ${b.day} edition` };
+}
+
 /**
  * The 2-line guide card meta (UI9-GUIDES, the index rows and "Read next"): line 1 the time, "[10 月本期 · ]约 4 分钟" (a current
  * monthly edition says so first, editionState); line 2 the sources, "10 个官方来源[ · 东湾]" (the region only when the guide
  * names one). `guideCardMeta` (one line) stays for the cards that still print one (home's GuideRail, C).
+ *
+ * The 本期 label follows the edition's actual coverage, not its file month (lib/edition-label): "10 月本期" only for an edition
+ * that covers its whole month; one with its own first / last day says those days, "10/7–11/30 本期" ("Oct 7–Nov 30 edition").
  */
 export function guideCardLines(card: Pick<GuideCard, 'sourceCount' | 'readMinutes'> & GuideEdition & { regions?: readonly GuideRegionId[] }, today: string): { when: Copy; meta?: Copy } {
-  const minutes = card.readMinutes, month = card.editionMonth;
-  const current = editionState(card, today) === 'current';
-  const monthNumber = month ? Number(month.slice(5, 7)) : 0;
-  const monthEn = month ? new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, monthNumber - 1, 15))) : '';
-  const when: Copy = current ? { zh: `${monthNumber} 月本期 · 约 ${minutes} 分钟`, en: `${monthEn} edition · ${minutes} min read` } : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
+  const minutes = card.readMinutes;
+  const label = editionState(card, today) === 'current' ? editionCardLabel(card) : undefined;
+  const when: Copy = label ? { zh: `${label.zh} · 约 ${minutes} 分钟`, en: `${label.en} · ${minutes} min read` } : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
   const sources = card.sourceCount;
   const regions = (card.regions ?? []).map(id => GUIDE_REGIONS.find(region => region.id === id)!).filter(Boolean);
   const place = regions.length ? { zh: regions.map(region => region.zh).join('、'), en: regions.map(region => region.en).join(', ') } : undefined;
