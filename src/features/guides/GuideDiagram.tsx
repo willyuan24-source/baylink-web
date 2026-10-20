@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { Phone } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
-import { linkifyGuidePhones, usePlainPhones } from './plain-phones';
+import { linkifyGuidePhones, usePlainPhones } from './plain-phone-text';
 import { SourceMark } from './GuideFactCards';
 import type { DiagramItem, GuideDiagram } from './guide-diagrams';
 

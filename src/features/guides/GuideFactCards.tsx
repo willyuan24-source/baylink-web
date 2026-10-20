@@ -5,7 +5,7 @@ import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
 import type { GuideContact, GuideKeyFact } from '../../data/guide-editorial';
-import { linkifyGuidePhones, usePlainPhones } from './plain-phones';
+import { linkifyGuidePhones, usePlainPhones } from './plain-phone-text';
 import { copyText } from '../../utils/postShare';
 
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬'];
