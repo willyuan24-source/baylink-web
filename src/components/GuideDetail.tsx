@@ -353,9 +353,13 @@ const SOURCES_FOLD_AT = 14;
 const SOURCES_SHOWN = 8;
 
 function SourceItem({ source, index }: { source: { title: string; url: string; description: string }; index: number }) {
+  const { locale } = useUiCopy();
+  // N06 (UI9-INT, FREE's request): the title's " · " is glued to the word before it, after translation, so a wrapped line
+  // never starts with "·" (en 家人版: "… / · Free sessions").
+  const title = translateText(source.title, locale).replace(/\s+·\s+/g, '\u00a0· ');
   return <li id={`guide-source-${index + 1}`}>
     <a href={source.url} target="_blank" rel="noopener noreferrer">
-      {source.title}
+      {title}
       <ArrowUpRight size={15} aria-hidden="true" />
       <span className="sr-only">（在新标签页打开）</span>
     </a>

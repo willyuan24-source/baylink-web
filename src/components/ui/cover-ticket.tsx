@@ -10,7 +10,8 @@ export function TicketFace({ value, condition, brand, stub, mini }: TicketFacePr
   const main = value || condition || stub?.big || brand || '';
   if (mini) return <p className="tc-thumb">{main}</p>;
   return <>
-    {brand && <p className="tc-eyebrow" lang={latinLang(brand)} translate="no">{brand}</p>}
+    {/* N06: the brand's own " · " ("Poppy & Claro · San José") stays with the word before it (UI9-INT, FREE's request). */}
+    {brand && <p className="tc-eyebrow" lang={latinLang(brand)} translate="no">{brand.replace(/\s+·\s+/g, '\u00a0· ')}</p>}
     <div className="tc-ticket">
       <p className="tc-ticket__main"><span className="tc-ticket__value tc-num">{main}</span>{value && condition && <span className="tc-ticket__cond">{condition}</span>}</p>
       {stub && <p className="tc-ticket__stub">{stub.first && stub.small && <span>{stub.small}</span>}<span className="tc-ticket__day tc-num">{stub.big}</span>{!stub.first && stub.small && <span>{stub.small}</span>}</p>}
