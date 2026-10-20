@@ -131,12 +131,21 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.equal(officialEventMedia.some(record => record.eventId === 'sfzoo-zoolights-2026'), false, 'the orange-flagged ZooLights row is not used');
   // CuriOdyssey's camera dates its photo 2025-11-12: the 2025 exhibition, so the badge names the edition.
   const illumin = officialEventMedia.find(record => record.eventId === 'curiodyssey-illuminodyssey-2026')!;
-  assert.match(illumin.caption, /2025 往届展览）.*不是 2026 年十周年展期/);
+  assert.match(illumin.caption, /2025 往届）.*不是 2026 年展期/);
   assert.equal(getImageProvenance(GUIDE_IMAGES[illumin.key]), '官方图 · 2025 往届');
   // Gilroy Gardens' file has been online since January 2025 (an earlier season, year unknown): the caption says so, the badge stays 官方图.
+  // It is a graphic (kind 'poster'), so the caption calls it an image (图片), never a photo.
   const gilroy = officialEventMedia.find(record => record.eventId === 'gilroy-gardens-north-pole-nights-2026')!;
-  assert.match(gilroy.caption, /2025 年 1 月就已上传到官网，是往季照片/);
+  assert.match(gilroy.caption, /2025 年 1 月已在官网，是往季图片/);
+  assert.doesNotMatch(gilroy.caption, /照片/);
   assert.equal(getImageProvenance(GUIDE_IMAGES[gilroy.key]), '官方图');
+  // The three stock-looking library pictures (owner decision 3) say they are theme pictures on the library's event page, and
+  // the credit does not suggest the library made them.
+  for (const id of ['sjpl-calabazas-chinese-tea-hour-nov21-2026', 'sjpl-village-square-thanksgiving-2026', 'sjpl-berryessa-diwali-2026']) {
+    const theme = officialEventMedia.find(record => record.eventId === id)!;
+    assert.match(theme.caption, /活动页上的官方宣传图，是主题图/, id);
+    assert.equal(theme.credit, '圣何塞公共图书馆官方活动页主题图', id);
+  }
   assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length + batch1017.length + batch1019.length);
   // A past parade's photo on the 2027 parade: the caption names its year and says it is not the 2027 parade.
   const parade = officialEventMedia.find(record => record.eventId === 'sf-chinese-new-year-parade-2027')!;
