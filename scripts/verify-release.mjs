@@ -66,10 +66,14 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // W6 integration (CNT-GUIDES-2, WEB-FIX6, CNT-MEDIA-2): the events index keeps only the image fields listings read (CNT-MEDIA-2),
 // so /events measured 277.6 / 321.6 / 459.4 and /calendar 281.3 / 325.3 / 463.0 KiB on the integrated build of 10-15; the four
 // Chinese cells verify-release listed go to measured + 2%, the English cells keep theirs (unchanged measurement).
+// UI-9 A+B integration (UI9-INT, 10-20 build): the rows with more than 2% headroom go to measured + 2% (this script's own
+// suggestion): / 189.3 / 235.1 / 310.8 → 193.2 / 239.9 / 317.0 (the home's after-page sections load after it; 10-20 is the
+// largest home-catalog day of the coming weeks), /guides 214.1 / 258.7 / 342.9 → 218.4 / 264.0 / 349.8, /plan zh-Hans 188.2 → 192.0
+// and en 289.4 → 295.2. Nothing is raised.
 const ROUTE_JS_BUDGETS = [
-  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 195.0, 'zh-Hant': 240.9, en: 321.1 } },
+  { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 193.2, 'zh-Hant': 239.9, en: 317.0 } },
   { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 287.0, 'zh-Hant': 331.8, en: 472.3 } },
-  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 221.0, 'zh-Hant': 265.5, en: 352.2 } },
+  { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 218.4, 'zh-Hant': 264.0, en: 349.8 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 341.4 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 218.0, 'zh-Hant': 262.5, en: 337.9 } },
   { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 283.2, 'zh-Hant': 328.1, en: 468.6 } },
@@ -78,7 +82,7 @@ const ROUTE_JS_BUDGETS = [
   // WEB-PERF-3 (H20): the workspace is a chunk that loads with the catalog (features/plan/PlannerWorkspace.tsx); the route
   // is the header, this weekend's picks (a generated snapshot, not the home catalog) and the saved days: measured
   // 189.3 / 233.6 / 291.0 KiB on main 531f6434 (the ceilings were set at measured + 2% on the lane's first base).
-  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 193.3, 'zh-Hant': 238.0, en: 296.8 } },
+  { route: '/plan', module: 'src/pages/PlannerPage.tsx', kib: { 'zh-Hans': 192.0, 'zh-Hant': 238.0, en: 295.2 } },
 ];
 const manifest=JSON.parse(await readFile('dist/.vite/manifest.json','utf8'));
 const files=new Set();
@@ -132,8 +136,9 @@ function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[
 // UI9-F (tokens v2, the legacy aliases and the second toast deleted): 39.3 KiB measured on WEB-PERF-3, so the ceiling came
 // down to 39.5; on main 58a9c05 with UI9-F (and its dead-CSS deletion) the home page measures 39.2 KiB.
 // UI9-C (the cover families replace the TypeCover rules and the 21 drawing masks): 39.19 KiB measured, so the ceiling comes
-// down to 39.2.
-const RENDER_BLOCKING_CSS_BR_KIB=39.2;
+// down to 39.2. UI-9 A+B (UI9-INT): the BayBay panel's rules left for its lazy sheet (BB), DETAIL's and the lanes' dead
+// rules went (tokens.css, events.css, two emptied sheets): 34.67 KiB measured on the integrated build, so 34.7.
+const RENDER_BLOCKING_CSS_BR_KIB=34.7;
 for(const locale of ['', 'en/']) {
   const path=`dist/${locale}index.html`; const html=await readFile(path,'utf8');
   const sheets=[...new Set([...html.matchAll(/<link\b[^>]*>/g)].map(match=>match[0]).filter(tag=>/\brel="stylesheet"/.test(tag)&&!/\bmedia="print"/.test(tag)).map(tag=>/\bhref="\/([^"]+\.css)"/.exec(tag)?.[1]).filter(Boolean))];
