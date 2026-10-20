@@ -79,8 +79,8 @@ export const elderGuides2026: Guide[] = [
   {
     ...base,
     // Re-dated: VTA and AC Transit fares re-read on 2026-10-16 (CNT-GUIDES-3, GPT number review); Muni's 2027 fare table,
-    // Clipper START, BART, VTA and AC Transit pages read on 2026-10-17 (CNT-YEAREND).
-    updatedAt: '2026-10-17',
+    // Clipper START, BART, VTA and AC Transit pages read on 2026-10-17 (CNT-YEAREND); VTA ACCESS read on 2026-10-20 (CNT-SIGNBOARD).
+    updatedAt: '2026-10-20',
     slug: 'bay-area-senior-transit-clipper-discounts-guide',
     title: '湾区长者坐车省钱指南',
     subtitle: '65 岁办 Senior Clipper 卡；旧金山低收入居民 65 岁起可免费坐 Muni；出门困难可申请辅助交通',
@@ -103,6 +103,7 @@ export const elderGuides2026: Guide[] = [
       { title: '511：Clipper Access 申请资格', url: 'https://511.org/travel/transit/clipper-access/eligibility', description: '基本资格和医疗资格两种途径。' },
       { title: 'SFMTA：SF Paratransit 辅助交通', url: 'https://www.sfmta.com/getting-around/accessibility/paratransit', description: '一般问题 415.351.7000；SF Access 预约 415.285.6945 按 2。' },
       { title: 'East Bay Paratransit', url: 'https://eastbayparatransit.org/', description: 'AC Transit 和 BART 的 ADA 辅助交通，(510) 287-5000，有中文乘客指南。' },
+      { title: 'VTA：ACCESS 辅助交通', url: 'https://www.vta.org/programs/access', description: '资格申请 (408) 321-2381；获批后提前 1–3 天打 (408) 321-2380 预约，8:00 到 17:00 前。' },
       { title: 'SFMTA：2027 年 1 月 4 日起的票价表', url: 'https://www.sfmta.com/media/44859/download?inline=', description: '董事会 2026 年 4 月 21 日通过（议程文件第 38 页）：长者单程、月票和缆车的新票价。' },
       { title: 'Clipper START', url: 'https://www.clipperstartcard.com/s/', description: '19–64 岁、住在湾区、收入符合条件，单程五折；2026 年收入上限表。' },
       { title: 'BART：2026–27 财年预算', url: 'https://www.bart.gov/news/articles/2026/news20260611', description: '预算不涨票价，保留长者、青少年、低收入和残障乘客的优惠。' },
@@ -137,7 +138,7 @@ export const elderGuides2026: Guide[] = [
       { type: 'heading', text: '未满 65 岁、有残障：Clipper Access 卡（原名 RTC）' },
       { type: 'paragraph', text: 'Clipper Access 是给未满 65 岁、有符合条件残障的乘客办的优惠卡，坐 BART 同样减 62.5%。有两种申请途径：基本资格（例如未满 65 岁时持有的 Medicare 卡、DMV 残障停车牌登记收据、已获得 ADA 辅助交通资格）和医疗资格（由加州持证专业人员证明）。递交申请时，交通公司工作人员会复印证件并给你拍照。满 65 岁的长辈直接办长者卡。' },
       { type: 'heading', text: '出门困难：申请 ADA 辅助交通（paratransit）' },
-      { type: 'paragraph', text: '因为残障或健康原因没法自己坐公交、地铁的人，可以申请 ADA 辅助交通：预约厢型车或出租车接送。旧金山是 SF Paratransit：一般问题打 415.351.7000（周一到周五 9:00–16:45），SF Access 预约打 415.285.6945 按 2（每天 7:00–18:00）。东湾是 AC Transit 和 BART 合办的 East Bay Paratransit：(510) 287-5000，服务时间跟公交和 BART 运营时间一致，范围在公交线路或 BART 站 3/4 英里以内，官网有中文乘客指南。其他县问当地公交公司的辅助交通部门。' },
+      { type: 'paragraph', text: '因为残障或健康原因没法自己坐公交、地铁的人，可以申请 ADA 辅助交通：预约厢型车或出租车接送。旧金山是 SF Paratransit：一般问题打 415.351.7000（周一到周五 9:00–16:45），SF Access 预约打 415.285.6945 按 2（每天 7:00–18:00）。东湾是 AC Transit 和 BART 合办的 East Bay Paratransit：(510) 287-5000，服务时间跟公交和 BART 运营时间一致，范围在公交线路或 BART 站 3/4 英里以内，官网有中文乘客指南。南湾 Santa Clara 县是 VTA ACCESS：申请资格打 (408) 321-2381（申请表有中文版），获批后提前 1–3 天打 (408) 321-2380 预约行程（8:00 到 17:00 前）。其他县问当地公交公司的辅助交通部门。' },
       { type: 'tip', title: '家里 19–64 岁的成员', text: 'Clipper START 坐湾区公共交通单程五折，三个条件一起看：住在湾区、19–64 岁、家庭税前收入不超过上限（领 CalFresh 的人自动符合）。2026 年的上限是一人家庭 $31,920，按联邦贫困线 200% 计算；2027 年的上限还没公布。网上申请，上传身份和收入证明，处理最长要 30 天。旧金山的 Lifeline 月票 2027 年 1 月 1 日起并入 Clipper START。' },
       { type: 'template', title: '替父母询问辅助交通资格', text: '您好，我替父亲／母亲询问 ADA 辅助交通。他／她住在___市，___岁，因为___没法自己坐公交。请问怎样申请资格评估？要填什么表、要不要医生证明？可以安排普通话／粤语翻译吗？' },
       { type: 'link', title: '感恩节到元旦怎么坐车', text: 'BART、Muni、Caltrain、AC Transit、VTA 在六个假日按哪种班表。', url: '/guides/bay-area-holiday-hours-thanksgiving-new-year-2026' },
@@ -147,8 +148,9 @@ export const elderGuides2026: Guide[] = [
   },
   {
     ...base,
-    // Re-dated: two sections and 12 sources were read on 2026-10-16 (CNT-GUIDES-3).
-    updatedAt: '2026-10-16',
+    // Re-dated: two sections and 12 sources were read on 2026-10-16 (CNT-GUIDES-3); Alameda's county hotlines page read on
+    // 2026-10-19 (CNT-SIGNBOARD: its Senior Information & Assistance line).
+    updatedAt: '2026-10-19',
     slug: 'bay-area-chinese-language-resource-map',
     title: '湾区华人资源地图',
     subtitle: '按需要和地区找中文能用的入口：长者服务、看病、法律、住房和政府热线，还有中文书、寻根和中文学校',
@@ -190,7 +192,7 @@ export const elderGuides2026: Guide[] = [
         type: 'list',
         items: [
           '旧金山的市政问题打 311：电话提供 160 多种语言的协助，从旧金山以外打 415-701-2311；SF311 手机 App 有中文版。',
-          '长者服务不知道找谁，打所在县的老龄机构 AAA：全州信息线 800-510-2020；旧金山 415-355-3555，Alameda 510-577-1900，Santa Clara 408-350-3200，San Mateo 844-868-0938，Contra Costa 925-229-8434。',
+          '长者服务不知道找谁，打所在县的老龄机构 AAA：全州信息线 800-510-2020；旧金山 415-355-3555，Alameda 510-577-1900（长者资讯与协助 510-577-3530），Santa Clara 408-350-3200，San Mateo 844-868-0938，Contra Costa 925-229-8434。',
           '长者被骗钱、被忽视或虐待，打加州成人保护服务 1-833-401-0832，输入邮编转到所在县，24 小时。',
         ],
       },
