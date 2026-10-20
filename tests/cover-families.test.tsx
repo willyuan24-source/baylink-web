@@ -232,7 +232,8 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   assert.doesNotMatch(css, /text-transform:\s*uppercase/);
   assert.doesNotMatch(css, /letter-spacing:\s*[\d.]+(?:em|px)/, 'no letter-spaced caps (G6)');
   postcss.parse(css).walkDecls('font-size', declaration => assert.match(declaration.value, /^var\(--(?:fs-(?:badge|meta|body|card|card-lg|section|title)|text-caption)\)$/, `${(declaration.parent as postcss.Rule).selector}: ${declaration.value}`));
-  assert.ok(css.length <= 15 * 1024, `covers.css ${css.length} B ≤ 15 KB`);
+  const size = css.replace(/\r\n/g, '\n').length; // the content, not the checkout's line endings (a Windows clone has CRLF)
+  assert.ok(size <= 15 * 1024, `covers.css ${size} B ≤ 15 KB`);
   assert.doesNotMatch(css.replace(/\.ui-provenance \{[^}]*\}/, ''), /#[\da-f]{3,8}\b|\d+ms\b/i, 'no colour or duration literal');
   // A listing photo: the image and the chip, nothing else (the ♡ is the card's).
   const photo = { src: '/p.webp', alt: '', width: 1200, height: 900 };
@@ -327,10 +328,12 @@ test('review fixes: the stated close past midnight, families after the page draw
   cleanup();
   // A poster keeps its own shape on the board and fills it, whatever `sizes` says (review 10-19: the flyer was drawn at its
   // srcset size, half a single-column board): the board is a size container, the width is the smaller of the board's width
-  // and its height times the flyer's shape (+ the mat), the height follows the shape, so the mat is even.
+  // and its height times the flyer's shape (+ the mat), the height follows the shape, so the mat is even. `width:auto` comes
+  // first (review 10-19 re-verify): a browser without cq units (iOS 15, a build target) drops the min() and must not fall
+  // back to the generic width:100% + object-fit:cover, which crops the flyer to a band.
   const sheet = readFileSync('src/components/ui/covers.css', 'utf8');
   assert.match(sheet, /\.ui-cover\[data-fit=contain\] \{ container-type:size;/);
-  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; padding:var\(--sp-1\)/);
+  assert.match(sheet, /\.ui-cover\[data-fit=contain\] \.ui-cover__img \{[^}]*position:static; width:auto; width:min\(100%, calc\(\(100cqh - var\(--sp-2\)\) \* var\(--ui-img-ratio\) \+ var\(--sp-2\)\)\); height:auto; max-width:100%; max-height:100%; padding:var\(--sp-1\)/);
   const flyer = wrap(<CoverImage image={{ src: '/f.webp', alt: '', width: 1200, height: 400 }} label="官方图" fit="contain" kind="event" />);
   assert.equal(flyer.container.querySelector('img')!.style.getPropertyValue('--ui-img-ratio'), '3');
   cleanup();
