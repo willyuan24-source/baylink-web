@@ -26,8 +26,11 @@
 .gd-meta__item { white-space:nowrap; }
 .gd-meta__item+.gd-meta__item::before { content:"·"; padding-inline:var(--sp-2); color:var(--color-ink-3); }
 .gd-meta__item[data-edition] { color:var(--color-ink); }
-.gd-meta a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
-.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin-inline:calc(var(--sp-2) * -1); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
+.gd-meta a { position:relative; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+/* The link keeps a 44 px tap area (48 in 简洁) without making its line taller. */
+.gd-meta a::after { content:""; position:absolute; inset:50% -.25rem auto; height:2.75rem; transform:translateY(-50%); }
+html[data-simple] .gd-meta a::after { height:3rem; }
+.gd-meta__info { display:inline-grid; place-items:center; width:2.75rem; height:2.75rem; margin-block:calc(var(--sp-3) * -1); margin-inline:calc(var(--sp-1) * -1) calc(var(--sp-2) * -1); border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
 .gd-meta__info>svg { width:1.125rem; height:1.125rem; }
 .gd-about p { margin:0 0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); }
 .gd-about a { color:var(--color-brand); }
@@ -47,9 +50,16 @@
 
 /* The rail: on a phone only the bar, which DETAIL fixes at the bottom; the 官方来源 link shows on a desktop. */
 .gd-rail__sources { display:none; }
-/* The bar's call: the number never breaks or shortens; where the primary is narrow the verb goes first, then the icon. */
+/* The bar's call: the number never breaks or shortens; where the primary is narrow the icon goes first, then the verb. On a
+   phone the ask cell reads BayBay beside the otter (critic, DETAIL's short label), so 拨打 and the number keep one line. */
 .gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
-@container detail-primary (max-width:12.5em) { .gd-bar__verb { display:none; } }
+.site-detail-actions.detail-actions .gd-bar__call { padding-inline:var(--sp-2); }
+@container detail-primary (max-width:12em) { .gd-bar__call>svg { display:none; } }
+@container detail-primary (max-width:9.75em) { .gd-bar__verb { display:none; } }
+@media (max-width:1023px) {
+  .site-detail-actions.detail-actions.gd-bar [data-label=long] { display:none; }
+  .site-detail-actions.detail-actions.gd-bar [data-label=tight] { display:inline; }
+}
 /* 家人版 (特大 + 简洁): icon + number. */
 html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
 .gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
@@ -59,7 +69,7 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
    tokens and never pass the H1. A phone caps the slide at 360 px (22.5rem) so the head, the cover and the first 30 秒看懂 row
    share the first screen; a wider slide keeps 3:4. The track stretches every slide to the tallest one. */
 .gd-carousel .ui-carousel__slide { container-type:inline-size; }
-.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:var(--sp-3); min-height:min(calc(100cqw * 4 / 3), 22.5rem); height:100%; padding:var(--sp-5) var(--sp-5) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
+.gd-slide { position:relative; box-sizing:border-box; display:flex; flex-direction:column; gap:var(--sp-3); min-height:min(calc(100cqw * 4 / 3), 22.5rem); height:100%; padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:break-word; }
 @container (min-width:23rem) { .gd-slide { min-height:calc(100cqw * 4 / 3); padding:var(--sp-6) var(--sp-6) var(--sp-5); } }
 /* Three card looks on an article (SYS ≤3): white with a line (points, contacts), surface-2 (compare, checklist, safety) and
    brand-deep (the cover). */
@@ -92,7 +102,7 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
 .gd-slide__items li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.15em; color:var(--color-brand); }
 .gd-slide__phones { display:flex; flex-direction:column; gap:var(--sp-2); }
 .gd-slide__phones[data-count=many] { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-1) var(--sp-3); }
-.gd-slide__phone { display:flex; flex-direction:column; justify-content:center; min-height:3rem; color:var(--color-brand); text-decoration:none; }
+.gd-slide__phone { display:flex; flex-direction:column; justify-content:center; min-height:2.75rem; color:var(--color-brand); text-decoration:none; }
 .gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide__phone-number { font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-slide__phone[data-size=big] .gd-slide__phone-number { font-size:var(--fs-section); }
@@ -108,6 +118,13 @@ html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
 /* H67 (GR-12): 48px previous / next buttons on touch phones too, not only swipe. */
 .gd-carousel .ui-carousel :is(.ui-carousel__prev,.ui-carousel__next) { display:inline-grid; width:3rem; height:3rem; }
 .gd-carousel .ui-carousel__controls { margin-top:var(--sp-2); }
+/* A phone keeps the buttons inside the slide, bottom right (the slide's own 1/9 is its counter), so the head, the cover and
+   the first 30 秒看懂 row share the first screen; the source line leaves them room. */
+@media (max-width:767px) {
+  html:not([data-reading=extra-large]):not([data-simple]) .gd-carousel .ui-carousel__controls { position:absolute; right:var(--sp-2); bottom:var(--sp-2); margin:0; gap:var(--sp-1); }
+  html:not([data-reading=extra-large]):not([data-simple]) .gd-carousel :is(.ui-carousel__dots,.ui-carousel__counter) { display:none; }
+  html:not([data-reading=extra-large]):not([data-simple]) .gd-carousel .gd-slide__source { padding-right:6.75rem; }
+}
 /* 看全部 N 张卡片 shows in 特大 only (below). */
 .gd-carousel__all { display:none; align-items:center; justify-content:center; gap:var(--sp-2); width:100%; min-height:3rem; margin-top:var(--sp-3); padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); cursor:pointer; }
 .gd-carousel__all>svg { width:1.25rem; height:1.25rem; transition:transform var(--dur-2) var(--ease-std); }

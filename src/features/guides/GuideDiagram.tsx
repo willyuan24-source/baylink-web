@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { Phone } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
-import { linkifyPhones } from '../../lib/phone-links';
+import { linkifyPhones, usePlainPhones } from '../../lib/phone-links';
 import { SourceMark } from './GuideFactCards';
 import type { DiagramItem, GuideDiagram } from './guide-diagrams';
 
@@ -14,7 +14,8 @@ import type { DiagramItem, GuideDiagram } from './guide-diagrams';
 export function GuideDiagramFigure({ guide, diagram }: { guide: Guide; diagram: GuideDiagram }) {
   const { t, pick } = useUiCopy();
   const titleId = useId();
-  const tel = (item: DiagramItem) => item.number && (item.tel
+  const plain = usePlainPhones();
+  const tel = (item: DiagramItem) => item.number && (item.tel && !plain?.has(item.tel)
     ? <a className="gd-diagram__tel" href={`tel:${item.tel}`} aria-label={t(`拨打 ${pick(item.title)} ${item.number}`, `Call ${pick(item.title)} ${item.number}`)}><Phone aria-hidden="true" strokeWidth={1.75} /><span>{item.number}</span></a>
     : <span className="gd-diagram__number">{item.number}</span>);
   const text = (item: DiagramItem) => item.text && <span className="gd-diagram__text">{pick(item.text)}</span>;

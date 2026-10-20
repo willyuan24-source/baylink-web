@@ -2,7 +2,7 @@
    chips, cards and the sheet are the WEB-UI primitives (ui.css, cards.css). Reviewed by scripts/check-editorial-styles.mjs. */
 .gl-page { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding:var(--sp-4) var(--page-gutter) var(--sp-6); color:var(--color-ink); }
 /* H1 and ♡ 我的指南收藏 in one row; the lede (≤ 2 lines) under them. */
-.gl-header { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:var(--sp-3); align-items:center; margin-bottom:var(--sp-4); }
+.gl-page .gl-header { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:var(--sp-3); align-items:center; margin-bottom:var(--sp-4); }
 .gl-header .ui-page-header__title { grid-column:1; margin:0; }
 .gl-header .ui-page-header__actions { grid-column:2; grid-row:1; margin:0; }
 .gl-header .ui-page-header__lede { grid-column:1 / -1; max-width:var(--measure); margin:var(--sp-2) 0 0; font-size:var(--fs-body); line-height:var(--lh-ui); }
@@ -32,6 +32,8 @@
 
 /* Sections: H2, one line, 看全部 N 篇, at most four guides. 40 px apart on a phone, 64 on a desktop (--section-gap). */
 .gl-section,.gl-band { margin-top:var(--section-gap); }
+/* The band follows the chips directly: the first block keeps the smaller step, so two whole rows fit a 390 × 844 phone. */
+.gl-filters+.gl-band { margin-top:var(--sp-5); }
 .gl-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-3); margin-bottom:var(--stack-head); }
 .gl-section__head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; }
 .gl-section__head p { margin:var(--sp-1) 0 0; max-width:var(--measure); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); text-wrap:pretty; }
@@ -56,6 +58,8 @@
 .gl-band .gl-band__rows { gap:var(--sp-2); }
 .gl-band .ui-row-card { padding:var(--sp-3); border:0; border-radius:var(--r-lg); background:var(--color-surface); }
 .gl-band__all { margin-top:var(--sp-3); }
+/* On a phone the band is its heading and three rows: the topic line goes (it stays on a tablet and a desktop). */
+@media (max-width:767px) { .gl-band .gl-section__head p { display:none; } }
 /* G16 (简洁 / 家人版): a 48 px 拨打 that prints the number, under its row. */
 .gl-call { width:100%; margin-top:var(--sp-2); }
 .gl-call__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
@@ -96,8 +100,9 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   .gl-page { padding-block:var(--sp-5) var(--sp-6); }
 }
 @media (min-width:1024px) {
-  .gl-page { padding-block:var(--sp-6) var(--sp-7); }
-  .gl-header { grid-template-columns:repeat(12, minmax(0, 1fr)); column-gap:var(--grid-gutter); }
+  .gl-page { padding-block:var(--sp-6); }
+  .gl-page .gl-header { margin-bottom:var(--sp-5); }
+  .gl-page .gl-header { grid-template-columns:repeat(12, minmax(0, 1fr)); column-gap:var(--grid-gutter); }
   .gl-header .ui-page-header__title { grid-column:1 / span 9; }
   .gl-header .ui-page-header__actions { grid-column:10 / span 3; justify-self:end; }
   /* The search spans columns 1–6 (112–732 at 1440). */

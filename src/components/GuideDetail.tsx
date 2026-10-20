@@ -23,7 +23,8 @@ import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
-import { linkifyPhones, PhoneText } from '../lib/phone-links';
+import { linkifyPhones, PhoneText, PlainPhonesProvider } from '../lib/phone-links';
+import { useSimpleDisplay } from '../lib/reading-preferences';
 import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
 import { createCoverPage, type CoverPage } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
@@ -136,6 +137,13 @@ const GuideDetailSession = ({
   const { t, english } = useUiCopy();
   const today = useBayAreaToday(suppliedToday);
   const editorial: GuideEditorial | undefined = record?.editorial;
+  // 简洁显示: each number keeps two tap targets, the bar's 拨打 and its contact's; its other copies print as text.
+  const simple = useSimpleDisplay();
+  const plainPhones = useMemo(() => {
+    if (!simple || !editorial) return null;
+    const call = guideCallOf(editorial);
+    return new Set([...(call ? [call.tel] : []), ...(editorial.contacts ?? []).map(contact => contact.tel)]);
+  }, [simple, editorial]);
   const page = useMemo(() => {
     if (!record) return null;
     const { guide } = record;
@@ -258,6 +266,7 @@ const GuideDetailSession = ({
   const archivedEdition = !!guide.editionMonth && (guide.editionThroughDate ? today > guide.editionThroughDate : today.slice(0, 7) > guide.editionMonth);
 
   return (
+    <PlainPhonesProvider value={plainPhones}>
     <div className="bl-guide-detail gd-page" data-pilot={editorial ? '' : undefined} data-board={board ? '' : undefined}>
       <article className="bl-guide-article gd-article">
         <GuideHeader guide={guide} returnTo={returnTo} today={today} />
@@ -332,6 +341,7 @@ const GuideDetailSession = ({
       </article>
       <GuideToTop />
     </div>
+    </PlainPhonesProvider>
   );
 };
 
