@@ -70,13 +70,17 @@ const RELEASE_PAGES=[...ROUTES.filter(route=>route.release).map(route=>route.pat
 // suggestion): / 189.3 / 235.1 / 310.8 → 193.2 / 239.9 / 317.0 (the home's after-page sections load after it; 10-20 is the
 // largest home-catalog day of the coming weeks), /guides 214.1 / 258.7 / 342.9 → 218.4 / 264.0 / 349.8, /plan zh-Hans 188.2 → 192.0
 // and en 289.4 → 295.2. Nothing is raised.
+// UI-9 A+B, second pass (10-20): the events index carries a caption's signal instead of the sentence and the events column's
+// English packs leave captions out (scripts/events-index-images.ts captionSignal), so /events measured 271.9 / 316.6 / 442.9
+// and /calendar 276.0 / 320.7 / 447.0 KiB (below the 4bf714a45 base with CNT-MEDIA-5's 43 images); both rows go to measured
+// + 2%: /events 283.2 / 328.1 / 468.6 → 277.4 / 322.9 / 451.8, /calendar 287.0 / 331.8 / 472.3 → 281.6 / 327.1 / 456.0.
 const ROUTE_JS_BUDGETS = [
   { route: '/', module: 'src/pages/HomePage.tsx', kib: { 'zh-Hans': 193.2, 'zh-Hant': 239.9, en: 317.0 } },
-  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 287.0, 'zh-Hant': 331.8, en: 472.3 } },
+  { route: '/calendar', module: 'src/pages/CalendarPage.tsx', kib: { 'zh-Hans': 281.6, 'zh-Hant': 327.1, en: 456.0 } },
   { route: '/guides', module: 'src/pages/GuidesPage.tsx', kib: { 'zh-Hans': 218.4, 'zh-Hant': 264.0, en: 349.8 } },
   { route: '/guides/bay-area-chinese-senior-services-referral-guide', module: 'src/pages/GuideDetailPage.tsx', data: ['src/data/generated/guides/bay-area-chinese-senior-services-referral-guide.json'], kib: { 'zh-Hans': 231.0, 'zh-Hant': 276.7, en: 341.4 } },
   { route: '/events/san-francisco-fleet-week-2026', module: 'src/pages/LocalDiscoveryPage.tsx', kib: { 'zh-Hans': 218.0, 'zh-Hant': 262.5, en: 337.9 } },
-  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 283.2, 'zh-Hant': 328.1, en: 468.6 } },
+  { route: '/events', module: 'src/pages/EventsPage.tsx', kib: { 'zh-Hans': 277.4, 'zh-Hant': 322.9, en: 451.8 } },
   // WEB-PLAN: /plan (行程) had no row; it measured 1104.7 / 1581.5 / 1972.1 KiB with the WEB-UI cards and covers, so measured + 2%.
   // WEB-PLAN-DATA: the planner catalog loads after the first paint (features/plan/plan-catalog.ts): measured + 5%.
   // WEB-PERF-3 (H20): the workspace is a chunk that loads with the catalog (features/plan/PlannerWorkspace.tsx); the route
