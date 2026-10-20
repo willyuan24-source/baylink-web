@@ -1,3 +1,0 @@
-.school-guide-topics { margin:36px 0; padding:28px; background:var(--color-warm-tint); border:1px solid var(--color-line-strong); border-radius:var(--r-lg); }
-.school-guide-topics a:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
-@media(max-width:767px) { .school-guide-topics { padding:20px; } }

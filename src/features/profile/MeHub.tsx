@@ -6,7 +6,7 @@ import { Bell, CalendarDays, ChevronRight, FileText, Globe2, Info, LifeBuoy, Mes
 import { Sheet } from '../../components/ui/Sheet';
 import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { ReadingPreferencesCard } from '../../components/ReadingPreferences';
+import { ReadingPreferencesCard } from '../../components/ReadingPreferencesCard';
 import { navigateSiteLanguage } from '../../components/LanguageRouter';
 import { localizedUrl, setLocale, type Locale } from '../../i18n/locale';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';

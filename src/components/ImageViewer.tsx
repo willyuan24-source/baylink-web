@@ -1,9 +1,16 @@
-import { X } from 'lucide-react';
 import { ModalShell } from './ui/Modal';
+import { CloseButton } from './ui/CloseButton';
+import { useUiCopy } from './ui/ui-copy';
+import './site-dialogs.css';
 
-export const ImageViewer = ({ src, onClose }: { src: string, onClose: () => void }) => (
-  <ModalShell onClose={onClose} label="查看大图" className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center backdrop-blur-md animate-in fade-in duration-300">
-    <button aria-label="关闭大图" onClick={onClose} className="absolute top-[calc(env(safe-area-inset-top,0px)+24px)] right-6 p-3 bg-white/10 text-white rounded-full hover:bg-white/30 transition"><X size={24}/></button>
-    <img src={src} alt="查看完整图片" className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-300" onClick={e => e.stopPropagation()} />
-  </ModalShell>
-);
+/**
+ * A post photo at full size: the warm scrim, the picture fading in from 96 %, F's close button. `closing` plays the exit
+ * (OverlayHost keeps the viewer mounted for it, useExit). No blur behind it (N10). Styles: site-dialogs.css.
+ */
+export const ImageViewer = ({ src, closing = false, onClose }: { src: string; closing?: boolean; onClose: () => void }) => {
+  const { t } = useUiCopy();
+  return <ModalShell onClose={onClose} label={t('查看大图', 'Full-size picture')} className={`site-image-viewer${closing ? ' is-closing' : ''}`}>
+    <CloseButton className="site-image-viewer__close" label={t('关闭大图', 'Close picture')} onClick={onClose} />
+    <img className="site-image-viewer__img" src={src} alt={t('查看完整图片', 'The full picture')} onClick={e => e.stopPropagation()} />
+  </ModalShell>;
+};

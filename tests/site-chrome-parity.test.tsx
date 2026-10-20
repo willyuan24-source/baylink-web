@@ -93,7 +93,7 @@ test('the /en first paint (header, footer and tab bar) has no Chinese outside th
   choices.remove();
   const footer = [...doc.querySelectorAll('footer')].at(-1)!;
   const tabs = doc.querySelector('nav.site-mobile-nav')!;
-  assert.equal(tabs.textContent, 'HomeEventsAsk BayBayAskGuidesMe');
+  assert.equal(tabs.textContent, 'HomeEventsAIAsk BayBayBayBayGuidesMe');
   for (const part of [header, footer, tabs]) {
     assert.doesNotMatch(part.textContent!, han);
     assert.doesNotMatch([...part.querySelectorAll('[aria-label]')].map(el => el.getAttribute('aria-label')).join(' '), han);
@@ -122,7 +122,7 @@ test('the global footer and 更多 open the feedback sheet; Aa is labelled 字�
   const { view } = mountApp(t, '/guides');
   await settle();
   const footer = view.container.querySelector<HTMLElement>('footer.site-footer')!;
-  assert.deepEqual([...footer.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/about', '/archive', '/terms', '/privacy', '/sms-consent']);
+  assert.deepEqual([...footer.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/about', '/about#about-method-title', '/archive', '/terms', '/privacy', '/sms-consent']);
   await act(async () => { fireEvent.click(within(footer).getByRole('button', { name: '反馈' })); await new Promise(resolve => setTimeout(resolve, 50)); });
   const sheet = await waitFor(() => within(document.body).getByRole('dialog', { name: '反馈与报错' }));
   await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: '取消' })); });

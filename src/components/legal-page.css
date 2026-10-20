@@ -1,5 +1,7 @@
-/* Privacy, terms and SMS consent (WEB-SECONDARY-B): reading container (720), the shared H1 spec, tokens and rem only. */
-.legal-page{padding-block:24px 56px;color:var(--color-ink);overflow-wrap:anywhere}
+/* Privacy, terms and SMS consent (WEB-SECONDARY-B; UI9-NAV): the wide frame (content at x = 112 in a 1440 window) with the
+   text in grid columns 1-8 and paragraphs at the reading measure, the shared H1 spec, tokens and rem only. */
+.legal-page{padding-block:var(--sp-5) 0;color:var(--color-ink);overflow-wrap:anywhere}
+.legal-doc :is(p,li){max-width:var(--measure)}
 .legal-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
 .legal-page .ui-page-header__lede{color:var(--color-ink-2);font-size:var(--text-fact)}
 .legal-updated-en{display:block}
@@ -13,7 +15,8 @@
 .legal-doc ul{margin:12px 0 0;padding-left:1.25rem;list-style:disc}
 .legal-doc li+li{margin-top:8px}
 .legal-doc a,.legal-related a{color:var(--color-brand);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
-.legal-doc a:hover,.legal-related a:hover{text-decoration-color:currentColor}
+@media (hover:hover) and (pointer:fine){.legal-doc a:hover,.legal-related a:hover{text-decoration-color:currentColor}}
+.legal-doc a:active,.legal-related a:active{color:var(--color-brand-hover)}
 .legal-related{display:flex;flex-wrap:wrap;gap:0 24px;margin-top:40px;padding-top:8px;border-top:1px solid var(--color-line)}
 .legal-related a{display:inline-flex;align-items:center;min-height:var(--control-height);font-size:var(--text-fact)}
 /* SMS consent: the opt-in flow screenshots and the disclosure shown beside the verification button. */
@@ -25,4 +28,4 @@
 .legal-callout{margin-top:16px;padding:16px;border-radius:var(--r-lg);background:var(--color-brand-tint)}
 .legal-callout>p:first-child{color:var(--color-ink);font-size:var(--text-fact);font-weight:600}
 .legal-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
-@media(min-width:1024px){.legal-page{padding-block:40px 72px}}
+@media(min-width:1024px){.legal-page{padding-block:var(--sp-6) 0}.legal-page>*{max-width:calc((100% - 11 * var(--grid-gutter)) / 12 * 8 + 7 * var(--grid-gutter))}}

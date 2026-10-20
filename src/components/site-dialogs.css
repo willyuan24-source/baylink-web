@@ -6,12 +6,12 @@
 .site-dialog-brand img { width:2rem; height:2rem; border-radius:var(--r-sm); object-fit:cover; }
 .site-dialog-choices { display:grid; gap:8px; margin:0; padding:0; border:0; }
 .site-dialog-choices>legend { margin-bottom:8px; padding:0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }
-.site-dialog-choice { display:flex; align-items:center; gap:12px; min-height:var(--control-height); padding:8px 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); cursor:pointer; }
+.site-dialog-choice { display:flex; align-items:center; gap:12px; min-height:var(--control-height); padding:8px 14px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); cursor:pointer; }
 .site-dialog-choice:has(input:checked) { border-color:var(--color-brand); background:var(--color-selected); color:var(--color-brand-deep); font-weight:600; }
 .site-dialog-choice input { flex:none; width:1.25rem; height:1.25rem; margin:0; accent-color:var(--color-brand); }
 .site-dialog-choice:focus-within { outline:2px solid var(--color-brand); outline-offset:2px; }
 .site-dialog-label { display:block; margin:16px 0 6px; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }
-.site-dialog-field { display:block; width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.6; }
+.site-dialog-field { display:block; width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.6; }
 .site-dialog-field:focus-visible { outline:2px solid var(--color-brand); outline-offset:1px; border-color:var(--color-brand); }
 textarea.site-dialog-field { resize:vertical; min-height:6rem; }
 .site-dialog-count,.site-dialog-note { margin:6px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
@@ -34,12 +34,76 @@ textarea.site-dialog-field { resize:vertical; min-height:6rem; }
 .ui-sheet .member-auth-heading { margin-bottom:16px; }
 /* Sheets are portalled outside .site-app, so they carry the shared keyboard focus ring themselves. */
 .ui-sheet :is(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
-/* Search (QuickExplore) inside the sheet: the sheet is the panel; the search field sits under the title, results scroll. */
-.ui-sheet .quick-explore--sheet { display:flex; flex-direction:column; width:auto; max-width:none; max-height:none; margin:0 -20px; border:0; border-radius:0; background:none; box-shadow:none; }
-.ui-sheet .quick-explore--sheet .quick-search-form { margin:0 20px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); }
-.ui-sheet .quick-explore--sheet .quick-explore-body { padding:8px 20px 4px; }
+/* Search (QuickExplore) inside the sheet: the sheet is the panel; the field sits under the title, the rows scroll. */
+.ui-sheet .quick-explore--sheet { display:flex; flex-direction:column; width:auto; max-width:none; max-height:none; overflow:visible; margin:0; border:0; border-radius:0; background:none; box-shadow:none; }
+.ui-sheet .quick-explore--sheet .quick-explore-body { padding:0 0 var(--sp-1); overflow:visible; }
 .ui-sheet .quick-explore--sheet>footer { display:none; }
-@media(min-width:1024px) { .ui-sheet .quick-explore--sheet>footer { display:flex; margin-top:8px; } }
-/* The search field draws one ring around the whole field instead of a second box inside it. */
+@media(min-width:1024px) { .ui-sheet .quick-explore--sheet>footer { display:flex; margin:var(--sp-2) calc(-1 * var(--sp-5)) 0; } }
+/* The field draws one ring around the whole pill instead of a second box inside it. */
 .ui-sheet .quick-explore--sheet .quick-search-form:focus-within { border-color:var(--color-brand); box-shadow:inset 0 0 0 1px var(--color-brand); }
 .ui-sheet .quick-explore--sheet .quick-search-form input:focus-visible { outline-color:transparent; }
+
+/* Search (QuickExplore, UI9-NAV; content arrangement §6), moved out of the global design.css: the D2 search field (a 52px
+   pill, line-control edge ≥3:1, ink-3 placeholder at 400), F's chips for the suggestions, rows of 56px or more (title 16,
+   detail 14) with group labels at 14px and no tracking, F's EmptyState when nothing matches. The legacy .quick-result-
+   snippet / .quick-empty rules in features/baybay-conversation.css (BB's file, global) are overridden here and listed for
+   UI9-INT. */
+.quick-explore { display:flex; flex-direction:column; width:100%; max-width:580px; max-height:min(740px,75dvh); overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e2); }
+.quick-search-form { display:flex; flex-shrink:0; align-items:center; gap:var(--sp-2); min-height:52px; padding:0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink-3); transition:border-color var(--dur-2) var(--ease-std); }
+.quick-search-form>svg { flex:none; }
+.quick-search-form input { flex:1; width:0; min-height:48px; border:0; outline:none; background:transparent; color:var(--color-ink); font-size:var(--fs-body); }
+.quick-search-form input::placeholder { color:var(--color-ink-3); font-weight:var(--fw-regular); opacity:1; }
+.quick-explore-body { min-height:0; overflow-y:auto; overscroll-behavior:contain; }
+.quick-group { margin:var(--sp-4) 0 var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:var(--fw-regular); letter-spacing:0; line-height:var(--lh-ui); }
+.quick-suggestions { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); padding:var(--sp-3) 0 var(--sp-1); }
+.quick-suggestions>.quick-group { flex-basis:100%; margin:0; }
+.quick-result { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:56px; padding:var(--sp-2) var(--sp-2); border-radius:var(--r-md); color:var(--color-ink); text-align:left; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.quick-result.is-highlighted,.quick-result:active { background:var(--color-surface-2); }
+.quick-result:active { scale:.985; }
+.quick-result-image { flex:none; width:48px; height:48px; border-radius:var(--r-md); object-fit:cover; }
+.quick-result-icon,.quick-result-otter { position:relative; display:grid; flex:none; place-items:center; width:48px; height:48px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); }
+.quick-result-otter { background:var(--color-brand-tint); }
+.quick-result-otter>.site-ai-tag { position:absolute; top:-4px; right:-6px; }
+.quick-result-text { display:grid; flex:1; gap:2px; min-width:0; }
+.quick-result-title { color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); overflow-wrap:anywhere; }
+.quick-result--ask .quick-result-title { color:var(--color-brand-deep); }
+.quick-result-when { color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.quick-result-arrow { flex:none; color:var(--color-ink-3); }
+.ui-sheet .quick-result-snippet { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+/* An event's status · venue line is never cut (G8); other detail lines keep BB's 2-line clamp. */
+.ui-sheet .quick-result:has(.quick-result-when) .quick-result-snippet { display:block!important; overflow:visible; -webkit-line-clamp:unset; }
+.ui-sheet .quick-result-snippet .ui-status { vertical-align:baseline; }
+.ui-sheet .quick-empty { margin:var(--sp-2) 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.quick-no-match .ui-state { padding:var(--sp-5) 0; }
+.quick-explore>footer { display:flex; flex-shrink:0; justify-content:space-between; padding:var(--sp-3) var(--sp-5); border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.quick-explore kbd { padding:0 var(--sp-1); border:1px solid var(--color-line-strong); border-radius:var(--r-sm); font-family:inherit; }
+@media (hover:hover) and (pointer:fine) { .quick-result:hover { background:var(--color-surface-2); } .quick-search-form:hover { border-color:var(--color-ink-3); } }
+html[data-simple] .quick-result { min-height:64px; }
+
+/* Text size (ReadingPreferencesCard, content arrangement §7): three size buttons, each with a sample 字 at its step and
+   the percentage as a 14px caption, then the 简洁显示 switch and its line. Over the older global rules in tokens.css (F's
+   file; .reading-overlay, .reading-dialog, .reading-close and .reading-preview are dead, listed for UI9-INT). */
+.reading-sheet-card .reading-sizes { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--sp-2); margin:var(--sp-2) 0 var(--sp-3); }
+.reading-sheet-card .reading-sizes>button { display:grid; justify-items:center; align-content:center; gap:2px; min-height:96px; padding:var(--sp-3) var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.reading-sheet-card .reading-sizes>button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); color:var(--color-brand-deep); font-weight:var(--fw-regular); }
+.reading-sheet-card .reading-sizes>button:active { scale:.97; }
+.reading-sheet-card .reading-sample { line-height:1.2; font-size:var(--fs-section); }
+.reading-sheet-card .reading-sample[data-size=large] { font-size:calc(var(--fs-section) * 1.125); }
+.reading-sheet-card .reading-sample[data-size=extra-large] { font-size:calc(var(--fs-section) * 1.25); }
+.reading-sheet-card .reading-size-name { display:inline-flex; align-items:center; gap:var(--sp-1); }
+.reading-sheet-card .reading-sizes small { flex-basis:auto; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.reading-sheet-card .reading-note { margin:0 0 var(--sp-4); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.reading-sheet-card .reading-simple-switch { border-radius:var(--r-lg); }
+@media (hover:hover) and (pointer:fine) { .reading-sheet-card .reading-sizes>button:not([aria-pressed=true]):hover { background:var(--color-surface-2); } }
+
+/* The picture viewer (ImageViewer): the warm photo scrim, the picture fading in from 96%, F's close button; out over
+   --dur-3 while OverlayHost keeps it mounted. No blur behind it (N10). */
+.site-image-viewer { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-4); background:rgb(var(--color-scrim-rgb) / .92); animation:site-viewer-in var(--dur-3) var(--ease-out); }
+.site-image-viewer__img { max-width:100%; max-height:90vh; border-radius:var(--r-lg); object-fit:contain; box-shadow:var(--e2); animation:site-image-in var(--dur-4) var(--ease-out); }
+.site-image-viewer__close { position:absolute; top:calc(env(safe-area-inset-top,0px) + var(--sp-5)); right:var(--sp-5); }
+.site-image-viewer.is-closing { animation:site-viewer-out var(--dur-3) var(--ease-in) forwards; pointer-events:none; }
+.site-image-viewer.is-closing .site-image-viewer__img { animation:site-image-out var(--dur-3) var(--ease-in) forwards; }
+@keyframes site-viewer-in { from { opacity:0; } }
+@keyframes site-viewer-out { to { opacity:0; } }
+@keyframes site-image-in { from { opacity:0; scale:.96; } }
+@keyframes site-image-out { to { opacity:0; scale:.96; } }

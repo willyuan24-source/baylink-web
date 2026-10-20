@@ -162,7 +162,7 @@ test('G1: the desktop account menu leads with 消息 and its unread count; 我�
   await act(async () => { fireEvent.click(panel.getByRole('button', { name: '退出登录' })); });
   assert.equal(view.getByTestId('where').textContent, '/');
   assert.equal(localStorage.getItem(SESSION_KEY), null, 'signed out of this browser');
-  assert.ok(view.getByRole('button', { name: '登录' }), 'the header offers 登录 again');
+  assert.equal(within(view.container.querySelector('header')!).getByRole('link', { name: '我的' }).getAttribute('href'), '/me', 'the header offers the guest 我的 tool again (sign-in is on /me and in 更多)');
   view.unmount();
   sockets.length = 0;
   const quiet = mount(t, '/guides', 0);
@@ -176,7 +176,7 @@ test('the toast sits at the bottom, above the phone tab bar: never over the head
   css.walkRules('.site-toast', rule => rule.walkDecls(declaration => { placed[`${rule.parent?.type === 'atrule' ? (rule.parent as { params: string }).params : 'base'} ${declaration.prop}`] = declaration.value; }));
   assert.equal(placed['base position'], 'fixed');
   assert.equal(placed['base top'], undefined, 'not anchored to the top');
-  assert.match(placed['base bottom'], /24px/);
+  assert.match(placed['base bottom'], /var\(--sp-5\)/, '24px (--sp-5) above the bottom on a desktop');
   assert.equal(placed['(max-width:1023px) bottom'], 'calc(var(--site-mobile-nav-height) + 12px)', 'phones: 12px above the tab bar');
   const view = render(<Toast type="info" message="已保存" onClose={() => {}} />);
   // G90: portalled beside #root (the test's container is not where it lands).

@@ -2,11 +2,10 @@
 // the sign-in / password / report / block / share dialogs, the post, chat and profile overlays. Every dialog loads on first
 // use (its chunk is not in the shell graph every page downloads) and sits behind a boundary: if its chunk cannot load,
 // the dialog closes with a message instead of taking the page down, and the next time it is opened it loads again.
-import { Component, Suspense, type ComponentProps, type ReactNode, type RefObject } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Component, Suspense, useEffect, useState, type ComponentProps, type ReactNode, type RefObject } from 'react';
+import { Loader2, X } from 'lucide-react';
 import type { Socket } from 'socket.io-client';
 import type { NavigateFunction } from 'react-router-dom';
-import Avatar from '../components/Avatar';
 import { ConfirmHost } from '../components/ui/confirm';
 import { ModalShell } from '../components/ui/Modal';
 import { Toast, type ToastAction } from '../components/Toast';
@@ -20,8 +19,10 @@ import { translateText, useLocale, type Locale } from '../i18n/locale';
 import type { AdDetailItem, Conversation, PostData, PostType, ReportTarget, UserData } from '../lib/types';
 import type { AppContextValue, ShowToast } from './context';
 import { useReopenAfterFailure } from './useReopenAfterFailure';
+import { useExit } from '../lib/reading-preferences';
 
 const QuickExplore = lazyChunk(() => import('../components/QuickExplore'), m => m.QuickExplore);
+// The same module baybay-preload.ts warms on every 问 BayBay trigger (one chunk).
 const BayBayAssistantEntry = lazyChunk(() => import('../components/BayBayAssistantEntry'), m => m.BayBayAssistantEntry);
 const CreatePostModal = lazyChunk(() => import('../features/posts/CreatePostModal'), m => m.CreatePostModal);
 const PostDetailModal = lazyChunk(() => import('../features/posts/PostDetailModal'), m => m.PostDetailModal);
@@ -41,13 +42,21 @@ const copy = (locale: Locale, zh: string, en: string) => locale === 'en' ? en : 
 
 /** A spinner over the page while a dialog's chunk loads, so a tap never looks ignored (also for a deep link). */
 const OverlayChunkFallback = () => <div className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80"><Loader2 className="h-8 w-8 animate-spin text-baylink-green" /></div>;
-const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef }: { label: string; onClose: () => void; restoreFocusRef?: RefObject<HTMLElement> }) => {
+/**
+ * "正在打开搜索… / 正在打开 BayBay…" while the dialog's chunk loads (BB launcher item e): drawn in F's Sheet frame (the
+ * .ui-sheet classes of ui.css, without importing the Sheet into the shell), so the real sheet replaces it in place
+ * instead of jumping in from a centred card. `drawer` drops the desktop scrim, like BayBay's drawer (captain decision 7).
+ */
+const DismissibleChunkFallback = ({ label, onClose, restoreFocusRef, drawer }: { label: string; onClose: () => void; restoreFocusRef?: RefObject<HTMLElement>; drawer?: boolean }) => {
   const locale = useLocale();
-  return <ModalShell onClose={onClose} className="fixed inset-0 z-[110] flex items-center justify-center bg-white/90 p-5" label={label} restoreFocusRef={restoreFocusRef}>
-    <div className="rounded-2xl border border-baylink-border bg-white p-8 text-center">
-      <Loader2 aria-hidden="true" className="mx-auto h-8 w-8 animate-spin text-baylink-green" />
-      <p role="status" className="mt-4 text-base">{label}</p>
-      <button type="button" onClick={onClose} className="mt-5 min-h-11 rounded-xl border border-baylink-border px-6 text-base">{copy(locale, '关闭', 'Close')}</button>
+  return <ModalShell onClose={onClose} className={`ui-sheet-backdrop site-chunk-sheet${drawer ? ' site-chunk-sheet--drawer' : ''}`} label={label} restoreFocusRef={restoreFocusRef}>
+    <div className="ui-sheet">
+      <div className="ui-sheet__handle" aria-hidden="true" />
+      <div className="ui-sheet__header">
+        <p className="ui-sheet__title">{label}</p>
+        <button type="button" className="ui-icon-button ui-close" aria-label={copy(locale, '关闭', 'Close')} onClick={onClose}><X aria-hidden="true" strokeWidth={1.75} /></button>
+      </div>
+      <div className="ui-sheet__body site-chunk-sheet__body"><Loader2 aria-hidden="true" className="site-chunk-spinner" strokeWidth={1.75} /><p role="status">{label}</p></div>
     </div>
   </ModalShell>;
 };
@@ -121,13 +130,20 @@ export function OverlayHost(props: OverlayHostProps) {
     <OverlayBoundary key={options.key} onFail={lostChunk => { options.onFail?.(); unavailable(close)(lostChunk); }}><Suspense fallback={fallback}>{node}</Suspense></OverlayBoundary>;
   const baybayAttempt = useReopenAfterFailure(baybay.open);
   const postClose = () => post.close(post.selected);
+  // N24: search and the image viewer stay mounted through their exit (useExit, 200ms; 0 under reduced motion and in
+  // 简洁显示). The viewer keeps showing the picture it closed on.
+  const searchShown = useExit(search.open);
+  const [lastImage, setLastImage] = useState<string | null>(null);
+  useEffect(() => { if (props.image.src) setLastImage(props.image.src); }, [props.image.src]);
+  const imageShown = useExit(!!props.image.src);
+  const viewerSrc = props.image.src ?? lastImage;
 
   return <>
     {/* locationKey is the real location: navigating (Back included) cancels a pending confirmation's stale closure. */}
     <ConfirmHost locationKey={props.locationKey} />
     {props.toast && <Toast key={props.toast.id} message={props.toast.message} type={props.toast.type} action={props.toast.action} onClose={props.closeToast} />}
     {props.ad.item && lazyDialog(props.ad.close, <AdDetailModal ad={props.ad.item} onClose={props.ad.close} isAdmin={props.ad.isAdmin} onDelete={props.ad.onDelete} />)}
-    {search.open && lazyDialog(search.close, <LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore initialQuery={search.query} restoreFocusRef={search.openerRef} onClose={search.close} onNavigate={props.navigate} onSearch={search.onSearch} onAsk={search.onAsk} /></LocaleContentGate>,
+    {searchShown && lazyDialog(search.close, <LocaleContentGate paths={['/guides', '/calendar', '/explore']}><QuickExplore open={search.open} initialQuery={search.query} restoreFocusRef={search.openerRef} onClose={search.close} onNavigate={props.navigate} onSearch={search.onSearch} onAsk={search.onAsk} /></LocaleContentGate>,
       <DismissibleChunkFallback label={t('正在打开搜索…', 'Opening search…')} onClose={search.close} restoreFocusRef={search.openerRef} />)}
 
     {(baybay.open || (baybay.loaded && !baybayAttempt.failed)) && lazyDialog(() => baybay.onOpenChange(false), <LocaleContentGate paths={['/calendar']}><BayBayAssistantEntry
@@ -149,7 +165,7 @@ export function OverlayHost(props: OverlayHostProps) {
       blockedUserIds={blockedUserIds}
       onNavigate={props.navigate}
       onCreatePostClick={baybay.onCreatePost}
-    /></LocaleContentGate>, baybay.open ? <DismissibleChunkFallback label={t('正在打开 BayBay…', 'Opening BayBay…')} onClose={() => baybay.onOpenChange(false)} restoreFocusRef={baybay.openerRef} /> : null,
+    /></LocaleContentGate>, baybay.open ? <DismissibleChunkFallback drawer label={t('正在打开 BayBay…', 'Opening BayBay…')} onClose={() => baybay.onOpenChange(false)} restoreFocusRef={baybay.openerRef} /> : null,
     { key: baybayAttempt.key, onFail: baybayAttempt.fail })}
 
     {props.login.open && lazyDialog(props.login.close, <LoginModal onClose={props.login.close} onLogin={props.login.onLogin} showToast={showToast} onForgotPassword={props.login.onForgotPassword} />)}
@@ -205,7 +221,7 @@ export function OverlayHost(props: OverlayHostProps) {
       showToast={showToast}
       blockedUserIds={blockedUserIds}
     />)}
-    {props.blockedUsers.open && user && lazyDialog(props.blockedUsers.close, <BlockedUsersModal isOpen onClose={props.blockedUsers.close} loadBlocks={api.getMyBlocks} onUnblock={props.blockedUsers.onUnblock} showToast={showToast} Avatar={Avatar} />)}
+    {props.blockedUsers.open && user && lazyDialog(props.blockedUsers.close, <BlockedUsersModal isOpen onClose={props.blockedUsers.close} loadBlocks={api.getMyBlocks} onUnblock={props.blockedUsers.onUnblock} showToast={showToast} />)}
     {props.report.target && lazyDialog(props.report.close, <ReportModal
       targetType={props.report.target.targetType}
       targetId={props.report.target.targetId}
@@ -213,7 +229,7 @@ export function OverlayHost(props: OverlayHostProps) {
       onClose={props.report.close}
       onSubmit={props.report.onSubmit}
     />)}
-    {props.image.src && lazyDialog(props.image.close, <ImageViewer src={props.image.src} onClose={props.image.close} />)}
+    {imageShown && viewerSrc && lazyDialog(props.image.close, <ImageViewer src={viewerSrc} closing={!props.image.src} onClose={props.image.close} />)}
     {props.share.post && lazyDialog(props.share.close, <PostShareSheet post={props.share.post} onClose={props.share.close} showToast={showToast} />)}
   </>;
 }

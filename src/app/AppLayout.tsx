@@ -36,6 +36,7 @@ import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry
 import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
 import { RouteSettled } from './RouteProgress';
+import { RouteArrival } from './route-arrival';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -668,6 +669,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="site-route-wait" aria-busy="true"><span className="site-route-progress" /></div>}>
         <BootMainSettled />
         <RouteSettled pathname={location.pathname} search={location.search} />
+        <RouteArrival />
         <Outlet context={ctx} />
       </Suspense>
     </SiteChrome>

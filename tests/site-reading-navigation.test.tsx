@@ -23,7 +23,7 @@ test('events and personal routes have one correct tab, while BayBay opens in one
   const view = render(<MemoryRouter><SiteMobileNavigation pathname="/events/festival" notificationCount={3} onAsk={() => asked++} /></MemoryRouter>);
   assert.equal(view.container.querySelectorAll('a').length, 4);
   assert.equal(view.container.querySelector('[aria-current=page]')?.getAttribute('href'), '/events');
-  fireEvent.click(view.getByRole('button', { name: '问 BayBay' })); assert.equal(asked, 1);
+  fireEvent.click(view.getByRole('button', { name: '问 BayBay（AI 助手）' })); assert.equal(asked, 1);
   assert.ok(view.getByLabelText('3 条未读消息'));
   view.rerender(<MemoryRouter><SiteMobileNavigation pathname="/messages/neighbor" notificationCount={0} onAsk={() => asked++} /></MemoryRouter>);
   assert.equal(view.container.querySelectorAll('[aria-current=page]').length, 1);
@@ -40,10 +40,11 @@ test('events and personal routes have one correct tab, while BayBay opens in one
   }
 });
 
-test('reading choices persist, initialize from a shared link, and close with restored focus', () => {
+test('reading choices persist, initialize from a shared link, and close with restored focus', async () => {
   const view = render(<ReadingPreferencesButton />);
   const trigger = view.getByRole('button', { name: '字号' }); trigger.focus(); fireEvent.click(trigger);
-  fireEvent.click(view.getByRole('button', { name: /特大/ }));
+  // The Aa sheet is its own chunk (UI9-NAV): it arrives after the tap.
+  fireEvent.click(await view.findByRole('button', { name: /特大/ }));
   assert.equal(getReadingSize(), 'extra-large');
   assert.equal(document.documentElement.dataset.reading, 'extra-large');
   assert.equal(dom.window.localStorage.getItem(READING_SIZE_KEY), 'extra-large');
@@ -55,11 +56,11 @@ test('reading choices persist, initialize from a shared link, and close with res
   dom.window.history.replaceState({}, '', '/');
 });
 
-test('简洁显示 is a 48px switch that persists, follows a family link, and can be switched off by one', () => {
+test('简洁显示 is a 48px switch that persists, follows a family link, and can be switched off by one', async () => {
   const view = render(<ReadingPreferencesButton />);
   fireEvent.click(view.getByRole('button', { name: '字号' }));
   // The name is the short label alone; the longer explanation is the description.
-  const toggle = view.getByRole('switch', { name: '简洁显示（适合长辈）', description: /全站文字至少 16 像素/ });
+  const toggle = await view.findByRole('switch', { name: '简洁显示（适合长辈）', description: /全站文字至少 16 像素/ });
   assert.equal(toggle.getAttribute('aria-checked'), 'false');
   fireEvent.click(toggle);
   assert.equal(toggle.getAttribute('aria-checked'), 'true');

@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { BookOpen, CalendarDays, Compass, Heart, MapPin, Search } from 'lucide-react';
+import { BookOpen, CalendarDays, Heart, MapPin, Search } from 'lucide-react';
 import { setPageMetadata } from '../lib/seo';
 import { translateText, useLocale } from '../i18n/locale';
 import { useApp } from '../app/context';
 import { LazyFeedbackLink } from '../features/feedback/LazyEntryLinks';
+import { preloadBayBay } from '../app/baybay-preload';
 import '../components/not-found.css';
 
 /**
- * A friendly 404 in three languages (WEB-SECONDARY-B): what happened, a search, the four places people usually want.
+ * A friendly 404 in three languages (WEB-SECONDARY-B; UI9-NAV content arrangement §9): on the 1216 frame at x = 112, left
+ * aligned in columns 1-8 — "404" as a 14px caption, the H1, one help line, a search, the four places people usually want
+ * (2 x 2 on a desktop), 回到首页 / 问 BayBay, 反馈与报错. No illustration (P32).
  * The event, offer, opening and guide pages render it for a missing id, so it stays inside their budgeted JS graphs: no
  * WEB-UI primitives here; not-found.css draws the same container, title and button specs (ui.css) with tokens.
  */
@@ -34,7 +37,6 @@ export default function NotFoundPage() {
   ];
   return <div className="nf-page">
     <section className="nf-hero" aria-labelledby="nf-title">
-      <span className="nf-icon" aria-hidden="true"><Compass strokeWidth={1.75} /></span>
       <p className="nf-code">404</p>
       <h1 id="nf-title">{t('没有找到这个页面', 'We couldn’t find this page')}</h1>
       <p className="nf-body">{t('链接可能有误，或内容已经移除。可以搜索一下，或从下面几个常用入口继续。', 'The link may be wrong, or the page was removed. Try a search, or pick up from one of the places below.')}</p>
@@ -51,7 +53,7 @@ export default function NotFoundPage() {
     </nav>
     <div className="nf-actions">
       <Link className="nf-button" data-variant="secondary" to="/">{t('回到首页', 'Back to home')}</Link>
-      {app?.openBayBay && <button type="button" className="nf-button" data-variant="secondary" onClick={() => app.openBayBay()}>{t('问 BayBay', 'Ask BayBay')}</button>}
+      {app?.openBayBay && <button type="button" className="nf-button" data-variant="secondary" onClick={() => app.openBayBay()} onPointerEnter={preloadBayBay} onFocus={preloadBayBay}>{t('问 BayBay', 'Ask BayBay')}</button>}
     </div>
     {/* A broken link someone followed is exactly what we want to hear about. */}
     <div className="nf-feedback"><LazyFeedbackLink /></div>
