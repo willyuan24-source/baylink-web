@@ -55,9 +55,10 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 .home-picks__all { align-self:flex-start; }
 .home-trust a { color:var(--color-brand); white-space:nowrap; }
 /* Below 768 the picks H2 and the share card's heading and sentence are for screen readers only: the share card is one
-   compact row of its two buttons (保存图片, 订阅日历). */
+   compact row of its two buttons (保存图片, 订阅日历), without the card's box so they fit one line in English too. */
 @media (max-width:767px) {
-  :is(.home-picks>.home-section-head,.home-share>:is(h2,p)) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .home-share { padding:0; background:none; }
+  :is(.home-picks>.home-section-head,.home-share :is(h2,p)) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover,.ui-type-cover) { border-radius:0; }
 }
@@ -136,7 +137,6 @@ html[data-date-stale] .home-discovery>.home-top>.home-picks::before { content:no
 .home-credits a { color:var(--color-brand); text-decoration:underline; }
 .home-credits .ui-cover-credit { flex-basis:100%; margin:0; }
 /* 简洁显示: the credit and licence links are 48px targets too (they sit in a list, not in a sentence). */
-html[data-simple] .home-credits li { align-items:center; }
 html[data-simple] .home-credits a { display:inline-flex; align-items:center; min-height:var(--control-height); }
 
 /* Rows (CSS only; the whole row is the card's link): the 简洁 picks and, at 大 / 特大, picks 2–3, the feed, offers and
