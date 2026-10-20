@@ -322,6 +322,9 @@ test('no wrapped title, meta, row or credit line starts with "·", in zh and in 
           for (const part of parts) assert.doesNotMatch(part.textContent!, loose, `${locale} ${slug}: ${part.textContent}`);
           if (locale === 'zh-Hans') for (const credit of doc.querySelectorAll('.bl-freebie-credit')) assert.match(credit.textContent!, /^(官方图|资料图|照片|BAYLINK 实拍)[^·]*(\u00a0· \d{4}( 往届)?)?$/, `${slug}: the credit line says what the picture is (G13): ${credit.textContent}`);
           if (locale === 'en') assert.ok([...doc.querySelectorAll('.bl-freebie-card-date')].some(date => /[a-z]\u00a0· through /.test(date.textContent!)), `${slug}: the translated date words keep the glue`);
+          // 本周有效: the results line's "· 本周有效至 10/25 周日" is glued to the count before it.
+          const week = new JSDOM(renderToStaticMarkup(<FreebieBoard offers={offers} today={today} initialDates="week" />)).window.document;
+          assert.match(week.querySelector('.bl-freebie-results span + span')!.textContent!, /^\u00a0· /, `${locale} ${slug}: the results line`);
         }
       }
     }

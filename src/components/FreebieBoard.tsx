@@ -295,7 +295,7 @@ export function FreebieBoard({ offers, today: suppliedToday, title = '先看条�
       {item.label} <span className="ui-chip__count">{kindCounts[item.value]}</span>
     </button>)}</div>
     <label className="bl-freebie-search"><span>搜索品牌、城市或福利</span><input type="search" value={query} onChange={event => setQuery(event.target.value)} placeholder="例如 Target、Lowe’s、手作、生日" /></label>
-    <p ref={resultsRef} className="bl-freebie-results" role="status" aria-live="polite"><span>显示 {visible.length} 项 · 日期按湾区当地时间</span>{window_ === 'week' && <span> · {t(`本周有效至 ${weekEndLabel}`, `valid through ${weekEndLabel}`)}</span>}</p>
+    <p ref={resultsRef} className="bl-freebie-results" role="status" aria-live="polite"><span>显示 {visible.length} 项 · 日期按湾区当地时间</span>{window_ === 'week' && <span>{SEP}{t(`本周有效至 ${weekEndLabel}`, `valid through ${weekEndLabel}`)}</span>}</p>
     {visible.length ? sections.map((section, index) => {
       const id = `${sectionId}-${section.kind || 'search'}`;
       const more = section.kind && section.offers.length > sectionSize;
