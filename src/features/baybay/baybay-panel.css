@@ -10,8 +10,8 @@
 /* The primitives the resets above would otherwise flatten (F's buttons and chips, C's card lines, F2's expander). */
 .baybay-conversation .ui-button { min-height:max(var(--control-height), 3rem); font-size:var(--fs-body); }
 .baybay-conversation .ui-chip { min-height:var(--control-height); font-size:var(--fs-meta); }
-.baybay-conversation .ui-card-when { color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.baybay-conversation :is(.ui-feed-card__meta,.ui-feed-card__trust,.ui-row-card__date,.ui-row-card__meta) { font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.baybay-conversation .ui-card-when { color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation :is(.ui-feed-card__meta,.ui-feed-card__trust,.ui-row-card__date,.ui-row-card__meta) { font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation :is(.ui-feed-card__meta,.ui-row-card__meta) { color:var(--color-ink-2); }
 .baybay-conversation .ui-feed-card__trust { color:var(--color-ink-3); }
 .baybay-conversation .ui-disclosure__summary { color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
@@ -49,7 +49,7 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .baybay-conversation .bb-head>.ui-close { grid-area:close; }
 .baybay-conversation .bb-head__text { grid-area:text; min-width:0; }
 .baybay-conversation .bb-head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; }
-.baybay-conversation .bb-head__sub { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.baybay-conversation .bb-head__sub { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .bb-head__new { grid-area:new; padding-inline:var(--sp-3); }
 @media (min-width:768px) { .baybay-conversation .bb-head { padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-5); } }
 /* 特大 and 简洁显示 on a phone: 新对话 moves under the title, so the h2 stays on one line and ✕ keeps its corner. */
@@ -62,7 +62,7 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
 .baybay-conversation .bb-welcome__line { margin:0; color:var(--color-ink-2); }
 .baybay-conversation .bb-capsule { display:flex; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
-.baybay-conversation .bb-capsule__text { flex:1; min-width:0; margin:0; padding-block:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); overflow-wrap:anywhere; }
+.baybay-conversation .bb-capsule__text { flex:1; min-width:0; margin:0; padding-block:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
 .baybay-conversation .bb-capsule__text>strong { color:var(--color-ink); font-weight:600; }
 .baybay-conversation .bb-capsule__off { display:grid; flex:none; place-items:center; width:var(--control-height); height:var(--control-height); border-radius:var(--r-circle); color:var(--color-ink-2); transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .baybay-conversation :is(.bb-chips,.bb-prompts,.bb-also ul,.baybay-followups ul,.baybay-plan-followups,.baybay-plan-citations) { margin:0; padding:0; list-style:none; }
@@ -70,8 +70,8 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .baybay-conversation .bb-chips--page .ui-chip { border-color:var(--color-brand); color:var(--color-brand-deep); }
 .baybay-conversation .bb-prompts { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3); }
 .baybay-conversation .bb-prompt { display:grid; align-content:start; gap:var(--sp-1); width:100%; height:100%; min-height:88px; padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-bg); color:var(--color-ink); text-align:start; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.baybay-conversation .bb-prompt__title { font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
-.baybay-conversation .bb-prompt__hint { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.baybay-conversation .bb-prompt__title { font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .bb-prompt__hint { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .bb-prompt:disabled { background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
 html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-prompts { grid-template-columns:minmax(0, 1fr); }
 @media (max-width:359px) { .baybay-conversation .bb-prompts { grid-template-columns:minmax(0, 1fr); } }
@@ -91,7 +91,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-composer-footer .baybay-composer-note { margin-bottom:var(--sp-2); }
 .baybay-conversation .member-baybay-composer { display:flex; align-items:flex-end; gap:var(--sp-2); padding:var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); }
 .baybay-conversation .member-baybay-composer:focus-within { outline:2px solid var(--color-brand); outline-offset:2px; }
-.baybay-conversation textarea.member-baybay-question-input { display:block; flex:1; min-width:0; min-height:max(3rem, var(--control-height)); padding:var(--sp-3) var(--sp-2); border:0; outline:none; resize:none; overflow-y:hidden; background:transparent; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation textarea.member-baybay-question-input { display:block; flex:1; min-width:0; min-height:max(3rem, var(--control-height)); padding:var(--sp-3) var(--sp-2); border:0; border-radius:var(--r-lg); outline:none; resize:none; overflow-y:hidden; background:transparent; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
 .baybay-conversation .member-baybay-question-input::placeholder { color:var(--color-ink-3); opacity:1; }
 .baybay-conversation .bb-send { flex:none; }
 
@@ -138,7 +138,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-assistant-plan { display:grid; gap:var(--sp-4); min-width:0; padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:anywhere; }
 .baybay-conversation .baybay-assistant-plan>header { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); }
 .baybay-conversation .baybay-assistant-plan>header>small { flex-basis:100%; color:var(--color-ink-2); font-size:var(--fs-meta); }
-.baybay-conversation .baybay-assistant-plan h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .baybay-assistant-plan h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .baybay-plan-status { flex:none; }
 html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; }
 @media (max-width:400px) { .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; } }
@@ -149,7 +149,7 @@ html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { 
 .baybay-conversation .baybay-plan-budget>small { color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-risk { color:var(--color-danger); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-key-unknowns { display:grid; gap:var(--sp-1); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); }
-.baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-assistant-plan) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-assistant-plan) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-plan-checks) ul { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); list-style:disc; font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-key-unknowns small { color:var(--color-ink-2); font-size:var(--fs-meta); }
 /* Stops: C's number plate (min 1.75em, one line) and a 1px rail down to the next stop. */
@@ -175,7 +175,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-p
 .baybay-conversation .baybay-plan-citations { display:grid; gap:var(--sp-1); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations a>span { display:inline-flex; align-items:center; gap:var(--sp-1); text-decoration:underline; text-underline-offset:.2em; }
-.baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); text-decoration:none; }
+.baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-ui); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations-none { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-swap { justify-self:start; padding-inline:0; }
 .baybay-conversation .baybay-plan-checks li { display:flex; align-items:flex-start; gap:var(--sp-2); }
@@ -200,13 +200,13 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-p
 .baybay-conversation :is(.baybay-outing-results,.bb-posts) { display:grid; gap:var(--sp-3); }
 .baybay-conversation .baybay-outing-results>header { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); }
 .baybay-conversation .baybay-outing-eyebrow { color:var(--color-ink-2); font-size:var(--fs-meta); }
-.baybay-conversation :is(.baybay-outing-results,.bb-posts) h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation :is(.baybay-outing-results,.bb-posts) h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .baybay-outing-filters { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
 .baybay-conversation .baybay-outing-filters>span { padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation :is(.baybay-outing-cards,.bb-posts__list) { display:grid; gap:var(--sp-2); }
 .baybay-conversation :is(.baybay-outing-card,.bb-post) { display:grid; gap:var(--sp-1); padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); text-decoration:none; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .baybay-conversation :is(.baybay-outing-card-top,.bb-post__top) { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); }
-.baybay-conversation :is(.baybay-outing-card-top,.bb-post__top) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation :is(.baybay-outing-card-top,.bb-post__top) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation :is(.baybay-outing-card-top,.bb-post__top)>svg { flex:none; color:var(--color-ink-3); }
 .baybay-conversation .baybay-outing-card>p,.baybay-conversation .bb-post__meta { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .bb-post__meta>span { display:inline-flex; align-items:center; gap:var(--sp-1); }
@@ -227,7 +227,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-p
 .baybay-conversation .bb-smart__head { display:flex; align-items:flex-start; gap:var(--sp-2); }
 .baybay-conversation .bb-smart__head>svg { flex:none; color:var(--color-brand); }
 .baybay-conversation .bb-smart__tag { display:inline-block; margin-bottom:var(--sp-1); padding:0 var(--sp-2); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--fs-badge); }
-.baybay-conversation .bb-smart h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-smart h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-smart__head p { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .bb-smart__items { display:grid; gap:var(--sp-1); margin:0; padding:0; list-style:none; font-size:var(--fs-meta); }
 .baybay-conversation .bb-smart__items button { display:flex; align-items:flex-start; gap:var(--sp-2); width:100%; min-height:var(--control-height); padding:var(--sp-2) 0; color:var(--color-ink); text-align:start; }
@@ -241,11 +241,11 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-p
 .baybay-conversation .baybay-discovery-heading small { color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:400; }
 .baybay-conversation .baybay-discovery-cards { display:grid; gap:var(--sp-3); }
 .baybay-conversation .baybay-discovery-cards article { position:relative; display:grid; grid-template-columns:2.5rem minmax(0, 1fr); gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
-.baybay-conversation .baybay-discovery-n.ui-plate { position:absolute; top:var(--sp-2); left:var(--sp-2); padding:0 var(--sp-1); font-size:var(--fs-badge); line-height:var(--lh-snug); }
+.baybay-conversation .baybay-discovery-n.ui-plate { position:absolute; top:var(--sp-2); left:var(--sp-2); padding:0 var(--sp-1); font-size:var(--fs-badge); line-height:var(--lh-ui); }
 .baybay-conversation .baybay-discovery-mark { margin-top:var(--sp-5); }
 .baybay-conversation .baybay-discovery-content { display:grid; gap:var(--sp-1); min-width:0; overflow-wrap:anywhere; }
 .baybay-conversation .baybay-discovery-content>small,.baybay-conversation .baybay-discovery-content :is(p,dd,dt) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
-.baybay-conversation .baybay-discovery-content h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .baybay-discovery-content h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .baybay-discovery-content dl { display:grid; grid-template-columns:auto minmax(0, 1fr); gap:0 var(--sp-3); margin:0; }
 .baybay-conversation .baybay-discovery-actions { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-4); margin:0; }
 .baybay-conversation .baybay-discovery-actions>a { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); }

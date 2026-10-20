@@ -16,7 +16,7 @@
 html[data-simple] .baybay-conversation :is(.bb-points>li,.bb-gap) { font-size:var(--text-reading); }
 .baybay-conversation .bb-answer--draft :is(.bb-lead,.bb-points>li) { color:var(--color-ink-2); white-space:pre-line; }
 /* [n]: C's number plate (brand fill, white tabular numeral, one line in every mode), sized to sit in the text */
-.baybay-conversation .bb-cite.ui-plate { display:inline-flex; margin-inline:var(--sp-1) 0; padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-snug); font-weight:600; text-decoration:none; vertical-align:.1em; white-space:nowrap; }
+.baybay-conversation .bb-cite.ui-plate { display:inline-flex; margin-inline:var(--sp-1) 0; padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-ui); font-weight:600; text-decoration:none; vertical-align:.1em; white-space:nowrap; }
 .baybay-conversation .bb-inline-link { color:var(--color-brand); font-size:inherit; text-decoration:underline; text-underline-offset:.2em; }
 .baybay-conversation .bb-more { justify-self:start; padding-inline:0; }
 .baybay-conversation .bb-read-aloud { flex:none; padding-inline:var(--sp-2); font-size:var(--fs-meta); }
@@ -27,8 +27,8 @@ html[data-simple] .baybay-conversation :is(.bb-points>li,.bb-gap) { font-size:va
 .baybay-conversation .bb-cards--loading>span { flex:0 0 min(16.5rem, 85%); aspect-ratio:3 / 2; border-radius:var(--r-lg); background:var(--color-surface-2); }
 .baybay-conversation .bb-card { display:grid; flex:0 0 min(16.5rem, 85%); gap:var(--sp-1); min-width:0; scroll-snap-align:start; }
 .baybay-conversation .bb-cards[data-count="1"] .bb-card { flex-basis:min(22rem, 100%); }
-.baybay-conversation .bb-card :is(.ui-feed-card__title,.ui-row-card__title) { display:block; overflow:visible; font-size:var(--fs-card); line-height:var(--lh-snug); }
-.baybay-conversation .bb-card__n.ui-plate { display:inline-flex; margin-inline-end:var(--sp-2); padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-snug); font-weight:600; vertical-align:.1em; white-space:nowrap; }
+.baybay-conversation .bb-card :is(.ui-feed-card__title,.ui-row-card__title) { display:block; overflow:visible; font-size:var(--fs-card); line-height:var(--lh-tight); }
+.baybay-conversation .bb-card__n.ui-plate { display:inline-flex; margin-inline-end:var(--sp-2); padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-ui); font-weight:600; vertical-align:.1em; white-space:nowrap; }
 .baybay-conversation .bb-card__meta { overflow-wrap:anywhere; }
 .baybay-conversation .bb-card .ui-save { min-width:0; }
 .baybay-conversation .bb-card__ended { margin:0; color:var(--color-ink-3); font-size:var(--fs-meta); }
@@ -39,22 +39,22 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-card 
 .baybay-conversation .bb-cards[data-layout=rows] .ui-row-card__thumb { width:7rem; height:7rem; }
 /* The cards' chunk could not load (offline, or a new deploy renamed it): the same listings as plain links */
 .baybay-conversation .bb-card-links { display:grid; margin:0; padding:0; list-style:none; }
-.baybay-conversation .bb-card-links a { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-snug); font-weight:600; text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
+.baybay-conversation .bb-card-links a { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:600; text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
 
 /* 911 first: the red emergency card (BBLIVE-09), its place, its red and its 56px call button unchanged; token values only */
 .baybay-conversation .bb-emergency { display:grid; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-danger); color:var(--color-surface); }
-.baybay-conversation .bb-emergency__title { margin:0; color:var(--color-surface); font-size:var(--fs-section); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-emergency__title { margin:0; color:var(--color-surface); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-emergency__call { display:flex; align-items:center; justify-content:center; gap:var(--sp-3); min-height:3.5rem; border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--fs-keep-20); line-height:var(--lh-tight); font-weight:600; text-decoration:none; }
 .baybay-conversation .bb-emergency__text { margin:0; color:var(--color-surface); font-size:var(--text-reading); line-height:var(--lh-read); white-space:pre-line; }
 .baybay-conversation .bb-call-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
-.baybay-conversation .bb-call { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:3rem; padding:0 var(--sp-4); border:1px solid var(--color-danger); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; text-decoration:none; transition:scale var(--dur-1) var(--ease-out); }
+.baybay-conversation .bb-call { display:inline-flex; align-items:center; gap:var(--sp-2); min-height:3rem; padding:0 var(--sp-4); border:1px solid var(--color-danger); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-danger); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:600; text-decoration:none; transition:scale var(--dur-1) var(--ease-out); }
 .baybay-conversation :is(.bb-call__number,.bb-phone-number) { white-space:nowrap; }
 .baybay-conversation .bb-call[data-primary] { background:var(--color-danger); color:var(--color-surface); }
 .baybay-conversation .bb-call-actions--emergency .bb-call { border-color:var(--color-surface); background:transparent; color:var(--color-surface); }
 
 /* Professional topics: official numbers and the pillar guide */
 .baybay-conversation .bb-resources { display:grid; gap:var(--sp-2); padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); }
-.baybay-conversation .bb-resources h4 { margin:0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-resources h4 { margin:0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-resources__note { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .bb-resources ul { display:grid; gap:var(--sp-1); margin:0; padding:0; list-style:none; }
 .baybay-conversation .bb-resources li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-1) var(--sp-2); }
@@ -84,22 +84,22 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-card 
 /* One sources block per answer (BBL-14, G79): "来源 · n 条"; opened, how they were found, the cited sources and guides */
 .baybay-conversation .bb-sources { display:grid; gap:var(--sp-2); padding-top:var(--sp-3); border-top:1px solid var(--color-line); }
 .baybay-conversation :is(.bb-sources__note,.bb-sources__line) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
-.baybay-conversation .bb-sources__details h4 { margin:var(--sp-3) 0 var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); font-weight:600; }
+.baybay-conversation .bb-sources__details h4 { margin:var(--sp-3) 0 var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-sources__list { display:grid; gap:var(--sp-1); margin:var(--sp-1) 0 var(--sp-2); padding-left:var(--sp-5); list-style:decimal; color:var(--color-ink-3); font-size:var(--fs-meta); }
 .baybay-conversation ul.bb-sources__list { list-style:disc; }
-.baybay-conversation .bb-sources__list a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-snug); text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
+.baybay-conversation .bb-sources__list a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
 
 /* Related guides inside the sources block: one compact row each (BBLIVE-13) with the 40px mark tile */
 .baybay-conversation .baybay-references { display:grid; gap:var(--sp-1); margin-top:var(--sp-1); }
 .baybay-conversation .baybay-references>h4 { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:600; }
 .baybay-conversation .bb-references-note { color:var(--color-ink-3); font-size:var(--fs-meta); }
 .baybay-conversation .bb-reference>small { display:block; margin-top:var(--sp-1); color:var(--color-ink-3); font-size:var(--fs-meta); }
-.baybay-conversation .bb-reference>button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:3rem; padding:var(--sp-1) 0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-snug); text-align:start; transition:scale var(--dur-1) var(--ease-out); }
+.baybay-conversation .bb-reference>button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:3rem; padding:var(--sp-1) 0; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); text-align:start; transition:scale var(--dur-1) var(--ease-out); }
 .baybay-conversation .bb-reference>button>span:nth-child(2) { flex:1; min-width:0; }
 .baybay-conversation .bb-reference>button>svg { flex:none; color:var(--color-ink-3); }
 .baybay-conversation .bb-reference__mark { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-brand); }
 .baybay-conversation .bb-reference ul { display:grid; gap:var(--sp-1); margin:0 0 var(--sp-2); padding-left:var(--sp-5); list-style:disc; }
-.baybay-conversation .bb-reference li>a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-snug); text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
+.baybay-conversation .bb-reference li>a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:underline; text-underline-offset:.2em; overflow-wrap:anywhere; }
 
 @media (hover:hover) and (pointer:fine) {
   .baybay-conversation .bb-reference>button:hover { color:var(--color-brand); }
