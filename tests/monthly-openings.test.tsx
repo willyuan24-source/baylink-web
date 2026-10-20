@@ -182,6 +182,10 @@ test('passing an announced date or month never silently promotes a forecast to o
   assert.equal(bakery.openedOn, undefined, 'verified operation does not invent a first-service date');
 });
 
+// An approved image published by the venue's operator rather than the merchant's own site (CNT-MEDIA-5): the Presidio Trust runs
+// The Mess Hall and credits Erin Ng's photo of Breadwinner's food on its page.
+const VENUE_OPERATOR_IMAGES: Readonly<Record<string, string>> = { 'mess-hall-presidio-breadwinner': 'presidio.gov' };
+
 test('opening cards show only attributable photos or posters; synthetic shop artwork becomes the information card', () => {
   const view = render(board());
   showAll(view);
@@ -206,7 +210,7 @@ test('opening cards show only attributable photos or posters; synthetic shop art
       assert.ok(img, `${shop.id} shows its own image`);
       assert.match(img.getAttribute('src')!, new RegExp(image.src.replace(/\.webp$/, '').replace(/[.*+?^${}()|[\]\\/]/g, '\\$&')));
       assert.ok(image.caption.trim() && image.credit.trim());
-      if (reviewed.has(shop.id)) assert.equal(new URL(image.creditUrl!).hostname, new URL(shop.officialUrl).hostname, `${shop.id} image is attributed to this merchant`);
+      if (reviewed.has(shop.id)) assert.equal(new URL(image.creditUrl!).hostname, VENUE_OPERATOR_IMAGES[shop.id] ?? new URL(shop.officialUrl).hostname, `${shop.id} image is attributed to this merchant`);
       const fit = article.querySelector('[data-cover="image"]')!.getAttribute('data-fit');
       assert.equal(fit, image.kind === 'poster' || image.fullFrame ? 'contain' : 'cover', `${shop.id}: posters and full-frame photos are never cropped`);
     } else {
@@ -221,7 +225,10 @@ test('opening cards show only attributable photos or posters; synthetic shop art
     const image = GUIDE_IMAGES[canonicalOpening(id).imageKey];
     assert.ok(image.kind === 'poster' || image.fullFrame, `${id} requires its complete artwork or photo`);
   }
-  for (const id of ['mess-hall-presidio-breadwinner', 'hijau-san-jose-storefront']) assert.equal(GUIDE_IMAGES[canonicalOpening(id).imageKey].kind, 'illustration');
+  // CNT-MEDIA-5 (owner approval 2026-10-19): these two now show official images, the Presidio Trust's photo of Breadwinner's food
+  // and Hijau Coffee's opening graphic from the page of the group that played its opening; both are labelled 官方图.
+  assert.equal(GUIDE_IMAGES[canonicalOpening('mess-hall-presidio-breadwinner').imageKey].kind, 'photo');
+  assert.equal(GUIDE_IMAGES[canonicalOpening('hijau-san-jose-storefront').imageKey].kind, 'poster');
   const brokenDreams = canonicalOpening('broken-dreams-oakland');
   assert.equal(brokenDreams.openedOn, '2026-08-10');
   assert.match(brokenDreams.editorTip, /周末暂休/);
