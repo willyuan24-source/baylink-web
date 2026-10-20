@@ -121,7 +121,8 @@ test('every offer and opening card has two meta lines; a sold-out offer prints �
   const marufuku = card(<OpeningFeedCard opening={official} cover={typeCover} today={today} />);
   assert.equal(marufuku.querySelector('.ui-feed-card__when .ui-status')!.getAttribute('data-tone'), 'open');
   assert.equal(marufuku.querySelector('.ui-feed-card__when')!.textContent, '10/11 已开业');
-  assert.equal(marufuku.querySelector('.ui-feed-card__meta')!.textContent, 'Burlingame\u00a0· 拉面');
+  // CNT-SIGNBOARD (web #54) gave each opening what it sells: Marufuku's 拉面 is now 博多豚骨拉面.
+  assert.equal(marufuku.querySelector('.ui-feed-card__meta')!.textContent, 'Burlingame\u00a0· 博多豚骨拉面');
   assert.match(marufuku.querySelector('.ui-feed-card__trust')!.textContent!, /^官网核对 \d+\/\d+$/);
   for (const shop of model.INDEX_OPENINGS) {
     const fragment = card(<OpeningFeedCard opening={shop} cover={typeCover} today={today} />);
@@ -130,22 +131,17 @@ test('every offer and opening card has two meta lines; a sold-out offer prints �
   }
 });
 
-test('the source line: a press label without the shop\'s own page is press; data and labels are untouched', () => {
+test('the source line: a label that starts with 媒体报道 · is press (the site\'s one prefix rule); data and labels are untouched', () => {
+  // UI9-INT (captain 10-20): press-only records carry the 「媒体报道 · 」 prefix in the data (web #54); every card tests
+  // that prefix, never a /报道/ or outlet regex (tests/ui9-int-press-rule.test.ts holds the cross-site cases).
   assert.equal(boards.pressSourced('媒体报道 · sfgate.com'), true);
-  assert.equal(boards.pressSourced('Eater SF · Hotel De Anza 餐饮预告'), true);
-  assert.equal(boards.pressSourced('The San Francisco Standard · 8 月 31 日'), true);
+  assert.equal(boards.pressSourced('媒體報導 · sfchronicle.com'), true);
   assert.equal(boards.pressSourced('Flora 官网；Eater SF 项目地址报道'), false, 'the shop\'s own page is named');
   assert.equal(boards.pressSourced('SFist 9/21 开门报道 · 品牌门店页交叉核对'), false);
+  assert.equal(boards.pressSourced('Nosh 9/8 试营业报道 · The Game Parlour 官网'), false);
   assert.equal(boards.pressSourced('Marufuku Burlingame 官方开业日期与地址'), false);
   assert.equal(boards.pressSourced('Westfield Valley Fair'), false);
-  // A bare 报道 is press: an outlet that is not listed never prints 「官网核对」; the official words still win.
-  for (const label of ['KQED 报道', 'Hoodline 报道', 'Mission Local 10/9 开业报道']) assert.equal(boards.pressSourced(label), true, label);
-  assert.equal(boards.pressSourced('Nosh 9/8 试营业报道 · The Game Parlour 官网'), false);
-  // Outlets match as whole words or hosts: labels that merely contain the letters ("theater", "pumpkinpatch") stay official.
-  for (const label of ['Polly Klaas Community Theater', 'pollyklaastheater.org', 'petalumapumpkinpatch.com', 'magicalglasspumpkinpatch.com', 'Greater Bay Area']) {
-    assert.equal(boards.pressSourced(label), false, label);
-  }
-  for (const label of ['sf.eater.com', 'https://patch.com/california/x', 'San Francisco Chronicle', 'sfchronicle.com']) assert.equal(boards.pressSourced(label), true, label);
+  for (const label of ['Polly Klaas Community Theater', 'petalumapumpkinpatch.com', 'The San Francisco Standard · Sundown Cinema']) assert.equal(boards.pressSourced(label), false, label);
   assert.equal(boards.openingSells('开业预告 · 社区餐酒馆'), '社区餐酒馆');
   assert.equal(boards.openingSells('已营业 · 澳式寿司卷'), '澳式寿司卷');
   assert.equal(boards.openingSells('拉面'), '拉面');
@@ -253,10 +249,13 @@ test('line 2 of an English opening card keeps what the shop sells after the lead
   await loadLocale('en');
   await setLocale('en', false);
   try {
-    const yutori = model.INDEX_OPENINGS.find(shop => shop.category === '新餐厅 · 日式晚餐');
+    // CNT-SIGNBOARD (web #54) rewrote every opening's category to what it sells, without a leading status word
+    // (Yutori: 新餐厅 · 日式晚餐 → 加州风味日本菜); the strip is still pinned on its own.
+    const yutori = model.INDEX_OPENINGS.find(shop => shop.id === 'yutori-palo-alto-restaurant');
     assert.ok(yutori);
     const meta = card(<OpeningFeedCard opening={yutori} cover={typeCover} today={today} />).querySelector('.ui-feed-card__meta')!.textContent!;
-    assert.match(meta, /· Japanese dinner$/);
+    assert.match(meta, /· California-style Japanese food$/);
+    assert.equal(boards.openingSells('新餐厅 · 日式晚餐'), '日式晚餐');
     assert.equal(boards.openingSells('Upcoming · Neighborhood pub and restaurant'), 'Neighborhood pub and restaurant');
   } finally { await setLocale('zh-Hans', false); }
 });
