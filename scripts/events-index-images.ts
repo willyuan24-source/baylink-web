@@ -22,8 +22,26 @@ export const INDEX_IMAGE_FIELDS: readonly string[] = [
 ];
 
 /**
- * A registry image as the index carries it: without the dropped fields, and with a structured rights record cut to what
- * the cover resolver reads (cover.ts rightsBasisOf: the basis; promoAllowed for share surfaces).
+ * What a listing reads from a caption, and nothing more: no list page prints a caption (the detail page has its own
+ * record). The capture year is the caption's first year (cover.ts captureYear, the badge's year), an official photo's
+ * edition is "2025 往届" as written (image-provenance.ts), and an archive word makes it 资料图. The index carries this
+ * signal instead of the sentence (UI-9 A+B engineering review: the 43 official images' captions were about 5 KiB gzip of
+ * /events and /calendar); tests/events-index-images.test.ts pins that every listing cover resolves to the same tier,
+ * badge and year as with the full caption.
+ */
+export function captionSignal(caption: string): string {
+  const year = caption.match(/(?:19|20)\d{2}/)?.[0];
+  const edition = caption.match(/(?:19|20)\d{2} ?年?往[届屆]/)?.[0];
+  // "2025 往届" already begins with the first year when they are the same year.
+  const parts = [year && !edition?.startsWith(year) ? year : undefined, edition].filter((part): part is string => !!part);
+  const archive = /资料|往届|archive|historical/i;
+  if (archive.test(caption) && !archive.test(parts.join(' '))) parts.push('资料');
+  return parts.join(' ');
+}
+
+/**
+ * A registry image as the index carries it: without the dropped fields, with a structured rights record cut to what
+ * the cover resolver reads (cover.ts rightsBasisOf: the basis; promoAllowed for share surfaces), and the caption's signal.
  */
 export const listingImage = (image: GuideImage): IndexImage => {
   const slim = Object.fromEntries(Object.entries(image).filter(([field]) => !INDEX_IMAGE_DROPPED_FIELDS.includes(field))) as IndexImage;
@@ -31,6 +49,7 @@ export const listingImage = (image: GuideImage): IndexImage => {
     const { basis, promoAllowed } = slim.rights;
     slim.rights = { basis, ...(promoAllowed !== undefined ? { promoAllowed } : {}) };
   }
+  if (typeof slim.caption === 'string') slim.caption = captionSignal(slim.caption);
   return slim;
 };
 
