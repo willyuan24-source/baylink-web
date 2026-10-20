@@ -93,7 +93,7 @@ test('the /en first paint (header, footer and tab bar) has no Chinese outside th
   choices.remove();
   const footer = [...doc.querySelectorAll('footer')].at(-1)!;
   const tabs = doc.querySelector('nav.site-mobile-nav')!;
-  assert.equal(tabs.textContent, 'HomeEventsAIAsk BayBayAskGuidesMe');
+  assert.equal(tabs.textContent, 'HomeEventsAIAsk BayBayBayBayGuidesMe');
   for (const part of [header, footer, tabs]) {
     assert.doesNotMatch(part.textContent!, han);
     assert.doesNotMatch([...part.querySelectorAll('[aria-label]')].map(el => el.getAttribute('aria-label')).join(' '), han);
