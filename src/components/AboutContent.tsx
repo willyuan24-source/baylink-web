@@ -85,7 +85,7 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
           <div><h3>{title}</h3><p>{text}</p></div>
         </li>)}
       </ol>
-      <p>{t('发现信息有误，请点详情页的「这条信息有误？」，或用页末的反馈与邮箱告诉我们。邻里信息由用户发布，联系前请核对发布者资料和实际情况。', 'If something is wrong, use “Something wrong here?” on the page, or the feedback button and email at the end of this page. Neighborhood posts come from members; check the poster and the details before you get in touch.')}</p>
+      <p>{t('发现信息有误，请点详情页的「这条信息有误？」，或用「联系与反馈」里的反馈与邮箱告诉我们。邻里信息由用户发布，联系前请核对发布者资料和实际情况。', 'If something is wrong, use “Something wrong here?” on the page, or the feedback button and email under Contact and feedback. Neighborhood posts come from members; check the poster and the details before you get in touch.')}</p>
     </section>
 
     <section className="about-section" aria-labelledby="about-uses-title">

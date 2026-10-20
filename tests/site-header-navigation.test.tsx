@@ -127,7 +127,7 @@ test('keyboard selection of a current or new destination restores visible focus 
   assert.deepEqual(menuOpenWhenFocusReturns, [true, true]);
 });
 
-test('the bottom bar names the assistant 问 BayBay (an AI helper), BayBay below 375 px; both labels sit directly in the button', async () => {
+test('the bottom bar names the assistant 问 BayBay (an AI helper), 问问 where it must shorten; both labels sit directly in the button', async () => {
   const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
   const { readFileSync } = await import('node:fs');
   const view = render(<MemoryRouter><SiteMobileNavigation pathname="/" notificationCount={0} onAsk={() => {}} /></MemoryRouter>);
@@ -135,7 +135,9 @@ test('the bottom bar names the assistant 问 BayBay (an AI helper), BayBay below
   const label = ask.querySelector('.site-mobile-ask-label')!;
   const short = ask.querySelector('.site-mobile-ask-short')!;
   assert.equal(label.textContent, '问 BayBay');
-  assert.equal(short.textContent, 'BayBay', 'P36: never 问问');
+  // Captain 10-20 (UI9-INT): the tab bar keeps today's behaviour, 问 BayBay in standard and 问问 where it must shorten
+  // (owner decision 18: 问问 only in the phone tab bar).
+  assert.equal(short.textContent, '问问');
   assert.equal(ask.querySelector('.site-mobile-icon .site-ai-tag')!.textContent, 'AI', 'A6: the otter carries the AI tag');
   assert.equal(short.getAttribute('aria-hidden'), 'true', 'the button keeps one accessible name');
   // The bar's label rule is for direct children (`.site-mobile-item>span`), so both labels sit in the button itself.
