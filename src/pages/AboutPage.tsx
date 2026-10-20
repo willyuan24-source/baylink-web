@@ -14,10 +14,9 @@ export default function AboutPage() {
   const { hash, key } = useLocation();
   useEffect(() => {
     if (!hash) return;
-    let target: HTMLElement | null = null;
-    try { target = document.getElementById(decodeURIComponent(hash.slice(1))); } catch { return; }
+    const target = document.getElementById(hash.slice(1));
     if (!target) return;
-    const frame = window.requestAnimationFrame(() => target?.scrollIntoView({ block: 'start', behavior: 'auto' }));
+    const frame = window.requestAnimationFrame(() => target.scrollIntoView({ block: 'start', behavior: 'auto' }));
     return () => window.cancelAnimationFrame(frame);
   }, [hash, key]);
   return <AboutContent onAskBayBay={() => openBayBay()} />;

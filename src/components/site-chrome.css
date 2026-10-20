@@ -59,9 +59,8 @@ html[data-simple] .site-app { --tool-size:48px; }
 .site-app :is(.site-navigation-more,.site-language,.site-account-menu)>summary::-webkit-details-marker { display:none; }
 .site-app .site-header-utilities { display:flex; flex:none; align-items:center; gap:var(--sp-1); margin-left:auto; }
 .site-app .site-reading-glyph { font-size:var(--fs-body); font-weight:var(--fw-regular); }
-.site-app .site-reading-label,.site-app .site-language-name { font-size:var(--fs-meta); }
 .site-app .site-reading-label-short { display:none; }
-.site-app .site-language { position:relative; flex:none; display:block; min-height:0; padding:0; border:0; background:transparent; }
+.site-app .site-language { position:relative; flex:none; }
 .site-app .site-language-short,.site-app .site-language-pair { display:none; }
 .site-app .site-topbar-actions { display:flex; flex:none; align-items:center; }
 .site-app .site-account-menu { position:relative; }
@@ -71,7 +70,6 @@ html[data-simple] .site-app { --tool-size:48px; }
 .site-app .site-command-placeholder,.site-app .site-command-kbd { display:none; }
 @media (min-width:1280px) {
   .site-app .site-topbar .site-command-trigger { justify-content:flex-start; gap:var(--sp-2); width:280px; margin-right:var(--sp-2); padding:0 var(--sp-2) 0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink-3); transition:border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-  .site-app .site-topbar .site-command-trigger:active { background:var(--color-surface); border-color:var(--color-ink-3); }
   .site-app .site-command-placeholder { display:block; flex:1; min-width:0; overflow:hidden; color:var(--color-ink-3); text-align:left; text-overflow:ellipsis; }
   .site-app .site-command-kbd { display:inline-block; flex:none; padding:0 var(--sp-2); border:1px solid var(--color-line-strong); border-radius:var(--r-sm); color:var(--color-ink-3); font-family:inherit; font-size:var(--fs-meta); line-height:var(--lh-ui); }
 }

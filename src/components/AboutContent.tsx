@@ -1,9 +1,10 @@
+import { Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { BadgeCheck, BookOpen, CalendarDays, Eye, FileSearch, Mail, RefreshCcw } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { FeedbackLink } from '../features/feedback/ReportErrorLink';
 import { Button } from './ui/Button';
-import { Disclosure } from './ui/Disclosure';
+import { lazyChunk } from '../lib/chunk-recovery';
 import { PageContainer, PageHeader } from './ui/PageHeader';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { preloadBayBay } from '../app/baybay-preload';
@@ -11,6 +12,8 @@ import { ProvenanceBadge } from './ui/Badges';
 import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from '../lib/image-provenance';
 
 const CONTACT_EMAIL = 'Baylink.us@gmail.com';
+// F's Disclosure folds 图片怎么标 in 简洁显示 only, so it loads with that mode instead of with every /about.
+const Disclosure = lazyChunk(() => import('./ui/Disclosure'), m => m.Disclosure);
 
 /**
  * The image labels readers meet on covers, written by the function that labels the covers (getImageProvenance), so this
@@ -104,7 +107,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
 
     <section className="about-section" aria-labelledby="about-images-title">
       <h2 id="about-images-title">{t('图片怎么标', 'How images are labelled')}</h2>
-      {simple ? <Disclosure className="about-images-more" summary={t('看图片标签的说明', 'See what the image labels mean')}>{imageNotes}</Disclosure> : imageNotes}
+      {simple ? <Suspense fallback={null}><Disclosure className="about-images-more" summary={t('看图片标签的说明', 'See what the image labels mean')}>{imageNotes}</Disclosure></Suspense> : imageNotes}
     </section>
 
     </div>

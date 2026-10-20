@@ -16,7 +16,6 @@
 .legal-doc li+li{margin-top:8px}
 .legal-doc a,.legal-related a{color:var(--color-brand);font-weight:600;text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
 @media (hover:hover) and (pointer:fine){.legal-doc a:hover,.legal-related a:hover{text-decoration-color:currentColor}}
-.legal-doc a:active,.legal-related a:active{color:var(--color-brand-hover)}
 .legal-related{display:flex;flex-wrap:wrap;gap:0 24px;margin-top:40px;padding-top:8px;border-top:1px solid var(--color-line)}
 .legal-related a{display:inline-flex;align-items:center;min-height:var(--control-height);font-size:var(--text-fact)}
 /* SMS consent: the opt-in flow screenshots and the disclosure shown beside the verification button. */

@@ -2,9 +2,8 @@
    1-8, the shared H1 spec, tokens only. The page is rendered inside the detail pages' budgeted graphs too, so it repeats
    the ui.css frame and its three button looks here instead of importing the primitives. */
 .nf-page{box-sizing:content-box;max-width:var(--container-wide);margin-inline:auto;padding:var(--sp-5) var(--page-gutter) 0;color:var(--color-ink)}
-.nf-hero,.nf-links,.nf-actions,.nf-feedback{max-width:48rem}
-.nf-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);min-height:max(var(--control-height),3rem);padding:0 var(--sp-5);border:1px solid transparent;border-radius:var(--r-pill);font-size:var(--fs-body);line-height:1.25;font-weight:var(--fw-regular);text-decoration:none;cursor:pointer;transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out)}
-.nf-button:active{scale:.97}
+.nf-page>*{max-width:48rem}
+.nf-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);min-height:max(var(--control-height),3rem);padding:0 var(--sp-5);border:1px solid transparent;border-radius:var(--r-pill);font-size:var(--fs-body);line-height:1.25;font-weight:var(--fw-regular);text-decoration:none;cursor:pointer}
 .nf-button[data-variant=primary]{background:var(--color-brand);color:var(--color-surface);font-weight:var(--fw-strong)}
 .nf-button[data-variant=secondary]{border-color:var(--color-line-control);background:var(--color-surface);color:var(--color-ink)}
 @media (hover:hover) and (pointer:fine){.nf-button[data-variant=primary]:hover{background:var(--color-brand-hover)}.nf-button[data-variant=secondary]:hover{background:var(--color-surface-2)}}
@@ -20,8 +19,8 @@
 .nf-search-field:focus-within{outline:2px solid var(--color-brand);outline-offset:2px}
 .nf-links{margin-top:var(--sp-5)}
 .nf-links ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-3);margin:0;padding:0;list-style:none}
-.nf-links a{display:flex;align-items:center;gap:var(--sp-3);min-height:4rem;padding:var(--sp-3) var(--sp-4);border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface);color:var(--color-ink);text-decoration:none;transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out)}
-.nf-links a:active{background:var(--color-surface-2);scale:.985}
+.nf-links a{display:flex;align-items:center;gap:var(--sp-3);min-height:4rem;padding:var(--sp-3) var(--sp-4);border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
+.nf-links a:active{background:var(--color-surface-2)}
 @media (hover:hover) and (pointer:fine){.nf-links a:hover{background:var(--color-surface-2);text-decoration-line:none}.nf-links a:hover strong{text-decoration:underline;text-underline-offset:.2em}}
 .nf-link-icon{display:grid;place-items:center;flex:none;width:2.5rem;height:2.5rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .nf-link-icon>svg{width:1.25rem;height:1.25rem}

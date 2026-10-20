@@ -6,7 +6,6 @@
 .about-page .ui-page-header__crumbs a{color:var(--color-ink-2);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.2em}
 .about-layout{display:grid;gap:var(--section-gap)}
 .about-main{display:grid;gap:var(--section-gap);min-width:0}
-.about-section{margin:0}
 .about-section>h2{margin:0 0 var(--stack-head);color:var(--color-ink);font-size:var(--fs-keep-20);line-height:var(--lh-tight);font-weight:var(--fw-strong);letter-spacing:0;text-wrap:balance}
 .about-section>p{max-width:var(--measure);margin:var(--sp-3) 0 0;color:var(--color-ink-2);font-size:var(--fs-body);line-height:var(--lh-ui)}
 .about-list{margin:0;padding:0;list-style:none}
@@ -17,8 +16,7 @@
 .about-icon{display:grid;place-items:center;width:2.25rem;height:2.25rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .about-icon>svg{width:1.25rem;height:1.25rem}
 .about-icon>img{width:1.5rem;height:1.5rem}
-.about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--fs-meta);line-height:var(--lh-snug);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em;cursor:pointer;transition:text-decoration-color var(--dur-2) var(--ease-std)}
-.about-link:active,.about-policies a:active,.about-more a:active{color:var(--color-brand-hover);text-decoration-color:currentColor}
+.about-link,.about-policies a,.about-more a{display:inline-flex;align-items:center;min-height:var(--control-height);padding:0;border:0;background:none;color:var(--color-brand);font-size:var(--fs-meta);line-height:var(--lh-snug);text-decoration:underline;text-decoration-color:var(--color-line-strong);text-underline-offset:.25em;cursor:pointer}
 @media (hover:hover) and (pointer:fine){.about-link:hover,.about-policies a:hover,.about-more a:hover{text-decoration-color:currentColor}}
 .about-section>.about-more{color:var(--color-ink-2);font-size:var(--fs-meta)}
 /* A separator travels with the link after it, so a line never ends on a lone " · " (PROD-W3). */
@@ -28,10 +26,8 @@ html[data-simple] .about-more{display:none}
 .about-labels>div{display:grid;grid-template-columns:minmax(0,11rem) minmax(0,1fr);gap:var(--sp-3);align-items:start}
 .about-labels dd{margin:0;color:var(--color-ink-2);font-size:var(--fs-meta);line-height:var(--lh-ui)}
 .about-page .about-badge{position:static;display:inline-block;max-width:100%;white-space:normal}
-.about-images-more{margin-top:var(--sp-1)}
 .about-contact{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2) var(--sp-5);margin-top:var(--sp-3)}
 .about-policies{margin:var(--sp-2) 0 0}
-.about-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
 @media(max-width:479px){.about-labels>div{grid-template-columns:1fr;gap:var(--sp-1)}}
 @media(min-width:1024px){
   .about-page{padding-block:var(--sp-6) 0}
@@ -40,9 +36,4 @@ html[data-simple] .about-more{display:none}
   /* Level with the H1: the breadcrumb line above it is the aside's top margin. */
   .about-aside{grid-column:9 / span 4;grid-row:1;margin-top:calc(var(--fs-badge) * 1.385 + var(--sp-2));padding:var(--inset-panel);border-radius:var(--r-lg);background:var(--color-surface-2)}
   .about-section>h2{font-size:var(--fs-section)}
-  .about-aside .about-section>h2{font-size:var(--fs-card)}
-  .about-list>li{grid-template-columns:2.75rem minmax(0,1fr);gap:var(--sp-4)}
-  .about-icon{width:2.75rem;height:2.75rem}
-  .about-icon>svg{width:1.375rem;height:1.375rem}
-  .about-icon>img{width:1.75rem;height:1.75rem}
 }
