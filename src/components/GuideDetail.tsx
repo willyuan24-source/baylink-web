@@ -23,8 +23,7 @@ import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
-import { linkifyPhones } from '../lib/phone-links';
-import { GuidePhoneText as PhoneText, PlainPhonesProvider, usePlainPhones } from '../features/guides/plain-phones';
+import { GuidePhoneText as PhoneText, linkifyGuidePhones, PlainPhonesProvider, usePlainPhones } from '../features/guides/plain-phones';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
 import { createCoverPage, type CoverPage } from '../lib/cover';
@@ -48,7 +47,7 @@ import { GuideCover, guideCaption } from '../features/guides/GuideCover';
 import { DeferredGuideTypeCover } from './ui/cover-defer';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuideCoverCredit, GuidePageImageCredits, GuideToTop } from '../features/guides/GuidePageParts';
-import { guideCallOf, guideCardLines, guideCover, guideEnglishDate, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
+import { editionState, guideCallOf, guideCardLines, guideCover, guideEnglishDate, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
 import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
 import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
@@ -115,7 +114,7 @@ function StepSection({ number, heading, id, conclusion, figures, children }: { n
   return <section className="gd-step" aria-labelledby={id}>
     <div className="gd-step__head">
       <span className="gd-step__number" aria-hidden="true">{number}</span>
-      <div><h2 id={id}><SegmentedTitle text={heading} /></h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion), { except })}</p>}</div>
+      <div><h2 id={id}><SegmentedTitle text={heading} /></h2>{conclusion && <p className="gd-step__conclusion">{linkifyGuidePhones(pick(conclusion), { except })}</p>}</div>
     </div>
     {/* H22: the step's diagram stays outside the fold, under its conclusion. */}
     {figures}
@@ -167,7 +166,8 @@ const GuideDetailSession = ({
     // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories;
     // QuickFactsBlock, loaded with the record of those guides only).
     const quickFacts = quickFactsEligible(guide, !!record.editorial);
-    return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related, today) };
+    // "Read next" never offers an edition past its last day (editionState; relatedForToday keeps the runtime month rule).
+    return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related.filter(card => editionState(card, today) !== 'past'), today) };
   }, [record, today]);
 
   if (!guide || !page)
@@ -265,7 +265,7 @@ const GuideDetailSession = ({
   const call = guideCallOf(editorial);
   const official = guide.sources[0];
   const sources = guideSourceCount(guide);
-  const archivedEdition = !!guide.editionMonth && (guide.editionThroughDate ? today > guide.editionThroughDate : today.slice(0, 7) > guide.editionMonth);
+  const archivedEdition = editionState(guide, today) === 'past';
 
   return (
     <PlainPhonesProvider value={plainPhones}>
@@ -286,7 +286,7 @@ const GuideDetailSession = ({
         </div>
         {/* The rail (desktop columns 10–12, sticky to the end of the sources): the bar's card and the 官方来源 link. On a phone
             the bar is fixed at the bottom and the link stays in the head's meta line. */}
-        <aside className="gd-rail" aria-label={t('这一页的操作', 'Actions for this page')}>
+        <aside className="gd-rail" aria-label={t('侧栏', 'Page tools')}>
           <div className="gd-rail__inner">
             <GuideActions guide={guide} call={call} official={official} onAsk={onAsk} />
             {sources > 0 && <a className="gd-rail__sources" href="#guide-sources">{t(`官方来源 ${sources} 个`, `${sources} official source${sources === 1 ? '' : 's'}`)}<ArrowDownRight aria-hidden="true" strokeWidth={1.75} /></a>}

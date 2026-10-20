@@ -8,7 +8,7 @@ import type { Guide } from '../../data/guides';
 import { guideTopicOf } from '../../data/guide-topics';
 import { translateText } from '../../i18n/locale';
 import { editionCoverageLabel } from '../../lib/edition-label';
-import { guideEnglishDate, guideReadMinutes, guideSourceCount, splitGuideTitle, topicCopy } from './guide-facts';
+import { editionState, guideEnglishDate, guideReadMinutes, guideSourceCount, splitGuideTitle, topicCopy } from './guide-facts';
 
 /**
  * The article head (design.md §4.10, GUIDE-03; UI9-GUIDES content arrangement): breadcrumb → H1 (the short part at title size,
@@ -27,10 +27,10 @@ export function GuideHeader({ guide, returnTo, today }: { guide: Guide; returnTo
   // G26: a guide built around a deals board is browsed, not read through; a reading time from its prose alone would
   // promise minutes for a list of a hundred cards, so its meta says what it is instead.
   const board = guide.blocks.some(block => block.type === 'freebies');
-  // A current monthly edition opens the first meta line ("2026 年 10 月本期"); a past one keeps its notice in the lead.
-  const current = !!guide.editionMonth && !!today && (guide.editionThroughDate ? today <= guide.editionThroughDate : today.slice(0, 7) <= guide.editionMonth)
-    && (!guide.editionStartDate || today >= guide.editionStartDate);
-  const edition = current ? editionCoverageLabel({ editionMonth: guide.editionMonth!, editionStartDate: guide.editionStartDate, editionThroughDate: guide.editionThroughDate }, locale) : '';
+  // A monthly edition opens the first meta line: a current one "2026 年 10 月本期", an upcoming one the days it covers ("适用
+  // 2026年11月26日至2027年1月1日"); a past one keeps its notice in the lead (editionState, the index uses the same answer).
+  const state = today ? editionState(guide, today) : undefined;
+  const coverage = state === 'current' || state === 'upcoming' ? editionCoverageLabel(guide, locale) : '';
   return <header className="gd-header">
     <nav className="gd-crumbs" aria-label={t('当前位置', 'Breadcrumb')}>
       <Link to={returnTo}><ChevronLeft aria-hidden="true" strokeWidth={1.75} />{t('指南', 'Guides')}</Link>
@@ -43,7 +43,7 @@ export function GuideHeader({ guide, returnTo, today }: { guide: Guide; returnTo
       {rest && <><span className="gd-title__sep">{separator}</span><span className="gd-title__rest">{english ? rest.charAt(0).toUpperCase() + rest.slice(1) : rest}</span></>}
     </h1>
     <p className="gd-meta">
-      {edition && <span className="gd-meta__item" data-edition="">{t(`${edition}本期`, `${edition} edition`)}</span>}
+      {coverage && <span className="gd-meta__item" data-edition={state}>{state === 'current' ? t(`${coverage}本期`, `${coverage} edition`) : t(`适用 ${coverage}`, `For ${coverage}`)}</span>}
       <span className="gd-meta__item">{t(`内容更新 ${guide.updatedAt}`, `Updated ${guideEnglishDate(guide.updatedAt)}`)}</span>
       <span className="gd-meta__item">{board ? t('优惠清单 · 可按条件筛选', 'Deals list · filter by condition') : t(`约 ${minutes} 分钟`, `${minutes} min read`)}</span>
     </p>

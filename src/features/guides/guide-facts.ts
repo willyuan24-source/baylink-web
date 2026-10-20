@@ -4,7 +4,6 @@ import { getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import type { Copy, CoverTone } from '../../lib/event-facts';
 import { getLocale } from '../../i18n/locale';
 import { coverFor, type GuideCall, type GuideCard } from './guide-records';
-import { guideKindOf } from './guide-kind';
 
 /**
  * Guide facts for the index (T2) and the article template (T7), computed from the published guide only: topics come from
@@ -86,14 +85,30 @@ export function guideCallOf(editorial: { cover: { phone?: { number: string; tel:
   return contact ? { number: contact.number, tel: contact.tel, label: { zh: contact.name.zh, en: contact.name.en } } : undefined;
 }
 
+/** A monthly edition's dates: its month, and the first / last day it covers when the guide names them. */
+export type GuideEdition = { editionMonth?: string; editionStartDate?: string; editionThroughDate?: string };
+
+/**
+ * Where a monthly edition stands on a Bay Area day (UI9-GUIDES; one answer for the head, the 往期 notice, the index rows, the
+ * previews and "Read next"): `past` after its last day (editionThroughDate, else the end of its month), `upcoming` before its
+ * first day (editionStartDate, else the start of its month), `current` in between; undefined for a guide without an edition.
+ */
+export function editionState(edition: GuideEdition, today: string): 'current' | 'upcoming' | 'past' | undefined {
+  const month = edition.editionMonth;
+  if (!month) return undefined;
+  if (edition.editionThroughDate ? today > edition.editionThroughDate : today.slice(0, 7) > month) return 'past';
+  if (edition.editionStartDate ? today < edition.editionStartDate : today.slice(0, 7) < month) return 'upcoming';
+  return 'current';
+}
+
 /**
  * The 2-line guide card meta (UI9-GUIDES, the index rows and "Read next"): line 1 the time, "[10 月本期 · ]约 4 分钟" (a current
- * monthly edition says so first); line 2 the sources, "10 个官方来源[ · 东湾]" (the region only when the guide names one).
- * `guideCardMeta` (one line) stays for the cards that still print one (home's GuideRail, C).
+ * monthly edition says so first, editionState); line 2 the sources, "10 个官方来源[ · 东湾]" (the region only when the guide
+ * names one). `guideCardMeta` (one line) stays for the cards that still print one (home's GuideRail, C).
  */
-export function guideCardLines(card: Pick<GuideCard, 'sourceCount' | 'readMinutes' | 'editionMonth'> & { regions?: readonly GuideRegionId[] }, today: string): { when: Copy; meta?: Copy } {
+export function guideCardLines(card: Pick<GuideCard, 'sourceCount' | 'readMinutes'> & GuideEdition & { regions?: readonly GuideRegionId[] }, today: string): { when: Copy; meta?: Copy } {
   const minutes = card.readMinutes, month = card.editionMonth;
-  const current = !!month && month === today.slice(0, 7);
+  const current = editionState(card, today) === 'current';
   const monthNumber = month ? Number(month.slice(5, 7)) : 0;
   const monthEn = month ? new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(2000, monthNumber - 1, 15))) : '';
   const when: Copy = current ? { zh: `${monthNumber} 月本期 · 约 ${minutes} 分钟`, en: `${monthEn} edition · ${minutes} min read` } : { zh: `约 ${minutes} 分钟`, en: `${minutes} min read` };
@@ -107,13 +122,12 @@ export function guideCardLines(card: Pick<GuideCard, 'sourceCount' | 'readMinute
 }
 
 /**
- * Index previews in season (UI9-GUIDES): guides whose monthly edition is the current Bay Area month come first, a past
- * edition never shows in a preview (it stays in its topic's full list), the rest keep their order.
+ * Index previews in season (UI9-GUIDES): current editions come first, a past edition never shows in a preview (it stays in
+ * its topic's full list), the rest keep their order.
  */
-export function inSeason<T extends Pick<GuideCard, 'editionMonth'>>(cards: readonly T[], today: string): T[] {
-  const month = today.slice(0, 7);
-  const live = cards.filter(card => !card.editionMonth || card.editionMonth >= month);
-  return [...live.filter(card => card.editionMonth === month), ...live.filter(card => card.editionMonth !== month)];
+export function inSeason<T extends GuideEdition>(cards: readonly T[], today: string): T[] {
+  const live = cards.filter(card => editionState(card, today) !== 'past');
+  return [...live.filter(card => editionState(card, today) === 'current'), ...live.filter(card => editionState(card, today) !== 'current')];
 }
 
 /** A guide date for English readers: '2026-10-06' → 'Oct 6, 2026' (the head meta line and the carousel cover). */
@@ -127,28 +141,4 @@ export const guideEnglishDate = (iso: string): string => {
 export function guideCover(card: Pick<GuideCard, 'slug' | 'covers'>, today: string, page?: CoverPage): ResolvedCover {
   const image = coverFor(card.covers, getLocale());
   return getCover({ kind: 'guide', id: card.slug, imageKey: image.src }, { images: () => image, today, page });
-}
-
-/**
- * The question BayBay starts with, by the guide's kind (H75): what to do first for a task, the half day for an outing, my city's
- * entry for a directory, what still works this week for a deals board; never a generic "出发前" prompt (GUIDE-10). School and
- * district guides keep the enrollment-steps prompt that asks only for area and grade, never a child's details (the same
- * wording and rule as bayBayPageQuestions' "整理入学步骤" in src/lib/baybay-conversation.ts, copied so the guide route
- * does not load the assistant module; the title goes in front so a /plan?q= link still names the guide). The guide's
- * 问 BayBay opens it as a draft the reader can edit (H32); it is never sent by itself.
- */
-export function guideBayBayQuestion(guide: Pick<Guide, 'slug' | 'category' | 'tags' | 'blocks'>, t: (zh: string, en: string) => string, title: string): string {
-  switch (guideKindOf(guide)) {
-    case 'school':
-      return t(`我正在读《${title}》。根据这篇学校与学区指南，帮我整理入学步骤、要到官网核实的时间和材料类别。只需了解地区与年级，不要让我在聊天中提交孩子个人资料或证件。`,
-        `I'm reading "${title}". Using this school and district guide, outline enrollment steps, dates to check on official websites and categories of required documents. Ask only for my area and grade, and do not ask me to submit a child's personal details or documents in chat.`);
-    case 'outing':
-      return t(`我正在读《${title}》。请根据这篇指南，帮我把半天怎么走排一下，并告诉我先要确认什么。`, `I'm reading "${title}". Using this guide, how should I plan the half day, and what should I confirm first?`);
-    case 'directory':
-      return t(`我正在读《${title}》。请根据这篇目录，帮我找我所在城市的官方入口和电话；先问我住在哪个城市。`, `I'm reading "${title}". Using this directory, find the official link and phone number for my city; ask me which city I live in first.`);
-    case 'deals':
-      return t(`我正在读《${title}》。请根据这篇优惠攻略，告诉我这周还能用哪些、分别要什么条件。`, `I'm reading "${title}". Using this deals guide, which offers can I still use this week, and what does each require?`);
-    default:
-      return t(`我正在读《${title}》。请根据这篇指南，告诉我第一步做什么、该联系谁、要准备什么。`, `I'm reading "${title}". Using this guide, what is my first step, who do I contact, and what should I prepare?`);
-  }
 }

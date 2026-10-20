@@ -5,7 +5,7 @@ import { SaveToWeek } from '../../components/SaveToWeek';
 import { Button } from '../../components/ui/Button';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
-import { guideBayBayQuestion } from './guide-facts';
+import { guideBayBayQuestion } from './guide-ask';
 import type { GuideCall } from './guide-records';
 import { localizedUrl, translateText } from '../../i18n/locale';
 import { rememberGuide } from '../../lib/reader-library';
@@ -56,10 +56,11 @@ export function GuideActions({ guide, call, official, onAsk }: { guide: Guide; c
     </button>
     {onAsk ? <button type="button" className="detail-actions__cell" data-cell="ask" aria-label={askLabel} onClick={() => onAsk(question, { mode: 'draft' })}>{ask}</button>
       : <a className="detail-actions__cell" data-cell="ask" aria-label={askLabel} href={`/plan?q=${encodeURIComponent(question)}`}>{ask}</a>}
-    {call ? <Button variant="primary" className={`${primary} gd-bar__call`} href={`tel:${call.tel}`} aria-label={t(`拨打 ${call.label.zh} ${call.number}`, `Call ${call.label.en} ${call.number}`)}
+    {call ? <Button variant="primary" className={`${primary} gd-bar__call`} href={`tel:${call.tel}`} data-long={call.number.length > 12 ? '' : undefined} aria-label={t(`拨打 ${call.label.zh} ${call.number}`, `Call ${call.label.en} ${call.number}`)}
       icon={<Phone aria-hidden="true" strokeWidth={1.75} />}><span className="gd-bar__verb">{t('拨打', 'Call')} </span><span className="gd-bar__number">{call.number}</span></Button>
       : official ? <Button variant="primary" className={primary} href={official.url} target="_blank" rel="noopener noreferrer" aria-label={t('官方入口（在新标签页打开）', 'Official site (opens in a new tab)')}>
         <span>{t('官方入口', 'Official site')}</span><span aria-hidden="true">↗</span></Button> : null}
   </div>
-  {status && <p className="gd-actions__status" role="status">{status}</p>}</>;
+  {/* Always mounted, so a message put in it is announced (guide-article.css hides it while empty). */}
+  {!app?.showToast && <p className="gd-actions__status" role="status">{status}</p>}</>;
 }

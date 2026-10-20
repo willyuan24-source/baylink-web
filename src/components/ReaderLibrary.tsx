@@ -58,6 +58,12 @@ export function ReadingShelfView({ compact = false, saved: savedList }: { compac
   const active = forcedSaved ? 'saved' : localTab || (saved.length ? 'saved' : 'recent');
   const entries = (active === 'saved' ? saved : recent).map(getGuideBySlug).filter((guide): guide is Guide => !!guide);
   if (!saved.length && !recent.length && (compact || !forcedSaved)) return null;
+  // ?view=saved with nothing saved and nothing read yet (a first visit, a guest): one line and the way to the elder band.
+  const hint = t('遇到喜欢的攻略，点一下文章里的「收藏」，下次从这里继续发现。', 'When a guide is worth keeping, tap Save in the article and find it here next time.');
+  const start = <Link className="reader-shelf-start" to="/guides?topic=elders">{t('先看「长辈与家属」指南', 'Start with guides for seniors and family')}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link>;
+  if (forcedSaved && !compact && savedList?.known && !saved.length && !recent.length) return <section className="reader-shelf reader-shelf--empty" aria-labelledby="reader-shelf-title">
+    <h2 id="reader-shelf-title">{t('还没有收藏', 'Nothing saved yet')}</h2><p className="reader-shelf-empty">{hint}</p>{start}
+  </section>;
   const switchTab = (next: 'saved' | 'recent') => {
     setLocalTab(next); setExpanded(false);
     if (forcedSaved && next !== 'saved') setParams(current => { const values = new URLSearchParams(current); values.delete('view'); return values; }, { replace: true, preventScrollReset: true });
@@ -72,7 +78,7 @@ export function ReadingShelfView({ compact = false, saved: savedList }: { compac
     {entries.length ? <div className="reader-shelf-grid">{entries.slice(0, expanded ? 80 : compact ? 3 : 6).map(guide => {
       const cover = getGuideMedia(guide).cover;
       return <div className="reader-shelf-item" key={guide.slug}><Link to={`/guides/${guide.slug}`}><img src={cover.src} srcSet={cover.srcSet} sizes="96px" alt="" width={96} height={76} loading="lazy" /><span><strong>{guide.title}</strong><small>{guide.categoryLabel} · {guide.readMinutes} 分钟</small></span></Link>{active === 'saved' && <button type="button" title="取消收藏" aria-label={`取消收藏：${guide.title}`} disabled={!savedList || savedList.busy(guide.slug)} onClick={() => savedList?.remove(guide.slug)}><X size={14} /></button>}</div>;
-    })}</div> : <p className="reader-shelf-empty">{t('遇到喜欢的攻略，点一下文章里的「收藏」，下次从这里继续发现。', 'When a guide is worth keeping, tap Save in the article and find it here next time.')}</p>}
+    })}</div> : active === 'saved' ? <><p className="reader-shelf-empty">{t('还没有收藏。', 'Nothing saved yet. ')}{hint}</p>{!compact && start}</> : <p className="reader-shelf-empty">{hint}</p>}
     {!compact && entries.length > 6 && <button type="button" className="reader-more" onClick={() => setExpanded(value => !value)}>{expanded ? '收起' : `查看全部 ${entries.length} 篇`}</button>}
     {!compact && <p className="reader-local-note">{t('收藏和「我的这周」是同一份，登录后跟着账号走；阅读记录只留在这个浏览器。', 'Saved guides are the same list as My Week and follow your account when you sign in. Reading history stays in this browser.')}{notice && <span role="status"> {notice}</span>}</p>}
   </section>;
