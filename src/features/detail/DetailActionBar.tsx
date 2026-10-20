@@ -13,7 +13,7 @@ import type { Favorite } from '../../lib/planner';
 export type DetailPrimary =
   | { kind: 'day'; stop: { kind: 'event'; id: string }; date: string; today: string }
   | { kind: 'plan'; to: string }
-  | { kind: 'official'; href: string; label: string };
+  | { kind: 'official'; href: string; label: string; /** Below 360 px at 大 / 特大 / 简洁显示 ("Claim", "Official"). */ short?: string };
 
 /**
  * The detail action bar (UI9-DETAIL; lanes/UI9-DETAIL/BAR-CONTRACT.md, owner decision 18): up to three cells, 收藏 · 发家人 ·
@@ -41,9 +41,10 @@ export function FamilyCell({ path, title }: { path: string; title: string }) {
   const { t } = useUiCopy();
   const app = useApp() as AppContextValue | undefined;
   const send = useFamilySend(path, title);
-  return <button type="button" className="detail-actions__cell" data-cell="family" aria-label={t('发给家人（大字版）', 'Send to family (large text)')}
+  // The name is the label on screen plus a hidden "（大字版）" (WCAG 2.5.3: 发家人 on a phone, 发给家人 on a desktop).
+  return <button type="button" className="detail-actions__cell" data-cell="family"
     onClick={() => void send().then(result => { if (result) app?.showToast(result.message, result.copied ? 'success' : 'info'); })}>
-    <Send aria-hidden="true" strokeWidth={1.75} /><span data-label="phone">{t('发家人', 'Family')}</span><span data-label="desk">{t('发给家人', 'Send to family')}</span>
+    <Send aria-hidden="true" strokeWidth={1.75} /><span data-label="phone">{t('发家人', 'Family')}</span><span data-label="desk">{t('发给家人', 'Send to family')}</span><span className="ui-visually-hidden">{t('（大字版）', ' (large text)')}</span>
   </button>;
 }
 
@@ -61,8 +62,20 @@ export function PrimaryAction({ primary, title }: { primary: DetailPrimary; titl
   const { t } = useUiCopy();
   if (primary.kind === 'day') return <div className="detail-actions__primary" data-day={primary.date}><AddToDayPlan stop={primary.stop} date={primary.date} today={primary.today} title={title} compact short /></div>;
   const shared = { variant: 'primary' as const, className: 'detail-actions__primary detail-action detail-action--primary' };
-  if (primary.kind === 'plan') return <Button {...shared} to={primary.to} icon={<CalendarPlus aria-hidden="true" strokeWidth={1.75} />}>{t('加入计划', 'Add to a plan')}</Button>;
-  return <Button {...shared} href={primary.href} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')}>
-    <span>{primary.label}</span><ArrowUpRight aria-hidden="true" strokeWidth={1.75} />
+  if (primary.kind === 'plan') {
+    const label = t('加入计划', 'Add to a plan');
+    return <Button {...shared} to={primary.to} icon={<CalendarPlus aria-hidden="true" strokeWidth={1.75} />} {...named(label, t('加入计划', 'Plan'))}><PrimaryLabel label={label} short={t('加入计划', 'Plan')} /></Button>;
+  }
+  return <Button {...shared} href={primary.href} target="_blank" rel="noopener noreferrer" onClick={() => recordProductEvent('official_source_click')} {...named(primary.label, primary.short)}>
+    <PrimaryLabel label={primary.label} short={primary.short} /><ArrowUpRight aria-hidden="true" strokeWidth={1.75} />
   </Button>;
+}
+
+/** The full label keeps the name where a shorter one shows (the short one is part of it: "Claim" in "How to claim"). */
+const named = (label: string, short?: string) => short && short !== label ? { 'aria-label': label } : {};
+
+/** The primary's label, and where it differs, a shorter one CSS shows below 360 px at 大 / 特大 / 简洁显示, so it never wraps. */
+function PrimaryLabel({ label, short }: { label: string; short?: string }) {
+  if (!short || short === label) return <span>{label}</span>;
+  return <><span data-label="full">{label}</span><span data-label="short">{short}</span></>;
 }

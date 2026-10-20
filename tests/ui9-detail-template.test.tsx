@@ -65,7 +65,13 @@ test('N18: the bar is cells, then the one primary, always last; 加入这天计�
     const cells = [...bar.children].slice(0, -1).map(cell => cell.getAttribute('data-cell'));
     const ended = key.includes('half-moon-bay');
     assert.deepEqual(cells, ended ? ['ask'] : ['save', 'family', 'ask'], `${key}: 收藏 · 发家人 · 问 BayBay, a cell that does not apply left out`);
-    assert.equal(bar.querySelector('[data-cell="family"]')?.getAttribute('aria-label') ?? '发给家人（大字版）', '发给家人（大字版）');
+    const family = bar.querySelector('[data-cell="family"]');
+    if (family) {
+      // WCAG 2.5.3: the name is the label on screen (发家人 / 发给家人) plus a hidden （大字版）, never a name without it.
+      assert.equal(family.hasAttribute('aria-label'), false, key);
+      assert.deepEqual([...family.querySelectorAll('span')].map(span => span.textContent), ['发家人', '发给家人', '（大字版）'], key);
+      assert.ok(family.querySelector('span:last-child')!.matches('.ui-visually-hidden'), key);
+    }
     // 官方页 ↗ is on the first screen once: the primary, or the facts card's 何时 / 开业 slot when the primary is not official.
     const slot = doc.querySelectorAll('[data-fact="when"] dt a.detail-fact__aside');
     assert.equal(slot.length, last.matches('a[target="_blank"]') ? 0 : 1, key);
@@ -149,6 +155,42 @@ test('何时 notes: one time style with the key (N06), the listing date note in 
   assert.match([...ended.querySelectorAll('.detail-fact__line')].map(line => line.textContent).join(' / '), /10\/17–18/);
 });
 
+test('the primary never wraps at 320 特大: a short label below 360 px at 大 / 特大 / 简洁显示, the full one kept as its name', async () => {
+  const { setLocale } = await import('../src/i18n/locale');
+  await setLocale('en', false);
+  try {
+    for (const [key, full, short] of [['offer:sfmoma-family-oct25', 'How to claim', 'Claim'], ['opening:marufuku-burlingame-announced', 'Add to a plan', 'Plan'], ['event:napa-harvest-after-dark-2026', 'Official page', 'Official']]) {
+      const primary = page(key).querySelector('.site-detail-actions .detail-actions__primary')!;
+      assert.equal(primary.getAttribute('aria-label'), full, key);
+      assert.equal(primary.querySelector('[data-label=full]')?.textContent, full, key);
+      assert.equal(primary.querySelector('[data-label=short]')?.textContent, short, key);
+    }
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
+  // Chinese labels are short already: one label, no second span, no aria-label.
+  const zh = page('offer:sfmoma-family-oct25').querySelector('.site-detail-actions .detail-actions__primary')!;
+  assert.equal(zh.querySelector('[data-label=short]'), null);
+  assert.equal(zh.hasAttribute('aria-label'), false);
+  const css = postcss.parse(readFileSync('src/components/local-discovery-detail.css', 'utf8'));
+  const shown: string[] = [];
+  css.walkRules(rule => { if (rule.selector.includes('[data-label=short]') && /display:\s*inline/.test(rule.toString()) && (rule.parent as { params?: string }).params?.includes('max-width:359px')) shown.push(rule.selector); });
+  assert.equal(shown.length, 1, 'the short label shows only below 360 px');
+  assert.match(shown[0], /data-reading=extra-large/);
+});
+
+test('ended pages: the notice link is a full target on its own line, and the lone 分享 is the source section\'s last line', () => {
+  const css = readFileSync('src/components/local-discovery-detail.css', 'utf8');
+  assert.match(css, /\.content-review-ended a \{ display:flex; width:fit-content; align-items:center; min-height:var\(--control-height\); \}/);
+  const doc = page('event:half-moon-bay-pumpkin-festival-2026');
+  assert.equal(doc.querySelector('section.detail-together'), null, 'no shell without 一起去');
+  const source = doc.querySelector('section.detail-source')!;
+  const row = source.querySelector(':scope > .detail-share')!;
+  assert.ok(row, 'the share row is in 来源与核对');
+  assert.equal(row.getAttribute('data-simple'), 'hide');
+  assert.equal(row.nextElementSibling, source.querySelector('#page-credits'), 'page credits stay last');
+});
+
 test('#page-credits lists every photo on the page, last in the source section; a type cover has no credit', () => {
   for (const key of DETAILS) {
     const doc = page(key);
@@ -179,6 +221,8 @@ test('简洁显示 subtracts: the dek, 想约人一起去 with the share row, th
 });
 
 test('rails: one card anatomy (3:2 cover, line 1 eventWhenLine, line 2 status · place, the ✓ line) and at most three rows', () => {
+  // Decision 20: FeedCard's own two-line title clamp on a rail card (no override here); a row card's title is never cut.
+  assert.doesNotMatch(readFileSync('src/components/local-discovery-detail.css', 'utf8'), /ui-feed-card__title[^}]*line-clamp/);
   const doc = page('event:half-moon-bay-pumpkin-festival-2026');
   const rail = doc.querySelector('section[aria-labelledby="detail-next-title"]')!;
   const cards = rail.querySelectorAll('.detail-rail__track .ui-feed-card');

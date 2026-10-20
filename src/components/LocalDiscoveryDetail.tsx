@@ -141,7 +141,8 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   const officialName = item.kind === 'opening' ? t('商家官网', 'Official site') : t('官方页', 'Official page');
   const primary: DetailPrimary = event && planDate && !closed ? { kind: 'day', stop: { kind: 'event', id: event.id }, date: planDate, today }
     : item.kind === 'opening' && record.placeId ? { kind: 'plan', to: `/plan?stops=place:${record.placeId}` }
-    : { kind: 'official', href: officialUrl, label: item.kind === 'offer' && !ended ? t('领取入口', 'How to claim') : officialName };
+    : item.kind === 'offer' && !ended ? { kind: 'official', href: officialUrl, label: t('领取入口', 'How to claim'), short: t('领取入口', 'Claim') }
+    : { kind: 'official', href: officialUrl, label: officialName, short: item.kind === 'opening' ? t('商家官网', 'Official') : t('官方页', 'Official') };
   const factsLink = primary.kind === 'official' ? undefined : { href: officialUrl, label: officialName };
   const live = !ended && !unconfirmed;
   const favorite = item.kind === 'event' ? { kind: 'event' as const, id: item.event.id } : item.kind === 'offer' ? { kind: 'offer' as const, id: item.offer.id } : { kind: 'opening' as const, id: item.shop.id };
@@ -153,6 +154,11 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
   </>;
   const facts = item.kind === 'event' ? <EventFacts event={item.event} today={today} official={factsLink} />
     : item.kind === 'offer' ? <OfferFacts offer={item.offer} official={factsLink} /> : <OpeningFacts shop={item.shop} today={today} official={factsLink} />;
+  // The share row: under 想约人一起去's rule, or the source section's last line where there is no 一起去 (an ended page).
+  // 简洁显示 hides it either way.
+  const shareRow = <div className="detail-share" data-simple="hide"><EditorialShareActions item={share} card={!eventOver && !offerOver}>
+    {event && planDate && <Button variant="quiet" className="detail-calendar" onClick={() => downloadEventCalendar(event, planDate)} icon={<CalendarDays aria-hidden="true" strokeWidth={1.75} />}>{t('存入日历', 'Add to calendar')}</Button>}
+  </EditorialShareActions></div>;
   const planLines = event ? readerPlanLines(event).filter(line => readerProse(line, locale)) : [];
   const nextCards = event && eventOver ? railEvents(event, record.rail, today, { sameCategory: false, limit: 4 }) : [];
   const relatedCards = event && !eventOver ? railEvents(event, record.rail, today, { sameCategory: true, limit: 3 }) : [];
@@ -215,23 +221,23 @@ function DiscoveryArticle({ record, today }: { record: DetailRecord; today: stri
             <HeroCaption cover={cover} />
             {event?.relatedGuideSlug && <MoreLink className="discovery-related" to={`/guides/${event.relatedGuideSlug}`}>{t('搭配一篇本地攻略', 'Read a related local guide')}</MoreLink>}
             <LazyReportErrorLink entity={{ kind: item.kind, id: share.id }} title={share.title} />
+            {!together && shareRow}
             <PageCredits photos={photos} />
           </section>
 
-          {/* 想约人一起去？: one shell on every kind; the share row (分享 · 分享卡片 · 存入日历) under its rule. No primary here. */}
-          <section className="detail-together" data-simple="hide" {...together ? { 'aria-labelledby': 'detail-together-title' } : { 'aria-label': t('分享与日历', 'Share and calendar') }}>
+          {/* 想约人一起去？: one shell on every page with 一起去; the share row (分享 · 分享卡片 · 存入日历) under its rule. No
+              primary here. An ended page has no 一起去, so its lone 分享 is the source section's last line instead. */}
+          {together && <section className="detail-together" data-simple="hide" aria-labelledby="detail-together-title">
             {/* Flat children, no nested fragments: LocalizedHost clones a fragment child, and a cloned fragment inside another
                 one loses its key validation (the SSR "unique key" warning). */}
-            {together && <h2 id="detail-together-title">{t('想约人一起去？', 'Going with others?')}</h2>}
-            {together && event && <div id="event-participation" className="discovery-participation-anchor">{unknownToApi
+            <h2 id="detail-together-title">{t('想约人一起去？', 'Going with others?')}</h2>
+            {event && <div id="event-participation" className="discovery-participation-anchor">{unknownToApi
               ? <p className="event-participation-note">{t('这场活动暂时还不能公开想去或约人一起去，请稍后再来看看。', 'Sharing interest and finding people to go with are not open for this event yet. Please check back later.')}</p>
               : <EventParticipationActions event={event} today={today} available={!ended} />}</div>}
-            {together && event && !unknownToApi && <SquadTeaser eventId={event.id} />}
-            {together && !event && <Button variant="secondary" className="detail-together__go" to={`/together?${new URLSearchParams({ coverKind: item.kind, coverId: share.id })}`} icon={<Users aria-hidden="true" strokeWidth={1.75} />}>{t('一起去', 'Go together')}</Button>}
-            <div className="detail-share"><EditorialShareActions item={share} card={!eventOver && !offerOver}>
-              {event && planDate && <Button variant="quiet" className="detail-calendar" onClick={() => downloadEventCalendar(event, planDate)} icon={<CalendarDays aria-hidden="true" strokeWidth={1.75} />}>{t('存入日历', 'Add to calendar')}</Button>}
-            </EditorialShareActions></div>
-          </section>
+            {event && !unknownToApi && <SquadTeaser eventId={event.id} />}
+            {!event && <Button variant="secondary" className="detail-together__go" to={`/together?${new URLSearchParams({ coverKind: item.kind, coverId: share.id })}`} icon={<Users aria-hidden="true" strokeWidth={1.75} />}>{t('一起去', 'Go together')}</Button>}
+            {shareRow}
+          </section>}
           {event && !eventOver && <DetailRail id="detail-related-title" hideInSimple title={english ? 'More upcoming events nearby' : translateText('附近同类活动的下一场', locale)}
             note={english ? 'Confirmed sessions in the same city first, then the same region. Check the organizer before going.' : translateText('先看同城，再看同区域的已确认场次；出发前请核对主办方安排。', locale)}
             cards={relatedCards} covers={relatedCovers} today={today} />}

@@ -3,7 +3,7 @@
    tab bar. Desktop: F's 12-column grid, main 8 + a sticky aside 4 (the facts card, the action card). Rhythm: --section-gap
    between sections, --stack-head under headings, text at --measure. Tokens only; 400 / 600; 44 px targets (48 in
    简洁显示). Loaded globally after tokens.css (src/main.tsx), so selectors start at .local-discovery-detail. */
-.local-discovery-detail { width:min(100%,76rem); margin-inline:auto; padding-bottom:var(--sp-6); color:var(--color-ink); }
+.local-discovery-detail { width:min(100%,76rem); margin-inline:auto; color:var(--color-ink); }
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:var(--page-gutter); }
 .local-discovery-detail .detail-back { display:flex; align-items:center; min-height:var(--control-height); padding-inline:var(--sp-2); }
 .local-discovery-detail .detail-back a { display:inline-flex; align-items:center; gap:2px; min-height:var(--control-height); padding-inline:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-body); }
@@ -36,6 +36,7 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 .local-discovery-detail .detail-dek { font-size:var(--fs-reading); line-height:var(--lh-ui); }
 .local-discovery-detail :is(.detail-note,.content-review-ended) { max-width:var(--measure); margin-top:var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .local-discovery-detail .content-review-ended p { margin:0; }
+.local-discovery-detail .content-review-ended a { display:flex; width:fit-content; align-items:center; min-height:var(--control-height); }
 .local-discovery-detail .content-review-ended strong { color:var(--color-ink); font-weight:600; }
 .local-discovery-detail .detail-next-link { margin-top:var(--sp-2); }
 
@@ -89,7 +90,7 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 .local-discovery-detail .detail-squad { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); margin-top:var(--sp-2); color:var(--color-brand); font-size:var(--fs-body); }
 .local-discovery-detail .detail-squad svg { flex:none; width:1.25rem; height:1.25rem; }
 .local-discovery-detail .detail-share { margin-top:var(--sp-4); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
-.local-discovery-detail .detail-together>.detail-share:first-child { margin:0; padding:0; border:0; }
+.local-discovery-detail :is(.detail-together>.detail-share:first-child,.detail-source>.detail-share) { margin:0; padding:0; border:0; }
 
 /* Rails: 172 px feed cards in a scroller on a phone (16 px scroll padding: no card at the edge); a row on a desktop (3-up,
    4-up for the ended page's four). At 特大 and in 简洁显示 the row cards instead: a vertical list, never sideways. */
@@ -97,8 +98,7 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 .local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:10.75rem; gap:var(--sp-3); margin-inline:calc(-1 * var(--page-gutter)); padding:var(--sp-1) var(--page-gutter) var(--sp-2); overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scroll-padding-inline:var(--page-gutter); }
 .local-discovery-detail .detail-rail__track>* { scroll-snap-align:start; }
 .local-discovery-detail .detail-rail__rows { display:none; }
-/* Rail titles: up to three lines on a feed card, never cut in a row (owner decision 20). */
-.local-discovery-detail .detail-rail .ui-feed-card__title { -webkit-line-clamp:3; }
+/* Rail titles: FeedCard's two lines on a card, never cut in a row (owner decision 20). */
 .local-discovery-detail .detail-rail .ui-row-card__title { display:block; overflow:visible; }
 html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__track { display:none; }
 html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__rows { display:grid; gap:var(--sp-3); }
@@ -118,7 +118,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:56px; height:56px; min-height:0; padding:0 var(--sp-2); border:0; border-radius:var(--r-md); background:none; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:1.2; white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
 .site-detail-actions.detail-actions :is(.detail-actions__cell svg,.detail-actions__cell img) { flex:none; width:1.5rem; height:1.5rem; }
 .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):active { scale:.94; background:var(--color-surface-2); }
-.site-detail-actions.detail-actions :is([data-label=desk],[data-label=tight]) { display:none; }
+.site-detail-actions.detail-actions :is([data-label=desk],[data-label=tight],[data-label=short]) { display:none; }
 .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { width:100%; min-height:3rem; padding:0 var(--sp-4); border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-body); font-weight:600; white-space:nowrap; }
 .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day>svg { color:currentColor; }
 .site-detail-actions.detail-actions .detail-actions__primary .saves-day { display:flex; width:100%; }
@@ -143,14 +143,16 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
-   labels keep the caption step they had, and a primary wider than its cell breaks in balance (加入这 / 天计划) until the
-   shorter 加入计划 label exists (UI9-INT, AddToDayPlan). */
+   labels keep the caption step they had and the primary shows its short label ("Claim ↗", "Plan"; the name keeps the full
+   one). AddToDayPlan's 加入这天计划 still breaks in balance (加入这 / 天计划) until its shorter label exists (UI9-INT). */
 @media (max-width:359px) {
   .site-detail-actions.detail-actions { padding-inline:var(--sp-1); }
   .site-detail-actions.detail-actions [data-label=long] { display:none; }
   .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { font-size:var(--fs-badge); }
   .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-wrap:balance; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
   .local-discovery-detail .detail-head h1 .title-keep { white-space:normal; }
 }
 
@@ -166,7 +168,7 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
    facts card, then the action card). The aside comes between the two blocks in the DOM, so a phone reads the facts under
    the H1. At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. */
 @media (min-width:1024px) {
-  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) var(--sp-8); }
+  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
   .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
   .local-discovery-detail .detail-back { margin-bottom:var(--sp-2); }
   .local-discovery-detail .detail-layout { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); align-items:start; }
@@ -177,8 +179,11 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .local-discovery-detail .detail-hero figcaption { padding-inline:0; }
   .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-lg); }
   .local-discovery-detail .detail-facts-card { margin-top:0; }
-  .site-detail-actions.detail-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--sp-2); margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); }
+  .site-detail-actions.detail-actions { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:var(--sp-2); margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); }
   .site-detail-actions.detail-actions>.detail-actions__primary { grid-column:1 / -1; order:-1; }
+  /* Six tracks: three cells take two each, two cells three each (a waiting event has no 收藏), a lone cell the row. */
+  .site-detail-actions.detail-actions>.detail-actions__cell { grid-column:span 2; }
+  .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3),.site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3)~.detail-actions__cell { grid-column:span 3; }
   .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(2) { grid-column:1 / -1; }
   .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; border:1px solid var(--color-line-control); background:var(--color-surface); color:var(--color-ink); white-space:normal; }
   .site-detail-actions.detail-actions [data-label=desk] { display:inline; }
