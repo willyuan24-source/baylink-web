@@ -95,12 +95,12 @@ function RelatedGuides({ related, coverPage, today, topic, onOpenGuide }: { rela
     </div>
     <ul className="gd-related__rows" data-simple="hide" aria-label={t('相关指南', 'Related guides')}>{related.slice(0, 3).map((guide, index) => <li key={guide.slug}>
       <RowCard title={translateText(guide.title, locale)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={<GuideCover guide={guide} cover={covers[index]} ratio="1:1" mini sizes={COVER_SIZES.thumb} />}
+        thumb={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} />}
         when={pick(lines[index].when)} meta={lines[index].meta && pick(lines[index].meta)} />
     </li>)}</ul>
     <div className="gd-related__grid" data-simple="hide"><FeedGrid label={t('相关指南', 'Related guides')}>{related.map((guide, index) => <FeedItem key={guide.slug}>
       <FeedCard title={translateText(guide.title, locale)} titleShown={guideCaption(guide, locale, covers[index])} titleLang={english ? 'en' : undefined} heading="h3" to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        cover={<GuideCover guide={guide} cover={covers[index]} ratio="3:2" sizes={COVER_SIZES.feed} />}
+        cover={<GuideCover guide={guide} cover={covers[index]} face={DeferredGuideTypeCover} ratio="3:2" sizes={COVER_SIZES.feed} />}
         when={pick(lines[index].when)} meta={lines[index].meta && pick(lines[index].meta)} />
     </FeedItem>)}</FeedGrid></div>
     <p className="gd-related__topic" data-simple="show"><Link to={`/guides?topic=${topic}`}>{t(`更多「${pick(topicCopy(topic))}」指南`, `More ${pick(topicCopy(topic))} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Link></p>

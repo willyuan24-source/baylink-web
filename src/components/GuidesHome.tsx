@@ -160,6 +160,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const photo = (guide: GuideIndexCard) => { const cover = covers.get(guide.slug); return !!cover && cover.tier !== 'type'; };
 
   const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
+  // A photo thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard keeps its own badge.
+  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'type' && cover.tier !== 'scene3d' ? pick(cover.label) : undefined;
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
   const lines = (guide: GuideIndexCard) => { const { when, meta } = guideCardLines(guide, today); return { when: pick(when), meta: meta && pick(meta) }; };
@@ -169,8 +171,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const { when, meta } = lines(guide);
     return <>
       <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
-        when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} />
+        thumb={cover ? <GuideCover guide={guide} cover={cover} face={GuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
+        when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} credit={rowCredit(cover)} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
       {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
         aria-label={t(`拨打 ${guide.call.number}：${guideTitle(guide)}`, `Call ${guide.call.number}: ${guideTitle(guide)}`)}>
@@ -182,7 +184,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <FeedCard title={guideTitle(guide)} titleShown={cover ? guideCaption(guide, locale, cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} face={GuideTypeCover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
   };
   const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string } = {}) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;
