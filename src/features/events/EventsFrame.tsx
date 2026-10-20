@@ -129,8 +129,8 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
         </div>
         <p className="ev-lede-facts" {...scope}>
           {/* a no-break space before each "·", so a wrapped line never starts with one (N06), and in English one inside a date
-              ("Oct 16"), so a wrap never splits it */}
-          {[counts, promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2')}
+              ("Oct 16"), so a wrap never splits it; an English line that opens on the promise (/calendar) starts with a capital */}
+          {[counts, promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2').replace(/^[a-z]/, letter => letter.toUpperCase())}
           <span className="ev-lede-facts__how"><span aria-hidden="true">{'\u00a0· '}</span><MoreLink to="/about#about-method-title">{t('我们怎么核对', 'How we check')}</MoreLink></span>
         </p>
       </header>

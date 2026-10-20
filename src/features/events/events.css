@@ -223,9 +223,10 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-calendar__head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); margin:0 0 var(--stack-head); }
 .ev-calendar__head .ev-section-title { margin:0; }
 .ev-calendar__count { color:var(--color-ink-2); font-size:var(--fs-section); font-weight:400; }
-/* 列表 | 地图 in the view row's segmented look (the current one an ink fill). */
+/* 列表 | 地图 in the view row's segmented look (the current one an ink fill). Each item is as wide as its label: the
+   primitive's even 1 1 0 split of a box sized to both labels cut the English "Map" to "M…". */
 .ev-calendar__mode { flex:none; }
-.ev-calendar__mode .ui-segmented__item { padding:0 var(--sp-4); }
+.ev-calendar__mode .ui-segmented__item { flex:1 0 auto; padding:0 var(--sp-4); }
 .ev-calendar__mode .ui-segmented__item[aria-checked=true] { border-color:transparent; background:var(--color-ink); color:var(--color-surface); font-weight:400; }
 .ev-cities { margin:0 0 var(--sp-3); }
 html:is([data-reading=large],[data-reading=extra-large]) .ev-cities__top:not([aria-pressed=true]) { display:none; }

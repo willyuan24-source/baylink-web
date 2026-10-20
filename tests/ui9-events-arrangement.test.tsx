@@ -347,8 +347,22 @@ test('events.css and cards.css: hover gated, no font-size literals, spacing on t
   const cards = readFileSync('src/components/ui/cards.css', 'utf8');
   assert.doesNotMatch(cards.match(/\.ui-feed-card__title \{[^}]*\}/)![0], /line-clamp/);
   assert.doesNotMatch(cards.match(/\.ui-row-card__title \{[^}]*\}/)![0], /line-clamp/);
+  // 列表 | 地图: each item as wide as its label, so the English "Map" is never cut to "M…" beside "List".
+  assert.match(readFileSync('src/features/events/events.css', 'utf8'), /\.ev-calendar__mode \.ui-segmented__item \{ flex:1 0 auto;/);
   const events = readFileSync('src/features/events/events.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
   const spacing = [...events.matchAll(/(?:^|[;{\s])(?:margin|padding|gap|row-gap|column-gap)(?:-[a-z-]+)?:([^;}]+)/g)].flatMap(match => match[1].trim().split(/\s+(?![^(]*\))/));
   const onSteps = spacing.filter(value => /^(0|auto|var\(--(sp-\d|section-gap|stack-head|grid-gutter|page-gutter)\)|calc\(-1 \* var\(--(page-gutter|sp-\d)\)\))$/.test(value)).length;
   assert.ok(onSteps / spacing.length >= .9, `${onSteps}/${spacing.length} spacing values on steps`);
+});
+
+test('English /calendar: the facts line opens with a capital (it starts on the promise), and keeps its dates whole', async () => {
+  const { act } = await import('@testing-library/react');
+  const { setLocale } = await import('../src/i18n/locale');
+  try {
+    await act(async () => { await setLocale('en', false); });
+    const view = render(<MemoryRouter initialEntries={['/en/calendar']}><CalendarPage today={today} /></MemoryRouter>);
+    const facts = view.container.querySelector('.ev-lede-facts')!.textContent!;
+    assert.match(facts, /^[A-Z0-9]/, facts);
+    assert.doesNotMatch(facts, /\b[A-Z][a-z]{2} \d/, 'a date never splits across lines');
+  } finally { cleanup(); await setLocale('zh-Hans', false); }
 });
