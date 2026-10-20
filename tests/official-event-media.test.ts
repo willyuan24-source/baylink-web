@@ -131,7 +131,7 @@ test('the official event image registry keeps one complete, owner-approved recor
   assert.equal(officialEventMedia.some(record => record.eventId === 'sfzoo-zoolights-2026'), false, 'the orange-flagged ZooLights row is not used');
   // CuriOdyssey's camera dates its photo 2025-11-12: the 2025 exhibition, so the badge names the edition.
   const illumin = officialEventMedia.find(record => record.eventId === 'curiodyssey-illuminodyssey-2026')!;
-  assert.match(illumin.caption, /2025 往届展览.*不是 2026 年十周年展期现场/);
+  assert.match(illumin.caption, /2025 往届展览）.*不是 2026 年十周年展期/);
   assert.equal(getImageProvenance(GUIDE_IMAGES[illumin.key]), '官方图 · 2025 往届');
   // Gilroy Gardens' file has been online since January 2025 (an earlier season, year unknown): the caption says so, the badge stays 官方图.
   const gilroy = officialEventMedia.find(record => record.eventId === 'gilroy-gardens-north-pole-nights-2026')!;
