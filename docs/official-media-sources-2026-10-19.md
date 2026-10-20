@@ -31,7 +31,7 @@ Result: **43 of 43 files downloaded, 43 shipped.** No image was generated, and n
 
 ## Rights
 
-- Shops, events, SFMTA and SFPL: `rights.basis: "promo-editorial"` with the official page as `evidenceUrl`; scope "coverage of the same shop only", "same-event coverage only" or "guide context photo for <agency>, credited and linked". None of these pages publishes an open licence; a city, county or federal-site photo is not assumed to be public domain. Do not use these images in ads, share-card promotion, tester recruiting or fundraising.
+- Shops, events, SFMTA and SFPL: `rights.basis: "promo-editorial"` with the official page as `evidenceUrl`; scope "coverage of the same shop only", "same-event coverage only" or "guide context photo for <agency>, credited and linked". None of these pages publishes an open licence; a city, county or federal-site photo is not assumed to be public domain. An event's own share card carries its official image (owner rule H45, `cardPhoto`: 17 more event cards now have a photo); a shop's card does not. Do not use these images in ads, hub or weekly cards, tester recruiting or fundraising.
 - HHS: `rights.basis: "public-domain"`, evidence the Commons file page, which quotes the Library of Congress: "Carol M. Highsmith has stipulated that her photographs are in the public domain." It is **not** described as a federal employee's work (GPT rights note: a GSA assignment; the photographer's federal-employee status is not confirmed). Credit: 「Carol M. Highsmith 摄 / 美国国会图书馆（highsm.25147）· 公共领域（摄影师本人声明）」 / "Photo: Carol M. Highsmith, Library of Congress, highsm.25147 (public domain, as stipulated by the photographer)". Used only as Medicare background, never as a Bay Area HICAP office.
 
 ## Download
