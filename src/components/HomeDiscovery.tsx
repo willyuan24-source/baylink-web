@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import { useUiCopy } from './ui/ui-copy';
 import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
 import { createCoverPage, getCover, type CoverContext } from '../lib/cover';
+import { leadImageKey } from '../lib/close-up-faces';
 import { getBayAreaToday } from '../lib/monthly';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
 import { ELDER_CALLS, getGuideBySlug, guideCount, GUIDE_IMAGES, HOME_OFFERS, type HomeEvent, type HomeGuide } from '../lib/home-catalog';
@@ -97,7 +98,8 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     const context: CoverContext = { images: GUIDE_IMAGES, today, page: createCoverPage() };
     const event = (item: HomeEvent) => getCover({ kind: 'event', id: item.id, imageKey: item.imageKey }, context);
     return {
-      picks: weekend.picks.map(pick => event(pick.event as HomeEvent)),
+      // DECISIONS 15: the lead (16:9) never shows a close-up face photo; it draws its type cover (the photo stays a card's).
+      picks: weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover({ kind: 'event', id: item.id, imageKey: leadImageKey(item.imageKey) }, context)),
       feed: weekend.feed.map(entry => event(entry.event as HomeEvent)),
       guides: guides.map(guide => getCover({ kind: 'guide', id: guide.slug, imageKey: guide.imageKey }, context)),
       offers: offers.map(offer => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, context)),
