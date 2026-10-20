@@ -145,7 +145,7 @@ test('长辈常用电话 with no numbers: nothing in standard, 长辈与家属�
 test('the date guard covers the picks block by block: from 1024 the section is display:contents and draws no skeleton', () => {
   // A skeleton on a display:contents box is positioned against the page, not the section (it covered the masthead).
   assert.match(CSS, /@media \(min-width:1024px\) \{[^@]*\.home-picks,\.home-picks__list \{ display:contents; \}/);
-  assert.ok(CSS.includes('html[data-date-stale] .home-discovery>.home-top>.home-picks::before { content:none; }'));
+  assert.ok(CSS.includes('html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:none; }'));
   const doc = home();
   assert.equal(doc.querySelector('.home-picks')!.hasAttribute('data-date-scope'), false);
   for (const block of doc.querySelectorAll('.home-picks>.home-section-head, .home-picks__list>li, .home-picks__all, .home-trust')) {
@@ -165,7 +165,7 @@ test('phone: the lead asks for the 800w rung (the site\'s 266px phone cap), the 
   const doc = home();
   const lead = doc.querySelector('.home-picks__list>li:first-child img');
   if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) 266px, /);
-  assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-share { padding:0; background:none; }\n  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
+  assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-top>.home-share { padding:0; background:transparent; }\n  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
 });
 
 test('free days and deals and the guide intents load after the page in production, and the prerender still carries both', () => {

@@ -57,7 +57,7 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 /* Below 768 the picks H2 and the share card's heading and sentence are for screen readers only: the share card is one
    compact row of its two buttons (保存图片, 订阅日历), without the card's box so they fit one line in English too. */
 @media (max-width:767px) {
-  .home-share { padding:0; background:none; }
+  .home-top>.home-share { padding:0; background:transparent; }
   :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
   html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover,.ui-type-cover) { border-radius:0; }
@@ -65,7 +65,7 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 
 /* The date guard (source-monitor.css) covers each of the picks' blocks, never the section: from 1024 the section is
    display:contents, so its skeleton would fill the viewport over the masthead. */
-html[data-date-stale] .home-discovery>.home-top>.home-picks::before { content:none; }
+html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:none; }
 
 /* ③ 按需要找: F's chip, wrapped, no counts; the brand icon from 768. */
 .home-moods ul { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
@@ -183,7 +183,7 @@ html[data-simple] .home-picks__all { justify-content:center; align-self:stretch;
   .home-picks>.home-section-head,.home-picks__all { grid-area:1 / 6 / 2 / -1; }
   .home-picks__all { justify-self:end; }
   /* 看本周末全部 N 场 shares the H2's cell: the H2 wraps before it (en at 1024 at 大 / 特大). */
-  .home-picks>.home-section-head { padding-inline-end:13rem; }
+  .home-picks>.home-section-head h2 { max-width:calc(100% - 13rem); }
   .home-picks__list>li:first-child,.home-empty { grid-area:2 / 6 / 5 / -1; }
   .home-trust { grid-area:3 / 1 / 4 / 6; }
   .home-top>.home-moods { grid-area:4 / 1 / 5 / 6; margin:0; }
