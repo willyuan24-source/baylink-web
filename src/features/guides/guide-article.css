@@ -54,7 +54,10 @@ html[data-simple] .gd-meta a::after { height:3rem; }
    and the 20 px phone glyph stays (DETAIL's 9.5em step would hide it, so the guide's call keeps it); the glyph goes only where
    glyph + number do not fit. Steps in em of the button's own size (content box): a 12-character number needs 10.9em with the
    verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads BayBay beside the otter on
-   a phone and in the desktop rail (critic, DETAIL's short label), so the rail's 79 px cell keeps the otter and its label inside. */
+   a phone and in the desktop rail (critic, DETAIL's short label), and the send cell reads 发家人 / Family in the rail too (DETAIL's
+   desktop 发给家人 / "Send to family" breaks out of the rail's 72–85 px cell at 特大 and in English), so every cell keeps its
+   icon and label inside. On a phone from 360 px the guide's cells and the bar keep 4 / 8 px side paddings (DETAIL: 8 / 8–12 px),
+   which gives the call the ~10 px that [📞 拨打 800-510-2020] needs at 390 px; a 1-800 number keeps [📞 number] there. */
 .gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
 .gd-bar.site-detail-actions.detail-actions .gd-bar__call.detail-actions__primary { gap:var(--sp-1); padding-inline:var(--sp-2); }
 .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:inline-block; flex:none; width:1.25rem; height:1.25rem; }
@@ -64,20 +67,26 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 @container detail-primary (max-width:8.6em) { .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:none; } }
 .site-detail-actions.detail-actions.gd-bar [data-label=long] { display:none; }
 .site-detail-actions.detail-actions.gd-bar [data-label=tight] { display:inline; }
+.site-detail-actions.detail-actions.gd-bar [data-label=desk] { display:none; }
+.site-detail-actions.detail-actions.gd-bar [data-label=phone] { display:inline; }
+@media (min-width:360px) and (max-width:1023px) {
+  .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-2); }
+  .site-detail-actions.detail-actions.gd-bar :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
+}
 /* 家人版 (特大 + 简洁): icon + number (the arrangement). */
 html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
-/* Two rows where one row cannot hold the number (below 360 px, and 特大 / 简洁显示 on a phone): the call on top at full width,
-   the three cells under it. The bar's height token grows with it (3rem call + 56 px cells + DETAIL's 4 px paddings and gap),
-   so the page's bottom padding, the toast and 回到顶部 clear the bar. */
-@media (max-width:359px) {
+/* Two rows where one row cannot hold [📞 number] (below 390 px, and 大 / 特大 / 简洁显示 on a phone): the call on top at full
+   width, the three cells under it. The bar's height token grows with it (3rem call + 56 px cells + DETAIL's 4 px paddings and
+   gap), so the page's bottom padding, the toast and 回到顶部 clear the bar. */
+@media (max-width:389px) {
   html:has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
   .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
   .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
 }
 @media (max-width:479px) {
-  html:is([data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
-  :is(html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
-  :is(html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
 }
 .gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-actions__status:empty { display:none; }
