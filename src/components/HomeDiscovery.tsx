@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, useEffect, useMemo, useState, type ComponentType } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { useUiCopy } from './ui/ui-copy';
 import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
@@ -12,13 +12,26 @@ import { HeroPicks } from '../features/home/HeroPicks';
 import { MoodCircles } from '../features/home/MoodCircles';
 import { WeekendFeed } from '../features/home/WeekendFeed';
 import { BayBayDemoCard } from '../features/home/BayBayDemoCard';
-import { GuideRail } from '../features/home/GuideRail';
-import { OfferTickets } from '../features/home/OfferTickets';
+import { GuideRail as GuideRailNow } from '../features/home/GuideRail';
+import { OfferTickets as OfferTicketsNow } from '../features/home/OfferTickets';
 import { ShareStrip } from '../features/home/ShareStrip';
 import { ElderCalls } from '../features/home/ElderCalls';
 import { Home3DTile } from '../features/home/Home3DTile';
 import { HomeImageCredits } from '../features/home/HomeImageCredits';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
+import { chunkLoader } from '../lib/chunk-recovery';
+
+// The two sections below the fold (free days and deals, the guide intents) load after the page in a production build
+// (captain 10-19 15:15: home route JS ≤ the 200dfb4 base). They have no Suspense boundary of their own: at boot the layout's
+// boundary keeps the prerendered page (boot-main.ts) on screen until they are in, so the page commits once, box for box, and
+// nothing below the fold reserves or shifts. Node (the prerender and the tests) and the dev server render them as they are
+// (`import.meta.env?.PROD`, as cover-defer does), so the prerendered page carries both sections. A load that still fails
+// after chunkLoader's retry leaves the section out rather than the page.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- React.lazy's own constraint
+const afterPage = <C extends ComponentType<any>>(load: () => Promise<C>) =>
+  lazy(() => load().then(component => ({ default: component }), () => ({ default: (() => null) as unknown as C })));
+const GuideRail = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/GuideRail'), module => module.GuideRail)) : GuideRailNow;
+const OfferTickets = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/OfferTickets'), module => module.OfferTickets)) : OfferTicketsNow;
 
 const INTENT_KEY = 'baylink.home-intent.v1';
 const isIntent = (value: string | null): value is HomeIntentId => HOME_INTENTS.some(intent => intent.id === value);
@@ -31,8 +44,9 @@ function readSavedIntent(): HomeIntentId | undefined {
  * a desktop), the trust line, ③ 按需要找 and the family-chat card; ④ the weekend's feed with the 3D strip; ⑤ free days and
  * deals; ⑥ 问 BayBay; ⑦ the guide intents; ⑧ 长辈常用电话 beside the 3D tile; ⑨ the credits line. Events (去哪) first, then
  * the band, then help (怎么办). Every cover comes from getCover on one page context in the order picks, feed, guides,
- * offers (no image twice, no AI art on a listing); every section renders eagerly, so the prerendered page carries all of
- * it (OPUS contract: the /opus-bay?from=home tile and strip, the client-side 按日历看 link). 简洁 and 家人版 are CSS only
+ * offers (no image twice, no AI art on a listing); every section renders in the prerender, so the prerendered page carries
+ * all of it (OPUS contract: the /opus-bay?from=home tile and strip, the client-side 按日历看 link), and the browser's first
+ * commit waits for the two after-page sections (above) instead of drawing placeholders. 简洁 and 家人版 are CSS only
  * (`data-simple="hide" | "only"`, home-discovery.css). Props are the OPUS contract's.
  */
 export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today: suppliedToday }: {

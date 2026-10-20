@@ -111,3 +111,17 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
 });
 
 const POSTCARD_RULES_SHA = '71c2b5cfeeb61ad0';
+
+test('free days and deals and the guide intents load after the page in production, and the prerender still carries both', () => {
+  // Captain 10-19 15:15 (home route JS ≤ the 200dfb4 base): a production build imports the two below-the-fold sections
+  // through import(), with no Suspense boundary of their own (the boot snapshot stays until they are in); Node renders them
+  // as they are, so the prerendered home and the tests see the whole page.
+  const source = fs.readFileSync('src/components/HomeDiscovery.tsx', 'utf8');
+  for (const name of ['GuideRail', 'OfferTickets']) {
+    assert.ok(source.includes(`const ${name} = import.meta.env?.PROD ? /* @__PURE__ */ afterPage(chunkLoader(() => import('../features/home/${name}'), module => module.${name})) : ${name}Now;`), `${name} loads after the page`);
+  }
+  assert.doesNotMatch(source, /<Suspense\b/, 'no boundary of their own: the page commits once');
+  const doc = home();
+  assert.ok(doc.querySelector('section.home-offers .home-offers__rail li'), 'the prerender carries 免费与优惠');
+  assert.ok(doc.querySelector('section.home-guides .home-guides__rail li'), 'the prerender carries the guide intents');
+});
