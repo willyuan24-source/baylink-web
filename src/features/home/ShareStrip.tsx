@@ -10,7 +10,7 @@ import { dateScope } from '../../lib/date-guard';
  * region calendar subscription. Below 768 it is one row of the two buttons (the heading stays for screen readers). Text
  * only, so it wraps at 特大; hidden in 简洁. On a day the build wrote no card for (`cardHref` null: a deploy older than the
  * card's week, or a weekend the home cannot count), the same place holds 看本周末全部 and 订阅日历 instead, so the desktop
- * row beside picks 2–3 is never blank.
+ * row beside picks 2–3 is never blank. Below 1024 that 看本周末全部 is hidden: the picks' own link sits above it.
  */
 export function ShareStrip({ count, cardHref, total }: { count: number; cardHref: string | null; total: number | null }) {
   const { t } = useUiCopy();
@@ -18,7 +18,7 @@ export function ShareStrip({ count, cardHref, total }: { count: number; cardHref
   const calendar = <Button variant="quiet" href="webcal://www.baylink.us/calendars/all.ics" onClick={recordIcsDownload} icon={<CalendarPlus aria-hidden="true" strokeWidth={1.75} />}>{t('订阅日历', 'Subscribe to dates')}</Button>;
   if (!cardHref) return <section className="home-share" aria-label={t('看全部与订阅日历', 'All events and the calendar')} data-simple="hide" {...dateScope('weekend')}>
     <div className="home-share__actions">
-      <Button variant="secondary" to="/events">{total ? t(`看本周末全部 ${total} 场`, `See all ${total} this weekend`) : t('看本周末全部活动', 'See all events this weekend')}</Button>
+      <Button variant="secondary" to="/events" className="home-share__all">{total ? t(`看本周末全部 ${total} 场`, `See all ${total} this weekend`) : t('看本周末全部活动', 'See all events this weekend')}</Button>
       {calendar}
     </div>
   </section>;

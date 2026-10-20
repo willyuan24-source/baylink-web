@@ -17,6 +17,7 @@ const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
 const { HomeImageCredits } = await import('../src/features/home/HomeImageCredits');
 const { ElderCalls } = await import('../src/features/home/ElderCalls');
 const { HeroPicks } = await import('../src/features/home/HeroPicks');
+const { ShareStrip } = await import('../src/features/home/ShareStrip');
 
 /** UI9-HOME: the home's content arrangement, its 简洁 tags, 长辈常用电话, the trust line and the credits line. */
 const snapshots = HOME_WEEKENDS as Record<string, { ids: string[]; feed: string[] }>;
@@ -166,6 +167,29 @@ test('phone: the lead asks for the 800w rung (the site\'s 266px phone cap), the 
   const lead = doc.querySelector('.home-picks__list>li:first-child img');
   if (lead) assert.match(lead.getAttribute('sizes') ?? '', /^\(max-width: 767px\) 266px, /);
   assert.ok(CSS.includes('@media (max-width:767px) {\n  .home-top>.home-share { padding:0; background:transparent; }\n  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute;'), 'below 768 the share card is its two buttons; its heading and sentence are for screen readers only');
+});
+
+test('no share card: the cell holds 看本周末全部 and 订阅日历 from 1024; below 1024 only 订阅日历 (the picks\' link is above it)', () => {
+  const render = (total: number | null) => new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><ShareStrip count={3} cardHref={null} total={total} /></StaticRouter>)).window.document;
+  for (const [total, label] of [[57, '看本周末全部 57 场'], [null, '看本周末全部活动']] as const) {
+    const share = render(total).querySelector('.home-share')!;
+    assert.equal(share.querySelector('a[download]'), null);
+    const all = share.querySelector('a.home-share__all')!;
+    assert.equal(all.getAttribute('href'), '/events');
+    assert.equal(all.textContent, label);
+    assert.deepEqual([...share.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/events', 'webcal://www.baylink.us/calendars/all.ics']);
+  }
+  const hidden: string[] = [];
+  postcss.parse(CSS).walkRules(/home-share__all/, rule => {
+    const parent = rule.parent as postcss.AtRule;
+    hidden.push(`${parent.type === 'atrule' ? parent.params : 'top'} ${rule.toString().replace(/\s+/g, ' ')}`);
+  });
+  // Two classes and a type: cards.css (a later sheet) sets .ui-button { display:inline-flex } at one class.
+  assert.deepEqual(hidden, ['(max-width:1023px) .home-share div>.home-share__all { display:none; }']);
+  // A day with a card keeps both of its buttons (保存图片 is never hidden).
+  const card = new JSDOM(renderToStaticMarkup(<StaticRouter location="/"><ShareStrip count={3} cardHref="/weekly/all-2026-10-24.png" total={79} /></StaticRouter>)).window.document;
+  assert.equal(card.querySelector('.home-share__all'), null);
+  assert.ok(card.querySelector('.home-share a[download]'));
 });
 
 test('free days and deals and the guide intents load after the page in production, and the prerender still carries both', () => {
