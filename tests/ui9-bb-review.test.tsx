@@ -182,23 +182,38 @@ test('a plan answer with safety calls reads lead → calls → plan, and each ca
   assert.equal(document.querySelectorAll('a[href="tel:211"]').length, 1, '211 once');
 });
 
-test('the header: 新对话 keeps its words in Chinese at 标准; English, 特大 and 简洁显示 make it a named icon on the same row', async t => {
+test('the header stays one row: 新对话 in the header in Chinese at 标准, at the end of the thread in English, 特大, 简洁 and below 360px on a phone', async t => {
   mockBayBayFetch(t, async () => Response.json({ ok: true, answer: '好的。' }));
-  const first = render(<BayBayAssistantEntry {...props} pendingQuestion="周末去哪" pendingQuestionId={1} />);
-  await first.findByText('好的。');
-  const head = document.querySelector('.bb-head')!;
-  assert.equal(head.hasAttribute('data-compact'), false);
-  assert.equal(first.getByRole('button', { name: '新对话' }).querySelector('.bb-head__new-label')?.textContent, '新对话');
+  const phoneWidth = (width: number) => { dom.window.matchMedia = ((query: string) => ({ matches: Number(/max-width: (\d+)px/.exec(query)?.[1]) >= width, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })) as unknown as typeof dom.window.matchMedia; };
+  const restore = dom.window.matchMedia;
+  t.after(() => { dom.window.matchMedia = restore; });
+  const where = () => ({ header: !!document.querySelector('.bb-head .bb-head__new'), thread: !!document.querySelector('.bb-thread-new button') });
+  phoneWidth(390);
+  const zhStandard = render(<BayBayAssistantEntry {...props} pendingQuestion="周末去哪" pendingQuestionId={1} />);
+  await zhStandard.findByText('好的。');
+  assert.deepEqual(where(), { header: true, thread: false }, 'zh 标准 at 390: the words fit in the header');
+  assert.equal(zhStandard.getAllByRole('button', { name: '新对话' }).length, 1, 'one 新对话 in the DOM');
   cleanup();
   await act(async () => { setReadingSize('extra-large'); });
   const xl = render(<BayBayAssistantEntry {...props} pendingQuestion="周末去哪" pendingQuestionId={2} />);
   await xl.findByText('好的。');
-  assert.equal(document.querySelector('.bb-head')?.hasAttribute('data-compact'), true);
-  assert.ok(xl.getByRole('button', { name: '新对话' }).querySelector('svg'), 'an icon with the same accessible name');
+  assert.deepEqual(where(), { header: false, thread: true }, '特大 on a phone: the thread ends with 新对话');
+  assert.equal(xl.getAllByRole('button', { name: '新对话' }).length, 1);
+  cleanup();
+  await act(async () => { setReadingSize('standard'); });
+  phoneWidth(320);
+  render(<BayBayAssistantEntry {...props} pendingQuestion="周末去哪" pendingQuestionId={3} />);
+  await act(async () => { await sleep(30); });
+  assert.deepEqual(where(), { header: false, thread: true }, 'below 360px every locale');
+  cleanup();
+  phoneWidth(1440);
+  await act(async () => { setReadingSize('extra-large'); });
+  render(<BayBayAssistantEntry {...props} pendingQuestion="周末去哪" pendingQuestionId={4} />);
+  await act(async () => { await sleep(30); });
+  assert.deepEqual(where(), { header: true, thread: false }, 'the 480px drawer has room at 特大');
   const css = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
   assert.match(css, /\.bb-head h2 \{[^}]*white-space:nowrap; \}/, 'the title never breaks into 问 / BayBay');
   assert.doesNotMatch(css, /"otter new close"/, '新对话 no longer takes a second header row');
-  assert.match(css, /@media \(max-width:359px\) \{[^@]*\.bb-head__new-label \{ position:absolute;/, 'below 360px every locale uses the icon');
 });
 
 test('a 911 turn shows the emergency card with no guest sign-in note above it', async t => {
@@ -215,4 +230,23 @@ test('/plan?baybayDraft: 查看全部原始条件 draws the shared chevron, so i
   assert.match(css, /\.baybay-imported-requirements summary::after \{ content:""; [^}]*rotate:45deg;/);
   assert.match(css, /details\[open\]>summary::after \{ rotate:225deg;/);
   assert.match(css, /summary::-webkit-details-marker \{ display:none; \}/);
+});
+
+test('PostAssist (inside CreatePostModal, signed in only, so no guest capture): F chips and buttons, the dots, its own token sheet', async () => {
+  const { BayBayPostAssist } = await import('../src/components/BayBayPostAssist');
+  let release: (value: { ok: boolean }) => void = noop;
+  const view = render(<BayBayPostAssist postType="client" user={{ token: 'fixture-token' }} intent="周末想在东湾求租一间房" onApply={noop} showToast={noop}
+    requestAiAssist={() => new Promise(resolve => { release = resolve; })} />);
+  const root = view.container.querySelector('.bb-assist')!;
+  assert.ok(root, 'the restyled block');
+  assert.ok([...root.querySelectorAll('.bb-assist__group button')].every(button => button.classList.contains('ui-chip')), 'tone choices are F chips');
+  const ask = view.getByRole('button', { name: '帮我整理' });
+  assert.ok(ask.classList.contains('ui-button'), 'the ask is an F button');
+  assert.equal(root.querySelector('[class*="text-["], [class*="shadow-rest"], [class*="rounded-"], svg.lucide-sparkles, .animate-spin'), null, 'no Tailwind sizes, shadows, radii, Sparkles or spinner');
+  await act(async () => { fireEvent.click(ask); });
+  assert.equal(root.querySelectorAll('.bb-dots > span').length, 3, 'pending: the three fading dots');
+  await act(async () => { release({ ok: false }); await sleep(0); });
+  const css = readFileSync('src/features/baybay/baybay-post-assist.css', 'utf8');
+  for (const [, value] of css.matchAll(/font-size:([^;}]+)/g)) assert.match(value.trim(), /^var\(--(?:fs|text)-[\w-]+\)$/);
+  assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i);
 });

@@ -30,6 +30,7 @@ import { BayBayOtter, BayBayPending } from '../features/baybay/BayBayMarks';
 import { bayBayPageTitle } from '../features/baybay/page-title';
 import { loadBayBayCards } from '../features/baybay/cards-loader';
 import { bayBayPageKey } from '../features/baybay/site-path';
+import { useMedia } from '../features/baybay/use-media';
 import { translateText, useLocale } from '../i18n/locale';
 import { useReadingSize, useSimpleDisplay } from '../lib/reading-preferences';
 import { bayBayPageSearchContext, isBayBayResetRequest, resolveBayBaySearchState } from '../lib/baybay-context';
@@ -348,14 +349,16 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   // 简洁显示 subtracts (content arrangement 10-19): four starters, no 也可以 group, 当前条件 hidden.
   const starters = simpleDisplay ? BAYBAY_STARTERS.filter(starter => starter.action === 'send' || starter.action === 'draft') : BAYBAY_STARTERS;
   const signInButton = onLoginNeeded && <Button variant="quiet" className="bb-signin" onClick={signIn}>{copy('登录 / 注册，开启联网', 'Sign in / Register for web access')}</Button>;
-  // 新对话 keeps its words where they fit beside the title; in English, at 特大 and in 简洁显示 on a phone (and below
-  // 360px, in CSS) it is a 44px icon whose name is the same words, so the header stays one row (≤72px at 标准).
-  const compactHeader = locale === 'en' || readingSize === 'extra-large' || simpleDisplay;
-  const header = <div className="bb-head" data-compact={compactHeader ? '' : undefined}>
+  // 新对话 sits in the header where its words fit beside the title. In English, at 特大 and in 简洁显示 on a phone, and on
+  // any phone below 360px, its words pushed the title and the line under it to 2–3 rows (122–158px): there it closes the
+  // thread instead, so the header stays the welcome's one row.
+  const phone = useMedia('(max-width: 767px)'), narrowPhone = useMedia('(max-width: 359px)');
+  const newInThread = narrowPhone || (phone && (locale === 'en' || readingSize === 'extra-large' || simpleDisplay));
+  const header = <div className="bb-head">
     <BayBayOtter size={44} />
     <div className="bb-head__text"><h2 id="baybay-panel-title">{copy('问 BayBay', 'Ask BayBay')}</h2>
       <p className="bb-head__sub">{copy('AI 助手 · 回答附来源', 'AI helper · Answers list their sources')}</p></div>
-    {turns.length > 0 && <Button variant="quiet" className="bb-head__new" onClick={newConversation} title={copy('新对话', 'New chat')} icon={<SquarePen aria-hidden="true" size={20} strokeWidth={1.75} />}><span className="bb-head__new-label">{copy('新对话', 'New chat')}</span></Button>}
+    {turns.length > 0 && !newInThread && <Button variant="quiet" className="bb-head__new" onClick={newConversation}>{copy('新对话', 'New chat')}</Button>}
     <CloseButton onClick={close} />
   </div>;
   const composer = <form className="baybay-composer-footer" onSubmit={(event) => { event.preventDefault(); if (!composing.current && !askBayBay(question)) { inputRef.current?.focus(); if (question.trim().length < 2) flagTooShort(); } }}>
@@ -449,6 +452,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     {lastComplete && !loading && !emergencyLast && !lastComplete.response?.assistantPlan && !turns[turns.length - 1]?.restartRequired && (!hasUnconfirmedFoodEvidence(lastComplete.response) || !!lastComplete.response?.followups?.length) && (outingContext ? <p className="baybay-composer-note" translate="no">{copy('可以继续告诉我城市、日期或想做的事；我会保留你已经说过的条件。这里只帮你查找，不会自动申请或发布。', 'Tell me a city, date or activity to refine your search. I will keep the details you already shared. Searching does not apply to or publish an outing.')}</p> : <div className="baybay-followups"><p>{copy('接着聊', 'Keep going')}</p><ul>{bayBayFollowups(lastComplete.question, !!currentBayBayGuide(followupPath), isBayBaySchoolGuide(currentBayBayGuide(followupPath)), lastComplete.response?.followups).slice(0, 2).map((followup) => <li key={followup}><button type="button" className="ui-chip" onClick={() => askBayBay(translateText(followup, locale), followupPath)}>{followup}</button></li>)}</ul></div>)}
     {!simpleDisplay && lastComplete?.response?.taskState && !schoolContext && !outingContext && <BayBayRequirements key={`requirements:${lastComplete.id}`} state={lastComplete.response.taskState} disabled={loading} onAsk={message => askBayBay(message, followupPath, true)} />}
     {lastComplete && planHandoffContext && !loading && !schoolContext && !outingContext && !lastComplete.response?.assistantPlan && <BayBayTaskHandoff key={lastComplete.id} brief={bayBayTaskBrief(turns)} ownerId={ownerId} onNavigate={navigate} />}
+    {turns.length > 0 && !loading && newInThread && <p className="bb-thread-new"><Button variant="quiet" onClick={newConversation} icon={<SquarePen aria-hidden="true" size={20} strokeWidth={1.75} />}>{copy('新对话', 'New chat')}</Button></p>}
   </Sheet>;
 };
 

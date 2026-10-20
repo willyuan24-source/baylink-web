@@ -53,22 +53,9 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .baybay-conversation .bb-head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; white-space:nowrap; }
 .baybay-conversation .bb-head__sub { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .bb-head__new { grid-area:new; padding-inline:var(--sp-3); }
-.baybay-conversation .bb-head__new>svg { display:none; }
 @media (min-width:768px) { .baybay-conversation .bb-head { padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-5); } }
-/* English, 特大 and 简洁显示 on a phone, and any phone below 360px: 新对话 is a 44px icon named by its hidden words, so the
-   header stays one row in a conversation (it grew to 122–158px when the words took a second row). */
-@media (max-width:767px) {
-  .baybay-conversation .bb-head[data-compact] { gap:0 var(--sp-2); }
-  .baybay-conversation .bb-head[data-compact] .bb-head__new { width:var(--control-height); padding:0; }
-  .baybay-conversation .bb-head[data-compact] .bb-head__new>svg { display:block; }
-  .baybay-conversation .bb-head[data-compact] .bb-head__new-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-}
-@media (max-width:359px) {
-  .baybay-conversation .bb-head { gap:0 var(--sp-2); }
-  .baybay-conversation .bb-head__new { width:var(--control-height); padding:0; }
-  .baybay-conversation .bb-head__new>svg { display:block; }
-  .baybay-conversation .bb-head__new-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
-}
+/* English, 特大 and 简洁显示 on a phone, and any phone below 360px: 新对话 closes the thread instead of the header. */
+.baybay-conversation .bb-thread-new { display:flex; justify-content:center; margin:0; }
 
 /* Welcome: one line, the page in view, six prompt cards (2 columns, ≥88px), 也可以, the details, the guest line. */
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
@@ -147,7 +134,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-requirement-editor>div { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); }
 
 /* The plan card: the only card in a turn. */
-.baybay-conversation .baybay-assistant-plan { display:grid; gap:var(--sp-4); min-width:0; padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:anywhere; }
+.baybay-conversation .baybay-assistant-plan { display:grid; gap:var(--sp-3); min-width:0; padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:anywhere; }
 .baybay-conversation .baybay-assistant-plan>header { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); }
 .baybay-conversation .baybay-assistant-plan>header>small { flex-basis:100%; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-assistant-plan h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; }
@@ -186,9 +173,10 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-p
 .baybay-conversation .baybay-plan-notes { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); list-style:disc; }
 .baybay-conversation .baybay-plan-citations { display:grid; gap:var(--sp-1); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:none; }
-.baybay-conversation .baybay-plan-citations a>span { display:inline-flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1); }
+.baybay-conversation .baybay-plan-citations a>span { display:block; }
+.baybay-conversation .baybay-plan-citations a>span>svg { display:inline-block; margin-inline-end:var(--sp-1); vertical-align:-.125em; }
 .baybay-conversation .baybay-plan-citation-title { text-decoration:underline; text-underline-offset:.2em; }
-.baybay-conversation .baybay-plan-citation-host { color:var(--color-ink-2); }
+.baybay-conversation .baybay-plan-citation-host { margin-inline-start:var(--sp-1); color:var(--color-ink-2); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-ui); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations-none { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-swap { justify-self:start; padding-inline:0; }
