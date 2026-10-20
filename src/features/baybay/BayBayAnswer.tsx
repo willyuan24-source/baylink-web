@@ -113,7 +113,7 @@ function PointList({ points, sources, onNavigate, className }: { points: BayBayV
  * points fold into 更多说明 after it; `cards` are then only the places that are not a stop. Returns null for a response
  * without `lead`/`points` (v1, clarifications, guard rewrites), which keep the legacy text. 朗读 is in the turn's head row.
  */
-export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate, plan }: { fields: BayBayAnswerFields; cards: readonly BayBayQuickCard[]; sources: Sources; today: string; onNavigate: Navigate; plan?: ReactNode }) {
+export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate, before, plan }: { fields: BayBayAnswerFields; cards: readonly BayBayQuickCard[]; sources: Sources; today: string; onNavigate: Navigate; before?: ReactNode; plan?: ReactNode }) {
   const { t, english } = useBayBayCopy();
   const view = bayBayAnswerView(fields, english);
   const [expanded, setExpanded] = useState(false);
@@ -121,25 +121,24 @@ export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate, pl
   const ordered = useMemo(() => bayBayOrderCards(cards, fields.points || []), [cards, fields.points]);
   if (!view) return null;
   const rest = view.more.length + (view.gap ? 1 : 0);
-  const more = <>
-    {view.more.length > 0 && <PointList points={view.more} sources={sources} onNavigate={onNavigate} className="bb-points bb-points--more" />}
-    {view.gap && <p className="bb-gap"><BayBayCitedText text={view.gap} sources={sources} onNavigate={onNavigate} /></p>}
-  </>;
-  return <div className="bb-answer" data-answer-layout="v2" data-plan={plan ? '' : undefined}>
-    <p className="bb-lead"><BayBayCitedText text={view.lead} sources={sources} onNavigate={onNavigate} /></p>
-    {plan ? <>
-      {plan}
-      {view.visible.length + rest > 0 && <Disclosure className="bb-more-details" summary={t('更多说明', 'More details')}>
-        {view.visible.length > 0 && <PointList points={view.visible} sources={sources} onNavigate={onNavigate} />}
-        {more}
-      </Disclosure>}
-      <BayBayCardRail cards={ordered} sources={sources} today={today} onNavigate={onNavigate} />
-    </> : <>
-      {view.visible.length > 0 && <PointList points={view.visible} sources={sources} onNavigate={onNavigate} />}
-      <BayBayCardRail cards={ordered} sources={sources} today={today} onNavigate={onNavigate} />
-      {rest > 0 && (expanded ? more : <Button variant="quiet" className="bb-more" aria-expanded="false" onClick={() => setExpanded(true)} icon={<ChevronDown aria-hidden="true" size={20} />}>{t(`更多（${rest} 条）`, `${rest} more`)}</Button>)}
-    </>}
-    {fields.corrected && <p className="bb-corrected">{t('已按站内资料更正', 'Corrected from site information')}</p>}
+  // Keyed lists, not fragments: the locale host rebuilds a fragment's children as an unkeyed array.
+  const more = [
+    view.more.length > 0 && <PointList key="more" points={view.more} sources={sources} onNavigate={onNavigate} className="bb-points bb-points--more" />,
+    view.gap && <p key="gap" className="bb-gap"><BayBayCitedText text={view.gap} sources={sources} onNavigate={onNavigate} /></p>,
+  ];
+  const lead = <p className="bb-lead"><BayBayCitedText text={view.lead} sources={sources} onNavigate={onNavigate} /></p>;
+  const visible = view.visible.length > 0 && <PointList points={view.visible} sources={sources} onNavigate={onNavigate} />;
+  const rail = <BayBayCardRail cards={ordered} sources={sources} today={today} onNavigate={onNavigate} />;
+  const corrected = fields.corrected && <p className="bb-corrected">{t('已按站内资料更正', 'Corrected from site information')}</p>;
+  if (plan) return <div className="bb-answer" data-answer-layout="v2" data-plan="">
+    {lead}{before}{plan}
+    {view.visible.length + rest > 0 && <Disclosure className="bb-more-details" summary={t('更多说明', 'More details')}>{visible}{more}</Disclosure>}
+    {rail}{corrected}
+  </div>;
+  return <div className="bb-answer" data-answer-layout="v2">
+    {lead}{visible}{rail}
+    {rest > 0 && (expanded ? more : <Button variant="quiet" className="bb-more" aria-expanded="false" onClick={() => setExpanded(true)} icon={<ChevronDown aria-hidden="true" size={20} />}>{t(`更多（${rest} 条）`, `${rest} more`)}</Button>)}
+    {corrected}
   </div>;
 }
 

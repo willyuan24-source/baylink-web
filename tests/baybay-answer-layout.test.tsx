@@ -65,28 +65,33 @@ async function ask(t: TestContext, reply: unknown, extra: Record<string, unknown
   return { view, bodies, paths };
 }
 
-test('a v2 answer reads lead, then image cards, then points with [n], then follow-ups — within 250 字', async t => {
+// UI9-BB (content arrangement 10-19): points now come before the cards, so the first answer screen reads the lead and
+// the first points; the cards are the shared FeedCard (3:2, ♡ on the cover, no 加入这天计划: captain decision 16).
+test('a v2 answer reads lead, then points with [n], then image cards, then follow-ups — within 250 字', async t => {
   const { view, paths } = await ask(t, c01());
   const lead = await view.findByText(/最适合5岁孩子/);
   const answer = lead.closest('[data-answer-layout="v2"]')!;
   assert.ok(answer, 'the v2 layout renders');
   const cards = answer.querySelector('.bb-cards')!, points = answer.querySelector('.bb-points')!;
-  assert.ok(lead.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING, 'cards come after the lead');
-  assert.ok(cards.compareDocumentPosition(points) & Node.DOCUMENT_POSITION_FOLLOWING, 'points come after the cards');
+  assert.ok(lead.compareDocumentPosition(points) & Node.DOCUMENT_POSITION_FOLLOWING, 'points come after the lead');
+  assert.ok(points.compareDocumentPosition(cards) & Node.DOCUMENT_POSITION_FOLLOWING, 'cards come after the points');
   const items = within(cards as HTMLElement).getAllByRole('listitem');
   assert.equal(items.length, 3);
   for (const item of items) assert.ok(item.querySelector('[data-cover]'), 'every card has a cover (photo or BAYLINK 信息卡)');
   for (const item of items) assert.ok(item.querySelector('[data-provenance]'), 'every cover carries its provenance badge');
-  // Card ↔ point mapping: the card title carries the citation number of its own page, read as "来源 1：" (not a bare [1]).
-  assert.match(items[0].textContent || '', /^\[1\]/);
-  assert.match(items[2].textContent || '', /\[3\]/);
+  // Card ↔ point mapping: line 1 opens with the citation number of the card's own page on C's number plate, read as
+  // "来源 1：" (not a bare [1]).
+  assert.equal(items[0].querySelector('.bb-card__n')?.textContent, '1');
+  assert.equal(items[2].querySelector('.bb-card__n')?.textContent, '3');
+  assert.ok(items[0].querySelector('.bb-card__n.ui-plate'), 'the number plate class (UI9-C)');
   assert.equal(items[0].querySelector('.bb-card__n')?.getAttribute('aria-hidden'), 'true');
-  assert.ok(within(items[0]).getByRole('link', { name: /^来源 1：Santa Clara/ }));
-  // Every card has the one ♡ 收藏 (SAVES' useSave); a dated event also offers 加入这天计划 (H27), an offer card only the ♡.
-  assert.ok(within(items[0]).getByRole('button', { name: /^收藏：Santa Clara/ }));
-  fireEvent.click(within(items[0]).getByRole('button', { name: /^加入这天计划：/ }));
-  assert.equal(paths.at(-1), `/plan?date=2026-10-10&stops=${encodeURIComponent('event:santa-clara-library-comic-con-2026')}`);
+  assert.equal(items[0].querySelector('.bb-card__n + .sr-only')?.textContent, '来源 1：');
+  assert.ok(within(items[0]).getByRole('link', { name: /^Santa Clara/ }));
+  // Every card has the one ♡ (SAVES' useSave) and no 加入这天计划 (captain decision 16: it stays on the detail bar).
+  assert.deepEqual(within(items[0]).getAllByRole('button').map(button => button.getAttribute('aria-label')), [`收藏：${(c01().localMatches[0] as { title: string }).title}`]);
   assert.deepEqual(within(items[2]).getAllByRole('button').map(button => button.getAttribute('aria-label')), ['收藏：免费亲子课：用 iPad 做地球主题漫画']);
+  fireEvent.click(within(items[0]).getByRole('link', { name: /^Santa Clara/ }));
+  assert.equal(paths.at(-1), '/events/santa-clara-library-comic-con-2026');
   // [1] in a point opens the event page inside the app.
   fireEvent.click(within(points as HTMLElement).getAllByRole('link', { name: '[1]' })[0]);
   assert.equal(paths.at(-1), '/events/santa-clara-library-comic-con-2026');
@@ -179,13 +184,15 @@ test('♡ 收藏 saves an event in the one save model for a guest in this browse
   const view = render(<BayBaySaveScope><BayBayCardRail cards={[card as never]} today={TODAY} onNavigate={path => paths.push(path)} /></BayBaySaveScope>);
   const save = await view.findByRole('button', { name: /^收藏：/ });
   await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); });
-  // The same ♡ and names as every card on the site (SaveHeart / SaveControl); the event page's 我想去 is a different store.
-  assert.equal(save.textContent, '收藏');
+  // The same ♡ and names as every card on the site (SaveHeart / SaveControl), on the cover; the event page's 我想去 is a
+  // different store.
+  assert.ok(save.classList.contains('ui-save'), 'F\'s ♡ on the cover');
+  assert.equal(save.textContent, '');
   assert.equal(save.getAttribute('aria-pressed'), 'false');
   assert.doesNotMatch(view.baseElement.textContent || '', /想去/);
   fireEvent.click(view.getByRole('button', { name: /^收藏：/ }));
   const saved = await view.findByRole('button', { name: /^已收藏：/ });
-  assert.equal(saved.textContent, '已收藏');
+  assert.ok(saved.querySelector('svg'), 'the heart, filled by aria-pressed');
   assert.equal(saved.getAttribute('aria-pressed'), 'true');
   // A guest's saves live in the guest list of the one save model (src/lib/saves.ts), which My Week reads.
   assert.match(localStorage.getItem(savesKey()) || '', /santa-clara-library-comic-con-2026/);
@@ -227,12 +234,12 @@ test('starter chips ask, prefill or open the right tool, in each language', asyn
     const paths: string[] = [];
     const view = render(<BayBayAssistantEntry {...props} onNavigate={path => paths.push(path)} />);
     assert.equal(within(view.getByRole('list', { name: locale === 'en' ? 'Popular questions' : '常用问题' })).getAllByRole('button').length, 6);
-    fireEvent.click(view.getByRole('button', { name: letter }));
+    fireEvent.click(view.getByRole('button', { name: new RegExp(`^${letter}`) }));
     assert.equal((view.getByRole('textbox') as HTMLInputElement).value, draft, 'a draft starter waits for the reader');
-    fireEvent.click(view.getByRole('button', { name: screenshot }));
+    fireEvent.click(view.getByRole('button', { name: new RegExp(`^${screenshot}`) }));
     assert.deepEqual(paths, ['/plan?import=event']);
     fireEvent.change(view.getByRole('textbox'), { target: { value: '' } });
-    fireEvent.click(view.getByRole('button', { name: weekend }));
+    fireEvent.click(view.getByRole('button', { name: new RegExp(`^${weekend}`) }));
     await view.findByText('OK');
     assert.match(String(bodies.at(-1)?.message), locale === 'en' ? /this weekend/ : /这个周末/);
     cleanup();

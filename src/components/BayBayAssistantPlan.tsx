@@ -65,7 +65,7 @@ export function BayBayRequirements({ state, disabled, onAsk }: { state: BayBayTa
   const apply = () => { if (!disabled && canApply) { onAsk(editMessage); setEditing(null); } };
   if (!rows.length) return null;
   // 当前条件 is folded (content arrangement 10-19: it was an open block 164 px tall); its chips edit one condition each.
-  return <section className="baybay-requirements" aria-label={title} translate="no"><Disclosure summary={<>{title}<small>{t('点击修改', 'Select to edit')}</small></>}>
+  return <section className="baybay-requirements" aria-label={title} translate="no"><Disclosure summary={<span>{title}<small>{t('点击修改', 'Select to edit')}</small></span>}>
     <div className="baybay-requirement-chips">{rows.map(row => <button type="button" className="ui-chip" key={row.key} disabled={disabled} aria-label={`${row.label} ${row.value}`} onClick={() => { setEditing(row); setDraft(row.key === 'maxStops' ? String(state.maxStops) : row.prompt); }}><span>{row.label}</span><strong>{row.value}</strong><Pencil aria-hidden="true" size={16} /></button>)}</div>
     {editing && <div className="baybay-requirement-editor">{editing.key === 'return' ? <div role="group" aria-label={t('修改返程', 'Edit return requirement')}>
       {[[t('回到起点', 'Return to origin'), t('返回出发地', 'Return to the origin')], [t('不回起点', 'No return'), t('不返回起点', 'Do not return to the origin')]].map(([label, message]) => <Button variant="secondary" key={message} disabled={disabled} onClick={() => { onAsk(message); setEditing(null); }}>{label}</Button>)}
@@ -124,7 +124,7 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
         seen.add(source.url);
         const priceSource = facts?.sourceIds.includes(id) && sameSourcePage(facts.sourceUrl, source.url) && plannerWebCheckedDate(facts.checkedAt)
           ? { ...source, checkedAt: facts.checkedAt, verification: facts.basis === 'page-read' ? 'page-read' as const : 'catalog' as const } : undefined;
-        return [<li key={id}><a href={source.url} target="_blank" rel="noopener noreferrer"><ExternalLink aria-hidden="true" size={16} />{t(source.title, source.title)}</a><BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></li>];
+        return [<li key={id}><a href={source.url} target="_blank" rel="noopener noreferrer"><span><ExternalLink aria-hidden="true" size={16} />{t(source.title, source.title)}</span><BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></a></li>];
       });
       const notes = unique(stop.notes).filter(note => !allConcerns.has(note)).slice(0, 2);
       const place = [stop.city, stop.date && stop.date !== plan.date ? bayBayDayLabel(stop.date, locale) || stop.date : ''].filter(Boolean).join(' · ');

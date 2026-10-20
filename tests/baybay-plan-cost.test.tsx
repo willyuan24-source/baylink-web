@@ -19,16 +19,18 @@ function plan(admissionUsd: number | undefined, knownTotalUsd: number | undefine
     stops: [{ id: 'museum', kind: 'web', title: 'City museum', city: 'San Jose', admissionUsd, sourceIds: ['official'], notes: [] }],
     budget: { knownTotalUsd, unknownItems }, checks: [], unknowns: [] };
 }
+// UI9-BB: 先确认这些 is a sibling block of the costs now (content arrangement 10-19), so the unknown items are read there.
+const unknownsOf = (view: ReturnType<typeof render>) => view.container.querySelector('.baybay-plan-key-unknowns')?.textContent || '';
 function show(value: BayBayAssistantPlan) {
   const view = render(<BayBayAssistantPlanCard plan={value} taskState={{ version: 1, revision: 1, partySize: 3, childAges: [5] }} evidence={[{ id: 'official', kind: 'web', title: 'Official admissions', url: value.stops[0].admissionFacts?.sourceUrl || 'https://museum.example/admission' }]} disabled={false} onAsk={noop} onNavigate={noop} />);
   return { view, budget: view.container.querySelector('.baybay-plan-budget')! };
 }
 
 test('unpriced admissions show pending cost instead of a prominent zero subtotal in Chinese', () => {
-  const { budget } = show(plan(undefined, 0, ['门票价格待核实。']));
+  const { view, budget } = show(plan(undefined, 0, ['门票价格待核实。']));
   assert.equal(budget.querySelector('p strong')?.textContent, '费用待核算');
   assert.doesNotMatch(budget.textContent || '', /\$0/);
-  assert.match(budget.textContent || '', /门票价格待核实/);
+  assert.match(unknownsOf(view), /门票价格待核实/);
 });
 
 test('missing admission or other unpriced costs cannot imply a free trip', async () => {
@@ -52,9 +54,9 @@ test('a complete zero cost remains visible even if a non-cost detail needs verif
 
 test('positive known costs retain their subtotal and outstanding costs', async () => {
   await setLocale('en', false);
-  const { budget } = show(plan(20, 40, ['Transit fare remains unknown.']));
+  const { view, budget } = show(plan(20, 40, ['Transit fare remains unknown.']));
   assert.equal(budget.querySelector('p')?.textContent, 'Known costs subtotal for the whole group $40');
-  assert.match(budget.textContent || '', /Transit fare remains unknown/);
+  assert.match(unknownsOf(view), /Transit fare remains unknown/);
 });
 
 function pierPlan(): BayBayAssistantPlan {

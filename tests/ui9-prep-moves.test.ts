@@ -49,14 +49,15 @@ test('the BayBay panel frame (.member-baybay-*) and the 👎 reasons (.baybay-do
   const conversation = readFileSync('src/features/baybay-conversation.css', 'utf8');
   assert.doesNotMatch(member, /member-baybay/, 'member-ui.css keeps sign-in and publishing only');
   assert.match(member, /\.member-compose-overlay \{ position: fixed;/);
-  // The moved rules open baybay-conversation.css, before its own rules, as they did when member-ui.css loaded first.
-  const firstRule = conversation.indexOf('.member-baybay-overlay {');
-  assert.ok(firstRule > 0 && firstRule < conversation.indexOf('.baybay-conversation {'), 'the panel frame comes first');
-  assert.match(conversation, /\.member-baybay-overlay :is\(button, a, input, select, textarea\):focus-visible \{ outline: 3px solid var\(--color-brand\); outline-offset: 3px; \}/);
+  // UI9-BB then moved the panel's frame out of the global sheet into its lazy one (F's Sheet replaces the
+  // .member-baybay-* frame); the global sheet keeps QuickExplore's two rules only.
+  assert.doesNotMatch(conversation.replace(/\/\*[\s\S]*?\*\//g, ''), /member-baybay|\.baybay-/);
   const entry = uncommented('src/features/feedback/feedback-entry.css');
   const panel = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
   assert.doesNotMatch(entry, /baybay/, 'feedback-entry.css keeps the report and footer links only');
-  for (const selector of ['.baybay-downvote{', '.baybay-downvote>span{', '.baybay-downvote button{', '.baybay-downvote button[disabled]{', '.baybay-downvote-failed{', '.baybay-downvote-done{', '.baybay-downvote button:focus-visible{', '.baybay-feedback>:is(.baybay-downvote,.baybay-downvote-done){']) assert.ok(panel.includes(selector), selector);
+  // UI9-BB put the reasons on F's chips: the bespoke button look, its opacity :disabled and its focus rule are gone.
+  for (const selector of ['.baybay-downvote{', '.baybay-downvote>span{', '.baybay-downvote-failed{', '.baybay-downvote-done{', '.baybay-feedback>:is(.baybay-downvote,.baybay-downvote-done){']) assert.ok(panel.includes(selector), selector);
+  for (const selector of ['.baybay-downvote button{', '.baybay-downvote button[disabled]{']) assert.ok(!panel.includes(selector), selector);
   // Lazy, like feedback-entry.css was: it arrives with the panel chunk, after the global sheets (audit-integration.css's
   // .baybay-feedback button has the same specificity as .baybay-downvote button and must keep losing to it).
   assert.match(readFileSync('src/components/BayBayAssistantEntry.tsx', 'utf8'), /^import '\.\.\/features\/baybay\/baybay-panel\.css';$/m);

@@ -50,7 +50,7 @@ function CardMeta({ model, today }: { model: BayBayCardModel; today: string }) {
   if (model.kind === 'event') {
     const price = eventPriceChip(model.event), place = translateText(eventPlace(model.event), locale);
     const status = price && (price.tone === 'free' || price.tone === 'mixed') ? pick(price.text) : null;
-    return <span className="bb-card__meta">{status && <><StatusChip>{status}</StatusChip>{place && ' · '}</>}{place}</span>;
+    return <span className="bb-card__meta">{status && <StatusChip>{status}</StatusChip>}{status && place && ' · '}{place}</span>;
   }
   if (model.kind === 'offer') return <span className="bb-card__meta" translate="no">{brandCase(model.offer.brand)}</span>;
   if (model.kind === 'opening') return <span className="bb-card__meta">{[pick(openingChip(model.shop, today)), translateText(model.shop.city, locale)].filter(Boolean).join(' · ')}</span>;
@@ -130,9 +130,9 @@ export function BayBayCardRailView({ cards, sources = [], today, onNavigate, lab
       const title = translateText(model.title, locale);
       // The [n] of the source that is this card's own page, on C's number plate at the start of line 1 (the cover's corner
       // carries its provenance label).
-      const plate = cited !== undefined && <><span className="ui-plate bb-card__n" aria-hidden="true">{cited}</span><span className="sr-only">{t(`来源 ${cited}：`, `Source ${cited}: `)}</span></>;
-      const when = model.kind === 'event' || model.kind === 'offer' ? <>{plate}<CardWhen model={model} today={today} /></> : undefined;
-      const meta = <>{!when && plate}<CardMeta model={model} today={today} /></>;
+      const plate = cited !== undefined && [<span key="n" className="ui-plate bb-card__n" aria-hidden="true">{cited}</span>, <span key="sr" className="sr-only">{t(`来源 ${cited}：`, `Source ${cited}: `)}</span>];
+      const when = model.kind === 'event' || model.kind === 'offer' ? <span className="bb-card__when">{plate}<CardWhen model={model} today={today} /></span> : undefined;
+      const meta = <span className="bb-card__line">{!when && plate}<CardMeta model={model} today={today} /></span>;
       const check = cardCheck(model, t, english);
       const ended = model.ended && <p className="bb-card__ended">{t('已结束 · 仅供参考', 'Ended · reference only')}</p>;
       return <li key={model.key} className="bb-card" data-kind={model.kind} data-card-key={model.key}>

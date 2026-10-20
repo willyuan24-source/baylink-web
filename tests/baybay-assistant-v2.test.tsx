@@ -104,7 +104,8 @@ test('plan renders safe evidence, schedule and unknown costs; explicit import on
   const parsed = parseBayBayAssistantFields(fixture()), asks: string[] = [], paths: string[] = [];
   const view = render(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} evidence={parsed.evidence!} disabled={false} onAsk={value => asks.push(value)} onNavigate={value => paths.push(value)} />);
   assert.match(view.container.textContent || '', /10:00–11:30/);
-  assert.match(view.container.textContent || '', /费用未知/);
+  // UI9-BB: a stop's unknowns merge into one 待核实 line (content arrangement 10-19).
+  assert.match(view.container.textContent || '', /待核实前往本站交通时间、门票费用/);
   assert.match(view.container.textContent || '', /Transit and food remain unknown/);
   assert.equal(view.getByRole('link', { name: /Museum visitor information/ }).getAttribute('href'), 'https://www.sanjoseca.gov/parks');
   assert.equal(view.queryByRole('link', { name: /Unsafe/ }), null);
@@ -198,8 +199,13 @@ test('party totals and per-person limits have separate labels and critical unkno
   assert.deepEqual(paragraphs, ['Known costs subtotal for the whole group $60', 'Budget limit $30 · per person']);
   assert.doesNotMatch(paragraphs[0] || '', /per person/);
   assert.match(budget.textContent || '', /unknown costs are not counted as zero/);
-  assert.match(budget.textContent || '', /Opening hours need checking/);
+  // 先确认这些 is its own block after the costs (UI9-BB), still before the stops and never folded.
+  const unknowns = view.container.querySelector('.baybay-plan-key-unknowns')!;
+  assert.match(unknowns.textContent || '', /Opening hours need checking/);
+  assert.ok(budget.compareDocumentPosition(unknowns) & Node.DOCUMENT_POSITION_FOLLOWING);
   assert.equal(budget.closest('details'), null);
+  assert.equal(unknowns.closest('details'), null);
+  assert.ok(unknowns.compareDocumentPosition(view.container.querySelector('.baybay-plan-stops')!) & Node.DOCUMENT_POSITION_FOLLOWING);
   assert.ok(budget.compareDocumentPosition(view.container.querySelector('.baybay-plan-stops')!) & Node.DOCUMENT_POSITION_FOLLOWING);
 });
 
@@ -245,7 +251,7 @@ test('unknown, mismatched or malformed travel data never becomes a Google estima
   for (const routeData of cases) {
     const parsed = parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, ...routeData } });
     view.rerender(<BayBayAssistantPlanCard plan={parsed.assistantPlan!} evidence={parsed.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
-    assert.equal(view.getAllByText('前往本站交通时间待核实').length, 2);
+    assert.equal(view.getAllByText((_, node) => node?.tagName === 'DD' && /^前往本站交通时间/.test(node.textContent || '')).length, 2, 'one 待核实 line per stop names the travel time');
     assert.doesNotMatch(view.container.textContent || '', /Google Maps 估算|预计 12:35 返回|25:01/);
   }
   assert.equal(parseBayBayAssistantFields({ ...raw, assistantPlan: { ...raw.assistantPlan, ...cases[3] } }).assistantPlan?.stops[0].travelMinutes, undefined);
@@ -270,7 +276,9 @@ test('assistant answer ordinals bind only to evidence-backed sources and known l
   // One sources block (BBL-14): the cited sources inside, numbered like the answer; no "取得方式未记录" (BBL-09).
   const region = view.getByRole('region', { name: '来源' });
   assert.deepEqual(Array.from(region.querySelectorAll('.bb-sources__list > li')).map(item => item.getAttribute('value')), ['1', '3']);
-  assert.match(region.querySelector('summary')?.textContent || '', /^来源 · 已检索站内与站外/);
+  // "来源 · n 条" (UI9-BB); how the answer was found is the first line inside.
+  assert.match(region.querySelector('summary')?.textContent || '', /^来源 · 2 条/);
+  assert.match(region.querySelector('.bb-sources__line')?.textContent || '', /^已检索站内与站外/);
   assert.doesNotMatch(view.container.textContent || '', /未记录/);
   assert.equal(view.queryByRole('button', { name: '存入候选' }), null);
 });
@@ -528,7 +536,7 @@ test('official URLs in site snapshots are not presented as new web reads, includ
   view.rerender(<BayBaySources response={{ ...snapshot, retrieval: { requestedMode: 'web', scope: 'site', webStatus: 'unavailable' } }} />);
   // The failed lookup stays visible above the folded sources; the summary still names the snapshot.
   assert.match(view.container.querySelector('.bb-sources__note')?.textContent || '', /本次联网未成功/);
-  assert.match(view.container.querySelector('summary')?.textContent || '', /站内快照 1 条/);
+  assert.match(view.container.querySelector('.bb-sources__line')?.textContent || '', /站内快照 1 条/);
   assert.doesNotMatch(view.container.textContent || '', /本次网页读取/);
   const mixed = { ...snapshot, sources: rows, ...parseBayBayAssistantFields({ evidence: rows }), retrieval: { requestedMode: 'smart' as const, scope: 'site+web' as const, webStatus: 'completed' as const } };
   view.rerender(<BayBaySources response={mixed} />);

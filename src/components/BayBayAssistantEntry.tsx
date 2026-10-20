@@ -472,10 +472,11 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
   if (safety?.kind === 'emergency') return <div className="member-baybay-answer" data-safety="emergency"><BayBayEmergencyCard safety={safety} answer={response.answer} /></div>;
   const view = v2 ? bayBayAnswerView(response, locale === 'en') : null;
   const spoken = view ? [view.lead, ...view.visible.map(point => point.text)].map(bayBayReadableText).join(locale === 'en' ? ' ' : '') : '';
-  const calls = <>
-    {response.fallbackHelp && !response.notice && <BayBayCallActions actions={response.fallbackHelp.actions} />}
-    {safety?.kind === 'professional' && <BayBayResourceCard safety={safety} onNavigate={onNavigate} />}
-  </>;
+  // Keyed, not a fragment: the locale host rebuilds a fragment's children as an unkeyed array.
+  const calls = [
+    response.fallbackHelp && !response.notice && <BayBayCallActions key="calls" actions={response.fallbackHelp.actions} />,
+    safety?.kind === 'professional' && <BayBayResourceCard key="resources" safety={safety} onNavigate={onNavigate} />,
+  ];
   const plan = response.assistantPlan && <BayBayAssistantPlanCard plan={response.assistantPlan} taskState={response.taskState} ownerId={ownerId} evidence={response.evidence || []} disabled={loading || turn.id !== lastCompleteId} onAsk={message => onAsk(message, turn.currentPath, true)} onNavigate={onNavigate} />;
   // A plan's stops already link their own pages: the answer's cards repeat only the places that are not a stop (render only).
   const stopLinks = new Set(response.assistantPlan?.stops.flatMap(stop => stop.link ? [stop.link.href] : []) || []);
@@ -484,7 +485,7 @@ function BayBayTurnAnswer({ turn, today, guest, ownerId, sessionKey, loading, la
     {response.notice && <BayBayNoticeBanner kind={response.notice.kind} text={response.notice.text} resumesAt={response.notice.resumesAt} healthFloor={response.fallbackHelp?.actions} compact={!fullNotice} onNavigate={onNavigate} />}
     <div className="member-baybay-answer-label" translate={foodGap ? 'no' : undefined}><BayBayOtter size={20} /><span>{foodGap ? locale === 'zh-Hant' ? '餐飲資訊待確認' : copy('餐饮信息待确认', 'Food information unconfirmed') : response.outingSearch ? copy('小队搜索', 'Outing search') : response.degraded ? copy('参考指引', 'Reference guide') : copy('BayBay 建议', 'BayBay suggests')}</span>{spoken && <BayBayReadAloud text={spoken} />}</div>
     {response.degraded && !response.notice && <p role="status" className="baybay-degraded" translate="no">{copy('本次未能形成完整答复，以下保留已取得的资料与待确认项。请核对来源后再行动。', 'This response is incomplete. Available information and unconfirmed items are retained below. Check the sources before acting.')}</p>}
-    {v2 ? <BayBayAnswerBody fields={response} cards={planInBody ? cards.filter(card => !stopLinks.has(card.url)) : cards} sources={sources} today={today} onNavigate={onNavigate} plan={planInBody ? <>{calls}{plan}</> : undefined} /> : <>
+    {v2 ? <BayBayAnswerBody fields={response} cards={planInBody ? cards.filter(card => !stopLinks.has(card.url)) : cards} sources={sources} today={today} onNavigate={onNavigate} before={planInBody ? calls : undefined} plan={planInBody ? plan : undefined} /> : <>
       {response.outingSearch?.state !== 'needs_clarification' && <BayBayAnswer response={response} onNavigate={onNavigate} />}
       <BayBayCardRail cards={cards} sources={sources} today={today} onNavigate={onNavigate} />
     </>}

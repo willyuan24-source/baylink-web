@@ -48,6 +48,6 @@ test('when the card chunk cannot load, the cards become plain links instead of a
   assert.equal($('[data-fallback]'), null);
   assert.equal($('.bb-cards--loading'), null);
   // The ♡ on the image card is the one save model (a guest's list is known at once).
-  await until(() => !!$('.bb-card__actions button:not(:disabled)'), 'the save button');
+  await until(() => !!$('.bb-card__save:not(:disabled)'), 'the save button');
   assert.ok(view.getByRole('button', { name: /^收藏：Santa Clara/ }));
 });

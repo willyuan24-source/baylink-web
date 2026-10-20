@@ -123,11 +123,12 @@ test('phone numbers in answers are tap-to-call, citations stay links, and one so
   assert.equal(call.getAttribute('href'), 'tel:+18004340222');
   assert.ok(within(points).getByRole('link', { name: '[1]' }), 'the citation is still a link next to the number');
   const turn = view.baseElement.querySelector('.member-baybay-answer')!;
-  // One block: the retrieval line is its summary, the cited sources and the related guides sit inside it.
+  // One block "来源 · n 条" (UI9-BB): the retrieval line opens it, the cited sources and the related guides sit inside it.
   assert.equal(turn.querySelectorAll('.bb-sources').length, 1);
   assert.equal(turn.querySelectorAll(':scope > .baybay-references, :scope > .baybay-discovery, :scope > .baybay-retrieval').length, 0);
   const block = within(turn as HTMLElement).getByRole('region', { name: '来源' });
-  assert.match(block.querySelector('summary')?.textContent || '', /^来源 · 已检索站内资料 · 站内快照 2 条 · 相关攻略 1 篇$/, 'site-record evidence counts as a site snapshot; the cited guide is not repeated as related');
+  assert.match(block.querySelector('summary')?.textContent || '', /^来源 · 2 条 · 相关攻略 1 篇$/, 'the cited guide is not repeated as related');
+  assert.equal(block.querySelector('.bb-sources__line')?.textContent, '已检索站内资料 · 站内快照 2 条', 'site-record evidence counts as a site snapshot');
   assert.equal(block.querySelectorAll('.bb-sources__list > li').length, 2);
   assert.equal(block.querySelector('.baybay-references')?.closest('details'), block.querySelector('details'), 'the related guides are inside the one block');
   assert.doesNotMatch(turn.textContent || '', /未记录/);
@@ -295,9 +296,11 @@ test('the question box is a textarea that grows and keeps its whole example; Ent
   fireEvent.keyDown(field, { key: 'Enter' });
   await view.findByText('OK');
   assert.deepEqual(requests, ['第一行']);
-  const css = readFileSync('src/features/baybay-conversation.css', 'utf8');
+  // UI9-BB moved the panel's rules into its own lazy sheet.
+  const css = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
   assert.match(css, /textarea\.member-baybay-question-input \{[^}]*resize:none/);
   assert.doesNotMatch(css, /\.baybay-composer-footer input::placeholder/, 'the 12px placeholder rule of the old input is gone');
+  assert.match(css, /\.member-baybay-question-input::placeholder \{ color:var\(--color-ink-3\);/, 'the example in ink-3 (≥4.5:1)');
 });
 
 test('the empty question box fits its example again when Aa or 简洁显示 changes the text size with the panel open', async t => {
@@ -318,18 +321,23 @@ test('the empty question box fits its example again when Aa or 简洁显示 chan
   assert.equal(field.style.height, px(48));
 });
 
-test('desktop opens a 440px drawer on the right with the page in view and no scrim (FC3-08)', () => {
-  const css = readFileSync('src/features/baybay-conversation.css', 'utf8');
-  const desktop = /@media\(min-width:1024px\) \{([\s\S]*?)\n\}/.exec(css)?.[1] || '';
-  assert.match(desktop, /\.member-baybay-overlay \{[^}]*justify-content:flex-end[^}]*background:transparent; backdrop-filter:none;/);
-  assert.match(desktop, /\.member-baybay-dialog\.baybay-conversation \{[^}]*width:440px[^}]*height:100%[^}]*border-radius:0/);
+// UI9-BB: F's Sheet frame. From 768px the panel is a 480px drawer, 8px from the edges, over a transparent backdrop that
+// still closes on a tap: the page stays in view with no dark scrim (FC3-08, captain decision 7, kept for 768–1023 too).
+test('from 768px the panel is a 480px drawer on the right with the page in view and no scrim (FC3-08)', () => {
+  const css = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
+  const desktop = /@media \(min-width:768px\) \{([\s\S]*?)\n\}/.exec(css)?.[1] || '';
+  assert.match(desktop, /\.baybay-sheet-backdrop \{[^}]*justify-content:flex-end[^}]*padding:var\(--sp-2\); background:transparent; \}/);
+  assert.match(desktop, /\.baybay-sheet \{[^}]*width:480px[^}]*border-radius:var\(--r-xl\)/);
+  assert.doesNotMatch(css, /backdrop-filter|--scrim/, 'no dark scrim or blur of BayBay\'s own (the phone sheet keeps F\'s scrim)');
+  assert.match(css, /^\.baybay-sheet \{ height:calc\(100dvh - var\(--chrome-header-height, 3\.5rem\)\); max-height:none; \}/m, 'the phone sheet keeps one height in every state');
   const answerCss = readFileSync('src/features/baybay/baybay-answer.css', 'utf8');
   assert.match(answerCss, /\.baybay-conversation \.phone-chip \{ min-width:0; min-height:0; font-size:inherit; \}/, 'chips sit in the text at its size');
   assert.doesNotMatch(answerCss, /#[0-9a-f]{3,8}\b/i);
-  // The requirement chips and their editor are §3.0 rule-5 tap targets: 44px, 48px in 简洁显示 (the token's own values).
-  assert.match(css, /\.baybay-requirement-chips button \{[^}]*min-height:var\(--control-height\)/);
-  assert.match(css, /\.baybay-requirement-editor button,\.baybay-plan-followups button \{[^}]*min-height:var\(--control-height\)/);
-  assert.match(css, /\.baybay-requirement-editor input \{[^}]*min-height:var\(--control-height\)/);
+  // The requirement chips and their editor are §3.0 rule-5 tap targets: 44px, 48px in 简洁显示 (the token's own values):
+  // F's chips and buttons, restored to their own heights inside the panel.
+  assert.match(css, /\.baybay-conversation \.ui-chip \{ min-height:var\(--control-height\);/);
+  assert.match(css, /\.baybay-conversation \.ui-button \{ min-height:max\(var\(--control-height\), 3rem\);/);
+  assert.match(css, /\.baybay-requirement-editor input,\.baybay-conversation \.baybay-task-handoff textarea \{[^}]*min-height:var\(--control-height\)/);
 });
 
 test('a sources block with nothing to fold shows its line only, and visible notices stay outside the fold', () => {
