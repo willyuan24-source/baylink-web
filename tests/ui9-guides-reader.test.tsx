@@ -19,7 +19,10 @@ Object.assign(globalThis, {
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 dom.window.scrollTo = () => {};
+// RC-25: a test sets this to make the guide search corpus fail to load (offline), as a rejected chunk would.
+const failing = { corpus: false };
 const hooks = registerHooks({ load(url, context, next) {
+  if (failing.corpus && url.includes('guide-search-corpus')) return { format: 'module', shortCircuit: true, source: 'throw new Error("offline");' };
   if (url.includes('/socket.io-client/')) return { format: 'module', shortCircuit: true, source: 'export const io = () => ({ on() { return this; }, off() { return this; }, emit() {}, disconnect() {} });' };
   return url.endsWith('.css') ? { format: 'module', shortCircuit: true, source: 'export {}' } : next(url, context);
 } });
@@ -88,12 +91,13 @@ test('the bar follows DETAIL\'s contract: 收藏 · 发家人 · 问 BayBay, the
   assert.equal(primary.getAttribute('target'), '_blank');
 });
 
-test('one number per guide: the reader\'s bar and the index\'s 简洁 elder rows call the same number (guideCallOf)', () => {
+test('one number per guide: the reader\'s bar and the band\'s 简洁 rows call the same number (guideCallOf)', () => {
+  // The index carries a number only for the guides the 长辈与家属 band can show (G16), each the one the reader's bar calls.
   const called = guidesIndex.guides.filter(card => card.call);
-  assert.ok(called.length >= 8, `${called.length} guides with a number`);
-  for (const card of guidesIndex.guides) {
+  assert.ok(called.length >= 3, `${called.length} guides with a number`);
+  for (const card of called) {
     const call = guideCallOf(getGuideEditorial(card.slug));
-    assert.deepEqual(card.call && { number: card.call.number, tel: telOf(card.call.number) }, call && { number: call.number, tel: call.tel }, card.slug);
+    assert.deepEqual({ number: card.call!.number, tel: telOf(card.call!.number) }, call && { number: call.number, tel: call.tel }, card.slug);
   }
   const senior = guidesIndex.guides.find(card => card.slug === SENIOR)!;
   assert.equal(senior.call?.number, '800-510-2020');
@@ -132,6 +136,8 @@ test('3D postcards keep their own label: no credit line on a scene3d picture, Gu
 
 const css = (file: string) => postcss.parse(readFileSync(file, 'utf8'));
 const LANE_SHEETS = ['src/features/guides/guide-article.css', 'src/features/guides/guide-library.css'];
+/** Every sheet this lane touched (DECISIONS #13: no font-size literal in them; every hover behind a fine pointer, N23). */
+const TOUCHED_SHEETS = [...LANE_SHEETS, 'src/components/guides-ui.css', 'src/components/monthly-deals.css', 'src/components/reader-library.css', 'src/components/guide-visuals.css', 'src/components/phone-links.css'];
 const inMedia = (rule: Rule, pattern: RegExp) => { for (let node = rule.parent; node && node.type !== 'root'; node = node.parent) if (node.type === 'atrule' && pattern.test((node as AtRule).params)) return true; return false; };
 
 test('the lane\'s sheets are token-only: sizes, line heights, radii and shadows; every hover behind a fine pointer', () => {
@@ -142,6 +148,13 @@ test('the lane\'s sheets are token-only: sizes, line heights, radii and shadows;
       if (declaration.prop === 'line-height') assert.match(declaration.value, /^(?:var\(--lh-[\w-]+\)|1)$/, where);
       if (/^border(?:-[a-z]+)*-radius$/.test(declaration.prop)) assert.match(declaration.value, /^(?:var\(--r-[\w-]+\)|0)$/, where);
       if (declaration.prop === 'box-shadow') assert.match(declaration.value, /^var\(--(?:e1|e2|scrim)\)$/, where);
+    });
+  }
+  for (const file of TOUCHED_SHEETS) {
+    css(file).walkDecls('font-size', declaration => {
+      // phone-links.css scales a chip to its sentence (.9em / .82em below 360 px): a ratio of the text around it, not a size.
+      const ratio = file.endsWith('phone-links.css') && /^\.\d+em$/.test(declaration.value);
+      if (!ratio) assert.match(declaration.value, /^(?:var\(--(?:fs|text)-[\w-]+\)|inherit|1em)$/, `${file} ${(declaration.parent as Rule).selector}`);
     });
     css(file).walkRules(rule => {
       if (/:hover/.test(rule.selector)) assert.ok(inMedia(rule, /\(hover:hover\) and \(pointer:fine\)/), `${file}: ${rule.selector}`);
@@ -164,4 +177,129 @@ test('G6 and one save glyph: no all-caps English labels and no bookmark on the g
     assert.doesNotMatch(source, /YOUR NEXT STEP|YOUR LITTLE CORNER/, file);
     assert.doesNotMatch(source, /\bBookmark\b/, file);
   }
+});
+
+const { setSimpleDisplay } = await import('../src/lib/reading-preferences');
+
+test('简洁显示 keeps two tap targets per number (the bar and its contact); every other copy is text on one line', async () => {
+  setSimpleDisplay(true);
+  try {
+    const view = await article(SENIOR);
+    const taps = [...view.container.querySelectorAll('a[href="tel:+18005102020"]')].filter(link => !link.closest('.gd-carousel'));
+    assert.equal(taps.length, 2, taps.map(link => link.className).join(' | '));
+    assert.ok(taps.some(link => link.closest('.gd-bar')) && taps.some(link => link.closest('.gd-contact')));
+    // The copies that print as text keep the number on one line (never "800-/510-2020" at 简洁 / 家人版 sizes).
+    const walker = document.createTreeWalker(view.container, dom.window.NodeFilter.SHOW_TEXT);
+    let plain = 0;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      const parent = node.parentElement!;
+      if (!/800-510-2020/.test(node.textContent!) || parent.closest('a, .gd-carousel, .gd-contact__number')) continue;
+      plain++;
+      assert.ok(parent.closest('.gd-nowrap'), `"${node.textContent}" in .${parent.className}`);
+    }
+    assert.ok(plain >= 2, `${plain} plain copies`);
+  } finally { setSimpleDisplay(false); }
+});
+
+const { editionState, guideCardLines, inSeason } = await import('../src/features/guides/guide-facts');
+
+test('guideCardLines: the current edition first on line 1, the sources and the region on line 2, English singular / plural', () => {
+  const card = { sourceCount: 1, readMinutes: 4, editionMonth: '2026-10', regions: ['east-bay' as const] };
+  assert.deepEqual(guideCardLines(card, '2026-10-20'), { when: { zh: '10 月本期 · 约 4 分钟', en: 'Oct edition · 4 min read' }, meta: { zh: '1 个官方来源 · 东湾', en: '1 official source · East Bay' } });
+  assert.deepEqual(guideCardLines({ sourceCount: 3, readMinutes: 2 }, '2026-10-20'), { when: { zh: '约 2 分钟', en: '2 min read' }, meta: { zh: '3 个官方来源', en: '3 official sources' } });
+  // An edition says 本期 only while it is current: not before its month, not after its last day.
+  assert.equal(guideCardLines({ ...card, editionMonth: '2026-11' }, '2026-10-20').when.zh, '约 4 分钟');
+  assert.equal(guideCardLines({ ...card, editionMonth: '2026-11', editionThroughDate: '2026-11-15' }, '2026-11-20').when.zh, '约 4 分钟');
+  assert.equal(guideCardLines({ ...card, editionMonth: '2026-11', editionThroughDate: '2026-11-15' }, '2026-11-10').when.zh, '11 月本期 · 约 4 分钟');
+});
+
+test('one edition rule for the head, the 往期 notice, the rows and the previews (today 2026-11-20)', async () => {
+  const half = { editionMonth: '2026-11', editionThroughDate: '2026-11-15' };
+  const holiday = { editionMonth: '2027-01', editionStartDate: '2026-11-26', editionThroughDate: '2027-01-01' };
+  assert.equal(editionState(half, '2026-11-20'), 'past');
+  assert.equal(editionState(half, '2026-11-15'), 'current');
+  assert.equal(editionState(holiday, '2026-11-20'), 'upcoming');
+  assert.equal(editionState(holiday, '2026-11-26'), 'current');
+  assert.equal(editionState({ editionMonth: '2026-11' }, '2026-10-20'), 'upcoming');
+  assert.equal(editionState({}, '2026-11-20'), undefined);
+  // Previews: current first, a past edition out, the rest in order.
+  const cards = [{ slug: 'a' }, { slug: 'b', ...half }, { slug: 'c', ...holiday }, { slug: 'd', editionMonth: '2026-11' }];
+  assert.deepEqual(inSeason(cards, '2026-11-20').map(card => card.slug), ['d', 'a', 'c']);
+  // The reader: a half-month edition past its last day keeps its full 往期 notice (a content date, never a check) and no 本期.
+  const past = 'east-bay-november-nature-programs-2026';
+  if (!peekGuide(past)) await loadGuide(past);
+  const view = render(<MemoryRouter><GuideDetail slug={past} today="2026-11-20" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} /></MemoryRouter>);
+  const notice = view.container.querySelector('.bl-guide-edition-notice')!;
+  assert.ok(notice, 'the 往期 notice');
+  assert.match(notice.textContent!, /往期攻略/);
+  assert.match(notice.textContent!, /内容更新 \d{4}-\d{2}-\d{2}/);
+  assert.doesNotMatch(notice.textContent!, /核对日期/);
+  assert.equal(view.container.querySelector('.gd-meta__item[data-edition]'), null);
+  cleanup();
+  const current = render(<MemoryRouter><GuideDetail slug={past} today="2026-11-10" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} /></MemoryRouter>);
+  assert.equal(current.container.querySelector('.bl-guide-edition-notice'), null);
+  assert.match(current.container.querySelector('.gd-meta__item[data-edition="current"]')!.textContent!, /本期$/);
+  cleanup();
+  // An upcoming edition with its own dates names them (as the base's box did), without 本期.
+  const holidaySlug = 'bay-area-holiday-hours-thanksgiving-new-year-2026';
+  if (!peekGuide(holidaySlug)) await loadGuide(holidaySlug);
+  const soon = render(<MemoryRouter><GuideDetail slug={holidaySlug} today="2026-10-20" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} /></MemoryRouter>);
+  assert.match(soon.container.querySelector('.gd-meta__item[data-edition="upcoming"]')!.textContent!, /^适用 2026\D+11\D+26/);
+});
+
+const { GuideToTop } = await import('../src/features/guides/GuidePageParts');
+
+test('回到顶部: hidden until two screens down, then a jump (no smooth scroll) in 简洁显示 and under reduced motion', (t: TestContext) => {
+  const view = render(<GuideToTop />);
+  const button = view.container.querySelector<HTMLButtonElement>('.gd-to-top')!;
+  assert.equal(button.getAttribute('aria-label'), '回到顶部');
+  assert.equal(button.hidden, true);
+  Object.defineProperty(window, 'scrollY', { configurable: true, value: window.innerHeight * 2 + 10 });
+  act(() => { window.dispatchEvent(new dom.window.Event('scroll')); });
+  assert.equal(button.hidden, false);
+  const calls: ScrollToOptions[] = [];
+  t.mock.method(window, 'scrollTo', (options: ScrollToOptions) => { calls.push(options); });
+  document.documentElement.setAttribute('data-simple', '');
+  try { act(() => { button.click(); }); } finally { document.documentElement.removeAttribute('data-simple'); }
+  assert.deepEqual(calls.at(-1), { top: 0, behavior: 'auto' });
+  Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+});
+
+const { GuidesHome } = await import('../src/components/GuidesHome');
+const { regionSheet } = await import('../src/features/guides/region-sheet');
+
+function IndexHarness() {
+  const location = useLocation();
+  return <><output data-testid="location">{location.pathname}{location.search}</output><GuidesHome onOpenGuide={noop} /></>;
+}
+
+test('RC-25: when the 地区 sheet cannot load (offline), the page stays and the regions show as an inline chip row', async (t: TestContext) => {
+  t.mock.method(regionSheet, 'load', () => Promise.reject(new Error('offline')));
+  const view = render(<MemoryRouter initialEntries={['/guides']}><IndexHarness /></MemoryRouter>);
+  await act(async () => { view.getByRole('button', { name: '地区：整个湾区' }).click(); });
+  const regions = await view.findByRole('group', { name: '地区' }, { timeout: 15000 });
+  assert.ok(view.container.querySelector('.gl-page'), 'the page is still there');
+  await act(async () => { within(regions).getByRole('button', { name: '东湾' }).click(); });
+  assert.equal(new URL(view.getByTestId('location').textContent!, 'http://localhost').searchParams.get('region'), 'east-bay');
+});
+
+test('RC-25: when search cannot load, 重试 sits above the band and the topic sections, and the count stays quiet', async () => {
+  failing.corpus = true;
+  try {
+    const view = render(<MemoryRouter initialEntries={['/guides?q=看医生']}><IndexHarness /></MemoryRouter>);
+    await view.findByText('搜索暂时没能加载', undefined, { timeout: 15000 });
+    assert.ok(view.getByRole('button', { name: /重试/ }));
+    assert.ok(view.getByRole('region', { name: '长辈与家属先看' }), 'the band stays');
+    assert.ok(view.container.querySelectorAll('.gl-section[aria-labelledby^="gl-topic-"]').length >= 6, 'the topic sections stay');
+    assert.equal(view.container.querySelector('.gl-count')!.textContent, '');
+  } finally { failing.corpus = false; }
+});
+
+const { ReadingShelfView } = await import('../src/components/ReaderLibrary');
+
+test('RC-25: ?view=saved with nothing saved says 还没有收藏 and leads to the 长辈与家属 guides', () => {
+  const view = render(<MemoryRouter initialEntries={['/guides?view=saved']}><ReadingShelfView saved={{ ids: [], known: true, busy: () => false, remove: noop }} /></MemoryRouter>);
+  assert.ok(view.getByRole('heading', { name: '还没有收藏' }));
+  assert.equal(view.getByRole('link', { name: /长辈与家属/ }).getAttribute('href'), '/guides?topic=elders');
+  assert.equal(view.queryByText(/你的阅读角落/), null);
 });

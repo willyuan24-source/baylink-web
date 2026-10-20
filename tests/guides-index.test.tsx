@@ -19,7 +19,7 @@ const { guides } = await import('../src/data/guides');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 const { ELDER_HUB_SLUGS, GUIDE_TOPICS, guideSlugsForTopic } = await import('../src/data/guide-topics');
 const { guideRegionsOf } = await import('../src/features/guides/guide-data');
-const { inSeason } = await import('../src/features/guides/guide-facts');
+const { editionState, inSeason } = await import('../src/features/guides/guide-facts');
 const { getBayAreaToday } = await import('../src/lib/monthly');
 const { setLocale } = await import('../src/i18n/locale');
 
@@ -45,11 +45,15 @@ test('the index shows one chip row (全部, the seven topics with 长辈与家�
   fireEvent.click(topics.at(-1)!);
   const sheet = await view.findByRole('dialog', { name: '地区' }, { timeout: 15000 });
   assert.deepEqual(within(sheet).getAllByRole('button').filter(button => button.classList.contains('gl-regions__option')).map(option => option.textContent), ['整个湾区', '旧金山', '东湾', '半岛', '南湾', '北湾']);
-  // The band: three rows, this month's editions first and no past edition.
+  // The band: three rows in D22's curated order (the senior hotline first), no past edition; G16: each prints its 48 px 拨打
+  // <number> in 简洁显示 (data-simple=show), the number the reader's bar calls.
   const today = getBayAreaToday();
   const band = view.getByRole('region', { name: '长辈与家属先看' });
-  const season = inSeason(ELDER_HUB_SLUGS.map(slug => bySlug.get(slug)!), today).map(guide => guide.slug);
+  const season = ELDER_HUB_SLUGS.filter(slug => bySlug.has(slug) && editionState(bySlug.get(slug)!, today) !== 'past');
   assert.deepEqual(guideLinks(band), season.slice(0, 3));
+  assert.equal(guideLinks(band)[0], 'bay-area-chinese-senior-services-referral-guide');
+  const calls = [...band.querySelectorAll('a.gl-call')];
+  assert.ok(calls.some(call => call.getAttribute('href') === 'tel:+18005102020' && call.getAttribute('data-simple') === 'show' && /800-510-2020/.test(call.textContent!)));
   assert.ok(within(band).getByRole('button', { name: `看全部 ${guideSlugsForTopic('elders', guides).length} 篇` }));
   // Every other topic previews up to four guides in season; a topic with enough guides of its own does not repeat a band guide.
   for (const topic of GUIDE_TOPICS.filter(item => item.id !== 'elders')) {
@@ -58,7 +62,7 @@ test('the index shows one chip row (全部, the seven topics with 长辈与家�
     const others = all.filter(slug => !season.slice(0, 3).includes(slug));
     const expected = inSeason((others.length >= 2 ? others : all).map(slug => bySlug.get(slug)!), today).slice(0, 4).map(guide => guide.slug);
     assert.deepEqual(guideLinks(section), expected, topic.zh);
-    for (const slug of expected) assert.ok(!bySlug.get(slug)!.editionMonth || bySlug.get(slug)!.editionMonth! >= today.slice(0, 7), `${slug}: no past edition in a preview`);
+    for (const slug of expected) assert.notEqual(editionState(bySlug.get(slug)!, today), 'past', `${slug}: no past edition in a preview`);
   }
 });
 
@@ -97,8 +101,8 @@ test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, 
   const hub = guideSlugsForTopic('elders', guides);
   assert.deepEqual(guideLinks(list), hub);
   assert.equal(view.container.querySelector('.gl-count')?.textContent, `${hub.length} 篇`);
-  // G16: a row whose guide has a number carries its 48 px 拨打 (shown in 简洁显示), the number the reader's bar calls.
-  assert.ok(list.querySelector('a.gl-call[href^="tel:"]'));
+  // G16's 拨打 rows are the band's (/guides); the hub list keeps plain rows.
+  assert.equal(list.querySelector('a.gl-call'), null);
   fireEvent.click(view.getByRole('button', { name: '地区：整个湾区' }));
   fireEvent.click(within(await view.findByRole('dialog', { name: '地区' }, { timeout: 15000 })).getByRole('button', { name: '东湾' }));
   const url = new URL(view.getByTestId('location').textContent!, 'http://localhost');
