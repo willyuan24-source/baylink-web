@@ -16,6 +16,15 @@ import type { PlanningFacts } from './planner';
 export type Copy = { zh: string; en: string };
 export const pickCopy = (copy: Copy, english: boolean) => english ? copy.en : copy.zh;
 
+/**
+ * A listing whose source is a press report, not the organiser's or the shop's own page (UI-9 DECISIONS 17; captain
+ * 10-20): its source label starts with 「媒体报道 · 」 (「媒體報導 · 」, "Press report · "), the form the data gives every
+ * press-only record (CNT-SIGNBOARD, web #54). A label that also names the place's own page ("Flora 官网；Eater SF 项目地址报道")
+ * does not start that way and stays official. Cards, rails, the detail page, the boards, the events index and BayBay all
+ * read this one test, never a /报道/ regex: such an item prints 「媒体报道 · M/D 核对」, never 「官网核对 M/D」.
+ */
+export const isPressSource = (label: string | null | undefined): boolean => !!label && /^\s*(?:媒体报道|媒體報導|press report)\s*·/i.test(label);
+
 type Session = { date: string; start?: string; end?: string };
 /** Optional CNT overlay fields, read when present. */
 export type EventOverlay = {

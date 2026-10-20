@@ -1,14 +1,14 @@
 import { translateText, type Locale } from '../../i18n/locale';
+import { isPressSource } from '../../lib/event-facts';
 import { readerDate } from './content-review-runtime';
 
 /**
  * A press report as a listing's source, decided by the source label alone (owner decision 17: render by source type, no
- * data edit). lib/schema-org.ts, the detail rails, the facts card and the trust row all read the same label rule, so a
- * page never calls one source two things. An official page reached by another URL (a mall's shop page, a city newsletter,
- * an official Instagram) is not press.
+ * data edit): the site's one prefix rule (lib/event-facts.ts isPressSource, a label that starts with 「媒体报道 · 」). The
+ * detail rails, the facts card and the trust row all read it, so a page never calls one source two things. An official
+ * page reached by another URL (a mall's shop page, a city newsletter, an official Instagram) is not press.
  */
-const PRESS = /媒体报道|新闻|报道|media|news/i;
-export const pressSource = (label: string | undefined) => !!label && PRESS.test(label);
+export const pressSource = (label: string | undefined) => isPressSource(label);
 
 /**
  * The words around a check date: "官网核对 {date}" / "Source checked {date}", or for a press source "媒体报道 · {date} 核对"

@@ -1,4 +1,4 @@
-import { openingChip, readerDayRange, readerMonthDay, weekdayOf, type Copy } from '../../lib/event-facts';
+import { isPressSource, openingChip, readerDayRange, readerMonthDay, weekdayOf, type Copy } from '../../lib/event-facts';
 import type { StatusLook } from '../../components/ui/Status';
 import type { IndexOffer, IndexOpening } from './events-index-types';
 
@@ -162,19 +162,8 @@ export const OPENING_TYPES: Readonly<Record<IndexOpening['openingType'], Copy>> 
 // Sources ------------------------------------------------------------------------------------------------------------
 
 /**
- * Outlets that report on openings, matched as whole words or hosts: "Eater SF" and "sf.eater.com", never "Polly Klaas
- * Community Theater" or "petalumapumpkinpatch.com". The word 报道 ("KQED 报道", "Hoodline 报道") is press too, so an
- * outlet not listed here never prints 「官网核对」. A label naming one of them and no official page of the place is press.
- */
-const PRESS = /\beater\b|\bsfgate\b|\bsfist\b|\b(?:sf)?chronicle\b|san francisco standard|\bsf standard\b|(?:^|[\s·/.])patch\.com\b|\bbizjournals\b|\bnosh\b|报道/i;
-/** A label that also names the place's own page or announcement ("官网", "官方", "品牌门店页", "公告") is official. */
-const OFFICIAL = /官方|官网|门店页|品牌|公告|市府/;
-/**
  * DECISIONS 17 (owner, 10-19): an item whose source is press, not the organiser's or the shop's own page, prints
- * 「媒体报道 · 10/7 核对」, never 「官网核对」. Read from the record's source label; no data edit.
+ * 「媒体报道 · 10/7 核对」, never 「官网核对」. The site's one prefix rule (lib/event-facts.ts isPressSource, captain 10-20):
+ * the record's source label starts with 「媒体报道 · 」. No data edit.
  */
-export const pressSourced = (sourceLabel: string | undefined): boolean => {
-  const label = (sourceLabel ?? '').trim();
-  if (/^媒体报道/.test(label)) return true;
-  return PRESS.test(label) && !OFFICIAL.test(label);
-};
+export const pressSourced = (sourceLabel: string | undefined): boolean => isPressSource(sourceLabel);

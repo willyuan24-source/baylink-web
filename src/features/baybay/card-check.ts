@@ -1,13 +1,11 @@
-import { readerMonthDay } from '../../lib/event-facts';
+import { isPressSource, readerMonthDay } from '../../lib/event-facts';
 import type { BayBayCardModel } from './answer-cards';
 
 /**
- * A record whose source is a press report ("媒体报道 · visitmarin.org", "a Mercury News report"). The same test
- * src/lib/schema-org.ts's eventOrganizer uses, plus the Traditional spellings: one rule for every card kind that carries a
- * `sourceLabel` (UI9-INT may move it next to C's TrustLine so EVENTS and HOME share it).
+ * A record whose source is a press report ("媒体报道 · visitmarin.org"): the site's one prefix rule (lib/event-facts.ts
+ * isPressSource), the same for every card kind that carries a `sourceLabel` and for the events, boards and detail cards.
  */
-const PRESS_SOURCE = /媒体报道|媒體報導|新闻|新聞|报道|報導|media|news|report/i;
-export const pressSource = (label: string | null | undefined): boolean => !!label && PRESS_SOURCE.test(label);
+export const pressSource = (label: string | null | undefined): boolean => isPressSource(label);
 
 /**
  * The ✓ line every event, offer and opening card carries (captain decisions 3 and 17): 官网核对 M/D, or 媒体报道 · M/D 核对

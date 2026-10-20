@@ -78,7 +78,7 @@ test('the ✓ line reads 媒体报道 · M/D 核对 for a press source on events
   assert.ok(offer, 'the live offer whose source label is 媒体报道 · visitmarin.org');
   assert.equal(cardCheck(offer, t, false), '媒体报道 · 9/28 核对');
   assert.equal(cardCheck(offer, (_zh, en) => en, true), 'News report · checked Sep 28');
-  const shop = { kind: 'opening', key: 'opening:x', id: 'x', url: '/openings/x', title: 'x', ended: false, cover: { tier: 'type' }, shop: { verifiedAt: '2026-10-02', sourceLabel: 'SFGATE 报道' } } as never;
+  const shop = { kind: 'opening', key: 'opening:x', id: 'x', url: '/openings/x', title: 'x', ended: false, cover: { tier: 'type' }, shop: { verifiedAt: '2026-10-02', sourceLabel: '媒体报道 · SFGATE 10/2' } } as never;
   assert.equal(cardCheck(shop, t, false), '媒体报道 · 10/2 核对');
   const official = { ...(shop as object), shop: { verifiedAt: '2026-10-02', sourceLabel: '主办方官网' } } as never;
   assert.equal(cardCheck(official, t, false), '官网核对 10/2');

@@ -117,12 +117,15 @@ test('decision 17: the facts check line and the trust row read one source type (
     const dated = [...(row?.querySelectorAll('.trust-row-item') ?? [])].find(item => item.querySelector('time'));
     return { check, dated: dated?.textContent || '', label: row?.querySelector('.trust-row-item')?.textContent || '' };
   };
-  // An official page reached by another URL (the mall's shop page) is still the official page: 官网核对 on both lines.
-  const mall = lines('opening:jean-dousset-valley-fair');
-  assert.match(mall.check, /^官网核对 \d+\/\d+$/, 'jean-dousset-valley-fair');
-  assert.equal(mall.dated, mall.check);
+  // An official page reached by another URL (the mall's shop page) is still the official page: 官网核对 on both lines; so is
+  // a label that names the shop's own announcement beside a report (the one prefix rule, UI9-INT).
+  for (const key of ['opening:jean-dousset-valley-fair', 'opening:old-post-office-burlingame']) {
+    const official = lines(key);
+    assert.match(official.check, /^官网核对 \d+\/\d+$/, key);
+    assert.equal(official.dated, official.check, key);
+  }
   // A press source: 媒体报道 · M/D 核对 on both lines, and the row never calls a press report 官方来源.
-  for (const key of ['opening:albany-o2-sushi-opening-2026', 'event:r2-santarosa-ross-street-sundays-2026', 'offer:pacific-catch-aloha-corte-madera-20261005', 'opening:old-post-office-burlingame']) {
+  for (const key of ['opening:albany-o2-sushi-opening-2026', 'event:r2-santarosa-ross-street-sundays-2026', 'offer:pacific-catch-aloha-corte-madera-20261005']) {
     const { check, dated, label } = lines(key);
     assert.match(check, /^媒体报道 · \d+\/\d+ 核对$/, key);
     assert.equal(dated, check, `${key}: the trust row says what the facts card says`);
