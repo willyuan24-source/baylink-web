@@ -36,7 +36,7 @@
 /* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
 .ui-feed-card { position:relative; display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .ui-feed-card__media { position:relative; order:-1; margin-bottom:var(--sp-1); border-radius:var(--r-lg); }
-.ui-feed-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
+.ui-feed-card__title { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-strong); overflow-wrap:break-word; }
 .ui-card-link { color:inherit; text-decoration:none; }
 .ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:var(--r-lg); }
 .ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
@@ -56,13 +56,13 @@
 .ui-cover-credit { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .ui-feed:not(:has(.ui-feed-card[data-credited] [data-cover=type]))>.ui-cover-credit { display:none; }
 .ui-feed-card__save { position:absolute; top:var(--sp-1); right:var(--sp-1); z-index:3; }
-:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
+:is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) .ui-feed-card__title { display:block; overflow:visible; font-size:var(--text-card); line-height:1.444; }
 :is(.ui-feed-grid[data-single],.ui-feed-grid[data-layout=list]) :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
 @container ui-feed (max-width:339px) {
   .ui-feed-grid:not([data-layout=grid]) .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
 }
 @media (max-width:767px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { font-size:var(--text-card); line-height:1.444; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] .ui-feed-card__title { display:block; overflow:visible; font-size:var(--text-card); line-height:1.444; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .ui-feed-grid[data-layout=auto] :is(.ui-feed-card__meta,.ui-feed-card__trust) { font-size:var(--fs-body); white-space:normal; }
 }
 

@@ -41,7 +41,7 @@ html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 :is(.home-picks__list>li:first-child,.home-offers__rail>li[data-wide]) { grid-column:1 / -1; }
 .home-guides__rail { margin-top:var(--stack-head); }
 .home-picks__list>li:first-child { --ui-feed-ratio:16 / 9; }
-.home-discovery :is(.ui-feed-card__title,.ui-row-card__title) { display:block; -webkit-line-clamp:unset; }
+:is(html[data-simple],html[data-reading$=large]) .home-discovery .ui-feed-card__title { display:block; overflow:visible; }
 .home-picks .ui-feed-card__title { line-height:var(--lh-tight); }
 .home-pick__reason { display:none; margin-top:var(--sp-1); color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
 /* A two-up date page drops its time line (line 1 under it prints the whole window), so the cover keeps its 3:2 box. */

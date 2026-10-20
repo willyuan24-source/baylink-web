@@ -27,7 +27,7 @@ html[data-simple] .baybay-conversation :is(.bb-points>li,.bb-gap) { font-size:va
 .baybay-conversation .bb-cards--loading>span { flex:0 0 min(16.5rem, 85%); aspect-ratio:3 / 2; border-radius:var(--r-lg); background:var(--color-surface-2); }
 .baybay-conversation .bb-card { display:grid; flex:0 0 min(16.5rem, 85%); gap:var(--sp-1); min-width:0; scroll-snap-align:start; }
 .baybay-conversation .bb-cards[data-count="1"] .bb-card { flex-basis:min(22rem, 100%); }
-.baybay-conversation .bb-card :is(.ui-feed-card__title,.ui-row-card__title) { display:block; overflow:visible; font-size:var(--fs-card); line-height:var(--lh-tight); }
+.baybay-conversation .bb-card :is(.ui-feed-card__title,.ui-row-card__title) { font-size:var(--fs-card); line-height:var(--lh-tight); }
 .baybay-conversation .bb-card__n.ui-plate { display:inline-flex; margin-inline-end:var(--sp-2); padding:0 var(--sp-1); border-radius:var(--r-sm); outline:0; font-size:var(--fs-badge); line-height:var(--lh-ui); font-weight:600; vertical-align:.1em; white-space:nowrap; }
 .baybay-conversation .bb-card__meta { overflow-wrap:anywhere; }
 .baybay-conversation .bb-card .ui-save { min-width:0; }

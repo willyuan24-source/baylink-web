@@ -25,8 +25,6 @@
 .fb-section__head { margin:0 0 var(--fb-inside); color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
 /* "这 7 天" at 600, "· 16 条" at 400 (as the deals board's section heads): the count is not a second heading (N03). */
 .fb-section__count { font-weight:400; }
-/* Titles are never cut on the boards: the whole title wraps (N25: 0 ellipsised titles). */
-.fb-board :is(.ui-feed-card__title,.ui-row-card__title) { display:block; overflow:visible; -webkit-line-clamp:unset; }
 /* The coded-cover note prints once per board, under the last section (PerksView / OpeningsView render it when any shown
    cover is coded, in grid and row layouts alike), so each grid's own copy is hidden. Interim until INT-1: EVENTS' FeedGrid
    coverCredit={false} and ImageCredits' note replace both. */

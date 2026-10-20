@@ -54,7 +54,8 @@ test('nothing in the panel is cut with an ellipsis or a line clamp (N25, G8)', (
     assert.doesNotMatch(css, /text-overflow:\s*ellipsis|-webkit-line-clamp:\s*\d/, file);
   }
   const answer = readFileSync('src/features/baybay/baybay-answer.css', 'utf8');
-  assert.match(answer, /\.bb-card :is\(\.ui-feed-card__title,\.ui-row-card__title\) \{ display:block; overflow:visible;/, 'card titles undo the shared 2-line clamp');
+  // DECISIONS 20 (captain 10-20, UI9-INT): answer cards take the shared 2-line card clamp; this sheet only sets their type step.
+  assert.match(answer, /\.bb-card :is\(\.ui-feed-card__title,\.ui-row-card__title\) \{ font-size:var\(--fs-card\); line-height:var\(--lh-tight\); \}/);
   const view = card();
   assert.equal(view.container.querySelector('.baybay-plan-status')?.getAttribute('style'), null);
 });
