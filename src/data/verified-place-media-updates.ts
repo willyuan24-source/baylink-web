@@ -13,7 +13,7 @@ const venuePhotos = [
     eventIds: [
       'sf-mandarin-conversation-oct6-2026', 'sfpl-career-coaching-oct8-2026',
       'sfpl-writing-gravity-oct8-2026', 'sfpl-garden-green-bin-oct10-2026',
-      'sf-main-halloween-costume-swap-oct15-2026', 'sf-financial-planning-day-oct24-2026',
+      'sf-main-halloween-costume-swap-oct15-2026',
     ],
   },
   {

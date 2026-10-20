@@ -14,7 +14,6 @@ type ContextPhotoUse = {
 export const EVENT_CONTEXT_PHOTOS: Readonly<Record<string, ContextPhotoUse>> = {
   ...VERIFIED_EVENT_CONTEXT_PHOTOS,
   ...OCTNOV_EVENT_CONTEXT_PHOTOS,
-  'octnov-healdsburg-market-context': { purpose: 'theme', eventIds: ['november-north-healdsburg-market-2026'] },
   'ferry-market': { purpose: 'venue', eventIds: ['oct2026-foodwise-flour-craft-demo', 'oct2026-foodwise-fall-fruit'] },
   'expanded-peninsula-hiller': { purpose: 'venue', eventIds: ['hiller-starlight-nights-nov13-2026'] },
   'expanded-coyote-hills': { purpose: 'venue', eventIds: ['nov2026-coyote-hills-kids-birding'] },

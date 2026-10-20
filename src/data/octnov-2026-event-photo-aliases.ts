@@ -134,12 +134,6 @@ const newVenuePhotos = [
     ]
   },
   {
-    "key": "octnov-festival-pavilion-context",
-    "eventIds": [
-      "nov2026-sf-renegade-craft-winter"
-    ]
-  },
-  {
     "key": "octnov-sj-performing-arts-context",
     "eventIds": [
       "octnov-san-jose-tommy-2026"

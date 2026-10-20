@@ -1,0 +1,38 @@
+{
+  "official-sfmta-kirkland-yard-2023": {
+    "guide": "bay-area-senior-transit-clipper-discounts-guide",
+    "originalUrl": "https://www.sfmta.com/files/styles/constrain/public/imce-images/2023/modern_image.jpg?itok=-uG-af3N",
+    "retrievedAt": "2026-10-19T23:41:20-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 130302,
+    "sha256": "bf0b521e051e50fc1c98e5edb7cd4607d7666a780950b567eb7f6173f866e3c6",
+    "sha1": "9b4ac99a2e33c0c9f170bf6f7aa995d602cb77e3",
+    "publisher": "SFMTA",
+    "sourceUrl": "https://www.sfmta.com/ja/node/29961",
+    "changes": "Resized to at most 1280 px wide and re-encoded as WebP (q82, metadata stripped); pages may crop it to their layout. No other edits."
+  },
+  "official-sfpl-main-library-skylight": {
+    "guide": "bay-area-library-starter-guide",
+    "originalUrl": "https://sfpl.org/sites/default/files/2020-01/Homepage_Main%20Library.jpg",
+    "retrievedAt": "2026-10-19T23:41:20-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 4026787,
+    "sha256": "8b8ab2b168928aba9c8b0ff3d896183ff058e7999f4913145bcfdb6e734cc393",
+    "sha1": "c18edad412b8300244819ef24d95330dd63d1e02",
+    "publisher": "San Francisco Public Library",
+    "sourceUrl": "https://sfpl.org/locations/main-library",
+    "changes": "Resized to at most 1280 px wide and re-encoded as WebP (q82, metadata stripped); pages may crop it to their layout. No other edits."
+  },
+  "loc-highsmith-hhs-humphrey-building-2012": {
+    "guide": "bay-area-medicare-hicap-medi-cal-guide",
+    "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/ea/Hubert_H._Humphrey_Building%2C_located_at_the_foot_of_Capitol_Hill%2C_Washington%2C_D.C_LCCN2013634632.jpg",
+    "retrievedAt": "2026-10-19T23:41:20-07:00",
+    "contentType": "image/jpeg",
+    "bytes": 4467844,
+    "sha256": "a5cfa28a6a035c21820dc69f6a53626d7e4312ea9e259bb3766e545d77dc5833",
+    "sha1": "989eebef5e563b0066ea7c4702e317a185508241",
+    "publisher": "Library of Congress / Carol M. Highsmith Archive；Wikimedia Commons同作品副本",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Hubert_H._Humphrey_Building,_located_at_the_foot_of_Capitol_Hill,_Washington,_D.C_LCCN2013634632.jpg",
+    "changes": "Resized to at most 1280 px wide and re-encoded as WebP (q82, metadata stripped); pages may crop it to their layout. No other edits."
+  }
+}

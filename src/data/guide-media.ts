@@ -5,6 +5,8 @@ import octnovEventMedia from './octnov-2026-event-media.json';
 import federalPublicDomainMedia from './federal-pd-media.json';
 import guideCommonsPhotos from './guide-commons-photos-2026-10.json';
 import officialEventMedia from './official-event-media.json';
+import officialOpeningMedia from './official-opening-media.json';
+import guidePhotos1019 from './guide-photos-2026-10-19.json';
 import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
 import { getLocale } from '../i18n/locale';
@@ -129,16 +131,25 @@ for (const { key, ...asset } of federalPublicDomainMedia) GUIDE_IMAGES[key] = { 
 // and licence link in the credit, and 示意图 at the start of the caption when the place is outside California. The download
 // record (original URL, retrieval time, SHA-256, SHA-1 matching Commons) is scripts/data/guide-commons-photos-downloads.json.
 for (const { key, ...asset } of guideCommonsPhotos) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', rights: asset.rights as MediaRights };
+// CNT-MEDIA-5 (owner approval 2026-10-19): SFMTA's Kirkland Yard photo, SFPL's Main Library skylight (both the agency's own,
+// credited and linked) and Carol M. Highsmith's public-domain photo of HHS in Washington, D.C. (示意图, never a cover). Download
+// records: scripts/data/guide-photos-2026-10-19-downloads.json.
+for (const { key, ...asset } of guidePhotos1019) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', rights: asset.rights as MediaRights };
 // Organisers' own event images (owner decision 2026-10-08), labelled 官方图 through their credit.
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The JSON keeps the event id and artwork class; the download record (source URL, retrieval time, hash) is in
 // scripts/data/official-event-media-downloads.json, outside the bundle. Pages get what they render plus the crop
 // focus and rights basis the cover resolver reads.
-const officialEventImage = ({ src, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number]) => ({
+const officialEventImage = ({ src, width, height, alt, caption, credit, creditUrl, kind, fullFrame, focal, rights }: (typeof officialEventMedia)[number] | (typeof officialOpeningMedia)[number]) => ({
   src, width, height, alt, caption, credit, creditUrl, kind: kind === 'poster' ? 'poster' as const : 'photo' as const,
   ...(fullFrame ? { fullFrame } : { focal }), rights: rights as MediaRights,
 });
 for (const record of officialEventMedia) GUIDE_IMAGES[record.key] = officialEventImage(record);
+// CNT-MEDIA-5 (owner approval in chat 2026-10-19): new shops' own images, the same way. Each record names its opening
+// (`openingId`, read by local-discoveries) and whether it is a photo of the shop's food or space or the brand's product image
+// (`artwork: 'product'`, whose caption says so and never calls it the shop or its stock). Download records:
+// scripts/data/official-opening-media-downloads.json.
+for (const record of officialOpeningMedia) GUIDE_IMAGES[record.key] = officialEventImage(record);
 GUIDE_IMAGES['secondhand-check'].caption = '先检查实物，再确认交易条件。二手交易情境原创插图，不代表真实市集或活动现场。';
 
 // Reuse verified regional photographs with their original attribution intact.
@@ -243,7 +254,8 @@ const bySlug: Record<string, [string, string]> = {
   'san-jose-guide': ['sanjose-city', 'sanjose'],
   'east-bay-first-weekend-guide': ['lake', 'bart'],
   'north-bay-car-free-day-guide': ['sausalito', 'bay'],
-  'bay-area-library-starter-guide': ['library', 'everyday'],
+  // CNT-MEDIA-5: SFPL's own Main Library photo is the cover; the 2013 Commons atrium photo ('library') stays on the other guides.
+  'bay-area-library-starter-guide': ['official-sfpl-main-library-skylight', 'everyday'],
   'half-moon-bay-coastal-half-day-guide': ['coast', 'weekend'],
   'reinhardt-redwood-first-walk-guide': ['redwoods', 'weekend'],
   'bay-area-farmers-market-shopping-guide': ['ferry-market', 'produce'],
@@ -389,8 +401,11 @@ export const GUIDE_EXTRA_INLINE: Readonly<Record<string, readonly (readonly [num
   'california-driver-license-id-preparation-guide': [[3, 'commons-dmv-eureka-office'], [6, 'commons-dmv-sacramento-hq']],
   // CNT-YEAREND: a 2026/2027 figures section now comes before 第四步, so the SSA office photo moves with that step (heading 5).
   'bay-area-social-security-retirement-preparation-guide': [[5, 'commons-ssa-corning-ny']],
-  'bay-area-medicare-hicap-medi-cal-guide': [[2, 'commons-hhs-washington-dc'], [3, 'commons-dhcs-sacramento']],
-  'bay-area-senior-transit-clipper-discounts-guide': [[1, 'commons-clipper-embarcadero']],
+  // CNT-MEDIA-5: the owner-approved public-domain Highsmith photo of the same HHS building replaces the CC BY-SA one in step 2
+  // (two photos of one building in one guide would repeat); 'commons-hhs-washington-dc' stays registered.
+  'bay-area-medicare-hicap-medi-cal-guide': [[2, 'loc-highsmith-hhs-humphrey-building-2012'], [3, 'commons-dhcs-sacramento']],
+  // CNT-MEDIA-5: SFMTA's photo of Muni buses in the step about riding Muni free.
+  'bay-area-senior-transit-clipper-discounts-guide': [[1, 'commons-clipper-embarcadero'], [3, 'official-sfmta-kirkland-yard-2023']],
   'bay-area-rental-scam-guide': [[2, 'commons-nema-sf']],
   'bay-area-chinese-senior-services-referral-guide': [[1, 'commons-ggp-senior-center-front']],
   'bay-area-chinese-language-resource-map': [[6, 'commons-chinatown-ywca-chsa']],

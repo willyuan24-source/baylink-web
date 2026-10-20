@@ -1,0 +1,505 @@
+[
+  {
+    "key": "official-opening-roundup-alesta-sebastopol-2026",
+    "openingId": "roundup-alesta-sebastopol-2026",
+    "src": "/guides/official-openings/roundup-alesta-sebastopol-2026.webp",
+    "width": 1280,
+    "height": 853,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "深色木桌上的白盘里，一个玫瑰造型的果仁蜜饼（baklava）配一球撒了开心果碎的冰淇淋",
+    "caption": "Alesta Modern Mediterranean 官网的甜点照片：玫瑰造型果仁蜜饼配冰淇淋；拍摄日期未注明，不代表当天菜单，菜色以店内为准。",
+    "credit": "Alesta Modern Mediterranean 官方菜品照片",
+    "creditUrl": "https://alestasoco.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://alestasoco.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-roundup-bonnie-bagels-sebastopol-2026",
+    "openingId": "roundup-bonnie-bagels-sebastopol-2026",
+    "src": "/guides/official-openings/roundup-bonnie-bagels-sebastopol-2026.webp",
+    "width": 1280,
+    "height": 811,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "亚麻布上堆着芝麻、罂粟籽和什锦口味的贝果",
+    "caption": "Bonnie Bagels & Co 官网首页的贝果照片；不是 Sebastopol 门店实景，口味以店内当天供应为准。",
+    "credit": "Bonnie Bagels & Co 官方产品照片",
+    "creditUrl": "https://www.bonniebagels.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.bonniebagels.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-roundup-capriciano-santarosa-2026",
+    "openingId": "roundup-capriciano-santarosa-2026",
+    "src": "/guides/official-openings/roundup-capriciano-santarosa-2026.webp",
+    "width": 1280,
+    "height": 853,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "artwork": "photo",
+    "alt": "餐厅卡座的木桌上摆着六道分享菜：意面、沙拉、炸鱿鱼、肉排，还有一杯红酒",
+    "caption": "Capriciano Osteria 官网的店内餐桌照片（文件名注明 Santa Rosa 店卡座）；拍摄日期未注明，菜色和价格以当天菜单为准。",
+    "credit": "Capriciano Osteria 官方照片",
+    "creditUrl": "https://capriciano.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://capriciano.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-eriks-delicafe-san-ramon-relocation",
+    "openingId": "eriks-delicafe-san-ramon-relocation",
+    "src": "/guides/official-openings/eriks-delicafe-san-ramon-relocation.webp",
+    "width": 1280,
+    "height": 1229,
+    "kind": "photo",
+    "focal": [
+      55,
+      80
+    ],
+    "artwork": "product",
+    "alt": "白色桌面上的餐点拼盘：一大盘切块三明治、沙拉碗、饼干和布朗尼",
+    "caption": "Erik’s DeliCafé 官网的餐点产品图（三明治拼盘、沙拉和甜点）；不是 San Ramon 新址实景，餐点以门店菜单为准。",
+    "credit": "Erik’s DeliCafé 官方产品图",
+    "creditUrl": "https://www.eriksdelicafe.com/location/san-ramon-california-deli-cafe",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.eriksdelicafe.com/location/san-ramon-california-deli-cafe",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-jean-dousset-valley-fair",
+    "openingId": "jean-dousset-valley-fair",
+    "src": "/guides/official-openings/jean-dousset-valley-fair.webp",
+    "width": 822,
+    "height": 518,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "浅色调的珠宝店内：拱形玻璃橱窗、圆形展柜和墙上的 JEAN DOUSSET 字样",
+    "caption": "Jean Dousset 官网 Valley Fair 精品店页面上的店内图；官网没有说明是实拍照片还是设计效果图，陈列和商品以门店当天为准。",
+    "credit": "Jean Dousset 官方店内图",
+    "creditUrl": "https://jeandousset.com/en-ca/pages/westfield-valley-fair-boutique",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://jeandousset.com/en-ca/pages/westfield-valley-fair-boutique",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-plur-cafe-san-mateo-library",
+    "openingId": "plur-cafe-san-mateo-library",
+    "src": "/guides/official-openings/plur-cafe-san-mateo-library.webp",
+    "width": 1231,
+    "height": 1231,
+    "kind": "photo",
+    "focal": [
+      50,
+      25
+    ],
+    "artwork": "photo",
+    "alt": "图书馆里的 PLUR 咖啡吧台：两块 PLUR 菜单灯箱、木条吧台和冷藏饮料柜",
+    "caption": "San Mateo 市政府新闻页上的 PLUR Café 吧台照片（在市图书馆总馆三楼）；拍摄日期未注明，菜单和价格以店内当天为准。",
+    "credit": "City of San Mateo 官方新闻照片",
+    "creditUrl": "https://www.cityofsanmateo.org/m/newsflash/Home/Detail/1923",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.cityofsanmateo.org/m/newsflash/Home/Detail/1923",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-thirdlove-valley-fair",
+    "openingId": "thirdlove-valley-fair",
+    "src": "/guides/official-openings/thirdlove-valley-fair.webp",
+    "width": 800,
+    "height": 1019,
+    "kind": "photo",
+    "focal": [
+      50,
+      52
+    ],
+    "artwork": "product",
+    "alt": "浅灰底上一件淡紫色文胸的产品图",
+    "caption": "ThirdLove 官网的文胸产品图（24/7 Classic Uplift Plunge，Orchid 色）；不是 Valley Fair 门店实景，也不代表门店现货、尺码或价格。",
+    "credit": "ThirdLove 官方产品图",
+    "creditUrl": "https://thirdlove.com/collections/bras",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://thirdlove.com/collections/bras",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-hijau-san-jose-storefront",
+    "openingId": "hijau-san-jose-storefront",
+    "src": "/guides/official-openings/hijau-san-jose-storefront.webp",
+    "width": 600,
+    "height": 400,
+    "kind": "poster",
+    "fullFrame": true,
+    "artwork": "graphic",
+    "alt": "Hijau Coffee 开业宣传图：店内吧台、吊灯和木架，左上角是绿色圆形店标，中间写着 Grand Opening!",
+    "caption": "Pusaka Sunda（在 9 月 5 日开业庆典上演出的甘美兰乐团）官方活动页上的 Hijau Coffee 开业宣传图；庆典已经结束，日常营业时间以店家公告为准。",
+    "credit": "Pusaka Sunda 官方活动页 · Hijau Coffee 开业宣传图",
+    "creditUrl": "https://pusakasunda.org/show/hijau-coffee-grand-opening/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://pusakasunda.org/show/hijau-coffee-grand-opening/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-sergeant-ma",
+    "openingId": "sergeant-ma",
+    "src": "/guides/official-openings/sergeant-ma.webp",
+    "width": 720,
+    "height": 480,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "Sergeant Ma 餐厅店内：落地窗外是水岸露台和火盆，屋里是木桌椅和吊灯，画面中间叠印白色 SERGEANT ma 店名",
+    "caption": "Sergeant Ma 官网首页的店内照片（叠印店名标志）；拍摄日期未注明，座位和布置以现场为准。",
+    "credit": "Sergeant Ma 官方照片",
+    "creditUrl": "https://www.sergeantma.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.sergeantma.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-anya-gifting-larkspur",
+    "openingId": "anya-gifting-larkspur",
+    "src": "/guides/official-openings/anya-gifting-larkspur.webp",
+    "width": 1280,
+    "height": 640,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "product",
+    "alt": "红色格子货架上陈列着手袋、包挂和小礼品",
+    "caption": "Marin Country Mart 商场官网 Anya Hindmarch 页面上的品牌商品陈列宣传图；不能确认是 Larkspur 这家店的实景，也不代表门店现货。",
+    "credit": "Marin Country Mart 官方商户页图片",
+    "creditUrl": "https://marincountrymart.com/anya-hindmarch-gifting-agency",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://marincountrymart.com/anya-hindmarch-gifting-agency",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-sf-athanor-new-restaurant-2026",
+    "openingId": "sf-athanor-new-restaurant-2026",
+    "src": "/guides/official-openings/sf-athanor-new-restaurant-2026.webp",
+    "width": 1280,
+    "height": 914,
+    "kind": "photo",
+    "focal": [
+      45,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "俯拍白碗里的绿色甜点：一圈裹着绿色粉末的环形，中间是透明啫喱和香草叶",
+    "caption": "Athanor 官网的菜品照片：2026 秋季菜单的主甜点 Tarragon Perspective（相机记录拍摄于 2026 年 9 月）；菜单随季节更换，以官网和店内为准。",
+    "credit": "Athanor 官方菜品照片",
+    "creditUrl": "https://www.athanorsf.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.athanorsf.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-oakland-delage-reopening-2026",
+    "openingId": "oakland-delage-reopening-2026",
+    "src": "/guides/official-openings/oakland-delage-reopening-2026.webp",
+    "width": 1280,
+    "height": 802,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "artwork": "photo",
+    "alt": "竹叶上的一贯握寿司，鱼面切出格纹，上面点了姜蓉和葱",
+    "caption": "Delage 官网的握寿司特写照片；拍摄日期未注明，当天鱼种以店内 omakase 为准。",
+    "credit": "Delage 官方菜品照片",
+    "creditUrl": "https://www.delagesushi.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.delagesushi.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-ignite-san-pedro-square",
+    "openingId": "ignite-san-pedro-square",
+    "src": "/guides/official-openings/ignite-san-pedro-square.webp",
+    "width": 768,
+    "height": 1024,
+    "kind": "photo",
+    "focal": [
+      50,
+      70
+    ],
+    "artwork": "photo",
+    "alt": "夜晚的露台：木板墙上有霓虹字，印着 IGNITE 的靠垫和长沙发围着燃着火的火炉桌",
+    "caption": "IGNITE 官网首页的露台照片；拍摄日期未注明，露台座位和火炉是否开放以店家当天安排为准。",
+    "credit": "IGNITE 官方照片",
+    "creditUrl": "https://www.eatatignite.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.eatatignite.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-alameda-juxi-soft-opening-2026",
+    "openingId": "alameda-juxi-soft-opening-2026",
+    "src": "/guides/official-openings/alameda-juxi-soft-opening-2026.webp",
+    "width": 1280,
+    "height": 720,
+    "kind": "photo",
+    "focal": [
+      65,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "吧台上一排干柑橘片、香料，和装着金黄色糖浆的玻璃瓶",
+    "caption": "JuXi 官网的吧台调饮材料照片（图片文件记录 2026 年 9 月）；试营业期间菜单和饮品可能调整，以店内为准。",
+    "credit": "JuXi 官方照片",
+    "creditUrl": "https://www.juxialameda.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.juxialameda.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-margaux-larkspur",
+    "openingId": "margaux-larkspur",
+    "src": "/guides/official-openings/margaux-larkspur.webp",
+    "width": 1280,
+    "height": 640,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "product",
+    "alt": "浅色层架上陈列着几双平底鞋、便鞋和一双豹纹尖头鞋",
+    "caption": "Marin Country Mart 商场官网 Margaux 页面上的鞋款陈列宣传图；不能确认是 Larkspur 这家店的实景，也不代表门店现货。",
+    "credit": "Marin Country Mart 官方商户页图片",
+    "creditUrl": "https://marincountrymart.com/margaux",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://marincountrymart.com/margaux",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-pittsburg-nekter-opening-2026",
+    "openingId": "pittsburg-nekter-opening-2026",
+    "src": "/guides/official-openings/pittsburg-nekter-opening-2026.webp",
+    "width": 800,
+    "height": 1201,
+    "kind": "photo",
+    "focal": [
+      50,
+      60
+    ],
+    "artwork": "product",
+    "alt": "两个人拿着一杯紫红色果昔和一碗铺满蓝莓、草莓和格兰诺拉的巴西莓碗，只拍到身体和手",
+    "caption": "Nékter Juice Bar 品牌官网的饮品产品图；不是 Pittsburg 门店实景，饮品以门店菜单为准。",
+    "credit": "Nékter Juice Bar 官方产品图",
+    "creditUrl": "https://locations.nekterjuicebar.com/ll/us/ca/pittsburg/2261-w-leland-rd/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://locations.nekterjuicebar.com/ll/us/ca/pittsburg/2261-w-leland-rd/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-varley-larkspur",
+    "openingId": "varley-larkspur",
+    "src": "/guides/official-openings/varley-larkspur.webp",
+    "width": 1280,
+    "height": 854,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "artwork": "photo",
+    "alt": "Varley 门店外观：灰色木墙、白色窗框和门牌 2409，橱窗里挂着衣服",
+    "caption": "Marin Country Mart 商场官网 Varley 页面上的门店外观照片（门牌 2409，文件名标 2026-07-20）；营业时间以商场和门店公告为准。",
+    "credit": "Marin Country Mart 官方商户页照片",
+    "creditUrl": "https://marincountrymart.com/varley",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://marincountrymart.com/varley",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-raising-canes-jefferson-sf",
+    "openingId": "raising-canes-jefferson-sf",
+    "src": "/guides/official-openings/raising-canes-jefferson-sf.webp",
+    "width": 512,
+    "height": 512,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "artwork": "product",
+    "alt": "白底上的 Raising Cane’s The Box Combo 套餐：炸鸡条、波浪薯条、凉拌卷心菜、吐司、酱料和一杯饮料",
+    "caption": "Raising Cane’s 门店页上的 The Box Combo 套餐产品图；不是 Jefferson Street 店实景，菜单和价格以门店为准。",
+    "credit": "Raising Cane’s 官方产品图",
+    "creditUrl": "https://locations.raisingcanes.com/ca/san-francisco/211-jefferson-st",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://locations.raisingcanes.com/ca/san-francisco/211-jefferson-st",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-game-parlour-oakland",
+    "openingId": "game-parlour-oakland",
+    "src": "/guides/official-openings/game-parlour-oakland.webp",
+    "width": 1280,
+    "height": 960,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "artwork": "photo",
+    "alt": "木桌上一杯拉花热巧克力，杯身印着 THE GAME PARLOUR 标志",
+    "caption": "The Game Parlour 官网的热巧克力照片（图片文件记录 2020 年）；不是 Oakland 新店实景，饮品以店内菜单为准。",
+    "credit": "The Game Parlour 官方照片",
+    "creditUrl": "https://www.thegameparlour.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.thegameparlour.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-aliotos-focacceria-san-rafael",
+    "openingId": "aliotos-focacceria-san-rafael",
+    "src": "/guides/official-openings/aliotos-focacceria-san-rafael.webp",
+    "width": 800,
+    "height": 1057,
+    "kind": "photo",
+    "focal": [
+      50,
+      45
+    ],
+    "artwork": "photo",
+    "alt": "一只手拿着切开的佛卡夏三明治，夹着番茄、蔬菜和酱料",
+    "caption": "Alioto’s Focacceria 官网的三明治照片；不是 San Rafael 门店实景，餐点以店内菜单为准。",
+    "credit": "Alioto’s Focacceria 官方菜品照片",
+    "creditUrl": "https://www.aliotosfocacceria.com/",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.aliotosfocacceria.com/",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-mess-hall-presidio-breadwinner",
+    "openingId": "mess-hall-presidio-breadwinner",
+    "src": "/guides/official-openings/mess-hall-presidio-breadwinner.webp",
+    "width": 1280,
+    "height": 854,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "photo",
+    "alt": "木桌上的几份 Breadwinner 餐点：汉堡配薯条、三明治、沙拉和几杯蘸酱",
+    "caption": "Presidio Trust 官网 The Mess Hall 页面上的 Breadwinner 餐点照片（摄影 Erin Ng，相机记录拍摄于 2026 年 7 月）；菜单以店内为准。",
+    "credit": "Presidio Trust 官方照片 · 摄影 Erin Ng",
+    "creditUrl": "https://presidio.gov/explore/attractions/the-mess-hall",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://presidio.gov/explore/attractions/the-mess-hall",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-vivaia-valley-fair",
+    "openingId": "vivaia-valley-fair",
+    "src": "/guides/official-openings/vivaia-valley-fair.webp",
+    "width": 1280,
+    "height": 1280,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "artwork": "product",
+    "alt": "浅灰底上一双深棕色系带方头玛丽珍鞋的产品图",
+    "caption": "VIVAIA 官网的 Cecily 方头玛丽珍鞋产品图（Dark Chocolate 色）；不是 Valley Fair 门店实景，也不代表门店现货、尺码或价格。",
+    "credit": "VIVAIA 官方产品图",
+    "creditUrl": "https://www.vivaia.com/products/XRPD01263/Cecily?gid=10036503",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.vivaia.com/products/XRPD01263/Cecily?gid=10036503",
+      "scope": "coverage of the same shop only"
+    }
+  },
+  {
+    "key": "official-opening-berkeley-cere-tea-opening-2026",
+    "openingId": "berkeley-cere-tea-opening-2026",
+    "src": "/guides/official-openings/berkeley-cere-tea-opening-2026.webp",
+    "width": 1280,
+    "height": 1280,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "artwork": "product",
+    "alt": "白底上一杯印着 ceré tea 标志的黑莓抹茶：上层是绿色抹茶奶盖，下层是紫色黑莓",
+    "caption": "Ceré Tea 官网菜单的 Blackberry Pie Matcha 产品图；不是 Berkeley 门店实景，试营业期间菜单以店内为准。",
+    "credit": "Ceré Tea 官方产品图",
+    "creditUrl": "https://www.ceretea.com/?location=L69W4TGGP0P66&item=LRP65PBNU7O6P5JAJL4EDNS3",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.ceretea.com/?location=L69W4TGGP0P66&item=LRP65PBNU7O6P5JAJL4EDNS3",
+      "scope": "coverage of the same shop only"
+    }
+  }
+]
