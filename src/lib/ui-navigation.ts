@@ -1,4 +1,5 @@
 import { matchRoute } from '../app/route-table';
+import { FREE_NO_SIGN_IN } from './site-promise';
 
 export type PrimaryNavigationPath = '/' | '/events' | '/guides' | '/me';
 const PRIMARY = { home: '/', events: '/events', guides: '/guides', me: '/me' } as const;
@@ -13,15 +14,12 @@ export function primaryNavigationPath(pathname: string): PrimaryNavigationPath |
 }
 
 /**
- * The site's promise in HOME's exact words (UI9-HOME: src/lib/check-dates.ts SITE_IDENTITY / FREE_NO_SIGN_IN /
- * METHOD_HREF, which are not on this lane's base). The footer prints the same strings; UI9-INT points these three at
- * HOME's exports once both lanes are on main.
+ * The site's promise in HOME's exact words: one module (lib/site-promise.ts) that the home, the events pages and this
+ * footer all read (UI9-INT), so the strings ship once, in the shell. METHOD_HREF is the only 我们怎么核对 target
+ * (AboutContent.tsx, captain decision 10).
  */
-export const SITE_IDENTITY = { zh: '湾区华人家庭的周末活动与办事指南', en: 'Weekend outings and how-to guides for Chinese families in the Bay Area' } as const;
-export const FREE_NO_SIGN_IN = { zh: '免费 · 不用登录', en: 'Free · no sign-in' } as const;
+export { FREE_NO_SIGN_IN, METHOD_HREF, SITE_IDENTITY } from './site-promise';
 export const FREE_ONLY = { zh: '免费', en: 'Free' } as const;
-/** The only 我们怎么核对 target (AboutContent.tsx, captain decision 10). */
-export const METHOD_HREF = '/about#about-method-title';
 
 /**
  * Captain decision 4: 不用登录 is printed only while a guest can browse, ♡ save (the guest list in this browser,

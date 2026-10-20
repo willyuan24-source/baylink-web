@@ -9,7 +9,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { dateScope } from '../../lib/date-guard';
 import { validCalendarDay } from '../../lib/calendar-days';
-import { checkSummary, officialCheckLine } from '../../lib/check-dates';
+import { checkSummary, METHOD_HREF, OFFICIAL_LINKS, officialCheckLine } from '../../lib/check-dates';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence } from '../../lib/monthly';
 import { isPressSource } from './source-kind';
 import { EVENTS_INDEX, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsColumn, type EventsWhen } from './events-model';
@@ -24,7 +24,7 @@ const openingsView = retryableLazy(() => import('./OpeningsView'));
 
 /**
  * 活动 (plan D3, design.md §4.11; UI9-EVENTS G17 + G12): one head — H1 活动 with the range on its baseline (本周末 · 10/24–25,
- * 今天 · 10/19 周一, 全部日期 · 收录至 2/28 …), a 14px facts line (counts · 逐条附官方来源 · 官网核对 … · 我们怎么核对 →) —
+ * 今天 · 10/19 周一, 全部日期 · 收录至 2/28 …), a 14px facts line (counts · 每条附官方链接 · 官网核对 … · 我们怎么核对 →) —
  * then the four views as D3's segmented control (not sticky): 本周末 | 日历·地图 | 免费与优惠 | 新店. /events opens on 本周末,
  * /this-month on 全部日期, /calendar on its day view. A switch keeps the previous body, dimmed, until the next view is in.
  */
@@ -72,7 +72,7 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   const offers = offerList.length;
   // H02: the check dates of what this view lists (/calendar: the chosen day's events), said as checks against the official
   // pages (PREP's 官网核对 line). DECISIONS 17: an item from a press report is never said to be checked on an official page —
-  // the line then summarises the others and counts the reports instead of saying 逐条附官方来源.
+  // the line then summarises the others and counts the reports instead of saying 每条附官方链接.
   const listed: readonly { verifiedAt?: string; press?: true; sourceLabel?: string }[] = column === 'perks' ? offerList : column === 'openings' ? INDEX_OPENINGS
     : column === 'calendar' ? (events ?? []).filter(event => nextOccurrence(event, calendarDay) === calendarDay && (filters.region === 'all' || event.region === filters.region)) : inScope;
   const official = listed.filter(item => !item.press && !isPressSource(item.sourceLabel));
@@ -80,8 +80,8 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   const summary = checkSummary(official.map(item => item.verifiedAt), today);
   const checked = summary ? officialCheckLine(summary, t) : '';
   // The listing card is one link to the detail page, which links the official source; a view that lists nothing (an empty
-  // calendar day, a list still loading) promises nothing.
-  const promise = !listed.length ? '' : press ? t(`${press} 条来自媒体报道`, `${press} from news reports`) : t('逐条附官方来源', 'official sources');
+  // calendar day, a list still loading) promises nothing. The promise is HOME's wording (check-dates OFFICIAL_LINKS).
+  const promise = !listed.length ? '' : press ? t(`${press} 条来自媒体报道`, `${press} from news reports`) : pick(OFFICIAL_LINKS);
 
   const rangeLine = column === 'perks' ? t('免费与优惠', 'Free & deals') + region
     : column === 'openings' ? t('新店', 'New shops') + region
@@ -135,7 +135,7 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
           {/* a no-break space before each "·", so a wrapped line never starts with one (N06), and in English one inside a date
               ("Oct 16"), so a wrap never splits it; an English line that opens on the promise (/calendar) starts with a capital */}
           {facts}
-          <span className="ev-lede-facts__how">{facts && <span aria-hidden="true">{'\u00a0· '}</span>}<MoreLink to="/about#about-method-title">{t('我们怎么核对', 'How we check')}</MoreLink></span>
+          <span className="ev-lede-facts__how">{facts && <span aria-hidden="true">{'\u00a0· '}</span>}<MoreLink to={METHOD_HREF}>{t('我们怎么核对', 'How we check')}</MoreLink></span>
         </p>
       </header>
       <div className="ev-tabs-bar"><SegmentedTabs className="ev-tabs" label={t('活动分区', 'Event views')} items={tabs} value={current} onChange={id => setPending(id === column ? undefined : id)} /></div>

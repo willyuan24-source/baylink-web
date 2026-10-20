@@ -225,13 +225,13 @@ test('a press report never says 官网核对: the index flags it from the source
     assert.match(card.container.querySelector('.ui-feed-card__trust')!.textContent!, /^媒体报道 · \d+\/\d+ 核对$/);
     cleanup();
   }
-  // 新店: some openings come from press reports — the head counts them and makes no 逐条附官方来源 promise.
+  // 新店: some openings come from press reports — the head counts them and makes no 每条附官方链接 promise.
   const reports = model.INDEX_OPENINGS.filter(shop => isPressSource(shop.sourceLabel)).length;
   const facts = page('/events?view=openings').container.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
   if (reports) {
-    assert.doesNotMatch(facts, /逐条附官方来源/);
+    assert.doesNotMatch(facts, /每条附官方链接/);
     assert.match(facts, new RegExp(`${reports} 条来自媒体报道`));
-  } else assert.match(facts, /逐条附官方来源/);
+  } else assert.match(facts, /每条附官方链接/);
 });
 
 test('page end: alerts in the shared Disclosure, one quiet list of links, 本页图片来源 with its NAV hook and the coded-cover note', () => {
@@ -375,8 +375,8 @@ test('/calendar facts line: the chosen day\'s events give its check dates, and a
     return text;
   };
   const busy = [...new Set(model.INDEX_EVENTS.map(event => nextOccurrence(event, today)).filter((day): day is string => !!day))].sort()[0];
-  assert.match(facts(busy), /^(逐条附官方来源|\d+ 条来自媒体报道)\u00a0· 官网核对 .*我们怎么核对$/);
-  // Past the catalog: nothing listed, so no 逐条附官方来源 and no check dates; the line is the how-we-check link alone.
+  assert.match(facts(busy), /^(每条附官方链接|\d+ 条来自媒体报道)\u00a0· 官网核对 .*我们怎么核对$/);
+  // Past the catalog: nothing listed, so no 每条附官方链接 and no check dates; the line is the how-we-check link alone.
   assert.equal(facts(addCalendarDays(model.EVENTS_INDEX.edition.throughDate, 400)), '我们怎么核对');
 });
 
