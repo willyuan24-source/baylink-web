@@ -4,7 +4,7 @@ import type { GuideImage } from '../data/guide-media';
 // (about 18 KiB gzip on the home page). tests/home-catalog.test.ts keeps the two equal.
 import eventContextPhotos from '../data/generated/event-context-photos.json';
 import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from './image-provenance';
-import { COVER_TONES, type Copy, type CoverTone } from './event-facts';
+import type { Copy } from './event-facts';
 
 /**
  * One cover resolver for every surface (plan D7, content.md §4.1, 1007 §5.3): home, feeds, calendar,
@@ -17,7 +17,8 @@ import { COVER_TONES, type Copy, type CoverTone } from './event-facts';
  *   4. scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
  *   5. type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡
  * Never: an AI illustration or a theme photo on a factual item; the same file twice on one page (the
- * second item falls back to a TypeCover); a cropped poster (`fit: 'contain'` = blur-fill letterbox).
+ * second item falls back to a TypeCover); a cropped poster (`fit: 'contain'`: the whole flyer on its board, never blurred).
+ * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
  */
 
 export type CoverKind = 'event' | 'offer' | 'opening' | 'place' | 'guide' | 'bulletin';
@@ -55,7 +56,7 @@ export type ImageCover = {
   image: CoverAsset;
   /** Provenance badge text, from `getImageProvenance` only. */
   label: Copy;
-  /** Posters and full-frame artwork are letterboxed on a blurred copy of themselves, never cropped. */
+  /** Posters and full-frame artwork are shown whole on a solid board with a white mat (the poster family), never cropped. */
   fit: 'cover' | 'contain';
   focal: readonly [number, number];
   year?: number;
@@ -173,23 +174,4 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
 export function resolveCovers(items: readonly CoverItem[], ctx: CoverContext): ResolvedCover[] {
   const page = ctx.page ?? createCoverPage();
   return items.map(item => getCover(item, { ...ctx, page }));
-}
-
-/** A different palette for each tone, used when two TypeCovers would sit side by side in the same colour. */
-const NEIGHBOUR_TONE: Record<CoverTone, CoverTone> = {
-  family: 'food', food: 'family', culture: 'seniors', seniors: 'culture', outdoors: 'free', free: 'outdoors',
-};
-/**
- * Two adjacent TypeCovers never share a colour (design.md §4.8): the second one takes its neighbour palette.
- * Only the colour rotates; each card keeps its truthful category label. `null` marks a photo cover.
- */
-export function distinctNeighbourTones(tones: readonly (CoverTone | null)[]): (CoverTone | null)[] {
-  const shown: (CoverTone | null)[] = [];
-  tones.forEach((tone, index) => {
-    const previous = index > 0 ? shown[index - 1] : null;
-    if (tone === null || tone !== previous) { shown.push(tone); return; }
-    const alternative = NEIGHBOUR_TONE[tone];
-    shown.push(alternative !== previous ? alternative : COVER_TONES.find(candidate => candidate !== previous) ?? tone);
-  });
-  return shown;
 }

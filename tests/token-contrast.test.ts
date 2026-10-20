@@ -229,3 +229,36 @@ test('share cards read the category map and the inks of the token sheet (--tc-* 
   // Both card renderers take their inks from CARD_INK rather than hex literals of their own.
   for (const file of ['src/lib/share-card-svg.ts', 'src/lib/weekly-card-svg.ts']) assert.doesNotMatch(readFileSync(file, 'utf8'), /\bINK(?:_2|_3)? = '#/, file);
 });
+
+test('UI9-C covers: every type-cover ink is ≥ 4.5:1 on its ground, the status looks hold, and every deep shade has chroma C* ≥ 15', () => {
+  // CIELAB chroma of an sRGB colour (D65).
+  const chroma = (rgb: number[]) => {
+    const [r, g, b] = rgb.map(value => value / 255).map(value => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+    const xyz = [(r * .4124 + g * .3576 + b * .1805) / .95047, r * .2126 + g * .7152 + b * .0722, (r * .0193 + g * .1192 + b * .9505) / 1.08883];
+    const f = (t: number) => t > 216 / 24389 ? Math.cbrt(t) : (24389 / 27 * t + 16) / 116;
+    const [fx, fy, fz] = xyz.map(f);
+    return Math.hypot(500 * (fx - fy), 200 * (fy - fz));
+  };
+  const failures: string[] = [];
+  const pairs: [string, string][] = [
+    // the type-cover ground (sunken) and its text
+    ['ink', 'surface-2'], ['ink-2', 'surface-2'], ['ink-3', 'surface-2'],
+    // the calendar page's weekday band and the ticket value: white on each category's deep shade, the shade on white
+    ...['warm', 'info', 'moss', 'warning', 'brand-hover', 'success'].flatMap(deep => [['surface', deep], [deep, 'surface']] as [string, string][]),
+    // the headline slide and the shop sign (paper, lime and muted text on brand-deep), the number plate (white on brand)
+    ['bg', 'brand-deep'], ['highlight', 'brand-deep'], ['on-brand-muted', 'brand-deep'], ['surface', 'brand'],
+    // the status map: free, partial, soon, urgent, open, ended, neutral
+    ['brand-deep', 'highlight'], ['brand-deep', 'surface'], ['danger', 'surface'], ['surface', 'danger'], ['brand-deep', 'brand-tint'], ['ink-3', 'surface-2'], ['ink-2', 'surface-2'],
+    // the provenance chip
+    ['ink-2', 'surface'],
+  ];
+  for (const [text, surface] of pairs) {
+    const value = ratio(rgbOf(text), rgbOf(surface));
+    if (value < 4.5) failures.push(`${text} on ${surface} ${value.toFixed(2)}:1`);
+  }
+  for (const deep of ['warm', 'info', 'moss', 'warning', 'brand-hover', 'success', 'brand', 'brand-deep', 'danger']) {
+    const value = chroma(rgbOf(deep));
+    if (value < 15) failures.push(`${deep} C* ${value.toFixed(1)} < 15`);
+  }
+  assert.deepEqual(failures, []);
+});

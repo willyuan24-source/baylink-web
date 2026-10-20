@@ -355,12 +355,13 @@ test('detail H1 wraps between whole words and reads exactly like the translated 
   }
 });
 
-test('discovery posters and full-frame photos stay whole on the blur-fill hero (never cropped)', () => {
+test('discovery posters and full-frame photos stay whole on their board in the hero (never cropped, never blurred)', () => {
   const poster = find('event', item => GUIDE_IMAGES[item.event.imageKey]?.kind === 'poster' && heroCover(buildDetailRecord(item), '2026-09-15').tier !== 'type');
   const view = render(detail(poster));
   const cover = view.container.querySelector('.detail-hero [data-cover="image"]')!;
-  assert.equal(cover.getAttribute('data-fit'), 'contain', 'posters are letterboxed on their own blur (D25)');
-  assert.ok(cover.querySelector('img.ui-cover__backdrop'));
+  assert.equal(cover.getAttribute('data-fit'), 'contain', 'posters are shown whole (D25)');
+  assert.equal(cover.getAttribute('data-family'), 'poster', 'on a solid board with a white mat (UI9-C, N22)');
+  assert.equal(cover.querySelector('img.ui-cover__backdrop'), null, 'no blurred copy');
   assert.equal(cover.querySelector('img.ui-cover__img')?.getAttribute('src'), GUIDE_IMAGES[poster.event.imageKey].src);
   view.unmount();
 });

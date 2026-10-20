@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { CoverCredit, FeedCard, OfferCardMeta, OfferCover, offerBrandLine } from '../../components/ui';
+import { Cover, CoverCredit, FeedCard, OfferCardMeta, OfferWhen, offerBrandLine } from '../../components/ui';
+import { DeferredOfferTypeCover } from '../../components/ui/cover-defer';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { SaveToWeek } from '../../components/SaveToWeek';
 import type { ResolvedCover } from '../../lib/cover';
@@ -38,8 +39,9 @@ export function OfferTickets({ offers, covers, today }: { offers: readonly HomeO
     <ul className="home-offers__rail" aria-label={t('近期可用的免费与优惠', 'Free days and deals you can use soon')}>
       {offers.map((offer, index) => <li key={offer.id} data-wide={wide && index === 0 ? '' : undefined}>
         <FeedCard title={offer.title} to={`/offers/${offer.id}`}
-          cover={<OfferCover offer={offer as OfferFactsInput} cover={covers[index]} today={today} {...(wide && index === 0 ? { ratio: '3:2' as const, sizes: WIDE_SIZES } : { sizes: TICKET_SIZES })} decorative />}
-          meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
+          cover={<Cover cover={covers[index]} kind="offer" decorative {...(wide && index === 0 ? { ratio: '3:2' as const, sizes: WIDE_SIZES } : { ratio: '1:1' as const, sizes: TICKET_SIZES })}
+            fallback={<DeferredOfferTypeCover offer={offer as OfferFactsInput} today={today} ratio={wide && index === 0 ? '3:2' : '1:1'} ariaHidden />} />}
+          when={<OfferWhen offer={offer} today={today} />} meta={<OfferCardMeta brand={brands[index]} kind={pick(offerKindLabel(offer))} onCover={covers[index].tier === 'type'} />}
           trust={offer.verifiedAt ? <>{t('官网核对', 'Source checked')} {monthDay(offer.verifiedAt, english)}</> : undefined}
           save={<SaveToWeek favorite={{ kind: 'offer', id: offer.id }} compact title={offer.title} />} />
       </li>)}

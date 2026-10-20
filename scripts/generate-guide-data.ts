@@ -5,6 +5,8 @@ import { getLocale, setLocale, type Locale } from '../src/i18n/locale';
 import { coverInCurrentLanguage, guideRecordOf, guidesIndexOf, mergeCovers } from '../src/features/guides/guide-data';
 import type { GuideCovers, GuideRecord, GuidesIndex } from '../src/features/guides/guide-records';
 import type { GuideImage } from '../src/data/guide-media';
+import { GUIDE_COVER_ANSWERS } from '../src/data/guide-editorial/answers';
+import { answeredHookFields } from '../src/lib/guide-hook-highlight';
 
 /**
  * The guide routes' data split (WEB-DATA-SPLIT, ENGSEC-01, FA-01): a slim index for /guides (cards: title, topic inputs,
@@ -29,7 +31,11 @@ export async function buildGuideData(): Promise<GuideData> {
   }
   const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => [slug, mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!)]));
   const coversOf = (guide: Guide) => covers.get(guide.slug)!;
-  return { index: guidesIndexOf(coversOf), records: guides.map(guide => guideRecordOf(guide, coversOf)) };
+  // UI9-C (G19): an answered guide's card carries its cover hook and lime phrase, so /guides and "Read next" print them
+  // without loading answers.ts.
+  const withHook = <T extends { slug: string }>(card: T): T => ({ ...card, ...answeredHookFields(card.slug, GUIDE_COVER_ANSWERS) });
+  const index = guidesIndexOf(coversOf);
+  return { index: { ...index, guides: index.guides.map(withHook) }, records: guides.map(guide => guideRecordOf(guide, coversOf)).map(record => ({ ...record, related: record.related.map(withHook) })) };
 }
 
 const SAFE_SLUG = /^[a-z0-9][a-z0-9-]*$/u;

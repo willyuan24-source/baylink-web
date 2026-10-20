@@ -18,6 +18,9 @@ export type HeroCardProps = {
   kicker?: string;
   /** "10/10–11 · 10–16 时", "$8–12", "4 岁以下免费" — at most three. */
   facts?: string[];
+  /** The 2-line card meta (UI9-C, G18; Card.tsx): line 1 `when` (eventWhenLine), line 2 `meta` (status and place, wraps). */
+  when?: ReactNode;
+  meta?: ReactNode;
   /** a3 editor reason (≤20 字), shown under the card with its label. */
   reason?: { label: string; text: string };
   /** "ebparks.org · 9/29 核对" */
@@ -31,7 +34,7 @@ export type HeroCardProps = {
  * The 4:5 cover story (本周封面 / 编辑精选, design.md §4.7.1): one per feed, 358×448 at 390. With a photo the title
  * sits on the bottom scrim (white, ≥5.52:1 below 62% of the height); the whole card is one link and ♡ sits above it.
  */
-export function HeroCard({ title, to, cover, overlay, kicker, facts = [], reason, trust, save, heading = 'h2', className }: HeroCardProps) {
+export function HeroCard({ title, to, cover, overlay, kicker, facts = [], when, meta, reason, trust, save, heading = 'h2', className }: HeroCardProps) {
   const Title = heading;
   return <article className={cx('ui-hero-card', className)} data-overlay={overlay ? '' : undefined}>
     <div className="ui-hero-card__media">
@@ -44,6 +47,8 @@ export function HeroCard({ title, to, cover, overlay, kicker, facts = [], reason
         {overlay && facts.length > 0 && <ul className="ui-hero-card__facts">{facts.slice(0, 3).map(fact => <li key={fact}>{fact}</li>)}</ul>}
       </div>
     </div>
+    {!overlay && when && <p className="ui-card-when">{when}</p>}
+    {!overlay && meta && <p className="ui-hero-card__meta">{meta}</p>}
     {reason && <p className="ui-hero-card__reason"><strong>{reason.label}</strong> {reason.text}</p>}
     {trust && <p className="ui-hero-card__trust"><Check aria-hidden="true" strokeWidth={1.75} />{trust}</p>}
   </article>;

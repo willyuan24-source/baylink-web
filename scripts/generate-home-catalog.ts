@@ -8,7 +8,7 @@ import { HOME_INTENTS } from '../src/data/home-pathways';
 import { guideTopicOf } from '../src/data/guide-topics';
 import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
-import { guideReadMinutes, guideSourceCount, TOPIC_COVER } from '../src/features/guides/guide-facts';
+import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
@@ -47,7 +47,10 @@ const homeGuides = guides.filter(guide => homeSlugs.has(guide.slug)).map(guide =
   const usable = !OFF_TOPIC_COVERS.has(cover.src) && getCover({ kind: 'guide', id: guide.slug, imageKey: cover.src }, { images: () => cover, today }).tier !== 'type';
   if (usable) guideImages[cover.src] = cover;
   return {
-    slug: guide.slug, title: guide.title, topic, tone: TOPIC_COVER[topic].tone, icon: TOPIC_COVER[topic].icon,
+    // UI9-C: no palette or texture icon any more (the cover family follows the topic and the hook).
+    slug: guide.slug, title: guide.title, topic,
+    // The home rail's covers print the title after its colon (GuideRail): the answered hooks stay off the home's JS (route JS
+    // ≤ base, captain decision 9); /guides and a guide's 接下来 rail print them (generate-guide-data.ts).
     sources: guideSourceCount(guide), readMinutes: guideReadMinutes(guide), ...(usable ? { imageKey: cover.src } : {}),
   };
 });

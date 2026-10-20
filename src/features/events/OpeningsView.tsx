@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { createCoverPage, distinctNeighbourTones, resolveCovers } from '../../lib/cover';
+import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { INDEX_OPENINGS, OPENING_STATUSES, coverContext, filterOpenings, type OpeningStatus } from './events-model';
 import type { MonthlyRegion } from './events-index-types';
 import { OpeningFeedCard } from './BoardCards';
@@ -25,7 +25,6 @@ export default function OpeningsView({ today, region }: { today: string; region:
   const openings = useMemo(() => filterOpenings(INDEX_OPENINGS, status, region), [status, region]);
   const visible = openings.slice(0, shown);
   const covers = useMemo(() => resolveCovers(visible.map(shop => ({ kind: 'opening' as const, id: shop.id, imageKey: shop.imageKey })), { ...coverContext(today), page: createCoverPage() }), [visible, today]);
-  const tones = distinctNeighbourTones(visible.map((shop, index) => covers[index].tier === 'type' ? (shop.openingType === 'new-restaurant' ? 'food' : 'family') : null));
   const counts = Object.fromEntries(OPENING_STATUSES.map(option => [option.id, filterOpenings(INDEX_OPENINGS, option.id, region).length]));
   const more = Math.min(PAGE, openings.length - visible.length);
   return <>
@@ -38,7 +37,7 @@ export default function OpeningsView({ today, region }: { today: string; region:
     <p className="ev-count" role="status" aria-live="polite">{t(`${openings.length} 家 · 已开业、试营业与预告分开标注；整理自公开资料，未实地探店`, `${openings.length} shops · open, soft-opening and announced are marked apart; from public sources, not visited`)}</p>
     {visible.length ? <>
       <FeedGrid label={t('新店', 'New shops')} layout={layout}>
-        {visible.map((shop, index) => <FeedItem key={shop.id}><OpeningFeedCard opening={shop} cover={covers[index]} today={today} tone={tones[index] ?? undefined} /></FeedItem>)}
+        {visible.map((shop, index) => <FeedItem key={shop.id}><OpeningFeedCard opening={shop} cover={covers[index]} today={today} /></FeedItem>)}
       </FeedGrid>
       {more > 0 && <div className="ev-more"><Button variant="secondary" block onClick={() => setShown(count => count + PAGE)}>{t(`再看 ${more} 家`, `Show ${more} more`)}</Button></div>}
     </> : <EmptyState headingLevel="h3" title={t('这个地区暂时没有符合条件的新店', 'No new shops match this yet')} body={t('换个状态或地区再看看。', 'Try another status or region.')}

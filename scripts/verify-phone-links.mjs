@@ -23,8 +23,9 @@ export function unlinkedPhones(html) {
   const linked = new Set([...main.matchAll(/href="tel:([^"]+)"/g)].map(match => match[1]));
   const text = decode(main
     .replace(/<(script|style|template)\b[\s\S]*?<\/\1>/gi, ' ')
-    // A TypeCover is a card's picture inside the card's one link; its note line is not a separate call target.
-    .replace(/<p class="ui-type-cover__note"[^>]*>[\s\S]*?<\/p>/gi, ' ')
+    // A type cover is a card's picture inside the card's one link: a guide's hook on it ("燃气味先离开打 911", UI9-C's headline
+    // family, which replaced the TypeCover note line) is not a separate call target; the guide it opens links the number.
+    .replace(/<p class="tc-hook"[^>]*>[\s\S]*?<\/p>/gi, ' ')
     .replace(/<a\b[^>]*href="tel:[^"]*"[^>]*>[\s\S]*?<\/a>/gi, ' ')
     // Blocks end a line; inline tags join their text as the reader sees it.
     .replace(/<\/?(?:p|li|div|h[1-6]|dd|dt|dl|ul|ol|section|article|header|footer|nav|figure|figcaption|br|tr|td|th|button)\b[^>]*>/gi, '\n')

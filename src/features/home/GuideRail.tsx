@@ -1,6 +1,7 @@
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { ChipRow, Cover, FeedCard, FilterChip, TypeCover } from '../../components/ui';
+import { ChipRow, Cover, FeedCard, FilterChip } from '../../components/ui';
+import { DeferredGuideTypeCover } from '../../components/ui/cover-defer';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { FamilyLinkButton } from '../../components/FamilyLinkButton';
 import { translateText } from '../../i18n/locale';
@@ -11,15 +12,19 @@ import { guideTitleHead, TOPIC_LABELS } from './home-model';
 
 const RAIL_SIZES = '280px';
 
-/** A guide's cover: its photo (provenance badge), or the topic's information card with the short title and source count. */
+/**
+ * A guide's cover: its photo (provenance chip), or the headline / number cover (UI9-C, G19) with the title after its colon
+ * (the whole title when it has none); the caption then shows the head only (or nothing), so the cover never repeats it.
+ * The family loads after the page (cover-defer.tsx): the rail is below the home's first screen.
+ */
 function GuideCard({ guide, cover }: { guide: HomeGuide; cover: ResolvedCover }) {
   const { t, pick, locale } = useUiCopy();
-  const topic = TOPIC_LABELS[guide.topic];
   const sources = guide.sources ? t(`${guide.sources} 个官方来源`, `${guide.sources} official source${guide.sources === 1 ? '' : 's'}`) : '';
-  const fallback = <TypeCover family="guide" tone={guide.tone} icon={guide.icon} seed={guide.slug} label={pick(topic)} ratio="4:5"
-    title={guideTitleHead(translateText(guide.title, locale))} place={sources || undefined} ariaHidden />;
-  return <FeedCard title={guide.title} to={`/guides/${guide.slug}`} className="home-guide"
-    cover={<Cover cover={cover} fallback={fallback} ratio="4:5" sizes={RAIL_SIZES} decorative />}
+  const title = translateText(guide.title, locale), head = guideTitleHead(title);
+  const caption = head === title ? '' : head, hook = caption ? title.slice(head.length).replace(/^\s*[：:｜|]\s*/u, '') : title;
+  const fallback = <DeferredGuideTypeCover slug={guide.slug} topic={guide.topic} topicLabel={pick(TOPIC_LABELS[guide.topic])} hook={hook} ratio="4:5" ariaHidden />;
+  return <FeedCard title={guide.title} titleShown={cover.tier === 'type' ? caption : undefined} to={`/guides/${guide.slug}`} className="home-guide"
+    cover={<Cover cover={cover} kind="guide" fallback={fallback} ratio="4:5" sizes={RAIL_SIZES} decorative />}
     meta={[sources, t(`约 ${guide.readMinutes} 分钟`, `${guide.readMinutes} min read`)].filter(Boolean).join(' · ')} />;
 }
 

@@ -6,8 +6,7 @@ import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } fro
 import { searchGuides } from '../lib/guide-search';
 import guidesIndex from '../data/generated/guides-index.json';
 import type { GuideIndexCard, GuidesIndex } from '../features/guides/guide-records';
-import { createCoverPage, distinctNeighbourTones, type ResolvedCover } from '../lib/cover';
-import type { CoverTone } from '../lib/event-facts';
+import { createCoverPage, type ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
 import { useUiCopy } from './ui/ui-copy';
@@ -20,11 +19,11 @@ import { Button } from './ui/Button';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
-import { GuideCover } from '../features/guides/GuideCover';
+import { GuideCover, guideCaption } from '../features/guides/GuideCover';
+import { GuideTypeCover } from './ui/cover-guide';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
-import { GUIDE_REGIONS, guideCardMeta, guideCover, isGuideRegion, isGuideTopic, TOPIC_COVER, type GuideRegionId } from '../features/guides/guide-facts';
-import { guideEditorialAnswer } from '../data/guide-editorial/answers';
+import { GUIDE_REGIONS, guideCardMeta, guideCover, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
 
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
@@ -130,31 +129,26 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     });
   }, [elderRail]);
 
-  // One cover page in reading order, so an image never appears twice and two coded covers side by side change colour.
+  // One cover page in reading order, so an image never appears twice; each coded cover keeps its own family (cover-family.ts).
   const covers = useMemo(() => {
     const coverPage = createCoverPage();
     const order: GuideIndexCard[] = browsing ? [...elderRail, ...sections.flatMap(section => section.preview)] : listed.slice(0, visibleCount).map(result => result.guide);
-    const resolved = new Map<string, { cover: ResolvedCover; tone?: CoverTone }>();
-    const tones = distinctNeighbourTones(order.map(guide => {
-      const cover = guideCover(guide, today, coverPage);
-      resolved.set(guide.slug, { cover });
-      return cover.tier === 'type' ? TOPIC_COVER[guideTopicOf(guide)].tone : null;
-    }));
-    order.forEach((guide, index) => { resolved.get(guide.slug)!.tone = tones[index] ?? undefined; });
-    return resolved;
+    return new Map<string, { cover: ResolvedCover }>(order.map(guide => [guide.slug, { cover: guideCover(guide, today, coverPage) }]));
   }, [browsing, elderRail, sections, listed, visibleCount, today]);
 
   const guideTitle = (guide: GuideIndexCard) => translateText(guide.title, locale);
+  // A photo thumbnail's provenance words as the row's 13 px line (Card.tsx `credit`); a 3D postcard keeps its own badge.
+  const rowCredit = (cover?: ResolvedCover) => cover && cover.tier !== 'type' && cover.tier !== 'scene3d' ? pick(cover.label) : undefined;
   const meta = (guide: GuideIndexCard) => pick(guideCardMeta(guide));
   const coverOf = (guide: GuideIndexCard, options: { priority?: boolean; thumb?: boolean } = {}) => {
     const entry = covers.get(guide.slug);
     if (!entry) return null;
-    return <GuideCover guide={guide} cover={entry.cover} tone={entry.tone} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
-      sizes={options.thumb ? COVER_SIZES.thumb : COVER_SIZES.feed} answer={options.thumb ? undefined : guideEditorialAnswer(guide.slug, locale)} />;
+    return <GuideCover guide={guide} cover={entry.cover} face={GuideTypeCover} priority={options.priority} ratio={options.thumb ? '1:1' : undefined} mini={options.thumb}
+      sizes={options.thumb ? COVER_SIZES.thumb : COVER_SIZES.feed} />;
   };
   // A plain click opens through the app (keeping this list's URL for the way back); modified clicks stay native links.
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
-  const card = (guide: GuideIndexCard, priority = false) => <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
+  const card = (guide: GuideIndexCard, priority = false) => <FeedCard title={guideTitle(guide)} titleShown={covers.has(guide.slug) ? guideCaption(guide, locale, covers.get(guide.slug)!.cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
     onOpen={open(guide.slug)} cover={coverOf(guide, { priority })} meta={meta(guide)} />;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
@@ -216,7 +210,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
           </>} />
           : searching ? <ul className="gl-results" aria-label={heading}>{listed.slice(0, visibleCount).map(({ guide, snippet, section }) => <li key={guide.slug}>
             <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-              thumb={coverOf(guide, { thumb: true })} date={section ? t(`文内匹配 · ${section}`, `Match in · ${section}`) : topicName(guideTopicOf(guide))} meta={snippet || meta(guide)} />
+              thumb={coverOf(guide, { thumb: true })} date={section ? t(`文内匹配 · ${section}`, `Match in · ${section}`) : topicName(guideTopicOf(guide))} meta={snippet || meta(guide)}
+              credit={rowCredit(covers.get(guide.slug)?.cover)} />
           </li>)}</ul>
             : <FeedGrid label={heading}>{listed.slice(0, visibleCount).map(({ guide }, index) => <FeedItem key={guide.slug}>{card(guide, index === 0)}</FeedItem>)}</FeedGrid>}
         {listed.length > visibleCount && <div className="gl-more"><Button onClick={() => setPage({ key: resultKey, count: visibleCount + PAGE_SIZE })}>{t(`继续查看（${visibleCount}/${listed.length}）`, `Show more (${visibleCount}/${listed.length})`)}</Button></div>}

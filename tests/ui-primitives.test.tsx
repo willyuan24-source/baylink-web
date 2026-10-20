@@ -207,7 +207,7 @@ test('loading, empty and error states: fixed skeletons, one next step, retry', (
   assert.equal(error.getByRole('link', { name: '回到首页' }).getAttribute('href'), '/');
 });
 
-test('cover image: srcset and sizes, lazy by default, eager + high priority for the LCP cover, posters letterboxed', () => {
+test('cover image: srcset and sizes, lazy by default, eager + high priority for the LCP cover, posters whole on their board', () => {
   const image = { src: '/a.webp', srcSet: '/a-small.webp 480w, /a.webp 1200w', alt: '蓝天使飞越金门大桥', width: 1200, height: 800, lqip: 'rgb(200 210 220)' };
   const lazy = wrap(<ui.CoverImage image={image} label="资料图 · 2024" />);
   const img = lazy.getByRole('img', { name: '蓝天使飞越金门大桥' });
@@ -217,13 +217,13 @@ test('cover image: srcset and sizes, lazy by default, eager + high priority for 
   assert.equal(lazy.container.querySelector('[data-provenance]')?.textContent, '资料图 · 2024');
   assert.match(img.getAttribute('style') || '', /object-position: 50% 40%/);
   cleanup();
-  const poster = wrap(<ui.CoverImage image={image} fit="contain" priority decorative />);
+  const poster = wrap(<ui.CoverImage image={image} fit="contain" priority decorative kind="event" />);
   const imgs = poster.container.querySelectorAll('img');
-  assert.equal(imgs.length, 2);
-  assert.equal(imgs[0].getAttribute('aria-hidden'), 'true', 'the blurred backdrop is decorative');
-  assert.equal(imgs[1].getAttribute('alt'), '');
-  assert.equal(imgs[1].getAttribute('fetchpriority'), 'high');
+  assert.equal(imgs.length, 1, 'UI9-C: no blurred backdrop copy (N22)');
+  assert.equal(imgs[0].getAttribute('alt'), '');
+  assert.equal(imgs[0].getAttribute('fetchpriority'), 'high');
   assert.equal(poster.container.querySelector('.ui-cover')?.getAttribute('data-fit'), 'contain');
+  assert.equal(poster.container.querySelector('.ui-cover')?.getAttribute('data-family'), 'poster');
 });
 
 test('English pages get English control names without a dictionary entry', async () => {

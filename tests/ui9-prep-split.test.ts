@@ -25,8 +25,10 @@ test('every module that imports ui.css imports covers.css and cards.css right af
     assert.deepEqual(sheets.map(item => item.index - sheets[0].index), [0, 1, 2], `${file}: on consecutive lines`);
     assert.equal(new Set(sheets.map(item => item.match![1])).size, 1, `${file}: from one folder`);
   }
-  // The 15 primitives that style themselves, plus the community board files that render ui- markup directly.
-  assert.ok(importers.length >= 20, `${importers.length} importers`);
+  // The primitives that style themselves, plus the community board files that render ui- markup directly (UI9-C: the
+  // type-cover frame moved into CoverImage.tsx, so one importer fewer; the deferred covers' frames load these sheets
+  // through CoverImage).
+  assert.ok(importers.length >= 19, `${importers.length} importers`);
 });
 
 const rules = (name: string) => {
@@ -51,7 +53,7 @@ test('each sheet holds its own part, and no selector is defined in two of them',
   assert.equal(where('.ui-provenance'), 'covers');
   assert.equal(where('.ui-sticker'), 'covers');
   assert.equal(where('.ui-status'), 'covers');
-  assert.equal(where('.ui-type-cover__art'), 'covers');
+  assert.equal(where('.tc-cal'), 'covers');
   assert.equal(where('.ui-feed-grid'), 'cards');
   assert.equal(where('.ui-meta-price'), 'cards');
   assert.equal(where('.ui-row-card'), 'cards');

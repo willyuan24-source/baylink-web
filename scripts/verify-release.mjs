@@ -131,7 +131,9 @@ function routeStyles(key,seen=new Set(),styles=new Set()) { const item=manifest[
 // brotli q11 as served: 58.2 KiB on 531f6434, 38.9 KiB after the dead-rule prune and the route moves; measured + 2%.
 // UI9-F (tokens v2, the legacy aliases and the second toast deleted): 39.3 KiB measured on WEB-PERF-3, so the ceiling came
 // down to 39.5; on main 58a9c05 with UI9-F (and its dead-CSS deletion) the home page measures 39.2 KiB.
-const RENDER_BLOCKING_CSS_BR_KIB=39.5;
+// UI9-C (the cover families replace the TypeCover rules and the 21 drawing masks): 39.19 KiB measured, so the ceiling comes
+// down to 39.2.
+const RENDER_BLOCKING_CSS_BR_KIB=39.2;
 for(const locale of ['', 'en/']) {
   const path=`dist/${locale}index.html`; const html=await readFile(path,'utf8');
   const sheets=[...new Set([...html.matchAll(/<link\b[^>]*>/g)].map(match=>match[0]).filter(tag=>/\brel="stylesheet"/.test(tag)&&!/\bmedia="print"/.test(tag)).map(tag=>/\bhref="\/([^"]+\.css)"/.exec(tag)?.[1]).filter(Boolean))];

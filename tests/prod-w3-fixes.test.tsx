@@ -22,6 +22,7 @@ const { MemoryRouter, StaticRouter } = await import('react-router-dom');
 const { setLocale, loadLocale } = await import('../src/i18n/locale');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 const { GuideCover } = await import('../src/features/guides/GuideCover');
+const { GuideTypeCover } = await import('../src/components/ui/cover-guide');
 const { offerBrandLine, OfferTypeCover } = await import('../src/components/ui');
 const { localDiscoveries, discoveryShare } = await import('../src/data/local-discoveries');
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
@@ -79,16 +80,17 @@ test('pillar-guide headlines wrap between words: H1, cover title, slide titles a
 });
 
 test('a coded guide card does not repeat the caption: no title and no source count on the cover', () => {
-  const html = renderToStaticMarkup(<GuideCover guide={{ slug: SENIOR, category: 'family', title: '湾区中文长者服务：餐食、日间照护', sourceCount: 6 }}
-    cover={{ tier: 'type', reason: 'no-image' } as never} answer="先打 800-510-2020" />);
+  const html = renderToStaticMarkup(<GuideCover guide={{ slug: SENIOR, category: 'family', title: '湾区中文长者服务：餐食、日间照护', sourceCount: 6, hook: { zh: '先打 800-510-2020', en: 'Call 800-510-2020' } }}
+    cover={{ tier: 'type', reason: 'no-image' } as never} face={GuideTypeCover} />);
   const cover = JSDOM.fragment(html);
-  assert.equal(cover.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'guide');
+  // UI9-C: the pilot answer is a phone number, so it prints on the number plate, held together by non-breaking hyphens (U+2011).
+  assert.equal(cover.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'number');
   assert.doesNotMatch(cover.textContent!, /官方来源|湾区中文长者服务/);
-  // The pilot answer is the big line, its number held together by non-breaking hyphens (U+2011).
-  assert.equal(cover.querySelector('.ui-type-cover__title')!.textContent, `先打 800${String.fromCharCode(0x2011)}510${String.fromCharCode(0x2011)}2020`);
-  const plain = JSDOM.fragment(renderToStaticMarkup(<GuideCover guide={{ slug: 'x', category: 'family', title: '某篇指南：副标题', sourceCount: 3 }} cover={{ tier: 'type', reason: 'no-image' } as never} />));
-  assert.equal(plain.querySelector('.ui-type-cover__title'), null);
-  assert.equal(plain.querySelector('.ui-type-cover__place'), null);
+  assert.equal(cover.querySelector('[data-phone]')!.textContent, `800${String.fromCharCode(0x2011)}510${String.fromCharCode(0x2011)}2020`);
+  // Without an answer the cover prints the title after its colon; the head stays in the caption.
+  const plain = JSDOM.fragment(renderToStaticMarkup(<GuideCover guide={{ slug: 'x', category: 'family', title: '某篇指南：副标题', sourceCount: 3 }} cover={{ tier: 'type', reason: 'no-image' } as never} face={GuideTypeCover} />));
+  assert.equal(plain.querySelector('[data-cover="type"]')?.getAttribute('data-key'), '副标题');
+  assert.doesNotMatch(plain.textContent!, /某篇指南|官方来源/);
 });
 
 test('a described offer brand reads in the page language; a store name keeps its case and is never translated', async () => {
@@ -107,8 +109,6 @@ test('an offer cover carries the value and the brand, not the title its card cap
   const taco = localDiscoveries.find(row => row.kind === 'offer' && /taco-trail/.test(discoveryShare(row).id));
   assert.ok(taco && taco.kind === 'offer');
   const cover = JSDOM.fragment(renderToStaticMarkup(<OfferTypeCover offer={taco.offer} today="2026-10-12" />));
-  assert.equal(cover.querySelector('.ui-type-cover__title'), null);
-  assert.equal(cover.querySelector('.ui-type-cover__note'), null);
   assert.doesNotMatch(cover.textContent!, /Stamp Challenge|集章/);
   // On the card, the TypeCover prints the brand; the meta line under it keeps the brand for screen readers only.
   const { OfferFeedCard } = await import('../src/features/events/BoardCards');
@@ -121,66 +121,57 @@ test('an offer cover carries the value and the brand, not the title its card cap
   assert.equal(meta.querySelector('.sr-only')!.textContent, `${brand} · `);
   meta.querySelector('.sr-only')!.remove();
   assert.equal(meta.textContent, '商家活动', 'the visible meta is the kind only');
-  assert.equal(typed.querySelector('.ui-type-cover__brand')!.textContent, brand, 'the brand shows once, on the cover');
+  assert.equal(typed.querySelector('.tc-eyebrow')!.textContent, brand, 'the brand shows once, on the cover');
   const photo = card('image').querySelector('.ui-feed-card__meta')!;
   assert.equal(photo.querySelector('.sr-only'), null);
   assert.equal(photo.textContent, `${brand} · 商家活动`, 'a photo cover keeps the brand in the meta');
 });
 
-test('an offer or opening without an image opens on a band, not a 16:9 card repeating the header', async () => {
+test('an offer, opening or event without an image opens on its family cover, which never repeats the header (UI9-C)', async () => {
   for (const key of ['offer:sfmta-free-muni-seniors', 'opening:old-post-office-burlingame']) {
     const doc = detail(key);
     const hero = doc.querySelector('.detail-hero')!;
     if (hero.getAttribute('data-tier') !== 'type') continue; // an item that has a photo keeps it
-    assert.equal(hero.getAttribute('data-compact'), '', key);
+    assert.equal(hero.hasAttribute('data-compact'), false, `${key}: no band (the cover fills the 16:9 frame)`);
+    assert.equal(hero.querySelector('[data-cover="type"]')?.getAttribute('data-ratio'), '16:9', key);
     const h1 = doc.querySelector('h1')!.textContent!;
-    assert.ok(!hero.textContent!.includes(h1), `${key}: the band does not repeat the H1`);
-    assert.equal(hero.querySelector('.ui-type-cover__brand, .ui-type-cover__title, .ui-type-cover__note, .ui-sticker'), null, key);
+    assert.ok(!hero.textContent!.includes(h1), `${key}: the cover does not repeat the H1`);
+    assert.equal(hero.querySelector('.ui-sticker'), null, key);
   }
   const muni = detail('offer:sfmta-free-muni-seniors');
-  assert.equal(muni.querySelector('.detail-hero')!.getAttribute('data-compact'), '', 'SFMTA free Muni has no image');
-  assert.equal(muni.querySelector('.detail-hero .ui-type-cover__value')!.textContent, '免费');
-  // The kind is the first chip right below, so the band does not say it again (PROD-W3 re-review: 免费福利 twice).
+  assert.equal(muni.querySelector('.detail-hero')!.getAttribute('data-tier'), 'type', 'SFMTA free Muni has no image');
+  assert.equal(muni.querySelector('.detail-hero .tc-ticket__value')!.textContent, '免费');
+  // The kind is the first chip right below, so the cover does not say it again (PROD-W3 re-review: 免费福利 twice).
   assert.equal(muni.querySelector('.detail-chips')!.textContent!.includes('免费福利'), true);
-  assert.equal(muni.querySelector('.detail-hero .ui-type-cover__label'), null);
   assert.doesNotMatch(muni.querySelector('.detail-hero')!.textContent!, /免费福利/);
-  // An image-less offer with no stated value has nothing the header does not say: a slim band in its tone, no words.
+  // An image-less offer with no stated value leads with its deadline day or what it asks of you, never a blank strip.
   const { heroCover } = await import('../src/features/detail/hero-cover');
   const { offerValue } = await import('../src/lib/event-facts');
   const bare = localDiscoveries.find(row => row.kind === 'offer' && !offerValue(row.offer) && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type');
   assert.ok(bare, 'the catalog has an image-less offer without a value');
   const band = detail(`offer:${discoveryShare(bare).id}`).querySelector('.detail-hero')!;
-  assert.equal(band.getAttribute('data-slim'), '');
-  assert.equal(band.querySelector('.ui-type-cover__label, .ui-type-cover__value, .ui-type-cover__brand, .ui-type-cover__title'), null);
+  assert.equal(band.hasAttribute('data-slim'), false);
+  assert.ok(band.querySelector('[data-cover="type"]')!.getAttribute('data-key')!.trim(), 'a key fact');
   // "想约人一起去？" belongs to places to go, not to a public benefit you apply for.
   assert.equal(muni.querySelector('.outing-inspiration-link'), null);
-  // Events with a photo keep their 16:9 cover.
-  assert.equal(detail('event:san-francisco-fleet-week-2026').querySelector('.detail-hero')!.hasAttribute('data-compact'), false);
-  // H28: an image-less event opens on the same compact band: the big date and the tone's drawing, never the H1, the place
-  // or the price sticker that the header and 一眼看懂 say right below. Unknown dates: a slim band with only its badge.
+  // Events with a photo keep their photo.
+  assert.notEqual(detail('event:san-francisco-fleet-week-2026').querySelector('.detail-hero')!.getAttribute('data-tier'), 'type');
+  // An image-less event opens on the date family: the day and weekday (and the time bar for one day with a window), never
+  // the H1 or the price sticker.
   const { eventDateChip, formatDateChip } = await import('../src/lib/event-facts');
   const typeEvents = localDiscoveries.filter(row => row.kind === 'event' && heroCover(buildDetailRecord(row), '2026-10-12').tier === 'type');
   const bigDate = (row: (typeof typeEvents)[number]) => formatDateChip(eventDateChip((row as { event: Parameters<typeof eventDateChip>[0] }).event, '2026-10-12'), false).big;
   const dated = typeEvents.find(bigDate);
   assert.ok(dated, 'the catalog has an image-less event with dates');
   const page = detail(`event:${discoveryShare(dated).id}`);
-  const eventBand = page.querySelector('.detail-hero')!;
-  assert.equal(eventBand.getAttribute('data-compact'), '');
-  assert.equal(eventBand.getAttribute('data-kind'), 'event');
-  assert.equal(eventBand.hasAttribute('data-slim'), false);
-  assert.equal(eventBand.querySelector('.ui-type-cover__date')!.textContent!.includes(bigDate(dated)), true);
-  assert.equal(eventBand.querySelector('.ui-type-cover__title, .ui-type-cover__place, .ui-type-cover__sticker, .ui-type-cover__label'), null);
-  assert.equal(eventBand.textContent!.includes(page.querySelector('h1')!.textContent!), false);
-  const undated = typeEvents.find(row => !bigDate(row));
-  if (undated) {
-    const slim = detail(`event:${discoveryShare(undated).id}`).querySelector('.detail-hero')!;
-    assert.equal(slim.getAttribute('data-slim'), '');
-    assert.equal(slim.querySelector('.ui-type-cover__date, .ui-type-cover__title, .ui-type-cover__place, .ui-type-cover__label'), null);
-    assert.equal(slim.textContent!.replace('BAYLINK 信息卡', '').trim(), '', 'only the information-card badge');
-  }
+  const eventHero = page.querySelector('.detail-hero')!;
+  assert.equal(eventHero.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date');
+  assert.equal(eventHero.querySelector('.tc-cal__day')!.textContent!.length > 0, true);
+  assert.equal(eventHero.querySelector('.ui-sticker'), null);
+  assert.equal(eventHero.textContent!.includes(page.querySelector('h1')!.textContent!), false);
   const { TypeCover } = await import('../src/components/ui');
-  const unknown = JSDOM.fragment(renderToStaticMarkup(<figure className="detail-hero" data-compact="" data-kind="event" data-slim=""><TypeCover family="event" tone="outdoors" label="" date={formatDateChip({ kind: 'unknown' }, false)} /></figure>));
-  assert.equal(unknown.querySelector('.ui-type-cover__date'), null, 'unknown dates draw no date');
+  const unknown = JSDOM.fragment(renderToStaticMarkup(<TypeCover family="event" tone="outdoors" label="" date={formatDateChip({ kind: 'unknown' }, false)} />));
+  assert.equal(unknown.querySelector('.tc-cal'), null, 'unknown dates draw no calendar page');
 });
 
 test('the Fleet Week facts card says where in Chinese on zh-Hans, keeping the place names', () => {

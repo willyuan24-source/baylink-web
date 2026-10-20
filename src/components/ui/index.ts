@@ -3,15 +3,19 @@
  * Covers: resolve with `getCover` / `resolveCovers` (src/lib/cover.ts), render with <EventCover>, <OfferCover>,
  * <OpeningCover> or <Cover>; facts come from src/lib/event-facts.ts.
  */
-export { ProvenanceBadge, Sticker, StickerRow, StatusChip, type StickerTone, type StatusTone } from './Badges';
+export { ProvenanceBadge, Sticker, StickerRow, type StickerTone } from './Badges';
+export { StatusChip, statusLook, type StatusTone, type StatusLook } from './Status';
 export { Button, IconButton, type ButtonProps, type ButtonVariant, type IconButtonProps } from './Button';
 export { FilterChip, ChipRow, type FilterChipProps } from './Chip';
 export { SaveButton } from './SaveButton';
-export { CoverImage, type CoverImageProps, type CoverRatio } from './CoverImage';
+export { Cover, CoverImage, type CoverImageProps, type CoverRatio } from './CoverImage';
 export { COVER_SIZES } from './cover-sizes';
-export { TypeCover, EventTypeCover, OfferTypeCover, OpeningTypeCover, type TypeCoverProps } from './TypeCover';
-export { offerBrandLine } from './offer-brand';
-export { Cover, EventCover, OfferCardMeta, OfferCover, OpeningCover } from './Cover';
+export { TypeCover, type TypeCoverProps } from './TypeCover';
+export { EventCover, EventTypeCover, EventWhen } from './cover-date';
+export { OfferCover, OfferTypeCover } from './cover-ticket';
+export { GuideTypeCover } from './cover-guide';
+export { OpeningCover, OpeningTypeCover } from './cover-shop';
+export { OfferCardMeta, OfferWhen, offerBrandLine } from './cover-defer';
 export { FeedCard, RowCard, type FeedCardProps, type RowCardProps } from './Card';
 export { HeroCard, type HeroCardProps } from './HeroCard';
 export { PageHeader, PageContainer, type PageHeaderProps } from './PageHeader';
