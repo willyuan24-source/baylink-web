@@ -35,15 +35,15 @@ const aiSources = new Set(Object.values(GUIDE_IMAGES).filter(image => image.kind
 const guideLinks = (element: HTMLElement) => [...new Set([...element.querySelectorAll('a[href^="/guides/"]')].map(link => link.getAttribute('href')!.replace('/guides/', '')))];
 const bySlug = new Map(guides.map(guide => [guide.slug, guide]));
 
-test('the index shows one chip row (全部, the seven topics with 长辈与家属 first, 地区 ▾), the 长辈与家属先看 band and six topic previews', () => {
+test('the index shows one chip row (全部, the seven topics with 长辈与家属 first, 地区 ▾), the 长辈与家属先看 band and six topic previews', async () => {
   const view = open('/guides');
   const topics = within(view.getByRole('group', { name: '指南主题' })).getAllByRole('button');
   // No counts on the chips (owner, 10-19); 地区 shows its current value and opens a sheet.
-  assert.deepEqual(topics.map(chip => chip.textContent), ['全部', ...GUIDE_TOPICS.map(topic => topic.zh), '整个湾区']);
+  assert.deepEqual(topics.map(chip => chip.textContent), ['全部', ...GUIDE_TOPICS.map(topic => topic.zh), '整个湾区▾']);
   assert.equal(topics[0].getAttribute('aria-pressed'), 'true');
   assert.equal(topics.at(-1)!.getAttribute('aria-haspopup'), 'dialog');
   fireEvent.click(topics.at(-1)!);
-  const sheet = view.getByRole('dialog', { name: '地区' });
+  const sheet = await view.findByRole('dialog', { name: '地区' }, { timeout: 15000 });
   assert.deepEqual(within(sheet).getAllByRole('button').filter(button => button.classList.contains('gl-regions__option')).map(option => option.textContent), ['整个湾区', '旧金山', '东湾', '半岛', '南湾', '北湾']);
   // The band: three rows, this month's editions first and no past edition.
   const today = getBayAreaToday();
@@ -90,7 +90,7 @@ test('covers are honest: photos carry their provenance badge, other guides get a
   assert.ok(desk.some(cover => cover.textContent?.replaceAll(String.fromCharCode(0x2011), '-').includes('800-510-2020')));
 });
 
-test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, and chips update the URL', () => {
+test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, and chips update the URL', async () => {
   const view = open('/guides?topic=elders');
   assert.equal(view.getByRole('button', { name: /^长辈与家属/ }).getAttribute('aria-pressed'), 'true');
   const list = view.getAllByRole('list', { name: '长辈与家属' })[0];
@@ -100,7 +100,7 @@ test('/guides?topic=elders is a shareable 长辈与家属 hub in reading order, 
   // G16: a row whose guide has a number carries its 48 px 拨打 (shown in 简洁显示), the number the reader's bar calls.
   assert.ok(list.querySelector('a.gl-call[href^="tel:"]'));
   fireEvent.click(view.getByRole('button', { name: '地区：整个湾区' }));
-  fireEvent.click(within(view.getByRole('dialog', { name: '地区' })).getByRole('button', { name: '东湾' }));
+  fireEvent.click(within(await view.findByRole('dialog', { name: '地区' }, { timeout: 15000 })).getByRole('button', { name: '东湾' }));
   const url = new URL(view.getByTestId('location').textContent!, 'http://localhost');
   assert.equal(url.searchParams.get('topic'), 'elders');
   assert.equal(url.searchParams.get('region'), 'east-bay');

@@ -35,7 +35,8 @@ const { peekGuide, loadGuide } = await import('../src/features/guides/guide-stor
 const { guideCallOf } = await import('../src/features/guides/guide-facts');
 const { getGuideEditorial } = await import('../src/data/guide-editorial');
 const { ROUTES } = await import('../src/app/route-table');
-const guidesIndex = (await import('../src/data/generated/guides-index.json')).default as { guides: { slug: string; call?: { number: string; tel: string } }[] };
+const guidesIndex = (await import('../src/data/generated/guides-index.json')).default as { guides: { slug: string; call?: { number: string } }[] };
+const { telOf } = await import('../src/features/guides/guide-records');
 after(() => { hooks.deregister(); });
 afterEach(async () => { cleanup(); localStorage.clear(); await setLocale('zh-Hans', false); });
 
@@ -92,7 +93,7 @@ test('one number per guide: the reader\'s bar and the index\'s 简洁 elder rows
   assert.ok(called.length >= 8, `${called.length} guides with a number`);
   for (const card of guidesIndex.guides) {
     const call = guideCallOf(getGuideEditorial(card.slug));
-    assert.deepEqual(card.call && { number: card.call.number, tel: card.call.tel }, call && { number: call.number, tel: call.tel }, card.slug);
+    assert.deepEqual(card.call && { number: card.call.number, tel: telOf(card.call.number) }, call && { number: call.number, tel: call.tel }, card.slug);
   }
   const senior = guidesIndex.guides.find(card => card.slug === SENIOR)!;
   assert.equal(senior.call?.number, '800-510-2020');

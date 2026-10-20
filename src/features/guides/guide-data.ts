@@ -7,7 +7,7 @@ import { rankRelatedGuides } from '../../lib/guide-discovery';
 import { getGuideMetadata } from '../../lib/guide-metadata';
 import { getOfferImage } from '../../lib/offer-media';
 import { guideCallOf, guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
-import type { GuideCard, GuideCovers, GuideIndexCard, GuideInlineImage, GuideOpusEntry, GuideRecord, GuidesIndex } from './guide-records';
+import { telOf, type GuideCard, type GuideCovers, type GuideIndexCard, type GuideInlineImage, type GuideOpusEntry, type GuideRecord, type GuidesIndex } from './guide-records';
 import { OPUS_BAY_ATTRACTION_ENTRIES } from '../../lib/opus-bay-attraction-entry';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../../data/scene3d-postcards';
 import { GUIDE_DIAGRAMS } from './guide-diagrams';
@@ -131,7 +131,8 @@ export function guidesIndexOf(coversOf: (guide: Guide) => GuideCovers): GuidesIn
     guides: guides.map((guide): GuideIndexCard => {
       const regions = guideRegionsOf(guide);
       const call = guideCallOf(getGuideEditorial(guide.slug));
-      return { ...guideCardOf(guide, coversOf(guide)), ...(regions.length ? { regions } : {}), ...(call ? { call } : {}) };
+      if (call && telOf(call.number) !== call.tel) throw new Error(`${guide.slug}: ${call.number} does not dial ${call.tel}`);
+      return { ...guideCardOf(guide, coversOf(guide)), ...(regions.length ? { regions } : {}), ...(call ? { call: { number: call.number } } : {}) };
     }),
     categoryTabs: GUIDE_CATEGORY_TABS,
   };

@@ -23,7 +23,8 @@ import { translateText } from '../i18n/locale';
 import { UtilityDirectory, UtilityContactDirectory } from './UtilityDirectory';
 import { ShoppingDirectory } from './ShoppingDirectory';
 import { UsefulPlatformsDirectory } from './UsefulPlatformsDirectory';
-import { linkifyPhones, PhoneText, PlainPhonesProvider } from '../lib/phone-links';
+import { linkifyPhones } from '../lib/phone-links';
+import { GuidePhoneText as PhoneText, PlainPhonesProvider, usePlainPhones } from '../features/guides/plain-phones';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
 import { createCoverPage, type CoverPage } from '../lib/cover';
@@ -110,10 +111,11 @@ function RelatedGuides({ related, coverPage, today, topic, onOpenGuide }: { rela
  * prose and its links fold under "展开原文与来源" (design.md §4.10). Without a conclusion the prose stays open. */
 function StepSection({ number, heading, id, conclusion, figures, children }: { number: number; heading: string; id: string; conclusion?: EditorialCopy; figures?: ReactNode; children: ReactNode }) {
   const { t, pick } = useUiCopy();
+  const except = usePlainPhones();
   return <section className="gd-step" aria-labelledby={id}>
     <div className="gd-step__head">
       <span className="gd-step__number" aria-hidden="true">{number}</span>
-      <div><h2 id={id}><SegmentedTitle text={heading} /></h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion))}</p>}</div>
+      <div><h2 id={id}><SegmentedTitle text={heading} /></h2>{conclusion && <p className="gd-step__conclusion">{linkifyPhones(pick(conclusion), { except })}</p>}</div>
     </div>
     {/* H22: the step's diagram stays outside the fold, under its conclusion. */}
     {figures}
@@ -140,7 +142,7 @@ const GuideDetailSession = ({
   // 简洁显示: each number keeps two tap targets, the bar's 拨打 and its contact's; its other copies print as text.
   const simple = useSimpleDisplay();
   const plainPhones = useMemo(() => {
-    if (!simple || !editorial) return null;
+    if (!simple || !editorial) return undefined;
     const call = guideCallOf(editorial);
     return new Set([...(call ? [call.tel] : []), ...(editorial.contacts ?? []).map(contact => contact.tel)]);
   }, [simple, editorial]);

@@ -37,8 +37,11 @@ export type GuideIndexCard = GuideCard & {
   /** The regions a guide is about (guideRegionsOf); absent = the whole Bay Area. */
   regions?: GuideRegionId[];
   /** The number the reader's bar calls, on guides that have one: the 简洁 elder rows print it as a 48 px 拨打 button (G16). */
-  call?: GuideCall;
+  call?: Pick<GuideCall, 'number'>;
 };
+
+/** A US number's tel: target from its printed form ("1-800-772-1213" / "800-510-2020" → "+18007721213" / "+18005102020"). */
+export const telOf = (number: string) => { const digits = number.replace(/\D/g, ''); return `+${digits.length === 10 ? '1' : ''}${digits}`; };
 
 export type GuidesIndex = {
   /** Every published guide, in the corpus order the index lists them. */

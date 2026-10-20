@@ -1,4 +1,4 @@
-import { createContext, Fragment, useContext, type ReactNode } from 'react';
+import { Fragment, type ReactNode } from 'react';
 import { Phone } from 'lucide-react';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import { findPhoneNumbers, phoneDirectoryOf, type PhoneDirectoryEntry } from './phone-numbers';
@@ -19,21 +19,8 @@ const callLabel = (number: string, locale: Locale, name?: string) =>
  * full-width button of a directory grid.
  */
 export type PhoneChipVariant = 'inline' | 'row' | 'block';
-
-/**
- * Numbers to print as plain text instead of a chip (UI9-GUIDES, 简洁显示): a guide in 简洁显示 keeps at most two tap targets per
- * number — its bar's 拨打 and its contact's — so the other copies (30 秒看懂, step conclusions, sources, diagrams) read as text.
- * Without a provider every chip renders as before.
- */
-const PlainPhones = createContext<ReadonlySet<string> | null>(null);
-export const PlainPhonesProvider = PlainPhones.Provider;
-/** The numbers that print as text here (see PlainPhonesProvider); null outside a provider. */
-export const usePlainPhones = () => useContext(PlainPhones);
-const usePlainPhone = (tel: string) => !!usePlainPhones()?.has(tel);
-
 export function PhoneChip({ number, tel, name, variant = 'inline' }: { number: string; tel: string; name?: string; variant?: PhoneChipVariant }) {
   const locale = useLocale();
-  if (usePlainPhone(tel)) return <span className="phone-number-plain">{number}</span>;
   return <a className={variant === 'inline' ? 'phone-chip' : `phone-chip phone-chip--${variant}`} href={`tel:${tel}`} aria-label={callLabel(number, locale, name)}>
     <Phone aria-hidden="true" /><span>{number}</span>
   </a>;

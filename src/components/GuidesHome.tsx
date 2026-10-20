@@ -1,11 +1,11 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type MouseEvent } from 'react';
-import { ChevronDown, ChevronRight, Heart, Phone, Search, X } from 'lucide-react';
+import { ChevronRight, Heart, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide, GuideCategory } from '../data/guides';
 import { GUIDE_TOPICS, guideSlugsForTopic, guideTopicOf, type GuideTopicId } from '../data/guide-topics';
 import { searchGuides } from '../lib/guide-search';
 import guidesIndex from '../data/generated/guides-index.json';
-import type { GuideIndexCard, GuidesIndex } from '../features/guides/guide-records';
+import { telOf, type GuideIndexCard, type GuidesIndex } from '../features/guides/guide-records';
 import { createCoverPage, type ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { loadLocaleForFeature, translateText } from '../i18n/locale';
@@ -15,8 +15,6 @@ import { FilterChip, ChipRow } from './ui/Chip';
 import { FeedGrid, FeedItem } from './ui/FeedGrid';
 import { FeedCard, RowCard } from './ui/Card';
 import { Button } from './ui/Button';
-import { Disclosure } from './ui/Disclosure';
-import { Sheet } from './ui/Sheet';
 import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
@@ -29,6 +27,8 @@ import '../features/guides/guide-library.css';
 
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
+// The 地区 sheet loads on the first tap of its chip (route JS ≤ base).
+const GuideRegionSheet = lazy(() => import('../features/guides/GuideRegionSheet'));
 
 type GuidesHomeProps = { onOpenGuide: (slug: string) => void; onAsk?: GuideAsk; onSearch?: (query: string) => void };
 type Listed = { guide: GuideIndexCard; snippet?: string; section?: string };
@@ -95,6 +95,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const resultKey = `${topic}:${region}:${category}:${query}`;
   const visibleCount = page.key === resultKey ? page.count : PAGE_SIZE;
   const [regionsOpen, setRegionsOpen] = useState(false);
+  // Mounted from the first tap on, so the sheet keeps its exit animation.
+  const [regionsUsed, setRegionsUsed] = useState(false);
   const [directoryOpen, setDirectoryOpen] = useState(false);
 
   const update = (values: { topic?: GuideTopicId | null; region?: GuideRegionId | null; q?: string; category?: null }) => setParams(previous => {
@@ -158,8 +160,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
         thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
         when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
-      {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${guide.call.tel}`} data-simple="show"
-        aria-label={t(`拨打 ${guide.call.label.zh} ${guide.call.number}`, `Call ${guide.call.label.en} ${guide.call.number}`)} icon={<Phone aria-hidden="true" strokeWidth={1.75} />}>
+      {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
+        aria-label={t(`拨打 ${guide.call.number}：${guideTitle(guide)}`, `Call ${guide.call.number}: ${guideTitle(guide)}`)}>
         {t('拨打', 'Call')} <span className="gl-call__number">{guide.call.number}</span></Button>}
     </>;
   };
@@ -211,14 +213,10 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
         {category && <FilterChip selected onClick={() => update({ category: null })} aria-label={t(`取消筛选：${categoryLabel}`, `Clear filter: ${categoryLabel}`)}>{categoryLabel}<X aria-hidden="true" strokeWidth={1.75} /></FilterChip>}
         {/* 地区 shows its current value, like the deals board's ("整个湾区 ▾" / "东湾 ▾"), and opens F's sheet. */}
         <FilterChip selected={!!region} className="gl-region-chip" aria-haspopup="dialog" aria-label={t(`地区：${region ? regionLabel : '整个湾区'}`, `Region: ${region ? regionLabel : 'whole Bay Area'}`)}
-          onClick={() => setRegionsOpen(true)}>{region ? regionLabel : t('整个湾区', 'Whole Bay Area')}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
+          onClick={() => { setRegionsUsed(true); setRegionsOpen(true); }}>{region ? regionLabel : t('整个湾区', 'Whole Bay Area')}<span className="gl-region-chip__caret" aria-hidden="true">▾</span></FilterChip>
       </ChipRow>
     </nav>}
-    <Sheet open={regionsOpen} onClose={() => setRegionsOpen(false)} title={t('地区', 'Region')} bodyClassName="gl-regions">
-      <ul className="gl-regions__list">{[{ id: null, label: t('整个湾区', 'Whole Bay Area') }, ...GUIDE_REGIONS.map(item => ({ id: item.id, label: pick(item) }))].map(item => <li key={item.id ?? 'all'}>
-        <button type="button" className="gl-regions__option" aria-pressed={region === item.id} onClick={() => { update({ region: item.id }); setRegionsOpen(false); }}>{item.label}</button>
-      </li>)}</ul>
-    </Sheet>
+    {regionsUsed && <Suspense fallback={null}><GuideRegionSheet open={regionsOpen} region={region} onClose={() => setRegionsOpen(false)} onPick={next => { update({ region: next }); setRegionsOpen(false); }} /></Suspense>}
     {savedOnly ? <Suspense fallback={<SkeletonFeed count={3} rows />}><ReadingShelf /></Suspense>
       : browsing ? <>
         {band}
@@ -256,10 +254,12 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
             : list(listed.slice(0, visibleCount).map(({ guide }) => guide), heading, true)}
         {listed.length > visibleCount && <div className="gl-more"><Button onClick={() => setPage({ key: resultKey, count: visibleCount + PAGE_SIZE })}>{t(`继续查看（${visibleCount}/${listed.length}）`, `Show more (${visibleCount}/${listed.length})`)}</Button></div>}
       </section>}
-    {/* Every guide is linked in the prerendered page; closed, the list is out of the accessibility tree as well as the view. */}
-    {!savedOnly && <Disclosure className="gl-directory" onToggle={setDirectoryOpen} summary={t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}>
+    {/* Every guide is linked in the prerendered page; closed, the list is hidden (F's Button toggles it, no Disclosure on this
+        route: route JS ≤ base). */}
+    {!savedOnly && <div className="gl-directory">
+      <Button variant="quiet" className="gl-directory__toggle" aria-expanded={directoryOpen} aria-controls="guide-complete-directory" onClick={() => setDirectoryOpen(open => !open)}>{t(`查看全部 ${guides.length} 篇指南目录`, `Browse all ${guides.length} guide titles`)}</Button>
       <nav id="guide-complete-directory" hidden={!directoryOpen} aria-label={t('完整指南目录', 'Complete guide directory')}><ul>{guides.map(guide => <li key={guide.slug}><Link to={`/guides/${guide.slug}`}>{guide.title}</Link></li>)}</ul></nav>
-    </Disclosure>}
+    </div>}
     <footer className="gl-footer"><p>{t('每篇指南保留官方来源、核对日期与图片授权。', 'Each guide keeps its official sources, check dates and image credits.')}</p><Link to="/about#about-method-title">{t('了解核验方法', 'How we check sources')}</Link></footer>
   </div>;
 };

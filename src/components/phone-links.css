@@ -32,5 +32,3 @@
 @media (min-width:768px) {
   .phone-directory { grid-template-columns:repeat(3,minmax(0,1fr)); }
 }
-/* A number a 简洁 guide prints as text (its bar and its contact carry the tap targets; phone-links.tsx PlainPhonesProvider). */
-.phone-number-plain { font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }

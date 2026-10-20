@@ -6,6 +6,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
 import type { GuideContact, GuideKeyFact } from '../../data/guide-editorial';
 import { linkifyPhones } from '../../lib/phone-links';
+import { usePlainPhones } from './plain-phones';
 import { copyText } from '../../utils/postShare';
 
 const CIRCLED = ['①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨', '⑩', '⑪', '⑫', '⑬'];
@@ -32,11 +33,12 @@ function withMark(parts: ReactNode[], mark: ReactNode): ReactNode {
  */
 export function KeyFactsCard({ guide, facts }: { guide: Guide; facts: readonly GuideKeyFact[] }) {
   const { t, pick } = useUiCopy();
+  const except = usePlainPhones();
   return <section className="gd-keyfacts" aria-labelledby="gd-keyfacts-title">
     <h2 id="gd-keyfacts-title">{t('30 秒看懂', 'In 30 seconds')}</h2>
     <ol>{facts.map(fact => <li key={fact.label.zh}>
       <span className="gd-keyfacts__label">{pick(fact.label)}</span>
-      <span className="gd-keyfacts__value">{withMark(linkifyPhones(pick(fact.value), { variant: 'inline' }), fact.source && guide.sources[fact.source - 1] ? <SourceMark guide={guide} index={fact.source} /> : null)}</span>
+      <span className="gd-keyfacts__value">{withMark(linkifyPhones(pick(fact.value), { variant: 'inline', except }), fact.source && guide.sources[fact.source - 1] ? <SourceMark guide={guide} index={fact.source} /> : null)}</span>
     </li>)}</ol>
   </section>;
 }
