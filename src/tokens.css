@@ -284,10 +284,6 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 @media(max-width:639px) {
   .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 65px var(--control-height); }
 }
-@media(max-width:1023px) {
-  .site-mobile-icon { position:relative; }
-  .site-mobile-icon b.site-mobile-notification-dot { top:-3px; right:-5px; min-width:0; width:9px; height:9px; padding:0; }
-}
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
