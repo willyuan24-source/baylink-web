@@ -44,12 +44,19 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
 .bb-otter { flex:none; display:block; }
 .bb-otter[data-size="44"] { width:2.75rem; height:2.75rem; }
 .bb-otter[data-size="20"] { width:1.25rem; height:1.25rem; }
-.baybay-conversation .bb-head { display:flex; flex:none; align-items:center; gap:var(--sp-3); padding:var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-bottom:1px solid var(--color-line); }
-.baybay-conversation .bb-head__text { flex:1; min-width:0; }
+.baybay-conversation .bb-head { display:grid; flex:none; grid-template-columns:auto minmax(0, 1fr) auto auto; grid-template-areas:"otter text new close"; align-items:center; gap:0 var(--sp-3); padding:var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); border-bottom:1px solid var(--color-line); }
+.baybay-conversation .bb-head>.bb-otter { grid-area:otter; }
+.baybay-conversation .bb-head>.ui-close { grid-area:close; }
+.baybay-conversation .bb-head__text { grid-area:text; min-width:0; }
 .baybay-conversation .bb-head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-head__sub { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.baybay-conversation .bb-head__new { flex:none; padding-inline:var(--sp-3); }
+.baybay-conversation .bb-head__new { grid-area:new; padding-inline:var(--sp-3); }
 @media (min-width:768px) { .baybay-conversation .bb-head { padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-5); } }
+/* 特大 and 简洁显示 on a phone: 新对话 moves under the title, so the h2 stays on one line and ✕ keeps its corner. */
+@media (max-width:767px) {
+  html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-head { grid-template-columns:auto minmax(0, 1fr) auto; grid-template-areas:"otter text close" "otter new close"; }
+  html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-head__new { justify-self:start; padding-inline:0; }
+}
 
 /* Welcome: one line, the page in view, six prompt cards (2 columns, ≥88px), 也可以, the details, the guest line. */
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
@@ -96,6 +103,8 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .member-baybay-answer { display:grid; gap:var(--sp-3); min-width:0; }
 .baybay-conversation .member-baybay-answer-label { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .member-baybay-answer-label>span { flex:1; }
+/* The scroll-follow lands on the answer's head row (or its notice, 911 card or error): the question stays in view above it. */
+.baybay-conversation :is(.member-baybay-answer-label,.member-baybay-answer>[data-notice],.bb-emergency,.baybay-request-error) { scroll-margin-top:5rem; }
 .baybay-conversation .member-baybay-answer-text { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-read); white-space:pre-wrap; overflow-wrap:anywhere; }
 .baybay-conversation .baybay-inline-citation { color:var(--color-brand); text-decoration:underline; text-underline-offset:.2em; }
 .baybay-conversation .bb-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
@@ -133,7 +142,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-plan-status { flex:none; }
 html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; }
 @media (max-width:400px) { .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; } }
-.baybay-conversation .baybay-plan-summary { margin:0; color:var(--color-ink-2); white-space:pre-wrap; }
+.baybay-conversation .baybay-plan-summary { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); white-space:pre-wrap; }
 .baybay-conversation .baybay-plan-budget { display:grid; gap:var(--sp-1); }
 .baybay-conversation .baybay-plan-budget>p { margin:0; }
 .baybay-conversation .baybay-plan-budget strong { font-weight:600; font-variant-numeric:tabular-nums; }
@@ -141,7 +150,7 @@ html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { 
 .baybay-conversation .baybay-plan-risk { color:var(--color-danger); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-key-unknowns { display:grid; gap:var(--sp-1); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); }
 .baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-assistant-plan) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
-.baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-plan-checks) ul { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); list-style:disc; }
+.baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-plan-checks) ul { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); list-style:disc; font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-key-unknowns small { color:var(--color-ink-2); font-size:var(--fs-meta); }
 /* Stops: C's number plate (min 1.75em, one line) and a 1px rail down to the next stop. */
 .baybay-conversation .baybay-plan-stops { display:grid; margin:0; padding:0; list-style:none; }
@@ -156,13 +165,16 @@ html[data-simple] .baybay-conversation .baybay-plan-stop-link { padding-block:va
 .baybay-conversation .baybay-plan-stops dt { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .baybay-plan-stops dd { margin:0; min-width:0; }
 .baybay-conversation .baybay-plan-stop-when>dd { font-variant-numeric:tabular-nums; }
+/* One 待核实 line: the label runs into its list. */
+.baybay-conversation .baybay-plan-stops dl>div.baybay-plan-stop-unknown { display:block; }
+.baybay-conversation .baybay-plan-stop-unknown>:is(dt,dd) { display:inline; margin-inline-end:var(--sp-2); }
 .baybay-conversation .baybay-plan-stops dd small { display:block; color:var(--color-ink-2); font-size:var(--fs-meta); }
 html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { grid-template-columns:minmax(0, 1fr); }
 @media (max-width:399px) { .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { grid-template-columns:minmax(0, 1fr); } }
 .baybay-conversation .baybay-plan-notes { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); list-style:disc; }
 .baybay-conversation .baybay-plan-citations { display:grid; gap:var(--sp-1); }
-.baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:underline; text-underline-offset:.2em; }
-.baybay-conversation .baybay-plan-citations a>span { display:inline-flex; align-items:center; gap:var(--sp-1); }
+.baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:none; }
+.baybay-conversation .baybay-plan-citations a>span { display:inline-flex; align-items:center; gap:var(--sp-1); text-decoration:underline; text-underline-offset:.2em; }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-snug); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations-none { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-swap { justify-self:start; padding-inline:0; }

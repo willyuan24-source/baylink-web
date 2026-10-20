@@ -55,7 +55,8 @@ test('every *-baylink-* class written in src compiles to a rule (none silently d
   const used = new Set<string>();
   const pattern = /(?<![\w-])(?:text|bg|border(?:-[trblxy])?|ring(?:-offset)?|accent|from|via|to|fill|stroke|outline|divide|placeholder|decoration|caret)-baylink-[a-z-]+(?:\/\d+)?(?![\w-])/g;
   for (const file of sources) for (const match of readFileSync(file, 'utf8').matchAll(pattern)) used.add(match[0]);
-  assert.ok(used.size > 40, `found ${used.size} distinct classes`);
+  // A floor that proves the scan reads the sources; it falls as templates move off Tailwind colours (UI9-BB: 40 left).
+  assert.ok(used.size > 20, `found ${used.size} distinct classes`);
   const css = await compile([...used].join(' '));
   const emitted = new Set<string>();
   postcss.parse(css).walkRules(rule => {

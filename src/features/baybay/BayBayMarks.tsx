@@ -6,11 +6,11 @@ export function BayBayOtter({ size }: { size: 20 | 44 }) {
 }
 
 /**
- * A turn that is still being answered (N24): three dots that fade on the --dur tokens (still when motion is 0 ms: reduced
+ * A turn that is still being answered (N24): the otter and three dots that fade on the --dur tokens (still when motion is 0 ms: reduced
  * motion and 简洁显示), next to the phase text. Replaces the three spinning loaders.
  */
 export function BayBayPending({ children, className }: { children: ReactNode; className?: string }) {
   return <p role="status" className={className ? `bb-pending ${className}` : 'bb-pending'} translate="no">
-    <span className="bb-dots" aria-hidden="true"><span /><span /><span /></span><span>{children}</span>
+    <BayBayOtter size={20} /><span className="bb-dots" aria-hidden="true"><span /><span /><span /></span><span>{children}</span>
   </p>;
 }

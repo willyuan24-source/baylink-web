@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, X, ArrowUp, Square, RotateCcw } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, X, Square, RotateCcw } from 'lucide-react';
 import { recordProductEvent } from '../lib/product-events';
 import { recordBayBayLatency } from '../lib/baybay-latency';
 import { BayBayDownvoteReasons } from '../features/feedback/BayBayDownvoteReasons';
@@ -375,7 +375,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
         if (!askBayBay(question) && question.trim().length < 2) flagTooShort();
       }} placeholder={placeholder} className="member-baybay-question-input" />
       {loading ? <Button variant="secondary" className="bb-send" onClick={stop} icon={<Square aria-hidden="true" size={16} />}>{copy('停止', 'Stop')}</Button>
-        : <Button variant="primary" type="submit" className="bb-send" icon={<ArrowUp aria-hidden="true" size={16} />}>{copy('问一下', 'Ask')}</Button>}
+        : <Button variant="primary" type="submit" className="bb-send">{copy('问一下', 'Ask')}</Button>}
     </div>
   </form>;
 
