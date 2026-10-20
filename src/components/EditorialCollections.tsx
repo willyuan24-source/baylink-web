@@ -10,7 +10,7 @@ export function EditorialCollections({ compact = false }: { compact?: boolean })
   return (
     <section className={`editorial-collections ${compact ? 'editorial-collections--compact' : ''}`} aria-label="BAYLINK 编辑专题">
       <header className="editorial-collections__heading">
-        <EnglishOnly><span className="editorial-collections__eyebrow">THE LOCAL EDIT</span></EnglishOnly>
+        <EnglishOnly><span className="editorial-collections__eyebrow">The local edit</span></EnglishOnly>
         <h2>{compact ? '生活灵感，按主题看。' : '把生活的小事，慢慢理顺。'}</h2>
         {!compact && <p>把相关指南放在一起，陪你从一个问题，走到下一步。</p>}
       </header>

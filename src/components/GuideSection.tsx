@@ -21,7 +21,7 @@ export const GuideSection = ({ onOpenGuide, onViewAll }: GuideSectionProps) => {
     <section className="bl-home-guides" aria-labelledby="home-guides-title">
       <div className="bl-home-guides-heading">
         <div>
-          <EnglishOnly><span className="bl-guide-eyebrow">THE BAYLINK JOURNAL</span></EnglishOnly>
+          <EnglishOnly><span className="bl-guide-eyebrow">The BAYLINK journal</span></EnglishOnly>
           <h2 id="home-guides-title">
             <BookOpen size={20} strokeWidth={1.5} aria-hidden="true" />{" "}
             湾区生活指南
