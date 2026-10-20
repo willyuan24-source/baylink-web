@@ -10,13 +10,14 @@ const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
 /**
  * 本页图片来源 (design.md §4.5 ProvenanceBadge): the cover badge says what kind of picture it is; credit, licence and caption
  * for every picture shown on the page are listed once here, last on the page. `#page-credits` and `data-count` let the site
- * footer link here (NAV).
+ * footer link here (NAV); `data-credits-at-end` says the block ends the page, so the footer prints no second entry (NAV
+ * request 1, UI9-INT).
  */
 export function GuidePageImageCredits({ images }: { images: readonly GuideImage[] }) {
   const { t, english } = useUiCopy();
   const shown = images.filter((image, index) => images.findIndex(other => other.src === image.src) === index);
   if (!shown.length) return null;
-  return <div id="page-credits" className="gd-credits" data-count={shown.length}>
+  return <div id="page-credits" className="gd-credits" data-count={shown.length} data-credits-at-end="">
     <Disclosure summary={t(`本页图片来源（${shown.length}）`, `Image credits (${shown.length})`)}>
       <ul>{shown.map(image => <li key={image.src}>
         <span className="gd-credits__kind">{getImageProvenance(image, english)}</span>
