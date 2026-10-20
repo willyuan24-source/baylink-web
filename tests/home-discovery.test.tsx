@@ -37,11 +37,12 @@ test('the masthead asks the question under the weekend dateline; one identity li
   assert.equal(doc.querySelector('.home-head__lede'), null, 'the dense lede is gone');
   // H02: when this weekend's events were checked, as checks against the official pages. The trust line names one day (UI9-HOME
   // arrangement: "✓ 多数 10/15 官网核对"): the day most were checked, or the day all were; the separator before
-  // 我们怎么核对 is glued to the phrase before it (a no-break space), so a wrapped line never starts with "·".
+  // 我们怎么核对 is glued to the phrase before it (a no-break space), so a wrapped line never starts with "·"; a date never
+  // breaks from the word before it.
   assert.ok(weekend.checked, 'the snapshot carries the check dates');
   const { mostly, all } = weekend.checked!;
   const trust = doc.querySelector('.home-picks .home-trust')!;
-  assert.equal(trust.textContent, `✓ 每条附官方链接 · ✓ ${all === true ? '' : '多数 '}${monthDay(mostly)} 官网核对\u00a0· 我们怎么核对 →`);
+  assert.equal(trust.textContent, `✓ 每条附官方链接 · ✓ ${all === true ? '' : '多数\u00a0'}${monthDay(mostly)} 官网核对\u00a0· 我们怎么核对 →`);
   assert.doesNotMatch(trust.textContent!, /最近|最早/);
   assert.equal(trust.querySelector('a')!.getAttribute('href'), '/about#about-method-title', 'the only 我们怎么核对 anchor');
   assert.doesNotMatch(doc.body.textContent!, /人工核对|编辑核对/);
@@ -306,7 +307,7 @@ test('the first cover is fetched first; English has the question H1 and English 
     assert.equal(view.getByRole('heading', { level: 1 }).textContent, 'Where to go in the Bay this weekend?');
     for (const heading of view.getAllByRole('heading', { level: 2 })) assert.doesNotMatch(heading.textContent!, /[㐀-鿿]/, heading.textContent!);
     assert.equal(view.container.querySelector('.home-head__identity')!.textContent, 'Weekend outings and how-to guides for Chinese families in the Bay Area · Free · no sign-in');
-    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^✓ An official link on every item · ✓ Source checked(?::)? (?:mostly )?[A-Z][a-z]{2} \d+\u00a0· How we check →$/);
+    assert.match(view.container.querySelector('.home-trust')!.textContent!, /^✓ An official link on every item · ✓ Source checked(?::)? (?:mostly )?[A-Z][a-z]{2}\u00a0\d+\u00a0· How we check →$/);
     view.unmount();
   } finally {
     await setLocale('zh-Hans', false);

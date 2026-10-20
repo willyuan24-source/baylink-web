@@ -80,7 +80,7 @@ test('长辈常用电话: each row links its guide and dials the number the guid
 test('the trust line says 官网核对, never 人工核对, and links the one method anchor; the identity line is the shared wording', async () => {
   const doc = home();
   const trust = doc.querySelector('.home-trust')!;
-  assert.match(trust.textContent!, /^✓ 每条附官方链接 · ✓ (?:多数 )?\d+\/\d+ 官网核对\u00a0· 我们怎么核对 →$/);
+  assert.match(trust.textContent!, /^✓ 每条附官方链接 · ✓ (?:多数\u00a0)?\d+\/\d+ 官网核对\u00a0· 我们怎么核对 →$/);
   assert.deepEqual([...doc.querySelectorAll('a[href*="#"]')].map(link => link.getAttribute('href')), ['/about#about-method-title']);
   assert.doesNotMatch(doc.body.innerHTML, /人工核对|编辑核对|how-we-check/);
   const { SITE_IDENTITY, OFFICIAL_LINKS, FREE_NO_SIGN_IN, METHOD_HREF } = await import('../src/lib/check-dates');

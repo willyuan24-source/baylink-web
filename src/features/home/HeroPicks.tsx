@@ -20,9 +20,11 @@ import { dateScope } from '../../lib/date-guard';
 const LEAD_SIZES = '(max-width: 767px) 266px, (max-width: 1023px) 100vw, 700px';
 const PICK_SIZES = '(max-width: 1023px) 50vw, 290px';
 const facts = (event: HomeEvent) => event as unknown as EventFactsInput;
-/** The trust line names one day: the one most items were checked (多数), or the day all were. */
 const weekend = dateScope('weekend');
+/** The trust line names one day: the one most items were checked (多数), or the day all were. */
 const mostlyDay = ({ mostly, all }: CheckSummary): CheckSummary => ({ mostly, latest: mostly, earliest: mostly, all: all === true });
+/** A date never breaks from the word before it ("mostly Oct 15", "多数 10/15"): the space before a digit does not wrap. */
+const glueDates = (text: string) => text.replace(/ (?=\d)/g, '\u00a0');
 
 /** One pick (one card anatomy, FeedCard): the cover, the title, line 1 (the whole time window), line 2 (status · place), ✓, ♡. */
 function PickCard({ pick, cover, today, lead }: { pick: HomeWeekendPick; cover: ResolvedCover; today: string; lead: boolean }) {
@@ -68,6 +70,6 @@ export function HeroPicks({ picks, covers, today, start, end, total, checked }: 
     <Link to="/events" className="home-section-head__more home-picks__all" {...weekend}>{total ? t(`看本周末全部 ${total} 场`, `See all ${total} this weekend`) : t('看本周末全部活动', 'See all events this weekend')}<ArrowRight aria-hidden="true" strokeWidth={1.75} /></Link>
     {/* "✓ 多数 10/15 官网核对": the day most were checked, without the latest one; the separator stays with the phrase
         before it, so a wrapped line starts with 我们怎么核对 →, never with "·". */}
-    <p className="home-trust" {...weekend}><span aria-hidden="true">✓ </span>{pick(OFFICIAL_LINKS)}{checked && <> · <span aria-hidden="true">✓ </span>{officialCheckLine(mostlyDay(checked), t, { order: 'trail' })}</>}{'\u00a0· '}<Link to={METHOD_HREF}>{t('我们怎么核对', 'How we check')}<span aria-hidden="true"> →</span></Link></p>
+    <p className="home-trust" {...weekend}><span aria-hidden="true">✓ </span>{pick(OFFICIAL_LINKS)}{checked && <> · <span aria-hidden="true">✓ </span>{glueDates(officialCheckLine(mostlyDay(checked), t, { order: 'trail' }))}</>}{'\u00a0· '}<Link to={METHOD_HREF}>{t('我们怎么核对', 'How we check')}<span aria-hidden="true"> →</span></Link></p>
   </section>;
 }
