@@ -201,9 +201,10 @@ test('off-topic inline pictures are hidden: the stock laptop photo and shared AI
     assert.ok(guide);
     const view = render(article(slug));
     const sources = Array.from(view.container.querySelectorAll('img')).map(img => img.getAttribute('src'));
-    // The owner-approved Commons photos (CNT-MEDIA-4) are on topic and shown; the stock laptop photo and AI art stay hidden.
+    // The owner-approved Commons photos (CNT-MEDIA-4) and guide photos (CNT-MEDIA-5: the public-domain HHS photo in the Medicare
+    // guide) are on topic and shown; the stock laptop photo and AI art stay hidden.
     for (const item of getGuideMedia(guide).inline) {
-      const shown = item.image.src.startsWith('/guides/commons/');
+      const shown = item.image.src.startsWith('/guides/commons/') || item.image.src.startsWith('/guides/guide-photos/');
       assert.equal(sources.includes(item.image.src), shown, `${slug}: ${item.image.src} is ${shown ? 'shown' : 'hidden'}`);
     }
     cleanup();
