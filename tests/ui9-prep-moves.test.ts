@@ -64,5 +64,6 @@ test('the BayBay panel frame (.member-baybay-*) and the 👎 reasons (.baybay-do
   const { cssLoadGraph } = await import('../scripts/check-style-ratchet.mjs');
   const graph = cssLoadGraph();
   assert.ok(graph.lazy.includes('src/features/baybay/baybay-panel.css') && !graph.global.includes('src/features/baybay/baybay-panel.css'));
-  assert.ok(graph.global.includes('src/audit-integration.css'));
+  // UI9-INT dropped the emptied audit-integration.css (its .baybay-feedback rules live in the panel's sheet).
+  assert.ok(!graph.global.includes('src/audit-integration.css'));
 });

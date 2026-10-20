@@ -141,7 +141,6 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
   ]],
   ['src/components/discovery-community.css', [
     ['', '.discovery-return h2', 26, 24],
-    ['@media (max-width:639px)', '.discovery-modal h2', 22, 20],
   ]],
   ['src/components/guide-visuals.css', [
     ['', '.guide-route-heading h3', 22, 20],

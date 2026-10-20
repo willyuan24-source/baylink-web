@@ -102,5 +102,7 @@ test('简洁显示 text floor: relative sizes below 1rem get max(size, var(--tex
   for (const token of ['--fs-badge', '--fs-meta']) assert.equal(simple.get(token), '1rem', token);
   for (const [alias, step] of [['--text-caption', '--fs-badge'], ['--text-fact', '--fs-meta']]) assert.equal(declarations(':root').get(alias), `var(${step})`, alias);
   assert.equal(simple.get('--control-height'), '3rem', '48px targets');
-  assert.match(simple.get('--site-mobile-nav-height') || '', /^calc\(4\.75rem/, '76px tab bar');
+  // The tab bar's height is NAV's (site-chrome.css html:root 64px, 76px in 简洁); tokens.css no longer sets it (UI9-INT).
+  assert.equal(simple.get('--site-mobile-nav-height'), undefined);
+  assert.match(readFileSync('src/components/site-chrome.css', 'utf8'), /html:root\[data-simple\] \{ --site-mobile-nav-height:calc\(76px/, '76px tab bar');
 });

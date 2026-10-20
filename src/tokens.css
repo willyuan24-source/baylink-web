@@ -113,7 +113,6 @@
   /* Layout (SV-09, design.md §4.4): one page frame, aligned to the header (the logo and the content edge at 112–1328 in a
      1440 window). .site-container (below) and the WEB-UI PageContainer read these; gutters are px and do not grow with Aa. */
   --container-wide:1216px; --container-content:960px; --container-reading:720px; --page-gutter:16px;
-  --site-mobile-nav-height:calc(4.5rem + env(safe-area-inset-bottom,0px));
 }
 /* Profile card themes (ProfileIdentity, EditProfileModal): the four palettes a member picks for their card. They are the
    only hues outside the site palette, by design, so they live here with it (moved from profile-personality.css). */
@@ -182,7 +181,7 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) {
 html[data-simple] {
   --text-floor:1rem; --fs-badge:1rem; --fs-meta:1rem; --fs-body:1.125rem; --fs-reading:1.25rem; --fs-card:1.25rem; --fs-card-lg:1.25rem;
   --fs-section:1.5rem; --fs-title:1.75rem; --fs-display:1.75rem; --fs-keep-13:1rem; --fs-keep-14:1rem;
-  --control-height:3rem; --site-mobile-nav-height:calc(4.75rem + env(safe-area-inset-bottom,0px));
+  --control-height:3rem;
   --dur-1:0ms; --dur-2:0ms; --dur-3:0ms; --dur-4:0ms; --dur-5:0ms;
 }
 /* On a desktop 简洁显示 keeps the standard heading steps (html[data-simple] outranks the ≥1024 :root block): it only raises. */
@@ -232,18 +231,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 /* Lime only where the surface is really deep (brand-deep / ink / a photo overlay); the footer is a light sunken surface and keeps the brand ring. */
 .site-app :where(.ui-hero-card[data-overlay],[data-surface=deep]) :focus-visible { outline-color:var(--color-highlight); }
 .site-app :where(input:not([type=checkbox],[type=radio],[type=range],[type=color]),select,textarea) { border-color:var(--color-line-control); }
-.site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; flex:none; min-width:44px; min-height:44px; color:var(--color-ink); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); font-size:var(--text-fact); }
 .site-reading-button>svg { display:none; }
-.reading-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:16px; background:rgb(var(--color-ink-rgb) / .44); }
-.reading-dialog { position:relative; width:100%; max-width:520px; max-height:calc(100dvh - 32px); overflow:auto; border-radius:var(--r-xl); padding:28px; background:var(--color-bg); }
-.reading-close { display:grid; place-items:center; width:44px; height:44px; margin-left:auto; border-radius:var(--r-md); border:1px solid var(--color-line-strong); background:var(--color-surface); }
-.reading-preferences h2 { font-size:var(--text-section); line-height:1.4; margin:16px 0; color:var(--color-ink); text-wrap:balance; }
 .reading-preferences p { font-size:var(--text-body); line-height:1.8; color:var(--color-ink-2); }
 .reading-preferences>[role=group] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:20px 0; }
-.reading-preferences button { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:5px; min-height:64px; border:1px solid var(--color-line-control); border-radius:12px; padding:12px 6px; color:var(--color-ink); background:var(--color-surface); font-size:var(--text-body); }
-.reading-preferences button small { display:block; flex-basis:100%; font-size:var(--text-caption); }
-.reading-preferences button[aria-pressed=true] { border-color:var(--color-brand); background:var(--color-brand-tint); font-weight:600; }
-.reading-preferences .reading-preview { padding:16px; background:var(--color-surface); border-radius:12px; }
 .reading-preferences .reading-simple-switch { display:flex; flex-wrap:nowrap; align-items:center; justify-content:space-between; gap:16px; width:100%; min-height:max(48px,var(--control-height)); margin:0 0 20px; padding:12px 16px; text-align:left; }
 .reading-preferences .reading-simple-switch>span:first-child { display:grid; gap:4px; min-width:0; }
 .reading-preferences .reading-simple-switch strong { font-size:var(--text-body); font-weight:600; }
@@ -258,46 +248,14 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 
 /* Scope reading scale to information pages and their controls, leaving canvas geometry untouched. A TypeCover sets its own
    type (ui.css): at 0-1-1 this rule outranked it, and a detail page's coded hero printed its value and date at 14px in ink-2. */
-:is(.bl-guides-page,.bl-guide-reader,.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation,.member-baybay-panel) :is(p,small,label,time,summary):not(:where(.ui-type-cover *)) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
-:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(button,a,select,input,textarea) { min-height:var(--control-height); font-size:var(--text-fact); }
+:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(p,small,label,time,summary):not(:where(.ui-type-cover *)) { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
+:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(button,a,select,input,textarea) { min-height:var(--control-height); font-size:var(--text-fact); }
 /* A title link is the heading, not a control: it keeps the heading's size (SYS-03, EVT-03). (0,1,2) outranks the (0,1,1) rule above. */
-:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation) :is(h1,h2,h3,h4,h5,h6) a { font-size:inherit; min-height:0; }
+:is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail) :is(h1,h2,h3,h4,h5,h6) a { font-size:inherit; min-height:0; }
 .planner-meta { color:var(--color-ink-2)!important; font-size:var(--text-fact)!important; line-height:1.8!important; }
 .planner-place-actions a,.planner-place-actions button { min-height:var(--control-height); font-size:var(--text-fact); padding:8px 6px; }
 .planner-place small,.planner-eyebrow { font-size:var(--text-caption); color:var(--color-ink-3); }
 .planner-place h3 { font-size:var(--text-card); line-height:1.5; text-wrap:balance; }
-.bl-guide-prose>p,.bl-guide-bullet-list,.bl-guide-checklist { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
-.bl-guide-prose h2 { font-size:var(--text-section); color:var(--color-ink); }
-.bl-guide-sources p,.bl-guide-sources li,.bl-guide-sources small,.bl-guide-sources a { font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; }
-.guide-load-more,.guide-empty-actions :is(a,button) { display:inline-flex; align-items:center; justify-content:center; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); color:var(--color-brand); font-size:var(--text-fact); margin:8px 8px 8px 0; }
-.guide-paths-details { border-top:1px solid var(--color-line); margin-top:32px; padding-top:12px; }
-.guide-paths-details>summary { min-height:var(--control-height); display:flex; align-items:center; cursor:pointer; font-size:var(--text-body); color:var(--color-brand); }
-.guide-complete-index { margin-top:24px; border-top:1px solid var(--color-line); padding-top:12px; }
-.guide-complete-index>button { display:flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-body); cursor:pointer; text-align:left; }
-.guide-complete-index>nav[hidden] { display:none; }
-.guide-complete-index ul { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:8px 24px; padding-block:12px; }
-.guide-complete-index a { display:flex; align-items:center; min-height:var(--control-height); padding:8px 0; font-size:var(--text-fact); color:var(--color-ink-2); line-height:1.8; text-decoration:underline; text-underline-offset:3px; }
-.baybay-conversation .member-baybay-answer-text,.member-baybay-answer-text { font-size:var(--text-reading); line-height:1.8; color:var(--color-ink); }
-/* Dark header copy must keep its light ink when the shared reading rule scales it. */
-.baybay-conversation .member-baybay-header { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:8px 12px; }
-.baybay-conversation .member-baybay-header p { grid-column:1/-1; max-width:none; margin:0; color:var(--color-on-brand-muted); }
-.baybay-conversation-details { margin-bottom:16px; padding:0 12px 12px; border:1px solid var(--color-line-strong); border-radius:12px; background:var(--color-surface); }
-.baybay-conversation-details:not([open]) { padding-bottom:0; }
-.baybay-conversation-details>summary { min-height:var(--control-height); padding-block:8px; cursor:pointer; overflow-wrap:anywhere; }
-.baybay-conversation .baybay-school-privacy { margin:0 0 16px; }
-.baybay-conversation .baybay-access-label { font-size:var(--text-fact); }
-.baybay-user-question>p { font-size:var(--text-body); color:var(--color-ink-2); }
-.baybay-composer-note,.baybay-context-line,.baybay-degraded,.baybay-references>p,.baybay-followups>span { font-size:var(--text-caption); color:var(--color-ink-3); }
-.baybay-followups button { min-height:var(--control-height); font-size:var(--text-fact); }
-.baybay-conversation button { min-width:var(--control-height); }
-.baybay-conversation .member-compose-close { width:var(--control-height); height:var(--control-height); }
-/* The mobile input:not(...):not(...) floor has specificity 0,2,1, even in a portal. */
-.baybay-conversation .baybay-composer-footer .member-baybay-question-input { font-size:var(--text-body); min-height:max(48px,var(--control-height)); }
-.baybay-conversation .member-baybay-question-input::placeholder { font-size:inherit; }
-@media(max-width:639px), (max-height:600px) {
-  .baybay-conversation .member-baybay-header { padding:12px 16px; }
-  .baybay-conversation .member-baybay-avatar { width:40px; height:40px; border-radius:12px; }
-}
 /* Extend the same reading preferences to practical tools and publishing. */
 .site-app :is(.attraction-page,.life-tools) p { font-size:var(--text-body); line-height:1.8; }
 .site-app :is(.attraction-page,.life-tools) :is(small,label,summary) { font-size:var(--text-fact); line-height:1.8; }
@@ -322,21 +280,12 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
   .life-tools .tool-member-row { grid-template-columns:minmax(0,1fr) 65px var(--control-height); }
 }
 @media(max-width:1023px) {
-  .site-main { padding-bottom:calc(var(--site-mobile-nav-height) + 24px); }
-  .site-mobile-nav { height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box; }
-  .site-mobile-nav .site-mobile-nav-items { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); padding:4px 6px; min-height:71px; gap:3px; }
-  .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; min-width:0; min-height:64px; border-radius:12px; font-size:.8125rem; line-height:1.2; color:var(--color-ink-3); text-align:center; }
-  .site-mobile-nav .site-mobile-item.is-active { color:var(--color-brand-deep); background:var(--color-selected); font-weight:600; }
-  .site-mobile-nav .site-mobile-ask { color:var(--color-brand); background:var(--color-brand-tint); }
-  .site-mobile-nav .site-mobile-item>span { font-size:var(--text-caption)!important; }
   .site-mobile-icon { position:relative; }
-  .site-mobile-icon b { position:absolute; top:-8px; right:-12px; min-width:18px; padding:2px 4px; border-radius:var(--r-pill); background:var(--color-danger); color:white; font-size:.75rem; }
   .site-mobile-icon b.site-mobile-notification-dot { top:-3px; right:-5px; min-width:0; width:9px; height:9px; padding:0; }
 }
 @media(max-width:767px) {
   /* This final, unlayered rule intentionally outranks legacy feature styles. */
   .site-app input:not([type=checkbox]):not([type=radio]),.site-app select,.site-app textarea { font-size:max(1rem,var(--text-body))!important; }
-  .bl-guide-prose,.bl-guide-prose>p { max-width:36em; }
 }
 @media(prefers-reduced-motion:reduce) { .reading-dialog,.reading-simple-track,.reading-simple-track>span { transition:none!important; } }
 .event-participation-note,.editorial-share-actions>p { font-size:var(--text-caption); color:var(--color-ink-3); }

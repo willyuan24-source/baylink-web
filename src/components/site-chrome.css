@@ -11,8 +11,6 @@ html:root { --site-mobile-nav-height:calc(64px + env(safe-area-inset-bottom,0px)
 html:root[data-simple] { --site-mobile-nav-height:calc(76px + env(safe-area-inset-bottom,0px)); }
 .site-app {
   --chrome-header-height:64px; --tool-size:44px;
-  /* Alias only for local-discovery-detail.css (DETAIL drops it; UI9-INT deletes this line): the chrome itself uses e1 / e2. */
-  --chrome-shadow-bar:var(--e1);
   display:block; max-width:none; min-height:100dvh; background:var(--color-bg); color:var(--color-ink);
 }
 html[data-simple] .site-app { --tool-size:48px; }

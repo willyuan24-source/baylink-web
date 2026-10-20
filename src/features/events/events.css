@@ -164,14 +164,12 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-end__item { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:400; text-decoration:none; transition:scale var(--dur-1) var(--ease-out); }
 .ev-end__item:active { scale:.96; }
 @media (hover:hover) and (pointer:fine) { .ev-end__item:hover { text-decoration:underline 1px; text-underline-offset:.2em; } }
-.ev-end__item:focus-visible,.ev-inline-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+.ev-end__item:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .ev-credits { margin:var(--sp-4) 0 0; }
 .ev-credits ul { margin:0; padding:0; list-style:none; }
 .ev-credits li { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-2); padding:var(--sp-1) 0; border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-snug); }
 .ev-credits__label { color:var(--color-ink-3); }
 .ev-credits__note { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-snug); }
-/* The boards' inline link (UI9-FREE; UI9-INT removes it after the merge). */
-.ev-inline-link { display:inline-flex; align-items:center; min-height:2.75rem; margin:0 0 .75rem; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 
 /* The filter Sheet. */
 .ev-sheet-section { margin:0 0 var(--sp-5); }
@@ -186,12 +184,6 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-strip__note { margin:var(--sp-1) 0 var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .ev-strip .ui-row-card:last-child { border-bottom:0; }
 
-/* The boards' filter row (UI9-FREE; UI9-INT removes these after the merge). */
-.ev-board-filters { display:flex; align-items:center; gap:.5rem; margin:0 0 .5rem; }
-.ev-board-filters>.ui-chip { flex:none; }
-.ev-board-filters>.ev-perks-kinds { flex:1 1 auto; min-width:0; margin:0 -16px 0 0; padding-left:2px; scroll-padding-inline:2px 16px; }
-@media (min-width:1024px) { .ev-board-filters { align-items:flex-start; } .ev-board-filters>.ev-perks-kinds { margin:0; padding:0; } }
-.ev-chip-caret { width:1rem; height:1rem; margin-left:.125rem; }
 
 /* 日历·地图: the week strip (‹ 10/19–25 › — the range opens the month grid and the region — then the 7 days), the day
    head (H2 · n 场 with 列表 | 地图 on one line), the city rail, the lead and the rows. */

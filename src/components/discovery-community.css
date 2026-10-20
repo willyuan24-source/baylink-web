@@ -13,7 +13,4 @@
 .bl-freebie-card h3>a:hover { text-decoration:underline 1px; text-underline-offset:.2em; }
 .reader-actions .editorial-share-actions { margin:0; }
 .reader-actions .editorial-share-buttons { gap:var(--sp-1); }
-/* Kept for the elder-size pins (tests/ui9-f-elder-sizes.test.ts); .discovery-modal has no markup since the sheets moved to
-   F's Sheet: UI9-INT drops it with the pin. */
-@media(max-width:639px) { .discovery-modal h2 { font-size:var(--fs-keep-20); } }
 .discovery-return h2 { font-size:var(--fs-keep-24); }

@@ -17,7 +17,7 @@ const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 afterEach(() => cleanup());
 
-const SCOPES = ':is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation)';
+const SCOPES = ':is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail)';
 const CONTROLS = `${SCOPES} :is(button,a,select,input,textarea)`;
 const HEADING_LINKS = `${SCOPES} :is(h1,h2,h3,h4,h5,h6) a`;
 const rules: Rule[] = [];
