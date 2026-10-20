@@ -56,7 +56,7 @@ html[data-simple] .gd-meta a::after { height:3rem; }
    verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads BayBay beside the otter on
    a phone and in the desktop rail (critic, DETAIL's short label), so the rail's 79 px cell keeps the otter and its label inside. */
 .gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
-.site-detail-actions.detail-actions.gd-bar .gd-bar__call { gap:var(--sp-1); padding-inline:var(--sp-2); }
+.gd-bar.site-detail-actions.detail-actions .gd-bar__call.detail-actions__primary { gap:var(--sp-1); padding-inline:var(--sp-2); }
 .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:inline-block; flex:none; width:1.25rem; height:1.25rem; }
 @container detail-primary (max-width:12em) { .gd-bar__call[data-long] .gd-bar__verb { display:none; } }
 @container detail-primary (max-width:10.9em) { .gd-bar__verb { display:none; } }
