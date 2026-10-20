@@ -177,6 +177,14 @@ test('the primary never wraps at 320 特大: a short label below 360 px at 大 /
   css.walkRules(rule => { if (rule.selector.includes('[data-label=short]') && /display:\s*inline/.test(rule.toString()) && (rule.parent as { params?: string }).params?.includes('max-width:359px')) shown.push(rule.selector); });
   assert.equal(shown.length, 1, 'the short label shows only below 360 px');
   assert.match(shown[0], /data-reading=extra-large/);
+  // 家人版 (22.5 px) below 360 px: the room for a 4-character label comes from the cells' side padding, not the type size.
+  const family: string[] = [];
+  css.walkRules(rule => {
+    if ((rule.parent as { params?: string }).params?.includes('max-width:359px') && rule.selector.startsWith('html[data-reading=extra-large][data-simple]')) {
+      rule.walkDecls(decl => { family.push(`${/__cell/.test(rule.selector) ? 'cell' : 'primary'} ${decl.prop}:${decl.value}`); });
+    }
+  });
+  assert.deepEqual(family, ['cell padding-inline:0', 'primary padding-inline:var(--sp-1)']);
 });
 
 test('ended pages: the notice link is a full target on its own line, and the lone 分享 is the source section\'s last line', () => {
@@ -302,7 +310,7 @@ test('in-app loading: the old view for 300 ms, then the detail skeleton, kept at
   }
 });
 
-test('in-app loading, fast path: a record in under 300 ms never shows the skeleton, even when the route re-renders after 300 ms', async () => {
+test('in-app loading, fast path: a record in under 300 ms never shows the skeleton, even when the route re-renders after 300 ms', async t => {
   const ID = 'oakland-tool-library';
   const BUCKET = detailBucket('offer', ID);
   const original = detailLoaders[BUCKET];
@@ -326,7 +334,8 @@ test('in-app loading, fast path: a record in under 300 ms never shows the skelet
     const mountedAt = Date.now();
     const view = render(<Shell />);
     const heading = await view.findByRole('heading', { level: 1 }, { timeout: 15_000 });
-    if (loadedAt - mountedAt >= 250) return; // a loaded machine: the fast path was not exercised (the slow path has its own test)
+    // A loaded machine: the fast path was not exercised, and the run says so (the slow path has its own test).
+    if (loadedAt - mountedAt >= 250) { t.skip(`load too slow to exercise the fast path (${loadedAt - mountedAt} ms)`); return; }
     await new Promise(resolve => { setTimeout(resolve, Math.max(0, mountedAt + 420 - Date.now())); });
     await act(async () => { bump(); });
     await new Promise(resolve => { setTimeout(resolve, 400); });

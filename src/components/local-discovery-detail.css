@@ -153,6 +153,9 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-wrap:balance; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
+  /* 家人版: the cells drop their side padding and the primary keeps 4 px, so 领取入口 / 加入计划 / "Add to day" stay on one line. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:0; }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-1); }
   .local-discovery-detail .detail-head h1 .title-keep { white-space:normal; }
 }
 
