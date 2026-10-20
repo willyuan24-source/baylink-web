@@ -10,7 +10,7 @@ import '../components/about-baylink.css';
  * after an in-app link; html's scroll-padding-top (design.css) lands the heading 16px under the sticky header.
  */
 export default function AboutPage() {
-  const { openBayBay } = useApp();
+  const { openBayBay, warmBayBay } = useApp();
   const { hash, key } = useLocation();
   useEffect(() => {
     if (!hash) return;
@@ -19,5 +19,5 @@ export default function AboutPage() {
     const frame = window.requestAnimationFrame(() => target.scrollIntoView({ block: 'start', behavior: 'auto' }));
     return () => window.cancelAnimationFrame(frame);
   }, [hash, key]);
-  return <AboutContent onAskBayBay={() => openBayBay()} />;
+  return <AboutContent onAskBayBay={() => openBayBay()} onWarmBayBay={warmBayBay} />;
 }

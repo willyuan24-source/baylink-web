@@ -7,7 +7,6 @@ import { Button } from './ui/Button';
 import { lazyChunk } from '../lib/chunk-recovery';
 import { PageContainer, PageHeader } from './ui/PageHeader';
 import { useSimpleDisplay } from '../lib/reading-preferences';
-import { preloadBayBay } from '../app/baybay-preload';
 import { ProvenanceBadge } from './ui/Badges';
 import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from '../lib/image-provenance';
 
@@ -36,7 +35,7 @@ const IMAGE_LABELS: readonly { sample: ProvenanceInput; zh: string; en: string }
  * section on a phone and an aside in columns 9-12 on a desktop, level with the H1. 简洁显示 folds 图片怎么标 and hides the
  * 还有 row. The wording and the image-label rows are unchanged.
  */
-export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
+export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () => void; onWarmBayBay?: () => void }) {
   const simple = useSimpleDisplay();
   const locale = useLocale();
   const english = locale === 'en';
@@ -73,7 +72,7 @@ export function AboutContent({ onAskBayBay }: { onAskBayBay?: () => void }) {
       lede={t('有来源的中文答案：本周末去哪、福利和办事怎么准备，每条都附来源和核对日期。', 'With sources: where to go this weekend, which benefits apply and how to get everyday tasks done, each with its source and the date we checked it.')}
       actions={[
         <Button key="events" variant="primary" to="/events">{t('看本周末活动', 'See this weekend')}</Button>,
-        onAskBayBay ? <Button key="ask" variant="secondary" onClick={onAskBayBay} onPointerEnter={preloadBayBay} onFocus={preloadBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button key="guides" variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>,
+        onAskBayBay ? <Button key="ask" variant="secondary" onClick={onAskBayBay} onPointerEnter={onWarmBayBay} onFocus={onWarmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button> : <Button key="guides" variant="secondary" to="/guides">{t('看办事指南', 'Browse guides')}</Button>,
       ]} />
 
     <section className="about-section" aria-labelledby="about-method-title">

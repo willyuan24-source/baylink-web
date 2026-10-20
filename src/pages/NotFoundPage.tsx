@@ -5,7 +5,6 @@ import { setPageMetadata } from '../lib/seo';
 import { translateText, useLocale } from '../i18n/locale';
 import { useApp } from '../app/context';
 import { LazyFeedbackLink } from '../features/feedback/LazyEntryLinks';
-import { preloadBayBay } from '../app/baybay-preload';
 import '../components/not-found.css';
 
 /**
@@ -53,7 +52,7 @@ export default function NotFoundPage() {
     </nav>
     <div className="nf-actions">
       <Link className="nf-button" data-variant="secondary" to="/">{t('回到首页', 'Back to home')}</Link>
-      {app?.openBayBay && <button type="button" className="nf-button" data-variant="secondary" onClick={() => app.openBayBay()} onPointerEnter={preloadBayBay} onFocus={preloadBayBay}>{t('问 BayBay', 'Ask BayBay')}</button>}
+      {app?.openBayBay && <button type="button" className="nf-button" data-variant="secondary" onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</button>}
     </div>
     {/* A broken link someone followed is exactly what we want to hear about. */}
     <div className="nf-feedback"><LazyFeedbackLink /></div>

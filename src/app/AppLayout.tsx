@@ -37,6 +37,7 @@ import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
 import { RouteSettled } from './RouteProgress';
 import { RouteArrival } from './route-arrival';
+import { preloadBayBay } from './baybay-preload';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -564,7 +565,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     handleToggleBlockUser, openReportTarget, openChat, requestPostContact, openConversation,
     setViewingImage, setSharingPost, openAdDetail,
     openBlockedUsersModal: () => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); },
-    setBaybayPanelOpen, openBayBay, openSearch,
+    setBaybayPanelOpen, openBayBay, warmBayBay: preloadBayBay, openSearch,
     adsRefreshKey, featuredRefreshKey,
     contactRequestRefreshKey: session.contactRequestRefreshKey, setContactRequestRefreshKey: session.setContactRequestRefreshKey, setPendingContactRequestCount: session.setPendingContactRequestCount,
   };
