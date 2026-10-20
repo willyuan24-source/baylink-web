@@ -15,6 +15,7 @@ import { bayBaySitePath, bayBaySourceHost } from '../features/baybay/site-path';
 import { stopCitations } from '../features/baybay/plan-citations';
 import { bayBayUsd } from '../features/baybay/money';
 import { linkifyPhones } from '../lib/phone-links';
+import { useMedia } from '../features/baybay/use-media';
 
 function useCopy() {
   const locale = useLocale();
@@ -43,7 +44,7 @@ type AdmissionFacts = NonNullable<BayBayPlanStop['admissionFacts']>;
  * Under a stop's 门票 subtotal, at most two small lines: where the price came from and what is still open ("资料快照参考价 ·
  * 2026-10-15 · 日期适用性、附加费待确认"), then the per-person breakdown on one line ("成人 2 × $10.00 = $20.00 · 儿童 7 岁 …").
  */
-function AdmissionDetails({ facts, t }: { facts: AdmissionFacts; t: Translate }) {
+function AdmissionDetails({ facts, t, stamped = false }: { facts: AdmissionFacts; t: Translate; stamped?: boolean }) {
   const basis = facts.basis === 'page-read' ? t('来源页面参考价', 'Source-page price reference') : t('资料快照参考价', 'Catalog snapshot price');
   const day = facts.checkedAt ? plannerWebCheckedDate(facts.checkedAt) : '';
   const dateOpen = facts.applicability.dateStatus !== 'date-specific', feesOpen = facts.applicability.feesIncluded !== true;
@@ -54,7 +55,8 @@ function AdmissionDetails({ facts, t }: { facts: AdmissionFacts; t: Translate })
       : row.category === 'group' ? t('全组', 'Group') : t('通用票', 'All ages');
   const rows = facts.breakdown.map(row => `${who(row)} ${row.quantity} × ${bayBayUsd(row.unitUsd, true)} = ${bayBayUsd(row.subtotalUsd, true)}`);
   return <>
-    <small>{[basis, day, open].filter(Boolean).join(' · ')}</small>
+    {/* With the price page cited under the stop, its stamp ("门票依据：资料快照 · 10/15") already names the basis and day. */}
+    {(stamped ? [open] : [basis, day, open]).some(Boolean) && <small>{(stamped ? [open] : [basis, day, open]).filter(Boolean).join(' · ')}</small>}
     {rows.length > 0 && <small>{rows.join(' · ')}</small>}
   </>;
 }
@@ -110,6 +112,8 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
   const t = useCopy(), locale = useLocale(), imported = bayBayAssistantPlanImport(plan), english = locale === 'en';
   const title = bayBayPlanTitle(plan.title, locale);
   const [importError, setImportError] = useState(false);
+  // Phones keep each stop near one screen (≤360px): a stop's own notes fold into one 本站提示 row.
+  const compact = useMedia('(max-width: 767px)');
   // Notes and open questions often name the number to call ("先打 510-597-5089 预约"): tap-to-call (G27).
   const reader = (text: string) => linkifyPhones(t(text, text));
   const sourcedZeroAdmission = plan.budget.knownTotalUsd === 0 && sourcedAdmissionSubtotal(plan.stops.map(stop => stop.admissionFacts), taskState?.partySize, new Set(evidence.map(item => item.id))) === 0;
@@ -121,6 +125,9 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
   const unique = (items: string[]) => [...new Set(items.map(item => item.trim()).filter(Boolean))];
   const concerns = unique([...plan.checks.filter(check => check.status === 'fail').map(check => check.message), ...plan.budget.unknownItems, ...plan.unknowns, ...plan.stops.flatMap(stop => stop.admissionFacts?.unknowns || []), ...plan.checks.filter(check => check.status === 'unknown').map(check => check.message)]);
   const allConcerns = new Set(concerns);
+  // Every stop in one city: the city is said once, beside the date, not under each stop.
+  const cities = unique(plan.stops.map(stop => stop.city || ''));
+  const sharedCity = plan.stops.length > 1 && cities.length === 1 && plan.stops.every(stop => stop.city?.trim()) ? cities[0] : '';
   const status = plan.status === 'ready' ? t('安排草案', 'Plan draft') : plan.status === 'needs_details' ? t('还需补充条件', 'More details needed') : t('部分信息待核实', 'Some details need checking');
   const sources = new Map(evidence.map(item => [item.id, item]));
   const stopIds = plan.stops.map(stop => stop.entityId || stop.id.replace(/^(?:event|place):/, ''));
@@ -131,7 +138,7 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
   // 还需补充条件 all take the neutral look; no amber) → the summary → the 费用 line (the subtotal is the key value) →
   // 先确认这些 in its own block → the stops → 出发前检查 → the card's one primary (带入计划页) → two follow-up chips.
   return <section className="baybay-assistant-plan" aria-label={t('BayBay 安排草案', 'BayBay plan draft')} translate="no">
-    <header><small>{bayBayDayLabel(plan.date, locale) || t('日期待确认', 'Date unconfirmed')}</small><h3>{title}</h3><StatusChip className="baybay-plan-status">{status}</StatusChip></header>
+    <header><small>{[bayBayDayLabel(plan.date, locale) || t('日期待确认', 'Date unconfirmed'), sharedCity].filter(Boolean).join(' · ')}</small><h3>{title}</h3><StatusChip className="baybay-plan-status">{status}</StatusChip></header>
     {plan.summary && <p className="baybay-plan-summary">{t(plan.summary, plan.summary)}</p>}
     <section className="baybay-plan-budget" aria-label={t('费用', 'Costs')}><p>{costNotCalculated ? <strong>{t('费用待核算', 'Cost not yet calculated')}</strong> : sourcedZeroAdmission ? <>{t('全组已知门票小计', 'Known group admission subtotal')} <strong>{bayBayUsd(0, true)}</strong></> : <>{t('全组已知费用小计', 'Known costs subtotal for the whole group')} <strong>{bayBayUsd(plan.budget.knownTotalUsd!)}</strong></>}</p>
       {plan.budget.limitUsd !== undefined && <p>{t('预算上限', 'Budget limit')} {bayBayUsd(plan.budget.limitUsd)}{` · ${plan.budget.scope === 'person' ? t('每人', 'per person') : plan.budget.scope === 'total' ? t('全组', 'whole group') : t('范围待确认', 'scope unconfirmed')}`}</p>}
@@ -139,20 +146,21 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
       {/* The disclaimer explains a subtotal; with none shown (费用待核算) only the snapshot note, if any, remains. */}
       {(!costNotCalculated || snapshotPrices) && <small>{[!costNotCalculated && t('小计不代表完整出行总价；未知费用未按零元计算。', 'The subtotal is not the full trip cost; unknown costs are not counted as zero.'), snapshotPrices && t('含资料快照参考价，当日票价与适用条件仍需确认。', 'Includes catalog snapshot prices; confirm prices and eligibility for your date.')].filter(Boolean).join(english ? ' ' : '')}</small>}
     </section>
-    {!!concerns.length && <section className="baybay-plan-key-unknowns" aria-label={t('先确认这些', 'Check these first')}><h4>{t('先确认这些', 'Check these first')}</h4><ul>{concerns.slice(0, KEY_UNKNOWNS).map(item => <li key={item}>{reader(item)}</li>)}</ul>{concerns.length > KEY_UNKNOWNS && <small>{t(`另有 ${concerns.length - KEY_UNKNOWNS} 项，见下方出发前检查。`, `${concerns.length - KEY_UNKNOWNS} more items in “Before you go” below.`)}</small>}</section>}
+    {!!concerns.length && <section className="baybay-plan-key-unknowns" aria-label={t('先确认这些', 'Check these first')}><h4>{t('先确认这些', 'Check these first')}</h4><ul>{concerns.slice(0, KEY_UNKNOWNS).map(item => <li key={item}>{reader(item)}</li>)}</ul>{concerns.length > KEY_UNKNOWNS && <small>{t(`另 ${concerns.length - KEY_UNKNOWNS} 项见出发前检查`, `${concerns.length - KEY_UNKNOWNS} more in “Before you go”`)}</small>}</section>}
     <ol className="baybay-plan-stops">{plan.stops.map((stop, index) => {
       const facts = stop.admissionFacts;
       const admissionKnown = facts ? facts.knownTotalUsd !== undefined && facts.status !== 'unknown' : stop.admissionUsd !== undefined;
       // 交通 and 门票 show only when known; every unknown merges into one 待核实 line.
       const unknown = [...inbound[index] ? [] : [t('前往本站交通时间', 'travel time to this stop')], ...admissionKnown ? [] : [t('门票费用', 'admission cost')]];
-      const citations = stopCitations(stop, sources).map(({ id, source, priceSource }) => {
+      const cited = stopCitations(stop, sources), stamped = cited.some(citation => citation.priceSource);
+      const citations = cited.map(({ id, source, priceSource }) => {
         const host = bayBaySourceHost(source.url), site = bayBaySitePath(source.url);
         // Each line says whose page it is (sftravel.com, BAYLINK 指南), so two sources with one title never read as one.
         const owner = host ?? (site?.startsWith('/guides/') ? t('BAYLINK 指南', 'BAYLINK guide') : 'BAYLINK');
-        return <li key={id}><a href={source.url} target="_blank" rel="noopener noreferrer"><span><ExternalLink aria-hidden="true" size={16} /><span className="baybay-plan-citation-title">{t(source.title, source.title)}</span><span className="baybay-plan-citation-host" translate="no">{`· ${owner}`}</span></span><BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></a></li>;
+        return <li key={id}><a href={source.url} target="_blank" rel="noopener noreferrer"><span><ExternalLink aria-hidden="true" size={16} /><span className="baybay-plan-citation-title">{t(source.title, source.title)}</span><span className="baybay-plan-citation-host" translate="no">{` · ${owner}`}</span></span><BayBayEvidenceStamp source={priceSource || source} scope={priceSource ? 'admission' : undefined} /></a></li>;
       });
       const notes = unique(stop.notes).filter(note => !allConcerns.has(note)).slice(0, 2);
-      const place = [stop.city, stop.date && stop.date !== plan.date ? bayBayDayLabel(stop.date, locale) || stop.date : ''].filter(Boolean).join(' · ');
+      const place = [sharedCity ? '' : stop.city, stop.date && stop.date !== plan.date ? bayBayDayLabel(stop.date, locale) || stop.date : ''].filter(Boolean).join(' · ');
       return <li key={stop.id}>
         <div className="baybay-plan-stop-heading"><span className="ui-plate baybay-plan-stop-number">{index + 1}</span><h4><StopTitle stop={stop} title={t(stop.title, stop.title)} onNavigate={onNavigate} /></h4></div>
         <dl><div className="baybay-plan-stop-when"><dt className="sr-only">{t('时间', 'Time')}</dt><dd>{stop.startTime ? `${bayBayClock(stop.startTime, english)}${stop.endTime ? `–${bayBayClock(stop.endTime, english)}` : ''}` : stop.openingWindows ? `${t('开放', 'Open')} ${bayBayOpeningWindowsLabel(stop.openingWindows, english)}` : t('待安排', 'Unscheduled')}
@@ -161,9 +169,11 @@ export function BayBayAssistantPlanCard({ plan, taskState, ownerId, evidence, di
             : stop.openingWindows ? t('资料所列开放时段，到达时间待安排', 'Listed opening hours; arrival time not scheduled') : t('时段待核实', 'Time unverified')}{place && ` · ${place}`}</small>
           {stop.startTime && stop.openingWindows && <small>{t(`开放时段 ${bayBayOpeningWindowsLabel(stop.openingWindows, english)}`, `Open ${bayBayOpeningWindowsLabel(stop.openingWindows, english)}`)}</small>}</dd></div>
           {inbound[index] && <div><dt>{t('交通', 'Travel')}</dt><dd>{t(`前往本站约 ${inbound[index]!.durationMinutes} 分钟 · Google Maps 估算`, `About ${inbound[index]!.durationMinutes} min to this stop · Google Maps estimate`)}</dd></div>}
-          {admissionKnown && <div><dt>{t('门票', 'Admission')}</dt><dd>{facts ? <>{t(`全组已知门票小计 ${bayBayUsd(facts.knownTotalUsd!, true)}`, `Known group admission subtotal ${bayBayUsd(facts.knownTotalUsd!, true)}`)}<AdmissionDetails facts={facts} t={t} /></> : bayBayUsd(stop.admissionUsd!)}</dd></div>}
+          {admissionKnown && <div><dt>{t('门票', 'Admission')}</dt><dd>{facts ? <>{t(`全组已知门票小计 ${bayBayUsd(facts.knownTotalUsd!, true)}`, `Known group admission subtotal ${bayBayUsd(facts.knownTotalUsd!, true)}`)}<AdmissionDetails facts={facts} t={t} stamped={stamped} /></> : bayBayUsd(stop.admissionUsd!)}</dd></div>}
           {unknown.length > 0 && <div className="baybay-plan-stop-unknown"><dt>{t('待核实：', 'To check:')}</dt><dd>{unknown.join(english ? ', ' : '、')}{facts && !admissionKnown && facts.applicability.dateStatus !== 'date-specific' && <small>{t('所选日期适用性待确认', 'Eligibility on your chosen date is unconfirmed')}</small>}</dd></div>}</dl>
-        {notes.length > 0 && <ul className="baybay-plan-notes">{notes.map(note => <li key={note}>{reader(note)}</li>)}</ul>}
+        {notes.length > 0 && (compact
+          ? <Disclosure className="baybay-plan-stop-notes" summary={t(`本站提示 ${notes.length} 条`, notes.length === 1 ? '1 note for this stop' : `${notes.length} notes for this stop`)}><ul className="baybay-plan-notes">{notes.map(note => <li key={note}>{reader(note)}</li>)}</ul></Disclosure>
+          : <ul className="baybay-plan-notes">{notes.map(note => <li key={note}>{reader(note)}</li>)}</ul>)}
         {citations.length ? <ul className="baybay-plan-citations">{citations}</ul> : <p className="baybay-plan-citations-none">{t('暂无可用来源，请先核实此站。', 'No usable source; check this stop before visiting.')}</p>}
         <Button variant="quiet" className="baybay-plan-swap" disabled={disabled} onClick={() => onAsk(t(`换掉第${index + 1}站，保留其他条件。`, `Replace stop ${index + 1}, keeping my other requirements.`))} icon={<RefreshCw aria-hidden="true" size={16} />}>{t(`换掉第${index + 1}站`, `Replace stop ${index + 1}`)}</Button>
       </li>;

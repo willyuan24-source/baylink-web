@@ -6,6 +6,7 @@ import { outings, type Outing } from '../lib/outings';
 import { getStoredUser } from '../lib/session';
 import { bayBayOutingPath, type BayBayOutingSearch } from '../lib/baybay-conversation';
 import { useOutingCopy } from '../features/outings/outing-copy';
+import { bayBayClock } from '../features/baybay/requirement-labels';
 
 type Props = { search: BayBayOutingSearch; onNavigate: (path: string) => void; blockedUserIds?: string[]; answer?: string; onAnswer?: (answer: string) => void };
 type Result = { state: 'loading' | 'error' | 'ready' | 'expired'; items: Outing[]; more: boolean };
@@ -72,7 +73,7 @@ function ReadyOutingResults({ search, onNavigate, blockedUserIds = [] }: Props) 
       <div className="baybay-outing-cards">{result.items.filter(item => !blockedUserIds.includes(item.host.id)).map(item => {
         const itemPath = bayBayOutingPath(search.filters, item.id), remaining = item.capacity - item.confirmedCount;
         const day = new Intl.DateTimeFormat(locale === 'en' ? 'en-US' : locale === 'zh-Hant' ? 'zh-TW' : 'zh-CN', { timeZone:'America/Los_Angeles', month:'short', day:'numeric', weekday:'short' }).format(new Date(item.startAt));
-        return <a key={item.id} href={itemPath} onClick={event => follow(event, itemPath)} className="baybay-outing-card"><div className="baybay-outing-card-top"><h4>{item.title}</h4><ChevronRight size={20} aria-hidden="true"/></div><p><CalendarDays size={16} aria-hidden="true"/><span>{day} · {item.startTime}–{item.endTime}</span></p><p><MapPin size={16} aria-hidden="true"/><span>{item.city} · {item.venue}</span></p><div className="baybay-outing-card-bottom"><strong>{remaining > 0 ? t(`还有 ${remaining} 位`, `${remaining} ${remaining === 1 ? 'place' : 'places'} open`) : t('满员 · 可申请候补', 'Full · waitlist available')}</strong><span>{t('查看安排', 'View plan')}</span></div></a>;
+        return <a key={item.id} href={itemPath} onClick={event => follow(event, itemPath)} className="baybay-outing-card"><div className="baybay-outing-card-top"><h4>{item.title}</h4><ChevronRight size={20} aria-hidden="true"/></div><p><CalendarDays size={16} aria-hidden="true"/><span>{day} · {bayBayClock(item.startTime, locale === 'en')}–{bayBayClock(item.endTime, locale === 'en')}</span></p><p><MapPin size={16} aria-hidden="true"/><span>{item.city} · {item.venue}</span></p><div className="baybay-outing-card-bottom"><strong>{remaining > 0 ? t(`还有 ${remaining} 位`, `${remaining} ${remaining === 1 ? 'place' : 'places'} open`) : t('满员 · 可申请候补', 'Full · waitlist available')}</strong><span>{t('查看安排', 'View plan')}</span></div></a>;
       })}</div>
       <a className="baybay-outing-all" href={path} onClick={event => follow(event, path)}>{result.more ? t('继续查看全部匹配小队', 'Explore all matching outings') : t('查看完整搜索与筛选', 'Open search and filters')}<ChevronRight aria-hidden="true" size={16}/></a>
       {!result.items.length && !result.more && <a className="baybay-outing-all" href="/events?when=all" onClick={event => follow(event, '/events?when=all')}>{t('先看看活动', 'Explore events first')}<ChevronRight aria-hidden="true" size={16}/></a>}

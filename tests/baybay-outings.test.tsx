@@ -285,3 +285,15 @@ test('expired search memory offers a fresh editable search instead of retrying t
   fireEvent.click(view.getByRole('button',{ name:'问一下' })); await view.findByText('想在哪个城市一起去？');
   assert.equal(bodies[2].outingSearchToken,undefined); assert.deepEqual(bodies[2].history,[]);
 });
+
+test('outing rows use the panel clock: 9:00–16:00 in Chinese, 9am–4pm in English (N06)', async t => {
+  t.mock.method(api,'request',async () => ({ outings:[fixture('clock',{ startTime:'09:00',endTime:'16:00',startAt:Date.parse('2026-10-03T16:00:00Z'),endAt:Date.parse('2026-10-03T23:00:00Z') })],nextCursor:'next-batch' }));
+  const view = render(<BayBayOutingResults search={search} onNavigate={noop}/>);
+  const link = await view.findByRole('link',{ name:/隔离测试小队 clock/ });
+  assert.match(link.textContent || '',/9:00–16:00/);
+  assert.doesNotMatch(link.textContent || '',/09:00/);
+  cleanup(); await setLocale('en');
+  const en = render(<BayBayOutingResults search={search} onNavigate={noop}/>);
+  const english = await en.findByRole('link',{ name:/隔离测试小队 clock/ });
+  assert.match(english.textContent || '',/9am–4pm/);
+});

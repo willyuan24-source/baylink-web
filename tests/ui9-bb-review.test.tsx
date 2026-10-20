@@ -141,19 +141,19 @@ test('plan citations: the stop\'s own page is not repeated under it while anothe
   // Alone, the stop's own page stays (never "no usable source"), labelled as a BAYLINK guide.
   const alone = planWith({ path: '/guides/sf-chinatown-north-beach-walk-guide', sourceIds: ['own'], admissionFacts: undefined }, [evidence('own', 'https://www.baylink.us/guides/sf-chinatown-north-beach-walk-guide', '唐人街与 North Beach', 'site-record')]);
   const view = render(<BayBayAssistantPlanCard plan={alone.assistantPlan!} evidence={alone.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
-  assert.equal(view.container.querySelector('.baybay-plan-stops > li:first-child .baybay-plan-citation-host')?.textContent, '· BAYLINK 指南');
+  assert.equal(view.container.querySelector('.baybay-plan-stops > li:first-child .baybay-plan-citation-host')?.textContent, ' · BAYLINK 指南');
   cleanup();
   // The live L07 reply: stop 3's guide page and sftravel.com share one title; the reader now sees one line, with its host.
   const l07 = parseBayBayAssistantFields(live);
   const card = render(<BayBayAssistantPlanCard plan={l07.assistantPlan!} evidence={l07.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
   const third = card.container.querySelectorAll('.baybay-plan-stops > li')[2];
   const lines = [...third.querySelectorAll('.baybay-plan-citations a')].map(link => link.querySelector('span')?.textContent);
-  assert.deepEqual(lines, ['唐人街与 North Beach· sftravel.com']);
+  assert.deepEqual(lines, ['唐人街与 North Beach · sftravel.com']);
   // Same title, different hosts: both stay, told apart by their host.
   const twin = planWith({ sourceIds: ['x', 'y'], admissionFacts: undefined }, [evidence('x', 'https://a.example.org/p', 'Same title'), evidence('y', 'https://b.example.org/p', 'Same title')]);
   cleanup();
   const twins = render(<BayBayAssistantPlanCard plan={twin.assistantPlan!} evidence={twin.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
-  assert.deepEqual([...twins.container.querySelectorAll('.baybay-plan-stops > li:first-child .baybay-plan-citation-host')].map(host => host.textContent), ['· a.example.org', '· b.example.org']);
+  assert.deepEqual([...twins.container.querySelectorAll('.baybay-plan-stops > li:first-child .baybay-plan-citation-host')].map(host => host.textContent), [' · a.example.org', ' · b.example.org']);
 });
 
 test('the 待核实 line separates its label in text ("待核实：…" / "To check: …"), so a screen reader never runs them together', async () => {
@@ -249,4 +249,49 @@ test('PostAssist (inside CreatePostModal, signed in only, so no guest capture): 
   const css = readFileSync('src/features/baybay/baybay-post-assist.css', 'utf8');
   for (const [, value] of css.matchAll(/font-size:([^;}]+)/g)) assert.match(value.trim(), /^var\(--(?:fs|text)-[\w-]+\)$/);
   assert.doesNotMatch(css, /#[0-9a-f]{3,8}\b/i);
+});
+
+test('phones: a shared city is said once beside the date; a stop\'s notes fold into 本站提示; a stamped admission line keeps only its open questions', async () => {
+  const l07 = parseBayBayAssistantFields(live);
+  const original = dom.window.matchMedia;
+  dom.window.matchMedia = ((query: string) => ({ matches: query.includes('max-width: 767px'), media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })) as unknown as typeof dom.window.matchMedia;
+  try {
+    const view = render(<BayBayAssistantPlanCard plan={l07.assistantPlan!} evidence={l07.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+    assert.match(view.container.querySelector('.baybay-assistant-plan>header>small')?.textContent || '', / · San Francisco$/);
+    const first = view.container.querySelector('.baybay-plan-stops > li')!;
+    assert.doesNotMatch(first.querySelector('.baybay-plan-stop-when')?.textContent || '', /San Francisco/, 'not repeated under the stop');
+    const notes = first.querySelector('.baybay-plan-stop-notes');
+    assert.ok(notes, 'the notes fold into one row on a phone');
+    assert.match(notes!.textContent || '', /本站提示 2 条/);
+    assert.equal(first.querySelectorAll('.baybay-plan-notes').length, 1);
+    assert.ok(notes!.contains(first.querySelector('.baybay-plan-notes')));
+    const admission = [...first.querySelectorAll('dl>div')].find(row => row.querySelector('dt')?.textContent === '门票')!;
+    assert.doesNotMatch(admission.textContent || '', /资料快照参考价/, 'the price page stamp below says the basis and day');
+    assert.match(admission.textContent || '', /日期适用性、附加费待确认/);
+    assert.match(first.querySelector('.baybay-plan-citations')?.textContent || '', /门票依据：资料快照/);
+    // The more line sits beside 先确认这些, in a shorter form.
+    assert.match(view.container.querySelector('.baybay-plan-key-unknowns>small')?.textContent || '', /^另 \d+ 项见出发前检查$/);
+  } finally { dom.window.matchMedia = original; }
+  cleanup();
+  const desktop = render(<BayBayAssistantPlanCard plan={l07.assistantPlan!} evidence={l07.evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
+  const first = desktop.container.querySelector('.baybay-plan-stops > li')!;
+  assert.equal(first.querySelector('.baybay-plan-stop-notes'), null, 'wider screens list the notes');
+  assert.equal(first.querySelectorAll('.baybay-plan-notes li').length, 2);
+  const css = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
+  assert.match(css, /@media \(max-width:399px\) \{ \.baybay-conversation \.baybay-plan-stops dl>div:not\(\.baybay-plan-stop-when\) \{ display:block; \}/, '交通 / 门票 lead their line on a phone');
+  assert.match(css, /@media \(max-width:400px\) \{ \.baybay-conversation \.baybay-assistant-plan>header>small \{ flex-basis:auto; \} \.baybay-conversation \.baybay-plan-status \{ order:1; \}/, 'the chip beside the date');
+});
+
+test('/plan imported requirements and the clock: 9am / 5:30pm in English, 9:00 in Chinese; free text is shown as it came', async () => {
+  const { BayBayImportedRequirements } = await import('../src/components/BayBayImportedRequirements');
+  const { bayBayClock } = await import('../src/features/baybay/requirement-labels');
+  assert.equal(bayBayClock('09:00', false), '9:00');
+  assert.equal(bayBayClock('17:30', true), '5:30pm');
+  assert.equal(bayBayClock('morning', true), 'morning');
+  const draft = { date: '2026-10-17', requirements: { date: '2026-10-17', startTime: '09:00', finishBy: '17:30' }, costReference: { unknownItems: [] } } as never;
+  await act(async () => { await setLocale('en', false); });
+  const view = render(<BayBayImportedRequirements draft={draft} requested />);
+  const rows = Object.fromEntries([...view.container.querySelectorAll('dl>div')].map(row => [row.querySelector('dt')?.textContent, row.querySelector('dd')?.textContent]));
+  assert.equal(rows.Start, '9am');
+  assert.equal(rows['Finish by'], '5:30pm');
 });

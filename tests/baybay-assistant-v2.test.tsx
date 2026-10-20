@@ -203,7 +203,7 @@ test('party totals and per-person limits have separate labels and critical unkno
   // the third waits in 出发前检查, and the block says so.
   const unknowns = view.container.querySelector('.baybay-plan-key-unknowns')!;
   assert.deepEqual([...unknowns.querySelectorAll('li')].map(item => item.textContent), ['Transit is still unpriced.', 'Exact journey time is unknown.']);
-  assert.match(unknowns.textContent || '', /1 more items in “Before you go” below/);
+  assert.match(unknowns.textContent || '', /1 more in “Before you go”/);
   assert.match(view.container.querySelector('.baybay-plan-checks')?.textContent || '', /Opening hours need checking/);
   assert.ok(budget.compareDocumentPosition(unknowns) & Node.DOCUMENT_POSITION_FOLLOWING);
   assert.equal(budget.closest('details'), null);

@@ -76,7 +76,7 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 @media (max-width:359px) { .baybay-conversation .bb-prompts { grid-template-columns:minmax(0, 1fr); } }
 .baybay-conversation :is(.bb-also,.baybay-followups) { display:grid; gap:var(--sp-2); }
 .baybay-conversation :is(.bb-also,.baybay-followups)>p { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
-.baybay-conversation :is(.bb-details,.baybay-requirements,.baybay-plan-checks,.bb-sources__details,.baybay-coverage,.baybay-task-handoff,.bb-more-details) .ui-disclosure__summary { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation :is(.bb-details,.baybay-requirements,.baybay-plan-checks,.bb-sources__details,.baybay-coverage,.baybay-task-handoff,.bb-more-details,.baybay-plan-stop-notes) .ui-disclosure__summary { color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation :is(.bb-guest-line,.bb-guest-note,.baybay-access-line) { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-2); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .bb-guest-note { padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); }
 .baybay-conversation .bb-guest-note>span { flex:1 1 12em; }
@@ -141,13 +141,21 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-promp
 .baybay-conversation .baybay-plan-status { flex:none; }
 html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; }
 @media (max-width:400px) { .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; } }
+/* Where the title takes its own row (phones, 特大), the StatusChip sits beside the date: one row less above the stops. */
+@media (max-width:400px) { .baybay-conversation .baybay-assistant-plan>header>small { flex-basis:auto; } .baybay-conversation .baybay-plan-status { order:1; } .baybay-conversation .baybay-assistant-plan h3 { order:2; } }
+html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan>header>small { flex-basis:auto; }
+html[data-reading=extra-large] .baybay-conversation .baybay-plan-status { order:1; }
+html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { order:2; }
 .baybay-conversation .baybay-plan-summary { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); white-space:pre-wrap; }
 .baybay-conversation .baybay-plan-budget { display:grid; gap:var(--sp-1); }
 .baybay-conversation .baybay-plan-budget>p { margin:0; }
 .baybay-conversation .baybay-plan-budget strong { font-weight:600; font-variant-numeric:tabular-nums; }
 .baybay-conversation .baybay-plan-budget>small { color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-risk { color:var(--color-danger); font-size:var(--fs-meta); }
-.baybay-conversation .baybay-plan-key-unknowns { display:grid; gap:var(--sp-1); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); }
+/* 先确认这些 and its "另 N 项见出发前检查" share the first row (wrapping when there is no room); the list follows. */
+.baybay-conversation .baybay-plan-key-unknowns>ul { order:2; flex-basis:100%; }
+.baybay-conversation .baybay-plan-key-unknowns>small { order:1; }
+.baybay-conversation .baybay-plan-key-unknowns { display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-1) var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); }
 .baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-assistant-plan) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-plan-checks) ul { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); list-style:disc; font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-key-unknowns small { color:var(--color-ink-2); font-size:var(--fs-meta); }
@@ -168,15 +176,17 @@ html[data-simple] .baybay-conversation .baybay-plan-stop-link { padding-block:va
 .baybay-conversation .baybay-plan-stops dl>div.baybay-plan-stop-unknown { display:block; }
 .baybay-conversation .baybay-plan-stop-unknown>:is(dt,dd) { display:inline; margin-inline-end:var(--sp-1); }
 .baybay-conversation .baybay-plan-stops dd small { display:block; color:var(--color-ink-2); font-size:var(--fs-meta); }
-html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { grid-template-columns:minmax(0, 1fr); }
-@media (max-width:399px) { .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { grid-template-columns:minmax(0, 1fr); } }
+/* One column (phones, 特大, 简洁): 交通 / 门票 lead their line like 待核实, never a line of their own. */
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { display:block; }
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when)>:is(dt,dd) { display:inline; margin-inline-end:var(--sp-2); }
+@media (max-width:399px) { .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { display:block; } .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when)>:is(dt,dd) { display:inline; margin-inline-end:var(--sp-2); } }
 .baybay-conversation .baybay-plan-notes { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); list-style:disc; }
 .baybay-conversation .baybay-plan-citations { display:grid; gap:var(--sp-1); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations a>span { display:block; }
 .baybay-conversation .baybay-plan-citations a>span>svg { display:inline-block; margin-inline-end:var(--sp-1); vertical-align:-.125em; }
 .baybay-conversation .baybay-plan-citation-title { text-decoration:underline; text-underline-offset:.2em; }
-.baybay-conversation .baybay-plan-citation-host { margin-inline-start:var(--sp-1); color:var(--color-ink-2); }
+.baybay-conversation .baybay-plan-citation-host { white-space:nowrap; color:var(--color-ink-2); }
 .baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-ui); text-decoration:none; }
 .baybay-conversation .baybay-plan-citations-none { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
 .baybay-conversation .baybay-plan-swap { justify-self:start; padding-inline:0; }

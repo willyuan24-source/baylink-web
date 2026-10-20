@@ -107,10 +107,12 @@ test('the L07 card shows the market hours, keeps 待安排 only where no window 
   assert.equal(view.getByRole('heading', { level: 3 }).textContent, '旧金山一日安排');
   const [market, ferry, chinatown] = stopItems(view.container);
   assert.match(timeOf(market), /^开放 8:00–14:00 · 停留约 60 分钟/);
-  // Line 2 is the time status · the city (UI9-BB, content arrangement 10-19).
-  assert.match(timeOf(market), /资料所列开放时段，到达时间待安排 · San Francisco$/);
+  // Line 2 is the time status (· the city only when the stops are in different cities; L07's three are all in San
+  // Francisco, which the card says once, beside the date: UI9-BB review 2).
+  assert.match(timeOf(market), /资料所列开放时段，到达时间待安排$/);
+  assert.match(view.container.querySelector('.baybay-assistant-plan>header>small')?.textContent || '', / · San Francisco$/);
   assert.doesNotMatch(timeOf(market), /^待安排 ·|时段待核实/);
-  for (const item of [ferry, chinatown]) assert.match(timeOf(item), /^待安排 · 停留约 60 分钟时段待核实 · San Francisco$/);
+  for (const item of [ferry, chinatown]) assert.match(timeOf(item), /^待安排 · 停留约 60 分钟时段待核实$/);
   assert.equal(view.getAllByText((_, node) => node?.tagName === 'DD' && /^待安排/.test(node.textContent || '')).length, 2);
 
   const marketLink = within(market).getByRole('link', { name: 'Ferry Plaza 农夫市集：海边逛一圈' });
@@ -164,7 +166,7 @@ test('a scheduled stop keeps its time and adds the record hours; English times a
   Object.assign(payload.assistantPlan.stops[0], { startTime: '09:30', endTime: '10:30', timeStatus: 'suggested' });
   const plan = parseBayBayAssistantFields(payload).assistantPlan!;
   const view = render(<BayBayAssistantPlanCard plan={plan} evidence={parseBayBayAssistantFields(payload).evidence!} disabled={false} onAsk={noop} onNavigate={noop} />);
-  assert.match(timeOf(stopItems(view.container)[0]), /^9:30–10:30 · 停留约 60 分钟建议时段，开放与预约待核实 · San Francisco开放时段 8:00–14:00$/);
+  assert.match(timeOf(stopItems(view.container)[0]), /^9:30–10:30 · 停留约 60 分钟建议时段，开放与预约待核实开放时段 8:00–14:00$/);
   await act(async () => { await setLocale('en', false); });
   assert.match(timeOf(stopItems(view.container)[0]), /^9:30am–10:30am · Stay about 60 min.*Open 8am–2pm$/);
 });

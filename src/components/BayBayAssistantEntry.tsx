@@ -357,7 +357,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   const header = <div className="bb-head">
     <BayBayOtter size={44} />
     <div className="bb-head__text"><h2 id="baybay-panel-title">{copy('问 BayBay', 'Ask BayBay')}</h2>
-      <p className="bb-head__sub">{copy('AI 助手 · 回答附来源', 'AI helper · Answers list their sources')}</p></div>
+      <p className="bb-head__sub">{copy('AI 助手 · 回答附来源', 'AI helper · Sourced answers')}</p></div>
     {turns.length > 0 && !newInThread && <Button variant="quiet" className="bb-head__new" onClick={newConversation}>{copy('新对话', 'New chat')}</Button>}
     <CloseButton onClick={close} />
   </div>;

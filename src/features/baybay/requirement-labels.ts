@@ -41,7 +41,9 @@ export function bayBayPlaceLabel(state: { city?: string | null; region?: string 
  * "14:00": the same pattern as C's eventWhenLine on the cards beside the plan (N06, one time pattern per locale).
  */
 export function bayBayClock(time: string, english: boolean): string {
-  if (!english) { const [hour, minute] = time.split(':'); return /^\d{1,2}$/.test(hour ?? '') && minute !== undefined ? `${Number(hour)}:${minute}` : time; }
+  // Anything that is not "H:MM" / "HH:MM" (a free-text time from an imported draft) is shown as it came.
+  if (!/^\d{1,2}:\d{2}(?::\d{2})?$/.test(time)) return time;
+  if (!english) { const [hour, minute] = time.split(':'); return `${Number(hour)}:${minute}`; }
   const [hour, minute] = time.split(':').map(Number);
   return `${hour % 12 || 12}${minute ? `:${String(minute).padStart(2, '0')}` : ''}${hour >= 12 ? 'pm' : 'am'}`;
 }

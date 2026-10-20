@@ -1,6 +1,6 @@
 import { translateText, useLocale } from '../i18n/locale';
 import type { BayBayPlanDraft } from '../lib/baybay-plan-handoff';
-import { bayBayDayLabel, bayBayPlaceLabel } from '../features/baybay/requirement-labels';
+import { bayBayClock, bayBayDayLabel, bayBayPlaceLabel } from '../features/baybay/requirement-labels';
 import '../features/baybay/baybay-imported.css';
 
 export function BayBayImportedRequirements({ draft, requested }: { draft: BayBayPlanDraft | null; requested: boolean }) {
@@ -20,7 +20,7 @@ export function BayBayImportedRequirements({ draft, requested }: { draft: BayBay
     [t('同行人数', 'People'), state.partySize], [t('孩子年龄', 'Child ages'), state.childAges?.map(age => t(`${age} 岁`, `${age} years`)).join(', ')],
     [t('原始预算', 'Original budget'), state.budget != null ? `$${state.budget} · ${state.budgetScope === 'total' ? t('全组', 'whole group') : state.budgetScope === 'person' ? t('每人', 'per person') : t('范围待确认', 'scope unconfirmed')}` : ''],
     [t('交通', 'Travel'), state.travelMode === 'transit' ? t('公共交通', 'Public transit') : state.travelMode === 'walk' ? t('步行', 'Walk') : state.travelMode === 'drive' ? t('开车', 'Drive') : ''],
-    [t('出发地', 'Starting point'), state.origin], [t('开始', 'Start'), state.startTime], [t('最晚结束', 'Finish by'), state.finishBy],
+    [t('出发地', 'Starting point'), state.origin], [t('开始', 'Start'), state.startTime && bayBayClock(state.startTime, locale === 'en')], [t('最晚结束', 'Finish by'), state.finishBy && bayBayClock(state.finishBy, locale === 'en')],
     [t('返回要求', 'Return requirement'), state.returnToOrigin === false ? t('在最后一站结束，不返回起点', 'Finish at the last stop; no return to the origin') : state.returnToOrigin === true ? t('返回出发地', 'Return to the starting point') : ''],
     [t('原时长偏好', 'Original duration preference'), durationSummary],
     [t('最多站数', 'Stop limit'), state.maxStops], [t('避开城市', 'Excluded cities'), state.excludedCities?.join(', ')],
