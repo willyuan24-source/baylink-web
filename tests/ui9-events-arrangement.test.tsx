@@ -300,7 +300,7 @@ test('简洁显示 and 家人版 show fewer cards per page (6 and 4) and mark wh
   } finally { document.documentElement.removeAttribute('data-simple'); }
 });
 
-test('/calendar: the week range opens the sheet, the day head carries 列表 | 地图, a city rail of the top 4 + 更多城市, rows 12 at a time', () => {
+test('/calendar: the week range opens the sheet, the day head carries 列表 | 地图, a city rail of the top 4 + 更多城市, rows 12 at a time', async () => {
   const day = addCalendarDays(today, 5);
   const view = render(<MemoryRouter initialEntries={[`/calendar?date=${day}`]}><CalendarPage today={today} /></MemoryRouter>);
   assert.match(view.container.querySelector('.ev-range')!.textContent!, /^按日期看 · 收录至 /);
@@ -329,7 +329,7 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
     assert.ok(within(end as HTMLElement).getByRole('button', { name: '让 BayBay 帮我安排这一天' }));
   }
   fireEvent.click(view.container.querySelector('.ev-week__range')!);
-  assert.ok(view.getByRole('dialog'));
+  assert.ok(await view.findByRole('dialog', {}, { timeout: 5000 }));
   cleanup();
   const todayEnd = render(<MemoryRouter initialEntries={['/calendar']}><CalendarPage today={today} /></MemoryRouter>).container.querySelector('.ev-calendar__end');
   if (todayEnd) assert.ok(within(todayEnd as HTMLElement).getByRole('link', { name: `明天 ${md(addCalendarDays(today, 1))}` }));
@@ -365,4 +365,31 @@ test('English /calendar: the facts line opens with a capital (it starts on the p
     assert.match(facts, /^[A-Z0-9]/, facts);
     assert.doesNotMatch(facts, /\b[A-Z][a-z]{2} \d/, 'a date never splits across lines');
   } finally { cleanup(); await setLocale('zh-Hans', false); }
+});
+
+test('/calendar facts line: the chosen day\'s events give its check dates, and a day with nothing listed promises nothing', () => {
+  const facts = (date: string) => {
+    const view = render(<MemoryRouter initialEntries={[`/calendar?date=${date}`]}><CalendarPage today={today} /></MemoryRouter>);
+    const text = view.container.querySelector('.ev-lede-facts')!.textContent!;
+    cleanup();
+    return text;
+  };
+  const busy = [...new Set(model.INDEX_EVENTS.map(event => nextOccurrence(event, today)).filter((day): day is string => !!day))].sort()[0];
+  assert.match(facts(busy), /^(逐条附官方来源|\d+ 条来自媒体报道)\u00a0· 官网核对 .*我们怎么核对$/);
+  // Past the catalog: nothing listed, so no 逐条附官方来源 and no check dates; the line is the how-we-check link alone.
+  assert.equal(facts(addCalendarDays(model.EVENTS_INDEX.edition.throughDate, 400)), '我们怎么核对');
+});
+
+test('the sheets and the share-card strip are their own chunk, so /events and /calendar load them only when used', () => {
+  const ui = /import \{[^}]*\bSheet\b[^}]*\} from '\.\.\/\.\.\/components\/ui'/;
+  assert.ok(readFileSync('src/features/events/lazy-view.ts', 'utf8').includes("import('./on-demand-parts')"), 'one dynamic import');
+  const onDemandParts = readFileSync('src/features/events/on-demand-parts.ts', 'utf8');
+  for (const [file, part] of [['WeekendView', 'FilterSheet'], ['WeekendView', 'ShareLandingStrip'], ['CalendarView', 'CalendarSheet']]) {
+    const source = readFileSync(`src/features/events/${file}.tsx`, 'utf8');
+    assert.ok(onDemandParts.includes(` from './${part}';`), `${part} is one of the on-demand parts`);
+    // a type-only import is erased; any other static import would put the part back into the route's first load
+    const statics = source.split('\n').filter(line => line.startsWith('import ') && !line.startsWith('import type ') && line.endsWith(` from './${part}';`));
+    assert.deepEqual(statics, [], `${file} does not import ${part} statically`);
+    assert.doesNotMatch(source, ui, `${file} leaves the Sheet primitive to ${part}`);
+  }
 });

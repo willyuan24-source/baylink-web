@@ -184,7 +184,7 @@ test('the 免费 chip, a story chip and the filter Sheet narrow the feed, keep o
   for (const id of feedIds(view.container)) assert.ok(kids.test(model.INDEX_EVENTS.find(event => event.id === id)!), id);
   // The Sheet announces how many it will show; the region is remembered for the next visit.
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
-  const sheet = await view.findByRole('dialog');
+  const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
   assert.match(within(sheet).getByRole('status').textContent!, /^显示 \d+ 场$/);
   fireEvent.click(within(sheet).getByRole('button', { name: '旧金山', exact: true }));
   assert.equal(query(view).get('region'), 'sf');
@@ -208,7 +208,7 @@ test('the filter Sheet announces the number the page shows once it closes: the c
     await waitFor(() => assert.equal(view.queryByRole('dialog'), null));
   };
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
-  const sheet = await view.findByRole('dialog');
+  const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
   const all = announced(sheet);
   // On arrival the list is the whole weekend: the Sheet, the status line and the facts line say the same number.
   const union = weekendEvents().length;
@@ -220,12 +220,12 @@ test('the filter Sheet announces the number the page shows once it closes: the c
   // A day chip narrows it, and the Sheet then announces the day's number.
   fireEvent.click(within(view.container.querySelector('.ev-days')!).getByRole('radio', { name: '周六 10/10' }));
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
-  const saturday = announced(await view.findByRole('dialog'));
+  const saturday = announced(await view.findByRole('dialog', {}, { timeout: 5000 }));
   assert.ok(saturday < union, `周六 ${saturday} of ${union}`);
   await close(view.getByRole('dialog'), saturday);
   // A filter chosen inside the Sheet updates the number to the narrowed list, and the page then shows that many.
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
-  const again = await view.findByRole('dialog');
+  const again = await view.findByRole('dialog', {}, { timeout: 5000 });
   fireEvent.click(within(again).getByRole('button', { name: '旧金山', exact: true }));
   const sf = announced(again);
   assert.ok(sf > 0 && sf < all, `${sf} of ${all}`);
@@ -288,9 +288,10 @@ test('a share-card landing lists exactly the card’s ids first and leaves them 
     return new Response(JSON.stringify({ day: today, range: { start: '2026-10-10', end: '2026-10-11' }, picks: card.map(id => ({ id })) }), { status: 200 });
   }) as typeof fetch;
   const view = routed('/events?region=sf&from=card-sf', <EventsView today={today} />);
+  assert.ok(view.getByTestId('share-landing-strip').querySelector('[aria-busy="true"]'), 'a fixed-height skeleton while the card loads');
+  // The strip's own chunk loads with the manifest (WeekendView): read it again once the card is in.
+  await waitFor(() => assert.equal(view.getByTestId('share-landing-strip').getAttribute('data-card-ids'), card.join(' ')));
   const strip = view.getByTestId('share-landing-strip');
-  assert.ok(strip.querySelector('[aria-busy="true"]'), 'a fixed-height skeleton while the card loads');
-  await waitFor(() => assert.equal(strip.getAttribute('data-card-ids'), card.join(' ')));
   assert.deepEqual(requests, ['/weekly/sf.json']);
   assert.deepEqual([...strip.querySelectorAll('.ui-row-card a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0]), card.map(id => `/events/${id}`));
   assert.equal(within(strip).getByRole('heading', { level: 2 }).textContent, '分享卡上的旧金山周末 · 10/10–10/11');
@@ -369,7 +370,7 @@ test('日历·地图: a week strip, the month in a Sheet, bilingual city chips a
   assert.match(cityChip.textContent!, /^\p{Script=Han}+$/u);
   assert.match(cityChip.getAttribute('aria-label')!, /^\p{Script=Han}+ [A-Z]/u);
   fireEvent.click(view.getByRole('button', { name: /选日期/ }));
-  const sheet = await view.findByRole('dialog');
+  const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
   fireEvent.click(within(sheet).getByRole('button', { name: /10月17日 周六/ }));
   assert.equal(new URL(view.getByTestId('route').textContent!, 'https://www.baylink.us').searchParams.get('date'), '2026-10-17');
   // Rows carry the day, so the detail page opens on it.

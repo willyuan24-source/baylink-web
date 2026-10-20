@@ -16,7 +16,8 @@ export type StripState =
  * scanned the card sees the card's own items first — the ids come from the card's manifest — then the full list below.
  * While the manifest loads the strip keeps its height (skeleton rows); if it cannot load, the strip says so in one line.
  */
-export function ShareLandingStrip({ region, state, events, covers, today }: { region: CardRegion; state: StripState; events: IndexEvent[]; covers: ResolvedCover[]; today: string }) {
+export type StripProps = { region: CardRegion; state: StripState; events: IndexEvent[]; covers: ResolvedCover[]; today: string };
+export function ShareLandingStrip({ region, state, events, covers, today }: StripProps) {
   const { t, pick, english } = useUiCopy();
   const place = region === 'all' ? t('湾区', 'Bay Area') : pick(regionLabel(region));
   const range = state.status === 'ready' && state.range ? ` · ${english ? readerDayRange(state.range.start, state.range.end, true) : `${monthDay(state.range.start)}–${monthDay(state.range.end)}`}` : '';

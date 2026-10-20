@@ -1,21 +1,21 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, IconButton, SegmentedControl, Sheet, SkeletonFeed } from '../../components/ui';
+import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, IconButton, SegmentedControl, SkeletonFeed } from '../../components/ui';
 import { MoreLink } from '../../components/ui/TextLink';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import { useApp } from '../../app/context';
-import { addCalendarDays, calendarCells, calendarPeriod, shiftCalendarPeriod, validCalendarDay } from '../../lib/calendar-days';
+import { addCalendarDays, calendarPeriod, validCalendarDay } from '../../lib/calendar-days';
 import { createCoverPage, resolveCovers } from '../../lib/cover';
 import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
-import { ALL_REGIONS, EVENTS_INDEX, REGIONS, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, saveRegion, weekdayIndex, WEEKDAYS } from './events-model';
+import { EVENTS_INDEX, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS } from './events-model';
 import { useIndexEvents } from './events-later';
 import type { IndexEvent, MonthlyRegion } from './events-index-types';
 import { EventFeedCard, EventRowCard, PHONE_COVER_CAP } from './EventCards';
 import { ChunkBoundary, ChunkError } from './ChunkBoundary';
-import { retryableLazy } from './lazy-view';
+import { loadWhenIdle, parts, retryableLazy, useOnDemand } from './lazy-view';
 import { ImageCredits } from './ImageCredits';
 import { canLead } from './weekend-lead';
 import { AddToDayPlan } from '../../components/AddToDayPlan';
@@ -38,7 +38,10 @@ export default function CalendarView({ today }: { today: string }) {
   const { t, pick, english, locale } = useUiCopy();
   const app = useApp();
   const [params, setParams] = useSearchParams();
-  const [sheetOpen, setSheetOpen] = useState(false);
+  // The 选日期 sheet: undefined until it first opens (its chunk loads when the page is idle, or then).
+  const [sheetOpen, setSheetOpen, loaded] = useOnDemand(parts);
+  useEffect(() => loadWhenIdle(parts.load), []);
+  const CalendarSheet = loaded?.CalendarSheet;
   const [mode, setMode] = useState<'list' | 'map'>('list');
   const [focus, setFocus] = useState<{ scope: string; city: string; ids?: string[]; point?: string }>({ scope: '', city: '' });
   const [pages, setPages] = useState({ scope: '', count: 1 });
@@ -60,15 +63,11 @@ export default function CalendarView({ today }: { today: string }) {
 
   const week = calendarPeriod(date, 'week').days;
   // WEB-PERF-2: the week strip and the day's rows come from the route's own events while they cover the week; another week
-  // loads the rest of the catalog first, the rows showing a skeleton. The month grid in the Sheet reads its own weeks: it
-  // starts that load when the Sheet opens, and its dots appear once the rest is in, while the day's rows stay as they are.
-  const cells = calendarCells(date, 'month');
+  // loads the rest of the catalog first, the rows showing a skeleton. The month grid in the Sheet reads its own weeks
+  // (CalendarSheet): it starts that load when the Sheet opens, while the day's rows stay as they are.
   const { events, failed, retry } = useIndexEvents(week[0], week[6]);
-  const month = useIndexEvents(cells[0], cells[cells.length - 1], sheetOpen);
   const pool = useMemo(() => (events ?? []).filter(event => region === 'all' || event.region === region), [region, events]);
-  const monthPool = useMemo(() => (month.events ?? []).filter(event => region === 'all' || event.region === region), [region, month.events]);
   const countOn = (day: string) => pool.filter(event => occursOn(event, day)).length;
-  const monthCountOn = (day: string) => monthPool.filter(event => occursOn(event, day)).length;
   // One-offs before long-running series, a real photo first within them.
   const dayEvents = orderByNextDay(pool.filter(event => occursOn(event, date)), date, event => hasRealCover('event', event, today));
   const scope = `${date}:${region}`;
@@ -113,8 +112,6 @@ export default function CalendarView({ today }: { today: string }) {
     const area = region === 'all' ? t('湾区', 'the Bay Area') : pick(regionLabel(region));
     app?.openBayBay(t(`请帮我安排 ${date} 在${area}${city ? ` · ${city}` : ''}的出游。`, `Help me plan an outing on ${date} in ${area}${city ? ` · ${city}` : ''}.`), { mode: 'draft' });
   };
-  const period = calendarPeriod(date, 'month');
-  const monthLabel = english ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${date}T12:00:00Z`)) : `${date.slice(0, 4)}年${Number(date.slice(5, 7))}月`;
   const tomorrow = addCalendarDays(date, 1);
   const weekRange = `${monthDay(week[0], english)}–${english && week[0].slice(0, 7) === week[6].slice(0, 7) ? Number(week[6].slice(8, 10)) : monthDay(week[6], english)}`;
 
@@ -139,7 +136,8 @@ export default function CalendarView({ today }: { today: string }) {
     </div>
 
     <div className="ev-calendar__head">
-      <h2 id="ev-calendar-day" className="ev-section-title">{longDate(date)}{events && <span className="ev-calendar__count"> · {t(`${dayEvents.length} 场`, `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`)}</span>}</h2>
+      {/* English names the day as the weekend view does ("Mon, Oct 19"), so 列表 | 地图 stays on the head's line at 390. */}
+      <h2 id="ev-calendar-day" className="ev-section-title">{english ? shortDate(date) : longDate(date)}{events && <span className="ev-calendar__count"> · {t(`${dayEvents.length} 场`, `${dayEvents.length} ${dayEvents.length === 1 ? 'event' : 'events'}`)}</span>}</h2>
       <SegmentedControl className="ev-calendar__mode" label={t('显示方式', 'Show as')} value={mode} onChange={value => setMode(value as 'list' | 'map')}
         items={[{ id: 'list', label: t('列表', 'List') }, { id: 'map', label: t('地图', 'Map') }]} />
     </div>
@@ -184,48 +182,10 @@ export default function CalendarView({ today }: { today: string }) {
     <p className="ev-calendar__note">{t('日期按湾区当地时间；多日活动按已公布的日期列出，具体时段以主办方为准。', 'Dates are Bay Area local; multi-day events list their published dates — check times with the organizer.')}</p>
     <ImageCredits covers={covers} />
 
-    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('选日期、地区和城市', 'Pick a date, region and city')}
-      status={events ? t(`${dayEvents.length} 场`, `${dayEvents.length} events`) : failed ? t('这一天的活动没能加载', 'Events for this day did not load') : t('正在加载…', 'Loading…')}
-      footer={<Button variant="primary" onClick={() => setSheetOpen(false)}>{events ? t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date, true)}`) : t(`看 ${monthDay(date)}`, `Show ${monthDay(date, true)}`)}</Button>}>
-      <section className="ev-sheet-section">
-        <div className="ev-month__nav">
-          <IconButton label={t('上个月', 'Previous month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', -1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', -1) })}><ChevronLeft aria-hidden="true" strokeWidth={1.75} /></IconButton>
-          <h3 aria-live="polite">{monthLabel}</h3>
-          <IconButton label={t('下个月', 'Next month')} disabled={!validCalendarDay(shiftCalendarPeriod(date, 'month', 1))} onClick={() => update({ date: shiftCalendarPeriod(date, 'month', 1) })}><ChevronRight aria-hidden="true" strokeWidth={1.75} /></IconButton>
-        </div>
-        <div className="ev-month" role="group" aria-label={monthLabel} aria-busy={!month.events && !month.failed ? true : undefined}>
-          {[1, 2, 3, 4, 5, 6, 0].map(weekday => <span key={weekday} className="ev-month__weekday" aria-hidden="true">{pick(WEEKDAYS[weekday].char)}</span>)}
-          {cells.map(day => {
-            const count = monthCountOn(day);
-            const outside = day < period.start || day > period.end;
-            return <button key={day} type="button" className="ev-month__day" aria-pressed={day === date} aria-current={day === today ? 'date' : undefined} data-outside={outside ? '' : undefined}
-              aria-label={month.events ? `${longDate(day)} · ${t(`${count} 场`, `${count} events`)}` : longDate(day)} onClick={() => update({ date: day })}>
-              <span className="ev-month__num" aria-hidden="true">{Number(day.slice(8, 10))}</span>
-              <span className="ev-week__dot" aria-hidden="true" data-on={count ? '' : undefined} />
-            </button>;
-          })}
-        </div>
-        {/* Until the month's weeks are in, the grid has no dots: say so, so an empty grid does not read as "no events". */}
-        {!month.events && <p className="ev-calendar__note" role="status">
-          {month.failed ? <>{t('这个月的活动没能加载，日期仍可以选。', "This month's events did not load; you can still pick a date.")}{' '}
-            <Button variant="text" onClick={month.retry}>{t('重试', 'Retry')}</Button></>
-          : t('正在加载这个月的活动…', "Loading this month's events…")}
-        </p>}
-      </section>
-      <section className="ev-sheet-section">
-        <h3>{t('地区', 'Region')}</h3>
-        <ChipRow label={t('地区', 'Region')}>
-          <FilterChip selected={region === 'all'} onClick={() => { saveRegion('all'); update({ region: 'all' }); }}>{pick(ALL_REGIONS)}</FilterChip>
-          {REGIONS.map(item => <FilterChip key={item.id} selected={region === item.id} onClick={() => { saveRegion(item.id); update({ region: item.id }); }}>{pick(item.label)}</FilterChip>)}
-        </ChipRow>
-      </section>
-      {cities.length > 1 && <section className="ev-sheet-section">
-        <h3>{t('当天的城市', 'Cities that day')}</h3>
-        <ChipRow label={t('当天的城市', 'Cities that day')}>
-          <FilterChip selected={!city} onClick={() => setFocus({ scope, city: '' })}>{t('全部', 'All')}</FilterChip>
-          {cities.map(name => <FilterChip key={name} selected={city === name} onClick={() => setFocus({ scope, city: name })}>{cityLabel(name)}</FilterChip>)}
-        </ChipRow>
-      </section>}
-    </Sheet>
+    {/* The 选日期 sheet loads on its own (idle, or the first tap), then stays mounted for its exit animation. */}
+    {sheetOpen !== undefined && CalendarSheet && <CalendarSheet open={sheetOpen} onClose={() => setSheetOpen(false)} date={date} today={today} region={region} update={update} longDate={longDate}
+        status={events ? t(`${dayEvents.length} 场`, `${dayEvents.length} events`) : failed ? t('这一天的活动没能加载', 'Events for this day did not load') : t('正在加载…', 'Loading…')}
+        done={events ? t(`看 ${monthDay(date)} 的 ${dayEvents.length} 场`, `Show ${dayEvents.length} on ${monthDay(date, true)}`) : t(`看 ${monthDay(date)}`, `Show ${monthDay(date, true)}`)}
+        cities={cities} city={city} onCity={name => setFocus({ scope, city: name })} cityLabel={cityLabel} />}
   </section>;
 }

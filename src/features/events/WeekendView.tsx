@@ -1,7 +1,7 @@
-import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
-import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, Sheet, SkeletonFeed, useFeedLayout } from '../../components/ui';
+import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SkeletonFeed, SkeletonRow, useFeedLayout } from '../../components/ui';
 import { DayChips } from '../../components/ui/Segmented';
 import { Disclosure } from '../../components/ui/Disclosure';
 import { MoreLink } from '../../components/ui/TextLink';
@@ -20,10 +20,11 @@ import {
   type CardRegion, type EventsFilters, type EventsWhen,
 } from './events-model';
 import { prefetchLaterEvents, useIndexEvents } from './events-later';
-import { ChunkError } from './ChunkBoundary';
+import { ChunkBoundary, ChunkError } from './ChunkBoundary';
+import { loadWhenIdle, parts, retryableLazy, useOnDemand } from './lazy-view';
 import type { IndexEvent } from './events-index-types';
 import { EventFeedCard, EventLeadCard, EventRowCard } from './EventCards';
-import { ShareLandingStrip, type StripState } from './ShareLandingStrip';
+import type { StripProps, StripState } from './ShareLandingStrip';
 import { ImageCredits } from './ImageCredits';
 import { arrangePicks, homeLeadFor } from './weekend-lead';
 import { useViewHold } from './view-hold';
@@ -32,6 +33,13 @@ import { useViewHold } from './view-hold';
 const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4;
 /** The editor's block shows the lead and up to three pick rows (two on a phone: one 2-up row). */
 const PICK_ROWS = 3;
+// The share-card strip shows only on a share card's landing (?from=card-…): its chunk (lazy-view `parts`) loads with the
+// card's manifest.
+const shareStrip = retryableLazy<StripProps>(() => parts.load().then(module => ({ default: module.ShareLandingStrip })));
+/** The strip's loading shape while its chunk loads (the same as while the manifest loads): the heading's line, three rows. */
+const stripFallback = <section className="ev-strip" data-testid="share-landing-strip">
+  <p className="ev-section-title" aria-hidden="true">{'\u00a0'}</p><div aria-busy="true"><SkeletonRow /><SkeletonRow /><SkeletonRow /></div>
+</section>;
 const eventItem = (event: IndexEvent) => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey });
 
 /**
@@ -84,7 +92,10 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const pageSize = simple ? readingSize === 'extra-large' ? FAMILY_PAGE : SIMPLE_PAGE : PAGE;
   // Pages beyond the first (再看 N 场); any filter change starts over.
   const [extra, setExtra] = useState(0);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  // The 筛选 sheet: undefined until it first opens (its chunk loads when the page is idle, or then).
+  const [sheetOpen, setSheetOpen, loaded] = useOnDemand(parts);
+  useEffect(() => loadWhenIdle(parts.load), []);
+  const FilterSheet = loaded?.FilterSheet;
   const { layout } = useFeedLayout();
   const card = cardRegionOf(params.get('from'));
   const strip = useCardIds(card);
@@ -280,7 +291,9 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     : t('这组条件下暂时没有活动', 'Nothing matches these filters yet');
 
   return <>
-    {card && <ShareLandingStrip region={card} state={strip} events={stripEvents} covers={covers.strip} today={today} />}
+    {card && <ChunkBoundary>{attempt => { const Strip = shareStrip(attempt); return <Suspense fallback={stripFallback}>
+      <Strip region={card} state={strip} events={stripEvents} covers={covers.strip} today={today} />
+    </Suspense>; }}</ChunkBoundary>}
 
     {/* data-cover-credit: the page names the info card once (本页图片来源), so a credited pick's coded cover drops its badge (H12). */}
     {arranged.lead && <section className="ev-picks" aria-labelledby="ev-picks-heading" data-cover-credit="">
@@ -349,33 +362,10 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     {(!events || visible.length > 0) && <EventsPageEnd region={filters.region} today={today} weekend={weekend} />}
     <ImageCredits covers={[...covers.strip, ...covers.lead, ...covers.rows, ...covers.feed]} />
 
-    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('筛选活动', 'Filter events')} status={sheetStatus}
-      footer={<>
-        <Button variant="text" onClick={clear}>{t('清除', 'Clear')}</Button>
-        <Button variant="primary" onClick={() => setSheetOpen(false)}>{sheetCount}</Button>
-      </>}>
-      <SheetSection title={t('什么时候', 'When')}>
-        {WHEN_OPTIONS.map(option => <FilterChip key={option.id} selected={filters.when === option.id}
-          onClick={() => update({ when: option.id === defaultWhen ? null : option.id, day: null })}>{pick(option.label)}</FilterChip>)}
-      </SheetSection>
-      <SheetSection title={t('地区', 'Region')}>
-        {regionChips}
-      </SheetSection>
-      <SheetSection title={t('想找什么', 'What kind')}>
-        <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
-        {TAGS.map(tag => <FilterChip key={tag.id} selected={filters.tag === tag.id} onClick={() => update({ tag: filters.tag === tag.id ? null : tag.id, category: null })}>{pick(tag.label)}</FilterChip>)}
-      </SheetSection>
-      <label className="ev-search">
-        <span>{t('关键词', 'Keyword')}</span>
-        <input type="search" value={params.get('q') || ''} maxLength={200} placeholder={t('活动名、城市或场馆', 'Event, city or venue')}
-          onChange={event => update({ q: event.target.value || null })} />
-      </label>
-    </Sheet>
+    {/* The 筛选 sheet loads on its own (idle, or the first tap), then stays mounted for its exit animation. */}
+    {sheetOpen !== undefined && FilterSheet && <FilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)} count={sheetCount} status={sheetStatus}
+      filters={filters} defaultWhen={defaultWhen} query={params.get('q') || ''} regions={regionChips} update={update} clear={clear} />}
   </>;
-}
-
-function SheetSection({ title, children }: { title: string; children: ReactNode }) {
-  return <section className="ev-sheet-section"><h3>{title}</h3><ChipRow label={title}>{children}</ChipRow></section>;
 }
 
 /**

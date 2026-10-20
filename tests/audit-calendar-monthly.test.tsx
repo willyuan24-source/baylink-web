@@ -61,7 +61,7 @@ test('choosing 全部日期 in the filter Sheet persists in the URL and keeps un
   const view = render(<MemoryRouter initialEntries={['/events?region=sf&tracking=kept']}><EventsView today={today} /><LocationProbe /></MemoryRouter>);
   const query = () => new URL(view.getByTestId('route').textContent!, 'https://www.baylink.us').searchParams;
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); });
-  const sheet = within(view.getByRole('dialog'));
+  const sheet = within(await view.findByRole('dialog', {}, { timeout: 5000 }));
   await act(async () => { fireEvent.click(sheet.getByRole('button', { name: '全部日期', exact: true })); });
   assert.equal(query().get('when'), 'all');
   assert.equal(query().get('region'), 'sf');

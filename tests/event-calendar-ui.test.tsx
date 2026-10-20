@@ -115,7 +115,7 @@ test('the calendar asks BayBay in draft mode with the date, region and city in a
     if (railCity) fireEvent.click(railCity);
     else {
       fireEvent.click(view.container.querySelector('.ev-week__range')!);
-      const sheet = await view.findByRole('dialog');
+      const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
       fireEvent.click(within(sheet).getByRole('button', { name: /Livermore/ }));
       fireEvent.keyDown(sheet, { key: 'Escape' });
       await waitFor(() => assert.equal(view.queryByRole('dialog'), null));

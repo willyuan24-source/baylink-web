@@ -45,7 +45,7 @@ test('the calendar\'s month grid says when its weeks did not load, and the date 
   // the week is the route's own: its rows and counts are there at once
   assert.ok(view.container.querySelector('.ev-calendar__count'));
   fireEvent.click(view.getByRole('button', { name: /选日期/ }));
-  const grid = view.getByRole('group', { name: /\d{4}年\d+月/ });
+  const grid = await view.findByRole('group', { name: /\d{4}年\d+月/ }, { timeout: 5000 });
   assert.equal(grid.getAttribute('aria-busy'), 'true', 'the month loads its weeks');
   assert.ok(view.getByText('正在加载这个月的活动…'));
   const note = await view.findByText(/这个月的活动没能加载/, {}, { timeout: 10000 });
@@ -66,7 +66,7 @@ test('全部日期 that does not load says so above the retry state (no "loading
   assert.doesNotMatch(view.container.textContent ?? '', /正在加载/);
   // the filter Sheet: its button closes it (no count, no "loading"), its status says the dates did not load
   fireEvent.click(view.getByRole('button', { name: /筛选/ }));
-  const sheet = view.getByRole('dialog').querySelector<HTMLElement>('.ui-sheet')!;
+  const sheet = (await view.findByRole('dialog', {}, { timeout: 5000 })).querySelector<HTMLElement>('.ui-sheet')!;
   const done = [...sheet.querySelectorAll<HTMLButtonElement>('.ui-sheet__footer button')].at(-1)!;
   assert.equal(done.textContent, '关闭');
   assert.equal(sheet.querySelector(':scope > [role="status"]')?.textContent, '这些日期的活动没能加载');

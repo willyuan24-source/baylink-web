@@ -84,7 +84,7 @@ const assertFeed = (view: View, ids: string[]) => {
 };
 async function openFilters(view: View) {
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); });
-  return within(view.getByRole('dialog'));
+  return within(await view.findByRole('dialog', {}, { timeout: 5000 }));
 }
 const filterRow = (view: View) => within(view.container.querySelector<HTMLElement>('.ev-rail')!);
 
@@ -265,7 +265,11 @@ test('an empty result offers a working reset that keeps the language and the rem
   await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除搜索' })); });
   assert.equal(queryParams(view).has('q'), false);
   if (view.queryByRole('button', { name: '清除筛选' })) await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除筛选' })); });
-  else await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); fireEvent.click(within(view.getByRole('dialog')).getByRole('button', { name: '清除', exact: true })); });
+  else {
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); });
+    const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
+    await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: '清除', exact: true })); });
+  }
   assert.equal(queryParams(view).toString(), 'region=sf&lang=en');
   assertFeed(view, expected('2026-10-14', { region: 'sf' }));
 });

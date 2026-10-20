@@ -8,10 +8,11 @@ import './events.css';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { useBayAreaToday } from '../../lib/useBayAreaToday';
 import { dateScope } from '../../lib/date-guard';
+import { validCalendarDay } from '../../lib/calendar-days';
 import { checkSummary, officialCheckLine } from '../../lib/check-dates';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence } from '../../lib/monthly';
 import { isPressSource } from './source-kind';
-import { EVENTS_INDEX, INDEX_EVENTS, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsColumn, type EventsWhen } from './events-model';
+import { EVENTS_INDEX, INDEX_OFFERS, INDEX_OPENINGS, columnFor, inRange, listWindow, liveOffers, monthDay, readFilters, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS, type EventsColumn, type EventsWhen } from './events-model';
 import { useIndexEvents } from './events-later';
 import type { EventsFilters } from './events-model';
 import { ChunkBoundary } from './ChunkBoundary';
@@ -27,8 +28,6 @@ const openingsView = retryableLazy(() => import('./OpeningsView'));
  * then the four views as D3's segmented control (not sticky): 本周末 | 日历·地图 | 免费与优惠 | 新店. /events opens on 本周末,
  * /this-month on 全部日期, /calendar on its day view. A switch keeps the previous body, dimmed, until the next view is in.
  */
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
-
 export type EventsFrameProps = {
   today?: string; defaultWhen?: EventsWhen;
   /** /calendar passes its view (imported by CalendarPage, so the prerender renders it and /events does not load it). */
@@ -61,9 +60,12 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
     : filters.when === 'december' ? t('十二月', 'December')
     : `${t('全部日期', 'All dates')} · ${through}`;
   const region = filters.region === 'all' ? '' : ` · ${pick(regionLabel(filters.region))}`;
-  // The counts read the same days as the list; past the route's own days they wait with it for the rest (WEB-PERF-2).
-  const days = listWindow(range, today);
-  const { events } = useIndexEvents(days.start, days.end, column === 'list');
+  // The counts read the same days as the list (/calendar: the chosen day, CalendarView's own rule); past the route's own days
+  // they wait with it for the rest (WEB-PERF-2).
+  const dateParam = params.get('date') ?? '';
+  const calendarDay = validCalendarDay(dateParam) ? dateParam : today;
+  const days = column === 'calendar' ? { start: calendarDay, end: calendarDay } : listWindow(range, today);
+  const { events } = useIndexEvents(days.start, days.end, column === 'list' || column === 'calendar');
   const inScope = (events ?? []).filter(event => inRange(event, range, today) && (filters.region === 'all' || event.region === filters.region));
   const free = inScope.filter(event => isFreeToAttend(event)).length;
   const offerList = column === 'perks' ? liveOffers(INDEX_OFFERS, today, 'all', filters.region) : [];
@@ -71,15 +73,15 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
   // H02: the check dates of what this view lists (/calendar: the chosen day's events), said as checks against the official
   // pages (PREP's 官网核对 line). DECISIONS 17: an item from a press report is never said to be checked on an official page —
   // the line then summarises the others and counts the reports instead of saying 逐条附官方来源.
-  const calendarDay = DAY.exec(params.get('date') ?? '')?.[0] ?? today;
   const listed: readonly { verifiedAt?: string; press?: true; sourceLabel?: string }[] = column === 'perks' ? offerList : column === 'openings' ? INDEX_OPENINGS
-    : column === 'calendar' ? INDEX_EVENTS.filter(event => nextOccurrence(event, calendarDay) === calendarDay && (filters.region === 'all' || event.region === filters.region)) : inScope;
+    : column === 'calendar' ? (events ?? []).filter(event => nextOccurrence(event, calendarDay) === calendarDay && (filters.region === 'all' || event.region === filters.region)) : inScope;
   const official = listed.filter(item => !item.press && !isPressSource(item.sourceLabel));
   const press = listed.length - official.length;
   const summary = checkSummary(official.map(item => item.verifiedAt), today);
   const checked = summary ? officialCheckLine(summary, t) : '';
-  // The listing card is one link to the detail page, which links the official source.
-  const promise = press ? t(`${press} 条来自媒体报道`, `${press} from news reports`) : t('逐条附官方来源', 'official sources');
+  // The listing card is one link to the detail page, which links the official source; a view that lists nothing (an empty
+  // calendar day, a list still loading) promises nothing.
+  const promise = !listed.length ? '' : press ? t(`${press} 条来自媒体报道`, `${press} from news reports`) : t('逐条附官方来源', 'official sources');
 
   const rangeLine = column === 'perks' ? t('免费与优惠', 'Free & deals') + region
     : column === 'openings' ? t('新店', 'New shops') + region
@@ -88,6 +90,8 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
     : column === 'openings' ? t(`${INDEX_OPENINGS.length} 家新店与开业消息`, `${INDEX_OPENINGS.length} new shops and openings`)
     : column === 'calendar' || !events ? ''
     : english ? `${inScope.length} ${inScope.length === 1 ? 'event' : 'events'} · ${free} free` : t(`${inScope.length} 场 · ${free} 场免费`, `${inScope.length} events · ${free} free`);
+
+  const facts = [counts, promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2').replace(/^[a-z]/, letter => letter.toUpperCase());
 
   const tabs = [
     { id: 'list', label: t('本周末', 'Weekend'), to: '/events' },
@@ -130,8 +134,8 @@ export function EventsFrame({ today: suppliedToday, defaultWhen = 'weekend', cal
         <p className="ev-lede-facts" {...scope}>
           {/* a no-break space before each "·", so a wrapped line never starts with one (N06), and in English one inside a date
               ("Oct 16"), so a wrap never splits it; an English line that opens on the promise (/calendar) starts with a capital */}
-          {[counts, promise, checked].filter(Boolean).join('\u00a0· ').replace(/\b([A-Z][a-z]{2}) (\d)/g, '$1\u00a0$2').replace(/^[a-z]/, letter => letter.toUpperCase())}
-          <span className="ev-lede-facts__how"><span aria-hidden="true">{'\u00a0· '}</span><MoreLink to="/about#about-method-title">{t('我们怎么核对', 'How we check')}</MoreLink></span>
+          {facts}
+          <span className="ev-lede-facts__how">{facts && <span aria-hidden="true">{'\u00a0· '}</span>}<MoreLink to="/about#about-method-title">{t('我们怎么核对', 'How we check')}</MoreLink></span>
         </p>
       </header>
       <div className="ev-tabs-bar"><SegmentedTabs className="ev-tabs" label={t('活动分区', 'Event views')} items={tabs} value={current} onChange={id => setPending(id === column ? undefined : id)} /></div>
