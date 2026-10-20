@@ -84,6 +84,8 @@ export const ORGANIZER_BY_HOST: Readonly<Record<string, string>> = {
 };
 /** The organizer named by the listing's official source, or nothing when the source is a report or a platform. */
 export function eventOrganizer(event: Pick<MonthlyEvent, 'sourceLabel' | 'officialUrl'>): Record<string, unknown> | undefined {
+  // Broader than the cards' press rule on purpose (lib/event-facts.ts isPressSource, the 「媒体报道 · 」 prefix): a label that
+  // names an outlet anywhere ("… 报道 / 官网") could hand the outlet's name to the organizer below, so no organizer then.
   if (/媒体报道|新闻|报道|media|news/i.test(event.sourceLabel)) return undefined;
   // "Marin Convention & Visitors Bureau / Point Reyes Open Studios": the bureau lists, the studios organize
   const label = event.sourceLabel.split(/\s+\/\s+/).filter(part => !VISITOR_BUREAU.test(part)).join(' / ').trim();
