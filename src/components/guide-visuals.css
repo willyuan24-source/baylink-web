@@ -1,7 +1,6 @@
 .guide-figure { margin:30px 0; min-width:0; }
 .guide-figure-open { display:block; position:relative; width:100%; padding:0; overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-brand-tint); text-align:left; cursor:zoom-in; }
 .guide-figure-image { display:block; width:100%; height:auto; transition:transform .4s ease; }
-.guide-figure-open:hover .guide-figure-image { transform:scale(1.015); }
 .gd-step>.guide-figure--inline .guide-figure-image[data-portrait] { aspect-ratio:4/5; max-height:min(72vh,620px); object-fit:cover; }
 .guide-figure-open:focus-visible, .guide-route button:focus-visible, .guide-route a:focus-visible, .guide-route-stop:focus-visible, .guide-image-dialog a:focus-visible, .guide-image-close:focus-visible, .guide-poster-disclosure summary:focus-visible { outline:3px solid var(--color-brand); outline-offset:4px; }
 .guide-figure--cover { margin:30px 0 26px; }
@@ -11,7 +10,6 @@
 .guide-figure--poster .guide-figure-open { max-width:520px; margin:auto; }
 .guide-figure--official-poster .guide-figure-open { padding:22px 22px 65px; background:linear-gradient(135deg,var(--color-line),var(--color-surface-2) 55%,var(--color-line)); }
 .guide-figure--official-poster .guide-figure-image { aspect-ratio:auto; max-height:700px; object-fit:contain; }
-.guide-figure--official-poster .guide-figure-open:hover .guide-figure-image { transform:none; }
 .guide-figure-zoom { position:absolute; right:14px; bottom:14px; display:flex; align-items:center; gap:7px; min-height:36px; padding:8px 12px; border:1px solid rgb(var(--color-surface-rgb) / .5); border-radius:var(--r-pill); background:rgb(var(--color-surface-rgb) / .93); color:var(--color-ink); font-size:var(--text-caption); font-weight:600; }
 .guide-image-caption { display:grid; gap:8px; padding:13px 3px 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.8; overflow-wrap:anywhere; }
 .guide-image-caption p { margin:0; }
@@ -24,23 +22,20 @@
 .guide-figure--preview.guide-figure--official-poster .guide-figure-open { padding:10px 10px 44px; }
 .guide-figure--preview.guide-figure--official-poster .guide-figure-image,
 .guide-figure--preview.guide-figure--full-frame .guide-figure-image { aspect-ratio:auto; max-height:220px; object-fit:contain; }
-.guide-figure--preview.guide-figure--full-frame .guide-figure-open:hover .guide-figure-image { transform:none; }
 .guide-image-attribution { display:flex; align-items:center; flex-wrap:wrap; gap:4px 12px; font-size:var(--text-caption); }
 .guide-image-attribution a { text-decoration:underline; text-underline-offset:3px; }
-.guide-image-attribution a:hover { color:var(--color-ink); }
 .guide-image-kind { padding:3px 8px; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-ink-2); font-size:var(--text-caption); font-weight:600; }
 .guide-poster-disclosure { margin-bottom:28px; overflow:hidden; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); }
-.guide-poster-disclosure summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px 20px; color:var(--color-brand-hover); font-size:.8125rem; font-weight:600; cursor:pointer; list-style:none; }
+.guide-poster-disclosure summary { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:17px 20px; color:var(--color-brand-hover); font-size:var(--fs-meta); font-weight:600; cursor:pointer; list-style:none; }
 .guide-poster-disclosure summary::-webkit-details-marker { display:none; }
 .guide-poster-disclosure[open] summary { border-bottom:1px solid var(--color-line); }
 .guide-poster-disclosure[open] summary svg { transform:rotate(180deg); }
 .guide-image-overlay { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:24px; background:rgb(var(--color-scrim-rgb) / .93); backdrop-filter:blur(10px); overflow:auto; }
 .guide-image-dialog { position:relative; width:min(1200px,100%); max-height:100%; padding-top:58px; }
-.guide-image-close { position:absolute; top:0; right:0; display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; min-width:44px; padding:10px 16px; border:1px solid rgb(var(--color-surface-rgb) / .33); border-radius:var(--r-pill); background:var(--color-brand-deep); color:var(--color-surface); font-size:.8125rem; }
+.guide-image-close { position:absolute; top:0; right:0; display:flex; align-items:center; justify-content:center; gap:8px; min-height:44px; min-width:44px; padding:10px 16px; border:1px solid rgb(var(--color-surface-rgb) / .33); border-radius:var(--r-pill); background:var(--color-brand-deep); color:var(--color-surface); font-size:var(--fs-meta); }
 .guide-image-dialog figure { margin:0; }
 .guide-image-dialog figure > img { display:block; width:100%; height:auto; max-height:calc(100dvh - 225px); object-fit:contain; border-radius:var(--r-md); }
 .guide-image-dialog .guide-image-caption { color:var(--color-brand-tint); padding:15px 8px; }
-.guide-image-dialog .guide-image-attribution a:hover { color:white; }
 .guide-image-dialog .guide-image-kind { background:var(--color-highlight); color:var(--color-brand-deep); }
 .guide-image-dialog a:focus-visible, .guide-image-close:focus-visible { outline-color:var(--color-brand); }
 .guide-route { padding:24px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); overflow:hidden; }
@@ -58,7 +53,7 @@
 .guide-route-stop[role="tabpanel"] { margin-top:0; }
 .guide-route-stop[hidden] { display:none; }
 .guide-route-stop-number { color:var(--color-ink-2); font-size:var(--text-caption); }
-.guide-route-stop h4 { margin:8px 0 10px; color:var(--color-ink); font-size:1.25rem; line-height:1.5; font-weight:600; }
+.guide-route-stop h4 { margin:8px 0 10px; color:var(--color-ink); font-size:var(--fs-section); line-height:1.5; font-weight:600; }
 .guide-route-stop p { margin:0; color:var(--color-ink); white-space:pre-line; font-size:var(--text-body); line-height:1.75; }
 .guide-route-stop > a { display:inline-flex; align-items:center; gap:7px; min-height:44px; margin-top:13px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:4px; }
 .guide-route-controls { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:15px; }
@@ -74,15 +69,24 @@
   .guide-image-caption { font-size:var(--text-caption); gap:7px; padding-top:10px; }
   .guide-image-attribution { font-size:var(--text-caption); gap:4px 9px; }
   .guide-route { padding:18px 16px; }
-  .guide-route-heading h3 { font-size:1.25rem; }
+  .guide-route-heading h3 { font-size:var(--fs-section); }
   .guide-route-tabs { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; }
   .guide-route-tabs button { padding:10px; gap:7px; }
   .guide-route-tabs button strong { font-size:var(--text-caption); }
   .guide-route-stop { padding:17px; }
-  .guide-route-stop h4 { font-size:1.125rem; }
+  .guide-route-stop h4 { font-size:var(--fs-card); }
 
   .guide-image-overlay { padding:calc(env(safe-area-inset-top,0px) + 14px) 12px calc(env(safe-area-inset-bottom,0px) + 14px); }
   .guide-image-dialog figure > img { max-height:calc(100dvh - 235px); }
 }
-@media(prefers-reduced-motion:reduce) { .guide-figure-image { transition:none; } .guide-figure-open:hover .guide-figure-image { transform:none; } }
+/* Hover only where a fine pointer can hover (UI9-GUIDES); the zoom stays still under reduced motion. */
+@media (hover:hover) and (pointer:fine) {
+  .guide-figure-open:hover .guide-figure-image { transform:scale(1.015); }
+  .guide-figure--official-poster .guide-figure-open:hover .guide-figure-image { transform:none; }
+  .guide-figure--preview.guide-figure--full-frame .guide-figure-open:hover .guide-figure-image { transform:none; }
+  .guide-image-attribution a:hover { color:var(--color-ink); }
+  .guide-image-dialog .guide-image-attribution a:hover { color:white; }
+}
+@media(prefers-reduced-motion:reduce) { .guide-figure-image { transition:none; } }
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:reduce) { .guide-figure-open:hover .guide-figure-image { transform:none; } }
 @media print { .guide-route-tabs, .guide-route-controls, .guide-figure-zoom { display:none; } .guide-route-stop[hidden] { display:block; } }

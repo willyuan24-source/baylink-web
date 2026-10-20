@@ -50,18 +50,35 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 
 /* The rail: on a phone only the bar, which DETAIL fixes at the bottom; the 官方来源 link shows on a desktop. */
 .gd-rail__sources { display:none; }
-/* The bar's call: the number never breaks or shortens; where the primary is narrow the icon goes first, then the verb. On a
-   phone the ask cell reads BayBay beside the otter (critic, DETAIL's short label), so 拨打 and the number keep one line. */
+/* The bar's call: [📞 拨打 number]. The number never breaks, shortens or clips. Where the primary is narrow the verb goes first
+   and the 20 px phone glyph stays (DETAIL's 9.5em step would hide it, so the guide's call keeps it); the glyph goes only where
+   glyph + number do not fit. Steps in em of the button's own size (content box): a 12-character number needs 10.9em with the
+   verb and 8.6em with the glyph; a long one (1-800-…, data-long) 12em and 9.75em. The ask cell reads BayBay beside the otter on
+   a phone and in the desktop rail (critic, DETAIL's short label), so the rail's 79 px cell keeps the otter and its label inside. */
 .gd-bar__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
-.site-detail-actions.detail-actions .gd-bar__call { padding-inline:var(--sp-2); }
-@container detail-primary (max-width:12em) { .gd-bar__call>svg { display:none; } }
-@container detail-primary (max-width:9.75em) { .gd-bar__verb { display:none; } }
-@media (max-width:1023px) {
-  .site-detail-actions.detail-actions.gd-bar [data-label=long] { display:none; }
-  .site-detail-actions.detail-actions.gd-bar [data-label=tight] { display:inline; }
-}
-/* 家人版 (特大 + 简洁): icon + number. */
+.site-detail-actions.detail-actions.gd-bar .gd-bar__call { gap:var(--sp-1); padding-inline:var(--sp-2); }
+.site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:inline-block; flex:none; width:1.25rem; height:1.25rem; }
+@container detail-primary (max-width:12em) { .gd-bar__call[data-long] .gd-bar__verb { display:none; } }
+@container detail-primary (max-width:10.9em) { .gd-bar__verb { display:none; } }
+@container detail-primary (max-width:9.75em) { .site-detail-actions.detail-actions.gd-bar .gd-bar__call[data-long]>svg { display:none; } }
+@container detail-primary (max-width:8.6em) { .site-detail-actions.detail-actions.gd-bar .gd-bar__call>svg { display:none; } }
+.site-detail-actions.detail-actions.gd-bar [data-label=long] { display:none; }
+.site-detail-actions.detail-actions.gd-bar [data-label=tight] { display:inline; }
+/* 家人版 (特大 + 简洁): icon + number (the arrangement). */
 html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
+/* Two rows where one row cannot hold the number (below 360 px, and 特大 / 简洁显示 on a phone): the call on top at full width,
+   the three cells under it. The bar's height token grows with it (3rem call + 56 px cells + DETAIL's 4 px paddings and gap),
+   so the page's bottom padding, the toast and 回到顶部 clear the bar. */
+@media (max-width:359px) {
+  html:has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
+  .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
+  .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
+}
+@media (max-width:479px) {
+  html:is([data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(3rem + 56px + var(--sp-1) * 3 + env(safe-area-inset-bottom,0px)); }
+  :is(html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar { flex-wrap:wrap; align-content:center; justify-content:space-evenly; row-gap:var(--sp-1); }
+  :is(html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar>.detail-actions__primary { flex:1 0 100%; order:-1; }
+}
 .gd-actions__status { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-actions__status:empty { display:none; }
 
@@ -140,7 +157,6 @@ html[data-reading=extra-large]:not([data-simple]) .gd-carousel__all { display:fl
 /* 简洁显示 (and 家人版): no carousel; its facts are in 30 秒看懂, which comes first (UI9-GUIDES arrangement). */
 html[data-simple] .gd-carousel .ui-carousel__track { flex-direction:column; gap:var(--sp-3); margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
 html[data-simple] .gd-page[data-pilot] .gd-lead__visual { display:none; }
-@media (max-width:1023px) { html[data-simple] .gd-page[data-pilot] .gd-lead__visual { order:1; } }
 
 /* 查: "30 秒看懂". Labels at --fs-meta, values at reading size; weight 600 only on a number or an action in a value. */
 .gd-keyfacts { padding:var(--inset-panel); border-radius:var(--r-lg); background:var(--color-surface-2); }
@@ -156,7 +172,7 @@ html[data-simple] .gd-page[data-pilot] .gd-lead__visual { display:none; }
 .gd-keyfacts[data-fallback] .gd-keyfacts__value { font-size:var(--fs-body); line-height:var(--lh-read); font-weight:400; overflow-wrap:break-word; }
 .gd-keyfacts__sources { display:inline-flex; align-items:center; min-height:2.75rem; margin-top:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); font-weight:400; }
 /* The ① mark: caption glyph, ≥ .5rem from the text before it, a 44px tap area (48px in 简洁显示, rule 5). */
-.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:var(--sp-2); vertical-align:super; color:var(--color-brand); font-size:var(--fs-badge); line-height:1; font-weight:400; text-decoration:none; }
+.gd-source-mark { position:relative; display:inline-flex; align-items:center; justify-content:center; min-width:1.5rem; min-height:1.5rem; margin-left:var(--sp-2); vertical-align:super; color:var(--color-brand); font-size:var(--fs-badge); line-height:var(--lh-tight); font-weight:400; text-decoration:none; }
 .gd-source-mark::before { content:""; position:absolute; top:50%; left:50%; width:2.75rem; height:2.75rem; transform:translate(-50%, -50%); }
 html[data-simple] .gd-source-mark::before { width:3rem; height:3rem; }
 
@@ -252,7 +268,7 @@ html[data-simple] .gd-contact__call { width:100%; }
 .gd-step__head { display:flex; align-items:flex-start; gap:var(--sp-3); }
 /* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width. */
 .gd-step__head>div { flex:1 1 auto; min-width:0; }
-.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-card); line-height:1; font-weight:600; font-variant-numeric:tabular-nums; }
+.gd-step__number { display:grid; flex:none; place-items:center; width:2.5rem; height:2.5rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; }
 .gd-step__head h2 { margin:var(--sp-1) 0 0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
 .gd-step__conclusion { margin:var(--sp-2) 0 0; max-width:var(--measure); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-read); }
 .gd-step__more { margin:var(--sp-2) 0 0 3.25rem; }
@@ -304,7 +320,7 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-diagram__flow>li { position:relative; display:flex; align-items:flex-start; gap:var(--sp-3); padding-bottom:var(--sp-4); }
 .gd-diagram__flow>li:last-child { padding-bottom:0; }
 .gd-diagram__flow>li:not(:last-child)::before { content:""; position:absolute; top:2rem; bottom:2px; left:calc(1rem - 1px); width:2px; border-radius:var(--r-sm); background:var(--color-brand); opacity:.35; }
-.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-meta); line-height:1; font-weight:600; }
+.gd-diagram__step { display:grid; flex:none; place-items:center; width:2rem; height:2rem; border-radius:var(--r-pill); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-meta); line-height:var(--lh-tight); font-weight:600; }
 /* compare: side by side when there is room */
 .gd-diagram__compare { display:grid; grid-template-columns:repeat(var(--gd-cols, 2), minmax(0, 1fr)); gap:var(--sp-2); margin:0; padding:0; list-style:none; }
 .gd-diagram__compare[data-count="3"] { --gd-cols:1; }
@@ -376,7 +392,7 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-article .gd-sources li p .phone-chip>svg { margin-top:0; }
 .gd-article .gd-sources li:has(.phone-chip)>a { position:relative; z-index:1; }
 @media (max-width:359px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .gd-sources li p .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:1em; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gd-article .gd-sources li p .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:inherit; }
 }
 .gd-sources-more { margin-top:var(--sp-2); }
 .gd-sources-more .ui-disclosure__summary { color:var(--color-brand); font-size:var(--fs-body); }
@@ -445,7 +461,6 @@ html[data-reading=extra-large][data-simple] :is(.gd-title__rest,.gd-meta--source
 
 @media (min-width:768px) {
   .gd-article.bl-guide-article { padding-block:var(--sp-5) var(--sp-6); }
-  .gd-to-top { bottom:var(--sp-5); }
 }
 @media (max-width:1023px) {
   .gd-to-top { bottom:calc(var(--site-mobile-nav-height, 4rem) + var(--sp-3)); }
