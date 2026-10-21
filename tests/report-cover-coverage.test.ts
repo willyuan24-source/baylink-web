@@ -19,6 +19,7 @@ test('report:covers measures every page, both first screens and the whole shelf'
   for (const page of ['home:weekend', 'home:elders', '/events', '/perks', '/openings', '/guides']) {
     assert.ok(summary.pages[page]?.all.slots > 0, page);
     assert.ok(summary.pages[page].phoneFirstScreen.slots <= summary.pages[page].desktopFirstScreen.slots, page);
+    assert.ok(summary.pages[page].desktopFirstScreen.slots < summary.pages[page].all.slots, `${page}: a first screen is not the whole page`);
   }
   assert.equal(summary.infoCardsOnPages, slots.filter((slot: { tier: string }) => slot.tier === 'type').length);
   assert.ok(inventory.length > 500, 'every live record');

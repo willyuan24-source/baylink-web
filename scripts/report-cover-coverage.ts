@@ -5,6 +5,8 @@
 //   - /events 本周末: lead, 编辑精选 rows, the feed (first page of 12, then the rest);
 //   - /perks and /openings: each section's first screen on a phone and on a desktop, then the rest;
 //   - /guides: the elder band and the topic previews;
+//   - first screen: a page's first 4 cards on a phone, 8 on a desktop (PHONE_SCREEN / DESKTOP_SCREEN); /perks and
+//     /openings count their sections' own first rows;
 //   - inventory: every live record (events-index + events-later, all offers, openings, guides), no page de-duplication.
 // Options: --from YYYY-MM-DD (default: the Bay Area today), --days N (21), --mode current | projected (projected: every
 // record gets its coverCandidates() — venue photos, category stock, approved AI — resolved against the full registry,
@@ -56,8 +58,16 @@ const guideItem = (card: GuideIndexCard, today: string, page: CoverContext['page
 
 type Slot = { day: string; page: string; section: string; kind: CoverKind; id: string; tier: ResolvedCover['tier']; reason?: string; phone: boolean; desktop: boolean };
 const slots: Slot[] = [];
-const push = (day: string, page: string, section: string, kind: CoverKind, id: string, cover: ResolvedCover, screen: { phone: boolean; desktop: boolean } = { phone: true, desktop: true }) =>
-  slots.push({ day, page, section, kind, id, tier: cover.tier, ...(cover.tier === 'type' ? { reason: cover.reason } : {}), ...screen });
+// A first screen holds the page's first 4 cards on a phone and 8 on a desktop (390 / 1440 px, standard size: the 10-20
+// probe and CATEGORIES.json's screens), counted in display order; /perks and /openings pass their sections' own counts.
+const PHONE_SCREEN = 4, DESKTOP_SCREEN = 8;
+const shownSoFar = new Map<string, number>();
+const push = (day: string, page: string, section: string, kind: CoverKind, id: string, cover: ResolvedCover, screen?: { phone: boolean; desktop: boolean }) => {
+  const at = shownSoFar.get(`${day} ${page}`) ?? 0;
+  shownSoFar.set(`${day} ${page}`, at + 1);
+  slots.push({ day, page, section, kind, id, tier: cover.tier, ...(cover.tier === 'type' ? { reason: cover.reason } : {}),
+    ...(screen ?? { phone: at < PHONE_SCREEN, desktop: at < DESKTOP_SCREEN }) });
+};
 
 for (let n = 0; n < DAYS; n++) {
   const day = addCalendarDays(FROM, n);
@@ -101,7 +111,7 @@ for (let n = 0; n < DAYS; n++) {
   }
   resolveCovers(rows.map(event => item('event', event)), events).forEach((cover, i) => push(day, '/events', 'picks', 'event', rows[i].id, cover));
   resolveCovers(listed.map(event => item('event', event)), events)
-    .forEach((cover, i) => push(day, '/events', i < 12 ? 'feed' : 'feed-more', 'event', listed[i].id, cover, { phone: i < 12, desktop: i < 12 }));
+    .forEach((cover, i) => push(day, '/events', i < 12 ? 'feed' : 'feed-more', 'event', listed[i].id, cover));
 
   // /perks (PerksView.tsx): first screen phone 4 / 4 / 4, desktop 8 / 4 / 4; then the rest.
   const perks = pageContext(day, EVENTS_INDEX.images);
