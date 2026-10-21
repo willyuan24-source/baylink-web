@@ -125,7 +125,7 @@ export const lateSeptemberLocalOffers: FreebieOffer[] = [
     "sourceUrl": "https://www.sjpl.org/news/halloween-booktacular-giveaway-2026/",
     "sourceLabel": "SJPL 2026 赠书公告与领取条件",
     "storeUrl": "https://www.sjpl.org/locations-table/",
-    "verifiedAt": "2026-09-27"
+    "verifiedAt": "2026-10-21"
   },
   {
     "id": "oakland-zoo-resident-discount",

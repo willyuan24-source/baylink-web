@@ -37,7 +37,7 @@
   {
     "kind": "event",
     "region": "north-bay",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
     "id": "november-north-healdsburg-market-2026",
     "title": "Healdsburg 周六农夫市集：新棚亭地址",
@@ -262,7 +262,7 @@
   {
     "kind": "event",
     "region": "north-bay",
-    "verifiedAt": "2026-10-16",
+    "verifiedAt": "2026-10-21",
     "relatedGuideSlug": "north-bay-markets-nature-culture-through-november-15-2026",
     "id": "november-north-eames-exhibition-2026",
     "title": "The MAC：Eames & Eames 现代设计展",
@@ -284,7 +284,7 @@
       "艺术爱好者",
       "亲子家庭"
     ],
-    "officialUrl": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+    "officialUrl": "https://napavalleymuseum.org/blogs/exhibitions/eames-eames",
     "sourceLabel": "Napa Valley Museum 官方展览及参观页",
     "imageKey": "culture-visit"
   },

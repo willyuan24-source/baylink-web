@@ -7,6 +7,7 @@ import { octoberRefreshOffers } from '../src/data/october-refresh-offers';
 import { octoberRefreshOpenings } from '../src/data/october-refresh-openings';
 import english from '../src/data/october-refresh-en.json';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const offer = (id: string) => {
   const value = octoberRefreshOffers.find(item => item.id === id);
@@ -23,7 +24,7 @@ test('the reviewed batch has distinct identities, official source links and comp
   assert.deepEqual([...new Set(octoberRefreshOffers.map(item => item.region).filter(Boolean))].sort(), ['east-bay', 'north-bay', 'peninsula', 'sf', 'south-bay']);
   const officialHosts = new Set(['www.sfzoo.org', 'www.hayward-ca.gov', 'www.woodsideca.gov', 'www.ikea.com', 'www.sonomamarintrain.org', 'outreach-foundation.org', 'content.govdelivery.com', 'www.sonomacounty.com']);
   for (const item of all) {
-    assert.equal(item.verifiedAt, '2026-09-30', item.id);
+    assert.equal(item.verifiedAt, batchVerifiedAt(item.id, '2026-09-30'), item.id);
     const url = new URL(item.sourceUrl);
     assert.equal(url.protocol, 'https:');
     assert.ok(officialHosts.has(url.hostname), item.sourceUrl);

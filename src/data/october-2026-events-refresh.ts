@@ -39,7 +39,7 @@ export const october2026NewEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://bayareadiscoverymuseum.org/events/goblin-jamboree/",
     "sourceLabel": "Bay Area Discovery Museum",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "family-workshop"
   },
   {
@@ -206,7 +206,7 @@ export const october2026NewEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://presidio.gov/explore/events/artspan-sf-open-studios-at-sports-basement/2026-10-24",
     "sourceLabel": "Presidio Trust",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "culture-visit"
   },
   {

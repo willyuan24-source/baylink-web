@@ -127,7 +127,7 @@ export const verifiedOffers20261005: FreebieOffer[] = [
     "sourceUrl": "https://www.prnewswire.com/news-releases/petsmart-celebrates-halloween-with-free-in-store-events-including-new-meet-the-spooky-pets-experience-302895172.html",
     "sourceLabel": "PetSmart 官方 2026 万圣节门店活动公告",
     "storeUrl": "https://www.petsmart.com/stores/us/ca/san-jose-store2242.html",
-    "verifiedAt": "2026-10-05",
+    "verifiedAt": "2026-10-21",
     "imageKey": ""
   },
   {

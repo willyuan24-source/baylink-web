@@ -59,7 +59,7 @@ export const novemberNorthGuides: Guide[] = [
       },
       {
         "title": "The MAC：Eames & Eames",
-        "url": "https://napavalleymuseum.org/blogs/upcoming-exhibitions/eames-eames",
+        "url": "https://napavalleymuseum.org/blogs/exhibitions/eames-eames",
         "description": "确认展览在St. Helena，10/17开幕并延续到2027/4/18。"
       },
       {

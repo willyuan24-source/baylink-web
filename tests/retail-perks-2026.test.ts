@@ -9,6 +9,7 @@ import { retailPerksGuides2026 } from '../src/data/guides-retail-perks-2026';
 import { getGuideBySlug } from '../src/data/guides';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { loadLocale, translateText } from '../src/i18n/locale';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const added = [...targetLowesOffers2026, ...familyRetailOffers2026, ...diningRetailOffers2026];
 const patches = { ...targetLowesUpdates2026, ...familyRetailUpdates2026, ...diningRetailUpdates2026 };
@@ -19,7 +20,7 @@ test('reviewed retail records have unique published IDs, working local artwork a
   assert.equal(new Set(added.map(offer => offer.id)).size, added.length);
   for (const offer of added) {
     assert.equal(currentFreebies.filter(item => item.id === offer.id).length, 1, offer.id);
-    assert.equal(offer.verifiedAt, '2026-10-04', offer.id);
+    assert.equal(offer.verifiedAt, batchVerifiedAt(offer.id, '2026-10-04'), offer.id);
     assert.equal(new URL(offer.sourceUrl).protocol, 'https:');
     assert.ok(GUIDE_IMAGES[offer.imageKey] && existsSync(`public${GUIDE_IMAGES[offer.imageKey].src}`), offer.id);
     if (offer.availability === 'dated') {

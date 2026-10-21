@@ -79,7 +79,7 @@ export const dealsOffers20261015: FreebieOffer[] = [
     "imageNote": "亲子手作情境插图，非本场材料、成品或门店现场",
     "sourceUrl": "https://www.lego.com/en-us/stores/events/lbr-26mt-ghost-street",
     "sourceLabel": "LEGO 官方 Ghost Street 搭建活动与条款",
-    "verifiedAt": "2026-10-15"
+    "verifiedAt": "2026-10-21"
   },
   {
     "id": "rei-berkeley-hella-bae-run-oct21-2026",

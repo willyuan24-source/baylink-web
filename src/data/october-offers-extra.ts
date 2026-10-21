@@ -20,7 +20,7 @@ export const additionalOctoberOffers: VerifiedExtraOffer[] = [
     startDate: '2026-10-25', endDate: '2026-10-25', availability: 'dated', kind: 'reservation',
     requirement: '一名 18 岁及以下儿童或青少年随行，最多两位成人享免费普通入馆；加价特展需另购票。',
     description: '官方明确公布 10/25 家庭日，门票提前两周开放，具体节目稍后公布。151 Third Street；不要把这项家庭福利当成所有成人无条件免费日。',
-    imageKey: 'culture-visit', imageNote: '家庭看展主题插图，非 SFMOMA 实景', sourceUrl: 'https://www.sfmoma.org/free-days/', sourceLabel: 'SFMOMA 免费家庭日与成人名额', verifiedAt: '2026-09-15',
+    imageKey: 'culture-visit', imageNote: '家庭看展主题插图，非 SFMOMA 实景', sourceUrl: 'https://www.sfmoma.org/free-days/', sourceLabel: 'SFMOMA 免费家庭日与成人名额', verifiedAt: '2026-10-21',
   },
   {
     id: 'cantor-stanford-free', brand: 'CANTOR ARTS CENTER · STANFORD',
