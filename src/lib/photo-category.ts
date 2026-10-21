@@ -151,7 +151,7 @@ const PRIORITY: readonly Rule[] = [
   ['winter-holidays', /圣诞|christmas|节日灯|灯光|灯饰|灯会|lights|lightscape|glow|winterfest|winterland|姜饼|宽扎|光明节|parol|星灯|节日季|节日游行|点灯|dickens|冬日派对|冬日魔术|节日手作|冬季花环|节日包装|节日绿植|holiday|revels|冬至/i],
   ['night-sky', /观星|星空|starlight|observatory|天文/i],
   ['wine-beer', /品酒|葡萄酒|啤酒|wine walk|oktoberfest|crush|21\+|21岁以上|cider|鸡尾酒|brew|酒庄|面具晚宴/i],
-  ['pumpkin-harvest', /南瓜|(?<!smashing )pumpkin|丰收|harvest|玉米迷宫|收获|hay day|稻草人|烤栗子|old mill/i],
+  ['pumpkin-harvest', /南瓜|pumpkin|丰收|harvest|玉米迷宫|收获|hay day|稻草人|烤栗子|old mill/i],
 ];
 
 const KIDSISH = /儿童|亲子|孩子|幼儿|少年|小小|宝宝|\d+\s*岁|kids|家庭|全家|family|学龄/i;
@@ -222,7 +222,8 @@ export function eventPhotoCategory(event: EventFields): PhotoCategoryId | undefi
   const venue = event.venue ?? '';
   const text = `${title} @ ${venue}`;
   const kidsish = !ADULT.test(title) && (event.category === 'family' || KIDSISH.test(title) || (event.audience ?? []).some(a => KIDSISH.test(a)));
-  const first = firstMatch(PRIORITY, title);
+  // A band name is not a season (The Smashing Pumpkins); no regex look-behind (Safari < 16.4, opus-bay-w9-e-lookbehind).
+  const first = firstMatch(PRIORITY, title.replace(/smashing pumpkins/gi, ''));
   if (first) return first;
   if (event.kind === 'sports') {
     const sport = firstMatch(EVENT_RULES.filter(([id]) => id.startsWith('sports-')), text);
