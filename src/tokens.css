@@ -270,6 +270,10 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 @media (hover:hover) and (pointer:fine) {
   .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=card],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=brand],[class*='3d'],[class*=opus],[class*=inspiration],[class*=mood],[class*='-row'])):hover,
   .site-app .ui-card-link:hover { text-decoration-line:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
+  /* J1 P7 (UI9-R1): a Chinese card title is set in phrase units that are inline blocks (ui.css .title-keep, so a phrase
+     never splits), and an underline does not reach into an inline block: only the loose characters between units were
+     underlined, in pieces. The units draw the same underline themselves while their card link is hovered. */
+  .site-app .ui-card-link:hover .title-keep:not([data-latin]) { text-decoration-line:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
   .site-app :where(:is(button,[role=button],summary,a[class*=button],a[class*=btn]):not(:disabled,.ui-button,.ui-chip,.ui-icon-button):hover) { filter:brightness(.94); }
 }
 .site-app :where(:is(button,[role=button],a[class*=button],a[class*=btn]):not(:disabled):active) { scale:.97; }

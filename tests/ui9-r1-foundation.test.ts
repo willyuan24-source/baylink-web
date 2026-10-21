@@ -159,6 +159,12 @@ test('J1 P7 / N13: one underline (.2em, 1px) and no skip-ink on the hover underl
   tokens.walkRules(rule => { if (rule.selector.includes('.site-app .ui-card-link:hover')) hover = rule.toString(); });
   assert.match(hover, /text-decoration-skip-ink:none/);
   assert.match(hover, /text-underline-offset:var\(--underline-offset\)/);
+  // A Chinese card title's phrase units are inline blocks (ui.css .title-keep), which an underline does not reach into:
+  // they underline themselves while the card link is hovered, on the same offset, so the line is continuous.
+  let units = '';
+  tokens.walkRules(rule => { if (rule.selector === '.site-app .ui-card-link:hover .title-keep:not([data-latin])') units = rule.toString(); });
+  assert.match(units, /text-decoration-line:underline;[^}]*text-underline-offset:var\(--underline-offset\);[^}]*text-decoration-skip-ink:none/);
+  assert.match((tokens.nodes.find(node => node.type === 'atrule' && node.toString().includes('.title-keep:not([data-latin])')) as postcss.AtRule | undefined)?.params ?? '', /\(hover:hover\)/);
   const links = readFileSync('src/components/ui/links.css', 'utf8');
   assert.match(links, /\.ui-link \{[^}]*text-underline-offset:var\(--underline-offset\);[^}]*text-decoration-skip-ink:none/);
   assert.match(links, /\.ui-more \{[^}]*text-underline-offset:var\(--underline-offset\);[^}]*text-decoration-skip-ink:none/);
