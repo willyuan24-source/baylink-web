@@ -12,10 +12,12 @@ const DateFrame = (props: CoverLayout) => <PendingCover {...props} family="date"
 // home route had about 3.9 KiB left): this module starts the chunk as it loads, /events and /calendar wait for it in their
 // `prepare`, and the prerendered pages that draw it preload it, so the first render has it. Node (the prerender and the
 // tests) and the dev server draw it at once.
-const deferred = import.meta.env?.PROD ? deferredFamily(() => import('./cover-date-face').then(module => module.EventTypeCover), DateFrame) : undefined;
+// (Both branches name the family, so the production build folds the condition and drops the static import.)
+const deferred = import.meta.env?.PROD ? deferredFamily(() => import('./cover-date-face').then(module => module.EventTypeCover), DateFrame)
+  : { Family: DateFamily, preload: () => Promise.resolve() };
 /** Loads the date family's chunk (a route's `prepare` awaits it); resolved at once where the family is drawn directly. */
 // eslint-disable-next-line react-refresh/only-export-components
-export const preloadDateFamily = (): Promise<unknown> => deferred?.preload() ?? Promise.resolve();
+export const preloadDateFamily = (): Promise<unknown> => deferred.preload();
 void preloadDateFamily();
 
 /**
@@ -23,7 +25,7 @@ void preloadDateFamily();
  * structured window, the 6–24 h bar (G20); cover-date-face.tsx draws it. Until it is in, the same box and ground.
  */
 export const EventTypeCover = (props: ComponentProps<typeof DateFamily>) => <Family {...props} />;
-const Family: (props: ComponentProps<typeof DateFamily>) => ReactNode = deferred?.Family ?? DateFamily;
+const Family: (props: ComponentProps<typeof DateFamily>) => ReactNode = deferred.Family;
 
 /** An event cover: its photo or poster, or the date family. */
 export function EventCover({ event, today, days, ...slot }: CoverSlot & { event: EventFactsInput; today: string; days?: readonly string[] }) {
