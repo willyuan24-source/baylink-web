@@ -31,6 +31,8 @@ export const homeLeadFor = (today: string, picks: readonly WeekendPick[], leads:
  */
 export function arrangePicks(picks: readonly WeekendPick[], today: string, homeLead: string | undefined, more: readonly IndexEvent[] = []): { lead?: WeekendPick; rows: WeekendPick[] } {
   const rest = picks.filter(pick => pick.event.id !== homeLead);
+  // No picks block (a narrowed list, a share-card landing): no lead either.
+  if (!rest.length) return { rows: [] };
   const lead = rest.find(pick => canLead(pick.event, today));
   if (lead) return { lead, rows: rest.filter(pick => pick !== lead) };
   const event = more.find(item => item.id !== homeLead && !rest.some(pick => pick.event.id === item.id) && canLead(item, today));

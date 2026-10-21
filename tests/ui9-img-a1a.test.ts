@@ -69,3 +69,9 @@ test('the lead rule refuses a close-up face, AI and an information card, and tak
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'weekend', imageKeys: ['weekend', 'roundup-chase-center'] }, context), true, 'a venue photo leads');
   assert.equal(leadsWithPicture({ id: 'x', imageKey: 'official-mcm-halloween-spectacular-20261031' }, context), true);
 });
+
+test('/events: a lead from the ranking only when the picks block shows; a narrowed list has no lead', async () => {
+  const { arrangePicks } = await import('../src/features/events/weekend-lead');
+  const { INDEX_EVENTS } = await import('../src/features/events/events-model');
+  assert.deepEqual(arrangePicks([], '2026-10-21', undefined, INDEX_EVENTS), { rows: [] });
+});
