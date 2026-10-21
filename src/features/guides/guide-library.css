@@ -78,6 +78,7 @@ html[data-simple] .gl-page .gl-call { display:inline-flex; min-height:3rem; }
   html[data-simple] .gl-header .ui-page-header__actions { display:none; }
   :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card { grid-template-columns:4.5rem minmax(0, 1fr) auto; }
   :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card__thumb { width:4.5rem; height:4.5rem; }
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card__title { text-wrap:balance; }
 }
 /* 简洁显示: no lede and no chip row (except in a topic, for 地区); one row per topic instead of the six sections. */
 html[data-simple] .gl-page [data-simple=hide],html[data-simple] .gl-header .ui-page-header__lede { display:none; }

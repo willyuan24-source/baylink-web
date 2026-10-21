@@ -144,6 +144,27 @@ test('G1: a new message toast opens its thread in one tap', async t => {
   assert.equal(other.getByTestId('where').textContent, '/messages');
 });
 
+// UI9-LIVE-CHECK 10-20 (UI9-IMG-A1a): on the home page an expired sign-in signs out quietly; elsewhere the reader is told
+// and offered the sign-in sheet.
+test('an expired sign-in: quiet on the home page, a toast and the sign-in sheet elsewhere', async t => {
+  const home = mount(t, '/', 0);
+  await settle();
+  await act(async () => { window.dispatchEvent(new Event('session-expired')); });
+  await settle();
+  assert.equal(localStorage.getItem(SESSION_KEY), null, 'the expired session is cleared');
+  assert.equal(home.queryByText('登录已过期，请重新登录。'), null, 'no toast on the home page');
+  assert.equal(home.queryByRole('dialog'), null, 'no sign-in sheet on the home page');
+  home.unmount();
+  sockets.length = 0;
+  const guides = mount(t, '/guides', 0);
+  await settle();
+  await act(async () => { window.dispatchEvent(new Event('session-expired')); });
+  await settle();
+  assert.equal(localStorage.getItem(SESSION_KEY), null);
+  assert.ok(guides.getByText('登录已过期，请重新登录。'), 'the toast tells the reader');
+  assert.ok(await guides.findByRole('dialog', {}, { timeout: 5000 }), 'the sign-in sheet opens');
+});
+
 test('G1: the desktop account menu leads with 消息 and its unread count; 我的这周, 设置 and 退出 follow', async t => {
   const view = mount(t, '/guides', 2);
   await settle();

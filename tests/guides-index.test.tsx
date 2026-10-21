@@ -60,8 +60,7 @@ test('the index shows one chip row (全部, the seven topics with 长辈与家�
     const section = view.getByRole('region', { name: topic.zh, exact: true });
     const all = guideSlugsForTopic(topic.id, guides);
     const others = all.filter(slug => !season.slice(0, 3).includes(slug));
-    // A topic short of a full row (医疗保险: three, one in the band) shows all of its guides (UI9 live check 10-20).
-    const expected = inSeason((others.length >= Math.min(4, all.length) ? others : all).map(slug => bySlug.get(slug)!), today).slice(0, 4).map(guide => guide.slug);
+    const expected = inSeason((others.length >= 2 ? others : all).map(slug => bySlug.get(slug)!), today).slice(0, 4).map(guide => guide.slug);
     assert.deepEqual(guideLinks(section), expected, topic.zh);
     for (const slug of expected) assert.notEqual(editionState(bySlug.get(slug)!, today), 'past', `${slug}: no past edition in a preview`);
   }

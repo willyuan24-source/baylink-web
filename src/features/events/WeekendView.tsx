@@ -141,8 +141,6 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   // A card whose manifest did not load lists nothing, so the page falls back to the plain 本周末.
   const listsCard = !!card && strip.status !== 'error';
   const picks = useMemo(() => weekend && !narrowed && !listsCard ? weekendPicks(base, today, { limit: 5 }) : [], [weekend, narrowed, listsCard, base, today]);
-  // H26 / HOMEIA13-03: only picks from the editor's list (src/data/weekend-picks.ts, each with its reason) are 编辑精选.
-  const editorPicks = picks.some(item => item.reason);
   // G15 + the cross-page critic: home's lead is neither the lead nor a pick row here (it returns to the feed below).
   const homeLead = homeLeadFor(today, picks);
   // The weekend in its ranking: the feed below, and where the lead comes from when no pick has a ① or ② picture (DECISIONS 26).
@@ -299,8 +297,10 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     </Suspense>; }}</ChunkBoundary>}
 
     {/* data-cover-credit: the page names the info card once (本页图片来源), so a credited pick's coded cover drops its badge (H12). */}
+    {/* H26 / HOMEIA13-03: 编辑精选 only when the lead is from the editor's list (src/data/weekend-picks.ts, with its reason);
+        a lead from the ranking (DECISIONS 26: no pick has a ① or ② picture) heads the block as 本周末先看. */}
     {arranged.lead && <section className="ev-picks" aria-labelledby="ev-picks-heading" data-cover-credit="">
-      <h2 id="ev-picks-heading" className="ev-section-title ev-picks__title">{editorPicks ? t('编辑精选', 'Editor’s picks') : t('本周末先看', 'This weekend, start here')}</h2>
+      <h2 id="ev-picks-heading" className="ev-section-title ev-picks__title">{arranged.lead.reason ? t('编辑精选', 'Editor’s picks') : t('本周末先看', 'This weekend, start here')}</h2>
       <div className="ev-picks__grid">
         <EventLeadCard event={arranged.lead.event} cover={covers.lead[0]} today={today} days={[arranged.lead.date]}
           kicker={arranged.lead.reason ? t('编辑推荐', 'Editor’s pick') : t('本周末先看', 'This weekend, start here')} reason={arranged.lead.reason ? pick(arranged.lead.reason) : undefined} />
