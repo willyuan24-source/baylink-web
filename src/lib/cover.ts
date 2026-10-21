@@ -144,7 +144,8 @@ const typeCover = (reason: TypeCoverReason, rejectedKey?: string): TypeCoverReso
 
 /**
  * Photo tiers each listing kind may use (content.md §4.1 table). Official images, own shots and ③④ pictures are allowed
- * for all; a venue photo (subject 'venue', approved once per venue, UI9-IMAGES) is 'dated' for every kind.
+ * for all; a venue photo (subject 'venue', approved once per venue, UI9-IMAGES) is 'dated' for every kind that refuses or
+ * dates third-party photos; a place or guide ('any') keeps it as an ordinary photo.
  */
 const THIRD_PARTY_PHOTOS: Record<CoverKind, 'dated' | 'any' | 'none'> = {
   event: 'dated', bulletin: 'dated', place: 'any', guide: 'any',
@@ -170,8 +171,9 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   if (basis === 'stock') return make('stock');
   const use = item.kind === 'event' ? (ctx.contextPhotos ?? eventContextPhotos as ContextPhotos)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
-  // A venue photo is approved once per venue (venue-photos.json, subject 'venue'): any record there may use it.
-  const venue = !!use || image.subject === 'venue';
+  // A venue photo is approved once per venue (venue-photos.json, subject 'venue'): any record there may use it. A place or
+  // guide (third-party photos 'any') shows the same picture as an ordinary photo, so it never ages out there (UI9-IMG-A1a).
+  const venue = !!use || (image.subject === 'venue' && THIRD_PARTY_PHOTOS[item.kind] !== 'any');
   if (use && !use.eventIds.includes(item.id) && image.subject !== 'venue') return { rejected: 'unapproved-reuse' };
   if (!venue && OFFICIAL.has(basis)) return make('official');
   if (basis === 'owner') return make('photo');

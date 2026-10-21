@@ -5,6 +5,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
 import type { WeekendPickEntry } from '../src/data/weekend-picks';
+import type { IndexEvent } from '../src/features/events/events-index-types';
 
 // WEB-FIX5 (Batch 5, audit-1013): the 长辈友好 circle and rule (H06), honest check dates (H02), one-tap region (H23), the
 // picks label (H26), naming (H27), family links on details (H33), view titles (H35), sold-out and past details (H57, H56),
@@ -36,6 +37,7 @@ const { localDiscoveries, discoveryShare } = await import('../src/data/local-dis
 const { LocalDiscoveryDetail } = await import('../src/components/LocalDiscoveryDetail');
 const { buildDetailRecord } = await import('../src/features/detail/build-detail');
 const { WEEKEND_PICKS } = await import('../src/data/weekend-picks');
+const { canLead } = await import('../src/features/events/weekend-lead');
 
 afterEach(() => { cleanup(); localStorage.clear(); });
 after(() => {
@@ -190,10 +192,23 @@ test('H26: 编辑精选 only for an editor list; the automatic ranking is 本周
   while (editorPicks[saturday] || !ranked(saturday).length) { saturday = addDays(saturday, 7); assert.ok(saturday <= '2026-12-26', 'a weekend without a list'); }
   const tuesday = addDays(saturday, -4);
   assert.equal(heading(tuesday), '本周末先看', `${saturday} has no editor list`);
-  // The same weekend with an editor list (two of the ranking's own events) is 编辑精选.
-  editorPicks[saturday] = ranked(saturday).slice(0, 2).map(pick => ({ id: pick.event.id, reason: { zh: '测试理由', en: 'Test reason' } }));
+  // The same weekend with an editor list (three of the ranking's own events that can lead) is 编辑精选.
+  const listOf = (events: readonly IndexEvent[]) => events.slice(0, 3).map(item => ({ id: item.id, reason: { zh: '测试理由', en: 'Test reason' } }));
+  const weekend = model.weekendPicks(model.INDEX_EVENTS, tuesday, { picks: {}, limit: 99 }).map(pick => pick.event);
+  const leaders = weekend.filter(item => canLead(item, tuesday));
+  const others = weekend.filter(item => !canLead(item, tuesday));
+  assert.ok(leaders.length >= 3 && others.length >= 2, `${saturday}: events that can and cannot lead`);
+  editorPicks[saturday] = listOf(leaders);
   try {
     assert.equal(heading(tuesday), '编辑精选', `${saturday} with an editor list`);
+    // DECISIONS 26: when no editor pick has a ① or ② picture the lead comes from the ranking; it is not an editor pick, so
+    // the block is 本周末先看 (the picks stay as rows under it).
+    editorPicks[saturday] = listOf(others);
+    const page = ssr(tuesday);
+    assert.equal(page.querySelector('#ev-picks-heading')?.textContent, '本周末先看', `${saturday}: a lead from the ranking`);
+    const links = [...page.querySelectorAll('.ev-picks a[href^="/events/"]')].map(link => link.getAttribute('href'));
+    // Every editor pick stays in the block as a row (home's lead, if it is one of them, returns to the feed: G15).
+    assert.ok(others.slice(0, 3).filter(item => links.includes(`/events/${item.id}`)).length >= 2, 'the editor picks stay in the block as rows');
   } finally {
     delete editorPicks[saturday];
   }

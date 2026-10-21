@@ -116,7 +116,9 @@ test('the home stylesheet: font sizes, radii and shadows from tokens only; the 3
   assert.equal(createHash('sha256').update(postcard).digest('hex').slice(0, 16), POSTCARD_RULES_SHA, postcard);
 });
 
-const POSTCARD_RULES_SHA = '71c2b5cfeeb61ad0';
+// UI9-IMG-A1a: + one rule letting the strip's label wrap on a phone (「3D scene ill…」, UI9 live check 10-20); the art's own rules
+// (size, crop, place) are unchanged, and the postcard pixels with them.
+const POSTCARD_RULES_SHA = 'f391a71deb13491f';
 
 test('the coded-cover note is printed once, in the credits line, exactly when the page shows a coded cover', () => {
   const typeCover = { tier: 'type', reason: 'no-image', label: { zh: '信息卡', en: 'Info card' } } as const;

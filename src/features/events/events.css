@@ -92,10 +92,11 @@ html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .ev-tabs 
 /* Card anatomy (G18): the title, then line 1 (RowCard prints its date line first elsewhere). */
 .ev-page .ui-row-card__date { order:0; color:var(--color-ink); }
 @media (min-width:768px) { .ev-rows { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); column-gap:var(--grid-gutter); } }
-/* ♡ on a row (the 大 / 特大 feed, the desktop pick rows): the cards' 44 px icon circle, under the thumbnail, so the title and
-   both meta lines keep the row's whole width. */
-.ev-page .ui-row-card:has(>.ui-row-card__trailing .saves-control) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body" "trailing body"; }
-.ev-page .ui-row-card__trailing:has(.saves-control) { align-self:start; justify-self:start; }
+/* ♡ on a row (the 大 / 特大 feed, the desktop pick rows, the boards): the cards' 44 px icon circle on the thumbnail's top-right
+   corner, as on every card (UI9-IMAGES: ♡ top-right of the picture), so the title and both meta lines keep the row's width. */
+.ev-page .ui-row-card:has(>.ui-row-card__trailing .saves-control) { grid-template-columns:7rem minmax(0, 1fr); grid-template-areas:"thumb body"; }
+.ev-page .ui-row-card__trailing:has(.saves-control) { grid-area:thumb; align-self:start; justify-self:end; margin:var(--sp-1); }
+.ev-page .ui-row-card__trailing .saves-control { margin:0; }
 .ev-page .ui-row-card__trailing .saves-control .saves-toggle { justify-content:center; gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-color:transparent; border-radius:var(--r-circle); font-size:0; }
 
 /* B · 本周末全部活动: the H2 and "找到 n 场" on one line, then the rails. */
@@ -213,7 +214,6 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
 .ev-week__day[aria-pressed=true] .ev-week__weekday { color:var(--color-ink); }
 .ev-week__day:focus-visible,.ev-month__day:focus-visible,.ev-week__range:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 @media (max-width:767px) { html:is([data-reading=large],[data-reading=extra-large]) .ev-week__date { min-width:2rem; height:2rem; padding:0; font-size:var(--fs-keep-18); } }
-@media (min-width:1024px) { .ev-week { max-width:40rem; } }
 .ev-calendar__head { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2) var(--sp-3); margin:0 0 var(--stack-head); }
 .ev-calendar__head .ev-section-title { margin:0; }
 .ev-calendar__count { color:var(--color-ink-2); font-size:var(--fs-section); font-weight:400; }

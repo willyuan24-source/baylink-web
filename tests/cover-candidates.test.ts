@@ -36,7 +36,7 @@ test('with today’s empty tables every record keeps exactly its own image (A0 c
 
 test('the reviewed tables are well formed and point at registered pictures of the right kind', () => {
   for (const venue of COVER_TABLES.venues) {
-    assert.ok(venue.id && venue.name && venue.match.length && venue.ownerQuote && /^\d{4}-\d{2}-\d{2}$/.test(venue.approvedAt), venue.id);
+    assert.ok(venue.id && venue.name && venue.match.length && (venue.ownerQuote || venue.approvalRecord) && /^\d{4}-\d{2}-\d{2}$/.test(venue.approvedAt), venue.id);
     for (const key of venue.imageKeys) assert.equal(GUIDE_IMAGES[key]?.subject, 'venue', `${venue.id}: ${key}`);
   }
   for (const [category, keys] of Object.entries(COVER_TABLES.categories)) {

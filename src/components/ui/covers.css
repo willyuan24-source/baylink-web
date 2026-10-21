@@ -62,7 +62,7 @@
 .tc-cal__time { padding:0 var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .tc-bar { position:relative; height:var(--sp-3); border-radius:var(--r-sm); background:var(--color-line); }
 .tc-bar>b { position:absolute; top:0; bottom:0; left:var(--tb-from); width:var(--tb-span); min-width:var(--sp-1); border-radius:var(--r-sm); background:var(--tc-deep); }
-.tc-bar__ticks { display:flex; justify-content:space-between; margin-top:calc(-1 * var(--sp-1)); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.tc-bar__ticks { display:flex; justify-content:space-between; margin-top:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 
 /* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right; the value breaks between
    words (hyphenated in English). */
