@@ -155,7 +155,8 @@ test('the live catalog: no AI or theme photo on any event, offer or opening; Fle
   assert.equal(cover.label.zh, '资料图 · 2024');
   for (const offer of currentFreebies) {
     const resolved = getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today });
-    if (resolved.tier !== 'type') assert.equal(resolved.tier, 'official', offer.id);
+    // The brand's own image, or its venue's photo (②, src/data/venue-photos.json; UI9-IMG-A1a).
+    if (resolved.tier !== 'type') assert.ok(resolved.tier === 'official' || resolved.tier === 'venue', `${offer.id}: ${resolved.tier}`);
   }
   for (const opening of currentOpenings) {
     const resolved = getCover({ kind: 'opening', id: opening.id, imageKey: opening.imageKey }, { images: GUIDE_IMAGES, today });
