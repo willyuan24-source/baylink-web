@@ -13,6 +13,7 @@ import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { listingImageKeys } from '../src/lib/cover-candidates';
+import { captionSignal } from './events-index-images';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
@@ -140,7 +141,10 @@ const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).m
 // photo would be an information card anyway), with the fields getCover, the badge and the credits read; the rights
 // prose becomes its basis, which is all the ladder and the badge use from it.
 const IMAGE_FIELDS = ['src', 'srcSet', 'width', 'height', 'alt', 'kind', 'fullFrame', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'lqip', 'shotAt', 'photoDate', 'ownShot', 'coverOk', 'focal', 'scene3d', 'subject', 'aiCoverApproved'];
-const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), rights: { basis: rightsBasisOf(image as CoverAsset) } });
+// The caption as its signal (the capture year, an edition, 资料, 产品图; scripts/events-index-images.ts captionSignal): no home
+// card or /plan pick prints a caption, the badge and the year read only that, and the sentence (with its English in the
+// home's dictionary scope) was most of an image's bytes (UI9-IMG-A1a: the venue photos it adds cost the home nothing).
+const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), caption: captionSignal(image.caption), rights: { basis: rightsBasisOf(image as CoverAsset) } });
 const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, slimImage(GUIDE_IMAGES[key])] as const),
   ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, slimImage(image)] as const)]);
 const scene3d = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-golden-gate-fog']);
