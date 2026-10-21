@@ -138,9 +138,10 @@ test('EventCover shows the resolved photo with its provenance chip and nothing e
   cleanup();
   // An AI illustration the owner has not approved (src/data/ai-cover-approvals.json) is skipped for the next candidate
   // (UI9-IMAGES ④); with none left the date family draws until A1.
-  const next = getCover({ kind: 'event', id: 'fleet', imageKeys: ['weekend', 'dvids-blue-angels-sffw-2024'] }, { images: GUIDE_IMAGES, today });
+  // ('settling' is not among the owner's 2026-10-21 approvals.)
+  const next = getCover({ kind: 'event', id: 'fleet', imageKeys: ['settling', 'dvids-blue-angels-sffw-2024'] }, { images: GUIDE_IMAGES, today });
   assert.equal(next.tier !== 'type' && next.key, 'dvids-blue-angels-sffw-2024', 'the unapproved AI candidate moves on to the next one');
-  const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'weekend' }, { images: GUIDE_IMAGES, today })} />);
+  const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'settling' }, { images: GUIDE_IMAGES, today })} />);
   assert.equal(typed.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date', 'no candidate left: the date family');
   assert.equal(typed.container.querySelector('img'), null);
   cleanup();

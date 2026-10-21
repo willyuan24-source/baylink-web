@@ -11,6 +11,9 @@ Object.assign(globalThis, { window: dom.window, document: dom.window.document, H
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
 const { CLOSE_UP_FACE_IMAGES, RELEASED_CLOSE_UPS, leadImageKey } = await import('../src/lib/close-up-faces');
 const weekendLead = await import('../src/features/events/weekend-lead');
+const { GUIDE_IMAGES } = await import('../src/data/guide-media');
+const { coverItemFor, getCover } = await import('../src/lib/cover');
+const { leadItem, leadsWithPicture } = await import('../src/lib/lead-rule');
 const { StaticRouter } = await import('react-router-dom');
 const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
 
@@ -28,6 +31,18 @@ test('DECISIONS 15: one list for every lead slot; a face photo never leads, it s
   assert.equal(CLOSE_UP_FACE_IMAGES.has('official-r2-petaluma-lumafest-20261024'), false);
   assert.equal(leadImageKey('official-r2-petaluma-lumafest-20261024'), 'official-r2-petaluma-lumafest-20261024');
   for (const key of CLOSE_UP_FACE_IMAGES) assert.equal(leadImageKey(key), undefined, `${key}: an unreleased close-up never leads`);
+  // DECISIONS 24: an AI illustration the owner approved as a ④ cover shows on a card but never leads. The lead rule holds that
+  // (lib/lead-rule.ts: cover.ts refuses ④ on a lead), not this list, which keeps close-ups only.
+  const approvals = JSON.parse(readFileSync('src/data/ai-cover-approvals.json', 'utf8')).approvals as { key: string }[];
+  assert.ok(approvals.length > 0, 'the owner approved AI covers on 2026-10-21');
+  for (const { key } of approvals) {
+    const record = { id: `x-${key}`, imageKey: key };
+    const context = { images: GUIDE_IMAGES, today: '2026-10-21' };
+    assert.equal(CLOSE_UP_FACE_IMAGES.has(key), false, `${key}: not on the close-up list`);
+    assert.equal(getCover(coverItemFor('event', record), context).tier, 'ai', `${key}: an approved AI cover shows on a card`);
+    assert.notEqual(getCover(leadItem(record), context).tier, 'ai', `${key}: an approved AI cover never leads`);
+    assert.equal(leadsWithPicture(record, context), false, `${key}: an approved AI cover never leads`);
+  }
   assert.equal(leadImageKey(undefined), undefined);
   assert.equal(leadImageKey('official-mcm-halloween-spectacular-20261031'), 'official-mcm-halloween-spectacular-20261031');
   // The home catalog no longer drops the photo (the acceptance review: /plan's 本周末精选 lost it); only the lead skips it.
