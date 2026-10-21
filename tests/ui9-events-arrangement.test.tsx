@@ -20,6 +20,7 @@ const { EventsView } = await import('../src/components/EventsView');
 const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const model = await import('../src/features/events/events-model');
 const { arrangePicks, homeLeadFor, canLead, CLOSE_UP_FACE_IMAGES, leadImageKey } = await import('../src/features/events/weekend-lead');
+const { RELEASED_CLOSE_UPS } = await import('../src/lib/close-up-faces');
 const { dayWhenLine } = await import('../src/features/events/event-lines');
 const { ImageCredits } = await import('../src/features/events/ImageCredits');
 const { FeedGrid } = await import('../src/components/ui/FeedGrid');
@@ -54,10 +55,12 @@ test('the index carries home\'s lead per day, and the /events lead and pick rows
   assert.notEqual(lead!.event.id, home, 'never home\'s lead');
   assert.ok(!rows.some(item => item.event.id === home), 'home\'s lead is no pick row');
   assert.ok(!CLOSE_UP_FACE_IMAGES.has(lead!.event.imageKey), 'no close-up face leads');
-  // A pick whose photo shows close-up faces never leads, even when it is first.
-  const face = { ...picks[0], event: { ...picks[0].event, id: 'x-face', imageKey: [...CLOSE_UP_FACE_IMAGES][0] } };
-  assert.equal(canLead(face.event, today), false);
-  assert.notEqual(arrangePicks([face, ...picks.slice(1)], today, 'none').lead?.event.id, 'x-face');
+  // A pick whose photo shows close-up faces never leads, even when it is first (none left unreleased since 2026-10-21).
+  for (const imageKey of [...CLOSE_UP_FACE_IMAGES].slice(0, 1)) {
+    const face = { ...picks[0], event: { ...picks[0].event, id: 'x-face', imageKey } };
+    assert.equal(canLead(face.event, today), false);
+    assert.notEqual(arrangePicks([face, ...picks.slice(1)], today, 'none').lead?.event.id, 'x-face');
+  }
   // With no entry for the day, the first weekend pick is home's lead.
   assert.equal(homeLeadFor('2099-01-01', picks, {}), picks[0].event.id);
 });
@@ -336,7 +339,9 @@ test('/calendar: the week range opens the sheet, the day head carries 列表 | �
 });
 
 test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferry Plaza vendor led 10/20, 10/22, 10/27, 10/29)', () => {
-  assert.ok(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'));
+  // The owner released the Ferry Plaza photo with the other five flagged close-ups in chat on 2026-10-21 (「圖片全部批准」).
+  assert.ok(RELEASED_CLOSE_UPS.has('official-ferry-plaza-farmers-market-2026-autumn'));
+  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-ferry-plaza-farmers-market-2026-autumn'), false);
   const byId = new Map(model.INDEX_EVENTS.map(event => [event.id, event]));
   let faceDays = 0;
   for (let offset = 0; offset < 7; offset++) {
@@ -353,9 +358,9 @@ test('/calendar: a close-up face photo never leads a day (DECISIONS 15: the Ferr
     if (lead && CLOSE_UP_FACE_IMAGES.has(lead.imageKey)) assert.equal(card!.querySelector('img'), null, `${day}: ${lead.id} leads with its face photo`);
     cleanup();
   }
-  // Ferry Plaza runs Tuesday, Thursday and Saturday through the autumn, so the week from the gate day holds face days.
-  if (today <= '2026-10-29') assert.ok(faceDays > 0, 'the week tested has a day with a face photo on it');
-  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), undefined, 'a face photo leads as the type cover');
+  // Released close-ups count as no face days: the list of unreleased ones is empty since 2026-10-21.
+  assert.equal(faceDays, 0, 'no unreleased close-up runs in the week tested');
+  assert.equal(leadImageKey('official-ferry-plaza-farmers-market-2026-autumn'), 'official-ferry-plaza-farmers-market-2026-autumn', 'a released photo leads as itself');
   assert.equal(leadImageKey('official-danville-scarecrow-stroll-2026'), 'official-danville-scarecrow-stroll-2026');
 });
 

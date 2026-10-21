@@ -324,7 +324,7 @@ for (const image of Object.values(GUIDE_IMAGES)) {
  * only a chat approval counts; a pre-ticked review page does not). `for` names the records (`kind:id`) or categories
  * (`category:<id>`) it may cover; coverCandidates() reads it. Only these keys get `aiCoverApproved`.
  */
-export type AiCoverApproval = { key: string; ownerQuote: string; approvedAt: string; for?: string[] };
+export type AiCoverApproval = { key: string; ownerQuote: string; approvedAt: string; page?: string; for?: string[] };
 export const AI_COVER_APPROVALS: readonly AiCoverApproval[] = (aiCoverApprovals as { approvals: AiCoverApproval[] }).approvals;
 for (const { key } of AI_COVER_APPROVALS) {
   const image = GUIDE_IMAGES[key];

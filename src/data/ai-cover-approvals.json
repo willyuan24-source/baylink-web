@@ -1,4 +1,24 @@
 {
-  "_format": "UI9-IMAGES DECISIONS 22 ④ / 25: AI illustrations the owner approved IN CHAT as listing covers. A pre-ticked review page or no reply is not approval. One entry per image key: { \"key\": GUIDE_IMAGES key (kind 'illustration'), \"ownerQuote\": the owner's own words, verbatim, \"approvedAt\": \"YYYY-MM-DD\", \"for\": optional [\"event:<id>\" | \"offer:<id>\" | \"opening:<id>\" | \"guide:<slug>\" | \"category:<photo category id>\"] }. guide-media.ts sets aiCoverApproved on these keys only; cover.ts lets no other AI illustration be a cover. Never the home lead, never a share card. The quote also goes into docs/*-media-sources-*.md.",
-  "approvals": []
+  "_format": "UI9-IMAGES DECISIONS 22 ④ / 25: AI illustrations the owner approved IN CHAT as listing covers. A pre-ticked review page or no reply is not approval. One entry per image key: { \"key\": GUIDE_IMAGES key (kind 'illustration'), \"ownerQuote\": the owner's own words, verbatim, \"approvedAt\": \"YYYY-MM-DD\", \"page\": the approval page it was shown on, \"for\": optional [\"event:<id>\" | \"offer:<id>\" | \"opening:<id>\" | \"guide:<slug>\" | \"category:<photo category id>\"] }. guide-media.ts sets aiCoverApproved on these keys only; cover.ts lets no other AI illustration be a cover. Never the home lead, never a share card. The quote also goes into docs/*-media-sources-*.md.",
+  "approvals": [
+    {"key": "weekend", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "autumn-neighbors", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "culture-visit", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "november-community", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "everyday", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "garden-walk", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "family-workshop", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "community-library-card", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "november-stargazing", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "refresh-makers", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "cinema-night", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "event-piano", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "neighborhood-table", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "november-theater", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "october-library-culture", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "outdoor-cinema", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "refresh-music", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "refresh-pets", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"},
+    {"key": "secondhand-check", "ownerQuote": "圖片全部批准", "approvedAt": "2026-10-21", "page": "opus-qa/overhaul/lanes/UI9-IMG-B1a/approval-b1a-1021.html"}
+  ]
 }

@@ -9,7 +9,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { CLOSE_UP_FACE_IMAGES, leadImageKey } = await import('../src/lib/close-up-faces');
+const { CLOSE_UP_FACE_IMAGES, RELEASED_CLOSE_UPS, leadImageKey } = await import('../src/lib/close-up-faces');
 const weekendLead = await import('../src/features/events/weekend-lead');
 const { StaticRouter } = await import('react-router-dom');
 const { HomeDiscovery } = await import('../src/components/HomeDiscovery');
@@ -23,25 +23,35 @@ const home = (day: string) => new JSDOM(renderToStaticMarkup(React.createElement
 test('DECISIONS 15: one list for every lead slot; a face photo never leads, it stays a card\'s photo', () => {
   assert.equal(weekendLead.CLOSE_UP_FACE_IMAGES, CLOSE_UP_FACE_IMAGES, '/events and /calendar use the shared list');
   assert.equal(weekendLead.leadImageKey, leadImageKey);
-  assert.ok(CLOSE_UP_FACE_IMAGES.has('official-r2-petaluma-lumafest-20261024'), 'LumaFest (four volunteers posing) is on it');
-  assert.equal(leadImageKey('official-r2-petaluma-lumafest-20261024'), undefined);
+  // The owner released all six flagged close-ups in chat on 2026-10-21 (「圖片全部批准」, UI9-IMG-B1b): they lead like any photo.
+  assert.ok(RELEASED_CLOSE_UPS.has('official-r2-petaluma-lumafest-20261024'), 'LumaFest (four volunteers posing) was flagged and released');
+  assert.equal(CLOSE_UP_FACE_IMAGES.has('official-r2-petaluma-lumafest-20261024'), false);
+  assert.equal(leadImageKey('official-r2-petaluma-lumafest-20261024'), 'official-r2-petaluma-lumafest-20261024');
+  for (const key of CLOSE_UP_FACE_IMAGES) assert.equal(leadImageKey(key), undefined, `${key}: an unreleased close-up never leads`);
   assert.equal(leadImageKey(undefined), undefined);
   assert.equal(leadImageKey('official-mcm-halloween-spectacular-20261031'), 'official-mcm-halloween-spectacular-20261031');
   // The home catalog no longer drops the photo (the acceptance review: /plan's 本周末精选 lost it); only the lead skips it.
   assert.doesNotMatch(readFileSync('scripts/generate-home-catalog.ts', 'utf8'), /CLOSE_UP_FACE_IMAGES/);
 });
 
-test('DECISIONS 15: the home lead draws its type cover for a face photo, the catalog and /plan keep the photo', () => {
+test('DECISIONS 15/26: the home lead draws its type cover for an unreleased face photo, a released one shows its photo', () => {
   const byId = new Map(catalog.events.map(event => [event.id, event]));
-  const faceDays = Object.keys(catalog.weekends).sort().filter(day => {
+  const leadDays = (keys: ReadonlySet<string>) => Object.keys(catalog.weekends).sort().filter(day => {
     const lead = byId.get(catalog.weekends[day].ids[0] ?? '');
-    return !!lead?.imageKey && CLOSE_UP_FACE_IMAGES.has(lead.imageKey);
+    return !!lead?.imageKey && keys.has(lead.imageKey);
   });
   // LumaFest led the home from 10/20 to 10/24 until Claude's 10-21 weekly review put Cherryland's storytimes first (UI9-IMAGES
-  // DECISIONS 26: a lead needs a ① or ② image that may lead), so only a catalog built before 10-21 must have such days; the
-  // type-cover path below runs whenever a face photo would lead.
-  if (catalog.generatedAt < '2026-10-21') assert.ok(faceDays.length > 0, 'the gate-day catalog has a face-photo lead');
-  for (const day of faceDays.slice(0, 1)) {
+  // DECISIONS 26: a lead needs a ① or ② image that may lead). The owner released LumaFest's photo and the five other close-ups
+  // on 10-21, so a day whose lead is one of them shows the photo; the type-cover path below runs only for a flagged close-up
+  // the owner has not released (none since 10-21), whenever one would lead.
+  const releasedDays = leadDays(RELEASED_CLOSE_UPS);
+  for (const day of releasedDays.slice(0, 1)) {
+    const lead = byId.get(catalog.weekends[day].ids[0])!;
+    const first = home(day).querySelector('.home-picks__list>li:first-child')!;
+    assert.ok(first.querySelector('img'), `${day}: the lead shows ${lead.imageKey}, released by the owner`);
+    assert.equal(first.querySelector('[data-cover=type]'), null, `${day}: no type cover in the lead`);
+  }
+  for (const day of leadDays(CLOSE_UP_FACE_IMAGES).slice(0, 1)) {
     const lead = byId.get(catalog.weekends[day].ids[0])!;
     assert.ok(lead.imageKey! in catalog.images, `${day}: the catalog keeps ${lead.imageKey} for the feed and /plan`);
     const first = home(day).querySelector('.home-picks__list>li:first-child')!
