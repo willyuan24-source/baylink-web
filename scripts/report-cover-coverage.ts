@@ -96,8 +96,10 @@ for (let n = 0; n < DAYS; n++) {
   const base = EVENTS.filter(event => weekendDays.some(d => nextOccurrence(event, d) === d));
   const picks = weekendPicks(base, day, { limit: 5 });
   const homeLead = homeLeadFor(day, picks);
-  const arranged = arrangePicks(picks, day, homeLead);
-  const ranked = featurePhotos(weekendRanked(base, day), event => hasRealCover('event', event, day));
+  // As the page: no pick with a ① or ② picture → the weekend's first in the ranking that has one leads (DECISIONS 26).
+  const order = weekendRanked(base, day);
+  const arranged = arrangePicks(picks, day, homeLead, order);
+  const ranked = featurePhotos(order, event => hasRealCover('event', event, day));
   const pickEvents = arranged.rows.slice(0, 3).map(pick => pick.event);
   const fill = Math.max(0, (arranged.lead ? 3 : 0) - pickEvents.length);
   const taken = new Set([...(arranged.lead ? [arranged.lead.event.id] : []), ...pickEvents.map(event => event.id)]);
