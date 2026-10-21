@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from 'react';
+import { lazy, Suspense, type ComponentType, type CSSProperties, type ReactNode } from 'react';
 import './ui.css';
 import './covers.css';
 import './cards.css';
@@ -96,12 +96,13 @@ export type CoverLayout = {
   tone?: CoverTone;
 };
 
-const HAN = /[㐀-鿿]/;
-/** `lang="en"` for a Latin line on a Chinese page. */
 /** The empty frame a deferred cover shows until its family is in (same box and ground as the family's own frame). */
 export function PendingCover({ family, ratio, ratioLock, size, className }: CoverLayout & { family: CoverFamily }) {
   return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden="true" />;
 }
+
+const HAN = /[㐀-鿿]/;
+/** `lang="en"` for a Latin line on a Chinese page. */
 export const latinLang = (text: string) => HAN.test(text) ? undefined : 'en';
 
 /**
@@ -117,4 +118,24 @@ export function TypeFrame({ family, kind, mark, keyFact, tone, ratio, ratioLock,
     {size !== 'mini' && <ProvenanceBadge label={typeCoverProvenance(english)} />}
     {children}
   </div>;
+}
+
+/**
+ * A cover family whose code loads after the page (UI9-IMG-A0; captain decision 9: route JS ≤ base). `preload()` starts the
+ * chunk: a route's `prepare` awaits it (events, calendar), the module that draws it starts it as it loads, and the
+ * prerendered page preloads the chunk (scripts/prerender.tsx). Once the chunk is in, the family renders directly, so a
+ * page that waited for it, or comes after it, never shows the empty frame; until then the frame stands in (same box, same
+ * ground) inside its own boundary, and a failed load keeps it. It lives with PendingCover, in a chunk every cover route has.
+ */
+// eslint-disable-next-line react-refresh/only-export-components
+export function deferredFamily<P extends object>(load: () => Promise<ComponentType<P>>, Frame: ComponentType<P>) {
+  let ready: ComponentType<P> | undefined;
+  let pending: Promise<ComponentType<P>> | undefined;
+  const preload = () => pending ??= load().then(face => (ready = face), () => Frame);
+  const Lazy = lazy(() => preload().then(face => ({ default: face }))) as unknown as ComponentType<P>;
+  const Family = (props: P) => {
+    const Ready = ready;
+    return Ready ? <Ready {...props} /> : <Suspense fallback={<Frame {...props} />}><Lazy {...props} /></Suspense>;
+  };
+  return { Family, preload };
 }

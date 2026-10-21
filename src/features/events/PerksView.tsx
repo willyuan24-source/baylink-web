@@ -14,6 +14,11 @@ import { ImageCredits } from './ImageCredits';
 import { OptionSheetFilter, RegionFilter } from './RegionFilter';
 import { useBoardMode, useSetRegion } from './board-mode';
 import './boards.css';
+import { preloadCoverFamilies } from '../../components/ui/cover-defer';
+
+/** EventsFrame loads this board's info-card family with the board, before its first render (UI9-IMG-A0). */
+// eslint-disable-next-line react-refresh/only-export-components
+export const preloadCovers = () => preloadCoverFamilies(['ticket']);
 
 /** "再看 N 条" adds this many to a section. */
 const MORE = 12;

@@ -7,18 +7,14 @@ import { columnFor, resolveWhen } from '../features/events/events-model';
 import { loadForLocation } from '../features/events/events-later';
 import type { Locale } from '../i18n/locale';
 import { preloadDateFamily } from '../components/ui/cover-date';
-import { preloadCoverFamilies } from '../components/ui/cover-defer';
 
 /**
  * At boot (route-loaders.ts): a link to dates past the route's own (十二月, 全部日期) waits for the rest of the catalog, and the
- * view's info-card family loads first (UI9-IMG-A0), so the first render draws its covers, not their empty frames.
+ * date family loads first (UI9-IMG-A0), so the first render draws its covers, not their empty frames (the 免费与优惠 and
+ * 新店 boards wait for their own families: EventsFrame.tsx).
  */
 // eslint-disable-next-line react-refresh/only-export-components
-export const prepare = (search: string, locale: Locale) => {
-  const view = new URLSearchParams(search).get('view');
-  return Promise.all([loadForLocation('events', search, locale), preloadDateFamily(),
-    preloadCoverFamilies(view === 'perks' ? ['ticket'] : view === 'openings' ? ['shop'] : [])]);
-};
+export const prepare = (search: string, locale: Locale) => Promise.all([loadForLocation('events', search, locale), preloadDateFamily()]);
 
 /**
  * /events (活动, 本周末 first). The prerender renders EventsView and links this chunk's stylesheet (features/events/events.css).
