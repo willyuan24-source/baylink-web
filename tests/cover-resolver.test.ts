@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createCoverPage, getCover, resolveCovers, rightsBasisOf, type CoverAsset, type CoverItem } from '../src/lib/cover';
 import * as coverModule from '../src/lib/cover';
+import { assertPoolSpacing } from './support/cover-spacing';
 import { getImageProvenance } from '../src/lib/image-provenance';
 import { GUIDE_IMAGES } from '../src/data/guide-media';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
@@ -152,9 +153,11 @@ test('the live catalog: no unapproved AI or theme photo on any event, offer or o
     if (cover.tier !== 'type' && cover.image.kind === 'illustration') assert.ok(cover.tier === 'ai' && cover.image.aiCoverApproved, live[index].id);
     assert.match(cover.label.zh, vocabulary, live[index].id);
   });
-  // ①② files once per page; a ④ pool picture may repeat 6 or more cards apart (cover.ts ADJACENT_CARDS).
+  // ①② files once per page; a ③④ pool picture may repeat only ADJACENT_CARDS or more cards apart (cover.ts).
   const sources = covers.flatMap(cover => cover.tier === 'type' || cover.tier === 'ai' ? [] : [cover.image.src]);
   assert.equal(new Set(sources).size, sources.length, 'one page, no repeated file');
+  const pool = new Set(covers.flatMap(cover => cover.tier === 'ai' ? [cover.image.src] : []));
+  assertPoolSpacing(covers.map(cover => cover.tier === 'type' ? null : cover.image.src), pool, 'the live catalog');
   const fleetWeek = live.find(item => item.imageKey === 'dvids-blue-angels-sffw-2024');
   assert.ok(fleetWeek, 'the Fleet Week event is live');
   const cover = getCover({ kind: 'event', id: fleetWeek.id, imageKey: fleetWeek.imageKey }, { images: GUIDE_IMAGES, today });

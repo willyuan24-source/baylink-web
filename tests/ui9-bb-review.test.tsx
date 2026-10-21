@@ -43,11 +43,18 @@ const CARDS = [
   { kind: 'event', id: 'mountain-view-oktoberfest-2026', title: 'Mountain View Oktoberfest', url: '/events/mountain-view-oktoberfest-2026', summary: '', date: '2026-10-10', temporalStatus: 'upcoming' },
   { kind: 'offer', id: 'apple-kids-earth-comics', title: '免费亲子课：用 iPad 做地球主题漫画', url: '/offers/apple-kids-earth-comics', summary: '' },
 ] as const;
+// 简洁's two rows: a photo, then an event with no picture of its own, so one row is always the type cover's mini family
+// (until A1b gives a picture-less record its category photo ③; then pick a record whose category has no photo).
+const SIMPLE_CARDS = [
+  CARDS[0],
+  { kind: 'event', id: 'san-mateo-shred-ewaste-october-2026', title: '居民免费碎纸与电子垃圾回收日', url: '/events/san-mateo-shred-ewaste-october-2026', summary: '', date: '2026-10-10', temporalStatus: 'upcoming' },
+  CARDS[1],
+] as const;
 
 test('简洁显示: at most two row cards, no ♡; a photo keeps its provenance as the credit line, a type cover is the mini family; every row has its ✓ line', async () => {
   await act(async () => { setSimpleDisplay(true); });
-  const models = bayBayCardModels(CARDS as never, TODAY);
-  const view = render(<BayBayCardRailView cards={CARDS as never} today={TODAY} onNavigate={noop} />);
+  const models = bayBayCardModels(SIMPLE_CARDS as never, TODAY);
+  const view = render(<BayBayCardRailView cards={SIMPLE_CARDS as never} today={TODAY} onNavigate={noop} />);
   const list = view.container.querySelector('.bb-cards')!;
   assert.equal(list.getAttribute('data-layout'), 'rows');
   const rows = [...list.querySelectorAll('.ui-row-card')];
@@ -66,10 +73,7 @@ test('简洁显示: at most two row cards, no ♡; a photo keeps its provenance 
     assert.match(check?.textContent || '', /^官网核对 \d{1,2}\/\d{1,2}$/, `${model.key}: the ✓ line stays (decisions 3, 17)`);
     assert.ok(check?.querySelector('svg'), 'with the check mark');
   });
-  // The second card's own picture is an AI illustration the owner approved as a ④ cover on 2026-10-21; before that it was a
-  // type cover. Either way it is credited as above.
-  assert.equal(models[0].cover.tier === 'type', false, 'the fixture covers a photo');
-  assert.ok(models[1].cover.tier === 'type' || models[1].cover.tier === 'ai', 'and a type cover or an approved AI cover');
+  assert.deepEqual(models.slice(0, 2).map(model => model.cover.tier === 'type'), [false, true], 'the fixture covers a photo and a type cover');
 });
 
 test('the ✓ line reads 媒体报道 · M/D 核对 for a press source on events, offers and openings; 官网核对 otherwise', () => {

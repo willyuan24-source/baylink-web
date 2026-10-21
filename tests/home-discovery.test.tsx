@@ -10,6 +10,7 @@ import { addCalendarDays, eventOccursOn } from '../src/lib/event-calendar';
 import { MONTHLY_EVENTS as COMPLETE_EVENTS } from '../src/data/monthly-edition';
 import { AI_COVER_APPROVALS, GUIDE_IMAGES as COMPLETE_IMAGES } from '../src/data/guide-media';
 import { guides as COMPLETE_GUIDES } from '../src/data/guides';
+import { assertPoolSpacing, coversInPageOrder } from './support/cover-spacing';
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/' });
 Object.assign(globalThis, { window: dom.window, document: dom.window.document, HTMLElement: dom.window.HTMLElement, Node: dom.window.Node, IS_REACT_ACT_ENVIRONMENT: true });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
@@ -84,9 +85,11 @@ test('the home shows no unapproved AI illustration, never leads with one, and sh
   for (const day of days) {
     const doc = serverHome(day);
     const sources = [...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')!);
-    // ①② images once per page; an approved AI picture is a ④ pool picture, which may come back 6 or more cards apart (cover.ts).
+    // ①② images once per page; an approved AI picture is a ④ pool picture, which may come back only ADJACENT_CARDS or more
+    // cards apart (cover.ts).
     const once = sources.filter(src => !approvedSrcs.has(src));
     assert.equal(new Set(once).size, once.length, `${day}: an image appears once`);
+    assertPoolSpacing(coversInPageOrder(doc.querySelector('.home-discovery')!), approvedSrcs, day);
     const lead = doc.querySelector('.home-picks__list>li:first-child');
     assert.notEqual(lead?.querySelector('[data-provenance]')?.textContent, 'AI 示意图', `${day}: an AI illustration leads`);
     for (const img of lead?.querySelectorAll('img') ?? []) assert.ok(!approvedSrcs.has(img.getAttribute('src')!), `${day}: an AI illustration leads`);
