@@ -134,8 +134,9 @@ const withRouteStylesheets = (html: string, path: string) => {
 };
 
 /** H60 (WEB-PERF-2): /events names its first pick's cover (the page's one fetchpriority="high" image, its LCP) in the head,
- * so a phone requests it with the stylesheets instead of after them. */
-const LCP_PRELOAD_PATHS = new Set(['/events']);
+ * so a phone requests it with the stylesheets instead of after them. UI9-IMG-A1a: the home too, whose lead is now always a
+ * ① or ② picture (DECISIONS 26) and its LCP. */
+const LCP_PRELOAD_PATHS = new Set(['/', '/events']);
 const lcpImagePreload = (body: string): string => {
   const img = /<img\b[^>]*\bfetchpriority="high"[^>]*>/.exec(body)?.[0];
   const attr = (name: string) => img && new RegExp(`\\s${name}="([^"]*)"`, 'i').exec(img)?.[1];

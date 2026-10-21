@@ -148,9 +148,10 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const shown = new Set(elderBand.map(guide => guide.slug));
     return GUIDE_TOPICS.filter(item => item.id !== 'elders').map(item => {
       const all = guides.filter(guide => guideTopicOf(guide) === item.id);
-      // Skip guides the band already shows, unless that would leave the topic with fewer than two (医疗保险 has three).
+      // Skip guides the band already shows, unless that would leave the topic short of a full row (医疗保险 has three, one in the
+      // band: its row shows all three; UI9 live check 10-20).
       const others = all.filter(guide => !shown.has(guide.slug));
-      return { topic: item, total: all.length, preview: inSeason(others.length >= 2 ? others : all, today).slice(0, PREVIEW_SIZE) };
+      return { topic: item, total: all.length, preview: inSeason(others.length >= Math.min(PREVIEW_SIZE, all.length) ? others : all, today).slice(0, PREVIEW_SIZE) };
     });
   }, [elderBand, today]);
 

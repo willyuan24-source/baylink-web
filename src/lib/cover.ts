@@ -175,7 +175,8 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   if (use && !use.eventIds.includes(item.id) && image.subject !== 'venue') return { rejected: 'unapproved-reuse' };
   if (!venue && OFFICIAL.has(basis)) return make('official');
   if (basis === 'owner') return make('photo');
-  const rule = venue ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
+  // A venue photo is dated for the kinds that otherwise refuse or date third-party photos; a place or guide keeps 'any'.
+  const rule = venue && THIRD_PARTY_PHOTOS[item.kind] !== 'any' ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
   if (rule === 'none') return { rejected: 'not-allowed-for-kind' };
   if (rule === 'dated') {
     const year = captureYear(image);

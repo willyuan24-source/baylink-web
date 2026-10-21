@@ -12,6 +12,7 @@ import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide
 import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
+import { listingImageKeys } from '../src/lib/cover-candidates';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
@@ -76,7 +77,9 @@ const planning = new Map(PLANNER_EVENTS.map(event => [event.id, event.planning])
   const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
   if ((weekday >= 4 || weekday === 0) && !WEEKEND_PICKS[saturday]?.length) console.warn(`Warning: no editor picks for the weekend of ${saturday} in src/data/weekend-picks.ts; /events and the home show the automatic ranking as 本周末先看.`);
 }
-const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation');
+// With their cover candidates (venue photos), so the rail's photo steps see what the page will show.
+const liveOffers = currentFreebies.filter(offer => offer.verificationStatus !== 'needs-confirmation').map(offer => ({ ...offer, ...listingImageKeys('offer', offer) }));
+
 
 const weekendDays = new Set<string>();
 for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
@@ -89,6 +92,14 @@ for (let day = today; day <= lastDay; day = addCalendarDays(day, 1)) {
   selectHomeOffers(liveOffers, day, 6, offerHasPhoto(GUIDE_IMAGES, day), offerLeadsRail(GUIDE_IMAGES, day)).forEach(offer => offerIds.add(offer.id));
 }
 
+// The pictures a card may show (its own, then its candidates: venue photos from UI9-IMG-A1a), each written and shipped only
+// when the cover ladder accepts it for that item: a key no card can show (an AI illustration, a theme photo, an old photo)
+// stays out of the catalog with its image.
+const cardImages = (kind: 'event' | 'offer', record: Parameters<typeof listingImageKeys>[1]) => {
+  const fields = listingImageKeys(kind, record, key => getCover({ kind, id: record.id, imageKey: key }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type');
+  for (const key of [fields.imageKey, ...fields.imageKeys ?? []]) if (key) imageKeys.add(key);
+  return fields;
+};
 const present = <T extends object>(source: T, keys: readonly string[]) => Object.fromEntries(keys.flatMap(key => {
   const value = (source as Record<string, unknown>)[key];
   return value === undefined || value === null || value === '' || (Array.isArray(value) && !value.length) ? [] : [[key, value]];
@@ -109,20 +120,18 @@ const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(eve
   const schedule = facts?.schedule && weekendSchedule(facts.schedule);
   const plan = facts ? present({ admissionUsd: facts.admissionUsd, schedule }, ['admissionUsd', 'schedule']) : {};
   const sessions = event.sessions?.filter(session => weekendDays.has(session.date));
-  const { id, title, aliases, startDate, endDate, occurrenceDates, region, city, category, cost, verifiedAt, imageKey, audience } = event;
-  if (getCover({ kind: 'event', id, imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(imageKey);
+  const { id, title, aliases, startDate, endDate, occurrenceDates, region, city, category, cost, verifiedAt, audience } = event;
   return {
     id, title, ...(aliases?.length ? { aliases } : {}), startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}), region, city, category, cost,
-    verifiedAt, imageKey, audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
+    verifiedAt, ...cardImages('event', event), audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
     // DECISIONS 17: a press-sourced card says 媒体报道 · M/D 核对 (the one prefix rule); only such an event carries the flag.
     ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(Object.keys(plan).length ? { planning: plan } : {}),
   };
 });
 const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).map(offer => {
-  if (getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today, contextPhotos: EVENT_CONTEXT_PHOTOS }).tier !== 'type') imageKeys.add(offer.imageKey);
   return {
-    id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
+    id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, ...cardImages('offer', offer),
     ...present(offer, ['region', 'startDate', 'endDate', 'verifiedAt', 'valueText', 'publicBenefit']),
     ...(isPressSource(offer.sourceLabel) ? { press: true } : {}),
   } as HomeOffer;

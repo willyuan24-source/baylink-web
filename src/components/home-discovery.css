@@ -86,6 +86,8 @@ html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:no
 .home-3d-strip { display:flex; align-items:center; gap:14px; padding:10px; border:1px solid var(--color-line); border-radius:var(--r-postcard); background:var(--color-surface); color:var(--color-ink); }
 .home-3d-strip .home-3d-strip__art { flex:none; width:9.5rem; border-radius:var(--r-postcard-sm); }
 :is(.home-3d,.home-3d-strip) .ui-provenance { font-weight:600; }
+/* The strip's postcard is 9.5rem on a phone and carries no ♡: its label may use the width and wrap, never 「3D scene ill…」. */
+.home-3d-strip .ui-provenance { max-width:calc(100% - var(--sp-4)); white-space:normal; }
 .home-3d-strip__text { display:flex; flex-direction:column; gap:2px; min-width:0; }
 .home-3d-strip__text strong { font-size:var(--text-body); line-height:1.5; font-weight:600; text-wrap:pretty; }
 .home-3d-strip__text>span { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }

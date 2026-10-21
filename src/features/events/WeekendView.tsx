@@ -145,7 +145,9 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const editorPicks = picks.some(item => item.reason);
   // G15 + the cross-page critic: home's lead is neither the lead nor a pick row here (it returns to the feed below).
   const homeLead = homeLeadFor(today, picks);
-  const arranged = useMemo(() => arrangePicks(picks, today, homeLead), [picks, today, homeLead]);
+  // The weekend in its ranking: the feed below, and where the lead comes from when no pick has a ① or ② picture (DECISIONS 26).
+  const order = useMemo(() => weekend ? weekendRanked(matching, today) : [], [weekend, matching, today]);
+  const arranged = useMemo(() => arrangePicks(picks, today, homeLead, order), [picks, today, homeLead, order]);
   // Until the card's manifest arrives, the same rule the card used stands in for its ids (they match on the build day).
   const cardIds = useMemo(() => {
     if (!card || strip.status === 'error') return [];
@@ -156,8 +158,8 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const stripEvents = cardIds.flatMap(id => (events ?? []).filter(event => event.id === id && nextOccurrence(event, today)));
   // 本周末 is ranked, so its best real photos take the first screen's diagonal slots; the date lists stay in date order.
   const ranked = useMemo(() => !weekend ? listEvents(matching, filters.when, today)
-    : featurePhotos(day ? tabs[day] : weekendRanked(matching, today), event => hasRealCover('event', event, today)),
-  [weekend, matching, filters.when, today, day, tabs]);
+    : featurePhotos(day ? tabs[day] : order, event => hasRealCover('event', event, today)),
+  [weekend, matching, filters.when, today, day, tabs, order]);
   // Pick rows fill from the feed's first items when the editor's list runs short, so page 1 never repeats a pick. Only the
   // picks the page shows leave the feed: up to PICK_ROWS (a standard phone shows picks 1–2 as cards and the third as a row),
   // none in 简洁显示 (the pick rows step aside there, so they stay in the feed) — every event is on the page, counted once.

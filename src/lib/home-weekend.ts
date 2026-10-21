@@ -81,11 +81,17 @@ export function getHomeWeekend(today: string, catalog: MonthlyEvent[] = MONTHLY_
   // the first slot to an information card.
   const lead = fallback.some(entry => hasRealPhoto(entry.event.imageKey)) ? hasRealPhoto : hasPhoto;
   picks.push(...(picks.length ? fallback : featurePhotos(fallback, entry => lead(entry.event.imageKey), [0])));
-  // The feed: the rest of the weekend in the home ranking (Chinese-language, free, family, real photo, flagship), with
-  // the best real photos on the grid's diagonal.
-  const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), range.start, { hasPhoto, hasRealPhoto, flagships });
-  const feed = featurePhotos(rest, entry => hasPhoto(entry.event.imageKey), FEED_PHOTO_SLOTS).slice(0, feedLimit);
-  return { ...range, events, picks, feed, total, seniors, checked };
+  return { ...range, events, picks, feed: weekendFeed(events, picks, range.start, { hasPhoto, hasRealPhoto, flagships }, feedLimit), total, seniors, checked };
+}
+
+/**
+ * The feed: the rest of the weekend in the home ranking (Chinese-language, free, family, real photo, flagship), with the
+ * best real photos on the grid's diagonal. Also the build's, after it moves a lead (home-weekend-build.ts).
+ */
+export function weekendFeed<T extends { event: MonthlyEvent; date: string }>(events: readonly T[], picks: readonly { event: MonthlyEvent }[], start: string,
+  ranking: { hasPhoto: (imageKey: string) => boolean; hasRealPhoto: (imageKey: string) => boolean; flagships: ReadonlySet<string> }, feedLimit = HOME_FEED_SIZE): T[] {
+  const rest = rankWeekendFallback(events.filter(entry => !picks.some(pick => pick.event.id === entry.event.id)), start, ranking);
+  return featurePhotos(rest, entry => ranking.hasPhoto(entry.event.imageKey), FEED_PHOTO_SLOTS).slice(0, feedLimit);
 }
 
 /** Days with a dated /weekly card: each home snapshot day in the week after the home catalog was generated. */

@@ -46,6 +46,7 @@ import { currentOpenings as septemberOpenings } from './local-discoveries';
 import { ladderSrcSet, readExtraLadder, readLadder, registrySources } from './image-ladder';
 import mediaRightsOverlay from './media-rights-overlay.json';
 import aiCoverApprovals from './ai-cover-approvals.json';
+import { venues as venuePhotoTable } from './venue-photos.json';
 
 /**
  * Why BAYLINK may show an image (structured record shape from a4 `federal-pd-media.json`; read by getCover). `stock`: a
@@ -328,6 +329,16 @@ export const AI_COVER_APPROVALS: readonly AiCoverApproval[] = (aiCoverApprovals 
 for (const { key } of AI_COVER_APPROVALS) {
   const image = GUIDE_IMAGES[key];
   if (image?.kind === 'illustration' && !image.scene3d) GUIDE_IMAGES[key] = { ...image, aiCoverApproved: true };
+}
+/**
+ * The photos of src/data/venue-photos.json (②, approved once per venue) are the only keys with `subject: 'venue'`, so that
+ * table is the one place that says a photo is its venue's: cover.ts then lets every record held there use it (the 8-year
+ * rule kept). Photographs only; an illustration is never a venue photo.
+ */
+export const VENUE_PHOTO_KEYS: ReadonlySet<string> = new Set(venuePhotoTable.flatMap(venue => venue.imageKeys));
+for (const key of VENUE_PHOTO_KEYS) {
+  const image = GUIDE_IMAGES[key];
+  if (image?.kind === 'photo') GUIDE_IMAGES[key] = { ...image, subject: 'venue' };
 }
 
 type MediaRightsOverlayEntry = Pick<GuideImage, 'coverOk' | 'focal' | 'ownShot' | 'shotAt'> & { rights?: MediaRights };

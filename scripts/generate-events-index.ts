@@ -14,6 +14,7 @@ import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
 import { addCalendarDays, calendarPeriod } from '../src/lib/calendar-days';
 import { isPressSource } from '../src/features/events/source-kind';
 import { isApprovedAiCover, type CoverAsset } from '../src/lib/cover';
+import { listingImageKeys } from '../src/lib/cover-candidates';
 import type { EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
 import type { PlanningSchedule } from '../src/lib/planner';
 
@@ -56,6 +57,11 @@ function listSchedule(schedule: PlanningSchedule, overlaySessions: IndexEvent['s
   return list.weekly || list.dates || list.sessions ? list : undefined;
 }
 
+// Only images a listing can show: an AI illustration covers an event, offer or opening only when the owner approved that
+// key (④, cover.ts isApprovedAiCover; src/data/ai-cover-approvals.json), so every other one stays out, and so does a record's
+// key that points at one (UI9-IMG-A1a: 273 dead keys, about 0.7 KiB gzip of the route).
+const shippable = (key: string) => Object.hasOwn(GUIDE_IMAGES, key) && (GUIDE_IMAGES[key].kind !== 'illustration' || isApprovedAiCover(GUIDE_IMAGES[key] as CoverAsset));
+
 const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cutoff).map(event => {
   const dates = Object.hasOwn(EVENT_DATE_OVERRIDES, event.id) ? EVENT_DATE_OVERRIDES[event.id] : event.occurrenceDates;
   const overlay = event as typeof event & Pick<IndexEvent, 'sessions'>;
@@ -72,7 +78,7 @@ const events: IndexEvent[] = PLANNER_EVENTS.filter(event => event.endDate >= cut
     startDate: event.startDate, endDate: event.endDate, ...(dates !== undefined ? { occurrenceDates: dates } : {}),
     region: event.region, city: event.city, venue: event.venue, category: event.category,
     cost: event.cost, ...(event.cost === 'mixed' ? { costLabel: event.costLabel } : {}),
-    audience: event.audience, verifiedAt: event.verifiedAt, imageKey: event.imageKey,
+    audience: event.audience, verifiedAt: event.verifiedAt, ...listingImageKeys('event', event, shippable),
     ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(planning && Object.keys(planning).length ? { planning } : {}),
     ...(event.location ? { location: { lat: event.location.lat, lng: event.location.lng, precision: event.location.precision, sourceUrl: event.location.sourceUrl } } : {}),
@@ -85,14 +91,14 @@ const offers: IndexOffer[] = currentFreebies
   .filter(offer => offer.verificationStatus !== 'needs-confirmation' && (!offer.endDate || offer.endDate >= cutoff))
   .map(offer => ({
     id: offer.id, brand: offer.brand, title: offer.title, ...pick(offer, ['region', 'startDate', 'endDate', 'weekdays'] as const),
-    availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
+    availability: offer.availability, kind: offer.kind, ...listingImageKeys('offer', offer, shippable),
     sourceLabel: offer.sourceLabel, ...(offer.verifiedAt ? { verifiedAt: offer.verifiedAt } : {}),
     ...(offer.status === 'sold_out' ? { status: 'sold_out' as const } : {}),
   }));
 
 const openings: IndexOpening[] = currentOpenings.map(shop => ({
   id: shop.id, name: shop.name, city: shop.city, region: shop.region, category: shop.category, status: shop.status,
-  openingType: shop.openingType, ...(shop.openedOn ? { openedOn: shop.openedOn } : {}), imageKey: shop.imageKey,
+  openingType: shop.openingType, ...(shop.openedOn ? { openedOn: shop.openedOn } : {}), ...listingImageKeys('opening', shop, shippable),
   sourceLabel: shop.sourceLabel, verifiedAt: shop.verifiedAt,
 }));
 
@@ -101,10 +107,8 @@ const bulletins = currentRegionalBulletins.filter(item => item.expiresAt >= cuto
   sourceLabel: item.sourceLabel, sourceUrl: item.sourceUrl, verifiedAt: item.verifiedAt, expiresAt: item.expiresAt,
 }));
 
-// Only images a listing can show: an AI illustration covers an event, offer or opening only when the owner approved that
-// key (④, cover.ts isApprovedAiCover; src/data/ai-cover-approvals.json), so every other one stays out.
 const imagesFor = (keys: Iterable<string>): Record<string, IndexImage> => Object.fromEntries([...new Set(keys)].sort()
-  .filter(key => Object.hasOwn(GUIDE_IMAGES, key) && (GUIDE_IMAGES[key].kind !== 'illustration' || isApprovedAiCover(GUIDE_IMAGES[key] as CoverAsset)))
+  .filter(shippable)
   .map(key => [key, GUIDE_IMAGES[key] as IndexImage]));
 
 /**
@@ -122,12 +126,14 @@ const occursIn = (event: IndexEvent, start: string, end: string) => { const day 
 const nearFrom = calendarPeriod(buildDay, 'week').start;
 const nearFor = (through: string) => events.filter(event => occursIn(event, nearFrom, through));
 let nearThrough = addCalendarDays(buildDay, NEAR_MAX_DAYS - 1);
-const nearBytes = (list: IndexEvent[]) => gzipSync(JSON.stringify({ events: list, images: imagesFor(list.map(event => event.imageKey)) })).length;
+// Every picture a listing may show: its own and its candidates (venue photos, from UI9-IMG-A1a).
+const keysOf = (list: readonly { imageKey?: string; imageKeys?: readonly string[] }[]) => list.flatMap(item => [item.imageKey ?? '', ...(item.imageKeys ?? [])]).filter(Boolean);
+const nearBytes = (list: IndexEvent[]) => gzipSync(JSON.stringify({ events: list, images: imagesFor(keysOf(list)) })).length;
 while (nearThrough > addCalendarDays(buildDay, NEAR_MIN_DAYS - 1) && nearBytes(nearFor(nearThrough)) > NEAR_CAP) nearThrough = addCalendarDays(nearThrough, -1);
 const nearIds = new Set(nearFor(nearThrough).map(event => event.id));
 const nearEvents = events.filter(event => nearIds.has(event.id));
-const images = imagesFor([...nearEvents.map(event => event.imageKey), ...offers.map(offer => offer.imageKey), ...openings.map(shop => shop.imageKey)]);
-const laterImages = Object.fromEntries(Object.entries(imagesFor(events.filter(event => !nearIds.has(event.id)).map(event => event.imageKey)))
+const images = imagesFor(keysOf([...nearEvents, ...offers, ...openings]));
+const laterImages = Object.fromEntries(Object.entries(imagesFor(keysOf(events.filter(event => !nearIds.has(event.id)))))
   .filter(([key]) => !Object.hasOwn(images, key)));
 const later: EventsLater = {
   events: events.filter(event => !nearIds.has(event.id)),

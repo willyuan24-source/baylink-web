@@ -25,7 +25,7 @@ export type HomeGuide = {
   imageKey?: string;
 };
 /** A weekend event with the facts a home card prints (editorial overlay fields and planning facts when present). */
-export type HomeEvent = MonthlyEvent & { planning?: Pick<PlanningFacts, 'admissionUsd' | 'schedule'>; press?: true };
+export type HomeEvent = MonthlyEvent & { planning?: Pick<PlanningFacts, 'admissionUsd' | 'schedule'>; press?: true; imageKeys?: readonly string[] };
 
 /** 长辈常用电话 (UI9-HOME): the elder intent's guides with a cover phone (scripts/generate-home-catalog.ts elderCalls). */
 export type ElderCall = { slug: string; title: Copy; label: Copy; number: string; tel: string };

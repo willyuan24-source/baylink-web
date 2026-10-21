@@ -15,8 +15,13 @@ import type { CoverKind } from './cover';
  * Whether each candidate may be shown (rights, age, page de-duplication) is still cover.ts getCover's call.
  */
 
+/**
+ * One venue's photos. The approval is the owner's words in chat (`ownerQuote`, a new approval) or, for a photo already
+ * approved as this venue's photo before the table existed, the repo file that records it (`approvalRecord`).
+ */
 export type VenuePhotos = {
-  id: string; name: string; match: string[]; records?: string[]; exclude?: string[]; imageKeys: string[]; approvedAt: string; ownerQuote: string;
+  id: string; name: string; match: string[]; records?: string[]; exclude?: string[]; imageKeys: string[]; approvedAt: string;
+  ownerQuote?: string; approvalRecord?: string;
 };
 export type CoverTables = {
   venues: readonly VenuePhotos[];
@@ -68,4 +73,15 @@ export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables
   const refs = [`${kind}:${record.id}`, ...(category ? [`category:${category}`] : [])];
   for (const approval of tables.ai) if (approval.for?.some(ref => refs.includes(ref))) add(approval.key);
   return keys;
+}
+
+/**
+ * What a catalog generator writes for a record's pictures (UI9-IMG-A1a): `imageKey` when its own image is one the catalog
+ * ships (`keep`), and `imageKeys`, its shipped candidates, only when they add to that. A record whose own key points at a
+ * picture no listing may show (an unapproved AI illustration) carries no key at all, so the route pays for neither.
+ */
+export function listingImageKeys(kind: CoverKind, record: CandidateRecord, keep: (key: string) => boolean = () => true, tables: CoverTables = COVER_TABLES): { imageKey?: string; imageKeys?: string[] } {
+  const keys = coverCandidates(kind, record, tables).filter(keep);
+  const own = record.imageKey && keep(record.imageKey) ? record.imageKey : undefined;
+  return { ...(own ? { imageKey: own } : {}), ...(keys.length > (own ? 1 : 0) ? { imageKeys: keys } : {}) };
 }
