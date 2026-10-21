@@ -246,10 +246,9 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
  */
 export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem {
   const imageKey = override ? override.imageKey : record.imageKey;
-  const item: CoverItem = { kind, id: record.id, imageKey, ...(override?.lead ? { lead: true } : {}) };
-  if (record.imageKeys) item.imageKeys = imageKey === record.imageKey ? record.imageKeys
-    : [...(imageKey ? [imageKey] : []), ...record.imageKeys.filter(key => key !== record.imageKey)];
-  return item;
+  // coverCandidates() puts the record's own image first, so the candidates are that image (or the override) + the rest.
+  const rest = record.imageKeys?.filter(key => key !== record.imageKey);
+  return { kind, id: record.id, imageKey, ...(rest && { imageKeys: imageKey ? [imageKey, ...rest] : rest }), ...(override?.lead && { lead: true }) };
 }
 
 /** Resolve a list in display order on one page, so de-duplication is deterministic. */
