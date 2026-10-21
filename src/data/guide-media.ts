@@ -7,6 +7,7 @@ import guideCommonsPhotos from './guide-commons-photos-2026-10.json';
 import officialEventMedia from './official-event-media.json';
 import officialOpeningMedia from './official-opening-media.json';
 import guidePhotos1019 from './guide-photos-2026-10-19.json';
+import categoryStockPhotos from './category-stock-photos.json';
 import { OCTNOV_EVENT_PHOTO_ALIASES } from './octnov-2026-event-photo-aliases';
 import publicServiceMedia from './public-service-media.json';
 import { getLocale } from '../i18n/locale';
@@ -151,6 +152,11 @@ for (const { key, ...asset } of guideCommonsPhotos) GUIDE_IMAGES[key] = { ...ass
 // credited and linked) and Carol M. Highsmith's public-domain photo of HHS in Washington, D.C. (示意图, never a cover). Download
 // records: scripts/data/guide-photos-2026-10-19-downloads.json.
 for (const { key, ...asset } of guidePhotos1019) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', rights: asset.rights as MediaRights };
+// UI9-IMG-B1b (owner approval in chat 2026-10-21 09:28 PT, 「圖片全部批准」): licensed stock photos of the photo categories
+// (UI9-IMAGES ③ 示意图), from Unsplash and Wikimedia Commons, each with its photographer, page and licence; never a picture of
+// a listed event or venue. src/data/category-photos.json maps each category to its keys. Download and page-read records:
+// scripts/data/category-stock-photos-downloads.json; sources: docs/category-media-sources-2026-10-21.md.
+for (const { key, ...asset } of categoryStockPhotos) GUIDE_IMAGES[key] = { ...asset, kind: 'photo', subject: 'category', rights: asset.rights as MediaRights };
 // Organisers' own event images (owner decision 2026-10-08), labelled 官方图 through their credit.
 // Posters, key art, collages and graphics are 'poster' so no surface calls them photos.
 // The JSON keeps the event id and artwork class; the download record (source URL, retrieval time, hash) is in
