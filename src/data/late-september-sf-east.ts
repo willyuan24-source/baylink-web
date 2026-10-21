@@ -55,7 +55,7 @@ export const lateSeptemberSfEastEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.fishermanswharf.org/chowderfest/",
     "sourceLabel": "Fisherman’s Wharf 官方 Chowder Fest 页面",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "neighborhood-table"
   },
   {

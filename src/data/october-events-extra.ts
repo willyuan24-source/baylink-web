@@ -242,7 +242,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.emeryarts.org/",
     "sourceLabel": "Emeryville Celebration of the Arts",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "culture-visit"
   },
   {
@@ -296,7 +296,7 @@ export const additionalOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.townofwindsor.com/trickortreat",
     "sourceLabel": "Town of Windsor Parks and Recreation",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "garden-walk"
   },
   {

@@ -378,7 +378,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.cupertino.gov/Parks-Recreation/Events/Monster-Mash/Monster-Mash-Event",
     "sourceLabel": "City of Cupertino",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -405,7 +405,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.fostercity.org/1248/2026-Halloween-Festival",
     "sourceLabel": "City of Foster City",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -432,7 +432,7 @@ export const refreshedAutumnEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://museumca.org/press/omca-announces-public-programs-and-events-for-october-2026/",
     "sourceLabel": "Oakland Museum of California",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "region-omca"
   },
   {
