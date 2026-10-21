@@ -30,7 +30,10 @@ const OWNER_RELEASED: ReadonlySet<string> = new Set([
   'official-chsa-lily-qi-book-talk-nov8-2026',
 ]);
 
-/** The close-ups that still never lead: flagged and not released by the owner (none since 2026-10-21). */
+/**
+ * The close-ups that still never lead: flagged and not released by the owner (none since 2026-10-21). Approved AI covers
+ * never lead either, but by the lead rule (lib/lead-rule.ts; cover.ts refuses ④ on a lead, DECISIONS 24), not by this list.
+ */
 export const CLOSE_UP_FACE_IMAGES: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS.filter(key => !OWNER_RELEASED.has(key)));
 /** Flagged close-ups the owner released (tests read it). */
 export const RELEASED_CLOSE_UPS: ReadonlySet<string> = new Set(FLAGGED_CLOSE_UPS.filter(key => OWNER_RELEASED.has(key)));
