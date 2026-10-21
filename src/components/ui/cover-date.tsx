@@ -1,23 +1,29 @@
-import { lazy, Suspense, type ComponentProps } from 'react';
+import type { ComponentProps, ReactNode } from 'react';
 import { Cover, PendingCover, type CoverLayout, type CoverSlot } from './CoverImage';
 import { useUiCopy } from './ui-copy';
 import { eventDateChip, eventWhenLine, type EventFactsInput } from '../../lib/event-facts';
 import { EventTypeCover as DateFamily } from './cover-date-face';
+import { deferredFamily } from './deferred-family';
 
 export { DateFace, type DateFaceProps } from './cover-date-face';
 
 const DateFrame = (props: CoverLayout) => <PendingCover {...props} family="date" />;
 // Production loads the date family after the page (UI9-IMG-A0: the info cards are on their way out, DECISIONS 21, and the
-// home route had about 3.9 KiB left); a failed load keeps the empty frame. Node (the prerender and the tests) and the dev
-// server draw it at once, so a prerendered page carries the cover and hydration keeps it until the family is in.
-const Family = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover-date-face').then(module => ({ default: module.EventTypeCover }), () => ({ default: DateFrame }))) : DateFamily;
+// home route had about 3.9 KiB left): this module starts the chunk as it loads, /events and /calendar wait for it in their
+// `prepare`, and the prerendered pages that draw it preload it, so the first render has it. Node (the prerender and the
+// tests) and the dev server draw it at once.
+const deferred = import.meta.env?.PROD ? deferredFamily(() => import('./cover-date-face').then(module => module.EventTypeCover), DateFrame) : undefined;
+/** Loads the date family's chunk (a route's `prepare` awaits it); resolved at once where the family is drawn directly. */
+// eslint-disable-next-line react-refresh/only-export-components
+export const preloadDateFamily = (): Promise<unknown> => deferred?.preload() ?? Promise.resolve();
+void preloadDateFamily();
 
 /**
  * Family date (events): the venue, the calendar page (weekday, day, time) and, when the page shows one day with one
  * structured window, the 6–24 h bar (G20); cover-date-face.tsx draws it. Until it is in, the same box and ground.
  */
-export const EventTypeCover = (props: ComponentProps<typeof DateFamily>) =>
-  <Suspense fallback={<DateFrame {...props} />}><Family {...props} /></Suspense>;
+export const EventTypeCover = (props: ComponentProps<typeof DateFamily>) => <Family {...props} />;
+const Family: (props: ComponentProps<typeof DateFamily>) => ReactNode = deferred?.Family ?? DateFamily;
 
 /** An event cover: its photo or poster, or the date family. */
 export function EventCover({ event, today, days, ...slot }: CoverSlot & { event: EventFactsInput; today: string; days?: readonly string[] }) {

@@ -19,13 +19,16 @@ import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover, guideCaption } from '../features/guides/GuideCover';
-import { DeferredGuideTypeCover } from './ui/cover-defer';
+import { DeferredGuideTypeCover, preloadCoverFamilies } from './ui/cover-defer';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { regionSheet } from '../features/guides/region-sheet';
 import { settleChunk } from '../lib/chunk-recovery';
 import { editionState, GUIDE_REGIONS, guideCardLines, guideCover, inSeason, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
+
+// /guides draws the headline / number family on its first screen: start its chunk as this page loads (UI9-IMG-A0).
+void preloadCoverFamilies(['guide']);
 
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
