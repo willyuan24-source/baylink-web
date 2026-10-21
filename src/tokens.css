@@ -282,6 +282,10 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
    1.89:1 (N09, J1 P19); lime reads 10.2:1 there. */
 .site-app :where(.ui-hero-card[data-overlay],[data-surface=deep],.home-baybay) :focus-visible { outline-color:var(--color-highlight); }
 .site-app :where(input:not([type=checkbox],[type=radio],[type=range],[type=color]),select,textarea) { border-color:var(--color-line-control); }
+/* N09 (UI9-R1): the ring follows the control's corners (outline takes border-radius). The header's nav tabs and 更多 are
+   square at rest (no fill; their active bar is the ::after), so their ring was a square box: they round to --r-sm while
+   focused, which changes nothing else (no fill, no overflow clip). (0,4,1) outranks site-chrome.css's (0,3,0) radius. */
+.site-app .site-header-primary :is(.site-nav-link,.site-navigation-more>summary):focus-visible { border-radius:var(--r-sm); }
 .site-reading-button>svg { display:none; }
 .reading-preferences p { font-size:var(--text-body); line-height:var(--lh-read); color:var(--color-ink-2); }
 .reading-preferences>[role=group] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:20px 0; }

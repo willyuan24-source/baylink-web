@@ -145,6 +145,9 @@ test('N09 / J1 P19: the home BayBay card is a deep surface (lime ring ≥3:1); o
     const css = readFileSync(file, 'utf8');
     assert.match(css, /:focus-visible \{ outline:var\(--focus-ring-width\) solid var\(--color-brand\); outline-offset:var\(--focus-ring-offset\); \}/, `${file} uses the one ring`);
   }
+  // The header's square nav tabs round their ring while focused, above site-chrome.css's border-radius:0.
+  assert.ok(tokens.nodes.some(node => node.type === 'rule' && (node as Rule).selector === '.site-app .site-header-primary :is(.site-nav-link,.site-navigation-more>summary):focus-visible' && /border-radius:var\(--r-sm\)/.test(node.toString())));
+  assert.match(readFileSync('src/components/site-chrome.css', 'utf8'), /\.site-app \.site-header-primary \.site-nav-link,\.site-app \.site-navigation-more>summary \{[^}]*border-radius:0/);
   const index = postcss.parse(readFileSync('src/index.css', 'utf8'));
   let placeholder = '';
   index.walkAtRules('layer', layer => { if (layer.params === 'base') layer.walkRules(rule => { if (/input::placeholder/.test(rule.selector) && /textarea::placeholder/.test(rule.selector)) rule.walkDecls('color', declaration => { placeholder = declaration.value; }); }); });
