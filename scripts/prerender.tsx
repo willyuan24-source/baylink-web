@@ -121,7 +121,9 @@ const FAMILY_MODULES: Readonly<Record<string, string>> = {
   headline: 'src/components/ui/cover-guide.tsx', number: 'src/components/ui/cover-guide.tsx',
 };
 const familyChunks = (body: string): string[] => [...new Set([...body.matchAll(/data-family="([a-z]+)"/g)].map(match => FAMILY_MODULES[match[1]]))]
-  .map(key => key && manifest[key]?.file).filter((file): file is string => !!file);
+  // The family's chunk and the chunks it imports (cover-frame.tsx's TypeFrame among them), so the frame never waits on a second trip.
+  .flatMap(key => { const chunk: ManifestChunk | undefined = key ? manifest[key] : undefined; return chunk ? [chunk.file, ...(chunk.imports ?? []).map(dep => manifest[dep]?.file)] : []; })
+  .filter((file): file is string => !!file);
 const modulePreloads = (path: string, locale: SiteLanguage = 'zh-Hans', body = '') => [...new Set([...routeGraph(path).files, ...detailChunks(path, locale), ...familyChunks(body)])].map(file => `<link rel="modulepreload" href="/${file}" />`).join('\n');
 /** RC-6: CSS that Vite splits out of the global bundle arrives with the page chunk, after first paint. Link it in the
  * prerendered head after the global stylesheet: the same cascade order as when the chunk appends it in the app. */

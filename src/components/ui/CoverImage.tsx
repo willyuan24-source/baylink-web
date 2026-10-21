@@ -6,7 +6,6 @@ import { ProvenanceBadge } from './Badges';
 import { cx, useUiCopy } from './ui-copy';
 import { COVER_SIZES } from './cover-sizes';
 import { chooseCover, type CoverFamily, type CoverListingKind } from '../../lib/cover-family';
-import { typeCoverProvenance } from '../../lib/image-provenance';
 import type { CoverAsset, ResolvedCover } from '../../lib/cover';
 import type { CoverTone } from '../../lib/event-facts';
 
@@ -101,24 +100,6 @@ export function PendingCover({ family, ratio, ratioLock, size, className }: Cove
   return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden="true" />;
 }
 
-const HAN = /[㐀-鿿]/;
-/** `lang="en"` for a Latin line on a Chinese page. */
-export const latinLang = (text: string) => HAN.test(text) ? undefined : 'en';
-
-/**
- * The type-cover frame (UI9-C), shared by the five type families. It lives with the photo frame (one module, one chunk:
- * every page that can draw a cover loads both). It carries `data-cover="type"` (the image-area probe counts it as cover
- * area, not photo area; RC-31), the family, kind, mark and key fact, the category tone and the BAYLINK 信息卡 chip
- * (typeCoverProvenance; a list that names the info card once hides it visually, cards.css).
- */
-export function TypeFrame({ family, kind, mark, keyFact, tone, ratio, ratioLock, size, ariaHidden, className, children }: Omit<CoverLayout, 'tone'> & { family: CoverFamily; kind: string; mark: string; keyFact: string; tone?: CoverTone; children: ReactNode }) {
-  const { english } = useUiCopy();
-  return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-kind={kind} data-mark={mark} data-key={keyFact} data-tone={tone}
-    data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden={ariaHidden || undefined}>
-    {size !== 'mini' && <ProvenanceBadge label={typeCoverProvenance(english)} />}
-    {children}
-  </div>;
-}
 
 /**
  * A cover family whose code loads after the page (UI9-IMG-A0; captain decision 9: route JS ≤ base). `preload()` starts the

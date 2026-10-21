@@ -90,7 +90,7 @@ export type ResolvedCover = ImageCover | TypeCoverResolution;
 export type CoverPage = {
   claims: Map<string, string>;
   order?: Map<string, number>;
-  shared?: Map<string, { item: string; at: number }[]>;
+  shared?: Map<string, Map<string, number>>;
 };
 export const createCoverPage = (): CoverPage => ({ claims: new Map() });
 /**
@@ -102,7 +102,6 @@ export const ADJACENT_CARDS = 8;
 
 export const MAX_PHOTO_AGE_YEARS = 8;
 const OFFICIAL: ReadonlySet<RightsBasis> = new Set(['official', 'permission', 'press-kit', 'promo-editorial']);
-const POOL_TIERS: ReadonlySet<CoverTier> = new Set(['stock', 'ai']);
 const DEFAULT_FOCAL = [50, 40] as const;
 
 /**
@@ -186,33 +185,26 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   return make(venue ? 'venue' : 'photo');
 }
 
-/** The item's place in the page's display order (first resolve wins), for the ③④ adjacency rule. */
-function positionOf(page: CoverPage, item: string): number {
-  page.order ??= new Map();
-  if (!page.order.has(item)) page.order.set(item, page.order.size);
-  return page.order.get(item)!;
-}
-
 /**
  * Resolve one item's cover. With `ctx.page`, a ①② image already claimed by another item on the page, or a ③④ picture
  * shown fewer than ADJACENT_CARDS cards away, moves the item to its next candidate (VISUAL-10); the same item resolving
  * again keeps its claim.
  */
 export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
+  const { page } = ctx;
   const attempts: { key: string; tier: 'image' | 'scene3d' }[] = [];
   for (const key of item.imageKeys ?? (item.imageKey ? [item.imageKey] : [])) attempts.push({ key, tier: 'image' });
-  const me = itemKey(item);
-  // Every item takes its place in display order, a TypeCover included: it is still a card between two pictures.
-  const at = ctx.page ? positionOf(ctx.page, me) : 0;
   if (item.postcardKey) attempts.push({ key: item.postcardKey, tier: 'scene3d' });
+  const me = itemKey(item);
+  // Every item takes its place in display order (first resolve wins), a TypeCover included: it is still a card between two
+  // pictures (the ③④ adjacency rule).
+  const order = page && (page.order ??= new Map<string, number>());
+  const at = order ? order.get(me) ?? order.set(me, order.size).size - 1 : 0;
   let reason: TypeCoverReason = 'no-image';
   let rejectedKey: string | undefined;
-  // The pool picture shown farthest away, for when every ③④ candidate is nearer than ADJACENT_CARDS.
-  let farthest: { cover: ImageCover; gap: number } | undefined;
-  const show = (cover: ImageCover, shown: { item: string; at: number }[]) => {
-    if (!shown.some(other => other.item === me)) ctx.page!.shared!.set(cover.image.src, [...shown, { item: me, at }]);
-    return cover;
-  };
+  // The pool picture shown farthest away (the first at ADJACENT_CARDS or more ends the search): when every ③④ candidate
+  // is nearer, the item still takes the farthest one.
+  let pool: { cover: ImageCover; shown: Map<string, number>; gap: number } | undefined;
   for (const { key, tier } of attempts) {
     const image = lookup(ctx.images, key);
     const outcome: Candidate = image ? judge(item, key, image, ctx, tier) : { rejected: 'missing-image' };
@@ -220,25 +212,29 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       if (!rejectedKey) { reason = outcome.rejected; rejectedKey = key; }
       continue;
     }
-    const src = outcome.cover.image.src;
-    if (POOL_TIERS.has(outcome.cover.tier)) {
-      if (!ctx.page) return outcome.cover;
-      ctx.page.shared ??= new Map();
-      const shown = ctx.page.shared.get(src) ?? [];
-      const gap = Math.min(Infinity, ...shown.filter(other => other.item !== me).map(other => Math.abs(other.at - at)));
-      if (gap >= ADJACENT_CARDS) return show(outcome.cover, shown);
-      if (!farthest || gap > farthest.gap) farthest = { cover: outcome.cover, gap };
+    const { cover } = outcome;
+    const src = cover.image.src;
+    if (cover.tier === 'stock' || cover.tier === 'ai') {
+      if (!page) return cover;
+      const shared = page.shared ??= new Map<string, Map<string, number>>();
+      const shown = shared.get(src) ?? shared.set(src, new Map()).get(src)!;
+      let gap = Infinity;
+      shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
+      if (!pool || gap > pool.gap) pool = { cover, shown, gap };
+      if (gap >= ADJACENT_CARDS) break;
       continue;
     }
-    const claimant = ctx.page?.claims.get(src);
+    const claimant = page?.claims.get(src);
     if (claimant && claimant !== me) {
       if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
       continue;
     }
-    ctx.page?.claims.set(src, me);
-    return outcome.cover;
+    page?.claims.set(src, me);
+    return cover;
   }
-  return farthest ? show(farthest.cover, ctx.page!.shared!.get(farthest.cover.image.src) ?? []) : typeCover(reason, rejectedKey);
+  if (!pool) return typeCover(reason, rejectedKey);
+  pool.shown.set(me, at);
+  return pool.cover;
 }
 
 /**

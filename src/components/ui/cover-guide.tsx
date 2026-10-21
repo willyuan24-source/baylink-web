@@ -1,5 +1,6 @@
 import { Compass, Earth, Gift, House, ShieldCheck, TramFront, Users, type LucideIcon } from 'lucide-react';
-import { TypeFrame, latinLang, type CoverLayout } from './CoverImage';
+import type { CoverLayout } from './CoverImage';
+import { TypeFrame, latinLang } from './cover-frame';
 import { chooseCover, type CoverListingKind } from '../../lib/cover-family';
 import { hookHighlight, splitHook } from '../../lib/guide-hook-phrase';
 import { displayUnits } from '../../lib/event-facts';

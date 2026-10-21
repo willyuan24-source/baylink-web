@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react';
-import { TypeFrame, latinLang, type CoverLayout } from './CoverImage';
+import type { CoverLayout } from './CoverImage';
+import { TypeFrame, latinLang } from './cover-frame';
 import { useUiCopy } from './ui-copy';
 import { translateText } from '../../i18n/locale';
 import { chooseCover } from '../../lib/cover-family';

@@ -1,4 +1,5 @@
-import { Cover, TypeFrame, latinLang, type CoverLayout, type CoverSlot } from './CoverImage';
+import { Cover, type CoverLayout, type CoverSlot } from './CoverImage';
+import { TypeFrame, latinLang } from './cover-frame';
 import { useUiCopy } from './ui-copy';
 import { translateText } from '../../i18n/locale';
 import { chooseCover } from '../../lib/cover-family';
