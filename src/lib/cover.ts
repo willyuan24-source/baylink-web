@@ -22,7 +22,7 @@ import type { Copy } from './event-facts';
  *   type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡 (A1 removes it from cards, DECISIONS 21)
  * Never: an unapproved AI illustration or a theme photo; a ①② file twice on one page, or a ③④ picture twice within 6
  * adjacent cards (the item tries its next candidate); a cropped poster (`fit: 'contain'`).
- * `label` is today's badge (getImageProvenance); `tierLabel` is the DECISIONS 23 vocabulary A1 switches the badges to.
+ * `label` is today's badge (getImageProvenance); cover-labels.ts tierLabelOf(cover) gives the DECISIONS 23 badge A1 prints.
  * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
  */
 
@@ -63,8 +63,6 @@ export type CoverContext = {
   contextPhotos?: ContextPhotos;
 };
 export type CoverTier = 'official' | 'photo' | 'venue' | 'stock' | 'ai' | 'scene3d' | 'type';
-/** A badge in the DECISIONS 23 vocabulary: both scripts, the full English for a hero and the short one for an 88 px thumbnail. */
-export type TierLabel = { zh: string; zhHant: string; en: string; enShort: string };
 export type TypeCoverReason = 'no-image' | 'missing-image' | 'ai-illustration' | 'theme-photo' | 'unapproved-reuse'
   | 'too-old' | 'undated' | 'cover-not-ok' | 'not-allowed-for-kind' | 'duplicate';
 export type ImageCover = {
@@ -73,8 +71,6 @@ export type ImageCover = {
   image: CoverAsset;
   /** Provenance badge text, from `getImageProvenance` only (what the pages print until A1). */
   label: Copy;
-  /** The badge in the four-tier vocabulary (DECISIONS 23), from tierLabelOf(). */
-  tierLabel: TierLabel;
   /** Posters and full-frame artwork are shown whole on a solid board with a white mat (the poster family), never cropped. */
   fit: 'cover' | 'contain';
   focal: readonly [number, number];
@@ -111,38 +107,6 @@ export const isAiIllustration = (image: CoverAsset) => image.kind === 'illustrat
 /** An AI illustration the owner approved in chat as a ④ cover (DECISIONS 22/25). */
 export const isApprovedAiCover = (image: CoverAsset) => isAiIllustration(image) && image.aiCoverApproved === true;
 
-/** DECISIONS 23: the badge per tier. Short English fits an 88 px thumbnail (tests/cover-tier-labels.test.ts). */
-export const TIER_LABELS = {
-  official: { zh: '官方图', zhHant: '官方圖', en: 'Official image', enShort: 'Official' },
-  officialEdition: (year: string): TierLabel => ({ zh: `官方图 · ${year} 往届`, zhHant: `官方圖 · ${year} 往屆`, en: `Official image · ${year} edition`, enShort: `Official · ${year}` }),
-  officialProduct: { zh: '官方图 · 产品图', zhHant: '官方圖 · 產品圖', en: 'Official product image', enShort: 'Product' },
-  venue: (year?: number): TierLabel => year
-    ? { zh: `场馆照 · ${year}`, zhHant: `場館照 · ${year}`, en: `Venue photo · ${year}`, enShort: `Venue · ${year}` }
-    : { zh: '场馆照', zhHant: '場館照', en: 'Venue photo', enShort: 'Venue' },
-  stock: { zh: '示意图', zhHant: '示意圖', en: 'Illustrative photo', enShort: 'Stock photo' },
-  ai: { zh: 'AI 示意图', zhHant: 'AI 示意圖', en: 'AI illustration', enShort: 'AI image' },
-  scene3d: { zh: '3D 场景插图', zhHant: '3D 場景插圖', en: '3D scene illustration', enShort: '3D scene' },
-} as const satisfies Record<string, TierLabel | ((...args: never[]) => TierLabel)>;
-
-/** A product image's caption says so (official-opening-media artwork 'product'; captionSignal keeps the word). */
-const PRODUCT_CAPTION = /产品图|商品陈列/;
-const HANT: readonly [RegExp, string][] = [[/资料图/g, '資料圖'], [/实拍/g, '實拍']];
-
-/** The DECISIONS 23 badge for a cover of this tier. Kept labels (照片 · 年份, 资料图, BAYLINK 实拍) keep their words. */
-export function tierLabelOf(tier: Exclude<CoverTier, 'type'>, image: CoverAsset, today?: string): TierLabel {
-  if (tier === 'scene3d') return TIER_LABELS.scene3d;
-  if (tier === 'stock') return TIER_LABELS.stock;
-  if (tier === 'ai') return TIER_LABELS.ai;
-  if (tier === 'venue') return TIER_LABELS.venue(captureYear(image));
-  if (tier === 'official') {
-    if (PRODUCT_CAPTION.test(image.caption)) return TIER_LABELS.officialProduct;
-    const edition = image.caption.match(/((?:19|20)\d{2}) ?年?往[届屆]/)?.[1];
-    return edition ? TIER_LABELS.officialEdition(edition) : TIER_LABELS.official;
-  }
-  const zh = getImageProvenance(image, false, today);
-  const en = getImageProvenance(image, true, today);
-  return { zh, zhHant: HANT.reduce((text, [from, to]) => text.replace(from, to), zh), en, enShort: en.replace('Archive photo', 'Archive').replace('BAYLINK photo', 'BAYLINK') };
-}
 
 /** The rights basis: the structured record when present, else what today's registry fields state. */
 export function rightsBasisOf(image: CoverAsset): RightsBasis {
@@ -189,7 +153,6 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   const make = (coverTier: ImageCover['tier'], provenanceImage: CoverAsset = image): Candidate => ({ cover: {
     tier: coverTier, key, image,
     label: { zh: getImageProvenance(provenanceImage, false, ctx.today), en: getImageProvenance(provenanceImage, true, ctx.today) },
-    tierLabel: tierLabelOf(coverTier, provenanceImage, ctx.today),
     fit: image.kind === 'poster' || image.fullFrame ? 'contain' : 'cover',
     focal: image.focal ?? DEFAULT_FOCAL,
     year: captureYear(image),

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createCoverPage, getCover, resolveCovers, TIER_LABELS, type CoverAsset, type CoverItem, type ImageCover } from '../src/lib/cover';
+import { createCoverPage, getCover, resolveCovers, type CoverAsset, type CoverItem, type ImageCover } from '../src/lib/cover';
+import { TIER_LABELS, tierLabelOf } from '../src/lib/cover-labels';
 
 // UI9-IMAGES DECISIONS 23: one badge per tier, in both scripts, with a full English version for a hero and a short one
-// for an 88 px thumbnail. A0 adds the vocabulary (ImageCover.tierLabel); the pages switch to it in A1.
+// for an 88 px thumbnail. A0 adds the vocabulary (cover-labels.ts tierLabelOf); the pages switch to it in A1.
 const today = '2026-10-21';
 const asset = (overrides: Partial<CoverAsset>): CoverAsset => ({
   src: `/guides/test/${Math.random().toString(36).slice(2)}.webp`, alt: 'alt', caption: '2024 年照片', credit: 'Example · CC BY 4.0',
@@ -22,18 +23,18 @@ const ctx = { images, today };
 const cover = (item: CoverItem) => { const resolved = getCover(item, ctx); assert.notEqual(resolved.tier, 'type', item.imageKey); return resolved as ImageCover; };
 
 test('the four-tier vocabulary is the owner’s table', () => {
-  assert.deepEqual(cover({ kind: 'offer', id: 'o', imageKey: 'official' }).tierLabel, { zh: '官方图', zhHant: '官方圖', en: 'Official image', enShort: 'Official' });
-  assert.deepEqual(cover({ kind: 'event', id: 'e', imageKey: 'edition' }).tierLabel, { zh: '官方图 · 2025 往届', zhHant: '官方圖 · 2025 往屆', en: 'Official image · 2025 edition', enShort: 'Official · 2025' });
-  assert.deepEqual(cover({ kind: 'opening', id: 's', imageKey: 'product' }).tierLabel, { zh: '官方图 · 产品图', zhHant: '官方圖 · 產品圖', en: 'Official product image', enShort: 'Product' });
+  assert.deepEqual(tierLabelOf(cover({ kind: 'offer', id: 'o', imageKey: 'official' })), { zh: '官方图', zhHant: '官方圖', en: 'Official image', enShort: 'Official' });
+  assert.deepEqual(tierLabelOf(cover({ kind: 'event', id: 'e', imageKey: 'edition' })), { zh: '官方图 · 2025 往届', zhHant: '官方圖 · 2025 往屆', en: 'Official image · 2025 edition', enShort: 'Official · 2025' });
+  assert.deepEqual(tierLabelOf(cover({ kind: 'opening', id: 's', imageKey: 'product' })), { zh: '官方图 · 产品图', zhHant: '官方圖 · 產品圖', en: 'Official product image', enShort: 'Product' });
   const venue = cover({ kind: 'event', id: 'e', imageKey: 'venue' });
   assert.equal(venue.tier, 'venue');
-  assert.deepEqual(venue.tierLabel, { zh: '场馆照 · 2023', zhHant: '場館照 · 2023', en: 'Venue photo · 2023', enShort: 'Venue · 2023' });
+  assert.deepEqual(tierLabelOf(venue), { zh: '场馆照 · 2023', zhHant: '場館照 · 2023', en: 'Venue photo · 2023', enShort: 'Venue · 2023' });
   const stock = cover({ kind: 'event', id: 'e', imageKey: 'stock' });
   assert.equal(stock.tier, 'stock');
-  assert.deepEqual(stock.tierLabel, { zh: '示意图', zhHant: '示意圖', en: 'Illustrative photo', enShort: 'Stock photo' });
+  assert.deepEqual(tierLabelOf(stock), { zh: '示意图', zhHant: '示意圖', en: 'Illustrative photo', enShort: 'Stock photo' });
   const ai = cover({ kind: 'event', id: 'e', imageKey: 'ai' });
   assert.equal(ai.tier, 'ai');
-  assert.deepEqual(ai.tierLabel, { zh: 'AI 示意图', zhHant: 'AI 示意圖', en: 'AI illustration', enShort: 'AI image' });
+  assert.deepEqual(tierLabelOf(ai), { zh: 'AI 示意图', zhHant: 'AI 示意圖', en: 'AI illustration', enShort: 'AI image' });
   assert.equal(ai.label.zh, 'AI 示意图', 'getImageProvenance says the same');
 });
 

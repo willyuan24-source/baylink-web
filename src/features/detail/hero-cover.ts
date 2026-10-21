@@ -1,4 +1,4 @@
-import { coverItemFor, getCover, tierLabelOf, type CoverPage, type ImageCover, type ResolvedCover } from '../../lib/cover';
+import { coverItemFor, getCover, type CoverPage, type ImageCover, type ResolvedCover } from '../../lib/cover';
 import { getImageProvenance } from '../../lib/image-provenance';
 import type { DetailRecord, RailCard } from './detail-record';
 
@@ -26,7 +26,6 @@ export function placePhoto({ item, image }: DetailRecord, cover: ResolvedCover, 
   return {
     tier: 'venue', key: item.event.imageKey, image,
     label: { zh: getImageProvenance(image, false, today), en: getImageProvenance(image, true, today) },
-    tierLabel: tierLabelOf('venue', image, today),
     fit: image.fullFrame ? 'contain' : 'cover',
     focal: image.focal ?? DEFAULT_FOCAL,
   };
