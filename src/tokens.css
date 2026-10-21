@@ -268,11 +268,12 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
    scale sit in :where() at (0,1,0), so a primitive's own rule (ui.css .96) wins. Inputs, selects and text areas draw
    their edge in line-control (≥3:1). */
 @media (hover:hover) and (pointer:fine) {
-  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=card],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=brand],[class*='3d'],[class*=opus],[class*=inspiration],[class*=mood],[class*='-row'])):hover,
-  .site-app .ui-card-link:hover { text-decoration-line:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
   /* J1 P7 (UI9-R1): a Chinese card title is set in phrase units that are inline blocks (ui.css .title-keep, so a phrase
      never splits), and an underline does not reach into an inline block: only the loose characters between units were
-     underlined, in pieces. The units draw the same underline themselves while their card link is hovered. */
+     underlined, in pieces. The units (last selector) draw the same underline themselves while their card link is hovered;
+     one selector list, so the entry CSS carries the declarations once. */
+  .site-app :where(a[href]:not(.ui-button,.ui-chip,[class*=button],[class*=btn],[class*=tab],[class*=card],[class*=item],[class*=tile],[class*=slide],[class*=option],[class*=nav],[class*=brand],[class*='3d'],[class*=opus],[class*=inspiration],[class*=mood],[class*='-row'])):hover,
+  .site-app .ui-card-link:hover,
   .site-app .ui-card-link:hover .title-keep:not([data-latin]) { text-decoration-line:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
   .site-app :where(:is(button,[role=button],summary,a[class*=button],a[class*=btn]):not(:disabled,.ui-button,.ui-chip,.ui-icon-button):hover) { filter:brightness(.94); }
 }
@@ -284,8 +285,9 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
 .site-app :where(input:not([type=checkbox],[type=radio],[type=range],[type=color]),select,textarea) { border-color:var(--color-line-control); }
 /* N09 (UI9-R1): the ring follows the control's corners (outline takes border-radius). The header's nav tabs and 更多 are
    square at rest (no fill; their active bar is the ::after), so their ring was a square box: they round to --r-sm while
-   focused, which changes nothing else (no fill, no overflow clip). (0,4,1) outranks site-chrome.css's (0,3,0) radius. */
-.site-app .site-header-primary :is(.site-nav-link,.site-navigation-more>summary):focus-visible { border-radius:var(--r-sm); }
+   focused, which changes nothing else (no fill, no overflow clip). (0,3,1) outranks site-chrome.css's (0,3,0) and (0,2,1)
+   radii, so the selector needs no .site-app (header is inside the app shell only). */
+.site-header-primary :is(.site-nav-link,.site-navigation-more>summary):focus-visible { border-radius:var(--r-sm); }
 .site-reading-button>svg { display:none; }
 .reading-preferences p { font-size:var(--text-body); line-height:var(--lh-read); color:var(--color-ink-2); }
 .reading-preferences>[role=group] { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin:20px 0; }

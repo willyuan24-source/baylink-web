@@ -20,7 +20,8 @@ Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.
 dom.window.matchMedia = ((query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {} })) as unknown as typeof dom.window.matchMedia;
 const { render, cleanup, fireEvent, act, within } = await import('@testing-library/react');
 const { Select } = await import('../src/components/ui/Select');
-const { DateChips, monthGrid, dateWords } = await import('../src/components/ui/DateChips');
+const { DateChips } = await import('../src/components/ui/DateChips');
+const { monthGrid, dateWords } = await import('../src/components/ui/date-words');
 const { setLocale } = await import('../src/i18n/locale');
 afterEach(async () => { cleanup(); document.body.innerHTML = ''; await setLocale('zh-Hans', false); });
 
@@ -146,7 +147,7 @@ test('N09 / J1 P19: the home BayBay card is a deep surface (lime ring ≥3:1); o
     assert.match(css, /:focus-visible \{ outline:var\(--focus-ring-width\) solid var\(--color-brand\); outline-offset:var\(--focus-ring-offset\); \}/, `${file} uses the one ring`);
   }
   // The header's square nav tabs round their ring while focused, above site-chrome.css's border-radius:0.
-  assert.ok(tokens.nodes.some(node => node.type === 'rule' && (node as Rule).selector === '.site-app .site-header-primary :is(.site-nav-link,.site-navigation-more>summary):focus-visible' && /border-radius:var\(--r-sm\)/.test(node.toString())));
+  assert.ok(tokens.nodes.some(node => node.type === 'rule' && (node as Rule).selector === '.site-header-primary :is(.site-nav-link,.site-navigation-more>summary):focus-visible' && /border-radius:var\(--r-sm\)/.test(node.toString())));
   assert.match(readFileSync('src/components/site-chrome.css', 'utf8'), /\.site-app \.site-header-primary \.site-nav-link,\.site-app \.site-navigation-more>summary \{[^}]*border-radius:0/);
   const index = postcss.parse(readFileSync('src/index.css', 'utf8'));
   let placeholder = '';
@@ -165,7 +166,7 @@ test('J1 P7 / N13: one underline (.2em, 1px) and no skip-ink on the hover underl
   // A Chinese card title's phrase units are inline blocks (ui.css .title-keep), which an underline does not reach into:
   // they underline themselves while the card link is hovered, on the same offset, so the line is continuous.
   let units = '';
-  tokens.walkRules(rule => { if (rule.selector === '.site-app .ui-card-link:hover .title-keep:not([data-latin])') units = rule.toString(); });
+  tokens.walkRules(rule => { if (rule.selectors.includes('.site-app .ui-card-link:hover .title-keep:not([data-latin])')) units = rule.toString(); });
   assert.match(units, /text-decoration-line:underline;[^}]*text-underline-offset:var\(--underline-offset\);[^}]*text-decoration-skip-ink:none/);
   assert.match((tokens.nodes.find(node => node.type === 'atrule' && node.toString().includes('.title-keep:not([data-latin])')) as postcss.AtRule | undefined)?.params ?? '', /\(hover:hover\)/);
   const links = readFileSync('src/components/ui/links.css', 'utf8');
@@ -227,6 +228,18 @@ test('Select: a native select in the chip look with the one chevron', () => {
   assert.ok(select.parentElement?.classList.contains('ui-select'));
   assert.ok(select.parentElement?.querySelector('svg.ui-select__icon[aria-hidden=true]'));
   const css = readFileSync('src/components/ui/select.css', 'utf8');
+  // The field outranks the page-scoped control rules (0,1,1) on the pages the form lanes mount it on, so the phone keeps
+  // its 16px guard (no iOS focus zoom) and the chip padding / corners there.
+  const selectSheet = postcss.parse(css);
+  const pageRules = ['src/tokens.css', 'src/styles/planner.css'].flatMap(file => { const found: string[] = []; postcss.parse(readFileSync(file, 'utf8')).walkRules(rule => { if (/:is\([^)]*\bselect\b[^)]*\)/.test(rule.selector) && /^(?::is\([^)]*\)|\.planner-page) :is\(/.test(rule.selector)) found.push(rule.selector); }); return found; });
+  assert.ok(pageRules.length >= 2, `page-scoped control rules found: ${pageRules.join(' | ')}`);
+  let guard: Rule | undefined;
+  selectSheet.walkAtRules('media', media => { if (media.params === '(max-width:767px)') media.walkRules(rule => { guard = rule; }); });
+  assert.equal(guard?.selector, '.ui-select>.ui-select__field', 'two classes (0,2,0) beat (0,1,1)');
+  assert.match(guard!.toString(), /font-size:max\(1rem, var\(--text-fact\)\)/);
+  selectSheet.walkRules(rule => { if (/__field/.test(rule.selector)) assert.match(rule.selector, /^\.ui-select>\.ui-select__field/, rule.selector); });
+  // The month sheet's day buttons are sized from their cell and kept square, so they stay circles at 特大 / 简洁.
+  assert.match(css, /\.ui-date-grid__day \{[^}]*width:min\(var\(--control-height\),100%\); height:auto; aspect-ratio:1;/);
   assert.match(css, /\.ui-select__field \{[^}]*appearance:none;[^}]*border-radius:var\(--r-pill\);[^}]*min-height:var\(--control-height\)|\.ui-select__field \{[^}]*appearance:none;[^}]*min-height:var\(--control-height\);[^}]*border-radius:var\(--r-pill\)/);
 });
 
@@ -263,6 +276,11 @@ test('DateChips: English and Traditional words, and a Sunday-first month grid', 
   await setLocale('en', false);
   const view = render(React.createElement(DateChips, { value: null, onChange: () => {}, today: '2026-10-21', label: 'When' }));
   assert.deepEqual(within(view.getByRole('group', { name: 'When' })).getAllByRole('button').map(chip => chip.textContent), ['Today', 'This weekend', 'Next 7 days', 'Pick a date']);
+  assert.deepEqual(dateWords('en').weekdays('long').slice(0, 2), ['Sunday', 'Monday']);
+  assert.equal(dateWords('zh-Hans').weekdays('long')[0], '星期日');
+  await act(async () => { fireEvent.click(within(view.getByRole('group', { name: 'When' })).getAllByRole('button')[3]); });
+  const heads = within(await view.findByRole('dialog')).getAllByRole('columnheader');
+  assert.deepEqual(heads.map(head => [head.textContent, head.getAttribute('abbr')]).slice(0, 2), [['S', 'Sunday'], ['M', 'Monday']], 'the narrow head carries the full day name');
 });
 
 test('Select and DateChips stay out of the entry: nothing src/main.tsx loads statically imports them', () => {
@@ -283,5 +301,5 @@ test('Select and DateChips stay out of the entry: nothing src/main.tsx loads sta
   };
   walk('src/main.tsx');
   assert.ok(seen.size > 20, `${seen.size} modules in the static entry graph`);
-  for (const file of ['src/components/ui/Select.tsx', 'src/components/ui/DateChips.tsx', 'src/components/ui/select.css']) assert.ok(!seen.has(file), `${file} is in the entry graph`);
+  for (const file of ['src/components/ui/Select.tsx', 'src/components/ui/DateChips.tsx', 'src/components/ui/date-words.ts', 'src/components/ui/select.css']) assert.ok(!seen.has(file), `${file} is in the entry graph`);
 });
