@@ -114,7 +114,7 @@ const detailChunks = (path: string, locale: SiteLanguage): string[] => {
   const keys = [`src/data/generated/details/bucket-${bucket}.json`, ...(locale === 'en' ? [`src/data/generated/english-scopes/detail-${bucket}.json`] : [])];
   return keys.map(key => manifest[key]?.file).filter((file): file is string => !!file);
 };
-/** UI9-IMG-A0: the info-card families load after the page (src/components/ui/deferred-family.tsx). A page whose HTML draws
+/** UI9-IMG-A0: the info-card families load after the page (src/components/ui/CoverImage.tsx deferredFamily). A page whose HTML draws
  * one preloads its chunk, so the app's first render has it and never shows the empty frame. */
 const FAMILY_MODULES: Readonly<Record<string, string>> = {
   date: 'src/components/ui/cover-date-face.tsx', ticket: 'src/components/ui/cover-ticket.tsx', shop: 'src/components/ui/cover-shop.tsx',
