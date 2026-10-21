@@ -19,7 +19,7 @@ import { EmptyState, ErrorState } from './ui/States';
 import { SkeletonFeed } from './ui/SkeletonCard';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { GuideCover, guideCaption } from '../features/guides/GuideCover';
-import { GuideTypeCover } from './ui/cover-guide';
+import { DeferredGuideTypeCover } from './ui/cover-defer';
 import type { GuideAsk } from '../features/guides/GuideActions';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { regionSheet } from '../features/guides/region-sheet';
@@ -171,7 +171,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const { when, meta } = lines(guide);
     return <>
       <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={cover ? <GuideCover guide={guide} cover={cover} face={GuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
+        thumb={cover ? <GuideCover guide={guide} cover={cover} face={DeferredGuideTypeCover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
         when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} credit={rowCredit(cover)} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
       {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
@@ -184,7 +184,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <FeedCard title={guideTitle(guide)} titleShown={cover ? guideCaption(guide, locale, cover) : undefined} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
-      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} face={GuideTypeCover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
+      onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} face={DeferredGuideTypeCover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
   };
   const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string } = {}) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;

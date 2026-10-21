@@ -3,12 +3,15 @@ import { PendingCover, type CoverLayout } from './CoverImage';
 import { useUiCopy } from './ui-copy';
 import { OfferTypeCover } from './cover-ticket';
 import { GuideTypeCover } from './cover-guide';
+import { OpeningTypeCover } from './cover-shop';
 import { translateText, type Locale } from '../../i18n/locale';
 import { brandCase, offerDeadline, type OfferFactsInput } from '../../lib/event-facts';
 
 /**
  * Cover families that load after the page (UI9-C; captain decision 9: route JS ≤ base): the ticket and the headline / number
- * families where a route draws them below its first screen (home's guide rail and offer tickets, a guide's 接下来 rail).
+ * families where a route draws them below its first screen (home's guide rail and offer tickets, a guide's 接下来 rail), and
+ * since UI9-IMG-A0 everywhere a listing draws them (/guides, the /events 免费与优惠 and 新店 boards; the date family in
+ * cover-date.tsx): the info cards leave cards in A1 (UI9-IMAGES DECISIONS 21), and their JS makes room for the pictures.
  * Until the family is in, the cover shows its empty frame (same box, same ground) inside its own boundary; a failed load
  * keeps that frame. A route that draws a family on its first screen imports it directly (cover-ticket, cover-guide) and
  * passes it in, so nothing there waits. The detail route's offer and shop heroes load theirs with the record (DetailHero).
@@ -22,14 +25,18 @@ import { brandCase, offerDeadline, type OfferFactsInput } from '../../lib/event-
 export { PendingCover };
 const TicketFrame = (props: CoverLayout) => <PendingCover {...props} family="ticket" ratio={props.ratio ?? '1:1'} />;
 const GuideFrame = (props: CoverLayout) => <PendingCover {...props} family="headline" />;
+const ShopFrame = (props: CoverLayout) => <PendingCover {...props} family="shop" />;
 // A failed load keeps the empty frame.
 const Ticket = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover-ticket').then(module => ({ default: module.OfferTypeCover }), () => ({ default: TicketFrame }))) : OfferTypeCover;
 const Guide = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover-guide').then(module => ({ default: module.GuideTypeCover }), () => ({ default: GuideFrame }))) : GuideTypeCover;
+const Shop = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover-shop').then(module => ({ default: module.OpeningTypeCover }), () => ({ default: ShopFrame }))) : OpeningTypeCover;
 
-/** The ticket family, loaded after the page (home's 免费与优惠). */
+/** The ticket family, loaded after the page (home's 免费与优惠, the /events 免费与优惠 board: UI9-IMG-A0). */
 export const DeferredOfferTypeCover = (props: ComponentProps<typeof OfferTypeCover>) => <Suspense fallback={<TicketFrame {...props} />}><Ticket {...props} /></Suspense>;
-/** The headline / number family, loaded after the page (home's guide rail, a guide's 接下来 rail). */
+/** The headline / number family, loaded after the page (home's guide rail, a guide's 接下来 rail, /guides: UI9-IMG-A0). */
 export const DeferredGuideTypeCover = (props: ComponentProps<typeof GuideTypeCover>) => <Suspense fallback={<GuideFrame {...props} />}><Guide {...props} /></Suspense>;
+/** The shop family, loaded after the page (the /events 新店 board: UI9-IMG-A0). */
+export const DeferredOpeningTypeCover = (props: ComponentProps<typeof OpeningTypeCover>) => <Suspense fallback={<ShopFrame {...props} />}><Shop {...props} /></Suspense>;
 
 const HAN = /[㐀-鿿]/;
 /**

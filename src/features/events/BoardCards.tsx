@@ -1,5 +1,6 @@
 import { Check } from 'lucide-react';
-import { COVER_SIZES, Cover, FeedCard, OfferCover, OfferTypeCover, OpeningCover, OpeningTypeCover, RowCard, StatusChip, offerBrandLine } from '../../components/ui';
+import { COVER_SIZES, Cover, FeedCard, RowCard, StatusChip, offerBrandLine } from '../../components/ui';
+import { DeferredOfferTypeCover, DeferredOpeningTypeCover } from '../../components/ui/cover-defer';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText, type Locale } from '../../i18n/locale';
 import type { ResolvedCover } from '../../lib/cover';
@@ -67,7 +68,7 @@ export function OfferFeedCard({ offer, cover, today, save = true, row, simple }:
   const { pick, locale } = useUiCopy();
   if (row) return <OfferRowCard offer={offer} cover={cover} today={today} simple={simple} />;
   return <FeedCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`}
-    cover={<OfferCover offer={offer} cover={cover} today={today} decorative />}
+    cover={<Cover cover={cover} kind="offer" ratio="1:1" decorative fallback={<DeferredOfferTypeCover offer={offer} today={today} ratio="1:1" ariaHidden />} />}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={cover.tier === 'type'} />}
     trust={<BoardTrust day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
     save={save ? <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} /> : undefined} />;
@@ -80,7 +81,7 @@ export function OfferFeedCard({ offer, cover, today, save = true, row, simple }:
 export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="offer"
-    fallback={<OfferTypeCover offer={offer} today={today} size="mini" ratio="1:1" ariaHidden />} />;
+    fallback={<DeferredOfferTypeCover offer={offer} today={today} size="mini" ratio="1:1" ariaHidden />} />;
   return <RowCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`} thumb={thumb}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={false} />}
     credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
@@ -110,7 +111,7 @@ export function OpeningFeedCard({ opening, cover, today, save = true, row, simpl
   const { locale } = useUiCopy();
   if (row) return <OpeningRowCard opening={opening} cover={cover} today={today} simple={simple} />;
   return <FeedCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'}
-    cover={<OpeningCover opening={opening} cover={cover} today={today} ratio="1:1" decorative />}
+    cover={<Cover cover={cover} kind="opening" ratio="1:1" decorative fallback={<DeferredOpeningTypeCover opening={opening} today={today} ratio="1:1" ariaHidden />} />}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
     trust={<BoardTrust day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
     save={save ? <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} /> : undefined} />;
@@ -120,7 +121,7 @@ export function OpeningFeedCard({ opening, cover, today, save = true, row, simpl
 export function OpeningRowCard({ opening, cover, today, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="opening"
-    fallback={<OpeningTypeCover opening={opening} today={today} size="mini" ratio="1:1" ariaHidden />} />;
+    fallback={<DeferredOpeningTypeCover opening={opening} today={today} size="mini" ratio="1:1" ariaHidden />} />;
   return <RowCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} thumb={thumb}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
     credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
