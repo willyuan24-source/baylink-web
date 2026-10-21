@@ -59,7 +59,8 @@ test('CNT-MEDIA official event images keep their own rights records under the ov
     const image = GUIDE_IMAGES[record.key];
     if (Object.hasOwn(overlay, record.key)) continue;
     assert.deepEqual(image.rights, record.rights, record.key);
-    assert.equal(getImageProvenance(image), '官方图', record.key);
+    // An earlier edition's photo names its year (官方图 · 2025 往届, DECISIONS 23), e.g. LumaFest's 2025 booth photo.
+    assert.match(getImageProvenance(image), /^官方图(?: · (?:19|20)\d{2} 往届)?$/, record.key);
   }
 });
 

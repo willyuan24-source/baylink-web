@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readdirSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
+import { CLAUDE_REVIEWED_2026_10_21 } from './support/claude-review-2026-10-21';
 import { EDITOR_REVIEW_DATE_2026_10_16, EDITOR_REVIEWED_2026_10_16, EDITOR_REVIEWED_2026_10_16_FOURTH, EDITOR_REVIEWED_2026_10_16_THIRD } from './support/editor-review-2026-10-16';
 
 // verifiedAt 2026-10-16 is a claim that someone read the official page that day. Only two things may make it: the GPT editor's
@@ -21,10 +22,11 @@ test('verifiedAt 2026-10-16 sits exactly on the reviewed rows and the batches fi
   assert.ok(NEW_BATCH_IDS.has('sanleandro-main-mandarin-storytime-dec5-2026'), 'the Dec–Jan Chinese batch is read');
 });
 
-test('every row the editor marked 可核 on 2026-10-16 exists and carries that date', () => {
+test('every row the editor marked 可核 on 2026-10-16 exists and carries that date (or a later Claude review date)', () => {
   const byId = new Map(MONTHLY_EVENTS.map(event => [event.id, event]));
+  // Claude's 10-21 weekly review re-read some of these rows on their official pages; they carry its date instead.
   const wrong = [...EDITOR_REVIEWED_2026_10_16]
-    .filter(id => byId.get(id)?.verifiedAt !== EDITOR_REVIEW_DATE_2026_10_16)
+    .filter(id => byId.get(id)?.verifiedAt !== (CLAUDE_REVIEWED_2026_10_21.has(id) ? '2026-10-21' : EDITOR_REVIEW_DATE_2026_10_16))
     .map(id => `${id}: ${byId.get(id)?.verifiedAt ?? 'missing'}`)
     .sort();
   assert.deepEqual(wrong, []);
@@ -60,5 +62,5 @@ test('the fourth pass leaves its partly read, corrected and conflicting rows on 
     ['sjpl-alviso-stem-sundays-2026', '2026-10-15'],
     ['sjpl-tully-friends-book-sale-dec5-2026', '2026-10-13'],
   ] as const) assert.equal(byId.get(id)?.verifiedAt, date, id);
-  for (const id of EDITOR_REVIEWED_2026_10_16_FOURTH) assert.equal(byId.get(id)?.verifiedAt, EDITOR_REVIEW_DATE_2026_10_16, id);
+  for (const id of EDITOR_REVIEWED_2026_10_16_FOURTH) assert.equal(byId.get(id)?.verifiedAt, CLAUDE_REVIEWED_2026_10_21.has(id) ? '2026-10-21' : EDITOR_REVIEW_DATE_2026_10_16, id);
 });

@@ -10,6 +10,7 @@ import { offerValue } from '../src/lib/event-facts';
 import { addDays, validThisWeek } from '../src/lib/offer-week';
 import { offerMatchesDateRange } from '../src/lib/offer-calendar';
 import { loadLocale, translateText } from '../src/i18n/locale';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 // CNT-DEALS-2: store and restaurant perks from the 2026-10-15 batch (ledger: docs/source-reads-2026-10.md).
 const offer = (id: string) => {
@@ -25,7 +26,7 @@ test('the 2026-10-15 batch publishes each new perk once, read that day, with sou
   assert.equal(new Set(dealsOffers20261015.map(item => item.id)).size, dealsOffers20261015.length);
   for (const item of dealsOffers20261015) {
     assert.equal(currentFreebies.filter(published => published.id === item.id).length, 1, item.id);
-    assert.equal(item.verifiedAt, '2026-10-15', item.id);
+    assert.equal(item.verifiedAt, batchVerifiedAt(item.id, '2026-10-15'), item.id);
     assert.equal(new URL(item.sourceUrl).protocol, 'https:', item.id);
     if (item.storeUrl) assert.equal(new URL(item.storeUrl).protocol, 'https:', item.id);
     assert.ok(GUIDE_IMAGES[item.imageKey] && existsSync(`public${GUIDE_IMAGES[item.imageKey].src}`), item.id);

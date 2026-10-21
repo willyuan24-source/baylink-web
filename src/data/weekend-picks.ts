@@ -40,15 +40,21 @@ export const WEEKEND_PICKS: Readonly<Record<string, readonly WeekendPickEntry[]>
     { id: 'numu-community-ignition-oct17-2026', reason: { zh: '现场织艺互动，认识多元艺术', en: 'Weave into a shared tapestry at the opening' } },
     { id: 'r2-santarosa-soco-halloween-2026', reason: { zh: '带上宠物，与家人一起逛市集', en: 'A family market where pets are welcome' } },
   ],
-  // 10/24–25 (GPT editor's 10/15 draft, owner approved; every pick's official page re-read 10/16, all still on 10/24). The
-  // 长辈友好 pick (Chinatown library's self-guided calligraphy afternoon) is rank 3 so the home, the /weekly card and /events
-  // show it on Saturday; Cherryland and SJMA are the standbys. All five are Saturday-only, so the ranking fills Sunday 10/25.
+  // 10/24–25 (GPT editor's 10/15 draft, owner approved; reordered by Claude's 10-21 weekly review under UI9-IMAGES DECISIONS 26:
+  // ranks 1–3 must have an official image ① or a venue photo ②). LumaFest's official photo is a close-up of faces, so it may not
+  // lead: the lead is the next pick with a ① image, Cherryland's Cantonese and Mandarin storytimes (the library's banner), and
+  // LumaFest follows at rank 2. Rank 3, the 长辈友好 place, goes to SFPL's Financial Planning Day (① SFPL's event image;
+  // in-person talks need no registration; SFPL runs the program in English, so the reason says so). The first three are
+  // Saturday-only, so the two standbys are Sunday picks with ① images whose pages were read on 10-21: they lead the Sunday
+  // 10/25 home and card instead of the automatic ranking. Menlo Park, the Chinatown calligraphy afternoon (type covers) and
+  // SJMA (no ①/② image; page behind a bot check on 10-21) leave the list and stay in the feed. Every pick's official page was
+  // read on 10-21 (docs/source-reads-2026-10.md).
   '2026-10-24': [
-    { id: 'r2-petaluma-lumafest-20261024', reason: { zh: '免费逛校园，体验亡灵节文化', en: 'A free campus open house with Día de los Muertos' } },
-    { id: 'menlo-park-halloween-hoopla-2026', reason: { zh: '装扮游行加公园嘉年华', en: 'A costume parade, then a carnival in the park' } },
-    { id: 'sfpl-chinatown-creative-saturdays-fall-2026', reason: { zh: '室内书法桌游，可按节奏参与', en: 'Indoor calligraphy and board games at your own pace' } },
     { id: 'acl-cherryland-chinese-storytimes-oct24-2026', reason: { zh: '粤语国语分场，幼儿一起听故事', en: 'Cantonese and Mandarin storytimes for little ones' } },
-    { id: 'san-jose-sjma-dia-muertos-community-2026', reason: { zh: '免费入馆，参加亡灵节艺术活动', en: 'Free museum entry and Día de los Muertos art' } },
+    { id: 'r2-petaluma-lumafest-20261024', reason: { zh: '免费逛校园，体验亡灵节文化', en: 'A free campus open house with Día de los Muertos' } },
+    { id: 'sf-financial-planning-day-oct24-2026', reason: { zh: '免费英文理财讲座，现场入座不用报名', en: 'Free money talks in English; no sign-up to sit in' } },
+    { id: 'sf-world-of-dumplings-2026', reason: { zh: '免费入场，尝 25 家以上各地饺子', en: 'Free entry; dumplings from more than 25 stalls' } },
+    { id: 'oakland-omca-dia-muertos-2026', reason: { zh: '巡游、音乐和社区祭坛过亡灵节', en: 'A parade, music and community altars for Día de los Muertos' } },
   ],
   // 10/31–11/1 (GPT editor's 10/16 draft, owner approved 10/16; every pick's official page re-read 10/16, all unchanged). The
   // 长辈友好 pick (Chinatown library's self-guided calligraphy afternoon) is rank 3 so the home, the /weekly card and /events

@@ -90,7 +90,7 @@ export const familyRetailOffers2026: FreebieOffer[] = [
     "requirement": "4 岁以上儿童；活动免费。先选湾区门店确认举办与材料，家长陪同。",
     "description": "10:00–12:00 的 Kids Club，用 chenille stems 做毛绒幽灵或蜘蛛。可在详情页设置提醒，款式与可做数量以现场为准。",
     "sourceUrl": "https://www.michaels.com/class/lil%E2%80%99-witching-hours:-chenille-stem-ghost-or-spider-142265502677384",
-    "verifiedAt": "2026-10-04"
+    "verifiedAt": "2026-10-21"
   },
   {
     "brand": "MICHAELS",
@@ -108,7 +108,7 @@ export const familyRetailOffers2026: FreebieOffer[] = [
     "requirement": "建议 13 岁以上；免费的是现场示范，不代表赠送整套服装或材料包。先确认本店举办。",
     "description": "13:00–15:00 观看简单、快速的 costume 制作技巧。适合找服装灵感；如现场购买材料，另按门店价格支付。",
     "sourceUrl": "https://www.michaels.com/class/witching-hours:-last-minute-costume-demo-263698371328392",
-    "verifiedAt": "2026-10-04"
+    "verifiedAt": "2026-10-21"
   },
   {
     "id": "lakeshore-castle-oct10-2026",
@@ -144,7 +144,7 @@ export const familyRetailOffers2026: FreebieOffer[] = [
     "sourceUrl": "https://img.lakeshorelearning.com/is/content/OCProduction/pdf/8597056_LE%20Year%20Calendar_2026_No%20Crop.pdf",
     "sourceLabel": "Lakeshore 官方 2026 免费儿童活动日历（PDF）",
     "storeUrl": "https://www.lakeshorelearning.com/stores/locator/san-jose/026/",
-    "verifiedAt": "2026-10-04"
+    "verifiedAt": "2026-10-21"
   },
   {
     "id": "lakeshore-mosaic-nov7-2026",

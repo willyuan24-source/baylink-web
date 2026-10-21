@@ -26,7 +26,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://petalumapumpkinpatch.com/pricing-hours/",
     "sourceLabel": "Petaluma Pumpkin Patch",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -518,7 +518,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://sjsff.com/tickets/",
     "sourceLabel": "San Jose International Short Film Festival",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "cinema-night"
   },
   {
@@ -545,7 +545,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://bayareamusicalimprov.com/festival",
     "sourceLabel": "Bay Area Musical Improv",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "coverage-stage"
   },
   {
@@ -599,7 +599,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.menlopark.gov/Citywide-calendar/Community-events/20261024-Halloween-Hoopla-Parade-and-Carnival",
     "sourceLabel": "City of Menlo Park",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -626,7 +626,7 @@ export const verifiedOctoberEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.thefloathousepetaluma.org/events/witches-wizards-on-the-water-2026",
     "sourceLabel": "The Floathouse Petaluma",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "coverage-petaluma-river"
   },
   {

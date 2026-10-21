@@ -460,7 +460,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.pollyklaastheater.org/event/coco/",
     "sourceLabel": "Polly Klaas Community Theater",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -487,7 +487,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.cityofsanmateo.org/4740/Boos-and-Brews-on-B-Street",
     "sourceLabel": "City of San Mateo",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {
@@ -514,7 +514,7 @@ export const communityDiscoveryEvents: MonthlyEvent[] = [
     ],
     "officialUrl": "https://www.eventbrite.com/e/world-of-dumplings-2026-tickets-1997773482264",
     "sourceLabel": "Asians Are Strong",
-    "verifiedAt": "2026-10-15",
+    "verifiedAt": "2026-10-21",
     "imageKey": "autumn-neighbors"
   },
   {

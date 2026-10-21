@@ -117,7 +117,7 @@ export const october2026OfferUpdates: Record<string, Partial<FreebieOffer>> = {
     "sourceLabel": "SFPL 官方 Discover & Go 预约与取消规则"
   },
   "sfmoma-family-oct25": {
-    "verifiedAt": "2026-10-02",
+    "verifiedAt": "2026-10-21",
     "region": "sf",
     "description": "10/25 官方主题已公布为 K-Pop, Art, and Beyond，包含手作、SFPL 故事时间、寻宝与舞会。门票提前两周开放；最多两位成人须有一名 18 岁及以下孩子同行，加价特展另付。"
   }

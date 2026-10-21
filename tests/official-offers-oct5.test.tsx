@@ -4,6 +4,7 @@ import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import type { FreebieOffer } from '../src/components/FreebieBoard';
+import { batchVerifiedAt } from './support/editor-review-2026-10-15';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://www.baylink.us/', pretendToBeVisual: true });
 Object.assign(globalThis, {
@@ -45,7 +46,7 @@ test('all 12 additions publish once without dropping any of the 194 previously r
   for (const offer of verifiedOffers20261005) {
     assert.equal(currentFreebies.filter(candidate => candidate.id === offer.id).length, 1, offer.id);
     assert.ok(!releasedOfferIds.includes(offer.id), 'addition duplicates the released baseline: ' + offer.id);
-    assert.equal(offer.verifiedAt, today);
+    assert.equal(offer.verifiedAt, batchVerifiedAt(offer.id, today), offer.id);
     if (offer.availability === 'dated') {
       assert.match(offer.startDate || '', /^\d{4}-\d{2}-\d{2}$/);
       assert.match(offer.endDate || '', /^\d{4}-\d{2}-\d{2}$/);

@@ -12,8 +12,9 @@ export const MONTHLY_EDITION = {
   // (docs/source-reads-2026-10.md). CNT-FRESH-1016 adds two
   // November SFPL items read on 2026-10-16 (src/data/supply-2026-10-16-*), and the editor's third review (11/7–8, 11/14–15,
   // 11/21–22) set 2026-10-16. CNT-WEEKEND-1128 adds Portola Valley's sewing-machine basics read on 2026-10-17
-  // (src/data/weekend-1128-2026-10-17-*), so updatedAt is that day (no item may claim a later verifiedAt).
-  updatedAt: '2026-10-17',
+  // (src/data/weekend-1128-2026-10-17-*). Claude's weekly review of 10/24–25 set verifiedAt 2026-10-21 on the items it read and
+  // matched on 2026-10-21 (docs/source-reads-2026-10.md), so updatedAt is that day (no item may claim a later verifiedAt).
+  updatedAt: '2026-10-21',
   title: '这个秋天，把周末留给湾区。',
   intro: '从十月的周末、十二月的节日到 2027 年春节，按地区挑选已公布的活动、优惠、新店与半日游。每条保留来源、核对日期和适用条件，预告与已确认安排分别标注。',
 };

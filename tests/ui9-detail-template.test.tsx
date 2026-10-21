@@ -35,7 +35,9 @@ after(() => {
   }
 });
 
-const TODAY = '2026-10-19';
+// On or after the latest verifiedAt in the catalog (Claude's weekly review stamped 2026-10-21): a page rendered before its own
+// check date prints no check line.
+const TODAY = '2026-10-21';
 const find = (key: string) => {
   const item = localDiscoveries.find(row => `${row.kind}:${discoveryShare(row).id}` === key);
   assert.ok(item, key);
