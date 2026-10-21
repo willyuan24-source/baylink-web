@@ -1,5 +1,5 @@
 import { TypeFrame, type CoverLayout } from './CoverImage';
-import { DateFace } from './cover-date';
+import { DateFace } from './cover-date-face';
 import { TicketFace } from './cover-ticket';
 import { HeadlineFace, NumberFace, hookPhone, topicMark } from './cover-guide';
 import { ShopFace } from './cover-shop';

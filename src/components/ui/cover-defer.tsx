@@ -1,11 +1,10 @@
 import { lazy, Suspense, type ComponentProps } from 'react';
-import type { CoverLayout } from './CoverImage';
-import { cx, useUiCopy } from './ui-copy';
+import { PendingCover, type CoverLayout } from './CoverImage';
+import { useUiCopy } from './ui-copy';
 import { OfferTypeCover } from './cover-ticket';
 import { GuideTypeCover } from './cover-guide';
 import { translateText, type Locale } from '../../i18n/locale';
 import { brandCase, offerDeadline, type OfferFactsInput } from '../../lib/event-facts';
-import type { CoverFamily } from '../../lib/cover-family';
 
 /**
  * Cover families that load after the page (UI9-C; captain decision 9: route JS ≤ base): the ticket and the headline / number
@@ -19,10 +18,8 @@ import type { CoverFamily } from '../../lib/cover-family';
  * loaders, and the static imports above drop out of it. The offer card's brand, line 1 and meta line live here too, so a
  * page whose tickets load after it prints them at once.
  */
-/** The empty frame a deferred cover shows until its family is in (same box and ground as the family's own frame). */
-export function PendingCover({ family, ratio, ratioLock, size, className }: CoverLayout & { family: CoverFamily }) {
-  return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden="true" />;
-}
+// The empty frame lives with the frames (CoverImage.tsx) so the date family can use it too; still importable from here.
+export { PendingCover };
 const TicketFrame = (props: CoverLayout) => <PendingCover {...props} family="ticket" ratio={props.ratio ?? '1:1'} />;
 const GuideFrame = (props: CoverLayout) => <PendingCover {...props} family="headline" />;
 // A failed load keeps the empty frame.

@@ -98,6 +98,10 @@ export type CoverLayout = {
 
 const HAN = /[㐀-鿿]/;
 /** `lang="en"` for a Latin line on a Chinese page. */
+/** The empty frame a deferred cover shows until its family is in (same box and ground as the family's own frame). */
+export function PendingCover({ family, ratio, ratioLock, size, className }: CoverLayout & { family: CoverFamily }) {
+  return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden="true" />;
+}
 export const latinLang = (text: string) => HAN.test(text) ? undefined : 'en';
 
 /**
