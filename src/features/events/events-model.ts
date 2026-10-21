@@ -2,7 +2,7 @@ import indexJson from '../../data/generated/events-index.json';
 import { WEEKEND_FLAGSHIP_IDS, WEEKEND_PICKS, type WeekendPickEntry } from '../../data/weekend-picks';
 import type { EventsIndex, EventsLater, IndexEvent, IndexOffer, IndexOpening, MonthlyRegion } from './events-index-types';
 import type { Copy } from '../../lib/event-facts';
-import { getCover, type CoverContext } from '../../lib/cover';
+import { coverItemFor, getCover, type CoverContext } from '../../lib/cover';
 import { getMonthlyDateRange, isFreeToAttend, nextOccurrence, orderByNextDay, resolveMonthlyDateFilter, weekendDayTabs, type MonthlyDateFilter, type WeekendDayTab } from '../../lib/monthly';
 import { isRealPhotoImage, rankWeekendFallback, selectWeekendFallback } from '../../lib/weekend-ranking';
 import { isSeniorFriendly } from '../../lib/senior-friendly';
@@ -28,7 +28,7 @@ export const INDEX_OPENINGS: readonly IndexOpening[] = EVENTS_INDEX.openings;
 export const coverContext = (today: string): CoverContext => ({ images: EVENTS_INDEX.images, today });
 /** The cover ladder's answer without page de-duplication: does this item have a real photo or official image? */
 export const hasRealCover = (kind: 'event' | 'offer' | 'opening', item: { id: string; imageKey?: string }, today: string) =>
-  getCover({ kind, id: item.id, imageKey: item.imageKey }, coverContext(today)).tier !== 'type';
+  getCover(coverItemFor(kind, item), coverContext(today)).tier !== 'type';
 
 /** M/D for trust rows and ranges ("官网核对 10/2", "10/10–11"); `english`: "Oct 2" (US English on /en). */
 export const monthDay = (day: string, english = false) => readerMonthDay(day, english);

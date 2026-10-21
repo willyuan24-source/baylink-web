@@ -1,4 +1,4 @@
-import type { GuideImage } from '../data/guide-media';
+import type { GuideImage, MediaRightsBasis } from '../data/guide-media';
 // The reviewed approvals of src/data/event-image-usage.ts, written by `npm run generate:home` (WEB-HOME): that module builds
 // them from the official-event media registry, which would otherwise ride along with every page that resolves a cover
 // (about 18 KiB gzip on the home page). tests/home-catalog.test.ts keeps the two equal.
@@ -10,19 +10,24 @@ import type { Copy } from './event-facts';
  * One cover resolver for every surface (plan D7, content.md §4.1, 1007 §5.3): home, feeds, calendar,
  * detail heroes, share cards and BayBay answer cards ask `getCover` instead of reading `imageKey`.
  *
- * Honesty ladder, first match wins:
- *   1. official   the organiser's or brand's own image (poster, press kit, recorded permission) → 官方图
- *   2. photo      public-domain / CC / own photo of this item, taken within 8 years, not vetoed → 照片 · 年份
- *   3. venue      an approved venue photo (EVENT_CONTEXT_PHOTOS purpose venue), within 8 years → 资料图 · 年份
- *   4. scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
- *   5. type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡
- * Never: an AI illustration or a theme photo on a factual item; the same file twice on one page (the
- * second item falls back to a TypeCover); a cropped poster (`fit: 'contain'`: the whole flyer on its board, never blurred).
+ * The owner's order (UI9-IMAGES, DECISIONS 22), first usable candidate wins. An item's candidates are `imageKeys` when the
+ * build wrote them (coverCandidates(), src/lib/cover-candidates.ts: ① its own → ② its venue's → ③ its category's stock
+ * pictures → ④ approved AI), else its one `imageKey`; then a 3D postcard for San Francisco places:
+ *   official   ① the organiser's or brand's own image (poster, press kit, recorded permission) → 官方图
+ *   photo      a public-domain / CC / own photo of this item, within 8 years → 照片 · 年份 (BAYLINK 实拍, 资料图 kept)
+ *   venue      ② a venue photo (subject 'venue', or EVENT_CONTEXT_PHOTOS purpose venue), within 8 years → 场馆照 · 年份
+ *   stock      ③ a licensed stock picture of the item's category (rights basis 'stock'), any age → 示意图
+ *   ai         ④ an AI illustration the owner approved (src/data/ai-cover-approvals.json → aiCoverApproved) → AI 示意图
+ *   scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
+ *   type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡 (A1 removes it from cards, DECISIONS 21)
+ * Never: an unapproved AI illustration or a theme photo; a ①② file twice on one page, or a ③④ picture twice within 6
+ * adjacent cards (the item tries its next candidate); a cropped poster (`fit: 'contain'`).
+ * `label` is today's badge (getImageProvenance); `tierLabel` is the DECISIONS 23 vocabulary A1 switches the badges to.
  * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
  */
 
 export type CoverKind = 'event' | 'offer' | 'opening' | 'place' | 'guide' | 'bulletin';
-export type RightsBasis = 'official' | 'permission' | 'press-kit' | 'promo-editorial' | 'public-domain' | 'cc' | 'owner' | 'ai' | 'unknown';
+export type RightsBasis = MediaRightsBasis | 'unknown';
 
 /** A registry image plus the optional fields the image pipeline adds (WEB-IMAGES); all are read when present. */
 export type CoverAsset = GuideImage & Omit<ProvenanceInput, 'kind' | 'credit' | 'caption'> & {
@@ -35,7 +40,17 @@ export type CoverAsset = GuideImage & Omit<ProvenanceInput, 'kind' | 'credit' | 
   /** Dominant colour for the placeholder (LQIP manifest). */
   lqip?: string;
 };
-export type CoverItem = { kind: CoverKind; id: string; imageKey?: string; postcardKey?: string };
+export type CoverItem = {
+  kind: CoverKind;
+  id: string;
+  imageKey?: string;
+  postcardKey?: string;
+  /**
+   * The item's candidates in the owner's order (① own → ② venue → ③ category stock → ④ approved AI), written at build time
+   * by coverCandidates(); when present they replace `imageKey`. No catalog carries them before A1 (UI9-IMAGES).
+   */
+  imageKeys?: readonly string[];
+};
 type ContextPhotos = Readonly<Record<string, { purpose: 'venue' | 'theme'; eventIds: readonly string[] }>>;
 export type CoverContext = {
   /** The image registry: the full `GUIDE_IMAGES`, the slim home catalog's images, or a lookup function. */
@@ -47,15 +62,19 @@ export type CoverContext = {
   /** Venue/theme approvals for reused photos; defaults to the reviewed `EVENT_CONTEXT_PHOTOS`. */
   contextPhotos?: ContextPhotos;
 };
-export type CoverTier = 'official' | 'photo' | 'venue' | 'scene3d' | 'type';
+export type CoverTier = 'official' | 'photo' | 'venue' | 'stock' | 'ai' | 'scene3d' | 'type';
+/** A badge in the DECISIONS 23 vocabulary: both scripts, the full English for a hero and the short one for an 88 px thumbnail. */
+export type TierLabel = { zh: string; zhHant: string; en: string; enShort: string };
 export type TypeCoverReason = 'no-image' | 'missing-image' | 'ai-illustration' | 'theme-photo' | 'unapproved-reuse'
   | 'too-old' | 'undated' | 'cover-not-ok' | 'not-allowed-for-kind' | 'duplicate';
 export type ImageCover = {
   tier: Exclude<CoverTier, 'type'>;
   key: string;
   image: CoverAsset;
-  /** Provenance badge text, from `getImageProvenance` only. */
+  /** Provenance badge text, from `getImageProvenance` only (what the pages print until A1). */
   label: Copy;
+  /** The badge in the four-tier vocabulary (DECISIONS 23), from tierLabelOf(). */
+  tierLabel: TierLabel;
   /** Posters and full-frame artwork are shown whole on a solid board with a white mat (the poster family), never cropped. */
   fit: 'cover' | 'contain';
   focal: readonly [number, number];
@@ -64,19 +83,66 @@ export type ImageCover = {
 export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string };
 export type ResolvedCover = ImageCover | TypeCoverResolution;
 
-/** Which image src each item on the page has claimed. A re-render of the same item keeps its claim. */
-export type CoverPage = { claims: Map<string, string> };
+/**
+ * Which image src each item on the page has claimed (①②: once per page). A re-render of the same item keeps its claim.
+ * `order` numbers the items in display order and `shared` records where each ③④ pool picture is shown, so the same stock
+ * or AI picture can come back on the page, but never within ADJACENT_CARDS cards of itself.
+ */
+export type CoverPage = {
+  claims: Map<string, string>;
+  order?: Map<string, number>;
+  shared?: Map<string, { item: string; at: number }[]>;
+};
 export const createCoverPage = (): CoverPage => ({ claims: new Map() });
+/** A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重). */
+export const ADJACENT_CARDS = 6;
 
 export const MAX_PHOTO_AGE_YEARS = 8;
 const OFFICIAL: ReadonlySet<RightsBasis> = new Set(['official', 'permission', 'press-kit', 'promo-editorial']);
+const POOL_TIERS: ReadonlySet<CoverTier> = new Set(['stock', 'ai']);
 const DEFAULT_FOCAL = [50, 40] as const;
 
 /**
  * An AI illustration is what the image is, not a rights question: BAYLINK may own it (`rights.basis: 'owner'`) or
- * record it as official, and it is still never the cover of a factual item. 3D-world scenes are the one exception.
+ * record it as official, and it is still no cover unless the owner approved that key (④, `aiCoverApproved`, set from
+ * src/data/ai-cover-approvals.json only). 3D-world scenes are the one exception.
  */
 export const isAiIllustration = (image: CoverAsset) => image.kind === 'illustration' && !image.scene3d;
+/** An AI illustration the owner approved in chat as a ④ cover (DECISIONS 22/25). */
+export const isApprovedAiCover = (image: CoverAsset) => isAiIllustration(image) && image.aiCoverApproved === true;
+
+/** DECISIONS 23: the badge per tier. Short English fits an 88 px thumbnail (tests/cover-tier-labels.test.ts). */
+export const TIER_LABELS = {
+  official: { zh: '官方图', zhHant: '官方圖', en: 'Official image', enShort: 'Official' },
+  officialEdition: (year: string): TierLabel => ({ zh: `官方图 · ${year} 往届`, zhHant: `官方圖 · ${year} 往屆`, en: `Official image · ${year} edition`, enShort: `Official · ${year}` }),
+  officialProduct: { zh: '官方图 · 产品图', zhHant: '官方圖 · 產品圖', en: 'Official product image', enShort: 'Product' },
+  venue: (year?: number): TierLabel => year
+    ? { zh: `场馆照 · ${year}`, zhHant: `場館照 · ${year}`, en: `Venue photo · ${year}`, enShort: `Venue · ${year}` }
+    : { zh: '场馆照', zhHant: '場館照', en: 'Venue photo', enShort: 'Venue' },
+  stock: { zh: '示意图', zhHant: '示意圖', en: 'Illustrative photo', enShort: 'Stock photo' },
+  ai: { zh: 'AI 示意图', zhHant: 'AI 示意圖', en: 'AI illustration', enShort: 'AI image' },
+  scene3d: { zh: '3D 场景插图', zhHant: '3D 場景插圖', en: '3D scene illustration', enShort: '3D scene' },
+} as const satisfies Record<string, TierLabel | ((...args: never[]) => TierLabel)>;
+
+/** A product image's caption says so (official-opening-media artwork 'product'; captionSignal keeps the word). */
+const PRODUCT_CAPTION = /产品图|商品陈列/;
+const HANT: readonly [RegExp, string][] = [[/资料图/g, '資料圖'], [/实拍/g, '實拍']];
+
+/** The DECISIONS 23 badge for a cover of this tier. Kept labels (照片 · 年份, 资料图, BAYLINK 实拍) keep their words. */
+export function tierLabelOf(tier: Exclude<CoverTier, 'type'>, image: CoverAsset, today?: string): TierLabel {
+  if (tier === 'scene3d') return TIER_LABELS.scene3d;
+  if (tier === 'stock') return TIER_LABELS.stock;
+  if (tier === 'ai') return TIER_LABELS.ai;
+  if (tier === 'venue') return TIER_LABELS.venue(captureYear(image));
+  if (tier === 'official') {
+    if (PRODUCT_CAPTION.test(image.caption)) return TIER_LABELS.officialProduct;
+    const edition = image.caption.match(/((?:19|20)\d{2}) ?年?往[届屆]/)?.[1];
+    return edition ? TIER_LABELS.officialEdition(edition) : TIER_LABELS.official;
+  }
+  const zh = getImageProvenance(image, false, today);
+  const en = getImageProvenance(image, true, today);
+  return { zh, zhHant: HANT.reduce((text, [from, to]) => text.replace(from, to), zh), en, enShort: en.replace('Archive photo', 'Archive').replace('BAYLINK photo', 'BAYLINK') };
+}
 
 /** The rights basis: the structured record when present, else what today's registry fields state. */
 export function rightsBasisOf(image: CoverAsset): RightsBasis {
@@ -106,10 +172,13 @@ const typeCover = (reason: TypeCoverReason, rejectedKey?: string): TypeCoverReso
   tier: 'type', reason, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) }, ...(rejectedKey ? { rejectedKey } : {}),
 });
 
-/** Photo tiers each listing kind may use (content.md §4.1 table). Official images and own shots are allowed for all. */
+/**
+ * Photo tiers each listing kind may use (content.md §4.1 table). Official images, own shots and ③④ pictures are allowed
+ * for all; a venue photo (subject 'venue', approved once per venue, UI9-IMAGES) is 'dated' for every kind.
+ */
 const THIRD_PARTY_PHOTOS: Record<CoverKind, 'dated' | 'any' | 'none'> = {
   event: 'dated', bulletin: 'dated', place: 'any', guide: 'any',
-  // Offers and new shops need the brand's own image or a BAYLINK photo; a CC street photo is not the offer.
+  // Offers and new shops need the brand's own image, a BAYLINK photo or their venue's; a CC street photo is not the offer.
   offer: 'none', opening: 'none',
 };
 
@@ -120,35 +189,50 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   const make = (coverTier: ImageCover['tier'], provenanceImage: CoverAsset = image): Candidate => ({ cover: {
     tier: coverTier, key, image,
     label: { zh: getImageProvenance(provenanceImage, false, ctx.today), en: getImageProvenance(provenanceImage, true, ctx.today) },
+    tierLabel: tierLabelOf(coverTier, provenanceImage, ctx.today),
     fit: image.kind === 'poster' || image.fullFrame ? 'contain' : 'cover',
     focal: image.focal ?? DEFAULT_FOCAL,
     year: captureYear(image),
   } });
   if (tier === 'scene3d') return item.kind === 'place' ? make('scene3d', { ...image, scene3d: true }) : { rejected: 'not-allowed-for-kind' };
-  // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover.
-  if (isAiIllustration(image) || basis === 'ai') return { rejected: 'ai-illustration' };
+  // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover: only the
+  // owner's approval of that key does (④).
+  if (isAiIllustration(image) || basis === 'ai') return isApprovedAiCover(image) ? make('ai') : { rejected: 'ai-illustration' };
+  if (basis === 'stock' || image.subject === 'category') return make('stock');
   const use = item.kind === 'event' ? (ctx.contextPhotos ?? eventContextPhotos as ContextPhotos)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
   if (use && !use.eventIds.includes(item.id)) return { rejected: 'unapproved-reuse' };
-  if (!use && OFFICIAL.has(basis)) return make('official');
+  const venue = !!use || image.subject === 'venue';
+  if (!venue && OFFICIAL.has(basis)) return make('official');
   if (basis === 'owner') return make('photo');
-  const rule = use ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
+  const rule = venue ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
   if (rule === 'none') return { rejected: 'not-allowed-for-kind' };
   if (rule === 'dated') {
     const year = captureYear(image);
     if (year === undefined) return { rejected: 'undated' };
     if (year < Number(ctx.today.slice(0, 4)) - MAX_PHOTO_AGE_YEARS) return { rejected: 'too-old' };
   }
-  return make(use ? 'venue' : 'photo');
+  return make(venue ? 'venue' : 'photo');
+}
+
+/** The item's place in the page's display order (first resolve wins), for the ③④ adjacency rule. */
+function positionOf(page: CoverPage, item: string): number {
+  page.order ??= new Map();
+  if (!page.order.has(item)) page.order.set(item, page.order.size);
+  return page.order.get(item)!;
 }
 
 /**
- * Resolve one item's cover. With `ctx.page`, an image already claimed by another item on the page
- * falls back to a TypeCover (VISUAL-10); the same item resolving again keeps its claim.
+ * Resolve one item's cover. With `ctx.page`, a ①② image already claimed by another item on the page, or a ③④ picture
+ * shown fewer than ADJACENT_CARDS cards away, moves the item to its next candidate (VISUAL-10); the same item resolving
+ * again keeps its claim.
  */
 export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
   const attempts: { key: string; tier: 'image' | 'scene3d' }[] = [];
-  if (item.imageKey) attempts.push({ key: item.imageKey, tier: 'image' });
+  for (const key of item.imageKeys ?? (item.imageKey ? [item.imageKey] : [])) attempts.push({ key, tier: 'image' });
+  const me = itemKey(item);
+  // Every item takes its place in display order, a TypeCover included: it is still a card between two pictures.
+  const at = ctx.page ? positionOf(ctx.page, me) : 0;
   if (item.postcardKey) attempts.push({ key: item.postcardKey, tier: 'scene3d' });
   let reason: TypeCoverReason = 'no-image';
   let rejectedKey: string | undefined;
@@ -159,15 +243,41 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       if (!rejectedKey) { reason = outcome.rejected; rejectedKey = key; }
       continue;
     }
-    const claimant = ctx.page?.claims.get(outcome.cover.image.src);
-    if (claimant && claimant !== itemKey(item)) {
+    const src = outcome.cover.image.src;
+    if (POOL_TIERS.has(outcome.cover.tier)) {
+      if (!ctx.page) return outcome.cover;
+      ctx.page.shared ??= new Map();
+      const shown = ctx.page.shared.get(src) ?? [];
+      if (shown.some(other => other.item !== me && Math.abs(other.at - at) < ADJACENT_CARDS)) {
+        if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
+        continue;
+      }
+      if (!shown.some(other => other.item === me)) ctx.page.shared.set(src, [...shown, { item: me, at }]);
+      return outcome.cover;
+    }
+    const claimant = ctx.page?.claims.get(src);
+    if (claimant && claimant !== me) {
       if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
       continue;
     }
-    ctx.page?.claims.set(outcome.cover.image.src, itemKey(item));
+    ctx.page?.claims.set(src, me);
     return outcome.cover;
   }
   return typeCover(reason, rejectedKey);
+}
+
+/**
+ * A listing record as a CoverItem: the one place pages, generators and report:covers build it (UI9-IMAGES A0), so the
+ * page and the coverage report always judge the same candidates. The record's `imageKeys` (written by the build from
+ * coverCandidates(), from A1) come along; `override.imageKey` replaces the record's own image, `undefined` included (the
+ * home lead's close-up-face rule, weekend-lead.ts leadImageKey), and then also leaves it out of `imageKeys`.
+ */
+export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined }): CoverItem {
+  const imageKey = override ? override.imageKey : record.imageKey;
+  if (!record.imageKeys) return { kind, id: record.id, imageKey };
+  const imageKeys = imageKey === record.imageKey ? record.imageKeys
+    : [...(imageKey ? [imageKey] : []), ...record.imageKeys.filter(key => key !== record.imageKey)];
+  return { kind, id: record.id, imageKey, imageKeys };
 }
 
 /** Resolve a list in display order on one page, so de-duplication is deterministic. */

@@ -7,7 +7,7 @@ import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import { useApp } from '../../app/context';
 import { addCalendarDays, calendarPeriod, validCalendarDay } from '../../lib/calendar-days';
-import { createCoverPage, resolveCovers } from '../../lib/cover';
+import { coverItemFor, createCoverPage, resolveCovers } from '../../lib/cover';
 import { nextOccurrence, orderByNextDay } from '../../lib/monthly';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 import { EVENTS_INDEX, coverContext, hasRealCover, isRegion, monthDay, readSavedRegion, regionLabel, weekdayIndex, WEEKDAYS } from './events-model';
@@ -85,7 +85,7 @@ export default function CalendarView({ today }: { today: string }) {
   const shownEvents = ordered.slice(0, shownCount + 1);
   const more = Math.min(pageSize, ordered.length - shownEvents.length);
   // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
-  const covers = resolveCovers(shownEvents.map((event, index) => ({ kind: 'event' as const, id: event.id, imageKey: index ? event.imageKey : leadImageKey(event.imageKey) })), { ...coverContext(today), page: createCoverPage() });
+  const covers = resolveCovers(shownEvents.map((event, index) => coverItemFor('event', event, { imageKey: index ? event.imageKey : leadImageKey(event.imageKey) })), { ...coverContext(today), page: createCoverPage() });
   // The nearest days with events after an empty one can be past the route's own days: they read the whole catalog.
   const after = useIndexEvents(date > today ? date : today, null, !!events && !dayEvents.length);
   const counts = new Map<string, number>();

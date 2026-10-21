@@ -45,9 +45,20 @@ import cityRoundupMedia from './city-roundup-media.json';
 import { currentOpenings as septemberOpenings } from './local-discoveries';
 import { ladderSrcSet, readExtraLadder, readLadder, registrySources } from './image-ladder';
 import mediaRightsOverlay from './media-rights-overlay.json';
+import aiCoverApprovals from './ai-cover-approvals.json';
 
-/** Why BAYLINK may show an image (structured record shape from a4 `federal-pd-media.json`; read by getCover). */
-export type MediaRightsBasis = 'official' | 'permission' | 'press-kit' | 'promo-editorial' | 'public-domain' | 'cc' | 'owner' | 'ai';
+/**
+ * Why BAYLINK may show an image (structured record shape from a4 `federal-pd-media.json`; read by getCover). `stock`: a
+ * licensed stock photograph of a category (Unsplash / Pexels, a named photographer, never AI; UI9-IMAGES ③), with the
+ * photographer in `credit`, the photo page in `creditUrl` and `evidenceUrl`, and the licence in `licenseUrl`.
+ */
+export type MediaRightsBasis = 'official' | 'permission' | 'press-kit' | 'promo-editorial' | 'public-domain' | 'cc' | 'owner' | 'ai' | 'stock';
+/**
+ * What a picture shows for the records that use it (UI9-IMAGES DECISIONS 22): `item` the record's own image (①), `venue`
+ * the place it happens at (②, approved once per venue in src/data/venue-photos.json), `category` a stock or AI picture of
+ * its kind of activity (③④, src/data/category-photos.json). Absent on today's records, which keep their old rules.
+ */
+export type ImageSubject = 'item' | 'venue' | 'category';
 export type MediaRights = {
   basis: MediaRightsBasis;
   /** The page that shows the licence, press-kit terms or permission. */
@@ -86,6 +97,10 @@ export type GuideImage = {
   shotAt?: string;
   /** A view of BAYLINK's 3D world (scene3d-postcards.ts), never a photograph. */
   scene3d?: boolean;
+  /** What the picture shows for the records that use it (ImageSubject). */
+  subject?: ImageSubject;
+  /** The owner approved this AI illustration as a ④ cover: set only from src/data/ai-cover-approvals.json, never by hand. */
+  aiCoverApproved?: boolean;
 };
 
 const illustration = (name: string, alt: string, caption: string): GuideImage => ({
@@ -301,6 +316,18 @@ for (const image of Object.values(GUIDE_IMAGES)) {
     image.srcSet = ladderSrcSet(image.src, image.width, entry);
     image.lqip = entry.lqip;
   } else image.srcSet ??= ladderSrcSet(image.src, image.width, NO_RUNGS);
+}
+
+/**
+ * AI illustrations the owner approved as ④ covers, each with the owner's own words and the day (UI9-IMAGES DECISIONS 25:
+ * only a chat approval counts; a pre-ticked review page does not). `for` names the records (`kind:id`) or categories
+ * (`category:<id>`) it may cover; coverCandidates() reads it. Only these keys get `aiCoverApproved`.
+ */
+export type AiCoverApproval = { key: string; ownerQuote: string; approvedAt: string; for?: string[] };
+export const AI_COVER_APPROVALS: readonly AiCoverApproval[] = (aiCoverApprovals as { approvals: AiCoverApproval[] }).approvals;
+for (const { key } of AI_COVER_APPROVALS) {
+  const image = GUIDE_IMAGES[key];
+  if (image?.kind === 'illustration' && !image.scene3d) GUIDE_IMAGES[key] = { ...image, aiCoverApproved: true };
 }
 
 type MediaRightsOverlayEntry = Pick<GuideImage, 'coverOk' | 'focal' | 'ownShot' | 'shotAt'> & { rights?: MediaRights };

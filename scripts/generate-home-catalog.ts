@@ -130,7 +130,7 @@ const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).m
 // Only images the cover ladder accepts for their item are shipped (an AI illustration, a theme photo, an undated or old
 // photo would be an information card anyway), with the fields getCover, the badge and the credits read; the rights
 // prose becomes its basis, which is all the ladder and the badge use from it.
-const IMAGE_FIELDS = ['src', 'srcSet', 'width', 'height', 'alt', 'kind', 'fullFrame', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'lqip', 'shotAt', 'photoDate', 'ownShot', 'coverOk', 'focal', 'scene3d'];
+const IMAGE_FIELDS = ['src', 'srcSet', 'width', 'height', 'alt', 'kind', 'fullFrame', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'lqip', 'shotAt', 'photoDate', 'ownShot', 'coverOk', 'focal', 'scene3d', 'subject', 'aiCoverApproved'];
 const slimImage = (image: GuideImage) => ({ ...present(image, IMAGE_FIELDS), rights: { basis: rightsBasisOf(image as CoverAsset) } });
 const images = Object.fromEntries([...[...imageKeys].sort().map(key => [key, slimImage(GUIDE_IMAGES[key])] as const),
   ...Object.entries(guideImages).sort(([a], [b]) => a.localeCompare(b)).map(([key, image]) => [key, slimImage(image)] as const)]);

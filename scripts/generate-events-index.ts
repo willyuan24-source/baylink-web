@@ -13,6 +13,7 @@ import { getWeeklyCardDays } from '../src/lib/home-weekend';
 import { getBayAreaToday, nextOccurrence } from '../src/lib/monthly';
 import { addCalendarDays, calendarPeriod } from '../src/lib/calendar-days';
 import { isPressSource } from '../src/features/events/source-kind';
+import { isApprovedAiCover, type CoverAsset } from '../src/lib/cover';
 import type { EventsIndex, EventsLater, IndexEvent, IndexImage, IndexOffer, IndexOpening, IndexSchedule } from '../src/features/events/events-index-types';
 import type { PlanningSchedule } from '../src/lib/planner';
 
@@ -100,9 +101,10 @@ const bulletins = currentRegionalBulletins.filter(item => item.expiresAt >= cuto
   sourceLabel: item.sourceLabel, sourceUrl: item.sourceUrl, verifiedAt: item.verifiedAt, expiresAt: item.expiresAt,
 }));
 
-// Only images a listing can show: AI illustrations are never an event, offer or opening cover (cover.ts), so they stay out.
+// Only images a listing can show: an AI illustration covers an event, offer or opening only when the owner approved that
+// key (④, cover.ts isApprovedAiCover; src/data/ai-cover-approvals.json), so every other one stays out.
 const imagesFor = (keys: Iterable<string>): Record<string, IndexImage> => Object.fromEntries([...new Set(keys)].sort()
-  .filter(key => Object.hasOwn(GUIDE_IMAGES, key) && GUIDE_IMAGES[key].kind !== 'illustration')
+  .filter(key => Object.hasOwn(GUIDE_IMAGES, key) && (GUIDE_IMAGES[key].kind !== 'illustration' || isApprovedAiCover(GUIDE_IMAGES[key] as CoverAsset)))
   .map(key => [key, GUIDE_IMAGES[key] as IndexImage]));
 
 /**

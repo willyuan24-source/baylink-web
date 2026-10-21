@@ -62,14 +62,14 @@ test('guide figures preserve image dimensions, responsive sources, provenance, a
   assert.equal(view.getByText(photo.caption).tagName, 'P');
   assert.equal(view.getByRole('link', { name: /图片授权/ }).getAttribute('href'), photo.licenseUrl);
   assert.equal(view.getByRole('link', { name: /示例摄影者/ }).getAttribute('rel'), 'noopener noreferrer');
-  assert.equal(view.queryByText('AI 插图 · 非实景照片'), null);
+  assert.equal(view.queryByText('AI 示意图 · 非实景照片'), null);
 
   const illustration: GuideImage = { ...photo, src: '/test/illustration.webp', kind: 'illustration' };
   view.rerender(<GuideFigure image={illustration} />);
   assert.equal(view.getByRole('img').getAttribute('loading'), 'lazy');
-  assert.ok(view.getByText('AI 插图 · 非实景照片'));
+  assert.ok(view.getByText('AI 示意图 · 非实景照片'));
   view.rerender(<GuideFigure image={illustration} variant="poster" />);
-  assert.equal(view.queryByText('AI 插图 · 非实景照片'), null, 'legacy poster provenance must not be invented');
+  assert.equal(view.queryByText('AI 示意图 · 非实景照片'), null, 'legacy poster provenance must not be invented');
 });
 
 test('zoom dialog traps focus, retains credit links, and restores focus and scrolling when closed', () => {

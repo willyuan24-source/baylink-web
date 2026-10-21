@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, CoverCredit, EmptyState, FeedGrid, FeedItem, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { createCoverPage, resolveCovers } from '../../lib/cover';
+import { coverItemFor, createCoverPage, resolveCovers } from '../../lib/cover';
 import { INDEX_OPENINGS, coverContext, filterOpenings } from './events-model';
 import type { IndexOpening, MonthlyRegion } from './events-index-types';
 import { OpeningFeedCard } from './BoardCards';
@@ -37,7 +37,7 @@ export default function OpeningsView({ today, region }: { today: string; region:
   const shownKey = shown.map(list => list.map(shop => shop.id).join()).join('|');
   const covers = useMemo(() => {
     const flat = shown.flat();
-    const resolved = resolveCovers(flat.map(shop => ({ kind: 'opening' as const, id: shop.id, imageKey: shop.imageKey })), { ...coverContext(today), page: createCoverPage() });
+    const resolved = resolveCovers(flat.map(shop => coverItemFor('opening', shop)), { ...coverContext(today), page: createCoverPage() });
     return new Map(flat.map((shop, index) => [shop.id, resolved[index]]));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by the ids shown
   }, [shownKey, today]);

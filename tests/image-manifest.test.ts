@@ -171,7 +171,7 @@ test('the 3D postcards are byte-for-byte copies in /guides/3d, labelled 3D 场�
     assert.match(postcard.caption, /不是实景照片/);
     assert.match(postcard.credit, /AI/);
     assert.match(postcard.en.caption, /AI-generated/);
-    assert.doesNotMatch(`${postcard.en.alt} ${postcard.en.caption} ${postcard.en.credit} ${postcard.subject.en}`, /\p{Script=Han}/u);
+    assert.doesNotMatch(`${postcard.en.alt} ${postcard.en.caption} ${postcard.en.credit} ${postcard.shows.en}`, /\p{Script=Han}/u);
     assert.equal(postcard.srcSet, manifest.images[postcard.src].srcset.join(', '));
     assert.equal(postcard.lqip, manifest.images[postcard.src].lqip);
     for (const place of postcard.places) assert.ok(knownPlaces.has(place), `${postcard.key}: ${place} is an existing attraction, place or guide`);

@@ -49,7 +49,7 @@ export function publishedImageSources(): Set<string> {
   return sources;
 }
 
-const RIGHTS_BASES = new Set<MediaRights['basis']>(['official', 'permission', 'press-kit', 'promo-editorial', 'public-domain', 'cc', 'owner', 'ai']);
+const RIGHTS_BASES = new Set<MediaRights['basis']>(['official', 'permission', 'press-kit', 'promo-editorial', 'public-domain', 'cc', 'owner', 'ai', 'stock']);
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 type MediaFacts = Pick<GuideImage, 'rights' | 'coverOk' | 'focal' | 'shotAt' | 'ownShot' | 'kind' | 'fullFrame'>;
 

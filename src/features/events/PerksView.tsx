@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, ChipRow, CoverCredit, EmptyState, FeedGrid, FeedItem, FilterChip, useFeedLayout } from '../../components/ui';
 import { useUiCopy } from '../../components/ui/ui-copy';
-import { createCoverPage, resolveCovers } from '../../lib/cover';
+import { coverItemFor, createCoverPage, resolveCovers } from '../../lib/cover';
 import { isFreeToAttend } from '../../lib/monthly';
 import { INDEX_OFFERS, OFFER_KINDS, coverContext, inRange, listWindow, liveOffers, regionLabel, type OfferKind } from './events-model';
 import { useIndexEvents } from './events-later';
@@ -50,7 +50,7 @@ export default function PerksView({ today, region }: { today: string; region: Mo
   // One cover page for the whole board, so a picture is never shown twice across the sections.
   const covers = useMemo(() => {
     const flat = shown.flat();
-    const resolved = resolveCovers(flat.map(offer => ({ kind: 'offer' as const, id: offer.id, imageKey: offer.imageKey })), { ...coverContext(today), page: createCoverPage() });
+    const resolved = resolveCovers(flat.map(offer => coverItemFor('offer', offer)), { ...coverContext(today), page: createCoverPage() });
     return new Map(flat.map((offer, index) => [offer.id, resolved[index]]));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed by the ids shown
   }, [shownKey, today]);

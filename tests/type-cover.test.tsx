@@ -136,8 +136,12 @@ test('EventCover shows the resolved photo with its provenance chip and nothing e
   assert.equal(withPhoto.container.querySelector('[data-cover="image"]')?.getAttribute('data-family'), 'photo');
   assert.equal(withPhoto.container.querySelectorAll('img').length, 1, 'one image: no blurred duplicate');
   cleanup();
+  // An AI illustration the owner has not approved (src/data/ai-cover-approvals.json) is skipped for the next candidate
+  // (UI9-IMAGES ④); with none left the date family draws until A1.
+  const next = getCover({ kind: 'event', id: 'fleet', imageKeys: ['weekend', 'dvids-blue-angels-sffw-2024'] }, { images: GUIDE_IMAGES, today });
+  assert.equal(next.tier !== 'type' && next.key, 'dvids-blue-angels-sffw-2024', 'the unapproved AI candidate moves on to the next one');
   const typed = wrap(<EventCover event={fleetWeek} today={today} cover={getCover({ kind: 'event', id: 'fleet', imageKey: 'weekend' }, { images: GUIDE_IMAGES, today })} />);
-  assert.equal(typed.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date', 'an AI illustration is replaced by the date family');
+  assert.equal(typed.container.querySelector('[data-cover="type"]')?.getAttribute('data-family'), 'date', 'no candidate left: the date family');
   assert.equal(typed.container.querySelector('img'), null);
   cleanup();
   const offer = wrap(<OfferCover offer={{ brand: 'IKEA', title: '免费咖啡', availability: 'ongoing' }} today={today} cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } }} />);

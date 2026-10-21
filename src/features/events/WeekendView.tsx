@@ -7,7 +7,7 @@ import { Disclosure } from '../../components/ui/Disclosure';
 import { MoreLink } from '../../components/ui/TextLink';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
-import { createCoverPage, resolveCovers, type ResolvedCover } from '../../lib/cover';
+import { coverItemFor, createCoverPage, resolveCovers, type ResolvedCover } from '../../lib/cover';
 import { normalizeSearchText } from '../../lib/search-synonyms';
 import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
 import { dateScope } from '../../lib/date-guard';
@@ -40,7 +40,7 @@ const shareStrip = retryableLazy<StripProps>(() => parts.load().then(module => (
 const stripFallback = <section className="ev-strip" data-testid="share-landing-strip">
   <p className="ev-section-title" aria-hidden="true">{'\u00a0'}</p><div aria-busy="true"><SkeletonRow /><SkeletonRow /><SkeletonRow /></div>
 </section>;
-const eventItem = (event: IndexEvent) => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey });
+const eventItem = (event: IndexEvent) => coverItemFor('event', event);
 
 /**
  * The ids printed on a weekly share card, read from the card's own manifest (/weekly/{region}.json, written by the same
@@ -180,7 +180,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const covers = {
     strip: card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [],
     // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
-    lead: arranged.lead ? resolveCovers([{ ...eventItem(arranged.lead.event), imageKey: leadImageKey(arranged.lead.event.imageKey) }], context) : [],
+    lead: arranged.lead ? resolveCovers([coverItemFor('event', arranged.lead.event, { imageKey: leadImageKey(arranged.lead.event.imageKey) })], context) : [],
     rows: resolveCovers(rows.map(eventItem), context),
     feed: resolveCovers(visible.map(eventItem), context),
   };

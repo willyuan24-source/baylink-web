@@ -1,4 +1,4 @@
-import { getCover, type CoverPage, type ImageCover, type ResolvedCover } from '../../lib/cover';
+import { coverItemFor, getCover, tierLabelOf, type CoverPage, type ImageCover, type ResolvedCover } from '../../lib/cover';
 import { getImageProvenance } from '../../lib/image-provenance';
 import type { DetailRecord, RailCard } from './detail-record';
 
@@ -26,6 +26,7 @@ export function placePhoto({ item, image }: DetailRecord, cover: ResolvedCover, 
   return {
     tier: 'venue', key: item.event.imageKey, image,
     label: { zh: getImageProvenance(image, false, today), en: getImageProvenance(image, true, today) },
+    tierLabel: tierLabelOf('venue', image, today),
     fit: image.fullFrame ? 'contain' : 'cover',
     focal: image.focal ?? DEFAULT_FOCAL,
   };
@@ -33,5 +34,5 @@ export function placePhoto({ item, image }: DetailRecord, cover: ResolvedCover, 
 
 /** Each rail card's cover, claimed on the page (the hero's photo is never repeated, VISUAL-10); the page credits list them too. */
 export function railCovers(cards: readonly RailCard[], today: string, page: CoverPage): ResolvedCover[] {
-  return cards.map(({ event }) => getCover({ kind: 'event', id: event.id, imageKey: event.imageKey }, { images: key => key === event.imageKey ? event.image : undefined, today, page }));
+  return cards.map(({ event }) => getCover(coverItemFor('event', event), { images: key => key === event.imageKey ? event.image : undefined, today, page }));
 }

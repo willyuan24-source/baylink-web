@@ -350,3 +350,14 @@ const BULLETIN_RULES: readonly Rule[] = [
 export function bulletinPhotoCategory(bulletin: BulletinFields): PhotoCategoryId | undefined {
   return override('bulletin', bulletin.id) ?? firstMatch(BULLETIN_RULES, `${bulletin.label ?? ''} ${bulletin.title}`);
 }
+
+/** Any record's photo category, by kind ('place' has none: /explore keeps its own photos and postcards). */
+export function photoCategoryOf(kind: string, record: Record<string, unknown>): PhotoCategoryId | undefined {
+  const r = record as never;
+  if (kind === 'event') return eventPhotoCategory(r);
+  if (kind === 'offer') return offerPhotoCategory(r);
+  if (kind === 'opening') return openingPhotoCategory(r);
+  if (kind === 'guide') return guidePhotoCategory(r);
+  if (kind === 'bulletin') return bulletinPhotoCategory(r);
+  return undefined;
+}
