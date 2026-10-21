@@ -18,7 +18,7 @@ export const INDEX_IMAGE_DROPPED_FIELDS: readonly string[] = [
  */
 export const INDEX_IMAGE_FIELDS: readonly string[] = [
   'src', 'srcSet', 'width', 'height', 'alt', 'caption', 'credit', 'creditUrl', 'licenseUrl', 'kind', 'fullFrame', 'focal',
-  'coverOk', 'lqip', 'rights', 'ownShot', 'shotAt', 'photoDate', 'scene3d',
+  'coverOk', 'lqip', 'rights', 'ownShot', 'shotAt', 'photoDate', 'scene3d', 'subject', 'aiCoverApproved',
 ];
 
 /**
@@ -36,6 +36,8 @@ export function captionSignal(caption: string): string {
   const parts = [year && !edition?.startsWith(year) ? year : undefined, edition].filter((part): part is string => !!part);
   const archive = /资料|往届|archive|historical/i;
   if (archive.test(caption) && !archive.test(parts.join(' '))) parts.push('资料');
+  // A brand's product image is badged 官方图 · 产品图 (cover.ts tierLabelOf, UI9-IMAGES DECISIONS 23).
+  if (/产品图|商品陈列/.test(caption)) parts.push('产品图');
   return parts.join(' ');
 }
 

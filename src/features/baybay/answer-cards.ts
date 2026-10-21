@@ -4,7 +4,7 @@ import { getLocalDiscovery } from '../../data/local-discoveries';
 import { guides, type Guide } from '../../data/guides';
 import { GUIDE_IMAGES, getGuideMedia } from '../../data/guide-media';
 import { canonicalEventId } from '../../lib/event-id';
-import { createCoverPage, getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
+import { coverItemFor, createCoverPage, getCover, type CoverPage, type ResolvedCover } from '../../lib/cover';
 import type { FreebieOffer } from '../../components/FreebieBoard';
 import type { SeptemberOpening } from '../../data/september-openings';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
@@ -32,12 +32,12 @@ function cardModel(card: BayBayQuickCard, today: string, page: CoverPage): BayBa
   if (card.kind === 'event') {
     const event = PLANNER_EVENTS.find(item => item.id === canonicalEventId(card.id));
     if (!event) return null;
-    return { ...base, kind: 'event', event, day: card.date, cover: getCover({ kind: 'event', id: event.id, imageKey: event.imageKey }, ctx) };
+    return { ...base, kind: 'event', event, day: card.date, cover: getCover(coverItemFor('event', event), ctx) };
   }
   if (card.kind === 'offer' || card.kind === 'opening') {
     const item = getLocalDiscovery(card.kind, card.id);
-    if (item?.kind === 'offer') return { ...base, kind: 'offer', offer: item.offer, cover: getCover({ kind: 'offer', id: item.offer.id, imageKey: item.offer.imageKey }, ctx) };
-    if (item?.kind === 'opening') return { ...base, kind: 'opening', shop: item.shop, cover: getCover({ kind: 'opening', id: item.shop.id, imageKey: item.shop.imageKey }, ctx) };
+    if (item?.kind === 'offer') return { ...base, kind: 'offer', offer: item.offer, cover: getCover(coverItemFor('offer', item.offer), ctx) };
+    if (item?.kind === 'opening') return { ...base, kind: 'opening', shop: item.shop, cover: getCover(coverItemFor('opening', item.shop), ctx) };
     return null;
   }
   const guide = guides.find(item => item.slug === card.id);

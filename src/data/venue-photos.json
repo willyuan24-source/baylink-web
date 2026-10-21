@@ -1,0 +1,4 @@
+{
+  "_format": "UI9-IMAGES DECISIONS 22 ②: venue photos approved once per venue, for every event, offer and new shop held there (filled by the B lanes after the owner approves in chat). One entry per venue: { \"id\": short kebab id, \"name\": the venue's name, \"match\": [case-insensitive substrings of an event's venue, an offer's brand / title or a new shop's name that mean this venue], \"records\": optional [\"event:<id>\" | \"offer:<id>\" | \"opening:<id>\"] the match misses, \"exclude\": optional records the match wrongly hits, \"imageKeys\": [GUIDE_IMAGES keys with subject 'venue'], \"approvedAt\": \"YYYY-MM-DD\", \"ownerQuote\": the owner's words }. src/lib/cover-candidates.ts reads it at build time; the 8-year rule still applies to each photo.",
+  "venues": []
+}

@@ -82,7 +82,7 @@ test('no event, offer or guide on the home shows an AI illustration, and no imag
     const sources = [...doc.querySelectorAll('.home-discovery img.ui-cover__img')].map(img => img.getAttribute('src')!);
     assert.equal(new Set(sources).size, sources.length, `${day}: an image appears once`);
     for (const badge of doc.querySelectorAll('.home-picks [data-provenance], .home-feed [data-provenance], .home-offers [data-provenance], .home-guides [data-provenance]')) {
-      assert.notEqual(badge.textContent, 'AI 插图', `${day}: ${badge.closest('article')?.querySelector('h3')?.textContent}`);
+      assert.notEqual(badge.textContent, 'AI 示意图', `${day}: ${badge.closest('article')?.querySelector('h3')?.textContent}`);
     }
     for (const src of sources) assert.ok(!illustrations.has(src), `${day}: ${src} is an AI illustration`);
   }

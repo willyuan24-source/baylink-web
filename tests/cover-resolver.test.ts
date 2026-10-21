@@ -27,6 +27,9 @@ const images: Record<string, CoverAsset> = {
   venue: asset({ caption: '场馆外观，2022 年资料照片' }),
   venueOld: asset({ caption: '场馆外观，2009 年资料照片' }),
   theme: asset({ caption: '主题资料照片，2023 年摄' }),
+  // UI9-IMAGES ②: a venue photo approved once per venue (src/data/venue-photos.json) serves every kind, dated.
+  venueSubject: asset({ caption: '场馆外观，2022 年照片', subject: 'venue' }),
+  venueSubjectOld: asset({ caption: '场馆外观，2012 年照片', subject: 'venue' }),
 };
 const contextPhotos = {
   venue: { purpose: 'venue' as const, eventIds: ['e-venue'] },
@@ -65,10 +68,15 @@ test('AI illustrations and theme photos never cover a factual item', () => {
   assert.equal(theme.tier === 'type' && theme.reason, 'theme-photo');
   const reuse = getCover(event('someone-else', 'venue'), ctx);
   assert.equal(reuse.tier === 'type' && reuse.reason, 'unapproved-reuse', 'a venue photo serves only its reviewed events');
+  // ...unless it is a venue photo approved for the venue (subject 'venue', venue-photos.json): then every event there may use it.
+  const perVenue = { ...ctx, contextPhotos: { ...contextPhotos, venueSubject: { purpose: 'venue' as const, eventIds: ['e-venue'] } } };
+  assert.equal(getCover(event('e-venue', 'venueSubject'), perVenue).tier, 'venue');
+  assert.equal(getCover(event('another-event-there', 'venueSubject'), perVenue).tier, 'venue', 'a venue approval covers all its events');
+  assert.equal(getCover({ kind: 'offer', id: 'o', imageKey: 'venueSubject' }, perVenue).tier, 'venue');
   assert.equal(getCover({ kind: 'event', id: 'e1', postcardKey: 'postcard' }, ctx).tier, 'type', '3D postcards are for SF places only');
 });
 
-test('event photos must be dated within 8 years and not vetoed; offers and openings need their own images', () => {
+test('event photos must be dated within 8 years and not vetoed; offers and openings need their own images or their venue’s', () => {
   const reason = (item: CoverItem) => { const cover = getCover(item, ctx); return cover.tier === 'type' ? cover.reason : cover.tier; };
   assert.equal(reason(event('e1', 'old')), 'too-old');
   assert.equal(reason(event('e-venue', 'venueOld')), 'too-old');
@@ -79,6 +87,11 @@ test('event photos must be dated within 8 years and not vetoed; offers and openi
   assert.equal(reason({ kind: 'offer', id: 'o1', imageKey: 'official' }), 'official');
   assert.equal(reason({ kind: 'opening', id: 's1', imageKey: 'recent' }), 'not-allowed-for-kind');
   assert.equal(reason({ kind: 'opening', id: 's1', imageKey: 'own' }), 'photo');
+  // THIRD_PARTY_PHOTOS: a subject-'venue' photo is 'dated' for every kind, offers and new shops included.
+  for (const kind of ['event', 'offer', 'opening', 'guide', 'bulletin'] as const) {
+    assert.equal(reason({ kind, id: 'v1', imageKey: 'venueSubject' }), 'venue', kind);
+    assert.equal(reason({ kind, id: 'v1', imageKey: 'venueSubjectOld' }), 'too-old', kind);
+  }
 });
 
 test('labels come only from getImageProvenance, and posters are letterboxed, never cropped', () => {

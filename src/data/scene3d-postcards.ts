@@ -18,8 +18,8 @@ export type Scene3dPostcard = GuideImage & {
   scene3d: true;
   /** The reference file in public/opus-bay/postcards/ the copy is made from. */
   source: string;
-  /** What the postcard shows, for card copy. */
-  subject: { zh: string; en: string };
+  /** What the postcard shows, for card copy (`shows`, so it never reads as GuideImage's ImageSubject `subject`). */
+  shows: { zh: string; en: string };
   /** Existing ids the postcard can stand in for: attraction ids (src/data/attractions.ts), monthly place ids, guide slugs. */
   places: readonly string[];
   /** English alt, caption and credit (records outside the editorial dictionaries carry their own). */
@@ -31,7 +31,7 @@ const creditEn = 'BAYLINK 3D San Francisco scene illustration · AI-generated (H
 const caption = (place: string) => `BAYLINK 3D 旧金山里的${place}，黏土微缩风格的 AI 生成插图；不是实景照片，不代表现场天气、开放情况或活动安排。`;
 const captionEn = (place: string) => `${place} in BAYLINK's 3D San Francisco: an AI-generated clay-miniature illustration, not a photograph; it does not show current weather, opening hours or events.`;
 
-const postcard = (id: string, subject: Scene3dPostcard['subject'], places: readonly string[], alt: string, altEn: string): Scene3dPostcard => ({
+const postcard = (id: string, shows: Scene3dPostcard['shows'], places: readonly string[], alt: string, altEn: string): Scene3dPostcard => ({
   key: `scene3d-${id}`,
   src: `/guides/3d/${id}.webp`,
   source: `/opus-bay/postcards/${id}-1200.webp`,
@@ -40,16 +40,16 @@ const postcard = (id: string, subject: Scene3dPostcard['subject'], places: reado
   kind: 'illustration',
   scene3d: true,
   alt,
-  caption: caption(subject.zh),
+  caption: caption(shows.zh),
   credit,
   coverOk: true,
   // `ai`, not `owner`: BAYLINK owns the art, but what decides a cover is that it is AI-generated. getCover() then refuses it
   // as an `imageKey` on every listing (an event, offer or opening must never get AI art); places reach it only through
   // `postcardKey`, which resolves the scene3d tier before any rights check.
   rights: { basis: 'ai', scope: 'BAYLINK-generated AI art; covers for San Francisco places only, through postcardKey', promoAllowed: true },
-  subject,
+  shows,
   places,
-  en: { alt: altEn, caption: captionEn(subject.en), credit: creditEn },
+  en: { alt: altEn, caption: captionEn(shows.en), credit: creditEn },
 });
 
 const RECORDS: readonly Scene3dPostcard[] = [

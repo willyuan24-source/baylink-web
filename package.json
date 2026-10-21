@@ -37,7 +37,8 @@
     "test:opus": "node scripts/run-tests.mjs opus",
     "generate:weekly": "tsx --tsconfig tsconfig.app.json scripts/generate-weekly.ts",
     "generate:calendar": "tsx --tsconfig tsconfig.app.json scripts/generate-calendar-schedule.ts",
-    "report:content-coverage": "tsx --tsconfig tsconfig.app.json scripts/report-content-coverage.ts"
+    "report:content-coverage": "tsx --tsconfig tsconfig.app.json scripts/report-content-coverage.ts",
+    "report:covers": "tsx --tsconfig tsconfig.app.json --import ./tests/support/css-stub.mjs scripts/report-cover-coverage.ts"
   },
   "engines": {
     "node": "24.x"

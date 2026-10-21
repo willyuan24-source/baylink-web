@@ -1,0 +1,4 @@
+{
+  "_format": "UI9-IMAGES DECISIONS 22 ③: the licensed stock pictures of each photo category (ids: src/lib/photo-category.ts; sizes and search hints: opus-qa/overhaul/lanes/UI9-IMAGES/CATEGORIES.json), filled by the B lanes after the owner approves them in chat. { \"<category id>\": [GUIDE_IMAGES keys with rights.basis 'stock' and subject 'category'] }. A record tries its category's pictures starting at a spot fixed by its id, so neighbours start on different pictures; cover.ts keeps one picture at least 6 cards apart.",
+  "categories": {}
+}

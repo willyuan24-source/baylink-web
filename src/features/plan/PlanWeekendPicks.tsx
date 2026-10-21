@@ -6,7 +6,7 @@ import { FeedCard } from '../../components/ui/Card';
 import { FeedGrid, FeedItem } from '../../components/ui/FeedGrid';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
-import { createCoverPage, getCover, type CoverPage } from '../../lib/cover';
+import { coverItemFor, createCoverPage, getCover, type CoverPage } from '../../lib/cover';
 import { eventPlace, eventPriceChip, readerDayRange, readerMonthDay, type EventFactsInput } from '../../lib/event-facts';
 import { getBayAreaToday } from '../../lib/monthly';
 import snapshot from '../../data/generated/plan-weekend.json';
@@ -44,7 +44,7 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
     const context = { images: PLAN_WEEKEND.images, today, page };
     const entries = day.entries.flatMap(({ id, date }) => {
       const event = PLAN_WEEKEND.events[id];
-      return event ? [{ event, date, cover: getCover({ kind: 'event', id, imageKey: event.imageKey }, context) }] : [];
+      return event ? [{ event, date, cover: getCover(coverItemFor('event', { ...event, id }), context) }] : [];
     });
     return entries.length ? { ...day, entries } : null;
   }, [today, coverPage]);

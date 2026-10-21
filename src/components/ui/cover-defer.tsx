@@ -1,38 +1,49 @@
-import { lazy, Suspense, type ComponentProps } from 'react';
-import type { CoverLayout } from './CoverImage';
-import { cx, useUiCopy } from './ui-copy';
+import type { ComponentProps } from 'react';
+import { PendingCover, deferredFamily, type CoverLayout } from './CoverImage';
+import { useUiCopy } from './ui-copy';
 import { OfferTypeCover } from './cover-ticket';
 import { GuideTypeCover } from './cover-guide';
+import { OpeningTypeCover } from './cover-shop';
 import { translateText, type Locale } from '../../i18n/locale';
 import { brandCase, offerDeadline, type OfferFactsInput } from '../../lib/event-facts';
-import type { CoverFamily } from '../../lib/cover-family';
 
 /**
  * Cover families that load after the page (UI9-C; captain decision 9: route JS ≤ base): the ticket and the headline / number
- * families where a route draws them below its first screen (home's guide rail and offer tickets, a guide's 接下来 rail).
+ * families where a route draws them below its first screen (home's guide rail and offer tickets, a guide's 接下来 rail), and
+ * since UI9-IMG-A0 everywhere a listing draws them (/guides, the /events 免费与优惠 and 新店 boards; the date family in
+ * cover-date.tsx): the info cards leave cards in A1 (UI9-IMAGES DECISIONS 21), and their JS makes room for the pictures.
  * Until the family is in, the cover shows its empty frame (same box, same ground) inside its own boundary; a failed load
- * keeps that frame. A route that draws a family on its first screen imports it directly (cover-ticket, cover-guide) and
- * passes it in, so nothing there waits. The detail route's offer and shop heroes load theirs with the record (DetailHero).
+ * shows that frame until a later preload gets the chunk. A listing that draws a family on its first screen has it before its first render: the /events
+ * 免费与优惠 and 新店 boards load theirs with the board (EventsFrame.tsx), /guides starts it as it loads, and the prerendered pages
+ * preload the chunks they draw (scripts/prerender.tsx). A detail rail imports the family directly and passes it in. The detail route's offer and shop heroes load theirs with the record (DetailHero).
  *
  * Node (the prerender and the tests) and the dev server use the families as they are (`import.meta.env?.PROD`, the
  * editorial overlay's test), so a prerendered page carries the covers the browser draws; a production build keeps only the
  * loaders, and the static imports above drop out of it. The offer card's brand, line 1 and meta line live here too, so a
  * page whose tickets load after it prints them at once.
  */
-/** The empty frame a deferred cover shows until its family is in (same box and ground as the family's own frame). */
-export function PendingCover({ family, ratio, ratioLock, size, className }: CoverLayout & { family: CoverFamily }) {
-  return <div className={cx('ui-type-cover', className)} data-cover="type" data-family={family} data-ratio={ratio} data-ratio-lock={ratioLock ? '' : undefined} data-size={size} aria-hidden="true" />;
-}
+// The empty frame lives with the frames (CoverImage.tsx) so the date family can use it too; still importable from here.
+export { PendingCover };
 const TicketFrame = (props: CoverLayout) => <PendingCover {...props} family="ticket" ratio={props.ratio ?? '1:1'} />;
 const GuideFrame = (props: CoverLayout) => <PendingCover {...props} family="headline" />;
-// A failed load keeps the empty frame.
-const Ticket = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover-ticket').then(module => ({ default: module.OfferTypeCover }), () => ({ default: TicketFrame }))) : OfferTypeCover;
-const Guide = import.meta.env?.PROD ? /* @__PURE__ */ lazy(() => import('./cover-guide').then(module => ({ default: module.GuideTypeCover }), () => ({ default: GuideFrame }))) : GuideTypeCover;
+const ShopFrame = (props: CoverLayout) => <PendingCover {...props} family="shop" />;
+// CoverImage.tsx deferredFamily: once a chunk is in, its family renders directly; a failed load shows the empty frame. Both branches
+// name the family, so the production build folds the condition and drops the static imports above; nothing is read from
+// them at load (a property read would keep this module in every graph that imports the ui barrel).
+const ticket = import.meta.env?.PROD ? /* @__PURE__ */ deferredFamily(() => import('./cover-ticket').then(module => module.OfferTypeCover), TicketFrame) : { Family: OfferTypeCover, preload: () => Promise.resolve() };
+const guide = import.meta.env?.PROD ? /* @__PURE__ */ deferredFamily(() => import('./cover-guide').then(module => module.GuideTypeCover), GuideFrame) : { Family: GuideTypeCover, preload: () => Promise.resolve() };
+const shop = import.meta.env?.PROD ? /* @__PURE__ */ deferredFamily(() => import('./cover-shop').then(module => module.OpeningTypeCover), ShopFrame) : { Family: OpeningTypeCover, preload: () => Promise.resolve() };
 
-/** The ticket family, loaded after the page (home's 免费与优惠). */
-export const DeferredOfferTypeCover = (props: ComponentProps<typeof OfferTypeCover>) => <Suspense fallback={<TicketFrame {...props} />}><Ticket {...props} /></Suspense>;
-/** The headline / number family, loaded after the page (home's guide rail, a guide's 接下来 rail). */
-export const DeferredGuideTypeCover = (props: ComponentProps<typeof GuideTypeCover>) => <Suspense fallback={<GuideFrame {...props} />}><Guide {...props} /></Suspense>;
+/** The ticket family, loaded after the page (home's 免费与优惠, the /events 免费与优惠 board: UI9-IMG-A0). */
+export const DeferredOfferTypeCover = (props: ComponentProps<typeof OfferTypeCover>) => <ticket.Family {...props} />;
+/** The headline / number family, loaded after the page (home's guide rail, a guide's 接下来 rail, /guides: UI9-IMG-A0). */
+export const DeferredGuideTypeCover = (props: ComponentProps<typeof GuideTypeCover>) => <guide.Family {...props} />;
+/** The shop family, loaded after the page (the /events 新店 board: UI9-IMG-A0). */
+export const DeferredOpeningTypeCover = (props: ComponentProps<typeof OpeningTypeCover>) => <shop.Family {...props} />;
+/** Loads these families' chunks before a page draws them on its first screen (the /events boards, /guides). */
+// eslint-disable-next-line react-refresh/only-export-components
+export const preloadCoverFamilies = (families: readonly ('ticket' | 'guide' | 'shop')[]): Promise<unknown> =>
+  Promise.all(families.map(family => ({ ticket, guide, shop })[family].preload()));
 
 const HAN = /[㐀-鿿]/;
 /**

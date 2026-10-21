@@ -166,7 +166,7 @@ export function AttractionExplorer({ onAsk }: { onAsk?: (question: string) => vo
         const cover = getCover({ kind: 'place', id, postcardKey: key }, { images: { [key]: asset }, today });
         return <li key={id}><Link className="xp-3d__item" to={fromExplore(entry.href)} reloadDocument>
           <Cover cover={cover} ratio="3:2" ratioLock decorative sizes="(max-width: 639px) 70vw, 220px" fallback={null} />
-          <span className="xp-3d__name">{english ? postcard.subject.en : translateText(postcard.subject.zh, locale)}</span>
+          <span className="xp-3d__name">{english ? postcard.shows.en : translateText(postcard.shows.zh, locale)}</span>
           <span className="xp-3d__go">{translateText(entry.label, locale)}</span>
         </Link></li>;
       })}

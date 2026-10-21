@@ -108,14 +108,16 @@ export function addNeutralEntries(dictionary: EnglishDictionary, values: unknown
   return added;
 }
 
+const BUILD_ONLY_SOURCES = new Set(['api-errors-en.ts', 'photo-category.ts']);
 async function uiStrings(directories = ['app', 'components', 'features', 'lib', 'pages', 'i18n', 'utils']): Promise<string[]> {
   const strings: string[] = [];
   const scan = async (directory: string) => {
     for (const entry of await readdir(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
       if (entry.isDirectory()) await scan(path);
-      // the API's messages carry their own English table, loaded only when an English page shows an API error (H48)
-      else if (/\.tsx?$/u.test(entry.name) && entry.name !== 'api-errors-en.ts') {
+      // the API's messages carry their own English table, loaded only when an English page shows an API error (H48);
+      // the photo categories (UI9-IMAGES) are build-time only and carry their own English labels
+      else if (/\.tsx?$/u.test(entry.name) && !BUILD_ONLY_SOURCES.has(entry.name)) {
         const source = ts.createSourceFile(path, await readFile(path, 'utf8'), ts.ScriptTarget.Latest, true, path.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
         const visit = (node: ts.Node) => {
           if (ts.isStringLiteralLike(node) || ts.isJsxText(node) || node.kind === ts.SyntaxKind.TemplateHead || node.kind === ts.SyntaxKind.TemplateMiddle || node.kind === ts.SyntaxKind.TemplateTail) {

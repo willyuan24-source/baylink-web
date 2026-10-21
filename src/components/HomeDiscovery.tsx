@@ -2,7 +2,7 @@ import { createElement, lazy, Suspense, useEffect, useMemo, useState, type Compo
 import { ArrowRight } from 'lucide-react';
 import { useUiCopy } from './ui/ui-copy';
 import { HOME_INTENTS, type HomeIntentId } from '../data/home-pathways';
-import { createCoverPage, getCover, type CoverContext } from '../lib/cover';
+import { coverItemFor, createCoverPage, getCover, type CoverContext } from '../lib/cover';
 import { leadImageKey } from '../lib/close-up-faces';
 import { getBayAreaToday } from '../lib/monthly';
 import { getHomeWeekend, getWeeklyCardDays, getWeeklyCardHref } from '../lib/home-weekend';
@@ -96,13 +96,13 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
   // ladder decides every label (SV-04: an AI illustration is never an event's cover).
   const covers = useMemo(() => {
     const context: CoverContext = { images: GUIDE_IMAGES, today, page: createCoverPage() };
-    const event = (item: HomeEvent) => getCover({ kind: 'event', id: item.id, imageKey: item.imageKey }, context);
+    const event = (item: HomeEvent) => getCover(coverItemFor('event', item), context);
     return {
       // DECISIONS 15: the lead (16:9) never shows a close-up face photo; it draws its type cover (the photo stays a card's).
-      picks: weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover({ kind: 'event', id: item.id, imageKey: leadImageKey(item.imageKey) }, context)),
+      picks: weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover(coverItemFor('event', item, { imageKey: leadImageKey(item.imageKey), lead: true }), context)),
       feed: weekend.feed.map(entry => event(entry.event as HomeEvent)),
-      guides: guides.map(guide => getCover({ kind: 'guide', id: guide.slug, imageKey: guide.imageKey }, context)),
-      offers: offers.map(offer => getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, context)),
+      guides: guides.map(guide => getCover(coverItemFor('guide', { id: guide.slug, imageKey: guide.imageKey }), context)),
+      offers: offers.map(offer => getCover(coverItemFor('offer', offer), context)),
     };
   }, [weekend, guides, offers, today]);
   // The family-chat card only on days the build wrote a card for (the week after it): on a later day the undated card is

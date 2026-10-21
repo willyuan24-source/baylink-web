@@ -12,7 +12,7 @@ import { recordProductEvent } from '../lib/product-events';
 import { setPageMetadata } from '../lib/seo';
 import { nextConfirmedEventDate } from '../lib/event-occurrences';
 import { readerMonthDay } from '../lib/event-facts';
-import { createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
+import { coverItemFor, createCoverPage, resolveCovers, type CoverPage } from '../lib/cover';
 import { savedCoverImage } from '../lib/saved-items';
 import { translateText, useLocale, type Locale } from '../i18n/locale';
 import { PlannerAccountNotice } from '../components/PlannerAccountNotice';
@@ -81,7 +81,7 @@ function PlanTimeline({ plans, english, busy, onDelete }: { plans: SavedPlan[]; 
 function WeekEvents({ events, today, coverPage, english }: { events: { event: MonthlyEvent; date: string }[]; today: string; coverPage: CoverPage; english: boolean }) {
   const locale = useLocale();
   const t = (zh: string, en: string) => english ? en : translateText(zh, locale);
-  const covers = useMemo(() => resolveCovers(events.map(({ event }) => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey })), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
+  const covers = useMemo(() => resolveCovers(events.map(({ event }) => coverItemFor('event', event)), { images: savedCoverImage, today, page: coverPage }), [events, today, coverPage]);
   return <ul className="my-week__list">{events.map(({ event, date }, index) => {
     const title = translateText(event.title, locale);
     return <li key={event.id} className="my-week__event">

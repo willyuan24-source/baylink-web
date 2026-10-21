@@ -1,6 +1,6 @@
 import type { FreebieOffer } from '../components/FreebieBoard';
 import { isPublicBenefit } from './event-facts';
-import { getCover, type CoverContext, type ResolvedCover } from './cover';
+import { coverItemFor, getCover, type CoverContext, type ResolvedCover } from './cover';
 
 /** An offer as the home ticket rail needs it (scripts/generate-home-catalog.ts): no requirement text, no source URL. */
 export type HomeOffer = Pick<FreebieOffer, 'id' | 'title' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'kind' | 'imageKey' | 'verifiedAt' | 'region'>
@@ -94,7 +94,7 @@ export const homeOfferCount = (offers: readonly Pick<HomeOffer, 'brand' | 'endDa
 
 /** The offer's cover on the home rail, from the images the page ships (the generator passes the full registry). */
 const offerCover = (offer: Pick<HomeOffer, 'id' | 'imageKey'>, images: CoverContext['images'], today: string) =>
-  getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images, today });
+  getCover(coverItemFor('offer', offer), { images, today });
 
 /**
  * H19: the wide first ticket (3:2 on a phone, about 2:1 on a desktop) only takes a landscape image: a photo the cover crops

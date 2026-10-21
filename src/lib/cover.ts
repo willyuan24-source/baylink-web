@@ -1,4 +1,4 @@
-import type { GuideImage } from '../data/guide-media';
+import type { GuideImage, MediaRightsBasis } from '../data/guide-media';
 // The reviewed approvals of src/data/event-image-usage.ts, written by `npm run generate:home` (WEB-HOME): that module builds
 // them from the official-event media registry, which would otherwise ride along with every page that resolves a cover
 // (about 18 KiB gzip on the home page). tests/home-catalog.test.ts keeps the two equal.
@@ -10,19 +10,25 @@ import type { Copy } from './event-facts';
  * One cover resolver for every surface (plan D7, content.md §4.1, 1007 §5.3): home, feeds, calendar,
  * detail heroes, share cards and BayBay answer cards ask `getCover` instead of reading `imageKey`.
  *
- * Honesty ladder, first match wins:
- *   1. official   the organiser's or brand's own image (poster, press kit, recorded permission) → 官方图
- *   2. photo      public-domain / CC / own photo of this item, taken within 8 years, not vetoed → 照片 · 年份
- *   3. venue      an approved venue photo (EVENT_CONTEXT_PHOTOS purpose venue), within 8 years → 资料图 · 年份
- *   4. scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
- *   5. type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡
- * Never: an AI illustration or a theme photo on a factual item; the same file twice on one page (the
- * second item falls back to a TypeCover); a cropped poster (`fit: 'contain'`: the whole flyer on its board, never blurred).
+ * The owner's order (UI9-IMAGES, DECISIONS 22), first usable candidate wins. An item's candidates are `imageKeys` when the
+ * build wrote them (coverCandidates(), src/lib/cover-candidates.ts: ① its own → ② its venue's → ③ its category's stock
+ * pictures → ④ approved AI), else its one `imageKey`; then a 3D postcard for San Francisco places:
+ *   official   ① the organiser's or brand's own image (poster, press kit, recorded permission) → 官方图
+ *   photo      a public-domain / CC / own photo of this item, within 8 years → 照片 · 年份 (BAYLINK 实拍, 资料图 kept)
+ *   venue      ② a venue photo (subject 'venue', or EVENT_CONTEXT_PHOTOS purpose venue), within 8 years → 场馆照 · 年份
+ *   stock      ③ a licensed stock picture of the item's category (rights basis 'stock'), any age → 示意图
+ *   ai         ④ an AI illustration the owner approved (src/data/ai-cover-approvals.json → aiCoverApproved) → AI 示意图
+ *   scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
+ *   type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡 (A1 removes it from cards, DECISIONS 21)
+ * Never: an unapproved AI illustration or a theme photo; AI on a lead; a ①② file twice on one page, or a ③④ picture
+ * twice within ADJACENT_CARDS cards (the item tries its next candidate, else the pool picture shown farthest away); a
+ * cropped poster (`fit: 'contain'`).
+ * `label` is today's badge (getImageProvenance); cover-labels.ts tierLabelOf(cover) gives the DECISIONS 23 badge A1 prints.
  * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
  */
 
 export type CoverKind = 'event' | 'offer' | 'opening' | 'place' | 'guide' | 'bulletin';
-export type RightsBasis = 'official' | 'permission' | 'press-kit' | 'promo-editorial' | 'public-domain' | 'cc' | 'owner' | 'ai' | 'unknown';
+export type RightsBasis = MediaRightsBasis | 'unknown';
 
 /** A registry image plus the optional fields the image pipeline adds (WEB-IMAGES); all are read when present. */
 export type CoverAsset = GuideImage & Omit<ProvenanceInput, 'kind' | 'credit' | 'caption'> & {
@@ -35,7 +41,19 @@ export type CoverAsset = GuideImage & Omit<ProvenanceInput, 'kind' | 'credit' | 
   /** Dominant colour for the placeholder (LQIP manifest). */
   lqip?: string;
 };
-export type CoverItem = { kind: CoverKind; id: string; imageKey?: string; postcardKey?: string };
+export type CoverItem = {
+  kind: CoverKind;
+  id: string;
+  imageKey?: string;
+  postcardKey?: string;
+  /**
+   * The item's candidates in the owner's order (① own → ② venue → ③ category stock → ④ approved AI), written at build time
+   * by coverCandidates(); when present they replace `imageKey`. No catalog carries them before A1 (UI9-IMAGES).
+   */
+  imageKeys?: readonly string[];
+  /** A lead (home, /events, /calendar): never an AI picture (DECISIONS 24), so it moves on to its next candidate. */
+  lead?: boolean;
+};
 type ContextPhotos = Readonly<Record<string, { purpose: 'venue' | 'theme'; eventIds: readonly string[] }>>;
 export type CoverContext = {
   /** The image registry: the full `GUIDE_IMAGES`, the slim home catalog's images, or a lookup function. */
@@ -47,14 +65,14 @@ export type CoverContext = {
   /** Venue/theme approvals for reused photos; defaults to the reviewed `EVENT_CONTEXT_PHOTOS`. */
   contextPhotos?: ContextPhotos;
 };
-export type CoverTier = 'official' | 'photo' | 'venue' | 'scene3d' | 'type';
+export type CoverTier = 'official' | 'photo' | 'venue' | 'stock' | 'ai' | 'scene3d' | 'type';
 export type TypeCoverReason = 'no-image' | 'missing-image' | 'ai-illustration' | 'theme-photo' | 'unapproved-reuse'
   | 'too-old' | 'undated' | 'cover-not-ok' | 'not-allowed-for-kind' | 'duplicate';
 export type ImageCover = {
   tier: Exclude<CoverTier, 'type'>;
   key: string;
   image: CoverAsset;
-  /** Provenance badge text, from `getImageProvenance` only. */
+  /** Provenance badge text, from `getImageProvenance` only (what the pages print until A1). */
   label: Copy;
   /** Posters and full-frame artwork are shown whole on a solid board with a white mat (the poster family), never cropped. */
   fit: 'cover' | 'contain';
@@ -64,9 +82,23 @@ export type ImageCover = {
 export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string };
 export type ResolvedCover = ImageCover | TypeCoverResolution;
 
-/** Which image src each item on the page has claimed. A re-render of the same item keeps its claim. */
-export type CoverPage = { claims: Map<string, string> };
+/**
+ * Which image src each item on the page has claimed (①②: once per page). A re-render of the same item keeps its claim.
+ * `order` numbers the items in display order and `shared` records where each ③④ pool picture is shown, so the same stock
+ * or AI picture can come back on the page, but never within ADJACENT_CARDS cards of itself.
+ */
+export type CoverPage = {
+  claims: Map<string, string>;
+  order?: Map<string, number>;
+  shared?: Map<string, Map<string, number>>;
+};
 export const createCoverPage = (): CoverPage => ({ claims: new Map() });
+/**
+ * A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重: not within 6 adjacent cards, and
+ * not on one screen, which is at most 8 cards on desktop). When every pool picture is nearer, the item still takes the
+ * one shown farthest away: ③④ never fall back to an info card.
+ */
+export const ADJACENT_CARDS = 8;
 
 export const MAX_PHOTO_AGE_YEARS = 8;
 const OFFICIAL: ReadonlySet<RightsBasis> = new Set(['official', 'permission', 'press-kit', 'promo-editorial']);
@@ -74,9 +106,13 @@ const DEFAULT_FOCAL = [50, 40] as const;
 
 /**
  * An AI illustration is what the image is, not a rights question: BAYLINK may own it (`rights.basis: 'owner'`) or
- * record it as official, and it is still never the cover of a factual item. 3D-world scenes are the one exception.
+ * record it as official, and it is still no cover unless the owner approved that key (④, `aiCoverApproved`, set from
+ * src/data/ai-cover-approvals.json only). 3D-world scenes are the one exception.
  */
 export const isAiIllustration = (image: CoverAsset) => image.kind === 'illustration' && !image.scene3d;
+/** An AI illustration the owner approved in chat as a ④ cover (DECISIONS 22/25). */
+export const isApprovedAiCover = (image: CoverAsset) => isAiIllustration(image) && image.aiCoverApproved === true;
+
 
 /** The rights basis: the structured record when present, else what today's registry fields state. */
 export function rightsBasisOf(image: CoverAsset): RightsBasis {
@@ -106,10 +142,13 @@ const typeCover = (reason: TypeCoverReason, rejectedKey?: string): TypeCoverReso
   tier: 'type', reason, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) }, ...(rejectedKey ? { rejectedKey } : {}),
 });
 
-/** Photo tiers each listing kind may use (content.md §4.1 table). Official images and own shots are allowed for all. */
+/**
+ * Photo tiers each listing kind may use (content.md §4.1 table). Official images, own shots and ③④ pictures are allowed
+ * for all; a venue photo (subject 'venue', approved once per venue, UI9-IMAGES) is 'dated' for every kind.
+ */
 const THIRD_PARTY_PHOTOS: Record<CoverKind, 'dated' | 'any' | 'none'> = {
   event: 'dated', bulletin: 'dated', place: 'any', guide: 'any',
-  // Offers and new shops need the brand's own image or a BAYLINK photo; a CC street photo is not the offer.
+  // Offers and new shops need the brand's own image, a BAYLINK photo or their venue's; a CC street photo is not the offer.
   offer: 'none', opening: 'none',
 };
 
@@ -125,33 +164,47 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
     year: captureYear(image),
   } });
   if (tier === 'scene3d') return item.kind === 'place' ? make('scene3d', { ...image, scene3d: true }) : { rejected: 'not-allowed-for-kind' };
-  // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover.
-  if (isAiIllustration(image) || basis === 'ai') return { rejected: 'ai-illustration' };
+  // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover: only the
+  // owner's approval of that key does (④).
+  if (isAiIllustration(image) || basis === 'ai') return isApprovedAiCover(image) && !item.lead ? make('ai') : { rejected: 'ai-illustration' };
+  if (basis === 'stock') return make('stock');
   const use = item.kind === 'event' ? (ctx.contextPhotos ?? eventContextPhotos as ContextPhotos)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
-  if (use && !use.eventIds.includes(item.id)) return { rejected: 'unapproved-reuse' };
-  if (!use && OFFICIAL.has(basis)) return make('official');
+  // A venue photo is approved once per venue (venue-photos.json, subject 'venue'): any record there may use it.
+  const venue = !!use || image.subject === 'venue';
+  if (use && !use.eventIds.includes(item.id) && image.subject !== 'venue') return { rejected: 'unapproved-reuse' };
+  if (!venue && OFFICIAL.has(basis)) return make('official');
   if (basis === 'owner') return make('photo');
-  const rule = use ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
+  const rule = venue ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
   if (rule === 'none') return { rejected: 'not-allowed-for-kind' };
   if (rule === 'dated') {
     const year = captureYear(image);
     if (year === undefined) return { rejected: 'undated' };
     if (year < Number(ctx.today.slice(0, 4)) - MAX_PHOTO_AGE_YEARS) return { rejected: 'too-old' };
   }
-  return make(use ? 'venue' : 'photo');
+  return make(venue ? 'venue' : 'photo');
 }
 
 /**
- * Resolve one item's cover. With `ctx.page`, an image already claimed by another item on the page
- * falls back to a TypeCover (VISUAL-10); the same item resolving again keeps its claim.
+ * Resolve one item's cover. With `ctx.page`, a ①② image already claimed by another item on the page, or a ③④ picture
+ * shown fewer than ADJACENT_CARDS cards away, moves the item to its next candidate (VISUAL-10); the same item resolving
+ * again keeps its claim.
  */
 export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
+  const { page } = ctx;
   const attempts: { key: string; tier: 'image' | 'scene3d' }[] = [];
-  if (item.imageKey) attempts.push({ key: item.imageKey, tier: 'image' });
+  for (const key of item.imageKeys ?? (item.imageKey ? [item.imageKey] : [])) attempts.push({ key, tier: 'image' });
   if (item.postcardKey) attempts.push({ key: item.postcardKey, tier: 'scene3d' });
+  const me = itemKey(item);
+  // Every item takes its place in display order (first resolve wins), a TypeCover included: it is still a card between two
+  // pictures (the ③④ adjacency rule).
+  const order = page && (page.order ??= new Map<string, number>());
+  const at = order ? order.get(me) ?? order.set(me, order.size).size - 1 : 0;
   let reason: TypeCoverReason = 'no-image';
   let rejectedKey: string | undefined;
+  // The pool picture shown farthest away (the first at ADJACENT_CARDS or more ends the search): when every ③④ candidate
+  // is nearer, the item still takes the farthest one.
+  let pool: { cover: ImageCover; shown: Map<string, number>; gap: number } | undefined;
   for (const { key, tier } of attempts) {
     const image = lookup(ctx.images, key);
     const outcome: Candidate = image ? judge(item, key, image, ctx, tier) : { rejected: 'missing-image' };
@@ -159,15 +212,43 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       if (!rejectedKey) { reason = outcome.rejected; rejectedKey = key; }
       continue;
     }
-    const claimant = ctx.page?.claims.get(outcome.cover.image.src);
-    if (claimant && claimant !== itemKey(item)) {
+    const { cover } = outcome;
+    const src = cover.image.src;
+    if (cover.tier === 'stock' || cover.tier === 'ai') {
+      if (!page) return cover;
+      const shared = page.shared ??= new Map<string, Map<string, number>>();
+      const shown = shared.get(src) ?? shared.set(src, new Map()).get(src)!;
+      let gap = Infinity;
+      shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
+      if (!pool || gap > pool.gap) pool = { cover, shown, gap };
+      if (gap >= ADJACENT_CARDS) break;
+      continue;
+    }
+    const claimant = page?.claims.get(src);
+    if (claimant && claimant !== me) {
       if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
       continue;
     }
-    ctx.page?.claims.set(outcome.cover.image.src, itemKey(item));
-    return outcome.cover;
+    page?.claims.set(src, me);
+    return cover;
   }
-  return typeCover(reason, rejectedKey);
+  if (!pool) return typeCover(reason, rejectedKey);
+  pool.shown.set(me, at);
+  return pool.cover;
+}
+
+/**
+ * A listing record as a CoverItem: the one place pages, generators and report:covers build it (UI9-IMAGES A0), so the
+ * page and the coverage report always judge the same candidates. The record's `imageKeys` (written by the build from
+ * coverCandidates(), from A1) come along; `override.imageKey` replaces the record's own image, `undefined` included (the
+ * home lead's close-up-face rule, weekend-lead.ts leadImageKey), and then also leaves it out of `imageKeys`. `override.lead`
+ * marks a lead: it skips approved AI pictures (DECISIONS 24).
+ */
+export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem {
+  const imageKey = override ? override.imageKey : record.imageKey;
+  // coverCandidates() puts the record's own image first, so the candidates are that image (or the override) + the rest.
+  const rest = record.imageKeys?.filter(key => key !== record.imageKey);
+  return { kind, id: record.id, imageKey, ...(rest && { imageKeys: imageKey ? [imageKey, ...rest] : rest }), ...(override?.lead && { lead: true }) };
 }
 
 /** Resolve a list in display order on one page, so de-duplication is deterministic. */
