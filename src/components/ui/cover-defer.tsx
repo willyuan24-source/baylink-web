@@ -13,7 +13,7 @@ import { brandCase, offerDeadline, type OfferFactsInput } from '../../lib/event-
  * since UI9-IMG-A0 everywhere a listing draws them (/guides, the /events 免费与优惠 and 新店 boards; the date family in
  * cover-date.tsx): the info cards leave cards in A1 (UI9-IMAGES DECISIONS 21), and their JS makes room for the pictures.
  * Until the family is in, the cover shows its empty frame (same box, same ground) inside its own boundary; a failed load
- * keeps that frame. A listing that draws a family on its first screen has it before its first render: the /events
+ * shows that frame until a later preload gets the chunk. A listing that draws a family on its first screen has it before its first render: the /events
  * 免费与优惠 and 新店 boards load theirs with the board (EventsFrame.tsx), /guides starts it as it loads, and the prerendered pages
  * preload the chunks they draw (scripts/prerender.tsx). A detail rail imports the family directly and passes it in. The detail route's offer and shop heroes load theirs with the record (DetailHero).
  *
@@ -27,7 +27,7 @@ export { PendingCover };
 const TicketFrame = (props: CoverLayout) => <PendingCover {...props} family="ticket" ratio={props.ratio ?? '1:1'} />;
 const GuideFrame = (props: CoverLayout) => <PendingCover {...props} family="headline" />;
 const ShopFrame = (props: CoverLayout) => <PendingCover {...props} family="shop" />;
-// CoverImage.tsx deferredFamily: once a chunk is in, its family renders directly; a failed load keeps the empty frame. Both branches
+// CoverImage.tsx deferredFamily: once a chunk is in, its family renders directly; a failed load shows the empty frame. Both branches
 // name the family, so the production build folds the condition and drops the static imports above; nothing is read from
 // them at load (a property read would keep this module in every graph that imports the ui barrel).
 const ticket = import.meta.env?.PROD ? /* @__PURE__ */ deferredFamily(() => import('./cover-ticket').then(module => module.OfferTypeCover), TicketFrame) : { Family: OfferTypeCover, preload: () => Promise.resolve() };
