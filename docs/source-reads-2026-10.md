@@ -2605,3 +2605,31 @@ downloads, 23:41–23:48 PT); every page names the image file. The quote is the 
 | guide image | `bay-area-senior-transit-clipper-discounts-guide` | https://www.sfmta.com/ja/node/29961 (the approval row's URL, read 10-19) ; https://www.sfmta.com/blog/then-and-now-kirkland-division-munis-oldest-motor-bus-yard (its canonical, hreflang=en URL, read 10-20 03:15 PT; the credit and evidence link) | 200 | `official-sfmta-kirkland-yard-2023` shown, labelled 官方图; image https://www.sfmta.com/files/styles/constrain/public/imce-images/2023/modern_image.jpg?itok=-uG-af3N | "Then and Now at Kirkland Division, Muni’s Oldest Motor Bus Yard · SFMTA" |
 | guide image | `bay-area-library-starter-guide` | https://sfpl.org/locations/main-library | 200 | `official-sfpl-main-library-skylight` shown, labelled 官方图; image https://sfpl.org/sites/default/files/2020-01/Homepage_Main%20Library.jpg | "Main Library · San Francisco Public Library" |
 | guide image | `bay-area-medicare-hicap-medi-cal-guide` | https://commons.wikimedia.org/wiki/File:Hubert_H._Humphrey_Building,_located_at_the_foot_of_Capitol_Hill,_Washington,_D.C_LCCN2013634632.jpg | 200 | `loc-highsmith-hhs-humphrey-building-2012` shown, labelled 资料图 · 2012（示意图）; image https://upload.wikimedia.org/wikipedia/commons/e/ea/Hubert_H._Humphrey_Building%2C_located_at_the_foot_of_Capitol_Hill%2C_Washington%2C_D.C_LCCN2013634632.jpg | "File:Hubert H. Humphrey Building, located at the foot of Capitol Hill, Washington, D.C LCCN2013634632.jpg - Wi" |
+
+## Claude weekly review 2026-10-21 (10/24–25)
+
+The Wednesday review of the 10/24–25 weekend (`TASK-CHAIN-2026-10-20.md` §4), done by the lane agent CNT-W1024 itself (no GPT
+editor this time). Scope: every item that occurs on Saturday 10/24 or Sunday 10/25 in the catalog (79 ids from
+`public/planner-catalog.full.json` on origin/main `0d5f7cdf`, covering the event batches, the later batches and the overlay).
+Thrill-O-Ween (`sf-thrive-thrill-o-ween-2026`) is on the owner's hold list and was not checked or changed. Each official page
+was read with a read-only GET on 2026-10-21 between 09:00 and 09:20 PT (page texts in
+`opus-qa/overhaul/lanes/CNT-W1024/reads/`, index with the read time and HTTP status in `reads/index.txt`). Pages that need
+JavaScript were opened once in headless Chrome. Library events were read from each library's public Bibliocommons calendar
+for that day (`gateway.bibliocommons.com/v2/libraries/<library>/events/search?startDate=…&endDate=…`, saved as
+`reads/bc-<library>-<day>.json`), which gives the title, start, end, room and `isCancelled` of the 10/24 or 10/25 session
+itself (the item pages link the 10/17 or 10/18 session). Pages behind a Cloudflare or Akamai bot check were not read (no
+attempt to get past the check) and keep their earlier date.
+
+**`verifiedAt` rule (TASK-CHAIN §4, replacing MASTER-PLAN D12 for this review):** an item moves to 2026-10-21 only when this
+section quotes its official page as read on 2026-10-21 and every date, time, place, price and status field the site states for
+10/24–25 matches it (fields the page does not state stay as they were; the row says so). Items whose page could not be read,
+or whose page leaves a stated field unconfirmed, keep their date.
+
+### Corrections
+
+| Kind | Id | URL | Read (PT) | Change | Quote |
+|---|---|---|---|---|---|
+| event | `sf-exploratorium-family-science-oct24-2026` | https://www.exploratorium.edu/visit/calendar/awesome-orchestra ; https://awesomeorchestra.org/events/session-118 ; https://www.exploratorium.edu/visit/calendar/we-all-journey | 10/21 09:12 | orchestra 11:00–16:00 → 13:00–16:00 in the date label, `dateNote` and plan (the museum's page now lists the same session as the orchestra's own page; English updated). `verifiedAt` unchanged (2026-09-29): the admission prices the cost line gives are not on any page that can be read without the ticketing app | museum: "Awesöme Orchestra … Sat, Oct 24 2026 • 1 - 4pm" · "1:00 – 4:00 pm \| Bechtel Gallery 3" · "Musical Instrument Petting Zoo … 12:30 – 1:00 pm , 2:00 – 2:20 pm , 3:00 – 3:15 pm , 4:00 – 4:30 pm" · orchestra: "Saturday, October 24, 2026 1:00 PM 4:00 PM The Exploratorium SF" · We All Journey: "Sat, Oct 24 2026 • 11am - 2pm" · "Build a Better Butterfly … 10:00 am – 4:45 pm \| Gallery 2, Tinkering Studio" |
+| event | `cupertino-monster-mash-2026` | https://www.cupertino.gov/Parks-Recreation/Events/Monster-Mash/Monster-Mash-Event | 10/21 09:05 (headless Chrome; plain GET 403) | the early price ended on 10/19: cost line, price (`min` 17 → 22) and plan now give the current $22 / $26 (English added) | "Early Registration before October 19 Resident: $17 Non-Resident: $21 Registration after October 19 Resident: $22 Non-Resident: $26" · "Registration includes one child two years and older and two adults." · "This event is held outdoors, rain or shine." |
+| event | `ameswell-barks-boos-2026` | https://www.theameswellhotel.com/experiences/happenings/barks-boos/ ; https://www.eventbrite.com/e/barks-boos-tickets-1982982813977 (the RSVP link on that page) | 10/21 09:16 | costume-contest sign-up closed on 10/16: cost line and plan say so (English added) | "Register your dog before October 16th to be included in the costume contest." · "No ticket is needed to attend or to watch the contest, but for an accurate headcount we do ask you reserve your free ticket" |
+| event | `november-north-eames-exhibition-2026` | https://napavalleymuseum.org/blogs/exhibitions/eames-eames | 10/21 09:11 | `officialUrl` moved: the old `/blogs/upcoming-exhibitions/eames-eames` answers 404; the batch file, the north-bay guide link and the St Helena city item now point to the exhibition page | "Eames & Eames: Meet the Couple Who Defined Modern Design … At The MAC October 17, 2026 - April 18, 2027" · "607 St Helena Hwy, St Helena CA 94574" |
