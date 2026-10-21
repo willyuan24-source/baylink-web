@@ -275,9 +275,13 @@ test('the coded-cover note prints once per board, under the last section, on car
       const board = page.container.querySelector('.fb-board')!;
       assert.ok(board.querySelector(simple ? '.fb-rows' : '.ui-feed'), `${view}: ${simple ? 'rows' : 'cards'}`);
       const notes = [...board.querySelectorAll('.ui-cover-credit')].filter(note => !note.closest('.ui-feed'));
-      assert.equal(notes.length, 1, `${view} (简洁 ${simple}): one note for the board`);
-      assert.equal(notes[0].previousElementSibling?.className, 'fb-sections', 'under the last section');
-      assert.match(notes[0].textContent!, /^没有照片的条目用 BAYLINK 信息卡/);
+      // The note explains information cards; since the owner approved AI covers (2026-10-21) a board can have none.
+      const typed = board.querySelectorAll('[data-cover="type"]').length;
+      assert.equal(notes.length, typed ? 1 : 0, `${view} (简洁 ${simple}): one note for the board when it has an information card`);
+      if (typed) {
+        assert.equal(notes[0].previousElementSibling?.className, 'fb-sections', 'under the last section');
+        assert.match(notes[0].textContent!, /^没有照片的条目用 BAYLINK 信息卡/);
+      }
       page.unmount();
     }
   }

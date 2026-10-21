@@ -66,7 +66,10 @@ test('简洁显示: at most two row cards, no ♡; a photo keeps its provenance 
     assert.match(check?.textContent || '', /^官网核对 \d{1,2}\/\d{1,2}$/, `${model.key}: the ✓ line stays (decisions 3, 17)`);
     assert.ok(check?.querySelector('svg'), 'with the check mark');
   });
-  assert.deepEqual(models.slice(0, 2).map(model => model.cover.tier === 'type'), [false, true], 'the fixture covers a photo and a type cover');
+  // The second card's own picture is an AI illustration the owner approved as a ④ cover on 2026-10-21; before that it was a
+  // type cover. Either way it is credited as above.
+  assert.equal(models[0].cover.tier === 'type', false, 'the fixture covers a photo');
+  assert.ok(models[1].cover.tier === 'type' || models[1].cover.tier === 'ai', 'and a type cover or an approved AI cover');
 });
 
 test('the ✓ line reads 媒体报道 · M/D 核对 for a press source on events, offers and openings; 官网核对 otherwise', () => {

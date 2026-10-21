@@ -30,7 +30,8 @@ function Harness() {
   return <><output data-testid="location">{location.pathname}{location.search}</output><GuidesHome onOpenGuide={() => {}} /></>;
 }
 const open = (url: string) => render(<MemoryRouter initialEntries={[url]}><Harness /></MemoryRouter>);
-const aiSources = new Set(Object.values(GUIDE_IMAGES).filter(image => image.kind === 'illustration' && !image.scene3d).map(image => image.src));
+// AI illustrations the owner has not approved as ④ covers (src/data/ai-cover-approvals.json, 2026-10-21) never show.
+const aiSources = new Set(Object.values(GUIDE_IMAGES).filter(image => image.kind === 'illustration' && !image.scene3d && !image.aiCoverApproved).map(image => image.src));
 /** The guide links of a container, once each (a list renders rows for a phone and covers for a desktop). */
 const guideLinks = (element: HTMLElement) => [...new Set([...element.querySelectorAll('a[href^="/guides/"]')].map(link => link.getAttribute('href')!.replace('/guides/', '')))];
 const bySlug = new Map(guides.map(guide => [guide.slug, guide]));
@@ -66,7 +67,7 @@ test('the index shows one chip row (全部, the seven topics with 长辈与家�
   }
 });
 
-test('covers are honest: photos carry their provenance badge, other guides get a coded cover, never an AI illustration', () => {
+test('covers are honest: photos carry their provenance badge, other guides get a coded cover, never an unapproved AI illustration', () => {
   const view = open('/guides');
   // Posters sit whole on a board (UI9-C: one <img>, no blurred copy).
   const images = [...view.container.querySelectorAll('img:not(.ui-cover__backdrop)')];

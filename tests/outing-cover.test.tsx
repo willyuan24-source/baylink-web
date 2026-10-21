@@ -123,22 +123,26 @@ test('list cover links open the gathering without wrapping reference and credit 
   assert.ok(view.getByRole('link', { name: /参考内容/ }));
 });
 
-test('outing covers go through getCover: an AI illustration is never a cover, a shown photo carries its provenance label (WEB-COMMUNITY)', () => {
+test('outing covers go through getCover: an unapproved AI illustration is never a cover, a shown photo carries its provenance label (WEB-COMMUNITY)', () => {
   const today = '2026-10-12';
   const choices = [
     ...GUIDES.map(guide => resolveOutingCover({ eventId: null, cover: { kind: 'guide', id: guide.slug } })),
     ...localDiscoveries.slice(0, 80).map(item => resolveOutingCover({ eventId: null, cover: { kind: item.kind, id: discoveryShare(item).id } as OutingCoverSelection })),
   ].filter(choice => !!choice);
-  const aiGuide = choices.find(choice => choice.kind === 'guide' && choice.image.kind === 'illustration');
-  assert.ok(aiGuide, 'the catalog has a guide whose cover is an illustration');
+  // An AI illustration is a cover only when the owner approved it as ④ (src/data/ai-cover-approvals.json, 2026-10-21),
+  // badged AI 示意图; any other stays out.
+  const aiGuide = choices.find(choice => choice.kind === 'guide' && choice.image.kind === 'illustration' && !choice.image.aiCoverApproved);
+  assert.ok(aiGuide, 'the catalog has a guide whose cover is an unapproved illustration');
   assert.equal(outingCoverImage(aiGuide, today), null);
   let shown = 0;
   for (const choice of choices) {
     const cover = outingCoverImage(choice, today);
     if (!cover) continue;
     shown += 1;
-    assert.notEqual(cover.image.kind, 'illustration', choice.id);
-    assert.match(cover.label.zh, /^(官方图|照片|资料图|BAYLINK 实拍)/, choice.id);
+    if (cover.image.kind === 'illustration') {
+      assert.ok(cover.tier === 'ai' && cover.image.aiCoverApproved, choice.id);
+      assert.equal(cover.label.zh, 'AI 示意图', choice.id);
+    } else assert.match(cover.label.zh, /^(官方图|照片|资料图|BAYLINK 实拍)/, choice.id);
   }
   assert.ok(shown > 0, 'real photos still show');
 });
