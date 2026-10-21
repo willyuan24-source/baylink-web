@@ -128,9 +128,6 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   html[data-reading=extra-large] .gl-view[data-view=phone] { display:block; }
   html[data-reading=extra-large] .gl-view[data-view=desk] { display:none; }
   .gl-page .ui-feed-grid { gap:var(--sp-5) var(--grid-gutter); }
-  /* A topic with two or three guides spreads them over the row instead of leaving empty columns (医疗保险). */
-  .gl-section .ui-feed-grid:not(:has(>:nth-child(4))) { --ui-feed-cols:3; }
-  .gl-section .ui-feed-grid:not(:has(>:nth-child(3))) { --ui-feed-cols:2; }
   .gl-band { padding:var(--inset-panel); }
   .gl-band .gl-band__rows { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--grid-gutter); }
   .gl-band__all { width:auto; }
