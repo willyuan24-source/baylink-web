@@ -57,14 +57,18 @@ test('the short English labels fit an 88 px thumbnail on one line', () => {
   assert.ok(chipWidth(TIER_LABELS.officialEdition('2025').en) > 88, 'the full version is the hero’s, not the thumbnail’s');
 });
 
-test('④ only with the owner’s approval; ③④ pictures repeat only 6 cards apart, then the next candidate', () => {
+test('④ only with the owner’s approval and never on a lead; ③④ pictures repeat only 8 cards apart, never an info card', () => {
   const pending = getCover({ kind: 'event', id: 'e', imageKey: 'aiPending' }, ctx);
   assert.equal(pending.tier === 'type' && pending.reason, 'ai-illustration');
   const next = getCover({ kind: 'event', id: 'e', imageKeys: ['aiPending', 'stock'] }, ctx);
   assert.equal(next.tier, 'stock', 'an unapproved AI candidate moves on to the next one');
-  const items = Array.from({ length: 8 }, (_, i): CoverItem => ({ kind: 'event', id: `e${i}`, imageKeys: ['stock', 'ai'] }));
+  assert.equal(getCover({ kind: 'event', id: 'e', imageKeys: ['ai', 'stock'], lead: true }, ctx).tier, 'stock', 'a lead skips AI (DECISIONS 24)');
+  const items = Array.from({ length: 10 }, (_, i): CoverItem => ({ kind: 'event', id: `e${i}`, imageKeys: ['stock', 'ai'] }));
   const tiers = resolveCovers(items, { ...ctx, page: createCoverPage() }).map(c => c.tier);
-  assert.deepEqual(tiers, ['stock', 'ai', 'type', 'type', 'type', 'type', 'stock', 'ai'], 'the same picture again from the 7th card on');
+  assert.deepEqual(tiers, ['stock', 'ai', 'stock', 'ai', 'stock', 'ai', 'stock', 'ai', 'stock', 'ai'], 'a pool smaller than the run reuses the picture shown farthest away');
+  const roomy = Array.from({ length: 10 }, (_, i): CoverItem => ({ kind: 'event', id: `r${i}`, imageKeys: ['stock', ...(i ? ['ai'] : [])] }));
+  const spread = resolveCovers([...roomy.slice(0, 9).map(item => ({ ...item, imageKeys: item.imageKeys!.slice(-1) })), roomy[9]], { ...ctx, page: createCoverPage() });
+  assert.equal(spread[9].tier, 'stock', 'the picture comes back once it is 8 cards away');
   const page = createCoverPage();
   const first = getCover({ kind: 'event', id: 'x', imageKey: 'stock' }, { ...ctx, page });
   assert.equal(getCover({ kind: 'event', id: 'x', imageKey: 'stock' }, { ...ctx, page }).tier, first.tier, 'a re-render keeps its picture');

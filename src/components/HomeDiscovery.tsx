@@ -99,7 +99,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     const event = (item: HomeEvent) => getCover(coverItemFor('event', item), context);
     return {
       // DECISIONS 15: the lead (16:9) never shows a close-up face photo; it draws its type cover (the photo stays a card's).
-      picks: weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover(coverItemFor('event', item, { imageKey: leadImageKey(item.imageKey) }), context)),
+      picks: weekend.picks.map(({ event: item }, index) => index ? event(item as HomeEvent) : getCover(coverItemFor('event', item, { imageKey: leadImageKey(item.imageKey), lead: true }), context)),
       feed: weekend.feed.map(entry => event(entry.event as HomeEvent)),
       guides: guides.map(guide => getCover(coverItemFor('guide', { id: guide.slug, imageKey: guide.imageKey }), context)),
       offers: offers.map(offer => getCover(coverItemFor('offer', offer), context)),

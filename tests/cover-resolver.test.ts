@@ -68,6 +68,11 @@ test('AI illustrations and theme photos never cover a factual item', () => {
   assert.equal(theme.tier === 'type' && theme.reason, 'theme-photo');
   const reuse = getCover(event('someone-else', 'venue'), ctx);
   assert.equal(reuse.tier === 'type' && reuse.reason, 'unapproved-reuse', 'a venue photo serves only its reviewed events');
+  // ...unless it is a venue photo approved for the venue (subject 'venue', venue-photos.json): then every event there may use it.
+  const perVenue = { ...ctx, contextPhotos: { ...contextPhotos, venueSubject: { purpose: 'venue' as const, eventIds: ['e-venue'] } } };
+  assert.equal(getCover(event('e-venue', 'venueSubject'), perVenue).tier, 'venue');
+  assert.equal(getCover(event('another-event-there', 'venueSubject'), perVenue).tier, 'venue', 'a venue approval covers all its events');
+  assert.equal(getCover({ kind: 'offer', id: 'o', imageKey: 'venueSubject' }, perVenue).tier, 'venue');
   assert.equal(getCover({ kind: 'event', id: 'e1', postcardKey: 'postcard' }, ctx).tier, 'type', '3D postcards are for SF places only');
 });
 

@@ -44,7 +44,7 @@ const EVENTS = INDEX_EVENTS;
 const projected = MODE === 'projected';
 const withKeys = <T extends CandidateRecord>(kind: CoverKind, record: T): T & { imageKeys?: string[] } =>
   projected ? { ...record, imageKeys: coverCandidates(kind, record) } : record;
-const item = (kind: CoverKind, record: CandidateRecord, override?: { imageKey: string | undefined }): CoverItem =>
+const item = (kind: CoverKind, record: CandidateRecord, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem =>
   coverItemFor(kind, withKeys(kind, record), override);
 const pageContext = (today: string, images: CoverContext['images']): CoverContext =>
   ({ images: projected ? GUIDE_IMAGES : images, today, page: createCoverPage() });
@@ -69,7 +69,7 @@ for (let n = 0; n < DAYS; n++) {
     const context = pageContext(day, HOME_IMAGES);
     const page = `home:${intent.id}`;
     weekend.picks.forEach(({ event }, i) => push(day, page, i ? 'picks' : 'lead', 'event', event.id,
-      getCover(i ? item('event', event as HomeEvent) : item('event', event as HomeEvent, { imageKey: leadImageKey(event.imageKey) }), context)));
+      getCover(i ? item('event', event as HomeEvent) : item('event', event as HomeEvent, { imageKey: leadImageKey(event.imageKey), lead: true }), context)));
     weekend.feed.forEach(({ event }) => push(day, page, 'feed', 'event', event.id, getCover(item('event', event as HomeEvent), context)));
     const offerCovers = offers.map(offer => getCover(item('offer', offer), context));
     const shown = offers.length ? homeOfferCount(offers, offerCovers, day) : 0;
@@ -97,7 +97,7 @@ for (let n = 0; n < DAYS; n++) {
   const events = pageContext(day, EVENTS_INDEX.images);
   if (arranged.lead) {
     const lead = arranged.lead.event;
-    push(day, '/events', 'lead', 'event', lead.id, resolveCovers([item('event', lead, { imageKey: leadImageKey(lead.imageKey) })], events)[0]);
+    push(day, '/events', 'lead', 'event', lead.id, resolveCovers([item('event', lead, { imageKey: leadImageKey(lead.imageKey), lead: true })], events)[0]);
   }
   resolveCovers(rows.map(event => item('event', event)), events).forEach((cover, i) => push(day, '/events', 'picks', 'event', rows[i].id, cover));
   resolveCovers(listed.map(event => item('event', event)), events)

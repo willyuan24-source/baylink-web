@@ -20,8 +20,9 @@ import type { Copy } from './event-facts';
  *   ai         ④ an AI illustration the owner approved (src/data/ai-cover-approvals.json → aiCoverApproved) → AI 示意图
  *   scene3d    a 3D-world postcard, for San Francisco places only → 3D 场景插图
  *   type       `<TypeCover>`, set from the listing's own facts → BAYLINK 信息卡 (A1 removes it from cards, DECISIONS 21)
- * Never: an unapproved AI illustration or a theme photo; a ①② file twice on one page, or a ③④ picture twice within 6
- * adjacent cards (the item tries its next candidate); a cropped poster (`fit: 'contain'`).
+ * Never: an unapproved AI illustration or a theme photo; AI on a lead; a ①② file twice on one page, or a ③④ picture
+ * twice within ADJACENT_CARDS cards (the item tries its next candidate, else the pool picture shown farthest away); a
+ * cropped poster (`fit: 'contain'`).
  * `label` is today's badge (getImageProvenance); cover-labels.ts tierLabelOf(cover) gives the DECISIONS 23 badge A1 prints.
  * Which family draws a cover is src/lib/cover-family.ts (chooseCover), fixed by the item id, never by its neighbours.
  */
@@ -50,6 +51,8 @@ export type CoverItem = {
    * by coverCandidates(); when present they replace `imageKey`. No catalog carries them before A1 (UI9-IMAGES).
    */
   imageKeys?: readonly string[];
+  /** A lead (home, /events, /calendar): never an AI picture (DECISIONS 24), so it moves on to its next candidate. */
+  lead?: boolean;
 };
 type ContextPhotos = Readonly<Record<string, { purpose: 'venue' | 'theme'; eventIds: readonly string[] }>>;
 export type CoverContext = {
@@ -90,8 +93,12 @@ export type CoverPage = {
   shared?: Map<string, { item: string; at: number }[]>;
 };
 export const createCoverPage = (): CoverPage => ({ claims: new Map() });
-/** A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重). */
-export const ADJACENT_CARDS = 6;
+/**
+ * A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重: not within 6 adjacent cards, and
+ * not on one screen, which is at most 8 cards on desktop). When every pool picture is nearer, the item still takes the
+ * one shown farthest away: ③④ never fall back to an info card.
+ */
+export const ADJACENT_CARDS = 8;
 
 export const MAX_PHOTO_AGE_YEARS = 8;
 const OFFICIAL: ReadonlySet<RightsBasis> = new Set(['official', 'permission', 'press-kit', 'promo-editorial']);
@@ -160,12 +167,13 @@ function judge(item: CoverItem, key: string, image: CoverAsset, ctx: CoverContex
   if (tier === 'scene3d') return item.kind === 'place' ? make('scene3d', { ...image, scene3d: true }) : { rejected: 'not-allowed-for-kind' };
   // Checked before any recorded basis, so an owner/official/permission record cannot promote AI art to a cover: only the
   // owner's approval of that key does (④).
-  if (isAiIllustration(image) || basis === 'ai') return isApprovedAiCover(image) ? make('ai') : { rejected: 'ai-illustration' };
-  if (basis === 'stock' || image.subject === 'category') return make('stock');
+  if (isAiIllustration(image) || basis === 'ai') return isApprovedAiCover(image) && !item.lead ? make('ai') : { rejected: 'ai-illustration' };
+  if (basis === 'stock') return make('stock');
   const use = item.kind === 'event' ? (ctx.contextPhotos ?? eventContextPhotos as ContextPhotos)[key] : undefined;
   if (use?.purpose === 'theme') return { rejected: 'theme-photo' };
-  if (use && !use.eventIds.includes(item.id)) return { rejected: 'unapproved-reuse' };
+  // A venue photo is approved once per venue (venue-photos.json, subject 'venue'): any record there may use it.
   const venue = !!use || image.subject === 'venue';
+  if (use && !use.eventIds.includes(item.id) && image.subject !== 'venue') return { rejected: 'unapproved-reuse' };
   if (!venue && OFFICIAL.has(basis)) return make('official');
   if (basis === 'owner') return make('photo');
   const rule = venue ? 'dated' : THIRD_PARTY_PHOTOS[item.kind];
@@ -199,6 +207,12 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
   if (item.postcardKey) attempts.push({ key: item.postcardKey, tier: 'scene3d' });
   let reason: TypeCoverReason = 'no-image';
   let rejectedKey: string | undefined;
+  // The pool picture shown farthest away, for when every ③④ candidate is nearer than ADJACENT_CARDS.
+  let farthest: { cover: ImageCover; gap: number } | undefined;
+  const show = (cover: ImageCover, shown: { item: string; at: number }[]) => {
+    if (!shown.some(other => other.item === me)) ctx.page!.shared!.set(cover.image.src, [...shown, { item: me, at }]);
+    return cover;
+  };
   for (const { key, tier } of attempts) {
     const image = lookup(ctx.images, key);
     const outcome: Candidate = image ? judge(item, key, image, ctx, tier) : { rejected: 'missing-image' };
@@ -211,12 +225,10 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
       if (!ctx.page) return outcome.cover;
       ctx.page.shared ??= new Map();
       const shown = ctx.page.shared.get(src) ?? [];
-      if (shown.some(other => other.item !== me && Math.abs(other.at - at) < ADJACENT_CARDS)) {
-        if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
-        continue;
-      }
-      if (!shown.some(other => other.item === me)) ctx.page.shared.set(src, [...shown, { item: me, at }]);
-      return outcome.cover;
+      const gap = Math.min(Infinity, ...shown.filter(other => other.item !== me).map(other => Math.abs(other.at - at)));
+      if (gap >= ADJACENT_CARDS) return show(outcome.cover, shown);
+      if (!farthest || gap > farthest.gap) farthest = { cover: outcome.cover, gap };
+      continue;
     }
     const claimant = ctx.page?.claims.get(src);
     if (claimant && claimant !== me) {
@@ -226,21 +238,22 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
     ctx.page?.claims.set(src, me);
     return outcome.cover;
   }
-  return typeCover(reason, rejectedKey);
+  return farthest ? show(farthest.cover, ctx.page!.shared!.get(farthest.cover.image.src) ?? []) : typeCover(reason, rejectedKey);
 }
 
 /**
  * A listing record as a CoverItem: the one place pages, generators and report:covers build it (UI9-IMAGES A0), so the
  * page and the coverage report always judge the same candidates. The record's `imageKeys` (written by the build from
  * coverCandidates(), from A1) come along; `override.imageKey` replaces the record's own image, `undefined` included (the
- * home lead's close-up-face rule, weekend-lead.ts leadImageKey), and then also leaves it out of `imageKeys`.
+ * home lead's close-up-face rule, weekend-lead.ts leadImageKey), and then also leaves it out of `imageKeys`. `override.lead`
+ * marks a lead: it skips approved AI pictures (DECISIONS 24).
  */
-export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined }): CoverItem {
+export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem {
   const imageKey = override ? override.imageKey : record.imageKey;
-  if (!record.imageKeys) return { kind, id: record.id, imageKey };
-  const imageKeys = imageKey === record.imageKey ? record.imageKeys
+  const item: CoverItem = { kind, id: record.id, imageKey, ...(override?.lead ? { lead: true } : {}) };
+  if (record.imageKeys) item.imageKeys = imageKey === record.imageKey ? record.imageKeys
     : [...(imageKey ? [imageKey] : []), ...record.imageKeys.filter(key => key !== record.imageKey)];
-  return { kind, id: record.id, imageKey, imageKeys };
+  return item;
 }
 
 /** Resolve a list in display order on one page, so de-duplication is deterministic. */
