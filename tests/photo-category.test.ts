@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   PHOTO_CATEGORIES, PHOTO_CATEGORY_IDS, bulletinPhotoCategory, eventPhotoCategory, guidePhotoCategory, isPhotoCategoryId,
-  offerPhotoCategory, openingPhotoCategory, type PhotoCategoryId,
+  offerPhotoCategory, openingPhotoCategory, photoCategoryOf, type PhotoCategoryId,
 } from '../src/lib/photo-category';
 import overrideFile from '../src/data/photo-category-overrides.json';
 import type { EventsIndex, EventsLater } from '../src/features/events/events-index-types';
@@ -61,4 +61,37 @@ test('the rules put typical records in the pool their picture shows', () => {
   assert.equal(guidePhotoCategory({ slug: 'bart-october-access-parking-update-2026' }), 'transit');
   assert.equal(guidePhotoCategory({ slug: 'bay-area-chinese-senior-services-referral-guide', category: 'service' }), 'seniors');
   assert.equal(guidePhotoCategory({ slug: 'some-new-rent-guide', category: 'rent' }), 'guide-housing', 'falls back to the guide category');
+});
+
+test('a guide is read by its slug whether the record calls it slug or id (candidates, report:covers, the home rail)', () => {
+  assert.equal(photoCategoryOf('guide', { id: 'bart-october-access-parking-update-2026' }), 'transit');
+  assert.equal(photoCategoryOf('guide', { slug: 'bart-october-access-parking-update-2026' }), 'transit');
+  assert.equal(photoCategoryOf('guide', { id: 'some-new-rent-guide', category: 'rent' }), 'guide-housing');
+});
+
+// DECISIONS 24: a seasonal picture only for a record that happens in that season, and never a 21+ picture on a family card.
+const SEASONS = new Map(PHOTO_CATEGORIES.filter(c => c.season).map(c => [c.id, c.season!]));
+const inSeason = (day: string, season: { from: string; through: string }) => {
+  const md = day.slice(5, 10);
+  return season.from <= season.through ? md >= season.from && md <= season.through : md >= season.from || md <= season.through;
+};
+const daysOf = (e: { startDate?: string; endDate?: string; occurrenceDates?: readonly string[] }) => {
+  const days = [...(e.occurrenceDates ?? [])];
+  if (e.startDate) {
+    const end = Date.parse(`${e.endDate || e.startDate}T12:00:00Z`);
+    for (let t = Date.parse(`${e.startDate}T12:00:00Z`), n = 0; t <= end && n < 400; t += 86_400_000, n++) days.push(new Date(t).toISOString().slice(0, 10));
+  }
+  return days;
+};
+
+test('every record in a seasonal pool has a day in that season, and no family event gets the 21+ pool', () => {
+  const wrong: string[] = [];
+  for (const e of [...index.events, ...later.events]) {
+    const category = eventPhotoCategory(e);
+    const season = category && SEASONS.get(category);
+    if (season && !daysOf(e).some(day => inSeason(day, season))) wrong.push(`${category} ${e.id} ${e.startDate}..${e.endDate}`);
+    if (category === 'wine-beer' && e.category === 'family') wrong.push(`wine-beer on a family event: ${e.id}`);
+  }
+  assert.deepEqual(wrong, []);
+  assert.notEqual(eventPhotoCategory({ id: 't', title: 'Petaluma Cider Circus 苹果酒与河畔游园', category: 'family' }), 'wine-beer');
 });

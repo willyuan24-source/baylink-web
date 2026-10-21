@@ -46,10 +46,10 @@ const C = (id: PhotoCategoryId, zh: string, zhHant: string, en: string, season: 
 
 export const PHOTO_CATEGORIES: readonly PhotoCategory[] = [
   C('halloween', '万圣节', '萬聖節', 'Halloween', { from: '10-01', through: '11-01' }),
-  C('dia-de-muertos', '亡灵节', '亡靈節', 'Día de los Muertos', { from: '10-15', through: '11-03' }),
+  C('dia-de-muertos', '亡灵节', '亡靈節', 'Día de los Muertos', { from: '10-01', through: '11-15' }),
   C('diwali', '排灯节', '排燈節', 'Diwali', { from: '10-10', through: '11-20' }),
   C('thanksgiving', '感恩节', '感恩節', 'Thanksgiving', { from: '11-01', through: '11-30' }),
-  C('winter-holidays', '冬季灯会 · 圣诞', '冬季燈會 · 聖誕', 'Winter lights & holidays', { from: '10-15', through: '01-06' }),
+  C('winter-holidays', '冬季灯会 · 圣诞', '冬季燈會 · 聖誕', 'Winter lights & holidays', { from: '11-01', through: '01-06' }),
   C('ice-skating', '溜冰', '溜冰', 'Ice skating', { from: '11-01', through: '02-28' }),
   C('lunar-new-year', '农历新年', '農曆新年', 'Lunar New Year', { from: '01-01', through: '03-15' }),
   C('pumpkin-harvest', '南瓜园 · 丰收节', '南瓜園 · 豐收節', 'Pumpkins & harvest', { from: '09-15', through: '11-15' }),
@@ -224,7 +224,8 @@ export function eventPhotoCategory(event: EventFields): PhotoCategoryId | undefi
   const kidsish = !ADULT.test(title) && (event.category === 'family' || KIDSISH.test(title) || (event.audience ?? []).some(a => KIDSISH.test(a)));
   // A band name is not a season (The Smashing Pumpkins); no regex look-behind (Safari < 16.4, opus-bay-w9-e-lookbehind).
   const first = firstMatch(PRIORITY, title.replace(/smashing pumpkins/gi, ''));
-  if (first) return first;
+  // A family event is never a 21+ picture (a cider fair with a kids' circus): it goes on to what the event is.
+  if (first && !(first === 'wine-beer' && kidsish)) return first;
   if (event.kind === 'sports') {
     const sport = firstMatch(EVENT_RULES.filter(([id]) => id.startsWith('sports-')), text);
     if (sport) return sport;
@@ -358,7 +359,8 @@ export function photoCategoryOf(kind: string, record: Record<string, unknown>): 
   if (kind === 'event') return eventPhotoCategory(r);
   if (kind === 'offer') return offerPhotoCategory(r);
   if (kind === 'opening') return openingPhotoCategory(r);
-  if (kind === 'guide') return guidePhotoCategory(r);
+  // A guide's id is its slug: the candidate records, report:covers and the home rail pass `id`, the guide index `slug`.
+  if (kind === 'guide') return guidePhotoCategory({ ...record, slug: String(record.slug ?? record.id) } as never);
   if (kind === 'bulletin') return bulletinPhotoCategory(r);
   return undefined;
 }

@@ -59,3 +59,9 @@ test('the reviewed tables are well formed and point at registered pictures of th
     }
   }
 });
+
+test('a guide record (id = slug) gets the pool of its slug-derived category, and an AI approval for that category', () => {
+  const guideTables: CoverTables = { venues: [], categories: { transit: ['T1'], 'guide-documents': ['D1'] }, ai: [{ key: 'ai-t', for: ['category:transit'] }] };
+  assert.deepEqual(coverCandidates('guide', { id: 'bart-october-access-parking-update-2026' }, guideTables), ['T1', 'ai-t']);
+  assert.deepEqual(coverCandidates('guide', { id: 'some-new-guide', category: 'service' }, guideTables), ['D1'], 'then the guide category');
+});
