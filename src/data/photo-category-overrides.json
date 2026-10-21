@@ -1,0 +1,4 @@
+{
+  "_format": "UI9-IMAGES photo-category overrides (src/lib/photo-category.ts). Key: '<kind>:<id>' where kind is event | offer | opening | guide | bulletin and id is the record id (a guide's slug). Value: a PhotoCategoryId from PHOTO_CATEGORY_IDS. Add an entry only when the keyword rules put a record in a pool whose pictures do not match it (DECISIONS 24), or leave it uncategorised; filled by the B lanes.",
+  "overrides": {}
+}
