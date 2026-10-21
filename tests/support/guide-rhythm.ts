@@ -79,13 +79,16 @@ export function guideBodyStretches(article: Element): { stretches: Stretch[]; lo
   const h1 = article.querySelector('h1');
   y += lineCount(textOf(h1?.querySelector('.gd-title__head') ?? h1), 26, CONTENT) * 34 + 6;
   if (h1?.querySelector('.gd-title__rest')) y += lineCount(textOf(h1.querySelector('.gd-title__rest')), 15, CONTENT) * 24;
-  y += 8 + lineCount(textOf(article.querySelector('.gd-meta')), 14, CONTENT) * 22 + 12;
+  // UI9-GUIDES: two meta lines (the date and time, then the sources).
+  for (const meta of article.querySelectorAll('.gd-meta')) y += lineCount(textOf(meta), 14, CONTENT) * 22;
+  y += 8 + 12;
   const slots: [number, number][] = [];
   const slot = (height: number) => { slots.push([y, y + height]); y += height; };
-  // Lead: the carousel (a slot), the actions, 30 秒看懂.
-  if (article.querySelector('.gd-carousel')) slot(Math.round(CONTENT - 20) * 4 / 3 + 12 + 48);
+  // Lead: the carousel (a slot; UI9-GUIDES caps a phone slide at 360 px, the buttons under it), 30 秒看懂. The action bar is
+  // fixed at the bottom of the screen (DETAIL's contract), so it takes no room in the article.
+  if (article.querySelector('.gd-carousel')) slot(Math.min(Math.round(CONTENT - 20) * 4 / 3, 360) + 8 + 48);
   else if (article.querySelector('.gd-lead__visual img')) slot((CONTENT * 2) / 3);
-  y += 16 + 48 + 16;
+  y += 16;
   const keyfacts = article.querySelector('.gd-keyfacts');
   if (keyfacts) {
     y += 40 + 34;
@@ -93,15 +96,18 @@ export function guideBodyStretches(article: Element): { stretches: Stretch[]; lo
   } else y += lineCount(textOf(article.querySelector('.gd-summary p')), 16, CONTENT) * 28;
   for (const child of article.children) {
     if (child.matches('figure.gd-diagram')) { y += 20; slot(diagramHeight(child)); }
+    if (child.matches('.gd-lead-diagrams')) for (const figure of child.querySelectorAll(':scope > figure.gd-diagram')) { y += 24; slot(diagramHeight(figure)); }
+    if (child.matches('.gd-toc')) y += 24 + 52; // the 目录 fold
     if (child.matches('.gd-contacts')) {
       y += 24 + 32 + 12;
       for (const card of child.querySelectorAll('.gd-contact')) y += contactHeight(card) + 12;
       y -= 12;
     }
     if (child.matches('.gd-opus')) y += 16 + 96;
-    if (child.matches('.bl-guide-reading-layout')) {
-      y += 28 + 64; // the 文章目录 fold
-      const main = child.querySelector('.bl-guide-reading-main');
+    if (child.matches('.bl-guide-reading-layout, .gd-main')) {
+      if (child.matches('.bl-guide-reading-layout')) y += 28 + 64; // the 文章目录 fold
+      else y += 40;
+      const main = child.matches('.gd-main') ? child : child.querySelector('.bl-guide-reading-main');
       for (const block of main ? [...main.children] : []) {
         if (block.matches('.bl-guide-sources')) return finish(y + 24, slots);
         if (block.matches('.bl-guide-prose')) {

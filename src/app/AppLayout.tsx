@@ -29,6 +29,7 @@ import { useSession } from './useSession';
 import { useCommunityFeed } from './useCommunityFeed';
 import { COMMUNITY_VISIBLE } from '../data/site-flags';
 import { OverlayHost } from './OverlayHost';
+import { showUnavailable } from './chunk-unavailable';
 import { BootMainSettled, bootMainFallback } from './boot-main';
 import { confirmDialog } from '../components/ui/confirm';
 import type { ToastAction } from '../components/Toast';
@@ -36,6 +37,8 @@ import type { BayBayConversationDraft } from '../components/BayBayAssistantEntry
 import type { ReportReason } from '../components/ReportModal';
 import { SiteChrome } from '../components/SiteChrome';
 import { RouteSettled } from './RouteProgress';
+import { RouteArrival } from './route-arrival';
+import { preloadBayBay } from './baybay-preload';
 
 // realLocation 必须由 App（Router 层）传入：本组件渲染在 <Routes location={背景位置}> 之内，
 // 这里 useLocation() 只能拿到背景位置，而覆盖层（/posts/:id、/users/:id、聊天）要按真实 URL 渲染
@@ -563,7 +566,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
     handleToggleBlockUser, openReportTarget, openChat, requestPostContact, openConversation,
     setViewingImage, setSharingPost, openAdDetail,
     openBlockedUsersModal: () => { if (!user) { setShowLogin(true); return; } setShowBlockedUsersModal(true); },
-    setBaybayPanelOpen, openBayBay, openSearch,
+    setBaybayPanelOpen, openBayBay, warmBayBay: preloadBayBay, openSearch,
     adsRefreshKey, featuredRefreshKey,
     contactRequestRefreshKey: session.contactRequestRefreshKey, setContactRequestRefreshKey: session.setContactRequestRefreshKey, setPendingContactRequestCount: session.setPendingContactRequestCount,
   };
@@ -653,10 +656,10 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       messagesCount={messagesBadgeCount}
       onAsk={() => openBayBay()}
       onSearch={() => openSearch()}
-      onLogin={() => setShowLogin(true)}
       onAccount={() => user ? navigate('/me') : setShowLogin(true)}
       onCreate={() => openCreate()}
       onLogout={handleLogout}
+      onUnavailable={lostChunk => showUnavailable(showToast, lostChunk)}
       realLocation={realLocation}
       overlays={overlays}
     >
@@ -668,6 +671,7 @@ export default function AppLayout({ realLocation }: { realLocation: Location }) 
       <Suspense fallback={bootMainFallback(location.pathname) ?? <div className="site-route-wait" aria-busy="true"><span className="site-route-progress" /></div>}>
         <BootMainSettled />
         <RouteSettled pathname={location.pathname} search={location.search} />
+        <RouteArrival />
         <Outlet context={ctx} />
       </Suspense>
     </SiteChrome>

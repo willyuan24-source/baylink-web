@@ -37,10 +37,13 @@ test('the senior guide opens with a carousel: a cover with the first answer as a
   const answer = slides[0].querySelector('.gd-answer a')!;
   assert.equal(answer.getAttribute('href'), 'tel:+18005102020');
   assert.match(answer.getAttribute('aria-label')!, /^拨打 .*800-510-2020$/);
-  // The cover sits before the three actions, which sit before the 30-second card (look → check → read).
-  const actions = view.getByRole('group', { name: '文章操作' });
-  assert.ok(carousel.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING);
-  assert.ok(actions.compareDocumentPosition(view.getByRole('heading', { name: '30 秒看懂' })) & Node.DOCUMENT_POSITION_FOLLOWING);
+  // The cover sits before the 30-second card (look → check); the action bar (DETAIL's contract, UI9-GUIDES) follows them,
+  // its one primary last: 拨打 the cover's number.
+  const keyFacts = view.getByRole('heading', { name: '30 秒看懂' });
+  assert.ok(carousel.compareDocumentPosition(keyFacts) & Node.DOCUMENT_POSITION_FOLLOWING);
+  const actions = view.getByRole('group', { name: '这一页的操作' });
+  assert.ok(keyFacts.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING);
+  assert.equal(actions.lastElementChild?.getAttribute('href'), 'tel:+18005102020');
   // Every slide but the cover names its source; county numbers are tap-to-call.
   for (const slide of slides.slice(1)) assert.ok(slide.querySelector('.gd-slide__source')?.textContent);
   const county = slides.find(slide => slide.textContent?.includes('各县 AAA 电话'))!;
@@ -96,7 +99,9 @@ test('a slide is 3:4 at least but never a fixed 3:4 box: at 特大, in 简洁显
   const { readFile } = await import('node:fs/promises');
   const css = await readFile(new URL('../src/features/guides/guide-article.css', import.meta.url), 'utf8');
   const rule = /^\.gd-slide \{([^}]*)\}/m.exec(css)?.[1] ?? '';
-  assert.match(rule, /min-height:calc\(100cqw \* 4 \/ 3\)/, 'the 3:4 floor follows the slide width');
+  // UI9-GUIDES: on a phone the floor stops at 360 px so the cover and 30 秒看懂 share the first screen; a wider slide keeps 3:4.
+  assert.match(rule, /min-height:min\(calc\(100cqw \* 4 \/ 3\), 22\.5rem\)/, 'the 3:4 floor follows the slide width, up to 360 px');
+  assert.match(css, /@container \(min-width:23rem\) \{ \.gd-slide \{ min-height:calc\(100cqw \* 4 \/ 3\);/, 'a wider slide keeps 3:4');
   assert.match(rule, /height:100%/, 'the track stretches every slide to the tallest one');
   assert.doesNotMatch(css, /\.gd-slide[^{]*\{[^}]*(?:aspect-ratio|max-height|overflow:hidden)/, 'no fixed ratio or clipping on a slide');
 });
@@ -107,8 +112,12 @@ test('English "Read next" cards say "1 official source" in the singular, like th
   // Its Read next list holds three outings with one official source each (Alviso, Half Moon Bay, Sonoma).
   const view = article('sf-autumn-art-half-day-2026');
   const related = view.getByRole('heading', { name: 'Read next' }).closest('section')!;
-  const metas = [...related.querySelectorAll('.ui-feed-card__meta')].map(meta => meta.textContent!);
-  assert.equal(metas.length, related.querySelectorAll('article').length, 'every card has a meta line');
-  assert.ok(metas.some(text => /^1 official source · \d+ min read$/.test(text)), metas.join(' | '));
-  assert.ok(metas.every(text => /^(?:1 official source|(?:[02-9]|\d{2,}) official sources) · \d+ min read$|^\d+ min read$/.test(text)), metas.join(' | '));
+  // UI9-GUIDES: two meta lines, the time first ("N min read"), then the sources ("1 official source"[ · region]).
+  const grid = related.querySelector('.gd-related__grid')!;
+  const whens = [...grid.querySelectorAll('.ui-feed-card__when')].map(line => line.textContent!);
+  assert.equal(whens.length, grid.querySelectorAll('article').length, 'every card has a time line');
+  assert.ok(whens.every(text => /^(?:(?:\w{3}|\w{3} \d+–\w{3} \d+) edition · )?\d+ min read$/.test(text)), whens.join(' | '));
+  const metas = [...grid.querySelectorAll('.ui-feed-card__meta')].map(meta => meta.textContent!);
+  assert.ok(metas.some(text => /^1 official source(?: · .+)?$/.test(text)), metas.join(' | '));
+  assert.ok(metas.every(text => /^(?:1 official source|(?:[02-9]|\d{2,}) official sources)(?: · .+)?$|^[A-Z][\w ,]+$/.test(text)), metas.join(' | '));
 });

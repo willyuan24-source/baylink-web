@@ -1,180 +1,236 @@
-/* The site chrome (WEB-SHELL2, design.md §4.13): header, 更多 / language / account menus, global footer, phone tab bar and
-   the toast. SiteChrome.tsx renders this markup in the app and in the prerendered pages. Selectors start at .site-app so they
-   outrank the legacy shell rules still in design.css and tokens.css (both owned by other lanes) without !important.
-   Tokens and rem only; 400/600/700 weights; 13px (--text-caption) is the smallest text; 44px targets (48 in 简洁显示). */
+/* The site chrome (WEB-SHELL2, design.md §4.13; UI9-NAV: D2 温暖社区感): header, 更多 / language / account menus, global
+   footer, phone tab bar, toast and the chunk-loading sheet. SiteChrome.tsx renders this markup in the app and in the
+   prerendered pages. Selectors start at .site-app so they outrank the legacy rules still in tokens.css (F's frozen file;
+   PR.md lists its dead chrome rules for UI9-INT) without !important, except one tab label rule tokens.css marks !important.
+   Tokens only (sizes, space, radius, shadow, motion); 400 everywhere; 44px targets (48 in 简洁显示); 14px is the smallest
+   chrome text except the AI tag. Hover only where a pointer hovers; every control answers a press at once. */
 
-html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)); }
+/* Heights: header 64 desktop, 56 phone (64 at 特大 and in 简洁显示); tab bar 64 + safe area (76 in 简洁显示). px, so Aa does
+   not push the frame: 120px of chrome at 390x844 standard, about 17% at 特大 and 简洁显示. */
+html:root { --site-mobile-nav-height:calc(64px + env(safe-area-inset-bottom,0px)); }
+html:root[data-simple] { --site-mobile-nav-height:calc(76px + env(safe-area-inset-bottom,0px)); }
 .site-app {
-  --chrome-shadow-pop:0 14px 48px rgb(22 46 41 / .14);
-  --chrome-shadow-bar:0 -3px 18px rgb(22 46 41 / .03);
-  --chrome-header-height:4rem;
+  --chrome-header-height:64px; --tool-size:44px;
   display:block; max-width:none; min-height:100dvh; background:var(--color-bg); color:var(--color-ink);
 }
+html[data-simple] .site-app { --tool-size:48px; }
 .site-app .site-workspace { width:100%; min-height:100dvh; display:flex; flex-direction:column; }
-.site-app .site-main { flex:1 0 auto; width:100%; max-width:1280px; margin-inline:auto; outline:none; }
-.site-app .site-skip-link { position:fixed; top:-5rem; left:16px; z-index:150; padding:12px 20px; border:2px solid var(--color-brand); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); }
-.site-app .site-skip-link:focus { top:12px; }
+.site-app .site-main { flex:1 0 auto; width:100%; min-width:0; max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); margin-inline:auto; outline:none; }
+.site-app .site-skip-link { position:fixed; top:-5rem; left:var(--sp-4); z-index:150; padding:var(--sp-3) var(--sp-5); border:2px solid var(--color-brand); border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--fs-meta); }
+.site-app .site-skip-link:focus { top:var(--sp-3); }
 
-/* Header: 64 high on desktop, 56 on phones, sticky, warm paper at 97% (the page ground, tokens v2) over a blur with a 1px
-   line; once the page scrolls it lifts with e1 where the browser has scroll-driven animations. The blur sits on a
-   pseudo-element: on the header itself it would make the header the containing block of its fixed menus (the phone
-   language sheet, 更多), and without it dark page text showed through the 3% (a ghost 「重新加载」 behind •••). */
-.site-app .site-topbar { position:sticky; top:0; z-index:45; display:block; height:auto; min-height:0; padding:0; border-bottom:1px solid var(--color-line); background:transparent; backdrop-filter:none; }
-.site-app .site-topbar::before { content:''; position:absolute; inset:0; z-index:-1; background:rgb(var(--color-bg-rgb) / .97); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); }
-/* forwards only, from 4px: at the top of the page the animation is in its before phase, so the header has no shadow at all
-   (a backwards fill would leave a transparent two-layer shadow on every page). */
+/* Header (G1, G21): solid paper and a 1px line; e1 once the page scrolls, where the browser has scroll-driven animations
+   (forwards only, from 4px: at the top the header has no shadow at all). No blur. The logo, the nav and the first content
+   edge sit at x = 112 in a 1440 window (the 1216 frame plus the gutter). */
+.site-app .site-topbar { position:sticky; top:0; z-index:45; display:block; height:auto; min-height:0; padding:0; border-bottom:1px solid var(--color-line); background:var(--color-bg); }
 @supports (animation-timeline:scroll()) { .site-app .site-topbar { animation:site-topbar-lift linear forwards; animation-timeline:scroll(root); animation-range:4px 36px; } }
 @keyframes site-topbar-lift { to { box-shadow:var(--e1); } }
-.site-app .site-topbar-inner { display:flex; align-items:center; gap:16px; width:100%; max-width:1280px; min-height:var(--chrome-header-height); padding:0 32px; margin-inline:auto; }
-.site-app .site-header-navigation { display:flex; flex:1; align-items:center; gap:20px; min-width:0; }
-.site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:44px; }
-.site-app .site-header-brand img { display:block; width:140px; height:auto; object-fit:contain; }
-.site-app .site-header-primary.site-nav { display:flex; flex-direction:row; align-items:center; gap:4px; margin:0; }
-.site-app .site-header-primary .site-nav-link { position:relative; display:flex; align-items:center; gap:6px; min-height:44px; padding:10px 12px; border-radius:var(--r-sm); background:transparent; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; white-space:nowrap; }
-.site-app .site-header-primary .site-nav-link:hover,.site-app .site-header-primary .site-nav-link:active { background:var(--color-surface-2); color:var(--color-ink); }
-.site-app .site-header-primary .site-nav-link.is-active { color:var(--color-ink); font-weight:600; }
-.site-app .site-header-primary .site-nav-link.is-active::after,.site-app .site-navigation-more>summary.is-active::after { content:''; position:absolute; left:12px; right:12px; bottom:2px; height:2px; border-radius:var(--r-sm); background:var(--color-brand); }
-.site-app .site-header-primary .site-nav-ask { color:var(--color-brand); }
-.site-app .site-nav-ask .site-otter { width:1.375rem; height:1.375rem; }
+/* The 1px line is part of the header's height (56 / 64 in all). */
+.site-app .site-topbar-inner { display:flex; align-items:center; gap:var(--sp-5); width:100%; max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); height:calc(var(--chrome-header-height) - 1px); margin-inline:auto; padding:0 var(--page-gutter); }
+.site-app .site-header-navigation { display:flex; flex:1; align-items:stretch; gap:var(--sp-6); min-width:0; height:100%; }
+.site-app .site-header-brand { display:flex; flex:none; align-items:center; min-height:var(--tool-size); }
+/* The BAYLINK lockup (G1) is a fixed size: it never grows with Aa. */
+.site-app .site-header-brand img { display:block; width:140px; height:auto; }
 .site-app .site-otter { display:block; flex:none; }
 
-/* 更多 */
-.site-app .site-navigation-more { position:relative; flex:none; }
-.site-app .site-navigation-more>summary { position:relative; display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:10px; border-radius:var(--r-sm); list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-body); font-weight:400; }
-.site-app :is(.site-navigation-more,.site-language,.site-account-menu)>summary::-webkit-details-marker { display:none; }
-.site-app .site-navigation-more>summary:hover,.site-app .site-navigation-more[open]>summary { background:var(--color-surface-2); color:var(--color-ink); }
-.site-app .site-navigation-more>summary.is-active { color:var(--color-ink); font-weight:600; }
+/* Desktop links: ink-2, the current one ink with a brand underline grown from the centre (no 600); a tapped one takes the
+   same look at once (data-pending) until the route changes. */
+.site-app .site-header-primary.site-nav { display:flex; flex-direction:row; align-items:stretch; gap:var(--sp-1); height:100%; margin:0; }
+.site-app .site-header-primary .site-nav-link,.site-app .site-navigation-more>summary { position:relative; display:flex; align-items:center; gap:6px; min-width:44px; min-height:44px; padding:0 var(--sp-3); border:0; border-radius:0; background:transparent; color:var(--color-ink-2); font-size:var(--fs-body); font-weight:var(--fw-regular); white-space:nowrap; transition:color var(--dur-2) var(--ease-std); }
+.site-app .site-header-primary .site-nav-link::after,.site-app .site-navigation-more>summary::after { content:''; position:absolute; left:var(--sp-3); right:var(--sp-3); bottom:-1px; height:3px; border-radius:var(--r-pill); background:var(--color-brand); transform:scaleX(0); transition:transform var(--dur-2) var(--ease-out); }
+.site-app .site-header-primary .site-nav-link:is(.is-active,[data-pending]),.site-app .site-navigation-more>summary.is-active { color:var(--color-ink); }
+.site-app .site-header-primary .site-nav-link:is(.is-active,[data-pending])::after,.site-app .site-navigation-more>summary.is-active::after { transform:scaleX(1); }
+.site-app .site-header-primary .site-nav-link:active,.site-app .site-navigation-more>summary:active { color:var(--color-brand-hover); }
+.site-app .site-navigation-more>summary { height:100%; }
+.site-app .site-header-primary .site-nav-ask { color:var(--color-brand); }
+.site-app .site-nav-ask .site-otter { width:22px; height:22px; }
+@media (hover:hover) and (pointer:fine) {
+  .site-app .site-header-primary .site-nav-link:hover,.site-app .site-navigation-more>summary:hover { color:var(--color-ink); }
+  .site-app .site-header-primary .site-nav-link:not(.is-active):hover::after,.site-app .site-navigation-more>summary:not(.is-active):hover::after { transform:scaleX(.6); }
+}
+/* The AI tag on every 问 BayBay entry (A6): lime with deep text, the same look as HOME's AI 助手 tag. */
+.site-ai-tag { display:inline-block; flex:none; padding:0 var(--sp-1); border-radius:var(--r-sm); background:var(--color-highlight); color:var(--color-brand-deep); font-size:var(--fs-badge); font-weight:var(--fw-strong); line-height:var(--lh-snug); letter-spacing:0; }
+
+/* One tool look (search, Aa 字号, language, account, •••): 44px (48 in 简洁显示), r-md, sunken on press and hover. */
+.site-app .site-tool { position:relative; display:inline-flex; align-items:center; justify-content:center; gap:var(--sp-1); flex:none; min-width:var(--tool-size); height:var(--tool-size); min-height:0; margin:0; padding:0 var(--sp-2); border:0; border-radius:var(--r-md); background:transparent; color:var(--color-ink); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.2; white-space:nowrap; list-style:none; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.site-app .site-tool:active,.site-app [open]>.site-tool,.site-app .site-topbar-account:is([aria-current],.is-current) { background:var(--color-surface-2); }
+.site-app .site-tool:active { scale:.96; }
+@media (hover:hover) and (pointer:fine) { .site-app .site-tool:hover { background:var(--color-surface-2); } }
+.site-app :is(.site-navigation-more,.site-language)>summary::-webkit-details-marker { display:none; }
+.site-app .site-header-utilities { display:flex; flex:none; align-items:center; gap:var(--sp-1); margin-left:auto; }
+.site-app .site-reading-glyph { font-size:var(--fs-body); font-weight:var(--fw-regular); }
+.site-app .site-reading-label-short { display:none; }
+.site-app .site-language { position:relative; flex:none; }
+.site-app .site-language-short,.site-app .site-language-pair { display:none; }
+.site-app .site-topbar-actions { display:flex; flex:none; align-items:center; }
+.site-app .site-header-notification { position:absolute; top:2px; right:0; min-width:1.125rem; padding:0 4px; }
+/* The search field (≥1280): a pill with a line-control edge (≥3:1), ink-3 placeholder at 400 and the ⌘K hint. */
+.site-app .site-topbar .site-command-trigger { width:var(--tool-size); padding:0; color:var(--color-ink-2); }
+.site-app .site-command-placeholder,.site-app .site-command-kbd { display:none; }
+@media (min-width:1280px) {
+  .site-app .site-topbar .site-command-trigger { justify-content:flex-start; gap:var(--sp-2); width:280px; margin-right:var(--sp-2); padding:0 var(--sp-2) 0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink-3); transition:border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+  .site-app .site-command-placeholder { display:block; flex:1; min-width:0; overflow:hidden; color:var(--color-ink-3); text-align:left; text-overflow:ellipsis; }
+  .site-app .site-command-kbd { display:inline-block; flex:none; padding:0 var(--sp-2); border:1px solid var(--color-line-strong); border-radius:var(--r-sm); color:var(--color-ink-3); font-family:inherit; font-size:var(--fs-meta); line-height:var(--lh-ui); }
+}
+@media (min-width:1280px) and (hover:hover) and (pointer:fine) { .site-app .site-topbar .site-command-trigger:hover { border-color:var(--color-ink-3); background:var(--color-surface); } }
+
+/* Menus: 更多, the account menu and the language choices. Each enters (fade + 4px) and leaves over --dur-2 where the
+   browser animates <details> content (::details-content + allow-discrete); elsewhere they open and close at once. */
+.site-app .site-navigation-more { position:relative; flex:none; display:flex; align-items:stretch; margin-left:calc(var(--sp-1) - var(--sp-6)); }
+/* On a desktop 更多 is a nav link (its underline marks the section), not a tool. */
+@media (min-width:1024px) { .site-app .site-navigation-more>summary:is(:active,[aria-current]),.site-app .site-navigation-more[open]>summary { background:transparent; scale:none; } }
 .site-app .site-more-icon { display:none; }
 .site-mobile-ask-short { display:none; }
 .site-app .site-more-notification { position:absolute; top:8px; right:6px; width:8px; height:8px; border-radius:var(--r-circle); background:var(--color-danger); }
-.site-app .site-navigation-panel,.site-app .site-account-panel,.site-app .site-language-menu { position:absolute; z-index:60; top:calc(100% + 10px); right:0; overflow:auto; overscroll-behavior:contain; padding:8px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--chrome-shadow-pop); }
-.site-app .site-navigation-panel { width:20rem; max-width:calc(100vw - 32px); max-height:calc(100dvh - 6rem); }
+.site-app :is(.site-navigation-panel,.site-language-menu) { position:absolute; z-index:60; top:calc(100% + var(--sp-2)); right:0; overflow:auto; overscroll-behavior:contain; padding:var(--sp-2); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e2); transition:opacity var(--dur-2) var(--ease-in), translate var(--dur-2) var(--ease-in); }
+.site-app :is(.site-navigation-more,.site-language)::details-content { transition:content-visibility var(--dur-2) allow-discrete; }
+.site-app :is(.site-navigation-more,.site-language):not([open])>:is(.site-navigation-panel,.site-language-menu) { opacity:0; translate:0 -4px; }
+.site-app [open]>:is(.site-navigation-panel,.site-language-menu) { transition-duration:var(--dur-3); transition-timing-function:var(--ease-out); }
+@starting-style { .site-app [open]>:is(.site-navigation-panel,.site-language-menu) { opacity:0; translate:0 -4px; } }
+.site-app .site-navigation-more>.site-navigation-panel { top:calc(100% + 1px); width:22rem; max-width:calc(100vw - 2 * var(--page-gutter)); max-height:calc(100dvh - 6rem); }
 .site-app .site-navigation-panel .site-secondary-nav { display:flex; flex-direction:column; gap:2px; margin:0; padding:0; border:0; }
-.site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button),.site-app .site-navigation-account button,.site-app .site-account-panel>button { display:flex; align-items:center; gap:10px; width:100%; min-height:var(--control-height); padding:10px 12px; border-radius:var(--r-sm); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.5; text-align:left; }
-.site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button)>svg,.site-app .site-navigation-account button>svg,.site-app .site-account-panel>button>svg { flex:none; }
-.site-app :is(.site-secondary-nav,.site-account-panel nav)>:is(a,button):hover,.site-app .site-secondary-nav a[aria-current=page],.site-app .site-navigation-account button:hover,.site-app .site-account-panel>button:hover { background:var(--color-surface-2); color:var(--color-brand); }
-.site-app .site-unread,.site-app .site-header-notification,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--text-caption); font-weight:600; line-height:1.5; text-align:center; }
-.site-app :is(.site-secondary-nav,.site-account-panel nav) .site-unread { margin-left:auto; }
-.site-app .site-navigation-account { margin-top:8px; padding-top:8px; border-top:1px solid var(--color-line); }
-.site-app .site-navigation-account p { padding:4px 12px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.site-app .site-navigation-legal { display:flex; flex-wrap:wrap; gap:4px 12px; margin-top:8px; padding:6px 12px 0; border-top:1px solid var(--color-line); }
-.site-app .site-navigation-legal a { display:flex; align-items:center; min-height:44px; color:var(--color-ink-3); font-size:var(--text-caption); }
-.site-app .site-navigation-legal a:hover { color:var(--color-brand); text-decoration:underline; }
-
-/* Right-hand utilities: search, 字号, language, account. */
-.site-app .site-header-utilities { display:flex; flex:none; align-items:center; gap:4px; margin-left:auto; }
-.site-app .site-topbar .site-command-trigger { display:flex; align-items:center; gap:8px; flex:none; width:15rem; min-width:0; height:2.5rem; min-height:44px; margin:0 8px 0 0; padding:0 12px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); box-shadow:none; color:var(--color-ink-3); font-size:var(--text-fact); }
-.site-app .site-command-trigger:hover { border-color:var(--color-brand); color:var(--color-ink-2); }
-.site-app .site-command-placeholder { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.site-app .site-topbar .site-reading-button { display:inline-flex; align-items:center; justify-content:center; gap:4px; width:auto; min-width:44px; min-height:44px; padding:0 10px; border:0; border-radius:var(--r-sm); background:transparent; color:var(--color-ink-2); }
-.site-app .site-reading-button:hover,.site-app .site-language-trigger:hover,.site-app .site-language[open]>.site-language-trigger,.site-app .site-topbar-account:hover { background:var(--color-surface-2); color:var(--color-ink); }
-.site-app .site-reading-glyph { font-size:var(--text-body); font-weight:600; }
-.site-app .site-reading-label { font-size:var(--text-fact); }
-.site-app .site-language { position:relative; flex:none; display:block; min-height:0; padding:0; border:0; background:transparent; }
-.site-app .site-language-trigger { display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:0 10px; border-radius:var(--r-sm); list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-fact); }
-.site-app .site-language-short { display:none; font-size:1rem; font-weight:600; }
+.site-app .site-navigation-panel .site-secondary-nav--about,.site-app .site-navigation-account { margin-top:var(--sp-2); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
+.site-app .site-secondary-nav>:is(a,button),.site-app .site-navigation-account button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
+.site-app .site-secondary-nav>:is(a,button)>svg,.site-app .site-navigation-account button>svg { flex:none; color:var(--color-ink-2); }
+.site-app .site-secondary-nav>:is(a,button):active,.site-app .site-navigation-account button:active { background:var(--color-surface-2); }
+.site-app .site-secondary-nav a[aria-current=page] { background:var(--color-brand-tint); color:var(--color-brand-deep); }
+@media (hover:hover) and (pointer:fine) { .site-app .site-secondary-nav>:is(a,button):hover,.site-app .site-navigation-account button:hover { background:var(--color-surface-2); } }
+.site-app .site-more-chip { margin-left:auto; padding:0 var(--sp-2); border-radius:var(--r-pill); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+html[data-simple] .site-app .site-more-community { display:none; }
+.site-app .site-unread,.site-app .site-header-notification,.site-app .site-mobile-icon>b { min-width:1.25rem; padding:0 6px; border-radius:var(--r-pill); background:var(--color-danger); color:var(--color-surface); font-size:var(--fs-badge); font-weight:var(--fw-strong); line-height:1.5; text-align:center; }
+.site-app .site-secondary-nav .site-unread { margin-left:auto; }
+.site-app .site-navigation-account p { padding:var(--sp-1) var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .site-app .site-language-menu { width:14rem; }
-.site-app .site-language-title { padding:6px 12px 4px; color:var(--color-ink-3); font-size:var(--text-caption); }
-.site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:var(--control-height); padding:10px 12px; border-radius:var(--r-sm); color:var(--color-ink); font-size:var(--text-body); text-align:left; }
-.site-app .site-language-menu>button:hover { background:var(--color-surface-2); }
-.site-app .site-language-menu>button[aria-pressed=true] { background:var(--color-selected); color:var(--color-brand-deep); font-weight:600; }
-.site-app .site-language-error { padding:8px 12px; color:var(--color-danger); font-size:var(--text-caption); }
-.site-app .site-topbar-actions { display:flex; flex:none; align-items:center; }
-.site-app .site-topbar .site-topbar-account { position:relative; display:flex; align-items:center; justify-content:center; gap:6px; min-width:44px; min-height:44px; padding:0 10px; border:0; border-radius:var(--r-sm); list-style:none; cursor:pointer; color:var(--color-ink-2); font-size:var(--text-fact); }
-.site-app .site-account-menu { position:relative; }
-.site-app .site-header-notification { position:absolute; top:2px; right:0; min-width:1.125rem; padding:0 4px; }
-.site-app .site-account-panel { width:15rem; }
-.site-app .site-account-name { padding:8px 12px; overflow:hidden; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; white-space:nowrap; text-overflow:ellipsis; }
-.site-app .site-account-panel nav { display:flex; flex-direction:column; gap:2px; padding:4px 0; border-block:1px solid var(--color-line); }
-.site-app .site-account-panel>button { margin-top:4px; }
+.site-app .site-language-title { padding:var(--sp-2) var(--sp-3) var(--sp-1); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.site-app .site-language-menu>button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
+.site-app .site-language-menu>button:active { background:var(--color-surface-2); }
+@media (hover:hover) and (pointer:fine) { .site-app .site-language-menu>button:hover { background:var(--color-surface-2); } }
+.site-app .site-language-menu>button[aria-pressed=true] { background:var(--color-brand-tint); color:var(--color-brand-deep); }
+.site-app .site-language-error { padding:var(--sp-2) var(--sp-3); color:var(--color-danger); font-size:var(--fs-meta); }
 
-/* Global footer (plan §1): 13px, 44px targets, above the tab bar on phones. */
-.site-app .site-footer { margin-top:3rem; border-top:1px solid var(--color-line); background:var(--color-surface-2); }
-.site-app .site-footer-inner { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:8px 24px; max-width:1280px; margin-inline:auto; padding:16px 32px 24px; }
-.site-app .site-footer-brand { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.site-app .site-footer-brand strong { color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.site-app .site-footer nav { display:flex; flex-wrap:wrap; gap:0 4px; margin-inline:-10px; }
-.site-app .site-footer nav>:is(a,button) { display:inline-flex; align-items:center; min-height:44px; padding:0 10px; border-radius:var(--r-sm); color:var(--color-ink-2); font-size:var(--text-caption); }
-.site-app .site-footer nav>:is(a,button):hover { color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; }
+/* Global footer (content arrangement §5; G10, G12): a light warm surface, so the BAYLINK wordmark stays deep green; one
+   32px step above it; the otter, the wordmark and the tagline, the one line on what the site is, then the links: 16px,
+   14px, and the page's image credits last. Desktop: the brand and the line in columns 1-6, the links in 7-12. */
+.site-app .site-footer { margin-top:var(--sp-6); border-top:1px solid var(--color-line); background:var(--color-surface-2); }
+.site-app .site-footer-inner { display:grid; gap:var(--sp-4); max-width:calc(var(--container-wide) + 2 * var(--page-gutter)); margin-inline:auto; padding:var(--sp-6) var(--page-gutter); }
+.site-app .site-footer-brand { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.site-app .site-footer-brand img { flex:none; width:32px; height:32px; }
+.site-app .site-footer-brand strong { color:var(--color-brand); font-size:var(--fs-card); font-weight:var(--fw-strong); letter-spacing:.08em; }
+.site-app .site-footer-line { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
+.site-app .site-footer-claim { white-space:nowrap; }
+.site-app .site-footer-links { display:grid; align-content:start; }
+.site-app .site-footer-row { display:flex; flex-wrap:wrap; gap:0 var(--sp-5); margin:0; }
+.site-app .site-footer-row>:is(a,button) { display:inline-flex; align-items:center; min-height:44px; color:var(--color-ink-2); font-size:var(--fs-meta); text-decoration:none; transition:color var(--dur-2) var(--ease-std); }
+.site-app .site-footer-row--main>:is(a,button) { color:var(--color-ink); font-size:var(--fs-body); }
+.site-app .site-footer-row>:is(a,button):active { color:var(--color-brand-hover); }
+.site-app .site-footer-row>.site-footer-credits { color:var(--color-brand); }
+@media (hover:hover) and (pointer:fine) { .site-app .site-footer-row>:is(a,button):hover { color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; } }
+html[data-simple] .site-app .site-footer-archive { display:none; }
+@media (min-width:1024px) {
+  .site-app .site-footer-inner { grid-template-columns:repeat(12,minmax(0,1fr)); column-gap:var(--grid-gutter); padding-block:var(--sp-7); }
+  .site-app .site-footer-about { grid-column:1 / span 6; }
+  .site-app .site-footer-links { grid-column:7 / span 6; }
+}
 
-/* Toast (design.md §4.5): bottom, above the tab bar, so it never covers the header's ••• or search on a phone. */
-.site-toast { position:fixed; z-index:10000; left:0; right:0; bottom:calc(24px + env(safe-area-inset-bottom,0px)); display:flex; justify-content:center; padding:0 16px; pointer-events:none; }
-.site-toast-box { display:flex; align-items:center; gap:10px; max-width:min(36rem,100%); padding:6px 6px 6px 16px; border-radius:var(--r-md); background:var(--color-ink); color:var(--color-surface); box-shadow:var(--chrome-shadow-pop); pointer-events:auto; animation:site-toast-in .2s ease-out; }
+/* Toast (design.md §4.5): bottom, above the tab bar, so it never covers the header's ••• or search. In over --dur-3, out
+   over --dur-2 (Toast.tsx keeps it for TOAST_EXIT_MS). */
+.site-toast { position:fixed; z-index:10000; left:0; right:0; bottom:calc(var(--sp-5) + env(safe-area-inset-bottom,0px)); display:flex; justify-content:center; padding:0 var(--sp-4); pointer-events:none; }
+.site-toast-box { display:flex; align-items:center; gap:var(--sp-3); max-width:min(36rem,100%); padding:6px 6px 6px var(--sp-4); border-radius:var(--r-md); background:var(--color-ink); color:var(--color-surface); box-shadow:var(--e2); pointer-events:auto; animation:site-toast-in var(--dur-3) var(--ease-out); }
+.site-toast-box[data-leaving] { animation:site-toast-out var(--dur-2) var(--ease-in) forwards; pointer-events:none; }
 /* The app toast and the save confirmation share this look from two portals: a second one shown at the same time sits one
    toast higher instead of on top of the first. */
 .site-toast ~ .site-toast { translate:0 calc(-1 * (var(--control-height) + 20px)); }
 .site-toast-box>svg { flex:none; }
-.site-toast-message { flex:1; min-width:0; padding-block:8px; font-size:var(--text-fact); font-weight:400; line-height:1.5; }
-.site-toast-action { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); padding:0 14px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
-.site-toast-action:hover { background:var(--color-brand-tint); }
+.site-toast-message { flex:1; min-width:0; padding-block:var(--sp-2); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.5; }
+.site-toast-action { display:inline-flex; flex:none; align-items:center; justify-content:center; min-width:var(--control-height); min-height:var(--control-height); padding:0 14px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:var(--fs-meta); font-weight:var(--fw-strong); }
+.site-toast-action:active { background:var(--color-brand-tint); }
+@media (hover:hover) and (pointer:fine) { .site-toast-action:hover { background:var(--color-brand-tint); } .site-toast-close:hover { background:rgb(var(--color-surface-rgb) / .12); } }
 /* On the ink toast the ring is drawn inside a white chip (brand on white), not on the dark background. */
 .site-toast-action:focus-visible,.site-toast-close:focus-visible { outline:2px solid var(--color-brand); outline-offset:-4px; background:var(--color-surface); color:var(--color-brand-deep); }
 .site-toast-close { display:grid; flex:none; place-items:center; width:var(--control-height); height:var(--control-height); border-radius:var(--r-sm); color:var(--color-surface); }
-.site-toast-close:hover { background:rgb(255 255 255 / .12); }
-@keyframes site-toast-in { from { opacity:0; transform:translateY(8px); } }
+.site-toast-close:active { background:rgb(var(--color-surface-rgb) / .12); }
+@keyframes site-toast-in { from { opacity:0; translate:0 8px; } }
+@keyframes site-toast-out { to { opacity:0; translate:0 8px; } }
 /* main.tsx: a boot step failed (page code or dictionary). 16px, above the tab bar, with a 44px 重试 that reloads. */
 .site-boot-retry { position:fixed; z-index:9999; left:12px; right:12px; bottom:calc(var(--site-mobile-nav-height) + 12px); display:flex; align-items:center; justify-content:space-between; gap:12px; max-width:36rem; margin-inline:auto; padding:6px 6px 6px 16px; border-radius:var(--r-md); background:var(--color-ink); color:var(--color-surface); font-size:max(1rem,var(--text-body)); line-height:1.5; }
 .site-boot-retry button { min-width:var(--control-height); min-height:var(--control-height); padding:0 16px; border-radius:var(--r-sm); background:var(--color-surface); color:var(--color-brand-deep); font-size:inherit; font-weight:600; }
 @media(min-width:1024px) { .site-boot-retry { bottom:24px; } }
 @media(prefers-reduced-motion:reduce) { .site-toast-box { animation:none; } }
 
-@media(min-width:1024px) and (max-width:1199px) {
-  .site-app .site-topbar-inner { gap:12px; padding-inline:24px; }
-  .site-app .site-header-navigation { gap:12px; }
-  .site-app .site-header-brand img { width:120px; }
-  .site-app .site-header-primary .site-nav-link { padding-inline:8px; }
-  .site-app .site-topbar .site-command-trigger { width:2.75rem; justify-content:center; padding:0; border-color:transparent; }
-  .site-app .site-command-placeholder,.site-app .site-language-name { display:none; }
-  .site-app .site-language-short { display:inline; }
+/* 正在打开搜索… / 正在打开 BayBay… (OverlayHost): F's sheet frame from ui.css with a spinner, at the size of the sheet that
+   replaces it, so it arrives in place (BB launcher item e): on a phone the empty search sheet's 42rem and BayBay's 43rem
+   panel; on a desktop the search drawer and BayBay's 440px drawer with the page still in view, no scrim (captain decision
+   7; two classes outrank ui.css's .ui-sheet-backdrop, which loads after this file). */
+.site-chunk-sheet__body { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-body); }
+.site-chunk-spinner { width:32px; height:32px; color:var(--color-brand); animation:site-chunk-spin 1s linear infinite; }
+@keyframes site-chunk-spin { to { rotate:360deg; } }
+@media (max-width:1023px) {
+  .site-chunk-sheet--search .ui-sheet { height:min(42rem,85dvh); }
+  .site-chunk-sheet--drawer .ui-sheet { height:min(43rem,85dvh); }
+}
+@media (min-width:1024px) {
+  .ui-sheet-backdrop.site-chunk-sheet--drawer { background:transparent; }
+  .site-chunk-sheet--drawer .ui-sheet { width:440px; }
 }
 
-/* Phones and tablets: the tab bar takes the primary links; the header keeps the logo, 更多 and the utilities. */
+/* The tab bar is for phones and tablets only. */
+.site-app .site-mobile-nav { display:none; }
+/* Phones and tablets: the tab bar takes the primary links; the header keeps the logo, the tools and •••, in that order
+   (content arrangement §1). */
 @media(max-width:1023px) {
-  .site-app .site-topbar-inner { padding-inline:24px; }
+  .site-app .site-header-navigation { display:contents; }
+  .site-app .site-header-brand { margin-right:auto; }
   .site-app .site-header-primary.site-nav { display:none; }
-  .site-app .site-navigation-more { margin-left:auto; }
-  .site-app .site-navigation-panel { max-height:calc(100dvh - var(--site-mobile-nav-height) - 6rem); }
-  .site-app .site-topbar .site-command-trigger { width:2.75rem; justify-content:center; margin:0; padding:0; border-color:transparent; background:transparent; color:var(--color-ink-2); }
-  .site-app .site-command-placeholder,.site-app .site-language-name { display:none; }
-  .site-app .site-language-short { display:inline; }
+  .site-app .site-header-utilities { order:2; gap:0; margin-left:0; }
+  .site-app .site-navigation-more { order:3; align-items:center; margin-left:0; }
+  .site-app .site-navigation-more>summary { width:var(--tool-size); height:var(--tool-size); min-height:0; padding:0; border-radius:var(--r-md); color:var(--color-ink); }
+  .site-app .site-navigation-more>summary::after,.site-app .site-navigation-more>summary>span,.site-app .site-more-chevron { display:none; }
+  .site-app .site-navigation-more>summary.is-active { background:var(--color-brand-tint); }
+  .site-app .site-more-icon { display:block; }
+  .site-app .site-navigation-more>.site-navigation-panel { position:fixed; top:calc(var(--chrome-header-height) + var(--sp-2)); left:var(--page-gutter); right:var(--page-gutter); width:auto; max-width:none; max-height:calc(100dvh - var(--site-mobile-nav-height) - var(--chrome-header-height) - var(--sp-5)); }
+  .site-app .site-language-name { display:none; }
+  .site-app .site-language-pair { display:inline; }
+  .site-app .site-topbar-actions { display:none; }
   .site-app .site-main { padding-bottom:0; }
-  .site-app .site-footer { margin-top:2rem; }
-  .site-app .site-footer-inner { padding:12px 24px calc(var(--site-mobile-nav-height) + 16px); }
+  .site-app .site-footer-inner { padding-bottom:calc(var(--site-mobile-nav-height) + var(--sp-4)); }
 
-  /* Tab bar: 64 + safe area (76 in 简洁显示, tokens.css), five cells, 24px icons, the otter at 32px, labels 13px. */
-  .site-app .site-mobile-nav { position:fixed; z-index:50; left:0; right:0; bottom:0; display:block; height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box; border-top:1px solid var(--color-line); background:rgb(255 255 255 / .96); backdrop-filter:blur(12px); box-shadow:var(--chrome-shadow-bar); }
-  .site-app .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:stretch; gap:3px; max-width:600px; height:100%; min-height:0; margin:auto; padding:4px 6px; font-size:var(--text-caption); }
-  .site-app .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:0; min-height:var(--control-height); padding:0; border-radius:var(--r-md); background:transparent; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.25; text-align:center; }
-  .site-app .site-mobile-nav .site-mobile-item>span { font-size:var(--text-caption); }
-  .site-app .site-mobile-nav .site-mobile-icon { position:relative; display:grid; place-items:center; width:min(3.5rem,100%); height:2rem; border-radius:var(--r-pill); }
-  /* Labels never break inside a word ("Guide/s" at 320 px, 特大 + 简洁显示): one line, centred on the tab. */
-  .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:none; min-height:1.25em; white-space:nowrap; }
-  .site-app .site-mobile-nav .site-mobile-item.is-active { background:transparent; color:var(--color-brand-deep); font-weight:600; }
-  .site-app .site-mobile-nav .site-mobile-item.is-active .site-mobile-icon,.site-app .site-mobile-nav .site-mobile-item:active .site-mobile-icon { background:var(--color-selected); }
-  .site-app .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand-deep); }
-  .site-app .site-mobile-nav .site-mobile-ask .site-otter { width:2rem; height:2rem; }
-  .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { min-height:1.25em; overflow-wrap:normal; white-space:nowrap; }
-  .site-app .site-mobile-icon>b { position:absolute; top:-4px; left:calc(50% + 4px); min-width:1.125rem; padding:0 4px; }
-  .site-app .site-mobile-icon>b.site-mobile-notification-dot { top:0; left:calc(50% + 8px); width:9px; height:9px; min-width:0; padding:0; }
+  /* Tab bar (G21): the card surface and a 1px line, no blur, no shadow; five cells, 24px icons, the otter at 32px with its
+     AI tag, 14px labels (16 in 简洁显示); the current tab in brand with a 56 x 30 brand-tint pill. */
+  .site-app .site-mobile-nav { position:fixed; z-index:50; left:0; right:0; bottom:0; display:block; height:var(--site-mobile-nav-height); padding-bottom:env(safe-area-inset-bottom,0px); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); backdrop-filter:none; box-shadow:none; }
+  .site-app .site-mobile-nav .site-mobile-nav-items { container:site-mobile-bar / inline-size; display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); align-items:stretch; gap:2px; max-width:600px; height:100%; min-height:0; margin:auto; padding:0 var(--sp-1); font-size:var(--fs-meta); }
+  .site-app .site-mobile-nav .site-mobile-item { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:var(--sp-1); min-width:0; min-height:0; padding:0; border-radius:var(--r-md); background:transparent; color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:var(--fw-regular); line-height:1.2; text-align:center; transition:color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+  /* tokens.css sets these labels to 13px with !important (listed for UI9-INT). */
+  .site-app .site-mobile-nav .site-mobile-item>span { font-size:var(--fs-meta)!important; }
+  .site-app .site-mobile-nav .site-mobile-icon { position:relative; display:grid; place-items:center; width:56px; height:30px; border-radius:var(--r-pill); transition:background-color var(--dur-2) var(--ease-std); }
+  /* Labels never break inside a word: one line, centred on the tab. */
+  .site-app .site-mobile-nav .site-mobile-item>span:last-child { max-width:none; min-height:1.2em; white-space:nowrap; }
+  .site-app .site-mobile-nav .site-mobile-item:is(.is-active,[data-pending]) { background:transparent; color:var(--color-brand); font-weight:var(--fw-regular); }
+  .site-app .site-mobile-nav .site-mobile-item:is(.is-active,[data-pending]) .site-mobile-icon { background:var(--color-brand-tint); }
+  .site-app .site-mobile-nav .site-mobile-item:active { scale:.94; }
+  .site-app .site-mobile-nav .site-mobile-ask { background:transparent; color:var(--color-brand); }
+  .site-app .site-mobile-nav .site-mobile-ask .site-otter { width:32px; height:32px; }
+  .site-app .site-mobile-nav .site-mobile-ask .site-ai-tag { position:absolute; top:-6px; left:calc(50% + 10px); }
+  .site-app .site-mobile-nav .site-mobile-ask>span:not(.site-mobile-icon) { min-height:1.2em; overflow-wrap:normal; white-space:nowrap; }
+  .site-app .site-mobile-icon>b { position:absolute; top:-4px; left:calc(50% + 6px); min-width:1.125rem; padding:0 4px; }
+  .site-app .site-mobile-icon>b.site-mobile-notification-dot { top:0; left:calc(50% + 10px); width:9px; height:9px; min-width:0; padding:0; }
   /* D10: on an event, offer or opening page the page's own action bar (WEB-DETAIL, .site-detail-actions) replaces the tab
      bar. Until a page renders one, the tab bar stays. */
   .site-app[data-chrome=detail]:has(.site-detail-actions) .site-mobile-nav { display:none; }
   .site-toast { bottom:calc(var(--site-mobile-nav-height) + 12px); }
 }
-/* 问 BayBay / Ask BayBay never wraps: the bar is a size container in the label's own em (--text-caption), so the swap to
-   问问 / Ask follows 大, 特大 and 简洁显示 as well as the screen width. Five equal tabs share the bar's content box less
-   4 x 3px gaps, so a tab is (width - 12px) / 5. The full label shows only while a tab is wider than it with room for wider
-   phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for Ask BayBay; SF Pro runs about 5% wider): 4.9em and
-   5.5em per tab, i.e. 5 x tab + 12px (at most .92em). */
-/* Narrow bars at the largest text (320 px, 特大 + 简洁显示): 2px gaps and padding give each tab the 61px "Guides" needs. */
+/* 问 BayBay never wraps: the bar is a size container in the label's own em (--fs-meta), so the swap to "BayBay" follows
+   大, 特大 and 简洁显示 as well as the screen width. Five equal tabs share the bar's content box less 4 x 2px gaps and 2 x 4px
+   padding, so a tab is (width - 16px) / 5. The full label shows only while a tab is wider than it with room for wider
+   phone fonts (Segoe UI measures 4.41em for 问 BayBay and 4.97em for Ask BayBay; iOS SF Pro is wider): 25.4em and 27.5em,
+   so a 390px iPhone shows "BayBay" in English. */
 @media(max-width:359px) {
-  .site-app .site-mobile-nav .site-mobile-nav-items { gap:2px; padding-inline:2px; }
+  .site-app .site-mobile-nav .site-mobile-nav-items { gap:0; padding-inline:2px; }
 }
 @container site-mobile-bar (max-width:25.4em) {
   .site-mobile-ask-label { display:none; }
   .site-mobile-ask-short { display:inline; }
 }
-@container site-mobile-bar (max-width:28.4em) {
+@container site-mobile-bar (max-width:27.5em) {
   html:lang(en) .site-mobile-ask-label { display:none; }
   html:lang(en) .site-mobile-ask-short { display:inline; }
 }
@@ -187,50 +243,61 @@ html:root { --site-mobile-nav-height:calc(4rem + env(safe-area-inset-bottom,0px)
 }
 
 @media(max-width:767px) {
-  .site-app { --chrome-header-height:3.5rem; }
-  .site-app .site-topbar-inner { gap:2px; padding:4px max(8px,env(safe-area-inset-right,0px)) 4px max(12px,env(safe-area-inset-left,0px)); }
-  .site-app .site-header-navigation { gap:2px; }
-  .site-app .site-header-brand img { width:6.5rem; }
-  .site-app .site-navigation-more>summary { width:44px; padding:10px; }
-  .site-app .site-navigation-more>summary>span,.site-app .site-more-chevron { display:none; }
-  .site-app .site-more-icon { display:block; }
-  .site-app .site-navigation-more>summary.is-active { background:var(--color-brand-tint); }
-  .site-app .site-navigation-more>summary.is-active::after { display:none; }
-  .site-app .site-navigation-panel { position:fixed; top:calc(var(--chrome-header-height) + 8px); left:12px; right:12px; width:auto; max-width:none; max-height:calc(100dvh - var(--site-mobile-nav-height) - var(--chrome-header-height) - 20px); }
-  .site-app .site-header-utilities { gap:0; }
-  .site-app .site-topbar .site-reading-button { padding:0 8px; }
-  .site-app .site-topbar .site-reading-button,.site-app .site-language-trigger { min-width:44px; }
-  .site-app .site-language-trigger>svg { display:none; }
-  .site-app .site-topbar-actions { display:none; }
-  /* The language choices as a bottom sheet, with a scrim behind it; tapping the scrim closes it (it is the summary). */
-  .site-app .site-language[open]>.site-language-trigger::before { content:''; position:fixed; z-index:59; inset:0; background:rgb(22 46 41 / .32); cursor:default; }
-  .site-app .site-language-menu { position:fixed; top:auto; left:0; right:0; bottom:0; width:auto; max-height:85dvh; padding:8px 16px calc(16px + env(safe-area-inset-bottom,0px)); border-radius:var(--r-xl) var(--r-xl) 0 0; }
-  .site-app .site-language-menu::before { content:''; display:block; width:36px; height:4px; margin:4px auto 8px; border-radius:var(--r-pill); background:var(--color-line-strong); }
-  .site-app .site-language-menu>button { min-height:max(3.25rem,var(--control-height)); font-size:var(--text-body); }
+  .site-app { --chrome-header-height:56px; }
+  html:is([data-reading=extra-large],[data-simple]) .site-app { --chrome-header-height:64px; }
+  .site-app .site-topbar-inner { gap:var(--sp-1); padding-left:max(var(--page-gutter),env(safe-area-inset-left,0px)); padding-right:max(var(--sp-2),env(safe-area-inset-right,0px)); }
+  .site-app .site-header-brand img { width:104px; }
+  .site-app .site-tool { padding:0 6px; }
+  /* The language choices as a bottom sheet over the warm scrim; tapping the scrim closes it (it is the summary). Both
+     slide and fade out on --dur-3 where <details> content animates. */
+  .site-app .site-language>.site-language-trigger::before { content:''; position:fixed; z-index:59; inset:0; background:var(--scrim); opacity:0; visibility:hidden; pointer-events:none; cursor:default; transition:opacity var(--dur-3) var(--ease-in), visibility var(--dur-3) allow-discrete; }
+  .site-app .site-language[open]>.site-language-trigger::before { opacity:1; visibility:visible; pointer-events:auto; }
+  @starting-style { .site-app .site-language[open]>.site-language-trigger::before { opacity:0; } }
+  .site-app .site-language::details-content { transition-duration:var(--dur-3); }
+  .site-app .site-language>.site-language-menu { position:fixed; top:auto; left:0; right:0; bottom:0; width:auto; max-height:85dvh; padding:var(--sp-2) var(--sp-4) calc(var(--sp-4) + env(safe-area-inset-bottom,0px)); border:0; border-radius:var(--r-xl) var(--r-xl) 0 0; transition:translate var(--dur-3) var(--ease-in); }
+  .site-app .site-language:not([open])>.site-language-menu { opacity:1; translate:0 100%; }
+  .site-app .site-language[open]>.site-language-menu { transition:translate var(--dur-5) var(--ease-out); }
+  @starting-style { .site-app .site-language[open]>.site-language-menu { opacity:1; translate:0 100%; } }
+  .site-app .site-language-menu::before { content:''; display:block; width:36px; height:4px; margin:var(--sp-1) auto var(--sp-2); border-radius:var(--r-pill); background:var(--color-line-strong); }
+  .site-app .site-language-menu>button { min-height:max(52px,var(--control-height)); }
   /* The header's sticky stacking (45) would keep the sheet and its scrim under the tab bar (50), which then hid the
      last choice: while the sheet is open the header sits above the bar. Without :has() the sheet stops above the bar. */
   .site-app .site-topbar:has(.site-language[open]) { z-index:51; }
   @supports not selector(:has(*)) { .site-app .site-language-menu { bottom:var(--site-mobile-nav-height); } }
-  .site-app .site-footer-inner { padding-inline:20px; }
 }
 @media(max-width:374px) {
   .site-mobile-ask-label { display:none; }
   .site-mobile-ask-short { display:inline; }
 }
-/* 字号 shows next to Aa from 360px (Chinese) and from 600px in English; narrower, it stays the button's accessible name. */
-@media(max-width:359px) {
-  .site-app .site-header-brand img { width:4rem; }
-  .site-app .site-reading-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* The phone language trigger (A4): 🌐 简 / EN from 375px at 标准 and 大; the globe and the current script (简, 繁, EN) at 特大,
+   in 简洁显示 and below 375px. The globe never hides. */
+@media(max-width:767px) {
+  html:is([data-reading=extra-large],[data-simple]) .site-app .site-language-pair { display:none; }
+  html:is([data-reading=extra-large],[data-simple]) .site-app .site-language-short { display:inline; }
 }
+@media(max-width:374px) {
+  .site-app .site-language-pair { display:none; }
+  .site-app .site-language-short { display:inline; }
+  .site-app .site-header-brand img { width:88px; }
+}
+/* "Aa 字号" keeps 字号 in every mode from 360px (G7); English phones show "Aa Size" (the name stays "Text size").
+   Narrower than 360 the label is for screen readers only. */
 @media(max-width:599px) {
-  html:lang(en) .site-app .site-reading-label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  html:lang(en) .site-app .site-reading-label { display:none; }
+  html:lang(en) .site-app .site-reading-label-short { display:inline; }
+}
+@media(max-width:359px) {
+  .site-app .site-header-brand img { width:72px; }
+  .site-app :is(.site-reading-label,.site-reading-label-short) { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
 }
 @media(max-width:1023px) and (min-width:768px) {
-  .site-app .site-language-trigger>svg { display:block; }
+  .site-app .site-language-name { display:inline; }
+  .site-app .site-language-pair { display:none; }
 }
-/* Route feedback (UI9-F): the tapped link answers at once (the press styles), the page keeps its height while the next
-   route loads, and a brand bar runs at the top only after 150ms, so a fast route never flashes it, until the page commits
-   (or for 15s at most). */
+
+/* Route feedback (UI9-F): the tapped link answers at once (the press styles and data-pending), the page keeps its height
+   while the next route loads, and a brand bar runs at the top only after 150ms, so a fast route never flashes it, until
+   the page commits (or for 15s at most). The page then arrives (route-arrival.tsx). */
 .site-route-wait { flex:1 1 auto; min-height:60vh; }
 .site-route-progress { position:fixed; inset:0 0 auto; z-index:90; height:3px; overflow:hidden; opacity:0; pointer-events:none; animation:site-route-show 1ms linear 150ms forwards,site-route-stale 1ms 15s forwards; }
 .site-route-progress::before { content:""; position:absolute; inset:0 auto 0 0; width:40%; background:var(--color-brand); animation:site-route-run 1.2s var(--ease-std) infinite; }

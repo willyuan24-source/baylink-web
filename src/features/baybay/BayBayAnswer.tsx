@@ -1,11 +1,13 @@
 import { Fragment, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { BookOpen, ChevronDown, Globe2, Phone } from 'lucide-react';
+import { Button } from '../../components/ui/Button';
+import { Disclosure } from '../../components/ui/Disclosure';
 import './baybay-answer.css';
 import { useBayBayCopy } from './copy';
 import { SmartLink } from './SmartLink';
 import { useBayBayCardsModule } from './cards-loader';
 import { plannerWebAnswerParts, type PlannerWebResult } from '../../lib/planner-web-search';
-import { bayBayAnswerView, bayBayOrderCards, bayBayReadableText, bayBayNoticeCalls, bayBayResumeLabel, bayBayResumeStyle, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
+import { bayBayAnswerView, bayBayOrderCards, bayBayNoticeCalls, bayBayResumeLabel, bayBayResumeStyle, type BayBayAnswerFields, type BayBayCallAction, type BayBayEmergencySafety, type BayBayNoticeKind, type BayBayProfessionalSafety, type BayBayViewPoint } from '../../lib/baybay-answer';
 import type { BayBayQuickCard } from '../../lib/baybay-stream';
 import { linkifyPhones } from '../../lib/phone-links';
 import { findPhoneNumbers } from '../../lib/phone-numbers';
@@ -40,7 +42,9 @@ export function BayBayCitedText({ text, sources, onNavigate }: { text: string; s
   return <>{plannerWebAnswerParts({ answer: text, sources }, true).map((part, index) => {
     const href = part.source?.url || part.href;
     if (!href) return <span key={index}><BayBayPhoneText text={part.text} /></span>;
-    return <SmartLink key={index} href={href} onNavigate={onNavigate} className={part.source ? 'bb-cite' : 'bb-inline-link'} title={part.source?.title}>{part.text}</SmartLink>;
+    // A citation is C's number plate (one line, tabular): its number shown, "[n]" kept for the reader's text.
+    if (part.source) return <SmartLink key={index} href={href} onNavigate={onNavigate} className="bb-cite ui-plate" title={part.source.title}><span className="sr-only">[</span>{part.text.replace(/^\[|\]$/g, '')}<span className="sr-only">]</span></SmartLink>;
+    return <SmartLink key={index} href={href} onNavigate={onNavigate} className="bb-inline-link">{part.text}</SmartLink>;
   })}</>;
 }
 
@@ -65,7 +69,7 @@ export function BayBayCardRail(props: { cards: readonly BayBayQuickCard[]; sourc
 /** The answer whose voice is playing, so one answer's 朗读 never stops another's. */
 let voice: { utterance: SpeechSynthesisUtterance; release: () => void } | null = null;
 
-/** 朗读 (简洁显示): reads the lead and points aloud with the browser's own voice; nothing is sent anywhere. */
+/** 朗读 (the head row of each v2 answer): reads the lead and points aloud with the browser's own voice; nothing is sent anywhere. */
 export function BayBayReadAloud({ text }: { text: string }) {
   const { t, locale } = useBayBayCopy();
   const [speaking, setSpeaking] = useState(false);
@@ -96,7 +100,7 @@ export function BayBayReadAloud({ text }: { text: string }) {
     window.speechSynthesis.speak(utterance);
     setSpeaking(true);
   };
-  return <button type="button" className="bb-read-aloud" aria-pressed={speaking} onClick={toggle}>{speaking ? t('停止朗读', 'Stop reading') : t('朗读回答', 'Read aloud')}</button>;
+  return <Button variant="quiet" className="bb-read-aloud" aria-pressed={speaking} onClick={toggle}>{speaking ? t('停止朗读', 'Stop reading') : t('朗读回答', 'Read aloud')}</Button>;
 }
 
 function PointList({ points, sources, onNavigate, className }: { points: BayBayViewPoint[]; sources: Sources; onNavigate: Navigate; className?: string }) {
@@ -104,10 +108,12 @@ function PointList({ points, sources, onNavigate, className }: { points: BayBayV
 }
 
 /**
- * The v2 answer (1007 §6.5): lead 17/600 → image cards → 2–3 points with [n] → the rest behind "更多". Returns null
- * for a response without `lead`/`points` (v1, clarifications, guard rewrites), which keep the legacy text.
+ * The v2 answer (content arrangement 10-19): the lead (reading size, 400) → ≤3 points with [n] → the image cards → the rest
+ * behind "更多". With a plan (`plan`: the safety calls or resource card, then the plan card) the plan follows the lead and the
+ * points fold into 更多说明 after it; `cards` are then only the places that are not a stop. Returns null for a response
+ * without `lead`/`points` (v1, clarifications, guard rewrites), which keep the legacy text. 朗读 is in the turn's head row.
  */
-export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate }: { fields: BayBayAnswerFields; cards: readonly BayBayQuickCard[]; sources: Sources; today: string; onNavigate: Navigate }) {
+export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate, before, plan }: { fields: BayBayAnswerFields; cards: readonly BayBayQuickCard[]; sources: Sources; today: string; onNavigate: Navigate; before?: ReactNode; plan?: ReactNode }) {
   const { t, english } = useBayBayCopy();
   const view = bayBayAnswerView(fields, english);
   const [expanded, setExpanded] = useState(false);
@@ -115,23 +121,30 @@ export function BayBayAnswerBody({ fields, cards, sources, today, onNavigate }: 
   const ordered = useMemo(() => bayBayOrderCards(cards, fields.points || []), [cards, fields.points]);
   if (!view) return null;
   const rest = view.more.length + (view.gap ? 1 : 0);
-  const spoken = [view.lead, ...view.visible.map(point => point.text)].map(bayBayReadableText).join(english ? ' ' : '');
+  // Keyed lists, not fragments: the locale host rebuilds a fragment's children as an unkeyed array.
+  const more = [
+    view.more.length > 0 && <PointList key="more" points={view.more} sources={sources} onNavigate={onNavigate} className="bb-points bb-points--more" />,
+    view.gap && <p key="gap" className="bb-gap"><BayBayCitedText text={view.gap} sources={sources} onNavigate={onNavigate} /></p>,
+  ];
+  const lead = <p className="bb-lead"><BayBayCitedText text={view.lead} sources={sources} onNavigate={onNavigate} /></p>;
+  const visible = view.visible.length > 0 && <PointList points={view.visible} sources={sources} onNavigate={onNavigate} />;
+  const rail = <BayBayCardRail cards={ordered} sources={sources} today={today} onNavigate={onNavigate} />;
+  const corrected = fields.corrected && <p className="bb-corrected">{t('已按站内资料更正', 'Corrected from site information')}</p>;
+  if (plan) return <div className="bb-answer" data-answer-layout="v2" data-plan="">
+    {lead}{before}{plan}
+    {view.visible.length + rest > 0 && <Disclosure className="bb-more-details" summary={t('更多说明', 'More details')}>{visible}{more}</Disclosure>}
+    {rail}{corrected}
+  </div>;
   return <div className="bb-answer" data-answer-layout="v2">
-    <p className="bb-lead"><BayBayCitedText text={view.lead} sources={sources} onNavigate={onNavigate} /></p>
-    <BayBayCardRail cards={ordered} sources={sources} today={today} onNavigate={onNavigate} />
-    {view.visible.length > 0 && <PointList points={view.visible} sources={sources} onNavigate={onNavigate} />}
-    {rest > 0 && (expanded ? <>
-      {view.more.length > 0 && <PointList points={view.more} sources={sources} onNavigate={onNavigate} className="bb-points bb-points--more" />}
-      {view.gap && <p className="bb-gap"><BayBayCitedText text={view.gap} sources={sources} onNavigate={onNavigate} /></p>}
-    </> : <button type="button" className="bb-more" aria-expanded="false" onClick={() => setExpanded(true)}><ChevronDown aria-hidden="true" size={18} />{t(`更多（${rest} 条）`, `${rest} more`)}</button>)}
-    {fields.corrected && <p className="bb-corrected">{t('已按站内资料更正', 'Corrected from site information')}</p>}
-    <BayBayReadAloud text={spoken} />
+    {lead}{visible}{rail}
+    {rest > 0 && (expanded ? more : <Button variant="quiet" className="bb-more" aria-expanded="false" onClick={() => setExpanded(true)} icon={<ChevronDown aria-hidden="true" size={20} />}>{t(`更多（${rest} 条）`, `${rest} more`)}</Button>)}
+    {corrected}
   </div>;
 }
 
 /**
  * The pending bubble in the final answer's order, so nothing jumps when the result replaces it: the streamed lead (or
- * the legacy answer's validated text, in the legacy text style), the verified cards, then each point as it arrives.
+ * the legacy answer's validated text, in the legacy text style), each point as it arrives, then the verified cards.
  * Draft text is unvalidated and never live.
  */
 export function BayBayDraftPreview({ lead, legacy = '', points, cards = [], today, onNavigate }: { lead: string; legacy?: string; points: readonly string[]; cards?: readonly BayBayQuickCard[]; today: string; onNavigate: Navigate }) {
@@ -140,8 +153,8 @@ export function BayBayDraftPreview({ lead, legacy = '', points, cards = [], toda
   if (!text && !shown.length && !cards.length) return null;
   return <div className="bb-answer bb-answer--draft" data-draft="">
     {text && <p className={legacy ? 'member-baybay-answer-text baybay-stream-answer' : 'bb-lead baybay-stream-answer'}>{text}</p>}
-    <BayBayCardRail cards={cards} today={today} onNavigate={onNavigate} />
     {shown.length > 0 && <ul className="bb-points">{shown.map((point, index) => <li key={index}>{point}</li>)}</ul>}
+    <BayBayCardRail cards={cards} today={today} onNavigate={onNavigate} />
   </div>;
 }
 
@@ -158,7 +171,7 @@ export function BayBayCallActions({ actions, className }: { actions: readonly Ba
   if (!actions.length) return null;
   const ordered = [...actions].sort((a, b) => Number(!!b.primary || b.href === 'tel:911') - Number(!!a.primary || a.href === 'tel:911'));
   return <div className={className || 'bb-call-actions'}>{ordered.map(action => <a key={action.id} href={action.href} className="bb-call" data-primary={action.primary || action.href === 'tel:911' ? '' : undefined}
-    aria-label={/^\d+$/.test(action.label) ? t(`拨打 ${action.label}`, `Call ${action.label}`) : undefined}><Phone aria-hidden="true" size={18} /><CallLabel label={action.label} /></a>)}</div>;
+    aria-label={/^\d+$/.test(action.label) ? t(`拨打 ${action.label}`, `Call ${action.label}`) : undefined}><Phone aria-hidden="true" size={20} /><CallLabel label={action.label} /></a>)}</div>;
 }
 
 /** The red emergency card (BBLIVE-09): first in the answer, a 56px tel:911 button, no feedback or follow-ups. */
@@ -187,7 +200,7 @@ export function BayBayResourceCard({ safety, onNavigate }: { safety: BayBayProfe
     <ul>
       {safety.resources.map(resource => <li key={resource.id}>
         <SmartLink href={resource.url} className="bb-resources__name"><Globe2 aria-hidden="true" size={16} />{resource.title}</SmartLink>
-        {resource.href && resource.phone && <a className="bb-call" href={resource.href} aria-label={t(`拨打 ${resource.title} ${resource.phone}`, `Call ${resource.title} ${resource.phone}`)}><Phone aria-hidden="true" size={18} /><CallLabel label={resource.phone} /></a>}
+        {resource.href && resource.phone && <a className="bb-call" href={resource.href} aria-label={t(`拨打 ${resource.title} ${resource.phone}`, `Call ${resource.title} ${resource.phone}`)}><Phone aria-hidden="true" size={20} /><CallLabel label={resource.phone} /></a>}
       </li>)}
       {safety.guides.map(guide => <li key={guide.slug}><SmartLink href={guide.url} onNavigate={onNavigate} className="bb-resources__name"><BookOpen aria-hidden="true" size={16} />{guide.title}</SmartLink></li>)}
     </ul>
@@ -214,8 +227,8 @@ export function BayBayNoticeBanner({ kind, text, resumesAt, actions, healthFloor
     {calls.length > 0 && <BayBayCallActions actions={calls} />}
     <p translate="no">{linkifyPhones(text)}{resume && <span className="bb-notice__resume">{style === 'time' ? t(`即 ${resume}（湾区时间）`, ` That is ${resume} (Bay Area time).`) : t(`预计 ${resume}（湾区时间）恢复`, ` Back around ${resume} (Bay Area time).`)}</span>}</p>
     {kind === 'ai_daily_budget' && !calls.length && onNavigate && <p className="bb-notice__links">
-      <button type="button" onClick={() => onNavigate('/events')}>{t('看本周末活动', 'This weekend’s events')}</button>
-      <button type="button" onClick={() => onNavigate('/guides')}>{t('查办事指南', 'Browse guides')}</button>
+      <Button variant="secondary" onClick={() => onNavigate('/events')}>{t('看本周末活动', 'This weekend’s events')}</Button>
+      <Button variant="secondary" onClick={() => onNavigate('/guides')}>{t('查办事指南', 'Browse guides')}</Button>
     </p>}
   </div>;
 }

@@ -49,7 +49,7 @@ for (const slug of ['bay-area-chinese-senior-services-referral-guide', 'golden-g
     const page = render(<MemoryRouter initialEntries={[`/guides/${slug}`]}>
       <GuideDetail slug={slug} today="2026-10-13" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} onAsk={openBayBay} />
     </MemoryRouter>);
-    fireEvent.click(page.getAllByRole('button', { name: '问 BayBay' })[0]);
+    fireEvent.click(page.getAllByRole('button', { name: '问 BayBay 这一页' })[0]);
     assert.equal(pending.length, 1, 'one question goes to the opener');
     assert.equal(pending[0].mode, 'draft', 'the guide drafts; it never asks at once');
     cleanup();

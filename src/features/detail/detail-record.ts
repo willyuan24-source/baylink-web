@@ -1,6 +1,7 @@
 import type { LocalDiscovery } from '../../data/local-discoveries';
 import type { EventEditorial, MonthlyEvent } from '../../data/monthly-types';
 import type { CoverAsset } from '../../lib/cover';
+import type { Copy } from '../../lib/event-facts';
 import type { PageMetadata } from '../../lib/seo';
 import { eventShare, offerShare, openingShare, type EditorialShare } from '../../lib/editorial-share';
 import { nextConfirmedEventDate } from '../../lib/event-occurrences';
@@ -15,6 +16,7 @@ import { nextConfirmedEventDate } from '../../lib/event-occurrences';
 
 /** An upcoming event a detail's rails can show: what its card prints, without plan steps or summaries. */
 export type RailEvent = Pick<MonthlyEvent, 'id' | 'title' | 'startDate' | 'endDate' | 'occurrenceDates' | 'city' | 'category' | 'cost' | 'audience' | 'imageKey'>
+  & Partial<Pick<MonthlyEvent, 'verifiedAt' | 'sourceLabel'>>
   & Pick<EventEditorial, 'shortTitle' | 'venueShort' | 'price' | 'sessions' | 'iconKey'> & {
     /** The listing image when it can be a cover candidate (never an AI illustration); `getCover` still judges it. */
     image?: CoverAsset;
@@ -33,6 +35,13 @@ export type DetailRecord = {
 };
 
 export const detailKey = (kind: LocalDiscovery['kind'], id: string) => `${kind}:${id}`;
+
+/** "‹ 活动": where each kind's page goes back to, the same on the page, its skeleton and its error state (DetailBack). */
+export const DETAIL_BACK: Record<LocalDiscovery['kind'], { to: string; label: Copy }> = {
+  event: { to: '/events', label: { zh: '活动', en: 'Events' } },
+  offer: { to: '/events?view=perks', label: { zh: '免费与优惠', en: 'Free & deals' } },
+  opening: { to: '/events?view=openings', label: { zh: '新店', en: 'New shops' } },
+};
 
 /** The share and page facts of a listing (lib/editorial-share), without the catalog. */
 export const detailShare = (item: LocalDiscovery): EditorialShare =>
@@ -59,7 +68,8 @@ const sameText = (a: string, b: string) => a.trim().toLocaleLowerCase('en-US') =
  * Rail cards for the reader's day, relative to the page's event: `sameCategory` keeps its category only ("附近同类活动的
  * 下一场"); otherwise any category ("接下来可以去"). Same city first, then the region; nearest day first.
  */
-export function railEvents(page: Pick<MonthlyEvent, 'category' | 'city'>, rail: readonly RailEvent[], today: string, { sameCategory, limit }: { sameCategory: boolean; limit: number }): { event: RailEvent; date: string }[] {
+export type RailCard = { event: RailEvent; date: string };
+export function railEvents(page: Pick<MonthlyEvent, 'category' | 'city'>, rail: readonly RailEvent[], today: string, { sameCategory, limit }: { sameCategory: boolean; limit: number }): RailCard[] {
   const near = (event: RailEvent) => sameText(event.city, page.city);
   return rail
     .filter(event => !sameCategory || event.category === page.category)

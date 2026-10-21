@@ -67,6 +67,9 @@ export type AppContextValue = {
   openBlockedUsersModal: () => void;
   setBaybayPanelOpen: (open: boolean) => void;
   openBayBay: (question?: string, options?: { mode?: 'send' | 'draft' }) => void;
+  /** Starts loading the BayBay panel's chunk (a pointer or focus on a 问 BayBay button); pages call it through the context so
+   *  their own module graph never reaches the panel (tests/search-cold.test.ts). */
+  warmBayBay?: () => void;
   openSearch: (query?: string) => void;
 
   adsRefreshKey: number;

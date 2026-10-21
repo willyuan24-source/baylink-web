@@ -1,65 +1,85 @@
-/* Home page (plan WEB-HOME, 1007 §4.2, design.md §4.12): nine sections in one 1216 container. Tokens and rem only; the
-   covers, cards, chips and buttons are the WEB-UI primitives (src/components/ui/ui.css). */
-.bay-home.bay-home-editorial { max-width:1280px; padding:16px 16px 40px; }
-.home-discovery { display:flex; flex-direction:column; gap:40px; max-width:1216px; margin-inline:auto; color:var(--color-ink); }
+/* Home page (UI9-HOME content arrangement, design.md §4.12): one 1216 container on the 12-column grid (x=112 at 1440),
+   sections --section-gap apart (40 phone, 64 desktop), heads --stack-head above their content. Tokens only; the cards,
+   covers, chips and buttons are the UI primitives. 简洁 is CSS only: [data-simple=hide] and [data-simple=only]. */
+.bay-home.bay-home-editorial { max-width:1280px; padding:12px 16px 40px; }
+.home-discovery,.home-top { display:flex; flex-direction:column; gap:var(--section-gap); }
+.home-top { gap:var(--sp-4); }
+.home-top>:is(.home-moods,.home-share) { margin-top:var(--sp-5); }
+.home-discovery { max-width:var(--container-wide); margin-inline:auto; color:var(--color-ink); }
+.home-discovery [data-simple=only],html[data-simple] .home-discovery [data-simple=hide],html[data-simple] .home-feed .ui-feed-grid>li:not(.ui-feed-grid__wide) { display:none; }
+html[data-simple] .home-discovery [data-simple=only] { display:block; }
+html[data-simple] .home-discovery { --section-gap:var(--sp-5); }
 
-/* ① headline, live subtitle and the ask box */
-.home-top { display:flex; flex-direction:column; gap:20px; }
-.home-head { min-width:0; }
-.home-head__dateline { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; font-weight:600; }
-.home-head__title { margin-top:6px; color:var(--color-ink); font-size:1.75rem; line-height:1.286; font-weight:600; letter-spacing:0; text-wrap:balance; }
-.home-head__lede { margin-top:8px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.home-ask { display:flex; align-items:center; gap:8px; min-height:3.5rem; margin-top:16px; padding:0 6px 0 12px; border:1px solid var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface); }
-.home-ask:focus-within { border-color:var(--color-brand); outline:2px solid var(--color-brand-tint); outline-offset:0; }
-.home-ask__otter { flex:none; width:1.75rem; height:1.75rem; border-radius:var(--r-circle); }
+/* ① masthead */
+.home-head { display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
+.home-head__dateline,.home-head__identity,.home-trust,.home-share p { color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
+.home-head__title { font-size:var(--text-display); line-height:var(--lh-display); font-weight:600; text-wrap:balance; }
+.home-ask { display:flex; align-items:center; gap:var(--sp-2); margin-top:var(--sp-2); padding:1px 1px 1px var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); }
+.home-ask:focus-within { border-color:var(--color-brand); outline:2px solid var(--color-brand-tint); }
 .home-ask input { flex:1; min-width:0; min-height:var(--control-height); border:0; padding:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); outline:none; }
-.home-ask input { text-overflow:ellipsis; }
 .home-ask input::placeholder { color:var(--color-ink-3); }
-.home-ask button { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-brand); border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-fact); font-weight:600; }
-.home-ask button svg { width:1rem; height:1rem; }
-.home-ask button:hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
-/* Empty box: the primary button, faded (H29: no extra grey button look on the page). */
+.home-discovery :is(.home-ask,.home-section-head__more,.home-credits summary,.home-baybay) svg { width:1rem; height:1rem; }
+.home-head .home-ask-baybay { display:none; align-self:flex-start; }
 
-/* Section heads: one H2 per section, the date range as a kicker, one "all" link. */
-.home-section-head { display:flex; align-items:center; justify-content:space-between; gap:4px 12px; margin-bottom:10px; }
-.home-section-head h2 { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 8px; min-width:0; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
-.home-section-head__kicker { color:var(--color-brand); font-size:var(--text-caption); line-height:1.385; font-weight:600; font-variant-numeric:tabular-nums; }
-.home-section-head__more { display:inline-flex; flex:none; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:400; }
-.home-section-head__more svg { width:1rem; height:1rem; }
-/* H52 / SV13-11: at 大 / 特大 and in 简洁显示 on a phone or tablet, the section's "all" link sits under its heading, so the
-   heading and its date keep the full width instead of wrapping beside the link. */
+/* Section heads: one H2, the date as a kicker, one "all" link (the /plan picks reuse these three). */
+.home-section-head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-1) var(--sp-3); margin-bottom:var(--stack-head); }
+.home-section-head h2 { display:flex; flex-wrap:wrap; align-items:baseline; gap:0 var(--sp-2); min-width:0; font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
+.home-section-head__kicker { color:var(--color-brand); font-size:var(--text-fact); line-height:var(--lh-snug); }
+.home-section-head__more { display:inline-flex; flex:none; align-items:center; gap:var(--sp-1); min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); }
+/* H52 / SV13-11: at 大 / 特大 and in 简洁显示 below a desktop the "all" link sits under its heading. */
 @media (max-width:1023px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-section-head { flex-direction:column; align-items:flex-start; gap:0; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-section-head__more { margin-left:-2px; }
+  :is(html[data-reading$=large],html[data-simple]) .home-section-head { flex-direction:column; align-items:flex-start; gap:0; }
+  :is(html[data-reading$=large],html[data-simple]) .home-section-head__more { margin-left:-2px; }
 }
 
-/* ② picks: a 4:5 rail on phones (the next card peeks), the mosaic beside the headline on desktop. */
-.home-picks__list,.home-guides__rail,.home-offers__rail,.home-moods ul { display:flex; gap:12px; margin:0 -16px; padding:0 16px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x mandatory; scroll-padding-inline:16px; list-style:none; scrollbar-width:none; }
-:is(.home-picks__list,.home-guides__rail,.home-offers__rail,.home-moods ul)::-webkit-scrollbar { display:none; }
-:is(.home-picks__list,.home-guides__rail,.home-offers__rail)>li { min-width:0; scroll-snap-align:start; }
-.home-picks__list>li { flex:0 0 calc(100% - 16px); }
-.home-pick { display:flex; flex-direction:column; gap:8px; }
-.home-pick__plan { align-self:flex-start; }
-.home-empty { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:20px; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
-.home-empty a { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-weight:600; }
-.home-empty a svg { width:1rem; height:1rem; }
+/* ② picks: the lead (16:9, full-bleed on a phone), picks 2–3 two-up, 看本周末全部, the trust line. Offers and guides use
+   the same two-up grid (four across from 1024). Titles are never clamped; a pick title is no larger than the H2. */
+.home-picks { display:flex; flex-direction:column; gap:var(--sp-3); }
+.home-picks>.home-section-head { margin:0; }
+:is(.home-picks__list,.home-offers__rail,.home-guides__rail) { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3) var(--grid-gutter); margin:0; padding:0; list-style:none; }
+:is(.home-picks__list,.home-offers__rail,.home-guides__rail)>li { min-width:0; }
+:is(.home-picks__list>li:first-child,.home-offers__rail>li[data-wide]) { grid-column:1 / -1; }
+.home-guides__rail { margin-top:var(--stack-head); }
+.home-picks__list>li:first-child { --ui-feed-ratio:16 / 9; }
+:is(html[data-simple],html[data-reading$=large]) .home-discovery .ui-feed-card__title { display:block; overflow:visible; }
+.home-picks .ui-feed-card__title { line-height:var(--lh-tight); }
+.home-pick__reason { display:none; margin-top:var(--sp-1); color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
+/* A two-up date page drops its time line (line 1 under it prints the whole window), so the cover keeps its 3:2 box. */
+@container tc (max-width:240px) { .home-discovery .tc-cal__time { display:none; } }
+/* A 112 px row thumbnail (大 / 特大) keeps the key fact only: the title, time and place are beside it. */
+@container tc (max-width:140px) {
+  .home-discovery :is(.tc-eyebrow,.tc-hook,.tc-plate,.tc-ticket__stub) { display:none; }
+  .home-discovery .tc-ticket__value { font-size:var(--fs-body); }
+  .home-discovery .tc-cal__day { font-size:var(--fs-card); }
+}
+.home-picks__all { align-self:flex-start; }
+.home-trust a { color:var(--color-brand); white-space:nowrap; }
+/* Below 768 the picks H2 and the share card's heading and sentence are for screen readers only: the share card is one
+   compact row of its two buttons (保存图片, 订阅日历), without the card's box so they fit one line in English too. */
+@media (max-width:767px) {
+  .home-top>.home-share { padding:0; background:transparent; }
+  :is(.home-picks>.home-section-head,.home-share h2,.home-share p) { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child .ui-feed-card__media { margin-inline:-16px; }
+  html:not([data-reading$=large],[data-simple]) .home-picks__list>li:first-child :is(.ui-feed-card__media,.ui-cover,.ui-type-cover) { border-radius:0; }
+}
 
-/* ③ 按心情找: round entries in one row. */
-.home-moods ul { gap:4px; padding-block:2px; }
-.home-moods li { flex:none; }
-.home-mood { display:flex; flex-direction:column; align-items:center; gap:6px; width:4.5rem; padding-block:2px; color:var(--color-ink); text-align:center; }
-.home-mood__icon { display:grid; place-items:center; width:4rem; height:4rem; border-radius:var(--r-circle); background:var(--tc-outdoors-bg); color:var(--tc-outdoors-fg); }
-.home-mood[data-tone=family] .home-mood__icon { background:var(--tc-family-bg); color:var(--tc-family-fg); }
-.home-mood[data-tone=culture] .home-mood__icon { background:var(--tc-culture-bg); color:var(--tc-culture-fg); }
-.home-mood[data-tone=food] .home-mood__icon { background:var(--tc-food-bg); color:var(--tc-food-fg); }
-.home-mood[data-tone=seniors] .home-mood__icon { background:var(--tc-seniors-bg); color:var(--tc-seniors-fg); }
-.home-mood[data-tone=free] .home-mood__icon { background:var(--tc-free-bg); color:var(--tc-free-fg); }
-.home-mood__icon svg { width:1.75rem; height:1.75rem; }
-.home-mood__label { font-size:var(--text-caption); line-height:1.385; font-weight:400; }
+/* The date guard (source-monitor.css) covers each of the picks' blocks, never the section: from 1024 the section is
+   display:contents, so its skeleton would fill the viewport over the masthead. */
+html[data-date-stale] .home-discovery .home-top>.home-picks::before { content:none; }
+
+/* ③ 按需要找: F's chip, wrapped, no counts; the brand icon from 768. */
+.home-moods ul { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.home-mood>svg { display:none; color:var(--color-brand); }
 .home-mood:hover .home-mood__label { text-decoration:underline; text-underline-offset:3px; }
 
-/* ④ weekend feed */
-.home-feed__all { margin-top:16px; }
+/* The family-chat card: text and two buttons. */
+.home-share,.home-empty { display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); }
+.home-share h2 { font-size:var(--text-card); line-height:var(--lh-snug); font-weight:600; }
+.home-share__actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+
+/* ④ feed; the coded-cover note is printed once, in the credits line. */
+.home-feed__all { margin-top:var(--sp-4); }
+.home-discovery :is(.ui-feed,.home-offers)>.ui-cover-credit { display:none; }
 /* The 3D strip after the first four cards (H36): the postcard and two lines, one tap into the 3D world (a full page load). */
 /* The AI 3D postcards stay as they were before tokens v2 (captain decision 1): their own corners (--r-postcard*) and a
    600 provenance badge, here and on the ⑨ tile below. */
@@ -75,61 +95,29 @@
 @media (min-width:768px) { .home-3d-strip .home-3d-strip__art { width:15rem; } .home-3d-strip { gap:24px; padding:12px; } .home-3d-strip__text strong { font-size:var(--text-card); } }
 @media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip { flex-direction:column; align-items:stretch; } :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-3d-strip .home-3d-strip__art { width:100%; } }
 
-/* ⑤ 问 BayBay */
-.home-baybay { padding:20px; border-radius:var(--r-xl); background:var(--color-brand-tint); }
-.home-baybay__head { display:flex; align-items:center; gap:12px; }
-.home-baybay__head img { flex:none; width:2.5rem; height:2.5rem; }
-.home-baybay h2 { color:var(--color-ink); font-size:1.125rem; line-height:1.444; font-weight:600; }
-.home-baybay__head p { margin-top:2px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.home-baybay__questions { display:flex; flex-direction:column; gap:8px; margin:16px 0 0; padding:0; list-style:none; }
-.home-baybay__questions button { display:flex; align-items:center; justify-content:space-between; gap:8px; width:100%; min-height:var(--control-height); padding:10px 14px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.5; text-align:start; }
-.home-baybay__questions button:hover { border-color:var(--color-brand); }
-.home-baybay__questions svg { flex:none; width:1rem; height:1rem; color:var(--color-brand); }
+/* ⑤ 问 BayBay: the brand-deep band, three one-tap questions (48 px). */
+.home-baybay { display:flex; flex-direction:column; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-xl); background:var(--color-brand-deep); color:var(--color-bg); }
+.home-baybay__head { display:flex; align-items:center; gap:var(--sp-3); }
+.home-baybay h2 { font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
+.home-baybay ul { display:grid; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.home-baybay button { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-2); width:100%; height:100%; min-height:3rem; padding:var(--sp-2) var(--sp-4); border:1px solid var(--color-on-brand-muted); border-radius:var(--r-md); background:transparent; color:inherit; font-size:var(--text-fact); line-height:var(--lh-snug); text-align:start; }
+.home-baybay button:hover { border-color:var(--color-highlight); }
+.home-baybay svg { flex:none; }
 
-/* ⑥ guides: intent chips, a rail of 4:5 covers, the topic link and 发给家人（大字版）. */
-.home-guides__intents { margin-bottom:12px; }
-.home-guides__rail>li { flex:0 0 17.5rem; }
-.home-guides__more { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; margin-top:12px; }
-.home-guides__more>a { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.home-guides__more>a svg { width:1rem; height:1rem; }
+/* ⑥ guides: wrapped intent chips, four 3:2 covers, the topic link and 发给家人（大字版）. */
+.home-guides .ui-chip-row { flex-wrap:wrap; overflow:visible; margin:0; padding:0; }
+.home-guides__more { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-4); margin-top:var(--sp-3); }
 
 /* 发给家人（大字版） (shared: FamilyLinkButton) */
-.home-head__unit { white-space:nowrap; }
-.family-link { display:inline-flex; flex-direction:column; align-items:flex-start; gap:4px; }
+.family-link { display:inline-flex; flex-direction:column; align-items:flex-start; gap:var(--sp-1); }
 .family-link__status { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
 .family-link__status:empty { display:none; }
 
-/* ⑦ offers: 1:1 tickets, at least 11rem wide so the information card's badge, value, brand and deadline fit. The card's
-   title under the cover already names the offer, so the cover drops its own title and condition line, which a ticket
-   this size could only show cut in half; a long brand keeps two lines. H19: with a photo first, that ticket is wide (3:2,
-   the full width) and the others sit in a two-column grid on a phone, three columns on a tablet; with no photo first the
-   tickets stay a rail, as they do at 大 / 特大 and in 简洁显示 (one ticket per screen width). */
-.home-offers__rail>li { flex:0 0 11rem; }
-@media (max-width:1023px) {
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide]) { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px 12px; margin:0; padding:0; overflow:visible; scroll-snap-type:none; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li[data-wide] { grid-column:1 / -1; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li:nth-child(n+6) { display:none; }
-}
-@media (min-width:768px) and (max-width:1023px) {
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide]) { grid-template-columns:repeat(3, minmax(0, 1fr)); }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .home-offers__rail:has(>li[data-wide])>li[data-wide] { grid-column:span 2; }
-}
-.home-offers__rail>li[data-wide] :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-lg); }
-
-/* ⑧ share card and ⑨ 3D tile, side by side on desktop */
-.home-end { display:flex; flex-direction:column; gap:24px; }
-.home-share { display:flex; align-items:center; gap:16px; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
-.home-share__thumb { display:flex; flex:none; flex-direction:column; gap:6px; width:7.5rem; aspect-ratio:3 / 4; padding:10px; overflow:hidden; border-radius:var(--r-md); background:var(--color-brand-deep); color:var(--color-surface); }
-.home-share__thumb-title { font-size:var(--text-caption); line-height:1.385; font-weight:600; }
-.home-share__thumb-title>span { display:block; color:var(--color-highlight); font-variant-numeric:tabular-nums; }
-.home-share__thumb ol { display:flex; flex-direction:column; gap:2px; margin:0; padding:0 0 0 1.1em; font-size:var(--text-caption); line-height:1.385; }
-.home-share__thumb li { overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.home-share__thumb-foot { margin-top:auto; color:var(--color-on-brand-muted); font-size:var(--text-caption); line-height:1.385; }
-.home-share__body { display:flex; flex-direction:column; align-items:flex-start; min-width:0; }
-.home-share__body h2 { color:var(--color-ink); font-size:1.125rem; line-height:1.444; font-weight:600; }
-.home-share__body p { margin:4px 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.home-share__calendar { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); margin-top:4px; color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.home-share__calendar svg { width:1rem; height:1rem; }
+/* ⑧ 长辈常用电话 beside the ⑨ 3D tile (desktop: columns 1–6 and 7–12). */
+.home-end { display:flex; flex-direction:column; gap:var(--section-gap); }
+.home-elder .ui-row-card { grid-template:"body trailing" / minmax(0, 1fr) auto; min-height:0; }
+.home-elder .ui-row-card__thumb { display:none; }
+.home-elder .ui-button { min-height:3rem; }
 .home-3d { display:flex; flex-direction:column; gap:10px; color:var(--color-ink); }
 .home-3d .ui-cover { border-radius:var(--r-postcard); }
 .home-3d__text { display:flex; flex-direction:column; gap:2px; }
@@ -138,73 +126,70 @@
 .home-3d__text small { color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
 .home-3d:hover strong { text-decoration:underline; text-underline-offset:4px; }
 
-/* 邻里 one line and the image credits */
-.home-community button { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:4px; }
-.home-credits { margin-top:-24px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.385; }
-.home-credits summary { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); cursor:pointer; list-style:none; }
+/* ⑩ the credits line: 本页图片来源 (N) · 邻里信息 →, and once what an information card is. */
+.home-credits { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-4); color:var(--color-ink-2); font-size:var(--text-caption); line-height:var(--lh-snug); }
+.home-credits summary { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); cursor:pointer; list-style:none; }
 .home-credits summary::-webkit-details-marker { display:none; }
-.home-credits summary svg { width:1rem; height:1rem; }
-.home-credits[open] summary svg { transform:rotate(180deg); }
-.home-credits ul { display:flex; flex-direction:column; gap:6px; margin:0; padding:0; list-style:none; }
-.home-credits li { display:flex; flex-wrap:wrap; gap:4px 8px; }
+.home-credits details[open] { flex-basis:100%; }
+.home-credits details[open] summary svg { transform:rotate(180deg); }
+.home-credits ul { display:flex; flex-direction:column; gap:var(--sp-2); margin:0; padding:0; list-style:none; }
+.home-credits li { display:flex; flex-wrap:wrap; gap:var(--sp-1) var(--sp-2); }
 .home-credits a { color:var(--color-brand); text-decoration:underline; }
+.home-credits .ui-cover-credit { flex-basis:100%; margin:0; }
 /* 简洁显示: the credit and licence links are 48px targets too (they sit in a list, not in a sentence). */
-html[data-simple] .home-credits li { align-items:center; }
 html[data-simple] .home-credits a { display:inline-flex; align-items:center; min-height:var(--control-height); }
-.home-credits__label { color:var(--color-ink-2); font-weight:400; }
+
+/* Rows (CSS only; the whole row is the card's link): the 简洁 picks and, at 大 / 特大, picks 2–3, the feed, offers and
+   guides — a 112 px thumbnail, the text beside it, ♡ at the row's end (not in 简洁, decision 16). */
+:is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:112px minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
+:is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
+:is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
+html[data-reading$=large]:not([data-simple]) .home-discovery .ui-feed-card__title { padding-right:48px; }
+html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
+html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
+html[data-simple] .home-picks .ui-feed-card__save { display:none; }
+html[data-simple] .home-picks__all { justify-content:center; align-self:stretch; min-height:3rem; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); }
+@media (max-width:1023px) {
+  html[data-reading$=large] .home-picks__list>li:first-child { --ui-feed-ratio:3 / 2; }
+  html[data-reading$=large] :is(.home-picks__list,.home-offers__rail,.home-guides__rail) { grid-template-columns:minmax(0, 1fr); }
+  html[data-reading$=large] :is(.home-offers__rail,.home-guides__rail)>li:nth-child(n+4),html[data-reading$=large] .home-feed .ui-feed-grid>li:nth-child(n+8):not(.ui-feed-grid__wide) { display:none; }
+  html[data-reading$=large] .home-elder .ui-row-card { grid-template:"body" "trailing" / minmax(0, 1fr); }
+  /* No share card: the picks' own 看本周末全部 sits above this row, so below 1024 it keeps 订阅日历 only (two classes:
+     cards.css's .ui-button display comes later in the page). */
+  .home-share div>.home-share__all { display:none; }
+}
 
 @media (min-width:768px) {
   .bay-home.bay-home-editorial { padding:24px 24px 48px; }
-  .home-discovery { gap:56px; }
-  .home-picks__list,.home-guides__rail,.home-offers__rail,.home-moods ul { margin:0; padding:0; scroll-padding-inline:0; }
-  .home-picks__list>li { flex-basis:calc((100% - 24px) / 2.2); }
-  .home-moods ul { flex-wrap:wrap; justify-content:space-between; overflow:visible; }
-  .home-baybay__questions { flex-direction:row; }
-  .home-baybay__questions>li { flex:1 1 0; min-width:0; }
-  .home-baybay__questions button { height:100%; }
-  .home-end { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); align-items:start; }
+  .home-head .home-ask-baybay { display:inline-flex; }
+  .home-mood>svg { display:block; }
+  .home-baybay ul { grid-template-columns:repeat(3, minmax(0, 1fr)); }
+  .home-end { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); align-items:start; gap:24px; }
+  .home-end>:last-child { grid-column:2; }
 }
 @media (min-width:1024px) {
   .bay-home.bay-home-editorial { padding:32px 32px 56px; }
-  /* Desktop head: headline and ask box in 5 columns, the cover mosaic in 7 (one 4:5 lead, two 4:3 covers). */
-  .home-top { display:grid; grid-template-columns:minmax(0, 5fr) minmax(0, 7fr); grid-template-rows:auto 1fr; grid-template-areas:'head picks' 'moods picks'; align-items:start; gap:32px; }
-  .home-head { grid-area:head; }
-  .home-picks { grid-area:picks; }
-  .home-moods { grid-area:moods; }
-  .home-moods ul { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:16px 8px; }
-  .home-mood { width:auto; }
-  .home-head { padding-top:24px; }
-  .home-head__title { font-size:clamp(2.5rem, 1.6rem + calc(1.25vw * var(--fluid-scale)), 3.25rem); line-height:1.2; }
-  .home-head__lede { font-size:var(--text-body); line-height:1.625; }
-  .home-picks__list { display:grid; grid-template-columns:minmax(0, 1.27fr) minmax(0, 1fr); gap:16px; overflow:visible; scroll-snap-type:none; }
-  .home-picks__list>li:first-child { grid-row:1 / span 2; }
-  .home-picks__list>li:nth-child(n+2) :is(.ui-cover,.ui-type-cover) { --ui-cover-ratio:4 / 3; }
-  .home-picks__list>li:nth-child(n+2) .ui-hero-card__title { font-size:var(--text-card); line-height:1.444; }
-  .home-picks__list>li:nth-child(n+2) .ui-hero-card[data-overlay] .ui-hero-card__text { margin:12px; }
-  .home-picks__list>li:nth-child(n+2) :is(.ui-hero-card__reason,.ui-hero-card__trust) { display:none; }
-  .home-guides__rail { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); overflow:visible; }
-  /* Six tickets in a row only where each stays 11rem+ (the query's rem follows Aa, so 大/特大 get four); else the four
-     that end soonest, and 全部优惠 has the rest. */
-  .home-offers { container:home-offers / inline-size; }
-  .home-offers__rail { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); overflow:visible; }
-  .home-offers__rail>li:nth-child(n+5) { display:none; }
-  /* The wide photo ticket takes two columns, at the height of the 1:1 tickets beside it (one row). */
-  .home-offers__rail>li[data-wide] { grid-column:span 2; }
-  .home-offers .home-offers__rail>li[data-wide] :is(.ui-cover,.ui-type-cover) { --ui-cover-ratio:2.08 / 1; }
-  .home-offers__rail:has(>li[data-wide])>li:nth-child(n+4) { display:none; }
-}
-@container home-offers (min-width:74rem) {
-  .home-offers__rail { grid-template-columns:repeat(6, minmax(0, 1fr)); }
-  .home-offers__rail>li:nth-child(n+5) { display:block; }
-  .home-offers__rail:has(>li[data-wide])>li:nth-child(n+4) { display:block; }
-  .home-offers__rail:has(>li[data-wide])>li:nth-child(n+6) { display:none; }
-}
-/* 大/特大 and 简洁显示 on phones: one card per screen width in the rails, two-line chips. */
-@media (max-width:767px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) :is(.home-guides__rail,.home-offers__rail)>li { flex-basis:calc(100% - 48px); }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-share { flex-direction:column; align-items:flex-start; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .home-share__thumb { width:10rem; }
-}
-@media (prefers-reduced-motion:reduce) {
-  :is(.home-picks__list,.home-guides__rail,.home-offers__rail) { scroll-behavior:auto; }
+  :is(.home-offers__rail,.home-guides__rail) { grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  .home-offers__rail>li[data-wide] { grid-column:span 2; --ui-feed-ratio:16 / 9; }
+  .home-picks li:first-child .ui-feed-card__title { font-size:var(--text-section); line-height:var(--lh-section); }
+  .home-picks li:first-child .home-pick__reason { display:block; }
+  .home-head { gap:var(--sp-4); }
+  :is(.home-head__identity,.home-trust) { font-size:var(--text-body); }
+  .home-ask { margin-top:var(--sp-3); }
+  .home-moods ul { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); }
+  .home-moods .home-mood { flex-direction:column; justify-content:center; gap:var(--sp-1); width:100%; min-height:5.5rem; border-radius:var(--r-lg); }
+  /* The masthead in columns 1–5 beside the lead (6–12); picks 2–3 in 1–6 and the share card in 7–12 below, all on one
+     12-column grid: the picks section and its list are display:contents here, so their children are the grid's items. */
+  .home-top { display:grid; grid-template:repeat(3, auto) 1fr auto / repeat(12, minmax(0, 1fr)); gap:var(--sp-5) var(--grid-gutter); }
+  .home-picks,.home-picks__list { display:contents; }
+  .home-head { grid-area:1 / 1 / 3 / 6; }
+  .home-picks>.home-section-head,.home-picks__all { grid-area:1 / 6 / 2 / -1; }
+  .home-picks__all { justify-self:end; }
+  /* 看本周末全部 N 场 shares the H2's cell: the H2 wraps before it (en at 1024 at 大 / 特大). */
+  .home-picks>.home-section-head h2 { max-width:calc(100% - 13rem); }
+  .home-picks__list>li:first-child,.home-empty { grid-area:2 / 6 / 5 / -1; }
+  .home-trust { grid-area:3 / 1 / 4 / 6; }
+  .home-top>.home-moods { grid-area:4 / 1 / 5 / 6; margin:0; }
+  .home-picks__list>li+li,.home-top>.home-share { grid-area:5 / span 3; margin-top:var(--sp-2); }
+  .home-top>.home-share { grid-column:7 / -1; justify-content:center; }
 }

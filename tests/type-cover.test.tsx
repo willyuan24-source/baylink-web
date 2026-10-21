@@ -102,6 +102,14 @@ test('offer and opening type covers: the ticket (value, condition, brand as writ
   const enOrder = wrap(<OfferTypeCover offer={withOrder} today={today} />);
   assert.equal(enOrder.container.querySelector('.tc-ticket__value')?.textContent, 'Free');
   assert.equal(enOrder.container.querySelector('.tc-ticket__cond')?.textContent, 'with purchase', 'the condition stays on the cover');
+  assert.equal(enOrder.container.querySelector('.tc-ticket')?.hasAttribute('data-long'), false, '"Free" keeps its stub on a 2-up card');
+  cleanup();
+  // UI9-INT (acceptance review): "Purchase required" broke as 'Purcha / se / requir / ed' beside the stub on a 2-up card; a
+  // long English word marks the ticket, and covers.css gives it the whole width there (the card's status prints the date).
+  const enTerms = wrap(<OfferTypeCover offer={{ brand: 'Party City', title: 'Costume swap', availability: 'limited', kind: 'purchase', endDate: '2026-10-26' }} today={today} />);
+  assert.equal(enTerms.container.querySelector('.tc-ticket__value')?.textContent, 'Purchase required');
+  assert.equal(enTerms.container.querySelector('.tc-ticket')?.hasAttribute('data-long'), true);
+  assert.match(readFileSync('src/components/ui/covers.css', 'utf8'), /@container tc \(max-width:240px\) \{[^}]*\}[^@]*\.tc-ticket\[data-long\] \.tc-ticket__stub \{ display:none; \}/);
   cleanup();
   await act(async () => { await setLocale('zh-Hans', false); });
   const opening = wrap(<OpeningTypeCover opening={{ name: 'Sergeant Ma', city: 'San Francisco', status: 'announced', openingType: 'new-restaurant' }} today={today} />);

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Bookmark, Check } from 'lucide-react';
+import { Check, Heart } from 'lucide-react';
 import { SAVE_ERROR_COPY, useSave } from '../../lib/saves';
 import { translateText, useLocale } from '../../i18n/locale';
 
@@ -32,6 +32,6 @@ export default function GuideSaveButton({ slug, onStatus, onError }: { slug: str
           : t('已收藏。在「我的这周」找回。', 'Saved. Find it in My Week.'));
   };
   return <button type="button" onClick={() => void toggle()} aria-pressed={save.saved === null ? undefined : save.saved} disabled={save.saved === null || save.busy}>
-    {save.saved ? <Check size={16} /> : <Bookmark size={16} />}{save.saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}
+    {save.saved ? <Check size={16} /> : <Heart size={16} />}{save.saved ? t('已收藏', 'Saved') : t('收藏', 'Save')}
   </button>;
 }

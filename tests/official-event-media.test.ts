@@ -55,12 +55,13 @@ const BATCH_1014 = new Set([
 ]);
 // Approved rows that were downloaded and looked at but not used: machine-made looking art, stock-style pictures, third-party
 // art or press photos, a child's face up close, logos (the Veterans Day parade file is the chapter's logo share card), files
-// too small for the 480 rung.
+// too small for the 480 rung. Two of the stock-style ones (the Berryessa Diwali photo and the Calabazas tea still life) were
+// approved again by the owner on 2026-10-19 and ship in that batch (BATCH_1019), so they are not on this list.
 const SKIPPED_1014 = [
   'sfpl-chinatown-creative-saturdays-fall-2026', 'sfpl-chinatown-creative-saturdays-late-nov-2026', 'sfpl-chinese-book-club-nov14-2026',
-  'sjpl-joyce-ellington-halloween-2026', 'sjpl-berryessa-halloween-party-2026', 'sjpl-berryessa-diwali-2026', 'sv-turkey-trot-2026',
+  'sjpl-joyce-ellington-halloween-2026', 'sjpl-berryessa-halloween-party-2026', 'sv-turkey-trot-2026',
   'acl-castro-valley-military-records-2026', 'petaluma-vintage-market-nov15-2026', 'sjpl-alum-rock-basic-english-2026',
-  'sjpl-calabazas-chinese-tea-hour-nov21-2026', 'sfpl-glen-park-saturday-playtimes-dec-2026', 'sfpl-potrero-pinecone-owls-dec12-2026',
+  'sfpl-glen-park-saturday-playtimes-dec-2026', 'sfpl-potrero-pinecone-owls-dec12-2026',
   'sfpl-main-asl-story-hour-dec12-2026', 'pacl-mitchell-park-family-storytime-2026', 'scl-healdsburg-muffin-man-puppets-nov21-2026',
   'scl-guerneville-mock-caldecott-nov21-2026', 'scl-roseland-global-goodies-nov21-2026', 'scl-windsor-gingerbread-houses-dec5-2026',
   'scl-sonoma-valley-gingerbread-dec13-2026', 'marin-point-reyes-kids-swap-dec5-2026', 'marin-corte-madera-read-to-dog-dec13-2026',
@@ -87,6 +88,20 @@ const BATCH_1016 = new Map([['union-square-holiday-ice-rink-2026', 'photo'], ['c
 // The 2026-10-17 batch (owner approval in chat 10-16 of one row of the 2027 Lunar New Year image-candidates list, CNT-WEEKEND-1128):
 // the organiser's photo of the 2025 San Francisco parade, labelled as the 2025 parade on the 2027 parade's page.
 const BATCH_1017 = new Map([['sf-chinese-new-year-parade-2027', 'photo']]);
+// The 2026-10-19 batch (owner approval in chat 10-19 of the default-checked rows of gpt/out-1020's image review page, CNT-MEDIA-5):
+// 17 event images, all used after looking at each one. The collage, the financial-planning banner, Gilroy Gardens' round
+// Ferris-wheel image and the Lego Club graphic are shown whole. Not used, as the owner decided: the orange-flagged SF Zoo
+// ZooLights row (and five new-shop rows, tests/official-opening-media.test.ts).
+const BATCH_1019 = new Map([
+  ['meritage-gingerbread-house-workshop-2026', 'photo'], ['meritage-building-with-ember-the-elf-2026', 'photo'],
+  ['sfpl-sunset-mahjong-nov28-2026', 'photo'], ['sfpl-visitacion-valley-calligraphy-chess-nov14-2026', 'collage'],
+  ['oakland-zoo-glowfari-2026', 'photo'], ['curiodyssey-illuminodyssey-2026', 'photo'], ['nov2026-sf-renegade-craft-winter', 'photo'],
+  ['sf-financial-planning-day-oct24-2026', 'graphic'], ['gilroy-gardens-north-pole-nights-2026', 'graphic'],
+  ['sjpl-educational-park-lego-club-winter-2026', 'graphic'], ['sjpl-joyce-ellington-game-on-winter-2026', 'photo'],
+  ['sjpl-seven-trees-board-game-zone-winter-2026', 'photo'], ['sjpl-calabazas-chinese-tea-hour-nov21-2026', 'photo'],
+  ['sjpl-village-square-thanksgiving-2026', 'photo'], ['sjpl-berryessa-diwali-2026', 'photo'],
+  ['acl-fremont-funday-family-board-games-2026', 'photo'], ['november-north-healdsburg-market-2026', 'photo'],
+]);
 
 test('the official event image registry keeps one complete, owner-approved record per image', () => {
   assert.deepEqual(Object.keys(downloads), officialEventMedia.map(record => record.key), 'one download record per image, in registry order');
@@ -104,11 +119,34 @@ test('the official event image registry keeps one complete, owner-approved recor
   for (const record of media4) assert.match(record.caption, /拍摄日期未注明[，；]/, `${record.key}: undated, never a listed session`);
   // The Fort Mason market photo sits under /wp-content/uploads/2015/09/, so its caption gives the year it was already online.
   assert.match(media4.find(record => record.eventId === 'nov2026-fort-mason-farmers-market')!.caption, /2015 年就已上传到官网/);
-  assert.equal(officialEventMedia.some(record => record.eventId === 'november-north-healdsburg-market-2026'), false, 'Healdsburg waits for the owner');
+  // The stallholder photo (salsa-sales.jpg, a face close up) stays held back; on 10-19 the owner approved the market's pie photo instead.
+  const healdsburg = officialEventMedia.find(record => record.eventId === 'november-north-healdsburg-market-2026')!;
+  assert.match(download(healdsburg).originalUrl, /\/pi-square\.jpg$/);
+  assert.equal(officialEventMedia.some(record => /salsa-sales/.test(download(record).originalUrl)), false, 'the stallholder photo is not used');
   assert.deepEqual(new Map(batch1016.filter(record => !MEDIA_4_1016.has(record.eventId)).map(record => [record.eventId, record.artwork])), BATCH_1016, 'CNT-WEEKEND-1107 ships exactly its 2 approved images');
   const batch1017 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-17'));
   assert.deepEqual(new Map(batch1017.map(record => [record.eventId, record.artwork])), BATCH_1017, 'the 2026-10-17 batch is exactly the 1 approved image');
-  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length + batch1017.length);
+  const batch1019 = officialEventMedia.filter(record => download(record).retrievedAt.startsWith('2026-10-19'));
+  assert.deepEqual(new Map(batch1019.map(record => [record.eventId, record.artwork])), BATCH_1019, 'the 2026-10-19 batch is exactly the 17 approved images');
+  assert.equal(officialEventMedia.some(record => record.eventId === 'sfzoo-zoolights-2026'), false, 'the orange-flagged ZooLights row is not used');
+  // CuriOdyssey's camera dates its photo 2025-11-12: the 2025 exhibition, so the badge names the edition.
+  const illumin = officialEventMedia.find(record => record.eventId === 'curiodyssey-illuminodyssey-2026')!;
+  assert.match(illumin.caption, /2025 往届）.*不是 2026 年展期/);
+  assert.equal(getImageProvenance(GUIDE_IMAGES[illumin.key]), '官方图 · 2025 往届');
+  // Gilroy Gardens' file has been online since January 2025 (an earlier season, year unknown): the caption says so, the badge stays 官方图.
+  // It is a graphic (kind 'poster'), so the caption calls it an image (图片), never a photo.
+  const gilroy = officialEventMedia.find(record => record.eventId === 'gilroy-gardens-north-pole-nights-2026')!;
+  assert.match(gilroy.caption, /2025 年 1 月已在官网，是往季图片/);
+  assert.doesNotMatch(gilroy.caption, /照片/);
+  assert.equal(getImageProvenance(GUIDE_IMAGES[gilroy.key]), '官方图');
+  // The three stock-looking library pictures (owner decision 3) say they are theme pictures on the library's event page, and
+  // the credit does not suggest the library made them.
+  for (const id of ['sjpl-calabazas-chinese-tea-hour-nov21-2026', 'sjpl-village-square-thanksgiving-2026', 'sjpl-berryessa-diwali-2026']) {
+    const theme = officialEventMedia.find(record => record.eventId === id)!;
+    assert.match(theme.caption, /活动页上的官方宣传图，是主题图/, id);
+    assert.equal(theme.credit, '圣何塞公共图书馆官方活动页主题图', id);
+  }
+  assert.equal(officialEventMedia.length, batch1008.length + batch1014.length + batch1015.length + batch1016.length + batch1017.length + batch1019.length);
   // A past parade's photo on the 2027 parade: the caption names its year and says it is not the 2027 parade.
   const parade = officialEventMedia.find(record => record.eventId === 'sf-chinese-new-year-parade-2027')!;
   assert.match(parade.caption, /2025 往届.*不是 2027 年的现场/);
@@ -146,7 +184,7 @@ test('the official event image registry keeps one complete, owner-approved recor
     assert.equal(record.rights.scope, 'same-event coverage only');
     for (const field of DOWNLOAD_RECORD) assert.equal(Object.hasOwn(record, field), false, `${record.key}: ${field} belongs in the download record, not the bundled registry`);
     assert.match(new URL(download(record).originalUrl).protocol, /^https?:$/);
-    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15|16|17)T\d{2}:\d{2}:\d{2}-07:00$/);
+    assert.match(download(record).retrievedAt, /^2026-10-(08|14|15|16|17|19)T\d{2}:\d{2}:\d{2}-07:00$/);
     assert.match(download(record).sha256, /^[0-9a-f]{64}$/);
     // Main rendition: 1280 wide or the original width when smaller (never upscaled); small: 480 wide. The record names
     // no srcset: pages get the D8 image ladder built from src and width (scripts/codemods/registry-srcset.mjs).

@@ -97,7 +97,7 @@ export const ROUTES: readonly AppRoute[] = [
   { path: '/users/:userId', page: 'home', section: 'more', hosting: 'spa', english: ['home'] },
   { path: '/reset-password', page: 'home', section: 'none', hosting: 'spa', english: ['home'] },
   { path: '/guides', page: 'guides', section: 'guides', hosting: 'page', sitemap: true, english: ['guide-list'], release: true },
-  { path: '/guides/:slug', page: 'guide', section: 'guides', hosting: 'ids', sitemap: true },
+  { path: '/guides/:slug', page: 'guide', section: 'guides', hosting: 'ids', sitemap: true, chrome: 'detail' },
   { path: '/events', page: 'events', section: 'events', hosting: 'page', sitemap: true, english: EVENTS_LIST, baybay: true, release: true },
   // H35 (HOMEIA13-07): the orphan 全部日期 page is a 301 to the events column on 全部日期 (query kept), out of the sitemap.
   { path: '/this-month', page: 'monthly', section: 'events', hosting: 'page', redirect: { to: '/events?when=all', status: 301 }, english: DISCOVERY, baybay: true, release: true },

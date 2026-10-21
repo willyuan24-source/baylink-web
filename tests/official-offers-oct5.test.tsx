@@ -96,7 +96,9 @@ test('reviewed offers retain primary sources, explicit costs and the exact offic
   assert.ok(existsSync('public' + image.src));
   const view = render(<FreebieBoard offers={[plane]} today={today} initialDates="all" sectionSize={Infinity} />);
   assert.equal(within(view.getByRole('article', { name: plane.title })).getByRole('img').getAttribute('src'), image.src);
-  assert.match(view.container.querySelector('figcaption')?.textContent || '', /官方宣传照片/);
+  // G13 (UI9-FREE): the credit line under the photo says what it is; the record's image note sits with the caption and licence.
+  assert.equal(view.container.querySelector('figcaption')?.textContent, '官方图');
+  assert.match(view.container.querySelector('.bl-freebie-image-source')?.textContent || '', /官方宣传照片/);
   assert.equal(view.queryByText(/AI 原创插图/), null);
 });
 

@@ -29,7 +29,7 @@ export function ProfileIdentity({ profile, children, preview = false }: { profil
     <div className="profile-identity-cover">
       <div className="profile-identity-landscape" aria-hidden="true"><span /><span /><span /></div>
       {profile.coverImage && failedCover !== profile.coverImage && <img src={profile.coverImage} alt="个人封面" onError={() => setFailedCover(profile.coverImage || '')} />}
-      <span className="profile-identity-stamp">BAYLINK · BAY AREA</span>
+      <span className="profile-identity-stamp">BAYLINK · Bay Area</span>
     </div>
     <div className="profile-identity-body">
       <div className="profile-identity-avatar"><Avatar src={profile.avatar} name={profile.nickname} size={24} theme={theme} className="profile-avatar-image" /></div>

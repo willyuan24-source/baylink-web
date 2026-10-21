@@ -310,7 +310,7 @@ test('closing the buddy sheet aborts its read and a pending join does not reopen
   fireEvent.click(view.getByRole('button', { name: /^一起去/ }));
   const dialog = await view.findByRole('dialog');
   fireEvent.click(within(dialog).getByRole('button', { name: '公开加入一起去' }));
-  fireEvent.click(within(dialog).getByRole('button', { name: '关闭一起去' }));
+  fireEvent.click(within(dialog).getByRole('button', { name: '关闭' }));
   assert.equal(signal?.aborted, true);
   await act(async () => {
     save.resolve(state({ interested: true, lookingForBuddy: true }));

@@ -83,7 +83,8 @@ test('H06: this weekend (10/17–18, read on Tue 10/13) has 长辈友好 events,
   }
   assert.ok(!seniors.some(item => item.id === 'smcl-millbrae-chinese-storytime-oct-2026'), 'a 0–5 storytime is not for seniors');
   const view = routed('/events', <EventsView today={today} />);
-  const stories = within(view.container.querySelector('.ev-stories')!);
+  // UI9-EVENTS: 长辈友好 and 亲子 sit on rail 1 beside 免费 (the story circles are gone).
+  const stories = within(view.container.querySelector('.ev-rail')!);
   assert.ok(stories.getByRole('button', { name: '长辈友好' }));
   assert.ok(stories.getByRole('button', { name: '亲子' }));
   assert.equal(stories.queryByRole('button', { name: /长者友好|带娃/ }), null, 'one label per story (H27)');
@@ -132,8 +133,10 @@ test('H02: list headers state when their items were checked — most of them, an
   assert.equal(checkLine({ mostly: '2026-10-12', latest: '2026-10-12' }, zh), '核对于 10/12');
   assert.equal(checkLine({ mostly: '2026-09-29', latest: '2026-10-12' }, (_, en) => en), 'mostly checked Sep 29 · latest Oct 12');
   const page = JSDOM.fragment(renderToStaticMarkup(<StaticRouter location="/events"><EventsView today="2026-10-13" /></StaticRouter>));
-  const facts = page.querySelector('.ev-lede-facts')!.textContent!;
-  assert.match(facts, /逐条附官方来源 · (?:多数核对于 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|核对于 \d+\/\d+)$/);
+  const facts = page.querySelector('.ev-lede-facts')!.textContent!.replace(/\u00a0/g, ' ');
+  // UI9-EVENTS (G12): said as checks against the official pages, then the quiet 我们怎么核对 link; press reports (DECISIONS 17)
+  // are counted, not promised an official source.
+  assert.match(facts, /(?:每条附官方链接|\d+ 条来自媒体报道) · 官网核对 (?:多数 \d+\/\d+(?: · (?:最近|最早) \d+\/\d+)?|\d+\/\d+) · 我们怎么核对$/);
   const weekend = getHomeWeekend('2026-10-13');
   if (weekend.checked) assert.ok(weekend.checked.mostly <= weekend.checked.latest);
   // One date only when every listed item carries it; most on the latest day with a few older ones is still 多数 (§3.9).
@@ -244,13 +247,14 @@ test('H56: a past event with no confirmed day reads 已结束, not 日期待定,
   assert.doesNotMatch(chips, /日期待定/);
   assert.equal(view.queryByText('暂无已确认场次，请查看主办方最新安排。'), null);
   // An event that is over sends no large-text family link (review nit): a parent would open something already past.
-  assert.equal(view.queryByRole('button', { name: '发给家人（大字版）' }), null);
+  assert.equal(view.queryByRole('button', { name: /发给家人（大字版）$/ }), null);
 });
 
 test('H33 + H27: event, offer and opening pages send a large-text family link; an opening adds 加入计划', () => {
   for (const [kind, id] of [['event', 'sf-sunday-streets-excelsior-oct18-2026'], ['offer', 'sfmta-free-muni-seniors'], ['opening', 'marufuku-burlingame-announced']] as const) {
     const view = detail(kind, id, '2026-10-13');
-    assert.ok(within(view.container.querySelector('.detail-share') as HTMLElement).getByRole('button', { name: '发给家人（大字版）' }), id);
+    // UI9-DETAIL (content arrangement 10-19): the family link is the action bar's 发家人 cell, no longer in the share row.
+    assert.ok(within(view.getByRole('group', { name: '这一页的操作' })).getByRole('button', { name: /发给家人（大字版）$/ }), id);
     if (kind === 'opening') {
       const bar = within(view.getByRole('group', { name: '这一页的操作' }));
       assert.equal(bar.queryByText('加入行程'), null);

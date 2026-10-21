@@ -31,7 +31,12 @@ async function open(query = '', openBayBay: AppContextValue['openBayBay'] = () =
 const onDay = (day: string, region?: string) => INDEX_EVENTS.filter(event => nextOccurrence(event, day) === day && (!region || event.region === region));
 // The day's lead card, then its rows.
 const rowIds = (view: ReturnType<typeof render>) => [...view.container.querySelectorAll('.ev-calendar__rows a.ui-card-link')].map(link => link.getAttribute('href')!.split('?')[0].replace('/events/', ''));
-const sameIds = (actual: string[], expected: { id: string }[]) => assert.deepEqual([...actual].sort(), expected.map(event => event.id).sort());
+// UI9-EVENTS: the lead and 12 rows per page (再看 12 场 for the rest), so a day's first page lists up to 13 of its events.
+const sameIds = (actual: string[], expected: { id: string }[]) => {
+  assert.equal(actual.length, Math.min(13, expected.length), `${actual.length} of ${expected.length}`);
+  const ids = new Set(expected.map(event => event.id));
+  for (const id of actual) assert.ok(ids.has(id), id);
+};
 
 test('the week strip, city choices and row links all use the selected day', async () => {
   const view = await open('?date=2026-10-17');
@@ -89,7 +94,7 @@ test('malformed deep links fall back to today and the whole Bay Area, without fi
   const view = await open('?date=2026-02-30&view=constructor&region=__proto__');
   assert.equal(view.container.querySelector('.ev-week__day[aria-pressed="true"]')?.getAttribute('aria-current'), 'date');
   sameIds(rowIds(view), onDay(today));
-  assert.match(view.getByRole('button', { name: /选日期/ }).textContent!, /整个湾区/);
+  assert.match(view.getByRole('button', { name: /选日期/ }).getAttribute('aria-label')!, /整个湾区/);
   assert.equal(view.container.querySelectorAll('.calendar-event-map-pin').length, 0, 'the map is not loaded until 地图 is chosen');
 });
 
@@ -105,7 +110,16 @@ test('the calendar asks BayBay in draft mode with the date, region and city in a
     const calls: Parameters<AppContextValue['openBayBay']>[] = [];
     const view = await open('?date=2026-10-31&region=east-bay', (...args) => calls.push(args));
     const ask = () => fireEvent.click(view.getByRole('button', { name: locale === 'en' ? 'Ask BayBay to plan this day' : translateText('让 BayBay 帮我安排这一天', locale) }));
-    fireEvent.click(within(view.container.querySelector('.ev-cities')!).getByRole('button', { name: /Livermore/ }));
+    // The rail names the day's top 4 cities; the rest are in the sheet that 更多城市 and the week's range open.
+    const railCity = within(view.container.querySelector('.ev-cities')!).queryByRole('button', { name: /Livermore/ });
+    if (railCity) fireEvent.click(railCity);
+    else {
+      fireEvent.click(view.container.querySelector('.ev-week__range')!);
+      const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
+      fireEvent.click(within(sheet).getByRole('button', { name: /Livermore/ }));
+      fireEvent.keyDown(sheet, { key: 'Escape' });
+      await waitFor(() => assert.equal(view.queryByRole('dialog'), null));
+    }
     ask();
     assert.equal(calls.length, 1);
     assert.deepEqual(calls[0][1], { mode: 'draft' });

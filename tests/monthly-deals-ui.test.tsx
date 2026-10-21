@@ -70,7 +70,7 @@ test('edition notice changes at Los Angeles midnight and preserves the explicit 
   assert.equal(before, '2026-09-30');
   assert.equal(after, '2026-10-01');
   const view = render(<GuideEditionNotice editionMonth="2026-09" checkedAt="2026-09-08" today={before} />);
-  assert.ok(view.getByRole('complementary', { name: '攻略期次与核对日期' }));
+  assert.ok(view.getByRole('complementary', { name: '攻略期次与内容日期' }));
   assert.ok(view.getByText('2026 年 9 月 · 本期攻略'));
   assert.equal(view.queryByText(/往期攻略/), null);
   assert.equal(view.container.querySelector('time')?.dateTime, '2026-09-08');
@@ -95,7 +95,7 @@ test('monthly guide includes its edition notice and safe inline official links i
   assert.equal(server.querySelector('.bl-guide-source-link a')?.getAttribute('href'), 'https://example.com/rewards');
   assert.equal(server.querySelector('[href^="javascript:"]'), null);
   view.rerender(<MemoryRouter><GuideDetail slug="san-francisco-guide" today="2026-10-01" {...actions} /></MemoryRouter>);
-  assert.equal(view.queryByRole('complementary', { name: '攻略期次与核对日期' }), null, 'evergreen guides must not receive a monthly-offer notice');
+  assert.equal(view.queryByRole('complementary', { name: '攻略期次与内容日期' }), null, 'evergreen guides must not receive a monthly-offer notice');
 });
 
 test('the compact guide library retains the published deal guide and shows no promotional card', () => {
@@ -126,7 +126,7 @@ test('the actual October deals guide uses official photography and preserves loc
   const server = new JSDOM(html).window.document;
   assert.equal(server.querySelector('h1')?.textContent, previousGuide.title);
   assert.equal(server.querySelector('.gd-cover img:not(.ui-cover__backdrop)')?.getAttribute('src'), media.cover.src);
-  assert.match(server.querySelector('.bl-guide-edition-notice')?.textContent || '', /2026 年 10 月 · 本期攻略/);
+  assert.match(server.querySelector('.gd-meta [data-edition]')?.textContent || '', /2026 年 10 月本期/, 'a current edition says so in the head meta line (UI9-GUIDES)');
   const sourceCards = [...server.querySelectorAll('.bl-guide-source-link')];
   assert.equal(sourceCards.length, sourceBlocks.length);
   for (const [index, block] of sourceBlocks.entries()) {

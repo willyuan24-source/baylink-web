@@ -1,12 +1,285 @@
 /* The BayBay panel's own sheet (UI9-BB): loaded with the panel (BayBayAssistantEntry imports it), so it arrives after the
-   global sheets, as the lazily loaded feedback-entry.css did. UI9-PREP moved the BayBay 👎 reasons here from
-   src/features/feedback/feedback-entry.css with every declaration unchanged (the focus rule is the downvote half of the
-   entry points' shared one). UI9-BB moves the rest of the panel-only CSS here. */
-.baybay-downvote button:focus-visible{outline:2px solid var(--color-brand);outline-offset:2px}
-.baybay-downvote{display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;margin-top:.5rem;font-size:var(--text-fact);color:var(--color-ink-2)}
+   global sheets. The frame, header, welcome, composer, turns, plan card and the other answer blocks, moved here from
+   baybay-conversation.css, discovery-workflow.css, audit-integration.css and feedback-entry.css (UI9-PREP) and rewritten on
+   the tokens v2 steps: sizes --fs-*, spacing --sp-*, radii --r-*, shadows --e1 / --e2, motion --dur-* / --ease-*.
+   tokens.css still lists .baybay-conversation in its shared reading and control rules (0,1,1) until UI9-INT removes it;
+   the two resets below have the same specificity and load later, so the panel sets its own type. */
+.baybay-conversation { color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
+.baybay-conversation :is(p,small,label,time,summary) { color:inherit; font-size:inherit; line-height:inherit; }
+.baybay-conversation :is(button,a,select,input,textarea) { min-width:0; min-height:0; font-size:inherit; }
+/* The primitives the resets above would otherwise flatten (F's buttons and chips, C's card lines, F2's expander). */
+.baybay-conversation .ui-button { min-height:max(var(--control-height), 3rem); font-size:var(--fs-body); }
+.baybay-conversation .ui-chip { min-height:var(--control-height); font-size:var(--fs-meta); }
+.baybay-conversation .ui-card-when { color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation :is(.ui-feed-card__meta,.ui-feed-card__trust,.ui-row-card__date,.ui-row-card__meta) { font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation :is(.ui-feed-card__meta,.ui-row-card__meta) { color:var(--color-ink-2); }
+.baybay-conversation .ui-feed-card__trust { color:var(--color-ink-3); }
+.baybay-conversation .ui-disclosure__summary { color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); }
+@media (min-width:1024px) { .baybay-conversation .ui-button { min-height:var(--control-height); } }
+html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3rem; }
+/* F's one disabled look for the chips too (no opacity): sunken fill, ink-3 text. */
+.baybay-conversation .ui-chip:disabled { border-color:transparent; background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
+/* Long questions and replies in chips wrap instead of running out of the panel (N25). */
+.baybay-conversation :is(.bb-chips,.bb-also,.baybay-followups,.baybay-requirement-chips,.baybay-plan-followups,.baybay-outing-quick-replies,.baybay-downvote) .ui-chip { height:auto; padding-block:var(--sp-2); white-space:normal; text-align:start; overflow-wrap:anywhere; }
+/* Keyboard focus on every panel surface: the brand ring (≥5:1 on white and sunken); white inside the red 911 card. */
+.baybay-sheet-backdrop :is(a,button,input,select,textarea,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+.baybay-sheet-backdrop .bb-emergency :focus-visible { outline-color:var(--color-surface); }
+
+/* Frame (P14, N10): one sheet per screen class on F's Sheet. Phone: a bottom sheet over F's scrim, the same height in every
+   state (the site header stays in view above it). ≥768px: a 480px drawer, 8px from the edges, e2, over a transparent
+   backdrop that still closes on a tap (FC3-08, captain decision 7); 768–1023px reuse F's drawer keyframes. The sheet is
+   portaled to <body>, outside .site-app where --chrome-header-height lives, so today the 3.5rem fallback always applies
+   (56px at 标准; it scales with rem at 特大). UI9-INT: expose the header height on :root, then drop the fallback. */
+.baybay-sheet { height:calc(100dvh - var(--chrome-header-height, 3.5rem)); max-height:none; }
+.baybay-sheet .baybay-body { display:flex; flex-direction:column; gap:var(--sp-4); padding:var(--sp-4); }
+.baybay-sheet .ui-sheet__footer { display:block; padding:var(--sp-3) var(--sp-4) calc(var(--sp-3) + env(safe-area-inset-bottom, 0px)); background:var(--color-surface); }
+@media (min-width:768px) {
+  .baybay-sheet-backdrop { justify-content:flex-end; align-items:stretch; padding:var(--sp-2); background:transparent; }
+  .baybay-sheet { width:480px; max-width:100%; height:auto; border-radius:var(--r-xl); animation-name:ui-sheet-left; }
+  .baybay-sheet-backdrop.is-closing .baybay-sheet { animation-name:ui-sheet-right; }
+  .baybay-sheet .ui-sheet__handle { display:none; }
+  .baybay-sheet .baybay-body { padding:var(--sp-5); }
+  .baybay-sheet .ui-sheet__footer { padding:var(--sp-4) var(--sp-5) var(--sp-5); border-radius:0 0 var(--r-xl) var(--r-xl); }
+}
+
+/* Header (≤72px): the 44px otter, h2 问 BayBay, "AI 助手 · 回答附来源", 新对话 once a turn exists, the shared close. */
+.bb-otter { flex:none; display:block; }
+.bb-otter[data-size="44"] { width:2.75rem; height:2.75rem; }
+.bb-otter[data-size="20"] { width:1.25rem; height:1.25rem; }
+.baybay-conversation .bb-head { display:grid; flex:none; grid-template-columns:auto minmax(0, 1fr) auto auto; grid-template-areas:"otter text new close"; align-items:center; gap:0; padding:var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-4); border-bottom:1px solid var(--color-line); }
+/* Spacing by margins, not grid gaps: with 新对话 in the thread its empty track takes no room (320px English keeps one row). */
+.baybay-conversation .bb-head>.bb-otter { grid-area:otter; margin-inline-end:var(--sp-3); }
+.baybay-conversation .bb-head>.ui-close { grid-area:close; margin-inline-start:var(--sp-3); }
+.baybay-conversation .bb-head__text { grid-area:text; min-width:0; }
+.baybay-conversation .bb-head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; white-space:nowrap; }
+.baybay-conversation .bb-head__sub { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation .bb-head__new { grid-area:new; margin-inline-start:var(--sp-3); padding-inline:var(--sp-3); }
+@media (min-width:768px) { .baybay-conversation .bb-head { padding:var(--sp-2) var(--sp-4) var(--sp-2) var(--sp-5); } }
+/* English, 特大 and 简洁显示 on a phone, and any phone below 360px: 新对话 closes the thread instead of the header. */
+.baybay-conversation .bb-thread-new { display:flex; justify-content:center; margin:0; }
+
+/* Welcome: one line, the page in view, six prompt cards (2 columns, ≥88px), 也可以, the details, the guest line. */
+.baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
+.baybay-conversation .bb-welcome__line { margin:0; color:var(--color-ink-2); }
+.baybay-conversation .bb-capsule { display:flex; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
+.baybay-conversation .bb-capsule__text { flex:1; min-width:0; margin:0; padding-block:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
+.baybay-conversation .bb-capsule__text>strong { color:var(--color-ink); font-weight:600; }
+.baybay-conversation .bb-capsule__off { display:grid; flex:none; place-items:center; width:var(--control-height); height:var(--control-height); border-radius:var(--r-circle); color:var(--color-ink-2); transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.baybay-conversation :is(.bb-chips,.bb-prompts,.bb-also ul,.baybay-followups ul,.baybay-plan-followups,.baybay-plan-citations) { margin:0; padding:0; list-style:none; }
+.baybay-conversation :is(.bb-chips,.bb-also ul,.baybay-followups ul,.baybay-plan-followups) { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.baybay-conversation .bb-chips--page .ui-chip { border-color:var(--color-brand); color:var(--color-brand-deep); }
+.baybay-conversation .bb-prompts { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3); }
+.baybay-conversation .bb-prompt { display:grid; align-content:start; gap:var(--sp-1); width:100%; height:100%; min-height:88px; padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-bg); color:var(--color-ink); text-align:start; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.baybay-conversation .bb-prompt__title { font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .bb-prompt__hint { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation .bb-prompt:disabled { background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .bb-prompts { grid-template-columns:minmax(0, 1fr); }
+@media (max-width:359px) { .baybay-conversation .bb-prompts { grid-template-columns:minmax(0, 1fr); } }
+.baybay-conversation :is(.bb-also,.baybay-followups) { display:grid; gap:var(--sp-2); }
+.baybay-conversation :is(.bb-also,.baybay-followups)>p { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation :is(.bb-details,.baybay-requirements,.baybay-plan-checks,.bb-sources__details,.baybay-coverage,.baybay-task-handoff,.bb-more-details,.baybay-plan-stop-notes) .ui-disclosure__summary { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation :is(.bb-guest-line,.bb-guest-note,.baybay-access-line) { display:flex; flex-wrap:wrap; align-items:center; gap:0 var(--sp-2); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-guest-note { padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); }
+.baybay-conversation .bb-guest-note>span { flex:1 1 12em; }
+.baybay-conversation .bb-signin { padding-inline:var(--sp-2); font-size:var(--fs-meta); }
+.baybay-conversation :is(.baybay-composer-note,.bb-safety-note,.baybay-degraded) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-degraded { padding:var(--sp-3); border-radius:var(--r-md); background:var(--color-surface-2); }
+
+/* Composer (pinned): the members' scope chips, the quota line, the box (one input radius, a ≥3:1 edge, an ink-3 example)
+   and 问一下, F's primary, never disabled; 停止 is the secondary in the same place. */
+.baybay-conversation .baybay-search-modes { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0 0 var(--sp-3); }
+.baybay-conversation .baybay-composer-footer .baybay-composer-note { margin-bottom:var(--sp-2); }
+.baybay-conversation .member-baybay-composer { display:flex; align-items:flex-end; gap:var(--sp-2); padding:var(--sp-1); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); }
+.baybay-conversation .member-baybay-composer:focus-within { outline:2px solid var(--color-brand); outline-offset:2px; }
+.baybay-conversation textarea.member-baybay-question-input { display:block; flex:1; min-width:0; min-height:max(3rem, var(--control-height)); padding:var(--sp-3) var(--sp-2); border:0; border-radius:var(--r-lg); outline:none; resize:none; overflow-y:hidden; background:transparent; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation .member-baybay-question-input::placeholder { color:var(--color-ink-3); opacity:1; }
+.baybay-conversation .bb-send { flex:none; }
+
+/* One turn (32px between turns, 16px inside, 12px between blocks): the question bubble, the answer without a box. */
+.baybay-conversation .baybay-thread { display:grid; gap:var(--sp-6); }
+.baybay-conversation .baybay-turn { display:grid; gap:var(--sp-4); min-width:0; }
+.baybay-conversation .baybay-user-question { display:flex; justify-content:flex-end; }
+.baybay-conversation .baybay-user-question>p { max-width:85%; margin:0; padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation .member-baybay-answer { display:grid; gap:var(--sp-3); min-width:0; }
+.baybay-conversation .member-baybay-answer-label { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .member-baybay-answer-label>span { flex:1; }
+/* The scroll-follow lands on the answer's head row (or its notice, 911 card or error): the question stays in view above it. */
+.baybay-conversation :is(.member-baybay-answer-label,.member-baybay-answer>[data-notice],.bb-emergency,.baybay-request-error) { scroll-margin-top:5rem; }
+.baybay-conversation .member-baybay-answer-text { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-read); white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation .baybay-inline-citation { color:var(--color-brand); text-decoration:underline; text-underline-offset:.2em; }
+.baybay-conversation .bb-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+
+/* Pending (N24): three dots that fade on the --dur tokens; with motion at 0ms (reduced motion, 简洁显示) they stand still. */
+.baybay-conversation .bb-pending { display:flex; align-items:center; gap:var(--sp-2); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.bb-dots { display:inline-flex; flex:none; gap:var(--sp-1); }
+.bb-dots>span { width:var(--sp-2); height:var(--sp-2); border-radius:var(--r-circle); background:currentColor; opacity:.6; animation:bb-dot calc(var(--dur-5) * 4) var(--ease-std) infinite; }
+.bb-dots>span:nth-child(2) { animation-delay:var(--dur-3); }
+.bb-dots>span:nth-child(3) { animation-delay:var(--dur-5); }
+@keyframes bb-dot { 0%, 100% { opacity:.25; } 50% { opacity:1; } }
+
+/* An error, a stop or a daily limit: a neutral sunken box (no amber), the message and its action(s), equal widths. */
+.baybay-conversation .baybay-request-error { display:grid; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
+.baybay-conversation .baybay-request-error>p { margin:0; }
+.baybay-conversation .baybay-request-error>.ui-button { justify-self:start; }
+.baybay-conversation :is(.bb-error-links,.bb-notice__links) { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-2); margin:0; }
+
+/* The latest turn: 当前条件 (folded) and its editor. */
+.baybay-conversation .baybay-requirements .ui-disclosure__label>span { display:flex; flex-wrap:wrap; gap:0 var(--sp-2); }
+.baybay-conversation .baybay-requirements .ui-disclosure__label small { color:var(--color-ink-3); }
+.baybay-conversation .baybay-requirement-chips { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.baybay-conversation .baybay-requirement-chips .ui-chip>span { color:var(--color-ink-2); }
+.baybay-conversation .baybay-requirement-chips .ui-chip>strong { font-weight:600; }
+.baybay-conversation .baybay-requirement-editor { display:grid; gap:var(--sp-2); padding-top:var(--sp-3); }
+.baybay-conversation .baybay-requirement-editor label { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-requirement-editor input,.baybay-conversation .baybay-task-handoff textarea { width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); }
+.baybay-conversation .baybay-requirement-editor>div { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); }
+
+/* The plan card: the only card in a turn. */
+.baybay-conversation .baybay-assistant-plan { display:grid; gap:var(--sp-3); min-width:0; padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); overflow-wrap:anywhere; }
+.baybay-conversation .baybay-assistant-plan>header { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); }
+.baybay-conversation .baybay-assistant-plan>header>small { flex-basis:100%; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-assistant-plan h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .baybay-plan-status { flex:none; }
+html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; }
+@media (max-width:400px) { .baybay-conversation .baybay-assistant-plan h3 { flex-basis:100%; } }
+/* Where the title takes its own row (phones, 特大), the StatusChip sits beside the date: one row less above the stops. */
+@media (max-width:400px) { .baybay-conversation .baybay-assistant-plan>header>small { flex-basis:auto; } .baybay-conversation .baybay-plan-status { order:1; } .baybay-conversation .baybay-assistant-plan h3 { order:2; } }
+html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan>header>small { flex-basis:auto; }
+html[data-reading=extra-large] .baybay-conversation .baybay-plan-status { order:1; }
+html[data-reading=extra-large] .baybay-conversation .baybay-assistant-plan h3 { order:2; }
+.baybay-conversation .baybay-plan-summary { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); white-space:pre-wrap; }
+.baybay-conversation .baybay-plan-budget { display:grid; gap:var(--sp-1); }
+.baybay-conversation .baybay-plan-budget>p { margin:0; }
+.baybay-conversation .baybay-plan-budget strong { font-weight:600; font-variant-numeric:tabular-nums; }
+.baybay-conversation .baybay-plan-budget>small { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-plan-risk { color:var(--color-danger); font-size:var(--fs-meta); }
+/* 先确认这些 and its "另 N 项见出发前检查" share the first row (wrapping when there is no room); the list follows. */
+.baybay-conversation .baybay-plan-key-unknowns>ul { order:2; flex-basis:100%; }
+.baybay-conversation .baybay-plan-key-unknowns>small { order:1; }
+.baybay-conversation .baybay-plan-key-unknowns { display:flex; flex-wrap:wrap; align-items:baseline; gap:var(--sp-1) var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); }
+.baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-assistant-plan) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation :is(.baybay-plan-key-unknowns,.baybay-plan-checks) ul { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); list-style:disc; font-size:var(--fs-meta); }
+.baybay-conversation .baybay-plan-key-unknowns small { color:var(--color-ink-2); font-size:var(--fs-meta); }
+/* Stops: C's number plate (min 1.75em, one line) and a 1px rail down to the next stop. */
+.baybay-conversation .baybay-plan-stops { display:grid; margin:0; padding:0; list-style:none; }
+.baybay-conversation .baybay-plan-stops>li { position:relative; display:grid; gap:var(--sp-2); min-width:0; padding:0 0 var(--sp-5) calc(2rem + var(--sp-3)); }
+.baybay-conversation .baybay-plan-stops>li:not(:last-child)::before { content:""; position:absolute; top:calc(2rem + var(--sp-1)); bottom:var(--sp-1); left:1rem; width:1px; background:var(--color-line-strong); }
+.baybay-conversation .baybay-plan-stop-number.ui-plate { position:absolute; top:var(--sp-1); left:0; justify-content:center; min-width:1.75em; height:1.75em; padding:0 var(--sp-1); font-size:var(--fs-meta); line-height:1.75em; font-weight:600; white-space:nowrap; }
+.baybay-conversation .baybay-plan-stop-link { padding-block:var(--sp-3); color:inherit; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+html[data-simple] .baybay-conversation .baybay-plan-stop-link { padding-block:var(--sp-4); }
+.baybay-conversation .baybay-plan-stop-official { display:inline-flex; align-items:center; gap:var(--sp-1); margin-inline-start:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:400; }
+.baybay-conversation .baybay-plan-stops dl { display:grid; gap:var(--sp-1); margin:0; }
+.baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { display:grid; grid-template-columns:auto minmax(0, 1fr); gap:0 var(--sp-3); }
+.baybay-conversation .baybay-plan-stops dt { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.baybay-conversation .baybay-plan-stops dd { margin:0; min-width:0; }
+.baybay-conversation .baybay-plan-stop-when>dd { font-variant-numeric:tabular-nums; }
+/* One 待核实 line: the label runs into its list. */
+.baybay-conversation .baybay-plan-stops dl>div.baybay-plan-stop-unknown { display:block; }
+.baybay-conversation .baybay-plan-stop-unknown>dt { display:inline; margin-inline-end:var(--sp-1); }
+.baybay-conversation .baybay-plan-stop-unknown>dd { display:inline; }
+.baybay-conversation .baybay-plan-stops dd small { display:block; color:var(--color-ink-2); font-size:var(--fs-meta); }
+/* One column (phones, 特大, 简洁): 交通 / 门票 lead their line like 待核实, never a line of their own. */
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { display:block; }
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when)>:is(dt,dd) { display:inline; margin-inline:0 var(--sp-2); }
+/* No end margin on the dd: after its block <small> an end margin would open an empty line. */
+html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when)>dd { margin-inline-end:0; }
+@media (max-width:399px) { .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when) { display:block; } .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when)>:is(dt,dd) { display:inline; margin-inline:0 var(--sp-2); } .baybay-conversation .baybay-plan-stops dl>div:not(.baybay-plan-stop-when)>dd { margin-inline-end:0; } }
+.baybay-conversation .baybay-plan-notes { display:grid; gap:var(--sp-1); margin:0; padding-inline-start:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); list-style:disc; }
+.baybay-conversation .baybay-plan-citations { display:grid; gap:var(--sp-1); }
+.baybay-conversation :is(.baybay-plan-citations,.baybay-coverage li) a { display:inline-flex; flex-direction:column; justify-content:center; min-height:var(--control-height); padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-meta); text-decoration:none; }
+.baybay-conversation .baybay-plan-citations a>span { display:block; }
+.baybay-conversation .baybay-plan-citations a>span>svg { display:inline-block; margin-inline-end:var(--sp-1); vertical-align:-.125em; }
+.baybay-conversation .baybay-plan-citation-title { text-decoration:underline; text-underline-offset:.2em; }
+.baybay-conversation .baybay-plan-citation-host { white-space:nowrap; color:var(--color-ink-2); }
+.baybay-conversation :is(.baybay-plan-citations,.baybay-coverage,.bb-sources__list) small { display:block; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-ui); text-decoration:none; }
+.baybay-conversation .baybay-plan-citations-none { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-plan-swap { justify-self:start; padding-inline:0; }
+.baybay-conversation .baybay-plan-checks li { display:flex; align-items:flex-start; gap:var(--sp-2); }
+.baybay-conversation .baybay-plan-checks ul { padding:0; list-style:none; }
+.baybay-conversation .baybay-plan-checks li>svg { flex:none; margin-top:var(--sp-1); color:var(--color-brand); }
+.baybay-conversation .baybay-plan-checks strong { font-weight:600; }
+.baybay-conversation .baybay-plan-import { display:grid; gap:var(--sp-2); }
+.baybay-conversation .baybay-plan-import small { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-plan-import [role=alert] { margin:0; color:var(--color-danger); font-size:var(--fs-meta); }
+
+/* Coverage, sources' guide rows and the plan handoff on the shared expander. */
+.baybay-conversation .baybay-coverage ul { display:grid; gap:var(--sp-3); margin:0; padding:0; list-style:none; }
+.baybay-conversation .baybay-coverage li { display:grid; gap:var(--sp-1); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
+.baybay-conversation .baybay-coverage li>small { color:var(--color-ink-2); }
+.baybay-conversation .baybay-coverage :is(p,li>small) { margin:0; font-size:var(--fs-meta); }
+.baybay-conversation .baybay-coverage li>strong { font-weight:600; }
+.baybay-conversation .baybay-task-handoff label { display:grid; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-task-handoff textarea { min-height:6rem; resize:vertical; line-height:var(--lh-ui); }
+.baybay-conversation .baybay-task-handoff .ui-button { margin-top:var(--sp-3); }
+
+/* Outings (a real search on the site), matching posts and checklist cards: the same sizes, spacing and controls. */
+.baybay-conversation :is(.baybay-outing-results,.bb-posts) { display:grid; gap:var(--sp-3); }
+.baybay-conversation .baybay-outing-results>header { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); }
+.baybay-conversation .baybay-outing-eyebrow { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation :is(.baybay-outing-results,.bb-posts) h3 { margin:0; font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .baybay-outing-filters { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.baybay-conversation .baybay-outing-filters>span { padding:var(--sp-1) var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation :is(.baybay-outing-cards,.bb-posts__list) { display:grid; gap:var(--sp-2); }
+.baybay-conversation :is(.baybay-outing-card,.bb-post) { display:grid; gap:var(--sp-1); padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); text-decoration:none; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.baybay-conversation :is(.baybay-outing-card-top,.bb-post__top) { display:flex; align-items:flex-start; justify-content:space-between; gap:var(--sp-3); }
+.baybay-conversation :is(.baybay-outing-card-top,.bb-post__top) h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation :is(.baybay-outing-card-top,.bb-post__top)>svg { flex:none; color:var(--color-ink-3); }
+.baybay-conversation .baybay-outing-card>p,.baybay-conversation .bb-post__meta { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-3); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-post__meta>span { display:inline-flex; align-items:center; gap:var(--sp-1); }
+.baybay-conversation .baybay-outing-card-bottom { display:flex; flex-wrap:wrap; justify-content:space-between; gap:var(--sp-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-outing-card-bottom strong { color:var(--color-brand); font-weight:600; }
+.baybay-conversation .baybay-outing-all { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); margin-inline-end:var(--sp-4); color:var(--color-brand); font-size:var(--fs-meta); }
+.baybay-conversation :is(.baybay-outing-state,.baybay-outing-note,.bb-posts__note) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation div.baybay-outing-state { display:grid; gap:var(--sp-2); justify-items:start; }
+.baybay-conversation .baybay-outing-clarify { display:flex; gap:var(--sp-3); padding:var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
+.baybay-conversation .baybay-outing-clarify>svg { flex:none; color:var(--color-brand); }
+.baybay-conversation .baybay-outing-clarify>div { display:grid; gap:var(--sp-2); min-width:0; flex:1; }
+.baybay-conversation .baybay-outing-clarify strong { font-weight:600; }
+.baybay-conversation .baybay-outing-clarify p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.baybay-conversation .baybay-outing-clarify small,.baybay-conversation .baybay-outing-quick-replies>span { color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-outing-quick-replies { display:grid; gap:var(--sp-2); }
+.baybay-conversation .baybay-outing-quick-replies>div { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.baybay-conversation .bb-smart { display:grid; gap:var(--sp-3); padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
+.baybay-conversation .bb-smart__head { display:flex; align-items:flex-start; gap:var(--sp-2); }
+.baybay-conversation .bb-smart__head>svg { flex:none; color:var(--color-brand); }
+.baybay-conversation .bb-smart__tag { display:inline-block; margin-bottom:var(--sp-1); padding:0 var(--sp-2); border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--fs-badge); }
+.baybay-conversation .bb-smart h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .bb-smart__head p { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .bb-smart__items { display:grid; gap:var(--sp-1); margin:0; padding:0; list-style:none; font-size:var(--fs-meta); }
+.baybay-conversation .bb-smart__items button { display:flex; align-items:flex-start; gap:var(--sp-2); width:100%; min-height:var(--control-height); padding:var(--sp-2) 0; color:var(--color-ink); text-align:start; }
+.baybay-conversation .bb-smart__box { display:grid; flex:none; place-items:center; width:1.25rem; height:1.25rem; border:1px solid var(--color-line-control); border-radius:var(--r-circle); }
+.baybay-conversation .bb-smart__items [aria-pressed=true] { color:var(--color-ink-3); text-decoration:line-through; }
+.baybay-conversation .bb-smart__items [aria-pressed=true] .bb-smart__box { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
+
+/* Web finds (A closer look): the 40px mark tile of the related-guide rows instead of the 86px gradient cover. */
+.baybay-conversation .baybay-discovery { display:grid; gap:var(--sp-3); }
+.baybay-conversation .baybay-discovery-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:var(--sp-2); font-weight:600; }
+.baybay-conversation .baybay-discovery-heading small { color:var(--color-ink-2); font-size:var(--fs-meta); font-weight:400; }
+.baybay-conversation .baybay-discovery-cards { display:grid; gap:var(--sp-3); }
+.baybay-conversation .baybay-discovery-cards article { position:relative; display:grid; grid-template-columns:2.5rem minmax(0, 1fr); gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
+.baybay-conversation .baybay-discovery-n.ui-plate { position:absolute; top:var(--sp-2); left:var(--sp-2); padding:0 var(--sp-1); font-size:var(--fs-badge); line-height:var(--lh-ui); }
+.baybay-conversation .baybay-discovery-mark { margin-top:var(--sp-5); }
+.baybay-conversation .baybay-discovery-content { display:grid; gap:var(--sp-1); min-width:0; overflow-wrap:anywhere; }
+.baybay-conversation .baybay-discovery-content>small,.baybay-conversation .baybay-discovery-content :is(p,dd,dt) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-discovery-content h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
+.baybay-conversation .baybay-discovery-content dl { display:grid; grid-template-columns:auto minmax(0, 1fr); gap:0 var(--sp-3); margin:0; }
+.baybay-conversation .baybay-discovery-actions { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2) var(--sp-4); margin:0; }
+.baybay-conversation .baybay-discovery-actions>a { display:inline-flex; align-items:center; gap:var(--sp-1); min-height:var(--control-height); color:var(--color-brand); font-size:var(--fs-meta); }
+.baybay-conversation .baybay-discovery-note { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); }
+
+/* Feedback and the 👎 reasons (moved from audit-integration.css and feedback-entry.css): F's secondary buttons and chips. */
+.baybay-conversation .baybay-feedback { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); }
+.baybay-conversation .baybay-feedback>span { flex-basis:100%; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.baybay-downvote{display:flex;flex-wrap:wrap;align-items:center;gap:var(--sp-2);margin-top:var(--sp-2);font-size:var(--fs-meta);color:var(--color-ink-2)}
 .baybay-downvote>span{flex-basis:100%;font-weight:600;color:var(--color-ink)}
-.baybay-downvote button{min-height:var(--control-height);padding:.375rem .875rem;border:1px solid var(--color-line-control);border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-ink);font-size:var(--text-fact)}
-.baybay-downvote button[disabled]{opacity:.6}
-.baybay-downvote-failed{flex-basis:100%;margin:0;font-size:var(--text-fact);color:var(--color-danger)}
-.baybay-downvote-done{margin:.5rem 0 0;font-size:var(--text-fact);color:var(--color-ink-2)}
+.baybay-downvote-failed{flex-basis:100%;margin:0;font-size:var(--fs-meta);color:var(--color-danger)}
+.baybay-downvote-done{margin:var(--sp-2) 0 0;font-size:var(--fs-meta);color:var(--color-ink-2)}
 .baybay-feedback>:is(.baybay-downvote,.baybay-downvote-done){flex-basis:100%}
+
+/* Hover only where a pointer hovers (N23); every control family answers a press at once (--dur-1). */
+@media (hover:hover) and (pointer:fine) {
+  .baybay-conversation :is(.bb-prompt:not(:disabled),.bb-capsule__off,.baybay-outing-card,.bb-post,.bb-smart__items button):hover { background:var(--color-surface-2); }
+  .baybay-conversation :is(.baybay-plan-citations a,.baybay-outing-all,.baybay-discovery-actions>a,.baybay-plan-stop-link):hover { text-decoration-thickness:2px; }
+}
+.baybay-conversation :is(.bb-prompt,.bb-capsule__off,.baybay-outing-card,.bb-post,.bb-smart__items button):active:not(:disabled) { scale:.98; background:var(--color-surface-2); }
+.baybay-conversation :is(.baybay-plan-citations a,.baybay-outing-all,.baybay-discovery-actions>a,.baybay-plan-stop-link):active { color:var(--color-brand-hover); }

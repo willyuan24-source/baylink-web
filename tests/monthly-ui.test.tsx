@@ -57,7 +57,8 @@ const item = (id: string) => {
 type View = ReturnType<typeof render>;
 const queryParams = (view: View) => new URL(view.getByTestId('current-route').textContent!, 'http://localhost').searchParams;
 const feedIds = (root: ParentNode) => [...root.querySelectorAll('#monthly-events .ui-feed-card a.ui-card-link')].map(link => link.getAttribute('href')!.replace(/^\/events\//, ''));
-const pickIds = (root: ParentNode) => [...root.querySelectorAll('.ev-picks a.ui-card-link')].map(link => link.getAttribute('href')!.replace(/^\/events\//, ''));
+const { arrangePicks, homeLeadFor } = await import('../src/features/events/weekend-lead');
+const pickIds = (root: ParentNode) => [...new Set([...root.querySelectorAll('.ev-picks a.ui-card-link')].map(link => link.getAttribute('href')!.replace(/^\/events\/|\?.*$/g, '')))];
 const rangeLine = (root: ParentNode) => root.querySelector('.ev-range')?.textContent;
 const status = (view: View) => {
   const element = view.container.querySelector('.ev-count')!;
@@ -83,9 +84,9 @@ const assertFeed = (view: View, ids: string[]) => {
 };
 async function openFilters(view: View) {
   await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); });
-  return within(view.getByRole('dialog'));
+  return within(await view.findByRole('dialog', {}, { timeout: 5000 }));
 }
-const filterRow = (view: View) => within(view.container.querySelector<HTMLElement>('.ev-filter-row')!);
+const filterRow = (view: View) => within(view.container.querySelector<HTMLElement>('.ev-rail')!);
 
 test('/this-month lists every live activity through 再看 12 场, each card one link with a cover, never an ended one', () => {
   const view = render(edition());
@@ -216,7 +217,9 @@ test('URL filter choices survive unmounting and revisiting the resulting address
   const revisited = render(edition(TODAY, savedUrl));
   assert.equal(rangeLine(revisited.container), '全部日期 · 收录至 2/28 · 东湾');
   assert.equal(filterRow(revisited).getByRole('button', { name: '免费', exact: true }).getAttribute('aria-pressed'), 'true');
-  assert.match(filterRow(revisited).getByRole('button', { name: /^筛选/ }).textContent!, /筛选 2$/, 'the 筛选 chip counts 免费 and the keyword');
+  // 免费 is on the rail (its own pressed chip); 筛选 counts what was chosen in the sheet: the keyword, also shown as 「Powwow」.
+  assert.match(filterRow(revisited).getByRole('button', { name: /^筛选/ }).textContent!, /筛选 1$/, 'the 筛选 chip counts the keyword');
+  assert.ok(filterRow(revisited).getByRole('button', { name: '清除：「Powwow」' }));
   const again = await openFilters(revisited);
   assert.equal((again.getByRole('searchbox', { name: '关键词' }) as HTMLInputElement).value, 'Powwow');
   assertFeed(revisited, ['berkeley-indigenous-peoples-powwow-2026']);
@@ -236,14 +239,16 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
   assert.deepEqual(pickIds(first.container), []);
   const { tabs } = weekendTabs(INDEX_EVENTS.filter(event => event.region === 'south-bay' && isFreeToAttend(event)), today);
   showAll(first);
-  assert.deepEqual([...feedIds(first.container)].sort(), tabs.sat.map(event => event.id).sort(), 'Saturday is chosen first');
+  // UI9-EVENTS: the whole weekend on arrival (no day chip checked), each event once.
+  const whole = [...new Set([...tabs.sat, ...tabs.open, ...tabs.sun].map(event => event.id))].sort();
+  assert.deepEqual([...feedIds(first.container)].sort(), whole, 'the whole weekend first');
   const savedUrl = first.getByTestId('current-route').textContent!;
   first.unmount();
 
   const revisited = render(edition(today, savedUrl));
   assert.equal(rangeLine(revisited.container), '本周末 · 10/17–18 · 南湾');
   showAll(revisited);
-  assert.deepEqual([...feedIds(revisited.container)].sort(), tabs.sat.map(event => event.id).sort());
+  assert.deepEqual([...feedIds(revisited.container)].sort(), whole);
   const again = await openFilters(revisited);
   await act(async () => { fireEvent.click(again.getByRole('button', { name: '全部日期', exact: true })); });
   assert.equal(queryParams(revisited).has('when'), false, 'the page default leaves the URL');
@@ -254,9 +259,17 @@ test('date shortcuts combine with region, cost and search, and a shared weekend 
 test('an empty result offers a working reset that keeps the language and the remembered region', async () => {
   const view = render(edition('2026-10-14', '/this-month?when=today&region=sf&cost=free&q=不存在的活动&lang=en'));
   assert.deepEqual(feedIds(view.container), []);
-  assert.ok(view.getByRole('heading', { name: '这组条件下暂时没有活动' }));
+  // The empty card names the query and offers 清除搜索 (UI9-EVENTS §7); with the keyword gone, 清除筛选 resets the rest.
+  assert.ok(view.getByRole('heading', { name: '没有找到「不存在的活动」' }));
   assert.ok(view.getByRole('link', { name: '问 BayBay' }).getAttribute('href')!.startsWith('/plan?q='), 'a keyword with no match can go to BayBay');
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除筛选' })); });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除搜索' })); });
+  assert.equal(queryParams(view).has('q'), false);
+  if (view.queryByRole('button', { name: '清除筛选' })) await act(async () => { fireEvent.click(view.getByRole('button', { name: '清除筛选' })); });
+  else {
+    await act(async () => { fireEvent.click(view.getByRole('button', { name: /^筛选/ })); });
+    const sheet = await view.findByRole('dialog', {}, { timeout: 5000 });
+    await act(async () => { fireEvent.click(within(sheet).getByRole('button', { name: '清除', exact: true })); });
+  }
   assert.equal(queryParams(view).toString(), 'region=sf&lang=en');
   assertFeed(view, expected('2026-10-14', { region: 'sf' }));
 });
@@ -328,9 +341,10 @@ test('every remaining October weekend including Halloween has a published activi
       assert.ok(weekend.has(id), `${id} is on the weekend of ${today}`);
       assert.ok(nextOccurrence(item(id), today), `${id} has not ended before ${today}`);
     }
-    // The picks rail plus the chosen day's list together hold the expected outing or it is one tab away.
-    const picks = weekendPicks(INDEX_EVENTS, today).map(pick => pick.event.id);
-    assert.deepEqual(pickIds(view.container), picks);
+    // The editor's block: never home's lead (it returns to the feed), the lead first, then up to three pick rows.
+    const picks = weekendPicks(INDEX_EVENTS, today, { limit: 5 });
+    const { lead, rows } = arrangePicks(picks, today, homeLeadFor(today, picks));
+    assert.deepEqual(pickIds(view.container).slice(0, 1 + Math.min(3, rows.length)), [lead!, ...rows.slice(0, 3)].map(pick => pick.event.id));
     cleanup();
   }
   const halloween = render(edition('2026-10-31', '/this-month?when=today'));
@@ -375,7 +389,7 @@ test('server HTML renders the first 12 real activities with the full count and n
     const ids = expected(today);
     assert.deepEqual(feedIds(server), ids.slice(0, 12), today);
     assert.equal(server.querySelector('.ev-count')!.textContent, `找到 ${ids.length} 场活动`);
-    assert.equal(server.querySelector('.ev-more__note')?.textContent, `已显示 12 / ${ids.length} 场`);
+    assert.equal(server.querySelector('.ev-list-end__count')?.textContent, `已显示 12 / ${ids.length} 场 · 按日期排列`);
     assert.doesNotMatch(server.body.textContent!, /0 人想去/, 'no invented interest counts');
   }
   assert.equal(fetch.mock.callCount(), 0);
@@ -393,7 +407,7 @@ test('再看 12 场 reveals twelve more without changing the total, and a new fi
   fireEvent.click(view.getByRole('button', { name: '再看 12 场' }));
   assert.equal(cards(), 36);
   assert.equal(status(view), `找到 ${total} 场活动`);
-  await act(async () => { fireEvent.click(view.container.querySelector<HTMLElement>('.ev-story[data-story="kids"]')!); });
+  await act(async () => { fireEvent.click(filterRow(view).getByRole('button', { name: '亲子', exact: true })); });
   const kids = expected(TODAY, { tag: 'kids' });
   assert.equal(queryParams(view).get('tag'), 'kids');
   assert.equal(cards(), Math.min(12, kids.length), 'a new story returns to the first page');
@@ -409,7 +423,9 @@ test('unknown filter and sort values fall back safely while preserving unrelated
   assert.equal(filterRow(view).getByRole('button', { name: '免费', exact: true }).getAttribute('aria-pressed'), 'false');
   assert.equal(filterRow(view).getByRole('button', { name: /^筛选/ }).textContent, '筛选', 'nothing is counted as a filter');
   assert.deepEqual(feedIds(view.container), expected(TODAY).slice(0, 12));
-  await act(async () => { fireEvent.click(view.container.querySelector<HTMLElement>('.ev-story[data-story="outdoors"]')!); });
+  // 户外 is in the 筛选 sheet now (UI9-EVENTS rail 1: 免费 · 亲子 · 长辈友好).
+  const sheet = await openFilters(view);
+  await act(async () => { fireEvent.click(sheet.getByRole('button', { name: '户外', exact: true })); });
   assert.equal(queryParams(view).get('lang'), 'zh-Hant');
   assert.equal(queryParams(view).get('tag'), 'outdoors');
   assertFeed(view, expected(TODAY, { tag: 'outdoors' }));

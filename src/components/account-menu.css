@@ -1,0 +1,17 @@
+/* The signed-in account menu (AccountMenu.tsx, its own chunk): the same frame, enter / exit and rows as 更多 and the
+   language menu in site-chrome.css, written for this panel only, so they load with the menu instead of with every page. */
+.site-app .site-account-menu { position:relative; }
+.site-app .site-account-menu>summary::-webkit-details-marker { display:none; }
+.site-app .site-account-panel { position:absolute; z-index:60; top:calc(100% + var(--sp-2)); right:0; overflow:auto; overscroll-behavior:contain; width:15rem; padding:var(--sp-2); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e2); transition:opacity var(--dur-2) var(--ease-in), translate var(--dur-2) var(--ease-in); }
+.site-app .site-account-menu::details-content { transition:content-visibility var(--dur-2) allow-discrete; }
+.site-app .site-account-menu:not([open])>.site-account-panel { opacity:0; translate:0 -4px; }
+.site-app [open]>.site-account-panel { transition-duration:var(--dur-3); transition-timing-function:var(--ease-out); }
+@starting-style { .site-app [open]>.site-account-panel { opacity:0; translate:0 -4px; } }
+.site-app .site-account-name { padding:var(--sp-2) var(--sp-3); overflow:hidden; color:var(--color-ink); font-size:var(--fs-meta); white-space:nowrap; text-overflow:ellipsis; }
+.site-app .site-account-panel nav { display:flex; flex-direction:column; gap:2px; padding:var(--sp-1) 0; border-block:1px solid var(--color-line); }
+.site-app .site-account-panel nav>:is(a,button),.site-app .site-account-panel>button { display:flex; align-items:center; gap:var(--sp-3); width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-snug); text-align:left; transition:background-color var(--dur-2) var(--ease-std); }
+.site-app .site-account-panel nav>:is(a,button)>svg,.site-app .site-account-panel>button>svg { flex:none; color:var(--color-ink-2); }
+.site-app .site-account-panel nav>:is(a,button):active,.site-app .site-account-panel>button:active { background:var(--color-surface-2); }
+@media (hover:hover) and (pointer:fine) { .site-app .site-account-panel nav>:is(a,button):hover,.site-app .site-account-panel>button:hover { background:var(--color-surface-2); } }
+.site-app .site-account-panel nav .site-unread { margin-left:auto; }
+.site-app .site-account-panel>button { margin-top:var(--sp-1); }

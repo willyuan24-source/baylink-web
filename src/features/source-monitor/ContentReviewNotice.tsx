@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import { translateText, useLocale } from '../../i18n/locale';
 import { getReaderFreshness, type ContentReviewRecord, type ReaderFreshnessItem } from '../../lib/content-review';
-import { contentReviewText, contentReviewTextStyle } from './content-review-copy';
+import { contentReviewText } from './content-review-copy';
 import { pageNames, useContentReviewToday, useSourceFreshness } from './content-review-runtime';
 
 /**
@@ -10,8 +10,10 @@ import { pageNames, useContentReviewToday, useSourceFreshness } from './content-
  * review cadence stays an editor tool. Guides never get a box: a meta line points to the
  * official references and explains what the "updated" date means. An event mount passes `nextDate` (its next confirmed
  * session, null when none is left) so the box keeps to the live window, as the soft line does.
+ * A detail page that is over passes `ended` ("已结束（10/18）"): the page then has ONE compact notice under its head, the
+ * archive sentence and the official link after that lead (UI9-DETAIL; no second 往期内容 box, no heading).
  */
-export function ContentReviewNotice({ record, today, sourcesAnchor }: { record: ContentReviewRecord & Pick<ReaderFreshnessItem, 'nextDate'>; today?: string; sourcesAnchor?: string }) {
+export function ContentReviewNotice({ record, today, sourcesAnchor, ended }: { record: ContentReviewRecord & Pick<ReaderFreshnessItem, 'nextDate'>; today?: string; sourcesAnchor?: string; ended?: string }) {
   const locale = useLocale(), day = useContentReviewToday(today);
   const { rows, receivedAt } = useSourceFreshness(record.kind === 'guide' ? null : record.id);
   const t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);
@@ -27,12 +29,11 @@ export function ContentReviewNotice({ record, today, sourcesAnchor }: { record: 
       </details>
     </div>;
   }
-  if (freshness.state === 'archived') {
+  if (ended || freshness.state === 'archived') {
     const c = (key: Parameters<typeof contentReviewText>[0]) => contentReviewText(key, locale);
-    return <aside className="content-review-notice rounded-xl border border-baylink-border bg-baylink-bg p-4 my-5" aria-label={c('资料复核状态')} style={contentReviewTextStyle} translate="no">
-      <h2 style={{ ...contentReviewTextStyle, fontWeight: 700 }}>{c('往期内容')}</h2>
-      <p style={contentReviewTextStyle}>{c('所列覆盖日期已结束。此页面保留作往期参考，不表示当前仍可参加、领取或办理。')}</p>
-      {official && <a href={official} target="_blank" rel="noopener noreferrer" className="inline-flex items-center underline mt-2" style={{ ...contentReviewTextStyle, minHeight: 'var(--control-height, 2.75rem)' }}>{c('查看官方最新说明')}</a>}
+    return <aside className="content-review-notice content-review-ended" aria-label={c('资料复核状态')} translate="no">
+      <p>{ended && <strong>{ended} </strong>}{c('所列覆盖日期已结束。此页面保留作往期参考，不表示当前仍可参加、领取或办理。')}
+        {official && <> <a href={official} target="_blank" rel="noopener noreferrer">{c('查看官方最新说明')} ›</a></>}</p>
     </aside>;
   }
   if (freshness.state !== 'hard') return null;

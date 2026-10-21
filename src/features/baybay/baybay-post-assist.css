@@ -1,0 +1,35 @@
+/* BayBay's post helper inside the publishing sheet (BayBayPostAssist imports this sheet, so it loads with that sheet's
+   code). UI9-BB: the otter as the one mark, the panel's type, spacing and radius tokens instead of Tailwind sizes, shadows
+   and radii; F's chips and buttons. Rules are scoped under .bb-assist (0,2,0) so the dialog's shared reading rules
+   (tokens.css .member-compose-dialog, 0,1,1) do not resize them. */
+.bb-assist { display:grid; gap:var(--sp-3); padding:var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-ink); }
+.bb-assist .bb-assist__head { display:flex; align-items:flex-start; gap:var(--sp-3); }
+.bb-assist .bb-assist__head h4 { margin:0; font-size:var(--fs-body); line-height:var(--lh-snug); font-weight:600; }
+.bb-assist :is(.bb-assist__head p,.bb-assist__note,.bb-assist__group>p,.bb-assist__hint,.bb-assist__tip,.bb-assist__check) { margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.bb-assist .bb-assist__field { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.bb-assist :is(select,.bb-assist__input) { min-height:var(--control-height); max-width:100%; padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); font-size:var(--fs-body); }
+.bb-assist .bb-assist__input { width:100%; resize:none; line-height:var(--lh-ui); }
+.bb-assist .bb-assist__input::placeholder { color:var(--color-ink-3); opacity:1; }
+.bb-assist .bb-assist__group { display:grid; gap:var(--sp-2); }
+.bb-assist .bb-assist__group>div,.bb-assist .bb-actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+.bb-assist .ui-button { font-size:var(--fs-body); }
+.bb-assist .ui-chip { min-height:var(--control-height); font-size:var(--fs-meta); }
+.bb-assist .ui-chip:disabled { border-color:transparent; background:var(--color-surface); color:var(--color-ink-3); cursor:not-allowed; }
+.bb-assist .bb-assist__draft { display:grid; gap:var(--sp-3); padding:var(--sp-3); border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); }
+.bb-assist .bb-assist__draft-title { margin:0; font-size:var(--fs-body); font-weight:600; }
+.bb-assist .bb-assist__draft-body { display:grid; gap:var(--sp-1); max-height:12rem; overflow-y:auto; color:var(--color-ink-2); font-size:var(--fs-meta); }
+.bb-assist .bb-assist__draft-body p { margin:0; font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.bb-assist .bb-assist__draft-body p>span:first-child { color:var(--color-ink-3); }
+.bb-assist .bb-assist__pre { white-space:pre-wrap; }
+.bb-assist .bb-assist__check { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); cursor:pointer; }
+.bb-assist .bb-assist__tip { padding:var(--sp-2); border-radius:var(--r-sm); background:var(--color-surface-2); }
+.bb-assist .bb-assist__cover { display:flex; align-items:center; gap:var(--sp-2); }
+.bb-assist .bb-assist__cover img { width:3rem; height:3rem; border-radius:var(--r-sm); object-fit:cover; }
+.bb-assist .bb-assist__hint { padding:var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
+.bb-assist .bb-assist__hint strong { color:var(--color-brand-deep); font-weight:600; }
+.bb-assist .bb-otter { flex:none; width:2.75rem; height:2.75rem; }
+.bb-assist .bb-dots { display:inline-flex; flex:none; gap:var(--sp-1); }
+.bb-assist .bb-dots>span { width:var(--sp-2); height:var(--sp-2); border-radius:var(--r-circle); background:currentColor; opacity:.6; animation:bb-assist-dot calc(var(--dur-5) * 4) var(--ease-std) infinite; }
+.bb-assist .bb-dots>span:nth-child(2) { animation-delay:var(--dur-3); }
+.bb-assist .bb-dots>span:nth-child(3) { animation-delay:var(--dur-5); }
+@keyframes bb-assist-dot { 0%, 100% { opacity:.25; } 50% { opacity:1; } }

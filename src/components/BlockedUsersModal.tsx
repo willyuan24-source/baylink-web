@@ -4,6 +4,7 @@ import { Sheet } from './ui/Sheet';
 import { Button } from './ui/Button';
 import './site-dialogs.css';
 import { useUiCopy } from './ui/ui-copy';
+import DefaultAvatar from './Avatar';
 
 export type BlockedUserItem = {
   id: string;
@@ -20,7 +21,8 @@ type BlockedUsersModalProps = {
   loadBlocks: () => Promise<{ blocks: BlockedUserItem[] }>;
   onUnblock: (userId: string) => Promise<void>;
   showToast: (message: string, type?: 'success' | 'error' | 'info') => void;
-  Avatar: React.ComponentType<{ src?: string; name?: string; size?: number; className?: string }>;
+  /** The site's Avatar unless a caller passes its own (the dialog imports it, so the shell does not). */
+  Avatar?: React.ComponentType<{ src?: string; name?: string; size?: number; className?: string }>;
 };
 
 export const BlockedUsersModal = ({
@@ -29,7 +31,7 @@ export const BlockedUsersModal = ({
   loadBlocks,
   onUnblock,
   showToast,
-  Avatar,
+  Avatar = DefaultAvatar,
 }: BlockedUsersModalProps) => {
   const [blocks, setBlocks] = useState<BlockedUserItem[]>([]);
   const [loading, setLoading] = useState(true);

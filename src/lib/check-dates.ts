@@ -48,6 +48,16 @@ export function checkLine(summary: CheckSummary, t: (zh: string, en: string) => 
 }
 
 /**
+ * One wording for the site's promise (UI9-HOME, G12): HOME's masthead and trust line, EVENTS' facts line and NAV's footer
+ * print these. SITE_IDENTITY, FREE_NO_SIGN_IN and METHOD_HREF live in lib/site-promise.ts, which the shell loads (one copy
+ * in the entry); OFFICIAL_LINKS is said only by the home and the events pages. METHOD_HREF is the only "我们怎么核对" target
+ * (AboutContent.tsx, decision 10). FREE_NO_SIGN_IN is printed only because a guest can browse, ♡ save (kept in the browser)
+ * and ask BayBay (guest mode).
+ */
+export { FREE_NO_SIGN_IN, METHOD_HREF, SITE_IDENTITY } from './site-promise';
+export const OFFICIAL_LINKS = { zh: '每条附官方链接', en: 'An official link on every item' } as const;
+
+/**
  * The same dates said as checks against the official pages (UI9-PREP; HOME's trust line, EVENTS' lede): 官网核对, never
  * 人工核对. `order: 'lead'` (the default) leads with it, like a card's "官网核对 10/2": "官网核对 10/15" (every item that day),
  * "官网核对 多数 10/15" (one dated day, some item undated), "官网核对 多数 10/15 · 最早 9/28", "官网核对 多数 9/29 · 最近 10/12".

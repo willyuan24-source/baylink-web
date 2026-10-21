@@ -141,7 +141,8 @@ test('each guide shows its photos in the step they belong to, outside the step f
       assert.equal(img.closest('section.gd-step'), steps[afterHeading - 1], `${slug}: ${key} stands in step ${afterHeading}`);
       const figure = img.closest('figure')!;
       const links = [...figure.querySelectorAll('figcaption a')].map(link => link.getAttribute('href'));
-      assert.ok(links.includes(image.creditUrl!) && links.includes(image.licenseUrl!), `${slug}: ${key} links its source and licence`);
+      // A licensed photo links its licence too; an agency's own photo or a public-domain one (CNT-MEDIA-5) has none to link.
+      assert.ok(links.includes(image.creditUrl!) && (!image.licenseUrl || links.includes(image.licenseUrl)), `${slug}: ${key} links its source and licence`);
       assert.ok(figure.textContent!.includes(image.credit), `${slug}: ${key} names its author and licence`);
     }
     // Every photo the page shows is in 本页图片来源 once.

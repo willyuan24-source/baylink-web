@@ -21,10 +21,20 @@ import roundupOpenings1 from './city-roundup-peninsula-south-openings.json';
 import roundupOpenings2 from './city-roundup-north-openings.json';
 import { canonicalEventId } from '../lib/event-id';
 import { applyOpeningOverlay } from './editorial-overlay/apply';
+import officialOpeningMedia from './official-opening-media.json';
+
+/**
+ * CNT-MEDIA-5 (owner approval in chat 2026-10-19): a shop's own image (official-opening-media.json) replaces its AI
+ * illustration or third-party photo, which never cover a new shop (src/lib/cover.ts). Applied with the other media updates,
+ * before the editorial overlay, which may not set `imageKey`.
+ */
+const OFFICIAL_OPENING_IMAGE_UPDATES: Readonly<Record<string, { imageKey: string }>> = Object.fromEntries(
+  officialOpeningMedia.map(({ key, openingId }) => [openingId, { imageKey: key }]),
+);
 
 const previousOpenings = mergeReviewedOpenings([...septemberOpenings, ...additionalOctoberOpenings, ...communityDiscoveryOpenings, ...lateSeptemberSfEastOpenings, ...lateSeptemberPeninsulaSouthOpenings, ...lateSeptemberNorthOpenings, ...octoberRefreshOpenings]).sort((a, b) => Number(b.status !== 'announced') - Number(a.status !== 'announced') || b.verifiedAt.localeCompare(a.verifiedAt) || (b.openedOn || '').localeCompare(a.openedOn || '') || a.name.localeCompare(b.name));
 // The editorial overlay goes last (src/data/editorial-overlay).
-export const currentOpenings = applyOpeningOverlay([...new Map([...previousOpenings, ...([...roundupOpenings0, ...roundupOpenings1, ...roundupOpenings2, ...octnovOpenings] as SeptemberOpening[])].map(shop => [shop.id, shop])).values()].map(shop => ({ ...shop, ...CONTENT_AUDIT_OPENING_UPDATES[shop.id], ...reviewedOctnovOpenings[shop.id] }))).sort((a,b) => Number(b.status !== 'announced') - Number(a.status !== 'announced') || b.verifiedAt.localeCompare(a.verifiedAt) || (b.openedOn || '').localeCompare(a.openedOn || '') || a.name.localeCompare(b.name));
+export const currentOpenings = applyOpeningOverlay([...new Map([...previousOpenings, ...([...roundupOpenings0, ...roundupOpenings1, ...roundupOpenings2, ...octnovOpenings] as SeptemberOpening[])].map(shop => [shop.id, shop])).values()].map(shop => ({ ...shop, ...CONTENT_AUDIT_OPENING_UPDATES[shop.id], ...reviewedOctnovOpenings[shop.id], ...OFFICIAL_OPENING_IMAGE_UPDATES[shop.id] }))).sort((a,b) => Number(b.status !== 'announced') - Number(a.status !== 'announced') || b.verifiedAt.localeCompare(a.verifiedAt) || (b.openedOn || '').localeCompare(a.openedOn || '') || a.name.localeCompare(b.name));
 export type LocalDiscovery = { kind: 'event'; event: MonthlyEvent } | { kind: 'offer'; offer: FreebieOffer } | { kind: 'opening'; shop: SeptemberOpening };
 export const localDiscoveries: LocalDiscovery[] = [...MONTHLY_EVENTS.map(event => ({ kind: 'event' as const, event })), ...currentFreebies.map(offer => ({ kind: 'offer' as const, offer })), ...currentOpenings.map(shop => ({ kind: 'opening' as const, shop }))];
 export const discoveryShare = (item: LocalDiscovery) => item.kind === 'event' ? eventShare(item.event) : item.kind === 'offer' ? offerShare(item.offer) : openingShare(item.shop);

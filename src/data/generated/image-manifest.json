@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "de7046a2",
- "registryCount": 388,
+ "registryHash": "730c657c",
+ "registryCount": 431,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -3093,7 +3093,7 @@
    "sha1": "ef9267d60b504ad1",
    "lqip": "#a9a",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -6454,6 +6454,93 @@
     "/guides/federal-pd/dvids-blue-angels-sffw-2024.webp 1280w"
    ]
   },
+  "/guides/guide-photos/loc-highsmith-hhs-humphrey-building-2012.webp": {
+   "width": 1280,
+   "height": 695,
+   "bytes": 87984,
+   "sha1": "d8f1f16a362dda7c",
+   "lqip": "#999",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/guide-photos/loc-highsmith-hhs-humphrey-building-2012-small.webp",
+     "width": 480,
+     "height": 261,
+     "bytes": 12718
+    }
+   ],
+   "srcset": [
+    "/guides/guide-photos/loc-highsmith-hhs-humphrey-building-2012-small.webp 480w",
+    "/guides/guide-photos/loc-highsmith-hhs-humphrey-building-2012.webp 1280w"
+   ]
+  },
+  "/guides/guide-photos/official-sfmta-kirkland-yard-2023.webp": {
+   "width": 1000,
+   "height": 668,
+   "bytes": 123580,
+   "sha1": "dedbf18d841164b5",
+   "lqip": "#999",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/guide-photos/official-sfmta-kirkland-yard-2023-small.webp",
+     "width": 480,
+     "height": 321,
+     "bytes": 24582
+    },
+    {
+     "rung": 800,
+     "file": "/guides/guide-photos/official-sfmta-kirkland-yard-2023-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 49102,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/guide-photos/official-sfmta-kirkland-yard-2023-small.webp 480w",
+    "/guides/guide-photos/official-sfmta-kirkland-yard-2023-800.webp 800w",
+    "/guides/guide-photos/official-sfmta-kirkland-yard-2023.webp 1000w"
+   ]
+  },
+  "/guides/guide-photos/official-sfpl-main-library-skylight.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 142656,
+   "sha1": "5410fcca318eb74e",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/guide-photos/official-sfpl-main-library-skylight-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 26288
+    },
+    {
+     "rung": 800,
+     "file": "/guides/guide-photos/official-sfpl-main-library-skylight-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 48286,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/guide-photos/official-sfpl-main-library-skylight-small.webp 480w",
+    "/guides/guide-photos/official-sfpl-main-library-skylight-800.webp 800w",
+    "/guides/guide-photos/official-sfpl-main-library-skylight.webp 1280w"
+   ]
+  },
   "/guides/november/autumn-community.webp": {
    "width": 1536,
    "height": 1024,
@@ -6610,7 +6697,7 @@
    "sha1": "3d65645155884c27",
    "lqip": "#988",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -6980,7 +7067,7 @@
    "sha1": "a93383e3128b0e4e",
    "lqip": "#776",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -6989,28 +7076,11 @@
      "width": 480,
      "height": 320,
      "bytes": 46826
-    },
-    {
-     "rung": 800,
-     "file": "/guides/octnov-events/octnov-festival-pavilion-context-800.webp",
-     "width": 800,
-     "height": 533,
-     "bytes": 74030,
-     "quality": 64
-    },
-    {
-     "rung": 1200,
-     "file": "/guides/octnov-events/octnov-festival-pavilion-context-1200.webp",
-     "width": 1200,
-     "height": 800,
-     "bytes": 146204,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/octnov-events/octnov-festival-pavilion-context-small.webp 480w",
-    "/guides/octnov-events/octnov-festival-pavilion-context-800.webp 800w",
-    "/guides/octnov-events/octnov-festival-pavilion-context-1200.webp 1200w"
+    "/guides/octnov-events/octnov-festival-pavilion-context.webp 1280w"
    ]
   },
   "/guides/octnov-events/octnov-fort-mason-context.webp": {
@@ -7373,6 +7443,38 @@
     "/guides/official-events/acl-cherryland-chinese-storytimes-oct24-2026.webp 720w"
    ]
   },
+  "/guides/official-events/acl-fremont-funday-family-board-games-2026.webp": {
+   "width": 1280,
+   "height": 640,
+   "bytes": 124040,
+   "sha1": "834fa0913630ed8f",
+   "lqip": "#a75",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/acl-fremont-funday-family-board-games-2026-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 20884
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/acl-fremont-funday-family-board-games-2026-800.webp",
+     "width": 800,
+     "height": 400,
+     "bytes": 38322,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/acl-fremont-funday-family-board-games-2026-small.webp 480w",
+    "/guides/official-events/acl-fremont-funday-family-board-games-2026-800.webp 800w",
+    "/guides/official-events/acl-fremont-funday-family-board-games-2026.webp 1280w"
+   ]
+  },
   "/guides/official-events/acl-san-lorenzo-diwali-diya-2026.webp": {
    "width": 760,
    "height": 230,
@@ -7680,6 +7782,29 @@
     "/guides/official-events/cupertino-baer-blacksmith-fall-2026-1200.webp 1200w"
    ]
   },
+  "/guides/official-events/curiodyssey-illuminodyssey-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 49734,
+   "sha1": "c4624985998a3463",
+   "lqip": "#044",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/curiodyssey-illuminodyssey-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 10486
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/curiodyssey-illuminodyssey-2026-small.webp 480w",
+    "/guides/official-events/curiodyssey-illuminodyssey-2026.webp 1280w"
+   ]
+  },
   "/guides/official-events/daly-city-top-of-the-hill-festival-2026.webp": {
    "width": 1200,
    "height": 1800,
@@ -7953,6 +8078,46 @@
     "/guides/official-events/fremont-irvington-farmers-market-2026.webp 940w"
    ]
   },
+  "/guides/official-events/gilroy-gardens-north-pole-nights-2026.webp": {
+   "width": 1211,
+   "height": 1211,
+   "bytes": 154950,
+   "sha1": "2424a675672f93f3",
+   "lqip": "#886",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/gilroy-gardens-north-pole-nights-2026-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 29858
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/gilroy-gardens-north-pole-nights-2026-800.webp",
+     "width": 800,
+     "height": 800,
+     "bytes": 59532,
+     "quality": 72
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/gilroy-gardens-north-pole-nights-2026-1200.webp",
+     "width": 1200,
+     "height": 1200,
+     "bytes": 96758,
+     "quality": 72
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/gilroy-gardens-north-pole-nights-2026-small.webp 480w",
+    "/guides/official-events/gilroy-gardens-north-pole-nights-2026-800.webp 800w",
+    "/guides/official-events/gilroy-gardens-north-pole-nights-2026-1200.webp 1200w"
+   ]
+  },
   "/guides/official-events/lafayette-res-run-2026.webp": {
    "width": 800,
    "height": 1200,
@@ -8060,6 +8225,52 @@
    "srcset": [
     "/guides/official-events/mcm-halloween-spectacular-20261031-small.webp 480w",
     "/guides/official-events/mcm-halloween-spectacular-20261031.webp 1280w"
+   ]
+  },
+  "/guides/official-events/meritage-building-with-ember-the-elf-2026.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 44004,
+   "sha1": "8997835a996d50ff",
+   "lqip": "#cbc",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/meritage-building-with-ember-the-elf-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7700
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/meritage-building-with-ember-the-elf-2026-small.webp 480w",
+    "/guides/official-events/meritage-building-with-ember-the-elf-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/meritage-gingerbread-house-workshop-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 57008,
+   "sha1": "4d5ff314c859002e",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/meritage-gingerbread-house-workshop-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11688
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/meritage-gingerbread-house-workshop-2026-small.webp 480w",
+    "/guides/official-events/meritage-gingerbread-house-workshop-2026.webp 1280w"
    ]
   },
   "/guides/official-events/napa-tulocay-heritage-halloween-tour-2026.webp": {
@@ -8227,6 +8438,69 @@
     "/guides/official-events/nov2026-presidio-free-yoga-1200.webp 1200w"
    ]
   },
+  "/guides/official-events/nov2026-sf-renegade-craft-winter.webp": {
+   "width": 1000,
+   "height": 1000,
+   "bytes": 138846,
+   "sha1": "a694b9133a092985",
+   "lqip": "#964",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/nov2026-sf-renegade-craft-winter-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 21448
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/nov2026-sf-renegade-craft-winter-800.webp",
+     "width": 800,
+     "height": 800,
+     "bytes": 43128,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/nov2026-sf-renegade-craft-winter-small.webp 480w",
+    "/guides/official-events/nov2026-sf-renegade-craft-winter-800.webp 800w",
+    "/guides/official-events/nov2026-sf-renegade-craft-winter.webp 1000w"
+   ]
+  },
+  "/guides/official-events/november-north-healdsburg-market-2026.webp": {
+   "width": 800,
+   "height": 800,
+   "bytes": 184682,
+   "sha1": "60754821d78fd36d",
+   "lqip": "#964",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/november-north-healdsburg-market-2026-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 47116
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-events/november-north-healdsburg-market-2026-1200.webp",
+     "width": 800,
+     "height": 800,
+     "bytes": 130684,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/november-north-healdsburg-market-2026-small.webp 480w",
+    "/guides/official-events/november-north-healdsburg-market-2026-1200.webp 800w"
+   ]
+  },
   "/guides/official-events/november-north-sonoma-harvest-market-2026.webp": {
    "width": 1280,
    "height": 720,
@@ -8329,6 +8603,38 @@
     "/guides/official-events/oakland-vintage-fashion-faire-2026-small.webp 480w",
     "/guides/official-events/oakland-vintage-fashion-faire-2026-800.webp 800w",
     "/guides/official-events/oakland-vintage-fashion-faire-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-events/oakland-zoo-glowfari-2026.webp": {
+   "width": 1024,
+   "height": 522,
+   "bytes": 134388,
+   "sha1": "2093a714cb45ee17",
+   "lqip": "#654",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/oakland-zoo-glowfari-2026-small.webp",
+     "width": 480,
+     "height": 245,
+     "bytes": 26372
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/oakland-zoo-glowfari-2026-800.webp",
+     "width": 800,
+     "height": 408,
+     "bytes": 50964,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/oakland-zoo-glowfari-2026-small.webp 480w",
+    "/guides/official-events/oakland-zoo-glowfari-2026-800.webp 800w",
+    "/guides/official-events/oakland-zoo-glowfari-2026.webp 1024w"
    ]
   },
   "/guides/official-events/octnov-pyt-wizard-oz-2026.webp": {
@@ -9080,6 +9386,38 @@
     "/guides/official-events/sf-filbookfest-2026.webp 1280w"
    ]
   },
+  "/guides/official-events/sf-financial-planning-day-oct24-2026.webp": {
+   "width": 1280,
+   "height": 640,
+   "bytes": 101128,
+   "sha1": "186ab2bc75564325",
+   "lqip": "#789",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sf-financial-planning-day-oct24-2026-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 10182
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/sf-financial-planning-day-oct24-2026-800.webp",
+     "width": 800,
+     "height": 400,
+     "bytes": 25166,
+     "quality": 72
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sf-financial-planning-day-oct24-2026-small.webp 480w",
+    "/guides/official-events/sf-financial-planning-day-oct24-2026-800.webp 800w",
+    "/guides/official-events/sf-financial-planning-day-oct24-2026.webp 1280w"
+   ]
+  },
   "/guides/official-events/sf-halloween-broadside-printing-oct17-2026.webp": {
    "width": 951,
    "height": 469,
@@ -9292,6 +9630,52 @@
     "/guides/official-events/sf-world-of-dumplings-2026.webp 940w"
    ]
   },
+  "/guides/official-events/sfpl-sunset-mahjong-nov28-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 79432,
+   "sha1": "9e98f860d14b7396",
+   "lqip": "#776",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sfpl-sunset-mahjong-nov28-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17836
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sfpl-sunset-mahjong-nov28-2026-small.webp 480w",
+    "/guides/official-events/sfpl-sunset-mahjong-nov28-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/sfpl-visitacion-valley-calligraphy-chess-nov14-2026.webp": {
+   "width": 951,
+   "height": 469,
+   "bytes": 51990,
+   "sha1": "4242ace5a3fa2835",
+   "lqip": "#b98",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sfpl-visitacion-valley-calligraphy-chess-nov14-2026-small.webp",
+     "width": 480,
+     "height": 237,
+     "bytes": 15646
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sfpl-visitacion-valley-calligraphy-chess-nov14-2026-small.webp 480w",
+    "/guides/official-events/sfpl-visitacion-valley-calligraphy-chess-nov14-2026.webp 951w"
+   ]
+  },
   "/guides/official-events/sfpl-western-addition-open-house-oct24-2026.webp": {
    "width": 1280,
    "height": 853,
@@ -9376,6 +9760,162 @@
     "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-small.webp 480w",
     "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-800.webp 800w",
     "/guides/official-events/sjpl-almaden-sounds-of-south-asia-2026-1200.webp 1024w"
+   ]
+  },
+  "/guides/official-events/sjpl-berryessa-diwali-2026.webp": {
+   "width": 927,
+   "height": 504,
+   "bytes": 89468,
+   "sha1": "108af197f19237f5",
+   "lqip": "#843",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-berryessa-diwali-2026-small.webp",
+     "width": 480,
+     "height": 261,
+     "bytes": 19246
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-berryessa-diwali-2026-small.webp 480w",
+    "/guides/official-events/sjpl-berryessa-diwali-2026.webp 927w"
+   ]
+  },
+  "/guides/official-events/sjpl-calabazas-chinese-tea-hour-nov21-2026.webp": {
+   "width": 1010,
+   "height": 636,
+   "bytes": 117854,
+   "sha1": "a366f47bdea75b58",
+   "lqip": "#776",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-calabazas-chinese-tea-hour-nov21-2026-small.webp",
+     "width": 480,
+     "height": 302,
+     "bytes": 20662
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/sjpl-calabazas-chinese-tea-hour-nov21-2026-800.webp",
+     "width": 800,
+     "height": 504,
+     "bytes": 43596,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-calabazas-chinese-tea-hour-nov21-2026-small.webp 480w",
+    "/guides/official-events/sjpl-calabazas-chinese-tea-hour-nov21-2026-800.webp 800w",
+    "/guides/official-events/sjpl-calabazas-chinese-tea-hour-nov21-2026.webp 1010w"
+   ]
+  },
+  "/guides/official-events/sjpl-educational-park-lego-club-winter-2026.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 27564,
+   "sha1": "237234374c94ebf0",
+   "lqip": "#ddd",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-educational-park-lego-club-winter-2026-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 8396
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-educational-park-lego-club-winter-2026-small.webp 480w",
+    "/guides/official-events/sjpl-educational-park-lego-club-winter-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/sjpl-joyce-ellington-game-on-winter-2026.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 66260,
+   "sha1": "bd5943fde3f786b7",
+   "lqip": "#884",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-joyce-ellington-game-on-winter-2026-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 13846
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-joyce-ellington-game-on-winter-2026-small.webp 480w",
+    "/guides/official-events/sjpl-joyce-ellington-game-on-winter-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/sjpl-seven-trees-board-game-zone-winter-2026.webp": {
+   "width": 1280,
+   "height": 784,
+   "bytes": 60196,
+   "sha1": "9e8b94afaa1fdfe7",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-seven-trees-board-game-zone-winter-2026-small.webp",
+     "width": 480,
+     "height": 294,
+     "bytes": 10796
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-seven-trees-board-game-zone-winter-2026-small.webp 480w",
+    "/guides/official-events/sjpl-seven-trees-board-game-zone-winter-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-events/sjpl-village-square-thanksgiving-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 122710,
+   "sha1": "aebdef4332f5e692",
+   "lqip": "#c97",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-events/sjpl-village-square-thanksgiving-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 18844
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-events/sjpl-village-square-thanksgiving-2026-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 37012,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-events/sjpl-village-square-thanksgiving-2026-small.webp 480w",
+    "/guides/official-events/sjpl-village-square-thanksgiving-2026-800.webp 800w",
+    "/guides/official-events/sjpl-village-square-thanksgiving-2026.webp 1280w"
    ]
   },
   "/guides/official-events/union-square-holiday-ice-rink-2026.webp": {
@@ -10168,6 +10708,631 @@
    "srcset": [
     "/guides/official-offers/wendys-boo-books-small.webp 480w",
     "/guides/official-offers/wendys-boo-books.webp 750w"
+   ]
+  },
+  "/guides/official-openings/alameda-juxi-soft-opening-2026.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 75098,
+   "sha1": "c8388d7c70fe4ece",
+   "lqip": "#986",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/alameda-juxi-soft-opening-2026-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 15160
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/alameda-juxi-soft-opening-2026-small.webp 480w",
+    "/guides/official-openings/alameda-juxi-soft-opening-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/aliotos-focacceria-san-rafael.webp": {
+   "width": 800,
+   "height": 1057,
+   "bytes": 40396,
+   "sha1": "c7df21c605b49a4b",
+   "lqip": "#a86",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/aliotos-focacceria-san-rafael-small.webp",
+     "width": 480,
+     "height": 634,
+     "bytes": 15242
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/aliotos-focacceria-san-rafael-small.webp 480w",
+    "/guides/official-openings/aliotos-focacceria-san-rafael.webp 800w"
+   ]
+  },
+  "/guides/official-openings/anya-gifting-larkspur.webp": {
+   "width": 1280,
+   "height": 640,
+   "bytes": 91278,
+   "sha1": "a074e1790fc6ff06",
+   "lqip": "#732",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/anya-gifting-larkspur-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 16230
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/anya-gifting-larkspur-800.webp",
+     "width": 800,
+     "height": 400,
+     "bytes": 30756,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/anya-gifting-larkspur-small.webp 480w",
+    "/guides/official-openings/anya-gifting-larkspur-800.webp 800w",
+    "/guides/official-openings/anya-gifting-larkspur.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/berkeley-cere-tea-opening-2026.webp": {
+   "width": 1280,
+   "height": 1280,
+   "bytes": 36844,
+   "sha1": "81d2910517ab087c",
+   "lqip": "#eee",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/berkeley-cere-tea-opening-2026-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 6286
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/berkeley-cere-tea-opening-2026-small.webp 480w",
+    "/guides/official-openings/berkeley-cere-tea-opening-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/eriks-delicafe-san-ramon-relocation.webp": {
+   "width": 1280,
+   "height": 1229,
+   "bytes": 181734,
+   "sha1": "8471f72484f71522",
+   "lqip": "#ccb",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/eriks-delicafe-san-ramon-relocation-small.webp",
+     "width": 480,
+     "height": 461,
+     "bytes": 24464
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/eriks-delicafe-san-ramon-relocation-800.webp",
+     "width": 800,
+     "height": 768,
+     "bytes": 50442,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-openings/eriks-delicafe-san-ramon-relocation-1200.webp",
+     "width": 1200,
+     "height": 1152,
+     "bytes": 90004,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/eriks-delicafe-san-ramon-relocation-small.webp 480w",
+    "/guides/official-openings/eriks-delicafe-san-ramon-relocation-800.webp 800w",
+    "/guides/official-openings/eriks-delicafe-san-ramon-relocation-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-openings/game-parlour-oakland.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 128700,
+   "sha1": "7ac2ae5c24bf7373",
+   "lqip": "#ca7",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/game-parlour-oakland-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 16960
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/game-parlour-oakland-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 33024,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/game-parlour-oakland-small.webp 480w",
+    "/guides/official-openings/game-parlour-oakland-800.webp 800w",
+    "/guides/official-openings/game-parlour-oakland.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/hijau-san-jose-storefront.webp": {
+   "width": 600,
+   "height": 400,
+   "bytes": 43026,
+   "sha1": "71599d1c4a656e38",
+   "lqip": "#776",
+   "scope": "registry",
+   "published": true,
+   "artwork": "poster",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/hijau-san-jose-storefront-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 20042
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/hijau-san-jose-storefront-small.webp 480w",
+    "/guides/official-openings/hijau-san-jose-storefront.webp 600w"
+   ]
+  },
+  "/guides/official-openings/ignite-san-pedro-square.webp": {
+   "width": 768,
+   "height": 1024,
+   "bytes": 100330,
+   "sha1": "b6969fab770bc88a",
+   "lqip": "#532",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/ignite-san-pedro-square-small.webp",
+     "width": 480,
+     "height": 640,
+     "bytes": 29236
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/ignite-san-pedro-square-small.webp 480w",
+    "/guides/official-openings/ignite-san-pedro-square.webp 768w"
+   ]
+  },
+  "/guides/official-openings/jean-dousset-valley-fair.webp": {
+   "width": 822,
+   "height": 518,
+   "bytes": 33772,
+   "sha1": "f445a99a216c5110",
+   "lqip": "#cb9",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/jean-dousset-valley-fair-small.webp",
+     "width": 480,
+     "height": 302,
+     "bytes": 9028
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/jean-dousset-valley-fair-small.webp 480w",
+    "/guides/official-openings/jean-dousset-valley-fair.webp 822w"
+   ]
+  },
+  "/guides/official-openings/margaux-larkspur.webp": {
+   "width": 1280,
+   "height": 640,
+   "bytes": 33686,
+   "sha1": "899690ecdd327b8a",
+   "lqip": "#997",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/margaux-larkspur-small.webp",
+     "width": 480,
+     "height": 240,
+     "bytes": 6654
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/margaux-larkspur-small.webp 480w",
+    "/guides/official-openings/margaux-larkspur.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/mess-hall-presidio-breadwinner.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 161114,
+   "sha1": "511c3989e1b91111",
+   "lqip": "#974",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/mess-hall-presidio-breadwinner-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 26586
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-openings/mess-hall-presidio-breadwinner-1200.webp",
+     "width": 1200,
+     "height": 801,
+     "bytes": 81766,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/mess-hall-presidio-breadwinner-small.webp 480w",
+    "/guides/official-openings/mess-hall-presidio-breadwinner-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-openings/oakland-delage-reopening-2026.webp": {
+   "width": 1280,
+   "height": 802,
+   "bytes": 91688,
+   "sha1": "2d36eabe494c337e",
+   "lqip": "#864",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/oakland-delage-reopening-2026-small.webp",
+     "width": 480,
+     "height": 301,
+     "bytes": 14724
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/oakland-delage-reopening-2026-800.webp",
+     "width": 800,
+     "height": 501,
+     "bytes": 27402,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/oakland-delage-reopening-2026-small.webp 480w",
+    "/guides/official-openings/oakland-delage-reopening-2026-800.webp 800w",
+    "/guides/official-openings/oakland-delage-reopening-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/pittsburg-nekter-opening-2026.webp": {
+   "width": 800,
+   "height": 1201,
+   "bytes": 91180,
+   "sha1": "e0df277f830e1044",
+   "lqip": "#999",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/pittsburg-nekter-opening-2026-small.webp",
+     "width": 480,
+     "height": 721,
+     "bytes": 29896
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/pittsburg-nekter-opening-2026-small.webp 480w",
+    "/guides/official-openings/pittsburg-nekter-opening-2026.webp 800w"
+   ]
+  },
+  "/guides/official-openings/plur-cafe-san-mateo-library.webp": {
+   "width": 1231,
+   "height": 1231,
+   "bytes": 138942,
+   "sha1": "b6069692bd3aa886",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/plur-cafe-san-mateo-library-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 25610
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/plur-cafe-san-mateo-library-800.webp",
+     "width": 800,
+     "height": 800,
+     "bytes": 47744,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/plur-cafe-san-mateo-library-small.webp 480w",
+    "/guides/official-openings/plur-cafe-san-mateo-library-800.webp 800w",
+    "/guides/official-openings/plur-cafe-san-mateo-library.webp 1231w"
+   ]
+  },
+  "/guides/official-openings/raising-canes-jefferson-sf.webp": {
+   "width": 512,
+   "height": 512,
+   "bytes": 25220,
+   "sha1": "7f229bd42e753111",
+   "lqip": "#edc",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/raising-canes-jefferson-sf-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 13708
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/raising-canes-jefferson-sf-small.webp 480w",
+    "/guides/official-openings/raising-canes-jefferson-sf.webp 512w"
+   ]
+  },
+  "/guides/official-openings/roundup-alesta-sebastopol-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 56536,
+   "sha1": "34ac2ab4d5e74be6",
+   "lqip": "#532",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/roundup-alesta-sebastopol-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9434
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/roundup-alesta-sebastopol-2026-small.webp 480w",
+    "/guides/official-openings/roundup-alesta-sebastopol-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/roundup-bonnie-bagels-sebastopol-2026.webp": {
+   "width": 1280,
+   "height": 811,
+   "bytes": 167784,
+   "sha1": "b7f9bc0e2a62ed76",
+   "lqip": "#a86",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/roundup-bonnie-bagels-sebastopol-2026-small.webp",
+     "width": 480,
+     "height": 304,
+     "bytes": 21028
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/official-openings/roundup-bonnie-bagels-sebastopol-2026-1200.webp",
+     "width": 1200,
+     "height": 760,
+     "bytes": 80448,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/roundup-bonnie-bagels-sebastopol-2026-small.webp 480w",
+    "/guides/official-openings/roundup-bonnie-bagels-sebastopol-2026-1200.webp 1200w"
+   ]
+  },
+  "/guides/official-openings/roundup-capriciano-santarosa-2026.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 109458,
+   "sha1": "482ed08edcf9b177",
+   "lqip": "#976",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/roundup-capriciano-santarosa-2026-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21020
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/roundup-capriciano-santarosa-2026-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 36976,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/roundup-capriciano-santarosa-2026-small.webp 480w",
+    "/guides/official-openings/roundup-capriciano-santarosa-2026-800.webp 800w",
+    "/guides/official-openings/roundup-capriciano-santarosa-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/sergeant-ma.webp": {
+   "width": 720,
+   "height": 480,
+   "bytes": 54708,
+   "sha1": "8830085997f2e5f3",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/sergeant-ma-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19250
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/sergeant-ma-small.webp 480w",
+    "/guides/official-openings/sergeant-ma.webp 720w"
+   ]
+  },
+  "/guides/official-openings/sf-athanor-new-restaurant-2026.webp": {
+   "width": 1280,
+   "height": 914,
+   "bytes": 97428,
+   "sha1": "f168b5c6b211367d",
+   "lqip": "#664",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/sf-athanor-new-restaurant-2026-small.webp",
+     "width": 480,
+     "height": 343,
+     "bytes": 14894
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/sf-athanor-new-restaurant-2026-800.webp",
+     "width": 800,
+     "height": 571,
+     "bytes": 28260,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/sf-athanor-new-restaurant-2026-small.webp 480w",
+    "/guides/official-openings/sf-athanor-new-restaurant-2026-800.webp 800w",
+    "/guides/official-openings/sf-athanor-new-restaurant-2026.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/thirdlove-valley-fair.webp": {
+   "width": 800,
+   "height": 1019,
+   "bytes": 12020,
+   "sha1": "ed76088f186e5277",
+   "lqip": "#eee",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/thirdlove-valley-fair-small.webp",
+     "width": 480,
+     "height": 611,
+     "bytes": 2906
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/thirdlove-valley-fair-small.webp 480w",
+    "/guides/official-openings/thirdlove-valley-fair.webp 800w"
+   ]
+  },
+  "/guides/official-openings/varley-larkspur.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 136508,
+   "sha1": "5219226b0d508cde",
+   "lqip": "#a99",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/varley-larkspur-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16924
+    },
+    {
+     "rung": 800,
+     "file": "/guides/official-openings/varley-larkspur-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 35808,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/varley-larkspur-small.webp 480w",
+    "/guides/official-openings/varley-larkspur-800.webp 800w",
+    "/guides/official-openings/varley-larkspur.webp 1280w"
+   ]
+  },
+  "/guides/official-openings/vivaia-valley-fair.webp": {
+   "width": 1280,
+   "height": 1280,
+   "bytes": 44118,
+   "sha1": "4bd834ec5afd8aca",
+   "lqip": "#ddd",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/official-openings/vivaia-valley-fair-small.webp",
+     "width": 480,
+     "height": 480,
+     "bytes": 4778
+    }
+   ],
+   "srcset": [
+    "/guides/official-openings/vivaia-valley-fair-small.webp 480w",
+    "/guides/official-openings/vivaia-valley-fair.webp 1280w"
    ]
   },
   "/guides/public-services/medicare-help-en.webp": {
@@ -11341,7 +12506,7 @@
    "sha1": "aa04b6da2acaaf80",
    "lqip": "#654",
    "scope": "registry",
-   "published": true,
+   "published": false,
    "artwork": "photo",
    "variants": [
     {
@@ -11350,19 +12515,10 @@
      "width": 480,
      "height": 320,
      "bytes": 28262
-    },
-    {
-     "rung": 800,
-     "file": "/guides/september-2026/sep26-open-sergeant-ma-800.webp",
-     "width": 800,
-     "height": 533,
-     "bytes": 37752,
-     "quality": 64
     }
    ],
    "srcset": [
     "/guides/september-2026/sep26-open-sergeant-ma-small.webp 480w",
-    "/guides/september-2026/sep26-open-sergeant-ma-800.webp 800w",
     "/guides/september-2026/sep26-open-sergeant-ma.webp 1080w"
    ]
   },

@@ -1,195 +1,194 @@
-/* Event, offer and opening detail (WEB-DETAIL; design.md §4.9 with plan D10). Phone: "‹ 活动", the 16:9 full-bleed hero,
-   chips, H1 26/34, the why-go line, 一眼看懂 on a surface-2 card, the body, and a 64px action bar that replaces the tab bar.
-   Desktop: an 800px column with an 800×450 r24 hero and a 360px sticky action card, 48px apart. Tokens and rem only;
-   400/600/700; 13px (--text-caption) is the smallest text; 44px targets (48 in 简洁显示). Loaded globally after tokens.css,
-   so selectors start at .local-discovery-detail to outrank the legacy discovery rules in tokens.css and
-   discovery-community.css (other lanes' files) without !important. */
-.local-discovery-detail { width:min(100%,76rem); margin-inline:auto; padding:0 0 2rem; color:var(--color-ink); }
-.local-discovery-detail .detail-back { display:flex; align-items:center; min-height:2.75rem; padding:0 8px; }
-.local-discovery-detail .detail-back a { display:inline-flex; align-items:center; gap:2px; min-height:2.75rem; padding:0 8px; color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
+/* Event, offer and opening detail (UI9-DETAIL on D2 tokens; content arrangement 10-19). Phone: back link, the 16:9
+   full-bleed hero and its 13 px credit line, chips, H1, the sub line, the facts card, the body; the action bar replaces the
+   tab bar. Desktop: F's 12-column grid, main 8 + a sticky aside 4 (the facts card, the action card). Rhythm: --section-gap
+   between sections, --stack-head under headings, text at --measure. Tokens only; 400 / 600; 44 px targets (48 in
+   简洁显示). Loaded globally after tokens.css (src/main.tsx), so selectors start at .local-discovery-detail. */
+.local-discovery-detail { width:min(100%,76rem); margin-inline:auto; color:var(--color-ink); }
+.local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:var(--page-gutter); }
+.local-discovery-detail .detail-back { display:flex; align-items:center; min-height:var(--control-height); padding-inline:var(--sp-2); }
+.local-discovery-detail .detail-back a { display:inline-flex; align-items:center; gap:2px; min-height:var(--control-height); padding-inline:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-body); }
 .local-discovery-detail .detail-back svg { width:1.25rem; height:1.25rem; }
+.local-discovery-detail .detail-back a:active { color:var(--color-brand-hover); }
+.local-discovery-detail .detail-back--end { display:none; }
+html[data-simple] .local-discovery-detail .detail-back--end { display:flex; margin-top:var(--section-gap); padding:0; }
 
-/* Hero: full-bleed on a phone, square corners; the provenance badge and stickers come from ui.css. */
+/* Hero: full-bleed on a phone, square corners; the provenance chip is C's. The credit line sits under a photo (G13). */
 .local-discovery-detail .detail-hero { margin:0; }
 .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { width:100%; border-radius:0; }
+.local-discovery-detail :is(.detail-hero,.detail-photo) figcaption { padding:var(--sp-2) var(--page-gutter) 0; }
+.local-discovery-detail .detail-credit { display:block; color:var(--color-ink-3); font-size:var(--fs-badge); line-height:var(--lh-ui); }
+.local-discovery-detail .detail-credit>*+* { margin-left:var(--sp-2); }
+.local-discovery-detail .detail-credit__label { color:var(--color-ink-2); }
+.local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended) a { color:inherit; text-decoration:underline 1px; text-underline-offset:.2em; }
 
-.local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state) { margin-inline:16px; }
-.local-discovery-detail .detail-head { padding-top:12px; }
-.local-discovery-detail .detail-chips { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 8px; }
-.local-discovery-detail .detail-head h1 { max-width:28ch; margin:0; font-size:var(--text-h1); font-weight:600; line-height:var(--lh-h1); letter-spacing:0; overflow-wrap:break-word; text-wrap:balance; }
+/* Head: the category chip (the cover's hue, F's one map), at most two of C's status chips, H1, the sub line or the dek. */
+.local-discovery-detail .detail-head { padding-top:var(--sp-3); }
+.local-discovery-detail .detail-chips { display:flex; flex-wrap:wrap; gap:var(--sp-2); margin:0 0 var(--sp-2); }
+.local-discovery-detail .detail-cat[data-cat=family] { background:var(--tc-family-bg); color:var(--tc-family-fg); }
+.local-discovery-detail .detail-cat[data-cat=culture] { background:var(--tc-culture-bg); color:var(--tc-culture-fg); }
+.local-discovery-detail .detail-cat[data-cat=outdoors] { background:var(--tc-outdoors-bg); color:var(--tc-outdoors-fg); }
+.local-discovery-detail .detail-cat[data-cat=food] { background:var(--tc-food-bg); color:var(--tc-food-fg); }
+.local-discovery-detail .detail-cat[data-cat=seniors] { background:var(--tc-seniors-bg); color:var(--tc-seniors-fg); }
+.local-discovery-detail .detail-cat[data-cat=free] { background:var(--tc-free-bg); color:var(--tc-free-fg); }
+.local-discovery-detail .detail-head h1 { max-width:28ch; margin:0; font-size:var(--text-h1); font-weight:600; line-height:var(--lh-h1); overflow-wrap:break-word; text-wrap:balance; }
 .local-discovery-detail .detail-head h1 .title-keep { white-space:nowrap; }
-.local-discovery-detail .detail-brand { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:600; }
-.local-discovery-detail .detail-dek { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.647; }
-.local-discovery-detail .detail-note { margin-block:12px 0; padding:12px 14px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
+.local-discovery-detail :is(.detail-sub,.detail-dek) { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-snug); }
+.local-discovery-detail .detail-dek { font-size:var(--fs-reading); line-height:var(--lh-ui); }
+.local-discovery-detail :is(.detail-note,.content-review-ended) { max-width:var(--measure); margin-top:var(--sp-3); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.local-discovery-detail .content-review-ended p { margin:0; }
+.local-discovery-detail .content-review-ended a { display:flex; width:fit-content; align-items:center; min-height:var(--control-height); }
+.local-discovery-detail .content-review-ended strong { color:var(--color-ink); font-weight:600; }
+.local-discovery-detail .detail-next-link { margin-top:var(--sp-2); }
 
-/* 一眼看懂: "when" and "where" across the card (dates and venues run long), then two columns (one at 大/特大 and in 简洁显示 on a phone). */
-.local-discovery-detail .detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px 16px; margin-block:16px 0; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); }
+/* 一眼看懂: a white card; 何时 and 在哪 across it, then two columns (one at 大 / 特大 and in 简洁显示 on a phone). Line 1 of a
+   fact is its key at 600, the rest is the note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. */
+.local-discovery-detail .detail-facts-card { margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
+.local-discovery-detail .detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-3) var(--sp-4); margin:0; }
 .local-discovery-detail .detail-fact { min-width:0; }
 .local-discovery-detail .detail-fact:is([data-fact=when],[data-fact=where]) { grid-column:1 / -1; }
-.local-discovery-detail .detail-fact dt { display:flex; align-items:center; gap:6px; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.4; }
+.local-discovery-detail .detail-fact dt { position:relative; display:flex; align-items:center; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .local-discovery-detail .detail-fact dt svg { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
-.local-discovery-detail .detail-fact dd { margin:4px 0 0; color:var(--color-ink); font-size:var(--text-reading); font-weight:600; line-height:1.412; overflow-wrap:anywhere; }
-.local-discovery-detail .detail-fact__line { display:block; }
-.local-discovery-detail .detail-fact__sub { color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; }
-.local-discovery-detail .detail-fact__line[data-tone=free] { color:var(--color-brand); }
-.local-discovery-detail .detail-fact dd small { display:block; margin-top:2px; color:var(--color-ink-2); font-size:var(--text-fact); font-weight:400; line-height:1.5; }
-.local-discovery-detail .detail-map-link { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.local-discovery-detail .detail-fact__aside { position:absolute; top:50%; right:0; translate:0 -50%; }
+.local-discovery-detail .detail-fact dd { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
+.local-discovery-detail :is(.detail-fact__key,.detail-fact__line,.detail-fact dd small) { display:block; }
+.local-discovery-detail .detail-fact__key { color:var(--color-ink); font-size:var(--fs-reading); font-weight:600; line-height:var(--lh-snug); }
+.local-discovery-detail .detail-fact dd small { margin-top:2px; font-size:inherit; }
 .local-discovery-detail .detail-fact .phone-chip { font-weight:400; }
+.local-discovery-detail .detail-facts-check { display:flex; align-items:center; gap:var(--sp-1); margin:var(--sp-3) 0 0; padding-top:var(--sp-3); border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.local-discovery-detail .detail-facts-check svg { flex:none; color:var(--color-brand); }
 
-/* Body: summary, 出发前 checklist, offer conditions and steps, 一起去, source, share. */
-.local-discovery-detail .detail-body { padding-top:8px; }
-.local-discovery-detail .detail-body h2 { margin:28px 0 12px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
-.local-discovery-detail .detail-summary { margin:20px 0 0; color:var(--color-ink-2); font-size:var(--text-reading); line-height:1.8; }
-.local-discovery-detail .detail-body p { overflow-wrap:break-word; }
-/* The venue's archive photo (too old to be the cover): 3:2, r16, its badge, then its caption and credit. */
-.local-discovery-detail .detail-photo { margin:20px 0 0; }
-.local-discovery-detail .detail-photo .ui-cover { width:100%; border-radius:var(--r-lg); overflow:hidden; }
-.local-discovery-detail .detail-photo .detail-credit { margin-top:8px; }
-.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) { display:grid; gap:12px; margin:0; padding:0; list-style:none; }
-.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul)>li { display:flex; align-items:flex-start; gap:12px; }
+/* Body: sections --section-gap apart, headings --stack-head above their text, reading text at the measure and at --fs-body,
+   so every heading is at least 1.25 × the text under it in every reading mode. */
+.local-discovery-detail .detail-body>* { margin-top:var(--section-gap); }
+.local-discovery-detail .detail-body>:first-child { margin-top:var(--sp-5); }
+.local-discovery-detail :is(.detail-body,.detail-main>.detail-rail) h2,.local-discovery-detail .discovery-return h2 { margin:0 0 var(--stack-head); font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
+.local-discovery-detail :is(.detail-summary,.detail-prose,.detail-plan,.detail-conditions,.detail-steps,.detail-rail__note) { max-width:var(--measure); }
+.local-discovery-detail :is(.detail-summary,.detail-prose) { color:var(--color-ink-2); font-size:var(--fs-body); line-height:var(--lh-read); overflow-wrap:break-word; }
+.local-discovery-detail .detail-body>.detail-photo { margin-top:var(--sp-5); }
+.local-discovery-detail .detail-photo .ui-cover { width:100%; border-radius:var(--r-lg); }
+.local-discovery-detail .detail-photo figcaption { padding-inline:0; }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) { display:grid; gap:var(--sp-3); margin:0; padding:0; list-style:none; }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul)>li { display:flex; align-items:flex-start; gap:var(--sp-3); }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul)>li>svg { flex:none; width:1.25rem; height:1.25rem; margin-top:.25rem; color:var(--color-brand); }
-.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-fact); font-weight:600; }
+.local-discovery-detail .detail-steps ol>li>span { display:grid; flex:none; place-items:center; width:1.75rem; height:1.75rem; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--fs-meta); }
 /* An unnumbered "怎么领 · 怎么用" line: a dot centred on the first line of its text. */
-.local-discovery-detail .detail-steps ul>li::before { content:""; flex:none; width:.4375rem; height:.4375rem; margin:calc(var(--text-reading) * .875 - .21875rem) .40625rem 0; border-radius:var(--r-pill); background:var(--color-brand); }
-.local-discovery-detail .detail-steps__note { margin:12px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.7; }
-.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) p { margin:0; color:var(--color-ink); font-size:var(--text-reading); line-height:1.75; }
+.local-discovery-detail .detail-steps ul>li::before { content:""; flex:none; width:.4375rem; height:.4375rem; margin:calc(var(--fs-body) * .875 - .21875rem) .40625rem 0; border-radius:var(--r-pill); background:var(--color-brand); }
+.local-discovery-detail .detail-steps__note { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) p { margin:0; font-size:var(--fs-body); line-height:var(--lh-read); }
+
+/* 来源与核对, then 想约人一起去？ with the share row under a 1 px rule (one shell on every kind). */
+.local-discovery-detail .detail-source { padding-top:var(--sp-5); border-top:1px solid var(--color-line); }
+.local-discovery-detail .detail-source .trust-row { margin:0; }
+.local-discovery-detail .detail-source>.ui-more { display:flex; width:max-content; max-width:100%; }
+/* 这条信息有误？ sits flush with the column (the shared row's own page padding would indent it). */
+.local-discovery-detail .detail-source .feedback-report-row { width:auto; margin:0; padding:0; }
+.local-discovery-detail .detail-caption { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.local-discovery-detail .detail-page-credits { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.local-discovery-detail .detail-page-credits summary { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); cursor:pointer; }
+.local-discovery-detail .detail-page-credits ul { margin:0; padding:0; list-style:none; }
 .local-discovery-detail .detail-together .event-participation { margin:0; padding:0; border:0; }
-.local-discovery-detail .detail-together .event-participation-buttons button { min-height:var(--control-height); padding:0 16px; border-radius:var(--r-md); font-size:var(--text-body); font-weight:600; }
-.local-discovery-detail .detail-together .event-participation-note { margin-top:8px; color:var(--color-ink-3); font-size:var(--text-caption); }
-.local-discovery-detail .detail-squad { display:flex; align-items:center; gap:10px; min-height:3rem; margin-top:12px; padding:0 14px; border-radius:var(--r-md); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-body); font-weight:600; }
-.local-discovery-detail .detail-squad span { flex:1; min-width:0; }
+.local-discovery-detail .detail-squad { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); margin-top:var(--sp-2); color:var(--color-brand); font-size:var(--fs-body); }
 .local-discovery-detail .detail-squad svg { flex:none; width:1.25rem; height:1.25rem; }
-.local-discovery-detail .outing-inspiration-link { margin-top:24px; border-radius:var(--r-md); }
-.local-discovery-detail .detail-source { margin-top:32px; padding-top:4px; border-top:1px solid var(--color-line); }
-.local-discovery-detail .detail-source h2 { margin-top:20px; }
-/* 这条信息有误？ sits under the source line, flush with the column: the shared row's own page padding (feedback-entry.css,
-   18px in and 32px under on a phone) indented it and left a gap above the share buttons. */
-.local-discovery-detail .detail-source .feedback-report-row { width:auto; margin:8px 0 0; padding:0; }
-.local-discovery-detail .detail-credit { display:flex; flex-wrap:wrap; gap:4px 10px; margin:12px 0 0; color:var(--color-ink-3); font-size:var(--text-caption); line-height:1.6; }
-.local-discovery-detail .detail-credit__label { font-weight:400; color:var(--color-ink-2); }
-.local-discovery-detail .detail-credit a { color:var(--color-ink-2); text-decoration:underline; text-underline-offset:2px; }
-.local-discovery-detail .discovery-related { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); margin-top:8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
-.local-discovery-detail .detail-share { display:flex; flex-wrap:wrap; align-items:flex-start; gap:8px 12px; margin-top:24px; }
-.local-discovery-detail .detail-share .editorial-share-actions { margin:0; }
-/* 发给家人（大字版） (H33): its copy status line sits under the button. */
-.local-discovery-detail .detail-family { display:inline-flex; flex-direction:column; align-items:flex-start; gap:4px; }
-.local-discovery-detail .detail-family .family-link__status { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
-.local-discovery-detail .detail-family .family-link__status:empty { display:none; }
-.local-discovery-detail .detail-family .ui-button { min-height:var(--control-height); font-size:var(--text-body); }
-.local-discovery-detail .detail-calendar { display:inline-flex; align-items:center; gap:8px; min-height:var(--control-height); padding:0 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
-/* H29: the share, 公开想去 and 一起去 buttons (shared components) take the secondary button look here — white, the control border,
-   ink text, radius 10 — so a detail page shows two button looks (primary, secondary), not six. A pressed 公开想去 is primary. */
-.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
-.local-discovery-detail :is(.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button):hover { border-color:var(--color-ink-3); background:var(--color-surface); }
-.local-discovery-detail .detail-together .event-participation-buttons button:is(.is-selected,[aria-pressed=true]) { border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
-.local-discovery-detail :is(.detail-share .editorial-share-buttons,.detail-together .event-participation-buttons) button>svg { color:var(--color-brand); }
-.local-discovery-detail .detail-together .event-participation-buttons button:is(.is-selected,[aria-pressed=true])>svg { color:currentColor; }
+.local-discovery-detail .detail-share { margin-top:var(--sp-4); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
+.local-discovery-detail :is(.detail-together>.detail-share:first-child,.detail-source>.detail-share) { margin:0; padding:0; border:0; }
 
-/* Rails: 172px feed cards in a scroller on a phone (the page itself never scrolls sideways), four in a row on a desktop. */
-.local-discovery-detail .detail-rail { margin:20px 0 0; }
-.local-discovery-detail .detail-main>.detail-rail { margin-inline:16px; }
-.local-discovery-detail .detail-main--body>:not(.detail-body,.detail-note) { margin-inline:16px; }
-.local-discovery-detail .detail-rail h2 { margin:0 0 4px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
-.local-discovery-detail .detail-rail__note { margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.6; }
-.local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:10.75rem; gap:12px; margin-inline:-16px; padding:4px 16px 8px; overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; }
-.local-discovery-detail .detail-rail__track>.ui-feed-card { scroll-snap-align:start; }
+/* Rails: 172 px feed cards in a scroller on a phone (16 px scroll padding: no card at the edge); a row on a desktop (3-up,
+   4-up for the ended page's four). At 特大 and in 简洁显示 the row cards instead: a vertical list, never sideways. */
+.local-discovery-detail .detail-rail__note { margin:0 0 var(--stack-head); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+.local-discovery-detail .detail-rail__track { display:grid; grid-auto-flow:column; grid-auto-columns:10.75rem; gap:var(--sp-3); margin-inline:calc(-1 * var(--page-gutter)); padding:var(--sp-1) var(--page-gutter) var(--sp-2); overflow-x:auto; overscroll-behavior-x:contain; scroll-snap-type:x proximity; scroll-padding-inline:var(--page-gutter); }
+.local-discovery-detail .detail-rail__track>* { scroll-snap-align:start; }
+.local-discovery-detail .detail-rail__rows { display:none; }
+/* Rail titles: FeedCard's two lines on a card, never cut in a row (owner decision 20). */
+.local-discovery-detail .detail-rail .ui-row-card__title { display:block; overflow:visible; }
+html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__track { display:none; }
+html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__rows { display:grid; gap:var(--sp-3); }
+.local-discovery-detail .detail-main>.detail-rail { margin-top:var(--sp-5); }
 
-/* The action bar. Phones and tablets: fixed at the bottom where the tab bar was (SiteChrome hides the tab bar on this route
-   once .site-detail-actions is on the page). ♡ and 问 BayBay are icon-over-label cells; the day plan (or the official
-   page) is the filled primary button that takes the rest of the row. */
-.local-discovery-detail .detail-actions { display:flex; align-items:stretch; gap:6px; }
-.local-discovery-detail .detail-actions :is(.saves-control,.saves-day) { margin:0; }
-/* The cells are <Button>s (ui.css: primary / secondary looks, radius 10); this sets only their size in the bar. */
-.local-discovery-detail .detail-action { gap:6px; min-height:var(--control-height); padding:0 12px; font-size:var(--text-fact); line-height:1.25; text-align:center; }
-.local-discovery-detail .detail-action svg { flex:none; width:1.125rem; height:1.125rem; }
-.local-discovery-detail .detail-action__otter { flex:none; width:1.75rem; height:1.75rem; }
-.local-discovery-detail .detail-actions__primary { flex:1 1 auto; min-width:0; }
-.local-discovery-detail .detail-actions .detail-action--primary,.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { width:100%; border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); }
-.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day:not(:disabled):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
-.local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day>svg { color:currentColor; }
-.local-discovery-detail .detail-actions .detail-actions__primary .saves-day { display:flex; width:100%; }
-@media(max-width:1023px) {
-  .local-discovery-detail .detail-actions { position:fixed; z-index:50; left:0; right:0; bottom:0; height:var(--site-mobile-nav-height); padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px)); box-sizing:border-box; border-top:1px solid var(--color-line); background:color-mix(in srgb,var(--color-surface) 96%,transparent); backdrop-filter:blur(12px); box-shadow:var(--chrome-shadow-bar); }
-  .local-discovery-detail .detail-actions>* { display:flex; justify-content:center; min-width:3.5rem; }
-  /* The side cells keep their labels' width (white-space:nowrap); only the primary gives way, so "Ask BayBay" and
-     "Official site" never run into each other next to a long "Add to a plan". */
-  .local-discovery-detail .detail-actions>:not(.detail-actions__primary) { flex-shrink:0; }
-  .local-discovery-detail .detail-actions .detail-action--official>svg { order:-1; }
-  .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { flex-direction:column; gap:2px; height:100%; min-width:var(--control-height); min-height:0; padding:0 8px; border:0; background:transparent; color:var(--color-brand-deep); font-size:var(--text-caption); white-space:nowrap; }
-  .local-discovery-detail .detail-actions .saves-control { height:100%; }
-  .local-discovery-detail .detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { height:100%; min-height:0; padding:0 12px; border-radius:var(--r-md); font-size:var(--text-body); }
-  .local-discovery-detail .detail-actions .detail-actions__primary .saves-day { height:100%; }
-  .local-discovery-detail .detail-actions .detail-actions__primary .saves-day__error { display:none; }
-  .local-discovery-detail .detail-actions .detail-actions__primary { container:detail-primary / inline-size; font-size:var(--text-body); }
+/* Page end: one H2 and three → links over a 1 px rule. */
+.local-discovery-detail .discovery-return { margin-top:var(--section-gap); padding:var(--sp-5) 0 0; border:0; border-top:1px solid var(--color-line); border-radius:0; background:none; }
+.local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:0 var(--sp-5); }
+html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
+
+/* The action bar (shared with guides; lanes/UI9-DETAIL/BAR-CONTRACT.md). Up to three cells, then the one primary, always
+   last. Keyed on .site-detail-actions.detail-actions so a guide's bar takes the same rules. */
+.site-detail-actions.detail-actions { display:flex; align-items:center; gap:var(--sp-1); }
+.site-detail-actions.detail-actions>.detail-actions__cell { flex:none; }
+.site-detail-actions.detail-actions :is(.saves-control,.saves-day) { margin:0; }
+.site-detail-actions.detail-actions>.detail-actions__primary { flex:1; min-width:0; container:detail-primary / inline-size; }
+.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-width:56px; height:56px; min-height:0; padding:0 var(--sp-2); border:0; border-radius:var(--r-md); background:none; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:1.2; white-space:nowrap; cursor:pointer; transition:background-color var(--dur-2) var(--ease-std),scale var(--dur-1) var(--ease-out); }
+.site-detail-actions.detail-actions :is(.detail-actions__cell svg,.detail-actions__cell img) { flex:none; width:1.5rem; height:1.5rem; }
+.site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):active { scale:.94; background:var(--color-surface-2); }
+.site-detail-actions.detail-actions :is([data-label=desk],[data-label=tight],[data-label=short]) { display:none; }
+.site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { width:100%; min-height:3rem; padding:0 var(--sp-4); border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-size:var(--fs-body); font-weight:600; white-space:nowrap; }
+.site-detail-actions.detail-actions .detail-actions__primary .saves-add-day>svg { color:currentColor; }
+.site-detail-actions.detail-actions .detail-actions__primary .saves-day { display:flex; width:100%; }
+.site-detail-actions.detail-actions .detail-actions__primary .saves-day__error { display:none; }
+@media (hover:hover) and (pointer:fine) {
+  .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):hover { background:var(--color-surface-2); }
+  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:not(:disabled)):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
+  .local-discovery-detail :is(.detail-back a,.detail-page-credits summary):hover { text-decoration:underline 1px; text-underline-offset:.2em; }
+  .local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended,.trust-row) a:hover { text-decoration-thickness:2px; }
 }
-/* 加入这天计划 stays on one line: when the primary cell is narrower than icon + six characters (简洁显示, 特大, a 375px
-   phone), the icon goes and the padding tightens, instead of the label breaking after 计. em = the cell's --text-body. */
+/* The primary never wraps: where its cell is narrower than icon + label, the icon goes. em = the cell's --fs-body. */
 @container detail-primary (max-width:9.5em) {
-  .local-discovery-detail .detail-actions :is(.detail-action--primary,.saves-add-day)>svg { display:none; }
-  .local-discovery-detail .detail-actions .detail-actions__primary .saves-add-day { padding:0 8px; }
+  .site-detail-actions.detail-actions :is(.detail-action--primary,.saves-add-day)>svg { display:none; }
+  .site-detail-actions.detail-actions .detail-actions__primary .saves-add-day { padding:0 var(--sp-2); }
 }
-@media(max-width:359px) { .local-discovery-detail .detail-action--ask>span { display:none; } }
-/* The ask cell reads 问问 (English: Ask) where the primary needs the room, as the tab bar does: at 大 / 特大 and in 简洁显示,
-   and in English, on a phone. With it 加入这天计划 keeps one line in family-link mode (it broke as 加入这天计 / 划). */
-.local-discovery-detail .detail-action__ask-short { display:none; }
-@media(max-width:767px) {
-  :is(html:is([data-reading=large],[data-reading=extra-large],[data-simple]),html:lang(en)) .local-discovery-detail .detail-action__ask-label { display:none; }
-  :is(html:is([data-reading=large],[data-reading=extra-large],[data-simple]),html:lang(en)) .local-discovery-detail .detail-action__ask-short { display:inline; }
+@media (max-width:1023px) {
+  .site-detail-actions.detail-actions { position:fixed; z-index:50; inset:auto 0 0; height:var(--site-mobile-nav-height); padding:var(--sp-1) var(--sp-3) calc(var(--sp-1) + env(safe-area-inset-bottom,0px)) var(--sp-2); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); box-shadow:var(--e1); }
+  html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
+  html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); }
+  /* 家人版 (特大 + 简洁显示): the ask cell reads BayBay so 加入这天计划 keeps one line. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions [data-label=long] { display:none; }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
 }
-/* 大 / 特大 on a phone: the side cells give up a little padding and width so 加入这天计划 keeps one line (at 特大 on a 390 px
-   phone it broke as 加入这天计 / 划); their labels keep the reading size. */
-@media(max-width:767px) {
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-actions { gap:4px; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-actions>* { min-width:3rem; }
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-actions :is(.detail-action--ask,.detail-action--official,.saves-control .saves-toggle) { padding:0 4px; }
+/* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
+   labels keep the caption step they had and the primary shows its short label ("Claim ↗", "Plan"; the name keeps the full
+   one). AddToDayPlan's 加入这天计划 still breaks in balance (加入这 / 天计划) until its shorter label exists (UI9-INT). */
+@media (max-width:359px) {
+  .site-detail-actions.detail-actions { padding-inline:var(--sp-1); }
+  .site-detail-actions.detail-actions [data-label=long] { display:none; }
+  .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { font-size:var(--fs-badge); }
+  .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); white-space:normal; line-height:1.2; text-wrap:balance; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=full] { display:none; }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions .detail-actions__primary [data-label=short] { display:inline; }
+  /* 家人版: the cells drop their side padding and the primary keeps 4 px, so 领取入口 / 加入计划 / "Add to day" stay on one line. */
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:0; }
+  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-1); }
+  .local-discovery-detail .detail-head h1 .title-keep { white-space:normal; }
 }
 
-@media(min-width:768px) {
-  .local-discovery-detail .detail-rail__track { grid-auto-flow:row; grid-template-columns:repeat(4,minmax(0,1fr)); grid-auto-columns:auto; margin-inline:0; padding-inline:0; overflow:visible; }
+@media (min-width:768px) {
+  .local-discovery-detail .detail-rail__track { grid-auto-flow:row; grid-template-columns:repeat(3,minmax(0,1fr)); margin-inline:0; padding-inline:0; overflow:visible; }
+  .local-discovery-detail .detail-rail[data-count="4"] .detail-rail__track { grid-template-columns:repeat(4,minmax(0,1fr)); }
 }
-@media(max-width:767px) {
+@media (max-width:767px) {
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
-  /* H58 / EVT13-12: the facts card ends higher on the first screen, above the action bar on more pages: the map link sits on
-     the 在哪 label's line (right-aligned, its 44px target kept) instead of a line of its own, and the card is a little
-     tighter. At 大 / 特大 and in 简洁显示 the link keeps its own line. */
-  .local-discovery-detail .detail-facts { gap:10px 16px; padding:14px 16px; margin-block:12px 0; }
-  .local-discovery-detail .detail-head { padding-top:8px; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-fact=where] { position:relative; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-fact=where] dd>small:has(>.detail-map-link) { position:absolute; top:calc((1.4 * var(--text-caption) - 2.75rem) / 2); right:0; margin:0; }
 }
 
-/* Desktop: the column (top: hero and title; body: the rest) and the sticky card beside both (facts as a list, then the
-   actions). The card comes between the two blocks in the DOM, so a phone reads the facts right under the H1. */
-@media(min-width:1024px) {
-  .local-discovery-detail .detail-aside .detail-facts { grid-template-columns:minmax(0,1fr); margin:0 0 16px; }
-  /* H30 / SV13-07: the page frame of every other template (tokens.css .site-container: 1216 + the 32px gutter), so the H1, the
-     hero and the back link start at the header logo (112 at 1440), not 40px inside it; the action card ends at the frame. */
-  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:16px var(--page-gutter) 72px; }
-  .local-discovery-detail .detail-back { padding:0; margin-bottom:8px; }
-  .local-discovery-detail .detail-back a { padding-left:0; }
-  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:minmax(0,50rem) 22.5rem; grid-template-areas:"top aside" "body aside"; grid-template-rows:auto 1fr; justify-content:space-between; align-items:start; gap:0 48px; }
-  .local-discovery-detail .detail-main--top { grid-area:top; }
-  .local-discovery-detail .detail-main--body { grid-area:body; }
-  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts,.detail-body,.ui-state),.local-discovery-detail .detail-main>.detail-rail,.local-discovery-detail .detail-main--body>* { margin-inline:0; }
-  .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-xl); overflow:hidden; }
-  .local-discovery-detail .detail-head { padding-top:20px; }
-  .local-discovery-detail .detail-aside { grid-area:aside; position:sticky; top:5.5rem; }
-  .local-discovery-detail .detail-actions { flex-direction:column; padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
-  .local-discovery-detail .detail-actions>*,.local-discovery-detail .detail-actions .saves-control .saves-toggle { width:100%; }
-  .local-discovery-detail .detail-actions .detail-actions__primary { order:-1; }
-  /* H29: one size for every secondary and primary button on the page (the shared <Button> desktop size: 44px and 15px; 48px and the 16px floor in 简洁显示), so
-     分享, 公开想去, 存入日历, 收藏, 问 BayBay and 官方页 read as one look, not four. */
-  .local-discovery-detail :is(.detail-action,.detail-actions .saves-control .saves-toggle,.detail-actions__primary .saves-add-day,.detail-calendar,.detail-family .ui-button,.detail-share .editorial-share-buttons button,.detail-together .event-participation-buttons button) { min-height:var(--control-height); font-size:max(.9375rem, var(--text-floor)); }
+/* Desktop: F's 12 columns (gutter 24): the column (top: hero and title; body: the rest) on 8, the sticky aside on 4 (the
+   facts card, then the action card). The aside comes between the two blocks in the DOM, so a phone reads the facts under
+   the H1. At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. */
+@media (min-width:1024px) {
+  .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
+  .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
+  .local-discovery-detail .detail-back { margin-bottom:var(--sp-2); }
+  .local-discovery-detail .detail-layout { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); align-items:start; }
+  .local-discovery-detail .detail-main { grid-column:1 / span 8; }
+  .local-discovery-detail .detail-main--body { grid-row:2; }
+  .local-discovery-detail .detail-aside { grid-column:9 / span 4; grid-row:1 / span 2; position:sticky; top:5.5rem; }
+  .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:0; }
+  .local-discovery-detail .detail-hero figcaption { padding-inline:0; }
+  .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-lg); }
+  .local-discovery-detail .detail-facts-card { margin-top:0; }
+  .site-detail-actions.detail-actions { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:var(--sp-2); margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); }
+  .site-detail-actions.detail-actions>.detail-actions__primary { grid-column:1 / -1; order:-1; }
+  /* Six tracks: three cells take two each, two cells three each (a waiting event has no 收藏), a lone cell the row. */
+  .site-detail-actions.detail-actions>.detail-actions__cell { grid-column:span 2; }
+  .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3),.site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3)~.detail-actions__cell { grid-column:span 3; }
+  .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(2) { grid-column:1 / -1; }
+  .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; border:1px solid var(--color-line-control); background:var(--color-surface); color:var(--color-ink); white-space:normal; }
+  .site-detail-actions.detail-actions [data-label=desk] { display:inline; }
+  .site-detail-actions.detail-actions [data-label=phone] { display:none; }
 }
-
-/* Page end: the next places to go. */
-.local-discovery-detail .discovery-return { margin:40px 16px 0; padding:24px 0 0; border:0; border-top:2px solid var(--color-brand-deep); border-radius:0; background:transparent; }
-.local-discovery-detail .discovery-return .discovery-eyebrow { color:var(--color-brand); font-size:var(--text-caption); font-weight:400; letter-spacing:0; text-transform:none; }
-.local-discovery-detail .discovery-return h2 { margin:6px 0 8px; font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
-.local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:4px 20px; }
-.local-discovery-detail .discovery-return a { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
-@media(min-width:1024px) { .local-discovery-detail .discovery-return { margin-inline:0; } }
-.local-discovery-detail :is(a,button,summary):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
-html[data-simple] .local-discovery-detail :is(.detail-action,.detail-map-link,.detail-calendar,.discovery-return a,.detail-back a) { min-height:3rem; }
-/* Under 360px a full 8-character or 14-letter title unit is wider than the H1 at extra-large Aa, so units may wrap. */
-@media(max-width:359px) { .local-discovery-detail .detail-head h1 .title-keep { white-space:normal; } }

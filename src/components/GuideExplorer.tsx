@@ -9,12 +9,12 @@ import { getImageProvenance } from '../lib/image-provenance';
 import { useLocale } from '../i18n/locale';
 
 const IDEAS = [
-  { label: '去海边', slug: 'half-moon-bay-coastal-half-day-guide', place: 'HALF MOON BAY', note: '风有点大，日程可以慢一点。', detail: '海岸短走 / 看海休息 / 随时折返' },
-  { label: '走进树林', slug: 'reinhardt-redwood-first-walk-guide', place: 'EAST BAY', note: '把脚步放轻，把绿色看仔细。', detail: '公园步道 / 出发查开放公告 / 量力而行' },
-  { label: '买点新鲜的', slug: 'bay-area-farmers-market-shopping-guide', place: 'NEIGHBORHOOD LIFE', note: '让一袋新鲜食材，安排这周的餐桌。', detail: '市集准备 / 询问产地 / 按需购买' },
-  { label: '雨天也出门', slug: 'rainy-day-museum-family-guide', place: 'INDOOR EXPLORING', note: '换一种天气，也换一种发现。', detail: '场馆选择 / 预约核对 / 带孩子慢慢看' },
-  { label: '铺开野餐垫', slug: 'presidio-picnic-day-guide', place: 'SAN FRANCISCO', note: '坐在草地上，也算认真过周末。', detail: '公园选点 / 野餐准备 / 散步收尾' },
-  { label: '带狗一起走', slug: 'bay-area-dog-park-first-outing-guide', place: 'WITH YOUR DOG', note: '出门前，先读懂这片公园的规则。', detail: '牵引范围 / 随身用品 / 清理与礼让' },
+  { label: '去海边', slug: 'half-moon-bay-coastal-half-day-guide', place: 'Half Moon Bay', note: '风有点大，日程可以慢一点。', detail: '海岸短走 / 看海休息 / 随时折返' },
+  { label: '走进树林', slug: 'reinhardt-redwood-first-walk-guide', place: 'East Bay', note: '把脚步放轻，把绿色看仔细。', detail: '公园步道 / 出发查开放公告 / 量力而行' },
+  { label: '买点新鲜的', slug: 'bay-area-farmers-market-shopping-guide', place: 'Neighborhood life', note: '让一袋新鲜食材，安排这周的餐桌。', detail: '市集准备 / 询问产地 / 按需购买' },
+  { label: '雨天也出门', slug: 'rainy-day-museum-family-guide', place: 'Indoor exploring', note: '换一种天气，也换一种发现。', detail: '场馆选择 / 预约核对 / 带孩子慢慢看' },
+  { label: '铺开野餐垫', slug: 'presidio-picnic-day-guide', place: 'San Francisco', note: '坐在草地上，也算认真过周末。', detail: '公园选点 / 野餐准备 / 散步收尾' },
+  { label: '带狗一起走', slug: 'bay-area-dog-park-first-outing-guide', place: 'With your dog', note: '出门前，先读懂这片公园的规则。', detail: '牵引范围 / 随身用品 / 清理与礼让' },
 ];
 
 export function GuideExplorer({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
@@ -25,7 +25,7 @@ export function GuideExplorer({ onOpenGuide }: { onOpenGuide: (slug: string) => 
   if (!guide) return null;
   const { cover } = getGuideMedia(guide);
   return <section className="bl-guide-explorer" aria-labelledby="guide-explorer-title">
-    <div className="bl-guide-explorer-heading"><div><EnglishOnly><span className="bl-guide-eyebrow">MAKE A LITTLE ROOM FOR LIFE</span></EnglishOnly><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
+    <div className="bl-guide-explorer-heading"><div><EnglishOnly><span className="bl-guide-eyebrow">Make a little room for life</span></EnglishOnly><h2 id="guide-explorer-title">今天，想怎么过？</h2></div><span>新写的攻略，新的小期待。</span></div>
     <div className="bl-guide-mood-picker" role="group" aria-label="选择周末灵感">{IDEAS.map((item, index) => <button type="button" key={item.slug} aria-pressed={selected === index} onClick={() => setSelected(index)}>{item.label}</button>)}</div>
     <div className="bl-guide-explorer-feature" aria-live="polite">
       <Link className="bl-guide-explorer-image" to={`/guides/${guide.slug}`} onClick={event => handleGuideLinkClick(event, () => onOpenGuide(guide.slug))} aria-label={`阅读${guide.title}`}><img src={cover.src} srcSet={cover.srcSet} sizes="(max-width: 639px) calc(100vw - 40px), 650px" width={cover.width} height={cover.height} alt={cover.alt} loading="lazy" decoding="async" /><span>{cover.kind === 'photo' ? getImageProvenance(cover, locale === 'en') : cover.kind === 'poster' ? '官方宣传图' : 'AI 原创插图'} <ChevronRight size={16} /></span></Link>

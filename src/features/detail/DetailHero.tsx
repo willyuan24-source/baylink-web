@@ -8,9 +8,8 @@ import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
 import type { EventFactsInput } from '../../lib/event-facts';
 import type { DetailRecord } from './detail-record';
+import { webLink } from './hero-cover';
 import { offerBrand } from './reader-text';
-
-const webLink = (value: string | undefined): value is string => !!value && /^https:\/\//.test(value);
 
 // This route also serves offers and new shops: their families load with the record (the page module asks for the record
 // before React renders, and this module asks for the family of the page it boots on beside it), not in the route's own JS,
@@ -27,12 +26,11 @@ if (typeof window !== 'undefined') {
 }
 
 /**
- * The detail hero (EVT11-03, SV-05; design.md §4.9): the first thing on the page, 16:9 full-bleed on a phone and 800×450 on
- * a desktop. A photo shows its provenance chip (posters whole on their board, never cropped or blurred). With no qualifying
- * image the listing's family cover (UI9-C) fills the same frame and prints what the H1 and the chips do not: the day, the
- * time and the 6–24 h bar (date), the value and the deadline stub (ticket), what the shop sells and its opening day (shop).
- * It is the page's largest image, so it loads eagerly; ended events are desaturated. The credit line is in the source
- * section (HeroCredit), so the facts stay on the first screen.
+ * The detail hero (EVT11-03, SV-05; design.md §4.9): the first thing on the page, 16:9 full-bleed on a phone and the main
+ * column's eight grid columns on a desktop (local-discovery-detail.css). A photo shows its provenance chip (posters whole on
+ * their board, never cropped or blurred) and, under it, the 13 px credit line (G13). With no qualifying image the listing's
+ * family cover (UI9-C) fills the same frame and prints what the H1 and the chips do not; a type cover has no credit line.
+ * It is the page's largest image, so it loads eagerly; ended events are desaturated.
  */
 export function DetailHero({ record, cover, today, ended }: { record: DetailRecord; cover: ResolvedCover; today: string; ended: boolean }) {
   const { item } = record;
@@ -43,27 +41,31 @@ export function DetailHero({ record, cover, today, ended }: { record: DetailReco
     : <Shop opening={item.shop} today={today} {...slot} />;
   return <figure className="detail-hero" data-tier={cover.tier}>
     <Cover cover={cover} {...slot} kind={item.kind} sizes={COVER_SIZES.detail} priority ended={ended} fallback={fallback} />
+    {cover.tier !== 'type' && <figcaption><HeroCredit cover={cover} /></figcaption>}
   </figure>;
 }
 
-/** The venue's archive photo below the summary (hero-cover.ts placePhoto), with its badge, caption and credit. */
+/** The venue's archive photo below the summary (hero-cover.ts placePhoto), with its badge and the same credit line. */
 export function DetailPlacePhoto({ photo }: { photo: ImageCover }) {
   const { pick } = useUiCopy();
   return <figure className="detail-photo">
     <CoverImage image={photo.image} label={pick(photo.label)} fit={photo.fit} focal={photo.focal} ratio="3:2" sizes={COVER_SIZES.detail} />
-    <figcaption><HeroCredit cover={photo} label={false} /></figcaption>
+    <figcaption><HeroCredit cover={photo} /></figcaption>
   </figure>;
 }
 
-/** "图片：caption · credit · 图片授权" for the hero photo; nothing for a TypeCover. Under a figure the badge already says the label. */
-export function HeroCredit({ cover, label = true }: { cover: ResolvedCover; label?: boolean }) {
+/**
+ * The credit line under a photo (G13): its provenance label first (ink-2), then the linked credit, then 图片授权; 13 px, ink-3,
+ * at most two lines on a phone. The long caption stays in the source section (HeroCaption). Nothing for a type cover.
+ */
+export function HeroCredit({ cover }: { cover: ResolvedCover }) {
   const { t, pick, locale } = useUiCopy();
   if (cover.tier === 'type') return null;
   const { image } = cover;
-  return <p className="detail-credit">
-    {label && <span className="detail-credit__label">{pick(cover.label)}</span>}
-    {image.caption && <span>{translateText(image.caption, locale)}</span>}
-    {webLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(image.credit, locale)}</a> : <span>{translateText(image.credit, locale)}</span>}
-    {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('图片授权', 'License')}</a>}
-  </p>;
+  const credit = translateText(image.credit, locale);
+  return <span className="detail-credit">
+    <span className="detail-credit__label">{pick(cover.label)}</span>
+    {credit && (webLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>)}
+    {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer" data-simple="hide">{t('图片授权', 'License')}</a>}
+  </span>;
 }

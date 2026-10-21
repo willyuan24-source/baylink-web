@@ -1,5 +1,4 @@
 /* Editorial finish. The site chrome (header, menus, footer, tab bar, toast) lives in src/components/site-chrome.css. */
-:root { --color-editorial:var(--color-brand); }
 .bay-home { padding-top:28px; padding-bottom:40px; }
 .bl-guide-prose h2 { border-top:1px solid var(--color-line); padding-top:28px; }
 

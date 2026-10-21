@@ -1,2 +1,0 @@
-/* The old /calendar page (.ec-*) was replaced by the events column (src/features/events/events.css, WEB-EVENTS); its rules are deleted.
-   This file stays because src/main.tsx imports it (WEB-CSS-PRUNE removes the import). */

@@ -185,8 +185,8 @@ test('complete guide places kept inline media after the selected section and pre
     assert.equal(cursor, headings[item.afterHeading - 1]);
     assert.equal(figure.nextElementSibling, headings[item.afterHeading] || null, 'image comes after the complete section and before the next heading');
   }
-  assert.ok(view.getByRole('complementary', { name: '文章目录' }));
-  assert.ok(view.getByRole('heading', { name: '官方参考资料与办事入口' }));
+  assert.ok(view.getByRole('navigation', { name: '文章目录' }));
+  assert.ok(view.getByRole('heading', { name: '官方来源' }));
   assert.equal(view.getByRole('link', { name: '返回湾区指南' }).getAttribute('href'), '/guides?q=海边');
   assert.equal(view.getAllByRole('tabpanel').length, 1, 'the real article route is interactive');
   // Credits for every picture shown on the page are listed once, under the sources.
@@ -201,9 +201,10 @@ test('off-topic inline pictures are hidden: the stock laptop photo and shared AI
     assert.ok(guide);
     const view = render(article(slug));
     const sources = Array.from(view.container.querySelectorAll('img')).map(img => img.getAttribute('src'));
-    // The owner-approved Commons photos (CNT-MEDIA-4) are on topic and shown; the stock laptop photo and AI art stay hidden.
+    // The owner-approved Commons photos (CNT-MEDIA-4) and guide photos (CNT-MEDIA-5: the public-domain HHS photo in the Medicare
+    // guide) are on topic and shown; the stock laptop photo and AI art stay hidden.
     for (const item of getGuideMedia(guide).inline) {
-      const shown = item.image.src.startsWith('/guides/commons/');
+      const shown = item.image.src.startsWith('/guides/commons/') || item.image.src.startsWith('/guides/guide-photos/');
       assert.equal(sources.includes(item.image.src), shown, `${slug}: ${item.image.src} is ${shown ? 'shown' : 'hidden'}`);
     }
     cleanup();
@@ -257,7 +258,10 @@ test('no article shows the same picture twice: a related guide, an inline figure
   for (const guide of guides) {
     const html = renderToStaticMarkup(<StaticRouter location={`/guides/${guide.slug}`}><GuideDetail slug={guide.slug} {...guideProps} /></StaticRouter>);
     // Posters letterbox on a blurred copy of themselves (one picture, two <img>); count the picture once.
-    const images = Array.from(new JSDOM(html).window.document.querySelectorAll('img:not(.ui-cover__backdrop)'));
+    // "Read next" renders three rows for a phone and four covers for a desktop; CSS shows one of the two (UI9-GUIDES).
+    const page = new JSDOM(html).window.document;
+    page.querySelectorAll('.gd-related__rows').forEach(rows => rows.remove());
+    const images = Array.from(page.querySelectorAll('img:not(.ui-cover__backdrop)'));
     // The deals board (FreebieBoard, WEB-EVENTS) reuses an offer picture across offers and shows the lead offer's photo,
     // which the deals guides keep as their cover (monthly-deals-ui); every other picture appears once on the page.
     const inBoard = (image: Element) => !!image.closest('[id^="freebie-board-"]');

@@ -141,7 +141,6 @@ const LOWERED: Array<[file: string, pins: Pin[]]> = [
   ]],
   ['src/components/discovery-community.css', [
     ['', '.discovery-return h2', 26, 24],
-    ['@media (max-width:639px)', '.discovery-modal h2', 22, 20],
   ]],
   ['src/components/guide-visuals.css', [
     ['', '.guide-route-heading h3', 22, 20],
@@ -287,7 +286,8 @@ function fontSizes(file: string) {
 }
 
 test('elder modes: no component size the ladder codemod lowered is smaller than before tokens v2 (大 / 特大 / 简洁, phone to desktop)', () => {
-  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 70);
+  // 69 since UI9-INT dropped the .discovery-modal h2 pin with its dead rule (no markup since the sheets moved to F's Sheet).
+  assert.equal(LOWERED.reduce((sum, [, pins]) => sum + pins.length, 0), 69);
   const cases: Case[] = [];
   for (const width of [390, 768, 1023, 1024, 1440]) for (const reading of [undefined, 'large', 'extra-large'] as const) for (const simple of [false, true]) cases.push({ width, reading, simple });
   const resolvers = cases.map(c => ({ c, px: fsPx(c) }));

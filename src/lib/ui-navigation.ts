@@ -1,4 +1,5 @@
 import { matchRoute } from '../app/route-table';
+import { FREE_NO_SIGN_IN } from './site-promise';
 
 export type PrimaryNavigationPath = '/' | '/events' | '/guides' | '/me';
 const PRIMARY = { home: '/', events: '/events', guides: '/guides', me: '/me' } as const;
@@ -10,4 +11,23 @@ const PRIMARY = { home: '/', events: '/events', guides: '/guides', me: '/me' } a
 export function primaryNavigationPath(pathname: string): PrimaryNavigationPath | null {
   const section = matchRoute(pathname)?.section;
   return section && section in PRIMARY ? PRIMARY[section as keyof typeof PRIMARY] : null;
+}
+
+/**
+ * The site's promise in HOME's exact words: one module (lib/site-promise.ts) that the home, the events pages and this
+ * footer all read (UI9-INT), so the strings ship once, in the shell. METHOD_HREF is the only 我们怎么核对 target
+ * (AboutContent.tsx, captain decision 10).
+ */
+export { FREE_NO_SIGN_IN, METHOD_HREF, SITE_IDENTITY } from './site-promise';
+export const FREE_ONLY = { zh: '免费', en: 'Free' } as const;
+
+/**
+ * Captain decision 4: 不用登录 is printed only while a guest can browse, ♡ save (the guest list in this browser,
+ * lib/saves.ts savesKey() without a user) and ask BayBay (guest mode: BayBayAssistantEntry without an ownerId). The
+ * signed-out run that shows all three is recorded in the lane's PR.md; tests/ui9-nav-chrome.test.tsx pins the rule.
+ */
+export type GuestCapabilities = { browse: boolean; save: boolean; baybay: boolean };
+export const GUEST_CAPABILITIES: GuestCapabilities = { browse: true, save: true, baybay: true };
+export function footerClaim(guest: GuestCapabilities = GUEST_CAPABILITIES) {
+  return guest.browse && guest.save && guest.baybay ? FREE_NO_SIGN_IN : FREE_ONLY;
 }

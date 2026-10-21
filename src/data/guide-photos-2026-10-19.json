@@ -1,0 +1,65 @@
+[
+  {
+    "key": "official-sfmta-kirkland-yard-2023",
+    "src": "/guides/guide-photos/official-sfmta-kirkland-yard-2023.webp",
+    "width": 1000,
+    "height": 668,
+    "kind": "photo",
+    "focal": [
+      50,
+      55
+    ],
+    "alt": "从高处看 Kirkland 公交车场：停满红白色的 Muni 公交车，四周停着私家车，旁边人行道上有行人",
+    "caption": "SFMTA 官网文章里的 Kirkland 公交车场照片，官网说明是 2023 年拍摄；用来说明 Muni 公交，不是 Clipper 办理点，也不是长者专车。",
+    "credit": "SFMTA 官方照片",
+    "creditUrl": "https://www.sfmta.com/blog/then-and-now-kirkland-division-munis-oldest-motor-bus-yard",
+    "photoDate": "2023",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://www.sfmta.com/blog/then-and-now-kirkland-division-munis-oldest-motor-bus-yard",
+      "scope": "guide context photo for SFMTA service, credited and linked"
+    }
+  },
+  {
+    "key": "official-sfpl-main-library-skylight",
+    "src": "/guides/guide-photos/official-sfpl-main-library-skylight.webp",
+    "width": 1280,
+    "height": 853,
+    "kind": "photo",
+    "focal": [
+      50,
+      50
+    ],
+    "alt": "从旧金山公共图书馆总馆中庭往上看：贝壳形的玻璃天窗和一圈圈楼层栏杆",
+    "caption": "旧金山公共图书馆官网总馆页面的中庭天窗照片（摄影 Jason Doiy，相机记录拍摄于 2010 年）；展示馆舍，不是某次活动现场，各馆开放时间以官网为准。",
+    "credit": "旧金山公共图书馆官方照片 · 摄影 Jason Doiy",
+    "creditUrl": "https://sfpl.org/locations/main-library",
+    "photoDate": "2010-10-24",
+    "rights": {
+      "basis": "promo-editorial",
+      "evidenceUrl": "https://sfpl.org/locations/main-library",
+      "scope": "guide context photo for SFPL, credited and linked"
+    }
+  },
+  {
+    "key": "loc-highsmith-hhs-humphrey-building-2012",
+    "src": "/guides/guide-photos/loc-highsmith-hhs-humphrey-building-2012.webp",
+    "width": 1280,
+    "height": 695,
+    "kind": "photo",
+    "focal": [
+      50,
+      45
+    ],
+    "alt": "示意图：华盛顿特区的美国卫生与公众服务部（HHS）总部 Hubert H. Humphrey 大楼，斜角远景，楼前路口有远处的行人和骑车的人",
+    "caption": "示意图：华盛顿特区的美国卫生与公众服务部（HHS）总部大楼，2012 年 3 月资料照片；用来说明 Medicare 是联邦医保。这里不是湾区的咨询地点，也不是 HICAP 办公室。",
+    "credit": "Carol M. Highsmith 摄 / 美国国会图书馆（highsm.25147）· 公共领域（摄影师本人声明） · 已缩放压缩，按版面裁切",
+    "creditUrl": "https://commons.wikimedia.org/wiki/File:Hubert_H._Humphrey_Building,_located_at_the_foot_of_Capitol_Hill,_Washington,_D.C_LCCN2013634632.jpg",
+    "photoDate": "2012-03-03",
+    "rights": {
+      "basis": "public-domain",
+      "evidenceUrl": "https://commons.wikimedia.org/wiki/File:Hubert_H._Humphrey_Building,_located_at_the_foot_of_Capitol_Hill,_Washington,_D.C_LCCN2013634632.jpg",
+      "scope": "guide context photo; photographer and archive credited"
+    }
+  }
+]

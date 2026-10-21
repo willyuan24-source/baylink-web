@@ -13,11 +13,14 @@ const page: CSSProperties = { minHeight: '100vh', display: 'flex', flexDirection
 const tellUs = () => void import('../features/feedback/open-feedback')
   .then(feedback => feedback.openFeedback({ kind: 'page', reason: 'other' }), () => false)
   .then(opened => { if (!opened) window.location.href = `mailto:${FEEDBACK_EMAIL}`; });
-const button: CSSProperties = { minHeight: '3rem', padding: '.625rem 1.75rem', borderRadius: '.875rem', fontSize: '1rem', fontWeight: 600, cursor: 'pointer' };
+// One 48px look (回到首页); 重试 fills it with the brand, 反馈 is its quiet text form.
+const button: CSSProperties = { display: 'inline-flex', alignItems: 'center', minHeight: '3rem', padding: '0 1.75rem', border: '1px solid var(--color-line-strong)', borderRadius: '.875rem', background: 'var(--color-surface)', color: 'var(--color-ink)', fontSize: '1rem', fontWeight: 600, cursor: 'pointer', textDecoration: 'none' };
 
 /**
  * 根级错误边界：任何渲染异常兜底为可恢复的页面，而不是整站白屏。Reports an anonymous beacon (kind render, or chunk when a
- * stale deploy's code failed to load) and offers 反馈 in the reader's language.
+ * stale deploy's code failed to load). The chunk-error state of the content arrangement, in the reader's language: the
+ * heading 这一页没打开, then 重试 (the primary; it reloads) · 回到首页 (a plain link, outside the router this boundary sits
+ * above; the JSX host gives it the reader's language, i18n/host.ts) · 反馈.
  */
 export default class ErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false };
@@ -35,18 +38,16 @@ export default class ErrorBoundary extends Component<Props, State> {
     if (!this.state.hasError) return this.props.children;
     return (
       <div role="alert" style={page}>
-        <div aria-hidden="true" style={{ fontSize: '2.5rem' }}>🦦</div>
-        <h1 style={{ fontSize: '1.375rem', lineHeight: 1.4, fontWeight: 600, margin: 0 }}>{copy('页面出了点小问题', 'Something went wrong on this page')}</h1>
-        <p style={{ fontSize: '1rem', color: 'var(--color-ink-2)', margin: 0, maxWidth: '22rem', lineHeight: 1.7 }}>
-          {copy('刷新一下通常就能恢复。如果反复出现，请告诉我们你刚才在做什么。', 'Reloading usually fixes it. If it keeps happening, please tell us what you were doing.')}
-        </p>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.75rem', justifyContent: 'center' }}>
-          <button type="button" onClick={() => window.location.reload()} style={{ ...button, border: '1px solid var(--color-brand)', background: 'var(--color-brand)', color: 'var(--color-surface)' }}>
-            {copy('刷新页面', 'Reload the page')}
+        <h1 style={{ fontSize: '1.375rem', lineHeight: 1.4, fontWeight: 600, margin: 0 }}>{copy('这一页没打开', 'This page did not open')}</h1>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.75rem', justifyContent: 'center', alignItems: 'center' }}>
+          <button type="button" onClick={() => window.location.reload()} style={{ ...button, borderColor: 'var(--color-brand)', background: 'var(--color-brand)', color: 'var(--color-surface)' }}>
+            {copy('重试', 'Try again')}
           </button>
-          <button type="button" onClick={tellUs}
-            style={{ ...button, border: '1px solid var(--color-line-strong)', background: 'var(--color-surface)', color: 'var(--color-ink)' }}>
-            {copy('告诉我们', 'Tell us')}
+          <a href="/" style={button}>
+            {copy('回到首页', 'Back to home')}
+          </a>
+          <button type="button" onClick={tellUs} style={{ ...button, borderColor: 'transparent', background: 'transparent', color: 'var(--color-brand-deep)', textDecoration: 'underline' }}>
+            {copy('反馈', 'Feedback')}
           </button>
         </div>
       </div>

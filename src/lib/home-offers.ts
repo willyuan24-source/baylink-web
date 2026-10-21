@@ -4,7 +4,7 @@ import { getCover, type CoverContext, type ResolvedCover } from './cover';
 
 /** An offer as the home ticket rail needs it (scripts/generate-home-catalog.ts): no requirement text, no source URL. */
 export type HomeOffer = Pick<FreebieOffer, 'id' | 'title' | 'brand' | 'startDate' | 'endDate' | 'availability' | 'kind' | 'imageKey' | 'verifiedAt' | 'region'>
-  & { valueText?: string; publicBenefit?: boolean };
+  & { valueText?: string; publicBenefit?: boolean; press?: true };
 
 const addDays = (day: string, amount: number) => new Date(Date.parse(`${day}T12:00:00Z`) + amount * 86_400_000).toISOString().slice(0, 10);
 
@@ -87,6 +87,10 @@ function endsSoonHidden(rail: readonly Pick<HomeOffer, 'brand' | 'endDate'>[], t
 export function offerRailOpensWide(rail: readonly Pick<HomeOffer, 'brand' | 'endDate'>[], first: ResolvedCover | undefined, today: string): boolean {
   return canLeadOfferRail(first) && !endsSoonHidden(rail, today, WIDE_RAIL_SHOWN);
 }
+
+/** How many tickets the home shows (UI9-HOME): the wide one and two more, or four; the credits line credits only these. */
+export const homeOfferCount = (offers: readonly Pick<HomeOffer, 'brand' | 'endDate'>[], covers: readonly (ResolvedCover | undefined)[], today: string) =>
+  offerRailOpensWide(offers, covers[0], today) ? 3 : 4;
 
 /** The offer's cover on the home rail, from the images the page ships (the generator passes the full registry). */
 const offerCover = (offer: Pick<HomeOffer, 'id' | 'imageKey'>, images: CoverContext['images'], today: string) =>

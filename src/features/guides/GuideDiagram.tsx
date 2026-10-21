@@ -2,7 +2,7 @@ import { useId } from 'react';
 import { Phone } from 'lucide-react';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import type { Guide } from '../../data/guides';
-import { linkifyPhones } from '../../lib/phone-links';
+import { linkifyGuidePhones, usePlainPhones } from './plain-phone-text';
 import { SourceMark } from './GuideFactCards';
 import type { DiagramItem, GuideDiagram } from './guide-diagrams';
 
@@ -14,9 +14,10 @@ import type { DiagramItem, GuideDiagram } from './guide-diagrams';
 export function GuideDiagramFigure({ guide, diagram }: { guide: Guide; diagram: GuideDiagram }) {
   const { t, pick } = useUiCopy();
   const titleId = useId();
-  const tel = (item: DiagramItem) => item.number && (item.tel
+  const plain = usePlainPhones();
+  const tel = (item: DiagramItem) => item.number && (item.tel && !plain?.has(item.tel)
     ? <a className="gd-diagram__tel" href={`tel:${item.tel}`} aria-label={t(`拨打 ${pick(item.title)} ${item.number}`, `Call ${pick(item.title)} ${item.number}`)}><Phone aria-hidden="true" strokeWidth={1.75} /><span>{item.number}</span></a>
-    : <span className="gd-diagram__number">{item.number}</span>);
+    : <span className="gd-diagram__number gd-nowrap">{item.number}</span>);
   const text = (item: DiagramItem) => item.text && <span className="gd-diagram__text">{pick(item.text)}</span>;
   const footer = diagram.kind === 'timeline' ? diagram.total : diagram.kind === 'flow' ? undefined : diagram.footer;
   return <figure className="gd-diagram" data-diagram={diagram.kind} data-cover="diagram" aria-labelledby={titleId}>
@@ -37,7 +38,7 @@ export function GuideDiagramFigure({ guide, diagram }: { guide: Guide; diagram: 
       {diagram.tiles.map(tile => <li key={tile.area} data-area={tile.area}><strong>{pick(tile.title)}</strong>{tel(tile)}</li>)}
       <li className="gd-diagram__bay" aria-hidden="true"><span>{t('旧金山湾', 'SF Bay')}</span></li>
     </ul>}
-    {footer && <p className="gd-diagram__footer">{linkifyPhones(pick(footer), { variant: 'inline' })}</p>}
+    {footer && <p className="gd-diagram__footer">{linkifyGuidePhones(pick(footer), { variant: 'inline', except: plain })}</p>}
     <p className="gd-diagram__credit">{t('内容摘自本文', 'From this guide')}{diagram.source ? <SourceMark guide={guide} index={diagram.source} /> : null}</p>
   </figure>;
 }

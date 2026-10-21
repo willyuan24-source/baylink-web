@@ -9,6 +9,7 @@ import { guideTopicOf } from '../src/data/guide-topics';
 import { SCENE3D_POSTCARD_IMAGES } from '../src/data/scene3d-postcards';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { guideReadMinutes, guideSourceCount } from '../src/features/guides/guide-facts';
+import { GUIDE_EDITORIAL } from '../src/data/guide-editorial';
 import { getCover, rightsBasisOf, type CoverAsset } from '../src/lib/cover';
 import { getBuildWeekend } from '../src/lib/home-weekend-build';
 import { offerHasPhoto, offerLeadsRail, selectHomeOffers, type HomeOffer } from '../src/lib/home-offers';
@@ -16,6 +17,7 @@ import { getBayAreaToday } from '../src/lib/monthly';
 import { addCalendarDays } from '../src/lib/event-calendar';
 import { isSeniorFriendly } from '../src/lib/senior-friendly';
 import { checkSummary } from '../src/lib/check-dates';
+import { isPressSource } from '../src/lib/event-facts';
 import type { HomeWeekendSnapshot } from '../src/lib/home-weekend';
 import { WEEKEND_PICKS } from '../src/data/weekend-picks';
 
@@ -53,6 +55,12 @@ const homeGuides = guides.filter(guide => homeSlugs.has(guide.slug)).map(guide =
     // ≤ base, captain decision 9); /guides and a guide's 接下来 rail print them (generate-guide-data.ts).
     sources: guideSourceCount(guide), readMinutes: guideReadMinutes(guide), ...(usable ? { imageKey: cover.src } : {}),
   };
+});
+// UI9-HOME: 长辈常用电话 — the 长辈与家属 intent's guides that carry a cover phone (the number the guide's own call button
+// dials), in the intent's order: the guide's slug and cover question, the phone's label, the number as written and its tel.
+const elderCalls = (HOME_INTENTS.find(intent => intent.id === 'elders')?.slugs ?? []).flatMap(slug => {
+  const cover = GUIDE_EDITORIAL[slug]?.cover;
+  return cover?.phone ? [{ slug, title: cover.question, label: cover.phone.label, number: cover.phone.number, tel: cover.phone.tel }] : [];
 });
 const missing = [...homeSlugs].filter(slug => !homeGuides.some(guide => guide.slug === slug));
 if (missing.length) throw new Error(`Home intent guides not in the catalog: ${missing.join(', ')}`);
@@ -94,6 +102,8 @@ const weekendSchedule = (schedule: NonNullable<NonNullable<(typeof PLANNER_EVENT
 };
 // What a home card and the weekend selection read (src/lib/home-weekend.ts, src/lib/event-facts.ts): no venue line, long date
 // label, cost sentence, summary or official URL — the detail page has them.
+// DECISIONS 15: a close-up face photo still ships; only the home's lead slot draws the type cover instead (HomeDiscovery,
+// lib/close-up-faces.ts leadImageKey), so the feed and /plan's 本周末精选, which read this snapshot, keep the photo.
 const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(event => {
   const facts = planning.get(event.id);
   const schedule = facts?.schedule && weekendSchedule(facts.schedule);
@@ -104,6 +114,8 @@ const events = MONTHLY_EVENTS.filter(event => selectedIds.has(event.id)).map(eve
   return {
     id, title, ...(aliases?.length ? { aliases } : {}), startDate, endDate, ...(occurrenceDates !== undefined ? { occurrenceDates } : {}), region, city, category, cost,
     verifiedAt, imageKey, audience, ...present({ ...event, sessions }, ['shortTitle', 'sessions', 'price', 'venueShort', 'iconKey', 'status']),
+    // DECISIONS 17: a press-sourced card says 媒体报道 · M/D 核对 (the one prefix rule); only such an event carries the flag.
+    ...(isPressSource(event.sourceLabel) ? { press: true } : {}),
     ...(Object.keys(plan).length ? { planning: plan } : {}),
   };
 });
@@ -112,6 +124,7 @@ const offers: HomeOffer[] = liveOffers.filter(offer => offerIds.has(offer.id)).m
   return {
     id: offer.id, title: offer.title, brand: offer.brand, availability: offer.availability, kind: offer.kind, imageKey: offer.imageKey,
     ...present(offer, ['region', 'startDate', 'endDate', 'verifiedAt', 'valueText', 'publicBenefit']),
+    ...(isPressSource(offer.sourceLabel) ? { press: true } : {}),
   } as HomeOffer;
 });
 // Only images the cover ladder accepts for their item are shipped (an AI illustration, a theme photo, an undated or old
@@ -127,7 +140,7 @@ const scene3dStrip = slimImage(SCENE3D_POSTCARD_IMAGES['scene3d-sf-chinatown-lan
 
 await mkdir('src/data/generated', { recursive: true });
 await writeFile('src/data/generated/home-catalog.json', JSON.stringify({
-  guides: homeGuides, guideCount: guides.length, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate,
+  guides: homeGuides, guideCount: guides.length, elderCalls, events, weekends, generatedAt: today, throughDate: MONTHLY_EDITION.throughDate,
   edition: { checkedAt: MONTHLY_EDITION.checkedAt, throughDate: MONTHLY_EDITION.throughDate }, offers, images, scene3d, scene3dStrip,
 }));
 console.log(`Home catalog: ${homeGuides.length} guide summaries, ${events.length} event facts, ${offers.length} offers; no article bodies.`);

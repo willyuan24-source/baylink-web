@@ -2,12 +2,12 @@ import { guides, GUIDE_CATEGORY_TABS, type Guide } from '../../data/guides';
 import { getGuideMedia, type GuideImage } from '../../data/guide-media';
 import { ATTRACTIONS } from '../../data/attractions';
 import { getGuideEditorial } from '../../data/guide-editorial';
-import { guideTopicOf } from '../../data/guide-topics';
+import { guideSlugsForTopic, guideTopicOf } from '../../data/guide-topics';
 import { rankRelatedGuides } from '../../lib/guide-discovery';
 import { getGuideMetadata } from '../../lib/guide-metadata';
 import { getOfferImage } from '../../lib/offer-media';
-import { guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
-import type { GuideCard, GuideCovers, GuideIndexCard, GuideInlineImage, GuideOpusEntry, GuideRecord, GuidesIndex } from './guide-records';
+import { guideCallOf, guideReadMinutes, guideSourceCount, type GuideRegionId } from './guide-facts';
+import { GUIDE_BAND_SIZE, telOf, type GuideCard, type GuideCovers, type GuideIndexCard, type GuideInlineImage, type GuideOpusEntry, type GuideRecord, type GuidesIndex } from './guide-records';
 import { OPUS_BAY_ATTRACTION_ENTRIES } from '../../lib/opus-bay-attraction-entry';
 import { SCENE3D_POSTCARD_FOR, SCENE3D_POSTCARD_IMAGES } from '../../data/scene3d-postcards';
 import { GUIDE_DIAGRAMS } from './guide-diagrams';
@@ -74,6 +74,8 @@ export function guideCardOf(guide: Guide, covers: GuideCovers): GuideCard {
   return {
     slug: guide.slug, title: guide.title, category: guide.category, sourceCount: guideSourceCount(guide), readMinutes: guideReadMinutes(guide), covers,
     ...(guide.editionMonth ? { editionMonth: guide.editionMonth } : {}),
+    ...(guide.editionMonth && guide.editionStartDate ? { editionStartDate: guide.editionStartDate } : {}),
+    ...(guide.editionMonth && guide.editionThroughDate ? { editionThroughDate: guide.editionThroughDate } : {}),
   };
 }
 
@@ -127,10 +129,22 @@ export function guideRecordOf(guide: Guide, coversOf: (guide: Guide) => GuideCov
 }
 
 export function guidesIndexOf(coversOf: (guide: Guide) => GuideCovers): GuidesIndex {
+  // The 拨打 number rides only on the guides the 长辈与家属 band can show (G16; the band is the first GUIDE_BAND_SIZE hub guides
+  // that are not past editions, so every hub guide up to the GUIDE_BAND_SIZE-th one without an edition), and only when its
+  // printed form dials the same tel: as the reader's bar (a 211-style or extension number is left out, never a throw).
+  const elders = new Set<string>();
+  let evergreen = 0;
+  for (const slug of guideSlugsForTopic('elders', guides)) {
+    if (evergreen >= GUIDE_BAND_SIZE) break;
+    elders.add(slug);
+    if (!guides.find(guide => guide.slug === slug)?.editionMonth) evergreen++;
+  }
   return {
     guides: guides.map((guide): GuideIndexCard => {
       const regions = guideRegionsOf(guide);
-      return { ...guideCardOf(guide, coversOf(guide)), ...(regions.length ? { regions } : {}) };
+      const call = elders.has(guide.slug) ? guideCallOf(getGuideEditorial(guide.slug)) : undefined;
+      const dials = !!call && telOf(call.number) === call.tel;
+      return { ...guideCardOf(guide, coversOf(guide)), ...(regions.length ? { regions } : {}), ...(dials ? { call: { number: call!.number } } : {}) };
     }),
     categoryTabs: GUIDE_CATEGORY_TABS,
   };

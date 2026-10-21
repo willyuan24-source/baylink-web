@@ -1,64 +1,133 @@
-/* 指南 index (T2, WEB-GUIDES): loaded with GuidesHome only (route CSS, RC-6). Tokens and rem only; covers, chips, cards and the
-   rail are the WEB-UI primitives (ui.css). Reviewed by scripts/check-editorial-styles.mjs. */
-.gl-page { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding:16px var(--page-gutter) 48px; color:var(--color-ink); }
-.gl-header { margin-bottom:16px; }
-.gl-header .ui-page-header__lede { font-size:var(--text-body); }
+/* 指南 index (T2, WEB-GUIDES; UI9-GUIDES content arrangement): loaded with GuidesHome only (route CSS, RC-6). Tokens only; covers,
+   chips, cards and the sheet are the WEB-UI primitives (ui.css, cards.css). Reviewed by scripts/check-editorial-styles.mjs. */
+.gl-page { box-sizing:content-box; max-width:var(--container-wide); margin-inline:auto; padding:var(--sp-4) var(--page-gutter) var(--sp-6); color:var(--color-ink); }
+/* H1 and ♡ 我的指南收藏 in one row; the lede (≤ 2 lines) under them. */
+.gl-page .gl-header { display:grid; grid-template-columns:minmax(0, 1fr) auto; column-gap:var(--sp-3); align-items:center; margin-bottom:var(--sp-4); }
+.gl-header .ui-page-header__title { grid-column:1; margin:0; }
+.gl-header .ui-page-header__actions { grid-column:2; grid-row:1; margin:0; }
+.gl-header .ui-page-header__lede { grid-column:1 / -1; max-width:var(--measure); margin:var(--sp-2) 0 0; font-size:var(--fs-body); line-height:var(--lh-ui); }
+.gl-saved-link>svg { color:var(--color-brand); }
 
-.gl-find { display:flex; align-items:center; gap:8px; }
-.gl-search { position:relative; display:flex; flex:1 1 auto; align-items:center; gap:8px; min-width:0; min-height:3rem; padding:0 4px 0 16px; border:1px solid var(--color-line-strong); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink-2); }
-.gl-search:focus-within { border-color:var(--color-brand); box-shadow:0 0 0 2px var(--color-brand-tint); }
+.gl-find { display:flex; align-items:center; gap:var(--sp-2); }
+/* One input look for the search and the directory filters: 48 px, the control edge (≥ 3:1), the input radius. */
+.gl-search { position:relative; display:flex; flex:1 1 auto; align-items:center; gap:var(--sp-2); min-width:0; min-height:3rem; padding:0 var(--sp-1) 0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); }
+.gl-search:focus-within { border-color:var(--color-brand); outline:2px solid var(--color-brand-tint); outline-offset:0; }
 .gl-search>svg { flex:none; width:1.25rem; height:1.25rem; }
-.gl-search input { flex:1 1 auto; min-width:0; min-height:2.75rem; padding:0; border:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; outline:none; }
+.gl-search input { flex:1 1 auto; min-width:0; min-height:2.75rem; padding:0; border:0; background:transparent; color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); outline:none; }
+.gl-search input::placeholder { color:var(--color-ink-3); opacity:1; }
 .gl-search input::-webkit-search-cancel-button { display:none; }
 .gl-search__clear { display:inline-grid; place-items:center; flex:none; width:2.75rem; height:2.75rem; border:0; border-radius:var(--r-pill); background:transparent; color:var(--color-ink-2); cursor:pointer; }
 .gl-search__clear>svg { width:1.25rem; height:1.25rem; }
-.gl-saved-link { display:inline-flex; align-items:center; gap:6px; flex:none; min-height:3rem; padding:0 14px; border:1px solid var(--color-line-strong); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:600; text-decoration:none; }
-.gl-saved-link>svg { width:1.125rem; height:1.125rem; color:var(--color-brand); }
-/* At 大 / 特大 / 简洁 on a phone, and below 360 px, the search field keeps the full width and 我的指南收藏 takes its own row
-   (WEB-FIX5 review: beside the longer link the placeholder showed only 看医). */
-@media (max-width:767px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-find { flex-wrap:wrap; }
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-search { flex-basis:100%; }
-}
-@media (max-width:359px) { .gl-find { flex-wrap:wrap; } .gl-search { flex-basis:100%; } }
+.gl-search__clear:active { background:var(--color-surface-2); }
 
-.gl-filters { display:flex; flex-direction:column; gap:8px; margin:12px 0 4px; }
+/* One chip row: 全部, the seven topics, then 地区 ▾ (a sheet). It wraps at 大 / 特大 / 简洁. */
+.gl-filters { margin:var(--sp-3) 0 0; }
+.gl-region-chip__caret { margin-inline-start:var(--sp-1); color:var(--color-ink-2); }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-filters .ui-chip-row { flex-wrap:wrap; overflow:visible; }
+.gl-regions__list { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gl-regions__option { display:flex; align-items:center; width:100%; min-height:3rem; padding:0 var(--sp-4); border:0; border-bottom:1px solid var(--color-line); background:transparent; color:var(--color-ink); font:inherit; font-size:var(--fs-body); line-height:var(--lh-ui); text-align:start; cursor:pointer; }
+.gl-regions__option[aria-pressed=true] { color:var(--color-brand-deep); font-weight:600; }
+.gl-regions__option[aria-pressed=true]::after { content:"✓"; margin-inline-start:auto; color:var(--color-brand); }
+.gl-regions__option:active { background:var(--color-surface-2); }
 
-.gl-section { margin-top:28px; }
-.gl-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; }
-.gl-section__head h2 { margin:0; color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; text-wrap:balance; }
-.gl-section__head p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; text-wrap:pretty; }
+/* Sections: H2, one line, 看全部 N 篇, at most four guides. 40 px apart on a phone, 64 on a desktop (--section-gap). */
+.gl-section,.gl-band { margin-top:var(--section-gap); }
+/* The band follows the chips directly: the first block keeps the smaller step, so two whole rows fit a 390 × 844 phone. */
+.gl-filters+.gl-band { margin-top:var(--sp-5); }
+.gl-section__head { display:flex; align-items:flex-end; justify-content:space-between; gap:var(--sp-3); margin-bottom:var(--stack-head); }
+.gl-section__head h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; text-wrap:balance; }
+.gl-section__head p { margin:var(--sp-1) 0 0; max-width:var(--measure); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); text-wrap:pretty; }
 .gl-section__head .ui-button { flex:none; }
-/* H52 (SV13-11): at 大 / 特大 / 简洁 the 看全部 action sits under the heading and its line, so the subtitle keeps the full width
-   (beside the button it wrapped into a 170 px, four-line column). */
-:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-section__head { flex-direction:column; align-items:flex-start; gap:4px; }
-:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-section__head .ui-button { margin-inline-start:-8px; }
-.gl-count { flex:none; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; font-variant-numeric:tabular-nums; }
+/* H52 (SV13-11): at 大 / 特大 / 简洁 the 看全部 action sits under the heading and its line. */
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-section__head { flex-direction:column; align-items:flex-start; gap:var(--sp-1); }
+:is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-section__head .ui-button { margin-inline-start:calc(var(--sp-2) * -1); }
+.gl-count { flex:none; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-variant-numeric:tabular-nums; }
 
-/* The 长辈与家属 rail: about two and a quarter cards on a phone, four across on a desktop. */
-.gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 12px) / 1.9); }
-@media (min-width:768px) { .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 24px) / 3.2); } }
-@media (min-width:1024px) { .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc((100% - 36px) / 4); } }
-@media (max-width:767px) { :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .gl-rail.ui-carousel[data-variant=rail] .ui-carousel__slide { flex-basis:calc(100% - 40px); } }
+/* Rows: C's 112 px mini cover, the whole title (never clamped), the time line and the sources line. */
+.gl-rows { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
+.gl-rows>li { min-width:0; }
+.gl-page .ui-row-card { grid-template-columns:7rem minmax(0, 1fr) auto; min-height:0; }
+.gl-page .ui-row-card__thumb { width:7rem; height:7rem; }
+.gl-page .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; font-size:var(--fs-card); line-height:var(--lh-snug); }
+.gl-page .ui-feed-grid { --ui-feed-ratio:3 / 2; }
+/* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
+.gl-view[data-view=desk] { display:none; }
 
-.gl-results { display:flex; flex-direction:column; margin:0; padding:0; list-style:none; }
-.gl-results>li { min-width:0; }
-.gl-more { display:flex; justify-content:center; margin-top:20px; }
+/* 长辈与家属先看: D2's band — three rows on a sunken panel, three across on a desktop; then 看全部 N 篇. */
+.gl-band { padding:var(--inset-card); border-radius:var(--r-xl); background:var(--color-surface-2); }
+.gl-band .gl-band__rows { gap:var(--sp-2); }
+.gl-band .ui-row-card { padding:var(--sp-3); border:0; border-radius:var(--r-lg); background:var(--color-surface); }
+.gl-band__all { margin-top:var(--sp-3); }
+/* On a phone the band is its heading and three rows: the topic line goes (it stays on a tablet and a desktop). */
+@media (max-width:767px) { .gl-band .gl-section__head p { display:none; } }
+/* G16 (简洁 / 家人版): a 48 px 拨打 that prints the number, under its row. */
+.gl-call { width:100%; margin-top:var(--sp-2); }
+.gl-call__number { font-variant-numeric:tabular-nums; white-space:nowrap; }
+.gl-call>svg { color:var(--color-brand); }
+html[data-simple] .gl-page .gl-call { display:inline-flex; min-height:3rem; }
 
-.gl-directory { margin-top:36px; border-top:1px solid var(--color-line); padding-top:12px; }
-.gl-directory>button { display:inline-flex; align-items:center; min-height:2.75rem; padding:0; border:0; background:transparent; color:var(--color-brand); font-size:var(--text-fact); line-height:1.25; font-weight:600; cursor:pointer; }
-.gl-directory ul { columns:2 18rem; column-gap:24px; margin:8px 0 0; padding:0; list-style:none; }
+.gl-more { display:flex; justify-content:center; margin-top:var(--sp-5); }
+
+/* 特大 / 简洁 on a phone: the first screen keeps the H1, the search and a whole elder row — the lede goes, ♡ 我的指南收藏 keeps its
+   heart (its name stays; 简洁 saves on the detail page, decision 16), and the band's rows give the title the full width. */
+@media (max-width:767px) {
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-header .ui-page-header__lede { display:none; }
+  html[data-reading=extra-large] .gl-saved-link { width:3rem; padding:0; justify-content:center; }
+  html[data-reading=extra-large] .gl-saved-link__label { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+  html[data-simple] .gl-header .ui-page-header__actions { display:none; }
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card { grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"body trailing"; }
+  :is(html[data-reading=extra-large],html[data-simple]) .gl-band .ui-row-card__thumb { display:none; }
+}
+/* 简洁显示: no lede and no chip row (except in a topic, for 地区); one row per topic instead of the six sections. */
+html[data-simple] .gl-page [data-simple=hide],html[data-simple] .gl-header .ui-page-header__lede { display:none; }
+html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
+.gl-topic-rows h2 { margin:0 0 var(--stack-head); color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; }
+.gl-topic-rows ul { margin:0; padding:0; list-style:none; border-top:1px solid var(--color-line); }
+.gl-topic-rows a { display:flex; align-items:center; gap:var(--sp-3); min-height:3.5rem; padding:0 var(--sp-1); border-bottom:1px solid var(--color-line); color:var(--color-ink); font-size:var(--fs-body); line-height:var(--lh-ui); text-decoration:none; }
+.gl-topic-rows a>span:first-child { flex:1 1 auto; }
+.gl-topic-rows__count { color:var(--color-ink-2); font-size:var(--fs-meta); font-variant-numeric:tabular-nums; }
+.gl-topic-rows a>svg { flex:none; width:1.25rem; height:1.25rem; color:var(--color-ink-2); }
+.gl-topic-rows a:active { background:var(--color-surface-2); }
+
+/* The complete directory (F2's Disclosure) and the how-we-check line. */
+.gl-directory { margin-top:var(--section-gap); border-top:1px solid var(--color-line); }
+.gl-directory__toggle { margin-inline-start:calc(var(--sp-2) * -1); }
+.gl-directory__toggle::after { content:"▾"; margin-inline-start:var(--sp-1); }
+.gl-directory__toggle[aria-expanded=true]::after { content:"▴"; }
+.gl-directory ul { columns:2 18rem; column-gap:var(--grid-gutter); margin:0; padding:0 0 var(--sp-3); list-style:none; }
 .gl-directory li { break-inside:avoid; }
-.gl-directory a { display:block; padding:10px 0; color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; text-decoration:none; }
-.gl-directory a:hover { color:var(--color-brand); text-decoration:underline; }
-.gl-footer { display:flex; flex-wrap:wrap; align-items:center; gap:4px 16px; margin-top:24px; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.385; }
+.gl-directory a { display:flex; align-items:center; min-height:2.75rem; color:var(--color-ink); font-size:var(--fs-meta); line-height:var(--lh-ui); text-decoration:none; }
+.gl-footer { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-1) var(--sp-4); margin-top:var(--sp-5); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gl-footer p { margin:0; }
-.gl-footer a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); font-weight:600; }
-:is(.gl-search__clear,.gl-saved-link,.gl-directory>button,.gl-directory a,.gl-footer a):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+.gl-footer a { display:inline-flex; align-items:center; min-height:2.75rem; color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+:is(.gl-search__clear,.gl-directory a,.gl-footer a,.gl-topic-rows a,.gl-regions__option):focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
+@media (hover:hover) and (pointer:fine) {
+  .gl-search:hover { border-color:var(--color-ink-3); }
+  .gl-search__clear:hover,.gl-regions__option:hover,.gl-topic-rows a:hover { background:var(--color-surface-2); }
+  .gl-directory a:hover { color:var(--color-brand); text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:.2em; }
+  .gl-footer a:hover { text-decoration-thickness:2px; }
+}
 
-@media (min-width:768px) { .gl-page { padding-block:24px 64px; } }
+@media (min-width:768px) {
+  .gl-page { padding-block:var(--sp-5) var(--sp-6); }
+}
 @media (min-width:1024px) {
-  .gl-page { padding-block:32px 72px; }
-  .gl-find { max-width:720px; }
-  .gl-section { margin-top:40px; }
+  .gl-page { padding-block:var(--sp-6); }
+  .gl-page .gl-header { margin-bottom:var(--sp-5); }
+  .gl-page .gl-header { grid-template-columns:repeat(12, minmax(0, 1fr)); column-gap:var(--grid-gutter); }
+  .gl-header .ui-page-header__title { grid-column:1 / span 9; }
+  .gl-header .ui-page-header__actions { grid-column:10 / span 3; justify-self:end; }
+  /* The search spans columns 1–6 (112–732 at 1440). */
+  .gl-find { display:grid; grid-template-columns:repeat(12, minmax(0, 1fr)); column-gap:var(--grid-gutter); }
+  .gl-search { grid-column:1 / span 6; }
+  .gl-view[data-view=phone] { display:none; }
+  .gl-view[data-view=desk] { display:block; }
+  /* 特大 keeps rows everywhere. */
+  html[data-reading=extra-large] .gl-view[data-view=phone] { display:block; }
+  html[data-reading=extra-large] .gl-view[data-view=desk] { display:none; }
+  .gl-page .ui-feed-grid { gap:var(--sp-5) var(--grid-gutter); }
+  .gl-band { padding:var(--inset-panel); }
+  .gl-band .gl-band__rows { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--grid-gutter); }
+  .gl-band__all { width:auto; }
+  .gl-page .gl-band .ui-row-card { height:100%; box-sizing:border-box; }
 }

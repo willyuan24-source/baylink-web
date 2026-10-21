@@ -2,7 +2,7 @@ import catalog from '../data/generated/home-catalog.json';
 import type { GuideImage } from '../data/guide-media';
 import type { GuideTopicId } from '../data/guide-topics';
 import type { MonthlyEvent } from '../data/monthly-types';
-import type { CoverTone } from './event-facts';
+import type { Copy, CoverTone } from './event-facts';
 import type { HomeOffer } from './home-offers';
 import type { PlanningFacts } from './planner';
 
@@ -25,9 +25,13 @@ export type HomeGuide = {
   imageKey?: string;
 };
 /** A weekend event with the facts a home card prints (editorial overlay fields and planning facts when present). */
-export type HomeEvent = MonthlyEvent & { planning?: Pick<PlanningFacts, 'admissionUsd' | 'schedule'> };
+export type HomeEvent = MonthlyEvent & { planning?: Pick<PlanningFacts, 'admissionUsd' | 'schedule'>; press?: true };
+
+/** 长辈常用电话 (UI9-HOME): the elder intent's guides with a cover phone (scripts/generate-home-catalog.ts elderCalls). */
+export type ElderCall = { slug: string; title: Copy; label: Copy; number: string; tel: string };
 
 export const guides = catalog.guides as HomeGuide[];
+export const ELDER_CALLS = ((catalog as { elderCalls?: ElderCall[] }).elderCalls ?? []) as readonly ElderCall[];
 export const guideCount = catalog.guideCount;
 export const getGuideBySlug = (slug: string) => guides.find(guide => guide.slug === slug);
 export const MONTHLY_EVENTS = catalog.events as unknown as HomeEvent[];

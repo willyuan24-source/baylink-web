@@ -58,8 +58,8 @@ test('a long board opens on 本周有效 with six cards per kind; 看全部 N �
     offer('later', { availability: 'dated', startDate: '2026-11-02', endDate: '2026-11-02' }),
   ];
   const view = render(<FreebieBoard offers={offers} today={today} />);
-  const dates = within(view.getByRole('group', { name: '按日期筛选' }));
-  assert.equal(dates.getByRole('button', { name: '本周有效 12' }).getAttribute('aria-pressed'), 'true');
+  const dates = within(view.getByRole('radiogroup', { name: '按日期筛选' }));
+  assert.equal(dates.getByRole('radio', { name: '本周有效 12' }).getAttribute('aria-checked'), 'true');
   const free = view.getByRole('region', { name: /^无需购物/ });
   assert.equal(within(free).getAllByRole('article').length, FREEBIE_SECTION_SIZE);
   const more = within(free).getByRole('button', { name: '看全部 9 条' });
@@ -70,7 +70,7 @@ test('a long board opens on 本周有效 with six cards per kind; 看全部 N �
   fireEvent.click(within(free).getByRole('button', { name: '收起' }));
   assert.equal(within(free).getAllByRole('article').length, FREEBIE_SECTION_SIZE);
   assert.equal(view.queryByRole('article', { name: '优惠 later' }), null, 'next month is not this week');
-  fireEvent.click(dates.getByRole('button', { name: '全部日期' }));
+  fireEvent.click(dates.getByRole('radio', { name: '全部日期' }));
   assert.ok(view.getByRole('article', { name: '优惠 later' }));
   // A search lists every match in one list.
   fireEvent.change(view.getByRole('searchbox', { name: '搜索品牌、城市或福利' }), { target: { value: 'Brand free' } });
@@ -82,7 +82,7 @@ test('a long board opens on 本周有效 with six cards per kind; 看全部 N �
 
 test('a board with nothing valid this week opens on every date (a next-month board read early)', () => {
   const view = render(<FreebieBoard offers={[offer('nov', { availability: 'dated', startDate: '2026-11-07', endDate: '2026-11-07' })]} today={today} />);
-  assert.equal(within(view.getByRole('group', { name: '按日期筛选' })).getByRole('button', { name: '全部日期' }).getAttribute('aria-pressed'), 'true');
+  assert.equal(within(view.getByRole('radiogroup', { name: '按日期筛选' })).getByRole('radio', { name: '全部日期' }).getAttribute('aria-checked'), 'true');
   assert.ok(view.getByRole('article', { name: '优惠 nov' }));
 });
 
@@ -91,10 +91,10 @@ test('a sold-out batch (the overlay\'s sold_out) is 已售罄, not 限量供应 
   assert.equal(validThisWeek(soldOut, today), false);
   assert.equal(validThisWeek(offer('on-sale', { availability: 'check-local', startDate: '2026-10-08' }), today), true, 'a sale that opened and is not marked sold out still counts');
   const view = render(<FreebieBoard offers={[soldOut, offer('daily')]} today={today} />);
-  const dates = within(view.getByRole('group', { name: '按日期筛选' }));
-  assert.equal(dates.getByRole('button', { name: '本周有效 1' }).getAttribute('aria-pressed'), 'true');
+  const dates = within(view.getByRole('radiogroup', { name: '按日期筛选' }));
+  assert.equal(dates.getByRole('radio', { name: '本周有效 1' }).getAttribute('aria-checked'), 'true');
   assert.equal(view.queryByRole('article', { name: '优惠 opera' }), null);
-  fireEvent.click(dates.getByRole('button', { name: '全部日期' }));
+  fireEvent.click(dates.getByRole('radio', { name: '全部日期' }));
   const card = within(view.getByRole('article', { name: '优惠 opera' }));
   assert.ok(card.getByText('已售罄'));
   assert.equal(card.queryByText('限量供应 · 查询余票'), null);
@@ -151,7 +151,7 @@ test('board and gallery styles: every text size at least 13px, text on the share
     postcss.parse(css).walkDecls(declaration => {
       if (declaration.prop === 'font-size') {
         const rem = /^([\d.]+)rem$/.exec(declaration.value);
-        assert.ok(declaration.value.startsWith('var(--text-') || (rem && Number(rem[1]) >= .8125), `${file}: font-size ${declaration.value}`);
+        assert.ok(/^var\(--(?:text-|fs-)/.test(declaration.value) || (rem && Number(rem[1]) >= .8125), `${file}: font-size ${declaration.value}`);
       }
       if (declaration.prop === 'color') assert.match(declaration.value, /^(?:var\(--|inherit)/, `${file}: color ${declaration.value}`);
       if (declaration.prop === 'min-height' && /button|a\b|summary|input/.test((declaration.parent as postcss.Rule).selector)) assert.equal(declaration.value, 'var(--control-height)');

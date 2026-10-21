@@ -1,3 +1,47 @@
 /* The 免费与优惠 and 新店 boards' own sheet (UI9-FREE): PerksView, OpeningsView, RegionFilter and BoardCards, in the fb-
    namespace so no selector is shared with events.css. Imported by PerksView and OpeningsView, so it loads with their lazy
-   chunk. UI9-PREP created it empty and registered it with the editorial style guard (scripts/check-editorial-styles.mjs). */
+   chunk. UI9-PREP created it empty and registered it with the editorial style guard (scripts/check-editorial-styles.mjs).
+   Rhythm (G10): 16 px inside a section and 40 px between sections on a phone, 32 / 64 on desktop; the page frame (x = 112)
+   and the feed gutters (24 / 12) are PageContainer's and FeedGrid's. */
+.fb-board { --fb-inside:var(--sp-4); --fb-between:calc(var(--sp-6) + var(--sp-2)); }
+@media (min-width:1024px) { .fb-board { --fb-inside:var(--sp-6); --fb-between:var(--sp-8); } }
+
+/* The filter row: the region chip, then the condition chips (one row; on a standard phone it may scroll sideways). At 大 /
+   特大 / 简洁 on a phone (data-pair) it is two Sheet chips that wrap, never a sideways scroller (N25). */
+.fb-filters { display:flex; flex-wrap:wrap; align-items:center; gap:var(--sp-2); margin:0 0 var(--fb-inside); }
+.fb-filters>.ui-chip { flex:none; }
+.fb-kinds { flex:1 1 0; min-width:0; }
+@media (min-width:1024px) { .fb-filters>.fb-kinds { flex:0 1 auto; } }
+@media (max-width:1023px) { .fb-filters:not([data-pair]) { flex-wrap:nowrap; } .fb-filters>.fb-kinds { margin:0 calc(-1 * var(--page-gutter)) 0 0; padding-inline:0 var(--page-gutter); scroll-padding-inline:0 var(--page-gutter); } }
+.fb-chip-caret { width:1rem; height:1rem; margin-left:var(--sp-1); }
+/* The 新店 honesty line beside the region chip, verbatim (整理自公开资料，未实地探店). */
+.fb-note { flex:1 1 12rem; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
+
+/* "需预约 · 30 条", only while a condition narrows the board; empty, it takes no room. */
+.fb-status { margin:0 0 var(--fb-inside); color:var(--color-ink-2); font-size:var(--text-fact); line-height:var(--lh-snug); }
+.fb-status:empty { margin:0; }
+
+.fb-section+.fb-section { margin-top:var(--fb-between); }
+.fb-section__head { margin:0 0 var(--fb-inside); color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
+/* "这 7 天" at 600, "· 16 条" at 400 (as the deals board's section heads): the count is not a second heading (N03). */
+.fb-section__count { font-weight:400; }
+/* The coded-cover note prints once per board, under the last section (PerksView / OpeningsView render it when any shown
+   cover is coded, in grid and row layouts alike), so each grid's own copy is hidden. Interim until INT-1: EVENTS' FeedGrid
+   coverCredit={false} and ImageCredits' note replace both. */
+.fb-board .ui-feed>.ui-cover-credit { display:none; }
+
+/* Rows (phone at 大 / 特大 / 简洁): one list per section, the source line under the meta. */
+.fb-rows { margin:0; padding:0; list-style:none; }
+.fb-row-trust { display:inline-flex; align-items:center; gap:var(--sp-1); }
+.fb-row-trust>svg { flex:none; width:.875rem; height:.875rem; color:var(--color-brand); }
+.fb-rows .ui-row-card__meta .ui-status { vertical-align:baseline; }
+/* ♡ on a row is the same 44 px circle as on a card's cover (its name stays "收藏：<title>"), so the text keeps the width. */
+.fb-rows .ui-row-card__trailing .saves-control { margin:0; }
+.fb-rows .ui-row-card__trailing .saves-toggle { gap:0; width:var(--control-height); height:var(--control-height); min-height:var(--control-height); padding:0; border-radius:var(--r-circle); font-size:0; }
+/* A thumbnail's key fact keeps its words whole ("10/20" / "截止", never "截" / "止"); UI9-INT may move this into covers.css. */
+.fb-rows .tc-thumb { word-break:keep-all; }
+/* A row of cards ends on one line: each card fills its grid cell and its source line sits at the bottom, so a title that
+   wraps once more does not leave the row's ✓ lines at different heights. */
+.fb-board .ui-feed-grid>li { display:flex; }
+.fb-board .ui-feed-grid>li>.ui-feed-card { flex:1 1 auto; }
+.fb-board .ui-feed-card__trust { margin-top:auto; }

@@ -39,9 +39,9 @@
 .ui-cover[data-ended] .ui-cover__img { filter:saturate(.7); }
 /* Poster: the whole flyer at its own shape on a solid board, an even white mat and e1; never blurred, never cropped. It
    fills the board's width or height (a size container; CoverImage sets --ui-img-ratio); no ratio (a stock cover): auto.
-   width:auto first: without cq units (iOS 15, Firefox < 110) the flyer keeps its srcset size. */
+   width:100% + object-fit:contain first: without cq units (iOS 15, Firefox < 110) the flyer fills the board's width, whole. */
 .ui-cover[data-fit=contain] { container-type:size; display:grid; grid-template:minmax(0, 1fr) / minmax(0, 1fr); place-items:center; padding:var(--sp-3) var(--sp-3) var(--sp-6); background:var(--color-surface-2); }
-.ui-cover[data-fit=contain] .ui-cover__img { position:static; width:auto; width:min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2))); height:auto; max-width:100%; max-height:100%; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
+.ui-cover[data-fit=contain] .ui-cover__img { position:static; width:100%; width:min(100%, calc((100cqh - var(--sp-2)) * var(--ui-img-ratio) + var(--sp-2))); height:auto; max-width:100%; max-height:100%; object-fit:contain; padding:var(--sp-1); border-radius:var(--r-sm); background:var(--color-surface); box-shadow:var(--e1); }
 
 /* Type covers: DOM text in flow (the cover grows rather than clip at 特大 / 简洁); --tc-deep = the category's deep shade. */
 .ui-type-cover { --tc-deep:var(--tc-fg, var(--color-brand)); --tc-badge-room:calc(var(--fs-badge) * var(--lh-snug) + var(--sp-3)); container:tc / inline-size; display:flex; flex-direction:column; justify-content:flex-end; gap:var(--sp-2); padding:var(--sp-3); padding-top:calc(var(--sp-3) + var(--tc-badge-room)); overflow:clip; background:var(--color-surface-2); color:var(--color-ink); text-align:start; font-weight:400; }
@@ -64,10 +64,11 @@
 .tc-bar>b { position:absolute; top:0; bottom:0; left:var(--tb-from); width:var(--tb-span); min-width:var(--sp-1); border-radius:var(--r-sm); background:var(--tc-deep); }
 .tc-bar__ticks { display:flex; justify-content:space-between; margin-top:calc(-1 * var(--sp-1)); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 
-/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right. */
+/* ticket: one perforated ticket, the value and condition, the stub (deadline day) on the right; the value breaks between
+   words (hyphenated in English). */
 .tc-ticket { position:relative; display:flex; align-items:stretch; margin-block:auto; border-radius:var(--r-md); background:var(--color-surface); box-shadow:var(--e1); }
 .tc-ticket__main { display:flex; flex:1; flex-direction:column; justify-content:center; gap:var(--sp-1); min-width:0; padding:var(--sp-3); }
-.tc-ticket__value { color:var(--tc-deep); font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; overflow-wrap:anywhere; }
+.tc-ticket__value { color:var(--tc-deep); font-size:var(--fs-title); line-height:var(--lh-tight); font-weight:600; overflow-wrap:break-word; hyphens:auto; }
 .tc-ticket__cond { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .tc-ticket__stub { position:relative; display:flex; flex:none; flex-direction:column; justify-content:center; align-items:center; padding:var(--sp-2) var(--sp-3); border-left:2px dashed var(--color-line-strong); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); text-align:center; }
 .tc-ticket__day { color:var(--color-ink); font-size:var(--fs-card-lg); line-height:var(--lh-tight); }
@@ -102,6 +103,7 @@
   .ui-type-cover:not([data-family=ticket]) .tc-eyebrow,.tc-bar__ticks,.tc-ticket__cond { display:none; }
   .tc-cal__day,.tc-ticket__value { font-size:var(--fs-section); }
   .tc-ticket__main,.tc-ticket__stub,.tc-plate { padding:var(--sp-2); }
+  .tc-ticket[data-long] .tc-ticket__stub { display:none; }
   .tc-hook,.tc-plate [data-phone],.tc-sign__sells { font-size:var(--fs-body); }
   .tc-mark { width:var(--sp-8); height:var(--sp-8); }
   .tc-sign { padding:var(--sp-2) var(--sp-3); }

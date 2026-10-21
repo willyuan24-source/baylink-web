@@ -13,7 +13,7 @@ Object.assign(globalThis, {
 const clipboard = { writes: [] as string[], writeText: async (text: string) => { clipboard.writes.push(text); } };
 Object.defineProperty(dom.window.navigator, 'clipboard', { configurable: true, value: clipboard });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
-const { render, fireEvent, cleanup, within, act } = await import('@testing-library/react');
+const { render, fireEvent, cleanup, within, act, waitFor } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
 const { GuideDetail } = await import('../src/components/GuideDetail');
 // The article’s block renderers (the fallback 30 秒看懂 among them) load with its record in the app (guide-blocks.ts).
@@ -90,16 +90,19 @@ test('step cards: each H2 keeps its anchor, gains a number and a conclusion, and
   assert.ok(steps[1].querySelector('.gd-step__conclusion a[href="tel:+18005102020"]'));
 });
 
-test('three actions in one row: 收藏 saves to the reader library, 问 BayBay asks about this guide', () => {
+test('the action bar (DETAIL contract): 收藏 · 发家人 · 问 BayBay, then 拨打 last; 收藏 saves and 问 BayBay asks about this guide', async () => {
   const asked: string[] = [];
   const view = article('bay-area-medicare-hicap-medi-cal-guide', { onAsk: question => asked.push(question) });
-  const actions = view.getByRole('group', { name: '文章操作' });
-  assert.deepEqual(within(actions).getAllByRole('button').map(button => button.textContent), ['收藏', '发给家人', '问 BayBay']);
-  fireEvent.click(within(actions).getByRole('button', { name: '收藏' }));
-  assert.equal(within(actions).getByRole('button', { name: '已收藏' }).getAttribute('aria-pressed'), 'true');
+  const actions = view.getByRole('group', { name: '这一页的操作' });
+  assert.deepEqual([...actions.children].map(cell => cell.getAttribute('data-cell') ?? 'primary'), ['save', 'family', 'ask', 'primary']);
+  assert.match(actions.lastElementChild!.getAttribute('href')!, /^tel:/, 'the one primary, last, calls the guide\'s number');
+  const save = await within(actions).findByRole('button', { name: /^收藏：/ });
+  await waitFor(() => assert.equal((save as HTMLButtonElement).disabled, false));
+  await act(async () => { fireEvent.click(save); });
+  assert.equal((await within(actions).findByRole('button', { name: /^已收藏：/ })).getAttribute('aria-pressed'), 'true');
   // The save store is main's today and WEB-SAVES' one model after it merges; the reading history stays in the reader library.
   assert.deepEqual(JSON.parse(window.localStorage.getItem(READER_LIBRARY_KEY)!).recent, ['bay-area-medicare-hicap-medi-cal-guide'], 'opening a guide records it in 最近读过');
-  fireEvent.click(within(actions).getByRole('button', { name: '问 BayBay' }));
+  fireEvent.click(within(actions).getByRole('button', { name: '问 BayBay 这一页' }));
   assert.equal(asked.length, 1);
   assert.match(asked[0], /^我正在读《在湾区弄清 Medicare、Medi-Cal：先找免费 HICAP 咨询》。.*第一步/);
   assert.doesNotMatch(asked[0], /出发前/);
@@ -108,7 +111,7 @@ test('three actions in one row: 收藏 saves to the reader library, 问 BayBay a
 test('问 BayBay on a school guide asks for enrollment steps and only area and grade, never a child’s details', () => {
   const asked: string[] = [];
   const view = article('sf-school-district-enrollment-guide', { onAsk: question => asked.push(question) });
-  fireEvent.click(within(view.getByRole('group', { name: '文章操作' })).getByRole('button', { name: '问 BayBay' }));
+  fireEvent.click(within(view.getByRole('group', { name: '这一页的操作' })).getByRole('button', { name: '问 BayBay 这一页' }));
   assert.equal(asked.length, 1);
   assert.match(asked[0], /^我正在读《.+》。根据这篇学校与学区指南，帮我整理入学步骤/);
   assert.match(asked[0], /只需了解地区与年级，不要让我在聊天中提交孩子个人资料或证件/);
@@ -116,7 +119,7 @@ test('问 BayBay on a school guide asks for enrollment steps and only area and g
 
 test('发给家人 copies a link that opens at 特大 with 简洁显示', async () => {
   const view = article('bay-area-chinese-senior-services-referral-guide');
-  await act(async () => { fireEvent.click(view.getByRole('button', { name: '发给家人' })); });
+  await act(async () => { fireEvent.click(view.getByRole('button', { name: /发给家人（大字版）$/ })); });
   assert.equal(clipboard.writes.length, 1);
   const link = clipboard.writes[0].split('\n').pop()!;
   const url = new URL(link);

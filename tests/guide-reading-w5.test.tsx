@@ -39,7 +39,7 @@ test('H32: the guide\'s 问 BayBay opens the panel as a draft (nothing is sent) 
   const view = render(<MemoryRouter initialEntries={['/guides/bay-area-newcomer-first-month-checklist']}>
     <GuideDetail slug="bay-area-newcomer-first-month-checklist" today="2026-10-13" onOpenGuide={noop} onNavigate={noop} onOpenPost={noop} onAsk={(question, options) => asks.push([question, options])} />
   </MemoryRouter>);
-  fireEvent.click(view.getByRole('button', { name: '问 BayBay' }));
+  fireEvent.click(view.getByRole('button', { name: '问 BayBay 这一页' }));
   assert.equal(asks.length, 1);
   assert.deepEqual(asks[0][1], { mode: 'draft' });
   assert.match(asks[0][0], /第一步做什么、该联系谁、要准备什么/);
@@ -128,7 +128,8 @@ test('H67, H52, H64, H24: carousel buttons on touch and a list in 简洁; sectio
   const guideCss = css('features/guides/guide-article.css');
   assert.match(guideCss, /\.gd-carousel \.ui-carousel :is\(\.ui-carousel__prev,\.ui-carousel__next\) \{ display:inline-grid; width:3rem; height:3rem; \}/, 'H67: 48px buttons at every width');
   assert.match(guideCss, /html\[data-simple\] \.gd-carousel \.ui-carousel__track \{ flex-direction:column;/, 'H67: 简洁 lists the slides');
-  assert.match(guideCss, /@media \(max-width:1023px\) \{ html\[data-simple\] \.gd-page\[data-pilot\] \.gd-lead__visual \{ order:1; \} \}/, 'H67: in 简洁 the actions come before the slide list');
+  // H67 → UI9-GUIDES: 简洁 has no carousel at all (the slides' facts are in 30 秒看懂), so no order rule is needed for it.
+  assert.match(guideCss, /html\[data-simple\] \.gd-page\[data-pilot\] \.gd-lead__visual \{ display:none; \}/, 'H67: in 简洁 the slide list goes');
   assert.match(guideCss, /:is\(html\[data-reading=large\],html\[data-reading=extra-large\],html\[data-simple\]\) \.gd-related__head \{ flex-direction:column;/, 'H52 article');
   assert.match(css('features/guides/guide-library.css'), /:is\(html\[data-reading=large\],html\[data-reading=extra-large\],html\[data-simple\]\) \.gl-section__head \{ flex-direction:column;/, 'H52 index');
   assert.match(guideCss, /@media \(max-width:419px\) \{\s*\.gd-article \.gd-phone-directory \{ grid-template-columns:minmax\(0, 1fr\);/, 'H64');

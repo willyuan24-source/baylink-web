@@ -56,6 +56,8 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
   if (!picks) return null;
   // "10/17–18" / "Oct 17–18", as the home's weekend heading (features/home/home-model.ts weekendRange) and the cards' stickers.
   const range = picks.start === picks.end ? readerMonthDay(picks.start, english) : readerDayRange(picks.start, picks.end, english);
+  // The page's one eager image is the first photo cover (a first pick in its type cover does not take the priority).
+  const eager = picks.entries.findIndex(({ cover }) => cover.tier !== 'type');
   return <section className="plan-weekend" aria-labelledby="plan-weekend-title" data-date-scope="weekend">
     <div className="home-section-head">
       <h2 id="plan-weekend-title">{t('本周末精选', 'This weekend’s picks')}<span className="sr-only">{t('，', ', ')}</span><span className="home-section-head__kicker">{range}</span></h2>
@@ -67,7 +69,7 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
         const price = eventPriceChip(facts);
         return <FeedItem key={event.id}>
           <FeedCard title={facts.title} to={`/events/${event.id}?date=${date}`}
-            cover={<EventCover event={facts} cover={cover} today={today} days={[date]} sizes={SIZES} priority={index === 0} decorative />}
+            cover={<EventCover event={facts} cover={cover} today={today} days={[date]} sizes={SIZES} priority={index === eager} decorative />}
             when={<EventWhen event={facts} today={today} days={[date]} />} meta={<><span className="ui-meta-place">{translateText(eventPlace(facts), locale)}</span>{price && <span className="ui-meta-price"><span className="ui-meta-sep"> · </span>{price.tone === 'free' ? <strong>{pick(price.text)}</strong> : pick(price.text)}</span>}</>} />
         </FeedItem>;
       })}

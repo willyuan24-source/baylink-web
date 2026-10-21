@@ -117,14 +117,16 @@ test('an offer cover carries the value and the brand, not the title its card cap
   </StaticRouter>));
   const typed = card('type');
   const brand = offerBrandLine(taco.offer.brand, 'zh-Hans');
+  // UI9-FREE: line 2 is [status] · condition · brand (the condition replaces 商家活动 / 免费福利); one brand per card.
   const meta = typed.querySelector('.ui-feed-card__meta')!;
-  assert.equal(meta.querySelector('.sr-only')!.textContent, `${brand} · `);
+  assert.equal(meta.querySelector('.sr-only')!.textContent, `\u00a0· ${brand}`);
   meta.querySelector('.sr-only')!.remove();
-  assert.equal(meta.textContent, '商家活动', 'the visible meta is the kind only');
+  assert.ok(!meta.textContent!.includes(brand), 'the visible meta has no brand');
+  assert.doesNotMatch(meta.textContent!, /商家活动|免费福利/);
   assert.equal(typed.querySelector('.tc-eyebrow')!.textContent, brand, 'the brand shows once, on the cover');
   const photo = card('image').querySelector('.ui-feed-card__meta')!;
   assert.equal(photo.querySelector('.sr-only'), null);
-  assert.equal(photo.textContent, `${brand} · 商家活动`, 'a photo cover keeps the brand in the meta');
+  assert.ok(photo.textContent!.endsWith(`\u00a0· ${brand}`), 'a photo cover keeps the brand in the meta');
 });
 
 test('an offer, opening or event without an image opens on its family cover, which never repeats the header (UI9-C)', async () => {
@@ -253,7 +255,8 @@ test('the home ask box gets a shorter example at 大 / 特大 and in 简洁显�
 test('one heading scale: section heads on home, events and details read the section tokens; Chinese pages name Chinese faces first', () => {
   const heads: [string, string][] = [
     ['src/components/home-discovery.css', '.home-section-head h2'], ['src/features/events/events.css', '.ev-section-title'],
-    ...['.detail-body h2', '.detail-rail h2', '.discovery-return h2'].map(head => ['src/components/local-discovery-detail.css', `.local-discovery-detail ${head}`] as [string, string]),
+    // UI9-DETAIL: the body's, the top rail's and the page end's H2 share one rule.
+    ['src/components/local-discovery-detail.css', '.local-discovery-detail :is(.detail-body,.detail-main>.detail-rail) h2,.local-discovery-detail .discovery-return h2'],
   ];
   for (const [file, selector] of heads) assert.equal(declarations(file, selector)['font-size'], 'var(--text-section)', selector);
   const stack = (lang: string) => declarations('src/tokens.css', `html:lang(${lang})`)['--font-sans'] ?? '';

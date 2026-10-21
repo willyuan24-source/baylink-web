@@ -17,7 +17,7 @@ const { default: CalendarPage } = await import('../src/pages/CalendarPage');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 afterEach(() => cleanup());
 
-const SCOPES = ':is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail,.baybay-conversation)';
+const SCOPES = ':is(.event-calendar-page,.bl-monthly,.planner-page,.local-discovery-detail)';
 const CONTROLS = `${SCOPES} :is(button,a,select,input,textarea)`;
 const HEADING_LINKS = `${SCOPES} :is(h1,h2,h3,h4,h5,h6) a`;
 const rules: Rule[] = [];
@@ -49,7 +49,7 @@ test('title links in event and calendar cards take the heading size while card a
   // Pseudo-element and :focus-visible selectors never match an element at rest, and jsdom may not parse them.
   const matches = (list: Rule[], element: Element) => list.filter(rule => { try { return element.matches(rule.selector); } catch { return false; } });
   // Tokens v2 (UI9-F): the feed card title reads the ladder's reading step (17px phone; 16px desktop below).
-  const CARD_TITLE_SIZES: Record<string, string> = { 'ui-feed-card__title': 'var(--fs-reading)', 'ui-row-card__title': '1.0625rem' };
+  const CARD_TITLE_SIZES: Record<string, string> = { 'ui-feed-card__title': 'var(--fs-reading)', 'ui-row-card__title': 'var(--fs-reading)' };
   for (const title of titles) {
     const linkRules = matches(uiRules, title);
     assert.ok(linkRules.some(rule => rule.selector === '.ui-card-link'), `${title.textContent}: the title is the card link`);

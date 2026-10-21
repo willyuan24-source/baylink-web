@@ -7,7 +7,8 @@ import { JSDOM } from 'jsdom';
 /**
  * The 免费与优惠 and 新店 boards inside the events shell (PerksView, OpeningsView, RegionFilter; UI9-FREE). UI9-PREP moved
  * these cases here from tests/events-shell.test.tsx (UI9-EVENTS) with their assertions unchanged, so FREE can rename the
- * boards' classes (.ev-perks-kinds) without editing EVENTS' test.
+ * boards' classes (.ev-perks-kinds) without editing EVENTS' test. UI9-FREE: the boards' sections (这 7 天 / 7 天以后 / 长期有效,
+ * 已开业 / 即将开业) replace the paged list and the openings status chips.
  */
 const dom = new JSDOM('<!doctype html><html><head></head><body></body></html>', { url: 'https://www.baylink.us/events' });
 Object.assign(globalThis, {
@@ -26,6 +27,7 @@ const { MemoryRouter, useLocation } = await import('react-router-dom');
 const { EventsView } = await import('../src/components/EventsView');
 const { MonthlyEdition } = await import('../src/components/MonthlyEdition');
 const model = await import('../src/features/events/events-model');
+const boards = await import('../src/features/events/board-status');
 
 const originalFetch = globalThis.fetch;
 afterEach(() => { cleanup(); localStorage.clear(); globalThis.fetch = originalFetch; });
@@ -35,21 +37,34 @@ function LocationProbe() { const location = useLocation(); return <output data-t
 const routed = (location: string, node: React.ReactNode) => render(<MemoryRouter initialEntries={[location]}>{node}<LocationProbe /></MemoryRouter>);
 const query = (view: ReturnType<typeof render>) => new URL(view.getByTestId('route').textContent!, 'https://www.baylink.us').searchParams;
 const feedIds = (root: ParentNode) => [...root.querySelectorAll('.ui-feed-card a.ui-card-link')].map(link => link.getAttribute('href')!.replace(/^\/(?:events|offers|openings)\//, ''));
+// jsdom has no matchMedia, so the boards take the phone layout: 4 offers per section; 6 open shops and 4 coming soon.
+const firstOffers = (offers: ReturnType<typeof model.liveOffers>) => boards.offerSections(offers, today).flatMap(section => section.offers.slice(0, 4).map(offer => offer.id));
+const firstShops = (shops: ReturnType<typeof model.filterOpenings>) => boards.openingSections(shops, today).flatMap(section => section.openings.slice(0, section.id === 'open' ? 6 : 4).map(shop => shop.id));
+const heads = (root: ParentNode) => [...root.querySelectorAll('h2.fb-section__head')].map(head => head.textContent);
 
-test('免费与优惠 and 新店 load as their own boards: a skeleton, 1:1 offer covers ending soonest first, opening counts that add up', async () => {
+test('免费与优惠 and 新店 load as their own boards: a skeleton, 1:1 covers, sections by end date and by opening, a condition status line', async () => {
   const perks = routed('/events?view=perks', <EventsView today={today} />);
   assert.ok(perks.container.querySelector('[aria-busy="true"]'), 'skeleton first');
   await waitFor(() => assert.ok(perks.container.querySelector('.ui-feed[data-ratio="1:1"] .ui-feed-card')));
   assert.equal(perks.container.querySelector('nav[aria-label="活动分区"] a[aria-current="page"]')?.textContent, '免费与优惠');
   const offers = model.liveOffers(model.INDEX_OFFERS, today);
-  assert.deepEqual(feedIds(perks.container), offers.slice(0, 12).map(offer => offer.id));
+  assert.deepEqual(feedIds(perks.container), firstOffers(offers));
+  assert.deepEqual(heads(perks.container), boards.offerSections(offers, today).map(section => `${section.label.zh} · ${section.offers.length} 条`));
+  assert.equal(perks.container.querySelector('.fb-status')!.textContent, '', 'no count line until a condition is chosen');
   fireEvent.click(perks.getByRole('button', { name: '无需购物', exact: true }));
+  const free = model.liveOffers(model.INDEX_OFFERS, today, 'no-purchase');
+  assert.equal(perks.container.querySelector('.fb-status')!.textContent, `无需购物 · ${free.length} 条`);
   for (const id of feedIds(perks.container)) assert.equal(model.INDEX_OFFERS.find(offer => offer.id === id)?.kind, 'no-purchase', id);
   cleanup();
   const openings = routed('/events?view=openings', <EventsView today={today} />);
-  await waitFor(() => assert.ok(openings.container.querySelector('.ui-feed-card')));
-  const counts = within(openings.container.querySelector('.ev-perks-kinds')!).getAllByRole('button').map(chip => Number(chip.querySelector('.ui-chip__count')!.textContent));
-  assert.equal(counts[0], counts.slice(1).reduce((sum, count) => sum + count, 0), '已开业 + 试营业 + 预告 = 全部');
+  await waitFor(() => assert.ok(openings.container.querySelector('.ui-feed[data-ratio="1:1"] .ui-feed-card')));
+  // The two sections replace the status chips; their counts add up to every shop.
+  assert.equal(openings.container.querySelector('.ev-perks-kinds, .fb-kinds'), null, 'no status chip row');
+  const counts = heads(openings.container).map(head => Number(/· (\d+) 家$/.exec(head!)![1]));
+  assert.deepEqual(heads(openings.container).map(head => head!.split(' · ')[0]), ['已开业', '即将开业']);
+  assert.equal(counts.reduce((sum, count) => sum + count, 0), model.INDEX_OPENINGS.length, '已开业 + 即将开业 = 全部');
+  assert.deepEqual(feedIds(openings.container), firstShops(model.INDEX_OPENINGS));
+  assert.equal(openings.container.querySelector('.fb-note')?.textContent, '整理自公开资料，未实地探店');
   cleanup();
   // The old anchors land on the boards.
   const anchor = render(<MemoryRouter initialEntries={['/this-month#monthly-perks']}><MonthlyEdition today={today} /></MemoryRouter>);
@@ -63,7 +78,7 @@ test('the boards show the remembered region and can change it: 整个湾区 ▾ 
   await waitFor(() => assert.equal(view.container.querySelector('.ev-range')?.textContent, '新店 · 南湾'));
   const south = model.filterOpenings(model.INDEX_OPENINGS, 'all', 'south-bay');
   assert.ok(south.length > 0 && south.length < model.INDEX_OPENINGS.length);
-  assert.deepEqual(feedIds(view.container), south.slice(0, 12).map(shop => shop.id));
+  assert.deepEqual(feedIds(view.container), firstShops(south));
   // The region chip says where the board is narrowed to and opens the region Sheet, which announces its count.
   fireEvent.click(view.getByRole('button', { name: '南湾', exact: true }));
   const sheet = await view.findByRole('dialog', { name: '选择地区' });
@@ -76,7 +91,7 @@ test('the boards show the remembered region and can change it: 整个湾区 ▾ 
   fireEvent.click(within(sheet).getByRole('button', { name: `显示 ${model.INDEX_OPENINGS.length} 家`, exact: true }));
   await waitFor(() => assert.equal(view.queryByRole('dialog'), null));
   assert.equal(view.container.querySelector('.ev-range')?.textContent, '新店');
-  assert.deepEqual(feedIds(view.container), model.INDEX_OPENINGS.slice(0, 12).map(shop => shop.id));
+  assert.deepEqual(feedIds(view.container), firstShops(model.INDEX_OPENINGS));
   cleanup();
   // 免费与优惠: the same chip, here narrowing to a region from 整个湾区.
   const perks = routed('/events?view=perks', <EventsView today={today} />);
@@ -88,5 +103,5 @@ test('the boards show the remembered region and can change it: 整个湾区 ▾ 
   assert.equal(localStorage.getItem(model.REGION_KEY), 'sf');
   const sf = model.liveOffers(model.INDEX_OFFERS, today, 'all', 'sf');
   await waitFor(() => assert.equal(within(perksSheet).getByRole('status').textContent, `显示 ${sf.length} 条`));
-  assert.deepEqual(feedIds(perks.container), sf.slice(0, 12).map(offer => offer.id));
+  assert.deepEqual(feedIds(perks.container), firstOffers(sf));
 });

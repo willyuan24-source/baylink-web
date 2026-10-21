@@ -47,6 +47,11 @@ export type IndexEvent = Pick<MonthlyEvent, 'id' | 'title' | 'aliases' | 'kind' 
   location?: Pick<GeoPoint, 'lat' | 'lng' | 'precision' | 'sourceUrl'>;
   /** The calendar's schedule note for this event. */
   note?: string;
+  /**
+   * The source is a press report, not the organiser's own page (source-kind.ts, the sourceLabel test schema-org.ts uses):
+   * the card says 「媒体报道 · M/D 核对」, never 官网核对 (UI-9 DECISIONS 17; UI9-EVENTS). Absent on official sources.
+   */
+  press?: true;
 };
 
 /** `status` comes from the editorial overlay and is only ever `sold_out` (已售罄, for the 免费与优惠 board's status chip;
@@ -74,6 +79,12 @@ export type EventsIndex = {
   cityNames: Record<string, string>;
   /** Days this build wrote a dated Bay Area share card for (/weekly/all-{day}.png), as the home page links it. */
   weeklyCardDays: string[];
+  /**
+   * Home's lead pick per day (home-catalog.json weekends[day].ids[0]) for the days this build's /events can be read on
+   * (UI9-EVENTS, G15): /events never opens on the event home just led with. A day without an entry falls back to the first
+   * weekend pick (weekend-lead.ts). The home catalog itself is never imported into the events chunk.
+   */
+  homeLeads?: Record<string, string>;
 };
 
 export type { MonthlyRegion };

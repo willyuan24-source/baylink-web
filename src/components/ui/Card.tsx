@@ -79,13 +79,15 @@ export type RowCardProps = CardLink & {
   meta?: ReactNode;
   /** The thumbnail's provenance words (getImageProvenance) as a 13 px line: a thumbnail (≤ 140 px) carries no chip. */
   credit?: ReactNode;
+  /** "官网核对 10/7" under line 2, as on FeedCard (the check mark is added here; UI9-EVENTS: the calendar rows). Optional. */
+  trust?: ReactNode;
   /** One trailing action only (♡). Everything else belongs on the detail page or in a "⋯" sheet. */
   trailing?: ReactNode;
   className?: string;
 };
 
 /** List row for calendars, search results and saved items: thumbnail, date, 2-line title, meta, one action. */
-export function RowCard({ thumb, when, date, meta, credit, trailing, className, heading = 'h3', ...link }: RowCardProps) {
+export function RowCard({ thumb, when, date, meta, credit, trust, trailing, className, heading = 'h3', ...link }: RowCardProps) {
   const line1 = when ?? date;
   const Title = heading;
   return <article className={cx('ui-row-card', className)}>
@@ -93,6 +95,7 @@ export function RowCard({ thumb, when, date, meta, credit, trailing, className, 
       <Title className="ui-row-card__title"><CardTitleLink {...link} /></Title>
       {line1 && <p className="ui-row-card__date">{line1}</p>}
       {meta && <p className="ui-row-card__meta">{meta}</p>}
+      {trust && <p className="ui-feed-card__trust ui-row-card__trust"><Check aria-hidden="true" strokeWidth={1.75} />{trust}</p>}
       {credit && <p className="ui-row-card__credit">{credit}</p>}
     </div>
     <div className="ui-row-card__thumb">{thumb}</div>

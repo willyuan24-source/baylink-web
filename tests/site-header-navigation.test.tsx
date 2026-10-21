@@ -19,11 +19,14 @@ test('the More disclosure keeps secondary destinations available and closes afte
   const view = render(<MemoryRouter><SiteNavigation {...base} /><Location /><button type="button">Outside</button></MemoryRouter>);
   const menu = view.container.querySelector('details')!;
   const trigger = view.getByLabelText('更多导航');
-  // Plan §1 更多, with 反馈与报错 (WEB-SHELL2); the published directory moved to the global footer.
-  const destinations = ['/my-week', '/category/rent', '/explore', '/tools', '/opus-bay?from=nav', '/about', '/terms', '/privacy', '/sms-consent'];
+  // Content arrangement §4 (UI9-NAV): places first, 邻里 last of them, then about; the legal links are the footer's only.
+  const destinations = ['/my-week', '/explore', '/tools', '/opus-bay?from=nav', '/category/rent', '/about'];
   assert.deepEqual([...menu.querySelectorAll('a')].map(a => a.getAttribute('href')), destinations, 'a guest sees no 消息 (nothing to read yet)');
-  assert.ok(within(menu.querySelector<HTMLElement>('.site-secondary-nav')!).getByRole('button', { name: '反馈与报错' }), '更多 gains 反馈与报错');
-  assert.equal(view.getByRole('link', { name: '邻里信息（测试中）' }).getAttribute('href'), '/category/rent', 'the board is labelled as a trial (G16)');
+  assert.ok(within(menu.querySelector<HTMLElement>('.site-secondary-nav--about')!).getByRole('button', { name: '反馈与报错' }), '更多 gains 反馈与报错');
+  const board = view.getByRole('link', { name: /^邻里信息/ });
+  assert.equal(board.getAttribute('href'), '/category/rent');
+  assert.equal(board.querySelector('.site-more-chip')!.textContent, '测试中', 'the board is labelled as a trial (G16), on a neutral chip');
+  assert.equal(view.getByRole('link', { name: '关于 BAYLINK · 我们怎么核对' }).getAttribute('href'), '/about', '核对, never 核验');
   assert.ok(view.getByRole('link', { name: '我的这周' }), 'naming table: 我的这周, not 我的收藏与计划');
   menu.open = true;
   fireEvent.click(view.getByRole('link', { name: '生活工具箱' }));
@@ -58,7 +61,7 @@ test('the account action closes the disclosure and restores a visible opener; �
   assert.equal(actions[0].focused, trigger);
   assert.equal(view.queryByRole('button', { name: /发布/ }), null, '发布 lives only inside 邻里 (D20)');
   assert.doesNotMatch(view.container.textContent!, /发布信息/);
-  fireEvent.click(view.getByRole('button', { name: '问 BayBay' }));
+  fireEvent.click(view.getByRole('button', { name: '问 BayBay（AI 助手）' }));
   assert.equal(asked, 1);
   assert.equal(actions.length, 1);
 });
@@ -124,15 +127,18 @@ test('keyboard selection of a current or new destination restores visible focus 
   assert.deepEqual(menuOpenWhenFocusReturns, [true, true]);
 });
 
-test('the bottom bar names the assistant 问 BayBay, 问问 below 375 px; both labels sit directly in the button (13 px label rule)', async () => {
+test('the bottom bar names the assistant 问 BayBay (an AI helper), 问问 where it must shorten; both labels sit directly in the button', async () => {
   const { SiteMobileNavigation } = await import('../src/components/SiteMobileNavigation');
   const { readFileSync } = await import('node:fs');
   const view = render(<MemoryRouter><SiteMobileNavigation pathname="/" notificationCount={0} onAsk={() => {}} /></MemoryRouter>);
-  const ask = view.getByRole('button', { name: '问 BayBay' });
+  const ask = view.getByRole('button', { name: '问 BayBay（AI 助手）' });
   const label = ask.querySelector('.site-mobile-ask-label')!;
   const short = ask.querySelector('.site-mobile-ask-short')!;
   assert.equal(label.textContent, '问 BayBay');
+  // Captain 10-20 (UI9-INT): the tab bar keeps today's behaviour, 问 BayBay in standard and 问问 where it must shorten
+  // (owner decision 18: 问问 only in the phone tab bar).
   assert.equal(short.textContent, '问问');
+  assert.equal(ask.querySelector('.site-mobile-icon .site-ai-tag')!.textContent, 'AI', 'A6: the otter carries the AI tag');
   assert.equal(short.getAttribute('aria-hidden'), 'true', 'the button keeps one accessible name');
   // The bar's label rule is for direct children (`.site-mobile-item>span`), so both labels sit in the button itself.
   assert.equal(label.parentElement, ask);
@@ -151,44 +157,40 @@ test('the bottom bar names the assistant 问 BayBay, 问问 below 375 px; both l
   assert.match(css, /@media\(max-width:374px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
 });
 
-test('the 问 BayBay label never wraps: 大, 特大, 简洁显示 and English swap to 问问 / Ask whenever one tab is too narrow', async () => {
+test('the 问 BayBay label never wraps: 大, 特大, 简洁显示 and English swap to BayBay whenever one tab is too narrow', async () => {
   const { readFileSync } = await import('node:fs');
   const css = readFileSync('src/components/site-chrome.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s+/g, ' ');
   const em = (pattern: RegExp) => Number(css.match(pattern)?.[1]);
   // The bar is a size container whose em is the label size, so the thresholds follow Aa and 简洁显示 by themselves.
-  assert.match(css, /\.site-mobile-nav \.site-mobile-nav-items \{ container:site-mobile-bar \/ inline-size;[^}]*font-size:var\(--text-caption\); \}/);
+  assert.match(css, /\.site-mobile-nav \.site-mobile-nav-items \{ container:site-mobile-bar \/ inline-size;[^}]*font-size:var\(--fs-meta\); \}/);
   assert.match(css, /\.site-mobile-nav \.site-mobile-ask>span:not\(\.site-mobile-icon\) \{[^}]*white-space:nowrap;/);
   const zh = em(/@container site-mobile-bar \(max-width:([\d.]+)em\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \}/);
   const en = em(/@container site-mobile-bar \(max-width:([\d.]+)em\) \{ html:lang\(en\) \.site-mobile-ask-label \{ display:none; \} html:lang\(en\) \.site-mobile-ask-short \{ display:inline; \} \}/);
-  // One tab is (content width - 4 x 3px gaps) / 5. Measured one-line widths (Segoe UI / YaHei): 问 BayBay 4.41em,
-  // Ask BayBay 4.97em; each threshold must leave a tab at least ~10% wider than the label, plus the 12px of gaps.
-  const tabAt = (threshold: number, fontPx: number) => (threshold * fontPx - 12) / 5 / fontPx;
-  for (const fontPx of [13, 14.625, 16.25, 16, 18, 20]) {
-    assert.ok(tabAt(zh, fontPx) >= 4.41 * 1.1, `问 BayBay at ${fontPx}px`);
-    assert.ok(tabAt(en, fontPx) >= 4.97 * 1.1, `Ask BayBay at ${fontPx}px`);
+  // One tab is (content width - 4 x 2px gaps - 2 x 4px padding) / 5. Measured one-line widths (Segoe UI / YaHei): 问 BayBay
+  // 4.41em, Ask BayBay 4.97em; the Chinese threshold leaves a tab ~10% wider than its label, the English one ~5%, room for
+  // iOS's SF Pro, which sets Ask BayBay wider than Segoe UI (UI9-NAV review).
+  const tabAt = (threshold: number, fontPx: number) => (threshold * fontPx - 16) / 5 / fontPx;
+  for (const fontPx of [14, 15.75, 17.5, 16, 18, 20]) {
+    assert.ok(tabAt(zh, fontPx) >= 4.41 * 1.1 - 1e-3, `问 BayBay at ${fontPx}px`);
+    assert.ok(tabAt(en, fontPx) >= 4.97 * 1.05, `Ask BayBay at ${fontPx}px`);
   }
-  // Standard size at 390 px keeps the full name in every language (tab content width 378px).
-  assert.ok(378 > zh * 13 && 378 > en * 13);
+  // Standard size (14px labels) at 390 px (bar content width 382px): the full 问 BayBay in Chinese; English shows BayBay
+  // there, since a full Ask BayBay would touch its neighbours on an iPhone.
+  assert.ok(382 > zh * 14 && 382 <= en * 14);
   // Without container queries (Safari 15, Firefox < 110) every phone gets the short label.
   assert.match(css, /@supports not \(container-type:inline-size\) \{ @media\(max-width:599px\) \{ \.site-mobile-ask-label \{ display:none; \} \.site-mobile-ask-short \{ display:inline; \} \} \}/);
 });
 
-test('G55: 我的 is in the desktop header for guests and members; /me, /me/bookings, /my-week and /messages highlight it', () => {
+test('content arrangement §2: the desktop nav is 首页 · 活动 · 指南 · 问 BayBay [AI]; 我的 is the header account tool (SiteChrome)', () => {
   for (const user of [null, member]) {
-    for (const pathname of ['/me', '/me/bookings', '/my-week', '/messages', '/messages/thread-1', '/en/me']) {
+    for (const pathname of ['/', '/events', '/guides/x', '/me', '/my-week', '/messages']) {
       const view = render(<MemoryRouter><SiteNavigation {...base} user={user} pathname={pathname} /></MemoryRouter>);
-      const primary = within(view.getByRole('navigation', { name: '主要导航' }));
-      const mine = primary.getByRole('link', { name: '我的' });
-      assert.equal(mine.getAttribute('href'), '/me');
-      assert.ok(mine.classList.contains('is-active'), pathname);
-      // /me is the page; on its sub-pages 我的 marks the section and the 更多 panel's own link (我的这周, 消息) is the page.
-      const own = pathname === '/me' || pathname === '/en/me';
-      assert.equal(mine.getAttribute('aria-current'), own ? 'page' : 'true', pathname);
-      const page = own ? ['/me'] : pathname === '/my-week' ? ['/my-week'] : pathname.startsWith('/messages') && user ? ['/messages'] : [];
-      assert.deepEqual([...view.container.querySelectorAll('[aria-current="page"]')].map(link => link.getAttribute('href')), page, `${pathname}: one aria-current="page" in the header`);
+      const primary = view.getByRole('navigation', { name: '主要导航' });
+      assert.deepEqual([...primary.querySelectorAll('a')].map(link => link.getAttribute('href')), ['/', '/events', '/guides'], pathname);
+      assert.equal(within(primary).getByRole('button', { name: '问 BayBay（AI 助手）' }).querySelector('.site-ai-tag')!.textContent, 'AI');
+      const page = pathname === '/my-week' ? ['/my-week'] : pathname === '/messages' && user ? ['/messages'] : pathname === '/' ? ['/'] : pathname === '/events' ? ['/events'] : pathname === '/guides/x' ? ['/guides'] : [];
+      assert.deepEqual([...view.container.querySelectorAll('[aria-current="page"]')].map(link => link.getAttribute('href')), page, `${pathname}: one aria-current="page" in the navigation`);
       cleanup();
     }
   }
-  const view = render(<MemoryRouter><SiteNavigation {...base} pathname="/guides" /></MemoryRouter>);
-  assert.equal(within(view.getByRole('navigation', { name: '主要导航' })).getByRole('link', { name: '我的' }).getAttribute('aria-current'), null);
 });

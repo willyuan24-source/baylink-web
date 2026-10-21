@@ -56,7 +56,7 @@ test('a view inside the route\'s days renders at once; a later one shows a fixed
   const all = render(today, '?when=all');
   assert.match(all, /正在加载这些日期的活动/);
   assert.match(all, /aria-busy="true"/);
-  assert.doesNotMatch(all, /\d+ 场 · \d+ 场免费/);
+  assert.doesNotMatch(all, /\d+ 场\s·\s\d+ 场免费/);
   // boot: the first screens wait for nothing more
   for (const [page, search] of [['events', ''], ['events', '?view=perks'], ['events', '?when=next7'], ['calendar', '']] as const) await later.loadForLocation(page, search, 'zh-Hans', today);
   assert.equal(model.isLaterInstalled(), false, 'the first screens need nothing more');

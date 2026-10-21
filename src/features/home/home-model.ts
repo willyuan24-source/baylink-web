@@ -15,6 +15,9 @@ export const REGION_LABELS: Readonly<Record<MonthlyRegion, Copy>> = {
 
 /** M/D, as trust rows print it ("官网核对 10/2"); `english`: "Oct 2" (US English on /en). */
 export const monthDay = (day: string, english = false) => readerMonthDay(day, english);
+/** A card's ✓ line (DECISIONS 3 / 17): 官网核对 10/15, or 媒体报道 · 10/15 核对 for a press-sourced item (`press` from the catalog). */
+export const checkedLine = (day: string, press: boolean | undefined, t: (zh: string, en: string) => string, english: boolean) =>
+  press ? t(`媒体报道 · ${monthDay(day, english)} 核对`, `News report · checked ${monthDay(day, true)}`) : `${t('官网核对', 'Source checked')} ${monthDay(day, english)}`;
 
 const WEEKDAYS_ZH = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
 /** "10 月 12 日 周一" / "Mon, Oct 12": the home dateline. */
@@ -27,14 +30,6 @@ export function longDate(day: string, english: boolean): string {
 /** "10/17–18" / "10/31–11/1": a weekend's two days; `english`: "Oct 17–18" / "Oct 31–Nov 1". */
 export function weekendRange(start: string, end: string, english = false): string {
   return readerDayRange(start, end, english);
-}
-
-/**
- * A guide title's head before its first colon (≥4 characters), from the already-translated title — the same rule as the
- * guide pages' splitGuideTitle (features/guides/guide-facts.ts, which loads the guide catalog, so it is not imported here).
- */
-export function guideTitleHead(title: string): string {
-  return /^(.{4,}?)\s*[：:｜|]\s*.+$/su.exec(title.trim())?.[1] ?? title.trim();
 }
 
 /**

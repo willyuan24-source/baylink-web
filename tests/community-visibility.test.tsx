@@ -53,15 +53,16 @@ const board = (entry: string, overrides: Partial<AppContextValue> = {}) => {
 };
 const robots = (html: string) => /<meta name="robots" content="([^"]+)"/.exec(html)?.[1];
 
-test('the switch ships on: every 邻里 entry stays (更多 panel, home line, search categories) and the board renders', async () => {
+test('the switch ships on: every 邻里 entry stays (更多 panel, home line, the search row) and the board renders', async () => {
   assert.equal(flags.COMMUNITY_VISIBLE, true);
   const menu = render(<MemoryRouter><SiteNavigation {...nav} /></MemoryRouter>);
-  assert.equal(menu.getByRole('link', { name: '邻里信息（测试中）' }).getAttribute('href'), '/category/rent');
+  assert.equal(menu.getByRole('link', { name: /^邻里信息/ }).getAttribute('href'), '/category/rent');
   menu.unmount();
   const home = renderToStaticMarkup(<StaticRouter location="/"><HomeDiscovery onAskBayBay={noop} onBrowseCommunity={noop} /></StaticRouter>);
   assert.match(home, /邻里信息（测试中）· 去看看/);
-  const search = render(<QuickExplore onClose={noop} onSearch={noop} onNavigate={noop} onAsk={noop} />);
-  assert.ok(await search.findByText('按分类探索'));
+  // UI9-NAV: the search sheet's 9 category chips are gone (content arrangement §6); a typed search keeps 搜索邻里信息「…」.
+  const search = render(<QuickExplore initialQuery="租房" onClose={noop} onSearch={noop} onNavigate={noop} onAsk={noop} />);
+  assert.ok(await search.findByText(/搜索邻里信息/));
   search.unmount();
   board('/category/rent');
   assert.ok(screen.getByRole('heading', { level: 1, name: '租房' }));
@@ -71,7 +72,7 @@ test('the switch ships on: every 邻里 entry stays (更多 panel, home line, se
 test('switched off: no 邻里 entry in 更多, on the home page or in search; the OPUS-contract links stay', async () => {
   flags.setCommunityVisibleForTests(false);
   const menu = render(<MemoryRouter><SiteNavigation {...nav} /></MemoryRouter>);
-  assert.equal(menu.queryByRole('link', { name: '邻里信息（测试中）' }), null);
+  assert.equal(menu.queryByRole('link', { name: /^邻里信息/ }), null);
   assert.equal(menu.container.querySelector('a[href^="/category/"]'), null);
   assert.ok(menu.container.querySelector('a[href="/opus-bay?from=nav"]'), 'OPUS contract: the 3D link stays in 更多');
   menu.unmount();

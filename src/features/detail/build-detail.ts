@@ -54,6 +54,9 @@ function railFor(event: MonthlyEvent, region: string, city: string, events: read
         ...(candidate.venueShort ? { venueShort: candidate.venueShort } : {}),
         ...(candidate.price ? { price: candidate.price } : {}),
         ...(candidate.iconKey ? { iconKey: candidate.iconKey } : {}),
+        // The card's ✓ line (owner decisions 17 and 20): the day the source was read, and whether that source is press.
+        ...(candidate.verifiedAt ? { verifiedAt: candidate.verifiedAt } : {}),
+        ...(candidate.sourceLabel ? { sourceLabel: candidate.sourceLabel } : {}),
         ...(image ? { image } : {}),
       };
     });

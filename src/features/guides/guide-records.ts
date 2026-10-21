@@ -27,13 +27,27 @@ export type GuideCard = {
   covers: GuideCovers;
   /** Set on monthly editions: "Read next" hides an edition whose month has passed. */
   editionMonth?: string;
+  /** Set on editions that name their first / last day (editionState): the previews and their 本期 label follow them. */
+  editionStartDate?: string;
+  editionThroughDate?: string;
 };
+
+/** The number a guide's 拨打 button calls (UI9-GUIDES): its cover slide's phone, else its first contact (guideCallOf). */
+export type GuideCall = { number: string; tel: string; label: { zh: string; en: string } };
 
 /** An index card: the card plus what the index filters on. */
 export type GuideIndexCard = GuideCard & {
   /** The regions a guide is about (guideRegionsOf); absent = the whole Bay Area. */
   regions?: GuideRegionId[];
+  /** The number the reader's bar calls, on the band's guides that have one: 简洁 prints it as a 48 px 拨打 button (G16). */
+  call?: Pick<GuideCall, 'number'>;
 };
+
+/** The 长辈与家属先看 band on /guides: three rows on every screen (GuidesHome; the index carries 拨打 numbers for them). */
+export const GUIDE_BAND_SIZE = 3;
+
+/** A US number's tel: target from its printed form ("1-800-772-1213" / "800-510-2020" → "+18007721213" / "+18005102020"). */
+export const telOf = (number: string) => { const digits = number.replace(/\D/g, ''); return `+${digits.length === 10 ? '1' : ''}${digits}`; };
 
 export type GuidesIndex = {
   /** Every published guide, in the corpus order the index lists them. */

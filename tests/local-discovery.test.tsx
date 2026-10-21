@@ -65,6 +65,10 @@ test('soft opening details and share metadata preserve trial operation without c
 });
 const canonical = (doc: Document | DocumentFragment) => doc.querySelector('link[rel="canonical"]')?.getAttribute('href');
 const meta = (doc: Document | DocumentFragment, name: string) => doc.querySelector('meta[property="' + name + '"],meta[name="' + name + '"]')?.getAttribute('content');
+/** The official link: the bar's primary when it is the official page, else the facts card's 何时 / 开业 slot (UI9-DETAIL). */
+const officialLink = (root: ParentNode) => root.querySelector('.site-detail-actions a[target="_blank"], [data-fact="when"] dt a[target="_blank"]') as HTMLAnchorElement;
+/** An opening's H1 drops a " · City" tail that is the shop's own city (P26: the city is the sub line). */
+const openingHeading = (name: string, city: string) => name.endsWith(` · ${city}`) ? name.slice(0, -(city.length + 3)) : name;
 const assertExternal = (link: HTMLElement, href: string) => {
   assert.equal(link.getAttribute('href'), href);
   assert.equal(link.getAttribute('target'), '_blank');
@@ -208,7 +212,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
     // H57: an event's H1 drops the age prefix its age chip already shows ("21+ · …").
     const ageChip = item.kind === 'event' ? item.event.ageChip : undefined;
     const heading = ageChip && share.title.startsWith(ageChip) ? share.title.slice(ageChip.length).replace(/^\s*[·•:：|｜–—-]\s*/u, '') || share.title : share.title;
-    assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : heading);
+    assert.equal(doc.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : item.kind === 'opening' ? openingHeading(heading, item.shop.city) : heading);
     // An offer's page name shows its brand as the page does ("SFMTA · San Francisco"), not the catalog's capitals (PROD-W3).
     const pageName = item.kind === 'offer' ? `${brandCase(item.offer.brand)} · ${item.offer.title}` : share.title;
     // The <title> is the full page name, or for one wider than a search result shows (38 display units with the brand) the
@@ -326,10 +330,10 @@ test('missing, unknown and inherited image keys leave event, offer and opening d
         : { ...item, shop: { ...item.shop, imageKey } };
       const body = renderToStaticMarkup(<StaticRouter><LocalDiscoveryDetail record={buildDetailRecord(fixture)} today="2026-09-15" /></StaticRouter>);
       const page = new JSDOM(body);
-      assert.equal(page.window.document.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : discoveryShare(item).title);
+      assert.equal(page.window.document.querySelector('h1')?.textContent, item.kind === 'offer' ? item.offer.title : item.kind === 'opening' ? openingHeading(discoveryShare(item).title, item.shop.city) : discoveryShare(item).title);
       assert.equal(page.window.document.querySelector('.detail-hero [data-cover="image"]'), null);
       assert.ok(page.window.document.querySelector('.detail-hero [data-cover="type"]'), 'a TypeCover stands in');
-      assert.ok(page.window.document.querySelector('.site-detail-actions a[target="_blank"]'));
+      assert.ok(officialLink(page.window.document));
       page.window.close();
     }
   }
@@ -370,7 +374,7 @@ test('event recipients see the facts, the planning lines and the source; the pag
   const view = render(detail(eventItem, eventItem.event.endDate));
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, eventItem.event.title);
   const facts = view.container.querySelector('.detail-facts')!;
-  assert.deepEqual([...facts.querySelectorAll('dt')].map(node => node.textContent), ['何时', '在哪', '多少钱', '适合']);
+  assert.deepEqual([...facts.querySelectorAll('dt > span')].map(node => node.textContent), ['何时', '在哪', '多少钱', '适合']);
   assert.ok(facts.textContent!.includes(eventItem.event.venueShort || eventItem.event.venue));
   assert.ok(facts.textContent!.includes(eventItem.event.audience.join(' / ')));
   const lines = readerPlanLines(eventItem.event);
@@ -378,14 +382,13 @@ test('event recipients see the facts, the planning lines and the source; the pag
     assert.ok(view.getByRole('heading', { name: '出发前，做好这些安排' }));
     assert.equal(view.container.querySelectorAll('.detail-plan li').length, lines.length);
   }
-  const actions = view.container.querySelector('.site-detail-actions')!;
-  assertExternal(actions.querySelector('a[target="_blank"]') as HTMLAnchorElement, eventItem.event.officialUrl);
+  assertExternal(officialLink(view.container), eventItem.event.officialUrl);
   assertExternal(view.getByRole('link', { name: eventItem.event.sourceLabel, exact: true }), eventItem.event.officialUrl);
   assert.ok(view.getByRole('button', { name: '存入日历', exact: true }), 'the final event day is still valid');
   assert.equal(view.getByRole('link', { name: '本周末活动' }).getAttribute('href'), '/events');
   assert.equal(view.getByRole('link', { name: '我的收藏' }).getAttribute('href'), '/my-week#saved');
   assert.equal(view.container.querySelector('.detail-back a')?.getAttribute('href'), '/events');
-  assert.equal(Boolean(view.queryByText(/这场活动已结束/)), false);
+  assert.equal(view.container.querySelector('.content-review-ended'), null);
 });
 
 test('preparation lines drop editor notes and raw URLs but keep every reader fact', () => {
@@ -400,7 +403,7 @@ test('preparation lines drop editor notes and raw URLs but keep every reader fac
 
 test('expired event links stay readable and shareable but cannot be saved, planned or put in a calendar', () => {
   const view = render(detail(eventItem, nextDay(eventItem.event.endDate)));
-  assert.ok(view.getByText(/这场活动已结束/));
+  assert.match(view.container.querySelector('.content-review-notice')?.textContent || '', /^已结束（/);
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, eventItem.event.title);
   assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
   assert.equal(view.container.querySelector('.site-detail-actions .saves-toggle'), null);
@@ -415,14 +418,14 @@ test('offer details preserve eligibility and local-store links, while expiry beg
   assert.ok(view.getByRole('heading', { name: '先看领取条件' }));
   assert.ok(view.getByRole('heading', { name: '怎么领 · 怎么用' }));
   assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, offerItem.offer.sourceUrl);
-  assertExternal(view.getByRole('link', { name: '查询本地门店' }), offerItem.offer.storeUrl!);
+  assertExternal(view.getByRole('link', { name: /^查询本地门店/ }), offerItem.offer.storeUrl!);
   assert.equal(view.container.querySelector('.detail-back a')?.getAttribute('href'), '/events?view=perks');
   assert.equal(Boolean(view.queryByText(/已过期/)), false);
   assert.equal(Boolean(view.queryByRole('button', { name: '存入日历', exact: true })), false);
   assert.equal(Boolean(view.container.querySelector('.event-participation')), false);
   assert.ok(view.container.querySelector('.site-detail-actions .saves-toggle'), '♡ on a live offer (FC3-03)');
   view.rerender(detail(offerItem, nextDay(offerItem.offer.endDate!)));
-  assert.ok(view.getByText(/已过期/));
+  assert.match(view.container.querySelector('.content-review-notice')?.textContent || '', /^已结束（/);
   assert.ok(view.container.querySelector('section[aria-labelledby="offer-conditions-title"] li'));
   assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, offerItem.offer.sourceUrl);
 });
@@ -444,9 +447,10 @@ test('opening recipients can distinguish an operating shop from an unconfirmed a
     const view = render(detail(item, '2027-01-01'));
     assert.ok(view.getByRole('heading', { name: '这一趟怎么安排' }));
     assert.ok(view.container.textContent!.includes(item.shop.address));
-    assertExternal(view.container.querySelector('.site-detail-actions a[target="_blank"]') as HTMLAnchorElement, item.shop.officialUrl);
+    assertExternal(officialLink(view.container), item.shop.officialUrl);
     assertExternal(view.getByRole('link', { name: item.shop.sourceLabel, exact: true }), item.shop.sourceUrl);
-    const notice = [...view.container.querySelectorAll('.detail-note')].map(node => node.textContent).join(' ');
+    // The status note is the 开业 fact's note (UI9-DETAIL), not a box of its own.
+    const notice = view.container.querySelector('[data-fact="when"] dd small')?.textContent || '';
     if (item.shop.status === 'open') assert.match(notice, /已开业.*当天营业与订位/);
     else {
       assert.match(notice, /开业预告.*尚未确认正式营业/);

@@ -39,6 +39,9 @@
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-stickers>[data-slot=end] { display:none; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-price { display:block; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-meta-sep { display:none; }
+  /* The square (about 130 px) is too narrow for an information card's 「BAYLINK 信息卡」 chip on one line, and wrapped it
+     covered the date card's weekday: a coded cover claims no image, so the chip steps aside there. */
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-type-cover>.ui-provenance { display:none; }
 }
 /* 大/特大 keep FeedGrid's two (tablet) and three (desktop) columns: still one row. */
 @media (min-width:768px) and (max-width:1023px) { :is(html[data-reading=large],html[data-reading=extra-large]) .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; } }

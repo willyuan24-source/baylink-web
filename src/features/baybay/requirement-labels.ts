@@ -36,14 +36,19 @@ export function bayBayPlaceLabel(state: { city?: string | null; region?: string 
   return bayBayRegionLabel(state.region, locale);
 }
 
-/** "14:00" → "2pm", "10:30" → "10:30am": English answers and cards use 12-hour times (api-bb-7); Chinese keeps "14:00". */
+/**
+ * "14:00" → "2pm", "10:30" → "10:30am": English answers and cards use 12-hour times (api-bb-7). Chinese reads "8:00",
+ * "14:00": the same pattern as C's eventWhenLine on the cards beside the plan (N06, one time pattern per locale).
+ */
 export function bayBayClock(time: string, english: boolean): string {
-  if (!english) return time;
+  // Anything that is not "H:MM" / "HH:MM" (a free-text time from an imported draft) is shown as it came.
+  if (!/^\d{1,2}:\d{2}(?::\d{2})?$/.test(time)) return time;
+  if (!english) { const [hour, minute] = time.split(':'); return `${Number(hour)}:${minute}`; }
   const [hour, minute] = time.split(':').map(Number);
   return `${hour % 12 || 12}${minute ? `:${String(minute).padStart(2, '0')}` : ''}${hour >= 12 ? 'pm' : 'am'}`;
 }
 
-/** "08:00–14:00" (zh) / "8am–2pm" (en) for a plan stop's opening windows; several windows in one day are listed in order. */
+/** "8:00–14:00" (zh) / "8am–2pm" (en) for a plan stop's opening windows; several windows in one day are listed in order. */
 export function bayBayOpeningWindowsLabel(windows: readonly { open: string; close: string }[], english: boolean): string {
   return windows.map(window => `${bayBayClock(window.open, english)}–${bayBayClock(window.close, english)}`).join(english ? ', ' : '、');
 }

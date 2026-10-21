@@ -148,6 +148,17 @@ export function readFilters(params: URLSearchParams, defaultWhen: EventsWhen, sa
     q: (params.get('q') || '').slice(0, 200).trim(),
   };
 }
+/** The tags rail 1 shows beside 免费 (G17 / content arrangement §2 B); 户外 · 演出 · 市集 · 南瓜季 · 下雨也行 are in the 筛选 sheet. */
+export const RAIL_TAGS: readonly EventTag[] = ['kids', 'seniors'];
+/** The date scopes rail 1 starts with (本周末 | 未来 7 天 | 全部日期); 今天 and the months are chosen in the sheet. */
+export const SCOPES: readonly EventsWhen[] = ['weekend', 'next7', 'all'];
+/**
+ * What 筛选 (n) counts (content arrangement §2 B): only what the reader chose inside the sheet — a tag that is not on the
+ * rail, a legacy category, a keyword, a date that is not one of the rail's scopes. The rail's own chips show their state.
+ */
+export const sheetFilterCount = (filters: EventsFilters) =>
+  Number(!!filters.tag && !RAIL_TAGS.includes(filters.tag)) + Number(!!filters.category) + Number(!!filters.q) + Number(!SCOPES.includes(filters.when));
+
 /** How many filters the 筛选 chip counts (the date, a story, 免费, a keyword; the region has its own chip). */
 export const activeFilterCount = (filters: EventsFilters, defaultWhen: EventsWhen) =>
   Number(filters.when !== defaultWhen) + Number(!!filters.tag || !!filters.category) + Number(filters.free) + Number(!!filters.q);
@@ -221,6 +232,22 @@ export function weekendTabs(events: readonly IndexEvent[], today: string): { day
   };
   return { days, tabs: { sat: rank(tabs.sat, days[0]), sun: rank(tabs.sun, days[1]), open: rank(tabs.open, days[0]) } };
 }
+/**
+ * The whole weekend as one ranked list (the day chips' default, UI9-EVENTS): each event on its first weekend day still to
+ * come, in the home ranking (the same rule as weekendTabs inside each day).
+ */
+export function weekendRanked(events: readonly IndexEvent[], today: string): IndexEvent[] {
+  const range = getMonthlyDateRange('weekend', today)!;
+  const days = [range.start, range.end].filter(day => day >= today);
+  const entries = events.flatMap(event => {
+    const date = days.find(day => nextOccurrence(event, day) === day);
+    return date ? [{ event: event as unknown as MonthlyEvent, date }] : [];
+  });
+  const hasPhoto = (imageKey: string) => Object.hasOwn(EVENTS_INDEX.images, imageKey);
+  const hasRealPhoto = (imageKey: string) => hasPhoto(imageKey) && isRealPhotoImage(EVENTS_INDEX.images[imageKey]);
+  return rankWeekendFallback(entries, range.start, { hasPhoto, hasRealPhoto, flagships: WEEKEND_FLAGSHIP_IDS }).map(entry => entry.event as unknown as IndexEvent);
+}
+
 /** Saturday until it is over, then Sunday; an empty tab hands over to the next one with events. */
 export function defaultDayTab(tabs: WeekendTabs, today: string, days: readonly [string, string]): WeekendDayTab {
   const order: WeekendDayTab[] = today >= days[1] ? ['sun', 'open', 'sat'] : ['sat', 'sun', 'open'];

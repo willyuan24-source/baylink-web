@@ -286,7 +286,8 @@ test('recipient detail lookup rejects unknown kinds and IDs, and old offer links
   assert.equal(view.getByRole('heading', { level: 1 }).textContent, offer.title);
   assert.ok(view.container.querySelector('.detail-brand')?.textContent, 'The brand stays visible under the H1 without repeating it there');
   assert.ok(view.container.querySelector('section[aria-labelledby="offer-conditions-title"] li'), 'the conditions still explain who qualifies');
-  assert.match(view.baseElement.textContent!, /已过期/);
-  assert.equal(view.getByRole('link', { name: /领取入口/ }).getAttribute('href'), offer.sourceUrl);
+  // Ended (UI9-DETAIL): one notice under the head, and the official page as the primary instead of 领取入口.
+  assert.match(view.container.querySelector('.content-review-notice')?.textContent || '', /^已结束（/);
+  assert.equal(view.getByRole('link', { name: /^官方页/ }).getAttribute('href'), offer.sourceUrl);
   assert.ok(view.getByRole('button', { name: `分享：${card.title}`, exact: true }));
 });

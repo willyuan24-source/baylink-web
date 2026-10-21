@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Loader2, Sparkles } from 'lucide-react';
-import { BRAND } from '../brandAssets';
+import { Button } from './ui/Button';
+import { BayBayOtter } from '../features/baybay/BayBayMarks';
+import '../features/baybay/baybay-post-assist.css';
 import { getCategoryFromSlug } from '../routing';
 import { DEFAULT_COVERS } from '../lib/constants';
 import { translateText, useLocale } from '../i18n/locale';
@@ -175,30 +176,21 @@ export const BayBayPostAssist = ({
     : '';
   const suggestedCover = DEFAULT_COVERS.find(cover => cover.url === aiDraft?.coverSuggestion);
 
+  // The post helper inside the publishing sheet (UI9-BB): the otter as the one mark, the panel's type and spacing tokens,
+  // F's chips for tone and rewrite and F's buttons (帮我整理 / 应用到表单 the one primary), three fading dots while it works.
   return (
-    <div className="rounded-xl border border-baylink-green/20 bg-gradient-to-br from-baylink-green/6 via-white to-[#FFF8F0]/80 p-3">
-      <div className="flex gap-2.5">
-        <img
-          src={BRAND.baybayAvatar}
-          alt="BayBay"
-          className="h-10 w-10 shrink-0 rounded-xl object-cover ring-1 ring-baylink-green/20"
-          width={40}
-          height={40}
-        />
-        <div className="min-w-0 flex-1">
-          <h4 className="flex items-center gap-1 text-sm font-bold text-baylink-text">
-            <Sparkles size={13} className="text-baylink-green shrink-0" />
-            BayBay 帮你整理帖子
-          </h4>
-          <p className="mt-0.5 text-[0.6875rem] leading-snug text-baylink-muted">
-            一句话告诉我你想发什么，我帮你整理成更清楚的标题和正文。
-          </p>
+    <div className="bb-assist">
+      <div className="bb-assist__head">
+        <BayBayOtter size={44} />
+        <div>
+          <h4>BayBay 帮你整理帖子</h4>
+          <p>一句话告诉我你想发什么，我帮你整理成更清楚的标题和正文。</p>
         </div>
       </div>
 
-      <label className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs font-normal text-baylink-text-secondary" translate="no">
+      <label className="bb-assist__field" translate="no">
         {tr('生成语言')}
-        <select className="min-h-11 max-w-full rounded-lg border border-baylink-border/60 bg-white px-3 text-xs text-baylink-text" value={languageChoice} onChange={event => setLanguageChoice(event.target.value as AiAssistLanguage | 'auto')}>
+        <select value={languageChoice} onChange={event => setLanguageChoice(event.target.value as AiAssistLanguage | 'auto')}>
           <option value="auto">{tr('跟随界面语言')}</option>
           <option value="zh">{tr('中文')}</option>
           <option value="en">English</option>
@@ -208,10 +200,10 @@ export const BayBayPostAssist = ({
 
       {!aiDraft ? (
         <>
-          {intentFromQuestion && <p className="mt-3 rounded-lg bg-white p-2.5 text-xs leading-relaxed text-baylink-text-secondary">已带入你刚才的问题。请确认要公开的需求，补充地点、时间和预算，再点击「帮我整理」。生成后仍需你检查和发布。</p>}
+          {intentFromQuestion && <p className="bb-assist__note">已带入你刚才的问题。请确认要公开的需求，补充地点、时间和预算，再点击「帮我整理」。生成后仍需你检查和发布。</p>}
           <textarea
             aria-label="告诉 BayBay 你想发布的内容"
-            className="mt-2.5 w-full resize-none rounded-lg border border-baylink-border/50 bg-white/90 p-2.5 text-xs outline-none placeholder:text-baylink-muted focus:border-baylink-green/40"
+            className="bb-assist__input"
             rows={3}
             maxLength={3000}
             placeholder="例如：我想在 Millbrae 附近找一间房，预算 1800，7月入住，最好近 BART。"
@@ -219,116 +211,66 @@ export const BayBayPostAssist = ({
             onChange={(e) => setAiPostIntent(e.target.value)}
             disabled={aiLoading}
           />
-          <div className="mt-2">
-            <p className="mb-1 text-[0.6875rem] font-normal text-baylink-muted">语气</p>
-            <div className="flex flex-wrap gap-1">
+          <div className="bb-assist__group">
+            <p>语气</p>
+            <div>
               {TONE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.id}
-                  type="button"
-                  disabled={aiLoading}
-                  onClick={() => setTone(opt.id)}
-                  className={`min-h-11 rounded-full px-3 py-1 text-[0.6875rem] font-normal transition ${
-                    tone === opt.id
-                      ? 'bg-baylink-green text-white'
-                      : 'border border-baylink-border/60 bg-white text-baylink-text-secondary hover:border-baylink-green/30'
-                  }`}
-                >
+                <button key={opt.id} type="button" className="ui-chip" aria-pressed={tone === opt.id} disabled={aiLoading} onClick={() => setTone(opt.id)}>
                   {opt.label}
                 </button>
               ))}
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => runAssist()}
-            disabled={aiLoading}
-            className="mt-2 flex min-h-11 w-full items-center justify-center gap-1.5 rounded-lg bg-baylink-green py-2 text-xs font-bold text-white transition hover:opacity-95 disabled:opacity-60"
-          >
-            {aiLoading ? (
-              <>
-                <Loader2 size={14} className="animate-spin" />
-                BayBay 正在整理...
-              </>
-            ) : (
-              '帮我整理'
-            )}
-          </button>
+          <Button variant="primary" block onClick={() => runAssist()} disabled={aiLoading}>
+            {aiLoading ? <><span className="bb-dots" aria-hidden="true"><span /><span /><span /></span>BayBay 正在整理...</> : '帮我整理'}
+          </Button>
         </>
       ) : (
-        <div className="mt-2.5 rounded-lg border border-baylink-border/50 bg-white p-3 text-xs">
-          <p className="mb-2 font-semibold text-baylink-text">BayBay 草稿预览</p>
-          <div className="max-h-36 space-y-1.5 overflow-y-auto text-[0.6875rem] text-baylink-text-secondary">
-            <p><span className="font-normal text-baylink-muted">标题：</span><span translate="no">{aiDraft.title}</span></p>
-            <p className="whitespace-pre-wrap"><span className="font-normal text-baylink-muted">正文：</span><span translate="no">{aiDraft.description}</span></p>
-            <p><span className="font-normal text-baylink-muted">分类：</span>{categoryLabel(aiDraft.category)}</p>
-            {aiDraft.area && <p><span className="font-normal text-baylink-muted">地区：</span><span translate="no">{tr(aiDraft.area)}</span></p>}
-            {aiDraft.budget && <p><span className="font-normal text-baylink-muted">预算：</span><span translate="no">{aiDraft.budget}</span></p>}
-            {aiDraft.timeInfo && <p><span className="font-normal text-baylink-muted">时间：</span><span translate="no">{aiDraft.timeInfo}</span></p>}
+        <div className="bb-assist__draft">
+          <p className="bb-assist__draft-title">BayBay 草稿预览</p>
+          <div className="bb-assist__draft-body">
+            <p><span>标题：</span><span translate="no">{aiDraft.title}</span></p>
+            <p className="bb-assist__pre"><span>正文：</span><span translate="no">{aiDraft.description}</span></p>
+            <p><span>分类：</span>{categoryLabel(aiDraft.category)}</p>
+            {aiDraft.area && <p><span>地区：</span><span translate="no">{tr(aiDraft.area)}</span></p>}
+            {aiDraft.budget && <p><span>预算：</span><span translate="no">{aiDraft.budget}</span></p>}
+            {aiDraft.timeInfo && <p><span>时间：</span><span translate="no">{aiDraft.timeInfo}</span></p>}
             {aiDraft.quickTags?.length > 0 && (
               <div>
-                <p><span className="font-normal text-baylink-muted">标签：</span><span translate="no">{aiDraft.quickTags.join(' · ')}</span></p>
-                <label className="mt-1 flex cursor-pointer items-center gap-1.5 text-[0.6875rem] text-baylink-muted">
-                  <input
-                    type="checkbox"
-                    className="accent-baylink-green"
-                    checked={appendTagsOnApply}
-                    onChange={(e) => setAppendTagsOnApply(e.target.checked)}
-                  />
+                <p><span>标签：</span><span translate="no">{aiDraft.quickTags.join(' · ')}</span></p>
+                <label className="bb-assist__check">
+                  <input type="checkbox" checked={appendTagsOnApply} onChange={(e) => setAppendTagsOnApply(e.target.checked)} />
                   应用时把标签加到正文末尾
                 </label>
               </div>
             )}
-            {aiDraft.safetyTip && (
-              <p translate="no" className="rounded-md bg-baylink-section/60 p-1.5 text-[0.6875rem] text-baylink-muted">{aiDraft.safetyTip}</p>
-            )}
+            {aiDraft.safetyTip && <p translate="no" className="bb-assist__tip">{aiDraft.safetyTip}</p>}
             {suggestedCover && (
-              <p className="flex items-center gap-2"><img src={suggestedCover.url} alt="" className="h-12 w-12 rounded-md object-cover" /><span><span className="font-normal text-baylink-muted">封面建议：</span><span translate="no">{tr(suggestedCover.title)}</span></span></p>
+              <p className="bb-assist__cover"><img src={suggestedCover.url} alt="" width={48} height={48} /><span><span>封面建议：</span><span translate="no">{tr(suggestedCover.title)}</span></span></p>
             )}
           </div>
 
           {supplementHint && (
-            <div className="mt-2 rounded-lg border border-baylink-green/15 bg-baylink-green/5 px-2.5 py-2 text-[0.6875rem] leading-relaxed text-baylink-text-secondary">
-              <span className="font-semibold text-baylink-green">BayBay 建议补充 · </span>
+            <p className="bb-assist__hint">
+              <strong>BayBay 建议补充 · </strong>
               <span translate="no">{tr(supplementHint).replace(/^(?:建议补充|建議補充|Consider adding)[：:]\s*/, '')}</span>
-            </div>
+            </p>
           )}
 
-          <div className="mt-2.5">
-            <p className="mb-1 text-[0.6875rem] text-baylink-muted">换个写法</p>
-            <div className="flex flex-wrap gap-1">
+          <div className="bb-assist__group">
+            <p>换个写法</p>
+            <div>
               {REWRITE_OPTIONS.map((opt) => (
-                <button
-                  key={opt.mode}
-                  type="button"
-                  disabled={aiLoading}
-                  onClick={() => runAssist(opt.mode)}
-                  className="min-h-11 rounded-lg border border-baylink-border px-3 py-1 text-[0.6875rem] font-normal text-baylink-text transition hover:border-baylink-green/30 disabled:opacity-50"
-                >
+                <button key={opt.mode} type="button" className="ui-chip" disabled={aiLoading} onClick={() => runAssist(opt.mode)}>
                   {aiLoading ? '…' : opt.label}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="mt-2.5 flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              onClick={() => {
-                onApply(aiDraft, { appendQuickTags: appendTagsOnApply });
-                dismissDraft();
-              }}
-              className="flex-1 min-h-11 min-w-[88px] rounded-lg bg-baylink-green py-2 text-[0.6875rem] font-bold text-white"
-            >
-              应用到表单
-            </button>
-            <button
-              type="button"
-              onClick={dismissDraft}
-              className="min-h-11 rounded-lg border border-baylink-border px-3 py-2 text-[0.6875rem] text-baylink-muted"
-            >
-              取消
-            </button>
+          <div className="bb-actions">
+            <Button variant="primary" onClick={() => { onApply(aiDraft, { appendQuickTags: appendTagsOnApply }); dismissDraft(); }}>应用到表单</Button>
+            <Button variant="secondary" onClick={dismissDraft}>取消</Button>
           </div>
         </div>
       )}

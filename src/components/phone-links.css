@@ -16,7 +16,7 @@
   .phone-chip { gap:.125em; padding:0 .375em; font-size:.9em; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .phone-chip-keep>.phone-chip { padding:0 .3em; font-size:.82em; }
 }
-.phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; }
+@media (hover:hover) and (pointer:fine) { .phone-chip:hover { color:var(--color-brand-hover); text-decoration:underline; text-underline-offset:.2em; } }
 .phone-chip:focus-visible { outline:2px solid var(--color-brand); outline-offset:2px; }
 .phone-chip--row { min-height:var(--control-height); padding:0 .75rem; font-size:var(--text-fact); }
 .phone-chip--block {

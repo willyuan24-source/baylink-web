@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Fragment, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Baby, ChevronDown, Gift, HeartHandshake, Leaf, Music, SlidersHorizontal, Store, Trees, Umbrella, type LucideIcon } from 'lucide-react';
-import { Button, Carousel, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SegmentedControl, Sheet, SkeletonFeed, useFeedLayout } from '../../components/ui';
+import { ChevronDown, SlidersHorizontal, X } from 'lucide-react';
+import { Button, ChipRow, EmptyState, FeedGrid, FeedItem, FilterChip, SkeletonFeed, SkeletonRow, useFeedLayout } from '../../components/ui';
+import { DayChips } from '../../components/ui/Segmented';
+import { Disclosure } from '../../components/ui/Disclosure';
+import { MoreLink } from '../../components/ui/TextLink';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import { createCoverPage, resolveCovers, type ResolvedCover } from '../../lib/cover';
@@ -9,20 +12,34 @@ import { normalizeSearchText } from '../../lib/search-synonyms';
 import { recordIcsDownload, recordProductEvent } from '../../lib/product-events';
 import { dateScope } from '../../lib/date-guard';
 import { featurePhotos, getMonthlyDateRange, nextOccurrence, type WeekendDayTab } from '../../lib/monthly';
+import { addCalendarDays } from '../../lib/calendar-days';
 import { useReadingSize, useSimpleDisplay } from '../../lib/reading-preferences';
 import {
-  ALL_REGIONS, REGIONS, TAGS, WHEN_OPTIONS, activeBulletins, activeFilterCount, cardRegionOf, coverContext, defaultDayTab,
-  hasRealCover, inRange, listEvents, listWindow, matchesFilters, monthDay, saveRegion, weekdayIndex, weekendPicks, weekendTabs, weeklyCardHref, WEEKDAYS, type CardRegion, type EventTag, type EventsFilters, type EventsWhen,
+  ALL_REGIONS, RAIL_TAGS, REGIONS, SCOPES, TAGS, WHEN_OPTIONS, activeBulletins, cardRegionOf, coverContext,
+  hasRealCover, inRange, listEvents, listWindow, matchesFilters, monthDay, regionLabel, saveRegion, sheetFilterCount, weekdayIndex, weekendPicks, weekendRanked, weekendTabs, weeklyCardHref, WEEKDAYS,
+  type CardRegion, type EventsFilters, type EventsWhen,
 } from './events-model';
 import { prefetchLaterEvents, useIndexEvents } from './events-later';
-import { ChunkError } from './ChunkBoundary';
+import { ChunkBoundary, ChunkError } from './ChunkBoundary';
+import { loadWhenIdle, parts, retryableLazy, useOnDemand } from './lazy-view';
 import type { IndexEvent } from './events-index-types';
-import { EventFeedCard, EventHeroCard } from './EventCards';
-import { ShareLandingStrip, type StripState } from './ShareLandingStrip';
+import { EventFeedCard, EventLeadCard, EventRowCard } from './EventCards';
+import type { StripProps, StripState } from './ShareLandingStrip';
 import { ImageCredits } from './ImageCredits';
+import { arrangePicks, homeLeadFor, leadImageKey } from './weekend-lead';
+import { useViewHold } from './view-hold';
 
-const PAGE = 12;
-const STORY_ICONS: Record<EventTag | 'free', LucideIcon> = { free: Gift, kids: Baby, seniors: HeartHandshake, outdoors: Trees, shows: Music, markets: Store, pumpkin: Leaf, indoor: Umbrella };
+/** Cards per page: 12; in 简洁显示 6 and in 家人版 (简洁 + 特大) 4 (content arrangement §6). */
+const PAGE = 12, SIMPLE_PAGE = 6, FAMILY_PAGE = 4;
+/** The editor's block shows the lead and up to three pick rows (two on a phone: one 2-up row). */
+const PICK_ROWS = 3;
+// The share-card strip shows only on a share card's landing (?from=card-…): its chunk (lazy-view `parts`) loads with the
+// card's manifest.
+const shareStrip = retryableLazy<StripProps>(() => parts.load().then(module => ({ default: module.ShareLandingStrip })));
+/** The strip's loading shape while its chunk loads (the same as while the manifest loads): the heading's line, three rows. */
+const stripFallback = <section className="ev-strip" data-testid="share-landing-strip">
+  <p className="ev-section-title" aria-hidden="true">{'\u00a0'}</p><div aria-busy="true"><SkeletonRow /><SkeletonRow /><SkeletonRow /></div>
+</section>;
 const eventItem = (event: IndexEvent) => ({ kind: 'event' as const, id: event.id, imageKey: event.imageKey });
 
 /**
@@ -46,22 +63,45 @@ function useCardIds(card: CardRegion | undefined): StripState {
   return state;
 }
 
+/** Day subheads for the date lists (next7, 全部日期, 今天, the months): each card under its next day from `from`. */
+function groupByDay(events: readonly IndexEvent[], from: string): { day: string; events: IndexEvent[] }[] {
+  const groups: { day: string; events: IndexEvent[] }[] = [];
+  for (const event of events) {
+    const day = nextOccurrence(event, from) ?? event.endDate;
+    const last = groups[groups.length - 1];
+    if (last?.day === day) last.events.push(event); else groups.push({ day, events: [event] });
+  }
+  return groups;
+}
+
 /**
- * The 本周末 view (design.md §4.11 ③) and the other date lists: story chips, the editor's picks (4:5 rail), the 周六 /
- * 周日 / 整个周末都开放 toggle, a one-tap region row, one filter row (免费 · 筛选 n) with the rest in a Sheet that announces its count, a
- * two-column cover feed 12 at a time, the folded travel alerts, and one link each to the rest of the column.
+ * The 本周末 view and the other date lists (UI9-EVENTS content arrangement §2 + §4, G15 + G17):
+ * A · 编辑精选 — the lead (EventLeadCard: never home's lead, never a close-up face) and the pick rows (2-up on phones, rows in
+ *     the span-4 column on desktop); hidden in 简洁显示.
+ * B · 本周末全部活动 — the H2 and "找到 n 场" on one line; rail 1: one radio group of dates — the scopes (本周末 = the whole
+ *     weekend, checked on arrival | 未来 7 天 | 全部日期) and the weekend's days — then 免费 · 亲子 · 长辈友好, a removable chip per sheet choice and
+ *     筛选 (n); rail 2: the regions (H23; at 大 / 特大 / 简洁 the 整个湾区 ▾ chip instead). The feed 12 at a time (6 in 简洁, 4
+ *     in 家人版), grouped under day subheads on the date lists; the list end says what is shown, offers 再看 N 场 and the next day.
+ * C · page end — 出行提醒 (Disclosure), one quiet list of links, 本页图片来源.
  */
 export function WeekendView({ today, filters, defaultWhen }: { today: string; filters: EventsFilters; defaultWhen: EventsWhen }) {
   const { t, pick, locale, english } = useUiCopy();
   const [params, setParams] = useSearchParams();
-  const [shown, setShown] = useState(PAGE);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const readingSize = useReadingSize(), simple = useSimpleDisplay();
+  const roomy = readingSize !== 'standard' || simple;
+  const pageSize = simple ? readingSize === 'extra-large' ? FAMILY_PAGE : SIMPLE_PAGE : PAGE;
+  // Pages beyond the first (再看 N 场); any filter change starts over.
+  const [extra, setExtra] = useState(0);
+  // The 筛选 sheet: undefined until it first opens (its chunk loads when the page is idle, or then).
+  const [sheetOpen, setSheetOpen, loaded] = useOnDemand(parts);
+  useEffect(() => loadWhenIdle(parts.load), []);
+  const FilterSheet = loaded?.FilterSheet;
   const { layout } = useFeedLayout();
   const card = cardRegionOf(params.get('from'));
   const strip = useCardIds(card);
 
   const update = (changes: Record<string, string | null>) => {
-    setShown(PAGE);
+    setExtra(0);
     setParams(previous => {
       const next = new URLSearchParams(previous);
       for (const [name, value] of Object.entries(changes)) if (value === null) next.delete(name); else next.set(name, value);
@@ -74,14 +114,14 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const weekend = filters.when === 'weekend';
   const range = getMonthlyDateRange(filters.when, today);
   const weekendDays = weekend ? [range!.start, range!.end].filter(day => day >= today) : [];
-  // WEB-PERF-2: the days this view reads (and a share card's weekend); past the route's own events they load first, under a
-  // fixed-height skeleton. The filter Sheet starts that load when it opens, before a later date is picked.
+  // WEB-PERF-2: the days this view reads (and a share card's weekend); past the route's own events they load first. The
+  // filter Sheet starts that load when it opens, before a later date is picked.
   const listDays = listWindow(range, today);
   const cardDays = card ? listWindow(getMonthlyDateRange('weekend', today), today) : listDays;
   const { events, failed, retry } = useIndexEvents(listDays.start < cardDays.start ? listDays.start : cardDays.start,
     listDays.end === null || cardDays.end === null ? null : listDays.end > cardDays.end ? listDays.end : cardDays.end);
   useEffect(() => { if (sheetOpen) prefetchLaterEvents(locale); }, [sheetOpen, locale]);
-  // The date range and region: what the story chips count and the other filters narrow.
+  // The date range and region: what the other filters narrow.
   const base = useMemo(() => (events ?? []).filter(event => (filters.region === 'all' || event.region === filters.region)
     && (weekend ? weekendDays.some(day => nextOccurrence(event, day) === day) : inRange(event, range, today))),
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -93,14 +133,19 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   [base, filters.free, filters.tag, filters.category, filters.q, locale]);
 
   const { days, tabs } = useMemo(() => weekendTabs(matching, today), [matching, today]);
+  // The day chips: none checked is the whole weekend (the default on arrival, so the list matches the facts line's count and
+  // home's 看本周末全部 N 场); 周六 / 周日 / 两天都开放 narrow it. Days already past are dropped.
   const dayParam = params.get('day');
-  const day: WeekendDayTab = dayParam === 'sat' || dayParam === 'sun' || dayParam === 'open' ? dayParam : defaultDayTab(tabs, today, days);
+  const day: WeekendDayTab | '' = dayParam === 'sat' || dayParam === 'sun' || dayParam === 'open' ? dayParam : '';
   const narrowed = filters.free || !!filters.tag || !!filters.category || !!filters.q;
-  // A card whose manifest did not load lists nothing, so the page falls back to the plain 本周末: picks rail and full feed.
+  // A card whose manifest did not load lists nothing, so the page falls back to the plain 本周末.
   const listsCard = !!card && strip.status !== 'error';
-  const picks = useMemo(() => weekend && !narrowed && !listsCard ? weekendPicks(base, today) : [], [weekend, narrowed, listsCard, base, today]);
+  const picks = useMemo(() => weekend && !narrowed && !listsCard ? weekendPicks(base, today, { limit: 5 }) : [], [weekend, narrowed, listsCard, base, today]);
   // H26 / HOMEIA13-03: only picks from the editor's list (src/data/weekend-picks.ts, each with its reason) are 编辑精选.
   const editorPicks = picks.some(item => item.reason);
+  // G15 + the cross-page critic: home's lead is neither the lead nor a pick row here (it returns to the feed below).
+  const homeLead = homeLeadFor(today, picks);
+  const arranged = useMemo(() => arrangePicks(picks, today, homeLead), [picks, today, homeLead]);
   // Until the card's manifest arrives, the same rule the card used stands in for its ids (they match on the build day).
   const cardIds = useMemo(() => {
     if (!card || strip.status === 'error') return [];
@@ -109,165 +154,236 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
     return weekendPicks(card === 'all' ? all : all.filter(event => event.region === card), today, { limit: 3 }).map(item => item.event.id);
   }, [card, strip, today, events]);
   const stripEvents = cardIds.flatMap(id => (events ?? []).filter(event => event.id === id && nextOccurrence(event, today)));
-  const excluded = new Set(listsCard ? cardIds : picks.map(item => item.event.id));
   // 本周末 is ranked, so its best real photos take the first screen's diagonal slots; the date lists stay in date order.
-  const list = useMemo(() => weekend ? featurePhotos(tabs[day].filter(event => !excluded.has(event.id)), event => hasRealCover('event', event, today))
-    : listEvents(matching, filters.when, today).filter(event => !excluded.has(event.id)),
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  [weekend, tabs, day, matching, filters.when, today, cardIds, picks]);
-  const visible = list.slice(0, shown);
+  const ranked = useMemo(() => !weekend ? listEvents(matching, filters.when, today)
+    : featurePhotos(day ? tabs[day] : weekendRanked(matching, today), event => hasRealCover('event', event, today)),
+  [weekend, matching, filters.when, today, day, tabs]);
+  // Pick rows fill from the feed's first items when the editor's list runs short, so page 1 never repeats a pick. Only the
+  // picks the page shows leave the feed: up to PICK_ROWS (a standard phone shows picks 1–2 as cards and the third as a row),
+  // none in 简洁显示 (the pick rows step aside there, so they stay in the feed) — every event is on the page, counted once.
+  const showRows = !simple;
+  const pickEvents = showRows ? arranged.rows.slice(0, PICK_ROWS).map(item => item.event) : [];
+  const fill = showRows ? Math.max(0, (arranged.lead ? PICK_ROWS : 0) - pickEvents.length) : 0;
+  const excludedBase = new Set([...(listsCard ? cardIds : []), ...(arranged.lead ? [arranged.lead.event.id] : []), ...pickEvents.map(event => event.id)]);
+  const fillers = fill ? ranked.filter(event => !excludedBase.has(event.id) && event.id !== homeLead).slice(0, fill) : [];
+  const rows = [...pickEvents, ...fillers].slice(0, PICK_ROWS);
+  const excluded = new Set([...excludedBase, ...fillers.map(event => event.id)]);
+  const list = ranked.filter(event => !excluded.has(event.id));
+  // What the picks above already show of the chosen list: the list end counts them ("已显示 16 / 53 场").
+  const above = ranked.length - list.length;
+  const visible = list.slice(0, pageSize * (1 + extra));
   const feedDays = weekend ? (day === 'sat' ? [days[0]] : day === 'sun' ? [days[1]] : days.filter(item => item >= today)) : [];
+  const oneDay = weekend && (day === 'sat' || day === 'sun') ? feedDays[0] : undefined;
 
-  // One page context in display order — share strip, picks, feed — so an image appears once per page (VISUAL-10).
-  const covers = useMemo(() => {
-    const context = { ...coverContext(today), page: createCoverPage() };
-    const stripCovers = card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [];
-    const pickCovers = resolveCovers(picks.map(item => eventItem(item.event)), context);
-    const feedCovers = resolveCovers(visible.map(eventItem), context);
-    return { strip: stripCovers, picks: pickCovers, feed: feedCovers };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [card, strip, picks, visible, today]);
+  // One page context in display order — share strip, lead, picks, feed — so an image appears once per page (VISUAL-10).
+  const context = { ...coverContext(today), page: createCoverPage() };
+  const covers = {
+    strip: card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [],
+    // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
+    lead: arranged.lead ? resolveCovers([{ ...eventItem(arranged.lead.event), imageKey: leadImageKey(arranged.lead.event.imageKey) }], context) : [],
+    rows: resolveCovers(rows.map(eventItem), context),
+    feed: resolveCovers(visible.map(eventItem), context),
+  };
 
-  // The Sheet announces what closing it shows: the chosen day's list (the status line's number), not the weekend's union.
-  // While the dates load they say so; a failed load says that (the retry state sits right below), never "loading" over it.
-  const status = events ? t(`找到 ${list.length} 场活动`, `${list.length} ${list.length === 1 ? 'event' : 'events'}`)
+  // The status line names the chosen list; while the dates load it says so, and a failed load says that (the retry sits below).
+  const status = events ? t(`找到 ${ranked.length} 场活动`, `${ranked.length} ${ranked.length === 1 ? 'event' : 'events'}`)
     : failed ? t('这些日期的活动没能加载', 'Events for these dates did not load') : t('正在加载这些日期的活动…', 'Loading events for these dates…');
-  const sheetCount = events ? t(`显示 ${list.length} 场`, `Show ${list.length}`) : failed ? t('关闭', 'Close') : t('正在加载…', 'Loading…');
+  const sheetCount = events ? t(`显示 ${ranked.length} 场`, `Show ${ranked.length}`) : failed ? t('关闭', 'Close') : t('正在加载…', 'Loading…');
   const sheetStatus = events || !failed ? sheetCount : t('这些日期的活动没能加载', 'Events for these dates did not load');
-  const filterCount = activeFilterCount(filters, defaultWhen);
-  // At 大 / 特大 and in 简洁显示 the three day buttons get short names (周六 · 周日 · 两天): with the date the labels wrapped
-  // as 两天都开 / 放 and 周日 / 10/18. The weekend's dates stay in the page's range line right above.
-  const readingSize = useReadingSize(), simple = useSimpleDisplay();
-  const roomy = readingSize !== 'standard' || simple;
-  const dayLabel = (value: string) => roomy ? pick(WEEKDAYS[weekdayIndex(value)].short) : `${pick(WEEKDAYS[weekdayIndex(value)].short)}${english ? ',' : ''} ${monthDay(value, english)}`;
+  const filterCount = sheetFilterCount(filters);
+  // At 大 / 特大 and in 简洁显示 the day chips get short names (周六 · 周日 · 两天): the weekend's dates are in the range line.
+  const dayLabel = (value: string) => {
+    const name = value === today ? t('今天', 'Today') : pick(WEEKDAYS[weekdayIndex(value)].short);
+    if (roomy) return name;
+    const date = `${pick(WEEKDAYS[weekdayIndex(value)].short)}${english ? ',' : ''} ${monthDay(value, english)}`;
+    return value === today ? `${name} · ${date}` : date;
+  };
   const alerts = activeBulletins(today, filters.region);
-  const countFor = (next: Pick<EventsFilters, 'free' | 'tag'>) => base.filter(event => matchesFilters(event, { region: 'all', q: '', ...next }, normalize, translate)).length;
-  const stories = [{ id: 'free' as const, label: { zh: '免费', en: 'Free' } }, ...TAGS]
-    .map(story => ({ ...story, pressed: story.id === 'free' ? filters.free : filters.tag === story.id, count: countFor(story.id === 'free' ? { free: true } : { free: false, tag: story.id }) }))
-    // while the dates load, every story keeps its place (no row that shrinks, then grows back)
-    .filter(story => !events || story.count > 0 || story.pressed);
-  const more = Math.min(PAGE, list.length - visible.length);
+  const more = Math.min(pageSize, list.length - visible.length);
+  const whenOption = WHEN_OPTIONS.find(option => option.id === filters.when);
+  // A choice made in the 筛选 sheet shows on rail 1 as a removable chip ("下雨也行 ✕"), not only as 筛选 (1).
+  const sheetChips: { key: string; label: string; clear: Record<string, null> }[] = [
+    ...(!SCOPES.includes(filters.when) && whenOption ? [{ key: 'when', label: pick(whenOption.label), clear: { when: null, day: null } }] : []),
+    ...(filters.tag && !RAIL_TAGS.includes(filters.tag) ? [{ key: 'tag', label: pick(TAGS.find(tag => tag.id === filters.tag)!.label), clear: { tag: null } }] : []),
+    ...(filters.q ? [{ key: 'q', label: `「${filters.q}」`, clear: { q: null } }] : []),
+  ];
+
+  // Loading another date range keeps the last list on screen, dimmed, and after 300 ms a skeleton in its place (P28).
+  const [held, setHeld] = useState<{ events: IndexEvent[]; covers: ResolvedCover[] }>();
+  const visibleKey = visible.map(event => event.id).join();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (events && visible.length) setHeld({ events: visible, covers: covers.feed }); }, [events, visibleKey]);
+  const listRef = useRef<HTMLDivElement>(null);
+  const hold = useViewHold(!events && !failed && !!held, listRef);
+
+  // One radio group of dates: the scopes (本周末 is the whole weekend, checked on arrival, so the list matches the facts
+  // line's count and home's 看本周末全部 N 场), then on the weekend its days (周六 / 周日 / 两天都开放; days already past are
+  // dropped) in their own .ev-days wrapper. A date the sheet chose (今天, a month) checks none: its removable chip says it.
+  // 简洁显示 keeps 本周末 (the whole weekend) and the checked scope only.
+  const scopes = SCOPES.filter(id => !simple || id === 'weekend' || id === filters.when);
+  const dateItems = [
+    ...scopes.map(id => ({ id, label: pick(WHEN_OPTIONS.find(option => option.id === id)!.label) })),
+    ...(weekend ? [
+      ...(days[0] >= today ? [{ id: 'sat', label: dayLabel(days[0]) }] : []),
+      { id: 'sun', label: dayLabel(days[1]) },
+      { id: 'open', label: roomy ? t('两天', 'Both') : t('两天都开放', 'Both days') },
+    ] : []),
+  ];
+  const dateValue = weekend ? day || 'weekend' : SCOPES.includes(filters.when) ? filters.when : '';
+  const rail = <div className="ev-rail" role="group" aria-label={t('选择日期和筛选', 'Dates and filters')}>
+    <DayChips className="ev-rail__group ev-rail__dates" label={t('选择日期', 'Choose dates')} items={dateItems} value={dateValue}
+      part={weekend ? { from: scopes.length, className: 'ev-days-bar ev-days' } : undefined}
+      onChange={id => (SCOPES as readonly string[]).includes(id) ? update({ when: id === defaultWhen ? null : id, day: null }) : update({ day: id })} />
+    <div className="ev-rail__group">
+      <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
+      {/* 简洁显示 keeps 免费 only, and a tag that is on (home's 亲子 / 长辈友好 links), so it can be seen and cleared. */}
+      {RAIL_TAGS.map(id => <FilterChip key={id} data-simple={filters.tag === id ? undefined : 'hide'} selected={filters.tag === id} onClick={() => update({ tag: filters.tag === id ? null : id, category: null })}>{pick(TAGS.find(tag => tag.id === id)!.label)}</FilterChip>)}
+      {sheetChips.map(chip => <FilterChip key={chip.key} selected aria-label={t(`清除：${chip.label}`, `Clear ${chip.label}`)} onClick={() => update(chip.clear)}>{chip.label}<X aria-hidden="true" strokeWidth={1.75} /></FilterChip>)}
+      <FilterChip className="ev-region-chip" selected={filters.region !== 'all'} aria-haspopup="dialog" onClick={() => setSheetOpen(true)}>{pick(regionLabel(filters.region))}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></FilterChip>
+      <FilterChip selected={filterCount > 0} aria-haspopup="dialog" onClick={() => setSheetOpen(true)} count={filterCount || undefined}
+        icon={<SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />}>{t('筛选', 'Filters')}</FilterChip>
+    </div>
+  </div>;
+
+  // The day a row links to and prints: the day group's, the chosen day chip's, else the event's first weekend day.
+  // The one-tap regions (rail 2 and the sheet).
+  const regionChips = [{ id: 'all' as const, label: ALL_REGIONS }, ...REGIONS].map(region => <FilterChip key={region.id} selected={filters.region === region.id} onClick={() => setRegion(region.id)}>{pick(region.label)}</FilterChip>);
+  const rowDay = (event: IndexEvent, onDay?: string) => onDay ?? oneDay ?? feedDays.find(item => nextOccurrence(event, item) === item) ?? nextOccurrence(event, today) ?? today;
+  // The feed's first photo is the page's fetchpriority="high" image when no lead picture is (H60).
+  const feedCard = (event: IndexEvent, cover: ResolvedCover, onDay?: string) => <EventFeedCard event={event} cover={cover} today={today}
+    days={onDay ? [onDay] : feedDays} oneDay={onDay ?? oneDay} priority={event === visible[0] && (!arranged.lead || covers.lead[0]?.tier === 'type') && !listsCard} />;
+  // At 大 / 特大 and in 简洁显示 the feed is a list of rows (a 112px 4:3 thumbnail); ♡ at its end, except in 简洁显示 and
+  // 家人版, where saving happens on the detail page (DECISIONS 16, owner confirmed).
+  const rowCard = (event: IndexEvent, cover: ResolvedCover, onDay?: string) => <EventRowCard key={event.id} event={event} cover={cover} today={today}
+    day={rowDay(event, onDay)} oneDay={!!(onDay ?? oneDay)} save={!simple} />;
+  const groups = weekend ? [] : groupByDay(visible, listDays.start);
+  const groupCount = (groupDay: string) => list.filter(event => (nextOccurrence(event, listDays.start) ?? event.endDate) === groupDay).length;
+  const dayHead = (groupDay: string) => {
+    const weekdayName = pick(WEEKDAYS[weekdayIndex(groupDay)].short);
+    const date = english ? `${weekdayName}, ${monthDay(groupDay, true)}` : `${weekdayName} ${monthDay(groupDay)}`;
+    const count = groupCount(groupDay);
+    return `${groupDay === today ? `${t('今天', 'Today')} · ` : ''}${date} · ${t(`${count} 场`, `${count} ${count === 1 ? 'event' : 'events'}`)}`;
+  };
+  const sort = weekend ? t('按推荐排列', 'in recommended order') : t('按日期排列', 'by date');
+  const sundayParams = new URLSearchParams(params);
+  sundayParams.set('day', 'sun');
+  const sunday = english ? `${pick(WEEKDAYS[weekdayIndex(days[1])].short)}, ${monthDay(days[1], true)}` : `${pick(WEEKDAYS[weekdayIndex(days[1])].short)} ${monthDay(days[1])}`;
+  const listEnd = list.length > 0 && <div className="ev-list-end">
+    <p className="ev-list-end__count">{t(`已显示 ${above + visible.length} / ${ranked.length} 场 · ${sort}`, `Showing ${above + visible.length} of ${ranked.length} · ${sort}`)}</p>
+    {more > 0 && <Button variant="secondary" className="ev-list-end__more" onClick={() => setExtra(count => count + 1)}>{t(`再看 ${more} 场`, `Show ${more} more`)}</Button>}
+    {weekend ? day === 'sat' && days[1] >= today
+      ? <MoreLink to={`/events?${sundayParams}`} onClick={event => { event.preventDefault(); update({ day: 'sun' }); }}>{t(`${sunday} 的活动`, `Events on ${sunday}`)}</MoreLink>
+      : <MoreLink to={`/calendar?date=${addCalendarDays(days[1], 6)}`}>{t('下周末', 'Next weekend')}</MoreLink>
+      : <MoreLink to="/calendar">{t('按日期找：日历', 'Find by date: calendar')}</MoreLink>}
+  </div>;
+
+  // The list as cards, or as rows at 大 / 特大 and in 简洁显示 (the live list and the one held while another range loads).
+  const cards = (events: readonly IndexEvent[], label: string, onDay?: string, coverOf = (event: IndexEvent) => covers.feed[visible.indexOf(event)]) => roomy
+    ? <div className="ev-rows" role="list" aria-label={label}>{events.map(event => <div key={event.id} role="listitem">{rowCard(event, coverOf(event), onDay)}</div>)}</div>
+    : <FeedGrid label={label} layout={layout} coverCredit={false} className="ev-cards">
+      {events.map(event => <FeedItem key={event.id}>{feedCard(event, coverOf(event), onDay)}</FeedItem>)}
+    </FeedGrid>;
+  const feed = !visible.length ? null : weekend ? cards(visible, t('本周末活动', 'Events this weekend'))
+    : groups.map(group => <section key={group.day} className="ev-day" aria-labelledby={`ev-day-${group.day}`}>
+      <h3 id={`ev-day-${group.day}`} className="ev-day__head">{dayHead(group.day)}</h3>
+      {cards(group.events, dayHead(group.day), group.day)}
+    </section>);
+  const emptyTitle = filters.q ? t(`没有找到「${filters.q}」`, `Nothing found for “${filters.q}”`)
+    : t('这组条件下暂时没有活动', 'Nothing matches these filters yet');
 
   return <>
-    {card && <ShareLandingStrip region={card} state={strip} events={stripEvents} covers={covers.strip} today={today} />}
+    {card && <ChunkBoundary>{attempt => { const Strip = shareStrip(attempt); return <Suspense fallback={stripFallback}>
+      <Strip region={card} state={strip} events={stripEvents} covers={covers.strip} today={today} />
+    </Suspense>; }}</ChunkBoundary>}
 
-    <div className="ev-stories" role="group" aria-label={t('快速挑选', 'Quick picks')}>
-      {stories.map(story => {
-        const Icon = STORY_ICONS[story.id];
-        return <button key={story.id} type="button" className="ev-story" data-story={story.id} aria-pressed={story.pressed}
-          onClick={() => story.id === 'free' ? update({ cost: story.pressed ? null : 'free' }) : update({ tag: story.pressed ? null : story.id, category: null })}>
-          <span className="ev-story__icon" aria-hidden="true"><Icon strokeWidth={1.75} /></span>
-          <span className="ev-story__label">{pick(story.label)}</span>
-        </button>;
-      })}
-    </div>
-
-    {picks.length > 0 && <section className="ev-picks" aria-labelledby="ev-picks-heading">
-      <h2 id="ev-picks-heading" className="ev-section-title">{editorPicks ? t('编辑精选', 'Editor’s picks') : t('本周末先看', 'This weekend, start here')}</h2>
-      <Carousel variant="rail" label={editorPicks ? t('本周末编辑精选', 'This weekend’s editor’s picks') : t('本周末先看这几件', 'This weekend, start with these')}>
-        {picks.map((item, index) => <EventHeroCard key={item.event.id} event={item.event} cover={covers.picks[index]} today={today} date={item.date} reason={item.reason} priority={index === 0} />)}
-      </Carousel>
+    {/* data-cover-credit: the page names the info card once (本页图片来源), so a credited pick's coded cover drops its badge (H12). */}
+    {arranged.lead && <section className="ev-picks" aria-labelledby="ev-picks-heading" data-cover-credit="">
+      <h2 id="ev-picks-heading" className="ev-section-title ev-picks__title">{editorPicks ? t('编辑精选', 'Editor’s picks') : t('本周末先看', 'This weekend, start here')}</h2>
+      <div className="ev-picks__grid">
+        <EventLeadCard event={arranged.lead.event} cover={covers.lead[0]} today={today} days={[arranged.lead.date]}
+          kicker={arranged.lead.reason ? t('编辑推荐', 'Editor’s pick') : t('本周末先看', 'This weekend, start here')} reason={arranged.lead.reason ? pick(arranged.lead.reason) : undefined} />
+        {/* The other picks: on a standard phone picks 1–2 as one 2-up row of cards and the third as a row (events.css shows
+            only that one of the rows there); rows in the span-4 column on desktop and at 大 / 特大. */}
+        {rows.length > 0 && <div className="ev-picks__more" data-simple="hide">
+          {!roomy && <ul className="ev-picks__cards" aria-label={t('另外几件', 'More picks')}>
+            {rows.slice(0, 2).map((event, index) => <li key={event.id}><EventFeedCard event={event} cover={covers.rows[index]} today={today} days={feedDays} /></li>)}
+          </ul>}
+          <div className="ev-picks__rows" role="list" aria-label={t('另外几件', 'More picks')}>
+            {rows.map((event, index) => <div key={event.id} role="listitem"><EventRowCard event={event} cover={covers.rows[index]} today={today} day={rowDay(event)} save={!simple} /></div>)}
+          </div>
+        </div>}
+      </div>
     </section>}
 
     <section id="monthly-events" className="ev-feed" aria-labelledby="ev-feed-heading">
-      <h2 id="ev-feed-heading" className="ev-section-title">{weekend ? t('本周末全部活动', 'All events this weekend') : t('活动', 'Events')}</h2>
-      {weekend && <div className="ev-days-bar"><SegmentedControl className="ev-days" label={t('选择哪一天', 'Choose a day')} value={day} onChange={value => update({ day: value })}
-        items={[
-          ...(days[0] >= today ? [{ id: 'sat', label: dayLabel(days[0]) }] : []),
-          { id: 'sun', label: dayLabel(days[1]) },
-          { id: 'open', label: roomy ? t('两天', 'Both') : t('两天都开放', 'Both days') },
-        ]} /></div>}
-      {/* H23 / HOMEIA13-02: 本周末旧金山免费亲子 in three taps from home — the region applies on one tap, no Sheet. */}
-      <ChipRow className="ev-regions" label={t('地区', 'Region')}>
-        <FilterChip selected={filters.region === 'all'} onClick={() => setRegion('all')}>{pick(ALL_REGIONS)}</FilterChip>
-        {REGIONS.map(region => <FilterChip key={region.id} selected={filters.region === region.id} onClick={() => setRegion(region.id)}>{pick(region.label)}</FilterChip>)}
-      </ChipRow>
-      <div className="ev-filter-row">
-        <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
-        <FilterChip selected={filterCount > 0} aria-haspopup="dialog" onClick={() => setSheetOpen(true)} count={filterCount || undefined}
-          icon={<SlidersHorizontal aria-hidden="true" strokeWidth={1.75} />}>{t('筛选', 'Filters')}</FilterChip>
+      <div className="ev-feed__head">
+        <h2 id="ev-feed-heading" className={weekend ? 'ev-section-title' : 'ev-section-title ui-visually-hidden'}>{weekend ? t('本周末全部活动', 'All events this weekend') : t('活动', 'Events')}</h2>
         <p className="ev-count" role="status" aria-live="polite">{status}</p>
       </div>
+      <div className="ev-toolbar">
+        {rail}
+        {/* H23 / HOMEIA13-02: 本周末旧金山免费亲子 in three taps from home — the region applies on one tap, no Sheet. */}
+        <ChipRow className="ev-regions" label={t('地区', 'Region')}>
+          {regionChips}
+        </ChipRow>
+      </div>
 
-      {!events ? failed ? <ChunkError onRetry={retry} /> : <SkeletonFeed count={4} />
-      : visible.length ? <>
-        <FeedGrid label={weekend ? t('本周末活动', 'Events this weekend') : t('活动', 'Events')} layout={layout}>
-          {visible.map((event, index) => <FeedItem key={event.id}>
-            <EventFeedCard event={event} cover={covers.feed[index]} today={today} days={feedDays}
-              priority={!picks.length && !listsCard && index === 0} />
-          </FeedItem>)}
-        </FeedGrid>
-        {more > 0 && <div className="ev-more">
-          <Button variant="secondary" block onClick={() => setShown(count => count + PAGE)}>{t(`再看 ${more} 场`, `Show ${more} more`)}</Button>
-          <p className="ev-more__note">{t(`已显示 ${visible.length} / ${list.length} 场`, `${visible.length} of ${list.length}`)}</p>
-        </div>}
-      </> : <EmptyState headingLevel="h3" title={t('这组条件下暂时没有活动', 'Nothing matches these filters yet')}
-        body={filters.q ? t('换个关键词，或把这句话交给 BayBay。', 'Try another word, or ask BayBay.') : t('换一天、换个地区，或清除筛选再看看。', 'Try another day or region, or clear the filters.')}
-        actions={filters.tag === 'seniors' && !filters.q ? <>
-          {/* H06: no 长辈友好 event in this range — the 长辈与家属 guides and BayBay instead of only "clear" (HOMEIA13-01). */}
-          <Button variant="primary" to="/guides?topic=elders">{t('看长辈与家属指南', 'Guides for seniors and family')}</Button>
-          <Button variant="text" to={`/plan?q=${encodeURIComponent(t('这周末带爸妈去哪？', 'Where can I take my parents this weekend?'))}`}>{t('问 BayBay：这周末带爸妈去哪', 'Ask BayBay where to take your parents')}</Button>
-          <Button variant="text" onClick={clear}>{t('清除筛选', 'Clear filters')}</Button>
-        </> : <>
-          <Button variant="primary" onClick={clear}>{t('清除筛选', 'Clear filters')}</Button>
-          {filters.q ? <Button variant="text" to={`/plan?q=${encodeURIComponent(filters.q)}`}>{t('问 BayBay', 'Ask BayBay')}</Button>
-            : weekend ? <Button variant="text" to="/events?when=next7">{t('看未来 7 天', 'See the next 7 days')}</Button> : null}
-        </>} />}
+      <div ref={listRef} className="ev-list" data-hold={hold.phase === 'idle' ? undefined : hold.phase} style={hold.phase === 'idle' ? undefined : { minHeight: hold.height }} aria-busy={!events && !failed ? true : undefined}>
+        {hold.phase === 'skeleton' ? <SkeletonFeed count={4} />
+        : !events ? failed ? <ChunkError onRetry={retry} />
+          : hold.phase === 'dim' && held ? cards(held.events, t('活动', 'Events'), undefined, event => held.covers[held.events.indexOf(event)])
+          : <SkeletonFeed count={4} rows={roomy} />
+        : visible.length ? [<Fragment key="feed">{feed}</Fragment>, <Fragment key="end">{listEnd}</Fragment>]
+        : <EmptyState headingLevel="h3" title={emptyTitle}
+          body={filters.q ? t('换个关键词，或把这句话交给 BayBay。', 'Try another word, or ask BayBay.') : t('换一天、换个地区，或清除筛选再看看。', 'Try another day or region, or clear the filters.')}
+          actions={filters.tag === 'seniors' && !filters.q ? <>
+            {/* H06: no 长辈友好 event in this range — the 长辈与家属 guides and BayBay instead of only "clear" (HOMEIA13-01). */}
+            <Button variant="primary" to="/guides?topic=elders">{t('看长辈与家属指南', 'Guides for seniors and family')}</Button>
+            <Button variant="text" to={`/plan?q=${encodeURIComponent(t('这周末带爸妈去哪？', 'Where can I take my parents this weekend?'))}`}>{t('问 BayBay：这周末带爸妈去哪', 'Ask BayBay where to take your parents')}</Button>
+            <Button variant="text" onClick={clear}>{t('清除筛选', 'Clear filters')}</Button>
+          </> : <>
+            {filters.q ? <Button variant="primary" onClick={() => update({ q: null })}>{t('清除搜索', 'Clear the search')}</Button>
+              : <Button variant="primary" onClick={clear}>{t('清除筛选', 'Clear filters')}</Button>}
+            <MoreLink to={`/plan?q=${encodeURIComponent(filters.q || t('这周末去哪？', 'Where should we go this weekend?'))}`}>{t('问 BayBay', 'Ask BayBay')}</MoreLink>
+          </>} />}
+      </div>
     </section>
 
     {/* CW-02: the alerts and the share card are keyed to the day, inside a 本周末 list that keeps all week (date-guard.ts). */}
-    {alerts.length > 0 && <details className="ev-alerts" id="monthly-news" {...dateScope('day')}>
-      <summary>{t(`出行提醒 ${alerts.length} 条`, `Travel and local updates · ${alerts.length}`)}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
-      <ul>{alerts.map(item => <li key={item.id}>
-        <strong>{item.title}</strong>
-        <span>{item.label} · {item.dateLabel}</span>
-        <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">{t('官方', 'Official')} · {item.sourceLabel}</a>
-      </li>)}</ul>
-    </details>}
+    {alerts.length > 0 && <div className="ev-alerts" {...dateScope('day')}>
+      <Disclosure id="monthly-news" summary={t(`出行提醒 ${alerts.length} 条`, `Travel and local updates · ${alerts.length}`)}>
+        <ul>{alerts.map(item => <li key={item.id}>
+          <strong>{item.title}</strong>
+          <span>{item.label} · {item.dateLabel}</span>
+          <a href={item.sourceUrl} target="_blank" rel="noopener noreferrer">{t('官方', 'Official')} · {item.sourceLabel}</a>
+        </li>)}</ul>
+      </Disclosure>
+    </div>}
 
-    <EventsPageEnd region={filters.region} today={today} />
-    <ImageCredits covers={[...covers.strip, ...covers.picks, ...covers.feed]} />
+    {(!events || visible.length > 0) && <EventsPageEnd region={filters.region} today={today} weekend={weekend} />}
+    <ImageCredits covers={[...covers.strip, ...covers.lead, ...covers.rows, ...covers.feed]} />
 
-    <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title={t('筛选活动', 'Filter events')} status={sheetStatus}
-      footer={<>
-        <Button variant="text" onClick={clear}>{t('清除', 'Clear')}</Button>
-        <Button variant="primary" onClick={() => setSheetOpen(false)}>{sheetCount}</Button>
-      </>}>
-      <SheetSection title={t('什么时候', 'When')}>
-        {WHEN_OPTIONS.map(option => <FilterChip key={option.id} selected={filters.when === option.id}
-          onClick={() => update({ when: option.id === defaultWhen ? null : option.id, day: null })}>{pick(option.label)}</FilterChip>)}
-      </SheetSection>
-      <SheetSection title={t('地区', 'Region')}>
-        <FilterChip selected={filters.region === 'all'} onClick={() => setRegion('all')}>{pick(ALL_REGIONS)}</FilterChip>
-        {REGIONS.map(region => <FilterChip key={region.id} selected={filters.region === region.id} onClick={() => setRegion(region.id)}>{pick(region.label)}</FilterChip>)}
-      </SheetSection>
-      <SheetSection title={t('想找什么', 'What kind')}>
-        <FilterChip selected={filters.free} onClick={() => update({ cost: filters.free ? null : 'free' })}>{t('免费', 'Free')}</FilterChip>
-        {TAGS.map(tag => <FilterChip key={tag.id} selected={filters.tag === tag.id} onClick={() => update({ tag: filters.tag === tag.id ? null : tag.id, category: null })}>{pick(tag.label)}</FilterChip>)}
-      </SheetSection>
-      <label className="ev-search">
-        <span>{t('关键词', 'Keyword')}</span>
-        <input type="search" value={params.get('q') || ''} maxLength={200} placeholder={t('活动名、城市或场馆', 'Event, city or venue')}
-          onChange={event => update({ q: event.target.value || null })} />
-      </label>
-    </Sheet>
+    {/* The 筛选 sheet loads on its own (idle, or the first tap), then stays mounted for its exit animation. */}
+    {sheetOpen !== undefined && FilterSheet && <FilterSheet open={sheetOpen} onClose={() => setSheetOpen(false)} count={sheetCount} status={sheetStatus}
+      filters={filters} defaultWhen={defaultWhen} query={params.get('q') || ''} regions={regionChips} update={update} clear={clear} />}
   </>;
 }
 
-function SheetSection({ title, children }: { title: string; children: ReactNode }) {
-  return <section className="ev-sheet-section"><h3>{title}</h3><ChipRow label={title}>{children}</ChipRow></section>;
-}
-
-/** The end of the list: save the weekend as an image, subscribe, and one link each to the rest (VISUAL-18). */
-export function EventsPageEnd({ region, today }: { region: EventsFilters['region']; today: string }) {
+/**
+ * The end of the list (VISUAL-18 → G10): one quiet list of links at 400 — save the weekend as an image (本周末 only),
+ * subscribe, and one link each to the rest. In 简洁显示 only the first two stay.
+ */
+export function EventsPageEnd({ region, today, weekend = true }: { region: EventsFilters['region']; today: string; weekend?: boolean }) {
   const { t } = useUiCopy();
   return <nav className="ev-end" aria-label={t('更多活动入口', 'More from Events')}>
-    <a className="ev-end__item ev-end__item--wide" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')} {...dateScope('day')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a>
-    <a className="ev-end__item ev-end__item--wide" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a>
-    <Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link>
-    <Link className="ev-end__item" to="/events?view=openings">{t('新店与开业', 'New shops')}</Link>
-    <Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link>
-    <Link className="ev-end__item" to="/guides">{t('出门前读一篇指南', 'Read a guide before you go')}</Link>
+    <ul>
+      {weekend && <li><a className="ev-end__item" href={weeklyCardHref(region, today)} target="_blank" rel="noopener" onClick={() => recordProductEvent('share_card_download')} {...dateScope('day')}>{t('存成一张图：本周末精选', 'Save this weekend’s picks as an image')}</a></li>}
+      <li><a className="ev-end__item" href={`webcal://www.baylink.us/calendars/${region}.ics`} onClick={recordIcsDownload}>{t('订阅到手机日历（只含活动日期）', 'Subscribe in your phone calendar (dates only)')}</a></li>
+      <li data-simple="hide"><Link className="ev-end__item" to="/events?view=perks">{t('免费与优惠', 'Free & deals')}</Link></li>
+      <li data-simple="hide"><Link className="ev-end__item" to="/events?view=openings">{t('新店', 'New shops')}</Link></li>
+      <li data-simple="hide"><Link className="ev-end__item" to="/explore">{t('半日慢游去处', 'Half-day outings')}</Link></li>
+      <li data-simple="hide"><Link className="ev-end__item" to="/guides">{t('出门前读一篇指南', 'Read a guide before you go')}</Link></li>
+    </ul>
   </nav>;
 }
 

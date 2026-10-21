@@ -168,13 +168,18 @@ export async function generateEnglishScopes(dictionary: EnglishDictionary, dicti
   const eventsLater = JSON.parse(await readFile('src/data/generated/events-later.json', 'utf8')) as { events: { id: string }[] };
   const notesFor = (list: { id: string }[]) => list.flatMap(event => Object.hasOwn(EVENT_SCHEDULE_NOTES, event.id) ? [EVENT_SCHEDULE_NOTES[event.id]] : []);
   const listed = new Set([...eventsIndex.events, ...eventsLater.events].map(event => event.id));
-  const eventsList = [eventsIndex, officialEventMedia, CALENDAR_CITY_LOCATIONS,
+  // No list page prints an image caption (cards and the credits line read the alt text and the credit; the index carries a
+  // caption's signal, scripts/events-index-images.ts captionSignal), so the events column's packs leave caption sentences
+  // out (UI-9 A+B engineering review: the 43 official images' captions were most of +6.2 KiB on /en/events).
+  const withoutCaptions = (value: unknown): unknown => Array.isArray(value) ? value.map(withoutCaptions)
+    : value && typeof value === 'object' ? Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'caption' && key !== 'captionEn').map(([key, item]) => [key, withoutCaptions(item)])) : value;
+  const eventsList = withoutCaptions([eventsIndex, officialEventMedia, CALENDAR_CITY_LOCATIONS,
     VERIFIED_PLACE_PHOTO_ALIASES, VERIFIED_EVENT_PLACE_MEDIA_UPDATES, OFFICIAL_EVENT_IMAGE_UPDATES, VERIFIED_EVENT_CONTEXT_PHOTOS, VERIFIED_OFFER_PLACE_MEDIA_UPDATES,
     OCTNOV_EVENT_PHOTO_ALIASES, OCTNOV_EVENT_MEDIA_UPDATES, OCTNOV_EVENT_CONTEXT_PHOTOS, EVENT_CONTEXT_PHOTOS,
     // every compact schedule note the calendar can show with the route's events, and the notes of events no longer listed
     // (tests/octnov-metadata-i18n.test.tsx)
-    notesFor(eventsIndex.events), Object.entries(EVENT_SCHEDULE_NOTES).filter(([id]) => !listed.has(id)).map(([, note]) => note)];
-  const eventsLaterValues = [eventsLater, notesFor(eventsLater.events)];
+    notesFor(eventsIndex.events), Object.entries(EVENT_SCHEDULE_NOTES).filter(([id]) => !listed.has(id)).map(([, note]) => note)]);
+  const eventsLaterValues = withoutCaptions([eventsLater, notesFor(eventsLater.events)]);
   const scopeValues: Record<string, unknown> = {
     game: await uiStrings(['opus-bay']),
     home: JSON.parse(await readFile('src/data/generated/home-catalog.json', 'utf8')),

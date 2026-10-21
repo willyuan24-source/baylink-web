@@ -7,7 +7,7 @@ import { handleGuideLinkClick } from './GuideCard';
 export function FirstVisitStart({ onOpenGuide }: { onOpenGuide: (slug: string) => void }) {
   return <section className="daily-guide-topics" aria-labelledby="first-visit-title">
     <div className="daily-guide-heading"><div>
-      <EnglishOnly><span className="bl-guide-eyebrow">YOUR FIRST DAYS IN THE BAY</span></EnglishOnly>
+      <EnglishOnly><span className="bl-guide-eyebrow">Your first days in the Bay</span></EnglishOnly>
       <h2 id="first-visit-title">第一次来，从这里开始</h2>
       <p>短住几天，或准备安家，按眼前要做的事一步步看。</p>
       <p>十月更新 · 每篇附核对日期与官方来源</p>
