@@ -1,4 +1,4 @@
-import { CLAUDE_REVIEW_DATE_2026_10_21, CLAUDE_REVIEWED_2026_10_21 } from './claude-review-2026-10-21';
+import { CLAUDE_REVIEW_DATE_2026_10_21, CLAUDE_REVIEWED_2026_10_21, CLAUDE_REVIEWED_OFFERS_2026_10_21 } from './claude-review-2026-10-21';
 import { EDITOR_REVIEW_DATE_2026_10_16, EDITOR_REVIEWED_2026_10_16 } from './editor-review-2026-10-16';
 
 /**
@@ -167,4 +167,4 @@ export const EDITOR_REVIEWED_2026_10_15: ReadonlySet<string> = new Set([
  * The batch date, or the latest review date for a reviewed id (Claude's 10-21 weekly review, then the editor's 10-16 passes,
  * then the 10-15 passes).
  */
-export const batchVerifiedAt = (id: string, batchDate: string): string => CLAUDE_REVIEWED_2026_10_21.has(id) ? CLAUDE_REVIEW_DATE_2026_10_21 : EDITOR_REVIEWED_2026_10_16.has(id) ? EDITOR_REVIEW_DATE_2026_10_16 : EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;
+export const batchVerifiedAt = (id: string, batchDate: string): string => CLAUDE_REVIEWED_2026_10_21.has(id) || CLAUDE_REVIEWED_OFFERS_2026_10_21.has(id) ? CLAUDE_REVIEW_DATE_2026_10_21 : EDITOR_REVIEWED_2026_10_16.has(id) ? EDITOR_REVIEW_DATE_2026_10_16 : EDITOR_REVIEWED_2026_10_15.has(id) ? EDITOR_REVIEW_DATE : batchDate;

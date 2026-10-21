@@ -15,7 +15,7 @@ export const octoberRefreshOffers: FreebieOffer[] = [
     sourceLabel: 'SF Zoo 官方 2026 免费日日历', storeUrl: 'https://www.sfzoo.org/tickets-hours/',
   },
   {
-    id: 'hayward-compost-giveaway-oct24-2026', region: 'east-bay', verifiedAt: '2026-09-30',
+    id: 'hayward-compost-giveaway-oct24-2026', region: 'east-bay', verifiedAt: '2026-10-21',
     brand: 'CITY OF HAYWARD', title: '10/24 Hayward 住户免费领 4 袋堆肥',
     dateLabel: '10/24 周六 · 07:30–10:30，发完即止',
     startDate: '2026-10-24', endDate: '2026-10-24', availability: 'dated', kind: 'no-purchase',

@@ -76,3 +76,16 @@ export const CLAUDE_REVIEWED_2026_10_21: ReadonlySet<string> = new Set([
   'srsymphony-boo-dance-oct25-2026',
   'windsor-trick-or-treat-trail-2026',
 ]);
+
+/** Dated /offers items starting on 10/24 or 10/25 that the same review read and matched ("Dated offers on 10/24–25"). */
+export const CLAUDE_REVIEWED_OFFERS_2026_10_21: ReadonlySet<string> = new Set([
+  'hayward-compost-giveaway-oct24-2026',
+  'lakeshore-halloween-craft-oct25-31-2026',
+  'lakeshore-stained-glass-oct24-2026',
+  'lego-ghost-street-stoneridge-oct25-2026',
+  'michaels-chenille-ghost-oct24-2026',
+  'michaels-costume-demo-oct25-2026',
+  'petsmart-tricks-treats-oct25-2026',
+  'sfmoma-family-oct25',
+  'sjpl-booktacular-oct24-31',
+]);
