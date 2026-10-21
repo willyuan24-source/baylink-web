@@ -16,5 +16,5 @@
   .ui-more:hover { text-decoration:underline var(--underline-thickness); }
 }
 .ui-more:active { scale:.96; }
-:is(.ui-link,.ui-more):focus-visible { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:var(--focus-ring-offset); }
+:is(.ui-link,.ui-more):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 html[data-simple] :is(.ui-link[data-standalone],.ui-more) { min-height:3rem; }

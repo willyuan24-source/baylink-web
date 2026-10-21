@@ -128,13 +128,14 @@ test('TextLink and MoreLink: router links for `to`, anchors for `href`, two look
   const more = view.getByRole('link', { name: '看全部活动' });
   assert.equal(more.className, 'ui-more');
   assert.equal(more.querySelector('svg')!.getAttribute('aria-hidden'), 'true', 'the arrow is decoration');
-  // One underline offset for both looks, the same as the hover underline in tokens.css.
+  // One underline offset for both looks, the same as the hover underline in tokens.css (UI9-R1: the --underline-* tokens).
   const offsets = new Set<string>();
   css.walkDecls('text-underline-offset', decl => { if (/\.ui-(?:link|more)\b/.test((decl.parent as postcss.Rule).selector)) offsets.add(decl.value); });
-  assert.deepEqual([...offsets], ['.2em']);
-  assert.match(readFileSync('src/tokens.css', 'utf8'), /text-underline-offset:\.2em/);
+  assert.deepEqual([...offsets], ['var(--underline-offset)']);
+  assert.match(readFileSync('src/tokens.css', 'utf8'), /--underline-offset:\.2em;/);
+  assert.match(readFileSync('src/tokens.css', 'utf8'), /text-underline-offset:var\(--underline-offset\)/);
   assert.equal(declarations(':is(.ui-link[data-standalone],.ui-more)').get('min-height'), 'var(--control-height)');
-  assert.equal(declarations('.ui-link').get('text-decoration'), 'underline 1px', 'underlined at rest');
+  assert.equal(declarations('.ui-link').get('text-decoration'), 'underline var(--underline-thickness)', 'underlined at rest');
   assert.equal(declarations('.ui-more').get('text-decoration'), undefined, 'underlined on hover only');
 });
 

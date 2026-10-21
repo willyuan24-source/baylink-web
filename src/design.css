@@ -8,7 +8,7 @@ body { background:var(--color-bg); overflow-x:clip; height:auto; min-height:100%
 #root { overflow:visible; height:auto; min-height:100dvh; }
 ::selection { color:var(--color-brand-deep); background:var(--color-highlight); }
 /* The one focus ring (tokens.css --focus-ring-*), also for the dialogs, sheets and toasts portalled outside .site-app. */
-:where(button,a,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:var(--focus-ring-offset); }
+:where(button,a,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 button:disabled { cursor:not-allowed; }
 @media (hover:hover) and (pointer:fine) { .bay-button-dark:hover { background:var(--color-brand-hover); transform:translateY(-1px); } }
 .bay-home { max-width:1370px; padding:27px 32px 24px; margin:auto; }

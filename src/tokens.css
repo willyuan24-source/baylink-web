@@ -70,9 +70,10 @@
      link looks (components/ui/links.css: .ui-link, .ui-more) and every card title. Never skip-ink: under CJK the skipped
      ink broke the line into pieces (J1 P7). Lanes delete their own offsets (5px, 4px, 3px, .25em) and read these. */
   --underline-offset:.2em; --underline-thickness:1px;
-  /* Focus (N09): one ring, 2px brand with a 3px gap; it follows the control's own corner radius. On a deep surface it turns
+  /* Focus (N09): one ring, 2px brand (outline:var(--focus-ring-width) solid var(--color-brand)) with a 3px gap; it follows
+     the control's own corner radius. On a deep surface it turns
      lime (the rule below). */
-  --focus-ring-width:2px; --focus-ring-offset:3px; --focus-ring-color:var(--color-brand);
+  --focus-ring-width:2px; --focus-ring-offset:3px;
   /* Type ladder (N01): at most 9 steps per viewport. Phone 13 · 14 · 16 · 17 · 18 · 20 · 24 · 28; desktop (≥1024)
      13 · 14 · 16 · 17 · 18 · 20 · 24 · 32 · 44. 13 is for photo provenance badges and legal credits only. rem, so Aa
      grows them; 简洁显示 raises the floor (html[data-simple] below). No font-size literal belongs outside this file. */
@@ -252,7 +253,7 @@ html:has(.ob-page,#opus-bay-shell) { font-size:100%; --fluid-scale:1; --text-flo
   html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.feed-auto-cols,.home-destinations,.perks-gallery-grid,.tools-picker) { grid-template-columns:minmax(0,1fr)!important; }
 }
 .site-app { font-family:var(--font-sans); }
-.site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--focus-ring-color); outline-offset:var(--focus-ring-offset); }
+.site-app :where(a,button,input,select,textarea,summary):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 /* Interaction states for every control (N23), including the ones the primitives do not own yet: hover only where a pointer
    can hover (inline text links underline, buttons darken a step), a press answer at once (scale composes with any
    transform), and the focus ring in lime on the deep brand surfaces. The underline is for inline text links only (0,2,0,

@@ -1,0 +1,25 @@
+/* Form primitives (UI9-R1): the styled Select (Select.tsx) and the date chips' month sheet (DateChips.tsx). Imported by
+   those two only, so it ships with the lazily loaded forms that use them, never in the entry. Tokens only: the chip look
+   of ui.css .ui-chip (white pill, line-control edge, --control-height), the one chevron, the one selected pair. */
+.ui-select { position:relative; display:inline-flex; align-items:center; min-width:0; max-width:100%; }
+.ui-select__field { appearance:none; width:100%; min-height:var(--control-height); padding:0 calc(var(--sp-4) + 1rem + var(--sp-2)) 0 var(--sp-4); border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font:inherit; font-size:var(--text-fact); line-height:var(--lh-ui); text-overflow:ellipsis; cursor:pointer; transition:border-color var(--dur-1) var(--ease-std),background-color var(--dur-1) var(--ease-std); }
+.ui-select__icon { position:absolute; right:var(--sp-4); width:1rem; height:1rem; color:var(--color-ink-2); pointer-events:none; }
+@media (hover:hover) and (pointer:fine) { .ui-select__field:not(:disabled):hover { border-color:var(--color-ink-3); background:var(--color-surface-2); } }
+.ui-select__field:disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
+.ui-select[data-disabled] .ui-select__icon { color:var(--color-ink-3); }
+/* The phone keeps a 16px field (iOS zooms into anything smaller). */
+@media (max-width:767px) { .ui-select__field { font-size:max(1rem, var(--text-fact)); } }
+
+/* DateChips: the month sheet. A 7-column table of 44px day buttons (48 in 简洁显示); today is ringed, the chosen day is
+   the selected pair, days outside the range are ink-3 (not faded, so they keep 4.5:1). */
+.ui-date-sheet__nav { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); margin:0 0 var(--sp-3); }
+.ui-date-sheet__month { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:var(--lh-tight); font-weight:var(--fw-strong); }
+.ui-date-grid { width:100%; border-collapse:collapse; table-layout:fixed; }
+.ui-date-grid th { padding:0 0 var(--sp-2); color:var(--color-ink-3); font-size:var(--text-fact); line-height:var(--lh-ui); font-weight:var(--fw-regular); text-align:center; }
+.ui-date-grid td { padding:var(--sp-1) 0; text-align:center; }
+.ui-date-grid__day { display:inline-grid; place-items:center; width:var(--control-height); height:var(--control-height); max-width:100%; padding:0; border:1px solid transparent; border-radius:var(--r-circle); background:transparent; color:var(--color-ink); font:inherit; font-size:var(--text-body); font-variant-numeric:tabular-nums; cursor:pointer; }
+.ui-date-grid__day[aria-current=date] { border-color:var(--color-line-control); }
+.ui-date-grid__day[aria-pressed=true] { border-color:var(--selected-line); background:var(--selected-bg); color:var(--selected-fg); }
+.ui-date-grid__day:disabled { color:var(--color-ink-3); cursor:not-allowed; }
+@media (hover:hover) and (pointer:fine) { .ui-date-grid__day:not(:disabled,[aria-pressed=true]):hover { background:var(--color-surface-2); } }
+.ui-date-grid__day:active:not(:disabled) { scale:.96; }
