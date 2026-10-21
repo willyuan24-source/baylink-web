@@ -37,8 +37,10 @@ test('DECISIONS 15: the home lead draws its type cover for a face photo, the cat
     const lead = byId.get(catalog.weekends[day].ids[0] ?? '');
     return !!lead?.imageKey && CLOSE_UP_FACE_IMAGES.has(lead.imageKey);
   });
-  // LumaFest leads the home from 10/20 to 10/24, so a catalog built in that window must have such days.
-  if (catalog.generatedAt <= '2026-10-24') assert.ok(faceDays.length > 0, 'the gate-day catalog has a face-photo lead');
+  // LumaFest led the home from 10/20 to 10/24 until Claude's 10-21 weekly review put Cherryland's storytimes first (UI9-IMAGES
+  // DECISIONS 26: a lead needs a ① or ② image that may lead), so only a catalog built before 10-21 must have such days; the
+  // type-cover path below runs whenever a face photo would lead.
+  if (catalog.generatedAt < '2026-10-21') assert.ok(faceDays.length > 0, 'the gate-day catalog has a face-photo lead');
   for (const day of faceDays.slice(0, 1)) {
     const lead = byId.get(catalog.weekends[day].ids[0])!;
     assert.ok(lead.imageKey! in catalog.images, `${day}: the catalog keeps ${lead.imageKey} for the feed and /plan`);
