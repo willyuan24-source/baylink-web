@@ -44,17 +44,25 @@ const WIDTH: Record<string, number> = {
   A: 667, D: 722, I: 278, O: 778, P: 667, S: 667, V: 667, a: 556, c: 500, d: 556, e: 556, f: 278, g: 556, h: 556, i: 222,
   k: 500, l: 222, m: 833, n: 556, o: 556, p: 556, r: 333, s: 500, t: 278, u: 556,
 };
-/** The chip on an 88 px thumbnail (cards.css .ui-row-card__thumb .ui-provenance): 13 px (--fs-badge), 4 px each side. */
-const chipWidth = (text: string) => [...text].reduce((sum, char) => {
+/**
+ * Text width in px. The advances above are Helvetica's; the site's system-ui (SF on macOS / iOS, Segoe on Windows) runs
+ * about 7.5% wider (Chrome on macOS, 13 px: 'Official · 2025' 85.5 px, 'Venue · 2023' 80.4 px), so 8% is added.
+ */
+const SYSTEM_UI = 1.08;
+const textWidth = (text: string, px: number) => [...text].reduce((sum, char) => {
   assert.ok(WIDTH[char], `no width for ${JSON.stringify(char)}`);
   return sum + WIDTH[char];
-}, 0) * 13 / 1000 + 2 * 4;
+}, 0) * px / 1000 * SYSTEM_UI;
+/** The chip on an 88 px thumbnail (cards.css .ui-row-card__thumb .ui-provenance) spans it with 4 px (--sp-1) each side. */
+const THUMB_TEXT = 88 - 2 * 4;
 
-test('the short English labels fit an 88 px thumbnail on one line', () => {
+test('the short English labels fit an 88 px thumbnail on one line at the 12 px chip A1 sets (not at 13 px)', () => {
   const shorts = [TIER_LABELS.official.enShort, TIER_LABELS.officialEdition('2025').enShort, TIER_LABELS.officialProduct.enShort,
     TIER_LABELS.venue(2023).enShort, TIER_LABELS.venue().enShort, TIER_LABELS.stock.enShort, TIER_LABELS.ai.enShort, TIER_LABELS.scene3d.enShort];
-  for (const label of shorts) assert.ok(chipWidth(label) <= 88, `${label}: ${chipWidth(label).toFixed(1)} px`);
-  assert.ok(chipWidth(TIER_LABELS.officialEdition('2025').en) > 88, 'the full version is the hero’s, not the thumbnail’s');
+  for (const label of shorts) assert.ok(textWidth(label, 12) <= THUMB_TEXT, `${label}: ${textWidth(label, 12).toFixed(1)} px`);
+  // Today's chip is 13 px (--fs-badge): the dated labels would overflow it, so A1 sets the thumbnail chip to 12 px (A1-FILES.md).
+  assert.ok(textWidth(TIER_LABELS.officialEdition('2025').enShort, 13) > THUMB_TEXT);
+  assert.ok(textWidth(TIER_LABELS.officialEdition('2025').en, 12) > THUMB_TEXT, 'the full version is the hero’s, not the thumbnail’s');
 });
 
 test('④ only with the owner’s approval and never on a lead; ③④ pictures repeat only 8 cards apart, never an info card', () => {
