@@ -142,16 +142,18 @@ test('rights basis reads today’s registry fields', () => {
   assert.equal(rightsBasisOf(GUIDE_IMAGES['dvids-blue-angels-sffw-2024']), 'public-domain');
 });
 
-test('the live catalog: no AI or theme photo on any event, offer or opening; Fleet Week keeps its DVIDS photo', () => {
+test('the live catalog: no unapproved AI or theme photo on any event, offer or opening; Fleet Week keeps its DVIDS photo', () => {
   const live = MONTHLY_EVENTS.filter(item => item.endDate >= today);
   const covers = resolveCovers(live.map(item => ({ kind: 'event' as const, id: item.id, imageKey: item.imageKey })), { images: GUIDE_IMAGES, today });
   // 官方图 · 2025 往届: an official photo whose caption names the earlier edition it shows (the 2027 parade's 2025 photo).
-  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届)$/;
+  // An AI illustration covers a card only when the owner approved it (④, src/data/ai-cover-approvals.json, 2026-10-21).
+  const vocabulary = /^(?:(官方图|照片|资料图|BAYLINK 实拍|BAYLINK 信息卡|3D 场景插图)( · \d{4}(\/\d{1,2}\/\d{1,2})?| · \d{1,2}\/\d{1,2})?|官方图 · \d{4} 往届|AI 示意图)$/;
   covers.forEach((cover, index) => {
-    if (cover.tier !== 'type') assert.notEqual(cover.image.kind, 'illustration', live[index].id);
+    if (cover.tier !== 'type' && cover.image.kind === 'illustration') assert.ok(cover.tier === 'ai' && cover.image.aiCoverApproved, live[index].id);
     assert.match(cover.label.zh, vocabulary, live[index].id);
   });
-  const sources = covers.flatMap(cover => cover.tier === 'type' ? [] : [cover.image.src]);
+  // ①② files once per page; a ④ pool picture may repeat 6 or more cards apart (cover.ts ADJACENT_CARDS).
+  const sources = covers.flatMap(cover => cover.tier === 'type' || cover.tier === 'ai' ? [] : [cover.image.src]);
   assert.equal(new Set(sources).size, sources.length, 'one page, no repeated file');
   const fleetWeek = live.find(item => item.imageKey === 'dvids-blue-angels-sffw-2024');
   assert.ok(fleetWeek, 'the Fleet Week event is live');
@@ -160,11 +162,11 @@ test('the live catalog: no AI or theme photo on any event, offer or opening; Fle
   assert.equal(cover.label.zh, '资料图 · 2024');
   for (const offer of currentFreebies) {
     const resolved = getCover({ kind: 'offer', id: offer.id, imageKey: offer.imageKey }, { images: GUIDE_IMAGES, today });
-    // The brand's own image, or its venue's photo (②, src/data/venue-photos.json; UI9-IMG-A1a).
-    if (resolved.tier !== 'type') assert.ok(resolved.tier === 'official' || resolved.tier === 'venue', `${offer.id}: ${resolved.tier}`);
+    // The brand's own image, its venue's photo (②, src/data/venue-photos.json; UI9-IMG-A1a) or an owner-approved AI cover (④).
+    if (resolved.tier !== 'type') assert.ok(resolved.tier === 'official' || resolved.tier === 'venue' || (resolved.tier === 'ai' && resolved.image.aiCoverApproved), `${offer.id}: ${resolved.tier}`);
   }
   for (const opening of currentOpenings) {
     const resolved = getCover({ kind: 'opening', id: opening.id, imageKey: opening.imageKey }, { images: GUIDE_IMAGES, today });
-    if (resolved.tier !== 'type') assert.notEqual(resolved.image.kind, 'illustration', opening.id);
+    if (resolved.tier !== 'type' && resolved.image.kind === 'illustration') assert.ok(resolved.tier === 'ai' && resolved.image.aiCoverApproved, opening.id);
   }
 });

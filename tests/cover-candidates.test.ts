@@ -24,9 +24,13 @@ test('① own → ② venue → ③ category, rotated by id → ④ approved AI'
   assert.deepEqual(venuesFor('offer', { id: 'o-lib', title: '图书证福利' }, tables.venues).map(v => v.id), ['cupertino-library'], 'records add what the words miss');
 });
 
-test('with today’s empty tables every record keeps exactly its own image (A0 changes no page)', () => {
-  assert.deepEqual(coverCandidates('event', story), ['own']);
-  assert.deepEqual(coverCandidates('offer', { id: 'o', brand: 'IKEA', title: '会员咖啡' }), []);
+test('with no table rows every record keeps exactly its own image (A0 changes no page)', () => {
+  const empty: CoverTables = { venues: [], categories: {}, ai: [] };
+  assert.deepEqual(coverCandidates('event', story, empty), ['own']);
+  assert.deepEqual(coverCandidates('offer', { id: 'o', brand: 'IKEA', title: '会员咖啡' }, empty), []);
+  // With the owner-approved category photos (2026-10-21) the record's own image still comes first.
+  assert.equal(coverCandidates('event', story)[0], 'own');
+  assert.ok(coverCandidates('event', story).slice(1).every(key => COVER_TABLES.categories.storytime?.includes(key)), 'then its category pool');
   assert.deepEqual(coverItemFor('event', { id: 'e', imageKey: 'k' }), { kind: 'event', id: 'e', imageKey: 'k' });
   assert.deepEqual(coverItemFor('event', { id: 'e', imageKey: 'face' }, { imageKey: undefined }), { kind: 'event', id: 'e', imageKey: undefined },
     'an explicit undefined (the close-up-face rule) is kept, never replaced by the record’s own image');

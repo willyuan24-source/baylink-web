@@ -49,7 +49,7 @@ type PhotoCredit = {
   sourceUrl: string; originalUrl: string; captured: string; changes: string;
 };
 const photoCredits = JSON.parse(readFileSync(new URL('../public/guides/editorial/photo-credits.json', import.meta.url), 'utf8')) as PhotoCredit[];
-const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'attractions-expanded-inland-media', 'attractions-expanded-coast-media', 'fresh-september-media', 'september-update-media', 'october-media', 'community-editorial-media', 'community-opening-media', 'community-place-media', 'autumn-guide-media', 'content-coverage-media', 'daily-life-media', 'schools-media', 'schools-campus-media', 'september-refresh-media', 'shopping-media', 'city-roundup-media', 'city-roundup-extra-media-east', 'city-roundup-extra-media-south', 'city-roundup-extra-media-north', 'official-offer-media-2026-10', 'octnov-2026-media', 'octnov-2026-extra-media', 'octnov-2026-event-media', 'federal-pd-media', 'official-event-media', 'guide-commons-photos-2026-10', 'official-opening-media', 'guide-photos-2026-10-19'].flatMap(name =>
+const distinctAssets = ['guide-photo-assets', 'event-media-assets', 'art-media-assets', 'deal-promo-assets', 'community-freebie-media', 'everyday-freebie-media', 'target-freebie-media', 'reading-route-media', 'attractions-sf-media', 'attractions-regions-media', 'attractions-expanded-inland-media', 'attractions-expanded-coast-media', 'fresh-september-media', 'september-update-media', 'october-media', 'community-editorial-media', 'community-opening-media', 'community-place-media', 'autumn-guide-media', 'content-coverage-media', 'daily-life-media', 'schools-media', 'schools-campus-media', 'september-refresh-media', 'shopping-media', 'city-roundup-media', 'city-roundup-extra-media-east', 'city-roundup-extra-media-south', 'city-roundup-extra-media-north', 'official-offer-media-2026-10', 'octnov-2026-media', 'octnov-2026-extra-media', 'octnov-2026-event-media', 'federal-pd-media', 'official-event-media', 'guide-commons-photos-2026-10', 'official-opening-media', 'guide-photos-2026-10-19', 'category-stock-photos'].flatMap(name =>
   (() => { const records = JSON.parse(readFileSync(new URL(`../src/data/${name}.json`, import.meta.url), 'utf8')); return (Array.isArray(records) ? records : Object.entries(records).map(([key, value]) => ({ key, ...(value as object) }))) as (GuideImage & { key: string })[]; })());
 const asset = (src: string) => {
   assert.match(src, /^\/guides\/[a-z0-9/.-]+$/);
@@ -360,7 +360,10 @@ test('the new elder guides take no photograph from the guides beside them on the
   const tiers = new Map(guideSlugsForTopic('elders', guides).map(slug => [slug, guideCover({ slug, covers: { 'zh-Hans': getGuideMedia(getGuideBySlug(slug)!).cover } }, '2026-10-15', page).tier]));
   for (const slug of added) {
     assert.equal(getGuideMedia(getGuideBySlug(slug)!).cover.kind, 'illustration', `${slug} must not reuse another guide's photograph`);
-    assert.equal(tiers.get(slug), 'type', slug);
+    // Its own AI illustration may be a ④ cover once the owner approved it (2026-10-21), unless the hub shows it within 6
+    // cards already; otherwise TypeCover.
+    const tier = tiers.get(slug);
+    assert.ok(tier === 'type' || (tier === 'ai' && getGuideMedia(getGuideBySlug(slug)!).cover.aiCoverApproved), `${slug}: ${tier}`);
   }
   for (const slug of ['bay-area-311-211-local-help-guide', 'bay-area-october-muni-clipper-payment-update-2026']) {
     assert.ok(tiers.has(slug), `${slug} is on the hub`);
