@@ -38,6 +38,14 @@ export function BoardTrust({ day, sourceLabel }: { day?: string; sourceLabel?: s
   return <>{t('媒体报道', 'News report')}{SEP}{t(`${readerMonthDay(day)} 核对`, `checked ${readerMonthDay(day, true)}`)}</>;
 }
 /** A row has no trust slot: its source line goes in the 13 px line under the meta, after the photo's provenance words. */
+/**
+ * Whether a row's source line names the picture. 简洁 drops the words for ①② photos, but a ③ 示意图 or ④ AI 示意图 says
+ * so in every size and mode (UI9-IMAGES DECISIONS 23): a row thumbnail carries no chip once the row has a source line
+ * (covers.css), so the words stay in the line. Stopgap until A1b puts the ③④ label on the picture in every mode.
+ */
+const rowProvenance = (cover: ResolvedCover, simple?: boolean) =>
+  cover.tier !== 'type' && (!simple || cover.tier === 'stock' || cover.tier === 'ai');
+
 function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?: string; sourceLabel?: string }) {
   if (!day && !provenance) return null;
   return <>{provenance && <>{glueSeparators(provenance)}{day && SEP}</>}{day && <span className="fb-row-trust"><Check aria-hidden="true" strokeWidth={1.75} /><BoardTrust day={day} sourceLabel={sourceLabel} /></span>}</>;
@@ -77,6 +85,7 @@ export function OfferFeedCard({ offer, cover, today, save = true, row, simple }:
 /**
  * The offer as a row (phone at 大 / 特大, 简洁显示): a 1:1 thumbnail with the key fact only, the same two lines and the
  * source line. 简洁 (`simple`) drops ♡ and the photo's provenance words: saving happens on the detail page (DECISIONS 16).
+ * A ③ 示意图 or ④ AI 示意图 keeps its words in 简洁 too (rowProvenance).
  */
 export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffer; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
@@ -84,7 +93,7 @@ export function OfferRowCard({ offer, cover, today, simple }: { offer: IndexOffe
     fallback={<DeferredOfferTypeCover offer={offer} today={today} size="mini" ratio="1:1" ariaHidden />} />;
   return <RowCard title={shown(offer.title, locale)} to={`/offers/${offer.id}`} thumb={thumb}
     when={pick(offerWhen(offer, today))} meta={<OfferMeta offer={offer} today={today} brandOnCover={false} />}
-    credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
+    credit={<RowSource provenance={rowProvenance(cover, simple) ? pick(cover.label) : undefined} day={offer.verifiedAt} sourceLabel={offer.sourceLabel} />}
     trailing={simple ? undefined : <CoverSave favorite={{ kind: 'offer', id: offer.id }} title={shown(offer.title, locale)} />} />;
 }
 
@@ -117,13 +126,13 @@ export function OpeningFeedCard({ opening, cover, today, save = true, row, simpl
     save={save ? <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} /> : undefined} />;
 }
 
-/** The new shop as a row (phone at 大 / 特大, 简洁显示); 简洁 drops ♡ and the provenance words. */
+/** The new shop as a row (phone at 大 / 特大, 简洁显示); 简洁 drops ♡ and a photo's provenance words (not ③④: rowProvenance). */
 export function OpeningRowCard({ opening, cover, today, simple }: { opening: IndexOpening; cover: ResolvedCover; today: string; simple?: boolean }) {
   const { pick, locale } = useUiCopy();
   const thumb = <Cover cover={cover} ratio="1:1" sizes={COVER_SIZES.thumb} decorative kind="opening"
     fallback={<DeferredOpeningTypeCover opening={opening} today={today} size="mini" ratio="1:1" ariaHidden />} />;
   return <RowCard title={shown(opening.name, locale)} to={`/openings/${opening.id}`} titleLang={HAN.test(opening.name) ? undefined : 'en'} thumb={thumb}
     when={<OpeningWhen opening={opening} today={today} />} meta={<OpeningMeta opening={opening} />}
-    credit={<RowSource provenance={!simple && cover.tier !== 'type' ? pick(cover.label) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
+    credit={<RowSource provenance={rowProvenance(cover, simple) ? pick(cover.label) : undefined} day={opening.verifiedAt} sourceLabel={opening.sourceLabel} />}
     trailing={simple ? undefined : <CoverSave favorite={{ kind: 'opening', id: opening.id }} title={shown(opening.name, locale)} />} />;
 }

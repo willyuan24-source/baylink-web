@@ -373,3 +373,36 @@ test('an empty filter offers one primary that widens the narrower filter, with i
     openings.splice(0, openings.length, ...savedOpenings);
   }
 });
+
+test('简洁 and 家人版 rows keep the AI 示意图 words on an approved AI cover (UI9-IMAGES DECISIONS 23)', async () => {
+  // A row thumbnail shows no chip once the row has a source line (covers.css), and 简洁 drops a ①② photo's words; a ④
+  // picture still says AI 示意图 in every size and mode, so its words stay in the row's source line.
+  const { images } = model.coverContext(today);
+  const aiKey = Object.keys(images).find(key => images[key].aiCoverApproved);
+  assert.ok(aiKey, 'the events index carries an approved AI illustration');
+  const ai = (kind: 'offer' | 'opening', id: string) => resolveCovers([{ kind, id, imageKey: aiKey }], { ...model.coverContext(today), page: createCoverPage() })[0];
+  const offer = model.INDEX_OFFERS[0];
+  const shop = model.INDEX_OPENINGS[0];
+  const offerCover = ai('offer', offer.id);
+  const shopCover = ai('opening', shop.id);
+  assert.equal(offerCover.tier, 'ai');
+  assert.equal(shopCover.tier, 'ai');
+  const { loadLocale, setLocale } = await import('../src/i18n/locale');
+  await loadLocale('en');
+  try {
+    for (const [locale, words] of [['zh-Hans', /AI 示意图/], ['en', /AI (?:image|illustration)/]] as const) {
+      await setLocale(locale, false);
+      for (const simple of [false, true]) {
+        const rows = {
+          offer: card(<OfferFeedCard offer={offer} cover={offerCover} today={today} row simple={simple} />),
+          opening: card(<OpeningFeedCard opening={shop} cover={shopCover} today={today} row simple={simple} />),
+        };
+        for (const [kind, row] of Object.entries(rows)) {
+          assert.match(row.querySelector('.ui-row-card__credit')?.textContent ?? '', words, `${locale} ${kind} row (简洁 ${simple}) names the AI picture`);
+        }
+      }
+    }
+  } finally {
+    await setLocale('zh-Hans', false);
+  }
+});
