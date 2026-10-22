@@ -8,7 +8,7 @@ import { GUIDE_IMAGES, type GuideImage } from '../src/data/guide-media';
 import { LIFE_TOOLS } from '../src/data/tool-catalog';
 import { EVENT_CONTEXT_PHOTOS } from '../src/data/event-image-usage';
 import { BAYLINK_TAGLINE, cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, promoPhoto, type CardLocale } from '../src/lib/share-card-model';
-import { cardLines, DEFAULT_TAGLINE, partsLine, PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
+import { CARD_INK, cardLines, DEFAULT_TAGLINE, partsLine, PHOTO_BAND, renderHubCardSvg, renderShareCardSvg } from '../src/lib/share-card-svg';
 import { localizedSocialImage } from '../src/lib/seo';
 import { shareCardPath } from '../src/lib/editorial-share';
 import { simplifiedOnlyCharacters } from '../scripts/i18n-html-check.mjs';
@@ -121,6 +121,40 @@ test('H45: a photo card puts the photo in the top 55% (1200 × 346) with its lab
   assert.ok(svg.includes(model.title.slice(0, 6)), 'the title is drawn under the photo');
   // without a photo the card is the TypeCover layout
   assert.doesNotMatch(renderShareCardSvg(model, { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,'), /<image href="data:image\/jpeg/);
+});
+
+test('UI9-IMG-A1b CI fix: the paper under a bright photo band stays exactly the paper through the palette, on any machine', async () => {
+  const { default: sharp } = await import('sharp');
+  const { PNG } = await import('pngjs');
+  const { Resvg } = await import('@resvg/resvg-js');
+  const { cardPng, indexedPng, rgbaKey } = await import('../scripts/share-card-worker.mjs');
+  const { createGlyphOutliner } = await import('../scripts/card-glyphs');
+  // The 繁體 tenant-rights guide card that lost its paper on the Linux runner (10-22): its ③ picture (white walls, bokeh)
+  // a touch brighter, which on this Mac too makes the quantizer dither ~20% of the paper under the band with the photo's
+  // near-whites. The rasterizer must put every pixel the drawing paints paper back to the exact paper token.
+  const band = await sharp('public/guides/category-stock/stock-guide-housing-2.webp').resize(1200, 346, { fit: 'cover' }).modulate({ brightness: 1.05 }).jpeg({ quality: 82 }).toBuffer();
+  const model = { tone: 'family' as const, coverLabel: '住房', big: '辦事指南', provenance: '示意圖', kindLabel: '灣區生活攻略', title: '加州租客權益：押金扣款、維修和驅逐通知怎麼求助', meta: ['租客權益'], scan: '掃碼查看這條詳情', footnote: '日期、領取條件與開放狀態，請以詳情頁和官方入口為準。', tagline: '灣區去哪、怎麼辦 · 有來源的中文答案' };
+  const { draw, finish } = (await createGlyphOutliner())();
+  const svg = finish(renderShareCardSvg({ ...model, photo: `data:image/jpeg;base64,${band.toString('base64')}` }, { path: 'M0 0h1v1h-1z', size: 21 }, 'data:,', draw));
+  const drawn = new Resvg(svg, { font: { loadSystemFonts: false } }).render().pixels;
+  const file = await cardPng({ svg, paper: CARD_INK.paper });
+  assert.equal(file[25], 3, 'still an 8-bit palette PNG');
+  const png = PNG.sync.read(file), paper = rgbaKey(CARD_INK.paper);
+  let painted = 0, kept = 0;
+  for (let at = 0; at < drawn.length; at += 4) if (drawn.readUInt32BE(at) === paper) { painted++; if (png.data.readUInt32BE(at) === paper) kept++; }
+  assert.ok(painted > 200_000, `the card is mostly paper (${painted})`);
+  assert.equal(kept, painted, 'every pixel drawn as paper is the exact paper token in the PNG');
+  let strip = 0;
+  for (let y = 350; y < 366; y++) for (let x = 0; x < 1200; x++) if (png.data.readUInt32BE((y * 1200 + x) * 4) === paper) strip++;
+  assert.equal(strip, 1200 * 16, 'the strip verify:share-cards reads under the band is all paper');
+  // the indexed encoder keeps every colour as it is (no second quantization); past 256 only the rarest merge, never `keep`
+  const colours = Buffer.alloc(300 * 4);
+  for (let index = 0; index < 300; index++) colours.writeUInt32BE(((Math.imul(index + 1, 2654435761) & 0xFFFFFF00) | 255) >>> 0, index * 4);
+  const exact = PNG.sync.read(indexedPng(colours.subarray(0, 256 * 4), 16, 16));
+  assert.deepEqual(Buffer.from(exact.data), Buffer.from(colours.subarray(0, 256 * 4)));
+  const keep = colours.readUInt32BE(0), merged = PNG.sync.read(indexedPng(colours, 30, 10, keep));
+  assert.equal(merged.data.readUInt32BE(0), keep, 'the kept colour (the paper) never merges');
+  assert.ok(new Set(Array.from({ length: 300 }, (_, index) => merged.data.readUInt32BE(index * 4))).size <= 256);
 });
 
 test('H45: which photo a listing card may carry', () => {

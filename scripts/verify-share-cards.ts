@@ -10,7 +10,7 @@ import { loadLocale, translateText } from '../src/i18n/locale';
 import { getBayAreaToday } from '../src/lib/monthly';
 import { guideShare, shareCardPath } from '../src/lib/editorial-share';
 import { cardPhoto, discoveryCardModel, guideCardModel, hubCardModel, HUB_CARD_NAMES, HUB_PATHS, OFFICIAL_IMAGE_ON_OWN_EVENT_CARD, promoPhoto, sharePicture, type CardLocale } from '../src/lib/share-card-model';
-import { DEFAULT_TAGLINE } from '../src/lib/share-card-svg';
+import { CARD_INK, DEFAULT_TAGLINE } from '../src/lib/share-card-svg';
 import type { GuideImage } from '../src/data/guide-media';
 import { simplifiedOnlyCharacters } from './i18n-html-check.mjs';
 import { hubCardData } from './share-card-data';
@@ -42,15 +42,16 @@ assert.deepEqual(listingCards.filter(card => !card.photo).map(card => card.share
 const cards = listingCards.map(({ share, photo }) => ({ image: shareCardPath(share), path: share.path, photo: Boolean(photo) }))
   .concat(HUB_CARD_NAMES.map(name => ({ image: hubCardPath(name), path: HUB_PATHS[name], photo: false })));
 /**
- * Read from the pixels: a photo card is paper from edge to edge just under its band (y 350–365; the palette dithers it by
- * a few levels), where a card without a picture (none since UI9-IMG-A1b) had its coloured panel beside the paper (at most ~61% paper; a hub card its
+ * Read from the pixels: a photo card is paper from edge to edge just under its band (y 350–365), where a card without a picture (none since UI9-IMG-A1b) had its coloured panel beside the paper (at most ~61% paper; a hub card its
  * brand panel), and its band (y 90–260) is a picture, not a few flat colours: text cards measured at most 131 distinct
  * colours there, the 57 photo bands 209–256 (10-14). Every such panel was 16+ levels from the paper.
  */
 // UI9-IMG-A1b: with a picture on every listing card the 192-colour palette serves far more photos: a dark ③ cinema picture
-// draws its band in 127–149 colours, and a busy one dithers a few specks into the paper (93% paper under the band), still
-// far from a type cover's ≤ 61% paper or a hub card's brand panel; the thresholds follow (10-22).
-const PAPER = [0xFB, 0xFA, 0xF6], PAPER_TOLERANCE = 10, PHOTO_BAND_COLOURS = 100, PHOTO_PAPER_SHARE = .85;
+// draws its band in 127–149 colours, still far from a text card's flat colours; the band threshold follows (10-22). The
+// paper is the cards' own paper token (CARD_INK.paper), which the rasterizer keeps exact through the palette
+// (share-card-worker.mjs cardPng): the palette's dither of a bright photo no longer reaches the paper on any machine (CI
+// 10-22), so the paper under every photo band reads as paper again (≥ 95%).
+const PAPER = CARD_INK.paper.slice(1).match(/../g)!.map(hex => parseInt(hex, 16)), PAPER_TOLERANCE = 10, PHOTO_BAND_COLOURS = 100, PHOTO_PAPER_SHARE = .95;
 const paperShare = (png: PNG) => {
   let paper = 0, all = 0;
   for (let y = 350; y < 366; y++) for (let x = 0; x < 1200; x++, all++) {
