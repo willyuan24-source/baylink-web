@@ -14,6 +14,8 @@ Object.assign(globalThis, {
   Element: dom.window.Element, Node: dom.window.Node, MutationObserver: dom.window.MutationObserver, IS_REACT_ACT_ENVIRONMENT: true,
 });
 Object.defineProperty(globalThis, 'navigator', { configurable: true, value: dom.window.navigator });
+// No error beacon from a test (ChunkBoundary reports what it catches; trackingAllowed() reads Do Not Track).
+Object.defineProperty(dom.window.navigator, 'doNotTrack', { configurable: true, value: '1' });
 Object.defineProperty(dom.window.HTMLElement.prototype, 'getClientRects', { configurable: true, value: function (this: HTMLElement) { return this.isConnected ? [this.getBoundingClientRect()] : []; } });
 // A screen that plays motion unless a test turns reduced motion on.
 let reduced = false;
@@ -26,7 +28,9 @@ const { render, fireEvent, cleanup, act, waitFor, within } = await import('@test
 const { MemoryRouter } = await import('react-router-dom');
 const { EXIT_MS, useClosing } = await import('../src/components/ui/closing');
 const { GuideImageLightbox } = await import('../src/components/GuideVisuals');
-const { ConfirmHost, confirmDialog, promptDialog, confirmChunk } = await import('../src/components/ui/confirm');
+const { ConfirmHost, confirmDialog } = await import('../src/components/ui/confirm');
+const { default: FeedbackSheet } = await import('../src/features/feedback/FeedbackSheet');
+const { OfficialVerificationModal } = await import('../src/components/OfficialVerificationModal');
 const { SaveToast } = await import('../src/features/saves/SaveToast');
 const { TOAST_EXIT_MS } = await import('../src/components/Toast');
 const { EventImportDialog } = await import('../src/components/EventScreenshotImport');
@@ -76,28 +80,7 @@ test('the guide lightbox leaves (animate-out) and closes with F\'s close button 
   await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
 });
 
-test('a confirm whose card cannot load is answered by the browser\'s own confirm / prompt (the caller never hangs)', async () => {
-  const realLoad = confirmChunk.load;
-  const asked: string[] = [];
-  dom.window.confirm = (message?: string) => { asked.push(`confirm:${message}`); return true; };
-  dom.window.prompt = (message?: string, value?: string) => { asked.push(`prompt:${message}:${value}`); return '改好的名字'; };
-  confirmChunk.load = () => Promise.reject(new Error('offline'));
-  try {
-    const view = render(<ConfirmHost />);
-    let answer: boolean | undefined;
-    await act(async () => { void confirmDialog({ title: '删除计划', message: '删除这份已保存计划？', danger: true }).then(value => { answer = value; }); });
-    assert.ok(document.body.querySelector('.site-chunk-spinner'), 'the tap shows the scrim and a spinner while the card loads');
-    await waitFor(() => assert.equal(answer, true), { timeout: 4000 });
-    let typed: string | null | undefined;
-    await act(async () => { void promptDialog({ message: '给计划起个名字', input: { defaultValue: '周末' } }).then(value => { typed = value; }); });
-    await waitFor(() => assert.equal(typed, '改好的名字'), { timeout: 4000 });
-    assert.deepEqual(asked, ['confirm:删除这份已保存计划？', 'prompt:给计划起个名字:周末']);
-    assert.equal(view.queryByRole('dialog'), null);
-    assert.equal(document.body.querySelector('.site-chunk-spinner'), null, 'nothing left over the page');
-  } finally {
-    confirmChunk.load = realLoad;
-  }
-});
+// A confirm or a lightbox whose chunk cannot load: tests/ui9-r1-overlays-offline.test.tsx (a module hook blocks the chunks).
 
 test('a confirm answers at once, then leaves with an exit before the next one opens', async () => {
   const view = render(<ConfirmHost />);
@@ -131,6 +114,43 @@ test('the screenshot import leaves too: its ✕ plays the exit, and onClose wait
   assert.equal(closed, 0);
   await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
   assert.ok(Date.now() - started >= EXIT_MS - 5, 'onClose after the exit');
+});
+
+test('the feedback sheet and official verification play their exits before onClose, a sent application too', async () => {
+  let closed = 0;
+  render(<FeedbackSheet request={{ kind: 'page', routeTemplate: '/events/:id' }} onClose={() => { closed += 1; }} send={async () => ({ ok: true })} />);
+  const overlay = document.body.querySelector<HTMLElement>('.feedback-overlay')!;
+  const started = Date.now();
+  fireEvent.click(within(overlay).getByRole('button', { name: '关闭反馈' }));
+  assert.ok(overlay.classList.contains('is-closing'), 'the sheet sinks and the scrim fades (feedback.css)');
+  assert.equal(closed, 0);
+  await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
+  assert.ok(Date.now() - started >= EXIT_MS - 5, 'onClose after the exit');
+  cleanup();
+
+  closed = 0;
+  const toasts: string[] = [];
+  let verified: unknown = null;
+  const props = { isOpen: true, onClose: () => { closed += 1; }, onSuccess: (user: unknown) => { verified = user; }, showToast: (message: string) => { toasts.push(message); } };
+  let view = render(<OfficialVerificationModal {...props} onSubmit={async () => ({ user: {} })} />);
+  let dialog = view.getByRole('dialog', { name: '申请官方认证' });
+  fireEvent.click(within(dialog).getByRole('button', { name: '关闭' }));
+  assert.match(dialog.className, /animate-out/, 'the ✕ plays the exit');
+  assert.match((dialog.firstElementChild as HTMLElement).className, /zoom-out-95/);
+  assert.equal(closed, 0);
+  await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
+  cleanup();
+
+  closed = 0;
+  view = render(<OfficialVerificationModal {...props} onSubmit={async () => ({ user: { id: 'u1' }, message: '已提交' })} />);
+  dialog = view.getByRole('dialog', { name: '申请官方认证' });
+  fireEvent.change(dialog.querySelector('textarea')!, { target: { value: '社区组织负责人，网站可查。' } });
+  await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: '提交申请' })); });
+  assert.deepEqual(verified, { id: 'u1' });
+  assert.deepEqual(toasts, ['已提交']);
+  assert.match(dialog.className, /animate-out/, 'a sent application leaves the same way');
+  assert.equal(closed, 0);
+  await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
 });
 
 test('SaveToast is the one Toast: its look, its close button, its exit; the announcer stays the only live region', async () => {
@@ -170,6 +190,11 @@ test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corn
   }
   for (const file of ['src/features/feedback/FeedbackSheet.tsx', 'src/components/EventScreenshotImport.tsx', 'src/components/OfficialVerificationModal.tsx']) {
     assert.match(read(file), /<CloseButton /, `${file}: F's close button`);
+  }
+  // N24: no Tailwind `animate-spin` (a literal 1 s that keeps turning in 简洁显示) in the lane's overlays: their spinners are
+  // site-chunk-spinner or event-spin, both a turn per 5 × --dur-3.
+  for (const file of ['src/components/OfficialVerificationModal.tsx', 'src/components/EventScreenshotImport.tsx', 'src/components/ui/DialogWait.tsx', 'src/app/OverlayHost.tsx', 'src/components/GuideVisuals.tsx', 'src/components/GuideLightbox.tsx', 'src/components/ui/ConfirmDialog.tsx', 'src/features/feedback/FeedbackSheet.tsx', 'src/components/Toast.tsx', 'src/components/ImageViewer.tsx']) {
+    assert.doesNotMatch(read(file), /\banimate-spin\b/, `${file}: spinners on --dur-* tokens`);
   }
   // The toast (shell) and the guide lightbox (article) write CloseButton's markup out instead of loading Button.tsx.
   for (const file of ['src/components/Toast.tsx', 'src/components/GuideLightbox.tsx']) assert.match(read(file), /className="ui-icon-button ui-close[ "]/, file);

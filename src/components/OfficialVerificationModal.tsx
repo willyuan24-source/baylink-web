@@ -158,7 +158,7 @@ const OfficialVerificationForm = ({
             disabled={loading}
             className="w-full rounded-2xl bg-baylink-green py-3.5 text-sm font-semibold text-white shadow-rest transition hover:bg-baylink-green-hover disabled:opacity-60"
           >
-            {loading ? <span className="inline-flex items-center gap-2"><Loader2 size={16} className="animate-spin" />提交中...</span> : '提交申请'}
+            {loading ? <span className="inline-flex items-center gap-2"><Loader2 size={16} className="event-spin" />提交中...</span> : '提交申请'}
           </button>
         </form>
       </div>

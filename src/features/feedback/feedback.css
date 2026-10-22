@@ -1,10 +1,10 @@
 /* WEB-FEEDBACK: the feedback sheet, the tester consent sheet and the tester button. Loaded with the sheet on first use.
    Phone: a bottom sheet; from 768px a centred dialog. Tokens and rem only; every control is at least --control-height. */
 /* N10 / N24: the site's one scrim (no blur). Phone: the sheet slides up like every bottom sheet (ui.css); from 768px the dialog
-   grows from 96%. Out over --dur-3 while useClosing (FeedbackSheet.tsx) keeps it mounted; 0 under reduced motion and in 简洁显示. */
+   grows from 96%. Out over --dur-2 (EXIT_MS) while useClosing (FeedbackSheet.tsx) keeps it mounted; 0 under reduced motion and in 简洁显示. */
 .feedback-overlay{position:fixed;inset:0;display:flex;align-items:flex-end;justify-content:center;background:var(--scrim);animation:feedback-fade var(--dur-3) var(--ease-out)}
-.feedback-overlay.is-closing{animation:feedback-fade-out var(--dur-3) var(--ease-in) forwards;pointer-events:none}
-.feedback-overlay.is-closing .feedback-sheet{animation:feedback-sink var(--dur-3) var(--ease-in) forwards}
+.feedback-overlay.is-closing{animation:feedback-fade-out var(--dur-2) var(--ease-in) forwards;pointer-events:none}
+.feedback-overlay.is-closing .feedback-sheet{animation:feedback-sink var(--dur-2) var(--ease-in) forwards}
 .feedback-sheet{width:100%;max-height:92dvh;overflow-y:auto;overscroll-behavior:contain;padding:1.25rem 1rem calc(1rem + env(safe-area-inset-bottom,0px));border-radius:var(--r-xl) var(--r-xl) 0 0;background:var(--color-bg);color:var(--color-ink);font-size:var(--text-body);line-height:1.6;animation:feedback-rise var(--dur-5) var(--ease-out)}
 @media(min-width:768px){
   .feedback-overlay{align-items:center;padding:1.5rem}

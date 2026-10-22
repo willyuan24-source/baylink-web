@@ -6,6 +6,9 @@ import { DialogSlot } from './ui/DialogWait';
 import { lazyDialog } from './ui/lazy-dialog';
 import { useLocale } from '../i18n/locale';
 import { getImageProvenance } from '../lib/image-provenance';
+import { useOutletContext } from 'react-router-dom';
+import type { AppContextValue } from '../app/context';
+import { showUnavailable } from '../app/chunk-unavailable';
 
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' | 'preview' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
@@ -30,10 +33,15 @@ const lightbox = lazyDialog(() => import('./GuideLightbox'), m => m.GuideLightbo
 /**
  * The picture, enlarged (GuideLightbox.tsx). Its code and styles are a chunk of their own, out of the guide pages' first
  * paint: warmed once the page is idle after a figure is drawn, so a tap usually opens it at once; before that the tap shows
- * the scrim and a spinner (DialogWait) until it arrives. If it cannot load (offline), it closes and the page stays.
+ * the scrim and a spinner (DialogWait) until it arrives. If it cannot load (offline, a stale deploy), it closes and the
+ * site's toast says so (暂时打不开…, with 重新加载 when online: chunk-unavailable.ts, as OverlayHost's dialogs); the page stays.
+ * Outside the app's outlet (a test) there is no toast to show. The app's context is read with react-router's hook (useApp is a
+ * chunk of its own: one more import line on the guide route).
  */
-export const GuideImageLightbox = ({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) =>
-  <DialogSlot dialog={lightbox} onFail={onClose} props={{ image, caption: <GuideImageCaption image={image} poster={poster} />, onClose }} />;
+export const GuideImageLightbox = ({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) => {
+  const app = useOutletContext<AppContextValue | null>();
+  return <DialogSlot dialog={lightbox} onFail={lost => { onClose(); if (app) showUnavailable(app.showToast, lost); }} props={{ image, caption: <GuideImageCaption image={image} poster={poster} />, onClose }} />;
+};
 
 export function GuideFigure(props: FigureProps) {
   return <GuideFigureSession key={props.image.src} {...props} />;

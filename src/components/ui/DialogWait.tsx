@@ -10,10 +10,10 @@ export const DialogWait = () => createPortal(<div className="fixed inset-0 z-[11
 
 /**
  * A lazy dialog (lazy-dialog.ts) in place: DialogWait until its chunk arrives, then the dialog, told (`afterWait`) that
- * DialogWait's scrim is already up; `onFail` when the chunk cannot load. Read once per open (useState). The confirm card
+ * DialogWait's scrim is already up; `onFail` when the chunk cannot load (`lostChunk`, as ChunkBoundary) or the dialog crashes. Read once per open (useState). The confirm card
  * and the guide lightbox share it, so the guide article's chunk carries one element, not the boundary and the wait.
  */
-export function DialogSlot<P extends object>({ dialog, onFail, props }: { dialog: { current: () => { Dialog: ComponentType<P & { afterWait?: boolean }>; waits: boolean } }; onFail: () => void; props: P }) {
+export function DialogSlot<P extends object>({ dialog, onFail, props }: { dialog: { current: () => { Dialog: ComponentType<P & { afterWait?: boolean }>; waits: boolean } }; onFail: (lostChunk: boolean) => void; props: P }) {
   const [{ Dialog, waits }] = useState(dialog.current);
   return <ChunkBoundary onFail={onFail}><Suspense fallback={<DialogWait />}><Dialog {...props} afterWait={waits} /></Suspense></ChunkBoundary>;
 }

@@ -5,11 +5,10 @@ import { AlertTriangle } from 'lucide-react';
 import { DialogSlot } from './DialogWait';
 import { lazyDialog } from './lazy-dialog';
 
-/** How the card's chunk is fetched (a test makes it fail). */
-export const confirmChunk = { load: () => import('./ConfirmDialog') };
 // The card is a chunk of its own (ConfirmDialog.tsx); the shell keeps only the queue. ConfirmHost warms it once the page is
 // idle, so the first confirm (删除计划, 取消收藏) opens at once; one asked before that shows DialogWait until it arrives.
-const confirmCard = lazyDialog(() => confirmChunk.load(), m => m.ConfirmDialog);
+// tests/ui9-r1-overlays-offline.test.tsx blocks the chunk with a module hook (no test seam here).
+const confirmCard = lazyDialog(() => import('./ConfirmDialog'), m => m.ConfirmDialog);
 
 export type ConfirmOptions = {
   title?: string;

@@ -41,6 +41,8 @@ export const Toast = ({ message, type, action, link, closeLabel, quiet, testId, 
     if (held) return;
     const t = setTimeout(dismiss, TOAST_DURATION_MS[type]);
     return () => clearTimeout(t);
+    // `dismiss` is new each render but works through refs and state (useClosing): left out on purpose.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message, type, held]);
   const english = useLocale() === 'en';
   const close = closeLabel ?? (english ? 'Close' : '关闭提示');
