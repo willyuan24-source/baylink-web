@@ -1,4 +1,5 @@
-/** The card press at pointerdown (cards.css draws [data-press]); a side-effect module that Card.tsx and HeroCard.tsx import. */
+/** The card press at pointerdown (cards.css draws [data-press]); a side-effect module that Card.tsx and HeroCard.tsx import
+ *  dynamically once they have loaded (its own chunk, outside every route's static graph). */
 const CARD = '.ui-feed-card,.ui-row-card,.ui-hero-card';
 /** A touch shows its press after this long unless the browser takes it for a scroll first (pointercancel), so a swipe over a
  *  list does not flash every card it starts on; a tap shorter than this still shows the press as it ends. */

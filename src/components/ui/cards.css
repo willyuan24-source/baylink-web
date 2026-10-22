@@ -9,7 +9,8 @@
 
 /* One hover and one press for every card and row (N23 / N24, J3 P25): the card's stretched link layer takes an ink tint
    (4% on hover, 8% pressed) over the picture and the text, and the title underlines; a press also scales the card to .985.
-   The press shows at pointerdown: Card.tsx marks the card [data-press] from a delegated pointerdown and clears it on
+   The press shows at pointerdown: card-press.ts (loaded by Card.tsx / HeroCard.tsx) marks the card [data-press] from a
+   delegated pointerdown and clears it on
    pointerup / cancel / scroll, so a touch is answered on its first frame instead of when :active arrives at release. */
 :is(.ui-feed-card,.ui-row-card,.ui-hero-card) { transition:scale var(--dur-1) var(--ease-out); }
 .ui-card-link::after { transition:background-color var(--dur-1) var(--ease-out); }
@@ -42,7 +43,8 @@
 /* Feed card: the whole card is one link (stretched ::after); ♡ is a sibling button above it. */
 .ui-feed-card { position:relative; display:flex; flex-direction:column; gap:var(--sp-1); min-width:0; }
 .ui-feed-card__media { position:relative; order:-1; margin-bottom:var(--sp-1); border-radius:var(--r-lg); }
-/* D1: the whole title, never "…" (3 lines on a phone's 2-up card, 2 on a desktop's for the titles we carry); the covers above
+/* D1: the whole title, never "…" (most titles take ≤ 3 lines on a phone's 2-up card and ≤ 2 on a desktop's;
+   long English guide and event titles run to 4–6 until they get short titles, see the lane PR); the covers above
    have one ratio per feed, so a row of cards still lines up on its pictures. D3: feed and row titles are medium (500), so
    600 stays for headings and a feed is not half bold (N03). */
 .ui-feed-card__title { margin:0; color:var(--color-ink); font-size:var(--fs-reading); line-height:var(--lh-snug); font-weight:var(--fw-medium); overflow-wrap:break-word; }
@@ -50,6 +52,8 @@
 /* The stretched link layer reaches 4px past the card, so the hover / press tint has room around the text (grid gaps are 12px+). */
 .ui-card-link::after { content:""; position:absolute; inset:0; z-index:2; border-radius:var(--r-lg); }
 .ui-feed-card .ui-card-link::after { inset:calc(-1 * var(--sp-1)); }
+/* BayBay's sideways card row scrolls (overflow-x:auto, no inline padding): the layer stays inside the card there. */
+.bb-cards .ui-feed-card .ui-card-link::after { inset:0; }
 .ui-card-link:focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 .ui-feed-card__meta,.ui-feed-card__trust { margin:0; font-size:var(--fs-meta); line-height:var(--lh-snug); }
 .ui-feed-card__meta { color:var(--color-ink-2); }

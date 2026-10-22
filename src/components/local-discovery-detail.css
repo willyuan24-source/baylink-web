@@ -134,9 +134,11 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
      tall) instead of a word being swapped. The wrapped lines are centred and keep the 8 px padding, so no glyph reaches
      the pill's round ends (the offer and opening primary is the shared Button <a>, which starts its text at the left;
      AddToDayPlan's <button> centres already). Detail pages only: a guide's bar keeps its own arrangement
-     (guide-article.css). Follow-up 2: two wrapped lines keep 8 px above and below too; at a 1.1 line pitch the pill is
-     62 px at 特大 (the bar is 64) and 69 px in 家人版 (the bar is 76), so it stays inside the bar. */
-  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.1; text-align:center; text-wrap:balance; }
+     (guide-article.css). Follow-up 2: two wrapped lines keep 8 px above and below too. The 特大 bar is 72 px (64 elsewhere),
+     so the two lines keep a 1.2 pitch with room to the bar's edges; 家人版's 76 px bar holds them at 1.1 (a 68.6 px pill). */
+  html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions) { --site-mobile-nav-height:calc(72px + env(safe-area-inset-bottom,0px)); }
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.2; text-align:center; text-wrap:balance; }
+  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { line-height:1.1; }
   html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions { padding-inline:0 var(--sp-1); }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell

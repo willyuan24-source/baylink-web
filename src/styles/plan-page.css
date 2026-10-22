@@ -20,13 +20,13 @@
 .planner-offline>svg { flex:none; margin-top:2px; }
 
 /* H54 本周末精选 above the planner (features/plan/PlanWeekendPicks.tsx): one short row of feed cards, so the planner stays
-   on the first screen — two on a phone, four 3:2 landscape covers from 768px, and at 大/特大 and in 简洁显示 on a phone
+   on the first screen — two on a phone, four 3:2 landscape covers from 700px (where the feed grid turns 3-up, cards.css), and at 大/特大 and in 简洁显示 on a phone
    one compact row with its photo on the left (the readers those modes serve keep 已排的日子 in view). */
 .plan-weekend { margin:0 0 24px; }
 .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:none; }
 /* No ♡ on these cards: the provenance badge may use the photo's width and wrap ("Archive photo · 2025" in full). */
 .plan-weekend .ui-provenance { max-width:calc(100% - 16px); white-space:normal; }
-@media (min-width:768px) { .plan-weekend .ui-feed-grid { --ui-feed-cols:4; --ui-feed-ratio:3 / 2; } .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:block; } }
+@media (min-width:700px) { .plan-weekend .ui-feed-grid { --ui-feed-cols:4; --ui-feed-ratio:3 / 2; } .plan-weekend .ui-feed-grid>li:nth-child(n+3) { display:block; } }
 @media (max-width:767px) {
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-grid>li:nth-child(n+2) { display:none; }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .plan-weekend .ui-feed-grid[data-layout] { --ui-feed-ratio:1 / 1; }
@@ -120,12 +120,10 @@ html[data-plan-link] :is(main[data-prerender-path="/plan"],.site-boot-main) .pla
 }
 html:is([data-reading=large],[data-reading=extra-large],[data-simple]) :is(.planner-place-when,.planner-place-summary,.planner-place-actions,.planner-place-links,.planner-place .planner-stop-offers,.planner-place .planner-outing-preview,.planner-place .planner-small-note) { margin-left:0; }
 .planner-catalog-more { margin-top:16px; }
-/* Follow-up 3 (#60 live check): at 1440 the 40-character measure left one-word tails (「…存好后 / 发给家人。」,
-   「加入这天计 / 划」). The head copy and the empty 已排的日子 balance their lines and break CJK only between phrases (at
-   punctuation and spaces, keep-all), with an any-point break kept for a phrase longer than the line. */
-@media (min-width:768px) {
-  .planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body) { text-wrap:balance; word-break:keep-all; overflow-wrap:break-word; }
-}
+/* Follow-up 3 (#60 live check): the measure left one-word tails (「…存好后 / 发给家人。」, 「加入这天计 / 划」) at 1440, 720
+   and on phones. At every width the head copy and the empty 已排的日子 balance their lines and break CJK only between
+   phrases (at punctuation and spaces, keep-all), with an any-point break kept for a phrase longer than the line. */
+.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body) { text-wrap:balance; word-break:keep-all; overflow-wrap:break-word; }
 .planner-catalog-tabs { margin:8px 0 4px; }
 /* The example questions wrap inside the card, 12px under the box: the shared chip row's phone bleed (margin 0 -16px, ui.css,
    same specificity and later) ran the first chip into the card edge, cut mid-word, and set the row flush on the textarea. */

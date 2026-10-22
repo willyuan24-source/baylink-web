@@ -81,7 +81,7 @@ export function PlanWeekendPicks({ coverPage, onCovers }: { coverPage?: CoverPag
         const facts = shown(event, english);
         const price = eventPriceChip(facts);
         return <FeedItem key={event.id}>
-          <FeedCard title={facts.title} to={`/events/${event.id}?date=${date}`}
+          <FeedCard title={facts.shortTitle || facts.title} to={`/events/${event.id}?date=${date}`}
             cover={<EventCover event={facts} cover={cover} today={today} days={[date]} sizes={SIZES} priority={index === eager} decorative />}
             when={<EventWhen event={facts} today={today} days={[date]} />} meta={<StatusPlace price={price} place={translateText(eventPlace(facts), locale)} text={price ? pick(price.text) : ''} />} />
         </FeedItem>;

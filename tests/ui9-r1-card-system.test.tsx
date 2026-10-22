@@ -45,17 +45,36 @@ test('N24 / J3 P25: one card press, drawn from [data-press] that a pointerdown s
     await import('../src/components/ui/card-press');
     const card = dom.window.document.querySelector('.ui-feed-card')!;
     const link = dom.window.document.querySelector('.ui-card-link')!;
-    const fire = (target: Element, type: string) => {
+    const fire = (target: Element, type: string, pointerType = 'mouse') => {
       const event = new dom.window.Event(type, { bubbles: true }) as Event & { pointerType: string; button: number };
-      Object.assign(event, { pointerType: 'mouse', button: 0 });
+      Object.assign(event, { pointerType, button: 0 });
       target.dispatchEvent(event);
     };
+    const wait = (ms: number) => new Promise(resolve => dom.window.setTimeout(resolve, ms));
     fire(link, 'pointerdown');
     assert.equal(card.hasAttribute('data-press'), true, 'pressed at pointerdown');
     fire(link, 'pointerup');
     assert.equal(card.hasAttribute('data-press'), false, 'released at pointerup');
     fire(dom.window.document.getElementById('other')!, 'pointerdown');
     assert.equal(card.hasAttribute('data-press'), false, 'a press elsewhere leaves the card alone');
+    // Touch: the press waits 25 ms (a swipe that starts on a card does not flash it) ...
+    fire(link, 'pointerdown', 'touch');
+    assert.equal(card.hasAttribute('data-press'), false, 'a touch is not pressed at once');
+    await wait(40);
+    assert.equal(card.hasAttribute('data-press'), true, 'a held touch is pressed after the delay');
+    fire(link, 'pointerup', 'touch');
+    assert.equal(card.hasAttribute('data-press'), false, 'released at pointerup');
+    // ... a scroll (pointercancel) inside the delay never presses ...
+    fire(link, 'pointerdown', 'touch');
+    fire(link, 'pointercancel', 'touch');
+    await wait(40);
+    assert.equal(card.hasAttribute('data-press'), false, 'a cancelled touch is never pressed');
+    // ... and a tap shorter than the delay still shows its press, for 120 ms.
+    fire(link, 'pointerdown', 'touch');
+    fire(link, 'pointerup', 'touch');
+    assert.equal(card.hasAttribute('data-press'), true, 'a quick tap shows its press as it ends');
+    await wait(160);
+    assert.equal(card.hasAttribute('data-press'), false, 'the tap press clears after 120 ms');
   } finally {
     globals.document = saved.document; globals.window = saved.window;
   }
@@ -73,7 +92,10 @@ test('N12 / follow-up 2: a two-line pill keeps 8px above and below its label; se
   const narrow = decls(DETAIL, '.site-detail-actions.detail-actions .detail-actions__primary .saves-add-day', 'detail-primary (max-width:9.5em)');
   assert.equal(narrow.padding, undefined);
   assert.equal(narrow['padding-inline'], 'var(--sp-2)');
-  assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.1');
+  assert.equal(decls(DETAIL, `html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.2');
+  assert.equal(decls(DETAIL, `html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:1023px)')['line-height'], '1.1');
+  // 特大 (not 家人版): the detail bar is 72 px, so the 1.2-pitch two-line pill (66 px) keeps room to the bar's edges
+  assert.equal(decls(DETAIL, 'html:root[data-reading=extra-large]:not([data-simple]):has(.local-discovery-detail .site-detail-actions)', '(max-width:1023px)')['--site-mobile-nav-height'], 'calc(72px + env(safe-area-inset-bottom,0px))');
   assert.equal(decls(DETAIL, `.site-detail-actions.detail-actions ${PRIMARY}`, '(max-width:359px)')['line-height'], '1.1');
 });
 
@@ -83,9 +105,10 @@ test('N13: one ♡ on a picture (a 44px white circle with e1), on a row\'s thumb
   assert.equal(save.background, 'var(--color-surface)');
   assert.equal(decls(CARDS, '.ui-row-card__save')['grid-area'], 'thumb');
   assert.equal(decls(CARDS, '.ui-row-card__save .ui-save').width, '2.25rem');
-  assert.equal(decls('src/features/saves/saves.css', '.saves-control .saves-toggle[data-compact]')['box-shadow'], 'var(--e1)');
-  // the action bar's 收藏 cell is compact too, but it is not on a picture: no lift there
-  assert.equal(decls('src/features/saves/saves.css', '.detail-actions__cell .saves-control .saves-toggle[data-compact]')['box-shadow'], 'none');
+  // the lift is scoped to the picture slots: the action bar's 收藏 cell and FreebieBoard's body pill are compact too, but flat
+  const SAVES = read('src/features/saves/saves.css');
+  assert.equal(decls('src/features/saves/saves.css', ':is(.ui-feed-card__save,.ui-hero-card__save,.ui-row-card__trailing,.ui-row-card__save) .saves-control .saves-toggle[data-compact]')['box-shadow'], 'var(--e1)');
+  assert.doesNotMatch(SAVES, /^\.saves-control \.saves-toggle\[data-compact\] \{ box-shadow/m, 'no unscoped lift on every compact ♡');
   const card = read('src/components/PlannerCatalogCard.tsx');
   assert.match(card, /save=\{<button type="button" className="ui-save planner-heart"/, '/plan: the ♡ is on the thumbnail');
   assert.match(card, /trailing=\{<Button className="planner-add" aria-label=\{addLabel\}/, 'D7: 加入计划 is the row\'s compact trailing button');
@@ -111,8 +134,28 @@ test('follow-up 8: a dated ①② chip keeps its edition alone on a cover ≤ 12
   assert.equal(decls(COVERS, '.ui-provenance[data-chip] .ui-provenance__lead', 'ui-cover (max-width:120px)').display, 'none');
 });
 
-test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases from 768px', () => {
-  const rule = decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)', '(min-width:768px)');
+test('follow-up 3: /plan head copy and empty state balance their lines and keep phrases at every width', () => {
+  const rule = decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)');
   assert.equal(rule['text-wrap'], 'balance');
   assert.equal(rule['word-break'], 'keep-all');
+});
+
+test('Follow-up 8: a dated chip on a cover ≤ 120px shows its edition and still wraps, so a label is never cut', () => {
+  const small = read(COVERS).split('@container ui-cover (max-width:120px)')[1].split('\n}')[0];
+  assert.match(small, /\.ui-provenance\[data-chip\] \.ui-provenance__lead \{ display:none; \}/);
+  assert.doesNotMatch(small, /nowrap/, 'English 家人版 (20px words on a 112px cover) wraps instead of clipping "2025 editio"');
+  assert.equal(decls(COVERS, '.ui-provenance[data-chip]')['white-space'], 'normal');
+});
+
+test('D9 companions: /plan 本周末精选 is 4-up from 700px; follow-up 3 balance applies at every width', () => {
+  const plan = read('src/styles/plan-page.css');
+  assert.equal(decls('src/styles/plan-page.css', '.plan-weekend .ui-feed-grid', '(min-width:700px)')['--ui-feed-cols'], '4');
+  assert.doesNotMatch(plan, /\(min-width:768px\) \{ \.plan-weekend \.ui-feed-grid \{/);
+  assert.equal(decls('src/styles/plan-page.css', '.planner-page :is(.ui-page-header__lede,.plan-days .ui-state__title,.plan-days .ui-state__body)')['word-break'], 'keep-all');
+  // card-press is no longer a static import of the card modules (route JS budgets): it loads dynamically
+  for (const file of ['src/components/ui/Card.tsx', 'src/components/ui/HeroCard.tsx']) {
+    const source = read(file);
+    assert.doesNotMatch(source, /^import '\.\/card-press';/m);
+    assert.match(source, /import\('\.\/card-press'\)/);
+  }
 });

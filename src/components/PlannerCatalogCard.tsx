@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { CalendarPlus, Heart, Repeat2 } from 'lucide-react';
+import { CalendarPlus, Heart } from 'lucide-react';
 import { translateText, useLocale } from '../i18n/locale';
 import { stopPath, type GeoPoint, type Stop } from '../lib/planner-core';
 import type { ResolvedCover } from '../lib/cover';
@@ -39,7 +39,7 @@ export function PlannerCatalogCard({ item, cover, today, date, pin, selected, fa
       date={<>{pin >= 0 && <span className="planner-pin-no" title={t('地图上的编号', 'Number on the map')}>{pin + 1}</span>}{translateText(item.kicker, locale)}</>}
       meta={`${translateText(item.city, locale)} · ${item.detail}`} credit={rowCredit(cover)}
       save={<button type="button" className="ui-save planner-heart" aria-label={heartLabel} aria-pressed={favoriteReady ? favorite : undefined} disabled={!favoriteReady || busy} onClick={onToggleFavorite}><Heart aria-hidden="true" strokeWidth={1.75} /></button>}
-      trailing={<Button className="planner-add" aria-label={addLabel} title={addLabel} icon={replacing ? <Repeat2 aria-hidden="true" strokeWidth={1.75} /> : <CalendarPlus aria-hidden="true" strokeWidth={1.75} />} onClick={onAdd}>
+      trailing={<Button className="planner-add" aria-label={addLabel} icon={<CalendarPlus aria-hidden="true" strokeWidth={1.75} />} onClick={onAdd}>
         <span className="planner-add__label" aria-hidden="true">{replacing ? t('替换', 'Replace') : t('加入', 'Add')}</span>
       </Button>} />
     {item.when && <p className="planner-place-when">{item.when}</p>}
