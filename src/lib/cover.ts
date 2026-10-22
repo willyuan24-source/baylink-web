@@ -102,8 +102,9 @@ export type CoverPage = {
 export const createCoverPage = (): CoverPage => ({ claims: new Map() });
 /**
  * A ③④ pool picture repeats only this many cards apart or more (UI9-IMAGES §4 同页去重: not within 6 adjacent cards, and
- * not on one screen, which is at most 8 cards on desktop). When every pool picture is nearer, the item still takes the
- * one shown farthest away: ③④ never fall back to an info card.
+ * not on one screen, which is at most 8 cards on desktop), and only when the item has no candidate of that tier the page
+ * has not shown yet. When every pool picture is nearer, the item still takes the one shown farthest away: ③④ never fall
+ * back to an info card.
  */
 export const ADJACENT_CARDS = 8;
 
@@ -226,14 +227,20 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
     const src = cover.image.src;
     if (cover.tier === 'stock' || cover.tier === 'ai') {
       if (!page) return withFallback(cover, attempts, ctx.images);
+      // A ③ that may show beats any ④ after it (DECISIONS 22 order).
+      if (pool && pool.gap >= ADJACENT_CARDS && pool.cover.tier !== cover.tier) break;
       const shared = page.shared ??= new Map<string, Map<string, number>>();
       const shown = shared.get(src) ?? shared.set(src, new Map()).get(src)!;
       let gap = Infinity;
       shown.forEach((position, other) => { if (other !== me) gap = Math.min(gap, Math.abs(position - at)); });
       if (!pool || gap > pool.gap) pool = { cover, shown, gap };
-      if (gap >= ADJACENT_CARDS) break;
+      // A picture not yet on the page ends the search; one shown ADJACENT_CARDS or more cards away is kept while a later
+      // picture of the same tier may still be new to the page (fewer repeats per page, UI9-IMG-A1b round 2).
+      if (gap === Infinity) break;
       continue;
     }
+    // A pool picture that may show beats a ①② candidate listed after it (the candidates' order).
+    if (pool && pool.gap >= ADJACENT_CARDS) break;
     const claimant = page?.claims.get(src);
     if (claimant && claimant !== me) {
       if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
