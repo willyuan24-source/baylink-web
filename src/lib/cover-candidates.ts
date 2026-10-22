@@ -1,7 +1,7 @@
 import venuePhotoFile from '../data/venue-photos.json';
 import categoryPhotoFile from '../data/category-photos.json';
 import aiCoverApprovalFile from '../data/ai-cover-approvals.json';
-import { photoCategoryOf, placePhotoCategory, type PhotoCategoryId } from './photo-category';
+import { photoCategoryOf, placePhotoCategory, postPhotoCategory, type PhotoCategoryId } from './photo-category';
 import type { CoverKind } from './cover';
 
 /**
@@ -122,5 +122,12 @@ export function attractionStockKeys(guide: { slug: string; title: string; catego
   // A city guide's own pool is city-sights: the place's kind by its name (library, museum, …), else the outdoors.
   const pool = tables.categories[placePhotoCategory({ id: guide.slug, title: guide.title }) ?? 'nature-walk'] ?? [];
   const start = idSpot(guide.slug, pool.length);
+  return pool.map((_, i) => pool[(start + i) % pool.length]);
+}
+
+/** A saved neighbourhood post's ③ pictures (postPhotoCategory), starting at a spot fixed by the post id. */
+export function postStockKeys(post: { id: string; category?: string }, tables: CoverTables = COVER_TABLES): string[] {
+  const pool = tables.categories[postPhotoCategory(post.category)] ?? [];
+  const start = idSpot(post.id, pool.length);
   return pool.map((_, i) => pool[(start + i) % pool.length]);
 }

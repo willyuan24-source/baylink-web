@@ -53,6 +53,11 @@ test('one saved list: every kind as a row with a cover, and the /me count equals
   assert.equal(view.queryByText('Bob only'), null, 'another account’s device list stays apart');
   for (const row of rows) assert.ok(row.querySelector('[data-cover]'), 'every row carries a cover frame');
   assert.equal([...rows].some(row => row.querySelector('[data-cover="type"]')), false, 'never an information card (UI9-IMAGES DECISIONS 21)');
+  // Captain 10-22 02:50: no row keeps an empty LQIP frame; a saved post (no photo in its snapshot) shows its board category's ③.
+  for (const row of rows) assert.ok(row.querySelector('[data-cover="image"] img'), `every row shows a picture: ${row.textContent}`);
+  const postCover = view.getByTestId('my-week-saved').querySelector('li[data-kind="post"] [data-cover="image"]')!;
+  assert.equal(postCover.getAttribute('data-tier'), 'stock');
+  assert.match(postCover.querySelector('img')!.getAttribute('src')!, /stock-guide-housing-/, '租屋 → a home picture');
   assert.ok(section.getByRole('group', { name: '按类型筛选收藏' }));
 });
 

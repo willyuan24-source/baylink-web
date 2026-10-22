@@ -81,7 +81,12 @@ export type ImageCover = {
   /** The item's next ③ stock picture (another file): what the page shows when this file fails to load (DECISIONS 21). */
   fallback?: Pick<CoverAsset, 'src' | 'srcSet'>;
 };
-export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string };
+/**
+ * No picture the page may still show. `repeat` is the item's first picture that lost only to page de-duplication: <Cover>
+ * shows it again rather than an empty frame (captain 10-22 02:50: an LQIP frame never stands in for a picture), while
+ * report:covers and the CI tests still count the slot as unresolved.
+ */
+export type TypeCoverResolution = { tier: 'type'; label: Copy; reason: TypeCoverReason; rejectedKey?: string; repeat?: ImageCover };
 export type ResolvedCover = ImageCover | TypeCoverResolution;
 
 /**
@@ -140,8 +145,8 @@ const lookup = (images: CoverContext['images'], key: string): CoverAsset | undef
   return Object.hasOwn(images, key) ? images[key] as CoverAsset : undefined;
 };
 const itemKey = (item: CoverItem) => `${item.kind}:${item.id}`;
-const typeCover = (reason: TypeCoverReason, rejectedKey?: string): TypeCoverResolution => ({
-  tier: 'type', reason, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) }, ...(rejectedKey ? { rejectedKey } : {}),
+const typeCover = (reason: TypeCoverReason, rejectedKey?: string, repeat?: ImageCover): TypeCoverResolution => ({
+  tier: 'type', reason, label: { zh: typeCoverProvenance(false), en: typeCoverProvenance(true) }, ...(rejectedKey ? { rejectedKey } : {}), ...(repeat ? { repeat } : {}),
 });
 
 /**
@@ -206,6 +211,7 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
   const at = order ? order.get(me) ?? order.set(me, order.size).size - 1 : 0;
   let reason: TypeCoverReason = 'no-image';
   let rejectedKey: string | undefined;
+  let repeat: ImageCover | undefined;
   // The pool picture shown farthest away (the first at ADJACENT_CARDS or more ends the search): when every ③④ candidate
   // is nearer, the item still takes the farthest one.
   let pool: { cover: ImageCover; shown: Map<string, number>; gap: number } | undefined;
@@ -231,12 +237,13 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
     const claimant = page?.claims.get(src);
     if (claimant && claimant !== me) {
       if (!rejectedKey) { reason = 'duplicate'; rejectedKey = key; }
+      repeat ??= cover;
       continue;
     }
     page?.claims.set(src, me);
     return withFallback(cover, attempts, ctx.images);
   }
-  if (!pool) return typeCover(reason, rejectedKey);
+  if (!pool) return typeCover(reason, rejectedKey, repeat && withFallback(repeat, attempts, ctx.images));
   pool.shown.set(me, at);
   return withFallback(pool.cover, attempts, ctx.images);
 }

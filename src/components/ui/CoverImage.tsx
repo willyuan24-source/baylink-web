@@ -111,14 +111,16 @@ export function useTierLabel() {
 }
 
 /**
- * A resolved cover: its picture with one badge (DECISIONS 23, tierLabelOf), or — only if the resolver found no picture at
- * all, which tests/report-cover-coverage.test.ts keeps at zero for every listed record — the frame in its LQIP colour.
- * UI9-IMAGES DECISIONS 21: no date board, ticket, shop sign or title plate. The ♡ is the card's; the date, price and
- * deadline live in the caption (Card.tsx `when` and meta lines).
+ * A resolved cover: its picture with one badge (DECISIONS 23, tierLabelOf). A slot whose every picture lost to the page's
+ * de-duplication shows its first picture again (`repeat`); only an item with no picture at all — which
+ * tests/report-cover-coverage.test.ts and tests/ui9-img-a1b.test.ts keep at zero for every listed record — keeps the frame
+ * in its LQIP colour. UI9-IMAGES DECISIONS 21: no date board, ticket, shop sign or title plate. The ♡ is the card's; the
+ * date, price and deadline live in the caption (Card.tsx `when` and meta lines).
  */
-export function Cover({ cover, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
+export function Cover({ cover: resolved, ratio, ratioLock, sizes = COVER_SIZES.feed, priority, decorative, ended, kind, children }: CoverSlot & { ended?: boolean; kind?: CoverListingKind; children?: ReactNode }) {
   const label = useTierLabel();
-  if (cover.tier === 'type') return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
+  const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
+  if (!cover) return <LqipCover ratio={ratio} ratioLock={ratioLock} />;
   const thumb = sizes === COVER_SIZES.thumb;
   return <CoverImage image={cover.image} label={label(cover, thumb)} tier={cover.tier} fit={cover.fit} focal={cover.focal} ratio={ratio} ratioLock={ratioLock}
     sizes={sizes} priority={priority} decorative={decorative} ended={ended} kind={kind} fallback={cover.fallback}
@@ -137,7 +139,10 @@ export function LqipCover({ ratio, ratioLock, lqip, className }: { ratio?: Cover
 // eslint-disable-next-line react-refresh/only-export-components
 export function useRowCredit() {
   const label = useTierLabel();
-  return (cover: ResolvedCover) => cover.tier === 'type' || cover.tier === 'stock' || cover.tier === 'ai' ? undefined : label(cover);
+  return (resolved: ResolvedCover) => {
+    const cover = resolved.tier === 'type' ? resolved.repeat : resolved;
+    return !cover || cover.tier === 'stock' || cover.tier === 'ai' ? undefined : label(cover);
+  };
 }
 
 /** A credit after its badge words: a ③ credit that repeats them ("示意图 · 摄影 … / Unsplash") drops the repeat. */

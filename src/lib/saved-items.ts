@@ -6,7 +6,7 @@ import { currentOpenings } from '../data/local-discoveries';
 import type { FreebieOffer } from '../components/FreebieBoard';
 import type { SeptemberOpening } from '../data/september-openings';
 import { isAiIllustration, type CoverAsset, type CoverItem } from './cover';
-import { coverCandidates } from './cover-candidates';
+import { coverCandidates, postStockKeys } from './cover-candidates';
 import { brandCase, type Copy } from './event-facts';
 import type { SavedEntry } from './saves';
 
@@ -28,7 +28,7 @@ export type SavedItemView = {
   meta: string[];
   /** Pieces of the meta line written by a member (a listing's city and budget): shown as written, never translated. */
   userMeta?: string[];
-  /** For `resolveCovers`; absent for posts (a member's post without a photo keeps the empty LQIP frame). */
+  /** For `resolveCovers`; a post (no photo of its own in the saved snapshot) takes its board category's ③ pictures. */
   cover?: CoverItem;
   event?: PlannerEvent;
   place?: PlannerPlace;
@@ -94,7 +94,8 @@ export function savedItemView(entry: SavedEntry): SavedItemView {
     case 'post': {
       const post = entry.post;
       // The category is the board's own label (translated like on the board); city and budget are the member's words.
-      return { ...base, userText: true, title: post?.title || entry.id, path: `/posts/${encodeURIComponent(entry.id)}`, meta: parts(post?.category), userMeta: parts(post?.city, post?.budget) };
+      return { ...base, userText: true, title: post?.title || entry.id, path: `/posts/${encodeURIComponent(entry.id)}`, meta: parts(post?.category), userMeta: parts(post?.city, post?.budget),
+        cover: { kind: 'bulletin', id: `post-${entry.id}`, imageKeys: postStockKeys({ id: entry.id, category: post?.category }) } };
     }
   }
 }

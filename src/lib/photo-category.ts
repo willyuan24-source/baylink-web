@@ -375,6 +375,17 @@ export function placePhotoCategory(place: { id: string; title?: string; category
   return undefined;
 }
 
+/** The neighbourhood board's categories (community-copy.ts CATEGORY_NAMES) by the kind of picture that fits them. */
+const POST_CATEGORIES: Readonly<Record<string, PhotoCategoryId>> = {
+  租屋: 'guide-housing', 搬家: 'guide-housing', 维修: 'guide-housing', 清洁: 'guide-housing', 闲置: 'swap-meet', 接送: 'transit', 翻译: 'guide-documents',
+};
+
+/**
+ * A neighbourhood post's photo category (UI9-IMG-A1b, captain 10-22 02:50): a saved post carries no photo of its own, so
+ * its 我的收藏 row shows a ③ 示意图 of its kind (a home for 租屋, a ride for 接送), else the newcomer basics, never an empty frame.
+ */
+export const postPhotoCategory = (category?: string): PhotoCategoryId => POST_CATEGORIES[category ?? ''] ?? 'guide-newcomer';
+
 /** A regional bulletin's photo category (most are route changes or library services). */
 export function bulletinPhotoCategory(bulletin: BulletinFields): PhotoCategoryId | undefined {
   return override('bulletin', bulletin.id) ?? firstMatch(BULLETIN_RULES, `${bulletin.label ?? ''} ${bulletin.title}`);

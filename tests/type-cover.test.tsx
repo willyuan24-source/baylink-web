@@ -22,7 +22,7 @@ const { MemoryRouter } = await import('react-router-dom');
 const { EventCover, OfferCover, Cover } = await import('../src/components/ui');
 cssHook.deregister();
 const { setLocale } = await import('../src/i18n/locale');
-const { getCover } = await import('../src/lib/cover');
+const { getCover, createCoverPage } = await import('../src/lib/cover');
 const { GUIDE_IMAGES } = await import('../src/data/guide-media');
 
 afterEach(async () => { cleanup(); await setLocale('zh-Hans', false); });
@@ -57,6 +57,17 @@ test('EventCover shows the resolved photo with its provenance chip and nothing e
   assert.equal(typed.container.querySelector('[data-cover="type"]'), null);
   assert.ok(typed.container.querySelector('[data-cover="lqip"][aria-hidden="true"]'));
   assert.equal(typed.container.querySelector('img'), null);
+  cleanup();
+  // Captain 10-22 02:50: a card whose only picture another card on the page already claimed shows it again (the resolver
+  // still reports the slot, report:covers counts it) rather than an empty frame.
+  const page = createCoverPage();
+  getCover({ kind: 'event', id: 'first', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today, page });
+  const second = getCover({ kind: 'event', id: 'fleet', imageKey: 'dvids-blue-angels-sffw-2024' }, { images: GUIDE_IMAGES, today, page });
+  assert.ok(second.tier === 'type' && second.reason === 'duplicate' && second.repeat, 'the resolver still reports the duplicate');
+  const repeated = wrap(<EventCover event={fleetWeek} today={today} cover={second} />);
+  assert.equal(repeated.container.querySelector('[data-cover="lqip"]'), null);
+  assert.equal(repeated.container.querySelector('img')?.getAttribute('src'), GUIDE_IMAGES['dvids-blue-angels-sffw-2024'].src);
+  assert.equal(repeated.container.querySelector('[data-provenance]')?.textContent, '资料图 · 2024');
   cleanup();
   const offer = wrap(<OfferCover offer={{ brand: 'IKEA', title: '免费咖啡', availability: 'ongoing' }} today={today} cover={{ tier: 'type', reason: 'no-image', label: { zh: 'BAYLINK 信息卡', en: 'Info card' } }} />);
   assert.equal(offer.container.textContent, '', 'no brand, value or deadline drawn on a cover');
