@@ -49,7 +49,7 @@ html[data-simple] .site-app { --tool-size:48px; }
 /* Focus (N09, captain 10-21): on a desktop the logo, the tabs and 更多 run from the window's top edge to the header line,
    the phone tab bar ends at its bottom edge and a footer row's first link starts 4px from the phone's left edge, so a
    ring 3px outside them lost an edge; theirs is drawn inside (offset −2 × width) with --r-sm corners. (0,3,1): above the
-   (0,3,0) radii in this file and tokens.css's (0,2,0) ring. */
+   (0,3,0) radii in this file and tokens.css's (0,2,0) ring. Below 1024px 更多 keeps the outside ring (phone block). */
 .site-app :is(.site-footer-row>:is(a,button),.site-header-brand,.site-nav-link,.site-navigation-more>summary,.site-mobile-item):focus-visible { outline-offset:calc(-2 * var(--focus-ring-width)); border-radius:var(--r-sm); }
 @media (hover:hover) and (pointer:fine) {
   .site-app .site-header-primary .site-nav-link:hover,.site-app .site-navigation-more>summary:hover { color:var(--color-ink); }
@@ -199,6 +199,9 @@ html[data-simple] .site-app .site-footer-about { display:none; }
   .site-app .site-navigation-more>summary { width:var(--tool-size); height:var(--tool-size); min-height:0; padding:0; border-radius:var(--r-md); color:var(--color-ink); }
   .site-app .site-navigation-more>summary::after,.site-app .site-navigation-more>summary>span,.site-app .site-more-chevron { display:none; }
   .site-app .site-navigation-more>summary.is-active { background:var(--selected-bg); color:var(--selected-fg); }
+  /* The phone/tablet 更多 tool sits 16px from the edge like Aa and 我的: its ring stays outside with the fill's corners (an
+     inside brand ring on the ink selected fill was 2.27:1). Same (0,3,1) as the focus-inside rule, later. */
+  .site-app .site-navigation-more>summary:focus-visible { outline-offset:var(--focus-ring-offset); border-radius:var(--r-md); }
   .site-app .site-more-icon { display:block; }
   .site-app .site-navigation-more>.site-navigation-panel { position:fixed; top:calc(var(--chrome-header-height) + var(--sp-2)); left:var(--page-gutter); right:var(--page-gutter); width:auto; max-width:none; max-height:calc(100dvh - var(--site-mobile-nav-height) - var(--chrome-header-height) - var(--sp-5)); }
   .site-app .site-language-name { display:none; }
@@ -312,12 +315,13 @@ html[data-simple] .site-app .site-footer-about { display:none; }
    the page commits (or for 15s at most). The page then arrives (route-arrival.tsx). */
 .site-route-wait { flex:1 1 auto; min-height:60vh; }
 .site-route-progress { position:fixed; inset:0 0 auto; z-index:90; height:3px; overflow:hidden; opacity:0; pointer-events:none; animation:site-route-show 1ms linear 150ms forwards,site-route-stale 1ms 15s forwards; }
-.site-route-progress::before { content:""; position:absolute; inset:0 auto 0 0; width:40%; background:var(--color-brand); animation:site-route-run calc(6 * var(--dur-3)) var(--ease-std) infinite; }
+.site-route-progress::before { content:""; position:absolute; inset:0; background:var(--color-brand); transform-origin:0; animation:site-route-run calc(6 * var(--dur-3)) var(--ease-std) infinite; }
 @keyframes site-route-show { to { opacity:1; } }
 /* A navigation that never commits stops drawing the bar after 15s. */
 @keyframes site-route-stale { to { visibility:hidden; } }
-@keyframes site-route-run { from { translate:-100% 0; } to { translate:250% 0; } }
-/* The loop is 6 x --dur-3 (1.2s). Reduced motion: the bar stands full; in 简洁显示 (durations 0) its 40% stands still. */
-@media (prefers-reduced-motion:reduce) { .site-route-progress::before { width:100%; animation:none; } }
+@keyframes site-route-run { from { translate:-40%; scale:.4 1; } to { translate:100%; scale:.4 1; } }
+/* The loop is 6 x --dur-3 (1.2s): a 40% segment (the full bar scaled to .4 only inside the keyframes) runs across. In
+   简洁显示 and with reduced motion the durations are 0 (tokens.css; the global reduced-motion rule ends any loop after
+   one .01ms run), the keyframes never apply and the bar stands full width and still: "loading", not "40% done". */
 /* The layout's bar shows only while a navigation waits (lib/route-activity.ts sets html[data-route-wait]). */
 html:not([data-route-wait]) .site-route-bar { display:none; }

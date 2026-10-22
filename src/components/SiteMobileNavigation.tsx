@@ -17,15 +17,15 @@ export function SiteMobileNavigation({ pathname, notificationCount, hasNotificat
     { href: '/guides', label: english ? 'Guides' : '指南', icon: BookOpen },
     { href: '/me', label: english ? 'Me' : '我的', icon: UserRound },
   ];
-  // The tapped tab answers on pointerdown (data-pending: brand text + pill) until the route changes; aria-current stays
+  // The tapped tab answers on pointerdown (data-pending: ink text + the ink selected pill) until the route changes; aria-current stays
   // the pathname's (OPUS contract).
   const link = ({ href, label, icon: Icon }: typeof links[number]) => <Link key={href} to={href} className={`site-mobile-item${current === href ? ' is-active' : ''}`} aria-current={current === href ? 'page' : undefined} {...press(href, current === href)}><span className="site-mobile-icon"><Icon size={24} aria-hidden="true" strokeWidth={1.75} />{href === '/me' && (hasNotification || notificationCount > 0) && <b className={notificationCount > 0 ? undefined : 'site-mobile-notification-dot'} aria-label={notificationCount > 0 ? (english ? `${notificationCount} unread messages` : `${notificationCount} 条未读消息`) : (english ? 'Unread notifications' : '有未读通知')}>{notificationCount > 0 ? Math.min(notificationCount, 99) : null}</b>}</span><span>{label}</span></Link>;
   // The assistant's visible name is 问 BayBay under the otter, which carries a small AI tag (A6); the accessible name says
   // it is an AI helper. It never wraps: whenever the label would not fit one tab (大 / 特大 / 简洁显示, narrow phones, the
   // longer English label) the bar shows 问问, today's Chinese short label (captain 10-20; owner decision 18 allows 问问 in the
   // phone tab bar only), and "BayBay" in English, so the assistant's name stays on a standard English phone (NAV), via
-  // site-chrome.css's site-mobile-bar container. Both labels are direct children of the button, so the bar's label rule
-  // (`.site-mobile-item>span`) covers them.
+  // site-chrome.css's site-mobile-bar container. Both labels are direct children of the button and inherit the tab's
+  // --fs-meta size (site-chrome.css `.site-mobile-item`; there is no separate label rule).
   const ask = <button type="button" className="site-mobile-item site-mobile-ask" onClick={onAsk} aria-label={english ? 'Ask BayBay (AI helper)' : '问 BayBay（AI 助手）'} {...bayBayWarmup}><span className="site-mobile-icon"><OtterIcon size={32} /><AiTag /></span><span className="site-mobile-ask-label">{english ? 'Ask BayBay' : '问 BayBay'}</span><span className="site-mobile-ask-short" aria-hidden="true">{english ? 'BayBay' : '问问'}</span></button>;
   return <nav className="site-mobile-nav" aria-label={english ? 'Main navigation' : '手机导航'}><div className="site-mobile-nav-items">{links.slice(0, 2).map(link)}{ask}{links.slice(2).map(link)}</div></nav>;
 }
