@@ -1,5 +1,5 @@
 import { Disclosure } from '../../components/ui/Disclosure';
-import { useTierLabel } from '../../components/ui/CoverImage';
+import { creditAfterLabel, useTierLabel } from '../../components/ui/CoverImage';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
@@ -18,11 +18,11 @@ export function ImageCredits({ covers }: { covers: readonly ResolvedCover[] }) {
   if (!images.length) return null;
   return <section id="page-credits" className="ev-credits" data-count={images.length} data-credits-at-end="" aria-label={t('本页图片来源', 'Image credits')}>
     <Disclosure summary={t(`本页图片来源（${images.length}）`, `Image credits (${images.length})`)} className="ev-credits__list">
-      <ul>{images.map(cover => <li key={cover.image.src}>
-        <span className="ev-credits__label">{label(cover)}</span>
-        {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(cover.image.credit, locale)}</a> : <span>{translateText(cover.image.credit, locale)}</span>}
+      <ul>{images.map(cover => { const words = label(cover), credit = creditAfterLabel(words, translateText(cover.image.credit, locale)); return <li key={cover.image.src}>
+        <span className="ev-credits__label">{words}</span>
+        {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>}
         {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
-      </li>)}</ul>
+      </li>; })}</ul>
     </Disclosure>
   </section>;
 }

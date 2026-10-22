@@ -127,6 +127,12 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-end { display:flex; flex-direction:column; gap:var(--section-gap); }
 .home-elder .ui-row-card { min-height:0; }
 .home-elder .ui-button { min-height:3rem; }
+/* With its guide's picture (UI9-IMG-A1b) a call row has no room for the 拨打 button beside the words on a phone: the
+   button goes under the words, beside the picture, so the question keeps the row's width. */
+@media (max-width:767px) {
+  .home-elder .ui-row-card { grid-template:"thumb body" "thumb trailing" / 5.5rem minmax(0, 1fr); }
+  .home-elder .ui-row-card__trailing { justify-self:start; align-self:start; }
+}
 .home-3d { display:flex; flex-direction:column; gap:10px; color:var(--color-ink); }
 .home-3d .ui-cover { border-radius:var(--r-postcard); }
 .home-3d__text { display:flex; flex-direction:column; gap:2px; }
@@ -153,8 +159,9 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
 /* 大 / 特大 rows: the ♡ sits on the thumbnail's top-right corner, never over the title (captain 10-21 18:30, the LumaFest row),
-   a 36 px circle with a 44 px hit area, so it covers about a third of the 112 px picture. */
-html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { top:var(--sp-1); right:auto; left:calc(112px - 36px - var(--sp-1)); }
+   a 36 px circle with a 44 px hit area, so it covers about a third of the 112 px picture. The row is a grid, so the ♡ takes
+   the picture's grid area as its containing block. */
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { grid-area:1 / 1 / 2 / 2; top:var(--sp-1); right:var(--sp-1); }
 html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save .saves-control .saves-toggle { position:relative; width:36px; height:36px; min-height:36px; }
 html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save .saves-toggle::after { content:""; position:absolute; inset:-4px; }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }

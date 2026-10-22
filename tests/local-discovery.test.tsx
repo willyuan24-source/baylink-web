@@ -267,7 +267,7 @@ test('all detail pages server-render full content with matching canonical, OG, T
     assert.equal(breadcrumb.itemListElement.at(-1).item, expectedUrl);
 
     const content = doc.querySelector('.local-discovery-detail')!;
-    // The hero opens the page: the listing's photo when the cover ladder accepts it, else its TypeCover (never empty).
+    // The hero opens the page: the listing's picture (UI9-IMAGES DECISIONS 21: its next candidate when its own cannot be the cover).
     const main = content.querySelector('.detail-main')!;
     assert.ok(main.firstElementChild?.classList.contains('detail-hero'), share.id + ' opens on its hero');
     const cover = heroCover(record, today);
@@ -278,7 +278,8 @@ test('all detail pages server-render full content with matching canonical, OG, T
       assert.equal(img?.getAttribute('loading'), 'eager');
       assert.equal(img?.getAttribute('fetchpriority'), 'high');
       const credit = content.querySelector('.detail-credit')!;
-      assert.ok(squash(credit.textContent!).includes(squash(cover.image.credit)), share.id + ' keeps its photo credit');
+      // A ③ credit that repeats its badge ("示意图 · 摄影 …") prints after the badge without the repeat (creditAfterLabel).
+      assert.ok(squash(credit.textContent!).includes(squash(cover.image.credit.replace(/^示意图 · /, ''))), share.id + ' keeps its photo credit');
       if (cover.image.licenseUrl?.startsWith('https://')) assert.ok([...credit.querySelectorAll('a')].some(a => a.getAttribute('href') === cover.image.licenseUrl));
     } else {
       assert.equal(img, null);

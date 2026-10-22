@@ -1,7 +1,7 @@
 import type { ImageCover, ResolvedCover } from '../lib/cover';
 import { translateText } from '../i18n/locale';
 import type { Stop } from '../lib/planner-core';
-import { Cover, useTierLabel } from './ui/CoverImage';
+import { Cover, creditAfterLabel, useTierLabel } from './ui/CoverImage';
 import { COVER_SIZES } from './ui/cover-sizes';
 import { useUiCopy } from './ui/ui-copy';
 
@@ -28,10 +28,10 @@ export function PlannerImageCredits({ covers }: { covers: readonly ResolvedCover
   if (!images.length) return null;
   return <details className="planner-credits">
     <summary>{t(`本页图片来源（${images.length}）`, `Image credits (${images.length})`)}</summary>
-    <ul>{images.map(cover => <li key={cover.image.src}>
-      <span>{label(cover)}</span>
-      {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(cover.image.credit, locale)}</a> : <span>{translateText(cover.image.credit, locale)}</span>}
+    <ul>{images.map(cover => { const words = label(cover), credit = creditAfterLabel(words, translateText(cover.image.credit, locale)); return <li key={cover.image.src}>
+      <span>{words}</span>
+      {cover.image.creditUrl ? <a href={cover.image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>}
       {cover.image.licenseUrl && <a href={cover.image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
-    </li>)}</ul>
+    </li>; })}</ul>
   </details>;
 }

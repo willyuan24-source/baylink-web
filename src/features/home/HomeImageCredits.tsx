@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { useTierLabel } from '../../components/ui/CoverImage';
+import { creditAfterLabel, useTierLabel } from '../../components/ui/CoverImage';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
@@ -25,7 +25,7 @@ export function HomeImageCredits({ covers, tiles = [], children }: { covers: rea
       <summary>{t(`本页图片来源（${entries.length}）`, `Image credits (${entries.length})`)}<ChevronDown aria-hidden="true" strokeWidth={1.75} /></summary>
       <ul>{entries.map(({ key, label: words, image }) => <li key={key}>
         <span className="home-credits__label">{words}</span>
-        {image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{translateText(image.credit, locale)}</a> : <span>{translateText(image.credit, locale)}</span>}
+        {image.creditUrl ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{creditAfterLabel(words, translateText(image.credit, locale))}</a> : <span>{creditAfterLabel(words, translateText(image.credit, locale))}</span>}
         {image.licenseUrl && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer">{t('许可', 'License')}</a>}
       </li>)}</ul>
     </details>}

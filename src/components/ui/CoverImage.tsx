@@ -124,3 +124,7 @@ export function useRowCredit() {
   const label = useTierLabel();
   return (cover: ResolvedCover) => cover.tier === 'type' || cover.tier === 'stock' || cover.tier === 'ai' ? undefined : label(cover);
 }
+
+/** A credit after its badge words: a ③ credit that repeats them ("示意图 · 摄影 … / Unsplash") drops the repeat. */
+// eslint-disable-next-line react-refresh/only-export-components
+export const creditAfterLabel = (label: string, credit: string) => credit.startsWith(`${label} · `) ? credit.slice(label.length + 3) : credit;

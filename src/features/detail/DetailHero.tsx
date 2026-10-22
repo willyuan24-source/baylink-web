@@ -1,4 +1,5 @@
 import { Cover, CoverImage, COVER_SIZES, useTierLabel } from '../../components/ui';
+import { creditAfterLabel } from '../../components/ui/CoverImage';
 import { useUiCopy } from '../../components/ui/ui-copy';
 import { translateText } from '../../i18n/locale';
 import type { ImageCover, ResolvedCover } from '../../lib/cover';
@@ -41,9 +42,10 @@ export function HeroCredit({ cover, archive }: { cover: ResolvedCover; archive?:
   const label = (shown: ImageCover) => archive ? pick(shown.label) : tierLabel(shown);
   if (cover.tier === 'type') return null;
   const { image } = cover;
-  const credit = translateText(image.credit, locale);
+  const words = label(cover);
+  const credit = creditAfterLabel(words, translateText(image.credit, locale));
   return <span className="detail-credit">
-    <span className="detail-credit__label">{label(cover)}</span>
+    <span className="detail-credit__label">{words}</span>
     {credit && (webLink(image.creditUrl) ? <a href={image.creditUrl} target="_blank" rel="noopener noreferrer">{credit}</a> : <span>{credit}</span>)}
     {webLink(image.licenseUrl) && <a href={image.licenseUrl} target="_blank" rel="noopener noreferrer" data-simple="hide">{t('图片授权', 'License')}</a>}
   </span>;
