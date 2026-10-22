@@ -12,7 +12,8 @@
 .together-page p { margin:0; }
 .together-page label { display:flex; flex-direction:column; gap:var(--sp-2); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-ui); color:var(--color-ink-2); }
 .together-page :is(input:not([type=checkbox]),textarea,select:not(.ui-select__field)) { box-sizing:border-box; width:100%; min-height:var(--control-height); padding:var(--sp-2) var(--sp-3); border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:var(--lh-ui); }
-.together-page textarea { min-height:6.5rem; max-height:24rem; resize:none; field-sizing:content; line-height:var(--lh-read); }
+/* After the field rule above and as specific ((0,2,1)), so a textarea keeps its height. */
+.together-page :is(textarea):not(.ui-select__field) { min-height:6.5rem; max-height:24rem; resize:none; field-sizing:content; line-height:var(--lh-read); }
 .together-page :is(input,textarea):disabled { border-color:var(--color-line-strong); background:var(--color-surface-2); color:var(--color-ink-3); }
 .together-page .outing-check { flex-direction:row; align-items:flex-start; gap:var(--sp-3); min-height:var(--control-height); margin:var(--sp-4) 0; font-size:var(--text-fact); line-height:var(--lh-read); color:var(--color-ink-2); }
 .together-page .outing-check input { flex:none; width:1.125rem; height:1.125rem; margin-top:var(--sp-1); accent-color:var(--color-brand); }
@@ -78,6 +79,7 @@
    (desktop CLS 0.043 → 0, live-1021). */
 .together-page .outing-toolbar { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); margin:var(--sp-5) 0; }
 .together-page .outing-toolbar h2 { font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
+.together-page h2.outing-toolbar { margin-bottom:0; font-size:var(--text-card); font-weight:600; line-height:var(--lh-card); }
 .together-page .outing-results { min-height:20rem; }
 .together-page .outing-read-status { padding:var(--sp-5) 0; font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-2); }
 .together-page .outing-empty { display:flex; flex-direction:column; align-items:center; gap:var(--sp-2); padding:var(--sp-5); text-align:center; }
@@ -117,7 +119,7 @@
 .together-page .outing-detail-description { font-size:var(--text-reading); line-height:var(--lh-read); color:var(--color-ink-2); white-space:pre-wrap; overflow-wrap:anywhere; }
 .together-page .outing-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-3) var(--sp-5); margin:var(--sp-5) 0; }
 .together-page .outing-facts div { min-width:0; padding:var(--sp-3) 0; border-bottom:1px solid var(--color-line); }
-.together-page .outing-facts dt { margin-bottom:var(--sp-1); font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-3); }
+.together-page .outing-facts dt { display:flex; align-items:center; gap:var(--sp-2); margin-bottom:var(--sp-1); font-size:var(--text-fact); line-height:var(--lh-ui); color:var(--color-ink-3); }
 .together-page .outing-facts dd { margin:0; font-size:var(--text-body); font-weight:600; line-height:var(--lh-read); overflow-wrap:anywhere; }
 .together-page .outing-members { margin:0; padding:0; list-style:none; scroll-margin-top:6rem; }
 .together-page .outing-members li { padding:var(--sp-4) 0; border-bottom:1px solid var(--color-line); }
@@ -146,6 +148,7 @@
 .together-page .outing-form>h2 { margin:var(--sp-4) 0 var(--sp-2); font-size:var(--text-section); font-weight:600; line-height:var(--lh-section); }
 .together-page .outing-form fieldset { min-width:0; margin:0; padding:0; border:0; }
 .together-page .outing-form-section { padding:var(--sp-5) 0; border-bottom:1px solid var(--color-line); }
+.together-page .outing-form-section>.outing-footnote { margin-bottom:var(--sp-4); }
 .together-page .outing-form-section h3 { display:flex; align-items:center; gap:var(--sp-3); margin:0 0 var(--sp-4); font-size:var(--text-card); font-weight:600; line-height:var(--lh-card); }
 .together-page .outing-step { display:inline-grid; place-items:center; min-width:2rem; min-height:2rem; border:1px solid var(--color-line-strong); border-radius:var(--r-circle); color:var(--color-brand); font-size:var(--text-fact); font-weight:400; }
 .together-page .outing-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-4) var(--sp-5); }

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Select } from '../../components/ui/Select';
 import { Flag, MessageCircle, RefreshCw, Send } from 'lucide-react';
 import type { AppContextValue } from '../../app/context';
 import { outings, type Outing, type OutingMessage } from '../../lib/outings';
@@ -20,7 +21,7 @@ export function OutingReport({ outingId, messageId, session, onClose }: { outing
   };
   return <form className="outing-report" onSubmit={event => void submit(event)} aria-label={t('举报内容', 'Report content')}>
     {sent ? <p role="status">{t('举报已提交，平台会审核；这不会自动取消小队。', 'Your report was submitted for review. This does not automatically cancel the outing.')}</p> : <>
-      <label>{t('举报原因', 'Reason')}<select value={reason} onChange={e => setReason(e.target.value)} disabled={busy}>{[['spam','广告与垃圾信息','Spam'],['scam','疑似诈骗','Suspected scam'],['harassment','骚扰','Harassment'],['illegal','涉嫌违法','Illegal content'],['misleading','误导信息','Misleading information'],['duplicate','重复内容','Duplicate'],['other','其他','Other']].map(([value, zh, en]) => <option value={value} key={value}>{t(zh,en)}</option>)}</select></label>
+      <label>{t('举报原因', 'Reason')}<Select value={reason} onChange={e => setReason(e.target.value)} disabled={busy}>{[['spam','广告与垃圾信息','Spam'],['scam','疑似诈骗','Suspected scam'],['harassment','骚扰','Harassment'],['illegal','涉嫌违法','Illegal content'],['misleading','误导信息','Misleading information'],['duplicate','重复内容','Duplicate'],['other','其他','Other']].map(([value, zh, en]) => <option value={value} key={value}>{t(zh,en)}</option>)}</Select></label>
       <label>{t('补充说明（不填写敏感资料）', 'Details (no sensitive information)')}<textarea value={details} maxLength={1000} onChange={e => setDetails(e.target.value)} disabled={busy} /></label>
       {error && <p role="alert">{error}</p>}<button className="outing-secondary" disabled={busy} type="submit">{busy ? t('正在提交…','Submitting…') : t('提交举报','Submit report')}</button>
     </>}<button className="outing-link-button" disabled={busy} type="button" onClick={onClose}>{t('关闭','Close')}</button>

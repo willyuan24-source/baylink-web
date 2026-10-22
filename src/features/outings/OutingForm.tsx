@@ -4,7 +4,9 @@ import { ArrowLeft, Sparkles } from 'lucide-react';
 import { MONTHLY_EVENTS } from '../../data/monthly-edition';
 import { getBayAreaToday } from '../../lib/monthly';
 import { outings, type Outing, type OutingAiDraft, type OutingCreate, type OutingDraft, type OutingResult } from '../../lib/outings';
-import { useOutingCopy } from './outing-copy';
+import { outingDays, outingTimes, useOutingCopy } from './outing-copy';
+import { Select } from '../../components/ui/Select';
+import { dateWords } from '../../components/ui/date-words';
 import { outingError, type OutingSession } from './outing-session';
 import { OutingCoverPicker } from './OutingCoverPicker';
 
@@ -16,7 +18,7 @@ export const emptyOutingDraft = (eventId = '', date = ''): OutingDraft => {
 };
 type Props = { initial: OutingDraft; outing?: Outing; session: OutingSession; onSaved: (result: OutingResult) => void; onCancel: () => void; onRefresh?: () => void };
 export function OutingForm({ initial, outing, session, onSaved, onCancel, onRefresh }: Props) {
-  const { t, locale } = useOutingCopy();
+  const { t, locale } = useOutingCopy(), words = dateWords(locale);
   const [draft, setDraft] = useState(initial), [adult, setAdult] = useState(false), [publicPlace, setPublicPlace] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [intent, setIntent] = useState('');
   const [ai, setAi] = useState<OutingAiDraft | null>(null), [aiBusy, setAiBusy] = useState(false), [aiError, setAiError] = useState('');
@@ -94,11 +96,11 @@ export function OutingForm({ initial, outing, session, onSaved, onCancel, onRefr
         <OutingCoverPicker outing={draft} onChange={cover => set('cover', cover)} disabled={busy} />
       </section>
       <section className="outing-form-section"><h3><span className="outing-step">02</span>{t('把时间和地点说清楚', 'Set the time and meeting place')}</h3><div className="outing-fields">
-        <label>{t('参加日期', 'Outing date')}<input type="date" required min={getBayAreaToday()} value={draft.date} onChange={e => set('date', e.target.value)} /></label><label>{t('人数上限（包含你）', 'Capacity (including you)')}<select value={draft.capacity} onChange={e => set('capacity', Number(e.target.value))}>{[2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</select></label>
-        <label>{t('集合时间', 'Meeting time')}<input type="time" required value={draft.startTime} onChange={e => set('startTime', e.target.value)} /></label><label>{t('预计结束时间', 'Expected end time')}<input type="time" required value={draft.endTime} onChange={e => set('endTime', e.target.value)} /></label>
+        <label>{t('参加日期', 'Outing date')}<Select required value={draft.date} onChange={e => set('date', e.target.value)}><option value="" disabled>{t('选择日期', 'Choose a date')}</option>{outingDays(getBayAreaToday(), 90, draft.date).map(value => <option key={value} value={value}>{words.day(value)}</option>)}</Select></label><label>{t('人数上限（包含你）', 'Capacity (including you)')}<Select value={draft.capacity} onChange={e => set('capacity', Number(e.target.value))}>{[2,3,4,5,6,7,8].map(n => <option key={n} value={n}>{n}</option>)}</Select></label>
+        <label>{t('集合时间', 'Meeting time')}<Select required value={draft.startTime} onChange={e => set('startTime', e.target.value)}><option value="" disabled>{t('选择时间', 'Choose a time')}</option>{outingTimes(draft.startTime).map(value => <option key={value} value={value}>{value}</option>)}</Select></label><label>{t('预计结束时间', 'Expected end time')}<Select required value={draft.endTime} onChange={e => set('endTime', e.target.value)}><option value="" disabled>{t('选择时间', 'Choose a time')}</option>{outingTimes(draft.endTime).map(value => <option key={value} value={value}>{value}</option>)}</Select></label>
         <p className="outing-footnote is-wide">{t('日期和时间均按湾区当地时间 America/Los_Angeles。多日活动请只选本小队实际参加的一天。', 'All dates and times use America/Los_Angeles. For a multi-day event, choose the one day this outing will attend.')}</p>
         <label>{t('城市', 'City')}<input required maxLength={80} value={draft.city} onChange={e => set('city', e.target.value)} /></label><label>{t('公共集合地点', 'Public meeting place')}<input required maxLength={200} value={draft.venue} onChange={e => set('venue', e.target.value)} placeholder={t('明确场所与入口，不填私人住址', 'Name the public place and entrance, not a home address')} /></label>
-        <label>{t('出行方式', 'Transport')}<select value={draft.transport} onChange={e => set('transport', e.target.value as OutingDraft['transport'])}><option value="own">{t('各自到场', 'Arrive independently')}</option><option value="transit">{t('公共交通同行', 'Public transit together')}</option><option value="walk">{t('步行同行', 'Walk together')}</option></select></label><label>{t('沟通语言', 'Language')}<select value={draft.language} onChange={e => set('language', e.target.value as OutingDraft['language'])}><option value="any">{t('不限', 'Any')}</option><option value="zh">{t('中文', 'Chinese')}</option><option value="en">{t('英文', 'English')}</option></select></label>
+        <label>{t('出行方式', 'Transport')}<Select value={draft.transport} onChange={e => set('transport', e.target.value as OutingDraft['transport'])}><option value="own">{t('各自到场', 'Arrive independently')}</option><option value="transit">{t('公共交通同行', 'Public transit together')}</option><option value="walk">{t('步行同行', 'Walk together')}</option></Select></label><label>{t('沟通语言', 'Language')}<Select value={draft.language} onChange={e => set('language', e.target.value as OutingDraft['language'])}><option value="any">{t('不限', 'Any')}</option><option value="zh">{t('中文', 'Chinese')}</option><option value="en">{t('英文', 'English')}</option></Select></label>
         <label className="is-wide">{t('费用与报名说明', 'Costs and registration')}<textarea required maxLength={300} value={draft.costNote} onChange={e => set('costNote', e.target.value)} placeholder={t('写清门票、餐饮和交通由谁支付；未知费用请写待确认，不把入场免费当作整趟免费。', 'Explain ticket, food and transport costs. Mark unknown costs as unconfirmed; free admission does not mean a free outing.')} /></label>
       </div></section>
       <section className="outing-form-section"><h3><span className="outing-step">03</span>{t('发布前确认', 'Confirm before publishing')}</h3>
