@@ -59,5 +59,21 @@ test('the eight home entry tiles: a lazy 480 w photo each, its name and one line
   const over = (alpha: number) => [30, 24, 16].map(channel => (alpha * channel + (1 - alpha) * 255) / 255);
   const luminance = (rgb: number[]) => rgb.map(lin).reduce((sum, value, index) => sum + value * [.2126, .7152, .0722][index], 0);
   assert.ok(1.05 / (luminance(over(.62)) + .05) >= 4.5, `${(1.05 / (luminance(over(.62)) + .05)).toFixed(2)}:1`);
-  assert.doesNotMatch(readFileSync('src/features/home/MoodCircles.tsx', 'utf8'), /ui-chip/, 'the tiles are .home-mood, not the shared chip');
+  assert.doesNotMatch(readFileSync('src/features/home/MoodCircles.tsx', 'utf8'), /className="[^"]*ui-chip/, 'the tiles are .home-mood, not the shared chip');
+});
+
+test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a row\'s ♡ sits on its thumbnail at a third of it, hit area 44 px', async () => {
+  const { readFileSync } = await import('node:fs');
+  const library = readFileSync('src/features/guides/guide-library.css', 'utf8');
+  assert.match(library, /\.gl-all-cell \{ display:none; \}/);
+  assert.match(library, /html:not\(\[data-reading\$=large\]\) \.gl-all-cell \{ display:flex; grid-column:span var\(--gl-rest, 1\); \}/);
+  assert.match(readFileSync('src/components/GuidesHome.tsx', 'utf8'), /className="gl-all-cell" style=\{\{ '--gl-rest': 4 - shown \}/);
+  const home = readFileSync('src/components/home-discovery.css', 'utf8');
+  assert.match(home, /\.ui-feed-card__save \{ top:var\(--sp-1\); right:auto; left:calc\(112px - 36px - var\(--sp-1\)\); \}/, 'home 大 / 特大 rows: ♡ on the thumbnail');
+  assert.doesNotMatch(home, /\.ui-feed-card__title \{ padding-right:48px; \}/, 'the title keeps the row width');
+  const events = readFileSync('src/features/events/events.css', 'utf8');
+  for (const css of [home, events]) {
+    assert.match(css, /width:36px; height:36px; min-height:36px;/);
+    assert.match(css, /\.saves-toggle::after \{ content:""; position:absolute; inset:-4px; \}/, '36 + 2 × 4 = 44 px to tap');
+  }
 });

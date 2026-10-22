@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState, type MouseEvent } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type CSSProperties, type MouseEvent } from 'react';
 import { ChevronRight, Heart, Search, X } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { Guide, GuideCategory } from '../data/guides';
@@ -192,11 +192,15 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;
   /** A list: rows on a phone and 3:2 covers on a desktop, or 2-up photo cards everywhere when most of it is photos (3 of a
    *  4-guide preview; three quarters of a longer list). */
-  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
-    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}</FeedGrid>
+  // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell over the rest of the row
+  // (captain 10-21 18:30: no empty cells); guide-library.css draws it from 1024 px only.
+  const allCell = (all?: { total: number; open: () => void }, shown = 0) => all && shown < 4
+    ? <li className="gl-all-cell" style={{ '--gl-rest': 4 - shown } as CSSProperties}><button type="button" onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></button></li> : null;
+  const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false, all?: { total: number; open: () => void }) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
+    ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid>
     : <>
       <div className="gl-view" data-view="phone">{rows(items, label)}</div>
-      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}</FeedGrid></div>
+      <div className="gl-view" data-view="desk"><FeedGrid label={label}>{items.map(guide => <FeedItem key={guide.slug}>{feed(guide)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid></div>
     </>;
   const topicName = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!);
   const summaryOf = (id: GuideTopicId) => pick(GUIDE_TOPICS.find(item => item.id === id)!.summary);
@@ -216,7 +220,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
       <div><h2 id={`gl-topic-${item.id}`}>{pick(item)}</h2><p>{pick(item.summary)}</p></div>
       <Button variant="quiet" onClick={() => update({ topic: item.id })}>{t(`看全部 ${total} 篇`, `All ${total}`)}</Button>
     </div>
-    {list(preview, pick(item))}
+    {list(preview, pick(item), false, { total, open: () => update({ topic: item.id }) })}
   </section>);
 
   return <div className="gl-page" data-testid="guides-home">

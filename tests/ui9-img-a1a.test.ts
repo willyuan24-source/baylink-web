@@ -47,8 +47,13 @@ test('every venue photo traces to its approval and is a photograph the table alo
 test('a venue photo serves the records held there, and the index ships every picture it names, no dead key', () => {
   const chase = index.events.find(event => event.id === 'sf-doja-cat-2026');
   if (chase) assert.ok(chase.imageKeys?.includes('roundup-chase-center'), 'a Chase Center concert gets the Chase Center photo');
-  for (const list of [index.events, index.offers, index.openings]) for (const record of list) {
+  // UI9-IMG-A1b: the boards' offers and new shops ship in events-boards.json with the pictures only they use.
+  const boards = JSON.parse(readFileSync('src/data/generated/events-boards.json', 'utf8')) as { offers: typeof index.events; openings: typeof index.events; images: typeof index.images };
+  for (const record of index.events) {
     for (const key of [record.imageKey, ...record.imageKeys ?? []]) if (key) assert.ok(Object.hasOwn(index.images, key), `${record.id}: ${key} is shipped`);
+  }
+  for (const record of [...boards.offers, ...boards.openings]) {
+    for (const key of [record.imageKey, ...record.imageKeys ?? []]) if (key) assert.ok(Object.hasOwn(index.images, key) || Object.hasOwn(boards.images, key), `${record.id}: ${key} is shipped`);
   }
   const offer = { id: 'muir-woods-fee-free-oct27', imageKey: 'region-muir-boardwalk' };
   assert.equal(getCover(coverItemFor('offer', offer), { images: GUIDE_IMAGES, today: '2026-10-21' }).tier, 'venue', 'an offer may show its venue\'s photo (②)');

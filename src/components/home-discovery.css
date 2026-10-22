@@ -145,7 +145,11 @@ html[data-simple] .home-credits a { display:inline-flex; align-items:center; min
 :is(html[data-simple] .home-picks,html[data-reading$=large] :is(.home-picks li+li,.home-feed,.home-offers,.home-guides)) .ui-feed-card { display:grid; grid-template-columns:112px minmax(0, 1fr); gap:var(--sp-1) var(--sp-3); align-content:start; --ui-feed-ratio:1 / 1; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card>* { grid-column:2; }
 :is(html[data-simple] .home-picks,html[data-reading$=large] .home-discovery) .ui-feed-card__media { grid-area:1 / 1 / span 5; margin:0; }
-html[data-reading$=large]:not([data-simple]) .home-discovery .ui-feed-card__title { padding-right:48px; }
+/* 大 / 特大 rows: the ♡ sits on the thumbnail's top-right corner, never over the title (captain 10-21 18:30, the LumaFest row),
+   a 36 px circle with a 44 px hit area, so it covers about a third of the 112 px picture. */
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save { top:var(--sp-1); right:auto; left:calc(112px - 36px - var(--sp-1)); }
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save .saves-control .saves-toggle { position:relative; width:36px; height:36px; min-height:36px; }
+html[data-reading$=large]:not([data-simple]) :is(.home-picks li+li,.home-feed,.home-offers,.home-guides) .ui-feed-card__save .saves-toggle::after { content:""; position:absolute; inset:-4px; }
 html[data-simple] .home-picks__list { grid-template-columns:minmax(0, 1fr); gap:var(--sp-2); }
 html[data-simple] .home-picks .ui-feed-card { padding:var(--sp-1) var(--sp-3); border-radius:var(--r-lg); background:var(--color-surface); }
 html[data-simple] .home-picks .ui-feed-card__save { display:none; }

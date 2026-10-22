@@ -52,6 +52,8 @@
 .gl-page .ui-feed-grid { --ui-feed-ratio:3 / 2; }
 /* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
 .gl-view[data-view=desk] { display:none; }
+/* A short topic row ends on its 看全部 cell over the rest of the row from 1024 px (captain 10-21 18:30: no empty cells). */
+.gl-all-cell { display:none; }
 
 /* 长辈与家属先看: D2's band — three rows on a sunken panel, three across on a desktop; then 看全部 N 篇. */
 .gl-band { padding:var(--inset-card); border-radius:var(--r-xl); background:var(--color-surface-2); }
@@ -132,4 +134,10 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   .gl-band .gl-band__rows { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:var(--grid-gutter); }
   .gl-band__all { width:auto; }
   .gl-page .gl-band .ui-row-card { height:100%; box-sizing:border-box; }
+}
+@media (min-width:1024px) {
+  html:not([data-reading$=large]) .gl-all-cell { display:flex; grid-column:span var(--gl-rest, 1); }
+  .gl-all-cell>button { display:flex; flex:1; align-items:center; justify-content:center; gap:var(--sp-1); min-height:var(--control-height); border:1px dashed var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-brand-deep); font:inherit; font-size:var(--fs-body); font-weight:600; cursor:pointer; }
+  .gl-all-cell>button:hover { background:var(--color-surface); }
+  .gl-all-cell svg { width:1.125rem; height:1.125rem; }
 }
