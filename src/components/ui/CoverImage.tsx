@@ -53,7 +53,7 @@ const failedBeforeHydration = (img: HTMLImageElement | null) => !!img && img.com
  * board (poster), and one badge at its bottom-left (DECISIONS 23). Render through `getCover()` and <Cover>; never pick
  * images here. A file that fails to load (onError, DECISIONS 21) becomes the cover's `fallback` (a same-category ③
  * picture), and when that fails too the frame keeps its LQIP colour: never an information card. The AI 3D postcards
- * (`image.scene3d`) keep their frame and top-left ink badge exactly as before (DECISIONS 1).
+ * (`image.scene3d`) and the pictures outside the listing feeds keep their frame and top-left ink badge (DECISIONS 1, 2).
  */
 export function CoverImage({ image, label, tier, fit = 'cover', focal = [50, 40], ratio, ratioLock, sizes = COVER_SIZES.feed, priority, ended, decorative, kind, fallback, children, className }: CoverImageProps) {
   // 0: the cover's own file; 1: its fallback; 2: neither loaded (the LQIP colour shows).
@@ -69,7 +69,10 @@ export function CoverImage({ image, label, tier, fit = 'cover', focal = [50, 40]
     data-family={listing ? fit === 'contain' ? 'poster' : 'photo' : undefined} data-kind={listing ? kind : undefined} data-tier={tier} style={style}>
     {failed < 2 && <img key={shown.src} className="ui-cover__img" src={shown.src} srcSet={shown.srcSet} sizes={sizes} alt={decorative ? '' : image.alt} width={image.width} height={image.height} decoding="async" style={imgStyle} {...loading}
       onError={fail} ref={img => { if (failedBeforeHydration(img)) fail(); }} />}
-    {label && <ProvenanceBadge label={label} tier={tier} plain={!!image.scene3d} />}
+    {/* A listing cover's chip sits bottom-left (DECISIONS 23); a picture outside the listing feeds (/explore's attraction
+        cards, whose caption covers the bottom, a guide's title picture, a detail page's venue photo) and the 3D postcards
+        keep the top-left ink badge they had (DECISIONS 1 and 2); an 88 px thumbnail always takes the chip. */}
+    {label && <ProvenanceBadge label={label} tier={tier} plain={!listing && (!!image.scene3d || sizes !== COVER_SIZES.thumb)} />}
     {children}
   </div>;
 }

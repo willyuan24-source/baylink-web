@@ -142,11 +142,11 @@ test('the cover sheet: no uppercase, nothing larger than the page H1, tokens onl
   assert.equal(poster.container.querySelectorAll('img').length, 1, 'no blurred backdrop');
   assert.equal(poster.container.querySelector('[data-cover]')?.getAttribute('data-family'), 'poster');
   cleanup();
-  // DECISIONS 23: one badge per picture at its bottom-left, the chip look, outside the listing feeds too (a guide's title
-  // picture, a detail photo); only the 3D postcards keep their own badge.
+  // A picture outside the listing feeds (no kind: /explore's attraction cards, whose caption covers the bottom; a guide's
+  // title picture) keeps its top-left badge as it was (DECISIONS 2).
   const outside = wrap(<CoverImage image={photo} label="资料图 · 2024" />);
   assert.equal(outside.container.querySelector('[data-cover="image"]')?.hasAttribute('data-family'), false);
-  assert.equal(outside.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), true);
+  assert.equal(outside.container.querySelector('[data-provenance]')?.hasAttribute('data-chip'), false);
   cleanup();
   // The 3D postcards: the same markup as before UI9-C (no family, no chip attribute) and the same badge rule.
   const postcard = wrap(<CoverImage image={{ ...photo, scene3d: true }} label="3D 场景插图" ratio="16:9" ratioLock kind="place" />);
