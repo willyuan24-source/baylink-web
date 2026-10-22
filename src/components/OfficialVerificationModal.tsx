@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import { Loader2, BadgeCheck } from 'lucide-react';
-import { ModalShell, useClosing } from './ui/Modal';
+import { ModalShell } from './ui/Modal';
+import { useClosing } from './ui/closing';
 import { CloseButton } from './ui/CloseButton';
 
 export type OfficialVerificationType =

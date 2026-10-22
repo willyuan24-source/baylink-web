@@ -157,7 +157,7 @@ test('cards omit expired and invalid dated offers without mutating source order'
   assert.deepEqual(input.map(offer => offer.id), originalIds);
 });
 
-test('each card keeps official links separate from image zoom and complete poster artwork', () => {
+test('each card keeps official links separate from image zoom and complete poster artwork', async () => {
   install();
   const view = render(<FreebieBoard offers={[base]} today="2026-09-09" />);
   const cardElement = view.getByRole('article', { name: base.title });
@@ -179,7 +179,8 @@ test('each card keeps official links separate from image zoom and complete poste
   const opener = card.getByRole('button', { name: `放大${base.brand}配图：${picture.alt}` });
   opener.focus();
   fireEvent.click(opener);
-  const dialog = within(view.getByRole('dialog', { name: `图片放大：${picture.alt}` }));
+  // The enlarged picture is a chunk of its own (GuideLightbox.tsx, UI9-R1-OVERLAYS): it arrives a moment after the tap.
+  const dialog = within(await view.findByRole('dialog', { name: `图片放大：${picture.alt}` }));
   assert.equal(dialog.getByRole('img').getAttribute('src'), picture.src);
   assert.equal(dialog.getByRole('img').getAttribute('srcset'), null);
   const close = dialog.getByRole('button', { name: '关闭放大图片' });

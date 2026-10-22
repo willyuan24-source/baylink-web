@@ -1,12 +1,13 @@
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
-import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin, X } from 'lucide-react';
+import { Suspense, useEffect, useId, useRef, useState } from 'react';
+import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin } from 'lucide-react';
 import type { GuideImage } from '../data/guide-media';
 import type { GuideBlock } from '../data/guides';
-import { ModalShell, useClosing } from './ui/Modal';
-import { useUiCopy } from './ui/ui-copy';
+import type { GuideLightboxProps } from './GuideLightbox';
+import { ChunkBoundary } from './ChunkBoundary';
+import { DialogWait } from './ui/DialogWait';
+import { lazyDialog } from './ui/lazy-dialog';
 import { useLocale } from '../i18n/locale';
 import { getImageProvenance } from '../lib/image-provenance';
-import './guide-lightbox.css';
 
 type FigureProps = { image: GuideImage; variant?: 'cover' | 'inline' | 'poster' | 'preview' };
 const isWebLink = (url?: string) => !!url && /^https?:\/\//i.test(url);
@@ -26,25 +27,16 @@ export function GuideImageCaption({ image, poster = false, showKind = true }: { 
   </figcaption>;
 }
 
+const lightbox = lazyDialog(() => import('./GuideLightbox'), m => m.GuideLightbox);
+
 /**
- * The picture, enlarged (N10 / N13 / N24): a surface panel sized to the picture over the site's one scrim (no blur), with its
- * credit and F's close button (CloseButton's markup: the article does not load Button.tsx for it). The dialogs' motion: the
- * scrim fades, the panel grows from 95% over --dur-2, and both leave the same way while useClosing keeps them mounted.
- * Styles: guide-visuals.css.
+ * The picture, enlarged (GuideLightbox.tsx). Its code and styles are a chunk of their own, out of the guide pages' first
+ * paint: warmed once the page is idle after a figure is drawn, so a tap usually opens it at once; before that the tap shows
+ * the scrim and a spinner (DialogWait) until it arrives. If it cannot load (offline), it closes and the page stays.
  */
-export function GuideImageLightbox({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) {
-  const [closing, close] = useClosing(onClose);
-  const label = useUiCopy().t('关闭放大图片', 'Close the picture');
-  const motion = closing ? 'animate-out fade-out fill-mode-forwards ease-in' : 'animate-in fade-in ease-out';
-  return <ModalShell label={`图片放大：${image.alt}`} onClose={close} className={`guide-image-overlay duration-150 ${motion}`}>
-    <div className={`guide-image-dialog duration-150 ${motion} ${closing ? 'zoom-out-95' : 'zoom-in-95'}`} style={{ '--guide-image-ratio': image.width / image.height } as CSSProperties}>
-      <button type="button" className="ui-icon-button ui-close guide-image-close" aria-label={label} title={label} onClick={close}><X aria-hidden="true" strokeWidth={1.75} /></button>
-      <figure>
-        <img src={image.src} alt={image.alt} width={image.width} height={image.height} style={image.width < 480 ? { maxWidth: image.width, marginInline: 'auto' } : undefined} decoding="async" />
-        <GuideImageCaption image={image} poster={poster} />
-      </figure>
-    </div>
-  </ModalShell>;
+export function GuideImageLightbox(props: GuideLightboxProps) {
+  const [{ Dialog: Lightbox, waits }] = useState(lightbox.current);
+  return <ChunkBoundary onFail={props.onClose}><Suspense fallback={<DialogWait />}><Lightbox {...props} afterWait={waits} /></Suspense></ChunkBoundary>;
 }
 
 export function GuideFigure(props: FigureProps) {
@@ -53,6 +45,7 @@ export function GuideFigure(props: FigureProps) {
 
 function GuideFigureSession({ image, variant = 'inline' }: FigureProps) {
   const [open, setOpen] = useState(false);
+  useEffect(() => { lightbox.warm(); }, []);
   // A tall photo in a pilot guide's step card is cut to 4:5 around its focus (guide-visuals.css), so it never fills more than a
   // screen. Only there: other articles and the city cards keep their own rules for the same figure.
   const portrait = variant === 'inline' && image.kind === 'photo' && !image.fullFrame && image.height > image.width;

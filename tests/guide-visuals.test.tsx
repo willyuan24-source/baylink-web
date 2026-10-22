@@ -85,13 +85,14 @@ test('guide figures preserve image dimensions, responsive sources, provenance, a
   assert.equal(view.queryByText('AI 示意图 · 非实景照片'), null, 'legacy poster provenance must not be invented');
 });
 
-test('zoom dialog traps focus, retains credit links, and restores focus and scrolling when closed', () => {
+test('zoom dialog traps focus, retains credit links, and restores focus and scrolling when closed', async () => {
   document.body.style.overflow = 'auto';
   const view = render(<GuideFigure image={photo} />);
   const opener = view.getByRole('button', { name: `放大图片：${photo.alt}` });
   opener.focus();
   fireEvent.click(opener);
-  const dialog = view.getByRole('dialog', { name: `图片放大：${photo.alt}` });
+  // The enlarged picture is a chunk of its own (GuideLightbox.tsx, UI9-R1-OVERLAYS): it arrives a moment after the tap.
+  const dialog = await view.findByRole('dialog', { name: `图片放大：${photo.alt}` });
   assert.equal(dialog.getAttribute('aria-modal'), 'true');
   assert.equal(document.body.style.overflow, 'hidden');
   const close = within(dialog).getByRole('button', { name: '关闭放大图片' });
@@ -116,10 +117,10 @@ test('zoom dialog traps focus, retains credit links, and restores focus and scro
   assert.equal(view.queryByRole('dialog'), null, 'backdrop is also a usable close target');
 });
 
-test('changing an image closes its old dialog and releases the page scroll lock', () => {
+test('changing an image closes its old dialog and releases the page scroll lock', async () => {
   const view = render(<GuideFigure image={photo} />);
   fireEvent.click(view.getByRole('button', { name: `放大图片：${photo.alt}` }));
-  assert.ok(view.getByRole('dialog'));
+  assert.ok(await view.findByRole('dialog'));
   view.rerender(<GuideFigure image={{ ...photo, src: '/test/next.webp', alt: '另一张配图' }} />);
   assert.equal(view.queryByRole('dialog'), null);
   assert.equal(document.body.style.overflow, '');
@@ -227,7 +228,7 @@ test('off-topic inline pictures are hidden: the stock laptop photo and shared AI
   }
 });
 
-test('switching guide slugs resets route and checklist state and closes any enlarged image', () => {
+test('switching guide slugs resets route and checklist state and closes any enlarged image', async () => {
   const first = 'sf-golden-gate-bridge-fort-point-guide';
   const second = 'sf-fishermans-wharf-pier39-guide';
   const view = render(article(first));
@@ -237,7 +238,7 @@ test('switching guide slugs resets route and checklist state and closes any enla
   fireEvent.click(checklist);
   assert.equal(checklist.checked, true);
   fireEvent.click(view.getAllByRole('button', { name: /^放大图片：/ })[0]);
-  assert.ok(view.getByRole('dialog'));
+  assert.ok(await view.findByRole('dialog'));
   view.rerender(article(second));
   assert.equal(view.queryByRole('dialog'), null);
   assert.equal(document.body.style.overflow, '');

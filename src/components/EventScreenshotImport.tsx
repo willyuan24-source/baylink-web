@@ -1,7 +1,8 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowRight, CalendarDays, Check, ImagePlus, LoaderCircle, Sparkles } from 'lucide-react';
-import { ModalShell, useClosing } from './ui/Modal';
+import { ModalShell } from './ui/Modal';
+import { useClosing } from './ui/closing';
 import { CloseButton } from './ui/CloseButton';
 import { api } from '../lib/api';
 import { EMPTY_EVENT, EVENT_LIMITS, downloadImportedEvent, eventDraftError, parseEventDraft, type EventDraft, type ImportedEvent } from '../lib/imported-events';

@@ -2,11 +2,15 @@
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { lazyChunk } from '../../lib/chunk-recovery';
 import { ChunkBoundary } from '../ChunkBoundary';
+import { DialogWait } from './DialogWait';
+import { lazyDialog } from './lazy-dialog';
 
-// The card loads with the first confirm (ConfirmDialog.tsx); the shell keeps only the queue.
-const ConfirmDialog = lazyChunk(() => import('./ConfirmDialog'), m => m.ConfirmDialog);
+/** How the card's chunk is fetched (a test makes it fail). */
+export const confirmChunk = { load: () => import('./ConfirmDialog') };
+// The card is a chunk of its own (ConfirmDialog.tsx); the shell keeps only the queue. ConfirmHost warms it once the page is
+// idle, so the first confirm (删除计划, 取消收藏) opens at once; one asked before that shows DialogWait until it arrives.
+const confirmCard = lazyDialog(() => confirmChunk.load(), m => m.ConfirmDialog);
 
 export type ConfirmOptions = {
   title?: string;
@@ -50,6 +54,7 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
 
   useEffect(() => {
     pushRequest = (req) => setQueue((q) => [...q, req]);
+    confirmCard.warm();
     return () => { pushRequest = null; };
   }, []);
 
@@ -66,12 +71,16 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
   const current = queue[0];
   if (!current) return null;
 
-  const drop = () => setQueue((q) => q.filter((p) => p !== current));
   // The answer resolves at once; the dialog leaves the queue when its exit has played, and the next one opens after it.
-  // If the card cannot load (offline, a stale deploy), the browser's own confirm / prompt answers instead.
-  return <ChunkBoundary key={current.id} onFail={() => {
-    const { message, input } = current.opts;
-    current.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
-    drop();
-  }}><Suspense fallback={null}><ConfirmDialog opts={current.opts} warning={<AlertTriangle size={18} />} onResolve={current.resolve} onGone={drop} /></Suspense></ChunkBoundary>;
+  return <ConfirmSlot key={current.id} request={current} onGone={() => setQueue((q) => q.filter((p) => p !== current))} />;
+};
+
+/** One confirm: the card (loaded, or loading behind DialogWait); if it cannot load (offline, a stale deploy), the browser's own confirm / prompt answers instead. */
+const ConfirmSlot = ({ request, onGone }: { request: PendingConfirm; onGone: () => void }) => {
+  const [{ Dialog: Card, waits }] = useState(confirmCard.current);
+  return <ChunkBoundary onFail={() => {
+    const { message, input } = request.opts;
+    request.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
+    onGone();
+  }}><Suspense fallback={<DialogWait />}><Card opts={request.opts} warning={<AlertTriangle size={18} />} onResolve={request.resolve} onGone={onGone} afterWait={waits} /></Suspense></ChunkBoundary>;
 };

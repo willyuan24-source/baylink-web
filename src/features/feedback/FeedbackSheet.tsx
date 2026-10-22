@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react';
 import { Check } from 'lucide-react';
-import { ModalShell, useClosing } from '../../components/ui/Modal';
+import { ModalShell } from '../../components/ui/Modal';
+import { useClosing } from '../../components/ui/closing';
 import { CloseButton } from '../../components/ui/CloseButton';
 import { translateText, useLocale } from '../../i18n/locale';
 import { recordProductEvent } from '../../lib/product-events';

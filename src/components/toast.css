@@ -1,0 +1,7 @@
+/* UI9-R1-OVERLAYS: the toast's ✕ is F's close button (ui-icon-button ui-close, ui/ui.css). Its size and centring here too, so
+   a toast on a page that never loads ui.css (404, verify-email, unsubscribe) still has the 44px circle (48 简洁, 55/60 特大
+   through --control-height); and a focus ring that shows on the ink toast: ui.css's brand ring is 2.27:1 there, white is
+   about 14:1 (WCAG 1.4.11). Loads with Toast.tsx in the entry sheet. */
+.site-toast-box>.ui-close { display:grid; place-items:center; flex:none; width:var(--control-height); height:var(--control-height); border-radius:var(--r-circle); }
+.site-toast-box>.ui-close>svg { width:1.25rem; height:1.25rem; }
+.site-toast-box>.ui-close:focus-visible { outline:2px solid var(--color-surface); outline-offset:3px; }

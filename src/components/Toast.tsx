@@ -1,11 +1,12 @@
 // Toast: one message at a time, with an optional action ("收到新私信 · 查看") or link ("已收藏 · 查看"). The site's one toast
-// (N24): saves and plans confirm through it too (features/saves/SaveToast.tsx). Styles: site-chrome.css.
+// (N24): saves and plans confirm through it too (features/saves/SaveToast.tsx). Styles: site-chrome.css; its ✕: toast.css.
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useLocale } from '../i18n/locale';
-import { useClosing } from './ui/Modal';
+import { useClosing } from './ui/closing';
+import './toast.css';
 
 /** A toast about a thing can open it: "收到新私信 · 查看" → the thread (G1). */
 export type ToastAction = { label: string; onClick: () => void };
@@ -32,7 +33,7 @@ export type ToastProps = {
 
 export const Toast = ({ message, type, action, link, closeLabel, quiet, testId, onClose }: ToastProps) => {
   // N24: a dismissed toast leaves (fades and drops 8px over --dur-2) before it unmounts; at once under reduced motion and
-  // in 简洁显示, where every duration is 0 (useClosing, ui/Modal.tsx). Unrelated rerenders do not restart the timer.
+  // in 简洁显示, where every duration is 0 (useClosing, ui/closing.ts). Unrelated rerenders do not restart the timer.
   const [leaving, dismiss] = useClosing(onClose, TOAST_EXIT_MS);
   // A pointer over the toast or focus inside it holds the timer, so the reader can still reach its buttons.
   const [held, setHeld] = useState(false);

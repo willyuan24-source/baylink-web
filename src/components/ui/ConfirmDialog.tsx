@@ -1,15 +1,19 @@
-// The confirm card (confirm.tsx keeps the queue and renders this). A chunk of its own, loaded with the first confirm, so the
-// shell every page downloads does not carry the card, its icon and its classes.
+// The confirm card (confirm.tsx keeps the queue and renders this). A chunk of its own, warmed once the page is idle (or
+// loaded with a confirm asked before that), so the shell every page downloads does not carry the card and its classes.
 import { useState, type ReactNode } from 'react';
-import { ModalShell, useClosing } from './Modal';
+import { ModalShell } from './Modal';
+import { useClosing } from './closing';
 import type { ConfirmOptions } from './confirm';
 
 type Resolver = (value: boolean | string | null) => void;
 
 // N10 / N11 / N24: the site's one scrim (no blur), the --r-xl card (rounded-3xl), and an exit: the answer goes back at once,
 // the card fades and shrinks to 95% over --dur-2 before it unmounts (useClosing; at once under reduced motion and in 简洁显示).
-/** `warning` is the danger mark (confirm.tsx passes the shell's AlertTriangle, so pages that draw it get no chunk for it). */
-export const ConfirmDialog = ({ opts, warning, onResolve, onGone }: { opts: ConfirmOptions; warning: ReactNode; onResolve: Resolver; onGone: () => void }) => {
+/**
+ * `warning` is the danger mark (confirm.tsx passes the shell's AlertTriangle, so pages that draw it get no chunk for it).
+ * `afterWait`: DialogWait already painted the scrim while this chunk loaded, so it stays instead of fading in again.
+ */
+export const ConfirmDialog = ({ opts, warning, onResolve, onGone, afterWait = false }: { opts: ConfirmOptions; warning: ReactNode; onResolve: Resolver; onGone: () => void; afterWait?: boolean }) => {
   const [inputValue, setInputValue] = useState(opts.input?.defaultValue || '');
   const [closing, leave] = useClosing(onGone);
   const hasInput = !!opts.input;
@@ -17,11 +21,12 @@ export const ConfirmDialog = ({ opts, warning, onResolve, onGone }: { opts: Conf
   const confirm = () => answer(hasInput ? inputValue : true);
   const cancel = () => answer(hasInput ? null : false);
   const motion = closing ? 'animate-out fade-out fill-mode-forwards ease-in' : 'animate-in fade-in ease-out';
+  const scrim = closing || !afterWait ? motion : '';
   return (
     <ModalShell
       onClose={cancel}
       label={opts.title || '确认操作'}
-      className={`fixed inset-0 z-[130] flex items-center justify-center bg-[color:var(--scrim)] p-6 duration-150 ${motion}`}
+      className={`fixed inset-0 z-[130] flex items-center justify-center bg-[color:var(--scrim)] p-6 duration-150 ${scrim}`}
     >
       <div className={`w-full max-w-xs rounded-3xl border border-black/[0.04] bg-white p-5 shadow-elevated duration-150 ${motion} ${closing ? 'zoom-out-95' : 'zoom-in-95'}`}>
         <div className="flex items-start gap-3">

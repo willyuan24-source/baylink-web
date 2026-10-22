@@ -24,11 +24,12 @@ dom.window.matchMedia = ((query: string) => ({
 
 const { render, fireEvent, cleanup, act, waitFor, within } = await import('@testing-library/react');
 const { MemoryRouter } = await import('react-router-dom');
-const { EXIT_MS, useClosing } = await import('../src/components/ui/Modal');
+const { EXIT_MS, useClosing } = await import('../src/components/ui/closing');
 const { GuideImageLightbox } = await import('../src/components/GuideVisuals');
-const { ConfirmHost, confirmDialog } = await import('../src/components/ui/confirm');
+const { ConfirmHost, confirmDialog, promptDialog, confirmChunk } = await import('../src/components/ui/confirm');
 const { SaveToast } = await import('../src/features/saves/SaveToast');
 const { TOAST_EXIT_MS } = await import('../src/components/Toast');
+const { EventImportDialog } = await import('../src/components/EventScreenshotImport');
 afterEach(() => { cleanup(); reduced = false; document.documentElement.removeAttribute('data-simple'); document.body.style.overflow = ''; });
 
 const read = (file: string) => readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
@@ -64,7 +65,8 @@ test('useClosing waits EXIT_MS (≥120 ms) before onClose; at once under reduced
 test('the guide lightbox leaves (animate-out) and closes with F\'s close button look', async () => {
   let closed = 0;
   const view = render(<GuideImageLightbox image={photo} onClose={() => { closed += 1; }} />);
-  const dialog = view.getByRole('dialog', { name: `图片放大：${photo.alt}` });
+  // Its own chunk (GuideLightbox.tsx): the scrim and a spinner (DialogWait) until it arrives.
+  const dialog = await view.findByRole('dialog', { name: `图片放大：${photo.alt}` });
   const close = within(dialog).getByRole('button', { name: '关闭放大图片' });
   assert.ok(close.classList.contains('ui-icon-button') && close.classList.contains('ui-close'), 'N13: the one close button');
   assert.equal(close.textContent, '', 'no 关闭 pill text');
@@ -74,6 +76,29 @@ test('the guide lightbox leaves (animate-out) and closes with F\'s close button 
   await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
 });
 
+test('a confirm whose card cannot load is answered by the browser\'s own confirm / prompt (the caller never hangs)', async () => {
+  const realLoad = confirmChunk.load;
+  const asked: string[] = [];
+  dom.window.confirm = (message?: string) => { asked.push(`confirm:${message}`); return true; };
+  dom.window.prompt = (message?: string, value?: string) => { asked.push(`prompt:${message}:${value}`); return '改好的名字'; };
+  confirmChunk.load = () => Promise.reject(new Error('offline'));
+  try {
+    const view = render(<ConfirmHost />);
+    let answer: boolean | undefined;
+    await act(async () => { void confirmDialog({ title: '删除计划', message: '删除这份已保存计划？', danger: true }).then(value => { answer = value; }); });
+    assert.ok(document.body.querySelector('.site-chunk-spinner'), 'the tap shows the scrim and a spinner while the card loads');
+    await waitFor(() => assert.equal(answer, true), { timeout: 4000 });
+    let typed: string | null | undefined;
+    await act(async () => { void promptDialog({ message: '给计划起个名字', input: { defaultValue: '周末' } }).then(value => { typed = value; }); });
+    await waitFor(() => assert.equal(typed, '改好的名字'), { timeout: 4000 });
+    assert.deepEqual(asked, ['confirm:删除这份已保存计划？', 'prompt:给计划起个名字:周末']);
+    assert.equal(view.queryByRole('dialog'), null);
+    assert.equal(document.body.querySelector('.site-chunk-spinner'), null, 'nothing left over the page');
+  } finally {
+    confirmChunk.load = realLoad;
+  }
+});
+
 test('a confirm answers at once, then leaves with an exit before the next one opens', async () => {
   const view = render(<ConfirmHost />);
   let first: boolean | undefined;
@@ -81,13 +106,31 @@ test('a confirm answers at once, then leaves with an exit before the next one op
   void confirmDialog({ message: '第二个确认' });
   const dialog = await waitFor(() => view.getByRole('dialog', { name: '删除计划' }));
   assert.match(dialog.className, /bg-\[color:var\(--scrim\)\]/);
-  assert.match(dialog.className, /animate-in/);
+  assert.match((dialog.firstElementChild as HTMLElement).className, /animate-in/, 'the card grows in');
   await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: '确认' })); });
   assert.equal(first, true, 'the answer does not wait for the exit');
   assert.match(dialog.className, /animate-out/, 'the exit plays');
   assert.equal(view.queryByRole('dialog', { name: '确认操作' }), null, 'the next confirm waits for the exit');
   await waitFor(() => assert.ok(view.getByRole('dialog', { name: '确认操作' })), { timeout: 2000 });
   assert.equal(view.queryByRole('dialog', { name: '删除计划' }), null);
+});
+
+test('the screenshot import leaves too: its ✕ plays the exit, and onClose waits EXIT_MS', async () => {
+  let closed = 0;
+  let view!: ReturnType<typeof render>;
+  await act(async () => { view = render(<MemoryRouter><EventImportDialog onClose={() => { closed += 1; }} /></MemoryRouter>); });
+  const dialog = view.getByRole('dialog', { name: '把截图变成一次出发' });
+  assert.match(dialog.className, /animate-in/);
+  const close = within(dialog).getByRole('button', { name: '关闭' });
+  assert.ok(close.classList.contains('ui-close'), 'N13: F\'s close button');
+  const started = Date.now();
+  fireEvent.click(close);
+  fireEvent.click(close);
+  assert.match(dialog.className, /animate-out/, 'the exit plays');
+  assert.match((dialog.firstElementChild as HTMLElement).className, /zoom-out-95/);
+  assert.equal(closed, 0);
+  await waitFor(() => assert.equal(closed, 1), { timeout: 2000 });
+  assert.ok(Date.now() - started >= EXIT_MS - 5, 'onClose after the exit');
 });
 
 test('SaveToast is the one Toast: its look, its close button, its exit; the announcer stays the only live region', async () => {
@@ -115,7 +158,7 @@ test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corn
     assert.doesNotMatch(css, /color-scrim-rgb\) \/ \.9|rgb\(22 46 41|rgb\(13 32 27/, `${file}: no off-token scrim`);
     for (const [, value] of css.matchAll(/(?:transition|animation)\s*:\s*([^;}]+)/g)) assert.doesNotMatch(value.replace(/var\([^)]*\)/g, ''), /\d(?:ms|s)\b/, `${file}: ${value}`);
   }
-  for (const file of ['src/components/ui/ConfirmDialog.tsx', 'src/components/OfficialVerificationModal.tsx', 'src/app/OverlayHost.tsx']) {
+  for (const file of ['src/components/ui/ConfirmDialog.tsx', 'src/components/ui/DialogWait.tsx', 'src/components/OfficialVerificationModal.tsx', 'src/app/OverlayHost.tsx']) {
     const source = read(file);
     const layers = [...source.matchAll(/fixed inset-0[^"'`]*/g)].map(match => match[0]);
     assert.ok(layers.length, `${file}: has a full-screen layer`);
@@ -129,5 +172,5 @@ test('every overlay in the lane sits on var(--scrim) without blur, on --r-* corn
     assert.match(read(file), /<CloseButton /, `${file}: F's close button`);
   }
   // The toast (shell) and the guide lightbox (article) write CloseButton's markup out instead of loading Button.tsx.
-  for (const file of ['src/components/Toast.tsx', 'src/components/GuideVisuals.tsx']) assert.match(read(file), /className="ui-icon-button ui-close[ "]/, file);
+  for (const file of ['src/components/Toast.tsx', 'src/components/GuideLightbox.tsx']) assert.match(read(file), /className="ui-icon-button ui-close[ "]/, file);
 });
