@@ -3,6 +3,8 @@ import { ArrowUpRight, ChevronDown, Copy } from 'lucide-react';
 import { calculateLoan, type LoanSchedule } from '../../lib/loan-calculator';
 import type { ShowToast } from '../../app/context';
 import { translateText, useLocale } from '../../i18n/locale';
+import { Button } from '../ui/Button';
+import { Select } from '../ui/Select';
 
 const usd = (cents: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 const duration = (months: number) => `${Math.floor(months / 12) ? `${Math.floor(months / 12)} 年` : ''}${months % 12 ? ` ${months % 12} 个月` : ''}`.trim() || '0 个月';
@@ -88,10 +90,10 @@ export function LoanCalculatorTool({ onToast }: { onToast: ShowToast }) {
   };
   return <div className="tool-form loan-calculator">
     <div className="tool-choice-row" role="group" aria-label="贷款计算方式"><button type="button" aria-pressed={mode === 'home'} onClick={() => { setMode('home'); setExample(false); }}>房价与首付</button><button type="button" aria-pressed={mode === 'loan'} onClick={() => { setMode('loan'); setExample(false); }}>直接填写贷款本金</button></div>
-    <div className="tool-inline-heading"><p className="tool-note">固定利率、每月等额还本付息。金额统一使用美元。</p><button type="button" className="tool-text-button" onClick={() => { setMode('home'); setDownMode('percent'); setValues({ price: '1000000', down: '20', principal: '800000', rate: '6', years: '30', tax: '12500', insurance: '1800', hoa: '0', pmi: '0', extra: '0' }); setExample(true); setSelectedYear(0); }}>载入贷款示例</button></div>
+    <div className="tool-inline-heading"><p className="tool-note">固定利率、每月等额还本付息。金额统一使用美元。</p><Button variant="quiet" onClick={() => { setMode('home'); setDownMode('percent'); setValues({ price: '1000000', down: '20', principal: '800000', rate: '6', years: '30', tax: '12500', insurance: '1800', hoa: '0', pmi: '0', extra: '0' }); setExample(true); setSelectedYear(0); }}>载入贷款示例</Button></div>
     {example && <p className="tool-note">演示使用 100 万房价、20% 首付、6% 年利率。仅用于试算，不代表当前利率、税率或贷款报价。</p>}
     <div className="tool-grid">
-      {mode === 'home' ? <>{moneyInput('price', '房屋价格', '例如 1000000')}<label className="tool-field"><span>首付</span><div className="loan-down-input"><input aria-label="首付数值" inputMode="decimal" maxLength={14} value={values.down} onChange={event => change('down', event.target.value)} /><select aria-label="首付单位" value={downMode} onChange={event => { setDownMode(event.target.value as 'percent' | 'amount'); change('down', ''); }}><option value="percent">%</option><option value="amount">USD</option></select></div></label></> : moneyInput('principal', '贷款本金', '例如 800000')}
+      {mode === 'home' ? <>{moneyInput('price', '房屋价格', '例如 1000000')}<label className="tool-field"><span>首付</span><div className="loan-down-input"><input aria-label="首付数值" inputMode="decimal" maxLength={14} value={values.down} onChange={event => change('down', event.target.value)} /><Select aria-label="首付单位" value={downMode} onChange={event => { setDownMode(event.target.value as 'percent' | 'amount'); change('down', ''); }}><option value="percent">%</option><option value="amount">USD</option></Select></div></label></> : moneyInput('principal', '贷款本金', '例如 800000')}
       <label className="tool-field"><span>贷款年利率（%）</span><input aria-label="贷款年利率" inputMode="decimal" maxLength={8} placeholder="填写贷款利率，例如 6" value={values.rate} onChange={event => change('rate', event.target.value)} /><small>填写 Interest rate，不是包含费用的 APR。</small></label>
       <label className="tool-field"><span>贷款年限（年）</span><input aria-label="贷款年限" inputMode="numeric" maxLength={2} value={values.years} onChange={event => change('years', event.target.value)} /><div className="loan-term-shortcuts">{[10, 15, 20, 30].map(term => <button type="button" key={term} aria-label={`选择 ${term} 年贷款`} aria-pressed={values.years === String(term)} onClick={() => change('years', String(term))}>{term} 年</button>)}</div></label>
     </div>
@@ -110,7 +112,7 @@ export function LoanCalculatorTool({ onToast }: { onToast: ShowToast }) {
       {schedule.annualSummary.length > 0 && <details className="loan-options"><summary>查看每年还款明细 <ChevronDown size={16} /></summary><div className="loan-table-scroll" tabIndex={0} role="region" aria-label="年度还款明细，可横向滚动"><table><caption>当前还款方案，金额为 USD；年份自首期开始计算</caption><thead><tr><th scope="col">年</th><th scope="col">还本金</th><th scope="col">付利息</th><th scope="col">剩余本金</th></tr></thead><tbody>{schedule.annualSummary.map(row => <tr key={row.year}><th scope="row">{row.year}</th><td>{usd(row.principalCents)}</td><td>{usd(row.interestCents)}</td><td>{usd(row.balanceCents)}</td></tr>)}</tbody></table></div></details>}
       {!schedule.payoffMonths && <p className="tool-note">贷款本金为 0，无需偿还贷款本息。房产税、保险与 HOA 仍按自填金额计入。</p>}
     </> : !error && <p className="tool-empty-result">填写房价或本金、利率与年限，马上看到月供和还款走势。</p>}
-    <div className="tool-actions"><button type="button" className="tool-button" disabled={!plan} onClick={copy}><Copy size={16} />复制贷款摘要</button><button type="button" className="tool-button-secondary" onClick={() => { setValues(INITIAL); setMode('home'); setDownMode('percent'); setExample(false); setSelectedYear(0); }}>清空贷款计算</button></div>
+    <div className="tool-actions"><Button variant="primary" disabled={!plan} onClick={copy}><Copy size={16} aria-hidden="true" />复制贷款摘要</Button><Button variant="secondary" onClick={() => { setValues(INITIAL); setMode('home'); setDownMode('percent'); setExample(false); setSelectedYear(0); }}>清空贷款计算</Button></div>
     <p className="tool-note">结果为固定利率、每月计息的估算，按美分取整并在末期调整；极小贷款月供至少 1 美分。未计贷款手续费、成交费用、利率调整或未来税费变化，不适用于仅付息、气球贷或按日计息产品。</p>
     <div className="loan-source-links"><a href="https://www.consumerfinance.gov/ask-cfpb/what-is-the-difference-between-a-mortgage-interest-rate-and-an-apr-en-135/" target="_blank" rel="noopener noreferrer">CFPB：利率与 APR <ArrowUpRight size={13} /></a><a href="https://www.consumerfinance.gov/ask-cfpb/on-a-mortgage-whats-the-difference-between-my-principal-and-interest-payment-and-my-total-monthly-payment-en-1941/" target="_blank" rel="noopener noreferrer">本息与完整月支出 <ArrowUpRight size={13} /></a></div>
   </div>;
