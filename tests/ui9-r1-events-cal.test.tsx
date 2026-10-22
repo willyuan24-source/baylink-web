@@ -81,7 +81,7 @@ test('the day head: 10/22 周四 · n 场 in the site\'s date pattern (N06), wit
   const head = view.container.querySelector('.ev-calendar__head')!;
   const h2 = head.querySelector('h2')!;
   assert.equal(h2.querySelector('.ev-calendar__date')!.textContent, `${Number(busyDay.slice(5, 7))}/${Number(busyDay.slice(8, 10))} ${weekday(busyDay)}`);
-  assert.equal(h2.textContent!.replace(/ /g, ' '), `${Number(busyDay.slice(5, 7))}/${Number(busyDay.slice(8, 10))} ${weekday(busyDay)} · ${onDay(busyDay).length} 场`);
+  assert.equal(h2.textContent!.replace(/\u00a0/g, ' '), `${Number(busyDay.slice(5, 7))}/${Number(busyDay.slice(8, 10))} ${weekday(busyDay)} · ${onDay(busyDay).length} 场`);
   assert.doesNotMatch(h2.textContent!, /月|日 /);
   assert.ok(head.querySelector('.ev-calendar__mode'), 'the toggle is in the day head');
   // A grid row: the H2 wraps beside the toggle, which never drops to a row of its own.
