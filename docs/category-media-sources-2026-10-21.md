@@ -296,6 +296,8 @@ Result: **48 of 48 checked, downloaded and registered** (all Unsplash, Unsplash 
   | calendar | `tile-calendar-2` (9.8 KB) | `tile-calendar-3` |
 
   The eight together: 98.3 KB. `npm run verify:images` checks it (each ≤ 15 KB, or the eight ≤ 120 KB; every tile photo `subject: 'tile'`, `coverOk: false`, in no card pool). The home shows the tiles from UI9-IMG-A1b.
+
+  This is the stricter reading, chosen on purpose. verify:images' second condition would also pass with `tile-seniors-1` and `tile-rainy-day-1` shown (113.6 KB for the eight; `tile-free-1` fits neither way). But DECISIONS 27's alternative to "≤ 15 KB each" is counting a tile in the home's 450 KB first view, which only UI9-IMG-A1b, the lane that renders the tiles, can measure. If that budget has room, A1b (or the owner) can show the first-ranked seniors and rainy-day photos by editing `src/data/home-tile-photos.json`; no other change is needed.
 - **New uploads, look again at the weekly review** (published within 30 days of the page read):
 
   | Key | Photo page | Page said (2026-10-21) | Downloads then |
