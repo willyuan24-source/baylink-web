@@ -63,7 +63,7 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
         return <div key={label}><dt><ProvenanceBadge className="about-badge" label={label} /></dt><dd>{t(zh, en)}</dd></div>;
       })}
     </dl>
-    <p data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={{ textDecoration: 'underline', textUnderlineOffset: '0.2em' }}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
+    <p data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={{ textDecoration: 'underline', textUnderlineOffset: 'var(--underline-offset)' }}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
   </>;
   return <PageContainer size="wide" className="about-page">
     <div className="about-layout">
@@ -103,7 +103,8 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
           </div>
         </li>
       </ul>
-      <p className="about-more">{t('还有：', 'Also: ')}<Link to="/explore">{t('按地区找景点', 'Places by area')}</Link><span className="about-more__next"><span aria-hidden="true"> · </span><Link to="/tools">{t('生活工具箱', 'Everyday tools')}</Link></span><span className="about-more__next"><span aria-hidden="true"> · </span><Link to="/opus-bay" reloadDocument>{t('3D 旧金山', '3D San Francisco')}</Link></span><span className="about-more__next"><span aria-hidden="true"> · </span><Link to="/category/rent">{t('邻里信息（测试中）', 'Neighborhood board (beta)')}</Link></span></p>
+      {/* N06: a wrapping row with a gap, no " · " separators, so no line of it starts with one (about-baylink.css). */}
+      <p className="about-more"><span>{t('还有：', 'Also:')}</span><Link to="/explore">{t('按地区找景点', 'Places by area')}</Link><Link to="/tools">{t('生活工具箱', 'Everyday tools')}</Link><Link to="/opus-bay" reloadDocument>{t('3D 旧金山', '3D San Francisco')}</Link><Link to="/category/rent">{t('邻里信息（测试中）', 'Neighborhood board (beta)')}</Link></p>
     </section>
 
     <section className="about-section" aria-labelledby="about-images-title">

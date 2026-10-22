@@ -5,14 +5,15 @@ import { setPageMetadata } from '../lib/seo';
 import { translateText, useLocale } from '../i18n/locale';
 import { useApp } from '../app/context';
 import { LazyFeedbackLink } from '../features/feedback/LazyEntryLinks';
+import { Button } from '../components/ui/Button';
 import '../components/not-found.css';
 
 /**
  * A friendly 404 in three languages (WEB-SECONDARY-B; UI9-NAV content arrangement §9): on the 1216 frame at x = 112, left
  * aligned in columns 1-8 — "404" as a 14px caption, the H1, one help line, a search, the four places people usually want
  * (2 x 2 on a desktop), 回到首页 / 问 BayBay, 反馈与报错. No illustration (P32).
- * The event, offer, opening and guide pages render it for a missing id, so it stays inside their budgeted JS graphs: no
- * WEB-UI primitives here; not-found.css draws the same container, title and button specs (ui.css) with tokens.
+ * The event, offer, opening and guide pages render it for a missing id, so it stays inside their budgeted JS graphs: its
+ * only primitive is the site Button (UI9-R1 N12), which those pages already load; not-found.css draws the rest with tokens.
  */
 export default function NotFoundPage() {
   const { pathname } = useLocation();
@@ -42,7 +43,7 @@ export default function NotFoundPage() {
       <form role="search" className="nf-search" onSubmit={event => { event.preventDefault(); if (query.trim()) navigate(`/guides?${new URLSearchParams({ q: query.trim() })}`); }}>
         <label htmlFor="missing-page-search" className="sr-only">{t('搜索生活指南', 'Search guides')}</label>
         <span className="nf-search-field"><Search aria-hidden="true" strokeWidth={1.75} /><input id="missing-page-search" type="search" value={query} onChange={event => setQuery(event.target.value)} maxLength={200} placeholder={t('搜指南或生活问题', 'A guide or a question')} /></span>
-        <button type="submit" className="nf-button" data-variant="primary">{t('搜索', 'Search')}</button>
+        <Button type="submit" variant="primary">{t('搜索', 'Search')}</Button>
       </form>
     </section>
     <nav className="nf-links" aria-label={t('常用入口', 'Popular places')}>
@@ -51,8 +52,8 @@ export default function NotFoundPage() {
       </ul>
     </nav>
     <div className="nf-actions">
-      <Link className="nf-button" data-variant="secondary" to="/">{t('回到首页', 'Back to home')}</Link>
-      {app?.openBayBay && <button type="button" className="nf-button" data-variant="secondary" onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</button>}
+      <Button variant="secondary" to="/">{t('回到首页', 'Back to home')}</Button>
+      {app?.openBayBay && <Button variant="secondary" onClick={() => app.openBayBay()} onPointerEnter={app.warmBayBay} onFocus={app.warmBayBay}>{t('问 BayBay', 'Ask BayBay')}</Button>}
     </div>
     {/* A broken link someone followed is exactly what we want to hear about. */}
     <div className="nf-feedback"><LazyFeedbackLink /></div>

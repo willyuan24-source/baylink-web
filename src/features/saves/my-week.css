@@ -3,8 +3,9 @@
  * the saved list (RowCards with covers) and this week's events. Tokens and rem only; ≥44px targets (48 in 简洁显示).
  * Panels other lanes own (bookings, groups, imported events, preference memory) keep their own styles inside
  * `.my-week__legacy`, which restores the planner-page context they were built for without its page box.
+ * The page ends 16px above the footer (UI9-R1 N15: the blank before the footer was 143 with 96 here).
  */
-.my-week { padding-block:24px 96px; color:var(--color-ink); }
+.my-week { padding-block:24px var(--sp-4); color:var(--color-ink); }
 .my-week .ui-page-header { margin-bottom:16px; }
 .my-week__legacy.planner-page { max-width:none; margin:0; padding:0; }
 .my-week__legacy .planner-account-compact { gap:8px 14px; padding:10px 14px; }
@@ -52,7 +53,7 @@
 .my-week__stops { display:grid; gap:2px; margin:0 0 12px; padding:0; list-style:none; }
 .my-week__stops>li { display:flex; align-items:center; gap:10px; min-height:var(--control-height); }
 .my-week__stops>li>span { display:grid; place-items:center; flex:none; width:1.75rem; height:1.75rem; border-radius:var(--r-circle); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-caption); font-weight:600; }
-.my-week__stops a { color:var(--color-ink); font-size:var(--text-body); line-height:1.5; text-decoration:underline; text-decoration-color:var(--color-line-strong); text-underline-offset:3px; overflow-wrap:anywhere; }
+.my-week__stops a { color:var(--color-ink); font-size:var(--text-body); line-height:1.5; text-decoration:underline var(--underline-thickness); text-decoration-color:var(--color-line-strong); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; overflow-wrap:anywhere; }
 .my-week__plan-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; }
 .my-week__plan-actions>.ui-icon-button { margin-left:auto; }
 
@@ -62,7 +63,7 @@
 /* The folds read as folds: a chevron at the end of the line (the flex summary drops the native marker), turned when open. */
 .my-week__prefs>summary { list-style:none; }
 .my-week__prefs>summary::-webkit-details-marker { display:none; }
-.my-week__prefs>summary>svg { flex:none; width:1.125rem; height:1.125rem; margin-left:auto; color:var(--color-ink-3); transition:transform 160ms ease; }
+.my-week__prefs>summary>svg { flex:none; width:1.125rem; height:1.125rem; margin-left:auto; color:var(--color-ink-3); transition:transform var(--dur-2) var(--ease-std); }
 .my-week__prefs[open]>summary>svg { transform:rotate(180deg); }
 .my-week__prefs .ui-chip-row { margin-block:8px; }
 .my-week__select { display:flex; flex-direction:column; gap:6px; max-width:16rem; margin:12px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
@@ -72,5 +73,5 @@
 .my-week__more { margin-top:24px; }
 .my-week__more>a { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; overflow-wrap:anywhere; }
 
-:is(.my-week__stops a,.my-week__prefs>summary,.my-week__select select,.my-week__more>a):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
+:is(.my-week__stops a,.my-week__prefs>summary,.my-week__select select,.my-week__more>a):focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 html[data-simple] :is(.my-week__stops>li,.my-week__prefs>summary,.my-week__select select,.my-week__more>a) { min-height:3rem; }

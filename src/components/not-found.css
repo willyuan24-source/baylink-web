@@ -1,35 +1,35 @@
-/* The 404 page (WEB-SECONDARY-B; UI9-NAV): the wide frame (content at x = 112 in a 1440 window), left aligned in columns
-   1-8, the shared H1 spec, tokens only. The page is rendered inside the detail pages' budgeted graphs too, so it repeats
-   the ui.css frame and its three button looks here instead of importing the primitives. */
-.nf-page{box-sizing:content-box;max-width:var(--container-wide);margin-inline:auto;padding:var(--sp-5) var(--page-gutter) 0;color:var(--color-ink)}
+/* The 404 page (WEB-SECONDARY-B; UI9-NAV; UI9-R1): the wide frame (content at x = 112 in a 1440 window), left aligned in
+   columns 1-8, the shared H1 spec, tokens only. Its buttons are the site Button (ui.css .ui-button, N12), which the
+   detail pages that render this page for a missing id already load. The groups sit one section gap apart (40 phone, 64
+   desktop); when the page is shorter than the window, the free space goes above 反馈与报错, so the page still ends 16px
+   above the footer instead of leaving a blank band there (N15: it was 174 on a 1440 x 900 desktop). */
+.site-main:has(>.nf-page){display:flex;flex-direction:column}
+.nf-page{display:flex;flex:1 0 auto;flex-direction:column;box-sizing:border-box;width:100%;max-width:calc(var(--container-wide) + 2 * var(--page-gutter));margin-inline:auto;padding:var(--sp-5) var(--page-gutter) var(--sp-4);color:var(--color-ink)}
 .nf-page>*{max-width:48rem}
-.nf-button{display:inline-flex;align-items:center;justify-content:center;gap:var(--sp-2);min-height:max(var(--control-height),3rem);padding:0 var(--sp-5);border:1px solid transparent;border-radius:var(--r-pill);font-size:var(--fs-body);line-height:1.25;font-weight:var(--fw-regular);text-decoration:none;cursor:pointer}
-.nf-button[data-variant=primary]{background:var(--color-brand);color:var(--color-surface);font-weight:var(--fw-strong)}
-.nf-button[data-variant=secondary]{border-color:var(--color-line-control);background:var(--color-surface);color:var(--color-ink)}
-@media (hover:hover) and (pointer:fine){.nf-button[data-variant=primary]:hover{background:var(--color-brand-hover)}.nf-button[data-variant=secondary]:hover{background:var(--color-surface-2)}}
 .nf-hero{display:flex;flex-direction:column;align-items:flex-start}
 .nf-code{margin:0;color:var(--color-ink-2);font-size:var(--fs-meta);font-variant-numeric:tabular-nums}
 .nf-hero h1{margin:var(--sp-1) 0 0;color:var(--color-ink);font-size:var(--fs-keep-24);line-height:var(--lh-tight);font-weight:var(--fw-strong);letter-spacing:0;text-wrap:balance}
 .nf-body{max-width:var(--measure);margin:var(--sp-2) 0 0;color:var(--color-ink-2);font-size:var(--fs-body);line-height:var(--lh-ui)}
 .nf-search{display:flex;flex-wrap:wrap;gap:var(--sp-2);width:100%;max-width:36rem;margin-top:var(--sp-4)}
 /* The field keeps room for its whole placeholder (eight characters at the input's size, and the search clear button): at
-   家人版 sizes 搜索 moves under it instead of cutting the placeholder's last character. */
-.nf-search-field{display:flex;flex:1 1 calc(var(--fs-body) * 12);align-items:center;gap:var(--sp-2);min-width:0;min-height:max(var(--control-height),3rem);padding:0 var(--sp-4);border:1px solid var(--color-line-control);border-radius:var(--r-pill);background:var(--color-surface);color:var(--color-ink-3)}
+   家人版 sizes 搜索 moves under it instead of cutting the placeholder's last character. Fields have the input corner
+   (--r-md, N11); the pill is the button's. */
+.nf-search-field{display:flex;flex:1 1 calc(var(--fs-body) * 12);align-items:center;gap:var(--sp-2);min-width:0;min-height:max(var(--control-height),3rem);padding:0 var(--sp-4);border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink-3)}
 .nf-search-field>svg{flex:none;width:1.125rem;height:1.125rem}
 .nf-search-field input{flex:1;min-width:0;border:0;outline:none;background:transparent;color:var(--color-ink);font-size:var(--fs-body)}
 .nf-search-field input::placeholder{color:var(--color-ink-3);opacity:1}
-.nf-search-field:focus-within{outline:2px solid var(--color-brand);outline-offset:2px}
-.nf-links{margin-top:var(--sp-5)}
+.nf-search-field:focus-within{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:2px}
+.nf-links{margin-top:var(--section-gap)}
 .nf-links ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--sp-3);margin:0;padding:0;list-style:none}
 .nf-links a{display:flex;align-items:center;gap:var(--sp-3);min-height:4rem;padding:var(--sp-3) var(--sp-4);border:1px solid var(--color-line);border-radius:var(--r-lg);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
 .nf-links a:active{background:var(--color-surface-2)}
-@media (hover:hover) and (pointer:fine){.nf-links a:hover{background:var(--color-surface-2);text-decoration-line:none}.nf-links a:hover strong{text-decoration:underline;text-underline-offset:.2em}}
+@media (hover:hover) and (pointer:fine){.nf-links a:hover{background:var(--color-surface-2);text-decoration-line:none}.nf-links a:hover strong{text-decoration:underline var(--underline-thickness);text-underline-offset:var(--underline-offset);text-decoration-skip-ink:none}}
 .nf-link-icon{display:grid;place-items:center;flex:none;width:2.5rem;height:2.5rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 .nf-link-icon>svg{width:1.25rem;height:1.25rem}
 .nf-links strong{display:block;font-size:var(--fs-body);line-height:var(--lh-snug);font-weight:var(--fw-regular)}
 .nf-links small{display:block;color:var(--color-ink-2);font-size:var(--fs-meta);line-height:var(--lh-snug)}
-.nf-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin-top:var(--sp-5)}
-.nf-feedback{display:flex;margin-top:var(--sp-2)}
-.nf-page :is(a,button):focus-visible{outline:2px solid var(--color-brand);outline-offset:3px}
+.nf-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin:var(--section-gap) 0 var(--sp-2)}
+.nf-feedback{display:flex;margin-top:auto}
+.nf-page :is(a,button):focus-visible{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
 @media(max-width:639px){.nf-links ul{grid-template-columns:1fr;gap:var(--sp-2)}.nf-links a{min-height:3.5rem}}
-@media(min-width:1024px){.nf-page{padding-top:var(--sp-6)}.nf-hero h1{font-size:var(--fs-title)}.nf-button{min-height:var(--control-height)}}
+@media(min-width:1024px){.nf-page{padding-top:var(--sp-6)}.nf-hero h1{font-size:var(--fs-title)}}

@@ -1,6 +1,9 @@
 /* 我的 /me hub (WEB-ACCOUNT, design.md T18): profile header, the 2×2 tiles (消息 first), the settings list and the
-   account sections. Tokens and rem only, so Aa and 简洁显示 grow every line; content container 960 with 16/24/32 gutters. */
-.me-hub { box-sizing:content-box; max-width:var(--container-content); margin:0 auto; padding:24px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + 40px); color:var(--color-ink); }
+   account sections. Tokens and rem only, so Aa and 简洁显示 grow every line. The site's wide frame with 16/24/32 gutters
+   (UI9-R1 N16: content at x = 112 in a 1440 window, like the logo and every other page); on a desktop the header, the
+   guest card and the tiles (3 grid columns each) span the frame and the sections keep to columns 1-8. The page ends 24px
+   above the footer (N15). */
+.me-hub { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:24px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-5)); color:var(--color-ink); }
 .me-hub__header { display:grid; grid-template-columns:auto minmax(0, 1fr); align-items:center; gap:16px; }
 .me-hub__header[data-guest] { grid-template-columns:minmax(0, 1fr); }
 .me-hub__avatar { display:grid; place-items:center; width:4.5rem; height:4.5rem; border-radius:var(--r-circle); overflow:hidden; background:var(--color-brand-tint); color:var(--color-brand); }
@@ -21,7 +24,7 @@
 .me-tiles { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; margin:24px 0 0; padding:0; list-style:none; }
 .me-tiles>li { display:flex; min-width:0; }
 .me-tile { position:relative; display:flex; flex:1; flex-direction:column; align-items:flex-start; gap:4px; min-width:0; min-height:5.5rem; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); text-align:left; text-decoration:none; }
-a.me-tile:hover,button.me-tile:hover { border-color:var(--color-line-control); background:var(--color-surface-2); }
+@media (hover:hover) and (pointer:fine) { a.me-tile:hover,button.me-tile:hover { border-color:var(--color-line-control); background:var(--color-surface-2); } }
 .me-tile[data-primary] { border-color:var(--color-brand); background:var(--color-brand-tint); }
 .me-tile__icon { display:grid; place-items:center; width:2.5rem; height:2.5rem; margin-bottom:4px; border-radius:var(--r-circle); background:var(--color-brand-tint); color:var(--color-brand); }
 .me-tile[data-primary] .me-tile__icon { background:var(--color-surface); }
@@ -39,7 +42,7 @@ a.me-tile:hover,button.me-tile:hover { border-color:var(--color-line-control); b
 .me-list { margin:0; padding:0; list-style:none; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); overflow:hidden; }
 .me-list>li+li { border-top:1px solid var(--color-line); }
 .me-row { display:grid; grid-template-columns:auto minmax(0, 1fr) auto; align-items:center; gap:12px; width:100%; min-height:3.75rem; padding:8px 16px; background:var(--color-surface); color:var(--color-ink); text-align:left; text-decoration:none; }
-a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
+@media (hover:hover) and (pointer:fine) { a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); } }
 .me-row>svg:first-child { width:1.25rem; height:1.25rem; color:var(--color-brand); }
 .me-row>svg:last-child { width:1rem; height:1rem; color:var(--color-ink-3); }
 .me-row__text { display:flex; flex-direction:column; min-width:0; }
@@ -61,8 +64,10 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-guest-card p { margin:0; color:var(--color-ink-2); font-size:var(--text-body); line-height:1.625; }
 .me-guest-card ul { margin:4px 0 8px; padding:0 0 0 1.25rem; list-style:disc; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.8; }
 
-/* Sub-views (通知, 隐私与账号): a back row above the panel. */
-.me-subview { box-sizing:content-box; max-width:var(--container-reading); margin:0 auto; padding:16px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + 40px); }
+/* Sub-views (通知, 隐私与账号): a back row above the panel, in the hub's frame (x = 112 on a desktop, so the page does not
+   jump sideways between the hub and its sub-views) at the reading width. */
+.me-subview { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:16px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-5)); }
+.me-subview>* { max-width:var(--container-reading); }
 .me-back { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); margin:0 0 8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; text-decoration:none; }
 .me-subview__title { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; }
 
@@ -80,7 +85,9 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-notify .me-notify__status { color:var(--color-brand); font-weight:400; }
 .me-notify .me-notify__warning { padding:8px 12px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink); }
 .me-notify__all { display:flex; flex-direction:column; align-items:flex-start; gap:8px; padding:16px; border-radius:var(--r-md); background:var(--color-brand-tint); }
-.me-notify__all button,.me-notify__save { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); padding:0 20px; border:0; border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-body); font-weight:600; }
+/* The primary button's look (ui.css .ui-button[data-variant=primary]: brand fill and edge, white text), so 通知 adds no
+   button look of its own (N12). */
+.me-notify__all button,.me-notify__save { display:inline-flex; align-items:center; justify-content:center; min-height:max(var(--control-height), 3rem); padding:0 20px; border-width:1px; border-style:solid; border-radius:var(--r-md); border-color:var(--color-brand); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-body); font-weight:600; }
 .me-notify__save { align-self:flex-start; }
 .me-notify__channels { display:grid; gap:12px; }
 .me-notify fieldset { min-width:0; margin:0; padding:12px 16px; border:1px solid var(--color-line); border-radius:var(--r-md); }
@@ -90,7 +97,7 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 .me-notify__default { display:block; color:var(--color-ink-3); font-size:var(--text-fact); line-height:1.5; }
 .me-notify input[type=checkbox] { width:1.25rem; height:1.25rem; flex:none; accent-color:var(--color-brand); }
 .me-notify fieldset button,.me-notify__retry { display:inline-flex; align-items:center; min-height:var(--control-height); margin-top:4px; padding:0 16px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
-.me-notify button:disabled { background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
+.me-notify button:disabled { border-color:transparent; background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
 .me-notify :is(button,input):focus-visible { outline:2px solid var(--color-brand); outline-offset:3px; }
 @media (min-width:768px) { .me-notify { padding:24px; } .me-notify__channels { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
 
@@ -98,13 +105,23 @@ a.me-row:hover,button.me-row:hover { background:var(--color-surface-2); }
 html[data-simple] .me-language button { min-height:3.75rem; }
 
 @media (min-width:768px) {
-  .me-hub { padding:32px 24px 56px; }
+  .me-hub { padding:32px 24px var(--sp-5); }
   .me-tiles { grid-template-columns:repeat(4, minmax(0, 1fr)); }
   .me-section { margin-top:56px; }
   .me-section__title { font-size:1.5rem; line-height:1.333; }
-  .me-subview { padding:24px 24px 56px; }
+  .me-subview { padding:24px 24px var(--sp-5); }
   .me-guest-card { padding:32px; }
 }
-@media (min-width:1024px) { .me-hub,.me-subview { padding-inline:32px; } }
+@media (min-width:1024px) {
+  .me-hub,.me-subview { padding-inline:32px; }
+  .me-tiles { column-gap:var(--grid-gutter); }
+  .me-section { max-width:calc((100% + var(--grid-gutter)) * 8 / 12 - var(--grid-gutter)); }
+}
+/* The account pages' first paint (components/AccountShell.tsx: /me, /me/bookings, /my-week, /messages, /together). It is
+   prerendered for /me, so account-shell.html links this stylesheet (UI9-R1 J1 P21 / J3 P23): a title bar above its
+   skeleton rows, and the window's height, so the footer stays below the fold until the page arrives. */
+.account-shell { min-height:100svh; padding-block:var(--sp-5); }
+.account-shell::before { content:""; display:block; width:min(14rem, 60%); height:calc(var(--text-title) * 1.25); margin-bottom:var(--sp-4); border-radius:var(--r-sm); background:var(--color-surface-2); }
+@media (min-width:768px) { .account-shell { padding-top:var(--sp-6); } }
 /* Large Aa on a phone: one tile per row, so the labels never squeeze (D9). */
 @media (max-width:767px) { html:is([data-reading=extra-large],[data-simple]) .me-tiles { grid-template-columns:minmax(0, 1fr); } }
