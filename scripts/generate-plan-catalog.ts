@@ -8,7 +8,8 @@ import { getGuideMedia, GUIDE_IMAGES, type GuideImage } from '../src/data/guide-
 import { SCENE3D_POSTCARD_FOR } from '../src/data/scene3d-postcards';
 import { stopCoverItem } from '../src/lib/plan-stop-cover';
 import { getCover } from '../src/lib/cover';
-import { coverCandidates } from '../src/lib/cover-candidates';
+import { COVER_TABLES, coverCandidates, idSpot } from '../src/lib/cover-candidates';
+import { placePhotoCategory } from '../src/lib/photo-category';
 import { getBayAreaToday } from '../src/lib/monthly';
 import type { Stop } from '../src/lib/planner-core';
 import type { PlanCatalog, PlanExtras } from '../src/lib/planner-source';
@@ -53,6 +54,22 @@ export function buildPlanCatalog(): PlanCatalog & PlanExtras {
       && getCover({ kind: 'event', id: event.id, imageKey: key }, { images: GUIDE_IMAGES, today }).tier !== 'type');
     if (!candidates.length) continue;
     coverKeys[event.id] = candidates;
+    candidates.forEach(key => keys.add(key));
+  }
+  // A place with no picture and no 3D postcard: a new shop's own candidates (its opening record), else the ③ pool of its
+  // kind of place (photo-category.ts placePhotoCategory), keyed `place:<id>`.
+  for (const place of PLANNER_PLACES) {
+    // Judged without candidates the extras may already have installed (the page and a re-run read them back).
+    const { kind, id, imageKey, postcardKey } = stopCoverItem({ kind: 'place', id: place.id });
+    if (getCover({ kind, id, imageKey, postcardKey }, { images: fullStopCoverImage, today }).tier !== 'type') continue;
+    const category = placePhotoCategory(place);
+    const pool = category ? COVER_TABLES.categories[category] ?? [] : [];
+    const rotated = pool.map((_, i) => pool[(idSpot(place.id, pool.length) + i) % pool.length]);
+    const opening = place.id.startsWith('opening-') ? coverCandidates('opening', { id: place.id.slice('opening-'.length), name: place.title }) : [];
+    const candidates = [...new Set([...opening, ...rotated])].filter(key => Object.hasOwn(GUIDE_IMAGES, key)
+      && getCover({ kind: 'place', id: place.id, imageKey: key }, { images: GUIDE_IMAGES, today }).tier !== 'type');
+    if (!candidates.length) continue;
+    coverKeys[`place:${place.id}`] = candidates;
     candidates.forEach(key => keys.add(key));
   }
   const images: Record<string, GuideImage> = {};

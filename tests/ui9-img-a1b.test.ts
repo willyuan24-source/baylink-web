@@ -34,4 +34,10 @@ test('every live /plan event stop is a picture (plan extras coverKeys)', async (
     { kind: 'event', id: event.id, imageKey: event.imageKey, ...(catalog.coverKeys?.[event.id] ? { imageKeys: catalog.coverKeys[event.id] } : {}) },
     { images: key => catalog.images[key], today }).tier === 'type').map(event => event.id);
   assert.deepEqual(typed, []);
+  // Places: a place with no picture and no postcard shows a ③ picture of its kind; a landmark without either is listed here.
+  const { installPlanExtras } = await import('../src/lib/planner-source');
+  const { stopCoverItem } = await import('../src/lib/plan-stop-cover');
+  installPlanExtras(catalog);
+  const places = catalog.places.filter(place => getCover(stopCoverItem({ kind: 'place', id: place.id }), { images: key => catalog.images[key], today }).tier === 'type').map(place => place.id);
+  assert.deepEqual(places, [], 'every planner place shows a picture');
 });

@@ -18,7 +18,10 @@ export function stopCoverItem(stop: Stop): CoverItem {
   }
   const place = placeFor(stop.id);
   const postcardKey = SCENE3D_POSTCARD_FOR[stop.id] ?? (place?.guideSlug ? SCENE3D_POSTCARD_FOR[place.guideSlug] : undefined);
-  return { kind: 'place', id: stop.id, imageKey: place?.imageKey ?? (place?.guideSlug ? `guide-cover:${place.guideSlug}` : undefined), postcardKey };
+  const imageKey = place?.imageKey ?? (place?.guideSlug ? `guide-cover:${place.guideSlug}` : undefined);
+  // UI9-IMG-A1b: a place with no picture and no postcard carries ③ candidates from the plan extras (never an information card).
+  const keys = Object.hasOwn(PLAN_COVER_KEYS, `place:${stop.id}`) ? PLAN_COVER_KEYS[`place:${stop.id}`] : undefined;
+  return { kind: 'place', id: stop.id, imageKey, postcardKey, ...(keys ? { imageKeys: [...(imageKey ? [imageKey] : []), ...keys] } : {}) };
 }
 
 /**

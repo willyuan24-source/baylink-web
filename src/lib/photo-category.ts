@@ -349,6 +349,21 @@ const BULLETIN_RULES: readonly Rule[] = [
 ];
 
 /** A regional bulletin's photo category (most are route changes or library services). */
+/**
+ * UI9-IMG-A1b: a planner place's photo category, for a place with no picture of its own and no 3D postcard (its row then
+ * shows a ③ 示意图 of the kind of place, never an information card): a library or museum by its name, else a restaurant,
+ * café or shop by its planner category. A landmark gets none (city-sights shows real landmarks: never on a specific venue).
+ */
+export function placePhotoCategory(place: { id: string; title?: string; category?: string }): PhotoCategoryId | undefined {
+  const text = `${place.id} ${place.title ?? ''}`.toLowerCase();
+  if (/library|图书馆|圖書館/.test(text)) return 'library';
+  if (/museum|moma|sjma|omca|exploratorium|博物馆|博物館|美术馆|美術館/.test(text)) return 'museum';
+  if (place.category === 'restaurant') return 'dining';
+  if (place.category === 'cafe') return 'cafe-tea';
+  if (place.category === 'shop' || /ferry-building/.test(text)) return 'shopping';
+  return undefined;
+}
+
 export function bulletinPhotoCategory(bulletin: BulletinFields): PhotoCategoryId | undefined {
   return override('bulletin', bulletin.id) ?? firstMatch(BULLETIN_RULES, `${bulletin.label ?? ''} ${bulletin.title}`);
 }
