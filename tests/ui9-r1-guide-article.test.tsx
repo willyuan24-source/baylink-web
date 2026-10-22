@@ -153,7 +153,11 @@ test('J1 P23 / J3 P16 / J1 P26: lead heights on a desktop, two columns on a tabl
   assert.equal(value('html:not([data-simple]):not([data-reading=extra-large]) .gd-page[data-pilot] .gd-lead__side>.gd-keyfacts', 'margin-bottom', '(min-width:1024px)'), 'calc(3rem + var(--sp-2))');
   assert.equal(value('html:not([data-simple]) .gd-page[data-pilot] .gd-lead[data-visual]', 'grid-template-columns', '(min-width:768px) and (max-width:1023px)'), 'repeat(2, minmax(0, 1fr))');
   assert.equal(value('.gd-diagram__map', 'grid-template-columns', '(max-width:399px)'), 'minmax(0, 1fr)');
-  assert.equal(value('html:not([data-reading]):not([data-simple]) .gd-slide__phones[data-count=many] .gd-slide__phone-number', 'font-size'), 'var(--fs-body)');
+  assert.equal(value('html:not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .gd-slide__phones[data-count=many] .gd-slide__phone-number', 'font-size'), 'var(--fs-body)');
+});
+
+test('标准 is html[data-reading=standard] after hydration: no rule keys it on a missing data-reading', () => {
+  assert.doesNotMatch(articleCss, /:not\(\[data-reading\]\)/);
 });
 
 test('N14: guides-ui.css spacing is on the --sp steps (the ratchet rule: 0 · 4 · 8 · 12 · 16 · 24 · 32 · 48 · 64 · 96 px)', () => {

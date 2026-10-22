@@ -91,7 +91,7 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
 }
 @media (min-width:390px) and (max-width:1023px) {
   html:root:is([data-reading=large],[data-reading=extra-large],[data-simple]):has(.gd-bar) { --site-mobile-nav-height:calc(1.5rem + 2px + var(--fs-meta) * 2.6 + var(--sp-1) * 4 + env(safe-area-inset-bottom,0px)); }
-  html:lang(en):not([data-reading]):not([data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; line-height:1; }
+  html:lang(en):not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=ask] [data-label=long] { width:min-content; white-space:normal; text-align:center; line-height:1; }
   /* 家人版 (特大 + 简洁): the bar drops its side padding, the cells theirs (48 px wide at least) and the primary keeps 4 px, so a
      1-800 number keeps one line at 23 px. */
   html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions.gd-bar { padding-inline:0; }
@@ -174,7 +174,7 @@ html[data-reading=extra-large] .gd-slide--cover .gd-answer:nth-last-child(2) { m
 /* J1 P26: in the two-column number grid (3+ numbers) a phone's 12-character number reads at body size with tabular figures,
    so it keeps clear of the card's right edge at 390 px (18 px filled the 147 px column). 大 / 特大 / 简洁 keep their sizes:
    特大 and 简洁 read the slides as one list, one number per row. */
-html:not([data-reading]):not([data-simple]) .gd-slide__phones[data-count=many] .gd-slide__phone-number { font-size:var(--fs-body); }
+html:not([data-reading=large]):not([data-reading=extra-large]):not([data-simple]) .gd-slide__phones[data-count=many] .gd-slide__phone-number { font-size:var(--fs-body); }
 :is(html[data-reading=extra-large],html[data-simple]) .gd-slide__phones[data-count=many] { grid-template-columns:minmax(0, 1fr); }
 .gd-slide__phone-label { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); font-weight:400; }
 .gd-slide__phone-number { font-size:var(--fs-card); line-height:var(--lh-tight); font-weight:600; font-variant-numeric:tabular-nums; white-space:nowrap; }
