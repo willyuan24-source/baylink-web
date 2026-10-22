@@ -24,6 +24,29 @@ test('every detail hero and rail card is a picture (0 information cards)', () =>
   assert.deepEqual(typed, []);
 });
 
+// Guide pages (UI9-IMG-A1b review): a guide page's 接下来 cards resolve after the hero, the inline pictures, the deals board's
+// offer pictures, the legacy poster and the 3D postcard (guidePageCovers, as GuideDetail renders them), on every build day of
+// the next 21 days: each is a picture, never the empty frame, and the page's 本页图片来源 can list each one.
+test('every guide page\'s 接下来 cards are pictures for 21 days (0 empty frames)', async () => {
+  const { buildGuideData } = await import('../scripts/generate-guide-data');
+  const { guidePageCovers } = await import('../src/features/guides/guide-facts');
+  const { addCalendarDays } = await import('../src/lib/calendar-days');
+  const { records } = await buildGuideData();
+  const today = getBayAreaToday();
+  const typed: string[] = [];
+  let cards = 0;
+  for (let day = 0; day <= 21; day++) {
+    const date = addCalendarDays(today, day);
+    for (const record of records) {
+      const page = guidePageCovers(record, date);
+      if (page.cover.tier === 'type') typed.push(`${date} ${record.guide.slug} hero`);
+      page.relatedCovers.forEach((cover, index) => { cards++; if (cover.tier === 'type') typed.push(`${date} ${record.guide.slug} → ${page.related[index].slug}`); });
+    }
+  }
+  assert.ok(cards > 500, `${cards} 接下来 cards checked`);
+  assert.deepEqual(typed, []);
+});
+
 // /plan (UI9-IMG-A1b): every live event stop resolves to a picture with the plan extras' candidates and images.
 test('every live /plan event stop is a picture (plan extras coverKeys)', async () => {
   const { buildPlanCatalog } = await import('../scripts/generate-plan-catalog');

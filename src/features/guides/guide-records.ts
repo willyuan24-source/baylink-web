@@ -16,8 +16,9 @@ import type { GuideRegionId } from './guide-facts';
 export type GuideCovers = {
   'zh-Hans': GuideImage; 'zh-Hant'?: GuideImage; en?: GuideImage;
   /**
-   * UI9-IMG-A1b (DECISIONS 21/22): the guide's ③ stock picture, carried only when its own cover is a file another guide also
-   * uses, so a page that shows both (①② once per page) gives the second this picture instead of an information card.
+   * UI9-IMG-A1b (DECISIONS 21/22): the guide's next ③ stock picture, so a page that already shows its cover (①② once per
+   * page; a ③ not within ADJACENT_CARDS cards) gives the card this picture instead of a repeat or an empty frame. A guide
+   * page's "Read next" cards carry it only when the page shows their cover (scripts/generate-guide-data.ts distinctRelated).
    */
   stock?: Omit<GuideCovers, 'stock'>;
 };

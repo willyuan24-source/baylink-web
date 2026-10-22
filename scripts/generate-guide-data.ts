@@ -23,7 +23,6 @@ export type GuideData = { index: GuidesIndex; records: GuideRecord[] };
 export async function buildGuideData(): Promise<GuideData> {
   const previous = getLocale();
   const perLanguage = new Map<string, Partial<Record<Locale, GuideImage>>>(guides.map(guide => [guide.slug, {}]));
-  const stockPerLanguage = new Map<string, Partial<Record<Locale, GuideImage>>>(guides.map(guide => [guide.slug, {}]));
   const poolPerLanguage = new Map<string, Partial<Record<Locale, GuideImage[]>>>(guides.map(guide => [guide.slug, {}]));
   const today = getBayAreaToday();
   try {
@@ -33,20 +32,19 @@ export async function buildGuideData(): Promise<GuideData> {
         perLanguage.get(guide.slug)![locale] = coverInCurrentLanguage(guide);
         const pool = guideStockPool(guide, today);
         poolPerLanguage.get(guide.slug)![locale] = pool;
-        if (pool[0]) stockPerLanguage.get(guide.slug)![locale] = pool[0];
       }
     }
   } finally {
     await setLocale(previous, false);
   }
-  // UI9-IMG-A1b: a cover file two guides share is shown once per page (①②), so those guides also carry their ③ stock picture.
-  const uses = new Map<string, number>();
-  for (const images of perLanguage.values()) uses.set(images['zh-Hans']!.src, (uses.get(images['zh-Hans']!.src) ?? 0) + 1);
+  // UI9-IMG-A1b: every guide carries a second picture, its next ③ stock picture (the first of its category's pool its cover
+  // is not), so a page that already shows its cover (①② once per page) or shows the same ③ picture within ADJACENT_CARDS
+  // cards gives the card that picture instead of repeating one or drawing an empty frame.
   const covers = new Map<string, GuideCovers>([...perLanguage].map(([slug, images]) => {
     const own = mergeCovers(images['zh-Hans']!, images['zh-Hant']!, images.en!);
-    const stock = stockPerLanguage.get(slug)!;
-    const shared = (uses.get(images['zh-Hans']!.src) ?? 0) > 1 && stock['zh-Hans'] && stock['zh-Hans'].src !== images['zh-Hans']!.src;
-    return [slug, shared ? { ...own, stock: mergeCovers(stock['zh-Hans']!, stock['zh-Hant']!, stock.en!) } : own];
+    const pool = poolPerLanguage.get(slug)!;
+    const at = (pool['zh-Hans'] ?? []).findIndex(image => image.src !== images['zh-Hans']!.src);
+    return [slug, at < 0 ? own : { ...own, stock: mergeCovers(pool['zh-Hans']![at], pool['zh-Hant']![at], pool.en![at]) }];
   }));
   const coversOf = (guide: Guide) => covers.get(guide.slug)!;
   // UI9-C (G19): an answered guide's card carries its cover hook and lime phrase, so /guides and "Read next" print them
@@ -57,19 +55,23 @@ export async function buildGuideData(): Promise<GuideData> {
   // picture already on the page, or whose ①② cover the page already shows, takes the next picture of its category's pool.
   const isStock = (image: GuideImage) => typeof image.rights === 'object' && image.rights?.basis === 'stock';
   const distinctRelated = (record: GuideRecord): GuideRecord => {
-    // The page's own pictures come first: the hero and the article's inline pictures.
-    const claimed = new Set([record.covers['zh-Hans'].src, ...record.inline.map(({ image }) => image.src)]);
+    // The page's own pictures come first, as GuideDetail claims them: the hero, the article's inline pictures, the deals
+    // board's offer pictures, the legacy poster and the 3D link's postcard.
+    const claimed = new Set([record.covers['zh-Hans'].src, ...record.inline.map(({ image }) => image.src), ...(record.boardImages ?? []),
+      ...(record.guide.cover ? [record.guide.cover] : []), ...(record.opus?.postcard ? [record.opus.postcard.src] : [])]);
+    // A card keeps one picture: the one this page gives it (the page resolves it first, so no second picture is needed).
+    const only = (covers: GuideCovers): GuideCovers => { const { stock, ...own } = covers; void stock; return own; };
     const distinct = record.related.map(card => {
       const own = card.covers['zh-Hans'];
-      if (!isStock(own) && !claimed.has(own.src)) { claimed.add(own.src); return card; }
+      if (!isStock(own) && !claimed.has(own.src)) { claimed.add(own.src); return { ...card, covers: only(card.covers) }; }
       const pool = poolPerLanguage.get(card.slug)!;
       const at = (pool['zh-Hans'] ?? []).findIndex(image => !claimed.has(image.src));
       // Its category has no picture left that the page does not show: the card keeps its place and its picture (the order
       // of "Read next" is the editors', never the pictures'; tests/guide-visuals.test.tsx lists the pools that are too small).
-      if (at < 0) return card;
+      if (at < 0) return { ...card, covers: only(card.covers) };
       claimed.add(pool['zh-Hans']![at].src);
       const pick = mergeCovers(pool['zh-Hans']![at], pool['zh-Hant']![at], pool.en![at]);
-      return isStock(own) ? { ...card, covers: pick } : { ...card, covers: { ...card.covers, stock: pick } };
+      return isStock(own) ? { ...card, covers: pick } : { ...card, covers: { ...only(card.covers), stock: pick } };
     });
     return { ...record, related: distinct };
   };

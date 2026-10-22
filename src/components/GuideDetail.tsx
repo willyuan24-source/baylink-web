@@ -27,7 +27,7 @@ import { GuidePhoneText as PhoneText } from '../features/guides/plain-phones';
 import { linkifyGuidePhones, PlainPhonesProvider, usePlainPhones } from '../features/guides/plain-phone-text';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { GuidePhoneDirectoryOr } from '../features/guides/GuidePhoneDirectory';
-import { createCoverPage, type CoverPage } from '../lib/cover';
+import type { ResolvedCover } from '../lib/cover';
 import { useBayAreaToday } from '../lib/useBayAreaToday';
 import { useUiCopy } from './ui/ui-copy';
 import { SegmentedTitle } from './SegmentedTitle';
@@ -47,8 +47,8 @@ import { GuideDiagramFigure } from '../features/guides/GuideDiagram';
 import { GuideCover } from '../features/guides/GuideCover';
 import { handleGuideLinkClick } from '../features/guides/guide-link';
 import { GuideCoverCredit, GuidePageImageCredits, GuideToTop } from '../features/guides/GuidePageParts';
-import { editionState, guideCallOf, guideCardLines, guideCover, guideEnglishDate, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
-import { relatedForToday, type GuideCard, type GuideRecord } from '../features/guides/guide-records';
+import { editionState, guideCallOf, guideCardLines, guideEnglishDate, guidePageCovers, guideSourceCount, topicCopy } from '../features/guides/guide-facts';
+import type { GuideCard, GuideRecord } from '../features/guides/guide-records';
 import { peekGuide } from '../features/guides/guide-store';
 import { CityExplorationBlock, FreebieBoardBlock, GuideOpusBlock, QuickFactsBlock } from '../features/guides/guide-blocks';
 import { LazyReportErrorLink } from '../features/feedback/LazyEntryLinks';
@@ -78,13 +78,12 @@ const FREEBIE_GALLERIES: Record<string, 'birthday' | 'everyday' | 'retail' | und
 };
 
 /**
- * 接下来 (UI9-GUIDES): related guides, resolved on the article's cover page so no image repeats. Desktop: four covers across the
+ * 接下来 (UI9-GUIDES): related guides, resolved on the article's cover page (guidePageCovers) so no image repeats. Desktop: four covers across the
  * frame (3:2, the crop home's guide grid uses). Phone and tablet: three rows (a mini cover, the full title, the two meta
  * lines). 简洁显示: one link to the guide's topic instead (data-simple).
  */
-function RelatedGuides({ related, coverPage, today, topic, onOpenGuide }: { related: GuideCard[]; coverPage: CoverPage; today: string; topic: ReturnType<typeof guideTopicOf>; onOpenGuide: (slug: string) => void }) {
+function RelatedGuides({ related, covers, today, topic, onOpenGuide }: { related: GuideCard[]; covers: ResolvedCover[]; today: string; topic: ReturnType<typeof guideTopicOf>; onOpenGuide: (slug: string) => void }) {
   const { t, pick, english, locale } = useUiCopy();
-  const covers = related.map(guide => guideCover(guide, today, coverPage));
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => event ? handleGuideLinkClick(event, () => onOpenGuide(slug)) : onOpenGuide(slug);
   const lines = related.map(guide => guideCardLines(guide, today));
   return <section className="bl-guide-related gd-related" aria-labelledby="gd-related-title">
@@ -148,27 +147,11 @@ const GuideDetailSession = ({
   }, [simple, editorial]);
   const page = useMemo(() => {
     if (!record) return null;
-    const { guide } = record;
-    const coverPage = createCoverPage();
-    const cover = guideCover({ slug: guide.slug, covers: record.covers }, today, coverPage);
-    // Rule 6, one picture once per page: the deals board shows each offer's own picture, so the article drops an inline
-    // picture the board already shows; the legacy poster opens only when it is not the cover; and every picture shown
-    // claims its place before the related guides resolve, so their covers move to their next picture instead of repeating it.
-    // The record's inline pictures already passed keepInlineImage (guide-data.ts) and its board pictures are getOfferImage's.
-    const boardImages = record.boardImages ?? [];
-    const sectionCount = guide.blocks.filter(block => block.type === 'heading').length;
-    const inline = record.inline.filter(item => Number.isInteger(item.afterHeading) && item.afterHeading >= 1 && item.afterHeading <= sectionCount
-      && !boardImages.includes(item.image.src));
-    const poster = guide.cover && !coverPage.claims.has(guide.cover) && !inline.some(item => item.image.src === guide.cover) ? guide.cover : undefined;
-    for (const src of [...inline.map(item => item.image.src), ...boardImages, ...(poster ? [poster] : [])]) if (!coverPage.claims.has(src)) coverPage.claims.set(src, `page:${guide.slug}`);
-    // The 3D link's postcard (H36) shows only when the page does not already show it, and then claims it like the others.
-    const opusArt = !!record.opus?.postcard && !coverPage.claims.has(record.opus.postcard.src);
-    if (opusArt) coverPage.claims.set(record.opus!.postcard!.src, `page:${guide.slug}`);
+    // Rule 6, one picture once per page (guidePageCovers): the hero, the inline pictures the deals board does not show, the
+    // legacy poster, the 3D postcard, then the "Read next" cards on the same page.
     // H08: a guide without an editorial record gets a 30 秒看懂 built from its own sentences (none for outings and directories;
     // QuickFactsBlock, loaded with the record of those guides only).
-    const quickFacts = quickFactsEligible(guide, !!record.editorial);
-    // "Read next" never offers an edition past its last day (editionState; relatedForToday keeps the runtime month rule).
-    return { coverPage, cover, inline, poster, opusArt, quickFacts, related: relatedForToday(record.related.filter(card => editionState(card, today) !== 'past'), today) };
+    return { ...guidePageCovers(record, today), quickFacts: quickFactsEligible(record.guide, !!record.editorial) };
   }, [record, today]);
 
   if (!guide || !page)
@@ -180,7 +163,7 @@ const GuideDetailSession = ({
         <Button variant="primary" onClick={() => onNavigate("/guides")}>返回湾区指南</Button>
       </div>
     );
-  const { cover, related, coverPage } = page;
+  const { cover, related, relatedCovers } = page;
   // Only guides without source marks fold their list (a pilot's ①–⑬ must always land on a visible source).
   const sourcesShown = !editorial && guide.sources.length >= SOURCES_FOLD_AT ? SOURCES_SHOWN : guide.sources.length;
   const prefaceLength = Math.max(0, guide.blocks.findIndex(block => block.type === 'freebies'));
@@ -191,7 +174,9 @@ const GuideDetailSession = ({
     const lastBlock = (headingIndexes[item.afterHeading] ?? guide.blocks.length) - 1;
     inlineAfter.set(lastBlock, [...(inlineAfter.get(lastBlock) || []), item.image]);
   }
-  const shownImages = [...(cover.tier !== 'type' ? [cover.image] : []), ...page.inline.map(item => item.image)];
+  // 本页图片来源 lists every picture the page shows: the hero, the inline pictures and the 接下来 cards' (DECISIONS 23).
+  const shownImages = [...(cover.tier !== 'type' ? [cover.image] : []), ...page.inline.map(item => item.image),
+    ...relatedCovers.flatMap(related => related.tier === 'type' ? [] : [related.image as GuideImage])];
   const headings = guide.blocks.flatMap((block, index) =>
     block.type === "heading"
       ? [{ text: block.text, id: `guide-section-${index}` }]
@@ -336,7 +321,7 @@ const GuideDetailSession = ({
             <p className="bl-guide-source-note">{guide.sourceNote}</p>
           )}
         </div>
-        {related.length > 0 && <RelatedGuides related={related} coverPage={coverPage} today={today} topic={guideTopicOf(guide)} onOpenGuide={onOpenGuide} />}
+        {related.length > 0 && <RelatedGuides related={related} covers={relatedCovers} today={today} topic={guideTopicOf(guide)} onOpenGuide={onOpenGuide} />}
         <GuidePageImageCredits images={shownImages} />
         <Button variant="quiet" to={returnTo} className="bl-guide-return" icon={<ArrowLeft aria-hidden="true" strokeWidth={1.75} />}>
           {t('返回湾区指南', 'Back to guides')}
