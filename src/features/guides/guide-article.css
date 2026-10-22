@@ -41,7 +41,7 @@ html[data-simple] .gd-meta a::after { height:3rem; }
 .gd-about a { color:var(--color-brand); }
 
 /* Lead: the carousel (pilot guides) or the cover photo with its credit line, then 30 秒看懂 or the summary. */
-.gd-lead { display:flex; flex-direction:column; gap:var(--sp-4); margin-top:var(--sp-4); }
+.gd-lead { display:flex; flex-direction:column; gap:var(--sp-4); margin-top:var(--sp-5); }
 .gd-lead__side { display:flex; flex-direction:column; gap:var(--sp-4); min-width:0; }
 .gd-lead__visual { min-width:0; }
 .gd-lead .bl-freebie-jump { align-self:flex-start; }
@@ -98,9 +98,10 @@ html .site-detail-actions.detail-actions.gd-bar .detail-actions__cell[data-cell=
 /* 大 / 特大 / 简洁 at 390–1023 px: a row has no room for the glyph beside the number, so the primary holds its phone glyph above
    the number, as each cell holds its icon above its label, at the cells' height. */
 @media (min-width:390px) and (max-width:1023px) {
-  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { flex-direction:column; justify-content:center; gap:2px; height:auto; min-height:56px; }
+  :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { flex-direction:column; justify-content:center; gap:2px; height:auto; min-height:56px; border-radius:var(--r-lg); }
   :is(html[data-reading=large],html[data-reading=extra-large],html[data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary>svg { display:inline-block; }
   html:is([data-reading=extra-large],[data-reading=large][data-simple]) .site-detail-actions.detail-actions.gd-bar .gd-bar__call.detail-actions__primary { align-self:stretch; }
+  html[data-reading=extra-large] .site-detail-actions.detail-actions.gd-bar { padding-inline:var(--sp-1); }
 }
 /* 家人版 (特大 + 简洁): icon + number (the arrangement). */
 html[data-reading=extra-large][data-simple] .gd-bar__verb { display:none; }
@@ -311,7 +312,10 @@ html[data-simple] .gd-contact__call { width:100%; }
 .gd-article .bl-guide-template-heading>.ui-button>svg { width:1.25rem; height:1.25rem; }
 
 /* 读: each H2 of a pilot guide as a step card; the original text folds under "展开原文与来源" (F2's Disclosure). */
-.gd-step { margin-top:var(--section-gap); }
+/* N15: steps are sections: at least 48 px apart on a phone (--section-gap is 40 there), 64 on a desktop; the head and the lead
+   24 px apart; a source row keeps 8 px above and below (its link keeps a 44 px target), so blank bands inside a section stay
+   under the gaps between sections. */
+.gd-step { margin-top:max(var(--section-gap), var(--sp-7)); }
 .gd-step:first-child,.gd-main>.bl-guide-prose+.gd-step { margin-top:var(--sp-6); }
 .gd-step__head { display:flex; align-items:flex-start; gap:var(--sp-3); }
 /* H24: the text column is a flex item; without min-width:0 a nowrap phone chip or word unit set its minimum width. */
@@ -443,9 +447,9 @@ html[data-simple] .gd-diagram__tel { min-height:3rem; }
 .gd-article .gd-sources h2 { margin:0; color:var(--color-ink); font-size:var(--fs-section); line-height:var(--lh-tight); font-weight:600; scroll-margin-top:calc(var(--chrome-header-height, 4rem) + var(--sp-4)); }
 .gd-article .gd-sources>p { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-article .gd-sources ul { margin:var(--stack-head) 0 0; padding:0; list-style:none; border-top:1px solid var(--color-line); }
-.gd-article .gd-sources li { margin:0; padding:var(--sp-3) 0; border-top:0; border-bottom:1px solid var(--color-line); }
-.gd-article .gd-sources li+li { margin-top:0; padding-top:var(--sp-3); border-top:0; }
-.gd-article .gd-sources li>a { display:inline-flex; align-items:flex-start; justify-content:flex-start; gap:var(--sp-1); min-height:2.75rem; padding-block:var(--sp-2); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
+.gd-article .gd-sources li { margin:0; padding:var(--sp-2) 0; border-top:0; border-bottom:1px solid var(--color-line); }
+.gd-article .gd-sources li+li { margin-top:0; padding-top:var(--sp-2); border-top:0; }
+.gd-article .gd-sources li>a { display:inline-flex; align-items:flex-start; justify-content:flex-start; gap:var(--sp-1); min-height:2.75rem; padding-block:var(--sp-1); color:var(--color-brand); font-size:var(--fs-body); line-height:var(--lh-ui); font-weight:400; text-decoration:underline; text-decoration-thickness:var(--underline-thickness); text-underline-offset:var(--underline-offset); }
 .gd-article .gd-sources li>a>svg { flex:none; width:1rem; height:1rem; margin-top:.3em; }
 .gd-article .gd-sources li p { max-width:var(--measure); margin:0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .gd-sources__date { color:var(--color-ink-2); }
