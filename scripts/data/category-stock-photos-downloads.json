@@ -2991,11 +2991,11 @@
     "sha256": "3882fa2baeafcfbb16c91ba4efc4d7d9f82b4ebc76acdd35a713e5daed71d5aa",
     "sha1": "4623135df1a6eb25317300227659d86641a328ac",
     "output": {
-      "width": 1280,
-      "height": 887,
-      "bytes": 405514
+      "width": 900,
+      "height": 624,
+      "bytes": 205272
     },
-    "changes": "Resized to at most 1280 px wide and 1600 px tall (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). No other edits."
+    "changes": "Resized to 900 px wide (never upscaled, never cropped), EXIF orientation applied, re-encoded as WebP (q78, metadata stripped). No other edits. 900 px, not 1280: from a 1280 px master its 800 and 1200 rungs exceed the 90 / 150 KB budgets even at q40 (dense texture), and the budget exception list is full; at 900 px its one large rung fits (UI9-IMG-B1b2, 2026-10-21)."
   },
   "stock-halloween-6": {
     "approvalId": "halloween#6",
