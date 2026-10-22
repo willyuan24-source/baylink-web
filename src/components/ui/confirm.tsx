@@ -1,9 +1,8 @@
 // 品牌化确认框，替代原生 confirm()/prompt()。
 // 任意位置 `await confirmDialog({...})`；<ConfirmHost/> 在 AppLayout 挂载一次负责渲染。
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AlertTriangle } from 'lucide-react';
-import { ChunkBoundary } from '../ChunkBoundary';
-import { DialogWait } from './DialogWait';
+import { DialogSlot } from './DialogWait';
 import { lazyDialog } from './lazy-dialog';
 
 /** How the card's chunk is fetched (a test makes it fail). */
@@ -76,11 +75,8 @@ export const ConfirmHost = ({ locationKey }: { locationKey?: string }) => {
 };
 
 /** One confirm: the card (loaded, or loading behind DialogWait); if it cannot load (offline, a stale deploy), the browser's own confirm / prompt answers instead. */
-const ConfirmSlot = ({ request, onGone }: { request: PendingConfirm; onGone: () => void }) => {
-  const [{ Dialog: Card, waits }] = useState(confirmCard.current);
-  return <ChunkBoundary onFail={() => {
-    const { message, input } = request.opts;
-    request.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
-    onGone();
-  }}><Suspense fallback={<DialogWait />}><Card opts={request.opts} warning={<AlertTriangle size={18} />} onResolve={request.resolve} onGone={onGone} afterWait={waits} /></Suspense></ChunkBoundary>;
-};
+const ConfirmSlot = ({ request, onGone }: { request: PendingConfirm; onGone: () => void }) => <DialogSlot dialog={confirmCard} onFail={() => {
+  const { message, input } = request.opts;
+  request.resolve(input ? window.prompt(message, input.defaultValue || '') : window.confirm(message));
+  onGone();
+}} props={{ opts: request.opts, warning: <AlertTriangle size={18} />, onResolve: request.resolve, onGone }} />;

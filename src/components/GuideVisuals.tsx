@@ -1,10 +1,8 @@
-import { Suspense, useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, Expand, MapPin } from 'lucide-react';
 import type { GuideImage } from '../data/guide-media';
 import type { GuideBlock } from '../data/guides';
-import type { GuideLightboxProps } from './GuideLightbox';
-import { ChunkBoundary } from './ChunkBoundary';
-import { DialogWait } from './ui/DialogWait';
+import { DialogSlot } from './ui/DialogWait';
 import { lazyDialog } from './ui/lazy-dialog';
 import { useLocale } from '../i18n/locale';
 import { getImageProvenance } from '../lib/image-provenance';
@@ -34,10 +32,8 @@ const lightbox = lazyDialog(() => import('./GuideLightbox'), m => m.GuideLightbo
  * paint: warmed once the page is idle after a figure is drawn, so a tap usually opens it at once; before that the tap shows
  * the scrim and a spinner (DialogWait) until it arrives. If it cannot load (offline), it closes and the page stays.
  */
-export function GuideImageLightbox(props: GuideLightboxProps) {
-  const [{ Dialog: Lightbox, waits }] = useState(lightbox.current);
-  return <ChunkBoundary onFail={props.onClose}><Suspense fallback={<DialogWait />}><Lightbox {...props} afterWait={waits} /></Suspense></ChunkBoundary>;
-}
+export const GuideImageLightbox = ({ image, onClose, poster = false }: { image: GuideImage; onClose: () => void; poster?: boolean }) =>
+  <DialogSlot dialog={lightbox} onFail={onClose} props={{ image, caption: <GuideImageCaption image={image} poster={poster} />, onClose }} />;
 
 export function GuideFigure(props: FigureProps) {
   return <GuideFigureSession key={props.image.src} {...props} />;
