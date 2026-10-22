@@ -137,6 +137,7 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
 }
 @media (min-width:1024px) {
   html:not([data-reading$=large]) .gl-all-cell { display:flex; grid-column:span var(--gl-rest, 1); }
-  .gl-all-cell>.ui-button { flex:1; height:auto; border-radius:var(--r-lg); }
+  /* As tall as the cards' 3:2 pictures beside it (the cell spans --gl-rest columns). */
+  .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:var(--gl-ratio, 1.5); border-radius:var(--r-lg); }
   .gl-all-cell svg { width:1.125rem; height:1.125rem; }
 }
