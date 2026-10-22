@@ -62,18 +62,17 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
    starters, then its own four chips), the details, the guest line: with two cards, not six, the guest line is on the
    first screen above the composer at 390×844 (J2 P19 / J3 P15). The cards are the panel's one card look (the plan,
    outing and post cards: white, the 1px decorative line, --r-lg, --sp-3/--sp-4 inset), not a paper fill with a control
-   edge of its own (N12). */
+   edge of its own (N12); e1 lifts the two above the flat outlined chips, so they read first. */
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
 .baybay-conversation .bb-welcome__line { margin:0; color:var(--color-ink-2); }
 .baybay-conversation .bb-capsule { display:flex; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
 .baybay-conversation .bb-capsule__text { flex:1; min-width:0; margin:0; padding-block:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
 .baybay-conversation .bb-capsule__text>strong { color:var(--color-ink); font-weight:600; }
-.baybay-conversation .bb-capsule__off { display:grid; flex:none; place-items:center; width:var(--control-height); height:var(--control-height); border-radius:var(--r-circle); color:var(--color-ink-2); transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .baybay-conversation :is(.bb-chips,.bb-prompts,.bb-also ul,.baybay-followups ul,.baybay-plan-followups,.baybay-plan-citations) { margin:0; padding:0; list-style:none; }
 .baybay-conversation :is(.bb-chips,.bb-also ul,.baybay-followups ul,.baybay-plan-followups) { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
 .baybay-conversation .bb-chips--page .ui-chip { border-color:var(--color-brand); color:var(--color-brand-deep); }
 .baybay-conversation .bb-prompts { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:var(--sp-3); }
-.baybay-conversation .bb-prompt { display:grid; align-content:start; gap:var(--sp-1); width:100%; height:100%; padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); color:var(--color-ink); text-align:start; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
+.baybay-conversation .bb-prompt { display:grid; align-content:start; gap:var(--sp-1); width:100%; height:100%; padding:var(--sp-3) var(--sp-4); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); color:var(--color-ink); text-align:start; transition:background-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
 .baybay-conversation .bb-prompt__title { font-size:var(--fs-body); line-height:var(--lh-tight); font-weight:600; }
 .baybay-conversation .bb-prompt__hint { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .baybay-conversation .bb-prompt:disabled { background:var(--color-surface-2); color:var(--color-ink-3); cursor:not-allowed; }
@@ -282,8 +281,8 @@ html:is([data-reading=extra-large],[data-simple]) .baybay-conversation .baybay-p
 
 /* Hover only where a pointer hovers (N23); every control family answers a press at once (--dur-1). */
 @media (hover:hover) and (pointer:fine) {
-  .baybay-conversation :is(.bb-prompt:not(:disabled),.bb-capsule__off,.baybay-outing-card,.bb-post,.bb-smart__items button):hover { background:var(--color-surface-2); }
+  .baybay-conversation :is(.bb-prompt:not(:disabled),.baybay-outing-card,.bb-post,.bb-smart__items button):hover { background:var(--color-surface-2); }
   .baybay-conversation :is(.baybay-plan-citations a,.baybay-outing-all,.baybay-discovery-actions>a,.baybay-plan-stop-link):hover { text-decoration-thickness:2px; }
 }
-.baybay-conversation :is(.bb-prompt,.bb-capsule__off,.baybay-outing-card,.bb-post,.bb-smart__items button):active:not(:disabled) { scale:.98; background:var(--color-surface-2); }
+.baybay-conversation :is(.bb-prompt,.baybay-outing-card,.bb-post,.bb-smart__items button):active:not(:disabled) { scale:.98; background:var(--color-surface-2); }
 .baybay-conversation :is(.baybay-plan-citations a,.baybay-outing-all,.baybay-discovery-actions>a,.baybay-plan-stop-link):active { color:var(--color-brand-hover); }

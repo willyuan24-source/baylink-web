@@ -214,6 +214,7 @@ test('on an event page the capsule names the page, page chips ask about it, and 
   fireEvent.click(within(chips).getByRole('button', { name: /适合带长辈和孩子/ }));
   await view.findByText('适合，但人多，建议早到。');
   assert.deepEqual(bodies[0].context, { currentPath: '/events/san-francisco-fleet-week-2026' });
+  assert.ok(view.getByRole('button', { name: '不再参考这一页' }).classList.contains('ui-close'), 'the capsule ✕ is the shared close (N12)');
   fireEvent.click(view.getByRole('button', { name: '不再参考这一页' }));
   assert.equal(view.baseElement.querySelector('.bb-capsule'), null);
   // A 接着聊 chip under the answer asked on this page no longer carries the page either.

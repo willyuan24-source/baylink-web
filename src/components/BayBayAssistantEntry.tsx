@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useLayoutEffect, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, X, Square, RotateCcw, SquarePen } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Square, RotateCcw, SquarePen } from 'lucide-react';
 import { recordProductEvent } from '../lib/product-events';
 import { recordBayBayLatency } from '../lib/baybay-latency';
 import { BayBayDownvoteReasons } from '../features/feedback/BayBayDownvoteReasons';
@@ -404,9 +404,9 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
     {/* The AI cutoff, in its last 7 days: a calm line, not an alarm (api #37 pauseScheduled / aiUntil). */}
     {capabilities.scheduled && <BayBayScheduledNotice text={capabilities.scheduled.banner[locale]} />}
     {turns.length === 0 && <p className="bb-welcome__line">{copy('直接打字，或点一个问题。', 'Type a question, or pick one below.')}</p>}
-    {/* "正在看：<the full title> ✕" at the top of the body: the title wraps, never an ellipsis (N25). */}
+    {/* "正在看：<the full title> ✕" at the top of the body: the title wraps, never an ellipsis (N25); the ✕ is the shared close (N12). */}
     {pageRef && pageTitle && !pageOff && <div className="bb-capsule"><p className="bb-capsule__text">{copy('正在看：', 'Viewing: ')}<strong>{pageTitle}</strong></p>
-      <button type="button" className="bb-capsule__off" onClick={() => setPageOffPath(currentPath)} aria-label={copy('不再参考这一页', 'Stop using this page')}><X aria-hidden="true" size={20} /></button></div>}
+      <CloseButton className="bb-capsule__off" label={copy('不再参考这一页', 'Stop using this page')} onClick={() => setPageOffPath(currentPath)} /></div>}
     {schoolContext && <p className="baybay-composer-note baybay-school-privacy" id="baybay-school-privacy">{BAYBAY_SCHOOL_NOTE}</p>}
     {turns.length === 0 && <section className="bb-welcome" aria-label={copy('开始提问', 'Get started')}>
       {pageQuestions.length > 0 && <ul className="bb-chips bb-chips--page" aria-label={copy('围绕这一页提问', 'Ask about this page')}>{pageQuestions.map(prompt => <li key={prompt.label}><button type="button" className="ui-chip" disabled={loading} onClick={() => askBayBay(prompt.question)}>{prompt.label}</button></li>)}</ul>}
