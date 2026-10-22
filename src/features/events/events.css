@@ -208,7 +208,7 @@ html[data-simple] .ev-page [data-simple=hide],html[data-simple] .ev-page :is(.ev
    opens: 选日期、地区和城市, the sheet's title (its name says it too). Elsewhere the rail shows the cities. */
 .ev-week__hint { display:none; }
 @media (max-width:767px) {
-  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__range { display:inline-grid; grid-template-columns:auto auto; justify-content:center; align-items:center; gap:0 var(--sp-2); padding-block:var(--sp-1); line-height:var(--lh-tight); }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-week__range { display:inline-grid; grid-template-columns:auto auto; justify-content:center; align-items:center; gap:0 var(--sp-2); padding-block:0; line-height:var(--lh-tight); }
   html:is([data-reading=large],[data-reading=extra-large]) .ev-week__hint { display:block; grid-column:1 / -1; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-tight); text-align:center; }
 }
 .ev-week__range:active,.ev-week__day:active,.ev-month__day:active { scale:.96; }
@@ -252,6 +252,9 @@ html[data-simple] .ev-week { margin-bottom:calc(var(--section-gap) - var(--sp-2)
 @media (max-width:359px) {
   .ev-calendar__count { display:block; }
   .ev-calendar__sep { display:none; }
+  /* At 大 / 特大 there the date alone and List | Map are wider than the row: the toggle takes the next row. */
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-calendar__head { grid-template-columns:minmax(0, 1fr); }
+  html:is([data-reading=large],[data-reading=extra-large]) .ev-calendar__mode { justify-self:start; }
 }
 /* 列表 | 地图 in the view row's segmented look (the current one an ink fill). Each item is as wide as its label: the
    primitive's even 1 1 0 split of a box sized to both labels cut the English "Map" to "M…". */
