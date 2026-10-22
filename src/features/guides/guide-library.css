@@ -148,7 +148,7 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
 @media (min-width:1024px) {
   /* Follow-up 10: one column, as tall as the 3:2 pictures beside it, on the band's sunken tint — a link tile, not an empty frame. */
   html:not([data-reading$=large]) .gl-all-cell { display:flex; }
-  .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border:0; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-brand); }
+  .gl-page .gl-all-cell>.ui-button[data-variant] { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border:0; border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-brand); }
   .gl-all-cell svg { width:1.125rem; height:1.125rem; }
   /* N16 (UI9-R1): the 长辈与家属先看 band on the feeds' four columns — its heading, line and 看全部 in column 1, the three rows in
      columns 2–4 (422 / 732 / 1042 at 1440, as every card grid below). The sunken panel reaches --gl-band-bleed past the
