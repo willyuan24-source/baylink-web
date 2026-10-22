@@ -7,18 +7,18 @@
     "fontSizePxUnder13": 0,
     "fontSizeUnder13": 19,
     "radiusKinds": 30,
-    "shadowKinds": 22,
+    "shadowKinds": 21,
     "fontWeightOutsideSet": 0,
     "textArbitraryUnder13": 45,
     "baylinkClasses": 330,
     "arrowUpRight": 29,
-    "buttonLooks": 33,
+    "buttonLooks": 32,
     "fontSizeOffLadder": 27,
-    "fontSizeLiteral": 376,
+    "fontSizeLiteral": 375,
     "fontWeightBold": 2,
     "durationOffScale": 0,
     "durationLiteral": 30,
-    "spacingOffScale": 1487,
+    "spacingOffScale": 1352,
     "englishUiUntranslated": 104,
     "lazyCssDuplicateSelectors": 0
   },
@@ -207,7 +207,6 @@
       "0 0 0 3px var(--color-highlight),0 4px 12px rgb(var(--color-brand-deep-rgb) / .22)",
       "0 0 0 4px var(--color-surface)",
       "inset 0 0 0 1px var(--color-brand)",
-      "inset 4px 0 0 var(--color-warning,var(--color-line-strong))",
       "none",
       "tw:shadow-2xl",
       "tw:shadow-card",
@@ -222,7 +221,6 @@
     "button": [
       "var(--color-brand) | var(--color-surface) | -",
       "var(--color-brand) | var(--color-surface) | 0",
-      "var(--color-brand) | var(--color-surface) | 1px solid transparent",
       "var(--color-brand) | var(--color-surface) | 1px solid var(--color-brand)",
       "var(--color-brand) | var(--color-surface) | var(--color-brand)",
       "var(--color-brand) | white | 1px solid var(--color-brand)",
@@ -317,8 +315,7 @@
       "arrowUpRight": 1
     },
     "src/components/guides-ui.css": {
-      "durationLiteral": 1,
-      "spacingOffScale": 128
+      "durationLiteral": 1
     },
     "src/components/GuideVisuals.tsx": {
       "arrowUpRight": 1
@@ -333,7 +330,7 @@
       "spacingOffScale": 2
     },
     "src/components/local-discovery-detail.css": {
-      "spacingOffScale": 5
+      "spacingOffScale": 4
     },
     "src/components/monthly-deals.css": {
       "spacingOffScale": 5
@@ -358,7 +355,7 @@
       "spacingOffScale": 4
     },
     "src/components/planner-web-library.css": {
-      "spacingOffScale": 5
+      "spacingOffScale": 4
     },
     "src/components/PlannerWebSearch.tsx": {
       "arrowUpRight": 1
@@ -497,6 +494,9 @@
     "src/features/detail/DetailActionBar.tsx": {
       "arrowUpRight": 1
     },
+    "src/features/detail/facts-grid.css": {
+      "spacingOffScale": 1
+    },
     "src/features/events/events.css": {
       "spacingOffScale": 2
     },
@@ -512,7 +512,7 @@
       "spacingOffScale": 10
     },
     "src/features/guides/guide-article.css": {
-      "spacingOffScale": 10
+      "spacingOffScale": 7
     },
     "src/features/member-ui.css": {
       "durationLiteral": 10,
@@ -663,8 +663,7 @@
       "spacingOffScale": 20
     },
     "src/styles/planner.css": {
-      "fontSizeLiteral": 1,
-      "spacingOffScale": 72
+      "spacingOffScale": 69
     },
     "src/tokens.css": {
       "fontWeightBold": 1,

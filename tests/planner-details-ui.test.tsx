@@ -40,6 +40,11 @@ const editor = (view: View) => within(view.getByRole('complementary'));
 const input = (view: View, label: string) => editor(view).getByLabelText(label) as HTMLInputElement;
 const selectedLinks = (view: View) => Array.from(view.container.querySelectorAll('.planner-stops > li > a')).map(link => link.getAttribute('href'));
 const timingInputs = (view: View, label: string) => editor(view).getAllByLabelText(label) as HTMLInputElement[];
+/** A list row, paging the list (继续看更多地点) until it is there: the first page is eight rows (UI9-R1-PLAN). */
+function listRow(view: View, key: string) {
+  for (let more; !view.container.querySelector(`[id="catalog-${key}"]`) && (more = view.queryByRole('button', { name: '继续看更多地点' }));) fireEvent.click(more);
+  return view.container.querySelector(`[id="catalog-${key}"]`) as HTMLElement | null;
+}
 function seed(plan = savedPlan()) { localStorage.setItem(GUEST_PLANNER_KEY, JSON.stringify(library([plan]))); }
 async function openPlanner(search = '?edit=details-plan', signedIn = false) {
   const app = signedIn ? { user: { id: 'owner', token: 'private-test-token' }, setShowLogin: () => {}, showToast: () => {} } as unknown as AppContextValue : undefined;
@@ -303,7 +308,7 @@ test('an old saved event cannot be added twice through its merged catalog card a
   seed(original);
   const view = await openPlanner();
   assert.equal(timingInputs(view, '停留（分钟）')[0].value, '45');
-  const card = view.container.querySelector(`[id="catalog-event:${canonical}"]`) as HTMLElement;
+  const card = listRow(view, `event:${canonical}`) as HTMLElement;
   assert.ok(card, 'the canonical catalog event is available alongside the old saved reference');
   fireEvent.click(within(card).getByRole('button', { name: '加入计划' }));
   assert.deepEqual(selectedLinks(view), [`/events/${legacy.id}`]);
@@ -347,7 +352,7 @@ test('replacing one stop keeps other stops and estimates, undo restores it and l
   const view = await openPlanner();
   const original = selectedLinks(view);
   fireEvent.click(editor(view).getAllByRole('button', { name: '替换此站' })[1]);
-  const replacement = view.container.querySelector('[id="catalog-place:palace"]')!;
+  const replacement = listRow(view, 'place:palace')!;
   assert.ok(replacement);
   fireEvent.click(within(replacement as HTMLElement).getByRole('button', { name: '替换选中站点' }));
   assert.equal(selectedLinks(view)[0], original[0]);

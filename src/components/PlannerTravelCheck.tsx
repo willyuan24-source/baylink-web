@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ChevronDown, MapPin, Route, LoaderCircle } from 'lucide-react';
+import { MapPin, Route, LoaderCircle } from 'lucide-react';
 import { useLocale, translateText } from '../i18n/locale';
 import { api } from '../lib/api';
 import { buildItinerary, clockLabel, factsForStop } from '../lib/planner-itinerary';
@@ -14,7 +14,7 @@ export function PlannerTravelCheck(props: Props) {
 }
 function TravelDisclosure(props: Props) {
   const locale = useLocale(), [open, setOpen] = useState(false);
-  return <details className="planner-travel-check" onToggle={event => setOpen(event.currentTarget.open)} translate="no"><summary className="planner-travel-actions"><Route size={17}/><strong>{locale === 'en' ? 'Will these stops fit? Check travel' : translateText('这几站来得及吗？核对交通', locale)}</strong><ChevronDown size={15} aria-hidden="true" style={{ transform: open ? 'rotate(180deg)' : undefined }}/></summary>{open && <TravelCheckContents key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props}/>}</details>;
+  return <details className="planner-travel-check" onToggle={event => setOpen(event.currentTarget.open)} translate="no"><summary className="planner-travel-actions"><Route size={17}/><strong>{locale === 'en' ? 'Will these stops fit? Check travel' : translateText('这几站来得及吗？核对交通', locale)}</strong></summary>{open && <TravelCheckContents key={JSON.stringify([props.ownerId || 'guest', props.sessionKey])} {...props}/>}</details>;
 }
 function TravelCheckContents({ stops, date, details, ownerId, onLogin }: Props) {
   const locale = useLocale(), t = (zh: string, en: string) => locale === 'en' ? en : translateText(zh, locale);

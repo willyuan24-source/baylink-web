@@ -5,6 +5,8 @@ import { buildOutingOptions, buildPlaceOutingOptions, getPlaceOutingUnavailableR
 import { buildItinerary, clockLabel, planBudget } from '../lib/planner-itinerary';
 import { stopTitle, type PlanFilters, type Suggestion } from '../lib/planner-core';
 import { plannerNoticeText } from '../lib/planner-copy';
+import { Button } from './ui/Button';
+import { FilterChip } from './ui/Chip';
 
 export function PlannerOutingOptions({ suggestion, filters, message, onChoose }: { suggestion: Suggestion; filters: PlanFilters; message?: string; onChoose: (outing: CompleteOuting) => void }) {
   const options = useMemo(() => buildOutingOptions({ suggestion, filters, message }), [suggestion, filters, message]);
@@ -31,7 +33,7 @@ function OutingOptions({ options, onChoose }: { options: CompleteOuting[]; onCho
   const budget = planBudget(option.stops, option.details);
   return <section className="planner-outing-preview" aria-label={text('搭配完整出行', 'Build a complete outing')}>
     <h4><WandSparkles size={15} />{text('连同下一站，一起安排', 'Make an outing of it')}</h4>
-    {options.length > 1 && <div className="planner-outing-tabs" role="group" aria-label={text('方案时长', 'Outing length')}>{options.map(item => <button key={item.id} type="button" aria-pressed={item.id === option.id} onClick={() => setStyle(item.style)}>{item.style === 'half-day' ? text('轻松半日', 'Half day') : text('充实一天', 'Full day')}</button>)}</div>}
+    {options.length > 1 && <div className="planner-outing-tabs" role="group" aria-label={text('方案时长', 'Outing length')}>{options.map(item => <FilterChip key={item.id} selected={item.id === option.id} onClick={() => setStyle(item.style)}>{item.style === 'half-day' ? text('轻松半日', 'Half day') : text('充实一天', 'Full day')}</FilterChip>)}</div>}
     <p className="planner-outing-summary"><Clock3 size={13} />{option.details.startTime}–{clockLabel(timeline.end)} · {option.stops.length} {text('站', 'stops')}</p>
     <ol className="planner-outing-route">{timeline.rows.map((row, index) => <li key={`${row.stop.kind}:${row.stop.id}`}>
       {!!row.settings.breakBeforeMinutes && <p className="planner-outing-break"><Coffee size={12} />{text('用餐 / 休息预留', 'Meal / rest buffer')} {row.settings.breakBeforeMinutes} {text('分钟 · 地点待选', 'min · choose a place')}</p>}
@@ -41,6 +43,6 @@ function OutingOptions({ options, onChoose }: { options: CompleteOuting[]; onCho
     {option.budgetStatus === 'unknown' && <p className="planner-unverified-price">{text('预算待确认：可以先采用草稿，再核对未知费用；尚不能确认符合预算。', 'Budget unconfirmed: keep this draft and check missing costs before relying on the budget.')}</p>}
     <p className="planner-small-note">{text('餐饮、交通另行预留；站间时间为可修改的安排，未查询实际路线。', 'Allow separately for meals and transport. Travel buffers are editable estimates, not checked routes.')}</p>
     {option.notices.length > 0 && <details className="planner-outing-notices"><summary>{text('方案依据与待确认事项', 'Sources and things to confirm')} ({option.notices.length})</summary><ul>{option.notices.map((notice, index) => <li key={index}>{plannerNoticeText(notice, locale === 'en')}</li>)}</ul></details>}
-    <button type="button" className="planner-primary" onClick={() => onChoose(option)}>{text('采用这个完整方案', 'Use this complete outing')}</button>
+    <Button block onClick={() => onChoose(option)}>{text('采用这个完整方案', 'Use this complete outing')}</Button>
   </section>;
 }

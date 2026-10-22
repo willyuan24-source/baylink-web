@@ -176,7 +176,7 @@ test('简洁显示 hooks: the lane-scoped hide / show rules, no carousel in 简�
   assert.match(library, /html\[data-simple\] \.gl-page \[data-simple=hide\]/);
 });
 
-test('the bar\'s call never shows a bare number on a phone: two rows below 390 px and at 大 / 特大 / 简洁; short cell labels in the rail', () => {
+test('the bar\'s call never shows a bare number on a standard phone: two rows below 390 px; short cell labels in the rail', () => {
   const rules = new Map<string, string[]>();
   css('src/features/guides/guide-article.css').walkRules(rule => {
     const media = rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : '';
@@ -184,8 +184,9 @@ test('the bar\'s call never shows a bare number on a phone: two rows below 390 p
   });
   const twoRow = (media: string) => (rules.get(media) ?? []).some(selector => selector.endsWith('.gd-bar>.detail-actions__primary'));
   assert.ok(twoRow('(max-width:389px)'), 'two rows below 390 px (360–389 px standard hid the glyph and the verb)');
-  const modes = (rules.get('(max-width:479px)') ?? []).find(selector => selector.endsWith('.gd-bar>.detail-actions__primary'));
-  for (const mode of ['data-reading=large', 'data-reading=extra-large', 'data-simple']) assert.ok(modes?.includes(mode), `${mode} on a phone: two rows`);
+  // UI9-R1-GUIDE-ARTICLE (N18 / N25): from 390 px 大 / 特大 / 简洁 keep one row with the primary last, so the pinned bars stay
+  // within 20% of the screen; the number alone is the call there (tests/ui9-r1-guide-article.test.tsx).
+  assert.ok(!twoRow('(max-width:479px)'), '大 / 特大 / 简洁 on a 390–479 px phone: one row');
   // The rail's 72–85 px cells: DETAIL's desktop 发给家人 / "Send to family" overflowed at 特大 and in English.
   assert.ok((rules.get('') ?? []).includes('.site-detail-actions.detail-actions.gd-bar [data-label=desk]'));
   assert.ok((rules.get('') ?? []).includes('.site-detail-actions.detail-actions.gd-bar [data-label=phone]'));

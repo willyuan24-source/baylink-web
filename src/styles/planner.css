@@ -3,62 +3,89 @@
  * panel, BayBay's imported requirements). Global for now (main.tsx imports it until WEB-CSS-PRUNE moves it); the page
  * layout around the UI primitives lives in plan-page.css, loaded with the route. Tokens and rem only, no text below
  * --text-caption (13px; 16px in 简洁显示), weights 400/600/700, no negative tracking, ≥44px controls (48 in 简洁显示).
- * Buttons take the UI primitive's look (primary · secondary · chip), so a template keeps one button family.
+ * Buttons are the UI primitive (components/ui/Button: primary · secondary · quiet; one primary per section, N12); the
+ * chip-like length and example buttons keep the chip look. Sections sit --section-gap apart (40 phone / 64 desktop, N15).
  */
-.planner-page { color:var(--color-ink); }
-.planner-page :is(button,a,input,select,textarea) { outline-offset:3px; }
+.planner-page { --plan-measure:30em; color:var(--color-ink); }
 .planner-page button:disabled { cursor:not-allowed; }
-.planner-page h2 { margin:0; color:var(--color-ink); font-size:var(--text-section); line-height:1.333; font-weight:600; letter-spacing:0; }
-.planner-page h3 { color:var(--color-ink); font-weight:600; letter-spacing:0; }
-.planner-page a:not(.ui-button,.ui-card-link,.planner-primary) { color:var(--color-brand); }
-.planner-page a:not(.ui-button,.ui-card-link,.planner-primary):hover { color:var(--color-brand-hover); }
+.planner-page h2 { margin:0; font-size:var(--text-section); line-height:1.333; font-weight:600; letter-spacing:0; }
+.planner-page h3 { font-weight:600; letter-spacing:0; }
+.planner-page a:not(.ui-button,.ui-card-link) { color:var(--color-brand); }
+.planner-page a:not(.ui-button,.ui-card-link):hover { color:var(--color-brand-hover); }
 /* Small label above a panel title in the account panels My Week mounts (bookings, groups); not upper-case, not tracked. */
 .planner-eyebrow { display:flex; align-items:center; gap:8px; line-height:1.4; font-weight:400; }
+/* N13 (行程 itself, not My Week's legacy blocks): no default ▶ marker and no resize grip; a disclosure without an icon of its
+ * own ends in + / −, which screen readers skip. */
+.planner-page:where(.ui-container) summary { list-style:none; cursor:pointer; }
+.planner-page:where(.ui-container) summary::-webkit-details-marker { display:none; }
+.planner-page:where(.ui-container) summary::after { content:'+'; content:'+' / ''; margin-left:8px; }
+.planner-page:where(.ui-container) :where([open])>summary::after { content:'−'; content:'−' / ''; }
+.planner-page:where(.ui-container) textarea { resize:none; }
+/* N15: one gap between the page's sections (the two that open on a bare heading give back its half-leading, so the
+   visible gap is the same); 行程 keeps no bottom padding of its own (pre-footer = the footer's margin). The slot's only
+   paragraphs are its notices (.planner-offline, .planner-error), which keep their own margins. */
+.planner-page :is(.plan-weekend,.planner-data-slot>:where(:not(p))) { margin-block:var(--section-gap) 0; }
+.planner-page .plan-days { margin-top:calc(var(--section-gap) - 8px); }
+/* The head's link may not make its row taller than the h2 (a row on desktop in every mode, on phones in the standard one),
+ * so the h2 starts the section whether the head wraps or not. */
+html:not([data-reading$=large],[data-simple]) .planner-page :is(.home-section-head__more,.plan-section-head>.ui-button) { margin-block:-8px; }
+@media (min-width:1024px) {
+  .planner-page :is(.home-section-head__more,.plan-section-head>.ui-button) { margin-block:-8px; }
+  .planner-page .plan-weekend { margin-top:calc(var(--section-gap) - 6px); }
+}
+main .planner-page.ui-container { padding-bottom:0; }
+/* N05: copy that wraps holds ≤ 40 characters a line in Chinese (digits and Latin count one each; schedule lines are
+   mostly digits, so they wrap at 25em) and ≤ 75 in English. */
+.planner-page:lang(en) { --plan-measure:32em; }
+.planner-page :is(.ui-page-header__lede,.ui-row-card__meta,.planner-place-summary,.planner-small-note,.planner-web-intro),.planner-page .plan-days .ui-state__body { max-width:var(--plan-measure); }
+.planner-page .planner-place-when { max-width:25em; }
+/* J3 P08: a place's description shows two lines until its 展开 (the toggle, PlannerWorkspace, sits right under it). */
+.planner-page .planner-place { display:flex; flex-direction:column; }
+.planner-place-summary~* { order:2; }
+.planner-place>.planner-place-more { order:1; align-self:start; margin:-8px 0 0 6.25rem; }
+.planner-place-more[hidden] { display:none; }
+.planner-place:has(>.planner-place-more[aria-expanded=false])>.planner-place-summary { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; }
+html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .planner-place>.planner-place-more { margin-left:0; }
+/* 更多方式 (J3 P08): 站外搜索 and the screenshot import as two rows of one block, side by side from 768px. */
+.planner-more>h2 { margin-bottom:12px; }
+.planner-more__ways { display:grid; gap:20px 32px; }
 
-/* Primary, secondary and chip controls in the planner panels share the UI primitive's geometry and colours. */
-.planner-page .planner-primary { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid transparent; border-radius:var(--r-md); background:var(--color-brand); color:var(--color-surface)!important; font-size:var(--text-body); line-height:1.25; font-weight:600; text-align:center; text-decoration:none; }
-.planner-page .planner-primary:hover { background:var(--color-brand-hover); }
-.planner-page .planner-primary:disabled { background:var(--color-surface-2); color:var(--color-ink-3)!important; }
-.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border:1px solid var(--color-line-strong); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); line-height:1.25; font-weight:600; text-decoration:none; white-space:normal; }
-.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-web-candidate>button,.planner-edit-actions>button:not(.planner-primary)):disabled { background:var(--color-surface-2); border-color:transparent; color:var(--color-ink-3); }
-.planner-page :is(.planner-outing-tabs,.planner-edit-examples) button { display:inline-flex; align-items:center; min-height:var(--control-height); padding:0 14px; border:1px solid var(--color-line-control); border-radius:var(--r-pill); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-fact); line-height:1.25; font-weight:400; text-align:left; }
-.planner-page .planner-outing-tabs button[aria-pressed=true] { border-color:var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-weight:600; }
 
 /* Account / storage notice (here and, compact, on My Week). */
 .planner-account { display:flex; gap:12px 16px; align-items:center; flex-wrap:wrap; margin:16px 0; padding:16px; border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); }
 .planner-account>div { flex:1 1 15rem; }
 .planner-account strong { color:var(--color-ink); font-size:var(--text-body); font-weight:600; }
-.planner-account p { margin:4px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-account p { margin:4px 0 0; }
 .planner-account .planner-error { flex-basis:100%; }
 /* My Week mounts the compact notice straight on the page: a quiet panel so the storage note keeps its container. */
 .planner-account-compact { background:var(--color-surface-2); }
 
 /* 按条件挑选 */
-.planner-form { margin:32px 0; padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
+.planner-form,.planner-more { padding:20px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 .planner-form>h2 { margin-bottom:12px; }
-.planner-page label { display:flex; flex-direction:column; gap:8px; color:var(--color-ink); font-size:var(--text-fact); font-weight:400; }
+.planner-page label { display:flex; flex-direction:column; gap:8px; font-size:var(--text-fact); font-weight:400; }
 .planner-page :is(input,select,textarea) { box-sizing:border-box; width:100%; min-height:var(--control-height); padding:10px 12px; border:1px solid var(--color-line-control); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink); font-size:var(--text-body); font-weight:400; }
 .planner-page input[type=checkbox] { flex:none; width:1.25rem; min-height:auto; height:1.25rem; padding:0; }
-.planner-question textarea { min-height:5.5rem; resize:vertical; line-height:1.625; }
+.planner-question textarea { min-height:5.5rem; line-height:1.625; }
 .planner-filters { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; margin-top:8px; }
 .planner-refinements { margin-top:12px; }
-.planner-refinements>summary { display:flex; align-items:center; gap:8px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:400; cursor:pointer; list-style:none; }
-.planner-refinements>summary::-webkit-details-marker { display:none; }
+.planner-refinements>summary { display:flex; align-items:center; gap:8px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); }
+.planner-refinements>summary::after { content:none; }
 .planner-refinements[open]>summary>svg:last-child { transform:rotate(90deg); }
 .planner-form-actions { display:flex; align-items:center; gap:8px 16px; margin-top:20px; flex-wrap:wrap; }
 .planner-form-actions>span { color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.5; }
-.planner-handoff-note { display:flex; align-items:flex-start; gap:8px; margin:0 0 12px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-handoff-note { display:flex; align-items:flex-start; gap:8px; margin:0 0 12px; }
 .planner-handoff-note>svg { flex:none; margin-top:3px; color:var(--color-brand); }
 
 /* Section heads (results, list) */
 .planner-section-head { display:flex; align-items:center; justify-content:space-between; gap:16px; margin:32px 0 16px; }
-.planner-section-head p { margin:8px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-section-head p { margin:8px 0 0; }
 .planner-section-head>a { display:inline-flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-brand); font-size:var(--text-fact); font-weight:600; }
 .planner-section-head>span { display:flex; gap:6px; align-items:center; color:var(--color-ink-2); font-size:var(--text-fact); }
 .planner-applied-filters { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 16px; color:var(--color-ink-2); font-size:var(--text-fact); }
 .planner-applied-filters>strong { padding:4px 10px; border-radius:var(--r-pill); background:var(--color-brand-tint); color:var(--color-brand-deep); font-size:var(--text-caption); font-weight:600; }
 .planner-result-notes { margin:0 0 16px; color:var(--color-ink-2); font-size:var(--text-fact); }
-.planner-result-notes>summary { min-height:var(--control-height); padding:10px 0; color:var(--color-brand); font-weight:400; cursor:pointer; }
+.planner-result-notes>summary { min-height:var(--control-height); padding:10px 0; color:var(--color-brand); }
 
 /* Suggestion cards */
 .planner-options { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:16px; }
@@ -71,41 +98,36 @@
 .planner-option>p,.planner-option li { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .planner-option ul { margin:0; padding-left:18px; list-style:disc; }
 .planner-option>a { font-size:var(--text-fact); text-decoration:underline; text-underline-offset:3px; }
-.planner-option small { color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-option .planner-primary { margin-top:auto; align-self:stretch; }
-.planner-meta { line-height:1.571; }
+.planner-option>.ui-button { margin-top:auto; }
 .planner-cost { color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
-.planner-unverified-price { padding:4px 10px; border-radius:var(--r-sm); background:var(--color-warning-tint, var(--color-surface-2)); color:var(--color-warning, var(--color-ink)); font-size:var(--text-caption); font-weight:600; }
+.planner-unverified-price { padding:4px 10px; border-radius:var(--r-sm); background:var(--color-warning-tint); color:var(--color-warning); font-size:var(--text-caption); font-weight:600; }
 
 /* Notes, errors and warnings */
-.planner-note { margin:12px 0; padding:12px 16px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-note>button { margin:8px 0 0; }
+.planner-note { margin:12px 0; padding:12px 16px; border-radius:var(--r-md); background:var(--color-surface-2); }
+.planner-note>.ui-button { display:flex; width:fit-content; margin-top:8px; }
 .planner-small-note { margin:8px 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
-.planner-error { margin:12px 0; padding:12px 16px; border-radius:var(--r-md); background:var(--color-danger-tint, var(--color-surface-2)); color:var(--color-danger); font-size:var(--text-fact); line-height:1.571; }
-.planner-conflicts,.planner-budget-warning { margin:12px 0; padding:12px 14px; border-radius:var(--r-md); background:var(--color-warning-tint, var(--color-surface-2)); color:var(--color-warning, var(--color-ink)); font-size:var(--text-fact); line-height:1.571; }
+.planner-error { margin:12px 0; padding:12px 16px; border-radius:var(--r-md); background:var(--color-danger-tint); color:var(--color-danger); font-size:var(--text-fact); line-height:1.571; }
+.planner-conflicts,.planner-budget-warning { margin:12px 0; padding:12px 14px; border-radius:var(--r-md); background:var(--color-warning-tint); color:var(--color-warning); font-size:var(--text-fact); line-height:1.571; }
 .planner-conflicts { padding-left:32px; list-style:disc; }
 
 /* List of places and events (left) and the day editor (right on desktop, first on phones). */
-.planner-workspace { display:grid; grid-template-columns:minmax(0, 1fr) 22rem; align-items:start; gap:32px; margin-top:32px; }
+.planner-workspace { display:grid; grid-template-columns:minmax(0, 1fr) 22rem; align-items:start; gap:32px; }
 .planner-workspace>#planner-discoveries { min-width:0; }
 .planner-workspace .planner-section-head { margin-top:0; }
 .planner-map-shell { overflow:hidden; border-radius:var(--r-lg); background:var(--color-surface-2); }
 .planner-map { height:24rem; }
 .planner-map-placeholder { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; min-height:16rem; padding:24px; text-align:center; }
-.planner-map-placeholder>span { color:var(--color-brand); font-size:2rem; }
+.planner-map-placeholder>span { color:var(--color-brand); font-size:var(--fs-keep-32); }
 .planner-map-placeholder h3 { margin:0; font-size:var(--text-card); }
-.planner-map-placeholder p { max-width:20rem; margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-map-placeholder small { color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-map-caption { margin:0; padding:10px 14px; background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
+.planner-map-placeholder p { max-width:20rem; margin:0; }
+.planner-map-caption { margin:0; padding:10px 14px; background:var(--color-surface-2); }
 .planner-map-pin { width:2.125rem; height:2.125rem; border:2px solid var(--color-surface); border-radius:var(--r-circle); background:var(--color-brand); color:var(--color-surface); font-size:var(--text-caption); font-weight:600; cursor:pointer; }
 .planner-map-pin[aria-pressed=true] { background:var(--color-brand-deep); outline:3px solid var(--color-brand-tint); }
-.planner-map-disclosure>summary { display:flex; align-items:center; gap:10px; min-height:3rem; padding:10px 0; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; cursor:pointer; list-style:none; }
-.planner-map-disclosure>summary::-webkit-details-marker { display:none; }
-.planner-map-disclosure>summary::after { content:'+'; margin-left:auto; font-size:var(--fs-keep-20); font-weight:400; }
-.planner-map-disclosure[open]>summary::after { content:'−'; }
+.planner-map-disclosure>summary { display:flex; align-items:center; gap:10px; min-height:3rem; padding:10px 0; color:var(--color-brand); font-size:var(--text-fact); }
+.planner-map-disclosure>summary::after { margin-left:auto; font-size:var(--fs-keep-20); }
 .planner-nearby { margin-top:16px; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); }
 .planner-nearby h3 { margin:0; font-size:var(--text-body); }
-.planner-nearby>p { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-caption); line-height:1.6; }
+.planner-nearby>p { margin:6px 0 0; }
 .planner-nearby>button { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; min-height:var(--control-height); padding:8px 0; border-bottom:1px solid var(--color-line-control); color:var(--color-ink); font-size:var(--text-fact); text-align:left; }
 .planner-nearby>button:last-child { border:0; }
 .planner-nearby>button span { display:flex; align-items:center; gap:8px; color:var(--color-brand); font-size:var(--text-caption); white-space:nowrap; }
@@ -113,7 +135,7 @@
 
 .planner-editor { padding:20px; border-radius:var(--r-lg); background:var(--color-surface-2); scroll-margin-top:96px; }
 .planner-editor>h2 { margin:0 0 8px; }
-.planner-editor>p { margin:0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-editor>p { margin:0; }
 .planner-editor label { margin-top:16px; }
 .planner-editor>.ui-button { margin-top:16px; }
 .planner-stops { margin:16px 0 0; padding:0; list-style:none; }
@@ -137,91 +159,85 @@
 .planner-timeline { display:grid; gap:10px; margin:16px 0; padding:0; list-style:none; }
 .planner-timeline>li { padding:12px 14px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
 /* The stop with a time conflict keeps its warning edge (the list below names the conflict). */
-.planner-timeline>li.has-conflict { border-color:var(--color-warning, var(--color-line-strong)); box-shadow:inset 4px 0 0 var(--color-warning, var(--color-line-strong)); }
+.planner-timeline>li.has-conflict { border-color:var(--color-warning); border-left-width:4px; }
 .planner-time-range { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; color:var(--color-brand); font-size:var(--text-body); font-weight:400; font-variant-numeric:tabular-nums; }
-.planner-time-range small { color:var(--color-ink-2); font-size:var(--text-caption); font-weight:400; }
 .planner-timeline strong { color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
-.planner-timeline summary { min-height:var(--control-height); padding:10px 0 0; color:var(--color-brand); font-size:var(--text-fact); cursor:pointer; }
+.planner-timeline summary { min-height:var(--control-height); padding:10px 0 0; color:var(--color-brand); font-size:var(--text-fact); }
 .planner-timeline a { display:block; margin-top:8px; font-size:var(--text-fact); text-decoration:underline; text-underline-offset:3px; }
-.planner-time-evidence { margin:8px 0; padding:8px 10px; border-radius:var(--r-sm); background:var(--color-brand-tint); color:var(--color-ink); font-size:var(--text-fact); line-height:1.571; }
+.planner-time-evidence { margin:8px 0; padding:8px 10px; border-radius:var(--r-sm); background:var(--color-brand-tint); }
 .planner-time-evidence a { margin-top:4px; }
 .planner-time-notices { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-time-break { margin:0 0 10px; padding:8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-fact); }
+.planner-time-break { margin:0 0 10px; padding:8px; border-radius:var(--r-sm); background:var(--color-surface-2); }
 .planner-budget { margin-top:16px; font-size:var(--text-fact); }
 .planner-budget>div { display:flex; justify-content:space-between; gap:8px; padding:8px 0; color:var(--color-ink-2); }
 .planner-budget>div:last-child { border-top:1px solid var(--color-line-strong); color:var(--color-ink); font-weight:600; }
 .planner-budget dd { margin:0; white-space:nowrap; font-variant-numeric:tabular-nums; }
-.planner-calendar-export { width:100%; margin-top:16px; }
+.planner-calendar-export { margin-top:16px; }
 
 /* Complete outings (on a suggestion or a selected place). */
 .planner-outing-preview { width:100%; min-width:0; margin-top:4px; padding-top:16px; border-top:1px solid var(--color-line); }
 .planner-outing-preview h4 { display:flex; align-items:center; gap:8px; margin:0; color:var(--color-ink); font-size:var(--text-body); line-height:1.5; font-weight:600; }
 .planner-outing-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
-.planner-outing-summary { display:flex; align-items:center; gap:6px; margin:12px 0; color:var(--color-ink-2); font-size:var(--text-fact); }
+.planner-outing-summary { display:flex; align-items:center; gap:6px; margin:12px 0; }
 .planner-outing-route { display:grid; gap:10px; margin:0 0 12px; padding:0!important; list-style:none!important; }
 .planner-outing-route li { display:grid; grid-template-columns:3rem minmax(0, 1fr); column-gap:8px; padding-left:10px; border-left:2px solid var(--color-line-strong); line-height:1.571!important; }
 .planner-outing-route li>span { color:var(--color-brand); font-size:var(--text-fact); font-weight:600; font-variant-numeric:tabular-nums; }
 .planner-outing-route strong { color:var(--color-ink); font-size:var(--text-fact); font-weight:600; overflow-wrap:anywhere; }
 .planner-outing-route small { grid-column:2; margin-top:2px; color:var(--color-ink-2); font-size:var(--text-caption); }
 .planner-outing-route .planner-outing-break { grid-column:1/-1; display:flex; align-items:center; gap:6px; margin-bottom:6px; padding:6px 8px; border-radius:var(--r-sm); background:var(--color-surface-2); color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-outing-cost { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-outing-preview>.planner-primary { width:100%; margin-top:12px!important; }
+.planner-outing-preview>.ui-button { margin-top:12px; }
 .planner-outing-notices { margin:10px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-outing-notices summary { min-height:var(--control-height); padding-top:10px; color:var(--color-brand); cursor:pointer; }
+.planner-outing-notices summary { min-height:var(--control-height); padding-top:10px; color:var(--color-brand); }
 .planner-outing-notices ul { margin:8px 0; padding-left:18px; }
 
 /* Offers at a stop */
 .planner-stop-offers { margin:12px 0; padding:10px 12px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-stop-offers summary { display:flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-ink); font-weight:400; cursor:pointer; }
+.planner-stop-offers summary { display:flex; align-items:center; gap:6px; min-height:var(--control-height); color:var(--color-ink); }
 .planner-stop-offers>p { margin-top:6px; }
 .planner-stop-offers>div { margin-top:8px; padding-top:8px; border-top:1px solid var(--color-line); }
 .planner-stop-offers a { display:block!important; margin-top:4px!important; font-size:var(--text-fact); font-weight:600; text-decoration:underline; text-underline-offset:3px; }
-.planner-stop-offers small { display:block; color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-stop-offers p { font-size:var(--text-fact); line-height:1.571; }
+.planner-stop-offers small { display:block; }
 
 /* 一句话修改 */
 .planner-edit-assistant { min-width:0; margin:12px 0 20px; padding:16px 0; border-block:1px solid var(--color-line-strong); }
 .planner-edit-assistant h3 { display:flex; align-items:center; gap:8px; margin:0; font-size:var(--text-body); }
-.planner-edit-assistant p { margin:6px 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-edit-assistant p { margin:6px 0 0; }
 .planner-edit-examples { display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
-.planner-edit-assistant textarea { min-height:4.75rem; resize:vertical; }
+.planner-edit-assistant textarea { min-height:4.75rem; }
 .planner-edit-assistant label { margin-top:12px; }
-.planner-edit-preview-button { width:100%; margin-top:10px; }
+.planner-edit-assistant form>.ui-button { margin-top:12px; }
 .planner-edit-locks { color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
-.planner-edit-locks summary { min-height:var(--control-height); padding-top:10px; color:var(--color-brand); cursor:pointer; }
-.planner-edit-locks label { flex-direction:row; align-items:center; gap:8px; min-height:var(--control-height); margin-top:0; font-weight:400; }
-.planner-edit-locks p { font-size:var(--text-caption); }
+.planner-edit-locks summary { min-height:var(--control-height); padding-top:10px; color:var(--color-brand); }
+.planner-edit-locks label { flex-direction:row; align-items:center; gap:8px; min-height:var(--control-height); margin-top:0; }
 .planner-edit-proposal { margin-top:12px; padding:12px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; overflow-wrap:anywhere; }
 .planner-edit-proposal strong { color:var(--color-ink); font-size:var(--text-body); }
 .planner-edit-proposal ul { margin:8px 0; padding-left:18px; list-style:disc; }
 .planner-edit-proposal ol { margin:8px 0; padding-left:18px; list-style:decimal; }
 .planner-edit-proposal details { margin-top:10px; }
-.planner-edit-proposal summary { min-height:var(--control-height); padding-top:10px; color:var(--color-brand); cursor:pointer; }
+.planner-edit-proposal summary { min-height:var(--control-height); padding-top:10px; color:var(--color-brand); }
 .planner-edit-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:16px; }
 
 /* 站外搜索 (web search) */
-.planner-web-intro { margin-top:8px; color:var(--color-ink-2); }
-.planner-web-hint { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-web-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:16px; }
-.planner-web-cancel { min-height:var(--control-height); color:var(--color-brand); text-decoration:underline; text-underline-offset:3px; }
+.planner-web-intro { margin-top:4px; }
+.planner-web-hint { margin-top:6px; }
+.planner-web-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-top:12px; }
 .planner-web-status,.planner-web-error { margin-top:12px; padding:10px 14px; border-radius:var(--r-md); background:var(--color-surface-2); color:var(--color-ink-2); }
-.planner-web-error { background:var(--color-danger-tint, var(--color-surface-2)); color:var(--color-danger); }
+.planner-web-error { background:var(--color-danger-tint); color:var(--color-danger); }
 .planner-web-results { margin-top:20px; padding-top:16px; border-top:1px solid var(--color-line); }
 .planner-web-results h4 { margin-top:16px; color:var(--color-ink); font-size:var(--text-fact); font-weight:600; }
-.planner-web-checked { color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-web-caution { margin:10px 0; color:var(--color-warning, var(--color-ink)); font-size:var(--text-fact); }
+.planner-web-caution { margin:10px 0; }
 .planner-web-answer { color:var(--color-ink); font-size:var(--text-body); line-height:1.75; }
 .planner-web-citation { padding:0 2px; color:var(--color-brand); font-weight:600; text-decoration:underline; }
 .planner-web-sources { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; margin-top:16px; padding:0; list-style:decimal inside; }
 .planner-web-sources li { padding:12px; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); overflow-wrap:anywhere; }
 .planner-web-source-title { color:var(--color-brand); font-weight:600; text-decoration:underline; }
 .planner-web-source-url { display:block; margin-top:4px; color:var(--color-ink-2); font-size:var(--text-caption); }
-.planner-web-snippet { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-fact); }
+.planner-web-snippet { margin-top:6px; }
 .planner-web-candidates { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; margin:16px 0; }
 .planner-web-candidate { position:relative; min-width:0; padding:16px; border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); overflow-wrap:anywhere; }
-.planner-web-candidate-label { display:inline-block; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-warning-tint, var(--color-surface-2)); color:var(--color-warning, var(--color-ink)); font-size:var(--text-caption); font-weight:400; }
+.planner-web-candidate-label { display:inline-block; padding:3px 8px; border-radius:var(--r-sm); background:var(--color-warning-tint); color:var(--color-warning); font-size:var(--text-caption); }
 .planner-web-candidate h4 { margin:10px 0 6px; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
-.planner-web-candidate p { margin:6px 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-web-candidate p { margin:6px 0; }
 .planner-web-candidate dl { margin:12px 0; padding:8px 0; border-block:1px solid var(--color-line); font-size:var(--text-fact); line-height:1.571; }
 .planner-web-candidate dl>div { display:grid; grid-template-columns:4.5rem minmax(0, 1fr); gap:8px; margin:6px 0; }
 .planner-web-candidate dt { display:flex; align-items:flex-start; gap:4px; color:var(--color-ink-2); }
@@ -229,29 +245,31 @@
 .planner-web-candidate dd { margin:0; color:var(--color-ink); font-size:var(--text-fact); }
 .planner-web-candidate-links { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:var(--text-fact); }
 .planner-web-saved { margin:20px 0; padding:16px; border-radius:var(--r-lg); background:var(--color-surface-2); }
-.planner-web-saved>p { margin-top:6px; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
+.planner-web-saved>p { margin-top:6px; }
 
 /* Panels other templates mount */
 .week-plan-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
-.planner-launch-links { display:flex; flex-wrap:wrap; gap:12px; margin:20px 0; }
-.planner-launch-links a { display:inline-flex; align-items:center; gap:8px; min-height:max(var(--control-height), 3rem); padding:0 20px; border-radius:var(--r-md); background:var(--color-brand-tint); color:var(--color-brand); font-size:var(--text-body); font-weight:600; }
-.planner-launch-links a:first-child { background:var(--color-brand); color:var(--color-surface); }
 
+@media (max-width:420px) { .planner-place>.planner-place-more { margin-left:0; } }
+@media (min-width:768px) { .planner-more__ways { grid-template-columns:repeat(2, minmax(0, 1fr)); } .planner-more__ways>:has(.planner-web-results,.planner-web-saved) { grid-column:1 / -1; } }
 @media (max-width:1100px) {
   .planner-workspace { grid-template-columns:minmax(0, 1fr) 19.5rem; gap:24px; }
   .planner-options { grid-template-columns:1fr; }
 }
 @media (max-width:767px) {
+  .planner-page .plan-days .ui-state { display:grid; grid-template-columns:auto minmax(0, 1fr); gap:4px 12px; padding:16px; text-align:left; }
+  .planner-page .plan-days .ui-state__icon { grid-row:span 2; width:2.75rem; height:2.75rem; margin:0; }
+  .planner-page .plan-days .ui-state__actions { grid-column:2; justify-content:flex-start; margin:4px 0 0; }
   .planner-workspace { display:flex; flex-direction:column; }
   .planner-workspace>#planner-discoveries { width:100%; }
   .planner-editor { order:-1; width:100%; box-sizing:border-box; padding:16px; }
-  .planner-form { padding:16px; }
+  .planner-form,.planner-more { padding:16px; }
   .planner-filters { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
   .planner-map { height:20rem; }
   .planner-web-sources,.planner-web-candidates,.week-plan-grid { grid-template-columns:1fr; }
-  .planner-outing-tabs button { flex:1; justify-content:center; }
+  .planner-outing-tabs>.ui-chip { flex:1; justify-content:center; }
 }
+/* Print: 更多方式 is a tool, not part of the day (plan-page.css prints the day without the page's other tools). */
+@media print { .planner-more { display:none; } }
 @media (prefers-reduced-motion:reduce) { .planner-page * { scroll-behavior:auto!important; transition:none!important; } }
-@media (min-width:1024px) {
-  .planner-page .planner-primary,.planner-page :is(.planner-calendar-export,.planner-edit-preview-button,.planner-web-button,.planner-account button,.planner-account>a,.planner-web-candidate>button,.planner-web-error button,.planner-edit-actions>button:not(.planner-primary),.planner-note>button) { min-height:var(--control-height); font-size:var(--fs-keep-14); }
-}
+

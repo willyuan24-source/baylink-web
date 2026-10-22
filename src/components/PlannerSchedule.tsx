@@ -7,6 +7,7 @@ import { plannerNoticeText } from '../lib/planner-copy';
 import { PlannerStopOffers } from './PlannerStopOffers';
 import { PlannerTravelCheck } from './PlannerTravelCheck';
 import type { BayBayAdmissionOverride } from '../lib/baybay-plan-handoff';
+import { Button } from './ui/Button';
 
 export function PlannerSchedule({ stops, date, title, details, admissionOverride, ownerId, sessionKey, onLogin, onChange, onStatus }: { stops: Stop[]; date: string; title: string; details: PlanDetails; admissionOverride?: BayBayAdmissionOverride; ownerId?: string; sessionKey?: string; onLogin?: () => void; onChange: (details: PlanDetails) => void; onStatus: (message: string) => void }) {
   const locale = useLocale();
@@ -81,6 +82,6 @@ export function PlannerSchedule({ stops, date, title, details, admissionOverride
     {budget.overBy > 0 && <p className="planner-budget-warning" role="status">{text(`已计入金额已超预算 ${money(budget.overBy)}。`, `Already over budget by ${money(budget.overBy)}.`)}</p>}
     {details.constraints?.budget != null && <p className="planner-small-note">{text(details.constraints.budgetScope === 'total' ? '同行门票预算：' : '每人门票预算：', details.constraints.budgetScope === 'total' ? 'Group admission budget: ' : 'Per-person admission budget: ')}{money(details.constraints.budget)} · {text('仅核对门票；餐饮和交通分别预留。', 'Admission only; allow separately for food and travel.')}</p>}
     {budget.admissionOverBy > 0 && <p className="planner-budget-warning" role="status">{text(`已知门票超过门票预算 ${money(budget.admissionOverBy)}。`, `Known admission exceeds the admission budget by ${money(budget.admissionOverBy)}.`)}</p>}
-    {stops.length > 0 && <button type="button" className="planner-calendar-export" disabled={!date || timeline.issues.length > 0} onClick={exportCalendar}><CalendarDays size={15} />{text('导出计划到日历', 'Export draft to calendar')}</button>}
+    {stops.length > 0 && <Button block className="planner-calendar-export" disabled={!date || timeline.issues.length > 0} onClick={exportCalendar} icon={<CalendarDays size={15} aria-hidden="true" />}>{text('导出计划到日历', 'Export draft to calendar')}</Button>}
   </section>;
 }

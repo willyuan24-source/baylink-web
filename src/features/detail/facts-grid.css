@@ -1,17 +1,41 @@
-/* H58 (EVT13-12): a long cost note (FactsGrid NOTE_CLAMP_UNITS) in the phone's half-width 多少钱 cell shows two lines with
-   展开 over the end of the second, so the facts card ends above the fixed action bar. The whole sentence stays in the page
-   and is read out in full; 展开 opens it in place, 收起 closes it. In one column (大 / 特大 / 简洁显示) and in the desktop
-   list the note shows in full and the toggle is not there. The card's own layout: local-discovery-detail.css. */
-.local-discovery-detail .detail-fact__toggle { display:none; }
+/* 一眼看懂 (UI9-DETAIL; UI9-R1-DETAIL, J1 P14): a white card, one fact per row (何时 · 在哪 · 多少钱 · 适合; an opening's
+   类型); an offer's two short values, 福利 | 要不要消费, share a row, and so do an event's 多少钱 | 适合 on a phone in 标准
+   when 适合 is short (FactsGrid marks a long list `for-wide`, which keeps its own full row, J1 P14; H58: the card ends
+   sooner above the bar). Line 1 of a fact is its key at 600 (适合 is a list,
+   so it stays at 400), the rest is the note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. Loaded with FactsGrid
+   (the detail route and its skeleton), not on every page; the page frame is local-discovery-detail.css. */
+.local-discovery-detail .detail-facts-card { margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
+.local-discovery-detail .detail-facts { display:grid; grid-template-columns:minmax(0,1fr); gap:var(--sp-3) var(--sp-4); margin:0; }
+.local-discovery-detail[data-kind=offer] .detail-facts { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.local-discovery-detail .detail-fact { min-width:0; }
+.local-discovery-detail .detail-fact:is([data-fact=when],[data-fact=where]) { grid-column:1 / -1; }
+.local-discovery-detail .detail-fact dt { position:relative; display:flex; align-items:center; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
+.local-discovery-detail .detail-fact dt svg { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
+.local-discovery-detail .detail-fact__aside { position:absolute; top:50%; right:0; translate:0 -50%; }
+.local-discovery-detail .detail-fact dd { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
+.local-discovery-detail :is(.detail-fact__key,.detail-fact__line,.detail-fact dd small) { display:block; }
+.local-discovery-detail .detail-fact__key { color:var(--color-ink); font-size:var(--fs-reading); font-weight:600; line-height:var(--lh-snug); }
+.local-discovery-detail .detail-fact[data-fact^=for] .detail-fact__key { font-weight:400; }
+.local-discovery-detail .detail-fact dd small { margin-top:2px; font-size:inherit; line-height:var(--lh-ui); }
+.local-discovery-detail .detail-fact .phone-chip { font-weight:400; }
+.local-discovery-detail .detail-facts-check { display:flex; align-items:center; gap:var(--sp-1); margin:var(--sp-3) 0 0; padding-top:var(--sp-3); border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--fs-meta); }
+.local-discovery-detail .detail-facts-check svg { flex:none; color:var(--color-brand); }
 /* A 何时 line wraps between its dates or after " · ", not inside a run ("Oct 22–25") or a time ("6:30pm–10pm") (WEB-FIX6):
    each piece moves to the next line whole, and only a piece wider than the card (none today) wraps inside itself. */
 .local-discovery-detail .detail-fact__keep { display:inline-block; max-width:100%; }
+/* H58 / J1 P14: a cost note longer than two lines of the card (FactsGrid NOTE_CLAMP_UNITS) shows two lines on a phone, the
+   second fading out over its last 4em (a mask: only its alpha counts, so it takes an opaque token), and 展开 / More on a
+   line of its own under it, never over the text. The whole sentence
+   stays in the page and is read out in full; 展开 opens it in place, 收起 closes it. In 大 / 特大 / 简洁显示 and from 768 px
+   the note shows in full and the toggle is not there. The toggle's 44 px target is a box around its one line (::before), so
+   the card grows by a line, not by a 44 px row. */
+.local-discovery-detail .detail-fact__toggle { display:none; }
 @media(max-width:767px) {
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp] dd { position:relative; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) dd>small { display:-webkit-box; overflow:hidden; -webkit-box-orient:vertical; -webkit-line-clamp:2; line-clamp:2; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle { display:inline-flex; align-items:center; min-width:var(--control-height); min-height:var(--control-height); padding:0; border:0; background:none; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; line-height:1.5; cursor:pointer; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle>span { text-decoration:underline 1px; text-underline-offset:.2em; }
-  /* Closed: the 44px target ends at the note's last line, its word over that line's end on the card's own background. */
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) .detail-fact__toggle { position:absolute; right:0; bottom:0; align-items:flex-end; justify-content:flex-end; }
-  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) .detail-fact__toggle>span { padding-left:1.5em; background:linear-gradient(90deg,transparent,var(--color-surface) 1.25em); }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact[data-clamp]:not([data-open]) dd>small { max-height:calc(2em * var(--lh-ui)); overflow:hidden; mask:linear-gradient(var(--color-ink) 0 0) 0 0 / 100% 50% no-repeat, linear-gradient(to left, transparent, var(--color-ink) 4em) 0 100% / 100% 50% no-repeat; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle { position:relative; display:inline-flex; min-height:0; margin-top:var(--sp-1); padding:0; border:0; background:none; color:var(--color-brand); font-size:var(--text-fact); font-weight:400; line-height:var(--lh-ui); cursor:pointer; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle::before { content:""; position:absolute; inset-inline:min(0px, (100% - var(--control-height)) / 2); top:calc(50% - var(--control-height) / 2); height:var(--control-height); }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle>span { text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); text-decoration-skip-ink:none; }
+  html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts:has(>[data-fact=for]) { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
 }
+@media(min-width:1024px) { .local-discovery-detail .detail-facts-card { margin-top:0; } }
