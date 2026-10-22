@@ -2,8 +2,8 @@
  "version": 1,
  "settings": "{\"version\":1,\"qualities\":{\"photo\":[64,58,52,46,40],\"poster\":[72,64,58,52]},\"effort\":6,\"smallQuality\":72}",
  "placeholder": "mean-rgb-flatten-white",
- "registryHash": "730c657c",
- "registryCount": 431,
+ "registryHash": "72f37787",
+ "registryCount": 683,
  "images": {
   "/guides/3d/ferry-building-dawn.webp": {
    "width": 1200,
@@ -1758,6 +1758,6268 @@
     "/guides/autumn-refresh/autumn-sunset-1200.webp 1200w"
    ]
   },
+  "/guides/category-stock/stock-art-craft-market-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 206508,
+   "sha1": "2ae43b3e6d71965e",
+   "lqip": "#754",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-art-craft-market-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 33172
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-art-craft-market-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 66452,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-art-craft-market-1-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 116198,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-art-craft-market-1-small.webp 480w",
+    "/guides/category-stock/stock-art-craft-market-1-800.webp 800w",
+    "/guides/category-stock/stock-art-craft-market-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-art-craft-market-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 110198,
+   "sha1": "236205aef9dc88d5",
+   "lqip": "#333",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-art-craft-market-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19036
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-art-craft-market-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 34976,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-art-craft-market-2-small.webp 480w",
+    "/guides/category-stock/stock-art-craft-market-2-800.webp 800w",
+    "/guides/category-stock/stock-art-craft-market-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-art-craft-market-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 87828,
+   "sha1": "60e9f606406d9506",
+   "lqip": "#975",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-art-craft-market-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14610
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-art-craft-market-3-small.webp 480w",
+    "/guides/category-stock/stock-art-craft-market-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-art-craft-market-4.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 153768,
+   "sha1": "88401df09ac69f48",
+   "lqip": "#765",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-art-craft-market-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 26460
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-art-craft-market-4-1200.webp",
+     "width": 1200,
+     "height": 801,
+     "bytes": 87776,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-art-craft-market-4-small.webp 480w",
+    "/guides/category-stock/stock-art-craft-market-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-bakery-dessert-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 75984,
+   "sha1": "98bde4938cfa19a9",
+   "lqip": "#a86",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-bakery-dessert-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17556
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-bakery-dessert-1-small.webp 480w",
+    "/guides/category-stock/stock-bakery-dessert-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-bakery-dessert-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 146186,
+   "sha1": "e85aedc756c511b0",
+   "lqip": "#654",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-bakery-dessert-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 24648
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-bakery-dessert-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 45180,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-bakery-dessert-2-small.webp 480w",
+    "/guides/category-stock/stock-bakery-dessert-2-800.webp 800w",
+    "/guides/category-stock/stock-bakery-dessert-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-bakery-dessert-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 56316,
+   "sha1": "bc9f0938bc2feaed",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-bakery-dessert-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13332
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-bakery-dessert-3-small.webp 480w",
+    "/guides/category-stock/stock-bakery-dessert-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-bakery-dessert-4.webp": {
+   "width": 1280,
+   "height": 976,
+   "bytes": 46416,
+   "sha1": "a8029f4efff96b63",
+   "lqip": "#edd",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-bakery-dessert-4-small.webp",
+     "width": 480,
+     "height": 366,
+     "bytes": 11900
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-bakery-dessert-4-small.webp 480w",
+    "/guides/category-stock/stock-bakery-dessert-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-birthday-perk-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 19608,
+   "sha1": "3c1b4800a278a1a5",
+   "lqip": "#321",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-birthday-perk-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 5078
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-birthday-perk-1-small.webp 480w",
+    "/guides/category-stock/stock-birthday-perk-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-birthday-perk-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 39676,
+   "sha1": "afa115554a5ee180",
+   "lqip": "#db9",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-birthday-perk-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9638
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-birthday-perk-2-small.webp 480w",
+    "/guides/category-stock/stock-birthday-perk-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-birthday-perk-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 48740,
+   "sha1": "a8be7aa0926b3619",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-birthday-perk-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 10670
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-birthday-perk-3-small.webp 480w",
+    "/guides/category-stock/stock-birthday-perk-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-birthday-perk-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 42354,
+   "sha1": "3c38e023a98e23ba",
+   "lqip": "#bba",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-birthday-perk-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9588
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-birthday-perk-4-small.webp 480w",
+    "/guides/category-stock/stock-birthday-perk-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-birthday-perk-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 38394,
+   "sha1": "d10e1ea1913d33ca",
+   "lqip": "#644",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-birthday-perk-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7936
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-birthday-perk-5-small.webp 480w",
+    "/guides/category-stock/stock-birthday-perk-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-book-sale-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 47122,
+   "sha1": "2a821b2b40db9c72",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-book-sale-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12618
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-book-sale-1-small.webp 480w",
+    "/guides/category-stock/stock-book-sale-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-book-sale-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 71020,
+   "sha1": "697216e5bfed5411",
+   "lqip": "#a87",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-book-sale-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12778
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-book-sale-3-small.webp 480w",
+    "/guides/category-stock/stock-book-sale-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-book-sale-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 71130,
+   "sha1": "bdc11c56f41fc55b",
+   "lqip": "#887",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-book-sale-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12674
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-book-sale-4-small.webp 480w",
+    "/guides/category-stock/stock-book-sale-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-cafe-tea-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 46294,
+   "sha1": "9a6e74b9d8906f0a",
+   "lqip": "#864",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-cafe-tea-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 8482
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-cafe-tea-1-small.webp 480w",
+    "/guides/category-stock/stock-cafe-tea-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-cafe-tea-2.webp": {
+   "width": 1280,
+   "height": 850,
+   "bytes": 35546,
+   "sha1": "1bd55b931bd01187",
+   "lqip": "#b86",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-cafe-tea-2-small.webp",
+     "width": 480,
+     "height": 319,
+     "bytes": 6400
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-cafe-tea-2-small.webp 480w",
+    "/guides/category-stock/stock-cafe-tea-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-cafe-tea-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 233692,
+   "sha1": "f646642f5c300cac",
+   "lqip": "#784",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-cafe-tea-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 32896
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-cafe-tea-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 72616,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-cafe-tea-3-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 132444,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-cafe-tea-3-small.webp 480w",
+    "/guides/category-stock/stock-cafe-tea-3-800.webp 800w",
+    "/guides/category-stock/stock-cafe-tea-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-cafe-tea-4.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 31662,
+   "sha1": "380a7c8572030b13",
+   "lqip": "#443",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-cafe-tea-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6710
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-cafe-tea-4-small.webp 480w",
+    "/guides/category-stock/stock-cafe-tea-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-cafe-tea-5.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 39742,
+   "sha1": "5f3dc728c243d16b",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-cafe-tea-5-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 9372
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-cafe-tea-5-small.webp 480w",
+    "/guides/category-stock/stock-cafe-tea-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-chinese-culture-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 85304,
+   "sha1": "8bc16511a786434d",
+   "lqip": "#743",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-chinese-culture-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 15596
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-chinese-culture-1-small.webp 480w",
+    "/guides/category-stock/stock-chinese-culture-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-chinese-culture-4.webp": {
+   "width": 1280,
+   "height": 721,
+   "bytes": 38252,
+   "sha1": "fadec758ce730b96",
+   "lqip": "#576",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-chinese-culture-4-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 9594
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-chinese-culture-4-small.webp 480w",
+    "/guides/category-stock/stock-chinese-culture-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-chinese-culture-5.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 140472,
+   "sha1": "049f704d0ad9a8c7",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-chinese-culture-5-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 24488
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-chinese-culture-5-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 45090,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-chinese-culture-5-small.webp 480w",
+    "/guides/category-stock/stock-chinese-culture-5-800.webp 800w",
+    "/guides/category-stock/stock-chinese-culture-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-city-sights-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 88426,
+   "sha1": "60e058ab7ffe3a76",
+   "lqip": "#aa9",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-city-sights-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11002
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-city-sights-1-small.webp 480w",
+    "/guides/category-stock/stock-city-sights-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-city-sights-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 85998,
+   "sha1": "13fd7d2dbf673a88",
+   "lqip": "#888",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-city-sights-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9938
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-city-sights-2-small.webp 480w",
+    "/guides/category-stock/stock-city-sights-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-city-sights-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 168674,
+   "sha1": "a3db2077e0143500",
+   "lqip": "#888",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-city-sights-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 23344
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-city-sights-3-small.webp 480w",
+    "/guides/category-stock/stock-city-sights-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-class-workshop-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 62790,
+   "sha1": "6677cae3ac75c605",
+   "lqip": "#976",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-class-workshop-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13100
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-class-workshop-1-small.webp 480w",
+    "/guides/category-stock/stock-class-workshop-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-class-workshop-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 65204,
+   "sha1": "07074fa910123cdf",
+   "lqip": "#765",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-class-workshop-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16872
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-class-workshop-2-small.webp 480w",
+    "/guides/category-stock/stock-class-workshop-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-class-workshop-3.webp": {
+   "width": 1280,
+   "height": 852,
+   "bytes": 186432,
+   "sha1": "5a7937dc3eb09617",
+   "lqip": "#777",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-class-workshop-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19366
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-class-workshop-3-800.webp",
+     "width": 800,
+     "height": 532,
+     "bytes": 42744,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-class-workshop-3-1200.webp",
+     "width": 1200,
+     "height": 799,
+     "bytes": 90762,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-class-workshop-3-small.webp 480w",
+    "/guides/category-stock/stock-class-workshop-3-800.webp 800w",
+    "/guides/category-stock/stock-class-workshop-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-classical-music-1.webp": {
+   "width": 1280,
+   "height": 848,
+   "bytes": 28122,
+   "sha1": "9b8ed5dd426784f8",
+   "lqip": "#100",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-classical-music-1-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 5130
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-classical-music-1-small.webp 480w",
+    "/guides/category-stock/stock-classical-music-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-classical-music-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 48652,
+   "sha1": "e7ca0121cbc8b7c9",
+   "lqip": "#444",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-classical-music-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7186
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-classical-music-3-small.webp 480w",
+    "/guides/category-stock/stock-classical-music-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-classical-music-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 117680,
+   "sha1": "500061da90e064df",
+   "lqip": "#999",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-classical-music-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12976
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-classical-music-4-small.webp 480w",
+    "/guides/category-stock/stock-classical-music-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-classical-music-5.webp": {
+   "width": 800,
+   "height": 533,
+   "bytes": 15672,
+   "sha1": "4b8997a37a3ac04f",
+   "lqip": "#222",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-classical-music-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6008
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-classical-music-5-small.webp 480w",
+    "/guides/category-stock/stock-classical-music-5.webp 800w"
+   ]
+  },
+  "/guides/category-stock/stock-community-festival-2.webp": {
+   "width": 1280,
+   "height": 848,
+   "bytes": 124376,
+   "sha1": "dcaa24971152de4d",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-community-festival-2-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 19742
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-community-festival-2-800.webp",
+     "width": 800,
+     "height": 530,
+     "bytes": 41024,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-community-festival-2-small.webp 480w",
+    "/guides/category-stock/stock-community-festival-2-800.webp 800w",
+    "/guides/category-stock/stock-community-festival-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-community-festival-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 33470,
+   "sha1": "43ac5f324ce3020e",
+   "lqip": "#331",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-community-festival-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8296
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-community-festival-3-small.webp 480w",
+    "/guides/category-stock/stock-community-festival-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-community-festival-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 126712,
+   "sha1": "6c6cbbd67567ea3f",
+   "lqip": "#554",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-community-festival-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16466
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-community-festival-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 28722,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-community-festival-4-small.webp 480w",
+    "/guides/category-stock/stock-community-festival-4-800.webp 800w",
+    "/guides/category-stock/stock-community-festival-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-concert-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 46008,
+   "sha1": "7a9a90fdaaa33ae0",
+   "lqip": "#644",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-concert-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8766
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-concert-1-small.webp 480w",
+    "/guides/category-stock/stock-concert-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-concert-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 29124,
+   "sha1": "54323c2b6174984c",
+   "lqip": "#532",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-concert-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7040
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-concert-2-small.webp 480w",
+    "/guides/category-stock/stock-concert-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-concert-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 32836,
+   "sha1": "c906b69346412163",
+   "lqip": "#712",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-concert-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8042
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-concert-3-small.webp 480w",
+    "/guides/category-stock/stock-concert-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-concert-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 45474,
+   "sha1": "b8d2cd726b85a0fd",
+   "lqip": "#431",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-concert-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7646
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-concert-4-small.webp 480w",
+    "/guides/category-stock/stock-concert-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dance-1.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 32886,
+   "sha1": "04e533bf3492ef70",
+   "lqip": "#542",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dance-1-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 7670
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dance-1-small.webp 480w",
+    "/guides/category-stock/stock-dance-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dance-2.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 88506,
+   "sha1": "4220223b0c1f6d2f",
+   "lqip": "#b97",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dance-2-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 13284
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dance-2-small.webp 480w",
+    "/guides/category-stock/stock-dance-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dance-3.webp": {
+   "width": 1280,
+   "height": 719,
+   "bytes": 26004,
+   "sha1": "c8edac1fc5261212",
+   "lqip": "#555",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dance-3-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 6066
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dance-3-small.webp 480w",
+    "/guides/category-stock/stock-dance-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dance-4.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 15878,
+   "sha1": "c58af22347aa083f",
+   "lqip": "#aa9",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dance-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 3362
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dance-4-small.webp 480w",
+    "/guides/category-stock/stock-dance-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dia-de-muertos-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 173442,
+   "sha1": "e7afbfe55992db2c",
+   "lqip": "#742",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dia-de-muertos-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 27732
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dia-de-muertos-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 54786,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-dia-de-muertos-1-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 94210,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dia-de-muertos-1-small.webp 480w",
+    "/guides/category-stock/stock-dia-de-muertos-1-800.webp 800w",
+    "/guides/category-stock/stock-dia-de-muertos-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-dia-de-muertos-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 163580,
+   "sha1": "2018e2244fe089b8",
+   "lqip": "#c71",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dia-de-muertos-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 31350
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dia-de-muertos-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 59194,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-dia-de-muertos-3-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 96694,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dia-de-muertos-3-small.webp 480w",
+    "/guides/category-stock/stock-dia-de-muertos-3-800.webp 800w",
+    "/guides/category-stock/stock-dia-de-muertos-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-dia-de-muertos-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 48542,
+   "sha1": "02be22c327d7c05f",
+   "lqip": "#531",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dia-de-muertos-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12718
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dia-de-muertos-4-small.webp 480w",
+    "/guides/category-stock/stock-dia-de-muertos-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dia-de-muertos-5.webp": {
+   "width": 1280,
+   "height": 851,
+   "bytes": 46514,
+   "sha1": "4e4ad6cd35714cf7",
+   "lqip": "#852",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dia-de-muertos-5-small.webp",
+     "width": 480,
+     "height": 319,
+     "bytes": 12534
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dia-de-muertos-5-small.webp 480w",
+    "/guides/category-stock/stock-dia-de-muertos-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 188000,
+   "sha1": "449eccaf64b05a29",
+   "lqip": "#852",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 30312
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dining-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 58562,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-dining-1-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 99122,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-1-small.webp 480w",
+    "/guides/category-stock/stock-dining-1-800.webp 800w",
+    "/guides/category-stock/stock-dining-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 96108,
+   "sha1": "894b833f67551f27",
+   "lqip": "#531",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16940
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dining-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 31642,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-2-small.webp 480w",
+    "/guides/category-stock/stock-dining-2-800.webp 800w",
+    "/guides/category-stock/stock-dining-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 73926,
+   "sha1": "80616d35b343413b",
+   "lqip": "#887",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13720
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-3-small.webp 480w",
+    "/guides/category-stock/stock-dining-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 100814,
+   "sha1": "6b8ad212b070af3f",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17846
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dining-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 32992,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-4-small.webp 480w",
+    "/guides/category-stock/stock-dining-4-800.webp 800w",
+    "/guides/category-stock/stock-dining-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 228682,
+   "sha1": "127dfc978a067c56",
+   "lqip": "#753",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 32244
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dining-5-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 67086,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-dining-5-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 120488,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-5-small.webp 480w",
+    "/guides/category-stock/stock-dining-5-800.webp 800w",
+    "/guides/category-stock/stock-dining-5-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-6.webp": {
+   "width": 1280,
+   "height": 988,
+   "bytes": 118426,
+   "sha1": "23d98e70b3f65154",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-6-small.webp",
+     "width": 480,
+     "height": 370,
+     "bytes": 19666
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dining-6-800.webp",
+     "width": 800,
+     "height": 618,
+     "bytes": 38532,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-6-small.webp 480w",
+    "/guides/category-stock/stock-dining-6-800.webp 800w",
+    "/guides/category-stock/stock-dining-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-dining-7.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 165418,
+   "sha1": "c95dfed8844d2482",
+   "lqip": "#896",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-dining-7-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 26530
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-dining-7-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 53086,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-dining-7-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 94612,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-dining-7-small.webp 480w",
+    "/guides/category-stock/stock-dining-7-800.webp 800w",
+    "/guides/category-stock/stock-dining-7-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-diwali-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 98530,
+   "sha1": "07017d2eeb5b9e63",
+   "lqip": "#632",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-diwali-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 20202
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-diwali-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 36590,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-diwali-1-small.webp 480w",
+    "/guides/category-stock/stock-diwali-1-800.webp 800w",
+    "/guides/category-stock/stock-diwali-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-diwali-2.webp": {
+   "width": 1280,
+   "height": 966,
+   "bytes": 266982,
+   "sha1": "e3a4cf416c1aabaa",
+   "lqip": "#931",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-diwali-2-small.webp",
+     "width": 480,
+     "height": 362,
+     "bytes": 47014
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-diwali-2-800.webp",
+     "width": 800,
+     "height": 604,
+     "bytes": 83790,
+     "quality": 58
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-diwali-2-1200.webp",
+     "width": 1200,
+     "height": 906,
+     "bytes": 143892,
+     "quality": 58
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-diwali-2-small.webp 480w",
+    "/guides/category-stock/stock-diwali-2-800.webp 800w",
+    "/guides/category-stock/stock-diwali-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-diwali-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 76520,
+   "sha1": "519bd1357d9007ff",
+   "lqip": "#b53",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-diwali-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16584
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-diwali-3-small.webp 480w",
+    "/guides/category-stock/stock-diwali-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-diwali-4.webp": {
+   "width": 1280,
+   "height": 800,
+   "bytes": 35814,
+   "sha1": "4c1daea45997e9fe",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-diwali-4-small.webp",
+     "width": 480,
+     "height": 300,
+     "bytes": 8610
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-diwali-4-small.webp 480w",
+    "/guides/category-stock/stock-diwali-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-family-outdoor-1.webp": {
+   "width": 1280,
+   "height": 940,
+   "bytes": 98764,
+   "sha1": "9177aee23afd5ed7",
+   "lqip": "#676",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-family-outdoor-1-small.webp",
+     "width": 480,
+     "height": 352,
+     "bytes": 18488
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-family-outdoor-1-800.webp",
+     "width": 800,
+     "height": 588,
+     "bytes": 34582,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-family-outdoor-1-small.webp 480w",
+    "/guides/category-stock/stock-family-outdoor-1-800.webp 800w",
+    "/guides/category-stock/stock-family-outdoor-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-family-outdoor-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 211010,
+   "sha1": "1706ce4661730cd0",
+   "lqip": "#676",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-family-outdoor-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 31118
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-family-outdoor-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 66130,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-family-outdoor-2-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 117440,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-family-outdoor-2-small.webp 480w",
+    "/guides/category-stock/stock-family-outdoor-2-800.webp 800w",
+    "/guides/category-stock/stock-family-outdoor-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-family-outdoor-3.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 314094,
+   "sha1": "f9f66e3d49852c5c",
+   "lqip": "#433",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-family-outdoor-3-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 37276
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-family-outdoor-3-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 87364,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-family-outdoor-3-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 147714,
+     "quality": 52
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-family-outdoor-3-small.webp 480w",
+    "/guides/category-stock/stock-family-outdoor-3-800.webp 800w",
+    "/guides/category-stock/stock-family-outdoor-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-family-outdoor-4.webp": {
+   "width": 1280,
+   "height": 981,
+   "bytes": 134268,
+   "sha1": "084425974da3ffce",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-family-outdoor-4-small.webp",
+     "width": 480,
+     "height": 368,
+     "bytes": 24444
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-family-outdoor-4-800.webp",
+     "width": 800,
+     "height": 613,
+     "bytes": 45946,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-family-outdoor-4-small.webp 480w",
+    "/guides/category-stock/stock-family-outdoor-4-800.webp 800w",
+    "/guides/category-stock/stock-family-outdoor-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-farmers-market-1.webp": {
+   "width": 1280,
+   "height": 1047,
+   "bytes": 223106,
+   "sha1": "2389560d09158008",
+   "lqip": "#985",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-farmers-market-1-small.webp",
+     "width": 480,
+     "height": 393,
+     "bytes": 40448
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-farmers-market-1-800.webp",
+     "width": 800,
+     "height": 654,
+     "bytes": 76856,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-farmers-market-1-1200.webp",
+     "width": 1200,
+     "height": 982,
+     "bytes": 131764,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-farmers-market-1-small.webp 480w",
+    "/guides/category-stock/stock-farmers-market-1-800.webp 800w",
+    "/guides/category-stock/stock-farmers-market-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-farmers-market-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 100898,
+   "sha1": "035ce7087c73c967",
+   "lqip": "#655",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-farmers-market-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21996
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-farmers-market-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 38272,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-farmers-market-2-small.webp 480w",
+    "/guides/category-stock/stock-farmers-market-2-800.webp 800w",
+    "/guides/category-stock/stock-farmers-market-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-farmers-market-4.webp": {
+   "width": 1280,
+   "height": 925,
+   "bytes": 164316,
+   "sha1": "7173fd3312623a85",
+   "lqip": "#744",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-farmers-market-4-small.webp",
+     "width": 480,
+     "height": 347,
+     "bytes": 29600
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-farmers-market-4-800.webp",
+     "width": 800,
+     "height": 578,
+     "bytes": 54414,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-farmers-market-4-1200.webp",
+     "width": 1200,
+     "height": 867,
+     "bytes": 93536,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-farmers-market-4-small.webp 480w",
+    "/guides/category-stock/stock-farmers-market-4-800.webp 800w",
+    "/guides/category-stock/stock-farmers-market-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-film-1.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 128920,
+   "sha1": "bb8d12a4b064effd",
+   "lqip": "#a75",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-film-1-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 28516
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-film-1-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 51072,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-film-1-small.webp 480w",
+    "/guides/category-stock/stock-film-1-800.webp 800w",
+    "/guides/category-stock/stock-film-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-film-2.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 44284,
+   "sha1": "9636d5ad3b303e7d",
+   "lqip": "#201",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-film-2-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 8826
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-film-2-small.webp 480w",
+    "/guides/category-stock/stock-film-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-film-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 28316,
+   "sha1": "da9066d117ece3ac",
+   "lqip": "#522",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-film-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6402
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-film-3-small.webp 480w",
+    "/guides/category-stock/stock-film-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-film-4.webp": {
+   "width": 1280,
+   "height": 1100,
+   "bytes": 43056,
+   "sha1": "dd671a87c9b47f04",
+   "lqip": "#ca7",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-film-4-small.webp",
+     "width": 480,
+     "height": 412,
+     "bytes": 6668
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-film-4-small.webp 480w",
+    "/guides/category-stock/stock-film-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-food-festival-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 50236,
+   "sha1": "2dd96425c5c23d92",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-food-festival-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11528
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-food-festival-1-small.webp 480w",
+    "/guides/category-stock/stock-food-festival-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-food-festival-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 83600,
+   "sha1": "bbb81e771fedb3eb",
+   "lqip": "#754",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-food-festival-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17810
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-food-festival-2-small.webp 480w",
+    "/guides/category-stock/stock-food-festival-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-food-festival-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 85176,
+   "sha1": "4efdc97bd2363886",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-food-festival-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19474
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-food-festival-4-small.webp 480w",
+    "/guides/category-stock/stock-food-festival-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-fun-run-1.webp": {
+   "width": 1280,
+   "height": 850,
+   "bytes": 195012,
+   "sha1": "10fb24fde36cb710",
+   "lqip": "#555",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-fun-run-1-small.webp",
+     "width": 480,
+     "height": 319,
+     "bytes": 27748
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-fun-run-1-800.webp",
+     "width": 800,
+     "height": 531,
+     "bytes": 57654,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-fun-run-1-1200.webp",
+     "width": 1200,
+     "height": 797,
+     "bytes": 105060,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-fun-run-1-small.webp 480w",
+    "/guides/category-stock/stock-fun-run-1-800.webp 800w",
+    "/guides/category-stock/stock-fun-run-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-fun-run-3.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 52854,
+   "sha1": "c32e0e63e470daf5",
+   "lqip": "#743",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-fun-run-3-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 9910
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-fun-run-3-small.webp 480w",
+    "/guides/category-stock/stock-fun-run-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-fun-run-4.webp": {
+   "width": 1280,
+   "height": 730,
+   "bytes": 46858,
+   "sha1": "f59a3d2d6f7a358d",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-fun-run-4-small.webp",
+     "width": 480,
+     "height": 274,
+     "bytes": 12820
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-fun-run-4-small.webp 480w",
+    "/guides/category-stock/stock-fun-run-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-fun-run-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 124472,
+   "sha1": "e1ee22e67a0cd6a9",
+   "lqip": "#563",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-fun-run-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19984
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-fun-run-5-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 38432,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-fun-run-5-small.webp 480w",
+    "/guides/category-stock/stock-fun-run-5-800.webp 800w",
+    "/guides/category-stock/stock-fun-run-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-garden-zoo-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 264020,
+   "sha1": "381160def1d55017",
+   "lqip": "#564",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-garden-zoo-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 34216
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-garden-zoo-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 74042,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-garden-zoo-1-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 139200,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-garden-zoo-1-small.webp 480w",
+    "/guides/category-stock/stock-garden-zoo-1-800.webp 800w",
+    "/guides/category-stock/stock-garden-zoo-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-garden-zoo-2.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 119552,
+   "sha1": "a5216175631fbb1e",
+   "lqip": "#a98",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-garden-zoo-2-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 17044
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-garden-zoo-2-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 34066,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-garden-zoo-2-small.webp 480w",
+    "/guides/category-stock/stock-garden-zoo-2-800.webp 800w",
+    "/guides/category-stock/stock-garden-zoo-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-garden-zoo-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 256642,
+   "sha1": "512407cb32454fa3",
+   "lqip": "#775",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-garden-zoo-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 43984
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-garden-zoo-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 89750,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-garden-zoo-3-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 144300,
+     "quality": 58
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-garden-zoo-3-small.webp 480w",
+    "/guides/category-stock/stock-garden-zoo-3-800.webp 800w",
+    "/guides/category-stock/stock-garden-zoo-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-garden-zoo-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 47596,
+   "sha1": "e634562ea11e03a3",
+   "lqip": "#654",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-garden-zoo-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 10692
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-garden-zoo-4-small.webp 480w",
+    "/guides/category-stock/stock-garden-zoo-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-green-volunteer-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 116646,
+   "sha1": "a26026024572ecc7",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-green-volunteer-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21568
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-green-volunteer-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 40624,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-green-volunteer-1-small.webp 480w",
+    "/guides/category-stock/stock-green-volunteer-1-800.webp 800w",
+    "/guides/category-stock/stock-green-volunteer-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-green-volunteer-2.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 184600,
+   "sha1": "2e57e58674bc95ed",
+   "lqip": "#454",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-green-volunteer-2-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 28606
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-green-volunteer-2-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 58406,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-green-volunteer-2-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 103202,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-green-volunteer-2-small.webp 480w",
+    "/guides/category-stock/stock-green-volunteer-2-800.webp 800w",
+    "/guides/category-stock/stock-green-volunteer-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-green-volunteer-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 126174,
+   "sha1": "bbdedcd0cd9dfd90",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-green-volunteer-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21744
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-green-volunteer-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 42148,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-green-volunteer-3-small.webp 480w",
+    "/guides/category-stock/stock-green-volunteer-3-800.webp 800w",
+    "/guides/category-stock/stock-green-volunteer-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-green-volunteer-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 209944,
+   "sha1": "ecd1bcba81383b0b",
+   "lqip": "#333",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-green-volunteer-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 34820
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-green-volunteer-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 70136,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-green-volunteer-4-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 116458,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-green-volunteer-4-small.webp 480w",
+    "/guides/category-stock/stock-green-volunteer-4-800.webp 800w",
+    "/guides/category-stock/stock-green-volunteer-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-documents-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 14780,
+   "sha1": "dd77d9d2b3dc3902",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-documents-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 3836
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-documents-3-small.webp 480w",
+    "/guides/category-stock/stock-guide-documents-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-documents-4.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 20592,
+   "sha1": "200e7b4a3585a406",
+   "lqip": "#ddd",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-documents-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 4290
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-documents-4-small.webp 480w",
+    "/guides/category-stock/stock-guide-documents-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-documents-5.webp": {
+   "width": 800,
+   "height": 533,
+   "bytes": 24210,
+   "sha1": "0ca56c30bb3e31cb",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-documents-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9580
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-documents-5-small.webp 480w",
+    "/guides/category-stock/stock-guide-documents-5.webp 800w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-documents-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 57916,
+   "sha1": "c6c30cb0b0a2b904",
+   "lqip": "#a98",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-documents-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13692
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-documents-6-small.webp 480w",
+    "/guides/category-stock/stock-guide-documents-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-health-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 27654,
+   "sha1": "3cf505735f3fdfc7",
+   "lqip": "#986",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-health-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 4174
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-health-1-small.webp 480w",
+    "/guides/category-stock/stock-guide-health-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-health-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 61140,
+   "sha1": "f15341390ac2ec4e",
+   "lqip": "#998",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-health-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13540
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-health-2-small.webp 480w",
+    "/guides/category-stock/stock-guide-health-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-health-3.webp": {
+   "width": 1280,
+   "height": 956,
+   "bytes": 32292,
+   "sha1": "5d2de7c5784a7ed6",
+   "lqip": "#854",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-health-3-small.webp",
+     "width": 480,
+     "height": 358,
+     "bytes": 6032
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-health-3-small.webp 480w",
+    "/guides/category-stock/stock-guide-health-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-housing-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 66998,
+   "sha1": "ee74ac1d4bb6e20b",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-housing-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9562
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-housing-1-small.webp 480w",
+    "/guides/category-stock/stock-guide-housing-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-housing-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 22806,
+   "sha1": "0850a2ba56cac7ea",
+   "lqip": "#bba",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-housing-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 5356
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-housing-2-small.webp 480w",
+    "/guides/category-stock/stock-guide-housing-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-housing-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 86422,
+   "sha1": "5e1dc3886a375966",
+   "lqip": "#a97",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-housing-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16958
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-housing-4-small.webp 480w",
+    "/guides/category-stock/stock-guide-housing-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-newcomer-3.webp": {
+   "width": 1280,
+   "height": 1024,
+   "bytes": 156632,
+   "sha1": "17a090a58c07ec56",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-newcomer-3-small.webp",
+     "width": 480,
+     "height": 384,
+     "bytes": 24918
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-newcomer-3-small.webp 480w",
+    "/guides/category-stock/stock-guide-newcomer-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-newcomer-4.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 120340,
+   "sha1": "7ef67095be4a4897",
+   "lqip": "#775",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-newcomer-4-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 25564
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-newcomer-4-small.webp 480w",
+    "/guides/category-stock/stock-guide-newcomer-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-newcomer-5.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 27968,
+   "sha1": "7e5552e723dac321",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-newcomer-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7146
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-newcomer-5-small.webp 480w",
+    "/guides/category-stock/stock-guide-newcomer-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-safety-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 9126,
+   "sha1": "db68467572612b1a",
+   "lqip": "#211",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-safety-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 1756
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-safety-2-small.webp 480w",
+    "/guides/category-stock/stock-guide-safety-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-safety-4.webp": {
+   "width": 1280,
+   "height": 914,
+   "bytes": 28118,
+   "sha1": "9e701a0e204847d0",
+   "lqip": "#a75",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-safety-4-small.webp",
+     "width": 480,
+     "height": 343,
+     "bytes": 7576
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-safety-4-small.webp 480w",
+    "/guides/category-stock/stock-guide-safety-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-safety-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 14084,
+   "sha1": "e03e972186d4774a",
+   "lqip": "#eca",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-safety-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 2530
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-safety-5-small.webp 480w",
+    "/guides/category-stock/stock-guide-safety-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-safety-6.webp": {
+   "width": 1280,
+   "height": 855,
+   "bytes": 59012,
+   "sha1": "83106178fc72d03d",
+   "lqip": "#973",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-safety-6-small.webp",
+     "width": 480,
+     "height": 321,
+     "bytes": 11700
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-safety-6-small.webp 480w",
+    "/guides/category-stock/stock-guide-safety-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-school-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 69928,
+   "sha1": "fd1e59bbce5a1cdf",
+   "lqip": "#965",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-school-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9332
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-school-1-small.webp 480w",
+    "/guides/category-stock/stock-guide-school-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-school-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 33414,
+   "sha1": "e938537650edda49",
+   "lqip": "#531",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-school-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8732
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-school-2-small.webp 480w",
+    "/guides/category-stock/stock-guide-school-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-guide-school-3.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 128260,
+   "sha1": "0c08b2cb644ec648",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-guide-school-3-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 21950
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-guide-school-3-small.webp 480w",
+    "/guides/category-stock/stock-guide-school-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-halloween-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 40842,
+   "sha1": "2da637c8035fe5e9",
+   "lqip": "#310",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9310
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-1-small.webp 480w",
+    "/guides/category-stock/stock-halloween-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-halloween-2.webp": {
+   "width": 1280,
+   "height": 1003,
+   "bytes": 198288,
+   "sha1": "3fe9f007b1154fa3",
+   "lqip": "#753",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-2-small.webp",
+     "width": 480,
+     "height": 376,
+     "bytes": 33276
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-halloween-2-800.webp",
+     "width": 800,
+     "height": 627,
+     "bytes": 64074,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-halloween-2-1200.webp",
+     "width": 1200,
+     "height": 940,
+     "bytes": 109708,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-2-small.webp 480w",
+    "/guides/category-stock/stock-halloween-2-800.webp 800w",
+    "/guides/category-stock/stock-halloween-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-halloween-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 60588,
+   "sha1": "2e2d991a2e624d78",
+   "lqip": "#732",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14118
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-3-small.webp 480w",
+    "/guides/category-stock/stock-halloween-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-halloween-4.webp": {
+   "width": 1280,
+   "height": 1024,
+   "bytes": 128564,
+   "sha1": "741abb3417376358",
+   "lqip": "#d82",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-4-small.webp",
+     "width": 480,
+     "height": 384,
+     "bytes": 30164
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-halloween-4-800.webp",
+     "width": 800,
+     "height": 640,
+     "bytes": 50448,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-4-small.webp 480w",
+    "/guides/category-stock/stock-halloween-4-800.webp 800w",
+    "/guides/category-stock/stock-halloween-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-halloween-5.webp": {
+   "width": 900,
+   "height": 624,
+   "bytes": 205272,
+   "sha1": "433e800a244080c2",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-5-small.webp",
+     "width": 480,
+     "height": 333,
+     "bytes": 50984
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-halloween-5-1200.webp",
+     "width": 900,
+     "height": 624,
+     "bytes": 143202,
+     "quality": 46
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-5-small.webp 480w",
+    "/guides/category-stock/stock-halloween-5-1200.webp 900w"
+   ]
+  },
+  "/guides/category-stock/stock-halloween-6.webp": {
+   "width": 1280,
+   "height": 998,
+   "bytes": 86500,
+   "sha1": "7d1ab637594357c5",
+   "lqip": "#776",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-halloween-6-small.webp",
+     "width": 480,
+     "height": 374,
+     "bytes": 21734
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-halloween-6-small.webp 480w",
+    "/guides/category-stock/stock-halloween-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-history-heritage-1.webp": {
+   "width": 1280,
+   "height": 961,
+   "bytes": 88164,
+   "sha1": "38212de92bb3bb79",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-history-heritage-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 16092
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-history-heritage-1-small.webp 480w",
+    "/guides/category-stock/stock-history-heritage-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-history-heritage-2.webp": {
+   "width": 1280,
+   "height": 937,
+   "bytes": 116266,
+   "sha1": "ea0ce97f7c8f28b6",
+   "lqip": "#887",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-history-heritage-2-small.webp",
+     "width": 480,
+     "height": 351,
+     "bytes": 16652
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-history-heritage-2-800.webp",
+     "width": 800,
+     "height": 586,
+     "bytes": 33260,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-history-heritage-2-small.webp 480w",
+    "/guides/category-stock/stock-history-heritage-2-800.webp 800w",
+    "/guides/category-stock/stock-history-heritage-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-history-heritage-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 101022,
+   "sha1": "90688be5e057a076",
+   "lqip": "#455",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-history-heritage-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17672
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-history-heritage-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 33058,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-history-heritage-4-small.webp 480w",
+    "/guides/category-stock/stock-history-heritage-4-800.webp 800w",
+    "/guides/category-stock/stock-history-heritage-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-ice-skating-1.webp": {
+   "width": 1280,
+   "height": 849,
+   "bytes": 80410,
+   "sha1": "2a87be1a5ee4cd1b",
+   "lqip": "#666",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-ice-skating-1-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 14742
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-ice-skating-1-small.webp 480w",
+    "/guides/category-stock/stock-ice-skating-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-ice-skating-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 98724,
+   "sha1": "ed56ce73456d02e1",
+   "lqip": "#345",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-ice-skating-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 15274
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-ice-skating-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 29676,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-ice-skating-2-small.webp 480w",
+    "/guides/category-stock/stock-ice-skating-2-800.webp 800w",
+    "/guides/category-stock/stock-ice-skating-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-ice-skating-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 78276,
+   "sha1": "588941075cd0e06d",
+   "lqip": "#99a",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-ice-skating-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13278
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-ice-skating-3-small.webp 480w",
+    "/guides/category-stock/stock-ice-skating-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-ice-skating-4.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 70314,
+   "sha1": "73a257b7a28bbf83",
+   "lqip": "#667",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-ice-skating-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12090
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-ice-skating-4-small.webp 480w",
+    "/guides/category-stock/stock-ice-skating-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-1.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 59802,
+   "sha1": "6e9c15f16742ae5b",
+   "lqip": "#853",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12830
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-1-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-2.webp": {
+   "width": 1280,
+   "height": 848,
+   "bytes": 29520,
+   "sha1": "69dca163efddbdc0",
+   "lqip": "#964",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-2-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 7886
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-2-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-3.webp": {
+   "width": 1280,
+   "height": 906,
+   "bytes": 25010,
+   "sha1": "ca3a3e870513b884",
+   "lqip": "#744",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-3-small.webp",
+     "width": 480,
+     "height": 340,
+     "bytes": 6734
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-3-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 37312,
+   "sha1": "73b5cba138d2c254",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8662
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-4-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-5.webp": {
+   "width": 1280,
+   "height": 848,
+   "bytes": 49648,
+   "sha1": "c5a2af618814d956",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-5-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 10476
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-5-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-6.webp": {
+   "width": 1280,
+   "height": 783,
+   "bytes": 17746,
+   "sha1": "6065dde43dca0262",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-6-small.webp",
+     "width": 480,
+     "height": 294,
+     "bytes": 3734
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-6-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-craft-7.webp": {
+   "width": 1280,
+   "height": 958,
+   "bytes": 75250,
+   "sha1": "dfb3a327abdb7be4",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-craft-7-small.webp",
+     "width": 480,
+     "height": 359,
+     "bytes": 15634
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-craft-7-small.webp 480w",
+    "/guides/category-stock/stock-kids-craft-7.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-play-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 79062,
+   "sha1": "63b050bf9ca804ef",
+   "lqip": "#877",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-play-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 15456
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-play-1-small.webp 480w",
+    "/guides/category-stock/stock-kids-play-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-play-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 64066,
+   "sha1": "b802fd6fd5e0e8f1",
+   "lqip": "#777",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-play-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14190
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-play-2-small.webp 480w",
+    "/guides/category-stock/stock-kids-play-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-kids-play-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 29878,
+   "sha1": "aef9960a9d68d399",
+   "lqip": "#886",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-kids-play-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6060
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-kids-play-4-small.webp 480w",
+    "/guides/category-stock/stock-kids-play-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-library-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 77776,
+   "sha1": "136ed1a4193cf1f3",
+   "lqip": "#643",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14740
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-1-small.webp 480w",
+    "/guides/category-stock/stock-library-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-library-2.webp": {
+   "width": 1280,
+   "height": 782,
+   "bytes": 192444,
+   "sha1": "d02ec94ef5cc0ce7",
+   "lqip": "#554",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-2-small.webp",
+     "width": 480,
+     "height": 293,
+     "bytes": 24912
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-library-2-800.webp",
+     "width": 800,
+     "height": 489,
+     "bytes": 50864,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-library-2-1200.webp",
+     "width": 1200,
+     "height": 733,
+     "bytes": 92026,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-2-small.webp 480w",
+    "/guides/category-stock/stock-library-2-800.webp 800w",
+    "/guides/category-stock/stock-library-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-library-3.webp": {
+   "width": 1280,
+   "height": 850,
+   "bytes": 186370,
+   "sha1": "e08e90efedb6b1ac",
+   "lqip": "#864",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-3-small.webp",
+     "width": 480,
+     "height": 319,
+     "bytes": 30280
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-library-3-800.webp",
+     "width": 800,
+     "height": 531,
+     "bytes": 61318,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-library-3-1200.webp",
+     "width": 1200,
+     "height": 797,
+     "bytes": 106884,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-3-small.webp 480w",
+    "/guides/category-stock/stock-library-3-800.webp 800w",
+    "/guides/category-stock/stock-library-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-library-4.webp": {
+   "width": 1280,
+   "height": 964,
+   "bytes": 133494,
+   "sha1": "5da0b071f95e2f54",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-4-small.webp",
+     "width": 480,
+     "height": 362,
+     "bytes": 22326
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-library-4-800.webp",
+     "width": 800,
+     "height": 602,
+     "bytes": 43276,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-4-small.webp 480w",
+    "/guides/category-stock/stock-library-4-800.webp 800w",
+    "/guides/category-stock/stock-library-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-library-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 63942,
+   "sha1": "9f18afba3dd9c81e",
+   "lqip": "#432",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8276
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-5-small.webp 480w",
+    "/guides/category-stock/stock-library-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-library-6.webp": {
+   "width": 1280,
+   "height": 973,
+   "bytes": 162848,
+   "sha1": "5b2b9aa1e7f5fc3b",
+   "lqip": "#666",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-6-small.webp",
+     "width": 480,
+     "height": 365,
+     "bytes": 22986
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-library-6-1200.webp",
+     "width": 1200,
+     "height": 912,
+     "bytes": 84486,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-6-small.webp 480w",
+    "/guides/category-stock/stock-library-6-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-library-7.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 75746,
+   "sha1": "d50d09976da95a15",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-7-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19282
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-7-small.webp 480w",
+    "/guides/category-stock/stock-library-7.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-library-8.webp": {
+   "width": 800,
+   "height": 533,
+   "bytes": 26396,
+   "sha1": "17b75f052034a4a6",
+   "lqip": "#875",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-library-8-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11516
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-library-8-small.webp 480w",
+    "/guides/category-stock/stock-library-8.webp 800w"
+   ]
+  },
+  "/guides/category-stock/stock-lunar-new-year-1.webp": {
+   "width": 1280,
+   "height": 961,
+   "bytes": 68164,
+   "sha1": "a4a54f9a36786ea7",
+   "lqip": "#811",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-lunar-new-year-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 14442
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-lunar-new-year-1-small.webp 480w",
+    "/guides/category-stock/stock-lunar-new-year-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-lunar-new-year-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 30696,
+   "sha1": "b6c1a599e89d0d93",
+   "lqip": "#955",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-lunar-new-year-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6810
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-lunar-new-year-2-small.webp 480w",
+    "/guides/category-stock/stock-lunar-new-year-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-lunar-new-year-3.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 241014,
+   "sha1": "c41740efd120550b",
+   "lqip": "#654",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-lunar-new-year-3-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 31198
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-lunar-new-year-3-small.webp 480w",
+    "/guides/category-stock/stock-lunar-new-year-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-museum-1.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 81668,
+   "sha1": "d20b78b88fa19ddb",
+   "lqip": "#431",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-museum-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 15638
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-museum-1-small.webp 480w",
+    "/guides/category-stock/stock-museum-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-museum-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 110106,
+   "sha1": "a06c8063d53a9d99",
+   "lqip": "#999",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-museum-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19444
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-museum-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 37338,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-museum-2-small.webp 480w",
+    "/guides/category-stock/stock-museum-2-800.webp 800w",
+    "/guides/category-stock/stock-museum-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-museum-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 29054,
+   "sha1": "21de570054bc2a78",
+   "lqip": "#bba",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-museum-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6748
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-museum-3-small.webp 480w",
+    "/guides/category-stock/stock-museum-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-museum-4.webp": {
+   "width": 1280,
+   "height": 852,
+   "bytes": 71302,
+   "sha1": "cf7e9bd9b6796b1b",
+   "lqip": "#522",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-museum-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11654
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-museum-4-small.webp 480w",
+    "/guides/category-stock/stock-museum-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-museum-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 87600,
+   "sha1": "880333a5aad5807e",
+   "lqip": "#542",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-museum-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14992
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-museum-5-small.webp 480w",
+    "/guides/category-stock/stock-museum-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 275314,
+   "sha1": "c5f24caf49e2cda6",
+   "lqip": "#553",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 33940
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-nature-walk-1-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 76938,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-nature-walk-1-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 145320,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-1-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-1-800.webp 800w",
+    "/guides/category-stock/stock-nature-walk-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-2.webp": {
+   "width": 1280,
+   "height": 914,
+   "bytes": 161396,
+   "sha1": "6ce8f8e1bd4bc964",
+   "lqip": "#776",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-2-small.webp",
+     "width": 480,
+     "height": 343,
+     "bytes": 17208
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-nature-walk-2-1200.webp",
+     "width": 1200,
+     "height": 857,
+     "bytes": 77886,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-2-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-3.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 141280,
+   "sha1": "19ffa13ba3d549f8",
+   "lqip": "#544",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-3-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 20714
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-nature-walk-3-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 43570,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-3-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-3-800.webp 800w",
+    "/guides/category-stock/stock-nature-walk-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 199180,
+   "sha1": "b340aa7a8668ca19",
+   "lqip": "#453",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 25786
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-nature-walk-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 56638,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-nature-walk-4-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 103196,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-4-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-4-800.webp 800w",
+    "/guides/category-stock/stock-nature-walk-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-5.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 295426,
+   "sha1": "461afe662cd7873c",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-5-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 36028
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-nature-walk-5-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 86536,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-nature-walk-5-1200.webp",
+     "width": 1200,
+     "height": 675,
+     "bytes": 144582,
+     "quality": 52
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-5-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-5-800.webp 800w",
+    "/guides/category-stock/stock-nature-walk-5-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 276156,
+   "sha1": "47e58857b37deb25",
+   "lqip": "#675",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 27602
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-nature-walk-6-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 68610,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-nature-walk-6-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 139464,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-6-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-6-800.webp 800w",
+    "/guides/category-stock/stock-nature-walk-6-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-nature-walk-7.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 259550,
+   "sha1": "74f313e1da3af7b3",
+   "lqip": "#663",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-nature-walk-7-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 30942
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-nature-walk-7-800.webp",
+     "width": 800,
+     "height": 600,
+     "bytes": 71000,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-nature-walk-7-1200.webp",
+     "width": 1200,
+     "height": 900,
+     "bytes": 135076,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-nature-walk-7-small.webp 480w",
+    "/guides/category-stock/stock-nature-walk-7-800.webp 800w",
+    "/guides/category-stock/stock-nature-walk-7-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-night-sky-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 19822,
+   "sha1": "5d58f456d294ed17",
+   "lqip": "#112",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-night-sky-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 4344
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-night-sky-1-small.webp 480w",
+    "/guides/category-stock/stock-night-sky-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-night-sky-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 74582,
+   "sha1": "92c948c6691cb01c",
+   "lqip": "#234",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-night-sky-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6002
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-night-sky-2-small.webp 480w",
+    "/guides/category-stock/stock-night-sky-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-night-sky-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 121906,
+   "sha1": "27477da84b4f7b07",
+   "lqip": "#445",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-night-sky-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12558
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-night-sky-3-small.webp 480w",
+    "/guides/category-stock/stock-night-sky-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-night-sky-4.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 106658,
+   "sha1": "2f7c25d580671996",
+   "lqip": "#222",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-night-sky-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9526
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-night-sky-4-small.webp 480w",
+    "/guides/category-stock/stock-night-sky-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-pets-1.webp": {
+   "width": 1280,
+   "height": 778,
+   "bytes": 113798,
+   "sha1": "7c8537eeafa40158",
+   "lqip": "#576",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pets-1-small.webp",
+     "width": 480,
+     "height": 292,
+     "bytes": 20476
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pets-1-800.webp",
+     "width": 800,
+     "height": 486,
+     "bytes": 38648,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pets-1-small.webp 480w",
+    "/guides/category-stock/stock-pets-1-800.webp 800w",
+    "/guides/category-stock/stock-pets-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-pets-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 60648,
+   "sha1": "a42575f1772e5830",
+   "lqip": "#777",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pets-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 9994
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pets-2-small.webp 480w",
+    "/guides/category-stock/stock-pets-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-pets-3.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 54282,
+   "sha1": "3a91ec8f1eda358d",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pets-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 10400
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pets-3-small.webp 480w",
+    "/guides/category-stock/stock-pets-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-pets-4.webp": {
+   "width": 1280,
+   "height": 849,
+   "bytes": 283890,
+   "sha1": "fe9cd287dea5ed0b",
+   "lqip": "#564",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pets-4-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 38840
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pets-4-800.webp",
+     "width": 800,
+     "height": 531,
+     "bytes": 85888,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-pets-4-1200.webp",
+     "width": 1200,
+     "height": 796,
+     "bytes": 143076,
+     "quality": 58
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pets-4-small.webp 480w",
+    "/guides/category-stock/stock-pets-4-800.webp 800w",
+    "/guides/category-stock/stock-pets-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-pumpkin-harvest-1.webp": {
+   "width": 1280,
+   "height": 846,
+   "bytes": 172830,
+   "sha1": "a4311abcdafc2c8e",
+   "lqip": "#752",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-1-small.webp",
+     "width": 480,
+     "height": 317,
+     "bytes": 33046
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-1-800.webp",
+     "width": 800,
+     "height": 529,
+     "bytes": 62760,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-1-1200.webp",
+     "width": 1200,
+     "height": 793,
+     "bytes": 104710,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pumpkin-harvest-1-small.webp 480w",
+    "/guides/category-stock/stock-pumpkin-harvest-1-800.webp 800w",
+    "/guides/category-stock/stock-pumpkin-harvest-1-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-pumpkin-harvest-2.webp": {
+   "width": 1280,
+   "height": 873,
+   "bytes": 250820,
+   "sha1": "a349027a82428742",
+   "lqip": "#986",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-2-small.webp",
+     "width": 480,
+     "height": 327,
+     "bytes": 33136
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-2-800.webp",
+     "width": 800,
+     "height": 546,
+     "bytes": 74492,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-2-1200.webp",
+     "width": 1200,
+     "height": 818,
+     "bytes": 139444,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pumpkin-harvest-2-small.webp 480w",
+    "/guides/category-stock/stock-pumpkin-harvest-2-800.webp 800w",
+    "/guides/category-stock/stock-pumpkin-harvest-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-pumpkin-harvest-3.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 135600,
+   "sha1": "bd070edec317fba5",
+   "lqip": "#643",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-3-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 19742
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-3-800.webp",
+     "width": 800,
+     "height": 450,
+     "bytes": 39158,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pumpkin-harvest-3-small.webp 480w",
+    "/guides/category-stock/stock-pumpkin-harvest-3-800.webp 800w",
+    "/guides/category-stock/stock-pumpkin-harvest-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-pumpkin-harvest-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 265412,
+   "sha1": "1c899eff33f1aa47",
+   "lqip": "#432",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 40608
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-4-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 86128,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-pumpkin-harvest-4-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 140862,
+     "quality": 58
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-pumpkin-harvest-4-small.webp 480w",
+    "/guides/category-stock/stock-pumpkin-harvest-4-800.webp 800w",
+    "/guides/category-stock/stock-pumpkin-harvest-4-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-seniors-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 115134,
+   "sha1": "48d1000dd5ac92f8",
+   "lqip": "#a99",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-seniors-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 21028
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-seniors-1-small.webp 480w",
+    "/guides/category-stock/stock-seniors-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-seniors-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 20340,
+   "sha1": "a205ef00c74387bd",
+   "lqip": "#765",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-seniors-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 5050
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-seniors-2-small.webp 480w",
+    "/guides/category-stock/stock-seniors-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-seniors-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 30414,
+   "sha1": "cd1670aebd2b7365",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-seniors-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7344
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-seniors-3-small.webp 480w",
+    "/guides/category-stock/stock-seniors-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-1.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 29360,
+   "sha1": "f0dc2529c9c66f2c",
+   "lqip": "#a99",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6170
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-1-small.webp 480w",
+    "/guides/category-stock/stock-shopping-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 111832,
+   "sha1": "fc9304c9fac813cc",
+   "lqip": "#764",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19874
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-shopping-2-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 36378,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-2-small.webp 480w",
+    "/guides/category-stock/stock-shopping-2-800.webp 800w",
+    "/guides/category-stock/stock-shopping-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 80068,
+   "sha1": "af57f987fda48dd3",
+   "lqip": "#321",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14856
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-3-small.webp 480w",
+    "/guides/category-stock/stock-shopping-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 60054,
+   "sha1": "50288d72a75c6516",
+   "lqip": "#766",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14574
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-4-small.webp 480w",
+    "/guides/category-stock/stock-shopping-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 75624,
+   "sha1": "81b5b5105ce11b21",
+   "lqip": "#767",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12474
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-5-small.webp 480w",
+    "/guides/category-stock/stock-shopping-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 75398,
+   "sha1": "3daa14236b0b6b29",
+   "lqip": "#a97",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17670
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-6-small.webp 480w",
+    "/guides/category-stock/stock-shopping-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-shopping-7.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 45262,
+   "sha1": "85ee07301ea4645c",
+   "lqip": "#874",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-shopping-7-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12378
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-shopping-7-small.webp 480w",
+    "/guides/category-stock/stock-shopping-7.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-basketball-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 23926,
+   "sha1": "1c1fabbadb265cc8",
+   "lqip": "#100",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-basketball-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 5112
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-basketball-2-small.webp 480w",
+    "/guides/category-stock/stock-sports-basketball-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-basketball-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 13782,
+   "sha1": "9944c57f30514e77",
+   "lqip": "#b71",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-basketball-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 3284
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-basketball-3-small.webp 480w",
+    "/guides/category-stock/stock-sports-basketball-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-basketball-4.webp": {
+   "width": 1280,
+   "height": 782,
+   "bytes": 37018,
+   "sha1": "a334e443ddf79aa4",
+   "lqip": "#b43",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-basketball-4-small.webp",
+     "width": 480,
+     "height": 293,
+     "bytes": 5604
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-basketball-4-small.webp 480w",
+    "/guides/category-stock/stock-sports-basketball-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-basketball-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 85310,
+   "sha1": "62e41e77fbfe597b",
+   "lqip": "#555",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-basketball-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 15070
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-basketball-5-small.webp 480w",
+    "/guides/category-stock/stock-sports-basketball-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-football-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 211184,
+   "sha1": "d291885d91eba084",
+   "lqip": "#586",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-football-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 26412
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-football-2-small.webp 480w",
+    "/guides/category-stock/stock-sports-football-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-football-3.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 134390,
+   "sha1": "58d0b8978246a4b9",
+   "lqip": "#788",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-football-3-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 17960
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-football-3-small.webp 480w",
+    "/guides/category-stock/stock-sports-football-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-football-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 149602,
+   "sha1": "1a2f67ee11042329",
+   "lqip": "#453",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-football-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 22328
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-football-4-small.webp 480w",
+    "/guides/category-stock/stock-sports-football-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-game-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 64068,
+   "sha1": "6846901c7d8c4101",
+   "lqip": "#774",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-game-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12998
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-game-2-small.webp 480w",
+    "/guides/category-stock/stock-sports-game-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-game-4.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 218090,
+   "sha1": "b97bada66e7be8a6",
+   "lqip": "#783",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-game-4-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 33798
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-game-4-small.webp 480w",
+    "/guides/category-stock/stock-sports-game-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-game-5.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 120950,
+   "sha1": "b5f37063203b8f92",
+   "lqip": "#dcb",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-game-5-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 11282
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-game-5-small.webp 480w",
+    "/guides/category-stock/stock-sports-game-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-game-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 28558,
+   "sha1": "8883959b5e80ecd1",
+   "lqip": "#854",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-game-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7270
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-game-6-small.webp 480w",
+    "/guides/category-stock/stock-sports-game-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-hockey-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 42882,
+   "sha1": "858aec1b86a93dfd",
+   "lqip": "#ccb",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-hockey-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7494
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-hockey-2-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-hockey-3.webp": {
+   "width": 1280,
+   "height": 847,
+   "bytes": 99258,
+   "sha1": "09e13552693a112b",
+   "lqip": "#bbc",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-hockey-3-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 11520
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-hockey-3-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-hockey-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 81870,
+   "sha1": "822366907e2693f0",
+   "lqip": "#a87",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-hockey-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11380
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-hockey-4-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-hockey-5.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 592270,
+   "sha1": "cc65e59f132292b8",
+   "lqip": "#47a",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-hockey-5-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 49808
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-hockey-5-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-sports-hockey-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 84084,
+   "sha1": "6390350d54d7bf9b",
+   "lqip": "#89a",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-sports-hockey-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11272
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-sports-hockey-6-small.webp 480w",
+    "/guides/category-stock/stock-sports-hockey-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-stage-show-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 33408,
+   "sha1": "c6623dc5b5d1ff36",
+   "lqip": "#901",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-stage-show-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 7832
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-stage-show-1-small.webp 480w",
+    "/guides/category-stock/stock-stage-show-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-stage-show-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 67866,
+   "sha1": "1e0559f5a7852aa5",
+   "lqip": "#400",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-stage-show-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13282
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-stage-show-2-small.webp 480w",
+    "/guides/category-stock/stock-stage-show-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-stage-show-3.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 20072,
+   "sha1": "56c9d6d7a75a89dc",
+   "lqip": "#200",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-stage-show-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 3992
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-stage-show-3-small.webp 480w",
+    "/guides/category-stock/stock-stage-show-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-storytime-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 23254,
+   "sha1": "c34b520ca50794ab",
+   "lqip": "#655",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-storytime-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 5572
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-storytime-2-small.webp 480w",
+    "/guides/category-stock/stock-storytime-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-storytime-3.webp": {
+   "width": 1280,
+   "height": 905,
+   "bytes": 129388,
+   "sha1": "83e94f5ee2096719",
+   "lqip": "#866",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-storytime-3-small.webp",
+     "width": 480,
+     "height": 339,
+     "bytes": 23170
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-storytime-3-800.webp",
+     "width": 800,
+     "height": 566,
+     "bytes": 44528,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-storytime-3-small.webp 480w",
+    "/guides/category-stock/stock-storytime-3-800.webp 800w",
+    "/guides/category-stock/stock-storytime-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-storytime-4.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 19822,
+   "sha1": "3a80fed92c451727",
+   "lqip": "#654",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-storytime-4-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 4820
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-storytime-4-small.webp 480w",
+    "/guides/category-stock/stock-storytime-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-storytime-5.webp": {
+   "width": 1280,
+   "height": 971,
+   "bytes": 143980,
+   "sha1": "75dba5b72b4f18a8",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-storytime-5-small.webp",
+     "width": 480,
+     "height": 364,
+     "bytes": 21502
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-storytime-5-800.webp",
+     "width": 800,
+     "height": 607,
+     "bytes": 42084,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-storytime-5-small.webp 480w",
+    "/guides/category-stock/stock-storytime-5-800.webp 800w",
+    "/guides/category-stock/stock-storytime-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-storytime-6.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 89700,
+   "sha1": "53306fe69347b29e",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-storytime-6-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 14950
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-storytime-6-small.webp 480w",
+    "/guides/category-stock/stock-storytime-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-swap-meet-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 38848,
+   "sha1": "5e82d872477c7a60",
+   "lqip": "#a98",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-swap-meet-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8770
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-swap-meet-1-small.webp 480w",
+    "/guides/category-stock/stock-swap-meet-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-swap-meet-2.webp": {
+   "width": 1280,
+   "height": 855,
+   "bytes": 233474,
+   "sha1": "b315606ecd06bc99",
+   "lqip": "#765",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-swap-meet-2-small.webp",
+     "width": 480,
+     "height": 321,
+     "bytes": 42528
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-swap-meet-2-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 77134,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-swap-meet-2-1200.webp",
+     "width": 1200,
+     "height": 802,
+     "bytes": 128452,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-swap-meet-2-small.webp 480w",
+    "/guides/category-stock/stock-swap-meet-2-800.webp 800w",
+    "/guides/category-stock/stock-swap-meet-2-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-swap-meet-3.webp": {
+   "width": 1280,
+   "height": 848,
+   "bytes": 63566,
+   "sha1": "ef8e0128f95ad2b9",
+   "lqip": "#997",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-swap-meet-3-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 11244
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-swap-meet-3-small.webp 480w",
+    "/guides/category-stock/stock-swap-meet-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-taichi-fitness-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 80234,
+   "sha1": "cd8accfb39197aae",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-taichi-fitness-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 15264
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-taichi-fitness-1-small.webp 480w",
+    "/guides/category-stock/stock-taichi-fitness-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-taichi-fitness-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 62790,
+   "sha1": "54384c6b32a9036d",
+   "lqip": "#543",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-taichi-fitness-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12310
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-taichi-fitness-2-small.webp 480w",
+    "/guides/category-stock/stock-taichi-fitness-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-taichi-fitness-3.webp": {
+   "width": 1280,
+   "height": 840,
+   "bytes": 171822,
+   "sha1": "0f3e698dc9176832",
+   "lqip": "#555",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-taichi-fitness-3-small.webp",
+     "width": 480,
+     "height": 315,
+     "bytes": 24048
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-taichi-fitness-3-1200.webp",
+     "width": 1200,
+     "height": 788,
+     "bytes": 88550,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-taichi-fitness-3-small.webp 480w",
+    "/guides/category-stock/stock-taichi-fitness-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-talk-bookclub-1.webp": {
+   "width": 1280,
+   "height": 780,
+   "bytes": 52300,
+   "sha1": "fe869ff2a9d0729d",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-talk-bookclub-1-small.webp",
+     "width": 480,
+     "height": 292,
+     "bytes": 11938
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-talk-bookclub-1-small.webp 480w",
+    "/guides/category-stock/stock-talk-bookclub-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-talk-bookclub-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 26290,
+   "sha1": "1c8132346d2d3116",
+   "lqip": "#322",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-talk-bookclub-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6710
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-talk-bookclub-2-small.webp 480w",
+    "/guides/category-stock/stock-talk-bookclub-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-talk-bookclub-3.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 56560,
+   "sha1": "adccaba6d9b0a412",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-talk-bookclub-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11542
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-talk-bookclub-3-small.webp 480w",
+    "/guides/category-stock/stock-talk-bookclub-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-tech-help-1.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 91290,
+   "sha1": "e6d153e134922eb1",
+   "lqip": "#a71",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-tech-help-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 20472
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-tech-help-1-800.webp",
+     "width": 800,
+     "height": 534,
+     "bytes": 36386,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-tech-help-1-small.webp 480w",
+    "/guides/category-stock/stock-tech-help-1-800.webp 800w",
+    "/guides/category-stock/stock-tech-help-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-tech-help-2.webp": {
+   "width": 1280,
+   "height": 848,
+   "bytes": 115624,
+   "sha1": "bf98930310423fc0",
+   "lqip": "#755",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-tech-help-2-small.webp",
+     "width": 480,
+     "height": 318,
+     "bytes": 15660
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-tech-help-2-800.webp",
+     "width": 800,
+     "height": 530,
+     "bytes": 33270,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-tech-help-2-small.webp 480w",
+    "/guides/category-stock/stock-tech-help-2-800.webp 800w",
+    "/guides/category-stock/stock-tech-help-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-tech-help-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 31164,
+   "sha1": "e283e0962414fcec",
+   "lqip": "#987",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-tech-help-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 6790
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-tech-help-4-small.webp 480w",
+    "/guides/category-stock/stock-tech-help-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-tech-meetup-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 131810,
+   "sha1": "3613301f3dead81f",
+   "lqip": "#665",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-tech-meetup-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17834
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-tech-meetup-1-small.webp 480w",
+    "/guides/category-stock/stock-tech-meetup-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-tech-meetup-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 35692,
+   "sha1": "8987d8171bbd7889",
+   "lqip": "#445",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-tech-meetup-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8950
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-tech-meetup-2-small.webp 480w",
+    "/guides/category-stock/stock-tech-meetup-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-tech-meetup-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 58526,
+   "sha1": "a098eabe7fbe074e",
+   "lqip": "#888",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-tech-meetup-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12702
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-tech-meetup-3-small.webp 480w",
+    "/guides/category-stock/stock-tech-meetup-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-thanksgiving-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 91120,
+   "sha1": "e6e92ef11f18cc08",
+   "lqip": "#753",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-thanksgiving-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16844
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-thanksgiving-1-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-thanksgiving-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 128366,
+   "sha1": "22d2d39284e0c143",
+   "lqip": "#854",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-thanksgiving-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 21480
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-thanksgiving-2-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-thanksgiving-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 116732,
+   "sha1": "00befed6641a4cbd",
+   "lqip": "#754",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-thanksgiving-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 20732
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-thanksgiving-3-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-thanksgiving-4.webp": {
+   "width": 1280,
+   "height": 798,
+   "bytes": 153028,
+   "sha1": "c3539dc2018fd53b",
+   "lqip": "#764",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-thanksgiving-4-small.webp",
+     "width": 480,
+     "height": 299,
+     "bytes": 20154
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-thanksgiving-4-small.webp 480w",
+    "/guides/category-stock/stock-thanksgiving-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 162960,
+   "sha1": "d948f7c437f6f218",
+   "lqip": "#554",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 24114
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-2-small.webp 480w",
+    "/guides/category-stock/stock-transit-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 90204,
+   "sha1": "c02f22c900f6aefd",
+   "lqip": "#433",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8080
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-4-small.webp 480w",
+    "/guides/category-stock/stock-transit-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 80316,
+   "sha1": "9c8499546bb7cbb9",
+   "lqip": "#554",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 16660
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-5-small.webp 480w",
+    "/guides/category-stock/stock-transit-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-6.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 44078,
+   "sha1": "d1b5b560aeef4588",
+   "lqip": "#762",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-6-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8720
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-6-small.webp 480w",
+    "/guides/category-stock/stock-transit-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-7.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 327234,
+   "sha1": "b763347f40e784e4",
+   "lqip": "#675",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-7-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 34224
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-7-small.webp 480w",
+    "/guides/category-stock/stock-transit-7.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-8.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 28308,
+   "sha1": "f7f1827daa1d9b59",
+   "lqip": "#544",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-8-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 5220
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-8-small.webp 480w",
+    "/guides/category-stock/stock-transit-8.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-transit-9.webp": {
+   "width": 1280,
+   "height": 852,
+   "bytes": 113300,
+   "sha1": "5c57a1185b03f17e",
+   "lqip": "#675",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-transit-9-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 18154
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-transit-9-small.webp 480w",
+    "/guides/category-stock/stock-transit-9.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-wine-beer-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 41586,
+   "sha1": "57c9781d878deee8",
+   "lqip": "#9aa",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-wine-beer-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 8290
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-wine-beer-1-small.webp 480w",
+    "/guides/category-stock/stock-wine-beer-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-wine-beer-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 63214,
+   "sha1": "25f8e8a14f7900ea",
+   "lqip": "#964",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-wine-beer-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12976
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-wine-beer-2-small.webp 480w",
+    "/guides/category-stock/stock-wine-beer-2.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-wine-beer-3.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 39858,
+   "sha1": "c3f50e60270dba2e",
+   "lqip": "#332",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-wine-beer-3-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 9090
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-wine-beer-3-small.webp 480w",
+    "/guides/category-stock/stock-wine-beer-3.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-wine-beer-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 55522,
+   "sha1": "762c13e7f03038da",
+   "lqip": "#a75",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-wine-beer-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11836
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-wine-beer-4-small.webp 480w",
+    "/guides/category-stock/stock-wine-beer-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 58984,
+   "sha1": "c9d887ecaa15ea9d",
+   "lqip": "#865",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12382
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-1-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-1.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 182850,
+   "sha1": "a8ac45c94785a3ee",
+   "lqip": "#212",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 24706
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-winter-holidays-3-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 54894,
+     "quality": 64
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-winter-holidays-3-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 102750,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-3-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-3-800.webp 800w",
+    "/guides/category-stock/stock-winter-holidays-3-1200.webp 1200w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-4.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 69106,
+   "sha1": "92a9747720fb0685",
+   "lqip": "#752",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-4-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14526
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-4-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-4.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-5.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 101998,
+   "sha1": "068ed49e3a4234a6",
+   "lqip": "#210",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-5-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 18700
+    },
+    {
+     "rung": 800,
+     "file": "/guides/category-stock/stock-winter-holidays-5-800.webp",
+     "width": 800,
+     "height": 533,
+     "bytes": 35538,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-5-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-5-800.webp 800w",
+    "/guides/category-stock/stock-winter-holidays-5.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-6.webp": {
+   "width": 1280,
+   "height": 675,
+   "bytes": 66302,
+   "sha1": "ea09f1f726b1c308",
+   "lqip": "#844",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-6-small.webp",
+     "width": 480,
+     "height": 253,
+     "bytes": 15852
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-6-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-6.webp 1280w"
+   ]
+  },
+  "/guides/category-stock/stock-winter-holidays-7.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 158850,
+   "sha1": "377eaa49d5002666",
+   "lqip": "#321",
+   "scope": "registry",
+   "published": true,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/category-stock/stock-winter-holidays-7-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 24986
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/category-stock/stock-winter-holidays-7-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 88776,
+     "quality": 64
+    }
+   ],
+   "srcset": [
+    "/guides/category-stock/stock-winter-holidays-7-small.webp 480w",
+    "/guides/category-stock/stock-winter-holidays-7-1200.webp 1200w"
+   ]
+  },
   "/guides/city-roundup-east/roundup-east-albany.webp": {
    "width": 1280,
    "height": 960,
@@ -3447,7 +9709,7 @@
    "sha1": "1a0dbe44e205122e",
    "lqip": "#b86",
    "scope": "registry",
-   "published": false,
+   "published": true,
    "artwork": "photo",
    "variants": [
     {
@@ -3456,11 +9718,19 @@
      "width": 480,
      "height": 320,
      "bytes": 31452
+    },
+    {
+     "rung": 1200,
+     "file": "/guides/community-2026/family-workshop-1200.webp",
+     "width": 1200,
+     "height": 800,
+     "bytes": 70316,
+     "quality": 64
     }
    ],
    "srcset": [
     "/guides/community-2026/family-workshop-small.webp 480w",
-    "/guides/community-2026/family-workshop.webp 1536w"
+    "/guides/community-2026/family-workshop-1200.webp 1200w"
    ]
   },
   "/guides/community-2026/garden-walk.webp": {
@@ -6539,6 +12809,420 @@
     "/guides/guide-photos/official-sfpl-main-library-skylight-small.webp 480w",
     "/guides/guide-photos/official-sfpl-main-library-skylight-800.webp 800w",
     "/guides/guide-photos/official-sfpl-main-library-skylight.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-calendar-2.webp": {
+   "width": 1280,
+   "height": 840,
+   "bytes": 70492,
+   "sha1": "ba74a210d5b8bd14",
+   "lqip": "#dcb",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-calendar-2-small.webp",
+     "width": 480,
+     "height": 315,
+     "bytes": 9756
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-calendar-2-small.webp 480w",
+    "/guides/home-tiles/tile-calendar-2.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-calendar-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 72934,
+   "sha1": "0e58fe142db87a1d",
+   "lqip": "#876",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-calendar-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11286
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-calendar-3-small.webp 480w",
+    "/guides/home-tiles/tile-calendar-3.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-free-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 322898,
+   "sha1": "c1d9d801b5aa727d",
+   "lqip": "#652",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-free-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 34136
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-free-1-small.webp 480w",
+    "/guides/home-tiles/tile-free-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-free-2.webp": {
+   "width": 1280,
+   "height": 1040,
+   "bytes": 357984,
+   "sha1": "5da4df732594247d",
+   "lqip": "#553",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-free-2-small.webp",
+     "width": 480,
+     "height": 390,
+     "bytes": 28376
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-free-2-small.webp 480w",
+    "/guides/home-tiles/tile-free-2.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-free-3.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 80884,
+   "sha1": "f18871e9f0ab70a1",
+   "lqip": "#775",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-free-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13910
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-free-3-small.webp 480w",
+    "/guides/home-tiles/tile-free-3.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-kids-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 51562,
+   "sha1": "ea089fc92ab59024",
+   "lqip": "#432",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-kids-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 11934
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-kids-1-small.webp 480w",
+    "/guides/home-tiles/tile-kids-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-kids-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 59334,
+   "sha1": "5d04db547dd693c7",
+   "lqip": "#889",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-kids-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 12746
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-kids-2-small.webp 480w",
+    "/guides/home-tiles/tile-kids-2.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-kids-3.webp": {
+   "width": 1280,
+   "height": 959,
+   "bytes": 183330,
+   "sha1": "1efe6d2902e7a5b8",
+   "lqip": "#666",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-kids-3-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 15584
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-kids-3-small.webp 480w",
+    "/guides/home-tiles/tile-kids-3.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-new-shops-1.webp": {
+   "width": 1280,
+   "height": 858,
+   "bytes": 50238,
+   "sha1": "d00ad14607aae1d9",
+   "lqip": "#331",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-new-shops-1-small.webp",
+     "width": 480,
+     "height": 322,
+     "bytes": 10750
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-new-shops-1-small.webp 480w",
+    "/guides/home-tiles/tile-new-shops-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-new-shops-2.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 147678,
+   "sha1": "f1909b6654ba7824",
+   "lqip": "#864",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-new-shops-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 17282
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-new-shops-2-small.webp 480w",
+    "/guides/home-tiles/tile-new-shops-2.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-new-shops-3.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 118368,
+   "sha1": "29c7ba132f3d327b",
+   "lqip": "#976",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-new-shops-3-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13864
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-new-shops-3-small.webp 480w",
+    "/guides/home-tiles/tile-new-shops-3.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-no-car-1.webp": {
+   "width": 1280,
+   "height": 960,
+   "bytes": 74286,
+   "sha1": "94e21c70d17fcf6a",
+   "lqip": "#457",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-no-car-1-small.webp",
+     "width": 480,
+     "height": 360,
+     "bytes": 9286
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-no-car-1-small.webp 480w",
+    "/guides/home-tiles/tile-no-car-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-rainy-day-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 223930,
+   "sha1": "25f48dcd6c42baba",
+   "lqip": "#454",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-rainy-day-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 23840
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-rainy-day-1-small.webp 480w",
+    "/guides/home-tiles/tile-rainy-day-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-rainy-day-2.webp": {
+   "width": 1280,
+   "height": 720,
+   "bytes": 87530,
+   "sha1": "a050b20018c429a9",
+   "lqip": "#343",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-rainy-day-2-small.webp",
+     "width": 480,
+     "height": 270,
+     "bytes": 14150
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-rainy-day-2-small.webp 480w",
+    "/guides/home-tiles/tile-rainy-day-2.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-seniors-1.webp": {
+   "width": 1280,
+   "height": 854,
+   "bytes": 262648,
+   "sha1": "4eea729cc49e7326",
+   "lqip": "#663",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-seniors-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 19160
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-seniors-1-small.webp 480w",
+    "/guides/home-tiles/tile-seniors-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-seniors-2.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 84320,
+   "sha1": "8d0a9bb8f3e9229a",
+   "lqip": "#863",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-seniors-2-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 13498
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-seniors-2-small.webp 480w",
+    "/guides/home-tiles/tile-seniors-2.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-today-1.webp": {
+   "width": 1280,
+   "height": 853,
+   "bytes": 102630,
+   "sha1": "549cd8354b2e2a19",
+   "lqip": "#998",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-today-1-small.webp",
+     "width": 480,
+     "height": 320,
+     "bytes": 14978
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-today-1-small.webp 480w",
+    "/guides/home-tiles/tile-today-1.webp 1280w"
+   ]
+  },
+  "/guides/home-tiles/tile-today-3.webp": {
+   "width": 1280,
+   "height": 693,
+   "bytes": 98292,
+   "sha1": "2aef21ffbfa0a4a0",
+   "lqip": "#8bc",
+   "scope": "registry",
+   "published": false,
+   "artwork": "photo",
+   "variants": [
+    {
+     "rung": 480,
+     "file": "/guides/home-tiles/tile-today-3-small.webp",
+     "width": 480,
+     "height": 260,
+     "bytes": 14852
+    }
+   ],
+   "srcset": [
+    "/guides/home-tiles/tile-today-3-small.webp 480w",
+    "/guides/home-tiles/tile-today-3.webp 1280w"
    ]
   },
   "/guides/november/autumn-community.webp": {
