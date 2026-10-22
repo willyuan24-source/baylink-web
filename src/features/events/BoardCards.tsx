@@ -37,7 +37,6 @@ export function BoardTrust({ day, sourceLabel }: { day?: string; sourceLabel?: s
   if (!pressSourced(sourceLabel)) return <TrustLine day={day} />;
   return <>{t('媒体报道', 'News report')}{SEP}{t(`${readerMonthDay(day)} 核对`, `checked ${readerMonthDay(day, true)}`)}</>;
 }
-/** A row has no trust slot: its source line goes in the 13 px line under the meta, after the photo's provenance words. */
 /**
  * Whether a row's source line names the picture. 简洁 drops the words for ①② photos, but a ③ 示意图 or ④ AI 示意图 says
  * so in every size and mode (UI9-IMAGES DECISIONS 23): a row thumbnail carries no chip once the row has a source line
@@ -46,6 +45,7 @@ export function BoardTrust({ day, sourceLabel }: { day?: string; sourceLabel?: s
 const rowProvenance = (cover: ResolvedCover, simple?: boolean) =>
   cover.tier !== 'type' && (!simple || cover.tier === 'stock' || cover.tier === 'ai');
 
+/** A row has no trust slot: its source line goes in the 13 px line under the meta, after the photo's provenance words. */
 function RowSource({ provenance, day, sourceLabel }: { provenance?: string; day?: string; sourceLabel?: string }) {
   if (!day && !provenance) return null;
   return <>{provenance && <>{glueSeparators(provenance)}{day && SEP}</>}{day && <span className="fb-row-trust"><Check aria-hidden="true" strokeWidth={1.75} /><BoardTrust day={day} sourceLabel={sourceLabel} /></span>}</>;
