@@ -1,9 +1,9 @@
 /* 我的 /me hub (WEB-ACCOUNT, design.md T18): profile header, the 2×2 tiles (消息 first), the settings list and the
    account sections. Tokens and rem only, so Aa and 简洁显示 grow every line. The site's wide frame with 16/24/32 gutters
    (UI9-R1 N16: content at x = 112 in a 1440 window, like the logo and every other page); on a desktop the header, the
-   guest card and the tiles (3 grid columns each) span the frame and the sections keep to columns 1-8. The page ends 24px
-   above the footer (N15). */
-.me-hub { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:24px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-5)); color:var(--color-ink); }
+   guest card and the tiles (3 grid columns each) span the frame and the sections keep to columns 1-8. The page ends 48px
+   above the footer (N15, with the chrome's 12px footer step: 60 in all). */
+.me-hub { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:24px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-7)); color:var(--color-ink); }
 .me-hub__header { display:grid; grid-template-columns:auto minmax(0, 1fr); align-items:center; gap:16px; }
 .me-hub__header[data-guest] { grid-template-columns:minmax(0, 1fr); }
 .me-hub__avatar { display:grid; place-items:center; width:4.5rem; height:4.5rem; border-radius:var(--r-circle); overflow:hidden; background:var(--color-brand-tint); color:var(--color-brand); }
@@ -66,7 +66,7 @@
 
 /* Sub-views (通知, 隐私与账号): a back row above the panel, in the hub's frame (x = 112 on a desktop, so the page does not
    jump sideways between the hub and its sub-views) at the reading width. */
-.me-subview { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:16px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-5)); }
+.me-subview { box-sizing:content-box; max-width:var(--container-wide); margin:0 auto; padding:16px var(--page-gutter) calc(env(safe-area-inset-bottom, 0px) + var(--sp-7)); }
 .me-subview>* { max-width:var(--container-reading); }
 .me-back { display:inline-flex; align-items:center; gap:4px; min-height:var(--control-height); margin:0 0 8px; color:var(--color-brand); font-size:var(--text-body); font-weight:600; text-decoration:none; }
 .me-subview__title { margin:0 0 8px; color:var(--color-ink); font-size:var(--text-title); line-height:var(--lh-title); font-weight:600; }
@@ -105,11 +105,11 @@
 html[data-simple] .me-language button { min-height:3.75rem; }
 
 @media (min-width:768px) {
-  .me-hub { padding:32px 24px var(--sp-5); }
+  .me-hub { padding:32px 24px var(--sp-7); }
   .me-tiles { grid-template-columns:repeat(4, minmax(0, 1fr)); }
   .me-section { margin-top:56px; }
   .me-section__title { font-size:1.5rem; line-height:1.333; }
-  .me-subview { padding:24px 24px var(--sp-5); }
+  .me-subview { padding:24px 24px var(--sp-7); }
   .me-guest-card { padding:32px; }
 }
 @media (min-width:1024px) {

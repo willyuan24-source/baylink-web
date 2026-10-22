@@ -265,3 +265,58 @@ test('boot-main: the prerendered <main> is the fallback only for its own URL, an
   assert.equal(hasBootMain(), false);
   dom.reconfigure({ url: 'https://www.baylink.us/' });
 });
+
+test('boot-main: the account shell and the 404 stand in for the URLs they are served for, without counting as their page', () => {
+  const snapshot = (pathname: string) => String(bootMainFallback(pathname)?.props.dangerouslySetInnerHTML.__html ?? '');
+  // The account shell (account-shell.html, prerendered once for /me, served for every account page): the first route's
+  // fallback on /my-week too, so its skeleton stays instead of the empty route-wait box. It is not /my-week's page, so
+  // boot.ts would not keep it on screen when only the dictionary failed (it would stay for good: hasBootMain false).
+  const shell = '<div id="root"><main data-prerender-path="/me"><div class="ui-container account-shell" data-size="content"><div aria-busy="true"></div></div></main></div>';
+  for (const url of ['/my-week', '/me/bookings', '/messages', '/together', '/en/together', '/zh-Hant/my-week']) {
+    dom.reconfigure({ url: `https://www.baylink.us${url}` });
+    document.body.innerHTML = shell;
+    captureBootMain();
+    assert.equal(hasBootMain(), false, url);
+    assert.match(snapshot(url), /account-shell/, url);
+  }
+  // On /me itself it is that URL's page.
+  dom.reconfigure({ url: 'https://www.baylink.us/me' });
+  document.body.innerHTML = shell;
+  captureBootMain();
+  assert.equal(hasBootMain(), true);
+
+  // 404.html (prerendered for /404, served for any path that is not an app page): kept when the route table resolves the URL
+  // to no page (the router's * route renders the same NotFoundPage), in every language, but not as this URL's page.
+  const notFound = '<div id="root"><main data-prerender-path="/404"><div class="nf-page"><h1 id="nf-title">404</h1></div></main></div>';
+  for (const url of ['/this-page-does-not-exist', '/en/this-page-does-not-exist', '/zh-Hant/a/b/c', '/guides/a/b']) {
+    dom.reconfigure({ url: `https://www.baylink.us${url}` });
+    document.body.innerHTML = notFound;
+    captureBootMain();
+    assert.equal(hasBootMain(), false, url);
+    assert.match(snapshot(url), /nf-page/, url);
+  }
+  // /404 itself is the page it was prerendered for.
+  dom.reconfigure({ url: 'https://www.baylink.us/404' });
+  document.body.innerHTML = notFound;
+  captureBootMain();
+  assert.equal(hasBootMain(), true);
+  // A route the table knows (an event id the build has no page for, an unknown category: that page renders the 404 itself
+  // once it knows) keeps no 404 snapshot.
+  for (const url of ['/events/no-such-event', '/category/no-such-category', '/guides']) {
+    dom.reconfigure({ url: `https://www.baylink.us${url}` });
+    document.body.innerHTML = notFound;
+    captureBootMain();
+    assert.equal(hasBootMain(), false, url);
+    assert.equal(bootMainFallback(url), null, url);
+  }
+  // The shell or the 404 markup deeper than <main>'s own child does not count; an empty <main> never does.
+  dom.reconfigure({ url: 'https://www.baylink.us/my-week' });
+  document.body.innerHTML = '<div id="root"><main data-prerender-path="/"><section><div class="account-shell"></div><div class="nf-page"></div></section></main></div>';
+  captureBootMain();
+  assert.equal(bootMainFallback('/my-week'), null);
+  document.body.innerHTML = '<div id="root"><main data-prerender-path="/me">  </main></div>';
+  captureBootMain();
+  assert.equal(bootMainFallback('/my-week'), null);
+  document.body.innerHTML = '';
+  dom.reconfigure({ url: 'https://www.baylink.us/' });
+});

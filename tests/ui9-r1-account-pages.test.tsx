@@ -68,14 +68,14 @@ test('/me sits on the wide frame (x = 112 at 1440), tiles on the grid, sections,
   assert.equal(one(file, '.me-subview>*')['max-width'], 'var(--container-reading)');
 });
 
-test('pre-footer (N15): /me, my-week, /about and the 404 end at most 24px above the footer', () => {
-  assert.match(one('src/features/profile/me-hub.css', '.me-hub').padding, / calc\(env\(safe-area-inset-bottom, 0px\) \+ var\(--sp-5\)\)$/);
-  assert.equal(one('src/features/profile/me-hub.css', '.me-hub', '(min-width:768px)').padding, '32px 24px var(--sp-5)');
-  assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-3)');
-  assert.equal(one('src/components/about-baylink.css', '.about-page')['padding-block'], 'var(--sp-5) var(--sp-4)');
-  assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) var(--sp-5)');
+test('pre-footer (N15): /me, my-week, /about and the 404 end 32-48px above the chrome\'s 12px footer step (#61)', () => {
+  assert.match(one('src/features/profile/me-hub.css', '.me-hub').padding, / calc\(env\(safe-area-inset-bottom, 0px\) \+ var\(--sp-7\)\)$/);
+  assert.equal(one('src/features/profile/me-hub.css', '.me-hub', '(min-width:768px)').padding, '32px 24px var(--sp-7)');
+  assert.equal(one('src/features/saves/my-week.css', '.my-week')['padding-block'], '24px var(--sp-6)');
+  assert.equal(one('src/components/about-baylink.css', '.about-page')['padding-block'], 'var(--sp-5) var(--sp-6)');
+  assert.equal(one('src/components/about-baylink.css', '.about-page', '(min-width:1024px)')['padding-block'], 'var(--sp-6) var(--sp-6)');
   const page = one('src/components/not-found.css', '.nf-page');
-  assert.equal(page.padding, 'var(--sp-5) var(--page-gutter) var(--sp-4)');
+  assert.equal(page.padding, 'var(--sp-5) var(--page-gutter) var(--sp-6)');
   // 反馈与报错 stays 8px under the actions (no fill that would strand it above the footer on a tall window), and the
   // page stylesheet leaves the chrome's <main> alone.
   assert.equal(page.flex, undefined);
