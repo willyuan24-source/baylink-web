@@ -167,7 +167,10 @@ test('the chrome CSS: no blur, no ad-hoc shadows, no transition: all, every :hov
   const chrome = readFileSync('src/components/site-chrome.css', 'utf8');
   assert.match(chrome, /html:root \{ --site-mobile-nav-height:calc\(64px \+ env\(safe-area-inset-bottom,0px\)\); \}/);
   assert.match(chrome, /html:root\[data-simple\] \{ --site-mobile-nav-height:calc\(76px \+ env\(safe-area-inset-bottom,0px\)\); \}/);
-  assert.match(chrome, /\.site-app \.site-mobile-nav \.site-mobile-item>span \{ font-size:var\(--fs-meta\)!important; \}/);
+  // 14px tab labels: the item's size, which its labels inherit (tokens.css's 13px !important label rule is gone, so the
+  // chrome needs no !important of its own).
+  assert.match(chrome, /\.site-app \.site-mobile-nav \.site-mobile-item \{[^}]*font-size:var\(--fs-meta\);/);
+  assert.doesNotMatch(chrome, /!important/);
 });
 
 test('/about#about-method-title: 我们怎么核对 follows the H1 block, is the only anchor, and the layout’s scroll lands it', async () => {
