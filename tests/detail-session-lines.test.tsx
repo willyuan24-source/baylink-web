@@ -4,6 +4,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { JSDOM } from 'jsdom';
 import { readFileSync } from 'node:fs';
+import postcss, { type AtRule, type Rule } from 'postcss';
 import { MONTHLY_EVENTS } from '../src/data/monthly-edition';
 import { EventFacts, NOTE_CLAMP_UNITS } from '../src/features/detail/FactsGrid';
 import { MAX_SESSION_LINES, sessionLines } from '../src/features/detail/session-lines';
@@ -121,11 +122,13 @@ test('a 何时 line wraps only between its pieces: dates, and the time after " �
   assert.deepEqual([...plain.querySelectorAll('[data-fact="when"] small .detail-fact__keep')].map(piece => piece.textContent), ['周六至周日 10/17–18'], 'a line without a time is one piece');
 });
 
-// H58 rest (Pleasanton, Disney On Ice, Petaluma, Sausalito): a long cost note in the phone's half-width 多少钱 cell made the
-// card run under the action bar. It is clamped to two lines there, with 展开; the sentence stays whole in the markup.
+// H58 rest (Pleasanton, Disney On Ice, Petaluma, Sausalito): a long cost note made the card run under the phone's action bar.
+// UI9-R1-DETAIL (J1 P14): the cost fact now has the card's whole row, so only a note longer than two lines of it (Petaluma,
+// Dickens) is clamped, with 展开 on a line of its own; a two-line note (Pleasanton) shows whole. The sentence stays whole in
+// the markup either way.
 test('a long cost note is marked for the two-line clamp with a 展开 toggle; a short one is not', () => {
-  const long = '18 岁以上 $28.80、4–17 岁 $22.80，3 岁及以下免费；停车 $15（只收刷卡和手机支付）。';
-  const doc = facts({ ...baseEvent(), cost: 'paid', price: { min: 22.8, max: 28.8 }, costLabel: long } as MonthlyEvent);
+  const long = '基础入场及停车免费；日间大迷宫6岁以上$9、5岁及以下免费；周五周六夜迷宫$13；其他项目、南瓜和餐饮另付。';
+  const doc = facts({ ...baseEvent(), cost: 'paid', price: { min: 9, max: 13 }, costLabel: long } as MonthlyEvent);
   const cell = doc.querySelector('[data-fact="cost"]')!;
   assert.ok(cell.hasAttribute('data-clamp'), 'long note: clamped on a phone');
   const note = cell.querySelector('dd > small')!;
@@ -135,20 +138,30 @@ test('a long cost note is marked for the two-line clamp with a 展开 toggle; a 
   assert.equal(toggle.getAttribute('aria-expanded'), 'false');
   assert.equal(toggle.getAttribute('aria-controls'), note.id);
   assert.equal(toggle.getAttribute('aria-label'), '展开：多少钱');
+  const twoLines = '18 岁以上 $28.80、4–17 岁 $22.80，3 岁及以下免费；停车 $15（只收刷卡和手机支付）。';
+  const whole = facts({ ...baseEvent(), cost: 'paid', price: { min: 22.8, max: 28.8 }, costLabel: twoLines } as MonthlyEvent);
+  assert.ok(!whole.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'), 'two lines of the card: shown whole, no 展开');
   const short = facts({ ...baseEvent(), cost: 'paid', price: { min: 20 }, costLabel: '普通 $20；会员 $15。' } as MonthlyEvent);
   assert.ok(!short.querySelector('[data-fact="cost"]')!.hasAttribute('data-clamp'));
   assert.equal(short.querySelectorAll('.detail-fact__toggle').length, 0);
-  assert.ok(NOTE_CLAMP_UNITS >= 20 && NOTE_CLAMP_UNITS <= 24, 'about two lines of a 155px cell at 14px');
+  assert.ok(NOTE_CLAMP_UNITS >= 44 && NOTE_CLAMP_UNITS <= 48, 'about two lines of the 324px card at 14px');
 });
 
-test("the clamp applies only to a phone's two-column card; one column and the desktop list show the note whole", () => {
-  const css = readFileSync('src/features/detail/facts-grid.css', 'utf8');
-  const [outside, phone] = css.split('@media(max-width:767px)');
-  assert.match(outside, /\.detail-fact__toggle \{ display:none; \}/, 'no toggle by default');
-  assert.ok(phone, 'the clamp is inside the phone media query');
-  for (const rule of phone.split('\n').filter(line => line.includes('{') && line.trim() !== '{' && !line.trim().startsWith('/*'))) {
-    assert.match(rule, /^\s*html:not\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) /, `standard reading size only: ${rule.trim().slice(0, 60)}`);
-  }
-  assert.match(phone, /-webkit-line-clamp:2/);
-  assert.match(phone, /min-height:var\(--control-height\)/, 'a 44px target');
+test('the clamp applies only to a phone in 标准; 大 / 特大 / 简洁显示 and the desktop list show the note whole', () => {
+  const css = postcss.parse(readFileSync('src/features/detail/facts-grid.css', 'utf8'));
+  const outside: string[] = [];
+  const phone: Rule[] = [];
+  css.walkRules(rule => {
+    if (!/detail-fact__toggle|data-clamp/.test(rule.selector)) return;
+    const media = rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : undefined;
+    if (media === '(max-width:767px)') phone.push(rule); else outside.push(rule.toString());
+  });
+  assert.deepEqual(outside, ['.local-discovery-detail .detail-fact__toggle { display:none; }'], 'no toggle by default');
+  assert.ok(phone.length, 'the clamp is inside the phone media query');
+  for (const rule of phone) assert.match(rule.selector, /^html:not\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) /, `standard reading size only: ${rule.selector.slice(0, 60)}`);
+  const text = phone.map(rule => rule.toString()).join('\n');
+  assert.match(text, /\[data-clamp\]:not\(\[data-open\]\) dd>small \{ max-height:calc\(2em \* var\(--lh-ui\)\); overflow:hidden;/, 'two lines of the note');
+  assert.match(text, /mask:/, 'the second line fades out at its end');
+  assert.doesNotMatch(text, /position:absolute; right:0; bottom:0/, 'the toggle no longer sits over the text');
+  assert.match(text, /__toggle::before \{[^}]*height:var\(--control-height\)/, 'a 44px target');
 });

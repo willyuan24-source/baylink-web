@@ -1,8 +1,9 @@
 /* Event, offer and opening detail (UI9-DETAIL on D2 tokens; content arrangement 10-19). Phone: back link, the 16:9
    full-bleed hero and its 13 px credit line, chips, H1, the sub line, the facts card, the body; the action bar replaces the
-   tab bar. Desktop: F's 12-column grid, main 8 + a sticky aside 4 (the facts card, the action card). Rhythm: --section-gap
-   between sections, --stack-head under headings, text at --measure. Tokens only; 400 / 600; 44 px targets (48 in
-   简洁显示). Loaded globally after tokens.css (src/main.tsx), so selectors start at .local-discovery-detail. */
+   tab bar. Desktop: F's 12-column grid, main 8 + an aside 4 (the facts card, then the action card, which stays in view).
+   Rhythm: --section-gap between sections, --stack-head under headings, text at --measure. Tokens only; 400 / 600; 44 px
+   targets (48 in 简洁显示). Loaded globally after tokens.css (src/main.tsx), so selectors start at .local-discovery-detail;
+   the facts card's own rules ship with the detail route (features/detail/facts-grid.css). */
 .local-discovery-detail { width:min(100%,76rem); margin-inline:auto; color:var(--color-ink); }
 .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:var(--page-gutter); }
 .local-discovery-detail .detail-back { display:flex; align-items:center; min-height:var(--control-height); padding-inline:var(--sp-2); }
@@ -40,23 +41,6 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 .local-discovery-detail .content-review-ended strong { color:var(--color-ink); font-weight:600; }
 .local-discovery-detail .detail-next-link { margin-top:var(--sp-2); }
 
-/* 一眼看懂: a white card; 何时 and 在哪 across it, then two columns (one at 大 / 特大 and in 简洁显示 on a phone). Line 1 of a
-   fact is its key at 600, the rest is the note at 400; the label line's right slot is 地图 ↗ or 官方页 ↗. */
-.local-discovery-detail .detail-facts-card { margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); }
-.local-discovery-detail .detail-facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:var(--sp-3) var(--sp-4); margin:0; }
-.local-discovery-detail .detail-fact { min-width:0; }
-.local-discovery-detail .detail-fact:is([data-fact=when],[data-fact=where]) { grid-column:1 / -1; }
-.local-discovery-detail .detail-fact dt { position:relative; display:flex; align-items:center; gap:var(--sp-2); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-snug); }
-.local-discovery-detail .detail-fact dt svg { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
-.local-discovery-detail .detail-fact__aside { position:absolute; top:50%; right:0; translate:0 -50%; }
-.local-discovery-detail .detail-fact dd { margin:var(--sp-1) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
-.local-discovery-detail :is(.detail-fact__key,.detail-fact__line,.detail-fact dd small) { display:block; }
-.local-discovery-detail .detail-fact__key { color:var(--color-ink); font-size:var(--fs-reading); font-weight:600; line-height:var(--lh-snug); }
-.local-discovery-detail .detail-fact dd small { margin-top:2px; font-size:inherit; }
-.local-discovery-detail .detail-fact .phone-chip { font-weight:400; }
-.local-discovery-detail .detail-facts-check { display:flex; align-items:center; gap:var(--sp-1); margin:var(--sp-3) 0 0; padding-top:var(--sp-3); border-top:1px solid var(--color-line); color:var(--color-ink-2); font-size:var(--fs-meta); }
-.local-discovery-detail .detail-facts-check svg { flex:none; color:var(--color-brand); }
-
 /* Body: sections --section-gap apart, headings --stack-head above their text, reading text at the measure and at --fs-body,
    so every heading is at least 1.25 × the text under it in every reading mode. */
 .local-discovery-detail .detail-body>* { margin-top:var(--section-gap); }
@@ -76,21 +60,26 @@ html[data-simple] .local-discovery-detail .detail-back--end { display:flex; marg
 .local-discovery-detail .detail-steps__note { margin:var(--sp-3) 0 0; color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .local-discovery-detail :is(.detail-plan,.detail-conditions ul,.detail-steps ol,.detail-steps ul) p { margin:0; font-size:var(--fs-body); line-height:var(--lh-read); }
 
-/* 来源与核对, then 想约人一起去？ with the share row under a 1 px rule (one shell on every kind). */
-.local-discovery-detail .detail-source { padding-top:var(--sp-5); border-top:1px solid var(--color-line); }
+/* 来源与核对 under a 1 px rule, then 想约人一起去？ with the share row under its buttons (one shell on every kind). N15
+   (UI9-R1): the rule splits the section gap (5/8 above it, 3/8 under it, so it sits nearer its own heading) instead of
+   adding to it, and the share row follows the note at --sp-3 with no rule of its own, its icons on the column edge. */
+.local-discovery-detail .detail-body>.detail-source { margin-top:calc(var(--section-gap) * .625); padding-top:calc(var(--section-gap) * .375); border-top:1px solid var(--color-line); }
 .local-discovery-detail .detail-source .trust-row { margin:0; }
 .local-discovery-detail .detail-source>.ui-more { display:flex; width:max-content; max-width:100%; }
 /* 这条信息有误？ sits flush with the column (the shared row's own page padding would indent it). */
 .local-discovery-detail .detail-source .feedback-report-row { width:auto; margin:0; padding:0; }
-.local-discovery-detail .detail-caption { max-width:var(--measure); margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-ui); }
+/* N05: the 14 px caption at 30em (≤40 CJK incl. Latin runs, ≤75 Latin per line; --measure alone gave 44 and 89). */
+.local-discovery-detail .detail-caption { max-width:min(var(--measure),30em); margin:var(--sp-2) 0 0; color:var(--color-ink-3); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .local-discovery-detail .detail-page-credits { color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); }
 .local-discovery-detail .detail-page-credits summary { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); cursor:pointer; }
 .local-discovery-detail .detail-page-credits ul { margin:0; padding:0; list-style:none; }
 .local-discovery-detail .detail-together .event-participation { margin:0; padding:0; border:0; }
 .local-discovery-detail .detail-squad { display:flex; align-items:center; gap:var(--sp-2); min-height:var(--control-height); margin-top:var(--sp-2); color:var(--color-brand); font-size:var(--fs-body); }
 .local-discovery-detail .detail-squad svg { flex:none; width:1.25rem; height:1.25rem; }
-.local-discovery-detail .detail-share { margin-top:var(--sp-4); padding-top:var(--sp-2); border-top:1px solid var(--color-line); }
-.local-discovery-detail :is(.detail-together>.detail-share:first-child,.detail-source>.detail-share) { margin:0; padding:0; border:0; }
+.local-discovery-detail .detail-share { margin-top:var(--sp-3); }
+.local-discovery-detail .detail-share .editorial-share-actions { margin:0; }
+.local-discovery-detail .detail-share .editorial-share-buttons { margin-inline-start:calc(-1 * var(--sp-2)); }
+.local-discovery-detail .detail-source>.detail-share { margin:0; }
 
 /* Rails: 172 px feed cards in a scroller on a phone (16 px scroll padding: no card at the edge); a row on a desktop (3-up,
    4-up for the ended page's four). At 特大 and in 简洁显示 the row cards instead: a vertical list, never sideways. */
@@ -104,8 +93,8 @@ html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detai
 html:is([data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-rail__rows { display:grid; gap:var(--sp-3); }
 .local-discovery-detail .detail-main>.detail-rail { margin-top:var(--sp-5); }
 
-/* Page end: one H2 and three → links over a 1 px rule. */
-.local-discovery-detail .discovery-return { margin-top:var(--section-gap); padding:var(--sp-5) 0 0; border:0; border-top:1px solid var(--color-line); border-radius:0; background:none; }
+/* Page end: one H2 and three → links over a 1 px rule that splits the section gap like 来源与核对's. */
+.local-discovery-detail .discovery-return { margin-top:calc(var(--section-gap) * .625); padding:calc(var(--section-gap) * .375) 0 0; border:0; border-top:1px solid var(--color-line); border-radius:0; background:none; }
 .local-discovery-detail .discovery-return>div { display:flex; flex-wrap:wrap; gap:0 var(--sp-5); }
 html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 
@@ -127,7 +116,9 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle):hover { background:var(--color-surface-2); }
   .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day:not(:disabled)):hover { border-color:var(--color-brand-hover); background:var(--color-brand-hover); }
   .local-discovery-detail :is(.detail-back a,.detail-page-credits summary):hover { text-decoration:underline 1px; text-underline-offset:.2em; }
-  .local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended,.trust-row) a:hover { text-decoration-thickness:2px; }
+  /* N23: the source and credit links answer a hover in colour too (a thicker underline alone did not register). */
+  .local-discovery-detail :is(.detail-credit,.detail-page-credits,.content-review-ended,.trust-row) a:hover { color:var(--color-ink); text-decoration-thickness:2px; }
+  .local-discovery-detail .trust-row a:hover { color:var(--color-brand-hover); }
 }
 /* The primary never wraps: where its cell is narrower than icon + label, the icon goes. em = the cell's --fs-body. */
 @container detail-primary (max-width:9.5em) {
@@ -138,9 +129,14 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .site-detail-actions.detail-actions { position:fixed; z-index:50; inset:auto 0 0; height:var(--site-mobile-nav-height); padding:var(--sp-1) var(--sp-3) calc(var(--sp-1) + env(safe-area-inset-bottom,0px)) var(--sp-2); box-sizing:border-box; border-top:1px solid var(--color-line); background:var(--color-surface); box-shadow:var(--e1); }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { padding-inline:var(--sp-1); }
   html:is([data-reading=extra-large],[data-simple]) .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-2); }
-  /* 家人版 (特大 + 简洁显示): the ask cell reads BayBay so 加入这天计划 keeps one line. */
-  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions [data-label=long] { display:none; }
-  html[data-reading=extra-large][data-simple] .site-detail-actions.detail-actions [data-label=tight] { display:inline; }
+  /* 特大 and 家人版 (UI9-R1, J1 P20): from 360 px the ask cell keeps 问 BayBay / Ask BayBay; it reads BayBay only below 360
+     px. 家人版 makes the room on the bar's edges (the 56 px 收藏 cell centres its icon 16 px in) and in the primary, 4 px
+     each, so the cell labels keep 12 px between them; a primary that still has no room wraps to two balanced lines (its
+     button is 3rem tall) instead of a word being swapped. Detail pages only: a guide's bar keeps its own arrangement
+     (guide-article.css). */
+  html[data-reading=extra-large] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { white-space:normal; line-height:1.2; text-wrap:balance; }
+  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions { padding-inline:0 var(--sp-1); }
+  html[data-reading=extra-large][data-simple] .local-discovery-detail .site-detail-actions.detail-actions :is(.detail-action--primary,.detail-actions__primary .saves-add-day) { padding-inline:var(--sp-1); }
 }
 /* Below 360 px the ask cell reads BayBay beside the otter (its name stays 问 BayBay 这一页); at 大 / 特大 / 简洁显示 the cell
    labels keep the caption step they had and the primary shows its short label ("Claim ↗", "Plan"; the name keeps the full
@@ -160,16 +156,16 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
 }
 
 @media (min-width:768px) {
-  .local-discovery-detail .detail-rail__track { grid-auto-flow:row; grid-template-columns:repeat(3,minmax(0,1fr)); margin-inline:0; padding-inline:0; overflow:visible; }
+  /* N16: the row takes the grid's one gutter (24 px on a desktop, 12 below 1024). */
+  .local-discovery-detail .detail-rail__track { grid-auto-flow:row; grid-template-columns:repeat(3,minmax(0,1fr)); gap:var(--grid-gutter); margin-inline:0; padding-inline:0; overflow:visible; }
   .local-discovery-detail .detail-rail[data-count="4"] .detail-rail__track { grid-template-columns:repeat(4,minmax(0,1fr)); }
 }
-@media (max-width:767px) {
-  html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-facts { grid-template-columns:minmax(0,1fr); }
-}
 
-/* Desktop: F's 12 columns (gutter 24): the column (top: hero and title; body: the rest) on 8, the sticky aside on 4 (the
-   facts card, then the action card). The aside comes between the two blocks in the DOM, so a phone reads the facts under
-   the H1. At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. */
+/* Desktop: F's 12 columns (gutter 24): the column (top: hero and title; body: the rest) on 8, the aside on 4 (the facts
+   card, then the action card). The aside comes between the two blocks in the DOM, so a phone reads the facts under the H1.
+   At 1440 the back link, hero, H1 and facts start at x 112 and the aside ends at x 1328. The aside runs the column's full
+   height and the action card is sticky in it (J1): the facts scroll away with the top block, the actions stay in view to
+   the end of the body, at any reading size (the whole aside at 特大 is taller than a 768 px laptop screen). */
 @media (min-width:1024px) {
   .local-discovery-detail { box-sizing:content-box; width:auto; max-width:var(--container-wide); padding:var(--sp-4) var(--page-gutter) 0; }
   .local-discovery-detail .detail-back,.local-discovery-detail .detail-back a { padding:0; }
@@ -177,18 +173,20 @@ html[data-simple] .local-discovery-detail [data-simple=hide] { display:none; }
   .local-discovery-detail .detail-layout { display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); align-items:start; }
   .local-discovery-detail .detail-main { grid-column:1 / span 8; }
   .local-discovery-detail .detail-main--body { grid-row:2; }
-  .local-discovery-detail .detail-aside { grid-column:9 / span 4; grid-row:1 / span 2; position:sticky; top:5.5rem; }
+  .local-discovery-detail .detail-aside { grid-column:9 / span 4; grid-row:1 / span 2; align-self:stretch; }
+  .local-discovery-detail .site-detail-actions.detail-actions { position:sticky; top:5.5rem; }
   .local-discovery-detail :is(.detail-head,.detail-note,.detail-facts-card,.detail-body,.content-review-notice,.detail-next-link,.detail-main>.detail-rail,.discovery-return,.detail-back--end,.ui-state,.ui-state+.ui-more) { margin-inline:0; }
   .local-discovery-detail .detail-hero figcaption { padding-inline:0; }
   .local-discovery-detail .detail-hero :is(.ui-cover,.ui-type-cover) { border-radius:var(--r-lg); }
-  .local-discovery-detail .detail-facts-card { margin-top:0; }
   .site-detail-actions.detail-actions { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:var(--sp-2); margin-top:var(--sp-4); padding:var(--inset-card); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); }
   .site-detail-actions.detail-actions>.detail-actions__primary { grid-column:1 / -1; order:-1; }
   /* Six tracks: three cells take two each, two cells three each (a waiting event has no 收藏), a lone cell the row. */
   .site-detail-actions.detail-actions>.detail-actions__cell { grid-column:span 2; }
   .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3),.site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(3)~.detail-actions__cell { grid-column:span 3; }
   .site-detail-actions.detail-actions>.detail-actions__cell:first-child:nth-last-child(2) { grid-column:1 / -1; }
-  .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; border:1px solid var(--color-line-control); background:var(--color-surface); color:var(--color-ink); white-space:normal; }
+  /* N12: the cells keep the bar's quiet look (no box: icon over label, the sunken fill on hover and press); the primary is
+     the card's one filled button. */
+  .site-detail-actions.detail-actions :is(button.detail-actions__cell,.detail-actions__cell .saves-toggle) { width:100%; color:var(--color-ink); white-space:normal; }
   .site-detail-actions.detail-actions [data-label=desk] { display:inline; }
   .site-detail-actions.detail-actions [data-label=phone] { display:none; }
 }

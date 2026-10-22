@@ -13,9 +13,10 @@ import { sessionLines } from './session-lines';
 import './facts-grid.css';
 
 /**
- * "一眼看懂" (UI9-DETAIL, content arrangement 10-19): one card, the facts in a fixed order per kind (event 何时 · 在哪 · 多少钱 |
- * 适合; offer 有效期 · 福利 | 要不要消费 · 在哪; opening 开业 · 在哪 · 类型). Each fact: an icon and a 14 px label, then the
- * key on line 1 at 600 and everything after it as the note at 400. The label line has one quiet right slot: 地图 ↗ on 在哪,
+ * "一眼看懂" (UI9-DETAIL, content arrangement 10-19; UI9-R1-DETAIL): one card, the facts in a fixed order per kind, one per
+ * row (event 何时 · 在哪 · 多少钱 · 适合; offer 有效期 · 福利 | 要不要消费 · 在哪, its two short values side by side; opening
+ * 开业 · 在哪 · 类型). Each fact: an icon and a 14 px label, then the key on line 1 at 600 (适合's list at 400) and everything
+ * after it as the note at 400. The label line has one quiet right slot: 地图 ↗ on 在哪,
  * and 官方页 ↗ / 商家官网 ↗ on 何时 / 有效期 / 开业 whenever the page's primary action is not the official link (`official`).
  * Values come from structured overlay fields when present and from the listing's own labels otherwise; nothing is invented,
  * and a fact with no reader text left (reader-text.ts) is not rendered.
@@ -24,11 +25,13 @@ type Cell = { key: string; icon: ReactNode; label: string; value: ReactNode; not
 export type FactsLink = { href: string; label: string };
 
 /**
- * H58: display units (CJK 1, other ½) of two lines of note in a phone's half-width cell (about 155px at the 14px note size).
- * A longer cost note is clamped to two lines there with 展开 over the end of the second (facts-grid.css), so the card ends
- * above the fixed action bar; the sentence stays whole in the page, for a screen reader and in one column.
+ * H58 / J1 P14: display units (CJK 1, other ½) of two lines of note across a phone's facts card (about 324px at the 14px
+ * note size on a 390px phone; the cost fact has the whole row since UI9-R1-DETAIL). A longer cost note shows two lines
+ * there, the second fading out, with 展开 on a line of its own under it (facts-grid.css); the sentence stays whole in the
+ * page, for a screen reader and in the elder modes. A note just over two lines stays whole: a third line reads better than
+ * a 展开 with nothing behind it.
  */
-export const NOTE_CLAMP_UNITS = 22;
+export const NOTE_CLAMP_UNITS = 46;
 
 /** Catalog text as a cell value or note, or undefined when no reader text is left (readerProse). */
 function readerNode(text: string | undefined, locale: Locale): ReactNode {
@@ -38,7 +41,7 @@ function readerNode(text: string | undefined, locale: Locale): ReactNode {
 /** The label line's right slot: a quiet external link (地图, 官方页, 商家官网, 查询本地门店). */
 const outLink = (link: FactsLink, map?: boolean) => <a className={map ? 'ui-more detail-fact__aside detail-map-link' : 'ui-more detail-fact__aside'} href={link.href} target="_blank" rel="noopener noreferrer">{link.label} ↗</a>;
 
-/** One fact. A `clamp` note gets 展开 / 收起 (shown only where facts-grid.css clamps it: a phone's two-column card). */
+/** One fact. A `clamp` note gets 展开 / 收起 (shown only where facts-grid.css clamps it: a phone in 标准). */
 function Fact({ cell }: { cell: Cell }) {
   const { t } = useUiCopy();
   const noteId = useId();
