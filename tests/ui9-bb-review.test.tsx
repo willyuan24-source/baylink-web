@@ -73,7 +73,8 @@ test('简洁显示: at most two row cards, no ♡; a photo keeps its provenance 
     assert.match(check?.textContent || '', /^官网核对 \d{1,2}\/\d{1,2}$/, `${model.key}: the ✓ line stays (decisions 3, 17)`);
     assert.ok(check?.querySelector('svg'), 'with the check mark');
   });
-  assert.deepEqual(models.slice(0, 2).map(model => model.cover.tier === 'type'), [false, true], 'the fixture covers a photo and a type cover');
+  // UI9-IMG-A1b (DECISIONS 21/22): a listing without its own picture shows its next candidate (a ③ stock picture), never a type cover.
+  assert.deepEqual(models.slice(0, 2).map(model => model.cover.tier === 'type'), [false, false], 'both rows show a picture');
 });
 
 test('the ✓ line reads 媒体报道 · M/D 核对 for a press source on events, offers and openings; 官网核对 otherwise', () => {
