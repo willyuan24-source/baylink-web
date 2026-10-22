@@ -48,7 +48,7 @@
 .gl-rows>li { min-width:0; }
 .gl-page .ui-row-card { grid-template-columns:7rem minmax(0, 1fr) auto; min-height:0; }
 .gl-page .ui-row-card__thumb { width:7rem; height:7rem; }
-.gl-page .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; font-size:var(--fs-card); line-height:var(--lh-snug); }
+.gl-page .ui-row-card__title { display:block; overflow:visible; -webkit-line-clamp:unset; font-size:var(--fs-card); line-height:var(--lh-snug); overflow-wrap:anywhere; }
 .gl-page .ui-feed-grid { --ui-feed-ratio:3 / 2; }
 /* Follow-up 7 (DECISIONS 23): a row thumbnail's ③④ label is the shared chip ON the picture, bottom-left, as on the cards —
    not cards.css's full-width strip along the thumbnail's foot, which read as a caption under the picture. The 3D postcards'
@@ -56,7 +56,8 @@
 .gl-page .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { right:auto; bottom:var(--sp-1); left:var(--sp-1); max-width:calc(100% - var(--sp-2)); padding:var(--sp-1); border-radius:var(--r-sm); text-align:start; }
 /* A list shows rows on a phone and a tablet, covers on a desktop (unless most of it is photos: one 2-up grid everywhere). */
 .gl-view[data-view=desk] { display:none; }
-/* A short topic row ends on its 看全部 cell over the rest of the row from 1024 px (captain 10-21 18:30: no empty cells). */
+/* A short topic row ends on its 看全部 cell from 1024 px: one column, the size of the pictures beside it (follow-up 10). A row of
+   two guides (医疗保险) leaves its fourth column empty by design: a cell over the rest of the row read as an empty frame. */
 .gl-all-cell { display:none; }
 
 /* 长辈与家属先看: D2's band — three rows on a sunken panel, three across on a desktop; then 看全部 N 篇. */
@@ -152,13 +153,16 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
   html:not([data-reading$=large]) .gl-all-cell { display:flex; }
   .gl-all-cell>.ui-button { flex:1; align-self:flex-start; height:auto; aspect-ratio:3 / 2; border-radius:var(--r-lg); }
   .gl-all-cell svg { width:1.125rem; height:1.125rem; }
-  /* N16 (UI9-R1): the 长辈与家属先看 band on the feeds' four columns — its heading, line and 看全部 in column 1, the three rows in
-     columns 2–4 (422 / 732 / 1042 at 1440, as every card grid below). The sunken panel reaches --gl-band-bleed past the
-     column edges, so the text and the cards inside it start on the grid; the rows' pictures go to 88 px in the narrower column. */
+  /* N16 (UI9-R1): the 长辈与家属先看 band on the feeds' four columns — its heading, line and 看全部 in column 1, the three guides
+     in columns 2–4 (422 / 732 / 1042 at 1440, as every card grid below). The sunken panel reaches --gl-band-bleed past the
+     column edges, so the text and the cards inside it start on the grid. One column is too narrow for a row (beside its
+     picture a title ran 12 lines and past the card at 1024 en), so each guide stands as a card there: the 3:2 picture on
+     top, the whole title under it (never clamped), as the topic grids below; the ③④ chip is the cards' one-line chip. */
   html:not([data-reading=extra-large],[data-simple]) .gl-band { --gl-band-bleed:var(--sp-4); display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); grid-template-rows:auto 1fr; column-gap:var(--grid-gutter); margin-inline:calc(var(--gl-band-bleed) * -1); padding:var(--sp-5) var(--gl-band-bleed); }
   html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-section__head { grid-area:1 / 1 / 2 / 2; margin:0; }
   html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-band__rows { grid-area:1 / 2 / 3 / -1; }
   html:not([data-reading=extra-large],[data-simple]) .gl-band>.gl-band__all { grid-area:2 / 1 / 3 / 2; align-self:end; justify-self:start; margin:var(--sp-3) 0 0; }
-  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card { grid-template-columns:5.5rem minmax(0, 1fr) auto; }
-  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card__thumb { width:5.5rem; height:5.5rem; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card { grid-template-columns:minmax(0, 1fr); grid-template-areas:"thumb" "body"; align-content:start; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card__thumb { --ui-feed-ratio:3 / 2; width:auto; height:auto; }
+  html:not([data-reading=extra-large],[data-simple]) .gl-band .ui-row-card__thumb .ui-provenance[data-chip]:is([data-tier=stock],[data-tier=ai]) { bottom:var(--sp-2); left:var(--sp-2); max-width:calc(100% - var(--sp-4)); padding:var(--sp-1) var(--sp-2); white-space:nowrap; }
 }

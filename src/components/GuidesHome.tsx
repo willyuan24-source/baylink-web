@@ -27,6 +27,10 @@ import { settleChunk } from '../lib/chunk-recovery';
 import { editionState, GUIDE_REGIONS, guideCardLines, guideCover, inSeason, isGuideRegion, isGuideTopic, type GuideRegionId } from '../features/guides/guide-facts';
 import '../features/guides/guide-library.css';
 
+/** The elder band's pictures: a row thumbnail on a phone and a tablet, a card's 3:2 picture in one column from 1024 px
+ *  (guide-library.css, N16). */
+const BAND_PICTURE_SIZES = `(min-width: 1024px) 286px, ${COVER_SIZES.thumb}`;
+
 // The saved shelf reads the save store; it loads only for ?view=saved, outside the index's JS budget.
 const ReadingShelf = lazy(() => import('./ReaderLibrary').then(module => ({ default: module.ReadingShelf })));
 // The 地区 sheet loads on the first press of its chip (route JS ≤ base). RC-25: if its chunk cannot load (offline), the same
@@ -168,12 +172,12 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   const open = (slug: string) => (event?: MouseEvent<HTMLAnchorElement>) => { if (event) handleGuideLinkClick(event, () => onOpenGuide(slug)); else onOpenGuide(slug); };
   const lines = (guide: GuideIndexCard) => { const { when, meta } = guideCardLines(guide, today); return { when: pick(when), meta: meta && pick(meta) }; };
   /** A row: the 88 px picture, the full title (never clamped), the time line and the sources line. */
-  const row = (guide: GuideIndexCard, options: { snippet?: string; section?: string; call?: boolean } = {}) => {
+  const row = (guide: GuideIndexCard, options: { snippet?: string; section?: string; call?: boolean; sizes?: string } = {}) => {
     const cover = covers.get(guide.slug);
     const { when, meta } = lines(guide);
     return <>
       <RowCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`} onOpen={open(guide.slug)}
-        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={COVER_SIZES.thumb} /> : null}
+        thumb={cover ? <GuideCover guide={guide} cover={cover} ratio="1:1" mini sizes={options.sizes ?? COVER_SIZES.thumb} /> : null}
         when={options.section ? t(`文内匹配 · ${options.section}`, `Match in · ${options.section}`) : when} meta={options.snippet || meta} credit={rowCredit(cover)} />
       {/* G16: in 简洁显示 a guide with a number prints it as a 48 px 拨打 under its row (the reader's bar calls the same number). */}
       {options.call && guide.call && <Button variant="secondary" className="gl-call" href={`tel:${telOf(guide.call.number)}`} data-simple="show"
@@ -188,8 +192,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     return <FeedCard title={guideTitle(guide)} titleLang={english ? 'en' : undefined} to={`/guides/${guide.slug}`}
       onOpen={open(guide.slug)} cover={cover ? <GuideCover guide={guide} cover={cover} priority={priority} sizes={COVER_SIZES.feed} /> : null} when={when} meta={meta} />;
   };
-  const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string } = {}) =>
-    <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call })}</li>)}</ul>;
+  const rows = (list: readonly GuideIndexCard[], label: string, options: { call?: boolean; className?: string; sizes?: string } = {}) =>
+    <ul className={`gl-rows${options.className ? ` ${options.className}` : ''}`} aria-label={label}>{list.map(guide => <li key={guide.slug}>{row(guide, { call: options.call, sizes: options.sizes })}</li>)}</ul>;
   /** A list: rows on a phone and 3:2 covers on a desktop, or 2-up photo cards everywhere when most of it is photos (3 of a
    *  4-guide preview; three quarters of a longer list). */
   // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell (captain 10-21 18:30); guide-library.css
@@ -212,8 +216,8 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
     <div className="gl-section__head">
       <div><h2 id="gl-elders-title">{t('长辈与家属先看', 'Start here for seniors and family')}</h2><p data-simple="hide">{summaryOf('elders')}</p></div>
     </div>
-    {rows(elderBand, t('长辈与家属先看', 'Start here for seniors and family'), { call: true, className: 'gl-band__rows' })}
-    <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides for seniors and family`)}</Button>
+    {rows(elderBand, t('长辈与家属先看', 'Start here for seniors and family'), { call: true, className: 'gl-band__rows', sizes: BAND_PICTURE_SIZES })}
+    <Button className="gl-band__all" block onClick={() => update({ topic: 'elders' })}>{t(`看全部 ${topicCounts.elders} 篇`, `All ${topicCounts.elders} guides`)}</Button>
   </section>;
 
   const topicSections = sections.map(({ topic: item, total, preview }) => <section key={item.id} className="gl-section" data-simple="hide" aria-labelledby={`gl-topic-${item.id}`}>
