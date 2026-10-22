@@ -69,3 +69,14 @@ test('a guide record (id = slug) gets the pool of its slug-derived category, and
   assert.deepEqual(coverCandidates('guide', { id: 'bart-october-access-parking-update-2026' }, guideTables), ['T1', 'ai-t']);
   assert.deepEqual(coverCandidates('guide', { id: 'some-new-guide', category: 'service' }, guideTables), ['D1'], 'then the guide category');
 });
+
+test('UI9-IMG-A1b: a record whose own image is an approved AI cover ranks it ④, after its category stock (DECISIONS 22)', () => {
+  const keys = coverCandidates('event', { ...story, imageKey: 'ai-2' }, tables);
+  assert.deepEqual([...keys.slice(2, 5)].sort(), ['s1', 's2', 's3'], 'venue photos, then the stock pool');
+  assert.deepEqual(keys.slice(5), ['ai-2', 'ai-1'], 'the own AI image comes after the pool, before other approved AI');
+  // coverItemFor keeps that order (it used to put the own image back in front).
+  const item = coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys });
+  assert.deepEqual(item.imageKeys, keys);
+  assert.deepEqual(coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys }, { imageKey: undefined }).imageKeys, keys.filter(key => key !== 'ai-2'));
+  assert.deepEqual(coverItemFor('event', { id: 'e1', imageKey: 'ai-2', imageKeys: keys }, { imageKey: 'x' }).imageKeys, ['x', ...keys.filter(key => key !== 'ai-2')]);
+});

@@ -60,16 +60,22 @@ export function idSpot(id: string, size: number): number {
   return size ? hash % size : 0;
 }
 
-/** The record's candidates in DECISIONS 22 order, each key once. */
+/**
+ * The record's candidates in DECISIONS 22 order, each key once. A record's own image that is an approved AI illustration
+ * (a key in ai-cover-approvals.json) is ④, not ①: it goes after the category's stock pictures (UI9-IMG-A1b; the B1b
+ * review found the 204 stock pictures unused and AI covers on unrelated records while it led).
+ */
 export function coverCandidates(kind: CoverKind, record: CandidateRecord, tables: CoverTables = COVER_TABLES): string[] {
   const keys: string[] = [];
   const add = (key?: string) => { if (key && !keys.includes(key)) keys.push(key); };
-  add(record.imageKey);
+  const ownIsAi = !!record.imageKey && tables.ai.some(approval => approval.key === record.imageKey);
+  if (!ownIsAi) add(record.imageKey);
   for (const venue of venuesFor(kind, record, tables.venues)) venue.imageKeys.forEach(add);
   const category = photoCategoryOf(kind, record);
   const pool = category ? tables.categories[category] ?? [] : [];
   const start = idSpot(record.id, pool.length);
   for (let i = 0; i < pool.length; i++) add(pool[(start + i) % pool.length]);
+  if (ownIsAi) add(record.imageKey);
   const refs = [`${kind}:${record.id}`, ...(category ? [`category:${category}`] : [])];
   for (const approval of tables.ai) if (approval.for?.some(ref => refs.includes(ref))) add(approval.key);
   return keys;

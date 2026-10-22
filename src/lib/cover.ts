@@ -248,9 +248,11 @@ export function getCover(item: CoverItem, ctx: CoverContext): ResolvedCover {
  */
 export function coverItemFor(kind: CoverKind, record: { id: string; imageKey?: string; imageKeys?: readonly string[] }, override?: { imageKey: string | undefined; lead?: boolean }): CoverItem {
   const imageKey = override ? override.imageKey : record.imageKey;
-  // coverCandidates() puts the record's own image first, so the candidates are that image (or the override) + the rest.
+  // The candidates keep coverCandidates()' order (an own AI image comes after the stock pictures, DECISIONS 22); an
+  // override that drops the own image leaves it out, one that names another image puts that image first.
   const rest = record.imageKeys?.filter(key => key !== record.imageKey);
-  return { kind, id: record.id, imageKey, ...(rest && { imageKeys: imageKey ? [imageKey, ...rest] : rest }), ...(override?.lead && { lead: true }) };
+  const keys = !record.imageKeys ? undefined : imageKey === record.imageKey ? record.imageKeys : imageKey ? [imageKey, ...rest!] : rest;
+  return { kind, id: record.id, imageKey, ...(keys && { imageKeys: keys }), ...(override?.lead && { lead: true }) };
 }
 
 /** Resolve a list in display order on one page, so de-duplication is deterministic. */
