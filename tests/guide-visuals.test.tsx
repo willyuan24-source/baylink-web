@@ -31,7 +31,20 @@ const { getGuideBySlug, guides } = await import('../src/data/guides');
 const { keepInlineImage } = await import('../src/features/guides/guide-data');
 // The deals board is a chunk the article loads with its record (WEB-DATA-SPLIT); the page waits for it, so do the tests.
 await (await import('../src/features/guides/guide-blocks')).preloadAllGuideBlocks();
-const { getGuideMedia } = await import('../src/data/guide-media');
+const { getGuideMedia, GUIDE_IMAGES, AI_COVER_APPROVALS } = await import('../src/data/guide-media');
+/**
+ * ③④ pool pictures (the owner's category photos and approved AI covers, 2026-10-21): cover.ts lets one come back on a page
+ * (ADJACENT_CARDS apart, or the farthest when a card has no other candidate; never an information card).
+ */
+const poolSrcs = new Set([...AI_COVER_APPROVALS.map(approval => GUIDE_IMAGES[approval.key].src),
+  ...Object.values(GUIDE_IMAGES).filter(image => typeof image.rights === 'object' && image.rights?.basis === 'stock').map(image => image.src)]);
+const articleImages = (slug: string) => {
+  const html = renderToStaticMarkup(<StaticRouter location={`/guides/${slug}`}><GuideDetail slug={slug} {...guideProps} /></StaticRouter>);
+  // "Read next" renders three rows for a phone and four covers for a desktop; CSS shows one of the two (UI9-GUIDES).
+  const page = new JSDOM(html).window.document;
+  page.querySelectorAll('.gd-related__rows').forEach(rows => rows.remove());
+  return page;
+};
 
 afterEach(() => { cleanup(); document.body.style.overflow = ''; });
 
@@ -256,12 +269,10 @@ test('legacy poster remains expandable and full guide server rendering retains e
 test('no article shows the same picture twice: a related guide, an inline figure or the legacy poster never repeats a picture already on the page', () => {
   const repeats: string[] = [];
   for (const guide of guides) {
-    const html = renderToStaticMarkup(<StaticRouter location={`/guides/${guide.slug}`}><GuideDetail slug={guide.slug} {...guideProps} /></StaticRouter>);
     // Posters letterbox on a blurred copy of themselves (one picture, two <img>); count the picture once.
-    // "Read next" renders three rows for a phone and four covers for a desktop; CSS shows one of the two (UI9-GUIDES).
-    const page = new JSDOM(html).window.document;
-    page.querySelectorAll('.gd-related__rows').forEach(rows => rows.remove());
-    const images = Array.from(page.querySelectorAll('img:not(.ui-cover__backdrop)'));
+    const page = articleImages(guide.slug);
+    // A ③④ pool picture may come back (cover.ts); the todo test below tracks where it does.
+    const images = Array.from(page.querySelectorAll('img:not(.ui-cover__backdrop)')).filter(image => !poolSrcs.has(image.getAttribute('src') ?? ''));
     // The deals board (FreebieBoard, WEB-EVENTS) reuses an offer picture across offers and shows the lead offer's photo,
     // which the deals guides keep as their cover (monthly-deals-ui); every other picture appears once on the page.
     const inBoard = (image: Element) => !!image.closest('[id^="freebie-board-"]');
@@ -271,6 +282,23 @@ test('no article shows the same picture twice: a related guide, an inline figure
     for (const image of images.filter(image => !inBoard(image))) {
       const src = image.getAttribute('src');
       if (seen.has(src) || (board.has(src) && !lead.has(src))) repeats.push(`${guide.slug}: ${src}`);
+      seen.add(src);
+    }
+  }
+  assert.deepEqual(repeats, []);
+});
+
+// UI9-IMG-B1b2: a guide card has one candidate (its own cover), so when two "read next" guides share an approved AI cover
+// (the 'everyday' illustration) cover.ts shows it on both, side by side (it never falls back to an information card).
+// UI9-IMG-A1b gives guide cards their ③ category photos (DECISIONS 22: ③ before ④), which ends these repeats.
+test('no article repeats a ③④ pool picture either', { todo: 'UI9-IMG-A1b: guide cards get their ③ candidates' }, () => {
+  const repeats: string[] = [];
+  for (const guide of guides) {
+    const seen = new Set<string>();
+    for (const image of articleImages(guide.slug).querySelectorAll('img:not(.ui-cover__backdrop)')) {
+      const src = image.getAttribute('src') ?? '';
+      if (!poolSrcs.has(src)) continue;
+      if (seen.has(src)) repeats.push(`${guide.slug}: ${src}`);
       seen.add(src);
     }
   }
