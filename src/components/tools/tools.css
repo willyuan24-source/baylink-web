@@ -34,10 +34,10 @@
 .tool-form{display:flex;flex-direction:column;gap:20px}
 .tool-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
 .tool-field{display:flex;flex-direction:column;gap:8px;min-width:0;color:var(--color-ink);font-size:var(--text-fact)}
-.tool-field>span,.tool-field>label{font-weight:600}
+.tool-field>span:not(.ui-select),.tool-field>label{font-weight:600}
 .tool-field input,.tool-field textarea,.tool-output textarea{width:100%;min-height:var(--control-height);padding:10px 12px;border:1px solid var(--color-line-control);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);font:inherit;font-size:var(--text-body)}
-/* No resize grip (N13): the box grows with its text where the browser can (field-sizing), up to a scroll. */
-.tool-field textarea,.tool-output textarea{min-height:140px;max-height:24rem;line-height:var(--lh-read);resize:none;field-sizing:content}
+/* No resize grip (N13): the rows set the height and a long text scrolls inside. */
+.tool-field textarea,.tool-output textarea{min-height:140px;line-height:var(--lh-read);resize:none}
 .tool-field input:focus,.tool-field textarea:focus,.tool-output textarea:focus{border-color:var(--color-brand)}
 .tool-field small{color:var(--color-ink-2);font-size:var(--text-caption);line-height:1.6}
 .tool-money-input{position:relative;display:flex;align-items:center}
@@ -121,6 +121,6 @@
   .tool-checklist-custom{flex-direction:column;align-items:stretch}
   .tools-footer{flex-direction:column;align-items:flex-start}
 }
-/* Every control inside a tool is a full tap target (44px; 48px in 简洁显示 through --control-height); the shared Button keeps
-   its own 48px phone height. */
-.tools-page .tool-workspace :is(button:not(.ui-button),select,input:not([type=checkbox]):not([type=radio]):not([type=range])){min-height:var(--control-height)}
+/* Every control inside a tool is a full tap target (44px; 48px in 简洁显示 through --control-height): the field rule above,
+   the shared Button / IconButton / Select and the chip rows each set it. (A catch-all rule here outranked the converter's
+   67 / 82px fields and left the two sides of the converter at different heights.) */
