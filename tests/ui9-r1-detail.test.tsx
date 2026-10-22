@@ -78,7 +78,7 @@ test('J1 P14: one fact per row, the offer\'s two short values side by side, 适�
 test('J1 P14: a clamped note fades out at the end of its second line and 展开 has a line of its own, never over the text', () => {
   const text = readFileSync(FACTS_CSS, 'utf8');
   const phone = text.slice(text.indexOf('@media(max-width:767px)'));
-  assert.match(phone, /\[data-clamp\]:not\(\[data-open\]\) dd>small \{ max-height:calc\(2em \* var\(--lh-ui\)\); overflow:hidden; mask:linear-gradient\(#000 0 0\) 0 0 \/ 100% 50% no-repeat, linear-gradient\(to left, transparent, #000 4em\) 0 100% \/ 100% 50% no-repeat; \}/);
+  assert.match(phone, /\[data-clamp\]:not\(\[data-open\]\) dd>small \{ max-height:calc\(2em \* var\(--lh-ui\)\); overflow:hidden; mask:linear-gradient\(var\(--color-ink\) 0 0\) 0 0 \/ 100% 50% no-repeat, linear-gradient\(to left, transparent, var\(--color-ink\) 4em\) 0 100% \/ 100% 50% no-repeat; \}/);
   const toggle = decls(FACTS_CSS, 'html:not([data-reading=large],[data-reading=extra-large],[data-simple]) .local-discovery-detail .detail-fact__toggle', '(max-width:767px)');
   assert.equal(toggle.display, 'inline-flex', 'after the block note: a line of its own');
   assert.equal(toggle['min-height'], '0', 'the page-wide 44px control height would add a row');
