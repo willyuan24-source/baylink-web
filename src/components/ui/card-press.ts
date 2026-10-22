@@ -2,7 +2,7 @@
 const CARD = '.ui-feed-card,.ui-row-card,.ui-hero-card';
 /** A touch shows its press after this long unless the browser takes it for a scroll first (pointercancel), so a swipe over a
  *  list does not flash every card it starts on; a tap shorter than this still shows the press as it ends. */
-const TOUCH_PRESS_DELAY = 50;
+const TOUCH_PRESS_DELAY = 25;
 let pressInstalled = false;
 /**
  * Card press at pointerdown (N24, J3 P25: a touch is answered within 100 ms, not when :active arrives at release): one
