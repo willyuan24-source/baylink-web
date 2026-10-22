@@ -23,7 +23,7 @@ export const GUIDE_REGIONS: readonly { id: GuideRegionId; zh: string; en: string
 export const isGuideRegion = (value: unknown): value is GuideRegionId => GUIDE_REGIONS.some(region => region.id === value);
 export const isGuideTopic = (value: unknown): value is GuideTopicId => GUIDE_TOPICS.some(topic => topic.id === value);
 
-/** Each topic's TypeCover palette and texture icon (keys of TypeCover's closed icon list). */
+/** Each topic's tone and icon key (the UI9-C type covers' palette; kept for the topic chips' data, UI9-IMAGES draws pictures only). */
 export const TOPIC_COVER: Readonly<Record<GuideTopicId, { tone: CoverTone; icon: string }>> = {
   elders: { tone: 'seniors', icon: 'seniors' },
   health: { tone: 'culture', icon: 'book' },

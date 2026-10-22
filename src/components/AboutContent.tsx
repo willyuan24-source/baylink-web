@@ -9,7 +9,7 @@ import { ChunkBoundary } from './ChunkBoundary';
 import { PageContainer, PageHeader } from './ui/PageHeader';
 import { useSimpleDisplay } from '../lib/reading-preferences';
 import { ProvenanceBadge } from './ui/Badges';
-import { getImageProvenance, typeCoverProvenance, type ProvenanceInput } from '../lib/image-provenance';
+import { getImageProvenance, type ProvenanceInput } from '../lib/image-provenance';
 
 const CONTACT_EMAIL = 'Baylink.us@gmail.com';
 // F's Disclosure folds 图片怎么标 in 简洁显示 only, so it loads with that mode instead of with every /about. Until it
@@ -26,7 +26,8 @@ const IMAGE_LABELS: readonly { sample: ProvenanceInput; zh: string; en: string }
   { sample: { kind: 'photo', credit: 'CC BY', caption: '2023' }, zh: '第三方拍摄、按授权（如 CC）使用的照片；年份是拍摄年份。', en: 'A third-party photo used under its license (such as CC); the year is when it was taken.' },
   { sample: { kind: 'photo', credit: 'CC BY', caption: '2017 archive' }, zh: '较早的资料照片，帮你认出地方，不代表现场现在的样子。', en: 'An older reference photo that helps you recognize the place; it does not show how it looks today.' },
   { sample: { kind: 'photo', credit: 'BAYLINK', caption: '', ownShot: true, shotAt: '2026-10-10' }, zh: 'BAYLINK 自己拍的照片，后面是拍摄日期。', en: 'A photo BAYLINK took itself, with the date it was taken.' },
-  { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '' }, zh: 'AI 生成的主题插画。我们的规则是不拿它当具体活动、优惠或店铺的封面；如果看到这样用了，请告诉我们。', en: 'An AI-generated theme illustration. Our rule is not to use one as the cover of a specific event, offer or shop; if you see one used that way, please tell us.' },
+  { sample: { kind: 'photo', credit: 'Unsplash', caption: '', rights: { basis: 'stock' } } as ProvenanceInput, zh: '按类别准备的授权实拍图（有署名的摄影师），只说明是哪一类活动或去处，不是这条活动、场馆或现场的照片；没有官方图和场馆照时才用。', en: 'A licensed photo of the kind of event or place (by a named photographer), used when there is no official or venue photo. It is not a photo of the listing, its venue or the scene.' },
+  { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '' }, zh: '前三种图都没有时才用的 AI 生成图，每张都经过人工批准；不冒充具体场馆或现场，不做首页主图，也不上分享图。如果看到用得不对，请告诉我们。', en: 'An AI-generated picture, used only when none of the above exists and approved one by one; it never poses as a real venue or scene, never leads a page and never goes on a share image. If you see one used wrongly, please tell us.' },
   { sample: { kind: 'illustration', credit: 'BAYLINK', caption: '', scene3d: true }, zh: 'BAYLINK 3D 旧金山里的场景插图（AI 生成、人工挑选），只用于旧金山地点，不是实景照片。', en: 'A scene from BAYLINK’s 3D San Francisco (AI-generated, hand-picked), used for San Francisco places only; not a photograph.' },
 ];
 
@@ -61,7 +62,6 @@ export function AboutContent({ onAskBayBay, onWarmBayBay }: { onAskBayBay?: () =
         const label = getImageProvenance(sample, english, '2026-10-12');
         return <div key={label}><dt><ProvenanceBadge className="about-badge" label={label} /></dt><dd>{t(zh, en)}</dd></div>;
       })}
-      <div><dt><ProvenanceBadge className="about-badge" label={typeCoverProvenance(english)} /></dt><dd>{t('没有合适的图片时，用条目自己的日期、地点和费用排成的信息卡，不是照片。', 'When there is no suitable picture, an information card showing the listing’s own date, place and price. It is not a photo.')}</dd></div>
     </dl>
     <p data-testid="about-image-takedown">{t('图片权利人如需更正或下架，请发邮件至', 'Image rights holders who want a picture corrected or removed can email')} <a href={`mailto:${CONTACT_EMAIL}`} translate="no" style={{ textDecoration: 'underline', textUnderlineOffset: '0.2em' }}>{CONTACT_EMAIL}</a>{t('，我们会尽快处理。', '. We will respond as soon as we can.')}</p>
   </>;

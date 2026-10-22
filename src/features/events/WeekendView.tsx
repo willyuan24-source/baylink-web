@@ -179,7 +179,7 @@ export function WeekendView({ today, filters, defaultWhen }: { today: string; fi
   const context = { ...coverContext(today), page: createCoverPage() };
   const covers = {
     strip: card && strip.status === 'ready' ? resolveCovers(stripEvents.map(eventItem), context) : [],
-    // DECISIONS 15: a lead with no other candidate keeps its slot in its type cover, never a close-up face photo.
+    // DECISIONS 15/26: a lead never shows a close-up face photo; it takes its next candidate (never an information card).
     lead: arranged.lead ? resolveCovers([coverItemFor('event', arranged.lead.event, { imageKey: leadImageKey(arranged.lead.event.imageKey), lead: true })], context) : [],
     rows: resolveCovers(rows.map(eventItem), context),
     feed: resolveCovers(visible.map(eventItem), context),

@@ -45,8 +45,7 @@ export type FeedCardProps = CardLink & {
    */
   when?: ReactNode;
   meta?: ReactNode;
-  /** "官网核对 10/7" — the check mark is added here. A card with this line credits its source, so inside a list that names the
-   *  info card once (FeedGrid) its coded cover drops the BAYLINK 信息卡 badge (H12, ui.css). */
+  /** "官网核对 10/7" — the check mark is added here (data-credited: the card credits its source). */
   trust?: ReactNode;
   /** `<SaveButton>`; rendered as a sibling above the stretched link, never inside it. */
   save?: ReactNode;
@@ -70,7 +69,7 @@ export function FeedCard({ cover, when, meta, trust, save, className, heading = 
 }
 
 export type RowCardProps = CardLink & {
-  /** 88×88: a photo `<Cover>` or `<TypeCover size="mini">`. */
+  /** 88×88: a picture `<Cover>` (UI9-IMAGES DECISIONS 21: never an information card). */
   thumb: ReactNode;
   /** Line 1 (G18): "周六 10/17 · 11:00–16:00" (eventWhenLine). `date` is its older name. */
   when?: ReactNode;

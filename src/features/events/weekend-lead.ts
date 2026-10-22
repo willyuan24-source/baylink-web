@@ -6,7 +6,7 @@ import { nextOccurrence } from '../../lib/monthly';
 
 /**
  * Photos that never lead (DECISIONS 15): one list for /events, /calendar and the home lead (lib/close-up-faces.ts). A lead
- * that has no other candidate keeps its slot in its type cover (`leadImageKey`).
+ * that has no other candidate shows its next one (`leadImageKey`; never an information card, UI9-IMAGES DECISIONS 21).
  */
 export { CLOSE_UP_FACE_IMAGES, leadImageKey };
 

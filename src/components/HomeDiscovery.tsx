@@ -101,7 +101,7 @@ export function HomeDiscovery({ onAskBayBay, onBrowseCommunity, onSearch, today:
     const feed = weekend.feed.map(entry => event(entry.event as HomeEvent));
     const offerCovers = offers.map(offer => getCover(coverItemFor('offer', offer), context));
     return {
-      // DECISIONS 15: the lead (16:9) never shows a close-up face photo; it draws its type cover (the photo stays a card's).
+      // DECISIONS 15/26: the lead (16:9) never shows a close-up face photo; it shows its next candidate (the photo stays a card's).
       picks,
       feed,
       offers: offerCovers,

@@ -49,7 +49,7 @@ const weekendHash = (text: string): number => {
 export function rankWeekendFallback<T extends WeekendEntry>(entries: readonly T[], weekendStart: string, options: WeekendRankingOptions = {}): T[] {
   const anyImage = options.hasPhoto ?? (() => false);
   const realPhoto = options.hasRealPhoto ?? anyImage;
-  // 2 = a photo that fills the card, 1 = a poster or banner, 0 = a TypeCover.
+  // 2 = a photo that fills the card, 1 = a poster or banner, 0 = no picture of its own (the card shows its next candidate).
   const photoRank = (imageKey: string) => realPhoto(imageKey) ? 2 : anyImage(imageKey) ? 1 : 0;
   const keyed = entries.map(entry => ({ entry, adult: isAdultOnly(entry.event), score: scoreWeekendEvent(entry.event, options), photo: photoRank(entry.event.imageKey), hash: weekendHash(`${weekendStart}:${entry.event.id}`) }));
   return keyed.sort((a, b) => Number(a.adult) - Number(b.adult) || b.score - a.score || b.photo - a.photo

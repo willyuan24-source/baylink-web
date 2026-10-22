@@ -28,7 +28,7 @@ export type SavedItemView = {
   meta: string[];
   /** Pieces of the meta line written by a member (a listing's city and budget): shown as written, never translated. */
   userMeta?: string[];
-  /** For `resolveCovers`; absent for posts (they get a TypeCover). */
+  /** For `resolveCovers`; absent for posts (a member's post without a photo keeps the empty LQIP frame). */
   cover?: CoverItem;
   event?: PlannerEvent;
   place?: PlannerPlace;

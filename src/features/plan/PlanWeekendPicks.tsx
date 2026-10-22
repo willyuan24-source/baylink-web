@@ -56,7 +56,7 @@ export function PlanWeekendPicks({ coverPage }: { coverPage?: CoverPage }) {
   if (!picks) return null;
   // "10/17–18" / "Oct 17–18", as the home's weekend heading (features/home/home-model.ts weekendRange) and the cards' stickers.
   const range = picks.start === picks.end ? readerMonthDay(picks.start, english) : readerDayRange(picks.start, picks.end, english);
-  // The page's one eager image is the first photo cover (a first pick in its type cover does not take the priority).
+  // The page's one eager image is the first pick's picture.
   const eager = picks.entries.findIndex(({ cover }) => cover.tier !== 'type');
   return <section className="plan-weekend" aria-labelledby="plan-weekend-title" data-date-scope="weekend">
     <div className="home-section-head">

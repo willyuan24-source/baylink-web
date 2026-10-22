@@ -33,7 +33,7 @@ export function DetailPlacePhoto({ photo }: { photo: ImageCover }) {
 
 /**
  * The credit line under a photo (G13): its provenance label first (ink-2), then the linked credit, then 图片授权; 13 px, ink-3,
- * at most two lines on a phone. The long caption stays in the source section (HeroCaption). Nothing for a type cover.
+ * at most two lines on a phone. The long caption stays in the source section (HeroCaption).
  */
 export function HeroCredit({ cover, archive }: { cover: ResolvedCover; archive?: boolean }) {
   const { t, locale, pick } = useUiCopy();

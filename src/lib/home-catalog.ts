@@ -21,7 +21,7 @@ export type HomeGuide = {
   /** Distinct official source URLs. */
   sources: number;
   readMinutes: number;
-  /** The guide's cover image key in `images` (absent: the information card). */
+  /** The guide's cover image key in `images` (absent: its ③ picture through `imageKeys`). */
   imageKey?: string;
   /** UI9-IMG-A1b: [own cover, ③ stock picture] when another home guide shares the cover file (①② once per page). */
   imageKeys?: readonly string[];

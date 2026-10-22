@@ -14,7 +14,7 @@ import {
 import { DEFAULT_TAGLINE, type CardTone, type HubCardModel, type ShareCardModel } from './share-card-svg';
 
 /**
- * What a share card says, per language (I18N-SEO-05): the listing's own TypeCover facts (category, the next date, the
+ * What a share card says, per language (I18N-SEO-05): the listing's own facts (category, the next date, the
  * price or value, the opening chip) and its title, date line and place, through the site's translation (`tr`: the
  * dictionary for English, the 繁體 conversion for zh-Hant). Pure: scripts/generate-share-cards.ts draws it.
  */
