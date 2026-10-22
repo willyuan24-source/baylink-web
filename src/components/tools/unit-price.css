@@ -14,7 +14,8 @@
 .unit-price-amount-row{display:grid;grid-template-columns:minmax(65px,.65fr) minmax(0,1.35fr);gap:11px}
 .unit-price-product .tool-field{gap:7px;font-size:var(--text-caption)}
 .unit-price-product input{background:var(--color-surface)}
-.unit-price-product input[aria-invalid=true],.unit-price-product select[aria-invalid=true]{border-color:var(--color-danger)}
+/* The Select's own hover (select.css, 0-4-0) would repaint an invalid unit's danger edge; this selector outranks it. */
+.unit-price-product input[aria-invalid=true],.unit-price-product .ui-select>select.ui-select__field[aria-invalid=true]{border-color:var(--color-danger)}
 .unit-price-add-row{display:flex;align-items:center;gap:13px;flex-wrap:wrap}
 .unit-price-results{overflow:hidden;border:1px solid var(--color-line-strong);border-radius:var(--r-lg);background:var(--color-surface)}
 .unit-price-results-heading{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:20px;background:var(--color-brand-tint)}

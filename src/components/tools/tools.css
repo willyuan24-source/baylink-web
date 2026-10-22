@@ -4,7 +4,8 @@
    this file only lays them out (UI9-R1-TOOLS). */
 .tools-page{padding-block:24px 56px;color:var(--color-ink)}
 .tools-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-items:start}
-.tools-picker ul{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+/* Two-up on a phone; one column at 大 / 特大 / 简洁显示 on a phone (--feed-cols, tokens.css, D9), where a tile reads as a row. */
+.tools-picker ul{display:grid;grid-template-columns:repeat(var(--feed-cols),minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
 .tools-picker-item{display:flex;flex-direction:column;align-items:flex-start;gap:8px;height:100%;min-height:4rem;padding:12px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface);color:var(--color-ink);text-decoration:none}
 .tools-picker-icon{display:grid;place-items:center;flex:none;width:2.25rem;height:2.25rem;border-radius:var(--r-circle);background:var(--color-brand-tint);color:var(--color-brand)}
 /* The open tool is the one selected look site-wide (--selected-*: ink fill, white text). A phone at rest (no ?tool=) has
@@ -49,7 +50,12 @@
    width in a column or beside a note; an icon button that cannot act reads ink-3 on a lighter edge (not faded, N09). */
 .tool-form>.ui-button{align-self:flex-start}
 .tool-inline-heading>.ui-button{flex:none}
-.tool-workspace .ui-icon-button:disabled{border-color:var(--color-line);color:var(--color-ink-3);cursor:not-allowed}
+/* ui.css's hover rules are not limited to enabled controls and outrank its :disabled rule, so a disabled primary would
+   take the brand-hover fill under the pointer. Inside a tool a disabled button keeps its disabled look on hover
+   (the root fix, :not(:disabled,[aria-disabled=true]) on ui.css's hovers, is handed to INT in PR.md). */
+.tool-workspace .ui-button[data-variant]:disabled{border-color:transparent;background:var(--color-surface-2)}
+.tool-workspace .ui-button[data-variant=quiet]:disabled{background:none;text-decoration-line:none}
+.tool-workspace .ui-icon-button:disabled{border-color:var(--color-line);background:var(--color-surface);color:var(--color-ink-3);cursor:not-allowed}
 .tool-note{margin:0;color:var(--color-ink-2);font-size:var(--text-fact);line-height:1.714}
 .tool-error{padding:12px 14px;border-radius:var(--r-md);background:var(--color-danger-tint);color:var(--color-danger);font-size:var(--text-fact);line-height:1.6}
 .tool-output{display:flex;flex-direction:column;gap:12px;padding:16px;border:1px solid var(--color-line);border-radius:var(--r-md);background:var(--color-surface-2)}
@@ -108,6 +114,7 @@
 }
 @media (min-width:1024px) and (hover:hover) and (pointer:fine){.tools-picker-item:not([aria-current],[data-open]):hover{border-color:transparent;background:var(--color-surface-2)}}
 @media(max-width:1023px){.tools-layout[data-rest] .tool-workspace{display:none}}
+@media(max-width:767px){html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .tools-picker-item{flex-direction:row;align-items:center;gap:12px}}
 @media(max-width:639px){
   .tools-page{padding-top:16px}
   .tool-grid{grid-template-columns:1fr;gap:14px}

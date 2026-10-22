@@ -7,6 +7,7 @@ import test, { afterEach } from 'node:test';
 import { JSDOM } from 'jsdom';
 import React from 'react';
 import postcss, { type AtRule, type Rule } from 'postcss';
+import selectorParser from 'postcss-selector-parser';
 
 const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'http://localhost/' });
 Object.assign(globalThis, {
@@ -102,4 +103,82 @@ test('tools.css: one selected look (the --selected-* pair), the tag at 14px, no 
   assert.equal(rules.find(rule => rule.selector === '.tool-field textarea,.tool-output textarea')!.decls.resize, 'none');
   const rest = rules.find(rule => rule.selector === '.tools-layout[data-rest] .tool-workspace')!;
   assert.deepEqual([rest.media, rest.decls.display], ['(max-width:1023px)', 'none']);
+});
+
+// ---- review round 1: disabled controls under the pointer, the elder-mode picker, the invalid unit Select ----
+/** CSS specificity as one number (ids·10⁴ + classes/attributes/pseudo-classes·10² + types); :not/:is/:has take their
+ * most specific argument, :where counts nothing. */
+const specificity = (selector: string): number => {
+  const score = (nodes: selectorParser.Node[]): number => nodes.reduce((sum, node) => {
+    if (node.type === 'id') return sum + 10000;
+    if (node.type === 'class' || node.type === 'attribute') return sum + 100;
+    if (node.type === 'tag') return sum + 1;
+    if (node.type === 'pseudo') {
+      if (node.value.startsWith('::')) return sum + 1;
+      if (/^:(?:not|is|has)$/.test(node.value)) return sum + Math.max(0, ...(node.nodes as selectorParser.Selector[]).map(inner => score(inner.nodes)));
+      return node.value === ':where' ? sum : sum + 100;
+    }
+    return sum;
+  }, 0);
+  let best = 0;
+  selectorParser(root => { root.each(item => { best = Math.max(best, score(item.nodes)); }); }).processSync(selector);
+  return best;
+};
+const declsOf = (rule: Rule) => { const decls: Record<string, string> = {}; rule.walkDecls(decl => { decls[decl.prop] = decl.value; }); return decls; };
+
+test('a disabled tool button keeps its disabled look under the pointer: tools.css outranks every ui.css hover that is not limited to enabled controls', () => {
+  assert.ok(specificity('.ui-button[data-variant=primary]:hover') === 300 && specificity('.a:not(:disabled,[x]):hover') === 300, 'specificity helper');
+  const ui = postcss.parse(readFileSync('src/components/ui/ui.css', 'utf8'));
+  const hovers: { selector: string; props: string[] }[] = [];
+  ui.walkRules(rule => {
+    for (const selector of rule.selectors) {
+      if (!/^\.ui-(?:icon-)?button\b/.test(selector) || !/:hover$/.test(selector) || /:not\([^)]*:disabled/.test(selector)) continue;
+      hovers.push({ selector, props: Object.keys(declsOf(rule)) });
+    }
+  });
+  const tools = parsed.find(sheet => sheet.file.endsWith('/tools.css'))!.root;
+  const disabled: { selector: string; icon: boolean; variant?: string; decls: Record<string, string> }[] = [];
+  tools.walkRules(rule => {
+    for (const selector of rule.selectors) {
+      const match = /^\.tool-workspace \.ui-(icon-)?button(?:\[data-variant(?:=(\w+))?\])?:disabled$/.exec(selector);
+      if (match) disabled.push({ selector, icon: !!match[1], variant: match[2], decls: declsOf(rule) });
+    }
+  });
+  const problems: string[] = [];
+  for (const hover of hovers) {
+    const icon = hover.selector.startsWith('.ui-icon-button');
+    const variant = /data-variant=(\w+)/.exec(hover.selector)?.[1];
+    for (const prop of hover.props) {
+      const covering = disabled.filter(rule => rule.icon === icon && (!rule.variant || rule.variant === variant) && prop in rule.decls && specificity(rule.selector) > specificity(hover.selector));
+      if (!covering.length) problems.push(`${hover.selector} ${prop}`);
+    }
+  }
+  assert.deepEqual(problems, []);
+  const look = (selector: string) => disabled.find(rule => rule.selector === selector)!.decls;
+  assert.deepEqual(look('.tool-workspace .ui-button[data-variant]:disabled'), { 'border-color': 'transparent', background: 'var(--color-surface-2)' });
+  assert.deepEqual(look('.tool-workspace .ui-button[data-variant=quiet]:disabled'), { background: 'none', 'text-decoration-line': 'none' });
+  assert.equal(look('.tool-workspace .ui-icon-button:disabled').background, 'var(--color-surface)');
+});
+
+test('the tool picker goes to one column at 大 / 特大 / 简洁显示 on a phone (--feed-cols) and its tiles read as rows there', () => {
+  const tools = parsed.find(sheet => sheet.file.endsWith('/tools.css'))!.root;
+  const found: Record<string, { media: string; decls: Record<string, string> }> = {};
+  tools.walkRules(rule => { found[rule.selector] ??= { media: rule.parent?.type === 'atrule' ? (rule.parent as AtRule).params : '', decls: declsOf(rule) }; });
+  assert.equal(found['.tools-picker ul'].decls['grid-template-columns'], 'repeat(var(--feed-cols),minmax(0,1fr))');
+  const tokens = readFileSync('src/tokens.css', 'utf8');
+  assert.match(tokens, /:root \{ --feed-cols:2; \}/);
+  assert.match(tokens, /@media\(max-width:767px\) \{\s*html:is\(\[data-reading=large\],\[data-reading=extra-large\],\[data-simple\]\) \{ --feed-cols:1; \}/);
+  const row = found['html:is([data-reading=large],[data-reading=extra-large],[data-simple]) .tools-picker-item'];
+  assert.deepEqual([row.media, row.decls['flex-direction']], ['(max-width:767px)', 'row']);
+});
+
+test('an invalid unit Select keeps its danger edge under the pointer: the unit-price rule outranks the Select hover', () => {
+  const select = postcss.parse(readFileSync('src/components/ui/select.css', 'utf8'));
+  let hover = 0;
+  select.walkRules(rule => { for (const selector of rule.selectors) if (/\.ui-select__field\b.*:hover$/.test(selector) && 'border-color' in declsOf(rule)) hover = Math.max(hover, specificity(selector)); });
+  assert.ok(hover > 0);
+  const unit = parsed.find(sheet => sheet.file.endsWith('/unit-price.css'))!.root;
+  let invalid = 0;
+  unit.walkRules(rule => { for (const selector of rule.selectors) if (/select.*\[aria-invalid=true\]$/.test(selector) && declsOf(rule)['border-color'] === 'var(--color-danger)') invalid = Math.max(invalid, specificity(selector)); });
+  assert.ok(invalid > hover, `${invalid} > ${hover}`);
 });
