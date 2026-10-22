@@ -77,3 +77,26 @@ test('captain 10-21 18:30: a short /guides topic row ends on 看全部, and a ro
     assert.match(css, /\.saves-toggle::after \{ content:""; position:absolute; inset:-4px; \}/, '36 + 2 × 4 = 44 px to tap');
   }
 });
+
+test('every share card and weekly tile fronts a picture promotion allows: never AI art, never CC BY-SA (DECISIONS 21/24)', async () => {
+  const { localDiscoveries } = await import('../src/data/local-discoveries');
+  const { guides } = await import('../src/data/guides');
+  const { GUIDE_IMAGES, getGuideMedia } = await import('../src/data/guide-media');
+  const { cardPhoto, promoPhoto, sharePicture } = await import('../src/lib/share-card-model');
+  const { isAiIllustration } = await import('../src/lib/cover');
+  const today = '2026-10-22';
+  const pictures = [
+    ...localDiscoveries.map(item => { const record = item.kind === 'event' ? item.event : item.kind === 'offer' ? item.offer : item.shop; return [`${item.kind}:${record.id}`, sharePicture(item.kind, record, cardPhoto(item, GUIDE_IMAGES[record.imageKey], today), GUIDE_IMAGES)] as const; }),
+    ...guides.map(guide => [`guide:${guide.slug}`, sharePicture('guide', { id: guide.slug, title: guide.title, category: guide.category }, promoPhoto(getGuideMedia(guide).cover), GUIDE_IMAGES)] as const),
+  ];
+  assert.deepEqual(pictures.filter(([, image]) => !image).map(([id]) => id), [], 'every card has a picture');
+  for (const [id, image] of pictures) {
+    assert.ok(!isAiIllustration(image as never) && (typeof image!.rights !== 'object' || image!.rights?.basis !== 'ai'), `${id}: no AI art on a share card`);
+    assert.doesNotMatch(image!.licenseUrl ?? '', /by-sa/i, `${id}: no CC BY-SA photo (the card prints no author or licence)`);
+  }
+  const used = new Set<string>();
+  const event = localDiscoveries.find(item => item.kind === 'event')!;
+  const first = sharePicture('event', (event as { event: { id: string; imageKey: string } }).event, undefined, GUIDE_IMAGES, used)!;
+  used.add(first.src);
+  assert.notEqual(sharePicture('event', (event as { event: { id: string; imageKey: string } }).event, undefined, GUIDE_IMAGES, used)?.src, first.src, 'a weekly card shows each file once');
+});

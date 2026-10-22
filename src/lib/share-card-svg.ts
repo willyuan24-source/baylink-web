@@ -146,7 +146,7 @@ function renderPhotoCardSvg(model: ShareCardModel & { photo: string }, qr: CardQ
   ${lines(draw, title, left, titleY, 42, 52, 700, INK)}
   ${lines(draw, meta, left + 2, metaY, 24, 34, 400, INK_2)}
   ${lines(draw, cardLines(model.footnote, right - left, 16, 1), left, 600, 16, 22, 400, INK_3)}
-  ${qrBlock(qr, 1004, 400, 148)}
+  ${qrBlock(qr, 984, 388, 168)}
   ${draw({ text: 'baylink.us', x: 1004, y: 598, size: 24, weight: 700, fill: BRAND })}
   </g></svg>`;
 }

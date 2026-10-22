@@ -4,7 +4,8 @@ import type { Guide } from '../data/guides';
 import type { GuideImage } from '../data/guide-media';
 import { guideShare } from './editorial-share';
 import { getImageProvenance, typeCoverProvenance } from './image-provenance';
-import { captureYear, getCover, isAiIllustration, rightsBasisOf, type CoverAsset } from './cover';
+import { captureYear, getCover, isAiIllustration, rightsBasisOf, type CoverAsset, type CoverKind } from './cover';
+import { coverCandidates, type CandidateRecord } from './cover-candidates';
 import { GUIDE_TOPICS, guideTopicOf } from '../data/guide-topics';
 import {
   brandCase, eventDateChip, eventPriceChip, eventTimeLabel, eventTone, formatDateChip, offerDeadline, offerKindLabel, offerTone, offerValue,
@@ -50,6 +51,23 @@ export function cardPhoto(item: LocalDiscovery, image: GuideImage | undefined, t
   const { id, imageKey } = item.event;
   return getCover({ kind: 'event', id, imageKey }, { images: { [imageKey]: image }, today }).tier === 'official' ? image : undefined;
 }
+/** A card prints no author or licence, so a CC BY-SA photo never fronts one (UI9-IMAGES §4 分享图). */
+const shareAlike = (image: GuideImage) => /by-sa/i.test(image.licenseUrl ?? '') || /CC BY-SA/i.test(image.credit);
+/**
+ * UI9-IMG-A1b (DECISIONS 21/22): every share card fronts a picture. The record's own image when the card may carry it
+ * (`own`: cardPhoto / promoPhoto), else the first of its candidates in the owner's order (coverCandidates: its venue's
+ * photo, its category's ③ stock pictures) that promotion allows — `rights.promoAllowed`, never AI art (④ never goes on a
+ * share card), never a CC BY-SA photo — skipping files `used` already holds (a weekly card's four tiles).
+ */
+export function sharePicture(kind: CoverKind, record: CandidateRecord, own: GuideImage | undefined, images: Readonly<Record<string, GuideImage>>, used: ReadonlySet<string> = new Set()): GuideImage | undefined {
+  if (own && !shareAlike(own) && !used.has(own.src)) return own;
+  for (const key of coverCandidates(kind, record)) {
+    const image = Object.hasOwn(images, key) ? images[key] : undefined;
+    if (image && !used.has(image.src) && promoPhoto(image) && !shareAlike(image)) return image;
+  }
+  return undefined;
+}
+
 /** The source a card names beside an official image's label: the image's own page, else the listing's official page. */
 const sourceHost = (...urls: (string | undefined)[]) => {
   for (const url of urls) { try { if (url) return new URL(url).hostname.replace(/^www\./, ''); } catch { /* the next one */ } }

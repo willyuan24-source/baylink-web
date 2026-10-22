@@ -117,7 +117,7 @@ export type EventFields = {
   id: string; title: string; venue?: string; category?: string; kind?: string; audience?: readonly string[];
   planning?: { setting?: string };
 };
-export type OfferFields = { id: string; brand?: string; title: string };
+export type OfferFields = { id: string; brand?: string; title: string; kind?: string };
 export type OpeningFields = { id: string; name: string; category?: string; openingType?: string };
 export type GuideFields = { slug: string; title?: string; category?: string };
 export type BulletinFields = { id: string; title: string; label?: string };
@@ -287,8 +287,16 @@ const OFFER_RULES: readonly Rule[] = [
 ];
 
 /** An offer's photo category: transit and birthday perks by what they are, then by brand and title. */
+/** UI9-IMG-A1b: the offers OFFER_RULES leave out still get a picture of what they are (DECISIONS 21), never none. */
+const OFFER_FALLBACK_RULES: readonly Rule[] = [
+  ['dining', /便当|bento|餐|饭|寿司|拉面|onigil/i],
+  ['swap-meet', /换装|換裝|交换|交換|swap|exchange/i],
+  ['green-volunteer', /粉碎|shred|回收|recycl/i],
+];
 export function offerPhotoCategory(offer: OfferFields): PhotoCategoryId | undefined {
-  return override('offer', offer.id) ?? firstMatch(OFFER_RULES, `${offer.brand ?? ''} | ${offer.title}`);
+  const text = `${offer.brand ?? ''} | ${offer.title}`;
+  return override('offer', offer.id) ?? firstMatch(OFFER_RULES, text) ?? firstMatch(OFFER_FALLBACK_RULES, text)
+    ?? (offer.kind === 'purchase' ? 'shopping' : 'community-festival');
 }
 
 const OPENING_RULES: readonly Rule[] = [

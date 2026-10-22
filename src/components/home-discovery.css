@@ -78,6 +78,13 @@ html[data-reading$=large] .home-mood { aspect-ratio:4 / 3; }
 .home-share,.home-empty { display:flex; flex-direction:column; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-3) var(--sp-4); border-radius:var(--r-lg); background:var(--color-surface-2); }
 .home-share h2 { font-size:var(--text-card); line-height:var(--lh-snug); font-weight:600; }
 .home-share__actions { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+/* The card's preview (UI9-IMG-A1b): from 768 px the panel is the preview beside its heading, line and buttons. */
+.home-share__card { display:none; }
+@media (min-width:768px) {
+  .home-share[data-card] { display:grid; grid-template-columns:5.5rem minmax(0, 1fr); grid-auto-rows:min-content; column-gap:var(--sp-4); align-items:start; }
+  .home-share[data-card]>:not(.home-share__card) { grid-column:2; }
+  .home-share__card { display:block; grid-row:1 / span 3; width:100%; height:auto; aspect-ratio:3 / 4; border:1px solid var(--color-line); border-radius:var(--r-md); background:var(--color-surface); }
+}
 
 /* ④ feed; the coded-cover note is printed once, in the credits line. */
 .home-feed__all { margin-top:var(--sp-4); }
