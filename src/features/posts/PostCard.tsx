@@ -106,8 +106,9 @@ export const PostCard = ({ post, layout = 'list', priority, onClick, currentUser
   const displayed = reading.display;
   const all = normalizePostImages(post);
   const images = all.filter(url => !isDefaultCoverUrl(url));
-  // A stock cover already carries its 系统封面 note: no photo count beside it (♡ + one sticker).
-  const photoCount = all[0] && isDefaultCoverUrl(all[0]) ? 0 : images.length;
+  // A stock cover already carries its 系统封面 note, and an owner's or admin's card its ⋯ menu: no photo count beside them
+  // (on the photo ♡ + one more control or sticker, N22).
+  const photoCount = canManage || (all[0] && isDefaultCoverUrl(all[0])) ? 0 : images.length;
   const price = post.budget ? formatPostPrice(displayed.budget, locale) : '';
   const meta = [post.city ? pick(regionName(post.city)) : t('湾区', 'Bay Area'), postedOn(post.createdAt, english)].filter(Boolean).join(' · ');
   const close = () => setMenuOpen(false);

@@ -24,6 +24,10 @@
 .cm-search input { flex:1; min-width:0; min-height:2.75rem; border:0; outline:0; background:transparent; color:var(--color-ink); font-size:var(--text-body); }
 .cm-search input::placeholder { color:var(--color-ink-3); }
 .cm-search:focus-within { border-color:var(--color-brand); }
+/* One rounded ring around the whole field on keyboard focus (FOUNDATION's focus contract), not the site's square ring on
+   the inner input as well: the input never draws its own outline (.site-app beats the site rule's .site-app :where()). */
+.site-app .cm-search input { outline:0; }
+.cm-search:has(input:focus-visible) { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
 /* The submit is the WEB-UI text button (no fill of its own: one button family less on the board, SYS ≤5). */
 .cm-search .cm-search__submit { flex:none; min-height:2.75rem; padding:0 .75rem; }
 
@@ -44,8 +48,12 @@
 .cm-board__end { margin:1.5rem 0 0; color:var(--color-ink-3); font-size:var(--text-fact); text-align:center; }
 
 .cm-board__notes { display:grid; grid-template-columns:minmax(0, 1fr); gap:var(--section-gap) var(--sp-5); margin-top:var(--section-gap); padding-top:var(--sp-5); border-top:1px solid var(--color-line); }
-/* Every visible h2 on the board is a section heading (N02: the card titles are h3s at 17–18px; an h2 is never smaller). */
-.cm-board__subhead,.cm-guides__title { display:flex; align-items:center; gap:.5rem; margin:0 0 var(--stack-head); color:var(--color-ink); font-size:var(--text-section); line-height:var(--lh-section); font-weight:600; }
+/* A note heading is the card size where the board or sheet around it has a larger heading of its own: the post sheet's aside
+   and 其他X信息, and the home page's expanded board, whose title is the section size. */
+.cm-board__subhead,.cm-guides__title { display:flex; align-items:center; gap:.5rem; margin:0 0 .5rem; color:var(--color-ink); font-size:var(--text-card); line-height:1.444; font-weight:600; }
+/* On a category or search page every visible h2 is a section heading (N02: the card titles are h3s at 17–18px; an h2 is
+   never smaller). :where keeps it at the base's weight, so .cm-ads__head's margin below still applies. */
+:where(.cm-board:not([data-mode=home]) .cm-board__notes) .cm-board__subhead,.cm-guides__title { margin-bottom:var(--stack-head); font-size:var(--text-section); line-height:var(--lh-section); }
 .cm-board__subhead>svg { flex:none; width:1.25rem; height:1.25rem; color:var(--color-brand); }
 .cm-board__fineprint { margin:.5rem 0 0; color:var(--color-ink-2); font-size:var(--text-fact); line-height:1.571; }
 .cm-board__guide-link { display:inline-flex; align-items:center; min-height:var(--control-height); color:var(--color-brand); font-weight:600; text-decoration:underline var(--underline-thickness); text-underline-offset:var(--underline-offset); }
@@ -62,9 +70,9 @@
 .cm-ads__track::-webkit-scrollbar { display:none; }
 .cm-ads[data-layout=list] .cm-ads__track { display:grid; grid-template-columns:minmax(0, 1fr); overflow:visible; }
 .cm-ad { position:relative; display:grid; grid-template-columns:4.5rem minmax(0, 1fr); align-items:start; gap:var(--sp-3); flex:0 0 min(100%, 26rem); min-width:0; padding:var(--sp-3); border:1px solid var(--color-line); border-radius:var(--r-lg); background:var(--color-surface); box-shadow:var(--e1); color:var(--color-ink); cursor:pointer; scroll-snap-align:start; transition:border-color var(--dur-2) var(--ease-std), scale var(--dur-1) var(--ease-out); }
-.cm-ad:active { scale:.985; }
+.cm-ad:not(.cm-ad--empty, .cm-ad--loading):active { scale:.985; }
 .cm-ad:focus-visible,.cm-ad-link:focus-visible,.cm-ad-field:focus-visible { outline:var(--focus-ring-width) solid var(--color-brand); outline-offset:var(--focus-ring-offset); }
-@media (hover:hover) and (pointer:fine) { .cm-ad:hover { border-color:var(--color-line-control); } }
+@media (hover:hover) and (pointer:fine) { .cm-ad:not(.cm-ad--empty, .cm-ad--loading):hover { border-color:var(--color-line-control); } }
 .cm-ad__thumb { display:block; width:4.5rem; height:4.5rem; border-radius:var(--r-md); }
 div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad__body { display:grid; gap:2px; min-width:0; }
@@ -77,14 +85,14 @@ div.cm-ad__thumb { background:var(--color-surface-2); }
 .cm-ad-note { margin:var(--sp-2) 0 0; color:var(--color-ink-2); font-size:var(--fs-badge); line-height:var(--lh-read); }
 .cm-ad__delete { position:absolute; top:var(--sp-1); right:var(--sp-1); color:var(--color-danger); }
 .cm-ad.cm-ad--empty { display:block; flex-basis:100%; cursor:default; box-shadow:none; }
-.cm-ad.cm-ad--loading { height:6.5rem; padding:0; border:0; border-radius:var(--r-lg); box-shadow:none; }
+.cm-ad.cm-ad--loading { height:6.5rem; padding:0; border:0; border-radius:var(--r-lg); box-shadow:none; cursor:default; }
 
 /* The promotion dialog and the admin's form (OfficialAds): the site scrim (no blur), the --r-xl panel with e2, the one close
    button and the site buttons. The panel is portalled outside .site-app, so the focus rings are set here. */
 .cm-ad-dialog { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:var(--sp-5) var(--sp-4); background:var(--scrim); animation:ui-fade var(--dur-3) var(--ease-out); }
 .cm-ad-dialog__panel { display:flex; flex-direction:column; width:min(100%, 32.5rem); max-height:86vh; max-height:86dvh; overflow:hidden; border-radius:var(--r-xl); background:var(--color-surface); color:var(--color-ink); box-shadow:var(--e2); animation:cm-ad-rise var(--dur-4) var(--ease-out); }
 .cm-ad-dialog__panel--form { width:min(100%, 24rem); }
-.cm-ad-dialog__head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex:none; min-height:3.5rem; padding:var(--sp-1) var(--sp-3) var(--sp-1) var(--sp-5); border-bottom:1px solid var(--color-line); }
+.cm-ad-dialog__head { display:flex; align-items:center; justify-content:space-between; gap:var(--sp-3); flex:none; min-height:3.5rem; padding:var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-5); border-bottom:1px solid var(--color-line); }
 .cm-ad-dialog__head>h3 { margin:0; color:var(--color-ink); font-size:var(--text-card); line-height:var(--lh-ui); font-weight:600; }
 .cm-ad-dialog__body { flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:var(--sp-4) var(--sp-5); }
 .cm-ad-dialog__labels { margin:var(--sp-3) 0 0; }

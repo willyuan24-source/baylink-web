@@ -203,7 +203,7 @@ function CommunityBoardView({ scrollRequest }: CommunityBoardProps) {
     {/* The feed's heading (H1 board name → h2 → card h3s); the home board's own heading is already an h2. */}
     {!isDiscovery && <h2 className="sr-only">{isSearch ? t('搜索结果', 'Results') : feedLabel}</h2>}
     <div className="cm-board__results">
-      {resultsLine && <p className="cm-board__count" role="status" data-quiet={quiet ? '' : undefined}>{resultsLine}</p>}
+      {resultsLine && <p className="cm-board__count" role="status">{resultsLine}</p>}
       <div className="cm-board__tools">
         {hasFilters && <Button variant="text" onClick={clearFilters}>{t('清除筛选', 'Clear filters')}</Button>}
         <FeedLayoutToggle effective={feedLayout.effective} onChange={feedLayout.setLayout} />

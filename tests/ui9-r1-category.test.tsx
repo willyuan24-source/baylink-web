@@ -78,6 +78,10 @@ test('N06: a post price groups its digits with Intl, and leaves words, small amo
     ['$12500', '$12,500'], ['$1,900', '$1,900'], ['$1900.50', '$1,900.50'],
     ['议价', '议价'], ['报价待发布者确认', '报价待发布者确认'], ['Negotiable', 'Negotiable'], ['2026年起租，$2000', '2026年起租，$2,000'],
     ['电话 4155551234', '电话 4155551234'], ['', ''],
+    // ranges before a unit, a comma that ends the amount, an already-grouped start, 块, a long run (review round 1)
+    ['1900-2200元', '1,900-2,200元'], ['1800~2200美元', '1,800~2,200美元'], ['$1900, negotiable', '$1,900, negotiable'],
+    ['$1900,可议', '$1,900,可议'], ['$2,000-2500', '$2,000-2,500'], ['$1,900-2200', '$1,900-2,200'], ['1900块', '1,900块'],
+    ['$12345678901234567', '$12,345,678,901,234,567'], ['$1900,2200', '$1900,2200'], ['$12,34', '$12,34'], ['$0123', '$0123'],
   ];
   for (const [input, expected] of cases) assert.equal(formatPostPrice(input), expected, input);
   assert.equal(formatPostPrice('$1900', 'en'), '$1,900');
@@ -96,6 +100,14 @@ test('N22 / N06: a grid card puts the grouped price under the title; on the phot
   // the order on the card: title, price, meta (the photo is first by CSS order)
   const order = [...card.children].map(element => element.className.split(' ').find(name => /cm-card__price|ui-feed-card__(title|meta)/.test(name))).filter(Boolean);
   assert.deepEqual(order.slice(0, 3), ['ui-feed-card__title', 'cm-card__price', 'ui-feed-card__meta']);
+});
+
+test('N22: an owner\'s or admin\'s card has its ⋯ menu on the photo, so it drops the photo count (⋯ + ♡)', () => {
+  const view = render(<MemoryRouter><PostCard post={post('o')} layout="grid" currentUser={{ id: 'member-1' } as never} /></MemoryRouter>);
+  const card = view.container.querySelector('.cm-card')!;
+  assert.ok(card.querySelector('.cm-card__menu'));
+  assert.equal(card.querySelectorAll('.ui-feed-card__media .ui-sticker').length, 0);
+  assert.equal(card.querySelector('.cm-card__price')!.textContent, '$1,900');
 });
 
 test('N22: a stock cover keeps its 系统封面 note and drops the photo count (still ♡ + one sticker); no budget, no price line', () => {
@@ -133,6 +145,11 @@ test('N02 / N10 / N11: the promotions are a section with an h2 like the notes, t
   assert.equal(ads.querySelectorAll('.cm-ads__track > .cm-ad').length, 1);
   assert.ok(ads.querySelector('.cm-ad .cm-ad-label'), 'each tile still says it is a promotion');
   assert.ok(![...view.container.querySelectorAll('.cm-board h2')].some(element => element.classList.contains('cm-guides__title') && element.closest('.cm-ads')));
+  // every note heading on a category page is inside the scope that gives it the section size (the post sheet's and the
+  // home board's are not: they keep the card size)
+  const subheads = [...view.container.querySelectorAll('.cm-board__subhead')];
+  assert.equal(subheads.length, 3, '联系和付款前, 其他分类, 推广信息');
+  for (const element of subheads) assert.ok(element.matches('.cm-board:not([data-mode=home]) .cm-board__notes .cm-board__subhead'), element.textContent!);
   const source = readFileSync('src/features/ads/OfficialAds.tsx', 'utf8');
   for (const pattern of [/shadow-(card|2xl|sm)\b/, /bg-black\//, /backdrop-blur/, /rounded-(bl-full|\[)/, /rounded-(xl|2xl|3xl|lg|md|full)\b/]) assert.doesNotMatch(source, pattern);
 });
@@ -157,12 +174,24 @@ test('N10 / N11: the promotion dialog is the site scrim (no blur), a --r-xl pane
 
 test('N09 / N02 / N16 / N15: search edge, section headings, the page gutter and the 48px end in community.css', () => {
   assert.equal(declarations('.cm-search').border, '1px solid var(--color-line-control)');
-  for (const selector of ['.cm-board__subhead', '.cm-guides__title']) assert.equal(declarations(selector)['font-size'], 'var(--text-section)', selector);
+  // N02: the section size only on a category / search board; the base (post sheet aside, 其他X信息, the home board) is the card size
+  assert.equal(declarations('.cm-board__subhead')['font-size'], 'var(--text-card)');
+  for (const selector of [':where(.cm-board:not([data-mode=home]) .cm-board__notes) .cm-board__subhead', '.cm-guides__title']) assert.equal(declarations(selector)['font-size'], 'var(--text-section)', selector);
+  assert.equal(declarations('.cm-ads__head>.cm-board__subhead').margin, '0', 'the promotions heading keeps its row margin');
+  // one rounded ring around the search field on keyboard focus, none on the inner input
+  assert.equal(declarations('.site-app .cm-search input').outline, '0');
+  assert.equal(declarations('.cm-search:has(input:focus-visible)').outline, 'var(--focus-ring-width) solid var(--color-brand)');
+  // the promotions skeleton and the admin's empty box are not pressable; the dialog head leaves room for the close ring
+  assert.equal(declarations('.cm-ad:active').scale, undefined);
+  assert.equal(declarations('.cm-ad:not(.cm-ad--empty, .cm-ad--loading):active').scale, '.985');
+  assert.equal(declarations('.cm-ad.cm-ad--loading').cursor, 'default');
+  assert.match(declarations('.cm-ad-dialog__head').padding, /^var\(--sp-2\) var\(--sp-3\) var\(--sp-2\)/);
   assert.equal(declarations('.cm-card .ui-sticker[data-tone=price]')['font-size'], undefined, 'no price sticker rule left');
   const page = declarations('.bay-home:not(.bay-home-editorial)');
   assert.equal(page['padding-inline'], 'var(--page-gutter)');
   assert.equal(page['padding-bottom'], '0');
   assert.match(declarations('.cm-board').padding, /var\(--sp-7\)$/);
-  assert.equal(declarations('.cm-board__count[data-quiet]').background, undefined, 'the quiet-board line is a plain line, not a tinted box');
+  assert.doesNotMatch(css, /data-quiet/, 'the quiet-board line is a plain line like the count, not a tinted box');
+  assert.doesNotMatch(readFileSync('src/pages/CommunityBoard.tsx', 'utf8'), /data-quiet/);
   assert.doesNotMatch(css, /text-underline-offset:3px/);
 });
