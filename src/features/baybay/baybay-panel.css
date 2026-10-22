@@ -65,7 +65,9 @@ html[data-simple] .baybay-conversation :is(.ui-button,.ui-chip) { min-height:3re
    edge of its own (N12); e1 lifts the two above the flat outlined chips, so they read first. */
 .baybay-conversation .bb-welcome { display:grid; gap:var(--sp-4); }
 .baybay-conversation .bb-welcome__line { margin:0; color:var(--color-ink-2); }
-.baybay-conversation .bb-capsule { display:flex; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
+/* The capsule's ✕ is the shared close (N12), ring and all, so the panel keeps one close look; --sp-2 around it gives the
+   ring room inside the tint instead of 4px from the edge. */
+.baybay-conversation .bb-capsule { display:flex; align-items:flex-start; gap:var(--sp-2); padding:var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-3); border-radius:var(--r-md); background:var(--color-brand-tint); }
 .baybay-conversation .bb-capsule__text { flex:1; min-width:0; margin:0; padding-block:var(--sp-3); color:var(--color-ink-2); font-size:var(--fs-meta); line-height:var(--lh-ui); overflow-wrap:anywhere; }
 .baybay-conversation .bb-capsule__text>strong { color:var(--color-ink); font-weight:600; }
 .baybay-conversation :is(.bb-chips,.bb-prompts,.bb-also ul,.baybay-followups ul,.baybay-plan-followups,.baybay-plan-citations) { margin:0; padding:0; list-style:none; }

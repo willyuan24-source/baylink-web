@@ -345,6 +345,7 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
   const emergencyLast = lastComplete?.response?.safety?.kind === 'emergency';
   const fullNotice = bayBayFullNoticeTurns(turns);
 
+  const showCapsule = Boolean(pageRef && pageTitle && !pageOff);
   const newConversation = () => { stop(); setCompletionNotice(null); updateTurns(() => []); setQuestion(''); setTooShort(false); };
   // 简洁显示 subtracts (content arrangement 10-19): four starters (two cards, two chips), none of 也可以's own four, 当前条件 hidden.
   const starters = simpleDisplay ? BAYBAY_STARTERS.filter(starter => starter.action === 'send' || starter.action === 'draft') : BAYBAY_STARTERS;
@@ -403,10 +404,12 @@ const BayBayAssistantSession = ({ onNavigate, onCreatePostClick, categoryHint,
       : capabilities.reduced && fullNotice.reduced === undefined && <BayBayNoticeBanner kind="ai_budget_reduced" text={capabilities.reduced.banner[locale]} resumesAt={capabilities.reduced.resumesAt} />}
     {/* The AI cutoff, in its last 7 days: a calm line, not an alarm (api #37 pauseScheduled / aiUntil). */}
     {capabilities.scheduled && <BayBayScheduledNotice text={capabilities.scheduled.banner[locale]} />}
-    {turns.length === 0 && <p className="bb-welcome__line">{copy('直接打字，或点一个问题。', 'Type a question, or pick one below.')}</p>}
+    {/* On a page in view the capsule and its page chips already invite a question, so the welcome line steps aside: about
+        50px back for the welcome on detail pages (J2 P19). */}
+    {turns.length === 0 && !showCapsule && <p className="bb-welcome__line">{copy('直接打字，或点一个问题。', 'Type a question, or pick one below.')}</p>}
     {/* "正在看：<the full title> ✕" at the top of the body: the title wraps, never an ellipsis (N25); the ✕ is the shared close (N12). */}
-    {pageRef && pageTitle && !pageOff && <div className="bb-capsule"><p className="bb-capsule__text">{copy('正在看：', 'Viewing: ')}<strong>{pageTitle}</strong></p>
-      <CloseButton className="bb-capsule__off" label={copy('不再参考这一页', 'Stop using this page')} onClick={() => setPageOffPath(currentPath)} /></div>}
+    {showCapsule && <div className="bb-capsule"><p className="bb-capsule__text">{copy('正在看：', 'Viewing: ')}<strong>{pageTitle}</strong></p>
+      <CloseButton label={copy('不再参考这一页', 'Stop using this page')} onClick={() => setPageOffPath(currentPath)} /></div>}
     {schoolContext && <p className="baybay-composer-note baybay-school-privacy" id="baybay-school-privacy">{BAYBAY_SCHOOL_NOTE}</p>}
     {turns.length === 0 && <section className="bb-welcome" aria-label={copy('开始提问', 'Get started')}>
       {pageQuestions.length > 0 && <ul className="bb-chips bb-chips--page" aria-label={copy('围绕这一页提问', 'Ask about this page')}>{pageQuestions.map(prompt => <li key={prompt.label}><button type="button" className="ui-chip" disabled={loading} onClick={() => askBayBay(prompt.question)}>{prompt.label}</button></li>)}</ul>}

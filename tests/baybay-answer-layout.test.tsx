@@ -209,6 +209,7 @@ test('on an event page the capsule names the page, page chips ask about it, and 
   assert.deepEqual(bayBayPageRef('/en/events/san-francisco-fleet-week-2026?date=2026-10-11'), { kind: 'event', id: 'san-francisco-fleet-week-2026' });
   const view = render(<BayBayAssistantEntry {...props} currentPath="/events/san-francisco-fleet-week-2026" />);
   assert.match(view.baseElement.querySelector('.bb-capsule')?.textContent || '', /正在看：.*Fleet Week/);
+  assert.equal(view.queryByText('直接打字，或点一个问题。'), null, 'the capsule and page chips invite the question; the welcome line steps aside');
   const chips = view.getByRole('list', { name: '围绕这一页提问' });
   assert.equal(within(chips).getAllByRole('button').length, 3);
   fireEvent.click(within(chips).getByRole('button', { name: /适合带长辈和孩子/ }));

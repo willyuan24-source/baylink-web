@@ -107,11 +107,14 @@ test('the welcome: one line, two prompt cards with a hint, the other starters th
 // every corner in the panel's sheet is one radius token (no compound radius of its own; the footer has no fill or corners).
 test('the welcome cards take the panel card look; every corner is one radius token', () => {
   const css = readFileSync('src/features/baybay/baybay-panel.css', 'utf8');
-  const prompt = /\.baybay-conversation \.bb-prompt \{([^}]*)\}/.exec(css)?.[1] || '';
-  assert.match(prompt, /border:1px solid var\(--color-line\);/, 'the 1px decorative line, not a control edge');
-  assert.match(prompt, /background:var\(--color-surface\);/, 'white, not the paper fill');
-  assert.match(prompt, /border-radius:var\(--r-lg\);/);
-  assert.match(css, /\.baybay-outing-card,\.bb-post\) \{[^}]*padding:var\(--sp-3\) var\(--sp-4\); border:1px solid var\(--color-line\); border-radius:var\(--r-lg\); background:var\(--color-surface\);/, 'the same look as the outing and post cards');
+  // Each rule's declarations as a map, so a reorder or reformat of a rule does not break the comparison.
+  const declarations = (selector: RegExp) => new Map((selector.exec(css)?.[1] || '').split(';').map(part => part.split(/:(.*)/s).map(bit => bit.trim())).filter(([prop]) => prop).map(([prop, value]): [string, string] => [prop, value]));
+  const prompt = declarations(/\.baybay-conversation \.bb-prompt \{([^}]*)\}/);
+  const card = declarations(/\.baybay-conversation :is\(\.baybay-outing-card,\.bb-post\) \{([^}]*)\}/);
+  assert.equal(prompt.get('border'), '1px solid var(--color-line)', 'the 1px decorative line, not a control edge');
+  assert.equal(prompt.get('background'), 'var(--color-surface)', 'white, not the paper fill');
+  assert.equal(prompt.get('border-radius'), 'var(--r-lg)');
+  for (const prop of ['padding', 'border', 'border-radius', 'background']) assert.equal(prompt.get(prop), card.get(prop), `${prop}: the same look as the outing and post cards`);
   for (const [, value] of css.matchAll(/border(?:-[a-z]+)*-radius:([^;}]+)/g)) assert.match(value.trim(), /^var\(--r-(?:sm|md|lg|xl|pill|circle)\)$/, `radius ${value} is one token`);
   assert.doesNotMatch(/\.baybay-sheet \.ui-sheet__footer \{[^}]*\}/.exec(css)?.[0] || '', /background|radius/, 'the footer shows the sheet\'s own white and corners');
 });
