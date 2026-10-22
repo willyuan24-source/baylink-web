@@ -81,6 +81,8 @@ test('pre-footer (N15): /me, my-week, /about and the 404 end 32-48px above the c
   assert.equal(page.flex, undefined);
   assert.equal(one('src/components/not-found.css', '.nf-actions').margin, 'var(--section-gap) 0 var(--sp-2)');
   assert.equal(one('src/components/not-found.css', '.nf-feedback')['margin-top'], undefined);
+  // The lazy 反馈与报错 link's row is held from the first paint (the prerender has an empty .nf-feedback).
+  assert.equal(one('src/components/not-found.css', '.nf-feedback')['min-height'], 'var(--control-height)');
   assert.doesNotMatch(readFileSync('src/components/not-found.css', 'utf8'), /site-main/);
   // Desktop: the four place cards are 88 tall, which fills a 1440 x 900 window to ≤ 64 above the footer.
   assert.equal(one('src/components/not-found.css', '.nf-links a', '(min-width:1024px)')['min-height'], '5.5rem');

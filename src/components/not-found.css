@@ -29,7 +29,9 @@
 .nf-links strong{display:block;font-size:var(--fs-body);line-height:var(--lh-snug);font-weight:var(--fw-regular)}
 .nf-links small{display:block;color:var(--color-ink-2);font-size:var(--fs-meta);line-height:var(--lh-snug)}
 .nf-actions{display:flex;flex-wrap:wrap;gap:var(--sp-2);margin:var(--section-gap) 0 var(--sp-2)}
-.nf-feedback{display:flex}
+/* 反馈与报错 is a lazy link (LazyFeedbackLink, nothing in the prerender): its 44px row is held from the first paint, so on a
+   phone, where the page is taller than the window, the footer does not drop 42px when the link arrives (UI9-R1 polish). */
+.nf-feedback{display:flex;min-height:var(--control-height)}
 .nf-page :is(a,button):focus-visible{outline:var(--focus-ring-width) solid var(--color-brand);outline-offset:var(--focus-ring-offset)}
 @media(max-width:639px){.nf-links ul{grid-template-columns:1fr;gap:var(--sp-2)}.nf-links a{min-height:3.5rem}}
 /* Desktop: the four places are the page's main content, so their cards get room (88 tall, 2 x 2 in columns 1-8); that also
