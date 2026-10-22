@@ -137,7 +137,6 @@ html:not([data-simple]) .gl-page [data-simple=show] { display:none; }
 }
 @media (min-width:1024px) {
   html:not([data-reading$=large]) .gl-all-cell { display:flex; grid-column:span var(--gl-rest, 1); }
-  .gl-all-cell>button { display:flex; flex:1; align-items:center; justify-content:center; gap:var(--sp-1); min-height:var(--control-height); border:1px dashed var(--color-line-strong); border-radius:var(--r-lg); background:var(--color-surface-2); color:var(--color-brand-deep); font:inherit; font-size:var(--fs-body); font-weight:600; cursor:pointer; }
-  .gl-all-cell>button:hover { background:var(--color-surface); }
+  .gl-all-cell>.ui-button { flex:1; height:auto; border-radius:var(--r-lg); }
   .gl-all-cell svg { width:1.125rem; height:1.125rem; }
 }

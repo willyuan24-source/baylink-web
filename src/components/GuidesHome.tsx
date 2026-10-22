@@ -195,7 +195,7 @@ export const GuidesHome = ({ onOpenGuide, onAsk, onSearch }: GuidesHomeProps) =>
   // A topic preview shorter than the desktop row (医疗保险 shows two) ends on a 看全部 cell over the rest of the row
   // (captain 10-21 18:30: no empty cells); guide-library.css draws it from 1024 px only.
   const allCell = (all?: { total: number; open: () => void }, shown = 0) => all && shown < 4
-    ? <li className="gl-all-cell" style={{ '--gl-rest': 4 - shown } as CSSProperties}><button type="button" onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></button></li> : null;
+    ? <li className="gl-all-cell" style={{ '--gl-rest': 4 - shown } as CSSProperties}><Button variant="secondary" block onClick={all.open}>{t(`看全部 ${all.total} 篇`, `All ${all.total} guides`)}<ChevronRight aria-hidden="true" strokeWidth={1.75} /></Button></li> : null;
   const list = (items: readonly GuideIndexCard[], label: string, firstPriority = false, all?: { total: number; open: () => void }) => items.filter(photo).length >= Math.max(3, Math.ceil(items.length * 0.75))
     ? <FeedGrid label={label}>{items.map((guide, index) => <FeedItem key={guide.slug}>{feed(guide, firstPriority && index === 0)}</FeedItem>)}{allCell(all, items.length)}</FeedGrid>
     : <>

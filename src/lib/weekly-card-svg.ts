@@ -44,7 +44,7 @@ export function renderWeeklyCardSvg(model: WeeklyCardModel, qr: CardQr, logo: st
     ${lines(draw, title, x + 32, y + 178, 34, 44, 700, tile.photo ? '#fff' : INK)}
     ${lines(draw, cardLines(tile.place, tileW - 64, 22, 1), x + 32, y + 178 + title.length * 44 + 4, 22, 30, 400, tile.photo ? '#fff' : INK_2)}
     ${tile.sticker ? pill(draw, tile.sticker, x + 30, y + tileH - 70, 22, tile.photo ? '#fff' : palette.fg, tile.photo ? INK : '#fff') : ''}
-    ${tile.photo && tile.badge ? pill(draw, tile.badge, x + tileW - 32 - Math.ceil(textWidth(tile.badge, 18)) - 32, y + tileH - 66, 18, '#fff', INK) : ''}`;
+    ${tile.photo && tile.badge ? pill(draw, tile.badge, x + tileW - 32 - Math.ceil(textWidth(tile.badge, 18)) - 32, y + tileH - 66, 18, PAPER, INK) : ''}`;
   });
   if (model.tiles.length === 3 && model.more) {
     const x = left + tileW + gap, y = top + tileH + gap;
